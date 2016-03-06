@@ -31,17 +31,15 @@ typedef struct imc_android_state_t imc_android_state_t;
  */
 struct imc_android_state_t {
 
-    /**
-     * imc_state_t interface
-     */
-    imc_state_t interface;
+	/**
+	 * imc_state_t interface
+	 */
+	imc_state_t interface;
 
-    /**
-     * Get TCG Platform Trust Service (PTS) object
-     */
-    pts_t *(*get_pts)(imc_android_state_t *
-
-    this);
+	/**
+	 * Get TCG Platform Trust Service (PTS) object
+	 */
+	pts_t *(*get_pts)(imc_android_state_t *this);
 };
 
 /**
@@ -49,6 +47,6 @@ struct imc_android_state_t {
  *
  * @param id		connection ID
  */
-imc_state_t *imc_android_state_create(TNC_ConnectionID id);
+imc_state_t* imc_android_state_create(TNC_ConnectionID id);
 
 #endif /** IMC_ANDROID_STATE_H_ @}*/

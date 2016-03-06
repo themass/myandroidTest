@@ -37,80 +37,57 @@ typedef struct vpnservice_builder_t vpnservice_builder_t;
  */
 struct vpnservice_builder_t {
 
-    /**
-     * Add an interface address
-     *
-     * @param addr				the desired interface address
-     * @return					TRUE on success
-     */
-    bool (*add_address)(vpnservice_builder_t *
+	/**
+	 * Add an interface address
+	 *
+	 * @param addr				the desired interface address
+	 * @return					TRUE on success
+	 */
+	bool (*add_address)(vpnservice_builder_t *this, host_t *addr);
 
-    this,
-    host_t *addr
-    );
+	/**
+	 * Add a route
+	 *
+	 * @param net				the network address
+	 * @param prefix_length		the prefix length
+	 * @return					TRUE on success
+	 */
+	bool (*add_route)(vpnservice_builder_t *this, host_t *net, int prefix);
 
-    /**
-     * Add a route
-     *
-     * @param net				the network address
-     * @param prefix_length		the prefix length
-     * @return					TRUE on success
-     */
-    bool (*add_route)(vpnservice_builder_t *
+	/**
+	 * Add a DNS server
+	 *
+	 * @param dns				the address of the DNS server
+	 * @return					TRUE on success
+	 */
+	bool (*add_dns)(vpnservice_builder_t *this, host_t *dns);
 
-    this,
-    host_t *net,
-    int prefix
-    );
+	/**
+	 * Set the MTU for the TUN device
+	 *
+	 * @param mtu				the MTU to set
+	 * @return					TRUE on success
+	 */
+	bool (*set_mtu)(vpnservice_builder_t *this,	int mtu);
 
-    /**
-     * Add a DNS server
-     *
-     * @param dns				the address of the DNS server
-     * @return					TRUE on success
-     */
-    bool (*add_dns)(vpnservice_builder_t *
+	/**
+	 * Build the TUN device
+	 *
+	 * @return					the TUN file descriptor, -1 if failed
+	 */
+	int (*establish)(vpnservice_builder_t *this);
 
-    this,
-    host_t *dns
-    );
+	/**
+	 * Build the TUN device without DNS related data
+	 *
+	 * @return					the TUN file descriptor, -1 if failed
+	 */
+	int (*establish_no_dns)(vpnservice_builder_t *this);
 
-    /**
-     * Set the MTU for the TUN device
-     *
-     * @param mtu				the MTU to set
-     * @return					TRUE on success
-     */
-    bool (*set_mtu)(vpnservice_builder_t *
-
-    this,
-    int mtu
-    );
-
-    /**
-     * Build the TUN device
-     *
-     * @return					the TUN file descriptor, -1 if failed
-     */
-    int (*establish)(vpnservice_builder_t *
-
-    this);
-
-    /**
-     * Build the TUN device without DNS related data
-     *
-     * @return					the TUN file descriptor, -1 if failed
-     */
-    int (*establish_no_dns)(vpnservice_builder_t *
-
-    this);
-
-    /**
-     * Destroy a vpnservice_builder
-     */
-    void (*destroy)(vpnservice_builder_t *
-
-    this);
+	/**
+	 * Destroy a vpnservice_builder
+	 */
+	void (*destroy)(vpnservice_builder_t *this);
 
 };
 

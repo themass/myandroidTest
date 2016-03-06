@@ -2,6 +2,7 @@ package com.timeline.vpn.ui.base;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Service;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.annotation.Nullable;
@@ -72,6 +73,10 @@ public class BaseToolBarActivity extends AppCompatActivity {
     public void startActivity(Class<? extends Activity> c) {
         Intent intent = new Intent(BaseToolBarActivity.this, c);
         startActivity(intent);
+    }
+    public void startService(Class<? extends Service> c) {
+        Intent intent = new Intent(BaseToolBarActivity.this, c);
+        startService(intent);
     }
 
     public void showAlertDialog(String title, String msg, DialogInterface.OnClickListener listener) {

@@ -19,7 +19,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <org.strongswan.android.ui.LogScrollView
+    <com.timeline.vpn.strangswan.ui.LogScrollView
         android:id="@+id/scroll_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -34,6 +34,6 @@
             android:textSize="9sp"
             android:typeface="monospace"></TextView>
 
-    </org.strongswan.android.ui.LogScrollView>
+    </com.timeline.vpn.strangswan.ui.LogScrollView>
 
 </LinearLayout>

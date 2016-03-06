@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2013 Tobias Brunner
+ * Copyright (C) 2012-2015 Tobias Brunner
  * Hochschule fuer Technik Rapperswil
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -46,38 +46,36 @@ typedef void (*connectivity_cb_t)(void *data, bool disconnected);
  */
 struct network_manager_t {
 
-    /**
-     * Register a callback that is called if connectivity changes
-     *
-     * @note Only the first registered callback is currently used
-     *
-     * @param cb				callback to register
-     * @param data				data provided to callback
-     */
-    void (*add_connectivity_cb)(network_manager_t *
+	/**
+	 * Register a callback that is called if connectivity changes
+	 *
+	 * @note Only the first registered callback is currently used
+	 *
+	 * @param cb				callback to register
+	 * @param data				data provided to callback
+	 */
+	void (*add_connectivity_cb)(network_manager_t *this, connectivity_cb_t cb,
+								void *data);
 
-    this,
-    connectivity_cb_t cb,
-    void *data
-    );
+	/**
+	 * Unregister a previously registered callback for connectivity changes
+	 *
+	 * @param cb				previously registered callback
+	 */
+	void (*remove_connectivity_cb)(network_manager_t *this,
+								   connectivity_cb_t cb);
 
-    /**
-     * Unregister a previously registered callback for connectivity changes
-     *
-     * @param cb				previously registered callback
-     */
-    void (*remove_connectivity_cb)(network_manager_t *
+	/**
+	 * Check whether we currently have connectivity
+	 *
+	 * @return					TRUE if currently connected
+	 */
+	bool (*is_connected)(network_manager_t *this);
 
-    this,
-    connectivity_cb_t cb
-    );
-
-    /**
-     * Destroy a network_manager_t instance
-     */
-    void (*destroy)(network_manager_t *
-
-    this);
+	/**
+	 * Destroy a network_manager_t instance
+	 */
+	void (*destroy)(network_manager_t *this);
 };
 
 /**

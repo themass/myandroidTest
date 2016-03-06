@@ -32,46 +32,36 @@ typedef struct android_creds_t android_creds_t;
  */
 struct android_creds_t {
 
-    /**
-     * Implements credential_set_t
-     */
-    credential_set_t set;
+	/**
+	 * Implements credential_set_t
+	 */
+	credential_set_t set;
 
-    /**
-     * Add user name and password for EAP authentication
-     *
-     * @param username			user name
-     * @param password			password
-     */
-    void (*add_username_password)(android_creds_t *
+	/**
+	 * Add user name and password for EAP authentication
+	 *
+	 * @param username			user name
+	 * @param password			password
+	 */
+	void (*add_username_password)(android_creds_t *this, char *username,
+								  char *password);
 
-    this,
-    char *username,
-    char *password
-    );
+	/**
+	 * Load the user certificate and private key
+	 *
+	 * @return					loaded client certificate, NULL on failure
+	 */
+	certificate_t *(*load_user_certificate)(android_creds_t *this);
 
-    /**
-     * Load the user certificate and private key
-     *
-     * @return					loaded client certificate, NULL on failure
-     */
-    certificate_t *(*load_user_certificate)(android_creds_t *
+	/**
+	 * Clear the cached certificates and stored credentials.
+	 */
+	void (*clear)(android_creds_t *this);
 
-    this);
-
-    /**
-     * Clear the cached certificates and stored credentials.
-     */
-    void (*clear)(android_creds_t *
-
-    this);
-
-    /**
-     * Destroy a android_creds instance.
-     */
-    void (*destroy)(android_creds_t *
-
-    this);
+	/**
+	 * Destroy a android_creds instance.
+	 */
+	void (*destroy)(android_creds_t *this);
 
 };
 

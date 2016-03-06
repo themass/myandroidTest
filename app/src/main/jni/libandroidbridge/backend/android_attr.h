@@ -32,17 +32,15 @@ typedef struct android_attr_t android_attr_t;
  */
 struct android_attr_t {
 
-    /**
-     * implements the attribute_handler_t interface
-     */
-    attribute_handler_t handler;
+	/**
+	 * implements the attribute_handler_t interface
+	 */
+	attribute_handler_t handler;
 
-    /**
-     * Destroy a android_attr_t
-     */
-    void (*destroy)(android_attr_t *
-
-    this);
+	/**
+	 * Destroy a android_attr_t
+	 */
+	void (*destroy)(android_attr_t *this);
 };
 
 /**

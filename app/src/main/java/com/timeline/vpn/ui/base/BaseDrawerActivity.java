@@ -11,8 +11,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import com.timeline.vpn.R;
-
-import org.strongswan.android.ui.VpnManagerActivity;
+import com.timeline.vpn.strangswan.ui.VpnManagerActivity;
 
 import butterknife.Bind;
 
@@ -64,6 +63,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         vpnMenuItem.getActionView().setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+//                startService(CharonVpnService.class);
                 startActivity(VpnManagerActivity.class);
             }
         });

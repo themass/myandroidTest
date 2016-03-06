@@ -15,7 +15,9 @@
  * for more details.
  */
 
-#include <hydra.h>
+#include "android_attr.h"
+#include "../charonservice.h"
+
 #include <utils/debug.h>
 #include <library.h>
 
@@ -26,143 +28,103 @@ typedef struct private_android_attr_t private_android_attr_t;
  */
 struct private_android_attr_t {
 
-    /**
-     * Public interface.
-     */
-    android_attr_t public;
+	/**
+	 * Public interface.
+	 */
+	android_attr_t public;
 };
 
 METHOD(attribute_handler_t, handle, bool,
-        private_android_attr_t
-*this,
-ike_sa_t *ike_sa,
-        configuration_attribute_type_t
-type,
-chunk_t data
-)
+	private_android_attr_t *this, ike_sa_t *ike_sa,
+	configuration_attribute_type_t type, chunk_t data)
 {
-vpnservice_builder_t *builder;
-host_t *dns;
+	vpnservice_builder_t *builder;
+	host_t *dns;
 
-switch (type)
-{
-case
-INTERNAL_IP4_DNS:
-        dns = host_create_from_chunk(AF_INET, data, 0);
-break;
-case
-INTERNAL_IP6_DNS:
-        dns = host_create_from_chunk(AF_INET6, data, 0);
-break;
-default:
-return
-FALSE;
+	switch (type)
+	{
+		case INTERNAL_IP4_DNS:
+			dns = host_create_from_chunk(AF_INET, data, 0);
+			break;
+		case INTERNAL_IP6_DNS:
+			dns = host_create_from_chunk(AF_INET6, data, 0);
+			break;
+		default:
+			return FALSE;
+	}
+
+	if (!dns || dns->is_anyaddr(dns))
+	{
+		DESTROY_IF(dns);
+		return FALSE;
+	}
+
+	builder = charonservice->get_vpnservice_builder(charonservice);
+	builder->add_dns(builder, dns);
+	dns->destroy(dns);
+	return TRUE;
 }
 
-if (!dns || dns->
-is_anyaddr(dns)
-)
+METHOD(attribute_handler_t, release, void,
+	private_android_attr_t *this, ike_sa_t *ike_sa,
+	configuration_attribute_type_t type, chunk_t data)
 {
-DESTROY_IF(dns);
-return
-FALSE;
-}
-
-builder = charonservice->get_vpnservice_builder(charonservice);
-builder->
-add_dns(builder, dns
-);
-dns->
-destroy(dns);
-return
-TRUE;
-}
-
-METHOD(attribute_handler_t, release,
-void,
-private_android_attr_t *this, ike_sa_t
-*ike_sa,
-configuration_attribute_type_t type, chunk_t
-data)
-{
-/* DNS servers cannot be removed from an existing TUN device */
+	/* DNS servers cannot be removed from an existing TUN device */
 }
 
 METHOD(enumerator_t, enumerate_dns6, bool,
-        enumerator_t
-*this,
-configuration_attribute_type_t *type, chunk_t
-*data)
+	enumerator_t *this, configuration_attribute_type_t *type, chunk_t *data)
 {
-*
-type = INTERNAL_IP6_DNS;
-*
-data = chunk_empty;
-this->
-enumerate = (void *) return_false;
-return
-TRUE;
+	*type = INTERNAL_IP6_DNS;
+	*data = chunk_empty;
+	this->enumerate = (void*)return_false;
+	return TRUE;
 }
 
 METHOD(enumerator_t, enumerate_dns4, bool,
-        enumerator_t
-*this,
-configuration_attribute_type_t *type, chunk_t
-*data)
+	enumerator_t *this, configuration_attribute_type_t *type, chunk_t *data)
 {
-*
-type = INTERNAL_IP4_DNS;
-*
-data = chunk_empty;
-this->
-enumerate = (void *) _enumerate_dns6;
-return
-TRUE;
+	*type = INTERNAL_IP4_DNS;
+	*data = chunk_empty;
+	this->enumerate = (void*)_enumerate_dns6;
+	return TRUE;
 }
 
-METHOD(attribute_handler_t, create_attribute_enumerator, enumerator_t
-*,
-private_android_attr_t *this, ike_sa_t
-*ike_sa,
-linked_list_t *vips
-)
+METHOD(attribute_handler_t, create_attribute_enumerator, enumerator_t*,
+	private_android_attr_t *this, ike_sa_t *ike_sa, linked_list_t *vips)
 {
-enumerator_t *enumerator;
+	enumerator_t *enumerator;
 
-INIT(enumerator,
-.
-enumerate = (void *) _enumerate_dns4,
-.
-destroy = (void *) free,
-);
-return
-enumerator;
+	INIT(enumerator,
+			.enumerate = (void*)_enumerate_dns4,
+			.destroy = (void*)free,
+	);
+	return enumerator;
 }
 
-METHOD(android_attr_t, destroy,
-void,
-private_android_attr_t *this
-)
+METHOD(android_attr_t, destroy, void,
+	private_android_attr_t *this)
 {
-free(this);
+	free(this);
 }
 
 /**
  * Described in header
  */
-android_attr_t *android_attr_create() {
-    private_android_attr_t *this;
+android_attr_t *android_attr_create()
+{
+	private_android_attr_t *this;
 
-    INIT(this,
-            .public = {
-            .handler = {
-                    .handle = _handle,
-                    .release = _release,
-                    .create_attribute_enumerator = _create_attribute_enumerator,
-            },
-            .destroy = _destroy,
-    },
-    );
+	INIT(this,
+		.public = {
+			.handler = {
+				.handle = _handle,
+				.release = _release,
+				.create_attribute_enumerator = _create_attribute_enumerator,
+			},
+			.destroy = _destroy,
+		},
+	);
 
-    return &this->public;
+	return &this->public;
 }

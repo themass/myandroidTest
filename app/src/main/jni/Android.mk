@@ -6,7 +6,7 @@ include $(CLEAR_VARS)
 strongswan_USE_BYOD := true
 
 strongswan_CHARON_PLUGINS := android-log openssl fips-prf random nonce pubkey \
-	pkcs1 pkcs8 pem xcbc hmac socket-default kernel-netlink \
+	pkcs1 pkcs8 pem xcbc hmac socket-default \
 	eap-identity eap-mschapv2 eap-md5 eap-gtc eap-tls
 
 ifneq ($(strongswan_USE_BYOD),)
@@ -32,6 +32,7 @@ strongswan_CFLAGS := \
 	-Wno-sign-compare \
 	-Wno-strict-aliasing \
 	-Wno-unused-parameter \
+	-Wno-missing-field-initializers \
 	-DHAVE___BOOL \
 	-DHAVE_STDBOOL_H \
 	-DHAVE_ALLOCA_H \
@@ -70,7 +71,6 @@ strongswan_BUILD := \
 	libandroidbridge \
 	strongswan/src/libipsec \
 	strongswan/src/libcharon \
-	strongswan/src/libhydra \
 	strongswan/src/libstrongswan
 
 ifneq ($(strongswan_USE_BYOD),)

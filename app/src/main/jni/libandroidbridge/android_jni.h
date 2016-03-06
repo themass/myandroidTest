@@ -26,17 +26,17 @@
 #include <jni.h>
 #include <library.h>
 
-#define JNI_PACKAGE org_strongswan_android_logic
-#define JNI_PACKAGE_STRING "org/strongswan/android/logic"
+#define JNI_PACKAGE com_timeline_vpn_strangswan_logic
+#define JNI_PACKAGE_STRING "com/timeline/vpn/strangswan/logic"
 
 #define JNI_METHOD_PP(pack, klass, name, ret, ...) \
-    ret Java_##pack##_##klass##_##name(JNIEnv *env, jobject this, ##__VA_ARGS__)
+	ret Java_##pack##_##klass##_##name(JNIEnv *env, jobject this, ##__VA_ARGS__)
 
 #define JNI_METHOD_P(pack, klass, name, ret, ...) \
-    JNI_METHOD_PP(pack, klass, name, ret, ##__VA_ARGS__)
+	JNI_METHOD_PP(pack, klass, name, ret, ##__VA_ARGS__)
 
 #define JNI_METHOD(klass, name, ret, ...) \
-    JNI_METHOD_P(JNI_PACKAGE, klass, name, ret, ##__VA_ARGS__)
+	JNI_METHOD_P(JNI_PACKAGE, klass, name, ret, ##__VA_ARGS__)
 
 /**
  * Java classes
@@ -51,9 +51,11 @@ extern jclass *android_charonvpnservice_builder_class;
  * see android.os.Build.VERSION_CODES for definitions
  */
 typedef enum {
-    ANDROID_ICE_CREAM_SANDWICH = 14,
-    ANDROID_ICE_CREAM_SANDWICH_MR1 = 15,
-    ANDROID_JELLY_BEAN = 16,
+	ANDROID_ICE_CREAM_SANDWICH = 14,
+	ANDROID_ICE_CREAM_SANDWICH_MR1 = 15,
+	ANDROID_JELLY_BEAN = 16,
+	ANDROID_JELLY_BEAN_MR1 = 17,
+	ANDROID_JELLY_BEAN_MR2 = 18,
 } android_sdk_version_t;
 
 /**
@@ -73,7 +75,7 @@ extern android_sdk_version_t android_sdk_version;
  *
  * @param env		JNIEnv
  */
-void androidjni_attach_thread(JNIEnv * *env);
+void androidjni_attach_thread(JNIEnv **env);
 
 /**
  * Detach the current thread from the JVM
@@ -88,14 +90,15 @@ void androidjni_detach_thread();
  * @param env		JNIEnv
  * @return			TRUE if an exception was thrown
  */
-static inline bool androidjni_exception_occurred(JNIEnv * env) {
-    if ((*env)->ExceptionOccurred(
-            env)) {    /* clear any exception, otherwise the VM is terminated */
-        (*env)->ExceptionDescribe(env);
-        (*env)->ExceptionClear(env);
-        return TRUE;
-    }
-    return FALSE;
+static inline bool androidjni_exception_occurred(JNIEnv *env)
+{
+	if ((*env)->ExceptionOccurred(env))
+	{	/* clear any exception, otherwise the VM is terminated */
+		(*env)->ExceptionDescribe(env);
+		(*env)->ExceptionClear(env);
+		return TRUE;
+	}
+	return FALSE;
 }
 
 /**
@@ -105,18 +108,20 @@ static inline bool androidjni_exception_occurred(JNIEnv * env) {
  * @param jstr		Java string
  * @return			native C string (allocated)
  */
-static inline char *androidjni_convert_jstring(JNIEnv *env, jstring jstr) {
-    char *str = NULL;
-    jsize bytes, chars;
+static inline char *androidjni_convert_jstring(JNIEnv *env, jstring jstr)
+{
+	char *str = NULL;
+	jsize bytes, chars;
 
-    if (jstr) {
-        chars = (*env)->GetStringLength(env, jstr);
-        bytes = (*env)->GetStringUTFLength(env, jstr);
-        str = malloc(bytes + 1);
-        (*env)->GetStringUTFRegion(env, jstr, 0, chars, str);
-        str[bytes] = '\0';
-    }
-    return str;
+	if (jstr)
+	{
+		chars = (*env)->GetStringLength(env, jstr);
+		bytes = (*env)->GetStringUTFLength(env, jstr);
+		str = malloc(bytes + 1);
+		(*env)->GetStringUTFRegion(env, jstr, 0, chars, str);
+		str[bytes] = '\0';
+	}
+	return str;
 }
 
 /**
@@ -126,12 +131,13 @@ static inline char *androidjni_convert_jstring(JNIEnv *env, jstring jstr) {
  * @param jbytearray	Java byte array
  * @return				allocated chunk
  */
-static inline chunk_t chunk_from_byte_array(JNIEnv *env, jbyteArray jbytearray) {
-    chunk_t chunk;
+static inline chunk_t chunk_from_byte_array(JNIEnv *env, jbyteArray jbytearray)
+{
+	chunk_t chunk;
 
-    chunk = chunk_alloc((*env)->GetArrayLength(env, jbytearray));
-    (*env)->GetByteArrayRegion(env, jbytearray, 0, chunk.len, chunk.ptr);
-    return chunk;
+	chunk = chunk_alloc((*env)->GetArrayLength(env, jbytearray));
+	(*env)->GetByteArrayRegion(env, jbytearray, 0, chunk.len, chunk.ptr);
+	return chunk;
 }
 
 /**
@@ -141,12 +147,13 @@ static inline chunk_t chunk_from_byte_array(JNIEnv *env, jbyteArray jbytearray) 
  * @param chunk			native chunk
  * @return				allocated Java byte array
  */
-static inline jbyteArray byte_array_from_chunk(JNIEnv *env, chunk_t chunk) {
-    jbyteArray jbytearray;
+static inline jbyteArray byte_array_from_chunk(JNIEnv *env, chunk_t chunk)
+{
+	jbyteArray jbytearray;
 
-    jbytearray = (*env)->NewByteArray(env, chunk.len);
-    (*env)->SetByteArrayRegion(env, jbytearray, 0, chunk.len, chunk.ptr);
-    return jbytearray;
+	jbytearray = (*env)->NewByteArray(env, chunk.len);
+	(*env)->SetByteArrayRegion(env, jbytearray, 0, chunk.len, chunk.ptr);
+	return jbytearray;
 }
 
 #endif /** ANDROID_JNI_H_ @}*/

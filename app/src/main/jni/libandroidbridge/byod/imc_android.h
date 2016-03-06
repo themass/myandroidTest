@@ -25,6 +25,6 @@
  * Callback for the Android IMC plugin
  */
 bool imc_android_register(plugin_t *plugin, plugin_feature_t *feature,
-                          bool reg, void *data);
+						  bool reg, void *data);
 
 #endif /** ANDROID_IMC_H_ @}*/

@@ -32,10 +32,10 @@ typedef struct kernel_android_ipsec_t kernel_android_ipsec_t;
  */
 struct kernel_android_ipsec_t {
 
-    /**
-     * Implements kernel_ipsec_t interface
-     */
-    kernel_ipsec_t interface;
+	/**
+	 * Implements kernel_ipsec_t interface
+	 */
+	kernel_ipsec_t interface;
 };
 
 /**

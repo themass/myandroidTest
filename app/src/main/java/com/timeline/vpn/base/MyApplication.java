@@ -29,7 +29,7 @@ public class MyApplication extends Application {
         super.onCreate();
         Timber.plant(new Timber.DebugTree());
         refWatcher = LeakCanary.install(this);
-        ButterKnife.setDebug(true);
+        ButterKnife.setDebug(false);
         VolleyLog.DEBUG = Constants.IS_DEBUG_OPEN;
         VolleyLog.setTag("VolleyUtils");
         VolleyUtils.init(getApplicationContext());

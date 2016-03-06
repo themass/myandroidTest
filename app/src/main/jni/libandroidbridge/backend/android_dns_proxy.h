@@ -38,61 +38,43 @@ typedef void (*dns_proxy_response_cb_t)(void *data, ip_packet_t *packet);
  */
 struct android_dns_proxy_t {
 
-    /**
-     * Handle an outbound DNS packet (if the packet is one)
-     *
-     * @param packet		packet to handle
-     * @return 				TRUE if handled, FALSE otherwise (no DNS)
-     */
-    bool (*handle)(android_dns_proxy_t *
+	/**
+	 * Handle an outbound DNS packet (if the packet is one)
+	 *
+	 * @param packet		packet to handle
+	 * @return 				TRUE if handled, FALSE otherwise (no DNS)
+	 */
+	bool (*handle)(android_dns_proxy_t *this, ip_packet_t *packet);
 
-    this,
-    ip_packet_t *packet
-    );
+	/**
+	 * Register the callback used to deliver DNS response packets.
+	 *
+	 * @param cb			the callback function
+	 * @param data			optional data provided to callback
+	 */
+	void (*register_cb)(android_dns_proxy_t *this, dns_proxy_response_cb_t cb,
+						void *data);
 
-    /**
-     * Register the callback used to deliver DNS response packets.
-     *
-     * @param cb			the callback function
-     * @param data			optional data provided to callback
-     */
-    void (*register_cb)(android_dns_proxy_t *
+	/**
+	 * Unregister the callback used to deliver DNS response packets.
+	 *
+	 * @param cb			the callback function
+	 * @param data			optional data provided to callback
+	 */
+	void (*unregister_cb)(android_dns_proxy_t *this, dns_proxy_response_cb_t cb);
 
-    this,
-    dns_proxy_response_cb_t cb,
-    void *data
-    );
+	/**
+	 * Add a hostname for which queries are proxied.  If at least one hostname
+	 * is configured DNS queries for others will not be handled.
+	 *
+	 * @param hostname		hostname to add (gets cloned)
+	 */
+	void (*add_hostname)(android_dns_proxy_t *this, char *hostname);
 
-    /**
-     * Unregister the callback used to deliver DNS response packets.
-     *
-     * @param cb			the callback function
-     * @param data			optional data provided to callback
-     */
-    void (*unregister_cb)(android_dns_proxy_t *
-
-    this,
-    dns_proxy_response_cb_t cb
-    );
-
-    /**
-     * Add a hostname for which queries are proxied.  If at least one hostname
-     * is configured DNS queries for others will not be handled.
-     *
-     * @param hostname		hostname to add (gets cloned)
-     */
-    void (*add_hostname)(android_dns_proxy_t *
-
-    this,
-    char *hostname
-    );
-
-    /**
-     * Destroy an instance.
-     */
-    void (*destroy)(android_dns_proxy_t *
-
-    this);
+	/**
+	 * Destroy an instance.
+	 */
+	void (*destroy)(android_dns_proxy_t *this);
 };
 
 /**

@@ -24,20 +24,20 @@
 
     <fragment
         android:id="@+id/vpn_state_frag"
-        class="org.strongswan.android.ui.VpnStateFragment"
+        class="com.timeline.vpn.strangswan.ui.VpnStateFragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         tools:layout="@layout/vpn_state_fragment" />
 
     <fragment
         android:id="@+id/imc_state_frag"
-        class="org.strongswan.android.ui.ImcStateFragment"
+        class="com.timeline.vpn.strangswan.ui.ImcStateFragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
     <fragment
         android:id="@+id/profile_list_frag"
-        class="org.strongswan.android.ui.VpnProfileListFragment"
+        class="com.timeline.vpn.strangswan.ui.VpnProfileListFragment"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1" />

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2012 Tobias Brunner
+ * Copyright (C) 2010-2015 Tobias Brunner
  * Copyright (C) 2012 Giuliano Grassi
  * Copyright (C) 2012 Ralf Sager
  * Hochschule fuer Technik Rapperswil
@@ -35,17 +35,15 @@ typedef struct android_service_t android_service_t;
  */
 struct android_service_t {
 
-    /**
-     * Implements listener_t.
-     */
-    listener_t listener;
+	/**
+	 * Implements listener_t.
+	 */
+	listener_t listener;
 
-    /**
-     * Destroy a android_service_t.
-     */
-    void (*destroy)(android_service_t *
-
-    this);
+	/**
+	 * Destroy a android_service_t.
+	 */
+	void (*destroy)(android_service_t *this);
 
 };
 
@@ -54,13 +52,9 @@ struct android_service_t {
  * new IKE SA.
  *
  * @param creds					Android specific credential set
- * @param type					VPN type (see VpnType.java)
- * @param gateway				gateway address
- * @param username				user name (local identity)
- * @param password				password (if any)
+ * @param settings				configuration settings (gets adopted)
  */
-android_service_t *android_service_create(android_creds_t *creds, char *type,
-                                          char *gateway, char *username,
-                                          char *password);
+android_service_t *android_service_create(android_creds_t *creds,
+										  settings_t *settings);
 
 #endif /** ANDROID_SERVICE_H_ @}*/

@@ -18,7 +18,7 @@
 
     <fragment
         android:id="@+id/log_frag"
-        class="org.strongswan.android.ui.LogFragment"
+        class="com.timeline.vpn.strangswan.ui.LogFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
