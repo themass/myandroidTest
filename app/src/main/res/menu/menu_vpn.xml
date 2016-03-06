@@ -1,0 +1,11 @@
+<!--menu_main.xml-->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".ui.base.BaseActivity">
+    <item
+        android:id="@+id/action_menu_vpn_setting"
+        android:icon="@drawable/ic_vpn_on"
+        android:title="vpnSetting"
+        app:showAsAction="always" />
+</menu>

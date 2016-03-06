@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+    Copyright (C) 2012-2013 Tobias Brunner
+    Hochschule fuer Technik Rapperswil
+
+    This program is free software; you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by the
+    Free Software Foundation; either version 2 of the License, or (at your
+    option) any later version.  See <http://www.fsf.org/copyleft/gpl.txt>.
+
+    This program is distributed in the hope that it will be useful, but
+    WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+    or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+    for more details.
+-->
+<resources>
+    <!-- Material Design-->
+    <color name="style_color_primary">#2d5d82</color>
+    <color name="style_color_primary_dark">#21425d</color>
+    <color name="style_color_accent">#01bcd5</color>
+
+    <color name="btn_context_menu_normal">#ffffff</color>
+    <color name="btn_context_menu_pressed">#40000000</color>
+    <color name="btn_context_menu_text_red">#ffff0000</color>
+
+    <color name="btn_default_light_normal">#00000000</color>
+    <color name="btn_default_light_pressed">#40ffffff</color>
+
+    <!-- tab -->
+    <color name="tab_widget_text_color">#BAC4C4</color>
+    <color name="title_tab_indicator_bg_color">#0d2957</color>
+    <color name="tab_indicator_color">#717981</color>
+    <color name="transparent">#00000000</color>
+    <color name="tab_text">#ffff00</color>
+    <color name="base_white">#ffffff</color>
+    <color name="tab_selected_indicator_color">#001840</color>
+
+    <color name="error_text">#D9192C</color>
+
+    <color name="warning_text">#FF9909</color>
+
+    <color name="success_text">#99CC00</color>
+
+    <color name="panel_background">#333333</color>
+
+    <color name="panel_separator">#5a5a5a</color>
+
+</resources>
