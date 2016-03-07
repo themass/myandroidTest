@@ -31,4 +31,7 @@ public class LogUtil {
     public static void e(Throwable t) {
         Log.e(TAG, "", t);
     }
+    public static void e(String t) {
+        Log.e(TAG, t);
+    }
 }

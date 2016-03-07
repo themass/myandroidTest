@@ -13,7 +13,7 @@
  * for more details.
  */
 
-package com.timeline.vpn.strangswan.utils;
+package com.timeline.vpn.service.utils;
 
 import java.nio.ByteBuffer;
 

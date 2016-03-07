@@ -19,6 +19,8 @@ import android.view.View;
 import android.widget.ImageView;
 
 import com.timeline.vpn.R;
+import com.timeline.vpn.common.util.LogUtil;
+import com.timeline.vpn.service.VpnStateService;
 import com.timeline.vpn.ui.adapter.IndexNaviAdapter;
 
 import butterknife.Bind;
@@ -27,7 +29,7 @@ import butterknife.OnClick;
 /**
  * Created by gqli on 2015/9/1.
  */
-public class TabIndexFragment extends TabBaseFragment {
+public class TabIndexFragment extends TabBaseFragment implements VpnStateService.VpnStateListener{
     private static final String DIALOG_TAG = "Dialog";
     private static final int PREPARE_VPN_SERVICE = 0;
     @Nullable
@@ -147,5 +149,10 @@ public class TabIndexFragment extends TabBaseFragment {
                         }
                     }).create();
         }
+    }
+
+    @Override
+    public void stateChanged() {
+        LogUtil.i("vpnstatelist  stateChanged");
     }
 }

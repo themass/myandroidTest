@@ -1,6 +1,7 @@
 package com.timeline.vpn.constant;
 
-import com.timeline.vpn.strangswan.data.VpnType;
+
+import com.timeline.vpn.service.utils.VpnType;
 
 /**
  * Created by gqli on 2015/9/1.

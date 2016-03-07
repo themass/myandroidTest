@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Tobias Brunner
+ * Copyright (C) 2014 Tobias Brunner
  * Hochschule fuer Technik Rapperswil
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -13,16 +13,28 @@
  * for more details.
  */
 
-package com.timeline.vpn.strangswan.logic.imc.attributes;
+package com.timeline.vpn.service.utils;
 
-/**
- * Interface to be implemented by attribute classes
- */
-public interface Attribute
+
+public class Utils
 {
+	static final char[] HEXDIGITS = "0123456789abcdef".toCharArray();
+
 	/**
-	 * Returns the binary encoding of the attribute
-	 * @return binary encoding
+	 * Converts the given byte array to a hexadecimal string encoding.
+	 *
+	 * @param bytes byte array to convert
+	 * @return hex string
 	 */
-	public byte[] getEncoding();
+	public static String bytesToHex(byte[] bytes)
+	{
+		char[] hex = new char[bytes.length * 2];
+		for (int i = 0; i < bytes.length; i++)
+		{
+			int value = bytes[i];
+			hex[i*2]   = HEXDIGITS[(value & 0xf0) >> 4];
+			hex[i*2+1] = HEXDIGITS[ value & 0x0f];
+		}
+		return new String(hex);
+	}
 }

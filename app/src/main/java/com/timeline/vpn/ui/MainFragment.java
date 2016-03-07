@@ -17,7 +17,7 @@ import com.timeline.vpn.ui.maintab.TabNewsFragment;
 /**
  * Created by gqli on 2016/3/1.
  */
-public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabChangeListener {
+public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabChangeListener{
     private FragmentTabHost mTabHost;
     private TabWidget mainTab;
     private boolean pendingIntroAnimation;

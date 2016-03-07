@@ -42,74 +42,8 @@
             </intent-filter>
 
         </activity>
-        <activity
-            android:name=".strangswan.ui.VpnManagerActivity"
-            android:label="@string/main_activity_name"
-            android:launchMode="singleTop" >
-            <intent-filter>
-                <action android:name="org.strongswan.android.action.START_PROFILE" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
-        <activity
-            android:name=".strangswan.ui.VpnProfileDetailActivity" >
-        </activity>
-        <activity
-            android:name=".strangswan.ui.TrustedCertificatesActivity"
-            android:label="@string/trusted_certs_title" >
-        </activity>
-        <activity
-            android:name=".strangswan.ui.LogActivity"
-            android:label="@string/log_title" >
-        </activity>
-        <activity
-            android:name=".strangswan.ui.RemediationInstructionsActivity"
-            android:label="@string/remediation_instructions_title" >
-        </activity>
-        <activity
-            android:name=".strangswan.ui.VpnProfileSelectActivity"
-            android:label="@string/strongswan_shortcut" >
-            <intent-filter>
-                <action android:name="android.intent.action.CREATE_SHORTCUT" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
-        <activity
-            android:name=".strangswan.ui.TrustedCertificateImportActivity"
-            android:label="@string/import_certificate"
-            android:theme="@android:style/Theme.Holo.Dialog.NoActionBar" >
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="application/x-x509-ca-cert" />
-                <data android:mimeType="application/x-x509-server-cert" />
-                <data android:mimeType="application/x-pem-file" />
-                <data android:mimeType="application/pkix-cert" />
-            </intent-filter>
-        </activity>
-
-        <service
-            android:name=".strangswan.logic.VpnStateService"
-            android:exported="false" >
-        </service>
-        <service
-            android:name=".strangswan.logic.CharonVpnService"
-            android:exported="false"
-            android:permission="android.permission.BIND_VPN_SERVICE" >
-            <intent-filter>
-                <action android:name="android.net.VpnService" />
-            </intent-filter>
-        </service>
-
-        <provider
-            android:name=".strangswan.data.LogContentProvider"
-            android:authorities="org.strongswan.android.content.log"
-            android:exported="true" >
-            <!-- android:grantUriPermissions="true" combined with a custom permission does
-                 not work (probably too many indirections with ACTION_SEND) so we secure
-                 this provider with a custom ticketing system -->
-        </provider>
-
+        <service android:name=".service.CharonVpnService" />
+        <service android:name=".service.VpnStateService" />
     </application>
 
 </manifest>

@@ -13,7 +13,7 @@
  * for more details.
  */
 
-package com.timeline.vpn.strangswan.data;
+package com.timeline.vpn.service.utils;
 
 import java.util.EnumSet;
 
@@ -47,7 +47,6 @@ public enum VpnType
 	 *
 	 * @param id identifier used to store and transmit this specific type
 	 * @param features of the given VPN type
-	 * @param certificate true if a client certificate is required
 	 */
 	VpnType(String id, EnumSet<VpnTypeFeature> features)
 	{
