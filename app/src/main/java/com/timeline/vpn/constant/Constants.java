@@ -11,6 +11,12 @@ public class Constants {
     public static final String DEFAULT_REFERER = "http://timeline.vpn.com/";
     public static VpnType mVpnType = VpnType.IKEV2_CERT;
     public static boolean IS_DEBUG_OPEN = true;
+    public static int connTimeOut = 20;
+    public static boolean  USE_BYOD = false;
+    public static VpnType vpnType = VpnType.IKEV2_EAP;
+    public static final String BASE_HOST = "http://172.30.18.83:8080/test/api";//TODO 测试地址
+    public static final String SERVERLIST_URL = BASE_HOST + "/server/list.json";
+
 
 //    public static final String TAB_HOME = "TAB_HOME";
 //    public static final String TAB_MY = "TAB_MY";

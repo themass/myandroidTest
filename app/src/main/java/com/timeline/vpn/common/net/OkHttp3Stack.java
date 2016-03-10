@@ -128,7 +128,7 @@ public class OkHttp3Stack implements HttpStack {
         clientBuilder.connectTimeout(timeoutMs, TimeUnit.MILLISECONDS);
         clientBuilder.readTimeout(timeoutMs, TimeUnit.MILLISECONDS);
         clientBuilder.writeTimeout(timeoutMs, TimeUnit.MILLISECONDS);
-        clientBuilder.addInterceptor(new GzipRequestInterceptor());
+        clientBuilder.addInterceptor(new GzipRequestInterceptor()).addInterceptor(new LoggingInterceptor());
         okhttp3.Request.Builder okHttpRequestBuilder = new okhttp3.Request.Builder();
         okHttpRequestBuilder.url(request.getUrl());
 

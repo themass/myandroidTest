@@ -1,5 +1,6 @@
 package com.timeline.vpn.ui;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v13.app.FragmentTabHost;
 import android.view.LayoutInflater;
@@ -10,6 +11,7 @@ import android.widget.TabWidget;
 import android.widget.TextView;
 
 import com.timeline.vpn.R;
+import com.timeline.vpn.service.CharonVpnService;
 import com.timeline.vpn.ui.base.BaseDrawerActivity;
 import com.timeline.vpn.ui.maintab.TabIndexFragment;
 import com.timeline.vpn.ui.maintab.TabNewsFragment;
@@ -44,6 +46,7 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
                 R.drawable.ic_tab_tech, R.string.tab_more);
         mTabHost.getTabWidget().setDividerDrawable(null);
         mainTab = mTabHost.getTabWidget();
+        startService(new Intent(this, CharonVpnService.class));
     }
 
     private View addTab(LayoutInflater inflater, int tag, Class clss,
@@ -62,5 +65,11 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
     @Override
     public void onTabChanged(String tabId) {
 
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        stopService(new Intent(this, CharonVpnService.class));
     }
 }

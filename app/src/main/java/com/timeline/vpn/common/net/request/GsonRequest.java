@@ -8,7 +8,11 @@ import com.android.volley.ParseError;
 import com.android.volley.Response;
 import com.android.volley.toolbox.HttpHeaderParser;
 import com.google.gson.Gson;
+import com.timeline.vpn.api.bean.JsonResult;
+import com.timeline.vpn.common.exce.JsonResultException;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.Map;
 
 /**
@@ -17,27 +21,25 @@ import java.util.Map;
 public class GsonRequest<T> extends BaseRequest<T> {
 
     private final Gson gson = new Gson();
-    private final Class<T> clazz;
+    private  Class<T>  clasz;
     private String mCharset = "utf-8";
-
-    /**
-     * Make a GET request and return a parsed object from JSON.
-     *
-     * @param url     URL of the request to make
-     * @param clazz   Relevant class object, for Gson's reflection
-     * @param headers Map of request headers
-     */
-    public GsonRequest(Context context, String url, Class<T> clazz, Map<String, String> headers,
+    public GsonRequest(Context context, String url, Class<T> clasz, Map<String, String> headers,
                        Response.Listener<T> listener, Response.ErrorListener errorListener) {
         super(context, Method.GET, url, headers, listener, errorListener);
-        this.clazz = clazz;
+        this.clasz = clasz;
     }
-
     @Override
     protected Response<T> parseNetworkResponse(NetworkResponse response) {
         try {
             String json = getResponseStr(response);
-            return Response.success(gson.fromJson(json, clazz), getCacheEntry(response));
+            Type typeOfT = type(JsonResult.class,clasz);
+            JsonResult<T> data = gson.fromJson(json, typeOfT);
+            boolean ret = parserJsonResult(data);
+            if(ret) {
+                return Response.success(data.getData(), getCacheEntry(response));
+            }else{
+                return Response.error(new ParseError(new JsonResultException(data)));
+            }
         } catch (Exception e) {
             return Response.error(new ParseError(e));
         }
@@ -64,6 +66,24 @@ public class GsonRequest<T> extends BaseRequest<T> {
 
     protected Gson getGson() {
         return this.gson;
+    }
+    public static ParameterizedType type(final Class raw, final Type... args) {
+        return new ParameterizedType() {
+            public Type getRawType() {
+                return raw;
+            }
+
+            public Type[] getActualTypeArguments() {
+                return args;
+            }
+
+            public Type getOwnerType() {
+                return null;
+            }
+        };
+    }
+    public static boolean parserJsonResult(JsonResult<?> result){
+        return true;
     }
 
 }

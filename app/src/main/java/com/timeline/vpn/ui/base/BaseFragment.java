@@ -19,7 +19,6 @@ import butterknife.ButterKnife;
  */
 public class BaseFragment extends Fragment {
     public static final String FRAGMENT_ARG = "ARG";
-
     protected View rootView;
     Bundle savedState;
 

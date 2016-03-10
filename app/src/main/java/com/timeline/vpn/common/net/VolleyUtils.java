@@ -14,6 +14,7 @@ import com.android.volley.toolbox.BasicNetwork;
 import com.android.volley.toolbox.HttpStack;
 import com.android.volley.toolbox.ImageLoader;
 import com.timeline.vpn.R;
+import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.common.util.cache.BitmapLruCache;
 import com.timeline.vpn.common.util.cache.DiskBasedCacheEx;
 
@@ -50,6 +51,7 @@ public class VolleyUtils {
      * 处理网络请求异常
      */
     public static void showVolleyError(VolleyError volleyError) {
+        LogUtil.e(volleyError);
         Toast.makeText(context, getVolleyError(volleyError), Toast.LENGTH_SHORT).show();
     }
 

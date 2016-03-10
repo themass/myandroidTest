@@ -38,7 +38,11 @@
     <string name="error_network_timeout">网络连接超时，请稍后重试</string>
     <string name="error_network_retry">加载错误，请点击重试</string>
     <string name="error_unknown">未知道错误</string>
-
+    <!-- vpn状态改变 -->
+    <string name="vpn_bg_click">点击连接VPN</string>
+    <string name="vpn_bg_error">点击重试</string>
+    <string name="vpn_bg_conning">连接..</string>
+    <string name="vpn_bg_conned">断开</string>
     <string name="show_log">View log</string>
     <string name="search">Search</string>
     <string name="vpn_not_supported_title">VPN not supported</string>
@@ -151,25 +155,65 @@
     <string name="replaces_active_connection">This will replace your active VPN connection!</string>
     <string name="connect">Connect</string>
     <string-array name="user_photos">
+        <item>http://img.my.csdn.net/uploads/201309/01/1378037235_3453.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201309/01/1378037235_7476.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201309/01/1378037235_9280.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201309/01/1378037234_3539.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201309/01/1378037234_6318.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201309/01/1378037194_2965.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201309/01/1378037193_1687.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201309/01/1378037193_1286.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201309/01/1378037192_8379.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201309/01/1378037178_9374.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201309/01/1378037177_1254.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201309/01/1378037177_6203.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201309/01/1378037152_6352.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201309/01/1378037151_9565.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201309/01/1378037151_7904.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201309/01/1378037148_7104.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201309/01/1378037129_8825.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201309/01/1378037128_5291.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201309/01/1378037128_3531.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201309/01/1378037127_1085.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201309/01/1378037095_7515.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201309/01/1378037094_8001.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201309/01/1378037093_7168.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201309/01/1378037091_4950.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201308/31/1377949643_6410.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201308/31/1377949642_6939.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201308/31/1377949630_4505.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201308/31/1377949630_4593.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201308/31/1377949629_7309.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201308/31/1377949629_8247.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201308/31/1377949615_1986.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201308/31/1377949614_8482.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201308/31/1377949614_3743.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201308/31/1377949614_4199.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201308/31/1377949599_3416.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201308/31/1377949599_5269.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201308/31/1377949598_7858.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201308/31/1377949598_9982.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201308/31/1377949578_2770.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201308/31/1377949578_8744.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201308/31/1377949577_5210.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201308/31/1377949577_1998.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201308/31/1377949482_8813.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201308/31/1377949481_6577.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201308/31/1377949480_4490.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201308/31/1377949455_6792.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201308/31/1377949455_6345.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201308/31/1377949442_4553.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201308/31/1377949441_8987.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201308/31/1377949441_5454.jpg</item>
+        <item>http://img.my.csdn.net/uploads/201308/31/1377949454_6367.jpg</item>
         <item>http://image4.lianjia.com/mobile-api/3c45a87e-7246-44b2-865c-07b136b424a3.jpg.160x160.jpg</item>
-        <item>http://image4.lianjia.com/mobile-api/3c45a87e-7246-44b2-865c-07b136b424a3.jpg.160x160.jpg</item>
-        <item>http://image4.lianjia.com/mobile-api/3c45a87e-7246-44b2-865c-07b136b424a3.jpg.160x160.jpg</item>
-        <item>http://image4.lianjia.com/mobile-api/3c45a87e-7246-44b2-865c-07b136b424a3.jpg.160x160.jpg</item>
-        <item>http://image4.lianjia.com/mobile-api/3c45a87e-7246-44b2-865c-07b136b424a3.jpg.160x160.jpg</item>
-        <item>http://image4.lianjia.com/mobile-api/3c45a87e-7246-44b2-865c-07b136b424a3.jpg.160x160.jpg</item>
-        <item>http://image4.lianjia.com/mobile-api/3c45a87e-7246-44b2-865c-07b136b424a3.jpg.160x160.jpg</item>
-        <item>http://image4.lianjia.com/mobile-api/3c45a87e-7246-44b2-865c-07b136b424a3.jpg.160x160.jpg</item>
-        <item>http://image4.lianjia.com/mobile-api/3c45a87e-7246-44b2-865c-07b136b424a3.jpg.160x160.jpg</item>
-        <item>http://image4.lianjia.com/mobile-api/3c45a87e-7246-44b2-865c-07b136b424a3.jpg.160x160.jpg</item>
-        <item>http://image4.lianjia.com/mobile-api/3c45a87e-7246-44b2-865c-07b136b424a3.jpg.160x160.jpg</item>
-        <item>http://image4.lianjia.com/mobile-api/3c45a87e-7246-44b2-865c-07b136b424a3.jpg.160x160.jpg</item>
-        <item>http://image4.lianjia.com/mobile-api/3c45a87e-7246-44b2-865c-07b136b424a3.jpg.160x160.jpg</item>
-        <item>http://image4.lianjia.com/mobile-api/3c45a87e-7246-44b2-865c-07b136b424a3.jpg.160x160.jpg</item>
-        <item>http://image4.lianjia.com/mobile-api/3c45a87e-7246-44b2-865c-07b136b424a3.jpg.160x160.jpg</item>
-        <item>http://image4.lianjia.com/mobile-api/3c45a87e-7246-44b2-865c-07b136b424a3.jpg.160x160.jpg</item>
-        <item>http://image4.lianjia.com/mobile-api/3c45a87e-7246-44b2-865c-07b136b424a3.jpg.160x160.jpg</item>
-        <item>http://image4.lianjia.com/mobile-api/3c45a87e-7246-44b2-865c-07b136b424a3.jpg.160x160.jpg</item>
-        <item>http://image4.lianjia.com/mobile-api/3c45a87e-7246-44b2-865c-07b136b424a3.jpg.160x160.jpg</item>
+        <item>http://image4.lianjia.com/mobile-api/3c45a87e-7246-44b2-865c-07b136b424a3.jpg.150x300.jpg</item>
+        <item>http://image4.lianjia.com/mobile-api/3c45a87e-7246-44b2-865c-07b136b424a3.jpg.100x160.jpg</item>
+        <item>http://image4.lianjia.com/mobile-api/3c45a87e-7246-44b2-865c-07b136b424a3.jpg.200x320.jpg</item>
+        <item>http://image4.lianjia.com/mobile-api/3c45a87e-7246-44b2-865c-07b136b424a3.jpg.150x180.jpg</item>
+        <item>http://image4.lianjia.com/mobile-api/3c45a87e-7246-44b2-865c-07b136b424a3.jpg.80x80.jpg</item>
+        <item>http://image4.lianjia.com/mobile-api/3c45a87e-7246-44b2-865c-07b136b424a3.jpg.600x500.jpg</item>
+        <item>http://image4.lianjia.com/mobile-api/3c45a87e-7246-44b2-865c-07b136b424a3.jpg.400x120.jpg</item>
         <item>http://image4.lianjia.com/mobile-api/3c45a87e-7246-44b2-865c-07b136b424a3.jpg.160x160.jpg</item>
         <item>http://image4.lianjia.com/mobile-api/3c45a87e-7246-44b2-865c-07b136b424a3.jpg.160x160.jpg</item>
         <item>http://image4.lianjia.com/mobile-api/3c45a87e-7246-44b2-865c-07b136b424a3.jpg.160x160.jpg</item>

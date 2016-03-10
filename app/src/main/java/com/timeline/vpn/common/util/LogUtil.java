@@ -27,8 +27,11 @@ public class LogUtil {
     public static void i(String msg) {
         Log.i(TAG, msg);
     }
-
+    public static void d(String msg) {
+        Log.d(TAG, msg);
+    }
     public static void e(Throwable t) {
+        t.printStackTrace();
         Log.e(TAG, "", t);
     }
     public static void e(String t) {

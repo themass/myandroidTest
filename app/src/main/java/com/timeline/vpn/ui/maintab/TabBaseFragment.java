@@ -27,6 +27,7 @@ public abstract class TabBaseFragment extends BaseFragment {
         bodyContentView = (ViewGroup) view.findViewById(R.id.tab_body_content);
         inflater.inflate(getTabHeaderViewId(), headerContentView, true);
         inflater.inflate(getTabBodyViewId(), bodyContentView, true);
+        setUp(bodyContentView,inflater);
         return view;
     }
 
@@ -41,4 +42,5 @@ public abstract class TabBaseFragment extends BaseFragment {
     public ViewGroup getBodyContentView() {
         return bodyContentView;
     }
+    public void setUp(View view,LayoutInflater inflater){};
 }
