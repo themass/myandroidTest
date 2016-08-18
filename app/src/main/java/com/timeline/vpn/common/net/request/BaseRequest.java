@@ -1,6 +1,7 @@
 package com.timeline.vpn.common.net.request;
 
 import android.content.Context;
+import android.text.TextUtils;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Cache;
@@ -9,6 +10,8 @@ import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.toolbox.HttpHeaderParser;
+import com.timeline.vpn.bean.vo.JsonResult;
+import com.timeline.vpn.common.exce.MyVolleyError;
 import com.timeline.vpn.common.net.HttpUtils;
 import com.timeline.vpn.common.util.cache.DiskBasedCacheEx;
 import com.timeline.vpn.constant.Constants;
@@ -20,7 +23,7 @@ public class BaseRequest<T> extends Request<T> {
 
     private static String UA_DEFAULT = null;
     private static String UA_APP_SUFFIX = null;
-
+    private String mCharset = "utf-8";
     static {
         UA_DEFAULT = System.getProperty("http.agent", "");
     }
@@ -45,10 +48,11 @@ public class BaseRequest<T> extends Request<T> {
             headers.put("Referer", Constants.DEFAULT_REFERER);
         }
         headers.put("Accept-Encoding", "gzip");
+        headers.putAll(HttpUtils.getHeader(context));
         this.headers = headers;
 
         this.listener = listener;
-        setRetryPolicy(new DefaultRetryPolicy(2000, 2, 0.5F));
+        setRetryPolicy(new DefaultRetryPolicy(3000, 1, 0.5F));
     }
 
     @Override
@@ -96,5 +100,30 @@ public class BaseRequest<T> extends Request<T> {
     public byte[] getBody() throws AuthFailureError {
         return super.getBody();
     }
+    protected final String getResponseStr(NetworkResponse response) {
+        try {
+            String charset = !TextUtils.isEmpty(mCharset) ? mCharset : HttpHeaderParser.parseCharset(response.headers);
+            return new String(response.data, charset);
+        } catch (Exception e) {
+            return null;
+        }
+    }
 
+    /**
+     * 设置默认编码
+     *
+     * @param charset
+     * @return //
+     */
+    protected void setCharset(String charset) {
+        mCharset = charset;
+    }
+    protected Response parserData(JsonResult data,NetworkResponse response){
+        boolean ret = HttpUtils.parserJsonResult(getContext(), data);
+        if(ret) {
+            return Response.success(data.getData(), getCacheEntry(response));
+        }else{
+            return Response.error(new MyVolleyError(data.error));
+        }
+    }
 }

@@ -1,4 +1,4 @@
-apply plugin: 'com.android.application'
+    apply plugin: 'com.android.application'
 android {
     compileSdkVersion 23
     buildToolsVersion "22.0.1"
@@ -7,32 +7,34 @@ android {
     }
     defaultConfig {
         applicationId "com.timeline.vpn"
-        minSdkVersion 17
+        minSdkVersion 21
         targetSdkVersion 22
-        versionCode 2
-        versionName "1.0.1"
+        versionCode 1000001000
+        versionName "1.0.1.0"
         // Enabling multidex support.
         multiDexEnabled true
     }
     dependencies {
         compile fileTree(dir: 'libs', include: ['*.jar'])
-        compile 'com.android.support:appcompat-v7:23.+'
-        compile 'com.android.support:support-v13:23.+'
-        compile 'com.android.support:support-v4:23.+'
-        compile 'com.android.support:palette-v7:23.+'
-        compile 'com.android.support:recyclerview-v7:23.+'
-        compile 'com.android.support:cardview-v7:23.+'
-        compile 'com.android.support:design:23.+'
+        compile 'com.android.support:appcompat-v7:23.2.0'
+        compile 'com.android.support:support-v13:23.2.0'
+        compile 'com.android.support:support-v4:23.2.0'
+        compile 'com.android.support:palette-v7:23.2.0'
+        compile 'com.android.support:recyclerview-v7:23.2.0'
+        compile 'com.android.support:cardview-v7:23.2.0'
+        compile 'com.android.support:design:23.2.0'
         debugCompile 'com.squareup.leakcanary:leakcanary-android:1.3'
         releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.3'
-        compile 'com.jakewharton:butterknife:7+'
+        compile 'com.jakewharton:butterknife:7.0.1'
         compile 'com.jakewharton.timber:timber:2.5.1'
         compile 'com.facebook.rebound:rebound:0.3.6'
-        compile 'com.squareup.picasso:picasso:2.5.0'
         compile 'com.squareup.okhttp3:okhttp:3.2.0'
+        compile 'com.squareup.okhttp3:logging-interceptor:3.0.1'
         compile 'com.github.bumptech.glide:glide:3.7.0'
-        compile "org.apache.httpcomponents:httpcore:4.2.+"
-        compile group: 'commons-io', name: 'commons-io', version: '2.+'
+        compile "org.apache.httpcomponents:httpcore:4.2.5"
+        compile group: 'commons-io', name: 'commons-io', version: '2.4'
+        compile 'org.greenrobot:eventbus:3.0.0'
+        compile 'com.umeng.analytics:analytics:latest.integration'
     }
 
 
@@ -64,9 +66,17 @@ android {
         }
     }
 }
-dependencies {
-    compile files('src/main/libs/disklrucache-2.0.2.jar')
-    compile files('src/main/libs/gson-2.2.4.jar')
-    compile files('src/main/libs/volley.jar')
-    compile files('src/main/libs/commons-codec.jar')
-}
+    dependencies {
+        compile files('src/main/libs/disklrucache-2.0.2.jar')
+        compile files('src/main/libs/gson-2.2.4.jar')
+        compile files('src/main/libs/volley.jar')
+        compile files('src/main/libs/commons-codec.jar')
+        compile files('src/main/libs/GDTUnionSDK.4.8.520.min.jar')
+        compile files('src/main/libs/YoumiSdk_v6.1.0_2016-02-26.jar')
+        compile files('src/main/libs/Baidu_MobAds_SDK.jar')
+        compile files('src/main/libs/domob_android_sdk.jar')
+        compile files('src/main/libs/android-query-full.0.26.7.jar')
+        compile files('src/main/libs/BaiduLBS_Android.jar')
+        compile 'com.google.android.gms:play-services-appindexing:8.1.0'
+        compile files('src/main/libs/umeng_social_sdk.jar')
+    }

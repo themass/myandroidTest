@@ -1,4 +1,4 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android" >
     <item android:drawable="@drawable/circle_vpn_hui"/>
-    <item android:drawable="@drawable/icon_ivpn_state_loading" />
+    <item android:drawable="@drawable/ic_vpn_state_loading" />
 </layer-list>

@@ -31,12 +31,12 @@ import android.security.KeyChain;
 import android.security.KeyChainException;
 import android.util.Log;
 
-import com.timeline.vpn.api.bean.VpnProfile;
+import com.timeline.vpn.bean.vo.VpnProfile;
 import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.service.utils.SettingsWriter;
 import com.timeline.vpn.service.utils.VpnType;
-import com.timeline.vpn.ui.MainFragment;
+import com.timeline.vpn.ui.main.MainFragment;
 
 import java.io.File;
 import java.io.StringBufferInputStream;
@@ -136,9 +136,11 @@ public class CharonVpnService extends VpnService {
      * Stop any existing connection by deinitializing charon.
      */
     public void stopCurrentConnection() {
-        LogUtil.i("startConnection "+mCurrentProfile.getName());
-        mCurrentProfile = null;
-        mWorkHandler.post(new DisConnectJob());
+        if(mCurrentProfile!=null) {
+            LogUtil.i("startConnection " + mCurrentProfile.getName());
+            mCurrentProfile = null;
+            mWorkHandler.post(new DisConnectJob());
+        }
     }
 
     /**

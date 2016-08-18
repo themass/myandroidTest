@@ -14,6 +14,7 @@ import com.android.volley.toolbox.BasicNetwork;
 import com.android.volley.toolbox.HttpStack;
 import com.android.volley.toolbox.ImageLoader;
 import com.timeline.vpn.R;
+import com.timeline.vpn.common.exce.MyVolleyError;
 import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.common.util.cache.BitmapLruCache;
 import com.timeline.vpn.common.util.cache.DiskBasedCacheEx;
@@ -55,14 +56,15 @@ public class VolleyUtils {
         Toast.makeText(context, getVolleyError(volleyError), Toast.LENGTH_SHORT).show();
     }
 
-    public static int getVolleyError(VolleyError volleyError) {
-        int msgId = R.string.error_network_unknown;
+    public static String getVolleyError(VolleyError volleyError) {
         if (volleyError instanceof NetworkError) {
-            msgId = R.string.error_network_no_connection;
+            return context.getResources().getString(R.string.error_network_no_connection);
         } else if (volleyError instanceof TimeoutError) {
-            msgId = R.string.error_network_timeout;
+            return context.getResources().getString(R.string.error_network_timeout);
+        }else if(volleyError instanceof MyVolleyError){
+            return ((MyVolleyError) volleyError).getMsg();
         }
-        return msgId;
+        return context.getResources().getString(R.string.error_network_unknown);
     }
 
     /**
@@ -76,6 +78,7 @@ public class VolleyUtils {
      * 取消Volley请求
      */
     public static void cancelRequest(String tag) {
+        LogUtil.i("cancelRequest tag="+tag);
         mRequestQueue.cancelAll(tag);
     }
 

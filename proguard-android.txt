@@ -1,0 +1,35 @@
+-keepattributes *Annotation*
+-keepclassmembers class ** {
+    @org.greenrobot.eventbus.Subscribe <methods>;
+}
+-keep enum org.greenrobot.eventbus.ThreadMode { *; }
+
+# Only required if you use AsyncExecutor
+-keepclassmembers class * extends org.greenrobot.eventbus.util.ThrowableFailureEvent {
+    <init>(java.lang.Throwable);
+}
+-dontwarn net.youmi.android.**
+-keep class net.youmi.android.** {
+    *;
+}
+-keep class com.baidu.** {
+public protected *;
+}
+-keep class com.qq.e.** {
+   public protected *;
+  }
+-keep class android.support.v4.app.NotificationCompat**{
+   public *;
+  }
+-keep class MTT.ThirdAppInfoNew { *; }
+  -keep class com.tencent.** { *; }
+  -keepclassmembers class * {
+     public <init> (org.json.JSONObject);
+  }
+  -keepclassmembers enum * {
+      public static **[] values();
+      public static ** valueOf(java.lang.String);
+  }
+  -keep public class com.timeline.vpn.R$*{
+  public static final int *;
+  }

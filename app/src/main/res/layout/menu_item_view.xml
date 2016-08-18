@@ -4,4 +4,5 @@
     android:layout_width="?attr/actionBarSize"
     android:layout_height="?attr/actionBarSize"
     android:background="@drawable/btn_default_light"
-    android:src="@drawable/ic_vpn_on" />
+    android:scaleType="center"
+    android:src="@drawable/ic_menu_setting" />

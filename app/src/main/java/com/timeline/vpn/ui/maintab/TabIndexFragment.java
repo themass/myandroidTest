@@ -31,25 +31,26 @@ import android.view.animation.LinearInterpolator;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
-import com.android.volley.Response;
 import com.timeline.vpn.R;
-import com.timeline.vpn.api.bean.DataBuilder;
-import com.timeline.vpn.api.bean.HostVo;
-import com.timeline.vpn.api.bean.ServerVo;
-import com.timeline.vpn.api.bean.VpnProfile;
+import com.timeline.vpn.adapter.IndexRecommendAdapter;
+import com.timeline.vpn.bean.DataBuilder;
+import com.timeline.vpn.bean.vo.HostVo;
+import com.timeline.vpn.bean.vo.InfoListVo;
+import com.timeline.vpn.bean.vo.RecommendVo;
+import com.timeline.vpn.bean.vo.ServerVo;
+import com.timeline.vpn.bean.vo.VpnProfile;
 import com.timeline.vpn.common.net.HttpUtils;
-import com.timeline.vpn.common.net.VolleyUtils;
-import com.timeline.vpn.common.net.request.GsonRequest;
+import com.timeline.vpn.common.net.request.CommonResponse;
+import com.timeline.vpn.common.util.EventBusUtil;
 import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
-import com.timeline.vpn.data.IndexService;
+import com.timeline.vpn.data.config.ConfigActionEvent;
 import com.timeline.vpn.service.CharonVpnService;
-import com.timeline.vpn.ui.adapter.IndexRecommendAdapter;
 import com.timeline.vpn.ui.base.LoadableTabFragment;
+import com.timeline.vpn.ui.vpn.LocationChooseaActivity;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import butterknife.Bind;
@@ -58,9 +59,13 @@ import butterknife.OnClick;
 /**
  * Created by gqli on 2015/9/1.
  */
-public class TabIndexFragment extends LoadableTabFragment<List<String>> implements CharonVpnService.VpnStateListener {
+public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo>> implements CharonVpnService.VpnStateListener,IndexRecommendAdapter.ItemClickListener {
     private static final String DIALOG_TAG = "Dialog";
+    private static final String INDEX_TAG = "index_tag";
     private static final int PREPARE_VPN_SERVICE = 0;
+    @Nullable
+    @Bind(R.id.footerView)
+    View footerView;
     @Nullable
     @Bind(R.id.rvNavi)
     RecyclerView rvRecommend;
@@ -77,8 +82,13 @@ public class TabIndexFragment extends LoadableTabFragment<List<String>> implemen
     private VpnProfile vpnProfile;
     private Animation operatingAnim = null ;
     private LinearInterpolator lir = null;
-    private IndexService indexService;
-    private List<String> mData = new ArrayList<String>();
+    private BaseService indexService;
+    private boolean hasMore;
+    private boolean isLoadingMore;
+    private int pageNum = 0;
+    private List<RecommendVo> mData = new ArrayList<RecommendVo>();
+    private boolean isFirst = false;
+
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceDisconnected(ComponentName name) {
@@ -92,59 +102,108 @@ public class TabIndexFragment extends LoadableTabFragment<List<String>> implemen
     };
 
     @Override
-    protected int getRootViewId() {
-        return R.layout.tab_index;
-    }
-
-    @Override
     protected int getTabHeaderViewId() {
         return R.layout.vpn_state_view_loading;
     }
-
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        isFirst = true;
+    }
     @Override
     protected void onContentViewCreated(LayoutInflater inflater, ViewGroup parent) {
         inflater.inflate(R.layout.tab_index_body_content, parent, true);
     }
-
     @Override
-    protected void onDataLoaded(List<String> data) {
-        mData.addAll(data);
-        adapter.notifyDataSetChanged();
+    protected void onDataLoaded(InfoListVo<RecommendVo> data) {
+        //下拉刷新
+        if(refreshLayout.isRefreshing()){
+            mData.clear();
+            refreshLayout.setRefreshing(false);
+            mData.addAll(data.voList);
+            rvRecommend.getAdapter().notifyDataSetChanged();
+            pageNum++;
+        }else if(footerView.getVisibility()==View.VISIBLE){ //上拉加载
+            footerView.setVisibility(View.GONE);
+            mData.addAll(data.voList);
+            rvRecommend.getAdapter().notifyDataSetChanged();
+            pageNum++;
+        }else if(isLoadingMore){//首次加载
+            mData.addAll(data.voList);
+            rvRecommend.getAdapter().notifyDataSetChanged();
+        }
+        hasMore = data.hasMore;
+        data.voList = mData;
+        setData(data);
+        isLoadingMore = false;
+        LogUtil.i("mData size="+mData.size());
     }
 
     @Override
-    protected List<String> loadData(Context context) throws Exception {
-        return Arrays.asList(context.getResources().getStringArray(R.array.user_photos));
+    protected InfoListVo<RecommendVo> loadData(Context context){
+        isLoadingMore= true;
+        return indexService.getInfoListData(Constants.getRECOMMEND_URL(pageNum),RecommendVo.class,INDEX_TAG);
     }
 
     @Override
     protected void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
-        adapter = new IndexRecommendAdapter(this.getActivity(), rvRecommend,mData);
+        fabUp.setImageResource(R.drawable.fab_pigu);
+        adapter = new IndexRecommendAdapter(this.getActivity(), rvRecommend, mData, this);
         final StaggeredGridLayoutManager layoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
         rvRecommend.setLayoutManager(layoutManager);
-        rvRecommend.setAdapter(adapter);
         rvRecommend.setItemAnimator(new DefaultItemAnimator());
         getActivity().bindService(new Intent(getActivity(), CharonVpnService.class),
                 mServiceConnection, Service.BIND_AUTO_CREATE);
         operatingAnim = AnimationUtils.loadAnimation(getActivity(), R.anim.vpn_state_loading);
         lir = new LinearInterpolator();
         operatingAnim.setInterpolator(lir);
-        indexService = new IndexService();
+        indexService = new BaseService();
         indexService.setup(getActivity());
-        // ģ������ˢ��
         refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        refreshLayout.setRefreshing(false);
-                        adapter.notifyDataSetChanged();
-                    }
-                }, 2000);
+                pageNum = 0;
+                startQuery(false);
             }
         });
+        rvRecommend.setAdapter(adapter);
+        rvRecommend.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                int[] visibleItems = layoutManager.findLastVisibleItemPositions(null);
+                int lastitem = Math.max(visibleItems[0], visibleItems[1]);
+                if (dy > 0 && lastitem > adapter.getItemCount() - 5 && !isLoadingMore && hasMore) {
+                    footerView.setVisibility(View.VISIBLE);
+                    startQuery(false);
+                }
+            }
+        });
+        fabUp.setBackgroundResource(R.drawable.fab_pigu);
+    }
+    @Override
+    public void onResume() {
+        super.onResume();
+        if(isFirst){
+            isFirst = false;
+            next();
+        }
+    }
+
+    @Override
+    public void onItemClick(View v, int position) {
+        RecommendVo vo = mData.get(position);
+        EventBusUtil.getEventBus().post(new ConfigActionEvent(getActivity(),vo.actionUrl));
+    }
+
+    /**
+     * 选择地区
+     * @param view
+     */
+    @Override
+    public void onClickFab(View view) {
+        startActivity(LocationChooseaActivity.class);
     }
 
     @Override
@@ -152,11 +211,12 @@ public class TabIndexFragment extends LoadableTabFragment<List<String>> implemen
         super.onDestroyView();
         mService.unregisterListener(this);
         getActivity().unbindService(mServiceConnection);
-
+        indexService.cancelRequest(INDEX_TAG);
     }
-    private void initRecommendList(){
-        GsonRequest request = new GsonRequest(getActivity(), Constants.SERVERLIST_URL, ServerVo.class, HttpUtils.getHeader(),serverListener,serverListenerError);
-        VolleyUtils.addRequest(request);
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
     }
     @OnClick(R.id.iv_vpn_state)
     public void onVpnClick(View v) {
@@ -166,7 +226,10 @@ public class TabIndexFragment extends LoadableTabFragment<List<String>> implemen
             imgNormal();
         } else if(mService.getCurrentVpnState()== CharonVpnService.State.DISABLED) {
             imgAnim();
-            indexService.getHost(serverListener,serverListenerError);
+            indexService.getData(Constants.SERVERLIST_URL,serverListener,serverListenerError,INDEX_TAG,ServerVo.class);
+        }else if(mService.getCurrentVpnState()== CharonVpnService.State.CONNECTING){
+            mService.stopCurrentConnection();
+            imgNormal();
         }
     }
 
@@ -214,40 +277,46 @@ public class TabIndexFragment extends LoadableTabFragment<List<String>> implemen
 
     private void imgAnim() {
         stopAnim();
-        ibVpnStatus.setImageResource(R.drawable.icon_ivpn_state_loading);
+        hasIp = false;
+        ibVpnStatus.setImageResource(R.drawable.ic_vpn_state_loading);
         ibVpnStatus.startAnimation(operatingAnim);
         tvVpnText.setText(R.string.vpn_bg_conning);
+        ibVpnStatus.setEnabled(false);
     }
     private void imgError() {
         stopAnim();
+        hasIp = false;
         ibVpnStatus.setImageResource(R.drawable.circle_vpn_red);
         tvVpnText.setText(R.string.vpn_bg_error);
+        ibVpnStatus.setEnabled(true);
     }
     private void imgConn() {
         stopAnim();
         ibVpnStatus.setImageResource(R.drawable.circle_vpn_green);
         tvVpnText.setText(R.string.vpn_bg_conned);
+        ibVpnStatus.setEnabled(true);
     }
     private void imgNormal() {
         stopAnim();
+        hasIp = false;
         ibVpnStatus.setImageResource(R.drawable.circle_vpn_blue);
         tvVpnText.setText(R.string.vpn_bg_click);
     }
     private void stopAnim(){
         ibVpnStatus.clearAnimation();
     }
-    Response.Listener serverListener = new Response.Listener<ServerVo>() {
+    CommonResponse.ResponseOkListener serverListener = new CommonResponse.ResponseOkListener<ServerVo>() {
         @Override
         public void onResponse(ServerVo serverVo) {
             long id = 0;
-            for (HostVo vo : serverVo.getHostList()) {
+            for (HostVo vo : serverVo.hostList) {
                 PingTask task = new PingTask(serverVo);
-                LogUtil.i("run task " + vo.getGateway());
+                LogUtil.i("run task " + vo.gateway);
                 task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, vo);
             }
         }
     };
-    BaseService.ResponseErrorListener serverListenerError = new BaseService.ResponseErrorListener(){
+    CommonResponse.ResponseErrorListener serverListenerError = new CommonResponse.ResponseErrorListener(){
         @Override
         protected void onError() {
             super.onError();
@@ -262,17 +331,23 @@ public class TabIndexFragment extends LoadableTabFragment<List<String>> implemen
         @Override
         protected HostVo doInBackground(HostVo... params) {
             HostVo vo = params[0];
-            int ttl = HttpUtils.ping(vo.getGateway());
-            vo.setTtlTime(ttl);
+            int ttl = HttpUtils.ping(vo.gateway);
+            vo.ttlTime = ttl;
             LogUtil.i(vo.toString());
             synchronized (mService) {
-                if (!hasIp && vo.getTtlTime() > 0) {
+                if (!hasIp && vo.ttlTime > 0) {
                     hasIp = true;
-                    vpnProfile = DataBuilder.builderVpnProfile(server.getExpire(),server.getName(),server.getPwd(),vo);
+                    vpnProfile = DataBuilder.builderVpnProfile(server.expire, server.name, server.pwd, vo);
                     prepareVpnService();
                 }
             }
             return vo;
+        }
+
+        @Override
+        protected void onPostExecute(HostVo hostVo) {
+            super.onPostExecute(hostVo);
+            ibVpnStatus.setEnabled(true);
         }
     }
 
@@ -338,5 +413,6 @@ public class TabIndexFragment extends LoadableTabFragment<List<String>> implemen
                         }
                     }).create();
         }
+
     }
 }

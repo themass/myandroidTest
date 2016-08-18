@@ -1,0 +1,39 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>访问错误！</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        .container{
+            text-align: center;
+        }
+        #reload{
+            display: inline-block;
+            text-decoration: none;
+            color: #333;
+            margin: 50% auto;
+            border: solid 1px #ccc;
+            border-top-right-radius: 8px;
+            border-bottom-right-radius: 8px;
+            padding: 20px;
+            border-left:solid 5px #D9534F;
+        }
+        @-webkit-keyframes tadaOpen-open {0% {-webkit-transform:scale(1);}10%, 20% {-webkit-transform:scale(0.9) rotate(-3deg);}30%, 50%, 70%, 90% {-webkit-transform:scale(1.1) rotate(3deg);}40%, 60%, 80% {-webkit-transform:scale(1.1) rotate(-3deg);}100% {-webkit-transform:scale(1) rotate(0);}}.tadaOpen-open {-webkit-animation-duration: 800ms;-webkit-animation-name: tadaOpen-open;}@-webkit-keyframes jBox-animation-zoomInClose-close {0% {-webkit-transform:scale(1);}100% {-webkit-transform:scale(0.9);}}
+    </style>
+</head>
+<body>
+<div class="container tadaOpen-open">
+    <a href="#" id="reload">
+        <span>加载失败，请点击重试！</span>
+    </a>
+</div>
+
+</body>
+<script type="text/javascript">
+    var reload = document.getElementById('reload');
+    reload.onclick = function(){
+        window.location.assign("####");
+    };
+</script>
+</html>

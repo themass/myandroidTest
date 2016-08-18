@@ -8,14 +8,16 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.VolleyError;
 import com.timeline.vpn.R;
+import com.timeline.vpn.common.exce.RequestException;
 import com.timeline.vpn.common.net.VolleyUtils;
 import com.timeline.vpn.common.util.LogUtil;
-import com.timeline.vpn.ui.maintab.TabBaseFragment;
+import com.timeline.vpn.ui.maintab.TabBaseAdsFragment;
 
 import java.lang.ref.WeakReference;
 
@@ -28,7 +30,7 @@ import butterknife.OnClick;
  *
  * @author jrzheng
  */
-public abstract class LoadableTabFragment<T> extends TabBaseFragment {
+public abstract class LoadableTabFragment<T> extends TabBaseAdsFragment {
     @Bind(R.id.loading)
     ProgressBar mLoadingView;
     @Bind(R.id.load_retry)
@@ -71,7 +73,6 @@ public abstract class LoadableTabFragment<T> extends TabBaseFragment {
         }
     }
     protected abstract void onContentViewCreated(LayoutInflater inflater, ViewGroup parent);
-
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -79,7 +80,6 @@ public abstract class LoadableTabFragment<T> extends TabBaseFragment {
         mLoadingView = null;
         mContentView = null;
     }
-
     protected void cancelVolley(final String tag) {
         VolleyUtils.cancelRequest(new RequestQueue.RequestFilter() {
             @Override
@@ -93,15 +93,14 @@ public abstract class LoadableTabFragment<T> extends TabBaseFragment {
             }
         });
     }
-
     protected void startQuery(boolean showLoading) {
-        cancelQuery();
-        mQueryTask = new QueryTask<T>(this, showLoading, handler);
-        mQueryTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            cancelQuery();
+            mQueryTask = new QueryTask<T>(this, showLoading, handler);
+            mQueryTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
-    private void cancelQuery() {
-        if (mQueryTask != null) {
+        private void cancelQuery() {
+            if (mQueryTask != null) {
             mQueryTask.cancel(true);
             mQueryTask = null;
         }
@@ -112,18 +111,22 @@ public abstract class LoadableTabFragment<T> extends TabBaseFragment {
     }
 
     protected void showLoading() {
-        mLoadingView.setVisibility(View.VISIBLE);
-        mLoadRetryView.setVisibility(View.GONE);
-        mContentView.setVisibility(View.GONE);
+        if(mLoadingView!=null) {
+            mLoadingView.setVisibility(View.VISIBLE);
+            mLoadRetryView.setVisibility(View.GONE);
+            mContentView.setVisibility(View.GONE);
+        }
     }
 
     protected void hideLoading() {
-        mLoadingView.setVisibility(View.GONE);
-        mLoadRetryView.setVisibility(View.GONE);
-        mContentView.setVisibility(View.VISIBLE);
+        if(mLoadingView!=null) {
+            mLoadingView.setVisibility(View.GONE);
+            mLoadRetryView.setVisibility(View.GONE);
+            mContentView.setVisibility(View.VISIBLE);
+        }
     }
 
-    private void showRetry() {
+    protected void showRetry() {
         mLoadingView.setVisibility(View.GONE);
         mLoadRetryView.setVisibility(View.VISIBLE);
         mContentView.setVisibility(View.GONE);
@@ -161,7 +164,6 @@ public abstract class LoadableTabFragment<T> extends TabBaseFragment {
                 try {
                     return fragment.loadData(mContext);
                 } catch (Exception e) {
-                    LogUtil.e(e);
                     showError(e);
                 }
             }
@@ -191,6 +193,15 @@ public abstract class LoadableTabFragment<T> extends TabBaseFragment {
                         VolleyUtils.showVolleyError((VolleyError) e);
                     } else if (e.getCause() instanceof VolleyError) {
                         VolleyUtils.showVolleyError((VolleyError) e.getCause());
+                    }else if (e instanceof RequestException) {
+                        RequestException ex = (RequestException)e;
+                        LogUtil.e(ex.getErrorMsg(),ex.getException());
+                        if(ex.getException()!=null){
+                            Toast.makeText(mContext, R.string.error_network_unknown, Toast.LENGTH_SHORT).show();
+                        }else{
+                            Toast.makeText(mContext, ex.getErrorMsg(), Toast.LENGTH_SHORT).show();
+                        }
+
                     }
                 }
             });

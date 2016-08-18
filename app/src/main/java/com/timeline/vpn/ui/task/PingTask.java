@@ -2,7 +2,7 @@ package com.timeline.vpn.ui.task;
 
 import android.os.AsyncTask;
 
-import com.timeline.vpn.api.bean.HostVo;
+import com.timeline.vpn.bean.vo.HostVo;
 import com.timeline.vpn.common.net.HttpUtils;
 
 /**
@@ -14,8 +14,8 @@ public class PingTask extends AsyncTask<HostVo, Void, HostVo>
     protected HostVo doInBackground(HostVo... params)
     {
         HostVo vo = params[0];
-        int ttl = HttpUtils.ping(vo.getGateway());
-        vo.setTtlTime(ttl);
+        int ttl = HttpUtils.ping(vo.gateway);
+        vo.ttlTime = ttl;
         return vo;
     }
 }

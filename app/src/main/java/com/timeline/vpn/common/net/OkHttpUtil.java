@@ -1,5 +1,6 @@
 package com.timeline.vpn.common.net;
 
+import com.timeline.vpn.common.exce.HttpException;
 import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
 
@@ -58,14 +59,19 @@ public class OkHttpUtil {
       }
     });
   }
-  public static String getStringFromServer(String url) throws IOException{
-    Request request = new Request.Builder().url(url).build();
-    Response response = execute(request);
-    if (response.isSuccessful()) {
-      String responseUrl = response.body().string();
-      return responseUrl;
-    } else {
-      throw new IOException("Unexpected code " + response);
+  public static String getStringFromServer(String url){
+    try {
+      Request request = new Request.Builder().url(url).headers(HttpUtils.getOkHeader()).build();
+      Response response = execute(request);
+      if (response.isSuccessful()) {
+        String responseUrl = response.body().string();
+        return responseUrl;
+      } else {
+        LogUtil.e("Unexpected code " + response);
+        throw new HttpException(Constants.NET_ERROR);
+      }
+    }catch (Exception e){
+      throw new HttpException(e);
     }
   }
   private static final String CHARSET_NAME = "UTF-8";

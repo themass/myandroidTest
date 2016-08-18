@@ -14,10 +14,11 @@ import com.timeline.vpn.ui.base.BaseFragment;
 public abstract class TabBaseFragment extends BaseFragment {
     private ViewGroup headerContentView;
     private ViewGroup bodyContentView;
+    public static int NULL_VIEW = -1;
 
     @Override
     protected int getRootViewId() {
-        return R.layout.main_fragment;
+        return R.layout.tab_fragment;
     }
 
     @Override
@@ -25,8 +26,12 @@ public abstract class TabBaseFragment extends BaseFragment {
         View view = inflater.inflate(getRootViewId(), null);
         headerContentView = (ViewGroup) view.findViewById(R.id.tab_header_content);
         bodyContentView = (ViewGroup) view.findViewById(R.id.tab_body_content);
-        inflater.inflate(getTabHeaderViewId(), headerContentView, true);
-        inflater.inflate(getTabBodyViewId(), bodyContentView, true);
+        if(getTabHeaderViewId()!=NULL_VIEW){
+            inflater.inflate(getTabHeaderViewId(), headerContentView, true);
+        }
+        if(getTabBodyViewId()!=NULL_VIEW) {
+            inflater.inflate(getTabBodyViewId(), bodyContentView, true);
+        }
         setUp(bodyContentView,inflater);
         return view;
     }

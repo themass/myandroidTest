@@ -36,7 +36,7 @@
             android:layout_gravity="bottom|right"
             android:layout_marginBottom="@dimen/btn_fab_margins"
             android:layout_marginRight="@dimen/btn_fab_margins"
-            android:src="@drawable/ic_instagram_white"
+            android:src="@drawable/ic_menu_direct_up"
             app:borderWidth="0dp"
             app:elevation="6dp"
             app:pressedTranslationZ="12dp" />

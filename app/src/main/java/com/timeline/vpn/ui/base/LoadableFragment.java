@@ -42,6 +42,10 @@ public abstract class LoadableFragment<T> extends BaseFragment {
         mContext = activity;
     }
 
+    @Override
+    protected int getRootViewId() {
+        return DEFAULT_LAYOUT;
+    }
 
     @Override
     protected void setupViews(View view,Bundle savedInstanceState) {
@@ -51,6 +55,7 @@ public abstract class LoadableFragment<T> extends BaseFragment {
         LayoutInflater inflater = LayoutInflater.from(getActivity());
         onContentViewCreated(inflater, mContentView, savedInstanceState);
         mLoadRetryView.setOnClickListener(mRefreshClickListener);
+        super.setupViews(view,savedInstanceState);
     }
 
     View.OnClickListener mRefreshClickListener = new View.OnClickListener() {

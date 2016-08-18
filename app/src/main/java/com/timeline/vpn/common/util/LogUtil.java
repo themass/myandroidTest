@@ -19,13 +19,19 @@ public class LogUtil {
     public static void e(String tag, String msg, Throwable t) {
         Log.e(tag, msg, t);
     }
-
+    public static void e(String msg, Throwable t) {
+        Log.e(TAG, msg, t);
+    }
     public static void w(String tag, String msg) {
         Log.w(tag, msg);
     }
 
     public static void i(String msg) {
-        Log.i(TAG, msg);
+        if(msg==null){
+            Log.i(TAG, "null");
+        }else{
+            Log.i(TAG, msg);
+        }
     }
     public static void d(String msg) {
         Log.d(TAG, msg);

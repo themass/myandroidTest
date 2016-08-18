@@ -9,20 +9,12 @@
     app:layout_scrollFlags="scroll|enterAlways"
     app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
-    <ImageView
-        android:id="@+id/ivLogo"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_gravity="center"
-        android:scaleType="center"
-        android:src="@drawable/img_toolbar_logo" />
-
     <TextView
         android:id="@+id/tvTitle"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="center"
         android:gravity="center"
-        android:textSize="20sp"
-        android:visibility="gone" />
+        android:textSize="22sp"
+        android:text="@string/toobar_title"/>
 </android.support.v7.widget.Toolbar>

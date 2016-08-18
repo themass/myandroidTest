@@ -1,15 +1,11 @@
 package com.timeline.vpn.ui.base;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Service;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.squareup.leakcanary.RefWatcher;
@@ -22,17 +18,13 @@ import butterknife.ButterKnife;
 /**
  * Created by Miroslaw Stanek on 19.01.15.
  */
-public class BaseToolBarActivity extends AppCompatActivity {
+public class BaseToolBarActivity extends BaseWeatherMenuFragment {
 
     @Nullable
     @Bind(R.id.toolbar)
     Toolbar toolbar;
-    @Nullable
-    @Bind(R.id.ivLogo)
-    ImageView ivLogo;
     @Bind(R.id.tvTitle)
     TextView tvTitle;
-
     @Override
     public void setContentView(int layoutResID) {
         super.setContentView(layoutResID);
@@ -58,10 +50,6 @@ public class BaseToolBarActivity extends AppCompatActivity {
         return toolbar;
     }
 
-    public ImageView getIvLogo() {
-        return ivLogo;
-    }
-
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -73,40 +61,26 @@ public class BaseToolBarActivity extends AppCompatActivity {
     public void startActivity(Class<? extends Activity> c) {
         Intent intent = new Intent(BaseToolBarActivity.this, c);
         startActivity(intent);
+        overridePendingTransition(R.anim.slide_in_from_right, R.anim.slide_out_to_left);
     }
     public void startService(Class<? extends Service> c) {
         Intent intent = new Intent(BaseToolBarActivity.this, c);
         startService(intent);
     }
-
-    public void showAlertDialog(String title, String msg, DialogInterface.OnClickListener listener) {
-        AlertDialog.Builder adb = new AlertDialog.Builder(BaseToolBarActivity.this);
-        adb.setTitle(R.string.alert_text_nocertfound_title);
-        adb.setMessage(R.string.alert_text_nocertfound);
-        adb.setPositiveButton(android.R.string.ok, listener);
-        adb.show();
-    }
-
-    public void showAlertDialog(int title, int msg, DialogInterface.OnClickListener listener) {
-        showAlertDialog(getString(title), getString(msg), listener);
-    }
-
     public void setToolbarTitle(int id) {
-        ivLogo.setVisibility(View.GONE);
-        tvTitle.setVisibility(View.VISIBLE);
         tvTitle.setText(id);
         setNavigationOut();
     }
-
+    public TextView getToolbarTitle() {
+        return tvTitle;
+    }
     public void setToolbarTitle(String title) {
-        ivLogo.setVisibility(View.GONE);
-        tvTitle.setVisibility(View.VISIBLE);
         tvTitle.setText(title);
         setNavigationOut();
     }
 
     public void setNavigationOut() {
-        toolbar.setNavigationIcon(R.drawable.left);
+        toolbar.setNavigationIcon(R.drawable.ic_arrow_back_white);
         getToolbar().setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -114,5 +88,4 @@ public class BaseToolBarActivity extends AppCompatActivity {
             }
         });
     }
-
 }
