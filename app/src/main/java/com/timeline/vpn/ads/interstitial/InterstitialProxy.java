@@ -3,6 +3,7 @@ package com.timeline.vpn.ads.interstitial;
 import android.app.Activity;
 import android.os.Handler;
 
+import com.timeline.vpn.ads.AdsStrategy;
 import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
 
@@ -13,12 +14,11 @@ import java.util.Map;
  * Created by gqli on 2016/3/23.
  */
 public class InterstitialProxy {
-    public static InterstitialAdsStrategy DEAFULT_STRATEGY = new InterstitialAdsStrategy(null);
-    private InterstitialAdsStrategy strategy;
+    private AdsStrategy strategy;
     private Activity context;
     private Handler handler;
     Map<String,InterstitialAdsController> map = new HashMap<>();
-    public InterstitialProxy(InterstitialAdsStrategy strategy, Activity context, Handler handler){
+    public InterstitialProxy(AdsStrategy strategy, Activity context, Handler handler){
         this.context = context;
         this.handler = handler;
         this.strategy = strategy;

@@ -7,14 +7,18 @@ import android.graphics.Typeface;
 import com.android.volley.VolleyLog;
 import com.squareup.leakcanary.LeakCanary;
 import com.squareup.leakcanary.RefWatcher;
+import com.timeline.vpn.bean.vo.AdsStrategyVo;
 import com.timeline.vpn.bean.vo.UserInfoVo;
 import com.timeline.vpn.common.net.VolleyUtils;
+import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.common.util.PreferenceUtils;
 import com.timeline.vpn.common.util.SystemUtils;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.MobAgent;
 import com.timeline.vpn.data.StaticDataUtil;
 import com.timeline.vpn.data.VersionUpdater;
+import com.timeline.vpn.ui.feedback.ConversationDetailActivity;
+import com.umeng.fb.push.FeedbackPush;
 
 import butterknife.ButterKnife;
 import timber.log.Timber;
@@ -26,6 +30,7 @@ public class MyApplication extends Application {
     private RefWatcher refWatcher;
     public Typeface typeface;
     private static MyApplication instance = null;
+
     public static RefWatcher getRefWatcher(Context context) {
         MyApplication application = (MyApplication) context.getApplicationContext();
         return application.refWatcher;
@@ -47,14 +52,24 @@ public class MyApplication extends Application {
         typeface = Typeface.SANS_SERIF;
         instance = this;
     }
-    public static MyApplication getInstance(){
+
+    public static MyApplication getInstance() {
         return instance;
     }
-    private void initData(){
+
+    private void initData() {
         UserInfoVo user = PreferenceUtils.getPrefObj(this, Constants.LOGIN_USER, UserInfoVo.class);
-        if(user!=null) {
+        AdsStrategyVo strategyVo = PreferenceUtils.getPrefObj(this, Constants.STORY_ADSSTATEGY, AdsStrategyVo.class);
+        if (user != null) {
             StaticDataUtil.add(Constants.LOGIN_USER, user);
         }
+        if (strategyVo == null) {
+            strategyVo = new AdsStrategyVo();
+        }
+        StaticDataUtil.add(Constants.STORY_ADSSTATEGY, strategyVo);
+        LogUtil.i("init data ok");
         MobAgent.init(SystemUtils.isApkDebugable(this));
+        com.umeng.fb.util.Log.LOG = SystemUtils.isApkDebugable(this);
+        FeedbackPush.getInstance(this).init(ConversationDetailActivity.class, true);
     }
 }

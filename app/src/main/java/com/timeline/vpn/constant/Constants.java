@@ -20,6 +20,7 @@ public class Constants {
     public static final String BASE_HOST = "http://10.33.70.182:8080/vpn/api";//TODO 测试地址
 //    public static final String BASE_HOST = "http://192.168.1.8:8080/vpn/api";//TODO 测试地址
     public static final String SERVERLIST_URL = BASE_HOST + "/host/server/list.json";
+    public static final String ADSSTRATEGY_URL = BASE_HOST + "/data/ads/strategy.json";
     private static final String RECOMMEND_URL = BASE_HOST + "/data/recommend.json?start=%s&limit=30";
     public static final String LOCATION_URL = BASE_HOST + "/host/server/location.json";
     public static final String LOGIN_URL = BASE_HOST + "/user/login.json";
@@ -134,6 +135,7 @@ public class Constants {
     public static final String SETTING_PREF_NEED_CHECK_UPDATE_NEXT_TIME = "SETTING_PREF_NEED_CHECK_UPDATE_NEXT_TIME";
     public static final String TEMP_PATH = "/tencent/vpn";
     public static final String VERSION_APP_INCOMING = "VERSION_APP_INCOMING"; // 服务器上的最新版本号
+    public static final String STORY_ADSSTATEGY="STORY_ADSSTATEGY";
 
 
 }

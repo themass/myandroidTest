@@ -46,6 +46,7 @@
     <string name="location_choose_level">网络状态：</string>
     <string name="location_choose_hint" >地区选择：</string>
     <string name="location_choose_none" >不限</string>
+    <string name="menu_haha" >呦！被你发现了</string>
     <!-- menu -->
     <string name="menu_vpn_setting">VPN设置</string>
     <string name="menu_vpn_status">VPNl连接状态</string>
@@ -57,6 +58,8 @@
     <string name="menu_btn_version" >版本:%1$s</string>
     <string name="menu_btn_version_new" >版本:%1$s （new:%2$s）</string>
     <string name="menu_btn_logout" >退出</string>
+    <string name="menu_btn_about_context">FreeVPN最稳定，免费，不限时，一切为你请点赞！</string>
+    <string name="feed_back">用户反馈</string>
     <!--登录，注册-->
     <string name="close_over">再按一次退出程序!!</string>
     <string name="login" >登录</string>
@@ -106,7 +109,7 @@
     <!--其他-->
     <item type="id" name="tag_pos"/>
     <item type="id" name="tag_val"/>
-
+    <string name="facebook_app_id">487692214752558</string>
     <string name="show_log">View log</string>
     <string name="search">Search</string>
     <string name="vpn_not_supported_title">VPN not supported</string>
@@ -218,4 +221,6 @@
     <string name="replaces_active_connection">This will replace your active VPN connection!</string>
     <string name="connect">Connect</string>
 
+
+    <!--广告-->
 </resources>

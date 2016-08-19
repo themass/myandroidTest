@@ -50,6 +50,19 @@ public class BaseService {
             return  null;
         }
     }
+    public <T>T getData(String url, Class<T> t,String tag){
+        try {
+            RequestFuture<T> future = RequestFuture.newFuture();
+            GsonRequest request = new GsonRequest<T>(context, url, t,null, future, future);
+            request.setTag(tag);
+            VolleyUtils.addRequest(request);
+            T result = future.get();
+            return result;
+        }catch (Exception e){
+            LogUtil.e(e);
+            return  null;
+        }
+    }
     public <T>void getData(String url,CommonResponse.ResponseOkListener<T> listener,CommonResponse.ResponseErrorListener errorListener,String tag,Class<T> t){
         GsonRequest request = new GsonRequest(context, url, t, null,listener,errorListener);
         request.setTag(tag);

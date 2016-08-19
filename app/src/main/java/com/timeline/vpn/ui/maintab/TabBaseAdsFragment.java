@@ -10,10 +10,14 @@ import android.view.View;
 import android.view.animation.OvershootInterpolator;
 
 import com.timeline.vpn.R;
+import com.timeline.vpn.ads.AdsStrategy;
+import com.timeline.vpn.ads.DeafultAdsStrategy;
 import com.timeline.vpn.ads.interstitial.InterstitialAdsController;
 import com.timeline.vpn.ads.interstitial.InterstitialProxy;
+import com.timeline.vpn.bean.vo.AdsStrategyVo;
 import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
+import com.timeline.vpn.data.StaticDataUtil;
 import com.timeline.vpn.ui.main.MainFragment;
 
 import butterknife.Bind;
@@ -75,7 +79,7 @@ public abstract class TabBaseAdsFragment extends TabBaseFragment implements OnBa
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 //        setHasOptionsMenu(true);
-        proxy = new InterstitialProxy(InterstitialProxy.DEAFULT_STRATEGY,getActivity(),mHandler);
+        proxy = new InterstitialProxy(new AdsStrategy(StaticDataUtil.get(Constants.STORY_ADSSTATEGY, AdsStrategyVo.class).interstitial, DeafultAdsStrategy.DEAFULT_INTERSTITIAL),getActivity(),mHandler);
         ((MainFragment)getActivity()).setListener(this);
     }
     @Override

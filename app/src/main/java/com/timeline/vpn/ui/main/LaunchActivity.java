@@ -11,11 +11,15 @@ import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 
 import com.timeline.vpn.R;
+import com.timeline.vpn.ads.AdsStrategy;
+import com.timeline.vpn.ads.DeafultAdsStrategy;
 import com.timeline.vpn.ads.launch.LaunchAdsController;
 import com.timeline.vpn.ads.launch.LaunchProxy;
+import com.timeline.vpn.bean.vo.AdsStrategyVo;
 import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.MobAgent;
+import com.timeline.vpn.data.StaticDataUtil;
 import com.timeline.vpn.ui.base.LogActivity;
 
 import butterknife.Bind;
@@ -66,7 +70,7 @@ public class LaunchActivity extends LogActivity {
         setContentView(R.layout.main_launch);
         mHandler.postDelayed(mStartMainRunnable, Constants.STARTUP_SHOW_TIME_8000);
         ButterKnife.bind(this);
-        proxy = new LaunchProxy(LaunchProxy.DEAFULT_STRATEGY,this,ivAds,mHandler,ibSkip);
+        proxy = new LaunchProxy(new AdsStrategy(StaticDataUtil.get(Constants.STORY_ADSSTATEGY, AdsStrategyVo.class).launch, DeafultAdsStrategy.DEAFULT_LAUNCH),this,ivAds,mHandler,ibSkip);
     }
     @OnClick(R.id.launch_skip)
     public void onSkip(View view){

@@ -63,4 +63,7 @@
     <color name="title_item_unenabled">#a6d4b9</color>
     <color name="new_light_blue">#3382ff</color>
     <color name="btn_green_pressed">#2db259</color>
+    <!-- 标题 -->
+    <color name="bg_title">#2e313c</color>
+    <color name="bg_title_black">#2e313c</color>
 </resources>

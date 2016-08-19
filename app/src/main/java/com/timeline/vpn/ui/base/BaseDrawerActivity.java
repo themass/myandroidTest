@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.timeline.vpn.R;
 import com.timeline.vpn.bean.vo.LocationVo;
@@ -28,6 +29,7 @@ import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.data.VersionUpdater;
 import com.timeline.vpn.data.config.LocationChooseEvent;
 import com.timeline.vpn.data.config.UserLoginEvent;
+import com.timeline.vpn.ui.feedback.ConversationDetailActivity;
 import com.timeline.vpn.ui.user.LoginActivity;
 import com.timeline.vpn.ui.vpn.LocationChooseaActivity;
 
@@ -66,6 +68,13 @@ public class BaseDrawerActivity extends BaseFragmentActivity {
         super.onCreate(savedInstanceState);
         EventBusUtil.getEventBus().register(this);
     }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        EventBusUtil.getEventBus().unregister(this);
+    }
+
     @Override
     public void setContentView(int layoutResID) {
         LogUtil.i("setContentView   "+"drawer");
@@ -139,6 +148,10 @@ public class BaseDrawerActivity extends BaseFragmentActivity {
                     checkUpdate();
                 }else if(item.getItemId()==R.id.menu_location){
                     startActivity(LocationChooseaActivity.class);
+                }else if(item.getItemId()==R.id.menu_feedback){
+                    startActivity(ConversationDetailActivity.class);
+                }else if(item.getItemId()==R.id.menu_about){
+                    Toast.makeText(BaseDrawerActivity.this,R.string.menu_btn_about_context,Toast.LENGTH_LONG).show();
                 }
                 return false;
             }

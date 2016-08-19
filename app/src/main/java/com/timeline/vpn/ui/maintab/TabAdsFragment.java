@@ -22,10 +22,14 @@ import com.baidu.mobad.feeds.NativeErrorCode;
 import com.baidu.mobad.feeds.NativeResponse;
 import com.baidu.mobad.feeds.RequestParameters;
 import com.timeline.vpn.R;
+import com.timeline.vpn.ads.AdsStrategy;
+import com.timeline.vpn.ads.DeafultAdsStrategy;
 import com.timeline.vpn.ads.banner.BannerAdsController;
 import com.timeline.vpn.ads.banner.BannerProxy;
+import com.timeline.vpn.bean.vo.AdsStrategyVo;
 import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
+import com.timeline.vpn.data.StaticDataUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -76,7 +80,7 @@ public class TabAdsFragment extends TabBaseAdsFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         adsAdapter = new AdsAdapter();
-        proxy = new BannerProxy(BannerProxy.DEAFULT_STRATEGY,getActivity(),adsHandler);
+        proxy = new BannerProxy(new AdsStrategy(StaticDataUtil.get(Constants.STORY_ADSSTATEGY, AdsStrategyVo.class).banner, DeafultAdsStrategy.DEAFULT_BANNER),getActivity(),adsHandler);
         inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
     @Override
@@ -104,7 +108,7 @@ public class TabAdsFragment extends TabBaseAdsFragment {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-//        fetchBannerAd();
+        fetchBannerAd();
         fetchAd();
     }
 

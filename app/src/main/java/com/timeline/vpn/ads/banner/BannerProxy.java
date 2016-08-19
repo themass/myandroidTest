@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.os.Handler;
 import android.view.ViewGroup;
 
+import com.timeline.vpn.ads.AdsStrategy;
 import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
 
@@ -14,12 +15,11 @@ import java.util.Map;
  * Created by gqli on 2016/3/23.
  */
 public class BannerProxy{
-    public static BannerAdsStrategy DEAFULT_STRATEGY = new BannerAdsStrategy(null);
-    private BannerAdsStrategy strategy;
+    private AdsStrategy strategy;
     private Activity context;
     private Handler handler;
     Map<String,BannerAdsController> map = new HashMap<>();
-    public BannerProxy(BannerAdsStrategy strategy,Activity context,Handler handler){
+    public BannerProxy(AdsStrategy strategy,Activity context,Handler handler){
         this.context = context;
         this.handler = handler;
         this.strategy = strategy;
@@ -51,10 +51,10 @@ public class BannerProxy{
         }
         return null;
     }
-    public int size(){
-        return strategy.size();
-    }
     public void init(){
         strategy.init();
+    }
+    public int size(){
+        return strategy.size();
     }
 }

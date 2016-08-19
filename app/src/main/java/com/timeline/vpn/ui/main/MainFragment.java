@@ -1,6 +1,7 @@
 package com.timeline.vpn.ui.main;
 
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v13.app.FragmentTabHost;
 import android.view.KeyEvent;
@@ -13,7 +14,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.timeline.vpn.R;
+import com.timeline.vpn.bean.vo.AdsStrategyVo;
 import com.timeline.vpn.common.util.EventBusUtil;
+import com.timeline.vpn.common.util.PreferenceUtils;
+import com.timeline.vpn.constant.Constants;
+import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.data.config.ConfigActionJump;
 import com.timeline.vpn.service.CharonVpnService;
 import com.timeline.vpn.ui.base.BaseDrawerActivity;
@@ -21,6 +26,8 @@ import com.timeline.vpn.ui.maintab.OnBackKeyUpListener;
 import com.timeline.vpn.ui.maintab.TabAdsFragment;
 import com.timeline.vpn.ui.maintab.TabEnergyFragment;
 import com.timeline.vpn.ui.maintab.TabIndexFragment;
+import com.umeng.fb.FeedbackAgent;
+import com.umeng.message.PushAgent;
 
 /**
  * Created by gqli on 2016/3/1.
@@ -31,11 +38,30 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
     private long firstTime = 0;
     private boolean pendingIntroAnimation;
     private OnBackKeyUpListener keyListener;
+    private BaseService indexService;
+    private static final String ADS_TAG = "ADS_TAG";
+    FeedbackAgent fb;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_fragment);
         setupView();
         EventBusUtil.getEventBus().register(new ConfigActionJump());
+        setUpUmengFeedback();
+        setUpAds();
+    }
+    private void setUpAds(){
+        indexService = new BaseService();
+        indexService.setup(this);
+        new AsyncTask<String,Integer,Boolean>() {
+            @Override
+            protected Boolean doInBackground(String ... params){
+                AdsStrategyVo vo = indexService.getData(Constants.ADSSTRATEGY_URL, AdsStrategyVo.class,ADS_TAG);
+                if(vo!=null){
+                    PreferenceUtils.setPrefObj(MainFragment.this,Constants.STORY_ADSSTATEGY,vo);
+                }
+                return Boolean.TRUE;
+            }
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
     public void setListener(OnBackKeyUpListener keyListener){
         this.keyListener = keyListener;
@@ -56,6 +82,24 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
         startService(new Intent(this, CharonVpnService.class));
     }
 
+    /**
+     * //友盟feedback
+     */
+    private void setUpUmengFeedback() {
+        fb = new FeedbackAgent(this);
+        fb.sync();
+        fb.openAudioFeedback();
+        fb.openFeedbackPush();
+        PushAgent.getInstance(this).enable();
+        new AsyncTask<String,Integer,Boolean>() {
+            @Override
+            protected Boolean doInBackground(String ... params){
+                boolean result = fb.updateUserInfo();
+                return Boolean.TRUE;
+            }
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+
+    }
     private View addTab(LayoutInflater inflater, int tag, Class clss,
                         int icon, int title) {
         View indicator = inflater.inflate(R.layout.main_tab_widget_item_layout,
