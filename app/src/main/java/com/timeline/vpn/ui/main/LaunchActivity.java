@@ -11,16 +11,10 @@ import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 
 import com.timeline.vpn.R;
-import com.timeline.vpn.ads.AdsStrategy;
-import com.timeline.vpn.ads.DeafultAdsStrategy;
-import com.timeline.vpn.ads.launch.LaunchAdsController;
-import com.timeline.vpn.ads.launch.LaunchProxy;
-import com.timeline.vpn.bean.vo.AdsStrategyVo;
+import com.timeline.vpn.ads.adview.AdsAdview;
 import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
-import com.timeline.vpn.data.MobAgent;
-import com.timeline.vpn.data.StaticDataUtil;
-import com.timeline.vpn.ui.base.LogActivity;
+import com.timeline.vpn.ui.base.BaseSingleActivity;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -29,23 +23,17 @@ import butterknife.OnClick;
 /**
  * Created by gqli on 2016/3/22.
  */
-public class LaunchActivity extends LogActivity {
+public class LaunchActivity extends BaseSingleActivity {
+    public boolean canJumpImmediately = false;
     @Bind(R.id.launch_skip)
     ImageButton ibSkip;
     @Bind(R.id.lauch_ads)
     RelativeLayout ivAds;
-    LaunchProxy proxy;
-    public boolean canJumpImmediately = false;
-    private Handler mHandler = new Handler(){
+    private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             LogUtil.i("handleMessage-" + msg.what);
-            switch (msg.what){
-                case Constants.ADS_NO_MSG:
-                    next();
-                    break;
-                case Constants.ADS_CLICK_MSG:
-                    break;
+            switch (msg.what) {
                 case Constants.ADS_PRESENT_MSG:
                     ivAds.setVisibility(View.VISIBLE);
                     ivAds.startAnimation(AnimationUtils.loadAnimation(LaunchActivity.this, R.anim.anim_splash_enter));
@@ -64,24 +52,26 @@ public class LaunchActivity extends LogActivity {
             launch();
         }
     };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_launch);
         mHandler.postDelayed(mStartMainRunnable, Constants.STARTUP_SHOW_TIME_8000);
         ButterKnife.bind(this);
-        proxy = new LaunchProxy(new AdsStrategy(StaticDataUtil.get(Constants.STORY_ADSSTATEGY, AdsStrategyVo.class).launch, DeafultAdsStrategy.DEAFULT_LAUNCH),this,ivAds,mHandler,ibSkip);
     }
+
     @OnClick(R.id.launch_skip)
-    public void onSkip(View view){
+    public void onSkip(View view) {
         launch();
     }
+
     private void launch() {
-        proxy.init();
-        Intent intent = new Intent(this,MainFragment.class);
+        Intent intent = new Intent(this, MainFragment.class);
         startActivity(intent);
         finish();
     }
+
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             return true;
@@ -92,23 +82,17 @@ public class LaunchActivity extends LogActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        next();
         canJumpImmediately = true;
-        MobAgent.onResume(this);
+        AdsAdview.launchAds(this, ivAds, mHandler);
     }
-    private void next(){
-        LogUtil.i("next");
-        LaunchAdsController controller = proxy.getController();
-        if (controller != null) {
-            LogUtil.i("show");
-            controller.showAds();
-        }
+
+    private void next() {
+        LogUtil.i("no ads launch");
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         canJumpImmediately = false;
-        MobAgent.onPause(this);
     }
 }

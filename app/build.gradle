@@ -85,4 +85,12 @@ dependencies {
     compile 'com.google.android.gms:play-services-appindexing:8.1.0'
     compile files('src/main/libs/com.umeng.fb.5.4.0.jar')
     compile files('src/main/libs/com.umeng.message.lib_v2.5.0.jar')
+    compile files('src/main/libs/jd_adsdk.jar')
+    compile files('src/main/libs/InMobi.jar')
+    compile files('src/main/libs/google-play-services.jar')
+    compile files('src/main/libs/gdt_mob_release.jar')
+    compile files('src/main/libs/Baidu_MobAds_SDK_Agg.jar')
+    compile files('src/main/libs/AdViewSDK_Android.jar')
+    compile files('src/main/libs/adchina_android_sdk.jar')
+    compile files('src/main/libs/YoumiSdk.jar')
 }

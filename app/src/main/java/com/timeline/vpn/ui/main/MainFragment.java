@@ -14,11 +14,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.timeline.vpn.R;
-import com.timeline.vpn.bean.vo.AdsStrategyVo;
 import com.timeline.vpn.common.util.EventBusUtil;
-import com.timeline.vpn.common.util.PreferenceUtils;
-import com.timeline.vpn.constant.Constants;
-import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.data.config.ConfigActionJump;
 import com.timeline.vpn.service.CharonVpnService;
 import com.timeline.vpn.ui.base.BaseDrawerActivity;
@@ -32,40 +28,27 @@ import com.umeng.message.PushAgent;
 /**
  * Created by gqli on 2016/3/1.
  */
-public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabChangeListener{
+public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabChangeListener {
+    private static final String ADS_TAG = "ADS_TAG";
+    FeedbackAgent fb;
     private FragmentTabHost mTabHost;
     private TabWidget mainTab;
     private long firstTime = 0;
     private boolean pendingIntroAnimation;
     private OnBackKeyUpListener keyListener;
-    private BaseService indexService;
-    private static final String ADS_TAG = "ADS_TAG";
-    FeedbackAgent fb;
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_fragment);
         setupView();
         EventBusUtil.getEventBus().register(new ConfigActionJump());
         setUpUmengFeedback();
-        setUpAds();
     }
-    private void setUpAds(){
-        indexService = new BaseService();
-        indexService.setup(this);
-        new AsyncTask<String,Integer,Boolean>() {
-            @Override
-            protected Boolean doInBackground(String ... params){
-                AdsStrategyVo vo = indexService.getData(Constants.ADSSTRATEGY_URL, AdsStrategyVo.class,ADS_TAG);
-                if(vo!=null){
-                    PreferenceUtils.setPrefObj(MainFragment.this,Constants.STORY_ADSSTATEGY,vo);
-                }
-                return Boolean.TRUE;
-            }
-        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-    }
-    public void setListener(OnBackKeyUpListener keyListener){
+
+    public void setListener(OnBackKeyUpListener keyListener) {
         this.keyListener = keyListener;
     }
+
     private void setupView() {
         mTabHost = (FragmentTabHost) findViewById(android.R.id.tabhost);
         mTabHost.setup(this, getFragmentManager(), R.id.realtabcontent);
@@ -91,15 +74,16 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
         fb.openAudioFeedback();
         fb.openFeedbackPush();
         PushAgent.getInstance(this).enable();
-        new AsyncTask<String,Integer,Boolean>() {
+        new AsyncTask<String, Integer, Boolean>() {
             @Override
-            protected Boolean doInBackground(String ... params){
+            protected Boolean doInBackground(String... params) {
                 boolean result = fb.updateUserInfo();
                 return Boolean.TRUE;
             }
         }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
     }
+
     private View addTab(LayoutInflater inflater, int tag, Class clss,
                         int icon, int title) {
         View indicator = inflater.inflate(R.layout.main_tab_widget_item_layout,
@@ -117,15 +101,17 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
     public void onTabChanged(String tabId) {
 
     }
+
     @Override
     public void onDestroy() {
         super.onDestroy();
         stopService(new Intent(this, CharonVpnService.class));
     }
+
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
-        if(keyCode==KeyEvent.KEYCODE_BACK) {
-            if(keyListener!=null){
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (keyListener != null) {
                 keyListener.onkeyBackUp();
             }
             long secondTime = System.currentTimeMillis();

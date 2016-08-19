@@ -28,35 +28,33 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class HttpUtils {
-    private static String USER_AGENT_SUFFIX = "timeline/%s";
     private static final String DEFAULT_CHARSET = "UTF-8";
+    private static String USER_AGENT_SUFFIX = "timeline/%s";
+
     public static boolean isGzip(String name, String value) {
-        if ("Content-Encoding".equals(name) && "gzip".equals(value)) {
-            return true;
-        }
-        return false;
+        return "Content-Encoding".equals(name) && "gzip".equals(value);
     }
-    public static boolean isGzip( String value) {
-        if ( "gzip".equals(value)) {
-            return true;
-        }
-        return false;
+
+    public static boolean isGzip(String value) {
+        return "gzip".equals(value);
     }
 
     public static String getUserAgentSuffix(Context context) {
         return String.format(USER_AGENT_SUFFIX, PackageUtils.getAppVersion(context));
     }
-    public  static Map<String, String> getHeader(Context context){
+
+    public static Map<String, String> getHeader(Context context) {
         Map<String, String> header = new HashMap<>();
         header.put(Constants.DEVID, DeviceInfoUtils.getDeviceId(context));
-        header.put(Constants.HTTP_TOKEN_KEY, PreferenceUtils.getPrefString(context,Constants.HTTP_TOKEN_KEY,null));
+        header.put(Constants.HTTP_TOKEN_KEY, PreferenceUtils.getPrefString(context, Constants.HTTP_TOKEN_KEY, null));
         return header;
     }
-    public  static okhttp3.Headers getOkHeader(){
-        okhttp3.Headers header = new okhttp3.Headers.Builder().build();
-        return header;
+
+    public static okhttp3.Headers getOkHeader() {
+        return new okhttp3.Headers.Builder().build();
     }
-    public static final int ping(String ip) {
+
+    public static int ping(String ip) {
         String result = null;
         try {
             Process p = Runtime.getRuntime().exec("ping -c 2 -w 100 " + ip);
@@ -84,19 +82,19 @@ public class HttpUtils {
         }
         return -1;
     }
-    public static boolean parserJsonResult(Context context,JsonResult<?> result){
-        if(result.errno!=Constants.HTTP_SUCCESS){
-            return false;
-        }
+
+    public static boolean parserJsonResult(Context context, JsonResult<?> result) {
+        return result.errno == Constants.HTTP_SUCCESS;
+    }
+
+    public static boolean parserJsonResultWithExec(Context context, JsonResult<?> result) {
         return true;
     }
-    public static boolean parserJsonResultWithExec(Context context,JsonResult<?> result){
-        return true;
-    }
+
     public static String generateGetUrl(String url, Map<String, String> params) {
-        if(!CollectionUtils.isEmpty(params)){
+        if (!CollectionUtils.isEmpty(params)) {
             StringBuilder sb = new StringBuilder(url).append("?");
-            for (Map.Entry<String,String> entry:params.entrySet()) {
+            for (Map.Entry<String, String> entry : params.entrySet()) {
                 sb.append(entry.getKey()).append("=").append(encoderParam(entry.getValue()))
                         .append("&");
             }
@@ -104,17 +102,16 @@ public class HttpUtils {
         }
         return url;
     }
+
     private static String encoderParam(String param) {
         try {
-            return URLEncoder.encode(param,DEFAULT_CHARSET);
-        } catch (Exception e) {
+            return URLEncoder.encode(param, DEFAULT_CHARSET);
+        } catch (Exception ignored) {
         }
         return null;
     }
-    public static interface DownloadListener {
-        public void onDownloading(long current, long total);
-    }
-    public static void download(Context context,String url, File file, DownloadListener listener) throws IOException {
+
+    public static void download(Context context, String url, File file, DownloadListener listener) throws IOException {
         FileOutputStream out = null;
         HttpEntity entity = null;
         if (!file.getParentFile().exists()) {
@@ -158,6 +155,10 @@ public class HttpUtils {
         } finally {
             fileTemp.delete();
         }
+    }
+
+    public static interface DownloadListener {
+        public void onDownloading(long current, long total);
     }
 
 }

@@ -20,23 +20,10 @@
     android:versionCode="1000001000"
     android:versionName="1.0.1.0">
 
-    <meta-data
-        android:name="YOUMI_CHANNEL"
-        android:value="10000" />
-
-
     <uses-sdk
         android:minSdkVersion="21"
         android:targetSdkVersion="21" />
 
-    <meta-data
-        android:name="com.timeline.vpn.common.util.MyGlideModule"
-        android:value="GlideModule" />
-    <meta-data
-        android:name="com.google.android.gms.version"
-        android:value="@integer/google_play_services_version" />
-
-    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
@@ -77,6 +64,15 @@
         android:theme="@style/AppTheme"
         tools:replace="android:allowBackup">
         <meta-data
+            android:name="com.timeline.vpn.common.util.MyGlideModule"
+            android:value="GlideModule" />
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+        <meta-data
+            android:name="YOUMI_CHANNEL"
+            android:value="10000" />
+        <meta-data
             android:name="com.baidu.lbsapi.API_KEY"
             android:value="VFNwiTplUvpm7iLaV6FBLNOkxFYrEbp1" />
         <meta-data
@@ -103,8 +99,7 @@
 
         </activity>
         <activity android:name=".ui.user.RegActivity" />
-        <activity
-            android:name=".ui.feedback.ConversationDetailActivity"/>
+        <activity android:name=".ui.feedback.ConversationDetailActivity" />
 
         <service
             android:name=".service.CharonVpnService"
@@ -118,43 +113,11 @@
         <provider
             android:name="com.timeline.vpn.provider.CityProvider"
             android:authorities="com.tencent.provider.Citys" />
-        <!--  ads  qq-->
-        <service
-            android:name="com.qq.e.comm.DownloadService"
-            android:exported="false"></service>
-        <activity
-            android:name="com.qq.e.ads.ADActivity"
-            android:configChanges="keyboard|keyboardHidden|orientation|screenSize"></activity>
-        <!--  youmi ads-->
-        <activity
-            android:name="net.youmi.android.AdBrowser"
-            android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
-            android:theme="@android:style/Theme.NoTitleBar"></activity>
-        <service
-            android:name="net.youmi.android.AdService"
-            android:exported="false"></service>
-        <receiver android:name="net.youmi.android.AdReceiver">
-            <intent-filter>
-                <action android:name="android.intent.action.PACKAGE_ADDED" />
-                <action android:name="android.intent.action.PACKAGE_INSTALL" />
-
-                <data android:scheme="package" />
-            </intent-filter>
-        </receiver>
-        <!--baidu ads-->
-        <activity
-            android:name="com.baidu.mobads.AppActivity"
-            android:configChanges="keyboard|keyboardHidden|orientation"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
-        <service
-            android:name="com.baidu.location.f"
-            android:enabled="true"
-            android:process=":remote"></service>
-        <!--duomeng ads-->
-        <activity
-            android:name="cn.domob.android.ads.DmActivity"
-            android:theme="@android:style/Theme.Translucent"></activity>
-        <activity
-            android:name="com.umeng.fb.ConversationActivity" />
+        <!--友盟统计-->
+        <activity android:name="com.umeng.fb.ConversationActivity" />
+        <!--adview-->
+        <service android:name="com.kyview.DownloadService" />
+        <activity android:name="com.kyview.AdviewWebView" />
     </application>
+
 </manifest>
