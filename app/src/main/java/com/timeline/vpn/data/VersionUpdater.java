@@ -86,34 +86,37 @@ public class VersionUpdater {
     /**
      * 开始检查版本
      */
-    public static void checkNewVersion(Context context,CommonResponse.ResponseOkListener listener, CommonResponse.ResponseErrorListener errorListener, String tag) {
-        GsonRequest request = new GsonRequest(context, Constants.VERSION_URL, VersionVo.class,null,listener,errorListener);
+    public static void checkNewVersion(Context context, CommonResponse.ResponseOkListener listener, CommonResponse.ResponseErrorListener errorListener, String tag) {
+        GsonRequest request = new GsonRequest(context, Constants.API_VERSION_URL, VersionVo.class, null, listener, errorListener);
         request.setTag(tag);
         VolleyUtils.addRequest(request);
     }
+
     /**
      * 显示版本更新提示框
      */
-    public static void showUpdateDialog(final Activity context, String content, final String url, final String newVersion,
-                                        final int newVersionBuild, final boolean updatePrefIfCancel) {
-        final String title = context.getString(R.string.about_version_download_title) + " V" + newVersion;
+    public static void showUpdateDialog(final Activity context, final VersionVo vo, final boolean updatePrefIfCancel) {
+        final String title = context.getString(R.string.about_version_download_title) + " V" + vo.version;
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle(title);
-        builder.setMessage(content);
-        builder.setNegativeButton(R.string.about_version_cancel, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                if (updatePrefIfCancel) {
-                    // 保存pref配置
-                    PreferenceUtils.setPrefBoolean(context, getPrefKey(newVersion, newVersionBuild), false);
+        builder.setMessage(vo.content);
+        builder.setIcon(R.drawable.vpn_trans_default);
+        if(vo.minBuild!=vo.maxBuild) {
+            builder.setNegativeButton(R.string.about_version_cancel, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    if (updatePrefIfCancel) {
+                        // 保存pref配置
+                        PreferenceUtils.setPrefBoolean(context, getPrefKey(vo.version, vo.maxBuild), false);
+                    }
                 }
-            }
-        });
+            });
+        }
         builder.setPositiveButton(R.string.about_version_download, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 if (NetUtils.isWifi(context)) {
-                    startDownloadThread(context, url);
+                    startDownloadThread(context, vo.url);
                 } else {
                     // 非wifi情况下，提示用户是否下载
                     AlertDialog.Builder confirmDialog = new AlertDialog.Builder(context);
@@ -122,16 +125,17 @@ public class VersionUpdater {
                     confirmDialog.setPositiveButton(R.string.about_version_confirm, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            startDownloadThread(context, url);
+                            startDownloadThread(context, vo.url);
                             dialog.dismiss();
                         }
-                    })
-                            .setNegativeButton(R.string.about_version_cancel, new DialogInterface.OnClickListener() {
+                    });
+                    confirmDialog .setNegativeButton(R.string.about_version_cancel, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     dialog.dismiss();
                                 }
-                            }).show();
+                            });
+                    confirmDialog.show();
                 }
             }
         });
@@ -142,12 +146,15 @@ public class VersionUpdater {
     private static String getPrefKey(String newVersion, int newVersionBuild) {
         return Constants.SETTING_PREF_NEED_CHECK_UPDATE_NEXT_TIME + "_" + newVersion + "_" + newVersionBuild;
     }
-    public static int getNewVersion(Context context){
+
+    public static int getNewVersion(Context context) {
         return PreferenceUtils.getPrefInt(context, Constants.VERSION_APP_INCOMING, 0);
     }
-    public static void setNewVersion(Context context,int build){
+
+    public static void setNewVersion(Context context, int build) {
         PreferenceUtils.setPrefInt(context, Constants.VERSION_APP_INCOMING, build);
     }
+
     private static void startDownloadThread(final Context context, final String url) {
         final File apkFile = new File(Environment.getExternalStorageDirectory(), Constants.TEMP_PATH + "/freevpn.apk");
         Toast.makeText(context, R.string.about_download_begin, Toast.LENGTH_SHORT).show();
@@ -156,9 +163,9 @@ public class VersionUpdater {
 
 
     private static class DownloadRunnable implements Runnable, HttpUtils.DownloadListener {
-        private Context context;
         private final String url;
         private final File apkFile;
+        private Context context;
         private Handler handler;
         private Notification.Builder builder;
         private NotificationManager notificationManager;
@@ -176,7 +183,7 @@ public class VersionUpdater {
         public void run() {
             try {
                 showNotification(context.getString(R.string.about_download_title), context.getString(R.string.about_download_prepare));
-                HttpUtils.download(context,url, apkFile, this);
+                HttpUtils.download(context, url, apkFile, this);
                 installFile();
             } catch (Exception e) {
                 e.printStackTrace();

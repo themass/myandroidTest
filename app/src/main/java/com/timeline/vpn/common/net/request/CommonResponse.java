@@ -14,8 +14,11 @@ public class CommonResponse {
             VolleyUtils.showVolleyError(volleyError);
             onError();
         }
-        protected void onError(){ }
+
+        protected void onError() {
+        }
     }
+
     public static class ResponseOkListener<T> implements Response.Listener<T> {
         @Override
         public void onResponse(T o) {

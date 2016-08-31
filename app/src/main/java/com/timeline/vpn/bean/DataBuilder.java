@@ -14,7 +14,7 @@ import java.lang.reflect.Type;
  * Created by gqli on 2016/3/10.
  */
 public class DataBuilder {
-    public static VpnProfile builderVpnProfile(long expire,String name,String pwd,HostVo vo){
+    public static VpnProfile builderVpnProfile(long expire, String name, String pwd, HostVo vo) {
         VpnProfile profile = new VpnProfile();
         profile.setExpire(expire);
         profile.setVpnType(Constants.vpnType);
@@ -48,15 +48,15 @@ public class DataBuilder {
         LogUtil.i(vo.cert);
         return profile;
     }
-    public static <T> JsonResult<T> parserVo(Class<T>clasz,String json){
+
+    public static <T> JsonResult<T> parserVo(Class<T> clasz, String json) {
         Type typeOfT = GsonUtils.type(JsonResult.class, clasz);
-        JsonResult data = GsonUtils.getInstance().fromJson(json, typeOfT);
-        return data;
+        return GsonUtils.getInstance().fromJson(json, typeOfT);
     }
-    public static <T> JsonResult<InfoListVo<T>> parserListVo(Class<T>clasz,String json){
+
+    public static <T> JsonResult<InfoListVo<T>> parserListVo(Class<T> clasz, String json) {
         Type TypeItem = GsonUtils.type(InfoListVo.class, clasz);
         Type typeOfT = GsonUtils.type(JsonResult.class, TypeItem);
-        JsonResult data = GsonUtils.getInstance().fromJson(json, typeOfT);
-        return data;
+        return GsonUtils.getInstance().fromJson(json, typeOfT);
     }
 }

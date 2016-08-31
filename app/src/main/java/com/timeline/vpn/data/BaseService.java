@@ -1,6 +1,7 @@
 package com.timeline.vpn.data;
 
 import android.content.Context;
+import android.widget.Toast;
 
 import com.android.volley.toolbox.RequestFuture;
 import com.timeline.vpn.bean.vo.InfoListVo;
@@ -14,77 +15,75 @@ import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
 
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Created by gqli on 2016/3/10.
  */
 public class BaseService {
     protected Context context;
-    public void setup(Context context){
-        this.context=context;
+
+    public void setup(Context context) {
+        this.context = context;
     }
-    public <T>InfoListVo<T> getInfoListData(String url, Class<T> t,String tag){
-        try {
+
+    public <T> InfoListVo<T> getInfoListData(String url, Class<T> t, String tag) throws Exception{
             RequestFuture<InfoListVo<T>> future = RequestFuture.newFuture();
-            GsonInfoListRequest request = new GsonInfoListRequest(context, url, t,null, future, future);
+            GsonInfoListRequest request = new GsonInfoListRequest(context, url, t, null, future, future);
             request.setTag(tag);
             VolleyUtils.addRequest(request);
-            InfoListVo<T> result = future.get();
-            return result;
-        }catch (Exception e){
-            LogUtil.e(e);
-            return  null;
-        }
+            return future.get();
     }
-    public <T>InfoListVo<T> getInfoListData(String url, Map<String,String> param, Class<T> t,String tag){
-        try {
-            url = HttpUtils.generateGetUrl(url,param);
+
+    public <T> InfoListVo<T> getInfoListData(String url, Map<String, String> param, Class<T> t, String tag) throws Exception{
+            url = HttpUtils.generateGetUrl(url, param);
             RequestFuture<InfoListVo<T>> future = RequestFuture.newFuture();
-            GsonInfoListRequest request = new GsonInfoListRequest(context, url, t,null, future, future);
+            GsonInfoListRequest request = new GsonInfoListRequest(context, url, t, null, future, future);
             request.setTag(tag);
             VolleyUtils.addRequest(request);
-            InfoListVo<T> result = future.get();
-            return result;
-        }catch (Exception e){
-            LogUtil.e(e);
-            return  null;
-        }
+            return future.get();
     }
-    public <T>T getData(String url, Class<T> t,String tag){
-        try {
+
+    public <T> T getData(String url, Class<T> t, String tag) throws Exception{
             RequestFuture<T> future = RequestFuture.newFuture();
-            GsonRequest request = new GsonRequest<T>(context, url, t,null, future, future);
+            GsonRequest request = new GsonRequest<T>(context, url, t, null, future, future);
             request.setTag(tag);
             VolleyUtils.addRequest(request);
-            T result = future.get();
-            return result;
-        }catch (Exception e){
+            return future.get();
+    }
+
+    public <T> void getData(String url, CommonResponse.ResponseOkListener<T> listener, CommonResponse.ResponseErrorListener errorListener, String tag, Class<T> t) {
+        GsonRequest request = new GsonRequest(context, url, t, null, listener, errorListener);
+        request.setTag(tag);
+        VolleyUtils.addRequest(request);
+    }
+
+    public <T> void postData(String url, Map<String, String> param, CommonResponse.ResponseOkListener<T> listener, CommonResponse.ResponseErrorListener errorListener, String tag, Class<T> t) {
+        MultipartRequest request = new MultipartRequest(context, param, url, null, listener, errorListener, t);
+        request.setTag(tag);
+        VolleyUtils.addRequest(request);
+    }
+
+    public <T> void getInfoListData(String url, CommonResponse.ResponseOkListener<T> serverListener, CommonResponse.ResponseErrorListener errorListener, String tag, Class<T> t) {
+        GsonInfoListRequest request = new GsonInfoListRequest(context, url, t, null, serverListener, errorListener);
+        request.setTag(tag);
+        VolleyUtils.addRequest(request);
+    }
+
+    public <T> void getData(String url, CommonResponse.ResponseOkListener<T> serverListener, CommonResponse.ResponseErrorListener errorListener, String tag, Class<T> t, Map<String, String> param) {
+        url = HttpUtils.generateGetUrl(url, param);
+        GsonRequest request = new GsonRequest(context, Constants.API_SERVERLIST_URL, t, null, serverListener, errorListener);
+        request.setTag(tag);
+        VolleyUtils.addRequest(request);
+    }
+    private void parseError(Exception e){
+        if(e instanceof ExecutionException){
+            Toast.makeText(context,e.getCause().getMessage(),Toast.LENGTH_SHORT).show();
+        }else{
             LogUtil.e(e);
-            return  null;
         }
     }
-    public <T>void getData(String url,CommonResponse.ResponseOkListener<T> listener,CommonResponse.ResponseErrorListener errorListener,String tag,Class<T> t){
-        GsonRequest request = new GsonRequest(context, url, t, null,listener,errorListener);
-        request.setTag(tag);
-        VolleyUtils.addRequest(request);
-    }
-    public <T>void postData(String url,Map<String,String>param,CommonResponse.ResponseOkListener<T> listener,CommonResponse.ResponseErrorListener errorListener,String tag,Class<T> t){
-        MultipartRequest request = new MultipartRequest(context, param,url,null,listener,errorListener, t);
-        request.setTag(tag);
-        VolleyUtils.addRequest(request);
-    }
-    public <T>void getInfoListData(String url,CommonResponse.ResponseOkListener<T> serverListener,CommonResponse.ResponseErrorListener errorListener,String tag,Class<T> t){
-        GsonInfoListRequest request = new GsonInfoListRequest(context, url, t, null,serverListener,errorListener);
-        request.setTag(tag);
-        VolleyUtils.addRequest(request);
-    }
-    public <T>void getData(String url,CommonResponse.ResponseOkListener<T> serverListener,CommonResponse.ResponseErrorListener errorListener,String tag,Class<T> t,Map<String,String>param){
-        url = HttpUtils.generateGetUrl(url,param);
-        GsonRequest request = new GsonRequest(context, Constants.SERVERLIST_URL, t, null,serverListener,errorListener);
-        request.setTag(tag);
-        VolleyUtils.addRequest(request);
-    }
-    public void cancelRequest(String tag){
+    public void cancelRequest(String tag) {
         VolleyUtils.cancelRequest(tag);
     }
 }

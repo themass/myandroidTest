@@ -28,18 +28,19 @@ import butterknife.Bind;
 /**
  * Created by gqli on 2016/3/31.
  */
-public class TestFragment  extends LoadableTabFragment<InfoListVo<RecommendVo>> implements IndexRecommendAdapter.ItemClickListener {
+public class TestFragment extends LoadableTabFragment<InfoListVo<RecommendVo>> implements IndexRecommendAdapter.ItemClickListener {
+    private static final String TAG = "testF";
     @Nullable
-    @Bind(R.id.footerView)
+    @Bind(R.id.footer_view)
     View footerView;
     @Nullable
-    @Bind(R.id.rvNavi)
+    @Bind(R.id.rv_navi)
     RecyclerView rvRecommend;
-    @Bind(R.id.swipeLayout)
+    @Bind(R.id.srl_layout)
     SwipeRefreshLayout refreshLayout;
     BaseService indexService;
     List<RecommendVo> mData = new ArrayList<>();
-    private static final String TAG="testF";
+
     @Override
     protected int getTabHeaderViewId() {
         return -1;
@@ -55,8 +56,8 @@ public class TestFragment  extends LoadableTabFragment<InfoListVo<RecommendVo>> 
     @Override
     protected void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
-        IndexRecommendAdapter adapter = new IndexRecommendAdapter(this.getActivity(), rvRecommend, mData, null);
         final StaggeredGridLayoutManager layoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
+        IndexRecommendAdapter adapter = new IndexRecommendAdapter(this.getActivity(), rvRecommend, mData, null,layoutManager);
         rvRecommend.setLayoutManager(layoutManager);
         rvRecommend.setItemAnimator(new DefaultItemAnimator());
         rvRecommend.setAdapter(adapter);
@@ -74,7 +75,7 @@ public class TestFragment  extends LoadableTabFragment<InfoListVo<RecommendVo>> 
 
     @Override
     protected void onDataLoaded(InfoListVo<RecommendVo> data) {
-        if(footerView!=null) {
+        if (footerView != null) {
             footerView.setVisibility(View.GONE);
             if (refreshLayout.isRefreshing() && mData.size() > 0) {
                 mData.clear();
@@ -89,8 +90,9 @@ public class TestFragment  extends LoadableTabFragment<InfoListVo<RecommendVo>> 
 
     @Override
     protected InfoListVo<RecommendVo> loadData(Context context) throws Exception {
-        return indexService.getInfoListData(Constants.getRECOMMEND_URL(0),RecommendVo.class,TAG);
+        return indexService.getInfoListData(Constants.getRECOMMEND_URL(0), RecommendVo.class, TAG);
     }
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();

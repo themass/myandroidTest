@@ -11,9 +11,10 @@ import com.bumptech.glide.load.engine.cache.MemorySizeCalculator;
 import com.bumptech.glide.module.GlideModule;
 
 public class MyGlideModule implements GlideModule {
-    @Override public void applyOptions(Context context, GlideBuilder builder) {
+    @Override
+    public void applyOptions(Context context, GlideBuilder builder) {
         builder.setDiskCache(
-                new InternalCacheDiskCacheFactory(context, 10*1024));
+                new InternalCacheDiskCacheFactory(context, 10 * 1024));
         MemorySizeCalculator calculator = new MemorySizeCalculator(context);
         int defaultMemoryCacheSize = calculator.getMemoryCacheSize();
         int defaultBitmapPoolSize = calculator.getBitmapPoolSize();
@@ -21,7 +22,8 @@ public class MyGlideModule implements GlideModule {
         builder.setBitmapPool(new LruBitmapPool(defaultBitmapPoolSize));
     }
 
-    @Override public void registerComponents(Context context, Glide glide) {
+    @Override
+    public void registerComponents(Context context, Glide glide) {
         // register ModelLoaders here.
     }
 }

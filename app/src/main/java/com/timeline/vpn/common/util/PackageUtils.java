@@ -109,8 +109,7 @@ public class PackageUtils {
             return null;
         }
         try {
-            PackageInfo info = context.getPackageManager().getPackageInfo(packageName, 0);
-            return info;
+            return context.getPackageManager().getPackageInfo(packageName, 0);
         } catch (NameNotFoundException e) {
             return null;
         }

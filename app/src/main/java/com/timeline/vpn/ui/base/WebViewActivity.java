@@ -10,10 +10,11 @@ import com.timeline.vpn.ui.view.MyWebView;
 /**
  * Created by gqli on 2016/3/17.
  */
-public class WebViewActivity extends BaseToolBarActivity implements MyWebView.OnTouchRightSlide{
+public class WebViewActivity extends BaseBannerAdsActivity implements MyWebView.OnTouchRightSlide {
     BaseWebViewFragment webViewFragment;
     int BACK_MIN = 60;
     int FORWORD_MIN = -60;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -26,25 +27,17 @@ public class WebViewActivity extends BaseToolBarActivity implements MyWebView.On
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         LogUtil.i("onKeyDown");
-        if(keyCode==KeyEvent.KEYCODE_BACK){
-            if(!webViewFragment.goBack()){
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (!webViewFragment.goBack()) {
                 finish();
                 return super.onKeyDown(keyCode, event);
             }
         }
-       return false;
+        return false;
     }
 
     @Override
     public void onTouchRight(int distans) {
-        LogUtil.i("onTouchRight d="+distans+"---");
-//        if(distans<FORWORD_MIN){
-//            webViewFragment.goForward();
-//        }else if(distans>BACK_MIN){
-//            if(!webViewFragment.goBack()){
-//                finish();
-//            }
-//        }
     }
 
 }

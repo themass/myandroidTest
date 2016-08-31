@@ -103,9 +103,7 @@ public class DisplayUtil {
             return getTabletWebViewWidth(context);
         }
 
-        int width = (int) (getScreenWidthInPx(context) / context.getResources().getDisplayMetrics().density);
-
-        return width;
+        return (int) (getScreenWidthInPx(context) / context.getResources().getDisplayMetrics().density);
     }
 
     /**

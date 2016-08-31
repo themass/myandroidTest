@@ -4,20 +4,21 @@
     android:layout_height="110dp"
     android:layout_gravity="center"
     android:padding="5dp">
+
     <ImageButton
         android:id="@+id/iv_vpn_state"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scaleType="fitCenter"
         android:background="@drawable/vpn_state_bg"
+        android:scaleType="fitCenter"
         android:src="@drawable/circle_vpn_blue" />
+
     <TextView
         android:id="@+id/tv_vpn_state_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center"
         android:text="@string/vpn_bg_click"
         android:textSize="13sp"
-        android:textStyle="bold"
-        android:layout_gravity="center"
-        />
+        android:textStyle="bold" />
 </FrameLayout>

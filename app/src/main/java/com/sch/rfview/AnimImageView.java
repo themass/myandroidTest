@@ -17,7 +17,6 @@ public class AnimImageView extends ImageView {
 
     private int dp1; // 1dp
     private int screenWidth; // 屏幕宽度
-    private int height; // 当前View的高度
     private int maxHeight; // View的最大高度
     private int centerX; // 当前View的中心点的X坐标
 
@@ -90,7 +89,7 @@ public class AnimImageView extends ImageView {
 
         if (getLayoutParams().height > dp1) {
 
-            height = getLayoutParams().height;
+            int height = getLayoutParams().height;
 
             // 背景
             canvas.drawColor(colorBg);

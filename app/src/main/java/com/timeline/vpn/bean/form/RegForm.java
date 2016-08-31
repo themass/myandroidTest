@@ -8,10 +8,11 @@ public class RegForm {
     public String pwd;
     public String rePwd;
     public String sex;
-    public RegForm(String name,String pwd,String rePwd,String sex){
-        this.name=name;
-        this.pwd=pwd;
-        this.rePwd=rePwd;
-        this.sex=sex;
+
+    public RegForm(String name, String pwd, String rePwd, String sex) {
+        this.name = name;
+        this.pwd = pwd;
+        this.rePwd = rePwd;
+        this.sex = sex;
     }
 }

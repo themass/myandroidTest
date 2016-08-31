@@ -32,22 +32,22 @@ public class IndexNaviAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
     private static final int PHOTO_ANIMATION_DELAY = 600;
     private static final Interpolator INTERPOLATOR = new DecelerateInterpolator();
+    private static final Random a = new Random();
     private final Context context;
     private final int cellSize;
     private final List<String> photos;
+    protected boolean isScrolling;
     private boolean lockedAnimations = false;
     private int lastAnimatedItem = -1;
-    protected boolean isScrolling;
-    private static  final Random a = new Random();
     private RecyclerView mRecyclerView;
     private SparseArray<Integer> mPostCache = new SparseArray<Integer>();
 
-    public IndexNaviAdapter(Context context,RecyclerView recyclerView, List<String> photos) {
+    public IndexNaviAdapter(Context context, RecyclerView recyclerView, List<String> photos) {
         this.context = context;
         this.cellSize = Utils.getScreenWidth(context) / 2;
-        if(photos==null){
+        if (photos == null) {
             this.photos = new ArrayList<String>();
-        }else{
+        } else {
             this.photos = photos;
         }
         this.mRecyclerView = recyclerView;
@@ -72,9 +72,9 @@ public class IndexNaviAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     @Override
     public int getItemViewType(int position) {
         Integer high = mPostCache.get(position);
-        if(high==null){
-            high = cellSize+ DisplayUtil.dp2px(context, 10 * (a.nextInt(9) / 3 * 3));
-            mPostCache.put(position,high);
+        if (high == null) {
+            high = cellSize + DisplayUtil.dp2px(context, 10 * (a.nextInt(9) / 3 * 3));
+            mPostCache.put(position, high);
         }
         return high;
     }
@@ -83,8 +83,7 @@ public class IndexNaviAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         StaggeredGridLayoutManager.LayoutParams layoutParams = (StaggeredGridLayoutManager.LayoutParams) holder.itemView.getLayoutParams();
         layoutParams.setFullSpan(false);
-        Integer high = mPostCache.get(position);
-        layoutParams.height = high;
+        layoutParams.height = mPostCache.get(position);
         layoutParams.width = cellSize;
         holder.itemView.setLayoutParams(layoutParams);
         ((NaviItemViewHolder) holder).ivTitle.setText("p=" + position + " h=" + layoutParams.height);

@@ -15,7 +15,7 @@ import java.util.Map;
  * Created by wjying on 13-12-30.
  */
 public class GsonUtils {
-    private  static  Gson gson = new GsonBuilder().create();
+    private static Gson gson = new GsonBuilder().create();
 
     public static Map<String, Object> getMap(Gson gson, String json) {
         try {
@@ -37,7 +37,7 @@ public class GsonUtils {
             TypeToken<Map<String, Object>> typeToken = new TypeToken<Map<String, Object>>() {
             };
             return (Map<String, Object>) gson.fromJson(new FileReader(file), typeToken.getType());
-        } catch (Exception e) {
+        } catch (Exception ignored) {
 
         }
         return null;
@@ -48,22 +48,26 @@ public class GsonUtils {
             TypeToken<List<Map<String, Object>>> typeToken = new TypeToken<List<Map<String, Object>>>() {
             };
             return (List<Map<String, Object>>) (gson.fromJson(json, typeToken.getType()));
-        } catch (Exception e) {
+        } catch (Exception ignored) {
 
         }
         return null;
     }
+
     public static Gson getInstance() {
         return gson;
     }
+
     public static ParameterizedType type(final Class raw, final Type... args) {
         return new ParameterizedType() {
             public Type getRawType() {
                 return raw;
             }
+
             public Type[] getActualTypeArguments() {
                 return args;
             }
+
             public Type getOwnerType() {
                 return null;
             }

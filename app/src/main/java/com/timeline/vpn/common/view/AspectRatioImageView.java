@@ -26,7 +26,7 @@ public class AspectRatioImageView extends ImageView {
             int width = MeasureSpec.getSize(widthMeasureSpec);
             int diw = drawable.getIntrinsicWidth();
             if (diw > 0) {
-                int height = (int) ((width * drawable.getIntrinsicHeight()+diw*0.5) / diw);
+                int height = (int) ((width * drawable.getIntrinsicHeight() + diw * 0.5) / diw);
                 setMeasuredDimension(width, height);
             } else
                 super.onMeasure(widthMeasureSpec, heightMeasureSpec);

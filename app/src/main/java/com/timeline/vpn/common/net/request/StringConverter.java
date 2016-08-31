@@ -20,6 +20,7 @@ public class StringConverter implements JsonSerializer<String>, JsonDeserializer
             return new JsonPrimitive(src.toString());
         }
     }
+
     @Override
     public String deserialize(JsonElement json, Type typeOfT,
                               JsonDeserializationContext context)

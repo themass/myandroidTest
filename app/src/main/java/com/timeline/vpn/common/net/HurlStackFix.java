@@ -33,6 +33,7 @@ public class HurlStackFix extends HurlStack {
     private static final String HEADER_CONTENT_TYPE = "Content-Type";
     private final UrlRewriter mUrlRewriter;
     private final SSLSocketFactory mSslSocketFactory;
+
     public HurlStackFix() {
         this(null);
     }

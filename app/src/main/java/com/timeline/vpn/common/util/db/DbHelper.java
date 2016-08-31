@@ -150,7 +150,7 @@ public class DbHelper {
         int count = 0;
         try {
             count = db.delete(args.table, args.where, args.args);
-        } catch (SQLiteDiskIOException e) {
+        } catch (SQLiteDiskIOException ignored) {
         }
         // if (count > 0) sendNotify(uri);
         sendNotify(uri); // TODO 为什么对整个表操作返回count=0
@@ -174,7 +174,7 @@ public class DbHelper {
         int count = 0;
         try {
             count = db.update(args.table, values, args.where, args.args);
-        } catch (SQLiteDiskIOException e) {
+        } catch (SQLiteDiskIOException ignored) {
         }
         // if (count > 0) sendNotify(uri);
         sendNotify(uri); // TODO 为什么对整个表操作返回count=0

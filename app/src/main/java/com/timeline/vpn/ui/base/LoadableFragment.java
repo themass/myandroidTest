@@ -29,13 +29,20 @@ public abstract class LoadableFragment<T> extends BaseFragment {
     protected ProgressBar mLoadingView;
     protected View mLoadRetryView;
     protected ViewGroup mContentView;
-    private QueryTask<T> mQueryTask;
     protected T mData; // 异步加载的数据
     protected Handler handler = new Handler();
     // protected boolean mPullToRefreshEnable = true;
     protected Context mContext;
-    private  int DEFAULT_LAYOUT = R.layout.base_loadable_fragment;
-    private  int fragmentLayoutId = DEFAULT_LAYOUT;
+    private QueryTask<T> mQueryTask;
+    View.OnClickListener mRefreshClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            startQuery(true);
+        }
+    };
+    private int DEFAULT_LAYOUT = R.layout.base_loadable_fragment;
+    private int fragmentLayoutId = DEFAULT_LAYOUT;
+
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
@@ -48,22 +55,15 @@ public abstract class LoadableFragment<T> extends BaseFragment {
     }
 
     @Override
-    protected void setupViews(View view,Bundle savedInstanceState) {
+    protected void setupViews(View view, Bundle savedInstanceState) {
         mLoadingView = ViewUtils.find(view, R.id.loading);
         mLoadRetryView = ViewUtils.find(view, R.id.load_retry);
-        mContentView = ViewUtils.find(view,R.id.content);
+        mContentView = ViewUtils.find(view, R.id.content);
         LayoutInflater inflater = LayoutInflater.from(getActivity());
         onContentViewCreated(inflater, mContentView, savedInstanceState);
         mLoadRetryView.setOnClickListener(mRefreshClickListener);
-        super.setupViews(view,savedInstanceState);
+        super.setupViews(view, savedInstanceState);
     }
-
-    View.OnClickListener mRefreshClickListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            startQuery(true);
-        }
-    };
 
     @Override
     public void onResume() {
@@ -139,6 +139,19 @@ public abstract class LoadableFragment<T> extends BaseFragment {
         this.mData = data;
     }
 
+    /**
+     * 数据加载完成后，绑定ui，在ui线程中执行
+     */
+    protected abstract void onDataLoaded(T data);
+
+    /**
+     * 异步加载数据，在非ui线程中执行
+     *
+     * @param context context
+     * @return 返回数据，返回null表示错误，方法中需要catch所有异常
+     */
+    protected abstract T loadData(Context context) throws Exception;
+
     private static class QueryTask<T> extends AsyncTask<Void, Void, T> {
 
         private Handler handler;
@@ -202,18 +215,4 @@ public abstract class LoadableFragment<T> extends BaseFragment {
             });
         }
     }
-
-
-    /**
-     * 数据加载完成后，绑定ui，在ui线程中执行
-     */
-    protected abstract void onDataLoaded(T data);
-
-    /**
-     * 异步加载数据，在非ui线程中执行
-     *
-     * @param context context
-     * @return 返回数据，返回null表示错误，方法中需要catch所有异常
-     */
-    protected abstract T loadData(Context context) throws Exception;
 }

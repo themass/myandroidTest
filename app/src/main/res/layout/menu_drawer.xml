@@ -11,17 +11,17 @@
         android:layout_height="match_parent">
 
         <FrameLayout
-            android:id="@+id/flContentRoot"
+            android:id="@+id/fl_content_root"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
         <android.support.design.widget.NavigationView
-            android:id="@+id/nvDrawer"
+            android:id="@+id/nv_drawer"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_gravity="start"
             android:background="#ffffff"
-            app:headerLayout="@layout/view_global_header"
+            app:headerLayout="@layout/drawer_header"
             app:itemTextColor="#666666"
             app:menu="@menu/drawer_menu" />
 

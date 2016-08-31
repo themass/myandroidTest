@@ -19,9 +19,8 @@ import com.timeline.vpn.data.config.ConfigActionJump;
 import com.timeline.vpn.service.CharonVpnService;
 import com.timeline.vpn.ui.base.BaseDrawerActivity;
 import com.timeline.vpn.ui.maintab.OnBackKeyUpListener;
-import com.timeline.vpn.ui.maintab.TabAdsFragment;
-import com.timeline.vpn.ui.maintab.TabEnergyFragment;
 import com.timeline.vpn.ui.maintab.TabIndexFragment;
+import com.timeline.vpn.ui.maintab.TabVipFragment;
 import com.umeng.fb.FeedbackAgent;
 import com.umeng.message.PushAgent;
 
@@ -36,12 +35,13 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
     private long firstTime = 0;
     private boolean pendingIntroAnimation;
     private OnBackKeyUpListener keyListener;
+    private ConfigActionJump jump = new ConfigActionJump();
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_fragment);
         setupView();
-        EventBusUtil.getEventBus().register(new ConfigActionJump());
+        EventBusUtil.getEventBus().register(jump);
         setUpUmengFeedback();
     }
 
@@ -55,11 +55,11 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
         mTabHost.setOnTabChangedListener(this);
         LayoutInflater inflater = LayoutInflater.from(this);
         addTab(inflater, R.string.tab_tag_index, TabIndexFragment.class,
-                R.drawable.ic_tab_tech, R.string.tab_index);
-        addTab(inflater, R.string.tab_tag_power, TabEnergyFragment.class,
-                R.drawable.ic_tab_tech, R.string.tab_power);
-        addTab(inflater, R.string.tab_tag_ads, TabAdsFragment.class,
-                R.drawable.ic_tab_tech, R.string.tab_ads);
+                R.drawable.ac_bg_tab_index, R.string.tab_index);
+        addTab(inflater, R.string.tab_tag_power, TabVipFragment.class,
+                R.drawable.ac_bg_tab_index, R.string.tab_vip);
+//        addTab(inflater, R.string.tab_tag_ads, TabAdsFragment.class,
+//                R.drawable.ac_bg_tab_index, R.string.tab_ads);
         mTabHost.getTabWidget().setDividerDrawable(null);
         mainTab = mTabHost.getTabWidget();
         startService(new Intent(this, CharonVpnService.class));
@@ -106,6 +106,7 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
     public void onDestroy() {
         super.onDestroy();
         stopService(new Intent(this, CharonVpnService.class));
+        EventBusUtil.getEventBus().unregister(jump);
     }
 
     @Override

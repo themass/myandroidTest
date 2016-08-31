@@ -21,29 +21,32 @@ import com.timeline.vpn.data.MobAgent;
 /**
  * Created by gqli on 2016/3/16.
  */
-public class LogFramgment extends Fragment{
+public class LogFramgment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        LogUtil.i(getClass().getSimpleName()+"-onStart");
+        LogUtil.i(getClass().getSimpleName() + "-onStart");
     }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        LogUtil.i(getClass().getSimpleName()+"-onCreateView");
+        LogUtil.i(getClass().getSimpleName() + "-onCreateView");
         return super.onCreateView(inflater, container, savedInstanceState);
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        LogUtil.i(getClass().getSimpleName()+"-onCreate");
+        LogUtil.i(getClass().getSimpleName() + "-onCreate");
         super.onCreate(savedInstanceState);
     }
-
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+        LogUtil.i(getClass().getSimpleName() + "-setUserVisibleHint=="+isVisibleToUser);
+    }
     @Override
     public Animator onCreateAnimator(int transit, boolean enter, int nextAnim) {
-        LogUtil.i(getClass().getSimpleName()+"-onCreateAnimator");
+        LogUtil.i(getClass().getSimpleName() + "-onCreateAnimator");
         return super.onCreateAnimator(transit, enter, nextAnim);
     }
 

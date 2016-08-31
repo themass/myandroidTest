@@ -26,18 +26,19 @@ import butterknife.Bind;
 /**
  * Created by gqli on 2016/3/21.
  */
-public class BaseWebViewFragment extends BaseFragment{
-    @Bind(R.id.wvContent)
+public class BaseWebViewFragment extends BaseFragment {
+    public static final String PARAM_WEB_VIEW_CAN_GO_BACK = "PARAM_WEB_VIEW_CAN_GO_BACK";
+    public static final String TAG_FROM = "BaseWebViewFragment_TAG_FROM";
+    public static final int TAG_FROM_DEFAULT = 0x0000;
+    @Bind(R.id.wv_content)
     MyWebView webView;
     @Bind(R.id.progressbar)
     ProgressBar progressbar;
     private boolean mFirstPageLoad = true;
-    public static final String PARAM_WEB_VIEW_CAN_GO_BACK = "PARAM_WEB_VIEW_CAN_GO_BACK";
-    public static final String TAG_FROM = "BaseWebViewFragment_TAG_FROM";
-    public static final int TAG_FROM_DEFAULT = 0x0000;
-    private  WebViewListener webViewListener;
-    private int  from;
+    private WebViewListener webViewListener;
+    private int from;
     private String url;
+
     @Override
     protected int getRootViewId() {
         return R.layout.base_webview_layout;
@@ -47,8 +48,8 @@ public class BaseWebViewFragment extends BaseFragment{
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         mFirstPageLoad = true;
-        if (getArguments() != null){
-            from = getArguments().getInt(TAG_FROM,TAG_FROM_DEFAULT);
+        if (getArguments() != null) {
+            from = getArguments().getInt(TAG_FROM, TAG_FROM_DEFAULT);
         }
         WebView webView = getWebView();
         if (webView != null) {
@@ -59,26 +60,30 @@ public class BaseWebViewFragment extends BaseFragment{
             }
         }
     }
+
     public boolean goForward() {
         WebView webView = getWebView();
-        if(webView!=null&&webView.canGoForward()){
+        if (webView != null && webView.canGoForward()) {
             webView.goForward();
             return true;
         }
         return false;
     }
+
     public boolean goBack() {
         WebView webView = getWebView();
-        if(webView!=null&&webView.canGoBack()){
+        if (webView != null && webView.canGoBack()) {
             webView.goBack();
             return true;
         }
-        LogUtil.i("canGoBack--"+webView.canGoBack());
+        LogUtil.i("canGoBack--" + webView.canGoBack());
         return false;
     }
-    public void setListener(MyWebView.OnTouchRightSlide listener){
+
+    public void setListener(MyWebView.OnTouchRightSlide listener) {
         webView.setListener(listener);
     }
+
     private String getParamUrl() {
         Bundle args = getArguments();
         if (args != null) {
@@ -97,12 +102,14 @@ public class BaseWebViewFragment extends BaseFragment{
     public WebView getWebView() {
         return webView;
     }
+
     private void setProgressShown(boolean shown) {
-        if(progressbar!=null)
+        if (progressbar != null)
             progressbar.setVisibility(shown ? View.VISIBLE : View.GONE);
     }
+
     @SuppressLint({"JavascriptInterface", "SetJavaScriptEnabled"})
-     private void init(final WebView webView) {
+    private void init(final WebView webView) {
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
         settings.setDatabaseEnabled(false);
@@ -136,6 +143,7 @@ public class BaseWebViewFragment extends BaseFragment{
                     webViewListener.onPageFinished();
                 }
             }
+
             @Override
             public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
                 super.onReceivedError(view, request, error);
@@ -145,6 +153,7 @@ public class BaseWebViewFragment extends BaseFragment{
             }
         });
     }
+
     public void setWebViewListener(WebViewListener webViewListener) {
         this.webViewListener = webViewListener;
     }
@@ -158,7 +167,6 @@ public class BaseWebViewFragment extends BaseFragment{
     public interface WebViewListener {
         public void onPageFinished();
     }
-
 
 
 }

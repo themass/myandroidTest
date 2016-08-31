@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.squareup.leakcanary.RefWatcher;
@@ -18,16 +19,20 @@ import butterknife.ButterKnife;
 /**
  * Created by Miroslaw Stanek on 19.01.15.
  */
-public class BaseToolBarActivity extends BaseWeatherMenuFragment {
+public class BaseToolBarActivity extends BaseWeatherMenuActivity {
 
     @Nullable
     @Bind(R.id.toolbar)
     Toolbar toolbar;
-    @Bind(R.id.tvTitle)
+    @Bind(R.id.tv_title)
     TextView tvTitle;
+    @Nullable
+    @Bind(R.id.fl_body)
+    ViewGroup flBody;
     @Override
     public void setContentView(int layoutResID) {
-        super.setContentView(layoutResID);
+        super.setContentView(R.layout.base_toobar_activity);
+        getLayoutInflater().inflate(layoutResID,(ViewGroup) findViewById(R.id.fl_body),true);
         bindViews();
         setupToolbar();
     }
@@ -43,7 +48,8 @@ public class BaseToolBarActivity extends BaseWeatherMenuFragment {
     }
 
     public void setContentViewWithoutInject(int layoutResId) {
-        super.setContentView(layoutResId);
+        super.setContentView(R.layout.base_toobar_activity);
+        getLayoutInflater().inflate(layoutResId,(ViewGroup) findViewById(R.id.fl_body),true);
     }
 
     public Toolbar getToolbar() {
@@ -63,17 +69,21 @@ public class BaseToolBarActivity extends BaseWeatherMenuFragment {
         startActivity(intent);
         overridePendingTransition(R.anim.slide_in_from_right, R.anim.slide_out_to_left);
     }
+
     public void startService(Class<? extends Service> c) {
         Intent intent = new Intent(BaseToolBarActivity.this, c);
         startService(intent);
     }
+
     public void setToolbarTitle(int id) {
         tvTitle.setText(id);
         setNavigationOut();
     }
+
     public TextView getToolbarTitle() {
         return tvTitle;
     }
+
     public void setToolbarTitle(String title) {
         tvTitle.setText(title);
         setNavigationOut();

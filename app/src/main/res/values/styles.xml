@@ -23,6 +23,7 @@
         <item name="colorControlHighlight">@color/fab_color_pressed</item>
         <item name="@android:windowAnimationStyle">@style/AnimationActivity</item>
     </style>
+
     <style name="AppTheme.TransparentActivity">
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowIsTranslucent">true</item>
@@ -31,6 +32,7 @@
     <style name="AppTheme.TransparentActivity.FullScreen">
         <item name="android:windowFullscreen">true</item>
     </style>
+
     <style name="ContextMenuButton">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
@@ -41,75 +43,87 @@
         <item name="android:textColor">?attr/colorPrimary</item>
         <item name="android:textSize">14sp</item>
     </style>
+
     <style name="AnimationActivity" parent="@android:style/Animation.Activity">
         <item name="android:activityOpenEnterAnimation">@anim/slide_in_from_right</item>
         <item name="android:activityOpenExitAnimation">@anim/slide_out_to_left</item>
         <item name="android:activityCloseEnterAnimation">@anim/slide_in_from_right</item>
         <item name="android:activityCloseExitAnimation">@anim/slide_out_to_left</item>
-    </style><style name="edit">
-    <item name="android:textSize">@dimen/textsize_16</item>
-    <item name="android:textColor">@color/new_deep_black</item>
-    <item name="android:textColorHint">@color/new_light_black</item>
-    <item name="android:paddingLeft">@dimen/padding_10</item>
-    <item name="android:paddingRight">@dimen/padding_10</item>
-    <item name="android:paddingTop">5dip</item>
-    <item name="android:paddingBottom">5dip</item>
-    <item name="android:gravity">center_vertical</item>
-    <item name="android:drawablePadding">10dip</item>
-    <item name="android:textCursorDrawable">@null</item>
-    <item name="android:layout_width">match_parent</item>
-    <item name="android:minHeight">35dip</item>
-    <item name="android:layout_height">wrap_content</item>
-</style>
+    </style>
+
+    <style name="edit">
+        <item name="android:textSize">@dimen/textsize_16</item>
+        <item name="android:textColor">@color/new_deep_black</item>
+        <item name="android:textColorHint">@color/new_light_black</item>
+        <item name="android:paddingLeft">@dimen/padding_10</item>
+        <item name="android:paddingRight">@dimen/padding_10</item>
+        <item name="android:paddingTop">5dip</item>
+        <item name="android:paddingBottom">5dip</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:drawablePadding">10dip</item>
+        <item name="android:textCursorDrawable">@null</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:minHeight">35dip</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
 
     <style name="edit_login" parent="@style/edit">
         <item name="android:minHeight">@dimen/title_height</item>
         <item name="android:textColorHint">@color/login_hint</item>
-        <item name="android:textColor">@color/base_white</item>
+        <item name="android:textColor">@color/new_deep_black</item>
         <item name="android:background">@android:color/transparent</item>
     </style>
+
     <style name="divider_login">
         <item name="android:layout_height">1dip</item>
         <item name="android:layout_width">match_parent</item>
         <item name="android:contentDescription">@string/app_name</item>
         <item name="android:background">@color/line_login</item>
     </style>
+
     <style name="btn_blue">
         <item name="android:gravity">center</item>
         <item name="android:textSize">@dimen/textsize_18</item>
-        <item name="android:textColor">@color/base_white</item>
+        <item name="android:textColor">@color/new_deep_black</item>
         <item name="android:layout_width">match_parent</item>
         <item name="android:background">@drawable/btn_blue_normal</item>
         <item name="android:layout_height">@dimen/title_height</item>
     </style>
+
     <style name="tv_white_small" parent="@style/tv_white_normal">
         <item name="android:textSize">@dimen/textsize_14</item>
     </style>
+
     <style name="tv_white_normal" parent="@style/tv_content_normal">
         <item name="android:textColor">@color/base_white</item>
     </style>
+
     <style name="tv_content_normal">
         <item name="android:textSize">@dimen/textsize_16</item>
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:textColor">@color/new_deep_black</item>
     </style>
+
     <style name="btn_location_header" parent="@style/Base.Widget.AppCompat.Button">
         <item name="android:background">@drawable/btn_location_header_selector</item>
         <item name="android:textSize">@dimen/location_choose_tv_size</item>
         <item name="android:textColor">@color/base_white</item>
         <item name="android:gravity">center</item>
     </style>
+
     <style name="roomRatingBar" parent="@android:style/Widget.Material.RatingBar.Small">
         <item name="android:progressDrawable">@drawable/room_rating_bar</item>
         <item name="android:minHeight">16dp</item>
         <item name="android:maxHeight">16dp</item>
     </style>
+
     <style name="title_bar_black">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">@dimen/title_height</item>
         <item name="android:background">@color/base_black</item>
     </style>
+
     <style name="title_bar">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">@dimen/title_height</item>

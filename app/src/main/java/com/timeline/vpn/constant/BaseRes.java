@@ -14,8 +14,9 @@ import java.util.Map;
  * Created by gqli on 2016/8/13.
  */
 public class BaseRes {
-    private static  final String IMAGE_RES_PRE = "timeline://img";
-    public static Map<String,Integer> img = new HashMap<>();
+    private static final String IMAGE_RES_PRE = "timeline://img";
+    public static Map<String, Integer> img = new HashMap<>();
+
     static {
         img.put("flag_ch", R.drawable.flag_ch);
         img.put("flag_af", R.drawable.flag_af);
@@ -45,22 +46,23 @@ public class BaseRes {
         img.put("flag_sg", R.drawable.flag_sg);
         img.put("flag_tr", R.drawable.flag_tr);
         img.put("flag_tw", R.drawable.flag_tw);
-        img.put("flag_uns",R.drawable.flag_uns);
+        img.put("flag_uns", R.drawable.flag_uns);
         img.put("flag_us", R.drawable.flag_us);
         img.put("flag_vn", R.drawable.flag_vn);
         img.put("flag_all", R.drawable.flag_all);
     }
-    public static void getImage(Context context, ImageView iv,String url){
-        if(iv==null || StringUtil.isEmpty(url)){
+
+    public static void getImage(Context context, ImageView iv, String url) {
+        if (iv == null || StringUtil.isEmpty(url)) {
             return;
         }
-        if(url.startsWith(IMAGE_RES_PRE)){
-            url = url.substring(url.lastIndexOf("/")+1,url.lastIndexOf("."));
+        if (url.startsWith(IMAGE_RES_PRE)) {
+            url = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf("."));
             iv.setImageResource(img.get(url));
-        }else {
+        } else {
             Glide.with(context)
                     .load(iv)
-                    .placeholder(R.drawable.recommand_default)
+                    .placeholder(R.drawable.vpn_trans_default)
                     .centerCrop()
                     .into(iv);
         }

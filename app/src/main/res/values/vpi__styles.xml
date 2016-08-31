@@ -42,15 +42,4 @@
         <item name="android:layout_marginLeft">6dp</item>
         <item name="android:layout_marginRight">6dp</item>
     </style>
-
-    <!--资讯页顶部tab样式-->
-    <style name="info_main_tab_indicator" parent="Widget.TabPageIndicator">
-        <item name="android:background">@drawable/info_main_indicator_bg_selector</item>
-        <item name="android:textAppearance">@style/info_main_tab_indicator_text</item>
-        <item name="android:textColor">@color/info_main_indicator_color_selector</item>
-    </style>
-
-    <style name="info_main_tab_indicator_text" parent="Widget">
-        <item name="android:textColor">@color/info_main_indicator_color_selector</item>
-    </style>
 </resources>

@@ -5,8 +5,8 @@
     tools:context=".ui.base.BaseActivity">
     <item
         android:id="@+id/menu_weather"
-        android:icon="@drawable/ic_menu_space"
         android:actionLayout="@layout/menu_weather_view"
+        android:icon="@drawable/ic_menu_space"
         android:title="@string/menu_haha"
         app:showAsAction="always" />
 </menu>

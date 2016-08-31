@@ -24,6 +24,7 @@ public class TabEnergyFragment extends TabBaseAdsFragment {
     TabLayout tabLayout;
     @Bind(R.id.vp_container)
     ViewPager viewPager;
+
     @Override
     protected int getTabBodyViewId() {
         return R.layout.tab_energy_content;
@@ -37,10 +38,10 @@ public class TabEnergyFragment extends TabBaseAdsFragment {
     @Override
     protected void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
-        fabUp.setImageResource(R.drawable.fab_xiong);
         setupViewPager(viewPager);
         tabLayout.setupWithViewPager(viewPager);
     }
+
     private void setupViewPager(ViewPager viewPager) {
         MyAdapter adapter = new MyAdapter(getChildFragmentManager());
         adapter.addFragment(new TestFragment(), R.string.tab_power_positive);
@@ -49,12 +50,15 @@ public class TabEnergyFragment extends TabBaseAdsFragment {
         adapter.addFragment(new TestFragment(), R.string.tab_power_gossip);
         viewPager.setAdapter(adapter);
     }
-     class MyAdapter extends FragmentPagerAdapter {
+
+    class MyAdapter extends FragmentPagerAdapter {
         private final List<Fragment> mFragments = new ArrayList<>();
         private final List<String> mFragmentTitles = new ArrayList<>();
+
         public MyAdapter(FragmentManager fm) {
             super(fm);
         }
+
         public void addFragment(Fragment fragment, int titleId) {
             mFragments.add(fragment);
             mFragmentTitles.add(getResources().getString(titleId));

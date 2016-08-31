@@ -10,6 +10,7 @@ public class InfoListVo<T> {
     public List<T> voList = new ArrayList<>();
     public int total;
     public boolean hasMore;
+
     @Override
     public String toString() {
         return "InfoListVo{" +

@@ -6,11 +6,10 @@ import android.widget.Toast;
 
 import com.timeline.vpn.bean.vo.JsonResult;
 import com.timeline.vpn.common.util.CollectionUtils;
-import com.timeline.vpn.common.util.DeviceInfoUtils;
 import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.common.util.PackageUtils;
-import com.timeline.vpn.common.util.PreferenceUtils;
 import com.timeline.vpn.constant.Constants;
+import com.timeline.vpn.data.UserLoginUtil;
 
 import org.apache.http.HttpEntity;
 
@@ -24,12 +23,11 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.Map;
 
 public class HttpUtils {
     private static final String DEFAULT_CHARSET = "UTF-8";
-    private static String USER_AGENT_SUFFIX = "timeline/%s";
+    private static String USER_AGENT_SUFFIX = "VPN/%s";
 
     public static boolean isGzip(String name, String value) {
         return "Content-Encoding".equals(name) && "gzip".equals(value);
@@ -41,13 +39,6 @@ public class HttpUtils {
 
     public static String getUserAgentSuffix(Context context) {
         return String.format(USER_AGENT_SUFFIX, PackageUtils.getAppVersion(context));
-    }
-
-    public static Map<String, String> getHeader(Context context) {
-        Map<String, String> header = new HashMap<>();
-        header.put(Constants.DEVID, DeviceInfoUtils.getDeviceId(context));
-        header.put(Constants.HTTP_TOKEN_KEY, PreferenceUtils.getPrefString(context, Constants.HTTP_TOKEN_KEY, null));
-        return header;
     }
 
     public static okhttp3.Headers getOkHeader() {
@@ -84,7 +75,13 @@ public class HttpUtils {
     }
 
     public static boolean parserJsonResult(Context context, JsonResult<?> result) {
-        return result.errno == Constants.HTTP_SUCCESS;
+        if(result.errno == Constants.HTTP_SUCCESS)
+            return true;
+        else if(result.errno == Constants.HTTP_SUCCESS_CLEAR){
+            UserLoginUtil.logout(context);
+            return true;
+        }else
+            return false;
     }
 
     public static boolean parserJsonResultWithExec(Context context, JsonResult<?> result) {

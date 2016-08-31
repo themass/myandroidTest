@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?><!--dimens.xml-->
+<resources>
+    <dimen name="fab_margin">6dp</dimen>
+</resources>

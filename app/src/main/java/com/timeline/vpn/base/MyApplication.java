@@ -6,10 +6,6 @@ import android.graphics.Typeface;
 
 import com.android.volley.VolleyLog;
 import com.kyview.InitConfiguration;
-import com.kyview.manager.AdViewBannerManager;
-import com.kyview.manager.AdViewInstlManager;
-import com.kyview.manager.AdViewNativeManager;
-import com.kyview.manager.AdViewSpreadManager;
 import com.squareup.leakcanary.LeakCanary;
 import com.squareup.leakcanary.RefWatcher;
 import com.timeline.vpn.bean.vo.UserInfoVo;
@@ -57,10 +53,9 @@ public class MyApplication extends Application {
         refWatcher = LeakCanary.install(this);
         ButterKnife.setDebug(SystemUtils.isApkDebugable(this));
         VersionUpdater.init(this);
+        VolleyUtils.init(getApplicationContext());
         VolleyLog.DEBUG = SystemUtils.isApkDebugable(this);
         VolleyLog.setTag("VolleyUtils");
-        VolleyUtils.init(getApplicationContext());
-        SystemUtils.copyDB(this);// 程序第一次运行将数据库copy过去
         initData();
         typeface = Typeface.SANS_SERIF;
         instance = this;
@@ -72,22 +67,17 @@ public class MyApplication extends Application {
             StaticDataUtil.add(Constants.LOGIN_USER, user);
         }
         LogUtil.i("init data ok");
-        MobAgent.init(SystemUtils.isApkDebugable(this));
+        MobAgent.init(this,SystemUtils.isApkDebugable(this));
         com.umeng.fb.util.Log.LOG = SystemUtils.isApkDebugable(this);
         FeedbackPush.getInstance(this).init(ConversationDetailActivity.class, true);
         InitConfiguration.Builder builder = new InitConfiguration.Builder(this)
                 .setUpdateMode(InitConfiguration.UpdateMode.EVERYTIME)   // 实时获取配置
-                .setBannerCloseble(InitConfiguration.BannerSwitcher.CANCLOSED)    //横幅可关闭按钮
+                .setBannerCloseble(InitConfiguration.BannerSwitcher.DEFAULT)    //横幅可关闭按钮
                 .setInstlCloseble(InitConfiguration.InstlSwitcher.CANCLOSED);     //插屏可关闭按钮
+        builder.setAdMobSize(InitConfiguration.AdMobSize.BANNER);
         if (SystemUtils.isApkDebugable(this)) {
             builder.setRunMode(InitConfiguration.RunMode.TEST);
         }
-        //测试模式，log更多，应用上线后可删
         initConfig = builder.build();
-        AdViewBannerManager.getInstance(this).init(initConfig, Constants.adsKeySet);
-        AdViewInstlManager.getInstance(this).init(initConfig, Constants.adsKeySet);
-        AdViewNativeManager.getInstance(this).init(initConfig, Constants.adsKeySet);
-        AdViewSpreadManager.getInstance(this).init(initConfig, Constants.adsKeySet);
-
     }
 }

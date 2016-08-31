@@ -8,7 +8,8 @@ import android.content.Context;
 public class ConfigActionEvent {
     public String url;
     public Context context;
-    public ConfigActionEvent(Context context,String url){
+
+    public ConfigActionEvent(Context context, String url) {
         this.context = context;
         this.url = url;
     }

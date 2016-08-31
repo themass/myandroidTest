@@ -46,8 +46,7 @@ public class BitmapUtil {
             int w = r.width();
             int h = r.height();
             int maxSize = w > h ? w : h;
-            int inSimpleSize = computeSampleSize(options, maxSize, w * h);
-            options.inSampleSize = inSimpleSize; // 设置缩放比例
+            options.inSampleSize = computeSampleSize(options, maxSize, w * h); // 设置缩放比例
             options.inJustDecodeBounds = false;
         }
         Bitmap b = BitmapFactory.decodeStream(in, null, options);

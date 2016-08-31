@@ -102,10 +102,7 @@ public class EncryptUtil {
      */
     public static boolean isFine(final String str) {
         try {
-            if (str == null || str.trim().length() == 0) {
-                return false;
-            }
-            return true;
+            return !(str == null || str.trim().length() == 0);
         } catch (Exception e) {
             return false;
         }
@@ -163,8 +160,7 @@ public class EncryptUtil {
             byte[] encrypted = Base64.decodeBase64(content.getBytes("utf-8"));
             try {
                 byte[] original = cipher.doFinal(encrypted);
-                String originalString = new String(original, "utf-8");
-                return originalString;
+                return new String(original, "utf-8");
             } catch (Exception e) {
                 e.printStackTrace();
             }

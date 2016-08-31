@@ -91,6 +91,7 @@ public class DeviceInfoUtils {
         }
         return deviceId.toString();
     }
+
     /**
      * 获取序列号
      *
@@ -122,6 +123,7 @@ public class DeviceInfoUtils {
     public static String getBuildModel() {
         return Build.MODEL;
     }
+
     /**
      * 得到全局唯一UUID
      */

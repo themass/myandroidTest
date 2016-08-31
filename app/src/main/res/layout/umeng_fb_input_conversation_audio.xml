@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/umeng_fb_input_layout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -29,6 +28,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="6dp">
+
             <ImageButton
                 android:id="@+id/umeng_fb_keyboard_tag_btn"
                 android:layout_width="wrap_content"
@@ -49,8 +49,8 @@
                 android:layout_marginRight="10dp"
                 android:layout_toRightOf="@id/umeng_fb_keyboard_tag_btn"
                 android:background="@color/umeng_fb_gray"
-                android:text="@string/umeng_fb_press_speech"
                 android:focusable="true"
+                android:text="@string/umeng_fb_press_speech"
                 android:textSize="@dimen/umeng_fb_record_btn_text_size" />
         </RelativeLayout>
     </LinearLayout>

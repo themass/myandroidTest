@@ -1,14 +1,9 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".ui.main.MainFragment">
-
-    <include
-        android:id="@+id/toolbar"
-        layout="@layout/view_feed_toolbar" />
 
     <FrameLayout
         android:id="@+id/realtabcontent"
@@ -19,8 +14,7 @@
     <android.support.v13.app.FragmentTabHost
         android:id="@android:id/tabhost"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true">
+        android:layout_height="wrap_content">
 
         <FrameLayout
             android:id="@android:id/tabcontent"

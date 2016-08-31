@@ -1,17 +1,14 @@
 <android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/cl_rootcontent"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
 
     <android.support.design.widget.AppBarLayout
-        android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
         <android.support.design.widget.CollapsingToolbarLayout
-            android:id="@+id/collapsing_toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:contentScrim="?attr/colorPrimary"
@@ -43,12 +40,13 @@
         android:layout_gravity="bottom|right"
         android:layout_marginBottom="@dimen/btn_fab_margins"
         android:layout_marginRight="@dimen/btn_fab_margins"
-        android:src="@drawable/ic_menu_direct_up"
+        android:clickable="true"
+        android:scaleType="center"
+        android:src="@drawable/hand_fb"
         app:borderWidth="0dp"
         app:elevation="6dp"
         app:fabSize="normal"
-        android:clickable="true"
         app:pressedTranslationZ="12dp"
-        app:rippleColor="@color/base_red"/>
+        app:rippleColor="@color/base_red" />
 
 </android.support.design.widget.CoordinatorLayout>

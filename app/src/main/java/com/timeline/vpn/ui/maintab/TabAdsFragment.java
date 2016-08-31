@@ -14,6 +14,7 @@ import com.timeline.vpn.R;
 import com.timeline.vpn.ads.adview.AdsAdview;
 import com.timeline.vpn.ads.adview.NativeAdsAdapter;
 import com.timeline.vpn.common.util.LogUtil;
+import com.timeline.vpn.constant.Constants;
 
 import butterknife.Bind;
 
@@ -47,7 +48,6 @@ public class TabAdsFragment extends TabBaseAdsFragment {
     @Override
     protected void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
-        fabUp.setImageResource(R.drawable.fab_xiong);
         final StaggeredGridLayoutManager layoutManager = new StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.VERTICAL);
         rvAds.setLayoutManager(layoutManager);
         rvAds.setItemAnimator(new DefaultItemAnimator());
@@ -63,7 +63,7 @@ public class TabAdsFragment extends TabBaseAdsFragment {
     }
 
     private void fetchBannerAd() {
-        AdsAdview.bannerAds(getActivity(), llAdsBanner, mHandler);
+        AdsAdview.bannerAds(getActivity(), llAdsBanner, mHandler, Constants.ADS_ADVIEW_KEY);
     }
 
     public void fetchAd() {

@@ -13,9 +13,14 @@ import com.android.volley.toolbox.HttpHeaderParser;
 import com.timeline.vpn.bean.vo.JsonResult;
 import com.timeline.vpn.common.exce.MyVolleyError;
 import com.timeline.vpn.common.net.HttpUtils;
+import com.timeline.vpn.common.util.DeviceInfoUtils;
+import com.timeline.vpn.common.util.Md5;
+import com.timeline.vpn.common.util.PreferenceUtils;
+import com.timeline.vpn.common.util.SystemUtils;
 import com.timeline.vpn.common.util.cache.DiskBasedCacheEx;
 import com.timeline.vpn.constant.Constants;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,7 +28,7 @@ public class BaseRequest<T> extends Request<T> {
 
     private static String UA_DEFAULT = null;
     private static String UA_APP_SUFFIX = null;
-    private String mCharset = "utf-8";
+
     static {
         UA_DEFAULT = System.getProperty("http.agent", "");
     }
@@ -31,11 +36,13 @@ public class BaseRequest<T> extends Request<T> {
     private final Context mContext;
     private final Map<String, String> headers;
     private final Response.Listener<T> listener;
+    private String mCharset = "utf-8";
 
     public BaseRequest(Context context, int method, String url,
                        Map<String, String> headers, Response.Listener<T> listener,
                        Response.ErrorListener errorListener) {
         super(method, url, errorListener);
+        long time = new Date().getTime();
         mContext = context;
         if (UA_APP_SUFFIX == null) {
             UA_APP_SUFFIX = HttpUtils.getUserAgentSuffix(context);
@@ -43,16 +50,22 @@ public class BaseRequest<T> extends Request<T> {
         if (headers == null) {
             headers = new HashMap<String, String>();
         }
-        headers.put("User-Agent", UA_DEFAULT + UA_APP_SUFFIX);
+        StringBuilder sb = new StringBuilder();
+        sb.append(DeviceInfoUtils.getDeviceId(context)).append("|").append(time);
+        String msg = time+Md5.encode(sb.toString());
+        headers.put("User-Agent", UA_DEFAULT + UA_APP_SUFFIX+","+msg);
         if (!headers.containsKey("Referer")) {
             headers.put("Referer", Constants.DEFAULT_REFERER);
         }
         headers.put("Accept-Encoding", "gzip");
-        headers.putAll(HttpUtils.getHeader(context));
+        headers.put("Accept-Language", SystemUtils.getLang(context));
+        headers.put(Constants.DEVID, DeviceInfoUtils.getDeviceId(context));
+        String token = PreferenceUtils.getPrefString(context, Constants.HTTP_TOKEN_KEY, null);
+        if(token!=null)
+            headers.put(Constants.HTTP_TOKEN_KEY, token);
         this.headers = headers;
-
         this.listener = listener;
-        setRetryPolicy(new DefaultRetryPolicy(3000, 1, 0.5F));
+        setRetryPolicy(new DefaultRetryPolicy(5000, 1, 0.5F));
     }
 
     @Override
@@ -100,6 +113,7 @@ public class BaseRequest<T> extends Request<T> {
     public byte[] getBody() throws AuthFailureError {
         return super.getBody();
     }
+
     protected final String getResponseStr(NetworkResponse response) {
         try {
             String charset = !TextUtils.isEmpty(mCharset) ? mCharset : HttpHeaderParser.parseCharset(response.headers);
@@ -118,11 +132,12 @@ public class BaseRequest<T> extends Request<T> {
     protected void setCharset(String charset) {
         mCharset = charset;
     }
-    protected Response parserData(JsonResult data,NetworkResponse response){
+
+    protected Response parserData(JsonResult data, NetworkResponse response) {
         boolean ret = HttpUtils.parserJsonResult(getContext(), data);
-        if(ret) {
+        if (ret) {
             return Response.success(data.getData(), getCacheEntry(response));
-        }else{
+        } else {
             return Response.error(new MyVolleyError(data.error));
         }
     }

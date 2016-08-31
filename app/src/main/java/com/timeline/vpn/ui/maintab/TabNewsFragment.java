@@ -18,6 +18,7 @@ public class TabNewsFragment extends TabBaseAdsFragment {
     TabLayout tabLayout;
     @Bind(R.id.vp_container)
     ViewPager viewPager;
+
     @Override
     protected int getTabBodyViewId() {
         return R.layout.tab_energy_content;
@@ -27,6 +28,7 @@ public class TabNewsFragment extends TabBaseAdsFragment {
     protected int getTabHeaderViewId() {
         return R.layout.tab_energy_header;
     }
+
     @Override
     protected void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);

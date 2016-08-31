@@ -63,7 +63,7 @@ public class FileUtils {
             if (os != null) {
                 try {
                     os.close();
-                } catch (Exception e) {
+                } catch (Exception ignored) {
 
                 }
             }
@@ -71,7 +71,7 @@ public class FileUtils {
             if (is != null) {
                 try {
                     is.close();
-                } catch (Exception e) {
+                } catch (Exception ignored) {
 
                 }
             }

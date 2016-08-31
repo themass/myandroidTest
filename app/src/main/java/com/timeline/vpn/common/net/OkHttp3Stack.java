@@ -33,20 +33,23 @@ import okhttp3.logging.HttpLoggingInterceptor;
  * use okhttp-urlconnection
  */
 public class OkHttp3Stack implements HttpStack {
-    private static OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
-    private static  OkHttpClient client ;
     private static final int DEFUAT_TIMEOUT = 20;
     private static final int CONNECT_TIMEOUT = 6;
     private static final int WRITE_TIMEOUT = 15;
-    public OkHttp3Stack() {
-    }
+    private static OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
+    private static OkHttpClient mClient;
+
     static {
         clientBuilder.connectTimeout(CONNECT_TIMEOUT, TimeUnit.SECONDS);
         clientBuilder.readTimeout(DEFUAT_TIMEOUT, TimeUnit.SECONDS);
         clientBuilder.writeTimeout(WRITE_TIMEOUT, TimeUnit.SECONDS);
         clientBuilder.addInterceptor(new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY));
-        client = clientBuilder.build();
+        mClient = clientBuilder.build();
     }
+
+    public OkHttp3Stack() {
+    }
+
     private static HttpEntity entityFromOkHttpResponse(Response r) throws IOException {
         BasicHttpEntity entity = new BasicHttpEntity();
         ResponseBody body = r.body();
@@ -85,7 +88,8 @@ public class OkHttp3Stack implements HttpStack {
                 throw new IllegalStateException("Unknown method type.");
         }
     }
-    private static void setHeaderForRequest(okhttp3.Request.Builder builder, com.android.volley.Request<?> request,Map<String, String> additionalHeaders)throws AuthFailureError {
+
+    private static void setHeaderForRequest(okhttp3.Request.Builder builder, com.android.volley.Request<?> request, Map<String, String> additionalHeaders) throws AuthFailureError {
         Map<String, String> headers = request.getHeaders();
         for (final String name : headers.keySet()) {
             builder.addHeader(name, headers.get(name));
@@ -132,10 +136,10 @@ public class OkHttp3Stack implements HttpStack {
             throws IOException, AuthFailureError {
         okhttp3.Request.Builder okHttpRequestBuilder = new okhttp3.Request.Builder();
         setConnectionParametersForRequest(okHttpRequestBuilder, request);
-//        setHeaderForRequest(okHttpRequestBuilder, request,additionalHeaders);
+        setHeaderForRequest(okHttpRequestBuilder, request,additionalHeaders);
         okHttpRequestBuilder.url(request.getUrl());
         okhttp3.Request okHttpRequest = okHttpRequestBuilder.build();
-        Call okHttpCall = client.newCall(okHttpRequest);
+        Call okHttpCall = mClient.newCall(okHttpRequest);
         Response okHttpResponse = okHttpCall.execute();
         StatusLine responseStatus = new BasicStatusLine(parseProtocol(okHttpResponse.protocol()), okHttpResponse.code(), okHttpResponse.message());
         BasicHttpResponse response = new BasicHttpResponse(responseStatus);

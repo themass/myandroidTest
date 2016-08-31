@@ -7,10 +7,12 @@ import com.android.volley.VolleyError;
  */
 public class MyVolleyError extends VolleyError {
     private String msg;
-    public MyVolleyError(String msg){
-        this.msg=msg;
+
+    public MyVolleyError(String msg) {
+        this.msg = msg;
     }
-    public String getMsg(){
+
+    public String getMsg() {
         return msg;
     }
 

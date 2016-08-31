@@ -36,6 +36,7 @@ import com.timeline.vpn.adapter.IndexRecommendAdapter;
 import com.timeline.vpn.bean.DataBuilder;
 import com.timeline.vpn.bean.vo.HostVo;
 import com.timeline.vpn.bean.vo.InfoListVo;
+import com.timeline.vpn.bean.vo.LocationVo;
 import com.timeline.vpn.bean.vo.RecommendVo;
 import com.timeline.vpn.bean.vo.ServerVo;
 import com.timeline.vpn.bean.vo.VpnProfile;
@@ -43,12 +44,12 @@ import com.timeline.vpn.common.net.HttpUtils;
 import com.timeline.vpn.common.net.request.CommonResponse;
 import com.timeline.vpn.common.util.EventBusUtil;
 import com.timeline.vpn.common.util.LogUtil;
+import com.timeline.vpn.common.util.PreferenceUtils;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.data.config.ConfigActionEvent;
 import com.timeline.vpn.service.CharonVpnService;
 import com.timeline.vpn.ui.base.LoadableTabFragment;
-import com.timeline.vpn.ui.vpn.LocationChooseaActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,28 +60,61 @@ import butterknife.OnClick;
 /**
  * Created by gqli on 2015/9/1.
  */
-public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo>> implements CharonVpnService.VpnStateListener,IndexRecommendAdapter.ItemClickListener {
+public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo>> implements CharonVpnService.VpnStateListener, IndexRecommendAdapter.ItemClickListener {
     private static final String DIALOG_TAG = "Dialog";
     private static final String INDEX_TAG = "index_tag";
     private static final int PREPARE_VPN_SERVICE = 0;
     @Nullable
-    @Bind(R.id.footerView)
+    @Bind(R.id.footer_view)
     View footerView;
     @Nullable
-    @Bind(R.id.rvNavi)
+    @Bind(R.id.rv_navi)
     RecyclerView rvRecommend;
     @Bind(R.id.tv_vpn_state_text)
     TextView tvVpnText;
     @Bind(R.id.iv_vpn_state)
     ImageButton ibVpnStatus;
-    @Bind(R.id.swipeLayout)
+    @Bind(R.id.srl_layout)
     SwipeRefreshLayout refreshLayout;
+    CommonResponse.ResponseOkListener serverListener = new CommonResponse.ResponseOkListener<ServerVo>() {
+        @Override
+        public void onResponse(ServerVo serverVo) {
+            long id = 0;
+            for (HostVo vo : serverVo.hostList) {
+                PingTask task = new PingTask(serverVo);
+                LogUtil.i("run task " + vo.gateway);
+                task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, vo);
+            }
+        }
+    };
     private IndexRecommendAdapter adapter;
     private volatile boolean hasIp = false;
+    CommonResponse.ResponseErrorListener serverListenerError = new CommonResponse.ResponseErrorListener() {
+        @Override
+        protected void onError() {
+            super.onError();
+            imgError();
+        }
+    };
     private CharonVpnService mService;
+    private final ServiceConnection mServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            mService = null;
+        }
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            mService = ((CharonVpnService.LocalBinder) service).getService();
+            mService.registerListener(TabIndexFragment.this);
+            if(mService.getCurrentVpnState()==null|| mService.getCurrentVpnState()== CharonVpnService.State.CONNECTED){
+                imgConn();
+            }
+        }
+    };
     private Handler handler = new Handler();
     private VpnProfile vpnProfile;
-    private Animation operatingAnim = null ;
+    private Animation operatingAnim = null;
     private LinearInterpolator lir = null;
     private BaseService indexService;
     private boolean hasMore;
@@ -89,46 +123,37 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
     private List<RecommendVo> mData = new ArrayList<RecommendVo>();
     private boolean isFirst = false;
 
-    private final ServiceConnection mServiceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            mService = null;
-        }
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            mService = ((CharonVpnService.LocalBinder) service).getService();
-            mService.registerListener(TabIndexFragment.this);
-        }
-    };
-
     @Override
     protected int getTabHeaderViewId() {
         return R.layout.vpn_state_view_loading;
     }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         isFirst = true;
     }
+
     @Override
     protected void onContentViewCreated(LayoutInflater inflater, ViewGroup parent) {
         inflater.inflate(R.layout.tab_index_body_content, parent, true);
     }
+
     @Override
     protected void onDataLoaded(InfoListVo<RecommendVo> data) {
         //下拉刷新
-        if(refreshLayout.isRefreshing()){
+        if (refreshLayout.isRefreshing()) {
             mData.clear();
             refreshLayout.setRefreshing(false);
             mData.addAll(data.voList);
             rvRecommend.getAdapter().notifyDataSetChanged();
             pageNum++;
-        }else if(footerView.getVisibility()==View.VISIBLE){ //上拉加载
+        } else if (footerView.getVisibility() == View.VISIBLE) { //上拉加载
             footerView.setVisibility(View.GONE);
             mData.addAll(data.voList);
             rvRecommend.getAdapter().notifyDataSetChanged();
             pageNum++;
-        }else if(isLoadingMore){//首次加载
+        } else if (isLoadingMore) {//首次加载
             mData.addAll(data.voList);
             rvRecommend.getAdapter().notifyDataSetChanged();
         }
@@ -136,21 +161,20 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
         data.voList = mData;
         setData(data);
         isLoadingMore = false;
-        LogUtil.i("mData size="+mData.size());
+        LogUtil.i("mData size=" + mData.size());
     }
 
     @Override
-    protected InfoListVo<RecommendVo> loadData(Context context){
-        isLoadingMore= true;
-        return indexService.getInfoListData(Constants.getRECOMMEND_URL(pageNum),RecommendVo.class,INDEX_TAG);
+    protected InfoListVo<RecommendVo> loadData(Context context) throws Exception{
+        isLoadingMore = true;
+        return indexService.getInfoListData(Constants.getRECOMMEND_URL(pageNum), RecommendVo.class, INDEX_TAG);
     }
 
     @Override
     protected void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
-        fabUp.setImageResource(R.drawable.fab_pigu);
-        adapter = new IndexRecommendAdapter(this.getActivity(), rvRecommend, mData, this);
         final StaggeredGridLayoutManager layoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
+        adapter = new IndexRecommendAdapter(this.getActivity(), rvRecommend, mData, this,layoutManager);
         rvRecommend.setLayoutManager(layoutManager);
         rvRecommend.setItemAnimator(new DefaultItemAnimator());
         getActivity().bindService(new Intent(getActivity(), CharonVpnService.class),
@@ -180,12 +204,12 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
                 }
             }
         });
-        fabUp.setBackgroundResource(R.drawable.fab_pigu);
     }
+
     @Override
     public void onResume() {
         super.onResume();
-        if(isFirst){
+        if (isFirst) {
             isFirst = false;
             next();
         }
@@ -194,16 +218,7 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
     @Override
     public void onItemClick(View v, int position) {
         RecommendVo vo = mData.get(position);
-        EventBusUtil.getEventBus().post(new ConfigActionEvent(getActivity(),vo.actionUrl));
-    }
-
-    /**
-     * 选择地区
-     * @param view
-     */
-    @Override
-    public void onClickFab(View view) {
-        startActivity(LocationChooseaActivity.class);
+        EventBusUtil.getEventBus().post(new ConfigActionEvent(getActivity(), vo.actionUrl));
     }
 
     @Override
@@ -218,16 +233,19 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
     }
+
     @OnClick(R.id.iv_vpn_state)
     public void onVpnClick(View v) {
         LogUtil.i("onVpnClick " + mService.getCurrentVpnState().name());
-        if (mService.getCurrentVpnState()== CharonVpnService.State.CONNECTED) {
+        if (mService.getCurrentVpnState() == CharonVpnService.State.CONNECTED) {
             mService.stopCurrentConnection();
             imgNormal();
-        } else if(mService.getCurrentVpnState()== CharonVpnService.State.DISABLED) {
+        } else if (mService.getCurrentVpnState() == CharonVpnService.State.DISABLED) {
             imgAnim();
-            indexService.getData(Constants.SERVERLIST_URL,serverListener,serverListenerError,INDEX_TAG,ServerVo.class);
-        }else if(mService.getCurrentVpnState()== CharonVpnService.State.CONNECTING){
+            LocationVo vo=  PreferenceUtils.getPrefObj(getActivity(),Constants.LOCATION_CHOOSE, LocationVo.class);
+            int locatonId = vo==null?0:vo.id;
+            indexService.getData(String.format(Constants.API_SERVERLIST_URL,locatonId), serverListener, serverListenerError, INDEX_TAG, ServerVo.class);
+        } else if (mService.getCurrentVpnState() == CharonVpnService.State.CONNECTING) {
             mService.stopCurrentConnection();
             imgNormal();
         }
@@ -246,7 +264,7 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
             VpnNotSupportedError.showWithMessage(getActivity(), R.string.vpn_not_supported_during_lockdown);
             return;
         }
-		/* store profile info until the user grants us permission */
+        /* store profile info until the user grants us permission */
         if (intent != null) {
             try {
                 startActivityForResult(intent, PREPARE_VPN_SERVICE);
@@ -283,6 +301,7 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
         tvVpnText.setText(R.string.vpn_bg_conning);
         ibVpnStatus.setEnabled(false);
     }
+
     private void imgError() {
         stopAnim();
         hasIp = false;
@@ -290,96 +309,23 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
         tvVpnText.setText(R.string.vpn_bg_error);
         ibVpnStatus.setEnabled(true);
     }
+
     private void imgConn() {
         stopAnim();
         ibVpnStatus.setImageResource(R.drawable.circle_vpn_green);
         tvVpnText.setText(R.string.vpn_bg_conned);
         ibVpnStatus.setEnabled(true);
     }
+
     private void imgNormal() {
         stopAnim();
         hasIp = false;
         ibVpnStatus.setImageResource(R.drawable.circle_vpn_blue);
         tvVpnText.setText(R.string.vpn_bg_click);
     }
-    private void stopAnim(){
+
+    private void stopAnim() {
         ibVpnStatus.clearAnimation();
-    }
-    CommonResponse.ResponseOkListener serverListener = new CommonResponse.ResponseOkListener<ServerVo>() {
-        @Override
-        public void onResponse(ServerVo serverVo) {
-            long id = 0;
-            for (HostVo vo : serverVo.hostList) {
-                PingTask task = new PingTask(serverVo);
-                LogUtil.i("run task " + vo.gateway);
-                task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, vo);
-            }
-        }
-    };
-    CommonResponse.ResponseErrorListener serverListenerError = new CommonResponse.ResponseErrorListener(){
-        @Override
-        protected void onError() {
-            super.onError();
-            imgError();
-        }
-    };
-    public class PingTask extends AsyncTask<HostVo, Void, HostVo> {
-        private ServerVo server;
-        public PingTask(ServerVo server) {
-            this.server = server;
-        }
-        @Override
-        protected HostVo doInBackground(HostVo... params) {
-            HostVo vo = params[0];
-            int ttl = HttpUtils.ping(vo.gateway);
-            vo.ttlTime = ttl;
-            LogUtil.i(vo.toString());
-            synchronized (mService) {
-                if (!hasIp && vo.ttlTime > 0) {
-                    hasIp = true;
-                    vpnProfile = DataBuilder.builderVpnProfile(server.expire, server.name, server.pwd, vo);
-                    prepareVpnService();
-                }
-            }
-            return vo;
-        }
-
-        @Override
-        protected void onPostExecute(HostVo hostVo) {
-            super.onPostExecute(hostVo);
-            ibVpnStatus.setEnabled(true);
-        }
-    }
-
-    public class StatChangeJob implements Runnable {
-        private CharonVpnService.State state;
-        private CharonVpnService.ErrorState errorState;
-        public StatChangeJob(CharonVpnService.State state, CharonVpnService.ErrorState errorState) {
-            this.state = state;
-            this.errorState = errorState;
-        }
-        @Override
-        public void run() {
-            LogUtil.i("vpn stateChanged stateChanged " + state.name() + "  errorState=" + errorState.name());
-            switch (state) {
-                case CONNECTED:
-                    imgConn();
-                    break;
-                case CONNECTING:
-                    imgAnim();
-                    break;
-                case DISCONNECTING:
-                    imgNormal();
-                    break;
-                case DISABLED:
-                    imgError();
-                    hasIp = false;
-                default:
-                    imgError();
-                    hasIp = false;
-                    break;
-            }
-        }
     }
 
     @Override
@@ -414,5 +360,67 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
                     }).create();
         }
 
+    }
+
+    public class PingTask extends AsyncTask<HostVo, Void, HostVo> {
+        private ServerVo server;
+
+        public PingTask(ServerVo server) {
+            this.server = server;
+        }
+
+        @Override
+        protected HostVo doInBackground(HostVo... params) {
+            HostVo vo = params[0];
+            vo.ttlTime = HttpUtils.ping(vo.gateway);
+            LogUtil.i(vo.toString());
+            synchronized (mService) {
+                if (!hasIp && vo.ttlTime > 0) {
+                    hasIp = true;
+                    vpnProfile = DataBuilder.builderVpnProfile(server.expire, server.name, server.pwd, vo);
+                    prepareVpnService();
+                }
+            }
+            return vo;
+        }
+
+        @Override
+        protected void onPostExecute(HostVo hostVo) {
+            super.onPostExecute(hostVo);
+            ibVpnStatus.setEnabled(true);
+        }
+    }
+
+    public class StatChangeJob implements Runnable {
+        private CharonVpnService.State state;
+        private CharonVpnService.ErrorState errorState;
+
+        public StatChangeJob(CharonVpnService.State state, CharonVpnService.ErrorState errorState) {
+            this.state = state;
+            this.errorState = errorState;
+        }
+
+        @Override
+        public void run() {
+            LogUtil.i("vpn stateChanged stateChanged " + state.name() + "  errorState=" + errorState.name());
+            switch (state) {
+                case CONNECTED:
+                    imgConn();
+                    break;
+                case CONNECTING:
+                    imgAnim();
+                    break;
+                case DISCONNECTING:
+                    imgNormal();
+                    break;
+                case DISABLED:
+                    imgError();
+                    hasIp = false;
+                default:
+                    imgError();
+                    hasIp = false;
+                    break;
+            }
+        }
     }
 }

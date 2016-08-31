@@ -1,16 +1,19 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <group android:id="@+id/menu_group_location">
+    <group android:id="@+id/menu_group_1">
         <item
             android:id="@+id/menu_location"
             android:icon="@drawable/ic_menu_location"
             android:title="@string/location_choose_hint" />
+        <item
+            android:id="@+id/menu_score"
+            android:icon="@drawable/ic_menu_score"
+            android:title="@string/menu_btn_score" />
     </group>
-    <group android:id="@+id/menu_group_about">
+    <group android:id="@+id/menu_group_2">
         <item
             android:id="@+id/menu_feedback"
             android:icon="@drawable/ic_menu_feedback"
-            android:title="@string/menu_btn_feedback"
-            />
+            android:title="@string/menu_btn_feedback" />
         <item
             android:id="@+id/menu_about"
             android:icon="@drawable/ic_menu_about"
@@ -20,7 +23,7 @@
             android:icon="@drawable/ic_menu_version"
             android:title="@string/menu_btn_version" />
     </group>
-    <group android:id="@+id/menu_group_logout">
+    <group>
         <item
             android:id="@+id/menu_louout"
             android:icon="@drawable/ic_menu_delete"

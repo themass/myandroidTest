@@ -61,7 +61,7 @@ public class VolleyUtils {
             return context.getResources().getString(R.string.error_network_no_connection);
         } else if (volleyError instanceof TimeoutError) {
             return context.getResources().getString(R.string.error_network_timeout);
-        }else if(volleyError instanceof MyVolleyError){
+        } else if (volleyError instanceof MyVolleyError) {
             return ((MyVolleyError) volleyError).getMsg();
         }
         return context.getResources().getString(R.string.error_network_unknown);
@@ -78,7 +78,7 @@ public class VolleyUtils {
      * 取消Volley请求
      */
     public static void cancelRequest(String tag) {
-        LogUtil.i("cancelRequest tag="+tag);
+        LogUtil.i("cancelRequest tag=" + tag);
         mRequestQueue.cancelAll(tag);
     }
 

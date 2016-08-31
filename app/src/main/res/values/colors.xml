@@ -17,10 +17,12 @@
     <color name="style_color_primary">#2d5d82</color>
     <color name="style_color_primary_dark">#21425d</color>
     <color name="style_color_accent">#01bcd5</color>
-
+    <color name="style_color_primary_trans">#552d5d82</color>
     <color name="btn_context_menu_normal">#ffffff</color>
     <color name="btn_context_menu_pressed">#40000000</color>
     <color name="btn_context_menu_text_red">#ffff0000</color>
+    <color name="heart_anim_view_bg">#662d5d82</color>
+
 
     <color name="btn_default_light_normal">#00000000</color>
     <color name="btn_default_light_pressed">#40ffffff</color>
@@ -32,7 +34,7 @@
     <color name="base_red">#ff0000</color>
     <color name="base_black">#000000</color>
     <color name="base_half_transparent">#60000000</color>
-
+    <color name="base_vip_ready">#6054b947</color>
     <!-- tab -->
     <color name="tab_widget_text_color">#BAC4C4</color>
     <color name="title_tab_indicator_bg_color">#0d2957</color>
@@ -57,7 +59,7 @@
     <color name="new_green">#65d289</color>
     <color name="new_light_green">#41bc6a</color>
     <color name="new_globle_black">#2e313c</color>
-    <color name="login_hint">#a0a0a0</color>
+    <color name="login_hint">#b6b2b2</color>
     <color name="line_login">#585a62</color>
     <color name="btn_blue_normal">#3382ff</color>
     <color name="title_item_unenabled">#a6d4b9</color>

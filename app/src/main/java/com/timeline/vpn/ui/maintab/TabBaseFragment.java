@@ -12,9 +12,9 @@ import com.timeline.vpn.ui.base.BaseFragment;
  * Created by gqli on 2015/9/1.
  */
 public abstract class TabBaseFragment extends BaseFragment {
+    public static int NULL_VIEW = -1;
     private ViewGroup headerContentView;
     private ViewGroup bodyContentView;
-    public static int NULL_VIEW = -1;
 
     @Override
     protected int getRootViewId() {
@@ -26,13 +26,13 @@ public abstract class TabBaseFragment extends BaseFragment {
         View view = inflater.inflate(getRootViewId(), null);
         headerContentView = (ViewGroup) view.findViewById(R.id.tab_header_content);
         bodyContentView = (ViewGroup) view.findViewById(R.id.tab_body_content);
-        if(getTabHeaderViewId()!=NULL_VIEW){
+        if (getTabHeaderViewId() != NULL_VIEW) {
             inflater.inflate(getTabHeaderViewId(), headerContentView, true);
         }
-        if(getTabBodyViewId()!=NULL_VIEW) {
+        if (getTabBodyViewId() != NULL_VIEW) {
             inflater.inflate(getTabBodyViewId(), bodyContentView, true);
         }
-        setUp(bodyContentView,inflater);
+        setUp(bodyContentView, inflater);
         return view;
     }
 
@@ -47,5 +47,7 @@ public abstract class TabBaseFragment extends BaseFragment {
     public ViewGroup getBodyContentView() {
         return bodyContentView;
     }
-    public void setUp(View view,LayoutInflater inflater){};
+
+    public void setUp(View view, LayoutInflater inflater) {
+    }
 }

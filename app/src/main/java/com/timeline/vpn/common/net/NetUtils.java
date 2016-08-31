@@ -53,7 +53,7 @@ public class NetUtils {
                     .getSystemService(Context.CONNECTIVITY_SERVICE);
             if (cwjManager.getActiveNetworkInfo() != null)
                 flag = cwjManager.getActiveNetworkInfo().isConnected();// .isAvailable();
-        } catch (Exception e) {
+        } catch (Exception ignored) {
 
         }
 
@@ -108,11 +108,7 @@ public class NetUtils {
                     String extrainfo = mobInfo.getExtraInfo();
                     if (null != extrainfo) {
                         extrainfo = extrainfo.toLowerCase();
-                        if (extrainfo.contains("wap")) {
-                            return true;
-                        } else {
-                            return false;
-                        }
+                        return extrainfo.contains("wap");
                     } else {
                         return false;
                     }

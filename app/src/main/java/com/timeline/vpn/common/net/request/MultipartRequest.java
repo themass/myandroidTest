@@ -16,14 +16,16 @@ import java.util.Map;
 
 public class MultipartRequest<T> extends BaseRequest<T> {
     private Map<String, String> param;
-    private   Class<T>  clasz;
-    public  MultipartRequest(Context context, Map<String, String> param,
+    private Class<T> clasz;
+
+    public MultipartRequest(Context context, Map<String, String> param,
                             String url, Map<String, String> headers, Listener<T> listener,
-                            ErrorListener errorListener,Class<T>  clasz) {
+                            ErrorListener errorListener, Class<T> clasz) {
         super(context, Method.POST, url, headers, listener, errorListener);
         this.param = param;
         this.clasz = clasz;
     }
+
     @Override
     protected Map<String, String> getParams() throws AuthFailureError {
         return param;
@@ -40,7 +42,7 @@ public class MultipartRequest<T> extends BaseRequest<T> {
             String json = getResponseStr(response);
             LogUtil.i(json);
             JsonResult<T> data = DataBuilder.parserVo(clasz, json);
-            return parserData(data,response);
+            return parserData(data, response);
         } catch (Exception e) {
             return Response.error(new ParseError(e));
         }

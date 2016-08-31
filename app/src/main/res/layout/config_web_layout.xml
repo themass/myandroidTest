@@ -3,15 +3,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
-    <include
-        android:id="@+id/toolbar"
-        layout="@layout/view_feed_toolbar" />
+
     <fragment
         android:id="@+id/base_webview"
         android:name="com.timeline.vpn.ui.base.BaseWebViewFragment"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        tools:layout="@layout/base_webview_layout"
-        />
+        tools:layout="@layout/base_webview_layout" />
 
 </LinearLayout>

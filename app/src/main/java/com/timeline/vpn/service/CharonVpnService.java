@@ -50,20 +50,9 @@ import java.util.List;
 import java.util.Locale;
 
 public class CharonVpnService extends VpnService {
-    private static final String TAG = CharonVpnService.class.getSimpleName();
     public static final String LOG_FILE = "charon.log";
     public static final String PROFILE = "PROFILE";
     public static final String COMMAND = "COMMAND";
-    private static final String WORK_ANME = "vpnThread";
-    private String mLogFile;
-    private VpnProfile mCurrentProfile;
-    private HandlerThread mWorkThread;
-    private Handler mWorkHandler;
-    private State mCurrentState = State.DISABLED;
-    private final Object mServiceLock = new Object();
-    private final IBinder mBinder = new LocalBinder();
-    private final List<VpnStateListener> mListeners = new ArrayList<VpnStateListener>();
-    private boolean mIsDisconnecting = false;
     /**
      * as defined in charonservice.h
      */
@@ -74,26 +63,35 @@ public class CharonVpnService extends VpnService {
     static final int STATE_LOOKUP_ERROR = 5;
     static final int STATE_UNREACHABLE_ERROR = 6;
     static final int STATE_GENERIC_ERROR = 7;
+    private static final String TAG = CharonVpnService.class.getSimpleName();
+    private static final String WORK_ANME = "vpnThread";
 
-    public enum State {
-        DISABLED,
-        CONNECTING,
-        CONNECTED,
-        DISCONNECTING,
+    /*
+     * The libraries are extracted to /data/data/org.strongswan.android/...
+     * during installation.
+     */
+    static {
+        System.loadLibrary("strongswan");
+        if (Constants.USE_BYOD) {
+            System.loadLibrary("tncif");
+            System.loadLibrary("tnccs");
+            System.loadLibrary("imcv");
+        }
+        System.loadLibrary("hydra");
+        System.loadLibrary("charon");
+        System.loadLibrary("ipsec");
+        System.loadLibrary("androidbridge");
     }
-    public class Command {
-        public static final int START=1;
-        public static final int STOP=2;
-    }
-    public enum ErrorState {
-        NO_ERROR,
-        AUTH_FAILED,
-        PEER_AUTH_FAILED,
-        LOOKUP_FAILED,
-        UNREACHABLE,
-        GENERIC_ERROR,
-        UNKONE_ERROR,
-    }
+
+    private final Object mServiceLock = new Object();
+    private final IBinder mBinder = new LocalBinder();
+    private final List<VpnStateListener> mListeners = new ArrayList<VpnStateListener>();
+    private String mLogFile;
+    private VpnProfile mCurrentProfile;
+    private HandlerThread mWorkThread;
+    private Handler mWorkHandler;
+    private State mCurrentState = State.DISABLED;
+    private boolean mIsDisconnecting = false;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -136,7 +134,7 @@ public class CharonVpnService extends VpnService {
      * Stop any existing connection by deinitializing charon.
      */
     public void stopCurrentConnection() {
-        if(mCurrentProfile!=null) {
+        if (mCurrentProfile != null) {
             LogUtil.i("startConnection " + mCurrentProfile.getName());
             mCurrentProfile = null;
             mWorkHandler.post(new DisConnectJob());
@@ -150,30 +148,20 @@ public class CharonVpnService extends VpnService {
      * @param profile currently active VPN profile
      */
     public void startConnection(VpnProfile profile) {
-        LogUtil.i("startConnection "+profile.getName());
+        LogUtil.i("startConnection " + profile.getName());
         mCurrentProfile = profile;
         mWorkHandler.post(new ConnectJob());
     }
-    public class LocalBinder extends Binder
-	{
-		public CharonVpnService getService()
-		{
-			return CharonVpnService.this;
-		}
-	}
-    public interface VpnStateListener
-	{
-		public void stateChanged(State state, ErrorState errorState);
-	}
+
     @Override
-    public IBinder onBind(Intent intent)
-    {
+    public IBinder onBind(Intent intent) {
         return mBinder;
     }
+
     private void setState(State state, ErrorState errorState) {
         mCurrentState = state;
-        for (VpnStateListener listener:mListeners) {
-            listener.stateChanged(state,errorState);
+        for (VpnStateListener listener : mListeners) {
+            listener.stateChanged(state, errorState);
         }
     }
 
@@ -186,7 +174,7 @@ public class CharonVpnService extends VpnService {
     public void updateStatus(int status) {
         switch (status) {
             case STATE_CHILD_SA_DOWN:
-                if(!mIsDisconnecting) {
+                if (!mIsDisconnecting) {
                     setState(State.CONNECTING, ErrorState.NO_ERROR);
                 }
                 break;
@@ -310,32 +298,68 @@ public class CharonVpnService extends VpnService {
      * Initiate VPN, provided by libandroidbridge.so
      */
     public native void initiate(String config);
-    public void registerListener(VpnStateListener listener)
-	{
-		mListeners.add(listener);
-	}
-    public State getCurrentVpnState(){return mCurrentState;}
 
-	/**
-	 * Unregister a listener from this Service.
-	 *
-	 * @param listener listener to unregister
-	 */
-	public void unregisterListener(VpnStateListener listener)
-	{
-		mListeners.remove(listener);
-	}
+    public void registerListener(VpnStateListener listener) {
+        mListeners.add(listener);
+    }
+
+    public State getCurrentVpnState() {
+        return mCurrentState;
+    }
+
+    /**
+     * Unregister a listener from this Service.
+     *
+     * @param listener listener to unregister
+     */
+    public void unregisterListener(VpnStateListener listener) {
+        mListeners.remove(listener);
+    }
+
+    public enum State {
+        DISABLED,
+        CONNECTING,
+        CONNECTED,
+        DISCONNECTING,
+    }
+
+    public enum ErrorState {
+        NO_ERROR,
+        AUTH_FAILED,
+        PEER_AUTH_FAILED,
+        LOOKUP_FAILED,
+        UNREACHABLE,
+        GENERIC_ERROR,
+        UNKONE_ERROR,
+    }
+
+    public interface VpnStateListener {
+        public void stateChanged(State state, ErrorState errorState);
+    }
+
+    public class Command {
+        public static final int START = 1;
+        public static final int STOP = 2;
+    }
+
+    public class LocalBinder extends Binder {
+        public CharonVpnService getService() {
+            return CharonVpnService.this;
+        }
+    }
+
     public class DisConnectJob implements Runnable {
         @Override
         public void run() {
-            LogUtil.i("charon stopped  mCurrentState=" + mCurrentState +"  thread="+Thread.currentThread().getName());
-            if (mCurrentState ==State.CONNECTED) {
+            LogUtil.i("charon stopped  mCurrentState=" + mCurrentState + "  thread=" + Thread.currentThread().getName());
+            if (mCurrentState == State.CONNECTED) {
                 mIsDisconnecting = true;
                 mCurrentState = State.DISABLED;
                 deinitializeCharon();
             }
         }
     }
+
     public class ConnectJob implements Runnable {
         @Override
         public void run() {
@@ -364,6 +388,7 @@ public class CharonVpnService extends VpnService {
             }
         }
     }
+
     /**
      * Adapter for VpnService.Builder which is used to access it safely via JNI.
      * There is a corresponding C object to access it from native code.
@@ -453,7 +478,7 @@ public class CharonVpnService extends VpnService {
             if (fd == null) {
                 return -1;
             }
-			/* now that the TUN device is created we don't need the current
+            /* now that the TUN device is created we don't need the current
 			 * builder anymore, but we might need another when reestablishing */
             mBuilder = createBuilder(mName);
             mEstablishedCache = mCache;
@@ -522,23 +547,6 @@ public class CharonVpnService extends VpnService {
                 this.mPrefix = prefix;
             }
         }
-    }
-
-    /*
-     * The libraries are extracted to /data/data/org.strongswan.android/...
-     * during installation.
-     */
-    static {
-        System.loadLibrary("strongswan");
-        if (Constants.USE_BYOD) {
-            System.loadLibrary("tncif");
-            System.loadLibrary("tnccs");
-            System.loadLibrary("imcv");
-        }
-        System.loadLibrary("hydra");
-        System.loadLibrary("charon");
-        System.loadLibrary("ipsec");
-        System.loadLibrary("androidbridge");
     }
 
 }

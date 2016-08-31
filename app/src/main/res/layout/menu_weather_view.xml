@@ -5,4 +5,4 @@
     android:layout_height="?attr/actionBarSize"
     android:background="@drawable/btn_default_light"
     android:scaleType="center"
-    android:src="@drawable/ic_default_big" />
+    android:src="@drawable/w__default" />

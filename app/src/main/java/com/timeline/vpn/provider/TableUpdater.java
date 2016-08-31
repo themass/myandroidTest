@@ -7,13 +7,12 @@ import android.database.sqlite.SQLiteDatabase;
  * Created by wjying on 13-12-4.
  */
 public class TableUpdater {
+    private final static String COLUMN_TYPE_NTEXT = "NTEXT";
+    private final static String COLUMN_TYPE_INTEGER = "INTEGER";
     private SQLiteDatabase mDb;
     private int mOldVersion;
     private int mNewVersion;
     private Context mContext;
-
-    private final static String COLUMN_TYPE_NTEXT = "NTEXT";
-    private final static String COLUMN_TYPE_INTEGER = "INTEGER";
 
     public TableUpdater(Context context, SQLiteDatabase db, int oldVersion, int newVersion) {
         mContext = context;

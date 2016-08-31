@@ -35,16 +35,14 @@ import java.util.ArrayList;
  */
 public class AnimRFRecyclerView extends RecyclerView implements Runnable {
 
-    private Context mContext;
-
     private static com.sch.rfview.AnimRFRecyclerView rfView;
-
+    int bgColor = Color.WHITE; // 刷新View的颜色
+    private Context mContext;
     private ArrayList<View> mHeaderViews = new ArrayList<>();
     private ArrayList<View> mFootViews = new ArrayList<>();
     private Adapter mAdapter;
     private boolean canLoadMore;
     private int dp1;
-
     private ImageView headerImage;
     private int headerImageHeight = -1; // 默认高度
     private int headerImageMaxHeight = -1; // 最大高度
@@ -52,28 +50,13 @@ public class AnimRFRecyclerView extends RecyclerView implements Runnable {
     private float scaleRatio = 1.5f; // 最大拉伸比例
     private float headerImageMinAlpha = 0.5f; // 拉伸到最高时头部的透明度
     private long durationMillis = 300; // 头部恢复动画的执行时间
-
     private Handler mHandler = new MyHandler();
-
     private boolean isTouching = false; // 是否正在手指触摸的标识
     private boolean isLoadingData = false; // 是否正在加载数据
-
     private LoadDataListener mLoadDataListener;
-
     private AnimView rfAnimView; // 正在刷新状态的View
     private int progressColor = Color.WHITE;
-    int bgColor = Color.WHITE; // 刷新View的颜色
-
     private boolean isEnable = true;
-
-    public boolean isCanLoadMore() {
-        return canLoadMore;
-    }
-
-    public void setCanLoadMore(boolean canLoadMore) {
-        this.canLoadMore = canLoadMore;
-    }
-
     private OverScrollListener mOverScrollListener = new OverScrollListener() {
         @Override
         public void overScrollBy(int dy) {
@@ -98,6 +81,14 @@ public class AnimRFRecyclerView extends RecyclerView implements Runnable {
     public AnimRFRecyclerView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         init(context);
+    }
+
+    public boolean isCanLoadMore() {
+        return canLoadMore;
+    }
+
+    public void setCanLoadMore(boolean canLoadMore) {
+        this.canLoadMore = canLoadMore;
     }
 
     private void init(Context context) {
@@ -313,7 +304,7 @@ public class AnimRFRecyclerView extends RecyclerView implements Runnable {
         for (int i = 0; i < mAdapter.getItemCount(); i++) {
             if (((WrapAdapter) mAdapter).isHeader(i)) {
                 view = getChildAt(i);
-                if(view==null || view.getLayoutParams()==null){
+                if (view == null || view.getLayoutParams() == null) {
                     continue;
                 }
                 ((StaggeredGridLayoutManager.LayoutParams) view.getLayoutParams())
@@ -449,6 +440,7 @@ public class AnimRFRecyclerView extends RecyclerView implements Runnable {
 
     /**
      * 设置是否可刷新
+     *
      * @param isEnable
      */
     public void setRefreshEnable(boolean isEnable) {
@@ -503,6 +495,23 @@ public class AnimRFRecyclerView extends RecyclerView implements Runnable {
     }
 
     /**
+     * 刷新和加载更多数据的监听接口
+     */
+    public interface LoadDataListener {
+
+        /**
+         * 执行刷新
+         */
+        void onRefresh();
+
+        /**
+         * 执行加载更多
+         */
+        void onLoadMore();
+
+    }
+
+    /**
      * 自定义Handler刷新数据
      */
     private static class MyHandler extends Handler {
@@ -548,10 +557,10 @@ public class AnimRFRecyclerView extends RecyclerView implements Runnable {
      */
     private class WrapAdapter extends RecyclerView.Adapter<ViewHolder> {
 
+        final ArrayList<View> EMPTY_INFO_LIST = new ArrayList<>();
         private RecyclerView.Adapter mAdapter;
         private ArrayList<View> mHeaderViews;
         private ArrayList<View> mFootViews;
-        final ArrayList<View> EMPTY_INFO_LIST = new ArrayList<>();
         private int headerPosition = 0;
 
         public WrapAdapter(ArrayList<View> mHeaderViews, ArrayList<View> mFootViews, RecyclerView.Adapter mAdapter) {
@@ -672,23 +681,6 @@ public class AnimRFRecyclerView extends RecyclerView implements Runnable {
                 super(itemView);
             }
         }
-    }
-
-    /**
-     * 刷新和加载更多数据的监听接口
-     */
-    public interface LoadDataListener {
-
-        /**
-         * 执行刷新
-         */
-        void onRefresh();
-
-        /**
-         * 执行加载更多
-         */
-        void onLoadMore();
-
     }
 
 }

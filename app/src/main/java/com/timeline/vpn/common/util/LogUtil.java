@@ -19,27 +19,32 @@ public class LogUtil {
     public static void e(String tag, String msg, Throwable t) {
         Log.e(tag, msg, t);
     }
+
     public static void e(String msg, Throwable t) {
         Log.e(TAG, msg, t);
     }
+
     public static void w(String tag, String msg) {
         Log.w(tag, msg);
     }
 
     public static void i(String msg) {
-        if(msg==null){
+        if (msg == null) {
             Log.i(TAG, "null");
-        }else{
+        } else {
             Log.i(TAG, msg);
         }
     }
+
     public static void d(String msg) {
         Log.d(TAG, msg);
     }
+
     public static void e(Throwable t) {
         t.printStackTrace();
         Log.e(TAG, "", t);
     }
+
     public static void e(String t) {
         Log.e(TAG, t);
     }

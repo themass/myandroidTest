@@ -31,34 +31,37 @@ import butterknife.OnClick;
  * @author jrzheng
  */
 public abstract class LoadableTabFragment<T> extends TabBaseAdsFragment {
-    @Bind(R.id.loading)
-    ProgressBar mLoadingView;
-    @Bind(R.id.load_retry)
-    View mLoadRetryView;
     protected ViewGroup mContentView;
-    private QueryTask<T> mQueryTask;
     protected T mData; // 异步加载的数据
     protected Handler handler = new Handler();
     // protected boolean mPullToRefreshEnable = true;
     protected Context mContext;
-    private  int DEFAULT_LAYOUT = R.layout.base_loadable_fragment;
+    @Bind(R.id.loading)
+    ProgressBar mLoadingView;
+    @Bind(R.id.load_retry)
+    View mLoadRetryView;
+    private QueryTask<T> mQueryTask;
+    private int DEFAULT_LAYOUT = R.layout.base_loadable_fragment;
+
     @Override
     protected int getTabBodyViewId() {
         return DEFAULT_LAYOUT;
     }
+
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         mContext = activity;
     }
+
     @OnClick(R.id.load_retry)
     public void onRetryClick(View v) {
-            startQuery(true);
+        startQuery(true);
     }
 
     @Override
-    public void setUp(View view,LayoutInflater inflater) {
-        mContentView = (ViewGroup)view.findViewById(R.id.content);
+    public void setUp(View view, LayoutInflater inflater) {
+        mContentView = (ViewGroup) view.findViewById(R.id.content);
         onContentViewCreated(inflater, mContentView);
     }
 
@@ -72,7 +75,9 @@ public abstract class LoadableTabFragment<T> extends TabBaseAdsFragment {
             hideLoading();
         }
     }
+
     protected abstract void onContentViewCreated(LayoutInflater inflater, ViewGroup parent);
+
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -80,6 +85,7 @@ public abstract class LoadableTabFragment<T> extends TabBaseAdsFragment {
         mLoadingView = null;
         mContentView = null;
     }
+
     protected void cancelVolley(final String tag) {
         VolleyUtils.cancelRequest(new RequestQueue.RequestFilter() {
             @Override
@@ -93,14 +99,15 @@ public abstract class LoadableTabFragment<T> extends TabBaseAdsFragment {
             }
         });
     }
+
     protected void startQuery(boolean showLoading) {
-            cancelQuery();
-            mQueryTask = new QueryTask<T>(this, showLoading, handler);
-            mQueryTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        cancelQuery();
+        mQueryTask = new QueryTask<T>(this, showLoading, handler);
+        mQueryTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
-        private void cancelQuery() {
-            if (mQueryTask != null) {
+    private void cancelQuery() {
+        if (mQueryTask != null) {
             mQueryTask.cancel(true);
             mQueryTask = null;
         }
@@ -111,7 +118,7 @@ public abstract class LoadableTabFragment<T> extends TabBaseAdsFragment {
     }
 
     protected void showLoading() {
-        if(mLoadingView!=null) {
+        if (mLoadingView != null) {
             mLoadingView.setVisibility(View.VISIBLE);
             mLoadRetryView.setVisibility(View.GONE);
             mContentView.setVisibility(View.GONE);
@@ -119,7 +126,7 @@ public abstract class LoadableTabFragment<T> extends TabBaseAdsFragment {
     }
 
     protected void hideLoading() {
-        if(mLoadingView!=null) {
+        if (mLoadingView != null) {
             mLoadingView.setVisibility(View.GONE);
             mLoadRetryView.setVisibility(View.GONE);
             mContentView.setVisibility(View.VISIBLE);
@@ -135,6 +142,19 @@ public abstract class LoadableTabFragment<T> extends TabBaseAdsFragment {
     protected void setData(T data) {
         this.mData = data;
     }
+
+    /**
+     * 数据加载完成后，绑定ui，在ui线程中执行
+     */
+    protected abstract void onDataLoaded(T data);
+
+    /**
+     * 异步加载数据，在非ui线程中执行
+     *
+     * @param context context
+     * @return 返回数据，返回null表示错误，方法中需要catch所有异常
+     */
+    protected abstract T loadData(Context context) throws Exception;
 
     private static class QueryTask<T> extends AsyncTask<Void, Void, T> {
 
@@ -193,12 +213,12 @@ public abstract class LoadableTabFragment<T> extends TabBaseAdsFragment {
                         VolleyUtils.showVolleyError((VolleyError) e);
                     } else if (e.getCause() instanceof VolleyError) {
                         VolleyUtils.showVolleyError((VolleyError) e.getCause());
-                    }else if (e instanceof RequestException) {
-                        RequestException ex = (RequestException)e;
-                        LogUtil.e(ex.getErrorMsg(),ex.getException());
-                        if(ex.getException()!=null){
+                    } else if (e instanceof RequestException) {
+                        RequestException ex = (RequestException) e;
+                        LogUtil.e(ex.getErrorMsg(), ex.getException());
+                        if (ex.getException() != null) {
                             Toast.makeText(mContext, R.string.error_network_unknown, Toast.LENGTH_SHORT).show();
-                        }else{
+                        } else {
                             Toast.makeText(mContext, ex.getErrorMsg(), Toast.LENGTH_SHORT).show();
                         }
 
@@ -207,18 +227,4 @@ public abstract class LoadableTabFragment<T> extends TabBaseAdsFragment {
             });
         }
     }
-
-
-    /**
-     * 数据加载完成后，绑定ui，在ui线程中执行
-     */
-    protected abstract void onDataLoaded(T data);
-
-    /**
-     * 异步加载数据，在非ui线程中执行
-     *
-     * @param context context
-     * @return 返回数据，返回null表示错误，方法中需要catch所有异常
-     */
-    protected abstract T loadData(Context context) throws Exception;
 }

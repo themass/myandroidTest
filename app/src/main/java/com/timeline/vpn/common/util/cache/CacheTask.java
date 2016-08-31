@@ -15,6 +15,7 @@ public class CacheTask<T> extends AsyncTask<Void, Void, T> {
     private Context mContext;
     private String mUrl;
     private CacheTaskResponse mCacheTaskResponse;
+
     public CacheTask(Context context, String url, CacheTaskResponse cacheTaskResponse) {
         mContext = context.getApplicationContext();
         mUrl = url;

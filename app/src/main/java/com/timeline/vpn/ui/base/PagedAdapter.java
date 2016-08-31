@@ -10,9 +10,9 @@ import android.widget.BaseAdapter;
  * @author jrzheng 2014-05-08.
  */
 public abstract class PagedAdapter<T> extends BaseAdapter {
+    protected LayoutInflater mInflater;
     private Context context;
     private PagedLoader<T> pagedLoader;
-    protected LayoutInflater mInflater;
 
     public PagedAdapter(Context context, PagedLoader<T> pagedLoader) {
         this.context = context;

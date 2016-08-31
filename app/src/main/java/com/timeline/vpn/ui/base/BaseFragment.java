@@ -17,7 +17,7 @@ import butterknife.ButterKnife;
 /**
  * 所有的Fragment基类
  */
-public abstract  class BaseFragment extends LogFramgment {
+public abstract class BaseFragment extends LogFramgment {
     public static final String FRAGMENT_ARG = "ARG";
     protected View rootView;
     Bundle savedState;
@@ -32,6 +32,7 @@ public abstract  class BaseFragment extends LogFramgment {
         bundle.putSerializable(FRAGMENT_ARG, data);
         setArguments(bundle);
     }
+
     /**
      * Get the Serializable paramters ,which is from  {@link #putSerializable(Serializable data)} to move a piece.
      *
@@ -44,7 +45,6 @@ public abstract  class BaseFragment extends LogFramgment {
         }
         return null;
     }
-
     /**
      * 通过id来查找view中的子View
      *
@@ -69,8 +69,7 @@ public abstract  class BaseFragment extends LogFramgment {
     }
 
     protected View setContentView(LayoutInflater inflater) {
-        View view = inflater.inflate(getRootViewId(), null);
-        return view;
+        return inflater.inflate(getRootViewId(), null);
     }
 
     /**
@@ -220,8 +219,9 @@ public abstract  class BaseFragment extends LogFramgment {
     protected void onSaveState(Bundle outState) {
 
     }
-    public void startActivity(Class clasz){
-        Intent intent = new Intent(getActivity(),clasz);
+
+    public void startActivity(Class clasz) {
+        Intent intent = new Intent(getActivity(), clasz);
         getActivity().startActivity(intent);
     }
 

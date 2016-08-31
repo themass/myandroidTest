@@ -120,7 +120,7 @@ public abstract class MyContentProvider extends ContentProvider {
 
             uri = ContentUris.withAppendedId(uri, rowId);
             sendNotify(uri);
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
         return uri;
     }
@@ -140,7 +140,7 @@ public abstract class MyContentProvider extends ContentProvider {
                     return 0;
             }
             db.setTransactionSuccessful();
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         } finally {
             if (db != null && db.inTransaction()) {
                 db.endTransaction();
@@ -160,7 +160,7 @@ public abstract class MyContentProvider extends ContentProvider {
             count = db.delete(args.table, args.where, args.args);
             // if (count > 0) sendNotify(uri);
             sendNotify(uri); // TODO 为什么对整个表操作返回count=0
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
 
         return count;
@@ -182,7 +182,7 @@ public abstract class MyContentProvider extends ContentProvider {
             }
             // if (count > 0) sendNotify(uri);
             sendNotify(uri); // TODO 为什么对整个表操作返回count=0
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
 
         return count;

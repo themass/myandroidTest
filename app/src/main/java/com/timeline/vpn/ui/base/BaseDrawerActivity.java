@@ -10,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -23,8 +24,9 @@ import com.timeline.vpn.common.util.EventBusUtil;
 import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.common.util.PreferenceUtils;
 import com.timeline.vpn.common.util.StringUtils;
+import com.timeline.vpn.common.util.SystemUtils;
 import com.timeline.vpn.constant.Constants;
-import com.timeline.vpn.data.StaticDataUtil;
+import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.data.VersionUpdater;
 import com.timeline.vpn.data.config.LocationChooseEvent;
@@ -36,33 +38,37 @@ import com.timeline.vpn.ui.vpn.LocationChooseaActivity;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import butterknife.Bind;
 
 /**
  * Created by Miroslaw Stanek on 15.07.15.
  */
 public class BaseDrawerActivity extends BaseFragmentActivity {
+    private static final String VERSION_TAG = "REQUEST_VERSION_CHECK";
     @Nullable
     @Bind(R.id.drawerLayout)
     DrawerLayout drawerLayout;
-
     @Nullable
-    @Bind(R.id.nvDrawer)
+    @Bind(R.id.nv_drawer)
     NavigationView nvDrawer;
-
     View headerView;
     LinearLayout llLoginMenuHeader;
     TextView tvMenuUserName;
     TextView tvMenuUserLogin;
-
+    ImageView ivAvatar;
     MenuItem miLogout;
     MenuItem miVersion;
+    MenuItem miScore;
     MenuItem miLocation;
     Handler mHandler = new Handler();
-    private static final String VERSION_TAG="REQUEST_VERSION_CHECK";
-    public void login(View view){
+    BaseService baseService;
+    public void login(View view) {
         startActivity(LoginActivity.class);
     }
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -77,56 +83,76 @@ public class BaseDrawerActivity extends BaseFragmentActivity {
 
     @Override
     public void setContentView(int layoutResID) {
-        LogUtil.i("setContentView   "+"drawer");
+        LogUtil.i("setContentView   " + "drawer");
         super.setContentViewWithoutInject(R.layout.menu_drawer);
-        ViewGroup viewGroup = (ViewGroup) findViewById(R.id.flContentRoot);
+        ViewGroup viewGroup = (ViewGroup) findViewById(R.id.fl_content_root);
         LayoutInflater.from(this).inflate(layoutResID, viewGroup, true);
         bindViews();
         setupToolbar();
         miLogout = nvDrawer.getMenu().findItem(R.id.menu_louout);
         miVersion = nvDrawer.getMenu().findItem(R.id.menu_version);
         miLocation = nvDrawer.getMenu().findItem(R.id.menu_location);
+        miScore = nvDrawer.getMenu().findItem(R.id.menu_score);
         headerView = nvDrawer.getHeaderView(0);
         llLoginMenuHeader = (LinearLayout) headerView.findViewById(R.id.ll_menu_headview);
         tvMenuUserName = (TextView) headerView.findViewById(R.id.tv_menu_username);
         tvMenuUserLogin = (TextView) headerView.findViewById(R.id.tv_menu_login);
+        ivAvatar = (ImageView) headerView.findViewById(R.id.iv_avatar);
         checkUpdate();
-        miVersion.setTitle(String.format(getString(R.string.menu_btn_version),VersionUpdater.getVersion()));
+        miVersion.setTitle(String.format(getString(R.string.menu_btn_version), VersionUpdater.getVersion()));
         nvDrawer.setItemIconTintList(null);
         setUpUserMenu();
         setUpLocation();
+        baseService = new BaseService();
+        baseService.setup(this);
     }
-    private void setUpLocation(){
-        LocationVo vo = PreferenceUtils.getPrefObj(this,Constants.LOCATION_CHOOSE, LocationVo.class);
-        String name = vo==null?getString(R.string.location_choose_none):vo.ename;
-        miLocation.setTitle(getString(R.string.location_choose_hint)+name);
+
+    private void setUpLocation() {
+        LocationVo vo = PreferenceUtils.getPrefObj(this, Constants.LOCATION_CHOOSE, LocationVo.class);
+        String name = vo == null ? getString(R.string.location_choose_none) : (SystemUtils.isZH(this)?vo.name:vo.ename);
+        miLocation.setTitle(getString(R.string.location_choose_hint) + name);
     }
-    private void setUpUserMenu(){
-        UserInfoVo vo = StaticDataUtil.get(Constants.LOGIN_USER,UserInfoVo.class);
-        if(vo!=null){
+
+    private void setUpUserMenu() {
+        UserInfoVo vo =UserLoginUtil.getUserCache();
+        if (vo != null) {
             miLogout.setVisible(true);
             llLoginMenuHeader.setEnabled(false);
             tvMenuUserName.setText(vo.name);
-            tvMenuUserLogin.setVisibility(View.GONE);
+            tvMenuUserLogin.setText(R.string.menu_btn_login_ready);
+            if(Constants.SEX_M.equals(vo.sex)){
+                ivAvatar.setImageResource(R.drawable.ic_default_nan);
+            }else {
+                ivAvatar.setImageResource(R.drawable.ic_default_nv);
+            }
+            miScore.setTitle(String.format(getString(R.string.menu_btn_score), vo.score));
 
-        }else{
+        } else {
             miLogout.setVisible(false);
             llLoginMenuHeader.setEnabled(true);
             tvMenuUserName.setText(R.string.menu_btn_name_default);
-            tvMenuUserLogin.setVisibility(View.VISIBLE);
+            tvMenuUserLogin.setText(R.string.menu_btn_login);
+            miScore.setTitle(String.format(getString(R.string.menu_btn_score), 0));
         }
     }
+
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(UserLoginEvent event) {
         setUpUserMenu();
     }
+
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(LocationChooseEvent event) {
         setUpLocation();
     }
-    public void logout(MenuItem item){
+
+    public void logout(MenuItem item) {
+        Map<String,String> param = new HashMap<>();
+        param.put("name","haha");
+        baseService.postData(Constants.API_LOGOUT_URL,param,null,null,null,null);
         UserLoginUtil.logout(this);
     }
+
     @Override
     protected void setupToolbar() {
         super.setupToolbar();
@@ -142,28 +168,32 @@ public class BaseDrawerActivity extends BaseFragmentActivity {
         nvDrawer.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(MenuItem item) {
-                if(item.getItemId()==R.id.menu_louout){
+                if (item.getItemId() == R.id.menu_louout) {
                     logout(item);
-                }else if(item.getItemId()==R.id.menu_version){
+                } else if (item.getItemId() == R.id.menu_version) {
                     checkUpdate();
-                }else if(item.getItemId()==R.id.menu_location){
+                } else if (item.getItemId() == R.id.menu_location) {
                     startActivity(LocationChooseaActivity.class);
-                }else if(item.getItemId()==R.id.menu_feedback){
+                } else if (item.getItemId() == R.id.menu_feedback) {
                     startActivity(ConversationDetailActivity.class);
-                }else if(item.getItemId()==R.id.menu_about){
-                    Toast.makeText(BaseDrawerActivity.this,R.string.menu_btn_about_context,Toast.LENGTH_LONG).show();
+                } else if (item.getItemId() == R.id.menu_about) {
+                    Toast.makeText(BaseDrawerActivity.this, R.string.menu_btn_about_context, Toast.LENGTH_SHORT).show();
+                }
+                else if (item.getItemId() == R.id.menu_score) {
+                    Toast.makeText(BaseDrawerActivity.this, R.string.menu_btn_score_context, Toast.LENGTH_SHORT).show();
                 }
                 return false;
             }
         });
     }
-    public void checkUpdate(){
+
+    public void checkUpdate() {
         // 检查版本更新
         if (VersionUpdater.isInitVersionSuccess()) {
-            VersionUpdater.checkNewVersion(BaseDrawerActivity.this, new CommonResponse.ResponseOkListener<VersionVo>(){
+            VersionUpdater.checkNewVersion(BaseDrawerActivity.this, new CommonResponse.ResponseOkListener<VersionVo>() {
                 @Override
                 public void onResponse(final VersionVo vo) {
-                    VersionUpdater.setNewVersion(BaseDrawerActivity.this,vo.maxBuild);
+                    VersionUpdater.setNewVersion(BaseDrawerActivity.this, vo.maxBuild);
                     if (VersionUpdater.isNewVersion(vo.maxBuild)
                             && StringUtils.hasText(vo.url)) {
                         // 有新版本
@@ -172,14 +202,14 @@ public class BaseDrawerActivity extends BaseFragmentActivity {
                             public void run() {
                                 miVersion.setIcon(R.drawable.ic_menu_version_new);
                                 miVersion.setTitle(R.string.about_version_download_title);
-                                VersionUpdater.showUpdateDialog(BaseDrawerActivity.this, vo.content, vo.url,
-                                        vo.version, vo.maxBuild, true);
+                                VersionUpdater.showUpdateDialog(BaseDrawerActivity.this, vo, true);
                             }
                         }, 300);
                     }
-                }},new CommonResponse.ResponseErrorListener(){
+                }
+            }, new CommonResponse.ResponseErrorListener() {
 
-            },VERSION_TAG);
+            }, VERSION_TAG);
         }
     }
 
