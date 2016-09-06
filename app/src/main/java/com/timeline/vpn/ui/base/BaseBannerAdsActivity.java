@@ -25,7 +25,7 @@ public abstract class BaseBannerAdsActivity extends BaseSingleActivity {
         @Override
         public void handleMessage(Message msg) {
             LogUtil.i("handleMessage-" + msg.what);
-            mHandler.postDelayed(task, Constants.BANNER_ADS_SHOW);
+            mHandler.postDelayed(task, Constants.BANNER_ADS_GONE_LONG);
         }
     };
 
@@ -45,7 +45,9 @@ public abstract class BaseBannerAdsActivity extends BaseSingleActivity {
     private void showBanner(){
         AdsAdview.bannerAds(this, flBanner, mHandler,Constants.ADS_ADVIEW_KEY_ACTIVITY);
     }
-
+    public void adsDelayGone(){
+        mHandler.postDelayed(task, Constants.BANNER_ADS_GONE_SHORT);
+    }
     @Override
     protected void onPause() {
         super.onPause();

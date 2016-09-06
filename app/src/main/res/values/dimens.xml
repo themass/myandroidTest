@@ -17,6 +17,7 @@
     <dimen name="location_choose_margin">5dp</dimen>
     <dimen name="location_choose_tv_size">16sp</dimen>
     <dimen name="location_choose_tv_item_size">16sp</dimen>
+    <dimen name="textsize_5">5sp</dimen>
     <dimen name="textsize_12">12sp</dimen>
     <dimen name="textsize_13">13sp</dimen>
     <dimen name="textsize_14">14sp</dimen>

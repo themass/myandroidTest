@@ -12,8 +12,6 @@ import com.timeline.vpn.ui.view.MyWebView;
  */
 public class WebViewActivity extends BaseBannerAdsActivity implements MyWebView.OnTouchRightSlide {
     BaseWebViewFragment webViewFragment;
-    int BACK_MIN = 60;
-    int FORWORD_MIN = -60;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,6 +20,7 @@ public class WebViewActivity extends BaseBannerAdsActivity implements MyWebView.
         webViewFragment = (BaseWebViewFragment) getFragmentManager().findFragmentById(R.id.base_webview);
         setNavigationOut();
         webViewFragment.setListener(this);
+        adsDelayGone();
     }
 
     @Override
@@ -38,6 +37,7 @@ public class WebViewActivity extends BaseBannerAdsActivity implements MyWebView.
 
     @Override
     public void onTouchRight(int distans) {
+
     }
 
 }

@@ -70,7 +70,7 @@ public class TestFragment extends LoadableTabFragment<InfoListVo<RecommendVo>> i
 
     @Override
     protected void onContentViewCreated(LayoutInflater inflater, ViewGroup parent) {
-        inflater.inflate(R.layout.tab_index_body_content, parent, true);
+        inflater.inflate(R.layout.layout_pullrefresh_view, parent, true);
     }
 
     @Override

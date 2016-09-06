@@ -75,10 +75,10 @@ public class HeartAnimView {
         });
         animatorSet.start();
     }
-    public static interface AnimEndListner{
+    public interface AnimEndListner{
         public void animEnd();
     }
-    public static void show(final Activity context) {
+    public static void show(final Activity context,View baseView) {
         ViewGroup view = (ViewGroup) View.inflate(context, R.layout.anim_heart_view, null);
         View vBg =  view.findViewById(R.id.v_bglike);
         View vAction =  view.findViewById(R.id.iv_like);
@@ -86,8 +86,20 @@ public class HeartAnimView {
         pop.setBackgroundDrawable(new ColorDrawable(context.getResources().getColor(R.color.transparent)));
         pop.setFocusable(true);
         pop.setOutsideTouchable(true);
-        int w = (SystemUtils.getDisplayWidth(context)-context.getResources().getDimensionPixelSize(R.dimen.heart_anim_h))/2;
-        int h = (SystemUtils.getDisplayHeight(context)-context.getResources().getDimensionPixelSize(R.dimen.heart_anim_h))/2;
+        int w = 0;
+        int h = 0;
+//        if(baseView==null) {
+            w = (SystemUtils.getDisplayWidth(context) - context.getResources().getDimensionPixelSize(R.dimen.heart_anim_h)) / 2;
+            h = (SystemUtils.getDisplayHeight(context) - context.getResources().getDimensionPixelSize(R.dimen.heart_anim_h)) / 2;
+//        }else{
+//            int[] location = new int[2];
+//            baseView.getLocationInWindow(location);
+//            int x = location[0];
+//            int y = location[1];
+//            int width = baseView.getWidth();
+//            int height = baseView.getHeight();
+//            w =
+//        }
         LogUtil.i("fw ="+SystemUtils.getDisplayWidth(context)+"---"+context.getResources().getDimensionPixelSize(R.dimen.heart_anim_h));
         pop.showAtLocation(context.getWindow().getDecorView(), Gravity.LEFT | Gravity.TOP, w, h);
         startAnim(vBg,vAction,new AnimEndListner(){

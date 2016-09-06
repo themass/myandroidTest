@@ -9,7 +9,7 @@ import com.timeline.vpn.common.util.LogUtil;
 /**
  * Created by gqli on 2016/3/22.
  */
-public class LogActivity extends AppCompatActivity {
+public class  LogActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         LogUtil.i(getClass().getSimpleName() + "-onCreate");

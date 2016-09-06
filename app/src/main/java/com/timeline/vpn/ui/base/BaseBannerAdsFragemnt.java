@@ -33,7 +33,7 @@ public abstract class BaseBannerAdsFragemnt  extends TabBaseFragment {
         @Override
         public void handleMessage(Message msg) {
             LogUtil.i("handleMessage-" + msg.what);
-            mHandler.postDelayed(task, Constants.BANNER_ADS_SHOW);
+            mHandler.postDelayed(task, Constants.BANNER_ADS_GONE_LONG);
         }
     };
 

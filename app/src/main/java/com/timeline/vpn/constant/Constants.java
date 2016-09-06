@@ -18,7 +18,7 @@ public class Constants {
     public static final String API_LOGIN_URL = BASE_HOST + "/user/login.json";
     public static final String API_REG_URL = BASE_HOST + "/user/reg.json";
     public static final String API_USER_INFO_URL = BASE_HOST + "/user/info.json";
-
+    public static final String API_IWANNA_URL = BASE_HOST + "/data/feed/wanna.json?start=%s&limit=40";
     public static final String API_VERSION_URL = BASE_HOST + "/data/version.json";
     public static final String API_RECOMMEND_URL = BASE_HOST + "/data/recommend.json?start=%s&limit=30";
     public static final String API_LOGOUT_URL = BASE_HOST + "/user/logout.json";
@@ -27,7 +27,8 @@ public class Constants {
     public static final int STARTUP_SHOW_TIME_1500 = 1500; //启动页广告时长
     public static final int STARTUP_SHOW_TIME_3500 = 3500; //启动页广告时长
     public static final int STARTUP_SHOW_TIME_8000 = 8000; //启动页广告时长
-    public static final int BANNER_ADS_SHOW = 80000; //启动页广告时长
+    public static final int BANNER_ADS_GONE_LONG = 80000; //广告显示时长
+    public static final int BANNER_ADS_GONE_SHORT = 5000; //启动页广告时长
     public static final int VIP_SHIMMER_DURATION = 2300;
     public static final int RECOMMAND_SHIMMER_DURATION = 1500;
     public static final int ADS_NO_MSG = 0;

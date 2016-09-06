@@ -48,14 +48,15 @@ public abstract class BaseWeatherMenuActivity extends LogActivity {
     private WeatherInfo weatherInfo;
     private LocationUtils mLocationUtils;
 
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         if (ivWeather == null) {
             getMenuInflater().inflate(R.menu.menu_space, menu);
             LogUtil.i("onCreateOptionsMenu");
-            MenuItem menuWeather = menu.findItem(R.id.menu_weather);
-            menuWeather.setActionView(R.layout.menu_weather_view);
-            ivWeather = (ImageView) menuWeather.getActionView().findViewById(R.id.iv_weather);
+            MenuItem menuWeather = menu.findItem(R.id.menu_view);
+            menuWeather.setActionView(R.layout.menu_image_view);
+            ivWeather = (ImageView) menuWeather.getActionView().findViewById(R.id.iv_menu);
             menuWeather.getActionView().setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {

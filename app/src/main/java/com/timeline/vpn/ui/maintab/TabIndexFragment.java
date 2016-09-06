@@ -52,7 +52,6 @@ import com.timeline.vpn.service.CharonVpnService;
 import com.timeline.vpn.ui.base.LoadableTabFragment;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import butterknife.Bind;
 import butterknife.OnClick;
@@ -117,12 +116,9 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
     private Animation operatingAnim = null;
     private LinearInterpolator lir = null;
     private BaseService indexService;
-    private boolean hasMore;
     private boolean isLoadingMore;
-    private int pageNum = 0;
-    private List<RecommendVo> mData = new ArrayList<RecommendVo>();
     private boolean isFirst = false;
-
+    private InfoListVo<RecommendVo> infoVo = new InfoListVo<RecommendVo>();
     @Override
     protected int getTabHeaderViewId() {
         return R.layout.vpn_state_view_loading;
@@ -132,49 +128,49 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         isFirst = true;
+        infoVo.voList = new ArrayList<>();
     }
 
     @Override
     protected void onContentViewCreated(LayoutInflater inflater, ViewGroup parent) {
-        inflater.inflate(R.layout.tab_index_body_content, parent, true);
+        inflater.inflate(R.layout.layout_pullrefresh_view, parent, true);
     }
 
     @Override
     protected void onDataLoaded(InfoListVo<RecommendVo> data) {
         //下拉刷新
         if (refreshLayout.isRefreshing()) {
-            mData.clear();
+            infoVo.voList.clear();
             refreshLayout.setRefreshing(false);
-            mData.addAll(data.voList);
+            infoVo.voList.addAll(data.voList);
             rvRecommend.getAdapter().notifyDataSetChanged();
-            pageNum++;
         } else if (footerView.getVisibility() == View.VISIBLE) { //上拉加载
             footerView.setVisibility(View.GONE);
-            mData.addAll(data.voList);
+            infoVo.voList.addAll(data.voList);
             rvRecommend.getAdapter().notifyDataSetChanged();
-            pageNum++;
         } else if (isLoadingMore) {//首次加载
-            mData.addAll(data.voList);
+            infoVo.voList.addAll(data.voList);
             rvRecommend.getAdapter().notifyDataSetChanged();
         }
-        hasMore = data.hasMore;
-        data.voList = mData;
-        setData(data);
+        infoVo.hasMore = data.hasMore;
+        infoVo.pageNum = data.pageNum;
+        infoVo.total = data.total;
+        setData(infoVo);
         isLoadingMore = false;
-        LogUtil.i("mData size=" + mData.size());
+        LogUtil.i("mData size=" + data.voList.size());
     }
 
     @Override
     protected InfoListVo<RecommendVo> loadData(Context context) throws Exception{
         isLoadingMore = true;
-        return indexService.getInfoListData(Constants.getRECOMMEND_URL(pageNum), RecommendVo.class, INDEX_TAG);
+        return indexService.getInfoListData(Constants.getRECOMMEND_URL(infoVo.pageNum), RecommendVo.class, INDEX_TAG);
     }
 
     @Override
     protected void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
         final StaggeredGridLayoutManager layoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
-        adapter = new IndexRecommendAdapter(this.getActivity(), rvRecommend, mData, this,layoutManager);
+        adapter = new IndexRecommendAdapter(this.getActivity(), rvRecommend, infoVo.voList, this,layoutManager);
         rvRecommend.setLayoutManager(layoutManager);
         rvRecommend.setItemAnimator(new DefaultItemAnimator());
         getActivity().bindService(new Intent(getActivity(), CharonVpnService.class),
@@ -187,7 +183,6 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
         refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                pageNum = 0;
                 startQuery(false);
             }
         });
@@ -198,7 +193,8 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
                 super.onScrolled(recyclerView, dx, dy);
                 int[] visibleItems = layoutManager.findLastVisibleItemPositions(null);
                 int lastitem = Math.max(visibleItems[0], visibleItems[1]);
-                if (dy > 0 && lastitem > adapter.getItemCount() - 5 && !isLoadingMore && hasMore) {
+                LogUtil.i(isLoadingMore+"---"+infoVo);
+                if (dy > 0 && lastitem > adapter.getItemCount() - 5 && !isLoadingMore && infoVo.hasMore) {
                     footerView.setVisibility(View.VISIBLE);
                     startQuery(false);
                 }
@@ -217,7 +213,7 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
 
     @Override
     public void onItemClick(View v, int position) {
-        RecommendVo vo = mData.get(position);
+        RecommendVo vo = infoVo.voList.get(position);
         EventBusUtil.getEventBus().post(new ConfigActionEvent(getActivity(), vo.actionUrl));
     }
 

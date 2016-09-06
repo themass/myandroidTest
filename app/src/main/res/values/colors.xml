@@ -68,4 +68,8 @@
     <!-- 标题 -->
     <color name="bg_title">#2e313c</color>
     <color name="bg_title_black">#2e313c</color>
+    <color name="comment_name">#106f97</color>
+    <color name="text_like_counter">#2b5a83</color>
+    <color name="gray_light">#eff0f2</color>
+    <color name="iwanna_text">#2a2b2d</color>
 </resources>

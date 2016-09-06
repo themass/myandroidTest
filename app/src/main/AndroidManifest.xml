@@ -99,6 +99,7 @@
 
         </activity>
         <activity android:name=".ui.feedback.ConversationDetailActivity" />
+        <activity android:name=".ui.feedback.IWannaActivity" />
 
         <service
             android:name=".service.CharonVpnService"

@@ -27,7 +27,7 @@ public class TestActivity extends BaseBannerAdsActivity {
     }
     public void onClick(View view ){
 //        HeartAnim.startAnim(bgView,ivLike);
-        new HeartAnimView().show(this);
+        new HeartAnimView().show(this,null);
     }
 
 

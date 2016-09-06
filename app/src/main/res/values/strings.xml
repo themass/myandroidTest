@@ -86,6 +86,11 @@
     <string name="remark">Timeline RIGHTS RESERVED.</string>
     <string name="need_login">Login please</string>
     <string name="need_vip">Not VIP user has no permission to select the areang</string>
+
+    <string name="iwanna_tips">Tell me what du you want \n I\'ll be ready for you </string>
+    <string name="iwanna_title">I wanna</string>
+
+    <!-- error-->
     <string name="error_getlocation_fail">Failed to obtain location information！</string>
     <string name="error_network_unknown">Connection server error, please check your network connection or try again later.</string>
     <string name="error_network_no_connection">Network connection is not available, please try again later</string>
@@ -234,7 +239,10 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="connect_profile_question">Connect %1$s?</string>
     <string name="replaces_active_connection">This will replace your active VPN connection!</string>
     <string name="connect">Connect</string>
-
+    <plurals name="likes_count">
+        <item quantity="one">%d like</item>
+        <item quantity="other">%d likes</item>
+    </plurals>
 
     <!--广告-->
 </resources>

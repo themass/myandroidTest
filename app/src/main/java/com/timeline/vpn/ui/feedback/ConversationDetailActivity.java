@@ -1,10 +1,13 @@
 package com.timeline.vpn.ui.feedback;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.timeline.vpn.R;
@@ -28,7 +31,7 @@ public class ConversationDetailActivity extends FragmentActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.layout_feedback);
+        setContentView(R.layout.base_toobar_activity);
         if (savedInstanceState == null) {
             FeedbackAgent mAgent = new FeedbackAgent(this);
             String id = DeviceInfoUtils.getDeviceId(this);
@@ -39,7 +42,7 @@ public class ConversationDetailActivity extends FragmentActivity {
             LogUtil.i(id);
             mFeedbackFragment = FeedbackFragment.newInstance(id);
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, mFeedbackFragment)
+                    .add(R.id.fl_body, mFeedbackFragment)
                     .commit();
         }
         ButterKnife.bind(this);
@@ -50,8 +53,18 @@ public class ConversationDetailActivity extends FragmentActivity {
         tvTitle.setText(id);
         tvTitle.setTextColor(getResources().getColorStateList(R.color.base_white));
         setNavigationOut();
+        MenuItem menuWanna= toolbar.getMenu().findItem(R.id.menu_view);
+        menuWanna.setActionView(R.layout.menu_image_view);
+        ImageView ivMenu = (ImageView) menuWanna.getActionView().findViewById(R.id.iv_menu);
+        ivMenu.setImageResource(R.drawable.ic_menu_wanna);
+        menuWanna.getActionView().setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(ConversationDetailActivity.this,IWannaActivity.class);
+                startActivity(intent);
+            }
+        });
     }
-
     public void setNavigationOut() {
         toolbar.setNavigationIcon(R.drawable.ic_arrow_back_white);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
