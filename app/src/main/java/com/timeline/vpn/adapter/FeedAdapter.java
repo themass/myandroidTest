@@ -5,6 +5,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextSwitcher;
 import android.widget.TextView;
 
@@ -25,16 +26,14 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     public static final int VIEW_TYPE_DEFAULT = 1;
     public static final int VIEW_TYPE_LOADER = 2;
-    private OnFeedItemClickListener listener;
-
     private final List<IWannaVo> feedItems;
-
+    private OnFeedItemClickListener listener;
     private Context context;
     private OnFeedItemClickListener onFeedItemClickListener;
 
     private boolean showLoadingView = false;
 
-    public FeedAdapter(Context context,List<IWannaVo> data, OnFeedItemClickListener listener) {
+    public FeedAdapter(Context context, List<IWannaVo> data, OnFeedItemClickListener listener) {
         this.context = context;
         this.listener = listener;
         this.feedItems = data;
@@ -42,25 +41,25 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.layout_comment_feed_item, parent, false);
+        View view = LayoutInflater.from(context).inflate(R.layout.layout_iwanna_feed_item, parent, false);
         CellFeedViewHolder cellFeedViewHolder = new CellFeedViewHolder(view);
         setupClickableViews(view, cellFeedViewHolder);
         return cellFeedViewHolder;
     }
 
     private void setupClickableViews(final View view, final CellFeedViewHolder cellFeedViewHolder) {
-        cellFeedViewHolder.tvContent.setOnClickListener(new View.OnClickListener() {
+        view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 int adapterPosition = cellFeedViewHolder.getAdapterPosition();
-                if(!feedItems.get(adapterPosition).isLike){
-                    feedItems.get(adapterPosition).isLike = true;
-                    feedItems.get(adapterPosition).likeCount++;
-                    notifyItemChanged(adapterPosition, ACTION_LIKE_IMAGE_CLICKED);
-                    if (listener!=null) {
-                        listener.onCommentsClick(view,adapterPosition);
-                    }
+//                if(!feedItems.get(adapterPosition).isLike){
+                feedItems.get(adapterPosition).isLike = true;
+                feedItems.get(adapterPosition).likeCount++;
+                notifyItemChanged(adapterPosition, ACTION_LIKE_IMAGE_CLICKED);
+                if (listener != null) {
+                    listener.onCommentsClick(view, adapterPosition);
                 }
+//                }
 
             }
         });
@@ -75,12 +74,20 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public int getItemCount() {
         return feedItems.size();
     }
+
+    public interface OnFeedItemClickListener {
+        void onCommentsClick(View v, int position);
+    }
+
     public static class CellFeedViewHolder extends RecyclerView.ViewHolder {
+        @Bind(R.id.iv_heart)
+        public ImageView imageView;
         @Bind(R.id.tv_content)
-        TextView tvContent;
+        public TextView tvContent;
         @Bind(R.id.tsLikesCounter)
-        TextSwitcher tsLikesCounter;
-        IWannaVo feedItem;
+        public TextSwitcher tsLikesCounter;
+        public IWannaVo feedItem;
+
         public CellFeedViewHolder(View view) {
             super(view);
             ButterKnife.bind(this, view);
@@ -91,14 +98,15 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             tsLikesCounter.setCurrentText(tvContent.getResources().getQuantityString(
                     R.plurals.likes_count, feedItem.likeCount, feedItem.likeCount
             ));
+            if (feedItem.isLike) {
+                imageView.setImageResource(R.drawable.ic_heart_small_red);
+            } else {
+                imageView.setImageResource(R.drawable.ic_heart_small_blue);
+            }
         }
 
         public IWannaVo getFeedItem() {
             return feedItem;
         }
-    }
-
-    public interface OnFeedItemClickListener {
-        void onCommentsClick(View v, int position);
     }
 }

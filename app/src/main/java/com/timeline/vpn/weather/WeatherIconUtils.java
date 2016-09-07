@@ -20,7 +20,7 @@ public class WeatherIconUtils {
     public static int getWeatherIcon(int type) {
         // 如果是晚上
         if (isNight(System.currentTimeMillis())) {
-            if(type==Constants.CLEAR)
+            if (type == Constants.CLEAR)
                 return R.drawable.w_nightsunny_big;
             switch (type / 100) {
                 case Constants.THUNDERSTORM:
@@ -40,11 +40,11 @@ public class WeatherIconUtils {
                 default:
                     return R.drawable.w__default;
             }
-        }else{
-        // 如果是白天
-            if(type==Constants.CLEAR)
+        } else {
+            // 如果是白天
+            if (type == Constants.CLEAR)
                 return R.drawable.w_sunny_big;
-            switch (type/100) {
+            switch (type / 100) {
                 case Constants.THUNDERSTORM:
                     return R.drawable.w_thundeshower_big;
                 case Constants.DRIZZLE:
@@ -73,7 +73,7 @@ public class WeatherIconUtils {
      */
     public static int getWeatherNromalBg(int type) {
         if (isNight(System.currentTimeMillis())) {
-            if(type==Constants.CLEAR)
+            if (type == Constants.CLEAR)
                 return R.drawable.bg_fine_night;
             switch (type / 100) {
                 case Constants.THUNDERSTORM:
@@ -90,11 +90,11 @@ public class WeatherIconUtils {
                 default:
                     return R.drawable.bg_cloudy_night;
             }
-        }else{
+        } else {
             // 如果是白天
-            if(type==Constants.CLEAR)
+            if (type == Constants.CLEAR)
                 return R.drawable.bg_fine_day;
-            switch (type/100) {
+            switch (type / 100) {
                 case Constants.THUNDERSTORM:
                 case Constants.DRIZZLE:
                 case Constants.RAIN:
@@ -112,6 +112,7 @@ public class WeatherIconUtils {
             }
         }
     }
+
     public static boolean isNight(long time) {
         SimpleDateFormat df = new SimpleDateFormat("HH");
         String timeStr = df.format(new Date(System.currentTimeMillis()));

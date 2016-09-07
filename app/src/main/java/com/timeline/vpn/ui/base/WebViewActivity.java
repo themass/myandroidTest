@@ -16,8 +16,11 @@ public class WebViewActivity extends BaseBannerAdsActivity implements MyWebView.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.config_web_layout);
-        webViewFragment = (BaseWebViewFragment) getFragmentManager().findFragmentById(R.id.base_webview);
+        setContentView(R.layout.common_fragment);
+        getFragmentManager().beginTransaction()
+                .add(R.id.fragment, new BaseWebViewFragment())
+                .commit();
+        webViewFragment = (BaseWebViewFragment) getFragmentManager().findFragmentById(R.id.fragment);
         setNavigationOut();
         webViewFragment.setListener(this);
         adsDelayGone();

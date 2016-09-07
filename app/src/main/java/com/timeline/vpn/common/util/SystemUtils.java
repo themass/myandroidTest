@@ -143,9 +143,11 @@ public class SystemUtils {
         }
         return false;
     }
-    public static boolean isZH(Context context){
+
+    public static boolean isZH(Context context) {
         return Constants.LANG_ZH.equals(getLang(context));
     }
+
     public static String getLang(Context context) {
         Locale locale = context.getResources().getConfiguration().locale;
         String language = locale.getLanguage();

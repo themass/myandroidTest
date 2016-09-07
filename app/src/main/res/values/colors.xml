@@ -21,9 +21,6 @@
     <color name="btn_context_menu_normal">#ffffff</color>
     <color name="btn_context_menu_pressed">#40000000</color>
     <color name="btn_context_menu_text_red">#ffff0000</color>
-    <color name="heart_anim_view_bg">#662d5d82</color>
-
-
     <color name="btn_default_light_normal">#00000000</color>
     <color name="btn_default_light_pressed">#40ffffff</color>
 
@@ -34,13 +31,17 @@
     <color name="base_red">#ff0000</color>
     <color name="base_black">#000000</color>
     <color name="base_half_transparent">#60000000</color>
+    <color name="transparent">#00000000</color>
+
+    <color name="gray">#5f5f5f</color>
+    <color name="hint">#b6b2b2</color>
+    <color name="heart_anim_view_bg">#662d5d82</color>
+    <color name="bg_title">#2e313c</color>
     <color name="base_vip_ready">#6054b947</color>
+    <color name="recyclerview_bg">#ffeaeaea</color>
     <!-- tab -->
     <color name="tab_widget_text_color">#BAC4C4</color>
-    <color name="title_tab_indicator_bg_color">#0d2957</color>
     <color name="tab_indicator_color">#717981</color>
-    <color name="transparent">#00000000</color>
-    <color name="tab_text">#ffff00</color>
     <color name="tab_selected_indicator_color">#001840</color>
 
     <color name="error_text">#D9192C</color>
@@ -48,28 +49,25 @@
     <color name="success_text">#99CC00</color>
     <color name="panel_background">#333333</color>
     <color name="panel_separator">#5a5a5a</color>
+
+    <!-- location -->
     <color name="location_header_btn_bg">#39737c</color>
     <color name="location_header_btn_click_bg">#5a5b5e</color>
-    <color name="location_header_bg">#ffeaeaea</color>
     <color name="location_index">#2ca1b1</color>
     <color name="location_select">#1cbcce</color>
+    <!---->
     <color name="new_deep_black">#333333</color>
     <color name="new_mid_black">#666666</color>
     <color name="new_light_black">#999999</color>
     <color name="new_green">#65d289</color>
     <color name="new_light_green">#41bc6a</color>
     <color name="new_globle_black">#2e313c</color>
-    <color name="login_hint">#b6b2b2</color>
-    <color name="line_login">#585a62</color>
-    <color name="btn_blue_normal">#3382ff</color>
-    <color name="title_item_unenabled">#a6d4b9</color>
     <color name="new_light_blue">#3382ff</color>
     <color name="btn_green_pressed">#2db259</color>
+
+    <color name="line_login">#585a62</color>
+    <color name="btn_blue_normal">#3382ff</color>
+
     <!-- 标题 -->
-    <color name="bg_title">#2e313c</color>
-    <color name="bg_title_black">#2e313c</color>
-    <color name="comment_name">#106f97</color>
     <color name="text_like_counter">#2b5a83</color>
-    <color name="gray_light">#eff0f2</color>
-    <color name="iwanna_text">#2a2b2d</color>
 </resources>

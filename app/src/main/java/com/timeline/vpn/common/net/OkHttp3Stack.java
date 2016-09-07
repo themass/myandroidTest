@@ -136,7 +136,7 @@ public class OkHttp3Stack implements HttpStack {
             throws IOException, AuthFailureError {
         okhttp3.Request.Builder okHttpRequestBuilder = new okhttp3.Request.Builder();
         setConnectionParametersForRequest(okHttpRequestBuilder, request);
-        setHeaderForRequest(okHttpRequestBuilder, request,additionalHeaders);
+        setHeaderForRequest(okHttpRequestBuilder, request, additionalHeaders);
         okHttpRequestBuilder.url(request.getUrl());
         okhttp3.Request okHttpRequest = okHttpRequestBuilder.build();
         Call okHttpCall = mClient.newCall(okHttpRequest);

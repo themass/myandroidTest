@@ -195,41 +195,55 @@ public class AdsAdview {
             ScoreTask.start(context, Constants.ADS_SHOW_CLICK);
         }
     }
-    public static class AddAdsInfoTask extends AsyncTask<String,Integer,Boolean> {
+
+    public static String getAdsName(int type) {
+        switch (type) {
+            case Constants.ADS_TYPE_SPREAD:
+                return "开屏广告";
+            case Constants.ADS_TYPE_BANNER:
+                return "插屏广告";
+            case Constants.ADS_TYPE_INTERSTITIAL:
+                return "弹屏广告";
+            case Constants.ADS_TYPE_NATIVE:
+                return "本地广告";
+            default:
+                return "错误广告";
+        }
+    }
+
+    public static String getAdsEvent(int event) {
+        switch (event) {
+            case Constants.ADS_CLICK_MSG:
+                return "点击";
+            case Constants.ADS_NO_MSG:
+                return "无数据";
+            case Constants.ADS_PRESENT_MSG:
+                return "展示";
+            default:
+                return "错误";
+        }
+    }
+
+    public static class AddAdsInfoTask extends AsyncTask<String, Integer, Boolean> {
         private Context context;
         private int type;
         private int event;
-        public AddAdsInfoTask(Context context, int type, int event){
+
+        public AddAdsInfoTask(Context context, int type, int event) {
             this.context = context;
             this.type = type;
             this.event = event;
         }
+
         @Override
-        protected Boolean doInBackground(String ... params){
+        protected Boolean doInBackground(String... params) {
             ContentValues values = new ContentValues();
             values.put(AdsInfoModel.ADS_TYPE, type);
             values.put(AdsInfoModel.ADS_EVENT, event);
             values.put(AdsInfoModel.ADS_DATE, new Date().getTime());
             context.getContentResolver().insert(BaseContentProvider
-                        .getTableUri(TableCreator.ADS_INFO), values);
+                    .getTableUri(TableCreator.ADS_INFO), values);
             return Boolean.TRUE;
-        }
-    }
-    public static String getAdsName(int type){
-        switch (type) {
-            case Constants.ADS_TYPE_SPREAD: return "开屏广告";
-            case Constants.ADS_TYPE_BANNER: return "插屏广告";
-            case Constants.ADS_TYPE_INTERSTITIAL: return "弹屏广告";
-            case Constants.ADS_TYPE_NATIVE:return "本地广告";
-            default: return "错误广告";
-        }
-    }
-    public static String getAdsEvent(int event){
-        switch (event) {
-            case Constants.ADS_CLICK_MSG: return "点击";
-            case Constants.ADS_NO_MSG: return "无数据";
-            case Constants.ADS_PRESENT_MSG: return "展示";
-            default: return "错误";
         }
     }
 }

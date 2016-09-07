@@ -12,7 +12,7 @@ import com.timeline.vpn.data.config.UserLoginEvent;
  * Created by gqli on 2016/8/15.
  */
 public class UserLoginUtil {
-    public static void  login(Context context, UserInfoVo vo) {
+    public static void login(Context context, UserInfoVo vo) {
         PreferenceUtils.setPrefObj(context, Constants.LOGIN_USER, vo);
         PreferenceUtils.setPrefString(context, Constants.HTTP_TOKEN_KEY, vo.token);
         StaticDataUtil.add(Constants.LOGIN_USER, vo);
@@ -27,7 +27,8 @@ public class UserLoginUtil {
         EventBusUtil.getEventBus().post(new UserLoginEvent());
         MobAgent.onProfileSignOff();
     }
-    public static UserInfoVo getUserCache(){
-        return StaticDataUtil.get(Constants.LOGIN_USER,UserInfoVo.class);
+
+    public static UserInfoVo getUserCache() {
+        return StaticDataUtil.get(Constants.LOGIN_USER, UserInfoVo.class);
     }
 }

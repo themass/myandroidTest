@@ -24,7 +24,7 @@ public class MobAgent {
         MobclickAgent.onPause(context);
     }
 
-    public static void onResumeForFragment(Context context,String fragment) {
+    public static void onResumeForFragment(Context context, String fragment) {
         MobclickAgent.onPageStart(fragment);
     }
 
@@ -36,11 +36,11 @@ public class MobAgent {
         MobclickAgent.onResume(context);
     }
 
-    public static void onPauseForFragment(Context context,String fragment) {
+    public static void onPauseForFragment(Context context, String fragment) {
         MobclickAgent.onPageEnd(fragment);
     }
 
-    public static void init(Context context,boolean isTest) {
+    public static void init(Context context, boolean isTest) {
         LogUtil.i("isdebug=" + isTest);
         MobclickAgent.setSessionContinueMillis(Constants.UM_INTERVAL);
         MobclickAgent.openActivityDurationTrack(false);
@@ -68,6 +68,7 @@ public class MobAgent {
         map.put("name", title);
         MobclickAgent.onEvent(context, "recommond", map);
     }
+
     public static void onAdsEvent(Context context, int type, int event) {
         Map<String, String> map = new HashMap<>();
         map.put("name", AdsAdview.getAdsName(type));

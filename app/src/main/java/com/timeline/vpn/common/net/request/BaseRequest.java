@@ -52,8 +52,8 @@ public class BaseRequest<T> extends Request<T> {
         }
         StringBuilder sb = new StringBuilder();
         sb.append(DeviceInfoUtils.getDeviceId(context)).append("|").append(time);
-        String msg = time+Md5.encode(sb.toString());
-        headers.put("User-Agent", UA_DEFAULT + UA_APP_SUFFIX+","+msg);
+        String msg = time + Md5.encode(sb.toString());
+        headers.put("User-Agent", UA_DEFAULT + UA_APP_SUFFIX + "," + msg);
         if (!headers.containsKey("Referer")) {
             headers.put("Referer", Constants.DEFAULT_REFERER);
         }
@@ -61,7 +61,7 @@ public class BaseRequest<T> extends Request<T> {
         headers.put("Accept-Language", SystemUtils.getLang(context));
         headers.put(Constants.DEVID, DeviceInfoUtils.getDeviceId(context));
         String token = PreferenceUtils.getPrefString(context, Constants.HTTP_TOKEN_KEY, null);
-        if(token!=null)
+        if (token != null)
             headers.put(Constants.HTTP_TOKEN_KEY, token);
         this.headers = headers;
         this.listener = listener;

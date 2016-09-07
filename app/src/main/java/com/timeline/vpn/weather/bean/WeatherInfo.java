@@ -4,9 +4,9 @@ import java.util.List;
 
 public class WeatherInfo {
     public WeatherSys sys;
-    public  String name;
+    public String name;
     public long dt;
-    public  WeatherClouds clouds;
+    public WeatherClouds clouds;
     public String base;
     public WeatherMain main;
     public WeatherWind wind;

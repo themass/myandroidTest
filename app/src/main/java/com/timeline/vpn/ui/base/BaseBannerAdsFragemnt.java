@@ -19,7 +19,7 @@ import butterknife.Bind;
 /**
  * Created by gqli on 2016/8/21.
  */
-public abstract class BaseBannerAdsFragemnt  extends TabBaseFragment {
+public abstract class BaseBannerAdsFragemnt extends TabBaseFragment {
     @Bind(R.id.fl_content)
     public ViewGroup flContent;
     @Bind(R.id.fab_up)
@@ -67,8 +67,9 @@ public abstract class BaseBannerAdsFragemnt  extends TabBaseFragment {
         flBanner.setVisibility(View.VISIBLE);
         showBanner();
     }
-    private void showBanner(){
-        if(init) {
+
+    private void showBanner() {
+        if (init) {
             if (isAdsCanShow) {
                 isAdsCanShow = true;
             } else {
@@ -80,15 +81,18 @@ public abstract class BaseBannerAdsFragemnt  extends TabBaseFragment {
             }
         }
     }
-    protected void showAds(){
-        AdsAdview.bannerAds(getActivity(), flBanner, mHandler,Constants.ADS_ADVIEW_KEY);
+
+    protected void showAds() {
+        AdsAdview.bannerAds(getActivity(), flBanner, mHandler, Constants.ADS_ADVIEW_KEY);
     }
-    protected void removeAds(){
+
+    protected void removeAds() {
         if (flBanner != null) {
             LogUtil.i("remove all views");
             flBanner.removeAllViews();
         }
     }
+
     @Override
     public void onDestroyView() {
         init = false;
@@ -97,10 +101,11 @@ public abstract class BaseBannerAdsFragemnt  extends TabBaseFragment {
         super.onDestroyView();
         mHandler.removeCallbacks(task);
     }
-    class AdsGoneTask implements Runnable{
+
+    class AdsGoneTask implements Runnable {
         @Override
         public void run() {
-            if(flBanner!=null){
+            if (flBanner != null) {
                 flBanner.removeAllViews();
                 flBanner.setVisibility(View.GONE);
             }

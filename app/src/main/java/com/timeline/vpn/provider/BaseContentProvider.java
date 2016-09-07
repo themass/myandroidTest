@@ -1,4 +1,3 @@
-
 package com.timeline.vpn.provider;
 
 import android.net.Uri;
@@ -13,15 +12,9 @@ public class BaseContentProvider extends MyContentProvider {
 
     private static final String BASE_URI = "content://" + AUTHORITY + "/";
 
-    @Override
-    public boolean onCreate() {
-        setSQLiteOpenHelper(new DBHelper(getContext()));
-        return true;
-    }
-
     /**
      * 返回表的URI
-     * 
+     *
      * @param table
      * @return
      */
@@ -31,17 +24,17 @@ public class BaseContentProvider extends MyContentProvider {
 
     /**
      * 返回表的URI,notify参数为false,不会通知数据库更新
-     * 
+     *
      * @param table
      * @return
      */
     public static Uri getTableUriNoNotify(String table) {
         return getTableUri(table).buildUpon().appendQueryParameter(PARAMETER_NOTIFY, "false").build();
     }
-    
+
     /**
      * 返回sql查询uri
-     * 
+     *
      * @param sql
      * @return
      */
@@ -58,14 +51,20 @@ public class BaseContentProvider extends MyContentProvider {
     public static Uri getRawSqlUri(String table, String sql) {
         return getTableUri(table).buildUpon().appendQueryParameter(PARAMETER_RAW_SQL, sql).build();
     }
-    
+
     public static Uri appendNotifyUri(Uri uri, String notifyUri) {
-    	if (uri == null) {
-    		return null;
-    	}
-    	if (TextUtils.isEmpty(notifyUri)) {
-    		return uri;
-    	}
+        if (uri == null) {
+            return null;
+        }
+        if (TextUtils.isEmpty(notifyUri)) {
+            return uri;
+        }
         return uri.buildUpon().appendQueryParameter(PARAMETER_NOTIFY_URI, notifyUri).build();
+    }
+
+    @Override
+    public boolean onCreate() {
+        setSQLiteOpenHelper(new DBHelper(getContext()));
+        return true;
     }
 }

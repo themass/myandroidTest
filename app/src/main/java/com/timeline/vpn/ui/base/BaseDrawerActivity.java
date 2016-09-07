@@ -33,13 +33,10 @@ import com.timeline.vpn.data.config.LocationChooseEvent;
 import com.timeline.vpn.data.config.UserLoginEvent;
 import com.timeline.vpn.ui.feedback.ConversationDetailActivity;
 import com.timeline.vpn.ui.user.LoginActivity;
-import com.timeline.vpn.ui.vpn.LocationChooseaActivity;
+import com.timeline.vpn.ui.vpn.LocationChooseFragment;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import butterknife.Bind;
 
@@ -65,6 +62,7 @@ public class BaseDrawerActivity extends BaseFragmentActivity {
     MenuItem miLocation;
     Handler mHandler = new Handler();
     BaseService baseService;
+
     public void login(View view) {
         startActivity(LoginActivity.class);
     }
@@ -109,20 +107,20 @@ public class BaseDrawerActivity extends BaseFragmentActivity {
 
     private void setUpLocation() {
         LocationVo vo = PreferenceUtils.getPrefObj(this, Constants.LOCATION_CHOOSE, LocationVo.class);
-        String name = vo == null ? getString(R.string.location_choose_none) : (SystemUtils.isZH(this)?vo.name:vo.ename);
+        String name = vo == null ? getString(R.string.location_choose_none) : (SystemUtils.isZH(this) ? vo.name : vo.ename);
         miLocation.setTitle(getString(R.string.location_choose_hint) + name);
     }
 
     private void setUpUserMenu() {
-        UserInfoVo vo =UserLoginUtil.getUserCache();
+        UserInfoVo vo = UserLoginUtil.getUserCache();
         if (vo != null) {
             miLogout.setVisible(true);
             llLoginMenuHeader.setEnabled(false);
             tvMenuUserName.setText(vo.name);
             tvMenuUserLogin.setText(R.string.menu_btn_login_ready);
-            if(Constants.SEX_M.equals(vo.sex)){
+            if (Constants.SEX_M.equals(vo.sex)) {
                 ivAvatar.setImageResource(R.drawable.ic_default_nan);
-            }else {
+            } else {
                 ivAvatar.setImageResource(R.drawable.ic_default_nv);
             }
             miScore.setTitle(String.format(getString(R.string.menu_btn_score), vo.score));
@@ -147,9 +145,7 @@ public class BaseDrawerActivity extends BaseFragmentActivity {
     }
 
     public void logout(MenuItem item) {
-        Map<String,String> param = new HashMap<>();
-        param.put("name","haha");
-        baseService.postData(Constants.API_LOGOUT_URL,param,null,null,null,null);
+        baseService.postData(Constants.API_LOGOUT_URL, null, null, null, null, null);
         UserLoginUtil.logout(this);
     }
 
@@ -173,13 +169,12 @@ public class BaseDrawerActivity extends BaseFragmentActivity {
                 } else if (item.getItemId() == R.id.menu_version) {
                     checkUpdate();
                 } else if (item.getItemId() == R.id.menu_location) {
-                    startActivity(LocationChooseaActivity.class);
+                    LocationChooseFragment.startFragment(BaseDrawerActivity.this);
                 } else if (item.getItemId() == R.id.menu_feedback) {
                     startActivity(ConversationDetailActivity.class);
                 } else if (item.getItemId() == R.id.menu_about) {
                     Toast.makeText(BaseDrawerActivity.this, R.string.menu_btn_about_context, Toast.LENGTH_LONG).show();
-                }
-                else if (item.getItemId() == R.id.menu_score) {
+                } else if (item.getItemId() == R.id.menu_score) {
                     Toast.makeText(BaseDrawerActivity.this, R.string.menu_btn_score_context, Toast.LENGTH_SHORT).show();
                 }
                 return false;

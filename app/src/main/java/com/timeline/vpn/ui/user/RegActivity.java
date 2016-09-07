@@ -13,7 +13,6 @@ import com.timeline.vpn.R;
 import com.timeline.vpn.bean.form.RegForm;
 import com.timeline.vpn.bean.vo.NullReturnVo;
 import com.timeline.vpn.common.net.request.CommonResponse;
-import com.timeline.vpn.common.util.BeanUtil;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.ui.base.BaseBannerAdsActivity;
@@ -57,11 +56,13 @@ public class RegActivity extends BaseBannerAdsActivity {
         baseService = new BaseService();
         baseService.setup(this);
     }
+
     @OnClick(R.id.btn_login)
     public void login(View view) {
         finish();
         startActivity(LoginActivity.class);
     }
+
     @OnClick(R.id.btn_reg)
     public void reg(View view) {
         String name = etUserName.getText().toString();
@@ -82,7 +83,7 @@ public class RegActivity extends BaseBannerAdsActivity {
             sex = Constants.SEX_F;
         }
         RegForm form = new RegForm(name, pwd, repwd, sex);
-        baseService.postData(Constants.API_REG_URL, BeanUtil.convertBean(form), loginListener, new CommonResponse.ResponseErrorListener() {
+        baseService.postData(Constants.API_REG_URL, form, loginListener, new CommonResponse.ResponseErrorListener() {
             @Override
             protected void onError() {
                 super.onError();

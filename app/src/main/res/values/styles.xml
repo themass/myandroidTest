@@ -53,8 +53,8 @@
 
     <style name="edit">
         <item name="android:textSize">@dimen/textsize_16</item>
+        <item name="android:textColorHint">@color/hint</item>
         <item name="android:textColor">@color/new_deep_black</item>
-        <item name="android:textColorHint">@color/new_light_black</item>
         <item name="android:paddingLeft">@dimen/padding_10</item>
         <item name="android:paddingRight">@dimen/padding_10</item>
         <item name="android:paddingTop">5dip</item>
@@ -63,14 +63,11 @@
         <item name="android:drawablePadding">10dip</item>
         <item name="android:textCursorDrawable">@null</item>
         <item name="android:layout_width">match_parent</item>
-        <item name="android:minHeight">35dip</item>
         <item name="android:layout_height">wrap_content</item>
     </style>
 
     <style name="edit_login" parent="@style/edit">
         <item name="android:minHeight">@dimen/title_height</item>
-        <item name="android:textColorHint">@color/login_hint</item>
-        <item name="android:textColor">@color/new_deep_black</item>
         <item name="android:background">@android:color/transparent</item>
     </style>
 
@@ -128,5 +125,11 @@
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">@dimen/title_height</item>
         <item name="android:background">@color/bg_title</item>
+    </style>
+    <style name="dialog" parent="Theme.AppCompat.Light.Dialog">
+        <item name="android:windowFrame">@null</item><!--边框-->
+        <item name="android:windowIsFloating">true</item><!--是否浮现在activity之上-->
+        <item name="android:windowNoTitle">true</item><!--无标题-->
+        <item name="android:windowBackground">@color/transparent</item><!--背景透明-->
     </style>
 </resources>

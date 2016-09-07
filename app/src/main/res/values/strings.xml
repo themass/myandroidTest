@@ -44,7 +44,7 @@
     <string name="app_name">FreeVPN</string>
     <string name="main_activity_name">FreeVPN</string>
     <string name="toobar_title">FreeVPN</string>
-    <string name="load">laoding</string>
+    <string name="load">loading</string>
     <!-- 地区选择-->
     <string name="location_type">type</string>
     <string name="location_country">country</string>
@@ -87,9 +87,11 @@
     <string name="need_login">Login please</string>
     <string name="need_vip">Not VIP user has no permission to select the areang</string>
 
-    <string name="iwanna_tips">Tell me what du you want \n I\'ll be ready for you </string>
+    <string name="iwanna_tips">Tell me what du you want \nI\'ll be ready for you </string>
     <string name="iwanna_title">I wanna</string>
-
+    <string name="send">send</string>
+    <string name="iwanna_content_error">tell me something!</string>
+    <string name="iwanna_content_success">i got it !</string>
     <!-- error-->
     <string name="error_getlocation_fail">Failed to obtain location information！</string>
     <string name="error_network_unknown">Connection server error, please check your network connection or try again later.</string>

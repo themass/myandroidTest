@@ -17,10 +17,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.support.annotation.Nullable;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.DefaultItemAnimator;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -50,6 +47,7 @@ import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.data.config.ConfigActionEvent;
 import com.timeline.vpn.service.CharonVpnService;
 import com.timeline.vpn.ui.base.LoadableTabFragment;
+import com.timeline.vpn.ui.view.MyPullView;
 
 import java.util.ArrayList;
 
@@ -59,22 +57,16 @@ import butterknife.OnClick;
 /**
  * Created by gqli on 2015/9/1.
  */
-public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo>> implements CharonVpnService.VpnStateListener, IndexRecommendAdapter.ItemClickListener {
+public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo>> implements CharonVpnService.VpnStateListener, IndexRecommendAdapter.ItemClickListener, MyPullView.OnRefreshListener {
     private static final String DIALOG_TAG = "Dialog";
     private static final String INDEX_TAG = "index_tag";
     private static final int PREPARE_VPN_SERVICE = 0;
-    @Nullable
-    @Bind(R.id.footer_view)
-    View footerView;
-    @Nullable
-    @Bind(R.id.rv_navi)
-    RecyclerView rvRecommend;
     @Bind(R.id.tv_vpn_state_text)
     TextView tvVpnText;
     @Bind(R.id.iv_vpn_state)
     ImageButton ibVpnStatus;
-    @Bind(R.id.srl_layout)
-    SwipeRefreshLayout refreshLayout;
+    @Bind(R.id.my_pullview)
+    MyPullView pullView;
     CommonResponse.ResponseOkListener serverListener = new CommonResponse.ResponseOkListener<ServerVo>() {
         @Override
         public void onResponse(ServerVo serverVo) {
@@ -106,7 +98,7 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
         public void onServiceConnected(ComponentName name, IBinder service) {
             mService = ((CharonVpnService.LocalBinder) service).getService();
             mService.registerListener(TabIndexFragment.this);
-            if(mService.getCurrentVpnState()==null|| mService.getCurrentVpnState()== CharonVpnService.State.CONNECTED){
+            if (mService.getCurrentVpnState() == null || mService.getCurrentVpnState() == CharonVpnService.State.CONNECTED) {
                 imgConn();
             }
         }
@@ -119,6 +111,7 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
     private boolean isLoadingMore;
     private boolean isFirst = false;
     private InfoListVo<RecommendVo> infoVo = new InfoListVo<RecommendVo>();
+
     @Override
     protected int getTabHeaderViewId() {
         return R.layout.vpn_state_view_loading;
@@ -133,36 +126,29 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
 
     @Override
     protected void onContentViewCreated(LayoutInflater inflater, ViewGroup parent) {
-        inflater.inflate(R.layout.layout_pullrefresh_view, parent, true);
+        inflater.inflate(R.layout.layout_recommd, parent, true);
     }
 
     @Override
     protected void onDataLoaded(InfoListVo<RecommendVo> data) {
-        //下拉刷新
-        if (refreshLayout.isRefreshing()) {
-            infoVo.voList.clear();
-            refreshLayout.setRefreshing(false);
-            infoVo.voList.addAll(data.voList);
-            rvRecommend.getAdapter().notifyDataSetChanged();
-        } else if (footerView.getVisibility() == View.VISIBLE) { //上拉加载
-            footerView.setVisibility(View.GONE);
-            infoVo.voList.addAll(data.voList);
-            rvRecommend.getAdapter().notifyDataSetChanged();
-        } else if (isLoadingMore) {//首次加载
-            infoVo.voList.addAll(data.voList);
-            rvRecommend.getAdapter().notifyDataSetChanged();
+        if (data != null) {
+            if (pullView.isLoadMore()) { //上拉加载
+                infoVo.voList.addAll(data.voList);
+            } else { //下拉刷新 或者首次
+                infoVo.voList.clear();
+                infoVo.voList.addAll(data.voList);
+            }
+            infoVo.copy(data);
+            data.voList.clear();
+            data.voList.addAll(infoVo.voList);
+            setData(data);
+            LogUtil.i("mData size=" + infoVo.voList.size());
         }
-        infoVo.hasMore = data.hasMore;
-        infoVo.pageNum = data.pageNum;
-        infoVo.total = data.total;
-        setData(infoVo);
-        isLoadingMore = false;
-        LogUtil.i("mData size=" + data.voList.size());
+        pullView.notifyDataSetChanged();
     }
 
     @Override
-    protected InfoListVo<RecommendVo> loadData(Context context) throws Exception{
-        isLoadingMore = true;
+    protected InfoListVo<RecommendVo> loadData(Context context) throws Exception {
         return indexService.getInfoListData(Constants.getRECOMMEND_URL(infoVo.pageNum), RecommendVo.class, INDEX_TAG);
     }
 
@@ -170,9 +156,9 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
     protected void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
         final StaggeredGridLayoutManager layoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
-        adapter = new IndexRecommendAdapter(this.getActivity(), rvRecommend, infoVo.voList, this,layoutManager);
-        rvRecommend.setLayoutManager(layoutManager);
-        rvRecommend.setItemAnimator(new DefaultItemAnimator());
+        pullView.setLayoutManager(layoutManager);
+        pullView.setItemAnimator(new DefaultItemAnimator());
+        adapter = new IndexRecommendAdapter(this.getActivity(), pullView.getRecyclerView(), infoVo.voList, this, layoutManager);
         getActivity().bindService(new Intent(getActivity(), CharonVpnService.class),
                 mServiceConnection, Service.BIND_AUTO_CREATE);
         operatingAnim = AnimationUtils.loadAnimation(getActivity(), R.anim.vpn_state_loading);
@@ -180,26 +166,20 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
         operatingAnim.setInterpolator(lir);
         indexService = new BaseService();
         indexService.setup(getActivity());
-        refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                startQuery(false);
-            }
-        });
-        rvRecommend.setAdapter(adapter);
-        rvRecommend.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                super.onScrolled(recyclerView, dx, dy);
-                int[] visibleItems = layoutManager.findLastVisibleItemPositions(null);
-                int lastitem = Math.max(visibleItems[0], visibleItems[1]);
-                LogUtil.i(isLoadingMore+"---"+infoVo);
-                if (dy > 0 && lastitem > adapter.getItemCount() - 5 && !isLoadingMore && infoVo.hasMore) {
-                    footerView.setVisibility(View.VISIBLE);
-                    startQuery(false);
-                }
-            }
-        });
+        pullView.setListener(this);
+        pullView.setAdapter(adapter);
+    }
+
+    @Override
+    public void onRefresh() {
+        LogUtil.i("onRefresh");
+        startQuery(false);
+    }
+
+    @Override
+    public boolean needLoad() {
+        LogUtil.i("needLoad " + infoVo);
+        return infoVo.hasMore;
     }
 
     @Override
@@ -238,9 +218,9 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
             imgNormal();
         } else if (mService.getCurrentVpnState() == CharonVpnService.State.DISABLED) {
             imgAnim();
-            LocationVo vo=  PreferenceUtils.getPrefObj(getActivity(),Constants.LOCATION_CHOOSE, LocationVo.class);
-            int locatonId = vo==null?0:vo.id;
-            indexService.getData(String.format(Constants.API_SERVERLIST_URL,locatonId), serverListener, serverListenerError, INDEX_TAG, ServerVo.class);
+            LocationVo vo = PreferenceUtils.getPrefObj(getActivity(), Constants.LOCATION_CHOOSE, LocationVo.class);
+            int locatonId = vo == null ? 0 : vo.id;
+            indexService.getData(String.format(Constants.API_SERVERLIST_URL, locatonId), serverListener, serverListenerError, INDEX_TAG, ServerVo.class);
         } else if (mService.getCurrentVpnState() == CharonVpnService.State.CONNECTING) {
             mService.stopCurrentConnection();
             imgNormal();
@@ -265,7 +245,7 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
             try {
                 startActivityForResult(intent, PREPARE_VPN_SERVICE);
             } catch (ActivityNotFoundException ex) {
-				/* it seems some devices, even though they come with Android 4,
+                /* it seems some devices, even though they come with Android 4,
 				 * don't have the VPN components built into the system image.
 				 * com.android.vpndialogs/com.android.vpndialogs.ConfirmDialog
 				 * will not be found then */

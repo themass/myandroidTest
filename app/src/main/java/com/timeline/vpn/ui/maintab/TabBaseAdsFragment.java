@@ -40,8 +40,8 @@ public abstract class TabBaseAdsFragment extends TabBaseFragment implements OnBa
 //        new HeartAnimView().show(getActivity());
 //        if(firstClick) {
 //            PreferenceUtils.setPrefBoolean(getActivity(),Constants.FIRST_FB_CLICK,false);
-        ScoreTask.start(getActivity(),Constants.ADS_SHOW_SCORE);
-        String msg = getActivity().getResources().getString(R.string.tab_fb_click)+Constants.ADS_SHOW_SCORE;
+        ScoreTask.start(getActivity(), Constants.ADS_SHOW_SCORE);
+        String msg = getActivity().getResources().getString(R.string.tab_fb_click) + Constants.ADS_SHOW_SCORE;
         Toast.makeText(getActivity(), msg, Toast.LENGTH_SHORT).show();
 
 //        }
@@ -69,8 +69,7 @@ public abstract class TabBaseAdsFragment extends TabBaseFragment implements OnBa
         super.onResume();
         if (pendingIntroAnimation) {
             pendingIntroAnimation = false;
-            boolean firstClick = PreferenceUtils.getPrefBoolean(getActivity(), Constants.FIRST_FB_CLICK,true);
-
+            boolean firstClick = PreferenceUtils.getPrefBoolean(getActivity(), Constants.FIRST_FB_CLICK, true);
             startIntroAnimation();
         }
     }
@@ -84,7 +83,7 @@ public abstract class TabBaseAdsFragment extends TabBaseFragment implements OnBa
     }
 
     private void startIntroAnimation() {
-        LogUtil.i("fabUp--"+getClass().getSimpleName());
+        LogUtil.i("fabUp--" + getClass().getSimpleName());
         fabUp.setTranslationY(2 * getResources().getDimensionPixelOffset(R.dimen.btn_fab_size));
         fabUp.animate()
                 .translationY(0)

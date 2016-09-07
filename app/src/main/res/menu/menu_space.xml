@@ -5,7 +5,7 @@
     tools:context=".ui.base.BaseActivity">
     <item
         android:id="@+id/menu_view"
-        android:actionLayout="@layout/menu_image_view"
+        android:actionLayout="@layout/common_image_view"
         android:icon="@drawable/ic_menu_space"
         android:title="@string/menu_haha"
         app:showAsAction="always" />

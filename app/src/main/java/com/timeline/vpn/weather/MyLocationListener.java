@@ -27,7 +27,7 @@ public class MyLocationListener implements BDLocationListener {
         sb.append(location.getLongitude());
         sb.append("\nradius : ");
         sb.append(location.getRadius());
-        if (location.getLocType() == BDLocation.TypeGpsLocation){// GPS定位结果
+        if (location.getLocType() == BDLocation.TypeGpsLocation) {// GPS定位结果
             sb.append("\nspeed : ");
             sb.append(location.getSpeed());// 单位：公里每小时
             sb.append("\nsatellite : ");
@@ -41,7 +41,7 @@ public class MyLocationListener implements BDLocationListener {
             sb.append("\ndescribe : ");
             sb.append("gps定位成功");
 
-        } else if (location.getLocType() == BDLocation.TypeNetWorkLocation){// 网络定位结果
+        } else if (location.getLocType() == BDLocation.TypeNetWorkLocation) {// 网络定位结果
             sb.append("\naddr : ");
             sb.append(location.getAddrStr());
             //运营商信息

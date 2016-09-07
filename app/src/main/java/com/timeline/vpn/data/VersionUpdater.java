@@ -101,7 +101,7 @@ public class VersionUpdater {
         builder.setTitle(title);
         builder.setMessage(vo.content);
         builder.setIcon(R.drawable.vpn_trans_default);
-        if(vo.minBuild!=vo.maxBuild) {
+        if (vo.minBuild != vo.maxBuild) {
             builder.setNegativeButton(R.string.about_version_cancel, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
@@ -129,12 +129,12 @@ public class VersionUpdater {
                             dialog.dismiss();
                         }
                     });
-                    confirmDialog .setNegativeButton(R.string.about_version_cancel, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                }
-                            });
+                    confirmDialog.setNegativeButton(R.string.about_version_cancel, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    });
                     confirmDialog.show();
                 }
             }

@@ -29,10 +29,11 @@ public class BaseToolBarActivity extends BaseWeatherMenuActivity {
     @Nullable
     @Bind(R.id.fl_body)
     ViewGroup flBody;
+
     @Override
     public void setContentView(int layoutResID) {
         super.setContentView(R.layout.base_toobar_activity);
-        getLayoutInflater().inflate(layoutResID,(ViewGroup) findViewById(R.id.fl_body),true);
+        getLayoutInflater().inflate(layoutResID, (ViewGroup) findViewById(R.id.fl_body), true);
         bindViews();
         setupToolbar();
     }
@@ -49,7 +50,7 @@ public class BaseToolBarActivity extends BaseWeatherMenuActivity {
 
     public void setContentViewWithoutInject(int layoutResId) {
         super.setContentView(R.layout.base_toobar_activity);
-        getLayoutInflater().inflate(layoutResId,(ViewGroup) findViewById(R.id.fl_body),true);
+        getLayoutInflater().inflate(layoutResId, (ViewGroup) findViewById(R.id.fl_body), true);
     }
 
     public Toolbar getToolbar() {

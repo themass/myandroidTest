@@ -12,6 +12,12 @@ public class InfoListVo<T> {
     public boolean hasMore;
     public int pageNum;
 
+    public void copy(InfoListVo data) {
+        this.hasMore = data.hasMore;
+        this.pageNum = data.pageNum;
+        this.total = data.total;
+    }
+
     @Override
     public String toString() {
         return "InfoListVo{" +

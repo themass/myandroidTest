@@ -1,6 +1,7 @@
 package com.timeline.vpn.ui.vpn;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
@@ -27,9 +28,10 @@ import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.data.config.LocationChooseEvent;
 import com.timeline.vpn.data.sort.LocSortFactor;
+import com.timeline.vpn.ui.base.CommonFragmentActivity;
 import com.timeline.vpn.ui.base.LoadableFragment;
 import com.timeline.vpn.ui.user.LoginActivity;
-import com.timeline.vpn.ui.view.RecycleViewDivider;
+import com.timeline.vpn.ui.view.DividerItemDecoration;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -61,6 +63,17 @@ public class LocationChooseFragment extends LoadableFragment<List<LocationVo>> i
     private int countryIndex = 0;
     private int feaIndex = 0;
 
+    public static void startFragment(Context context) {
+        Intent intent = new Intent(context, CommonFragmentActivity.class);
+        intent.putExtra(CommonFragmentActivity.FRAGMENT, LocationChooseFragment.class);
+        intent.putExtra(CommonFragmentActivity.TITLE, getFragmentTitle());
+        context.startActivity(intent);
+    }
+
+    public static int getFragmentTitle() {
+        return R.string.location_choose_title;
+    }
+
     @Override
     protected void onContentViewCreated(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
         inflater.inflate(R.layout.layout_location_choose_fragment, parent);
@@ -74,8 +87,10 @@ public class LocationChooseFragment extends LoadableFragment<List<LocationVo>> i
         adapter = new LocationViewAdapter(getActivity(), rvLocation, data, this);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getActivity());
         rvLocation.setLayoutManager(layoutManager);
-        rvLocation.addItemDecoration(new RecycleViewDivider(mContext, LinearLayoutManager.VERTICAL));
+//        rvLocation.addItemDecoration(new RecycleViewDivider(mContext, LinearLayoutManager.VERTICAL));
+        DividerItemDecoration itemDecoration = new DividerItemDecoration(getActivity(), LinearLayoutManager.VERTICAL, R.drawable.divider_item);
         rvLocation.setAdapter(adapter);
+        rvLocation.addItemDecoration(itemDecoration);
         setUp();
     }
 
@@ -123,7 +138,7 @@ public class LocationChooseFragment extends LoadableFragment<List<LocationVo>> i
     @Override
     public void onItemClick(View view, LocationVo data, int postion) {
         LogUtil.i(postion + "---" + GsonUtils.getInstance().toJson(data));
-        if(data.type!=Constants.LOCATION_TYPE_FREE) {
+        if (data.type != Constants.LOCATION_TYPE_FREE) {
             UserInfoVo vo = UserLoginUtil.getUserCache();
             if (vo == null) {
                 Toast.makeText(getActivity(), R.string.need_login, Toast.LENGTH_SHORT).show();
@@ -138,6 +153,6 @@ public class LocationChooseFragment extends LoadableFragment<List<LocationVo>> i
         }
         PreferenceUtils.setPrefObj(getActivity(), Constants.LOCATION_CHOOSE, data);
         EventBusUtil.getEventBus().post(new LocationChooseEvent());
-        getActivity().finish();
+//        getActivity().finish();
     }
 }

@@ -20,7 +20,7 @@ public class LocationUtils {
 
         @Override
         public void onReceiveLocation(BDLocation location) {
-            mListener.succeed(location.getLatitude(),location.getLongitude());
+            mListener.succeed(location.getLatitude(), location.getLongitude());
             stopLocation();// 停止定位
         }
 
@@ -65,13 +65,16 @@ public class LocationUtils {
         mLocationClient.stop();
         mTryCount = 0;
     }
+
     public boolean isStarted() {
         return mLocationClient.isStarted();
     }
 
     public static abstract interface LocationListener {
         public abstract void detecting();
-        public abstract void succeed(double lat,double lon);
+
+        public abstract void succeed(double lat, double lon);
+
         public abstract void failed();
     }
 }

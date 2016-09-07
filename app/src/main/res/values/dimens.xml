@@ -44,6 +44,7 @@
     <dimen name="margin_20">20dip</dimen>
     <dimen name="margin_25">25dip</dimen>
     <dimen name="margin_40">40dip</dimen>
+    <dimen name="margin_120">120dip</dimen>
 
     <dimen name="padding_5">5dip</dimen>
     <dimen name="padding_10">10dip</dimen>

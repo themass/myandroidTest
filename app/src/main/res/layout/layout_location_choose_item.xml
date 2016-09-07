@@ -4,7 +4,7 @@
     android:layout_width="fill_parent"
     android:layout_height="55dp"
     android:layout_marginBottom="5dp"
-    android:background="@drawable/location_select"
+    android:background="?android:attr/selectableItemBackground"
     android:clickable="true"
     android:orientation="horizontal">
 

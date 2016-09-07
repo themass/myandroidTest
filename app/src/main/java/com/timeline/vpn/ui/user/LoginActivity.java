@@ -12,7 +12,6 @@ import com.timeline.vpn.R;
 import com.timeline.vpn.bean.form.LoginForm;
 import com.timeline.vpn.bean.vo.UserInfoVo;
 import com.timeline.vpn.common.net.request.CommonResponse;
-import com.timeline.vpn.common.util.BeanUtil;
 import com.timeline.vpn.common.util.PreferenceUtils;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
@@ -53,10 +52,16 @@ public class LoginActivity extends BaseBannerAdsActivity {
         setToolbarTitle(R.string.login);
         baseService = new BaseService();
         baseService.setup(this);
-        String name = PreferenceUtils.getPrefString(this,Constants.LOGIN_USER_LAST,null);
-        if(!StringUtil.isEmpty(name)){
+        String name = PreferenceUtils.getPrefString(this, Constants.LOGIN_USER_LAST, null);
+        if (!StringUtil.isEmpty(name)) {
             etUserName.setText(name);
         }
+
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
     }
 
     @OnClick(R.id.btn_reg)
@@ -64,6 +69,7 @@ public class LoginActivity extends BaseBannerAdsActivity {
         finish();
         startActivity(RegActivity.class);
     }
+
     @OnClick(R.id.btn_login)
     public void login(View view) {
         String name = etUserName.getText().toString();
@@ -73,9 +79,9 @@ public class LoginActivity extends BaseBannerAdsActivity {
             return;
         }
         setEnabled(false);
-        PreferenceUtils.setPrefString(this,Constants.LOGIN_USER_LAST,name);
+        PreferenceUtils.setPrefString(this, Constants.LOGIN_USER_LAST, name);
         LoginForm form = new LoginForm(name, pwd);
-        baseService.postData(Constants.API_LOGIN_URL, BeanUtil.convertBean(form), loginListener, new CommonResponse.ResponseErrorListener() {
+        baseService.postData(Constants.API_LOGIN_URL, form, loginListener, new CommonResponse.ResponseErrorListener() {
             @Override
             protected void onError() {
                 super.onError();

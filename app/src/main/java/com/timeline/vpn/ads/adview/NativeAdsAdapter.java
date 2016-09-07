@@ -44,9 +44,11 @@ public class NativeAdsAdapter {
                 notifyDataSetChanged();
             }
         }
+
         public void removeData() {
             data.clear();
         }
+
         @Override
         public void onBindViewHolder(AdsItemViewHolder holder, final int position) {
             NativeAdInfo nativeAdInfo = (NativeAdInfo) data.get(position);

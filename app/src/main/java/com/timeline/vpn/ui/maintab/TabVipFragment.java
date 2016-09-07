@@ -27,7 +27,7 @@ public class TabVipFragment extends TabBaseAdsFragment {
 
     @Override
     protected int getTabBodyViewId() {
-        return R.layout.tab_vip_content;
+        return R.layout.common_page_view;
     }
 
     @Override

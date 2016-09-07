@@ -27,6 +27,7 @@ public enum VpnType {
 
     private String mIdentifier;
     private EnumSet<VpnTypeFeature> mFeatures;
+
     /**
      * Enum which provides additional information about the supported VPN types.
      *

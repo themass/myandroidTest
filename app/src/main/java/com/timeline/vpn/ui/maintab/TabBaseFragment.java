@@ -18,14 +18,14 @@ public abstract class TabBaseFragment extends BaseFragment {
 
     @Override
     protected int getRootViewId() {
-        return R.layout.tab_fragment;
+        return R.layout.base_fragment;
     }
 
     @Override
     protected View setContentView(LayoutInflater inflater) {
         View view = inflater.inflate(getRootViewId(), null);
-        headerContentView = (ViewGroup) view.findViewById(R.id.tab_header_content);
-        bodyContentView = (ViewGroup) view.findViewById(R.id.tab_body_content);
+        headerContentView = (ViewGroup) view.findViewById(R.id.fl_header);
+        bodyContentView = (ViewGroup) view.findViewById(R.id.fl_content);
         if (getTabHeaderViewId() != NULL_VIEW) {
             inflater.inflate(getTabHeaderViewId(), headerContentView, true);
         }

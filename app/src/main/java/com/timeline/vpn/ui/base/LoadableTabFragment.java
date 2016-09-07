@@ -31,6 +31,7 @@ import butterknife.OnClick;
  * @author jrzheng
  */
 public abstract class LoadableTabFragment<T> extends TabBaseAdsFragment {
+    public boolean mDataLoaded = false;
     protected ViewGroup mContentView;
     protected T mData; // 异步加载的数据
     protected Handler handler = new Handler();
@@ -70,10 +71,8 @@ public abstract class LoadableTabFragment<T> extends TabBaseAdsFragment {
         super.onResume();
         if (mData == null) {
             startQuery(true);
-        } else {
-            onDataLoaded(mData);
-            hideLoading();
         }
+
     }
 
     protected abstract void onContentViewCreated(LayoutInflater inflater, ViewGroup parent);
@@ -198,9 +197,13 @@ public abstract class LoadableTabFragment<T> extends TabBaseAdsFragment {
                 if (data != null) {
                     fragment.setData(data);
                     fragment.onDataLoaded(data);
-                    // fragment.mDataLoaded = true;
+                    fragment.mDataLoaded = true;
                 } else {
-                    fragment.showRetry();
+                    if (!fragment.mDataLoaded)
+                        fragment.showRetry();
+                    else {
+                        fragment.onDataLoaded(null);
+                    }
                 }
             }
         }

@@ -45,6 +45,7 @@ public abstract class BaseFragment extends LogFramgment {
         }
         return null;
     }
+
     /**
      * 通过id来查找view中的子View
      *

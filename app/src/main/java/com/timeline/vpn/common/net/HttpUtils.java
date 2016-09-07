@@ -75,12 +75,12 @@ public class HttpUtils {
     }
 
     public static boolean parserJsonResult(Context context, JsonResult<?> result) {
-        if(result.errno == Constants.HTTP_SUCCESS)
+        if (result.errno == Constants.HTTP_SUCCESS)
             return true;
-        else if(result.errno == Constants.HTTP_SUCCESS_CLEAR){
+        else if (result.errno == Constants.HTTP_SUCCESS_CLEAR) {
             UserLoginUtil.logout(context);
             return true;
-        }else
+        } else
             return false;
     }
 

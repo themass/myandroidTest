@@ -42,6 +42,7 @@ android {
         compile 'org.greenrobot:eventbus:3.0.0'
         compile 'com.umeng.analytics:analytics:latest.integration'
         compile 'com.romainpiel.shimmer:library:1.4.0@aar'
+
     }
 
     sourceSets.main {

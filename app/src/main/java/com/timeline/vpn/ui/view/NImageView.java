@@ -8,11 +8,11 @@ import android.util.AttributeSet;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.NetworkImageView;
 
-public class NImageView extends NetworkImageView{
+public class NImageView extends NetworkImageView {
     private ImageTask mImageTask; // 加载任务task
     private float mRatio; //长宽比例
 
-    private Bitmap  mLocalBitmap;
+    private Bitmap mLocalBitmap;
 
     private boolean mShowLocal;
 
@@ -88,6 +88,7 @@ public class NImageView extends NetworkImageView{
     /**
      * 设置宽高比例<br/>
      * 例: 10 / 100f  则高是 10 宽100
+     *
      * @param ratio
      */
     public void setRatio(float ratio) {

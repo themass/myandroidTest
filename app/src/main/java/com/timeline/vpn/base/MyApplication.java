@@ -67,7 +67,7 @@ public class MyApplication extends Application {
             StaticDataUtil.add(Constants.LOGIN_USER, user);
         }
         LogUtil.i("init data ok");
-        MobAgent.init(this,SystemUtils.isApkDebugable(this));
+        MobAgent.init(this, SystemUtils.isApkDebugable(this));
         com.umeng.fb.util.Log.LOG = SystemUtils.isApkDebugable(this);
         FeedbackPush.getInstance(this).init(ConversationDetailActivity.class, true);
         InitConfiguration.Builder builder = new InitConfiguration.Builder(this)

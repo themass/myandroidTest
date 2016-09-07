@@ -20,7 +20,6 @@ import com.romainpiel.shimmer.ShimmerTextView;
 import com.timeline.vpn.R;
 import com.timeline.vpn.bean.vo.RecommendVo;
 import com.timeline.vpn.common.util.DensityUtil;
-import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.common.util.StringUtils;
 import com.timeline.vpn.constant.Constants;
 
@@ -34,17 +33,18 @@ import butterknife.Bind;
  */
 public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecycleViewAdapter implements View.OnClickListener {
     private static final Random random = new Random();
-    StaggeredGridLayoutManager layoutManager ;
+    StaggeredGridLayoutManager layoutManager;
     private ItemClickListener listener;
     private int itemWidth;
     private int imgWidth;
-    private int marginPix ;
-    public IndexRecommendAdapter(Context context, RecyclerView recyclerView, List<RecommendVo> data, ItemClickListener listener,StaggeredGridLayoutManager layoutManager) {
+    private int marginPix;
+
+    public IndexRecommendAdapter(Context context, RecyclerView recyclerView, List<RecommendVo> data, ItemClickListener listener, StaggeredGridLayoutManager layoutManager) {
         super(context, recyclerView, data);
         this.listener = listener;
         this.layoutManager = layoutManager;
-        itemWidth = DensityUtil.getDensityDisplayMetrics(context).widthPixels/layoutManager.getSpanCount();
-        marginPix = context.getResources().getDimensionPixelSize(R.dimen.margin_8)*layoutManager.getSpanCount()+context.getResources().getDimensionPixelSize(R.dimen.margin_3)*layoutManager.getSpanCount();
+        itemWidth = DensityUtil.getDensityDisplayMetrics(context).widthPixels / layoutManager.getSpanCount();
+        marginPix = context.getResources().getDimensionPixelSize(R.dimen.margin_8) * layoutManager.getSpanCount() + context.getResources().getDimensionPixelSize(R.dimen.margin_3) * layoutManager.getSpanCount();
         imgWidth = itemWidth - marginPix;
     }
 
@@ -80,10 +80,10 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
     protected void animatePhoto(BaseViewHolder viewHolder, long animationDelay, int position) {
         final IndexRecommendAdapter.NaviItemViewHolder holder = (IndexRecommendAdapter.NaviItemViewHolder) viewHolder;
         final RecommendVo vo = (RecommendVo) data.get(position);
-        if(vo.title.length()>9){
-            holder.ivTitle.setTextSize(TypedValue.COMPLEX_UNIT_PX,context.getResources().getDimensionPixelSize(R.dimen.textsize_25));
-        }else{
-            holder.ivTitle.setTextSize(TypedValue.COMPLEX_UNIT_PX,context.getResources().getDimensionPixelSize(R.dimen.textsize_32));
+        if (vo.title.length() > 9) {
+            holder.ivTitle.setTextSize(TypedValue.COMPLEX_UNIT_PX, context.getResources().getDimensionPixelSize(R.dimen.textsize_25));
+        } else {
+            holder.ivTitle.setTextSize(TypedValue.COMPLEX_UNIT_PX, context.getResources().getDimensionPixelSize(R.dimen.textsize_32));
         }
         holder.ivTitle.setText(vo.title);
         if (StringUtils.hasText(vo.color)) {
@@ -92,11 +92,11 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
             holder.ivPhoto.setBackgroundResource(R.color.style_color_primary_trans);
         }
         ViewGroup.LayoutParams ivPhotoParam = holder.ivPhoto.getLayoutParams();
-        ivPhotoParam.height = (int)(imgWidth*vo.rate);
+        ivPhotoParam.height = (int) (imgWidth * vo.rate);
         ivPhotoParam.width = imgWidth;
         holder.ivPhoto.setLayoutParams(ivPhotoParam);
 
-        LogUtil.i("w= "+imgWidth+"--h="+ivPhotoParam.height);
+//        LogUtil.i("w= "+imgWidth+"--h="+ivPhotoParam.height);
         holder.ivTitle.setVisibility(View.VISIBLE);
         final Shimmer shimmer = new Shimmer();
         shimmer.setDuration(Constants.RECOMMAND_SHIMMER_DURATION);

@@ -33,7 +33,8 @@ import okhttp3.Response;
  */
 public final class MyHttpLog implements Interceptor {
 
-    @Override public Response intercept(Chain chain) throws IOException {
+    @Override
+    public Response intercept(Chain chain) throws IOException {
 
         Request request = chain.request();
         Headers headers = request.headers();

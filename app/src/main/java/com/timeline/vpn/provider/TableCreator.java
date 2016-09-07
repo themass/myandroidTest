@@ -5,6 +5,7 @@ import android.provider.BaseColumns;
 
 public class TableCreator {
     public static final String ADS_INFO = "ads_info";
+
     public static void createTables(SQLiteDatabase db) {
         db.execSQL("CREATE TABLE IF NOT EXISTS "
                 + ADS_INFO + " ("

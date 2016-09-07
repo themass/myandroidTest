@@ -22,7 +22,7 @@ public class RecycleViewDivider extends RecyclerView.ItemDecoration {
     /**
      * item之间分割线的size，默认为1
      */
-    private int mItemSize = 1;
+    private int mItemSize = 3;
 
     /**
      * 绘制item分割线的画笔，和设置其属性

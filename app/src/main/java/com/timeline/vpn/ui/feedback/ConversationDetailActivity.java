@@ -1,6 +1,5 @@
 package com.timeline.vpn.ui.feedback;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
@@ -53,18 +52,18 @@ public class ConversationDetailActivity extends FragmentActivity {
         tvTitle.setText(id);
         tvTitle.setTextColor(getResources().getColorStateList(R.color.base_white));
         setNavigationOut();
-        MenuItem menuWanna= toolbar.getMenu().findItem(R.id.menu_view);
-        menuWanna.setActionView(R.layout.menu_image_view);
+        MenuItem menuWanna = toolbar.getMenu().findItem(R.id.menu_view);
+        menuWanna.setActionView(R.layout.common_image_view);
         ImageView ivMenu = (ImageView) menuWanna.getActionView().findViewById(R.id.iv_menu);
         ivMenu.setImageResource(R.drawable.ic_menu_wanna);
         menuWanna.getActionView().setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(ConversationDetailActivity.this,IWannaActivity.class);
-                startActivity(intent);
+                IWannaFragment.startFragment(ConversationDetailActivity.this);
             }
         });
     }
+
     public void setNavigationOut() {
         toolbar.setNavigationIcon(R.drawable.ic_arrow_back_white);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {

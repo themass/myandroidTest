@@ -15,7 +15,7 @@
 
             <include
                 android:id="@+id/toolbar"
-                layout="@layout/toolbar_view" />
+                layout="@layout/common_toolbar_view" />
         </android.support.design.widget.AppBarLayout>
 
         <android.support.v7.widget.RecyclerView

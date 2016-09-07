@@ -26,6 +26,7 @@ public class TabContentFgment extends BaseBannerAdsFragemnt {
     ShimmerTextView tvReady;
     NativeAdsAdapter.AdsAdapter adsAdapter;
     Shimmer shimmer;
+
     @Override
     protected int getTabHeaderViewId() {
         return TabAdsFragment.NULL_VIEW;

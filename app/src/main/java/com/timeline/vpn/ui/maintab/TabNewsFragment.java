@@ -21,7 +21,7 @@ public class TabNewsFragment extends TabBaseAdsFragment {
 
     @Override
     protected int getTabBodyViewId() {
-        return R.layout.tab_energy_content;
+        return R.layout.common_page_view;
     }
 
     @Override

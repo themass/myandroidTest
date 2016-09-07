@@ -26,6 +26,7 @@ import java.lang.ref.WeakReference;
  * @author jrzheng
  */
 public abstract class LoadableFragment<T> extends BaseFragment {
+    public boolean mDataLoaded = false;
     protected ProgressBar mLoadingView;
     protected View mLoadRetryView;
     protected ViewGroup mContentView;
@@ -195,9 +196,13 @@ public abstract class LoadableFragment<T> extends BaseFragment {
                 if (data != null) {
                     fragment.setData(data);
                     fragment.onDataLoaded(data);
-                    // fragment.mDataLoaded = true;
+                    fragment.mDataLoaded = true;
                 } else {
-                    fragment.showRetry();
+                    if (!fragment.mDataLoaded)
+                        fragment.showRetry();
+                    else {
+                        fragment.onDataLoaded(null);
+                    }
                 }
             }
         }

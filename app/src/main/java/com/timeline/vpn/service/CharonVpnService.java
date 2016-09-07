@@ -479,7 +479,7 @@ public class CharonVpnService extends VpnService {
                 return -1;
             }
             /* now that the TUN device is created we don't need the current
-			 * builder anymore, but we might need another when reestablishing */
+             * builder anymore, but we might need another when reestablishing */
             mBuilder = createBuilder(mName);
             mEstablishedCache = mCache;
             mCache = new BuilderCache();

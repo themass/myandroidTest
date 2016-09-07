@@ -40,10 +40,12 @@ public class LogFramgment extends Fragment {
         LogUtil.i(getClass().getSimpleName() + "-onCreate");
         super.onCreate(savedInstanceState);
     }
+
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
-        LogUtil.i(getClass().getSimpleName() + "-setUserVisibleHint=="+isVisibleToUser);
+        LogUtil.i(getClass().getSimpleName() + "-setUserVisibleHint==" + isVisibleToUser);
     }
+
     @Override
     public Animator onCreateAnimator(int transit, boolean enter, int nextAnim) {
         LogUtil.i(getClass().getSimpleName() + "-onCreateAnimator");

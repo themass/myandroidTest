@@ -89,17 +89,16 @@
         <activity
             android:name=".ui.main.MainFragment"
             android:label="@string/main_activity_name"
-            android:launchMode="singleTop"></activity>
+            android:launchMode="singleTop"/>
         <activity android:name=".ui.vpn.VpnManagerActivity" />
         <activity android:name=".ui.base.WebViewActivity" />
-        <activity android:name=".ui.vpn.LocationChooseaActivity" />
-        <activity android:name=".ui.user.LoginActivity" />
+        <activity android:name=".ui.user.LoginActivity"/> >
         <activity android:name=".ui.user.RegActivity" />
         <activity android:name=".ui.user.TestActivity">
 
         </activity>
         <activity android:name=".ui.feedback.ConversationDetailActivity" />
-        <activity android:name=".ui.feedback.IWannaActivity" />
+        <activity android:name=".ui.base.CommonFragmentActivity" />
 
         <service
             android:name=".service.CharonVpnService"

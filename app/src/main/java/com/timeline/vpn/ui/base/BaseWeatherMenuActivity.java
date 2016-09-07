@@ -33,9 +33,10 @@ public abstract class BaseWeatherMenuActivity extends LogActivity {
             LogUtil.i("detecting...");
             setWeatherIcon(R.drawable.w__default);
         }
+
         @Override
-        public void succeed(double lat,double lon) {
-                startGetWeather(lat,lon);
+        public void succeed(double lat, double lon) {
+            startGetWeather(lat, lon);
         }
 
         @Override
@@ -55,7 +56,7 @@ public abstract class BaseWeatherMenuActivity extends LogActivity {
             getMenuInflater().inflate(R.menu.menu_space, menu);
             LogUtil.i("onCreateOptionsMenu");
             MenuItem menuWeather = menu.findItem(R.id.menu_view);
-            menuWeather.setActionView(R.layout.menu_image_view);
+            menuWeather.setActionView(R.layout.common_image_view);
             ivWeather = (ImageView) menuWeather.getActionView().findViewById(R.id.iv_menu);
             menuWeather.getActionView().setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -66,7 +67,7 @@ public abstract class BaseWeatherMenuActivity extends LogActivity {
             });
             if (StaticDataUtil.get(Constants.WEATHER_KEY, WeatherInfo.class) != null) {
                 weatherInfo = StaticDataUtil.get(Constants.WEATHER_KEY, WeatherInfo.class);
-                if(weatherInfo!=null&& !CollectionUtils.isEmpty(weatherInfo.weather)){
+                if (weatherInfo != null && !CollectionUtils.isEmpty(weatherInfo.weather)) {
                     setWeatherIcon(WeatherIconUtils.getWeatherIcon(weatherInfo.weather.get(0).id));
                 }
             } else {
@@ -82,10 +83,10 @@ public abstract class BaseWeatherMenuActivity extends LogActivity {
         }
     }
 
-    private void startGetWeather(double lat,double lon) {
+    private void startGetWeather(double lat, double lon) {
         WeatherInfoListener listener = new WeatherInfoListener();
         StringRequest request = new StringRequest(String.format(
-                WeatherSpider.WEATHER_ALL, String.valueOf(lat),String.valueOf(lon), SystemUtils.getLang(this)), listener, listener);
+                WeatherSpider.WEATHER_ALL, String.valueOf(lat), String.valueOf(lon), SystemUtils.getLang(this)), listener, listener);
         VolleyUtils.addRequest(request);
     }
 
@@ -125,7 +126,7 @@ public abstract class BaseWeatherMenuActivity extends LogActivity {
             try {
                 weatherInfo = WeatherSpider.getWeatherInfo(
                         BaseWeatherMenuActivity.this, result);
-                if(weatherInfo!=null&& !CollectionUtils.isEmpty(weatherInfo.weather)){
+                if (weatherInfo != null && !CollectionUtils.isEmpty(weatherInfo.weather)) {
                     StaticDataUtil.add(Constants.WEATHER_KEY, weatherInfo);
                     setWeatherIcon(WeatherIconUtils.getWeatherIcon(weatherInfo.weather.get(0).id));
                 }

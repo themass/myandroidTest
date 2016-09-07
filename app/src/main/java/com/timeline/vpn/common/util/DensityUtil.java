@@ -37,6 +37,7 @@ public class DensityUtil {
     public static float getDensity(Context context) {
         return context.getResources().getDisplayMetrics().density;
     }
+
     public static DisplayMetrics getDensityDisplayMetrics(Context context) {
         return context.getResources().getDisplayMetrics();
     }

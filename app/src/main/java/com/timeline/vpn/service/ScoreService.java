@@ -11,6 +11,7 @@ import android.support.annotation.Nullable;
  */
 public class ScoreService extends Service {
     LocalBinder binder = new LocalBinder();
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
