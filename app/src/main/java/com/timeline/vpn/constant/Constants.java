@@ -10,8 +10,8 @@ public class Constants {
     public static final String FIRSTRUN = "isFirstRun";
     public static final int SELECT_TRUSTED_CERTIFICATE = 0;
     public static final String DEFAULT_REFERER = "http://timeline.vpn.com/";
-//    public static final String BASE_HOST = "http://10.33.67.125:8080/vpn/api";//TODO 测试地址
-        public static final String BASE_HOST = "http://192.168.1.6:8080/vpn/api";//TODO 测试地址
+    public static final String BASE_HOST = "http://10.33.71.3:8080/vpn/api";//TODO 测试地址
+    //        public static final String BASE_HOST = "http://192.168.1.6:8080/vpn/api";//TODO 测试地址
     public static final String API_SERVERLIST_URL = BASE_HOST + "/host/server/list.json?location=%s";
     public static final String API_FAB_ADSCLICK_URL = BASE_HOST + "/user/ads/score.json?score=%s";
     public static final String API_LOCATION_URL = BASE_HOST + "/host/server/location.json";
@@ -84,19 +84,20 @@ public class Constants {
     public static final String ADS_ADVIEW_KEY = "SDK201613190108211j6pfsw630dnsyz";
     public static final String ADS_ADVIEW_KEY_ACTIVITY = "SDK20161823060827zy54tlysbkjtt4h";
     public static final String adsKeySet[] = new String[]{ADS_ADVIEW_KEY};
-    public static final String adsKeySetBanner[] = new String[]{ADS_ADVIEW_KEY,ADS_ADVIEW_KEY_ACTIVITY};
+    public static final String adsKeySetBanner[] = new String[]{ADS_ADVIEW_KEY, ADS_ADVIEW_KEY_ACTIVITY};
+    public static final String LANG_ZH = "zh";
+    public static final String LANG_US = "en";
     public static VpnType mVpnType = VpnType.IKEV2_CERT;
     public static int connTimeOut = 20;
     public static String NET_ERROR = "network error";
     public static boolean USE_BYOD = false;
     public static VpnType vpnType = VpnType.IKEV2_EAP;
     public static String FIRST_FB_CLICK = "FIRST_FB_CLICK";
+    public static int ADS_SHOW_SCORE = 10;
+    public static int ADS_SHOW_CLICK = 20;
+
     public static String getRECOMMEND_URL(int start) {
         return String.format(API_RECOMMEND_URL, start);
     }
-    public static int ADS_SHOW_SCORE = 10;
-    public static int ADS_SHOW_CLICK = 20;
-    public static final String LANG_ZH = "zh";
-    public static final String LANG_US = "en";
 
 }
