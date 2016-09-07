@@ -117,7 +117,7 @@ public class OkHttp3Stack implements HttpStack {
     private static RequestBody createRequestBody(Request r) throws AuthFailureError {
         final byte[] body = r.getBody();
         if (body == null) {
-            return null;
+            return RequestBody.create(MediaType.parse(r.getBodyContentType()), new byte[0]);
         }
         return RequestBody.create(MediaType.parse(r.getBodyContentType()), body);
     }

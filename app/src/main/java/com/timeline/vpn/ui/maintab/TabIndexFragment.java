@@ -171,8 +171,10 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
     }
 
     @Override
-    public void onRefresh() {
+    public void onRefresh(int type) {
         LogUtil.i("onRefresh");
+        if(type== MyPullView.OnRefreshListener.FRESH)
+            infoVo.pageNum=0;
         startQuery(false);
     }
 

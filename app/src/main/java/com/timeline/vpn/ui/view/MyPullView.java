@@ -64,7 +64,7 @@ public class MyPullView extends LinearLayout {
             @Override
             public void onRefresh() {
                 if (!isLoadMore())
-                    loadData();
+                    loadData(OnRefreshListener.FRESH);
                 else {
                     refreshLayout.setRefreshing(false);
                 }
@@ -80,12 +80,12 @@ public class MyPullView extends LinearLayout {
                         int[] visibleItems = ((StaggeredGridLayoutManager) rvContent.getLayoutManager()).findLastVisibleItemPositions(null);
                         int lastitem = Math.max(visibleItems[0], visibleItems[1]);
                         if ((lastitem > count - 5) && listener.needLoad()) {
-                            loadData();
+                            loadData(OnRefreshListener.LOADMORE);
                             footerView.setVisibility(View.VISIBLE);
                         }
                     } else if (rvContent.getLayoutManager() instanceof LinearLayoutManager) {
                         if ((((LinearLayoutManager) rvContent.getLayoutManager()).findLastVisibleItemPosition() > count - 3) && listener.needLoad()) {
-                            loadData();
+                            loadData(OnRefreshListener.LOADMORE);
                             footerView.setVisibility(View.VISIBLE);
                         }
                     }
@@ -100,9 +100,9 @@ public class MyPullView extends LinearLayout {
         refreshLayout.setRefreshing(flag);
     }
 
-    private void loadData() {
+    private void loadData(int type) {
         if (listener != null) {
-            listener.onRefresh();
+            listener.onRefresh(type);
         } else {
             refreshLayout.setRefreshing(false);
             footerView.setVisibility(View.GONE);
@@ -140,8 +140,9 @@ public class MyPullView extends LinearLayout {
     }
 
     public interface OnRefreshListener {
-        public void onRefresh();
-
+        public static final int FRESH=1;
+        public static final int LOADMORE=2;
+        public void onRefresh(int type);
         public boolean needLoad();
     }
 }

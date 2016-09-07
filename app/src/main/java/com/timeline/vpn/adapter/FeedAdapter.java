@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import com.timeline.vpn.R;
 import com.timeline.vpn.bean.vo.IWannaVo;
+import com.timeline.vpn.task.IWannaLikeTask;
 
 import java.util.List;
 
@@ -53,12 +54,13 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             public void onClick(View v) {
                 int adapterPosition = cellFeedViewHolder.getAdapterPosition();
 //                if(!feedItems.get(adapterPosition).isLike){
-                feedItems.get(adapterPosition).isLike = true;
-                feedItems.get(adapterPosition).likeCount++;
+                feedItems.get(adapterPosition).like = true;
+                feedItems.get(adapterPosition).likes++;
                 notifyItemChanged(adapterPosition, ACTION_LIKE_IMAGE_CLICKED);
                 if (listener != null) {
                     listener.onCommentsClick(view, adapterPosition);
                 }
+                IWannaLikeTask.start(context,feedItems.get(adapterPosition).id);
 //                }
 
             }
@@ -96,9 +98,10 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         public void bindView(IWannaVo feedItem) {
             this.feedItem = feedItem;
             tsLikesCounter.setCurrentText(tvContent.getResources().getQuantityString(
-                    R.plurals.likes_count, feedItem.likeCount, feedItem.likeCount
+                    R.plurals.likes_count, feedItem.likes, feedItem.likes
             ));
-            if (feedItem.isLike) {
+            tvContent.setText(feedItem.content);
+            if (feedItem.like) {
                 imageView.setImageResource(R.drawable.ic_heart_small_red);
             } else {
                 imageView.setImageResource(R.drawable.ic_heart_small_blue);

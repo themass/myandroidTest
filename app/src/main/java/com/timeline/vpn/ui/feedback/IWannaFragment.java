@@ -19,7 +19,6 @@ import com.timeline.vpn.adapter.FeedAdapter;
 import com.timeline.vpn.bean.form.IwannaForm;
 import com.timeline.vpn.bean.vo.IWannaVo;
 import com.timeline.vpn.bean.vo.InfoListVo;
-import com.timeline.vpn.bean.vo.NullReturnVo;
 import com.timeline.vpn.common.net.request.CommonResponse;
 import com.timeline.vpn.common.net.request.CommonResponse.ResponseOkListener;
 import com.timeline.vpn.common.util.LogUtil;
@@ -109,16 +108,19 @@ public class IWannaFragment extends LoadableFragment<InfoListVo<IWannaVo>> imple
         }
         if(StringUtils.hasText(etComment.getText().toString())){
             myProgressDialog.show();
-            indexService.postData(Constants.API_IWANNA_URL,new IwannaForm(etComment.getText().toString()),okListener,errorListener,TAG, NullReturnVo.class);
+            indexService.postData(Constants.API_IWANNA_URL,new IwannaForm(etComment.getText().toString()),okListener,errorListener,TAG, IWannaVo.class);
         }else{
             Toast.makeText(getActivity(),R.string.iwanna_content_error,Toast.LENGTH_SHORT).show();
         }
     }
-    ResponseOkListener okListener = new ResponseOkListener<NullReturnVo>(){
+    ResponseOkListener okListener = new ResponseOkListener<IWannaVo>(){
         @Override
-        public void onResponse(NullReturnVo o) {
+        public void onResponse(IWannaVo o) {
             super.onResponse(o);
             myProgressDialog.dismiss();
+            etComment.setText(null);
+            infoVo.voList.add(o);
+            pullView.notifyDataSetChanged();
             Toast.makeText(getActivity(),R.string.iwanna_content_success,Toast.LENGTH_SHORT).show();
         }
     };
@@ -162,8 +164,10 @@ public class IWannaFragment extends LoadableFragment<InfoListVo<IWannaVo>> imple
     }
 
     @Override
-    public void onRefresh() {
+    public void onRefresh(int type) {
         LogUtil.i("onRefresh");
+        if(type== MyPullView.OnRefreshListener.FRESH)
+            infoVo.pageNum=0;
         startQuery(false);
     }
 
