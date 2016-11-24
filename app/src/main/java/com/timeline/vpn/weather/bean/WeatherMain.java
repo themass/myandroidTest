@@ -5,8 +5,8 @@ package com.timeline.vpn.weather.bean;
  */
 public class WeatherMain {
     public float temp;
-    public int pressure;
-    public int humidity;
+    public float pressure;
+    public float humidity;
     public float temp_min;
     public float temp_max;
 }

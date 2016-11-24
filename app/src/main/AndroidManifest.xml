@@ -81,6 +81,8 @@
             android:value="10000_wandoujia" />
 
         <activity android:name=".ui.main.LaunchActivity">
+        </activity>
+        <activity android:name=".ui.main.LaunchActivityTest">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

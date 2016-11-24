@@ -5,6 +5,6 @@ package com.timeline.vpn.weather.bean;
  */
 public class WeatherWind {
     public float speed;
-    public int deg;
+    public float deg;
     public float gust;
 }

@@ -153,6 +153,6 @@ public class LocationChooseFragment extends LoadableFragment<List<LocationVo>> i
         }
         PreferenceUtils.setPrefObj(getActivity(), Constants.LOCATION_CHOOSE, data);
         EventBusUtil.getEventBus().post(new LocationChooseEvent());
-//        getActivity().finish();
+        getActivity().finish();
     }
 }

@@ -12,8 +12,6 @@ import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
-import com.romainpiel.shimmer.Shimmer;
-import com.romainpiel.shimmer.ShimmerTextView;
 import com.timeline.vpn.R;
 import com.timeline.vpn.adapter.FeedAdapter;
 import com.timeline.vpn.bean.form.IwannaForm;
@@ -44,18 +42,13 @@ import butterknife.OnClick;
  */
 public class IWannaFragment extends LoadableFragment<InfoListVo<IWannaVo>> implements FeedAdapter.OnFeedItemClickListener, MyPullView.OnRefreshListener,FabOpListener.SetFabListener {
     private static String TAG = "IWANNA";
-    @Bind(R.id.tv_tips)
-    ShimmerTextView tvTips;
     @Bind(R.id.my_pullview)
     MyPullView pullView;
     @Bind(R.id.ll_comment)
     RelativeLayout rlComment;
     @Bind(R.id.et_comment)
     EditText etComment;
-    @Bind(R.id.loading)
-    View loading;
     FeedAdapter feedAdapter;
-    Shimmer shimmer;
     private BaseService indexService;
     private FabOpListener.OnFabListener listener;
     private MyProgressDialog myProgressDialog;
@@ -88,7 +81,6 @@ public class IWannaFragment extends LoadableFragment<InfoListVo<IWannaVo>> imple
         pullView.setAdapter(feedAdapter);
         pullView.setListener(this);
         pullView.setItemAnimator(new FeedItemAnimator());
-        setUpShimmer();
         myProgressDialog = new MyProgressDialog(getActivity());
 //        if(listener!=null){
 //            listener.setFabUpVisibility(View.VISIBLE);
@@ -119,8 +111,10 @@ public class IWannaFragment extends LoadableFragment<InfoListVo<IWannaVo>> imple
             super.onResponse(o);
             myProgressDialog.dismiss();
             etComment.setText(null);
-            infoVo.voList.add(o);
-            pullView.notifyDataSetChanged();
+            if(!infoVo.hasMore) {
+                infoVo.voList.add(o);
+                pullView.notifyDataSetChanged();
+            }
             Toast.makeText(getActivity(),R.string.iwanna_content_success,Toast.LENGTH_SHORT).show();
         }
     };
@@ -131,14 +125,6 @@ public class IWannaFragment extends LoadableFragment<InfoListVo<IWannaVo>> imple
             myProgressDialog.dismiss();
         }
     };
-    public void setLoadingView(int v){
-        loading.setVisibility(v);
-    }
-    public void setUpShimmer() {
-        shimmer = new Shimmer();
-        shimmer.setDuration(Constants.VIP_SHIMMER_DURATION);
-        shimmer.start(tvTips);
-    }
 
     @Override
     protected void onContentViewCreated(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {

@@ -88,7 +88,7 @@
     <string name="need_vip">Not VIP user has no permission to select the areang</string>
 
     <string name="iwanna_tips">Tell me what du you want \nI\'ll be ready for you </string>
-    <string name="iwanna_title">what I wanna?</string>
+    <string name="iwanna_title">what do you wanna?</string>
     <string name="send">send</string>
     <string name="iwanna_content_error">tell me something!</string>
     <string name="iwanna_content_success">i got it !</string>

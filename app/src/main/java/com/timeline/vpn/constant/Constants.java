@@ -10,19 +10,20 @@ public class Constants {
     public static final String FIRSTRUN = "isFirstRun";
     public static final int SELECT_TRUSTED_CERTIFICATE = 0;
     public static final String DEFAULT_REFERER = "http://timeline.vpn.com/";
-//    public static final String BASE_HOST = "http://10.33.71.3:8080/vpn/api";//TODO 测试地址
-            public static final String BASE_HOST = "http://192.168.1.6:8080/vpn/api";//TODO 测试地址
-    public static final String API_SERVERLIST_URL = BASE_HOST + "/host/server/list.json?location=%s";
-    public static final String API_FAB_ADSCLICK_URL = BASE_HOST + "/user/ads/score.json?score=%s";
-    public static final String API_LOCATION_URL = BASE_HOST + "/host/server/location.json";
-    public static final String API_LOGIN_URL = BASE_HOST + "/user/login.json";
-    public static final String API_REG_URL = BASE_HOST + "/user/reg.json";
-    public static final String API_USER_INFO_URL = BASE_HOST + "/user/info.json";
-    public static final String API_IWANNA_URL = BASE_HOST + "/data/feed/wanna.json?start=%s&limit=20";
-    public static final String API_IWANNA_LIKE_URL = BASE_HOST + "/data/feed/wanna/%s.json";
-    public static final String API_VERSION_URL = BASE_HOST + "/data/version.json";
-    public static final String API_RECOMMEND_URL = BASE_HOST + "/data/recommend.json?start=%s&limit=20";
-    public static final String API_LOGOUT_URL = BASE_HOST + "/user/logout.json";
+    public static String BASE_IP = "10.33.64.17";
+    public static  String BASE_HOST = "http://"+BASE_IP+":8080/vpn/api";//TODO 测试地址
+//            public static final String BASE_HOST = "http://192.168.1.6:8080/vpn/api";//TODO 测试地址
+    public static  String API_SERVERLIST_URL = BASE_HOST + "/host/server/list.json?location=%s";
+    public static  String API_FAB_ADSCLICK_URL = BASE_HOST + "/user/ads/score.json?score=%s";
+    public static  String API_LOCATION_URL = BASE_HOST + "/host/server/location.json";
+    public static  String API_LOGIN_URL = BASE_HOST + "/user/login.json";
+    public static  String API_REG_URL = BASE_HOST + "/user/reg.json";
+    public static  String API_USER_INFO_URL = BASE_HOST + "/user/info.json";
+    public static  String API_IWANNA_URL = BASE_HOST + "/data/feed/wanna.json?start=%s&limit=20";
+    public static  String API_IWANNA_LIKE_URL = BASE_HOST + "/data/feed/wanna/%s.json";
+    public static  String API_VERSION_URL = BASE_HOST + "/data/version.json";
+    public static  String API_RECOMMEND_URL = BASE_HOST + "/data/recommend.json?start=%s&limit=20";
+    public static  String API_LOGOUT_URL = BASE_HOST + "/user/logout.json";
 
     public static final String URL = "url";
     public static final int STARTUP_SHOW_TIME_1500 = 1500; //启动页广告时长
