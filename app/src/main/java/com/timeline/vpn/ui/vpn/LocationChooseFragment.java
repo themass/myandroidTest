@@ -105,7 +105,7 @@ public class LocationChooseFragment extends LoadableFragment<List<LocationVo>> i
 
     @Override
     protected List<LocationVo> loadData(Context context) throws Exception {
-        InfoListVo<LocationVo> vo = indexService.getInfoListData(Constants.API_LOCATION_URL, LocationVo.class, LOCATION_TAG);
+        InfoListVo<LocationVo> vo = indexService.getInfoListData(Constants.getUrl(Constants.API_LOCATION_URL), LocationVo.class, LOCATION_TAG);
         return vo != null ? vo.voList : null;
     }
 

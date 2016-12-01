@@ -83,7 +83,7 @@ public class RegActivity extends BaseBannerAdsActivity {
             sex = Constants.SEX_F;
         }
         RegForm form = new RegForm(name, pwd, repwd, sex);
-        baseService.postData(Constants.API_REG_URL, form, loginListener, new CommonResponse.ResponseErrorListener() {
+        baseService.postData(Constants.getUrl(Constants.API_REG_URL), form, loginListener, new CommonResponse.ResponseErrorListener() {
             @Override
             protected void onError() {
                 super.onError();

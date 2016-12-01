@@ -87,7 +87,7 @@ public class VersionUpdater {
      * 开始检查版本
      */
     public static void checkNewVersion(Context context, CommonResponse.ResponseOkListener listener, CommonResponse.ResponseErrorListener errorListener, String tag) {
-        GsonRequest request = new GsonRequest(context, Constants.API_VERSION_URL, VersionVo.class, null, listener, errorListener);
+        GsonRequest request = new GsonRequest(context, Constants.getUrl(Constants.API_VERSION_URL), VersionVo.class, null, listener, errorListener);
         request.setTag(tag);
         VolleyUtils.addRequest(request);
     }

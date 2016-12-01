@@ -71,6 +71,7 @@
     <string name="menu_btn_score">我的积分：%s</string>
     <string name="menu_btn_score_context">积分可用于商城购买物品，VIP等。。</string>
     <!--登录，注册-->
+    <string name="log">日志</string>
     <string name="close_over">再按一次退出程序!!</string>
     <string name="login">登录</string>
     <string name="reg">注册</string>

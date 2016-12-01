@@ -33,7 +33,7 @@ public class ScoreTask extends AsyncTask {
     protected Object doInBackground(Object[] params) {
         final UserInfoVo vo = UserLoginUtil.getUserCache();
         if (vo != null) {
-            baseService.getData(String.format(Constants.API_FAB_ADSCLICK_URL, score), new CommonResponse.ResponseOkListener<UserInfoVo>() {
+            baseService.getData(String.format(Constants.getUrl(Constants.API_FAB_ADSCLICK_URL), score), new CommonResponse.ResponseOkListener<UserInfoVo>() {
                 @Override
                 public void onResponse(UserInfoVo o) {
                     super.onResponse(o);

@@ -81,7 +81,8 @@ public class BaseWebViewFragment extends BaseFragment {
     }
 
     public void setListener(MyWebView.OnTouchRightSlide listener) {
-        webView.setListener(listener);
+        if(webView!=null)
+            webView.setListener(listener);
     }
 
     private String getParamUrl() {

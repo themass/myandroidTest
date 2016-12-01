@@ -22,6 +22,10 @@
             android:id="@+id/menu_version"
             android:icon="@drawable/ic_menu_version"
             android:title="@string/menu_btn_version" />
+        <item
+            android:id="@+id/menu_log"
+            android:icon="@drawable/ic_menu_version"
+            android:title="@string/log" />
     </group>
     <group>
         <item
@@ -30,4 +34,5 @@
             android:title="@string/menu_btn_logout"
             android:visible="false" />
     </group>
+
 </menu>

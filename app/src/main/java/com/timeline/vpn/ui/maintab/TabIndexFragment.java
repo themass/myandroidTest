@@ -222,7 +222,7 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
             imgAnim();
             LocationVo vo = PreferenceUtils.getPrefObj(getActivity(), Constants.LOCATION_CHOOSE, LocationVo.class);
             int locatonId = vo == null ? 0 : vo.id;
-            indexService.getData(String.format(Constants.API_SERVERLIST_URL, locatonId), serverListener, serverListenerError, INDEX_TAG, ServerVo.class);
+            indexService.getData(String.format(Constants.getUrl(Constants.API_SERVERLIST_URL), locatonId), serverListener, serverListenerError, INDEX_TAG, ServerVo.class);
         } else if (mService.getCurrentVpnState() == CharonVpnService.State.CONNECTING) {
             mService.stopCurrentConnection();
             imgNormal();

@@ -31,7 +31,7 @@ public class UpdateUserTask extends AsyncTask {
     protected Object doInBackground(Object[] params) {
         final UserInfoVo vo = UserLoginUtil.getUserCache();
         if (vo != null) {
-            baseService.getData(Constants.API_USER_INFO_URL, new CommonResponse.ResponseOkListener<UserInfoVo>() {
+            baseService.getData(Constants.getUrl(Constants.API_USER_INFO_URL), new CommonResponse.ResponseOkListener<UserInfoVo>() {
                 @Override
                 public void onResponse(UserInfoVo o) {
                     super.onResponse(o);

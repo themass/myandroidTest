@@ -81,7 +81,7 @@ public class LoginActivity extends BaseBannerAdsActivity {
         setEnabled(false);
         PreferenceUtils.setPrefString(this, Constants.LOGIN_USER_LAST, name);
         LoginForm form = new LoginForm(name, pwd);
-        baseService.postData(Constants.API_LOGIN_URL, form, loginListener, new CommonResponse.ResponseErrorListener() {
+        baseService.postData(Constants.getUrl(Constants.API_LOGIN_URL), form, loginListener, new CommonResponse.ResponseErrorListener() {
             @Override
             protected void onError() {
                 super.onError();

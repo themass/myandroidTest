@@ -76,7 +76,7 @@ public class BaseService {
 
     public <T> void getData(String url, CommonResponse.ResponseOkListener<T> serverListener, CommonResponse.ResponseErrorListener errorListener, String tag, Class<T> t, Map<String, String> param) {
         url = HttpUtils.generateGetUrl(url, param);
-        GsonRequest request = new GsonRequest(context, Constants.API_SERVERLIST_URL, t, null, serverListener, errorListener);
+        GsonRequest request = new GsonRequest(context, Constants.getUrl(Constants.API_SERVERLIST_URL), t, null, serverListener, errorListener);
         request.setTag(tag);
         VolleyUtils.addRequest(request);
     }

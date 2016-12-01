@@ -100,7 +100,7 @@ public class IWannaFragment extends LoadableFragment<InfoListVo<IWannaVo>> imple
         }
         if(StringUtils.hasText(etComment.getText().toString())){
             myProgressDialog.show();
-            indexService.postData(Constants.API_IWANNA_URL,new IwannaForm(etComment.getText().toString()),okListener,errorListener,TAG, IWannaVo.class);
+            indexService.postData(Constants.getUrl(Constants.API_IWANNA_URL),new IwannaForm(etComment.getText().toString()),okListener,errorListener,TAG, IWannaVo.class);
         }else{
             Toast.makeText(getActivity(),R.string.iwanna_content_error,Toast.LENGTH_SHORT).show();
         }
@@ -165,7 +165,7 @@ public class IWannaFragment extends LoadableFragment<InfoListVo<IWannaVo>> imple
 
     @Override
     protected InfoListVo<IWannaVo> loadData(Context context) throws Exception {
-        return indexService.getInfoListData(String.format(Constants.API_IWANNA_URL, infoVo.pageNum), IWannaVo.class, TAG);
+        return indexService.getInfoListData(String.format(Constants.getUrl(Constants.API_IWANNA_URL), infoVo.pageNum), IWannaVo.class, TAG);
     }
 
     @Override
