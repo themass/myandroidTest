@@ -95,7 +95,7 @@
         <activity android:name=".ui.vpn.VpnManagerActivity" />
         <activity android:name=".ui.base.WebViewActivity" />
         <activity android:name=".ui.user.LoginActivity"/>
-        <activity android:name=".ui.log.ErrorLogActivity"/>
+        <activity android:name=".ui.log.FileLogActivity"/>
         <activity android:name=".ui.user.RegActivity" />
         <activity android:name=".ui.user.TestActivity">
 

@@ -15,7 +15,6 @@ android {
         multiDexEnabled true
     }
     dexOptions {
-        dexInProcess true
         preDexLibraries true
         incremental true
     }

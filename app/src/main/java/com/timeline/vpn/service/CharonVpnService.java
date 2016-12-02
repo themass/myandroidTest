@@ -93,7 +93,9 @@ public class CharonVpnService extends VpnService {
     private Handler mWorkHandler;
     private State mCurrentState = State.DISABLED;
     private boolean mIsDisconnecting = false;
-
+    public static String getLogFilePath(Context context){
+        return context.getFilesDir().getAbsolutePath() + File.separator + LOG_FILE;
+    }
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null && intent.getExtras() != null) {
@@ -115,7 +117,7 @@ public class CharonVpnService extends VpnService {
 
     @Override
     public void onCreate() {
-        mLogFile = getFilesDir().getAbsolutePath() + File.separator + LOG_FILE;
+        mLogFile =getLogFilePath(this);
 //        mLogFile = Environment.getExternalStorageDirectory() + File.separator + LOG_FILE;
         mWorkThread = new HandlerThread(WORK_ANME);
         mWorkThread.start();
