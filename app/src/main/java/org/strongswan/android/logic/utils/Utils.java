@@ -13,7 +13,7 @@
  * for more details.
  */
 
-package com.timeline.vpn.service.utils;
+package org.strongswan.android.logic.utils;
 
 
 public class Utils {

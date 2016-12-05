@@ -43,12 +43,15 @@ public abstract class BaseBannerAdsActivity extends BaseSingleActivity {
         fabUp.setVisibility(View.GONE);
         flBanner.setBackgroundResource(R.color.base_white);
     }
-    public void setFabUpVisibility(int v){
+
+    public void setFabUpVisibility(int v) {
         fabUp.setVisibility(v);
     }
-    public void setFabUpClickListener(View.OnClickListener l){
+
+    public void setFabUpClickListener(View.OnClickListener l) {
         fabUp.setOnClickListener(l);
     }
+
     private void startIntroAnimation() {
         LogUtil.i("fabUp--" + getClass().getSimpleName());
         fabUp.setTranslationY(2 * getResources().getDimensionPixelOffset(R.dimen.btn_fab_size));
@@ -59,6 +62,7 @@ public abstract class BaseBannerAdsActivity extends BaseSingleActivity {
                 .setDuration(ANIM_DURATION_FAB)
                 .start();
     }
+
     @Override
     public void onResume() {
         super.onResume();

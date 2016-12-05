@@ -17,12 +17,11 @@ public class WebViewActivity extends BaseBannerAdsActivity implements MyWebView.
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.common_fragment);
+        webViewFragment = new BaseWebViewFragment();
         getFragmentManager().beginTransaction()
-                .add(R.id.fragment, new BaseWebViewFragment())
+                .add(R.id.fragment, webViewFragment)
                 .commit();
-        webViewFragment = (BaseWebViewFragment) getFragmentManager().findFragmentById(R.id.fragment);
         setNavigationOut();
-        webViewFragment.setListener(this);
         adsDelayGone();
     }
 
@@ -30,7 +29,7 @@ public class WebViewActivity extends BaseBannerAdsActivity implements MyWebView.
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         LogUtil.i("onKeyDown");
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            if (!webViewFragment.goBack()) {
+            if (webViewFragment==null||!webViewFragment.goBack()) {
                 finish();
                 return super.onKeyDown(keyCode, event);
             }

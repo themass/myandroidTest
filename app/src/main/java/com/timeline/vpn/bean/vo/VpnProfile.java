@@ -16,9 +16,24 @@
  */
 
 package com.timeline.vpn.bean.vo;
+/*
+ * Copyright (C) 2012-2016 Tobias Brunner
+ * Copyright (C) 2012 Giuliano Grassi
+ * Copyright (C) 2012 Ralf Sager
+ * HSR Hochschule fuer Technik Rapperswil
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.  See <http://www.fsf.org/copyleft/gpl.txt>.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
+ */
 
-
-import com.timeline.vpn.service.utils.VpnType;
+import org.strongswan.android.logic.VpnType;
 
 import java.io.Serializable;
 
@@ -28,10 +43,12 @@ public class VpnProfile implements Cloneable, Serializable {
     public static final int SPLIT_TUNNELING_BLOCK_IPV6 = 2;
 
     private String mName, mGateway, mUsername, mPassword, mCertificate, mUserCertificate;
+    private String mRemoteId, mLocalId;
     private Integer mMTU, mPort, mSplitTunneling;
     private VpnType mVpnType;
-    private long expire;
     private long mId = -1;
+    private Long expire;
+    private String cert;
 
     public long getId() {
         return mId;
@@ -81,11 +98,11 @@ public class VpnProfile implements Cloneable, Serializable {
         this.mPassword = password;
     }
 
-    public String getCert() {
+    public String getCertificateAlias() {
         return mCertificate;
     }
 
-    public void setCert(String alias) {
+    public void setCertificateAlias(String alias) {
         this.mCertificate = alias;
     }
 
@@ -97,16 +114,32 @@ public class VpnProfile implements Cloneable, Serializable {
         this.mUserCertificate = alias;
     }
 
-    public String getMTU() {
-        return null;
+    public String getLocalId() {
+        return mLocalId;
+    }
+
+    public void setLocalId(String localId) {
+        this.mLocalId = localId;
+    }
+
+    public String getRemoteId() {
+        return mRemoteId;
+    }
+
+    public void setRemoteId(String remoteId) {
+        this.mRemoteId = remoteId;
+    }
+
+    public Integer getMTU() {
+        return mMTU;
     }
 
     public void setMTU(Integer mtu) {
         this.mMTU = mtu;
     }
 
-    public String getPort() {
-        return String.valueOf(mPort);
+    public Integer getPort() {
+        return mPort;
     }
 
     public void setPort(Integer port) {
@@ -121,18 +154,25 @@ public class VpnProfile implements Cloneable, Serializable {
         this.mSplitTunneling = splitTunneling;
     }
 
-    public long getExpire() {
+    public Long getExpire() {
         return expire;
     }
 
-    public void setExpire(long expire) {
+    public void setExpire(Long expire) {
         this.expire = expire;
     }
 
+    public String getCert() {
+        return cert;
+    }
+
+    public void setCert(String cert) {
+        this.cert = cert;
+    }
 
     @Override
     public String toString() {
-        return super.toString();
+        return mName;
     }
 
     @Override
@@ -151,5 +191,4 @@ public class VpnProfile implements Cloneable, Serializable {
             throw new AssertionError();
         }
     }
-
 }

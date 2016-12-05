@@ -25,12 +25,6 @@ public class LaunchActivity extends LogActivity {
     public boolean canJumpImmediately = false;
     @Bind(R.id.rl_spread)
     RelativeLayout ivAds;
-    private Runnable mStartMainRunnable = new Runnable() {
-        @Override
-        public void run() {
-            launch();
-        }
-    };
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -42,6 +36,12 @@ public class LaunchActivity extends LogActivity {
                 default:
                     break;
             }
+        }
+    };
+    private Runnable mStartMainRunnable = new Runnable() {
+        @Override
+        public void run() {
+            launch();
         }
     };
 

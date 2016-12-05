@@ -6,8 +6,7 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        >
+        android:orientation="vertical">
 
         <com.timeline.vpn.ui.view.MyPullView
             android:id="@+id/my_pullview"
@@ -44,7 +43,7 @@
                 android:layout_toLeftOf="@+id/send"
                 android:background="@drawable/bg_edittext"
                 android:gravity="top|left"
-                android:hint="@string/iwanna_title"/>
+                android:hint="@string/iwanna_title" />
         </RelativeLayout>
     </RelativeLayout>
 </FrameLayout>

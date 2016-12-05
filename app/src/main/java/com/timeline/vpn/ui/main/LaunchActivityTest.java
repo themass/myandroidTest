@@ -36,24 +36,27 @@ public class LaunchActivityTest extends LogActivity {
         ButterKnife.bind(this);
         UpdateUserTask.start(this);
     }
+
     @OnClick(R.id.bt_text_lunch)
     public void launch(View view) {
         Intent intent = new Intent(this, MainFragment.class);
         startActivity(intent);
         finish();
     }
+
     @OnClick(R.id.bt_text)
-    public void onSave(View view){
+    public void onSave(View view) {
         String url = etText.getText().toString();
-        if(StringUtils.hasText(url)){
-            PreferenceUtils.setPrefString(this,"IP",url);
+        if (StringUtils.hasText(url)) {
+            PreferenceUtils.setPrefString(this, "IP", url);
             Constants.BASE_IP = url;
         }
     }
+
     @Override
     protected void onResume() {
         super.onResume();
-        String ip = PreferenceUtils.getPrefString(this,"IP",Constants.BASE_IP);
+        String ip = PreferenceUtils.getPrefString(this, "IP", Constants.BASE_IP);
         Constants.BASE_IP = ip;
         etText.setText(ip);
         MobAgent.onResume(this);

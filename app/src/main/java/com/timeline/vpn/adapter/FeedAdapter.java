@@ -60,7 +60,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 if (listener != null) {
                     listener.onCommentsClick(view, adapterPosition);
                 }
-                IWannaLikeTask.start(context,feedItems.get(adapterPosition).id);
+                IWannaLikeTask.start(context, feedItems.get(adapterPosition).id);
 //                }
 
             }

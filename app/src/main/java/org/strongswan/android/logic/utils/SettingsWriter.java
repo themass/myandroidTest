@@ -13,7 +13,7 @@
  * for more details.
  */
 
-package com.timeline.vpn.service.utils;
+package org.strongswan.android.logic.utils;
 
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -48,6 +48,28 @@ public class SettingsWriter {
         section = findOrCreateSection(Arrays.copyOfRange(keys, 0, keys.length - 1));
         section.Settings.put(keys[keys.length - 1], value);
         return this;
+    }
+
+    /**
+     * Set an integer value
+     *
+     * @param key
+     * @param value
+     * @return the writer
+     */
+    public SettingsWriter setValue(String key, Integer value) {
+        return setValue(key, value == null ? null : value.toString());
+    }
+
+    /**
+     * Set a boolean value
+     *
+     * @param key
+     * @param value
+     * @return the writer
+     */
+    public SettingsWriter setValue(String key, Boolean value) {
+        return setValue(key, value == null ? null : value ? "1" : "0");
     }
 
     /**

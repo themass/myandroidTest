@@ -81,7 +81,7 @@ public class BaseWebViewFragment extends BaseFragment {
     }
 
     public void setListener(MyWebView.OnTouchRightSlide listener) {
-        if(webView!=null)
+        if (webView != null)
             webView.setListener(listener);
     }
 
@@ -160,9 +160,19 @@ public class BaseWebViewFragment extends BaseFragment {
     }
 
     @Override
+    public void onPause() {
+        super.onPause();
+        if(webView!=null) {
+            webView.onPause();
+        }
+    }
+
+    @Override
     public void onDestroy() {
         super.onDestroy();
-
+        if(webView!=null) {
+            webView.destroy();
+        }
     }
 
     public interface WebViewListener {

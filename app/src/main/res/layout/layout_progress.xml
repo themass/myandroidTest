@@ -3,6 +3,5 @@
     android:id="@+id/loading"
     android:layout_width="50dp"
     android:layout_height="50dp"
-    android:background="@color/transparent"
     android:layout_gravity="center"
-   />
+    android:background="@color/transparent" />

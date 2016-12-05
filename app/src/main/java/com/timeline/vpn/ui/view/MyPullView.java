@@ -140,9 +140,11 @@ public class MyPullView extends LinearLayout {
     }
 
     public interface OnRefreshListener {
-        public static final int FRESH=1;
-        public static final int LOADMORE=2;
+        public static final int FRESH = 1;
+        public static final int LOADMORE = 2;
+
         public void onRefresh(int type);
+
         public boolean needLoad();
     }
 }

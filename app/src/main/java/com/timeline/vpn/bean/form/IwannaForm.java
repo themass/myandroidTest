@@ -5,7 +5,8 @@ package com.timeline.vpn.bean.form;
  */
 public class IwannaForm {
     public String content;
-    public IwannaForm(String content){
+
+    public IwannaForm(String content) {
         this.content = content;
     }
 }

@@ -40,7 +40,7 @@ import butterknife.OnClick;
 /**
  * Created by gqli on 2016/9/5.
  */
-public class IWannaFragment extends LoadableFragment<InfoListVo<IWannaVo>> implements FeedAdapter.OnFeedItemClickListener, MyPullView.OnRefreshListener,FabOpListener.SetFabListener {
+public class IWannaFragment extends LoadableFragment<InfoListVo<IWannaVo>> implements FeedAdapter.OnFeedItemClickListener, MyPullView.OnRefreshListener, FabOpListener.SetFabListener {
     private static String TAG = "IWANNA";
     @Bind(R.id.my_pullview)
     MyPullView pullView;
@@ -52,7 +52,28 @@ public class IWannaFragment extends LoadableFragment<InfoListVo<IWannaVo>> imple
     private BaseService indexService;
     private FabOpListener.OnFabListener listener;
     private MyProgressDialog myProgressDialog;
+    CommonResponse.ResponseErrorListener errorListener = new CommonResponse.ResponseErrorListener() {
+        @Override
+        protected void onError() {
+            super.onError();
+            myProgressDialog.dismiss();
+        }
+    };
     private InfoListVo<IWannaVo> infoVo = new InfoListVo<IWannaVo>();
+    ResponseOkListener okListener = new ResponseOkListener<IWannaVo>() {
+        @Override
+        public void onResponse(IWannaVo o) {
+            super.onResponse(o);
+            myProgressDialog.dismiss();
+            etComment.setText(null);
+            if (!infoVo.hasMore) {
+                infoVo.voList.add(o);
+                pullView.notifyDataSetChanged();
+            }
+            Toast.makeText(getActivity(), R.string.iwanna_content_success, Toast.LENGTH_SHORT).show();
+        }
+    };
+
     public static void startFragment(Context context) {
         Intent intent = new Intent(context, CommonFragmentActivity.class);
         intent.putExtra(CommonFragmentActivity.FRAGMENT, IWannaFragment.class);
@@ -92,39 +113,20 @@ public class IWannaFragment extends LoadableFragment<InfoListVo<IWannaVo>> imple
 //            });
 //        }
     }
+
     @OnClick(R.id.send)
-    public void send(View view){
-        if(UserLoginUtil.getUserCache()==null){
+    public void send(View view) {
+        if (UserLoginUtil.getUserCache() == null) {
             startActivity(LoginActivity.class);
             return;
         }
-        if(StringUtils.hasText(etComment.getText().toString())){
+        if (StringUtils.hasText(etComment.getText().toString())) {
             myProgressDialog.show();
-            indexService.postData(Constants.getUrl(Constants.API_IWANNA_URL),new IwannaForm(etComment.getText().toString()),okListener,errorListener,TAG, IWannaVo.class);
-        }else{
-            Toast.makeText(getActivity(),R.string.iwanna_content_error,Toast.LENGTH_SHORT).show();
+            indexService.postData(Constants.getUrl(Constants.API_IWANNA_URL), new IwannaForm(etComment.getText().toString()), okListener, errorListener, TAG, IWannaVo.class);
+        } else {
+            Toast.makeText(getActivity(), R.string.iwanna_content_error, Toast.LENGTH_SHORT).show();
         }
     }
-    ResponseOkListener okListener = new ResponseOkListener<IWannaVo>(){
-        @Override
-        public void onResponse(IWannaVo o) {
-            super.onResponse(o);
-            myProgressDialog.dismiss();
-            etComment.setText(null);
-            if(!infoVo.hasMore) {
-                infoVo.voList.add(o);
-                pullView.notifyDataSetChanged();
-            }
-            Toast.makeText(getActivity(),R.string.iwanna_content_success,Toast.LENGTH_SHORT).show();
-        }
-    };
-    CommonResponse.ResponseErrorListener errorListener = new CommonResponse.ResponseErrorListener(){
-        @Override
-        protected void onError() {
-            super.onError();
-            myProgressDialog.dismiss();
-        }
-    };
 
     @Override
     protected void onContentViewCreated(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
@@ -152,8 +154,8 @@ public class IWannaFragment extends LoadableFragment<InfoListVo<IWannaVo>> imple
     @Override
     public void onRefresh(int type) {
         LogUtil.i("onRefresh");
-        if(type== MyPullView.OnRefreshListener.FRESH)
-            infoVo.pageNum=0;
+        if (type == MyPullView.OnRefreshListener.FRESH)
+            infoVo.pageNum = 0;
         startQuery(false);
     }
 

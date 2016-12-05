@@ -1,7 +1,7 @@
 package com.timeline.vpn.constant;
 
 
-import com.timeline.vpn.service.utils.VpnType;
+import org.strongswan.android.logic.VpnType;
 
 /**
  * Created by gqli on 2015/9/1.
@@ -10,24 +10,6 @@ public class Constants {
     public static final String FIRSTRUN = "isFirstRun";
     public static final int SELECT_TRUSTED_CERTIFICATE = 0;
     public static final String DEFAULT_REFERER = "http://timeline.vpn.com/";
-    public static String BASE_IP = "10.33.71.65";
-    public static  String BASE_HOST = "http://"+BASE_IP+":8080/vpn/api";//TODO 测试地址
-//            public static final String BASE_HOST = "http://192.168.1.6:8080/vpn/api";//TODO 测试地址
-    public static  String API_SERVERLIST_URL = "/host/server/list.json?location=%s";
-    public static  String API_FAB_ADSCLICK_URL = "/user/ads/score.json?score=%s";
-    public static  String API_LOCATION_URL = "/host/server/location.json";
-    public static  String API_LOGIN_URL = "/user/login.json";
-    public static  String API_REG_URL = "/user/reg.json";
-    public static  String API_USER_INFO_URL = "/user/info.json";
-    public static  String API_IWANNA_URL = "/data/feed/wanna.json?start=%s&limit=20";
-    public static  String API_IWANNA_LIKE_URL = "/data/feed/wanna/%s.json";
-    public static  String API_VERSION_URL = "/data/version.json";
-    public static  String API_RECOMMEND_URL = "/data/recommend.json?start=%s&limit=20";
-    public static  String API_LOGOUT_URL = "/user/logout.json";
-
-    public static String getUrl(String uri){
-        return "http://"+BASE_IP+":8080/vpn/api"+uri;
-    }
     public static final String URL = "url";
     public static final int STARTUP_SHOW_TIME_1500 = 1500; //启动页广告时长
     public static final int STARTUP_SHOW_TIME_3500 = 3500; //启动页广告时长
@@ -41,7 +23,6 @@ public class Constants {
     public static final int ADS_DISMISS_MSG = 2;
     public static final int ADS_PRESENT_MSG = 3;
     public static final int ADS_READY_MSG = 4;
-
     public static final int ADS_TYPE_BANNER = 0;
     public static final int ADS_TYPE_SPREAD = 1;
     public static final int ADS_TYPE_INTERSTITIAL = 2;
@@ -57,7 +38,6 @@ public class Constants {
     public static final int CLEAR = 800;//晴朗
     public static final int CLOUDS = 8;//云
     public static final int EXTREME = 9;//极端
-
     public static final String WEATHER_KEY = "weather";
     //location
     public static final String LOCATION_CHOOSE = "LOCATION_CHOOSE";
@@ -92,6 +72,20 @@ public class Constants {
     public static final String adsKeySetBanner[] = new String[]{ADS_ADVIEW_KEY, ADS_ADVIEW_KEY_ACTIVITY};
     public static final String LANG_ZH = "zh";
     public static final String LANG_US = "en";
+    public static String BASE_IP = "10.33.69.198";
+    public static String BASE_HOST = "http://" + BASE_IP + ":8080/vpn/api";//TODO 测试地址
+    //            public static final String BASE_HOST = "http://192.168.1.6:8080/vpn/api";//TODO 测试地址
+    public static String API_SERVERLIST_URL = "/host/server/list.json?location=%s";
+    public static String API_FAB_ADSCLICK_URL = "/user/ads/score.json?score=%s";
+    public static String API_LOCATION_URL = "/host/server/location.json";
+    public static String API_LOGIN_URL = "/user/login.json";
+    public static String API_REG_URL = "/user/reg.json";
+    public static String API_USER_INFO_URL = "/user/info.json";
+    public static String API_IWANNA_URL = "/data/feed/wanna.json?start=%s&limit=20";
+    public static String API_IWANNA_LIKE_URL = "/data/feed/wanna/%s.json";
+    public static String API_VERSION_URL = "/data/version.json";
+    public static String API_RECOMMEND_URL = "/data/recommend.json?start=%s&limit=20";
+    public static String API_LOGOUT_URL = "/user/logout.json";
     public static VpnType mVpnType = VpnType.IKEV2_CERT;
     public static int connTimeOut = 20;
     public static String NET_ERROR = "network error";
@@ -100,6 +94,10 @@ public class Constants {
     public static String FIRST_FB_CLICK = "FIRST_FB_CLICK";
     public static int ADS_SHOW_SCORE = 10;
     public static int ADS_SHOW_CLICK = 20;
+
+    public static String getUrl(String uri) {
+        return "http://" + BASE_IP + ":8080/vpn/api" + uri;
+    }
 
     public static String getRECOMMEND_URL(int start) {
         return String.format(getUrl(API_RECOMMEND_URL), start);

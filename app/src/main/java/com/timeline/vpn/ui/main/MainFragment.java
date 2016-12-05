@@ -16,13 +16,14 @@ import android.widget.Toast;
 import com.timeline.vpn.R;
 import com.timeline.vpn.common.util.EventBusUtil;
 import com.timeline.vpn.data.config.ConfigActionJump;
-import com.timeline.vpn.service.CharonVpnService;
 import com.timeline.vpn.ui.base.BaseDrawerActivity;
 import com.timeline.vpn.ui.maintab.OnBackKeyUpListener;
 import com.timeline.vpn.ui.maintab.TabIndexFragment;
 import com.timeline.vpn.ui.maintab.TabVipFragment;
 import com.umeng.fb.FeedbackAgent;
 import com.umeng.message.PushAgent;
+
+import org.strongswan.android.logic.CharonVpnService;
 
 /**
  * Created by gqli on 2016/3/1.

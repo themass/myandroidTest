@@ -15,7 +15,7 @@ public class IWannaLikeTask extends AsyncTask {
     long id;
     private Context context;
 
-    public IWannaLikeTask(Context context,long id) {
+    public IWannaLikeTask(Context context, long id) {
         this.context = context;
         baseService = new BaseService();
         baseService.setup(context);
@@ -28,7 +28,7 @@ public class IWannaLikeTask extends AsyncTask {
 
     @Override
     protected Object doInBackground(Object[] params) {
-        baseService.postData(String.format(Constants.getUrl(Constants.API_IWANNA_LIKE_URL), id), null,null, null, TAG, null);
+        baseService.postData(String.format(Constants.getUrl(Constants.API_IWANNA_LIKE_URL), id), null, null, null, TAG, null);
         return null;
     }
 }

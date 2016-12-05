@@ -27,6 +27,7 @@ import android.view.animation.AnimationUtils;
 import android.view.animation.LinearInterpolator;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.timeline.vpn.R;
 import com.timeline.vpn.adapter.IndexRecommendAdapter;
@@ -45,9 +46,12 @@ import com.timeline.vpn.common.util.PreferenceUtils;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.data.config.ConfigActionEvent;
-import com.timeline.vpn.service.CharonVpnService;
 import com.timeline.vpn.ui.base.LoadableTabFragment;
 import com.timeline.vpn.ui.view.MyPullView;
+
+import org.strongswan.android.logic.CharonVpnService;
+import org.strongswan.android.logic.VpnStateService;
+import org.strongswan.android.logic.imc.ImcState;
 
 import java.util.ArrayList;
 
@@ -57,7 +61,7 @@ import butterknife.OnClick;
 /**
  * Created by gqli on 2015/9/1.
  */
-public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo>> implements CharonVpnService.VpnStateListener, IndexRecommendAdapter.ItemClickListener, MyPullView.OnRefreshListener {
+public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo>> implements VpnStateService.VpnStateListener, IndexRecommendAdapter.ItemClickListener, MyPullView.OnRefreshListener {
     private static final String DIALOG_TAG = "Dialog";
     private static final String INDEX_TAG = "index_tag";
     private static final int PREPARE_VPN_SERVICE = 0;
@@ -87,7 +91,7 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
             imgError();
         }
     };
-    private CharonVpnService mService;
+    private VpnStateService mService;
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceDisconnected(ComponentName name) {
@@ -96,13 +100,12 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
 
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            mService = ((CharonVpnService.LocalBinder) service).getService();
+            LogUtil.i("VpnStateService->onServiceConnected");
+            mService = ((VpnStateService.LocalBinder) service).getService();
             mService.registerListener(TabIndexFragment.this);
-            if (mService.getCurrentVpnState() == null || mService.getCurrentVpnState() == CharonVpnService.State.CONNECTED) {
-                imgConn();
-            }
         }
     };
+
     private Handler handler = new Handler();
     private VpnProfile vpnProfile;
     private Animation operatingAnim = null;
@@ -159,7 +162,7 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
         pullView.setLayoutManager(layoutManager);
         pullView.setItemAnimator(new DefaultItemAnimator());
         adapter = new IndexRecommendAdapter(this.getActivity(), pullView.getRecyclerView(), infoVo.voList, this, layoutManager);
-        getActivity().bindService(new Intent(getActivity(), CharonVpnService.class),
+        getActivity().bindService(new Intent(getActivity(), VpnStateService.class),
                 mServiceConnection, Service.BIND_AUTO_CREATE);
         operatingAnim = AnimationUtils.loadAnimation(getActivity(), R.anim.vpn_state_loading);
         lir = new LinearInterpolator();
@@ -173,8 +176,8 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
     @Override
     public void onRefresh(int type) {
         LogUtil.i("onRefresh");
-        if(type== MyPullView.OnRefreshListener.FRESH)
-            infoVo.pageNum=0;
+        if (type == MyPullView.OnRefreshListener.FRESH)
+            infoVo.pageNum = 0;
         startQuery(false);
     }
 
@@ -214,19 +217,20 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
 
     @OnClick(R.id.iv_vpn_state)
     public void onVpnClick(View v) {
-        LogUtil.i("onVpnClick " + mService.getCurrentVpnState().name());
-        if (mService.getCurrentVpnState() == CharonVpnService.State.CONNECTED) {
-            mService.stopCurrentConnection();
-            imgNormal();
-        } else if (mService.getCurrentVpnState() == CharonVpnService.State.DISABLED) {
+        LogUtil.i("onVpnClick " + mService.getState());
+        if (mService != null && (mService.getState() == VpnStateService.State.CONNECTED || mService.getState() == VpnStateService.State.CONNECTING)) {
+            mService.disconnect();
+        } else {
             imgAnim();
             LocationVo vo = PreferenceUtils.getPrefObj(getActivity(), Constants.LOCATION_CHOOSE, LocationVo.class);
-            int locatonId = vo == null ? 0 : vo.id;
-            indexService.getData(String.format(Constants.getUrl(Constants.API_SERVERLIST_URL), locatonId), serverListener, serverListenerError, INDEX_TAG, ServerVo.class);
-        } else if (mService.getCurrentVpnState() == CharonVpnService.State.CONNECTING) {
-            mService.stopCurrentConnection();
-            imgNormal();
+            indexService.getData(String.format(Constants.getUrl(Constants.API_SERVERLIST_URL), vo == null ? 0 : vo.id), serverListener, serverListenerError, INDEX_TAG, ServerVo.class);
+
         }
+    }
+
+    @Override
+    public void stateChanged() {
+        handler.post(new StatChangeJob(mService.getState(), mService.getErrorState(), mService.getImcState()));
     }
 
     /**
@@ -248,7 +252,7 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
                 startActivityForResult(intent, PREPARE_VPN_SERVICE);
             } catch (ActivityNotFoundException ex) {
                 /* it seems some devices, even though they come with Android 4,
-				 * don't have the VPN components built into the system image.
+                 * don't have the VPN components built into the system image.
 				 * com.android.vpndialogs/com.android.vpndialogs.ConfirmDialog
 				 * will not be found then */
                 VpnNotSupportedError.showWithMessage(getActivity(), R.string.vpn_not_supported);
@@ -263,7 +267,11 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
         switch (requestCode) {
             case PREPARE_VPN_SERVICE:
                 if (resultCode == Activity.RESULT_OK) {
-                    mService.startConnection(vpnProfile);
+                    Intent intent = new Intent(getActivity(), CharonVpnService.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putSerializable(CharonVpnService.PROFILE, vpnProfile);
+                    intent.putExtras(bundle);
+                    getActivity().startService(intent);
                 }
                 break;
             default:
@@ -304,11 +312,6 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
 
     private void stopAnim() {
         ibVpnStatus.clearAnimation();
-    }
-
-    @Override
-    public void stateChanged(CharonVpnService.State state, CharonVpnService.ErrorState errorState) {
-        handler.post(new StatChangeJob(state, errorState));
     }
 
     public static class VpnNotSupportedError extends DialogFragment {
@@ -370,17 +373,55 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
     }
 
     public class StatChangeJob implements Runnable {
-        private CharonVpnService.State state;
-        private CharonVpnService.ErrorState errorState;
+        private VpnStateService.State state;
+        private VpnStateService.ErrorState errorState;
+        private ImcState imcState;
 
-        public StatChangeJob(CharonVpnService.State state, CharonVpnService.ErrorState errorState) {
+        public StatChangeJob(VpnStateService.State state, VpnStateService.ErrorState errorState, ImcState imcState) {
             this.state = state;
             this.errorState = errorState;
+            this.imcState = imcState;
         }
-
+        public boolean hasError(){
+                if (errorState == VpnStateService.ErrorState.NO_ERROR)
+                {
+                    return false;
+                }
+                switch (errorState)
+                {
+                    case AUTH_FAILED:
+                        if (imcState == ImcState.BLOCK)
+                        {
+                            Toast.makeText(TabIndexFragment.this.getActivity(),R.string.error_assessment_failed,Toast.LENGTH_SHORT).show();
+                        }
+                        else
+                        {
+                            Toast.makeText(TabIndexFragment.this.getActivity(),R.string.error_auth_failed,Toast.LENGTH_SHORT).show();
+                        }
+                        break;
+                    case PEER_AUTH_FAILED:
+                        Toast.makeText(TabIndexFragment.this.getActivity(),R.string.error_peer_auth_failed,Toast.LENGTH_SHORT).show();
+                        break;
+                    case LOOKUP_FAILED:
+                        Toast.makeText(TabIndexFragment.this.getActivity(),R.string.error_lookup_failed,Toast.LENGTH_SHORT).show();
+                        break;
+                    case UNREACHABLE:
+                        Toast.makeText(TabIndexFragment.this.getActivity(),R.string.error_unreachable,Toast.LENGTH_SHORT).show();
+                        break;
+                    default:
+                        Toast.makeText(TabIndexFragment.this.getActivity(),R.string.error_generic,Toast.LENGTH_SHORT).show();
+                        break;
+                }
+                return true;
+        }
         @Override
         public void run() {
-            LogUtil.i("vpn stateChanged stateChanged " + state.name() + "  errorState=" + errorState.name());
+            LogUtil.i("vpn stateChanged stateChanged " + state + "  errorState=" + errorState + "imcState=" + imcState);
+            if(hasError()){
+                imgError();
+                hasIp = false;
+                return;
+            }
             switch (state) {
                 case CONNECTED:
                     imgConn();

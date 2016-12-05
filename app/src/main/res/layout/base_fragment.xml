@@ -53,9 +53,10 @@
             app:rippleColor="@color/base_red" />
 
     </android.support.design.widget.CoordinatorLayout>
+
     <FrameLayout
         android:id="@+id/fl_extra"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:visibility="gone"/>
+        android:visibility="gone" />
 </FrameLayout>

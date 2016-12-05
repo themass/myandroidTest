@@ -13,7 +13,7 @@
  * for more details.
  */
 
-package com.timeline.vpn.service;
+package org.strongswan.android.logic;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

@@ -126,6 +126,7 @@
         <item name="android:layout_height">@dimen/title_height</item>
         <item name="android:background">@color/bg_title</item>
     </style>
+
     <style name="dialog" parent="Theme.AppCompat.Light.Dialog">
         <item name="android:windowFrame">@null</item><!--边框-->
         <item name="android:windowIsFloating">true</item><!--是否浮现在activity之上-->

@@ -177,7 +177,7 @@ public class BaseDrawerActivity extends BaseFragmentActivity {
                     Toast.makeText(BaseDrawerActivity.this, R.string.menu_btn_about_context, Toast.LENGTH_LONG).show();
                 } else if (item.getItemId() == R.id.menu_score) {
                     Toast.makeText(BaseDrawerActivity.this, R.string.menu_btn_score_context, Toast.LENGTH_SHORT).show();
-                }else if (item.getItemId() == R.id.menu_log) {
+                } else if (item.getItemId() == R.id.menu_log) {
                     startActivity(FileLogActivity.class);
                 }
                 return false;

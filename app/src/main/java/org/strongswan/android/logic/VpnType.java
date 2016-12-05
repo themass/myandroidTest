@@ -13,7 +13,7 @@
  * for more details.
  */
 
-package com.timeline.vpn.service.utils;
+package org.strongswan.android.logic;
 
 import java.util.EnumSet;
 
@@ -27,12 +27,12 @@ public enum VpnType {
 
     private String mIdentifier;
     private EnumSet<VpnTypeFeature> mFeatures;
-
     /**
      * Enum which provides additional information about the supported VPN types.
      *
-     * @param id       identifier used to store and transmit this specific type
-     * @param features of the given VPN type
+     * @param id          identifier used to store and transmit this specific type
+     * @param features    of the given VPN type
+     * @param certificate true if a client certificate is required
      */
     VpnType(String id, EnumSet<VpnTypeFeature> features) {
         mIdentifier = id;

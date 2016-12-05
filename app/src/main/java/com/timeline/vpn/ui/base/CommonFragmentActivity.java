@@ -24,7 +24,7 @@ public class CommonFragmentActivity extends BaseBannerAdsActivity implements Fab
         Fragment fragment = null;
         try {
             fragment = (Fragment) f.newInstance();
-            if(fragment instanceof FabOpListener.SetFabListener){
+            if (fragment instanceof FabOpListener.SetFabListener) {
                 ((FabOpListener.SetFabListener) fragment).setFabUpListener(this);
             }
         } catch (Exception e) {
