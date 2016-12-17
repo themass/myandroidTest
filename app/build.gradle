@@ -99,6 +99,12 @@ android {
             storeFile file('C:/software/work/android-sdk_r24.3.3-windows/mykey.jks')
             storePassword 'themass'
         }
+        configLinux {
+            keyAlias 'myapp'
+            keyPassword 'themass'
+            storeFile file('/home/web/local/android-sdk-linux/mykey.jks')
+            storePassword 'themass'
+        }
     }
     buildTypes {
         debug {
@@ -112,6 +118,14 @@ android {
             shrinkResources true // 移除无用的resource文件
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.config
+            debuggable false
+        }
+        releaseLinux {
+            minifyEnabled true
+            zipAlignEnabled true // Zipalign优化
+            shrinkResources true // 移除无用的resource文件
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.configLinux
             debuggable false
         }
     }
