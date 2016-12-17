@@ -120,7 +120,7 @@ android {
             signingConfig signingConfigs.config
             debuggable false
         }
-        releaseLinux {
+        linux {
             minifyEnabled true
             zipAlignEnabled true // Zipalign优化
             shrinkResources true // 移除无用的resource文件
