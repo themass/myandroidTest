@@ -203,6 +203,8 @@ public class BaseDrawerActivity extends BaseFragmentActivity {
                                 VersionUpdater.showUpdateDialog(BaseDrawerActivity.this, vo, true);
                             }
                         }, 300);
+                    }else{
+                        Toast.makeText(BaseDrawerActivity.this,R.string.about_version_update_to_date,Toast.LENGTH_SHORT).show();
                     }
                 }
             }, new CommonResponse.ResponseErrorListener() {

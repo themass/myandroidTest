@@ -19,6 +19,7 @@ import com.timeline.vpn.common.util.PreferenceUtils;
 import com.timeline.vpn.common.util.SystemUtils;
 import com.timeline.vpn.common.util.cache.DiskBasedCacheEx;
 import com.timeline.vpn.constant.Constants;
+import com.timeline.vpn.data.UserLoginUtil;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -28,7 +29,7 @@ public class BaseRequest<T> extends Request<T> {
 
     private static String UA_DEFAULT = null;
     private static String UA_APP_SUFFIX = null;
-
+    private String authkey ;
     static {
         UA_DEFAULT = System.getProperty("http.agent", "");
     }
@@ -53,7 +54,9 @@ public class BaseRequest<T> extends Request<T> {
         StringBuilder sb = new StringBuilder();
         sb.append(DeviceInfoUtils.getDeviceId(context)).append("|").append(time);
         String msg = time + Md5.encode(sb.toString());
-        headers.put("User-Agent", UA_DEFAULT + UA_APP_SUFFIX + "," + msg);
+        String ua = UA_DEFAULT + UA_APP_SUFFIX +",IE" + msg;
+        this.authkey = ua.substring(ua.length()-16,ua.length());
+        headers.put("User-Agent", ua);
         if (!headers.containsKey("Referer")) {
             headers.put("Referer", Constants.DEFAULT_REFERER);
         }
@@ -114,13 +117,9 @@ public class BaseRequest<T> extends Request<T> {
         return super.getBody();
     }
 
-    protected final String getResponseStr(NetworkResponse response) {
-        try {
+    protected final String getResponseStr(NetworkResponse response) throws Exception{
             String charset = !TextUtils.isEmpty(mCharset) ? mCharset : HttpHeaderParser.parseCharset(response.headers);
             return new String(response.data, charset);
-        } catch (Exception e) {
-            return null;
-        }
     }
 
     /**
@@ -133,12 +132,32 @@ public class BaseRequest<T> extends Request<T> {
         mCharset = charset;
     }
 
+    private boolean parserJsonResult(Context context, int result) {
+        switch (result){
+            case Constants.HTTP_SUCCESS:
+                return true;
+            case Constants.HTTP_SUCCESS_CLEAR:
+                UserLoginUtil.logout(context);
+                return true;
+            default:
+                return false;
+        }
+    }
+
     protected Response parserData(JsonResult data, NetworkResponse response) {
-        boolean ret = HttpUtils.parserJsonResult(getContext(), data);
+        boolean ret = parserJsonResult(getContext(), data.errno);
         if (ret) {
             return Response.success(data.getData(), getCacheEntry(response));
         } else {
             return Response.error(new MyVolleyError(data.error));
         }
+    }
+
+    public String getAuthkey() {
+        return authkey;
+    }
+
+    public void setAuthkey(String authkey) {
+        this.authkey = authkey;
     }
 }

@@ -4,12 +4,9 @@ import android.content.Context;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.timeline.vpn.bean.vo.JsonResult;
 import com.timeline.vpn.common.util.CollectionUtils;
 import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.common.util.PackageUtils;
-import com.timeline.vpn.constant.Constants;
-import com.timeline.vpn.data.UserLoginUtil;
 
 import org.apache.http.HttpEntity;
 
@@ -73,21 +70,6 @@ public class HttpUtils {
         }
         return -1;
     }
-
-    public static boolean parserJsonResult(Context context, JsonResult<?> result) {
-        if (result.errno == Constants.HTTP_SUCCESS)
-            return true;
-        else if (result.errno == Constants.HTTP_SUCCESS_CLEAR) {
-            UserLoginUtil.logout(context);
-            return true;
-        } else
-            return false;
-    }
-
-    public static boolean parserJsonResultWithExec(Context context, JsonResult<?> result) {
-        return true;
-    }
-
     public static String generateGetUrl(String url, Map<String, String> params) {
         if (!CollectionUtils.isEmpty(params)) {
             StringBuilder sb = new StringBuilder(url).append("?");

@@ -11,10 +11,10 @@ import android.widget.ImageView;
 import android.widget.TabHost;
 import android.widget.TabWidget;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.timeline.vpn.R;
 import com.timeline.vpn.common.util.EventBusUtil;
+import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.data.config.ConfigActionJump;
 import com.timeline.vpn.ui.base.BaseDrawerActivity;
 import com.timeline.vpn.ui.maintab.OnBackKeyUpListener;
@@ -105,9 +105,11 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
+        LogUtil.i("main destory");
+        startService(new Intent(this, CharonVpnService.class));
         stopService(new Intent(this, CharonVpnService.class));
         EventBusUtil.getEventBus().unregister(jump);
+        super.onDestroy();
     }
 
     @Override
@@ -116,14 +118,16 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
             if (keyListener != null) {
                 keyListener.onkeyBackUp();
             }
-            long secondTime = System.currentTimeMillis();
-            if (secondTime - firstTime > 2000) {
-                Toast.makeText(this, R.string.close_over, Toast.LENGTH_SHORT).show();
-                firstTime = secondTime;//更新firstTime
-                return true;
-            } else {                                                    //两次按键小于2秒时，退出应用
-                super.onKeyUp(keyCode, event);
-            }
+            moveTaskToBack(true);
+            return true;
+//            long secondTime = System.currentTimeMillis();
+//            if (secondTime - firstTime > 2000) {
+//                Toast.makeText(this, R.string.close_over, Toast.LENGTH_SHORT).show();
+//                firstTime = secondTime;//更新firstTime
+//                return true;
+//            } else {                                                    //两次按键小于2秒时，退出应用
+//                super.onKeyUp(keyCode, event);
+//            }
         }
         return super.onKeyUp(keyCode, event);
     }

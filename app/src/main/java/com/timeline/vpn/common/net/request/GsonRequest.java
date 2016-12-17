@@ -26,7 +26,7 @@ public class GsonRequest<T> extends BaseRequest<T> {
     protected Response<T> parseNetworkResponse(NetworkResponse response) {
         try {
             String json = getResponseStr(response);
-            JsonResult<T> data = DataBuilder.parserVo(clasz, json);
+            JsonResult<T> data = DataBuilder.parserVo(clasz, json,getAuthkey());
             return parserData(data, response);
         } catch (Exception e) {
             return Response.error(new ParseError(e));

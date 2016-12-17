@@ -41,7 +41,7 @@ public class MultipartRequest<T> extends BaseRequest<T> {
         try {
             String json = getResponseStr(response);
             LogUtil.i(json);
-            JsonResult<T> data = DataBuilder.parserVo(clasz, json);
+            JsonResult<T> data = DataBuilder.parserVo(clasz, json,getAuthkey());
             return parserData(data, response);
         } catch (Exception e) {
             return Response.error(new ParseError(e));

@@ -9,7 +9,7 @@ import org.strongswan.android.logic.VpnType;
 public class Constants {
     public static final String FIRSTRUN = "isFirstRun";
     public static final int SELECT_TRUSTED_CERTIFICATE = 0;
-    public static final String DEFAULT_REFERER = "http://timeline.vpn.com/";
+    public static final String DEFAULT_REFERER = "http://secondaryspace.com/";
     public static final String URL = "url";
     public static final int STARTUP_SHOW_TIME_1500 = 1500; //启动页广告时长
     public static final int STARTUP_SHOW_TIME_3500 = 3500; //启动页广告时长
@@ -72,8 +72,8 @@ public class Constants {
     public static final String adsKeySetBanner[] = new String[]{ADS_ADVIEW_KEY, ADS_ADVIEW_KEY_ACTIVITY};
     public static final String LANG_ZH = "zh";
     public static final String LANG_US = "en";
-    public static String BASE_IP = "10.33.69.198";
-    public static String BASE_HOST = "http://" + BASE_IP + ":8080/vpn/api";//TODO 测试地址
+    public static String BASE_IP = "secondaryspace.com";
+    public static String BASE_HOST = "http://" + BASE_IP + "/vpn/api";//TODO 测试地址
     //            public static final String BASE_HOST = "http://192.168.1.6:8080/vpn/api";//TODO 测试地址
     public static String API_SERVERLIST_URL = "/host/server/list.json?location=%s";
     public static String API_FAB_ADSCLICK_URL = "/user/ads/score.json?score=%s";

@@ -144,7 +144,7 @@ public class FileUtils {
                 sb.append(mLine).append("\n");
             }
             return sb.toString();
-        } catch (IOException e) {
+        } catch (Exception e) {
             //log the exception
         } finally {
             if (reader != null) {

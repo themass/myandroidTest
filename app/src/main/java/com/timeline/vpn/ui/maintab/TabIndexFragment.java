@@ -103,6 +103,9 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
             LogUtil.i("VpnStateService->onServiceConnected");
             mService = ((VpnStateService.LocalBinder) service).getService();
             mService.registerListener(TabIndexFragment.this);
+            vpnProfile = mService.getProfile();
+            stateChanged();
+            LogUtil.i(mService.getState()+"");
         }
     };
 
@@ -152,6 +155,7 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
 
     @Override
     protected InfoListVo<RecommendVo> loadData(Context context) throws Exception {
+        LogUtil.i("loadData:"+mData);
         return indexService.getInfoListData(Constants.getRECOMMEND_URL(infoVo.pageNum), RecommendVo.class, INDEX_TAG);
     }
 
@@ -205,6 +209,7 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+//        mService.disconnect();
         mService.unregisterListener(this);
         getActivity().unbindService(mServiceConnection);
         indexService.cancelRequest(INDEX_TAG);
@@ -306,8 +311,9 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
     private void imgNormal() {
         stopAnim();
         hasIp = false;
-        ibVpnStatus.setImageResource(R.drawable.circle_vpn_blue);
+        ibVpnStatus.setImageResource(R.drawable.circle_vpn_red);
         tvVpnText.setText(R.string.vpn_bg_click);
+        ibVpnStatus.setEnabled(true);
     }
 
     private void stopAnim() {
@@ -430,11 +436,12 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
                     imgAnim();
                     break;
                 case DISCONNECTING:
-                    imgNormal();
+                    imgAnim();
                     break;
                 case DISABLED:
-                    imgError();
+                    imgNormal();
                     hasIp = false;
+                    break;
                 default:
                     imgError();
                     hasIp = false;

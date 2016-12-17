@@ -4,11 +4,7 @@ import com.timeline.vpn.common.exce.HttpException;
 import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
 
-import org.apache.http.message.BasicNameValuePair;
-
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.Call;
@@ -82,33 +78,6 @@ public class OkHttpUtil {
             throw new HttpException(e);
         }
     }
-
-    /**
-     * 这里使用了HttpClinet的API。只是为了方便
-     *
-     * @param params
-     * @return
-     */
-    public static String formatParams(List<BasicNameValuePair> params) {
-        try {
-            return URLEncoder.encode(String.valueOf(params), CHARSET_NAME);
-        } catch (Exception e) {
-            LogUtil.e(e);
-        }
-        return null;
-    }
-
-    /**
-     * 为HttpGet 的 url 方便的添加多个name value 参数。
-     *
-     * @param url
-     * @param params
-     * @return
-     */
-    public static String attachHttpGetParams(String url, List<BasicNameValuePair> params) {
-        return url + "?" + formatParams(params);
-    }
-
     /**
      * 为HttpGet 的 url 方便的添加1个name value 参数。
      *

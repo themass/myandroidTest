@@ -4,8 +4,10 @@ import com.timeline.vpn.bean.vo.HostVo;
 import com.timeline.vpn.bean.vo.InfoListVo;
 import com.timeline.vpn.bean.vo.JsonResult;
 import com.timeline.vpn.bean.vo.VpnProfile;
+import com.timeline.vpn.common.util.AES2;
 import com.timeline.vpn.common.util.GsonUtils;
 import com.timeline.vpn.common.util.LogUtil;
+import com.timeline.vpn.common.util.StringUtils;
 import com.timeline.vpn.constant.Constants;
 
 import java.lang.reflect.Type;
@@ -29,14 +31,24 @@ public class DataBuilder {
         return profile;
     }
 
-    public static <T> JsonResult<T> parserVo(Class<T> clasz, String json) {
+    public static <T> JsonResult<T> parserVo(Class<T> clasz, String json,String key) {
         Type typeOfT = GsonUtils.type(JsonResult.class, clasz);
-        return GsonUtils.getInstance().fromJson(json, typeOfT);
+        JsonResult<T> ret = GsonUtils.getInstance().fromJson(json, typeOfT);
+        if(StringUtils.hasText(ret.data)){
+            String str = AES2.decode(ret.data,key);
+            ret.objData = GsonUtils.getInstance().fromJson(str,clasz);
+        }
+        return ret;
     }
 
-    public static <T> JsonResult<InfoListVo<T>> parserListVo(Class<T> clasz, String json) {
+    public static <T> JsonResult<InfoListVo<T>> parserListVo(Class<T> clasz, String json,String key) {
         Type TypeItem = GsonUtils.type(InfoListVo.class, clasz);
         Type typeOfT = GsonUtils.type(JsonResult.class, TypeItem);
-        return GsonUtils.getInstance().fromJson(json, typeOfT);
+        JsonResult<InfoListVo<T>> ret = GsonUtils.getInstance().fromJson(json, typeOfT);
+        if(StringUtils.hasText(ret.data)){
+            String str = AES2.decode(ret.data,key);
+            ret.objData = GsonUtils.getInstance().fromJson(str,TypeItem);
+        }
+        return ret;
     }
 }

@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.zip.GZIPInputStream;
 
 import okhttp3.Call;
 import okhttp3.Headers;
@@ -46,19 +47,20 @@ public class OkHttp3Stack implements HttpStack {
         clientBuilder.addInterceptor(new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY));
         mClient = clientBuilder.build();
     }
-
-    public OkHttp3Stack() {
-    }
-
     private static HttpEntity entityFromOkHttpResponse(Response r) throws IOException {
         BasicHttpEntity entity = new BasicHttpEntity();
         ResponseBody body = r.body();
         entity.setContentLength(body.contentLength());
         entity.setContentEncoding(r.header("Content-Encoding"));
+        boolean isGzipResponse = HttpUtils.isGzip(r.header("Content-Encoding"));
         if (body.contentType() != null) {
             entity.setContentType(body.contentType().type());
         }
-        entity.setContent(body.byteStream());
+        InputStream inputStream = body.byteStream();
+        if (isGzipResponse) {
+            inputStream = new GZIPInputStream(inputStream);
+        }
+        entity.setContent(inputStream);
         return entity;
     }
 

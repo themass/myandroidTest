@@ -23,6 +23,7 @@ import android.os.Handler;
 import android.os.IBinder;
 
 import com.timeline.vpn.bean.vo.VpnProfile;
+import com.timeline.vpn.common.util.LogUtil;
 
 import org.strongswan.android.logic.imc.ImcState;
 import org.strongswan.android.logic.imc.RemediationInstruction;
@@ -217,7 +218,7 @@ public class VpnStateService extends Service {
                         }
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LogUtil.e(e);
                 }
             }
         });

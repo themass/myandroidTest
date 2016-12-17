@@ -27,7 +27,9 @@ public class LogUtil {
     public static void w(String tag, String msg) {
         Log.w(tag, msg);
     }
-
+    public static void w(String msg) {
+        Log.w(TAG, msg);
+    }
     public static void i(String msg) {
         if (msg == null) {
             Log.i(TAG, "null");

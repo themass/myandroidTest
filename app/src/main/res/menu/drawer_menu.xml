@@ -24,8 +24,8 @@
             android:title="@string/menu_btn_version" />
         <item
             android:id="@+id/menu_log"
-            android:icon="@drawable/ic_menu_version"
-            android:title="@string/log" />
+            android:icon="@drawable/ic_menu_log"
+            android:title="@string/menu_btn_bug" />
     </group>
     <group>
         <item
