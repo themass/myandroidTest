@@ -102,7 +102,7 @@ android {
         configLinux {
             keyAlias 'myapp'
             keyPassword 'themass'
-            storeFile file('/home/web/local/android-sdk-linux/mykey.jks')
+            storeFile file('/home/web/local/mykey.jks')
             storePassword 'themass'
         }
     }
