@@ -274,7 +274,6 @@
 }
 
 #----------------------project------------
--keep class com.timeline.vpn.common.** { *; }
 -keep class com.timeline.vpn.bean.**{ *; }
 -keep class sun.misc.Unsafe { *; }
 -keep class com.idea.fifaalarmclock.entity.***
