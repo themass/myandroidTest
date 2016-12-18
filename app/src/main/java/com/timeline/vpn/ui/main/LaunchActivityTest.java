@@ -8,6 +8,7 @@ import android.widget.RelativeLayout;
 
 import com.timeline.vpn.R;
 import com.timeline.vpn.ads.adview.AdsAdview;
+import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.common.util.PreferenceUtils;
 import com.timeline.vpn.common.util.StringUtils;
 import com.timeline.vpn.constant.Constants;
@@ -57,6 +58,7 @@ public class LaunchActivityTest extends LogActivity {
     protected void onResume() {
         super.onResume();
         String ip = PreferenceUtils.getPrefString(this, "IP", Constants.BASE_IP);
+        LogUtil.i(ip);
         Constants.BASE_IP = ip;
         etText.setText(ip);
         MobAgent.onResume(this);
