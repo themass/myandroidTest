@@ -23,7 +23,7 @@ import com.timeline.vpn.ui.maintab.TabVipFragment;
 import com.umeng.fb.FeedbackAgent;
 import com.umeng.message.PushAgent;
 
-import org.strongswan.android.logic.CharonVpnService;
+import com.timeline.vpn.logic.CharonVpnService;
 
 /**
  * Created by gqli on 2016/3/1.
