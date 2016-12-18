@@ -75,6 +75,7 @@ public class Constants {
     public static String BASE_IP = "secondaryspace.com";
     public static String BASE_HOST = "http://" + BASE_IP + "/vpn/api";//TODO 测试地址
     //            public static final String BASE_HOST = "http://192.168.1.6:8080/vpn/api";//TODO 测试地址
+    public static String API_HOST_DNS = "/host/server/dns.json?d="+BASE_IP;
     public static String API_SERVERLIST_URL = "/host/server/list.json?location=%s";
     public static String API_FAB_ADSCLICK_URL = "/user/ads/score.json?score=%s";
     public static String API_LOCATION_URL = "/host/server/location.json";
