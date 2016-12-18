@@ -1,7 +1,7 @@
 package com.timeline.vpn.constant;
 
 
-import org.strongswan.android.logic.VpnType;
+import com.timeline.vpn.logic.VpnType;
 
 /**
  * Created by gqli on 2015/9/1.
