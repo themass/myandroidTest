@@ -96,7 +96,7 @@ public class Constants {
     public static int ADS_SHOW_CLICK = 20;
 
     public static String getUrl(String uri) {
-        return "http://" + BASE_IP + ":8080/vpn/api" + uri;
+        return "http://" + BASE_IP + "/vpn/api" + uri;
     }
 
     public static String getRECOMMEND_URL(int start) {

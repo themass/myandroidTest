@@ -33,7 +33,7 @@ import okhttp3.logging.HttpLoggingInterceptor;
  * OkHttp backed {@link com.android.volley.toolbox.HttpStack HttpStack} that does not
  * use okhttp-urlconnection
  */
-public class OkHttp3Stack implements HttpStack {
+public class OkHttpStack implements HttpStack {
     private static final int DEFUAT_TIMEOUT = 20;
     private static final int CONNECT_TIMEOUT = 6;
     private static final int WRITE_TIMEOUT = 15;

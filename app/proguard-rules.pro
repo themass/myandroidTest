@@ -47,6 +47,7 @@
 -keep class android.support.** {*;}
 # 保留继承的
 -keep public class * extends android.support.v4.**
+-dontnote android.support.v4.**
 -keep public class * extends android.support.v7.**
 -keep public class * extends android.support.annotation.**
 # 保留R下面的资源
@@ -114,6 +115,7 @@
 # okio
 -dontwarn okio.**
 -keep class okio.** {*;}
+-dontnote okhttp3.internal.**
 -dontwarn java.nio.file.Files
 -dontwarn java.nio.file.Path
 -dontwarn java.nio.file.OpenOption
@@ -126,12 +128,14 @@
 -dontnote org.apache.commons.**
 -dontwarn javax.annotation.**
 -keep class javax.**{ *; }
+-dontnote javax.**
 -dontwarn sun.**
 -dontwarn java.beans.**
 -keep class com.squareup.** {*;}
 -keepattributes JavascriptInterface
 -keep class com.google.android.gms.** { *; }
 -dontwarn com.google.android.gms.**
+-dontnote com.google.android.gms.**
 # Proguard config for project using GMS
 
 #-keepnames @com.google.android.gms.common.annotation.KeepName class
@@ -162,12 +166,12 @@
 
 # android.app.Notification.setLatestEventInfo() was removed in
 # Marsmallow, but is still referenced (safely)
--dontwarn com.google.android.gms.common.GooglePlayServicesUtil
 -keep class android.location.Location.** { *; }
 -dontwarn android.location.Location
 -dontnote android.location.Location
 -keep class com.squareup.leakcanary.** { *; }
 -keep class com.tencent.** { *; }
+-dontnote com.tencent.**
 -keep class cn.domob.android.** { *; }
 -dontwarn cn.domob.android.**
 -dontwarn oauth.**
@@ -185,14 +189,16 @@
     *;
 }
 -keep class com.umeng.message.** { *; }
+-dontnote com.umeng.analytics.**
+-dontnote com.umeng.message.**
+-dontnote com.bumptech.glide.**
 -keep class com.baidu.** { *; }
 -keep class com.qq.e.** { *; }
 -keep class android.support.v4.app.NotificationCompat**{ *; }
 -keep class MTT.ThirdAppInfoNew { *; }
--keep class com.tencent.** { *; }
-
 -keep public class com.kyview.** {*;}
 -dontwarn com.kyview.**
+-dontnote com.kyview.**
 -keep public class com.kuaiyou.** {*;}
 
 -keepclassmembers class * {public *;}
@@ -202,7 +208,6 @@
 -keep public class com.wqmobile.** {*;}
 -keep class com.baidu.mobads.** {public protected *;}
 -keep class com.qq.e.** {public protected *;}
--keep class com.tencent.gdt.**{public protected *;}
 -keep class com.mobisage.android.** {*;}
 -keep interface com.mobisage.android.** {*;}
 -keep class com.msagecore.** {*;}
@@ -240,10 +245,7 @@
 -keep class I.* {*;}
 -keep public class MobWin.*
 -keep public class MobWin.cnst.*
--keep class com.tencent.lbsapi.*
--keep class com.tencent.lbsapi.core.*
 -keep class LBSAPIProtocol.*
--keep class com.tencent.lbsapi.core.QLBSJNI {*;}
 -keeppackagenames com.adchina.android.ads
 -keeppackagenames com.adchina.android.ads.controllers
 -keeppackagenames com.adchina.android.ads.views
@@ -276,5 +278,4 @@
 #----------------------project------------
 -keep class com.timeline.vpn.bean.**{ *; }
 -keep class sun.misc.Unsafe { *; }
--keep class com.idea.fifaalarmclock.entity.***
 -keep class com.google.gson.stream.** { *; }

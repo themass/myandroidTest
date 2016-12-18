@@ -41,7 +41,7 @@ public class VolleyUtils {
 
     private static RequestQueue newRequestQueue(Context context, HttpStack stack) {
         if (stack == null) {
-            stack = new OkHttp3Stack();
+            stack = new OkHttpStack();
         }
         Network network = new BasicNetwork(stack);
         File cacheDir = new File(context.getExternalCacheDir(), DEFAULT_CACHE_DIR);
