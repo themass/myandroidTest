@@ -2,8 +2,6 @@ package com.timeline.vpn.ads.adview;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -34,7 +32,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Created by gqli on 2016/8/19.
+ * Created by themass on 2016/8/19.
  */
 public class AdsAdview {
     public static HandlerThread adsMsgThread = new HandlerThread("ads_msg_back");
@@ -51,12 +49,13 @@ public class AdsAdview {
     }
 
     public static void launchAds(final Context context, ViewGroup group, final Handler handler) {
-        AdViewSpreadManager.getInstance(context)
-                .setSpreadLogo(
-                        new BitmapDrawable(context.getResources(), BitmapFactory
-                                .decodeResource(context.getResources(),
-                                        R.drawable.ic_lauch_bottom)));
+        AdViewSpreadManager.getInstance(context).setSpreadLogo(R.drawable.ic_lauch_bottom);
+        AdViewSpreadManager.getInstance(context).setSpreadNotifyType(AdViewSpreadManager.NOTIFY_COUNTER_NUM);
         AdViewSpreadManager.getInstance(context).request(context, Constants.ADS_ADVIEW_KEY, group, new AdViewSpreadListener() {
+            @Override
+            public void onAdClick(String s) {
+                handler.sendEmptyMessage(Constants.ADS_CLICK_MSG);
+            }
             @Override
             public void onAdDisplay(String s) {
                 handler.sendEmptyMessage(Constants.ADS_PRESENT_MSG);

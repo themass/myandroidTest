@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by gqli on 2016/8/13.
+ * Created by themass on 2016/8/13.
  */
 public class BaseRes {
     private static final String IMAGE_RES_PRE = "timeline://img";

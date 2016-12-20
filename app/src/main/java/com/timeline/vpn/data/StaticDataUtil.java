@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by gqli on 2016/4/6.
+ * Created by themass on 2016/4/6.
  */
 public class StaticDataUtil {
     private static Map<String, Object> data = new HashMap<>();

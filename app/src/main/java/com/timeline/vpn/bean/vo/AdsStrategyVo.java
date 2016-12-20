@@ -1,7 +1,7 @@
 package com.timeline.vpn.bean.vo;
 
 /**
- * Created by gqli on 2016/8/19.
+ * Created by themass on 2016/8/19.
  */
 public class AdsStrategyVo {
     public String[] banner;

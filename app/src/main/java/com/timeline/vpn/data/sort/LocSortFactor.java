@@ -7,7 +7,7 @@ import com.timeline.vpn.constant.Constants;
 import java.util.Comparator;
 
 /**
- * Created by gqli on 2016/8/17.
+ * Created by themass on 2016/8/17.
  */
 public class LocSortFactor implements Comparator<LocationVo> {
     private String sortFactor;

@@ -23,7 +23,7 @@ import com.timeline.vpn.weather.WeatherSpider;
 import com.timeline.vpn.weather.bean.WeatherInfo;
 
 /**
- * Created by gqli on 2016/3/1.
+ * Created by themass on 2016/3/1.
  */
 public abstract class BaseWeatherMenuActivity extends LogActivity {
     ImageView ivWeather;
@@ -36,6 +36,8 @@ public abstract class BaseWeatherMenuActivity extends LogActivity {
 
         @Override
         public void succeed(double lat, double lon) {
+            StaticDataUtil.add(Constants.LON,lon);
+            StaticDataUtil.add(Constants.LAT,lat);
             startGetWeather(lat, lon);
         }
 

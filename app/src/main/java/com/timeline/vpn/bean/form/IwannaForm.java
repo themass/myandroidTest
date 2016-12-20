@@ -1,7 +1,7 @@
 package com.timeline.vpn.bean.form;
 
 /**
- * Created by gqli on 2016/9/7.
+ * Created by themass on 2016/9/7.
  */
 public class IwannaForm {
     public String content;

@@ -21,7 +21,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 /**
- * Created by gqli on 2016/3/22.
+ * Created by themass on 2016/3/22.
  */
 public class LaunchActivityTest extends LogActivity {
     @Bind(R.id.rl_spread)

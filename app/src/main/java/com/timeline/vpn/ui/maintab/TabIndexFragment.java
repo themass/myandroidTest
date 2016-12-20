@@ -49,9 +49,9 @@ import com.timeline.vpn.data.config.ConfigActionEvent;
 import com.timeline.vpn.ui.base.LoadableTabFragment;
 import com.timeline.vpn.ui.view.MyPullView;
 
-import com.timeline.vpn.logic.CharonVpnService;
-import com.timeline.vpn.logic.VpnStateService;
-import com.timeline.vpn.logic.imc.ImcState;
+import org.strongswan.android.logic.CharonVpnService;
+import org.strongswan.android.logic.VpnStateService;
+import org.strongswan.android.logic.imc.ImcState;
 
 import java.util.ArrayList;
 
@@ -59,7 +59,7 @@ import butterknife.Bind;
 import butterknife.OnClick;
 
 /**
- * Created by gqli on 2015/9/1.
+ * Created by themass on 2015/9/1.
  */
 public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo>> implements VpnStateService.VpnStateListener, IndexRecommendAdapter.ItemClickListener, MyPullView.OnRefreshListener {
     private static final String DIALOG_TAG = "Dialog";

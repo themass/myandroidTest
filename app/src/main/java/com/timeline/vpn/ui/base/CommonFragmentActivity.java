@@ -8,7 +8,7 @@ import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.ui.inte.FabOpListener;
 
 /**
- * Created by gqli on 2016/9/5.
+ * Created by themass on 2016/9/5.
  */
 public class CommonFragmentActivity extends BaseBannerAdsActivity implements FabOpListener.OnFabListener {
     public static final String FRAGMENT = "FRAGMENT";

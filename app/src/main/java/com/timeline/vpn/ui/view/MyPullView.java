@@ -17,7 +17,7 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 
 /**
- * Created by gqli on 2016/9/6.
+ * Created by themass on 2016/9/6.
  */
 public class MyPullView extends LinearLayout {
     @Nullable

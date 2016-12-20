@@ -3,7 +3,7 @@ package com.timeline.vpn.bean.vo;
 import java.util.List;
 
 /**
- * @author gqli
+ * @author themass
  * @version V1.0
  * @date 2016年3月7日 下午1:37:13
  */

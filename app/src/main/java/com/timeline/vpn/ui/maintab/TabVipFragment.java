@@ -17,7 +17,7 @@ import java.util.List;
 import butterknife.Bind;
 
 /**
- * Created by gqli on 2015/9/1.
+ * Created by themass on 2015/9/1.
  */
 public class TabVipFragment extends TabBaseAdsFragment {
     @Bind(R.id.tab_layout)

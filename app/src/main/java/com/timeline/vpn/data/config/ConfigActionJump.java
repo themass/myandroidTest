@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by gqli on 2016/3/17.
+ * Created by themass on 2016/3/17.
  */
 public class ConfigActionJump {
     public static final String HTTP_URL = "http://";

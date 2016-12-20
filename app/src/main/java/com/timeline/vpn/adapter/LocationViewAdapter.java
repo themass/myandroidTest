@@ -22,7 +22,7 @@ import java.util.List;
 import butterknife.Bind;
 
 /**
- * Created by gqli on 2016/8/12.
+ * Created by themass on 2016/8/12.
  */
 public class LocationViewAdapter extends BaseRecyclerViewAdapter<LocationViewAdapter.LocationItemView, LocationVo> {
     private LocationVo chooseVo = null;

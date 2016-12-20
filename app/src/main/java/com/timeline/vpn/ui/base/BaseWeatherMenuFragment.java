@@ -28,7 +28,7 @@
 //import com.timeline.vpn.weather.bean.WeatherInfo;
 //
 ///**
-// * Created by gqli on 2016/3/1.
+// * Created by themass on 2016/3/1.
 // */
 //public abstract class BaseWeatherMenuFragment extends LogActivity {
 //    protected ContentResolver mContentResolver;

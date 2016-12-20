@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by gqli on 2016/8/18.
+ * Created by themass on 2016/8/18.
  */
 public class MobAgent {
     public static void onResume(Context context) {

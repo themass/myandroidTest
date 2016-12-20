@@ -7,7 +7,7 @@ import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
 
 /**
- * Created by gqli on 2016/8/29.
+ * Created by themass on 2016/8/29.
  */
 public class IWannaLikeTask extends AsyncTask {
     private static String TAG = "IWannaLikeTask";

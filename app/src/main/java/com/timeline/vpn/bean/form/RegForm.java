@@ -1,7 +1,7 @@
 package com.timeline.vpn.bean.form;
 
 /**
- * Created by gqli on 2016/8/15.
+ * Created by themass on 2016/8/15.
  */
 public class RegForm {
     public String name;

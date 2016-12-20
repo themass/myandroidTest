@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by gqli on 2016/3/13.
+ * Created by themass on 2016/3/13.
  */
 public class InfoListVo<T> {
     public List<T> voList = new ArrayList<>();

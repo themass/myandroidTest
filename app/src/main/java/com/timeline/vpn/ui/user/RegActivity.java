@@ -21,7 +21,7 @@ import butterknife.Bind;
 import butterknife.OnClick;
 
 /**
- * Created by gqli on 2016/8/13.
+ * Created by themass on 2016/8/13.
  */
 public class RegActivity extends BaseBannerAdsActivity {
     private static final String TAG = "login_tag";

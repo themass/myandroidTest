@@ -38,7 +38,7 @@ import butterknife.Bind;
 import butterknife.OnClick;
 
 /**
- * Created by gqli on 2016/9/5.
+ * Created by themass on 2016/9/5.
  */
 public class IWannaFragment extends LoadableFragment<InfoListVo<IWannaVo>> implements FeedAdapter.OnFeedItemClickListener, MyPullView.OnRefreshListener, FabOpListener.SetFabListener {
     private static String TAG = "IWANNA";

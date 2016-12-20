@@ -19,7 +19,7 @@ import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.data.MobAgent;
 
 /**
- * Created by gqli on 2016/3/16.
+ * Created by themass on 2016/3/16.
  */
 public class LogFramgment extends Fragment {
     @Override

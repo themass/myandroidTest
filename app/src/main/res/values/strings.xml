@@ -73,8 +73,8 @@
     <string name="menu_btn_score_context">Points can be used to store the purchase of goods，VIP etc。。</string>
     <!--登录，注册-->
     <string name="close_over">one more again!!</string>
-    <string name="login">Login</string>
-    <string name="reg">Register</string>
+    <string name="login">Sign in</string>
+    <string name="reg">Sign up</string>
     <string name="username_hint">Username</string>
     <string name="password_hint">Password</string>
     <string name="re_password_hint">rePassword</string>

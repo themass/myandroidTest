@@ -7,7 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 import com.timeline.vpn.common.util.LogUtil;
 
 /**
- * Created by gqli on 2016/3/22.
+ * Created by themass on 2016/3/22.
  */
 public class LogActivity extends AppCompatActivity {
     @Override

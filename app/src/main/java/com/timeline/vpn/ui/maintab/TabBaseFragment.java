@@ -9,7 +9,7 @@ import com.timeline.vpn.R;
 import com.timeline.vpn.ui.base.BaseFragment;
 
 /**
- * Created by gqli on 2015/9/1.
+ * Created by themass on 2015/9/1.
  */
 public abstract class TabBaseFragment extends BaseFragment {
     public static int NULL_VIEW = -1;

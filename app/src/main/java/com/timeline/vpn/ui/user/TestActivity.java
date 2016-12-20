@@ -7,7 +7,7 @@ import com.timeline.vpn.ui.base.LogActivity;
 import com.timeline.vpn.ui.view.MyProgressDialog;
 
 /**
- * Created by gqli on 2016/8/13.
+ * Created by themass on 2016/8/13.
  */
 public class TestActivity extends LogActivity {
     @Override

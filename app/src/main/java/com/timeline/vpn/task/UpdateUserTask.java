@@ -10,7 +10,7 @@ import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.data.UserLoginUtil;
 
 /**
- * Created by gqli on 2016/8/29.
+ * Created by themass on 2016/8/29.
  */
 public class UpdateUserTask extends AsyncTask {
     private static String TAG = "update_user";

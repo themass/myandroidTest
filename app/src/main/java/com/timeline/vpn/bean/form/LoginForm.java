@@ -1,7 +1,7 @@
 package com.timeline.vpn.bean.form;
 
 /**
- * Created by gqli on 2016/8/14.
+ * Created by themass on 2016/8/14.
  */
 public class LoginForm {
     public String name;

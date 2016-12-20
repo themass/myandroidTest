@@ -8,7 +8,7 @@ import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.ui.view.MyWebView;
 
 /**
- * Created by gqli on 2016/3/17.
+ * Created by themass on 2016/3/17.
  */
 public class WebViewActivity extends BaseBannerAdsActivity implements MyWebView.OnTouchRightSlide {
     BaseWebViewFragment webViewFragment;

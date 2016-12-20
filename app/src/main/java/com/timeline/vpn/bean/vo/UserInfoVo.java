@@ -1,7 +1,7 @@
 package com.timeline.vpn.bean.vo;
 
 /**
- * Created by gqli on 2016/4/7.
+ * Created by themass on 2016/4/7.
  */
 public class UserInfoVo {
     public String name;

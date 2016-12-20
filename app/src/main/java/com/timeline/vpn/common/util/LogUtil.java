@@ -3,7 +3,7 @@ package com.timeline.vpn.common.util;
 import android.util.Log;
 
 /**
- * Created by gqli on 2016/3/2.
+ * Created by themass on 2016/3/2.
  */
 public class LogUtil {
     private static final String TAG = "myTag";

@@ -19,7 +19,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 /**
- * Created by gqli on 2016/3/10.
+ * Created by themass on 2016/3/10.
  */
 public class BaseService {
     protected Context context;

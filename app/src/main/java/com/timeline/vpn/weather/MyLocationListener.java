@@ -9,7 +9,7 @@ import com.baidu.location.Poi;
 import java.util.List;
 
 /**
- * Created by gqli on 2016/8/19.
+ * Created by themass on 2016/8/19.
  */
 public class MyLocationListener implements BDLocationListener {
 

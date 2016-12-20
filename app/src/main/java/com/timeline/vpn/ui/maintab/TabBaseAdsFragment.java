@@ -20,7 +20,7 @@ import butterknife.Bind;
 import butterknife.OnClick;
 
 /**
- * Created by gqli on 2016/3/31.
+ * Created by themass on 2016/3/31.
  */
 public abstract class TabBaseAdsFragment extends TabBaseFragment implements OnBackKeyUpListener {
     private static final int ANIM_DURATION_FAB = 400;

@@ -19,7 +19,7 @@ import com.timeline.vpn.constant.Constants;
 import butterknife.Bind;
 
 /**
- * Created by gqli on 2015/9/1.
+ * Created by themass on 2015/9/1.
  */
 public class TabAdsFragment extends TabBaseAdsFragment {
     @Bind(R.id.ll_ads_banner)

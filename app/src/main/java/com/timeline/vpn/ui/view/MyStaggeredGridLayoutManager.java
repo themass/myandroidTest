@@ -6,7 +6,7 @@ import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.AttributeSet;
 
 /**
- * Created by gqli on 2016/8/24.
+ * Created by themass on 2016/8/24.
  */
 public class MyStaggeredGridLayoutManager extends StaggeredGridLayoutManager {
     public MyStaggeredGridLayoutManager(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {

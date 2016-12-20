@@ -6,7 +6,7 @@ import com.timeline.vpn.bean.vo.HostVo;
 import com.timeline.vpn.common.net.HttpUtils;
 
 /**
- * Created by gqli on 2016/3/8.
+ * Created by themass on 2016/3/8.
  */
 public class PingTask extends AsyncTask<HostVo, Void, HostVo> {
     @Override

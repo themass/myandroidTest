@@ -9,7 +9,7 @@ import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.config.UserLoginEvent;
 
 /**
- * Created by gqli on 2016/8/15.
+ * Created by themass on 2016/8/15.
  */
 public class UserLoginUtil {
     public static void login(Context context, UserInfoVo vo) {

@@ -23,10 +23,10 @@ import com.timeline.vpn.ui.maintab.TabVipFragment;
 import com.umeng.fb.FeedbackAgent;
 import com.umeng.message.PushAgent;
 
-import com.timeline.vpn.logic.CharonVpnService;
+import org.strongswan.android.logic.CharonVpnService;
 
 /**
- * Created by gqli on 2016/3/1.
+ * Created by themass on 2016/3/1.
  */
 public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabChangeListener {
     private static final String ADS_TAG = "ADS_TAG";
@@ -114,21 +114,21 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_BACK) {
-            if (keyListener != null) {
-                keyListener.onkeyBackUp();
-            }
-            moveTaskToBack(true);
-            return true;
-//            long secondTime = System.currentTimeMillis();
-//            if (secondTime - firstTime > 2000) {
-//                Toast.makeText(this, R.string.close_over, Toast.LENGTH_SHORT).show();
-//                firstTime = secondTime;//更新firstTime
-//                return true;
-//            } else {                                                    //两次按键小于2秒时，退出应用
-//                super.onKeyUp(keyCode, event);
+//        if (keyCode == KeyEvent.KEYCODE_BACK) {
+//            if (keyListener != null) {
+//                keyListener.onkeyBackUp();
 //            }
-        }
+//            moveTaskToBack(true);
+//            return true;
+////            long secondTime = System.currentTimeMillis();
+////            if (secondTime - firstTime > 2000) {
+////                Toast.makeText(this, R.string.close_over, Toast.LENGTH_SHORT).show();
+////                firstTime = secondTime;//更新firstTime
+////                return true;
+////            } else {                                                    //两次按键小于2秒时，退出应用
+////                super.onKeyUp(keyCode, event);
+////            }
+//        }
         return super.onKeyUp(keyCode, event);
     }
 }

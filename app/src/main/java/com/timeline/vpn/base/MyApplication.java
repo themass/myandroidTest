@@ -24,7 +24,7 @@ import butterknife.ButterKnife;
 import timber.log.Timber;
 
 /**
- * Created by gqli on 2016/3/1.
+ * Created by themass on 2016/3/1.
  */
 public class MyApplication extends Application {
     private static MyApplication instance = null;
@@ -73,7 +73,9 @@ public class MyApplication extends Application {
         InitConfiguration.Builder builder = new InitConfiguration.Builder(this)
                 .setUpdateMode(InitConfiguration.UpdateMode.EVERYTIME)   // 实时获取配置
                 .setBannerCloseble(InitConfiguration.BannerSwitcher.DEFAULT)    //横幅可关闭按钮
+                .setInstlDisplayType(InitConfiguration.InstlDisplayType.DIALOG_MODE)// 为默认情况,设置插屏展示模式，popupwindow模式可设置窗体外可点击
                 .setInstlCloseble(InitConfiguration.InstlSwitcher.CANCLOSED);     //插屏可关闭按钮
+
         builder.setAdMobSize(InitConfiguration.AdMobSize.BANNER);
         if (SystemUtils.isApkDebugable(this)) {
             builder.setRunMode(InitConfiguration.RunMode.TEST);

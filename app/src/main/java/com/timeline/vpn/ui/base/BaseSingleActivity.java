@@ -3,7 +3,7 @@ package com.timeline.vpn.ui.base;
 import com.timeline.vpn.data.MobAgent;
 
 /**
- * Created by gqli on 2016/8/18.
+ * Created by themass on 2016/8/18.
  */
 public class BaseSingleActivity extends BaseToolBarActivity {
     @Override

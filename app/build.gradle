@@ -26,7 +26,7 @@ android {
         exclude 'META-INF/maven/com.squareup.okio/okio/pom.properties'
     }
     dependencies {
-       // compile fileTree(dir: 'libs', include: ['*.jar'])
+        // compile fileTree(dir: 'libs', include: ['*.jar'])
         compile files('libs/disklrucache-2.0.2.jar')
         compile files('libs/gson-2.2.4.jar')
         compile files('libs/volley.jar')
@@ -132,4 +132,8 @@ android {
             manifestPlaceholders = [UMENG_CHANNEL_VALUE: "baidu"]
         }
     }
+}
+dependencies {
+    compile files('libs/utdid4all-1.1.5.3_proguard.jar')
+    compile files('libs/app-monitor-sdk-2.5.1.1_for_bc_proguard.jar')
 }

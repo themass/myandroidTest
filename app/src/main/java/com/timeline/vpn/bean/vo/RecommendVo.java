@@ -1,7 +1,7 @@
 package com.timeline.vpn.bean.vo;
 
 /**
- * @author gqli
+ * @author themass
  * @version V1.0
  * @date 2016年3月10日 下午4:41:23
  */

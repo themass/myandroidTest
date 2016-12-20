@@ -13,7 +13,7 @@ import com.timeline.vpn.constant.Constants;
 import java.lang.reflect.Type;
 
 /**
- * Created by gqli on 2016/3/10.
+ * Created by themass on 2016/3/10.
  */
 public class DataBuilder {
     public static VpnProfile builderVpnProfile(long expire, String name, String pwd, HostVo vo) {

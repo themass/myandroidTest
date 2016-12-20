@@ -1,7 +1,7 @@
 package com.timeline.vpn.bean.vo;
 
 /**
- * Created by gqli on 2016/8/10.
+ * Created by themass on 2016/8/10.
  */
 public class LocationVo {
     public int id;

@@ -17,7 +17,7 @@ import com.timeline.vpn.ui.base.BaseBannerAdsFragemnt;
 import butterknife.Bind;
 
 /**
- * Created by gqli on 2016/3/31.
+ * Created by themass on 2016/3/31.
  */
 public class TabContentFgment extends BaseBannerAdsFragemnt {
     @Bind(R.id.rv_ads)

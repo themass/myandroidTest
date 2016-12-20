@@ -192,8 +192,7 @@
 -dontnote com.umeng.analytics.**
 -dontnote com.umeng.message.**
 -dontnote com.bumptech.glide.**
--keep class com.baidu.** { *; }
--keep class com.qq.e.** { *; }
+-keep class com.baidu.** { *;}
 -keep class android.support.v4.app.NotificationCompat**{ *; }
 -keep class MTT.ThirdAppInfoNew { *; }
 -keep public class com.kyview.** {*;}
@@ -206,7 +205,6 @@
 -keep public class com.wooboo.** {*;}
 -keep public class cn.aduu.android.**{*;}
 -keep public class com.wqmobile.** {*;}
--keep class com.baidu.mobads.** {public protected *;}
 -keep class com.qq.e.** {public protected *;}
 -keep class com.mobisage.android.** {*;}
 -keep interface com.mobisage.android.** {*;}
@@ -219,7 +217,6 @@
 -keep public interface cn.waps.** {*;}
 -keep class com.adzhidian.** { *; }
 -keep public class cn.immob.sdk.** {*;}
--keep public class cn.immob.sdk.controller.** {*;}
 -keep class com.guohead.mix.*{ *; }
 -keep public class cn.aduu.android.**{*;}
 -keep class com.otomod.ad.** {*;}

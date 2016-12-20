@@ -33,7 +33,7 @@ package com.timeline.vpn.bean.vo;
  * for more details.
  */
 
-import com.timeline.vpn.logic.VpnType;
+import org.strongswan.android.logic.VpnType;
 
 import java.io.Serializable;
 

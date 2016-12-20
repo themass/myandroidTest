@@ -19,7 +19,7 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 
 /**
- * Created by gqli on 2016/3/22.
+ * Created by themass on 2016/3/22.
  */
 public class LaunchActivity extends LogActivity {
     public boolean canJumpImmediately = false;
@@ -50,7 +50,7 @@ public class LaunchActivity extends LogActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_launch_spread);
         AdsAdview.init(this);
-        mHandler.postDelayed(mStartMainRunnable, Constants.STARTUP_SHOW_TIME_8000);
+        mHandler.postDelayed(mStartMainRunnable, Constants.STARTUP_SHOW_TIME_5000);
         ButterKnife.bind(this);
         UpdateUserTask.start(this);
     }
@@ -75,10 +75,6 @@ public class LaunchActivity extends LogActivity {
         canJumpImmediately = true;
         AdsAdview.launchAds(this, ivAds, mHandler);
         MobAgent.onResume(this);
-    }
-
-    private void next() {
-        LogUtil.i("no ads launch");
     }
 
     @Override

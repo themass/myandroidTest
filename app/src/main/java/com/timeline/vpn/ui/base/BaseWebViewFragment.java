@@ -24,7 +24,7 @@ import com.timeline.vpn.ui.view.MyWebView;
 import butterknife.Bind;
 
 /**
- * Created by gqli on 2016/3/21.
+ * Created by themass on 2016/3/21.
  */
 public class BaseWebViewFragment extends BaseFragment {
     public static final String PARAM_WEB_VIEW_CAN_GO_BACK = "PARAM_WEB_VIEW_CAN_GO_BACK";

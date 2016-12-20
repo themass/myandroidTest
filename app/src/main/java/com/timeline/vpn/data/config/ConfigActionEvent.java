@@ -3,7 +3,7 @@ package com.timeline.vpn.data.config;
 import android.content.Context;
 
 /**
- * Created by gqli on 2016/3/17.
+ * Created by themass on 2016/3/17.
  */
 public class ConfigActionEvent {
     public String url;

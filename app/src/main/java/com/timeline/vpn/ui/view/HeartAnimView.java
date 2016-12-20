@@ -21,7 +21,7 @@ import com.timeline.vpn.common.util.SystemUtils;
 /**
  * 提示框 自定义view，使用PopupWindow 实现，注意显示时机
  *
- * @author gqli
+ * @author themass
  */
 public class HeartAnimView {
     private static final DecelerateInterpolator DECCELERATE_INTERPOLATOR = new DecelerateInterpolator();

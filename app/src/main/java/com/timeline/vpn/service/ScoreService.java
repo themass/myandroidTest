@@ -7,7 +7,7 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 
 /**
- * Created by gqli on 2016/8/29.
+ * Created by themass on 2016/8/29.
  */
 public class ScoreService extends Service {
     LocalBinder binder = new LocalBinder();

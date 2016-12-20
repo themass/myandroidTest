@@ -1,10 +1,10 @@
 package com.timeline.vpn.constant;
 
 
-import com.timeline.vpn.logic.VpnType;
+import org.strongswan.android.logic.VpnType;
 
 /**
- * Created by gqli on 2015/9/1.
+ * Created by themass on 2015/9/1.
  */
 public class Constants {
     public static final String FIRSTRUN = "isFirstRun";
@@ -12,7 +12,7 @@ public class Constants {
     public static final String DEFAULT_REFERER = "http://secondaryspace.com/";
     public static final String URL = "url";
     public static final int STARTUP_SHOW_TIME_1500 = 1500; //启动页广告时长
-    public static final int STARTUP_SHOW_TIME_3500 = 3500; //启动页广告时长
+    public static final int STARTUP_SHOW_TIME_5000 = 5000; //启动页广告时长
     public static final int STARTUP_SHOW_TIME_8000 = 8000; //启动页广告时长
     public static final int BANNER_ADS_GONE_LONG = 80000; //广告显示时长
     public static final int BANNER_ADS_GONE_SHORT = 5000; //启动页广告时长
@@ -58,6 +58,9 @@ public class Constants {
     public static final String DEVID = "Devid";
     public static final String HTTP_TOKEN_KEY = "Vpn-Token";
     public static final String HTTP_LANG = "lang";
+    public static final String LON = "lon";
+    public static final String LAT = "lat";
+    public static final String PORT = "port";
     public static final String SEX_M = "M";
     public static final String SEX_F = "F";
     public static final int HTTP_SUCCESS = 0;
@@ -66,8 +69,8 @@ public class Constants {
     public static final String SETTING_PREF_NEED_CHECK_UPDATE_NEXT_TIME = "SETTING_PREF_NEED_CHECK_UPDATE_NEXT_TIME";
     public static final String TEMP_PATH = "/tencent/vpn";
     public static final String VERSION_APP_INCOMING = "VERSION_APP_INCOMING"; // 服务器上的最新版本号
-    public static final String ADS_ADVIEW_KEY = "SDK201613190108211j6pfsw630dnsyz";
-    public static final String ADS_ADVIEW_KEY_ACTIVITY = "SDK20161823060827zy54tlysbkjtt4h";
+    public static final String ADS_ADVIEW_KEY = "SDK201614200212284mmevtthxxbrcsb";
+    public static final String ADS_ADVIEW_KEY_ACTIVITY = "SDK201614200212284mmevtthxxbrcsb";
     public static final String adsKeySet[] = new String[]{ADS_ADVIEW_KEY};
     public static final String adsKeySetBanner[] = new String[]{ADS_ADVIEW_KEY, ADS_ADVIEW_KEY_ACTIVITY};
     public static final String LANG_ZH = "zh";

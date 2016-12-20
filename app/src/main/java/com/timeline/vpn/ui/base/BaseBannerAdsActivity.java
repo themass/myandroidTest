@@ -15,7 +15,7 @@ import com.timeline.vpn.constant.Constants;
 import butterknife.Bind;
 
 /**
- * Created by gqli on 2016/8/21.
+ * Created by themass on 2016/8/21.
  */
 public abstract class BaseBannerAdsActivity extends BaseSingleActivity {
     private static final int ANIM_DURATION_FAB = 400;

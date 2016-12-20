@@ -1,6 +1,8 @@
 package com.timeline.vpn.common.net;
 
 import com.timeline.vpn.common.exce.HttpException;
+import com.timeline.vpn.common.net.interceptor.GzipRequestInterceptor;
+import com.timeline.vpn.common.net.interceptor.LoggingInterceptor;
 import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
 

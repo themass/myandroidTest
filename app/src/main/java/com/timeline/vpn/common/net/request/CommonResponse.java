@@ -5,7 +5,7 @@ import com.android.volley.VolleyError;
 import com.timeline.vpn.common.net.VolleyUtils;
 
 /**
- * Created by gqli on 2016/8/17.
+ * Created by themass on 2016/8/17.
  */
 public class CommonResponse {
     public static class ResponseErrorListener implements Response.ErrorListener {

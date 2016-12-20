@@ -12,7 +12,7 @@ import java.util.List;
 import butterknife.ButterKnife;
 
 /**
- * Created by gqli on 2016/8/13.
+ * Created by themass on 2016/8/13.
  */
 public abstract class BaseRecyclerViewAdapter<T extends BaseRecyclerViewAdapter.BaseRecyclerViewHolder, V> extends RecyclerView.Adapter<T> implements View.OnClickListener {
     protected final Context context;

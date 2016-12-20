@@ -40,7 +40,7 @@ import java.util.List;
 import butterknife.Bind;
 
 /**
- * Created by gqli on 2016/8/12.
+ * Created by themass on 2016/8/12.
  */
 public class LocationChooseFragment extends LoadableFragment<List<LocationVo>> implements OnRecyclerViewItemClickListener<LocationVo> {
     private static final String LOCATION_TAG = "location_tag";

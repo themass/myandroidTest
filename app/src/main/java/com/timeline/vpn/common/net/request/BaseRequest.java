@@ -14,13 +14,16 @@ import com.timeline.vpn.bean.vo.JsonResult;
 import com.timeline.vpn.common.exce.MyVolleyError;
 import com.timeline.vpn.common.net.HttpUtils;
 import com.timeline.vpn.common.util.DeviceInfoUtils;
+import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.common.util.Md5;
 import com.timeline.vpn.common.util.PreferenceUtils;
 import com.timeline.vpn.common.util.SystemUtils;
 import com.timeline.vpn.common.util.cache.DiskBasedCacheEx;
 import com.timeline.vpn.constant.Constants;
+import com.timeline.vpn.data.StaticDataUtil;
 import com.timeline.vpn.data.UserLoginUtil;
 
+import java.net.URL;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -55,7 +58,9 @@ public class BaseRequest<T> extends Request<T> {
         sb.append(DeviceInfoUtils.getDeviceId(context)).append("|").append(time);
         String msg = time + Md5.encode(sb.toString());
         String ua = UA_DEFAULT + UA_APP_SUFFIX +",IE" + msg;
+        String loc = "lon:"+ StaticDataUtil.get(Constants.LON,Double.class)+";lat:"+ StaticDataUtil.get(Constants.LAT,Double.class);
         this.authkey = ua.substring(ua.length()-16,ua.length());
+        headers.put("Loc",loc);
         headers.put("User-Agent", ua);
         if (!headers.containsKey("Referer")) {
             headers.put("Referer", Constants.DEFAULT_REFERER);
@@ -145,6 +150,16 @@ public class BaseRequest<T> extends Request<T> {
     }
 
     protected Response parserData(JsonResult data, NetworkResponse response) {
+
+            try {
+                URL url = new URL(getUrl());
+                if(data.ip!=null&&StaticDataUtil.get(url.getHost(),String.class)==null) {
+                    String ip = data.ip.split(";")[0].split(":")[0];
+                    StaticDataUtil.add(url.getHost(), ip);
+                }
+            } catch (Exception e) {
+                LogUtil.e(e);
+            }
         boolean ret = parserJsonResult(getContext(), data.errno);
         if (ret) {
             return Response.success(data.getData(), getCacheEntry(response));
