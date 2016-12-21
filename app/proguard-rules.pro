@@ -261,6 +261,8 @@
 -keep class cn.pro.ad.sdk.*
 -dontwarn com.dropbox.**
 -dontwarn com.inmobi.**
+-keep class com.moat.analytics.**{*;}
+-dontwarn com.moat.analytics.**
 # Preserve all native method names and the names of their classes.
 -keepclassmembers class * {
     native <methods>;
@@ -274,5 +276,21 @@
 
 #----------------------project------------
 -keep class com.timeline.vpn.bean.**{ *; }
+-keep class org.strongswan.android.logic.**{ *; }
 -keep class sun.misc.Unsafe { *; }
 -keep class com.google.gson.stream.** { *; }
+
+#feedback sdk
+-keep class com.alibaba.sdk.android.feedback.impl.FeedbackServiceImpl {*;}
+-keep class com.alibaba.sdk.android.feedback.impl.FeedbackAPI {*;}
+-keep class com.alibaba.sdk.android.feedback.util.IWxCallback {*;}
+-keep class com.alibaba.sdk.android.feedback.FeedbackService{*;}
+-keep class com.alibaba.sdk.android.feedback.util.IUnreadCountCallback{*;}
+-keep public class com.alibaba.mtl.log.model.LogField {public *;}
+-keep class com.taobao.securityjni.**{*;}
+-keep class com.taobao.wireless.security.**{*;}
+-keep class com.ut.secbody.**{*;}
+-keep class com.taobao.dp.**{*;}
+-keep class com.alibaba.wireless.security.**{*;}
+-keep class com.ta.utdid2.device.**{*;}
+-keep class com.ut.mini.**{*;}

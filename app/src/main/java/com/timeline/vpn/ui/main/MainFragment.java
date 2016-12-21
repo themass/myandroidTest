@@ -1,7 +1,6 @@
 package com.timeline.vpn.ui.main;
 
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v13.app.FragmentTabHost;
 import android.view.KeyEvent;
@@ -11,6 +10,7 @@ import android.widget.ImageView;
 import android.widget.TabHost;
 import android.widget.TabWidget;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.timeline.vpn.R;
 import com.timeline.vpn.common.util.EventBusUtil;
@@ -20,8 +20,6 @@ import com.timeline.vpn.ui.base.BaseDrawerActivity;
 import com.timeline.vpn.ui.maintab.OnBackKeyUpListener;
 import com.timeline.vpn.ui.maintab.TabIndexFragment;
 import com.timeline.vpn.ui.maintab.TabVipFragment;
-import com.umeng.fb.FeedbackAgent;
-import com.umeng.message.PushAgent;
 
 import org.strongswan.android.logic.CharonVpnService;
 
@@ -30,7 +28,6 @@ import org.strongswan.android.logic.CharonVpnService;
  */
 public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabChangeListener {
     private static final String ADS_TAG = "ADS_TAG";
-    FeedbackAgent fb;
     private FragmentTabHost mTabHost;
     private TabWidget mainTab;
     private long firstTime = 0;
@@ -43,7 +40,6 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
         setContentView(R.layout.main_fragment);
         setupView();
         EventBusUtil.getEventBus().register(jump);
-        setUpUmengFeedback();
     }
 
     public void setListener(OnBackKeyUpListener keyListener) {
@@ -64,25 +60,6 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
         mTabHost.getTabWidget().setDividerDrawable(null);
         mainTab = mTabHost.getTabWidget();
         startService(new Intent(this, CharonVpnService.class));
-    }
-
-    /**
-     * //友盟feedback
-     */
-    private void setUpUmengFeedback() {
-        fb = new FeedbackAgent(this);
-        fb.sync();
-        fb.openAudioFeedback();
-        fb.openFeedbackPush();
-        PushAgent.getInstance(this).enable();
-        new AsyncTask<String, Integer, Boolean>() {
-            @Override
-            protected Boolean doInBackground(String... params) {
-                boolean result = fb.updateUserInfo();
-                return Boolean.TRUE;
-            }
-        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-
     }
 
     private View addTab(LayoutInflater inflater, int tag, Class clss,
@@ -114,21 +91,23 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
-//        if (keyCode == KeyEvent.KEYCODE_BACK) {
-//            if (keyListener != null) {
-//                keyListener.onkeyBackUp();
-//            }
-//            moveTaskToBack(true);
-//            return true;
-////            long secondTime = System.currentTimeMillis();
-////            if (secondTime - firstTime > 2000) {
-////                Toast.makeText(this, R.string.close_over, Toast.LENGTH_SHORT).show();
-////                firstTime = secondTime;//更新firstTime
-////                return true;
-////            } else {                                                    //两次按键小于2秒时，退出应用
-////                super.onKeyUp(keyCode, event);
-////            }
-//        }
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (keyListener != null) {
+                keyListener.onkeyBackUp();
+            }
+            if(CharonVpnService.VPN_STATUS==1) {
+                moveTaskToBack(true);
+                return true;
+            }
+            long secondTime = System.currentTimeMillis();
+            if (secondTime - firstTime > 2000) {
+                Toast.makeText(this, R.string.close_over, Toast.LENGTH_SHORT).show();
+                firstTime = secondTime;//更新firstTime
+                return true;
+            } else {                                                    //两次按键小于2秒时，退出应用
+                super.onKeyUp(keyCode, event);
+            }
+        }
         return super.onKeyUp(keyCode, event);
     }
 }

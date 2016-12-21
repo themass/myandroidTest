@@ -31,4 +31,10 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/bt_text"
         android:text="进入系统" />
+    <ImageView
+        android:id="@+id/bt_iv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/bt_text_lunch"
+        android:src="@drawable/yw_1222"/>
 </RelativeLayout>

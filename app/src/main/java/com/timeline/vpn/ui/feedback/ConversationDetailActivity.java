@@ -2,47 +2,47 @@ package com.timeline.vpn.ui.feedback;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.alibaba.sdk.android.feedback.impl.FeedbackAPI;
 import com.timeline.vpn.R;
-import com.timeline.vpn.common.util.DeviceInfoUtils;
-import com.timeline.vpn.common.util.LogUtil;
-import com.umeng.fb.FeedbackAgent;
-import com.umeng.fb.fragment.FeedbackFragment;
-import com.umeng.fb.model.Conversation;
+import com.timeline.vpn.ui.base.LogActivity;
+
+import java.util.concurrent.Callable;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 
-public class ConversationDetailActivity extends FragmentActivity {
+public class ConversationDetailActivity extends LogActivity {
     @Nullable
     @Bind(R.id.toolbar)
     Toolbar toolbar;
     @Bind(R.id.tv_title)
     TextView tvTitle;
-    private FeedbackFragment mFeedbackFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.base_toobar_activity);
         if (savedInstanceState == null) {
-            FeedbackAgent mAgent = new FeedbackAgent(this);
-            String id = DeviceInfoUtils.getDeviceId(this);
-            Conversation mConversation = mAgent.getConversationById(id);
-            if (mConversation == null) {
-                mConversation = Conversation.newInstance(this, id);
-            }
-            LogUtil.i(id);
-            mFeedbackFragment = FeedbackFragment.newInstance(id);
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.fl_body, mFeedbackFragment)
-                    .commit();
+            final FragmentManager fm = getSupportFragmentManager();
+            final FragmentTransaction transaction = fm.beginTransaction();
+            final Fragment feedback = FeedbackAPI.getFeedbackFragment();
+            FeedbackAPI.setFeedbackFragment(new Callable() {
+                @Override
+                public Object call() throws Exception {
+                    transaction.replace(R.id.fl_body, feedback);
+                    transaction.commit();
+                    return null;
+                }
+            }, null);
         }
         ButterKnife.bind(this);
         setToolbarTitle(R.string.feed_back);
@@ -76,7 +76,9 @@ public class ConversationDetailActivity extends FragmentActivity {
     }
 
     @Override
-    protected void onNewIntent(android.content.Intent intent) {
-        mFeedbackFragment.refresh();
+    protected void onDestroy() {
+        super.onDestroy();
+        FeedbackAPI.cleanFeedbackFragment();
+        FeedbackAPI.cleanActivity();
     }
 }

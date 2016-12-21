@@ -66,6 +66,8 @@ public class Constants {
     public static final int HTTP_SUCCESS = 0;
     public static final int HTTP_SUCCESS_CLEAR = 1;
     // 有新版本时，是否打开app就提醒升级
+    //用户反馈
+    public final static String DEFAULT_FEEDBACK_APPKEY = "23575056";
     public static final String SETTING_PREF_NEED_CHECK_UPDATE_NEXT_TIME = "SETTING_PREF_NEED_CHECK_UPDATE_NEXT_TIME";
     public static final String TEMP_PATH = "/tencent/vpn";
     public static final String VERSION_APP_INCOMING = "VERSION_APP_INCOMING"; // 服务器上的最新版本号

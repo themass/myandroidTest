@@ -67,7 +67,7 @@ public abstract class BaseBannerAdsActivity extends BaseSingleActivity {
     public void onResume() {
         super.onResume();
         flBanner.setVisibility(View.VISIBLE);
-//        showBanner();
+        showBanner();
         startIntroAnimation();
     }
 

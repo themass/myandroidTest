@@ -3,7 +3,12 @@ package com.timeline.vpn.base;
 import android.app.Application;
 import android.content.Context;
 import android.graphics.Typeface;
+import android.util.Log;
+import android.widget.Toast;
 
+import com.alibaba.sdk.android.feedback.impl.FeedbackAPI;
+import com.alibaba.sdk.android.feedback.util.ErrorCode;
+import com.alibaba.sdk.android.feedback.util.FeedbackErrorCallback;
 import com.android.volley.VolleyLog;
 import com.kyview.InitConfiguration;
 import com.squareup.leakcanary.LeakCanary;
@@ -17,8 +22,8 @@ import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.MobAgent;
 import com.timeline.vpn.data.StaticDataUtil;
 import com.timeline.vpn.data.VersionUpdater;
-import com.timeline.vpn.ui.feedback.ConversationDetailActivity;
-import com.umeng.fb.push.FeedbackPush;
+
+import java.util.concurrent.Callable;
 
 import butterknife.ButterKnife;
 import timber.log.Timber;
@@ -57,6 +62,7 @@ public class MyApplication extends Application {
         VolleyLog.DEBUG = SystemUtils.isApkDebugable(this);
         VolleyLog.setTag("VolleyUtils");
         initData();
+        initFeedback();
         typeface = Typeface.SANS_SERIF;
         instance = this;
     }
@@ -68,8 +74,6 @@ public class MyApplication extends Application {
         }
         LogUtil.i("init data ok");
         MobAgent.init(this, SystemUtils.isApkDebugable(this));
-        com.umeng.fb.util.Log.LOG = SystemUtils.isApkDebugable(this);
-        FeedbackPush.getInstance(this).init(ConversationDetailActivity.class, true);
         InitConfiguration.Builder builder = new InitConfiguration.Builder(this)
                 .setUpdateMode(InitConfiguration.UpdateMode.EVERYTIME)   // 实时获取配置
                 .setBannerCloseble(InitConfiguration.BannerSwitcher.DEFAULT)    //横幅可关闭按钮
@@ -81,5 +85,23 @@ public class MyApplication extends Application {
             builder.setRunMode(InitConfiguration.RunMode.TEST);
         }
         initConfig = builder.build();
+    }
+    private void initFeedback(){
+        FeedbackAPI.addErrorCallback(new FeedbackErrorCallback() {
+            @Override
+            public void onError(Context context, String errorMessage, ErrorCode code) {
+                Toast.makeText(context, "ErrMsg is: " + errorMessage, Toast.LENGTH_SHORT).show();
+            }
+        });
+        // Feedback activity的回调
+        FeedbackAPI.addLeaveCallback(new Callable() {
+            @Override
+            public Object call() throws Exception {
+                Log.d("DemoApplication", "custom leave callback");
+                return null;
+            }
+        });
+        //建议放在此处做初始化
+        FeedbackAPI.init(this, Constants.DEFAULT_FEEDBACK_APPKEY);
     }
 }

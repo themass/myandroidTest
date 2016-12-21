@@ -82,6 +82,7 @@ public class CharonVpnService extends VpnService{
     private static final String TAG = CharonVpnService.class.getSimpleName();
     private static final String WORK_ANME = "vpnThread";
     public static final int FOREGROUND_NOTIFY_ID = 100;
+    public static volatile Integer VPN_STATUS = 0;
     /*
      * The libraries are extracted to /data/data/org.strongswan.android/...
      * during installation.  On newer releases most are loaded in JNI_OnLoad.
@@ -455,6 +456,7 @@ public class CharonVpnService extends VpnService{
         }
     }
     private void createForegroundService() {
+        VPN_STATUS = 1;
         Intent intent = new Intent(this, MainFragment.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent pend =
@@ -472,6 +474,7 @@ public class CharonVpnService extends VpnService{
         startForeground(FOREGROUND_NOTIFY_ID, builder.build());
     }
     private void delForegroundService() {
+        VPN_STATUS = 0;
         stopForeground(true);
     }
     public class DisConnectJob implements Runnable {
