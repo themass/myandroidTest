@@ -2,6 +2,7 @@ package com.timeline.vpn.base;
 
 import android.app.Application;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Typeface;
 import android.util.Log;
 import android.widget.Toast;
@@ -22,6 +23,9 @@ import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.MobAgent;
 import com.timeline.vpn.data.StaticDataUtil;
 import com.timeline.vpn.data.VersionUpdater;
+import com.umeng.message.IUmengRegisterCallback;
+import com.umeng.message.MsgConstant;
+import com.umeng.message.PushAgent;
 
 import java.util.concurrent.Callable;
 
@@ -36,7 +40,7 @@ public class MyApplication extends Application {
     public Typeface typeface;
     private RefWatcher refWatcher;
     private InitConfiguration initConfig;
-
+    public static final String UPDATE_STATUS_ACTION = "com.timeline.vpn.action.UPDATE_STATUS";
     public static RefWatcher getRefWatcher(Context context) {
         MyApplication application = (MyApplication) context.getApplicationContext();
         return application.refWatcher;
@@ -63,6 +67,7 @@ public class MyApplication extends Application {
         VolleyLog.setTag("VolleyUtils");
         initData();
         initFeedback();
+        initPush();
         typeface = Typeface.SANS_SERIF;
         instance = this;
     }
@@ -103,5 +108,26 @@ public class MyApplication extends Application {
         });
         //建议放在此处做初始化
         FeedbackAPI.init(this, Constants.DEFAULT_FEEDBACK_APPKEY);
+    }
+    private void initPush(){
+        PushAgent mPushAgent = PushAgent.getInstance(this);
+        mPushAgent.setDebugMode(SystemUtils.isApkDebugable(this));
+        //sdk开启通知声音
+        mPushAgent.setNotificationPlaySound(MsgConstant.NOTIFICATION_PLAY_SERVER);
+        mPushAgent.setNotificationPlayLights(MsgConstant.NOTIFICATION_PLAY_SDK_DISABLE);
+		mPushAgent.setNotificationPlayVibrate(MsgConstant.NOTIFICATION_PLAY_SDK_DISABLE);
+        mPushAgent.register(new IUmengRegisterCallback() {
+            @Override
+            public void onSuccess(String deviceToken) {
+                LogUtil.i( "device token: " + deviceToken);
+                sendBroadcast(new Intent(UPDATE_STATUS_ACTION));
+            }
+
+            @Override
+            public void onFailure(String s, String s1) {
+                LogUtil.i( "register failed: " + s + " " +s1);
+                sendBroadcast(new Intent(UPDATE_STATUS_ACTION));
+            }
+        });
     }
 }

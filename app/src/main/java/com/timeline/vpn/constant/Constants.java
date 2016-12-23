@@ -39,6 +39,7 @@ public class Constants {
     public static final int CLOUDS = 8;//云
     public static final int EXTREME = 9;//极端
     public static final String WEATHER_KEY = "weather";
+    public static final String MY_PUSH_TYPE = "mypushtype";
     //location
     public static final String LOCATION_CHOOSE = "LOCATION_CHOOSE";
     public static final int LOCATION_TYPE_FREE = 0;

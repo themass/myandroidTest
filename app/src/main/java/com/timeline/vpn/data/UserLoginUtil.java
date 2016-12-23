@@ -1,7 +1,9 @@
 package com.timeline.vpn.data;
 
 import android.content.Context;
+import android.content.Intent;
 
+import com.timeline.vpn.base.MyApplication;
 import com.timeline.vpn.bean.vo.UserInfoVo;
 import com.timeline.vpn.common.util.EventBusUtil;
 import com.timeline.vpn.common.util.PreferenceUtils;
@@ -17,6 +19,7 @@ public class UserLoginUtil {
         PreferenceUtils.setPrefString(context, Constants.HTTP_TOKEN_KEY, vo.token);
         StaticDataUtil.add(Constants.LOGIN_USER, vo);
         EventBusUtil.getEventBus().post(new UserLoginEvent());
+        context.sendBroadcast(new Intent(MyApplication.UPDATE_STATUS_ACTION));
         MobAgent.onProfileSignIn(vo.name);
     }
 
@@ -25,6 +28,7 @@ public class UserLoginUtil {
         PreferenceUtils.remove(context, Constants.HTTP_TOKEN_KEY);
         StaticDataUtil.del(Constants.LOGIN_USER);
         EventBusUtil.getEventBus().post(new UserLoginEvent());
+        context.sendBroadcast(new Intent(MyApplication.UPDATE_STATUS_ACTION));
         MobAgent.onProfileSignOff();
     }
 

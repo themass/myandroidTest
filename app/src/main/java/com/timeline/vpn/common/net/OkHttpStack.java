@@ -4,7 +4,6 @@ import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.toolbox.HttpStack;
 import com.timeline.vpn.common.net.interceptor.DnsRequestInterceptor;
-import com.timeline.vpn.common.net.interceptor.GzipRequestInterceptor;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -47,7 +46,7 @@ public class OkHttpStack implements HttpStack {
         clientBuilder.readTimeout(DEFUAT_TIMEOUT, TimeUnit.SECONDS);
         clientBuilder.writeTimeout(WRITE_TIMEOUT, TimeUnit.SECONDS);
         clientBuilder.addInterceptor(new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY));
-        clientBuilder.addInterceptor(new GzipRequestInterceptor());
+//        clientBuilder.addInterceptor(new GzipRequestInterceptor());
         clientBuilder.addInterceptor(new DnsRequestInterceptor());
         mClient = clientBuilder.build();
     }

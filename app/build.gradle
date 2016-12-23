@@ -29,7 +29,8 @@ android {
     }
     sourceSets.main {
         jni.srcDirs = [] // disables the default ndk-build call (with on-the-fly Android.mk files)
-        jniLibs.srcDir 'src/main/jniLibs'
+//        jniLibs.srcDir 'src/main/jniLibs'
+        jniLibs.srcDirs = ['libs']
     }
 //    task buildNative(type: Exec) {
 //        workingDir 'src/main/jni'
@@ -149,7 +150,9 @@ android {
     }
 }
 dependencies {
+
     // compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile project(':PushSDK')
     compile files('libs/disklrucache-2.0.2.jar')
     compile files('libs/gson-2.2.4.jar')
     compile files('libs/volley.jar')
@@ -168,7 +171,7 @@ dependencies {
     compile files('libs/Baidu_MobAds_SDK_Agg.jar')
     compile files('libs/AdViewSDK_Android.jar')
     compile files('libs/YoumiSdk.jar')
-//        provided fileTree(dir: 'libs', include: ['*.jar'])
+    //        provided fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:multidex:1.0.0'
     compile 'com.android.support:appcompat-v7:23.2.0'
     compile 'com.android.support:support-v13:23.2.0'
@@ -185,8 +188,8 @@ dependencies {
     compile 'com.squareup.okhttp3:okhttp:3.4.1'
     compile 'com.squareup.okhttp3:logging-interceptor:3.4.1'
     compile 'com.github.bumptech.glide:glide:3.7.0'
-    compile "org.apache.httpcomponents:httpcore:4.2.5"
-    compile group: 'commons-io', name: 'commons-io', version: '2.4'
+    compile 'org.apache.httpcomponents:httpcore:4.2.5'
+    compile 'commons-io:commons-io:2.4'
     compile 'org.greenrobot:eventbus:3.0.0'
     compile 'com.umeng.analytics:analytics:latest.integration'
     compile 'com.romainpiel.shimmer:library:1.4.0@aar'

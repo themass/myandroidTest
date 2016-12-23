@@ -1,6 +1,9 @@
 package com.timeline.vpn.ui.main;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v13.app.FragmentTabHost;
 import android.view.KeyEvent;
@@ -13,13 +16,20 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.timeline.vpn.R;
+import com.timeline.vpn.base.MyApplication;
+import com.timeline.vpn.bean.vo.UserInfoVo;
 import com.timeline.vpn.common.util.EventBusUtil;
 import com.timeline.vpn.common.util.LogUtil;
+import com.timeline.vpn.common.util.PreferenceUtils;
+import com.timeline.vpn.constant.Constants;
+import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.data.config.ConfigActionJump;
 import com.timeline.vpn.ui.base.BaseDrawerActivity;
 import com.timeline.vpn.ui.maintab.OnBackKeyUpListener;
 import com.timeline.vpn.ui.maintab.TabIndexFragment;
 import com.timeline.vpn.ui.maintab.TabVipFragment;
+import com.umeng.message.PushAgent;
+import com.umeng.message.UTrack;
 
 import org.strongswan.android.logic.CharonVpnService;
 
@@ -34,12 +44,16 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
     private boolean pendingIntroAnimation;
     private OnBackKeyUpListener keyListener;
     private ConfigActionJump jump = new ConfigActionJump();
-
+    private MyReceiver myReceiver;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_fragment);
         setupView();
         EventBusUtil.getEventBus().register(jump);
+        myReceiver = new MyReceiver();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(MyApplication.UPDATE_STATUS_ACTION);
+        registerReceiver(myReceiver, filter);
     }
 
     public void setListener(OnBackKeyUpListener keyListener) {
@@ -109,5 +123,35 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
             }
         }
         return super.onKeyUp(keyCode, event);
+    }
+    public void appInfo(){
+        LogUtil.i("appInfo");
+        UserInfoVo user = UserLoginUtil.getUserCache();
+        if(user==null){
+            String name = PreferenceUtils.getPrefString(MainFragment.this, Constants.LOGIN_USER_LAST,null);
+            if(name!=null)
+                PushAgent.getInstance(MainFragment.this).removeAlias(name, Constants.MY_PUSH_TYPE, new UTrack.ICallBack(){
+                    @Override
+                    public void onMessage(boolean isSuccess, String message) {
+                        if(!isSuccess)
+                            LogUtil.e("removeAlias:"+isSuccess+";message:"+message);
+                    }
+                });
+        }else{
+            PushAgent.getInstance(MainFragment.this).addAlias(user.name, Constants.MY_PUSH_TYPE, new UTrack.ICallBack() {
+                @Override
+                public void onMessage(boolean isSuccess, String message) {
+                    if(!isSuccess)
+                        LogUtil.e("addAlias:"+isSuccess+";message:"+message);
+                }
+            });
+        }
+
+    }
+    class MyReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            appInfo();
+        }
     }
 }

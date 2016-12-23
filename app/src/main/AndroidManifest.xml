@@ -78,6 +78,10 @@
             android:name="UMENG_APPKEY"
             android:value="57b56211e0f55ab5da0002a3" />
         <meta-data
+            android:name="UMENG_MESSAGE_SECRET"
+            android:value="06ab5668a76ad1be10a1ec82e7f6ddfb" >
+        </meta-data>
+        <meta-data
             android:name="UMENG_CHANNEL"
             android:value="${CHANNEL_VALUE}" />
         <meta-data

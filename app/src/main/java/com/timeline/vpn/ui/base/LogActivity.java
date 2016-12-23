@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
 import com.timeline.vpn.common.util.LogUtil;
+import com.umeng.message.PushAgent;
 
 /**
  * Created by themass on 2016/3/22.
@@ -13,6 +14,7 @@ public class LogActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         LogUtil.i(getClass().getSimpleName() + "-onCreate");
+        PushAgent.getInstance(this).onAppStart();
         super.onCreate(savedInstanceState);
     }
 
