@@ -48,12 +48,12 @@ android {
 
 //    clean.dependsOn 'cleanNative'
     signingConfigs {
-        config {
-            keyAlias 'myapp'
-            keyPassword 'themass'
-            storeFile file('C:/software/work/android-sdk_r24.3.3-windows/mykey.jks')
-            storePassword 'themass'
-        }
+//        config {
+//            keyAlias 'myapp'
+//            keyPassword 'themass'
+//            storeFile file('C:/software/work/android-sdk_r24.3.3-windows/mykey.jks')
+//            storePassword 'themass'
+//        }
         linux {
             keyAlias 'myapp'
             keyPassword 'themass'
