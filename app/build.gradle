@@ -54,7 +54,7 @@ android {
 //            storeFile file('C:/software/work/android-sdk_r24.3.3-windows/mykey.jks')
 //            storePassword 'themass'
 //        }
-        linux {
+        config {
             keyAlias 'myapp'
             keyPassword 'themass'
             storeFile file('/home/web/local/mykey.jks')
@@ -81,7 +81,7 @@ android {
             zipAlignEnabled true // Zipalign优化
             shrinkResources false // 移除无用的resource文件
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.linux
+            signingConfig signingConfigs.config
             debuggable false
         }
     }
