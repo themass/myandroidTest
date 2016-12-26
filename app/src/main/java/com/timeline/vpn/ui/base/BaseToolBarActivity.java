@@ -9,9 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.squareup.leakcanary.RefWatcher;
 import com.timeline.vpn.R;
-import com.timeline.vpn.base.MyApplication;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -61,8 +59,6 @@ public class BaseToolBarActivity extends BaseWeatherMenuActivity {
     public void onDestroy() {
         super.onDestroy();
         ButterKnife.unbind(this);
-        RefWatcher refWatcher = MyApplication.getRefWatcher(this);
-        refWatcher.watch(this);
     }
 
     public void startActivity(Class<? extends Activity> c) {

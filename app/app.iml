@@ -41,12 +41,6 @@
       <sourceFolder url="file://$MODULE_DIR$/src/tencentDebug/java" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/tencentDebug/jni" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/tencentDebug/rs" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/r/androidTest/tencent/debug" isTestSource="true" generated="true" />
-      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/aidl/androidTest/tencent/debug" isTestSource="true" generated="true" />
-      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/buildConfig/androidTest/tencent/debug" isTestSource="true" generated="true" />
-      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/rs/androidTest/tencent/debug" isTestSource="true" generated="true" />
-      <sourceFolder url="file://$MODULE_DIR$/build/generated/res/rs/androidTest/tencent/debug" type="java-test-resource" />
-      <sourceFolder url="file://$MODULE_DIR$/build/generated/res/resValues/androidTest/tencent/debug" type="java-test-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/testTencentDebug/res" type="java-test-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/testTencentDebug/resources" type="java-test-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/testTencentDebug/assets" type="java-test-resource" />
@@ -54,6 +48,12 @@
       <sourceFolder url="file://$MODULE_DIR$/src/testTencentDebug/java" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/testTencentDebug/jni" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/testTencentDebug/rs" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/r/androidTest/tencent/debug" isTestSource="true" generated="true" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/aidl/androidTest/tencent/debug" isTestSource="true" generated="true" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/buildConfig/androidTest/tencent/debug" isTestSource="true" generated="true" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/rs/androidTest/tencent/debug" isTestSource="true" generated="true" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/res/rs/androidTest/tencent/debug" type="java-test-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/res/resValues/androidTest/tencent/debug" type="java-test-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/tencent/res" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/tencent/resources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/tencent/assets" type="java-resource" />
@@ -61,13 +61,6 @@
       <sourceFolder url="file://$MODULE_DIR$/src/tencent/java" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/tencent/jni" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/tencent/rs" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/testTencent/res" type="java-test-resource" />
-      <sourceFolder url="file://$MODULE_DIR$/src/testTencent/resources" type="java-test-resource" />
-      <sourceFolder url="file://$MODULE_DIR$/src/testTencent/assets" type="java-test-resource" />
-      <sourceFolder url="file://$MODULE_DIR$/src/testTencent/aidl" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/src/testTencent/java" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/src/testTencent/jni" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/src/testTencent/rs" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/androidTestTencent/res" type="java-test-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/androidTestTencent/resources" type="java-test-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/androidTestTencent/assets" type="java-test-resource" />
@@ -75,6 +68,13 @@
       <sourceFolder url="file://$MODULE_DIR$/src/androidTestTencent/java" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/androidTestTencent/jni" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/androidTestTencent/rs" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/testTencent/res" type="java-test-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/testTencent/resources" type="java-test-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/testTencent/assets" type="java-test-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/testTencent/aidl" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/testTencent/java" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/testTencent/jni" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/testTencent/rs" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/debug/res" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/debug/resources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/debug/assets" type="java-resource" />
@@ -95,13 +95,6 @@
       <sourceFolder url="file://$MODULE_DIR$/src/main/aidl" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/java" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/rs" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/test/res" type="java-test-resource" />
-      <sourceFolder url="file://$MODULE_DIR$/src/test/resources" type="java-test-resource" />
-      <sourceFolder url="file://$MODULE_DIR$/src/test/assets" type="java-test-resource" />
-      <sourceFolder url="file://$MODULE_DIR$/src/test/aidl" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/src/test/java" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/src/test/jni" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/src/test/rs" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/androidTest/res" type="java-test-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/androidTest/resources" type="java-test-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/androidTest/assets" type="java-test-resource" />
@@ -109,9 +102,15 @@
       <sourceFolder url="file://$MODULE_DIR$/src/androidTest/java" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/androidTest/jni" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/androidTest/rs" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/test/res" type="java-test-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/test/resources" type="java-test-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/test/assets" type="java-test-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/test/aidl" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/test/java" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/test/jni" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/test/rs" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/assets" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/blame" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/builds" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/bundles" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/classes" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/dependency-cache" />

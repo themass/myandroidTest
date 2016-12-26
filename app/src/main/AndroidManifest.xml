@@ -109,7 +109,7 @@
         </activity>
         <activity android:name=".ui.feedback.ConversationDetailActivity" />
         <activity android:name=".ui.base.CommonFragmentActivity" />
-
+        <service android:name="com.timeline.vpn.service.LeakUploadService" />
         <service
             android:name="org.strongswan.android.logic.VpnStateService"
             android:exported="false"></service>

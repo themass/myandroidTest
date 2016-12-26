@@ -87,9 +87,9 @@ android {
     }
     productFlavors {
         //腾讯应用宝
-        tencent {
-            manifestPlaceholders = [CHANNEL_VALUE: "tencent"]
-        }
+//        tencent {
+//            manifestPlaceholders = [CHANNEL_VALUE: "tencent"]
+//        }
 //        //小米
 //        xiaomi {
 //            manifestPlaceholders = [CHANNEL_VALUE: "xiaomi"]

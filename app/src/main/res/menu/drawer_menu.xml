@@ -23,8 +23,12 @@
             android:icon="@drawable/ic_menu_version"
             android:title="@string/menu_btn_version" />
         <item
-            android:id="@+id/menu_log"
-            android:icon="@drawable/ic_menu_log"
+            android:id="@+id/menu_share"
+            android:icon="@drawable/ic_menu_share"
+            android:title="@string/menu_btn_share" />
+        <item
+            android:id="@+id/menu_bug"
+            android:icon="@drawable/ic_menu_bug"
             android:title="@string/menu_btn_bug" />
     </group>
     <group>

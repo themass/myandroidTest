@@ -23,6 +23,7 @@ import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.MobAgent;
 import com.timeline.vpn.data.StaticDataUtil;
 import com.timeline.vpn.data.VersionUpdater;
+import com.timeline.vpn.service.LeakUploadService;
 import com.umeng.message.IUmengRegisterCallback;
 import com.umeng.message.MsgConstant;
 import com.umeng.message.PushAgent;
@@ -45,12 +46,13 @@ public class MyApplication extends Application {
         MyApplication application = (MyApplication) context.getApplicationContext();
         return application.refWatcher;
     }
-
+    protected RefWatcher installLeakCanary(MyApplication app) {
+        return LeakCanary.install(app, LeakUploadService.class);
+    }
     public static InitConfiguration getInitConfig(Context context) {
         MyApplication application = (MyApplication) context.getApplicationContext();
         return application.initConfig;
     }
-
     public static MyApplication getInstance() {
         return instance;
     }
@@ -59,7 +61,7 @@ public class MyApplication extends Application {
     public void onCreate() {
         super.onCreate();
         Timber.plant(new Timber.DebugTree());
-        refWatcher = LeakCanary.install(this);
+        refWatcher = installLeakCanary(this);
         ButterKnife.setDebug(SystemUtils.isApkDebugable(this));
         VersionUpdater.init(this);
         VolleyUtils.init(getApplicationContext());

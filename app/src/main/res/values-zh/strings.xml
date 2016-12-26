@@ -15,6 +15,7 @@
     for more details.
 -->
 <resources>
+    <integer name="__leak_canary_max_stored_leaks">20</integer>
     <!--  tab main -->
     <string name="tab_index">首页</string>
     <string name="tab_power">能量</string>
@@ -63,6 +64,7 @@
     <string name="menu_btn_feedback">反馈</string>
     <string name="menu_btn_setting">设置</string>
     <string name="menu_btn_about">关于</string>
+    <string name="menu_btn_share">分享</string>
     <string name="menu_btn_bug">报告bug</string>
     <string name="menu_btn_version">版本:%1$s</string>
     <string name="menu_btn_version_new">版本:%1$s （new:%2$s）</string>
@@ -71,6 +73,13 @@
     <string name="feed_back">信息反馈</string>
     <string name="menu_btn_score">我的积分：%s</string>
     <string name="menu_btn_score_context">积分可用于商城购买物品，VIP等。。</string>
+    <!-- share-->
+    <string name="menu_share_title">分享给好友</string>
+    <string name="menu_share_url">下载地址:\n%s</string>
+    <string name="menu_share_confirm">复制链接</string>
+    <string name="menu_share_cancel">取消</string>
+    <string name="menu_share_copy_ok">已复制到剪切板</string>
+    <string name="menu_share_copy_error">分享失败</string>
     <!--登录，注册-->
     <string name="close_over">再按一次退出程序!!</string>
     <string name="login">登录</string>

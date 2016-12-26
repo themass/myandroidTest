@@ -1,10 +1,14 @@
 package com.timeline.vpn.ui.base;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.AlertDialog;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -16,6 +20,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.timeline.vpn.R;
+import com.timeline.vpn.base.MyApplication;
 import com.timeline.vpn.bean.vo.LocationVo;
 import com.timeline.vpn.bean.vo.UserInfoVo;
 import com.timeline.vpn.bean.vo.VersionVo;
@@ -177,14 +182,45 @@ public class BaseDrawerActivity extends BaseFragmentActivity {
                     Toast.makeText(BaseDrawerActivity.this, R.string.menu_btn_about_context, Toast.LENGTH_LONG).show();
                 } else if (item.getItemId() == R.id.menu_score) {
                     Toast.makeText(BaseDrawerActivity.this, R.string.menu_btn_score_context, Toast.LENGTH_SHORT).show();
-                } else if (item.getItemId() == R.id.menu_log) {
+                } else if (item.getItemId() == R.id.menu_bug) {
                     startActivity(FileLogActivity.class);
+                }else if (item.getItemId() == R.id.menu_share) {
+                    showShare();
                 }
                 return false;
             }
         });
     }
-
+    public void  showShare(){
+        final String url = PreferenceUtils.getPrefString(MyApplication.getInstance(),Constants.D_URL,null);
+        if(!StringUtils.hasText(url)){
+            Toast.makeText(this,R.string.menu_share_copy_error,Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String str = String.format(getResources().getString(R.string.menu_share_url),url);
+        AlertDialog.Builder confirmDialog = new AlertDialog.Builder(this);
+        confirmDialog.setTitle(R.string.menu_share_title);
+        confirmDialog.setMessage(str);
+        confirmDialog.setPositiveButton(R.string.menu_share_confirm, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                ClipboardManager myClipboard;
+                myClipboard = (ClipboardManager)getSystemService(CLIPBOARD_SERVICE);
+                ClipData myClip;
+                myClip = ClipData.newPlainText("text", url);
+                myClipboard.setPrimaryClip(myClip);
+                Toast.makeText(BaseDrawerActivity.this,R.string.menu_share_copy_ok,Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+            }
+        });
+        confirmDialog.setNegativeButton(R.string.menu_share_cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        confirmDialog.show();
+    }
     public void checkUpdate() {
         // 检查版本更新
         if (VersionUpdater.isInitVersionSuccess()) {
@@ -192,6 +228,7 @@ public class BaseDrawerActivity extends BaseFragmentActivity {
                 @Override
                 public void onResponse(final VersionVo vo) {
                     VersionUpdater.setNewVersion(BaseDrawerActivity.this, vo.maxBuild);
+                    PreferenceUtils.setPrefString(MyApplication.getInstance(),Constants.D_URL,vo.url);
                     if (VersionUpdater.isNewVersion(vo.maxBuild)
                             && StringUtils.hasText(vo.url)) {
                         // 有新版本

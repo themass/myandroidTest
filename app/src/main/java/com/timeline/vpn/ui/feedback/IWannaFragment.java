@@ -67,7 +67,7 @@ public class IWannaFragment extends LoadableFragment<InfoListVo<IWannaVo>> imple
             myProgressDialog.dismiss();
             etComment.setText(null);
             if (!infoVo.hasMore) {
-                infoVo.voList.add(o);
+                infoVo.voList.add(0,o);
                 pullView.notifyDataSetChanged();
             }
             Toast.makeText(getActivity(), R.string.iwanna_content_success, Toast.LENGTH_SHORT).show();
@@ -103,15 +103,6 @@ public class IWannaFragment extends LoadableFragment<InfoListVo<IWannaVo>> imple
         pullView.setListener(this);
         pullView.setItemAnimator(new FeedItemAnimator());
         myProgressDialog = new MyProgressDialog(getActivity());
-//        if(listener!=null){
-//            listener.setFabUpVisibility(View.VISIBLE);
-//            listener.setFabUpClickListener(new View.OnClickListener(){
-//                @Override
-//                public void onClick(View v) {
-//                    rlComment.setVisibility(rlComment.getVisibility()==View.GONE?View.VISIBLE:View.GONE);
-//                }
-//            });
-//        }
     }
 
     @OnClick(R.id.send)

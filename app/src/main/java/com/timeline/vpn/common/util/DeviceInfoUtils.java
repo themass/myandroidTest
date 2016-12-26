@@ -1,11 +1,16 @@
 package com.timeline.vpn.common.util;
 
 import android.content.Context;
+import android.content.pm.ApplicationInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 
+import java.io.IOException;
+import java.util.Enumeration;
 import java.util.UUID;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 
 /**
@@ -130,5 +135,44 @@ public class DeviceInfoUtils {
     public static String getUUID(Context context) {
         return UUID.randomUUID().toString();
     }
-
+    /**
+     * 从apk中获取版本信息
+     */
+    private static String getChannelFromApk(Context context, String channelKey) {
+        //从apk包中获取
+        ApplicationInfo appinfo = context.getApplicationInfo();
+        String sourceDir = appinfo.sourceDir;
+        //默认放在meta-inf/里， 所以需要再拼接一下
+        String key = "META-INF/" + channelKey;
+        String ret = "";
+        ZipFile zipfile = null;
+        try {
+            zipfile = new ZipFile(sourceDir);
+            Enumeration<?> entries = zipfile.entries();
+            while (entries.hasMoreElements()) {
+                ZipEntry entry = ((ZipEntry) entries.nextElement());
+                String entryName = entry.getName();
+                if (entryName.startsWith(key)) {
+                    ret = entryName;
+                    break;
+                }
+            }
+        } catch (IOException e) {
+            LogUtil.e(e);
+        } finally {
+            if (zipfile != null) {
+                try {
+                    zipfile.close();
+                } catch (IOException e) {
+                    LogUtil.e(e);
+                }
+            }
+        }
+        String[] split = ret.split("_");
+        String channel = "";
+        if (split != null && split.length >= 2) {
+            channel = ret.substring(split[0].length() + 1);
+        }
+        return channel;
+    }
 }

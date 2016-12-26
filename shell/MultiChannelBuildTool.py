@@ -50,6 +50,8 @@ if not os.path.exists(output_dir):
 for line in lines:
     # 获取当前渠道号，因为从渠道文件中获得带有\n,所有strip一下
     target_channel = line.strip()
+    if target_channel.startswith("#"):
+        continue
     # 拼接对应渠道号的apk
     target_apk = output_dir+target_channel + src_apk_extension  
     print src_apk_extension
@@ -58,7 +60,7 @@ for line in lines:
     # zip获取新建立的apk文件
     zipped = zipfile.ZipFile(target_apk, 'a', zipfile.ZIP_DEFLATED)
     # 初始化渠道信息
-    empty_channel_file = "META-INF/lianjiachannel_{channel}".format(channel = target_channel)
+    empty_channel_file = "META-INF/vpn_{channel}".format(channel = target_channel)
     # 写入渠道信息
     zipped.write(src_empty_file, empty_channel_file)
     # 关闭zip流

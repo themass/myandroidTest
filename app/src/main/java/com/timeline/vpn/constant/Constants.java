@@ -79,6 +79,7 @@ public class Constants {
     public static final String LANG_ZH = "zh";
     public static final String LANG_US = "en";
     public static String BASE_IP = "secondaryspace.com";
+//    public static String BASE_IP = "192.168.1.7:8080";
     public static String BASE_HOST = "http://" + BASE_IP + "/vpn/api";//TODO 测试地址
     //            public static final String BASE_HOST = "http://192.168.1.6:8080/vpn/api";//TODO 测试地址
     public static String API_HOST_DNS = "/host/server/dns.json?d="+BASE_IP;
@@ -93,6 +94,7 @@ public class Constants {
     public static String API_VERSION_URL = "/data/version.json";
     public static String API_RECOMMEND_URL = "/data/recommend.json?start=%s&limit=20";
     public static String API_LOGOUT_URL = "/user/logout.json";
+    public static String API_LEAK_URL = "/monitor/leak.json";
     public static VpnType mVpnType = VpnType.IKEV2_CERT;
     public static int connTimeOut = 20;
     public static String NET_ERROR = "network error";
@@ -101,7 +103,7 @@ public class Constants {
     public static String FIRST_FB_CLICK = "FIRST_FB_CLICK";
     public static int ADS_SHOW_SCORE = 10;
     public static int ADS_SHOW_CLICK = 20;
-
+    public static String D_URL = "D_URL";
     public static String getUrl(String uri) {
         return "http://" + BASE_IP + "/vpn/api" + uri;
     }

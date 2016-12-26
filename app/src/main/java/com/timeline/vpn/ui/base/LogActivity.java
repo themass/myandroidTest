@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
+import com.squareup.leakcanary.RefWatcher;
+import com.timeline.vpn.base.MyApplication;
 import com.timeline.vpn.common.util.LogUtil;
 import com.umeng.message.PushAgent;
 
@@ -33,6 +35,8 @@ public class LogActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         LogUtil.i(getClass().getSimpleName() + "-onDestroy");
+        RefWatcher refWatcher = MyApplication.getRefWatcher(this);
+        refWatcher.watch(this);
         super.onDestroy();
     }
 
