@@ -44,7 +44,7 @@ public class TabVipFragment extends TabBaseAdsFragment {
 
     private void setupViewPager(ViewPager viewPager) {
         MyAdapter adapter = new MyAdapter(getChildFragmentManager());
-        adapter.addFragment(new TabContentFgment(), R.string.tab_power_live);
+        adapter.addFragment(new TabContentFgment(), R.string.tab_tag_vip);
 //        adapter.addFragment(new TabContentFgment(), R.string.tab_power_vent);
 //        adapter.addFragment(new TabContentFgment(), R.string.tab_power_gossip);
 //        adapter.addFragment(new TabContentFgment(), R.string.tab_power_yellow);

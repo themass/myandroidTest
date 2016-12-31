@@ -4,6 +4,8 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
+import com.timeline.vpn.common.util.LogUtil;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -145,34 +147,24 @@ public class NetUtils {
      * @return
      */
     public static String parseURL(String url, String key) {
-
         String rst = "";
-
         if (null == key || "".equalsIgnoreCase(key)) {
-
+            LogUtil.i("parseURL key=null");
         } else {
-
             int i = url.indexOf("?");
             if (i + 1 <= url.length()) {
 
                 String param = url.substring(i + 1, url.length());
                 String[] values = param.split("&");
-                if (null != values) {
-
-                    for (int index = 0; index < values.length; index++) {
-
-                        if (values[index].contains(key)) {
-
-                            String[] keys = values[index].split("=");
-
-                            if (keys.length > 1) {
-                                rst = keys[1];
-                                break;
-                            }
+                for (String str:values) {
+                    if (str.contains(key)) {
+                        String[] keys = str.split("=");
+                        if (keys.length > 1) {
+                            rst = keys[1];
+                            break;
                         }
                     }
                 }
-
             }
         }
 

@@ -70,7 +70,7 @@ public class DbHelper {
         SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
         qb.setTables(args.table);
 
-        SQLiteDatabase db = null;
+        SQLiteDatabase db;
         Cursor result = null;
         try {
             db = mOpenHelper.getWritableDatabase();// .getReadableDatabase();
@@ -122,9 +122,8 @@ public class DbHelper {
         SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         db.beginTransaction();
         try {
-            int numValues = values.length;
-            for (int i = 0; i < numValues; i++) {
-                if (db.insert(args.table, null, values[i]) < 0)
+            for (ContentValues val:values) {
+                if (db.insert(args.table, null, val) < 0)
                     return 0;
             }
             db.setTransactionSuccessful();

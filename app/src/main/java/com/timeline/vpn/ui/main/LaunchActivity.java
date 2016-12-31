@@ -50,7 +50,6 @@ public class LaunchActivity extends LogActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_launch_spread);
-        AdsAdview.init(this);
         mHandler.postDelayed(mStartMainRunnable, Constants.STARTUP_SHOW_TIME_5000);
         ButterKnife.bind(this);
         UpdateUserTask.start(this);
@@ -90,6 +89,8 @@ public class LaunchActivity extends LogActivity {
     @Override
     public void onDestroy() {
         ButterKnife.unbind(this);
+        mHandler.removeCallbacks(mStartMainRunnable);
+        AdsAdview.launchAds(this,null,null);
         super.onDestroy();
     }
 }

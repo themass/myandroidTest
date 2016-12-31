@@ -12,6 +12,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 public class HttpDNSUtil {
+    private static final String DNS_POD_IP = "119.29.29.29";
     /**
      * 转换url 主机头为ip地址
      *
@@ -21,15 +22,6 @@ public class HttpDNSUtil {
      * @return
      */
     public static String getIpUrl(String url, String host, String ip) {
-        if (url == null) {
-            LogUtil.e("URL NULL");
-        }
-        if (host == null) {
-            LogUtil.e( "host NULL");
-        }
-        if (ip == null) {
-            LogUtil.e("ip NULL");
-        }
         if (url == null || host == null || ip == null) return url;
         String ipUrl = url.replaceFirst(host, ip);
         return ipUrl;
@@ -40,12 +32,12 @@ public class HttpDNSUtil {
      * @param host
      * @return
      */
-    public static String getIPByHost(String host) {
+    public static String getIPByHost(String url,String host) {
         String ipStr = StaticDataUtil.get(host,String.class);
         if(ipStr==null) {
             HttpUrl httpUrl = new HttpUrl.Builder()
                     .scheme("http")
-                    .host("119.29.29.29")
+                    .host(DNS_POD_IP)
                     .addPathSegment("d")
                     .addQueryParameter("host", host)
                     .build();
@@ -55,14 +47,15 @@ public class HttpDNSUtil {
                     .url(httpUrl)
                     .get()
                     .build();
+            String result = null;
             try {
-                String result = null;
                 /**
                  * 子线程中同步去获取
                  */
                 Response response = okHttpClient.newCall(request).execute();
                 if (response.isSuccessful()) {
                     String body = response.body().string();
+                    LogUtil.i("dnsPod return "+body);
                     JSONObject jsonObject = new JSONObject(body);
                     JSONArray ips = jsonObject.optJSONArray("ips");
                     if (ips != null) {
@@ -70,13 +63,15 @@ public class HttpDNSUtil {
                         StaticDataUtil.add(host,result);
                     }
                 }
-                return result;
+                LogUtil.i("HttpDNS the host has replaced with ip " + result);
+                return url.replaceFirst(host, result);
             } catch (Exception e) {
-              LogUtil.e(e);
+                LogUtil.e("HttpDNS origin host: "+host+";dDNSpod ret:"+result,e);
             }
         }else{
-            return ipStr;
+            LogUtil.i("HttpDNS the host has replaced with ip " + ipStr);
+            return url.replaceFirst(host, ipStr);
         }
-        return null;
+        return url;
     }
 }

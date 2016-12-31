@@ -3,6 +3,8 @@ package com.timeline.vpn.provider;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 
+import com.timeline.vpn.common.util.LogUtil;
+
 /**
  * Created by wjying on 13-12-4.
  */
@@ -23,14 +25,12 @@ public class TableUpdater {
 
     public void execute() {
         int oldVersion = Math.max(mOldVersion, 79);
-
-        // 3.0版本数据库从79开始
         if (null == mDb || mNewVersion < 1) {
+            LogUtil.i("db is new");
         } else {
             execute(oldVersion);
         }
     }
-
     private void execute(int oldVersion) {
         switch (oldVersion) {
             default:

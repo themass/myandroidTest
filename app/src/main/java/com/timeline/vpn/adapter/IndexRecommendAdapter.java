@@ -50,7 +50,7 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
 
     @Override
     public int getItemViewType(int position) {
-        RecommendVo vo = (RecommendVo) data.get(position);
+//        RecommendVo vo = (RecommendVo) data.get(position);
         return 0;
     }
 
@@ -62,8 +62,6 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
 
     @Override
     public void onBindViewHolder(BaseViewHolder holder, int position) {
-        RecommendVo vo = (RecommendVo) data.get(position);
-        IndexRecommendAdapter.NaviItemViewHolder viewHolder = (IndexRecommendAdapter.NaviItemViewHolder) holder;
         super.onBindViewHolder(holder, position);
         holder.itemView.setTag(position);
         holder.itemView.setOnClickListener(this);

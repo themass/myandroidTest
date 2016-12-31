@@ -16,7 +16,7 @@ public class MyLocationListener implements BDLocationListener {
     @Override
     public void onReceiveLocation(BDLocation location) {
         //Receive Location
-        StringBuffer sb = new StringBuffer(256);
+        StringBuilder sb = new StringBuilder(256);
         sb.append("time : ");
         sb.append(location.getTime());
         sb.append("\nerror code : ");
@@ -69,8 +69,7 @@ public class MyLocationListener implements BDLocationListener {
             sb.append("\npoilist size = : ");
             sb.append(list.size());
             for (Poi p : list) {
-                sb.append("\npoi= : ");
-                sb.append(p.getId() + " " + p.getName() + " " + p.getRank());
+                sb.append("\npoi= : ").append(p.getId() ).append(" ").append(p.getName()).append( " ").append( p.getRank());
             }
         }
         Log.i("BaiduLocationApiDem", sb.toString());

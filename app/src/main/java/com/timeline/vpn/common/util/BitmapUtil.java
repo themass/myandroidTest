@@ -39,8 +39,7 @@ public class BitmapUtil {
         if (!file.exists()) {
             throw new FileNotFoundException();
         }
-        FileInputStream in = null;
-        in = new FileInputStream(file);
+        FileInputStream in = new FileInputStream(file);
         if (options != null) {
             Rect r = getScreenRegion(screenWidth, screenHeight);
             int w = r.width();

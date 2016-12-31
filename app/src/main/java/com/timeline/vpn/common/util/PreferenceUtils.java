@@ -17,14 +17,14 @@ public class PreferenceUtils {
                                      final String value) {
         final SharedPreferences settings = PreferenceManager
                 .getDefaultSharedPreferences(context);
-        settings.edit().putString(key, value).commit();
+        settings.edit().putString(key, value).apply();
     }
 
     public static void setPrefObj(Context context, final String key,
                                   final Object value) {
         final SharedPreferences settings = PreferenceManager
                 .getDefaultSharedPreferences(context);
-        settings.edit().putString(key, GsonUtils.getInstance().toJson(value)).commit();
+        settings.edit().putString(key, GsonUtils.getInstance().toJson(value)).apply();
     }
 
     public static boolean getPrefBoolean(Context context, final String key,
@@ -52,14 +52,14 @@ public class PreferenceUtils {
                                       final boolean value) {
         final SharedPreferences settings = PreferenceManager
                 .getDefaultSharedPreferences(context);
-        settings.edit().putBoolean(key, value).commit();
+        settings.edit().putBoolean(key, value).apply();
     }
 
     public static void setPrefInt(Context context, final String key,
                                   final int value) {
         final SharedPreferences settings = PreferenceManager
                 .getDefaultSharedPreferences(context);
-        settings.edit().putInt(key, value).commit();
+        settings.edit().putInt(key, value).apply();
     }
 
     public static int getPrefInt(Context context, final String key,
@@ -73,7 +73,7 @@ public class PreferenceUtils {
                                     final float value) {
         final SharedPreferences settings = PreferenceManager
                 .getDefaultSharedPreferences(context);
-        settings.edit().putFloat(key, value).commit();
+        settings.edit().putFloat(key, value).apply();
     }
 
     public static float getPrefFloat(Context context, final String key,
@@ -87,7 +87,7 @@ public class PreferenceUtils {
                                       final long value) {
         final SharedPreferences settings = PreferenceManager
                 .getDefaultSharedPreferences(context);
-        settings.edit().putLong(key, value).commit();
+        settings.edit().putLong(key, value).apply();
     }
 
     public static long getPrefLong(Context context, final String key,
@@ -101,12 +101,12 @@ public class PreferenceUtils {
                                        final SharedPreferences p) {
         final Editor editor = p.edit();
         editor.clear();
-        editor.commit();
+        editor.apply();
     }
 
     public static void remove(Context context, final String key) {
         final SharedPreferences settings = PreferenceManager
                 .getDefaultSharedPreferences(context);
-        settings.edit().remove(key).commit();
+        settings.edit().remove(key).apply();
     }
 }

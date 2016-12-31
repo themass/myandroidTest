@@ -50,7 +50,7 @@ import java.util.LinkedList;
  * ...........................
  */
 public class SettingsAttribute implements Attribute {
-    private final LinkedList<Pair<String, String>> mSettings = new LinkedList<Pair<String, String>>();
+    private final LinkedList<Pair<String, String>> mSettings = new LinkedList<>();
 
     /**
      * Add a setting to this attribute.
@@ -59,7 +59,7 @@ public class SettingsAttribute implements Attribute {
      * @param value value of the setting
      */
     public void addSetting(String name, String value) {
-        mSettings.add(new Pair<String, String>(name, value));
+        mSettings.add(new Pair<>(name, value));
     }
 
     @Override

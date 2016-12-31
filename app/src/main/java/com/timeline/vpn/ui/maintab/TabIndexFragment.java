@@ -71,15 +71,24 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
     ImageButton ibVpnStatus;
     @Bind(R.id.my_pullview)
     MyPullView pullView;
+    PingTask task;
     CommonResponse.ResponseOkListener serverListener = new CommonResponse.ResponseOkListener<ServerVo>() {
         @Override
         public void onResponse(ServerVo serverVo) {
-            long id = 0;
-            for (HostVo vo : serverVo.hostList) {
-                PingTask task = new PingTask(serverVo);
-                LogUtil.i("run task " + vo.gateway);
-                task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, vo);
+            if(serverVo.hostList!=null){
+                if(serverVo.hostList.size()==1){
+                    LogUtil.i("one host start ready");
+                    startVpn(serverVo,serverVo.hostList.get(0));
+                }else{
+                    LogUtil.i("many host start task ping");
+                    for (HostVo vo : serverVo.hostList) {
+                        task = new PingTask(serverVo);
+                        LogUtil.i("run task " + vo.gateway);
+                        task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, vo);
+                    }
+                }
             }
+
         }
     };
     private IndexRecommendAdapter adapter;
@@ -116,7 +125,7 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
     private BaseService indexService;
     private boolean isLoadingMore;
     private boolean isFirst = false;
-    private InfoListVo<RecommendVo> infoVo = new InfoListVo<RecommendVo>();
+    private InfoListVo<RecommendVo> infoVo = new InfoListVo<>();
 
     @Override
     protected int getTabHeaderViewId() {
@@ -213,6 +222,10 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
         mService.unregisterListener(this);
         getActivity().unbindService(mServiceConnection);
         indexService.cancelRequest(INDEX_TAG);
+        if(task!=null){
+            task.cancel(true);
+        }
+
     }
 
     @Override
@@ -346,9 +359,16 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
                         }
                     }).create();
         }
-
     }
-
+    public void startVpn(ServerVo server,HostVo vo){
+        synchronized (mService) {
+            if (!hasIp) {
+                hasIp = true;
+                vpnProfile = DataBuilder.builderVpnProfile(server.expire, server.name, server.pwd, vo);
+                prepareVpnService();
+            }
+        }
+    }
     public class PingTask extends AsyncTask<HostVo, Void, HostVo> {
         private ServerVo server;
 
@@ -361,12 +381,8 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
             HostVo vo = params[0];
             vo.ttlTime = HttpUtils.ping(vo.gateway);
             LogUtil.i(vo.toString());
-            synchronized (mService) {
-                if (!hasIp && vo.ttlTime > 0) {
-                    hasIp = true;
-                    vpnProfile = DataBuilder.builderVpnProfile(server.expire, server.name, server.pwd, vo);
-                    prepareVpnService();
-                }
+            if(vo.ttlTime > 0){
+                startVpn(server,vo);
             }
             return vo;
         }

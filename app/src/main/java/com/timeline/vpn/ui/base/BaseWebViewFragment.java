@@ -178,6 +178,4 @@ public class BaseWebViewFragment extends BaseFragment {
     public interface WebViewListener {
         public void onPageFinished();
     }
-
-
 }

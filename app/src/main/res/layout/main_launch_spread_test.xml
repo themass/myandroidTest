@@ -2,7 +2,6 @@
     android:id="@+id/rl_spread"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/ic_lauch_bg"
     android:orientation="vertical">
 
     <TextView
@@ -16,7 +15,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/tv_text"
-        android:background="@color/base_white" />
+        android:background="@color/base_white"
+        android:hint="@string/app_name"/>
 
     <Button
         android:id="@+id/bt_text"

@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
  */
 public class LogTimber {
 
-    private static final List<Tree> FOREST = new CopyOnWriteArrayList<Tree>();
+    private static final List<Tree> FOREST = new CopyOnWriteArrayList<>();
 
     /**
      * Log a debug message with optional format args.
@@ -150,7 +150,7 @@ public class LogTimber {
             StackTraceElement mElement = new Throwable().getStackTrace()[3];
             String tag = mElement.getClassName() + "(" + mElement.getLineNumber() + ")";
             Matcher m = ANONYMOUS_CLASS.matcher(tag);
-            if (m != null && m.find()) {
+            if (m.find()) {
                 tag = m.replaceAll("");
             }
             return tag.substring(tag.lastIndexOf('.') + 1);

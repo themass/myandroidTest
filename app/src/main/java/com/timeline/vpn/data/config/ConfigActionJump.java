@@ -29,7 +29,7 @@ public class ConfigActionJump {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(ConfigActionEvent event) {
-        LogUtil.i("onEvent-" + event.url + "-" + Thread.currentThread().getName());
+        LogUtil.i("ConfigActionJump onEvent-" + event.url + "-" + Thread.currentThread().getName());
         Class<? extends AppCompatActivity> activity = getActivity(event.url);
         if (activity != null) {
             Intent intent = new Intent(event.context, activity);

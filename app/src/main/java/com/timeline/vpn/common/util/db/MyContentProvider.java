@@ -70,7 +70,7 @@ public abstract class MyContentProvider extends ContentProvider {
         SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
         qb.setTables(args.table);
 
-        SQLiteDatabase db = null;
+        SQLiteDatabase db;
         Cursor result = null;
         try {
             db = mOpenHelper.getWritableDatabase();// .getReadableDatabase();
@@ -90,7 +90,7 @@ public abstract class MyContentProvider extends ContentProvider {
     }
 
     private Cursor queryRAW(Uri uri, String rawSql, String[] selectionArgs) {
-        SQLiteDatabase db = null;
+        SQLiteDatabase db;
         Cursor result = null;
         try {
             db = mOpenHelper.getWritableDatabase();// .getReadableDatabase();
@@ -133,10 +133,8 @@ public abstract class MyContentProvider extends ContentProvider {
         try {
             db = mOpenHelper.getWritableDatabase();
             db.beginTransaction();
-
-            int numValues = values.length;
-            for (int i = 0; i < numValues; i++) {
-                if (db.insert(args.table, null, values[i]) < 0)
+            for (ContentValues val:values) {
+                if (db.insert(args.table, null, val) < 0)
                     return 0;
             }
             db.setTransactionSuccessful();

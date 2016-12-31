@@ -9,6 +9,7 @@ import org.strongswan.android.logic.VpnType;
 public class Constants {
     public static final String FIRSTRUN = "isFirstRun";
     public static final int SELECT_TRUSTED_CERTIFICATE = 0;
+    public static final String REFERER = "referer";
     public static final String DEFAULT_REFERER = "http://secondaryspace.com/";
     public static final String URL = "url";
     public static final int STARTUP_SHOW_TIME_1500 = 1500; //启动页广告时长
@@ -68,7 +69,7 @@ public class Constants {
     public static final int HTTP_SUCCESS_CLEAR = 1;
     // 有新版本时，是否打开app就提醒升级
     //用户反馈
-    public final static String DEFAULT_FEEDBACK_APPKEY = "23575056";
+    public static final String DEFAULT_FEEDBACK_APPKEY = "23575056";
     public static final String SETTING_PREF_NEED_CHECK_UPDATE_NEXT_TIME = "SETTING_PREF_NEED_CHECK_UPDATE_NEXT_TIME";
     public static final String TEMP_PATH = "/tencent/vpn";
     public static final String VERSION_APP_INCOMING = "VERSION_APP_INCOMING"; // 服务器上的最新版本号
@@ -78,32 +79,39 @@ public class Constants {
     public static final String adsKeySetBanner[] = new String[]{ADS_ADVIEW_KEY, ADS_ADVIEW_KEY_ACTIVITY};
     public static final String LANG_ZH = "zh";
     public static final String LANG_US = "en";
-    public static String BASE_IP = "secondaryspace.com";
-//    public static String BASE_IP = "192.168.1.7:8080";
-    public static String BASE_HOST = "http://" + BASE_IP + "/vpn/api";//TODO 测试地址
-    //            public static final String BASE_HOST = "http://192.168.1.6:8080/vpn/api";//TODO 测试地址
-    public static String API_HOST_DNS = "/host/server/dns.json?d="+BASE_IP;
-    public static String API_SERVERLIST_URL = "/host/server/list.json?location=%s";
-    public static String API_FAB_ADSCLICK_URL = "/user/ads/score.json?score=%s";
-    public static String API_LOCATION_URL = "/host/server/location.json";
-    public static String API_LOGIN_URL = "/user/login.json";
-    public static String API_REG_URL = "/user/reg.json";
-    public static String API_USER_INFO_URL = "/user/info.json";
-    public static String API_IWANNA_URL = "/data/feed/wanna.json?start=%s&limit=20";
-    public static String API_IWANNA_LIKE_URL = "/data/feed/wanna/%s.json";
-    public static String API_VERSION_URL = "/data/version.json";
-    public static String API_RECOMMEND_URL = "/data/recommend.json?start=%s&limit=20";
-    public static String API_LOGOUT_URL = "/user/logout.json";
-    public static String API_LEAK_URL = "/monitor/leak.json";
-    public static VpnType mVpnType = VpnType.IKEV2_CERT;
-    public static int connTimeOut = 20;
-    public static String NET_ERROR = "network error";
-    public static boolean USE_BYOD = false;
-    public static VpnType vpnType = VpnType.IKEV2_EAP;
-    public static String FIRST_FB_CLICK = "FIRST_FB_CLICK";
-    public static int ADS_SHOW_SCORE = 10;
-    public static int ADS_SHOW_CLICK = 20;
-    public static String D_URL = "D_URL";
+//    public static String BASE_IP = "api.secondaryspace.com";
+    public static String BASE_IP = "192.168.1.7:8080";
+//    public static String BASE_IP = "10.33.65.180:8080";
+    public static String BASE_HOST = "http://" + BASE_IP + "/vpn/api";
+    public static final String API_SERVERLIST_URL = "/host/server/list.json?location=%s";
+    public static final String API_FAB_ADSCLICK_URL = "/user/ads/score.json?score=%s";
+    public static final String API_LOCATION_URL = "/host/server/location.json";
+    public static final String API_LOGIN_URL = "/user/login.json";
+    public static final String API_REG_URL = "/user/reg.json";
+    public static final String API_REG_CODE_URL = "/user/code.json";
+    public static final String API_USER_INFO_URL = "/user/info.json";
+    public static final String API_IWANNA_URL = "/data/feed/wanna.json?start=%s&limit=20";
+    public static final String API_IWANNA_LIKE_URL = "/data/feed/wanna/%s.json";
+    public static final String API_VERSION_URL = "/data/version.json";
+    public static final String API_RECOMMEND_URL = "/data/recommend.json?start=%s&limit=20";
+    public static final String API_LOGOUT_URL = "/user/logout.json";
+    public static final String API_LEAK_URL = "/monitor/leak.json";
+    public static final String API_LOG_URL = "/monitor/bug.json";
+    public static final VpnType mVpnType = VpnType.IKEV2_CERT;
+    public static final int connTimeOut = 20;
+    public static final String NET_ERROR = "network error";
+    public static final boolean USE_BYOD = false;
+    public static final VpnType vpnType = VpnType.IKEV2_EAP;
+    public static final String FIRST_FB_CLICK = "FIRST_FB_CLICK";
+    public static final int ADS_SHOW_SCORE = 10;
+    public static final int ADS_SHOW_CLICK = 20;
+    public static final String D_URL = "D_URL";
+    public static final String FILE_UPLOAD = "fileList";
+    public static final String FILE_TMP_PATH = "freeVPN";
+    public static final String LOG_FILE = "charon.log";
+    public static final String LOG_FILE_FOR_UPLOAD= "charon_upload.log";
+    public static final String BUG_FILE = "log.log";
+    public static final String BUG_FILE_FOR_UPLOAD = "log_upload.log";
     public static String getUrl(String uri) {
         return "http://" + BASE_IP + "/vpn/api" + uri;
     }

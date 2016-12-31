@@ -257,7 +257,6 @@
 -keep class com.adroi.sdk.** {public protected *;}
 -keep class com.mopanspot.sdk.**{*;}
 -keep class com.imopan.plugin.spot.** {*;}
--keep class com.jd.**{*;}
 -keep class cn.pro.ad.sdk.*
 -dontwarn com.dropbox.**
 -dontwarn com.inmobi.**

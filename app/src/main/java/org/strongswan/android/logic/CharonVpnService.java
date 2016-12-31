@@ -41,6 +41,7 @@ import android.util.Log;
 import com.timeline.vpn.R;
 import com.timeline.vpn.base.MyApplication;
 import com.timeline.vpn.bean.vo.VpnProfile;
+import com.timeline.vpn.common.util.FileUtils;
 import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.ui.main.MainFragment;
 import com.timeline.vpn.ui.maintab.TabIndexFragment;
@@ -49,7 +50,6 @@ import org.strongswan.android.logic.imc.ImcState;
 import org.strongswan.android.logic.imc.RemediationInstruction;
 import org.strongswan.android.logic.utils.SettingsWriter;
 
-import java.io.File;
 import java.io.InputStream;
 import java.io.StringBufferInputStream;
 import java.net.Inet4Address;
@@ -67,7 +67,6 @@ import java.util.Locale;
 import java.util.Random;
 
 public class CharonVpnService extends VpnService{
-    public static final String LOG_FILE = "charon.log";
     public static final String PROFILE = "PROFILE";
     /**
      * as defined in charonservice.h
@@ -88,14 +87,14 @@ public class CharonVpnService extends VpnService{
      * during installation.  On newer releases most are loaded in JNI_OnLoad.
      */
     static {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
+//        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
             System.loadLibrary("strongswan");
             System.loadLibrary("tncif");
             System.loadLibrary("tnccs");
             System.loadLibrary("imcv");
             System.loadLibrary("charon");
             System.loadLibrary("ipsec");
-        }
+//        }
         System.loadLibrary("androidbridge");
     }
 
@@ -126,12 +125,6 @@ public class CharonVpnService extends VpnService{
         }
     };
 
-    public static String getLogFilePath(Context context) {
-        return context.getFilesDir().getAbsolutePath() + File.separator + LOG_FILE;
-//        String path = File.separator + "Download" + File.separator + LOG_FILE;
-//        return path;
-    }
-
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null) {
@@ -159,7 +152,7 @@ public class CharonVpnService extends VpnService{
     }
     @Override
     public void onCreate() {
-        mLogFile = getLogFilePath(this);
+        mLogFile = FileUtils.getCharonFilePath();
 		/* use a separate thread as main thread for charon */
 		/* the thread is started when the service is bound */
         bindService(new Intent(this, VpnStateService.class),
@@ -367,7 +360,7 @@ public class CharonVpnService extends VpnService{
      */
     private byte[][] getUserCertificate() throws KeyChainException, InterruptedException, CertificateEncodingException
     {
-        ArrayList<byte[]> encodings = new ArrayList<byte[]>();
+        ArrayList<byte[]> encodings = new ArrayList<>();
         X509Certificate[] chain = KeyChain.getCertificateChain(getApplicationContext(), null);
         if (chain == null || chain.length == 0)
         {
@@ -611,9 +604,9 @@ public class CharonVpnService extends VpnService{
      * that information when reestablishing IKE_SAs
      */
     public class BuilderCache {
-        private final List<PrefixedAddress> mAddresses = new ArrayList<PrefixedAddress>();
-        private final List<PrefixedAddress> mRoutesIPv4 = new ArrayList<PrefixedAddress>();
-        private final List<PrefixedAddress> mRoutesIPv6 = new ArrayList<PrefixedAddress>();
+        private final List<PrefixedAddress> mAddresses = new ArrayList<>();
+        private final List<PrefixedAddress> mRoutesIPv4 = new ArrayList<>();
+        private final List<PrefixedAddress> mRoutesIPv6 = new ArrayList<>();
         private final int mSplitTunneling;
         private int mMtu;
         private boolean mIPv4Seen, mIPv6Seen;

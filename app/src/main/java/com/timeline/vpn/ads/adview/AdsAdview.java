@@ -45,10 +45,14 @@ public class AdsAdview {
         AdViewBannerManager.getInstance(context).init(MyApplication.getInitConfig(context), Constants.adsKeySetBanner);
         AdViewInstlManager.getInstance(context).init(MyApplication.getInitConfig(context), Constants.adsKeySet);
         AdViewNativeManager.getInstance(context).init(MyApplication.getInitConfig(context), Constants.adsKeySet);
-        AdViewSpreadManager.getInstance(context).init(MyApplication.getInitConfig(context), Constants.adsKeySet);
     }
 
     public static void launchAds(final Context context, ViewGroup group, final Handler handler) {
+        if(group==null) {
+            AdViewSpreadManager.getInstance(context).destroySpread(Constants.ADS_ADVIEW_KEY);
+            return;
+        }
+        AdViewSpreadManager.getInstance(context).init(MyApplication.getInitConfig(context), Constants.adsKeySet);
         AdViewSpreadManager.getInstance(context).setSpreadLogo(R.drawable.ic_lauch_bottom);
         AdViewSpreadManager.getInstance(context).setSpreadNotifyType(AdViewSpreadManager.NOTIFY_COUNTER_NUM);
         AdViewSpreadManager.getInstance(context).request(context, Constants.ADS_ADVIEW_KEY, group, new AdViewSpreadListener() {
@@ -124,6 +128,7 @@ public class AdsAdview {
         View view = AdViewBannerManager.getInstance(context).getAdViewLayout(context, key);
         if (view != null) {
             group.removeView(view);
+            view.setTag(key);
         }
         AdViewBannerManager.getInstance(context).requestAd(context, key, new AdViewBannerListener() {
 
@@ -155,7 +160,6 @@ public class AdsAdview {
                 handler.sendEmptyMessage(Constants.ADS_READY_MSG);
             }
         });
-        view.setTag(key);
         group.addView(view);
         group.invalidate();
     }

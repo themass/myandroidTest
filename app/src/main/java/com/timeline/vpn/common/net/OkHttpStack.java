@@ -4,6 +4,8 @@ import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.toolbox.HttpStack;
 import com.timeline.vpn.common.net.interceptor.DnsRequestInterceptor;
+import com.timeline.vpn.common.net.request.MultipartRequest;
+import com.timeline.vpn.common.util.LogUtil;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -14,8 +16,10 @@ import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.message.BasicStatusLine;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
@@ -23,6 +27,7 @@ import java.util.zip.GZIPInputStream;
 import okhttp3.Call;
 import okhttp3.Headers;
 import okhttp3.MediaType;
+import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
 import okhttp3.RequestBody;
@@ -36,8 +41,8 @@ import okhttp3.logging.HttpLoggingInterceptor;
  */
 public class OkHttpStack implements HttpStack {
     private static final int DEFUAT_TIMEOUT = 20;
-    private static final int CONNECT_TIMEOUT = 6;
-    private static final int WRITE_TIMEOUT = 15;
+    private static final int CONNECT_TIMEOUT = 10;
+    private static final int WRITE_TIMEOUT = 30;
     private static OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
     private static OkHttpClient mClient;
 
@@ -120,20 +125,23 @@ public class OkHttpStack implements HttpStack {
     }
 
     private static RequestBody createRequestBody(Request r) throws AuthFailureError {
+        if(r instanceof MultipartRequest && ((MultipartRequest) r).getFile()!=null){
+            MultipartBody.Builder builder = new MultipartBody.Builder().setType(MultipartBody.FORM);
+            List<File> fileList = ((MultipartRequest) r).getFile();
+            for(File file:fileList){
+                if(file.exists() && file.length()>100) {
+                    LogUtil.i("add file:"+file.getName());
+                    RequestBody fileBody = RequestBody.create(MediaType.parse("application/octet-stream"), file);
+                    builder.addFormDataPart(((MultipartRequest) r).getName(), file.getName(), fileBody);
+                }
+            }
+            return builder .build();
+        }
         final byte[] body = r.getBody();
         if (body == null) {
             return RequestBody.create(MediaType.parse(r.getBodyContentType()), new byte[0]);
         }
         return RequestBody.create(MediaType.parse(r.getBodyContentType()), body);
-    }
-
-    public static String inputStream2String(InputStream in) throws IOException {
-        StringBuffer out = new StringBuffer();
-        byte[] b = new byte[4096];
-        for (int n; (n = in.read(b)) != -1; ) {
-            out.append(new String(b, 0, n));
-        }
-        return out.toString();
     }
 
     @Override

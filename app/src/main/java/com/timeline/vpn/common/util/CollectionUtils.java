@@ -280,7 +280,7 @@ public abstract class CollectionUtils {
      * returned will be a different instance than the array given.
      */
     public static <A, E extends A> A[] toArray(Enumeration<E> enumeration, A[] array) {
-        ArrayList<A> elements = new ArrayList<A>();
+        ArrayList<A> elements = new ArrayList<>();
         while (enumeration.hasMoreElements()) {
             elements.add(enumeration.nextElement());
         }

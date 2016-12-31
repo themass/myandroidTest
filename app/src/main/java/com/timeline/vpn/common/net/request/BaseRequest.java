@@ -52,11 +52,10 @@ public class BaseRequest<T> extends Request<T> {
             UA_APP_SUFFIX = HttpUtils.getUserAgentSuffix(context);
         }
         if (headers == null) {
-            headers = new HashMap<String, String>();
+            headers = new HashMap<>();
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append(DeviceInfoUtils.getDeviceId(context)).append("|").append(time);
-        String msg = time + Md5.encode(sb.toString());
+        String sb = DeviceInfoUtils.getDeviceId(context)+"|"+time;
+        String msg = time + Md5.encode(sb);
         String ua = UA_DEFAULT + UA_APP_SUFFIX +",IE" + msg;
         String loc = "lon:"+ StaticDataUtil.get(Constants.LON,Double.class)+";lat:"+ StaticDataUtil.get(Constants.LAT,Double.class);
         this.authkey = ua.substring(ua.length()-16,ua.length());

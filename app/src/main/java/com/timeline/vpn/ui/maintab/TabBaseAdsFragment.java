@@ -11,7 +11,6 @@ import android.widget.Toast;
 import com.timeline.vpn.R;
 import com.timeline.vpn.ads.adview.AdsAdview;
 import com.timeline.vpn.common.util.LogUtil;
-import com.timeline.vpn.common.util.PreferenceUtils;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.task.ScoreTask;
 import com.timeline.vpn.ui.main.MainFragment;
@@ -69,7 +68,6 @@ public abstract class TabBaseAdsFragment extends TabBaseFragment implements OnBa
         super.onResume();
         if (pendingIntroAnimation) {
             pendingIntroAnimation = false;
-            boolean firstClick = PreferenceUtils.getPrefBoolean(getActivity(), Constants.FIRST_FB_CLICK, true);
             startIntroAnimation();
         }
     }

@@ -8,8 +8,6 @@ import com.timeline.vpn.common.util.CollectionUtils;
 import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.common.util.PackageUtils;
 
-import org.apache.http.HttpEntity;
-
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -50,8 +48,8 @@ public class HttpUtils {
             Process p = Runtime.getRuntime().exec("ping -c 2 -w 100 " + ip);
             InputStream input = p.getInputStream();
             BufferedReader in = new BufferedReader(new InputStreamReader(input));
-            StringBuffer stringBuffer = new StringBuffer();
-            String content = "";
+            StringBuilder stringBuffer = new StringBuilder();
+            String content;
             while ((content = in.readLine()) != null) {
                 stringBuffer.append(content);
             }
@@ -117,7 +115,7 @@ public class HttpUtils {
       /* 设定每次写入1024bytes */
             int bufferSize = 1024;
             byte[] buffer = new byte[bufferSize];
-            int length = -1;
+            int length;
       /* 从文件读取数据到缓冲区 */
             while ((length = fStream.read(buffer)) != -1)
             {
@@ -131,10 +129,10 @@ public class HttpUtils {
       /* 取得Response内容 */
             InputStream is = con.getInputStream();
             int ch;
-            StringBuffer b = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             while ((ch = is.read()) != -1)
             {
-                b.append((char) ch);
+                sb.append((char) ch);
             }
             LogUtil.i("上传成功");
             Toast.makeText(context, "上传成功", Toast.LENGTH_LONG).show();
@@ -147,8 +145,6 @@ public class HttpUtils {
         }
     }
     public static void download(Context context, String url, File file, DownloadListener listener) throws IOException {
-        FileOutputStream out = null;
-        HttpEntity entity = null;
         if (!file.getParentFile().exists()) {
             file.getParentFile().mkdirs();
         }
@@ -160,30 +156,27 @@ public class HttpUtils {
                         .openConnection();
                 InputStream is = conn.getInputStream();
                 FileOutputStream fos = new FileOutputStream(file);
-                byte[] buf = new byte[256];
+                byte[] buf = new byte[1024 * 4];
                 conn.connect();
-                double count = 0;
                 if (conn.getResponseCode() >= 400) {
                     Toast.makeText(context, "连接超时", Toast.LENGTH_SHORT)
                             .show();
                 } else {
-                    while (count <= 100) {
-                        if (is != null) {
-                            int numRead = is.read(buf);
-                            if (numRead <= 0) {
-                                break;
-                            } else {
-                                fos.write(buf, 0, numRead);
-                            }
-
-                        } else {
-                            break;
+                    int total = conn.getContentLength();
+                    int currentLength = 0;
+                    int len = -1;
+                    while ((len = is.read(buf)) != -1) {
+                        fos.write(buf, 0, len);
+                        currentLength += len;
+                        if (listener != null) {
+                            listener.onDownloading(currentLength, total);
                         }
                     }
                 }
                 conn.disconnect();
                 fos.close();
-                is.close();
+                if(is!=null)
+                    is.close();
             } catch (IOException e) {
                 LogUtil.e(e);
             }

@@ -27,6 +27,7 @@ public class ViewUtils {
         }
         View view = root.findViewById(id);
         if (view == null) {
+            return;
         } else if (view instanceof AdapterView) {
             notifyAdapterViewChanged((AdapterView) view, true);
         } else if (view instanceof ViewPager) {
@@ -46,6 +47,7 @@ public class ViewUtils {
         }
         View view = root.findViewById(id);
         if (view == null) {
+            return;
         } else if (view instanceof AdapterView) {
             notifyAdapterViewChanged((AdapterView) view, false);
         } else if (view instanceof ViewPager) {

@@ -66,15 +66,17 @@ public abstract class BaseBannerAdsActivity extends BaseSingleActivity {
     @Override
     public void onResume() {
         super.onResume();
-        flBanner.setVisibility(View.VISIBLE);
         showBanner();
         startIntroAnimation();
     }
-
     private void showBanner() {
         AdsAdview.bannerAds(this, flBanner, mHandler, Constants.ADS_ADVIEW_KEY_ACTIVITY);
     }
-
+    private void removeAds(){
+        if (flBanner != null) {
+            flBanner.removeAllViews();
+        }
+    }
     public void adsDelayGone() {
         mHandler.postDelayed(task, Constants.BANNER_ADS_GONE_SHORT);
     }
@@ -82,17 +84,15 @@ public abstract class BaseBannerAdsActivity extends BaseSingleActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        flBanner.removeAllViews();
+        removeAds();
         mHandler.removeCallbacks(task);
     }
 
     class AdsGoneTask implements Runnable {
         @Override
         public void run() {
-            if (flBanner != null) {
-                flBanner.removeAllViews();
-                flBanner.setVisibility(View.GONE);
-            }
+            removeAds();
+            flBanner.setVisibility(View.GONE);
         }
     }
 }

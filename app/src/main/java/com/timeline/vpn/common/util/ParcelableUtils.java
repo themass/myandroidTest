@@ -63,7 +63,7 @@ public class ParcelableUtils {
         if (numKeys == -1) {
             return null;
         }
-        HashMap<String, String> map = new HashMap<String, String>();
+        HashMap<String, String> map = new HashMap<>();
         for (int i = 0; i < numKeys; i++) {
             String key = source.readString();
             String value = source.readString();
@@ -106,7 +106,7 @@ public class ParcelableUtils {
         if (numKeys == -1) {
             return null;
         }
-        HashMap<String, ArrayList<T>> map = new HashMap<String, ArrayList<T>>();
+        HashMap<String, ArrayList<T>> map = new HashMap<>();
         for (int i = 0; i < numKeys; i++) {
             String key = source.readString();
             ArrayList<T> value = readParcelableList(source, mClassLoader);
@@ -121,7 +121,7 @@ public class ParcelableUtils {
         if (numKeys == -1) {
             return null;
         }
-        HashMap<String, T> map = new HashMap<String, T>();
+        HashMap<String, T> map = new HashMap<>();
         for (int i = 0; i < numKeys; i++) {
             String key = source.readString();
             T value = source.readParcelable(null);
@@ -200,7 +200,7 @@ public class ParcelableUtils {
         if (size == -1) {
             return null;
         }
-        ArrayList<T> list = new ArrayList<T>();
+        ArrayList<T> list = new ArrayList<>();
         for (int i = 0; i < size; i++) {
             list.add((T) source.readParcelable(mClassLoader));
         }

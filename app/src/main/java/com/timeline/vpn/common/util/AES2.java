@@ -36,7 +36,7 @@ public class AES2 {
     }
 
     private static byte[] getKey(String password) {
-        byte[] rByte = null;
+        byte[] rByte;
         if (password != null) {
             rByte = password.getBytes();
         } else {
@@ -51,9 +51,9 @@ public class AES2 {
      * @return
      */
     public static String parseByte2HexStr(byte buf[]) {
-        StringBuffer sb = new StringBuffer();
-        for (int i = 0; i < buf.length; i++) {
-            String hex = Integer.toHexString(buf[i] & 0xFF);
+        StringBuilder sb = new StringBuilder();
+        for (byte i: buf) {
+            String hex = Integer.toHexString(i & 0xFF);
             if (hex.length() == 1) {
                 hex = '0' + hex;
             }
@@ -93,6 +93,8 @@ public class AES2 {
     public static String decode(String content,String key) {
         // 解密之前,先将输入的字符串按照16进制转成二进制的字节数组,作为待解密的内容输入
         byte[] b = decrypt(parseHexStr2Byte(content), key);
+        if(b==null)
+            return null;
         return new String(b);
     }
 

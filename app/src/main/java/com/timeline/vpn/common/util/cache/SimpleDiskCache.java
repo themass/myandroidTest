@@ -17,10 +17,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,7 +28,7 @@ public class SimpleDiskCache {
 
     private static final int VALUE_IDX = 0;
     private static final int METADATA_IDX = 1;
-    private static final List<File> usedDirs = new ArrayList<File>();
+    private static final List<File> usedDirs = new ArrayList<>();
 
     private final DiskLruCache diskLruCache;
 
@@ -173,9 +171,7 @@ public class SimpleDiskCache {
             byte[] digest = m.digest();
             BigInteger bigInt = new BigInteger(1, digest);
             return bigInt.toString(16);
-        } catch (NoSuchAlgorithmException e) {
-            throw new AssertionError();
-        } catch (UnsupportedEncodingException e) {
+        } catch (Exception e) {
             throw new AssertionError();
         }
     }

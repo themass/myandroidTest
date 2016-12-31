@@ -8,6 +8,8 @@ public class RegForm {
     public String pwd;
     public String rePwd;
     public String sex;
+    public String channel;
+    public String code;
 
     public RegForm(String name, String pwd, String rePwd, String sex) {
         this.name = name;

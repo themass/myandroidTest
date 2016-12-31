@@ -17,7 +17,7 @@ public class StringConverter implements JsonSerializer<String>, JsonDeserializer
         if (src == null) {
             return new JsonPrimitive("");
         } else {
-            return new JsonPrimitive(src.toString());
+            return new JsonPrimitive(src);
         }
     }
 

@@ -58,29 +58,29 @@ public class AndroidImc {
     public byte[] getMeasurement(int vendor, int type, String[] args) {
         AttributeType attributeType = AttributeType.fromValues(vendor, type);
         Collector collector = null;
-
-        switch (attributeType) {
-            case IETF_PRODUCT_INFORMATION:
-                collector = new ProductInformationCollector();
-                break;
-            case IETF_STRING_VERSION:
-                collector = new StringVersionCollector();
-                break;
-            case IETF_PORT_FILTER:
-                collector = new PortFilterCollector();
-                break;
-            case IETF_INSTALLED_PACKAGES:
-                collector = new InstalledPackagesCollector(mContext);
-                break;
-            case ITA_SETTINGS:
-                collector = new SettingsCollector(mContext, args);
-                break;
-            case ITA_DEVICE_ID:
-                collector = new DeviceIdCollector(mContext);
-                break;
-            default:
-                break;
-        }
+        if(attributeType!=null)
+            switch (attributeType) {
+                case IETF_PRODUCT_INFORMATION:
+                    collector = new ProductInformationCollector();
+                    break;
+                case IETF_STRING_VERSION:
+                    collector = new StringVersionCollector();
+                    break;
+                case IETF_PORT_FILTER:
+                    collector = new PortFilterCollector();
+                    break;
+                case IETF_INSTALLED_PACKAGES:
+                    collector = new InstalledPackagesCollector(mContext);
+                    break;
+                case ITA_SETTINGS:
+                    collector = new SettingsCollector(mContext, args);
+                    break;
+                case ITA_DEVICE_ID:
+                    collector = new DeviceIdCollector(mContext);
+                    break;
+                default:
+                    break;
+            }
         if (collector != null) {
             Attribute attribute = collector.getMeasurement();
             if (attribute != null) {

@@ -104,7 +104,7 @@ public abstract class LoadableTabFragment<T> extends TabBaseAdsFragment {
 
     protected void startQuery(boolean showLoading) {
         cancelQuery();
-        mQueryTask = new QueryTask<T>(this, showLoading, handler);
+        mQueryTask = new QueryTask<>(this, showLoading, handler);
         mQueryTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
@@ -167,7 +167,7 @@ public abstract class LoadableTabFragment<T> extends TabBaseAdsFragment {
 
         QueryTask(LoadableTabFragment<T> fragment, boolean showLoading, Handler handler) {
             this.mContext = fragment.getActivity();
-            mFragment = new WeakReference<LoadableTabFragment<T>>(fragment);
+            mFragment = new WeakReference<>(fragment);
             this.mShowLoading = showLoading;
             this.handler = handler;
         }

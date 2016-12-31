@@ -25,8 +25,8 @@ public class LocSortFactor implements Comparator<LocationVo> {
         if (sortArr.length != 2) {
             return 0;
         }
-        String a = "";
-        String b = "";
+        String a;
+        String b;
         if (Constants.sortType.equals(sortArr[0])) {
             a = String.valueOf(lhs.type);
             b = String.valueOf(rhs.type);

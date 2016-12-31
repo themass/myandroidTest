@@ -7,6 +7,10 @@ import android.view.VelocityTracker;
 import android.webkit.WebView;
 
 import com.timeline.vpn.common.util.LogUtil;
+import com.timeline.vpn.constant.Constants;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class MyWebView extends WebView {
     //手指向右滑动时的最小速度
@@ -40,6 +44,23 @@ public class MyWebView extends WebView {
     }
 
     @Override
+    public void loadUrl(String url, Map<String, String> additionalHttpHeaders) {
+        if(additionalHttpHeaders==null){
+            additionalHttpHeaders = new HashMap<>();
+        }
+        String ref = Constants.DEFAULT_REFERER;
+        if(additionalHttpHeaders.get(Constants.REFERER)!=null)
+            ref = additionalHttpHeaders.get(Constants.REFERER)+","+Constants.DEFAULT_REFERER;
+        additionalHttpHeaders.put(Constants.REFERER, ref);
+        super.loadUrl(url, additionalHttpHeaders);
+    }
+
+    @Override
+    public void loadUrl(String url) {
+        this.loadUrl(url,null);
+    }
+
+    @Override
     public boolean onTouchEvent(MotionEvent event) {
         LogUtil.i("onTouchEvent mywebview");
         createVelocityTracker(event);
@@ -52,7 +73,7 @@ public class MyWebView extends WebView {
                 //活动的距离
                 int distanceX = (int) (xMove - xDown);
                 //获取顺时速度
-                int xSpeed = getScrollVelocity();
+//                int xSpeed = getScrollVelocity();
                 //当滑动的距离大于我们设定的最小距离且滑动的瞬间速度大于我们设定的速度时，返回到上一个activity
                 // if(distanceX > XDISTANCE_MIN && xSpeed > XSPEED_MIN) {
                 if (listener != null) {
@@ -100,4 +121,4 @@ public class MyWebView extends WebView {
     public interface OnTouchRightSlide {
         public void onTouchRight(int distans);
     }
-}  
+}

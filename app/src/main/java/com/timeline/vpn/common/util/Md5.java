@@ -10,7 +10,7 @@ public class Md5 {
 
     public static String encode(String src) {
         String dest = "";
-        java.security.MessageDigest alga = null;
+        java.security.MessageDigest alga;
         try {
             alga = java.security.MessageDigest.getInstance("MD5");
             alga.update(src.getBytes());

@@ -59,7 +59,7 @@ public class IWannaFragment extends LoadableFragment<InfoListVo<IWannaVo>> imple
             myProgressDialog.dismiss();
         }
     };
-    private InfoListVo<IWannaVo> infoVo = new InfoListVo<IWannaVo>();
+    private InfoListVo<IWannaVo> infoVo = new InfoListVo<>();
     ResponseOkListener okListener = new ResponseOkListener<IWannaVo>() {
         @Override
         public void onResponse(IWannaVo o) {

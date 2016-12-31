@@ -53,7 +53,7 @@ import android.widget.ScrollView;
  */
 @SuppressLint("ClickableViewAccessibility")
 public class SuperSwipeRefreshLayout extends ViewGroup {
-    private static final String LOG_TAG = "CustomeSwipeRefreshLayout";
+    private static final String LOG_TAG = "SuperSwipeRefreshLayout";
     private static final int HEADER_VIEW_HEIGHT = 50;// HeaderView height (dp)
 
     private static final float DECELERATE_INTERPOLATION_FACTOR = 2f;
@@ -122,8 +122,8 @@ public class SuperSwipeRefreshLayout extends ViewGroup {
     private final Animation mAnimateToCorrectPosition = new Animation() {
         @Override
         public void applyTransformation(float interpolatedTime, Transformation t) {
-            int targetTop = 0;
-            int endTarget = 0;
+            int targetTop ;
+            int endTarget ;
             if (!mUsingCustomStart) {
                 endTarget = (int) (mSpinnerFinalOffset - Math
                         .abs(mOriginalOffsetTop));
@@ -423,7 +423,7 @@ public class SuperSwipeRefreshLayout extends ViewGroup {
         if (refreshing && mRefreshing != refreshing) {
             // scale and show
             mRefreshing = refreshing;
-            int endTarget = 0;
+            int endTarget ;
             if (!mUsingCustomStart) {
                 endTarget = (int) (mSpinnerFinalOffset + mOriginalOffsetTop);
             } else {
@@ -491,7 +491,7 @@ public class SuperSwipeRefreshLayout extends ViewGroup {
         final int childTop = getPaddingTop() + distance - pushDistance;// 根据偏移量distance更新
         final int childWidth = width - getPaddingLeft() - getPaddingRight();
         final int childHeight = height - getPaddingTop() - getPaddingBottom();
-        Log.d(LOG_TAG, "debug:onLayout childHeight = " + childHeight);
+        Log.d(LOG_TAG, "childHeight = " + childHeight);
         child.layout(childLeft, childTop, childLeft + childWidth, childTop
                 + childHeight);// 更新目标View的位置
         int headViewWidth = mHeadViewContainer.getMeasuredWidth();
@@ -659,8 +659,7 @@ public class SuperSwipeRefreshLayout extends ViewGroup {
 
             case MotionEvent.ACTION_MOVE:
                 if (mActivePointerId == INVALID_POINTER) {
-                    Log.e(LOG_TAG,
-                            "Got ACTION_MOVE event but don't have an active pointer id.");
+                    Log.e(LOG_TAG, "ACTION_MOVE event have no an pointer id.");
                     return false;
                 }
 
@@ -668,7 +667,7 @@ public class SuperSwipeRefreshLayout extends ViewGroup {
                 if (y == -1) {
                     return false;
                 }
-                float yDiff = 0;
+                float yDiff ;
                 if (isChildScrollToBottom()) {
                     yDiff = mInitialMotionY - y;// 计算上拉距离
                     if (yDiff > mTouchSlop && !mIsBeingDragged) {// 判断是否下拉的距离足够
@@ -1064,8 +1063,7 @@ public class SuperSwipeRefreshLayout extends ViewGroup {
     }
 
     private void moveToStart(float interpolatedTime) {
-        int targetTop = 0;
-        targetTop = (mFrom + (int) ((mOriginalOffsetTop - mFrom) * interpolatedTime));
+        int targetTop = (mFrom + (int) ((mOriginalOffsetTop - mFrom) * interpolatedTime));
         int offset = targetTop - mHeadViewContainer.getTop();
         setTargetOffsetTopAndBottom(offset, false /* requires update */);
     }

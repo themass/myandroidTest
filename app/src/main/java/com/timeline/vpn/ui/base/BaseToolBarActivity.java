@@ -71,6 +71,10 @@ public class BaseToolBarActivity extends BaseWeatherMenuActivity {
         Intent intent = new Intent(BaseToolBarActivity.this, c);
         startService(intent);
     }
+    public void stopService(Class<? extends Service> c) {
+        Intent intent = new Intent(BaseToolBarActivity.this, c);
+        stopService(intent);
+    }
 
     public void setToolbarTitle(int id) {
         tvTitle.setText(id);

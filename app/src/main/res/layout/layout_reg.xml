@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -21,6 +21,7 @@
                 android:id="@+id/et_username"
                 style="@style/edit_login"
                 android:drawableLeft="@drawable/ic_login_user"
+                android:singleLine="true"
                 android:hint="@string/username_hint" />
 
             <ImageView style="@style/divider_login" />
@@ -30,6 +31,7 @@
                 style="@style/edit_login"
                 android:drawableLeft="@drawable/ic_login_pass"
                 android:hint="@string/password_hint"
+                android:singleLine="true"
                 android:inputType="textPassword" />
 
             <ImageView style="@style/divider_login" />
@@ -39,10 +41,30 @@
                 style="@style/edit_login"
                 android:drawableLeft="@drawable/ic_login_pass"
                 android:hint="@string/re_password_hint"
+                android:singleLine="true"
                 android:inputType="textPassword" />
-
             <ImageView style="@style/divider_login" />
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone">
+                <Button
+                    android:id="@+id/bt_code"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@color/reg_code"
+                    android:layout_alignParentRight="true"
+                    android:text="@string/re_bt_code">
+                </Button>
+                <com.timeline.vpn.common.view.MyEditText
+                    android:id="@+id/et_code"
+                    style="@style/edit_login"
+                    android:hint="@string/re_code"
+                    android:inputType="number"
+                    android:layout_toLeftOf="@+id/bt_code"/>
 
+            </RelativeLayout>
+            <ImageView style="@style/divider_login" />
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -65,17 +87,18 @@
                     android:orientation="horizontal">
 
                     <RadioButton
+                        android:id="@+id/male"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginRight="40dp"
-                        android:text="男"
+                        android:text="@string/male"
                         android:textColor="@color/new_deep_black" />
 
                     <RadioButton
                         android:id="@+id/female"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="女"
+                        android:text="@string/female"
                         android:textColor="@color/new_deep_black" />
                 </RadioGroup>
             </LinearLayout>
@@ -136,4 +159,4 @@
             android:layout_width="50dp"
             android:layout_height="50dp" />
     </LinearLayout>
-</FrameLayout>
+</merge>

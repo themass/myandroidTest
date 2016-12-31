@@ -28,7 +28,7 @@ public class LocationUtils {
 
     public LocationUtils(Context context, LocationListener listener) {
         if (listener == null)
-            new NullPointerException("LocationListener can't be null");
+            throw new RuntimeException("LocationListener can't be null");
         mListener = listener;
         mLocationClient = new LocationClient(context);
         initLocation();

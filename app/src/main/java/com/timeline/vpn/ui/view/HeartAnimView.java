@@ -85,11 +85,9 @@ public class HeartAnimView {
         pop.setBackgroundDrawable(new ColorDrawable(context.getResources().getColor(R.color.transparent)));
         pop.setFocusable(true);
         pop.setOutsideTouchable(true);
-        int w = 0;
-        int h = 0;
 //        if(baseView==null) {
-        w = (SystemUtils.getDisplayWidth(context) - context.getResources().getDimensionPixelSize(R.dimen.heart_anim_h)) / 2;
-        h = (SystemUtils.getDisplayHeight(context) - context.getResources().getDimensionPixelSize(R.dimen.heart_anim_h)) / 2;
+        int w = (SystemUtils.getDisplayWidth(context) - context.getResources().getDimensionPixelSize(R.dimen.heart_anim_h)) / 2;
+        int h = (SystemUtils.getDisplayHeight(context) - context.getResources().getDimensionPixelSize(R.dimen.heart_anim_h)) / 2;
 //        }else{
 //            int[] location = new int[2];
 //            baseView.getLocationInWindow(location);

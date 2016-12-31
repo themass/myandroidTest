@@ -36,7 +36,7 @@ import java.util.LinkedList;
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  */
 public class PortFilterAttribute implements Attribute {
-    private final LinkedList<Pair<Protocol, Short>> mPorts = new LinkedList<Pair<Protocol, Short>>();
+    private final LinkedList<Pair<Protocol, Short>> mPorts = new LinkedList<>();
 
     /**
      * Add an open port with the given protocol and port number
@@ -45,7 +45,7 @@ public class PortFilterAttribute implements Attribute {
      * @param port     port number
      */
     public void addPort(Protocol protocol, short port) {
-        mPorts.add(new Pair<Protocol, Short>(protocol, port));
+        mPorts.add(new Pair<>(protocol, port));
     }
 
     @Override

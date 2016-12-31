@@ -93,11 +93,11 @@ public class WeatherConstants {
     public static final Map<String, String> INDEX_OLD;
     public static final Map<String, String> INDEX_TW_MAP;
     public static final Map<String, Integer> INDEX_TYPE;
-    public static final Integer NO_VALUE_FLAG = Integer.valueOf(-999);
+    public static final Integer NO_VALUE_FLAG = -999;
     public static final Map<Integer, String> OLD_ALERM_LEVEL_EN_MAP;
     public static final Map<String, String> PROVINCE_FAKE_CITY_MAP;
     public static final List<String> SURPORTTED_LANGUAGE_LIST;
-    public static final Map<String, String> TRANSFER_LANGUAGE_MAP = new HashMap<String, String>();
+    public static final Map<String, String> TRANSFER_LANGUAGE_MAP = new HashMap<>();
     public static final String TRAVEL_INDEX = "旅游指数";
     public static final Map<String, String> TRAVEL_INDEX_DESC_CN_MAP;
     public static final Map<String, String> TRAVEL_INDEX_DESC_EN_MAP;
@@ -318,23 +318,23 @@ public class WeatherConstants {
         ALERM_LEVEL_EN_MAP.put("02", "yellow");
         ALERM_LEVEL_EN_MAP.put("03", "orange");
         ALERM_LEVEL_EN_MAP.put("04", "red");
-        OLD_ALERM_LEVEL_EN_MAP.put(Integer.valueOf(1), "blue");
-        OLD_ALERM_LEVEL_EN_MAP.put(Integer.valueOf(2), "yellow");
-        OLD_ALERM_LEVEL_EN_MAP.put(Integer.valueOf(3), "orange");
-        OLD_ALERM_LEVEL_EN_MAP.put(Integer.valueOf(4), "red");
-        WIND_TYPE_CN_MAP = new HashMap<String, String>();
-        WIND_TYPE_EN_MAP = new HashMap<String, String>();
-        WIND_TYPE_TW_MAP = new HashMap<String, String>();
-        CN_WIND_TYPE_MAP = new HashMap<String, String>();
-        EN_WIND_TYPE_MAP = new HashMap<String, String>();
-        WIND_TYPE_CONNECTTOR_LANGUAGE_MAP = new HashMap<String, String>();
+        OLD_ALERM_LEVEL_EN_MAP.put(1, "blue");
+        OLD_ALERM_LEVEL_EN_MAP.put(2, "yellow");
+        OLD_ALERM_LEVEL_EN_MAP.put(3, "orange");
+        OLD_ALERM_LEVEL_EN_MAP.put(4, "red");
+        WIND_TYPE_CN_MAP = new HashMap<>();
+        WIND_TYPE_EN_MAP = new HashMap<>();
+        WIND_TYPE_TW_MAP = new HashMap<>();
+        CN_WIND_TYPE_MAP = new HashMap<>();
+        EN_WIND_TYPE_MAP = new HashMap<>();
+        WIND_TYPE_CONNECTTOR_LANGUAGE_MAP = new HashMap<>();
         WIND_TYPE_CONNECTTOR_LANGUAGE_MAP.put(Locale.US.toString()
                 .toLowerCase(), ", speed ");
         WIND_TYPE_CONNECTTOR_LANGUAGE_MAP.put(Locale.CHINA.toString()
                 .toLowerCase(), "，风力");
         WIND_TYPE_CONNECTTOR_LANGUAGE_MAP.put(Locale.TAIWAN.toString()
                 .toLowerCase(), "，風力");
-        WIND_TYPE_LANGUAGE_MAP = new HashMap<String, Map<String, String>>();
+        WIND_TYPE_LANGUAGE_MAP = new HashMap<>();
         WIND_TYPE_LANGUAGE_MAP.put(Locale.US.toString().toLowerCase(),
                 WIND_TYPE_EN_MAP);
         WIND_TYPE_LANGUAGE_MAP.put(Locale.CHINA.toString().toLowerCase(),
@@ -392,7 +392,7 @@ public class WeatherConstants {
         EN_WIND_TYPE_MAP.put("Northwest", "7");
         EN_WIND_TYPE_MAP.put("North", "8");
         EN_WIND_TYPE_MAP.put("Whirl wind", "9");
-        WIND_LEVEL_KEY_CN_MAP = new HashMap<String, String>();
+        WIND_LEVEL_KEY_CN_MAP = new HashMap<>();
         WIND_LEVEL_KEY_CN_MAP.put("0", "小于3级");
         WIND_LEVEL_KEY_CN_MAP.put("1", "3-4级");
         WIND_LEVEL_KEY_CN_MAP.put("2", "4-5级");
@@ -403,11 +403,11 @@ public class WeatherConstants {
         WIND_LEVEL_KEY_CN_MAP.put("7", "9-10级");
         WIND_LEVEL_KEY_CN_MAP.put("8", "10-11级");
         WIND_LEVEL_KEY_CN_MAP.put("9", "11-12级");
-        WIND_LEVEL_EN_MAP = new HashMap<String, String>();
-        WIND_LEVEL_EN_CN_MAP = new HashMap<String, String>();
-        WIND_LEVEL_TW_MAP = new HashMap<String, String>();
-        WIND_LEVEL_CN_MAP = new HashMap<String, String>();
-        WIND_LEVEL_LANGUAGE_MAP = new HashMap<String, Map<String, String>>();
+        WIND_LEVEL_EN_MAP = new HashMap<>();
+        WIND_LEVEL_EN_CN_MAP = new HashMap<>();
+        WIND_LEVEL_TW_MAP = new HashMap<>();
+        WIND_LEVEL_CN_MAP = new HashMap<>();
+        WIND_LEVEL_LANGUAGE_MAP = new HashMap<>();
         WIND_LEVEL_LANGUAGE_MAP.put(Locale.US.toString().toLowerCase(),
                 WIND_LEVEL_EN_MAP);
         WIND_LEVEL_LANGUAGE_MAP.put(Locale.CHINA.toString().toLowerCase(),
@@ -524,43 +524,43 @@ public class WeatherConstants {
         WIND_LEVEL_DETAIL_TW_MAP.put("10-11级", "今天風有點大，外出的話，請做好防護措施。");
         WIND_LEVEL_DETAIL_TW_MAP.put("11-12级", "今天風有點大，外出的話，請做好防護措施。");
         WEATHER_ANIMATION_MAP = new HashMap<String, Integer>();
-        WEATHER_ANIMATION_MAP.put("晴", Integer.valueOf(0));
-        WEATHER_ANIMATION_MAP.put("多云", Integer.valueOf(1));
-        WEATHER_ANIMATION_MAP.put("阴", Integer.valueOf(2));
-        WEATHER_ANIMATION_MAP.put("雾", Integer.valueOf(3));
-        WEATHER_ANIMATION_MAP.put("特大暴雨", Integer.valueOf(4));
-        WEATHER_ANIMATION_MAP.put("大暴雨", Integer.valueOf(5));
-        WEATHER_ANIMATION_MAP.put("暴雨", Integer.valueOf(6));
-        WEATHER_ANIMATION_MAP.put("雷阵雨", Integer.valueOf(7));
-        WEATHER_ANIMATION_MAP.put("阵雨", Integer.valueOf(8));
-        WEATHER_ANIMATION_MAP.put("大雨", Integer.valueOf(9));
-        WEATHER_ANIMATION_MAP.put("中雨", Integer.valueOf(10));
-        WEATHER_ANIMATION_MAP.put("小雨", Integer.valueOf(11));
-        WEATHER_ANIMATION_MAP.put("雨夹雪", Integer.valueOf(12));
-        WEATHER_ANIMATION_MAP.put("暴雪", Integer.valueOf(13));
-        WEATHER_ANIMATION_MAP.put("阵雪", Integer.valueOf(14));
-        WEATHER_ANIMATION_MAP.put("大雪", Integer.valueOf(15));
-        WEATHER_ANIMATION_MAP.put("中雪", Integer.valueOf(16));
-        WEATHER_ANIMATION_MAP.put("小雪", Integer.valueOf(17));
-        WEATHER_ANIMATION_MAP.put("强沙尘暴", Integer.valueOf(18));
-        WEATHER_ANIMATION_MAP.put("沙尘暴", Integer.valueOf(19));
-        WEATHER_ANIMATION_MAP.put("沙尘", Integer.valueOf(20));
-        WEATHER_ANIMATION_MAP.put("扬沙", Integer.valueOf(21));
-        WEATHER_ANIMATION_MAP.put("冰雹", Integer.valueOf(22));
-        WEATHER_ANIMATION_MAP.put("浮尘", Integer.valueOf(23));
-        WEATHER_ANIMATION_MAP.put("霾", Integer.valueOf(24));
-        INDEX_TYPE = new HashMap<String, Integer>();
-        INDEX_TYPE.put("风力指数", Integer.valueOf(0));
-        INDEX_TYPE.put("紫外线指数", Integer.valueOf(1));
-        INDEX_TYPE.put("穿衣指数", Integer.valueOf(2));
-        INDEX_TYPE.put("舒适度指数", Integer.valueOf(3));
-        INDEX_TYPE.put("洗车指数", Integer.valueOf(4));
-        INDEX_TYPE.put("晾晒指数", Integer.valueOf(5));
-        INDEX_TYPE.put("晨练指数", Integer.valueOf(6));
-        INDEX_TYPE.put("旅游指数", Integer.valueOf(7));
-        INDEX_TYPE.put("48小时穿衣指数", Integer.valueOf(8));
-        INDEX_TYPE.put("48小时紫外线指数", Integer.valueOf(9));
-        INDEX_OLD = new LinkedHashMap<String, String>();
+        WEATHER_ANIMATION_MAP.put("晴", 0);
+        WEATHER_ANIMATION_MAP.put("多云", 1);
+        WEATHER_ANIMATION_MAP.put("阴", 2);
+        WEATHER_ANIMATION_MAP.put("雾", 3);
+        WEATHER_ANIMATION_MAP.put("特大暴雨", 4);
+        WEATHER_ANIMATION_MAP.put("大暴雨", 5);
+        WEATHER_ANIMATION_MAP.put("暴雨", 6);
+        WEATHER_ANIMATION_MAP.put("雷阵雨", 7);
+        WEATHER_ANIMATION_MAP.put("阵雨", 8);
+        WEATHER_ANIMATION_MAP.put("大雨", 9);
+        WEATHER_ANIMATION_MAP.put("中雨", 10);
+        WEATHER_ANIMATION_MAP.put("小雨", 11);
+        WEATHER_ANIMATION_MAP.put("雨夹雪", 12);
+        WEATHER_ANIMATION_MAP.put("暴雪", 13);
+        WEATHER_ANIMATION_MAP.put("阵雪", 14);
+        WEATHER_ANIMATION_MAP.put("大雪", 15);
+        WEATHER_ANIMATION_MAP.put("中雪", 16);
+        WEATHER_ANIMATION_MAP.put("小雪", 17);
+        WEATHER_ANIMATION_MAP.put("强沙尘暴", 18);
+        WEATHER_ANIMATION_MAP.put("沙尘暴", 19);
+        WEATHER_ANIMATION_MAP.put("沙尘", 20);
+        WEATHER_ANIMATION_MAP.put("扬沙", 21);
+        WEATHER_ANIMATION_MAP.put("冰雹", 22);
+        WEATHER_ANIMATION_MAP.put("浮尘", 23);
+        WEATHER_ANIMATION_MAP.put("霾", 24);
+        INDEX_TYPE = new HashMap<>();
+        INDEX_TYPE.put("风力指数", 0);
+        INDEX_TYPE.put("紫外线指数", 1);
+        INDEX_TYPE.put("穿衣指数", 2);
+        INDEX_TYPE.put("舒适度指数", 3);
+        INDEX_TYPE.put("洗车指数", 4);
+        INDEX_TYPE.put("晾晒指数", 5);
+        INDEX_TYPE.put("晨练指数", 6);
+        INDEX_TYPE.put("旅游指数", 7);
+        INDEX_TYPE.put("48小时穿衣指数", 8);
+        INDEX_TYPE.put("48小时紫外线指数", 9);
+        INDEX_OLD = new LinkedHashMap<>();
         INDEX_OLD.put("紫外线指数", "index_uv");
         INDEX_OLD.put("穿衣指数", "index");
         INDEX_OLD.put("舒适度指数", "index_co");
@@ -570,100 +570,100 @@ public class WeatherConstants {
         INDEX_OLD.put("旅游指数", "index_tr");
         INDEX_OLD.put("48小时穿衣指数", "index48");
         INDEX_OLD.put("48小时紫外线指数", "index48_uv");
-        EXERCISE_INDEX_DESC_EN_MAP = new HashMap<String, String>();
+        EXERCISE_INDEX_DESC_EN_MAP = new HashMap<>();
         EXERCISE_INDEX_DESC_EN_MAP.put("适宜", "OK");
         EXERCISE_INDEX_DESC_EN_MAP.put("较适宜", "Good");
         EXERCISE_INDEX_DESC_EN_MAP.put("较不宜", "Avoid if possible");
         EXERCISE_INDEX_DESC_EN_MAP.put("不宜", "Not recommended");
         EXERCISE_INDEX_DESC_EN_MAP.put("极适宜", "Ideal");
-        EXERCISE_INDEX_DESC_CN_MAP = new HashMap<String, String>();
+        EXERCISE_INDEX_DESC_CN_MAP = new HashMap<>();
         EXERCISE_INDEX_DESC_CN_MAP.put("适宜", "适宜");
         EXERCISE_INDEX_DESC_CN_MAP.put("较适宜", "较适宜");
         EXERCISE_INDEX_DESC_CN_MAP.put("较不宜", "较不宜");
         EXERCISE_INDEX_DESC_CN_MAP.put("不宜", "不宜");
         EXERCISE_INDEX_DESC_CN_MAP.put("极适宜", "极适宜");
-        EXERCISE_INDEX_DESC_TW_MAP = new HashMap<String, String>();
+        EXERCISE_INDEX_DESC_TW_MAP = new HashMap<>();
         EXERCISE_INDEX_DESC_TW_MAP.put("适宜", "適宜");
         EXERCISE_INDEX_DESC_TW_MAP.put("较适宜", "較適宜");
         EXERCISE_INDEX_DESC_TW_MAP.put("较不宜", "較不宜");
         EXERCISE_INDEX_DESC_TW_MAP.put("不宜", "不宜");
         EXERCISE_INDEX_DESC_TW_MAP.put("极适宜", "極適宜");
-        CARWASH_INDEX_DESC_EN_MAP = new HashMap<String, String>();
+        CARWASH_INDEX_DESC_EN_MAP = new HashMap<>();
         CARWASH_INDEX_DESC_EN_MAP.put("适宜", "OK");
         CARWASH_INDEX_DESC_EN_MAP.put("较适宜", "Good");
         CARWASH_INDEX_DESC_EN_MAP.put("较不宜", "Avoid if possible");
         CARWASH_INDEX_DESC_EN_MAP.put("不宜", "Not recommended");
         CARWASH_INDEX_DESC_EN_MAP.put("极适宜", "Ideal");
-        CARWASH_INDEX_DESC_CN_MAP = new HashMap<String, String>();
+        CARWASH_INDEX_DESC_CN_MAP = new HashMap<>();
         CARWASH_INDEX_DESC_CN_MAP.put("适宜", "适宜");
         CARWASH_INDEX_DESC_CN_MAP.put("较适宜", "较适宜");
         CARWASH_INDEX_DESC_CN_MAP.put("较不宜", "较不宜");
         CARWASH_INDEX_DESC_CN_MAP.put("不宜", "不宜");
         CARWASH_INDEX_DESC_CN_MAP.put("极适宜", "极适宜");
-        CARWASH_INDEX_DESC_TW_MAP = new HashMap<String, String>();
+        CARWASH_INDEX_DESC_TW_MAP = new HashMap<>();
         CARWASH_INDEX_DESC_TW_MAP.put("适宜", "適宜");
         CARWASH_INDEX_DESC_TW_MAP.put("较适宜", "較適宜");
         CARWASH_INDEX_DESC_TW_MAP.put("较不宜", "較不宜");
         CARWASH_INDEX_DESC_TW_MAP.put("不宜", "不宜");
         CARWASH_INDEX_DESC_TW_MAP.put("极适宜", "極適宜");
-        AIRCURE_INDEX_DESC_EN_MAP = new HashMap<String, String>();
+        AIRCURE_INDEX_DESC_EN_MAP = new HashMap<>();
         AIRCURE_INDEX_DESC_EN_MAP.put("适宜", "OK");
         AIRCURE_INDEX_DESC_EN_MAP.put("较适宜", "Good");
         AIRCURE_INDEX_DESC_EN_MAP.put("不太适宜", "Not Good");
         AIRCURE_INDEX_DESC_EN_MAP.put("较不宜", "Avoid if possible");
         AIRCURE_INDEX_DESC_EN_MAP.put("不宜", "Not recommended");
         AIRCURE_INDEX_DESC_EN_MAP.put("极适宜", "Ideal");
-        AIRCURE_INDEX_DESC_CN_MAP = new HashMap<String, String>();
+        AIRCURE_INDEX_DESC_CN_MAP = new HashMap<>();
         AIRCURE_INDEX_DESC_CN_MAP.put("适宜", "适宜");
         AIRCURE_INDEX_DESC_CN_MAP.put("较适宜", "较适宜");
         AIRCURE_INDEX_DESC_CN_MAP.put("不太适宜", "不太适宜");
         AIRCURE_INDEX_DESC_CN_MAP.put("较不宜", "较不宜");
         AIRCURE_INDEX_DESC_CN_MAP.put("不宜", "不宜");
         AIRCURE_INDEX_DESC_CN_MAP.put("极适宜", "极适宜");
-        AIRCURE_INDEX_DESC_TW_MAP = new HashMap<String, String>();
+        AIRCURE_INDEX_DESC_TW_MAP = new HashMap<>();
         AIRCURE_INDEX_DESC_TW_MAP.put("适宜", "適宜");
         AIRCURE_INDEX_DESC_TW_MAP.put("较适宜", "較適宜");
         AIRCURE_INDEX_DESC_TW_MAP.put("不太适宜", "不太適宜");
         AIRCURE_INDEX_DESC_TW_MAP.put("较不宜", "較不宜");
         AIRCURE_INDEX_DESC_TW_MAP.put("不宜", "不宜");
         AIRCURE_INDEX_DESC_TW_MAP.put("极适宜", "極適宜");
-        TRAVEL_INDEX_DESC_EN_MAP = new HashMap<String, String>();
+        TRAVEL_INDEX_DESC_EN_MAP = new HashMap<>();
         TRAVEL_INDEX_DESC_EN_MAP.put("适宜", "OK");
         TRAVEL_INDEX_DESC_EN_MAP.put("较适宜", "Good");
         TRAVEL_INDEX_DESC_EN_MAP.put("较不宜", "Avoid if possible");
         TRAVEL_INDEX_DESC_EN_MAP.put("不宜", "Not recommended");
         TRAVEL_INDEX_DESC_EN_MAP.put("极适宜", "Ideal");
-        TRAVEL_INDEX_DESC_CN_MAP = new HashMap<String, String>();
+        TRAVEL_INDEX_DESC_CN_MAP = new HashMap<>();
         TRAVEL_INDEX_DESC_CN_MAP.put("适宜", "适宜");
         TRAVEL_INDEX_DESC_CN_MAP.put("较适宜", "较适宜");
         TRAVEL_INDEX_DESC_CN_MAP.put("较不宜", "较不宜");
         TRAVEL_INDEX_DESC_CN_MAP.put("不宜", "不宜");
         TRAVEL_INDEX_DESC_CN_MAP.put("极适宜", "极适宜");
-        TRAVEL_INDEX_DESC_TW_MAP = new HashMap<String, String>();
+        TRAVEL_INDEX_DESC_TW_MAP = new HashMap<>();
         TRAVEL_INDEX_DESC_TW_MAP.put("适宜", "適宜");
         TRAVEL_INDEX_DESC_TW_MAP.put("较适宜", "較適宜");
         TRAVEL_INDEX_DESC_TW_MAP.put("较不宜", "較不宜");
         TRAVEL_INDEX_DESC_TW_MAP.put("不宜", "不宜");
         TRAVEL_INDEX_DESC_TW_MAP.put("极适宜", "極適宜");
-        ULTRAVIOLET_INDEX_DESC_EN_MAP = new HashMap<String, String>();
+        ULTRAVIOLET_INDEX_DESC_EN_MAP = new HashMap<>();
         ULTRAVIOLET_INDEX_DESC_EN_MAP.put("中等", "Moderate");
         ULTRAVIOLET_INDEX_DESC_EN_MAP.put("最弱", "Weak");
         ULTRAVIOLET_INDEX_DESC_EN_MAP.put("弱", "Medium");
         ULTRAVIOLET_INDEX_DESC_EN_MAP.put("强", "Strong");
         ULTRAVIOLET_INDEX_DESC_EN_MAP.put("很强", "Very strong");
-        ULTRAVIOLET_INDEX_DESC_CN_MAP = new HashMap<String, String>();
+        ULTRAVIOLET_INDEX_DESC_CN_MAP = new HashMap<>();
         ULTRAVIOLET_INDEX_DESC_CN_MAP.put("中等", "中等");
         ULTRAVIOLET_INDEX_DESC_CN_MAP.put("最弱", "最弱");
         ULTRAVIOLET_INDEX_DESC_CN_MAP.put("弱", "弱");
         ULTRAVIOLET_INDEX_DESC_CN_MAP.put("强", "强");
         ULTRAVIOLET_INDEX_DESC_CN_MAP.put("很强", "很强");
-        ULTRAVIOLET_INDEX_DESC_TW_MAP = new HashMap<String, String>();
+        ULTRAVIOLET_INDEX_DESC_TW_MAP = new HashMap<>();
         ULTRAVIOLET_INDEX_DESC_TW_MAP.put("中等", "最弱");
         ULTRAVIOLET_INDEX_DESC_TW_MAP.put("最弱", "最弱");
         ULTRAVIOLET_INDEX_DESC_TW_MAP.put("弱", "弱");
         ULTRAVIOLET_INDEX_DESC_TW_MAP.put("强", "強");
         ULTRAVIOLET_INDEX_DESC_TW_MAP.put("很强", "很強");
-        DRESS_INDEX_DESC_EN_MAP = new HashMap<String, String>();
+        DRESS_INDEX_DESC_EN_MAP = new HashMap<>();
         DRESS_INDEX_DESC_EN_MAP.put("凉", "Cool");
         DRESS_INDEX_DESC_EN_MAP.put("舒适", "Comfortable");
         DRESS_INDEX_DESC_EN_MAP.put("较舒适", "Good");
@@ -712,7 +712,7 @@ public class WeatherConstants {
         COMFORT_INDEX_DESC_CN_MAP.put("不宜", "不宜");
         COMFORT_INDEX_DESC_CN_MAP.put("基本适宜", "基本适宜");
         COMFORT_INDEX_DESC_CN_MAP.put("适宜", "适宜");
-        COMFORT_INDEX_DESC_TW_MAP = new HashMap<String, String>();
+        COMFORT_INDEX_DESC_TW_MAP = new HashMap<>();
         COMFORT_INDEX_DESC_TW_MAP.put("较舒适", "較舒適");
         COMFORT_INDEX_DESC_TW_MAP.put("舒适", "舒適");
         COMFORT_INDEX_DESC_TW_MAP.put("较不舒适", "較不舒適");
@@ -720,13 +720,13 @@ public class WeatherConstants {
         COMFORT_INDEX_DESC_TW_MAP.put("不宜", "不宜");
         COMFORT_INDEX_DESC_TW_MAP.put("基本适宜", "基本適宜");
         COMFORT_INDEX_DESC_TW_MAP.put("适宜", "適宜");
-        EXERCISE_INDEX_DETAIL_CN_MAP = new HashMap<String, String>();
-        CARWASH_INDEX_DETAIL_CN_MAP = new HashMap<String, String>();
-        AIRCURE_INDEX_DETAIL_CN_MAP = new HashMap<String, String>();
-        TRAVEL_INDEX_DETAIL_CN_MAP = new HashMap<String, String>();
-        ULTRAVIOLET_INDEX_DETAIL_CN_MAP = new HashMap<String, String>();
-        DRESS_INDEX_DETAIL_CN_MAP = new HashMap<String, String>();
-        COMFORT_INDEX_DETAIL_CN_MAP = new HashMap<String, String>();
+        EXERCISE_INDEX_DETAIL_CN_MAP = new HashMap<>();
+        CARWASH_INDEX_DETAIL_CN_MAP = new HashMap<>();
+        AIRCURE_INDEX_DETAIL_CN_MAP = new HashMap<>();
+        TRAVEL_INDEX_DETAIL_CN_MAP = new HashMap<>();
+        ULTRAVIOLET_INDEX_DETAIL_CN_MAP = new HashMap<>();
+        DRESS_INDEX_DETAIL_CN_MAP = new HashMap<>();
+        COMFORT_INDEX_DETAIL_CN_MAP = new HashMap<>();
         EXERCISE_INDEX_DETAIL_CN_MAP.put("适宜",
                 "天气晴朗，空气清新，是您晨练的大好时机，建议不同年龄段的人们积极参加户外健身活动。");
         EXERCISE_INDEX_DETAIL_CN_MAP.put("较适宜",
@@ -1120,76 +1120,76 @@ public class WeatherConstants {
         COMFORT_INDEX_DETAIL_LANGUAGE_MAP = new HashMap();
         TRAVEL_INDEX_DETAIL_LANGUAGE_MAP = new HashMap();
         AQI_LEVEL_CN_MAP = new HashMap();
-        AQI_LEVEL_CN_MAP.put(Integer.valueOf(0), "无污染");
-        AQI_LEVEL_CN_MAP.put(Integer.valueOf(50), "优");
-        AQI_LEVEL_CN_MAP.put(Integer.valueOf(100), "良");
-        AQI_LEVEL_CN_MAP.put(Integer.valueOf(150), "轻度污染");
-        AQI_LEVEL_CN_MAP.put(Integer.valueOf(200), "中度污染");
-        AQI_LEVEL_CN_MAP.put(Integer.valueOf(300), "重度污染");
-        AQI_LEVEL_CN_MAP.put(Integer.valueOf(500), "严重污染");
-        AQI_LEVEL_EN_MAP = new HashMap();
-        AQI_LEVEL_EN_MAP.put(Integer.valueOf(0), "Excellent");
-        AQI_LEVEL_EN_MAP.put(Integer.valueOf(50), "Good");
-        AQI_LEVEL_EN_MAP.put(Integer.valueOf(100), "Moderate");
-        AQI_LEVEL_EN_MAP.put(Integer.valueOf(150), "Caution");
-        AQI_LEVEL_EN_MAP.put(Integer.valueOf(200), "Unhealthy");
-        AQI_LEVEL_EN_MAP.put(Integer.valueOf(300), "Dangerous");
-        AQI_LEVEL_EN_MAP.put(Integer.valueOf(500), "Hazardous");
-        AQI_LEVEL_TW_MAP = new HashMap();
-        AQI_LEVEL_TW_MAP.put(Integer.valueOf(0), "无汙染");
-        AQI_LEVEL_TW_MAP.put(Integer.valueOf(50), "優");
-        AQI_LEVEL_TW_MAP.put(Integer.valueOf(100), "良");
-        AQI_LEVEL_TW_MAP.put(Integer.valueOf(150), "輕度汙染");
-        AQI_LEVEL_TW_MAP.put(Integer.valueOf(200), "中度汙染");
-        AQI_LEVEL_TW_MAP.put(Integer.valueOf(300), "重度汙染");
-        AQI_LEVEL_TW_MAP.put(Integer.valueOf(500), "严重汙染");
-        AQI_LEVEL_LANGUAGE_MAP = new HashMap();
+        AQI_LEVEL_CN_MAP.put(0, "无污染");
+        AQI_LEVEL_CN_MAP.put(50, "优");
+        AQI_LEVEL_CN_MAP.put(100, "良");
+        AQI_LEVEL_CN_MAP.put(150, "轻度污染");
+        AQI_LEVEL_CN_MAP.put(200, "中度污染");
+        AQI_LEVEL_CN_MAP.put(300, "重度污染");
+        AQI_LEVEL_CN_MAP.put(500, "严重污染");
+        AQI_LEVEL_EN_MAP = new HashMap<>();
+        AQI_LEVEL_EN_MAP.put(0, "Excellent");
+        AQI_LEVEL_EN_MAP.put(50, "Good");
+        AQI_LEVEL_EN_MAP.put(100, "Moderate");
+        AQI_LEVEL_EN_MAP.put(150, "Caution");
+        AQI_LEVEL_EN_MAP.put(200, "Unhealthy");
+        AQI_LEVEL_EN_MAP.put(300, "Dangerous");
+        AQI_LEVEL_EN_MAP.put(500, "Hazardous");
+        AQI_LEVEL_TW_MAP = new HashMap<>();
+        AQI_LEVEL_TW_MAP.put(0, "无汙染");
+        AQI_LEVEL_TW_MAP.put(50, "優");
+        AQI_LEVEL_TW_MAP.put(100, "良");
+        AQI_LEVEL_TW_MAP.put(150, "輕度汙染");
+        AQI_LEVEL_TW_MAP.put(200, "中度汙染");
+        AQI_LEVEL_TW_MAP.put(300, "重度汙染");
+        AQI_LEVEL_TW_MAP.put(500, "严重汙染");
+        AQI_LEVEL_LANGUAGE_MAP = new HashMap<>();
         AQI_LEVEL_LANGUAGE_MAP.put(Locale.US.toString().toLowerCase(),
                 AQI_LEVEL_EN_MAP);
         AQI_LEVEL_LANGUAGE_MAP.put(Locale.CHINA.toString().toLowerCase(),
                 AQI_LEVEL_CN_MAP);
         AQI_LEVEL_LANGUAGE_MAP.put(Locale.TAIWAN.toString().toLowerCase(),
                 AQI_LEVEL_TW_MAP);
-        AQI_DESC_CN_MAP = new HashMap();
-        AQI_DESC_CN_MAP.put(Integer.valueOf(0), "所有人群可在户外正常自由活动。");
-        AQI_DESC_CN_MAP.put(Integer.valueOf(50), "所有人群可在户外正常自由活动。");
-        AQI_DESC_CN_MAP.put(Integer.valueOf(100), "对空气质量特别敏感的人群应该减少户外活动。");
-        AQI_DESC_CN_MAP.put(Integer.valueOf(150),
+        AQI_DESC_CN_MAP = new HashMap<>();
+        AQI_DESC_CN_MAP.put(0, "所有人群可在户外正常自由活动。");
+        AQI_DESC_CN_MAP.put(50, "所有人群可在户外正常自由活动。");
+        AQI_DESC_CN_MAP.put(100, "对空气质量特别敏感的人群应该减少户外活动。");
+        AQI_DESC_CN_MAP.put(150,
                 "儿童、老人及心脏、呼吸系统疾病患者人群应该减少长时间、高强度的户外锻炼。");
-        AQI_DESC_CN_MAP.put(Integer.valueOf(200),
+        AQI_DESC_CN_MAP.put(200,
                 "儿童、老人及心脏、呼吸系统疾病患者人群应该减少长时间、高强度的户外锻炼，一般人群适量减少户外运动。");
-        AQI_DESC_CN_MAP.put(Integer.valueOf(300),
+        AQI_DESC_CN_MAP.put(300,
                 "儿童、老人及心脏、呼吸系统疾病患者人群应停留在室内，停止户外运动，一般人群减少户外运动。");
-        AQI_DESC_CN_MAP.put(Integer.valueOf(500),
+        AQI_DESC_CN_MAP.put(500,
                 "儿童、老人及心脏、呼吸系统疾病患者人群应停留在室内，并减少体力活动，一般人群应该避免户外活动并注意防护。");
         AQI_DESC_EN_MAP = new HashMap();
-        AQI_DESC_EN_MAP.put(Integer.valueOf(0),
+        AQI_DESC_EN_MAP.put(0,
                 "It's a great day to be active outside!");
-        AQI_DESC_EN_MAP.put(Integer.valueOf(50),
+        AQI_DESC_EN_MAP.put(50,
                 "It's a great day to be active outside!");
         AQI_DESC_EN_MAP
-                .put(Integer.valueOf(100),
+                .put(100,
                         "People with preexisting medical conditions should reduce prolonged or heavy exertion.");
         AQI_DESC_EN_MAP
-                .put(Integer.valueOf(150),
+                .put(150,
                         "People with heart or lung disease, older adults, and young children should reduce prolonged or heavy exertion.");
-        AQI_DESC_EN_MAP.put(Integer.valueOf(200),
+        AQI_DESC_EN_MAP.put(200,
                 "Reduce prolonged or heavy exertion.");
-        AQI_DESC_EN_MAP.put(Integer.valueOf(300),
+        AQI_DESC_EN_MAP.put(300,
                 "Avoid prolonged or heavy exertion.");
-        AQI_DESC_EN_MAP.put(Integer.valueOf(500),
+        AQI_DESC_EN_MAP.put(500,
                 "Remain indoors and reduce your level of activity.");
         AQI_DESC_TW_MAP = new HashMap();
-        AQI_DESC_TW_MAP.put(Integer.valueOf(0), "所有人群可在戶外正常自由活動。");
-        AQI_DESC_TW_MAP.put(Integer.valueOf(50), "所有人群可在戶外正常自由活動。");
-        AQI_DESC_TW_MAP.put(Integer.valueOf(100), "對空氣質量特別敏感的人群應該減少戶外活動。");
-        AQI_DESC_TW_MAP.put(Integer.valueOf(150),
+        AQI_DESC_TW_MAP.put(0, "所有人群可在戶外正常自由活動。");
+        AQI_DESC_TW_MAP.put(50, "所有人群可在戶外正常自由活動。");
+        AQI_DESC_TW_MAP.put(100, "對空氣質量特別敏感的人群應該減少戶外活動。");
+        AQI_DESC_TW_MAP.put(150,
                 "兒童、老人及心臟、呼吸系統疾病患者人群應該減少長時間、高強度的戶外鍛煉。");
-        AQI_DESC_TW_MAP.put(Integer.valueOf(200),
+        AQI_DESC_TW_MAP.put(200,
                 "兒童、老人及心臟、呼吸系統疾病患者人群應該減少長時間、高強度的戶外鍛煉，一般人群適量減少戶外運動。");
-        AQI_DESC_TW_MAP.put(Integer.valueOf(300),
+        AQI_DESC_TW_MAP.put(300,
                 "兒童、老人及心臟、呼吸系統疾病患者人群應停留在室內，停止戶外運動，一般人群減少戶外運動。");
-        AQI_DESC_TW_MAP.put(Integer.valueOf(500),
+        AQI_DESC_TW_MAP.put(500,
                 "兒童、老人及心臟、呼吸系統疾病患者人群應停留在室內，並減少體力活動，一般人群應該避免戶外活動並注意防護。");
         AQI_DESC_LANGUAGE_MAP = new HashMap();
         AQI_DESC_LANGUAGE_MAP.put(Locale.US.toString().toLowerCase(),
@@ -1198,14 +1198,14 @@ public class WeatherConstants {
                 AQI_DESC_CN_MAP);
         AQI_DESC_LANGUAGE_MAP.put(Locale.TAIWAN.toString().toLowerCase(),
                 AQI_DESC_TW_MAP);
-        AQI_SOURCE_LANGUAGE_MAP = new HashMap();
+        AQI_SOURCE_LANGUAGE_MAP = new HashMap<>();
         AQI_SOURCE_LANGUAGE_MAP.put(Locale.US.toString().toLowerCase(),
                 "China National Environmental Monitoring Center");
         AQI_SOURCE_LANGUAGE_MAP.put(Locale.CHINA.toString().toLowerCase(),
                 "中国环境监测总站");
         AQI_SOURCE_LANGUAGE_MAP.put(Locale.TAIWAN.toString().toLowerCase(),
                 "中國環境監測總站");
-        PROVINCE_FAKE_CITY_MAP = new HashMap<String, String>();
+        PROVINCE_FAKE_CITY_MAP = new HashMap<>();
         PROVINCE_FAKE_CITY_MAP.put("101050000", "黑龙江");
         PROVINCE_FAKE_CITY_MAP.put("101060000", "吉林");
         PROVINCE_FAKE_CITY_MAP.put("101070000", "辽宁");

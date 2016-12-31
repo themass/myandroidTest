@@ -16,14 +16,7 @@
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.timeline.vpn"
-    android:versionCode="1000001000"
-    android:versionName="1.0.1.0">
-
-    <uses-sdk
-        android:minSdkVersion="21"
-        android:targetSdkVersion="21" />
-
+    package="com.timeline.vpn">
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
@@ -31,7 +24,6 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_UPDATES" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-    <uses-permission android:name="android.permission.GET_TASKS" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.VIBRATE" />
@@ -74,6 +66,7 @@
         <meta-data
             android:name="com.baidu.lbsapi.API_KEY"
             android:value="VFNwiTplUvpm7iLaV6FBLNOkxFYrEbp1" />
+
         <meta-data
             android:name="UMENG_APPKEY"
             android:value="57b56211e0f55ab5da0002a3" />
@@ -81,20 +74,22 @@
             android:name="UMENG_MESSAGE_SECRET"
             android:value="06ab5668a76ad1be10a1ec82e7f6ddfb" >
         </meta-data>
+        <!--
         <meta-data
             android:name="UMENG_CHANNEL"
             android:value="${CHANNEL_VALUE}" />
         <meta-data
             android:name="AdView_CHANNEL"
             android:value="${CHANNEL_VALUE}"/>
-
+        -->
         <activity android:name=".ui.main.LaunchActivity">
-            <intent-filter>
+            <intent-filter tools:ignore="GoogleAppIndexingWarning">
+                <action android:name="android.intent.action.VIEW" />
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ui.main.LaunchActivityTest"></activity>
+        <activity android:name=".ui.main.LaunchActivityTest"/>
         <activity
             android:name=".ui.main.MainFragment"
             android:label="@string/main_activity_name"
@@ -109,10 +104,9 @@
         </activity>
         <activity android:name=".ui.feedback.ConversationDetailActivity" />
         <activity android:name=".ui.base.CommonFragmentActivity" />
-        <service android:name="com.timeline.vpn.service.LeakUploadService" />
         <service
             android:name="org.strongswan.android.logic.VpnStateService"
-            android:exported="false"></service>
+            android:exported="false"/>
         <service
             android:name="org.strongswan.android.logic.CharonVpnService"
             android:exported="false"
@@ -122,11 +116,15 @@
                 <action android:name="android.net.VpnService" />
             </intent-filter>
         </service>
+        <service android:name=".service.LogUploadService"/>
+        <service android:name=".service.LogToFileService"/>
+
+
         <!-- 百度定位-->
         <service
             android:name="com.baidu.location.f"
             android:enabled="true"
-            android:process=":remote"></service>
+            android:process=":remote"/>
 
         <!-- 广告sdk-->
         <!--must-->
@@ -139,11 +137,6 @@
         <service android:name="com.kyview.DownloadService" />
         <activity android:name="com.kyview.AdviewWebView" />
         <activity android:name="com.kyview.AdActivity" />
-        <!-- AdView SDK for JD -->
-        <activity
-            android:name="com.jd.jdadsdk.JDAdBrowser"
-            android:screenOrientation="portrait" />
-
         <!-- AdView SDK for Inmobi (需要api 13 方可编译通过) -->
         <activity
             android:name="com.inmobi.rendering.InMobiAdActivity"

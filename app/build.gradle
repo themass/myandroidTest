@@ -32,34 +32,19 @@ android {
 //        jniLibs.srcDir 'src/main/jniLibs'
         jniLibs.srcDirs = ['libs']
     }
-//    task buildNative(type: Exec) {
-//        workingDir 'src/main/jni'
-//        commandLine "${android.ndkDirectory}/ndk-build", '-j', Runtime.runtime.availableProcessors()
-//    }
-//
-//    task cleanNative(type: Exec) {
-//        workingDir 'src/main/jni'
-//        commandLine "${android.ndkDirectory}/ndk-build", 'clean'
-//    }
-
-//    tasks.withType(JavaCompile) {
-//        compileTask -> compileTask.dependsOn buildNative
-//    }
-
-//    clean.dependsOn 'cleanNative'
     signingConfigs {
-//        config {
-//            keyAlias 'myapp'
-//            keyPassword 'themass'
-//            storeFile file('C:/software/work/android-sdk_r24.3.3-windows/mykey.jks')
-//            storePassword 'themass'
-//        }
         config {
             keyAlias 'myapp'
             keyPassword 'themass'
-            storeFile file('/home/web/local/mykey.jks')
+            storeFile file('C:/software/work/android-sdk_r24.3.3-windows/mykey.jks')
             storePassword 'themass'
         }
+//        config {
+//            keyAlias 'myapp'
+//            keyPassword 'themass'
+//            storeFile file('/home/web/local/mykey.jks')
+//            storePassword 'themass'
+//        }
     }
     buildTypes {
         debug {
@@ -73,16 +58,9 @@ android {
             minifyEnabled true
             zipAlignEnabled true // Zipalign优化
             shrinkResources true // 移除无用的resource文件
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.config
-        }
-        linux {
-            minifyEnabled true
-            zipAlignEnabled true // Zipalign优化
-            shrinkResources false // 移除无用的resource文件
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.config
             debuggable false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.config
         }
     }
     productFlavors {
@@ -163,15 +141,12 @@ dependencies {
     compile files('libs/BaiduLBS_Android.jar')
     //compile 'com.google.android.gms:play-services-appindexing:8.1.0'
     compile files('libs/app-monitor-sdk-2.5.1.1_for_bc_proguard.jar')
-    compile files('libs/utdid4all-1.1.5.3_proguard.jar')
-    compile files('libs/jd_adsdk.jar')
     compile files('libs/InMobi.jar')
     compile files('libs/google-play-services.jar')
     compile files('libs/gdt_mob_release.jar')
     compile files('libs/Baidu_MobAds_SDK_Agg.jar')
     compile files('libs/AdViewSDK_Android.jar')
     compile files('libs/YoumiSdk.jar')
-    //        provided fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:multidex:1.0.0'
     compile 'com.android.support:appcompat-v7:23.2.0'
     compile 'com.android.support:support-v13:23.2.0'

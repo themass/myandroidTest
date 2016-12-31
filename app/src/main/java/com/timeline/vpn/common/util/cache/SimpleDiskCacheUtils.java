@@ -18,7 +18,7 @@ public class SimpleDiskCacheUtils {
     private static final String DISK_CACHE_DIR = "vpn_cache";
     private static final Object sLockObject = new Object();
     private static SimpleDiskCache sSimpleDiskCache;
-    private static Map<String, CacheTask> sCacheTasks = new HashMap<String, CacheTask>();
+    private static Map<String, CacheTask> sCacheTasks = new HashMap<>();
 
     public static SimpleDiskCache getSimpleDiskCache(Context context) {
         synchronized (sLockObject) {

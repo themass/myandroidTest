@@ -84,7 +84,6 @@ public class FeedItemAnimator extends DefaultItemAnimator {
         cancelCurrentAnimationIfExists(newHolder);
 
         if (preInfo instanceof FeedItemHolderInfo) {
-            FeedItemHolderInfo feedItemHolderInfo = (FeedItemHolderInfo) preInfo;
             FeedAdapter.CellFeedViewHolder holder = (FeedAdapter.CellFeedViewHolder) newHolder;
             updateLikesCounter(holder, holder.getFeedItem().likes);
         }

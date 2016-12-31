@@ -36,8 +36,8 @@ import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.data.VersionUpdater;
 import com.timeline.vpn.data.config.LocationChooseEvent;
 import com.timeline.vpn.data.config.UserLoginEvent;
+import com.timeline.vpn.service.LogUploadService;
 import com.timeline.vpn.ui.feedback.ConversationDetailActivity;
-import com.timeline.vpn.ui.log.FileLogActivity;
 import com.timeline.vpn.ui.user.LoginActivity;
 import com.timeline.vpn.ui.vpn.LocationChooseFragment;
 
@@ -183,7 +183,8 @@ public class BaseDrawerActivity extends BaseFragmentActivity {
                 } else if (item.getItemId() == R.id.menu_score) {
                     Toast.makeText(BaseDrawerActivity.this, R.string.menu_btn_score_context, Toast.LENGTH_SHORT).show();
                 } else if (item.getItemId() == R.id.menu_bug) {
-                    startActivity(FileLogActivity.class);
+                    startService(LogUploadService.class);
+                    Toast.makeText(BaseDrawerActivity.this, R.string.menu_btn_report_log, Toast.LENGTH_SHORT).show();
                 }else if (item.getItemId() == R.id.menu_share) {
                     showShare();
                 }

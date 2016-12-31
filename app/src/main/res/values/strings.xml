@@ -18,26 +18,9 @@
     <integer name="__leak_canary_max_stored_leaks">20</integer>
     <!--  tab main -->
     <string name="tab_index">Home</string>
-    <string name="tab_power">Power</string>
-    <string name="tab_ads">More</string>
     <string name="tab_vip">VIPArea</string>
-    <string name="tab_more">More</string>
-    <string name="tab_news">News</string>
-    <string name="tab_happy">Joke</string>
     <string name="tab_tag_index">index</string>
-    <string name="tab_tag_power">energy</string>
-    <string name="tab_tag_ads">ads</string>
     <string name="tab_tag_vip">vip</string>
-    <string name="tab_tag_more">more</string>
-    <string name="tab_tag_news">news</string>
-    <string name="tab_tag_happy">happy</string>
-
-    <string name="tab_power_live">Sociology</string>
-    <string name="tab_power_positive">Positive</string>
-    <string name="tab_power_negative">Negative</string>
-    <string name="tab_power_vent">Vent</string>
-    <string name="tab_power_gossip">Gossip</string>
-    <string name="tab_power_yellow">Midnight</string>
     <string name="tab_vip_temp">Content preparation。。。Coming soon</string>
     <string name="tab_fb_click">Points me earn points, more use Oh。。+</string>
 
@@ -56,29 +39,26 @@
     <string name="location_choose_none">Unlimited</string>
     <string name="menu_haha">Yo! You found it.</string>
     <!-- menu -->
-    <string name="menu_vpn_setting">VPN setting</string>
-    <string name="menu_vpn_status">VPN Connection status</string>
     <string name="menu_btn_login">Login</string>
     <string name="menu_btn_login_ready">login</string>
     <string name="menu_btn_name_default">Who am i</string>
     <string name="menu_btn_feedback">Feedback</string>
-    <string name="menu_btn_setting">Setting</string>
     <string name="menu_btn_about">About</string>
     <string name="menu_btn_share">share</string>
     <string name="menu_btn_bug">report bug</string>
     <string name="menu_btn_version">Version:%1$s</string>
-    <string name="menu_btn_version_new">Version:%1$s （new:%2$s）</string>
     <string name="menu_btn_logout">Logout</string>
     <string name="menu_btn_about_context">FreeVPN the most stable, free, unlimited，all for you！</string>
     <string name="feed_back">Feedback</string>
     <string name="menu_btn_score">My points：%s</string>
     <string name="menu_btn_score_context">Points can be used to store the purchase of goods，VIP etc。。</string>
+    <string name="menu_btn_report_log">thanks for report us</string>
     <!-- share-->
     <string name="menu_share_title">Tell a friend</string>
     <string name="menu_share_url">Download Url:\n%s</string>
     <string name="menu_share_confirm">copyURL</string>
-    <string name="menu_share_cancel">cancel</string>
-    <string name="menu_share_copy_ok">copied ok</string>
+    <string name="menu_share_cancel">Cancel</string>
+    <string name="menu_share_copy_ok">copied OK</string>
     <string name="menu_share_copy_error">share failed</string>
     <!--登录，注册-->
     <string name="close_over">one more again!!</string>
@@ -87,23 +67,25 @@
     <string name="username_hint">Username</string>
     <string name="password_hint">Password</string>
     <string name="re_password_hint">rePassword</string>
-    <string name="empty_name_pwd">Username or Password error</string>
+    <string name="re_code">code</string>
+    <string name="re_bt_code">Get Code</string>
+    <string name="empty_name_pwd">Please fill in the information</string>
     <string name="sex">Sex:</string>
     <string name="female">female</string>
     <string name="male">male</string>
     <string name="error_repwd">Password error</string>
+    <string name="error_pattern">Password must 6 to 10 letters or numbers</string>
     <string name="reg_success">Register success，login now？</string>
     <string name="remark">Timeline RIGHTS RESERVED.</string>
     <string name="need_login">Login please</string>
     <string name="need_vip">Not VIP user has no permission to select the areang</string>
 
     <string name="iwanna_tips">Tell me what du you want \nI\'ll be ready for you </string>
-    <string name="iwanna_title">what do you wanna?</string>
+    <string name="iwanna_title">what do you want?</string>
     <string name="send">send</string>
     <string name="iwanna_content_error">tell me something!</string>
     <string name="iwanna_content_success">i got it !</string>
     <!-- error-->
-    <string name="error_no_city">Failed to choose city</string>
     <string name="error_getlocation_fail">Failed to obtain location information！</string>
     <string name="error_network_unknown">Connection server error, please check your network connection or try again later.</string>
     <string name="error_network_no_connection">Network connection is not available, please try again later</string>
@@ -115,8 +97,6 @@
     <string name="vpn_bg_error">Click Retry</string>
     <string name="vpn_bg_conning">connecting..</string>
     <string name="vpn_bg_conned">disconnect</string>
-    <string name="vpn_status_conn">connected.</string>
-    <string name="vpn_status_dis">disconnect</string>
 
     <string name="vpn_type_free">Free</string>
     <string name="vpn_type_vip">VIP</string>
@@ -124,13 +104,11 @@
     <string name="vpn_service_text">Start FreeVpn</string>
     <!--版本更新下载-->
 
-    <string name="about_version_check_update">Checking for updates</string>
     <string name="about_version_update_to_date">Is the latest version</string>
-    <string name="about_version_has_new_version">date immediately</string>
     <string name="about_version_download_title">Discover new version</string>
     <string name="about_version_download">Download</string>
     <string name="about_version_confirm">confirm</string>
-    <string name="about_version_cancel">cancel</string>
+    <string name="about_version_cancel">Cancel</string>
     <string name="about_download_confirm_title">Confirm Download</string>
     <string name="about_download_confirm_content">
 You are now using a non WIFI network, continue to download may consume more network traffic, whether to continue to download？</string>

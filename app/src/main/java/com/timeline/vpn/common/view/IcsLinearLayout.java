@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
+import android.util.AttributeSet;
 import android.view.View;
 import android.widget.LinearLayout;
 
@@ -30,10 +31,24 @@ class IcsLinearLayout extends LinearLayout {
     private int mShowDividers;
     private int mDividerPadding;
 
-
+    public IcsLinearLayout(Context context){
+        super(context);
+        TypedArray a = context.obtainStyledAttributes(null, LL, 0, 0);
+        setDividerDrawable(a.getDrawable(IcsLinearLayout.LL_DIVIDER));
+        mDividerPadding = a.getDimensionPixelSize(LL_DIVIDER_PADDING, 0);
+        mShowDividers = a.getInteger(LL_SHOW_DIVIDER, SHOW_DIVIDER_NONE);
+        a.recycle();
+    }
+    public IcsLinearLayout(Context context,AttributeSet set){
+        super(context,set);
+        TypedArray a = context.obtainStyledAttributes(null, LL, 0, 0);
+        setDividerDrawable(a.getDrawable(IcsLinearLayout.LL_DIVIDER));
+        mDividerPadding = a.getDimensionPixelSize(LL_DIVIDER_PADDING, 0);
+        mShowDividers = a.getInteger(LL_SHOW_DIVIDER, SHOW_DIVIDER_NONE);
+        a.recycle();
+    }
     public IcsLinearLayout(Context context, int themeAttr) {
         super(context);
-
         TypedArray a = context.obtainStyledAttributes(null, LL, themeAttr, 0);
         setDividerDrawable(a.getDrawable(IcsLinearLayout.LL_DIVIDER));
         mDividerPadding = a.getDimensionPixelSize(LL_DIVIDER_PADDING, 0);
@@ -113,7 +128,7 @@ class IcsLinearLayout extends LinearLayout {
 
         if (hasDividerBeforeChildAt(count)) {
             final View child = getChildAt(count - 1);
-            int bottom = 0;
+            int bottom;
             if (child == null) {
                 bottom = getHeight() - getPaddingBottom() - mDividerHeight;
             } else {
@@ -140,7 +155,7 @@ class IcsLinearLayout extends LinearLayout {
 
         if (hasDividerBeforeChildAt(count)) {
             final View child = getChildAt(count - 1);
-            int right = 0;
+            int right;
             if (child == null) {
                 right = getWidth() - getPaddingRight() - mDividerWidth;
             } else {

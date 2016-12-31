@@ -2,6 +2,7 @@ package com.timeline.vpn.common.util;
 
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
@@ -138,7 +139,7 @@ public class DeviceInfoUtils {
     /**
      * 从apk中获取版本信息
      */
-    private static String getChannelFromApk(Context context, String channelKey) {
+    public static String getChannelFromApk(Context context, String channelKey) {
         //从apk包中获取
         ApplicationInfo appinfo = context.getApplicationInfo();
         String sourceDir = appinfo.sourceDir;
@@ -170,9 +171,20 @@ public class DeviceInfoUtils {
         }
         String[] split = ret.split("_");
         String channel = "";
-        if (split != null && split.length >= 2) {
+        if (split.length >= 2) {
             channel = ret.substring(split[0].length() + 1);
         }
         return channel;
+    }
+    public static String getMetaData(Context context,String name){
+        try {
+            ApplicationInfo appInfo = context.getPackageManager()
+                    .getApplicationInfo(context.getPackageName(),
+                            PackageManager.GET_META_DATA);
+            return appInfo.metaData.getString(name);
+        }catch (Exception ex){
+            LogUtil.e(ex);
+            return null;
+        }
     }
 }

@@ -58,12 +58,6 @@ public class LoginActivity extends BaseBannerAdsActivity {
         }
 
     }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-    }
-
     @OnClick(R.id.btn_reg)
     public void reg(View view) {
         finish();

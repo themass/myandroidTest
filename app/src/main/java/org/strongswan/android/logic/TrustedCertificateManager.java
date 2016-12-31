@@ -32,8 +32,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class TrustedCertificateManager extends Observable {
     private static final String TAG = TrustedCertificateManager.class.getSimpleName();
     private final ReentrantReadWriteLock mLock = new ReentrantReadWriteLock();
-    private final ArrayList<KeyStore> mKeyStores = new ArrayList<KeyStore>();
-    private Hashtable<String, X509Certificate> mCACerts = new Hashtable<String, X509Certificate>();
+    private final ArrayList<KeyStore> mKeyStores = new ArrayList<>();
+    private Hashtable<String, X509Certificate> mCACerts = new Hashtable<>();
     private volatile boolean mReload;
     private boolean mLoaded;
 
@@ -105,7 +105,7 @@ public class TrustedCertificateManager extends Observable {
      */
     private void loadCertificates() {
         Log.d(TAG, "Load cached CA certificates");
-        Hashtable<String, X509Certificate> certs = new Hashtable<String, X509Certificate>();
+        Hashtable<String, X509Certificate> certs = new Hashtable<>();
         for (KeyStore store : this.mKeyStores) {
             fetchCertificates(certs, store);
         }
@@ -190,7 +190,7 @@ public class TrustedCertificateManager extends Observable {
      * @return Hashtable mapping aliases to certificates
      */
     public Hashtable<String, X509Certificate> getCACertificates(TrustedCertificateSource source) {
-        Hashtable<String, X509Certificate> certs = new Hashtable<String, X509Certificate>();
+        Hashtable<String, X509Certificate> certs = new Hashtable<>();
         this.mLock.readLock().lock();
         for (String alias : this.mCACerts.keySet()) {
             if (alias.startsWith(source.getPrefix())) {

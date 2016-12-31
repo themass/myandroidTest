@@ -43,9 +43,8 @@ public class VersionUpdater {
     public static void init(Context context) {
         // 取得版本号
         PackageManager manager = context.getPackageManager();
-        PackageInfo info = null;
         try {
-            info = manager.getPackageInfo(context.getPackageName(), 0);
+            PackageInfo info = manager.getPackageInfo(context.getPackageName(), 0);
             version = info.versionName;
             build = info.versionCode;
             isInitVersionSuccess = true;

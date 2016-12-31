@@ -36,15 +36,13 @@
     <color name="gray">#5f5f5f</color>
     <color name="hint">#b6b2b2</color>
     <color name="heart_anim_view_bg">#662d5d82</color>
-    <color name="bg_title">#2e313c</color>
     <color name="base_vip_ready">#6054b947</color>
     <color name="recyclerview_bg">#ffeaeaea</color>
+    <color name="reg_code">#3C9BA6</color>
     <!-- tab -->
     <color name="tab_widget_text_color">#BAC4C4</color>
     <color name="tab_indicator_color">#717981</color>
-    <color name="tab_selected_indicator_color">#001840</color>
 
-    <color name="error_text">#D9192C</color>
     <color name="warning_text">#FF9909</color>
     <color name="success_text">#99CC00</color>
     <color name="panel_background">#333333</color>
@@ -54,15 +52,11 @@
     <color name="location_header_btn_bg">#39737c</color>
     <color name="location_header_btn_click_bg">#5a5b5e</color>
     <color name="location_index">#2ca1b1</color>
-    <color name="location_select">#1cbcce</color>
     <!---->
     <color name="new_deep_black">#333333</color>
-    <color name="new_mid_black">#666666</color>
     <color name="new_light_black">#999999</color>
-    <color name="new_green">#65d289</color>
     <color name="new_light_green">#41bc6a</color>
     <color name="new_globle_black">#2e313c</color>
-    <color name="new_light_blue">#3382ff</color>
     <color name="btn_green_pressed">#2db259</color>
 
     <color name="line_login">#585a62</color>

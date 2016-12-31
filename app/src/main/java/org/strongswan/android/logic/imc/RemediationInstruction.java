@@ -19,6 +19,8 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Xml;
 
+import com.timeline.vpn.common.util.LogUtil;
+
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -41,7 +43,7 @@ public class RemediationInstruction implements Parcelable {
             return new RemediationInstruction(source);
         }
     };
-    private final List<String> mItems = new LinkedList<String>();
+    private final List<String> mItems = new LinkedList<>();
     private String mTitle;
     private String mDescription;
     private String mHeader;
@@ -63,16 +65,16 @@ public class RemediationInstruction implements Parcelable {
      * @return list of RemediationInstruction objects
      */
     public static List<RemediationInstruction> fromXml(String xml) {
-        List<RemediationInstruction> instructions = new LinkedList<RemediationInstruction>();
+        List<RemediationInstruction> instructions = new LinkedList<>();
         XmlPullParser parser = Xml.newPullParser();
         try {
             parser.setInput(new StringReader(xml));
             parser.nextTag();
             readInstructions(parser, instructions);
         } catch (XmlPullParserException e) {
-            e.printStackTrace();
+            LogUtil.e(e);
         } catch (IOException e) {
-            e.printStackTrace();
+            LogUtil.e(e);
         }
         return instructions;
     }
@@ -118,16 +120,22 @@ public class RemediationInstruction implements Parcelable {
                 continue;
             }
             String name = parser.getName();
-            if (name.equals("title")) {
-                instruction.setTitle(parser.nextText());
-            } else if (name.equals("description")) {
-                instruction.setDescription(parser.nextText());
-            } else if (name.equals("itemsheader")) {
-                instruction.setHeader(parser.nextText());
-            } else if (name.equals("items")) {
-                readItems(parser, instruction);
-            } else {
-                skipTag(parser);
+            switch (name){
+                case "title":
+                    instruction.setTitle(parser.nextText());
+                    break;
+                case "description":
+                    instruction.setDescription(parser.nextText());
+                    break;
+                case "itemsheader":
+                    instruction.setHeader(parser.nextText());
+                    break;
+                case "items":
+                    readItems(parser, instruction);
+                    break;
+                default:
+                    skipTag(parser);
+
             }
         }
     }

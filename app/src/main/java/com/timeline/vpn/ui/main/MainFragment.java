@@ -16,6 +16,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.timeline.vpn.R;
+import com.timeline.vpn.ads.adview.AdsAdview;
 import com.timeline.vpn.base.MyApplication;
 import com.timeline.vpn.bean.vo.UserInfoVo;
 import com.timeline.vpn.common.util.EventBusUtil;
@@ -24,6 +25,8 @@ import com.timeline.vpn.common.util.PreferenceUtils;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.data.config.ConfigActionJump;
+import com.timeline.vpn.data.config.LogAddTofile;
+import com.timeline.vpn.service.LogUploadService;
 import com.timeline.vpn.ui.base.BaseDrawerActivity;
 import com.timeline.vpn.ui.maintab.OnBackKeyUpListener;
 import com.timeline.vpn.ui.maintab.TabIndexFragment;
@@ -44,16 +47,19 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
     private boolean pendingIntroAnimation;
     private OnBackKeyUpListener keyListener;
     private ConfigActionJump jump = new ConfigActionJump();
+    private LogAddTofile logAdd = new LogAddTofile();
     private MyReceiver myReceiver;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_fragment);
         setupView();
         EventBusUtil.getEventBus().register(jump);
+        EventBusUtil.getEventBus().register(logAdd);
         myReceiver = new MyReceiver();
         IntentFilter filter = new IntentFilter();
         filter.addAction(MyApplication.UPDATE_STATUS_ACTION);
         registerReceiver(myReceiver, filter);
+        AdsAdview.init(this);
     }
 
     public void setListener(OnBackKeyUpListener keyListener) {
@@ -67,13 +73,13 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
         LayoutInflater inflater = LayoutInflater.from(this);
         addTab(inflater, R.string.tab_tag_index, TabIndexFragment.class,
                 R.drawable.ac_bg_tab_index, R.string.tab_index);
-        addTab(inflater, R.string.tab_tag_power, TabVipFragment.class,
+        addTab(inflater, R.string.tab_tag_vip, TabVipFragment.class,
                 R.drawable.ac_bg_tab_index, R.string.tab_vip);
 //        addTab(inflater, R.string.tab_tag_ads, TabAdsFragment.class,
 //                R.drawable.ac_bg_tab_index, R.string.tab_ads);
         mTabHost.getTabWidget().setDividerDrawable(null);
         mainTab = mTabHost.getTabWidget();
-        startService(new Intent(this, CharonVpnService.class));
+        startService(CharonVpnService.class);
     }
 
     private View addTab(LayoutInflater inflater, int tag, Class clss,
@@ -97,9 +103,12 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
     @Override
     public void onDestroy() {
         LogUtil.i("main destory");
-        startService(new Intent(this, CharonVpnService.class));
-        stopService(new Intent(this, CharonVpnService.class));
+        startService(CharonVpnService.class);
+        stopService(CharonVpnService.class);
+//        stopService(LogToFileService.class);
+        stopService(LogUploadService.class);
         EventBusUtil.getEventBus().unregister(jump);
+        EventBusUtil.getEventBus().unregister(logAdd);
         super.onDestroy();
     }
 
@@ -134,7 +143,7 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
                     @Override
                     public void onMessage(boolean isSuccess, String message) {
                         if(!isSuccess)
-                            LogUtil.e("removeAlias:"+isSuccess+";message:"+message);
+                            LogUtil.e("removeAlias:false;message:"+message);
                     }
                 });
         }else{
@@ -142,7 +151,7 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
                 @Override
                 public void onMessage(boolean isSuccess, String message) {
                     if(!isSuccess)
-                        LogUtil.e("addAlias:"+isSuccess+";message:"+message);
+                        LogUtil.e("addAlias:false;message:"+message);
                 }
             });
         }

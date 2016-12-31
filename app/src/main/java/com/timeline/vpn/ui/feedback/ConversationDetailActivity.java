@@ -13,6 +13,8 @@ import android.widget.TextView;
 
 import com.alibaba.sdk.android.feedback.impl.FeedbackAPI;
 import com.timeline.vpn.R;
+import com.timeline.vpn.base.MyApplication;
+import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.ui.base.LogActivity;
 
 import java.util.concurrent.Callable;
@@ -30,6 +32,8 @@ public class ConversationDetailActivity extends LogActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //建议放在此处做初始化,因为本身消耗性能
+        FeedbackAPI.init(MyApplication.getInstance(), Constants.DEFAULT_FEEDBACK_APPKEY);
         setContentView(R.layout.base_toobar_activity);
         if (savedInstanceState == null) {
             final FragmentManager fm = getSupportFragmentManager();

@@ -32,6 +32,9 @@ public class DataBuilder {
     }
 
     public static <T> JsonResult<T> parserVo(Class<T> clasz, String json,String key) {
+        if(clasz==null){
+            clasz = (Class<T>)Object.class;
+        }
         Type typeOfT = GsonUtils.type(JsonResult.class, clasz);
         JsonResult<T> ret = GsonUtils.getInstance().fromJson(json, typeOfT);
         if(StringUtils.hasText(ret.data)){
@@ -42,6 +45,9 @@ public class DataBuilder {
     }
 
     public static <T> JsonResult<InfoListVo<T>> parserListVo(Class<T> clasz, String json,String key) {
+        if(clasz==null){
+            clasz = (Class<T>)Object.class;
+        }
         Type TypeItem = GsonUtils.type(InfoListVo.class, clasz);
         Type typeOfT = GsonUtils.type(JsonResult.class, TypeItem);
         JsonResult<InfoListVo<T>> ret = GsonUtils.getInstance().fromJson(json, typeOfT);

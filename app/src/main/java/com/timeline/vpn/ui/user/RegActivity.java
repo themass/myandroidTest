@@ -17,6 +17,8 @@ import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.ui.base.BaseBannerAdsActivity;
 
+import java.util.regex.Pattern;
+
 import butterknife.Bind;
 import butterknife.OnClick;
 
@@ -25,6 +27,8 @@ import butterknife.OnClick;
  */
 public class RegActivity extends BaseBannerAdsActivity {
     private static final String TAG = "login_tag";
+    private String pass="[0-9A-Za-z]{6,10}";
+    private Pattern pattern = Pattern.compile(pass);
     @Bind(R.id.ll_loading)
     LinearLayout loading;
     @Bind(R.id.et_username)
@@ -39,6 +43,10 @@ public class RegActivity extends BaseBannerAdsActivity {
     Button btnLogin;
     @Bind(R.id.sex)
     RadioGroup radioGroup;
+    @Bind(R.id.bt_code)
+    Button btCode;
+    @Bind(R.id.et_code)
+    EditText etCode;
     BaseService baseService;
     CommonResponse.ResponseOkListener loginListener = new CommonResponse.ResponseOkListener<NullReturnVo>() {
         @Override
@@ -57,12 +65,15 @@ public class RegActivity extends BaseBannerAdsActivity {
         baseService.setup(this);
     }
 
+    @OnClick(R.id.bt_code)
+    public void getCode(View view) {
+        setEnabled(false);
+    }
     @OnClick(R.id.btn_login)
     public void login(View view) {
         finish();
         startActivity(LoginActivity.class);
     }
-
     @OnClick(R.id.btn_reg)
     public void reg(View view) {
         String name = etUserName.getText().toString();
@@ -73,23 +84,25 @@ public class RegActivity extends BaseBannerAdsActivity {
             Toast.makeText(this, R.string.empty_name_pwd, Toast.LENGTH_SHORT).show();
             return;
         }
+        if(!pattern.matcher(pwd).matches()){
+            Toast.makeText(this, R.string.error_pattern, Toast.LENGTH_SHORT).show();
+            return;
+        }
         if (!pwd.equals(repwd)) {
             Toast.makeText(this, R.string.error_repwd, Toast.LENGTH_SHORT).show();
             return;
         }
-        setEnabled(false);
         String sex = Constants.SEX_M;
         if (radioGroup.getCheckedRadioButtonId() == R.id.female) {
             sex = Constants.SEX_F;
         }
+        setEnabled(false);
         RegForm form = new RegForm(name, pwd, repwd, sex);
         baseService.postData(Constants.getUrl(Constants.API_REG_URL), form, loginListener, new CommonResponse.ResponseErrorListener() {
             @Override
             protected void onError() {
                 super.onError();
                 setEnabled(true);
-                startActivity(LoginActivity.class);
-                finish();
             }
         }, TAG, NullReturnVo.class);
     }
@@ -105,6 +118,8 @@ public class RegActivity extends BaseBannerAdsActivity {
         etRePassword.setEnabled(isEnable);
         btnLogin.setEnabled(isEnable);
         btnReg.setEnabled(isEnable);
+        etCode.setEnabled(isEnable);
+        btCode.setEnabled(isEnable);
     }
 
     @Override

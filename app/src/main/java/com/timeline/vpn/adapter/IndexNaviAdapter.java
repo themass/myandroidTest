@@ -4,7 +4,7 @@ import android.content.Context;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
-import android.util.SparseArray;
+import android.util.SparseIntArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -40,13 +40,13 @@ public class IndexNaviAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     private boolean lockedAnimations = false;
     private int lastAnimatedItem = -1;
     private RecyclerView mRecyclerView;
-    private SparseArray<Integer> mPostCache = new SparseArray<Integer>();
+    private SparseIntArray mPostCache = new SparseIntArray();
 
     public IndexNaviAdapter(Context context, RecyclerView recyclerView, List<String> photos) {
         this.context = context;
         this.cellSize = Utils.getScreenWidth(context) / 2;
         if (photos == null) {
-            this.photos = new ArrayList<String>();
+            this.photos = new ArrayList<>();
         } else {
             this.photos = photos;
         }
@@ -72,7 +72,7 @@ public class IndexNaviAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     @Override
     public int getItemViewType(int position) {
         Integer high = mPostCache.get(position);
-        if (high == null) {
+        if (high == 0) {
             high = cellSize + DisplayUtil.dp2px(context, 10 * (a.nextInt(9) / 3 * 3));
             mPostCache.put(position, high);
         }
@@ -86,7 +86,6 @@ public class IndexNaviAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         layoutParams.height = mPostCache.get(position);
         layoutParams.width = cellSize;
         holder.itemView.setLayoutParams(layoutParams);
-        ((NaviItemViewHolder) holder).ivTitle.setText("p=" + position + " h=" + layoutParams.height);
         bindPhoto((NaviItemViewHolder) holder, position);
 
     }

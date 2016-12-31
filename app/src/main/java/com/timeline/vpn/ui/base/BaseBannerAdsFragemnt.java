@@ -64,20 +64,16 @@ public abstract class BaseBannerAdsFragemnt extends TabBaseFragment {
     @Override
     public void onResume() {
         super.onResume();
-        flBanner.setVisibility(View.VISIBLE);
+//        flBanner.setVisibility(View.VISIBLE);
         showBanner();
     }
 
     private void showBanner() {
         if (init) {
-            if (isAdsCanShow) {
-                isAdsCanShow = true;
+            if (getUserVisibleHint()) {
+                showAds();
             } else {
-                if (getUserVisibleHint()) {
-                    showAds();
-                } else {
-                    removeAds();
-                }
+                removeAds();
             }
         }
     }
@@ -90,14 +86,20 @@ public abstract class BaseBannerAdsFragemnt extends TabBaseFragment {
         if (flBanner != null) {
             LogUtil.i("remove all views");
             flBanner.removeAllViews();
+            flBanner.setVisibility(View.GONE);
         }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        removeAds();
     }
 
     @Override
     public void onDestroyView() {
         init = false;
         isAdsCanShow = false;
-        removeAds();
         super.onDestroyView();
         mHandler.removeCallbacks(task);
     }
@@ -105,10 +107,7 @@ public abstract class BaseBannerAdsFragemnt extends TabBaseFragment {
     class AdsGoneTask implements Runnable {
         @Override
         public void run() {
-            if (flBanner != null) {
-                flBanner.removeAllViews();
-                flBanner.setVisibility(View.GONE);
-            }
+           removeAds();
         }
     }
 }

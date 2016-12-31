@@ -2,6 +2,8 @@ package com.timeline.vpn.common.util;
 
 import android.text.TextUtils;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -217,7 +219,7 @@ public class StringUtils {
         }
         // 检查是否需要降级
         boolean needDownScale = false;
-        Set<Long> checkSet = new HashSet<Long>();
+        Set<Long> checkSet = new HashSet<>();
         if (scale != ONE) {
             for (Double v : values) {
                 if (v != null) {
@@ -273,7 +275,6 @@ public class StringUtils {
         StringTokenizer tokenizer = new StringTokenizer(string, divisionChar);
         String[] str = new String[tokenizer.countTokens()];
         while (tokenizer.hasMoreTokens()) {
-            str[i] = new String();
             str[i] = tokenizer.nextToken();
             i++;
         }
@@ -286,7 +287,7 @@ public class StringUtils {
 
     public static String deleteHtmlLabel(String content) {
         if (content == null) {
-            return content;
+            return null;
         }
         return content.replaceAll("\r", "").replaceAll("\n", "")
                 .replaceAll("<(.*?)>", "").replaceAll(" ", "");
@@ -298,5 +299,10 @@ public class StringUtils {
         } catch (Exception e) {
             return 0;
         }
+    }
+    public static String stackTrace2String(Throwable e) {
+        StringWriter writer = new StringWriter();
+        e.printStackTrace(new PrintWriter(writer, true));
+        return writer.toString();
     }
 }
