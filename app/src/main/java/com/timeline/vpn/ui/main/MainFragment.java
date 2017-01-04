@@ -118,7 +118,7 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
             if (keyListener != null) {
                 keyListener.onkeyBackUp();
             }
-            if(CharonVpnService.VPN_STATUS==1) {
+            if(CharonVpnService.VPN_STATUS_NOTIF) {
                 moveTaskToBack(true);
                 return true;
             }

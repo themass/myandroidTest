@@ -16,22 +16,25 @@
 package org.strongswan.android.logic.utils;
 
 
-public class Utils {
-    static final char[] HEXDIGITS = "0123456789abcdef".toCharArray();
+public class Utils
+{
+	static final char[] HEXDIGITS = "0123456789abcdef".toCharArray();
 
-    /**
-     * Converts the given byte array to a hexadecimal string encoding.
-     *
-     * @param bytes byte array to convert
-     * @return hex string
-     */
-    public static String bytesToHex(byte[] bytes) {
-        char[] hex = new char[bytes.length * 2];
-        for (int i = 0; i < bytes.length; i++) {
-            int value = bytes[i];
-            hex[i * 2] = HEXDIGITS[(value & 0xf0) >> 4];
-            hex[i * 2 + 1] = HEXDIGITS[value & 0x0f];
-        }
-        return new String(hex);
-    }
+	/**
+	 * Converts the given byte array to a hexadecimal string encoding.
+	 *
+	 * @param bytes byte array to convert
+	 * @return hex string
+	 */
+	public static String bytesToHex(byte[] bytes)
+	{
+		char[] hex = new char[bytes.length * 2];
+		for (int i = 0; i < bytes.length; i++)
+		{
+			int value = bytes[i];
+			hex[i*2]   = HEXDIGITS[(value & 0xf0) >> 4];
+			hex[i*2+1] = HEXDIGITS[ value & 0x0f];
+		}
+		return new String(hex);
+	}
 }

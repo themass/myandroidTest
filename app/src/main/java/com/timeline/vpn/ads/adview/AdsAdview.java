@@ -53,7 +53,7 @@ public class AdsAdview {
             return;
         }
         AdViewSpreadManager.getInstance(context).init(MyApplication.getInitConfig(context), Constants.adsKeySet);
-        AdViewSpreadManager.getInstance(context).setSpreadLogo(R.drawable.ic_lauch_bottom);
+        AdViewSpreadManager.getInstance(context).setSpreadLogo(R.drawable.ic_trans_logo);
         AdViewSpreadManager.getInstance(context).setSpreadNotifyType(AdViewSpreadManager.NOTIFY_COUNTER_NUM);
         AdViewSpreadManager.getInstance(context).request(context, Constants.ADS_ADVIEW_KEY, group, new AdViewSpreadListener() {
             @Override

@@ -1,5 +1,6 @@
 package com.timeline.vpn.ui.base;
 
+import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
@@ -9,7 +10,9 @@ import android.view.animation.OvershootInterpolator;
 
 import com.timeline.vpn.R;
 import com.timeline.vpn.ads.adview.AdsAdview;
+import com.timeline.vpn.ads.adview.AdsController;
 import com.timeline.vpn.common.util.LogUtil;
+import com.timeline.vpn.common.util.PreferenceUtils;
 import com.timeline.vpn.constant.Constants;
 
 import butterknife.Bind;
@@ -17,7 +20,7 @@ import butterknife.Bind;
 /**
  * Created by themass on 2016/8/21.
  */
-public abstract class BaseBannerAdsActivity extends BaseSingleActivity {
+public abstract class BaseBannerAdsActivity extends BaseSingleActivity implements AdsController {
     private static final int ANIM_DURATION_FAB = 400;
     @Bind(R.id.fl_content)
     public ViewGroup flContent;
@@ -66,16 +69,8 @@ public abstract class BaseBannerAdsActivity extends BaseSingleActivity {
     @Override
     public void onResume() {
         super.onResume();
-        showBanner();
+        showAds(this);
         startIntroAnimation();
-    }
-    private void showBanner() {
-        AdsAdview.bannerAds(this, flBanner, mHandler, Constants.ADS_ADVIEW_KEY_ACTIVITY);
-    }
-    private void removeAds(){
-        if (flBanner != null) {
-            flBanner.removeAllViews();
-        }
     }
     public void adsDelayGone() {
         mHandler.postDelayed(task, Constants.BANNER_ADS_GONE_SHORT);
@@ -84,15 +79,36 @@ public abstract class BaseBannerAdsActivity extends BaseSingleActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        removeAds();
-        mHandler.removeCallbacks(task);
+        hidenAds(this);
     }
 
     class AdsGoneTask implements Runnable {
         @Override
         public void run() {
-            removeAds();
+            hidenAds(BaseBannerAdsActivity.this);
+        }
+    }
+
+    @Override
+    public void showAds(Context context) {
+        if(needShow(context)) {
+            AdsAdview.bannerAds(context, flBanner, mHandler, Constants.ADS_ADVIEW_KEY_ACTIVITY);
+        }else{
             flBanner.setVisibility(View.GONE);
         }
     }
+
+    @Override
+    public boolean needShow(Context context) {
+        return PreferenceUtils.getPrefBoolean(context,Constants.ADS_SHOW_CONFIG,true);
+    }
+    @Override
+    public void hidenAds(Context context){
+        if (flBanner != null) {
+            flBanner.removeAllViews();
+        }
+        mHandler.removeCallbacks(task);
+        flBanner.setVisibility(View.GONE);
+    }
+
 }

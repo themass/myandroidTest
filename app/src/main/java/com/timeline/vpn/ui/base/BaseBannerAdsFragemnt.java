@@ -1,5 +1,6 @@
 package com.timeline.vpn.ui.base;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -10,6 +11,7 @@ import android.view.ViewGroup;
 
 import com.timeline.vpn.R;
 import com.timeline.vpn.ads.adview.AdsAdview;
+import com.timeline.vpn.ads.adview.AdsController;
 import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.ui.maintab.TabBaseFragment;
@@ -19,14 +21,13 @@ import butterknife.Bind;
 /**
  * Created by themass on 2016/8/21.
  */
-public abstract class BaseBannerAdsFragemnt extends TabBaseFragment {
+public abstract class BaseBannerAdsFragemnt extends TabBaseFragment implements AdsController {
     @Bind(R.id.fl_content)
     public ViewGroup flContent;
     @Bind(R.id.fab_up)
     public FloatingActionButton fabUp;
     @Bind(R.id.fl_banner)
     public ViewGroup flBanner;
-    public boolean isAdsCanShow = false;
     public boolean init = false;
     private AdsGoneTask task = new AdsGoneTask();
     protected Handler mHandler = new Handler() {
@@ -58,56 +59,65 @@ public abstract class BaseBannerAdsFragemnt extends TabBaseFragment {
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
-        showBanner();
+        showAds(getActivity());
     }
 
     @Override
     public void onResume() {
         super.onResume();
-//        flBanner.setVisibility(View.VISIBLE);
-        showBanner();
+        showAds(getActivity());
     }
-
-    private void showBanner() {
-        if (init) {
-            if (getUserVisibleHint()) {
-                showAds();
-            } else {
-                removeAds();
-            }
-        }
-    }
-
-    protected void showAds() {
-        AdsAdview.bannerAds(getActivity(), flBanner, mHandler, Constants.ADS_ADVIEW_KEY);
-    }
-
-    protected void removeAds() {
-        if (flBanner != null) {
-            LogUtil.i("remove all views");
-            flBanner.removeAllViews();
-            flBanner.setVisibility(View.GONE);
-        }
-    }
-
     @Override
     public void onPause() {
         super.onPause();
-        removeAds();
+        hidenAds(getActivity());
     }
 
     @Override
     public void onDestroyView() {
         init = false;
-        isAdsCanShow = false;
         super.onDestroyView();
-        mHandler.removeCallbacks(task);
+
     }
 
     class AdsGoneTask implements Runnable {
         @Override
         public void run() {
-           removeAds();
+           hidenAds(getActivity());
         }
+    }
+
+    @Override
+    protected int getRootViewId() {
+        return super.getRootViewId();
+    }
+
+    @Override
+    public void showAds(Context context) {
+        if (needShow(context)) {
+            if (getUserVisibleHint()) {
+                AdsAdview.bannerAds(getActivity(), flBanner, mHandler, Constants.ADS_ADVIEW_KEY);
+            } else {
+                hidenAds(context);
+            }
+        }else{
+            if(flBanner!=null)
+                flBanner.setVisibility(View.GONE);
+        }
+    }
+
+    @Override
+    public void hidenAds(Context context) {
+        if (flBanner != null) {
+            LogUtil.i("remove all views");
+            flBanner.removeAllViews();
+            flBanner.setVisibility(View.GONE);
+        }
+        mHandler.removeCallbacks(task);
+    }
+
+    @Override
+    public boolean needShow(Context context) {
+        return init;
     }
 }

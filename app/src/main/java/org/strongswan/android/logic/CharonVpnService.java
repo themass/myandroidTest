@@ -44,7 +44,6 @@ import com.timeline.vpn.bean.vo.VpnProfile;
 import com.timeline.vpn.common.util.FileUtils;
 import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.ui.main.MainFragment;
-import com.timeline.vpn.ui.maintab.TabIndexFragment;
 
 import org.strongswan.android.logic.imc.ImcState;
 import org.strongswan.android.logic.imc.RemediationInstruction;
@@ -66,7 +65,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 
-public class CharonVpnService extends VpnService{
+public class CharonVpnService extends VpnService implements VpnStateService.VpnStateListener{
     public static final String PROFILE = "PROFILE";
     /**
      * as defined in charonservice.h
@@ -81,23 +80,7 @@ public class CharonVpnService extends VpnService{
     private static final String TAG = CharonVpnService.class.getSimpleName();
     private static final String WORK_ANME = "vpnThread";
     public static final int FOREGROUND_NOTIFY_ID = 100;
-    public static volatile Integer VPN_STATUS = 0;
-    /*
-     * The libraries are extracted to /data/data/org.strongswan.android/...
-     * during installation.  On newer releases most are loaded in JNI_OnLoad.
-     */
-    static {
-//        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            System.loadLibrary("strongswan");
-            System.loadLibrary("tncif");
-            System.loadLibrary("tnccs");
-            System.loadLibrary("imcv");
-            System.loadLibrary("charon");
-            System.loadLibrary("ipsec");
-//        }
-        System.loadLibrary("androidbridge");
-    }
-
+    public static volatile boolean VPN_STATUS_NOTIF = false;
     private final Object mServiceLock = new Object();
     private String mLogFile;
     private VpnProfile mCurrentProfile;
@@ -118,12 +101,25 @@ public class CharonVpnService extends VpnService{
             synchronized (mServiceLock) {
                 mService = ((VpnStateService.LocalBinder) service).getService();
             }
+            mService.registerListener(CharonVpnService.this);
             mWorkThread.start();
             mWorkHandler = new Handler(mWorkThread.getLooper());
             /* we are now ready to start the handler thread */
 
         }
     };
+
+    @Override
+    public void stateChanged() {
+        if (VPN_STATUS_NOTIF)
+        {
+            if(mService.getState()== VpnStateService.State.CONNECTED) {
+                createForegroundService();
+            }else{
+                delForegroundService();
+            }
+        }
+    }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -199,11 +195,6 @@ public class CharonVpnService extends VpnService{
      */
     private void setState(VpnStateService.State state) {
         synchronized (mServiceLock) {
-            if(state== VpnStateService.State.CONNECTED) {
-                createForegroundService();
-            }else{
-                delForegroundService();
-            }
             if (mService != null) {
                 mService.setState(state);
             }
@@ -216,9 +207,12 @@ public class CharonVpnService extends VpnService{
      *
      * @param error error state
      */
-    private void setError(VpnStateService.ErrorState error) {
-        synchronized (mServiceLock) {
-            if (mService != null) {
+    private void setError(VpnStateService.ErrorState error)
+    {
+        synchronized (mServiceLock)
+        {
+            if (mService != null)
+            {
                 mService.setError(error);
             }
         }
@@ -230,13 +224,17 @@ public class CharonVpnService extends VpnService{
      *
      * @param state IMC state
      */
-    private void setImcState(ImcState state) {
-        synchronized (mServiceLock) {
-            if (mService != null) {
+    private void setImcState(ImcState state)
+    {
+        synchronized (mServiceLock)
+        {
+            if (mService != null)
+            {
                 mService.setImcState(state);
             }
         }
     }
+
 
     /**
      * Set an error on the state service. Called by the handler thread and any
@@ -244,11 +242,14 @@ public class CharonVpnService extends VpnService{
      *
      * @param error error state
      */
-    private void setErrorDisconnect(VpnStateService.ErrorState error) {
-        synchronized (mServiceLock) {
-            delForegroundService();
-            if (mService != null) {
-                if (!mIsDisconnecting) {
+    private void setErrorDisconnect(VpnStateService.ErrorState error)
+    {
+        synchronized (mServiceLock)
+        {
+            if (mService != null)
+            {
+                if (!mIsDisconnecting)
+                {
                     mService.setError(error);
                 }
             }
@@ -261,10 +262,13 @@ public class CharonVpnService extends VpnService{
      *
      * @param status new state
      */
-    public void updateStatus(int status) {
-        switch (status) {
+    public void updateStatus(int status)
+    {
+        switch (status)
+        {
             case STATE_CHILD_SA_DOWN:
-                if (!mIsDisconnecting) {
+                if (!mIsDisconnecting)
+                {
                     setState(VpnStateService.State.CONNECTING);
                 }
                 break;
@@ -298,9 +302,11 @@ public class CharonVpnService extends VpnService{
      *
      * @param value new state
      */
-    public void updateImcState(int value) {
+    public void updateImcState(int value)
+    {
         ImcState state = ImcState.fromValue(value);
-        if (state != null) {
+        if (state != null)
+        {
             setImcState(state);
         }
     }
@@ -311,10 +317,14 @@ public class CharonVpnService extends VpnService{
      *
      * @param xml XML text
      */
-    public void addRemediationInstruction(String xml) {
-        for (RemediationInstruction instruction : RemediationInstruction.fromXml(xml)) {
-            synchronized (mServiceLock) {
-                if (mService != null) {
+    public void addRemediationInstruction(String xml)
+    {
+        for (RemediationInstruction instruction : RemediationInstruction.fromXml(xml))
+        {
+            synchronized (mServiceLock)
+            {
+                if (mService != null)
+                {
                     mService.addRemediationInstruction(instruction);
                 }
             }
@@ -393,7 +403,7 @@ public class CharonVpnService extends VpnService{
      *
      * @param builder BuilderAdapter for this connection
      * @param logfile absolute path to the logfile
-     * @param byod    enable BYOD features
+     * @param byod enable BYOD features
      * @return TRUE if initialization was successful
      */
     public native boolean initializeCharon(BuilderAdapter builder, String logfile, boolean byod);
@@ -449,7 +459,7 @@ public class CharonVpnService extends VpnService{
         }
     }
     private void createForegroundService() {
-        VPN_STATUS = 1;
+        VPN_STATUS_NOTIF = true;
         Intent intent = new Intent(this, MainFragment.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent pend =
@@ -467,7 +477,7 @@ public class CharonVpnService extends VpnService{
         startForeground(FOREGROUND_NOTIFY_ID, builder.build());
     }
     private void delForegroundService() {
-        VPN_STATUS = 0;
+        VPN_STATUS_NOTIF = false;
         stopForeground(true);
     }
     public class DisConnectJob implements Runnable {
@@ -484,90 +494,118 @@ public class CharonVpnService extends VpnService{
         }
     }
 
-    public class BuilderAdapter {
+    public class BuilderAdapter
+    {
         private final String mName;
         private final Integer mSplitTunneling;
         private Builder mBuilder;
         private BuilderCache mCache;
         private BuilderCache mEstablishedCache;
 
-        public BuilderAdapter(String name, Integer splitTunneling) {
+        public BuilderAdapter(String name, Integer splitTunneling)
+        {
             mName = name;
             mSplitTunneling = splitTunneling;
             mBuilder = createBuilder(name);
             mCache = new BuilderCache(mSplitTunneling);
         }
 
-        private Builder createBuilder(String name) {
+        private Builder createBuilder(String name)
+        {
             Builder builder = new Builder();
             builder.setSession(mName);
 
 			/* even though the option displayed in the system dialog says "Configure"
 			 * we just use our main Activity */
             Context context = getApplicationContext();
-            Intent intent = new Intent(context, TabIndexFragment.class);
+            Intent intent = new Intent(context, MainFragment.class);
             PendingIntent pending = PendingIntent.getActivity(context, 0, intent,
                     PendingIntent.FLAG_UPDATE_CURRENT);
             builder.setConfigureIntent(pending);
             return builder;
         }
 
-        public synchronized boolean addAddress(String address, int prefixLength) {
-            try {
+        public synchronized boolean addAddress(String address, int prefixLength)
+        {
+            try
+            {
                 mCache.addAddress(address, prefixLength);
-            } catch (IllegalArgumentException ex) {
+            }
+            catch (IllegalArgumentException ex)
+            {
                 return false;
             }
             return true;
         }
 
-        public synchronized boolean addDnsServer(String address) {
-            try {
+        public synchronized boolean addDnsServer(String address)
+        {
+            try
+            {
                 mBuilder.addDnsServer(address);
                 mCache.recordAddressFamily(address);
-            } catch (IllegalArgumentException ex) {
+            }
+            catch (IllegalArgumentException ex)
+            {
                 return false;
             }
             return true;
         }
 
-        public synchronized boolean addRoute(String address, int prefixLength) {
-            try {
+        public synchronized boolean addRoute(String address, int prefixLength)
+        {
+            try
+            {
                 mCache.addRoute(address, prefixLength);
-            } catch (IllegalArgumentException ex) {
+            }
+            catch (IllegalArgumentException ex)
+            {
                 return false;
             }
             return true;
         }
 
-        public synchronized boolean addSearchDomain(String domain) {
-            try {
+        public synchronized boolean addSearchDomain(String domain)
+        {
+            try
+            {
                 mBuilder.addSearchDomain(domain);
-            } catch (IllegalArgumentException ex) {
+            }
+            catch (IllegalArgumentException ex)
+            {
                 return false;
             }
             return true;
         }
 
-        public synchronized boolean setMtu(int mtu) {
-            try {
+        public synchronized boolean setMtu(int mtu)
+        {
+            try
+            {
                 mCache.setMtu(mtu);
-            } catch (IllegalArgumentException ex) {
+            }
+            catch (IllegalArgumentException ex)
+            {
                 return false;
             }
             return true;
         }
 
-        public synchronized int establish() {
+        public synchronized int establish()
+        {
             ParcelFileDescriptor fd;
-            try {
+            try
+            {
                 mCache.applyData(mBuilder);
                 fd = mBuilder.establish();
-            } catch (Exception ex) {
+            }
+            catch (Exception ex)
+            {
                 ex.printStackTrace();
                 return -1;
             }
-            if (fd == null) {
+            if (fd == null)
+            {
                 return -1;
             }
 			/* now that the TUN device is created we don't need the current
@@ -578,21 +616,27 @@ public class CharonVpnService extends VpnService{
             return fd.detachFd();
         }
 
-        public synchronized int establishNoDns() {
+        public synchronized int establishNoDns()
+        {
             ParcelFileDescriptor fd;
 
-            if (mEstablishedCache == null) {
+            if (mEstablishedCache == null)
+            {
                 return -1;
             }
-            try {
+            try
+            {
                 Builder builder = createBuilder(mName);
                 mEstablishedCache.applyData(builder);
                 fd = builder.establish();
-            } catch (Exception ex) {
+            }
+            catch (Exception ex)
+            {
                 ex.printStackTrace();
                 return -1;
             }
-            if (fd == null) {
+            if (fd == null)
+            {
                 return -1;
             }
             return fd.detachFd();
@@ -603,103 +647,162 @@ public class CharonVpnService extends VpnService{
      * Cache non DNS related information so we can recreate the builder without
      * that information when reestablishing IKE_SAs
      */
-    public class BuilderCache {
-        private final List<PrefixedAddress> mAddresses = new ArrayList<>();
-        private final List<PrefixedAddress> mRoutesIPv4 = new ArrayList<>();
-        private final List<PrefixedAddress> mRoutesIPv6 = new ArrayList<>();
+    public class BuilderCache
+    {
+        private final List<PrefixedAddress> mAddresses = new ArrayList<PrefixedAddress>();
+        private final List<PrefixedAddress> mRoutesIPv4 = new ArrayList<PrefixedAddress>();
+        private final List<PrefixedAddress> mRoutesIPv6 = new ArrayList<PrefixedAddress>();
         private final int mSplitTunneling;
         private int mMtu;
         private boolean mIPv4Seen, mIPv6Seen;
 
-        public BuilderCache(Integer splitTunneling) {
+        public BuilderCache(Integer splitTunneling)
+        {
             mSplitTunneling = splitTunneling != null ? splitTunneling : 0;
         }
 
-        public void addAddress(String address, int prefixLength) {
+        public void addAddress(String address, int prefixLength)
+        {
             mAddresses.add(new PrefixedAddress(address, prefixLength));
             recordAddressFamily(address);
         }
 
-        public void addRoute(String address, int prefixLength) {
-            try {
-                if (isIPv6(address)) {
+        public void addRoute(String address, int prefixLength)
+        {
+            try
+            {
+                if (isIPv6(address))
+                {
                     mRoutesIPv6.add(new PrefixedAddress(address, prefixLength));
-                } else {
+                }
+                else
+                {
                     mRoutesIPv4.add(new PrefixedAddress(address, prefixLength));
                 }
-            } catch (UnknownHostException ex) {
+            }
+            catch (UnknownHostException ex)
+            {
                 ex.printStackTrace();
             }
         }
 
-        public void setMtu(int mtu) {
+        public void setMtu(int mtu)
+        {
             mMtu = mtu;
         }
 
-        public void recordAddressFamily(String address) {
-            try {
-                if (isIPv6(address)) {
+        public void recordAddressFamily(String address)
+        {
+            try
+            {
+                if (isIPv6(address))
+                {
                     mIPv6Seen = true;
-                } else {
+                }
+                else
+                {
                     mIPv4Seen = true;
                 }
-            } catch (UnknownHostException ex) {
+            }
+            catch (UnknownHostException ex)
+            {
                 ex.printStackTrace();
             }
         }
 
         @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-        public void applyData(Builder builder) {
-            for (PrefixedAddress address : mAddresses) {
+        public void applyData(Builder builder)
+        {
+            for (PrefixedAddress address : mAddresses)
+            {
                 builder.addAddress(address.mAddress, address.mPrefix);
             }
 			/* add routes depending on whether split tunneling is allowed or not,
 			 * that is, whether we have to handle and block non-VPN traffic */
-            if ((mSplitTunneling & VpnProfile.SPLIT_TUNNELING_BLOCK_IPV4) == 0) {
-                if (mIPv4Seen) {	/* split tunneling is used depending on the routes */
-                    for (PrefixedAddress route : mRoutesIPv4) {
+            if ((mSplitTunneling & VpnProfile.SPLIT_TUNNELING_BLOCK_IPV4) == 0)
+            {
+                if (mIPv4Seen)
+                {	/* split tunneling is used depending on the routes */
+                    for (PrefixedAddress route : mRoutesIPv4)
+                    {
                         builder.addRoute(route.mAddress, route.mPrefix);
                     }
-                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {	/* allow traffic that would otherwise be blocked to bypass the VPN */
+                }
+                else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+                {	/* allow traffic that would otherwise be blocked to bypass the VPN */
                     builder.allowFamily(OsConstants.AF_INET);
                 }
-            } else if (mIPv4Seen) {	/* only needed if we've seen any addresses.  otherwise, traffic
+            }
+            else if (mIPv4Seen)
+            {	/* only needed if we've seen any addresses.  otherwise, traffic
 				 * is blocked by default (we also install no routes in that case) */
                 builder.addRoute("0.0.0.0", 0);
             }
 			/* same thing for IPv6 */
-            if ((mSplitTunneling & VpnProfile.SPLIT_TUNNELING_BLOCK_IPV6) == 0) {
-                if (mIPv6Seen) {
-                    for (PrefixedAddress route : mRoutesIPv6) {
+            if ((mSplitTunneling & VpnProfile.SPLIT_TUNNELING_BLOCK_IPV6) == 0)
+            {
+                if (mIPv6Seen)
+                {
+                    for (PrefixedAddress route : mRoutesIPv6)
+                    {
                         builder.addRoute(route.mAddress, route.mPrefix);
                     }
-                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                }
+                else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+                {
                     builder.allowFamily(OsConstants.AF_INET6);
                 }
-            } else if (mIPv6Seen) {
+            }
+            else if (mIPv6Seen)
+            {
                 builder.addRoute("::", 0);
             }
             builder.setMtu(mMtu);
         }
 
-        private boolean isIPv6(String address) throws UnknownHostException {
+        private boolean isIPv6(String address) throws UnknownHostException
+        {
             InetAddress addr = InetAddress.getByName(address);
-            if (addr instanceof Inet4Address) {
+            if (addr instanceof Inet4Address)
+            {
                 return false;
-            } else if (addr instanceof Inet6Address) {
+            }
+            else if (addr instanceof Inet6Address)
+            {
                 return true;
             }
             return false;
         }
 
-        private class PrefixedAddress {
+        private class PrefixedAddress
+        {
             public String mAddress;
             public int mPrefix;
 
-            public PrefixedAddress(String address, int prefix) {
+            public PrefixedAddress(String address, int prefix)
+            {
                 this.mAddress = address;
                 this.mPrefix = prefix;
             }
         }
+    }
+
+    /*
+     * The libraries are extracted to /data/data/org.strongswan.android/...
+     * during installation.  On newer releases most are loaded in JNI_OnLoad.
+     */
+    static
+    {
+//        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2)
+//        {
+            System.loadLibrary("strongswan");
+            System.loadLibrary("tpmtss");
+            System.loadLibrary("tncif");
+            System.loadLibrary("tnccs");
+            System.loadLibrary("imcv");
+            System.loadLibrary("charon");
+            System.loadLibrary("ipsec");
+//        }
+        System.loadLibrary("androidbridge");
     }
 }

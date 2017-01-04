@@ -10,7 +10,7 @@ public class Constants {
     public static final String FIRSTRUN = "isFirstRun";
     public static final int SELECT_TRUSTED_CERTIFICATE = 0;
     public static final String REFERER = "referer";
-    public static final String DEFAULT_REFERER = "http://secondaryspace.com/";
+    public static final String DEFAULT_REFERER = "http://www.sspacee.com/";
     public static final String URL = "url";
     public static final int STARTUP_SHOW_TIME_1500 = 1500; //启动页广告时长
     public static final int STARTUP_SHOW_TIME_5000 = 5000; //启动页广告时长
@@ -79,8 +79,8 @@ public class Constants {
     public static final String adsKeySetBanner[] = new String[]{ADS_ADVIEW_KEY, ADS_ADVIEW_KEY_ACTIVITY};
     public static final String LANG_ZH = "zh";
     public static final String LANG_US = "en";
-//    public static String BASE_IP = "api.secondaryspace.com";
-    public static String BASE_IP = "192.168.1.7:8080";
+    public static String BASE_IP = "api.sspacee.com";
+//    public static String BASE_IP = "192.168.1.7:8080";
 //    public static String BASE_IP = "10.33.65.180:8080";
     public static String BASE_HOST = "http://" + BASE_IP + "/vpn/api";
     public static final String API_SERVERLIST_URL = "/host/server/list.json?location=%s";
@@ -106,6 +106,7 @@ public class Constants {
     public static final int ADS_SHOW_SCORE = 10;
     public static final int ADS_SHOW_CLICK = 20;
     public static final String D_URL = "D_URL";
+    public static final String ADS_SHOW_CONFIG = "ADS_SHOW_CONFIG";
     public static final String FILE_UPLOAD = "fileList";
     public static final String FILE_TMP_PATH = "freeVPN";
     public static final String LOG_FILE = "charon.log";

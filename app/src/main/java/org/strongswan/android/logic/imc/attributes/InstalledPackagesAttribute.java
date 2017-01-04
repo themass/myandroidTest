@@ -25,40 +25,43 @@ import java.util.LinkedList;
 
 /**
  * PA-TNC Installed Packages attribute (see section 4.2.7 of RFC 5792)
- * <p/>
- * 1                   2                   3
- * 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
- * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * |          Reserved             |         Package Count         |
- * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * | Pkg Name Len  |        Package Name (Variable Length)         |
- * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * |  Version Len  |    Package Version Number (Variable Length)   |
- * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *
+ *                       1                   2                   3
+ *   0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+ *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *  |          Reserved             |         Package Count         |
+ *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *  | Pkg Name Len  |        Package Name (Variable Length)         |
+ *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *  |  Version Len  |    Package Version Number (Variable Length)   |
+ *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  */
-public class InstalledPackagesAttribute implements Attribute {
-    private final short RESERVED = 0;
-    private final LinkedList<Pair<String, String>> mPackages = new LinkedList<>();
+public class InstalledPackagesAttribute implements Attribute
+{
+	private final short RESERVED = 0;
+	private final LinkedList<Pair<String, String>> mPackages = new LinkedList<Pair<String, String>>();
 
-    /**
-     * Add an installed package to this attribute.
-     *
-     * @param name    name of the package
-     * @param version version number of the package
-     */
-    public void addPackage(String name, String version) {
-        mPackages.add(new Pair<>(name, version));
-    }
+	/**
+	 * Add an installed package to this attribute.
+	 * @param name name of the package
+	 * @param version version number of the package
+	 */
+	public void addPackage(String name, String version)
+	{
+		mPackages.add(new Pair<String, String>(name, version));
+	}
 
-    @Override
-    public byte[] getEncoding() {
-        BufferedByteWriter writer = new BufferedByteWriter();
-        writer.put16(RESERVED);
-        writer.put16((short) mPackages.size());
-        for (Pair<String, String> pair : mPackages) {
-            writer.putLen8(pair.first.getBytes());
-            writer.putLen8(pair.second.getBytes());
-        }
-        return writer.toByteArray();
-    }
+	@Override
+	public byte[] getEncoding()
+	{
+		BufferedByteWriter writer = new BufferedByteWriter();
+		writer.put16(RESERVED);
+		writer.put16((short)mPackages.size());
+		for (Pair<String, String> pair : mPackages)
+		{
+			writer.putLen8(pair.first.getBytes());
+			writer.putLen8(pair.second.getBytes());
+		}
+		return writer.toByteArray();
+	}
 }

@@ -9,4 +9,5 @@ public class VersionVo {
     public String url;
     public int minBuild;
     public int maxBuild;
+    public Boolean adsShow;
 }

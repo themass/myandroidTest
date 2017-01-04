@@ -18,7 +18,7 @@
 -dontpreverify
 # 保留Annotation不混淆
 -keepattributes *Annotation*,InnerClasses
--dontoptimize
+#-dontoptimize
 # 避免混淆泛型
 -keepattributes Signature
 # 抛出异常时保留代码行号
@@ -97,7 +97,6 @@
 }
 -keep enum org.greenrobot.eventbus.ThreadMode { *; }
 -keepattributes EnclosingMethod
--dontoptimize
 #-----------------------jar----------------------------------
 -keep class android.webkit.JavascriptInterface
 -dontwarn android.webkit.JavascriptInterface
@@ -319,4 +318,12 @@
 
 -keep public class **.R$*{
    public static final int *;
+}
+#-----------   log   ------------
+-assumenosideeffects class android.util.Log {
+    public static boolean isLoggable(java.lang.String, int);
+    public static int v(...);
+    public static int i(...);
+    public static int w(...);
+    public static int d(...);
 }

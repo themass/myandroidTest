@@ -1,10 +1,10 @@
 package com.timeline.vpn.common.net;
 
 import com.timeline.vpn.common.util.LogUtil;
+import com.timeline.vpn.common.util.StringUtils;
 import com.timeline.vpn.data.StaticDataUtil;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
+import java.util.regex.Pattern;
 
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
@@ -32,14 +32,19 @@ public class HttpDNSUtil {
      * @param host
      * @return
      */
+    private static Pattern pattern = Pattern.compile("[0-9]*");
     public static String getIPByHost(String url,String host) {
+        String str = host.replaceAll("[.]", "");
+        if(pattern.matcher(str).matches()){
+            return url;
+        }
         String ipStr = StaticDataUtil.get(host,String.class);
         if(ipStr==null) {
             HttpUrl httpUrl = new HttpUrl.Builder()
                     .scheme("http")
                     .host(DNS_POD_IP)
                     .addPathSegment("d")
-                    .addQueryParameter("host", host)
+                    .addQueryParameter("dn", host)
                     .build();
             //与我们正式请求独立，所以这里新建一个OkHttpClient
             OkHttpClient okHttpClient = new OkHttpClient();
@@ -56,11 +61,10 @@ public class HttpDNSUtil {
                 if (response.isSuccessful()) {
                     String body = response.body().string();
                     LogUtil.i("dnsPod return "+body);
-                    JSONObject jsonObject = new JSONObject(body);
-                    JSONArray ips = jsonObject.optJSONArray("ips");
-                    if (ips != null) {
-                        result = ips.optString(0);
-                        StaticDataUtil.add(host,result);
+                    if(StringUtils.hasText(body)){
+                        String[]ips = body.split(";");
+                        StaticDataUtil.add(host,ips[0]);
+                        result = ips[0];
                     }
                 }
                 LogUtil.i("HttpDNS the host has replaced with ip " + result);

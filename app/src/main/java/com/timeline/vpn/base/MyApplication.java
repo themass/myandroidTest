@@ -26,7 +26,6 @@ import com.timeline.vpn.data.MobAgent;
 import com.timeline.vpn.data.StaticDataUtil;
 import com.timeline.vpn.data.VersionUpdater;
 import com.timeline.vpn.service.LogUploadService;
-import com.umeng.analytics.MobclickAgent;
 import com.umeng.message.IUmengRegisterCallback;
 import com.umeng.message.MsgConstant;
 import com.umeng.message.PushAgent;
@@ -80,6 +79,11 @@ public class MyApplication extends Application {
         typeface = Typeface.SANS_SERIF;
         instance = this;
         long cost = System.currentTimeMillis()-start;
+        if(MyApplication.isDebug) {
+            String uc = DeviceInfoUtils.getMetaData(this, "UMENG_CHANNEL");
+            String ad = DeviceInfoUtils.getMetaData(this, "AdView_CHANNEL");
+            LogUtil.i("uc=" + uc + "; ad=" + ad);
+        }
         LogUtil.e("app start cost:"+cost);
     }
 
@@ -106,6 +110,8 @@ public class MyApplication extends Application {
         builder.setAdMobSize(InitConfiguration.AdMobSize.BANNER);
         if (isDebug) {
             builder.setRunMode(InitConfiguration.RunMode.TEST);
+        }else{
+            builder.setRunMode(InitConfiguration.RunMode.NORMAL);
         }
         initConfig = builder.build();
     }
@@ -129,15 +135,15 @@ public class MyApplication extends Application {
 
     private void initPush() {
         //友盟统计
-        String channelId = DeviceInfoUtils.getChannelFromApk(this, "vpn");
-        String key = DeviceInfoUtils.getMetaData(this, "UMENG_APPKEY");
-        LogUtil.i("channelId=" + channelId);
-        LogUtil.i("key=" + key);
-        MobclickAgent.UMAnalyticsConfig config = new MobclickAgent.UMAnalyticsConfig(this, key, channelId);
-        MobclickAgent.startWithConfigure(config);
+//        String channelId = DeviceInfoUtils.getChannelFromApk(this, "vpn");
+//        String key = DeviceInfoUtils.getMetaData(this, "UMENG_APPKEY");
+//        LogUtil.i("channelId=" + channelId);
+//        LogUtil.i("key=" + key);
+//        MobclickAgent.UMAnalyticsConfig config = new MobclickAgent.UMAnalyticsConfig(this, key, channelId);
+//        MobclickAgent.startWithConfigure(config);
         //友盟推送
         PushAgent mPushAgent = PushAgent.getInstance(this);
-        mPushAgent.setMessageChannel(channelId);
+//        mPushAgent.setMessageChannel(channelId);
         mPushAgent.setDebugMode(isDebug);
         //sdk开启通知声音
         mPushAgent.setNotificationPlaySound(MsgConstant.NOTIFICATION_PLAY_SERVER);

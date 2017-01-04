@@ -1,5 +1,6 @@
 package com.timeline.vpn.ui.maintab;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.RecyclerView;
@@ -51,14 +52,14 @@ public class TabContentFgment extends BaseBannerAdsFragemnt {
     }
 
     @Override
-    protected void showAds() {
-        super.showAds();
+    public void showAds(Context context) {
+        super.showAds(context);
         AdsAdview.nativeAds(getActivity(), mHandler, adsAdapter);
     }
 
     @Override
-    protected void removeAds() {
-        super.removeAds();
+    public void hidenAds(Context context) {
+        super.hidenAds(context);
         adsAdapter.removeData();
     }
 }

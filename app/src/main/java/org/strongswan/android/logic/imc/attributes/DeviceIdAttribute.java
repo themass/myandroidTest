@@ -17,27 +17,29 @@ package org.strongswan.android.logic.imc.attributes;
 
 /**
  * ITA Device ID attribute
- * <p/>
- * 1                   2                   3
- * 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
- * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * | Device ID (Variable Length)                                   |
- * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *
+ *                       1                   2                   3
+ *   0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+ *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *  | Device ID (Variable Length)                                   |
+ *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  */
-public class DeviceIdAttribute implements Attribute {
-    private String mDeviceId;
+public class DeviceIdAttribute implements Attribute
+{
+	private String mDeviceId;
 
-    /**
-     * Set the device ID
-     *
-     * @param version version number
-     */
-    public void setDeviceId(String deviceId) {
-        this.mDeviceId = deviceId;
-    }
+	/**
+	 * Set the device ID
+	 * @param version version number
+	 */
+	public void setDeviceId(String deviceId)
+	{
+		this.mDeviceId = deviceId;
+	}
 
-    @Override
-    public byte[] getEncoding() {
-        return mDeviceId.getBytes();
-    }
+	@Override
+	public byte[] getEncoding()
+	{
+		return mDeviceId.getBytes();
+	}
 }

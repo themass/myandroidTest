@@ -51,7 +51,7 @@ android {
             minifyEnabled true
             debuggable true
             shrinkResources false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.config
         }
         release {
@@ -59,72 +59,74 @@ android {
             zipAlignEnabled true // Zipalign优化
             shrinkResources true // 移除无用的resource文件
             debuggable false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.config
         }
     }
     productFlavors {
         //腾讯应用宝
-//        tencent {
-//            manifestPlaceholders = [CHANNEL_VALUE: "tencent"]
-//        }
-//        //小米
-//        xiaomi {
-//            manifestPlaceholders = [CHANNEL_VALUE: "xiaomi"]
-//        }
-//        //华为
-//        huawei {
-//            manifestPlaceholders = [CHANNEL_VALUE: "huawei"]
-//        }
-//        //百度
-//        baidu {
-//            manifestPlaceholders = [CHANNEL_VALUE: "baidu"]
-//        }
-//        //豌豆荚
-//        wandoujia {
-//            manifestPlaceholders = [CHANNEL_VALUE: "wandoujia"]
-//        }
-//        //google market
-//        google {
-//            manifestPlaceholders = [CHANNEL_VALUE: "GOOGLEMARKET"]
-//        }
-//        //应用汇
-//        appchina {
-//            manifestPlaceholders = [CHANNEL_VALUE: "APPCHINA"]
-//        }
-//        //安卓市场
-//        HIAPK {
-//            manifestPlaceholders = [CHANNEL_VALUE: "HIAPK"]
-//        }
-//        //机锋
-//        GFAN {
-//            manifestPlaceholders = [CHANNEL_VALUE: "GFAN"]
-//        }
-//        //91Store
-//        nineStore {
-//            manifestPlaceholders = [CHANNEL_VALUE: "91Store"]
-//        }
-//        //安卓之家
-//        ANDROIDAI {
-//            manifestPlaceholders = [CHANNEL_VALUE: "ANDROIDAI"]
-//        }
-//        //手机之家
-//        IMOBILE {
-//            manifestPlaceholders = [CHANNEL_VALUE: "IMOBILE"]
-//        }
-//        //GOAPK
-//        GOAPK {
-//            manifestPlaceholders = [CHANNEL_VALUE: "GOAPK"]
-//        }
-//        //历趣
-//        LIQUCN {
-//            manifestPlaceholders = [CHANNEL_VALUE: "LIQUCN"]
-//        }
-//        //360市场
-//        threesixsMARKET {
-//            manifestPlaceholders = [CHANNEL_VALUE: "360MARKET"]
-//        }
-
+        mypool {
+            manifestPlaceholders = [CHANNEL_VALUE: "MYPOOL",AD_CHANNEL_VALUE: "MYPOOL"]
+        }
+        tencent {
+            manifestPlaceholders = [CHANNEL_VALUE: "tencent",AD_CHANNEL_VALUE: "tencent"]
+        }
+        //小米
+        xiaomi {
+            manifestPlaceholders = [CHANNEL_VALUE: "xiaomi",AD_CHANNEL_VALUE: "xiaomi"]
+        }
+        //华为
+        huawei {
+            manifestPlaceholders = [CHANNEL_VALUE: "huawei",AD_CHANNEL_VALUE: "huawei"]
+        }
+        //百度
+        baidu {
+            manifestPlaceholders = [CHANNEL_VALUE: "baidu",AD_CHANNEL_VALUE: "baidu"]
+        }
+        //豌豆荚
+        wandoujia {
+            manifestPlaceholders = [CHANNEL_VALUE: "wandoujia",AD_CHANNEL_VALUE: "wandoujia"]
+        }
+        //google market
+        google {
+            manifestPlaceholders = [CHANNEL_VALUE: "GOOGLEMARKET",AD_CHANNEL_VALUE: "GOOGLEMARKET"]
+        }
+        //应用汇
+        appchina {
+            manifestPlaceholders = [CHANNEL_VALUE: "APPCHINA",AD_CHANNEL_VALUE: "APPCHINA"]
+        }
+        //安卓市场
+        HIAPK {
+            manifestPlaceholders = [CHANNEL_VALUE: "HIAPK",AD_CHANNEL_VALUE: "HIAPK"]
+        }
+        //机锋
+        GFAN {
+            manifestPlaceholders = [CHANNEL_VALUE: "GFAN",AD_CHANNEL_VALUE: "GFAN"]
+        }
+        //91Store
+        nineStore {
+            manifestPlaceholders = [CHANNEL_VALUE: "91Store",AD_CHANNEL_VALUE: "91Store"]
+        }
+        //安卓之家
+        ANDROIDAI {
+            manifestPlaceholders = [CHANNEL_VALUE: "ANDROIDAI",AD_CHANNEL_VALUE: "ANDROIDAI"]
+        }
+        //手机之家
+        IMOBILE {
+            manifestPlaceholders = [CHANNEL_VALUE: "IMOBILE",AD_CHANNEL_VALUE: "IMOBILE"]
+        }
+        //GOAPK
+        GOAPK {
+            manifestPlaceholders = [CHANNEL_VALUE: "GOAPK",AD_CHANNEL_VALUE: "GOAPK"]
+        }
+        //历趣
+        LIQUCN {
+            manifestPlaceholders = [CHANNEL_VALUE: "LIQUCN",AD_CHANNEL_VALUE: "LIQUCN"]
+        }
+        //360市场
+        threesixsMARKET {
+            manifestPlaceholders = [CHANNEL_VALUE: "360MARKET",AD_CHANNEL_VALUE: "360MARKET"]
+        }
     }
 }
 dependencies {
