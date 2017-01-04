@@ -19,5 +19,12 @@ allprojects {
         flatDir {
             dirs 'libs'
         }
+        maven {
+            url "http://repo.acmecorp.com/maven2"
+        }
+        jcenter{
+            url "http://jcenter.bintray.com"
+        }
+        maven { url "https://repo.commonsware.com.s3.amazonaws.com" }
     }
 }
