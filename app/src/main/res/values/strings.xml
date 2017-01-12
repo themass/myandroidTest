@@ -96,6 +96,7 @@
     <string name="vpn_bg_click">Conn VPN</string>
     <string name="vpn_bg_error">Click Retry</string>
     <string name="vpn_bg_conning">connecting..</string>
+    <string name="vpn_bg_disconning">stoping..</string>
     <string name="vpn_bg_conned">disconnect</string>
 
     <string name="vpn_type_free">Free</string>

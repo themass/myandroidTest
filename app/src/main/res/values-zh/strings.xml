@@ -97,6 +97,7 @@
     <string name="vpn_bg_click">点击连接VPN</string>
     <string name="vpn_bg_error">点击重试</string>
     <string name="vpn_bg_conning">连接..</string>
+    <string name="vpn_bg_disconning">断连..</string>
     <string name="vpn_bg_conned">断开</string>
     <string name="vpn_type_free">免费</string>
     <string name="vpn_type_vip">VIP</string>

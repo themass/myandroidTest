@@ -1,7 +1,6 @@
 package com.timeline.vpn.common.util;
 
 import android.content.Context;
-import android.os.Environment;
 
 import com.timeline.vpn.base.MyApplication;
 import com.timeline.vpn.constant.Constants;
@@ -191,12 +190,13 @@ public class FileUtils {
         }
     }
     public static String getWriteFilePath(Context context,String filePath){
-        String sdStatus = Environment.getExternalStorageState();
-        if (!sdStatus.equals(Environment.MEDIA_MOUNTED)) {
-            return context.getFilesDir().getAbsolutePath()+File.separator +filePath;
-        }else{
-            return File.separator +"sdcard"+File.separator +filePath;
-        }
+        return context.getFilesDir().getAbsolutePath()+File.separator +filePath;
+//        String sdStatus = Environment.getExternalStorageState();
+//        if (!sdStatus.equals(Environment.MEDIA_MOUNTED)) {
+//            return context.getFilesDir().getAbsolutePath()+File.separator +filePath;
+//        }else{
+//            return File.separator +"sdcard"+File.separator +filePath;
+//        }
     }
     public static boolean ensureFile(Context context,String filePath){
         File path = new File(filePath);

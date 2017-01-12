@@ -150,6 +150,7 @@ public class BaseWebViewFragment extends BaseFragment {
                 super.onReceivedError(view, request, error);
                 String errorPage = FileUtils.readAssets(getActivity(), "error_page.html");
                 errorPage = errorPage.replace("####", url);
+                LogUtil.e("load url error:"+url);
                 webView.loadData(errorPage, "text/html; charset=UTF-8", null);
             }
         });

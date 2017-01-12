@@ -1,6 +1,7 @@
 package com.timeline.vpn.adapter;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -25,11 +26,15 @@ import butterknife.Bind;
  * Created by themass on 2016/8/12.
  */
 public class LocationViewAdapter extends BaseRecyclerViewAdapter<LocationViewAdapter.LocationItemView, LocationVo> {
-    private LocationVo chooseVo = null;
-
+    private int chooseId = 0;
+    private ColorStateList indexColo = null;
+    private ColorStateList indexSelectColo = null;
     public LocationViewAdapter(Context context, RecyclerView recyclerView, List<LocationVo> data, OnRecyclerViewItemClickListener<LocationVo> listener) {
         super(context, recyclerView, data, listener);
-        chooseVo = PreferenceUtils.getPrefObj(context, Constants.LOCATION_CHOOSE, LocationVo.class);
+        LocationVo chooseVo = PreferenceUtils.getPrefObj(context, Constants.LOCATION_CHOOSE, LocationVo.class);
+        chooseId = chooseVo==null?0:chooseVo.id;
+        indexColo = (ColorStateList) context.getResources().getColorStateList(R.color.location_index);
+        indexSelectColo = (ColorStateList) context.getResources().getColorStateList(R.color.base_red);
     }
 
     @Override
@@ -42,10 +47,11 @@ public class LocationViewAdapter extends BaseRecyclerViewAdapter<LocationViewAda
     public void onBindViewHolder(LocationViewAdapter.LocationItemView holder, int position) {
         super.onBindViewHolder(holder, position);
         LocationVo vo = data.get(position);
-        if (chooseVo != null && chooseVo.id == vo.id) {
-            holder.llLocationChoose.setSelected(true);
+
+        if (chooseId == vo.id) {
+            holder.tvIndex.setTextColor(indexSelectColo);
         } else {
-            holder.llLocationChoose.setSelected(false);
+            holder.tvIndex.setTextColor(indexColo);
         }
         holder.tvIndex.setText("#" + (position + 1));
         holder.tvCountry.setText(vo.name);

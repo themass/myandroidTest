@@ -45,12 +45,6 @@ public class MyPullView extends LinearLayout {
         setupView();
     }
 
-    public MyPullView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
-        super(context, attrs, defStyleAttr, defStyleRes);
-        setupView();
-    }
-
-
     public void setListener(OnRefreshListener listener) {
         this.listener = listener;
     }

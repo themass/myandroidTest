@@ -32,8 +32,10 @@ public class ConfigActionJump {
         LogUtil.i("ConfigActionJump onEvent-" + event.url + "-" + Thread.currentThread().getName());
         Class<? extends AppCompatActivity> activity = getActivity(event.url);
         if (activity != null) {
+            Boolean adsShow = event.param!=null?(Boolean) event.param.get(Constants.ADS_SHOW_CONFIG):null;
             Intent intent = new Intent(event.context, activity);
             intent.putExtra(Constants.URL, event.url);
+            intent.putExtra(Constants.ADS_SHOW_CONFIG, adsShow);
             event.context.startActivity(intent);
         }
     }

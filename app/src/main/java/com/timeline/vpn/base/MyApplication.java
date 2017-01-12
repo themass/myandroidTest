@@ -12,8 +12,6 @@ import com.alibaba.sdk.android.feedback.util.ErrorCode;
 import com.alibaba.sdk.android.feedback.util.FeedbackErrorCallback;
 import com.android.volley.VolleyLog;
 import com.kyview.InitConfiguration;
-import com.squareup.leakcanary.LeakCanary;
-import com.squareup.leakcanary.RefWatcher;
 import com.timeline.vpn.bean.vo.UserInfoVo;
 import com.timeline.vpn.common.net.VolleyUtils;
 import com.timeline.vpn.common.util.DeviceInfoUtils;
@@ -33,23 +31,21 @@ import com.umeng.message.PushAgent;
 import java.util.concurrent.Callable;
 
 import butterknife.ButterKnife;
-import timber.log.Timber;
-
 /**
  * Created by themass on 2016/3/1.
  */
 public class MyApplication extends Application {
     private static MyApplication instance = null;
     public Typeface typeface;
-    private RefWatcher refWatcher;
+//    private RefWatcher refWatcher;
     private InitConfiguration initConfig;
     public static final String UPDATE_STATUS_ACTION = "com.timeline.vpn.action.UPDATE_STATUS";
     public static String tmpFilePath = "";
     public static volatile boolean isDebug = true;
-    public static RefWatcher getRefWatcher(Context context) {
-        MyApplication application = (MyApplication) context.getApplicationContext();
-        return application.refWatcher;
-    }
+//    public static RefWatcher getRefWatcher(Context context) {
+//        MyApplication application = (MyApplication) context.getApplicationContext();
+//        return application.refWatcher;
+//    }
 
     public static InitConfiguration getInitConfig(Context context) {
         MyApplication application = (MyApplication) context.getApplicationContext();
@@ -65,8 +61,7 @@ public class MyApplication extends Application {
         super.onCreate();
         isDebug = SystemUtils.isApkDebugable(this);
         long start = System.currentTimeMillis();
-        Timber.plant(new Timber.DebugTree());
-        refWatcher = LeakCanary.install(this);
+//        refWatcher = LeakCanary.install(this);
         ButterKnife.setDebug(isDebug);
         VersionUpdater.init(this);
         VolleyUtils.init(getApplicationContext());
@@ -106,13 +101,17 @@ public class MyApplication extends Application {
                 .setBannerCloseble(InitConfiguration.BannerSwitcher.DEFAULT)    //横幅可关闭按钮
                 .setInstlDisplayType(InitConfiguration.InstlDisplayType.DIALOG_MODE)// 为默认情况,设置插屏展示模式，popupwindow模式可设置窗体外可点击
                 .setInstlCloseble(InitConfiguration.InstlSwitcher.CANCLOSED);     //插屏可关闭按钮
-
+        builder.setAdYoumiSize(InitConfiguration.AdYoumiSize.FIT_SCREEN);
         builder.setAdMobSize(InitConfiguration.AdMobSize.BANNER);
+        builder.setAdInMobiSize(InitConfiguration.AdInMobiSize.INMOBI_AD_UNIT_320x50);
+        builder.setAdGdtSize(InitConfiguration.AdGdtSize.BANNER);
+        builder.setAdSize(InitConfiguration.AdSize.BANNER_SMART);
         if (isDebug) {
             builder.setRunMode(InitConfiguration.RunMode.TEST);
         }else{
             builder.setRunMode(InitConfiguration.RunMode.NORMAL);
         }
+//        builder.setRunMode(InitConfiguration.RunMode.NORMAL);
         initConfig = builder.build();
     }
 

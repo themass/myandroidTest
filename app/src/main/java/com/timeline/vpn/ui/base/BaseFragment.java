@@ -6,8 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.squareup.leakcanary.RefWatcher;
-import com.timeline.vpn.base.MyApplication;
+import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.common.util.ViewUtils;
 
 import java.io.Serializable;
@@ -87,6 +86,7 @@ public abstract class BaseFragment extends LogFramgment {
      */
     protected void setupViews(View view, Bundle savedInstanceState) {
         bindViews(view);
+        LogUtil.i(getClass().getSimpleName()+"-setupViews");
     }
 
     protected void bindViews(View view) {
@@ -125,8 +125,8 @@ public abstract class BaseFragment extends LogFramgment {
         // Save State Here
         saveStateToArguments();
         ButterKnife.unbind(this);
-        RefWatcher refWatcher = MyApplication.getRefWatcher(getActivity());
-        refWatcher.watch(this);
+//        RefWatcher refWatcher = MyApplication.getRefWatcher(getActivity());
+//        refWatcher.watch(this);
     }
 
     ////////////////////

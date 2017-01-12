@@ -13,6 +13,7 @@ public class RecommendVo {
     public int imgType;
     public float rate = 1; //长/宽
     public String color;
+    public boolean adsShow;
 
     @Override
     public String toString() {

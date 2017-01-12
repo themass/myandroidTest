@@ -1,10 +1,15 @@
 package com.timeline.vpn.ui.base;
 
+import android.content.Context;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.view.KeyEvent;
 
 import com.timeline.vpn.R;
+import com.timeline.vpn.ads.adview.AdsAdview;
 import com.timeline.vpn.common.util.LogUtil;
+import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.ui.view.MyWebView;
 
 /**
@@ -12,7 +17,13 @@ import com.timeline.vpn.ui.view.MyWebView;
  */
 public class WebViewActivity extends BaseBannerAdsActivity implements MyWebView.OnTouchRightSlide {
     BaseWebViewFragment webViewFragment;
-
+    private boolean adsNeed = false;
+    protected Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            LogUtil.i("handleMessage-" + msg.what);
+        }
+    };
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -23,6 +34,19 @@ public class WebViewActivity extends BaseBannerAdsActivity implements MyWebView.
                 .commit();
         setNavigationOut();
         adsDelayGone();
+        adsNeed = getIntent()==null?false:getIntent().getBooleanExtra(Constants.ADS_SHOW_CONFIG,false);
+    }
+    @Override
+    public boolean needShow(Context context) {
+        return adsNeed||super.needShow(this);
+    }
+    @Override
+    public void onResume() {
+        super.onResume();
+        if(needShow(this)){
+            AdsAdview.interstitialAds(this, mHandler);
+        }
+
     }
 
     @Override

@@ -44,10 +44,6 @@ public abstract class BaseBannerAdsFragemnt extends TabBaseFragment implements A
 
     abstract protected int getTabContentViewId();
 
-    public void next() {
-        AdsAdview.interstitialAds(getActivity(), mHandler);
-    }
-
     @Override
     protected void setupViews(View view, Bundle savedInstanceState) {
         LayoutInflater.from(getActivity()).inflate(getTabContentViewId(), (ViewGroup) view.findViewById(R.id.fl_content), true);
@@ -96,6 +92,7 @@ public abstract class BaseBannerAdsFragemnt extends TabBaseFragment implements A
     public void showAds(Context context) {
         if (needShow(context)) {
             if (getUserVisibleHint()) {
+                flBanner.setVisibility(View.VISIBLE);
                 AdsAdview.bannerAds(getActivity(), flBanner, mHandler, Constants.ADS_ADVIEW_KEY);
             } else {
                 hidenAds(context);

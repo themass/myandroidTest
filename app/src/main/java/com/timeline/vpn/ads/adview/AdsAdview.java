@@ -127,7 +127,10 @@ public class AdsAdview {
     public static void bannerAds(final Context context, final ViewGroup group, final Handler handler, String key) {
         View view = AdViewBannerManager.getInstance(context).getAdViewLayout(context, key);
         if (view != null) {
-            group.removeView(view);
+            ViewGroup parent = (ViewGroup) view.getParent();
+            if (parent != null) {
+                parent.removeAllViews();
+            }
             view.setTag(key);
         }
         AdViewBannerManager.getInstance(context).requestAd(context, key, new AdViewBannerListener() {

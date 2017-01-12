@@ -43,7 +43,7 @@
     <dimen name="title_height">48dip</dimen>
     <dimen name="heart_anim_h">150dip</dimen>
 
-    <dimen name="banner_h">30dip</dimen>
+    <dimen name="banner_h">45dip</dimen>
     <dimen name="vip_content_tv_size">17sp</dimen>
     <dimen name="location_choose_btn_size">16sp</dimen>
 </resources>

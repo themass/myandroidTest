@@ -113,6 +113,7 @@ public class Constants {
     public static final String LOG_FILE_FOR_UPLOAD= "charon_upload.log";
     public static final String BUG_FILE = "log.log";
     public static final String BUG_FILE_FOR_UPLOAD = "log_upload.log";
+    public static final int MAX_RETRY_COUNT=4;
     public static String getUrl(String uri) {
         return "http://" + BASE_IP + "/vpn/api" + uri;
     }

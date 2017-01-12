@@ -114,7 +114,8 @@
 # okio
 -dontwarn okio.**
 -keep class okio.** {*;}
--dontnote okhttp3.internal.**
+#-dontnote okhttp3.internal.**
+-dontwarn okhttp3.**
 -dontwarn java.nio.file.Files
 -dontwarn java.nio.file.Path
 -dontwarn java.nio.file.OpenOption
@@ -171,8 +172,6 @@
 -keep class com.squareup.leakcanary.** { *; }
 -keep class com.tencent.** { *; }
 -dontnote com.tencent.**
--keep class cn.domob.android.** { *; }
--dontwarn cn.domob.android.**
 -dontwarn oauth.**
 -dontwarn com.android.auth.TwitterHandle.**
 
@@ -191,6 +190,11 @@
 -dontnote com.umeng.analytics.**
 -dontnote com.umeng.message.**
 -dontnote com.bumptech.glide.**
+-keep public enum com.bumptech.glide.load.resource.bitmap.ImageHeaderParser$** {
+  **[] $VALUES;
+  public *;
+}
+#-keepresourcexmlelements manifest/application/meta-data@value=GlideModule
 -keep class com.baidu.** { *;}
 -keep class android.support.v4.app.NotificationCompat**{ *; }
 -keep class MTT.ThirdAppInfoNew { *; }
@@ -217,7 +221,6 @@
 -keep class com.adzhidian.** { *; }
 -keep public class cn.immob.sdk.** {*;}
 -keep class com.guohead.mix.*{ *; }
--keep public class cn.aduu.android.**{*;}
 -keep class com.otomod.ad.** {*;}
 -keep class org.OpenUDID.** {*;}
 -keepattributes Exceptions
@@ -257,6 +260,7 @@
 -keep class com.mopanspot.sdk.**{*;}
 -keep class com.imopan.plugin.spot.** {*;}
 -keep class cn.pro.ad.sdk.*
+-keep class com.jd.**{*;}
 -dontwarn com.dropbox.**
 -dontwarn com.inmobi.**
 -keep class com.moat.analytics.**{*;}
@@ -277,7 +281,7 @@
 -keep class org.strongswan.android.logic.**{ *; }
 -keep class sun.misc.Unsafe { *; }
 -keep class com.google.gson.stream.** { *; }
-
+-keep class com.timeline.vpn.common.util.MyGlideModule{ *; }
 #feedback sdk
 -keep class com.alibaba.sdk.android.feedback.impl.FeedbackServiceImpl {*;}
 -keep class com.alibaba.sdk.android.feedback.impl.FeedbackAPI {*;}

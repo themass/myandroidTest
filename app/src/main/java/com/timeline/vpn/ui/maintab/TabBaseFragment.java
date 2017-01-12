@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.timeline.vpn.R;
+import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.ui.base.BaseFragment;
 
 /**
@@ -28,6 +29,8 @@ public abstract class TabBaseFragment extends BaseFragment {
         bodyContentView = (ViewGroup) view.findViewById(R.id.fl_content);
         if (getTabHeaderViewId() != NULL_VIEW) {
             inflater.inflate(getTabHeaderViewId(), headerContentView, true);
+        }else{
+            headerContentView.setVisibility(View.GONE);
         }
         if (getTabBodyViewId() != NULL_VIEW) {
             inflater.inflate(getTabBodyViewId(), bodyContentView, true);
@@ -49,5 +52,6 @@ public abstract class TabBaseFragment extends BaseFragment {
     }
 
     public void setUp(View view, LayoutInflater inflater) {
+        LogUtil.i(getClass().getSimpleName()+"-setUp");
     }
 }

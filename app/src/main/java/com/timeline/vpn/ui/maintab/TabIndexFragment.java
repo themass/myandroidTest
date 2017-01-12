@@ -54,6 +54,8 @@ import org.strongswan.android.logic.VpnStateService;
 import org.strongswan.android.logic.imc.ImcState;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import butterknife.Bind;
 import butterknife.OnClick;
@@ -72,6 +74,7 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
     @Bind(R.id.my_pullview)
     MyPullView pullView;
     PingTask task;
+    private static boolean isAnim = false;
     CommonResponse.ResponseOkListener serverListener = new CommonResponse.ResponseOkListener<ServerVo>() {
         @Override
         public void onResponse(ServerVo serverVo) {
@@ -196,7 +199,6 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
 
     @Override
     public boolean needLoad() {
-        LogUtil.i("needLoad " + infoVo);
         return infoVo.hasMore;
     }
 
@@ -212,7 +214,9 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
     @Override
     public void onItemClick(View v, int position) {
         RecommendVo vo = infoVo.voList.get(position);
-        EventBusUtil.getEventBus().post(new ConfigActionEvent(getActivity(), vo.actionUrl));
+        Map<String,Object> param = new HashMap<>();
+        param.put(Constants.ADS_SHOW_CONFIG,vo.adsShow);
+        EventBusUtil.getEventBus().post(new ConfigActionEvent(getActivity(), vo.actionUrl,param));
     }
 
     @Override
@@ -298,25 +302,38 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
     }
 
     private void imgAnim() {
-        stopAnim();
-        hasIp = false;
-        ibVpnStatus.setImageResource(R.drawable.ic_vpn_state_loading);
-        ibVpnStatus.startAnimation(operatingAnim);
-        tvVpnText.setText(R.string.vpn_bg_conning);
-        ibVpnStatus.setEnabled(false);
+        if(!isAnim) {
+            stopAnim();
+            isAnim = true;
+            hasIp = false;
+            ibVpnStatus.setBackgroundResource(R.drawable.vpn_ic_loading);
+            ibVpnStatus.startAnimation(operatingAnim);
+            tvVpnText.setText(R.string.vpn_bg_conning);
+            ibVpnStatus.setEnabled(false);
+        }
     }
-
+    private void imgDisAnim() {
+        if(!isAnim) {
+            stopAnim();
+            isAnim = true;
+            hasIp = false;
+            ibVpnStatus.setBackgroundResource(R.drawable.vpn_ic_dising);
+            ibVpnStatus.startAnimation(operatingAnim);
+            tvVpnText.setText(R.string.vpn_bg_disconning);
+            ibVpnStatus.setEnabled(false);
+        }
+    }
     private void imgError() {
         stopAnim();
         hasIp = false;
-        ibVpnStatus.setImageResource(R.drawable.circle_vpn_red);
+        ibVpnStatus.setBackgroundResource(R.drawable.vpn_ic_error);
         tvVpnText.setText(R.string.vpn_bg_error);
         ibVpnStatus.setEnabled(true);
     }
 
     private void imgConn() {
         stopAnim();
-        ibVpnStatus.setImageResource(R.drawable.circle_vpn_green);
+        ibVpnStatus.setBackgroundResource(R.drawable.vpn_ic_conn);
         tvVpnText.setText(R.string.vpn_bg_conned);
         ibVpnStatus.setEnabled(true);
     }
@@ -324,15 +341,15 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
     private void imgNormal() {
         stopAnim();
         hasIp = false;
-        ibVpnStatus.setImageResource(R.drawable.circle_vpn_red);
+        ibVpnStatus.setBackgroundResource(R.drawable.vpn_state_bg);
         tvVpnText.setText(R.string.vpn_bg_click);
         ibVpnStatus.setEnabled(true);
     }
 
     private void stopAnim() {
+        isAnim = false;
         ibVpnStatus.clearAnimation();
     }
-
     public static class VpnNotSupportedError extends DialogFragment {
         static final String ERROR_MESSAGE_ID = "org.strongswan.android.VpnNotSupportedError.MessageId";
 
@@ -452,7 +469,7 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
                     imgAnim();
                     break;
                 case DISCONNECTING:
-                    imgAnim();
+//                    imgAnim();
                     break;
                 case DISABLED:
                     imgNormal();

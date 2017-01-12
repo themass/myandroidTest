@@ -43,6 +43,7 @@ import com.timeline.vpn.base.MyApplication;
 import com.timeline.vpn.bean.vo.VpnProfile;
 import com.timeline.vpn.common.util.FileUtils;
 import com.timeline.vpn.common.util.LogUtil;
+import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.ui.main.MainFragment;
 
 import org.strongswan.android.logic.imc.ImcState;
@@ -88,6 +89,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
     private HandlerThread mWorkThread;
     private Handler mWorkHandler;
     private VpnStateService mService;
+    private int retry = 0;
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceDisconnected(ComponentName name) {	/* since the service is local this is theoretically only called when the process is terminated */
@@ -111,13 +113,11 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
 
     @Override
     public void stateChanged() {
-        if (VPN_STATUS_NOTIF)
-        {
-            if(mService.getState()== VpnStateService.State.CONNECTED) {
-                createForegroundService();
-            }else{
+        if(mService.getState()== VpnStateService.State.CONNECTED) {
+            createForegroundService();
+        }else{
+            if(VPN_STATUS_NOTIF)
                 delForegroundService();
-            }
         }
     }
 
@@ -213,7 +213,15 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
         {
             if (mService != null)
             {
-                mService.setError(error);
+//                if(VpnStateService.ErrorState.GENERIC_ERROR.equals(error)&&retry< Constants.MAX_RETRY_COUNT){
+//                    retry = retry++;
+//                    mWorkHandler.post(new ConnectJob());
+//                    LogUtil.e("try once time:"+retry);
+//                }else{
+                LogUtil.e("setError:"+error);
+                    retry = 0;
+                    mService.setError(error);
+//                }
             }
         }
     }
@@ -453,7 +461,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
             } else {
                 Log.e(TAG, "failed to start charon");
                 setError(VpnStateService.ErrorState.GENERIC_ERROR);
-                setState(VpnStateService.State.DISABLED);
+                //setState(VpnStateService.State.DISABLED);
                 mCurrentProfile = null;
             }
         }
