@@ -50,6 +50,8 @@ public class LaunchActivity extends LogActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_launch);
+        MobAgent.init(this);
+        AdsAdview.initConfig(this);
         mHandler.postDelayed(mStartMainRunnable, Constants.STARTUP_SHOW_TIME_5000);
         ButterKnife.bind(this);
         UpdateUserTask.start(this);

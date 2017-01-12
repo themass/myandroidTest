@@ -104,16 +104,14 @@
                 android:text="@string/location_choose_level"
                 android:textColor="@color/base_black"
                 android:textSize="@dimen/textsize_13" />
-
-            <me.zhanghai.android.materialratingbar.MaterialRatingBar
+            <RatingBar
                 android:id="@+id/rb_start"
+                style="@android:style/Widget.Holo.RatingBar.Small"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                style="@style/Widget.MaterialRatingBar.RatingBar"
                 android:layout_gravity="center_vertical"
                 android:numStars="5"
-                android:stepSize="0.5"
-                android:clickable="false"/>
+                android:stepSize="0.5" />
 
         </LinearLayout>
     </LinearLayout>

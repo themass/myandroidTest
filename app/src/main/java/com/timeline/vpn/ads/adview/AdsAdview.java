@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.kyview.InitConfiguration;
 import com.kyview.interfaces.AdViewBannerListener;
 import com.kyview.interfaces.AdViewInstlListener;
 import com.kyview.interfaces.AdViewNativeListener;
@@ -36,15 +37,33 @@ import java.util.List;
  */
 public class AdsAdview {
     public static HandlerThread adsMsgThread = new HandlerThread("ads_msg_back");
-
+    private static InitConfiguration initConfig;
     static {
         adsMsgThread.start();
     }
-
+    public static void initConfig(Context context){
+        InitConfiguration.Builder builder = new InitConfiguration.Builder(context)
+                .setUpdateMode(InitConfiguration.UpdateMode.EVERYTIME)   // 实时获取配置
+                .setBannerCloseble(InitConfiguration.BannerSwitcher.DEFAULT)    //横幅可关闭按钮
+                .setInstlDisplayType(InitConfiguration.InstlDisplayType.DIALOG_MODE)// 为默认情况,设置插屏展示模式，popupwindow模式可设置窗体外可点击
+                .setInstlCloseble(InitConfiguration.InstlSwitcher.CANCLOSED);     //插屏可关闭按钮
+        builder.setAdYoumiSize(InitConfiguration.AdYoumiSize.FIT_SCREEN);
+        builder.setAdMobSize(InitConfiguration.AdMobSize.BANNER);
+        builder.setAdInMobiSize(InitConfiguration.AdInMobiSize.INMOBI_AD_UNIT_320x50);
+        builder.setAdGdtSize(InitConfiguration.AdGdtSize.BANNER);
+        builder.setAdSize(InitConfiguration.AdSize.BANNER_SMART);
+        if (MyApplication.isDebug) {
+            builder.setRunMode(InitConfiguration.RunMode.TEST);
+        }else{
+            builder.setRunMode(InitConfiguration.RunMode.NORMAL);
+        }
+//        builder.setRunMode(InitConfiguration.RunMode.NORMAL);
+        initConfig = builder.build();
+    }
     public static void init(Context context) {
-        AdViewBannerManager.getInstance(context).init(MyApplication.getInitConfig(context), Constants.adsKeySetBanner);
-        AdViewInstlManager.getInstance(context).init(MyApplication.getInitConfig(context), Constants.adsKeySet);
-        AdViewNativeManager.getInstance(context).init(MyApplication.getInitConfig(context), Constants.adsKeySet);
+        AdViewBannerManager.getInstance(context).init(initConfig, Constants.adsKeySetBanner);
+        AdViewInstlManager.getInstance(context).init(initConfig, Constants.adsKeySet);
+        AdViewNativeManager.getInstance(context).init(initConfig, Constants.adsKeySet);
     }
 
     public static void launchAds(final Context context, ViewGroup group, final Handler handler) {
@@ -52,7 +71,7 @@ public class AdsAdview {
             AdViewSpreadManager.getInstance(context).destroySpread(Constants.ADS_ADVIEW_KEY);
             return;
         }
-        AdViewSpreadManager.getInstance(context).init(MyApplication.getInitConfig(context), Constants.adsKeySet);
+        AdViewSpreadManager.getInstance(context).init(initConfig, Constants.adsKeySet);
         AdViewSpreadManager.getInstance(context).setSpreadLogo(R.drawable.ic_trans_logo);
         AdViewSpreadManager.getInstance(context).setSpreadNotifyType(AdViewSpreadManager.NOTIFY_COUNTER_NUM);
         AdViewSpreadManager.getInstance(context).request(context, Constants.ADS_ADVIEW_KEY, group, new AdViewSpreadListener() {

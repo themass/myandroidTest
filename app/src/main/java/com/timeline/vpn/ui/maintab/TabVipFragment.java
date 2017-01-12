@@ -1,8 +1,10 @@
 package com.timeline.vpn.ui.maintab;
 
 
+import android.annotation.TargetApi;
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v13.app.FragmentPagerAdapter;
@@ -19,6 +21,7 @@ import butterknife.Bind;
 /**
  * Created by themass on 2015/9/1.
  */
+@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 public class TabVipFragment extends TabBaseAdsFragment {
     @Bind(R.id.tab_layout)
     TabLayout tabLayout;
@@ -45,10 +48,12 @@ public class TabVipFragment extends TabBaseAdsFragment {
     private void setupViewPager(ViewPager viewPager) {
         MyAdapter adapter = new MyAdapter(getChildFragmentManager());
         adapter.addFragment(new TabContentFgment(), R.string.tab_tag_vip);
+        viewPager.setAdapter(adapter);
+
 //        adapter.addFragment(new TabContentFgment(), R.string.tab_power_vent);
 //        adapter.addFragment(new TabContentFgment(), R.string.tab_power_gossip);
 //        adapter.addFragment(new TabContentFgment(), R.string.tab_power_yellow);
-        viewPager.setAdapter(adapter);
+
     }
 
     class MyAdapter extends FragmentPagerAdapter {

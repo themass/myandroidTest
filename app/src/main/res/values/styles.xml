@@ -121,4 +121,5 @@
         <item name="android:windowNoTitle">true</item><!--无标题-->
         <item name="android:windowBackground">@color/transparent</item><!--背景透明-->
     </style>
+    <style name="RatingBarStyle" parent="@android:style/Widget.Holo.RatingBar.Small"/>
 </resources>

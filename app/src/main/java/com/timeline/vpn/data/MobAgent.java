@@ -3,7 +3,7 @@ package com.timeline.vpn.data;
 import android.content.Context;
 
 import com.timeline.vpn.ads.adview.AdsAdview;
-import com.timeline.vpn.common.util.LogUtil;
+import com.timeline.vpn.base.MyApplication;
 import com.timeline.vpn.constant.Constants;
 import com.umeng.analytics.MobclickAgent;
 
@@ -40,13 +40,12 @@ public class MobAgent {
         MobclickAgent.onPageEnd(fragment);
     }
 
-    public static void init(Context context, boolean isTest) {
-        LogUtil.i("isdebug=" + isTest);
+    public static void init(Context context) {
         MobclickAgent.setSessionContinueMillis(Constants.UM_INTERVAL);
         MobclickAgent.openActivityDurationTrack(false);
         MobclickAgent.enableEncrypt(true);
         MobclickAgent.setScenarioType(context, MobclickAgent.EScenarioType.E_UM_NORMAL);
-        MobclickAgent.setDebugMode(isTest);
+        MobclickAgent.setDebugMode( MyApplication.isDebug);
     }
 
     public static void onProfileSignIn(String ID) {

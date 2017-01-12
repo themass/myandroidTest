@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v13.app.FragmentTabHost;
 import android.view.KeyEvent;
@@ -29,6 +30,7 @@ import com.timeline.vpn.data.config.LogAddTofile;
 import com.timeline.vpn.service.LogUploadService;
 import com.timeline.vpn.ui.base.BaseDrawerActivity;
 import com.timeline.vpn.ui.maintab.OnBackKeyUpListener;
+import com.timeline.vpn.ui.maintab.TabContentFgment;
 import com.timeline.vpn.ui.maintab.TabIndexFragment;
 import com.timeline.vpn.ui.maintab.TabVipFragment;
 import com.umeng.message.PushAgent;
@@ -73,8 +75,13 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
         LayoutInflater inflater = LayoutInflater.from(this);
         addTab(inflater, R.string.tab_tag_index, TabIndexFragment.class,
                 R.drawable.ac_bg_tab_index, R.string.tab_index);
-        addTab(inflater, R.string.tab_tag_vip, TabVipFragment.class,
-                R.drawable.ac_bg_tab_index, R.string.tab_vip);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            addTab(inflater, R.string.tab_tag_vip, TabVipFragment.class,
+                    R.drawable.ac_bg_tab_index, R.string.tab_vip);
+        }else{
+            addTab(inflater, R.string.tab_tag_vip, TabContentFgment.class,
+                    R.drawable.ac_bg_tab_index, R.string.tab_vip);
+        }
 //        addTab(inflater, R.string.tab_tag_ads, TabAdsFragment.class,
 //                R.drawable.ac_bg_tab_index, R.string.tab_ads);
         mTabHost.getTabWidget().setDividerDrawable(null);
