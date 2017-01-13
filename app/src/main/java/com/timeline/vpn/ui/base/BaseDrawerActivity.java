@@ -21,7 +21,6 @@ import android.widget.Toast;
 
 import com.timeline.vpn.R;
 import com.timeline.vpn.base.MyApplication;
-import com.timeline.vpn.bean.vo.LocationVo;
 import com.timeline.vpn.bean.vo.UserInfoVo;
 import com.timeline.vpn.bean.vo.VersionVo;
 import com.timeline.vpn.common.net.request.CommonResponse;
@@ -29,9 +28,9 @@ import com.timeline.vpn.common.util.EventBusUtil;
 import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.common.util.PreferenceUtils;
 import com.timeline.vpn.common.util.StringUtils;
-import com.timeline.vpn.common.util.SystemUtils;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
+import com.timeline.vpn.data.LocationUtil;
 import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.data.VersionUpdater;
 import com.timeline.vpn.data.config.LocationChooseEvent;
@@ -112,9 +111,7 @@ public class BaseDrawerActivity extends BaseFragmentActivity {
     }
 
     private void setUpLocation() {
-        LocationVo vo = PreferenceUtils.getPrefObj(this, Constants.LOCATION_CHOOSE, LocationVo.class);
-        String name = vo == null ? getString(R.string.location_choose_none) : (SystemUtils.isZH(this) ? vo.name : vo.ename);
-        miLocation.setTitle(getString(R.string.location_choose_hint) + name);
+        miLocation.setTitle(LocationUtil.getSelectName(this));
     }
 
     private void setUpUserMenu() {
@@ -129,14 +126,14 @@ public class BaseDrawerActivity extends BaseFragmentActivity {
             } else {
                 ivAvatar.setImageResource(R.drawable.ic_default_nv);
             }
-            miScore.setTitle(String.format(getString(R.string.menu_btn_score), vo.score));
+            miScore.setTitle(String.format(getString(R.string.menu_btn_score), String.valueOf(vo.score)));
 
         } else {
             miLogout.setVisible(false);
             llLoginMenuHeader.setEnabled(true);
             tvMenuUserName.setText(R.string.menu_btn_name_default);
             tvMenuUserLogin.setText(R.string.menu_btn_login);
-            miScore.setTitle(String.format(getString(R.string.menu_btn_score), 0));
+            miScore.setTitle(String.format(getString(R.string.menu_btn_score), String.valueOf(0)));
         }
     }
 
@@ -185,20 +182,21 @@ public class BaseDrawerActivity extends BaseFragmentActivity {
                 } else if (item.getItemId() == R.id.menu_bug) {
                     startService(LogUploadService.class);
                     Toast.makeText(BaseDrawerActivity.this, R.string.menu_btn_report_log, Toast.LENGTH_SHORT).show();
-                }else if (item.getItemId() == R.id.menu_share) {
+                } else if (item.getItemId() == R.id.menu_share) {
                     showShare();
                 }
                 return false;
             }
         });
     }
-    public void  showShare(){
-        final String url = PreferenceUtils.getPrefString(MyApplication.getInstance(),Constants.D_URL,null);
-        if(!StringUtils.hasText(url)){
-            Toast.makeText(this,R.string.menu_share_copy_error,Toast.LENGTH_SHORT).show();
+
+    public void showShare() {
+        final String url = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.D_URL, null);
+        if (!StringUtils.hasText(url)) {
+            Toast.makeText(this, R.string.menu_share_copy_error, Toast.LENGTH_SHORT).show();
             return;
         }
-        String str = String.format(getResources().getString(R.string.menu_share_url),url);
+        String str = String.format(getResources().getString(R.string.menu_share_url), url);
         AlertDialog.Builder confirmDialog = new AlertDialog.Builder(this);
         confirmDialog.setTitle(R.string.menu_share_title);
         confirmDialog.setMessage(str);
@@ -206,11 +204,11 @@ public class BaseDrawerActivity extends BaseFragmentActivity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 ClipboardManager myClipboard;
-                myClipboard = (ClipboardManager)getSystemService(CLIPBOARD_SERVICE);
+                myClipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
                 ClipData myClip;
                 myClip = ClipData.newPlainText("text", url);
                 myClipboard.setPrimaryClip(myClip);
-                Toast.makeText(BaseDrawerActivity.this,R.string.menu_share_copy_ok,Toast.LENGTH_SHORT).show();
+                Toast.makeText(BaseDrawerActivity.this, R.string.menu_share_copy_ok, Toast.LENGTH_SHORT).show();
                 dialog.dismiss();
             }
         });
@@ -222,6 +220,7 @@ public class BaseDrawerActivity extends BaseFragmentActivity {
         });
         confirmDialog.show();
     }
+
     public void checkUpdate() {
         // 检查版本更新
         if (VersionUpdater.isInitVersionSuccess()) {
@@ -229,8 +228,8 @@ public class BaseDrawerActivity extends BaseFragmentActivity {
                 @Override
                 public void onResponse(final VersionVo vo) {
                     VersionUpdater.setNewVersion(BaseDrawerActivity.this, vo.maxBuild);
-                    PreferenceUtils.setPrefString(MyApplication.getInstance(),Constants.D_URL,vo.url);
-                    PreferenceUtils.setPrefBoolean(MyApplication.getInstance(),Constants.ADS_SHOW_CONFIG,vo.adsShow);
+                    PreferenceUtils.setPrefString(MyApplication.getInstance(), Constants.D_URL, vo.url);
+                    PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.ADS_SHOW_CONFIG, vo.adsShow);
                     if (VersionUpdater.isNewVersion(vo.maxBuild)
                             && StringUtils.hasText(vo.url)) {
                         // 有新版本
@@ -242,8 +241,8 @@ public class BaseDrawerActivity extends BaseFragmentActivity {
                                 VersionUpdater.showUpdateDialog(BaseDrawerActivity.this, vo, true);
                             }
                         }, 300);
-                    }else{
-                        Toast.makeText(BaseDrawerActivity.this,R.string.about_version_update_to_date,Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(BaseDrawerActivity.this, R.string.about_version_update_to_date, Toast.LENGTH_SHORT).show();
                     }
                 }
             }, new CommonResponse.ResponseErrorListener() {

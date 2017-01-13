@@ -9,11 +9,8 @@ buildscript {
                 password 'mobile213456'
             }
         }
-//        maven{
-//            url "http://maven.aliyun.com/nexus/content/groups/public"
-//        }
         mavenCentral()
-        jcenter{
+        jcenter {
             url "http://jcenter.bintray.com"
         }
     }
@@ -36,11 +33,8 @@ allprojects {
                 password 'mobile213456'
             }
         }
-//        maven{
-//            url "http://maven.aliyun.com/nexus/content/groups/public"
-//        }
         mavenCentral()
-        jcenter{
+        jcenter {
             url "http://jcenter.bintray.com"
         }
         maven { url "https://repo.commonsware.com.s3.amazonaws.com" }
@@ -48,7 +42,7 @@ allprojects {
 }
 subprojects {
     ext.global_compileSdkVersion = 23
-    ext.global_buildToolsVersion = "22.0.1"
+    ext.global_buildToolsVersion = "23.0.3"
     ext.global_minSdkVersion = 15
     ext.global_targetSdkVersion = 22
 }

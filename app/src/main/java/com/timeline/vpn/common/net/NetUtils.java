@@ -156,7 +156,7 @@ public class NetUtils {
 
                 String param = url.substring(i + 1, url.length());
                 String[] values = param.split("&");
-                for (String str:values) {
+                for (String str : values) {
                     if (str.contains(key)) {
                         String[] keys = str.split("=");
                         if (keys.length > 1) {

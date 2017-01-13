@@ -67,7 +67,7 @@ public class IWannaFragment extends LoadableFragment<InfoListVo<IWannaVo>> imple
             myProgressDialog.dismiss();
             etComment.setText(null);
             if (!infoVo.hasMore) {
-                infoVo.voList.add(0,o);
+                infoVo.voList.add(0, o);
                 pullView.notifyDataSetChanged();
             }
             Toast.makeText(getActivity(), R.string.iwanna_content_success, Toast.LENGTH_SHORT).show();

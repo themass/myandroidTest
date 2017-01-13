@@ -54,17 +54,17 @@ android {
             minifyEnabled false
             debuggable true
             shrinkResources false
-            //proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            // proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.config
         }
-//        release {
-//            minifyEnabled true
-//            zipAlignEnabled true // Zipalign优化
-//            shrinkResources true // 移除无用的resource文件
-//            debuggable false
-//            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-//            signingConfig signingConfigs.config
-//        }
+        release {
+            minifyEnabled true
+            zipAlignEnabled true // Zipalign优化
+            shrinkResources true // 移除无用的resource文件
+            debuggable false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.config
+        }
     }
     productFlavors {
 //
@@ -72,7 +72,7 @@ android {
 //            manifestPlaceholders = [CHANNEL_VALUE: "MYPOOL",AD_CHANNEL_VALUE: "MYPOOL"]
 //        }
         google {
-            manifestPlaceholders = [CHANNEL_VALUE: "GOOGLEMARKET",AD_CHANNEL_VALUE: "GOOGLEMARKET"]
+            manifestPlaceholders = [CHANNEL_VALUE: "GOOGLEMARKET", AD_CHANNEL_VALUE: "GOOGLEMARKET"]
         }
     }
 }

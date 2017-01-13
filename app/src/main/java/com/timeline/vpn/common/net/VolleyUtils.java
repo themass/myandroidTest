@@ -10,16 +10,19 @@ import com.android.volley.RequestQueue;
 import com.android.volley.RequestQueue.RequestFilter;
 import com.android.volley.TimeoutError;
 import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.BasicNetwork;
 import com.android.volley.toolbox.HttpStack;
 import com.android.volley.toolbox.ImageLoader;
 import com.timeline.vpn.R;
+import com.timeline.vpn.base.MyApplication;
 import com.timeline.vpn.common.exce.MyVolleyError;
 import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.common.util.cache.BitmapLruCache;
 import com.timeline.vpn.common.util.cache.DiskBasedCacheEx;
-
 import java.io.File;
+
+import static com.timeline.vpn.base.MyApplication.isDebug;
 
 /**
  * Volley
@@ -32,8 +35,10 @@ public class VolleyUtils {
     private static RequestQueue mRequestQueue;
     private static ImageLoader mImageLoader;
 
-    public static void init(Context context) {
-        VolleyUtils.context = context;
+    public static void init() {
+        VolleyLog.DEBUG = MyApplication.isDebug;
+        VolleyLog.setTag("VolleyUtils");
+        VolleyUtils.context = MyApplication.getInstance();
         mRequestQueue = newRequestQueue(context, null);
         mImageLoader = new ImageLoader(mRequestQueue, new BitmapLruCache(context));
         mRequestQueue.start();
@@ -52,7 +57,7 @@ public class VolleyUtils {
      * 处理网络请求异常
      */
     public static void showVolleyError(VolleyError volleyError) {
-        LogUtil.e(volleyError);
+        LogUtil.e(volleyError.getMessage(),volleyError);
         Toast.makeText(context, getVolleyError(volleyError), Toast.LENGTH_SHORT).show();
     }
 

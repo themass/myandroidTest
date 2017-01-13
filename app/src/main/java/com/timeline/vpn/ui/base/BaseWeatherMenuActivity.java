@@ -36,8 +36,8 @@ public abstract class BaseWeatherMenuActivity extends LogActivity {
 
         @Override
         public void succeed(double lat, double lon) {
-            StaticDataUtil.add(Constants.LON,lon);
-            StaticDataUtil.add(Constants.LAT,lat);
+            StaticDataUtil.add(Constants.LON, lon);
+            StaticDataUtil.add(Constants.LAT, lat);
             startGetWeather(lat, lon);
         }
 

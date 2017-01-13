@@ -98,11 +98,6 @@ public class DisplayUtil {
      * @return
      */
     public static int getDeviceHtmlWidth(Context context) {
-
-        if (DeviceInfoUtils.isHoneycombTablet(context) && isLandscape(context)) {
-            return getTabletWebViewWidth(context);
-        }
-
         return (int) (getScreenWidthInPx(context) / context.getResources().getDisplayMetrics().density);
     }
 

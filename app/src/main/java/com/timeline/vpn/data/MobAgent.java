@@ -45,7 +45,7 @@ public class MobAgent {
         MobclickAgent.openActivityDurationTrack(false);
         MobclickAgent.enableEncrypt(true);
         MobclickAgent.setScenarioType(context, MobclickAgent.EScenarioType.E_UM_NORMAL);
-        MobclickAgent.setDebugMode( MyApplication.isDebug);
+        MobclickAgent.setDebugMode(MyApplication.isDebug);
     }
 
     public static void onProfileSignIn(String ID) {

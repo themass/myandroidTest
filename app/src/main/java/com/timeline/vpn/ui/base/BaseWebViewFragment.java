@@ -150,7 +150,7 @@ public class BaseWebViewFragment extends BaseFragment {
                 super.onReceivedError(view, request, error);
                 String errorPage = FileUtils.readAssets(getActivity(), "error_page.html");
                 errorPage = errorPage.replace("####", url);
-                LogUtil.e("load url error:"+url);
+                LogUtil.e("load url error:" + url);
                 webView.loadData(errorPage, "text/html; charset=UTF-8", null);
             }
         });
@@ -163,7 +163,7 @@ public class BaseWebViewFragment extends BaseFragment {
     @Override
     public void onPause() {
         super.onPause();
-        if(webView!=null) {
+        if (webView != null) {
             webView.onPause();
         }
     }
@@ -171,7 +171,7 @@ public class BaseWebViewFragment extends BaseFragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if(webView!=null) {
+        if (webView != null) {
             webView.destroy();
         }
     }

@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<shape
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="oval"
-    android:useLevel="false" >
+    android:useLevel="false">
     <gradient
-        android:endColor="#00ff08"
-        android:startColor="#85f109"
-        android:type="sweep"/>
+        android:endColor="@color/base_green"
+        android:startColor="#58810a"
+        android:type="sweep" />
     <stroke
-        android:width="10dp"
+        android:width="@dimen/vpn_ic_width"
         android:color="@color/base_gray" />
 </shape>

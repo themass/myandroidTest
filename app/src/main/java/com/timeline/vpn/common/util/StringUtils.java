@@ -300,6 +300,7 @@ public class StringUtils {
             return 0;
         }
     }
+
     public static String stackTrace2String(Throwable e) {
         StringWriter writer = new StringWriter();
         e.printStackTrace(new PrintWriter(writer, true));

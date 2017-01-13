@@ -16,14 +16,15 @@ import com.timeline.vpn.ui.view.MyWebView;
  * Created by themass on 2016/3/17.
  */
 public class WebViewActivity extends BaseBannerAdsActivity implements MyWebView.OnTouchRightSlide {
-    BaseWebViewFragment webViewFragment;
-    private boolean adsNeed = false;
     protected Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             LogUtil.i("handleMessage-" + msg.what);
         }
     };
+    BaseWebViewFragment webViewFragment;
+    private boolean adsNeed = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -34,16 +35,18 @@ public class WebViewActivity extends BaseBannerAdsActivity implements MyWebView.
                 .commit();
         setNavigationOut();
         adsDelayGone();
-        adsNeed = getIntent()==null?false:getIntent().getBooleanExtra(Constants.ADS_SHOW_CONFIG,false);
+        adsNeed = getIntent() == null ? false : getIntent().getBooleanExtra(Constants.ADS_SHOW_CONFIG, false);
     }
+
     @Override
     public boolean needShow(Context context) {
-        return adsNeed||super.needShow(this);
+        return adsNeed || super.needShow(this);
     }
+
     @Override
     public void onResume() {
         super.onResume();
-        if(needShow(this)){
+        if (needShow(this)) {
             AdsAdview.interstitialAds(this, mHandler);
         }
 
@@ -53,7 +56,7 @@ public class WebViewActivity extends BaseBannerAdsActivity implements MyWebView.
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         LogUtil.i("onKeyDown");
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            if (webViewFragment==null||!webViewFragment.goBack()) {
+            if (webViewFragment == null || !webViewFragment.goBack()) {
                 finish();
                 return super.onKeyDown(keyCode, event);
             }

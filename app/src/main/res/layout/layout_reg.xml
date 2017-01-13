@@ -21,8 +21,8 @@
                 android:id="@+id/et_username"
                 style="@style/edit_login"
                 android:drawableLeft="@drawable/ic_login_user"
-                android:singleLine="true"
-                android:hint="@string/username_hint" />
+                android:hint="@string/username_hint"
+                android:maxLines="1" />
 
             <ImageView style="@style/divider_login" />
 
@@ -31,8 +31,8 @@
                 style="@style/edit_login"
                 android:drawableLeft="@drawable/ic_login_pass"
                 android:hint="@string/password_hint"
-                android:singleLine="true"
-                android:inputType="textPassword" />
+                android:inputType="textPassword"
+                android:maxLines="1" />
 
             <ImageView style="@style/divider_login" />
 
@@ -41,30 +41,35 @@
                 style="@style/edit_login"
                 android:drawableLeft="@drawable/ic_login_pass"
                 android:hint="@string/re_password_hint"
-                android:singleLine="true"
-                android:inputType="textPassword" />
+                android:inputType="textPassword"
+                android:maxLines="1" />
+
             <ImageView style="@style/divider_login" />
+
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:visibility="gone">
+
                 <Button
                     android:id="@+id/bt_code"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@color/reg_code"
                     android:layout_alignParentRight="true"
-                    android:text="@string/re_bt_code">
-                </Button>
+                    android:background="@color/reg_code"
+                    android:text="@string/re_bt_code"></Button>
+
                 <com.timeline.vpn.common.view.MyEditText
                     android:id="@+id/et_code"
                     style="@style/edit_login"
+                    android:layout_toLeftOf="@+id/bt_code"
                     android:hint="@string/re_code"
-                    android:inputType="number"
-                    android:layout_toLeftOf="@+id/bt_code"/>
+                    android:inputType="number" />
 
             </RelativeLayout>
+
             <ImageView style="@style/divider_login" />
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

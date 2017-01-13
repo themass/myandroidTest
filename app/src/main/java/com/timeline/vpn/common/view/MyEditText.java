@@ -1,9 +1,9 @@
 package com.timeline.vpn.common.view;
 
 import android.content.Context;
+import android.support.v7.widget.AppCompatEditText;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
-import android.widget.EditText;
 
 import com.timeline.vpn.base.MyApplication;
 
@@ -12,7 +12,7 @@ import com.timeline.vpn.base.MyApplication;
  *
  * @author hlwang
  */
-public class MyEditText extends EditText {
+public class MyEditText extends AppCompatEditText {
 
     /**
      * @param context

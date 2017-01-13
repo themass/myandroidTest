@@ -1,6 +1,7 @@
 package com.timeline.vpn.common.util;
 
 import android.content.Context;
+import android.os.Environment;
 
 import com.timeline.vpn.base.MyApplication;
 import com.timeline.vpn.constant.Constants;
@@ -121,7 +122,7 @@ public class FileUtils {
                     file.delete();
                 } else if (file.isDirectory()) { // 是文件夹的话递归删除文件夹下的文件
                     File files[] = file.listFiles();
-                    for (File f:files) {
+                    for (File f : files) {
                         deleteFile(f);
                     }
                 }
@@ -168,37 +169,44 @@ public class FileUtils {
         int digitGroups = (int) (Math.log10(size) / Math.log10(1024));
         return new DecimalFormat("0.#").format(size / Math.pow(1024, digitGroups)) + " " + units[digitGroups];
     }
-    public static String getCharonFilePath(){
-            return MyApplication.tmpFilePath + File.separator + Constants.LOG_FILE;
+
+    public static String getCharonFilePath() {
+        return MyApplication.tmpFilePath + File.separator + Constants.LOG_FILE;
 //        return context.getFilesDir().getAbsolutePath() + File.separator + LOG_FILE;
     }
-    public static String getCharonUploadFilePath(){
+
+    public static String getCharonUploadFilePath() {
         return MyApplication.tmpFilePath + File.separator + Constants.LOG_FILE_FOR_UPLOAD;
     }
-    public static String getBugFilePath(){
+
+    public static String getBugFilePath() {
         return MyApplication.tmpFilePath + File.separator + Constants.BUG_FILE;
     }
-    public static String getBugUploadFilePath(){
+
+    public static String getBugUploadFilePath() {
         return MyApplication.tmpFilePath + File.separator + Constants.BUG_FILE_FOR_UPLOAD;
     }
-    public static boolean mvFile(String srcFile,String decFile){
+
+    public static boolean mvFile(String srcFile, String decFile) {
         File file = new File(srcFile);
-        if(file.exists()) {
-           return file.renameTo(new File(decFile));
-        }else{
+        if (file.exists()) {
+            return file.renameTo(new File(decFile));
+        } else {
             return false;
         }
     }
-    public static String getWriteFilePath(Context context,String filePath){
-        return context.getFilesDir().getAbsolutePath()+File.separator +filePath;
-//        String sdStatus = Environment.getExternalStorageState();
-//        if (!sdStatus.equals(Environment.MEDIA_MOUNTED)) {
-//            return context.getFilesDir().getAbsolutePath()+File.separator +filePath;
-//        }else{
-//            return File.separator +"sdcard"+File.separator +filePath;
-//        }
+
+    public static String getWriteFilePath(Context context, String filePath) {
+//        return context.getFilesDir().getAbsolutePath()+File.separator +filePath;
+        String sdStatus = Environment.getExternalStorageState();
+        if (!sdStatus.equals(Environment.MEDIA_MOUNTED)) {
+            return context.getFilesDir().getAbsolutePath() + File.separator + filePath;
+        } else {
+            return File.separator + "sdcard" + File.separator + filePath;
+        }
     }
-    public static boolean ensureFile(Context context,String filePath){
+
+    public static boolean ensureFile(Context context, String filePath) {
         File path = new File(filePath);
         if (!path.exists()) {
             LogUtil.d("Create the path:" + filePath);
@@ -206,25 +214,27 @@ public class FileUtils {
         }
         return true;
     }
-    public static void writeLogFile(String content,String fileName) {
+
+    public static void writeLogFile(String content, String fileName) {
         File file = new File(MyApplication.tmpFilePath, fileName);
-        try{
+        try {
             if (!file.exists()) {
                 LogUtil.d("Create the file:" + fileName);
                 file.createNewFile();
             }
             RandomAccessFile raf = new RandomAccessFile(file, "rw");
             raf.seek(file.length());
-            raf.write("/r/n".getBytes() );
+            raf.write("/r/n".getBytes());
             raf.write(content.getBytes());
             raf.close();
         } catch (Exception e) {
             LogUtil.d("Error on writeFilToSD.");
         }
     }
-    public static void delLogFile(String fileName){
+
+    public static void delLogFile(String fileName) {
         File file = new File(MyApplication.tmpFilePath, fileName);
-        if(file.exists()){
+        if (file.exists()) {
             file.delete();
         }
 

@@ -10,7 +10,7 @@
         android:id="@+id/icon_layout"
         android:layout_width="65dp"
         android:layout_height="65dp"
-        android:background="@color/base_white"/>
+        android:background="@color/base_white" />
 
     <RelativeLayout
         android:layout_width="match_parent"

@@ -9,21 +9,24 @@ import com.timeline.vpn.log.WriteThread;
  */
 public class LogToFileService extends BaseLogService {
     WriteThread thread;
+
     @Override
     public void onCreate() {
         super.onCreate();
         thread = new WriteThread();
         thread.start();
     }
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 //        new LogTask(this,content).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         return super.onStartCommand(intent, flags, startId);
     }
+
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if(thread!=null && thread.isAlive()){
+        if (thread != null && thread.isAlive()) {
             thread.stopRun();
             thread = null;
         }

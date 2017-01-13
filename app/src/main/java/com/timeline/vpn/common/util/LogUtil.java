@@ -10,6 +10,7 @@ import com.timeline.vpn.data.config.LogAddEvent;
  */
 public class LogUtil {
     private static final String TAG = "myTag";
+
     public static void i(String tag, String msg) {
         Log.i(tag, msg);
     }
@@ -17,13 +18,15 @@ public class LogUtil {
     public static void d(String tag, String msg) {
         Log.d(tag, msg);
     }
+
     public static void e(String msg, Throwable t) {
-        if(!MyApplication.isDebug){
-            EventBusUtil.getEventBus().post(new LogAddEvent(msg,t));
-        }else{
+        if (!MyApplication.isDebug) {
+            EventBusUtil.getEventBus().post(new LogAddEvent(msg, t));
+        } else {
             Log.e(TAG, msg, t);
         }
     }
+
     public static void error(String msg, Throwable t) {
         Log.e(TAG, msg, t);
     }
@@ -31,9 +34,11 @@ public class LogUtil {
     public static void w(String tag, String msg) {
         Log.w(tag, msg);
     }
+
     public static void w(String msg) {
         Log.w(TAG, msg);
     }
+
     public static void i(String msg) {
         if (msg == null) {
             Log.i(TAG, "null");
@@ -47,17 +52,17 @@ public class LogUtil {
     }
 
     public static void e(Throwable t) {
-        if(!MyApplication.isDebug){
+        if (!MyApplication.isDebug) {
             EventBusUtil.getEventBus().post(new LogAddEvent(t));
-        }else{
-            Log.e(TAG, "",t);
+        } else {
+            Log.e(TAG, "", t);
         }
     }
 
     public static void e(String t) {
-        if(!MyApplication.isDebug){
+        if (!MyApplication.isDebug) {
             EventBusUtil.getEventBus().post(new LogAddEvent(t));
-        }else{
+        } else {
             Log.e(TAG, t);
         }
     }

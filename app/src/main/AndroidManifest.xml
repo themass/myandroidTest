@@ -1,22 +1,8 @@
-<?xml version="1.0" encoding="utf-8"?><!--
-    Copyright (C) 2012-2014 Tobias Brunner
-    Copyright (C) 2012 Giuliano Grassi
-    Copyright (C) 2012 Ralf Sager
-    Hochschule fuer Technik Rapperswil
-
-    This program is free software; you can redistribute it and/or modify it
-    under the terms of the GNU General Public License as published by the
-    Free Software Foundation; either version 2 of the License, or (at your
-    option) any later version.  See <http://www.fsf.org/copyleft/gpl.txt>.
-
-    This program is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-    or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-    for more details.
--->
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.timeline.vpn">
+
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
@@ -44,14 +30,14 @@
     <uses-permission android:name="android.permission.CALL_PHONE" />
     <uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS" />
 
-    <!--permission
+    <permission
         android:name="com.android.launcher.permission.READ_SETTINGS"
         android:permissionGroup="android.permission-group.SYSTEM_TOOLS"
-        android:protectionLevel="normal" /-->
-    <!--permission
+        android:protectionLevel="normal" />
+    <permission
         android:name="com.android.launcher.permission.WRITE_SETTINGS"
         android:permissionGroup="android.permission-group.SYSTEM_TOOLS"
-        android:protectionLevel="normal" /-->
+        android:protectionLevel="normal" />
 
     <application
         android:name=".base.MyApplication"
@@ -72,23 +58,24 @@
             android:value="57b56211e0f55ab5da0002a3" />
         <meta-data
             android:name="UMENG_MESSAGE_SECRET"
-            android:value="06ab5668a76ad1be10a1ec82e7f6ddfb" >
-        </meta-data>
+            android:value="06ab5668a76ad1be10a1ec82e7f6ddfb"/>
 
         <meta-data
             android:name="UMENG_CHANNEL"
             android:value="${CHANNEL_VALUE}" />
         <meta-data
             android:name="AdView_CHANNEL"
-            android:value="${AD_CHANNEL_VALUE}"/>
+            android:value="${AD_CHANNEL_VALUE}" />
+
         <activity android:name=".ui.main.LaunchActivity">
             <intent-filter tools:ignore="GoogleAppIndexingWarning">
                 <action android:name="android.intent.action.VIEW" />
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ui.main.LaunchActivityTest"/>
+        <activity android:name=".ui.main.LaunchActivityTest" />
         <activity
             android:name=".ui.main.MainFragment"
             android:label="@string/main_activity_name"
@@ -103,9 +90,10 @@
         </activity>
         <activity android:name=".ui.feedback.ConversationDetailActivity" />
         <activity android:name=".ui.base.CommonFragmentActivity" />
+
         <service
             android:name="org.strongswan.android.logic.VpnStateService"
-            android:exported="false"/>
+            android:exported="false" />
         <service
             android:name="org.strongswan.android.logic.CharonVpnService"
             android:exported="false"
@@ -115,15 +103,14 @@
                 <action android:name="android.net.VpnService" />
             </intent-filter>
         </service>
-        <service android:name=".service.LogUploadService"/>
-        <service android:name=".service.LogToFileService"/>
-
+        <service android:name=".service.LogUploadService" />
+        <service android:name=".service.LogToFileService" />
 
         <!-- 百度定位-->
         <service
             android:name="com.baidu.location.f"
             android:enabled="true"
-            android:process=":remote"/>
+            android:process=":remote" />
 
         <!-- 广告sdk-->
         <!--must-->
@@ -131,9 +118,11 @@
             android:name="com.kuaiyou.video.vast.activity.VASTAdActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:hardwareAccelerated="true"
-            android:screenOrientation="landscape"/>
-        <activity android:name="com.kuaiyou.video.AdviewWebView"/>
+            android:screenOrientation="landscape" />
+        <activity android:name="com.kuaiyou.video.AdviewWebView" />
+
         <service android:name="com.kyview.DownloadService" />
+
         <activity android:name="com.kyview.AdviewWebView" />
         <activity android:name="com.kyview.AdActivity" />
         <!-- AdView SDK for JD -->
@@ -150,7 +139,7 @@
         <receiver
             android:name="com.inmobi.commons.core.utilities.uid.ImIdShareBroadCastReceiver"
             android:enabled="true"
-            android:exported="true" >
+            android:exported="true">
             <intent-filter>
                 <action android:name="com.inmobi.share.id" />
             </intent-filter>
@@ -163,40 +152,35 @@
             android:name="net.youmi.android.normal.video.VideoActivity"
             android:configChanges="keyboard|keyboardHidden|screenSize|orientation"
             android:screenOrientation="landscape"
-            android:theme="@android:style/Theme.NoTitleBar">
-        </activity>
+            android:theme="@android:style/Theme.NoTitleBar"/>
 
         <activity
             android:name="net.youmi.android.AdBrowser"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
-            android:theme="@android:style/Theme.NoTitleBar">
-        </activity>
+            android:theme="@android:style/Theme.NoTitleBar"/>
 
         <service
             android:name="net.youmi.android.AdService"
-            android:exported="false">
-        </service>
+            android:exported="false"/>
 
         <receiver android:name="net.youmi.android.AdReceiver">
             <intent-filter>
-                <action android:name="android.intent.action.PACKAGE_ADDED"/>
-                <action android:name="android.intent.action.PACKAGE_INSTALL"/>
+                <action android:name="android.intent.action.PACKAGE_ADDED" />
+                <action android:name="android.intent.action.PACKAGE_INSTALL" />
 
-                <data android:scheme="package"/>
+                <data android:scheme="package" />
             </intent-filter>
         </receiver>
 
         <!-- AdView SDK for tencent Gdt -->
         <service
             android:name="com.qq.e.comm.DownloadService"
-            android:exported="false" >
-        </service>
+            android:exported="false"/>
 
         <activity
             android:name="com.qq.e.ads.ADActivity"
             android:configChanges="keyboard|keyboardHidden|orientation"
-            android:theme="@android:style/Theme.Translucent" >
-        </activity>
+            android:theme="@android:style/Theme.Translucent"/>
         <!-- AdView SDK for AdMob -->
         <activity
             android:name="com.google.android.gms.ads.AdActivity"

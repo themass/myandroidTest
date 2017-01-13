@@ -31,29 +31,29 @@ public class DataBuilder {
         return profile;
     }
 
-    public static <T> JsonResult<T> parserVo(Class<T> clasz, String json,String key) {
-        if(clasz==null){
-            clasz = (Class<T>)Object.class;
+    public static <T> JsonResult<T> parserVo(Class<T> clasz, String json, String key) {
+        if (clasz == null) {
+            clasz = (Class<T>) Object.class;
         }
         Type typeOfT = GsonUtils.type(JsonResult.class, clasz);
         JsonResult<T> ret = GsonUtils.getInstance().fromJson(json, typeOfT);
-        if(StringUtils.hasText(ret.data)){
-            String str = AES2.decode(ret.data,key);
-            ret.objData = GsonUtils.getInstance().fromJson(str,clasz);
+        if (StringUtils.hasText(ret.data)) {
+            String str = AES2.decode(ret.data, key);
+            ret.objData = GsonUtils.getInstance().fromJson(str, clasz);
         }
         return ret;
     }
 
-    public static <T> JsonResult<InfoListVo<T>> parserListVo(Class<T> clasz, String json,String key) {
-        if(clasz==null){
-            clasz = (Class<T>)Object.class;
+    public static <T> JsonResult<InfoListVo<T>> parserListVo(Class<T> clasz, String json, String key) {
+        if (clasz == null) {
+            clasz = (Class<T>) Object.class;
         }
         Type TypeItem = GsonUtils.type(InfoListVo.class, clasz);
         Type typeOfT = GsonUtils.type(JsonResult.class, TypeItem);
         JsonResult<InfoListVo<T>> ret = GsonUtils.getInstance().fromJson(json, typeOfT);
-        if(StringUtils.hasText(ret.data)){
-            String str = AES2.decode(ret.data,key);
-            ret.objData = GsonUtils.getInstance().fromJson(str,TypeItem);
+        if (StringUtils.hasText(ret.data)) {
+            String str = AES2.decode(ret.data, key);
+            ret.objData = GsonUtils.getInstance().fromJson(str, TypeItem);
         }
         return ret;
     }

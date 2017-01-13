@@ -64,11 +64,13 @@ public class BaseService {
         request.setTag(tag);
         VolleyUtils.addRequest(request);
     }
-    public <T> void postData(String url, List<File> file,CommonResponse.ResponseOkListener<T> listener, CommonResponse.ResponseErrorListener errorListener,String name, String tag, Class<T> t) {
-        MultipartRequest request = new MultipartRequest(context, url, null,file,name,listener,errorListener, t);
+
+    public <T> void postData(String url, List<File> file, CommonResponse.ResponseOkListener<T> listener, CommonResponse.ResponseErrorListener errorListener, String name, String tag, Class<T> t) {
+        MultipartRequest request = new MultipartRequest(context, url, null, file, name, listener, errorListener, t);
         request.setTag(tag);
         VolleyUtils.addRequest(request);
     }
+
     public void cancelRequest(String tag) {
         VolleyUtils.cancelRequest(tag);
     }

@@ -4,6 +4,7 @@ import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.toolbox.HttpStack;
 import com.timeline.vpn.base.MyApplication;
+import com.timeline.vpn.common.exce.RequestException;
 import com.timeline.vpn.common.net.interceptor.DnsRequestInterceptor;
 import com.timeline.vpn.common.net.request.MultipartRequest;
 import com.timeline.vpn.common.util.LogUtil;
@@ -51,13 +52,14 @@ public class OkHttpStack implements HttpStack {
         clientBuilder.connectTimeout(CONNECT_TIMEOUT, TimeUnit.SECONDS);
         clientBuilder.readTimeout(DEFUAT_TIMEOUT, TimeUnit.SECONDS);
         clientBuilder.writeTimeout(WRITE_TIMEOUT, TimeUnit.SECONDS);
-        if(MyApplication.isDebug) {
+        if (MyApplication.isDebug) {
             clientBuilder.addInterceptor(new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY));
         }
 //        clientBuilder.addInterceptor(new GzipRequestInterceptor());
         clientBuilder.addInterceptor(new DnsRequestInterceptor());
         mClient = clientBuilder.build();
     }
+
     private static HttpEntity entityFromOkHttpResponse(Response r) throws IOException {
         BasicHttpEntity entity = new BasicHttpEntity();
         ResponseBody body = r.body();
@@ -128,22 +130,22 @@ public class OkHttpStack implements HttpStack {
     }
 
     private static RequestBody createRequestBody(Request r) throws AuthFailureError {
-        if(r instanceof MultipartRequest && ((MultipartRequest) r).getFile()!=null){
+        if (r instanceof MultipartRequest && ((MultipartRequest) r).getFile() != null) {
             MultipartBody.Builder builder = new MultipartBody.Builder().setType(MultipartBody.FORM);
             List<File> fileList = ((MultipartRequest) r).getFile();
             int count = 0;
-            for(File file:fileList){
-                if(file.exists() && file.length()>100) {
-                    LogUtil.i("add file:"+file.getName());
+            for (File file : fileList) {
+                if (file.exists() && file.length() > 100) {
+                    LogUtil.i("add file:" + file.getName());
                     RequestBody fileBody = RequestBody.create(MediaType.parse("application/octet-stream"), file);
                     builder.addFormDataPart(((MultipartRequest) r).getName(), file.getName(), fileBody);
                     count++;
                 }
             }
-            if(count==0){
-                throw new IllegalAccessError("MultipartRequest has no part");
+            if (count == 0) {
+                throw new RequestException("MultipartRequest has no part");
             }
-            return builder .build();
+            return builder.build();
         }
         final byte[] body = r.getBody();
         if (body == null) {

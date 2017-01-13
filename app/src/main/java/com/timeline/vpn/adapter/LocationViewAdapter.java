@@ -14,9 +14,9 @@ import android.widget.TextView;
 
 import com.timeline.vpn.R;
 import com.timeline.vpn.bean.vo.LocationVo;
-import com.timeline.vpn.common.util.PreferenceUtils;
 import com.timeline.vpn.constant.BaseRes;
 import com.timeline.vpn.constant.Constants;
+import com.timeline.vpn.data.LocationUtil;
 
 import java.util.List;
 
@@ -29,10 +29,10 @@ public class LocationViewAdapter extends BaseRecyclerViewAdapter<LocationViewAda
     private int chooseId = 0;
     private ColorStateList indexColo = null;
     private ColorStateList indexSelectColo = null;
+
     public LocationViewAdapter(Context context, RecyclerView recyclerView, List<LocationVo> data, OnRecyclerViewItemClickListener<LocationVo> listener) {
         super(context, recyclerView, data, listener);
-        LocationVo chooseVo = PreferenceUtils.getPrefObj(context, Constants.LOCATION_CHOOSE, LocationVo.class);
-        chooseId = chooseVo==null?0:chooseVo.id;
+        chooseId = LocationUtil.getSelectId(context);
         indexColo = (ColorStateList) context.getResources().getColorStateList(R.color.location_index);
         indexSelectColo = (ColorStateList) context.getResources().getColorStateList(R.color.base_red);
     }

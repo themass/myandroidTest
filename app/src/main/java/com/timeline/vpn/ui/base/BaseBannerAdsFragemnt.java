@@ -63,6 +63,7 @@ public abstract class BaseBannerAdsFragemnt extends TabBaseFragment implements A
         super.onResume();
         showAds(getActivity());
     }
+
     @Override
     public void onPause() {
         super.onPause();
@@ -74,13 +75,6 @@ public abstract class BaseBannerAdsFragemnt extends TabBaseFragment implements A
         init = false;
         super.onDestroyView();
 
-    }
-
-    class AdsGoneTask implements Runnable {
-        @Override
-        public void run() {
-           hidenAds(getActivity());
-        }
     }
 
     @Override
@@ -97,8 +91,8 @@ public abstract class BaseBannerAdsFragemnt extends TabBaseFragment implements A
             } else {
                 hidenAds(context);
             }
-        }else{
-            if(flBanner!=null)
+        } else {
+            if (flBanner != null)
                 flBanner.setVisibility(View.GONE);
         }
     }
@@ -116,5 +110,12 @@ public abstract class BaseBannerAdsFragemnt extends TabBaseFragment implements A
     @Override
     public boolean needShow(Context context) {
         return init;
+    }
+
+    class AdsGoneTask implements Runnable {
+        @Override
+        public void run() {
+            hidenAds(getActivity());
+        }
     }
 }

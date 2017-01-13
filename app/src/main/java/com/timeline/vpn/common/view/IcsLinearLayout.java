@@ -31,7 +31,7 @@ class IcsLinearLayout extends LinearLayout {
     private int mShowDividers;
     private int mDividerPadding;
 
-    public IcsLinearLayout(Context context){
+    public IcsLinearLayout(Context context) {
         super(context);
         TypedArray a = context.obtainStyledAttributes(null, LL, 0, 0);
         setDividerDrawable(a.getDrawable(IcsLinearLayout.LL_DIVIDER));
@@ -39,14 +39,16 @@ class IcsLinearLayout extends LinearLayout {
         mShowDividers = a.getInteger(LL_SHOW_DIVIDER, SHOW_DIVIDER_NONE);
         a.recycle();
     }
-    public IcsLinearLayout(Context context,AttributeSet set){
-        super(context,set);
+
+    public IcsLinearLayout(Context context, AttributeSet set) {
+        super(context, set);
         TypedArray a = context.obtainStyledAttributes(null, LL, 0, 0);
         setDividerDrawable(a.getDrawable(IcsLinearLayout.LL_DIVIDER));
         mDividerPadding = a.getDimensionPixelSize(LL_DIVIDER_PADDING, 0);
         mShowDividers = a.getInteger(LL_SHOW_DIVIDER, SHOW_DIVIDER_NONE);
         a.recycle();
     }
+
     public IcsLinearLayout(Context context, int themeAttr) {
         super(context);
         TypedArray a = context.obtainStyledAttributes(null, LL, themeAttr, 0);

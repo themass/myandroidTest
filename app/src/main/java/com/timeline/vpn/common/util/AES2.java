@@ -1,4 +1,5 @@
 package com.timeline.vpn.common.util;
+
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -6,6 +7,7 @@ public class AES2 {
 
 
     static final String algorithmStr = "AES/ECB/PKCS5Padding";
+
     private static byte[] encrypt(String content, String password) {
         try {
             byte[] keyStr = getKey(password);
@@ -47,12 +49,13 @@ public class AES2 {
 
     /**
      * 将二进制转换成16进制
+     *
      * @param buf
      * @return
      */
     public static String parseByte2HexStr(byte buf[]) {
         StringBuilder sb = new StringBuilder();
-        for (byte i: buf) {
+        for (byte i : buf) {
             String hex = Integer.toHexString(i & 0xFF);
             if (hex.length() == 1) {
                 hex = '0' + hex;
@@ -64,6 +67,7 @@ public class AES2 {
 
     /**
      * 将16进制转换为二进制
+     *
      * @param hexStr
      * @return
      */
@@ -80,20 +84,20 @@ public class AES2 {
     }
 
     /**
-     *加密
+     * 加密
      */
-    public static String encode(String content,String key) {
+    public static String encode(String content, String key) {
         // 加密之后的字节数组,转成16进制的字符串形式输出
         return parseByte2HexStr(encrypt(content, key));
     }
 
     /**
-     *解密
+     * 解密
      */
-    public static String decode(String content,String key) {
+    public static String decode(String content, String key) {
         // 解密之前,先将输入的字符串按照16进制转成二进制的字节数组,作为待解密的内容输入
         byte[] b = decrypt(parseHexStr2Byte(content), key);
-        if(b==null)
+        if (b == null)
             return null;
         return new String(b);
     }

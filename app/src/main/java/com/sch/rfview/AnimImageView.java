@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.support.v7.widget.AppCompatImageView;
 import android.util.AttributeSet;
 import android.widget.ImageView;
 
@@ -13,7 +14,7 @@ import android.widget.ImageView;
  * <br/>
  * 自定义动画ImageView
  */
-public class AnimImageView extends ImageView {
+public class AnimImageView extends AppCompatImageView {
 
     private int dp1; // 1dp
     private int screenWidth; // 屏幕宽度

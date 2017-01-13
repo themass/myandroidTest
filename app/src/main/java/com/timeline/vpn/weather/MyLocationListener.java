@@ -69,7 +69,7 @@ public class MyLocationListener implements BDLocationListener {
             sb.append("\npoilist size = : ");
             sb.append(list.size());
             for (Poi p : list) {
-                sb.append("\npoi= : ").append(p.getId() ).append(" ").append(p.getName()).append( " ").append( p.getRank());
+                sb.append("\npoi= : ").append(p.getId()).append(" ").append(p.getName()).append(" ").append(p.getRank());
             }
         }
         Log.i("BaiduLocationApiDem", sb.toString());

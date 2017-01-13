@@ -31,6 +31,7 @@ public class TableUpdater {
             execute(oldVersion);
         }
     }
+
     private void execute(int oldVersion) {
         switch (oldVersion) {
             default:

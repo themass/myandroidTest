@@ -12,6 +12,8 @@
     <dimen name="location_choose_margin">5dp</dimen>
     <dimen name="location_choose_tv_size">16sp</dimen>
     <dimen name="location_choose_tv_item_size">16sp</dimen>
+    <dimen name="vpn_ic_width">7dip</dimen>
+    <dimen name="vpn_ic_size">30dip</dimen>
     <dimen name="textsize_5">5sp</dimen>
     <dimen name="textsize_9">9sp</dimen>
     <dimen name="textsize_12">12sp</dimen>
@@ -28,6 +30,7 @@
     <dimen name="textsize_32">32sp</dimen>
     <dimen name="margin_3">3dip</dimen>
     <dimen name="margin_5">5dip</dimen>
+    <dimen name="margin_7">7dip</dimen>
     <dimen name="margin_8">8dip</dimen>
     <dimen name="margin_9">9dip</dimen>
     <dimen name="margin_10">10dip</dimen>

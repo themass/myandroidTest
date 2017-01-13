@@ -58,6 +58,7 @@ public class LoginActivity extends BaseBannerAdsActivity {
         }
 
     }
+
     @OnClick(R.id.btn_reg)
     public void reg(View view) {
         finish();

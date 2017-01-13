@@ -112,7 +112,7 @@ public class FileLogFragment extends BaseFragment implements Runnable {
         mLogHandler.post(new Runnable() {
             @Override
             public void run() {
-				/* strip off prefix (month=3, day=2, time=8, thread=2, spaces=3) */
+                /* strip off prefix (month=3, day=2, time=8, thread=2, spaces=3) */
                 mLogView.append((line.length() > 18 ? line.substring(18) : line) + '\n');
 				/* calling autoScroll() directly does not work, probably because content
 				 * is not yet updated, so we post this to be done later */

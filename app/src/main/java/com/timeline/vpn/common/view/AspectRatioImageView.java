@@ -2,10 +2,10 @@ package com.timeline.vpn.common.view;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.support.v7.widget.AppCompatImageView;
 import android.util.AttributeSet;
-import android.widget.ImageView;
 
-public class AspectRatioImageView extends ImageView {
+public class AspectRatioImageView extends AppCompatImageView {
 
     public AspectRatioImageView(Context context) {
         super(context);

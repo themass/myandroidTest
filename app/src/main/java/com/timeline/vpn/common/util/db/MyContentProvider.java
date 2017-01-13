@@ -133,7 +133,7 @@ public abstract class MyContentProvider extends ContentProvider {
         try {
             db = mOpenHelper.getWritableDatabase();
             db.beginTransaction();
-            for (ContentValues val:values) {
+            for (ContentValues val : values) {
                 if (db.insert(args.table, null, val) < 0)
                     return 0;
             }

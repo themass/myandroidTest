@@ -34,7 +34,6 @@ import com.timeline.vpn.adapter.IndexRecommendAdapter;
 import com.timeline.vpn.bean.DataBuilder;
 import com.timeline.vpn.bean.vo.HostVo;
 import com.timeline.vpn.bean.vo.InfoListVo;
-import com.timeline.vpn.bean.vo.LocationVo;
 import com.timeline.vpn.bean.vo.RecommendVo;
 import com.timeline.vpn.bean.vo.ServerVo;
 import com.timeline.vpn.bean.vo.VpnProfile;
@@ -42,9 +41,9 @@ import com.timeline.vpn.common.net.HttpUtils;
 import com.timeline.vpn.common.net.request.CommonResponse;
 import com.timeline.vpn.common.util.EventBusUtil;
 import com.timeline.vpn.common.util.LogUtil;
-import com.timeline.vpn.common.util.PreferenceUtils;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
+import com.timeline.vpn.data.LocationUtil;
 import com.timeline.vpn.data.config.ConfigActionEvent;
 import com.timeline.vpn.ui.base.LoadableTabFragment;
 import com.timeline.vpn.ui.view.MyPullView;
@@ -67,6 +66,7 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
     private static final String DIALOG_TAG = "Dialog";
     private static final String INDEX_TAG = "index_tag";
     private static final int PREPARE_VPN_SERVICE = 0;
+    private static boolean isAnim = false;
     @Bind(R.id.tv_vpn_state_text)
     TextView tvVpnText;
     @Bind(R.id.iv_vpn_state)
@@ -74,15 +74,26 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
     @Bind(R.id.my_pullview)
     MyPullView pullView;
     PingTask task;
-    private static boolean isAnim = false;
+    private IndexRecommendAdapter adapter;
+    private volatile boolean hasIp = false;
+    CommonResponse.ResponseErrorListener serverListenerError = new CommonResponse.ResponseErrorListener() {
+        @Override
+        protected void onError() {
+            super.onError();
+            imgError();
+        }
+    };
+    private VpnStateService mService;
+    private Handler handler = new Handler();
+    private VpnProfile vpnProfile;
     CommonResponse.ResponseOkListener serverListener = new CommonResponse.ResponseOkListener<ServerVo>() {
         @Override
         public void onResponse(ServerVo serverVo) {
-            if(serverVo.hostList!=null){
-                if(serverVo.hostList.size()==1){
+            if (serverVo.hostList != null) {
+                if (serverVo.hostList.size() == 1) {
                     LogUtil.i("one host start ready");
-                    startVpn(serverVo,serverVo.hostList.get(0));
-                }else{
+                    startVpn(serverVo, serverVo.hostList.get(0));
+                } else {
                     LogUtil.i("many host start task ping");
                     for (HostVo vo : serverVo.hostList) {
                         task = new PingTask(serverVo);
@@ -94,16 +105,6 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
 
         }
     };
-    private IndexRecommendAdapter adapter;
-    private volatile boolean hasIp = false;
-    CommonResponse.ResponseErrorListener serverListenerError = new CommonResponse.ResponseErrorListener() {
-        @Override
-        protected void onError() {
-            super.onError();
-            imgError();
-        }
-    };
-    private VpnStateService mService;
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceDisconnected(ComponentName name) {
@@ -117,12 +118,9 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
             mService.registerListener(TabIndexFragment.this);
             vpnProfile = mService.getProfile();
             stateChanged();
-            LogUtil.i(mService.getState()+"");
+            LogUtil.i(mService.getState() + "");
         }
     };
-
-    private Handler handler = new Handler();
-    private VpnProfile vpnProfile;
     private Animation operatingAnim = null;
     private LinearInterpolator lir = null;
     private BaseService indexService;
@@ -167,7 +165,7 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
 
     @Override
     protected InfoListVo<RecommendVo> loadData(Context context) throws Exception {
-        LogUtil.i("loadData:"+mData);
+        LogUtil.i("loadData:" + mData);
         return indexService.getInfoListData(Constants.getRECOMMEND_URL(infoVo.pageNum), RecommendVo.class, INDEX_TAG);
     }
 
@@ -214,9 +212,9 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
     @Override
     public void onItemClick(View v, int position) {
         RecommendVo vo = infoVo.voList.get(position);
-        Map<String,Object> param = new HashMap<>();
-        param.put(Constants.ADS_SHOW_CONFIG,vo.adsShow);
-        EventBusUtil.getEventBus().post(new ConfigActionEvent(getActivity(), vo.actionUrl,param));
+        Map<String, Object> param = new HashMap<>();
+        param.put(Constants.ADS_SHOW_CONFIG, vo.adsShow);
+        EventBusUtil.getEventBus().post(new ConfigActionEvent(getActivity(), vo.actionUrl, param));
     }
 
     @Override
@@ -226,7 +224,7 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
         mService.unregisterListener(this);
         getActivity().unbindService(mServiceConnection);
         indexService.cancelRequest(INDEX_TAG);
-        if(task!=null){
+        if (task != null) {
             task.cancel(true);
         }
 
@@ -244,8 +242,8 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
             mService.disconnect();
         } else {
             imgAnim();
-            LocationVo vo = PreferenceUtils.getPrefObj(getActivity(), Constants.LOCATION_CHOOSE, LocationVo.class);
-            indexService.getData(String.format(Constants.getUrl(Constants.API_SERVERLIST_URL), vo == null ? 0 : vo.id), serverListener, serverListenerError, INDEX_TAG, ServerVo.class);
+            int id = LocationUtil.getSelectId(getActivity());
+            indexService.getData(String.format(Constants.getUrl(Constants.API_SERVERLIST_URL), id), serverListener, serverListenerError, INDEX_TAG, ServerVo.class);
 
         }
     }
@@ -302,7 +300,7 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
     }
 
     private void imgAnim() {
-        if(!isAnim) {
+        if (!isAnim) {
             stopAnim();
             isAnim = true;
             hasIp = false;
@@ -312,8 +310,9 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
             ibVpnStatus.setEnabled(false);
         }
     }
+
     private void imgDisAnim() {
-        if(!isAnim) {
+        if (!isAnim) {
             stopAnim();
             isAnim = true;
             hasIp = false;
@@ -323,6 +322,7 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
             ibVpnStatus.setEnabled(false);
         }
     }
+
     private void imgError() {
         stopAnim();
         hasIp = false;
@@ -350,6 +350,17 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
         isAnim = false;
         ibVpnStatus.clearAnimation();
     }
+
+    public void startVpn(ServerVo server, HostVo vo) {
+        synchronized (mService) {
+            if (!hasIp) {
+                hasIp = true;
+                vpnProfile = DataBuilder.builderVpnProfile(server.expire, server.name, server.pwd, vo);
+                prepareVpnService();
+            }
+        }
+    }
+
     public static class VpnNotSupportedError extends DialogFragment {
         static final String ERROR_MESSAGE_ID = "org.strongswan.android.VpnNotSupportedError.MessageId";
 
@@ -377,15 +388,7 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
                     }).create();
         }
     }
-    public void startVpn(ServerVo server,HostVo vo){
-        synchronized (mService) {
-            if (!hasIp) {
-                hasIp = true;
-                vpnProfile = DataBuilder.builderVpnProfile(server.expire, server.name, server.pwd, vo);
-                prepareVpnService();
-            }
-        }
-    }
+
     public class PingTask extends AsyncTask<HostVo, Void, HostVo> {
         private ServerVo server;
 
@@ -398,8 +401,8 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
             HostVo vo = params[0];
             vo.ttlTime = HttpUtils.ping(vo.gateway);
             LogUtil.i(vo.toString());
-            if(vo.ttlTime > 0){
-                startVpn(server,vo);
+            if (vo.ttlTime > 0) {
+                startVpn(server, vo);
             }
             return vo;
         }
@@ -421,42 +424,39 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
             this.errorState = errorState;
             this.imcState = imcState;
         }
-        public boolean hasError(){
-                if (errorState == VpnStateService.ErrorState.NO_ERROR)
-                {
-                    return false;
-                }
-                switch (errorState)
-                {
-                    case AUTH_FAILED:
-                        if (imcState == ImcState.BLOCK)
-                        {
-                            Toast.makeText(TabIndexFragment.this.getActivity(),R.string.error_assessment_failed,Toast.LENGTH_SHORT).show();
-                        }
-                        else
-                        {
-                            Toast.makeText(TabIndexFragment.this.getActivity(),R.string.error_auth_failed,Toast.LENGTH_SHORT).show();
-                        }
-                        break;
-                    case PEER_AUTH_FAILED:
-                        Toast.makeText(TabIndexFragment.this.getActivity(),R.string.error_peer_auth_failed,Toast.LENGTH_SHORT).show();
-                        break;
-                    case LOOKUP_FAILED:
-                        Toast.makeText(TabIndexFragment.this.getActivity(),R.string.error_lookup_failed,Toast.LENGTH_SHORT).show();
-                        break;
-                    case UNREACHABLE:
-                        Toast.makeText(TabIndexFragment.this.getActivity(),R.string.error_unreachable,Toast.LENGTH_SHORT).show();
-                        break;
-                    default:
-                        Toast.makeText(TabIndexFragment.this.getActivity(),R.string.error_generic,Toast.LENGTH_SHORT).show();
-                        break;
-                }
-                return true;
+
+        public boolean hasError() {
+            if (errorState == VpnStateService.ErrorState.NO_ERROR) {
+                return false;
+            }
+            switch (errorState) {
+                case AUTH_FAILED:
+                    if (imcState == ImcState.BLOCK) {
+                        Toast.makeText(TabIndexFragment.this.getActivity(), R.string.error_assessment_failed, Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(TabIndexFragment.this.getActivity(), R.string.error_auth_failed, Toast.LENGTH_SHORT).show();
+                    }
+                    break;
+                case PEER_AUTH_FAILED:
+                    Toast.makeText(TabIndexFragment.this.getActivity(), R.string.error_peer_auth_failed, Toast.LENGTH_SHORT).show();
+                    break;
+                case LOOKUP_FAILED:
+                    Toast.makeText(TabIndexFragment.this.getActivity(), R.string.error_lookup_failed, Toast.LENGTH_SHORT).show();
+                    break;
+                case UNREACHABLE:
+                    Toast.makeText(TabIndexFragment.this.getActivity(), R.string.error_unreachable, Toast.LENGTH_SHORT).show();
+                    break;
+                default:
+                    Toast.makeText(TabIndexFragment.this.getActivity(), R.string.error_generic, Toast.LENGTH_SHORT).show();
+                    break;
+            }
+            return true;
         }
+
         @Override
         public void run() {
             LogUtil.i("vpn stateChanged stateChanged " + state + "  errorState=" + errorState + "imcState=" + imcState);
-            if(hasError()){
+            if (hasError()) {
                 imgError();
                 hasIp = false;
                 return;

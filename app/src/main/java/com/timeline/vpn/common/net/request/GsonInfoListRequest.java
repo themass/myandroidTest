@@ -27,7 +27,7 @@ public class GsonInfoListRequest<T> extends BaseRequest<InfoListVo<T>> {
     protected Response<InfoListVo<T>> parseNetworkResponse(NetworkResponse response) {
         try {
             String json = getResponseStr(response);
-            JsonResult<InfoListVo<T>> data = DataBuilder.parserListVo(clasz, json,getAuthkey());
+            JsonResult<InfoListVo<T>> data = DataBuilder.parserListVo(clasz, json, getAuthkey());
             return parserData(data, response);
         } catch (Exception e) {
             return Response.error(new ParseError(e));

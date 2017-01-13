@@ -79,10 +79,6 @@ public class Constants {
     public static final String adsKeySetBanner[] = new String[]{ADS_ADVIEW_KEY, ADS_ADVIEW_KEY_ACTIVITY};
     public static final String LANG_ZH = "zh";
     public static final String LANG_US = "en";
-    public static String BASE_IP = "api.sspacee.com";
-//    public static String BASE_IP = "192.168.1.7:8080";
-//    public static String BASE_IP = "10.33.65.180:8080";
-    public static String BASE_HOST = "http://" + BASE_IP + "/vpn/api";
     public static final String API_SERVERLIST_URL = "/host/server/list.json?location=%s";
     public static final String API_FAB_ADSCLICK_URL = "/user/ads/score.json?score=%s";
     public static final String API_LOCATION_URL = "/host/server/location.json";
@@ -110,10 +106,15 @@ public class Constants {
     public static final String FILE_UPLOAD = "fileList";
     public static final String FILE_TMP_PATH = "freeVPN";
     public static final String LOG_FILE = "charon.log";
-    public static final String LOG_FILE_FOR_UPLOAD= "charon_upload.log";
+    public static final String LOG_FILE_FOR_UPLOAD = "charon_upload.log";
     public static final String BUG_FILE = "log.log";
     public static final String BUG_FILE_FOR_UPLOAD = "log_upload.log";
-    public static final int MAX_RETRY_COUNT=4;
+    public static final int MAX_RETRY_COUNT = 4;
+    public static String BASE_IP = "api.sspacee.com";
+    //    public static String BASE_IP = "192.168.1.7:8080";
+//    public static String BASE_IP = "10.33.65.180:8080";
+    public static String BASE_HOST = "http://" + BASE_IP + "/vpn/api";
+
     public static String getUrl(String uri) {
         return "http://" + BASE_IP + "/vpn/api" + uri;
     }

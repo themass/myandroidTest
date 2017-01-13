@@ -2,8 +2,8 @@ package com.timeline.vpn.common.view;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.support.v7.widget.AppCompatTextView;
 import android.util.AttributeSet;
-import android.widget.TextView;
 
 import com.timeline.vpn.base.MyApplication;
 import com.timeline.vpn.common.util.DensityUtil;
@@ -14,7 +14,7 @@ import com.timeline.vpn.common.util.Tools;
  *
  * @author hailongw
  */
-public class MyTextView extends TextView {
+public class MyTextView extends AppCompatTextView {
 
     private static final String NAMESPACE = "http://www.ywlx.net/apk/res/easymobi";
     private static final String ATTR_ROTATE = "rotate";

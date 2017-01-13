@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<shape
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="oval"
-    android:useLevel="false" >
-    <solid
-        android:color="@color/base_green" />
+    android:useLevel="false">
+    <solid android:color="@color/base_green" />
     <stroke
-        android:width="10dp"
+        android:width="@dimen/vpn_ic_width"
         android:color="@color/base_gray" />
 </shape>

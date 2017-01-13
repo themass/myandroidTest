@@ -32,6 +32,6 @@ public class TabNewsFragment extends TabBaseAdsFragment {
     @Override
     protected void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
-        fabUp.setImageResource(R.drawable.fab_xiaochuan2);
+        fabUp.setImageResource(R.drawable.ic_heart_score);
     }
 }

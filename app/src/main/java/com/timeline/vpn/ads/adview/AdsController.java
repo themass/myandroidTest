@@ -7,6 +7,8 @@ import android.content.Context;
  */
 public interface AdsController {
     public void showAds(Context context);
+
     public void hidenAds(Context context);
+
     public boolean needShow(Context context);
 }

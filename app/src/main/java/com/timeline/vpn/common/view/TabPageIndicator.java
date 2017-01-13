@@ -20,6 +20,7 @@ import android.content.Context;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
+import android.support.v7.widget.AppCompatTextView;
 import android.util.AttributeSet;
 import android.view.ContextThemeWrapper;
 import android.view.Gravity;
@@ -27,7 +28,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import com.timeline.vpn.R;
 
@@ -264,7 +264,7 @@ public class TabPageIndicator extends HorizontalScrollView implements PageIndica
         void onTabReselected(int position);
     }
 
-    public class TabView extends TextView {
+    public class TabView extends AppCompatTextView {
         private int mIndex;
 
         public TabView(Context context, int defStyle) {

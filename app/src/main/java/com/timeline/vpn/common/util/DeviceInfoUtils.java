@@ -21,35 +21,6 @@ import java.util.zip.ZipFile;
  * Desc  : 获取设备相关的信息
  */
 public class DeviceInfoUtils {
-
-
-    /**
-     * 基于Android3.0的平板
-     *
-     * @param context
-     * @return
-     */
-    public static boolean isHoneycombTablet(Context context) {
-        return AndroidVersionUtils.hasHoneycomb() && isTablet(context);
-    }
-
-    /**
-     * 判断是否为平板设备
-     *
-     * @param context
-     * @return
-     */
-    public static boolean isTablet(Context context) {
-        // 暂时屏蔽平板
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
-            return context.getResources().getConfiguration().smallestScreenWidthDp >= 600;
-            // return (context.getResources().getConfiguration().screenLayout
-            // & Configuration.SCREENLAYOUT_SIZE_MASK)
-            // >= Configuration.SCREENLAYOUT_SIZE_LARGE;
-        }
-        return false;
-    }
-
     /**
      * 获取设备ID.
      *
@@ -92,7 +63,7 @@ public class DeviceInfoUtils {
                 return deviceId.toString();
             }
         } catch (Exception e) {
-            LayzLog.e(" Exception %s", e);
+            LogUtil.e(e);
             deviceId.append("uuid").append(getUUID(context));
         }
         return deviceId.toString();
@@ -115,7 +86,7 @@ public class DeviceInfoUtils {
      * @return
      */
     public static String getMac(Context context) {
-        WifiManager wifi = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+        WifiManager wifi = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         WifiInfo info = wifi.getConnectionInfo();
         return info.getMacAddress();
     }
@@ -136,6 +107,7 @@ public class DeviceInfoUtils {
     public static String getUUID(Context context) {
         return UUID.randomUUID().toString();
     }
+
     /**
      * 从apk中获取版本信息
      */
@@ -176,13 +148,14 @@ public class DeviceInfoUtils {
         }
         return channel;
     }
-    public static String getMetaData(Context context,String name){
+
+    public static String getMetaData(Context context, String name) {
         try {
             ApplicationInfo appInfo = context.getPackageManager()
                     .getApplicationInfo(context.getPackageName(),
                             PackageManager.GET_META_DATA);
             return appInfo.metaData.getString(name);
-        }catch (Exception ex){
+        } catch (Exception ex) {
             LogUtil.e(ex);
             return null;
         }

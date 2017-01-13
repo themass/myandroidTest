@@ -29,7 +29,7 @@ public abstract class TabBaseFragment extends BaseFragment {
         bodyContentView = (ViewGroup) view.findViewById(R.id.fl_content);
         if (getTabHeaderViewId() != NULL_VIEW) {
             inflater.inflate(getTabHeaderViewId(), headerContentView, true);
-        }else{
+        } else {
             headerContentView.setVisibility(View.GONE);
         }
         if (getTabBodyViewId() != NULL_VIEW) {
@@ -52,6 +52,6 @@ public abstract class TabBaseFragment extends BaseFragment {
     }
 
     public void setUp(View view, LayoutInflater inflater) {
-        LogUtil.i(getClass().getSimpleName()+"-setUp");
+        LogUtil.i(getClass().getSimpleName() + "-setUp");
     }
 }

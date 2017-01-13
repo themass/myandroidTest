@@ -38,11 +38,13 @@ import java.util.List;
 public class AdsAdview {
     public static HandlerThread adsMsgThread = new HandlerThread("ads_msg_back");
     private static InitConfiguration initConfig;
+
     static {
         adsMsgThread.start();
     }
-    public static void initConfig(Context context){
-        InitConfiguration.Builder builder = new InitConfiguration.Builder(context)
+
+    public static void initConfig() {
+        InitConfiguration.Builder builder = new InitConfiguration.Builder(MyApplication.getInstance())
                 .setUpdateMode(InitConfiguration.UpdateMode.EVERYTIME)   // 实时获取配置
                 .setBannerCloseble(InitConfiguration.BannerSwitcher.DEFAULT)    //横幅可关闭按钮
                 .setInstlDisplayType(InitConfiguration.InstlDisplayType.DIALOG_MODE)// 为默认情况,设置插屏展示模式，popupwindow模式可设置窗体外可点击
@@ -54,12 +56,13 @@ public class AdsAdview {
         builder.setAdSize(InitConfiguration.AdSize.BANNER_SMART);
         if (MyApplication.isDebug) {
             builder.setRunMode(InitConfiguration.RunMode.TEST);
-        }else{
+        } else {
             builder.setRunMode(InitConfiguration.RunMode.NORMAL);
         }
 //        builder.setRunMode(InitConfiguration.RunMode.NORMAL);
         initConfig = builder.build();
     }
+
     public static void init(Context context) {
         AdViewBannerManager.getInstance(context).init(initConfig, Constants.adsKeySetBanner);
         AdViewInstlManager.getInstance(context).init(initConfig, Constants.adsKeySet);
@@ -67,7 +70,7 @@ public class AdsAdview {
     }
 
     public static void launchAds(final Context context, ViewGroup group, final Handler handler) {
-        if(group==null) {
+        if (group == null) {
             AdViewSpreadManager.getInstance(context).destroySpread(Constants.ADS_ADVIEW_KEY);
             return;
         }
@@ -79,6 +82,7 @@ public class AdsAdview {
             public void onAdClick(String s) {
                 handler.sendEmptyMessage(Constants.ADS_CLICK_MSG);
             }
+
             @Override
             public void onAdDisplay(String s) {
                 handler.sendEmptyMessage(Constants.ADS_PRESENT_MSG);

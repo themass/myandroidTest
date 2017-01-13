@@ -14,6 +14,14 @@ import com.timeline.vpn.data.config.UserLoginEvent;
  * Created by themass on 2016/8/15.
  */
 public class UserLoginUtil {
+    public static void initData(Context context){
+        UserInfoVo user = PreferenceUtils.getPrefObj(context, Constants.LOGIN_USER, UserInfoVo.class);
+        if (user != null) {
+            StaticDataUtil.add(Constants.LOGIN_USER, user);
+            EventBusUtil.getEventBus().post(new UserLoginEvent());
+            context.sendBroadcast(new Intent(MyApplication.UPDATE_STATUS_ACTION));
+        }
+    }
     public static void login(Context context, UserInfoVo vo) {
         PreferenceUtils.setPrefObj(context, Constants.LOGIN_USER, vo);
         PreferenceUtils.setPrefString(context, Constants.HTTP_TOKEN_KEY, vo.token);

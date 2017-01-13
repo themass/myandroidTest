@@ -14,7 +14,7 @@
 -->
 <resources>
 
-    <style name="ApplicationTheme" parent="@android:style/Theme.Holo"/>
+    <style name="ApplicationTheme" parent="@android:style/Theme.Holo" />
 
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="colorPrimary">@color/style_color_primary</item>
@@ -121,5 +121,17 @@
         <item name="android:windowNoTitle">true</item><!--无标题-->
         <item name="android:windowBackground">@color/transparent</item><!--背景透明-->
     </style>
-    <style name="RatingBarStyle" parent="@android:style/Widget.Holo.RatingBar.Small"/>
+
+    <style name="RatingBarStyle" parent="@android:style/Widget.Holo.RatingBar.Small" />
+
+    <style name="NotificationContent">
+        <item name="android:textColor">?android:attr/textColorPrimary</item>
+    </style>
+
+    <style name="NotificationVpnStatus">
+        <item name="android:layout_width">40dip</item>
+        <item name="android:layout_height">40dip</item>
+        <item name="android:layout_gravity">center|right</item>
+        <item name="android:background">@color/transparent</item>
+    </style>
 </resources>

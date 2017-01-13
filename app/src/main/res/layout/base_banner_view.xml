@@ -8,11 +8,11 @@
         android:id="@+id/fl_banner"
         android:layout_width="match_parent"
         android:layout_height="@dimen/banner_h"
-        android:background="@color/base_white"/>
+        android:background="@color/base_white" />
 
     <LinearLayout
         android:id="@+id/fl_content"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"/>
+        android:orientation="vertical" />
 </LinearLayout>

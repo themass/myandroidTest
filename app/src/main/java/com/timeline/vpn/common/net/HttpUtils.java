@@ -70,6 +70,7 @@ public class HttpUtils {
         }
         return -1;
     }
+
     public static String generateGetUrl(String url, Map<String, String> params) {
         if (!CollectionUtils.isEmpty(params)) {
             StringBuilder sb = new StringBuilder(url).append("?");
@@ -89,12 +90,12 @@ public class HttpUtils {
         }
         return null;
     }
-    public static void upload(Context context,String actionUrl, File file,String str){
+
+    public static void upload(Context context, String actionUrl, File file, String str) {
         String end = "/r/n";
         String Hyphens = "--";
         String boundary = "*****";
-        try
-        {
+        try {
             URL url = new URL(actionUrl);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
       /* 允许Input、Output，不使用Cache */
@@ -117,8 +118,7 @@ public class HttpUtils {
             byte[] buffer = new byte[bufferSize];
             int length;
       /* 从文件读取数据到缓冲区 */
-            while ((length = fStream.read(buffer)) != -1)
-            {
+            while ((length = fStream.read(buffer)) != -1) {
         /* 将数据写入DataOutputStream中 */
                 ds.write(buffer, 0, length);
             }
@@ -130,20 +130,19 @@ public class HttpUtils {
             InputStream is = con.getInputStream();
             int ch;
             StringBuilder sb = new StringBuilder();
-            while ((ch = is.read()) != -1)
-            {
+            while ((ch = is.read()) != -1) {
                 sb.append((char) ch);
             }
             LogUtil.i("上传成功");
             Toast.makeText(context, "上传成功", Toast.LENGTH_LONG).show();
             ds.close();
-        } catch (Exception e)
-        {
+        } catch (Exception e) {
             LogUtil.e(e);
             Toast.makeText(context, "上传失败" + e.getMessage(),
                     Toast.LENGTH_LONG).show();
         }
     }
+
     public static void download(Context context, String url, File file, DownloadListener listener) throws IOException {
         if (!file.getParentFile().exists()) {
             file.getParentFile().mkdirs();
@@ -175,7 +174,7 @@ public class HttpUtils {
                 }
                 conn.disconnect();
                 fos.close();
-                if(is!=null)
+                if (is != null)
                     is.close();
             } catch (IOException e) {
                 LogUtil.e(e);

@@ -72,7 +72,7 @@ public abstract class LoadableTabFragment<T> extends TabBaseAdsFragment {
         if (mData == null) {
             LogUtil.i("loadableTabFragment onResume ,start query");
             startQuery(true);
-        }else {
+        } else {
             hideLoading();
         }
 

@@ -26,6 +26,12 @@ public class LaunchActivity extends LogActivity {
     public boolean canJumpImmediately = false;
     @Bind(R.id.rl_spread)
     RelativeLayout ivAds;
+    private Runnable mStartMainRunnable = new Runnable() {
+        @Override
+        public void run() {
+            launch();
+        }
+    };
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -39,23 +45,17 @@ public class LaunchActivity extends LogActivity {
             }
         }
     };
-    private Runnable mStartMainRunnable = new Runnable() {
-        @Override
-        public void run() {
-            launch();
-        }
-    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_launch);
         MobAgent.init(this);
-        AdsAdview.initConfig(this);
+        AdsAdview.initConfig();
         mHandler.postDelayed(mStartMainRunnable, Constants.STARTUP_SHOW_TIME_5000);
         ButterKnife.bind(this);
         UpdateUserTask.start(this);
-        LogUtil.i("push token="+PushAgent.getInstance(this).getRegistrationId());
+        LogUtil.i("push token=" + PushAgent.getInstance(this).getRegistrationId());
 
     }
 
@@ -92,7 +92,7 @@ public class LaunchActivity extends LogActivity {
     public void onDestroy() {
         ButterKnife.unbind(this);
         mHandler.removeCallbacks(mStartMainRunnable);
-        AdsAdview.launchAds(this,null,null);
+        AdsAdview.launchAds(this, null, null);
         super.onDestroy();
     }
 }

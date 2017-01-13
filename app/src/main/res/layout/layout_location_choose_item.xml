@@ -104,6 +104,7 @@
                 android:text="@string/location_choose_level"
                 android:textColor="@color/base_black"
                 android:textSize="@dimen/textsize_13" />
+
             <RatingBar
                 android:id="@+id/rb_start"
                 style="@android:style/Widget.Holo.RatingBar.Small"

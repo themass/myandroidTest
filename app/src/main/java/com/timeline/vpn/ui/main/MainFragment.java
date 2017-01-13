@@ -51,6 +51,7 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
     private ConfigActionJump jump = new ConfigActionJump();
     private LogAddTofile logAdd = new LogAddTofile();
     private MyReceiver myReceiver;
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_fragment);
@@ -62,6 +63,7 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
         filter.addAction(MyApplication.UPDATE_STATUS_ACTION);
         registerReceiver(myReceiver, filter);
         AdsAdview.init(this);
+        UserLoginUtil.initData(this);
     }
 
     public void setListener(OnBackKeyUpListener keyListener) {
@@ -78,7 +80,7 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             addTab(inflater, R.string.tab_tag_vip, TabVipFragment.class,
                     R.drawable.ac_bg_tab_index, R.string.tab_vip);
-        }else{
+        } else {
             addTab(inflater, R.string.tab_tag_vip, TabContentFgment.class,
                     R.drawable.ac_bg_tab_index, R.string.tab_vip);
         }
@@ -125,7 +127,7 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
             if (keyListener != null) {
                 keyListener.onkeyBackUp();
             }
-            if(CharonVpnService.VPN_STATUS_NOTIF) {
+            if (CharonVpnService.VPN_STATUS_NOTIF) {
                 moveTaskToBack(true);
                 return true;
             }
@@ -140,30 +142,32 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
         }
         return super.onKeyUp(keyCode, event);
     }
-    public void appInfo(){
+
+    public void appInfo() {
         LogUtil.i("appInfo");
         UserInfoVo user = UserLoginUtil.getUserCache();
-        if(user==null){
-            String name = PreferenceUtils.getPrefString(MainFragment.this, Constants.LOGIN_USER_LAST,null);
-            if(name!=null)
-                PushAgent.getInstance(MainFragment.this).removeAlias(name, Constants.MY_PUSH_TYPE, new UTrack.ICallBack(){
+        if (user == null) {
+            String name = PreferenceUtils.getPrefString(MainFragment.this, Constants.LOGIN_USER_LAST, null);
+            if (name != null)
+                PushAgent.getInstance(MainFragment.this).removeAlias(name, Constants.MY_PUSH_TYPE, new UTrack.ICallBack() {
                     @Override
                     public void onMessage(boolean isSuccess, String message) {
-                        if(!isSuccess)
-                            LogUtil.e("removeAlias:false;message:"+message);
+                        if (!isSuccess)
+                            LogUtil.e("removeAlias:false;message:" + message);
                     }
                 });
-        }else{
+        } else {
             PushAgent.getInstance(MainFragment.this).addAlias(user.name, Constants.MY_PUSH_TYPE, new UTrack.ICallBack() {
                 @Override
                 public void onMessage(boolean isSuccess, String message) {
-                    if(!isSuccess)
-                        LogUtil.e("addAlias:false;message:"+message);
+                    if (!isSuccess)
+                        LogUtil.e("addAlias:false;message:" + message);
                 }
             });
         }
 
     }
+
     class MyReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {

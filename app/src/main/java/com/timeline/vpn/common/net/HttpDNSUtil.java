@@ -14,6 +14,14 @@ import okhttp3.Response;
 public class HttpDNSUtil {
     private static final String DNS_POD_IP = "119.29.29.29";
     /**
+     * 根据url获得ip,此方法只是最简单的模拟,实际情况很复杂,需要做缓存处理
+     *
+     * @param host
+     * @return
+     */
+    private static Pattern pattern = Pattern.compile("[0-9]*");
+
+    /**
      * 转换url 主机头为ip地址
      *
      * @param url  原url
@@ -26,20 +34,14 @@ public class HttpDNSUtil {
         String ipUrl = url.replaceFirst(host, ip);
         return ipUrl;
     }
-    /**
-     * 根据url获得ip,此方法只是最简单的模拟,实际情况很复杂,需要做缓存处理
-     *
-     * @param host
-     * @return
-     */
-    private static Pattern pattern = Pattern.compile("[0-9]*");
-    public static String getIPByHost(String url,String host) {
+
+    public static String getIPByHost(String url, String host) {
         String str = host.replaceAll("[.]", "");
-        if(pattern.matcher(str).matches()){
+        if (pattern.matcher(str).matches()) {
             return url;
         }
-        String ipStr = StaticDataUtil.get(host,String.class);
-        if(ipStr==null) {
+        String ipStr = StaticDataUtil.get(host, String.class);
+        if (ipStr == null) {
             HttpUrl httpUrl = new HttpUrl.Builder()
                     .scheme("http")
                     .host(DNS_POD_IP)
@@ -60,19 +62,19 @@ public class HttpDNSUtil {
                 Response response = okHttpClient.newCall(request).execute();
                 if (response.isSuccessful()) {
                     String body = response.body().string();
-                    LogUtil.i("dnsPod return "+body);
-                    if(StringUtils.hasText(body)){
-                        String[]ips = body.split(";");
-                        StaticDataUtil.add(host,ips[0]);
+                    LogUtil.i("dnsPod return " + body);
+                    if (StringUtils.hasText(body)) {
+                        String[] ips = body.split(";");
+                        StaticDataUtil.add(host, ips[0]);
                         result = ips[0];
                     }
                 }
                 LogUtil.i("HttpDNS the host has replaced with ip " + result);
                 return url.replaceFirst(host, result);
             } catch (Exception e) {
-                LogUtil.e("HttpDNS origin host: "+host+";dDNSpod ret:"+result,e);
+                LogUtil.e("HttpDNS origin host: " + host + ";dDNSpod ret:" + result, e);
             }
-        }else{
+        } else {
             LogUtil.i("HttpDNS the host has replaced with ip " + ipStr);
             return url.replaceFirst(host, ipStr);
         }

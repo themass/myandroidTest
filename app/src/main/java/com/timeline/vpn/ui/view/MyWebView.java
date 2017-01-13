@@ -45,19 +45,19 @@ public class MyWebView extends WebView {
 
     @Override
     public void loadUrl(String url, Map<String, String> additionalHttpHeaders) {
-        if(additionalHttpHeaders==null){
+        if (additionalHttpHeaders == null) {
             additionalHttpHeaders = new HashMap<>();
         }
         String ref = Constants.DEFAULT_REFERER;
-        if(additionalHttpHeaders.get(Constants.REFERER)!=null)
-            ref = additionalHttpHeaders.get(Constants.REFERER)+","+Constants.DEFAULT_REFERER;
+        if (additionalHttpHeaders.get(Constants.REFERER) != null)
+            ref = additionalHttpHeaders.get(Constants.REFERER) + "," + Constants.DEFAULT_REFERER;
         additionalHttpHeaders.put(Constants.REFERER, ref);
         super.loadUrl(url, additionalHttpHeaders);
     }
 
     @Override
     public void loadUrl(String url) {
-        this.loadUrl(url,null);
+        this.loadUrl(url, null);
     }
 
     @Override

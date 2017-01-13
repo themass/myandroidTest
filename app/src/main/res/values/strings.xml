@@ -40,39 +40,39 @@
     <string name="menu_haha">Yo! You found it.</string>
     <!-- menu -->
     <string name="menu_btn_login">Login</string>
-    <string name="menu_btn_login_ready">login</string>
+    <string name="menu_btn_login_ready">Login</string>
     <string name="menu_btn_name_default">Who am i</string>
     <string name="menu_btn_feedback">Feedback</string>
     <string name="menu_btn_about">About</string>
-    <string name="menu_btn_share">share</string>
-    <string name="menu_btn_bug">report bug</string>
+    <string name="menu_btn_share">Share</string>
+    <string name="menu_btn_bug">Report bug</string>
     <string name="menu_btn_version">Version:%1$s</string>
     <string name="menu_btn_logout">Logout</string>
     <string name="menu_btn_about_context">FreeVPN the most stable, free, unlimited，all for you！</string>
     <string name="feed_back">Feedback</string>
     <string name="menu_btn_score">My points：%s</string>
     <string name="menu_btn_score_context">Points can be used to store the purchase of goods，VIP etc。。</string>
-    <string name="menu_btn_report_log">thanks for report us</string>
+    <string name="menu_btn_report_log">Thanks for report us</string>
     <!-- share-->
     <string name="menu_share_title">Tell a friend</string>
     <string name="menu_share_url">Download Url:\n%s</string>
-    <string name="menu_share_confirm">copyURL</string>
+    <string name="menu_share_confirm">CopyURL</string>
     <string name="menu_share_cancel">Cancel</string>
-    <string name="menu_share_copy_ok">copied OK</string>
-    <string name="menu_share_copy_error">share failed</string>
+    <string name="menu_share_copy_ok">Copied OK</string>
+    <string name="menu_share_copy_error">Share failed</string>
     <!--登录，注册-->
-    <string name="close_over">one more again!!</string>
+    <string name="close_over">One more again!!</string>
     <string name="login">Sign in</string>
     <string name="reg">Sign up</string>
     <string name="username_hint">Username</string>
     <string name="password_hint">Password</string>
-    <string name="re_password_hint">rePassword</string>
-    <string name="re_code">code</string>
+    <string name="re_password_hint">RePassword</string>
+    <string name="re_code">Code</string>
     <string name="re_bt_code">Get Code</string>
     <string name="empty_name_pwd">Please fill in the information</string>
     <string name="sex">Sex:</string>
-    <string name="female">female</string>
-    <string name="male">male</string>
+    <string name="female">Female</string>
+    <string name="male">Male</string>
     <string name="error_repwd">Password error</string>
     <string name="error_pattern">Password must 6 to 10 letters or numbers</string>
     <string name="reg_success">Register success，login now？</string>
@@ -81,10 +81,10 @@
     <string name="need_vip">Not VIP user has no permission to select the areang</string>
 
     <string name="iwanna_tips">Tell me what du you want \nI\'ll be ready for you </string>
-    <string name="iwanna_title">what do you want?</string>
+    <string name="iwanna_title">What do you want?</string>
     <string name="send">send</string>
-    <string name="iwanna_content_error">tell me something!</string>
-    <string name="iwanna_content_success">i got it !</string>
+    <string name="iwanna_content_error">Tell me something!</string>
+    <string name="iwanna_content_success">I got it !</string>
     <!-- error-->
     <string name="error_getlocation_fail">Failed to obtain location information！</string>
     <string name="error_network_unknown">Connection server error, please check your network connection or try again later.</string>
@@ -95,20 +95,24 @@
     <!-- vpn状态改变 -->
     <string name="vpn_bg_click">Conn VPN</string>
     <string name="vpn_bg_error">Click Retry</string>
-    <string name="vpn_bg_conning">connecting..</string>
-    <string name="vpn_bg_disconning">stoping..</string>
-    <string name="vpn_bg_conned">disconnect</string>
+    <string name="vpn_bg_conning">Connecting..</string>
+    <string name="vpn_bg_disconning">Stoping..</string>
+    <string name="vpn_bg_conned">Disconnect</string>
 
     <string name="vpn_type_free">Free</string>
     <string name="vpn_type_vip">VIP</string>
     <string name="vpn_type_advip">highVIP</string>
     <string name="vpn_service_text">Start FreeVpn</string>
+    <string name="vpn_remote_status">FreeVPN·</string>
+    <string name="vpn_remote_on">Connected，click to disconnect</string>
+    <string name="vpn_remote_off">Disconnect，click to connect</string>
+    <string name="vpn_remote_ing">Connecting，please wait</string>
     <!--版本更新下载-->
 
     <string name="about_version_update_to_date">Is the latest version</string>
     <string name="about_version_download_title">Discover new version</string>
     <string name="about_version_download">Download</string>
-    <string name="about_version_confirm">confirm</string>
+    <string name="about_version_confirm">Confirm</string>
     <string name="about_version_cancel">Cancel</string>
     <string name="about_download_confirm_title">Confirm Download</string>
     <string name="about_download_confirm_content">

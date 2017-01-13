@@ -10,16 +10,12 @@ import android.widget.Toast;
 import com.alibaba.sdk.android.feedback.impl.FeedbackAPI;
 import com.alibaba.sdk.android.feedback.util.ErrorCode;
 import com.alibaba.sdk.android.feedback.util.FeedbackErrorCallback;
-import com.android.volley.VolleyLog;
-import com.timeline.vpn.bean.vo.UserInfoVo;
 import com.timeline.vpn.common.net.VolleyUtils;
 import com.timeline.vpn.common.util.DeviceInfoUtils;
 import com.timeline.vpn.common.util.FileUtils;
 import com.timeline.vpn.common.util.LogUtil;
-import com.timeline.vpn.common.util.PreferenceUtils;
 import com.timeline.vpn.common.util.SystemUtils;
 import com.timeline.vpn.constant.Constants;
-import com.timeline.vpn.data.StaticDataUtil;
 import com.timeline.vpn.data.VersionUpdater;
 import com.timeline.vpn.service.LogUploadService;
 import com.umeng.message.IUmengRegisterCallback;
@@ -34,13 +30,14 @@ import butterknife.ButterKnife;
  * Created by themass on 2016/3/1.
  */
 public class MyApplication extends MultiDexApplication {
-    private static MyApplication instance = null;
-    public Typeface typeface;
-//    private RefWatcher refWatcher;
+    //    private RefWatcher refWatcher;
     public static final String UPDATE_STATUS_ACTION = "com.timeline.vpn.action.UPDATE_STATUS";
     public static String tmpFilePath = "";
     public static volatile boolean isDebug = true;
-//    public static RefWatcher getRefWatcher(Context context) {
+    private static MyApplication instance = null;
+    public Typeface typeface;
+
+    //    public static RefWatcher getRefWatcher(Context context) {
 //        MyApplication application = (MyApplication) context.getApplicationContext();
 //        return application.refWatcher;
 //    }
@@ -52,43 +49,31 @@ public class MyApplication extends MultiDexApplication {
     public void onCreate() {
         super.onCreate();
         isDebug = SystemUtils.isApkDebugable(this);
+        typeface = Typeface.SANS_SERIF;
+        instance = this;
         long start = System.currentTimeMillis();
 //        refWatcher = LeakCanary.install(this);
         ButterKnife.setDebug(isDebug);
         VersionUpdater.init(this);
-        VolleyUtils.init(getApplicationContext());
-        VolleyLog.DEBUG = isDebug;
-        VolleyLog.setTag("VolleyUtils");
+        VolleyUtils.init();
         initFilePath();
-        initData();
         initFeedback();
         initPush();
-        typeface = Typeface.SANS_SERIF;
-        instance = this;
-        if(MyApplication.isDebug) {
+        if (MyApplication.isDebug) {
             String uc = DeviceInfoUtils.getMetaData(this, "UMENG_CHANNEL");
             String ad = DeviceInfoUtils.getMetaData(this, "AdView_CHANNEL");
             LogUtil.i("uc=" + uc + "; ad=" + ad);
         }
-        long cost = System.currentTimeMillis()-start;
-        LogUtil.e("app start cost:"+cost);
+        long cost = System.currentTimeMillis() - start;
+        LogUtil.e("app start cost:" + cost);
     }
 
     private void initFilePath() {
         tmpFilePath = FileUtils.getWriteFilePath(this, Constants.FILE_TMP_PATH);
         LogUtil.i("tmpFilePath=" + tmpFilePath);
         FileUtils.ensureFile(this, tmpFilePath);
-        startService(new Intent(this,LogUploadService.class));
+        startService(new Intent(this, LogUploadService.class));
     }
-
-    private void initData() {
-        UserInfoVo user = PreferenceUtils.getPrefObj(this, Constants.LOGIN_USER, UserInfoVo.class);
-        if (user != null) {
-            StaticDataUtil.add(Constants.LOGIN_USER, user);
-        }
-        LogUtil.i("init data ok");
-    }
-
     private void initFeedback() {
         FeedbackAPI.addErrorCallback(new FeedbackErrorCallback() {
             @Override

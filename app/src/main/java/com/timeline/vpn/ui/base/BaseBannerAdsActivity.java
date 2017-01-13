@@ -72,6 +72,7 @@ public abstract class BaseBannerAdsActivity extends BaseSingleActivity implement
         showAds(this);
         startIntroAnimation();
     }
+
     public void adsDelayGone() {
         mHandler.postDelayed(task, Constants.BANNER_ADS_GONE_SHORT);
     }
@@ -82,33 +83,34 @@ public abstract class BaseBannerAdsActivity extends BaseSingleActivity implement
         hidenAds(this);
     }
 
-    class AdsGoneTask implements Runnable {
-        @Override
-        public void run() {
-            hidenAds(BaseBannerAdsActivity.this);
-        }
-    }
-
     @Override
     public void showAds(Context context) {
-        if(needShow(context)) {
+        if (needShow(context)) {
             AdsAdview.bannerAds(context, flBanner, mHandler, Constants.ADS_ADVIEW_KEY_ACTIVITY);
-        }else{
+        } else {
             flBanner.setVisibility(View.GONE);
         }
     }
 
     @Override
     public boolean needShow(Context context) {
-        return PreferenceUtils.getPrefBoolean(context,Constants.ADS_SHOW_CONFIG,true);
+        return PreferenceUtils.getPrefBoolean(context, Constants.ADS_SHOW_CONFIG, true);
     }
+
     @Override
-    public void hidenAds(Context context){
+    public void hidenAds(Context context) {
         if (flBanner != null) {
             flBanner.removeAllViews();
         }
         mHandler.removeCallbacks(task);
         flBanner.setVisibility(View.GONE);
+    }
+
+    class AdsGoneTask implements Runnable {
+        @Override
+        public void run() {
+            hidenAds(BaseBannerAdsActivity.this);
+        }
     }
 
 }

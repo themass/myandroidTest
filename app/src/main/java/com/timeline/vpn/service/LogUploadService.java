@@ -17,8 +17,7 @@ import java.util.List;
  * Created by themass on 2016/12/26.
  */
 public class LogUploadService extends BaseLogService {
-    private static final String TAG="LOG_UPLOAD";
-    private BaseService indexService;
+    private static final String TAG = "LOG_UPLOAD";
     CommonResponse.ResponseOkListener listener = new CommonResponse.ResponseOkListener<NullReturnVo>() {
         @Override
         public void onResponse(NullReturnVo vo) {
@@ -26,17 +25,18 @@ public class LogUploadService extends BaseLogService {
             FileUtils.delLogFile(Constants.BUG_FILE_FOR_UPLOAD);
         }
     };
+    private BaseService indexService;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         List<File> file = new ArrayList<>();
-        boolean ret = FileUtils.mvFile(FileUtils.getBugFilePath(),FileUtils.getBugUploadFilePath());
-        boolean ret1 = FileUtils.mvFile(FileUtils.getCharonFilePath(),FileUtils.getCharonUploadFilePath());
-        if(ret)
-            file.add(new File( FileUtils.getBugUploadFilePath()));
-        if(ret1)
+        boolean ret = FileUtils.mvFile(FileUtils.getBugFilePath(), FileUtils.getBugUploadFilePath());
+        boolean ret1 = FileUtils.mvFile(FileUtils.getCharonFilePath(), FileUtils.getCharonUploadFilePath());
+        if (ret)
+            file.add(new File(FileUtils.getBugUploadFilePath()));
+        if (ret1)
             file.add(new File(FileUtils.getCharonUploadFilePath()));
-        indexService.postData(Constants.getUrl(Constants.API_LOG_URL),file,listener,null, Constants.FILE_UPLOAD,TAG,NullReturnVo.class);
+        indexService.postData(Constants.getUrl(Constants.API_LOG_URL), file, listener, null, Constants.FILE_UPLOAD, TAG, NullReturnVo.class);
         return super.onStartCommand(intent, flags, startId);
     }
 

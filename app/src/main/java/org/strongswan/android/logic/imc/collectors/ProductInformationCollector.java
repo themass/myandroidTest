@@ -20,11 +20,9 @@ package org.strongswan.android.logic.imc.collectors;
 import org.strongswan.android.logic.imc.attributes.Attribute;
 import org.strongswan.android.logic.imc.attributes.ProductInformationAttribute;
 
-public class ProductInformationCollector implements Collector
-{
-	@Override
-	public Attribute getMeasurement()
-	{	/* this is currently hardcoded in the attribute */
-		return new ProductInformationAttribute();
-	}
+public class ProductInformationCollector implements Collector {
+    @Override
+    public Attribute getMeasurement() {	/* this is currently hardcoded in the attribute */
+        return new ProductInformationAttribute();
+    }
 }

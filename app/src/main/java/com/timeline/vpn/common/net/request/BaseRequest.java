@@ -32,7 +32,7 @@ public class BaseRequest<T> extends Request<T> {
 
     private static String UA_DEFAULT = null;
     private static String UA_APP_SUFFIX = null;
-    private String authkey ;
+
     static {
         UA_DEFAULT = System.getProperty("http.agent", "");
     }
@@ -40,6 +40,7 @@ public class BaseRequest<T> extends Request<T> {
     private final Context mContext;
     private final Map<String, String> headers;
     private final Response.Listener<T> listener;
+    private String authkey;
     private String mCharset = "utf-8";
 
     public BaseRequest(Context context, int method, String url,
@@ -54,12 +55,12 @@ public class BaseRequest<T> extends Request<T> {
         if (headers == null) {
             headers = new HashMap<>();
         }
-        String sb = DeviceInfoUtils.getDeviceId(context)+"|"+time;
+        String sb = DeviceInfoUtils.getDeviceId(context) + "|" + time;
         String msg = time + Md5.encode(sb);
-        String ua = UA_DEFAULT + UA_APP_SUFFIX +",IE" + msg;
-        String loc = "lon:"+ StaticDataUtil.get(Constants.LON,Double.class)+";lat:"+ StaticDataUtil.get(Constants.LAT,Double.class);
-        this.authkey = ua.substring(ua.length()-16,ua.length());
-        headers.put("Loc",loc);
+        String ua = UA_DEFAULT + UA_APP_SUFFIX + ",IE" + msg;
+        String loc = "lon:" + StaticDataUtil.get(Constants.LON, Double.class) + ";lat:" + StaticDataUtil.get(Constants.LAT, Double.class);
+        this.authkey = ua.substring(ua.length() - 16, ua.length());
+        headers.put("Loc", loc);
         headers.put("User-Agent", ua);
         if (!headers.containsKey("Referer")) {
             headers.put("Referer", Constants.DEFAULT_REFERER);
@@ -121,9 +122,9 @@ public class BaseRequest<T> extends Request<T> {
         return super.getBody();
     }
 
-    protected final String getResponseStr(NetworkResponse response) throws Exception{
-            String charset = !TextUtils.isEmpty(mCharset) ? mCharset : HttpHeaderParser.parseCharset(response.headers);
-            return new String(response.data, charset);
+    protected final String getResponseStr(NetworkResponse response) throws Exception {
+        String charset = !TextUtils.isEmpty(mCharset) ? mCharset : HttpHeaderParser.parseCharset(response.headers);
+        return new String(response.data, charset);
     }
 
     /**
@@ -137,7 +138,7 @@ public class BaseRequest<T> extends Request<T> {
     }
 
     private boolean parserJsonResult(Context context, int result) {
-        switch (result){
+        switch (result) {
             case Constants.HTTP_SUCCESS:
                 return true;
             case Constants.HTTP_SUCCESS_CLEAR:
@@ -150,15 +151,15 @@ public class BaseRequest<T> extends Request<T> {
 
     protected Response parserData(JsonResult data, NetworkResponse response) {
 
-            try {
-                URL url = new URL(getUrl());
-                if(data.ip!=null&&StaticDataUtil.get(url.getHost(),String.class)==null) {
-                    String ip = data.ip.split(";")[0].split(":")[0];
-                    StaticDataUtil.add(url.getHost(), ip);
-                }
-            } catch (Exception e) {
-                LogUtil.e(e);
+        try {
+            URL url = new URL(getUrl());
+            if (data.ip != null && StaticDataUtil.get(url.getHost(), String.class) == null) {
+                String ip = data.ip.split(";")[0].split(":")[0];
+                StaticDataUtil.add(url.getHost(), ip);
             }
+        } catch (Exception e) {
+            LogUtil.e(e);
+        }
         boolean ret = parserJsonResult(getContext(), data.errno);
         if (ret) {
             return Response.success(data.getData(), getCacheEntry(response));

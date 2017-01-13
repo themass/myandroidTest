@@ -86,7 +86,7 @@ public abstract class BaseFragment extends LogFramgment {
      */
     protected void setupViews(View view, Bundle savedInstanceState) {
         bindViews(view);
-        LogUtil.i(getClass().getSimpleName()+"-setupViews");
+        LogUtil.i(getClass().getSimpleName() + "-setupViews");
     }
 
     protected void bindViews(View view) {

@@ -1,8 +1,8 @@
 package com.timeline.vpn.common.view;
 
 import android.content.Context;
+import android.support.v7.widget.AppCompatButton;
 import android.util.AttributeSet;
-import android.widget.Button;
 
 import com.timeline.vpn.base.MyApplication;
 
@@ -11,7 +11,7 @@ import com.timeline.vpn.base.MyApplication;
  *
  * @author hlwang
  */
-public class MyButton extends Button {
+public class MyButton extends AppCompatButton {
 
     /**
      * @param context

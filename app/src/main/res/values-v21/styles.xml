@@ -13,5 +13,6 @@
     for more details.
 -->
 <resources>
-    <style name="RatingBarStyle" parent="@android:style/Widget.Material.RatingBar.Small"/>
+
+    <style name="RatingBarStyle" parent="@android:style/Widget.Material.RatingBar.Small" />
 </resources>

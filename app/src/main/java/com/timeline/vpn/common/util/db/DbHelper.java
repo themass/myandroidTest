@@ -122,7 +122,7 @@ public class DbHelper {
         SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         db.beginTransaction();
         try {
-            for (ContentValues val:values) {
+            for (ContentValues val : values) {
                 if (db.insert(args.table, null, val) < 0)
                     return 0;
             }

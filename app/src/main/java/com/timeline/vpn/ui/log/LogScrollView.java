@@ -60,7 +60,7 @@ public class LogScrollView extends ScrollView {
     @Override
     protected void onScrollChanged(int l, int t, int oldl, int oldt) {
         super.onScrollChanged(l, t, oldl, oldt);
-		/* if the user scrolls to the bottom we enable auto-scrolling again */
+        /* if the user scrolls to the bottom we enable auto-scrolling again */
         if (t == getChildAt(getChildCount() - 1).getHeight() - getHeight()) {
             mAutoScroll = true;
         }

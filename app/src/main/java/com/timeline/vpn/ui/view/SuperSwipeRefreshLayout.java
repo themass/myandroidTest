@@ -122,8 +122,8 @@ public class SuperSwipeRefreshLayout extends ViewGroup {
     private final Animation mAnimateToCorrectPosition = new Animation() {
         @Override
         public void applyTransformation(float interpolatedTime, Transformation t) {
-            int targetTop ;
-            int endTarget ;
+            int targetTop;
+            int endTarget;
             if (!mUsingCustomStart) {
                 endTarget = (int) (mSpinnerFinalOffset - Math
                         .abs(mOriginalOffsetTop));
@@ -423,7 +423,7 @@ public class SuperSwipeRefreshLayout extends ViewGroup {
         if (refreshing && mRefreshing != refreshing) {
             // scale and show
             mRefreshing = refreshing;
-            int endTarget ;
+            int endTarget;
             if (!mUsingCustomStart) {
                 endTarget = (int) (mSpinnerFinalOffset + mOriginalOffsetTop);
             } else {
@@ -554,18 +554,7 @@ public class SuperSwipeRefreshLayout extends ViewGroup {
      * @return
      */
     public boolean isChildScrollToTop() {
-        if (android.os.Build.VERSION.SDK_INT < 14) {
-            if (mTarget instanceof AbsListView) {
-                final AbsListView absListView = (AbsListView) mTarget;
-                return !(absListView.getChildCount() > 0 && (absListView
-                        .getFirstVisiblePosition() > 0 || absListView
-                        .getChildAt(0).getTop() < absListView.getPaddingTop()));
-            } else {
-                return !(mTarget.getScrollY() > 0);
-            }
-        } else {
             return !ViewCompat.canScrollVertically(mTarget, -1);
-        }
     }
 
     /**
@@ -667,7 +656,7 @@ public class SuperSwipeRefreshLayout extends ViewGroup {
                 if (y == -1) {
                     return false;
                 }
-                float yDiff ;
+                float yDiff;
                 if (isChildScrollToBottom()) {
                     yDiff = mInitialMotionY - y;// 计算上拉距离
                     if (yDiff > mTouchSlop && !mIsBeingDragged) {// 判断是否下拉的距离足够
@@ -921,16 +910,7 @@ public class SuperSwipeRefreshLayout extends ViewGroup {
                 } else {// 下拉到mFooterViewHeight
                     pushDistance = mFooterViewHeight;
                 }
-                if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.HONEYCOMB) {
-                    updateFooterViewPosition();
-                    if (pushDistance == mFooterViewHeight
-                            && mOnPushLoadMoreListener != null) {
-                        mLoadMore = true;
-                        mOnPushLoadMoreListener.onLoadMore();
-                    }
-                } else {
-                    animatorFooterToBottom((int) overscrollBottom, pushDistance);
-                }
+                animatorFooterToBottom((int) overscrollBottom, pushDistance);
                 return false;
             }
         }
@@ -980,13 +960,7 @@ public class SuperSwipeRefreshLayout extends ViewGroup {
      */
     public void setLoadMore(boolean loadMore) {
         if (!loadMore && mLoadMore) {// 停止加载
-            if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.HONEYCOMB) {
-                mLoadMore = false;
-                pushDistance = 0;
-                updateFooterViewPosition();
-            } else {
-                animatorFooterToBottom(mFooterViewHeight, 0);
-            }
+            animatorFooterToBottom(mFooterViewHeight, 0);
         }
     }
 
@@ -1093,9 +1067,6 @@ public class SuperSwipeRefreshLayout extends ViewGroup {
         mHeadViewContainer.bringToFront();
         mHeadViewContainer.offsetTopAndBottom(offset);
         mCurrentTargetOffsetTop = mHeadViewContainer.getTop();
-        if (requiresUpdate && android.os.Build.VERSION.SDK_INT < 11) {
-            invalidate();
-        }
         updateListenerCallBack();
     }
 
@@ -1372,9 +1343,7 @@ public class SuperSwipeRefreshLayout extends ViewGroup {
                 bgPaint.setColor(circleBackgroundColor);
                 bgPaint.setStyle(Paint.Style.FILL);
                 bgPaint.setAntiAlias(true);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                    this.setLayerType(LAYER_TYPE_SOFTWARE, bgPaint);
-                }
+                this.setLayerType(LAYER_TYPE_SOFTWARE, bgPaint);
                 bgPaint.setShadowLayer(4.0f, 0.0f, 2.0f, shadowColor);
             }
             return bgPaint;

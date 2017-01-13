@@ -1,6 +1,5 @@
 package com.timeline.vpn.common.util;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Environment;
 
@@ -67,20 +66,12 @@ public class PathUtil {
      * @return True if external storage is removable (like an SD card), false
      * otherwise.
      */
-    @TargetApi(9)
     public static boolean isExternalStorageRemovable() {
-        if (AndroidVersionUtils.hasGingerbread()) {
-            return Environment.isExternalStorageRemovable();
-        }
-        return true;
+        return Environment.isExternalStorageRemovable();
     }
 
-    @TargetApi(8)
     public static File getExternalCacheDir(Context context) {
-        if (AndroidVersionUtils.hasFroyo()) {
-            return context.getExternalCacheDir() == null ? getExCacheFile(context) : context.getExternalCacheDir();
-        }
-        return getExCacheFile(context);
+        return context.getExternalCacheDir() == null ? getExCacheFile(context) : context.getExternalCacheDir();
     }
 
     private static File getExCacheFile(Context context) {

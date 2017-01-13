@@ -22,9 +22,9 @@ import com.timeline.vpn.common.util.CollectionUtils;
 import com.timeline.vpn.common.util.EventBusUtil;
 import com.timeline.vpn.common.util.GsonUtils;
 import com.timeline.vpn.common.util.LogUtil;
-import com.timeline.vpn.common.util.PreferenceUtils;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
+import com.timeline.vpn.data.LocationUtil;
 import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.data.config.LocationChooseEvent;
 import com.timeline.vpn.data.sort.LocSortFactor;
@@ -151,7 +151,7 @@ public class LocationChooseFragment extends LoadableFragment<List<LocationVo>> i
                 }
             }
         }
-        PreferenceUtils.setPrefObj(getActivity(), Constants.LOCATION_CHOOSE, data);
+        LocationUtil.setLocation(getActivity(), data);
         EventBusUtil.getEventBus().post(new LocationChooseEvent());
         getActivity().finish();
     }
