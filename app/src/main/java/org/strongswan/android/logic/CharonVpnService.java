@@ -97,16 +97,16 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
      * during installation.  On newer releases most are loaded in JNI_OnLoad.
      */
     static {
-//        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2)
-//        {
-        System.loadLibrary("strongswan");
-        System.loadLibrary("tpmtss");
-        System.loadLibrary("tncif");
-        System.loadLibrary("tnccs");
-        System.loadLibrary("imcv");
-        System.loadLibrary("charon");
-        System.loadLibrary("ipsec");
-//        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2)
+        {
+            System.loadLibrary("strongswan");
+            System.loadLibrary("tpmtss");
+            System.loadLibrary("tncif");
+            System.loadLibrary("tnccs");
+            System.loadLibrary("imcv");
+            System.loadLibrary("charon");
+            System.loadLibrary("ipsec");
+        }
         System.loadLibrary("androidbridge");
     }
 
