@@ -92,6 +92,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
     private static final String TAG = CharonVpnService.class.getSimpleName();
     private static final String WORK_ANME = "vpnThread";
     public static volatile boolean VPN_STATUS_NOTIF = false;
+    private boolean needStop = false;
 
     /*
      * The libraries are extracted to /data/data/org.strongswan.android/...
@@ -115,8 +116,6 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
     public ButtonBroadcastReceiver bReceiver;
     private String mLogFile;
     private VpnProfile mCurrentProfile;
-    private VpnProfile mNextProfile;
-    private volatile boolean mProfileUpdated;
     private volatile boolean mIsDisconnecting;
     private HandlerThread mWorkThread;
     private Handler mWorkHandler;
@@ -153,6 +152,8 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
             if (bundle != null) {
                 profile = (VpnProfile) bundle.getSerializable(PROFILE);
             }
+            if (profile != null)
+                mCurrentProfile = profile;
             setNextProfile(profile);
         }
         LogUtil.i("charon service onStartCommand");
@@ -161,14 +162,11 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
 
     private void setNextProfile(VpnProfile profile) {
         if (mWorkHandler != null) {
-            mNextProfile = profile;
-            mProfileUpdated = true;
-//            if (profile == null) {
-//                mWorkHandler.post(new DisConnectJob());
-//            } else {
-//                mWorkHandler.post(new ConnectJob());
-//            }
-            mWorkHandler.post(new ConnectJob());
+            if (profile == null) {
+                mWorkHandler.post(new DisConnectJob());
+            } else {
+                mWorkHandler.post(new ConnectJob());
+            }
         } else {
             LogUtil.w("启动没完成");
         }
@@ -428,48 +426,42 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
      * There is a corresponding C object to access it from native code.
      */
     public void disconn() {
-        if(mCurrentProfile!=null) {
-            LogUtil.i("charon stopped  mCurrentState=" + mService.getState() + "  thread=" + Thread.currentThread().getName());
-            setState(VpnStateService.State.DISCONNECTING);
-            mIsDisconnecting = true;
+        LogUtil.i("charon stopped  mCurrentState=" + mService.getState() + "  thread=" + Thread.currentThread().getName());
+        setState(VpnStateService.State.DISCONNECTING);
+        mIsDisconnecting = true;
+        if(needStop) {
+            needStop = false;
             deinitializeCharon();
-            Log.i(TAG, "charon stopped");
-            setState(VpnStateService.State.DISABLED);
-            mCurrentProfile = null;
         }
+        Log.i(TAG, "charon stopped");
+        setState(VpnStateService.State.DISABLED);
     }
 
     public void conn() {
         Log.i(TAG, "charon started mCurrentState=" + mService.getState() + "  thread=" + Thread.currentThread().getName());
-        if (mProfileUpdated) {
-            mProfileUpdated = false;
+        if (mCurrentProfile != null) {
             disconn();
-            if (mNextProfile == null)
-            {
-                setState(VpnStateService.State.DISABLED);
-            }else {
-                mCurrentProfile = mNextProfile;
-                startConnection(mCurrentProfile);
-                mIsDisconnecting = false;
-                BuilderAdapter builder = new BuilderAdapter(mCurrentProfile.getName(), mCurrentProfile.getSplitTunneling());
-                if (initializeCharon(builder, mLogFile, mCurrentProfile.getVpnType().has(VpnType.VpnTypeFeature.BYOD))) {
-                    Log.i(TAG, "charon started");
-                    SettingsWriter writer = new SettingsWriter();
-                    writer.setValue("global.language", Locale.getDefault().getLanguage());
-                    writer.setValue("global.mtu", mCurrentProfile.getMTU());
-                    writer.setValue("connection.type", mCurrentProfile.getVpnType().getIdentifier());
-                    writer.setValue("connection.server", mCurrentProfile.getGateway());
-                    writer.setValue("connection.port", mCurrentProfile.getPort());
-                    writer.setValue("connection.username", mCurrentProfile.getUsername());
-                    writer.setValue("connection.password", mCurrentProfile.getPassword());
-                    writer.setValue("connection.local_id", mCurrentProfile.getLocalId());
-                    writer.setValue("connection.remote_id", mCurrentProfile.getRemoteId());
-                    initiate(writer.serialize());
-                } else {
-                    Log.e(TAG, "failed to start charon");
-                    setError(VpnStateService.ErrorState.GENERIC_ERROR);
-                    //setState(VpnStateService.State.DISABLED);
-                }
+            startConnection(mCurrentProfile);
+            mIsDisconnecting = false;
+            BuilderAdapter builder = new BuilderAdapter(mCurrentProfile.getName(), mCurrentProfile.getSplitTunneling());
+            if (initializeCharon(builder, mLogFile, mCurrentProfile.getVpnType().has(VpnType.VpnTypeFeature.BYOD))) {
+                Log.i(TAG, "charon started");
+                SettingsWriter writer = new SettingsWriter();
+                writer.setValue("global.language", Locale.getDefault().getLanguage());
+                writer.setValue("global.mtu", mCurrentProfile.getMTU());
+                writer.setValue("connection.type", mCurrentProfile.getVpnType().getIdentifier());
+                writer.setValue("connection.server", mCurrentProfile.getGateway());
+                writer.setValue("connection.port", mCurrentProfile.getPort());
+                writer.setValue("connection.username", mCurrentProfile.getUsername());
+                writer.setValue("connection.password", mCurrentProfile.getPassword());
+                writer.setValue("connection.local_id", mCurrentProfile.getLocalId());
+                writer.setValue("connection.remote_id", mCurrentProfile.getRemoteId());
+                needStop = true;
+                initiate(writer.serialize());
+            } else {
+                Log.e(TAG, "failed to start charon");
+                setError(VpnStateService.ErrorState.GENERIC_ERROR);
+                //setState(VpnStateService.State.DISABLED);
             }
         }
     }

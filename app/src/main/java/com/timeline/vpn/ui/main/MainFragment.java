@@ -118,12 +118,14 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
     @Override
     public void onDestroy() {
         LogUtil.i("main destory");
-//        startService(CharonVpnService.class);
         stopService(CharonVpnService.class);
 //        stopService(LogToFileService.class);
         stopService(LogUploadService.class);
         EventBusUtil.getEventBus().unregister(jump);
         EventBusUtil.getEventBus().unregister(logAdd);
+        if(myReceiver!=null){
+            unregisterReceiver(myReceiver);
+        }
         super.onDestroy();
     }
 
