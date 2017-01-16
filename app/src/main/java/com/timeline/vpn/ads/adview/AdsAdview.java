@@ -114,6 +114,7 @@ public class AdsAdview {
                 }
             });
         } catch (Throwable e) {
+            AdsAdview.adsNotify(context, Constants.ADS_TYPE_SPREAD, Constants.ADS_TYPE_ERROR);
             LogUtil.e(e);
         }
     }
@@ -153,6 +154,7 @@ public class AdsAdview {
                 }
             });
         } catch (Throwable e) {
+            AdsAdview.adsNotify(context, Constants.ADS_TYPE_INTERSTITIAL, Constants.ADS_TYPE_ERROR);
             LogUtil.e(e);
         }
     }
@@ -172,6 +174,7 @@ public class AdsAdview {
                 @Override
                 public void onAdClick(String s) {
                     handler.sendEmptyMessage(Constants.ADS_CLICK_MSG);
+                    AdsAdview.adsNotify(context, Constants.ADS_TYPE_BANNER, Constants.ADS_CLICK_MSG);
                 }
 
                 @Override
@@ -200,6 +203,7 @@ public class AdsAdview {
             group.addView(view);
             group.invalidate();
         } catch (Throwable e) {
+            AdsAdview.adsNotify(context, Constants.ADS_TYPE_BANNER, Constants.ADS_TYPE_ERROR);
             LogUtil.e(e);
         }
     }
@@ -230,6 +234,7 @@ public class AdsAdview {
                 }
             }); //设置原生回调接口
         } catch (Throwable e) {
+            AdsAdview.adsNotify(context, Constants.ADS_TYPE_NATIVE, Constants.ADS_TYPE_ERROR);
             LogUtil.e(e);
         }
     }

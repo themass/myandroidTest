@@ -24,6 +24,7 @@ public class Constants {
     public static final int ADS_DISMISS_MSG = 2;
     public static final int ADS_PRESENT_MSG = 3;
     public static final int ADS_READY_MSG = 4;
+    public static final int ADS_TYPE_ERROR = -1;
     public static final int ADS_TYPE_BANNER = 0;
     public static final int ADS_TYPE_SPREAD = 1;
     public static final int ADS_TYPE_INTERSTITIAL = 2;

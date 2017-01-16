@@ -72,7 +72,7 @@ public class MobAgent {
         Map<String, String> map = new HashMap<>();
         map.put("name", AdsAdview.getAdsName(type));
         map.put("event", AdsAdview.getAdsEvent(event));
-        map.put("status", AdsAdview.getAdsEvent(event)+"-"+AdsAdview.getAdsEvent(event));
+        map.put("status", AdsAdview.getAdsEvent(event)+" - "+AdsAdview.getAdsEvent(event));
         MobclickAgent.onEvent(context, "adsshow", map);
     }
 
