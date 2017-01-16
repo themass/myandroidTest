@@ -230,6 +230,7 @@ public class BaseDrawerActivity extends BaseFragmentActivity {
                     VersionUpdater.setNewVersion(BaseDrawerActivity.this, vo.maxBuild);
                     PreferenceUtils.setPrefString(MyApplication.getInstance(), Constants.D_URL, vo.url);
                     PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.ADS_SHOW_CONFIG, vo.adsShow);
+                    PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.LOG_UPLOAD_CONFIG, vo.logUp);
                     if (VersionUpdater.isNewVersion(vo.maxBuild)
                             && StringUtils.hasText(vo.url)) {
                         // 有新版本

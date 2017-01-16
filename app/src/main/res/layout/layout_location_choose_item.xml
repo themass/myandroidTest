@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/ll_location_choose"
     android:layout_width="fill_parent"
-    android:layout_height="55dp"
+    android:layout_height="65dp"
     android:layout_marginBottom="5dp"
     android:background="?android:attr/selectableItemBackground"
     android:clickable="true"
@@ -21,7 +21,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:textColor="@color/location_index"
-            android:textSize="@dimen/location_choose_tv_item_size" />
+            android:textSize="@dimen/location_choose_tv_index" />
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -42,7 +42,7 @@
                 android:layout_height="match_parent"
                 android:gravity="center"
                 android:textColor="@color/base_white"
-                android:textSize="@dimen/textsize_16" />
+                android:textSize="@dimen/location_choose_tv_type" />
         </FrameLayout>
 
     </LinearLayout>
@@ -72,7 +72,7 @@
                 android:layout_height="match_parent"
                 android:gravity="center"
                 android:textColor="@color/base_black"
-                android:textSize="@dimen/location_choose_tv_item_size" />
+                android:textSize="@dimen/location_choose_tv_country" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -81,15 +81,16 @@
                 android:padding="@dimen/padding_5"
                 android:text="-"
                 android:textColor="@color/base_black"
-                android:textSize="@dimen/location_choose_tv_item_size" />
+                android:textSize="@dimen/location_choose_tv_country" />
 
             <TextView
                 android:id="@+id/loc_tv_country_ename"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
+                android:maxLines="1"
                 android:gravity="center"
                 android:textColor="@color/base_black"
-                android:textSize="@dimen/location_choose_tv_item_size" />
+                android:textSize="@dimen/location_choose_tv_country" />
         </LinearLayout>
 
         <LinearLayout
@@ -103,7 +104,7 @@
                 android:gravity="center"
                 android:text="@string/location_choose_level"
                 android:textColor="@color/base_black"
-                android:textSize="@dimen/textsize_13" />
+                android:textSize="@dimen/location_choose_tv_net" />
 
             <RatingBar
                 android:id="@+id/rb_start"

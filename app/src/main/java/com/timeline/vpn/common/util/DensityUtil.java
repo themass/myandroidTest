@@ -41,7 +41,11 @@ public class DensityUtil {
     public static DisplayMetrics getDensityDisplayMetrics(Context context) {
         return context.getResources().getDisplayMetrics();
     }
-
+    public static void logDensity(Context context){
+        LogUtil.w("sw ="+px2dip(context,getDensityDisplayMetrics(context).widthPixels)+"dp");
+        LogUtil.w("dpi ="+getDensityDisplayMetrics(context).densityDpi);
+        LogUtil.w("Metrics="+getDensityDisplayMetrics(context));
+    }
 
     /**
      * 获取ActionBarSize

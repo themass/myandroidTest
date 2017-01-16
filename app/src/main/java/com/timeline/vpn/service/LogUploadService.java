@@ -32,11 +32,19 @@ public class LogUploadService extends BaseLogService {
         List<File> file = new ArrayList<>();
         boolean ret = FileUtils.mvFile(FileUtils.getBugFilePath(), FileUtils.getBugUploadFilePath());
         boolean ret1 = FileUtils.mvFile(FileUtils.getCharonFilePath(), FileUtils.getCharonUploadFilePath());
-        if (ret)
-            file.add(new File(FileUtils.getBugUploadFilePath()));
-        if (ret1)
-            file.add(new File(FileUtils.getCharonUploadFilePath()));
-        indexService.postData(Constants.getUrl(Constants.API_LOG_URL), file, listener, null, Constants.FILE_UPLOAD, TAG, NullReturnVo.class);
+        if (ret) {
+            File file1 = new File(FileUtils.getBugUploadFilePath());
+            if(file1.exists() && file1.length()>100)
+                file.add(file1);
+        }
+        if (ret1) {
+            File file2 = new File(FileUtils.getCharonUploadFilePath());
+            if(file2.exists() && file2.length()>100)
+                file.add(file2);
+            file.add(file2);
+        }
+        if(file.size()>0)
+            indexService.postData(Constants.getUrl(Constants.API_LOG_URL), file, listener, null, Constants.FILE_UPLOAD, TAG, NullReturnVo.class);
         return super.onStartCommand(intent, flags, startId);
     }
 

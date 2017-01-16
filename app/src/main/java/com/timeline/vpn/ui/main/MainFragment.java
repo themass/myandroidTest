@@ -51,6 +51,7 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
     private ConfigActionJump jump = new ConfigActionJump();
     private LogAddTofile logAdd = new LogAddTofile();
     private MyReceiver myReceiver;
+    private Toast destoryToast = null;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,6 +65,11 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
         registerReceiver(myReceiver, filter);
         AdsAdview.init(this);
         UserLoginUtil.initData(this);
+        boolean uploadLog = PreferenceUtils.getPrefBoolean(this, Constants.LOG_UPLOAD_CONFIG, false);
+        if(uploadLog) {
+            startService(new Intent(this, LogUploadService.class));
+        }
+        destoryToast = Toast.makeText(this, R.string.close_over, Toast.LENGTH_SHORT);
     }
 
     public void setListener(OnBackKeyUpListener keyListener) {
@@ -112,7 +118,7 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
     @Override
     public void onDestroy() {
         LogUtil.i("main destory");
-        startService(CharonVpnService.class);
+//        startService(CharonVpnService.class);
         stopService(CharonVpnService.class);
 //        stopService(LogToFileService.class);
         stopService(LogUploadService.class);
@@ -133,10 +139,12 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
             }
             long secondTime = System.currentTimeMillis();
             if (secondTime - firstTime > 2000) {
-                Toast.makeText(this, R.string.close_over, Toast.LENGTH_SHORT).show();
+                destoryToast.show();
                 firstTime = secondTime;//更新firstTime
                 return true;
-            } else {                                                    //两次按键小于2秒时，退出应用
+            } else {
+                //两次按键小于2秒时，退出应用
+                destoryToast.cancel();
                 super.onKeyUp(keyCode, event);
             }
         }

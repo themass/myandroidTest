@@ -21,6 +21,7 @@ import com.kyview.manager.AdViewSpreadManager;
 import com.kyview.natives.NativeAdInfo;
 import com.timeline.vpn.R;
 import com.timeline.vpn.base.MyApplication;
+import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.MobAgent;
 import com.timeline.vpn.provider.AdsInfoModel;
@@ -70,150 +71,167 @@ public class AdsAdview {
     }
 
     public static void launchAds(final Context context, ViewGroup group, final Handler handler) {
-        if (group == null) {
-            AdViewSpreadManager.getInstance(context).destroySpread(Constants.ADS_ADVIEW_KEY);
-            return;
+        try {
+            if (group == null) {
+                AdViewSpreadManager.getInstance(context).destroySpread(Constants.ADS_ADVIEW_KEY);
+                return;
+            }
+            AdViewSpreadManager.getInstance(context).init(initConfig, Constants.adsKeySet);
+            AdViewSpreadManager.getInstance(context).setSpreadLogo(R.drawable.ic_trans_logo);
+            AdViewSpreadManager.getInstance(context).setSpreadNotifyType(AdViewSpreadManager.NOTIFY_COUNTER_NUM);
+            AdViewSpreadManager.getInstance(context).request(context, Constants.ADS_ADVIEW_KEY, group, new AdViewSpreadListener() {
+                @Override
+                public void onAdClick(String s) {
+                    handler.sendEmptyMessage(Constants.ADS_CLICK_MSG);
+                    AdsAdview.adsNotify(context, Constants.ADS_TYPE_SPREAD, Constants.ADS_CLICK_MSG);
+                }
+
+                @Override
+                public void onAdDisplay(String s) {
+                    handler.sendEmptyMessage(Constants.ADS_PRESENT_MSG);
+                    AdsAdview.adsNotify(context, Constants.ADS_TYPE_SPREAD, Constants.ADS_PRESENT_MSG);
+                }
+
+                @Override
+                public void onAdClose(String s) {
+                    handler.sendEmptyMessage(Constants.ADS_DISMISS_MSG);
+                }
+
+                @Override
+                public void onAdRecieved(String s) {
+                    handler.sendEmptyMessage(Constants.ADS_READY_MSG);
+                }
+
+                @Override
+                public void onAdFailed(String s) {
+                    handler.sendEmptyMessage(Constants.ADS_NO_MSG);
+                    AdsAdview.adsNotify(context, Constants.ADS_TYPE_SPREAD, Constants.ADS_NO_MSG);
+                }
+
+                @Override
+                public void onAdSpreadNotifyCallback(String s, ViewGroup viewGroup, int i, int i1) {
+                    Toast.makeText(context, s, Toast.LENGTH_SHORT).show();
+                }
+            });
+        } catch (Throwable e) {
+            LogUtil.e(e);
         }
-        AdViewSpreadManager.getInstance(context).init(initConfig, Constants.adsKeySet);
-        AdViewSpreadManager.getInstance(context).setSpreadLogo(R.drawable.ic_trans_logo);
-        AdViewSpreadManager.getInstance(context).setSpreadNotifyType(AdViewSpreadManager.NOTIFY_COUNTER_NUM);
-        AdViewSpreadManager.getInstance(context).request(context, Constants.ADS_ADVIEW_KEY, group, new AdViewSpreadListener() {
-            @Override
-            public void onAdClick(String s) {
-                handler.sendEmptyMessage(Constants.ADS_CLICK_MSG);
-            }
-
-            @Override
-            public void onAdDisplay(String s) {
-                handler.sendEmptyMessage(Constants.ADS_PRESENT_MSG);
-                AdsAdview.adsNotify(context, Constants.ADS_TYPE_SPREAD, Constants.ADS_PRESENT_MSG);
-            }
-
-            @Override
-            public void onAdClose(String s) {
-                handler.sendEmptyMessage(Constants.ADS_DISMISS_MSG);
-            }
-
-            @Override
-            public void onAdRecieved(String s) {
-                handler.sendEmptyMessage(Constants.ADS_READY_MSG);
-            }
-
-            @Override
-            public void onAdFailed(String s) {
-                handler.sendEmptyMessage(Constants.ADS_NO_MSG);
-                AdsAdview.adsNotify(context, Constants.ADS_TYPE_SPREAD, Constants.ADS_NO_MSG);
-            }
-
-            @Override
-            public void onAdSpreadNotifyCallback(String s, ViewGroup viewGroup, int i, int i1) {
-                Toast.makeText(context, s, Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 
     public static void interstitialAds(final Context context, final Handler handler) {
-        AdViewInstlManager.getInstance(context).requestAd(context, Constants.ADS_ADVIEW_KEY, new AdViewInstlListener() {
+        try {
+            AdViewInstlManager.getInstance(context).requestAd(context, Constants.ADS_ADVIEW_KEY, new AdViewInstlListener() {
 
-            @Override
-            public void onAdClick(String s) {
-                handler.sendEmptyMessage(Constants.ADS_CLICK_MSG);
-                AdsAdview.adsNotify(context, Constants.ADS_TYPE_INTERSTITIAL, Constants.ADS_CLICK_MSG);
-            }
+                @Override
+                public void onAdClick(String s) {
+                    handler.sendEmptyMessage(Constants.ADS_CLICK_MSG);
+                    AdsAdview.adsNotify(context, Constants.ADS_TYPE_INTERSTITIAL, Constants.ADS_CLICK_MSG);
+                }
 
-            @Override
-            public void onAdDisplay(String s) {
-                handler.sendEmptyMessage(Constants.ADS_PRESENT_MSG);
-                AdsAdview.adsNotify(context, Constants.ADS_TYPE_INTERSTITIAL, Constants.ADS_PRESENT_MSG);
-            }
+                @Override
+                public void onAdDisplay(String s) {
+                    handler.sendEmptyMessage(Constants.ADS_PRESENT_MSG);
+                    AdsAdview.adsNotify(context, Constants.ADS_TYPE_INTERSTITIAL, Constants.ADS_PRESENT_MSG);
+                }
 
-            @Override
-            public void onAdDismiss(String s) {
-                handler.sendEmptyMessage(Constants.ADS_DISMISS_MSG);
-            }
+                @Override
+                public void onAdDismiss(String s) {
+                    handler.sendEmptyMessage(Constants.ADS_DISMISS_MSG);
+                }
 
-            @Override
-            public void onAdRecieved(String s) {
-                handler.sendEmptyMessage(Constants.ADS_READY_MSG);
-                AdViewInstlManager.getInstance(context)
-                        .showAd(context, Constants.ADS_ADVIEW_KEY);
-            }
+                @Override
+                public void onAdRecieved(String s) {
+                    handler.sendEmptyMessage(Constants.ADS_READY_MSG);
+                    AdViewInstlManager.getInstance(context)
+                            .showAd(context, Constants.ADS_ADVIEW_KEY);
+                }
 
-            @Override
-            public void onAdFailed(String s) {
-                handler.sendEmptyMessage(Constants.ADS_NO_MSG);
-                AdsAdview.adsNotify(context, Constants.ADS_TYPE_INTERSTITIAL, Constants.ADS_NO_MSG);
-            }
-        });
+                @Override
+                public void onAdFailed(String s) {
+                    handler.sendEmptyMessage(Constants.ADS_NO_MSG);
+                    AdsAdview.adsNotify(context, Constants.ADS_TYPE_INTERSTITIAL, Constants.ADS_NO_MSG);
+                }
+            });
+        } catch (Throwable e) {
+            LogUtil.e(e);
+        }
     }
 
     public static void bannerAds(final Context context, final ViewGroup group, final Handler handler, String key) {
-        View view = AdViewBannerManager.getInstance(context).getAdViewLayout(context, key);
-        if (view != null) {
-            ViewGroup parent = (ViewGroup) view.getParent();
-            if (parent != null) {
-                parent.removeAllViews();
+        try {
+            View view = AdViewBannerManager.getInstance(context).getAdViewLayout(context, key);
+            if (view != null) {
+                ViewGroup parent = (ViewGroup) view.getParent();
+                if (parent != null) {
+                    parent.removeAllViews();
+                }
+                view.setTag(key);
             }
-            view.setTag(key);
+            AdViewBannerManager.getInstance(context).requestAd(context, key, new AdViewBannerListener() {
+
+                @Override
+                public void onAdClick(String s) {
+                    handler.sendEmptyMessage(Constants.ADS_CLICK_MSG);
+                }
+
+                @Override
+                public void onAdDisplay(String s) {
+                    handler.sendEmptyMessage(Constants.ADS_PRESENT_MSG);
+                    AdsAdview.adsNotify(context, Constants.ADS_TYPE_BANNER, Constants.ADS_PRESENT_MSG);
+                }
+
+                @Override
+                public void onAdClose(String s) {
+                    handler.sendEmptyMessage(Constants.ADS_DISMISS_MSG);
+                    group.removeView(group.findViewWithTag(s));
+                }
+
+                @Override
+                public void onAdFailed(String s) {
+                    handler.sendEmptyMessage(Constants.ADS_NO_MSG);
+                    AdsAdview.adsNotify(context, Constants.ADS_TYPE_BANNER, Constants.ADS_NO_MSG);
+                }
+
+                @Override
+                public void onAdReady(String s) {
+                    handler.sendEmptyMessage(Constants.ADS_READY_MSG);
+                }
+            });
+            group.addView(view);
+            group.invalidate();
+        } catch (Throwable e) {
+            LogUtil.e(e);
         }
-        AdViewBannerManager.getInstance(context).requestAd(context, key, new AdViewBannerListener() {
-
-            @Override
-            public void onAdClick(String s) {
-                handler.sendEmptyMessage(Constants.ADS_CLICK_MSG);
-            }
-
-            @Override
-            public void onAdDisplay(String s) {
-                handler.sendEmptyMessage(Constants.ADS_PRESENT_MSG);
-                AdsAdview.adsNotify(context, Constants.ADS_TYPE_BANNER, Constants.ADS_PRESENT_MSG);
-            }
-
-            @Override
-            public void onAdClose(String s) {
-                handler.sendEmptyMessage(Constants.ADS_DISMISS_MSG);
-                group.removeView(group.findViewWithTag(s));
-            }
-
-            @Override
-            public void onAdFailed(String s) {
-                handler.sendEmptyMessage(Constants.ADS_NO_MSG);
-                AdsAdview.adsNotify(context, Constants.ADS_TYPE_BANNER, Constants.ADS_NO_MSG);
-            }
-
-            @Override
-            public void onAdReady(String s) {
-                handler.sendEmptyMessage(Constants.ADS_READY_MSG);
-            }
-        });
-        group.addView(view);
-        group.invalidate();
     }
 
     public static void nativeAds(final Context context, final Handler handler, final NativeAdsAdapter.AdsAdapter adsAdapter) {
-        if (adsAdapter == null || handler == null) {
-            return;
+        try {
+            if (adsAdapter == null || handler == null) {
+                return;
+            }
+            AdViewNativeManager.getInstance(context).requestAd(context, Constants.ADS_ADVIEW_KEY, 80, new AdViewNativeListener() {
+
+                @Override
+                public void onAdFailed(String s) {
+                    handler.sendEmptyMessage(Constants.ADS_NO_MSG);
+                    AdsAdview.adsNotify(context, Constants.ADS_TYPE_NATIVE, Constants.ADS_NO_MSG);
+                }
+
+                @Override
+                public void onAdRecieved(String s, ArrayList arrayList) {
+                    handler.sendEmptyMessage(Constants.ADS_PRESENT_MSG);
+                    adsAdapter.addData((List<NativeAdInfo>) arrayList);
+                    AdsAdview.adsNotify(context, Constants.ADS_TYPE_NATIVE, Constants.ADS_PRESENT_MSG);
+                }
+
+                @Override
+                public void onAdStatusChanged(String s, int i) {
+                    handler.sendEmptyMessage(Constants.ADS_CLICK_MSG);
+                }
+            }); //设置原生回调接口
+        } catch (Throwable e) {
+            LogUtil.e(e);
         }
-        AdViewNativeManager.getInstance(context).requestAd(context, Constants.ADS_ADVIEW_KEY, 80, new AdViewNativeListener() {
-
-            @Override
-            public void onAdFailed(String s) {
-                handler.sendEmptyMessage(Constants.ADS_NO_MSG);
-                AdsAdview.adsNotify(context, Constants.ADS_TYPE_NATIVE, Constants.ADS_NO_MSG);
-            }
-
-            @Override
-            public void onAdRecieved(String s, ArrayList arrayList) {
-                handler.sendEmptyMessage(Constants.ADS_PRESENT_MSG);
-                adsAdapter.addData((List<NativeAdInfo>) arrayList);
-                AdsAdview.adsNotify(context, Constants.ADS_TYPE_NATIVE, Constants.ADS_PRESENT_MSG);
-            }
-
-            @Override
-            public void onAdStatusChanged(String s, int i) {
-                handler.sendEmptyMessage(Constants.ADS_CLICK_MSG);
-            }
-        }); //设置原生回调接口
     }
 
     public static void adsNotify(Context context, int type, int event) {

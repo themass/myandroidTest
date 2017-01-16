@@ -15,7 +15,6 @@
     for more details.
 -->
 <resources>
-    <integer name="__leak_canary_max_stored_leaks">20</integer>
     <!--  tab main -->
     <string name="tab_index">首页</string>
     <string name="tab_vip">VIP专区</string>
@@ -102,7 +101,6 @@
     <string name="vpn_type_free">免费</string>
     <string name="vpn_type_vip">VIP</string>
     <string name="vpn_type_advip">特权</string>
-    <string name="vpn_service_text">打开FreeVpn</string>
     <string name="vpn_remote_status">FreeVPN·</string>
     <string name="vpn_remote_on">已连接，点击断开</string>
     <string name="vpn_remote_off">已断开，点击连接</string>
@@ -126,14 +124,12 @@
     <!--其他-->
     <item name="tag_pos" type="id" />
     <item name="tag_val" type="id" />
-    <string name="facebook_app_id">487692214752558</string>
     <!--   like  -->
     <plurals name="likes_count">
         <item quantity="one">%d like</item>
         <item quantity="other">%d likes</item>
     </plurals>
     <!-- vpn error text -->
-    <string name="error_introduction">启动VPN服务失败:</string>
     <string name="error_lookup_failed">服务器连接失败.</string>
     <string name="error_unreachable">网络连接失败.</string>
     <string name="error_peer_auth_failed">服务器鉴权失败.</string>

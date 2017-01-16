@@ -4,7 +4,6 @@ import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.toolbox.HttpStack;
 import com.timeline.vpn.base.MyApplication;
-import com.timeline.vpn.common.exce.RequestException;
 import com.timeline.vpn.common.net.interceptor.DnsRequestInterceptor;
 import com.timeline.vpn.common.net.request.MultipartRequest;
 import com.timeline.vpn.common.util.LogUtil;
@@ -133,17 +132,10 @@ public class OkHttpStack implements HttpStack {
         if (r instanceof MultipartRequest && ((MultipartRequest) r).getFile() != null) {
             MultipartBody.Builder builder = new MultipartBody.Builder().setType(MultipartBody.FORM);
             List<File> fileList = ((MultipartRequest) r).getFile();
-            int count = 0;
             for (File file : fileList) {
-                if (file.exists() && file.length() > 100) {
-                    LogUtil.i("add file:" + file.getName());
-                    RequestBody fileBody = RequestBody.create(MediaType.parse("application/octet-stream"), file);
-                    builder.addFormDataPart(((MultipartRequest) r).getName(), file.getName(), fileBody);
-                    count++;
-                }
-            }
-            if (count == 0) {
-                throw new RequestException("MultipartRequest has no part");
+                LogUtil.i("add file:" + file.getName());
+                RequestBody fileBody = RequestBody.create(MediaType.parse("application/octet-stream"), file);
+                builder.addFormDataPart(((MultipartRequest) r).getName(), file.getName(), fileBody);
             }
             return builder.build();
         }

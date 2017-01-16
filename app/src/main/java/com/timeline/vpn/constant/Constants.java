@@ -103,6 +103,7 @@ public class Constants {
     public static final int ADS_SHOW_CLICK = 20;
     public static final String D_URL = "D_URL";
     public static final String ADS_SHOW_CONFIG = "ADS_SHOW_CONFIG";
+    public static final String LOG_UPLOAD_CONFIG = "LOG_UPLOAD_CONFIG";
     public static final String FILE_UPLOAD = "fileList";
     public static final String FILE_TMP_PATH = "freeVPN";
     public static final String LOG_FILE = "charon.log";

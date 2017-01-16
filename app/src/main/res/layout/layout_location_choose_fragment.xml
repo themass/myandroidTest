@@ -27,8 +27,7 @@
             android:layout_width="@dimen/location_choose_width2"
             android:layout_height="fill_parent"
             android:layout_marginRight="@dimen/location_choose_margin"
-            android:text="@string/location_country"
-            android:textSize="@dimen/location_choose_btn_size" />
+            android:text="@string/location_country" />
 
         <Button
             android:id="@+id/loc_btn_features"

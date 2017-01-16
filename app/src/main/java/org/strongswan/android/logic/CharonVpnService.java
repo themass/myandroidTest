@@ -27,6 +27,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.graphics.drawable.AnimationDrawable;
 import android.net.VpnService;
 import android.os.Build;
 import android.os.Bundle;
@@ -114,6 +115,8 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
     public ButtonBroadcastReceiver bReceiver;
     private String mLogFile;
     private VpnProfile mCurrentProfile;
+    private VpnProfile mNextProfile;
+    private volatile boolean mProfileUpdated;
     private volatile boolean mIsDisconnecting;
     private HandlerThread mWorkThread;
     private Handler mWorkHandler;
@@ -137,8 +140,6 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
             /* we are now ready to start the handler thread */
         }
     };
-    private int retry = 0;
-
     @Override
     public void stateChanged() {
         createForegroundService();
@@ -152,8 +153,6 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
             if (bundle != null) {
                 profile = (VpnProfile) bundle.getSerializable(PROFILE);
             }
-            if (profile != null)
-                mCurrentProfile = profile;
             setNextProfile(profile);
         }
         LogUtil.i("charon service onStartCommand");
@@ -162,11 +161,14 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
 
     private void setNextProfile(VpnProfile profile) {
         if (mWorkHandler != null) {
-            if (profile == null) {
-                mWorkHandler.post(new DisConnectJob());
-            } else {
-                mWorkHandler.post(new ConnectJob());
-            }
+            mNextProfile = profile;
+            mProfileUpdated = true;
+//            if (profile == null) {
+//                mWorkHandler.post(new DisConnectJob());
+//            } else {
+//                mWorkHandler.post(new ConnectJob());
+//            }
+            mWorkHandler.post(new ConnectJob());
         } else {
             LogUtil.w("启动没完成");
         }
@@ -426,37 +428,48 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
      * There is a corresponding C object to access it from native code.
      */
     public void disconn() {
-        LogUtil.i("charon stopped  mCurrentState=" + mService.getState() + "  thread=" + Thread.currentThread().getName());
-        setState(VpnStateService.State.DISCONNECTING);
-        mIsDisconnecting = true;
-        deinitializeCharon();
-        Log.i(TAG, "charon stopped");
-        setState(VpnStateService.State.DISABLED);
+        if(mCurrentProfile!=null) {
+            LogUtil.i("charon stopped  mCurrentState=" + mService.getState() + "  thread=" + Thread.currentThread().getName());
+            setState(VpnStateService.State.DISCONNECTING);
+            mIsDisconnecting = true;
+            deinitializeCharon();
+            Log.i(TAG, "charon stopped");
+            setState(VpnStateService.State.DISABLED);
+            mCurrentProfile = null;
+        }
     }
 
     public void conn() {
         Log.i(TAG, "charon started mCurrentState=" + mService.getState() + "  thread=" + Thread.currentThread().getName());
-        if (mCurrentProfile != null) {
-            startConnection(mCurrentProfile);
-            mIsDisconnecting = false;
-            BuilderAdapter builder = new BuilderAdapter(mCurrentProfile.getName(), mCurrentProfile.getSplitTunneling());
-            if (initializeCharon(builder, mLogFile, mCurrentProfile.getVpnType().has(VpnType.VpnTypeFeature.BYOD))) {
-                Log.i(TAG, "charon started");
-                SettingsWriter writer = new SettingsWriter();
-                writer.setValue("global.language", Locale.getDefault().getLanguage());
-                writer.setValue("global.mtu", mCurrentProfile.getMTU());
-                writer.setValue("connection.type", mCurrentProfile.getVpnType().getIdentifier());
-                writer.setValue("connection.server", mCurrentProfile.getGateway());
-                writer.setValue("connection.port", mCurrentProfile.getPort());
-                writer.setValue("connection.username", mCurrentProfile.getUsername());
-                writer.setValue("connection.password", mCurrentProfile.getPassword());
-                writer.setValue("connection.local_id", mCurrentProfile.getLocalId());
-                writer.setValue("connection.remote_id", mCurrentProfile.getRemoteId());
-                initiate(writer.serialize());
-            } else {
-                Log.e(TAG, "failed to start charon");
-                setError(VpnStateService.ErrorState.GENERIC_ERROR);
-                //setState(VpnStateService.State.DISABLED);
+        if (mProfileUpdated) {
+            mProfileUpdated = false;
+            disconn();
+            if (mNextProfile == null)
+            {
+                setState(VpnStateService.State.DISABLED);
+            }else {
+                mCurrentProfile = mNextProfile;
+                startConnection(mCurrentProfile);
+                mIsDisconnecting = false;
+                BuilderAdapter builder = new BuilderAdapter(mCurrentProfile.getName(), mCurrentProfile.getSplitTunneling());
+                if (initializeCharon(builder, mLogFile, mCurrentProfile.getVpnType().has(VpnType.VpnTypeFeature.BYOD))) {
+                    Log.i(TAG, "charon started");
+                    SettingsWriter writer = new SettingsWriter();
+                    writer.setValue("global.language", Locale.getDefault().getLanguage());
+                    writer.setValue("global.mtu", mCurrentProfile.getMTU());
+                    writer.setValue("connection.type", mCurrentProfile.getVpnType().getIdentifier());
+                    writer.setValue("connection.server", mCurrentProfile.getGateway());
+                    writer.setValue("connection.port", mCurrentProfile.getPort());
+                    writer.setValue("connection.username", mCurrentProfile.getUsername());
+                    writer.setValue("connection.password", mCurrentProfile.getPassword());
+                    writer.setValue("connection.local_id", mCurrentProfile.getLocalId());
+                    writer.setValue("connection.remote_id", mCurrentProfile.getRemoteId());
+                    initiate(writer.serialize());
+                } else {
+                    Log.e(TAG, "failed to start charon");
+                    setError(VpnStateService.ErrorState.GENERIC_ERROR);
+                    //setState(VpnStateService.State.DISABLED);
+                }
             }
         }
     }
@@ -484,7 +497,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
             VPN_STATUS_NOTIF = true;
             canGo = false;
         } else if (VpnStateService.State.CONNECTING.equals(mService.getState())) {
-//            remoteViews.setImageViewResource(R.id.btn_vpn, R.drawable.remote_vpn_off);
+            remoteViews.setImageViewResource(R.id.btn_vpn, R.drawable.remote_vpn_off);
             remoteViews.setTextViewText(R.id.tv_vpn_content, getString(R.string.vpn_remote_ing));
             remoteViews.setViewVisibility(R.id.btn_vpn, View.GONE);
             remoteViews.setViewVisibility(R.id.rb_conning, View.VISIBLE);
@@ -665,9 +678,9 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
      * that information when reestablishing IKE_SAs
      */
     public class BuilderCache {
-        private final List<PrefixedAddress> mAddresses = new ArrayList<PrefixedAddress>();
-        private final List<PrefixedAddress> mRoutesIPv4 = new ArrayList<PrefixedAddress>();
-        private final List<PrefixedAddress> mRoutesIPv6 = new ArrayList<PrefixedAddress>();
+        private final List<PrefixedAddress> mAddresses = new ArrayList<>();
+        private final List<PrefixedAddress> mRoutesIPv4 = new ArrayList<>();
+        private final List<PrefixedAddress> mRoutesIPv6 = new ArrayList<>();
         private final int mSplitTunneling;
         private int mMtu;
         private boolean mIPv4Seen, mIPv6Seen;

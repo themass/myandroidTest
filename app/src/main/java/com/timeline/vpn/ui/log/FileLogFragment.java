@@ -22,6 +22,7 @@ import android.widget.TextView;
 
 import com.timeline.vpn.R;
 import com.timeline.vpn.common.util.FileUtils;
+import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.ui.base.BaseFragment;
 
@@ -99,6 +100,7 @@ public class FileLogFragment extends BaseFragment implements Runnable {
             mThread.interrupt();
             mThread.join();
         } catch (InterruptedException e) {
+            LogUtil.e(e);
         }
     }
 

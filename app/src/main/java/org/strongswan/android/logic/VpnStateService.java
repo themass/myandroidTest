@@ -34,9 +34,9 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 public class VpnStateService extends Service {
-    private final List<VpnStateListener> mListeners = new ArrayList<VpnStateListener>();
+    private final List<VpnStateListener> mListeners = new ArrayList<>();
     private final IBinder mBinder = new LocalBinder();
-    private final LinkedList<RemediationInstruction> mRemediationInstructions = new LinkedList<RemediationInstruction>();
+    private final LinkedList<RemediationInstruction> mRemediationInstructions = new LinkedList<>();
     private long mConnectionID = 0;
     private Handler mHandler;
     private VpnProfile mProfile;

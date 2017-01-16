@@ -163,7 +163,7 @@ public class HttpUtils {
                 } else {
                     int total = conn.getContentLength();
                     int currentLength = 0;
-                    int len = -1;
+                    int len;
                     while ((len = is.read(buf)) != -1) {
                         fos.write(buf, 0, len);
                         currentLength += len;

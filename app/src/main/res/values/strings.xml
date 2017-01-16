@@ -15,7 +15,6 @@
     for more details.
 -->
 <resources>
-    <integer name="__leak_canary_max_stored_leaks">20</integer>
     <!--  tab main -->
     <string name="tab_index">Home</string>
     <string name="tab_vip">VIPArea</string>
@@ -80,7 +79,7 @@
     <string name="need_login">Login please</string>
     <string name="need_vip">Not VIP user has no permission to select the areang</string>
 
-    <string name="iwanna_tips">Tell me what du you want \nI\'ll be ready for you </string>
+    <string name="iwanna_tips">Tell me what du you want ,\nI\'ll be ready for you </string>
     <string name="iwanna_title">What do you want?</string>
     <string name="send">send</string>
     <string name="iwanna_content_error">Tell me something!</string>
@@ -102,7 +101,6 @@
     <string name="vpn_type_free">Free</string>
     <string name="vpn_type_vip">VIP</string>
     <string name="vpn_type_advip">highVIP</string>
-    <string name="vpn_service_text">Start FreeVpn</string>
     <string name="vpn_remote_status">FreeVPN·</string>
     <string name="vpn_remote_on">Connected，click to disconnect</string>
     <string name="vpn_remote_off">Disconnect，click to connect</string>
@@ -127,7 +125,6 @@ You are now using a non WIFI network, continue to download may consume more netw
     <!--其他-->
     <item name="tag_pos" type="id" />
     <item name="tag_val" type="id" />
-    <string name="facebook_app_id">487692214752558</string>
     <!--   like  -->
     <plurals name="likes_count">
         <item quantity="one">%d like</item>
@@ -135,7 +132,6 @@ You are now using a non WIFI network, continue to download may consume more netw
     </plurals>
 
     <!-- vpn error text -->
-    <string name="error_introduction">Failed to establish VPN:</string>
     <string name="error_lookup_failed">Gateway address lookup failed.</string>
     <string name="error_unreachable">Gateway is unreachable.</string>
     <string name="error_peer_auth_failed">Verifying gateway authentication failed.</string>

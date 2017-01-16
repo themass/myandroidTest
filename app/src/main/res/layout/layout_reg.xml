@@ -57,7 +57,7 @@
                     android:layout_height="wrap_content"
                     android:layout_alignParentRight="true"
                     android:background="@color/reg_code"
-                    android:text="@string/re_bt_code"></Button>
+                    android:text="@string/re_bt_code"/>
 
                 <com.timeline.vpn.common.view.MyEditText
                     android:id="@+id/et_code"

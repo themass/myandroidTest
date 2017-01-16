@@ -523,7 +523,7 @@ public class WeatherConstants {
         WIND_LEVEL_DETAIL_TW_MAP.put("9-10级", "今天風有點大，外出的話，請做好防護措施。");
         WIND_LEVEL_DETAIL_TW_MAP.put("10-11级", "今天風有點大，外出的話，請做好防護措施。");
         WIND_LEVEL_DETAIL_TW_MAP.put("11-12级", "今天風有點大，外出的話，請做好防護措施。");
-        WEATHER_ANIMATION_MAP = new HashMap<String, Integer>();
+        WEATHER_ANIMATION_MAP = new HashMap<>();
         WEATHER_ANIMATION_MAP.put("晴", 0);
         WEATHER_ANIMATION_MAP.put("多云", 1);
         WEATHER_ANIMATION_MAP.put("阴", 2);

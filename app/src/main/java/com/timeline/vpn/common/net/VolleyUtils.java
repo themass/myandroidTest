@@ -21,9 +21,6 @@ import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.common.util.cache.BitmapLruCache;
 import com.timeline.vpn.common.util.cache.DiskBasedCacheEx;
 import java.io.File;
-
-import static com.timeline.vpn.base.MyApplication.isDebug;
-
 /**
  * Volley
  */

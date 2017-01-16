@@ -41,7 +41,7 @@
         <item name="android:paddingLeft">20dp</item>
         <item name="android:paddingRight">20dp</item>
         <item name="android:textColor">?attr/colorPrimary</item>
-        <item name="android:textSize">14sp</item>
+        <item name="android:textSize">@dimen/menu_text_size</item>
     </style>
 
     <style name="AnimationActivity" parent="@android:style/Animation.Activity">
@@ -52,7 +52,7 @@
     </style>
 
     <style name="edit">
-        <item name="android:textSize">@dimen/textsize_16</item>
+        <item name="android:textSize">@dimen/edit_tx_size</item>
         <item name="android:textColorHint">@color/hint</item>
         <item name="android:textColor">@color/new_deep_black</item>
         <item name="android:paddingLeft">@dimen/padding_10</item>
@@ -104,7 +104,7 @@
 
     <style name="btn_location_header" parent="@style/Base.Widget.AppCompat.Button">
         <item name="android:background">@drawable/btn_location_header_selector</item>
-        <item name="android:textSize">@dimen/location_choose_tv_size</item>
+        <item name="android:textSize">@dimen/location_choose_btn_size</item>
         <item name="android:textColor">@color/base_white</item>
         <item name="android:gravity">center</item>
     </style>

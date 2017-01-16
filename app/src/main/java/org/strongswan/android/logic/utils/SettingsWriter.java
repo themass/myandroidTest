@@ -44,8 +44,7 @@ public class SettingsWriter {
             return this;
         }
         String[] keys = key.split("\\.");
-        SettingsSection section = mTop;
-        section = findOrCreateSection(Arrays.copyOfRange(keys, 0, keys.length - 1));
+        SettingsSection  section = findOrCreateSection(Arrays.copyOfRange(keys, 0, keys.length - 1));
         section.Settings.put(keys[keys.length - 1], value);
         return this;
     }
@@ -142,11 +141,11 @@ public class SettingsWriter {
         /**
          * Assigned key/value pairs
          */
-        LinkedHashMap<String, String> Settings = new LinkedHashMap<String, String>();
+        LinkedHashMap<String, String> Settings = new LinkedHashMap<>();
 
         /**
          * Assigned sub-sections
          */
-        LinkedHashMap<String, SettingsSection> Sections = new LinkedHashMap<String, SettingsSection>();
+        LinkedHashMap<String, SettingsSection> Sections = new LinkedHashMap<>();
     }
 }

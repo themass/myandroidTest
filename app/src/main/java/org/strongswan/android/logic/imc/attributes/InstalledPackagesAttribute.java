@@ -38,7 +38,7 @@ import java.util.LinkedList;
  */
 public class InstalledPackagesAttribute implements Attribute {
     private final short RESERVED = 0;
-    private final LinkedList<Pair<String, String>> mPackages = new LinkedList<Pair<String, String>>();
+    private final LinkedList<Pair<String, String>> mPackages = new LinkedList<>();
 
     /**
      * Add an installed package to this attribute.
@@ -47,7 +47,7 @@ public class InstalledPackagesAttribute implements Attribute {
      * @param version version number of the package
      */
     public void addPackage(String name, String version) {
-        mPackages.add(new Pair<String, String>(name, version));
+        mPackages.add(new Pair<>(name, version));
     }
 
     @Override

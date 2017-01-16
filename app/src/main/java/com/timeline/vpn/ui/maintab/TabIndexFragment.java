@@ -44,6 +44,7 @@ import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.data.LocationUtil;
+import com.timeline.vpn.data.MobAgent;
 import com.timeline.vpn.data.config.ConfigActionEvent;
 import com.timeline.vpn.ui.base.LoadableTabFragment;
 import com.timeline.vpn.ui.view.MyPullView;
@@ -215,6 +216,7 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
         Map<String, Object> param = new HashMap<>();
         param.put(Constants.ADS_SHOW_CONFIG, vo.adsShow);
         EventBusUtil.getEventBus().post(new ConfigActionEvent(getActivity(), vo.actionUrl, param));
+        MobAgent.onEventRecommond(getActivity(),vo.title);
     }
 
     @Override
