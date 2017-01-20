@@ -19,6 +19,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 
@@ -201,7 +202,20 @@ public class VpnStateService extends Service {
         Intent intent = new Intent(context, CharonVpnService.class);
         context.startService(intent);
     }
-
+    public void connect(VpnProfile profile) {
+		/* as soon as the TUN device is created by calling establish() on the
+		 * VpnService.Builder object the system binds to the service and keeps
+		 * bound until the file descriptor of the TUN device is closed.  thus
+		 * calling stopService() here would not stop (destroy) the service yet,
+		 * instead we call startService() with an empty Intent which shuts down
+		 * the daemon (and closes the TUN device, if any) */
+        Context context = getApplicationContext();
+        Intent intent = new Intent(context, CharonVpnService.class);
+        Bundle bundle = new Bundle();
+        bundle.putSerializable(CharonVpnService.PROFILE, profile);
+        intent.putExtras(bundle);
+        context.startService(intent);
+    }
     /**
      * Update state and notify all listeners about the change. By using a Handler
      * this is done from the main UI thread and not the initial reporter thread.
@@ -266,7 +280,6 @@ public class VpnStateService extends Service {
                     VpnStateService.this.mError = error;
                     if (!ErrorState.NO_ERROR.equals(error)) {
                         VpnStateService.this.mState = State.DISABLED;
-                        VpnStateService.this.mImcState = ImcState.UNKNOWN;
                     }
                     return true;
                 }

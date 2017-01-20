@@ -12,8 +12,11 @@ import android.support.v4.view.ViewPager;
 import android.view.View;
 
 import com.timeline.vpn.R;
+import com.timeline.vpn.constant.Constants;
+import com.timeline.vpn.ui.base.TmpContentFragment;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import butterknife.Bind;
@@ -47,7 +50,12 @@ public class TabVipFragment extends TabBaseAdsFragment {
 
     private void setupViewPager(ViewPager viewPager) {
         MyAdapter adapter = new MyAdapter(getChildFragmentManager());
-        adapter.addFragment(new TabContentFgment(), R.string.tab_tag_vip);
+        TmpContentFragment fragment = new TmpContentFragment();
+        HashMap<String,Object> param = new HashMap<>();
+        param.put(Constants.ADSSHOW,true);
+        param.put(Constants.TITLE,getString(R.string.tab_vip_temp));
+        fragment.putSerializable(param);
+        adapter.addFragment(fragment, R.string.tab_tag_vip);
         viewPager.setAdapter(adapter);
 
 //        adapter.addFragment(new TabContentFgment(), R.string.tab_power_vent);

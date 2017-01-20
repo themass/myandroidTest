@@ -5,6 +5,7 @@ import android.os.AsyncTask;
 
 import com.timeline.vpn.bean.vo.UserInfoVo;
 import com.timeline.vpn.common.net.request.CommonResponse;
+import com.timeline.vpn.common.util.PreferenceUtils;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.data.UserLoginUtil;
@@ -41,6 +42,9 @@ public class ScoreTask extends AsyncTask {
                     UserLoginUtil.login(context, o);
                 }
             }, null, TAG, UserInfoVo.class);
+        }else{
+            int socreTmp = PreferenceUtils.getPrefInt(context,Constants.SCORE_TMP,0);
+            PreferenceUtils.setPrefInt(context,Constants.SCORE_TMP,score+socreTmp);
         }
         return null;
     }

@@ -49,7 +49,6 @@ import com.timeline.vpn.data.config.ConfigActionEvent;
 import com.timeline.vpn.ui.base.LoadableTabFragment;
 import com.timeline.vpn.ui.view.MyPullView;
 
-import org.strongswan.android.logic.CharonVpnService;
 import org.strongswan.android.logic.VpnStateService;
 import org.strongswan.android.logic.imc.ImcState;
 
@@ -215,7 +214,7 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
         RecommendVo vo = infoVo.voList.get(position);
         Map<String, Object> param = new HashMap<>();
         param.put(Constants.ADS_SHOW_CONFIG, vo.adsShow);
-        EventBusUtil.getEventBus().post(new ConfigActionEvent(getActivity(), vo.actionUrl, param));
+        EventBusUtil.getEventBus().post(new ConfigActionEvent(getActivity(), vo.actionUrl,vo.title, param));
         MobAgent.onEventRecommond(getActivity(),vo.title);
     }
 
@@ -240,7 +239,7 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
     @OnClick(R.id.iv_vpn_state)
     public void onVpnClick(View v) {
         LogUtil.i("onVpnClick " + mService.getState());
-        if (mService != null && (mService.getState() == VpnStateService.State.CONNECTED || mService.getState() == VpnStateService.State.CONNECTING)) {
+        if (mService != null && (mService.getState() == VpnStateService.State.CONNECTED)) {
             mService.disconnect();
         } else {
             imgAnim();
@@ -289,11 +288,7 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
         switch (requestCode) {
             case PREPARE_VPN_SERVICE:
                 if (resultCode == Activity.RESULT_OK) {
-                    Intent intent = new Intent(getActivity(), CharonVpnService.class);
-                    Bundle bundle = new Bundle();
-                    bundle.putSerializable(CharonVpnService.PROFILE, vpnProfile);
-                    intent.putExtras(bundle);
-                    getActivity().startService(intent);
+                    mService.connect(vpnProfile);
                 }
                 break;
             default:
@@ -457,7 +452,7 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
 
         @Override
         public void run() {
-            LogUtil.i("vpn stateChanged stateChanged " + state + "  errorState=" + errorState + "imcState=" + imcState);
+            LogUtil.i("vpn stateChanged stateChanged " + state + "  ;errorState=" + errorState + " ;imcState=" + imcState);
             if (hasError()) {
                 imgError();
                 hasIp = false;

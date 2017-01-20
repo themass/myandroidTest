@@ -6,9 +6,13 @@ package com.timeline.vpn.bean.form;
 public class LoginForm {
     public String name;
     public String pwd;
+    public String score;
 
-    public LoginForm(String name, String pwd) {
+    public LoginForm(String name, String pwd,Integer score) {
         this.name = name;
         this.pwd = pwd;
+        if(score!=null) {
+            this.score = String.valueOf(score);
+        }
     }
 }

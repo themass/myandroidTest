@@ -141,6 +141,7 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="vpn_not_supported_title">VPN not supported</string>
     <string name="vpn_not_supported">Your device does not support VPN applications.\nPlease contact the manufacturer.</string>
     <string name="vpn_not_supported_during_lockdown">VPN connections are not supported in lockdown mode.</string>
-
+    <!-- activity title-->
+    <string name="titile_browser">Open in browser</string>
     <!--广告-->
 </resources>

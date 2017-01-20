@@ -37,7 +37,7 @@ public abstract class BaseFragment extends LogFramgment {
      *
      * @return
      */
-    public Serializable getSerializableg() {
+    public Serializable getSerializable() {
         Bundle bundle = getArguments();
         if (bundle != null) {
             return bundle.getSerializable(FRAGMENT_ARG);

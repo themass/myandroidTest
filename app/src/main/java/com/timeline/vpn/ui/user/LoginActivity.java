@@ -40,6 +40,7 @@ public class LoginActivity extends BaseBannerAdsActivity {
     CommonResponse.ResponseOkListener loginListener = new CommonResponse.ResponseOkListener<UserInfoVo>() {
         @Override
         public void onResponse(UserInfoVo vo) {
+            PreferenceUtils.setPrefInt(LoginActivity.this,Constants.SCORE_TMP,0);
             UserLoginUtil.login(LoginActivity.this, vo);
             finish();
         }
@@ -75,7 +76,8 @@ public class LoginActivity extends BaseBannerAdsActivity {
         }
         setEnabled(false);
         PreferenceUtils.setPrefString(this, Constants.LOGIN_USER_LAST, name);
-        LoginForm form = new LoginForm(name, pwd);
+        int score = PreferenceUtils.getPrefInt(this,Constants.SCORE_TMP,0);
+        LoginForm form = new LoginForm(name, pwd,score);
         baseService.postData(Constants.getUrl(Constants.API_LOGIN_URL), form, loginListener, new CommonResponse.ResponseErrorListener() {
             @Override
             protected void onError() {

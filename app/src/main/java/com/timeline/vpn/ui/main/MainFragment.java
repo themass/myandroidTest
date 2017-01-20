@@ -29,14 +29,17 @@ import com.timeline.vpn.data.config.ConfigActionJump;
 import com.timeline.vpn.data.config.LogAddTofile;
 import com.timeline.vpn.service.LogUploadService;
 import com.timeline.vpn.ui.base.BaseDrawerActivity;
+import com.timeline.vpn.ui.base.BaseFragment;
+import com.timeline.vpn.ui.base.TmpContentFragment;
 import com.timeline.vpn.ui.maintab.OnBackKeyUpListener;
-import com.timeline.vpn.ui.maintab.TabContentFgment;
 import com.timeline.vpn.ui.maintab.TabIndexFragment;
 import com.timeline.vpn.ui.maintab.TabVipFragment;
 import com.umeng.message.PushAgent;
 import com.umeng.message.UTrack;
 
 import org.strongswan.android.logic.CharonVpnService;
+
+import java.util.HashMap;
 
 /**
  * Created by themass on 2016/3/1.
@@ -82,13 +85,18 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
         mTabHost.setOnTabChangedListener(this);
         LayoutInflater inflater = LayoutInflater.from(this);
         addTab(inflater, R.string.tab_tag_index, TabIndexFragment.class,
-                R.drawable.ac_bg_tab_index, R.string.tab_index);
+                R.drawable.ac_bg_tab_index, R.string.tab_index,null);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             addTab(inflater, R.string.tab_tag_vip, TabVipFragment.class,
-                    R.drawable.ac_bg_tab_index, R.string.tab_vip);
+                    R.drawable.ac_bg_tab_index, R.string.tab_vip,null);
         } else {
-            addTab(inflater, R.string.tab_tag_vip, TabContentFgment.class,
-                    R.drawable.ac_bg_tab_index, R.string.tab_vip);
+            HashMap<String,Object> param = new HashMap<>();
+            param.put(Constants.ADSSHOW,true);
+            param.put(Constants.TITLE,getString(R.string.tab_vip_temp));
+            Bundle bundle = new Bundle();
+            bundle.putSerializable(BaseFragment.FRAGMENT_ARG,param);
+            addTab(inflater, R.string.tab_tag_vip, TmpContentFragment.class,
+                    R.drawable.ac_bg_tab_index, R.string.tab_vip,bundle);
         }
 //        addTab(inflater, R.string.tab_tag_ads, TabAdsFragment.class,
 //                R.drawable.ac_bg_tab_index, R.string.tab_ads);
@@ -98,7 +106,7 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
     }
 
     private View addTab(LayoutInflater inflater, int tag, Class clss,
-                        int icon, int title) {
+                        int icon, int title,Bundle args) {
         View indicator = inflater.inflate(R.layout.main_tab_widget_item_layout,
                 mTabHost.getTabWidget(), false);
         ImageView imgView = (ImageView) indicator.findViewById(R.id.navi_icon);
@@ -106,7 +114,7 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
         imgView.setImageResource(icon);
         titleView.setText(title);
         mTabHost.addTab(mTabHost.newTabSpec(getString(tag)).setIndicator(indicator), clss,
-                null);
+                args);
         return indicator;
     }
 
@@ -119,7 +127,6 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
     public void onDestroy() {
         LogUtil.i("main destory");
         stopService(CharonVpnService.class);
-//        stopService(LogToFileService.class);
         stopService(LogUploadService.class);
         EventBusUtil.getEventBus().unregister(jump);
         EventBusUtil.getEventBus().unregister(logAdd);
@@ -127,6 +134,7 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
             unregisterReceiver(myReceiver);
         }
         super.onDestroy();
+        System.exit(0);
     }
 
     @Override

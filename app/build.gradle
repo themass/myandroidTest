@@ -9,8 +9,8 @@ android {
         minSdkVersion global_minSdkVersion
         targetSdkVersion global_targetSdkVersion
 
-        versionCode 1000001006
-        versionName "1.0.1.6"
+        versionCode 1000001008
+        versionName "1.0.1.8"
         // Enabling multidex support.
         multiDexEnabled true
     }
@@ -67,10 +67,9 @@ android {
         }
     }
     productFlavors {
-
-//        mypool {
-//            manifestPlaceholders = [CHANNEL_VALUE: "MYPOOL",AD_CHANNEL_VALUE: "MYPOOL"]
-//        }
+        mypool {
+            manifestPlaceholders = [CHANNEL_VALUE: "MYPOOL",AD_CHANNEL_VALUE: "MYPOOL"]
+        }
         google {
             manifestPlaceholders = [CHANNEL_VALUE: "GOOGLEMARKET", AD_CHANNEL_VALUE: "GOOGLEMARKET"]
         }

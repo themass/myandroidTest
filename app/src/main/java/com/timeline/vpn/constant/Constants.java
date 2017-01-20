@@ -7,12 +7,9 @@ import org.strongswan.android.logic.VpnType;
  * Created by themass on 2015/9/1.
  */
 public class Constants {
-    public static final String FIRSTRUN = "isFirstRun";
-    public static final int SELECT_TRUSTED_CERTIFICATE = 0;
     public static final String REFERER = "referer";
     public static final String DEFAULT_REFERER = "http://www.sspacee.com/";
     public static final String URL = "url";
-    public static final int STARTUP_SHOW_TIME_1500 = 1500; //启动页广告时长
     public static final int STARTUP_SHOW_TIME_5000 = 5000; //启动页广告时长
     public static final int STARTUP_SHOW_TIME_8000 = 8000; //启动页广告时长
     public static final int BANNER_ADS_GONE_LONG = 80000; //广告显示时长
@@ -30,7 +27,6 @@ public class Constants {
     public static final int ADS_TYPE_INTERSTITIAL = 2;
     public static final int ADS_TYPE_NATIVE = 3;
     public static final int UM_INTERVAL = 40;
-    public static final int NO_VALUE_FLAG = -999;//无
     public static final int SUNNY = 0;//晴
     public static final int THUNDERSTORM = 2;//雷雨
     public static final int DRIZZLE = 3;//下蒙蒙细雨
@@ -97,20 +93,22 @@ public class Constants {
     public static final VpnType mVpnType = VpnType.IKEV2_CERT;
     public static final int connTimeOut = 20;
     public static final String NET_ERROR = "network error";
-    public static final boolean USE_BYOD = false;
     public static final VpnType vpnType = VpnType.IKEV2_EAP;
-    public static final String FIRST_FB_CLICK = "FIRST_FB_CLICK";
     public static final int ADS_SHOW_SCORE = 10;
     public static final int ADS_SHOW_CLICK = 20;
     public static final String D_URL = "D_URL";
     public static final String ADS_SHOW_CONFIG = "ADS_SHOW_CONFIG";
     public static final String LOG_UPLOAD_CONFIG = "LOG_UPLOAD_CONFIG";
+    public static final String CONFIG_PARAM = "CONFIG_PARAM";
+    public static final String TITLE = "TITLE";
+    public static final String ADSSHOW = "ADSSHOW";
     public static final String FILE_UPLOAD = "fileList";
     public static final String FILE_TMP_PATH = "freeVPN";
     public static final String LOG_FILE = "charon.log";
     public static final String LOG_FILE_FOR_UPLOAD = "charon_upload.log";
     public static final String BUG_FILE = "log.log";
     public static final String BUG_FILE_FOR_UPLOAD = "log_upload.log";
+    public static final String SCORE_TMP = "SCORE_TMP";
     public static final int MAX_RETRY_COUNT = 4;
     public static String BASE_IP = "api.sspacee.com";
     //    public static String BASE_IP = "192.168.1.7:8080";

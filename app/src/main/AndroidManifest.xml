@@ -76,7 +76,6 @@
             <intent-filter tools:ignore="GoogleAppIndexingWarning">
                 <action android:name="android.intent.action.VIEW" />
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -90,9 +89,8 @@
         <activity android:name=".ui.user.LoginActivity" />
         <activity android:name=".ui.log.FileLogActivity" />
         <activity android:name=".ui.user.RegActivity" />
-        <activity android:name=".ui.user.TestActivity">
-
-        </activity>
+        <activity android:name=".ui.user.TestActivity"/>
+        <activity android:name=".ui.config.BrowserConfigActivity"/>
         <activity android:name=".ui.feedback.ConversationDetailActivity" />
         <activity android:name=".ui.base.CommonFragmentActivity" />
 

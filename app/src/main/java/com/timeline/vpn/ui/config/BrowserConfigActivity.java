@@ -1,22 +1,26 @@
-package com.timeline.vpn.ui.base;
+package com.timeline.vpn.ui.config;
 
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.view.KeyEvent;
+import android.view.View;
 
 import com.timeline.vpn.R;
 import com.timeline.vpn.ads.adview.AdsAdview;
 import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
-import com.timeline.vpn.ui.view.MyWebView;
+import com.timeline.vpn.ui.base.BaseBannerAdsActivity;
+import com.timeline.vpn.ui.base.TmpContentFragment;
+
+import java.util.HashMap;
 
 /**
  * Created by themass on 2016/3/17.
  */
-public class WebViewActivity extends BaseBannerAdsActivity implements MyWebView.OnTouchRightSlide {
-    BaseWebViewFragment webViewFragment;
+public class BrowserConfigActivity extends BaseBannerAdsActivity {
     private boolean adsNeed = false;
     protected Handler mHandler = new Handler() {
         @Override
@@ -35,14 +39,18 @@ public class WebViewActivity extends BaseBannerAdsActivity implements MyWebView.
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.common_fragment);
-        webViewFragment = new BaseWebViewFragment();
+        TmpContentFragment fragment = new TmpContentFragment();
+        HashMap<String,Object> param = new HashMap<>();
+        param.put(Constants.TITLE,getString(R.string.titile_browser));
+        fragment.putSerializable(param);
         getFragmentManager().beginTransaction()
-                .add(R.id.fragment, webViewFragment)
+                .add(R.id.fragment, fragment)
                 .commit();
-        String title = getIntent().getStringExtra(Constants.TITLE);
-        setToolbarTitle(title);
-        adsDelayGone();
+        setNavigationOut();
         adsNeed = getIntent().getBooleanExtra(Constants.ADS_SHOW_CONFIG, false);
+        flBanner.setVisibility(View.GONE);
+        Intent it = new Intent(Intent.ACTION_VIEW, Uri.parse(getIntent().getExtras().getString(Constants.URL)));
+        startActivity(it);
     }
 
     @Override
@@ -57,21 +65,4 @@ public class WebViewActivity extends BaseBannerAdsActivity implements MyWebView.
         }
 
     }
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        LogUtil.i("onKeyDown");
-        if (keyCode == KeyEvent.KEYCODE_BACK) {
-            if (webViewFragment == null || !webViewFragment.goBack()) {
-                finish();
-                return super.onKeyDown(keyCode, event);
-            }
-        }
-        return false;
-    }
-
-    @Override
-    public void onTouchRight(int distans) {
-
-    }
-
 }

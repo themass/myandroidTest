@@ -56,6 +56,13 @@ public class LogUploadService extends BaseLogService {
     }
 
     @Override
+    public void onTrimMemory(int level) {
+        super.onTrimMemory(level);
+        indexService.cancelRequest(TAG);
+        stopSelf();
+    }
+
+    @Override
     public void onDestroy() {
         super.onDestroy();
         indexService.cancelRequest(TAG);

@@ -67,10 +67,11 @@ public class HttpDNSUtil {
                         String[] ips = body.split(";");
                         StaticDataUtil.add(host, ips[0]);
                         result = ips[0];
+                        LogUtil.i("HttpDNS the host has replaced with ip " + result);
+                        return url.replaceFirst(host, result);
                     }
                 }
-                LogUtil.i("HttpDNS the host has replaced with ip " + result);
-                return url.replaceFirst(host, result);
+
             } catch (Exception e) {
                 LogUtil.e("HttpDNS origin host: " + host + ";dDNSpod ret:" + result, e);
             }

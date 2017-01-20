@@ -116,4 +116,9 @@ public class MyApplication extends MultiDexApplication {
             }
         });
     }
+
+    @Override
+    public void onTerminate() {
+        super.onTerminate();
+    }
 }

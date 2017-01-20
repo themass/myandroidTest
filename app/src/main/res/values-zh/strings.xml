@@ -139,5 +139,7 @@
     <string name="vpn_not_supported_title">不支持VPN</string>
     <string name="vpn_not_supported">您的手机不支持VPN服务.</string>
     <string name="vpn_not_supported_during_lockdown">锁定模式下无法支持VPN.</string>
+    <!-- activity title-->
+    <string name="titile_browser">已在浏览器中打开</string>
     <!--广告-->
 </resources>

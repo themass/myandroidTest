@@ -127,16 +127,19 @@ public class BaseWebViewFragment extends BaseFragment {
         settings.setUserAgentString(settings.getUserAgentString() + " " + HttpUtils.getUserAgentSuffix(getActivity()));
         webView.setWebChromeClient(new WebChromeClient());
         webView.setWebViewClient(new WebViewClient() {
+            private String mUrl;
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
                 super.onPageStarted(view, url, favicon);
                 setProgressShown(true);
+                LogUtil.i("onPageStarted->"+url);
             }
 
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
                 setProgressShown(false);
+                LogUtil.i("onPageFinished->"+url);
                 if (mFirstPageLoad) {
                     mFirstPageLoad = false;
                 }
@@ -146,12 +149,20 @@ public class BaseWebViewFragment extends BaseFragment {
             }
 
             @Override
+            public void onLoadResource(WebView view, String url) {
+                super.onLoadResource(view, url);
+                LogUtil.i("onLoadResource->"+url);
+                mUrl = url;
+            }
+
+            @Override
             public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
                 super.onReceivedError(view, request, error);
-                String errorPage = FileUtils.readAssets(getActivity(), "error_page.html");
-                errorPage = errorPage.replace("####", url);
-                LogUtil.e("load url error:" + url);
-                webView.loadData(errorPage, "text/html; charset=UTF-8", null);
+                if(url.equals(mUrl)){
+                    String errorPage = FileUtils.readAssets(getActivity(), "error_page.html");
+                    errorPage = errorPage.replace("####", url);
+                    webView.loadData(errorPage, "text/html; charset=UTF-8", null);
+                }
             }
         });
     }
@@ -165,6 +176,13 @@ public class BaseWebViewFragment extends BaseFragment {
         super.onPause();
         if (webView != null) {
             webView.onPause();
+        }
+    }
+    @Override
+    public void onResume(){
+        super.onResume();
+        if (webView != null) {
+            webView.onResume();
         }
     }
 

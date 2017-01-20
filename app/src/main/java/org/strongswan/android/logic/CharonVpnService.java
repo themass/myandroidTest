@@ -92,7 +92,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
     private static final String TAG = CharonVpnService.class.getSimpleName();
     private static final String WORK_ANME = "vpnThread";
     public static volatile boolean VPN_STATUS_NOTIF = false;
-    private boolean needStop = false;
+    private volatile boolean needStop = false;
 
     /*
      * The libraries are extracted to /data/data/org.strongswan.android/...
@@ -427,9 +427,9 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
      */
     public void disconn() {
         LogUtil.i("charon stopped  mCurrentState=" + mService.getState() + "  thread=" + Thread.currentThread().getName());
-        setState(VpnStateService.State.DISCONNECTING);
-        mIsDisconnecting = true;
         if(needStop) {
+            mIsDisconnecting = true;
+            setState(VpnStateService.State.DISCONNECTING);
             needStop = false;
             deinitializeCharon();
         }

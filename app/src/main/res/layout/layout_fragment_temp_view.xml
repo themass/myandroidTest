@@ -12,7 +12,6 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginBottom="80dp"
-        android:text="@string/tab_vip_temp"
         android:textColor="@color/base_black"
         android:textSize="@dimen/vip_content_tv_size"
         app:reflectionColor="@color/base_vip_ready" />
