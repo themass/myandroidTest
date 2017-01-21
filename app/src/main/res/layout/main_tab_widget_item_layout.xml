@@ -1,39 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="110dp"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
     android:layout_height="49dp"
-    android:layout_gravity="center"
     android:layout_weight="1"
     android:background="@color/style_color_primary_dark"
-    android:orientation="horizontal">
+    android:orientation="horizontal"
+    android:gravity="center">
 
-    <ImageView
-        android:id="@+id/navi_icon"
+    <RelativeLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_centerInParent="true"
-        android:paddingLeft="15dp" />
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:layout_marginLeft="-15dp">
 
-    <TextView
-        android:id="@+id/navi_title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:layout_marginLeft="10dp"
-        android:layout_toRightOf="@id/navi_icon"
-        android:lineSpacingExtra="0dp"
-        android:singleLine="true"
-        android:textColor="@drawable/tab_widget_text"
-        android:textSize="15sp" />
+        <ImageView
+            android:id="@+id/navi_icon"
+            android:layout_width="15dp"
+            android:layout_height="15dp"
+            android:layout_alignParentLeft="true"
+            android:layout_centerInParent="true"
+            android:scaleType="fitXY" />
 
-    <ImageView
-        android:layout_width="6dp"
-        android:layout_height="6dp"
-        android:layout_alignTop="@id/navi_title"
-        android:layout_marginLeft="3dp"
-        android:layout_toRightOf="@id/navi_title"
-        android:src="@drawable/dot_red"
-        android:visibility="gone" />
+        <TextView
+            android:id="@+id/navi_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:layout_marginLeft="10dp"
+            android:layout_toRightOf="@id/navi_icon"
+            android:lineSpacingExtra="0dp"
+            android:textColor="@drawable/tab_widget_text"
+            android:textSize="15sp" />
 
-</RelativeLayout>
+        <ImageView
+            android:layout_width="6dp"
+            android:layout_height="6dp"
+            android:layout_alignTop="@id/navi_title"
+            android:layout_marginLeft="3dp"
+            android:layout_toRightOf="@id/navi_title"
+            android:src="@drawable/dot_red"
+            android:visibility="gone" />
+
+    </RelativeLayout>
+</LinearLayout>

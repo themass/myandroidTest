@@ -87,6 +87,7 @@ public class Constants {
     public static final String API_IWANNA_LIKE_URL = "/data/feed/wanna/%s.json";
     public static final String API_VERSION_URL = "/data/version.json";
     public static final String API_RECOMMEND_URL = "/data/recommend.json?start=%s&limit=20";
+    public static final String API_VIP_URL = "/data/recommend/vip.json?start=%s&limit=20";
     public static final String API_LOGOUT_URL = "/user/logout.json";
     public static final String API_LEAK_URL = "/monitor/leak.json";
     public static final String API_LOG_URL = "/monitor/bug.json";
@@ -121,6 +122,9 @@ public class Constants {
 
     public static String getRECOMMEND_URL(int start) {
         return String.format(getUrl(API_RECOMMEND_URL), start);
+    }
+    public static String getVIP_URL(int start) {
+        return String.format(getUrl(API_VIP_URL), start);
     }
 
 }

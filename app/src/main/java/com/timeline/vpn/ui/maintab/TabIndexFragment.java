@@ -124,7 +124,6 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
     private Animation operatingAnim = null;
     private LinearInterpolator lir = null;
     private BaseService indexService;
-    private boolean isLoadingMore;
     private boolean isFirst = false;
     private InfoListVo<RecommendVo> infoVo = new InfoListVo<>();
 
@@ -229,11 +228,6 @@ public class TabIndexFragment extends LoadableTabFragment<InfoListVo<RecommendVo
             task.cancel(true);
         }
 
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
     }
 
     @OnClick(R.id.iv_vpn_state)
