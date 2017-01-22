@@ -16,6 +16,7 @@ import com.android.volley.VolleyError;
 import com.timeline.vpn.R;
 import com.timeline.vpn.common.net.VolleyUtils;
 import com.timeline.vpn.common.util.ViewUtils;
+import com.timeline.vpn.ui.base.log.BaseFragment;
 
 import java.lang.ref.WeakReference;
 
@@ -23,7 +24,6 @@ import java.lang.ref.WeakReference;
 /**
  * 支持异步数据加载的fragment
  *
- * @author jrzheng
  */
 public abstract class LoadableFragment<T> extends BaseFragment {
     public boolean mDataLoaded = false;

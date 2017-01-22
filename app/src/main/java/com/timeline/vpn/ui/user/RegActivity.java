@@ -15,7 +15,7 @@ import com.timeline.vpn.bean.vo.NullReturnVo;
 import com.timeline.vpn.common.net.request.CommonResponse;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
-import com.timeline.vpn.ui.base.BaseBannerAdsActivity;
+import com.timeline.vpn.ui.base.features.BaseBannerAdsActivity;
 
 import java.util.regex.Pattern;
 

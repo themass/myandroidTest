@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v13.app.FragmentTabHost;
 import android.view.KeyEvent;
@@ -28,18 +27,14 @@ import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.data.config.ConfigActionJump;
 import com.timeline.vpn.data.config.LogAddTofile;
 import com.timeline.vpn.service.LogUploadService;
-import com.timeline.vpn.ui.base.BaseDrawerActivity;
-import com.timeline.vpn.ui.base.BaseFragment;
-import com.timeline.vpn.ui.base.TmpContentFragment;
-import com.timeline.vpn.ui.maintab.OnBackKeyUpListener;
-import com.timeline.vpn.ui.maintab.TabIndexFragment;
+import com.timeline.vpn.ui.base.app.BaseDrawerActivity;
+import com.timeline.vpn.ui.inte.OnBackKeyUpListener;
 import com.timeline.vpn.ui.maintab.TabVipFragment;
+import com.timeline.vpn.ui.maintab.TabVpnFragment;
 import com.umeng.message.PushAgent;
 import com.umeng.message.UTrack;
 
 import org.strongswan.android.logic.CharonVpnService;
-
-import java.util.HashMap;
 
 /**
  * Created by themass on 2016/3/1.
@@ -84,22 +79,10 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
         mTabHost.setup(this, getFragmentManager(), R.id.realtabcontent);
         mTabHost.setOnTabChangedListener(this);
         LayoutInflater inflater = LayoutInflater.from(this);
-        addTab(inflater, R.string.tab_tag_index, TabIndexFragment.class,
+        addTab(inflater, R.string.tab_tag_index, TabVpnFragment.class,
                 R.drawable.ac_bg_tab_index, R.string.tab_index,null);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            addTab(inflater, R.string.tab_tag_vip, TabVipFragment.class,
+        addTab(inflater, R.string.tab_tag_vip, TabVipFragment.class,
                     R.drawable.ac_bg_tab_index, R.string.tab_vip,null);
-        } else {
-            HashMap<String,Object> param = new HashMap<>();
-            param.put(Constants.ADSSHOW,true);
-            param.put(Constants.TITLE,getString(R.string.tab_vip_temp));
-            Bundle bundle = new Bundle();
-            bundle.putSerializable(BaseFragment.FRAGMENT_ARG,param);
-            addTab(inflater, R.string.tab_tag_vip, TmpContentFragment.class,
-                    R.drawable.ac_bg_tab_index, R.string.tab_vip,bundle);
-        }
-//        addTab(inflater, R.string.tab_tag_ads, TabAdsFragment.class,
-//                R.drawable.ac_bg_tab_index, R.string.tab_ads);
         mTabHost.getTabWidget().setDividerDrawable(null);
         mainTab = mTabHost.getTabWidget();
         startService(CharonVpnService.class);

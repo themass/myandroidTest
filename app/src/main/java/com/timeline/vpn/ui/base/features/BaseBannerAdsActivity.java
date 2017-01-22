@@ -1,4 +1,4 @@
-package com.timeline.vpn.ui.base;
+package com.timeline.vpn.ui.base.features;
 
 import android.content.Context;
 import android.os.Handler;
@@ -14,6 +14,7 @@ import com.timeline.vpn.ads.adview.AdsController;
 import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.common.util.PreferenceUtils;
 import com.timeline.vpn.constant.Constants;
+import com.timeline.vpn.ui.base.app.BaseSingleActivity;
 
 import butterknife.Bind;
 

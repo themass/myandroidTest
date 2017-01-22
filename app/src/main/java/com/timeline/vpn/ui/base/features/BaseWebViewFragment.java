@@ -1,4 +1,4 @@
-package com.timeline.vpn.ui.base;
+package com.timeline.vpn.ui.base.features;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -19,6 +19,7 @@ import com.timeline.vpn.common.net.HttpUtils;
 import com.timeline.vpn.common.util.FileUtils;
 import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
+import com.timeline.vpn.ui.base.log.BaseFragment;
 import com.timeline.vpn.ui.view.MyWebView;
 
 import butterknife.Bind;

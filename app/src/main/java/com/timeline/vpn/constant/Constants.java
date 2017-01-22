@@ -126,5 +126,9 @@ public class Constants {
     public static String getVIP_URL(int start) {
         return String.format(getUrl(API_VIP_URL), start);
     }
-
+    public static int NULL_VIEW = -1;
+    public static class UserLevel {
+        public static final int LEVEL_FREE = 0;
+        public static final int LEVEL_VIP = 1;
+    }
 }

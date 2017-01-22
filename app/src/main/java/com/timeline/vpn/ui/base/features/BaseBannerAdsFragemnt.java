@@ -1,10 +1,9 @@
-package com.timeline.vpn.ui.base;
+package com.timeline.vpn.ui.base.features;
 
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.design.widget.FloatingActionButton;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,18 +13,16 @@ import com.timeline.vpn.ads.adview.AdsAdview;
 import com.timeline.vpn.ads.adview.AdsController;
 import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
-import com.timeline.vpn.ui.maintab.TabBaseFragment;
+import com.timeline.vpn.ui.base.log.BaseFragment;
 
 import butterknife.Bind;
 
 /**
  * Created by themass on 2016/8/21.
  */
-public abstract class BaseBannerAdsFragemnt extends TabBaseFragment implements AdsController {
+public abstract class BaseBannerAdsFragemnt extends BaseFragment implements AdsController {
     @Bind(R.id.fl_content)
     public ViewGroup flContent;
-    @Bind(R.id.fab_up)
-    public FloatingActionButton fabUp;
     @Bind(R.id.fl_banner)
     public ViewGroup flBanner;
     public boolean init = false;
@@ -37,19 +34,16 @@ public abstract class BaseBannerAdsFragemnt extends TabBaseFragment implements A
             mHandler.postDelayed(task, Constants.BANNER_ADS_GONE_LONG);
         }
     };
-
-    protected int getTabBodyViewId() {
+    @Override
+    protected int getRootViewId() {
         return R.layout.base_banner_view;
     }
-
     abstract protected int getTabContentViewId();
-
     @Override
     protected void setupViews(View view, Bundle savedInstanceState) {
         LayoutInflater.from(getActivity()).inflate(getTabContentViewId(), (ViewGroup) view.findViewById(R.id.fl_content), true);
         super.setupViews(view, savedInstanceState);
         init = true;
-        fabUp.setVisibility(View.GONE);
     }
 
     @Override
@@ -76,12 +70,6 @@ public abstract class BaseBannerAdsFragemnt extends TabBaseFragment implements A
         super.onDestroyView();
 
     }
-
-    @Override
-    protected int getRootViewId() {
-        return super.getRootViewId();
-    }
-
     @Override
     public void showAds(Context context) {
         if (needShow(context)) {

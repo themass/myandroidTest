@@ -10,6 +10,8 @@ import com.timeline.vpn.R;
 import com.timeline.vpn.ads.adview.AdsAdview;
 import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
+import com.timeline.vpn.ui.base.features.BaseBannerAdsActivity;
+import com.timeline.vpn.ui.base.features.BaseWebViewFragment;
 import com.timeline.vpn.ui.view.MyWebView;
 
 /**

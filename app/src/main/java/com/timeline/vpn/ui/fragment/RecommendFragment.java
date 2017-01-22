@@ -1,15 +1,13 @@
-package com.timeline.vpn.ui.maintab;
+package com.timeline.vpn.ui.fragment;
 
 
 import android.content.Context;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.LinearInterpolator;
 
 import com.timeline.vpn.R;
 import com.timeline.vpn.adapter.IndexRecommendAdapter;
@@ -21,7 +19,7 @@ import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.data.MobAgent;
 import com.timeline.vpn.data.config.ConfigActionEvent;
-import com.timeline.vpn.ui.base.LoadableTabFragment;
+import com.timeline.vpn.ui.base.LoadableFragment;
 import com.timeline.vpn.ui.view.MyPullView;
 
 import java.util.ArrayList;
@@ -33,23 +31,13 @@ import butterknife.Bind;
 /**
  * Created by themass on 2015/9/1.
  */
-public class TabVipContentFragment extends LoadableTabFragment<InfoListVo<RecommendVo>> implements  IndexRecommendAdapter.ItemClickListener, MyPullView.OnRefreshListener {
-    private static final String DIALOG_TAG = "Dialog";
-    private static final String INDEX_TAG = "index_tag";
+public abstract class RecommendFragment extends LoadableFragment<InfoListVo<RecommendVo>> implements IndexRecommendAdapter.ItemClickListener, MyPullView.OnRefreshListener {
     @Bind(R.id.my_pullview)
     MyPullView pullView;
     private IndexRecommendAdapter adapter;
-    private Handler handler = new Handler();
-    private LinearInterpolator lir = null;
     private BaseService indexService;
-    private boolean isFirst = false;
     private InfoListVo<RecommendVo> infoVo = new InfoListVo<>();
-
-    @Override
-    protected int getTabHeaderViewId() {
-        return TabBaseFragment.NULL_VIEW;
-    }
-
+    private boolean isFirst = false;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,10 +46,9 @@ public class TabVipContentFragment extends LoadableTabFragment<InfoListVo<Recomm
     }
 
     @Override
-    protected void onContentViewCreated(LayoutInflater inflater, ViewGroup parent) {
+    protected void onContentViewCreated(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
         inflater.inflate(R.layout.layout_recommd, parent, true);
     }
-
     @Override
     protected void onDataLoaded(InfoListVo<RecommendVo> data) {
         if (data != null) {
@@ -83,7 +70,7 @@ public class TabVipContentFragment extends LoadableTabFragment<InfoListVo<Recomm
     @Override
     protected InfoListVo<RecommendVo> loadData(Context context) throws Exception {
         LogUtil.i("loadData:" + mData);
-        return indexService.getInfoListData(Constants.getVIP_URL(infoVo.pageNum), RecommendVo.class, INDEX_TAG);
+        return indexService.getInfoListData(getUrl(infoVo.pageNum), RecommendVo.class, getNetTag());
     }
 
     @Override
@@ -93,7 +80,6 @@ public class TabVipContentFragment extends LoadableTabFragment<InfoListVo<Recomm
         pullView.setLayoutManager(layoutManager);
         pullView.setItemAnimator(new DefaultItemAnimator());
         adapter = new IndexRecommendAdapter(this.getActivity(), pullView.getRecyclerView(), infoVo.voList, this, layoutManager);
-        lir = new LinearInterpolator();
         indexService = new BaseService();
         indexService.setup(getActivity());
         pullView.setListener(this);
@@ -112,16 +98,6 @@ public class TabVipContentFragment extends LoadableTabFragment<InfoListVo<Recomm
     public boolean needLoad() {
         return infoVo.hasMore;
     }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        if (isFirst) {
-            isFirst = false;
-            next();
-        }
-    }
-
     @Override
     public void onItemClick(View v, int position) {
         RecommendVo vo = infoVo.voList.get(position);
@@ -134,6 +110,8 @@ public class TabVipContentFragment extends LoadableTabFragment<InfoListVo<Recomm
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        indexService.cancelRequest(INDEX_TAG);
+        indexService.cancelRequest(getNetTag());
     }
+    public abstract String getUrl(int start);
+    public abstract String getNetTag();
 }

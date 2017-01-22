@@ -1,4 +1,4 @@
-package com.timeline.vpn.ui.maintab;
+package com.timeline.vpn.ui.base.features;
 
 import android.os.Bundle;
 import android.os.Handler;
@@ -13,6 +13,7 @@ import com.timeline.vpn.ads.adview.AdsAdview;
 import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.task.ScoreTask;
+import com.timeline.vpn.ui.inte.OnBackKeyUpListener;
 import com.timeline.vpn.ui.main.MainFragment;
 
 import butterknife.Bind;
@@ -35,15 +36,9 @@ public abstract class TabBaseAdsFragment extends TabBaseFragment implements OnBa
 
     @OnClick(R.id.fab_up)
     public void onClickFab(View view) {
-//        boolean firstClick = PreferenceUtils.getPrefBoolean(getActivity(), Constants.FIRST_FB_CLICK,true);
-//        new HeartAnimView().show(getActivity());
-//        if(firstClick) {
-//            PreferenceUtils.setPrefBoolean(getActivity(),Constants.FIRST_FB_CLICK,false);
         ScoreTask.start(getActivity(), Constants.ADS_SHOW_SCORE);
         String msg = getActivity().getResources().getString(R.string.tab_fb_click) + Constants.ADS_SHOW_SCORE;
         Toast.makeText(getActivity(), msg, Toast.LENGTH_SHORT).show();
-
-//        }
         next();
     }
 

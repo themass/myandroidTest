@@ -4,19 +4,21 @@ package com.timeline.vpn.ui.maintab;
 import android.app.Fragment;
 
 import com.timeline.vpn.ui.base.features.TabBaseAdsFragment;
-import com.timeline.vpn.ui.fragment.RecommendVipFragment;
+import com.timeline.vpn.ui.fragment.RecommendListFragment;
+import com.timeline.vpn.ui.fragment.VpnStatusFragment;
 
 /**
  * Created by themass on 2015/9/1.
  */
-public class TabVipFragment extends TabBaseAdsFragment {
+public class TabVpnFragment extends TabBaseAdsFragment {
     @Override
     protected Fragment getTabHeaderView() {
-        return null;
+
+        return new VpnStatusFragment();
     }
 
     @Override
     protected Fragment getTabBodyView() {
-        return new RecommendVipFragment();
+        return new RecommendListFragment();
     }
 }

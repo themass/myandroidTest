@@ -18,7 +18,7 @@ package com.timeline.vpn.ui.log;
 import android.os.Bundle;
 
 import com.timeline.vpn.R;
-import com.timeline.vpn.ui.base.BaseBannerAdsActivity;
+import com.timeline.vpn.ui.base.features.BaseBannerAdsActivity;
 
 public class FileLogActivity extends BaseBannerAdsActivity {
     @Override

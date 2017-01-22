@@ -1,4 +1,4 @@
-package com.timeline.vpn.ui.base;
+package com.timeline.vpn.ui.base.log;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -224,6 +224,10 @@ public abstract class BaseFragment extends LogFramgment {
     public void startActivity(Class clasz) {
         Intent intent = new Intent(getActivity(), clasz);
         getActivity().startActivity(intent);
+    }
+    public void startService(Class clasz) {
+        Intent intent = new Intent(getActivity(), clasz);
+        getActivity().startService(intent);
     }
 
 }

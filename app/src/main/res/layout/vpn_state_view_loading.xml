@@ -7,8 +7,8 @@
 
     <ImageButton
         android:id="@+id/iv_vpn_state"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
         android:background="@drawable/vpn_state_bg"
         android:scaleType="fitCenter" />
 

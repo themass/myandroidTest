@@ -1,4 +1,4 @@
-package com.timeline.vpn.ui.base;
+package com.timeline.vpn.ui.fragment;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -13,7 +13,7 @@ import com.timeline.vpn.R;
 import com.timeline.vpn.ads.adview.AdsAdview;
 import com.timeline.vpn.ads.adview.NativeAdsAdapter;
 import com.timeline.vpn.constant.Constants;
-import com.timeline.vpn.ui.maintab.TabAdsFragment;
+import com.timeline.vpn.ui.base.features.BaseBannerAdsFragemnt;
 
 import java.util.HashMap;
 
@@ -30,11 +30,6 @@ public class TmpContentFragment extends BaseBannerAdsFragemnt {
     NativeAdsAdapter.AdsAdapter adsAdapter;
     Shimmer shimmer;
     boolean adsNeed = true;
-    @Override
-    protected int getTabHeaderViewId() {
-        return TabAdsFragment.NULL_VIEW;
-    }
-
     @Override
     protected int getTabContentViewId() {
         return R.layout.layout_fragment_temp_view;

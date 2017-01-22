@@ -5,7 +5,6 @@ import com.android.volley.toolbox.DiskBasedCache;
 import java.io.File;
 
 /**
- * @author jrzheng 2014-10-14.
  */
 public class DiskBasedCacheEx extends DiskBasedCache {
     public static final int MAX_ENTRY_SIZE = 100 * 1024;

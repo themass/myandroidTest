@@ -16,7 +16,7 @@ import com.timeline.vpn.common.util.PreferenceUtils;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.data.UserLoginUtil;
-import com.timeline.vpn.ui.base.BaseBannerAdsActivity;
+import com.timeline.vpn.ui.base.features.BaseBannerAdsActivity;
 
 import butterknife.Bind;
 import butterknife.OnClick;

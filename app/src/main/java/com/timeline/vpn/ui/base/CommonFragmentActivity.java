@@ -5,6 +5,7 @@ import android.os.Bundle;
 
 import com.timeline.vpn.R;
 import com.timeline.vpn.common.util.LogUtil;
+import com.timeline.vpn.ui.base.features.BaseBannerAdsActivity;
 import com.timeline.vpn.ui.inte.FabOpListener;
 
 /**

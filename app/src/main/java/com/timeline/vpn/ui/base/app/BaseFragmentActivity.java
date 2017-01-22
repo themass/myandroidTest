@@ -1,4 +1,4 @@
-package com.timeline.vpn.ui.base;
+package com.timeline.vpn.ui.base.app;
 
 import com.timeline.vpn.data.MobAgent;
 

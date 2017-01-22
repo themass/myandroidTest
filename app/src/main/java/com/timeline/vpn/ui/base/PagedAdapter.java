@@ -7,7 +7,6 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 
 /**
- * @author jrzheng 2014-05-08.
  */
 public abstract class PagedAdapter<T> extends BaseAdapter {
     protected LayoutInflater mInflater;

@@ -1,4 +1,4 @@
-package com.timeline.vpn.ui.base;
+package com.timeline.vpn.ui.base.log;
 
 import android.content.Intent;
 import android.os.Bundle;

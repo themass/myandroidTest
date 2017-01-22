@@ -1,4 +1,4 @@
-package com.timeline.vpn.ui.base;
+package com.timeline.vpn.ui.base.app;
 
 import android.view.Menu;
 import android.view.MenuItem;
@@ -17,6 +17,7 @@ import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.common.util.SystemUtils;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.StaticDataUtil;
+import com.timeline.vpn.ui.base.log.LogActivity;
 import com.timeline.vpn.weather.LocationUtils;
 import com.timeline.vpn.weather.WeatherIconUtils;
 import com.timeline.vpn.weather.WeatherSpider;

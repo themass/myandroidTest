@@ -79,17 +79,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ui.main.LaunchActivityTest" />
         <activity
             android:name=".ui.main.MainFragment"
             android:label="@string/main_activity_name"
             android:launchMode="singleTop" />
-        <activity android:name=".ui.vpn.VpnManagerActivity" />
         <activity android:name=".ui.base.WebViewActivity" />
         <activity android:name=".ui.user.LoginActivity" />
         <activity android:name=".ui.log.FileLogActivity" />
         <activity android:name=".ui.user.RegActivity" />
-        <activity android:name=".ui.user.TestActivity"/>
         <activity android:name=".ui.config.BrowserConfigActivity"/>
         <activity android:name=".ui.feedback.ConversationDetailActivity" />
         <activity android:name=".ui.base.CommonFragmentActivity" />

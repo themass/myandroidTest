@@ -24,7 +24,7 @@ import com.timeline.vpn.R;
 import com.timeline.vpn.common.util.FileUtils;
 import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
-import com.timeline.vpn.ui.base.BaseFragment;
+import com.timeline.vpn.ui.base.log.BaseFragment;
 
 import java.io.BufferedReader;
 import java.io.File;

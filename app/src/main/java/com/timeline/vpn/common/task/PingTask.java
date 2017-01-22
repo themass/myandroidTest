@@ -1,4 +1,4 @@
-package com.timeline.vpn.ui.task;
+package com.timeline.vpn.common.task;
 
 import android.os.AsyncTask;
 

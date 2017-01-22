@@ -15,7 +15,7 @@ import com.alibaba.sdk.android.feedback.impl.FeedbackAPI;
 import com.timeline.vpn.R;
 import com.timeline.vpn.base.MyApplication;
 import com.timeline.vpn.constant.Constants;
-import com.timeline.vpn.ui.base.LogActivity;
+import com.timeline.vpn.ui.base.log.LogActivity;
 
 import java.util.concurrent.Callable;
 

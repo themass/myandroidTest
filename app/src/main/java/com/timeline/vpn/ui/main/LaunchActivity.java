@@ -13,7 +13,7 @@ import com.timeline.vpn.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.MobAgent;
 import com.timeline.vpn.task.UpdateUserTask;
-import com.timeline.vpn.ui.base.LogActivity;
+import com.timeline.vpn.ui.base.log.LogActivity;
 import com.umeng.message.PushAgent;
 
 import butterknife.Bind;

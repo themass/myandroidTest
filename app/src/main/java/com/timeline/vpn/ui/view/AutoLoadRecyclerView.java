@@ -1,4 +1,4 @@
-//package com.timeline.vpn.ui.view;
+package com.timeline.vpn.ui.view;//package com.timeline.vpn.ui.view;
 //
 //import android.content.Context;
 //import android.support.v7.widget.LinearLayoutManager;

@@ -27,7 +27,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.graphics.drawable.AnimationDrawable;
 import android.net.VpnService;
 import android.os.Build;
 import android.os.Bundle;

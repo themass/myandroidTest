@@ -9,7 +9,6 @@ import java.util.Date;
 /**
  * DateUtils
  *
- * @author jrzheng 2014-05-06.
  */
 @SuppressLint("SimpleDateFormat")
 public class DateUtils {

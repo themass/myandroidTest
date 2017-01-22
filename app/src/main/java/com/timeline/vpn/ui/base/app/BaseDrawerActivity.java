@@ -1,4 +1,4 @@
-package com.timeline.vpn.ui.base;
+package com.timeline.vpn.ui.base.app;
 
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -61,6 +61,7 @@ public class BaseDrawerActivity extends BaseFragmentActivity {
     TextView tvMenuUserName;
     TextView tvMenuUserLogin;
     ImageView ivAvatar;
+    ImageView ivLevel;
     MenuItem miLogout;
     MenuItem miVersion;
     MenuItem miScore;
@@ -101,6 +102,7 @@ public class BaseDrawerActivity extends BaseFragmentActivity {
         tvMenuUserName = (TextView) headerView.findViewById(R.id.tv_menu_username);
         tvMenuUserLogin = (TextView) headerView.findViewById(R.id.tv_menu_login);
         ivAvatar = (ImageView) headerView.findViewById(R.id.iv_avatar);
+        ivLevel = (ImageView) headerView.findViewById(R.id.iv_level);
         checkUpdate();
         miVersion.setTitle(String.format(getString(R.string.menu_btn_version), VersionUpdater.getVersion()));
         nvDrawer.setItemIconTintList(null);
@@ -126,13 +128,20 @@ public class BaseDrawerActivity extends BaseFragmentActivity {
             } else {
                 ivAvatar.setImageResource(R.drawable.ic_default_nv);
             }
-            miScore.setTitle(String.format(getString(R.string.menu_btn_score), String.valueOf(vo.score)));
+            ivLevel.setVisibility(View.VISIBLE);
+            if(Constants.UserLevel.LEVEL_FREE==vo.level){
 
+                ivLevel.setImageResource(R.drawable.ic_level_vip);
+            }else if(Constants.UserLevel.LEVEL_VIP==vo.level){
+                ivLevel.setImageResource(R.drawable.ic_level_free);
+            }
+            miScore.setTitle(String.format(getString(R.string.menu_btn_score), String.valueOf(vo.score)));
         } else {
             miLogout.setVisible(false);
             llLoginMenuHeader.setEnabled(true);
             tvMenuUserName.setText(R.string.menu_btn_name_default);
             tvMenuUserLogin.setText(R.string.menu_btn_login);
+            ivLevel.setVisibility(View.GONE);
             miScore.setTitle(String.format(getString(R.string.menu_btn_score), String.valueOf(0)));
         }
     }

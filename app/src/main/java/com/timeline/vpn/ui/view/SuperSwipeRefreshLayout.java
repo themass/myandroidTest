@@ -149,7 +149,7 @@ public class SuperSwipeRefreshLayout extends ViewGroup {
     /**
      * 下拉时，超过距离之后，弹回来的动画监听器
      */
-    private Animation.AnimationListener mRefreshListener = new Animation.AnimationListener() {
+    private AnimationListener mRefreshListener = new AnimationListener() {
         @Override
         public void onAnimationStart(Animation animation) {
             isProgressEnable = false;
@@ -395,7 +395,7 @@ public class SuperSwipeRefreshLayout extends ViewGroup {
         }
     }
 
-    private void startScaleDownAnimation(Animation.AnimationListener listener) {
+    private void startScaleDownAnimation(AnimationListener listener) {
         mScaleDownAnimation = new Animation() {
             @Override
             public void applyTransformation(float interpolatedTime,
@@ -814,9 +814,9 @@ public class SuperSwipeRefreshLayout extends ViewGroup {
                     setRefreshing(true, true /* notify */);
                 } else {
                     mRefreshing = false;
-                    Animation.AnimationListener listener = null;
+                    AnimationListener listener = null;
                     if (!mScale) {
-                        listener = new Animation.AnimationListener() {
+                        listener = new AnimationListener() {
 
                             @Override
                             public void onAnimationStart(Animation animation) {
@@ -1043,7 +1043,7 @@ public class SuperSwipeRefreshLayout extends ViewGroup {
     }
 
     private void startScaleDownReturnToStartAnimation(int from,
-                                                      Animation.AnimationListener listener) {
+                                                      AnimationListener listener) {
         mFrom = from;
         mStartingScale = ViewCompat.getScaleX(mHeadViewContainer);
         mScaleDownToStartAnimation = new Animation() {
@@ -1169,13 +1169,13 @@ public class SuperSwipeRefreshLayout extends ViewGroup {
      */
     private class HeadViewContainer extends RelativeLayout {
 
-        private Animation.AnimationListener mListener;
+        private AnimationListener mListener;
 
         public HeadViewContainer(Context context) {
             super(context);
         }
 
-        public void setAnimationListener(Animation.AnimationListener listener) {
+        public void setAnimationListener(AnimationListener listener) {
             mListener = listener;
         }
 

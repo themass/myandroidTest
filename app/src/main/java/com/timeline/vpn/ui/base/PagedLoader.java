@@ -3,7 +3,6 @@ package com.timeline.vpn.ui.base;
 import com.timeline.vpn.bean.vo.InfoListVo;
 
 /**
- * @author jrzheng on 2014/5/4.
  */
 public interface PagedLoader<T> {
     static final int PAGE_SIZE = 20;

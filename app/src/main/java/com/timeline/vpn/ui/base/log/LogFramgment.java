@@ -1,4 +1,4 @@
-package com.timeline.vpn.ui.base;
+package com.timeline.vpn.ui.base.log;
 
 import android.animation.Animator;
 import android.app.Fragment;
