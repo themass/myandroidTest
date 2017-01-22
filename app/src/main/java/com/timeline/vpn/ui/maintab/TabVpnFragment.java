@@ -1,7 +1,7 @@
 package com.timeline.vpn.ui.maintab;
 
 
-import android.app.Fragment;
+import android.support.v4.app.Fragment;
 
 import com.timeline.vpn.ui.base.features.TabBaseAdsFragment;
 import com.timeline.vpn.ui.fragment.RecommendListFragment;

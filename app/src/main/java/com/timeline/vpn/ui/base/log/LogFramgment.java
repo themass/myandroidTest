@@ -1,11 +1,10 @@
 package com.timeline.vpn.ui.base.log;
 
-import android.animation.Animator;
-import android.app.Fragment;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.util.AttributeSet;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
@@ -44,12 +43,6 @@ public class LogFramgment extends Fragment {
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
         LogUtil.i(getClass().getSimpleName() + "-setUserVisibleHint==" + isVisibleToUser);
-    }
-
-    @Override
-    public Animator onCreateAnimator(int transit, boolean enter, int nextAnim) {
-        LogUtil.i(getClass().getSimpleName() + "-onCreateAnimator");
-        return super.onCreateAnimator(transit, enter, nextAnim);
     }
 
     @Override

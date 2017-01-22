@@ -43,7 +43,7 @@ public class BrowserConfigActivity extends BaseBannerAdsActivity {
         HashMap<String,Object> param = new HashMap<>();
         param.put(Constants.TITLE,getString(R.string.titile_browser));
         fragment.putSerializable(param);
-        getFragmentManager().beginTransaction()
+        getSupportFragmentManager().beginTransaction()
                 .add(R.id.fragment, fragment)
                 .commit();
         setNavigationOut();

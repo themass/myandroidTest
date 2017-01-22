@@ -5,7 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.support.v13.app.FragmentTabHost;
+import android.support.v4.app.FragmentTabHost;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -76,7 +76,7 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
 
     private void setupView() {
         mTabHost = (FragmentTabHost) findViewById(android.R.id.tabhost);
-        mTabHost.setup(this, getFragmentManager(), R.id.realtabcontent);
+        mTabHost.setup(this, getSupportFragmentManager(), R.id.realtabcontent);
         mTabHost.setOnTabChangedListener(this);
         LayoutInflater inflater = LayoutInflater.from(this);
         addTab(inflater, R.string.tab_tag_index, TabVpnFragment.class,

@@ -130,10 +130,9 @@ public class BaseDrawerActivity extends BaseFragmentActivity {
             }
             ivLevel.setVisibility(View.VISIBLE);
             if(Constants.UserLevel.LEVEL_FREE==vo.level){
-
-                ivLevel.setImageResource(R.drawable.ic_level_vip);
-            }else if(Constants.UserLevel.LEVEL_VIP==vo.level){
                 ivLevel.setImageResource(R.drawable.ic_level_free);
+            }else if(Constants.UserLevel.LEVEL_VIP==vo.level){
+                ivLevel.setImageResource(R.drawable.ic_level_vip);
             }
             miScore.setTitle(String.format(getString(R.string.menu_btn_score), String.valueOf(vo.score)));
         } else {

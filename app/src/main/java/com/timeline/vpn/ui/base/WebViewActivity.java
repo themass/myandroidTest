@@ -38,7 +38,7 @@ public class WebViewActivity extends BaseBannerAdsActivity implements MyWebView.
         super.onCreate(savedInstanceState);
         setContentView(R.layout.common_fragment);
         webViewFragment = new BaseWebViewFragment();
-        getFragmentManager().beginTransaction()
+        getSupportFragmentManager().beginTransaction()
                 .add(R.id.fragment, webViewFragment)
                 .commit();
         String title = getIntent().getStringExtra(Constants.TITLE);
