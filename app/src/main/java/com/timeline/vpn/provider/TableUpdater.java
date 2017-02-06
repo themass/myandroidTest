@@ -3,7 +3,7 @@ package com.timeline.vpn.provider;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 
-import com.timeline.vpn.common.util.LogUtil;
+import com.sspacee.common.util.LogUtil;
 
 /**
  * Created by wjying on 13-12-4.

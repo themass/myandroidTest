@@ -21,10 +21,10 @@ import android.os.Handler;
 import android.widget.TextView;
 
 import com.timeline.vpn.R;
-import com.timeline.vpn.common.util.FileUtils;
-import com.timeline.vpn.common.util.LogUtil;
+import com.sspacee.common.util.FileUtils;
+import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
-import com.timeline.vpn.ui.base.log.BaseFragment;
+import com.sspacee.common.ui.base.BaseFragment;
 
 import java.io.BufferedReader;
 import java.io.File;

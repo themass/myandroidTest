@@ -18,14 +18,14 @@ import android.widget.Toast;
 
 import com.timeline.vpn.R;
 import com.timeline.vpn.bean.vo.VersionVo;
-import com.timeline.vpn.common.net.HttpUtils;
-import com.timeline.vpn.common.net.NetUtils;
-import com.timeline.vpn.common.net.VolleyUtils;
-import com.timeline.vpn.common.net.request.CommonResponse;
-import com.timeline.vpn.common.net.request.GsonRequest;
-import com.timeline.vpn.common.util.FileUtils;
-import com.timeline.vpn.common.util.LogUtil;
-import com.timeline.vpn.common.util.PreferenceUtils;
+import com.sspacee.common.net.HttpUtils;
+import com.sspacee.common.net.NetUtils;
+import com.sspacee.common.net.VolleyUtils;
+import com.sspacee.common.net.request.CommonResponse;
+import com.sspacee.common.net.request.GsonRequest;
+import com.sspacee.common.util.FileUtils;
+import com.sspacee.common.util.LogUtil;
+import com.sspacee.common.util.PreferenceUtils;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.ui.main.MainFragment;
 

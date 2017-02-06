@@ -15,12 +15,12 @@ import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 
 import com.timeline.vpn.R;
-import com.timeline.vpn.common.net.HttpUtils;
-import com.timeline.vpn.common.util.FileUtils;
-import com.timeline.vpn.common.util.LogUtil;
+import com.sspacee.common.net.HttpUtils;
+import com.sspacee.common.util.FileUtils;
+import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
-import com.timeline.vpn.ui.base.log.BaseFragment;
-import com.timeline.vpn.ui.view.MyWebView;
+import com.sspacee.common.ui.base.BaseFragment;
+import com.sspacee.common.ui.view.MyWebView;
 
 import butterknife.Bind;
 
@@ -159,6 +159,7 @@ public class BaseWebViewFragment extends BaseFragment {
             @Override
             public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
                 super.onReceivedError(view, request, error);
+                LogUtil.e("onReceivedError->"+error.toString());
                 if(url.equals(mUrl)){
                     String errorPage = FileUtils.readAssets(getActivity(), "error_page.html");
                     errorPage = errorPage.replace("####", url);

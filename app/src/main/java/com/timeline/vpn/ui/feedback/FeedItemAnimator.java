@@ -10,7 +10,7 @@ import android.view.animation.DecelerateInterpolator;
 
 import com.timeline.vpn.R;
 import com.timeline.vpn.adapter.FeedAdapter;
-import com.timeline.vpn.common.util.SystemUtils;
+import com.sspacee.common.util.SystemUtils;
 
 import java.util.HashMap;
 import java.util.List;

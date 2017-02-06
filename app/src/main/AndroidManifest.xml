@@ -52,7 +52,7 @@
         android:theme="@style/AppTheme"
         tools:replace="android:allowBackup">
         <meta-data
-            android:name="com.timeline.vpn.common.util.MyGlideModule"
+            android:name="com.sspacee.common.util.MyGlideModule"
             android:value="GlideModule" />
         <meta-data
             android:name="com.baidu.lbsapi.API_KEY"

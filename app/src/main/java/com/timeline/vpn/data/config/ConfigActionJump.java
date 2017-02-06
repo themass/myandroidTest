@@ -4,7 +4,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 
-import com.timeline.vpn.common.util.LogUtil;
+import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.ui.base.WebViewActivity;
 import com.timeline.vpn.ui.config.BrowserConfigActivity;
@@ -44,9 +44,11 @@ public class ConfigActionJump {
         Class<? extends AppCompatActivity> activity = configMap.get(uri.getScheme());
         if (activity != null) {
             Boolean adsShow = event.param != null ? (Boolean) event.param.get(Constants.ADS_SHOW_CONFIG) : null;
+            Boolean adsPopShow = event.param != null ? (Boolean) event.param.get(Constants.ADS_POP_SHOW_CONFIG) : null;
             Intent intent = new Intent(event.context, activity);
             intent.putExtra(Constants.URL, parserUrl(uri.getScheme(),event.url,param));
             intent.putExtra(Constants.ADS_SHOW_CONFIG, adsShow);
+            intent.putExtra(Constants.ADS_POP_SHOW_CONFIG, adsPopShow);
             intent.putExtra(Constants.CONFIG_PARAM, param);
             intent.putExtra(Constants.TITLE, event.title);
             event.context.startActivity(intent);

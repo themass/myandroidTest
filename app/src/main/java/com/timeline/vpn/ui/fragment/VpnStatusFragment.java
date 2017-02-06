@@ -29,13 +29,13 @@ import com.timeline.vpn.bean.DataBuilder;
 import com.timeline.vpn.bean.vo.HostVo;
 import com.timeline.vpn.bean.vo.ServerVo;
 import com.timeline.vpn.bean.vo.VpnProfile;
-import com.timeline.vpn.common.net.HttpUtils;
-import com.timeline.vpn.common.net.request.CommonResponse;
-import com.timeline.vpn.common.util.LogUtil;
+import com.sspacee.common.net.HttpUtils;
+import com.sspacee.common.net.request.CommonResponse;
+import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.data.LocationUtil;
-import com.timeline.vpn.ui.base.log.BaseFragment;
+import com.sspacee.common.ui.base.BaseFragment;
 
 import org.strongswan.android.logic.VpnStateService;
 import org.strongswan.android.logic.imc.ImcState;

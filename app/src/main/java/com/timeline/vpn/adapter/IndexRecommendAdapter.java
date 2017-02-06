@@ -11,16 +11,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.resource.drawable.GlideDrawable;
-import com.bumptech.glide.request.animation.GlideAnimation;
-import com.bumptech.glide.request.target.GlideDrawableImageViewTarget;
 import com.romainpiel.shimmer.Shimmer;
 import com.romainpiel.shimmer.ShimmerTextView;
+import com.sspacee.common.util.DensityUtil;
+import com.sspacee.common.util.StringUtils;
 import com.timeline.vpn.R;
 import com.timeline.vpn.bean.vo.RecommendVo;
-import com.timeline.vpn.common.util.DensityUtil;
-import com.timeline.vpn.common.util.StringUtils;
 import com.timeline.vpn.constant.Constants;
 
 import java.util.List;
@@ -38,6 +34,7 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
     private int itemWidth;
     private int imgWidth;
     private int marginPix;
+    private int hExtra;
 
     public IndexRecommendAdapter(Context context, RecyclerView recyclerView, List<RecommendVo> data, ItemClickListener listener, StaggeredGridLayoutManager layoutManager) {
         super(context, recyclerView, data);
@@ -46,12 +43,13 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
         itemWidth = DensityUtil.getDensityDisplayMetrics(context).widthPixels / layoutManager.getSpanCount();
         marginPix = context.getResources().getDimensionPixelSize(R.dimen.margin_8) * layoutManager.getSpanCount() + context.getResources().getDimensionPixelSize(R.dimen.margin_3) * layoutManager.getSpanCount();
         imgWidth = itemWidth - marginPix;
+        hExtra = context.getResources().getDimensionPixelSize(R.dimen.margin_3);
     }
 
     @Override
     public int getItemViewType(int position) {
-//        RecommendVo vo = (RecommendVo) data.get(position);
-        return 0;
+        RecommendVo vo = (RecommendVo) data.get(position);
+        return vo.showType;
     }
 
     @Override
@@ -94,22 +92,11 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
         ivPhotoParam.width = imgWidth;
         holder.ivPhoto.setLayoutParams(ivPhotoParam);
 
-//        LogUtil.i("w= "+imgWidth+"--h="+ivPhotoParam.height);
         holder.ivTitle.setVisibility(View.VISIBLE);
         final Shimmer shimmer = new Shimmer();
         shimmer.setDuration(Constants.RECOMMAND_SHIMMER_DURATION);
         shimmer.start(holder.ivTitle);
-        Glide.with(context).load(vo.img)
-//                .placeholder(R.drawable.vpn_trans_default)
-                .crossFade().listener(new LoggingListener()).into(new GlideDrawableImageViewTarget(holder.ivPhoto) {
-            @Override
-            public void onResourceReady(GlideDrawable resource, GlideAnimation<? super GlideDrawable> animation) {
-                super.onResourceReady(resource, animation);
-                shimmer.cancel();
-                holder.ivTitle.setVisibility(View.GONE);
-            }
-
-        });
+        IndexRecommendPhotoLoad.loadPhoto(holder,vo,shimmer,context);
     }
 
     public interface ItemClickListener {

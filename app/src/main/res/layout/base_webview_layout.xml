@@ -3,7 +3,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <com.timeline.vpn.ui.view.MyWebView
+    <com.sspacee.common.ui.view.MyWebView
         android:id="@+id/wv_content"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />

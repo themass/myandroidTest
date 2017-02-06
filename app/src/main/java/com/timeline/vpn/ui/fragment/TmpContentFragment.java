@@ -13,7 +13,7 @@ import com.timeline.vpn.R;
 import com.timeline.vpn.ads.adview.AdsAdview;
 import com.timeline.vpn.ads.adview.NativeAdsAdapter;
 import com.timeline.vpn.constant.Constants;
-import com.timeline.vpn.ui.base.features.BaseBannerAdsFragemnt;
+import com.timeline.vpn.ui.base.features.TmpBaseBannerAdsFragemnt;
 
 import java.util.HashMap;
 
@@ -22,7 +22,7 @@ import butterknife.Bind;
 /**
  * Created by themass on 2016/3/31.
  */
-public class TmpContentFragment extends BaseBannerAdsFragemnt {
+public class TmpContentFragment extends TmpBaseBannerAdsFragemnt {
     @Bind(R.id.rv_ads)
     RecyclerView rvAds;
     @Bind(R.id.tv_ready)

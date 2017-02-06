@@ -5,8 +5,8 @@ import android.content.Intent;
 
 import com.timeline.vpn.base.MyApplication;
 import com.timeline.vpn.bean.vo.UserInfoVo;
-import com.timeline.vpn.common.util.EventBusUtil;
-import com.timeline.vpn.common.util.PreferenceUtils;
+import com.sspacee.common.util.EventBusUtil;
+import com.sspacee.common.util.PreferenceUtils;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.config.UserLoginEvent;
 
@@ -42,5 +42,12 @@ public class UserLoginUtil {
 
     public static UserInfoVo getUserCache() {
         return StaticDataUtil.get(Constants.LOGIN_USER, UserInfoVo.class);
+    }
+    public static boolean isVIP(){
+        UserInfoVo vo = getUserCache();
+        if(vo==null || vo.level!=Constants.UserLevel.LEVEL_VIP){
+            return false;
+        }
+        return true;
     }
 }

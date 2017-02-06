@@ -21,7 +21,7 @@ import com.kyview.manager.AdViewSpreadManager;
 import com.kyview.natives.NativeAdInfo;
 import com.timeline.vpn.R;
 import com.timeline.vpn.base.MyApplication;
-import com.timeline.vpn.common.util.LogUtil;
+import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.MobAgent;
 import com.timeline.vpn.provider.AdsInfoModel;

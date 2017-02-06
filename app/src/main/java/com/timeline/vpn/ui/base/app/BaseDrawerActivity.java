@@ -23,32 +23,38 @@ import com.timeline.vpn.R;
 import com.timeline.vpn.base.MyApplication;
 import com.timeline.vpn.bean.vo.UserInfoVo;
 import com.timeline.vpn.bean.vo.VersionVo;
-import com.timeline.vpn.common.net.request.CommonResponse;
-import com.timeline.vpn.common.util.EventBusUtil;
-import com.timeline.vpn.common.util.LogUtil;
-import com.timeline.vpn.common.util.PreferenceUtils;
-import com.timeline.vpn.common.util.StringUtils;
+import com.sspacee.common.net.request.CommonResponse;
+import com.sspacee.common.util.DateUtils;
+import com.sspacee.common.util.EventBusUtil;
+import com.sspacee.common.util.LogUtil;
+import com.sspacee.common.util.PreferenceUtils;
+import com.sspacee.common.util.StringUtils;
+import com.sspacee.common.util.SystemUtils;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.data.LocationUtil;
+import com.timeline.vpn.data.MobAgent;
 import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.data.VersionUpdater;
 import com.timeline.vpn.data.config.LocationChooseEvent;
 import com.timeline.vpn.data.config.UserLoginEvent;
 import com.timeline.vpn.service.LogUploadService;
+import com.timeline.vpn.ui.base.WebViewActivity;
 import com.timeline.vpn.ui.feedback.ConversationDetailActivity;
+import com.timeline.vpn.ui.fragment.LocationChooseFragment;
 import com.timeline.vpn.ui.user.LoginActivity;
-import com.timeline.vpn.ui.vpn.LocationChooseFragment;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+
+import java.util.Date;
 
 import butterknife.Bind;
 
 /**
  * Created by Miroslaw Stanek on 15.07.15.
  */
-public class BaseDrawerActivity extends BaseFragmentActivity {
+public class BaseDrawerActivity extends BaseToolBarActivity {
     private static final String VERSION_TAG = "REQUEST_VERSION_CHECK";
     @Nullable
     @Bind(R.id.drawerLayout)
@@ -66,6 +72,7 @@ public class BaseDrawerActivity extends BaseFragmentActivity {
     MenuItem miVersion;
     MenuItem miScore;
     MenuItem miLocation;
+    MenuItem miAbout;
     Handler mHandler = new Handler();
     BaseService baseService;
 
@@ -97,23 +104,35 @@ public class BaseDrawerActivity extends BaseFragmentActivity {
         miVersion = nvDrawer.getMenu().findItem(R.id.menu_version);
         miLocation = nvDrawer.getMenu().findItem(R.id.menu_location);
         miScore = nvDrawer.getMenu().findItem(R.id.menu_score);
+        miAbout = nvDrawer.getMenu().findItem(R.id.menu_about);
         headerView = nvDrawer.getHeaderView(0);
         llLoginMenuHeader = (LinearLayout) headerView.findViewById(R.id.ll_menu_headview);
         tvMenuUserName = (TextView) headerView.findViewById(R.id.tv_menu_username);
         tvMenuUserLogin = (TextView) headerView.findViewById(R.id.tv_menu_login);
         ivAvatar = (ImageView) headerView.findViewById(R.id.iv_avatar);
         ivLevel = (ImageView) headerView.findViewById(R.id.iv_level);
-        checkUpdate();
-        miVersion.setTitle(String.format(getString(R.string.menu_btn_version), VersionUpdater.getVersion()));
         nvDrawer.setItemIconTintList(null);
+        setUpAbout();
+        setUpVersion();
         setUpUserMenu();
         setUpLocation();
         baseService = new BaseService();
         baseService.setup(this);
     }
-
     private void setUpLocation() {
         miLocation.setTitle(LocationUtil.getSelectName(this));
+    }
+    private void setUpAbout(){
+        boolean hasClick = PreferenceUtils.getPrefBoolean(this,Constants.ABOUT_FIRST,false);
+        if(hasClick){
+            miAbout.setIcon(R.drawable.ic_menu_about);
+        }else {
+            miAbout.setIcon(R.drawable.ic_menu_about_first);
+        }
+    }
+    private void setUpVersion(){
+        checkUpdate();
+        miVersion.setTitle(String.format(getString(R.string.menu_btn_version), VersionUpdater.getVersion()));
     }
 
     private void setUpUserMenu() {
@@ -141,7 +160,8 @@ public class BaseDrawerActivity extends BaseFragmentActivity {
             tvMenuUserName.setText(R.string.menu_btn_name_default);
             tvMenuUserLogin.setText(R.string.menu_btn_login);
             ivLevel.setVisibility(View.GONE);
-            miScore.setTitle(String.format(getString(R.string.menu_btn_score), String.valueOf(0)));
+            int score = PreferenceUtils.getPrefInt(this,Constants.SCORE_TMP,0);
+            miScore.setTitle(String.format(getString(R.string.menu_btn_score), String.valueOf(score)));
         }
     }
 
@@ -184,7 +204,14 @@ public class BaseDrawerActivity extends BaseFragmentActivity {
                 } else if (item.getItemId() == R.id.menu_feedback) {
                     startActivity(ConversationDetailActivity.class);
                 } else if (item.getItemId() == R.id.menu_about) {
-                    Toast.makeText(BaseDrawerActivity.this, R.string.menu_btn_about_context, Toast.LENGTH_LONG).show();
+                    String url = Constants.ABOUT;
+                    if(SystemUtils.isZH(BaseDrawerActivity.this)){
+                        url = Constants.ABOUT_ZH;
+                    }
+                    url = url+"?"+ DateUtils.format(new Date(),DateUtils.DATE_FORMAT);
+                    WebViewActivity.startWebViewActivity(BaseDrawerActivity.this,url,getString(R.string.menu_btn_about),false,false,null);
+                    PreferenceUtils.setPrefBoolean(BaseDrawerActivity.this,Constants.ABOUT_FIRST,true);
+                    setUpAbout();
                 } else if (item.getItemId() == R.id.menu_score) {
                     Toast.makeText(BaseDrawerActivity.this, R.string.menu_btn_score_context, Toast.LENGTH_SHORT).show();
                 } else if (item.getItemId() == R.id.menu_bug) {
@@ -260,4 +287,15 @@ public class BaseDrawerActivity extends BaseFragmentActivity {
         }
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        MobAgent.onPauseForFragmentActiviy(this);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        MobAgent.onResumeForFragmentActiviy(this);
+    }
 }

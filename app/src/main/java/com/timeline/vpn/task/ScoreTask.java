@@ -4,11 +4,13 @@ import android.content.Context;
 import android.os.AsyncTask;
 
 import com.timeline.vpn.bean.vo.UserInfoVo;
-import com.timeline.vpn.common.net.request.CommonResponse;
-import com.timeline.vpn.common.util.PreferenceUtils;
+import com.sspacee.common.net.request.CommonResponse;
+import com.sspacee.common.util.EventBusUtil;
+import com.sspacee.common.util.PreferenceUtils;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.data.UserLoginUtil;
+import com.timeline.vpn.data.config.UserLoginEvent;
 
 /**
  * Created by themass on 2016/8/29.
@@ -45,6 +47,7 @@ public class ScoreTask extends AsyncTask {
         }else{
             int socreTmp = PreferenceUtils.getPrefInt(context,Constants.SCORE_TMP,0);
             PreferenceUtils.setPrefInt(context,Constants.SCORE_TMP,score+socreTmp);
+            EventBusUtil.getEventBus().post(new UserLoginEvent());
         }
         return null;
     }

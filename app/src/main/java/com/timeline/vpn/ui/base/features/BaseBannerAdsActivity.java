@@ -11,17 +11,17 @@ import android.view.animation.OvershootInterpolator;
 import com.timeline.vpn.R;
 import com.timeline.vpn.ads.adview.AdsAdview;
 import com.timeline.vpn.ads.adview.AdsController;
-import com.timeline.vpn.common.util.LogUtil;
-import com.timeline.vpn.common.util.PreferenceUtils;
+import com.sspacee.common.util.LogUtil;
+import com.sspacee.common.util.PreferenceUtils;
 import com.timeline.vpn.constant.Constants;
-import com.timeline.vpn.ui.base.app.BaseSingleActivity;
+import com.timeline.vpn.ui.base.app.BaseToolBarActivity;
 
 import butterknife.Bind;
 
 /**
  * Created by themass on 2016/8/21.
  */
-public abstract class BaseBannerAdsActivity extends BaseSingleActivity implements AdsController {
+public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implements AdsController {
     private static final int ANIM_DURATION_FAB = 400;
     @Bind(R.id.fl_content)
     public ViewGroup flContent;
@@ -47,7 +47,10 @@ public abstract class BaseBannerAdsActivity extends BaseSingleActivity implement
         fabUp.setVisibility(View.GONE);
         flBanner.setBackgroundResource(R.color.base_white);
     }
-
+    public void setContentViewWithoutInject(int layoutResID) {
+        super.setContentViewWithoutInject(R.layout.base_fragment);
+        getLayoutInflater().inflate(layoutResID, (ViewGroup) findViewById(R.id.fl_content), true);
+    }
     public void setFabUpVisibility(int v) {
         fabUp.setVisibility(v);
     }

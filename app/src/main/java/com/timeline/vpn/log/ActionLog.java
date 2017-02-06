@@ -2,9 +2,9 @@ package com.timeline.vpn.log;
 
 import android.util.Log;
 
-import com.timeline.vpn.common.util.FileUtils;
-import com.timeline.vpn.common.util.LogUtil;
-import com.timeline.vpn.common.util.StringUtils;
+import com.sspacee.common.util.FileUtils;
+import com.sspacee.common.util.LogUtil;
+import com.sspacee.common.util.StringUtils;
 
 import java.io.BufferedWriter;
 import java.io.File;

@@ -1,6 +1,6 @@
 package com.timeline.vpn.log;
 
-import com.timeline.vpn.common.util.LogUtil;
+import com.sspacee.common.util.LogUtil;
 
 public class WriteThread extends Thread {
     public volatile boolean isRun = true;

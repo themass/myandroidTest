@@ -14,7 +14,9 @@ public class RecommendVo {
     public float rate = 1; //长/宽
     public String color;
     public boolean adsShow;
-
+    public boolean adsPopShow;
+    public int type;
+    public int showType;
     @Override
     public String toString() {
         return "RecommendVo{" +

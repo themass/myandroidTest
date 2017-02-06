@@ -1,7 +1,7 @@
 package com.timeline.vpn.data.config;
 
-import com.timeline.vpn.common.util.LogUtil;
-import com.timeline.vpn.common.util.StringUtils;
+import com.sspacee.common.util.LogUtil;
+import com.sspacee.common.util.StringUtils;
 import com.timeline.vpn.log.ActionLog;
 
 import org.greenrobot.eventbus.Subscribe;

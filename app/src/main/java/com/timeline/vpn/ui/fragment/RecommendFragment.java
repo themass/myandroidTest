@@ -1,8 +1,13 @@
 package com.timeline.vpn.ui.fragment;
 
 
+import android.app.Service;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.LayoutInflater;
@@ -13,14 +18,16 @@ import com.timeline.vpn.R;
 import com.timeline.vpn.adapter.IndexRecommendAdapter;
 import com.timeline.vpn.bean.vo.InfoListVo;
 import com.timeline.vpn.bean.vo.RecommendVo;
-import com.timeline.vpn.common.util.EventBusUtil;
-import com.timeline.vpn.common.util.LogUtil;
+import com.sspacee.common.util.EventBusUtil;
+import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.data.MobAgent;
 import com.timeline.vpn.data.config.ConfigActionEvent;
 import com.timeline.vpn.ui.base.LoadableFragment;
-import com.timeline.vpn.ui.view.MyPullView;
+import com.sspacee.common.ui.view.MyPullView;
+
+import org.strongswan.android.logic.VpnStateService;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,6 +45,18 @@ public abstract class RecommendFragment extends LoadableFragment<InfoListVo<Reco
     private BaseService indexService;
     private InfoListVo<RecommendVo> infoVo = new InfoListVo<>();
     private boolean isFirst = false;
+    public VpnStateService mService;
+    public final ServiceConnection mServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            mService = null;
+        }
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            mService = ((VpnStateService.LocalBinder) service).getService();
+        }
+    };
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -84,6 +103,8 @@ public abstract class RecommendFragment extends LoadableFragment<InfoListVo<Reco
         indexService.setup(getActivity());
         pullView.setListener(this);
         pullView.setAdapter(adapter);
+        getActivity().bindService(new Intent(getActivity(), VpnStateService.class),
+                    mServiceConnection, Service.BIND_AUTO_CREATE);
     }
 
     @Override
@@ -103,6 +124,7 @@ public abstract class RecommendFragment extends LoadableFragment<InfoListVo<Reco
         RecommendVo vo = infoVo.voList.get(position);
         Map<String, Object> param = new HashMap<>();
         param.put(Constants.ADS_SHOW_CONFIG, vo.adsShow);
+        param.put(Constants.ADS_POP_SHOW_CONFIG, vo.adsPopShow);
         EventBusUtil.getEventBus().post(new ConfigActionEvent(getActivity(), vo.actionUrl,vo.title, param));
         MobAgent.onEventRecommond(getActivity(),vo.title);
     }

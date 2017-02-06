@@ -9,11 +9,11 @@ import android.widget.RelativeLayout;
 
 import com.timeline.vpn.R;
 import com.timeline.vpn.ads.adview.AdsAdview;
-import com.timeline.vpn.common.util.LogUtil;
+import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.MobAgent;
 import com.timeline.vpn.task.UpdateUserTask;
-import com.timeline.vpn.ui.base.log.LogActivity;
+import com.sspacee.common.ui.base.LogActivity;
 import com.umeng.message.PushAgent;
 
 import butterknife.Bind;

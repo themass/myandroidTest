@@ -8,8 +8,8 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.timeline.vpn.R;
-import com.timeline.vpn.common.util.LogUtil;
-import com.timeline.vpn.ui.base.log.BaseFragment;
+import com.sspacee.common.util.LogUtil;
+import com.sspacee.common.ui.base.BaseFragment;
 
 /**
  * Created by themass on 2015/9/1.

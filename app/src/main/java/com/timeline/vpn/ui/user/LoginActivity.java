@@ -11,12 +11,12 @@ import com.qq.e.comm.util.StringUtil;
 import com.timeline.vpn.R;
 import com.timeline.vpn.bean.form.LoginForm;
 import com.timeline.vpn.bean.vo.UserInfoVo;
-import com.timeline.vpn.common.net.request.CommonResponse;
-import com.timeline.vpn.common.util.PreferenceUtils;
+import com.sspacee.common.net.request.CommonResponse;
+import com.sspacee.common.util.PreferenceUtils;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.data.UserLoginUtil;
-import com.timeline.vpn.ui.base.features.BaseBannerAdsActivity;
+import com.timeline.vpn.ui.base.app.BaseSingleActivity;
 
 import butterknife.Bind;
 import butterknife.OnClick;
@@ -24,7 +24,7 @@ import butterknife.OnClick;
 /**
  * Created by themass on 2016/8/13.
  */
-public class LoginActivity extends BaseBannerAdsActivity {
+public class LoginActivity extends BaseSingleActivity {
     private static final String TAG = "login_tag";
     @Bind(R.id.ll_loading)
     LinearLayout loading;

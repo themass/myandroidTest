@@ -6,13 +6,12 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.view.View;
 
 import com.timeline.vpn.R;
 import com.timeline.vpn.ads.adview.AdsAdview;
-import com.timeline.vpn.common.util.LogUtil;
+import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
-import com.timeline.vpn.ui.base.features.BaseBannerAdsActivity;
+import com.timeline.vpn.ui.base.app.BaseFragmentActivity;
 import com.timeline.vpn.ui.fragment.TmpContentFragment;
 
 import java.util.HashMap;
@@ -20,18 +19,19 @@ import java.util.HashMap;
 /**
  * Created by themass on 2016/3/17.
  */
-public class BrowserConfigActivity extends BaseBannerAdsActivity {
+public class BrowserConfigActivity extends BaseFragmentActivity {
     private boolean adsNeed = false;
+    private boolean adsPopNeed = false;
     protected Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             LogUtil.i("handleMessage-" + msg.what);
             switch (msg.what){
                 case Constants.ADS_NO_MSG:
-                    adsNeed = true;
+                    adsPopNeed = true;
                     break;
                 default:
-                    adsNeed = false;
+                    adsPopNeed = false;
             }
         }
     };
@@ -48,9 +48,20 @@ public class BrowserConfigActivity extends BaseBannerAdsActivity {
                 .commit();
         setNavigationOut();
         adsNeed = getIntent().getBooleanExtra(Constants.ADS_SHOW_CONFIG, false);
-        flBanner.setVisibility(View.GONE);
+        adsPopNeed = getIntent().getBooleanExtra(Constants.ADS_POP_SHOW_CONFIG, false);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
         Intent it = new Intent(Intent.ACTION_VIEW, Uri.parse(getIntent().getExtras().getString(Constants.URL)));
-        startActivity(it);
+        startActivityForResult(it,0);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        finish();
     }
 
     @Override
@@ -60,9 +71,8 @@ public class BrowserConfigActivity extends BaseBannerAdsActivity {
     @Override
     public void showAds(Context context){
         super.showAds(context);
-        if (needShow(this)) {
+        if (adsPopNeed) {
             AdsAdview.interstitialAds(this, mHandler);
         }
-
     }
 }

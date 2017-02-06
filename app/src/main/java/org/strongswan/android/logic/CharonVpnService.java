@@ -45,8 +45,8 @@ import android.widget.RemoteViews;
 import com.timeline.vpn.R;
 import com.timeline.vpn.base.MyApplication;
 import com.timeline.vpn.bean.vo.VpnProfile;
-import com.timeline.vpn.common.util.FileUtils;
-import com.timeline.vpn.common.util.LogUtil;
+import com.sspacee.common.util.FileUtils;
+import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.data.LocationUtil;
 import com.timeline.vpn.ui.main.MainFragment;
 

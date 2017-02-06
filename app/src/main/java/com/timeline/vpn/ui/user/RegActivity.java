@@ -12,10 +12,10 @@ import com.qq.e.comm.util.StringUtil;
 import com.timeline.vpn.R;
 import com.timeline.vpn.bean.form.RegForm;
 import com.timeline.vpn.bean.vo.NullReturnVo;
-import com.timeline.vpn.common.net.request.CommonResponse;
+import com.sspacee.common.net.request.CommonResponse;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
-import com.timeline.vpn.ui.base.features.BaseBannerAdsActivity;
+import com.timeline.vpn.ui.base.app.BaseSingleActivity;
 
 import java.util.regex.Pattern;
 
@@ -25,7 +25,7 @@ import butterknife.OnClick;
 /**
  * Created by themass on 2016/8/13.
  */
-public class RegActivity extends BaseBannerAdsActivity {
+public class RegActivity extends BaseSingleActivity {
     private static final String TAG = "login_tag";
     @Bind(R.id.ll_loading)
     LinearLayout loading;

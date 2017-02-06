@@ -28,11 +28,11 @@ public class MobAgent {
         MobclickAgent.onPageStart(fragment);
     }
 
-    public static void onPageEnd(Context context) {
+    public static void onPauseForFragmentActiviy(Context context) {
         MobclickAgent.onPause(context);
     }
 
-    public static void onPageStart(Context context) {
+    public static void onResumeForFragmentActiviy(Context context) {
         MobclickAgent.onResume(context);
     }
 
@@ -74,6 +74,9 @@ public class MobAgent {
         map.put("event", AdsAdview.getAdsEvent(event));
         map.put("status", AdsAdview.getAdsName(type)+" - "+AdsAdview.getAdsEvent(event));
         MobclickAgent.onEvent(context, "adsshow", map);
+    }
+    public static void killProcess(Context context){
+        MobclickAgent.onKillProcess(context);
     }
 
 }

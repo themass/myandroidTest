@@ -19,10 +19,11 @@ import com.timeline.vpn.R;
 import com.timeline.vpn.ads.adview.AdsAdview;
 import com.timeline.vpn.base.MyApplication;
 import com.timeline.vpn.bean.vo.UserInfoVo;
-import com.timeline.vpn.common.util.EventBusUtil;
-import com.timeline.vpn.common.util.LogUtil;
-import com.timeline.vpn.common.util.PreferenceUtils;
+import com.sspacee.common.util.EventBusUtil;
+import com.sspacee.common.util.LogUtil;
+import com.sspacee.common.util.PreferenceUtils;
 import com.timeline.vpn.constant.Constants;
+import com.timeline.vpn.data.MobAgent;
 import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.data.config.ConfigActionJump;
 import com.timeline.vpn.data.config.LogAddTofile;
@@ -117,6 +118,7 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
             unregisterReceiver(myReceiver);
         }
         super.onDestroy();
+        MobAgent.killProcess(this);
         System.exit(0);
     }
 

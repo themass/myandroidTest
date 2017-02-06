@@ -19,7 +19,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Xml;
 
-import com.timeline.vpn.common.util.LogUtil;
+import com.sspacee.common.util.LogUtil;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;

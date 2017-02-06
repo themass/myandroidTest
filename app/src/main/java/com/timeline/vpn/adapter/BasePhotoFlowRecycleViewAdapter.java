@@ -6,7 +6,7 @@ import android.view.View;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.Interpolator;
 
-import com.timeline.vpn.common.util.Utils;
+import com.sspacee.common.util.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,14 +23,9 @@ public abstract class BasePhotoFlowRecycleViewAdapter<M, T extends BasePhotoFlow
     protected final Context context;
     protected final int cellSize;
     protected List<M> data = null;
-    protected boolean isScrolling;
-    private boolean lockedAnimations = false;
-    private int lastAnimatedItem = -1;
-    private RecyclerView mRecyclerView;
 
     public BasePhotoFlowRecycleViewAdapter(Context context, RecyclerView recyclerView, List<M> data) {
         this.context = context;
-//        this.cellSize = (Utils.getScreenWidth(context)- DisplayUtil.dp2px(context,context.getResources().getDimension(R.dimen.cell_margins)*4))/ 2;
         this.cellSize = Utils.getScreenWidth(context) / 2;
         if (data != null) {
             this.data = data;
@@ -38,7 +33,6 @@ public abstract class BasePhotoFlowRecycleViewAdapter<M, T extends BasePhotoFlow
             this.data = new ArrayList<>();
             ;
         }
-        this.mRecyclerView = recyclerView;
     }
 
     @Override
@@ -57,11 +51,6 @@ public abstract class BasePhotoFlowRecycleViewAdapter<M, T extends BasePhotoFlow
     public int getItemCount() {
         return data.size();
     }
-
-    public void setLockedAnimations(boolean lockedAnimations) {
-        this.lockedAnimations = lockedAnimations;
-    }
-
     public static class BaseViewHolder extends RecyclerView.ViewHolder {
         public BaseViewHolder(View view) {
             super(view);

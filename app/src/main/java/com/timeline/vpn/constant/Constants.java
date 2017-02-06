@@ -13,6 +13,7 @@ public class Constants {
     public static final int STARTUP_SHOW_TIME_5000 = 5000; //启动页广告时长
     public static final int STARTUP_SHOW_TIME_8000 = 8000; //启动页广告时长
     public static final int BANNER_ADS_GONE_LONG = 80000; //广告显示时长
+    public static final int BANNER_ADS_GONE_LONG_LONG = 240000; //广告显示时长
     public static final int BANNER_ADS_GONE_SHORT = 5000; //启动页广告时长
     public static final int VIP_SHIMMER_DURATION = 2300;
     public static final int RECOMMAND_SHIMMER_DURATION = 1500;
@@ -99,6 +100,7 @@ public class Constants {
     public static final int ADS_SHOW_CLICK = 20;
     public static final String D_URL = "D_URL";
     public static final String ADS_SHOW_CONFIG = "ADS_SHOW_CONFIG";
+    public static final String ADS_POP_SHOW_CONFIG = "ADS_POP_SHOW_CONFIG";
     public static final String LOG_UPLOAD_CONFIG = "LOG_UPLOAD_CONFIG";
     public static final String CONFIG_PARAM = "CONFIG_PARAM";
     public static final String TITLE = "TITLE";
@@ -110,8 +112,14 @@ public class Constants {
     public static final String BUG_FILE = "log.log";
     public static final String BUG_FILE_FOR_UPLOAD = "log_upload.log";
     public static final String SCORE_TMP = "SCORE_TMP";
+    public static final String SCORE_CLICK = "SCORE_CLICK";
+    public static final long SCORE_CLICK_INTERVAL = 3;
     public static final int MAX_RETRY_COUNT = 4;
     public static String BASE_IP = "api.sspacee.com";
+    public static String ABOUT_FIRST = "ABOUT_FIRST";
+    public static String ABOUT_ZH = "http://file.sspacee.com/file/html/about_zh.html";
+    public static String ABOUT = "http://file.sspacee.com/file/html/about.html";
+
     //    public static String BASE_IP = "192.168.1.7:8080";
 //    public static String BASE_IP = "10.33.65.180:8080";
     public static String BASE_HOST = "http://" + BASE_IP + "/vpn/api";
@@ -130,5 +138,10 @@ public class Constants {
     public static class UserLevel {
         public static final int LEVEL_FREE = 0;
         public static final int LEVEL_VIP = 1;
+    }
+    public static class ShowType{
+        public static final int Normal=0;
+        public static final int Blur=1;
+        public static final int Text=2;
     }
 }

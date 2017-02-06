@@ -30,6 +30,7 @@
     <dimen name="textsize_32">32sp</dimen>
     <dimen name="margin_3">3dip</dimen>
     <dimen name="margin_5">5dip</dimen>
+    <dimen name="margin_6">6dip</dimen>
     <dimen name="margin_8">8dip</dimen>
     <dimen name="margin_10">10dip</dimen>
     <dimen name="margin_15">15dip</dimen>

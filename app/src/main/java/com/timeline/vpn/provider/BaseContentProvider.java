@@ -3,7 +3,7 @@ package com.timeline.vpn.provider;
 import android.net.Uri;
 import android.text.TextUtils;
 
-import com.timeline.vpn.common.util.db.MyContentProvider;
+import com.sspacee.common.util.db.MyContentProvider;
 
 
 public class BaseContentProvider extends MyContentProvider {

@@ -9,19 +9,19 @@ import android.widget.Toast;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.timeline.vpn.R;
-import com.timeline.vpn.common.net.NetUtils;
-import com.timeline.vpn.common.net.VolleyUtils;
-import com.timeline.vpn.common.net.request.StringRequest;
-import com.timeline.vpn.common.util.CollectionUtils;
-import com.timeline.vpn.common.util.LogUtil;
-import com.timeline.vpn.common.util.SystemUtils;
+import com.sspacee.common.net.NetUtils;
+import com.sspacee.common.net.VolleyUtils;
+import com.sspacee.common.net.request.StringRequest;
+import com.sspacee.common.util.CollectionUtils;
+import com.sspacee.common.util.LogUtil;
+import com.sspacee.common.util.SystemUtils;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.StaticDataUtil;
-import com.timeline.vpn.ui.base.log.LogActivity;
-import com.timeline.vpn.weather.LocationUtils;
-import com.timeline.vpn.weather.WeatherIconUtils;
-import com.timeline.vpn.weather.WeatherSpider;
-import com.timeline.vpn.weather.bean.WeatherInfo;
+import com.sspacee.common.ui.base.LogActivity;
+import com.sspacee.common.weather.LocationUtils;
+import com.sspacee.common.weather.WeatherIconUtils;
+import com.sspacee.common.weather.WeatherSpider;
+import com.sspacee.common.weather.bean.WeatherInfo;
 
 /**
  * Created by themass on 2016/3/1.

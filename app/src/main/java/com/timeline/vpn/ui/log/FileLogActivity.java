@@ -18,9 +18,9 @@ package com.timeline.vpn.ui.log;
 import android.os.Bundle;
 
 import com.timeline.vpn.R;
-import com.timeline.vpn.ui.base.features.BaseBannerAdsActivity;
+import com.timeline.vpn.ui.base.app.BaseSingleActivity;
 
-public class FileLogActivity extends BaseBannerAdsActivity {
+public class FileLogActivity extends BaseSingleActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

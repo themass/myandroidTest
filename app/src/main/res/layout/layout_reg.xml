@@ -17,16 +17,17 @@
             android:layout_centerVertical="true"
             android:orientation="vertical">
 
-            <com.timeline.vpn.common.view.MyEditText
+            <com.sspacee.common.ui.view.MyEditText
                 android:id="@+id/et_username"
                 style="@style/edit_login"
                 android:drawableLeft="@drawable/ic_login_user"
                 android:hint="@string/username_hint"
-                android:maxLines="1" />
+                android:maxLines="1"
+                android:singleLine="true"/>
 
             <ImageView style="@style/divider_login" />
 
-            <com.timeline.vpn.common.view.MyEditText
+            <com.sspacee.common.ui.view.MyEditText
                 android:id="@+id/et_password"
                 style="@style/edit_login"
                 android:drawableLeft="@drawable/ic_login_pass"
@@ -36,7 +37,7 @@
 
             <ImageView style="@style/divider_login" />
 
-            <com.timeline.vpn.common.view.MyEditText
+            <com.sspacee.common.ui.view.MyEditText
                 android:id="@+id/et_repassword"
                 style="@style/edit_login"
                 android:drawableLeft="@drawable/ic_login_pass"
@@ -59,7 +60,7 @@
                     android:background="@color/reg_code"
                     android:text="@string/re_bt_code"/>
 
-                <com.timeline.vpn.common.view.MyEditText
+                <com.sspacee.common.ui.view.MyEditText
                     android:id="@+id/et_code"
                     style="@style/edit_login"
                     android:layout_toLeftOf="@+id/bt_code"

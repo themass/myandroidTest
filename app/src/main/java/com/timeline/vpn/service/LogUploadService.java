@@ -3,9 +3,9 @@ package com.timeline.vpn.service;
 import android.content.Intent;
 
 import com.timeline.vpn.bean.vo.NullReturnVo;
-import com.timeline.vpn.common.net.request.CommonResponse;
-import com.timeline.vpn.common.util.FileUtils;
-import com.timeline.vpn.common.util.LogUtil;
+import com.sspacee.common.net.request.CommonResponse;
+import com.sspacee.common.util.FileUtils;
+import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
 

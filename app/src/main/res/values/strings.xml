@@ -21,7 +21,8 @@
     <string name="tab_tag_index">index</string>
     <string name="tab_tag_vip">vip</string>
     <string name="tab_vip_temp">Content preparation。。。Coming soon</string>
-    <string name="tab_fb_click">Points me earn points, Change VIP。。</string>
+    <string name="tab_fb_click">Points me earn points, Change VIP。。+</string>
+    <string name="tab_fb_click_fast">Too fast,please wait 2 seconds</string>
 
     <!-- Application -->
     <string name="app_name">FreeVPN</string>
@@ -39,7 +40,7 @@
     <string name="menu_haha">Yo! You found it.</string>
     <!-- menu -->
     <string name="menu_btn_login">Login</string>
-    <string name="menu_btn_login_ready">Login</string>
+    <string name="menu_btn_login_ready">LoginOk</string>
     <string name="menu_btn_name_default">Who am i</string>
     <string name="menu_btn_feedback">Feedback</string>
     <string name="menu_btn_about">About</string>
@@ -50,7 +51,7 @@
     <string name="menu_btn_about_context">FreeVPN the most stable, free, unlimited，all for you！</string>
     <string name="feed_back">Feedback</string>
     <string name="menu_btn_score">My points：%s</string>
-    <string name="menu_btn_score_context">Points can be used to store the purchase of goods，VIP etc。。</string>
+    <string name="menu_btn_score_context">Points can change VIP，more info see "About"</string>
     <string name="menu_btn_report_log">Thanks for report us</string>
     <!-- share-->
     <string name="menu_share_title">Tell a friend</string>
@@ -77,13 +78,14 @@
     <string name="reg_success">Register success，login now？</string>
     <string name="remark">Timeline RIGHTS RESERVED.</string>
     <string name="need_login">Login please</string>
-    <string name="need_vip">Not VIP user has no permission to select the areang</string>
+    <string name="need_vip">Need VIP permission，please see "About"</string>
 
     <string name="iwanna_tips">Tell me what du you want ,\nI\'ll be ready for you </string>
     <string name="iwanna_title">What do you want?</string>
     <string name="send">send</string>
     <string name="iwanna_content_error">Tell me something!</string>
     <string name="iwanna_content_success">I got it !</string>
+    <string name="vip_need">Non VIP users are not allowed to visit</string>
     <!-- error-->
     <string name="error_getlocation_fail">Failed to obtain location information！</string>
     <string name="error_network_unknown">Connection server error, please check your network connection or try again later.</string>
@@ -97,7 +99,7 @@
     <string name="vpn_bg_conning">Connecting..</string>
     <string name="vpn_bg_disconning">Stoping..</string>
     <string name="vpn_bg_conned">Disconnect</string>
-
+    <string name="vpn_need">Maybe need conn VPN first</string>
     <string name="vpn_type_free">Free</string>
     <string name="vpn_type_vip">VIP</string>
     <string name="vpn_type_advip">highVIP</string>

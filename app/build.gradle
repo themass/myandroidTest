@@ -8,14 +8,16 @@ android {
         applicationId "com.timeline.vpn"
         minSdkVersion global_minSdkVersion
         targetSdkVersion global_targetSdkVersion
+        renderscriptTargetApi 23
+        renderscriptSupportModeEnabled true
 
-        versionCode 1000001008
-        versionName "1.0.1.8"
+        versionCode 1000002001
+        versionName "1.0.2.1"
         // Enabling multidex support.
         multiDexEnabled true
     }
     dexOptions {
-        incremental true
+//        incremental true
         preDexLibraries true
         javaMaxHeapSize "4g"
     }
@@ -123,5 +125,6 @@ dependencies {
     compile 'org.greenrobot:eventbus:3.0.0'
     compile 'com.umeng.analytics:analytics:latest.integration'
     compile 'com.romainpiel.shimmer:library:1.4.0@aar'
+    compile 'jp.wasabeef:glide-transformations:1.2.1'
     //compile 'me.zhanghai.android.materialratingbar:library:1.0.2'
 }
