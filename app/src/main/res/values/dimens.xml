@@ -49,6 +49,6 @@
     <dimen name="remote_vpn_title">10sp</dimen>
     <dimen name="remote_vpn_time">12sp</dimen>
     <dimen name="remote_vpn_content">14sp</dimen>
-    <dimen name="recommend_hit_size">18sp</dimen>
+    <dimen name="recommend_hit_size">15sp</dimen>
     <dimen name="toolbar_title_size">22sp</dimen>
 </resources>

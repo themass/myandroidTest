@@ -5,15 +5,26 @@
             android:icon="@drawable/ic_menu_location"
             android:title="@string/location_choose_hint" />
         <item
-            android:id="@+id/menu_score"
-            android:icon="@drawable/ic_menu_score"
-            android:title="@string/menu_btn_score" />
-    </group>
-    <group android:id="@+id/menu_group_2">
-        <item
             android:id="@+id/menu_feedback"
             android:icon="@drawable/ic_menu_feedback"
             android:title="@string/menu_btn_feedback" />
+
+    </group>
+    <group android:id="@+id/menu_group_2">
+        <item
+            android:id="@+id/menu_score"
+            android:icon="@drawable/ic_menu_score"
+            android:title="@string/menu_btn_score" />
+        <item
+            android:id="@+id/menu_networking"
+            android:icon="@drawable/ic_menu_networking"
+            android:title="@string/menu_btn_networking" />
+        <item
+            android:id="@+id/menu_timeuse"
+            android:icon="@drawable/ic_menu_timeuse"
+            android:title="@string/menu_btn_timeuse" />
+    </group>
+    <group android:id="@+id/menu_group_3">
         <item
             android:id="@+id/menu_about"
             android:icon="@drawable/ic_menu_about"

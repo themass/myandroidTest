@@ -17,8 +17,8 @@ public class Constants {
     public static final int BANNER_ADS_GONE_SHORT = 5000; //启动页广告时长
     public static final int VIP_SHIMMER_DURATION = 2300;
     public static final int RECOMMAND_SHIMMER_DURATION = 1500;
-    public static final int ADS_NO_MSG = 0;
     public static final int ADS_CLICK_MSG = 1;
+    public static final int ADS_NO_MSG = 0;
     public static final int ADS_DISMISS_MSG = 2;
     public static final int ADS_PRESENT_MSG = 3;
     public static final int ADS_READY_MSG = 4;

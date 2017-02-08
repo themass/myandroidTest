@@ -10,4 +10,5 @@ public class UserInfoVo {
     public String sex;
     public String token;
     public long score;
+    public StateUseVo stateUse;
 }

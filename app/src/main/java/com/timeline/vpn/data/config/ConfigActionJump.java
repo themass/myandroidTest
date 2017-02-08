@@ -51,6 +51,7 @@ public class ConfigActionJump {
             intent.putExtra(Constants.ADS_POP_SHOW_CONFIG, adsPopShow);
             intent.putExtra(Constants.CONFIG_PARAM, param);
             intent.putExtra(Constants.TITLE, event.title);
+
             event.context.startActivity(intent);
         }
     }

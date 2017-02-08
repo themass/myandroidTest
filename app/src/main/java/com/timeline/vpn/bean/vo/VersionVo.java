@@ -11,4 +11,5 @@ public class VersionVo {
     public int maxBuild;
     public Boolean adsShow = false;
     public Boolean logUp = false;
+    public StateUseVo stateUse;
 }

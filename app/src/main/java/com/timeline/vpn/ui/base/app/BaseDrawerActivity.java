@@ -19,10 +19,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.timeline.vpn.R;
-import com.timeline.vpn.base.MyApplication;
-import com.timeline.vpn.bean.vo.UserInfoVo;
-import com.timeline.vpn.bean.vo.VersionVo;
 import com.sspacee.common.net.request.CommonResponse;
 import com.sspacee.common.util.DateUtils;
 import com.sspacee.common.util.EventBusUtil;
@@ -30,6 +26,11 @@ import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.StringUtils;
 import com.sspacee.common.util.SystemUtils;
+import com.timeline.vpn.R;
+import com.timeline.vpn.base.MyApplication;
+import com.timeline.vpn.bean.vo.StateUseVo;
+import com.timeline.vpn.bean.vo.UserInfoVo;
+import com.timeline.vpn.bean.vo.VersionVo;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.data.LocationUtil;
@@ -37,6 +38,7 @@ import com.timeline.vpn.data.MobAgent;
 import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.data.VersionUpdater;
 import com.timeline.vpn.data.config.LocationChooseEvent;
+import com.timeline.vpn.data.config.StateUseEvent;
 import com.timeline.vpn.data.config.UserLoginEvent;
 import com.timeline.vpn.service.LogUploadService;
 import com.timeline.vpn.ui.base.WebViewActivity;
@@ -73,6 +75,8 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     MenuItem miScore;
     MenuItem miLocation;
     MenuItem miAbout;
+    MenuItem miTimeuse;
+    MenuItem miNetworking;
     Handler mHandler = new Handler();
     BaseService baseService;
 
@@ -105,6 +109,8 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         miLocation = nvDrawer.getMenu().findItem(R.id.menu_location);
         miScore = nvDrawer.getMenu().findItem(R.id.menu_score);
         miAbout = nvDrawer.getMenu().findItem(R.id.menu_about);
+        miNetworking = nvDrawer.getMenu().findItem(R.id.menu_networking);
+        miTimeuse = nvDrawer.getMenu().findItem(R.id.menu_timeuse);
         headerView = nvDrawer.getHeaderView(0);
         llLoginMenuHeader = (LinearLayout) headerView.findViewById(R.id.ll_menu_headview);
         tvMenuUserName = (TextView) headerView.findViewById(R.id.tv_menu_username);
@@ -116,11 +122,21 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         setUpVersion();
         setUpUserMenu();
         setUpLocation();
+        setStateUse(null);
         baseService = new BaseService();
         baseService.setup(this);
     }
     private void setUpLocation() {
         miLocation.setTitle(LocationUtil.getSelectName(this));
+    }
+    private void setStateUse(StateUseVo vo){
+        if(vo!=null) {
+            miTimeuse.setTitle(String.format(getString(R.string.menu_btn_timeuse), vo.timeUse));
+            miNetworking.setTitle(String.format(getString(R.string.menu_btn_networking), vo.trafficUse));
+        }else{
+            miTimeuse.setTitle(String.format(getString(R.string.menu_btn_timeuse), "0 h"));
+            miNetworking.setTitle(String.format(getString(R.string.menu_btn_networking),"0 Gb"));
+        }
     }
     private void setUpAbout(){
         boolean hasClick = PreferenceUtils.getPrefBoolean(this,Constants.ABOUT_FIRST,false);
@@ -174,7 +190,10 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     public void onEvent(LocationChooseEvent event) {
         setUpLocation();
     }
-
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(StateUseEvent event) {
+        setStateUse(event.stateUse);
+    }
     public void logout(MenuItem item) {
         baseService.postData(Constants.getUrl(Constants.API_LOGOUT_URL), null, null, null, null, null);
         UserLoginUtil.logout(this);
@@ -266,6 +285,8 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                     PreferenceUtils.setPrefString(MyApplication.getInstance(), Constants.D_URL, vo.url);
                     PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.ADS_SHOW_CONFIG, vo.adsShow);
                     PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.LOG_UPLOAD_CONFIG, vo.logUp);
+                    if(vo.stateUse!=null)
+                        EventBusUtil.getEventBus().post(new StateUseEvent(vo.stateUse));
                     if (VersionUpdater.isNewVersion(vo.maxBuild)
                             && StringUtils.hasText(vo.url)) {
                         // 有新版本

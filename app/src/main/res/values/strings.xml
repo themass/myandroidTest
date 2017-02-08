@@ -35,14 +35,14 @@
     <string name="location_features">name</string>
     <string name="location_choose_title">Region selection</string>
     <string name="location_choose_level">Network：</string>
-    <string name="location_choose_hint">Region selection：</string>
+    <string name="location_choose_hint">Region：</string>
     <string name="location_choose_none">Unlimited</string>
     <string name="menu_haha">Yo! You found it.</string>
     <!-- menu -->
     <string name="menu_btn_login">Login</string>
     <string name="menu_btn_login_ready">LoginOk</string>
     <string name="menu_btn_name_default">Who am i</string>
-    <string name="menu_btn_feedback">Feedback</string>
+    <string name="menu_btn_feedback">Feedback &amp; Suggest</string>
     <string name="menu_btn_about">About</string>
     <string name="menu_btn_share">Share</string>
     <string name="menu_btn_bug">Report bug</string>
@@ -50,7 +50,9 @@
     <string name="menu_btn_logout">Logout</string>
     <string name="menu_btn_about_context">FreeVPN the most stable, free, unlimited，all for you！</string>
     <string name="feed_back">Feedback</string>
-    <string name="menu_btn_score">My points：%s</string>
+    <string name="menu_btn_score">Points：%s</string>
+    <string name="menu_btn_networking">Traffic：%s</string>
+    <string name="menu_btn_timeuse">Time：%s</string>
     <string name="menu_btn_score_context">Points can change VIP，more info see "About"</string>
     <string name="menu_btn_report_log">Thanks for report us</string>
     <!-- share-->

@@ -55,12 +55,12 @@ public class AdsAdview {
         builder.setAdInMobiSize(InitConfiguration.AdInMobiSize.INMOBI_AD_UNIT_320x50);
         builder.setAdGdtSize(InitConfiguration.AdGdtSize.BANNER);
         builder.setAdSize(InitConfiguration.AdSize.BANNER_SMART);
-        if (MyApplication.isDebug) {
-            builder.setRunMode(InitConfiguration.RunMode.TEST);
-        } else {
-            builder.setRunMode(InitConfiguration.RunMode.NORMAL);
-        }
-//        builder.setRunMode(InitConfiguration.RunMode.NORMAL);
+//        if (MyApplication.isDebug) {
+//            builder.setRunMode(InitConfiguration.RunMode.TEST);
+//        } else {
+//            builder.setRunMode(InitConfiguration.RunMode.NORMAL);
+//        }
+        builder.setRunMode(InitConfiguration.RunMode.NORMAL);
         initConfig = builder.build();
     }
 

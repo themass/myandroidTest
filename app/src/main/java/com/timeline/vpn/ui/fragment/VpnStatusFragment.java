@@ -113,13 +113,13 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
     @Override
     protected void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
-        getActivity().bindService(new Intent(getActivity(), VpnStateService.class),
-                mServiceConnection, Service.BIND_AUTO_CREATE);
         operatingAnim = AnimationUtils.loadAnimation(getActivity(), R.anim.vpn_state_loading);
         lir = new LinearInterpolator();
         operatingAnim.setInterpolator(lir);
         indexService = new BaseService();
         indexService.setup(getActivity());
+        getActivity().bindService(new Intent(getActivity(), VpnStateService.class),
+                mServiceConnection, Service.BIND_AUTO_CREATE);
     }
 
     @Override

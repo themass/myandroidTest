@@ -8,7 +8,6 @@ import com.bumptech.glide.load.resource.drawable.GlideDrawable;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.GlideDrawableImageViewTarget;
 import com.romainpiel.shimmer.Shimmer;
-import com.timeline.vpn.R;
 import com.timeline.vpn.bean.vo.RecommendVo;
 import com.timeline.vpn.constant.Constants;
 
@@ -21,8 +20,7 @@ public class IndexRecommendPhotoLoad {
     public static  void loadPhoto(final IndexRecommendAdapter.NaviItemViewHolder holder, RecommendVo vo,final Shimmer shimmer,Context context){
         if(vo.showType== Constants.ShowType.Normal) {
             Glide.with(context).load(vo.img)
-                    //                .placeholder(R.drawable.vpn_trans_default)
-                    .fitCenter().crossFade().listener(new LoggingListener()).into(new GlideDrawableImageViewTarget(holder.ivPhoto) {
+                    .fitCenter().crossFade(800).listener(new LoggingListener()).into(new GlideDrawableImageViewTarget(holder.ivPhoto) {
                 @Override
                 public void onResourceReady(GlideDrawable resource, GlideAnimation<? super GlideDrawable> animation) {
                     super.onResourceReady(resource, animation);
@@ -31,8 +29,9 @@ public class IndexRecommendPhotoLoad {
                 }
             });
         }else if(vo.showType== Constants.ShowType.Blur){
-            Glide.with(context).load(vo.img).placeholder(R.drawable.vpn_trans_default)
-                    .fitCenter().crossFade().bitmapTransform(new BlurTransformation(context,23,4)).listener(new LoggingListener()).into(new GlideDrawableImageViewTarget(holder.ivPhoto) {
+            Glide.with(context).load(vo.img)
+                    //.placeholder(R.drawable.vpn_trans_default)
+                    .crossFade(800).bitmapTransform(new BlurTransformation(context,3,2)).listener(new LoggingListener()).into(new GlideDrawableImageViewTarget(holder.ivPhoto) {
                 @Override
                 public void onResourceReady(GlideDrawable resource, GlideAnimation<? super GlideDrawable> animation) {
                     super.onResourceReady(resource, animation);

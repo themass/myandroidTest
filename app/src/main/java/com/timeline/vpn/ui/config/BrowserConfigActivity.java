@@ -7,10 +7,11 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 
+import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.R;
 import com.timeline.vpn.ads.adview.AdsAdview;
-import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
+import com.timeline.vpn.data.config.NeedNewTask;
 import com.timeline.vpn.ui.base.app.BaseFragmentActivity;
 import com.timeline.vpn.ui.fragment.TmpContentFragment;
 
@@ -19,7 +20,7 @@ import java.util.HashMap;
 /**
  * Created by themass on 2016/3/17.
  */
-public class BrowserConfigActivity extends BaseFragmentActivity {
+public class BrowserConfigActivity extends BaseFragmentActivity implements NeedNewTask {
     private boolean adsNeed = false;
     private boolean adsPopNeed = false;
     protected Handler mHandler = new Handler() {
@@ -54,13 +55,21 @@ public class BrowserConfigActivity extends BaseFragmentActivity {
     @Override
     public void onResume() {
         super.onResume();
-        Intent it = new Intent(Intent.ACTION_VIEW, Uri.parse(getIntent().getExtras().getString(Constants.URL)));
-        startActivityForResult(it,0);
+        final Uri uri = Uri.parse(getIntent().getExtras().getString(Constants.URL));
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Intent it = new Intent(Intent.ACTION_VIEW, uri);
+                startActivityForResult(it,0);
+            }
+        },0);
+
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        LogUtil.i("requestCode="+requestCode+",resultCode="+resultCode);
         finish();
     }
 

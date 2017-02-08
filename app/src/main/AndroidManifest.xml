@@ -2,23 +2,24 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.timeline.vpn">
+    <!-- 隐私权-->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
+    <uses-permission android:name="android.permission.USE_CREDENTIALS" />
+    <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_UPDATES" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.SET_DEBUG_APP" />
-    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
-    <uses-permission android:name="android.permission.USE_CREDENTIALS" />
-    <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
     <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" />
     <uses-permission android:name="com.android.browser.permission.READ_HISTORY_BOOKMARKS" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -39,11 +40,11 @@
         android:permissionGroup="android.permission-group.SYSTEM_TOOLS"
         android:protectionLevel="normal" /-->
     <supports-screens
-        android:smallScreens="true"
-        android:normalScreens="true"
+        android:anyDensity="true"
         android:largeScreens="true"
+        android:normalScreens="true"
         android:resizeable="true"
-        android:anyDensity="true" />
+        android:smallScreens="true" />
     <application
         android:name=".base.MyApplication"
         android:allowBackup="false"
@@ -63,7 +64,7 @@
             android:value="57b56211e0f55ab5da0002a3" />
         <meta-data
             android:name="UMENG_MESSAGE_SECRET"
-            android:value="06ab5668a76ad1be10a1ec82e7f6ddfb"/>
+            android:value="06ab5668a76ad1be10a1ec82e7f6ddfb" />
 
         <meta-data
             android:name="UMENG_CHANNEL"
@@ -76,6 +77,7 @@
             <intent-filter tools:ignore="GoogleAppIndexingWarning">
                 <action android:name="android.intent.action.VIEW" />
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -87,7 +89,10 @@
         <activity android:name=".ui.user.LoginActivity" />
         <activity android:name=".ui.log.FileLogActivity" />
         <activity android:name=".ui.user.RegActivity" />
-        <activity android:name=".ui.config.BrowserConfigActivity"/>
+        <activity
+            android:name=".ui.config.BrowserConfigActivity"
+            android:launchMode="singleTask"
+            android:taskAffinity="com.qq.config_browser" />
         <activity android:name=".ui.feedback.ConversationDetailActivity" />
         <activity android:name=".ui.base.CommonFragmentActivity" />
 
@@ -125,6 +130,7 @@
 
         <activity android:name="com.kyview.AdviewWebView" />
         <activity android:name="com.kyview.AdActivity" />
+
         <!-- AdView SDK for JD -->
         <activity
             android:name="com.jd.jdadsdk.JDAdBrowser"
@@ -152,35 +158,37 @@
             android:name="net.youmi.android.normal.video.VideoActivity"
             android:configChanges="keyboard|keyboardHidden|screenSize|orientation"
             android:screenOrientation="landscape"
-            android:theme="@android:style/Theme.NoTitleBar"/>
+            android:theme="@android:style/Theme.NoTitleBar">
+        </activity>
 
         <activity
             android:name="net.youmi.android.AdBrowser"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
-            android:theme="@android:style/Theme.NoTitleBar"/>
+            android:theme="@android:style/Theme.NoTitleBar">
+        </activity>
 
         <service
             android:name="net.youmi.android.AdService"
-            android:exported="false"/>
+            android:exported="false">
+        </service>
 
         <receiver android:name="net.youmi.android.AdReceiver">
             <intent-filter>
-                <action android:name="android.intent.action.PACKAGE_ADDED" />
-                <action android:name="android.intent.action.PACKAGE_INSTALL" />
+                <action android:name="android.intent.action.PACKAGE_ADDED"/>
+                <action android:name="android.intent.action.PACKAGE_INSTALL"/>
 
-                <data android:scheme="package" />
+                <data android:scheme="package"/>
             </intent-filter>
         </receiver>
-
         <!-- AdView SDK for tencent Gdt -->
         <service
             android:name="com.qq.e.comm.DownloadService"
-            android:exported="false"/>
+            android:exported="false" />
 
         <activity
             android:name="com.qq.e.ads.ADActivity"
             android:configChanges="keyboard|keyboardHidden|orientation"
-            android:theme="@android:style/Theme.Translucent"/>
+            android:theme="@android:style/Theme.Translucent" />
         <!-- AdView SDK for AdMob -->
         <activity
             android:name="com.google.android.gms.ads.AdActivity"
@@ -190,10 +198,6 @@
             android:name="com.google.android.gms.version"
             android:value="8487000" />
 
-        <!-- AdView SDK for Baidu -->
-        <activity
-            android:name="com.baidu.mobads.AppActivity"
-            android:configChanges="keyboard|keyboardHidden|orientation" />
     </application>
 
 </manifest>
