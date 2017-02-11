@@ -259,7 +259,6 @@
 -keep class com.mopanspot.sdk.**{*;}
 -keep class com.imopan.plugin.spot.** {*;}
 -keep class cn.pro.ad.sdk.*
--keep class com.jd.**{*;}
 -dontwarn com.dropbox.**
 -dontwarn com.inmobi.**
 -keep class com.moat.analytics.**{*;}

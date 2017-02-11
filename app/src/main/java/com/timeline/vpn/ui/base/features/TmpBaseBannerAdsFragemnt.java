@@ -45,13 +45,6 @@ public abstract class TmpBaseBannerAdsFragemnt extends BaseFragment implements A
         super.setupViews(view, savedInstanceState);
         init = true;
     }
-
-    @Override
-    public void setUserVisibleHint(boolean isVisibleToUser) {
-        super.setUserVisibleHint(isVisibleToUser);
-        showAds(getActivity());
-    }
-
     @Override
     public void onResume() {
         super.onResume();

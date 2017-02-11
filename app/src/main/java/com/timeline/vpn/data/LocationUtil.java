@@ -8,7 +8,7 @@ import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.SystemUtils;
 import com.timeline.vpn.constant.Constants;
 
-import static com.kuaiyou.util.a.getActivity;
+import static com.kuaiyou.g.a.getActivity;
 
 /**
  * Created by themass on 2017/1/13.
@@ -18,7 +18,7 @@ public class LocationUtil {
     public static String getSelectName(Context context) {
         LocationVo vo = PreferenceUtils.getPrefObj(context, Constants.LOCATION_CHOOSE, LocationVo.class);
         String name = vo == null ? context.getString(R.string.location_choose_none) : (SystemUtils.isZH(context) ? vo.name : vo.ename);
-        return context.getString(R.string.location_choose_hint) + name;
+        return context.getString(R.string.menu_btn_country) + name;
     }
 
     public static int getSelectId(Context context) {

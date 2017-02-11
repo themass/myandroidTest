@@ -23,7 +23,8 @@ public class Constants {
     public static final int ADS_PRESENT_MSG = 3;
     public static final int ADS_READY_MSG = 4;
     public static final int ADS_TYPE_ERROR = -1;
-    public static final int ADS_TYPE_BANNER = 0;
+    public static final int ADS_TYPE_INIT= 0;
+    public static final int ADS_TYPE_BANNER = -1;
     public static final int ADS_TYPE_SPREAD = 1;
     public static final int ADS_TYPE_INTERSTITIAL = 2;
     public static final int ADS_TYPE_NATIVE = 3;
@@ -41,6 +42,8 @@ public class Constants {
     public static final String MY_PUSH_TYPE = "mypushtype";
     //location
     public static final String LOCATION_CHOOSE = "LOCATION_CHOOSE";
+    public static final String LOCATION_FLAG = "LOCATION_FLAG";
+    public static final String LOCATION_FLAG_COUNT = "LOCATION_FLAG_COUNT";
     public static final int LOCATION_TYPE_FREE = 0;
     public static final int LOCATION_TYPE_VIP = 1;
     public static final int LOCATION_TYPE_ADVIP = 2;
@@ -102,6 +105,7 @@ public class Constants {
     public static final String ADS_SHOW_CONFIG = "ADS_SHOW_CONFIG";
     public static final String ADS_POP_SHOW_CONFIG = "ADS_POP_SHOW_CONFIG";
     public static final String LOG_UPLOAD_CONFIG = "LOG_UPLOAD_CONFIG";
+    public static final String NEED_DNSPOD_CONFIG = "NEED_DNSPOD_CONFIG";
     public static final String CONFIG_PARAM = "CONFIG_PARAM";
     public static final String TITLE = "TITLE";
     public static final String ADSSHOW = "ADSSHOW";

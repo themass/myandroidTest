@@ -8,15 +8,17 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.qq.e.comm.util.StringUtil;
+import com.sspacee.common.net.request.CommonResponse;
+import com.sspacee.common.util.PreferenceUtils;
 import com.timeline.vpn.R;
 import com.timeline.vpn.bean.form.LoginForm;
 import com.timeline.vpn.bean.vo.UserInfoVo;
-import com.sspacee.common.net.request.CommonResponse;
-import com.sspacee.common.util.PreferenceUtils;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.ui.base.app.BaseSingleActivity;
+
+import java.util.regex.Pattern;
 
 import butterknife.Bind;
 import butterknife.OnClick;
@@ -37,6 +39,7 @@ public class LoginActivity extends BaseSingleActivity {
     @Bind(R.id.btn_reg)
     Button btnReg;
     BaseService baseService;
+    private final Pattern namePattern = Pattern.compile("[a-zA-Z0-9]{3,20}");
     CommonResponse.ResponseOkListener loginListener = new CommonResponse.ResponseOkListener<UserInfoVo>() {
         @Override
         public void onResponse(UserInfoVo vo) {
@@ -72,6 +75,10 @@ public class LoginActivity extends BaseSingleActivity {
         String pwd = etPassword.getText().toString();
         if (StringUtil.isEmpty(name) || StringUtil.isEmpty(pwd)) {
             Toast.makeText(this, R.string.empty_name_pwd, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (!namePattern.matcher(name).matches()) {
+            Toast.makeText(this, R.string.error_pattern_name, Toast.LENGTH_SHORT).show();
             return;
         }
         setEnabled(false);

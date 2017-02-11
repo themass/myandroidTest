@@ -1,9 +1,16 @@
 package com.sspacee.common.net;
 
+import android.net.Uri;
+
 import com.sspacee.common.util.LogUtil;
+import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.StringUtils;
+import com.timeline.vpn.base.MyApplication;
+import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.StaticDataUtil;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import okhttp3.HttpUrl;
@@ -12,7 +19,8 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 public class HttpDNSUtil {
-    private static final String DNS_POD_IP = "119.29.29.29";
+    public static String DNS_POD_IP = "119.29.29.29";
+    private static Map<String,Integer> countMap = new HashMap<>();
     /**
      * 根据url获得ip,此方法只是最简单的模拟,实际情况很复杂,需要做缓存处理
      *
@@ -35,13 +43,24 @@ public class HttpDNSUtil {
         return ipUrl;
     }
 
-    public static String getIPByHost(String url, String host) {
+    public static String getIPByHost(String url) {
+        boolean needDnspod = PreferenceUtils.getPrefBoolean(MyApplication.getInstance(), Constants.NEED_DNSPOD_CONFIG, true);
+        if(!needDnspod){
+            return url;
+        }
+        Uri uri = Uri.parse(url);
+        String host = uri.getHost();
         String str = host.replaceAll("[.]", "");
         if (pattern.matcher(str).matches()) {
             return url;
         }
         String ipStr = StaticDataUtil.get(host, String.class);
         if (ipStr == null) {
+            Integer errorCount = countMap.get(ipStr);
+            errorCount = (errorCount==null)?0:errorCount;
+            if(errorCount>=5){
+                return url;
+            }
             HttpUrl httpUrl = new HttpUrl.Builder()
                     .scheme("http")
                     .host(DNS_POD_IP)
@@ -69,10 +88,12 @@ public class HttpDNSUtil {
                         result = ips[0];
                         LogUtil.i("HttpDNS the host has replaced with ip " + result);
                         return url.replaceFirst(host, result);
+                    }else{
+                        countMap.put(ipStr,errorCount+1);
                     }
                 }
-
             } catch (Exception e) {
+                countMap.put(ipStr,errorCount+1);
                 LogUtil.e("HttpDNS origin host: " + host + ";dDNSpod ret:" + result, e);
             }
         } else {

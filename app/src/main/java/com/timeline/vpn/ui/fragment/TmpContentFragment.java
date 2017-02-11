@@ -54,8 +54,10 @@ public class TmpContentFragment extends TmpBaseBannerAdsFragemnt {
     }
     @Override
     public void showAds(Context context) {
-        super.showAds(context);
-        AdsAdview.nativeAds(getActivity(), mHandler, adsAdapter);
+        if(needShow(context)) {
+            super.showAds(context);
+            AdsAdview.nativeAds(getActivity(), mHandler, adsAdapter);
+        }
     }
 
     @Override

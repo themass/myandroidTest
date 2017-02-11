@@ -16,10 +16,9 @@ public class DnsRequestInterceptor implements Interceptor {
         Request originRequest = chain.request();
         HttpUrl httpUrl = originRequest.url();
         String url = httpUrl.toString();
-        String host = httpUrl.host();
         Request.Builder builder = originRequest.newBuilder();
-        builder.url(HttpDNSUtil.getIPByHost(url, host));
-        builder.header("host", host);
+        builder.url(HttpDNSUtil.getIPByHost(url));
+        builder.header("host", httpUrl.host());
         Request newRequest = builder.build();
         LogUtil.i("http newUrl:" + newRequest.url());
         return chain.proceed(newRequest);

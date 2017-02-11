@@ -1,15 +1,9 @@
 package com.timeline.vpn.base;
 
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.support.multidex.MultiDexApplication;
-import android.util.Log;
-import android.widget.Toast;
 
-import com.alibaba.sdk.android.feedback.impl.FeedbackAPI;
-import com.alibaba.sdk.android.feedback.util.ErrorCode;
-import com.alibaba.sdk.android.feedback.util.FeedbackErrorCallback;
 import com.sspacee.common.net.VolleyUtils;
 import com.sspacee.common.util.DensityUtil;
 import com.sspacee.common.util.DeviceInfoUtils;
@@ -21,8 +15,6 @@ import com.timeline.vpn.data.VersionUpdater;
 import com.umeng.message.IUmengRegisterCallback;
 import com.umeng.message.MsgConstant;
 import com.umeng.message.PushAgent;
-
-import java.util.concurrent.Callable;
 
 import butterknife.ButterKnife;
 
@@ -58,7 +50,6 @@ public class MyApplication extends MultiDexApplication {
         VersionUpdater.init(this);
         VolleyUtils.init();
         initFilePath();
-        initFeedback();
         initPush();
         if (MyApplication.isDebug) {
             String uc = DeviceInfoUtils.getMetaData(this, "UMENG_CHANNEL");
@@ -75,23 +66,6 @@ public class MyApplication extends MultiDexApplication {
         LogUtil.i("tmpFilePath=" + tmpFilePath);
         FileUtils.ensureFile(this, tmpFilePath);
     }
-    private void initFeedback() {
-        FeedbackAPI.addErrorCallback(new FeedbackErrorCallback() {
-            @Override
-            public void onError(Context context, String errorMessage, ErrorCode code) {
-                Toast.makeText(context, "ErrMsg is: " + errorMessage, Toast.LENGTH_SHORT).show();
-            }
-        });
-        // Feedback activity的回调
-        FeedbackAPI.addLeaveCallback(new Callable() {
-            @Override
-            public Object call() throws Exception {
-                Log.d("DemoApplication", "custom leave callback");
-                return null;
-            }
-        });
-    }
-
     private void initPush() {
         //友盟统计
         //友盟推送

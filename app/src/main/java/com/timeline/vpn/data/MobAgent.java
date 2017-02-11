@@ -61,14 +61,18 @@ public class MobAgent {
         map.put("name", country);
         MobclickAgent.onEvent(context, "location", map);
     }
-
+    public static void onEventMenu(Context context, String name) {
+        Map<String, String> map = new HashMap<>();
+        map.put("name", name);
+        MobclickAgent.onEvent(context, "menu", map);
+    }
     public static void onEventRecommond(Context context, String title) {
         Map<String, String> map = new HashMap<>();
         map.put("name", title);
         MobclickAgent.onEvent(context, "recommond", map);
     }
 
-    public static void onAdsEvent(Context context, int type, int event) {
+    public static void onEventAds(Context context, int type, int event) {
         Map<String, String> map = new HashMap<>();
         map.put("name", AdsAdview.getAdsName(type));
         map.put("event", AdsAdview.getAdsEvent(event));

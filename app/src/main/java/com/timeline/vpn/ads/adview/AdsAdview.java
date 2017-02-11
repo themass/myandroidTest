@@ -65,9 +65,14 @@ public class AdsAdview {
     }
 
     public static void init(Context context) {
-        AdViewBannerManager.getInstance(context).init(initConfig, Constants.adsKeySetBanner);
-        AdViewInstlManager.getInstance(context).init(initConfig, Constants.adsKeySet);
-        AdViewNativeManager.getInstance(context).init(initConfig, Constants.adsKeySet);
+        try {
+            AdViewBannerManager.getInstance(context).init(initConfig, Constants.adsKeySetBanner);
+            AdViewInstlManager.getInstance(context).init(initConfig, Constants.adsKeySet);
+            AdViewNativeManager.getInstance(context).init(initConfig, Constants.adsKeySet);
+        } catch (Throwable e) {
+            AdsAdview.adsNotify(context, Constants.ADS_TYPE_INIT, Constants.ADS_TYPE_ERROR);
+            LogUtil.e(e);
+        }
     }
 
     public static void launchAds(final Context context, ViewGroup group, final Handler handler) {
@@ -240,7 +245,7 @@ public class AdsAdview {
     }
 
     public static void adsNotify(Context context, int type, int event) {
-        MobAgent.onAdsEvent(context, type, event);
+        MobAgent.onEventAds(context, type, event);
         if (event == Constants.ADS_CLICK_MSG) {
             String msg = context.getResources().getString(R.string.tab_fb_click) + Constants.ADS_SHOW_CLICK;
             Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
@@ -250,6 +255,8 @@ public class AdsAdview {
 
     public static String getAdsName(int type) {
         switch (type) {
+            case Constants.ADS_TYPE_INIT:
+                return "初始化";
             case Constants.ADS_TYPE_SPREAD:
                 return "开屏广告";
             case Constants.ADS_TYPE_BANNER:

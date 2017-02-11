@@ -12,4 +12,6 @@ public class VersionVo {
     public Boolean adsShow = false;
     public Boolean logUp = false;
     public StateUseVo stateUse;
+    public String dnspodIp;
+    public Boolean needDnspod=true;
 }

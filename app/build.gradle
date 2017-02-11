@@ -8,9 +8,6 @@ android {
         applicationId "com.timeline.vpn"
         minSdkVersion global_minSdkVersion
         targetSdkVersion global_targetSdkVersion
-        renderscriptTargetApi 23
-        renderscriptSupportModeEnabled true
-
         versionCode 1000002001
         versionName "1.0.2.1"
         // Enabling multidex support.
@@ -88,18 +85,15 @@ dependencies {
     compile files('libs/commons-codec.jar')
     compile files('libs/android-query-full.0.26.7.jar')
     compile files('libs/BaiduLBS_Android.jar')
-    compile files('libs/app-monitor-sdk-2.5.1.1_for_bc_proguard.jar')
     compile files('libs/InMobi.jar')
     compile files('libs/gdt_mob_release.jar')
     compile files('libs/AdViewSDK_Android.jar')
     compile files('libs/YoumiSdk.jar')
-    compile files('libs/jd_adsdk.jar')
-    compile(name: 'alisdk-feedback-release', ext: 'aar',)
-    compile(name: 'securityguardaar3-5.1.81', ext: 'aar')
     compile files('libs/commons-io-2.4.jar')
     compile files('libs/httpcore-4.2.5.jar')
     compile files('libs/picasso.jar')
     compile files('libs/google-play-services.jar')
+    compile(name: 'glide-transformations-2.0.1', ext: 'aar',)
     compile 'com.android.support:appcompat-v7:23.2.1'
     compile 'com.android.support:support-v13:23.2.1'
     compile 'com.android.support:support-v4:23.2.1'
@@ -130,7 +124,6 @@ dependencies {
     compile 'org.greenrobot:eventbus:3.0.0'
     compile 'com.umeng.analytics:analytics:latest.integration'
     compile 'com.romainpiel.shimmer:library:1.4.0@aar'
-    compile 'jp.wasabeef:glide-transformations:1.2.1'
     //compile 'me.zhanghai.android.materialratingbar:library:1.0.2'
 
 }

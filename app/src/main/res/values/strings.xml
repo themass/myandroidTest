@@ -35,8 +35,7 @@
     <string name="location_features">name</string>
     <string name="location_choose_title">Region selection</string>
     <string name="location_choose_level">Network：</string>
-    <string name="location_choose_hint">Region：</string>
-    <string name="location_choose_none">Unlimited</string>
+    <string name="location_choose_none">Random</string>
     <string name="menu_haha">Yo! You found it.</string>
     <!-- menu -->
     <string name="menu_btn_login">Login</string>
@@ -55,6 +54,9 @@
     <string name="menu_btn_timeuse">Time：%s</string>
     <string name="menu_btn_score_context">Points can change VIP，more info see "About"</string>
     <string name="menu_btn_report_log">Thanks for report us</string>
+    <string name="menu_btn_country">Region：</string>
+    <string name="location_choose_flag_none">Click“ Region ”More regional options</string>
+
     <!-- share-->
     <string name="menu_share_title">Tell a friend</string>
     <string name="menu_share_url">Download Url:\n%s</string>
@@ -76,7 +78,8 @@
     <string name="female">Female</string>
     <string name="male">Male</string>
     <string name="error_repwd">Password error</string>
-    <string name="error_pattern">Password must 6 to 10 letters or numbers</string>
+    <string name="error_pattern_pass">Password must 6 to 10 letters or numbers</string>
+    <string name="error_pattern_name">Password must 3 to 20 letters or numbers</string>
     <string name="reg_success">Register success，login now？</string>
     <string name="remark">Timeline RIGHTS RESERVED.</string>
     <string name="need_login">Login please</string>
@@ -96,6 +99,7 @@
     <string name="error_network_retry">Load error, please click Retry.</string>
     <string name="error_unknown">Unknow error</string>
     <!-- vpn状态改变 -->
+    <string name="vpn_bg_click_later">Try later please</string>
     <string name="vpn_bg_click">Conn VPN</string>
     <string name="vpn_bg_error">Click Retry</string>
     <string name="vpn_bg_conning">Connecting..</string>
@@ -139,7 +143,7 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="error_lookup_failed">Gateway address lookup failed.</string>
     <string name="error_unreachable">Gateway is unreachable.</string>
     <string name="error_peer_auth_failed">Verifying gateway authentication failed.</string>
-    <string name="error_auth_failed">User authentication failed.</string>
+    <string name="error_auth_failed">Maybe Traffic has reached the upper limit, need VIP.</string>
     <string name="error_assessment_failed">Security assessment failed.</string>
     <string name="error_generic">Unspecified failure while connecting.</string>
     <string name="vpn_not_supported_title">VPN not supported</string>

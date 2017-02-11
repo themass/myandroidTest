@@ -9,10 +9,10 @@ import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import com.qq.e.comm.util.StringUtil;
+import com.sspacee.common.net.request.CommonResponse;
 import com.timeline.vpn.R;
 import com.timeline.vpn.bean.form.RegForm;
 import com.timeline.vpn.bean.vo.NullReturnVo;
-import com.sspacee.common.net.request.CommonResponse;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.ui.base.app.BaseSingleActivity;
@@ -53,8 +53,8 @@ public class RegActivity extends BaseSingleActivity {
             Toast.makeText(RegActivity.this, R.string.reg_success, Toast.LENGTH_SHORT).show();
         }
     };
-    private String pass = "[0-9A-Za-z]{6,10}";
-    private Pattern pattern = Pattern.compile(pass);
+    private final Pattern passPattern = Pattern.compile("[0-9A-Za-z]{6,10}");
+    private final Pattern namePattern = Pattern.compile("[a-zA-Z0-9]{3,20}");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,8 +86,12 @@ public class RegActivity extends BaseSingleActivity {
             Toast.makeText(this, R.string.empty_name_pwd, Toast.LENGTH_SHORT).show();
             return;
         }
-        if (!pattern.matcher(pwd).matches()) {
-            Toast.makeText(this, R.string.error_pattern, Toast.LENGTH_SHORT).show();
+        if (!passPattern.matcher(pwd).matches()) {
+            Toast.makeText(this, R.string.error_pattern_pass, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (!namePattern.matcher(name).matches()) {
+            Toast.makeText(this, R.string.error_pattern_name, Toast.LENGTH_SHORT).show();
             return;
         }
         if (!pwd.equals(repwd)) {

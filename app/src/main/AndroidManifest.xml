@@ -3,8 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.timeline.vpn">
     <!-- 隐私权-->
-    <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
@@ -93,7 +91,6 @@
             android:name=".ui.config.BrowserConfigActivity"
             android:launchMode="singleTask"
             android:taskAffinity="com.qq.config_browser" />
-        <activity android:name=".ui.feedback.ConversationDetailActivity" />
         <activity android:name=".ui.base.CommonFragmentActivity" />
 
         <service
@@ -131,10 +128,6 @@
         <activity android:name="com.kyview.AdviewWebView" />
         <activity android:name="com.kyview.AdActivity" />
 
-        <!-- AdView SDK for JD -->
-        <activity
-            android:name="com.jd.jdadsdk.JDAdBrowser"
-            android:screenOrientation="portrait" />
         <!-- AdView SDK for Inmobi (需要api 13 方可编译通过) -->
         <activity
             android:name="com.inmobi.rendering.InMobiAdActivity"

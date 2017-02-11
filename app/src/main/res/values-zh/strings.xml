@@ -35,9 +35,9 @@
     <string name="location_country">国家</string>
     <string name="location_features">名称</string>
     <string name="location_choose_title">请选择地区</string>
-    <string name="location_choose_level">网络：</string>
-    <string name="location_choose_hint">地区：</string>
-    <string name="location_choose_none">不限</string>
+    <string name="location_choose_level">地区：</string>
+    <string name="location_choose_none">随机</string>
+    <string name="location_choose_flag_none">点击“ 地区 ”有更多国家可选</string>
     <string name="menu_haha">呦！被你发现了</string>
     <!-- menu -->
     <string name="menu_btn_login">立即登录</string>
@@ -56,6 +56,7 @@
     <string name="menu_btn_timeuse">用时：%s</string>
     <string name="menu_btn_score_context">积分可换VIP，详见“关于”</string>
     <string name="menu_btn_report_log">我们已收到您的问题！</string>
+    <string name="menu_btn_country">地区 ：</string>
     <!-- share-->
     <string name="menu_share_title">分享给好友</string>
     <string name="menu_share_url">下载地址:\n%s</string>
@@ -77,7 +78,8 @@
     <string name="re_bt_code">获取校验码</string>
     <string name="empty_name_pwd">请把信息填完整</string>
     <string name="error_repwd">2次密码不一致</string>
-    <string name="error_pattern">密码必须是6-10位的数字或字母</string>
+    <string name="error_pattern_pass">密码必须是6-10位的数字或字母</string>
+    <string name="error_pattern_name">用户名必须是3-20位的数字或字母</string>
     <string name="reg_success">注册成功，现在登录？</string>
     <string name="remark">Timeline RIGHTS RESERVED.</string>
     <string name="need_login">请登录</string>
@@ -96,6 +98,7 @@
     <string name="error_network_retry">加载错误，请点击重试</string>
     <string name="error_unknown">未知道错误</string>
     <!-- vpn状态改变 -->
+    <string name="vpn_bg_click_later">请稍后再试</string>
     <string name="vpn_bg_click">连接VPN</string>
     <string name="vpn_bg_error">点击重试</string>
     <string name="vpn_bg_conning">连接..</string>
@@ -137,7 +140,7 @@
     <string name="error_lookup_failed">服务器连接失败.</string>
     <string name="error_unreachable">网络连接失败.</string>
     <string name="error_peer_auth_failed">服务器鉴权失败.</string>
-    <string name="error_auth_failed">用户鉴权失败.</string>
+    <string name="error_auth_failed">可能流量使用已达上限，请升级VIP</string>
     <string name="error_assessment_failed">安全段错误.</string>
     <string name="error_generic">未知异常.</string>
     <string name="vpn_not_supported_title">不支持VPN</string>

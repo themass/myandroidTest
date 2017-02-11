@@ -12,6 +12,8 @@ import com.bumptech.glide.load.engine.cache.LruResourceCache;
 import com.bumptech.glide.load.engine.cache.MemorySizeCalculator;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.module.GlideModule;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
 import com.sspacee.common.net.OkHttpStack;
 
 import java.io.InputStream;
@@ -41,5 +43,18 @@ public class MyGlideModule implements GlideModule {
         builder.writeTimeout(OkHttpStack.WRITE_TIMEOUT, TimeUnit.SECONDS);
         glide.register(GlideUrl.class, InputStream.class, new OkHttpUrlLoader.Factory(builder.build()));
         LogUtil.i("MyGlideModule reg OK");
+    }
+    public static class LoggingListener<T, R> implements RequestListener<T, R> {
+        @Override
+        public boolean onException(Exception e, Object model, Target target, boolean isFirstResource) {
+            LogUtil.e(String.format("GLIDE-onException(%s, %s, %s, %s)", e, model, target, isFirstResource), e);
+            return false;
+        }
+
+        @Override
+        public boolean onResourceReady(Object resource, Object model, Target target, boolean isFromMemoryCache, boolean isFirstResource) {
+            LogUtil.i(String.format("GLIDE-onResourceReady(%s, %s, %s, %s, %s)", resource, model, target, isFromMemoryCache, isFirstResource));
+            return false;
+        }
     }
 }

@@ -138,13 +138,16 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
     @OnClick(R.id.iv_vpn_state)
     public void onVpnClick(View v) {
         LogUtil.i("onVpnClick " + mService.getState());
-        if (mService != null && (mService.getState() == VpnStateService.State.CONNECTED)) {
-            mService.disconnect();
-        } else {
-            imgAnim();
-            int id = LocationUtil.getSelectId(getActivity());
-            indexService.getData(String.format(Constants.getUrl(Constants.API_SERVERLIST_URL), id), serverListener, serverListenerError, INDEX_TAG, ServerVo.class);
-
+        if(mService != null) {
+            if (mService.getState() == VpnStateService.State.CONNECTED) {
+                mService.disconnect();
+            } else if (mService.getState() == VpnStateService.State.DISABLED) {
+                imgAnim();
+                int id = LocationUtil.getSelectId(getActivity());
+                indexService.getData(String.format(Constants.getUrl(Constants.API_SERVERLIST_URL), id), serverListener, serverListenerError, INDEX_TAG, ServerVo.class);
+            }else {
+                Toast.makeText(getActivity(),R.string.vpn_bg_click_later,Toast.LENGTH_SHORT).show();
+            }
         }
     }
 

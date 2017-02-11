@@ -12,16 +12,18 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.sspacee.common.ui.view.DividerItemDecoration;
+import com.sspacee.common.util.CollectionUtils;
+import com.sspacee.common.util.EventBusUtil;
+import com.sspacee.common.util.GsonUtils;
+import com.sspacee.common.util.LogUtil;
+import com.sspacee.common.util.PreferenceUtils;
 import com.timeline.vpn.R;
 import com.timeline.vpn.adapter.LocationViewAdapter;
 import com.timeline.vpn.adapter.OnRecyclerViewItemClickListener;
 import com.timeline.vpn.bean.vo.InfoListVo;
 import com.timeline.vpn.bean.vo.LocationVo;
 import com.timeline.vpn.bean.vo.UserInfoVo;
-import com.sspacee.common.util.CollectionUtils;
-import com.sspacee.common.util.EventBusUtil;
-import com.sspacee.common.util.GsonUtils;
-import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.data.LocationUtil;
@@ -32,7 +34,6 @@ import com.timeline.vpn.data.sort.LocSortFactor;
 import com.timeline.vpn.ui.base.CommonFragmentActivity;
 import com.timeline.vpn.ui.base.LoadableFragment;
 import com.timeline.vpn.ui.user.LoginActivity;
-import com.sspacee.common.ui.view.DividerItemDecoration;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -139,6 +140,7 @@ public class LocationChooseFragment extends LoadableFragment<List<LocationVo>> i
     @Override
     public void onItemClick(View view, LocationVo data, int postion) {
         LogUtil.i(postion + "---" + GsonUtils.getInstance().toJson(data));
+        PreferenceUtils.setPrefBoolean(getActivity(),Constants.LOCATION_FLAG,true);
         if (data.type != Constants.LOCATION_TYPE_FREE) {
             UserInfoVo vo = UserLoginUtil.getUserCache();
             if (vo == null) {
@@ -154,7 +156,7 @@ public class LocationChooseFragment extends LoadableFragment<List<LocationVo>> i
         }
         LocationUtil.setLocation(getActivity(), data);
         EventBusUtil.getEventBus().post(new LocationChooseEvent());
-        MobAgent.onEventLocationChoose(getActivity(),data.cityName);
+        MobAgent.onEventLocationChoose(getActivity(),data.name);
         getActivity().finish();
     }
 }
