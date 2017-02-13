@@ -94,11 +94,11 @@
     void *(**On*Event);
     void *(**On*Listener);
 }
--keep enum org.greenrobot.eventbus.ThreadMode { *; }
 -keepattributes EnclosingMethod
 #-----------------------jar----------------------------------
 -keep class android.webkit.JavascriptInterface
 -dontwarn android.webkit.JavascriptInterface
+#butterknife
 -keep class butterknife.** { *; }
 -dontwarn butterknife.internal.**
 -keep class **$$ViewBinder { *; }
@@ -106,7 +106,6 @@
 -keepclasseswithmembernames class * {
     @butterknife.* <fields>;
 }
-
 -keepclasseswithmembernames class * {
     @butterknife.* <methods>;
 }
@@ -119,7 +118,7 @@
 -dontwarn java.nio.file.Path
 -dontwarn java.nio.file.OpenOption
 -dontwarn org.codehaus.mojo.animal_sniffer.IgnoreJRERequirement
--dontnote  dfs.eww.ere.**
+#apache
 -keep class org.apache.http.**{ *; }
 -dontwarn org.apache.http.**
 -dontnote org.apache.http.**
@@ -130,139 +129,46 @@
 -dontnote javax.**
 -dontwarn sun.**
 -dontwarn java.beans.**
--keep class com.squareup.** {*;}
 -keepattributes JavascriptInterface
+#google
 -keep class com.google.android.gms.** { *; }
 -dontwarn com.google.android.gms.**
 -dontnote com.google.android.gms.**
-# Proguard config for project using GMS
-
-#-keepnames @com.google.android.gms.common.annotation.KeepName class
-#    com.google.android.gms.**,
-#    com.google.ads.**
-#
-#-keepclassmembernames class
-#    com.google.android.gms.**,
-#    com.google.ads.** {
-#        @com.google.android.gms.common.annotation.KeepName *;
-#    }
-#-keep class
-#    com.google.android.gms.**,
-#    com.google.ads.**
-#    extends java.util.ListResourceBundle {
-#         protected java.lang.Object[][] getContents();
-#    }
-#-keepnames class
-#    com.google.android.gms.**,
-#    com.google.ads.**
-#    implements android.os.Parcelable {
-#        public static final ** CREATOR;
-#    }
--dontnote com.facebook.Session
--dontnote com.facebook.FacebookSdk
--keepnames class com.facebook.Session {}
--keepnames class com.facebook.FacebookSdk {}
-
-# android.app.Notification.setLatestEventInfo() was removed in
-# Marsmallow, but is still referenced (safely)
+#location
 -keep class android.location.Location.** { *; }
 -dontwarn android.location.Location
 -dontnote android.location.Location
--keep class com.squareup.leakcanary.** { *; }
--keep class com.tencent.** { *; }
--dontnote com.tencent.**
--dontwarn oauth.**
--dontwarn com.android.auth.TwitterHandle.**
-
--keep class oauth.** { *; }
--keep class com.android.auth.TwitterHandle.** { *; }
 #--------------------------------------------------------
-# Only required if you use AsyncExecutor
+#eventBus
+-keepattributes *Annotation*
+-keepclassmembers class ** {
+    @org.greenrobot.eventbus.Subscribe <methods>;
+}
+-keep enum org.greenrobot.eventbus.ThreadMode { *; }
 -keepclassmembers class * extends org.greenrobot.eventbus.util.ThrowableFailureEvent {
     <init>(java.lang.Throwable);
 }
--dontwarn net.youmi.android.**
--keep class net.youmi.android.** {
-    *;
-}
--keep class com.umeng.message.** { *; }
+#umeng
 -dontnote com.umeng.analytics.**
 -dontnote com.umeng.message.**
+-dontwarn com.umeng.**
+-keep class com.umeng.**{*;}
+-keep class u.aly.**{*;}
+-keep class com.google.**{*;}
+-dontnote u.aly.**
+#glid
 -dontnote com.bumptech.glide.**
+-keep public class * implements com.bumptech.glide.module.GlideModule
 -keep public enum com.bumptech.glide.load.resource.bitmap.ImageHeaderParser$** {
   **[] $VALUES;
   public *;
 }
+-keep class com.bumptech.glide.** { *; }
 #-keepresourcexmlelements manifest/application/meta-data@value=GlideModule
 -keep class com.baidu.** { *;}
 -keep class android.support.v4.app.NotificationCompat**{ *; }
 -keep class MTT.ThirdAppInfoNew { *; }
--keep public class com.kyview.** {*;}
--dontwarn com.kyview.**
--dontnote com.kyview.**
--keep public class com.kuaiyou.** {*;}
 
--keepclassmembers class * {public *;}
--keep public class * {public *;}
--keep public class com.wooboo.** {*;}
--keep public class cn.aduu.android.**{*;}
--keep public class com.wqmobile.** {*;}
--keep class com.qq.e.** {public protected *;}
--keep class com.mobisage.android.** {*;}
--keep interface com.mobisage.android.** {*;}
--keep class com.msagecore.** {*;}
--keep interface com.msagecore.** {*;}
--keep class com.five.adwoad.** {*;}
--keep class com.emar.escore.sdk.ui.**{*;}
--keep class com.inmobi.**{ *; }
--keep public class cn.waps.** {*;}
--keep public interface cn.waps.** {*;}
--keep class com.adzhidian.** { *; }
--keep public class cn.immob.sdk.** {*;}
--keep class com.guohead.mix.*{ *; }
--keep class com.otomod.ad.** {*;}
--keep class org.OpenUDID.** {*;}
--keepattributes Exceptions
--keepattribute Signature
--keepattribute Deprecated
--keepattributes *Annotation*
--dontwarn com.chance.**
--dontwarn com.android.volley.NetworkDispatcher
--flattenpackagehierarchy com.chance.v4
--keep class * extends android.app.Service {public *;}
--keep class com.chance.** {*;}
--keep class com.chukong.android.crypto.** {*;}
--keep class com.suizong.mobile.** {*;}
--keep class com.go2map.mapapi.** {*;}
--keep public class cn.Immob.sdk.** {*;}
--keep public class cn.Immob.sdk.controller.** {*;}
--keep class net.youmi.android.** {*;}
--keeppackagenames cn.smartmad.ads.android
--keeppackagenames I
--keep class cn.smartmad.ads.android.* {*;}
--keep class I.* {*;}
--keep public class MobWin.*
--keep public class MobWin.cnst.*
--keep class LBSAPIProtocol.*
--keeppackagenames com.adchina.android.ads
--keeppackagenames com.adchina.android.ads.controllers
--keeppackagenames com.adchina.android.ads.views
--keeppackagenames com.adchina.android.ads.animations
--keep class com.adchina.android.ads.*{*;}
--keep class com.adchina.android.ads.controllers.*{*;}
--keep class com.adchina.android.ads.views.*{*;}
--keep class com.adchina.android.ads.animations.*{*;}
--keep class com.mediav.** {*;}
--keep class org.adver.score.**{*;}
--keep class com.easou.ecom.mads.** {public protected *;}
--keep class com.adroi.sdk.** {public protected *;}
--keep class com.mopanspot.sdk.**{*;}
--keep class com.imopan.plugin.spot.** {*;}
--keep class cn.pro.ad.sdk.*
--dontwarn com.dropbox.**
--dontwarn com.inmobi.**
--keep class com.moat.analytics.**{*;}
--dontwarn com.moat.analytics.**
 # Preserve all native method names and the names of their classes.
 -keepclassmembers class * {
     native <methods>;
@@ -279,22 +185,7 @@
 -keep class org.strongswan.android.logic.**{ *; }
 -keep class sun.misc.Unsafe { *; }
 -keep class com.google.gson.stream.** { *; }
--keep class com.timeline.vpn.common.util.MyGlideModule{ *; }
-#feedback sdk
--keep class com.alibaba.sdk.android.feedback.impl.FeedbackServiceImpl {*;}
--keep class com.alibaba.sdk.android.feedback.impl.FeedbackAPI {*;}
--keep class com.alibaba.sdk.android.feedback.util.IWxCallback {*;}
--keep class com.alibaba.sdk.android.feedback.FeedbackService{*;}
--keep class com.alibaba.sdk.android.feedback.util.IUnreadCountCallback{*;}
--keep public class com.alibaba.mtl.log.model.LogField {public *;}
--keep class com.taobao.securityjni.**{*;}
--keep class com.taobao.wireless.security.**{*;}
--keep class com.ut.secbody.**{*;}
--keep class com.taobao.dp.**{*;}
--keep class com.alibaba.wireless.security.**{*;}
--keep class com.ta.utdid2.device.**{*;}
--keep class com.ut.mini.**{*;}
-
+-keep class com.sspacee.common.weather.**{ *; }
 #------------------------------push---------------
 -dontwarn com.taobao.**
 -dontwarn anet.channel.**
@@ -329,3 +220,26 @@
     public static int w(...);
     public static int d(...);
 }
+#------------adview-----------------------
+-keep class com.qq.e.** {*; }
+-keep class com.tencent.**{*; }
+-keep class com.tencent.lbsapi.*
+-keep class com.tencent.lbsapi.core.*
+-keep class net.youmi.android.** {*;}
+-keep class com.inmobi.** {*;}
+-dontwarn com.kyview.**
+-keep class com.moat.analytics.**{*;}
+-dontwarn com.moat.analytics.**
+-dontwarn com.dropbox.**
+-dontwarn com.inmobi.**
+-keep class LBSAPIProtocol.*
+-keeppackagenames I
+-keep class I.* {*;}
+-keepattributes Exceptions
+-keepattribute Signature
+-keepattribute Deprecated
+-keepattributes *Annotation*
+-keep public class com.kyview.** {*;}
+-dontwarn com.kyview.**
+-dontnote com.kyview.**
+-keep public class com.kuaiyou.** {*;}
