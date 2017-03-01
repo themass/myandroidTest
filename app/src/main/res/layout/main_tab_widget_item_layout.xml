@@ -4,8 +4,8 @@
     android:layout_height="49dp"
     android:layout_weight="1"
     android:background="@color/style_color_primary_dark"
-    android:orientation="horizontal"
-    android:gravity="center">
+    android:gravity="center"
+    android:orientation="horizontal">
 
     <RelativeLayout
         android:layout_width="wrap_content"

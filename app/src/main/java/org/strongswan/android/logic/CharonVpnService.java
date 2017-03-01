@@ -42,11 +42,11 @@ import android.util.Log;
 import android.view.View;
 import android.widget.RemoteViews;
 
+import com.sspacee.common.util.FileUtils;
+import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.R;
 import com.timeline.vpn.base.MyApplication;
 import com.timeline.vpn.bean.vo.VpnProfile;
-import com.sspacee.common.util.FileUtils;
-import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.data.LocationUtil;
 import com.timeline.vpn.ui.main.MainFragment;
 
@@ -91,15 +91,13 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
     private static final String TAG = CharonVpnService.class.getSimpleName();
     private static final String WORK_ANME = "vpnThread";
     public static volatile boolean VPN_STATUS_NOTIF = false;
-    private volatile boolean needStop = false;
 
     /*
      * The libraries are extracted to /data/data/org.strongswan.android/...
      * during installation.  On newer releases most are loaded in JNI_OnLoad.
      */
     static {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2)
-        {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
             System.loadLibrary("strongswan");
             System.loadLibrary("tpmtss");
             System.loadLibrary("tncif");
@@ -113,6 +111,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
 
     private final Object mServiceLock = new Object();
     public ButtonBroadcastReceiver bReceiver;
+    private volatile boolean needStop = false;
     private String mLogFile;
     private VpnProfile mCurrentProfile;
     private volatile boolean mIsDisconnecting;
@@ -138,6 +137,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
             /* we are now ready to start the handler thread */
         }
     };
+
     @Override
     public void stateChanged() {
         createForegroundService();
@@ -175,7 +175,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
     public void onCreate() {
         mLogFile = FileUtils.getCharonFilePath();
         /* use a separate thread as main thread for charon */
-		/* the thread is started when the service is bound */
+        /* the thread is started when the service is bound */
         bindService(new Intent(this, VpnStateService.class),
                 mServiceConnection, Service.BIND_AUTO_CREATE);
         mWorkThread = new HandlerThread(WORK_ANME);
@@ -425,8 +425,8 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
      * There is a corresponding C object to access it from native code.
      */
     public void disconn() {
-        LogUtil.i("charon stopped  mCurrentState=" + mService.getState() + "  thread=" + Thread.currentThread().getName());
-        if(needStop) {
+        LogUtil.i("charon stopped  mCurrentState=" + (mService != null ? mService.getState() : "null") + "  thread=" + Thread.currentThread().getName());
+        if (needStop) {
             mIsDisconnecting = true;
             setState(VpnStateService.State.DISCONNECTING);
             needStop = false;

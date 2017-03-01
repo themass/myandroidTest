@@ -15,7 +15,7 @@ import com.timeline.vpn.data.config.UserLoginEvent;
  * Created by themass on 2016/8/15.
  */
 public class UserLoginUtil {
-    public static void initData(Context context){
+    public static void initData(Context context) {
         UserInfoVo user = PreferenceUtils.getPrefObj(context, Constants.LOGIN_USER, UserInfoVo.class);
         if (user != null) {
             StaticDataUtil.add(Constants.LOGIN_USER, user);
@@ -23,13 +23,14 @@ public class UserLoginUtil {
             context.sendBroadcast(new Intent(MyApplication.UPDATE_STATUS_ACTION));
         }
     }
+
     public static void login(Context context, UserInfoVo vo) {
         PreferenceUtils.setPrefObj(context, Constants.LOGIN_USER, vo);
         PreferenceUtils.setPrefString(context, Constants.HTTP_TOKEN_KEY, vo.token);
         StaticDataUtil.add(Constants.LOGIN_USER, vo);
         EventBusUtil.getEventBus().post(new UserLoginEvent());
         context.sendBroadcast(new Intent(MyApplication.UPDATE_STATUS_ACTION));
-        if(vo.stateUse!=null)
+        if (vo.stateUse != null)
             EventBusUtil.getEventBus().post(new StateUseEvent(vo.stateUse));
         MobAgent.onProfileSignIn(vo.name);
     }
@@ -46,9 +47,10 @@ public class UserLoginUtil {
     public static UserInfoVo getUserCache() {
         return StaticDataUtil.get(Constants.LOGIN_USER, UserInfoVo.class);
     }
-    public static boolean isVIP(){
+
+    public static boolean isVIP() {
         UserInfoVo vo = getUserCache();
-        if(vo==null || vo.level!=Constants.UserLevel.LEVEL_VIP){
+        if (vo == null || vo.level != Constants.UserLevel.LEVEL_VIP) {
             return false;
         }
         return true;

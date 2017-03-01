@@ -20,7 +20,7 @@ import okhttp3.Response;
 
 public class HttpDNSUtil {
     public static String DNS_POD_IP = "119.29.29.29";
-    private static Map<String,Integer> countMap = new HashMap<>();
+    private static Map<String, Integer> countMap = new HashMap<>();
     /**
      * 根据url获得ip,此方法只是最简单的模拟,实际情况很复杂,需要做缓存处理
      *
@@ -45,7 +45,7 @@ public class HttpDNSUtil {
 
     public static String getIPByHost(String url) {
         boolean needDnspod = PreferenceUtils.getPrefBoolean(MyApplication.getInstance(), Constants.NEED_DNSPOD_CONFIG, true);
-        if(!needDnspod){
+        if (!needDnspod) {
             return url;
         }
         Uri uri = Uri.parse(url);
@@ -57,8 +57,8 @@ public class HttpDNSUtil {
         String ipStr = StaticDataUtil.get(host, String.class);
         if (ipStr == null) {
             Integer errorCount = countMap.get(ipStr);
-            errorCount = (errorCount==null)?0:errorCount;
-            if(errorCount>=5){
+            errorCount = (errorCount == null) ? 0 : errorCount;
+            if (errorCount >= 5) {
                 return url;
             }
             HttpUrl httpUrl = new HttpUrl.Builder()
@@ -88,12 +88,12 @@ public class HttpDNSUtil {
                         result = ips[0];
                         LogUtil.i("HttpDNS the host has replaced with ip " + result);
                         return url.replaceFirst(host, result);
-                    }else{
-                        countMap.put(ipStr,errorCount+1);
+                    } else {
+                        countMap.put(ipStr, errorCount + 1);
                     }
                 }
             } catch (Exception e) {
-                countMap.put(ipStr,errorCount+1);
+                countMap.put(ipStr, errorCount + 1);
                 LogUtil.e("HttpDNS origin host: " + host + ";dDNSpod ret:" + result, e);
             }
         } else {

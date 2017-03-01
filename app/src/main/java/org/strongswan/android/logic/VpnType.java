@@ -31,8 +31,8 @@ public enum VpnType {
     /**
      * Enum which provides additional information about the supported VPN types.
      *
-     * @param id          identifier used to store and transmit this specific type
-     * @param features    of the given VPN type
+     * @param id       identifier used to store and transmit this specific type
+     * @param features of the given VPN type
      */
     VpnType(String id, EnumSet<VpnTypeFeature> features) {
         mIdentifier = id;

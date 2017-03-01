@@ -24,11 +24,12 @@ public class RecommendListFragment extends RecommendFragment {
     public String getNetTag() {
         return INDEX_TAG;
     }
+
     @Override
     public void onItemClick(View v, int position) {
-        if(mService!=null){
-            if(!VpnStateService.State.CONNECTED.equals(mService.getState())){
-                Toast.makeText(getActivity(), R.string.vpn_need,Toast.LENGTH_SHORT).show();
+        if (mService != null) {
+            if (!VpnStateService.State.CONNECTED.equals(mService.getState())) {
+                Toast.makeText(getActivity(), R.string.vpn_need, Toast.LENGTH_SHORT).show();
             }
         }
         super.onItemClick(v, position);

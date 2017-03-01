@@ -14,18 +14,18 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.sspacee.common.ui.view.MyPullView;
+import com.sspacee.common.util.EventBusUtil;
+import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.R;
 import com.timeline.vpn.adapter.IndexRecommendAdapter;
 import com.timeline.vpn.bean.vo.InfoListVo;
 import com.timeline.vpn.bean.vo.RecommendVo;
-import com.sspacee.common.util.EventBusUtil;
-import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.data.MobAgent;
 import com.timeline.vpn.data.config.ConfigActionEvent;
 import com.timeline.vpn.ui.base.LoadableFragment;
-import com.sspacee.common.ui.view.MyPullView;
 
 import org.strongswan.android.logic.VpnStateService;
 
@@ -39,12 +39,6 @@ import butterknife.Bind;
  * Created by themass on 2015/9/1.
  */
 public abstract class RecommendFragment extends LoadableFragment<InfoListVo<RecommendVo>> implements IndexRecommendAdapter.ItemClickListener, MyPullView.OnRefreshListener {
-    @Bind(R.id.my_pullview)
-    MyPullView pullView;
-    private IndexRecommendAdapter adapter;
-    private BaseService indexService;
-    private InfoListVo<RecommendVo> infoVo = new InfoListVo<>();
-    private boolean isFirst = false;
     public VpnStateService mService;
     public final ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
@@ -57,6 +51,13 @@ public abstract class RecommendFragment extends LoadableFragment<InfoListVo<Reco
             mService = ((VpnStateService.LocalBinder) service).getService();
         }
     };
+    @Bind(R.id.my_pullview)
+    MyPullView pullView;
+    private IndexRecommendAdapter adapter;
+    private BaseService indexService;
+    private InfoListVo<RecommendVo> infoVo = new InfoListVo<>();
+    private boolean isFirst = false;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,6 +69,7 @@ public abstract class RecommendFragment extends LoadableFragment<InfoListVo<Reco
     protected void onContentViewCreated(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
         inflater.inflate(R.layout.layout_recommd, parent, true);
     }
+
     @Override
     protected void onDataLoaded(InfoListVo<RecommendVo> data) {
         if (data != null) {
@@ -104,7 +106,7 @@ public abstract class RecommendFragment extends LoadableFragment<InfoListVo<Reco
         pullView.setListener(this);
         pullView.setAdapter(adapter);
         getActivity().bindService(new Intent(getActivity(), VpnStateService.class),
-                    mServiceConnection, Service.BIND_AUTO_CREATE);
+                mServiceConnection, Service.BIND_AUTO_CREATE);
     }
 
     @Override
@@ -119,14 +121,15 @@ public abstract class RecommendFragment extends LoadableFragment<InfoListVo<Reco
     public boolean needLoad() {
         return infoVo.hasMore;
     }
+
     @Override
     public void onItemClick(View v, int position) {
         RecommendVo vo = infoVo.voList.get(position);
         Map<String, Object> param = new HashMap<>();
         param.put(Constants.ADS_SHOW_CONFIG, vo.adsShow);
         param.put(Constants.ADS_POP_SHOW_CONFIG, vo.adsPopShow);
-        EventBusUtil.getEventBus().post(new ConfigActionEvent(getActivity(), vo.actionUrl,vo.title, param));
-        MobAgent.onEventRecommond(getActivity(),vo.title);
+        EventBusUtil.getEventBus().post(new ConfigActionEvent(getActivity(), vo.actionUrl, vo.title, param));
+        MobAgent.onEventRecommond(getActivity(), vo.title);
     }
 
     @Override
@@ -134,6 +137,8 @@ public abstract class RecommendFragment extends LoadableFragment<InfoListVo<Reco
         super.onDestroyView();
         indexService.cancelRequest(getNetTag());
     }
+
     public abstract String getUrl(int start);
+
     public abstract String getNetTag();
 }

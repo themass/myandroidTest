@@ -5,9 +5,9 @@ import android.graphics.Canvas;
 import android.support.v7.widget.AppCompatTextView;
 import android.util.AttributeSet;
 
-import com.timeline.vpn.base.MyApplication;
 import com.sspacee.common.util.DensityUtil;
 import com.sspacee.common.util.Tools;
+import com.timeline.vpn.base.MyApplication;
 
 /**
  * 自定义TextView

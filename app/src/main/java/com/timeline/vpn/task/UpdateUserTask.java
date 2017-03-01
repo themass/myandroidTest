@@ -3,8 +3,8 @@ package com.timeline.vpn.task;
 import android.content.Context;
 import android.os.AsyncTask;
 
-import com.timeline.vpn.bean.vo.UserInfoVo;
 import com.sspacee.common.net.request.CommonResponse;
+import com.timeline.vpn.bean.vo.UserInfoVo;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.data.UserLoginUtil;

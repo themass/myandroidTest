@@ -27,6 +27,8 @@ import butterknife.OnClick;
  */
 public class RegActivity extends BaseSingleActivity {
     private static final String TAG = "login_tag";
+    private final Pattern passPattern = Pattern.compile("[0-9A-Za-z]{6,10}");
+    private final Pattern namePattern = Pattern.compile("[a-zA-Z0-9]{3,20}");
     @Bind(R.id.ll_loading)
     LinearLayout loading;
     @Bind(R.id.et_username)
@@ -53,8 +55,6 @@ public class RegActivity extends BaseSingleActivity {
             Toast.makeText(RegActivity.this, R.string.reg_success, Toast.LENGTH_SHORT).show();
         }
     };
-    private final Pattern passPattern = Pattern.compile("[0-9A-Za-z]{6,10}");
-    private final Pattern namePattern = Pattern.compile("[a-zA-Z0-9]{3,20}");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

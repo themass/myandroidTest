@@ -225,6 +225,7 @@ public abstract class BaseFragment extends LogFramgment {
         Intent intent = new Intent(getActivity(), clasz);
         getActivity().startActivity(intent);
     }
+
     public void startService(Class clasz) {
         Intent intent = new Intent(getActivity(), clasz);
         getActivity().startService(intent);

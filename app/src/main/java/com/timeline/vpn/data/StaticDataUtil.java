@@ -25,10 +25,11 @@ public class StaticDataUtil {
             return null;
         }
     }
-    public static <T> T get(String key, Class<T> clasz,T defaultVal) {
+
+    public static <T> T get(String key, Class<T> clasz, T defaultVal) {
         try {
-            T ret =  (T) data.get(key);
-            return ret==null?defaultVal:ret;
+            T ret = (T) data.get(key);
+            return ret == null ? defaultVal : ret;
         } catch (Exception e) {
             data.remove(key);
             return null;

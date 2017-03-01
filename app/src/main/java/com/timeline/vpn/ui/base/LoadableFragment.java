@@ -13,17 +13,16 @@ import android.widget.ProgressBar;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.VolleyError;
-import com.timeline.vpn.R;
 import com.sspacee.common.net.VolleyUtils;
-import com.sspacee.common.util.ViewUtils;
 import com.sspacee.common.ui.base.BaseFragment;
+import com.sspacee.common.util.ViewUtils;
+import com.timeline.vpn.R;
 
 import java.lang.ref.WeakReference;
 
 
 /**
  * 支持异步数据加载的fragment
- *
  */
 public abstract class LoadableFragment<T> extends BaseFragment {
     public boolean mDataLoaded = false;

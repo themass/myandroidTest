@@ -92,6 +92,11 @@
             android:launchMode="singleTask"
             android:taskAffinity="com.qq.config_browser" />
         <activity android:name=".ui.base.CommonFragmentActivity" />
+        <activity
+            android:name=".ui.config.QuickBrowserConfigActivity"
+            android:autoRemoveFromRecents="true"
+            android:launchMode="singleTop"
+            android:theme="@style/myTransparent" />
 
         <service
             android:name="org.strongswan.android.logic.VpnStateService"
@@ -121,7 +126,6 @@
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:hardwareAccelerated="true"
             android:screenOrientation="landscape" />
-        <activity android:name="com.kuaiyou.video.AdviewWebView" />
 
         <service android:name="com.kyview.DownloadService" />
 
@@ -151,26 +155,23 @@
             android:name="net.youmi.android.normal.video.VideoActivity"
             android:configChanges="keyboard|keyboardHidden|screenSize|orientation"
             android:screenOrientation="landscape"
-            android:theme="@android:style/Theme.NoTitleBar">
-        </activity>
+            android:theme="@android:style/Theme.NoTitleBar"></activity>
 
         <activity
             android:name="net.youmi.android.AdBrowser"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
-            android:theme="@android:style/Theme.NoTitleBar">
-        </activity>
+            android:theme="@android:style/Theme.NoTitleBar"></activity>
 
         <service
             android:name="net.youmi.android.AdService"
-            android:exported="false">
-        </service>
+            android:exported="false"></service>
 
         <receiver android:name="net.youmi.android.AdReceiver">
             <intent-filter>
-                <action android:name="android.intent.action.PACKAGE_ADDED"/>
-                <action android:name="android.intent.action.PACKAGE_INSTALL"/>
+                <action android:name="android.intent.action.PACKAGE_ADDED" />
+                <action android:name="android.intent.action.PACKAGE_INSTALL" />
 
-                <data android:scheme="package"/>
+                <data android:scheme="package" />
             </intent-filter>
         </receiver>
         <!-- AdView SDK for tencent Gdt -->

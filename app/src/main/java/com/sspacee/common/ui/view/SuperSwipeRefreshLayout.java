@@ -554,7 +554,7 @@ public class SuperSwipeRefreshLayout extends ViewGroup {
      * @return
      */
     public boolean isChildScrollToTop() {
-            return !ViewCompat.canScrollVertically(mTarget, -1);
+        return !ViewCompat.canScrollVertically(mTarget, -1);
     }
 
     /**

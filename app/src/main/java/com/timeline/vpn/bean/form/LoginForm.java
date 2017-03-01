@@ -8,10 +8,10 @@ public class LoginForm {
     public String pwd;
     public String score;
 
-    public LoginForm(String name, String pwd,Integer score) {
+    public LoginForm(String name, String pwd, Integer score) {
         this.name = name;
         this.pwd = pwd;
-        if(score!=null) {
+        if (score != null) {
             this.score = String.valueOf(score);
         }
     }

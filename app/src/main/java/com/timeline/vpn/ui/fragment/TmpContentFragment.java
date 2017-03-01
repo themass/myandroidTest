@@ -30,6 +30,7 @@ public class TmpContentFragment extends TmpBaseBannerAdsFragemnt {
     NativeAdsAdapter.AdsAdapter adsAdapter;
     Shimmer shimmer;
     boolean adsNeed = true;
+
     @Override
     protected int getTabContentViewId() {
         return R.layout.layout_fragment_temp_view;
@@ -38,10 +39,10 @@ public class TmpContentFragment extends TmpBaseBannerAdsFragemnt {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        HashMap<String,Object> param = (HashMap)getSerializable();
-        String title= (String)param.get(Constants.TITLE);
+        HashMap<String, Object> param = (HashMap) getSerializable();
+        String title = (String) param.get(Constants.TITLE);
         Boolean show = (Boolean) param.get(Constants.ADSSHOW);
-        adsNeed = (Boolean) show==null?true:show;
+        adsNeed = (Boolean) show == null ? true : show;
         final StaggeredGridLayoutManager layoutManager = new StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.VERTICAL);
         rvAds.setLayoutManager(layoutManager);
         rvAds.setItemAnimator(new DefaultItemAnimator());
@@ -52,9 +53,10 @@ public class TmpContentFragment extends TmpBaseBannerAdsFragemnt {
         shimmer.setDuration(Constants.VIP_SHIMMER_DURATION);
         shimmer.start(tvReady);
     }
+
     @Override
     public void showAds(Context context) {
-        if(needShow(context)) {
+        if (needShow(context)) {
             super.showAds(context);
             AdsAdview.nativeAds(getActivity(), mHandler, adsAdapter);
         }
@@ -65,8 +67,9 @@ public class TmpContentFragment extends TmpBaseBannerAdsFragemnt {
         super.hidenAds(context);
         adsAdapter.removeData();
     }
+
     @Override
-    public boolean needShow(Context context){
-        return super.needShow(getActivity())&&adsNeed;
+    public boolean needShow(Context context) {
+        return super.needShow(getActivity()) && adsNeed;
     }
 }

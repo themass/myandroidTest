@@ -8,7 +8,6 @@ import java.util.Date;
 
 /**
  * DateUtils
- *
  */
 @SuppressLint("SimpleDateFormat")
 public class DateUtils {

@@ -7,7 +7,8 @@ import com.timeline.vpn.bean.vo.StateUseVo;
  */
 public class StateUseEvent {
     public StateUseVo stateUse;
-    public StateUseEvent(StateUseVo stateUse){
+
+    public StateUseEvent(StateUseVo stateUse) {
         this.stateUse = stateUse;
     }
 }

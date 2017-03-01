@@ -7,12 +7,12 @@ import android.os.Message;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.sspacee.common.ui.base.BaseFragment;
+import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.R;
 import com.timeline.vpn.ads.adview.AdsAdview;
 import com.timeline.vpn.ads.adview.AdsController;
-import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
-import com.sspacee.common.ui.base.BaseFragment;
 
 import butterknife.Bind;
 
@@ -31,15 +31,18 @@ public class BannerHeaderFragment extends BaseFragment implements AdsController 
             mHandler.postDelayed(task, Constants.BANNER_ADS_GONE_LONG_LONG);
         }
     };
+
     @Override
     protected int getRootViewId() {
         return R.layout.common_banner;
     }
+
     @Override
     protected void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
         init = true;
     }
+
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
@@ -64,6 +67,7 @@ public class BannerHeaderFragment extends BaseFragment implements AdsController 
         super.onDestroyView();
 
     }
+
     @Override
     public void showAds(Context context) {
         if (needShow(context)) {

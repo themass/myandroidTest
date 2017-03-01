@@ -1,13 +1,13 @@
 package com.timeline.vpn.bean;
 
-import com.timeline.vpn.bean.vo.HostVo;
-import com.timeline.vpn.bean.vo.InfoListVo;
-import com.timeline.vpn.bean.vo.JsonResult;
-import com.timeline.vpn.bean.vo.VpnProfile;
 import com.sspacee.common.util.AES2;
 import com.sspacee.common.util.GsonUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.StringUtils;
+import com.timeline.vpn.bean.vo.HostVo;
+import com.timeline.vpn.bean.vo.InfoListVo;
+import com.timeline.vpn.bean.vo.JsonResult;
+import com.timeline.vpn.bean.vo.VpnProfile;
 import com.timeline.vpn.constant.Constants;
 
 import java.lang.reflect.Type;

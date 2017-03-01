@@ -12,15 +12,18 @@ import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import com.sspacee.common.net.request.CommonResponse;
+import com.sspacee.common.net.request.CommonResponse.ResponseOkListener;
+import com.sspacee.common.ui.view.HeartAnimView;
+import com.sspacee.common.ui.view.MyProgressDialog;
+import com.sspacee.common.ui.view.MyPullView;
+import com.sspacee.common.util.LogUtil;
+import com.sspacee.common.util.StringUtils;
 import com.timeline.vpn.R;
 import com.timeline.vpn.adapter.FeedAdapter;
 import com.timeline.vpn.bean.form.IwannaForm;
 import com.timeline.vpn.bean.vo.IWannaVo;
 import com.timeline.vpn.bean.vo.InfoListVo;
-import com.sspacee.common.net.request.CommonResponse;
-import com.sspacee.common.net.request.CommonResponse.ResponseOkListener;
-import com.sspacee.common.util.LogUtil;
-import com.sspacee.common.util.StringUtils;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.data.UserLoginUtil;
@@ -28,9 +31,6 @@ import com.timeline.vpn.ui.base.CommonFragmentActivity;
 import com.timeline.vpn.ui.base.LoadableFragment;
 import com.timeline.vpn.ui.inte.FabOpListener;
 import com.timeline.vpn.ui.user.LoginActivity;
-import com.sspacee.common.ui.view.HeartAnimView;
-import com.sspacee.common.ui.view.MyProgressDialog;
-import com.sspacee.common.ui.view.MyPullView;
 
 import java.util.ArrayList;
 

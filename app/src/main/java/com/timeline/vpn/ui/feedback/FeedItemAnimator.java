@@ -8,9 +8,9 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.RecyclerView;
 import android.view.animation.DecelerateInterpolator;
 
+import com.sspacee.common.util.SystemUtils;
 import com.timeline.vpn.R;
 import com.timeline.vpn.adapter.FeedAdapter;
-import com.sspacee.common.util.SystemUtils;
 
 import java.util.HashMap;
 import java.util.List;

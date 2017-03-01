@@ -19,9 +19,9 @@ import com.kyview.manager.AdViewInstlManager;
 import com.kyview.manager.AdViewNativeManager;
 import com.kyview.manager.AdViewSpreadManager;
 import com.kyview.natives.NativeAdInfo;
+import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.R;
 import com.timeline.vpn.base.MyApplication;
-import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.MobAgent;
 import com.timeline.vpn.provider.AdsInfoModel;
@@ -162,6 +162,50 @@ public class AdsAdview {
             AdsAdview.adsNotify(context, Constants.ADS_TYPE_INTERSTITIAL, Constants.ADS_TYPE_ERROR);
             LogUtil.e(e);
         }
+    }
+
+    public static void interstitialAdsRequest(final Context context, final Handler handler) {
+        try {
+            AdViewInstlManager.getInstance(context).requestAd(context, Constants.ADS_ADVIEW_KEY, new AdViewInstlListener() {
+
+                @Override
+                public void onAdClick(String s) {
+                    handler.sendEmptyMessage(Constants.ADS_CLICK_MSG);
+                    AdsAdview.adsNotify(context, Constants.ADS_TYPE_INTERSTITIAL, Constants.ADS_CLICK_MSG);
+                }
+
+                @Override
+                public void onAdDisplay(String s) {
+                    handler.sendEmptyMessage(Constants.ADS_PRESENT_MSG);
+                    AdsAdview.adsNotify(context, Constants.ADS_TYPE_INTERSTITIAL, Constants.ADS_PRESENT_MSG);
+                }
+
+                @Override
+                public void onAdDismiss(String s) {
+                    handler.sendEmptyMessage(Constants.ADS_DISMISS_MSG);
+                }
+
+                @Override
+                public void onAdRecieved(String s) {
+                    handler.sendEmptyMessage(Constants.ADS_READY_MSG);
+
+                }
+
+                @Override
+                public void onAdFailed(String s) {
+                    handler.sendEmptyMessage(Constants.ADS_NO_MSG);
+                    AdsAdview.adsNotify(context, Constants.ADS_TYPE_INTERSTITIAL, Constants.ADS_NO_MSG);
+                }
+            });
+        } catch (Throwable e) {
+            AdsAdview.adsNotify(context, Constants.ADS_TYPE_INTERSTITIAL, Constants.ADS_TYPE_ERROR);
+            LogUtil.e(e);
+        }
+    }
+
+    public static void interstitialAdsShow(final Context context) {
+        AdViewInstlManager.getInstance(context)
+                .showAd(context, Constants.ADS_ADVIEW_KEY);
     }
 
     public static void bannerAds(final Context context, final ViewGroup group, final Handler handler, String key) {

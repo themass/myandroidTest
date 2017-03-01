@@ -76,6 +76,7 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
     protected void animatePhoto(BaseViewHolder viewHolder, long animationDelay, int position) {
         final IndexRecommendAdapter.NaviItemViewHolder holder = (IndexRecommendAdapter.NaviItemViewHolder) viewHolder;
         final RecommendVo vo = (RecommendVo) data.get(position);
+        holder.ivPhoto.setImageResource(0);
         if (vo.title.length() > 9) {
             holder.ivTitle.setTextSize(TypedValue.COMPLEX_UNIT_PX, context.getResources().getDimensionPixelSize(R.dimen.textsize_25));
         } else {
@@ -91,12 +92,11 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
         ivPhotoParam.height = (int) (imgWidth * vo.rate);
         ivPhotoParam.width = imgWidth;
         holder.ivPhoto.setLayoutParams(ivPhotoParam);
-
         holder.ivTitle.setVisibility(View.VISIBLE);
         final Shimmer shimmer = new Shimmer();
         shimmer.setDuration(Constants.RECOMMAND_SHIMMER_DURATION);
         shimmer.start(holder.ivTitle);
-        IndexRecommendPhotoLoad.loadPhoto(holder,vo,shimmer,context);
+        IndexRecommendPhotoLoad.loadPhoto(holder, vo, shimmer, context);
     }
 
     public interface ItemClickListener {

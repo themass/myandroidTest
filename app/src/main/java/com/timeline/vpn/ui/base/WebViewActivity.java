@@ -7,14 +7,14 @@ import android.os.Handler;
 import android.os.Message;
 import android.view.KeyEvent;
 
+import com.sspacee.common.ui.view.MyWebView;
+import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.R;
 import com.timeline.vpn.ads.adview.AdsAdview;
-import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.ui.base.app.BaseFragmentActivity;
 import com.timeline.vpn.ui.base.features.BaseWebViewFragment;
-import com.sspacee.common.ui.view.MyWebView;
 
 import java.util.HashMap;
 
@@ -29,7 +29,7 @@ public class WebViewActivity extends BaseFragmentActivity implements MyWebView.O
         @Override
         public void handleMessage(Message msg) {
             LogUtil.i("handleMessage-" + msg.what);
-            switch (msg.what){
+            switch (msg.what) {
                 case Constants.ADS_NO_MSG:
                     adsPopNeed = true;
                     break;
@@ -38,6 +38,17 @@ public class WebViewActivity extends BaseFragmentActivity implements MyWebView.O
             }
         }
     };
+
+    public static void startWebViewActivity(Context context, String url, String title, boolean adsShow, boolean adsPopShow, HashMap<String, Object> param) {
+        Intent intent = new Intent(context, WebViewActivity.class);
+        intent.putExtra(Constants.URL, url);
+        intent.putExtra(Constants.ADS_SHOW_CONFIG, adsShow);
+        intent.putExtra(Constants.ADS_POP_SHOW_CONFIG, adsPopShow);
+        intent.putExtra(Constants.CONFIG_PARAM, param);
+        intent.putExtra(Constants.TITLE, title);
+        context.startActivity(intent);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,14 +68,16 @@ public class WebViewActivity extends BaseFragmentActivity implements MyWebView.O
     public boolean needShow(Context context) {
         return adsNeed || super.needShow(this);
     }
+
     @Override
-    public void showAds(Context context){
+    public void showAds(Context context) {
         super.showAds(context);
         if (!UserLoginUtil.isVIP() && adsPopNeed) {
             AdsAdview.interstitialAds(this, mHandler);
         }
 
     }
+
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         LogUtil.i("onKeyDown");
@@ -80,15 +93,6 @@ public class WebViewActivity extends BaseFragmentActivity implements MyWebView.O
     @Override
     public void onTouchRight(int distans) {
 
-    }
-    public static void startWebViewActivity(Context context, String url, String title, boolean adsShow,boolean adsPopShow, HashMap<String,Object> param){
-        Intent intent = new Intent(context, WebViewActivity.class);
-        intent.putExtra(Constants.URL, url);
-        intent.putExtra(Constants.ADS_SHOW_CONFIG, adsShow);
-        intent.putExtra(Constants.ADS_POP_SHOW_CONFIG, adsPopShow);
-        intent.putExtra(Constants.CONFIG_PARAM, param);
-        intent.putExtra(Constants.TITLE, title);
-        context.startActivity(intent);
     }
 
 }

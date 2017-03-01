@@ -129,33 +129,37 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         baseService = new BaseService();
         baseService.setup(this);
     }
+
     private void setUpLocation() {
-        boolean flag = PreferenceUtils.getPrefBoolean(this,Constants.LOCATION_FLAG,false);
-        if(!flag){
+        boolean flag = PreferenceUtils.getPrefBoolean(this, Constants.LOCATION_FLAG, false);
+        if (!flag) {
             miLocation.setIcon(R.drawable.ic_menu_location_flag);
-        }else{
+        } else {
             miLocation.setIcon(R.drawable.ic_menu_location);
         }
         miLocation.setTitle(LocationUtil.getSelectName(this));
     }
-    private void setStateUse(StateUseVo vo){
-        if(vo!=null) {
+
+    private void setStateUse(StateUseVo vo) {
+        if (vo != null) {
             miTimeuse.setTitle(String.format(getString(R.string.menu_btn_timeuse), vo.timeUse));
             miNetworking.setTitle(String.format(getString(R.string.menu_btn_networking), vo.trafficUse));
-        }else{
+        } else {
             miTimeuse.setTitle(String.format(getString(R.string.menu_btn_timeuse), "0 h"));
-            miNetworking.setTitle(String.format(getString(R.string.menu_btn_networking),"0 Gb"));
+            miNetworking.setTitle(String.format(getString(R.string.menu_btn_networking), "0 Gb"));
         }
     }
-    private void setUpAbout(){
-        boolean hasClick = getPrefBoolean(this,Constants.ABOUT_FIRST,false);
-        if(hasClick){
+
+    private void setUpAbout() {
+        boolean hasClick = getPrefBoolean(this, Constants.ABOUT_FIRST, false);
+        if (hasClick) {
             miAbout.setIcon(R.drawable.ic_menu_about);
-        }else {
+        } else {
             miAbout.setIcon(R.drawable.ic_menu_about_first);
         }
     }
-    private void setUpVersion(){
+
+    private void setUpVersion() {
         checkUpdate();
         miVersion.setTitle(String.format(getString(R.string.menu_btn_version), VersionUpdater.getVersion()));
     }
@@ -173,9 +177,9 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                 ivAvatar.setImageResource(R.drawable.ic_default_nv);
             }
             ivLevel.setVisibility(View.VISIBLE);
-            if(Constants.UserLevel.LEVEL_FREE==vo.level){
+            if (Constants.UserLevel.LEVEL_FREE == vo.level) {
                 ivLevel.setImageResource(R.drawable.ic_level_free);
-            }else if(Constants.UserLevel.LEVEL_VIP==vo.level){
+            } else if (Constants.UserLevel.LEVEL_VIP == vo.level) {
                 ivLevel.setImageResource(R.drawable.ic_level_vip);
             }
             miScore.setTitle(String.format(getString(R.string.menu_btn_score), String.valueOf(vo.score)));
@@ -185,7 +189,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
             tvMenuUserName.setText(R.string.menu_btn_name_default);
             tvMenuUserLogin.setText(R.string.menu_btn_login);
             ivLevel.setVisibility(View.GONE);
-            int score = PreferenceUtils.getPrefInt(this,Constants.SCORE_TMP,0);
+            int score = PreferenceUtils.getPrefInt(this, Constants.SCORE_TMP, 0);
             miScore.setTitle(String.format(getString(R.string.menu_btn_score), String.valueOf(score)));
         }
     }
@@ -194,14 +198,17 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     public void onEvent(UserLoginEvent event) {
         setUpUserMenu();
     }
+
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(LocationChooseEvent event) {
         setUpLocation();
     }
+
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(StateUseEvent event) {
         setStateUse(event.stateUse);
     }
+
     public void logout(MenuItem item) {
         baseService.postData(Constants.getUrl(Constants.API_LOGOUT_URL), null, null, null, null, null);
         UserLoginUtil.logout(this);
@@ -227,12 +234,12 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
 
             @Override
             public void onDrawerOpened(View drawerView) {
-                boolean flag = PreferenceUtils.getPrefBoolean(BaseDrawerActivity.this,Constants.LOCATION_FLAG,false);
-                int count = PreferenceUtils.getPrefInt(BaseDrawerActivity.this,Constants.LOCATION_FLAG_COUNT,0);
-                if(!flag && count<3){
-                    Toast.makeText(BaseDrawerActivity.this,R.string.location_choose_flag_none,Toast.LENGTH_LONG).show();
-                    count = count+1;
-                    PreferenceUtils.setPrefInt(BaseDrawerActivity.this,Constants.LOCATION_FLAG_COUNT,count);
+                boolean flag = PreferenceUtils.getPrefBoolean(BaseDrawerActivity.this, Constants.LOCATION_FLAG, false);
+                int count = PreferenceUtils.getPrefInt(BaseDrawerActivity.this, Constants.LOCATION_FLAG_COUNT, 0);
+                if (!flag && count < 3) {
+                    Toast.makeText(BaseDrawerActivity.this, R.string.location_choose_flag_none, Toast.LENGTH_LONG).show();
+                    count = count + 1;
+                    PreferenceUtils.setPrefInt(BaseDrawerActivity.this, Constants.LOCATION_FLAG_COUNT, count);
                 }
             }
 
@@ -265,12 +272,12 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                 } else if (item.getItemId() == R.id.menu_about) {
                     name = "关于";
                     String url = Constants.ABOUT;
-                    if(SystemUtils.isZH(BaseDrawerActivity.this)){
+                    if (SystemUtils.isZH(BaseDrawerActivity.this)) {
                         url = Constants.ABOUT_ZH;
                     }
-                    url = url+"?"+ DateUtils.format(new Date(),DateUtils.DATE_FORMAT);
-                    WebViewActivity.startWebViewActivity(BaseDrawerActivity.this,url,getString(R.string.menu_btn_about),false,false,null);
-                    PreferenceUtils.setPrefBoolean(BaseDrawerActivity.this,Constants.ABOUT_FIRST,true);
+                    url = url + "?" + DateUtils.format(new Date(), DateUtils.DATE_FORMAT);
+                    WebViewActivity.startWebViewActivity(BaseDrawerActivity.this, url, getString(R.string.menu_btn_about), false, false, null);
+                    PreferenceUtils.setPrefBoolean(BaseDrawerActivity.this, Constants.ABOUT_FIRST, true);
                     setUpAbout();
                 } else if (item.getItemId() == R.id.menu_score) {
                     name = "积分";
@@ -283,7 +290,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                     name = "分享";
                     showShare();
                 }
-                MobAgent.onEventMenu(BaseDrawerActivity.this,name);
+                MobAgent.onEventMenu(BaseDrawerActivity.this, name);
                 return false;
             }
         });
@@ -331,10 +338,10 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                     PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.ADS_SHOW_CONFIG, vo.adsShow);
                     PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.LOG_UPLOAD_CONFIG, vo.logUp);
                     PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.NEED_DNSPOD_CONFIG, vo.needDnspod);
-                    if(StringUtils.hasText(vo.dnspodIp)) {
+                    if (StringUtils.hasText(vo.dnspodIp)) {
                         HttpDNSUtil.DNS_POD_IP = vo.dnspodIp;
                     }
-                    if(vo.stateUse!=null)
+                    if (vo.stateUse != null)
                         EventBusUtil.getEventBus().post(new StateUseEvent(vo.stateUse));
                     if (VersionUpdater.isNewVersion(vo.maxBuild)
                             && StringUtils.hasText(vo.url)) {

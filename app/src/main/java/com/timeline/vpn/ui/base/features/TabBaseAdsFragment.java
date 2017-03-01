@@ -8,9 +8,9 @@ import android.view.View;
 import android.view.animation.OvershootInterpolator;
 import android.widget.Toast;
 
+import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.R;
 import com.timeline.vpn.ads.adview.AdsAdview;
-import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.StaticDataUtil;
 import com.timeline.vpn.task.ScoreTask;
@@ -27,24 +27,24 @@ public abstract class TabBaseAdsFragment extends TabBaseFragment implements OnBa
     private static final int ANIM_DURATION_FAB = 400;
     @Bind(R.id.fab_up)
     public FloatingActionButton fabUp;
-    private long lastToastShow = 0l;
     protected Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             LogUtil.i("handleMessage-" + msg.what);
         }
     };
+    private long lastToastShow = 0l;
     private boolean pendingIntroAnimation;
 
     @OnClick(R.id.fab_up)
     public void onClickFab(View view) {
         next();
-        Long lastClickTime = StaticDataUtil.get(Constants.SCORE_CLICK,Long.class,0l);
+        Long lastClickTime = StaticDataUtil.get(Constants.SCORE_CLICK, Long.class, 0l);
         long curent = System.currentTimeMillis();
         long interval = curent - lastClickTime;
-        StaticDataUtil.add(Constants.SCORE_CLICK,System.currentTimeMillis());
-        if((interval/1000)<Constants.SCORE_CLICK_INTERVAL){
-            if((curent-lastToastShow)/1000>=Constants.SCORE_CLICK_INTERVAL){
+        StaticDataUtil.add(Constants.SCORE_CLICK, System.currentTimeMillis());
+        if ((interval / 1000) < Constants.SCORE_CLICK_INTERVAL) {
+            if ((curent - lastToastShow) / 1000 >= Constants.SCORE_CLICK_INTERVAL) {
                 Toast.makeText(getActivity(), R.string.tab_fb_click_fast, Toast.LENGTH_SHORT).show();
                 lastToastShow = curent;
             }

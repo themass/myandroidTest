@@ -10,7 +10,6 @@ import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.toolbox.HttpHeaderParser;
-import com.timeline.vpn.bean.vo.JsonResult;
 import com.sspacee.common.exce.MyVolleyError;
 import com.sspacee.common.net.HttpUtils;
 import com.sspacee.common.util.DeviceInfoUtils;
@@ -19,6 +18,7 @@ import com.sspacee.common.util.Md5;
 import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.SystemUtils;
 import com.sspacee.common.util.cache.DiskBasedCacheEx;
+import com.timeline.vpn.bean.vo.JsonResult;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.StaticDataUtil;
 import com.timeline.vpn.data.UserLoginUtil;
@@ -57,7 +57,7 @@ public class BaseRequest<T> extends Request<T> {
         }
         String sb = DeviceInfoUtils.getDeviceId(context) + "|" + time;
         String msg = time + Md5.encode(sb);
-        String ua = UA_DEFAULT + UA_APP_SUFFIX + ",IE" + msg;
+        String ua = UA_DEFAULT + UA_APP_SUFFIX +",cpu="+SystemUtils.getCpuType()+ ",IE" + msg;
         String loc = "lon:" + StaticDataUtil.get(Constants.LON, Double.class) + ";lat:" + StaticDataUtil.get(Constants.LAT, Double.class);
         this.authkey = ua.substring(ua.length() - 16, ua.length());
         headers.put("Loc", loc);

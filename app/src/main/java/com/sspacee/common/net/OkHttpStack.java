@@ -3,10 +3,10 @@ package com.sspacee.common.net;
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.toolbox.HttpStack;
-import com.timeline.vpn.base.MyApplication;
 import com.sspacee.common.net.interceptor.DnsRequestInterceptor;
 import com.sspacee.common.net.request.MultipartRequest;
 import com.sspacee.common.util.LogUtil;
+import com.timeline.vpn.base.MyApplication;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;

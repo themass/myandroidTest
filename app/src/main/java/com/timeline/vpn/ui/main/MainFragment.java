@@ -15,13 +15,13 @@ import android.widget.TabWidget;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.sspacee.common.util.EventBusUtil;
+import com.sspacee.common.util.LogUtil;
+import com.sspacee.common.util.PreferenceUtils;
 import com.timeline.vpn.R;
 import com.timeline.vpn.ads.adview.AdsAdview;
 import com.timeline.vpn.base.MyApplication;
 import com.timeline.vpn.bean.vo.UserInfoVo;
-import com.sspacee.common.util.EventBusUtil;
-import com.sspacee.common.util.LogUtil;
-import com.sspacee.common.util.PreferenceUtils;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.MobAgent;
 import com.timeline.vpn.data.UserLoginUtil;
@@ -65,7 +65,7 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
         AdsAdview.init(this);
         UserLoginUtil.initData(this);
         boolean uploadLog = PreferenceUtils.getPrefBoolean(this, Constants.LOG_UPLOAD_CONFIG, false);
-        if(uploadLog) {
+        if (uploadLog) {
             startService(new Intent(this, LogUploadService.class));
         }
         destoryToast = Toast.makeText(this, R.string.close_over, Toast.LENGTH_SHORT);
@@ -81,16 +81,16 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
         mTabHost.setOnTabChangedListener(this);
         LayoutInflater inflater = LayoutInflater.from(this);
         addTab(inflater, R.string.tab_tag_index, TabVpnFragment.class,
-                R.drawable.ac_bg_tab_index, R.string.tab_index,null);
+                R.drawable.ac_bg_tab_index, R.string.tab_index, null);
         addTab(inflater, R.string.tab_tag_vip, TabVipFragment.class,
-                    R.drawable.ac_bg_tab_index, R.string.tab_vip,null);
+                R.drawable.ac_bg_tab_index, R.string.tab_vip, null);
         mTabHost.getTabWidget().setDividerDrawable(null);
         mainTab = mTabHost.getTabWidget();
         startService(CharonVpnService.class);
     }
 
     private View addTab(LayoutInflater inflater, int tag, Class clss,
-                        int icon, int title,Bundle args) {
+                        int icon, int title, Bundle args) {
         View indicator = inflater.inflate(R.layout.main_tab_widget_item_layout,
                 mTabHost.getTabWidget(), false);
         ImageView imgView = (ImageView) indicator.findViewById(R.id.navi_icon);
@@ -114,7 +114,7 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
         stopService(LogUploadService.class);
         EventBusUtil.getEventBus().unregister(jump);
         EventBusUtil.getEventBus().unregister(logAdd);
-        if(myReceiver!=null){
+        if (myReceiver != null) {
             unregisterReceiver(myReceiver);
         }
         super.onDestroy();

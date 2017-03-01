@@ -14,13 +14,13 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 
-import com.timeline.vpn.R;
 import com.sspacee.common.net.HttpUtils;
-import com.sspacee.common.util.FileUtils;
-import com.sspacee.common.util.LogUtil;
-import com.timeline.vpn.constant.Constants;
 import com.sspacee.common.ui.base.BaseFragment;
 import com.sspacee.common.ui.view.MyWebView;
+import com.sspacee.common.util.FileUtils;
+import com.sspacee.common.util.LogUtil;
+import com.timeline.vpn.R;
+import com.timeline.vpn.constant.Constants;
 
 import butterknife.Bind;
 
@@ -129,18 +129,19 @@ public class BaseWebViewFragment extends BaseFragment {
         webView.setWebChromeClient(new WebChromeClient());
         webView.setWebViewClient(new WebViewClient() {
             private String mUrl;
+
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
                 super.onPageStarted(view, url, favicon);
                 setProgressShown(true);
-                LogUtil.i("onPageStarted->"+url);
+                LogUtil.i("onPageStarted->" + url);
             }
 
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
                 setProgressShown(false);
-                LogUtil.i("onPageFinished->"+url);
+                LogUtil.i("onPageFinished->" + url);
                 if (mFirstPageLoad) {
                     mFirstPageLoad = false;
                 }
@@ -152,15 +153,15 @@ public class BaseWebViewFragment extends BaseFragment {
             @Override
             public void onLoadResource(WebView view, String url) {
                 super.onLoadResource(view, url);
-                LogUtil.i("onLoadResource->"+url);
+                LogUtil.i("onLoadResource->" + url);
                 mUrl = url;
             }
 
             @Override
             public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
                 super.onReceivedError(view, request, error);
-                LogUtil.e("onReceivedError->"+error.toString());
-                if(url.equals(mUrl)){
+                LogUtil.e("onReceivedError->" + error.toString());
+                if (url.equals(mUrl)) {
                     String errorPage = FileUtils.readAssets(getActivity(), "error_page.html");
                     errorPage = errorPage.replace("####", url);
                     webView.loadData(errorPage, "text/html; charset=UTF-8", null);
@@ -180,8 +181,9 @@ public class BaseWebViewFragment extends BaseFragment {
             webView.onPause();
         }
     }
+
     @Override
-    public void onResume(){
+    public void onResume() {
         super.onResume();
         if (webView != null) {
             webView.onResume();

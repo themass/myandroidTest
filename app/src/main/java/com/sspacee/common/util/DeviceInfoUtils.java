@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
+import android.telephony.TelephonyManager;
 
 import java.io.IOException;
 import java.net.NetworkInterface;
@@ -45,7 +46,7 @@ public class DeviceInfoUtils {
                 return deviceId.toString();
             }
             // IMEI（imei）
-            String dev = DeviceInfoUtils.getDeviceId(context);
+            String dev = DeviceInfoUtils.getImei(context);
             if (StringUtils.hasText(dev)) {
                 deviceId.append("imei");
                 deviceId.append(dev);
@@ -72,6 +73,11 @@ public class DeviceInfoUtils {
         return deviceId.toString();
     }
 
+    public static String getImei(Context context) {
+        TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+        return tm.getSimSerialNumber();
+    }
+
     /**
      * 获取序列号
      *
@@ -92,11 +98,12 @@ public class DeviceInfoUtils {
         WifiManager wifi = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         WifiInfo info = wifi.getConnectionInfo();
         String addr = info.getMacAddress();
-        if(StringUtils.hasText(addr)&&addr.equals("02:00:00:00:00:00")) {
+        if (StringUtils.hasText(addr) && addr.equals("02:00:00:00:00:00")) {
             addr = getNewMacAddr();
         }
         return addr;
     }
+
     public static String getNewMacAddr() {
         try {
             List<NetworkInterface> all = Collections.list(NetworkInterface.getNetworkInterfaces());
@@ -108,7 +115,7 @@ public class DeviceInfoUtils {
                 }
                 StringBuilder res1 = new StringBuilder();
                 for (byte b : macBytes) {
-                    res1.append(String.format("%02X:",b));
+                    res1.append(String.format("%02X:", b));
                 }
                 if (res1.length() > 0) {
                     res1.deleteCharAt(res1.length() - 1);

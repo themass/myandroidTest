@@ -18,8 +18,8 @@ import jp.wasabeef.glide.transformations.BlurTransformation;
  * Created by gqli on 2017/2/6.
  */
 public class IndexRecommendPhotoLoad {
-    public static  void loadPhoto(final IndexRecommendAdapter.NaviItemViewHolder holder, RecommendVo vo,final Shimmer shimmer,Context context){
-        if(vo.showType== Constants.ShowType.Normal) {
+    public static void loadPhoto(final IndexRecommendAdapter.NaviItemViewHolder holder, RecommendVo vo, final Shimmer shimmer, Context context) {
+        if (vo.showType == Constants.ShowType.Normal) {
             Glide.with(context).load(vo.img)
                     .fitCenter().crossFade(800).listener(new MyGlideModule.LoggingListener()).into(new GlideDrawableImageViewTarget(holder.ivPhoto) {
                 @Override
@@ -29,16 +29,16 @@ public class IndexRecommendPhotoLoad {
                     holder.ivTitle.setVisibility(View.GONE);
                 }
             });
-        }else if(vo.showType== Constants.ShowType.Blur){
+        } else if (vo.showType == Constants.ShowType.Blur) {
             Glide.with(context).load(vo.img)
                     //.placeholder(R.drawable.vpn_trans_default)
-                    .crossFade(800).bitmapTransform(new BlurTransformation(context,1,2)).listener(new MyGlideModule.LoggingListener()).into(new GlideDrawableImageViewTarget(holder.ivPhoto) {
+                    .crossFade(800).bitmapTransform(new BlurTransformation(context, 1, 2)).listener(new MyGlideModule.LoggingListener()).into(new GlideDrawableImageViewTarget(holder.ivPhoto) {
                 @Override
                 public void onResourceReady(GlideDrawable resource, GlideAnimation<? super GlideDrawable> animation) {
                     super.onResourceReady(resource, animation);
                 }
             });
-        }else{
+        } else {
 
         }
     }

@@ -13,7 +13,7 @@ public class ConfigActionEvent {
     public Context context;
     public Map<String, Object> param;
 
-    public ConfigActionEvent(Context context, String url, String title,Map<String, Object> param) {
+    public ConfigActionEvent(Context context, String url, String title, Map<String, Object> param) {
         this.context = context;
         this.url = url;
         this.title = title;

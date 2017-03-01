@@ -24,18 +24,18 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.sspacee.common.net.HttpUtils;
+import com.sspacee.common.net.request.CommonResponse;
+import com.sspacee.common.ui.base.BaseFragment;
+import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.R;
 import com.timeline.vpn.bean.DataBuilder;
 import com.timeline.vpn.bean.vo.HostVo;
 import com.timeline.vpn.bean.vo.ServerVo;
 import com.timeline.vpn.bean.vo.VpnProfile;
-import com.sspacee.common.net.HttpUtils;
-import com.sspacee.common.net.request.CommonResponse;
-import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.data.LocationUtil;
-import com.sspacee.common.ui.base.BaseFragment;
 
 import org.strongswan.android.logic.VpnStateService;
 import org.strongswan.android.logic.imc.ImcState;
@@ -46,7 +46,7 @@ import butterknife.OnClick;
 /**
  * Created by themass on 2015/9/1.
  */
-public class VpnStatusFragment extends BaseFragment implements VpnStateService.VpnStateListener{
+public class VpnStatusFragment extends BaseFragment implements VpnStateService.VpnStateListener {
     private static final String DIALOG_TAG = "Dialog";
     private static final String INDEX_TAG = "vpn_status_tag";
     private static final int PREPARE_VPN_SERVICE = 0;
@@ -105,6 +105,7 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
     private Animation operatingAnim = null;
     private LinearInterpolator lir = null;
     private BaseService indexService;
+
     @Override
     protected int getRootViewId() {
         return R.layout.vpn_state_view_loading;
@@ -126,7 +127,8 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
     public void onDestroyView() {
         super.onDestroyView();
 //        mService.disconnect();
-        mService.unregisterListener(this);
+        if (mService != null)
+            mService.unregisterListener(this);
         getActivity().unbindService(mServiceConnection);
         indexService.cancelRequest(INDEX_TAG);
         if (task != null) {
@@ -137,23 +139,24 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
 
     @OnClick(R.id.iv_vpn_state)
     public void onVpnClick(View v) {
-        LogUtil.i("onVpnClick " + mService.getState());
-        if(mService != null) {
+        if (mService != null) {
+            LogUtil.i("onVpnClick " + mService.getState());
             if (mService.getState() == VpnStateService.State.CONNECTED) {
                 mService.disconnect();
             } else if (mService.getState() == VpnStateService.State.DISABLED) {
                 imgAnim();
                 int id = LocationUtil.getSelectId(getActivity());
                 indexService.getData(String.format(Constants.getUrl(Constants.API_SERVERLIST_URL), id), serverListener, serverListenerError, INDEX_TAG, ServerVo.class);
-            }else {
-                Toast.makeText(getActivity(),R.string.vpn_bg_click_later,Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(getActivity(), R.string.vpn_bg_click_later, Toast.LENGTH_SHORT).show();
             }
         }
     }
 
     @Override
     public void stateChanged() {
-        handler.post(new StatChangeJob(mService.getState(), mService.getErrorState(), mService.getImcState()));
+        if (mService != null)
+            handler.post(new StatChangeJob(mService.getState(), mService.getErrorState(), mService.getImcState()));
     }
 
     /**
@@ -189,7 +192,7 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
             case PREPARE_VPN_SERVICE:
-                if (resultCode == Activity.RESULT_OK) {
+                if (resultCode == Activity.RESULT_OK && mService != null) {
                     mService.connect(vpnProfile);
                 }
                 break;
@@ -309,7 +312,8 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
         @Override
         protected void onPostExecute(HostVo hostVo) {
             super.onPostExecute(hostVo);
-            ibVpnStatus.setEnabled(true);
+            if (ibVpnStatus != null)
+                ibVpnStatus.setEnabled(true);
         }
     }
 

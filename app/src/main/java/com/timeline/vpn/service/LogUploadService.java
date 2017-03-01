@@ -2,10 +2,10 @@ package com.timeline.vpn.service;
 
 import android.content.Intent;
 
-import com.timeline.vpn.bean.vo.NullReturnVo;
 import com.sspacee.common.net.request.CommonResponse;
 import com.sspacee.common.util.FileUtils;
 import com.sspacee.common.util.LogUtil;
+import com.timeline.vpn.bean.vo.NullReturnVo;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
 
@@ -34,16 +34,16 @@ public class LogUploadService extends BaseLogService {
         boolean ret1 = FileUtils.mvFile(FileUtils.getCharonFilePath(), FileUtils.getCharonUploadFilePath());
         if (ret) {
             File file1 = new File(FileUtils.getBugUploadFilePath());
-            if(file1.exists() && file1.length()>100)
+            if (file1.exists() && file1.length() > 100)
                 file.add(file1);
         }
         if (ret1) {
             File file2 = new File(FileUtils.getCharonUploadFilePath());
-            if(file2.exists() && file2.length()>100)
+            if (file2.exists() && file2.length() > 100)
                 file.add(file2);
             file.add(file2);
         }
-        if(file.size()>0)
+        if (file.size() > 0)
             indexService.postData(Constants.getUrl(Constants.API_LOG_URL), file, listener, null, Constants.FILE_UPLOAD, TAG, NullReturnVo.class);
         return super.onStartCommand(intent, flags, startId);
     }

@@ -2,10 +2,10 @@ package com.timeline.vpn.data;
 
 import android.content.Context;
 
-import com.timeline.vpn.R;
-import com.timeline.vpn.bean.vo.LocationVo;
 import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.SystemUtils;
+import com.timeline.vpn.R;
+import com.timeline.vpn.bean.vo.LocationVo;
 import com.timeline.vpn.constant.Constants;
 
 import static com.kuaiyou.g.a.getActivity;

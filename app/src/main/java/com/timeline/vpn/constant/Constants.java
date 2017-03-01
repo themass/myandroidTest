@@ -23,7 +23,7 @@ public class Constants {
     public static final int ADS_PRESENT_MSG = 3;
     public static final int ADS_READY_MSG = 4;
     public static final int ADS_TYPE_ERROR = -1;
-    public static final int ADS_TYPE_INIT= 0;
+    public static final int ADS_TYPE_INIT = 0;
     public static final int ADS_TYPE_BANNER = -1;
     public static final int ADS_TYPE_SPREAD = 1;
     public static final int ADS_TYPE_INTERSTITIAL = 2;
@@ -127,6 +127,7 @@ public class Constants {
     //    public static String BASE_IP = "192.168.1.7:8080";
 //    public static String BASE_IP = "10.33.65.180:8080";
     public static String BASE_HOST = "http://" + BASE_IP + "/vpn/api";
+    public static int NULL_VIEW = -1;
 
     public static String getUrl(String uri) {
         return "http://" + BASE_IP + "/vpn/api" + uri;
@@ -135,17 +136,19 @@ public class Constants {
     public static String getRECOMMEND_URL(int start) {
         return String.format(getUrl(API_RECOMMEND_URL), start);
     }
+
     public static String getVIP_URL(int start) {
         return String.format(getUrl(API_VIP_URL), start);
     }
-    public static int NULL_VIEW = -1;
+
     public static class UserLevel {
         public static final int LEVEL_FREE = 0;
         public static final int LEVEL_VIP = 1;
     }
-    public static class ShowType{
-        public static final int Normal=0;
-        public static final int Blur=1;
-        public static final int Text=2;
+
+    public static class ShowType {
+        public static final int Normal = 0;
+        public static final int Blur = 1;
+        public static final int Text = 2;
     }
 }

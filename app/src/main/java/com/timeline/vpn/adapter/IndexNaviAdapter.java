@@ -14,9 +14,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.timeline.vpn.R;
 import com.sspacee.common.util.DisplayUtil;
 import com.sspacee.common.util.Utils;
+import com.timeline.vpn.R;
 
 import java.util.ArrayList;
 import java.util.List;

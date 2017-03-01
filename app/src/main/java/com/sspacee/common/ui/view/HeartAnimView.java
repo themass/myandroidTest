@@ -14,9 +14,9 @@ import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.PopupWindow;
 
-import com.timeline.vpn.R;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.SystemUtils;
+import com.timeline.vpn.R;
 
 /**
  * 提示框 自定义view，使用PopupWindow 实现，注意显示时机

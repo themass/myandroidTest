@@ -28,6 +28,7 @@ import butterknife.OnClick;
  */
 public class LoginActivity extends BaseSingleActivity {
     private static final String TAG = "login_tag";
+    private final Pattern namePattern = Pattern.compile("[a-zA-Z0-9]{3,20}");
     @Bind(R.id.ll_loading)
     LinearLayout loading;
     @Bind(R.id.et_username)
@@ -39,11 +40,10 @@ public class LoginActivity extends BaseSingleActivity {
     @Bind(R.id.btn_reg)
     Button btnReg;
     BaseService baseService;
-    private final Pattern namePattern = Pattern.compile("[a-zA-Z0-9]{3,20}");
     CommonResponse.ResponseOkListener loginListener = new CommonResponse.ResponseOkListener<UserInfoVo>() {
         @Override
         public void onResponse(UserInfoVo vo) {
-            PreferenceUtils.setPrefInt(LoginActivity.this,Constants.SCORE_TMP,0);
+            PreferenceUtils.setPrefInt(LoginActivity.this, Constants.SCORE_TMP, 0);
             UserLoginUtil.login(LoginActivity.this, vo);
             finish();
         }
@@ -83,8 +83,8 @@ public class LoginActivity extends BaseSingleActivity {
         }
         setEnabled(false);
         PreferenceUtils.setPrefString(this, Constants.LOGIN_USER_LAST, name);
-        int score = PreferenceUtils.getPrefInt(this,Constants.SCORE_TMP,0);
-        LoginForm form = new LoginForm(name, pwd,score);
+        int score = PreferenceUtils.getPrefInt(this, Constants.SCORE_TMP, 0);
+        LoginForm form = new LoginForm(name, pwd, score);
         baseService.postData(Constants.getUrl(Constants.API_LOGIN_URL), form, loginListener, new CommonResponse.ResponseErrorListener() {
             @Override
             protected void onError() {

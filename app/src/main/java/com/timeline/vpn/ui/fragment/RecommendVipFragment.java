@@ -14,6 +14,7 @@ import org.strongswan.android.logic.VpnStateService;
  */
 public class RecommendVipFragment extends RecommendFragment {
     private static final String INDEX_TAG = "Vip_tag";
+
     @Override
     public String getUrl(int start) {
         return Constants.getVIP_URL(start);
@@ -27,7 +28,7 @@ public class RecommendVipFragment extends RecommendFragment {
     @Override
     public void onItemClick(View v, int position) {
         //关于
-        if(position==0){
+        if (position == 0) {
             super.onItemClick(v, position);
             return;
         }
@@ -36,9 +37,9 @@ public class RecommendVipFragment extends RecommendFragment {
 //            Toast.makeText(getActivity(), R.string.vip_need,Toast.LENGTH_LONG).show();
 //            return;
 //        }
-        if(mService!=null){
-            if(!VpnStateService.State.CONNECTED.equals(mService.getState())){
-                Toast.makeText(getActivity(), R.string.vpn_need,Toast.LENGTH_SHORT).show();
+        if (mService != null) {
+            if (!VpnStateService.State.CONNECTED.equals(mService.getState())) {
+                Toast.makeText(getActivity(), R.string.vpn_need, Toast.LENGTH_SHORT).show();
             }
         }
         super.onItemClick(v, position);

@@ -44,7 +44,7 @@ public class SettingsWriter {
             return this;
         }
         String[] keys = key.split("\\.");
-        SettingsSection  section = findOrCreateSection(Arrays.copyOfRange(keys, 0, keys.length - 1));
+        SettingsSection section = findOrCreateSection(Arrays.copyOfRange(keys, 0, keys.length - 1));
         section.Settings.put(keys[keys.length - 1], value);
         return this;
     }

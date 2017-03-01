@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Build;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.Window;
@@ -14,12 +15,14 @@ import android.view.WindowManager.LayoutParams;
 
 import com.timeline.vpn.constant.Constants;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.RandomAccessFile;
 import java.lang.reflect.Field;
 import java.util.Locale;
 
 public class SystemUtils {
-
+    public static String cpu = null;
     /**
      * 获取一个自定义风格的Dialog
      *
@@ -155,5 +158,60 @@ public class SystemUtils {
             return Constants.LANG_ZH;
         else
             return Constants.LANG_US;
+    }
+
+    public static String getCpuString() {
+        if (Build.CPU_ABI.equalsIgnoreCase("x86")) {
+            return "Intel";
+        }
+        String strInfo = "";
+        try {
+            byte[] bs = new byte[1024];
+            RandomAccessFile reader = new RandomAccessFile("/proc/cpuinfo", "r");
+            reader.read(bs);
+            reader.close();
+            String ret = new String(bs);
+            int index = ret.indexOf(0);
+            if (index != -1) {
+                strInfo = ret.substring(0, index);
+            } else {
+                strInfo = ret;
+            }
+        } catch (IOException ex) {
+            LogUtil.e(ex);
+        }
+        return strInfo;
+    }
+
+    public static String getCpuType() {
+        if(StringUtils.hasText(cpu)){
+            return cpu;
+        }
+        String strInfo = getCpuString();
+        String strType = null;
+
+        if (strInfo.contains("ARMv5")) {
+            strType = "armv5";
+        } else if (strInfo.contains("ARMv6")) {
+            strType = "armv6";
+        } else if (strInfo.contains("ARMv7")) {
+            strType = "armv7";
+        } else if (strInfo.contains("Intel")) {
+            strType = "x86";
+        } else {
+            strType = "unknown";
+            return strType;
+        }
+        if (strInfo.contains("neon")) {
+            strType += "_neon";
+        } else if (strInfo.contains("vfpv3")) {
+            strType += "_vfpv3";
+        } else if (strInfo.contains(" vfp")) {
+            strType += "_vfp";
+        } else {
+            strType += "_none";
+        }
+        cpu = strType;
+        return cpu;
     }
 }

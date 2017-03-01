@@ -15,17 +15,19 @@
             android:id="@+id/iv_avatar"
             android:layout_width="@dimen/global_menu_avatar_size"
             android:layout_height="@dimen/global_menu_avatar_size"
-            android:layout_marginLeft="@dimen/margin_8"
-            android:scaleType="centerCrop"
             android:layout_marginBottom="@dimen/margin_8"
+            android:layout_marginLeft="@dimen/margin_8"
             android:layout_marginTop="@dimen/margin_8"
+            android:scaleType="centerCrop"
             android:src="@drawable/ic_login_default_header" />
+
         <ImageView
             android:id="@+id/iv_level"
-            android:layout_marginTop="@dimen/margin_8"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_8"
             android:scaleType="fitCenter" />
+
         <TextView
             android:id="@+id/tv_menu_username"
             android:layout_width="wrap_content"
@@ -36,17 +38,18 @@
             android:textColor="@color/style_color_primary"
             android:textSize="@dimen/drawer_header_login_tx_size"
             android:textStyle="bold" />
+
         <TextView
             android:id="@+id/tv_menu_login"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:layout_marginRight="@dimen/drawer_header_margin"
-            android:background="@android:color/transparent"
             android:layout_weight="1"
+            android:background="@android:color/transparent"
             android:gravity="right"
-            android:textSize="@dimen/drawer_header_login_tx_size"
-            android:text="@string/menu_btn_login" />
+            android:text="@string/menu_btn_login"
+            android:textSize="@dimen/drawer_header_login_tx_size" />
 
     </LinearLayout>
 

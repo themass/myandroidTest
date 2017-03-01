@@ -41,7 +41,7 @@ public class MyApplication extends MultiDexApplication {
     public void onCreate() {
         super.onCreate();
         isDebug = SystemUtils.isApkDebugable(this);
-        LogUtil.e("isDebug="+isDebug);
+        LogUtil.e("isDebug=" + isDebug);
         typeface = Typeface.SANS_SERIF;
         instance = this;
         long start = System.currentTimeMillis();
@@ -58,6 +58,7 @@ public class MyApplication extends MultiDexApplication {
             DensityUtil.logDensity(this);
         }
         long cost = System.currentTimeMillis() - start;
+        LogUtil.i("cpu="+SystemUtils.getCpuType());
         LogUtil.e("app start cost:" + cost);
     }
 
@@ -66,6 +67,7 @@ public class MyApplication extends MultiDexApplication {
         LogUtil.i("tmpFilePath=" + tmpFilePath);
         FileUtils.ensureFile(this, tmpFilePath);
     }
+
     private void initPush() {
         //友盟统计
         //友盟推送

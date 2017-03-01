@@ -18,7 +18,7 @@
         <item
             android:id="@+id/menu_networking"
             android:icon="@drawable/ic_menu_networking"
-            android:title="@string/menu_btn_networking"/>
+            android:title="@string/menu_btn_networking" />
         <item
             android:id="@+id/menu_timeuse"
             android:icon="@drawable/ic_menu_timeuse"

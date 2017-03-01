@@ -51,6 +51,7 @@ public abstract class BasePhotoFlowRecycleViewAdapter<M, T extends BasePhotoFlow
     public int getItemCount() {
         return data.size();
     }
+
     public static class BaseViewHolder extends RecyclerView.ViewHolder {
         public BaseViewHolder(View view) {
             super(view);

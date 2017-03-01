@@ -3,13 +3,13 @@ package com.timeline.vpn.data;
 import android.content.Context;
 
 import com.android.volley.toolbox.RequestFuture;
-import com.timeline.vpn.bean.vo.InfoListVo;
 import com.sspacee.common.net.VolleyUtils;
 import com.sspacee.common.net.request.CommonResponse;
 import com.sspacee.common.net.request.GsonInfoListRequest;
 import com.sspacee.common.net.request.GsonRequest;
 import com.sspacee.common.net.request.MultipartRequest;
 import com.sspacee.common.util.GsonUtils;
+import com.timeline.vpn.bean.vo.InfoListVo;
 
 import java.io.File;
 import java.util.List;

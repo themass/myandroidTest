@@ -38,7 +38,7 @@ public class WeatherIconUtils {
                 case Constants.EXTREME:
                     return R.drawable.w_dustblowing_big;
                 default:
-                    return R.drawable.w__default;
+                    return R.drawable.w_default;
             }
         } else {
             // 如果是白天
@@ -60,7 +60,7 @@ public class WeatherIconUtils {
                 case Constants.EXTREME:
                     return R.drawable.w_dustblowing_big;
                 default:
-                    return R.drawable.w__default;
+                    return R.drawable.w_default;
             }
         }
     }

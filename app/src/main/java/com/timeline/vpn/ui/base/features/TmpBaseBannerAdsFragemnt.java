@@ -8,12 +8,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.sspacee.common.ui.base.BaseFragment;
+import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.R;
 import com.timeline.vpn.ads.adview.AdsAdview;
 import com.timeline.vpn.ads.adview.AdsController;
-import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
-import com.sspacee.common.ui.base.BaseFragment;
 
 import butterknife.Bind;
 
@@ -34,17 +34,21 @@ public abstract class TmpBaseBannerAdsFragemnt extends BaseFragment implements A
             mHandler.postDelayed(task, Constants.BANNER_ADS_GONE_LONG);
         }
     };
+
     @Override
     protected int getRootViewId() {
         return R.layout.base_banner_view;
     }
+
     abstract protected int getTabContentViewId();
+
     @Override
     protected void setupViews(View view, Bundle savedInstanceState) {
         LayoutInflater.from(getActivity()).inflate(getTabContentViewId(), (ViewGroup) view.findViewById(R.id.fl_content), true);
         super.setupViews(view, savedInstanceState);
         init = true;
     }
+
     @Override
     public void onResume() {
         super.onResume();
@@ -63,6 +67,7 @@ public abstract class TmpBaseBannerAdsFragemnt extends BaseFragment implements A
         super.onDestroyView();
 
     }
+
     @Override
     public void showAds(Context context) {
         if (needShow(context)) {

@@ -20,11 +20,11 @@ import android.os.FileObserver;
 import android.os.Handler;
 import android.widget.TextView;
 
-import com.timeline.vpn.R;
+import com.sspacee.common.ui.base.BaseFragment;
 import com.sspacee.common.util.FileUtils;
 import com.sspacee.common.util.LogUtil;
+import com.timeline.vpn.R;
 import com.timeline.vpn.constant.Constants;
-import com.sspacee.common.ui.base.BaseFragment;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -116,7 +116,7 @@ public class FileLogFragment extends BaseFragment implements Runnable {
             public void run() {
                 /* strip off prefix (month=3, day=2, time=8, thread=2, spaces=3) */
                 mLogView.append((line.length() > 18 ? line.substring(18) : line) + '\n');
-				/* calling autoScroll() directly does not work, probably because content
+                /* calling autoScroll() directly does not work, probably because content
 				 * is not yet updated, so we post this to be done later */
                 mScrollView.post(new Runnable() {
                     @Override

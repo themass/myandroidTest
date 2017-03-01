@@ -3,8 +3,8 @@ package com.timeline.vpn.ui.base;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 
-import com.timeline.vpn.R;
 import com.sspacee.common.util.LogUtil;
+import com.timeline.vpn.R;
 import com.timeline.vpn.ui.base.app.BaseFragmentActivity;
 import com.timeline.vpn.ui.inte.FabOpListener;
 

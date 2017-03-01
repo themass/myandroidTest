@@ -8,20 +8,20 @@ import android.widget.Toast;
 
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.timeline.vpn.R;
 import com.sspacee.common.net.NetUtils;
 import com.sspacee.common.net.VolleyUtils;
 import com.sspacee.common.net.request.StringRequest;
+import com.sspacee.common.ui.base.LogActivity;
 import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.SystemUtils;
-import com.timeline.vpn.constant.Constants;
-import com.timeline.vpn.data.StaticDataUtil;
-import com.sspacee.common.ui.base.LogActivity;
 import com.sspacee.common.weather.LocationUtils;
 import com.sspacee.common.weather.WeatherIconUtils;
 import com.sspacee.common.weather.WeatherSpider;
 import com.sspacee.common.weather.bean.WeatherInfo;
+import com.timeline.vpn.R;
+import com.timeline.vpn.constant.Constants;
+import com.timeline.vpn.data.StaticDataUtil;
 
 /**
  * Created by themass on 2016/3/1.
@@ -32,7 +32,7 @@ public abstract class BaseWeatherMenuActivity extends LogActivity {
         @Override
         public void detecting() {
             LogUtil.i("detecting...");
-            setWeatherIcon(R.drawable.w__default);
+            setWeatherIcon(R.drawable.w_default);
         }
 
         @Override
@@ -44,9 +44,10 @@ public abstract class BaseWeatherMenuActivity extends LogActivity {
 
         @Override
         public void failed() {
-            setWeatherIcon(R.drawable.w__default);
-            Toast.makeText(BaseWeatherMenuActivity.this, R.string.error_getlocation_fail,
-                    Toast.LENGTH_SHORT).show();
+            setWeatherIcon(R.drawable.w_default);
+            LogUtil.e(getString(R.string.error_getlocation_fail));
+//            Toast.makeText(BaseWeatherMenuActivity.this, R.string.error_getlocation_fail,
+//                    Toast.LENGTH_SHORT).show();
         }
     };
     private WeatherInfo weatherInfo;
@@ -121,7 +122,7 @@ public abstract class BaseWeatherMenuActivity extends LogActivity {
         @Override
         public void onErrorResponse(VolleyError volleyError) {
             VolleyUtils.showVolleyError(volleyError);
-            setWeatherIcon(R.drawable.w__default);
+            setWeatherIcon(R.drawable.w_default);
         }
 
         @Override
@@ -134,7 +135,7 @@ public abstract class BaseWeatherMenuActivity extends LogActivity {
                     setWeatherIcon(WeatherIconUtils.getWeatherIcon(weatherInfo.weather.get(0).id));
                 }
             } catch (Exception e) {
-                setWeatherIcon(R.drawable.w__default);
+                setWeatherIcon(R.drawable.w_default);
                 LogUtil.e(result, e);
             }
         }

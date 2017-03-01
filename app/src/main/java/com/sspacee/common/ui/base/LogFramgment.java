@@ -55,14 +55,14 @@ public class LogFramgment extends Fragment {
     public void onResume() {
         super.onResume();
         LogUtil.i(getClass().getSimpleName() + "-onResume");
-        MobAgent.onResumeForFragment(this.getActivity(),getClass().getSimpleName());
+        MobAgent.onResumeForFragment(this.getActivity(), getClass().getSimpleName());
     }
 
     @Override
     public void onPause() {
         super.onPause();
         LogUtil.i(getClass().getSimpleName() + "-onPause");
-        MobAgent.onPauseForFragment(this.getActivity(),getClass().getSimpleName());
+        MobAgent.onPauseForFragment(this.getActivity(), getClass().getSimpleName());
     }
 
     @Override

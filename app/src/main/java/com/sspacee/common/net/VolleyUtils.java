@@ -14,14 +14,15 @@ import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.BasicNetwork;
 import com.android.volley.toolbox.HttpStack;
 import com.android.volley.toolbox.ImageLoader;
-import com.timeline.vpn.R;
-import com.timeline.vpn.base.MyApplication;
 import com.sspacee.common.exce.MyVolleyError;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.cache.BitmapLruCache;
 import com.sspacee.common.util.cache.DiskBasedCacheEx;
+import com.timeline.vpn.R;
+import com.timeline.vpn.base.MyApplication;
 
 import java.io.File;
+
 /**
  * Volley
  */
@@ -55,7 +56,7 @@ public class VolleyUtils {
      * 处理网络请求异常
      */
     public static void showVolleyError(VolleyError volleyError) {
-        LogUtil.e(volleyError.getMessage(),volleyError);
+        LogUtil.e(volleyError.getMessage(), volleyError);
         Toast.makeText(context, getVolleyError(volleyError), Toast.LENGTH_SHORT).show();
     }
 

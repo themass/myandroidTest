@@ -48,7 +48,7 @@ public class VpnStateService extends Service {
     @Override
     public void onCreate() {
         /* this handler allows us to notify listeners from the UI thread and
-		 * not from the threads that actually report any state changes */
+         * not from the threads that actually report any state changes */
         mHandler = new Handler();
     }
 
@@ -165,7 +165,7 @@ public class VpnStateService extends Service {
             public Boolean call() throws Exception {
                 if (state == ImcState.UNKNOWN) {
                     VpnStateService.this.mRemediationInstructions.clear();
-                }else{
+                } else {
                     VpnStateService.this.mState = State.DISABLED;
                 }
                 if (VpnStateService.this.mImcState != state) {
@@ -202,6 +202,7 @@ public class VpnStateService extends Service {
         Intent intent = new Intent(context, CharonVpnService.class);
         context.startService(intent);
     }
+
     public void connect(VpnProfile profile) {
 		/* as soon as the TUN device is created by calling establish() on the
 		 * VpnService.Builder object the system binds to the service and keeps
@@ -216,6 +217,7 @@ public class VpnStateService extends Service {
         intent.putExtras(bundle);
         context.startService(intent);
     }
+
     /**
      * Update state and notify all listeners about the change. By using a Handler
      * this is done from the main UI thread and not the initial reporter thread.

@@ -7,13 +7,13 @@ import android.os.Message;
 import android.view.KeyEvent;
 import android.widget.RelativeLayout;
 
+import com.sspacee.common.ui.base.LogActivity;
+import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.R;
 import com.timeline.vpn.ads.adview.AdsAdview;
-import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.MobAgent;
 import com.timeline.vpn.task.UpdateUserTask;
-import com.sspacee.common.ui.base.LogActivity;
 import com.umeng.message.PushAgent;
 
 import butterknife.Bind;
@@ -26,12 +26,6 @@ public class LaunchActivity extends LogActivity {
     public boolean canJumpImmediately = false;
     @Bind(R.id.rl_spread)
     RelativeLayout ivAds;
-    private Runnable mStartMainRunnable = new Runnable() {
-        @Override
-        public void run() {
-            launch();
-        }
-    };
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -43,6 +37,12 @@ public class LaunchActivity extends LogActivity {
                 default:
                     break;
             }
+        }
+    };
+    private Runnable mStartMainRunnable = new Runnable() {
+        @Override
+        public void run() {
+            launch();
         }
     };
 

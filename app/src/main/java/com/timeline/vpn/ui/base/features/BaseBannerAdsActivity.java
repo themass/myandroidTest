@@ -8,11 +8,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.OvershootInterpolator;
 
+import com.sspacee.common.util.LogUtil;
+import com.sspacee.common.util.PreferenceUtils;
 import com.timeline.vpn.R;
 import com.timeline.vpn.ads.adview.AdsAdview;
 import com.timeline.vpn.ads.adview.AdsController;
-import com.sspacee.common.util.LogUtil;
-import com.sspacee.common.util.PreferenceUtils;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.ui.base.app.BaseToolBarActivity;
 
@@ -47,10 +47,12 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
         fabUp.setVisibility(View.GONE);
         flBanner.setBackgroundResource(R.color.base_white);
     }
+
     public void setContentViewWithoutInject(int layoutResID) {
         super.setContentViewWithoutInject(R.layout.base_fragment);
         getLayoutInflater().inflate(layoutResID, (ViewGroup) findViewById(R.id.fl_content), true);
     }
+
     public void setFabUpVisibility(int v) {
         fabUp.setVisibility(v);
     }
@@ -105,9 +107,9 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
     public void hidenAds(Context context) {
         if (flBanner != null) {
             flBanner.removeAllViews();
+            flBanner.setVisibility(View.GONE);
         }
         mHandler.removeCallbacks(task);
-        flBanner.setVisibility(View.GONE);
     }
 
     class AdsGoneTask implements Runnable {

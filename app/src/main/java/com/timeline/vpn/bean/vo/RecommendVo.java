@@ -17,6 +17,7 @@ public class RecommendVo {
     public boolean adsPopShow;
     public int type;
     public int showType;
+
     @Override
     public String toString() {
         return "RecommendVo{" +

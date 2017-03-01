@@ -7,9 +7,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.timeline.vpn.R;
-import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.ui.base.BaseFragment;
+import com.sspacee.common.util.LogUtil;
+import com.timeline.vpn.R;
 
 /**
  * Created by themass on 2015/9/1.
@@ -29,16 +29,16 @@ public abstract class TabBaseFragment extends BaseFragment {
         headerContentView = (ViewGroup) view.findViewById(R.id.fl_header);
         bodyContentView = (ViewGroup) view.findViewById(R.id.fl_content);
         FragmentManager fm = getChildFragmentManager();
-        Fragment fragment =  fm.findFragmentById(R.id.fl_header);
-        if(fragment==null){
+        Fragment fragment = fm.findFragmentById(R.id.fl_header);
+        if (fragment == null) {
             Fragment header = getTabHeaderView();
-            if(header==null){
+            if (header == null) {
                 headerContentView.setVisibility(View.GONE);
-            }else{
+            } else {
                 fm.beginTransaction().replace(R.id.fl_header, header).commitAllowingStateLoss();
             }
         }
-        fragment =  fm.findFragmentById(R.id.fl_content);
+        fragment = fm.findFragmentById(R.id.fl_content);
         if (fragment == null) {
             Fragment body = getTabBodyView();
             fm.beginTransaction().replace(R.id.fl_content, body).commitAllowingStateLoss();

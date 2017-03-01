@@ -140,7 +140,7 @@ public class LocationChooseFragment extends LoadableFragment<List<LocationVo>> i
     @Override
     public void onItemClick(View view, LocationVo data, int postion) {
         LogUtil.i(postion + "---" + GsonUtils.getInstance().toJson(data));
-        PreferenceUtils.setPrefBoolean(getActivity(),Constants.LOCATION_FLAG,true);
+        PreferenceUtils.setPrefBoolean(getActivity(), Constants.LOCATION_FLAG, true);
         if (data.type != Constants.LOCATION_TYPE_FREE) {
             UserInfoVo vo = UserLoginUtil.getUserCache();
             if (vo == null) {
@@ -156,7 +156,7 @@ public class LocationChooseFragment extends LoadableFragment<List<LocationVo>> i
         }
         LocationUtil.setLocation(getActivity(), data);
         EventBusUtil.getEventBus().post(new LocationChooseEvent());
-        MobAgent.onEventLocationChoose(getActivity(),data.name);
+        MobAgent.onEventLocationChoose(getActivity(), data.name);
         getActivity().finish();
     }
 }

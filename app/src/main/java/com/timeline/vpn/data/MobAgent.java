@@ -61,11 +61,13 @@ public class MobAgent {
         map.put("name", country);
         MobclickAgent.onEvent(context, "location", map);
     }
+
     public static void onEventMenu(Context context, String name) {
         Map<String, String> map = new HashMap<>();
         map.put("name", name);
         MobclickAgent.onEvent(context, "menu", map);
     }
+
     public static void onEventRecommond(Context context, String title) {
         Map<String, String> map = new HashMap<>();
         map.put("name", title);
@@ -76,10 +78,11 @@ public class MobAgent {
         Map<String, String> map = new HashMap<>();
         map.put("name", AdsAdview.getAdsName(type));
         map.put("event", AdsAdview.getAdsEvent(event));
-        map.put("status", AdsAdview.getAdsName(type)+" - "+AdsAdview.getAdsEvent(event));
+        map.put("status", AdsAdview.getAdsName(type) + " - " + AdsAdview.getAdsEvent(event));
         MobclickAgent.onEvent(context, "adsshow", map);
     }
-    public static void killProcess(Context context){
+
+    public static void killProcess(Context context) {
         MobclickAgent.onKillProcess(context);
     }
 

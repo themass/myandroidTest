@@ -14,6 +14,7 @@ import com.timeline.vpn.ui.fragment.VpnStatusFragment;
 public class TabVpnFragment extends TabBaseAdsFragment {
 
     private boolean isFirst = false;
+
     @Override
     protected Fragment getTabHeaderView() {
 

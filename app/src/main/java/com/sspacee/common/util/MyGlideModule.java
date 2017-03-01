@@ -31,7 +31,7 @@ public class MyGlideModule implements GlideModule {
         int defaultBitmapPoolSize = calculator.getBitmapPoolSize();
         builder.setMemoryCache(new LruResourceCache(defaultMemoryCacheSize));
         builder.setBitmapPool(new LruBitmapPool(defaultBitmapPoolSize));
-        LogUtil.i("glide cache size PoolSize="+defaultBitmapPoolSize+" ;CacheSize="+defaultMemoryCacheSize);
+        LogUtil.i("glide cache size PoolSize=" + defaultBitmapPoolSize + " ;CacheSize=" + defaultMemoryCacheSize);
     }
 
     @Override
@@ -44,6 +44,7 @@ public class MyGlideModule implements GlideModule {
         glide.register(GlideUrl.class, InputStream.class, new OkHttpUrlLoader.Factory(builder.build()));
         LogUtil.i("MyGlideModule reg OK");
     }
+
     public static class LoggingListener<T, R> implements RequestListener<T, R> {
         @Override
         public boolean onException(Exception e, Object model, Target target, boolean isFirstResource) {
