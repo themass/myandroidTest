@@ -27,7 +27,8 @@
                     android:layout_height="wrap_content"
                     android:paddingLeft="@dimen/margin_10"
                     android:text="@string/title_hint"
-                    android:textSize="@dimen/edit_tx_size"
+                    android:textColor="@color/base_red"
+                    android:textSize="16sp"
                     android:textStyle="bold" />
 
                 <com.sspacee.common.ui.view.MyEditText
@@ -51,8 +52,9 @@
                     android:layout_marginLeft="10dp"
                     android:layout_marginRight="40dp"
                     android:gravity="center_vertical"
+                    android:textColor="@color/base_red"
                     android:text="@string/schema_hint"
-                    android:textColor="@color/new_deep_black"
+                    android:textStyle="bold"
                     android:textSize="16sp" />
 
                 <RadioGroup
@@ -89,8 +91,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:paddingLeft="@dimen/margin_10"
+                    android:textColor="@color/base_red"
                     android:text="@string/url_hint"
-                    android:textSize="@dimen/edit_tx_size"
+                    android:textSize="16sp"
                     android:textStyle="bold" />
 
                 <com.sspacee.common.ui.view.MyEditText
@@ -113,9 +116,10 @@
                     android:layout_marginLeft="10dp"
                     android:layout_marginRight="40dp"
                     android:gravity="center_vertical"
+                    android:textColor="@color/base_red"
                     android:text="@string/open_hint"
-                    android:textColor="@color/new_deep_black"
-                    android:textSize="16sp" />
+                    android:textSize="16sp"
+                    android:textStyle="bold"/>
 
                 <RadioGroup
                     android:id="@+id/open_mode"
