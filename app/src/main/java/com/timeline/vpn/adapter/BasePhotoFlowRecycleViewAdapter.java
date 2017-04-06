@@ -16,14 +16,13 @@ import butterknife.ButterKnife;
 /**
  * Created by Miroslaw Stanek on 20.01.15.
  */
-public abstract class BasePhotoFlowRecycleViewAdapter<M, T extends BasePhotoFlowRecycleViewAdapter.BaseViewHolder> extends RecyclerView.Adapter<T> {
+public abstract class BasePhotoFlowRecycleViewAdapter<M, T extends BasePhotoFlowRecycleViewAdapter.BaseViewHolder> extends RecyclerView.Adapter<T>{
 
     protected static final Interpolator INTERPOLATOR = new DecelerateInterpolator();
     private static final int PHOTO_ANIMATION_DELAY = 600;
     protected final Context context;
     protected final int cellSize;
     protected List<M> data = null;
-
     public BasePhotoFlowRecycleViewAdapter(Context context, RecyclerView recyclerView, List<M> data) {
         this.context = context;
         this.cellSize = Utils.getScreenWidth(context) / 2;
@@ -44,7 +43,6 @@ public abstract class BasePhotoFlowRecycleViewAdapter<M, T extends BasePhotoFlow
         long animationDelay = PHOTO_ANIMATION_DELAY + holder.getAdapterPosition() * 30;
         animatePhoto(holder, animationDelay, position);
     }
-
     abstract protected void animatePhoto(BaseViewHolder viewHolder, long animationDelay, int position);
 
     @Override

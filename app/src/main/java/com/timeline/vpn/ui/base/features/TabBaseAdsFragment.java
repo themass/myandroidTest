@@ -15,7 +15,7 @@ import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.StaticDataUtil;
 import com.timeline.vpn.task.ScoreTask;
 import com.timeline.vpn.ui.inte.OnBackKeyUpListener;
-import com.timeline.vpn.ui.main.MainFragment;
+import com.timeline.vpn.ui.main.MainFragmentViewPage;
 
 import butterknife.Bind;
 import butterknife.OnClick;
@@ -68,7 +68,7 @@ public abstract class TabBaseAdsFragment extends TabBaseFragment implements OnBa
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 //        setHasOptionsMenu(true);
-        ((MainFragment) getActivity()).setListener(this);
+        ((MainFragmentViewPage) getActivity()).setListener(this);
     }
 
     @Override

@@ -53,12 +53,16 @@ public class LoginActivity extends BaseSingleActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_login);
-        setToolbarTitle(R.string.login);
+        setToolbarTitle(R.string.login,true);
         baseService = new BaseService();
         baseService.setup(this);
         String name = PreferenceUtils.getPrefString(this, Constants.LOGIN_USER_LAST, null);
         if (!StringUtil.isEmpty(name)) {
             etUserName.setText(name);
+        }
+        String pwd = PreferenceUtils.getPrefString(this, Constants.LOGIN_USER_PW_LAST, null);
+        if (!StringUtil.isEmpty(pwd)) {
+            etPassword.setText(pwd);
         }
 
     }
@@ -83,6 +87,7 @@ public class LoginActivity extends BaseSingleActivity {
         }
         setEnabled(false);
         PreferenceUtils.setPrefString(this, Constants.LOGIN_USER_LAST, name);
+        PreferenceUtils.setPrefString(this, Constants.LOGIN_USER_PW_LAST, pwd);
         int score = PreferenceUtils.getPrefInt(this, Constants.SCORE_TMP, 0);
         LoginForm form = new LoginForm(name, pwd, score);
         baseService.postData(Constants.getUrl(Constants.API_LOGIN_URL), form, loginListener, new CommonResponse.ResponseErrorListener() {
@@ -105,9 +110,11 @@ public class LoginActivity extends BaseSingleActivity {
 
     private void setEnabled(boolean isEnable) {
         if (!isEnable) {
-            loading.setVisibility(View.VISIBLE);
+            if(loading!=null)
+                loading.setVisibility(View.VISIBLE);
         } else {
-            loading.setVisibility(View.GONE);
+            if(loading!=null)
+                loading.setVisibility(View.GONE);
         }
         etUserName.setEnabled(isEnable);
         etPassword.setEnabled(isEnable);

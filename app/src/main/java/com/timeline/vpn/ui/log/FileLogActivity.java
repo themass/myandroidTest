@@ -25,6 +25,6 @@ public class FileLogActivity extends BaseSingleActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.log_activity);
-        setToolbarTitle(R.string.menu_btn_bug);
+        setToolbarTitle(R.string.menu_btn_bug,true);
     }
 }

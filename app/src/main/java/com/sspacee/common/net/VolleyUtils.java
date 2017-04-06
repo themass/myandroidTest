@@ -28,7 +28,7 @@ import java.io.File;
  */
 public class VolleyUtils {
     // 缓存目录
-    private static final String DEFAULT_CACHE_DIR = "timeline_vpn";
+    private static final String DEFAULT_CACHE_DIR = "sspacee_vpn";
 
     private static Context context;
     private static RequestQueue mRequestQueue;

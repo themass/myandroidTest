@@ -17,10 +17,11 @@
 <resources>
     <!--  tab main -->
     <string name="tab_index">首页</string>
-    <string name="tab_vip">VIP专区</string>
+    <string name="tab_vip">专区</string>
+    <string name="tab_customer">自定义</string>
     <string name="tab_tag_index">index</string>
     <string name="tab_tag_vip">vip</string>
-
+    <string name="tab_tag_customer">customer</string>
     <string name="tab_vip_temp">内容准备中。。。敬请期待</string>
     <string name="tab_fb_click">点我赚积分,换VIP。。+</string>
     <string name="tab_fb_click_fast">点击频率太高，请等待2秒钟</string>
@@ -136,6 +137,24 @@
         <item quantity="one">%d like</item>
         <item quantity="other">%d likes</item>
     </plurals>
+    <!-- 自定义-->
+    <string name="title_hint">标题</string>
+    <string name="url_hint">网站链接</string>
+    <string name="open_hint">打开方式</string>
+    <string name="open_local">本地打开</string>
+    <string name="open_browser">浏览器打开</string>
+    <string name="custome_title">添加自定义</string>
+    <string name="empty_info">请把信息填写完整</string>
+    <string name="url_error">url错误</string>
+    <string name="custome_ok">添加成功</string>
+    <string name="custome_del_ok">删除成功</string>
+    <string name="save">保存</string>
+    <string name="schema_hint">Schema</string>
+    <string name="schema_http">http://</string>
+    <string name="schema_https">https://</string>
+    <string name="del_hint">确认删除？</string>
+    <string name="del_cancel">取消</string>
+    <string name="del_ok">确认</string>
     <!-- vpn error text -->
     <string name="error_lookup_failed">服务器连接失败.</string>
     <string name="error_unreachable">网络连接失败.</string>

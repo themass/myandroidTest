@@ -27,25 +27,30 @@ import butterknife.Bind;
 /**
  * Created by Miroslaw Stanek on 20.01.15.
  */
-public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecycleViewAdapter implements View.OnClickListener {
+public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecycleViewAdapter{
     private static final Random random = new Random();
     StaggeredGridLayoutManager layoutManager;
-    private ItemClickListener listener;
+    public OnRecyclerViewItemClickListener mOnItemClickListener = null;//点击
+    public OnRecyclerViewLongItemClickListener mOnLongItemClickListener = null;//长按
     private int itemWidth;
     private int imgWidth;
     private int marginPix;
     private int hExtra;
+    private boolean needShimmer= true;
 
-    public IndexRecommendAdapter(Context context, RecyclerView recyclerView, List<RecommendVo> data, ItemClickListener listener, StaggeredGridLayoutManager layoutManager) {
+    public IndexRecommendAdapter(Context context, RecyclerView recyclerView, List<RecommendVo> data, OnRecyclerViewItemClickListener listener,OnRecyclerViewLongItemClickListener longItemClickListener, StaggeredGridLayoutManager layoutManager) {
         super(context, recyclerView, data);
-        this.listener = listener;
+        this.mOnItemClickListener = listener;
+        this.mOnLongItemClickListener = longItemClickListener;
         this.layoutManager = layoutManager;
         itemWidth = DensityUtil.getDensityDisplayMetrics(context).widthPixels / layoutManager.getSpanCount();
-        marginPix = context.getResources().getDimensionPixelSize(R.dimen.margin_8) * layoutManager.getSpanCount() + context.getResources().getDimensionPixelSize(R.dimen.margin_3) * layoutManager.getSpanCount();
+        marginPix = context.getResources().getDimensionPixelSize(R.dimen.margin_4) * 2 + context.getResources().getDimensionPixelSize(R.dimen.margin_3) * 2;
         imgWidth = itemWidth - marginPix;
         hExtra = context.getResources().getDimensionPixelSize(R.dimen.margin_3);
     }
-
+    public void setNeedShimmer(boolean needShimmer){
+        this.needShimmer = needShimmer;
+    }
     @Override
     public int getItemViewType(int position) {
         RecommendVo vo = (RecommendVo) data.get(position);
@@ -62,16 +67,25 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
     public void onBindViewHolder(BaseViewHolder holder, int position) {
         super.onBindViewHolder(holder, position);
         holder.itemView.setTag(position);
-        holder.itemView.setOnClickListener(this);
-    }
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
 
-    @Override
-    public void onClick(View v) {
-        if (listener != null) {
-            listener.onItemClick(v, (int) v.getTag());
-        }
+                if (mOnItemClickListener != null) {
+                    mOnItemClickListener.onItemClick(v, (int) v.getTag());
+                }
+            }
+        });
+        holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                if (mOnLongItemClickListener != null) {
+                    mOnLongItemClickListener.onLongItemClick(v, (int) v.getTag());
+                }
+                return true;
+            }
+        });
     }
-
     @Override
     protected void animatePhoto(BaseViewHolder viewHolder, long animationDelay, int position) {
         final IndexRecommendAdapter.NaviItemViewHolder holder = (IndexRecommendAdapter.NaviItemViewHolder) viewHolder;
@@ -86,7 +100,8 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
         if (StringUtils.hasText(vo.color)) {
             holder.ivPhoto.setBackgroundColor(Color.parseColor(vo.color));
         } else {
-            holder.ivPhoto.setBackgroundResource(R.color.style_color_primary_trans);
+            String defColor = Constants.colorBg.get(position%Constants.colorBg.size());
+            holder.ivPhoto.setBackgroundColor(Color.parseColor(defColor));
         }
         ViewGroup.LayoutParams ivPhotoParam = holder.ivPhoto.getLayoutParams();
         ivPhotoParam.height = (int) (imgWidth * vo.rate);
@@ -94,13 +109,11 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
         holder.ivPhoto.setLayoutParams(ivPhotoParam);
         holder.ivTitle.setVisibility(View.VISIBLE);
         final Shimmer shimmer = new Shimmer();
-        shimmer.setDuration(Constants.RECOMMAND_SHIMMER_DURATION);
-        shimmer.start(holder.ivTitle);
+        if(needShimmer) {
+            shimmer.setDuration(Constants.RECOMMAND_SHIMMER_DURATION);
+            shimmer.start(holder.ivTitle);
+        }
         IndexRecommendPhotoLoad.loadPhoto(holder, vo, shimmer, context);
-    }
-
-    public interface ItemClickListener {
-        public void onItemClick(View v, int position);
     }
 
     static class NaviItemViewHolder extends BasePhotoFlowRecycleViewAdapter.BaseViewHolder {
@@ -114,5 +127,12 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
         public NaviItemViewHolder(View view) {
             super(view);
         }
+    }
+    public interface OnRecyclerViewLongItemClickListener {
+        void onLongItemClick(View view, int position);
+    }
+
+    public interface OnRecyclerViewItemClickListener {
+        void onItemClick(View view, int position);
     }
 }

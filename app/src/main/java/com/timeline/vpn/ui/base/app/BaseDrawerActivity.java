@@ -160,7 +160,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     }
 
     private void setUpVersion() {
-        checkUpdate();
+        checkUpdate(false);
         miVersion.setTitle(String.format(getString(R.string.menu_btn_version), VersionUpdater.getVersion()));
     }
 
@@ -262,7 +262,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                     logout(item);
                 } else if (item.getItemId() == R.id.menu_version) {
                     name = "版本检测";
-                    checkUpdate();
+                    checkUpdate(true);
                 } else if (item.getItemId() == R.id.menu_location) {
                     name = "网络选择";
                     LocationChooseFragment.startFragment(BaseDrawerActivity.this);
@@ -327,7 +327,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         confirmDialog.show();
     }
 
-    public void checkUpdate() {
+    public void checkUpdate(final boolean needToast) {
         // 检查版本更新
         if (VersionUpdater.isInitVersionSuccess()) {
             VersionUpdater.checkNewVersion(BaseDrawerActivity.this, new CommonResponse.ResponseOkListener<VersionVo>() {
@@ -355,7 +355,8 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                             }
                         }, 300);
                     } else {
-                        Toast.makeText(BaseDrawerActivity.this, R.string.about_version_update_to_date, Toast.LENGTH_SHORT).show();
+                        if(needToast)
+                            Toast.makeText(BaseDrawerActivity.this, R.string.about_version_update_to_date, Toast.LENGTH_SHORT).show();
                     }
                 }
             }, new CommonResponse.ResponseErrorListener() {

@@ -38,7 +38,7 @@ import butterknife.Bind;
 /**
  * Created by themass on 2015/9/1.
  */
-public abstract class RecommendFragment extends LoadableFragment<InfoListVo<RecommendVo>> implements IndexRecommendAdapter.ItemClickListener, MyPullView.OnRefreshListener {
+public abstract class RecommendFragment extends LoadableFragment<InfoListVo<RecommendVo>> implements IndexRecommendAdapter.OnRecyclerViewItemClickListener,IndexRecommendAdapter.OnRecyclerViewLongItemClickListener, MyPullView.OnRefreshListener {
     public VpnStateService mService;
     public final ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
@@ -54,8 +54,8 @@ public abstract class RecommendFragment extends LoadableFragment<InfoListVo<Reco
     @Bind(R.id.my_pullview)
     MyPullView pullView;
     private IndexRecommendAdapter adapter;
-    private BaseService indexService;
-    private InfoListVo<RecommendVo> infoVo = new InfoListVo<>();
+    protected BaseService indexService;
+    protected InfoListVo<RecommendVo> infoVo = new InfoListVo<>();
     private boolean isFirst = false;
 
     @Override
@@ -72,20 +72,22 @@ public abstract class RecommendFragment extends LoadableFragment<InfoListVo<Reco
 
     @Override
     protected void onDataLoaded(InfoListVo<RecommendVo> data) {
-        if (data != null) {
-            if (pullView.isLoadMore()) { //上拉加载
-                infoVo.voList.addAll(data.voList);
-            } else { //下拉刷新 或者首次
-                infoVo.voList.clear();
-                infoVo.voList.addAll(data.voList);
+        if(pullView!=null) {
+            if (data != null) {
+                if (pullView.isLoadMore()) { //上拉加载
+                    infoVo.voList.addAll(data.voList);
+                } else { //下拉刷新 或者首次
+                    infoVo.voList.clear();
+                    infoVo.voList.addAll(data.voList);
+                }
+                infoVo.copy(data);
+                data.voList.clear();
+                data.voList.addAll(infoVo.voList);
+                setData(data);
+                LogUtil.i("mData size=" + infoVo.voList.size());
             }
-            infoVo.copy(data);
-            data.voList.clear();
-            data.voList.addAll(infoVo.voList);
-            setData(data);
-            LogUtil.i("mData size=" + infoVo.voList.size());
+            pullView.notifyDataSetChanged();
         }
-        pullView.notifyDataSetChanged();
     }
 
     @Override
@@ -97,10 +99,11 @@ public abstract class RecommendFragment extends LoadableFragment<InfoListVo<Reco
     @Override
     protected void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
-        final StaggeredGridLayoutManager layoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
+        final StaggeredGridLayoutManager layoutManager = new StaggeredGridLayoutManager(getSpanCount(), StaggeredGridLayoutManager.VERTICAL);
         pullView.setLayoutManager(layoutManager);
         pullView.setItemAnimator(new DefaultItemAnimator());
-        adapter = new IndexRecommendAdapter(this.getActivity(), pullView.getRecyclerView(), infoVo.voList, this, layoutManager);
+        adapter = new IndexRecommendAdapter(this.getActivity(), pullView.getRecyclerView(), infoVo.voList, this,this, layoutManager);
+        adapter.setNeedShimmer(getNeedShimmer());
         indexService = new BaseService();
         indexService.setup(getActivity());
         pullView.setListener(this);
@@ -133,12 +136,19 @@ public abstract class RecommendFragment extends LoadableFragment<InfoListVo<Reco
     }
 
     @Override
+    public void onLongItemClick(View view, int position) {
+
+    }
+
+    @Override
     public void onDestroyView() {
         super.onDestroyView();
         indexService.cancelRequest(getNetTag());
     }
-
+    protected boolean getNeedShimmer(){
+        return true;
+    }
     public abstract String getUrl(int start);
-
     public abstract String getNetTag();
+    public abstract int getSpanCount();
 }

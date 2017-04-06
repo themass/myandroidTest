@@ -8,8 +8,8 @@ android {
         applicationId "com.timeline.vpn"
         minSdkVersion global_minSdkVersion
         targetSdkVersion global_targetSdkVersion
-        versionCode 1000002002
-        versionName "1.0.2.2"
+        versionCode 1000002003
+        versionName "1.0.2.3"
         // Enabling multidex support.
         multiDexEnabled true
     }
@@ -53,7 +53,7 @@ android {
             minifyEnabled false
             debuggable true
             shrinkResources false
-//             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            //proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.config
         }
         release {

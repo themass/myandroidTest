@@ -3,6 +3,9 @@ package com.timeline.vpn.constant;
 
 import org.strongswan.android.logic.VpnType;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Created by themass on 2015/9/1.
  */
@@ -58,6 +61,7 @@ public class Constants {
     //user
     public static final String LOGIN_USER = "LOGIN_USER";
     public static final String LOGIN_USER_LAST = "LOGIN_USER_LAST";
+    public static final String LOGIN_USER_PW_LAST = "LOGIN_USER_PW_LAST";
     public static final String DEVID = "Devid";
     public static final String HTTP_TOKEN_KEY = "Vpn-Token";
     public static final String HTTP_LANG = "lang";
@@ -92,9 +96,12 @@ public class Constants {
     public static final String API_VERSION_URL = "/data/version.json";
     public static final String API_RECOMMEND_URL = "/data/recommend.json?start=%s&limit=20";
     public static final String API_VIP_URL = "/data/recommend/vip.json?start=%s&limit=20";
+    public static final String API_CUSTOME_URL = "/data/recommend/custome.json?start=%s&limit=100";
     public static final String API_LOGOUT_URL = "/user/logout.json";
     public static final String API_LEAK_URL = "/monitor/leak.json";
     public static final String API_LOG_URL = "/monitor/bug.json";
+    public static final String API_ADD_CUSTOME = "/user/custome/add.json";
+    public static final String API_DEL_CUSTOME = "/user/custome/del.json";
     public static final VpnType mVpnType = VpnType.IKEV2_CERT;
     public static final int connTimeOut = 20;
     public static final String NET_ERROR = "network error";
@@ -120,11 +127,11 @@ public class Constants {
     public static final long SCORE_CLICK_INTERVAL = 3;
     public static final int MAX_RETRY_COUNT = 4;
     public static String BASE_IP = "api.sspacee.com";
-    public static String ABOUT_FIRST = "ABOUT_FIRST";
+    public static String ABOUT_FIRST = "ABOUT_FbbIRST";
     public static String ABOUT_ZH = "http://file.sspacee.com/file/html/about_zh.html";
     public static String ABOUT = "http://file.sspacee.com/file/html/about.html";
 
-    //    public static String BASE_IP = "192.168.1.7:8080";
+//        public static String BASE_IP = "192.168.1.12:8080";
 //    public static String BASE_IP = "10.33.65.180:8080";
     public static String BASE_HOST = "http://" + BASE_IP + "/vpn/api";
     public static int NULL_VIEW = -1;
@@ -136,7 +143,9 @@ public class Constants {
     public static String getRECOMMEND_URL(int start) {
         return String.format(getUrl(API_RECOMMEND_URL), start);
     }
-
+    public static String getRECOMMEND_CUSTOME_URL(int start) {
+        return String.format(getUrl(API_CUSTOME_URL), start);
+    }
     public static String getVIP_URL(int start) {
         return String.format(getUrl(API_VIP_URL), start);
     }
@@ -151,4 +160,5 @@ public class Constants {
         public static final int Blur = 1;
         public static final int Text = 2;
     }
+    public static List<String> colorBg = Arrays.asList("#552d5d82","#55135689","#552292e9","#5583878b","#7f8d8f45","#ffc49924","#ff83713f","#ff569b2b","#ff882b9b");
 }

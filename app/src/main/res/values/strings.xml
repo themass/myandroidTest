@@ -17,9 +17,11 @@
 <resources>
     <!--  tab main -->
     <string name="tab_index">Home</string>
-    <string name="tab_vip">VIPArea</string>
+    <string name="tab_vip">Area</string>
+    <string name="tab_customer">Customer</string>
     <string name="tab_tag_index">index</string>
     <string name="tab_tag_vip">vip</string>
+    <string name="tab_tag_customer">customer</string>
     <string name="tab_vip_temp">Content preparation。。。Coming soon</string>
     <string name="tab_fb_click">Points me earn points, Change VIP。。+</string>
     <string name="tab_fb_click_fast">Too fast,please wait 2 seconds</string>
@@ -138,7 +140,24 @@ You are now using a non WIFI network, continue to download may consume more netw
         <item quantity="one">%d like</item>
         <item quantity="other">%d likes</item>
     </plurals>
-
+    <!-- 自定义-->
+    <string name="title_hint">Title</string>
+    <string name="url_hint">Site link</string>
+    <string name="open_hint">Open mode</string>
+    <string name="open_local">Local</string>
+    <string name="open_browser">Browser</string>
+    <string name="custome_title">Add Custome</string>
+    <string name="empty_info">Please fill in the information</string>
+    <string name="url_error">Url is error</string>
+    <string name="custome_ok">Add OK</string>
+    <string name="custome_del_ok">Del OK</string>
+    <string name="save">Save</string>
+    <string name="schema_hint">Schema</string>
+    <string name="schema_http">http://</string>
+    <string name="schema_https">https://</string>
+    <string name="del_hint">确认删除？</string>
+    <string name="del_cancel">Cancel</string>
+    <string name="del_ok">OK</string>
     <!-- vpn error text -->
     <string name="error_lookup_failed">Gateway address lookup failed.</string>
     <string name="error_unreachable">Gateway is unreachable.</string>

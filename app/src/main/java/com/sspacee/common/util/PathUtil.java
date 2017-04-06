@@ -5,6 +5,7 @@ import android.os.Environment;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URLEncoder;
 
 /**
  * 里面存放的是关于路径的一些helper类
@@ -14,7 +15,7 @@ import java.io.IOException;
  */
 public class PathUtil {
     private static final String FILEPATH = "file";
-
+    public static final String BROWSER_SCHEMA = "browser://config?url=%s";
     public static File getFileDiskCacheDir(Context context, String fileName) throws IOException {
         return getFileDiskCacheDir(context, fileName, true);
     }
@@ -77,5 +78,14 @@ public class PathUtil {
     private static File getExCacheFile(Context context) {
         final String cacheDir = "/Android/data/" + context.getPackageName() + "/cache/";
         return new File(Environment.getExternalStorageDirectory().getPath() + cacheDir);
+    }
+    public static String getLocalOpenUrl(String url) {
+        try {
+            String ecode = URLEncoder.encode(url, "utf-8");
+            return String.format(BROWSER_SCHEMA, ecode);
+        } catch (Exception e) {
+            LogUtil.e(e);
+            return null;
+        }
     }
 }

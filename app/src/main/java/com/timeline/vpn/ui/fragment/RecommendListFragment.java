@@ -34,4 +34,8 @@ public class RecommendListFragment extends RecommendFragment {
         }
         super.onItemClick(v, position);
     }
+    @Override
+    public int getSpanCount() {
+        return 3;
+    }
 }

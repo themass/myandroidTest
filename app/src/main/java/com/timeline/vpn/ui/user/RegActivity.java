@@ -60,7 +60,7 @@ public class RegActivity extends BaseSingleActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_reg);
-        setToolbarTitle(R.string.reg);
+        setToolbarTitle(R.string.reg,true);
         baseService = new BaseService();
         baseService.setup(this);
     }
@@ -114,18 +114,20 @@ public class RegActivity extends BaseSingleActivity {
     }
 
     private void setEnabled(boolean isEnable) {
-        if (!isEnable) {
-            loading.setVisibility(View.VISIBLE);
-        } else {
-            loading.setVisibility(View.GONE);
+        if(loading!=null) {
+            if (!isEnable) {
+                loading.setVisibility(View.VISIBLE);
+            } else {
+                loading.setVisibility(View.GONE);
+            }
+            etUserName.setEnabled(isEnable);
+            etPassword.setEnabled(isEnable);
+            etRePassword.setEnabled(isEnable);
+            btnLogin.setEnabled(isEnable);
+            btnReg.setEnabled(isEnable);
+            etCode.setEnabled(isEnable);
+            btCode.setEnabled(isEnable);
         }
-        etUserName.setEnabled(isEnable);
-        etPassword.setEnabled(isEnable);
-        etRePassword.setEnabled(isEnable);
-        btnLogin.setEnabled(isEnable);
-        btnReg.setEnabled(isEnable);
-        etCode.setEnabled(isEnable);
-        btCode.setEnabled(isEnable);
     }
 
     @Override

@@ -29,6 +29,7 @@
     <dimen name="textsize_25">25sp</dimen>
     <dimen name="textsize_32">32sp</dimen>
     <dimen name="margin_3">3dip</dimen>
+    <dimen name="margin_4">4dip</dimen>
     <dimen name="margin_5">5dip</dimen>
     <dimen name="margin_6">6dip</dimen>
     <dimen name="margin_8">8dip</dimen>
@@ -36,6 +37,8 @@
     <dimen name="margin_15">15dip</dimen>
     <dimen name="margin_25">25dip</dimen>
     <dimen name="margin_120">120dip</dimen>
+    <dimen name="margin_100">100dip</dimen>
+    <dimen name="tab_indicator_size">49dp</dimen>
 
     <dimen name="padding_5">5dip</dimen>
     <dimen name="padding_10">10dip</dimen>
@@ -49,6 +52,6 @@
     <dimen name="remote_vpn_title">10sp</dimen>
     <dimen name="remote_vpn_time">12sp</dimen>
     <dimen name="remote_vpn_content">14sp</dimen>
-    <dimen name="recommend_hit_size">15sp</dimen>
+    <dimen name="recommend_hit_size">12sp</dimen>
     <dimen name="toolbar_title_size">22sp</dimen>
 </resources>

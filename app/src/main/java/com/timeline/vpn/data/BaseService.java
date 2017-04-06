@@ -8,7 +8,7 @@ import com.sspacee.common.net.request.CommonResponse;
 import com.sspacee.common.net.request.GsonInfoListRequest;
 import com.sspacee.common.net.request.GsonRequest;
 import com.sspacee.common.net.request.MultipartRequest;
-import com.sspacee.common.util.GsonUtils;
+import com.sspacee.common.util.BeanUtil;
 import com.timeline.vpn.bean.vo.InfoListVo;
 
 import java.io.File;
@@ -57,9 +57,9 @@ public class BaseService {
     }
 
     public <T> void postData(String url, Object param, CommonResponse.ResponseOkListener<T> listener, CommonResponse.ResponseErrorListener errorListener, String tag, Class<T> t) {
-        Map map = null;
+        Map<String,String> map = null;
         if (param != null)
-            map = GsonUtils.getMap(GsonUtils.getInstance().toJson(param));
+            map = BeanUtil.transBean2Map(param);
         MultipartRequest request = new MultipartRequest(context, map, url, null, listener, errorListener, t);
         request.setTag(tag);
         VolleyUtils.addRequest(request);

@@ -249,8 +249,10 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
     }
 
     private void stopAnim() {
-        isAnim = false;
-        ibVpnStatus.clearAnimation();
+        if(ibVpnStatus!=null) {
+            isAnim = false;
+            ibVpnStatus.clearAnimation();
+        }
     }
 
     public void startVpn(ServerVo server, HostVo vo) {

@@ -17,6 +17,7 @@ public class RecommendVo {
     public boolean adsPopShow;
     public int type;
     public int showType;
+    public Integer id;
 
     @Override
     public String toString() {
@@ -25,6 +26,14 @@ public class RecommendVo {
                 ", actionUrl='" + actionUrl + '\'' +
                 ", img='" + img + '\'' +
                 ", desc='" + desc + '\'' +
+                ", imgType=" + imgType +
+                ", rate=" + rate +
+                ", color='" + color + '\'' +
+                ", adsShow=" + adsShow +
+                ", adsPopShow=" + adsPopShow +
+                ", type=" + type +
+                ", showType=" + showType +
+                ", id=" + id +
                 '}';
     }
 }

@@ -77,11 +77,16 @@ public class BaseToolBarActivity extends BaseWeatherMenuActivity {
         stopService(intent);
     }
 
-    public void setToolbarTitle(int id) {
+    public void setToolbarTitle(int id,boolean initNav) {
         tvTitle.setText(id);
-        setNavigationOut();
+        if(initNav)
+            setNavigationOut();
     }
-
+    public void setToolbarTitle(String title,boolean initNav) {
+        tvTitle.setText(title);
+        if(initNav)
+            setNavigationOut();
+    }
     public TextView getToolbarTitle() {
         return tvTitle;
     }

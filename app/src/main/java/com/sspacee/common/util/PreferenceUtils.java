@@ -38,6 +38,7 @@ public class PreferenceUtils {
         final SharedPreferences settings = PreferenceManager
                 .getDefaultSharedPreferences(context);
         String data = settings.getString(key, null);
+        LogUtil.i(data);
         if (data == null)
             return null;
         return GsonUtils.getInstance().fromJson(data, t);

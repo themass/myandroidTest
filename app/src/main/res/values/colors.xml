@@ -18,6 +18,7 @@
     <color name="style_color_primary_dark">#21425d</color>
     <color name="style_color_accent">#01bcd5</color>
     <color name="style_color_primary_trans">#552d5d82</color>
+    <color name="style_color_primary_trans1">#552d5d82</color>
     <color name="btn_context_menu_normal">#ffffff</color>
     <color name="btn_context_menu_pressed">#40000000</color>
     <color name="btn_context_menu_text_red">#ffff0000</color>

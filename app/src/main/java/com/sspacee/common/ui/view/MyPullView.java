@@ -89,7 +89,9 @@ public class MyPullView extends LinearLayout {
         DividerItemDecoration itemDecoration = new DividerItemDecoration(getContext(), LinearLayoutManager.VERTICAL, R.drawable.divider_item);
         rvContent.addItemDecoration(itemDecoration);
     }
-
+    public void setLongClickListener(OnLongClickListener l){
+        rvContent.setOnLongClickListener(l);
+    }
     public void setRefresh(boolean flag) {
         refreshLayout.setRefreshing(flag);
     }

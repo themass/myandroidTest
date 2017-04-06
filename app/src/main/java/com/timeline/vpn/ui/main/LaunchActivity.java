@@ -60,7 +60,7 @@ public class LaunchActivity extends LogActivity {
     }
 
     private void launch() {
-        Intent intent = new Intent(this, MainFragment.class);
+        Intent intent = new Intent(this, MainFragmentViewPage.class);
         startActivity(intent);
         mHandler.removeCallbacks(mStartMainRunnable);
         finish();

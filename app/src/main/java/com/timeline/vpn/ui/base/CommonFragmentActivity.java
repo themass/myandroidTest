@@ -35,7 +35,7 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
                 .add(R.id.fragment, fragment)
                 .commitAllowingStateLoss();
         if (title != 0) {
-            setToolbarTitle(title);
+            setToolbarTitle(title,true);
         }
     }
 }

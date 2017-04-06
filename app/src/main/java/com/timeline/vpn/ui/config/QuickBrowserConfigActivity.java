@@ -11,6 +11,7 @@ import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.R;
 import com.timeline.vpn.ads.adview.AdsAdview;
 import com.timeline.vpn.constant.Constants;
+import com.timeline.vpn.data.UserLoginUtil;
 
 /**
  * Created by themass on 2016/3/17.
@@ -48,7 +49,7 @@ public class QuickBrowserConfigActivity extends LogActivity {
         boolean adsPopNeed = getIntent().getBooleanExtra(Constants.ADS_POP_SHOW_CONFIG, false);
         final Uri uri = Uri.parse(getIntent().getExtras().getString(Constants.URL));
         startActivityForResult(new Intent(Intent.ACTION_VIEW, uri), 0);
-        if (!adsPopNeed) {
+        if (UserLoginUtil.isVIP()||!adsPopNeed) {
             finishActivity();
         }
         AdsAdview.interstitialAdsRequest(this, mHandler);
