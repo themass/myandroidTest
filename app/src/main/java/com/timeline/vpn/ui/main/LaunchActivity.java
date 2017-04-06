@@ -14,7 +14,6 @@ import com.timeline.vpn.ads.adview.AdsAdview;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.MobAgent;
 import com.timeline.vpn.task.UpdateUserTask;
-import com.umeng.message.PushAgent;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -55,8 +54,6 @@ public class LaunchActivity extends LogActivity {
         mHandler.postDelayed(mStartMainRunnable, Constants.STARTUP_SHOW_TIME_5000);
         ButterKnife.bind(this);
         UpdateUserTask.start(this);
-        LogUtil.i("push token=" + PushAgent.getInstance(this).getRegistrationId());
-
     }
 
     private void launch() {

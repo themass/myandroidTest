@@ -1,9 +1,5 @@
 package com.timeline.vpn.ui.main;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
@@ -19,12 +15,8 @@ import android.widget.Toast;
 
 import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.LogUtil;
-import com.sspacee.common.util.PreferenceUtils;
 import com.timeline.vpn.R;
 import com.timeline.vpn.ads.adview.AdsAdview;
-import com.timeline.vpn.base.MyApplication;
-import com.timeline.vpn.bean.vo.UserInfoVo;
-import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.MobAgent;
 import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.data.config.ConfigActionJump;
@@ -33,8 +25,6 @@ import com.timeline.vpn.ui.inte.OnBackKeyUpListener;
 import com.timeline.vpn.ui.maintab.TabCustomeFragment;
 import com.timeline.vpn.ui.maintab.TabVipFragment;
 import com.timeline.vpn.ui.maintab.TabVpnFragment;
-import com.umeng.message.PushAgent;
-import com.umeng.message.UTrack;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,7 +37,6 @@ public class MainFragmentViewPage extends BaseDrawerActivity {
     private long firstTime = 0;
     private OnBackKeyUpListener keyListener;
     private ConfigActionJump jump = new ConfigActionJump();
-    private MyReceiver myReceiver;
     private Toast destoryToast = null;
     private TabLayout mTabLayout;
     private ViewPager mViewPager;
@@ -59,10 +48,6 @@ public class MainFragmentViewPage extends BaseDrawerActivity {
         setContentView(R.layout.layout_main_viewpage);
         setupView();
         EventBusUtil.getEventBus().register(jump);
-        myReceiver = new MyReceiver();
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(MyApplication.UPDATE_STATUS_ACTION);
-        registerReceiver(myReceiver, filter);
         AdsAdview.init(this);
         UserLoginUtil.initData(this);
         destoryToast = Toast.makeText(this, R.string.close_over, Toast.LENGTH_SHORT);
@@ -115,9 +100,6 @@ public class MainFragmentViewPage extends BaseDrawerActivity {
     public void onDestroy() {
         LogUtil.i("main destory");
         EventBusUtil.getEventBus().unregister(jump);
-        if (myReceiver != null) {
-            unregisterReceiver(myReceiver);
-        }
         super.onDestroy();
         MobAgent.killProcess(this);
         System.exit(0);
@@ -141,31 +123,6 @@ public class MainFragmentViewPage extends BaseDrawerActivity {
             }
         }
         return super.onKeyUp(keyCode, event);
-    }
-
-    public void appInfo() {
-        LogUtil.i("appInfo");
-        UserInfoVo user = UserLoginUtil.getUserCache();
-        if (user == null) {
-            String name = PreferenceUtils.getPrefString(MainFragmentViewPage.this, Constants.LOGIN_USER_LAST, null);
-            if (name != null)
-                PushAgent.getInstance(MainFragmentViewPage.this).removeAlias(name, Constants.MY_PUSH_TYPE, new UTrack.ICallBack() {
-                    @Override
-                    public void onMessage(boolean isSuccess, String message) {
-                        if (!isSuccess)
-                            LogUtil.e("removeAlias:false;message:" + message);
-                    }
-                });
-        } else {
-            PushAgent.getInstance(MainFragmentViewPage.this).addAlias(user.name, Constants.MY_PUSH_TYPE, new UTrack.ICallBack() {
-                @Override
-                public void onMessage(boolean isSuccess, String message) {
-                    if (!isSuccess)
-                        LogUtil.e("addAlias:false;message:" + message);
-                }
-            });
-        }
-
     }
 
     public class ViewPagerOnTabSelectedListener implements TabLayout.OnTabSelectedListener {
@@ -192,14 +149,6 @@ public class MainFragmentViewPage extends BaseDrawerActivity {
             // No-op
         }
     }
-
-    class MyReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            appInfo();
-        }
-    }
-
     //ViewPager适配器
     class MyPagerAdapter extends FragmentPagerAdapter {
 

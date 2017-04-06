@@ -32,10 +32,10 @@ import com.timeline.vpn.ui.base.app.BaseDrawerActivity;
 import com.timeline.vpn.ui.inte.OnBackKeyUpListener;
 import com.timeline.vpn.ui.maintab.TabVipFragment;
 import com.timeline.vpn.ui.maintab.TabVpnFragment;
-import com.umeng.message.PushAgent;
-import com.umeng.message.UTrack;
 
 import org.strongswan.android.logic.CharonVpnService;
+
+import static android.R.attr.filter;
 
 /**
  * Created by themass on 2016/3/1.
@@ -49,7 +49,6 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
     private OnBackKeyUpListener keyListener;
     private ConfigActionJump jump = new ConfigActionJump();
     private LogAddTofile logAdd = new LogAddTofile();
-    private MyReceiver myReceiver;
     private Toast destoryToast = null;
 
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,10 +57,6 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
         setupView();
         EventBusUtil.getEventBus().register(jump);
         EventBusUtil.getEventBus().register(logAdd);
-        myReceiver = new MyReceiver();
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(MyApplication.UPDATE_STATUS_ACTION);
-        registerReceiver(myReceiver, filter);
         AdsAdview.init(this);
         UserLoginUtil.initData(this);
         boolean uploadLog = PreferenceUtils.getPrefBoolean(this, Constants.LOG_UPLOAD_CONFIG, false);
@@ -114,9 +109,6 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
         stopService(LogUploadService.class);
         EventBusUtil.getEventBus().unregister(jump);
         EventBusUtil.getEventBus().unregister(logAdd);
-        if (myReceiver != null) {
-            unregisterReceiver(myReceiver);
-        }
         super.onDestroy();
         MobAgent.killProcess(this);
         System.exit(0);
@@ -144,37 +136,5 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
             }
         }
         return super.onKeyUp(keyCode, event);
-    }
-
-    public void appInfo() {
-        LogUtil.i("appInfo");
-        UserInfoVo user = UserLoginUtil.getUserCache();
-        if (user == null) {
-            String name = PreferenceUtils.getPrefString(MainFragment.this, Constants.LOGIN_USER_LAST, null);
-            if (name != null)
-                PushAgent.getInstance(MainFragment.this).removeAlias(name, Constants.MY_PUSH_TYPE, new UTrack.ICallBack() {
-                    @Override
-                    public void onMessage(boolean isSuccess, String message) {
-                        if (!isSuccess)
-                            LogUtil.e("removeAlias:false;message:" + message);
-                    }
-                });
-        } else {
-            PushAgent.getInstance(MainFragment.this).addAlias(user.name, Constants.MY_PUSH_TYPE, new UTrack.ICallBack() {
-                @Override
-                public void onMessage(boolean isSuccess, String message) {
-                    if (!isSuccess)
-                        LogUtil.e("addAlias:false;message:" + message);
-                }
-            });
-        }
-
-    }
-
-    class MyReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            appInfo();
-        }
     }
 }
