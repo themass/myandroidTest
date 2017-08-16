@@ -9,9 +9,9 @@ import android.view.View;
 
 import com.romainpiel.shimmer.Shimmer;
 import com.romainpiel.shimmer.ShimmerTextView;
+import com.sspacee.yewu.ads.adview.AdsAdview;
+import com.sspacee.yewu.ads.adview.NativeAdsAdapter;
 import com.timeline.vpn.R;
-import com.timeline.vpn.ads.adview.AdsAdview;
-import com.timeline.vpn.ads.adview.NativeAdsAdapter;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.ui.base.features.TmpBaseBannerAdsFragemnt;
 

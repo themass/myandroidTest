@@ -18,16 +18,16 @@ import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.GsonUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PreferenceUtils;
+import com.sspacee.yewu.um.MobAgent;
 import com.timeline.vpn.R;
+import com.timeline.vpn.adapter.BaseRecyclerViewAdapter;
 import com.timeline.vpn.adapter.LocationViewAdapter;
-import com.timeline.vpn.adapter.OnRecyclerViewItemClickListener;
 import com.timeline.vpn.bean.vo.InfoListVo;
 import com.timeline.vpn.bean.vo.LocationVo;
 import com.timeline.vpn.bean.vo.UserInfoVo;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.data.LocationUtil;
-import com.timeline.vpn.data.MobAgent;
 import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.data.config.LocationChooseEvent;
 import com.timeline.vpn.data.sort.LocSortFactor;
@@ -44,7 +44,7 @@ import butterknife.Bind;
 /**
  * Created by themass on 2016/8/12.
  */
-public class LocationChooseFragment extends LoadableFragment<List<LocationVo>> implements OnRecyclerViewItemClickListener<LocationVo> {
+public class LocationChooseFragment extends LoadableFragment<List<LocationVo>> implements BaseRecyclerViewAdapter.OnRecyclerViewItemClickListener<LocationVo> {
     private static final String LOCATION_TAG = "location_tag";
     @Nullable
     @Bind(R.id.loc_btn_type)

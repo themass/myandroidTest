@@ -48,7 +48,7 @@ import com.timeline.vpn.R;
 import com.timeline.vpn.base.MyApplication;
 import com.timeline.vpn.bean.vo.VpnProfile;
 import com.timeline.vpn.data.LocationUtil;
-import com.timeline.vpn.ui.main.MainFragment;
+import com.timeline.vpn.ui.main.MainFragmentViewPage;
 
 import org.strongswan.android.logic.imc.ImcState;
 import org.strongswan.android.logic.imc.RemediationInstruction;
@@ -504,7 +504,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
         Intent buttonIntent = new Intent(ACTION_BUTTON);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 1, buttonIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         remoteViews.setOnClickPendingIntent(R.id.btn_vpn, pendingIntent);
-        Intent intent = new Intent(this, MainFragment.class);
+        Intent intent = new Intent(this, MainFragmentViewPage.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent pend =
                 PendingIntent.getActivity(MyApplication.getInstance(), new Random().nextInt(), intent, 0);
@@ -570,7 +570,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
 			/* even though the option displayed in the system dialog says "Configure"
 			 * we just use our main Activity */
             Context context = getApplicationContext();
-            Intent intent = new Intent(context, MainFragment.class);
+            Intent intent = new Intent(context, MainFragmentViewPage.class);
             PendingIntent pending = PendingIntent.getActivity(context, 0, intent,
                     PendingIntent.FLAG_UPDATE_CURRENT);
             builder.setConfigureIntent(pending);

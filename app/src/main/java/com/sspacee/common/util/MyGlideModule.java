@@ -14,7 +14,7 @@ import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.module.GlideModule;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
-import com.sspacee.common.net.OkHttpStack;
+import com.sspacee.yewu.net.OkHttpStack;
 
 import java.io.InputStream;
 import java.util.concurrent.TimeUnit;

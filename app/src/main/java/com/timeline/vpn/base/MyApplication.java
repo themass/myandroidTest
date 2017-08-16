@@ -3,7 +3,7 @@ package com.timeline.vpn.base;
 import android.graphics.Typeface;
 import android.support.multidex.MultiDexApplication;
 
-import com.sspacee.common.net.VolleyUtils;
+import com.sspacee.yewu.net.VolleyUtils;
 import com.sspacee.common.util.DensityUtil;
 import com.sspacee.common.util.DeviceInfoUtils;
 import com.sspacee.common.util.FileUtils;
@@ -14,13 +14,14 @@ import com.timeline.vpn.data.VersionUpdater;
 
 import butterknife.ButterKnife;
 
+import static com.sspacee.common.CommonConstants.tmpFilePath;
+
 /**
  * Created by themass on 2016/3/1.
  */
 public class MyApplication extends MultiDexApplication {
     //    private RefWatcher refWatcher;
     public static final String UPDATE_STATUS_ACTION = "com.timeline.vpn.action.UPDATE_STATUS";
-    public static String tmpFilePath = "";
     public static volatile boolean isDebug = true;
     private static MyApplication instance = null;
     public Typeface typeface;

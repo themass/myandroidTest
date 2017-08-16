@@ -5,16 +5,24 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.PopupWindow;
 import android.widget.Toast;
 
-import com.sspacee.common.net.request.CommonResponse;
+import com.google.gson.reflect.TypeToken;
 import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.common.util.EventBusUtil;
+import com.sspacee.common.util.GsonUtils;
+import com.sspacee.common.util.PreferenceUtils;
+import com.sspacee.yewu.net.request.CommonResponse;
 import com.timeline.vpn.R;
+import com.timeline.vpn.bean.form.CustomeAddForm;
 import com.timeline.vpn.bean.vo.InfoListVo;
 import com.timeline.vpn.bean.vo.NullReturnVo;
 import com.timeline.vpn.bean.vo.RecommendVo;
@@ -22,29 +30,30 @@ import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.data.config.CustomeAddEvent;
 import com.timeline.vpn.data.config.UserLoginEvent;
+import com.timeline.vpn.ui.inte.OnBackKeyDownListener;
+import com.timeline.vpn.ui.main.MainFragmentViewPage;
 import com.timeline.vpn.ui.user.AddCustomeInfoActivity;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedList;
+
 import butterknife.Bind;
 import butterknife.OnClick;
+
 
 /**
  * Created by themass on 2015/9/1.
  */
-public class RecommendCustomeFragment extends RecommendFragment{
+public class RecommendCustomeFragment extends RecommendFragment implements OnBackKeyDownListener {
     private static final String INDEX_TAG = "Recommend_custome_tag";
     private static final String DEL_TAG = "del_custome_tag";
     @Bind(R.id.lb_add)
     ImageButton llAdd;
-    CommonResponse.ResponseOkListener listener = new CommonResponse.ResponseOkListener<NullReturnVo>() {
-        @Override
-        public void onResponse(NullReturnVo vo) {
-            Toast.makeText(getActivity(), R.string.custome_del_ok, Toast.LENGTH_SHORT).show();
-            refresh();
-        }
-    };
+    LinkedList<Integer> sortList = null;
     @Override
     public String getNetTag() {
         return INDEX_TAG;
@@ -69,16 +78,33 @@ public class RecommendCustomeFragment extends RecommendFragment{
         super.onDataLoaded(data);
         dataForView();
     }
+
+    @Override
+    protected void initSort() {
+        super.initSort();
+        if(CollectionUtils.isEmpty(sortList) && !CollectionUtils.isEmpty(infoVo.voList)){
+            for(RecommendVo vo:infoVo.voList){
+                sortList.add(vo.id);
+            }
+        }
+    }
+
+    @Override
+    protected void sortData(){
+        Collections.sort(infoVo.voList,new MyComparator());
+    }
     private void dataForView(){
         if(!CollectionUtils.isEmpty(infoVo.voList)){
-            llAdd.setVisibility(View.GONE);
+            if(llAdd!=null)
+                llAdd.setVisibility(View.GONE);
         }else{
-            llAdd.setVisibility(View.VISIBLE);
+            if(llAdd!=null)
+                llAdd.setVisibility(View.VISIBLE);
         }
     }
     @OnClick(R.id.lb_add)
     public void onAdd(){
-        AddCustomeInfoActivity.startActivity(getActivity());
+        AddCustomeInfoActivity.startActivity(getActivity(),null);
     }
 
     @Override
@@ -98,12 +124,17 @@ public class RecommendCustomeFragment extends RecommendFragment{
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EventBusUtil.getEventBus().register(this);
+        ((MainFragmentViewPage)getActivity()).addListener(this);
+        sortList = PreferenceUtils.getPrefObj(getActivity(),Constants.CUSTOME_SORT,new TypeToken<LinkedList<Integer>>(){}.getType());
+        if(sortList==null) {
+            sortList = new LinkedList<>();
+        }
     }
-
     @Override
     public void onDestroy() {
         super.onDestroy();
         EventBusUtil.getEventBus().unregister(this);
+        ((MainFragmentViewPage)getActivity()).removeListener(this);
     }
     @Override
     public int getSpanCount() {
@@ -117,22 +148,120 @@ public class RecommendCustomeFragment extends RecommendFragment{
 
     @Override
     public void onLongItemClick(View view, final int position){
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle(R.string.del_hint);
-        builder.setIcon(R.drawable.vpn_trans_default);
-        builder.setNegativeButton(R.string.del_cancel, new DialogInterface.OnClickListener() {
+        switchFlag(true);
+    }
+
+    @Override
+    public void onEditClick(View view, int postion) {
+        super.onEditClick(view, postion);
+        showPopupWindow(view,postion);
+    }
+
+    private void showPopupWindow(View view,final int postion) {
+        // 一个自定义的布局，作为显示的内容
+        View contentView = LayoutInflater.from(mContext).inflate(
+                R.layout.layout_customer_pop, null);
+        final PopupWindow popupWindow = new PopupWindow(contentView,
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
+        popupWindow.setTouchable(true);
+        popupWindow.setTouchInterceptor(new View.OnTouchListener() {
             @Override
-            public void onClick(DialogInterface dialog, int which) {
+            public boolean onTouch(View v, MotionEvent event) {
+                return false;
             }
         });
-        builder.setPositiveButton(R.string.del_ok, new DialogInterface.OnClickListener() {
+        int w =  view.getWidth()/2;
+        int h = 0 - view.getHeight()/2;
+        popupWindow.showAsDropDown(view,w,h);
+        // 设置按钮的点击事件
+        Button btnDel = (Button) contentView.findViewById(R.id.btn_del);
+        btnDel.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(DialogInterface dialog, int which) {
-                Object o = mData.voList.get(position);
-                indexService.postData(Constants.getUrl(Constants.API_DEL_CUSTOME),o,listener,null,DEL_TAG,NullReturnVo.class);
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                builder.setTitle(R.string.del_hint);
+                builder.setIcon(R.drawable.vpn_trans_default);
+                builder.setNegativeButton(R.string.del_cancel, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        popupWindow.dismiss();
+                    }
+                });
+                builder.setPositiveButton(R.string.del_ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Object o = infoVo.voList.get(postion);
+                        indexService.postData(Constants.getUrl(Constants.API_DEL_CUSTOME),o,new CommonResponse.ResponseOkListener<NullReturnVo>(o) {
+                            @Override
+                            public void onResponse(NullReturnVo vo) {
+                                Toast.makeText(getActivity(), R.string.custome_del_ok, Toast.LENGTH_SHORT).show();
+                                sortList.remove(sortList.indexOf(((RecommendVo)getParam()).id));
+                                refresh();
+                                saveSortMap();
+
+                            }
+                        },null,DEL_TAG,NullReturnVo.class);
+                        popupWindow.dismiss();
+                    }
+                });
+                builder.setCancelable(true);
+                builder.show();
             }
         });
-        builder.setCancelable(true);
-        builder.show();
+        Button btnEdit = (Button) contentView.findViewById(R.id.btn_edit);
+        btnEdit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                popupWindow.dismiss();
+                RecommendVo o = (RecommendVo)infoVo.voList.get(postion);
+                CustomeAddForm form = new CustomeAddForm(o.id,o.title,o.actionUrl);
+                AddCustomeInfoActivity.startActivity(getActivity(),form);
+            }
+        });
+    }
+    private void saveSortMap(){
+        PreferenceUtils.setPrefString(getActivity(),Constants.CUSTOME_SORT,GsonUtils.getInstance().toJson(sortList));
+    }
+    @Override
+    public void onStartDrag(RecyclerView.ViewHolder viewHolder) {
+        super.onStartDrag(viewHolder);
+        mItemTouchHelper.startDrag(viewHolder);
+    }
+
+    @Override
+    public void onItemMove(Object o1, Object o2) {
+        super.onItemMove(o1, o2);
+//        sortMap.put(String.valueOf(((RecommendVo)o1).id),((RecommendVo)o2).id);
+        int move1 = sortList.indexOf(((RecommendVo)o1).id);
+        int move2 = sortList.indexOf(((RecommendVo)o2).id);
+        sortList.remove(move2);
+        sortList.add(move1,((RecommendVo)o2).id);
+        saveSortMap();
+    }
+    @Override
+    public boolean getCanMove() {
+        return true;
+    }
+
+    @Override
+    public boolean getShowEdit() {
+        return true;
+    }
+
+    @Override
+    public boolean onkeyBackDown() {
+        if(getSwitchFlag()){
+            switchFlag(false);
+            return true;
+        }
+        return false;
+    }
+    public class MyComparator implements Comparator<RecommendVo>{
+        @Override
+        public int compare(RecommendVo lhs, RecommendVo rhs) {
+            Integer start = sortList.indexOf(lhs.id);
+            Integer end = sortList.indexOf(rhs.id);
+            return start-end;
+        }
     }
 }

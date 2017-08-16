@@ -10,4 +10,5 @@ public class IWannaVo {
     public int likes;
     public long time;
     public boolean like;
+    public boolean finished;
 }

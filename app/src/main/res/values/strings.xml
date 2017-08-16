@@ -31,6 +31,8 @@
     <string name="main_activity_name">FreeVPN</string>
     <string name="toobar_title">FreeVPN</string>
     <string name="load">loading</string>
+    <string name="off">off</string>
+    <string name="on">on</string>
     <!-- 地区选择-->
     <string name="location_type">type</string>
     <string name="location_country">country</string>
@@ -49,6 +51,7 @@
     <string name="menu_btn_bug">Report bug</string>
     <string name="menu_btn_version">Version:%1$s</string>
     <string name="menu_btn_logout">Logout</string>
+    <string name="menu_btn_setting">Setting</string>
     <string name="menu_btn_about_context">FreeVPN the most stable, free, unlimited，all for you！</string>
     <string name="feed_back">Feedback</string>
     <string name="menu_btn_score">Points：%s</string>
@@ -57,6 +60,8 @@
     <string name="menu_btn_score_context">Points can change VIP，more info see "About"</string>
     <string name="menu_btn_report_log">Thanks for report us</string>
     <string name="menu_btn_country">Region：</string>
+    <string name="menu_btn_open_browser">Open in browser</string>
+    <string name="menu_btn_copy_url">Copy url</string>
     <string name="location_choose_flag_none">Click“ Region ”More regional options</string>
 
     <!-- share-->
@@ -69,6 +74,7 @@
     <!--登录，注册-->
     <string name="close_over">One more again!!</string>
     <string name="login">Sign in</string>
+    <string name="setting">Setting</string>
     <string name="reg">Sign up</string>
     <string name="username_hint">Username</string>
     <string name="password_hint">Password</string>
@@ -93,6 +99,7 @@
     <string name="iwanna_content_error">Tell me something!</string>
     <string name="iwanna_content_success">I got it !</string>
     <string name="vip_need">Non VIP users are not allowed to visit</string>
+    <string name="area">Area Switch</string>
     <!-- error-->
     <string name="error_getlocation_fail">Failed to obtain location information！</string>
     <string name="error_network_unknown">Connection server error, please check your network connection or try again later.</string>
@@ -155,9 +162,12 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="schema_hint">Schema</string>
     <string name="schema_http">http://</string>
     <string name="schema_https">https://</string>
-    <string name="del_hint">确认删除？</string>
+    <string name="del_hint">Confirm delete？</string>
     <string name="del_cancel">Cancel</string>
     <string name="del_ok">OK</string>
+    <string name="no_browser">no brower find</string>
+    <string name="edit">edit</string>
+    <string name="delete">delete</string>
     <!-- vpn error text -->
     <string name="error_lookup_failed">Gateway address lookup failed.</string>
     <string name="error_unreachable">Gateway is unreachable.</string>

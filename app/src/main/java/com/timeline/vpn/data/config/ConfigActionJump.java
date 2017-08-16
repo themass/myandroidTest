@@ -17,21 +17,20 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import static com.timeline.vpn.constant.Constants.HTTPS_URL;
+import static com.timeline.vpn.constant.Constants.HTTP_URL;
+
 /**
  * Created by themass on 2016/3/17.
  */
 public class ConfigActionJump {
-    public static final String HTTP_URL = "http";
-    public static final String HTTPS_URL = "https";
-    public static final String BROWSER_URL = "browser";
+
     public static Map<String, Class<? extends AppCompatActivity>> configMap = new HashMap<>();
-
     static {
-        configMap.put(HTTP_URL, WebViewActivity.class);
-        configMap.put(HTTPS_URL, WebViewActivity.class);
-        configMap.put(BROWSER_URL, QuickBrowserConfigActivity.class);
+        configMap.put(Constants.HTTP_URL, WebViewActivity.class);
+        configMap.put(Constants.HTTPS_URL, WebViewActivity.class);
+        configMap.put(Constants.BROWSER_URL, QuickBrowserConfigActivity.class);
     }
-
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(ConfigActionEvent event) {
         LogUtil.i("ConfigActionJump onEvent-" + event.url + "-" + Thread.currentThread().getName());

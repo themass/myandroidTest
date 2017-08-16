@@ -20,11 +20,11 @@ import android.os.FileObserver;
 import android.os.Handler;
 import android.widget.TextView;
 
+import com.sspacee.common.CommonConstants;
 import com.sspacee.common.ui.base.BaseFragment;
 import com.sspacee.common.util.FileUtils;
 import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.R;
-import com.timeline.vpn.constant.Constants;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -161,7 +161,7 @@ public class FileLogFragment extends BaseFragment implements Runnable {
 
         @Override
         public void onEvent(int event, String path) {
-            if (path == null || !path.equals(Constants.LOG_FILE)) {
+            if (path == null || !path.equals(CommonConstants.LOG_FILE)) {
                 return;
             }
             switch (event) {	/* even though we only subscribed for these we check them,

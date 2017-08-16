@@ -35,9 +35,12 @@
     <dimen name="margin_8">8dip</dimen>
     <dimen name="margin_10">10dip</dimen>
     <dimen name="margin_15">15dip</dimen>
+    <dimen name="margin_18">18dip</dimen>
+    <dimen name="margin_22">22dip</dimen>
     <dimen name="margin_25">25dip</dimen>
     <dimen name="margin_120">120dip</dimen>
     <dimen name="margin_100">100dip</dimen>
+    <dimen name="margin_80">80dip</dimen>
     <dimen name="tab_indicator_size">49dp</dimen>
 
     <dimen name="padding_5">5dip</dimen>

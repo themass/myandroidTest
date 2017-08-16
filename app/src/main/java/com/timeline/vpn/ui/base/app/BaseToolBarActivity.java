@@ -3,12 +3,14 @@ package com.timeline.vpn.ui.base.app;
 import android.app.Activity;
 import android.app.Service;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.R;
 
 import butterknife.Bind;
@@ -35,7 +37,6 @@ public class BaseToolBarActivity extends BaseWeatherMenuActivity {
         bindViews();
         setupToolbar();
     }
-
     protected void bindViews() {
         ButterKnife.bind(this);
     }
@@ -53,6 +54,10 @@ public class BaseToolBarActivity extends BaseWeatherMenuActivity {
 
     public Toolbar getToolbar() {
         return toolbar;
+    }
+    public void onConfigurationChanged(Configuration newConfig){
+        super.onConfigurationChanged(newConfig);
+        LogUtil.i("onConfigurationChanged->"+newConfig.orientation);
     }
 
     @Override

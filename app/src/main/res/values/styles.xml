@@ -22,6 +22,7 @@
         <item name="colorAccent">@color/style_color_accent</item>
         <item name="colorControlHighlight">@color/fab_color_pressed</item>
         <item name="@android:windowAnimationStyle">@style/AnimationActivity</item>
+        <item name="actionOverflowMenuStyle">@style/OverflowMenuStyle</item>
     </style>
 
     <style name="AppTheme.TransparentActivity">
@@ -32,7 +33,16 @@
     <style name="AppTheme.TransparentActivity.FullScreen">
         <item name="android:windowFullscreen">true</item>
     </style>
-
+    <style name="OverflowMenuStyle" parent="@style/Widget.AppCompat.PopupMenu.Overflow">
+        <!-- 是否覆盖锚点，默认为true，即盖住Toolbar -->
+        <item name="overlapAnchor">false</item>
+        <!-- 弹出层背景颜色 -->
+        <item name="android:popupBackground">@color/style_color_primary</item>
+        <!-- 弹出层垂直方向上的偏移，即在竖直方向上距离Toolbar的距离，值为负则会盖住Toolbar -->
+        <item name="android:dropDownVerticalOffset">5dp</item>
+        <!-- 弹出层水平方向上的偏移，即距离屏幕左边的距离，负值会导致右边出现空隙 -->
+        <item name="android:dropDownHorizontalOffset">0dp</item>
+    </style>
     <style name="ContextMenuButton">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
@@ -108,7 +118,16 @@
         <item name="android:textColor">@color/base_white</item>
         <item name="android:gravity">center</item>
     </style>
-
+    <style name="tv_add_custome_title">
+        <item name="android:textSize">@dimen/textsize_14</item>
+        <item name="android:layout_width">80dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/base_red</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:layout_marginLeft">10dp</item>
+        <item name="android:layout_marginRight">5dp</item>
+    </style>
     <!--style name="roomRatingBar" parent="@style/Widget.MaterialRatingBar.RatingBar">
         <item name="android:progressDrawable">@drawable/room_rating_bar</item>
         <item name="android:minHeight">16dp</item>

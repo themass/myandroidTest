@@ -9,7 +9,7 @@ import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import com.qq.e.comm.util.StringUtil;
-import com.sspacee.common.net.request.CommonResponse;
+import com.sspacee.yewu.net.request.CommonResponse;
 import com.timeline.vpn.R;
 import com.timeline.vpn.bean.form.RegForm;
 import com.timeline.vpn.bean.vo.NullReturnVo;

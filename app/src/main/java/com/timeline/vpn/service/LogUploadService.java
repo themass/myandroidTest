@@ -2,9 +2,10 @@ package com.timeline.vpn.service;
 
 import android.content.Intent;
 
-import com.sspacee.common.net.request.CommonResponse;
+import com.sspacee.common.CommonConstants;
 import com.sspacee.common.util.FileUtils;
 import com.sspacee.common.util.LogUtil;
+import com.sspacee.yewu.net.request.CommonResponse;
 import com.timeline.vpn.bean.vo.NullReturnVo;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
@@ -22,7 +23,7 @@ public class LogUploadService extends BaseLogService {
         @Override
         public void onResponse(NullReturnVo vo) {
             LogUtil.i("删除 日志文件");
-            FileUtils.delLogFile(Constants.BUG_FILE_FOR_UPLOAD);
+            FileUtils.delLogFile(CommonConstants.BUG_FILE_FOR_UPLOAD);
         }
     };
     private BaseService indexService;

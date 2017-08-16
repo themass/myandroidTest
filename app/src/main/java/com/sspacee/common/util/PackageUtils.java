@@ -6,11 +6,14 @@ package com.sspacee.common.util;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.text.TextUtils;
 
 import java.io.File;
+import java.util.List;
 
 
 public class PackageUtils {
@@ -115,14 +118,20 @@ public class PackageUtils {
         }
     }
 
-//    public static getPackageName getAppInfo(Context context) {
-//      
-//        try {
-//            PackageInfo info = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
-//            return info;
-//        } catch (NameNotFoundException e) {
-//            return null;
-//        }
-//    }
+    public static boolean hasBrowser(Context context){
+        String default_browser = "android.intent.category.DEFAULT";
+        String browsable = "android.intent.category.BROWSABLE";
+        String view = "android.intent.action.VIEW";
+        Intent intent = new Intent(view);
+        intent.addCategory(default_browser);
+        intent.addCategory(browsable);
+        Uri uri = Uri.parse("http://");
+        intent.setDataAndType(uri, null);
+        List<ResolveInfo> resolveInfoList = context.getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
+        if(CollectionUtils.isEmpty(resolveInfoList)){
+            return false;
+        }
+        return true;
+    }
 
 }

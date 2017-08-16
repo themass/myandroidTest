@@ -49,4 +49,8 @@ public class RecommendVipFragment extends RecommendFragment {
     public int getSpanCount() {
         return 2;
     }
+    @Override
+    public boolean getShowEdit() {
+        return false;
+    }
 }

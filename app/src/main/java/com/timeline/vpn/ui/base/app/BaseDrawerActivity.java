@@ -1,7 +1,5 @@
 package com.timeline.vpn.ui.base.app;
 
-import android.content.ClipData;
-import android.content.ClipboardManager;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Handler;
@@ -19,14 +17,15 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.sspacee.common.net.HttpDNSUtil;
-import com.sspacee.common.net.request.CommonResponse;
 import com.sspacee.common.util.DateUtils;
 import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.StringUtils;
 import com.sspacee.common.util.SystemUtils;
+import com.sspacee.yewu.net.HttpDNSUtil;
+import com.sspacee.yewu.net.request.CommonResponse;
+import com.sspacee.yewu.um.MobAgent;
 import com.timeline.vpn.R;
 import com.timeline.vpn.base.MyApplication;
 import com.timeline.vpn.bean.vo.StateUseVo;
@@ -35,7 +34,6 @@ import com.timeline.vpn.bean.vo.VersionVo;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.data.LocationUtil;
-import com.timeline.vpn.data.MobAgent;
 import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.data.VersionUpdater;
 import com.timeline.vpn.data.config.LocationChooseEvent;
@@ -46,6 +44,7 @@ import com.timeline.vpn.ui.base.WebViewActivity;
 import com.timeline.vpn.ui.feedback.IWannaFragment;
 import com.timeline.vpn.ui.fragment.LocationChooseFragment;
 import com.timeline.vpn.ui.user.LoginActivity;
+import com.timeline.vpn.ui.user.SettingActivity;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -78,6 +77,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     MenuItem miScore;
     MenuItem miLocation;
     MenuItem miAbout;
+    MenuItem miSetting;
     MenuItem miTimeuse;
     MenuItem miNetworking;
     Handler mHandler = new Handler();
@@ -114,6 +114,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         miAbout = nvDrawer.getMenu().findItem(R.id.menu_about);
         miNetworking = nvDrawer.getMenu().findItem(R.id.menu_networking);
         miTimeuse = nvDrawer.getMenu().findItem(R.id.menu_timeuse);
+        miSetting = nvDrawer.getMenu().findItem(R.id.menu_setting);
         headerView = nvDrawer.getHeaderView(0);
         llLoginMenuHeader = (LinearLayout) headerView.findViewById(R.id.ll_menu_headview);
         tvMenuUserName = (TextView) headerView.findViewById(R.id.tv_menu_username);
@@ -289,6 +290,9 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                 } else if (item.getItemId() == R.id.menu_share) {
                     name = "分享";
                     showShare();
+                }else if (item.getItemId() == R.id.menu_setting) {
+                    name = "设置";
+                    startActivity(SettingActivity.class);
                 }
                 MobAgent.onEventMenu(BaseDrawerActivity.this, name);
                 return false;
@@ -309,11 +313,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         confirmDialog.setPositiveButton(R.string.menu_share_confirm, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                ClipboardManager myClipboard;
-                myClipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-                ClipData myClip;
-                myClip = ClipData.newPlainText("text", url);
-                myClipboard.setPrimaryClip(myClip);
+                SystemUtils.copy(BaseDrawerActivity.this,url);
                 Toast.makeText(BaseDrawerActivity.this, R.string.menu_share_copy_ok, Toast.LENGTH_SHORT).show();
                 dialog.dismiss();
             }

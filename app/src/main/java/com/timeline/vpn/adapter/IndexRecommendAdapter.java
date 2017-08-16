@@ -13,6 +13,7 @@ import android.widget.ImageView;
 
 import com.romainpiel.shimmer.Shimmer;
 import com.romainpiel.shimmer.ShimmerTextView;
+import com.sspacee.common.helper.OnStartDragListener;
 import com.sspacee.common.util.DensityUtil;
 import com.sspacee.common.util.StringUtils;
 import com.timeline.vpn.R;
@@ -20,7 +21,6 @@ import com.timeline.vpn.bean.vo.RecommendVo;
 import com.timeline.vpn.constant.Constants;
 
 import java.util.List;
-import java.util.Random;
 
 import butterknife.Bind;
 
@@ -28,23 +28,21 @@ import butterknife.Bind;
  * Created by Miroslaw Stanek on 20.01.15.
  */
 public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecycleViewAdapter{
-    private static final Random random = new Random();
     StaggeredGridLayoutManager layoutManager;
-    public OnRecyclerViewItemClickListener mOnItemClickListener = null;//点击
-    public OnRecyclerViewLongItemClickListener mOnLongItemClickListener = null;//长按
     private int itemWidth;
     private int imgWidth;
     private int marginPix;
     private int hExtra;
     private boolean needShimmer= true;
-
-    public IndexRecommendAdapter(Context context, RecyclerView recyclerView, List<RecommendVo> data, OnRecyclerViewItemClickListener listener,OnRecyclerViewLongItemClickListener longItemClickListener, StaggeredGridLayoutManager layoutManager) {
-        super(context, recyclerView, data);
-        this.mOnItemClickListener = listener;
-        this.mOnLongItemClickListener = longItemClickListener;
+    private OnEditClickListener mOnEditClickListener;
+    public boolean showEdit;
+    public IndexRecommendAdapter(Context context, RecyclerView recyclerView, List<RecommendVo> data, StaggeredGridLayoutManager layoutManager ,OnRecyclerViewItemClickListener listener,OnStartDragListener dragStartListener,OnEditClickListener onEditClickListener,boolean showEdit) {
+        super(context, recyclerView, data,listener,dragStartListener);
+        this.showEdit = showEdit;
         this.layoutManager = layoutManager;
+        this.mOnEditClickListener = onEditClickListener;
         itemWidth = DensityUtil.getDensityDisplayMetrics(context).widthPixels / layoutManager.getSpanCount();
-        marginPix = context.getResources().getDimensionPixelSize(R.dimen.margin_4) * 2 + context.getResources().getDimensionPixelSize(R.dimen.margin_3) * 2;
+        marginPix = context.getResources().getDimensionPixelSize(R.dimen.margin_4) * 2 + context.getResources().getDimensionPixelSize(R.dimen.margin_5) * 2;
         imgWidth = itemWidth - marginPix;
         hExtra = context.getResources().getDimensionPixelSize(R.dimen.margin_3);
     }
@@ -64,27 +62,26 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
     }
 
     @Override
-    public void onBindViewHolder(BaseViewHolder holder, int position) {
-        super.onBindViewHolder(holder, position);
-        holder.itemView.setTag(position);
-        holder.itemView.setOnClickListener(new View.OnClickListener() {
+    public void onCustomeBindViewHolder(final BaseViewHolder holder, final int position) {
+        final IndexRecommendAdapter.NaviItemViewHolder viewHolder = (IndexRecommendAdapter.NaviItemViewHolder) holder;
+        viewHolder.ivEdit.setVisibility(showEdit?View.VISIBLE:View.GONE);
+        viewHolder.ivEdit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                if (mOnItemClickListener != null) {
-                    mOnItemClickListener.onItemClick(v, (int) v.getTag());
+                if(mOnEditClickListener!=null){
+                    mOnEditClickListener.onEditClick(viewHolder.itemView,position);
                 }
             }
         });
-        holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                if (mOnLongItemClickListener != null) {
-                    mOnLongItemClickListener.onLongItemClick(v, (int) v.getTag());
-                }
-                return true;
-            }
-        });
+    }
+    public void switchFlag(boolean flag){
+         if(showEdit!=flag) {
+             showEdit = flag;
+             notifyDataSetChanged();
+         }
+    }
+    public boolean getSwitchFlag(){
+        return showEdit;
     }
     @Override
     protected void animatePhoto(BaseViewHolder viewHolder, long animationDelay, int position) {
@@ -97,12 +94,10 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
             holder.ivTitle.setTextSize(TypedValue.COMPLEX_UNIT_PX, context.getResources().getDimensionPixelSize(R.dimen.textsize_32));
         }
         holder.ivTitle.setText(vo.title);
-        if (StringUtils.hasText(vo.color)) {
-            holder.ivPhoto.setBackgroundColor(Color.parseColor(vo.color));
-        } else {
-            String defColor = Constants.colorBg.get(position%Constants.colorBg.size());
-            holder.ivPhoto.setBackgroundColor(Color.parseColor(defColor));
+        if (!StringUtils.hasText(vo.color)) {
+            vo.color = Constants.colorBg.get(position % Constants.colorBg.size());
         }
+        holder.ivPhoto.setBackgroundColor(Color.parseColor(vo.color));
         ViewGroup.LayoutParams ivPhotoParam = holder.ivPhoto.getLayoutParams();
         ivPhotoParam.height = (int) (imgWidth * vo.rate);
         ivPhotoParam.width = imgWidth;
@@ -123,16 +118,14 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
         ShimmerTextView ivTitle;
         @Bind(R.id.iv_photo)
         ImageView ivPhoto;
-
+        @Bind(R.id.iv_edit)
+        public ImageView ivEdit;
         public NaviItemViewHolder(View view) {
             super(view);
         }
     }
-    public interface OnRecyclerViewLongItemClickListener {
-        void onLongItemClick(View view, int position);
+    public interface OnEditClickListener{
+        public void onEditClick(View view,int postion);
     }
 
-    public interface OnRecyclerViewItemClickListener {
-        void onItemClick(View view, int position);
-    }
 }

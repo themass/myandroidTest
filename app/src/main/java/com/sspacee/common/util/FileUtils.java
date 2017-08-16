@@ -2,10 +2,7 @@ package com.sspacee.common.util;
 
 import android.content.Context;
 import android.os.Environment;
-
-import com.timeline.vpn.base.MyApplication;
-import com.timeline.vpn.constant.Constants;
-
+import com.sspacee.common.CommonConstants;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -171,20 +168,20 @@ public class FileUtils {
     }
 
     public static String getCharonFilePath() {
-        return MyApplication.tmpFilePath + File.separator + Constants.LOG_FILE;
+        return CommonConstants.tmpFilePath + File.separator + CommonConstants.LOG_FILE;
 //        return context.getFilesDir().getAbsolutePath() + File.separator + LOG_FILE;
     }
 
     public static String getCharonUploadFilePath() {
-        return MyApplication.tmpFilePath + File.separator + Constants.LOG_FILE_FOR_UPLOAD;
+        return CommonConstants.tmpFilePath + File.separator + CommonConstants.LOG_FILE_FOR_UPLOAD;
     }
 
     public static String getBugFilePath() {
-        return MyApplication.tmpFilePath + File.separator + Constants.BUG_FILE;
+        return CommonConstants.tmpFilePath + File.separator + CommonConstants.BUG_FILE;
     }
 
     public static String getBugUploadFilePath() {
-        return MyApplication.tmpFilePath + File.separator + Constants.BUG_FILE_FOR_UPLOAD;
+        return CommonConstants.tmpFilePath + File.separator + CommonConstants.BUG_FILE_FOR_UPLOAD;
     }
 
     public static boolean mvFile(String srcFile, String decFile) {
@@ -216,7 +213,7 @@ public class FileUtils {
     }
 
     public static void writeLogFile(String content, String fileName) {
-        File file = new File(MyApplication.tmpFilePath, fileName);
+        File file = new File(CommonConstants.tmpFilePath, fileName);
         try {
             if (!file.exists()) {
                 LogUtil.d("Create the file:" + fileName);
@@ -233,7 +230,7 @@ public class FileUtils {
     }
 
     public static void delLogFile(String fileName) {
-        File file = new File(MyApplication.tmpFilePath, fileName);
+        File file = new File(CommonConstants.tmpFilePath, fileName);
         if (file.exists()) {
             file.delete();
         }

@@ -38,4 +38,8 @@ public class RecommendListFragment extends RecommendFragment {
     public int getSpanCount() {
         return 3;
     }
+    @Override
+    public boolean getShowEdit() {
+        return false;
+    }
 }

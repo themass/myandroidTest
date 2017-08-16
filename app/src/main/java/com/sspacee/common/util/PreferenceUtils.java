@@ -5,6 +5,8 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.preference.PreferenceManager;
 
+import java.lang.reflect.Type;
+
 public class PreferenceUtils {
     public static String getPrefString(Context context, String key,
                                        final String defaultValue) {
@@ -38,12 +40,18 @@ public class PreferenceUtils {
         final SharedPreferences settings = PreferenceManager
                 .getDefaultSharedPreferences(context);
         String data = settings.getString(key, null);
-        LogUtil.i(data);
         if (data == null)
             return null;
         return GsonUtils.getInstance().fromJson(data, t);
     }
-
+    public static <T> T getPrefObj(Context context, final String key, Type type) {
+        final SharedPreferences settings = PreferenceManager
+                .getDefaultSharedPreferences(context);
+        String data = settings.getString(key, null);
+        if (data == null)
+            return null;
+        return GsonUtils.getInstance().fromJson(data, type);
+    }
     public static boolean hasKey(Context context, final String key) {
         return PreferenceManager.getDefaultSharedPreferences(context).contains(
                 key);

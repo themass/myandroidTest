@@ -1,9 +1,6 @@
 package com.timeline.vpn.ui.main;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTabHost;
 import android.view.KeyEvent;
@@ -18,12 +15,10 @@ import android.widget.Toast;
 import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PreferenceUtils;
+import com.sspacee.yewu.ads.adview.AdsAdview;
+import com.sspacee.yewu.um.MobAgent;
 import com.timeline.vpn.R;
-import com.timeline.vpn.ads.adview.AdsAdview;
-import com.timeline.vpn.base.MyApplication;
-import com.timeline.vpn.bean.vo.UserInfoVo;
 import com.timeline.vpn.constant.Constants;
-import com.timeline.vpn.data.MobAgent;
 import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.data.config.ConfigActionJump;
 import com.timeline.vpn.data.config.LogAddTofile;
@@ -34,8 +29,6 @@ import com.timeline.vpn.ui.maintab.TabVipFragment;
 import com.timeline.vpn.ui.maintab.TabVpnFragment;
 
 import org.strongswan.android.logic.CharonVpnService;
-
-import static android.R.attr.filter;
 
 /**
  * Created by themass on 2016/3/1.
@@ -57,6 +50,8 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
         setupView();
         EventBusUtil.getEventBus().register(jump);
         EventBusUtil.getEventBus().register(logAdd);
+        EventBusUtil.getEventBus().register(this);
+        AdsAdview.initConfig(this);
         AdsAdview.init(this);
         UserLoginUtil.initData(this);
         boolean uploadLog = PreferenceUtils.getPrefBoolean(this, Constants.LOG_UPLOAD_CONFIG, false);

@@ -10,8 +10,14 @@ public class CustomeAddForm implements Serializable{
     public Integer id;
     public String title;
     public String url;
+    public String schema;
+    public int openPath;
+    public String uri;
+    public CustomeAddForm(){
 
-    public CustomeAddForm(Integer id, String title, String url) {
+    }
+    public CustomeAddForm(Integer id, String title,String url) {
+        this.id=id;
         this.title = title;
         this.url = url;
     }

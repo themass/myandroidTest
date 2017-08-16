@@ -8,9 +8,7 @@ import android.widget.Toast;
 
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.sspacee.common.net.NetUtils;
-import com.sspacee.common.net.VolleyUtils;
-import com.sspacee.common.net.request.StringRequest;
+import com.sspacee.common.CommonConstants;
 import com.sspacee.common.ui.base.LogActivity;
 import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.common.util.LogUtil;
@@ -19,6 +17,9 @@ import com.sspacee.common.weather.LocationUtils;
 import com.sspacee.common.weather.WeatherIconUtils;
 import com.sspacee.common.weather.WeatherSpider;
 import com.sspacee.common.weather.bean.WeatherInfo;
+import com.sspacee.yewu.net.NetUtils;
+import com.sspacee.yewu.net.VolleyUtils;
+import com.sspacee.yewu.net.request.StringRequest;
 import com.timeline.vpn.R;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.StaticDataUtil;
@@ -69,8 +70,8 @@ public abstract class BaseWeatherMenuActivity extends LogActivity {
                     startLocation(mCityNameStatus);
                 }
             });
-            if (StaticDataUtil.get(Constants.WEATHER_KEY, WeatherInfo.class) != null) {
-                weatherInfo = StaticDataUtil.get(Constants.WEATHER_KEY, WeatherInfo.class);
+            if (StaticDataUtil.get(CommonConstants.WEATHER_KEY, WeatherInfo.class) != null) {
+                weatherInfo = StaticDataUtil.get(CommonConstants.WEATHER_KEY, WeatherInfo.class);
                 if (weatherInfo != null && !CollectionUtils.isEmpty(weatherInfo.weather)) {
                     setWeatherIcon(WeatherIconUtils.getWeatherIcon(weatherInfo.weather.get(0).id));
                 }
@@ -131,7 +132,7 @@ public abstract class BaseWeatherMenuActivity extends LogActivity {
                 weatherInfo = WeatherSpider.getWeatherInfo(
                         BaseWeatherMenuActivity.this, result);
                 if (weatherInfo != null && !CollectionUtils.isEmpty(weatherInfo.weather)) {
-                    StaticDataUtil.add(Constants.WEATHER_KEY, weatherInfo);
+                    StaticDataUtil.add(CommonConstants.WEATHER_KEY, weatherInfo);
                     setWeatherIcon(WeatherIconUtils.getWeatherIcon(weatherInfo.weather.get(0).id));
                 }
             } catch (Exception e) {

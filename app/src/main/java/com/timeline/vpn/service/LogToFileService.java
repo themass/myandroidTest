@@ -2,7 +2,7 @@ package com.timeline.vpn.service;
 
 import android.content.Intent;
 
-import com.timeline.vpn.log.WriteThread;
+import com.sspacee.common.log.WriteThread;
 
 /**
  * Created by this on 2016/12/26.

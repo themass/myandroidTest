@@ -71,35 +71,49 @@
             android:name="AdView_CHANNEL"
             android:value="${AD_CHANNEL_VALUE}" />
 
-        <activity android:name=".ui.main.LaunchActivity">
+        <activity
+            android:name=".ui.main.LaunchActivity"
+            android:screenOrientation="portrait">
             <intent-filter tools:ignore="GoogleAppIndexingWarning">
                 <action android:name="android.intent.action.VIEW" />
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity
             android:name=".ui.main.MainFragment"
             android:label="@string/main_activity_name"
-            android:launchMode="singleTop" />
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".ui.main.MainFragmentViewPage"
             android:label="@string/main_activity_name"
-            android:launchMode="singleTop" />
-        <activity android:name=".ui.base.WebViewActivity" />
-        <activity android:name=".ui.user.LoginActivity" />
-        <activity android:name=".ui.log.FileLogActivity" />
-        <activity android:name=".ui.user.RegActivity" />
-        <activity android:name=".ui.user.AddCustomeInfoActivity" />
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".ui.base.WebViewActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"/>
+        <activity android:name=".ui.user.LoginActivity"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".ui.log.FileLogActivity"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".ui.user.RegActivity"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".ui.user.SettingActivity"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".ui.user.AddCustomeInfoActivity"
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".ui.config.BrowserConfigActivity"
             android:launchMode="singleTask"
-            android:taskAffinity="com.qq.config_browser" />
-        <activity android:name=".ui.base.CommonFragmentActivity" />
+            android:taskAffinity="com.qq.config_browser"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".ui.base.CommonFragmentActivity"
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".ui.config.QuickBrowserConfigActivity"
-            android:theme="@style/myTransparent" />
+            android:theme="@style/myTransparent"
+            android:screenOrientation="portrait"/>
 
         <service
             android:name="org.strongswan.android.logic.VpnStateService"

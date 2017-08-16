@@ -2,7 +2,7 @@ package com.timeline.vpn.task;
 
 import android.os.AsyncTask;
 
-import com.sspacee.common.net.HttpUtils;
+import com.sspacee.yewu.net.HttpUtils;
 import com.timeline.vpn.bean.vo.HostVo;
 
 /**

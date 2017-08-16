@@ -44,6 +44,12 @@
     </group>
     <group>
         <item
+            android:id="@+id/menu_setting"
+            android:icon="@drawable/ic_menu_delete"
+            android:title="@string/menu_btn_setting" />
+    </group>
+    <group>
+        <item
             android:id="@+id/menu_louout"
             android:icon="@drawable/ic_menu_delete"
             android:title="@string/menu_btn_logout"

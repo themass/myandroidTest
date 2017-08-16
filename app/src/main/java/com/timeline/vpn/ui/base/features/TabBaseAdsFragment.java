@@ -9,12 +9,12 @@ import android.view.animation.OvershootInterpolator;
 import android.widget.Toast;
 
 import com.sspacee.common.util.LogUtil;
+import com.sspacee.yewu.ads.adview.AdsAdview;
 import com.timeline.vpn.R;
-import com.timeline.vpn.ads.adview.AdsAdview;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.StaticDataUtil;
 import com.timeline.vpn.task.ScoreTask;
-import com.timeline.vpn.ui.inte.OnBackKeyUpListener;
+import com.timeline.vpn.ui.inte.OnBackKeyDownListener;
 import com.timeline.vpn.ui.main.MainFragmentViewPage;
 
 import butterknife.Bind;
@@ -23,7 +23,7 @@ import butterknife.OnClick;
 /**
  * Created by themass on 2016/3/31.
  */
-public abstract class TabBaseAdsFragment extends TabBaseFragment implements OnBackKeyUpListener {
+public abstract class TabBaseAdsFragment extends TabBaseFragment implements OnBackKeyDownListener {
     private static final int ANIM_DURATION_FAB = 400;
     @Bind(R.id.fab_up)
     public FloatingActionButton fabUp;
@@ -60,15 +60,14 @@ public abstract class TabBaseAdsFragment extends TabBaseFragment implements OnBa
     }
 
     @Override
-    public boolean onkeyBackUp() {
+    public boolean onkeyBackDown() {
         return false;
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-//        setHasOptionsMenu(true);
-        ((MainFragmentViewPage) getActivity()).setListener(this);
+        ((MainFragmentViewPage) getActivity()).addListener(this);
     }
 
     @Override

@@ -9,10 +9,10 @@ import android.widget.RelativeLayout;
 
 import com.sspacee.common.ui.base.LogActivity;
 import com.sspacee.common.util.LogUtil;
+import com.sspacee.yewu.ads.adview.AdsAdview;
+import com.sspacee.yewu.um.MobAgent;
 import com.timeline.vpn.R;
-import com.timeline.vpn.ads.adview.AdsAdview;
 import com.timeline.vpn.constant.Constants;
-import com.timeline.vpn.data.MobAgent;
 import com.timeline.vpn.task.UpdateUserTask;
 
 import butterknife.Bind;
@@ -50,7 +50,7 @@ public class LaunchActivity extends LogActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_launch);
         MobAgent.init(this);
-        AdsAdview.initConfig();
+        AdsAdview.initConfig(this);
         mHandler.postDelayed(mStartMainRunnable, Constants.STARTUP_SHOW_TIME_5000);
         ButterKnife.bind(this);
         UpdateUserTask.start(this);

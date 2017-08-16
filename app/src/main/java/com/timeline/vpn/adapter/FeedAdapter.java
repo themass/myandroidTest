@@ -89,7 +89,8 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         @Bind(R.id.tsLikesCounter)
         public TextSwitcher tsLikesCounter;
         public IWannaVo feedItem;
-
+        @Bind(R.id.iv_ok)
+        ImageView ivOk;
         public CellFeedViewHolder(View view) {
             super(view);
             ButterKnife.bind(this, view);
@@ -105,6 +106,11 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 imageView.setImageResource(R.drawable.ic_heart_small_red);
             } else {
                 imageView.setImageResource(R.drawable.ic_heart_small_blue);
+            }
+            if(feedItem.finished){
+                ivOk.setVisibility(View.VISIBLE);
+            }else{
+                ivOk.setVisibility(View.GONE);
             }
         }
 

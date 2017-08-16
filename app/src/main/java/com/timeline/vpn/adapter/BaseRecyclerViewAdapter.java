@@ -40,7 +40,7 @@ public abstract class BaseRecyclerViewAdapter<T extends BaseRecyclerViewAdapter.
     @Override
     public void onClick(View v) {
         if (listener != null)
-            listener.onItemClick(v, (V) v.getTag(R.id.tag_val), (int) v.getTag(R.id.tag_pos));
+            listener.onItemClick(v, (V)v.getTag(R.id.tag_val),(int) v.getTag(R.id.tag_pos));
     }
 
     public static abstract class BaseRecyclerViewHolder<V> extends RecyclerView.ViewHolder {
@@ -57,6 +57,9 @@ public abstract class BaseRecyclerViewAdapter<T extends BaseRecyclerViewAdapter.
             v.setTag(R.id.tag_pos, pos);
             v.setTag(R.id.tag_val, val);
         }
+    }
+    public interface OnRecyclerViewItemClickListener<T> {
+        void onItemClick(View view, T data,int position);
     }
 }
 

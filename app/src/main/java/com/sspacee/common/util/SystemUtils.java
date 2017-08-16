@@ -2,6 +2,8 @@ package com.sspacee.common.util;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.graphics.Bitmap;
@@ -13,12 +15,14 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
 
-import com.timeline.vpn.constant.Constants;
+import com.sspacee.common.CommonConstants;
 
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Locale;
+
+import static android.content.Context.CLIPBOARD_SERVICE;
 
 public class SystemUtils {
     /**
@@ -146,16 +150,16 @@ public class SystemUtils {
     }
 
     public static boolean isZH(Context context) {
-        return Constants.LANG_ZH.equals(getLang(context));
+        return CommonConstants.LANG_ZH.equals(getLang(context));
     }
 
     public static String getLang(Context context) {
         Locale locale = context.getResources().getConfiguration().locale;
         String language = locale.getLanguage();
         if (language.contains("zh"))
-            return Constants.LANG_ZH;
+            return CommonConstants.LANG_ZH;
         else
-            return Constants.LANG_US;
+            return CommonConstants.LANG_US;
     }
     public static String getCpuType() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -163,5 +167,12 @@ public class SystemUtils {
         } else {
             return Build.CPU_ABI;
         }
+    }
+    public static void copy(Context context,String text){
+        ClipboardManager myClipboard;
+        myClipboard = (ClipboardManager) context.getSystemService(CLIPBOARD_SERVICE);
+        ClipData myClip;
+        myClip = ClipData.newPlainText("text", text);
+        myClipboard.setPrimaryClip(myClip);
     }
 }

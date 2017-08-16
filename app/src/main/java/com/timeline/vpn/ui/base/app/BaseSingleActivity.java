@@ -1,6 +1,6 @@
 package com.timeline.vpn.ui.base.app;
 
-import com.timeline.vpn.data.MobAgent;
+import com.sspacee.yewu.um.MobAgent;
 import com.timeline.vpn.ui.base.features.BaseBannerAdsActivity;
 
 /**

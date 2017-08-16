@@ -16,18 +16,18 @@ import android.os.Handler;
 import android.support.v7.app.AlertDialog;
 import android.widget.Toast;
 
-import com.sspacee.common.net.HttpUtils;
-import com.sspacee.common.net.NetUtils;
-import com.sspacee.common.net.VolleyUtils;
-import com.sspacee.common.net.request.CommonResponse;
-import com.sspacee.common.net.request.GsonRequest;
 import com.sspacee.common.util.FileUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PreferenceUtils;
+import com.sspacee.yewu.net.HttpUtils;
+import com.sspacee.yewu.net.NetUtils;
+import com.sspacee.yewu.net.VolleyUtils;
+import com.sspacee.yewu.net.request.CommonResponse;
+import com.sspacee.yewu.net.request.GsonRequest;
 import com.timeline.vpn.R;
 import com.timeline.vpn.bean.vo.VersionVo;
 import com.timeline.vpn.constant.Constants;
-import com.timeline.vpn.ui.main.MainFragment;
+import com.timeline.vpn.ui.main.MainFragmentViewPage;
 
 import java.io.File;
 
@@ -207,7 +207,7 @@ public class VersionUpdater {
 
         private void showNotification(String title, String message) {
             // 创建一个NotificationManager的引用
-            Intent notificationIntent = new Intent(context, MainFragment.class); //点击该通知后要跳转的Activity
+            Intent notificationIntent = new Intent(context, MainFragmentViewPage.class); //点击该通知后要跳转的Activity
             Bundle bundle = new Bundle();
             notificationIntent.putExtras(bundle);
             notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);

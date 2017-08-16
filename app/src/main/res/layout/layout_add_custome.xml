@@ -14,22 +14,17 @@
             android:id="@+id/ll_content"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/margin_100"
+            android:layout_marginTop="@dimen/margin_80"
             android:orientation="vertical">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
-
                 <TextView
-                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:paddingLeft="@dimen/margin_10"
                     android:text="@string/title_hint"
-                    android:textColor="@color/base_red"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
+                    style="@style/tv_add_custome_title"/>
 
                 <com.sspacee.common.ui.view.MyEditText
                     android:id="@+id/et_title"
@@ -47,21 +42,13 @@
                 android:orientation="horizontal">
 
                 <TextView
-                    android:layout_width="wrap_content"
                     android:layout_height="match_parent"
-                    android:layout_marginLeft="10dp"
-                    android:layout_marginRight="40dp"
-                    android:gravity="center_vertical"
-                    android:textColor="@color/base_red"
                     android:text="@string/schema_hint"
-                    android:textStyle="bold"
-                    android:textSize="16sp" />
-
+                    style="@style/tv_add_custome_title" />
                 <RadioGroup
                     android:id="@+id/open_schema"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center"
                     android:orientation="horizontal">
 
                     <RadioButton
@@ -86,17 +73,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
-
                 <TextView
-                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:paddingLeft="@dimen/margin_10"
-                    android:textColor="@color/base_red"
                     android:text="@string/url_hint"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <com.sspacee.common.ui.view.MyEditText
+                    style="@style/tv_add_custome_title" />
+                <com.sspacee.common.ui.view.SiteAutoCompleteTextView
                     android:id="@+id/et_url"
                     style="@style/edit_login"
                     android:hint="@string/url_hint"
@@ -109,23 +90,15 @@
                 android:layout_height="wrap_content"
                 android:gravity="bottom"
                 android:orientation="horizontal">
-
                 <TextView
-                    android:layout_width="wrap_content"
                     android:layout_height="match_parent"
-                    android:layout_marginLeft="10dp"
-                    android:layout_marginRight="40dp"
-                    android:gravity="center_vertical"
-                    android:textColor="@color/base_red"
                     android:text="@string/open_hint"
-                    android:textSize="16sp"
-                    android:textStyle="bold"/>
+                    style="@style/tv_add_custome_title"/>
 
                 <RadioGroup
                     android:id="@+id/open_mode"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center"
                     android:orientation="horizontal">
 
                     <RadioButton
@@ -152,8 +125,9 @@
                 android:layout_marginTop="10dp"
                 android:background="?android:attr/selectableItemBackground"
                 android:text="@string/save"
-                android:textColor="@color/gray" />
-
+                android:textSize="@dimen/textsize_25"
+                android:padding="@dimen/margin_15"
+                android:textColor="@color/base_black" />
             <TextView
                 style="@style/tv_white_small"
                 android:layout_width="wrap_content"

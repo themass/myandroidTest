@@ -18,7 +18,6 @@ public class RecommendVo {
     public int type;
     public int showType;
     public Integer id;
-
     @Override
     public String toString() {
         return "RecommendVo{" +

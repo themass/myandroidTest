@@ -8,8 +8,8 @@ android {
         applicationId "com.timeline.vpn"
         minSdkVersion global_minSdkVersion
         targetSdkVersion global_targetSdkVersion
-        versionCode 1000002003
-        versionName "1.0.2.3"
+        versionCode 1000002007
+        versionName "1.0.2.7"
         // Enabling multidex support.
         multiDexEnabled true
     }
@@ -121,6 +121,7 @@ dependencies {
     compile 'org.greenrobot:eventbus:3.0.0'
     compile 'com.umeng.analytics:analytics:latest.integration'
     compile 'com.romainpiel.shimmer:library:1.4.0@aar'
+    compile 'com.kyleduo.switchbutton:library:1.4.6'
     //compile 'me.zhanghai.android.materialratingbar:library:1.0.2'
 
 }

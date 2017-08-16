@@ -14,12 +14,12 @@
         android:textColor="@color/new_globle_black"
         android:textSize="@dimen/textsize_18" />
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="@dimen/margin_120"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_below="@+id/tv_content"
-        android:gravity="center_vertical|left"
+        android:gravity="center_vertical"
         android:orientation="horizontal">
 
         <ImageView
@@ -35,12 +35,14 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="@dimen/margin_8"
             android:layout_marginRight="@dimen/margin_8"
+            android:layout_toRightOf="@+id/iv_heart"
             android:inAnimation="@anim/slide_in_likes_counter"
             android:outAnimation="@anim/slide_out_likes_counter">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:text="11111"
                 android:textColor="@color/text_like_counter" />
 
             <TextView
@@ -48,6 +50,13 @@
                 android:layout_height="wrap_content"
                 android:textColor="@color/text_like_counter" />
         </TextSwitcher>
-    </LinearLayout>
+        <ImageView
+            android:id="@+id/iv_ok"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="@dimen/margin_5"
+            android:src="@drawable/ic_ok" />
+    </RelativeLayout>
 
 </RelativeLayout>

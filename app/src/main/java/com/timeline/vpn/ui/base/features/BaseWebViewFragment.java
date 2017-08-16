@@ -3,9 +3,12 @@ package com.timeline.vpn.ui.base.features;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.graphics.Bitmap;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
+import android.webkit.CookieManager;
+import android.webkit.CookieSyncManager;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
@@ -14,12 +17,13 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 
-import com.sspacee.common.net.HttpUtils;
 import com.sspacee.common.ui.base.BaseFragment;
 import com.sspacee.common.ui.view.MyWebView;
 import com.sspacee.common.util.FileUtils;
 import com.sspacee.common.util.LogUtil;
+import com.sspacee.yewu.net.HttpUtils;
 import com.timeline.vpn.R;
+import com.timeline.vpn.base.MyApplication;
 import com.timeline.vpn.constant.Constants;
 
 import butterknife.Bind;
@@ -39,6 +43,7 @@ public class BaseWebViewFragment extends BaseFragment {
     private WebViewListener webViewListener;
     private int from;
     private String url;
+    CookieManager cookieManager = null;
 
     @Override
     protected int getRootViewId() {
@@ -112,6 +117,8 @@ public class BaseWebViewFragment extends BaseFragment {
 
     @SuppressLint({"JavascriptInterface", "SetJavaScriptEnabled"})
     private void init(final WebView webView) {
+        cookieManager = CookieManager.getInstance();
+        cookieManager.setAcceptCookie(true);
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
         settings.setDatabaseEnabled(false);
@@ -148,6 +155,12 @@ public class BaseWebViewFragment extends BaseFragment {
                 if (webViewListener != null) {
                     webViewListener.onPageFinished();
                 }
+                if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP){
+                    cookieManager.flush();
+                }else {
+                    CookieSyncManager.createInstance(MyApplication.getInstance());
+                    CookieSyncManager.getInstance().sync();
+                }
             }
 
             @Override
@@ -169,7 +182,6 @@ public class BaseWebViewFragment extends BaseFragment {
             }
         });
     }
-
     public void setWebViewListener(WebViewListener webViewListener) {
         this.webViewListener = webViewListener;
     }

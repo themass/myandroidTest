@@ -2,7 +2,7 @@ package com.timeline.vpn.data.config;
 
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.StringUtils;
-import com.timeline.vpn.log.ActionLog;
+import com.sspacee.common.log.ActionLog;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -13,7 +13,7 @@ import org.greenrobot.eventbus.ThreadMode;
 public class LogAddTofile {
 
     @Subscribe(threadMode = ThreadMode.BACKGROUND)
-    public void onEvent(LogAddEvent event) {
+    public void onEvent(LogUtil.LogAddEvent event) {
         LogUtil.i("LogAddTofile onEvent-" + Thread.currentThread().getName());
         String content = null;
         if (event.data == null) {

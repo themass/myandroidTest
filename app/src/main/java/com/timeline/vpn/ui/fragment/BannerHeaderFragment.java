@@ -9,9 +9,9 @@ import android.view.ViewGroup;
 
 import com.sspacee.common.ui.base.BaseFragment;
 import com.sspacee.common.util.LogUtil;
+import com.sspacee.yewu.ads.adview.AdsAdview;
+import com.sspacee.yewu.ads.adview.AdsController;
 import com.timeline.vpn.R;
-import com.timeline.vpn.ads.adview.AdsAdview;
-import com.timeline.vpn.ads.adview.AdsController;
 import com.timeline.vpn.constant.Constants;
 
 import butterknife.Bind;

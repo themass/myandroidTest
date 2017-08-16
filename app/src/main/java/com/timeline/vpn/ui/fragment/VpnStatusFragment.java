@@ -24,8 +24,8 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.sspacee.common.net.HttpUtils;
-import com.sspacee.common.net.request.CommonResponse;
+import com.sspacee.yewu.net.HttpUtils;
+import com.sspacee.yewu.net.request.CommonResponse;
 import com.sspacee.common.ui.base.BaseFragment;
 import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.R;

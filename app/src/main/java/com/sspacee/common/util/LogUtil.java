@@ -2,8 +2,7 @@ package com.sspacee.common.util;
 
 import android.util.Log;
 
-import com.timeline.vpn.base.MyApplication;
-import com.timeline.vpn.data.config.LogAddEvent;
+import com.sspacee.common.CommonConstants;
 
 /**
  * Created by themass on 2016/3/2.
@@ -20,8 +19,8 @@ public class LogUtil {
     }
 
     public static void e(String msg, Throwable t) {
-        if (!MyApplication.isDebug) {
-            EventBusUtil.getEventBus().post(new LogAddEvent(msg, t));
+        if (!CommonConstants.DEBUG) {
+            EventBusUtil.getEventBus().post(new LogUtil.LogAddEvent(msg, t));
         } else {
             Log.e(TAG, msg, t);
         }
@@ -52,18 +51,31 @@ public class LogUtil {
     }
 
     public static void e(Throwable t) {
-        if (!MyApplication.isDebug) {
-            EventBusUtil.getEventBus().post(new LogAddEvent(t));
+        if (!CommonConstants.DEBUG) {
+            EventBusUtil.getEventBus().post(new LogUtil.LogAddEvent(t));
         } else {
             Log.e(TAG, "", t);
         }
     }
 
     public static void e(String t) {
-        if (!MyApplication.isDebug) {
-            EventBusUtil.getEventBus().post(new LogAddEvent(t));
+        if (!CommonConstants.DEBUG) {
+            EventBusUtil.getEventBus().post(new LogUtil.LogAddEvent(t));
         } else {
             Log.e(TAG, t);
+        }
+    }
+    public static class LogAddEvent {
+        public Object data;
+        public Object msg;
+
+        public LogAddEvent(Object content) {
+            this.data = content;
+        }
+
+        public LogAddEvent(String msg, Object content) {
+            this.data = content;
+            this.msg = msg;
         }
     }
 }

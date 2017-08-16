@@ -15,7 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.sspacee.common.util.LogUtil;
-import com.timeline.vpn.data.MobAgent;
+import com.sspacee.yewu.um.MobAgent;
 
 /**
  * Created by themass on 2016/3/16.

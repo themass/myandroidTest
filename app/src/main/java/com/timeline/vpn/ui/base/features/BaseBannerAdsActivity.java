@@ -10,9 +10,9 @@ import android.view.animation.OvershootInterpolator;
 
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PreferenceUtils;
+import com.sspacee.yewu.ads.adview.AdsAdview;
+import com.sspacee.yewu.ads.adview.AdsController;
 import com.timeline.vpn.R;
-import com.timeline.vpn.ads.adview.AdsAdview;
-import com.timeline.vpn.ads.adview.AdsController;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.ui.base.app.BaseToolBarActivity;
 

@@ -1,5 +1,6 @@
 package com.timeline.vpn.ui.main;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
@@ -15,19 +16,30 @@ import android.widget.Toast;
 
 import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.LogUtil;
+import com.sspacee.common.util.PreferenceUtils;
+import com.sspacee.yewu.ads.adview.AdsAdview;
+import com.sspacee.yewu.um.MobAgent;
 import com.timeline.vpn.R;
-import com.timeline.vpn.ads.adview.AdsAdview;
-import com.timeline.vpn.data.MobAgent;
+import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.data.config.ConfigActionJump;
+import com.timeline.vpn.data.config.LogAddTofile;
+import com.timeline.vpn.data.config.TabChangeEvent;
+import com.timeline.vpn.service.LogUploadService;
 import com.timeline.vpn.ui.base.app.BaseDrawerActivity;
-import com.timeline.vpn.ui.inte.OnBackKeyUpListener;
+import com.timeline.vpn.ui.inte.OnBackKeyDownListener;
 import com.timeline.vpn.ui.maintab.TabCustomeFragment;
 import com.timeline.vpn.ui.maintab.TabVipFragment;
 import com.timeline.vpn.ui.maintab.TabVpnFragment;
 
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+import org.strongswan.android.logic.CharonVpnService;
+
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by themass on 2016/3/1.
@@ -35,38 +47,62 @@ import java.util.List;
 public class MainFragmentViewPage extends BaseDrawerActivity {
     public List<ItemFragment> list = new ArrayList<>();
     private long firstTime = 0;
-    private OnBackKeyUpListener keyListener;
+    private Set<OnBackKeyDownListener> keyListeners = new HashSet<>();
     private ConfigActionJump jump = new ConfigActionJump();
+    private LogAddTofile logAdd = new LogAddTofile();
     private Toast destoryToast = null;
     private TabLayout mTabLayout;
     private ViewPager mViewPager;
     private MyPagerAdapter myPagerAdapter;
     private String POSITION = "POSITION";
-
+    private int index = 0;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_main_viewpage);
         setupView();
+        startService(CharonVpnService.class);
+        startService(CharonVpnService.class);
         EventBusUtil.getEventBus().register(jump);
+        EventBusUtil.getEventBus().register(logAdd);
+        AdsAdview.initConfig(this);
         AdsAdview.init(this);
         UserLoginUtil.initData(this);
+        boolean uploadLog = PreferenceUtils.getPrefBoolean(this, Constants.LOG_UPLOAD_CONFIG, false);
+        if (uploadLog) {
+            startService(new Intent(this, LogUploadService.class));
+        }
         destoryToast = Toast.makeText(this, R.string.close_over, Toast.LENGTH_SHORT);
     }
-
-    public void setListener(OnBackKeyUpListener keyListener) {
-        this.keyListener = keyListener;
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(TabChangeEvent event) {
+        initTabs();
+        LogUtil.i("onEvent:initTabs");
+//        myPagerAdapter.notifyDataSetChanged();
     }
-
+    public void addListener(OnBackKeyDownListener keyListener) {
+        keyListeners.add(keyListener);
+    }
+    public void removeListener(OnBackKeyDownListener keyListener) {
+        keyListeners.remove(keyListener);
+    }
     private void setupView() {
         mTabLayout = (TabLayout) findViewById(R.id.tabs);
+        mViewPager = (ViewPager) findViewById(R.id.vp_view);
+        initTabs();
+    }
+
+    private void initTabs(){
+        list.clear();
         LayoutInflater inflater = LayoutInflater.from(this);
         addData(inflater, R.string.tab_tag_index, TabVpnFragment.class,
-                R.drawable.ac_bg_tab_index, R.string.tab_index, null);
-        addData(inflater, R.string.tab_tag_vip, TabVipFragment.class,
-                R.drawable.ac_bg_tab_index, R.string.tab_vip, null);
+                R.drawable.ac_bg_tab_index, R.string.tab_index, null,1);
+        if(PreferenceUtils.getPrefBoolean(this, Constants.AREA_SWITCH, true)) {
+            addData(inflater, R.string.tab_tag_vip, TabVipFragment.class,
+                    R.drawable.ac_bg_tab_index, R.string.tab_vip, null,2);
+        }
         addData(inflater, R.string.tab_tag_customer, TabCustomeFragment.class,
-                R.drawable.ac_bg_tab_index, R.string.tab_customer, null);
-        mViewPager = (ViewPager) findViewById(R.id.vp_view);
+                R.drawable.ac_bg_tab_index, R.string.tab_customer, null,3);
+
         myPagerAdapter = new MyPagerAdapter(getSupportFragmentManager());
         mViewPager.setAdapter(myPagerAdapter);
         mTabLayout.setupWithViewPager(mViewPager);//将TabLayout和ViewPager关联起来。
@@ -75,12 +111,10 @@ public class MainFragmentViewPage extends BaseDrawerActivity {
             TabLayout.Tab tab = mTabLayout.getTabAt(i);
             tab.setCustomView(myPagerAdapter.getTabView(i, (i == 0)));
         }
-
     }
-
     private void addData(LayoutInflater inflater, int tag, Class<? extends Fragment> clss,
-                         int icon, int title, Bundle args) {
-        list.add(new ItemFragment(tag, clss, icon, title, args));
+                         int icon, int title, Bundle args,int abslIndex) {
+        list.add(new ItemFragment(tag, clss, icon, title, args,abslIndex));
 
     }
 
@@ -99,17 +133,29 @@ public class MainFragmentViewPage extends BaseDrawerActivity {
     @Override
     public void onDestroy() {
         LogUtil.i("main destory");
+        stopService(CharonVpnService.class);
+        stopService(LogUploadService.class);
         EventBusUtil.getEventBus().unregister(jump);
+        EventBusUtil.getEventBus().unregister(logAdd);
         super.onDestroy();
         MobAgent.killProcess(this);
         System.exit(0);
     }
 
     @Override
-    public boolean onKeyUp(int keyCode, KeyEvent event) {
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        LogUtil.i("onKeyUp");
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            if (keyListener != null) {
-                keyListener.onkeyBackUp();
+            boolean flag = false;
+            for(OnBackKeyDownListener l :keyListeners){
+                flag = flag||l.onkeyBackDown();
+            }
+            if (flag) {
+                return true;
+            }
+            if (CharonVpnService.VPN_STATUS_NOTIF) {
+                moveTaskToBack(true);
+                return true;
             }
             long secondTime = System.currentTimeMillis();
             if (secondTime - firstTime > 2000) {
@@ -119,12 +165,11 @@ public class MainFragmentViewPage extends BaseDrawerActivity {
             } else {
                 //两次按键小于2秒时，退出应用
                 destoryToast.cancel();
-                super.onKeyUp(keyCode, event);
+                super.onKeyDown(keyCode, event);
             }
         }
-        return super.onKeyUp(keyCode, event);
+        return super.onKeyDown(keyCode, event);
     }
-
     public class ViewPagerOnTabSelectedListener implements TabLayout.OnTabSelectedListener {
         private final ViewPager mViewPager;
 
@@ -137,6 +182,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity {
             LogUtil.i("select:" + tab.getPosition());
             mViewPager.setCurrentItem(tab.getPosition());
             setToolbarTitle(getString(list.get(tab.getPosition()).title),false);
+            index = tab.getPosition();
         }
 
         @Override
@@ -159,6 +205,11 @@ public class MainFragmentViewPage extends BaseDrawerActivity {
         @Override
         public int getCount() {
             return list.size();
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return list.get(position).abslIndex;
         }
 
         @Override
@@ -190,13 +241,15 @@ public class MainFragmentViewPage extends BaseDrawerActivity {
         public int icon;
         public int title;
         public Bundle args;
+        public int abslIndex;
 
-        public ItemFragment(int tag, Class<? extends Fragment> clss, int icon, int title, Bundle args) {
+        public ItemFragment(int tag, Class<? extends Fragment> clss, int icon, int title, Bundle args,int abslIndex) {
             this.tag = tag;
             this.clss = clss;
             this.icon = icon;
             this.title = title;
             this.args = args;
+            this.abslIndex = abslIndex;
 
         }
     }
