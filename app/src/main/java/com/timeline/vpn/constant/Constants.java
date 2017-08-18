@@ -34,6 +34,7 @@ public class Constants {
     public static final String HTTP_URL = "http";
     public static final String HTTPS_URL = "https";
     public static final String BROWSER_URL = "browser";
+    public static final String SOUND_URL = "sound";
     public static final String URL_TMP = "://";
     //location
     public static final String LOCATION_CHOOSE = "LOCATION_CHOOSE";
@@ -87,6 +88,8 @@ public class Constants {
     public static final String API_VERSION_URL = "/data/version.json";
     public static final String API_RECOMMEND_URL = "/data/recommend.json?start=%s&limit=20";
     public static final String API_VIP_URL = "/data/recommend/vip.json?start=%s&limit=20";
+    public static final String API_SOUND_CHANNLE_URL = "/sound/channle.json?start=%s&limit=20";
+    public static final String API_SOUND_ITEMS_URL = "/sound/items.json?start=%s&limit=20&channel=%s";
     public static final String API_CUSTOME_URL = "/data/recommend/custome.json?start=%s&limit=100";
     public static final String API_LOGOUT_URL = "/user/logout.json";
     public static final String API_LEAK_URL = "/monitor/leak.json";
@@ -127,7 +130,12 @@ public class Constants {
     public static String getUrl(String uri) {
         return "http://" + BASE_IP + "/vpn/api" + uri;
     }
-
+    public static String getPage_URL(String url,int start) {
+        return String.format(getUrl(url), start);
+    }
+    public static String getPageWithParam_URL(String url,int start,String param) {
+        return String.format(getUrl(url), start,param);
+    }
     public static String getRECOMMEND_URL(int start) {
         return String.format(getUrl(API_RECOMMEND_URL), start);
     }

@@ -1,11 +1,13 @@
 package com.timeline.vpn.bean.vo;
 
+import java.io.Serializable;
+
 /**
  * @author themass
  * @version V1.0
  * @date 2016年3月10日 下午4:41:23
  */
-public class RecommendVo {
+public class RecommendVo implements Serializable {
     public String title;
     public String actionUrl;
     public String img;
@@ -18,6 +20,7 @@ public class RecommendVo {
     public int type;
     public int showType;
     public Integer id;
+    public String param;
     @Override
     public String toString() {
         return "RecommendVo{" +

@@ -14,7 +14,7 @@ import com.timeline.vpn.ui.inte.FabOpListener;
 public class CommonFragmentActivity extends BaseFragmentActivity implements FabOpListener.OnFabListener {
     public static final String FRAGMENT = "FRAGMENT";
     public static final String TITLE = "TITLE";
-
+    public static final String PARAM = "PARAM";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -25,6 +25,11 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
         Fragment fragment = null;
         try {
             fragment = (Fragment) f.newInstance();
+            if(getIntent().getSerializableExtra(PARAM)!=null) {
+                Bundle bundle = new Bundle();
+                bundle.putSerializable(PARAM, getIntent().getSerializableExtra(PARAM));
+                fragment.setArguments(bundle);
+            }
             if (fragment instanceof FabOpListener.SetFabListener) {
                 ((FabOpListener.SetFabListener) fragment).setFabUpListener(this);
             }

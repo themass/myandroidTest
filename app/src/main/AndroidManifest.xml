@@ -103,6 +103,8 @@
             android:screenOrientation="portrait"/>
         <activity android:name=".ui.user.AddCustomeInfoActivity"
             android:screenOrientation="portrait"/>
+        <activity android:name=".ui.sound.SoundChannleActivity"
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".ui.config.BrowserConfigActivity"
             android:launchMode="singleTask"

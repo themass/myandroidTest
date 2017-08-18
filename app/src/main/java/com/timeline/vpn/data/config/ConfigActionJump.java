@@ -3,11 +3,14 @@ package com.timeline.vpn.data.config;
 import android.content.Intent;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
+import android.widget.Toast;
 
 import com.sspacee.common.util.LogUtil;
+import com.timeline.vpn.R;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.ui.base.WebViewActivity;
 import com.timeline.vpn.ui.config.QuickBrowserConfigActivity;
+import com.timeline.vpn.ui.sound.SoundChannleActivity;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -30,6 +33,7 @@ public class ConfigActionJump {
         configMap.put(Constants.HTTP_URL, WebViewActivity.class);
         configMap.put(Constants.HTTPS_URL, WebViewActivity.class);
         configMap.put(Constants.BROWSER_URL, QuickBrowserConfigActivity.class);
+        configMap.put(Constants.SOUND_URL, SoundChannleActivity.class);
     }
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(ConfigActionEvent event) {
@@ -50,8 +54,9 @@ public class ConfigActionJump {
             intent.putExtra(Constants.ADS_POP_SHOW_CONFIG, adsPopShow);
             intent.putExtra(Constants.CONFIG_PARAM, param);
             intent.putExtra(Constants.TITLE, event.title);
-
             event.context.startActivity(intent);
+        }else{
+            Toast.makeText(event.context, R.string.version_low,Toast.LENGTH_SHORT).show();
         }
     }
 

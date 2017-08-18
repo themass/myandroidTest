@@ -100,6 +100,8 @@
     <string name="iwanna_content_success">I got it !</string>
     <string name="vip_need">Non VIP users are not allowed to visit</string>
     <string name="area">Area Switch</string>
+    <string name="sound">Fly to the Sky</string>
+    <string name="version_low">version is to low！</string>
     <!-- error-->
     <string name="error_getlocation_fail">Failed to obtain location information！</string>
     <string name="error_network_unknown">Connection server error, please check your network connection or try again later.</string>

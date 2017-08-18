@@ -38,6 +38,7 @@
     <dimen name="margin_18">18dip</dimen>
     <dimen name="margin_22">22dip</dimen>
     <dimen name="margin_25">25dip</dimen>
+    <dimen name="margin_40">40dip</dimen>
     <dimen name="margin_120">120dip</dimen>
     <dimen name="margin_100">100dip</dimen>
     <dimen name="margin_80">80dip</dimen>
