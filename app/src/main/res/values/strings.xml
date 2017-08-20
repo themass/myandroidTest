@@ -30,7 +30,7 @@
     <string name="app_name">FreeVPN</string>
     <string name="main_activity_name">FreeVPN</string>
     <string name="toobar_title">FreeVPN</string>
-    <string name="load">loading</string>
+    <string name="load">loading more data</string>
     <string name="off">off</string>
     <string name="on">on</string>
     <!-- 地区选择-->
@@ -100,7 +100,7 @@
     <string name="iwanna_content_success">I got it !</string>
     <string name="vip_need">Non VIP users are not allowed to visit</string>
     <string name="area">Area Switch</string>
-    <string name="sound">Fly to the Sky</string>
+    <string name="sound">Obscene</string>
     <string name="version_low">version is to low！</string>
     <!-- error-->
     <string name="error_getlocation_fail">Failed to obtain location information！</string>
@@ -170,6 +170,7 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="no_browser">no brower find</string>
     <string name="edit">edit</string>
     <string name="delete">delete</string>
+    <string name="no_select">no selected</string>
     <!-- vpn error text -->
     <string name="error_lookup_failed">Gateway address lookup failed.</string>
     <string name="error_unreachable">Gateway is unreachable.</string>

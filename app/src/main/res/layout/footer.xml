@@ -4,7 +4,8 @@
     android:layout_height="wrap_content"
     android:gravity="center"
     android:paddingBottom="8dip"
-    android:paddingTop="5dip">
+    android:paddingTop="5dip"
+    android:background="@color/base_gray">
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -25,7 +26,7 @@
             android:layout_gravity="center"
             android:text="@string/load"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:textColor="@android:color/darker_gray"
+            android:textColor="@android:color/white"
             android:textSize="@dimen/loading_footer"
             android:textStyle="bold" />
     </LinearLayout>

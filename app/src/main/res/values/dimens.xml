@@ -39,6 +39,7 @@
     <dimen name="margin_22">22dip</dimen>
     <dimen name="margin_25">25dip</dimen>
     <dimen name="margin_40">40dip</dimen>
+    <dimen name="margin_48">48dip</dimen>
     <dimen name="margin_120">120dip</dimen>
     <dimen name="margin_100">100dip</dimen>
     <dimen name="margin_80">80dip</dimen>
@@ -58,4 +59,10 @@
     <dimen name="remote_vpn_content">14sp</dimen>
     <dimen name="recommend_hit_size">12sp</dimen>
     <dimen name="toolbar_title_size">22sp</dimen>
+
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+    <dimen name="cover_size_mini">40dp</dimen>
+    <dimen name="inner_padding">3dp</dimen>
+    <dimen name="fab_vertical_margin">-20dp</dimen>
 </resources>

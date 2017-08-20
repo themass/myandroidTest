@@ -37,6 +37,8 @@ public class SoundChannleBodyFragment extends RecommendFragment {
         RecommendVo vo = infoVo.voList.get(position);
         SoundItemsFragment.startFragment(getActivity(),vo);
         MobAgent.onEventRecommond(getActivity(), vo.title);
+//        StaticDataUtil.add(Constants.SOUND_CHANNEL,infoVo.voList.get(position));
+//        startActivity(SoundListActivity.class);
     }
 
     @Override

@@ -9,6 +9,8 @@ import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.TranslateAnimation;
 import android.widget.LinearLayout;
 
 import com.timeline.vpn.R;
@@ -29,7 +31,9 @@ public class MyPullView extends LinearLayout {
     @Bind(R.id.srl_layout)
     SwipeRefreshLayout refreshLayout;
     private OnRefreshListener listener;
-
+//    Snackbar bar = null;
+    TranslateAnimation mShowAction;
+    TranslateAnimation mHiddenAction;
     public MyPullView(Context context) {
         super(context);
         setupView();
@@ -75,12 +79,12 @@ public class MyPullView extends LinearLayout {
                         int lastitem = Math.max(visibleItems[0], visibleItems[1]);
                         if ((lastitem > count - 5) && listener.needLoad()) {
                             loadData(OnRefreshListener.LOADMORE);
-                            footerView.setVisibility(View.VISIBLE);
+                            showLoadingLabel();
                         }
                     } else if (rvContent.getLayoutManager() instanceof LinearLayoutManager) {
                         if ((((LinearLayoutManager) rvContent.getLayoutManager()).findLastVisibleItemPosition() > count - 3) && listener.needLoad()) {
                             loadData(OnRefreshListener.LOADMORE);
-                            footerView.setVisibility(View.VISIBLE);
+                            showLoadingLabel();
                         }
                     }
                 }
@@ -88,6 +92,34 @@ public class MyPullView extends LinearLayout {
         });
         DividerItemDecoration itemDecoration = new DividerItemDecoration(getContext(), LinearLayoutManager.VERTICAL, R.drawable.divider_item);
         rvContent.addItemDecoration(itemDecoration);
+        mShowAction = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0.0f,
+                Animation.RELATIVE_TO_SELF, 0.0f,Animation.RELATIVE_TO_SELF,
+                1.0f,Animation.RELATIVE_TO_SELF, 0.0f);
+        mShowAction.setDuration(500);
+        mHiddenAction = new TranslateAnimation(Animation.RELATIVE_TO_SELF,
+                0.0f, Animation.RELATIVE_TO_SELF, 0.0f,
+                Animation.RELATIVE_TO_SELF, 0.0f, Animation.RELATIVE_TO_SELF,
+                1.0f);
+        mHiddenAction.setDuration(500);
+//        bar = Snackbar.make(rvContent,R.string.load,Snackbar.LENGTH_INDEFINITE);
+//        View view = bar.getView();//获取Snackbar的view
+//        if(view!=null){
+//            view.setBackgroundColor(getResources().getColor(R.color.style_color_primary));//修改view的背景色
+//            ((TextView) view.findViewById(R.id.snackbar_text)).setTextColor(getResources().getColor(R.color.fab_color_shadow));//获取Snackbar的message控件，修改字体颜色
+//        }
+    }
+
+    public void showLoadingLabel() {
+        footerView.startAnimation(mShowAction);
+        footerView.setVisibility(View.VISIBLE);
+//        if(bar!=null&&!bar.isShown())
+//            bar.show();
+    }
+    public  void hindLoadingLabel(){
+        footerView.startAnimation(mHiddenAction);
+       footerView.setVisibility(View.GONE);
+//        if(bar!=null&&bar.isShown())
+//            bar.dismiss();
     }
     public void setLongClickListener(OnLongClickListener l){
         rvContent.setOnLongClickListener(l);
@@ -101,7 +133,7 @@ public class MyPullView extends LinearLayout {
             listener.onRefresh(type);
         } else {
             refreshLayout.setRefreshing(false);
-            footerView.setVisibility(View.GONE);
+            hindLoadingLabel();
         }
     }
 
@@ -111,6 +143,7 @@ public class MyPullView extends LinearLayout {
 
     public boolean isLoadMore() {
         return footerView.getVisibility() == View.VISIBLE;
+//        return bar.isShown();
     }
 
     public RecyclerView getRecyclerView() {
@@ -131,7 +164,7 @@ public class MyPullView extends LinearLayout {
 
     public void notifyDataSetChanged() {
         refreshLayout.setRefreshing(false);
-        footerView.setVisibility(View.GONE);
+        hindLoadingLabel();
         rvContent.getAdapter().notifyDataSetChanged();
     }
 

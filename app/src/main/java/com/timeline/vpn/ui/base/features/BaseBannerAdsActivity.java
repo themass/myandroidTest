@@ -3,6 +3,8 @@ package com.timeline.vpn.ui.base.features;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
+import android.support.design.widget.AppBarLayout;
+import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,12 +31,17 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
     public ViewGroup flBanner;
     @Bind(R.id.fab_up)
     public FloatingActionButton fabUp;
+    @Bind(R.id.ct_bar)
+    public CollapsingToolbarLayout ctBar;
     private AdsGoneTask task = new AdsGoneTask();
     protected Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             LogUtil.i("handleMessage-" + msg.what);
-            mHandler.postDelayed(task, Constants.BANNER_ADS_GONE_LONG);
+//            mHandler.postDelayed(task, Constants.BANNER_ADS_GONE_LONG);
+            if(msg.what==Constants.ADS_NO_MSG ||msg.what==Constants.ADS_DISMISS_MSG){
+                mHandler.postDelayed(task, 0);
+            }
         }
     };
 
@@ -44,10 +51,17 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
         getLayoutInflater().inflate(layoutResID, (ViewGroup) findViewById(R.id.fl_content), true);
         bindViews();
         setupToolbar();
+
         fabUp.setVisibility(View.GONE);
         flBanner.setBackgroundResource(R.color.base_white);
     }
+    public void disableScrollBanner(){
+        AppBarLayout.LayoutParams params =
+                (AppBarLayout.LayoutParams) ctBar.getLayoutParams();
+        params.setScrollFlags(AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS);
+        ctBar.setLayoutParams(params);
 
+    }
     public void setContentViewWithoutInject(int layoutResID) {
         super.setContentViewWithoutInject(R.layout.base_fragment);
         getLayoutInflater().inflate(layoutResID, (ViewGroup) findViewById(R.id.fl_content), true);
@@ -92,6 +106,7 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
     @Override
     public void showAds(Context context) {
         if (needShow(context)) {
+            LogUtil.i("显示广告啦");
             AdsAdview.bannerAds(context, flBanner, mHandler, Constants.ADS_ADVIEW_KEY_ACTIVITY);
         } else {
             flBanner.setVisibility(View.GONE);

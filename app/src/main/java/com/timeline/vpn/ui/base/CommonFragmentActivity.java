@@ -1,5 +1,6 @@
 package com.timeline.vpn.ui.base;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 
@@ -15,12 +16,19 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
     public static final String FRAGMENT = "FRAGMENT";
     public static final String TITLE = "TITLE";
     public static final String PARAM = "PARAM";
+    public static final String ADS = "ADS";
+    public static final String ADSSCROLL = "ADSSCROLL";
+    private Boolean showAds=null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.common_fragment);
-
+        boolean scroll = getIntent().getBooleanExtra(ADSSCROLL,true);
+        if(!scroll){
+            disableScrollBanner();
+        }
         Class f = (Class) getIntent().getSerializableExtra(FRAGMENT);
+        showAds = getIntent().getBooleanExtra(ADS,false);
         Integer title = getIntent().getIntExtra(TITLE, 0);
         Fragment fragment = null;
         try {
@@ -42,5 +50,13 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
         if (title != 0) {
             setToolbarTitle(title,true);
         }
+    }
+
+    @Override
+    public boolean needShow(Context context) {
+        if(showAds!=null){
+            return  showAds;
+        }
+        return super.needShow(context);
     }
 }

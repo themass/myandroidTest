@@ -24,9 +24,10 @@
     <color name="btn_context_menu_text_red">#ffff0000</color>
     <color name="btn_default_light_normal">#00000000</color>
     <color name="btn_default_light_pressed">#40ffffff</color>
-
+    <color name="colorPane">#33C2CAC9</color>
     <color name="fab_color_pressed">#007787</color>
     <color name="fab_color_shadow">#44000000</color>
+    <color name="main_dark">#FF535353</color>
     <!-- base color-->
     <color name="base_white">#ffffff</color>
     <color name="base_red">#ff0000</color>

@@ -15,7 +15,7 @@ public class Constants {
     public static final String URL = "url";
     public static final int STARTUP_SHOW_TIME_5000 = 5000; //启动页广告时长
     public static final int STARTUP_SHOW_TIME_8000 = 8000; //启动页广告时长
-    public static final int BANNER_ADS_GONE_LONG = 80000; //广告显示时长
+    public static final int BANNER_ADS_GONE_LONG = 180000; //广告显示时长
     public static final int BANNER_ADS_GONE_LONG_LONG = 240000; //广告显示时长
     public static final int BANNER_ADS_GONE_SHORT = 5000; //启动页广告时长
     public static final int VIP_SHIMMER_DURATION = 2300;
@@ -112,7 +112,7 @@ public class Constants {
     public static final String ADSSHOW = "ADSSHOW";
     public static final String FILE_UPLOAD = "fileList";
     public static final String FILE_TMP_PATH = "freeVPN";
-
+    public static final String SOUND_CHANNEL="SOUND_CHANNEL";
     public static final String SCORE_TMP = "SCORE_TMP";
     public static final String SCORE_CLICK = "SCORE_CLICK";
     public static final long SCORE_CLICK_INTERVAL = 3;

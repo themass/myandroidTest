@@ -16,4 +16,7 @@
     <declare-styleable name="Fragment">
         <attr name="read_only" format="boolean" />
     </declare-styleable>
+    <declare-styleable name="ProgressView">
+        <attr name="morph" format="integer" />
+    </declare-styleable>
 </resources>

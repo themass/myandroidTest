@@ -19,11 +19,11 @@ public class SoundChannleActivity extends BaseFragmentActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.common_fragment);
-
+        setFabUpVisibility(View.VISIBLE);
         Fragment fragment = null;
         try {
             fragment = (Fragment) SoundChannleBodyFragment.class.newInstance();
-            setFabUpVisibility(View.GONE);
+
         } catch (Exception e) {
             LogUtil.e(e);
         }

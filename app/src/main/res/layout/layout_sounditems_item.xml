@@ -8,7 +8,7 @@
     android:clickable="true"
     android:background="?android:attr/selectableItemBackground">
     <TextView
-        android:paddingLeft="@dimen/margin_8"
+        android:layout_marginLeft="@dimen/margin_8"
         android:id="@+id/tv_index"
         android:layout_width="@dimen/margin_40"
         android:layout_height="wrap_content"
@@ -20,13 +20,24 @@
         android:layout_height="wrap_content"
         android:textSize="@dimen/textsize_18"
         android:textStyle="bold"/>
+
     <TextView
-        android:layout_toRightOf="@+id/tv_name"
         android:id="@+id/tv_date"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:gravity="right"
         android:layout_height="wrap_content"
         android:textSize="@dimen/textsize_18"
         android:paddingRight="@dimen/margin_8"
+        android:text="1111"
         android:layout_alignParentRight="true"/>
+    <ImageView
+        android:layout_toLeftOf="@+id/tv_date"
+        android:id="@+id/iv_song"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/song_play_icon"
+        android:visibility="gone"
+        android:layout_marginRight="@dimen/margin_8"
+        android:layout_centerVertical="true"
+        />
 </RelativeLayout>
