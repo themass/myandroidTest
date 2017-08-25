@@ -305,6 +305,9 @@ public class PlayService extends Service {
 			if (currentTime > 0) { // 如果音乐不是从头播放
 				mediaPlayer.seekTo(currentTime);
 			}
+			Intent intent1 = new Intent();
+			intent1.setAction(MUSIC_PREPARED);
+			sendBroadcast(intent1);
 			Intent intent = new Intent();
 			intent.setAction(MUSIC_DURATION);
 			duration = mediaPlayer.getDuration();

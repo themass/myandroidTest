@@ -50,15 +50,15 @@
     <string name="menu_btn_about">关于</string>
     <string name="menu_btn_share">分享</string>
     <string name="menu_btn_bug">报告bug</string>
-    <string name="menu_btn_version">版本:%1$s</string>
+    <string name="menu_btn_version">版本:</string>
     <string name="menu_btn_logout">退出</string>
     <string name="menu_btn_setting">设置</string>
 
     <string name="menu_btn_about_context">FreeVPN最稳定，免费，不限时，一切为你请点赞！</string>
     <string name="feed_back">信息反馈</string>
-    <string name="menu_btn_score">积分：%s</string>
-    <string name="menu_btn_networking">用量：%s</string>
-    <string name="menu_btn_timeuse">用时：%s</string>
+    <string name="menu_btn_score">积分:</string>
+    <string name="menu_btn_networking">用量:</string>
+    <string name="menu_btn_timeuse">用时:</string>
     <string name="menu_btn_score_context">积分可换VIP，详见“关于”</string>
     <string name="menu_btn_report_log">我们已收到您的问题！</string>
     <string name="menu_btn_country">地区 ：</string>
@@ -98,8 +98,11 @@
     <string name="iwanna_content_error">请告诉我你的需求!</string>
     <string name="iwanna_content_success">我已收到你的请求 !</string>
     <string name="vip_need">非VIP用户不允许访问,详见“关于”</string>
-    <string name="area">专区开关</string>
+    <string name="area_setting">是否显示专区</string>
+    <string name="sound_setting">音频非wifi网络下提示</string>
+    <string name="sound_play_not_wifi">非wifi下听音频？</string>
     <string name="sound">淫声荡语</string>
+    <string name="text">情趣小说</string>
     <string name="version_low">版本太低，请升级！</string>
     <string name="no_select">未选择</string>
     <!-- 通用错误提示 -->

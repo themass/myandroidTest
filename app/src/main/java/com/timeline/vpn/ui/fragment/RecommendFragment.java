@@ -9,6 +9,7 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.helper.ItemTouchHelper;
@@ -19,6 +20,7 @@ import android.view.ViewGroup;
 import com.sspacee.common.helper.OnStartDragListener;
 import com.sspacee.common.helper.SimpleItemTouchHelperCallback;
 import com.sspacee.common.ui.view.MyPullView;
+import com.sspacee.common.ui.view.RecycleViewDivider;
 import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.um.MobAgent;
@@ -122,6 +124,7 @@ public abstract class RecommendFragment extends LoadableFragment<InfoListVo<Reco
         indexService.setup(getActivity());
         pullView.setListener(this);
         pullView.setAdapter(adapter);
+        pullView.getRecyclerView().addItemDecoration(new RecycleViewDivider(mContext, LinearLayoutManager.VERTICAL));
         switchFlag(false);
         getActivity().bindService(new Intent(getActivity(), VpnStateService.class),
                 mServiceConnection, Service.BIND_AUTO_CREATE);

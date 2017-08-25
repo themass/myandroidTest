@@ -9,6 +9,8 @@ import com.timeline.vpn.R;
 import com.timeline.vpn.ui.base.app.BaseFragmentActivity;
 import com.timeline.vpn.ui.inte.FabOpListener;
 
+import java.io.Serializable;
+
 /**
  * Created by themass on 2016/9/5.
  */
@@ -18,18 +20,30 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
     public static final String PARAM = "PARAM";
     public static final String ADS = "ADS";
     public static final String ADSSCROLL = "ADSSCROLL";
+    public static final String SLIDINGCLOSE="SLIDINGCLOSE";
+    public static final String TOOLBAR_SHOW = "TOOLBAR_SHOW";
     private Boolean showAds=null;
+    private Boolean slidingClose=false;
+    private Boolean toolbarShow = true;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        slidingClose = getIntent().getBooleanExtra(SLIDINGCLOSE,true);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.common_fragment);
         boolean scroll = getIntent().getBooleanExtra(ADSSCROLL,true);
+        toolbarShow = getIntent().getBooleanExtra(TOOLBAR_SHOW,true);
         if(!scroll){
             disableScrollBanner();
         }
         Class f = (Class) getIntent().getSerializableExtra(FRAGMENT);
         showAds = getIntent().getBooleanExtra(ADS,false);
-        Integer title = getIntent().getIntExtra(TITLE, 0);
+        String title=null;
+        Serializable name = getIntent().getSerializableExtra(TITLE);
+        if(name instanceof  String){
+            title=(String)name;
+        }else if(name instanceof Integer){
+            title = getString((Integer)name);
+        }
         Fragment fragment = null;
         try {
             fragment = (Fragment) f.newInstance();
@@ -47,7 +61,7 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
         getSupportFragmentManager().beginTransaction()
                 .add(R.id.fragment, fragment)
                 .commitAllowingStateLoss();
-        if (title != 0) {
+        if (title != null) {
             setToolbarTitle(title,true);
         }
     }
@@ -58,5 +72,10 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
             return  showAds;
         }
         return super.needShow(context);
+    }
+
+    @Override
+    protected boolean enableSliding() {
+        return slidingClose;
     }
 }

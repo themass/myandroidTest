@@ -33,6 +33,20 @@
     <style name="AppTheme.TransparentActivity.FullScreen">
         <item name="android:windowFullscreen">true</item>
     </style>
+
+    <!--slidingclose-->
+
+    <style name="AppTheme.Slide" parent="@style/AppTheme.TransparentActivity">
+        <!--Required-->
+        <item name="android:windowAnimationStyle">@style/AppTheme.Slide.Animation</item>
+    </style>
+    <style name="AppTheme.Slide.Animation" parent="@android:style/Animation.Activity">
+        <item name="android:activityOpenEnterAnimation">@anim/anim_slide_in</item>
+        <item name="android:activityOpenExitAnimation">@anim/anim_slide_out</item>
+        <item name="android:activityCloseEnterAnimation">@anim/anim_slide_in</item>
+        <item name="android:activityCloseExitAnimation">@anim/anim_slide_out</item>
+    </style>
+
     <style name="OverflowMenuStyle" parent="@style/Widget.AppCompat.PopupMenu.Overflow">
         <!-- 是否覆盖锚点，默认为true，即盖住Toolbar -->
         <item name="overlapAnchor">false</item>
@@ -85,7 +99,7 @@
         <item name="android:layout_height">1dip</item>
         <item name="android:layout_width">match_parent</item>
         <item name="android:contentDescription">@string/app_name</item>
-        <item name="android:background">@color/line_login</item>
+        <item name="android:background">@color/tab_widget_text_color</item>
     </style>
 
     <style name="btn_blue">
@@ -175,4 +189,11 @@
         <item name="tabMode">fixed</item>
         <item name="tabGravity">fill</item>
     </style>
+
+    <style name="tv_setting">
+        <item name="android:textSize">@dimen/textsize_18</item>
+        <item name="android:textColor">@color/new_deep_black</item>
+    </style>
+
+
 </resources>

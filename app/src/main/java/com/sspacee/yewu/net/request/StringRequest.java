@@ -1,26 +1,20 @@
 package com.sspacee.yewu.net.request;
 
+import android.content.Context;
+
 import com.android.volley.NetworkResponse;
-import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.toolbox.HttpHeaderParser;
 
 import java.io.UnsupportedEncodingException;
 
-public class StringRequest extends Request<String> {
-    private final Response.Listener<String> mListener;
-
-    public StringRequest(int method, String url, Response.Listener<String> listener, Response.ErrorListener errorListener) {
-        super(method, url, errorListener);
-        this.mListener = listener;
+public class StringRequest extends BaseRequest<String> {
+    public StringRequest(Context context,int method, String url, Response.Listener<String> listener, Response.ErrorListener errorListener) {
+        super(context,method, url,null, listener,errorListener);
     }
 
-    public StringRequest(String url, Response.Listener<String> listener, Response.ErrorListener errorListener) {
-        this(0, url, listener, errorListener);
-    }
-
-    protected void deliverResponse(String response) {
-        this.mListener.onResponse(response);
+    public StringRequest(Context context,String url, Response.Listener<String> listener, Response.ErrorListener errorListener) {
+        this(context,Method.GET, url, listener, errorListener);
     }
 
     protected Response<String> parseNetworkResponse(NetworkResponse response) {

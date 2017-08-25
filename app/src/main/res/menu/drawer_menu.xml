@@ -10,50 +10,24 @@
             android:title="@string/menu_btn_feedback" />
 
     </group>
-    <group android:id="@+id/menu_group_2">
-        <item
-            android:id="@+id/menu_score"
-            android:icon="@drawable/ic_menu_score"
-            android:title="@string/menu_btn_score" />
-        <item
-            android:id="@+id/menu_networking"
-            android:icon="@drawable/ic_menu_networking"
-            android:title="@string/menu_btn_networking" />
-        <item
-            android:id="@+id/menu_timeuse"
-            android:icon="@drawable/ic_menu_timeuse"
-            android:title="@string/menu_btn_timeuse" />
-    </group>
     <group android:id="@+id/menu_group_3">
         <item
-            android:id="@+id/menu_about"
-            android:icon="@drawable/ic_menu_about"
-            android:title="@string/menu_btn_about" />
-        <item
-            android:id="@+id/menu_version"
-            android:icon="@drawable/ic_menu_version"
-            android:title="@string/menu_btn_version" />
-        <item
-            android:id="@+id/menu_share"
-            android:icon="@drawable/ic_menu_share"
-            android:title="@string/menu_btn_share" />
-        <item
-            android:id="@+id/menu_bug"
-            android:icon="@drawable/ic_menu_bug"
-            android:title="@string/menu_btn_bug" />
-    </group>
-    <group>
-        <item
             android:id="@+id/menu_setting"
-            android:icon="@drawable/ic_menu_delete"
+            android:icon="@drawable/ic_menu_setting"
             android:title="@string/menu_btn_setting" />
     </group>
-    <group>
+    <group android:id="@+id/menu_group_4">
         <item
             android:id="@+id/menu_louout"
             android:icon="@drawable/ic_menu_delete"
             android:title="@string/menu_btn_logout"
             android:visible="false" />
     </group>
-
+    <group android:id="@+id/menu_group_5">
+        <item
+            android:id="@+id/menu_test"
+            android:icon="@drawable/ic_menu_delete"
+            android:title="testtest"
+            android:visible="false" />
+    </group>
 </menu>

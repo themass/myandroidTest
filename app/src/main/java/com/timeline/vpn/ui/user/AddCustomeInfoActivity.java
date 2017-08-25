@@ -153,4 +153,7 @@ public class AddCustomeInfoActivity extends BaseSingleActivity {
             getActivity().startActivity(new Intent(context, LoginActivity.class));
         }
     }
+    protected boolean enableSliding() {
+        return true;
+    }
 }

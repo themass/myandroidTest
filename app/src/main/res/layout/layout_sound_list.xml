@@ -9,7 +9,7 @@
         android:layout_height="wrap_content"
         android:layout_above="@+id/music_status"/>
     <include
-        layout="@layout/sound_status"
+        layout="@layout/layout_sound_status"
         android:id="@+id/music_status"
         android:layout_alignParentBottom="true"
         android:layout_width="match_parent"

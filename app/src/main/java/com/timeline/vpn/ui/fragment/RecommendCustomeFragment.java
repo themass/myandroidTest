@@ -50,7 +50,6 @@ import butterknife.OnClick;
  */
 public class RecommendCustomeFragment extends RecommendFragment implements OnBackKeyDownListener {
     private static final String INDEX_TAG = "Recommend_custome_tag";
-    private static final String DEL_TAG = "del_custome_tag";
     @Bind(R.id.lb_add)
     ImageButton llAdd;
     LinkedList<Integer> sortList = null;
@@ -200,7 +199,7 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
                                 saveSortMap();
 
                             }
-                        },null,DEL_TAG,NullReturnVo.class);
+                        },null,INDEX_TAG,NullReturnVo.class);
                         popupWindow.dismiss();
                     }
                 });

@@ -19,4 +19,8 @@
     <declare-styleable name="ProgressView">
         <attr name="morph" format="integer" />
     </declare-styleable>
+        <declare-styleable name="LetterSpacingTextView">
+            <attr name="textSpacing" format="float"/>
+            <attr name="text" format="string"/>
+        </declare-styleable>
 </resources>

@@ -69,6 +69,7 @@ public class LocationChooseFragment extends LoadableFragment<List<LocationVo>> i
         Intent intent = new Intent(context, CommonFragmentActivity.class);
         intent.putExtra(CommonFragmentActivity.FRAGMENT, LocationChooseFragment.class);
         intent.putExtra(CommonFragmentActivity.TITLE, getFragmentTitle());
+        intent.putExtra(CommonFragmentActivity.SLIDINGCLOSE, true);
         context.startActivity(intent);
     }
 

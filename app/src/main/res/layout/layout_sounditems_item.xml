@@ -14,14 +14,6 @@
         android:layout_height="wrap_content"
         android:textSize="@dimen/textsize_18"/>
     <TextView
-        android:layout_toRightOf="@+id/tv_index"
-        android:id="@+id/tv_name"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="@dimen/textsize_18"
-        android:textStyle="bold"/>
-
-    <TextView
         android:id="@+id/tv_date"
         android:layout_width="wrap_content"
         android:gravity="right"
@@ -40,4 +32,15 @@
         android:layout_marginRight="@dimen/margin_8"
         android:layout_centerVertical="true"
         />
+    <TextView
+        android:layout_toRightOf="@+id/tv_index"
+        android:id="@+id/tv_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/textsize_18"
+        android:textStyle="bold"
+        android:singleLine="true"
+        android:layout_toLeftOf="@+id/iv_song"/>
+
+
 </RelativeLayout>

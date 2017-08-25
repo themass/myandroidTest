@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.timeline.vpn.ui.music;
+package com.sspacee.common.ui.view;
 
 import android.content.Context;
 import android.graphics.Canvas;

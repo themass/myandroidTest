@@ -126,14 +126,14 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-//        mService.disconnect();
+        indexService.cancelRequest(INDEX_TAG);
+        if (task != null && !task.isCancelled()) {
+            task.cancel(true);
+        }
         if (mService != null)
             mService.unregisterListener(this);
         getActivity().unbindService(mServiceConnection);
-        indexService.cancelRequest(INDEX_TAG);
-        if (task != null) {
-            task.cancel(true);
-        }
+
 
     }
 

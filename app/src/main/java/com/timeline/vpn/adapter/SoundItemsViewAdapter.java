@@ -21,7 +21,6 @@ import butterknife.Bind;
  */
 public class SoundItemsViewAdapter extends BaseRecyclerViewAdapter<SoundItemsViewAdapter.SoundItemView, SoundItemsVo> {
     private int selected=-1;
-    private View selectedView = null;
     public SoundItemsViewAdapter(Context context, RecyclerView recyclerView, List<SoundItemsVo> data, OnRecyclerViewItemClickListener<SoundItemsVo> listener) {
         super(context, recyclerView, data, listener);
     }

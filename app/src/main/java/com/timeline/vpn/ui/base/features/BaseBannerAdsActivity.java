@@ -9,6 +9,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.OvershootInterpolator;
+import android.widget.Toast;
 
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PreferenceUtils;
@@ -16,9 +17,13 @@ import com.sspacee.yewu.ads.adview.AdsAdview;
 import com.sspacee.yewu.ads.adview.AdsController;
 import com.timeline.vpn.R;
 import com.timeline.vpn.constant.Constants;
+import com.timeline.vpn.data.StaticDataUtil;
 import com.timeline.vpn.ui.base.app.BaseToolBarActivity;
 
 import butterknife.Bind;
+import butterknife.OnClick;
+
+import static com.kuaiyou.g.a.getActivity;
 
 /**
  * Created by themass on 2016/8/21.
@@ -44,7 +49,22 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
             }
         }
     };
-
+    private long lastToastShow = 0l;
+    @OnClick(R.id.fab_up)
+    public void onClickFab(View view) {
+        AdsAdview.interstitialAds(getActivity(), mHandler);
+        Long lastClickTime = StaticDataUtil.get(Constants.SCORE_CLICK, Long.class, 0l);
+        long curent = System.currentTimeMillis();
+        long interval = curent - lastClickTime;
+        StaticDataUtil.add(Constants.SCORE_CLICK, System.currentTimeMillis());
+        if ((interval / 1000) < Constants.SCORE_CLICK_INTERVAL) {
+            if ((curent - lastToastShow) / 1000 >= Constants.SCORE_CLICK_INTERVAL) {
+                Toast.makeText(getActivity(), R.string.tab_fb_click_fast, Toast.LENGTH_SHORT).show();
+                lastToastShow = curent;
+            }
+            return;
+        }
+    }
     @Override
     public void setContentView(int layoutResID) {
         super.setContentViewWithoutInject(R.layout.base_fragment);

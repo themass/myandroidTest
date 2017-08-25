@@ -90,7 +90,7 @@ public abstract class BaseWeatherMenuActivity extends LogActivity {
 
     private void startGetWeather(double lat, double lon) {
         WeatherInfoListener listener = new WeatherInfoListener();
-        StringRequest request = new StringRequest(String.format(
+        StringRequest request = new StringRequest(this,String.format(
                 WeatherSpider.WEATHER_ALL, String.valueOf(lat), String.valueOf(lon), SystemUtils.getLang(this)), listener, listener);
         VolleyUtils.addRequest(request);
     }

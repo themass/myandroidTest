@@ -1,14 +1,19 @@
 package com.timeline.vpn.ui.fragment;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.support.annotation.Nullable;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -25,6 +30,9 @@ import com.sspacee.common.ui.view.MyPullView;
 import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.MediaUtil;
+import com.sspacee.common.util.PreferenceUtils;
+import com.sspacee.yewu.ads.adview.AdsAdview;
+import com.sspacee.yewu.net.NetUtils;
 import com.timeline.vpn.R;
 import com.timeline.vpn.adapter.BaseRecyclerViewAdapter;
 import com.timeline.vpn.adapter.SoundItemsViewAdapter;
@@ -34,6 +42,7 @@ import com.timeline.vpn.bean.vo.SoundItemsVo;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.data.StaticDataUtil;
+import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.service.PlayService;
 import com.timeline.vpn.ui.base.CommonFragmentActivity;
 import com.timeline.vpn.ui.base.LoadableFragment;
@@ -45,6 +54,7 @@ import static com.timeline.vpn.service.PlayService.CURRENTTIME;
 import static com.timeline.vpn.service.PlayService.DURATION;
 import static com.timeline.vpn.service.PlayService.MUSIC_CURRENT;
 import static com.timeline.vpn.service.PlayService.MUSIC_DURATION;
+import static com.timeline.vpn.service.PlayService.MUSIC_PREPARED;
 import static com.timeline.vpn.service.PlayService.MUSIC_PREPAREING;
 import static com.timeline.vpn.service.PlayService.UPDATE_ACTION;
 
@@ -91,15 +101,23 @@ public class SoundItemsFragment extends LoadableFragment<InfoListVo<SoundItemsVo
     private int current=-1;
     private int currentTime;		//当前播放进度
     private int duration;			//播放长度
-    private PlayerReceiver homeReceiver;  //自定义的广播接收器
+    private PlayerReceiver homeReceiver;
+    private NetWorkingReceiver netReceiver;
+    boolean ignorNet;
+    protected Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            LogUtil.i("handleMessage-" + msg.what);
+        }
+    };
     public static void startFragment(Context context, RecommendVo vo) {
         Intent intent = new Intent(context, CommonFragmentActivity.class);
         intent.putExtra(CommonFragmentActivity.FRAGMENT, SoundItemsFragment.class);
         intent.putExtra(CommonFragmentActivity.TITLE, R.string.sound);
-//        intent.putExtra(CommonFragmentActivity.PARAM, vo);
         StaticDataUtil.add(Constants.SOUND_CHANNEL,vo);
         intent.putExtra(CommonFragmentActivity.ADS, true);
         intent.putExtra(CommonFragmentActivity.ADSSCROLL, false);
+        intent.putExtra(CommonFragmentActivity.SLIDINGCLOSE, true);
         context.startActivity(intent);
     }
     private final ServiceConnection mConnection = new ServiceConnection() {
@@ -124,9 +142,12 @@ public class SoundItemsFragment extends LoadableFragment<InfoListVo<SoundItemsVo
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         vo =  StaticDataUtil.get(Constants.SOUND_CHANNEL,RecommendVo.class);
+        StaticDataUtil.del(Constants.SOUND_CHANNEL);
         channel = vo.param;
         indexService = new BaseService();
         indexService.setup(getActivity());
+        if(!UserLoginUtil.isVIP2())
+            AdsAdview.interstitialAds(getActivity(), mHandler);
     }
     private void receiverReg(){
         homeReceiver = new PlayerReceiver();
@@ -137,8 +158,17 @@ public class SoundItemsFragment extends LoadableFragment<InfoListVo<SoundItemsVo
         filter.addAction(MUSIC_CURRENT);
         filter.addAction(MUSIC_DURATION);
         filter.addAction(MUSIC_PREPAREING);
+        filter.addAction(MUSIC_PREPARED);
         // 注册BroadcastReceiver
         getActivity().registerReceiver(homeReceiver, filter);
+
+        IntentFilter filter1 = new IntentFilter();
+        filter1.addAction("android.net.conn.CONNECTIVITY_CHANGE");
+        filter1.addAction("android.net.wifi.WIFI_STATE_CHANGED");
+        filter1.addAction("android.net.wifi.STATE_CHANGE");
+        netReceiver = new NetWorkingReceiver();
+        getActivity().registerReceiver(netReceiver, filter1);
+
     }
     public void onClick(View view){
         switch (view.getId()) {
@@ -201,9 +231,9 @@ public class SoundItemsFragment extends LoadableFragment<InfoListVo<SoundItemsVo
      */
     public void next() {
         if (current >= adapter.getItemCount()) {
-            mService.playPosi(current);
+            play(current);
         }
-        mService.playPosi(current + 1);
+        play(current + 1);
     }
 
     /**
@@ -213,9 +243,9 @@ public class SoundItemsFragment extends LoadableFragment<InfoListVo<SoundItemsVo
      */
     public void pre() {
         if (current <= 0) {
-            mService.playPosi(adapter.getItemCount() - 1);
+            play(adapter.getItemCount() - 1);
         }
-        mService.playPosi(current - 1);
+        play(current - 1);
     }
     public void play(int position) {
         LogUtil.i("play(int position)  --"+position);
@@ -229,13 +259,13 @@ public class SoundItemsFragment extends LoadableFragment<InfoListVo<SoundItemsVo
         if (position >= adapter.getItemCount())
             position = adapter.getItemCount() - 1;
         ivPlay
-                .setImageResource(android.R.drawable.ic_media_pause);
+                .setImageResource(android.R.drawable.ic_media_play);
         mService.playPosi(position);
     }
 
     @Override
     public void onContentViewCreated(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState){
-        inflater.inflate(R.layout.sound_list, parent, true);
+        inflater.inflate(R.layout.layout_sound_list, parent, true);
     }
     @Override
     public void setupViews(View view, Bundle savedInstanceState){
@@ -252,8 +282,8 @@ public class SoundItemsFragment extends LoadableFragment<InfoListVo<SoundItemsVo
         ivPlay.setOnClickListener(this);
         ivNext.setOnClickListener(this);
         progressView.setOnSeekBarChangeListener(this);
-        Intent intent = new Intent(getActivity(), PlayService.class);
         receiverReg();
+        Intent intent = new Intent(getActivity(), PlayService.class);
         getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
     }
 
@@ -282,9 +312,11 @@ public class SoundItemsFragment extends LoadableFragment<InfoListVo<SoundItemsVo
 
     @Override
     public void onDestroy() {
+        indexService.cancelRequest(SOUND_TAG);
         getActivity().unregisterReceiver(homeReceiver);
+        getActivity().unregisterReceiver(netReceiver);
         getActivity().unbindService(mConnection);
-        super.onDestroy();
+
     }
 
     @Override
@@ -319,6 +351,11 @@ public class SoundItemsFragment extends LoadableFragment<InfoListVo<SoundItemsVo
     public void onStopTrackingTouch(SeekBar seekBar){
         LogUtil.i("停止拖动");
         mService.play(seekBar.getProgress());
+        ivPlay.setImageResource(android.R.drawable.ic_media_pause);
+    }
+    public boolean checkCanPlay(){
+        boolean soundSwitch =PreferenceUtils.getPrefBoolean(getActivity(), Constants.SOUND_SWITCH, false);
+        return soundSwitch ||NetUtils.isWifi(getActivity())||ignorNet;
     }
     /**
             * 用来接收从service传回来的广播的内部类
@@ -335,7 +372,6 @@ public class SoundItemsFragment extends LoadableFragment<InfoListVo<SoundItemsVo
             }
             pbLoading.setVisibility(View.GONE);
             tvTime.setVisibility(View.VISIBLE);
-            ivPlay.setImageResource(android.R.drawable.ic_media_pause);
             if(action.equals(MUSIC_CURRENT)) {
                 currentTime = intent.getIntExtra(CURRENTTIME, -1);
                 tvTime.setText(MediaUtil.formatTime(currentTime));
@@ -349,8 +385,42 @@ public class SoundItemsFragment extends LoadableFragment<InfoListVo<SoundItemsVo
                 current = intent.getIntExtra(CURRENT, -1);
                 tvTitle.setText(infoVo.voList.get(current).name);
                 LogUtil.i("当前播放更新："+current);
+            }else if(action.equals(MUSIC_PREPARED)) {
+                //获取Intent中的current消息，current代表当前正在播放的歌曲
+                ivPlay.setImageResource(android.R.drawable.ic_media_pause);
+                if(!checkCanPlay()&&isPlaying()){
+                    pause();
+                    showUpdateDialog(getActivity());
+                }
             }
         }
-
+    }
+    public class NetWorkingReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if(!checkCanPlay()&&isPlaying()){
+                pause();
+                showUpdateDialog(getActivity());
+            }
+        }
+    }
+    public void showUpdateDialog(final Activity context) {
+        AlertDialog.Builder confirmDialog = new AlertDialog.Builder(context);
+        confirmDialog.setMessage(R.string.sound_play_not_wifi);
+        confirmDialog.setPositiveButton(R.string.del_cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        confirmDialog.setNegativeButton(R.string.del_ok, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                ignorNet = true;
+                resume();
+                dialog.dismiss();
+            }
+        });
+        confirmDialog.show();
     }
 }

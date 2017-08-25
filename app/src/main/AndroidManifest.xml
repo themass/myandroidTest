@@ -48,7 +48,7 @@
         android:allowBackup="false"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme"
+        android:theme="@style/AppTheme.Slide"
         tools:replace="android:allowBackup">
         <meta-data
             android:name="com.sspacee.common.util.MyGlideModule"
@@ -98,17 +98,15 @@
         <activity android:name=".ui.log.FileLogActivity"
             android:screenOrientation="portrait"/>
         <activity android:name=".ui.user.RegActivity"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
         <activity android:name=".ui.user.SettingActivity"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
         <activity android:name=".ui.user.AddCustomeInfoActivity"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
         <activity android:name=".ui.sound.SoundChannleActivity"
-            android:screenOrientation="portrait"/>
-        <activity android:name=".ui.sound.SoundDetailActivity"
-            android:screenOrientation="portrait"/>
-        <activity android:name=".ui.sound.SoundListActivity"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
+        <activity android:name=".ui.sound.TextChannleActivity"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".ui.config.BrowserConfigActivity"
             android:launchMode="singleTask"
@@ -120,7 +118,15 @@
             android:name=".ui.config.QuickBrowserConfigActivity"
             android:theme="@style/myTransparent"
             android:screenOrientation="portrait"/>
-
+        <!--test-->
+        <activity android:name=".ui.test.MainActivity"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".ui.test.ViewPagerActivity"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".ui.test.ListViewActivity"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".ui.test.NormalActivity"
+            android:screenOrientation="portrait"/>
         <service
             android:name="org.strongswan.android.logic.VpnStateService"
             android:exported="false" />
@@ -161,10 +167,6 @@
             android:configChanges="keyboardHidden|orientation|keyboard|smallestScreenSize|screenSize"
             android:hardwareAccelerated="true"
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
-        <service
-            android:name=".service.PlayerService"
-            android:enabled="true"
-            android:exported="false" />
         <service
             android:name=".service.PlayService"
             android:enabled="true"

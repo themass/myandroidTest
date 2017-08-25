@@ -37,4 +37,7 @@ public class SoundChannleActivity extends BaseFragmentActivity {
     public boolean needShow(Context context) {
         return true;
     }
+    protected boolean enableSliding() {
+        return true;
+    }
 }

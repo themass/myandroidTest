@@ -2,6 +2,7 @@ package com.timeline.vpn.data;
 
 import android.content.Context;
 
+import com.android.volley.Request;
 import com.android.volley.toolbox.RequestFuture;
 import com.sspacee.yewu.net.VolleyUtils;
 import com.sspacee.yewu.net.request.CommonResponse;
@@ -9,6 +10,7 @@ import com.sspacee.yewu.net.request.GsonInfoListRequest;
 import com.sspacee.yewu.net.request.GsonRequest;
 import com.sspacee.yewu.net.request.MultipartRequest;
 import com.sspacee.common.util.BeanUtil;
+import com.sspacee.yewu.net.request.StringRequest;
 import com.timeline.vpn.bean.vo.InfoListVo;
 
 import java.io.File;
@@ -42,13 +44,20 @@ public class BaseService {
 //        return future.get();
 //    }
 //
-//    public <T> T getData(String url, Class<T> t, String tag) throws Exception {
-//        RequestFuture<T> future = RequestFuture.newFuture();
-//        GsonRequest request = new GsonRequest<>(context, url, t, null, future, future);
-//        request.setTag(tag);
-//        VolleyUtils.addRequest(request);
-//        return future.get();
-//    }
+    public <T> T getData(String url, Class<T> t, String tag) throws Exception {
+        RequestFuture<T> future = RequestFuture.newFuture();
+        GsonRequest request = new GsonRequest<>(context, url, t, null, future, future);
+        request.setTag(tag);
+        VolleyUtils.addRequest(request);
+        return future.get();
+    }
+    public String getStringData(String url, String tag) throws Exception {
+        RequestFuture<String> future = RequestFuture.newFuture();
+        StringRequest request = new StringRequest(context,Request.Method.GET, url, future, future);
+        request.setTag(tag);
+        VolleyUtils.addRequest(request);
+        return future.get();
+    }
 
     public <T> void getData(String url, CommonResponse.ResponseOkListener<T> listener, CommonResponse.ResponseErrorListener errorListener, String tag, Class<T> t) {
         GsonRequest request = new GsonRequest(context, url, t, null, listener, errorListener);

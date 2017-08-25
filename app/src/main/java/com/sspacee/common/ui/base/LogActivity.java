@@ -2,14 +2,13 @@ package com.sspacee.common.ui.base;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 
 import com.sspacee.common.util.LogUtil;
 
 /**
  * Created by themass on 2016/3/22.
  */
-public class LogActivity extends AppCompatActivity {
+public class LogActivity extends SlidingActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         LogUtil.i(getClass().getSimpleName() + "-onCreate");

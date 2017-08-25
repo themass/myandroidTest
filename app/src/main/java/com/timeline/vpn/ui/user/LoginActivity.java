@@ -100,6 +100,12 @@ public class LoginActivity extends BaseSingleActivity {
     }
 
     @Override
+    public void onDestroy() {
+        super.onDestroy();
+        baseService.cancelRequest(TAG);
+    }
+
+    @Override
     public void onBackPressed() {
         if (loading.getVisibility() == View.VISIBLE) {
             setEnabled(true);
@@ -116,9 +122,14 @@ public class LoginActivity extends BaseSingleActivity {
             if(loading!=null)
                 loading.setVisibility(View.GONE);
         }
-        etUserName.setEnabled(isEnable);
-        etPassword.setEnabled(isEnable);
-        btnLogin.setEnabled(isEnable);
-        btnReg.setEnabled(isEnable);
+        if(etUserName!=null) {
+            etUserName.setEnabled(isEnable);
+            etPassword.setEnabled(isEnable);
+            btnLogin.setEnabled(isEnable);
+            btnReg.setEnabled(isEnable);
+        }
+    }
+    protected boolean enableSliding() {
+        return true;
     }
 }

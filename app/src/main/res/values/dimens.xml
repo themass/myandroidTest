@@ -26,6 +26,8 @@
     <dimen name="textsize_14">14sp</dimen>
     <dimen name="textsize_16">16sp</dimen>
     <dimen name="textsize_18">18sp</dimen>
+    <dimen name="textsize_20">20sp</dimen>
+    <dimen name="textsize_22">22sp</dimen>
     <dimen name="textsize_25">25sp</dimen>
     <dimen name="textsize_32">32sp</dimen>
     <dimen name="margin_3">3dip</dimen>
@@ -38,6 +40,7 @@
     <dimen name="margin_18">18dip</dimen>
     <dimen name="margin_22">22dip</dimen>
     <dimen name="margin_25">25dip</dimen>
+    <dimen name="margin_30">30dip</dimen>
     <dimen name="margin_40">40dip</dimen>
     <dimen name="margin_48">48dip</dimen>
     <dimen name="margin_120">120dip</dimen>
@@ -65,4 +68,7 @@
     <dimen name="cover_size_mini">40dp</dimen>
     <dimen name="inner_padding">3dp</dimen>
     <dimen name="fab_vertical_margin">-20dp</dimen>
+
+    <!-- slidingclose-->
+    <dimen name="fab_margin">16dp</dimen>
 </resources>

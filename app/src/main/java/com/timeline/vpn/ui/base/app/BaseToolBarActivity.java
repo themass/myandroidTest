@@ -81,7 +81,12 @@ public class BaseToolBarActivity extends BaseWeatherMenuActivity {
         Intent intent = new Intent(BaseToolBarActivity.this, c);
         stopService(intent);
     }
-
+    public void showToolbar(boolean show){
+        if(show)
+            toolbar.setVisibility(View.VISIBLE);
+        else
+            toolbar.setVisibility(View.GONE);
+    }
     public void setToolbarTitle(int id,boolean initNav) {
         tvTitle.setText(id);
         if(initNav)

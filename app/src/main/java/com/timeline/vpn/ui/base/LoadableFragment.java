@@ -180,7 +180,6 @@ public abstract class LoadableFragment<T> extends BaseFragment {
                 try {
                     return fragment.loadData(mContext);
                 } catch (Exception e) {
-                    e.printStackTrace();
                     showError(e);
                 }
             }
@@ -190,7 +189,7 @@ public abstract class LoadableFragment<T> extends BaseFragment {
         @Override
         protected void onPostExecute(T data) {
             LoadableFragment<T> fragment = mFragment != null ? mFragment.get() : null;
-            if (fragment != null) {
+            if (fragment != null && !fragment.getActivity().isFinishing()) {
                 fragment.hideLoading();
                 if (data != null) {
                     fragment.setData(data);

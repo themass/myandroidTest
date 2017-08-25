@@ -138,4 +138,7 @@ public class RegActivity extends BaseSingleActivity {
             super.onBackPressed();
         }
     }
+    protected boolean enableSliding() {
+        return true;
+    }
 }

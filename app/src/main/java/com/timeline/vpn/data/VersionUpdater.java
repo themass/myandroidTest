@@ -16,27 +16,62 @@ import android.os.Handler;
 import android.support.v7.app.AlertDialog;
 import android.widget.Toast;
 
+import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.FileUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PreferenceUtils;
+import com.sspacee.common.util.StringUtils;
+import com.sspacee.yewu.net.HttpDNSUtil;
 import com.sspacee.yewu.net.HttpUtils;
 import com.sspacee.yewu.net.NetUtils;
 import com.sspacee.yewu.net.VolleyUtils;
 import com.sspacee.yewu.net.request.CommonResponse;
 import com.sspacee.yewu.net.request.GsonRequest;
 import com.timeline.vpn.R;
+import com.timeline.vpn.base.MyApplication;
 import com.timeline.vpn.bean.vo.VersionVo;
 import com.timeline.vpn.constant.Constants;
+import com.timeline.vpn.data.config.StateUseEvent;
 import com.timeline.vpn.ui.main.MainFragmentViewPage;
 
 import java.io.File;
 
 public class VersionUpdater {
+    private static final String VERSION_TAG = "REQUEST_VERSION_CHECK";
     private static int NOTIFICATION_ID = 10021;
     private static String version;
     private static int build;
     private static boolean isInitVersionSuccess = false;
+    public static void checkUpdate(final Activity context,final boolean needToast) {
+        // 检查版本更新
+        if (VersionUpdater.isInitVersionSuccess()) {
+            VersionUpdater.checkNewVersion(context, new CommonResponse.ResponseOkListener<VersionVo>() {
+                @Override
+                public void onResponse(final VersionVo vo) {
+                    VersionUpdater.setNewVersion(context, vo.maxBuild);
+                    PreferenceUtils.setPrefString(MyApplication.getInstance(), Constants.D_URL, vo.url);
+                    PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.ADS_SHOW_CONFIG, vo.adsShow);
+                    PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.LOG_UPLOAD_CONFIG, vo.logUp);
+                    PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.NEED_DNSPOD_CONFIG, vo.needDnspod);
+                    if (StringUtils.hasText(vo.dnspodIp)) {
+                        HttpDNSUtil.DNS_POD_IP = vo.dnspodIp;
+                    }
+                    if (vo.stateUse != null)
+                        EventBusUtil.getEventBus().post(new StateUseEvent(vo.stateUse));
+                    if (VersionUpdater.isNewVersion(vo.maxBuild)
+                            && StringUtils.hasText(vo.url)) {
+                        // 有新版本
+                        VersionUpdater.showUpdateDialog(context, vo, true);
+                    } else {
+                        if(needToast)
+                            Toast.makeText(context, R.string.about_version_update_to_date, Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }, new CommonResponse.ResponseErrorListener() {
 
+            }, VERSION_TAG);
+        }
+    }
     /**
      * 初始化版本信息
      */

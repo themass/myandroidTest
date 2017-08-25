@@ -55,7 +55,14 @@ public class UserLoginUtil {
 
     public static boolean isVIP() {
         UserInfoVo vo = getUserCache();
-        if (vo == null || vo.level != Constants.UserLevel.LEVEL_VIP) {
+        if (vo == null || vo.level < Constants.UserLevel.LEVEL_VIP) {
+            return false;
+        }
+        return true;
+    }
+    public static boolean isVIP2() {
+        UserInfoVo vo = getUserCache();
+        if (vo == null || vo.level < Constants.UserLevel.LEVEL_VIP2) {
             return false;
         }
         return true;

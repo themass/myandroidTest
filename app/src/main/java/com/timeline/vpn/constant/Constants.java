@@ -35,6 +35,7 @@ public class Constants {
     public static final String HTTPS_URL = "https";
     public static final String BROWSER_URL = "browser";
     public static final String SOUND_URL = "sound";
+    public static final String TEXT_URL = "text";
     public static final String URL_TMP = "://";
     //location
     public static final String LOCATION_CHOOSE = "LOCATION_CHOOSE";
@@ -55,6 +56,7 @@ public class Constants {
     public static final String LOGIN_USER = "LOGIN_USER";
     public static final String LOGIN_USER_LAST = "LOGIN_USER_LAST";
     public static final String AREA_SWITCH = "AREA_SWITCH";
+    public static final String SOUND_SWITCH = "SOUND_SWITCH";
     public static final String LOGIN_USER_PW_LAST = "LOGIN_USER_PW_LAST";
     public static final String DEVID = "Devid";
     public static final String HTTP_TOKEN_KEY = "Vpn-Token";
@@ -89,7 +91,10 @@ public class Constants {
     public static final String API_RECOMMEND_URL = "/data/recommend.json?start=%s&limit=20";
     public static final String API_VIP_URL = "/data/recommend/vip.json?start=%s&limit=20";
     public static final String API_SOUND_CHANNLE_URL = "/sound/channle.json?start=%s&limit=20";
-    public static final String API_SOUND_ITEMS_URL = "/sound/items.json?start=%s&limit=20&channel=%s";
+    public static final String API_SOUND_ITEMS_URL = "/sound/items.json?start=%s&limit=30&channel=%s";
+    public static final String API_TEXT_CHANNLE_URL = "/text/channle.json?start=%s&limit=20";
+    public static final String API_TEXT_ITEMS_URL = "/text/items.json?start=%s&limit=30&channel=%s";
+    public static final String API_TEXT_ITEM_URL = "/text/item.json?id=%s";
     public static final String API_CUSTOME_URL = "/data/recommend/custome.json?start=%s&limit=100";
     public static final String API_LOGOUT_URL = "/user/logout.json";
     public static final String API_LEAK_URL = "/monitor/leak.json";
@@ -113,6 +118,8 @@ public class Constants {
     public static final String FILE_UPLOAD = "fileList";
     public static final String FILE_TMP_PATH = "freeVPN";
     public static final String SOUND_CHANNEL="SOUND_CHANNEL";
+    public static final String TEXT_FILE="TEXT_FILE";
+    public static final String TEXT_CHANNEL="TEXT_CHANNEL";
     public static final String SCORE_TMP = "SCORE_TMP";
     public static final String SCORE_CLICK = "SCORE_CLICK";
     public static final long SCORE_CLICK_INTERVAL = 3;
@@ -122,6 +129,7 @@ public class Constants {
     public static String ABOUT_ZH = "http://file.sspacee.com/file/html/about_zh.html";
     public static String ABOUT = "http://file.sspacee.com/file/html/about.html";
     public static final String CUSTOME_SORT = "CUSTOME_SORT";
+    public static String USER_STATUS = "USER_STATUS";
 //        public static String BASE_IP = "192.168.1.12:8080";
 //    public static String BASE_IP = "10.33.65.180:8080";
     public static String BASE_HOST = "http://" + BASE_IP + "/vpn/api";
@@ -136,6 +144,9 @@ public class Constants {
     public static String getPageWithParam_URL(String url,int start,String param) {
         return String.format(getUrl(url), start,param);
     }
+    public static String getWithParam_URL(String url,String param) {
+        return String.format(getUrl(url),param);
+    }
     public static String getRECOMMEND_URL(int start) {
         return String.format(getUrl(API_RECOMMEND_URL), start);
     }
@@ -149,6 +160,7 @@ public class Constants {
     public static class UserLevel {
         public static final int LEVEL_FREE = 0;
         public static final int LEVEL_VIP = 1;
+        public static final int LEVEL_VIP2 = 2;
     }
     public static class OpenUrlPath {
         public static final int local = 0;
