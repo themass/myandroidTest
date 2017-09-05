@@ -101,8 +101,10 @@ public class BitmapUtil {
             return upperBound;
         }
     }
+
     /**
      * 模糊处理专辑图片
+     *
      * @param sentBitmap
      * @param radius
      * @return
@@ -262,7 +264,7 @@ public class BitmapUtil {
             yi = x;
             stackpointer = radius;
             for (y = 0; y < h; y++) {
-                pix[yi] = ( 0xff000000 & pix[yi] ) | ( dv[rsum] << 16 ) | ( dv[gsum] << 8 ) | dv[bsum];
+                pix[yi] = (0xff000000 & pix[yi]) | (dv[rsum] << 16) | (dv[gsum] << 8) | dv[bsum];
 
                 rsum -= routsum;
                 gsum -= goutsum;

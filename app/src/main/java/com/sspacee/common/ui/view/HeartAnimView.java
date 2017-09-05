@@ -108,6 +108,6 @@ public class HeartAnimView {
     }
 
     public interface AnimEndListner {
-        public void animEnd();
+        void animEnd();
     }
 }

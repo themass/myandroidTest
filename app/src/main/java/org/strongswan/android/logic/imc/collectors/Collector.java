@@ -26,5 +26,5 @@ public interface Collector {
      *
      * @return attribute or null
      */
-    public abstract Attribute getMeasurement();
+    Attribute getMeasurement();
 }

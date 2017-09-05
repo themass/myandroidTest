@@ -161,6 +161,7 @@ public class SystemUtils {
         else
             return CommonConstants.LANG_US;
     }
+
     public static String getCpuType() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             return "" + Arrays.asList(Build.SUPPORTED_ABIS);
@@ -168,7 +169,8 @@ public class SystemUtils {
             return Build.CPU_ABI;
         }
     }
-    public static void copy(Context context,String text){
+
+    public static void copy(Context context, String text) {
         ClipboardManager myClipboard;
         myClipboard = (ClipboardManager) context.getSystemService(CLIPBOARD_SERVICE);
         ClipData myClip;

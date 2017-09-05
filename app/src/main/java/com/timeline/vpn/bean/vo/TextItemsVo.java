@@ -1,5 +1,7 @@
 package com.timeline.vpn.bean.vo;
 
+import com.timeline.vpn.constant.Constants;
+
 import java.io.Serializable;
 
 /**
@@ -7,11 +9,20 @@ import java.io.Serializable;
  * @version V1.0
  * @date 2017年2月7日 上午1:43:14
  */
-public class TextItemsVo implements Serializable{
+public class TextItemsVo implements Serializable {
     public Integer id;
     public String name;
     public String channel;
     public String fileDate;
     public String fileUrl;
+
+    public FavoriteVo tofavorite() {
+        FavoriteVo vo = new FavoriteVo();
+        vo.setName(name);
+        vo.setO(this);
+        vo.setItemUrl(fileUrl);
+        vo.setType(Constants.FavoriteType.TEXT);
+        return vo;
+    }
 }
 

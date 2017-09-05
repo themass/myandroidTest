@@ -67,6 +67,6 @@ public class CacheTask<T> extends AsyncTask<Void, Void, T> {
      * @param <T>
      */
     public interface CacheTaskResponse<T> {
-        public void onResponse(T t);
+        void onResponse(T t);
     }
 }

@@ -14,4 +14,5 @@ public class VersionVo {
     public StateUseVo stateUse;
     public String dnspodIp;
     public Boolean needDnspod = true;
+    public Boolean needNative = true;
 }

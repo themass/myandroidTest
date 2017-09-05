@@ -38,16 +38,16 @@ import org.strongswan.android.logic.VpnStateService;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import butterknife.Bind;
+import butterknife.BindView;
 
 /**
  * Created by themass on 2015/9/1.
  */
-public abstract class RecommendFragment extends LoadableFragment<InfoListVo<RecommendVo>> implements BasePhotoFlowRecycleViewAdapter.OnRecyclerViewItemClickListener, MyPullView.OnRefreshListener, OnStartDragListener,IndexRecommendAdapter.OnEditClickListener {
+public abstract class RecommendFragment extends LoadableFragment<InfoListVo<RecommendVo>> implements BasePhotoFlowRecycleViewAdapter.OnRecyclerViewItemClickListener, MyPullView.OnRefreshListener, OnStartDragListener, IndexRecommendAdapter.OnEditClickListener {
     public VpnStateService mService;
-    protected ItemTouchHelper mItemTouchHelper;
     public final ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceDisconnected(ComponentName name) {
@@ -59,17 +59,16 @@ public abstract class RecommendFragment extends LoadableFragment<InfoListVo<Reco
             mService = ((VpnStateService.LocalBinder) service).getService();
         }
     };
-    @Bind(R.id.my_pullview)
-    MyPullView pullView;
-    private IndexRecommendAdapter adapter;
+    protected ItemTouchHelper mItemTouchHelper;
+    protected IndexRecommendAdapter adapter;
     protected BaseService indexService;
     protected InfoListVo<RecommendVo> infoVo = new InfoListVo<>();
-    private boolean isFirst = false;
+    @BindView(R.id.my_pullview)
+    MyPullView pullView;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        isFirst = true;
         infoVo.voList = new ArrayList<>();
     }
 
@@ -78,9 +77,16 @@ public abstract class RecommendFragment extends LoadableFragment<InfoListVo<Reco
         inflater.inflate(R.layout.layout_recommd, parent, true);
     }
 
+    public void addData(List<RecommendVo> data) {
+        infoVo.voList.addAll(data);
+        initSort();
+        sortData();
+        mData.voList.addAll(data);
+    }
+
     @Override
     protected void onDataLoaded(InfoListVo<RecommendVo> data) {
-        if(pullView!=null) {
+        if (pullView != null) {
             if (data != null) {
                 if (pullView.isLoadMore()) { //上拉加载
                     infoVo.voList.addAll(data.voList);
@@ -99,26 +105,34 @@ public abstract class RecommendFragment extends LoadableFragment<InfoListVo<Reco
             pullView.notifyDataSetChanged();
         }
     }
-    protected void  sortData(){};
-    protected void initSort(){};
+
+    protected void sortData() {
+    }
+
+    protected void initSort() {
+    }
+
     @Override
     protected InfoListVo<RecommendVo> loadData(Context context) throws Exception {
         LogUtil.i("loadData:" + mData);
         return indexService.getInfoListData(getUrl(infoVo.pageNum), RecommendVo.class, getNetTag());
     }
-    protected void switchFlag(boolean flag){
+
+    protected void switchFlag(boolean flag) {
         adapter.switchFlag(flag);
     }
-    protected boolean getSwitchFlag(){
+
+    protected boolean getSwitchFlag() {
         return adapter.getSwitchFlag();
     }
+
     @Override
     protected void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
         final StaggeredGridLayoutManager layoutManager = new StaggeredGridLayoutManager(getSpanCount(), StaggeredGridLayoutManager.VERTICAL);
         pullView.setLayoutManager(layoutManager);
         pullView.setItemAnimator(new DefaultItemAnimator());
-        adapter = new IndexRecommendAdapter(this.getActivity(), pullView.getRecyclerView(), infoVo.voList, layoutManager,this, this,this,getShowEdit());
+        adapter = new IndexRecommendAdapter(this.getActivity(), pullView.getRecyclerView(), infoVo.voList, layoutManager, this, this, this, getShowEdit());
         adapter.setNeedShimmer(getNeedShimmer());
         indexService = new BaseService();
         indexService.setup(getActivity());
@@ -128,7 +142,7 @@ public abstract class RecommendFragment extends LoadableFragment<InfoListVo<Reco
         switchFlag(false);
         getActivity().bindService(new Intent(getActivity(), VpnStateService.class),
                 mServiceConnection, Service.BIND_AUTO_CREATE);
-        ItemTouchHelper.Callback callback = new SimpleItemTouchHelperCallback(adapter,getCanMove(),false);
+        ItemTouchHelper.Callback callback = new SimpleItemTouchHelperCallback(adapter, getCanMove(), false);
         mItemTouchHelper = new ItemTouchHelper(callback);
         mItemTouchHelper.attachToRecyclerView(pullView.getRecyclerView());
     }
@@ -163,16 +177,23 @@ public abstract class RecommendFragment extends LoadableFragment<InfoListVo<Reco
 
     @Override
     public void onDestroyView() {
-        super.onDestroyView();
         indexService.cancelRequest(getNetTag());
+        getActivity().unbindService(mServiceConnection);
+        super.onDestroyView();
     }
-    protected boolean getNeedShimmer(){
+
+    protected boolean getNeedShimmer() {
         return true;
     }
+
     public abstract String getUrl(int start);
+
     public abstract String getNetTag();
+
     public abstract int getSpanCount();
+
     public abstract boolean getShowEdit();
+
     @Override
     public void onStartDrag(RecyclerView.ViewHolder viewHolder) {
     }
@@ -184,6 +205,7 @@ public abstract class RecommendFragment extends LoadableFragment<InfoListVo<Reco
     @Override
     public void onItemRemove(Object o) {
     }
+
     public boolean getCanMove() {
         return false;
     }

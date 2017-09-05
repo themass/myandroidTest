@@ -14,13 +14,13 @@ import android.widget.TextView;
 
 import com.timeline.vpn.R;
 import com.timeline.vpn.bean.vo.LocationVo;
-import com.timeline.vpn.constant.BaseRes;
 import com.timeline.vpn.constant.Constants;
+import com.timeline.vpn.data.ImagePhotoLoad;
 import com.timeline.vpn.data.LocationUtil;
 
 import java.util.List;
 
-import butterknife.Bind;
+import butterknife.BindView;
 
 /**
  * Created by themass on 2016/8/12.
@@ -33,14 +33,14 @@ public class LocationViewAdapter extends BaseRecyclerViewAdapter<LocationViewAda
     public LocationViewAdapter(Context context, RecyclerView recyclerView, List<LocationVo> data, OnRecyclerViewItemClickListener<LocationVo> listener) {
         super(context, recyclerView, data, listener);
         chooseId = LocationUtil.getSelectId(context);
-        indexColo = (ColorStateList) context.getResources().getColorStateList(R.color.location_index);
-        indexSelectColo = (ColorStateList) context.getResources().getColorStateList(R.color.base_red);
+        indexColo = context.getResources().getColorStateList(R.color.location_index);
+        indexSelectColo = context.getResources().getColorStateList(R.color.base_red);
     }
 
     @Override
     public LocationViewAdapter.LocationItemView onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(context).inflate(R.layout.layout_location_choose_item, parent, false);
-        return new LocationViewAdapter.LocationItemView(view, this);
+        return new LocationViewAdapter.LocationItemView(view, this, this);
     }
 
     @Override
@@ -68,7 +68,7 @@ public class LocationViewAdapter extends BaseRecyclerViewAdapter<LocationViewAda
             holder.ivType.setImageResource(R.drawable.bg_type_advip);
             holder.tvType.setText(R.string.vpn_type_advip);
         }
-        BaseRes.getImage(context, holder.ivCountry, vo.img);
+        ImagePhotoLoad.getCountryImage(context, holder.ivCountry, vo.img);
     }
 
     @Override
@@ -78,32 +78,32 @@ public class LocationViewAdapter extends BaseRecyclerViewAdapter<LocationViewAda
 
     static class LocationItemView extends BaseRecyclerViewAdapter.BaseRecyclerViewHolder<LocationVo> {
         @Nullable
-        @Bind(R.id.ll_location_choose)
+        @BindView(R.id.ll_location_choose)
         LinearLayout llLocationChoose;
         @Nullable
-        @Bind(R.id.loc_tv_index)
+        @BindView(R.id.loc_tv_index)
         TextView tvIndex;
         @Nullable
-        @Bind(R.id.loc_iv_type)
+        @BindView(R.id.loc_iv_type)
         ImageView ivType;
         @Nullable
-        @Bind(R.id.loc_tv_type)
+        @BindView(R.id.loc_tv_type)
         TextView tvType;
         @Nullable
-        @Bind(R.id.loc_iv_country)
+        @BindView(R.id.loc_iv_country)
         ImageView ivCountry;
         @Nullable
-        @Bind(R.id.loc_tv_country)
+        @BindView(R.id.loc_tv_country)
         TextView tvCountry;
         @Nullable
-        @Bind(R.id.loc_tv_country_ename)
+        @BindView(R.id.loc_tv_country_ename)
         TextView tvCountryEname;
         @Nullable
-        @Bind(R.id.rb_start)
+        @BindView(R.id.rb_start)
         RatingBar rbStar;
 
-        public LocationItemView(View itemView, View.OnClickListener l) {
-            super(itemView, l);
+        public LocationItemView(View itemView, View.OnClickListener l, View.OnLongClickListener longListener) {
+            super(itemView, l, longListener);
         }
     }
 }

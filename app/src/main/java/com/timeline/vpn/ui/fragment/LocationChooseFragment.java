@@ -39,7 +39,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import butterknife.Bind;
+import butterknife.BindView;
 
 /**
  * Created by themass on 2016/8/12.
@@ -47,16 +47,16 @@ import butterknife.Bind;
 public class LocationChooseFragment extends LoadableFragment<List<LocationVo>> implements BaseRecyclerViewAdapter.OnRecyclerViewItemClickListener<LocationVo> {
     private static final String LOCATION_TAG = "location_tag";
     @Nullable
-    @Bind(R.id.loc_btn_type)
+    @BindView(R.id.loc_btn_type)
     Button tvType;
     @Nullable
-    @Bind(R.id.loc_btn_country)
+    @BindView(R.id.loc_btn_country)
     Button tvCountry;
     @Nullable
-    @Bind(R.id.loc_btn_features)
+    @BindView(R.id.loc_btn_features)
     Button tvFeature;
     @Nullable
-    @Bind(R.id.loc_rv_location)
+    @BindView(R.id.loc_rv_location)
     RecyclerView rvLocation;
     private BaseService indexService;
     private LocationViewAdapter adapter;
@@ -110,6 +110,12 @@ public class LocationChooseFragment extends LoadableFragment<List<LocationVo>> i
     protected List<LocationVo> loadData(Context context) throws Exception {
         InfoListVo<LocationVo> vo = indexService.getInfoListData(Constants.getUrl(Constants.API_LOCATION_URL), LocationVo.class, LOCATION_TAG);
         return vo != null ? vo.voList : null;
+    }
+
+    @Override
+    public void onDestroyView() {
+        indexService.cancelRequest(LOCATION_TAG);
+        super.onDestroyView();
     }
 
     private void setUp() {

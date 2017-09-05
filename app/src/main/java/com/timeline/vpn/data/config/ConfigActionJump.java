@@ -10,6 +10,7 @@ import com.timeline.vpn.R;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.ui.base.WebViewActivity;
 import com.timeline.vpn.ui.config.QuickBrowserConfigActivity;
+import com.timeline.vpn.ui.sound.ImgChannleActivity;
 import com.timeline.vpn.ui.sound.SoundChannleActivity;
 import com.timeline.vpn.ui.sound.TextChannleActivity;
 
@@ -30,13 +31,16 @@ import static com.timeline.vpn.constant.Constants.HTTP_URL;
 public class ConfigActionJump {
 
     public static Map<String, Class<? extends AppCompatActivity>> configMap = new HashMap<>();
+
     static {
         configMap.put(Constants.HTTP_URL, WebViewActivity.class);
         configMap.put(Constants.HTTPS_URL, WebViewActivity.class);
         configMap.put(Constants.BROWSER_URL, QuickBrowserConfigActivity.class);
         configMap.put(Constants.SOUND_URL, SoundChannleActivity.class);
         configMap.put(Constants.TEXT_URL, TextChannleActivity.class);
+        configMap.put(Constants.IMG_URL, ImgChannleActivity.class);
     }
+
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(ConfigActionEvent event) {
         LogUtil.i("ConfigActionJump onEvent-" + event.url + "-" + Thread.currentThread().getName());
@@ -57,8 +61,8 @@ public class ConfigActionJump {
             intent.putExtra(Constants.CONFIG_PARAM, param);
             intent.putExtra(Constants.TITLE, event.title);
             event.context.startActivity(intent);
-        }else{
-            Toast.makeText(event.context, R.string.version_low,Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(event.context, R.string.version_low, Toast.LENGTH_SHORT).show();
         }
     }
 

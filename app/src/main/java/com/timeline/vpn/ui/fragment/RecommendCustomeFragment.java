@@ -41,7 +41,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.OnClick;
 
 
@@ -50,13 +50,15 @@ import butterknife.OnClick;
  */
 public class RecommendCustomeFragment extends RecommendFragment implements OnBackKeyDownListener {
     private static final String INDEX_TAG = "Recommend_custome_tag";
-    @Bind(R.id.lb_add)
+    @BindView(R.id.lb_add)
     ImageButton llAdd;
     LinkedList<Integer> sortList = null;
+
     @Override
     public String getNetTag() {
         return INDEX_TAG;
     }
+
     @Override
     protected void onContentViewCreated(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
         inflater.inflate(R.layout.layout_recommd_custome, parent, true);
@@ -64,9 +66,9 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
 
     @Override
     protected InfoListVo<RecommendVo> loadData(Context context) throws Exception {
-        if(UserLoginUtil.getUserCache()!=null){
+        if (UserLoginUtil.getUserCache() != null) {
             return super.loadData(context);
-        }else{
+        } else {
             return new InfoListVo<RecommendVo>();
         }
 
@@ -81,29 +83,31 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
     @Override
     protected void initSort() {
         super.initSort();
-        if(CollectionUtils.isEmpty(sortList) && !CollectionUtils.isEmpty(infoVo.voList)){
-            for(RecommendVo vo:infoVo.voList){
+        if (CollectionUtils.isEmpty(sortList) && !CollectionUtils.isEmpty(infoVo.voList)) {
+            for (RecommendVo vo : infoVo.voList) {
                 sortList.add(vo.id);
             }
         }
     }
 
     @Override
-    protected void sortData(){
-        Collections.sort(infoVo.voList,new MyComparator());
+    protected void sortData() {
+        Collections.sort(infoVo.voList, new MyComparator());
     }
-    private void dataForView(){
-        if(!CollectionUtils.isEmpty(infoVo.voList)){
-            if(llAdd!=null)
+
+    private void dataForView() {
+        if (!CollectionUtils.isEmpty(infoVo.voList)) {
+            if (llAdd != null)
                 llAdd.setVisibility(View.GONE);
-        }else{
-            if(llAdd!=null)
+        } else {
+            if (llAdd != null)
                 llAdd.setVisibility(View.VISIBLE);
         }
     }
+
     @OnClick(R.id.lb_add)
-    public void onAdd(){
-        AddCustomeInfoActivity.startActivity(getActivity(),null);
+    public void onAdd() {
+        AddCustomeInfoActivity.startActivity(getActivity(), null);
     }
 
     @Override
@@ -115,26 +119,31 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
     public void onEvent(CustomeAddEvent event) {
         refresh();
     }
+
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(UserLoginEvent event) {
         refresh();
     }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EventBusUtil.getEventBus().register(this);
-        ((MainFragmentViewPage)getActivity()).addListener(this);
-        sortList = PreferenceUtils.getPrefObj(getActivity(),Constants.CUSTOME_SORT,new TypeToken<LinkedList<Integer>>(){}.getType());
-        if(sortList==null) {
+        ((MainFragmentViewPage) getActivity()).addListener(this);
+        sortList = PreferenceUtils.getPrefObj(getActivity(), Constants.CUSTOME_SORT, new TypeToken<LinkedList<Integer>>() {
+        }.getType());
+        if (sortList == null) {
             sortList = new LinkedList<>();
         }
     }
+
     @Override
     public void onDestroy() {
         super.onDestroy();
         EventBusUtil.getEventBus().unregister(this);
-        ((MainFragmentViewPage)getActivity()).removeListener(this);
+        ((MainFragmentViewPage) getActivity()).removeListener(this);
     }
+
     @Override
     public int getSpanCount() {
         return 2;
@@ -146,17 +155,17 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
     }
 
     @Override
-    public void onLongItemClick(View view, final int position){
+    public void onLongItemClick(View view, final int position) {
         switchFlag(true);
     }
 
     @Override
     public void onEditClick(View view, int postion) {
         super.onEditClick(view, postion);
-        showPopupWindow(view,postion);
+        showPopupWindow(view, postion);
     }
 
-    private void showPopupWindow(View view,final int postion) {
+    private void showPopupWindow(View view, final int postion) {
         // 一个自定义的布局，作为显示的内容
         View contentView = LayoutInflater.from(mContext).inflate(
                 R.layout.layout_customer_pop, null);
@@ -169,9 +178,9 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
                 return false;
             }
         });
-        int w =  view.getWidth()/2;
-        int h = 0 - view.getHeight()/2;
-        popupWindow.showAsDropDown(view,w,h);
+        int w = view.getWidth() / 2;
+        int h = 0 - view.getHeight() / 2;
+        popupWindow.showAsDropDown(view, w, h);
         // 设置按钮的点击事件
         Button btnDel = (Button) contentView.findViewById(R.id.btn_del);
         btnDel.setOnClickListener(new View.OnClickListener() {
@@ -190,16 +199,16 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         Object o = infoVo.voList.get(postion);
-                        indexService.postData(Constants.getUrl(Constants.API_DEL_CUSTOME),o,new CommonResponse.ResponseOkListener<NullReturnVo>(o) {
+                        indexService.postData(Constants.getUrl(Constants.API_DEL_CUSTOME), o, new CommonResponse.ResponseOkListener<NullReturnVo>(o) {
                             @Override
                             public void onResponse(NullReturnVo vo) {
                                 Toast.makeText(getActivity(), R.string.custome_del_ok, Toast.LENGTH_SHORT).show();
-                                sortList.remove(sortList.indexOf(((RecommendVo)getParam()).id));
+                                sortList.remove(sortList.indexOf(((RecommendVo) getParam()).id));
                                 refresh();
                                 saveSortMap();
 
                             }
-                        },null,INDEX_TAG,NullReturnVo.class);
+                        }, null, INDEX_TAG, NullReturnVo.class);
                         popupWindow.dismiss();
                     }
                 });
@@ -212,15 +221,17 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
             @Override
             public void onClick(View v) {
                 popupWindow.dismiss();
-                RecommendVo o = (RecommendVo)infoVo.voList.get(postion);
-                CustomeAddForm form = new CustomeAddForm(o.id,o.title,o.actionUrl);
-                AddCustomeInfoActivity.startActivity(getActivity(),form);
+                RecommendVo o = infoVo.voList.get(postion);
+                CustomeAddForm form = new CustomeAddForm(o.id, o.title, o.actionUrl);
+                AddCustomeInfoActivity.startActivity(getActivity(), form);
             }
         });
     }
-    private void saveSortMap(){
-        PreferenceUtils.setPrefString(getActivity(),Constants.CUSTOME_SORT,GsonUtils.getInstance().toJson(sortList));
+
+    private void saveSortMap() {
+        PreferenceUtils.setPrefString(getActivity(), Constants.CUSTOME_SORT, GsonUtils.getInstance().toJson(sortList));
     }
+
     @Override
     public void onStartDrag(RecyclerView.ViewHolder viewHolder) {
         super.onStartDrag(viewHolder);
@@ -231,12 +242,13 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
     public void onItemMove(Object o1, Object o2) {
         super.onItemMove(o1, o2);
 //        sortMap.put(String.valueOf(((RecommendVo)o1).id),((RecommendVo)o2).id);
-        int move1 = sortList.indexOf(((RecommendVo)o1).id);
-        int move2 = sortList.indexOf(((RecommendVo)o2).id);
+        int move1 = sortList.indexOf(((RecommendVo) o1).id);
+        int move2 = sortList.indexOf(((RecommendVo) o2).id);
         sortList.remove(move2);
-        sortList.add(move1,((RecommendVo)o2).id);
+        sortList.add(move1, ((RecommendVo) o2).id);
         saveSortMap();
     }
+
     @Override
     public boolean getCanMove() {
         return true;
@@ -249,18 +261,19 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
 
     @Override
     public boolean onkeyBackDown() {
-        if(getSwitchFlag()){
+        if (getSwitchFlag()) {
             switchFlag(false);
             return true;
         }
         return false;
     }
-    public class MyComparator implements Comparator<RecommendVo>{
+
+    public class MyComparator implements Comparator<RecommendVo> {
         @Override
         public int compare(RecommendVo lhs, RecommendVo rhs) {
             Integer start = sortList.indexOf(lhs.id);
             Integer end = sortList.indexOf(rhs.id);
-            return start-end;
+            return start - end;
         }
     }
 }

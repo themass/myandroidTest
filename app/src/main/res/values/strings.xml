@@ -62,6 +62,9 @@
     <string name="menu_btn_country">Region：</string>
     <string name="menu_btn_open_browser">Open in browser</string>
     <string name="menu_btn_copy_url">Copy url</string>
+    <string name="menu_btn_favorite">My favorite</string>
+    <string name="menu_favorite">Favorite</string>
+    <string name="menu_favorite_cancel">Cancel Favorite</string>
     <string name="location_choose_flag_none">Click“ Region ”More regional options</string>
 
     <!-- share-->
@@ -104,6 +107,7 @@
     <string name="sound_play_not_wifi">You are now using a non WIFI network？</string>
     <string name="sound">Obscene</string>
     <string name="text">Interesting novel</string>
+    <string name="img">Sex Img</string>
     <string name="version_low">version is to low！</string>
     <!-- error-->
     <string name="error_getlocation_fail">Failed to obtain location information！</string>
@@ -111,6 +115,7 @@
     <string name="error_network_no_connection">Network connection is not available, please try again later</string>
     <string name="error_network_timeout">Network connection timeout, please try again later</string>
     <string name="error_network_retry">Load error, please click Retry.</string>
+    <string name="error_network_nodata_retry">Nodata, please click Retry.</string>
     <string name="error_unknown">Unknow error</string>
     <!-- vpn状态改变 -->
     <string name="vpn_bg_click_later">Try later please</string>
@@ -186,6 +191,14 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="vpn_not_supported_during_lockdown">VPN connections are not supported in lockdown mode.</string>
     <!-- activity title-->
     <string name="titile_browser">Open in browser</string>
+    <string name="permission_need">necessary permissions missing。\n\nClick\"setting\"-\"permission\"-open all permissions。</string>
+    <string name="permission_get_accounts_hint">necessary permissions need。PERMISSION_GET_ACCOUNTS</string>
+    <string name="permission_read_phone_hint">necessary permissions need。PERMISSION_READ_PHONE_STATE</string>
+    <string name="permission_access_coarse_location_hint">necessary permissions need。PERMISSION_ACCESS_COARSE_LOCATION</string>
+    <string name="permission_white_external_hint">necessary permissions need。PERMISSION_WRITE_EXTERNAL_STORAGE</string>
+    <string name="ads_logo">AD</string>
+    <string name="skip">skip</string>
+    <string name="search">enter search content</string>
     <!--slidingclose-->
     <string name="title_activity_view_pager">ViewPagerActivity</string>
     <string name="title_activity_list_view">ListViewActivity</string>

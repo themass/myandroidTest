@@ -9,13 +9,13 @@ import com.timeline.vpn.constant.Constants;
  * Created by themass on 2017/4/10.
  */
 
-public class HttpParser implements UrlParser{
+public class HttpParser implements UrlParser {
     @Override
     public CustomeAddForm parser(String url) {
-        CustomeAddForm form= new CustomeAddForm();
+        CustomeAddForm form = new CustomeAddForm();
         Uri uri = Uri.parse(url);
         form.schema = uri.getScheme();
-        form.uri = url.replace(form.schema+Constants.URL_TMP,"");
+        form.uri = url.replace(form.schema + Constants.URL_TMP, "");
         form.openPath = Constants.OpenUrlPath.local;
         return form;
     }

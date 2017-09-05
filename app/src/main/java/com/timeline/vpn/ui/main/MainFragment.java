@@ -47,7 +47,6 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_fragment);
-        setupView();
         EventBusUtil.getEventBus().register(jump);
         EventBusUtil.getEventBus().register(logAdd);
         EventBusUtil.getEventBus().register(this);
@@ -65,7 +64,7 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
         this.keyListener = keyListener;
     }
 
-    private void setupView() {
+    public void setupView() {
         mTabHost = (FragmentTabHost) findViewById(android.R.id.tabhost);
         mTabHost.setup(this, getSupportFragmentManager(), R.id.realtabcontent);
         mTabHost.setOnTabChangedListener(this);

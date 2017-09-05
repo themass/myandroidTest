@@ -64,11 +64,11 @@ public class ScreenListener {
 
     public interface ScreenStateListener {// 返回给调用者屏幕状态信息
 
-        public void onScreenOn();
+        void onScreenOn();
 
-        public void onScreenOff();
+        void onScreenOff();
 
-        public void onUserPresent();
+        void onUserPresent();
     }
 
     /**

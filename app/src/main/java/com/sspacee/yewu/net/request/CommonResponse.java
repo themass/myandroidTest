@@ -21,17 +21,21 @@ public class CommonResponse {
 
     public static class ResponseOkListener<T> implements Response.Listener<T> {
         private final Object param;
-        public ResponseOkListener(){
+
+        public ResponseOkListener() {
             param = null;
         }
-        public ResponseOkListener(Object param){
+
+        public ResponseOkListener(Object param) {
             this.param = param;
         }
+
         @Override
         public void onResponse(T o) {
 
         }
-        public Object getParam(){
+
+        public Object getParam() {
             return param;
         }
     }

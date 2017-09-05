@@ -14,13 +14,13 @@ import com.sspacee.yewu.ads.adview.AdsController;
 import com.timeline.vpn.R;
 import com.timeline.vpn.constant.Constants;
 
-import butterknife.Bind;
+import butterknife.BindView;
 
 /**
  * Created by themass on 2016/8/21.
  */
 public class BannerHeaderFragment extends BaseFragment implements AdsController {
-    @Bind(R.id.fl_banner)
+    @BindView(R.id.fl_banner)
     public ViewGroup flBanner;
     public boolean init = false;
     private AdsGoneTask task = new AdsGoneTask();
@@ -28,7 +28,11 @@ public class BannerHeaderFragment extends BaseFragment implements AdsController 
         @Override
         public void handleMessage(Message msg) {
             LogUtil.i("handleMessage-" + msg.what);
-            mHandler.postDelayed(task, Constants.BANNER_ADS_GONE_LONG_LONG);
+            if (msg.what == Constants.ADS_NO_MSG || msg.what == Constants.ADS_DISMISS_MSG) {
+                mHandler.postDelayed(task, 0);
+            } else {
+                mHandler.postDelayed(task, Constants.BANNER_ADS_GONE_LONG);
+            }
         }
     };
 

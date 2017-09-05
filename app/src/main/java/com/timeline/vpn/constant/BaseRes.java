@@ -1,10 +1,5 @@
 package com.timeline.vpn.constant;
 
-import android.content.Context;
-import android.widget.ImageView;
-
-import com.bumptech.glide.Glide;
-import com.qq.e.comm.util.StringUtil;
 import com.timeline.vpn.R;
 
 import java.util.HashMap;
@@ -14,7 +9,6 @@ import java.util.Map;
  * Created by themass on 2016/8/13.
  */
 public class BaseRes {
-    private static final String IMAGE_RES_PRE = "timeline://img";
     public static Map<String, Integer> img = new HashMap<>();
 
     static {
@@ -52,20 +46,5 @@ public class BaseRes {
         img.put("flag_all", R.drawable.flag_all);
     }
 
-    public static void getImage(Context context, ImageView iv, String url) {
-        if (iv == null || StringUtil.isEmpty(url)) {
-            return;
-        }
-        if (url.startsWith(IMAGE_RES_PRE)) {
-            url = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf("."));
-            iv.setImageResource(img.get(url));
-        } else {
-            Glide.with(context)
-                    .load(iv)
-                    .placeholder(R.drawable.vpn_trans_default)
-                    .centerCrop()
-                    .into(iv);
-        }
-    }
 
 }

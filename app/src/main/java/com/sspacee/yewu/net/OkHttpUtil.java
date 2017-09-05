@@ -1,9 +1,9 @@
 package com.sspacee.yewu.net;
 
 import com.sspacee.common.exce.HttpException;
+import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.net.interceptor.GzipRequestInterceptor;
 import com.sspacee.yewu.net.interceptor.LoggingInterceptor;
-import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
 
 import java.io.IOException;

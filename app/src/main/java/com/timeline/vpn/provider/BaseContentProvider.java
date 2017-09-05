@@ -65,6 +65,7 @@ public class BaseContentProvider extends MyContentProvider {
     @Override
     public boolean onCreate() {
         setSQLiteOpenHelper(new DBHelper(getContext()));
+//        setSQLiteOpenHelper( new DaoMaster.DevOpenHelper(context, DBManager.dbName, null));
         return true;
     }
 }

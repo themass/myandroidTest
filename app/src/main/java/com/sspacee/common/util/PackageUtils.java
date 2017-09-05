@@ -118,7 +118,7 @@ public class PackageUtils {
         }
     }
 
-    public static boolean hasBrowser(Context context){
+    public static boolean hasBrowser(Context context) {
         String default_browser = "android.intent.category.DEFAULT";
         String browsable = "android.intent.category.BROWSABLE";
         String view = "android.intent.action.VIEW";
@@ -128,10 +128,7 @@ public class PackageUtils {
         Uri uri = Uri.parse("http://");
         intent.setDataAndType(uri, null);
         List<ResolveInfo> resolveInfoList = context.getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
-        if(CollectionUtils.isEmpty(resolveInfoList)){
-            return false;
-        }
-        return true;
+        return !CollectionUtils.isEmpty(resolveInfoList);
     }
 
 }

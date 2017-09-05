@@ -3,16 +3,20 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.timeline.vpn">
     <!-- 隐私权-->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
 
     <uses-permission android:name="android.permission.USE_CREDENTIALS" />
     <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_UPDATES" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.VIBRATE" />
@@ -20,15 +24,13 @@
     <uses-permission android:name="android.permission.SET_DEBUG_APP" />
     <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" />
     <uses-permission android:name="com.android.browser.permission.READ_HISTORY_BOOKMARKS" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission
         android:name="android.permission.PACKAGE_USAGE_STATS"
         tools:ignore="ProtectedPermissions" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.CALL_PHONE" />
     <uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS" />
-    <uses-sdk tools:overrideLibrary="com.andremion.music.cover"/>
+
+    <uses-sdk tools:overrideLibrary="com.andremion.music.cover" />
     <!--permission
         android:name="com.android.launcher.permission.READ_SETTINGS"
         android:permissionGroup="android.permission-group.SYSTEM_TOOLS"
@@ -50,9 +52,6 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme.Slide"
         tools:replace="android:allowBackup">
-        <meta-data
-            android:name="com.sspacee.common.util.MyGlideModule"
-            android:value="GlideModule" />
         <meta-data
             android:name="com.baidu.lbsapi.API_KEY"
             android:value="VFNwiTplUvpm7iLaV6FBLNOkxFYrEbp1" />
@@ -77,6 +76,7 @@
             <intent-filter tools:ignore="GoogleAppIndexingWarning">
                 <action android:name="android.intent.action.VIEW" />
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -84,49 +84,68 @@
             android:name=".ui.main.MainFragment"
             android:label="@string/main_activity_name"
             android:launchMode="singleTask"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".ui.main.MainFragmentViewPage"
             android:label="@string/main_activity_name"
             android:launchMode="singleTask"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".ui.base.WebViewActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize"/>
-        <activity android:name=".ui.user.LoginActivity"
-            android:screenOrientation="portrait"/>
-        <activity android:name=".ui.log.FileLogActivity"
-            android:screenOrientation="portrait"/>
-        <activity android:name=".ui.user.RegActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize" />
+        <activity
+            android:name=".ui.user.LoginActivity"
             android:screenOrientation="portrait" />
-        <activity android:name=".ui.user.SettingActivity"
+        <activity
+            android:name=".ui.log.FileLogActivity"
             android:screenOrientation="portrait" />
-        <activity android:name=".ui.user.AddCustomeInfoActivity"
+        <activity
+            android:name=".ui.user.RegActivity"
             android:screenOrientation="portrait" />
-        <activity android:name=".ui.sound.SoundChannleActivity"
+        <activity
+            android:name=".ui.user.SettingActivity"
             android:screenOrientation="portrait" />
-        <activity android:name=".ui.sound.TextChannleActivity"
+        <activity
+            android:name=".ui.user.AddCustomeInfoActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.sound.SoundChannleActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.sound.TextChannleActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.sound.ImgChannleActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.sound.MyFullScreenImageGalleryActivity"
             android:screenOrientation="portrait" />
         <activity
             android:name=".ui.config.BrowserConfigActivity"
             android:launchMode="singleTask"
-            android:taskAffinity="com.qq.config_browser"
-            android:screenOrientation="portrait"/>
-        <activity android:name=".ui.base.CommonFragmentActivity"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait"
+            android:taskAffinity="com.qq.config_browser" />
+        <activity
+            android:name=".ui.base.CommonFragmentActivity"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".ui.config.QuickBrowserConfigActivity"
-            android:theme="@style/myTransparent"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait"
+            android:theme="@style/myTransparent" />
         <!--test-->
-        <activity android:name=".ui.test.MainActivity"
-            android:screenOrientation="portrait"/>
-        <activity android:name=".ui.test.ViewPagerActivity"
-            android:screenOrientation="portrait"/>
-        <activity android:name=".ui.test.ListViewActivity"
-            android:screenOrientation="portrait"/>
-        <activity android:name=".ui.test.NormalActivity"
-            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".ui.test.MainActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.test.ViewPagerActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.test.ListViewActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.test.NormalActivity"
+            android:screenOrientation="portrait" />
+
         <service
             android:name="org.strongswan.android.logic.VpnStateService"
             android:exported="false" />
@@ -223,7 +242,6 @@
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="8487000" />
-
     </application>
 
 </manifest>

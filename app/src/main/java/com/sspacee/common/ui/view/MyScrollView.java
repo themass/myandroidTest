@@ -12,7 +12,7 @@ public class MyScrollView extends ScrollView {
     }
 
     public MyScrollView(Context context, AttributeSet attrs,
-                                int defStyle) {
+                        int defStyle) {
         super(context, attrs, defStyle);
     }
 
@@ -31,6 +31,7 @@ public class MyScrollView extends ScrollView {
             scrollViewListener.onScrollChanged(this, x, y, oldx, oldy);
         }
     }
+
     public interface ScrollViewListener {
         void onScrollChanged(ScrollView scrollView, int x, int y, int oldx, int oldy);
     }

@@ -157,14 +157,23 @@
 -keep class com.google.**{*;}
 -dontnote u.aly.**
 #glid
--dontnote com.bumptech.glide.**
 -keep public class * implements com.bumptech.glide.module.GlideModule
+-keep public class * extends com.bumptech.glide.AppGlideModule
 -keep public enum com.bumptech.glide.load.resource.bitmap.ImageHeaderParser$** {
   **[] $VALUES;
   public *;
 }
--keep class com.bumptech.glide.** { *; }
-#-keepresourcexmlelements manifest/application/meta-data@value=GlideModule
+
+# for DexGuard only
+-keepresourcexmlelements manifest/application/meta-data@value=GlideModule
+#-dontnote com.bumptech.glide.**
+#-keep public class * implements com.bumptech.glide.module.GlideModule
+#-keep public enum com.bumptech.glide.load.resource.bitmap.ImageHeaderParser$** {
+#  **[] $VALUES;
+#  public *;
+#}
+#-keep class com.bumptech.glide.** { *; }
+##-keepresourcexmlelements manifest/application/meta-data@value=GlideModule
 -keep class com.baidu.** { *;}
 -keep class android.support.v4.app.NotificationCompat**{ *; }
 -keep class MTT.ThirdAppInfoNew { *; }
@@ -217,3 +226,10 @@
 -dontwarn com.kyview.**
 -dontnote com.kyview.**
 -keep public class com.kuaiyou.** {*;}
+
+#-------------------greenrobot greendao------------------------
+-keep class org.greenrobot.greendao.**{*;}
+-keepclassmembers class * extends org.greenrobot.greendao.AbstractDao {
+public static java.lang.String TABLENAME;
+}
+-keep class **$Properties

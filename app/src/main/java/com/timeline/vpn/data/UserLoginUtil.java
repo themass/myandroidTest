@@ -24,7 +24,7 @@ public class UserLoginUtil {
             StaticDataUtil.add(Constants.LOGIN_USER, user);
             EventBusUtil.getEventBus().post(new UserLoginEvent());
             context.sendBroadcast(new Intent(MyApplication.UPDATE_STATUS_ACTION));
-        }else{
+        } else {
             LogUtil.i("login fail");
         }
     }
@@ -55,16 +55,11 @@ public class UserLoginUtil {
 
     public static boolean isVIP() {
         UserInfoVo vo = getUserCache();
-        if (vo == null || vo.level < Constants.UserLevel.LEVEL_VIP) {
-            return false;
-        }
-        return true;
+        return !(vo == null || vo.level < Constants.UserLevel.LEVEL_VIP);
     }
+
     public static boolean isVIP2() {
         UserInfoVo vo = getUserCache();
-        if (vo == null || vo.level < Constants.UserLevel.LEVEL_VIP2) {
-            return false;
-        }
-        return true;
+        return !(vo == null || vo.level < Constants.UserLevel.LEVEL_VIP2);
     }
 }

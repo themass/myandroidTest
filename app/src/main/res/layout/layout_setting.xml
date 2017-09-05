@@ -32,11 +32,11 @@
 
                     <TextView
                         android:id="@+id/tv_areaswitch"
+                        style="@style/tv_setting"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_centerVertical="true"
-                        android:text="@string/area_setting"
-                        style="@style/tv_setting"/>
+                        android:text="@string/area_setting" />
 
                     <Switch
                         android:id="@+id/sw_area"
@@ -45,7 +45,9 @@
                         android:layout_alignParentRight="true"
                         android:layout_centerVertical="true" />
                 </RelativeLayout>
+
                 <ImageView style="@style/divider_login" />
+
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -53,11 +55,11 @@
 
                     <TextView
                         android:id="@+id/tv_soundswitch"
+                        style="@style/tv_setting"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_centerVertical="true"
-                        android:text="@string/sound_setting"
-                        style="@style/tv_setting"/>
+                        android:text="@string/sound_setting" />
 
                     <Switch
                         android:id="@+id/sw_sound"
@@ -66,28 +68,30 @@
                         android:layout_alignParentRight="true"
                         android:layout_centerVertical="true" />
                 </RelativeLayout>
+
                 <ImageView style="@style/divider_login" />
+
                 <RelativeLayout
                     android:id="@+id/rr_version"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="@dimen/margin_10"
-                    android:background="?android:attr/selectableItemBackground">
+                    android:background="?android:attr/selectableItemBackground"
+                    android:padding="@dimen/margin_10">
 
                     <TextView
+                        style="@style/tv_setting"
                         android:layout_width="100dp"
                         android:layout_height="wrap_content"
                         android:layout_centerVertical="true"
-                        android:text="@string/menu_btn_version"
-                        style="@style/tv_setting"/>
+                        android:text="@string/menu_btn_version" />
 
                     <TextView
                         android:id="@+id/tv_version"
+                        style="@style/tv_setting"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_alignParentRight="true"
-                        android:layout_centerVertical="true"
-                        style="@style/tv_setting"/>
+                        android:layout_centerVertical="true" />
                 </RelativeLayout>
             </LinearLayout>
         </android.support.v7.widget.CardView>
@@ -110,69 +114,74 @@
                     android:id="@+id/rr_point"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="@dimen/margin_10"
-                    android:background="?android:attr/selectableItemBackground">
+                    android:background="?android:attr/selectableItemBackground"
+                    android:padding="@dimen/margin_10">
 
                     <TextView
+                        style="@style/tv_setting"
                         android:layout_width="100dp"
                         android:layout_height="wrap_content"
                         android:layout_centerVertical="true"
-                        android:text="@string/menu_btn_score"
-                        style="@style/tv_setting"/>
+                        android:text="@string/menu_btn_score" />
 
                     <TextView
                         android:id="@+id/tv_score"
+                        style="@style/tv_setting"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_alignParentRight="true"
-                        android:layout_centerVertical="true"
-                        style="@style/tv_setting"/>
+                        android:layout_centerVertical="true" />
                 </RelativeLayout>
+
                 <ImageView style="@style/divider_login" />
+
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:padding="@dimen/margin_10">
 
                     <TextView
+                        style="@style/tv_setting"
                         android:layout_width="100dp"
                         android:layout_height="wrap_content"
                         android:layout_centerVertical="true"
-                        android:text="@string/menu_btn_networking"
-                        style="@style/tv_setting"/>
+                        android:text="@string/menu_btn_networking" />
 
                     <TextView
                         android:id="@+id/tv_networking"
+                        style="@style/tv_setting"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_alignParentRight="true"
-                        android:layout_centerVertical="true"
-                        style="@style/tv_setting"/>
+                        android:layout_centerVertical="true" />
                 </RelativeLayout>
+
                 <ImageView style="@style/divider_login" />
+
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:padding="@dimen/margin_10">
 
                     <TextView
+                        style="@style/tv_setting"
                         android:layout_width="100dp"
                         android:layout_height="wrap_content"
                         android:layout_centerVertical="true"
-                        android:text="@string/menu_btn_timeuse"
-                        style="@style/tv_setting"/>
+                        android:text="@string/menu_btn_timeuse" />
 
                     <TextView
                         android:id="@+id/tv_timeuse"
+                        style="@style/tv_setting"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_alignParentRight="true"
-                        android:layout_centerVertical="true"
-                        style="@style/tv_setting"/>
+                        android:layout_centerVertical="true" />
                 </RelativeLayout>
 
             </LinearLayout>
         </android.support.v7.widget.CardView>
+
         <android.support.v7.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -186,32 +195,37 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
+
                 <TextView
                     android:id="@+id/tv_about"
+                    style="@style/tv_setting"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/menu_btn_about"
-                    android:padding="@dimen/margin_10"
                     android:background="?android:attr/selectableItemBackground"
-                    style="@style/tv_setting"/>
+                    android:padding="@dimen/margin_10"
+                    android:text="@string/menu_btn_about" />
+
                 <ImageView style="@style/divider_login" />
+
                 <TextView
                     android:id="@+id/tv_share"
+                    style="@style/tv_setting"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/menu_btn_share"
-                    android:padding="@dimen/margin_10"
                     android:background="?android:attr/selectableItemBackground"
-                    style="@style/tv_setting"/>
+                    android:padding="@dimen/margin_10"
+                    android:text="@string/menu_btn_share" />
+
                 <ImageView style="@style/divider_login" />
+
                 <TextView
                     android:id="@+id/tv_bug"
+                    style="@style/tv_setting"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/menu_btn_bug"
-                    android:padding="@dimen/margin_10"
                     android:background="?android:attr/selectableItemBackground"
-                    style="@style/tv_setting"/>
+                    android:padding="@dimen/margin_10"
+                    android:text="@string/menu_btn_bug" />
             </LinearLayout>
         </android.support.v7.widget.CardView>
     </LinearLayout>

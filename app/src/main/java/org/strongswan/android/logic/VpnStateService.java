@@ -192,7 +192,7 @@ public class VpnStateService extends Service {
      * started.
      */
     public void disconnect() {
-		/* as soon as the TUN device is created by calling establish() on the
+        /* as soon as the TUN device is created by calling establish() on the
 		 * VpnService.Builder object the system binds to the service and keeps
 		 * bound until the file descriptor of the TUN device is closed.  thus
 		 * calling stopService() here would not stop (destroy) the service yet,
@@ -330,7 +330,7 @@ public class VpnStateService extends Service {
      * this Service.
      */
     public interface VpnStateListener {
-        public void stateChanged();
+        void stateChanged();
     }
 
     /**

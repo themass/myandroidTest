@@ -9,16 +9,22 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.VolleyError;
-import com.sspacee.yewu.net.VolleyUtils;
 import com.sspacee.common.ui.base.BaseFragment;
+import com.sspacee.common.util.CollectionUtils;
+import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.ViewUtils;
+import com.sspacee.yewu.net.VolleyUtils;
 import com.timeline.vpn.R;
+import com.timeline.vpn.bean.vo.InfoListVo;
 
 import java.lang.ref.WeakReference;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -26,6 +32,7 @@ import java.lang.ref.WeakReference;
  */
 public abstract class LoadableFragment<T> extends BaseFragment {
     public boolean mDataLoaded = false;
+    public boolean isDestory = false;
     protected ProgressBar mLoadingView;
     protected View mLoadRetryView;
     protected ViewGroup mContentView;
@@ -42,6 +49,7 @@ public abstract class LoadableFragment<T> extends BaseFragment {
     };
     private int DEFAULT_LAYOUT = R.layout.base_loadable_fragment;
     private int fragmentLayoutId = DEFAULT_LAYOUT;
+    private TextView tvRetry;
 
     @Override
     public void onAttach(Activity activity) {
@@ -59,10 +67,12 @@ public abstract class LoadableFragment<T> extends BaseFragment {
         mLoadingView = ViewUtils.find(view, R.id.loading);
         mLoadRetryView = ViewUtils.find(view, R.id.load_retry);
         mContentView = ViewUtils.find(view, R.id.content);
+        tvRetry = ViewUtils.find(view, R.id.tv_retry);
         LayoutInflater inflater = LayoutInflater.from(getActivity());
         onContentViewCreated(inflater, mContentView, savedInstanceState);
         mLoadRetryView.setOnClickListener(mRefreshClickListener);
         super.setupViews(view, savedInstanceState);
+        isDestory = false;
     }
 
     @Override
@@ -79,11 +89,12 @@ public abstract class LoadableFragment<T> extends BaseFragment {
     protected abstract void onContentViewCreated(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState);
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
+    public void onDestroyView() {
+        isDestory = true;
         cancelQuery();
         mLoadingView = null;
         mContentView = null;
+        super.onDestroyView();
     }
 
     protected void cancelVolley(final String tag) {
@@ -133,10 +144,25 @@ public abstract class LoadableFragment<T> extends BaseFragment {
         mLoadingView.setVisibility(View.GONE);
         mLoadRetryView.setVisibility(View.VISIBLE);
         mContentView.setVisibility(View.GONE);
+        tvRetry.setText(R.string.error_network_retry);
+    }
+
+    private void showNodataRetry() {
+        mLoadingView.setVisibility(View.GONE);
+        mLoadRetryView.setVisibility(View.VISIBLE);
+        mContentView.setVisibility(View.GONE);
+        tvRetry.setText(R.string.error_network_nodata_retry);
     }
 
     protected void setData(T data) {
         this.mData = data;
+        if (data instanceof InfoListVo && CollectionUtils.isEmpty(((InfoListVo) mData).voList)) {
+            showNodataRetry();
+        } else if (data instanceof List && CollectionUtils.isEmpty(((List) mData))) {
+            showNodataRetry();
+        } else if (data instanceof Map && CollectionUtils.isEmpty(((Map) mData))) {
+            showNodataRetry();
+        }
     }
 
     /**
@@ -180,6 +206,7 @@ public abstract class LoadableFragment<T> extends BaseFragment {
                 try {
                     return fragment.loadData(mContext);
                 } catch (Exception e) {
+                    LogUtil.e(e);
                     showError(e);
                 }
             }
@@ -189,7 +216,7 @@ public abstract class LoadableFragment<T> extends BaseFragment {
         @Override
         protected void onPostExecute(T data) {
             LoadableFragment<T> fragment = mFragment != null ? mFragment.get() : null;
-            if (fragment != null && !fragment.getActivity().isFinishing()) {
+            if (fragment != null && !fragment.getActivity().isFinishing() && !fragment.isDestory) {
                 fragment.hideLoading();
                 if (data != null) {
                     fragment.setData(data);

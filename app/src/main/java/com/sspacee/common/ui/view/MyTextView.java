@@ -22,6 +22,7 @@ public class MyTextView extends AppCompatTextView {
     private static final int DEFAULTVALUE_DEGREES = 0;
     private int degrees;
     private TextScrollViewListener scrollViewListener = null;
+
     public MyTextView(Context context) {
         super(context);
     }
@@ -45,15 +46,18 @@ public class MyTextView extends AppCompatTextView {
         super.setText(text, type);
         Tools.setTextViewLineExtra(this, DensityUtil.dip2px(getContext(), 5), 1);
     }
+
     public int getLineNum(int h) {
         Layout layout = getLayout();
-        int topOfLastLine = (h - getPaddingTop())/ (getLineHeight()+(int)getLineSpacingMultiplier());
+        int topOfLastLine = (h - getPaddingTop()) / (getLineHeight() + (int) getLineSpacingMultiplier());
         return topOfLastLine;
 //        return layout.getLineForVertical(topOfLastLine);
     }
+
     public void setScrollViewListener(TextScrollViewListener scrollViewListener) {
         this.scrollViewListener = scrollViewListener;
     }
+
     @Override
     protected void onScrollChanged(int horiz, int vert, int oldHoriz, int oldVert) {
         super.onScrollChanged(horiz, vert, oldHoriz, oldVert);

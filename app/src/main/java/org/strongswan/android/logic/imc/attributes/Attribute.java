@@ -24,5 +24,5 @@ public interface Attribute {
      *
      * @return binary encoding
      */
-    public byte[] getEncoding();
+    byte[] getEncoding();
 }

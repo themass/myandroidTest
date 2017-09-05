@@ -184,7 +184,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
 
     @Override
     public void onRevoke() {	/* the system revoked the rights grated with the initial prepare() call.
-		 * called when the user clicks disconnect in the system's VPN dialog */
+         * called when the user clicks disconnect in the system's VPN dialog */
         LogUtil.i("charon service onRevoke");
         setNextProfile(null);
     }

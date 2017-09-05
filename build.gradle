@@ -15,8 +15,9 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.2.3'
-        classpath 'com.jakewharton.hugo:hugo-plugin:1.2.1'
+        classpath 'com.android.tools.build:gradle:2.3.3'
+        classpath 'org.greenrobot:greendao-gradle-plugin:3.2.2'
+        classpath 'com.jakewharton:butterknife-gradle-plugin:8.8.1'
     }
 }
 
@@ -26,23 +27,24 @@ allprojects {
             dirs 'libs'
         }
         mavenLocal()
-        maven {
-            url "http://maven.lianjia.com/content/repositories/Lianjia-Mobile-Group"
-            credentials {
-                username 'mobile'
-                password 'mobile213456'
-            }
-        }
+//        maven {
+//            url "http://maven.lianjia.com/content/repositories/Lianjia-Mobile-Group"
+//            credentials {
+//                username 'mobile'
+//                password 'mobile213456'
+//            }
+//        }
         mavenCentral()
         jcenter {
             url "http://jcenter.bintray.com"
         }
+        maven { url "https://jitpack.io" }
         maven { url "https://repo.commonsware.com.s3.amazonaws.com" }
     }
 }
 subprojects {
-    ext.global_compileSdkVersion = 23
-    ext.global_buildToolsVersion = "23.0.3"
+    ext.global_compileSdkVersion = 25
+    ext.global_buildToolsVersion = "25.0.2"
     ext.global_minSdkVersion = 16
     ext.global_targetSdkVersion = 24
 }

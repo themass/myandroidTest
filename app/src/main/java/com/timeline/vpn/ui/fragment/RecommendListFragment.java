@@ -18,10 +18,12 @@ public class RecommendListFragment extends RecommendFragment {
     public String getNetTag() {
         return INDEX_TAG;
     }
+
     @Override
     public int getSpanCount() {
         return 3;
     }
+
     @Override
     public boolean getShowEdit() {
         return false;

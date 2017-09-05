@@ -17,7 +17,7 @@ public class WeatherUtilities {
 
     public static String getAQISource(String paramString) {
         String str = checkLanguageSuport(paramString);
-        return ((String) WeatherConstants.AQI_SOURCE_LANGUAGE_MAP.get(str));
+        return WeatherConstants.AQI_SOURCE_LANGUAGE_MAP.get(str);
     }
 
     public static int getAnimationType(String weatherStr) {
@@ -109,7 +109,7 @@ public class WeatherUtilities {
 
     public static String getChina(String paramString) {
         String str = checkLanguageSuport(paramString);
-        return ((String) WeatherConstants.CHINA_LANGUAGE_MAP.get(str));
+        return WeatherConstants.CHINA_LANGUAGE_MAP.get(str);
     }
 
     public static int getHumidity(String humidity) {
@@ -152,13 +152,13 @@ public class WeatherUtilities {
     public static String getWeather(String weatherStr) {
         String[] arrayOfString = weatherStr.split("转");
         if (arrayOfString.length > 1) {
-            String str1 = (String) WeatherConstants.CN_WEATHER_TYPE_MAP
+            String str1 = WeatherConstants.CN_WEATHER_TYPE_MAP
                     .get(arrayOfString[0]);
-            String str2 = (String) WeatherConstants.CN_WEATHER_TYPE_MAP
+            String str2 = WeatherConstants.CN_WEATHER_TYPE_MAP
                     .get(arrayOfString[1]);
             return str1 + "-" + str2;
         }
-        return ((String) WeatherConstants.CN_WEATHER_TYPE_MAP.get(weatherStr));
+        return WeatherConstants.CN_WEATHER_TYPE_MAP.get(weatherStr);
     }
 
     public static WeatherName getWeatherName(String weatherStr, String language) {
@@ -197,13 +197,13 @@ public class WeatherUtilities {
             resultStr = WeatherConstants.WIND_TYPE_LANGUAGE_MAP
                     .get(languageKey).get(windReal);
             if (resultStr == null)
-                resultStr = (String) WeatherConstants.CN_WIND_TYPE_MAP
+                resultStr = WeatherConstants.CN_WIND_TYPE_MAP
                         .get(winds[1]);
         } else {
             resultStr = WeatherConstants.WIND_TYPE_LANGUAGE_MAP
                     .get(languageKey).get(windStr);
             if (resultStr == null)
-                resultStr = (String) WeatherConstants.CN_WIND_TYPE_MAP
+                resultStr = WeatherConstants.CN_WIND_TYPE_MAP
                         .get(windStr);
         }
         return resultStr;
@@ -217,11 +217,11 @@ public class WeatherUtilities {
         String languageKey = checkLanguageSuport(language);
         String[] winds = fl.split("转");
         if (winds.length > 1) {
-            String windBefore = (String) (WeatherConstants.WIND_LEVEL_LANGUAGE_MAP
+            String windBefore = (WeatherConstants.WIND_LEVEL_LANGUAGE_MAP
                     .get(languageKey)).get(winds[0]);
-            String windAfter = (String) (WeatherConstants.WIND_LEVEL_LANGUAGE_MAP
+            String windAfter = (WeatherConstants.WIND_LEVEL_LANGUAGE_MAP
                     .get(languageKey)).get(winds[1]);
-            String transferStr = (String) WeatherConstants.TRANSFER_LANGUAGE_MAP
+            String transferStr = WeatherConstants.TRANSFER_LANGUAGE_MAP
                     .get(languageKey);
             resultStr = WeatherConstants.WIND_TYPE_LANGUAGE_MAP
                     .get(languageKey).get(fxValue)

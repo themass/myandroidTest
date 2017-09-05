@@ -1,7 +1,6 @@
 package com.timeline.vpn.ui.base.app;
 
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
@@ -18,7 +17,6 @@ import android.widget.Toast;
 import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PreferenceUtils;
-import com.sspacee.common.util.SystemUtils;
 import com.sspacee.yewu.um.MobAgent;
 import com.timeline.vpn.R;
 import com.timeline.vpn.bean.vo.UserInfoVo;
@@ -31,25 +29,25 @@ import com.timeline.vpn.data.config.LocationChooseEvent;
 import com.timeline.vpn.data.config.StateUseEvent;
 import com.timeline.vpn.data.config.UserLoginEvent;
 import com.timeline.vpn.ui.feedback.IWannaFragment;
+import com.timeline.vpn.ui.fragment.FavoriteFragment;
 import com.timeline.vpn.ui.fragment.LocationChooseFragment;
-import com.timeline.vpn.ui.test.MainActivity;
 import com.timeline.vpn.ui.user.LoginActivity;
 import com.timeline.vpn.ui.user.SettingActivity;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import butterknife.Bind;
+import butterknife.BindView;
 
 /**
  * Created by Miroslaw Stanek on 15.07.15.
  */
 public class BaseDrawerActivity extends BaseToolBarActivity {
     @Nullable
-    @Bind(R.id.drawerLayout)
+    @BindView(R.id.drawerLayout)
     DrawerLayout drawerLayout;
     @Nullable
-    @Bind(R.id.nv_drawer)
+    @BindView(R.id.nv_drawer)
     NavigationView nvDrawer;
     View headerView;
     LinearLayout llLoginMenuHeader;
@@ -60,8 +58,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     MenuItem miLogout;
     MenuItem miLocation;
     MenuItem miSetting;
-    MenuItem miTest;
-    Handler mHandler = new Handler();
+    MenuItem miFavorite;
     BaseService baseService;
 
     public void login(View view) {
@@ -91,7 +88,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         miLogout = nvDrawer.getMenu().findItem(R.id.menu_louout);
         miLocation = nvDrawer.getMenu().findItem(R.id.menu_location);
         miSetting = nvDrawer.getMenu().findItem(R.id.menu_setting);
-        miTest = nvDrawer.getMenu().findItem(R.id.menu_test);
+        miFavorite = nvDrawer.getMenu().findItem(R.id.menu_favorite);
         headerView = nvDrawer.getHeaderView(0);
         llLoginMenuHeader = (LinearLayout) headerView.findViewById(R.id.ll_menu_headview);
         tvMenuUserName = (TextView) headerView.findViewById(R.id.tv_menu_username);
@@ -115,8 +112,9 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         }
         miLocation.setTitle(LocationUtil.getSelectName(this));
     }
+
     private void setUpVersion() {
-        VersionUpdater.checkUpdate(BaseDrawerActivity.this,false);
+        VersionUpdater.checkUpdate(BaseDrawerActivity.this, false);
     }
 
     private void setUpUserMenu() {
@@ -144,9 +142,6 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
             tvMenuUserLogin.setText(R.string.menu_btn_login);
             ivLevel.setVisibility(View.GONE);
         }
-        if(SystemUtils.isApkDebugable(this)){
-            miTest.setVisible(true);
-        }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -161,12 +156,20 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(StateUseEvent event) {
-        PreferenceUtils.setPrefObj(this,Constants.USER_STATUS,event.stateUse);
+        PreferenceUtils.setPrefObj(this, Constants.USER_STATUS, event.stateUse);
     }
 
     public void logout(MenuItem item) {
         baseService.postData(Constants.getUrl(Constants.API_LOGOUT_URL), null, null, null, null, null);
         UserLoginUtil.logout(this);
+    }
+
+    public boolean closeDrawer() {
+        if (drawerLayout.isDrawerOpen(Gravity.LEFT)) {
+            drawerLayout.closeDrawer(Gravity.LEFT);
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -177,7 +180,9 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
             getToolbar().setNavigationOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    drawerLayout.openDrawer(Gravity.LEFT);
+                    if (!closeDrawer()) {
+                        drawerLayout.openDrawer(Gravity.LEFT);
+                    }
                 }
             });
         }
@@ -215,7 +220,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                 if (item.getItemId() == R.id.menu_louout) {
                     name = "登出";
                     logout(item);
-                }  else if (item.getItemId() == R.id.menu_location) {
+                } else if (item.getItemId() == R.id.menu_location) {
                     name = "网络选择";
                     LocationChooseFragment.startFragment(BaseDrawerActivity.this);
                 } else if (item.getItemId() == R.id.menu_feedback) {
@@ -224,9 +229,8 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                 } else if (item.getItemId() == R.id.menu_setting) {
                     name = "设置";
                     startActivity(SettingActivity.class);
-                }else if (item.getItemId() == R.id.menu_test) {
-                    name = "测试";
-                    startActivity(MainActivity.class);
+                }  else if (item.getItemId() == R.id.menu_favorite) {
+                    FavoriteFragment.startFragment(BaseDrawerActivity.this);
                 }
                 MobAgent.onEventMenu(BaseDrawerActivity.this, name);
                 return false;

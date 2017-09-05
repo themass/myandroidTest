@@ -65,6 +65,7 @@ public class LogUtil {
             Log.e(TAG, t);
         }
     }
+
     public static class LogAddEvent {
         public Object data;
         public Object msg;

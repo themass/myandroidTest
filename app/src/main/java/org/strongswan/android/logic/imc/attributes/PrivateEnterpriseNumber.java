@@ -29,7 +29,7 @@ public enum PrivateEnterpriseNumber {
      *
      * @param value numeric value
      */
-    private PrivateEnterpriseNumber(int value) {
+    PrivateEnterpriseNumber(int value) {
         mValue = value;
     }
 

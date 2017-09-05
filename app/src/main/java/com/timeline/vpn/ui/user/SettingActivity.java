@@ -31,43 +31,44 @@ import com.timeline.vpn.ui.base.app.BaseSingleActivity;
 
 import java.util.Date;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.OnClick;
 
 /**
  * Created by themass on 2016/8/13.
  */
 public class SettingActivity extends BaseSingleActivity {
-    @Bind(R.id.sw_area)
+    @BindView(R.id.sw_area)
     Switch swArea;
-    @Bind(R.id.sw_sound)
+    @BindView(R.id.sw_sound)
     Switch swSound;
-    @Bind(R.id.tv_timeuse)
+    @BindView(R.id.tv_timeuse)
     TextView tvTime;
-    @Bind(R.id.tv_networking)
+    @BindView(R.id.tv_networking)
     TextView tvNet;
-    @Bind(R.id.tv_score)
+    @BindView(R.id.tv_score)
     TextView tvScore;
-    @Bind(R.id.tv_version)
+    @BindView(R.id.tv_version)
     TextView tvVersion;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_setting);
-        setToolbarTitle(R.string.setting,true);
+        setToolbarTitle(R.string.setting, true);
         swArea.setChecked(PreferenceUtils.getPrefBoolean(this, Constants.AREA_SWITCH, true));
-        swArea.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener(){
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked){
+        swArea.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 PreferenceUtils.setPrefBoolean(SettingActivity.this, Constants.AREA_SWITCH, isChecked);
-                LogUtil.i("swArea: "+isChecked);
+                LogUtil.i("swArea: " + isChecked);
                 EventBusUtil.getEventBus().post(new TabChangeEvent());
             }
         });
         swSound.setChecked(PreferenceUtils.getPrefBoolean(this, Constants.SOUND_SWITCH, true));
-        swSound.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener(){
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked){
+        swSound.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 PreferenceUtils.setPrefBoolean(SettingActivity.this, Constants.SOUND_SWITCH, isChecked);
-                LogUtil.i("SOUND_SWITCH: "+isChecked);
+                LogUtil.i("SOUND_SWITCH: " + isChecked);
             }
         });
         setStateUse();
@@ -76,7 +77,7 @@ public class SettingActivity extends BaseSingleActivity {
     }
 
     private void setStateUse() {
-        StateUseVo vo = PreferenceUtils.getPrefObj(this,Constants.USER_STATUS,StateUseVo.class);
+        StateUseVo vo = PreferenceUtils.getPrefObj(this, Constants.USER_STATUS, StateUseVo.class);
         if (vo != null) {
             tvTime.setText(vo.timeUse);
             tvNet.setText(vo.trafficUse);
@@ -85,28 +86,33 @@ public class SettingActivity extends BaseSingleActivity {
             tvNet.setText("0 Gb");
         }
     }
-    private void setScore(){
+
+    private void setScore() {
         UserInfoVo vo = UserLoginUtil.getUserCache();
         if (vo != null) {
-            tvScore.setText(vo.score+"");
-        }else{
+            tvScore.setText(vo.score + "");
+        } else {
             int score = PreferenceUtils.getPrefInt(this, Constants.SCORE_TMP, 0);
-            tvScore.setText(score+"");
+            tvScore.setText(score + "");
         }
     }
-    private void setVersion(){
+
+    private void setVersion() {
         tvVersion.setText(VersionUpdater.getVersion());
     }
+
     @OnClick(R.id.rr_point)
-    public void onScore(View view){
+    public void onScore(View view) {
         Toast.makeText(this, R.string.menu_btn_score_context, Toast.LENGTH_SHORT).show();
         MobAgent.onEventMenu(this, "积分");
     }
+
     @OnClick(R.id.rr_version)
     public void onVersion(View view) {
         VersionUpdater.checkUpdate(this, true);
         MobAgent.onEventMenu(this, "版本");
     }
+
     @OnClick(R.id.tv_about)
     public void onAbout(View view) {
         String url = Constants.ABOUT;
@@ -118,17 +124,20 @@ public class SettingActivity extends BaseSingleActivity {
         PreferenceUtils.setPrefBoolean(this, Constants.ABOUT_FIRST, true);
         MobAgent.onEventMenu(this, "关于");
     }
+
     @OnClick(R.id.tv_share)
     public void onShare(View view) {
         showShare();
         MobAgent.onEventMenu(this, "分享");
     }
+
     @OnClick(R.id.tv_bug)
     public void onBug(View view) {
         startService(LogUploadService.class);
         Toast.makeText(this, R.string.menu_btn_report_log, Toast.LENGTH_SHORT).show();
         MobAgent.onEventMenu(this, "bug");
     }
+
     @Override
     public boolean needShow(Context context) {
         return true;
@@ -147,7 +156,7 @@ public class SettingActivity extends BaseSingleActivity {
         confirmDialog.setPositiveButton(R.string.menu_share_confirm, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                SystemUtils.copy(SettingActivity.this,url);
+                SystemUtils.copy(SettingActivity.this, url);
                 Toast.makeText(SettingActivity.this, R.string.menu_share_copy_ok, Toast.LENGTH_SHORT).show();
                 dialog.dismiss();
             }
@@ -160,6 +169,7 @@ public class SettingActivity extends BaseSingleActivity {
         });
         confirmDialog.show();
     }
+
     protected boolean enableSliding() {
         return true;
     }

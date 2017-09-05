@@ -70,11 +70,11 @@ public class LocationUtils {
         return mLocationClient.isStarted();
     }
 
-    public static abstract interface LocationListener {
-        public abstract void detecting();
+    public interface LocationListener {
+        void detecting();
 
-        public abstract void succeed(double lat, double lon);
+        void succeed(double lat, double lon);
 
-        public abstract void failed();
+        void failed();
     }
 }

@@ -2,6 +2,7 @@ package com.sspacee.common.weather;
 
 import com.sspacee.common.CommonConstants;
 import com.timeline.vpn.R;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -63,6 +64,7 @@ public class WeatherIconUtils {
             }
         }
     }
+
     public static boolean isNight(long time) {
         SimpleDateFormat df = new SimpleDateFormat("HH");
         String timeStr = df.format(new Date(System.currentTimeMillis()));

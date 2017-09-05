@@ -1,6 +1,8 @@
 package com.timeline.vpn.constant;
 
 
+import com.timeline.vpn.R;
+
 import org.strongswan.android.logic.VpnType;
 
 import java.util.Arrays;
@@ -10,33 +12,40 @@ import java.util.List;
  * Created by themass on 2015/9/1.
  */
 public class Constants {
+
     public static final String REFERER = "referer";
     public static final String DEFAULT_REFERER = "http://www.sspacee.com/";
+    public static final String IMAGE_RES_PRE = "timeline://img";
     public static final String URL = "url";
-    public static final int STARTUP_SHOW_TIME_5000 = 5000; //启动页广告时长
-    public static final int STARTUP_SHOW_TIME_8000 = 8000; //启动页广告时长
-    public static final int BANNER_ADS_GONE_LONG = 180000; //广告显示时长
+    public static final int STARTUP_SHOW_TIME_6000 = 6000; //启动页广告时长
+    public static final int STARTUP_SHOW_TIME_7000 = 7000; //启动页广告时长
+    public static final int BANNER_ADS_GONE_LONG = 18000; //广告显示时长
     public static final int BANNER_ADS_GONE_LONG_LONG = 240000; //广告显示时长
     public static final int BANNER_ADS_GONE_SHORT = 5000; //启动页广告时长
     public static final int VIP_SHIMMER_DURATION = 2300;
     public static final int RECOMMAND_SHIMMER_DURATION = 1500;
     public static final int ADS_CLICK_MSG = 1;
+    public static final int ADS_JISHI = -1;
     public static final int ADS_NO_MSG = 0;
     public static final int ADS_DISMISS_MSG = 2;
     public static final int ADS_PRESENT_MSG = 3;
     public static final int ADS_READY_MSG = 4;
+    public static final int ADS_FINISH_MSG = 5;
     public static final int ADS_TYPE_ERROR = -1;
     public static final int ADS_TYPE_INIT = 0;
     public static final int ADS_TYPE_BANNER = -1;
     public static final int ADS_TYPE_SPREAD = 1;
     public static final int ADS_TYPE_INTERSTITIAL = 2;
     public static final int ADS_TYPE_NATIVE = 3;
+    public static final int ADS_TYPE_VIDEO = 4;
     public static final String HTTP_URL = "http";
     public static final String HTTPS_URL = "https";
     public static final String BROWSER_URL = "browser";
     public static final String SOUND_URL = "sound";
     public static final String TEXT_URL = "text";
+    public static final String IMG_URL = "img";
     public static final String URL_TMP = "://";
+    public static final int ADS_SWITCH = 4;
     //location
     public static final String LOCATION_CHOOSE = "LOCATION_CHOOSE";
     public static final String LOCATION_FLAG = "LOCATION_FLAG";
@@ -74,9 +83,12 @@ public class Constants {
     public static final String SETTING_PREF_NEED_CHECK_UPDATE_NEXT_TIME = "SETTING_PREF_NEED_CHECK_UPDATE_NEXT_TIME";
     public static final String TEMP_PATH = "/tencent/vpn";
     public static final String VERSION_APP_INCOMING = "VERSION_APP_INCOMING"; // 服务器上的最新版本号
-    public static final String ADS_ADVIEW_KEY = "SDK201614200212284mmevtthxxbrcsb";
+    public static final String ADS_ADVIEW_KEY = "SDK2017152803084392l8e8jx1v2owio";
     public static final String ADS_ADVIEW_KEY_ACTIVITY = "SDK201614200212284mmevtthxxbrcsb";
-    public static final String adsKeySet[] = new String[]{ADS_ADVIEW_KEY};
+    public static final String ADS_ADVIEW_KEY_VP1 = "SDK2017152803084392l8e8jx1v2owio";
+    public static final String ADS_VIDEO = "POSIDob9ixhzl6yq0";
+    public static final String ADS_NATIVE = "POSIDd4dm8lc8e5v9";
+    public static final String adsKeySet[] = new String[]{ADS_ADVIEW_KEY, ADS_ADVIEW_KEY_ACTIVITY};
     public static final String adsKeySetBanner[] = new String[]{ADS_ADVIEW_KEY, ADS_ADVIEW_KEY_ACTIVITY};
     public static final String API_SERVERLIST_URL = "/host/server/list.json?location=%s";
     public static final String API_FAB_ADSCLICK_URL = "/user/ads/score.json?score=%s";
@@ -90,11 +102,18 @@ public class Constants {
     public static final String API_VERSION_URL = "/data/version.json";
     public static final String API_RECOMMEND_URL = "/data/recommend.json?start=%s&limit=20";
     public static final String API_VIP_URL = "/data/recommend/vip.json?start=%s&limit=20";
-    public static final String API_SOUND_CHANNLE_URL = "/sound/channle.json?start=%s&limit=20";
+
+    public static final String API_SOUND_CHANNLE_URL = "/sound/channel.json?start=%s&limit=20";
     public static final String API_SOUND_ITEMS_URL = "/sound/items.json?start=%s&limit=30&channel=%s";
-    public static final String API_TEXT_CHANNLE_URL = "/text/channle.json?start=%s&limit=20";
-    public static final String API_TEXT_ITEMS_URL = "/text/items.json?start=%s&limit=30&channel=%s";
+
+    public static final String API_TEXT_CHANNLE_URL = "/text/channel.json?start=%s&limit=50";
+    public static final String API_TEXT_ITEMS_URL = "/text/items.json?start=%s&limit=30&channel=%s&keyword=%s";
     public static final String API_TEXT_ITEM_URL = "/text/item.json?id=%s";
+
+    public static final String API_IMG_CHANNLE_URL = "/img/channel.json?start=%s&limit=50";
+    public static final String API_IMG_ITEMS_URL = "/img/items.json?start=%s&limit=30&channel=%s";
+    public static final String API_IMG_ITEM_URL = "/img/item.json?itemUrl=%s";
+
     public static final String API_CUSTOME_URL = "/data/recommend/custome.json?start=%s&limit=100";
     public static final String API_LOGOUT_URL = "/user/logout.json";
     public static final String API_LEAK_URL = "/monitor/leak.json";
@@ -112,49 +131,73 @@ public class Constants {
     public static final String ADS_POP_SHOW_CONFIG = "ADS_POP_SHOW_CONFIG";
     public static final String LOG_UPLOAD_CONFIG = "LOG_UPLOAD_CONFIG";
     public static final String NEED_DNSPOD_CONFIG = "NEED_DNSPOD_CONFIG";
+    public static final String NEED_NATIVE_ADS_CONFIG = "NEED_NATIVE_ADS_CONFIG";
     public static final String CONFIG_PARAM = "CONFIG_PARAM";
     public static final String TITLE = "TITLE";
     public static final String ADSSHOW = "ADSSHOW";
     public static final String FILE_UPLOAD = "fileList";
     public static final String FILE_TMP_PATH = "freeVPN";
-    public static final String SOUND_CHANNEL="SOUND_CHANNEL";
-    public static final String TEXT_FILE="TEXT_FILE";
-    public static final String TEXT_CHANNEL="TEXT_CHANNEL";
+    public static final String SOUND_CHANNEL = "SOUND_CHANNEL";
+    public static final String TEXT_FILE = "TEXT_FILE";
+    public static final String TEXT_CHANNEL = "TEXT_CHANNEL";
+    public static final String IMG_CHANNEL = "IMG_CHANNEL";
+    public static final String IMG_ITEMS = "IMG_ITEMS";
     public static final String SCORE_TMP = "SCORE_TMP";
     public static final String SCORE_CLICK = "SCORE_CLICK";
     public static final long SCORE_CLICK_INTERVAL = 3;
+    public static final String SOUND_CHANNEL_CLICK = "SOUND_CHANNEL_CLICK";
     public static final int MAX_RETRY_COUNT = 4;
+    public static final String CUSTOME_SORT = "CUSTOME_SORT";
+    public static final int[] img = new int[]{R.drawable.xxx0, R.drawable.xxx1, R.drawable.xxx2, R.drawable.xxx3,
+            R.drawable.xxx4, R.drawable.xxx5, R.drawable.xxx6, R.drawable.xxx7, R.drawable.xxx8,
+            R.drawable.xxx9, R.drawable.xxx10, R.drawable.xxx11, R.drawable.xxx12, R.drawable.xxx13,
+            R.drawable.xxx14, R.drawable.xxx15, R.drawable.xxx16, R.drawable.xxx17, R.drawable.xxx18,
+            R.drawable.xxx19, R.drawable.xxx20, R.drawable.xxx21, R.drawable.xxx22, R.drawable.xxx23,
+            R.drawable.xxx24, R.drawable.xxx25};
+    public static final String BOOK_CSS = " body{font-size:22px;font-family: 微软雅黑;letter-spacing:1.8px;line-height:1.2;background-color:rgba(0,0,0,0);}";
     public static String BASE_IP = "api.sspacee.com";
     public static String ABOUT_FIRST = "ABOUT_FbbIRST";
     public static String ABOUT_ZH = "http://file.sspacee.com/file/html/about_zh.html";
     public static String ABOUT = "http://file.sspacee.com/file/html/about.html";
-    public static final String CUSTOME_SORT = "CUSTOME_SORT";
     public static String USER_STATUS = "USER_STATUS";
-//        public static String BASE_IP = "192.168.1.12:8080";
+    //        public static String BASE_IP = "192.168.1.12:8080";
 //    public static String BASE_IP = "10.33.65.180:8080";
     public static String BASE_HOST = "http://" + BASE_IP + "/vpn/api";
     public static int NULL_VIEW = -1;
+    public static List<String> colorBg = Arrays.asList("#552d5d82", "#55135689", "#552292e9", "#5583878b", "#7f8d8f45", "#ffc49924", "#ff83713f", "#ff569b2b", "#ff882b9b");
 
     public static String getUrl(String uri) {
         return "http://" + BASE_IP + "/vpn/api" + uri;
     }
-    public static String getPage_URL(String url,int start) {
+
+    public static String getPageWithParam_URL(String url, Object... param) {
+        return String.format(getUrl(url), param);
+    }
+
+    public static String getPage_URL(String url, int start) {
         return String.format(getUrl(url), start);
     }
-    public static String getPageWithParam_URL(String url,int start,String param) {
-        return String.format(getUrl(url), start,param);
+
+    public static String getWithParam_URL(String url, String param) {
+        return String.format(getUrl(url), param);
     }
-    public static String getWithParam_URL(String url,String param) {
-        return String.format(getUrl(url),param);
-    }
+
     public static String getRECOMMEND_URL(int start) {
         return String.format(getUrl(API_RECOMMEND_URL), start);
     }
+
     public static String getRECOMMEND_CUSTOME_URL(int start) {
         return String.format(getUrl(API_CUSTOME_URL), start);
     }
+
     public static String getVIP_URL(int start) {
         return String.format(getUrl(API_VIP_URL), start);
+    }
+
+    public static class FavoriteType {
+        public static final int TEXT = 0;
+        public static final int SOUND = 1;
+        public static final int IMG = 2;
     }
 
     public static class UserLevel {
@@ -162,14 +205,15 @@ public class Constants {
         public static final int LEVEL_VIP = 1;
         public static final int LEVEL_VIP2 = 2;
     }
+
     public static class OpenUrlPath {
         public static final int local = 0;
         public static final int browser = 1;
     }
+
     public static class ShowType {
         public static final int Normal = 0;
         public static final int Blur = 1;
         public static final int Text = 2;
     }
-    public static List<String> colorBg = Arrays.asList("#552d5d82","#55135689","#552292e9","#5583878b","#7f8d8f45","#ffc49924","#ff83713f","#ff569b2b","#ff882b9b");
 }

@@ -53,9 +53,9 @@ public class HeightChangedLayout extends RelativeLayout {
     }
 
     public interface OnSoftChangedListener {
-        public void onSoftkeybordShow();
+        void onSoftkeybordShow();
 
-        public void onSoftKetbordHide();
+        void onSoftKetbordHide();
     }
 
 }

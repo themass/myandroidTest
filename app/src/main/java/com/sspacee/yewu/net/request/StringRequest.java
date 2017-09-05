@@ -9,12 +9,12 @@ import com.android.volley.toolbox.HttpHeaderParser;
 import java.io.UnsupportedEncodingException;
 
 public class StringRequest extends BaseRequest<String> {
-    public StringRequest(Context context,int method, String url, Response.Listener<String> listener, Response.ErrorListener errorListener) {
-        super(context,method, url,null, listener,errorListener);
+    public StringRequest(Context context, int method, String url, Response.Listener<String> listener, Response.ErrorListener errorListener) {
+        super(context, method, url, null, listener, errorListener);
     }
 
-    public StringRequest(Context context,String url, Response.Listener<String> listener, Response.ErrorListener errorListener) {
-        this(context,Method.GET, url, listener, errorListener);
+    public StringRequest(Context context, String url, Response.Listener<String> listener, Response.ErrorListener errorListener) {
+        this(context, Method.GET, url, listener, errorListener);
     }
 
     protected Response<String> parseNetworkResponse(NetworkResponse response) {

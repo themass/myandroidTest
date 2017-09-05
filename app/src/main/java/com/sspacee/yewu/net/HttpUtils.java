@@ -184,8 +184,8 @@ public class HttpUtils {
         }
     }
 
-    public static interface DownloadListener {
-        public void onDownloading(long current, long total);
+    public interface DownloadListener {
+        void onDownloading(long current, long total);
     }
 
 }

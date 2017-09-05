@@ -6,14 +6,13 @@
     <com.sspacee.common.ui.view.MyPullView
         android:id="@+id/my_pullview"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        />
+        android:layout_height="wrap_content" />
+
     <ImageButton
         android:id="@+id/lb_add"
         android:layout_width="110dp"
         android:layout_height="110dp"
-        android:scaleType="fitXY"
         android:layout_centerInParent="true"
-        android:src="@drawable/add_option"
-       />
+        android:scaleType="fitXY"
+        android:src="@drawable/add_option" />
 </RelativeLayout>

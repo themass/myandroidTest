@@ -1,7 +1,7 @@
 package com.sspacee.yewu.net.interceptor;
 
-import com.sspacee.yewu.net.HttpDNSUtil;
 import com.sspacee.common.util.LogUtil;
+import com.sspacee.yewu.net.HttpDNSUtil;
 
 import java.io.IOException;
 

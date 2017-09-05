@@ -10,6 +10,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.romainpiel.shimmer.Shimmer;
 import com.romainpiel.shimmer.ShimmerTextView;
@@ -19,25 +21,28 @@ import com.sspacee.common.util.StringUtils;
 import com.timeline.vpn.R;
 import com.timeline.vpn.bean.vo.RecommendVo;
 import com.timeline.vpn.constant.Constants;
+import com.timeline.vpn.data.ImagePhotoLoad;
+import com.timeline.vpn.data.VersionUpdater;
 
 import java.util.List;
 
-import butterknife.Bind;
+import butterknife.BindView;
 
 /**
  * Created by Miroslaw Stanek on 20.01.15.
  */
-public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecycleViewAdapter{
+public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecycleViewAdapter {
+    public boolean showEdit;
     StaggeredGridLayoutManager layoutManager;
     private int itemWidth;
     private int imgWidth;
     private int marginPix;
     private int hExtra;
-    private boolean needShimmer= true;
+    private boolean needShimmer = true;
     private OnEditClickListener mOnEditClickListener;
-    public boolean showEdit;
-    public IndexRecommendAdapter(Context context, RecyclerView recyclerView, List<RecommendVo> data, StaggeredGridLayoutManager layoutManager ,OnRecyclerViewItemClickListener listener,OnStartDragListener dragStartListener,OnEditClickListener onEditClickListener,boolean showEdit) {
-        super(context, recyclerView, data,listener,dragStartListener);
+
+    public IndexRecommendAdapter(Context context, RecyclerView recyclerView, List<RecommendVo> data, StaggeredGridLayoutManager layoutManager, OnRecyclerViewItemClickListener listener, OnStartDragListener dragStartListener, OnEditClickListener onEditClickListener, boolean showEdit) {
+        super(context, recyclerView, data, listener, dragStartListener);
         this.showEdit = showEdit;
         this.layoutManager = layoutManager;
         this.mOnEditClickListener = onEditClickListener;
@@ -46,9 +51,11 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
         imgWidth = itemWidth - marginPix;
         hExtra = context.getResources().getDimensionPixelSize(R.dimen.margin_3);
     }
-    public void setNeedShimmer(boolean needShimmer){
+
+    public void setNeedShimmer(boolean needShimmer) {
         this.needShimmer = needShimmer;
     }
+
     @Override
     public int getItemViewType(int position) {
         RecommendVo vo = (RecommendVo) data.get(position);
@@ -64,25 +71,35 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
     @Override
     public void onCustomeBindViewHolder(final BaseViewHolder holder, final int position) {
         final IndexRecommendAdapter.NaviItemViewHolder viewHolder = (IndexRecommendAdapter.NaviItemViewHolder) holder;
-        viewHolder.ivEdit.setVisibility(showEdit?View.VISIBLE:View.GONE);
+        viewHolder.ivEdit.setVisibility(showEdit ? View.VISIBLE : View.GONE);
         viewHolder.ivEdit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(mOnEditClickListener!=null){
-                    mOnEditClickListener.onEditClick(viewHolder.itemView,position);
+                RecommendVo vo = (RecommendVo) data.get(position);
+                if (StringUtils.hasText(vo.minVersion)) {
+                    if (VersionUpdater.getVersion().compareTo(vo.minVersion) < 0) {
+                        Toast.makeText(context, R.string.version_low, Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                }
+                if (mOnEditClickListener != null) {
+                    mOnEditClickListener.onEditClick(viewHolder.itemView, position);
                 }
             }
         });
     }
-    public void switchFlag(boolean flag){
-         if(showEdit!=flag) {
-             showEdit = flag;
-             notifyDataSetChanged();
-         }
+
+    public void switchFlag(boolean flag) {
+        if (showEdit != flag) {
+            showEdit = flag;
+            notifyDataSetChanged();
+        }
     }
-    public boolean getSwitchFlag(){
+
+    public boolean getSwitchFlag() {
         return showEdit;
     }
+
     @Override
     protected void animatePhoto(BaseViewHolder viewHolder, long animationDelay, int position) {
         final IndexRecommendAdapter.NaviItemViewHolder holder = (IndexRecommendAdapter.NaviItemViewHolder) viewHolder;
@@ -97,6 +114,11 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
         if (!StringUtils.hasText(vo.color)) {
             vo.color = Constants.colorBg.get(position % Constants.colorBg.size());
         }
+        if (vo.dataType == RecommendVo.dataType_ADS) {
+            holder.ivADS.setVisibility(View.VISIBLE);
+        } else {
+            holder.ivADS.setVisibility(View.GONE);
+        }
         holder.ivPhoto.setBackgroundColor(Color.parseColor(vo.color));
         ViewGroup.LayoutParams ivPhotoParam = holder.ivPhoto.getLayoutParams();
         ivPhotoParam.height = (int) (imgWidth * vo.rate);
@@ -104,28 +126,32 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
         holder.ivPhoto.setLayoutParams(ivPhotoParam);
         holder.ivTitle.setVisibility(View.VISIBLE);
         final Shimmer shimmer = new Shimmer();
-        if(needShimmer) {
+        if (needShimmer) {
             shimmer.setDuration(Constants.RECOMMAND_SHIMMER_DURATION);
             shimmer.start(holder.ivTitle);
         }
-        IndexRecommendPhotoLoad.loadPhoto(holder, vo, shimmer, context);
+        ImagePhotoLoad.loadPhoto(holder, vo, shimmer, context);
     }
 
-    static class NaviItemViewHolder extends BasePhotoFlowRecycleViewAdapter.BaseViewHolder {
-        @Bind(R.id.card_view)
-        CardView cardView;
-        @Bind(R.id.tv_title)
-        ShimmerTextView ivTitle;
-        @Bind(R.id.iv_photo)
-        ImageView ivPhoto;
-        @Bind(R.id.iv_edit)
+    public interface OnEditClickListener {
+        void onEditClick(View view, int postion);
+    }
+
+    public static class NaviItemViewHolder extends BasePhotoFlowRecycleViewAdapter.BaseViewHolder {
+        @BindView(R.id.card_view)
+        public CardView cardView;
+        @BindView(R.id.tv_title)
+        public ShimmerTextView ivTitle;
+        @BindView(R.id.iv_photo)
+        public ImageView ivPhoto;
+        @BindView(R.id.iv_edit)
         public ImageView ivEdit;
+        @BindView(R.id.ads_logo)
+        public TextView ivADS;
+
         public NaviItemViewHolder(View view) {
             super(view);
         }
-    }
-    public interface OnEditClickListener{
-        public void onEditClick(View view,int postion);
     }
 
 }

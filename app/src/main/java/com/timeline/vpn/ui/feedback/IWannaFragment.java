@@ -34,7 +34,7 @@ import com.timeline.vpn.ui.user.LoginActivity;
 
 import java.util.ArrayList;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.OnClick;
 
 /**
@@ -42,11 +42,11 @@ import butterknife.OnClick;
  */
 public class IWannaFragment extends LoadableFragment<InfoListVo<IWannaVo>> implements FeedAdapter.OnFeedItemClickListener, MyPullView.OnRefreshListener, FabOpListener.SetFabListener {
     private static String TAG = "IWANNA";
-    @Bind(R.id.my_pullview)
+    @BindView(R.id.my_pullview)
     MyPullView pullView;
-    @Bind(R.id.ll_comment)
+    @BindView(R.id.ll_comment)
     RelativeLayout rlComment;
-    @Bind(R.id.et_comment)
+    @BindView(R.id.et_comment)
     EditText etComment;
     FeedAdapter feedAdapter;
     private BaseService indexService;
@@ -59,20 +59,16 @@ public class IWannaFragment extends LoadableFragment<InfoListVo<IWannaVo>> imple
             myProgressDialog.dismiss();
         }
     };
-    private InfoListVo<IWannaVo> infoVo = new InfoListVo<>();
     ResponseOkListener okListener = new ResponseOkListener<IWannaVo>() {
         @Override
         public void onResponse(IWannaVo o) {
             super.onResponse(o);
             myProgressDialog.dismiss();
             etComment.setText(null);
-            if (!infoVo.hasMore) {
-                infoVo.voList.add(0, o);
-                pullView.notifyDataSetChanged();
-            }
-            Toast.makeText(getActivity(), R.string.iwanna_content_success, Toast.LENGTH_SHORT).show();
+            pullView.setRefresh(true);
         }
     };
+    private InfoListVo<IWannaVo> infoVo = new InfoListVo<>();
 
     public static void startFragment(Context context) {
         Intent intent = new Intent(context, CommonFragmentActivity.class);
@@ -171,4 +167,5 @@ public class IWannaFragment extends LoadableFragment<InfoListVo<IWannaVo>> imple
     public void setFabUpListener(FabOpListener.OnFabListener l) {
         this.listener = l;
     }
+
 }

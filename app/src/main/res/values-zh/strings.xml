@@ -64,6 +64,9 @@
     <string name="menu_btn_country">地区 ：</string>
     <string name="menu_btn_open_browser">浏览器打开</string>
     <string name="menu_btn_copy_url">复制URL</string>
+    <string name="menu_btn_favorite">收藏夹</string>
+    <string name="menu_favorite">收藏</string>
+    <string name="menu_favorite_cancel">取消收藏</string>
     <!-- share-->
     <string name="menu_share_title">分享给好友</string>
     <string name="menu_share_url">下载地址:\n%s</string>
@@ -103,6 +106,7 @@
     <string name="sound_play_not_wifi">非wifi下听音频？</string>
     <string name="sound">淫声荡语</string>
     <string name="text">情趣小说</string>
+    <string name="img">性感图片</string>
     <string name="version_low">版本太低，请升级！</string>
     <string name="no_select">未选择</string>
     <!-- 通用错误提示 -->
@@ -111,6 +115,7 @@
     <string name="error_network_no_connection">网络连接不可用，请稍后重试</string>
     <string name="error_network_timeout">网络连接超时，请稍后重试</string>
     <string name="error_network_retry">加载错误，请点击重试</string>
+    <string name="error_network_nodata_retry">暂无数据，请点击重试.</string>
     <string name="error_unknown">未知道错误</string>
     <!-- vpn状态改变 -->
     <string name="vpn_bg_click_later">请稍后再试</string>
@@ -184,5 +189,20 @@
     <string name="vpn_not_supported_during_lockdown">锁定模式下无法支持VPN.</string>
     <!-- activity title-->
     <string name="titile_browser">已在浏览器中打开</string>
+    <string name="permission_need">当前应用缺少必要权限。\n\n请点击\"设置\"-\"权限\"-打开所需权限。\n\n最后点击两次后退按钮，即可返回。</string>
+
+    <string name="permission_get_accounts_hint">没有此权限，无法开启这个功能，请开启权限。PERMISSION_GET_ACCOUNTS</string>
+    <string name="permission_read_phone_hint">没有此权限，无法开启这个功能，请开启权限。PERMISSION_READ_PHONE_STATE</string>
+    <string name="permission_access_coarse_location_hint">没有此权限，无法开启这个功能，请开启权限。PERMISSION_ACCESS_COARSE_LOCATION</string>
+    <string name="permission_white_external_hint">没有此权限，无法开启这个功能，请开启权限。PERMISSION_WRITE_EXTERNAL_STORAGE</string>
+    <string name="ads_logo">推广</string>
+    <string name="skip">跳过</string>
+    <string name="search">请输入搜索内容</string>
+
     <!--广告-->
+    <!--slidingclose-->
+    <string name="title_activity_view_pager">ViewPagerActivity</string>
+    <string name="title_activity_list_view">ListViewActivity</string>
+    <string name="title_activity_normal">NormalActivity</string>
+
 </resources>

@@ -29,7 +29,9 @@ public interface OnStartDragListener {
      * @param viewHolder The holder of the view to drag.
      */
     void onStartDrag(RecyclerView.ViewHolder viewHolder);
+
     void onItemMove(Object o1, Object o2);
+
     void onItemRemove(Object o);
 
 }

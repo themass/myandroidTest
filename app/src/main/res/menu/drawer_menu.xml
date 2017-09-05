@@ -8,7 +8,10 @@
             android:id="@+id/menu_feedback"
             android:icon="@drawable/ic_menu_feedback"
             android:title="@string/menu_btn_feedback" />
-
+        <item
+            android:id="@+id/menu_favorite"
+            android:icon="@drawable/ic_menu_favorite"
+            android:title="@string/menu_btn_favorite" />
     </group>
     <group android:id="@+id/menu_group_3">
         <item
@@ -21,13 +24,6 @@
             android:id="@+id/menu_louout"
             android:icon="@drawable/ic_menu_delete"
             android:title="@string/menu_btn_logout"
-            android:visible="false" />
-    </group>
-    <group android:id="@+id/menu_group_5">
-        <item
-            android:id="@+id/menu_test"
-            android:icon="@drawable/ic_menu_delete"
-            android:title="testtest"
             android:visible="false" />
     </group>
 </menu>

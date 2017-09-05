@@ -32,12 +32,12 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.StringReader;
 
-import butterknife.Bind;
+import butterknife.BindView;
 
 public class FileLogFragment extends BaseFragment implements Runnable {
-    @Bind(R.id.log_view)
+    @BindView(R.id.log_view)
     TextView mLogView;
-    @Bind(R.id.scroll_view)
+    @BindView(R.id.scroll_view)
     LogScrollView mScrollView;
     private String mLogFilePath;
     private Handler mLogHandler;
@@ -117,7 +117,7 @@ public class FileLogFragment extends BaseFragment implements Runnable {
                 /* strip off prefix (month=3, day=2, time=8, thread=2, spaces=3) */
                 mLogView.append((line.length() > 18 ? line.substring(18) : line) + '\n');
                 /* calling autoScroll() directly does not work, probably because content
-				 * is not yet updated, so we post this to be done later */
+                 * is not yet updated, so we post this to be done later */
                 mScrollView.post(new Runnable() {
                     @Override
                     public void run() {

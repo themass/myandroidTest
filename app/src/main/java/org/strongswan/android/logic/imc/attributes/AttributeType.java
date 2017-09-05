@@ -46,7 +46,7 @@ public enum AttributeType {
      * @param vendor private enterprise number of vendor
      * @param type   vendor specific attribute type
      */
-    private AttributeType(PrivateEnterpriseNumber vendor, int type) {
+    AttributeType(PrivateEnterpriseNumber vendor, int type) {
         mVendor = vendor;
         mType = type;
     }

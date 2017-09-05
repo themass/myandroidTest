@@ -1,8 +1,11 @@
 package com.timeline.vpn.ui.main;
 
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.TabLayout;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -16,6 +19,7 @@ import android.widget.Toast;
 
 import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.LogUtil;
+import com.sspacee.common.util.PermissionHelper;
 import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.yewu.ads.adview.AdsAdview;
 import com.sspacee.yewu.um.MobAgent;
@@ -44,8 +48,9 @@ import java.util.Set;
 /**
  * Created by themass on 2016/3/1.
  */
-public class MainFragmentViewPage extends BaseDrawerActivity {
+public class MainFragmentViewPage extends BaseDrawerActivity implements ActivityCompat.OnRequestPermissionsResultCallback {
     public List<ItemFragment> list = new ArrayList<>();
+    public boolean init = false;
     private long firstTime = 0;
     private Set<OnBackKeyDownListener> keyListeners = new HashSet<>();
     private ConfigActionJump jump = new ConfigActionJump();
@@ -56,52 +61,90 @@ public class MainFragmentViewPage extends BaseDrawerActivity {
     private MyPagerAdapter myPagerAdapter;
     private String POSITION = "POSITION";
     private int index = 0;
+    //权限检测类
+    private PermissionHelper mPermissionHelper;
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_main_viewpage);
-        setupView();
         startService(CharonVpnService.class);
         startService(CharonVpnService.class);
         EventBusUtil.getEventBus().register(jump);
         EventBusUtil.getEventBus().register(logAdd);
         AdsAdview.initConfig(this);
         AdsAdview.init(this);
-        UserLoginUtil.initData(this);
+        mPermissionHelper = new PermissionHelper(this);
         boolean uploadLog = PreferenceUtils.getPrefBoolean(this, Constants.LOG_UPLOAD_CONFIG, false);
         if (uploadLog) {
             startService(new Intent(this, LogUploadService.class));
         }
         destoryToast = Toast.makeText(this, R.string.close_over, Toast.LENGTH_SHORT);
+        mPermissionHelper.checkNeedPermissions();
     }
+
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(TabChangeEvent event) {
         initTabs();
         LogUtil.i("onEvent:initTabs");
 //        myPagerAdapter.notifyDataSetChanged();
     }
+
     public void addListener(OnBackKeyDownListener keyListener) {
         keyListeners.add(keyListener);
     }
+
     public void removeListener(OnBackKeyDownListener keyListener) {
         keyListeners.remove(keyListener);
     }
-    private void setupView() {
+
+    public void setupView() {
         mTabLayout = (TabLayout) findViewById(R.id.tabs);
         mViewPager = (ViewPager) findViewById(R.id.vp_view);
         initTabs();
     }
 
-    private void initTabs(){
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (!init) {
+            UserLoginUtil.initData(this);
+            init = true;
+        }
+    }
+
+    /**
+     * Callback received when a permissions request has been completed.
+     */
+    @Override
+    public void onRequestPermissionsResult(final int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        if (grantResults != null) {
+            for (int ret : grantResults) {
+                if (ret != PackageManager.PERMISSION_GRANTED) {
+                    finish();
+                }
+            }
+        }
+        mPermissionHelper.checkNeedPermissions();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        mPermissionHelper.checkNeedPermissions();
+    }
+
+    private void initTabs() {
         list.clear();
         LayoutInflater inflater = LayoutInflater.from(this);
         addData(inflater, R.string.tab_tag_index, TabVpnFragment.class,
-                R.drawable.ac_bg_tab_index, R.string.tab_index, null,1);
-        if(PreferenceUtils.getPrefBoolean(this, Constants.AREA_SWITCH, true)) {
+                R.drawable.ac_bg_tab_index, R.string.tab_index, null, 1);
+        if (PreferenceUtils.getPrefBoolean(this, Constants.AREA_SWITCH, true)) {
             addData(inflater, R.string.tab_tag_vip, TabVipFragment.class,
-                    R.drawable.ac_bg_tab_index, R.string.tab_vip, null,2);
+                    R.drawable.ac_bg_tab_index, R.string.tab_vip, null, 2);
         }
         addData(inflater, R.string.tab_tag_customer, TabCustomeFragment.class,
-                R.drawable.ac_bg_tab_index, R.string.tab_customer, null,3);
+                R.drawable.ac_bg_tab_index, R.string.tab_customer, null, 3);
 
         myPagerAdapter = new MyPagerAdapter(getSupportFragmentManager());
         mViewPager.setAdapter(myPagerAdapter);
@@ -112,9 +155,10 @@ public class MainFragmentViewPage extends BaseDrawerActivity {
             tab.setCustomView(myPagerAdapter.getTabView(i, (i == 0)));
         }
     }
+
     private void addData(LayoutInflater inflater, int tag, Class<? extends Fragment> clss,
-                         int icon, int title, Bundle args,int abslIndex) {
-        list.add(new ItemFragment(tag, clss, icon, title, args,abslIndex));
+                         int icon, int title, Bundle args, int abslIndex) {
+        list.add(new ItemFragment(tag, clss, icon, title, args, abslIndex));
 
     }
 
@@ -145,10 +189,13 @@ public class MainFragmentViewPage extends BaseDrawerActivity {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         LogUtil.i("onKeyUp");
+        if (closeDrawer()) {
+            return true;
+        }
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             boolean flag = false;
-            for(OnBackKeyDownListener l :keyListeners){
-                flag = flag||l.onkeyBackDown();
+            for (OnBackKeyDownListener l : keyListeners) {
+                flag = flag || l.onkeyBackDown();
             }
             if (flag) {
                 return true;
@@ -170,6 +217,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity {
         }
         return super.onKeyDown(keyCode, event);
     }
+
     public class ViewPagerOnTabSelectedListener implements TabLayout.OnTabSelectedListener {
         private final ViewPager mViewPager;
 
@@ -181,7 +229,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity {
         public void onTabSelected(TabLayout.Tab tab) {
             LogUtil.i("select:" + tab.getPosition());
             mViewPager.setCurrentItem(tab.getPosition());
-            setToolbarTitle(getString(list.get(tab.getPosition()).title),false);
+            setToolbarTitle(getString(list.get(tab.getPosition()).title), false);
             index = tab.getPosition();
         }
 
@@ -195,6 +243,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity {
             // No-op
         }
     }
+
     //ViewPager适配器
     class MyPagerAdapter extends FragmentPagerAdapter {
 
@@ -228,7 +277,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity {
             TextView titleView = (TextView) indicator.findViewById(R.id.navi_title);
             imgView.setImageResource(list.get(position).icon);
             titleView.setText(list.get(position).title);
-            if(selected){
+            if (selected) {
                 indicator.setSelected(true);
             }
             return indicator;
@@ -243,7 +292,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity {
         public Bundle args;
         public int abslIndex;
 
-        public ItemFragment(int tag, Class<? extends Fragment> clss, int icon, int title, Bundle args,int abslIndex) {
+        public ItemFragment(int tag, Class<? extends Fragment> clss, int icon, int title, Bundle args, int abslIndex) {
             this.tag = tag;
             this.clss = clss;
             this.icon = icon;

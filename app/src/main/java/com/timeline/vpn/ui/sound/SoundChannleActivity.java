@@ -22,7 +22,7 @@ public class SoundChannleActivity extends BaseFragmentActivity {
         setFabUpVisibility(View.VISIBLE);
         Fragment fragment = null;
         try {
-            fragment = (Fragment) SoundChannleBodyFragment.class.newInstance();
+            fragment = SoundChannleBodyFragment.class.newInstance();
 
         } catch (Exception e) {
             LogUtil.e(e);
@@ -30,13 +30,14 @@ public class SoundChannleActivity extends BaseFragmentActivity {
         getSupportFragmentManager().beginTransaction()
                 .add(R.id.fragment, fragment)
                 .commitAllowingStateLoss();
-        setToolbarTitle(R.string.sound,true);
+        setToolbarTitle(R.string.sound, true);
     }
 
     @Override
     public boolean needShow(Context context) {
         return true;
     }
+
     protected boolean enableSliding() {
         return true;
     }

@@ -5,7 +5,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.view.KeyEvent;
+import android.view.View;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import com.sspacee.common.ui.base.LogActivity;
 import com.sspacee.common.util.LogUtil;
@@ -15,33 +17,51 @@ import com.timeline.vpn.R;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.task.UpdateUserTask;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
+import butterknife.Unbinder;
 
 /**
  * Created by themass on 2016/3/22.
  */
 public class LaunchActivity extends LogActivity {
     public boolean canJumpImmediately = false;
-    @Bind(R.id.rl_spread)
+    @BindView(R.id.rl_spread)
     RelativeLayout ivAds;
-    private Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            LogUtil.i("handleMessage-" + msg.what);
-            switch (msg.what) {
-                case Constants.ADS_DISMISS_MSG:
-                    launch();
-                    break;
-                default:
-                    break;
-            }
-        }
-    };
+    @BindView(R.id.skip_view)
+    RelativeLayout skipView;
+    @BindView(R.id.tv_jishi)
+    TextView tvJishi;
+    private int max = Constants.STARTUP_SHOW_TIME_6000;
+    private int now = 0;
+    private Unbinder unbinder;
     private Runnable mStartMainRunnable = new Runnable() {
         @Override
         public void run() {
             launch();
+        }
+    };
+    private Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            LogUtil.i("开屏广告handleMessage-" + msg.what);
+            switch (msg.what) {
+                case Constants.ADS_NO_MSG:
+                case Constants.ADS_DISMISS_MSG:
+                    launch();
+                    break;
+                case Constants.ADS_JISHI:
+                    now = now + 1000;
+                    if (now < max) {
+                        tvJishi.setText((max - now) / 1000 + " s");
+                        delay1s();
+                    } else {
+                        tvJishi.setText(R.string.skip);
+                    }
+                default:
+                    break;
+            }
         }
     };
 
@@ -51,15 +71,20 @@ public class LaunchActivity extends LogActivity {
         setContentView(R.layout.main_launch);
         MobAgent.init(this);
         AdsAdview.initConfig(this);
-        mHandler.postDelayed(mStartMainRunnable, Constants.STARTUP_SHOW_TIME_5000);
-        ButterKnife.bind(this);
+        unbinder = ButterKnife.bind(this);
         UpdateUserTask.start(this);
+    }
+
+    @OnClick(R.id.skip_view)
+    public void skip(View view) {
+        launch();
     }
 
     private void launch() {
         Intent intent = new Intent(this, MainFragmentViewPage.class);
         startActivity(intent);
         mHandler.removeCallbacks(mStartMainRunnable);
+        mHandler.removeMessages(Constants.ADS_JISHI);
         finish();
     }
 
@@ -74,8 +99,14 @@ public class LaunchActivity extends LogActivity {
     protected void onResume() {
         super.onResume();
         canJumpImmediately = true;
-        AdsAdview.launchAds(this, ivAds, mHandler);
+        mHandler.postDelayed(mStartMainRunnable, Constants.STARTUP_SHOW_TIME_7000);
+        AdsAdview.launchAds(this, ivAds, skipView, mHandler);
         MobAgent.onResume(this);
+        delay1s();
+    }
+
+    private void delay1s() {
+        mHandler.sendEmptyMessageDelayed(Constants.ADS_JISHI, 1000);
     }
 
     @Override
@@ -87,9 +118,9 @@ public class LaunchActivity extends LogActivity {
 
     @Override
     public void onDestroy() {
-        ButterKnife.unbind(this);
+        unbinder.unbind();
         mHandler.removeCallbacks(mStartMainRunnable);
-        AdsAdview.launchAds(this, null, null);
+        AdsAdview.launchAds(this, null, null, null);
         super.onDestroy();
     }
 }

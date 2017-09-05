@@ -33,7 +33,6 @@ public class WebViewActivity extends BaseFragmentActivity implements MyWebView.O
     BaseWebViewFragment webViewFragment;
     private boolean adsNeed = false;
     private boolean adsPopNeed = false;
-    private String url;
     protected Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -47,6 +46,7 @@ public class WebViewActivity extends BaseFragmentActivity implements MyWebView.O
             }
         }
     };
+    private String url;
 
     public static void startWebViewActivity(Context context, String url, String title, boolean adsShow, boolean adsPopShow, HashMap<String, Object> param) {
         Intent intent = new Intent(context, WebViewActivity.class);
@@ -87,6 +87,7 @@ public class WebViewActivity extends BaseFragmentActivity implements MyWebView.O
         }
 
     }
+
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         LogUtil.i("onKeyDown");
@@ -103,27 +104,29 @@ public class WebViewActivity extends BaseFragmentActivity implements MyWebView.O
     public void onTouchRight(int distans) {
 
     }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         LogUtil.i("onCreateOptionsMenu");
         getMenuInflater().inflate(R.menu.browser_menu, menu);
         return true;
     }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.menu_browser) {
-            if(PackageUtils.hasBrowser(this)){
+            if (PackageUtils.hasBrowser(this)) {
                 Uri uri = Uri.parse(url);
                 Intent it = new Intent(Intent.ACTION_VIEW, uri);
                 startActivity(it);
                 finish();
-            }else{
-                Toast.makeText(this,R.string.no_browser,Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, R.string.no_browser, Toast.LENGTH_SHORT).show();
             }
             return true;
-        }else if (id == R.id.menu_url) {
-            SystemUtils.copy(this,url);
+        } else if (id == R.id.menu_url) {
+            SystemUtils.copy(this, url);
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -132,9 +135,9 @@ public class WebViewActivity extends BaseFragmentActivity implements MyWebView.O
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        if(newConfig.orientation==Configuration.ORIENTATION_LANDSCAPE){
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             getToolbar().setVisibility(View.GONE);
-        }else{
+        } else {
             getToolbar().setVisibility(View.VISIBLE);
         }
     }

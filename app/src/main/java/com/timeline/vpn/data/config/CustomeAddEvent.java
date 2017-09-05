@@ -12,7 +12,7 @@ public class CustomeAddEvent {
     public Map<String, Object> param;
 
     public CustomeAddEvent(Integer id, String url, String title, Map<String, Object> param) {
-        this.id=id;
+        this.id = id;
         this.url = url;
         this.title = title;
         this.param = param;

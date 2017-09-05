@@ -87,6 +87,6 @@ public enum VpnType {
         /**
          * enable BYOD features
          */
-        BYOD;
+        BYOD
     }
 }

@@ -22,7 +22,7 @@ public enum Protocol {
     private final byte mValue;
     private String[] mNames;
 
-    private Protocol(byte value, String... names) {
+    Protocol(byte value, String... names) {
         mValue = value;
         mNames = names;
     }

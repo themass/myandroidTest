@@ -16,6 +16,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -24,10 +25,11 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.sspacee.yewu.net.HttpUtils;
-import com.sspacee.yewu.net.request.CommonResponse;
 import com.sspacee.common.ui.base.BaseFragment;
 import com.sspacee.common.util.LogUtil;
+import com.sspacee.yewu.ads.adview.AdsAdview;
+import com.sspacee.yewu.net.HttpUtils;
+import com.sspacee.yewu.net.request.CommonResponse;
 import com.timeline.vpn.R;
 import com.timeline.vpn.bean.DataBuilder;
 import com.timeline.vpn.bean.vo.HostVo;
@@ -36,11 +38,12 @@ import com.timeline.vpn.bean.vo.VpnProfile;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.data.LocationUtil;
+import com.timeline.vpn.data.UserLoginUtil;
 
 import org.strongswan.android.logic.VpnStateService;
 import org.strongswan.android.logic.imc.ImcState;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.OnClick;
 
 /**
@@ -50,12 +53,20 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
     private static final String DIALOG_TAG = "Dialog";
     private static final String INDEX_TAG = "vpn_status_tag";
     private static final int PREPARE_VPN_SERVICE = 0;
+    public static boolean isFrist = true;
     private static boolean isAnim = false;
-    @Bind(R.id.tv_vpn_state_text)
+    protected Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            LogUtil.i("handleMessage-" + msg.what);
+        }
+    };
+    @BindView(R.id.tv_vpn_state_text)
     TextView tvVpnText;
-    @Bind(R.id.iv_vpn_state)
+    @BindView(R.id.iv_vpn_state)
     ImageButton ibVpnStatus;
     PingTask task;
+    StatChangeJob job = null;
     private volatile boolean hasIp = false;
     CommonResponse.ResponseErrorListener serverListenerError = new CommonResponse.ResponseErrorListener() {
         @Override
@@ -132,6 +143,9 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
         }
         if (mService != null)
             mService.unregisterListener(this);
+        if (job != null) {
+            handler.removeCallbacks(job);
+        }
         getActivity().unbindService(mServiceConnection);
 
 
@@ -139,6 +153,10 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
 
     @OnClick(R.id.iv_vpn_state)
     public void onVpnClick(View v) {
+        if (isFrist && !UserLoginUtil.isVIP()) {
+            AdsAdview.interstitialAds(getActivity(), mHandler);
+            isFrist = false;
+        }
         if (mService != null) {
             LogUtil.i("onVpnClick " + mService.getState());
             if (mService.getState() == VpnStateService.State.CONNECTED) {
@@ -155,8 +173,14 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
 
     @Override
     public void stateChanged() {
-        if (mService != null)
-            handler.post(new StatChangeJob(mService.getState(), mService.getErrorState(), mService.getImcState()));
+        if (mService != null) {
+            if (job != null) {
+                handler.removeCallbacks(job);
+            }
+            job = new StatChangeJob(mService.getState(), mService.getErrorState(), mService.getImcState());
+            handler.post(job);
+        }
+
     }
 
     /**
@@ -249,7 +273,7 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
     }
 
     private void stopAnim() {
-        if(ibVpnStatus!=null) {
+        if (ibVpnStatus != null) {
             isAnim = false;
             ibVpnStatus.clearAnimation();
         }

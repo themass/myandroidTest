@@ -3,13 +3,15 @@ package com.timeline.vpn.base;
 import android.graphics.Typeface;
 import android.support.multidex.MultiDexApplication;
 
-import com.sspacee.yewu.net.VolleyUtils;
 import com.sspacee.common.util.DensityUtil;
 import com.sspacee.common.util.DeviceInfoUtils;
 import com.sspacee.common.util.FileUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.SystemUtils;
+import com.sspacee.yewu.net.VolleyUtils;
 import com.timeline.vpn.constant.Constants;
+import com.timeline.vpn.data.DBManager;
+import com.timeline.vpn.data.ImagePhotoLoad;
 import com.timeline.vpn.data.VersionUpdater;
 
 import butterknife.ButterKnife;
@@ -25,6 +27,7 @@ public class MyApplication extends MultiDexApplication {
     public static volatile boolean isDebug = true;
     private static MyApplication instance = null;
     public Typeface typeface;
+    private ImagePhotoLoad photoLoad;
 
     //    public static RefWatcher getRefWatcher(Context context) {
 //        MyApplication application = (MyApplication) context.getApplicationContext();
@@ -47,15 +50,22 @@ public class MyApplication extends MultiDexApplication {
         VersionUpdater.init(this);
         VolleyUtils.init();
         initFilePath();
+        DBManager.getInstance().init(this);
         if (MyApplication.isDebug) {
             String uc = DeviceInfoUtils.getMetaData(this, "UMENG_CHANNEL");
             String ad = DeviceInfoUtils.getMetaData(this, "AdView_CHANNEL");
             LogUtil.i("uc=" + uc + "; ad=" + ad);
             DensityUtil.logDensity(this);
+            DBManager.getInstance().setDebug();
         }
         long cost = System.currentTimeMillis() - start;
-        LogUtil.i("cpu="+SystemUtils.getCpuType());
+        LogUtil.i("cpu=" + SystemUtils.getCpuType());
         LogUtil.e("app start cost:" + cost);
+        photoLoad = new ImagePhotoLoad(this);
+    }
+
+    public ImagePhotoLoad getPhotoLoad() {
+        return photoLoad;
     }
 
     private void initFilePath() {

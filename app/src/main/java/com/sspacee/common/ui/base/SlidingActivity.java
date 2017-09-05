@@ -20,7 +20,8 @@ public abstract class SlidingActivity extends AppCompatActivity {
     protected boolean enableSliding() {
         return false;
     }
-    protected int getMinTouchX(){
+
+    protected int getMinTouchX() {
         return 200;
     }
 }

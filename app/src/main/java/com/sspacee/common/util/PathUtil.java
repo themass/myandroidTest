@@ -14,8 +14,9 @@ import java.net.URLEncoder;
  * @date 2014-7-10 上午9:57:12
  */
 public class PathUtil {
-    private static final String FILEPATH = "file";
     public static final String BROWSER_SCHEMA = "browser://config?url=%s";
+    private static final String FILEPATH = "file";
+
     public static File getFileDiskCacheDir(Context context, String fileName) throws IOException {
         return getFileDiskCacheDir(context, fileName, true);
     }
@@ -79,6 +80,7 @@ public class PathUtil {
         final String cacheDir = "/Android/data/" + context.getPackageName() + "/cache/";
         return new File(Environment.getExternalStorageDirectory().getPath() + cacheDir);
     }
+
     public static String getLocalOpenUrl(String url) {
         try {
             String ecode = URLEncoder.encode(url, "utf-8");

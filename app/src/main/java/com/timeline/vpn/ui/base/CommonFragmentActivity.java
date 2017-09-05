@@ -20,34 +20,36 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
     public static final String PARAM = "PARAM";
     public static final String ADS = "ADS";
     public static final String ADSSCROLL = "ADSSCROLL";
-    public static final String SLIDINGCLOSE="SLIDINGCLOSE";
+    public static final String SLIDINGCLOSE = "SLIDINGCLOSE";
     public static final String TOOLBAR_SHOW = "TOOLBAR_SHOW";
-    private Boolean showAds=null;
-    private Boolean slidingClose=false;
+    private Boolean showAds = null;
+    private Boolean slidingClose = false;
     private Boolean toolbarShow = true;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        slidingClose = getIntent().getBooleanExtra(SLIDINGCLOSE,true);
+        slidingClose = getIntent().getBooleanExtra(SLIDINGCLOSE, true);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.common_fragment);
-        boolean scroll = getIntent().getBooleanExtra(ADSSCROLL,true);
-        toolbarShow = getIntent().getBooleanExtra(TOOLBAR_SHOW,true);
-        if(!scroll){
+        boolean scroll = getIntent().getBooleanExtra(ADSSCROLL, true);
+        toolbarShow = getIntent().getBooleanExtra(TOOLBAR_SHOW, true);
+        if (!scroll) {
             disableScrollBanner();
         }
+        showToolbar(toolbarShow);
         Class f = (Class) getIntent().getSerializableExtra(FRAGMENT);
-        showAds = getIntent().getBooleanExtra(ADS,false);
-        String title=null;
+        showAds = getIntent().getBooleanExtra(ADS, false);
+        String title = null;
         Serializable name = getIntent().getSerializableExtra(TITLE);
-        if(name instanceof  String){
-            title=(String)name;
-        }else if(name instanceof Integer){
-            title = getString((Integer)name);
+        if (name instanceof String) {
+            title = (String) name;
+        } else if (name instanceof Integer) {
+            title = getString((Integer) name);
         }
         Fragment fragment = null;
         try {
             fragment = (Fragment) f.newInstance();
-            if(getIntent().getSerializableExtra(PARAM)!=null) {
+            if (getIntent().getSerializableExtra(PARAM) != null) {
                 Bundle bundle = new Bundle();
                 bundle.putSerializable(PARAM, getIntent().getSerializableExtra(PARAM));
                 fragment.setArguments(bundle);
@@ -62,14 +64,14 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
                 .add(R.id.fragment, fragment)
                 .commitAllowingStateLoss();
         if (title != null) {
-            setToolbarTitle(title,true);
+            setToolbarTitle(title, true);
         }
     }
 
     @Override
     public boolean needShow(Context context) {
-        if(showAds!=null){
-            return  showAds;
+        if (showAds != null) {
+            return showAds;
         }
         return super.needShow(context);
     }

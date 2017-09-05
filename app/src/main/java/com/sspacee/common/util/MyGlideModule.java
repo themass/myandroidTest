@@ -2,60 +2,31 @@ package com.sspacee.common.util;
 
 import android.content.Context;
 
-import com.bumptech.glide.Glide;
 import com.bumptech.glide.GlideBuilder;
-import com.bumptech.glide.integration.okhttp3.OkHttpUrlLoader;
+import com.bumptech.glide.annotation.GlideModule;
+import com.bumptech.glide.load.DecodeFormat;
 import com.bumptech.glide.load.engine.bitmap_recycle.LruBitmapPool;
 import com.bumptech.glide.load.engine.cache.ExternalCacheDiskCacheFactory;
 import com.bumptech.glide.load.engine.cache.InternalCacheDiskCacheFactory;
 import com.bumptech.glide.load.engine.cache.LruResourceCache;
 import com.bumptech.glide.load.engine.cache.MemorySizeCalculator;
-import com.bumptech.glide.load.model.GlideUrl;
-import com.bumptech.glide.module.GlideModule;
-import com.bumptech.glide.request.RequestListener;
-import com.bumptech.glide.request.target.Target;
-import com.sspacee.yewu.net.OkHttpStack;
+import com.bumptech.glide.module.AppGlideModule;
+import com.bumptech.glide.request.RequestOptions;
 
-import java.io.InputStream;
-import java.util.concurrent.TimeUnit;
-
-import okhttp3.OkHttpClient;
-
-public class MyGlideModule implements GlideModule {
+@GlideModule
+public class MyGlideModule extends AppGlideModule {
     @Override
     public void applyOptions(Context context, GlideBuilder builder) {
         builder.setDiskCache(new InternalCacheDiskCacheFactory(context, 1024 * 1024 * 100));//内部磁盘缓存
         builder.setDiskCache(new ExternalCacheDiskCacheFactory(context, 100 * 1024 * 1024));//磁盘缓存到外部存储
-        MemorySizeCalculator calculator = new MemorySizeCalculator(context);
+        MemorySizeCalculator calculator = new MemorySizeCalculator.Builder(context).build();
         int defaultMemoryCacheSize = calculator.getMemoryCacheSize();
         int defaultBitmapPoolSize = calculator.getBitmapPoolSize();
         builder.setMemoryCache(new LruResourceCache(defaultMemoryCacheSize));
         builder.setBitmapPool(new LruBitmapPool(defaultBitmapPoolSize));
         LogUtil.i("glide cache size PoolSize=" + defaultBitmapPoolSize + " ;CacheSize=" + defaultMemoryCacheSize);
-    }
-
-    @Override
-    public void registerComponents(Context context, Glide glide) {
-        final OkHttpClient.Builder builder = new OkHttpClient.Builder();
-        // set your timeout here
-        builder.connectTimeout(OkHttpStack.CONNECT_TIMEOUT, TimeUnit.SECONDS);
-        builder.readTimeout(OkHttpStack.DEFUAT_TIMEOUT, TimeUnit.SECONDS);
-        builder.writeTimeout(OkHttpStack.WRITE_TIMEOUT, TimeUnit.SECONDS);
-        glide.register(GlideUrl.class, InputStream.class, new OkHttpUrlLoader.Factory(builder.build()));
-        LogUtil.i("MyGlideModule reg OK");
-    }
-
-    public static class LoggingListener<T, R> implements RequestListener<T, R> {
-        @Override
-        public boolean onException(Exception e, Object model, Target target, boolean isFirstResource) {
-            LogUtil.e(String.format("GLIDE-onException(%s, %s, %s, %s)", e, model, target, isFirstResource), e);
-            return false;
-        }
-
-        @Override
-        public boolean onResourceReady(Object resource, Object model, Target target, boolean isFromMemoryCache, boolean isFirstResource) {
-            LogUtil.i(String.format("GLIDE-onResourceReady(%s, %s, %s, %s, %s)", resource, model, target, isFromMemoryCache, isFirstResource));
-            return false;
-        }
+        builder.setDefaultRequestOptions(
+                new RequestOptions()
+                        .format(DecodeFormat.PREFER_ARGB_8888));
     }
 }

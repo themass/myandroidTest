@@ -19,7 +19,7 @@ import com.timeline.vpn.ui.base.app.BaseSingleActivity;
 
 import java.util.regex.Pattern;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.OnClick;
 
 /**
@@ -29,23 +29,23 @@ public class RegActivity extends BaseSingleActivity {
     private static final String TAG = "login_tag";
     private final Pattern passPattern = Pattern.compile("[0-9A-Za-z]{6,10}");
     private final Pattern namePattern = Pattern.compile("[a-zA-Z0-9]{3,20}");
-    @Bind(R.id.ll_loading)
+    @BindView(R.id.ll_loading)
     LinearLayout loading;
-    @Bind(R.id.et_username)
+    @BindView(R.id.et_username)
     EditText etUserName;
-    @Bind(R.id.et_password)
+    @BindView(R.id.et_password)
     EditText etPassword;
-    @Bind(R.id.et_repassword)
+    @BindView(R.id.et_repassword)
     EditText etRePassword;
-    @Bind(R.id.btn_reg)
+    @BindView(R.id.btn_reg)
     Button btnReg;
-    @Bind(R.id.btn_login)
+    @BindView(R.id.btn_login)
     Button btnLogin;
-    @Bind(R.id.sex)
+    @BindView(R.id.sex)
     RadioGroup radioGroup;
-    @Bind(R.id.bt_code)
+    @BindView(R.id.bt_code)
     Button btCode;
-    @Bind(R.id.et_code)
+    @BindView(R.id.et_code)
     EditText etCode;
     BaseService baseService;
     CommonResponse.ResponseOkListener loginListener = new CommonResponse.ResponseOkListener<NullReturnVo>() {
@@ -60,7 +60,7 @@ public class RegActivity extends BaseSingleActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_reg);
-        setToolbarTitle(R.string.reg,true);
+        setToolbarTitle(R.string.reg, true);
         baseService = new BaseService();
         baseService.setup(this);
     }
@@ -114,7 +114,7 @@ public class RegActivity extends BaseSingleActivity {
     }
 
     private void setEnabled(boolean isEnable) {
-        if(loading!=null) {
+        if (loading != null) {
             if (!isEnable) {
                 loading.setVisibility(View.VISIBLE);
             } else {
@@ -138,6 +138,7 @@ public class RegActivity extends BaseSingleActivity {
             super.onBackPressed();
         }
     }
+
     protected boolean enableSliding() {
         return true;
     }

@@ -8,8 +8,8 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.qq.e.comm.util.StringUtil;
-import com.sspacee.yewu.net.request.CommonResponse;
 import com.sspacee.common.util.PreferenceUtils;
+import com.sspacee.yewu.net.request.CommonResponse;
 import com.timeline.vpn.R;
 import com.timeline.vpn.bean.form.LoginForm;
 import com.timeline.vpn.bean.vo.UserInfoVo;
@@ -20,7 +20,7 @@ import com.timeline.vpn.ui.base.app.BaseSingleActivity;
 
 import java.util.regex.Pattern;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.OnClick;
 
 /**
@@ -29,15 +29,15 @@ import butterknife.OnClick;
 public class LoginActivity extends BaseSingleActivity {
     private static final String TAG = "login_tag";
     private final Pattern namePattern = Pattern.compile("[a-zA-Z0-9]{3,20}");
-    @Bind(R.id.ll_loading)
+    @BindView(R.id.ll_loading)
     LinearLayout loading;
-    @Bind(R.id.et_username)
+    @BindView(R.id.et_username)
     EditText etUserName;
-    @Bind(R.id.et_password)
+    @BindView(R.id.et_password)
     EditText etPassword;
-    @Bind(R.id.btn_login)
+    @BindView(R.id.btn_login)
     Button btnLogin;
-    @Bind(R.id.btn_reg)
+    @BindView(R.id.btn_reg)
     Button btnReg;
     BaseService baseService;
     CommonResponse.ResponseOkListener loginListener = new CommonResponse.ResponseOkListener<UserInfoVo>() {
@@ -53,7 +53,7 @@ public class LoginActivity extends BaseSingleActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_login);
-        setToolbarTitle(R.string.login,true);
+        setToolbarTitle(R.string.login, true);
         baseService = new BaseService();
         baseService.setup(this);
         String name = PreferenceUtils.getPrefString(this, Constants.LOGIN_USER_LAST, null);
@@ -116,19 +116,20 @@ public class LoginActivity extends BaseSingleActivity {
 
     private void setEnabled(boolean isEnable) {
         if (!isEnable) {
-            if(loading!=null)
+            if (loading != null)
                 loading.setVisibility(View.VISIBLE);
         } else {
-            if(loading!=null)
+            if (loading != null)
                 loading.setVisibility(View.GONE);
         }
-        if(etUserName!=null) {
+        if (etUserName != null) {
             etUserName.setEnabled(isEnable);
             etPassword.setEnabled(isEnable);
             btnLogin.setEnabled(isEnable);
             btnReg.setEnabled(isEnable);
         }
     }
+
     protected boolean enableSliding() {
         return true;
     }

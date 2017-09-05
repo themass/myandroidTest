@@ -14,13 +14,13 @@
 
     <LinearLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="@dimen/margin_250"
         android:layout_centerInParent="true">
 
         <ProgressBar
             android:id="@+id/loading"
-            android:layout_width="50dp"
-            android:layout_height="50dp" />
+            android:layout_width="@dimen/margin_48"
+            android:layout_height="@dimen/margin_48" />
     </LinearLayout>
 
     <LinearLayout
@@ -32,6 +32,7 @@
         android:visibility="gone">
 
         <TextView
+            android:id="@+id/tv_retry"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             android:gravity="center"

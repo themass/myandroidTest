@@ -22,7 +22,7 @@ public class TextChannleActivity extends BaseFragmentActivity {
         setFabUpVisibility(View.VISIBLE);
         Fragment fragment = null;
         try {
-            fragment = (Fragment) TextChannleBodyFragment.class.newInstance();
+            fragment = TextChannleBodyFragment.class.newInstance();
 
         } catch (Exception e) {
             LogUtil.e(e);
@@ -30,13 +30,14 @@ public class TextChannleActivity extends BaseFragmentActivity {
         getSupportFragmentManager().beginTransaction()
                 .add(R.id.fragment, fragment)
                 .commitAllowingStateLoss();
-        setToolbarTitle(R.string.text,true);
+        setToolbarTitle(R.string.text, true);
     }
 
     @Override
     public boolean needShow(Context context) {
         return true;
     }
+
     protected boolean enableSliding() {
         return true;
     }

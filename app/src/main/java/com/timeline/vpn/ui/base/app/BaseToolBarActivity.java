@@ -13,22 +13,24 @@ import android.widget.TextView;
 import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.R;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.Unbinder;
 
 /**
  * Created by Miroslaw Stanek on 19.01.15.
  */
-public class BaseToolBarActivity extends BaseWeatherMenuActivity {
+public abstract class BaseToolBarActivity extends BaseWeatherMenuActivity {
 
     @Nullable
-    @Bind(R.id.toolbar)
+    @BindView(R.id.toolbar)
     Toolbar toolbar;
-    @Bind(R.id.tv_title)
+    @BindView(R.id.tv_title)
     TextView tvTitle;
     @Nullable
-    @Bind(R.id.fl_body)
+    @BindView(R.id.fl_body)
     ViewGroup flBody;
+    private Unbinder unbinder;
 
     @Override
     public void setContentView(int layoutResID) {
@@ -37,8 +39,14 @@ public class BaseToolBarActivity extends BaseWeatherMenuActivity {
         bindViews();
         setupToolbar();
     }
+
+    public void setupView() {
+
+    }
+
     protected void bindViews() {
-        ButterKnife.bind(this);
+        unbinder = ButterKnife.bind(this);
+        setupView();
     }
 
     protected void setupToolbar() {
@@ -55,15 +63,16 @@ public class BaseToolBarActivity extends BaseWeatherMenuActivity {
     public Toolbar getToolbar() {
         return toolbar;
     }
-    public void onConfigurationChanged(Configuration newConfig){
+
+    public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        LogUtil.i("onConfigurationChanged->"+newConfig.orientation);
+        LogUtil.i("onConfigurationChanged->" + newConfig.orientation);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        ButterKnife.unbind(this);
+        unbinder.unbind();
     }
 
     public void startActivity(Class<? extends Activity> c) {
@@ -81,22 +90,27 @@ public class BaseToolBarActivity extends BaseWeatherMenuActivity {
         Intent intent = new Intent(BaseToolBarActivity.this, c);
         stopService(intent);
     }
-    public void showToolbar(boolean show){
-        if(show)
+
+    public void showToolbar(boolean show) {
+        if (show) {
             toolbar.setVisibility(View.VISIBLE);
-        else
+        } else {
             toolbar.setVisibility(View.GONE);
+        }
     }
-    public void setToolbarTitle(int id,boolean initNav) {
+
+    public void setToolbarTitle(int id, boolean initNav) {
         tvTitle.setText(id);
-        if(initNav)
+        if (initNav)
             setNavigationOut();
     }
-    public void setToolbarTitle(String title,boolean initNav) {
+
+    public void setToolbarTitle(String title, boolean initNav) {
         tvTitle.setText(title);
-        if(initNav)
+        if (initNav)
             setNavigationOut();
     }
+
     public TextView getToolbarTitle() {
         return tvTitle;
     }

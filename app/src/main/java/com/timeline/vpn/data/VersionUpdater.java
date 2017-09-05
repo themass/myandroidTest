@@ -42,7 +42,8 @@ public class VersionUpdater {
     private static String version;
     private static int build;
     private static boolean isInitVersionSuccess = false;
-    public static void checkUpdate(final Activity context,final boolean needToast) {
+
+    public static void checkUpdate(final Activity context, final boolean needToast) {
         // 检查版本更新
         if (VersionUpdater.isInitVersionSuccess()) {
             VersionUpdater.checkNewVersion(context, new CommonResponse.ResponseOkListener<VersionVo>() {
@@ -53,6 +54,7 @@ public class VersionUpdater {
                     PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.ADS_SHOW_CONFIG, vo.adsShow);
                     PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.LOG_UPLOAD_CONFIG, vo.logUp);
                     PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.NEED_DNSPOD_CONFIG, vo.needDnspod);
+                    PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.NEED_NATIVE_ADS_CONFIG, vo.needNative);
                     if (StringUtils.hasText(vo.dnspodIp)) {
                         HttpDNSUtil.DNS_POD_IP = vo.dnspodIp;
                     }
@@ -63,7 +65,7 @@ public class VersionUpdater {
                         // 有新版本
                         VersionUpdater.showUpdateDialog(context, vo, true);
                     } else {
-                        if(needToast)
+                        if (needToast)
                             Toast.makeText(context, R.string.about_version_update_to_date, Toast.LENGTH_SHORT).show();
                     }
                 }
@@ -72,6 +74,7 @@ public class VersionUpdater {
             }, VERSION_TAG);
         }
     }
+
     /**
      * 初始化版本信息
      */

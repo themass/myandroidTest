@@ -15,7 +15,7 @@ import com.timeline.vpn.task.IWannaLikeTask;
 
 import java.util.List;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 
 /**
@@ -82,15 +82,16 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
     public static class CellFeedViewHolder extends RecyclerView.ViewHolder {
-        @Bind(R.id.iv_heart)
+        @BindView(R.id.iv_heart)
         public ImageView imageView;
-        @Bind(R.id.tv_content)
+        @BindView(R.id.tv_content)
         public TextView tvContent;
-        @Bind(R.id.tsLikesCounter)
+        @BindView(R.id.tsLikesCounter)
         public TextSwitcher tsLikesCounter;
         public IWannaVo feedItem;
-        @Bind(R.id.iv_ok)
+        @BindView(R.id.iv_ok)
         ImageView ivOk;
+
         public CellFeedViewHolder(View view) {
             super(view);
             ButterKnife.bind(this, view);
@@ -107,9 +108,9 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             } else {
                 imageView.setImageResource(R.drawable.ic_heart_small_blue);
             }
-            if(feedItem.finished){
+            if (feedItem.finished) {
                 ivOk.setVisibility(View.VISIBLE);
-            }else{
+            } else {
                 ivOk.setVisibility(View.GONE);
             }
         }

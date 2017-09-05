@@ -82,6 +82,7 @@ public class BrowserConfigActivity extends BaseFragmentActivity implements NeedN
             AdsAdview.interstitialAds(this, mHandler);
         }
     }
+
     protected boolean enableSliding() {
         return true;
     }

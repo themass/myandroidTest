@@ -30,6 +30,7 @@
     <dimen name="textsize_22">22sp</dimen>
     <dimen name="textsize_25">25sp</dimen>
     <dimen name="textsize_32">32sp</dimen>
+    <dimen name="margin_2">2dip</dimen>
     <dimen name="margin_3">3dip</dimen>
     <dimen name="margin_4">4dip</dimen>
     <dimen name="margin_5">5dip</dimen>
@@ -45,6 +46,7 @@
     <dimen name="margin_48">48dip</dimen>
     <dimen name="margin_120">120dip</dimen>
     <dimen name="margin_100">100dip</dimen>
+    <dimen name="margin_250">250dip</dimen>
     <dimen name="margin_80">80dip</dimen>
     <dimen name="tab_indicator_size">49dp</dimen>
 
@@ -71,4 +73,5 @@
 
     <!-- slidingclose-->
     <dimen name="fab_margin">16dp</dimen>
+    <dimen name="toolbar_minHeight">0dp</dimen>
 </resources>

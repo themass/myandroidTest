@@ -18,10 +18,10 @@ public class CommonConstants {
     public static final String WEATHER_KEY = "weather";
     public static final String LANG_ZH = "zh";
     public static final String LANG_US = "en";
-    public static boolean DEBUG = false;
     public static final String LOG_FILE = "charon.log";
     public static final String LOG_FILE_FOR_UPLOAD = "charon_upload.log";
     public static final String BUG_FILE = "log.log";
     public static final String BUG_FILE_FOR_UPLOAD = "log_upload.log";
+    public static boolean DEBUG = false;
     public static String tmpFilePath = "";
 }

@@ -17,7 +17,7 @@ import com.timeline.vpn.task.ScoreTask;
 import com.timeline.vpn.ui.inte.OnBackKeyDownListener;
 import com.timeline.vpn.ui.main.MainFragmentViewPage;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.OnClick;
 
 /**
@@ -25,7 +25,7 @@ import butterknife.OnClick;
  */
 public abstract class TabBaseAdsFragment extends TabBaseFragment implements OnBackKeyDownListener {
     private static final int ANIM_DURATION_FAB = 400;
-    @Bind(R.id.fab_up)
+    @BindView(R.id.fab_up)
     public FloatingActionButton fabUp;
     protected Handler mHandler = new Handler() {
         @Override

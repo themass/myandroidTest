@@ -12,6 +12,7 @@ import com.sspacee.common.util.ViewUtils;
 import java.io.Serializable;
 
 import butterknife.ButterKnife;
+import butterknife.Unbinder;
 
 /**
  * 所有的Fragment基类
@@ -20,6 +21,7 @@ public abstract class BaseFragment extends LogFramgment {
     public static final String FRAGMENT_ARG = "ARG";
     protected View rootView;
     Bundle savedState;
+    private Unbinder unbinder;
 
     /**
      * 传递参数时，   需要传的序列化数据
@@ -90,7 +92,7 @@ public abstract class BaseFragment extends LogFramgment {
     }
 
     protected void bindViews(View view) {
-        ButterKnife.bind(this, view);
+        unbinder = ButterKnife.bind(this, view);
     }
 
     @Override
@@ -124,7 +126,7 @@ public abstract class BaseFragment extends LogFramgment {
         super.onDestroyView();
         // Save State Here
         saveStateToArguments();
-        ButterKnife.unbind(this);
+        unbinder.unbind();
 //        RefWatcher refWatcher = MyApplication.getRefWatcher(getActivity());
 //        refWatcher.watch(this);
     }

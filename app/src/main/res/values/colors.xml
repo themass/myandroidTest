@@ -70,9 +70,10 @@
 
     <color name="line_login">#585a62</color>
     <color name="btn_blue_normal">#3382ff</color>
+    <color name="ad_bg">#999999</color>
 
     <!-- 标题 -->
     <color name="text_like_counter">#2b5a83</color>
-
+    <color name="other">#f55220</color>
 
 </resources>

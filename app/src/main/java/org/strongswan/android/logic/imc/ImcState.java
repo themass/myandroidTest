@@ -23,7 +23,7 @@ public enum ImcState {
 
     private final int mValue;
 
-    private ImcState(int value) {
+    ImcState(int value) {
         mValue = value;
     }
 

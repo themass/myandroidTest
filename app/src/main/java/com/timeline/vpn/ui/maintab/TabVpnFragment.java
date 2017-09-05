@@ -4,7 +4,6 @@ package com.timeline.vpn.ui.maintab;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 
-import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.ui.base.features.TabBaseAdsFragment;
 import com.timeline.vpn.ui.fragment.RecommendListFragment;
 import com.timeline.vpn.ui.fragment.VpnStatusFragment;
@@ -38,9 +37,9 @@ public class TabVpnFragment extends TabBaseAdsFragment {
         super.onResume();
         if (isFirst) {
             isFirst = false;
-            if(!UserLoginUtil.isVIP()) {
-                next();
-            }
+//            if(!UserLoginUtil.isVIP()) {
+//                next();
+//            }
         }
     }
 }

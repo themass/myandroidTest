@@ -20,7 +20,7 @@ import butterknife.ButterKnife;
 /**
  * Created by Miroslaw Stanek on 20.01.15.
  */
-public abstract class BasePhotoFlowRecycleViewAdapter<M, T extends BasePhotoFlowRecycleViewAdapter.BaseViewHolder> extends RecyclerView.Adapter<T>implements ItemTouchHelperAdapter{
+public abstract class BasePhotoFlowRecycleViewAdapter<M, T extends BasePhotoFlowRecycleViewAdapter.BaseViewHolder> extends RecyclerView.Adapter<T> implements ItemTouchHelperAdapter {
 
     protected static final Interpolator INTERPOLATOR = new DecelerateInterpolator();
     private static final int PHOTO_ANIMATION_DELAY = 600;
@@ -30,7 +30,7 @@ public abstract class BasePhotoFlowRecycleViewAdapter<M, T extends BasePhotoFlow
     private OnStartDragListener mDragStartListener;
     private OnRecyclerViewItemClickListener mOnItemClickListener;
 
-    public BasePhotoFlowRecycleViewAdapter(Context context, RecyclerView recyclerView, List<M> data, OnRecyclerViewItemClickListener onItemClickListener,OnStartDragListener dragStartListener) {
+    public BasePhotoFlowRecycleViewAdapter(Context context, RecyclerView recyclerView, List<M> data, OnRecyclerViewItemClickListener onItemClickListener, OnStartDragListener dragStartListener) {
         this.context = context;
         this.mDragStartListener = dragStartListener;
         this.mOnItemClickListener = onItemClickListener;
@@ -39,7 +39,6 @@ public abstract class BasePhotoFlowRecycleViewAdapter<M, T extends BasePhotoFlow
             this.data = data;
         } else {
             this.data = new ArrayList<>();
-            ;
         }
     }
 
@@ -73,27 +72,27 @@ public abstract class BasePhotoFlowRecycleViewAdapter<M, T extends BasePhotoFlow
                 return true;
             }
         });
-        onCustomeBindViewHolder(holder,position);
+        onCustomeBindViewHolder(holder, position);
     }
 
     private void bindPhoto(final BasePhotoFlowRecycleViewAdapter.BaseViewHolder holder, int position) {
         long animationDelay = PHOTO_ANIMATION_DELAY + holder.getAdapterPosition() * 30;
         animatePhoto(holder, animationDelay, position);
     }
+
     abstract protected void animatePhoto(BaseViewHolder viewHolder, long animationDelay, int position);
+
     abstract protected void onCustomeBindViewHolder(final BasePhotoFlowRecycleViewAdapter.BaseViewHolder holder, int position);
-    protected boolean onLongFlag(final BaseViewHolder holder,boolean flag){ return false;}
+
+    protected boolean onLongFlag(final BaseViewHolder holder, boolean flag) {
+        return false;
+    }
+
     @Override
     public int getItemCount() {
         return data.size();
     }
 
-    public static class BaseViewHolder extends RecyclerView.ViewHolder {
-        public BaseViewHolder(View view) {
-            super(view);
-            ButterKnife.bind(this, view);
-        }
-    }
     @Override
     public void onItemDismiss(int position) {
         Object o = data.remove(position);
@@ -105,12 +104,21 @@ public abstract class BasePhotoFlowRecycleViewAdapter<M, T extends BasePhotoFlow
     public boolean onItemMove(int fromPosition, int toPosition) {
         Collections.swap(data, fromPosition, toPosition);
         notifyItemMoved(fromPosition, toPosition);
-        mDragStartListener.onItemMove(data.get(fromPosition),data.get(toPosition));
+        mDragStartListener.onItemMove(data.get(fromPosition), data.get(toPosition));
         return true;
     }
+
     public interface OnRecyclerViewItemClickListener<T> {
         void onLongItemClick(View view, int position);
+
         void onItemClick(View view, int position);
+    }
+
+    public static class BaseViewHolder extends RecyclerView.ViewHolder {
+        public BaseViewHolder(View view) {
+            super(view);
+            ButterKnife.bind(this, view);
+        }
     }
 
 }

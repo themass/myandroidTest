@@ -8,8 +8,6 @@ import com.timeline.vpn.R;
 import com.timeline.vpn.bean.vo.LocationVo;
 import com.timeline.vpn.constant.Constants;
 
-import static com.kuaiyou.g.a.getActivity;
-
 /**
  * Created by themass on 2017/1/13.
  */
@@ -27,6 +25,6 @@ public class LocationUtil {
     }
 
     public static void setLocation(Context context, Object data) {
-        PreferenceUtils.setPrefObj(getActivity(), Constants.LOCATION_CHOOSE, data);
+        PreferenceUtils.setPrefObj(context, Constants.LOCATION_CHOOSE, data);
     }
 }

@@ -5,12 +5,12 @@ import com.timeline.vpn.bean.vo.InfoListVo;
 /**
  */
 public interface PagedLoader<T> {
-    static final int PAGE_SIZE = 20;
-    static final int STATE_INIT = -1;
-    static final int STATE_NORMAL = 0;
-    static final int STATE_LOADING = 1;
-    static final int STATE_ERROR = 2;
-    static final int STATE_EMPTY = 3;
+    int PAGE_SIZE = 20;
+    int STATE_INIT = -1;
+    int STATE_NORMAL = 0;
+    int STATE_LOADING = 1;
+    int STATE_ERROR = 2;
+    int STATE_EMPTY = 3;
 
     /**
      * 加载下一页数据
@@ -43,18 +43,18 @@ public interface PagedLoader<T> {
      */
     void initState();
 
-    public boolean isInit();
+    boolean isInit();
 
-    public boolean needAutoRefresh();
+    boolean needAutoRefresh();
 
     /**
      * 只清除数据
      */
-    public void clear();
+    void clear();
 
-    public int currentSize();
+    int currentSize();
 
-    public static interface PageLoadListener {
+    interface PageLoadListener {
         void onPageLoaded();
 
         void onPageLoading();

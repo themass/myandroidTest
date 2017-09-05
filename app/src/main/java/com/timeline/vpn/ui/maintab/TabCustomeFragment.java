@@ -14,8 +14,9 @@ import com.timeline.vpn.ui.user.AddCustomeInfoActivity;
 /**
  * Created by themass on 2015/9/1.
  */
-public class TabCustomeFragment extends TabBaseAdsFragment{
+public class TabCustomeFragment extends TabBaseAdsFragment {
     RecommendCustomeFragment f = new RecommendCustomeFragment();
+
     @Override
     protected Fragment getTabHeaderView() {
         return null;
@@ -25,6 +26,7 @@ public class TabCustomeFragment extends TabBaseAdsFragment{
     protected Fragment getTabBodyView() {
         return f;
     }
+
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -33,6 +35,6 @@ public class TabCustomeFragment extends TabBaseAdsFragment{
 
     @Override
     public void onClickFab(View view) {
-        AddCustomeInfoActivity.startActivity(getActivity(),null);
+        AddCustomeInfoActivity.startActivity(getActivity(), null);
     }
 }

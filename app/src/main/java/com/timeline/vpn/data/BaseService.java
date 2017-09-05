@@ -4,12 +4,12 @@ import android.content.Context;
 
 import com.android.volley.Request;
 import com.android.volley.toolbox.RequestFuture;
+import com.sspacee.common.util.BeanUtil;
 import com.sspacee.yewu.net.VolleyUtils;
 import com.sspacee.yewu.net.request.CommonResponse;
 import com.sspacee.yewu.net.request.GsonInfoListRequest;
 import com.sspacee.yewu.net.request.GsonRequest;
 import com.sspacee.yewu.net.request.MultipartRequest;
-import com.sspacee.common.util.BeanUtil;
 import com.sspacee.yewu.net.request.StringRequest;
 import com.timeline.vpn.bean.vo.InfoListVo;
 
@@ -34,7 +34,8 @@ public class BaseService {
         VolleyUtils.addRequest(request);
         return future.get();
     }
-//
+
+    //
 //    public <T> InfoListVo<T> getInfoListData(String url, Map<String, String> param, Class<T> t, String tag) throws Exception {
 //        url = HttpUtils.generateGetUrl(url, param);
 //        RequestFuture<InfoListVo<T>> future = RequestFuture.newFuture();
@@ -51,9 +52,10 @@ public class BaseService {
         VolleyUtils.addRequest(request);
         return future.get();
     }
+
     public String getStringData(String url, String tag) throws Exception {
         RequestFuture<String> future = RequestFuture.newFuture();
-        StringRequest request = new StringRequest(context,Request.Method.GET, url, future, future);
+        StringRequest request = new StringRequest(context, Request.Method.GET, url, future, future);
         request.setTag(tag);
         VolleyUtils.addRequest(request);
         return future.get();
@@ -66,7 +68,7 @@ public class BaseService {
     }
 
     public <T> void postData(String url, Object param, CommonResponse.ResponseOkListener<T> listener, CommonResponse.ResponseErrorListener errorListener, String tag, Class<T> t) {
-        Map<String,String> map = null;
+        Map<String, String> map = null;
         if (param != null)
             map = BeanUtil.transBean2Map(param);
         MultipartRequest request = new MultipartRequest(context, map, url, null, listener, errorListener, t);

@@ -47,14 +47,14 @@ public class QuickBrowserConfigActivity extends LogActivity {
 //        getWindow().setFlags(WindowManager.LayoutParams. FLAG_FULLSCREEN , WindowManager.LayoutParams. FLAG_FULLSCREEN);
         setContentView(R.layout.layout_space);
         boolean adsPopNeed = getIntent().getBooleanExtra(Constants.ADS_POP_SHOW_CONFIG, false);
-        if(!PackageUtils.hasBrowser(this)){
+        if (!PackageUtils.hasBrowser(this)) {
             Bundle bundle = getIntent().getExtras();
-            WebViewActivity.startWebViewActivity(this,bundle.getString(Constants.URL),bundle.getString(Constants.TITLE),adsPopNeed,adsPopNeed,null);
-        }else{
+            WebViewActivity.startWebViewActivity(this, bundle.getString(Constants.URL), bundle.getString(Constants.TITLE), adsPopNeed, adsPopNeed, null);
+        } else {
             final Uri uri = Uri.parse(getIntent().getExtras().getString(Constants.URL));
             startActivityForResult(new Intent(Intent.ACTION_VIEW, uri), 0);
         }
-        if (UserLoginUtil.isVIP()||!adsPopNeed) {
+        if (UserLoginUtil.isVIP() || !adsPopNeed) {
             finishActivity();
         }
         AdsAdview.interstitialAdsRequest(this, mHandler);
@@ -69,6 +69,7 @@ public class QuickBrowserConfigActivity extends LogActivity {
             finishActivity();
         }
     }
+
     private void finishActivity() {
         finish();
     }

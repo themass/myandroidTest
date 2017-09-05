@@ -17,15 +17,15 @@ import com.timeline.vpn.ui.base.features.TmpBaseBannerAdsFragemnt;
 
 import java.util.HashMap;
 
-import butterknife.Bind;
+import butterknife.BindView;
 
 /**
  * Created by themass on 2016/3/31.
  */
 public class TmpContentFragment extends TmpBaseBannerAdsFragemnt {
-    @Bind(R.id.rv_ads)
+    @BindView(R.id.rv_ads)
     RecyclerView rvAds;
-    @Bind(R.id.tv_ready)
+    @BindView(R.id.tv_ready)
     ShimmerTextView tvReady;
     NativeAdsAdapter.AdsAdapter adsAdapter;
     Shimmer shimmer;
@@ -42,7 +42,7 @@ public class TmpContentFragment extends TmpBaseBannerAdsFragemnt {
         HashMap<String, Object> param = (HashMap) getSerializable();
         String title = (String) param.get(Constants.TITLE);
         Boolean show = (Boolean) param.get(Constants.ADSSHOW);
-        adsNeed = (Boolean) show == null ? true : show;
+        adsNeed = show == null ? true : show;
         final StaggeredGridLayoutManager layoutManager = new StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.VERTICAL);
         rvAds.setLayoutManager(layoutManager);
         rvAds.setItemAnimator(new DefaultItemAnimator());

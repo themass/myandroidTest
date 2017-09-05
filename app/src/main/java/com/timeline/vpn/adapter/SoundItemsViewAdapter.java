@@ -14,27 +14,22 @@ import com.timeline.vpn.bean.vo.SoundItemsVo;
 
 import java.util.List;
 
-import butterknife.Bind;
+import butterknife.BindView;
 
 /**
  * Created by themass on 2016/8/12.
  */
 public class SoundItemsViewAdapter extends BaseRecyclerViewAdapter<SoundItemsViewAdapter.SoundItemView, SoundItemsVo> {
-    private int selected=-1;
     public SoundItemsViewAdapter(Context context, RecyclerView recyclerView, List<SoundItemsVo> data, OnRecyclerViewItemClickListener<SoundItemsVo> listener) {
         super(context, recyclerView, data, listener);
     }
 
     @Override
     public SoundItemsViewAdapter.SoundItemView onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.layout_sounditems_item, parent, false);
-        return new SoundItemsViewAdapter.SoundItemView(view, this);
+        View view = LayoutInflater.from(context).inflate(R.layout.layout_channel_items_item, parent, false);
+        return new SoundItemsViewAdapter.SoundItemView(view, this, this);
     }
-    @Override
-    public void onClick(View v) {
-        selected = (int) v.getTag(R.id.tag_pos);
-       super.onClick(v);
-    }
+
     @Override
     public void onBindViewHolder(SoundItemsViewAdapter.SoundItemView holder, int position) {
         super.onBindViewHolder(holder, position);
@@ -42,9 +37,9 @@ public class SoundItemsViewAdapter extends BaseRecyclerViewAdapter<SoundItemsVie
         holder.tvIndex.setText("#" + (position + 1));
         holder.tvName.setText(vo.name);
         holder.tvDate.setText(vo.fileDate);
-        if(position == selected){
+        if (position == getSelected()) {
             holder.ivSong.setVisibility(View.VISIBLE);
-        }else{
+        } else {
             holder.ivSong.setVisibility(View.GONE);
         }
     }
@@ -54,21 +49,22 @@ public class SoundItemsViewAdapter extends BaseRecyclerViewAdapter<SoundItemsVie
         return data.size();
     }
 
-     static class SoundItemView  extends BaseRecyclerViewAdapter.BaseRecyclerViewHolder<SoundItemsVo> {
+    static class SoundItemView extends BaseRecyclerViewAdapter.BaseRecyclerViewHolder<SoundItemsVo> {
         @Nullable
-        @Bind(R.id.tv_index)
+        @BindView(R.id.tv_index)
         TextView tvIndex;
         @Nullable
-        @Bind(R.id.tv_name)
+        @BindView(R.id.tv_name)
         TextView tvName;
         @Nullable
-        @Bind(R.id.tv_date)
+        @BindView(R.id.tv_date)
         TextView tvDate;
-         @Nullable
-         @Bind(R.id.iv_song)
-         ImageView ivSong;
-        public SoundItemView(View itemView, View.OnClickListener l) {
-            super(itemView, l);
+        @Nullable
+        @BindView(R.id.iv_song)
+        ImageView ivSong;
+
+        public SoundItemView(View itemView, View.OnClickListener l, View.OnLongClickListener longListener) {
+            super(itemView, l, longListener);
         }
     }
 }

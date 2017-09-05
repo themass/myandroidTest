@@ -40,6 +40,7 @@
         <!--Required-->
         <item name="android:windowAnimationStyle">@style/AppTheme.Slide.Animation</item>
     </style>
+
     <style name="AppTheme.Slide.Animation" parent="@android:style/Animation.Activity">
         <item name="android:activityOpenEnterAnimation">@anim/anim_slide_in</item>
         <item name="android:activityOpenExitAnimation">@anim/anim_slide_out</item>
@@ -57,6 +58,7 @@
         <!-- 弹出层水平方向上的偏移，即距离屏幕左边的距离，负值会导致右边出现空隙 -->
         <item name="android:dropDownHorizontalOffset">0dp</item>
     </style>
+
     <style name="ContextMenuButton">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
@@ -132,6 +134,7 @@
         <item name="android:textColor">@color/base_white</item>
         <item name="android:gravity">center</item>
     </style>
+
     <style name="tv_add_custome_title">
         <item name="android:textSize">@dimen/textsize_14</item>
         <item name="android:layout_width">80dp</item>
@@ -195,5 +198,32 @@
         <item name="android:textColor">@color/new_deep_black</item>
     </style>
 
+    <style name="ToolbarStyle" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
+        <item name="android:minHeight">@dimen/toolbar_minHeight</item>
+        <item name="titleMargins">0dp</item>
+    </style>
 
+    <style name="list_itme_name">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">@dimen/textsize_22</item>
+        <item name="android:textColor">@color/base_black</item>
+        <item name="android:singleLine">true</item>
+    </style>
+
+    <style name="list_itme_date" parent="list_itme_name">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:textSize">@dimen/textsize_18</item>
+        <item name="android:layout_alignParentRight">true</item>
+        <item name="android:gravity">right</item>
+        <item name="android:paddingRight">@dimen/margin_8</item>
+        <item name="android:paddingLeft">@dimen/margin_8</item>
+    </style>
+
+    <style name="list_itme_index" parent="list_itme_name">
+        <item name="android:layout_width">@dimen/margin_40</item>
+        <item name="android:textSize">@dimen/textsize_18</item>
+        <item name="android:layout_marginLeft">@dimen/margin_8</item>
+
+    </style>
 </resources>

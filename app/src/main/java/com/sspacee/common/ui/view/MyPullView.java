@@ -15,7 +15,7 @@ import android.widget.LinearLayout;
 
 import com.timeline.vpn.R;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 
 /**
@@ -23,17 +23,17 @@ import butterknife.ButterKnife;
  */
 public class MyPullView extends LinearLayout {
     @Nullable
-    @Bind(R.id.footer_view)
+    @BindView(R.id.footer_view)
     View footerView;
     @Nullable
-    @Bind(R.id.rv_content)
+    @BindView(R.id.rv_content)
     RecyclerView rvContent;
-    @Bind(R.id.srl_layout)
+    @BindView(R.id.srl_layout)
     SwipeRefreshLayout refreshLayout;
-    private OnRefreshListener listener;
-//    Snackbar bar = null;
+    //    Snackbar bar = null;
     TranslateAnimation mShowAction;
     TranslateAnimation mHiddenAction;
+    private OnRefreshListener listener;
     public MyPullView(Context context) {
         super(context);
         setupView();
@@ -93,8 +93,8 @@ public class MyPullView extends LinearLayout {
         DividerItemDecoration itemDecoration = new DividerItemDecoration(getContext(), LinearLayoutManager.VERTICAL, R.drawable.divider_item);
         rvContent.addItemDecoration(itemDecoration);
         mShowAction = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0.0f,
-                Animation.RELATIVE_TO_SELF, 0.0f,Animation.RELATIVE_TO_SELF,
-                1.0f,Animation.RELATIVE_TO_SELF, 0.0f);
+                Animation.RELATIVE_TO_SELF, 0.0f, Animation.RELATIVE_TO_SELF,
+                1.0f, Animation.RELATIVE_TO_SELF, 0.0f);
         mShowAction.setDuration(500);
         mHiddenAction = new TranslateAnimation(Animation.RELATIVE_TO_SELF,
                 0.0f, Animation.RELATIVE_TO_SELF, 0.0f,
@@ -115,17 +115,23 @@ public class MyPullView extends LinearLayout {
 //        if(bar!=null&&!bar.isShown())
 //            bar.show();
     }
-    public  void hindLoadingLabel(){
+
+    public void hindLoadingLabel() {
         footerView.startAnimation(mHiddenAction);
-       footerView.setVisibility(View.GONE);
+        footerView.setVisibility(View.GONE);
 //        if(bar!=null&&bar.isShown())
 //            bar.dismiss();
     }
-    public void setLongClickListener(OnLongClickListener l){
+
+    public void setLongClickListener(OnLongClickListener l) {
         rvContent.setOnLongClickListener(l);
     }
+
     public void setRefresh(boolean flag) {
         refreshLayout.setRefreshing(flag);
+        if (flag) {
+            loadData(OnRefreshListener.FRESH);
+        }
     }
 
     private void loadData(int type) {
@@ -169,11 +175,11 @@ public class MyPullView extends LinearLayout {
     }
 
     public interface OnRefreshListener {
-        public static final int FRESH = 1;
-        public static final int LOADMORE = 2;
+        int FRESH = 1;
+        int LOADMORE = 2;
 
-        public void onRefresh(int type);
+        void onRefresh(int type);
 
-        public boolean needLoad();
+        boolean needLoad();
     }
 }

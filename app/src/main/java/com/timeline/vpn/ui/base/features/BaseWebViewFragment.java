@@ -26,7 +26,7 @@ import com.timeline.vpn.R;
 import com.timeline.vpn.base.MyApplication;
 import com.timeline.vpn.constant.Constants;
 
-import butterknife.Bind;
+import butterknife.BindView;
 
 /**
  * Created by themass on 2016/3/21.
@@ -35,15 +35,15 @@ public class BaseWebViewFragment extends BaseFragment {
     public static final String PARAM_WEB_VIEW_CAN_GO_BACK = "PARAM_WEB_VIEW_CAN_GO_BACK";
     public static final String TAG_FROM = "BaseWebViewFragment_TAG_FROM";
     public static final int TAG_FROM_DEFAULT = 0x0000;
-    @Bind(R.id.wv_content)
+    @BindView(R.id.wv_content)
     MyWebView webView;
-    @Bind(R.id.progressbar)
+    @BindView(R.id.progressbar)
     ProgressBar progressbar;
+    CookieManager cookieManager = null;
     private boolean mFirstPageLoad = true;
     private WebViewListener webViewListener;
     private int from;
     private String url;
-    CookieManager cookieManager = null;
 
     @Override
     protected int getRootViewId() {
@@ -65,6 +65,12 @@ public class BaseWebViewFragment extends BaseFragment {
                 webView.loadUrl(url);
             }
         }
+    }
+
+    private void setBook() {
+        webView.getSettings().setDefaultTextEncodingName("utf-8");
+        webView.setBackgroundColor(0); // 设置背景色
+        webView.getBackground().setAlpha(0); // 设置填充透明度 范围：0-255
     }
 
     public boolean goForward() {
@@ -133,6 +139,7 @@ public class BaseWebViewFragment extends BaseFragment {
         settings.setGeolocationEnabled(true);
         settings.setGeolocationDatabasePath(getActivity().getCacheDir().toString());
         settings.setUserAgentString(settings.getUserAgentString() + " " + HttpUtils.getUserAgentSuffix(getActivity()));
+        LogUtil.i("ua=" + settings.getUserAgentString());
         webView.setWebChromeClient(new WebChromeClient());
         webView.setWebViewClient(new WebViewClient() {
             private String mUrl;
@@ -155,9 +162,9 @@ public class BaseWebViewFragment extends BaseFragment {
                 if (webViewListener != null) {
                     webViewListener.onPageFinished();
                 }
-                if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP){
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     cookieManager.flush();
-                }else {
+                } else {
                     CookieSyncManager.createInstance(MyApplication.getInstance());
                     CookieSyncManager.getInstance().sync();
                 }
@@ -182,6 +189,7 @@ public class BaseWebViewFragment extends BaseFragment {
             }
         });
     }
+
     public void setWebViewListener(WebViewListener webViewListener) {
         this.webViewListener = webViewListener;
     }
@@ -211,6 +219,6 @@ public class BaseWebViewFragment extends BaseFragment {
     }
 
     public interface WebViewListener {
-        public void onPageFinished();
+        void onPageFinished();
     }
 }

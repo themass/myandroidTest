@@ -6,7 +6,6 @@ import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.webkit.WebView;
 
-import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.constant.Constants;
 
 import java.util.HashMap;
@@ -62,7 +61,7 @@ public class MyWebView extends WebView {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        LogUtil.i("onTouchEvent mywebview");
+//        LogUtil.i("onTouchEvent mywebview");
         createVelocityTracker(event);
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
@@ -119,6 +118,6 @@ public class MyWebView extends WebView {
     }
 
     public interface OnTouchRightSlide {
-        public void onTouchRight(int distans);
+        void onTouchRight(int distans);
     }
 }

@@ -7,6 +7,7 @@ import com.timeline.vpn.bean.form.CustomeAddForm;
  */
 
 public interface UrlParser {
-    public CustomeAddForm parser(String url);
-    public boolean canParser(String url);
+    CustomeAddForm parser(String url);
+
+    boolean canParser(String url);
 }

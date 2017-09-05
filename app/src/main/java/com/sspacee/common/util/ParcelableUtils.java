@@ -93,7 +93,7 @@ public class ParcelableUtils {
             dest.writeInt(objects.keySet().size());
             for (String key : objects.keySet()) {
                 dest.writeString(key);
-                ArrayList<T> values = (ArrayList<T>) objects.get(key);
+                ArrayList<T> values = objects.get(key);
                 writeList(dest, values, flags);
 
             }

@@ -28,6 +28,15 @@ public class GsonUtils {
         return null;
     }
 
+    public static <T> T getObj(String json, Class<T> clasz) {
+        try {
+            return gson.fromJson(json, clasz);
+        } catch (Exception e) {
+            LogUtil.e(e);
+        }
+        return null;
+    }
+
     public static Map<String, Object> getMap(String json) {
         return getMap(new Gson(), json);
     }

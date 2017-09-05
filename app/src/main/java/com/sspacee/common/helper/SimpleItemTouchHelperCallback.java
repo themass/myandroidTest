@@ -39,7 +39,8 @@ public class SimpleItemTouchHelperCallback extends ItemTouchHelper.Callback {
     private final ItemTouchHelperAdapter mAdapter;
     private final boolean mCanRemove;
     private final boolean canMove;
-    public SimpleItemTouchHelperCallback(ItemTouchHelperAdapter adapter, boolean canMove,boolean canRemove) {
+
+    public SimpleItemTouchHelperCallback(ItemTouchHelperAdapter adapter, boolean canMove, boolean canRemove) {
         mAdapter = adapter;
         this.canMove = canMove;
         mCanRemove = canRemove;
@@ -60,10 +61,10 @@ public class SimpleItemTouchHelperCallback extends ItemTouchHelper.Callback {
         // Set movement flags based on the layout manager
         if (recyclerView.getLayoutManager() instanceof GridLayoutManager || recyclerView.getLayoutManager() instanceof StaggeredGridLayoutManager) {
             int dragFlags = 0;
-            if(canMove)
-                dragFlags = ItemTouchHelper.UP | ItemTouchHelper.DOWN| ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT;
-            int swipeFlags =0;
-            if(mCanRemove)
+            if (canMove)
+                dragFlags = ItemTouchHelper.UP | ItemTouchHelper.DOWN | ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT;
+            int swipeFlags = 0;
+            if (mCanRemove)
                 swipeFlags = ItemTouchHelper.START | ItemTouchHelper.END;
             return makeMovementFlags(dragFlags, swipeFlags);
         } else {

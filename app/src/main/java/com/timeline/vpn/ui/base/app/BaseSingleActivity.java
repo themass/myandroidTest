@@ -18,4 +18,9 @@ public class BaseSingleActivity extends BaseBannerAdsActivity {
         super.onResume();
         MobAgent.onResume(this);
     }
+
+    @Override
+    public void setupView() {
+
+    }
 }

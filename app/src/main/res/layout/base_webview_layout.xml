@@ -1,7 +1,9 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/fl_bg"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:gravity="center"
+    android:padding="@dimen/margin_3">
 
     <com.sspacee.common.ui.view.MyWebView
         android:id="@+id/wv_content"
@@ -12,5 +14,5 @@
         android:id="@+id/progressbar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center" />
-</FrameLayout>
+        android:layout_centerInParent="true" />
+</RelativeLayout>

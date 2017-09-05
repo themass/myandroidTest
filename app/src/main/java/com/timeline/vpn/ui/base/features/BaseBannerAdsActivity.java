@@ -20,51 +20,53 @@ import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.StaticDataUtil;
 import com.timeline.vpn.ui.base.app.BaseToolBarActivity;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.OnClick;
 
-import static com.kuaiyou.g.a.getActivity;
 
 /**
  * Created by themass on 2016/8/21.
  */
 public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implements AdsController {
     private static final int ANIM_DURATION_FAB = 400;
-    @Bind(R.id.fl_content)
+    @BindView(R.id.fl_content)
     public ViewGroup flContent;
-    @Bind(R.id.fl_header)
+    @BindView(R.id.fl_header)
     public ViewGroup flBanner;
-    @Bind(R.id.fab_up)
+    @BindView(R.id.fab_up)
     public FloatingActionButton fabUp;
-    @Bind(R.id.ct_bar)
+    @BindView(R.id.ct_bar)
     public CollapsingToolbarLayout ctBar;
     private AdsGoneTask task = new AdsGoneTask();
     protected Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             LogUtil.i("handleMessage-" + msg.what);
-//            mHandler.postDelayed(task, Constants.BANNER_ADS_GONE_LONG);
-            if(msg.what==Constants.ADS_NO_MSG ||msg.what==Constants.ADS_DISMISS_MSG){
+            if (msg.what == Constants.ADS_NO_MSG || msg.what == Constants.ADS_DISMISS_MSG) {
                 mHandler.postDelayed(task, 0);
+            } else {
+                mHandler.postDelayed(task, Constants.BANNER_ADS_GONE_LONG);
             }
         }
     };
     private long lastToastShow = 0l;
+
     @OnClick(R.id.fab_up)
     public void onClickFab(View view) {
-        AdsAdview.interstitialAds(getActivity(), mHandler);
+        AdsAdview.interstitialAds(this, mHandler);
         Long lastClickTime = StaticDataUtil.get(Constants.SCORE_CLICK, Long.class, 0l);
         long curent = System.currentTimeMillis();
         long interval = curent - lastClickTime;
         StaticDataUtil.add(Constants.SCORE_CLICK, System.currentTimeMillis());
         if ((interval / 1000) < Constants.SCORE_CLICK_INTERVAL) {
             if ((curent - lastToastShow) / 1000 >= Constants.SCORE_CLICK_INTERVAL) {
-                Toast.makeText(getActivity(), R.string.tab_fb_click_fast, Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.tab_fb_click_fast, Toast.LENGTH_SHORT).show();
                 lastToastShow = curent;
             }
             return;
         }
     }
+
     @Override
     public void setContentView(int layoutResID) {
         super.setContentViewWithoutInject(R.layout.base_fragment);
@@ -73,15 +75,17 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
         setupToolbar();
 
         fabUp.setVisibility(View.GONE);
-        flBanner.setBackgroundResource(R.color.base_white);
+//        flBanner.setBackgroundResource(R.color.base_white);
     }
-    public void disableScrollBanner(){
+
+    public void disableScrollBanner() {
         AppBarLayout.LayoutParams params =
                 (AppBarLayout.LayoutParams) ctBar.getLayoutParams();
         params.setScrollFlags(AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS);
         ctBar.setLayoutParams(params);
 
     }
+
     public void setContentViewWithoutInject(int layoutResID) {
         super.setContentViewWithoutInject(R.layout.base_fragment);
         getLayoutInflater().inflate(layoutResID, (ViewGroup) findViewById(R.id.fl_content), true);

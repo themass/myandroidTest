@@ -13,16 +13,16 @@ import android.view.animation.Interpolator;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
 import com.sspacee.common.util.DisplayUtil;
 import com.sspacee.common.util.Utils;
 import com.timeline.vpn.R;
+import com.timeline.vpn.base.MyApplication;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 
 /**
@@ -86,16 +86,12 @@ public class IndexNaviAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         layoutParams.height = mPostCache.get(position);
         layoutParams.width = cellSize;
         holder.itemView.setLayoutParams(layoutParams);
-        bindPhoto((NaviItemViewHolder) holder, position);
+        BindViewPhoto((NaviItemViewHolder) holder, position);
 
     }
 
-    private void bindPhoto(final NaviItemViewHolder holder, int position) {
-        Glide.with(context)
-                .load(photos.get(position))
-                .placeholder(R.color.tab_indicator_color)
-                .crossFade()
-                .into(holder.ivPhoto);
+    private void BindViewPhoto(final NaviItemViewHolder holder, int position) {
+        MyApplication.getInstance().getPhotoLoad().loadCommonImg(context, photos.get(position), holder.ivPhoto);
         animatePhoto(holder);
         if (lastAnimatedItem < position) lastAnimatedItem = position;
     }
@@ -128,11 +124,11 @@ public class IndexNaviAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     }
 
     static class NaviItemViewHolder extends RecyclerView.ViewHolder {
-        @Bind(R.id.card_view)
+        @BindView(R.id.card_view)
         CardView cardView;
-        @Bind(R.id.tv_title)
+        @BindView(R.id.tv_title)
         TextView ivTitle;
-        @Bind(R.id.iv_photo)
+        @BindView(R.id.iv_photo)
         ImageView ivPhoto;
 
         public NaviItemViewHolder(View view) {
