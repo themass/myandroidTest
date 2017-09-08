@@ -18,7 +18,10 @@ public class LocationUtil {
         String name = vo == null ? context.getString(R.string.location_choose_none) : (SystemUtils.isZH(context) ? vo.name : vo.ename);
         return context.getString(R.string.menu_btn_country) + name;
     }
-
+    public static String getName(Context context) {
+        LocationVo vo = PreferenceUtils.getPrefObj(context, Constants.LOCATION_CHOOSE, LocationVo.class);
+        return vo.name;
+    }
     public static int getSelectId(Context context) {
         LocationVo chooseVo = PreferenceUtils.getPrefObj(context, Constants.LOCATION_CHOOSE, LocationVo.class);
         return chooseVo == null ? 0 : chooseVo.id;

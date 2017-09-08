@@ -65,7 +65,7 @@ public class TextItemsWebViewFragment extends BaseFragment {
         @Override
         public void run() {
             if (webView != null) {
-                webView.setVisibility(View.VISIBLE);
+//                webView.setVisibility(View.VISIBLE);
                 setProgressShown(false);
             }
         }
@@ -235,8 +235,8 @@ public class TextItemsWebViewFragment extends BaseFragment {
 //                webView.loadUrl(getInnerCss());
 //               String css =  FileUtils.readAssets(getActivity(),"mybook.css");
 //                webView.loadDataWithBaseURL("http://file.ssapcee.com",css,"text/css","utf-8",null);
-                webView.loadUrl(getOutCss("http://file.sspacee.com/file/cache/mybook.css?" + System.currentTimeMillis()));
-                mHandler.postDelayed(run, 300);
+//                webView.loadUrl(getOutCss("http://file.sspacee.com/file/cache/mybook.css?" + System.currentTimeMillis()));
+                mHandler.postDelayed(run, 0);
 //                webView.loadUrl("<link rel=\"stylesheet\" href=\"http://file.sspacee.com/file/cache/mybook.css\" type=\"text/css\" /> ");
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     cookieManager.flush();

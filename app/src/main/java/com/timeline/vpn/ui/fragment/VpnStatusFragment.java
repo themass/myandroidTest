@@ -30,6 +30,7 @@ import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.ads.adview.AdsAdview;
 import com.sspacee.yewu.net.HttpUtils;
 import com.sspacee.yewu.net.request.CommonResponse;
+import com.sspacee.yewu.um.MobAgent;
 import com.timeline.vpn.R;
 import com.timeline.vpn.bean.DataBuilder;
 import com.timeline.vpn.bean.vo.HostVo;
@@ -38,6 +39,7 @@ import com.timeline.vpn.bean.vo.VpnProfile;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.data.LocationUtil;
+import com.timeline.vpn.data.StaticDataUtil;
 import com.timeline.vpn.data.UserLoginUtil;
 
 import org.strongswan.android.logic.VpnStateService;
@@ -162,6 +164,7 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
             if (mService.getState() == VpnStateService.State.CONNECTED) {
                 mService.disconnect();
             } else if (mService.getState() == VpnStateService.State.DISABLED) {
+                MobAgent.onEventLocationChoose(getActivity(), LocationUtil.getName(getActivity()));
                 imgAnim();
                 int id = LocationUtil.getSelectId(getActivity());
                 indexService.getData(String.format(Constants.getUrl(Constants.API_SERVERLIST_URL), id), serverListener, serverListenerError, INDEX_TAG, ServerVo.class);
@@ -392,6 +395,7 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
             }
             switch (state) {
                 case CONNECTED:
+                    StaticDataUtil.add(Constants.VPN_STATUS,1);
                     imgConn();
                     break;
                 case CONNECTING:
@@ -402,10 +406,12 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
                     break;
                 case DISABLED:
                     imgNormal();
+                    StaticDataUtil.del(Constants.VPN_STATUS);
                     hasIp = false;
                     break;
                 default:
                     imgError();
+                    StaticDataUtil.del(Constants.VPN_STATUS);
                     hasIp = false;
                     break;
             }

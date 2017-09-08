@@ -6,9 +6,11 @@ import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import com.etiennelawlor.imagegallery.library.adapters.ImageGalleryAdapter;
 import com.etiennelawlor.imagegallery.library.utilities.DisplayUtility;
@@ -22,29 +24,36 @@ import com.timeline.vpn.bean.vo.ImgItemsVo;
 import com.timeline.vpn.bean.vo.InfoListVo;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
+import com.timeline.vpn.data.FavoriteUtil;
 import com.timeline.vpn.data.StaticDataUtil;
 import com.timeline.vpn.ui.base.CommonFragmentActivity;
 import com.timeline.vpn.ui.base.LoadableFragment;
 import com.timeline.vpn.ui.sound.MyFullScreenImageGalleryActivity;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.BindView;
+import butterknife.OnClick;
 
 /**
  * Created by themass on 2016/8/12.
  */
-public class ImgGalleryFragment extends LoadableFragment<InfoListVo<ImgItemVo>> implements MyPullView.OnRefreshListener, ImageGalleryAdapter.OnImageClickListener {
+public class ImgGalleryFragment extends LoadableFragment<InfoListVo<ImgItemVo>> implements MyPullView.OnRefreshListener, ImageGalleryAdapter.OnImageClickListener,FavoriteUtil.GetFavoriteListener, FavoriteUtil.ModFavoriteListener {
     private static final String TEXT_TAG = "Img_ITEM_TAG";
     @Nullable
     @BindView(R.id.my_pullview)
     MyPullView pullView;
+    @BindView(R.id.iv_favorite)
+    ImageView ivFavorite;
     private BaseService indexService;
     private ImgItemsVo vo;
     // region Member Variables
     private ArrayList<String> images = new ArrayList<>();
+    private ArrayList<String> origeImages = new ArrayList<>();
     // endregion
-
+    private int gridItemWidth;
+    private int gridItemHeight;
     public static void startFragment(Context context, ImgItemsVo vo) {
         Intent intent = new Intent(context, CommonFragmentActivity.class);
         intent.putExtra(CommonFragmentActivity.FRAGMENT, ImgGalleryFragment.class);
@@ -72,8 +81,30 @@ public class ImgGalleryFragment extends LoadableFragment<InfoListVo<ImgItemVo>> 
         indexService = new BaseService();
         indexService.setup(getActivity());
         setUpRecyclerView();
+        FavoriteUtil.getLocalFavoritesAsync(getActivity(), vo.url, this);
+    }
+    @OnClick(R.id.iv_favorite)
+    public void favoriteClick(View view) {
+        FavoriteUtil.modLocalFavoritesAsync(getActivity(), vo.tofavorite(), this);
+    }
+    @Override
+    public void modFavorite(boolean ret) {
+        modFavoriteBg(ret);
     }
 
+    @Override
+    public void isFavorite(String itemUrl, boolean ret) {
+        modFavoriteBg(ret);
+    }
+
+    public void modFavoriteBg(boolean ret) {
+        ivFavorite.setVisibility(View.VISIBLE);
+        if (ret) {
+            ivFavorite.setBackgroundResource(R.drawable.ic_menu_favorite);
+        } else {
+            ivFavorite.setBackgroundResource(R.drawable.ic_menu_collect);
+        }
+    }
     private void setUpRecyclerView() {
         int numOfColumns;
         if (DisplayUtility.isInLandscapeMode(getActivity())) {
@@ -81,11 +112,14 @@ public class ImgGalleryFragment extends LoadableFragment<InfoListVo<ImgItemVo>> 
         } else {
             numOfColumns = 3;
         }
+        int lineW = DisplayUtility.dp2px(getActivity(),2);
+        gridItemWidth = (DisplayUtility.getScreenWidth(getActivity())-(numOfColumns-1)*lineW)/numOfColumns;
+        gridItemHeight =(int)(gridItemWidth*1.3);
         GridLayoutManager layoutManager = new GridLayoutManager(getActivity(), numOfColumns);
         pullView.setLayoutManager(layoutManager);
-        GridSpacingItemDecoration itemDecoration = new GridSpacingItemDecoration(numOfColumns, 1, false);
+        GridSpacingItemDecoration itemDecoration = new GridSpacingItemDecoration(numOfColumns, lineW, false);
         pullView.getRecyclerView().addItemDecoration(itemDecoration);
-        ImageGalleryAdapter imageGalleryAdapter = new ImageGalleryAdapter(getContext(), images);
+        MyImageGalleryAdapter imageGalleryAdapter = new MyImageGalleryAdapter(getContext(), images);
         imageGalleryAdapter.setOnImageClickListener(this);
         imageGalleryAdapter.setImageThumbnailLoader(MyApplication.getInstance().getPhotoLoad());
         pullView.setAdapter(imageGalleryAdapter);
@@ -94,7 +128,7 @@ public class ImgGalleryFragment extends LoadableFragment<InfoListVo<ImgItemVo>> 
 
     @Override
     public void onContentViewCreated(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
-        inflater.inflate(R.layout.common_mypage_view, parent, true);
+        inflater.inflate(R.layout.layout_img_gallery_list, parent, true);
     }
 
     @Override
@@ -102,8 +136,10 @@ public class ImgGalleryFragment extends LoadableFragment<InfoListVo<ImgItemVo>> 
         setData(data);
         if (!CollectionUtils.isEmpty(data.voList)) {
             images.clear();
+            origeImages.clear();
             for (ImgItemVo item : data.voList) {
                 images.add(item.picUrl);
+                origeImages.add(item.origUrl);
             }
         }
         pullView.notifyDataSetChanged();
@@ -136,7 +172,7 @@ public class ImgGalleryFragment extends LoadableFragment<InfoListVo<ImgItemVo>> 
 //        FullScreenImageGalleryActivity.setFullScreenImageLoader(MyApplication.getInstance().getPhotoLoad());
         Intent intent = new Intent(getContext(), MyFullScreenImageGalleryActivity.class);
         Bundle bundle = new Bundle();
-        bundle.putStringArrayList(MyFullScreenImageGalleryActivity.KEY_IMAGES, images);
+        bundle.putStringArrayList(MyFullScreenImageGalleryActivity.KEY_IMAGES, origeImages);
         bundle.putInt(MyFullScreenImageGalleryActivity.KEY_POSITION, position);
         intent.putExtras(bundle);
         startActivity(intent);
@@ -147,5 +183,25 @@ public class ImgGalleryFragment extends LoadableFragment<InfoListVo<ImgItemVo>> 
     public void onDestroyView() {
         indexService.cancelRequest(TEXT_TAG);
         super.onDestroyView();
+    }
+    public class MyImageGalleryAdapter extends ImageGalleryAdapter{
+        public MyImageGalleryAdapter(Context context, List<String> images) {
+            super(context,images);
+        }
+        @Override
+        public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
+            View v = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.image_thumbnail, viewGroup, false);
+            v.setLayoutParams(this.getGridItemLayoutParams(v));
+            ImageView view = (ImageView)v.findViewById(R.id.iv);
+//            view.setScaleType(ImageView.ScaleType.FIT_XY);
+//            view.setLayoutParams(this.getGridItemLayoutParams(view));
+            return new ImageGalleryAdapter.ImageViewHolder(v);
+        }
+        private ViewGroup.LayoutParams getGridItemLayoutParams(View view) {
+            ViewGroup.LayoutParams layoutParams = view.getLayoutParams();
+            layoutParams.width = gridItemWidth;
+            layoutParams.height = gridItemHeight;
+            return layoutParams;
+        }
     }
 }

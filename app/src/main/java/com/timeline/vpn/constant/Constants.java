@@ -85,11 +85,10 @@ public class Constants {
     public static final String VERSION_APP_INCOMING = "VERSION_APP_INCOMING"; // 服务器上的最新版本号
     public static final String ADS_ADVIEW_KEY = "SDK2017152803084392l8e8jx1v2owio";
     public static final String ADS_ADVIEW_KEY_ACTIVITY = "SDK201614200212284mmevtthxxbrcsb";
-    public static final String ADS_ADVIEW_KEY_VP1 = "SDK2017152803084392l8e8jx1v2owio";
     public static final String ADS_VIDEO = "POSIDob9ixhzl6yq0";
     public static final String ADS_NATIVE = "POSIDd4dm8lc8e5v9";
     public static final String adsKeySet[] = new String[]{ADS_ADVIEW_KEY, ADS_ADVIEW_KEY_ACTIVITY};
-    public static final String adsKeySetBanner[] = new String[]{ADS_ADVIEW_KEY, ADS_ADVIEW_KEY_ACTIVITY};
+    public static final String adsKeyYoumi[] = new String[]{ADS_ADVIEW_KEY};
     public static final String API_SERVERLIST_URL = "/host/server/list.json?location=%s";
     public static final String API_FAB_ADSCLICK_URL = "/user/ads/score.json?score=%s";
     public static final String API_LOCATION_URL = "/host/server/location.json";
@@ -144,16 +143,12 @@ public class Constants {
     public static final String IMG_ITEMS = "IMG_ITEMS";
     public static final String SCORE_TMP = "SCORE_TMP";
     public static final String SCORE_CLICK = "SCORE_CLICK";
-    public static final long SCORE_CLICK_INTERVAL = 3;
+    public static final long SCORE_CLICK_INTERVAL = 10;
+    public static final String VPN_STATUS = "VPN_STATUS";
     public static final String SOUND_CHANNEL_CLICK = "SOUND_CHANNEL_CLICK";
     public static final int MAX_RETRY_COUNT = 4;
     public static final String CUSTOME_SORT = "CUSTOME_SORT";
-    public static final int[] img = new int[]{R.drawable.xxx0, R.drawable.xxx1, R.drawable.xxx2, R.drawable.xxx3,
-            R.drawable.xxx4, R.drawable.xxx5, R.drawable.xxx6, R.drawable.xxx7, R.drawable.xxx8,
-            R.drawable.xxx9, R.drawable.xxx10, R.drawable.xxx11, R.drawable.xxx12, R.drawable.xxx13,
-            R.drawable.xxx14, R.drawable.xxx15, R.drawable.xxx16, R.drawable.xxx17, R.drawable.xxx18,
-            R.drawable.xxx19, R.drawable.xxx20, R.drawable.xxx21, R.drawable.xxx22, R.drawable.xxx23,
-            R.drawable.xxx24, R.drawable.xxx25};
+    public static final int[] img = new int[]{R.drawable.bg_api};
     public static final String BOOK_CSS = " body{font-size:22px;font-family: 微软雅黑;letter-spacing:1.8px;line-height:1.2;background-color:rgba(0,0,0,0);}";
     public static String BASE_IP = "api.sspacee.com";
     public static String ABOUT_FIRST = "ABOUT_FbbIRST";

@@ -9,8 +9,8 @@ android {
         applicationId "com.timeline.vpn"
         minSdkVersion global_minSdkVersion
         targetSdkVersion global_targetSdkVersion
-        versionCode 1000002008
-        versionName "1.0.2.8"
+        versionCode 1000002009
+        versionName "1.0.2.9"
         // Enabling multidex support.
         multiDexEnabled true
     }
@@ -51,10 +51,11 @@ android {
     }
     buildTypes {
         debug {
-            minifyEnabled false
+            minifyEnabled true
             debuggable true
-            shrinkResources false
-            //proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            zipAlignEnabled true // Zipalign优化
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.config
         }
         release {
@@ -83,19 +84,25 @@ greendao {
 final APPCOMPAT_VERSION = '25.3.1'
 dependencies {
 
-    // compile fileTree(dir: 'libs', include: ['*.jar'])
-//    compile files('libs/disklrucache-2.0.2.jar')
+//     compile fileTree(dir: 'libs', include: ['*.aar'])
+//    compile(name:'YoumiSdk_v7.5.0_2017-07-18',ext:'aar')
     compile files('libs/gson-2.2.4.jar')
     compile files('libs/volley.jar')
     compile files('libs/commons-codec.jar')
     compile files('libs/BaiduLBS_Android.jar')
-    compile files('libs/InMobi.jar')
     compile files('libs/gdt_mob_release.jar')
     compile files('libs/AdViewSDK_Android.jar')
-    compile files('libs/YoumiSdk.jar')
     compile files('libs/commons-io-2.4.jar')
     compile files('libs/httpcore-4.2.5.jar')
-    compile files('libs/google-play-services.jar')
+//    compile files('libs/google-play-services.jar')
+
+    compile files('libs/play-services_aar_adapter.jar')
+//    compile (name:'play-services-ads-lite',ext:"aar")
+    compile 'com.google.android.gms:play-services-ads:11.0.0'
+
+    compile files('libs/YoumiSdk_aar_adapter.jar')
+    compile (name:'YoumiSdk',ext:'aar')
+
 //    compile(name: 'glide-transformations-2.0.1', ext: 'aar',)
     compile "com.android.support:appcompat-v7:$APPCOMPAT_VERSION"
     compile "com.android.support:support-v13:$APPCOMPAT_VERSION"
@@ -106,25 +113,12 @@ dependencies {
     compile "com.android.support:design:$APPCOMPAT_VERSION"
     compile "com.android.support:percent:$APPCOMPAT_VERSION"
     compile "com.android.support:multidex:1.0.1"
-
-    //compile 'com.jakewharton.timber:timber:4.5.0'  nouse
-    // compile 'com.facebook.rebound:rebound:0.3.6'  nouse
-    //compile 'org.apache.httpcomponents:httpcore:4.2.5'
-    //compile 'commons-io:commons-io:2.4'
-    //debugCompile 'com.squareup.leakcanary:leakcanary-android:1.5'
-    //releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5'
-    //    compile 'com.jakewharton:butterknife:7.0.1'
-    //annotationProcessor 'com.jakewharton:butterknife-compiler:8.4.0'
     compile 'com.jakewharton:butterknife:8.8.1'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
     compile 'com.jakewharton:disklrucache:2.0.2'
     //3.4.1
     compile 'com.squareup.okhttp3:okhttp:3.9.0'
     compile 'com.squareup.okhttp3:logging-interceptor:3.9.0'
-//    compile 'com.squareup.okhttp3:okhttp:3.5.0'
-//    compile 'com.squareup.okhttp3:logging-interceptor:3.5.0'
-//    compile 'com.github.bumptech.glide:glide:3.7.0'
-//    compile 'com.github.bumptech.glide:okhttp3-integration:1.4.0@aar'
     compile 'com.github.bumptech.glide:glide:4.0.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.0.0'
     compile 'com.github.bumptech.glide:okhttp3-integration:4.0.0'
@@ -140,7 +134,5 @@ dependencies {
     compile 'com.github.lawloretienne:imagegallery:0.1.0'
     compile 'com.umeng.analytics:analytics:latest.integration'
 
-//    compile 'com.kyleduo.switchbutton:library:1.4.6'
-    //compile 'me.zhanghai.android.materialratingbar:library:1.0.2'
 
 }

@@ -24,8 +24,8 @@
     <string name="tab_tag_customer">customer</string>
     <string name="tab_vip_temp">内容准备中。。。敬请期待</string>
     <string name="tab_fb_click">点我赚积分,换VIP。。+</string>
-    <string name="tab_fb_click_fast">点击频率太高，请等待2秒钟</string>
-
+    <string name="tab_fb_click_fast">点击频率太高，请等待15秒钟</string>
+    <string name="tab_fb_click_wifi">请在断开VPN下使用 </string>
     <!-- Application -->
     <string name="app_name">FreeVPN</string>
     <string name="main_activity_name">FreeVPN</string>
@@ -201,8 +201,4 @@
 
     <!--广告-->
     <!--slidingclose-->
-    <string name="title_activity_view_pager">ViewPagerActivity</string>
-    <string name="title_activity_list_view">ListViewActivity</string>
-    <string name="title_activity_normal">NormalActivity</string>
-
 </resources>

@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.kyview.manager.AdViewSpreadManager;
 import com.sspacee.common.ui.base.LogActivity;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.ads.adview.AdsAdview;
@@ -81,11 +82,12 @@ public class LaunchActivity extends LogActivity {
     }
 
     private void launch() {
-        Intent intent = new Intent(this, MainFragmentViewPage.class);
-        startActivity(intent);
-        mHandler.removeCallbacks(mStartMainRunnable);
-        mHandler.removeMessages(Constants.ADS_JISHI);
-        finish();
+        if(!AdViewSpreadManager.hasJumped) {
+            Intent intent = new Intent(this, MainFragmentViewPage.class);
+            startActivity(intent);
+            finish();
+        }
+
     }
 
     public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -119,6 +121,7 @@ public class LaunchActivity extends LogActivity {
     @Override
     public void onDestroy() {
         unbinder.unbind();
+        mHandler.removeMessages(Constants.ADS_JISHI);
         mHandler.removeCallbacks(mStartMainRunnable);
         AdsAdview.launchAds(this, null, null, null);
         super.onDestroy();

@@ -63,7 +63,22 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
     protected void onContentViewCreated(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
         inflater.inflate(R.layout.layout_recommd_custome, parent, true);
     }
-
+    @Override
+    protected void startQuery(boolean showLoading) {
+        if(UserLoginUtil.getUserCache()!=null) {
+            super.startQuery(showLoading);
+        }else{
+            hideLoading();
+        }
+    }
+    @Override
+    public void onRefresh(int type) {
+       if(UserLoginUtil.getUserCache()!=null){
+           super.onRefresh(type);
+       }else {
+           startQuery(false);
+       }
+    }
     @Override
     protected InfoListVo<RecommendVo> loadData(Context context) throws Exception {
         if (UserLoginUtil.getUserCache() != null) {

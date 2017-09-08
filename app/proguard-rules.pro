@@ -158,14 +158,18 @@
 -dontnote u.aly.**
 #glid
 -keep public class * implements com.bumptech.glide.module.GlideModule
--keep public class * extends com.bumptech.glide.AppGlideModule
+-keep public class * extends com.bumptech.glide.module.AppGlideModule
 -keep public enum com.bumptech.glide.load.resource.bitmap.ImageHeaderParser$** {
   **[] $VALUES;
   public *;
 }
 
+-keep class jp.co.cyberagent.android.gpuimage.**{*;}
+-dontnote jp.co.cyberagent.android.gpuimage.**
+-dontwarn jp.co.cyberagent.android.gpuimage.**
+
 # for DexGuard only
--keepresourcexmlelements manifest/application/meta-data@value=GlideModule
+#-keepresourcexmlelements manifest/application/meta-data@value=GlideModule
 #-dontnote com.bumptech.glide.**
 #-keep public class * implements com.bumptech.glide.module.GlideModule
 #-keep public enum com.bumptech.glide.load.resource.bitmap.ImageHeaderParser$** {
@@ -209,12 +213,10 @@
 -keep class com.tencent.lbsapi.*
 -keep class com.tencent.lbsapi.core.*
 -keep class net.youmi.android.** {*;}
--keep class com.inmobi.** {*;}
 -dontwarn com.kyview.**
 -keep class com.moat.analytics.**{*;}
 -dontwarn com.moat.analytics.**
 -dontwarn com.dropbox.**
--dontwarn com.inmobi.**
 -keep class LBSAPIProtocol.*
 -keeppackagenames I
 -keep class I.* {*;}
@@ -226,10 +228,18 @@
 -dontwarn com.kyview.**
 -dontnote com.kyview.**
 -keep public class com.kuaiyou.** {*;}
-
+-keep public class com.google.android.gms.ads.** {
+   public *;
+}
+-keep public class com.google.ads.** {
+   public *;
+}
 #-------------------greenrobot greendao------------------------
 -keep class org.greenrobot.greendao.**{*;}
 -keepclassmembers class * extends org.greenrobot.greendao.AbstractDao {
 public static java.lang.String TABLENAME;
 }
 -keep class **$Properties
+-dontwarn org.greenrobot.greendao.**
+-keep class net.sqlcipher.database.**{*;}
+-keep class rx.**{*;}

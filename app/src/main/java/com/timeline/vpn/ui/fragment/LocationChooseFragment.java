@@ -18,7 +18,6 @@ import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.GsonUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PreferenceUtils;
-import com.sspacee.yewu.um.MobAgent;
 import com.timeline.vpn.R;
 import com.timeline.vpn.adapter.BaseRecyclerViewAdapter;
 import com.timeline.vpn.adapter.LocationViewAdapter;
@@ -163,7 +162,6 @@ public class LocationChooseFragment extends LoadableFragment<List<LocationVo>> i
         }
         LocationUtil.setLocation(getActivity(), data);
         EventBusUtil.getEventBus().post(new LocationChooseEvent());
-        MobAgent.onEventLocationChoose(getActivity(), data.name);
         getActivity().finish();
     }
 }

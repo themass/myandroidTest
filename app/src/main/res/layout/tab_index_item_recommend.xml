@@ -30,7 +30,12 @@
                     android:layout_gravity="center"
                     android:scaleType="fitXY"
                     android:src="@color/transparent" />
-
+                <View
+                    android:id="@+id/iv_new"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:visibility="gone"
+                    android:background="@drawable/ic_new" />
                 <com.romainpiel.shimmer.ShimmerTextView
                     android:id="@+id/tv_title"
                     android:layout_width="wrap_content"

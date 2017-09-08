@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 
 import com.sspacee.common.ui.base.BaseFragment;
 import com.sspacee.common.util.LogUtil;
+import com.sspacee.common.util.SystemUtils;
 import com.sspacee.yewu.ads.adview.AdsAdview;
 import com.sspacee.yewu.ads.adview.AdsController;
 import com.timeline.vpn.R;
@@ -27,11 +28,11 @@ public class BannerHeaderFragment extends BaseFragment implements AdsController 
     protected Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-            LogUtil.i("handleMessage-" + msg.what);
             if (msg.what == Constants.ADS_NO_MSG || msg.what == Constants.ADS_DISMISS_MSG) {
                 mHandler.postDelayed(task, 0);
             } else {
-                mHandler.postDelayed(task, Constants.BANNER_ADS_GONE_LONG);
+                if(!SystemUtils.isApkDebugable(getActivity()))
+                    mHandler.postDelayed(task, Constants.BANNER_ADS_GONE_LONG);
             }
         }
     };

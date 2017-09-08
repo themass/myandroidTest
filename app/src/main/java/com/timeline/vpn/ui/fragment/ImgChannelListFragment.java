@@ -25,6 +25,7 @@ import com.timeline.vpn.bean.vo.InfoListVo;
 import com.timeline.vpn.bean.vo.RecommendVo;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
+import com.timeline.vpn.data.HistoryUtil;
 import com.timeline.vpn.data.StaticDataUtil;
 import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.ui.base.CommonFragmentActivity;
@@ -35,19 +36,9 @@ import butterknife.BindView;
 /**
  * Created by themass on 2016/8/12.
  */
-public class ImgChannelListFragment extends LoadableFragment<InfoListVo<ImgItemsVo>> implements MyPullView.OnRefreshListener, BaseRecyclerViewAdapter.OnRecyclerViewItemClickListener<ImgItemsVo> {
+public class ImgChannelListFragment extends BasePullLoadbleFragment<ImgItemsVo>{
     private static final String TEXT_TAG = "text_tag";
-    protected Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-        }
-    };
-    @Nullable
-    @BindView(R.id.my_pullview)
-    MyPullView pullView;
-    private BaseService indexService;
     private ImgChannelListItemsViewAdapter adapter;
-    private InfoListVo<ImgItemsVo> infoVo = new InfoListVo<>();
     private RecommendVo vo;
 
     public static void startFragment(Context context, RecommendVo vo) {
@@ -118,6 +109,8 @@ public class ImgChannelListFragment extends LoadableFragment<InfoListVo<ImgItems
     @Override
     public void onItemClick(View view, ImgItemsVo data, int postion) {
         ImgGalleryFragment.startFragment(getActivity(), data);
+        HistoryUtil.addHistory(getActivity(), data.url);
+        pullView.notifyDataSetChanged();
     }
 
     @Override

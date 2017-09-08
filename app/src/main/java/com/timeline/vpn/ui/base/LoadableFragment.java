@@ -72,7 +72,6 @@ public abstract class LoadableFragment<T> extends BaseFragment {
         onContentViewCreated(inflater, mContentView, savedInstanceState);
         mLoadRetryView.setOnClickListener(mRefreshClickListener);
         super.setupViews(view, savedInstanceState);
-        isDestory = false;
     }
 
     @Override
@@ -81,9 +80,12 @@ public abstract class LoadableFragment<T> extends BaseFragment {
         if (mData == null) {
             startQuery(true);
         } else {
-            onDataLoaded(mData);
-            hideLoading();
+            if(isDestory) {
+                onDataLoaded(mData);
+                hideLoading();
+            }
         }
+        isDestory = false;
     }
 
     protected abstract void onContentViewCreated(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState);

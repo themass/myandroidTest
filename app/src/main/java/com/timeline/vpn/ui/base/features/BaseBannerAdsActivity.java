@@ -1,6 +1,7 @@
 package com.timeline.vpn.ui.base.features;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Handler;
 import android.os.Message;
 import android.support.design.widget.AppBarLayout;
@@ -12,9 +13,12 @@ import android.view.animation.OvershootInterpolator;
 import android.widget.Toast;
 
 import com.sspacee.common.util.LogUtil;
+import com.sspacee.common.util.Md5;
 import com.sspacee.common.util.PreferenceUtils;
+import com.sspacee.common.util.SystemUtils;
 import com.sspacee.yewu.ads.adview.AdsAdview;
 import com.sspacee.yewu.ads.adview.AdsController;
+import com.sspacee.yewu.net.NetUtils;
 import com.timeline.vpn.R;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.StaticDataUtil;
@@ -22,6 +26,8 @@ import com.timeline.vpn.ui.base.app.BaseToolBarActivity;
 
 import butterknife.BindView;
 import butterknife.OnClick;
+
+import static com.kuaiyou.g.a.getActivity;
 
 
 /**
@@ -41,11 +47,17 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
     protected Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-            LogUtil.i("handleMessage-" + msg.what);
-            if (msg.what == Constants.ADS_NO_MSG || msg.what == Constants.ADS_DISMISS_MSG) {
-                mHandler.postDelayed(task, 0);
-            } else {
-                mHandler.postDelayed(task, Constants.BANNER_ADS_GONE_LONG);
+            if(msg.arg1==AdsAdview.what1_video){
+                AdsAdview.videoAdsShow(BaseBannerAdsActivity.this);
+            }else if(msg.arg1==AdsAdview.what1_interstitial){
+
+            }else {
+                LogUtil.i("handleMessage-" + msg.what);
+                if (msg.what == Constants.ADS_NO_MSG || msg.what == Constants.ADS_DISMISS_MSG) {
+                    mHandler.postDelayed(task, 0);
+                } else {
+                    mHandler.postDelayed(task, Constants.BANNER_ADS_GONE_LONG);
+                }
             }
         }
     };
@@ -53,7 +65,7 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
 
     @OnClick(R.id.fab_up)
     public void onClickFab(View view) {
-        AdsAdview.interstitialAds(this, mHandler);
+
         Long lastClickTime = StaticDataUtil.get(Constants.SCORE_CLICK, Long.class, 0l);
         long curent = System.currentTimeMillis();
         long interval = curent - lastClickTime;
@@ -65,6 +77,25 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
             }
             return;
         }
+        if(StaticDataUtil.get(Constants.VPN_STATUS, Intent.class)!=null ){
+            if(NetUtils.isWifi(this)){
+                if(SystemUtils.isApkDebugable(this)){
+                    AdsAdview.videoAdsReq(getActivity(), mHandler);
+                }else {
+                    if (Md5.getRandom(10) % 2 == 0) {
+                        AdsAdview.videoAdsReq(getActivity(), mHandler);
+                    } else {
+                        AdsAdview.interstitialAds(this, mHandler);
+                    }
+                }
+            }else{
+                AdsAdview.interstitialAds(this, mHandler);
+            }
+
+        }else{
+            Toast.makeText(this, R.string.tab_fb_click_wifi, Toast.LENGTH_SHORT).show();
+        }
+
     }
 
     @Override

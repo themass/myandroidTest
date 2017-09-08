@@ -29,6 +29,7 @@ public class RecommendVo implements Serializable {
     public Object extra;
     public int dataType = dataType_RECOMMENT;
     public String minVersion;
+    public Boolean newShow;
 
     public FavoriteVo tofavorite(int type) {
         FavoriteVo vo = new FavoriteVo();

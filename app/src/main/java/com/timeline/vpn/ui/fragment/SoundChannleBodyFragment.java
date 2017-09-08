@@ -37,9 +37,8 @@ public class SoundChannleBodyFragment extends RecommendFragment {
     protected void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
         LogUtil.i("开始展示视频广告");
-//        if(SystemUtils.isApkDebugable(getActivity()))
-//            AdsAdview.videoAdsReq(getActivity(),mHandler);
-        if (!UserLoginUtil.isVIP())
+
+        if (!UserLoginUtil.isVIP2())
             AdsAdview.interstitialAds(getActivity(), mHandler);
     }
 
@@ -52,7 +51,7 @@ public class SoundChannleBodyFragment extends RecommendFragment {
     public void onItemClick(View v, int position) {
         RecommendVo vo = infoVo.voList.get(position);
         SoundItemsFragment.startFragment(getActivity(), vo);
-        MobAgent.onEventRecommond(getActivity(), vo.title);
+        MobAgent.onEventRecommondChannel(getActivity(), vo.title);
     }
 
     @Override

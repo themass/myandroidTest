@@ -167,7 +167,7 @@ public abstract class RecommendFragment extends LoadableFragment<InfoListVo<Reco
         param.put(Constants.ADS_SHOW_CONFIG, vo.adsShow);
         param.put(Constants.ADS_POP_SHOW_CONFIG, vo.adsPopShow);
         EventBusUtil.getEventBus().post(new ConfigActionEvent(getActivity(), vo.actionUrl, vo.title, param));
-        MobAgent.onEventRecommond(getActivity(), vo.title);
+        MobAgent.onEventRecommondChannel(getActivity(), vo.title);
     }
 
     @Override

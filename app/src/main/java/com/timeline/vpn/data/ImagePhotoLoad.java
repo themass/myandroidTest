@@ -9,6 +9,8 @@ import android.widget.LinearLayout;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.Priority;
+import com.bumptech.glide.RequestManager;
+import com.bumptech.glide.load.DecodeFormat;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.DrawableImageViewTarget;
 import com.bumptech.glide.request.target.DrawableThumbnailImageViewTarget;
@@ -39,7 +41,11 @@ public class ImagePhotoLoad implements ImageGalleryAdapter.ImageThumbnailLoader,
             if (vo.showType == Constants.ShowType.Normal) {
                 RequestOptions options = new RequestOptions().fitCenter()
                         .priority(Priority.HIGH);
-                Glide.with(context).load(vo.img).apply(options).transition(withCrossFade(500)).listener(new MyGlideLibModule.LoggingListener()).into(new DrawableImageViewTarget(holder.ivPhoto) {
+                RequestManager build = Glide.with(context);
+                if(vo.img.endsWith(".gif")){
+                    build.asGif();
+                }
+                build.load(vo.img).apply(options).transition(withCrossFade(500)).listener(new MyGlideLibModule.LoggingListener()).into(new DrawableImageViewTarget(holder.ivPhoto) {
                     @Override
                     public void onResourceReady(Drawable resource, @Nullable Transition<? super Drawable> transition) {
                         super.onResourceReady(resource, transition);
@@ -77,10 +83,13 @@ public class ImagePhotoLoad implements ImageGalleryAdapter.ImageThumbnailLoader,
     public void loadImageThumbnail(ImageView iv, String imageUrl, int dimension) {
 //        imageThumbnailLoader.loadImageThumbnail(iv, imageUrl, dimension);
         RequestOptions options = new RequestOptions()
-                .fitCenter()
                 .placeholder(R.drawable.img_bg)
-                .priority(Priority.HIGH).skipMemoryCache(true);
-        Glide.with(iv.getContext()).load(imageUrl).apply(options).transition(withCrossFade(400))
+                .priority(Priority.HIGH).skipMemoryCache(true).format(DecodeFormat.PREFER_RGB_565);
+        RequestManager build = Glide.with(iv.getContext());
+        if(imageUrl.endsWith(".gif")){
+            build.asGif();
+        }
+        build.load(imageUrl).apply(options).transition(withCrossFade(400))
                 .listener(new MyGlideLibModule.LoggingListener()).into(new DrawableThumbnailImageViewTarget(iv));
     }
 
@@ -90,7 +99,11 @@ public class ImagePhotoLoad implements ImageGalleryAdapter.ImageThumbnailLoader,
                 .fitCenter()
                 .placeholder(R.drawable.img_bg)
                 .priority(Priority.HIGH).skipMemoryCache(true);
-        Glide.with(iv.getContext()).load(imageUrl).apply(options).transition(withCrossFade(400))
+        RequestManager build = Glide.with(iv.getContext());
+        if(imageUrl.endsWith(".gif")){
+            build.asGif();
+        }
+        build.load(imageUrl).apply(options).transition(withCrossFade(400))
                 .listener(new MyGlideLibModule.LoggingListener()).into(new DrawableImageViewTarget(iv));
     }
 

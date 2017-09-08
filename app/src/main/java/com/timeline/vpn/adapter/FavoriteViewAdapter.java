@@ -43,9 +43,14 @@ public class FavoriteViewAdapter extends BaseRecyclerViewAdapter<FavoriteViewAda
         holder.tvIndex.setText("#" + (position + 1));
         holder.tvName.setText(vo.name);
         holder.tvDate.setText(vo.updateTime);
+        holder.ivType.setVisibility(View.VISIBLE);
         if (vo.type == Constants.FavoriteType.SOUND) {
-            holder.ivType.setVisibility(View.VISIBLE);
-        } else {
+            holder.ivType.setImageResource(R.drawable.song_play_icon);
+        }if (vo.type == Constants.FavoriteType.TEXT) {
+            holder.ivType.setImageResource(R.drawable.txt);
+        }if (vo.type == Constants.FavoriteType.IMG) {
+            holder.ivType.setImageResource(R.drawable.img);
+        }else{
             holder.ivType.setVisibility(View.GONE);
         }
     }

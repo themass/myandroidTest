@@ -1,5 +1,7 @@
 package com.timeline.vpn.bean.vo;
 
+import com.timeline.vpn.constant.Constants;
+
 /**
  * @author gqli
  * @version V1.0
@@ -11,5 +13,13 @@ public class ImgItemsVo {
     public String name;
     public String fileDate;
     public int pics;
+    public FavoriteVo tofavorite(){
+        FavoriteVo vo = new FavoriteVo();
+        vo.setItemUrl(url);
+        vo.setType(Constants.FavoriteType.IMG);
+        vo.setO(this);
+        vo.setName(name);
+        return vo;
+    }
 }
 

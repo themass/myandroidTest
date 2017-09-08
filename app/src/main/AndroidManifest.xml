@@ -132,19 +132,6 @@
             android:name=".ui.config.QuickBrowserConfigActivity"
             android:screenOrientation="portrait"
             android:theme="@style/myTransparent" />
-        <!--test-->
-        <activity
-            android:name=".ui.test.MainActivity"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name=".ui.test.ViewPagerActivity"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name=".ui.test.ListViewActivity"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name=".ui.test.NormalActivity"
-            android:screenOrientation="portrait" />
 
         <service
             android:name="org.strongswan.android.logic.VpnStateService"
@@ -180,51 +167,27 @@
         <activity android:name="com.kyview.AdviewWebView" />
         <activity android:name="com.kyview.AdActivity" />
 
-        <!-- AdView SDK for Inmobi (需要api 13 方可编译通过) -->
-        <activity
-            android:name="com.inmobi.rendering.InMobiAdActivity"
-            android:configChanges="keyboardHidden|orientation|keyboard|smallestScreenSize|screenSize"
-            android:hardwareAccelerated="true"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
-        <service
-            android:name=".service.PlayService"
-            android:enabled="true"
-            android:exported="false" />
-        <receiver
-            android:name="com.inmobi.commons.core.utilities.uid.ImIdShareBroadCastReceiver"
-            android:enabled="true"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="com.inmobi.share.id" />
-            </intent-filter>
-        </receiver>
-        <service
-            android:name="com.inmobi.signals.activityrecognition.ActivityRecognitionManager"
-            android:enabled="true" />
         <!-- AdView SDK for Youmi -->
+        <!-- 视频组件 -->
         <activity
-            android:name="net.youmi.android.normal.video.VideoActivity"
-            android:configChanges="keyboard|keyboardHidden|screenSize|orientation"
+            android:name="net.youmi.android.nm.vdo.VideoActivity"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout"
+            android:resizeableActivity="false"
             android:screenOrientation="landscape"
-            android:theme="@android:style/Theme.NoTitleBar"></activity>
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.NoTitleBar" >
+        </activity >
 
-        <activity
-            android:name="net.youmi.android.AdBrowser"
-            android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
-            android:theme="@android:style/Theme.NoTitleBar"></activity>
-
-        <service
-            android:name="net.youmi.android.AdService"
-            android:exported="false"></service>
-
-        <receiver android:name="net.youmi.android.AdReceiver">
-            <intent-filter>
-                <action android:name="android.intent.action.PACKAGE_ADDED" />
-                <action android:name="android.intent.action.PACKAGE_INSTALL" />
-
-                <data android:scheme="package" />
-            </intent-filter>
-        </receiver>
+        <!--&lt;!&ndash; 有米SDK为了兼容Android N应用间共享文件行为变更而需要配置的FileProvider &ndash;&gt;-->
+        <!--<provider-->
+            <!--android:name="android.support.v4.content.FileProvider"-->
+            <!--android:authorities="com.youmi.android.addemo.fileProvider"-->
+            <!--android:exported="false"-->
+            <!--android:grantUriPermissions="true" >-->
+            <!--<meta-data-->
+                <!--android:name="android.support.FILE_PROVIDER_PATHS"-->
+                <!--android:resource="@xml/file_provider" />-->
+        <!--</provider >-->
         <!-- AdView SDK for tencent Gdt -->
         <service
             android:name="com.qq.e.comm.DownloadService"
@@ -241,7 +204,7 @@
             android:theme="@android:style/Theme.Translucent" />
         <meta-data
             android:name="com.google.android.gms.version"
-            android:value="8487000" />
+             tools:replace="android:value"  android:value="8487000" />
     </application>
 
 </manifest>

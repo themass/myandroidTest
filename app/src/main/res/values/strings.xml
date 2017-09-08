@@ -24,8 +24,8 @@
     <string name="tab_tag_customer">customer</string>
     <string name="tab_vip_temp">Content preparation。。。Coming soon</string>
     <string name="tab_fb_click">Points me earn points, Change VIP。。+</string>
-    <string name="tab_fb_click_fast">Too fast,please wait 2 seconds</string>
-
+    <string name="tab_fb_click_fast">Too fast,please wait 15 seconds</string>
+    <string name="tab_fb_click_wifi">Please use it under Dis conn VPN </string>
     <!-- Application -->
     <string name="app_name">FreeVPN</string>
     <string name="main_activity_name">FreeVPN</string>
@@ -200,8 +200,5 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="skip">skip</string>
     <string name="search">enter search content</string>
     <!--slidingclose-->
-    <string name="title_activity_view_pager">ViewPagerActivity</string>
-    <string name="title_activity_list_view">ListViewActivity</string>
-    <string name="title_activity_normal">NormalActivity</string>
     <!--广告-->
 </resources>

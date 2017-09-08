@@ -3,6 +3,8 @@
  */
 package com.sspacee.common.util;
 
+import java.util.Random;
+
 /**
  * @author Administrator
  */
@@ -33,6 +35,10 @@ public class Md5 {
             resultSb.append(ob);
         }
         return resultSb.toString();
+    }
+    public static int getRandom(int max){
+        Random random = new Random();
+        return random.nextInt(max);
     }
 
 }

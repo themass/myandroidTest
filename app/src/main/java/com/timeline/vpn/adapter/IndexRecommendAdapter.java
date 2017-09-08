@@ -119,6 +119,11 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
         } else {
             holder.ivADS.setVisibility(View.GONE);
         }
+        if (vo.newShow !=null && vo.newShow==true) {
+            holder.ivNew.setVisibility(View.VISIBLE);
+        } else {
+            holder.ivNew.setVisibility(View.GONE);
+        }
         holder.ivPhoto.setBackgroundColor(Color.parseColor(vo.color));
         ViewGroup.LayoutParams ivPhotoParam = holder.ivPhoto.getLayoutParams();
         ivPhotoParam.height = (int) (imgWidth * vo.rate);
@@ -148,6 +153,8 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
         public ImageView ivEdit;
         @BindView(R.id.ads_logo)
         public TextView ivADS;
+        @BindView(R.id.iv_new)
+        public View ivNew;
 
         public NaviItemViewHolder(View view) {
             super(view);

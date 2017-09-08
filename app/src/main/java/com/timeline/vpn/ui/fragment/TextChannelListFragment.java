@@ -159,6 +159,7 @@ public class TextChannelListFragment extends LoadableFragment<InfoListVo<TextIte
             TextItemsFragment.startFragment(getActivity(), data);
         }
         mSearchView.clearFocus();
+        pullView.notifyDataSetChanged();
     }
 
     @Override

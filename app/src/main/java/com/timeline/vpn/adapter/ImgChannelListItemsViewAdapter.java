@@ -11,6 +11,7 @@ import android.widget.TextView;
 import com.timeline.vpn.R;
 import com.timeline.vpn.bean.vo.ImgItemsVo;
 import com.timeline.vpn.bean.vo.TextItemsVo;
+import com.timeline.vpn.data.HistoryUtil;
 
 import java.util.List;
 
@@ -40,7 +41,9 @@ public class ImgChannelListItemsViewAdapter extends BaseRecyclerViewAdapter<ImgC
         holder.tvDate.setText(vo.fileDate);
         if (position == getSelected()) {
             holder.tvName.setTextColor(context.getResources().getColor(R.color.click));
-        } else {
+        } else if (HistoryUtil.getHistory(context, vo.url) != null) {
+            holder.tvName.setTextColor(context.getResources().getColor(R.color.base_gray));
+        }else {
             holder.tvName.setTextColor(context.getResources().getColor(R.color.base_black));
         }
     }

@@ -82,7 +82,7 @@ public class TextChannleBodyFragment extends RecommendFragment implements AdsAdv
             ((NativeAdInfo) (vo.extra)).onClick(v);
         } else {
             TextChannelListFragment.startFragment(getActivity(), vo);
-            MobAgent.onEventRecommond(getActivity(), vo.title);
+            MobAgent.onEventRecommondChannel(getActivity(), vo.title);
         }
     }
 
