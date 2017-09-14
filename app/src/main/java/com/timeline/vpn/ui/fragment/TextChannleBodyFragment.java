@@ -2,8 +2,6 @@ package com.timeline.vpn.ui.fragment;
 
 
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.view.View;
 
 import com.kyview.natives.NativeAdInfo;
@@ -27,12 +25,6 @@ import java.util.List;
  */
 public class TextChannleBodyFragment extends RecommendFragment implements AdsAdview.NativeAdsReadyListener {
     private static final String INDEX_TAG = "text_tag";
-    protected Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            LogUtil.i("原声广告handleMessage-" + msg.what);
-        }
-    };
 
     @Override
     public String getUrl(int start) {
@@ -40,13 +32,10 @@ public class TextChannleBodyFragment extends RecommendFragment implements AdsAdv
     }
 
     @Override
-    protected void setupViews(View view, Bundle savedInstanceState) {
+    public void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
-        LogUtil.i("开始展示视频广告");
-//        if(SystemUtils.isApkDebugable(getActivity()))
-//            AdsAdview.videoAdsReq(getActivity(),mHandler);
         if (!UserLoginUtil.isVIP())
-            AdsAdview.interstitialAds(getActivity(), mHandler);
+            AdsAdview.interstitialAds(getActivity(), null);
     }
 
     @Override
@@ -59,7 +48,7 @@ public class TextChannleBodyFragment extends RecommendFragment implements AdsAdv
         super.onDataLoaded(data);
         if (SystemUtils.isApkDebugable(getActivity())) {
             LogUtil.i("原声调用请求发出");
-            AdsAdview.nativeAds(getActivity(), mHandler, this);
+            AdsAdview.nativeAds(getActivity(), null, this);
         }
         boolean needNative = PreferenceUtils.getPrefBoolean(MyApplication.getInstance(), Constants.NEED_NATIVE_ADS_CONFIG, true);
         if (needNative) {
@@ -68,7 +57,7 @@ public class TextChannleBodyFragment extends RecommendFragment implements AdsAdv
                 count++;
                 PreferenceUtils.setPrefInt(getActivity(), Constants.SOUND_CHANNEL_CLICK, count);
             } else {
-                AdsAdview.nativeAds(getActivity(), mHandler, this);
+                AdsAdview.nativeAds(getActivity(), null, this);
                 PreferenceUtils.setPrefInt(getActivity(), Constants.SOUND_CHANNEL_CLICK, 0);
             }
         }
@@ -77,7 +66,7 @@ public class TextChannleBodyFragment extends RecommendFragment implements AdsAdv
 
     @Override
     public void onItemClick(View v, int position) {
-        RecommendVo vo = infoVo.voList.get(position);
+        RecommendVo vo = infoListVo.voList.get(position);
         if (vo.dataType == RecommendVo.dataType_ADS) {
             ((NativeAdInfo) (vo.extra)).onClick(v);
         } else {

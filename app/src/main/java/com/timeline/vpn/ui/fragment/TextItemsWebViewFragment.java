@@ -1,7 +1,6 @@
 package com.timeline.vpn.ui.fragment;
 
 import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -16,7 +15,6 @@ import android.webkit.CookieSyncManager;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
-import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -24,6 +22,7 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 
 import com.sspacee.common.ui.base.BaseFragment;
+import com.sspacee.common.ui.view.FavoriteImageView;
 import com.sspacee.common.ui.view.MyWebView;
 import com.sspacee.common.util.FileUtils;
 import com.sspacee.common.util.LogUtil;
@@ -35,17 +34,13 @@ import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.StaticDataUtil;
 import com.timeline.vpn.ui.base.CommonFragmentActivity;
 
-import java.io.StringBufferInputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-
 import butterknife.BindView;
+import butterknife.OnClick;
 
 /**
  * Created by themass on 2016/3/21.
  */
-public class TextItemsWebViewFragment extends BaseFragment {
-    private static final String CSS = "body{font-size:22px;font-family: 微软雅黑;letter-spacing:2px;line-height:1.5;background-color:rgba(0,0,0,1);}";
+public class TextItemsWebViewFragment extends BaseFragment{
     protected Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -57,6 +52,8 @@ public class TextItemsWebViewFragment extends BaseFragment {
     ProgressBar progressbar;
     @BindView(R.id.fl_bg)
     RelativeLayout flBg;
+    @BindView(R.id.iv_favorite)
+    FavoriteImageView ivFavorite;
     CookieManager cookieManager = null;
     private boolean mFirstPageLoad = true;
     private String url;
@@ -65,7 +62,6 @@ public class TextItemsWebViewFragment extends BaseFragment {
         @Override
         public void run() {
             if (webView != null) {
-//                webView.setVisibility(View.VISIBLE);
                 setProgressShown(false);
             }
         }
@@ -83,24 +79,6 @@ public class TextItemsWebViewFragment extends BaseFragment {
         context.startActivity(intent);
     }
 
-    public static String getOutCss(String url) {
-        String js = "javascript:var d=document;" +
-                "var s=d.createElement('link');" +
-                "s.setAttribute('rel', 'stylesheet');" +
-                "s.setAttribute('href', '" + url + "');" +
-                "d.head.appendChild(s);";
-        return js;
-    }
-
-    public static String getInnerCss() {
-        String js = "javascript:var d=document;" +
-                "var s=d.createElement('style');" +
-                "s.setAttribute('type', 'text/css');" +
-                "s.innerHTML=" + CSS + ";" +
-                "d.head.appendChild(s);";
-        return js;
-    }
-
     @Override
     protected int getRootViewId() {
         return R.layout.layout_textitem_webview;
@@ -110,7 +88,7 @@ public class TextItemsWebViewFragment extends BaseFragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         mFirstPageLoad = true;
-        flBg.setBackgroundResource(R.drawable.boob_bg2);
+//        flBg.setBackgroundResource(R.drawable.boob_bg2);
         WebView webView = getWebView();
         if (webView != null) {
             init(webView);
@@ -120,13 +98,8 @@ public class TextItemsWebViewFragment extends BaseFragment {
             if (!TextUtils.isEmpty(url)) {
                 webView.loadUrl(url);
             }
+            ivFavorite.initSrc(url);
         }
-    }
-
-    private void setBook() {
-        webView.getSettings().setDefaultTextEncodingName("utf-8");
-        webView.setBackgroundColor(getActivity().getResources().getColor(R.color.transparent));
-        webView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
     }
 
     public void setListener(MyWebView.OnTouchRightSlide listener) {
@@ -142,26 +115,26 @@ public class TextItemsWebViewFragment extends BaseFragment {
         if (progressbar != null)
             progressbar.setVisibility(shown ? View.VISIBLE : View.GONE);
     }
-
-    public void canCors() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            webView.getSettings().setAllowUniversalAccessFromFileURLs(true);
-        } else {
-            try {
-                Class<?> clazz = webView.getSettings().getClass();
-                Method method = clazz.getMethod("setAllowUniversalAccessFromFileURLs", boolean.class);
-                if (method != null) {
-                    method.invoke(webView.getSettings(), true);
-                }
-            } catch (NoSuchMethodException e) {
-                LogUtil.e(e);
-            } catch (InvocationTargetException e) {
-                LogUtil.e(e);
-            } catch (IllegalAccessException e) {
-                LogUtil.e(e);
-            }
-        }
-    }
+//
+//    public void canCors() {
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+//            webView.getSettings().setAllowUniversalAccessFromFileURLs(true);
+//        } else {
+//            try {
+//                Class<?> clazz = webView.getSettings().getClass();
+//                Method method = clazz.getMethod("setAllowUniversalAccessFromFileURLs", boolean.class);
+//                if (method != null) {
+//                    method.invoke(webView.getSettings(), true);
+//                }
+//            } catch (NoSuchMethodException e) {
+//                LogUtil.e(e);
+//            } catch (InvocationTargetException e) {
+//                LogUtil.e(e);
+//            } catch (IllegalAccessException e) {
+//                LogUtil.e(e);
+//            }
+//        }
+//    }
 
     @SuppressLint({"JavascriptInterface", "SetJavaScriptEnabled"})
     private void init(final WebView webView) {
@@ -181,9 +154,8 @@ public class TextItemsWebViewFragment extends BaseFragment {
         settings.setGeolocationEnabled(true);
         settings.setGeolocationDatabasePath(getActivity().getCacheDir().toString());
         settings.setUserAgentString(settings.getUserAgentString() + " " + HttpUtils.getUserAgentSuffix(getActivity()));
-        setBook();
-        canCors();
         webView.setWebChromeClient(new WebChromeClient());
+        webView.setBackgroundColor(0);
         webView.setWebViewClient(new WebViewClient() {
             private String mUrl;
 
@@ -193,37 +165,37 @@ public class TextItemsWebViewFragment extends BaseFragment {
                 setProgressShown(true);
                 LogUtil.i("onPageStarted->" + url);
             }
-
-            @Override
-            public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
-                WebResourceResponse response = super.shouldInterceptRequest(view, url);
-                LogUtil.i("资源：" + url);
-                if (url.contains("mybook.css")) {
-                    try {
-                        LogUtil.i("本地css");
-                        response = new WebResourceResponse("text/css", "UTF-8", new StringBufferInputStream(Constants.BOOK_CSS));
-                    } catch (Exception e) {
-                        LogUtil.e(e);
-                    }
-                }
-                return response;
-            }
-
-            @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-            @Override
-            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
-                WebResourceResponse response = super.shouldInterceptRequest(view, request);
-                LogUtil.i("资源：" + request.getUrl().toString());
-                if (request.getUrl().toString().contains("mybook.css")) {
-                    try {
-                        LogUtil.i("本地css");
-                        response = new WebResourceResponse("text/css", "UTF-8", new StringBufferInputStream(Constants.BOOK_CSS));
-                    } catch (Exception e) {
-                        LogUtil.e(e);
-                    }
-                }
-                return response;
-            }
+//
+//            @Override
+//            public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
+//                WebResourceResponse response = super.shouldInterceptRequest(view, url);
+//                LogUtil.i("资源：" + url);
+//                if (url.contains("mybook.css")) {
+//                    try {
+//                        LogUtil.i("本地css");
+//                        response = new WebResourceResponse("text/css", "UTF-8", new StringBufferInputStream(Constants.BOOK_CSS));
+//                    } catch (Exception e) {
+//                        LogUtil.e(e);
+//                    }
+//                }
+//                return response;
+//            }
+//
+//            @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+//            @Override
+//            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+//                WebResourceResponse response = super.shouldInterceptRequest(view, request);
+//                LogUtil.i("资源：" + request.getUrl().toString());
+//                if (request.getUrl().toString().contains("mybook.css")) {
+//                    try {
+//                        LogUtil.i("本地css");
+//                        response = new WebResourceResponse("text/css", "UTF-8", new StringBufferInputStream(Constants.BOOK_CSS));
+//                    } catch (Exception e) {
+//                        LogUtil.e(e);
+//                    }
+//                }
+//                return response;
+//            }
 
             @Override
             public void onPageFinished(WebView view, String url) {
@@ -232,12 +204,7 @@ public class TextItemsWebViewFragment extends BaseFragment {
                 if (mFirstPageLoad) {
                     mFirstPageLoad = false;
                 }
-//                webView.loadUrl(getInnerCss());
-//               String css =  FileUtils.readAssets(getActivity(),"mybook.css");
-//                webView.loadDataWithBaseURL("http://file.ssapcee.com",css,"text/css","utf-8",null);
-//                webView.loadUrl(getOutCss("http://file.sspacee.com/file/cache/mybook.css?" + System.currentTimeMillis()));
                 mHandler.postDelayed(run, 0);
-//                webView.loadUrl("<link rel=\"stylesheet\" href=\"http://file.sspacee.com/file/cache/mybook.css\" type=\"text/css\" /> ");
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     cookieManager.flush();
                 } else {
@@ -291,4 +258,9 @@ public class TextItemsWebViewFragment extends BaseFragment {
         }
         super.onDestroyView();
     }
+    @OnClick(R.id.iv_favorite)
+    public void favoriteClick(View view) {
+        ivFavorite.clickFavorite(vo.tofavorite());
+    }
+
 }

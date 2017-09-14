@@ -3,15 +3,12 @@ package com.timeline.vpn.ui.fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
 import com.sspacee.common.ui.view.MyScrollView;
 import com.sspacee.common.ui.view.MyTextView;
-import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.R;
 import com.timeline.vpn.bean.vo.TextItemsVo;
 import com.timeline.vpn.constant.Constants;
@@ -28,12 +25,6 @@ import butterknife.BindView;
  */
 public class TextItemsStrFragment extends LoadableFragment<String> {
     private static final String TEXT_TAG = "TEXT_ITEM_TAG";
-    protected Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            LogUtil.i("handleMessage-" + msg.what);
-        }
-    };
     @BindView(R.id.tv_view)
     MyTextView tvView;
     @BindView(R.id.sv_text)

@@ -40,7 +40,7 @@
             android:paddingTop="20dp"
             android:text="@string/error_network_retry"
             android:textColor="#a8b0be"
-            android:textSize="15sp" />
+            android:textSize="@dimen/textsize_18" />
     </LinearLayout>
 
 

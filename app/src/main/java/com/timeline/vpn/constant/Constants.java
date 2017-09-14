@@ -17,9 +17,10 @@ public class Constants {
     public static final String DEFAULT_REFERER = "http://www.sspacee.com/";
     public static final String IMAGE_RES_PRE = "timeline://img";
     public static final String URL = "url";
+    public static final String DEFULT_LOCATION_NAME="随机";
     public static final int STARTUP_SHOW_TIME_6000 = 6000; //启动页广告时长
     public static final int STARTUP_SHOW_TIME_7000 = 7000; //启动页广告时长
-    public static final int BANNER_ADS_GONE_LONG = 18000; //广告显示时长
+    public static final int BANNER_ADS_GONE_LONG = 25000; //广告显示时长
     public static final int BANNER_ADS_GONE_LONG_LONG = 240000; //广告显示时长
     public static final int BANNER_ADS_GONE_SHORT = 5000; //启动页广告时长
     public static final int VIP_SHIMMER_DURATION = 2300;
@@ -83,12 +84,10 @@ public class Constants {
     public static final String SETTING_PREF_NEED_CHECK_UPDATE_NEXT_TIME = "SETTING_PREF_NEED_CHECK_UPDATE_NEXT_TIME";
     public static final String TEMP_PATH = "/tencent/vpn";
     public static final String VERSION_APP_INCOMING = "VERSION_APP_INCOMING"; // 服务器上的最新版本号
-    public static final String ADS_ADVIEW_KEY = "SDK2017152803084392l8e8jx1v2owio";
-    public static final String ADS_ADVIEW_KEY_ACTIVITY = "SDK201614200212284mmevtthxxbrcsb";
-    public static final String ADS_VIDEO = "POSIDob9ixhzl6yq0";
-    public static final String ADS_NATIVE = "POSIDd4dm8lc8e5v9";
-    public static final String adsKeySet[] = new String[]{ADS_ADVIEW_KEY, ADS_ADVIEW_KEY_ACTIVITY};
-    public static final String adsKeyYoumi[] = new String[]{ADS_ADVIEW_KEY};
+    public static final String ADS_ADVIEW_KEY = "SDK20172112090959isu2hxff25hmeda";
+    public static final String ADS_ADVIEW_KEY_TEST = "SDK20172112090959isu2hxff25hmeda";
+    public static final String adsKeySet[] = new String[]{ADS_ADVIEW_KEY};
+    public static final String adsKeySet1[] = new String[]{ADS_ADVIEW_KEY,ADS_ADVIEW_KEY_TEST};
     public static final String API_SERVERLIST_URL = "/host/server/list.json?location=%s";
     public static final String API_FAB_ADSCLICK_URL = "/user/ads/score.json?score=%s";
     public static final String API_LOCATION_URL = "/host/server/location.json";

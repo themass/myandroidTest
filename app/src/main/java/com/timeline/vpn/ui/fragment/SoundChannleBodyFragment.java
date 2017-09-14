@@ -2,11 +2,8 @@ package com.timeline.vpn.ui.fragment;
 
 
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.view.View;
 
-import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.ads.adview.AdsAdview;
 import com.sspacee.yewu.um.MobAgent;
 import com.timeline.vpn.bean.vo.RecommendVo;
@@ -18,15 +15,6 @@ import com.timeline.vpn.data.UserLoginUtil;
  */
 public class SoundChannleBodyFragment extends RecommendFragment {
     private static final String INDEX_TAG = "SoundChannle_tag";
-    protected Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            LogUtil.i("视频广告handleMessage-" + msg.what);
-            if (msg.what == Constants.ADS_READY_MSG) {
-//                AdsAdview.videoAdsShow(getActivity());
-            }
-        }
-    };
 
     @Override
     public String getUrl(int start) {
@@ -34,12 +22,10 @@ public class SoundChannleBodyFragment extends RecommendFragment {
     }
 
     @Override
-    protected void setupViews(View view, Bundle savedInstanceState) {
+    public void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
-        LogUtil.i("开始展示视频广告");
-
         if (!UserLoginUtil.isVIP2())
-            AdsAdview.interstitialAds(getActivity(), mHandler);
+            AdsAdview.interstitialAds(getActivity(), null);
     }
 
     @Override
@@ -49,7 +35,7 @@ public class SoundChannleBodyFragment extends RecommendFragment {
 
     @Override
     public void onItemClick(View v, int position) {
-        RecommendVo vo = infoVo.voList.get(position);
+        RecommendVo vo = infoListVo.voList.get(position);
         SoundItemsFragment.startFragment(getActivity(), vo);
         MobAgent.onEventRecommondChannel(getActivity(), vo.title);
     }

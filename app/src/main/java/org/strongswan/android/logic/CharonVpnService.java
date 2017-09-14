@@ -476,7 +476,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
         LogUtil.i("start ForegroundService:" + mService.getState());
         NotificationCompat.Builder builder =
                 new NotificationCompat.Builder(MyApplication.getInstance());
-        RemoteViews remoteViews = new RemoteViews(getPackageName(), R.layout.remote_view);
+        RemoteViews remoteViews = new RemoteViews(getPackageName(), R.layout.vpn_status_remote_view);
         remoteViews.setTextViewText(R.id.tv_vpn_title, getString(R.string.vpn_remote_status));
         remoteViews.setTextViewText(R.id.tv_vpn_time, LocationUtil.getSelectName(this));
         boolean canGo = true;

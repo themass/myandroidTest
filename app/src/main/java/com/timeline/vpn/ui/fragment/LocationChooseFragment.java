@@ -25,7 +25,6 @@ import com.timeline.vpn.bean.vo.InfoListVo;
 import com.timeline.vpn.bean.vo.LocationVo;
 import com.timeline.vpn.bean.vo.UserInfoVo;
 import com.timeline.vpn.constant.Constants;
-import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.data.LocationUtil;
 import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.data.config.LocationChooseEvent;
@@ -57,7 +56,6 @@ public class LocationChooseFragment extends LoadableFragment<List<LocationVo>> i
     @Nullable
     @BindView(R.id.loc_rv_location)
     RecyclerView rvLocation;
-    private BaseService indexService;
     private LocationViewAdapter adapter;
     private List<LocationVo> data = new ArrayList<>();
     private int typeIndex = 0;
@@ -84,8 +82,6 @@ public class LocationChooseFragment extends LoadableFragment<List<LocationVo>> i
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        indexService = new BaseService();
-        indexService.setup(getActivity());
         adapter = new LocationViewAdapter(getActivity(), rvLocation, data, this);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getActivity());
         rvLocation.setLayoutManager(layoutManager);

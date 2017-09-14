@@ -8,5 +8,6 @@ package com.timeline.vpn.bean.vo;
 public class ImgItemVo {
     public String picUrl;
     public String origUrl;
+    public String remoteUrl;
 }
 

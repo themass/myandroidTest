@@ -61,7 +61,7 @@ public abstract class BaseWeatherMenuActivity extends LogActivity {
             getMenuInflater().inflate(R.menu.menu_space, menu);
             LogUtil.i("onCreateOptionsMenu");
             MenuItem menuWeather = menu.findItem(R.id.menu_view);
-            menuWeather.setActionView(R.layout.common_image_view);
+            menuWeather.setActionView(R.layout.common_actionbar_image_view);
             ivWeather = (ImageView) menuWeather.getActionView().findViewById(R.id.iv_menu);
             menuWeather.getActionView().setOnClickListener(new View.OnClickListener() {
                 @Override

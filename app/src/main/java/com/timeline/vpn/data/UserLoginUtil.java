@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 
 import com.sspacee.common.util.EventBusUtil;
-import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.yewu.um.MobAgent;
 import com.timeline.vpn.base.MyApplication;
@@ -17,16 +16,17 @@ import com.timeline.vpn.data.config.UserLoginEvent;
  * Created by themass on 2016/8/15.
  */
 public class UserLoginUtil {
-    public static void initData(Context context) {
-        UserInfoVo user = PreferenceUtils.getPrefObj(context, Constants.LOGIN_USER, UserInfoVo.class);
-        if (user != null) {
-            LogUtil.i("login ok");
-            StaticDataUtil.add(Constants.LOGIN_USER, user);
-            EventBusUtil.getEventBus().post(new UserLoginEvent());
-            context.sendBroadcast(new Intent(MyApplication.UPDATE_STATUS_ACTION));
-        } else {
-            LogUtil.i("login fail");
-        }
+    public static UserInfoVo getStoreData(Context context) {
+        return PreferenceUtils.getPrefObj(context, Constants.LOGIN_USER, UserInfoVo.class);
+
+//        if (user != null) {
+//            LogUtil.i("login ok");
+//            StaticDataUtil.add(Constants.LOGIN_USER, user);
+//            EventBusUtil.getEventBus().post(new UserLoginEvent());
+//            context.sendBroadcast(new Intent(MyApplication.UPDATE_STATUS_ACTION));
+//        } else {
+//            LogUtil.i("login fail");
+//        }
     }
 
     public static void login(Context context, UserInfoVo vo) {

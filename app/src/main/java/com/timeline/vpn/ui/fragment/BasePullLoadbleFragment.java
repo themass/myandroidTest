@@ -10,7 +10,6 @@ import android.view.ViewGroup;
 
 import com.sspacee.common.ui.view.DividerItemDecoration;
 import com.sspacee.common.ui.view.MyPullView;
-import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.R;
 import com.timeline.vpn.adapter.BaseRecyclerViewAdapter;
@@ -36,13 +35,15 @@ public abstract class BasePullLoadbleFragment<T> extends LoadableFragment<InfoLi
     @Override
     public void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
+        initPullView();
+    }
+    protected void initPullView(){
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getActivity());
         pullView.setLayoutManager(layoutManager);
         DividerItemDecoration itemDecoration = new DividerItemDecoration(getActivity(), LinearLayoutManager.VERTICAL, R.drawable.divider_item);
         pullView.setAdapter(getAdapter());
         pullView.getRecyclerView().addItemDecoration(itemDecoration);
         pullView.setListener(this);
-        EventBusUtil.getEventBus().register(this);
     }
     @Override
     protected void onDataLoaded(InfoListVo<T> data) {
@@ -54,6 +55,8 @@ public abstract class BasePullLoadbleFragment<T> extends LoadableFragment<InfoLi
                     freshData(data);
                 }
                 infoListVo.copy(data);
+                initSort();
+                sortData();
                 data.voList.clear();
                 data.voList.addAll(infoListVo.voList);
                 setData(data);
@@ -62,6 +65,9 @@ public abstract class BasePullLoadbleFragment<T> extends LoadableFragment<InfoLi
             pullView.notifyDataSetChanged();
         }
     }
+    protected void sortData() {}
+
+    protected void initSort() {}
     protected  void loadMoreData(InfoListVo<T> data){
         infoListVo.voList.addAll(data.voList);
     }
@@ -86,13 +92,6 @@ public abstract class BasePullLoadbleFragment<T> extends LoadableFragment<InfoLi
     public boolean needLoad() {
         return infoListVo.hasMore;
     }
-
-    @Override
-    public void onDestroyView() {
-        EventBusUtil.getEventBus().unregister(this);
-        super.onDestroyView();
-    }
-
 
     protected abstract BaseRecyclerViewAdapter getAdapter();
 

@@ -74,6 +74,8 @@ public class LaunchActivity extends LogActivity {
         AdsAdview.initConfig(this);
         unbinder = ButterKnife.bind(this);
         UpdateUserTask.start(this);
+//        String imei = ((TelephonyManager) getSystemService(TELEPHONY_SERVICE)).getDeviceId();
+//        LogUtil.i("imei="+imei);
     }
 
     @OnClick(R.id.skip_view)

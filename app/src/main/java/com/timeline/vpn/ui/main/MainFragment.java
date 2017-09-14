@@ -1,6 +1,7 @@
 package com.timeline.vpn.ui.main;
 
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTabHost;
 import android.view.KeyEvent;
@@ -19,10 +20,10 @@ import com.sspacee.yewu.ads.adview.AdsAdview;
 import com.sspacee.yewu.um.MobAgent;
 import com.timeline.vpn.R;
 import com.timeline.vpn.constant.Constants;
-import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.data.config.ConfigActionJump;
 import com.timeline.vpn.data.config.LogAddTofile;
 import com.timeline.vpn.service.LogUploadService;
+import com.timeline.vpn.task.LoginTask;
 import com.timeline.vpn.ui.base.app.BaseDrawerActivity;
 import com.timeline.vpn.ui.inte.OnBackKeyUpListener;
 import com.timeline.vpn.ui.maintab.TabVipFragment;
@@ -52,7 +53,7 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
         EventBusUtil.getEventBus().register(this);
         AdsAdview.initConfig(this);
         AdsAdview.init(this);
-        UserLoginUtil.initData(this);
+        new LoginTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         boolean uploadLog = PreferenceUtils.getPrefBoolean(this, Constants.LOG_UPLOAD_CONFIG, false);
         if (uploadLog) {
             startService(new Intent(this, LogUploadService.class));

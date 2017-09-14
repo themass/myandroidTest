@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -14,20 +13,18 @@ import android.widget.ImageView;
 
 import com.etiennelawlor.imagegallery.library.adapters.ImageGalleryAdapter;
 import com.etiennelawlor.imagegallery.library.utilities.DisplayUtility;
+import com.sspacee.common.ui.view.FavoriteImageView;
 import com.sspacee.common.ui.view.GridSpacingItemDecoration;
-import com.sspacee.common.ui.view.MyPullView;
 import com.sspacee.common.util.CollectionUtils;
 import com.timeline.vpn.R;
+import com.timeline.vpn.adapter.BaseRecyclerViewAdapter;
 import com.timeline.vpn.base.MyApplication;
 import com.timeline.vpn.bean.vo.ImgItemVo;
 import com.timeline.vpn.bean.vo.ImgItemsVo;
 import com.timeline.vpn.bean.vo.InfoListVo;
 import com.timeline.vpn.constant.Constants;
-import com.timeline.vpn.data.BaseService;
-import com.timeline.vpn.data.FavoriteUtil;
 import com.timeline.vpn.data.StaticDataUtil;
 import com.timeline.vpn.ui.base.CommonFragmentActivity;
-import com.timeline.vpn.ui.base.LoadableFragment;
 import com.timeline.vpn.ui.sound.MyFullScreenImageGalleryActivity;
 
 import java.util.ArrayList;
@@ -39,18 +36,15 @@ import butterknife.OnClick;
 /**
  * Created by themass on 2016/8/12.
  */
-public class ImgGalleryFragment extends LoadableFragment<InfoListVo<ImgItemVo>> implements MyPullView.OnRefreshListener, ImageGalleryAdapter.OnImageClickListener,FavoriteUtil.GetFavoriteListener, FavoriteUtil.ModFavoriteListener {
+public class ImgGalleryFragment extends BasePullLoadbleFragment<ImgItemVo> implements ImageGalleryAdapter.OnImageClickListener{
     private static final String TEXT_TAG = "Img_ITEM_TAG";
-    @Nullable
-    @BindView(R.id.my_pullview)
-    MyPullView pullView;
     @BindView(R.id.iv_favorite)
-    ImageView ivFavorite;
-    private BaseService indexService;
+    FavoriteImageView ivFavorite;
     private ImgItemsVo vo;
     // region Member Variables
     private ArrayList<String> images = new ArrayList<>();
     private ArrayList<String> origeImages = new ArrayList<>();
+    private ArrayList<String> remteImages = new ArrayList<>();
     // endregion
     private int gridItemWidth;
     private int gridItemHeight;
@@ -65,47 +59,20 @@ public class ImgGalleryFragment extends LoadableFragment<InfoListVo<ImgItemVo>> 
         intent.putExtra(CommonFragmentActivity.TOOLBAR_SHOW, false);
         context.startActivity(intent);
     }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        indexService = new BaseService();
-        indexService.setup(getActivity());
-        vo = StaticDataUtil.get(Constants.IMG_ITEMS, ImgItemsVo.class);
-        StaticDataUtil.del(Constants.IMG_ITEMS);
-    }
-
     @Override
     public void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
-        indexService = new BaseService();
-        indexService.setup(getActivity());
-        setUpRecyclerView();
-        FavoriteUtil.getLocalFavoritesAsync(getActivity(), vo.url, this);
+        vo = StaticDataUtil.get(Constants.IMG_ITEMS, ImgItemsVo.class);
+        StaticDataUtil.del(Constants.IMG_ITEMS);
+        ivFavorite.initSrc(vo.url);
     }
+    protected BaseRecyclerViewAdapter getAdapter(){return null;}
     @OnClick(R.id.iv_favorite)
     public void favoriteClick(View view) {
-        FavoriteUtil.modLocalFavoritesAsync(getActivity(), vo.tofavorite(), this);
+        ivFavorite.clickFavorite(vo.tofavorite());
     }
     @Override
-    public void modFavorite(boolean ret) {
-        modFavoriteBg(ret);
-    }
-
-    @Override
-    public void isFavorite(String itemUrl, boolean ret) {
-        modFavoriteBg(ret);
-    }
-
-    public void modFavoriteBg(boolean ret) {
-        ivFavorite.setVisibility(View.VISIBLE);
-        if (ret) {
-            ivFavorite.setBackgroundResource(R.drawable.ic_menu_favorite);
-        } else {
-            ivFavorite.setBackgroundResource(R.drawable.ic_menu_collect);
-        }
-    }
-    private void setUpRecyclerView() {
+    public void initPullView() {
         int numOfColumns;
         if (DisplayUtility.isInLandscapeMode(getActivity())) {
             numOfColumns = 4;
@@ -137,9 +104,11 @@ public class ImgGalleryFragment extends LoadableFragment<InfoListVo<ImgItemVo>> 
         if (!CollectionUtils.isEmpty(data.voList)) {
             images.clear();
             origeImages.clear();
+            remteImages.clear();
             for (ImgItemVo item : data.voList) {
                 images.add(item.picUrl);
                 origeImages.add(item.origUrl);
+                remteImages.add(item.remoteUrl);
             }
         }
         pullView.notifyDataSetChanged();
@@ -153,7 +122,7 @@ public class ImgGalleryFragment extends LoadableFragment<InfoListVo<ImgItemVo>> 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        setUpRecyclerView();
+        initPullView();
     }
 
     @Override
@@ -173,6 +142,7 @@ public class ImgGalleryFragment extends LoadableFragment<InfoListVo<ImgItemVo>> 
         Intent intent = new Intent(getContext(), MyFullScreenImageGalleryActivity.class);
         Bundle bundle = new Bundle();
         bundle.putStringArrayList(MyFullScreenImageGalleryActivity.KEY_IMAGES, origeImages);
+        bundle.putStringArrayList(MyFullScreenImageGalleryActivity.KEY_IMAGES_REMOTE, remteImages);
         bundle.putInt(MyFullScreenImageGalleryActivity.KEY_POSITION, position);
         intent.putExtras(bundle);
         startActivity(intent);

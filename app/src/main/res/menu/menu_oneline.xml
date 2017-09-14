@@ -2,8 +2,8 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/menu_favorite"
-        android:actionLayout="@layout/common_image_view"
+        android:id="@+id/menu_one"
+        android:actionLayout="@layout/common_actionbar_image_view"
         android:icon="@drawable/ic_menu_collected"
         android:title="@string/menu_favorite"
         app:showAsAction="never" />

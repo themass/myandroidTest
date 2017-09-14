@@ -2,6 +2,7 @@ package com.sspacee.common.util;
 
 import android.content.Context;
 import android.os.Environment;
+import android.text.TextUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,7 +16,7 @@ import java.net.URLEncoder;
  */
 public class PathUtil {
     public static final String BROWSER_SCHEMA = "browser://config?url=%s";
-    private static final String FILEPATH = "file";
+    private static final String FILEPATH = "freevpn";
 
     public static File getFileDiskCacheDir(Context context, String fileName) throws IOException {
         return getFileDiskCacheDir(context, fileName, true);
@@ -80,7 +81,14 @@ public class PathUtil {
         final String cacheDir = "/Android/data/" + context.getPackageName() + "/cache/";
         return new File(Environment.getExternalStorageDirectory().getPath() + cacheDir);
     }
-
+    public static File initPicturesDiskCacheFile(){
+        File file = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsoluteFile();//注意小米手机必须这样获得public绝对路径
+        File appDir = new File(file ,FILEPATH);
+        if (!appDir.exists()) {
+            appDir.mkdirs();
+        }
+        return appDir;
+    }
     public static String getLocalOpenUrl(String url) {
         try {
             String ecode = URLEncoder.encode(url, "utf-8");
@@ -89,5 +97,25 @@ public class PathUtil {
             LogUtil.e(e);
             return null;
         }
+    }
+    public static String getFileExtensionFromUrl(String url) {
+        if (!TextUtils.isEmpty(url)) {
+            int fragment = url.lastIndexOf('#');
+            if (fragment > 0) {
+                url = url.substring(0, fragment);
+            }
+
+            int query = url.lastIndexOf('?');
+            if (query > 0) {
+                url = url.substring(0, query);
+            }
+
+            int filenamePos = url.lastIndexOf('/');
+            String filename =
+                    0 <= filenamePos ? url.substring(filenamePos + 1) : url;
+            return filename;
+        }
+
+        return null;
     }
 }

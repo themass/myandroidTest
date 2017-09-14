@@ -15,9 +15,19 @@
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
-        android:layout_margin="@dimen/margin_25"
+        android:layout_margin="@dimen/margin_30"
         android:background="@color/colorPane"
         android:padding="@dimen/margin_3"
         android:textColor="@color/base_red"
         android:textSize="@dimen/textsize_18" />
+    <ImageView
+        android:id="@+id/iv_save"
+        android:layout_width="@dimen/margin_48"
+        android:layout_height="@dimen/margin_48"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentBottom="true"
+        android:background="?android:attr/selectableItemBackground"
+        android:src="@drawable/ic_download"
+        android:scaleType="fitCenter"
+        android:layout_margin="@dimen/margin_30" />
 </RelativeLayout>

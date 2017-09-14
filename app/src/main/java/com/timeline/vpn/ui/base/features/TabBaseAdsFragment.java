@@ -6,14 +6,12 @@ import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
 import android.view.View;
 import android.view.animation.OvershootInterpolator;
-import android.widget.Toast;
 
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.ads.adview.AdsAdview;
 import com.timeline.vpn.R;
 import com.timeline.vpn.constant.Constants;
-import com.timeline.vpn.data.StaticDataUtil;
-import com.timeline.vpn.task.ScoreTask;
+import com.timeline.vpn.data.AdsPopStrategy;
 import com.timeline.vpn.ui.inte.OnBackKeyDownListener;
 import com.timeline.vpn.ui.main.MainFragmentViewPage;
 
@@ -30,7 +28,16 @@ public abstract class TabBaseAdsFragment extends TabBaseFragment implements OnBa
     protected Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-            LogUtil.i("handleMessage-" + msg.what);
+            LogUtil.i("handmes what="+msg.what+"; arg1="+msg.arg1);
+            if(msg.arg1==AdsAdview.what1_video){
+                if(msg.what== Constants.ADS_READY_MSG) {
+                    AdsAdview.videoAdsShow(getActivity());
+                }else if(msg.what==Constants.ADS_NO_MSG){
+                    AdsAdview.interstitialAds(getActivity(), this);
+                }
+            }else if(msg.arg1==AdsAdview.what1_interstitial){
+
+            }
         }
     };
     private long lastToastShow = 0l;
@@ -38,21 +45,7 @@ public abstract class TabBaseAdsFragment extends TabBaseFragment implements OnBa
 
     @OnClick(R.id.fab_up)
     public void onClickFab(View view) {
-        next();
-        Long lastClickTime = StaticDataUtil.get(Constants.SCORE_CLICK, Long.class, 0l);
-        long curent = System.currentTimeMillis();
-        long interval = curent - lastClickTime;
-        StaticDataUtil.add(Constants.SCORE_CLICK, System.currentTimeMillis());
-        if ((interval / 1000) < Constants.SCORE_CLICK_INTERVAL) {
-            if ((curent - lastToastShow) / 1000 >= Constants.SCORE_CLICK_INTERVAL) {
-                Toast.makeText(getActivity(), R.string.tab_fb_click_fast, Toast.LENGTH_SHORT).show();
-                lastToastShow = curent;
-            }
-            return;
-        }
-        String msg = getActivity().getResources().getString(R.string.tab_fb_click) + Constants.ADS_SHOW_SCORE;
-        Toast.makeText(getActivity(), msg, Toast.LENGTH_SHORT).show();
-        ScoreTask.start(getActivity(), Constants.ADS_SHOW_SCORE);
+        AdsPopStrategy.clickAdsShowBtn(getActivity(),mHandler);
     }
 
     public void next() {

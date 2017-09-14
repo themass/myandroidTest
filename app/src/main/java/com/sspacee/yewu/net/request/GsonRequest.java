@@ -21,7 +21,6 @@ public class GsonRequest<T> extends BaseRequest<T> {
         super(context, Method.GET, url, headers, listener, errorListener);
         this.clasz = clasz;
     }
-
     @Override
     protected Response<T> parseNetworkResponse(NetworkResponse response) {
         try {

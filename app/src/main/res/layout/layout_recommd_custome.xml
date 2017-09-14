@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <com.sspacee.common.ui.view.MyPullView
+    <include layout="@layout/common_mypage_view"
         android:id="@+id/my_pullview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />

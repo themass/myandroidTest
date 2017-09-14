@@ -179,6 +179,10 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="edit">edit</string>
     <string name="delete">delete</string>
     <string name="no_select">no selected</string>
+    <string name="save_ok">save ok</string>
+    <string name="save_fail">save fail</string>
+    <string name="save_img">save image</string>
+    <string name="save_start">save start...</string>
     <!-- vpn error text -->
     <string name="error_lookup_failed">Gateway address lookup failed.</string>
     <string name="error_unreachable">Gateway is unreachable.</string>

@@ -35,8 +35,8 @@ import java.util.List;
  * Created by themass on 2016/8/19.
  */
 public class AdsAdview {
-    public static final int what1_video=1;
-    public static final int what1_interstitial=2;
+    public static final int what1_video=2;
+    public static final int what1_interstitial=3;
     public static HandlerThread adsMsgThread = new HandlerThread("ads_msg_back");
     private static InitConfiguration initConfig;
 
@@ -50,10 +50,9 @@ public class AdsAdview {
                 .setBannerCloseble(InitConfiguration.BannerSwitcher.DEFAULT)    //横幅可关闭按钮
                 .setInstlDisplayType(InitConfiguration.InstlDisplayType.DIALOG_MODE)// 为默认情况,设置插屏展示模式，popupwindow模式可设置窗体外可点击
                 .setInstlCloseble(InitConfiguration.InstlSwitcher.CANCLOSED);     //插屏可关闭按钮
-        builder.setAdYoumiSize(InitConfiguration.AdYoumiSize.FIT_SCREEN);
+        builder.setAdYoumiSize(InitConfiguration.AdYoumiSize.SIZE_320x50);
         builder.setYoumiIntent(MainFragmentViewPage.class);
         builder.setAdMobSize(InitConfiguration.AdMobSize.BANNER);
-        builder.setAdInMobiSize(InitConfiguration.AdInMobiSize.INMOBI_AD_UNIT_320x50);
         builder.setAdGdtSize(InitConfiguration.AdGdtSize.BANNER);
         builder.setAdSize(InitConfiguration.AdSize.BANNER_SMART);
 //        if (MyApplication.isDebug) {
@@ -70,7 +69,7 @@ public class AdsAdview {
             AdViewSpreadManager.getInstance(context).init(initConfig,
                     Constants.adsKeySet);
             AdViewBannerManager.getInstance(context).init(initConfig, Constants.adsKeySet);
-            AdViewInstlManager.getInstance(context).init(initConfig, Constants.adsKeySet);
+            AdViewInstlManager.getInstance(context).init(initConfig, Constants.adsKeySet1);
             AdViewNativeManager.getInstance(context).init(initConfig, Constants.adsKeySet);
             AdViewVideoManager.getInstance(context).init(initConfig, Constants.adsKeySet);
         } catch (Throwable e) {
@@ -91,29 +90,34 @@ public class AdsAdview {
             AdViewSpreadManager.getInstance(context).request(context, Constants.ADS_ADVIEW_KEY, new AdViewSpreadListener() {
                 @Override
                 public void onAdClick(String s) {
-                    handler.sendEmptyMessage(Constants.ADS_CLICK_MSG);
+                    if(handler!=null)
+                        handler.sendEmptyMessage(Constants.ADS_CLICK_MSG);
                     AdsAdview.adsNotify(context, Constants.ADS_TYPE_SPREAD, Constants.ADS_CLICK_MSG);
                 }
 
                 @Override
                 public void onAdDisplay(String s) {
-                    handler.sendEmptyMessage(Constants.ADS_PRESENT_MSG);
+                    if(handler!=null)
+                        handler.sendEmptyMessage(Constants.ADS_PRESENT_MSG);
                     AdsAdview.adsNotify(context, Constants.ADS_TYPE_SPREAD, Constants.ADS_PRESENT_MSG);
                 }
 
                 @Override
                 public void onAdClose(String s) {
-                    handler.sendEmptyMessage(Constants.ADS_DISMISS_MSG);
+                    if(handler!=null)
+                        handler.sendEmptyMessage(Constants.ADS_DISMISS_MSG);
                 }
 
                 @Override
                 public void onAdRecieved(String s) {
-                    handler.sendEmptyMessage(Constants.ADS_READY_MSG);
+                    if(handler!=null)
+                        handler.sendEmptyMessage(Constants.ADS_READY_MSG);
                 }
 
                 @Override
                 public void onAdFailed(String s) {
-                    handler.sendEmptyMessage(Constants.ADS_NO_MSG);
+                    if(handler!=null)
+                        handler.sendEmptyMessage(Constants.ADS_NO_MSG);
                     AdsAdview.adsNotify(context, Constants.ADS_TYPE_SPREAD, Constants.ADS_NO_MSG);
                 }
 
@@ -130,51 +134,63 @@ public class AdsAdview {
 
     public static void interstitialAds(final Context context, final Handler handler) {
         try {
-            AdViewInstlManager.getInstance(context).requestAd(context, Constants.ADS_ADVIEW_KEY, new AdViewInstlListener() {
+            LogUtil.i("adview interstitialAds req");
+            AdViewInstlManager.getInstance(context).requestAd(context, Constants.ADS_ADVIEW_KEY_TEST, new AdViewInstlListener() {
 
                 @Override
                 public void onAdClick(String s) {
-                    Message msg = Message.obtain();
-                    msg.what=Constants.ADS_CLICK_MSG;
-                    msg.arg1=what1_interstitial;
-                    handler.sendMessage(msg);
+                    if(handler!=null) {
+                        Message msg = Message.obtain();
+                        msg.what = Constants.ADS_CLICK_MSG;
+                        msg.arg1 = what1_interstitial;
+                        handler.sendMessage(msg);
+                    }
                     AdsAdview.adsNotify(context, Constants.ADS_TYPE_INTERSTITIAL, Constants.ADS_CLICK_MSG);
                 }
 
                 @Override
                 public void onAdDisplay(String s) {
-                    Message msg = Message.obtain();
-                    msg.what=Constants.ADS_PRESENT_MSG;
-                    msg.arg1=what1_interstitial;
-                    handler.sendMessage(msg);
+                    if(handler!=null) {
+                        Message msg = Message.obtain();
+                        msg.what = Constants.ADS_PRESENT_MSG;
+                        msg.arg1 = what1_interstitial;
+                        handler.sendMessage(msg);
+                    }
                     AdsAdview.adsNotify(context, Constants.ADS_TYPE_INTERSTITIAL, Constants.ADS_PRESENT_MSG);
                 }
 
                 @Override
                 public void onAdDismiss(String s) {
-                    Message msg = Message.obtain();
-                    msg.what=Constants.ADS_DISMISS_MSG;
-                    msg.arg1=what1_interstitial;
-                    handler.sendMessage(msg);
+                    if(handler!=null) {
+                        Message msg = Message.obtain();
+                        msg.what = Constants.ADS_DISMISS_MSG;
+                        msg.arg1 = what1_interstitial;
+                        handler.sendMessage(msg);
+                    }
                 }
 
                 @Override
                 public void onAdRecieved(String s) {
-                    Message msg = Message.obtain();
-                    msg.what=Constants.ADS_READY_MSG;
-                    msg.arg1=what1_interstitial;
-                    handler.sendMessage(msg);
+                    LogUtil.i("adview onAdRecieved:"+s);
+                    if (handler != null){
+                        Message msg = Message.obtain();
+                        msg.what = Constants.ADS_READY_MSG;
+                        msg.arg1 = what1_interstitial;
+                        handler.sendMessage(msg);
+                    }
                     AdViewInstlManager.getInstance(context)
-                            .showAd(context, Constants.ADS_ADVIEW_KEY);
+                            .showAd(context, Constants.ADS_ADVIEW_KEY_TEST);
                 }
 
                 @Override
                 public void onAdFailed(String s) {
                     LogUtil.e(s);
-                    Message msg = Message.obtain();
-                    msg.what=Constants.ADS_NO_MSG;
-                    msg.arg1=what1_interstitial;
-                    handler.sendMessage(msg);
+                    if(handler!=null) {
+                        Message msg = Message.obtain();
+                        msg.what = Constants.ADS_NO_MSG;
+                        msg.arg1 = what1_interstitial;
+                        handler.sendMessage(msg);
+                    }
                     AdsAdview.adsNotify(context, Constants.ADS_TYPE_INTERSTITIAL, Constants.ADS_NO_MSG);
                 }
             });
@@ -190,31 +206,40 @@ public class AdsAdview {
 
                 @Override
                 public void onAdClick(String s) {
-                    handler.sendEmptyMessage(Constants.ADS_CLICK_MSG);
+                    if(handler!=null) {
+                        handler.sendEmptyMessage(Constants.ADS_CLICK_MSG);
+                    }
                     AdsAdview.adsNotify(context, Constants.ADS_TYPE_INTERSTITIAL, Constants.ADS_CLICK_MSG);
                 }
 
                 @Override
                 public void onAdDisplay(String s) {
-                    handler.sendEmptyMessage(Constants.ADS_PRESENT_MSG);
+                    if(handler!=null) {
+                        handler.sendEmptyMessage(Constants.ADS_PRESENT_MSG);
+                    }
                     AdsAdview.adsNotify(context, Constants.ADS_TYPE_INTERSTITIAL, Constants.ADS_PRESENT_MSG);
                 }
 
                 @Override
                 public void onAdDismiss(String s) {
-                    handler.sendEmptyMessage(Constants.ADS_DISMISS_MSG);
+                    if(handler!=null) {
+                        handler.sendEmptyMessage(Constants.ADS_DISMISS_MSG);
+                    }
                 }
 
                 @Override
                 public void onAdRecieved(String s) {
-                    handler.sendEmptyMessage(Constants.ADS_READY_MSG);
-
+                    if(handler!=null) {
+                        handler.sendEmptyMessage(Constants.ADS_READY_MSG);
+                    }
                 }
 
                 @Override
                 public void onAdFailed(String s) {
                     LogUtil.e(s);
-                    handler.sendEmptyMessage(Constants.ADS_NO_MSG);
+                    if(handler!=null) {
+                        handler.sendEmptyMessage(Constants.ADS_NO_MSG);
+                    }
                     AdsAdview.adsNotify(context, Constants.ADS_TYPE_INTERSTITIAL, Constants.ADS_NO_MSG);
                 }
             });
@@ -243,32 +268,42 @@ public class AdsAdview {
 
                 @Override
                 public void onAdClick(String s) {
-                    handler.sendEmptyMessage(Constants.ADS_CLICK_MSG);
+                    if(handler!=null) {
+                        handler.sendEmptyMessage(Constants.ADS_CLICK_MSG);
+                    }
                     AdsAdview.adsNotify(context, Constants.ADS_TYPE_BANNER, Constants.ADS_CLICK_MSG);
                 }
 
                 @Override
                 public void onAdDisplay(String s) {
-                    handler.sendEmptyMessage(Constants.ADS_PRESENT_MSG);
+                    if(handler!=null) {
+                        handler.sendEmptyMessage(Constants.ADS_PRESENT_MSG);
+                    }
                     AdsAdview.adsNotify(context, Constants.ADS_TYPE_BANNER, Constants.ADS_PRESENT_MSG);
                 }
 
                 @Override
                 public void onAdClose(String s) {
-                    handler.sendEmptyMessage(Constants.ADS_DISMISS_MSG);
+                    if(handler!=null) {
+                        handler.sendEmptyMessage(Constants.ADS_DISMISS_MSG);
+                    }
                     group.removeView(group.findViewWithTag(s));
                 }
 
                 @Override
                 public void onAdFailed(String s) {
                     LogUtil.e(s);
-                    handler.sendEmptyMessage(Constants.ADS_NO_MSG);
+                    if(handler!=null) {
+                        handler.sendEmptyMessage(Constants.ADS_NO_MSG);
+                    }
                     AdsAdview.adsNotify(context, Constants.ADS_TYPE_BANNER, Constants.ADS_NO_MSG);
                 }
 
                 @Override
                 public void onAdReady(String s) {
-                    handler.sendEmptyMessage(Constants.ADS_READY_MSG);
+                    if(handler!=null) {
+                        handler.sendEmptyMessage(Constants.ADS_READY_MSG);
+                    }
                 }
             });
             group.addView(view);
@@ -281,66 +316,39 @@ public class AdsAdview {
 
     public static void nativeAds(final Context context, final Handler handler, final NativeAdsReadyListener listener) {
         try {
-            if (handler == null) {
-                return;
-            }
             AdViewNativeManager.getInstance(context).requestAd(context, Constants.ADS_ADVIEW_KEY, 10, new AdViewNativeListener() {
 
                 @Override
                 public void onAdFailed(String s) {
                     LogUtil.e("原声广告fail：" + s);
-                    handler.sendEmptyMessage(Constants.ADS_NO_MSG);
+                    if(handler!=null) {
+                        handler.sendEmptyMessage(Constants.ADS_NO_MSG);
+                    }
                     AdsAdview.adsNotify(context, Constants.ADS_TYPE_NATIVE, Constants.ADS_NO_MSG);
                 }
 
                 @Override
                 public void onAdRecieved(String s, ArrayList arrayList) {
-                    handler.sendEmptyMessage(Constants.ADS_PRESENT_MSG);
-                    listener.onAdRecieved((List<NativeAdInfo>) arrayList);
+                    if(handler!=null) {
+                        handler.sendEmptyMessage(Constants.ADS_PRESENT_MSG);
+                    }
+                    if(listener!=null) {
+                        listener.onAdRecieved((List<NativeAdInfo>) arrayList);
+                    }
                     AdsAdview.adsNotify(context, Constants.ADS_TYPE_NATIVE, Constants.ADS_PRESENT_MSG);
                     LogUtil.i("原声广告ok：" + s);
                 }
 
                 @Override
                 public void onAdStatusChanged(String s, int i) {
-                    handler.sendEmptyMessage(Constants.ADS_CLICK_MSG);
+                    if(handler!=null) {
+                        handler.sendEmptyMessage(Constants.ADS_CLICK_MSG);
+                    }
                 }
             }); //设置原生回调接口
         } catch (Throwable e) {
             AdsAdview.adsNotify(context, Constants.ADS_TYPE_NATIVE, Constants.ADS_TYPE_ERROR);
             LogUtil.e("原声广告fail：", e);
-        }
-    }
-
-    public static void nativeAds(final Context context, final Handler handler, final NativeAdsAdapter.AdsAdapter adsAdapter) {
-        try {
-            if (adsAdapter == null || handler == null) {
-                return;
-            }
-            AdViewNativeManager.getInstance(context).requestAd(context, Constants.ADS_ADVIEW_KEY, 80, new AdViewNativeListener() {
-
-                @Override
-                public void onAdFailed(String s) {
-                    LogUtil.e(s);
-                    handler.sendEmptyMessage(Constants.ADS_NO_MSG);
-                    AdsAdview.adsNotify(context, Constants.ADS_TYPE_NATIVE, Constants.ADS_NO_MSG);
-                }
-
-                @Override
-                public void onAdRecieved(String s, ArrayList arrayList) {
-                    handler.sendEmptyMessage(Constants.ADS_PRESENT_MSG);
-                    adsAdapter.addData((List<NativeAdInfo>) arrayList);
-                    AdsAdview.adsNotify(context, Constants.ADS_TYPE_NATIVE, Constants.ADS_PRESENT_MSG);
-                }
-
-                @Override
-                public void onAdStatusChanged(String s, int i) {
-                    handler.sendEmptyMessage(Constants.ADS_CLICK_MSG);
-                }
-            }); //设置原生回调接口
-        } catch (Throwable e) {
-            AdsAdview.adsNotify(context, Constants.ADS_TYPE_NATIVE, Constants.ADS_TYPE_ERROR);
-            LogUtil.e(e);
         }
     }
 
@@ -350,56 +358,69 @@ public class AdsAdview {
             @Override
             public void onAdReady(String s) {
                 LogUtil.i("视频广告：onAdReady " + s);
-                Message msg = Message.obtain();
-                msg.what=Constants.ADS_READY_MSG;
-                msg.arg1=what1_video;
-                handler.sendMessage(msg);
+                if(handler!=null) {
+                    Message msg = Message.obtain();
+                    msg.what = Constants.ADS_READY_MSG;
+                    msg.arg1 = what1_video;
+                    handler.sendMessage(msg);
+                }
                 AdsAdview.adsNotify(context, Constants.ADS_TYPE_VIDEO, Constants.ADS_READY_MSG);
             }
 
             @Override
             public void onAdPlayStart(String s) {
-                Message msg = Message.obtain();
-                msg.what=Constants.ADS_PRESENT_MSG;
-                msg.arg1=what1_video;
-                handler.sendMessage(msg);
+                if(handler!=null) {
+                    Message msg = Message.obtain();
+                    msg.what = Constants.ADS_PRESENT_MSG;
+                    msg.arg1 = what1_video;
+                    handler.sendMessage(msg);
+                }
                 AdsAdview.adsNotify(context, Constants.ADS_TYPE_VIDEO, Constants.ADS_PRESENT_MSG);
             }
 
             @Override
             public void onAdPlayEnd(String s, Boolean aBoolean) {
-                Message msg = Message.obtain();
-                msg.what=Constants.ADS_FINISH_MSG;
-                msg.arg1=what1_video;
-                handler.sendMessage(msg);
+                if(handler!=null) {
+                    Message msg = Message.obtain();
+                    msg.what = Constants.ADS_FINISH_MSG;
+                    msg.arg1 = what1_video;
+                    handler.sendMessage(msg);
+                }
                 AdsAdview.adsNotify(context, Constants.ADS_TYPE_VIDEO, Constants.ADS_FINISH_MSG);
             }
 
             @Override
             public void onAdFailed(String s) {
-                LogUtil.e("视频广告：" + s);
-                Message msg = Message.obtain();
-                msg.what=Constants.ADS_NO_MSG;
-                msg.arg1=what1_video;
-                handler.sendMessage(msg);
+                LogUtil.e("视频广告onAdFailed：" + s);
+                if(handler!=null) {
+                    Message msg = Message.obtain();
+                    msg.what = Constants.ADS_NO_MSG;
+                    msg.arg1 = what1_video;
+                    handler.sendMessage(msg);
+                }
                 AdsAdview.adsNotify(context, Constants.ADS_TYPE_VIDEO, Constants.ADS_NO_MSG);
             }
 
             @Override
             public void onAdRecieved(String s) {
-                Message msg = Message.obtain();
-                msg.what=Constants.ADS_READY_MSG;
-                msg.arg1=what1_video;
-                handler.sendMessage(msg);
+                LogUtil.e("视频广告onAdRecieved：" + s);
+                if(handler!=null) {
+                    Message msg = Message.obtain();
+                    msg.what = Constants.ADS_READY_MSG;
+                    msg.arg1 = what1_video;
+                    handler.sendMessage(msg);
+                }
                 AdsAdview.adsNotify(context, Constants.ADS_TYPE_VIDEO, Constants.ADS_READY_MSG);
             }
 
             @Override
             public void onAdClose(String s) {
-                Message msg = Message.obtain();
-                msg.what=Constants.ADS_CLICK_MSG;
-                msg.arg1=what1_video;
-                handler.sendMessage(msg);
+                if(handler!=null) {
+                    Message msg = Message.obtain();
+                    msg.what = Constants.ADS_CLICK_MSG;
+                    msg.arg1 = what1_video;
+                    handler.sendMessage(msg);
+                }
                 AdsAdview.adsNotify(context, Constants.ADS_TYPE_VIDEO, Constants.ADS_CLICK_MSG);
             }
         });

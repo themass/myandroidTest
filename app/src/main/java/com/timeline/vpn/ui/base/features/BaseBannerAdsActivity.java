@@ -1,7 +1,6 @@
 package com.timeline.vpn.ui.base.features;
 
 import android.content.Context;
-import android.content.Intent;
 import android.os.Handler;
 import android.os.Message;
 import android.support.design.widget.AppBarLayout;
@@ -10,24 +9,18 @@ import android.support.design.widget.FloatingActionButton;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.OvershootInterpolator;
-import android.widget.Toast;
 
 import com.sspacee.common.util.LogUtil;
-import com.sspacee.common.util.Md5;
 import com.sspacee.common.util.PreferenceUtils;
-import com.sspacee.common.util.SystemUtils;
 import com.sspacee.yewu.ads.adview.AdsAdview;
 import com.sspacee.yewu.ads.adview.AdsController;
-import com.sspacee.yewu.net.NetUtils;
 import com.timeline.vpn.R;
 import com.timeline.vpn.constant.Constants;
-import com.timeline.vpn.data.StaticDataUtil;
+import com.timeline.vpn.data.AdsPopStrategy;
 import com.timeline.vpn.ui.base.app.BaseToolBarActivity;
 
 import butterknife.BindView;
 import butterknife.OnClick;
-
-import static com.kuaiyou.g.a.getActivity;
 
 
 /**
@@ -47,8 +40,13 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
     protected Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
+            LogUtil.i("handmes what="+msg.what+"; arg1="+msg.arg1);
             if(msg.arg1==AdsAdview.what1_video){
-                AdsAdview.videoAdsShow(BaseBannerAdsActivity.this);
+                if(msg.what==Constants.ADS_READY_MSG) {
+                    AdsAdview.videoAdsShow(BaseBannerAdsActivity.this);
+                }else if(msg.what==Constants.ADS_NO_MSG){
+                    AdsAdview.interstitialAds(BaseBannerAdsActivity.this, this);
+                }
             }else if(msg.arg1==AdsAdview.what1_interstitial){
 
             }else {
@@ -61,41 +59,9 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
             }
         }
     };
-    private long lastToastShow = 0l;
-
     @OnClick(R.id.fab_up)
     public void onClickFab(View view) {
-
-        Long lastClickTime = StaticDataUtil.get(Constants.SCORE_CLICK, Long.class, 0l);
-        long curent = System.currentTimeMillis();
-        long interval = curent - lastClickTime;
-        StaticDataUtil.add(Constants.SCORE_CLICK, System.currentTimeMillis());
-        if ((interval / 1000) < Constants.SCORE_CLICK_INTERVAL) {
-            if ((curent - lastToastShow) / 1000 >= Constants.SCORE_CLICK_INTERVAL) {
-                Toast.makeText(this, R.string.tab_fb_click_fast, Toast.LENGTH_SHORT).show();
-                lastToastShow = curent;
-            }
-            return;
-        }
-        if(StaticDataUtil.get(Constants.VPN_STATUS, Intent.class)!=null ){
-            if(NetUtils.isWifi(this)){
-                if(SystemUtils.isApkDebugable(this)){
-                    AdsAdview.videoAdsReq(getActivity(), mHandler);
-                }else {
-                    if (Md5.getRandom(10) % 2 == 0) {
-                        AdsAdview.videoAdsReq(getActivity(), mHandler);
-                    } else {
-                        AdsAdview.interstitialAds(this, mHandler);
-                    }
-                }
-            }else{
-                AdsAdview.interstitialAds(this, mHandler);
-            }
-
-        }else{
-            Toast.makeText(this, R.string.tab_fb_click_wifi, Toast.LENGTH_SHORT).show();
-        }
-
+        AdsPopStrategy.clickAdsShowBtn(this,mHandler);
     }
 
     @Override
@@ -162,7 +128,7 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
     public void showAds(Context context) {
         if (needShow(context)) {
             LogUtil.i("显示广告啦");
-            AdsAdview.bannerAds(context, flBanner, mHandler, Constants.ADS_ADVIEW_KEY_ACTIVITY);
+            AdsAdview.bannerAds(context, flBanner, mHandler, Constants.ADS_ADVIEW_KEY);
         } else {
             flBanner.setVisibility(View.GONE);
         }

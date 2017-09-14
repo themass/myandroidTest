@@ -2,6 +2,7 @@ package com.timeline.vpn.ui.main;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.TabLayout;
@@ -25,11 +26,11 @@ import com.sspacee.yewu.ads.adview.AdsAdview;
 import com.sspacee.yewu.um.MobAgent;
 import com.timeline.vpn.R;
 import com.timeline.vpn.constant.Constants;
-import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.data.config.ConfigActionJump;
 import com.timeline.vpn.data.config.LogAddTofile;
 import com.timeline.vpn.data.config.TabChangeEvent;
 import com.timeline.vpn.service.LogUploadService;
+import com.timeline.vpn.task.LoginTask;
 import com.timeline.vpn.ui.base.app.BaseDrawerActivity;
 import com.timeline.vpn.ui.inte.OnBackKeyDownListener;
 import com.timeline.vpn.ui.maintab.TabCustomeFragment;
@@ -107,7 +108,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
     protected void onResume() {
         super.onResume();
         if (!init) {
-            UserLoginUtil.initData(this);
+            new LoginTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
             init = true;
         }
     }

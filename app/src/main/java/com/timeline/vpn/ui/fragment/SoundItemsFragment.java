@@ -9,13 +9,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,8 +21,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.sspacee.common.ui.view.DividerItemDecoration;
-import com.sspacee.common.ui.view.MyPullView;
+import com.sspacee.common.ui.view.FavoriteImageView;
 import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.MediaUtil;
@@ -40,13 +35,10 @@ import com.timeline.vpn.bean.vo.InfoListVo;
 import com.timeline.vpn.bean.vo.RecommendVo;
 import com.timeline.vpn.bean.vo.SoundItemsVo;
 import com.timeline.vpn.constant.Constants;
-import com.timeline.vpn.data.BaseService;
-import com.timeline.vpn.data.FavoriteUtil;
 import com.timeline.vpn.data.StaticDataUtil;
 import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.service.PlayService;
 import com.timeline.vpn.ui.base.CommonFragmentActivity;
-import com.timeline.vpn.ui.base.LoadableFragment;
 
 import butterknife.BindView;
 import butterknife.OnClick;
@@ -63,18 +55,8 @@ import static com.timeline.vpn.service.PlayService.UPDATE_ACTION;
 /**
  * Created by themass on 2016/8/12.
  */
-public class SoundItemsFragment extends LoadableFragment<InfoListVo<SoundItemsVo>> implements SeekBar.OnSeekBarChangeListener, View.OnClickListener, BaseRecyclerViewAdapter.OnRecyclerViewItemClickListener<SoundItemsVo>, MyPullView.OnRefreshListener, FavoriteUtil.GetFavoriteListener, FavoriteUtil.ModFavoriteListener {
+public class SoundItemsFragment extends BasePullLoadbleFragment<SoundItemsVo> implements SeekBar.OnSeekBarChangeListener, View.OnClickListener {
     private static final String SOUND_TAG = "SOUND_TAG";
-    protected InfoListVo<SoundItemsVo> infoVo = new InfoListVo<>();
-    protected Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            LogUtil.i("handleMessage-" + msg.what);
-        }
-    };
-    @Nullable
-    @BindView(R.id.my_pullview)
-    MyPullView pullView;
     @Nullable
     @BindView(R.id.progress)
     SeekBar progressView;
@@ -100,9 +82,8 @@ public class SoundItemsFragment extends LoadableFragment<InfoListVo<SoundItemsVo
     @BindView(R.id.pb_loading)
     ProgressBar pbLoading;
     @BindView(R.id.iv_favorite)
-    ImageView ivFavorite;
+    FavoriteImageView ivFavorite;
     boolean ignorNet;
-    private BaseService indexService;
     private SoundItemsViewAdapter adapter;
     private String channel;
     private RecommendVo vo;
@@ -115,8 +96,8 @@ public class SoundItemsFragment extends LoadableFragment<InfoListVo<SoundItemsVo
             // We've bound to PlayerService, cast the IBindViewer and get PlayerService instance
             PlayService.LocalBinder binder = (PlayService.LocalBinder) service;
             mService = binder.getService();
-            if (!CollectionUtils.isEmpty(infoVo.voList)) {
-                mService.setData(infoVo.voList);
+            if (!CollectionUtils.isEmpty(infoListVo.voList)) {
+                mService.setData(infoListVo.voList);
             }
             mBound = true;
         }
@@ -142,20 +123,6 @@ public class SoundItemsFragment extends LoadableFragment<InfoListVo<SoundItemsVo
         intent.putExtra(CommonFragmentActivity.SLIDINGCLOSE, true);
         context.startActivity(intent);
     }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        vo = StaticDataUtil.get(Constants.SOUND_CHANNEL, RecommendVo.class);
-        StaticDataUtil.del(Constants.SOUND_CHANNEL);
-        channel = vo.param;
-        indexService = new BaseService();
-        indexService.setup(getActivity());
-        FavoriteUtil.getLocalFavoritesAsync(getActivity(), vo.param, this);
-        if (!UserLoginUtil.isVIP2() && NetUtils.isWifi(getActivity()))
-            AdsAdview.interstitialAds(getActivity(), mHandler);
-    }
-
     private void receiverReg() {
         homeReceiver = new PlayerReceiver();
         // 创建IntentFilter
@@ -177,31 +144,15 @@ public class SoundItemsFragment extends LoadableFragment<InfoListVo<SoundItemsVo
         getActivity().registerReceiver(netReceiver, filter1);
     }
 
-    @Override
-    public void modFavorite(boolean ret) {
-        modFavoriteBg(ret);
-    }
-
-    @Override
-    public void isFavorite(String itemUrl, boolean ret) {
-        modFavoriteBg(ret);
-    }
-
-    public void modFavoriteBg(boolean ret) {
-        ivFavorite.setVisibility(View.VISIBLE);
-        if (ret) {
-            ivFavorite.setBackgroundResource(R.drawable.ic_menu_favorite);
-        } else {
-            ivFavorite.setBackgroundResource(R.drawable.ic_menu_collect);
-        }
-    }
-
     @OnClick(R.id.iv_favorite)
     public void favoriteClick(View view) {
-        FavoriteUtil.modLocalFavoritesAsync(getActivity(), vo.tofavorite(Constants.FavoriteType.SOUND), this);
+        ivFavorite.clickFavorite(vo.tofavorite(Constants.FavoriteType.SOUND));
     }
 
     public void onClick(View view) {
+        if(mService==null){
+            return ;
+        }
         switch (view.getId()) {
             case R.id.iv_play:
                 if (isPlaying()) {
@@ -302,47 +253,34 @@ public class SoundItemsFragment extends LoadableFragment<InfoListVo<SoundItemsVo
     public void onContentViewCreated(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
         inflater.inflate(R.layout.layout_sound_list, parent, true);
     }
-
+    protected BaseRecyclerViewAdapter getAdapter(){
+        adapter = new SoundItemsViewAdapter(getActivity(), pullView.getRecyclerView(), infoListVo.voList, this);
+        return adapter;
+    }
     @Override
     public void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
-        adapter = new SoundItemsViewAdapter(getActivity(), pullView.getRecyclerView(), infoVo.voList, this);
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getActivity());
-        pullView.setLayoutManager(layoutManager);
-//        rvLocation.addItemDecoration(new RecycleViewDivider(mContext, LinearLayoutManager.VERTICAL));
-        DividerItemDecoration itemDecoration = new DividerItemDecoration(getActivity(), LinearLayoutManager.VERTICAL, R.drawable.divider_item);
-        pullView.setAdapter(adapter);
-        pullView.setListener(this);
-        pullView.getRecyclerView().addItemDecoration(itemDecoration);
+        vo = StaticDataUtil.get(Constants.SOUND_CHANNEL, RecommendVo.class);
+        StaticDataUtil.del(Constants.SOUND_CHANNEL);
+        channel = vo.param;
+        Intent intent = new Intent(getActivity(), PlayService.class);
+        getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+        ivFavorite.initSrc(vo.param);
+        if (!UserLoginUtil.isVIP2() && NetUtils.isWifi(getActivity()))
+            AdsAdview.interstitialAds(getActivity(), null);
         ivPre.setOnClickListener(this);
         ivPlay.setOnClickListener(this);
         ivNext.setOnClickListener(this);
         progressView.setOnSeekBarChangeListener(this);
         receiverReg();
-        Intent intent = new Intent(getActivity(), PlayService.class);
-        getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+
     }
 
     @Override
     protected void onDataLoaded(InfoListVo<SoundItemsVo> data) {
-        if (pullView != null) {
-            if (data != null) {
-                if (pullView.isLoadMore()) { //上拉加载
-                    infoVo.voList.addAll(data.voList);
-                } else { //下拉刷新 或者首次
-                    infoVo.voList.clear();
-                    infoVo.voList.addAll(data.voList);
-                }
-                infoVo.copy(data);
-                data.voList.clear();
-                data.voList.addAll(infoVo.voList);
-                setData(data);
-                LogUtil.i("mData size=" + infoVo.voList.size());
-            }
-            pullView.notifyDataSetChanged();
-            if (mService != null) {
-                mService.setData(infoVo.voList);
-            }
+        super.onDataLoaded(data);
+        if (mService != null) {
+            mService.setData(infoListVo.voList);
         }
     }
 
@@ -356,21 +294,8 @@ public class SoundItemsFragment extends LoadableFragment<InfoListVo<SoundItemsVo
     }
 
     @Override
-    public void onRefresh(int type) {
-        LogUtil.i("onRefresh");
-        if (type == MyPullView.OnRefreshListener.FRESH)
-            infoVo.pageNum = 0;
-        startQuery(false);
-    }
-
-    @Override
     protected InfoListVo<SoundItemsVo> loadData(Context context) throws Exception {
-        return indexService.getInfoListData(Constants.getPageWithParam_URL(Constants.API_SOUND_ITEMS_URL, infoVo.pageNum, channel), SoundItemsVo.class, SOUND_TAG);
-    }
-
-    @Override
-    public boolean needLoad() {
-        return infoVo.hasMore;
+        return indexService.getInfoListData(Constants.getPageWithParam_URL(Constants.API_SOUND_ITEMS_URL, infoListVo.pageNum, channel), SoundItemsVo.class, SOUND_TAG);
     }
 
     @Override
@@ -445,7 +370,7 @@ public class SoundItemsFragment extends LoadableFragment<InfoListVo<SoundItemsVo
             } else if (action.equals(UPDATE_ACTION)) {
                 //获取Intent中的current消息，current代表当前正在播放的歌曲
                 current = intent.getIntExtra(CURRENT, -1);
-                tvTitle.setText(infoVo.voList.get(current).name);
+                tvTitle.setText(infoListVo.voList.get(current).name);
                 LogUtil.i("当前播放更新：" + current);
             } else if (action.equals(MUSIC_PREPARED)) {
                 //获取Intent中的current消息，current代表当前正在播放的歌曲

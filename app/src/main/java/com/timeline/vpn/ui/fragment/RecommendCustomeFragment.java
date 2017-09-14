@@ -76,7 +76,7 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
        if(UserLoginUtil.getUserCache()!=null){
            super.onRefresh(type);
        }else {
-           startQuery(false);
+           pullView.setRefresh(false);
        }
     }
     @Override
@@ -86,7 +86,6 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
         } else {
             return new InfoListVo<RecommendVo>();
         }
-
     }
 
     @Override
@@ -98,8 +97,8 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
     @Override
     protected void initSort() {
         super.initSort();
-        if (CollectionUtils.isEmpty(sortList) && !CollectionUtils.isEmpty(infoVo.voList)) {
-            for (RecommendVo vo : infoVo.voList) {
+        if (CollectionUtils.isEmpty(sortList) && !CollectionUtils.isEmpty(infoListVo.voList)) {
+            for (RecommendVo vo : infoListVo.voList) {
                 sortList.add(vo.id);
             }
         }
@@ -107,11 +106,11 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
 
     @Override
     protected void sortData() {
-        Collections.sort(infoVo.voList, new MyComparator());
+        Collections.sort(infoListVo.voList, new MyComparator());
     }
 
     private void dataForView() {
-        if (!CollectionUtils.isEmpty(infoVo.voList)) {
+        if (!CollectionUtils.isEmpty(infoListVo.voList)) {
             if (llAdd != null)
                 llAdd.setVisibility(View.GONE);
         } else {
@@ -213,7 +212,7 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
                 builder.setPositiveButton(R.string.del_ok, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        Object o = infoVo.voList.get(postion);
+                        Object o = infoListVo.voList.get(postion);
                         indexService.postData(Constants.getUrl(Constants.API_DEL_CUSTOME), o, new CommonResponse.ResponseOkListener<NullReturnVo>(o) {
                             @Override
                             public void onResponse(NullReturnVo vo) {
@@ -236,7 +235,7 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
             @Override
             public void onClick(View v) {
                 popupWindow.dismiss();
-                RecommendVo o = infoVo.voList.get(postion);
+                RecommendVo o = infoListVo.voList.get(postion);
                 CustomeAddForm form = new CustomeAddForm(o.id, o.title, o.actionUrl);
                 AddCustomeInfoActivity.startActivity(getActivity(), form);
             }

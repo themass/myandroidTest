@@ -2,8 +2,11 @@ package com.timeline.vpn.ui.fragment;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.View;
 
+import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.ModelUtils;
 import com.timeline.vpn.R;
 import com.timeline.vpn.adapter.BaseRecyclerViewAdapter;
@@ -17,6 +20,7 @@ import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.FavoriteUtil;
 import com.timeline.vpn.data.config.FavoriteChangeEvent;
 import com.timeline.vpn.ui.base.CommonFragmentActivity;
+import com.timeline.vpn.ui.base.MenuOneContext;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -27,7 +31,7 @@ import java.util.List;
 /**
  * Created by themass on 2016/8/12.
  */
-public class FavoriteFragment extends BasePullLoadbleFragment<FavoriteVo>{
+public class FavoriteFragment extends BasePullLoadbleFragment<FavoriteVo> implements FavoriteUtil.ModFavoriteListener,MenuOneContext.MyOnMenuItemClickListener,BaseRecyclerViewAdapter.OnRecyclerViewItemLongClickListener<FavoriteVo> {
     private FavoriteViewAdapter adapter;
 
     public static void startFragment(Context context) {
@@ -49,6 +53,16 @@ public class FavoriteFragment extends BasePullLoadbleFragment<FavoriteVo>{
         return ret;
     }
 
+    @Override
+    public void setupViews(View view, Bundle savedInstanceState) {
+        super.setupViews(view, savedInstanceState);
+        EventBusUtil.getEventBus().register(this);
+    }
+    protected  BaseRecyclerViewAdapter getAdapter(){
+        adapter = new FavoriteViewAdapter(getActivity(), pullView.getRecyclerView(), infoListVo.voList, this);
+        adapter.setLongClickListener(this);
+        return adapter;
+    }
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(FavoriteChangeEvent event) {
         pullView.setRefresh(true);
@@ -71,8 +85,21 @@ public class FavoriteFragment extends BasePullLoadbleFragment<FavoriteVo>{
                 ImgGalleryFragment.startFragment(getActivity(), vo);
         }
     }
-    protected  BaseRecyclerViewAdapter getAdapter(){
-        adapter = new FavoriteViewAdapter(getActivity(), pullView.getRecyclerView(), infoListVo.voList, this);
-        return adapter;
+    @Override
+    public void onItemLongClick(View view, FavoriteVo data, int position){
+        MenuOneContext.showOneMenu(getActivity(),view,R.string.menu_favorite_cancel,FavoriteFragment.this,position);
+    }
+    @Override
+    public boolean onMenuItemClick(MenuItem item, int position){
+        FavoriteUtil.modLocalFavoritesAsync(getActivity(),infoListVo.voList.get(position),this);
+        return true;
+    }
+    public void modFavorite(boolean ret){
+        pullView.setRefresh(true);
+    }
+    @Override
+    public void onDestroyView() {
+        EventBusUtil.getEventBus().unregister(this);
+        super.onDestroyView();
     }
 }

@@ -97,9 +97,6 @@
             android:name=".ui.user.LoginActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".ui.log.FileLogActivity"
-            android:screenOrientation="portrait" />
-        <activity
             android:name=".ui.user.RegActivity"
             android:screenOrientation="portrait" />
         <activity
@@ -120,11 +117,6 @@
         <activity
             android:name=".ui.sound.MyFullScreenImageGalleryActivity"
             android:screenOrientation="portrait" />
-        <activity
-            android:name=".ui.config.BrowserConfigActivity"
-            android:launchMode="singleTask"
-            android:screenOrientation="portrait"
-            android:taskAffinity="com.qq.config_browser" />
         <activity
             android:name=".ui.base.CommonFragmentActivity"
             android:screenOrientation="portrait" />
@@ -147,7 +139,7 @@
         </service>
         <service android:name=".service.LogUploadService" />
         <service android:name=".service.LogToFileService" />
-
+        <service android:name=".service.PlayService" />
         <!-- 百度定位-->
         <service
             android:name="com.baidu.location.f"
@@ -202,9 +194,9 @@
             android:name="com.google.android.gms.ads.AdActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:theme="@android:style/Theme.Translucent" />
-        <meta-data
-            android:name="com.google.android.gms.version"
-             tools:replace="android:value"  android:value="8487000" />
+        <!--<meta-data-->
+            <!--android:name="com.google.android.gms.version"-->
+             <!--tools:replace="android:value"  android:value="8487000" />-->
     </application>
 
 </manifest>

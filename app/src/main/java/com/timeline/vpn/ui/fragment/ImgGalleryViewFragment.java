@@ -17,7 +17,6 @@ import com.timeline.vpn.bean.vo.ImgItemVo;
 import com.timeline.vpn.bean.vo.ImgItemsVo;
 import com.timeline.vpn.bean.vo.InfoListVo;
 import com.timeline.vpn.constant.Constants;
-import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.data.StaticDataUtil;
 import com.timeline.vpn.ui.base.CommonFragmentActivity;
 import com.timeline.vpn.ui.base.LoadableFragment;
@@ -35,9 +34,7 @@ public class ImgGalleryViewFragment extends LoadableFragment<InfoListVo<ImgItemV
     @Nullable
     @BindView(R.id.bigImagePreview)
     BigImagePreview mPreview;
-    private BaseService indexService;
     private ImgItemsVo vo;
-    private List<Integer> mUrlList;
     private List<Integer> mImgWidthList;
     private List<Integer> mImgHeightList;
     private int times;
@@ -56,16 +53,6 @@ public class ImgGalleryViewFragment extends LoadableFragment<InfoListVo<ImgItemV
         intent.putExtra(CommonFragmentActivity.TOOLBAR_SHOW, false);
         context.startActivity(intent);
     }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        indexService = new BaseService();
-        indexService.setup(getActivity());
-        vo = StaticDataUtil.get(Constants.IMG_ITEMS, ImgItemsVo.class);
-        StaticDataUtil.del(Constants.IMG_ITEMS);
-    }
-
     @Override
     public void onContentViewCreated(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
         inflater.inflate(R.layout.layout_img_gallery, parent, true);
@@ -74,8 +61,8 @@ public class ImgGalleryViewFragment extends LoadableFragment<InfoListVo<ImgItemV
     @Override
     public void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
-        indexService = new BaseService();
-        indexService.setup(getActivity());
+        vo = StaticDataUtil.get(Constants.IMG_ITEMS, ImgItemsVo.class);
+        StaticDataUtil.del(Constants.IMG_ITEMS);
         mImgWidthList = new ArrayList<>();
         mImgHeightList = new ArrayList<>();
     }

@@ -20,6 +20,9 @@ public class LocationUtil {
     }
     public static String getName(Context context) {
         LocationVo vo = PreferenceUtils.getPrefObj(context, Constants.LOCATION_CHOOSE, LocationVo.class);
+        if(vo==null){
+            return Constants.DEFULT_LOCATION_NAME;
+        }
         return vo.name;
     }
     public static int getSelectId(Context context) {

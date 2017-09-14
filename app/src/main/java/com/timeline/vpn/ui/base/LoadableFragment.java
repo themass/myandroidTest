@@ -21,6 +21,7 @@ import com.sspacee.common.util.ViewUtils;
 import com.sspacee.yewu.net.VolleyUtils;
 import com.timeline.vpn.R;
 import com.timeline.vpn.bean.vo.InfoListVo;
+import com.timeline.vpn.data.BaseService;
 
 import java.lang.ref.WeakReference;
 import java.util.List;
@@ -50,7 +51,7 @@ public abstract class LoadableFragment<T> extends BaseFragment {
     private int DEFAULT_LAYOUT = R.layout.base_loadable_fragment;
     private int fragmentLayoutId = DEFAULT_LAYOUT;
     private TextView tvRetry;
-
+    protected BaseService indexService;
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
@@ -64,6 +65,8 @@ public abstract class LoadableFragment<T> extends BaseFragment {
 
     @Override
     protected void setupViews(View view, Bundle savedInstanceState) {
+        indexService = new BaseService();
+        indexService.setup(getActivity());
         mLoadingView = ViewUtils.find(view, R.id.loading);
         mLoadRetryView = ViewUtils.find(view, R.id.load_retry);
         mContentView = ViewUtils.find(view, R.id.content);
