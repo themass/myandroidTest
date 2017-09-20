@@ -22,7 +22,7 @@ import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PermissionHelper;
 import com.sspacee.common.util.PreferenceUtils;
-import com.sspacee.yewu.ads.adview.AdsAdview;
+import com.sspacee.yewu.ads.base.BaseAdsController;
 import com.sspacee.yewu.um.MobAgent;
 import com.timeline.vpn.R;
 import com.timeline.vpn.constant.Constants;
@@ -72,8 +72,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         startService(CharonVpnService.class);
         EventBusUtil.getEventBus().register(jump);
         EventBusUtil.getEventBus().register(logAdd);
-        AdsAdview.initConfig(this);
-        AdsAdview.init(this);
+        BaseAdsController.init(this);
         mPermissionHelper = new PermissionHelper(this);
         boolean uploadLog = PreferenceUtils.getPrefBoolean(this, Constants.LOG_UPLOAD_CONFIG, false);
         if (uploadLog) {
@@ -182,6 +181,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         stopService(LogUploadService.class);
         EventBusUtil.getEventBus().unregister(jump);
         EventBusUtil.getEventBus().unregister(logAdd);
+        BaseAdsController.exitApp(this);
         super.onDestroy();
         MobAgent.killProcess(this);
         System.exit(0);

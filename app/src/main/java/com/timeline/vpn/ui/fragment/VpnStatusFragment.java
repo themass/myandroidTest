@@ -16,7 +16,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.Message;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -27,7 +26,7 @@ import android.widget.Toast;
 
 import com.sspacee.common.ui.base.BaseFragment;
 import com.sspacee.common.util.LogUtil;
-import com.sspacee.yewu.ads.adview.AdsAdview;
+import com.sspacee.yewu.ads.base.BaseAdsController;
 import com.sspacee.yewu.net.HttpUtils;
 import com.sspacee.yewu.net.request.CommonResponse;
 import com.sspacee.yewu.um.MobAgent;
@@ -57,12 +56,6 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
     private static final int PREPARE_VPN_SERVICE = 0;
     public static boolean isFrist = true;
     private static boolean isAnim = false;
-    protected Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            LogUtil.i("handleMessage-" + msg.what);
-        }
-    };
     @BindView(R.id.tv_vpn_state_text)
     TextView tvVpnText;
     @BindView(R.id.iv_vpn_state)
@@ -156,7 +149,7 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
     @OnClick(R.id.iv_vpn_state)
     public void onVpnClick(View v) {
         if (isFrist && !UserLoginUtil.isVIP()) {
-            AdsAdview.interstitialAds(getActivity(), mHandler);
+            BaseAdsController.interstitialAds(getActivity());
             isFrist = false;
         }
         if (mService != null) {
@@ -330,10 +323,14 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
         @Override
         protected HostVo doInBackground(HostVo... params) {
             HostVo vo = params[0];
-            vo.ttlTime = HttpUtils.ping(vo.gateway);
-            LogUtil.i(vo.toString());
-            if (vo.ttlTime > 0) {
-                startVpn(server, vo);
+            try {
+                vo.ttlTime = HttpUtils.ping(vo.gateway);
+                LogUtil.i(vo.toString());
+                if (vo.ttlTime > 0) {
+                    startVpn(server, vo);
+                }
+            }catch (Exception e){
+                LogUtil.e(e);
             }
             return vo;
         }

@@ -33,6 +33,12 @@
         style="@style/list_itme_name"
         android:layout_toLeftOf="@+id/iv_song"
         android:layout_toRightOf="@+id/tv_index" />
-
+    <RelativeLayout
+        android:id="@+id/rv_ads"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tv_index"
+        android:visibility="gone">
+    </RelativeLayout>
 
 </RelativeLayout>

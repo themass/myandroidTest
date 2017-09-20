@@ -7,7 +7,9 @@ import android.support.v4.app.Fragment;
 import android.view.View;
 
 import com.sspacee.common.util.LogUtil;
+import com.sspacee.yewu.ads.base.BaseAdsController;
 import com.timeline.vpn.R;
+import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.ui.base.app.BaseFragmentActivity;
 import com.timeline.vpn.ui.fragment.SoundChannleBodyFragment;
 
@@ -31,6 +33,8 @@ public class SoundChannleActivity extends BaseFragmentActivity {
                 .add(R.id.fragment, fragment)
                 .commitAllowingStateLoss();
         setToolbarTitle(R.string.sound, true);
+        if (!UserLoginUtil.isVIP2())
+            BaseAdsController.interstitialAds(this, BaseAdsController.AdsFrom.YOUMI);
     }
 
     @Override
@@ -41,4 +45,9 @@ public class SoundChannleActivity extends BaseFragmentActivity {
     protected boolean enableSliding() {
         return true;
     }
+    @Override
+    protected BaseAdsController.AdsFrom getBannerAdsFrom() {
+        return BaseAdsController.AdsFrom.YOUMI;
+    }
+
 }

@@ -19,7 +19,7 @@ import com.sspacee.common.util.GsonUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PreferenceUtils;
 import com.timeline.vpn.R;
-import com.timeline.vpn.adapter.BaseRecyclerViewAdapter;
+import com.timeline.vpn.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.vpn.adapter.LocationViewAdapter;
 import com.timeline.vpn.bean.vo.InfoListVo;
 import com.timeline.vpn.bean.vo.LocationVo;
@@ -67,6 +67,8 @@ public class LocationChooseFragment extends LoadableFragment<List<LocationVo>> i
         intent.putExtra(CommonFragmentActivity.FRAGMENT, LocationChooseFragment.class);
         intent.putExtra(CommonFragmentActivity.TITLE, getFragmentTitle());
         intent.putExtra(CommonFragmentActivity.SLIDINGCLOSE, true);
+        intent.putExtra(CommonFragmentActivity.ADS, true);
+        intent.putExtra(CommonFragmentActivity.ADSSCROLL, false);
         context.startActivity(intent);
     }
 

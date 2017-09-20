@@ -26,17 +26,16 @@ import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.MediaUtil;
 import com.sspacee.common.util.PreferenceUtils;
-import com.sspacee.yewu.ads.adview.AdsAdview;
+import com.sspacee.yewu.ads.base.BaseAdsController;
 import com.sspacee.yewu.net.NetUtils;
 import com.timeline.vpn.R;
-import com.timeline.vpn.adapter.BaseRecyclerViewAdapter;
 import com.timeline.vpn.adapter.SoundItemsViewAdapter;
+import com.timeline.vpn.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.vpn.bean.vo.InfoListVo;
 import com.timeline.vpn.bean.vo.RecommendVo;
 import com.timeline.vpn.bean.vo.SoundItemsVo;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.StaticDataUtil;
-import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.service.PlayService;
 import com.timeline.vpn.ui.base.CommonFragmentActivity;
 
@@ -121,6 +120,9 @@ public class SoundItemsFragment extends BasePullLoadbleFragment<SoundItemsVo> im
         intent.putExtra(CommonFragmentActivity.ADS, true);
         intent.putExtra(CommonFragmentActivity.ADSSCROLL, false);
         intent.putExtra(CommonFragmentActivity.SLIDINGCLOSE, true);
+        intent.putExtra(CommonFragmentActivity.BANNER_FROM,BaseAdsController.AdsFrom.YOUMI);
+        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS, true);
+        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_FROM, BaseAdsController.AdsFrom.YOUMI);
         context.startActivity(intent);
     }
     private void receiverReg() {
@@ -266,12 +268,13 @@ public class SoundItemsFragment extends BasePullLoadbleFragment<SoundItemsVo> im
         Intent intent = new Intent(getActivity(), PlayService.class);
         getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
         ivFavorite.initSrc(vo.param);
-        if (!UserLoginUtil.isVIP2() && NetUtils.isWifi(getActivity()))
-            AdsAdview.interstitialAds(getActivity(), null);
         ivPre.setOnClickListener(this);
         ivPlay.setOnClickListener(this);
         ivNext.setOnClickListener(this);
         progressView.setOnSeekBarChangeListener(this);
+//        ViewGroup group= (ViewGroup)LayoutInflater.from(getActivity()).inflate(R.layout.layout_youmi_native_video,null);
+//        BaseAdsController.nativeVideoAds(getActivity(),group);
+//        adapter.setFooterView(group);
         receiverReg();
 
     }
@@ -351,34 +354,38 @@ public class SoundItemsFragment extends BasePullLoadbleFragment<SoundItemsVo> im
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            if (action.equals(MUSIC_PREPAREING)) {
-                pbLoading.setVisibility(View.VISIBLE);
-                tvTime.setVisibility(View.GONE);
-                return;
-            }
-            pbLoading.setVisibility(View.GONE);
-            tvTime.setVisibility(View.VISIBLE);
-            if (action.equals(MUSIC_CURRENT)) {
-                currentTime = intent.getIntExtra(CURRENTTIME, -1);
-                tvTime.setText(MediaUtil.formatTime(currentTime));
-                progressView.setProgress(currentTime);
-            } else if (action.equals(MUSIC_DURATION)) {
-                int duration = intent.getIntExtra(DURATION, -1);
-                progressView.setMax(duration);
-                tvDuration.setText(MediaUtil.formatTime(duration));
-            } else if (action.equals(UPDATE_ACTION)) {
-                //获取Intent中的current消息，current代表当前正在播放的歌曲
-                current = intent.getIntExtra(CURRENT, -1);
-                tvTitle.setText(infoListVo.voList.get(current).name);
-                LogUtil.i("当前播放更新：" + current);
-            } else if (action.equals(MUSIC_PREPARED)) {
-                //获取Intent中的current消息，current代表当前正在播放的歌曲
-                ivPlay.setImageResource(android.R.drawable.ic_media_pause);
-                if (!checkCanPlay() && isPlaying()) {
-                    pause();
-                    showUpdateDialog(getActivity());
+            try {
+                String action = intent.getAction();
+                if (action.equals(MUSIC_PREPAREING)) {
+                    pbLoading.setVisibility(View.VISIBLE);
+                    tvTime.setVisibility(View.GONE);
+                    return;
                 }
+                pbLoading.setVisibility(View.GONE);
+                tvTime.setVisibility(View.VISIBLE);
+                if (action.equals(MUSIC_CURRENT)) {
+                    currentTime = intent.getIntExtra(CURRENTTIME, -1);
+                    tvTime.setText(MediaUtil.formatTime(currentTime));
+                    progressView.setProgress(currentTime);
+                } else if (action.equals(MUSIC_DURATION)) {
+                    int duration = intent.getIntExtra(DURATION, -1);
+                    progressView.setMax(duration);
+                    tvDuration.setText(MediaUtil.formatTime(duration));
+                } else if (action.equals(UPDATE_ACTION)) {
+                    //获取Intent中的current消息，current代表当前正在播放的歌曲
+                    current = intent.getIntExtra(CURRENT, -1);
+                    tvTitle.setText(infoListVo.voList.get(current).name);
+                    LogUtil.i("当前播放更新：" + current);
+                } else if (action.equals(MUSIC_PREPARED)) {
+                    //获取Intent中的current消息，current代表当前正在播放的歌曲
+                    ivPlay.setImageResource(android.R.drawable.ic_media_pause);
+                    if (!checkCanPlay() && isPlaying()) {
+                        pause();
+                        showUpdateDialog(getActivity());
+                    }
+                }
+            } catch (Exception e) {
+                LogUtil.e(e);
             }
         }
     }

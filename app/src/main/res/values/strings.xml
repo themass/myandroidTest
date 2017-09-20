@@ -24,7 +24,7 @@
     <string name="tab_tag_customer">customer</string>
     <string name="tab_vip_temp">Content preparation。。。Coming soon</string>
     <string name="tab_fb_click">Points me earn points, Change VIP。。+</string>
-    <string name="tab_fb_click_fast">Too fast,please wait 15 seconds</string>
+    <string name="tab_fb_click_fast">Too fast,please wait 8 seconds</string>
     <string name="tab_fb_click_wifi">Please use it under Dis conn VPN </string>
     <!-- Application -->
     <string name="app_name">FreeVPN</string>
@@ -36,10 +36,11 @@
     <!-- 地区选择-->
     <string name="location_type">type</string>
     <string name="location_country">country</string>
-    <string name="location_features">name</string>
+    <string name="location_features">name&#038;ping</string>
     <string name="location_choose_title">Region selection</string>
-    <string name="location_choose_level">Network：</string>
+    <string name="location_choose_level">Net ：</string>
     <string name="location_choose_none">Random</string>
+    <string name="location_choose_ping">Ping：</string>
     <string name="menu_haha">Yo! You found it.</string>
     <!-- menu -->
     <string name="menu_btn_login">Login</string>
@@ -52,6 +53,7 @@
     <string name="menu_btn_version">Version:</string>
     <string name="menu_btn_logout">Logout</string>
     <string name="menu_btn_setting">Setting</string>
+    <string name="menu_btn_support">support author</string>
     <string name="menu_btn_about_context">FreeVPN the most stable, free, unlimited，all for you！</string>
     <string name="feed_back">Feedback</string>
     <string name="menu_btn_score">Points:</string>
@@ -65,6 +67,8 @@
     <string name="menu_btn_favorite">My favorite</string>
     <string name="menu_favorite">Favorite</string>
     <string name="menu_favorite_cancel">Cancel Favorite</string>
+    <string name="support_info">Please activate several apps to support the author！</string>
+    <string name="offerads_ths">Thank you for your support!</string>
     <string name="location_choose_flag_none">Click“ Region ”More regional options</string>
 
     <!-- share-->
@@ -127,7 +131,7 @@
     <string name="vpn_need">Maybe need conn VPN first</string>
     <string name="vpn_type_free">Free</string>
     <string name="vpn_type_vip">VIP</string>
-    <string name="vpn_type_advip">highVIP</string>
+    <string name="vpn_type_vip2">VIP2</string>
     <string name="vpn_remote_status">FreeVPN·</string>
     <string name="vpn_remote_on">Connected，click to disconnect</string>
     <string name="vpn_remote_off">Disconnect，click to connect</string>

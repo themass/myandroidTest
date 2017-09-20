@@ -12,7 +12,7 @@ import com.sspacee.common.ui.view.DividerItemDecoration;
 import com.sspacee.common.ui.view.MyPullView;
 import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.R;
-import com.timeline.vpn.adapter.BaseRecyclerViewAdapter;
+import com.timeline.vpn.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.vpn.bean.vo.InfoListVo;
 import com.timeline.vpn.ui.base.LoadableFragment;
 

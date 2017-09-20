@@ -11,7 +11,8 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
-
+    <uses-permission android:name="android.permission.GET_TASKS" />
+    <uses-permission android:name="android.permission.REAL_GET_TASKS" />
     <uses-permission android:name="android.permission.USE_CREDENTIALS" />
     <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -161,25 +162,25 @@
 
         <!-- AdView SDK for Youmi -->
         <!-- 视频组件 -->
+        <!-- 视频组件 -->
         <activity
             android:name="net.youmi.android.nm.vdo.VideoActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout"
             android:resizeableActivity="false"
             android:screenOrientation="landscape"
             android:taskAffinity=""
-            android:theme="@android:style/Theme.NoTitleBar" >
-        </activity >
+            android:theme="@android:style/Theme.NoTitleBar"></activity>
 
-        <!--&lt;!&ndash; 有米SDK为了兼容Android N应用间共享文件行为变更而需要配置的FileProvider &ndash;&gt;-->
-        <!--<provider-->
-            <!--android:name="android.support.v4.content.FileProvider"-->
-            <!--android:authorities="com.youmi.android.addemo.fileProvider"-->
-            <!--android:exported="false"-->
-            <!--android:grantUriPermissions="true" >-->
-            <!--<meta-data-->
-                <!--android:name="android.support.FILE_PROVIDER_PATHS"-->
-                <!--android:resource="@xml/file_provider" />-->
-        <!--</provider >-->
+        <!-- 有米SDK为了兼容Android N应用间共享文件行为变更而需要配置的FileProvider -->
+        <provider
+            android:name="android.support.v4.content.FileProvider"
+            android:authorities="com.timeline.vpn.fileProvider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_provider" />
+        </provider>
         <!-- AdView SDK for tencent Gdt -->
         <service
             android:name="com.qq.e.comm.DownloadService"
@@ -195,8 +196,8 @@
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:theme="@android:style/Theme.Translucent" />
         <!--<meta-data-->
-            <!--android:name="com.google.android.gms.version"-->
-             <!--tools:replace="android:value"  android:value="8487000" />-->
+        <!--android:name="com.google.android.gms.version"-->
+        <!--tools:replace="android:value"  android:value="8487000" />-->
     </application>
 
 </manifest>

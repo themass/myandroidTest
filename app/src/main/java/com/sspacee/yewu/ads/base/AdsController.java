@@ -1,4 +1,4 @@
-package com.sspacee.yewu.ads.adview;
+package com.sspacee.yewu.ads.base;
 
 import android.content.Context;
 

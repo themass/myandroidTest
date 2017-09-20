@@ -9,7 +9,7 @@ import android.view.View;
 import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.ModelUtils;
 import com.timeline.vpn.R;
-import com.timeline.vpn.adapter.BaseRecyclerViewAdapter;
+import com.timeline.vpn.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.vpn.adapter.FavoriteViewAdapter;
 import com.timeline.vpn.bean.vo.FavoriteVo;
 import com.timeline.vpn.bean.vo.ImgItemsVo;

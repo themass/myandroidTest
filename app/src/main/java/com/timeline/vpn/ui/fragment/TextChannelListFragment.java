@@ -11,11 +11,10 @@ import android.view.ViewGroup;
 import android.widget.SearchView;
 
 import com.sspacee.common.util.StringUtils;
-import com.sspacee.yewu.ads.adview.AdsAdview;
-import com.sspacee.yewu.net.NetUtils;
+import com.sspacee.yewu.ads.base.BaseAdsController;
 import com.timeline.vpn.R;
-import com.timeline.vpn.adapter.BaseRecyclerViewAdapter;
 import com.timeline.vpn.adapter.TextChannelListItemsViewAdapter;
+import com.timeline.vpn.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.vpn.bean.vo.FavoriteVo;
 import com.timeline.vpn.bean.vo.InfoListVo;
 import com.timeline.vpn.bean.vo.RecommendVo;
@@ -24,7 +23,6 @@ import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.FavoriteUtil;
 import com.timeline.vpn.data.HistoryUtil;
 import com.timeline.vpn.data.StaticDataUtil;
-import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.ui.base.CommonFragmentActivity;
 import com.timeline.vpn.ui.base.MenuOneContext;
 
@@ -51,6 +49,8 @@ public class TextChannelListFragment extends BasePullLoadbleFragment<TextItemsVo
         intent.putExtra(CommonFragmentActivity.ADS, false);
         intent.putExtra(CommonFragmentActivity.ADSSCROLL, false);
         intent.putExtra(CommonFragmentActivity.SLIDINGCLOSE, true);
+        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS, true);
+        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_FROM, BaseAdsController.AdsFrom.YOUMI);
         context.startActivity(intent);
     }
 
@@ -71,8 +71,7 @@ public class TextChannelListFragment extends BasePullLoadbleFragment<TextItemsVo
         super.setupViews(view, savedInstanceState);
         vo = StaticDataUtil.get(Constants.TEXT_CHANNEL, RecommendVo.class);
         StaticDataUtil.del(Constants.TEXT_CHANNEL);
-        if (!UserLoginUtil.isVIP2() && NetUtils.isWifi(getActivity()))
-            AdsAdview.interstitialAds(getActivity(), null);
+
         mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             // 当点击搜索按钮时触发该方法
             @Override
@@ -133,6 +132,6 @@ public class TextChannelListFragment extends BasePullLoadbleFragment<TextItemsVo
     public void onDestroyView() {
         indexService.cancelRequest(TEXT_TAG);
         super.onDestroyView();
-
     }
+
 }

@@ -1,16 +1,13 @@
 package com.timeline.vpn.ui.base.features;
 
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
 import android.view.View;
 import android.view.animation.OvershootInterpolator;
 
 import com.sspacee.common.util.LogUtil;
-import com.sspacee.yewu.ads.adview.AdsAdview;
+import com.sspacee.yewu.ads.base.BaseAdsController;
 import com.timeline.vpn.R;
-import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.AdsPopStrategy;
 import com.timeline.vpn.ui.inte.OnBackKeyDownListener;
 import com.timeline.vpn.ui.main.MainFragmentViewPage;
@@ -25,31 +22,16 @@ public abstract class TabBaseAdsFragment extends TabBaseFragment implements OnBa
     private static final int ANIM_DURATION_FAB = 400;
     @BindView(R.id.fab_up)
     public FloatingActionButton fabUp;
-    protected Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            LogUtil.i("handmes what="+msg.what+"; arg1="+msg.arg1);
-            if(msg.arg1==AdsAdview.what1_video){
-                if(msg.what== Constants.ADS_READY_MSG) {
-                    AdsAdview.videoAdsShow(getActivity());
-                }else if(msg.what==Constants.ADS_NO_MSG){
-                    AdsAdview.interstitialAds(getActivity(), this);
-                }
-            }else if(msg.arg1==AdsAdview.what1_interstitial){
-
-            }
-        }
-    };
     private long lastToastShow = 0l;
     private boolean pendingIntroAnimation;
 
     @OnClick(R.id.fab_up)
     public void onClickFab(View view) {
-        AdsPopStrategy.clickAdsShowBtn(getActivity(),mHandler);
+        AdsPopStrategy.clickAdsShowBtn(getActivity());
     }
 
     public void next() {
-        AdsAdview.interstitialAds(getActivity(), mHandler);
+        BaseAdsController.interstitialAds(getActivity());
     }
 
     @Override

@@ -10,7 +10,7 @@ android {
         minSdkVersion global_minSdkVersion
         targetSdkVersion global_targetSdkVersion
         versionCode 1000003000
-        versionName "1.0.3.8"
+        versionName "1.0.3.0"
         // Enabling multidex support.
         multiDexEnabled true
     }
@@ -97,11 +97,12 @@ dependencies {
 //    compile files('libs/google-play-services.jar')
 
     compile files('libs/play-services_aar_adapter.jar')
+    compile files('libs/domob_android_sdk.jar')
 //    compile (name:'play-services-ads-lite',ext:"aar")
     compile 'com.google.android.gms:play-services-ads:11.0.0'
 
-    compile files('libs/YoumiSdk_aar_adapter.jar')
-    compile (name:'YoumiSdk',ext:'aar')
+//    compile files('libs/YoumiSdk_aar_adapter.jar')
+    compile (name:'YoumiSdk_v7.5.0_2017-07-18',ext:'aar')
 
 //    compile(name: 'glide-transformations-2.0.1', ext: 'aar',)
     compile "com.android.support:appcompat-v7:$APPCOMPAT_VERSION"

@@ -19,6 +19,7 @@ import com.sspacee.common.helper.OnStartDragListener;
 import com.sspacee.common.util.DensityUtil;
 import com.sspacee.common.util.StringUtils;
 import com.timeline.vpn.R;
+import com.timeline.vpn.adapter.base.BasePhotoFlowRecycleViewAdapter;
 import com.timeline.vpn.bean.vo.RecommendVo;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.ImagePhotoLoad;

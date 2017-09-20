@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.timeline.vpn.R;
+import com.timeline.vpn.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.vpn.bean.vo.ImgItemsVo;
 import com.timeline.vpn.bean.vo.TextItemsVo;
 import com.timeline.vpn.data.HistoryUtil;
@@ -27,14 +28,13 @@ public class ImgChannelListItemsViewAdapter extends BaseRecyclerViewAdapter<ImgC
     }
 
     @Override
-    public ImgChannleListView onCreateViewHolder(ViewGroup parent, int viewType) {
+    public ImgChannleListView onCreateViewHolderData(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(context).inflate(R.layout.layout_channel_items_item, parent, false);
         return new ImgChannleListView(view, this, this);
     }
 
-    @Override
-    public void onBindViewHolder(ImgChannleListView holder, int position) {
-        super.onBindViewHolder(holder, position);
+    public void onBindViewHolderData(RecyclerView.ViewHolder h, int position) {
+        ImgChannleListView holder = (ImgChannleListView)h;
         ImgItemsVo vo = data.get(position);
         holder.tvIndex.setText("#" + (position + 1));
         holder.tvName.setText(vo.name);
@@ -47,12 +47,6 @@ public class ImgChannelListItemsViewAdapter extends BaseRecyclerViewAdapter<ImgC
             holder.tvName.setTextColor(context.getResources().getColor(R.color.base_black));
         }
     }
-
-    @Override
-    public int getItemCount() {
-        return data.size();
-    }
-
     public static class ImgChannleListView extends BaseRecyclerViewAdapter.BaseRecyclerViewHolder<TextItemsVo> {
         @Nullable
         @BindView(R.id.tv_index)

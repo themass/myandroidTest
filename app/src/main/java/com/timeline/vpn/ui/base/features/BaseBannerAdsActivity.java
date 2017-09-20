@@ -10,14 +10,19 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.OvershootInterpolator;
 
+import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PreferenceUtils;
-import com.sspacee.yewu.ads.adview.AdsAdview;
-import com.sspacee.yewu.ads.adview.AdsController;
+import com.sspacee.yewu.ads.base.AdsController;
+import com.sspacee.yewu.ads.base.BaseAdsController;
 import com.timeline.vpn.R;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.AdsPopStrategy;
+import com.timeline.vpn.data.config.HindBannerEvent;
 import com.timeline.vpn.ui.base.app.BaseToolBarActivity;
+
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import butterknife.BindView;
 import butterknife.OnClick;
@@ -40,28 +45,12 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
     protected Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-            LogUtil.i("handmes what="+msg.what+"; arg1="+msg.arg1);
-            if(msg.arg1==AdsAdview.what1_video){
-                if(msg.what==Constants.ADS_READY_MSG) {
-                    AdsAdview.videoAdsShow(BaseBannerAdsActivity.this);
-                }else if(msg.what==Constants.ADS_NO_MSG){
-                    AdsAdview.interstitialAds(BaseBannerAdsActivity.this, this);
-                }
-            }else if(msg.arg1==AdsAdview.what1_interstitial){
-
-            }else {
-                LogUtil.i("handleMessage-" + msg.what);
-                if (msg.what == Constants.ADS_NO_MSG || msg.what == Constants.ADS_DISMISS_MSG) {
-                    mHandler.postDelayed(task, 0);
-                } else {
-                    mHandler.postDelayed(task, Constants.BANNER_ADS_GONE_LONG);
-                }
-            }
+            mHandler.postDelayed(task, Constants.BANNER_ADS_GONE_LONG);
         }
     };
     @OnClick(R.id.fab_up)
     public void onClickFab(View view) {
-        AdsPopStrategy.clickAdsShowBtn(this,mHandler);
+        AdsPopStrategy.clickAdsShowBtn(this);
     }
 
     @Override
@@ -70,7 +59,7 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
         getLayoutInflater().inflate(layoutResID, (ViewGroup) findViewById(R.id.fl_content), true);
         bindViews();
         setupToolbar();
-
+        EventBusUtil.getEventBus().register(this);
         fabUp.setVisibility(View.GONE);
 //        flBanner.setBackgroundResource(R.color.base_white);
     }
@@ -128,10 +117,13 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
     public void showAds(Context context) {
         if (needShow(context)) {
             LogUtil.i("显示广告啦");
-            AdsAdview.bannerAds(context, flBanner, mHandler, Constants.ADS_ADVIEW_KEY);
+            BaseAdsController.bannerAds(context, flBanner,getBannerAdsFrom());
         } else {
             flBanner.setVisibility(View.GONE);
         }
+    }
+    protected BaseAdsController.AdsFrom getBannerAdsFrom(){
+        return BaseAdsController.AdsFrom.ADVIEW;
     }
 
     @Override
@@ -146,6 +138,16 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
             flBanner.setVisibility(View.GONE);
         }
         mHandler.removeCallbacks(task);
+    }
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(HindBannerEvent event) {
+        hidenAds(this);
+    }
+    @Override
+    public void onDestroy() {
+        BaseAdsController.exitBanner(this,flBanner);
+        EventBusUtil.getEventBus().unregister(this);
+        super.onDestroy();
     }
 
     class AdsGoneTask implements Runnable {

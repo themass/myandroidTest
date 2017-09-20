@@ -11,4 +11,26 @@ public class LocationVo {
     public int type;
     public String cityName;
     public int level;
+    public String gateway;
+    public int hostId=0;
+    public int port;
+    public int ttlTime;
+    public Integer ping;
+
+    @Override
+    public String toString() {
+        return "LocationVo{" +
+                "id=" + id +
+                ", img='" + img + '\'' +
+                ", name='" + name + '\'' +
+                ", ename='" + ename + '\'' +
+                ", type=" + type +
+                ", cityName='" + cityName + '\'' +
+                ", level=" + level +
+                ", gateway='" + gateway + '\'' +
+                ", port=" + port +
+                ", ttlTime=" + ttlTime +
+                ", ping='" + ping + '\'' +
+                '}';
+    }
 }

@@ -9,14 +9,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
 import com.timeline.vpn.R;
+import com.timeline.vpn.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.vpn.bean.vo.LocationVo;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.ImagePhotoLoad;
 import com.timeline.vpn.data.LocationUtil;
+import com.timeline.vpn.task.LocationPingTask;
 
 import java.util.List;
 
@@ -36,16 +39,14 @@ public class LocationViewAdapter extends BaseRecyclerViewAdapter<LocationViewAda
         indexColo = context.getResources().getColorStateList(R.color.location_index);
         indexSelectColo = context.getResources().getColorStateList(R.color.base_red);
     }
-
     @Override
-    public LocationViewAdapter.LocationItemView onCreateViewHolder(ViewGroup parent, int viewType) {
+    public LocationViewAdapter.LocationItemView onCreateViewHolderData(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(context).inflate(R.layout.layout_location_choose_item, parent, false);
         return new LocationViewAdapter.LocationItemView(view, this, this);
     }
 
-    @Override
-    public void onBindViewHolder(LocationViewAdapter.LocationItemView holder, int position) {
-        super.onBindViewHolder(holder, position);
+    public void onBindViewHolderData(RecyclerView.ViewHolder h, int position) {
+        LocationViewAdapter.LocationItemView holder = (LocationViewAdapter.LocationItemView)h;
         LocationVo vo = data.get(position);
 
         if (chooseId == vo.id) {
@@ -64,18 +65,14 @@ public class LocationViewAdapter extends BaseRecyclerViewAdapter<LocationViewAda
         } else if (vo.type == Constants.LOCATION_TYPE_VIP) {
             holder.ivType.setImageResource(R.drawable.bg_type_vip);
             holder.tvType.setText(R.string.vpn_type_vip);
-        } else {
+        } else if (vo.type == Constants.LOCATION_TYPE_VIP2) {
             holder.ivType.setImageResource(R.drawable.bg_type_advip);
-            holder.tvType.setText(R.string.vpn_type_advip);
+            holder.tvType.setText(R.string.vpn_type_vip2);
         }
+//        holder.tvPing.setTextColor(context.getResources().getColor(R.color.base_black));
+        LocationPingTask.ping(context,data.get(position),holder.pgPing,holder.tvPing);
         ImagePhotoLoad.getCountryImage(context, holder.ivCountry, vo.img);
     }
-
-    @Override
-    public int getItemCount() {
-        return data.size();
-    }
-
     static class LocationItemView extends BaseRecyclerViewAdapter.BaseRecyclerViewHolder<LocationVo> {
         @Nullable
         @BindView(R.id.ll_location_choose)
@@ -101,7 +98,12 @@ public class LocationViewAdapter extends BaseRecyclerViewAdapter<LocationViewAda
         @Nullable
         @BindView(R.id.rb_start)
         RatingBar rbStar;
-
+        @Nullable
+        @BindView(R.id.tv_ping)
+        TextView tvPing;
+        @Nullable
+        @BindView(R.id.pg_ping)
+        ProgressBar pgPing;
         public LocationItemView(View itemView, View.OnClickListener l, View.OnLongClickListener longListener) {
             super(itemView, l, longListener);
         }

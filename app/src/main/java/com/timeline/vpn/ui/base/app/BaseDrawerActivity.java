@@ -17,6 +17,7 @@ import android.widget.Toast;
 import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PreferenceUtils;
+import com.sspacee.yewu.ads.base.BaseAdsController;
 import com.sspacee.yewu.um.MobAgent;
 import com.timeline.vpn.R;
 import com.timeline.vpn.bean.vo.UserInfoVo;
@@ -134,6 +135,8 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                 ivLevel.setImageResource(R.drawable.ic_level_free);
             } else if (Constants.UserLevel.LEVEL_VIP == vo.level) {
                 ivLevel.setImageResource(R.drawable.ic_level_vip);
+            }else if (Constants.UserLevel.LEVEL_VIP2 == vo.level) {
+                ivLevel.setImageResource(R.drawable.ic_level_vip2);
             }
         } else {
             miLogout.setVisible(false);
@@ -230,7 +233,12 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                     name = "设置";
                     startActivity(SettingActivity.class);
                 }  else if (item.getItemId() == R.id.menu_favorite) {
+                    name = "收藏夹";
                     FavoriteFragment.startFragment(BaseDrawerActivity.this);
+                }else if (item.getItemId() == R.id.menu_support) {
+                    name = "支持作者";
+                    adsOffers();
+                    Toast.makeText(BaseDrawerActivity.this,R.string.support_info,Toast.LENGTH_SHORT).show();
                 }
                 MobAgent.onEventMenu(BaseDrawerActivity.this, name);
                 return false;
@@ -238,7 +246,9 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         });
     }
 
-
+    private void adsOffers(){
+        BaseAdsController.offerAds(this, BaseAdsController.AdsFrom.YOUMI);
+    }
     @Override
     protected void onPause() {
         super.onPause();

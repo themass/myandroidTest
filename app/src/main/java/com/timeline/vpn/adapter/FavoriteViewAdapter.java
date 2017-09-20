@@ -10,6 +10,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.timeline.vpn.R;
+import com.timeline.vpn.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.vpn.bean.vo.FavoriteVo;
 import com.timeline.vpn.constant.Constants;
 
@@ -26,7 +27,7 @@ public class FavoriteViewAdapter extends BaseRecyclerViewAdapter<FavoriteViewAda
     }
 
     @Override
-    public ItemtView onCreateViewHolder(ViewGroup parent, int viewType) {
+    public ItemtView onCreateViewHolderData(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(context).inflate(R.layout.layout_channel_items_item, parent, false);
         return new ItemtView(view, this, this);
     }
@@ -36,9 +37,8 @@ public class FavoriteViewAdapter extends BaseRecyclerViewAdapter<FavoriteViewAda
         super.onClick(v);
     }
 
-    @Override
-    public void onBindViewHolder(ItemtView holder, int position) {
-        super.onBindViewHolder(holder, position);
+    public void onBindViewHolderData(RecyclerView.ViewHolder h, int position) {
+        ItemtView holder = (ItemtView)h;
         FavoriteVo vo = data.get(position);
         holder.tvIndex.setText("#" + (position + 1));
         holder.tvName.setText(vo.name);
@@ -54,12 +54,6 @@ public class FavoriteViewAdapter extends BaseRecyclerViewAdapter<FavoriteViewAda
             holder.ivType.setVisibility(View.GONE);
         }
     }
-
-    @Override
-    public int getItemCount() {
-        return data.size();
-    }
-
     public static class ItemtView extends BaseRecyclerViewAdapter.BaseRecyclerViewHolder<FavoriteVo> {
         @Nullable
         @BindView(R.id.tv_index)

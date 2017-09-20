@@ -3,17 +3,19 @@ package com.timeline.vpn.ui.fragment;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.sspacee.common.ui.base.BaseFragment;
+import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.LogUtil;
-import com.sspacee.common.util.SystemUtils;
-import com.sspacee.yewu.ads.adview.AdsAdview;
-import com.sspacee.yewu.ads.adview.AdsController;
+import com.sspacee.yewu.ads.base.AdsController;
+import com.sspacee.yewu.ads.base.BaseAdsController;
 import com.timeline.vpn.R;
-import com.timeline.vpn.constant.Constants;
+import com.timeline.vpn.data.config.HindBannerEvent;
+
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import butterknife.BindView;
 
@@ -25,17 +27,7 @@ public class BannerHeaderFragment extends BaseFragment implements AdsController 
     public ViewGroup flBanner;
     public boolean init = false;
     private AdsGoneTask task = new AdsGoneTask();
-    protected Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            if (msg.what == Constants.ADS_NO_MSG || msg.what == Constants.ADS_DISMISS_MSG) {
-                mHandler.postDelayed(task, 0);
-            } else {
-                if(!SystemUtils.isApkDebugable(getActivity()))
-                    mHandler.postDelayed(task, Constants.BANNER_ADS_GONE_LONG);
-            }
-        }
-    };
+    protected Handler mHandler = new Handler();
 
     @Override
     protected int getRootViewId() {
@@ -46,6 +38,7 @@ public class BannerHeaderFragment extends BaseFragment implements AdsController 
     protected void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
         init = true;
+        EventBusUtil.getEventBus().register(this);
     }
 
     @Override
@@ -69,6 +62,8 @@ public class BannerHeaderFragment extends BaseFragment implements AdsController 
     @Override
     public void onDestroyView() {
         init = false;
+        EventBusUtil.getEventBus().unregister(this);
+        BaseAdsController.exitBanner(getActivity(),flBanner);
         super.onDestroyView();
 
     }
@@ -78,7 +73,7 @@ public class BannerHeaderFragment extends BaseFragment implements AdsController 
         if (needShow(context)) {
             if (getUserVisibleHint()) {
                 flBanner.setVisibility(View.VISIBLE);
-                AdsAdview.bannerAds(getActivity(), flBanner, mHandler, Constants.ADS_ADVIEW_KEY);
+                BaseAdsController.bannerAds(getActivity(), flBanner);
             } else {
                 hidenAds(context);
             }
@@ -103,6 +98,10 @@ public class BannerHeaderFragment extends BaseFragment implements AdsController 
         return init;
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(HindBannerEvent event) {
+        hidenAds(getActivity());
+    }
     class AdsGoneTask implements Runnable {
         @Override
         public void run() {

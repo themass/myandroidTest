@@ -70,7 +70,37 @@ public class HttpUtils {
         }
         return -1;
     }
-
+    public static int pingVal(String ip) {
+        String result = null;
+        try {
+            Process p = Runtime.getRuntime().exec("ping -c 3 -w 100 " + ip);
+            InputStream input = p.getInputStream();
+            BufferedReader in = new BufferedReader(new InputStreamReader(input));
+            String content;
+            int delay = 0;
+            while((content=in.readLine())!=null){
+                LogUtil.i(content);
+                if(content.contains("avg")){
+                    int i=content.indexOf("/",20);
+                    int j=content.indexOf(".", i);
+                    delay =Integer.parseInt(content.substring(i+1, j));
+                    break;
+                }
+            }
+            LogUtil.i( "result content : " + delay);
+            int status = p.waitFor();
+            if (status == 0) {
+                return delay;
+            } else {
+                return 0;
+            }
+        } catch (Exception e) {
+            LogUtil.e(e);
+        } finally {
+            LogUtil.i("result = " + result);
+        }
+        return 0;
+    }
     public static String generateGetUrl(String url, Map<String, String> params) {
         if (!CollectionUtils.isEmpty(params)) {
             StringBuilder sb = new StringBuilder(url).append("?");

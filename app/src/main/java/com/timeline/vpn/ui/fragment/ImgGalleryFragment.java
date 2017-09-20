@@ -17,7 +17,7 @@ import com.sspacee.common.ui.view.FavoriteImageView;
 import com.sspacee.common.ui.view.GridSpacingItemDecoration;
 import com.sspacee.common.util.CollectionUtils;
 import com.timeline.vpn.R;
-import com.timeline.vpn.adapter.BaseRecyclerViewAdapter;
+import com.timeline.vpn.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.vpn.base.MyApplication;
 import com.timeline.vpn.bean.vo.ImgItemVo;
 import com.timeline.vpn.bean.vo.ImgItemsVo;

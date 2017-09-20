@@ -10,6 +10,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.timeline.vpn.R;
+import com.timeline.vpn.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.vpn.bean.vo.SoundItemsVo;
 
 import java.util.List;
@@ -25,14 +26,13 @@ public class SoundItemsViewAdapter extends BaseRecyclerViewAdapter<SoundItemsVie
     }
 
     @Override
-    public SoundItemsViewAdapter.SoundItemView onCreateViewHolder(ViewGroup parent, int viewType) {
+    public SoundItemsViewAdapter.SoundItemView onCreateViewHolderData(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(context).inflate(R.layout.layout_channel_items_item, parent, false);
         return new SoundItemsViewAdapter.SoundItemView(view, this, this);
     }
 
-    @Override
-    public void onBindViewHolder(SoundItemsViewAdapter.SoundItemView holder, int position) {
-        super.onBindViewHolder(holder, position);
+    public void onBindViewHolderData(RecyclerView.ViewHolder h, int position) {
+        SoundItemsViewAdapter.SoundItemView holder = (SoundItemsViewAdapter.SoundItemView)h;
         SoundItemsVo vo = data.get(position);
         holder.tvIndex.setText("#" + (position + 1));
         holder.tvName.setText(vo.name);
@@ -43,12 +43,6 @@ public class SoundItemsViewAdapter extends BaseRecyclerViewAdapter<SoundItemsVie
             holder.ivSong.setVisibility(View.GONE);
         }
     }
-
-    @Override
-    public int getItemCount() {
-        return data.size();
-    }
-
     static class SoundItemView extends BaseRecyclerViewAdapter.BaseRecyclerViewHolder<SoundItemsVo> {
         @Nullable
         @BindView(R.id.tv_index)

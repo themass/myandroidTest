@@ -11,12 +11,16 @@ import android.widget.TextView;
 
 import com.kyview.manager.AdViewSpreadManager;
 import com.sspacee.common.ui.base.LogActivity;
-import com.sspacee.common.util.LogUtil;
-import com.sspacee.yewu.ads.adview.AdsAdview;
+import com.sspacee.common.util.EventBusUtil;
+import com.sspacee.yewu.ads.base.BaseAdsController;
 import com.sspacee.yewu.um.MobAgent;
 import com.timeline.vpn.R;
 import com.timeline.vpn.constant.Constants;
+import com.timeline.vpn.data.config.LaunchAdsNext;
 import com.timeline.vpn.task.UpdateUserTask;
+
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -27,7 +31,6 @@ import butterknife.Unbinder;
  * Created by themass on 2016/3/22.
  */
 public class LaunchActivity extends LogActivity {
-    public boolean canJumpImmediately = false;
     @BindView(R.id.rl_spread)
     RelativeLayout ivAds;
     @BindView(R.id.skip_view)
@@ -46,22 +49,12 @@ public class LaunchActivity extends LogActivity {
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-            LogUtil.i("开屏广告handleMessage-" + msg.what);
-            switch (msg.what) {
-                case Constants.ADS_NO_MSG:
-                case Constants.ADS_DISMISS_MSG:
-                    launch();
-                    break;
-                case Constants.ADS_JISHI:
-                    now = now + 1000;
-                    if (now < max) {
-                        tvJishi.setText((max - now) / 1000 + " s");
-                        delay1s();
-                    } else {
-                        tvJishi.setText(R.string.skip);
-                    }
-                default:
-                    break;
+            now = now + 1000;
+            if (now < max) {
+                tvJishi.setText((max - now) / 1000 + " s");
+                delay1s();
+            } else {
+                tvJishi.setText(R.string.skip);
             }
         }
     };
@@ -71,9 +64,10 @@ public class LaunchActivity extends LogActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_launch);
         MobAgent.init(this);
-        AdsAdview.initConfig(this);
+        BaseAdsController.init(this);
         unbinder = ButterKnife.bind(this);
         UpdateUserTask.start(this);
+        EventBusUtil.getEventBus().register(this);
 //        String imei = ((TelephonyManager) getSystemService(TELEPHONY_SERVICE)).getDeviceId();
 //        LogUtil.i("imei="+imei);
     }
@@ -98,13 +92,17 @@ public class LaunchActivity extends LogActivity {
         }
         return super.onKeyDown(keyCode, event);
     }
-
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(LaunchAdsNext event) {
+        if(event.from== BaseAdsController.AdsFrom.ADVIEW){
+            BaseAdsController.launchAds(this, ivAds, skipView,BaseAdsController.AdsFrom.YOUMI);
+        }
+    }
     @Override
     protected void onResume() {
         super.onResume();
-        canJumpImmediately = true;
         mHandler.postDelayed(mStartMainRunnable, Constants.STARTUP_SHOW_TIME_7000);
-        AdsAdview.launchAds(this, ivAds, skipView, mHandler);
+        BaseAdsController.launchAds(this, ivAds, skipView);
         MobAgent.onResume(this);
         delay1s();
     }
@@ -116,16 +114,16 @@ public class LaunchActivity extends LogActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        canJumpImmediately = false;
         MobAgent.onPause(this);
     }
 
     @Override
     public void onDestroy() {
+        EventBusUtil.getEventBus().unregister(this);
         unbinder.unbind();
         mHandler.removeMessages(Constants.ADS_JISHI);
         mHandler.removeCallbacks(mStartMainRunnable);
-        AdsAdview.launchAds(this, null, null, null);
+        BaseAdsController.lanchExit(this);
         super.onDestroy();
     }
 }

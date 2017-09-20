@@ -5,8 +5,6 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -17,7 +15,7 @@ import com.sspacee.common.ui.view.MyWebView;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PackageUtils;
 import com.sspacee.common.util.SystemUtils;
-import com.sspacee.yewu.ads.adview.AdsAdview;
+import com.sspacee.yewu.ads.base.BaseAdsController;
 import com.timeline.vpn.R;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.UserLoginUtil;
@@ -33,19 +31,6 @@ public class WebViewActivity extends BaseFragmentActivity implements MyWebView.O
     BaseWebViewFragment webViewFragment;
     private boolean adsNeed = false;
     private boolean adsPopNeed = false;
-    protected Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            LogUtil.i("handleMessage-" + msg.what);
-            switch (msg.what) {
-                case Constants.ADS_NO_MSG:
-                    adsPopNeed = true;
-                    break;
-                default:
-                    adsPopNeed = false;
-            }
-        }
-    };
     private String url;
 
     public static void startWebViewActivity(Context context, String url, String title, boolean adsShow, boolean adsPopShow, HashMap<String, Object> param) {
@@ -83,7 +68,8 @@ public class WebViewActivity extends BaseFragmentActivity implements MyWebView.O
     public void showAds(Context context) {
         super.showAds(context);
         if (!UserLoginUtil.isVIP() && adsPopNeed) {
-            AdsAdview.interstitialAds(this, mHandler);
+            BaseAdsController.interstitialAds(this);
+            adsPopNeed = false;
         }
 
     }

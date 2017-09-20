@@ -140,8 +140,8 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    public void setupViews(View view, Bundle savedInstanceState) {
+        super.setupViews(view,savedInstanceState);
         EventBusUtil.getEventBus().register(this);
         ((MainFragmentViewPage) getActivity()).addListener(this);
         sortList = PreferenceUtils.getPrefObj(getActivity(), Constants.CUSTOME_SORT, new TypeToken<LinkedList<Integer>>() {
@@ -152,8 +152,8 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
+    public void onDestroyView() {
+        super.onDestroyView();
         EventBusUtil.getEventBus().unregister(this);
         ((MainFragmentViewPage) getActivity()).removeListener(this);
     }

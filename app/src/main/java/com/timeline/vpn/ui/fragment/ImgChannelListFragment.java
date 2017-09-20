@@ -5,18 +5,16 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
-import com.sspacee.yewu.ads.adview.AdsAdview;
-import com.sspacee.yewu.net.NetUtils;
+import com.sspacee.yewu.ads.base.BaseAdsController;
 import com.timeline.vpn.R;
-import com.timeline.vpn.adapter.BaseRecyclerViewAdapter;
 import com.timeline.vpn.adapter.ImgChannelListItemsViewAdapter;
+import com.timeline.vpn.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.vpn.bean.vo.ImgItemsVo;
 import com.timeline.vpn.bean.vo.InfoListVo;
 import com.timeline.vpn.bean.vo.RecommendVo;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.HistoryUtil;
 import com.timeline.vpn.data.StaticDataUtil;
-import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.ui.base.CommonFragmentActivity;
 
 /**
@@ -35,6 +33,8 @@ public class ImgChannelListFragment extends BasePullLoadbleFragment<ImgItemsVo>{
         intent.putExtra(CommonFragmentActivity.ADS, true);
         intent.putExtra(CommonFragmentActivity.ADSSCROLL, false);
         intent.putExtra(CommonFragmentActivity.SLIDINGCLOSE, true);
+        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS, true);
+        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_FROM, BaseAdsController.AdsFrom.YOUMI);
         context.startActivity(intent);
     }
     @Override
@@ -42,8 +42,6 @@ public class ImgChannelListFragment extends BasePullLoadbleFragment<ImgItemsVo>{
         super.setupViews(view, savedInstanceState);
         vo = StaticDataUtil.get(Constants.IMG_CHANNEL, RecommendVo.class);
         StaticDataUtil.del(Constants.IMG_CHANNEL);
-        if (!UserLoginUtil.isVIP2() && NetUtils.isWifi(getActivity()))
-            AdsAdview.interstitialAds(getActivity(), null);
     }
     protected  BaseRecyclerViewAdapter getAdapter(){
         adapter = new ImgChannelListItemsViewAdapter(getActivity(), pullView.getRecyclerView(), infoListVo.voList, this);
