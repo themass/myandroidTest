@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import com.sspacee.common.util.LogUtil;
-import com.sspacee.yewu.ads.base.BaseAdsController;
 
 /**
  * Created by themass on 2016/3/22.
@@ -20,7 +19,6 @@ public class LogActivity extends SlidingActivity {
     protected void onStop() {
         LogUtil.i(getClass().getSimpleName() + "-onStop");
         super.onStop();
-        BaseAdsController.onStop(this);
     }
 
     @Override
@@ -34,7 +32,6 @@ public class LogActivity extends SlidingActivity {
         LogUtil.i(getClass().getSimpleName() + "-onDestroy");
 //        RefWatcher refWatcher = MyApplication.getRefWatcher(this);
 //        refWatcher.watch(this);
-        BaseAdsController.onDestroy(this);
         super.onDestroy();
 
     }
@@ -43,7 +40,6 @@ public class LogActivity extends SlidingActivity {
     protected void onPause() {
         LogUtil.i(getClass().getSimpleName() + "-onPause");
         super.onPause();
-        BaseAdsController.onPause(this);
     }
 
     @Override
@@ -56,14 +52,12 @@ public class LogActivity extends SlidingActivity {
     protected void onResume() {
         LogUtil.i(getClass().getSimpleName() + "-onResume");
         super.onResume();
-        BaseAdsController.onResume(this);
     }
 
     @Override
     protected void onStart() {
         LogUtil.i(getClass().getSimpleName() + "-onStart");
         super.onStart();
-        BaseAdsController.onStart(this);
     }
 
     @Override

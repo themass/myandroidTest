@@ -16,7 +16,6 @@ import android.widget.Toast;
 import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PreferenceUtils;
-import com.sspacee.yewu.ads.base.BaseAdsController;
 import com.sspacee.yewu.um.MobAgent;
 import com.timeline.vpn.R;
 import com.timeline.vpn.constant.Constants;
@@ -51,7 +50,6 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
         EventBusUtil.getEventBus().register(jump);
         EventBusUtil.getEventBus().register(logAdd);
         EventBusUtil.getEventBus().register(this);
-        BaseAdsController.init(this);
         new LoginTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         boolean uploadLog = PreferenceUtils.getPrefBoolean(this, Constants.LOG_UPLOAD_CONFIG, false);
         if (uploadLog) {

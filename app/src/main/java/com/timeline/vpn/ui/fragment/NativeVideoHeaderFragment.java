@@ -6,7 +6,6 @@ import android.view.ViewGroup;
 
 import com.sspacee.common.ui.base.BaseFragment;
 import com.sspacee.common.util.LogUtil;
-import com.sspacee.yewu.ads.base.BaseAdsController;
 import com.timeline.vpn.R;
 
 import butterknife.BindView;
@@ -25,15 +24,15 @@ public class NativeVideoHeaderFragment extends BaseFragment{
     @Override
     protected void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
-        BaseAdsController.nativeVideoAds(getActivity(), flBanner);
+//        BaseAdsController.nativeVideoAds(getActivity(), flBanner);
     }
 
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
         if(!isVisibleToUser){
-            BaseAdsController.onPause(getActivity());
-            BaseAdsController.onStop(getActivity());
+//            BaseAdsController.onPause(getActivity());
+//            BaseAdsController.onStop(getActivity());
         }
         LogUtil.i("NativeVideoHeaderFragment:setUserVisibleHint:"+isVisibleToUser);
     }

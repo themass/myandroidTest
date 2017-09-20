@@ -8,6 +8,7 @@ import com.sspacee.common.util.DeviceInfoUtils;
 import com.sspacee.common.util.FileUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.SystemUtils;
+import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.net.VolleyUtils;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.DBManager;
@@ -62,6 +63,7 @@ public class MyApplication extends MultiDexApplication {
         LogUtil.i("cpu=" + SystemUtils.getCpuType());
         LogUtil.e("app start cost:" + cost);
         photoLoad = new ImagePhotoLoad(this);
+        AdsManager.getInstans().init(this);
     }
 
     public ImagePhotoLoad getPhotoLoad() {

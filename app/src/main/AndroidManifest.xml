@@ -162,34 +162,25 @@
 
         <!-- AdView SDK for Youmi -->
         <!-- 视频组件 -->
-        <!-- 视频组件 -->
-        <activity
-            android:name="net.youmi.android.nm.vdo.VideoActivity"
-            android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout"
-            android:resizeableActivity="false"
-            android:screenOrientation="landscape"
-            android:taskAffinity=""
-            android:theme="@android:style/Theme.NoTitleBar"></activity>
-
-        <!-- 有米SDK为了兼容Android N应用间共享文件行为变更而需要配置的FileProvider -->
+        <!-- GDT -->
         <provider
             android:name="android.support.v4.content.FileProvider"
-            android:authorities="com.timeline.vpn.fileProvider"
+            android:authorities="com.timeline.vpn.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_provider" />
         </provider>
-        <!-- AdView SDK for tencent Gdt -->
+
+        <!-- 声明SDK所需要的组件 -->
         <service
             android:name="com.qq.e.comm.DownloadService"
-            android:exported="false" />
-
+            android:exported="false"/>
+        <!-- 请开发者注意字母的大小写，ADActivity，而不是AdActivity -->
         <activity
             android:name="com.qq.e.ads.ADActivity"
-            android:configChanges="keyboard|keyboardHidden|orientation"
-            android:theme="@android:style/Theme.Translucent" />
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize"/>
         <!-- AdView SDK for AdMob -->
         <activity
             android:name="com.google.android.gms.ads.AdActivity"

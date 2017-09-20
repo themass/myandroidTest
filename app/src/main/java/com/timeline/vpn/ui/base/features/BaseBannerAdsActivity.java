@@ -1,6 +1,5 @@
 package com.timeline.vpn.ui.base.features;
 
-import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
 import android.support.design.widget.AppBarLayout;
@@ -12,9 +11,8 @@ import android.view.animation.OvershootInterpolator;
 
 import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.LogUtil;
-import com.sspacee.common.util.PreferenceUtils;
-import com.sspacee.yewu.ads.base.AdsController;
-import com.sspacee.yewu.ads.base.BaseAdsController;
+import com.sspacee.yewu.ads.base.AdsContext;
+import com.sspacee.yewu.ads.base.AdsManager;
 import com.timeline.vpn.R;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.AdsPopStrategy;
@@ -31,7 +29,7 @@ import butterknife.OnClick;
 /**
  * Created by themass on 2016/8/21.
  */
-public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implements AdsController {
+public abstract class BaseBannerAdsActivity extends BaseToolBarActivity{
     private static final int ANIM_DURATION_FAB = 400;
     @BindView(R.id.fl_content)
     public ViewGroup flContent;
@@ -99,7 +97,7 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
     @Override
     public void onResume() {
         super.onResume();
-        showAds(this);
+        showAds();
         startIntroAnimation();
     }
 
@@ -110,29 +108,25 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
     @Override
     protected void onPause() {
         super.onPause();
-        hidenAds(this);
+        hidenAds();
     }
-
-    @Override
-    public void showAds(Context context) {
-        if (needShow(context)) {
+    public void showAds() {
+        if (needShow()) {
             LogUtil.i("显示广告啦");
-            BaseAdsController.bannerAds(context, flBanner,getBannerAdsFrom());
+            AdsManager.getInstans().showBannerAds(this, flBanner,getBannerAdsFrom());
         } else {
             flBanner.setVisibility(View.GONE);
         }
     }
-    protected BaseAdsController.AdsFrom getBannerAdsFrom(){
-        return BaseAdsController.AdsFrom.ADVIEW;
+    protected AdsContext.AdsFrom getBannerAdsFrom(){
+        return AdsContext.AdsFrom.GDT;
     }
 
-    @Override
-    public boolean needShow(Context context) {
-        return PreferenceUtils.getPrefBoolean(context, Constants.ADS_SHOW_CONFIG, true);
+    public boolean needShow() {
+        return true;
     }
 
-    @Override
-    public void hidenAds(Context context) {
+    public void hidenAds() {
         if (flBanner != null) {
             flBanner.removeAllViews();
             flBanner.setVisibility(View.GONE);
@@ -141,19 +135,19 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
     }
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(HindBannerEvent event) {
-        hidenAds(this);
+        hidenAds();
     }
     @Override
     public void onDestroy() {
-        BaseAdsController.exitBanner(this,flBanner);
         EventBusUtil.getEventBus().unregister(this);
+        AdsManager.getInstans().exitBannerAds(this, flBanner, getBannerAdsFrom());
         super.onDestroy();
     }
 
     class AdsGoneTask implements Runnable {
         @Override
         public void run() {
-            hidenAds(BaseBannerAdsActivity.this);
+            hidenAds();
         }
     }
 

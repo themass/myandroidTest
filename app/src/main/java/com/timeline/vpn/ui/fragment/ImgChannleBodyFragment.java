@@ -5,10 +5,8 @@ import android.view.View;
 
 import com.kyview.natives.NativeAdInfo;
 import com.sspacee.common.util.CollectionUtils;
-import com.sspacee.yewu.ads.base.BaseAdsController;
 import com.sspacee.yewu.ads.base.NativeAdsReadyListener;
 import com.sspacee.yewu.um.MobAgent;
-import com.timeline.vpn.bean.vo.InfoListVo;
 import com.timeline.vpn.bean.vo.RecommendVo;
 import com.timeline.vpn.constant.Constants;
 
@@ -27,12 +25,6 @@ public class ImgChannleBodyFragment extends RecommendFragment implements NativeA
     @Override
     public String getNetTag() {
         return INDEX_TAG;
-    }
-
-    @Override
-    protected void onDataLoaded(InfoListVo<RecommendVo> data) {
-        super.onDataLoaded(data);
-        BaseAdsController.nativeAds(getActivity(), this);
     }
 
     @Override

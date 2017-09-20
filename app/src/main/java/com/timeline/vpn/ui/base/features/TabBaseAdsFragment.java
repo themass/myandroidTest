@@ -6,7 +6,6 @@ import android.view.View;
 import android.view.animation.OvershootInterpolator;
 
 import com.sspacee.common.util.LogUtil;
-import com.sspacee.yewu.ads.base.BaseAdsController;
 import com.timeline.vpn.R;
 import com.timeline.vpn.data.AdsPopStrategy;
 import com.timeline.vpn.ui.inte.OnBackKeyDownListener;
@@ -31,7 +30,6 @@ public abstract class TabBaseAdsFragment extends TabBaseFragment implements OnBa
     }
 
     public void next() {
-        BaseAdsController.interstitialAds(getActivity());
     }
 
     @Override

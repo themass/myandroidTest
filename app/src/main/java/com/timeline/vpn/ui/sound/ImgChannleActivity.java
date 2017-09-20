@@ -1,15 +1,13 @@
 package com.timeline.vpn.ui.sound;
 
 
-import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.View;
 
 import com.sspacee.common.util.LogUtil;
-import com.sspacee.yewu.ads.base.BaseAdsController;
+import com.sspacee.yewu.ads.base.AdsContext;
 import com.timeline.vpn.R;
-import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.ui.base.app.BaseFragmentActivity;
 import com.timeline.vpn.ui.fragment.ImgChannleBodyFragment;
 
@@ -33,21 +31,16 @@ public class ImgChannleActivity extends BaseFragmentActivity {
                 .add(R.id.fragment, fragment)
                 .commitAllowingStateLoss();
         setToolbarTitle(R.string.img, true);
-        if (!UserLoginUtil.isVIP2())
-            BaseAdsController.interstitialAds(this);
     }
 
-    @Override
-    public boolean needShow(Context context) {
+    public boolean needShow() {
         return true;
     }
 
     protected boolean enableSliding() {
         return true;
     }
-
-    @Override
-    protected BaseAdsController.AdsFrom getBannerAdsFrom() {
-        return BaseAdsController.AdsFrom.YOUMI;
+    protected AdsContext.AdsFrom getBannerAdsFrom(){
+        return AdsContext.AdsFrom.ADVIEW;
     }
 }

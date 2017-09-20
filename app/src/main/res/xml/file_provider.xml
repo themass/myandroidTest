@@ -22,5 +22,5 @@
 	<external-path
 		name="apk2"
 		path="." />
-
+	<external-path name="gdt_sdk_download_path" path="GDTDOWNLOAD" />
 </paths >

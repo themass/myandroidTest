@@ -26,7 +26,6 @@ import android.widget.Toast;
 
 import com.sspacee.common.ui.base.BaseFragment;
 import com.sspacee.common.util.LogUtil;
-import com.sspacee.yewu.ads.base.BaseAdsController;
 import com.sspacee.yewu.net.HttpUtils;
 import com.sspacee.yewu.net.request.CommonResponse;
 import com.sspacee.yewu.um.MobAgent;
@@ -149,7 +148,7 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
     @OnClick(R.id.iv_vpn_state)
     public void onVpnClick(View v) {
         if (isFrist && !UserLoginUtil.isVIP()) {
-            BaseAdsController.interstitialAds(getActivity());
+//            BaseAdsController.interstitialAds(getActivity());
             isFrist = false;
         }
         if (mService != null) {

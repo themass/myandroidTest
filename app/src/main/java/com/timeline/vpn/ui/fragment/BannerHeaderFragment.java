@@ -1,6 +1,5 @@
 package com.timeline.vpn.ui.fragment;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
@@ -9,8 +8,8 @@ import android.view.ViewGroup;
 import com.sspacee.common.ui.base.BaseFragment;
 import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.LogUtil;
-import com.sspacee.yewu.ads.base.AdsController;
-import com.sspacee.yewu.ads.base.BaseAdsController;
+import com.sspacee.yewu.ads.base.AdsContext;
+import com.sspacee.yewu.ads.base.AdsManager;
 import com.timeline.vpn.R;
 import com.timeline.vpn.data.config.HindBannerEvent;
 
@@ -22,7 +21,7 @@ import butterknife.BindView;
 /**
  * Created by themass on 2016/8/21.
  */
-public class BannerHeaderFragment extends BaseFragment implements AdsController {
+public class BannerHeaderFragment extends BaseFragment{
     @BindView(R.id.fl_banner)
     public ViewGroup flBanner;
     public boolean init = false;
@@ -44,47 +43,43 @@ public class BannerHeaderFragment extends BaseFragment implements AdsController 
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
-        showAds(getActivity());
+        showAds();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        showAds(getActivity());
+        showAds();
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        hidenAds(getActivity());
+        hidenAds();
     }
 
     @Override
     public void onDestroyView() {
         init = false;
         EventBusUtil.getEventBus().unregister(this);
-        BaseAdsController.exitBanner(getActivity(),flBanner);
+        AdsManager.getInstans().exitBannerAds(getActivity(), flBanner, AdsContext.AdsFrom.GDT);
         super.onDestroyView();
 
     }
-
-    @Override
-    public void showAds(Context context) {
-        if (needShow(context)) {
+    public void showAds() {
+        if (needShow()) {
             if (getUserVisibleHint()) {
                 flBanner.setVisibility(View.VISIBLE);
-                BaseAdsController.bannerAds(getActivity(), flBanner);
+                AdsManager.getInstans().showBannerAds(getActivity(), flBanner, AdsContext.AdsFrom.GDT);
             } else {
-                hidenAds(context);
+                hidenAds();
             }
         } else {
             if (flBanner != null)
                 flBanner.setVisibility(View.GONE);
         }
     }
-
-    @Override
-    public void hidenAds(Context context) {
+    public void hidenAds() {
         if (flBanner != null) {
             LogUtil.i("remove all views");
             flBanner.removeAllViews();
@@ -92,20 +87,18 @@ public class BannerHeaderFragment extends BaseFragment implements AdsController 
         }
         mHandler.removeCallbacks(task);
     }
-
-    @Override
-    public boolean needShow(Context context) {
+    public boolean needShow() {
         return init;
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(HindBannerEvent event) {
-        hidenAds(getActivity());
+        hidenAds();
     }
     class AdsGoneTask implements Runnable {
         @Override
         public void run() {
-            hidenAds(getActivity());
+            hidenAds();
         }
     }
 }

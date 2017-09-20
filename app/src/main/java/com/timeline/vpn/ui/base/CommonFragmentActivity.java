@@ -1,13 +1,11 @@
 package com.timeline.vpn.ui.base;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 
 import com.sspacee.common.util.LogUtil;
-import com.sspacee.yewu.ads.base.BaseAdsController;
+import com.sspacee.yewu.ads.base.AdsContext;
 import com.timeline.vpn.R;
-import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.ui.base.app.BaseFragmentActivity;
 import com.timeline.vpn.ui.inte.FabOpListener;
 
@@ -30,8 +28,8 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
     private Boolean showAds = null;
     private Boolean slidingClose = false;
     private Boolean toolbarShow = true;
-    private BaseAdsController.AdsFrom bannerFrom =  BaseAdsController.AdsFrom.ADVIEW;
-    private BaseAdsController.AdsFrom interstitialFrom =  BaseAdsController.AdsFrom.ADVIEW;
+    private AdsContext.AdsFrom bannerFrom =  AdsContext.AdsFrom.ADVIEW;
+    private AdsContext.AdsFrom interstitialFrom =  AdsContext.AdsFrom.ADVIEW;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         slidingClose = getIntent().getBooleanExtra(SLIDINGCLOSE, true);
@@ -42,8 +40,8 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
         if (!scroll) {
             disableScrollBanner();
         }
-        bannerFrom = getIntent().getSerializableExtra(BANNER_FROM)==null?bannerFrom:(BaseAdsController.AdsFrom)getIntent().getSerializableExtra(BANNER_FROM);
-        interstitialFrom = getIntent().getSerializableExtra(INTERSTITIAL_FROM)==null?interstitialFrom:(BaseAdsController.AdsFrom)getIntent().getSerializableExtra(INTERSTITIAL_FROM);
+        bannerFrom = getIntent().getSerializableExtra(BANNER_FROM)==null?bannerFrom:(AdsContext.AdsFrom)getIntent().getSerializableExtra(BANNER_FROM);
+        interstitialFrom = getIntent().getSerializableExtra(INTERSTITIAL_FROM)==null?interstitialFrom:(AdsContext.AdsFrom)getIntent().getSerializableExtra(INTERSTITIAL_FROM);
         showToolbar(toolbarShow);
         Class f = (Class) getIntent().getSerializableExtra(FRAGMENT);
         showAds = getIntent().getBooleanExtra(ADS, false);
@@ -74,17 +72,13 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
         if (title != null) {
             setToolbarTitle(title, true);
         }
-        if(getIntent().getBooleanExtra(INTERSTITIAL_ADS,false))
-            if (!UserLoginUtil.isVIP2()&&BaseAdsController.rateShow())
-                BaseAdsController.interstitialAds(this);
     }
 
-    @Override
-    public boolean needShow(Context context) {
+    public boolean needShow() {
         if (showAds != null) {
             return showAds;
         }
-        return super.needShow(context);
+        return super.needShow();
     }
 
     @Override
@@ -93,7 +87,7 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
     }
 
     @Override
-    protected BaseAdsController.AdsFrom getBannerAdsFrom() {
+    protected AdsContext.AdsFrom getBannerAdsFrom() {
         return bannerFrom;
     }
 }

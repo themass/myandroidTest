@@ -1,6 +1,5 @@
 package com.timeline.vpn.ui.user;
 
-import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
@@ -139,7 +138,7 @@ public class SettingActivity extends BaseSingleActivity {
     }
 
     @Override
-    public boolean needShow(Context context) {
+    public boolean needShow() {
         return true;
     }
 

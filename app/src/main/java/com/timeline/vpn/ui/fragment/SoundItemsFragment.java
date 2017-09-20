@@ -26,7 +26,6 @@ import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.MediaUtil;
 import com.sspacee.common.util.PreferenceUtils;
-import com.sspacee.yewu.ads.base.BaseAdsController;
 import com.sspacee.yewu.net.NetUtils;
 import com.timeline.vpn.R;
 import com.timeline.vpn.adapter.SoundItemsViewAdapter;
@@ -120,9 +119,7 @@ public class SoundItemsFragment extends BasePullLoadbleFragment<SoundItemsVo> im
         intent.putExtra(CommonFragmentActivity.ADS, true);
         intent.putExtra(CommonFragmentActivity.ADSSCROLL, false);
         intent.putExtra(CommonFragmentActivity.SLIDINGCLOSE, true);
-        intent.putExtra(CommonFragmentActivity.BANNER_FROM,BaseAdsController.AdsFrom.YOUMI);
         intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS, true);
-        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_FROM, BaseAdsController.AdsFrom.YOUMI);
         context.startActivity(intent);
     }
     private void receiverReg() {
@@ -273,7 +270,7 @@ public class SoundItemsFragment extends BasePullLoadbleFragment<SoundItemsVo> im
         ivNext.setOnClickListener(this);
         progressView.setOnSeekBarChangeListener(this);
 //        ViewGroup group= (ViewGroup)LayoutInflater.from(getActivity()).inflate(R.layout.layout_youmi_native_video,null);
-//        BaseAdsController.nativeVideoAds(getActivity(),group);
+//        AdsContext.nativeVideoAds(getActivity(),group);
 //        adapter.setFooterView(group);
         receiverReg();
 

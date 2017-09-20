@@ -3,7 +3,7 @@ package com.sspacee.yewu.um;
 import android.content.Context;
 
 import com.sspacee.common.CommonConstants;
-import com.sspacee.yewu.ads.base.BaseAdsController;
+import com.sspacee.yewu.ads.base.AdsContext;
 import com.timeline.vpn.base.MyApplication;
 import com.umeng.analytics.MobclickAgent;
 
@@ -78,7 +78,7 @@ public class MobAgent {
         map.put("name", title);
         MobclickAgent.onEvent(context, "recommond_channel", map);
     }
-    public static void onEventAds(Context context, BaseAdsController.AdsType type, BaseAdsController.AdsShowStatus event) {
+    public static void onEventAds(Context context, AdsContext.AdsType type, AdsContext.AdsShowStatus event) {
         Map<String, String> map = new HashMap<>();
         map.put("name", type.desc);
         map.put("event", event.desc);

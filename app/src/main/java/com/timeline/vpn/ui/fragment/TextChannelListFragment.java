@@ -11,7 +11,6 @@ import android.view.ViewGroup;
 import android.widget.SearchView;
 
 import com.sspacee.common.util.StringUtils;
-import com.sspacee.yewu.ads.base.BaseAdsController;
 import com.timeline.vpn.R;
 import com.timeline.vpn.adapter.TextChannelListItemsViewAdapter;
 import com.timeline.vpn.adapter.base.BaseRecyclerViewAdapter;
@@ -50,7 +49,6 @@ public class TextChannelListFragment extends BasePullLoadbleFragment<TextItemsVo
         intent.putExtra(CommonFragmentActivity.ADSSCROLL, false);
         intent.putExtra(CommonFragmentActivity.SLIDINGCLOSE, true);
         intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS, true);
-        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_FROM, BaseAdsController.AdsFrom.YOUMI);
         context.startActivity(intent);
     }
 

@@ -12,7 +12,8 @@ import android.widget.TextView;
 import com.kyview.manager.AdViewSpreadManager;
 import com.sspacee.common.ui.base.LogActivity;
 import com.sspacee.common.util.EventBusUtil;
-import com.sspacee.yewu.ads.base.BaseAdsController;
+import com.sspacee.yewu.ads.base.AdsContext;
+import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.um.MobAgent;
 import com.timeline.vpn.R;
 import com.timeline.vpn.constant.Constants;
@@ -64,12 +65,9 @@ public class LaunchActivity extends LogActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_launch);
         MobAgent.init(this);
-        BaseAdsController.init(this);
         unbinder = ButterKnife.bind(this);
         UpdateUserTask.start(this);
         EventBusUtil.getEventBus().register(this);
-//        String imei = ((TelephonyManager) getSystemService(TELEPHONY_SERVICE)).getDeviceId();
-//        LogUtil.i("imei="+imei);
     }
 
     @OnClick(R.id.skip_view)
@@ -94,15 +92,12 @@ public class LaunchActivity extends LogActivity {
     }
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(LaunchAdsNext event) {
-        if(event.from== BaseAdsController.AdsFrom.ADVIEW){
-            BaseAdsController.launchAds(this, ivAds, skipView,BaseAdsController.AdsFrom.YOUMI);
-        }
     }
     @Override
     protected void onResume() {
         super.onResume();
         mHandler.postDelayed(mStartMainRunnable, Constants.STARTUP_SHOW_TIME_7000);
-        BaseAdsController.launchAds(this, ivAds, skipView);
+        AdsManager.getInstans().showSplashAds(this,ivAds,skipView, AdsContext.AdsFrom.GDT);
         MobAgent.onResume(this);
         delay1s();
     }
@@ -123,7 +118,7 @@ public class LaunchActivity extends LogActivity {
         unbinder.unbind();
         mHandler.removeMessages(Constants.ADS_JISHI);
         mHandler.removeCallbacks(mStartMainRunnable);
-        BaseAdsController.lanchExit(this);
+        AdsManager.getInstans().exitSplashAds(this,ivAds, AdsContext.AdsFrom.GDT);
         super.onDestroy();
     }
 }

@@ -6,7 +6,6 @@ import android.os.Bundle;
 
 import com.sspacee.common.ui.base.LogActivity;
 import com.sspacee.common.util.PackageUtils;
-import com.sspacee.yewu.ads.base.BaseAdsController;
 import com.timeline.vpn.R;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.UserLoginUtil;
@@ -41,7 +40,6 @@ public class QuickBrowserConfigActivity extends LogActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (adOk) {
-            BaseAdsController.interstitialAds(this);
         } else {
             finishActivity();
         }

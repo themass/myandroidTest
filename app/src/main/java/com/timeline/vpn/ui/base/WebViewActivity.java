@@ -15,10 +15,8 @@ import com.sspacee.common.ui.view.MyWebView;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PackageUtils;
 import com.sspacee.common.util.SystemUtils;
-import com.sspacee.yewu.ads.base.BaseAdsController;
 import com.timeline.vpn.R;
 import com.timeline.vpn.constant.Constants;
-import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.ui.base.app.BaseFragmentActivity;
 import com.timeline.vpn.ui.base.features.BaseWebViewFragment;
 
@@ -58,20 +56,8 @@ public class WebViewActivity extends BaseFragmentActivity implements MyWebView.O
         adsNeed = getIntent().getBooleanExtra(Constants.ADS_SHOW_CONFIG, false);
         adsPopNeed = getIntent().getBooleanExtra(Constants.ADS_POP_SHOW_CONFIG, false);
     }
-
-    @Override
-    public boolean needShow(Context context) {
-        return adsNeed || super.needShow(this);
-    }
-
-    @Override
-    public void showAds(Context context) {
-        super.showAds(context);
-        if (!UserLoginUtil.isVIP() && adsPopNeed) {
-            BaseAdsController.interstitialAds(this);
-            adsPopNeed = false;
-        }
-
+    public boolean needShow() {
+        return adsNeed || super.needShow();
     }
 
     @Override
