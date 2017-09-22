@@ -129,8 +129,12 @@ public class LoginActivity extends BaseSingleActivity {
             btnReg.setEnabled(isEnable);
         }
     }
-
+    @Override
     protected boolean enableSliding() {
         return true;
+    }
+    @Override
+    public boolean needShow() {
+        return false;
     }
 }

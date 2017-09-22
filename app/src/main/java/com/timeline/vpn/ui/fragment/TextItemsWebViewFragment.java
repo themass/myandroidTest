@@ -72,7 +72,7 @@ public class TextItemsWebViewFragment extends BaseFragment{
         intent.putExtra(CommonFragmentActivity.FRAGMENT, TextItemsWebViewFragment.class);
         intent.putExtra(CommonFragmentActivity.TITLE, R.string.app_name);
         StaticDataUtil.add(Constants.TEXT_FILE, vo);
-        intent.putExtra(CommonFragmentActivity.ADS, true);
+        intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, true);
         intent.putExtra(CommonFragmentActivity.ADSSCROLL, true);
         intent.putExtra(CommonFragmentActivity.SLIDINGCLOSE, true);
         intent.putExtra(CommonFragmentActivity.TOOLBAR_SHOW, false);

@@ -29,7 +29,10 @@ public class LocationUtil {
         LocationVo chooseVo = PreferenceUtils.getPrefObj(context, Constants.LOCATION_CHOOSE, LocationVo.class);
         return chooseVo == null ? 0 : chooseVo.hostId;
     }
-
+    public static int getSelectLocationId(Context context) {
+        LocationVo chooseVo = PreferenceUtils.getPrefObj(context, Constants.LOCATION_CHOOSE, LocationVo.class);
+        return chooseVo == null ? 0 : chooseVo.id;
+    }
     public static void setLocation(Context context, Object data) {
         PreferenceUtils.setPrefObj(context, Constants.LOCATION_CHOOSE, data);
     }

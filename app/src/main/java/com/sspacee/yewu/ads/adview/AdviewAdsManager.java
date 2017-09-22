@@ -21,9 +21,10 @@ public class AdviewAdsManager {
         InitConfiguration.Builder builder = new InitConfiguration.Builder(context)
                 .setUpdateMode(InitConfiguration.UpdateMode.EVERYTIME)   // 实时获取配置
                 .setBannerCloseble(InitConfiguration.BannerSwitcher.DEFAULT)    //横幅可关闭按钮
-                .setInstlDisplayType(InitConfiguration.InstlDisplayType.DIALOG_MODE)// 为默认情况,设置插屏展示模式，popupwindow模式可设置窗体外可点击
+                .setInstlDisplayType(InitConfiguration.InstlDisplayType.POPUPWINDOW_MODE)// 为默认情况,设置插屏展示模式，popupwindow模式可设置窗体外可点击
                 .setInstlCloseble(InitConfiguration.InstlSwitcher.CANCLOSED);     //插屏可关闭按钮
         builder.setAdMobSize(InitConfiguration.AdMobSize.BANNER);
+        builder.setAdGdtSize(InitConfiguration.AdGdtSize.BANNER);
         builder.setAdSize(InitConfiguration.AdSize.BANNER_SMART);
 //        if (MyApplication.isDebug) {
 //            builder.setRunMode(InitConfiguration.RunMode.TEST);
@@ -35,7 +36,6 @@ public class AdviewAdsManager {
         AdViewSpreadManager.getInstance(context).init(initConfig, adsKeySet);
         AdViewBannerManager.getInstance(context).init(initConfig, adsKeySet);
         AdViewInstlManager.getInstance(context).init(initConfig, adsKeySet);
-
         AdViewNativeManager.getInstance(context).init(initConfig, adsKeySet);
         AdViewVideoManager.getInstance(context).init(initConfig, adsKeySet);
     }

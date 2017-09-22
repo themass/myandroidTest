@@ -169,6 +169,7 @@ public class SettingActivity extends BaseSingleActivity {
         confirmDialog.show();
     }
 
+    @Override
     protected boolean enableSliding() {
         return true;
     }

@@ -1,4 +1,4 @@
-package com.timeline.vpn.ui.fragment;
+package com.timeline.vpn.ui.base;
 
 import android.os.Bundle;
 import android.os.Handler;
@@ -24,7 +24,6 @@ import butterknife.BindView;
 public class BannerHeaderFragment extends BaseFragment{
     @BindView(R.id.fl_banner)
     public ViewGroup flBanner;
-    public boolean init = false;
     private AdsGoneTask task = new AdsGoneTask();
     protected Handler mHandler = new Handler();
 
@@ -36,7 +35,6 @@ public class BannerHeaderFragment extends BaseFragment{
     @Override
     protected void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
-        init = true;
         EventBusUtil.getEventBus().register(this);
     }
 
@@ -60,20 +58,14 @@ public class BannerHeaderFragment extends BaseFragment{
 
     @Override
     public void onDestroyView() {
-        init = false;
         EventBusUtil.getEventBus().unregister(this);
-        AdsManager.getInstans().exitBannerAds(getActivity(), flBanner, AdsContext.AdsFrom.GDT);
+        AdsManager.getInstans().exitBannerAds(getActivity(), flBanner, AdsContext.Categrey.CATEGREY_1);
         super.onDestroyView();
 
     }
     public void showAds() {
         if (needShow()) {
-            if (getUserVisibleHint()) {
-                flBanner.setVisibility(View.VISIBLE);
-                AdsManager.getInstans().showBannerAds(getActivity(), flBanner, AdsContext.AdsFrom.GDT);
-            } else {
-                hidenAds();
-            }
+            AdsManager.getInstans().showBannerAds(getActivity(), flBanner,AdsContext.Categrey.CATEGREY_1);
         } else {
             if (flBanner != null)
                 flBanner.setVisibility(View.GONE);
@@ -88,7 +80,7 @@ public class BannerHeaderFragment extends BaseFragment{
         mHandler.removeCallbacks(task);
     }
     public boolean needShow() {
-        return init;
+        return true;
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

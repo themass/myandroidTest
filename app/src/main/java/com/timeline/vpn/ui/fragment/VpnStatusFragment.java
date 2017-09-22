@@ -26,6 +26,8 @@ import android.widget.Toast;
 
 import com.sspacee.common.ui.base.BaseFragment;
 import com.sspacee.common.util.LogUtil;
+import com.sspacee.yewu.ads.base.AdsContext;
+import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.net.HttpUtils;
 import com.sspacee.yewu.net.request.CommonResponse;
 import com.sspacee.yewu.um.MobAgent;
@@ -53,7 +55,6 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
     private static final String DIALOG_TAG = "Dialog";
     private static final String INDEX_TAG = "vpn_status_tag";
     private static final int PREPARE_VPN_SERVICE = 0;
-    public static boolean isFrist = true;
     private static boolean isAnim = false;
     @BindView(R.id.tv_vpn_state_text)
     TextView tvVpnText;
@@ -147,16 +148,15 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
 
     @OnClick(R.id.iv_vpn_state)
     public void onVpnClick(View v) {
-        if (isFrist && !UserLoginUtil.isVIP()) {
-//            BaseAdsController.interstitialAds(getActivity());
-            isFrist = false;
-        }
         if (mService != null) {
             LogUtil.i("onVpnClick " + mService.getState());
             if (mService.getState() == VpnStateService.State.CONNECTED) {
                 mService.disconnect();
             } else if (mService.getState() == VpnStateService.State.DISABLED) {
                 MobAgent.onEventLocationChoose(getActivity(), LocationUtil.getName(getActivity()));
+                if(!UserLoginUtil.isVIP2()){
+                    AdsManager.getInstans().showInterstitialAds(getActivity(), AdsContext.Categrey.CATEGREY_1,false);
+                }
                 imgAnim();
                 int id = LocationUtil.getSelectId(getActivity());
                 indexService.getData(String.format(Constants.getUrl(Constants.API_SERVERLIST_URL), id), serverListener, serverListenerError, INDEX_TAG, ServerVo.class);

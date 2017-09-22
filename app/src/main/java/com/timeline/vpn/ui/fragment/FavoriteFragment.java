@@ -21,6 +21,7 @@ import com.timeline.vpn.data.FavoriteUtil;
 import com.timeline.vpn.data.config.FavoriteChangeEvent;
 import com.timeline.vpn.ui.base.CommonFragmentActivity;
 import com.timeline.vpn.ui.base.MenuOneContext;
+import com.timeline.vpn.ui.base.features.BasePullLoadbleFragment;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -38,7 +39,7 @@ public class FavoriteFragment extends BasePullLoadbleFragment<FavoriteVo> implem
         Intent intent = new Intent(context, CommonFragmentActivity.class);
         intent.putExtra(CommonFragmentActivity.FRAGMENT, FavoriteFragment.class);
         intent.putExtra(CommonFragmentActivity.TITLE, R.string.menu_btn_favorite);
-        intent.putExtra(CommonFragmentActivity.ADS, true);
+        intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, true);
         intent.putExtra(CommonFragmentActivity.ADSSCROLL, true);
         intent.putExtra(CommonFragmentActivity.SLIDINGCLOSE, true);
         context.startActivity(intent);

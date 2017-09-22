@@ -25,6 +25,7 @@ import com.timeline.vpn.bean.vo.InfoListVo;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.StaticDataUtil;
 import com.timeline.vpn.ui.base.CommonFragmentActivity;
+import com.timeline.vpn.ui.base.features.BasePullLoadbleFragment;
 import com.timeline.vpn.ui.sound.MyFullScreenImageGalleryActivity;
 
 import java.util.ArrayList;
@@ -53,7 +54,7 @@ public class ImgGalleryFragment extends BasePullLoadbleFragment<ImgItemVo> imple
         intent.putExtra(CommonFragmentActivity.FRAGMENT, ImgGalleryFragment.class);
         intent.putExtra(CommonFragmentActivity.TITLE, vo.name);
         StaticDataUtil.add(Constants.IMG_ITEMS, vo);
-        intent.putExtra(CommonFragmentActivity.ADS, false);
+        intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, false);
         intent.putExtra(CommonFragmentActivity.ADSSCROLL, true);
         intent.putExtra(CommonFragmentActivity.SLIDINGCLOSE, false);
         intent.putExtra(CommonFragmentActivity.TOOLBAR_SHOW, false);

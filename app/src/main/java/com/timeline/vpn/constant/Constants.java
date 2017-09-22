@@ -41,6 +41,9 @@ public class Constants {
     public static final int LOCATION_TYPE_FREE = 0;
     public static final int LOCATION_TYPE_VIP = 1;
     public static final int LOCATION_TYPE_VIP2 = 2;
+
+    public static final int BANNER_ADS_POS_1 = 4;
+    public static final int BANNER_ADS_POS_2 = 10;
     public static final String[] sort_type = new String[]{"type_asc", "type_desc"};
     public static final String[] sort_country = new String[]{"ename_asc", "ename_desc"};
     public static final String[] sort_fea = new String[]{"level_asc", "level_desc"};
@@ -123,11 +126,11 @@ public class Constants {
     public static final String TEXT_FILE = "TEXT_FILE";
     public static final String TEXT_CHANNEL = "TEXT_CHANNEL";
     public static final String IMG_CHANNEL = "IMG_CHANNEL";
-    public static final int maxRate = 3;
+    public static final int maxRate = 10;
     public static final String IMG_ITEMS = "IMG_ITEMS";
     public static final String SCORE_TMP = "SCORE_TMP";
     public static final String SCORE_CLICK = "SCORE_CLICK";
-    public static final long SCORE_CLICK_INTERVAL = 6;
+    public static final long SCORE_CLICK_INTERVAL = 4;
     public static final String VPN_STATUS = "VPN_STATUS";
     public static final String SOUND_CHANNEL_CLICK = "SOUND_CHANNEL_CLICK";
     public static final int MAX_RETRY_COUNT = 4;

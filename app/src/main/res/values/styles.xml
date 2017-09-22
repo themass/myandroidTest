@@ -85,10 +85,11 @@
         <item name="android:paddingRight">@dimen/padding_10</item>
         <item name="android:paddingTop">5dip</item>
         <item name="android:paddingBottom">5dip</item>
-        <item name="android:gravity">center_vertical</item>
+        <item name="android:gravity">center_vertical|left</item>
         <item name="android:drawablePadding">10dip</item>
         <item name="android:textCursorDrawable">@null</item>
         <item name="android:layout_width">match_parent</item>
+        <item name="android:minHeight">@dimen/margin_40</item>
         <item name="android:layout_height">wrap_content</item>
     </style>
 

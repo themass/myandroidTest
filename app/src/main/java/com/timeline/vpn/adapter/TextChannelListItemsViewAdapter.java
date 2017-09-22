@@ -11,9 +11,12 @@ import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.sspacee.yewu.ads.base.AdsContext;
+import com.sspacee.yewu.ads.base.AdsManager;
 import com.timeline.vpn.R;
 import com.timeline.vpn.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.vpn.bean.vo.TextItemsVo;
+import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.HistoryUtil;
 
 import java.util.List;
@@ -26,7 +29,6 @@ import butterknife.BindView;
 public class TextChannelListItemsViewAdapter extends BaseRecyclerViewAdapter<TextChannelListItemsViewAdapter.TextChannleListView, TextItemsVo> {
     FragmentManager fragmentManager = ((FragmentActivity)context).getSupportFragmentManager();
     int currentContainerId = -1;
-    boolean init = false;
     public TextChannelListItemsViewAdapter(FragmentActivity context, RecyclerView recyclerView, List<TextItemsVo> data, OnRecyclerViewItemClickListener<TextItemsVo> listener) {
         super(context, recyclerView, data, listener);
     }
@@ -50,21 +52,16 @@ public class TextChannelListItemsViewAdapter extends BaseRecyclerViewAdapter<Tex
         } else {
             holder.tvName.setTextColor(context.getResources().getColor(R.color.base_black));
         }
-//        if(position==3 &&!init){
-//            init = true;
-//            Fragment f = fragmentManager.findFragmentById(currentContainerId);
-//            if(f != null) {
-//                fragmentManager.beginTransaction().remove(f).commitAllowingStateLoss();
-//            }else{
-//                f = new NativeVideoHeaderFragment();
-//            }
-//            currentContainerId = getUniqueId();
-//            holder.rvAds.setId(currentContainerId);
-//            fragmentManager.beginTransaction().replace(currentContainerId, f).commitAllowingStateLoss();
-//            holder.rvAds.setVisibility(View.VISIBLE);
-//        }else{
-//            holder.rvAds.setVisibility(View.GONE);
-//        }
+        if(position== Constants.BANNER_ADS_POS_1){
+            holder.rvAds.setVisibility(View.VISIBLE);
+            AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_3);
+        }else if(position== Constants.BANNER_ADS_POS_2){
+            holder.rvAds.setVisibility(View.VISIBLE);
+            AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_1);
+        }else{
+            holder.rvAds.removeAllViews();
+            holder.rvAds.setVisibility(View.GONE);
+        }
     }
     public int getUniqueId() {
         return (int) SystemClock.currentThreadTimeMillis();

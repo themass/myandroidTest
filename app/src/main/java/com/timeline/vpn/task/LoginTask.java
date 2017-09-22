@@ -1,5 +1,6 @@
 package com.timeline.vpn.task;
 
+import android.content.Context;
 import android.os.AsyncTask;
 
 import com.android.volley.toolbox.RequestFuture;
@@ -22,6 +23,9 @@ import java.util.Map;
  * Created by themass on 2016/3/8.
  */
 public class LoginTask extends AsyncTask<Void, Void, Void> {
+    public static void start(Context context) {
+        new LoginTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    }
     @Override
     protected Void doInBackground(Void... params) {
         try {

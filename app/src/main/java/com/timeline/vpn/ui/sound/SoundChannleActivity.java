@@ -6,7 +6,10 @@ import android.support.v4.app.Fragment;
 import android.view.View;
 
 import com.sspacee.common.util.LogUtil;
+import com.sspacee.yewu.ads.base.AdsContext;
+import com.sspacee.yewu.ads.base.AdsManager;
 import com.timeline.vpn.R;
+import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.ui.base.app.BaseFragmentActivity;
 import com.timeline.vpn.ui.fragment.SoundChannleBodyFragment;
 
@@ -39,5 +42,11 @@ public class SoundChannleActivity extends BaseFragmentActivity {
     protected boolean enableSliding() {
         return true;
     }
-
+    @Override
+    public void setupView() {
+        super.setupView();
+        if(!UserLoginUtil.isVIP2()&&AdsContext.rateShow()){
+            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_1,false);
+        }
+    }
 }

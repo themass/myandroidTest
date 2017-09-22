@@ -18,6 +18,7 @@ import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.GsonUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PreferenceUtils;
+import com.sspacee.yewu.ads.base.AdsContext;
 import com.timeline.vpn.R;
 import com.timeline.vpn.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.vpn.adapter.LocationViewAdapter;
@@ -30,7 +31,7 @@ import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.data.config.LocationChooseEvent;
 import com.timeline.vpn.data.sort.LocSortFactor;
 import com.timeline.vpn.ui.base.CommonFragmentActivity;
-import com.timeline.vpn.ui.base.LoadableFragment;
+import com.timeline.vpn.ui.base.features.LoadableFragment;
 import com.timeline.vpn.ui.user.LoginActivity;
 
 import java.util.ArrayList;
@@ -67,8 +68,9 @@ public class LocationChooseFragment extends LoadableFragment<List<LocationVo>> i
         intent.putExtra(CommonFragmentActivity.FRAGMENT, LocationChooseFragment.class);
         intent.putExtra(CommonFragmentActivity.TITLE, getFragmentTitle());
         intent.putExtra(CommonFragmentActivity.SLIDINGCLOSE, true);
-        intent.putExtra(CommonFragmentActivity.ADS, true);
+        intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, true);
         intent.putExtra(CommonFragmentActivity.ADSSCROLL, false);
+        intent.putExtra(CommonFragmentActivity.BANNER_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_3);
         context.startActivity(intent);
     }
 
@@ -152,7 +154,7 @@ public class LocationChooseFragment extends LoadableFragment<List<LocationVo>> i
                 startActivity(LoginActivity.class);
                 return;
             } else {
-                if (Constants.LOCATION_TYPE_VIP != vo.level) {
+                if (Constants.LOCATION_TYPE_VIP > vo.level) {
                     Toast.makeText(getActivity(), R.string.need_vip, Toast.LENGTH_SHORT).show();
                     return;
                 }

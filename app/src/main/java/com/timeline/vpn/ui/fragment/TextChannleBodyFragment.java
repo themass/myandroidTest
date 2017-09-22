@@ -5,8 +5,10 @@ import android.view.View;
 
 import com.kyview.natives.NativeAdInfo;
 import com.sspacee.common.util.CollectionUtils;
+import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.ads.base.NativeAdsReadyListener;
 import com.sspacee.yewu.um.MobAgent;
+import com.timeline.vpn.bean.vo.InfoListVo;
 import com.timeline.vpn.bean.vo.RecommendVo;
 import com.timeline.vpn.constant.Constants;
 
@@ -72,5 +74,12 @@ public class TextChannleBodyFragment extends RecommendFragment implements Native
             pullView.notifyDataSetChanged();
         }
         return true;
+    }
+    @Override
+    protected void onDataLoaded(InfoListVo<RecommendVo> data) {
+        super.onDataLoaded(data);
+        if(data.hasMore==false){
+            AdsManager.getInstans().showNative(getActivity(),this);
+        }
     }
 }

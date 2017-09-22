@@ -17,6 +17,7 @@ import android.widget.Toast;
 import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PreferenceUtils;
+import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.um.MobAgent;
 import com.timeline.vpn.R;
 import com.timeline.vpn.bean.vo.UserInfoVo;
@@ -246,7 +247,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     }
 
     private void adsOffers(){
-//        AdsContext.offerAds(this, AdsContext.AdsFrom.YOUMI);
+        AdsManager.getInstans().offerAds(this);
     }
     @Override
     protected void onPause() {

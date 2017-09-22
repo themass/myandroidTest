@@ -16,7 +16,7 @@ import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.data.StaticDataUtil;
 import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.ui.base.CommonFragmentActivity;
-import com.timeline.vpn.ui.base.LoadableFragment;
+import com.timeline.vpn.ui.base.features.LoadableFragment;
 
 import butterknife.BindView;
 
@@ -38,7 +38,7 @@ public class TextItemsStrFragment extends LoadableFragment<String> {
         intent.putExtra(CommonFragmentActivity.TITLE, vo.name);
         StaticDataUtil.add(Constants.TEXT_FILE, vo);
         if (!UserLoginUtil.isVIP2())
-            intent.putExtra(CommonFragmentActivity.ADS, true);
+            intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, true);
         intent.putExtra(CommonFragmentActivity.ADSSCROLL, true);
         intent.putExtra(CommonFragmentActivity.SLIDINGCLOSE, true);
         intent.putExtra(CommonFragmentActivity.TOOLBAR_SHOW, false);

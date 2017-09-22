@@ -2,16 +2,21 @@ package com.timeline.vpn.adapter;
 
 import android.content.Context;
 import android.support.annotation.Nullable;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.sspacee.yewu.ads.base.AdsContext;
+import com.sspacee.yewu.ads.base.AdsManager;
 import com.timeline.vpn.R;
 import com.timeline.vpn.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.vpn.bean.vo.ImgItemsVo;
 import com.timeline.vpn.bean.vo.TextItemsVo;
+import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.HistoryUtil;
 
 import java.util.List;
@@ -46,6 +51,17 @@ public class ImgChannelListItemsViewAdapter extends BaseRecyclerViewAdapter<ImgC
         }else {
             holder.tvName.setTextColor(context.getResources().getColor(R.color.base_black));
         }
+
+        if(position== Constants.BANNER_ADS_POS_1){
+            holder.rvAds.setVisibility(View.VISIBLE);
+            AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_3);
+        }else if(position==Constants.BANNER_ADS_POS_2){
+            holder.rvAds.setVisibility(View.VISIBLE);
+            AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_1);
+        }else{
+            holder.rvAds.removeAllViews();
+            holder.rvAds.setVisibility(View.GONE);
+        }
     }
     public static class ImgChannleListView extends BaseRecyclerViewAdapter.BaseRecyclerViewHolder<TextItemsVo> {
         @Nullable
@@ -57,7 +73,9 @@ public class ImgChannelListItemsViewAdapter extends BaseRecyclerViewAdapter<ImgC
         @Nullable
         @BindView(R.id.tv_date)
         TextView tvDate;
-
+        @Nullable
+        @BindView(R.id.rv_ads)
+        RelativeLayout rvAds;
         public ImgChannleListView(View itemView, View.OnClickListener l, View.OnLongClickListener longListener) {
             super(itemView, l, longListener);
         }

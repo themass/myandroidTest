@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
+import com.sspacee.yewu.ads.base.AdsContext;
 import com.timeline.vpn.R;
 import com.timeline.vpn.adapter.ImgChannelListItemsViewAdapter;
 import com.timeline.vpn.adapter.base.BaseRecyclerViewAdapter;
@@ -15,11 +16,12 @@ import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.HistoryUtil;
 import com.timeline.vpn.data.StaticDataUtil;
 import com.timeline.vpn.ui.base.CommonFragmentActivity;
+import com.timeline.vpn.ui.base.features.BasePullLoadbleFragment;
 
 /**
  * Created by themass on 2016/8/12.
  */
-public class ImgChannelListFragment extends BasePullLoadbleFragment<ImgItemsVo>{
+public class ImgChannelListFragment extends BasePullLoadbleFragment<ImgItemsVo> {
     private static final String TEXT_TAG = "text_tag";
     private ImgChannelListItemsViewAdapter adapter;
     private RecommendVo vo;
@@ -29,10 +31,11 @@ public class ImgChannelListFragment extends BasePullLoadbleFragment<ImgItemsVo>{
         intent.putExtra(CommonFragmentActivity.FRAGMENT, ImgChannelListFragment.class);
         intent.putExtra(CommonFragmentActivity.TITLE, R.string.img);
         StaticDataUtil.add(Constants.IMG_CHANNEL, vo);
-        intent.putExtra(CommonFragmentActivity.ADS, true);
+        intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, true);
         intent.putExtra(CommonFragmentActivity.ADSSCROLL, false);
         intent.putExtra(CommonFragmentActivity.SLIDINGCLOSE, true);
-        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS, true);
+        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_SHOW, true);
+        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_2);
         context.startActivity(intent);
     }
     @Override

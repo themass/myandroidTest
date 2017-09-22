@@ -26,6 +26,8 @@ import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.MediaUtil;
 import com.sspacee.common.util.PreferenceUtils;
+import com.sspacee.yewu.ads.base.AdsContext;
+import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.net.NetUtils;
 import com.timeline.vpn.R;
 import com.timeline.vpn.adapter.SoundItemsViewAdapter;
@@ -37,6 +39,7 @@ import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.StaticDataUtil;
 import com.timeline.vpn.service.PlayService;
 import com.timeline.vpn.ui.base.CommonFragmentActivity;
+import com.timeline.vpn.ui.base.features.BasePullLoadbleFragment;
 
 import butterknife.BindView;
 import butterknife.OnClick;
@@ -116,10 +119,11 @@ public class SoundItemsFragment extends BasePullLoadbleFragment<SoundItemsVo> im
         intent.putExtra(CommonFragmentActivity.FRAGMENT, SoundItemsFragment.class);
         intent.putExtra(CommonFragmentActivity.TITLE, R.string.sound);
         StaticDataUtil.add(Constants.SOUND_CHANNEL, vo);
-        intent.putExtra(CommonFragmentActivity.ADS, true);
+        intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, true);
         intent.putExtra(CommonFragmentActivity.ADSSCROLL, false);
         intent.putExtra(CommonFragmentActivity.SLIDINGCLOSE, true);
-        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS, true);
+        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_SHOW, true);
+        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_2);
         context.startActivity(intent);
     }
     private void receiverReg() {
@@ -156,6 +160,7 @@ public class SoundItemsFragment extends BasePullLoadbleFragment<SoundItemsVo> im
             case R.id.iv_play:
                 if (isPlaying()) {
                     pause();
+                    AdsManager.getInstans().showInterstitialAds(getActivity(), AdsContext.Categrey.CATEGREY_3,false);
                 } else {
                     if (current == -1) {
                         play(0);

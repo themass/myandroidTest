@@ -1,4 +1,4 @@
-package com.timeline.vpn.ui.base;
+package com.timeline.vpn.ui.base.features;
 
 import android.app.Activity;
 import android.content.Context;

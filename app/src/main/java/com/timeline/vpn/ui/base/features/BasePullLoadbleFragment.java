@@ -1,4 +1,4 @@
-package com.timeline.vpn.ui.fragment;
+package com.timeline.vpn.ui.base.features;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -14,7 +14,6 @@ import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.R;
 import com.timeline.vpn.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.vpn.bean.vo.InfoListVo;
-import com.timeline.vpn.ui.base.LoadableFragment;
 
 import butterknife.BindView;
 
@@ -25,8 +24,8 @@ import butterknife.BindView;
 public abstract class BasePullLoadbleFragment<T> extends LoadableFragment<InfoListVo<T>> implements MyPullView.OnRefreshListener, BaseRecyclerViewAdapter.OnRecyclerViewItemClickListener<T> {
     @Nullable
     @BindView(R.id.my_pullview)
-    MyPullView pullView;
-    InfoListVo<T> infoListVo = new InfoListVo<T>();
+    public MyPullView pullView;
+    public InfoListVo<T> infoListVo = new InfoListVo<T>();
     @Override
     protected void onContentViewCreated(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
         inflater.inflate(R.layout.common_mypage_view, parent);

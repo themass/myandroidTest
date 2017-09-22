@@ -1,4 +1,4 @@
-package com.timeline.vpn.ui.base.features;
+package com.timeline.vpn.ui.base.app;
 
 import android.os.Handler;
 import android.os.Message;
@@ -17,7 +17,6 @@ import com.timeline.vpn.R;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.AdsPopStrategy;
 import com.timeline.vpn.data.config.HindBannerEvent;
-import com.timeline.vpn.ui.base.app.BaseToolBarActivity;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -112,14 +111,13 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity{
     }
     public void showAds() {
         if (needShow()) {
-            LogUtil.i("显示广告啦");
-            AdsManager.getInstans().showBannerAds(this, flBanner,getBannerAdsFrom());
+            AdsManager.getInstans().showBannerAds(this, flBanner,getBannerCategrey());
         } else {
             flBanner.setVisibility(View.GONE);
         }
     }
     protected AdsContext.AdsFrom getBannerAdsFrom(){
-        return AdsContext.AdsFrom.GDT;
+        return AdsContext.AdsFrom.ADVIEW;
     }
 
     public boolean needShow() {
@@ -140,10 +138,12 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity{
     @Override
     public void onDestroy() {
         EventBusUtil.getEventBus().unregister(this);
-        AdsManager.getInstans().exitBannerAds(this, flBanner, getBannerAdsFrom());
+        AdsManager.getInstans().exitBannerAds(this, flBanner,getBannerCategrey());
         super.onDestroy();
     }
-
+    protected AdsContext.Categrey getBannerCategrey(){
+        return AdsContext.Categrey.CATEGREY_1;
+    }
     class AdsGoneTask implements Runnable {
         @Override
         public void run() {

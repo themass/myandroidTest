@@ -7,7 +7,9 @@ import android.view.View;
 
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
+import com.sspacee.yewu.ads.base.AdsManager;
 import com.timeline.vpn.R;
+import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.ui.base.app.BaseFragmentActivity;
 import com.timeline.vpn.ui.fragment.ImgChannleBodyFragment;
 
@@ -31,6 +33,7 @@ public class ImgChannleActivity extends BaseFragmentActivity {
                 .add(R.id.fragment, fragment)
                 .commitAllowingStateLoss();
         setToolbarTitle(R.string.img, true);
+
     }
 
     public boolean needShow() {
@@ -40,7 +43,11 @@ public class ImgChannleActivity extends BaseFragmentActivity {
     protected boolean enableSliding() {
         return true;
     }
-    protected AdsContext.AdsFrom getBannerAdsFrom(){
-        return AdsContext.AdsFrom.ADVIEW;
+
+    @Override
+    public void setupView() {
+        super.setupView();
+        if(!UserLoginUtil.isVIP2()&&AdsContext.rateShow())
+            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_1,false);
     }
 }

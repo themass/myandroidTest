@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.SearchView;
 
 import com.sspacee.common.util.StringUtils;
+import com.sspacee.yewu.ads.base.AdsContext;
 import com.timeline.vpn.R;
 import com.timeline.vpn.adapter.TextChannelListItemsViewAdapter;
 import com.timeline.vpn.adapter.base.BaseRecyclerViewAdapter;
@@ -24,6 +25,7 @@ import com.timeline.vpn.data.HistoryUtil;
 import com.timeline.vpn.data.StaticDataUtil;
 import com.timeline.vpn.ui.base.CommonFragmentActivity;
 import com.timeline.vpn.ui.base.MenuOneContext;
+import com.timeline.vpn.ui.base.features.BasePullLoadbleFragment;
 
 import butterknife.BindView;
 
@@ -45,10 +47,11 @@ public class TextChannelListFragment extends BasePullLoadbleFragment<TextItemsVo
         intent.putExtra(CommonFragmentActivity.FRAGMENT, TextChannelListFragment.class);
         intent.putExtra(CommonFragmentActivity.TITLE, R.string.text);
         StaticDataUtil.add(Constants.TEXT_CHANNEL, vo);
-        intent.putExtra(CommonFragmentActivity.ADS, false);
+        intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, false);
         intent.putExtra(CommonFragmentActivity.ADSSCROLL, false);
         intent.putExtra(CommonFragmentActivity.SLIDINGCLOSE, true);
-        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS, true);
+        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_SHOW, true);
+        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_2);
         context.startActivity(intent);
     }
 

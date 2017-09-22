@@ -2,16 +2,21 @@ package com.timeline.vpn.adapter;
 
 import android.content.Context;
 import android.support.annotation.Nullable;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.sspacee.yewu.ads.base.AdsContext;
+import com.sspacee.yewu.ads.base.AdsManager;
 import com.timeline.vpn.R;
 import com.timeline.vpn.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.vpn.bean.vo.SoundItemsVo;
+import com.timeline.vpn.constant.Constants;
 
 import java.util.List;
 
@@ -42,6 +47,17 @@ public class SoundItemsViewAdapter extends BaseRecyclerViewAdapter<SoundItemsVie
         } else {
             holder.ivSong.setVisibility(View.GONE);
         }
+
+        if(position== Constants.BANNER_ADS_POS_1){
+            holder.rvAds.setVisibility(View.VISIBLE);
+            AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_3);
+        }else if(position==Constants.BANNER_ADS_POS_2){
+            holder.rvAds.setVisibility(View.VISIBLE);
+            AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_1);
+        }else{
+            holder.rvAds.removeAllViews();
+            holder.rvAds.setVisibility(View.GONE);
+        }
     }
     static class SoundItemView extends BaseRecyclerViewAdapter.BaseRecyclerViewHolder<SoundItemsVo> {
         @Nullable
@@ -56,7 +72,9 @@ public class SoundItemsViewAdapter extends BaseRecyclerViewAdapter<SoundItemsVie
         @Nullable
         @BindView(R.id.iv_song)
         ImageView ivSong;
-
+        @Nullable
+        @BindView(R.id.rv_ads)
+        RelativeLayout rvAds;
         public SoundItemView(View itemView, View.OnClickListener l, View.OnLongClickListener longListener) {
             super(itemView, l, longListener);
         }

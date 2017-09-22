@@ -13,7 +13,7 @@ import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.SplashAdsInter;
 import com.timeline.vpn.R;
 
-import static com.sspacee.yewu.ads.adview.AdviewConstant.ADS_ADVIEW_KEY;
+import static com.sspacee.yewu.ads.adview.AdviewConstant.ADS_ADVIEW_KEY2;
 import static com.sspacee.yewu.ads.adview.AdviewConstant.adsKeySet;
 
 /**
@@ -22,15 +22,19 @@ import static com.sspacee.yewu.ads.adview.AdviewConstant.adsKeySet;
 
 public class SplashAdviewAds extends SplashAdsInter {
     @Override
+    protected AdsContext.AdsType getAdsType(){
+        return AdsContext.AdsType.ADS_TYPE_SPREAD;
+    }
+    @Override
     public  void lanchExit(Context context,RelativeLayout group){
-        AdViewSpreadManager.getInstance(context).destroySpread(ADS_ADVIEW_KEY);
+        AdViewSpreadManager.getInstance(context).destroySpread(ADS_ADVIEW_KEY2);
     }
     @Override
     public  void launchAds(final FragmentActivity context, RelativeLayout group, RelativeLayout skipView, final Handler handler){
         try {
             AdViewSpreadManager.getInstance(context).init(AdviewAdsManager.initConfig, adsKeySet);
             AdViewSpreadManager.getInstance(context).setSpreadLogo(R.drawable.ic_trans_logo);
-            AdViewSpreadManager.getInstance(context).request(context, ADS_ADVIEW_KEY, new AdViewSpreadListener() {
+            AdViewSpreadManager.getInstance(context).request(context, ADS_ADVIEW_KEY2, new AdViewSpreadListener() {
                 @Override
                 public void onAdClick(String s) {
                     clickAds(context,handler, AdsContext.AdsFrom.ADVIEW);

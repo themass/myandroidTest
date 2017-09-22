@@ -28,7 +28,7 @@ import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.ui.base.CommonFragmentActivity;
-import com.timeline.vpn.ui.base.LoadableFragment;
+import com.timeline.vpn.ui.base.features.LoadableFragment;
 import com.timeline.vpn.ui.inte.FabOpListener;
 import com.timeline.vpn.ui.user.LoginActivity;
 

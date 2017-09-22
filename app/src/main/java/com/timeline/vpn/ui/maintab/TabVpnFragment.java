@@ -6,7 +6,7 @@ import android.support.v4.app.Fragment;
 
 import com.timeline.vpn.data.VersionUpdater;
 import com.timeline.vpn.ui.base.features.TabBaseAdsFragment;
-import com.timeline.vpn.ui.fragment.BannerHeaderFragment;
+import com.timeline.vpn.ui.base.BannerHeaderFragment;
 import com.timeline.vpn.ui.fragment.RecommendListFragment;
 import com.timeline.vpn.ui.fragment.VpnStatusFragment;
 

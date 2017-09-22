@@ -106,21 +106,8 @@ public class MyFullScreenImageGalleryActivity extends BaseSingleActivity impleme
     public void onFailed(){
         Toast.makeText(this,R.string.save_fail,Toast.LENGTH_SHORT).show();
     }
-//    class MyFullScreenImageGalleryAdapter extends FullScreenImageGalleryAdapter {
-//        public MyFullScreenImageGalleryAdapter(List<String> images) {
-//            super(images);
-//        }
-//
-//        public Object instantiateItem(ViewGroup container, final int position) {
-//            View view = (View)super.instantiateItem(container,position);
-//
-//            view.setOnLongClickListener(new View.OnLongClickListener(){
-//                public boolean onLongClick(View v){
-//                    MenuOneContext.showOneMenu(MyFullScreenImageGalleryActivity.this,v,R.string.save_img,MyFullScreenImageGalleryActivity.this,position);
-//                    return true;
-//                }
-//            });
-//            return view;
-//        }
-//    }
+    @Override
+    public boolean needShow() {
+        return false;
+    }
 }

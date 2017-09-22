@@ -2,7 +2,6 @@ package com.timeline.vpn.ui.base.app;
 
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.um.MobAgent;
-import com.timeline.vpn.ui.base.features.BaseBannerAdsActivity;
 
 /**
  * Created by themass on 2016/8/18.

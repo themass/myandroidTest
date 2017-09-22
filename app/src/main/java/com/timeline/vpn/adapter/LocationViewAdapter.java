@@ -35,7 +35,7 @@ public class LocationViewAdapter extends BaseRecyclerViewAdapter<LocationViewAda
 
     public LocationViewAdapter(Context context, RecyclerView recyclerView, List<LocationVo> data, OnRecyclerViewItemClickListener<LocationVo> listener) {
         super(context, recyclerView, data, listener);
-        chooseId = LocationUtil.getSelectId(context);
+        chooseId = LocationUtil.getSelectLocationId(context);
         indexColo = context.getResources().getColorStateList(R.color.location_index);
         indexSelectColo = context.getResources().getColorStateList(R.color.base_red);
     }

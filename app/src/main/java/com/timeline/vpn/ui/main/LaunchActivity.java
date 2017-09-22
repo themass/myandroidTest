@@ -11,17 +11,11 @@ import android.widget.TextView;
 
 import com.kyview.manager.AdViewSpreadManager;
 import com.sspacee.common.ui.base.LogActivity;
-import com.sspacee.common.util.EventBusUtil;
-import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.um.MobAgent;
 import com.timeline.vpn.R;
 import com.timeline.vpn.constant.Constants;
-import com.timeline.vpn.data.config.LaunchAdsNext;
-import com.timeline.vpn.task.UpdateUserTask;
-
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
+import com.timeline.vpn.task.LoginTask;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -66,8 +60,7 @@ public class LaunchActivity extends LogActivity {
         setContentView(R.layout.main_launch);
         MobAgent.init(this);
         unbinder = ButterKnife.bind(this);
-        UpdateUserTask.start(this);
-        EventBusUtil.getEventBus().register(this);
+        LoginTask.start(this);
     }
 
     @OnClick(R.id.skip_view)
@@ -90,14 +83,11 @@ public class LaunchActivity extends LogActivity {
         }
         return super.onKeyDown(keyCode, event);
     }
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent(LaunchAdsNext event) {
-    }
     @Override
     protected void onResume() {
         super.onResume();
         mHandler.postDelayed(mStartMainRunnable, Constants.STARTUP_SHOW_TIME_7000);
-        AdsManager.getInstans().showSplashAds(this,ivAds,skipView, AdsContext.AdsFrom.GDT);
+        AdsManager.getInstans().showSplashAds(this,ivAds,skipView);
         MobAgent.onResume(this);
         delay1s();
     }
@@ -114,11 +104,10 @@ public class LaunchActivity extends LogActivity {
 
     @Override
     public void onDestroy() {
-        EventBusUtil.getEventBus().unregister(this);
         unbinder.unbind();
         mHandler.removeMessages(Constants.ADS_JISHI);
         mHandler.removeCallbacks(mStartMainRunnable);
-        AdsManager.getInstans().exitSplashAds(this,ivAds, AdsContext.AdsFrom.GDT);
+        AdsManager.getInstans().exitSplashAds(this,ivAds);
         super.onDestroy();
     }
 }

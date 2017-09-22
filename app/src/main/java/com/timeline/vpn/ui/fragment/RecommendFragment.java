@@ -27,6 +27,7 @@ import com.timeline.vpn.bean.vo.RecommendVo;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.data.config.ConfigActionEvent;
+import com.timeline.vpn.ui.base.features.BasePullLoadbleFragment;
 
 import org.strongswan.android.logic.VpnStateService;
 

@@ -2,13 +2,17 @@ package com.timeline.vpn.adapter;
 
 import android.content.Context;
 import android.support.annotation.Nullable;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.sspacee.yewu.ads.base.AdsContext;
+import com.sspacee.yewu.ads.base.AdsManager;
 import com.timeline.vpn.R;
 import com.timeline.vpn.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.vpn.bean.vo.FavoriteVo;
@@ -53,6 +57,13 @@ public class FavoriteViewAdapter extends BaseRecyclerViewAdapter<FavoriteViewAda
         }else{
             holder.ivType.setVisibility(View.GONE);
         }
+        if(position==Constants.BANNER_ADS_POS_1){
+            holder.rvAds.setVisibility(View.VISIBLE);
+            AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_3);
+        }else{
+            holder.rvAds.removeAllViews();
+            holder.rvAds.setVisibility(View.GONE);
+        }
     }
     public static class ItemtView extends BaseRecyclerViewAdapter.BaseRecyclerViewHolder<FavoriteVo> {
         @Nullable
@@ -67,7 +78,9 @@ public class FavoriteViewAdapter extends BaseRecyclerViewAdapter<FavoriteViewAda
         @Nullable
         @BindView(R.id.iv_song)
         ImageView ivType;
-
+        @Nullable
+        @BindView(R.id.rv_ads)
+        RelativeLayout rvAds;
         public ItemtView(View itemView, View.OnClickListener l, View.OnLongClickListener longListener) {
             super(itemView, l, longListener);
         }

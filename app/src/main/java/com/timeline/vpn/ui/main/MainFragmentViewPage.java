@@ -2,7 +2,6 @@ package com.timeline.vpn.ui.main;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.TabLayout;
@@ -22,14 +21,16 @@ import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PermissionHelper;
 import com.sspacee.common.util.PreferenceUtils;
+import com.sspacee.yewu.ads.base.AdsContext;
+import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.um.MobAgent;
 import com.timeline.vpn.R;
 import com.timeline.vpn.constant.Constants;
+import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.data.config.ConfigActionJump;
 import com.timeline.vpn.data.config.LogAddTofile;
 import com.timeline.vpn.data.config.TabChangeEvent;
 import com.timeline.vpn.service.LogUploadService;
-import com.timeline.vpn.task.LoginTask;
 import com.timeline.vpn.ui.base.app.BaseDrawerActivity;
 import com.timeline.vpn.ui.inte.OnBackKeyDownListener;
 import com.timeline.vpn.ui.maintab.TabCustomeFragment;
@@ -99,17 +100,11 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         mTabLayout = (TabLayout) findViewById(R.id.tabs);
         mViewPager = (ViewPager) findViewById(R.id.vp_view);
         initTabs();
+//        UpdateUserTask.start(this);
+        AdsManager.getInstans().reqVideo(this);
+        if(!UserLoginUtil.isVIP2()&&AdsContext.rateShow())
+            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_1,false);
     }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (!init) {
-            new LoginTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-            init = true;
-        }
-    }
-
     /**
      * Callback received when a permissions request has been completed.
      */

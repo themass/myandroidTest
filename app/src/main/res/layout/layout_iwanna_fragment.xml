@@ -38,7 +38,7 @@
             android:layout_centerVertical="true"
             android:layout_toLeftOf="@+id/send"
             android:background="@drawable/bg_edittext"
-            android:gravity="top|left"
+
             android:hint="@string/iwanna_title" />
     </RelativeLayout>
 </RelativeLayout>
