@@ -133,19 +133,24 @@
                 android:text="@string/location_choose_ping"
                 android:textColor="@color/base_black"
                 android:textSize="@dimen/location_choose_tv_net" />
-
-            <ProgressBar
-                android:id="@+id/pg_ping"
-                android:layout_width="@dimen/margin_18"
-                android:layout_height="@dimen/margin_18" />
-            <TextView
-                android:id="@+id/tv_ping"
+            <FrameLayout
                 android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:gravity="center"
-                android:maxLines="1"
-                android:textColor="@color/base_black"
-                android:textSize="@dimen/location_choose_tv_country" />
+                android:layout_height="match_parent">
+                <ProgressBar
+                    android:id="@+id/pg_ping"
+                    android:layout_width="@dimen/margin_18"
+                    android:layout_height="@dimen/margin_18"
+                    android:visibility="gone"/>
+                <TextView
+                    android:id="@+id/tv_ping"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical"
+                    android:maxLines="1"
+                    android:textColor="@color/base_black"
+                    android:text="no ping"
+                    android:textSize="@dimen/location_choose_tv_country" />
+            </FrameLayout>
         </LinearLayout>
     </LinearLayout>
 </LinearLayout>

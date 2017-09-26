@@ -7,7 +7,6 @@ import android.widget.Toast;
 import com.kyview.interfaces.AdViewVideoListener;
 import com.kyview.manager.AdViewVideoManager;
 import com.sspacee.yewu.ads.base.AdsContext;
-import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.ads.base.VideoAdsInter;
 import com.timeline.vpn.R;
 import com.timeline.vpn.constant.Constants;
@@ -26,7 +25,6 @@ public class VideoAdviewAds extends VideoAdsInter{
         AdViewVideoManager.getInstance(context).requestAd(context, ADS_ADVIEW_KEY2, new AdViewVideoListener(){
             @Override
             public void onAdFailed(String arg0) {
-                AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.CATEGREY_2,true);
                 noAds(context,handler, AdsContext.AdsFrom.ADVIEW);
             }
 

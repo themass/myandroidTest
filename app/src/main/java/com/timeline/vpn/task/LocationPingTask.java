@@ -22,6 +22,8 @@ public class LocationPingTask extends AsyncTask<Void, Void, Void> {
     ProgressBar bar;
     TextView tvPing;
     public static void ping(Context context, LocationVo vo, ProgressBar bar, TextView tvPing){
+        bar.setVisibility(View.VISIBLE);
+        tvPing.setVisibility(View.GONE);
         if(StringUtils.hasText(vo.gateway)) {
             bar.setTag(vo.gateway);
         }else {
@@ -35,6 +37,7 @@ public class LocationPingTask extends AsyncTask<Void, Void, Void> {
     }
     private static void fillText(Context context,ProgressBar bar, TextView tvPing,Integer ping){
         bar.setVisibility(View.GONE);
+        tvPing.setVisibility(View.VISIBLE);
         if(-1 ==ping){
             tvPing.setTextColor(context.getResources().getColor(R.color.base_black));
             tvPing.setText(" no ping");

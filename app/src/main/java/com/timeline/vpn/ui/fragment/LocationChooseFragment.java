@@ -133,9 +133,12 @@ public class LocationChooseFragment extends LoadableFragment<List<LocationVo>> i
         tvFeature.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sort(Constants.sort_fea[(++feaIndex) % 2]);
+//                sort(Constants.sort_fea[(++feaIndex) % 2]);
+                adapter.setNeedPing(true);
+                adapter.notifyDataSetChanged();
             }
         });
+
     }
 
     private void sort(String sortBy) {

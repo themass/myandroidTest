@@ -32,7 +32,7 @@ public class LocationViewAdapter extends BaseRecyclerViewAdapter<LocationViewAda
     private int chooseId = 0;
     private ColorStateList indexColo = null;
     private ColorStateList indexSelectColo = null;
-
+    private boolean needPing = false;
     public LocationViewAdapter(Context context, RecyclerView recyclerView, List<LocationVo> data, OnRecyclerViewItemClickListener<LocationVo> listener) {
         super(context, recyclerView, data, listener);
         chooseId = LocationUtil.getSelectLocationId(context);
@@ -70,9 +70,19 @@ public class LocationViewAdapter extends BaseRecyclerViewAdapter<LocationViewAda
             holder.tvType.setText(R.string.vpn_type_vip2);
         }
 //        holder.tvPing.setTextColor(context.getResources().getColor(R.color.base_black));
-        LocationPingTask.ping(context,data.get(position),holder.pgPing,holder.tvPing);
+        if(isNeedPing())
+            LocationPingTask.ping(context,data.get(position),holder.pgPing,holder.tvPing);
         ImagePhotoLoad.getCountryImage(context, holder.ivCountry, vo.img);
     }
+
+    public boolean isNeedPing() {
+        return needPing;
+    }
+
+    public void setNeedPing(boolean needPing) {
+        this.needPing = needPing;
+    }
+
     static class LocationItemView extends BaseRecyclerViewAdapter.BaseRecyclerViewHolder<LocationVo> {
         @Nullable
         @BindView(R.id.ll_location_choose)
