@@ -112,7 +112,7 @@ public class PermissionHelper {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 alertDialog.dismiss();
-                mContext.finish();
+//                mContext.finish();
             }
         });
         builder.setPositiveButton(R.string.menu_btn_setting, new DialogInterface.OnClickListener() {

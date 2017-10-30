@@ -3,8 +3,6 @@ package com.timeline.vpn.constant;
 
 import com.timeline.vpn.R;
 
-import org.strongswan.android.logic.VpnType;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -105,10 +103,8 @@ public class Constants {
     public static final String API_LOG_URL = "/monitor/bug.json";
     public static final String API_ADD_CUSTOME = "/user/custome/add.json";
     public static final String API_DEL_CUSTOME = "/user/custome/del.json";
-    public static final VpnType mVpnType = VpnType.IKEV2_CERT;
     public static final int connTimeOut = 20;
     public static final String NET_ERROR = "network error";
-    public static final VpnType vpnType = VpnType.IKEV2_EAP;
     public static final int ADS_SHOW_SCORE = 10;
     public static final int ADS_SHOW_CLICK = 20;
     public static final String D_URL = "D_URL";

@@ -157,7 +157,7 @@ public class LocationChooseFragment extends LoadableFragment<List<LocationVo>> i
                 startActivity(LoginActivity.class);
                 return;
             } else {
-                if (Constants.LOCATION_TYPE_VIP > vo.level) {
+                if (data.type > vo.level) {
                     Toast.makeText(getActivity(), R.string.need_vip, Toast.LENGTH_SHORT).show();
                     return;
                 }

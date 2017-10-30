@@ -91,7 +91,7 @@ public class AdsContext {
     // 3/5
     public static boolean rateShow(){
         int i = Md5.getRandom(Constants.maxRate);
-        return i<=7;
+        return i<=5;
     }
     public static void adsNotify(Context context, AdsType type, AdsShowStatus event) {
         MobAgent.onEventAds(context, type, event);

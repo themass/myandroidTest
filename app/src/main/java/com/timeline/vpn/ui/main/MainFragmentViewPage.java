@@ -26,7 +26,6 @@ import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.um.MobAgent;
 import com.timeline.vpn.R;
 import com.timeline.vpn.constant.Constants;
-import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.data.config.ConfigActionJump;
 import com.timeline.vpn.data.config.LogAddTofile;
 import com.timeline.vpn.data.config.TabChangeEvent;
@@ -39,7 +38,6 @@ import com.timeline.vpn.ui.maintab.TabVpnFragment;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
-import org.strongswan.android.logic.CharonVpnService;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -68,8 +66,6 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_main_viewpage);
-        startService(CharonVpnService.class);
-        startService(CharonVpnService.class);
         EventBusUtil.getEventBus().register(jump);
         EventBusUtil.getEventBus().register(logAdd);
         mPermissionHelper = new PermissionHelper(this);
@@ -102,8 +98,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         initTabs();
 //        UpdateUserTask.start(this);
         AdsManager.getInstans().reqVideo(this);
-        if(!UserLoginUtil.isVIP2()&&AdsContext.rateShow())
-            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_1,false);
+        AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_1,false);
     }
     /**
      * Callback received when a permissions request has been completed.
@@ -114,7 +109,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         if (grantResults != null) {
             for (int ret : grantResults) {
                 if (ret != PackageManager.PERMISSION_GRANTED) {
-                    finish();
+//                    finish();
                 }
             }
         }
@@ -170,7 +165,6 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
     @Override
     public void onDestroy() {
         LogUtil.i("main destory");
-        stopService(CharonVpnService.class);
         stopService(LogUploadService.class);
         EventBusUtil.getEventBus().unregister(jump);
         EventBusUtil.getEventBus().unregister(logAdd);
@@ -191,10 +185,6 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
                 flag = flag || l.onkeyBackDown();
             }
             if (flag) {
-                return true;
-            }
-            if (CharonVpnService.VPN_STATUS_NOTIF) {
-                moveTaskToBack(true);
                 return true;
             }
             long secondTime = System.currentTimeMillis();

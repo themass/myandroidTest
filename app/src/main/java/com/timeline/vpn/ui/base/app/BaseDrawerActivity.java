@@ -25,7 +25,6 @@ import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.data.LocationUtil;
 import com.timeline.vpn.data.UserLoginUtil;
-import com.timeline.vpn.data.VersionUpdater;
 import com.timeline.vpn.data.config.LocationChooseEvent;
 import com.timeline.vpn.data.config.StateUseEvent;
 import com.timeline.vpn.data.config.UserLoginEvent;
@@ -115,7 +114,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     }
 
     private void setUpVersion() {
-        VersionUpdater.checkUpdate(BaseDrawerActivity.this, false);
+//        VersionUpdater.checkUpdate(BaseDrawerActivity.this, false);
     }
 
     private void setUpUserMenu() {

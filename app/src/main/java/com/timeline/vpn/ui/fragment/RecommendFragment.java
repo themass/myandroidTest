@@ -1,12 +1,7 @@
 package com.timeline.vpn.ui.fragment;
 
 
-import android.app.Service;
-import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
-import android.os.IBinder;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -19,17 +14,15 @@ import com.sspacee.common.helper.SimpleItemTouchHelperCallback;
 import com.sspacee.common.ui.view.RecycleViewDivider;
 import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.yewu.um.MobAgent;
+import com.timeline.vpn.adapter.IndexRecommendAdapter;
 import com.timeline.vpn.adapter.base.BasePhotoFlowRecycleViewAdapter;
 import com.timeline.vpn.adapter.base.BaseRecyclerViewAdapter;
-import com.timeline.vpn.adapter.IndexRecommendAdapter;
 import com.timeline.vpn.bean.vo.InfoListVo;
 import com.timeline.vpn.bean.vo.RecommendVo;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.data.config.ConfigActionEvent;
 import com.timeline.vpn.ui.base.features.BasePullLoadbleFragment;
-
-import org.strongswan.android.logic.VpnStateService;
 
 import java.util.HashMap;
 import java.util.List;
@@ -39,18 +32,6 @@ import java.util.Map;
  * Created by themass on 2015/9/1.
  */
 public abstract class RecommendFragment extends BasePullLoadbleFragment<RecommendVo> implements BasePhotoFlowRecycleViewAdapter.OnRecyclerViewItemClickListener, OnStartDragListener, IndexRecommendAdapter.OnEditClickListener {
-    public VpnStateService mService;
-    public final ServiceConnection mServiceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            mService = null;
-        }
-
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            mService = ((VpnStateService.LocalBinder) service).getService();
-        }
-    };
     protected ItemTouchHelper mItemTouchHelper;
     protected IndexRecommendAdapter adapter;
     protected BaseService indexService;
@@ -88,8 +69,6 @@ public abstract class RecommendFragment extends BasePullLoadbleFragment<Recommen
         indexService = new BaseService();
         indexService.setup(getActivity());
         switchFlag(false);
-        getActivity().bindService(new Intent(getActivity(), VpnStateService.class),
-                mServiceConnection, Service.BIND_AUTO_CREATE);
         ItemTouchHelper.Callback callback = new SimpleItemTouchHelperCallback(adapter, getCanMove(), false);
         mItemTouchHelper = new ItemTouchHelper(callback);
         mItemTouchHelper.attachToRecyclerView(pullView.getRecyclerView());
@@ -116,7 +95,6 @@ public abstract class RecommendFragment extends BasePullLoadbleFragment<Recommen
     @Override
     public void onDestroyView() {
         indexService.cancelRequest(getNetTag());
-        getActivity().unbindService(mServiceConnection);
         super.onDestroyView();
     }
 

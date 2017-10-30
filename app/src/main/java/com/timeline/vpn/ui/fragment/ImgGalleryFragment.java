@@ -45,7 +45,6 @@ public class ImgGalleryFragment extends BasePullLoadbleFragment<ImgItemVo> imple
     // region Member Variables
     private ArrayList<String> images = new ArrayList<>();
     private ArrayList<String> origeImages = new ArrayList<>();
-    private ArrayList<String> remteImages = new ArrayList<>();
     // endregion
     private int gridItemWidth;
     private int gridItemHeight;
@@ -87,7 +86,7 @@ public class ImgGalleryFragment extends BasePullLoadbleFragment<ImgItemVo> imple
         pullView.setLayoutManager(layoutManager);
         GridSpacingItemDecoration itemDecoration = new GridSpacingItemDecoration(numOfColumns, lineW, false);
         pullView.getRecyclerView().addItemDecoration(itemDecoration);
-        MyImageGalleryAdapter imageGalleryAdapter = new MyImageGalleryAdapter(getContext(), images);
+        MyImageGalleryAdapter imageGalleryAdapter = new MyImageGalleryAdapter(getContext(), origeImages);
         imageGalleryAdapter.setOnImageClickListener(this);
         imageGalleryAdapter.setImageThumbnailLoader(MyApplication.getInstance().getPhotoLoad());
         pullView.setAdapter(imageGalleryAdapter);
@@ -105,11 +104,9 @@ public class ImgGalleryFragment extends BasePullLoadbleFragment<ImgItemVo> imple
         if (!CollectionUtils.isEmpty(data.voList)) {
             images.clear();
             origeImages.clear();
-            remteImages.clear();
             for (ImgItemVo item : data.voList) {
                 images.add(item.picUrl);
                 origeImages.add(item.origUrl);
-                remteImages.add(item.remoteUrl);
             }
         }
         pullView.notifyDataSetChanged();
@@ -143,7 +140,7 @@ public class ImgGalleryFragment extends BasePullLoadbleFragment<ImgItemVo> imple
         Intent intent = new Intent(getContext(), MyFullScreenImageGalleryActivity.class);
         Bundle bundle = new Bundle();
         bundle.putStringArrayList(MyFullScreenImageGalleryActivity.KEY_IMAGES, origeImages);
-        bundle.putStringArrayList(MyFullScreenImageGalleryActivity.KEY_IMAGES_REMOTE, remteImages);
+        bundle.putStringArrayList(MyFullScreenImageGalleryActivity.KEY_IMAGES_REMOTE, images);
         bundle.putInt(MyFullScreenImageGalleryActivity.KEY_POSITION, position);
         intent.putExtras(bundle);
         startActivity(intent);
