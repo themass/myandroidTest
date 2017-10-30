@@ -33,6 +33,7 @@ import com.timeline.vpn.ui.inte.FabOpListener;
 import com.timeline.vpn.ui.user.LoginActivity;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.OnClick;
@@ -155,7 +156,19 @@ public class IWannaFragment extends LoadableFragment<InfoListVo<IWannaVo>> imple
 
     @Override
     protected InfoListVo<IWannaVo> loadData(Context context) throws Exception {
-        return indexService.getInfoListData(String.format(Constants.getUrl(Constants.API_IWANNA_URL), infoVo.pageNum), IWannaVo.class, TAG);
+        IWannaVo vo = new IWannaVo();
+        List list = new ArrayList<>();
+        list.add(vo);
+        vo.content="请下载最新版本，开启世界之旅！";
+        vo.finished=true;
+        vo.like=true;
+        vo.likes=1000;
+        InfoListVo<IWannaVo> info = new InfoListVo<IWannaVo>();
+        info.hasMore=false;
+        info.total=1;
+        info.voList=list;
+        return info;
+//        return indexService.getInfoListData(String.format(Constants.getUrl(Constants.API_IWANNA_URL), infoVo.pageNum), IWannaVo.class, TAG);
     }
 
     @Override
