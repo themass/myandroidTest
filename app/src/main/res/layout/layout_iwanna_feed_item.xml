@@ -6,19 +6,36 @@
     android:orientation="vertical"
     android:paddingBottom="@dimen/margin_15"
     android:paddingTop="@dimen/margin_15">
+    <TextView
+        android:id="@+id/tv_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingLeft="@dimen/margin_4"
+        android:text="11111"
+        android:textColor="@color/location_index"
+        android:textSize="@dimen/textsize_14"
+        />
 
+    <ImageView
+        android:id="@+id/iv_ok"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@+id/tv_name"
+        android:paddingLeft="@dimen/margin_15"
+        android:src="@drawable/ic_ok" />
     <TextView
         android:id="@+id/tv_content"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_below="@+id/tv_name"
         android:paddingLeft="@dimen/margin_10"
         android:text="@string/iwanna_tips"
         android:textColor="@color/new_globle_black"
-        android:textSize="@dimen/textsize_22" />
+        android:textSize="@dimen/textsize_18" />
 
     <RelativeLayout
-        android:layout_width="@dimen/margin_120"
         android:layout_height="wrap_content"
+        android:layout_width="@dimen/margin_100"
         android:layout_alignParentRight="true"
         android:layout_below="@+id/tv_content"
         android:gravity="center_vertical"
@@ -51,14 +68,6 @@
                 android:layout_height="wrap_content"
                 android:textColor="@color/text_like_counter" />
         </TextSwitcher>
-
-        <ImageView
-            android:id="@+id/iv_ok"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_marginRight="@dimen/margin_5"
-            android:src="@drawable/ic_ok" />
     </RelativeLayout>
 
 </RelativeLayout>

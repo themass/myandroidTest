@@ -1,6 +1,5 @@
 package com.timeline.vpn.ui.base.app;
 
-import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
@@ -14,7 +13,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.yewu.ads.base.AdsManager;
@@ -64,18 +62,6 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
 
     public void login(View view) {
         startActivity(LoginActivity.class);
-    }
-
-    @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        EventBusUtil.getEventBus().register(this);
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        EventBusUtil.getEventBus().unregister(this);
     }
 
     @Override
@@ -155,6 +141,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(LocationChooseEvent event) {
         setUpLocation();
+        setupLocationIcon();
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

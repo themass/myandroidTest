@@ -21,6 +21,7 @@ import com.qq.e.comm.util.StringUtil;
 import com.romainpiel.shimmer.Shimmer;
 import com.sspacee.common.util.MyBlurTransformation;
 import com.sspacee.common.util.MyGlideLibModule;
+import com.sspacee.yewu.net.NetUtils;
 import com.timeline.vpn.R;
 import com.timeline.vpn.adapter.IndexRecommendAdapter;
 import com.timeline.vpn.bean.vo.RecommendVo;
@@ -45,19 +46,21 @@ public class ImagePhotoLoad implements ImageGalleryAdapter.ImageThumbnailLoader,
                 if(vo.img.endsWith(".gif")){
                     build.asGif();
                 }
-                build.load(vo.img).apply(options).transition(withCrossFade(500)).listener(new MyGlideLibModule.LoggingListener()).into(new DrawableImageViewTarget(holder.ivPhoto) {
-                    @Override
-                    public void onResourceReady(Drawable resource, @Nullable Transition<? super Drawable> transition) {
-                        super.onResourceReady(resource, transition);
-                        shimmer.cancel();
-                        holder.ivTitle.setVisibility(View.GONE);
-                    }
-                });
+                if(NetUtils.isWifi(context))
+                    build.load(vo.img).apply(options).transition(withCrossFade(500)).listener(new MyGlideLibModule.LoggingListener()).into(new DrawableImageViewTarget(holder.ivPhoto) {
+                        @Override
+                        public void onResourceReady(Drawable resource, @Nullable Transition<? super Drawable> transition) {
+                            super.onResourceReady(resource, transition);
+                            shimmer.cancel();
+                            holder.ivTitle.setVisibility(View.GONE);
+                        }
+                    });
             } else if (vo.showType == Constants.ShowType.Blur) {
                 RequestOptions options = new RequestOptions().fitCenter().skipMemoryCache(true)
                         .priority(Priority.HIGH).transform(new MyBlurTransformation(context));
-                Glide.with(context).load(vo.img)
-                        .transition(withCrossFade(500)).apply(options).listener(new MyGlideLibModule.LoggingListener()).into(new DrawableImageViewTarget(holder.ivPhoto));
+                if(NetUtils.isWifi(context))
+                    Glide.with(context).load(vo.img)
+                            .transition(withCrossFade(500)).apply(options).listener(new MyGlideLibModule.LoggingListener()).into(new DrawableImageViewTarget(holder.ivPhoto));
             }
     }
 
@@ -70,11 +73,10 @@ public class ImagePhotoLoad implements ImageGalleryAdapter.ImageThumbnailLoader,
             iv.setImageResource(BaseRes.img.get(url));
         } else {
             RequestOptions options = new RequestOptions()
-                    .centerCrop()
                     .placeholder(R.drawable.vpn_trans_default)
                     .priority(Priority.HIGH);
             Glide.with(context)
-                    .load(iv).apply(options)
+                    .load(url).apply(options)
                     .into(iv);
         }
     }

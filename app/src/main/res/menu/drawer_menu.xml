@@ -10,7 +10,7 @@
             android:title="@string/menu_btn_feedback" />
         <item
             android:id="@+id/menu_favorite"
-            android:icon="@drawable/ic_menu_favorite"
+            android:icon="@drawable/ic_menu_fav"
             android:title="@string/menu_btn_favorite" />
     </group>
     <group android:id="@+id/menu_group_3">

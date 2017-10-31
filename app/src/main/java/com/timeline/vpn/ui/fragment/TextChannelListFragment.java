@@ -9,8 +9,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.SearchView;
+import android.widget.Toast;
 
+import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.StringUtils;
+import com.sspacee.common.util.SystemUtils;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.timeline.vpn.R;
 import com.timeline.vpn.adapter.TextChannelListItemsViewAdapter;
@@ -56,8 +59,12 @@ public class TextChannelListFragment extends BasePullLoadbleFragment<TextItemsVo
     }
 
     @Override
+    protected  int getRootViewId() {
+        return R.layout.layout_text_list_view;
+    }
+    @Override
     protected void onContentViewCreated(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
-        inflater.inflate(R.layout.layout_text_list_view, parent);
+        inflater.inflate(R.layout.common_mypage_view, parent);
     }
 
     @Override
@@ -117,16 +124,24 @@ public class TextChannelListFragment extends BasePullLoadbleFragment<TextItemsVo
     public void onItemLongClick(View view, final TextItemsVo data, int position) {
         FavoriteVo favoriteVo = FavoriteUtil.getFavorite(getActivity(), data.fileUrl);
         int title;
+        int icon = R.drawable.ic_menu_favorite_ed;
         if (favoriteVo == null) {
             title =R.string.menu_favorite;
+            icon = R.drawable.ic_menu_favorite_no;
         } else {
             title =R.string.menu_favorite_cancel;
         }
-        MenuOneContext.showOneMenu(getActivity(),view,title,TextChannelListFragment.this,position);
+        MenuOneContext.showOneMenu(getActivity(),view,title,icon,TextChannelListFragment.this,position);
     }
     @Override
     public boolean onMenuItemClick(MenuItem item, int position){
-        FavoriteUtil.modLocalFavoritesAsync(getActivity(), infoListVo.voList.get(position).tofavorite(), null);
+        if(item.getItemId()==R.id.menu_share){
+            SystemUtils.copy(getActivity(), infoListVo.voList.get(position).fileUrl);
+            Toast.makeText(getActivity(), R.string.menu_share_copy_ok, Toast.LENGTH_SHORT).show();
+            LogUtil.i(infoListVo.voList.get(position).fileUrl);
+        }else {
+            FavoriteUtil.modLocalFavoritesAsync(getActivity(), infoListVo.voList.get(position).tofavorite(), null);
+        }
         return true;
     }
     @Override

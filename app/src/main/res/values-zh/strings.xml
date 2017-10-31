@@ -71,12 +71,13 @@
     <string name="menu_favorite">收藏</string>
     <string name="menu_favorite_cancel">取消收藏</string>
     <!-- share-->
-    <string name="menu_share_title">分享给好友</string>
+    <string name="menu_share_title">分享</string>
     <string name="menu_share_url">下载地址:\n%s</string>
     <string name="menu_share_confirm">复制链接</string>
     <string name="menu_share_cancel">取消</string>
     <string name="menu_share_copy_ok">已复制到剪切板</string>
     <string name="menu_share_copy_error">分享失败</string>
+    <string name="menu_share_text_only">FAIL!! 只能分享text</string>
     <!--登录，注册-->
     <string name="close_over">再按一次退出程序!!</string>
     <string name="login">登录</string>
@@ -110,6 +111,7 @@
     <string name="sound">淫声荡语</string>
     <string name="text">情趣小说</string>
     <string name="img">性感图片</string>
+    <string name="video">视频体验</string>
     <string name="version_low">版本太低，请升级！</string>
     <string name="no_select">未选择</string>
     <string name="save_ok">保存成功</string>

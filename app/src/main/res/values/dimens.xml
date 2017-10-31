@@ -50,6 +50,7 @@
     <dimen name="margin_150">150dip</dimen>
     <dimen name="margin_250">250dip</dimen>
     <dimen name="margin_80">80dip</dimen>
+    <dimen name="margin_70">70dip</dimen>
     <dimen name="tab_indicator_size">49dp</dimen>
 
     <dimen name="padding_5">5dip</dimen>
@@ -62,7 +63,7 @@
 
     <dimen name="loading_footer">12sp</dimen>
     <dimen name="remote_vpn_title">10sp</dimen>
-    <dimen name="remote_vpn_time">12sp</dimen>
+    <dimen name="remote_vpn_time">20sp</dimen>
     <dimen name="remote_vpn_content">14sp</dimen>
     <dimen name="recommend_hit_size">12sp</dimen>
     <dimen name="toolbar_title_size">22sp</dimen>

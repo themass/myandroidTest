@@ -80,7 +80,7 @@ public class NetUtils {
                 return true;
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LogUtil.e(e);
         }
         return false;
     }

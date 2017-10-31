@@ -16,11 +16,13 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.support.v4.app.Fragment;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.LinearInterpolator;
 import android.widget.ImageButton;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -41,7 +43,11 @@ import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.data.LocationUtil;
 import com.timeline.vpn.data.StaticDataUtil;
 import com.timeline.vpn.data.UserLoginUtil;
+import com.timeline.vpn.data.config.VpnClickEvent;
+import com.timeline.vpn.ui.base.BannerHeaderFragment;
 
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.strongswan.android.logic.VpnStateService;
 import org.strongswan.android.logic.imc.ImcState;
 
@@ -60,6 +66,8 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
     TextView tvVpnText;
     @BindView(R.id.iv_vpn_state)
     ImageButton ibVpnStatus;
+    @BindView(R.id.rl_content)
+    RelativeLayout rlContent;
     PingTask task;
     StatChangeJob job = null;
     private volatile boolean hasIp = false;
@@ -127,8 +135,21 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
         indexService.setup(getActivity());
         getActivity().bindService(new Intent(getActivity(), VpnStateService.class),
                 mServiceConnection, Service.BIND_AUTO_CREATE);
+        showBanner();
     }
-
+    public void showBanner(){
+        try {
+            Fragment fragment = (Fragment) BannerHeaderFragment.class.newInstance();
+            Bundle bundle = new Bundle();
+            bundle.putSerializable(BannerHeaderFragment.BANNER_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_3);
+            fragment.setArguments(bundle);
+            getChildFragmentManager().beginTransaction()
+                    .add(R.id.rl_content, fragment)
+                    .commitAllowingStateLoss();
+        } catch (Exception e) {
+            LogUtil.e(e);
+        }
+    }
     @Override
     public void onDestroyView() {
         super.onDestroyView();
@@ -145,7 +166,10 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
 
 
     }
-
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(VpnClickEvent event) {
+        onVpnClick(null);
+    }
     @OnClick(R.id.iv_vpn_state)
     public void onVpnClick(View v) {
         if (mService != null) {
@@ -158,7 +182,7 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
                     AdsManager.getInstans().showInterstitialAds(getActivity(), AdsContext.Categrey.CATEGREY_1,false);
                 }
                 imgAnim();
-                int id = LocationUtil.getSelectId(getActivity());
+                int id = LocationUtil.getSelectLocationId(getActivity());
                 indexService.getData(String.format(Constants.getUrl(Constants.API_SERVERLIST_URL), id), serverListener, serverListenerError, INDEX_TAG, ServerVo.class);
             } else {
                 Toast.makeText(getActivity(), R.string.vpn_bg_click_later, Toast.LENGTH_SHORT).show();

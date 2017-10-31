@@ -41,13 +41,20 @@ import android.system.OsConstants;
 import android.util.Log;
 import android.view.View;
 import android.widget.RemoteViews;
+import android.widget.Toast;
 
 import com.sspacee.common.util.FileUtils;
 import com.sspacee.common.util.LogUtil;
+import com.sspacee.yewu.net.request.CommonResponse;
 import com.timeline.vpn.R;
 import com.timeline.vpn.base.MyApplication;
+import com.timeline.vpn.bean.DataBuilder;
+import com.timeline.vpn.bean.vo.ServerVo;
 import com.timeline.vpn.bean.vo.VpnProfile;
+import com.timeline.vpn.constant.Constants;
+import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.data.LocationUtil;
+import com.timeline.vpn.ui.fragment.LocationChooseFragment;
 import com.timeline.vpn.ui.main.MainFragmentViewPage;
 
 import org.strongswan.android.logic.imc.ImcState;
@@ -56,6 +63,7 @@ import org.strongswan.android.logic.utils.SettingsWriter;
 
 import java.io.InputStream;
 import java.io.StringBufferInputStream;
+import java.lang.reflect.Method;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
@@ -77,7 +85,9 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
      * 通知栏按钮点击事件对应的ACTION
      */
     public final static String ACTION_BUTTON = "com.vpn.notifications.intent.action.ButtonClick";
+    public final static String LOCATION_BUTTON = "com.vpn.notifications.intent.action.LocationClick";
     public final static String INTENT_CLICK_TAG = "ClickId";
+    public final static String VPN_SERVER_CLICK = "VPN_SERVER_CLICK";
     /**
      * as defined in charonservice.h
      */
@@ -91,7 +101,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
     private static final String TAG = CharonVpnService.class.getSimpleName();
     private static final String WORK_ANME = "vpnThread";
     public static volatile boolean VPN_STATUS_NOTIF = false;
-
+    private BaseService indexService;
     /*
      * The libraries are extracted to /data/data/org.strongswan.android/...
      * during installation.  On newer releases most are loaded in JNI_OnLoad.
@@ -140,7 +150,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
 
     @Override
     public void stateChanged() {
-        createForegroundService();
+        createForegroundService(false);
     }
 
     @Override
@@ -180,6 +190,8 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
                 mServiceConnection, Service.BIND_AUTO_CREATE);
         mWorkThread = new HandlerThread(WORK_ANME);
         initButtonReceiver();
+        indexService = new BaseService();
+        indexService.setup(this);
     }
 
     @Override
@@ -193,6 +205,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
     public void onDestroy() {
         LogUtil.i("charon service onDestroy");
         disconn();
+        indexService.cancelRequest(VPN_SERVER_CLICK);
         mWorkThread.quit();
         if (mService != null) {
             unbindService(mServiceConnection);
@@ -469,10 +482,27 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
         bReceiver = new ButtonBroadcastReceiver();
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(ACTION_BUTTON);
+        intentFilter.addAction(LOCATION_BUTTON);
         registerReceiver(bReceiver, intentFilter);
     }
+    CommonResponse.ResponseOkListener serverListener = new CommonResponse.ResponseOkListener<ServerVo>() {
+        @Override
+        public void onResponse(ServerVo server) {
+            if (server.hostList != null) {
+                VpnProfile pro = DataBuilder.builderVpnProfile(server.expire, server.name, server.pwd, server.hostList.get(0));
+                setNextProfile(pro);
+            }
 
-    private void createForegroundService() {
+        }
+    };
+    CommonResponse.ResponseErrorListener serverListenerError = new CommonResponse.ResponseErrorListener() {
+        @Override
+        protected void onError() {
+            super.onError();
+            Toast.makeText(CharonVpnService.this,R.string.error_lookup_failed,Toast.LENGTH_SHORT).show();
+        }
+    };
+    private void createForegroundService(boolean needConnecting) {
         LogUtil.i("start ForegroundService:" + mService.getState());
         NotificationCompat.Builder builder =
                 new NotificationCompat.Builder(MyApplication.getInstance());
@@ -487,7 +517,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
             remoteViews.setViewVisibility(R.id.rb_conning, View.GONE);
             VPN_STATUS_NOTIF = true;
             canGo = false;
-        } else if (VpnStateService.State.CONNECTING.equals(mService.getState())) {
+        } else if (VpnStateService.State.CONNECTING.equals(mService.getState()) || needConnecting) {
             remoteViews.setImageViewResource(R.id.btn_vpn, R.drawable.remote_vpn_off);
             remoteViews.setTextViewText(R.id.tv_vpn_content, getString(R.string.vpn_remote_ing));
             remoteViews.setViewVisibility(R.id.btn_vpn, View.GONE);
@@ -504,6 +534,11 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
         Intent buttonIntent = new Intent(ACTION_BUTTON);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 1, buttonIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         remoteViews.setOnClickPendingIntent(R.id.btn_vpn, pendingIntent);
+
+        Intent locationIntent = new Intent(LOCATION_BUTTON);
+        PendingIntent locationPending = PendingIntent.getBroadcast(this, 1, locationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        remoteViews.setOnClickPendingIntent(R.id.tv_vpn_time, locationPending);
+
         Intent intent = new Intent(this, MainFragmentViewPage.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent pend =
@@ -518,20 +553,50 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
         notify.flags = Notification.FLAG_ONGOING_EVENT;
         startForeground(FOREGROUND_NOTIFY_ID, notify);
     }
+    /**
+     *
+     * 收起通知栏
+     * @param context
+     */
+    public static void collapseStatusBar(Context context) {
+        try {
+            Object statusBarManager = context.getSystemService("statusbar");
+            Method collapse;
+            if (Build.VERSION.SDK_INT <= 16) {
+                collapse = statusBarManager.getClass().getMethod("collapse");
+            } else {
+                collapse = statusBarManager.getClass().getMethod("collapsePanels");
+            }
+            collapse.invoke(statusBarManager);
+        } catch (Exception e) {
+            LogUtil.e(e);
+        }
+    }
+    public void vpnClick(){
+        int id = LocationUtil.getSelectLocationId(this);
+        indexService.getData(String.format(Constants.getUrl(Constants.API_SERVERLIST_URL), id), serverListener, serverListenerError, VPN_SERVER_CLICK, ServerVo.class);
+        createForegroundService(true);
+    }
 
     public class ButtonBroadcastReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             if (action.equals(ACTION_BUTTON)) {
+//                EventBusUtil.getEventBus().post(new VpnClickEvent());
                 LogUtil.i("recive vpn Broadcast: " + mService.getState() + "; mCurrentProfile=" + mCurrentProfile);
                 if (VpnStateService.State.CONNECTED.equals(mService.getState())) {
                     setNextProfile(null);
                 } else {
-                    if (mCurrentProfile != null)
-                        setNextProfile(mCurrentProfile);
+//                    if (mCurrentProfile != null)
+//                        setNextProfile(mCurrentProfile);
+                    vpnClick();
                 }
+            } else if (action.equals(LOCATION_BUTTON)) {
+                LocationChooseFragment.startFragment(CharonVpnService.this);
+                collapseStatusBar(CharonVpnService.this);
             }
+
         }
     }
 

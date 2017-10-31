@@ -50,11 +50,11 @@ public class FavoriteViewAdapter extends BaseRecyclerViewAdapter<FavoriteViewAda
         holder.ivType.setVisibility(View.VISIBLE);
         if (vo.type == Constants.FavoriteType.SOUND) {
             holder.ivType.setImageResource(R.drawable.song_play_icon);
-        }if (vo.type == Constants.FavoriteType.TEXT) {
+        }else if (vo.type == Constants.FavoriteType.TEXT) {
             holder.ivType.setImageResource(R.drawable.txt);
-        }if (vo.type == Constants.FavoriteType.IMG) {
+        }else if (vo.type == Constants.FavoriteType.IMG) {
             holder.ivType.setImageResource(R.drawable.img);
-        }else{
+        } else{
             holder.ivType.setVisibility(View.GONE);
         }
         if(position==Constants.BANNER_ADS_POS_1){

@@ -33,6 +33,8 @@ public class Constants {
     public static final String SOUND_URL = "sound";
     public static final String TEXT_URL = "text";
     public static final String IMG_URL = "img";
+    public static final String VIDEO_URL = "video";
+
     public static final String URL_TMP = "://";
     //location
     public static final String LOCATION_CHOOSE = "LOCATION_CHOOSE1";
@@ -75,7 +77,7 @@ public class Constants {
     public static final String TEMP_PATH = "/tencent/vpn";
     public static final String VERSION_APP_INCOMING = "VERSION_APP_INCOMING"; // 服务器上的最新版本号
 
-    public static final String API_SERVERLIST_URL = "/host/server/cache.json?id=%s";
+    public static final String API_SERVERLIST_URL = "/host/server/list.json?location=%s";
     public static final String API_FAB_ADSCLICK_URL = "/user/ads/score.json?score=%s";
     public static final String API_LOCATION_URL = "/host/server/location/cache.json";
     public static final String API_LOGIN_URL = "/user/login.json";
@@ -98,6 +100,9 @@ public class Constants {
     public static final String API_IMG_CHANNLE_URL = "/img/channel.json?start=%s&limit=50";
     public static final String API_IMG_ITEMS_URL = "/img/items.json?start=%s&limit=30&channel=%s";
     public static final String API_IMG_ITEM_URL = "/img/item.json?itemUrl=%s";
+
+    public static final String API_VIDEO_ITEMS_URL = "/video/items.json?start=%s&limit=20";
+
 
     public static final String API_CUSTOME_URL = "/data/recommend/custome.json?start=%s&limit=100";
     public static final String API_LOGOUT_URL = "/user/logout.json";
@@ -134,7 +139,9 @@ public class Constants {
     public static final String VPN_STATUS = "VPN_STATUS";
     public static final String SOUND_CHANNEL_CLICK = "SOUND_CHANNEL_CLICK";
     public static final int MAX_RETRY_COUNT = 4;
+    public static final String ADMIN = "themass";
     public static final String CUSTOME_SORT = "CUSTOME_SORT";
+    public static final String LOCATION_ICON_ALL ="timeline://img/flag_all.png";
     public static final int[] img = new int[]{R.drawable.bg_api};
     public static final String BOOK_CSS = " body{font-size:22px;font-family: 微软雅黑;letter-spacing:1.8px;line-height:1.2;background-color:rgba(0,0,0,0);}";
     public static String BASE_IP = "api.sspacee.com";

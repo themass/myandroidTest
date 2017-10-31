@@ -12,8 +12,7 @@
         android:iconifiedByDefault="false"
         android:queryHint="@string/search" />
 
-    <include layout="@layout/common_mypage_view"
-        android:id="@+id/my_pullview"
+    <include layout="@layout/base_loadable_fragment"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="match_parent" />
 </LinearLayout>

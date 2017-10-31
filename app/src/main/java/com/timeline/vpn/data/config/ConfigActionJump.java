@@ -13,6 +13,7 @@ import com.timeline.vpn.ui.config.QuickBrowserConfigActivity;
 import com.timeline.vpn.ui.sound.ImgChannleActivity;
 import com.timeline.vpn.ui.sound.SoundChannleActivity;
 import com.timeline.vpn.ui.sound.TextChannleActivity;
+import com.timeline.vpn.ui.sound.VideoActivity;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -39,6 +40,7 @@ public class ConfigActionJump {
         configMap.put(Constants.SOUND_URL, SoundChannleActivity.class);
         configMap.put(Constants.TEXT_URL, TextChannleActivity.class);
         configMap.put(Constants.IMG_URL, ImgChannleActivity.class);
+        configMap.put(Constants.VIDEO_URL, VideoActivity.class);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

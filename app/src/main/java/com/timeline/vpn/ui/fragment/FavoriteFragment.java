@@ -5,12 +5,15 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import com.sspacee.common.util.EventBusUtil;
+import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.ModelUtils;
+import com.sspacee.common.util.SystemUtils;
 import com.timeline.vpn.R;
-import com.timeline.vpn.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.vpn.adapter.FavoriteViewAdapter;
+import com.timeline.vpn.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.vpn.bean.vo.FavoriteVo;
 import com.timeline.vpn.bean.vo.ImgItemsVo;
 import com.timeline.vpn.bean.vo.InfoListVo;
@@ -88,11 +91,21 @@ public class FavoriteFragment extends BasePullLoadbleFragment<FavoriteVo> implem
     }
     @Override
     public void onItemLongClick(View view, FavoriteVo data, int position){
-        MenuOneContext.showOneMenu(getActivity(),view,R.string.menu_favorite_cancel,FavoriteFragment.this,position);
+        MenuOneContext.showOneMenu(getActivity(), view, R.string.menu_favorite_cancel, R.drawable.ic_menu_favorite_ed, FavoriteFragment.this, position);
     }
     @Override
     public boolean onMenuItemClick(MenuItem item, int position){
-        FavoriteUtil.modLocalFavoritesAsync(getActivity(),infoListVo.voList.get(position),this);
+        if(item.getItemId()==R.id.menu_share){
+            if (infoListVo.voList.get(position).type == Constants.FavoriteType.TEXT) {
+                SystemUtils.copy(getActivity(), infoListVo.voList.get(position).itemUrl);
+                Toast.makeText(getActivity(), R.string.menu_share_copy_ok, Toast.LENGTH_SHORT).show();
+            }else{
+                Toast.makeText(getActivity(), R.string.menu_share_text_only, Toast.LENGTH_SHORT).show();
+            }
+            LogUtil.i(infoListVo.voList.get(position).itemUrl);
+        }else {
+            FavoriteUtil.modLocalFavoritesAsync(getActivity(), infoListVo.voList.get(position), this);
+        }
         return true;
     }
     public void modFavorite(boolean ret){

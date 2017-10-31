@@ -1,5 +1,7 @@
 package com.timeline.vpn.ui.base.app;
 
+import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -11,6 +13,7 @@ import com.android.volley.VolleyError;
 import com.sspacee.common.CommonConstants;
 import com.sspacee.common.ui.base.LogActivity;
 import com.sspacee.common.util.CollectionUtils;
+import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.SystemUtils;
 import com.sspacee.common.weather.LocationUtils;
@@ -22,13 +25,17 @@ import com.sspacee.yewu.net.VolleyUtils;
 import com.sspacee.yewu.net.request.StringRequest;
 import com.timeline.vpn.R;
 import com.timeline.vpn.constant.Constants;
+import com.timeline.vpn.data.ImagePhotoLoad;
+import com.timeline.vpn.data.LocationUtil;
 import com.timeline.vpn.data.StaticDataUtil;
+import com.timeline.vpn.ui.fragment.LocationChooseFragment;
 
 /**
  * Created by themass on 2016/3/1.
  */
 public abstract class BaseWeatherMenuActivity extends LogActivity {
     ImageView ivWeather;
+    ImageView ivLocation;
     LocationUtils.LocationListener mCityNameStatus = new LocationUtils.LocationListener() {
         @Override
         public void detecting() {
@@ -54,13 +61,23 @@ public abstract class BaseWeatherMenuActivity extends LogActivity {
     private WeatherInfo weatherInfo;
     private LocationUtils mLocationUtils;
 
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        EventBusUtil.getEventBus().register(this);
+    }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        EventBusUtil.getEventBus().unregister(this);
+    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         if (ivWeather == null) {
-            getMenuInflater().inflate(R.menu.menu_space, menu);
+            getMenuInflater().inflate(R.menu.menu_toolbar, menu);
             LogUtil.i("onCreateOptionsMenu");
-            MenuItem menuWeather = menu.findItem(R.id.menu_view);
+            MenuItem menuWeather = menu.findItem(R.id.menu_weather);
             menuWeather.setActionView(R.layout.common_actionbar_image_view);
             ivWeather = (ImageView) menuWeather.getActionView().findViewById(R.id.iv_menu);
             menuWeather.getActionView().setOnClickListener(new View.OnClickListener() {
@@ -79,9 +96,22 @@ public abstract class BaseWeatherMenuActivity extends LogActivity {
                 startLocation(mCityNameStatus);
             }
         }
+        MenuItem menuLocation = menu.findItem(R.id.menu_location);
+        menuLocation.setActionView(R.layout.common_actionbar_image_view);
+        ivLocation = (ImageView) menuLocation.getActionView().findViewById(R.id.iv_menu);
+        menuLocation.getActionView().setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                LogUtil.i("menuLocation Click");
+                LocationChooseFragment.startFragment(BaseWeatherMenuActivity.this);
+            }
+        });
+        setupLocationIcon();
         return true;
     }
-
+    protected void setupLocationIcon(){
+        ImagePhotoLoad.getCountryImage(this, ivLocation, LocationUtil.getSelectLocationIcon(this));
+    }
     public void setWeatherIcon(int id) {
         if (ivWeather != null) {
             ivWeather.setImageResource(id);

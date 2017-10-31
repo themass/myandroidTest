@@ -9,7 +9,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.OvershootInterpolator;
 
-import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
@@ -56,7 +55,6 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity{
         getLayoutInflater().inflate(layoutResID, (ViewGroup) findViewById(R.id.fl_content), true);
         bindViews();
         setupToolbar();
-        EventBusUtil.getEventBus().register(this);
         fabUp.setVisibility(View.GONE);
 //        flBanner.setBackgroundResource(R.color.base_white);
     }
@@ -137,7 +135,6 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity{
     }
     @Override
     public void onDestroy() {
-        EventBusUtil.getEventBus().unregister(this);
         AdsManager.getInstans().exitBannerAds(this, flBanner,getBannerCategrey());
         super.onDestroy();
     }

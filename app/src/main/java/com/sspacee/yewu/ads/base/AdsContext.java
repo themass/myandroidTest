@@ -23,7 +23,7 @@ public class AdsContext {
     public static enum Categrey{
         CATEGREY_1("插屏:主页，3个channel;banner：国家选择，vip，3个channel", AdviewConstant.ADS_ADVIEW_KEY1),
         CATEGREY_2("插屏： 3个list，其他推荐;banner：3个list，文章页",AdviewConstant.ADS_ADVIEW_KEY2),
-        CATEGREY_3("插屏： 暂停,积分,banner：列表信息流",AdviewConstant.ADS_ADVIEW_KEY_BANNER);
+        CATEGREY_3("插屏： 暂停,积分,banner：列表信息流,vpn连接",AdviewConstant.ADS_ADVIEW_KEY_BANNER);
         public String desc;
         public String key;
         Categrey(String desc,String key){

@@ -31,6 +31,15 @@
             android:indeterminateDuration="1800" />
     </LinearLayout>
 
+    <TextView
+        android:id="@+id/tv_vpn_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toLeftOf="@+id/ll_vpn_status"
+        android:textColor="@color/base_black"
+        android:layout_centerVertical="true"
+        android:padding="@dimen/margin_10"
+        android:textSize="@dimen/remote_vpn_time" />
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -59,13 +68,11 @@
                 android:layout_marginLeft="@dimen/margin_5"
                 android:textColor="@color/base_red"
                 android:textSize="@dimen/remote_vpn_title" />
-
             <TextView
-                android:id="@+id/tv_vpn_time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@color/base_black"
-                android:textSize="@dimen/remote_vpn_time" />
+                android:text="enjoy time"
+                android:textSize="@dimen/remote_vpn_title" />
         </LinearLayout>
 
         <TextView

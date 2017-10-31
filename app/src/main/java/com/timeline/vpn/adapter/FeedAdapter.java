@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import com.timeline.vpn.R;
 import com.timeline.vpn.bean.vo.IWannaVo;
+import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.task.IWannaLikeTask;
 
 import java.util.List;
@@ -91,7 +92,8 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         public IWannaVo feedItem;
         @BindView(R.id.iv_ok)
         ImageView ivOk;
-
+        @BindView(R.id.tv_name)
+        public TextView name;
         public CellFeedViewHolder(View view) {
             super(view);
             ButterKnife.bind(this, view);
@@ -103,12 +105,13 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                     R.plurals.likes_count, feedItem.likes, feedItem.likes
             ));
             tvContent.setText(feedItem.content);
+            name.setText(feedItem.name);
             if (feedItem.like) {
                 imageView.setImageResource(R.drawable.ic_heart_small_red);
             } else {
                 imageView.setImageResource(R.drawable.ic_heart_small_blue);
             }
-            if (feedItem.finished) {
+            if (feedItem.finished || Constants.ADMIN.equals(feedItem.name)) {
                 ivOk.setVisibility(View.VISIBLE);
             } else {
                 ivOk.setVisibility(View.GONE);

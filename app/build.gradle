@@ -9,8 +9,8 @@ android {
         applicationId "com.timeline.vpn"
         minSdkVersion global_minSdkVersion
         targetSdkVersion global_targetSdkVersion
-        versionCode 1000003000
-        versionName "1.0.3.0"
+        versionCode 1000003001
+        versionName "1.0.3.1"
         // Enabling multidex support.
         multiDexEnabled true
     }
@@ -100,7 +100,7 @@ dependencies {
     compile files('libs/gdt_mob_release.jar')
     compile files('libs/httpcore-4.2.5.jar')
     compile (name:'YoumiSdk_v7.5.0_2017-06-02',ext:'aar')
-
+    compile project(':vitamio')
 //    compile(name: 'glide-transformations-2.0.1', ext: 'aar',)
     compile "com.android.support:appcompat-v7:$APPCOMPAT_VERSION"
     compile "com.android.support:support-v13:$APPCOMPAT_VERSION"

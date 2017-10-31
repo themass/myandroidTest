@@ -164,7 +164,7 @@ public class LocationChooseFragment extends LoadableFragment<List<LocationVo>> i
             }
         }
         LocationUtil.setLocation(getActivity(), data);
-        EventBusUtil.getEventBus().post(new LocationChooseEvent());
+        EventBusUtil.getEventBus().postSticky(new LocationChooseEvent());
         getActivity().finish();
     }
 }

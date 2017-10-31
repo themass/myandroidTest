@@ -43,6 +43,8 @@
                     android:layout_gravity="center"
                     android:gravity="center_horizontal"
                     android:textColor="@color/base_black"
+                    android:singleLine="true"
+                    android:ellipsize="end"
                     android:textSize="@dimen/recommend_hit_size" />
             </FrameLayout>
         </android.support.v7.widget.CardView>

@@ -81,6 +81,9 @@ public class LocationViewAdapter extends BaseRecyclerViewAdapter<LocationViewAda
 
     public void setNeedPing(boolean needPing) {
         this.needPing = needPing;
+        for(LocationVo vo:data){
+            vo.ping=null;
+        }
     }
 
     static class LocationItemView extends BaseRecyclerViewAdapter.BaseRecyclerViewHolder<LocationVo> {

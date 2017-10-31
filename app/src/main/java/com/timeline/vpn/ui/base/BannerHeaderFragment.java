@@ -26,6 +26,7 @@ public class BannerHeaderFragment extends BaseFragment{
     public ViewGroup flBanner;
     private AdsGoneTask task = new AdsGoneTask();
     protected Handler mHandler = new Handler();
+    public static final String BANNER_ADS_CATEGRY = "BANNER_ADS_CATEGRY";
 
     @Override
     protected int getRootViewId() {

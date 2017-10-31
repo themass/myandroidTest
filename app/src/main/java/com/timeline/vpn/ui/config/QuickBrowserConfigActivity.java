@@ -31,7 +31,10 @@ public class QuickBrowserConfigActivity extends LogActivity {
             WebViewActivity.startWebViewActivity(this, bundle.getString(Constants.URL), bundle.getString(Constants.TITLE), adsPopNeed, adsPopNeed, null);
         } else {
             final Uri uri = Uri.parse(getIntent().getExtras().getString(Constants.URL));
-            startActivityForResult(new Intent(Intent.ACTION_VIEW, uri), 0);
+            Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivityForResult(intent, 0);
         }
         if (UserLoginUtil.isVIP() || !adsPopNeed) {
             finishActivity();

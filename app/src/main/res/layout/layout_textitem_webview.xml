@@ -19,7 +19,7 @@
         android:layout_alignParentTop="true"
         android:layout_marginTop="@dimen/margin_25"
         android:layout_marginLeft="@dimen/margin_25"
-        android:background="@drawable/ic_menu_collect" />
+        android:background="@drawable/ic_menu_favorite_no" />
     <ProgressBar
         android:id="@+id/progressbar"
         android:layout_width="wrap_content"

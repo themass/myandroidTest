@@ -72,12 +72,13 @@
     <string name="location_choose_flag_none">Click“ Region ”More regional options</string>
 
     <!-- share-->
-    <string name="menu_share_title">Tell a friend</string>
+    <string name="menu_share_title">share friend</string>
     <string name="menu_share_url">Download Url:\n%s</string>
     <string name="menu_share_confirm">CopyURL</string>
     <string name="menu_share_cancel">Cancel</string>
     <string name="menu_share_copy_ok">Copied OK</string>
     <string name="menu_share_copy_error">Share failed</string>
+    <string name="menu_share_text_only">FAIL!! Just can share text</string>
     <!--登录，注册-->
     <string name="close_over">One more again!!</string>
     <string name="login">Sign in</string>
@@ -111,6 +112,8 @@
     <string name="sound_play_not_wifi">You are now using a non WIFI network？</string>
     <string name="sound">Obscene</string>
     <string name="text">Interesting novel</string>
+    <string name="video">Sex video</string>
+
     <string name="img">Sex Img</string>
     <string name="version_low">version is to low！</string>
     <!-- error-->

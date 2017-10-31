@@ -49,5 +49,5 @@ subprojects {
     ext.global_compileSdkVersion = 25
     ext.global_buildToolsVersion = "25.0.2"
     ext.global_minSdkVersion = 16
-    ext.global_targetSdkVersion = 24
+    ext.global_targetSdkVersion = 21
 }
