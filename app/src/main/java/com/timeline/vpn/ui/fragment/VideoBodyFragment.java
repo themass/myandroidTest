@@ -6,7 +6,7 @@ import android.view.View;
 
 import com.timeline.vpn.bean.vo.RecommendVo;
 import com.timeline.vpn.constant.Constants;
-import com.timeline.vpn.ui.sound.VideoPlayActivity;
+import com.timeline.vpn.ui.sound.VideoPlayQiniuActivity;
 
 /**
  * Created by themass on 2015/9/1.
@@ -31,7 +31,7 @@ public class VideoBodyFragment extends RecommendFragment {
 //        Uri uri = Uri.parse(vo.actionUrl);
 //        intent.setDataAndType(uri, type);
 //        startActivity(intent);
-        Intent intent = new Intent(getActivity(), VideoPlayActivity.class);
+        Intent intent = new Intent(getActivity(), VideoPlayQiniuActivity.class);
         intent.putExtra(Constants.CONFIG_PARAM,vo);
         startActivity(intent);
     }

@@ -249,3 +249,7 @@ public static java.lang.String TABLENAME;
 -dontwarn org.greenrobot.greendao.**
 -keep class net.sqlcipher.database.**{*;}
 -keep class rx.**{*;}
+
+#-------------------pili.pldroid.player------------------------
+-keep class com.pili.pldroid.player.** { *; }
+-keep class com.qiniu.qplayer.mediaEngine.MediaPlayer{*;}
