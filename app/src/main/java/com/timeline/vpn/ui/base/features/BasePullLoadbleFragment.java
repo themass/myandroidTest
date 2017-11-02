@@ -14,6 +14,7 @@ import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.R;
 import com.timeline.vpn.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.vpn.bean.vo.InfoListVo;
+import com.timeline.vpn.data.BaseService;
 
 import butterknife.BindView;
 
@@ -34,6 +35,8 @@ public abstract class BasePullLoadbleFragment<T> extends LoadableFragment<InfoLi
     @Override
     public void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
+        indexService = new BaseService();
+        indexService.setup(getActivity());
         initPullView();
     }
     protected void initPullView(){

@@ -96,6 +96,7 @@ public class TextChannelListFragment extends BasePullLoadbleFragment<TextItemsVo
                 if (!StringUtils.hasText(newText) && StringUtils.hasText(keyword)) {
                     keyword = null;
                     pullView.setRefresh(true);
+                    mSearchView.clearFocus();
                 }
                 return false;
             }

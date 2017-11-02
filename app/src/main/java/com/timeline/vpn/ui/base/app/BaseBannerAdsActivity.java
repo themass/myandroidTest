@@ -41,7 +41,6 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity{
     protected Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-            mHandler.postDelayed(task, Constants.BANNER_ADS_GONE_LONG);
         }
     };
     @OnClick(R.id.fab_up)
@@ -56,6 +55,7 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity{
         bindViews();
         setupToolbar();
         fabUp.setVisibility(View.GONE);
+        mHandler.postDelayed(task, Constants.BANNER_ADS_GONE_LONG);
 //        flBanner.setBackgroundResource(R.color.base_white);
     }
 

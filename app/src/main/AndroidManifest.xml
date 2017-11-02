@@ -119,9 +119,6 @@
         <activity
             android:name=".ui.sound.VideoActivity"
             android:screenOrientation="portrait" />
-        <activity
-            android:name=".ui.sound.VideoPlayQiniuActivity"
-            android:theme="@style/AppThemeFullscreen" />
 
         <activity
             android:name=".ui.sound.MyFullScreenImageGalleryActivity"

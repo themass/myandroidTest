@@ -62,6 +62,7 @@ public class FavoriteFragment extends BasePullLoadbleFragment<FavoriteVo> implem
         super.setupViews(view, savedInstanceState);
         EventBusUtil.getEventBus().register(this);
     }
+    @Override
     protected  BaseRecyclerViewAdapter getAdapter(){
         adapter = new FavoriteViewAdapter(getActivity(), pullView.getRecyclerView(), infoListVo.voList, this);
         adapter.setLongClickListener(this);

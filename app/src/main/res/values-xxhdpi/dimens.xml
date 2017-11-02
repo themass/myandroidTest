@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?><!--dimens.xml-->
 <resources>
-    <dimen name="location_choose_btn_size">16sp</dimen>
-    <dimen name="location_choose_tv_country">16sp</dimen>
-    <dimen name="location_choose_tv_type">15sp</dimen>
-    <dimen name="location_choose_tv_index">15sp</dimen>
+    <dimen name="location_choose_btn_size">14sp</dimen>
+    <dimen name="location_choose_tv_country">14sp</dimen>
+    <dimen name="location_choose_tv_type">14sp</dimen>
+    <dimen name="location_choose_tv_index">14sp</dimen>
     <dimen name="location_choose_tv_net">13sp</dimen>
     <dimen name="drawer_header_login_tx_size">16sp</dimen>
     <dimen name="drawer_header_margin">16dp</dimen>
@@ -12,8 +12,8 @@
     <dimen name="edit_tx_size">16sp</dimen>
     <dimen name="loading_footer">14sp</dimen>
     <dimen name="remote_vpn_title">12sp</dimen>
-    <dimen name="remote_vpn_time">22sp</dimen>
-    <dimen name="remote_vpn_content">16sp</dimen>
-    <dimen name="recommend_hit_size">12sp</dimen>
+    <dimen name="remote_vpn_time">16sp</dimen>
+    <dimen name="remote_vpn_content">13sp</dimen>
+    <dimen name="recommend_hit_size">11sp</dimen>
     <dimen name="toolbar_title_size">22sp</dimen>
 </resources>

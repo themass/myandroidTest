@@ -20,7 +20,7 @@ public class Constants {
     public static final String DEFULT_LOCATION_NAME="随机";
     public static final int STARTUP_SHOW_TIME_6000 = 6000; //启动页广告时长
     public static final int STARTUP_SHOW_TIME_7000 = 7000; //启动页广告时长
-    public static final int BANNER_ADS_GONE_LONG = 25000; //广告显示时长
+    public static final int BANNER_ADS_GONE_LONG = 10000; //广告显示时长
     public static final int BANNER_ADS_GONE_LONG_LONG = 240000; //广告显示时长
     public static final int BANNER_ADS_GONE_SHORT = 5000; //启动页广告时长
     public static final int VIP_SHIMMER_DURATION = 2300;
@@ -44,8 +44,10 @@ public class Constants {
     public static final int LOCATION_TYPE_VIP = 1;
     public static final int LOCATION_TYPE_VIP2 = 2;
 
-    public static final int BANNER_ADS_POS_1 = 4;
-    public static final int BANNER_ADS_POS_2 = 10;
+    public static final int BANNER_ADS_POS_1 = 2;
+    public static final int BANNER_ADS_POS_2 = 7;
+    public static final int BANNER_ADS_POS_3 = 12;
+    public static final int BANNER_ADS_POS_4 = 17;
     public static final String[] sort_type = new String[]{"type_asc", "type_desc"};
     public static final String[] sort_country = new String[]{"ename_asc", "ename_desc"};
     public static final String[] sort_fea = new String[]{"level_asc", "level_desc"};

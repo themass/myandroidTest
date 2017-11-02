@@ -3,6 +3,7 @@ package com.timeline.vpn.adapter;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.support.annotation.Nullable;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,8 +12,11 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RatingBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.sspacee.yewu.ads.base.AdsContext;
+import com.sspacee.yewu.ads.base.AdsManager;
 import com.timeline.vpn.R;
 import com.timeline.vpn.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.vpn.bean.vo.LocationVo;
@@ -69,6 +73,16 @@ public class LocationViewAdapter extends BaseRecyclerViewAdapter<LocationViewAda
             holder.ivType.setImageResource(R.drawable.bg_type_advip);
             holder.tvType.setText(R.string.vpn_type_vip2);
         }
+        if(position== Constants.BANNER_ADS_POS_1){
+            holder.rvAds.setVisibility(View.VISIBLE);
+            AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_3);
+        }else if(position==Constants.BANNER_ADS_POS_2){
+            holder.rvAds.setVisibility(View.VISIBLE);
+            AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_1);
+        }else{
+            holder.rvAds.removeAllViews();
+            holder.rvAds.setVisibility(View.GONE);
+        }
 //        holder.tvPing.setTextColor(context.getResources().getColor(R.color.base_black));
         if(isNeedPing())
             LocationPingTask.ping(context,data.get(position),holder.pgPing,holder.tvPing);
@@ -117,6 +131,9 @@ public class LocationViewAdapter extends BaseRecyclerViewAdapter<LocationViewAda
         @Nullable
         @BindView(R.id.pg_ping)
         ProgressBar pgPing;
+        @Nullable
+        @BindView(R.id.rv_ads)
+        RelativeLayout rvAds;
         public LocationItemView(View itemView, View.OnClickListener l, View.OnLongClickListener longListener) {
             super(itemView, l, longListener);
         }

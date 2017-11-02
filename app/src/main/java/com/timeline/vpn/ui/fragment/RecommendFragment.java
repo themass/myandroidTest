@@ -19,13 +19,12 @@ import com.sspacee.common.helper.SimpleItemTouchHelperCallback;
 import com.sspacee.common.ui.view.RecycleViewDivider;
 import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.yewu.um.MobAgent;
+import com.timeline.vpn.adapter.IndexRecommendAdapter;
 import com.timeline.vpn.adapter.base.BasePhotoFlowRecycleViewAdapter;
 import com.timeline.vpn.adapter.base.BaseRecyclerViewAdapter;
-import com.timeline.vpn.adapter.IndexRecommendAdapter;
 import com.timeline.vpn.bean.vo.InfoListVo;
 import com.timeline.vpn.bean.vo.RecommendVo;
 import com.timeline.vpn.constant.Constants;
-import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.data.config.ConfigActionEvent;
 import com.timeline.vpn.ui.base.features.BasePullLoadbleFragment;
 
@@ -53,7 +52,6 @@ public abstract class RecommendFragment extends BasePullLoadbleFragment<Recommen
     };
     protected ItemTouchHelper mItemTouchHelper;
     protected IndexRecommendAdapter adapter;
-    protected BaseService indexService;
 
     public void addData(List<RecommendVo> data) {
         infoListVo.voList.addAll(data);
@@ -85,8 +83,6 @@ public abstract class RecommendFragment extends BasePullLoadbleFragment<Recommen
         pullView.setAdapter(adapter);
         pullView.getRecyclerView().addItemDecoration(new RecycleViewDivider(mContext, LinearLayoutManager.VERTICAL));
 
-        indexService = new BaseService();
-        indexService.setup(getActivity());
         switchFlag(false);
         getActivity().bindService(new Intent(getActivity(), VpnStateService.class),
                 mServiceConnection, Service.BIND_AUTO_CREATE);
