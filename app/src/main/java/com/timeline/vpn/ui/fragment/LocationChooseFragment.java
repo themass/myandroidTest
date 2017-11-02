@@ -10,7 +10,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.Toast;
 
 import com.sspacee.common.ui.view.DividerItemDecoration;
 import com.sspacee.common.util.CollectionUtils;
@@ -18,6 +17,7 @@ import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.GsonUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PreferenceUtils;
+import com.sspacee.common.util.ToastUtil;
 import com.timeline.vpn.R;
 import com.timeline.vpn.adapter.LocationViewAdapter;
 import com.timeline.vpn.adapter.base.BaseRecyclerViewAdapter;
@@ -151,12 +151,12 @@ public class LocationChooseFragment extends LoadableFragment<List<LocationVo>> i
         if (data.type != Constants.LOCATION_TYPE_FREE) {
             UserInfoVo vo = UserLoginUtil.getUserCache();
             if (vo == null) {
-                Toast.makeText(getActivity(), R.string.need_login, Toast.LENGTH_SHORT).show();
+                ToastUtil.showShort(R.string.need_login);
                 startActivity(LoginActivity.class);
                 return;
             } else {
                 if (Constants.LOCATION_TYPE_VIP > vo.level) {
-                    Toast.makeText(getActivity(), R.string.need_vip, Toast.LENGTH_SHORT).show();
+                    ToastUtil.showShort( R.string.need_vip);
                     return;
                 }
             }

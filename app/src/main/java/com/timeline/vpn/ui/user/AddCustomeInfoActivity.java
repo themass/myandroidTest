@@ -7,7 +7,6 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import android.widget.Toast;
 
 import com.qq.e.comm.util.StringUtil;
 import com.sspacee.common.ui.view.MyEditText;
@@ -15,6 +14,7 @@ import com.sspacee.common.ui.view.SiteAutoCompleteTextView;
 import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.PathUtil;
 import com.sspacee.common.util.StringUtils;
+import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.net.VolleyUtils;
 import com.sspacee.yewu.net.request.CommonResponse;
 import com.timeline.vpn.R;
@@ -61,7 +61,7 @@ public class AddCustomeInfoActivity extends BaseSingleActivity {
         @Override
         public void onResponse(NullReturnVo vo) {
             EventBusUtil.getEventBus().post(new CustomeAddEvent(form.id, form.title, form.url, null));
-            Toast.makeText(AddCustomeInfoActivity.this, R.string.custome_ok, Toast.LENGTH_SHORT).show();
+            ToastUtil.showShort(R.string.custome_ok);
             finish();
         }
     };
@@ -74,7 +74,7 @@ public class AddCustomeInfoActivity extends BaseSingleActivity {
             }
             context.startActivity(intent);
         } else {
-            Toast.makeText(context, R.string.need_login, Toast.LENGTH_SHORT).show();
+            ToastUtil.showShort(R.string.need_login);
             context.startActivity(new Intent(context, LoginActivity.class));
         }
     }
@@ -116,7 +116,7 @@ public class AddCustomeInfoActivity extends BaseSingleActivity {
         int id = radioGroup.getCheckedRadioButtonId();
         int id1 = radioSchemaGroup.getCheckedRadioButtonId();
         if (id == -1 || StringUtil.isEmpty(form.title) || StringUtil.isEmpty(form.uri)) {
-            Toast.makeText(this, R.string.empty_info, Toast.LENGTH_SHORT).show();
+            ToastUtil.showShort( R.string.empty_info);
             return;
         }
         if (radioSchemaGroup.getCheckedRadioButtonId() == R.id.http) {
@@ -124,7 +124,11 @@ public class AddCustomeInfoActivity extends BaseSingleActivity {
         } else {
             form.schema = Constants.HTTPS_URL;
         }
-        form.url = form.schema + Constants.URL_TMP + form.uri;
+        if(!form.uri.startsWith(Constants.HTTP_URL)) {
+            form.url = form.schema + Constants.URL_TMP + form.uri;
+        }else{
+            form.url = form.uri;
+        }
         if (radioGroup.getCheckedRadioButtonId() == R.id.open_browser) {
             form.url = PathUtil.getLocalOpenUrl(form.url);
         }

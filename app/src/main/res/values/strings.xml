@@ -58,8 +58,10 @@
     <string name="feed_back">Feedback</string>
     <string name="menu_btn_score">Points:</string>
     <string name="menu_btn_networking">Traffic:</string>
+    <string name="menu_btn_cache">Cache:</string>
     <string name="menu_btn_timeuse">Time:</string>
     <string name="menu_btn_score_context">Points can change VIP，more info see "About"</string>
+    <string name="menu_btn_cache_context">Cache clear</string>
     <string name="menu_btn_report_log">Thanks for report us</string>
     <string name="menu_btn_country">Region：</string>
     <string name="menu_btn_open_browser">Open in browser</string>

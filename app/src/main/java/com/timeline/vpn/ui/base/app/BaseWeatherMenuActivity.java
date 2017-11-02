@@ -6,7 +6,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -16,6 +15,7 @@ import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.SystemUtils;
+import com.sspacee.common.util.ToastUtil;
 import com.sspacee.common.weather.LocationUtils;
 import com.sspacee.common.weather.WeatherIconUtils;
 import com.sspacee.common.weather.WeatherSpider;
@@ -127,7 +127,7 @@ public abstract class BaseWeatherMenuActivity extends LogActivity {
 
     protected void startLocation(LocationUtils.LocationListener cityNameStatus) {
         if (!NetUtils.checkNetwork(this)) {
-            Toast.makeText(this, R.string.error_network_no_connection, Toast.LENGTH_SHORT).show();
+            ToastUtil.showShort(R.string.error_network_no_connection);
             return;
         }
         if (mLocationUtils == null)

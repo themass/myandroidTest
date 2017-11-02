@@ -16,6 +16,7 @@ import android.widget.Toast;
 import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PreferenceUtils;
+import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.um.MobAgent;
 import com.timeline.vpn.R;
 import com.timeline.vpn.constant.Constants;
@@ -55,7 +56,7 @@ public class MainFragment extends BaseDrawerActivity implements TabHost.OnTabCha
         if (uploadLog) {
             startService(new Intent(this, LogUploadService.class));
         }
-        destoryToast = Toast.makeText(this, R.string.close_over, Toast.LENGTH_SHORT);
+        ToastUtil.showShort(R.string.close_over);
     }
 
     public void setListener(OnBackKeyUpListener keyListener) {

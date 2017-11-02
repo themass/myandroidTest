@@ -69,6 +69,13 @@ public class AutoVideoFragment extends BasePullLoadbleFragment<RecommendVo> {
         super.onPause();
         JZVideoPlayer.goOnPlayOnPause();
     }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        JZVideoPlayer.releaseAllVideos();
+    }
+
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         //你的代码

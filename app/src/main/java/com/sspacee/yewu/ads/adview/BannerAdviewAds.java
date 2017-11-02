@@ -51,11 +51,13 @@ public class BannerAdviewAds extends BannerInter {
                 @Override
                 public void onAdClose(String s) {
                     closeAds(context,handler, AdsContext.AdsFrom.ADVIEW);
+                    group.setVisibility(View.GONE);
                 }
 
                 @Override
                 public void onAdFailed(String s) {
                     noAds(context,handler, AdsContext.AdsFrom.ADVIEW);
+                    group.setVisibility(View.GONE);
                 }
 
                 @Override

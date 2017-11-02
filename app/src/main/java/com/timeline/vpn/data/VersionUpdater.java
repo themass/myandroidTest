@@ -14,13 +14,13 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.support.v7.app.AlertDialog;
-import android.widget.Toast;
 
 import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.FileUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.StringUtils;
+import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.net.HttpDNSUtil;
 import com.sspacee.yewu.net.HttpUtils;
 import com.sspacee.yewu.net.NetUtils;
@@ -66,7 +66,7 @@ public class VersionUpdater {
                         VersionUpdater.showUpdateDialog(context, vo, true);
                     } else {
                         if (needToast)
-                            Toast.makeText(context, R.string.about_version_update_to_date, Toast.LENGTH_SHORT).show();
+                            ToastUtil.showShort(R.string.about_version_update_to_date);
                     }
                 }
             }, new CommonResponse.ResponseErrorListener() {
@@ -194,7 +194,7 @@ public class VersionUpdater {
 
     private static void startDownloadThread(final Context context, final String url) {
         final File apkFile = new File(Environment.getExternalStorageDirectory(), Constants.TEMP_PATH + "/freevpn.apk");
-        Toast.makeText(context, R.string.about_download_begin, Toast.LENGTH_SHORT).show();
+        ToastUtil.showShort(R.string.about_download_begin);
         new Thread(new DownloadRunnable(context, url, apkFile)).start();
     }
 
@@ -228,7 +228,7 @@ public class VersionUpdater {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(context, R.string.about_download_error, Toast.LENGTH_SHORT).show();
+                        ToastUtil.showShort(R.string.about_download_error);
                     }
                 });
             }
@@ -263,7 +263,7 @@ public class VersionUpdater {
             handler.post(new Runnable() {
                 @Override
                 public void run() {
-                    Toast.makeText(context, R.string.about_download_finish, Toast.LENGTH_SHORT).show();
+                    ToastUtil.showShort(R.string.about_download_finish);
                 }
             });
 

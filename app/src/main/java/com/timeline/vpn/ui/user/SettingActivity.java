@@ -7,14 +7,16 @@ import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.sspacee.common.util.DateUtils;
 import com.sspacee.common.util.EventBusUtil;
+import com.sspacee.common.util.FileSizeUtil;
+import com.sspacee.common.util.FileUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.StringUtils;
 import com.sspacee.common.util.SystemUtils;
+import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.um.MobAgent;
 import com.timeline.vpn.R;
 import com.timeline.vpn.base.MyApplication;
@@ -28,10 +30,13 @@ import com.timeline.vpn.service.LogUploadService;
 import com.timeline.vpn.ui.base.WebViewActivity;
 import com.timeline.vpn.ui.base.app.BaseSingleActivity;
 
+import java.io.File;
 import java.util.Date;
 
 import butterknife.BindView;
 import butterknife.OnClick;
+
+import static com.sspacee.common.CommonConstants.tmpFilePath;
 
 /**
  * Created by themass on 2016/8/13.
@@ -49,7 +54,8 @@ public class SettingActivity extends BaseSingleActivity {
     TextView tvScore;
     @BindView(R.id.tv_version)
     TextView tvVersion;
-
+    @BindView(R.id.tv_cache)
+    TextView tvCache;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -73,8 +79,11 @@ public class SettingActivity extends BaseSingleActivity {
         setStateUse();
         setScore();
         setVersion();
+        setCache();
     }
-
+    private void setCache(){
+        tvCache.setText(FileSizeUtil.getAutoFileOrFilesSize(FileUtils.getWriteFilePath(this)));
+    }
     private void setStateUse() {
         StateUseVo vo = PreferenceUtils.getPrefObj(this, Constants.USER_STATUS, StateUseVo.class);
         if (vo != null) {
@@ -102,10 +111,17 @@ public class SettingActivity extends BaseSingleActivity {
 
     @OnClick(R.id.rr_point)
     public void onScore(View view) {
-        Toast.makeText(this, R.string.menu_btn_score_context, Toast.LENGTH_SHORT).show();
+        ToastUtil.showShort(R.string.menu_btn_score_context);
         MobAgent.onEventMenu(this, "积分");
     }
-
+    @OnClick(R.id.rl_cache)
+    public void onCache(View view) {
+        ToastUtil.showShort(R.string.menu_btn_cache_context);
+        FileUtils.deleteFile(new File(FileUtils.getWriteFilePath(this)));
+        FileUtils.ensureFile(this, tmpFilePath);
+        setCache();
+        MobAgent.onEventMenu(this, "缓存");
+    }
     @OnClick(R.id.rr_version)
     public void onVersion(View view) {
         VersionUpdater.checkUpdate(this, true);
@@ -133,7 +149,7 @@ public class SettingActivity extends BaseSingleActivity {
     @OnClick(R.id.tv_bug)
     public void onBug(View view) {
         startService(LogUploadService.class);
-        Toast.makeText(this, R.string.menu_btn_report_log, Toast.LENGTH_SHORT).show();
+        ToastUtil.showShort(R.string.menu_btn_report_log);
         MobAgent.onEventMenu(this, "bug");
     }
 
@@ -145,7 +161,7 @@ public class SettingActivity extends BaseSingleActivity {
     public void showShare() {
         final String url = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.D_URL, null);
         if (!StringUtils.hasText(url)) {
-            Toast.makeText(this, R.string.menu_share_copy_error, Toast.LENGTH_SHORT).show();
+            ToastUtil.showShort(R.string.menu_share_copy_error);
             return;
         }
         String str = String.format(getResources().getString(R.string.menu_share_url), url);
@@ -156,7 +172,7 @@ public class SettingActivity extends BaseSingleActivity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 SystemUtils.copy(SettingActivity.this, url);
-                Toast.makeText(SettingActivity.this, R.string.menu_share_copy_ok, Toast.LENGTH_SHORT).show();
+                ToastUtil.showShort(R.string.menu_share_copy_ok);
                 dialog.dismiss();
             }
         });

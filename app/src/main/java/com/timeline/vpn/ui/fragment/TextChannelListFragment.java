@@ -9,11 +9,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.SearchView;
-import android.widget.Toast;
 
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.StringUtils;
 import com.sspacee.common.util.SystemUtils;
+import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.timeline.vpn.R;
 import com.timeline.vpn.adapter.TextChannelListItemsViewAdapter;
@@ -138,7 +138,7 @@ public class TextChannelListFragment extends BasePullLoadbleFragment<TextItemsVo
     public boolean onMenuItemClick(MenuItem item, int position){
         if(item.getItemId()==R.id.menu_share){
             SystemUtils.copy(getActivity(), infoListVo.voList.get(position).fileUrl);
-            Toast.makeText(getActivity(), R.string.menu_share_copy_ok, Toast.LENGTH_SHORT).show();
+            ToastUtil.showShort(R.string.menu_share_copy_ok);
             LogUtil.i(infoListVo.voList.get(position).fileUrl);
         }else {
             FavoriteUtil.modLocalFavoritesAsync(getActivity(), infoListVo.voList.get(position).tofavorite(), null);

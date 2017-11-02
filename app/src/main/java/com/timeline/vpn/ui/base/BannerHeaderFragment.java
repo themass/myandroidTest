@@ -66,6 +66,7 @@ public class BannerHeaderFragment extends BaseFragment{
     }
     public void showAds() {
         if (needShow()) {
+            flBanner.setVisibility(View.VISIBLE);
             AdsManager.getInstans().showBannerAds(getActivity(), flBanner,AdsContext.Categrey.CATEGREY_1);
         } else {
             if (flBanner != null)

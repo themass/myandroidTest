@@ -16,7 +16,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.support.v4.app.Fragment;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -24,10 +23,10 @@ import android.view.animation.LinearInterpolator;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.sspacee.common.ui.base.BaseFragment;
 import com.sspacee.common.util.LogUtil;
+import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.net.HttpUtils;
@@ -44,7 +43,6 @@ import com.timeline.vpn.data.LocationUtil;
 import com.timeline.vpn.data.StaticDataUtil;
 import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.data.config.VpnClickEvent;
-import com.timeline.vpn.ui.base.BannerHeaderFragment;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -138,17 +136,7 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
         showBanner();
     }
     public void showBanner(){
-        try {
-            Fragment fragment = (Fragment) BannerHeaderFragment.class.newInstance();
-            Bundle bundle = new Bundle();
-            bundle.putSerializable(BannerHeaderFragment.BANNER_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_3);
-            fragment.setArguments(bundle);
-            getChildFragmentManager().beginTransaction()
-                    .add(R.id.rl_content, fragment)
-                    .commitAllowingStateLoss();
-        } catch (Exception e) {
-            LogUtil.e(e);
-        }
+        AdsManager.getInstans().showBannerAds(getActivity(), rlContent,AdsContext.Categrey.CATEGREY_3);
     }
     @Override
     public void onDestroyView() {
@@ -185,7 +173,7 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
                 int id = LocationUtil.getSelectLocationId(getActivity());
                 indexService.getData(String.format(Constants.getUrl(Constants.API_SERVERLIST_URL), id), serverListener, serverListenerError, INDEX_TAG, ServerVo.class);
             } else {
-                Toast.makeText(getActivity(), R.string.vpn_bg_click_later, Toast.LENGTH_SHORT).show();
+                ToastUtil.showShort( R.string.vpn_bg_click_later);
             }
         }
     }
@@ -384,22 +372,22 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
             switch (errorState) {
                 case AUTH_FAILED:
                     if (imcState == ImcState.BLOCK) {
-                        Toast.makeText(VpnStatusFragment.this.getActivity(), R.string.error_assessment_failed, Toast.LENGTH_SHORT).show();
+                        ToastUtil.showShort(R.string.error_assessment_failed);
                     } else {
-                        Toast.makeText(VpnStatusFragment.this.getActivity(), R.string.error_auth_failed, Toast.LENGTH_SHORT).show();
+                        ToastUtil.showShort( R.string.error_auth_failed);
                     }
                     break;
                 case PEER_AUTH_FAILED:
-                    Toast.makeText(VpnStatusFragment.this.getActivity(), R.string.error_peer_auth_failed, Toast.LENGTH_SHORT).show();
+                    ToastUtil.showShort( R.string.error_peer_auth_failed);
                     break;
                 case LOOKUP_FAILED:
-                    Toast.makeText(VpnStatusFragment.this.getActivity(), R.string.error_lookup_failed, Toast.LENGTH_SHORT).show();
+                    ToastUtil.showShort( R.string.error_lookup_failed);
                     break;
                 case UNREACHABLE:
-                    Toast.makeText(VpnStatusFragment.this.getActivity(), R.string.error_unreachable, Toast.LENGTH_SHORT).show();
+                    ToastUtil.showShort(R.string.error_unreachable);
                     break;
                 default:
-                    Toast.makeText(VpnStatusFragment.this.getActivity(), R.string.error_generic, Toast.LENGTH_SHORT).show();
+                    ToastUtil.showShort(R.string.error_generic);
                     break;
             }
             return true;

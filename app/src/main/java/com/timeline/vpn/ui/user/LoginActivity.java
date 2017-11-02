@@ -5,10 +5,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.Toast;
 
 import com.qq.e.comm.util.StringUtil;
 import com.sspacee.common.util.PreferenceUtils;
+import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.net.request.CommonResponse;
 import com.timeline.vpn.R;
 import com.timeline.vpn.bean.form.LoginForm;
@@ -78,11 +78,11 @@ public class LoginActivity extends BaseSingleActivity {
         String name = etUserName.getText().toString();
         String pwd = etPassword.getText().toString();
         if (StringUtil.isEmpty(name) || StringUtil.isEmpty(pwd)) {
-            Toast.makeText(this, R.string.empty_name_pwd, Toast.LENGTH_SHORT).show();
+            ToastUtil.showShort(R.string.empty_name_pwd);
             return;
         }
         if (!namePattern.matcher(name).matches()) {
-            Toast.makeText(this, R.string.error_pattern_name, Toast.LENGTH_SHORT).show();
+            ToastUtil.showShort(R.string.error_pattern_name);
             return;
         }
         setEnabled(false);

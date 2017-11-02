@@ -67,11 +67,14 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="@dimen/margin_5"
                 android:textColor="@color/base_red"
+                android:text="@string/vpn_remote_status"
                 android:textSize="@dimen/remote_vpn_title" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/margin_8"
                 android:text="enjoy time"
+                android:textColor="@color/base_black"
                 android:textSize="@dimen/remote_vpn_title" />
         </LinearLayout>
 

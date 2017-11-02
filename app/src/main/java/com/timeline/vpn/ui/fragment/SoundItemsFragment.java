@@ -19,13 +19,13 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.sspacee.common.ui.view.FavoriteImageView;
 import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.MediaUtil;
 import com.sspacee.common.util.PreferenceUtils;
+import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.net.NetUtils;
@@ -240,8 +240,8 @@ public class SoundItemsFragment extends BasePullLoadbleFragment<SoundItemsVo> im
     public void play(int position) {
         LogUtil.i("play(int position)  --" + position);
         if (adapter.getItemCount() <= 0) {
-            Toast.makeText(getActivity(),
-                    "该频道没有sex love", Toast.LENGTH_LONG).show();
+            ToastUtil.showShort(
+                    "该频道没有sex love");
             return;
         }
         if (position < 0)

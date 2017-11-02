@@ -61,8 +61,10 @@
     <string name="feed_back">信息反馈</string>
     <string name="menu_btn_score">积分:</string>
     <string name="menu_btn_networking">用量:</string>
+    <string name="menu_btn_cache">缓存:</string>
     <string name="menu_btn_timeuse">用时:</string>
     <string name="menu_btn_score_context">积分可换VIP，详见“关于”</string>
+    <string name="menu_btn_cache_context">缓存已清除</string>
     <string name="menu_btn_report_log">我们已收到您的问题！</string>
     <string name="menu_btn_country">地区 ：</string>
     <string name="menu_btn_open_browser">浏览器打开</string>

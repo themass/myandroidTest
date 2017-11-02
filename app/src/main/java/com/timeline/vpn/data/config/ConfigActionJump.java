@@ -3,9 +3,9 @@ package com.timeline.vpn.data.config;
 import android.content.Intent;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
-import android.widget.Toast;
 
 import com.sspacee.common.util.LogUtil;
+import com.sspacee.common.util.ToastUtil;
 import com.timeline.vpn.R;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.ui.base.WebViewActivity;
@@ -64,7 +64,7 @@ public class ConfigActionJump {
             intent.putExtra(Constants.TITLE, event.title);
             event.context.startActivity(intent);
         } else {
-            Toast.makeText(event.context, R.string.version_low, Toast.LENGTH_SHORT).show();
+            ToastUtil.showShort( R.string.version_low);
         }
     }
 

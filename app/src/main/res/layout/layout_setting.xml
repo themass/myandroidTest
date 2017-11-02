@@ -178,7 +178,30 @@
                         android:layout_alignParentRight="true"
                         android:layout_centerVertical="true" />
                 </RelativeLayout>
+                <ImageView style="@style/divider_login" />
 
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:id="@+id/rl_cache"
+                    android:padding="@dimen/margin_10">
+
+                    <TextView
+                        style="@style/tv_setting"
+                        android:layout_width="100dp"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:text="@string/menu_btn_cache" />
+
+                    <TextView
+                        android:id="@+id/tv_cache"
+                        style="@style/tv_setting"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentRight="true"
+                        android:layout_centerVertical="true" />
+                </RelativeLayout>
             </LinearLayout>
         </android.support.v7.widget.CardView>
 

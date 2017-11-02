@@ -11,10 +11,10 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PreferenceUtils;
+import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.um.MobAgent;
 import com.timeline.vpn.R;
@@ -187,7 +187,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                 boolean flag = PreferenceUtils.getPrefBoolean(BaseDrawerActivity.this, Constants.LOCATION_FLAG, false);
                 int count = PreferenceUtils.getPrefInt(BaseDrawerActivity.this, Constants.LOCATION_FLAG_COUNT, 0);
                 if (!flag && count < 3) {
-                    Toast.makeText(BaseDrawerActivity.this, R.string.location_choose_flag_none, Toast.LENGTH_LONG).show();
+                    ToastUtil.showShort(R.string.location_choose_flag_none);
                     count = count + 1;
                     PreferenceUtils.setPrefInt(BaseDrawerActivity.this, Constants.LOCATION_FLAG_COUNT, count);
                 }
@@ -225,7 +225,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                 }else if (item.getItemId() == R.id.menu_support) {
                     name = "支持作者";
                     adsOffers();
-                    Toast.makeText(BaseDrawerActivity.this,R.string.support_info,Toast.LENGTH_SHORT).show();
+                    ToastUtil.showShort(R.string.support_info);
                 }
                 MobAgent.onEventMenu(BaseDrawerActivity.this, name);
                 return false;

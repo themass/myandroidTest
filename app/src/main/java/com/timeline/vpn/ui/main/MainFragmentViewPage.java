@@ -15,12 +15,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import com.sspacee.common.util.DoubleClickExit;
 import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PermissionHelper;
 import com.sspacee.common.util.PreferenceUtils;
+import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.um.MobAgent;
@@ -52,11 +53,9 @@ import java.util.Set;
 public class MainFragmentViewPage extends BaseDrawerActivity implements ActivityCompat.OnRequestPermissionsResultCallback {
     public List<ItemFragment> list = new ArrayList<>();
     public boolean init = false;
-    private long firstTime = 0;
     private Set<OnBackKeyDownListener> keyListeners = new HashSet<>();
     private ConfigActionJump jump = new ConfigActionJump();
     private LogAddTofile logAdd = new LogAddTofile();
-    private Toast destoryToast = null;
     private TabLayout mTabLayout;
     private ViewPager mViewPager;
     private MyPagerAdapter myPagerAdapter;
@@ -77,7 +76,6 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         if (uploadLog) {
             startService(new Intent(this, LogUploadService.class));
         }
-        destoryToast = Toast.makeText(this, R.string.close_over, Toast.LENGTH_SHORT);
         mPermissionHelper.checkNeedPermissions();
     }
 
@@ -101,7 +99,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         mViewPager = (ViewPager) findViewById(R.id.vp_view);
         initTabs();
 //        UpdateUserTask.start(this);
-        AdsManager.getInstans().reqVideo(this);
+//        AdsManager.getInstans().reqVideo(this);
         if(!UserLoginUtil.isVIP2()&&AdsContext.rateShow())
             AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_1,false);
     }
@@ -197,15 +195,12 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
                 moveTaskToBack(true);
                 return true;
             }
-            long secondTime = System.currentTimeMillis();
-            if (secondTime - firstTime > 2000) {
-                destoryToast.show();
-                firstTime = secondTime;//更新firstTime
+
+            if (!DoubleClickExit.check()) {
+                ToastUtil.showShort(getString(R.string.close_over));
                 return true;
             } else {
-                //两次按键小于2秒时，退出应用
-                destoryToast.cancel();
-                super.onKeyDown(keyCode, event);
+                finish();
             }
         }
         return super.onKeyDown(keyCode, event);

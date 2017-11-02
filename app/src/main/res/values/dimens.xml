@@ -51,6 +51,7 @@
     <dimen name="margin_250">250dip</dimen>
     <dimen name="margin_80">80dip</dimen>
     <dimen name="margin_70">70dip</dimen>
+    <dimen name="margin_58">58dip</dimen>
     <dimen name="tab_indicator_size">49dp</dimen>
 
     <dimen name="padding_5">5dip</dimen>

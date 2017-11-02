@@ -195,13 +195,13 @@ public class FileUtils {
         }
     }
 
-    public static String getWriteFilePath(Context context, String filePath) {
+    public static String getWriteFilePath(Context context) {
 //        return context.getFilesDir().getAbsolutePath()+File.separator +filePath;
         String sdStatus = Environment.getExternalStorageState();
         if (!sdStatus.equals(Environment.MEDIA_MOUNTED)) {
-            return context.getFilesDir().getAbsolutePath() + File.separator + filePath;
+            return context.getFilesDir().getAbsolutePath() + File.separator + "myfreevpn";
         } else {
-            return File.separator + "sdcard" + File.separator + filePath;
+            return File.separator + "sdcard" + File.separator + "myfreevpn";
         }
     }
 
@@ -209,7 +209,7 @@ public class FileUtils {
         File path = new File(filePath);
         if (!path.exists()) {
             LogUtil.d("Create the path:" + filePath);
-            path.mkdir();
+            path.mkdirs();
         }
         return true;
     }

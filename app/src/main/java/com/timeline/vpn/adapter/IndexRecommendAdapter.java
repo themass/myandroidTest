@@ -11,13 +11,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.romainpiel.shimmer.Shimmer;
 import com.romainpiel.shimmer.ShimmerTextView;
 import com.sspacee.common.helper.OnStartDragListener;
 import com.sspacee.common.util.DensityUtil;
 import com.sspacee.common.util.StringUtils;
+import com.sspacee.common.util.ToastUtil;
 import com.timeline.vpn.R;
 import com.timeline.vpn.adapter.base.BasePhotoFlowRecycleViewAdapter;
 import com.timeline.vpn.bean.vo.RecommendVo;
@@ -79,7 +79,7 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
                 RecommendVo vo = (RecommendVo) data.get(position);
                 if (StringUtils.hasText(vo.minVersion)) {
                     if (VersionUpdater.getVersion().compareTo(vo.minVersion) < 0) {
-                        Toast.makeText(context, R.string.version_low, Toast.LENGTH_SHORT).show();
+                        ToastUtil.showShort( R.string.version_low);
                         return;
                     }
                 }

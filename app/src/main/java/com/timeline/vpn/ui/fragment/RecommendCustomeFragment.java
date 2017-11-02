@@ -13,13 +13,13 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.PopupWindow;
-import android.widget.Toast;
 
 import com.google.gson.reflect.TypeToken;
 import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.GsonUtils;
 import com.sspacee.common.util.PreferenceUtils;
+import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.net.request.CommonResponse;
 import com.timeline.vpn.R;
 import com.timeline.vpn.bean.form.CustomeAddForm;
@@ -216,7 +216,7 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
                         indexService.postData(Constants.getUrl(Constants.API_DEL_CUSTOME), o, new CommonResponse.ResponseOkListener<NullReturnVo>(o) {
                             @Override
                             public void onResponse(NullReturnVo vo) {
-                                Toast.makeText(getActivity(), R.string.custome_del_ok, Toast.LENGTH_SHORT).show();
+                                ToastUtil.showShort( R.string.custome_del_ok);
                                 sortList.remove(sortList.indexOf(((RecommendVo) getParam()).id));
                                 refresh();
                                 saveSortMap();

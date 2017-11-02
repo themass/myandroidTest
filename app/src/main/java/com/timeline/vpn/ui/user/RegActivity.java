@@ -6,9 +6,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioGroup;
-import android.widget.Toast;
 
 import com.qq.e.comm.util.StringUtil;
+import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.net.request.CommonResponse;
 import com.timeline.vpn.R;
 import com.timeline.vpn.bean.form.RegForm;
@@ -52,7 +52,7 @@ public class RegActivity extends BaseSingleActivity {
         @Override
         public void onResponse(NullReturnVo vo) {
             setEnabled(true);
-            Toast.makeText(RegActivity.this, R.string.reg_success, Toast.LENGTH_SHORT).show();
+            ToastUtil.showShort( R.string.reg_success);
         }
     };
 
@@ -83,19 +83,19 @@ public class RegActivity extends BaseSingleActivity {
         String repwd = etRePassword.getText().toString();
         int id = radioGroup.getCheckedRadioButtonId();
         if (id == -1 || StringUtil.isEmpty(name) || StringUtil.isEmpty(pwd) || StringUtil.isEmpty(repwd)) {
-            Toast.makeText(this, R.string.empty_name_pwd, Toast.LENGTH_SHORT).show();
+            ToastUtil.showShort( R.string.empty_name_pwd);
             return;
         }
         if (!passPattern.matcher(pwd).matches()) {
-            Toast.makeText(this, R.string.error_pattern_pass, Toast.LENGTH_SHORT).show();
+            ToastUtil.showShort(R.string.error_pattern_pass);
             return;
         }
         if (!namePattern.matcher(name).matches()) {
-            Toast.makeText(this, R.string.error_pattern_name, Toast.LENGTH_SHORT).show();
+            ToastUtil.showShort(R.string.error_pattern_name);
             return;
         }
         if (!pwd.equals(repwd)) {
-            Toast.makeText(this, R.string.error_repwd, Toast.LENGTH_SHORT).show();
+            ToastUtil.showShort( R.string.error_repwd);
             return;
         }
         String sex = Constants.SEX_M;

@@ -9,12 +9,12 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Toast;
 
 import com.sspacee.common.ui.view.MyWebView;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PackageUtils;
 import com.sspacee.common.util.SystemUtils;
+import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.timeline.vpn.R;
@@ -100,7 +100,7 @@ public class WebViewActivity extends BaseFragmentActivity implements MyWebView.O
                 startActivity(it);
                 finish();
             } else {
-                Toast.makeText(this, R.string.no_browser, Toast.LENGTH_SHORT).show();
+                ToastUtil.showShort(R.string.no_browser);
             }
             return true;
         } else if (id == R.id.menu_url) {

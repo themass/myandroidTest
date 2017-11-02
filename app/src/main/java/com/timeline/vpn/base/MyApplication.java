@@ -10,10 +10,11 @@ import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.SystemUtils;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.net.VolleyUtils;
-import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.DBManager;
 import com.timeline.vpn.data.ImagePhotoLoad;
 import com.timeline.vpn.data.VersionUpdater;
+
+import java.io.File;
 
 import butterknife.ButterKnife;
 
@@ -71,7 +72,7 @@ public class MyApplication extends MultiDexApplication {
     }
 
     private void initFilePath() {
-        tmpFilePath = FileUtils.getWriteFilePath(this, Constants.FILE_TMP_PATH);
+        tmpFilePath = FileUtils.getWriteFilePath(this)+ File.separator+"log";
         LogUtil.i("tmpFilePath=" + tmpFilePath);
         FileUtils.ensureFile(this, tmpFilePath);
     }

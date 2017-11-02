@@ -15,6 +15,7 @@ import com.android.volley.toolbox.BasicNetwork;
 import com.android.volley.toolbox.HttpStack;
 import com.android.volley.toolbox.ImageLoader;
 import com.sspacee.common.exce.MyVolleyError;
+import com.sspacee.common.util.FileUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.cache.BitmapLruCache;
 import com.sspacee.common.util.cache.DiskBasedCacheEx;
@@ -28,7 +29,7 @@ import java.io.File;
  */
 public class VolleyUtils {
     // 缓存目录
-    private static final String DEFAULT_CACHE_DIR = "sspacee_vpn";
+    private static final String DEFAULT_CACHE_DIR = "myvolley";
 
     private static Context context;
     private static RequestQueue mRequestQueue;
@@ -48,7 +49,7 @@ public class VolleyUtils {
             stack = new OkHttpStack();
         }
         Network network = new BasicNetwork(stack);
-        File cacheDir = new File(context.getExternalCacheDir(), DEFAULT_CACHE_DIR);
+        File cacheDir = new File(FileUtils.getWriteFilePath(context), DEFAULT_CACHE_DIR);
         return new RequestQueue(new DiskBasedCacheEx(cacheDir, 50 * 1024 * 1024), network, 6); //修改为6个线程
     }
 

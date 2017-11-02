@@ -11,9 +11,9 @@ import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.etiennelawlor.imagegallery.library.adapters.FullScreenImageGalleryAdapter;
+import com.sspacee.common.util.ToastUtil;
 import com.timeline.vpn.R;
 import com.timeline.vpn.base.MyApplication;
 import com.timeline.vpn.task.SaveImageCallBack;
@@ -67,7 +67,7 @@ public class MyFullScreenImageGalleryActivity extends BaseSingleActivity impleme
     }
     @OnClick(R.id.iv_save)
     public void onSave(View view){
-        Toast.makeText(this,R.string.save_start,Toast.LENGTH_SHORT).show();
+        ToastUtil.showShort(R.string.save_start);
         SaveImageTask.startSave(MyFullScreenImageGalleryActivity.this,imagesRemote.get(viewPager.getCurrentItem()),MyFullScreenImageGalleryActivity.this);
     }
     @Override
@@ -100,11 +100,11 @@ public class MyFullScreenImageGalleryActivity extends BaseSingleActivity impleme
         this.viewPager.removeOnPageChangeListener(this.viewPagerOnPageChangeListener);
     }
     public void onSuccess(){
-        Toast.makeText(this,R.string.save_ok,Toast.LENGTH_SHORT).show();
+        ToastUtil.showShort(R.string.save_ok);
     }
 
     public void onFailed(){
-        Toast.makeText(this,R.string.save_fail,Toast.LENGTH_SHORT).show();
+        ToastUtil.showShort(R.string.save_fail);
     }
     @Override
     public boolean needShow() {

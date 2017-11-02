@@ -9,11 +9,13 @@ import android.widget.ImageView;
 import android.widget.TextSwitcher;
 import android.widget.TextView;
 
+import com.sspacee.common.util.DateUtils;
 import com.timeline.vpn.R;
 import com.timeline.vpn.bean.vo.IWannaVo;
 import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.task.IWannaLikeTask;
 
+import java.util.Date;
 import java.util.List;
 
 import butterknife.BindView;
@@ -94,6 +96,8 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         ImageView ivOk;
         @BindView(R.id.tv_name)
         public TextView name;
+        @BindView(R.id.tv_time)
+        public TextView time;
         public CellFeedViewHolder(View view) {
             super(view);
             ButterKnife.bind(this, view);
@@ -111,6 +115,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             } else {
                 imageView.setImageResource(R.drawable.ic_heart_small_blue);
             }
+            time.setText(DateUtils.format(new Date(feedItem.time),DateUtils.DATETIME_FORMAT));
             if (feedItem.finished || Constants.ADMIN.equals(feedItem.name)) {
                 ivOk.setVisibility(View.VISIBLE);
             } else {

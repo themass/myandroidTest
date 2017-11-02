@@ -10,13 +10,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
 
 import com.sspacee.common.ui.view.HeartAnimView;
 import com.sspacee.common.ui.view.MyProgressDialog;
 import com.sspacee.common.ui.view.MyPullView;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.StringUtils;
+import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.net.request.CommonResponse;
 import com.sspacee.yewu.net.request.CommonResponse.ResponseOkListener;
 import com.timeline.vpn.R;
@@ -112,7 +112,7 @@ public class IWannaFragment extends LoadableFragment<InfoListVo<IWannaVo>> imple
             myProgressDialog.show();
             indexService.postData(Constants.getUrl(Constants.API_IWANNA_URL), new IwannaForm(etComment.getText().toString()), okListener, errorListener, TAG, IWannaVo.class);
         } else {
-            Toast.makeText(getActivity(), R.string.iwanna_content_error, Toast.LENGTH_SHORT).show();
+            ToastUtil.showShort(R.string.iwanna_content_error);
         }
     }
 

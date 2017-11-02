@@ -1,9 +1,9 @@
 package com.timeline.vpn.data;
 
 import android.content.Context;
-import android.widget.Toast;
 
 import com.sspacee.common.util.SystemUtils;
+import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.timeline.vpn.R;
@@ -27,7 +27,7 @@ public class AdsPopStrategy {
         StaticDataUtil.add(Constants.SCORE_CLICK, System.currentTimeMillis());
         if ((interval / 1000) < Constants.SCORE_CLICK_INTERVAL) {
             if ((curent - lastToastShow) / 1000 >= Constants.SCORE_CLICK_INTERVAL) {
-                Toast.makeText(context, R.string.tab_fb_click_fast, Toast.LENGTH_SHORT).show();
+                ToastUtil.showShort( R.string.tab_fb_click_fast);
                 lastToastShow = curent;
             }
             return;

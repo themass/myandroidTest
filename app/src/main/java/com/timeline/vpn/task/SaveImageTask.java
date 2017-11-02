@@ -56,7 +56,7 @@ public class SaveImageTask extends AsyncTask<String,Void,Void>{
 
     @Override
     protected void onPostExecute(Void aVoid) {
-        if (currentFile.exists()) {
+        if (currentFile!=null && currentFile.exists()) {
             callBack.onSuccess();
         } else {
             callBack.onFailed();

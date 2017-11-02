@@ -5,12 +5,12 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Toast;
 
 import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.ModelUtils;
 import com.sspacee.common.util.SystemUtils;
+import com.sspacee.common.util.ToastUtil;
 import com.timeline.vpn.R;
 import com.timeline.vpn.adapter.FavoriteViewAdapter;
 import com.timeline.vpn.adapter.base.BaseRecyclerViewAdapter;
@@ -99,9 +99,9 @@ public class FavoriteFragment extends BasePullLoadbleFragment<FavoriteVo> implem
         if(item.getItemId()==R.id.menu_share){
             if (infoListVo.voList.get(position).type == Constants.FavoriteType.TEXT) {
                 SystemUtils.copy(getActivity(), infoListVo.voList.get(position).itemUrl);
-                Toast.makeText(getActivity(), R.string.menu_share_copy_ok, Toast.LENGTH_SHORT).show();
+                ToastUtil.showShort(R.string.menu_share_copy_ok);
             }else{
-                Toast.makeText(getActivity(), R.string.menu_share_text_only, Toast.LENGTH_SHORT).show();
+                ToastUtil.showShort(R.string.menu_share_text_only);
             }
             LogUtil.i(infoListVo.voList.get(position).itemUrl);
         }else {
