@@ -73,12 +73,9 @@ public class LocationViewAdapter extends BaseRecyclerViewAdapter<LocationViewAda
             holder.ivType.setImageResource(R.drawable.bg_type_advip);
             holder.tvType.setText(R.string.vpn_type_vip2);
         }
-        if(position== Constants.BANNER_ADS_POS_1){
+       if(position==getItemCount()-1){
             holder.rvAds.setVisibility(View.VISIBLE);
-            AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_3);
-        }else if(position==Constants.BANNER_ADS_POS_2){
-            holder.rvAds.setVisibility(View.VISIBLE);
-            AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_1);
+            AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN);
         }else{
             holder.rvAds.removeAllViews();
             holder.rvAds.setVisibility(View.GONE);

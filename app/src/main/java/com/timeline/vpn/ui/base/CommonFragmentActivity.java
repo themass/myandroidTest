@@ -7,7 +7,6 @@ import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.timeline.vpn.R;
-import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.ui.base.app.BaseFragmentActivity;
 import com.timeline.vpn.ui.inte.FabOpListener;
 
@@ -21,6 +20,7 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
     public static final String TITLE = "TITLE";
     public static final String PARAM = "PARAM";
     public static final String BANNER_ADS_SHOW = "BANNER_ADS_SHOW";
+    public static final String BANNER_NEED_GONE = "BANNER_NEED_GONE";
     public static final String INTERSTITIAL_ADS_SHOW = "INTERSTITIAL_ADS_SHOW";
     public static final String BANNER_ADS_CATEGRY = "BANNER_ADS_CATEGRY";
     public static final String INTERSTITIAL_ADS_CATEGRY = "INTERSTITIAL_ADS_CATEGRY";
@@ -31,8 +31,9 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
     private boolean showInterstitialAds = false;
     private Boolean slidingClose = false;
     private Boolean toolbarShow = true;
-    private AdsContext.Categrey bannerCategrey = AdsContext.Categrey.CATEGREY_2;
-    private AdsContext.Categrey interCategrey = AdsContext.Categrey.CATEGREY_2;
+    private AdsContext.Categrey bannerCategrey =  AdsContext.Categrey.CATEGREY_VPN2;
+    private AdsContext.Categrey interCategrey =  AdsContext.Categrey.CATEGREY_VPN2;
+    private boolean needGonebanner = true;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         slidingClose = getIntent().getBooleanExtra(SLIDINGCLOSE, true);
@@ -41,6 +42,7 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
         boolean scroll = getIntent().getBooleanExtra(ADSSCROLL, true);
         toolbarShow = getIntent().getBooleanExtra(TOOLBAR_SHOW, true);
         showInterstitialAds =getIntent().getBooleanExtra(INTERSTITIAL_ADS_SHOW, false);
+        needGonebanner = getIntent().getBooleanExtra(BANNER_NEED_GONE, true);
         if (!scroll) {
             disableScrollBanner();
         }
@@ -87,11 +89,14 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
     @Override
     public void setupView() {
         super.setupView();
-        if(showInterstitialAds && !UserLoginUtil.isVIP2()&&AdsContext.rateShow()){
+        if(showInterstitialAds &&AdsContext.rateShow()){
             AdsManager.getInstans().showInterstitialAds(this, interCategrey,false);
         }
     }
-
+    @Override
+    protected boolean needGoneBanner(){
+        return needGonebanner;
+    }
     public boolean needShow() {
         if (showAds != null) {
             return showAds;

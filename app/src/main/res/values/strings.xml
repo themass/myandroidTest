@@ -53,7 +53,7 @@
     <string name="menu_btn_version">Version:</string>
     <string name="menu_btn_logout">Logout</string>
     <string name="menu_btn_setting">Setting</string>
-    <string name="menu_btn_support">support author</string>
+    <string name="menu_btn_support">Support author</string>
     <string name="menu_btn_about_context">FreeVPN the most stable, free, unlimited，all for you！</string>
     <string name="feed_back">Feedback</string>
     <string name="menu_btn_score">Points:</string>
@@ -74,7 +74,7 @@
     <string name="location_choose_flag_none">Click“ Region ”More regional options</string>
 
     <!-- share-->
-    <string name="menu_share_title">share friend</string>
+    <string name="menu_share_title">Share friend</string>
     <string name="menu_share_url">Download Url:\n%s</string>
     <string name="menu_share_confirm">CopyURL</string>
     <string name="menu_share_cancel">Cancel</string>
@@ -118,6 +118,10 @@
 
     <string name="img">Sex Img</string>
     <string name="version_low">version is to low！</string>
+
+    <string name="hidden_area_hit">Hidden “Area” from the Settings</string>
+    <string name="country_select_hit">Click to choose more countries</string>
+    <string name="close_hit">Please complete the guide</string>
     <!-- error-->
     <string name="error_getlocation_fail">Failed to obtain location information！</string>
     <string name="error_network_unknown">Connection server error, please check your network connection or try again later.</string>
@@ -193,12 +197,12 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="save_img">save image</string>
     <string name="save_start">save start...</string>
     <!-- vpn error text -->
-    <string name="error_lookup_failed">Gateway address lookup failed.</string>
-    <string name="error_unreachable">Gateway is unreachable.</string>
+    <string name="error_lookup_failed">Failed. Please select another regin</string>
+    <string name="error_unreachable">Failed. Please select another regin</string>
     <string name="error_peer_auth_failed">Verifying gateway authentication failed.</string>
     <string name="error_auth_failed">Maybe Traffic has reached the upper limit, need VIP.</string>
     <string name="error_assessment_failed">Security assessment failed.</string>
-    <string name="error_generic">Unspecified failure while connecting.</string>
+    <string name="error_generic">Failed. Please select another regin.</string>
     <string name="vpn_not_supported_title">VPN not supported</string>
     <string name="vpn_not_supported">Your device does not support VPN applications.\nPlease contact the manufacturer.</string>
     <string name="vpn_not_supported_during_lockdown">VPN connections are not supported in lockdown mode.</string>

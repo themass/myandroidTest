@@ -32,7 +32,7 @@ public class QuickBrowserConfigActivity extends LogActivity {
         } else {
             final Uri uri = Uri.parse(getIntent().getExtras().getString(Constants.URL));
             Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+//            intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivityForResult(intent, 0);
         }
@@ -45,7 +45,7 @@ public class QuickBrowserConfigActivity extends LogActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (adOk) {
-            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_2,false);
+            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN,false);
         } else {
             finishActivity();
         }

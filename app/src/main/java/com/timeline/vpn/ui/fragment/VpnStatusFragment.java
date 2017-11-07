@@ -41,7 +41,6 @@ import com.timeline.vpn.constant.Constants;
 import com.timeline.vpn.data.BaseService;
 import com.timeline.vpn.data.LocationUtil;
 import com.timeline.vpn.data.StaticDataUtil;
-import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.data.config.VpnClickEvent;
 
 import org.greenrobot.eventbus.Subscribe;
@@ -136,7 +135,7 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
         showBanner();
     }
     public void showBanner(){
-        AdsManager.getInstans().showBannerAds(getActivity(), rlContent,AdsContext.Categrey.CATEGREY_3);
+        AdsManager.getInstans().showBannerAds(getActivity(), rlContent,AdsContext.Categrey.CATEGREY_VPN);
     }
     @Override
     public void onDestroyView() {
@@ -166,8 +165,8 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
                 mService.disconnect();
             } else if (mService.getState() == VpnStateService.State.DISABLED) {
                 MobAgent.onEventLocationChoose(getActivity(), LocationUtil.getName(getActivity()));
-                if(!UserLoginUtil.isVIP2()){
-                    AdsManager.getInstans().showInterstitialAds(getActivity(), AdsContext.Categrey.CATEGREY_1,false);
+                if(AdsContext.rateShow()){
+                    AdsManager.getInstans().showInterstitialAds(getActivity(), AdsContext.Categrey.CATEGREY_VPN1,false);
                 }
                 imgAnim();
                 int id = LocationUtil.getSelectLocationId(getActivity());

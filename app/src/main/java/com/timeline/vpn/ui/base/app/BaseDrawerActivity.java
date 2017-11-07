@@ -44,7 +44,7 @@ import butterknife.BindView;
 public class BaseDrawerActivity extends BaseToolBarActivity {
     @Nullable
     @BindView(R.id.drawerLayout)
-    DrawerLayout drawerLayout;
+    public DrawerLayout drawerLayout;
     @Nullable
     @BindView(R.id.nv_drawer)
     NavigationView nvDrawer;

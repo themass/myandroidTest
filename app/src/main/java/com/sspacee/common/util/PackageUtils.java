@@ -130,5 +130,7 @@ public class PackageUtils {
         List<ResolveInfo> resolveInfoList = context.getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
         return !CollectionUtils.isEmpty(resolveInfoList);
     }
-
+    public static boolean isApk(String str){
+        return StringUtils.hasText(str)&&str.endsWith(".apk")?true:false;
+    }
 }

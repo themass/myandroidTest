@@ -9,8 +9,8 @@ android {
         applicationId "com.timeline.vpn"
         minSdkVersion global_minSdkVersion
         targetSdkVersion global_targetSdkVersion
-        versionCode 1000003001
-        versionName "1.0.3.1"
+        versionCode 1000003002
+        versionName "1.0.3.2"
         // Enabling multidex support.
         multiDexEnabled true
     }
@@ -132,5 +132,11 @@ dependencies {
     compile 'com.github.lawloretienne:imagegallery:0.1.0'
     compile 'com.umeng.analytics:analytics:latest.integration'
 
+    //compile 'com.github.amlcurran.showcaseview:library:5.4.3'
+    //compile 'com.github.wooplr:Spotlight:1.2.3'
+    compile 'com.github.iammert:MaterialIntroView:1.6.0'
+    //compile 'com.isanwenyu.highlight:highlight:1.8.0'
+    //compile 'com.github.faruktoptas:FancyShowCaseView:1.0.0'
+    //compile 'com.github.deano2390:MaterialShowcaseView:1.2.0'
 
 }

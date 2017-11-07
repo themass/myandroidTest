@@ -17,8 +17,7 @@ public class AdsPopStrategy {
     private static long lastToastShow=0;
     public static void clickAdsShowBtn(Context context){
         if(SystemUtils.isApkDebugable(context)){
-            if(!AdsManager.getInstans().showVideo(context))
-                AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.CATEGREY_3,true);
+            AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.CATEGREY_VPN,true);
             return;
         }
         Long lastClickTime = StaticDataUtil.get(Constants.SCORE_CLICK, Long.class, 0l);
@@ -32,7 +31,6 @@ public class AdsPopStrategy {
             }
             return;
         }
-        if(AdsContext.rateShow() && !AdsManager.getInstans().showVideo(context))
-            AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.CATEGREY_3,true);
+        AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.CATEGREY_VPN,true);
     }
 }

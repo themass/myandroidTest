@@ -38,7 +38,6 @@ public class AdsManager {
     public void init(Context context){
         LogUtil.i("AdsManager initok");
         AdviewAdsManager.init(context);
-        YoumiAds.init(context);
         bannerDescMap.put(AdsContext.AdsFrom.ADVIEW,new BannerAdviewAds());
         interstitialMap.put(AdsContext.AdsFrom.ADVIEW,new InterstitialAdviewAds());
         splashMap.put(AdsContext.AdsFrom.ADVIEW,new SplashAdviewAds());
@@ -80,6 +79,7 @@ public class AdsManager {
         interstitialMap.get(AdsContext.AdsFrom.ADVIEW).interstitialExit(context,categrey.key);
     }
     public void offerAds(Context context){
+        YoumiAds.init(context);
         YoumiAds.offerAds(context);
     }
     public  void showNative(Context context, NativeAdsReadyListener listener){

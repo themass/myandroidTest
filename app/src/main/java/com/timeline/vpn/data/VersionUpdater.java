@@ -18,6 +18,7 @@ import android.support.v7.app.AlertDialog;
 import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.FileUtils;
 import com.sspacee.common.util.LogUtil;
+import com.sspacee.common.util.PackageUtils;
 import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.StringUtils;
 import com.sspacee.common.util.ToastUtil;
@@ -63,7 +64,8 @@ public class VersionUpdater {
                     if (VersionUpdater.isNewVersion(vo.maxBuild)
                             && StringUtils.hasText(vo.url)) {
                         // 有新版本
-                        VersionUpdater.showUpdateDialog(context, vo, true);
+                        //VersionUpdater.showUpdateDialog(context, vo, true);
+                        VersionUpdater.showGoogleUpdateDialog(context, vo, true);
                     } else {
                         if (needToast)
                             ToastUtil.showShort(R.string.about_version_update_to_date);
@@ -132,6 +134,43 @@ public class VersionUpdater {
     /**
      * 显示版本更新提示框
      */
+
+    public static void showGoogleUpdateDialog(final Activity context, final VersionVo vo, final boolean updatePrefIfCancel) {
+        final String title = context.getString(R.string.about_version_download_title) + " V" + vo.version;
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle(title);
+        builder.setMessage(vo.content);
+        builder.setIcon(R.drawable.vpn_trans_default);
+        if (vo.minBuild != vo.maxBuild) {
+            builder.setNegativeButton(R.string.about_version_cancel, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    if (updatePrefIfCancel) {
+                        // 保存pref配置
+                        PreferenceUtils.setPrefBoolean(context, getPrefKey(vo.version, vo.maxBuild), false);
+                    }
+                }
+            });
+        }
+        builder.setPositiveButton(R.string.about_version_download, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+                if (NetUtils.isWifi(context) && PackageUtils.isApk(vo.url)) {
+                    startDownloadThread(context, vo.url);
+                } else {
+                    final Uri uri = Uri.parse(vo.url);
+                    Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+//                intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    context.startActivity(intent);
+                }
+            }
+        });
+        builder.setCancelable(false);
+        builder.show();
+    }
+
     public static void showUpdateDialog(final Activity context, final VersionVo vo, final boolean updatePrefIfCancel) {
         final String title = context.getString(R.string.about_version_download_title) + " V" + vo.version;
         AlertDialog.Builder builder = new AlertDialog.Builder(context);

@@ -15,6 +15,7 @@ import com.sspacee.common.util.DeviceInfoUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.Md5;
 import com.sspacee.common.util.PreferenceUtils;
+import com.sspacee.common.util.StringUtils;
 import com.sspacee.common.util.SystemUtils;
 import com.sspacee.common.util.cache.DiskBasedCacheEx;
 import com.sspacee.yewu.net.HttpUtils;
@@ -42,6 +43,7 @@ public class BaseRequest<T> extends Request<T> {
     private final Response.Listener<T> listener;
     private String authkey;
     private String mCharset = "utf-8";
+    private static String uc = null;
 
     public BaseRequest(Context context, int method, String url,
                        Map<String, String> headers, Response.Listener<T> listener,
@@ -55,9 +57,12 @@ public class BaseRequest<T> extends Request<T> {
         if (headers == null) {
             headers = new HashMap<>();
         }
+        if(!StringUtils.hasText(uc)){
+            uc = DeviceInfoUtils.getMetaData(context, "UMENG_CHANNEL");
+        }
         String sb = DeviceInfoUtils.getDeviceId(context) + "|" + time;
         String msg = time + Md5.encode(sb);
-        String ua = UA_DEFAULT + UA_APP_SUFFIX + ",cpu=" + SystemUtils.getCpuType() + ",IE" + msg;
+        String ua = UA_DEFAULT + UA_APP_SUFFIX + ",channel="+uc+",cpu=" + SystemUtils.getCpuType() + ",IE" + msg;
         String loc = "lon:" + StaticDataUtil.get(Constants.LON, Double.class) + ";lat:" + StaticDataUtil.get(Constants.LAT, Double.class);
         this.authkey = ua.substring(ua.length() - 16, ua.length());
         headers.put("Loc", loc);

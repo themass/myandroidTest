@@ -55,10 +55,13 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity{
         bindViews();
         setupToolbar();
         fabUp.setVisibility(View.GONE);
-        mHandler.postDelayed(task, Constants.BANNER_ADS_GONE_LONG);
+        if(needGoneBanner())
+            mHandler.postDelayed(task, Constants.BANNER_ADS_GONE_LONG);
 //        flBanner.setBackgroundResource(R.color.base_white);
     }
-
+    protected boolean needGoneBanner(){
+        return true;
+    }
     public void disableScrollBanner() {
         AppBarLayout.LayoutParams params =
                 (AppBarLayout.LayoutParams) ctBar.getLayoutParams();
@@ -139,7 +142,7 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity{
         super.onDestroy();
     }
     protected AdsContext.Categrey getBannerCategrey(){
-        return AdsContext.Categrey.CATEGREY_1;
+        return AdsContext.Categrey.CATEGREY_VPN1;
     }
     class AdsGoneTask implements Runnable {
         @Override

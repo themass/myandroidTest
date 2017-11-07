@@ -17,6 +17,7 @@ import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.StringUtils;
 import com.sspacee.common.util.SystemUtils;
 import com.sspacee.common.util.ToastUtil;
+import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.um.MobAgent;
 import com.timeline.vpn.R;
 import com.timeline.vpn.base.MyApplication;
@@ -188,5 +189,9 @@ public class SettingActivity extends BaseSingleActivity {
     @Override
     protected boolean enableSliding() {
         return true;
+    }
+    @Override
+    protected AdsContext.Categrey getBannerCategrey(){
+        return AdsContext.Categrey.CATEGREY_VPN2;
     }
 }

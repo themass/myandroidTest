@@ -60,14 +60,14 @@ public class BannerHeaderFragment extends BaseFragment{
     @Override
     public void onDestroyView() {
         EventBusUtil.getEventBus().unregister(this);
-        AdsManager.getInstans().exitBannerAds(getActivity(), flBanner, AdsContext.Categrey.CATEGREY_1);
+        AdsManager.getInstans().exitBannerAds(getActivity(), flBanner, AdsContext.Categrey.CATEGREY_VPN1);
         super.onDestroyView();
 
     }
     public void showAds() {
         if (needShow()) {
             flBanner.setVisibility(View.VISIBLE);
-            AdsManager.getInstans().showBannerAds(getActivity(), flBanner,AdsContext.Categrey.CATEGREY_1);
+            AdsManager.getInstans().showBannerAds(getActivity(), flBanner,AdsContext.Categrey.CATEGREY_VPN1);
         } else {
             if (flBanner != null)
                 flBanner.setVisibility(View.GONE);

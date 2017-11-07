@@ -14,11 +14,8 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.PopupWindow;
 
-import com.google.gson.reflect.TypeToken;
 import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.common.util.EventBusUtil;
-import com.sspacee.common.util.GsonUtils;
-import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.net.request.CommonResponse;
 import com.timeline.vpn.R;
@@ -37,10 +34,6 @@ import com.timeline.vpn.ui.user.AddCustomeInfoActivity;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.LinkedList;
-
 import butterknife.BindView;
 import butterknife.OnClick;
 
@@ -52,8 +45,6 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
     private static final String INDEX_TAG = "Recommend_custome_tag";
     @BindView(R.id.lb_add)
     ImageButton llAdd;
-    LinkedList<Integer> sortList = null;
-
     @Override
     public String getNetTag() {
         return INDEX_TAG;
@@ -94,21 +85,6 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
         dataForView();
     }
 
-    @Override
-    protected void initSort() {
-        super.initSort();
-        if (CollectionUtils.isEmpty(sortList) && !CollectionUtils.isEmpty(infoListVo.voList)) {
-            for (RecommendVo vo : infoListVo.voList) {
-                sortList.add(vo.id);
-            }
-        }
-    }
-
-    @Override
-    protected void sortData() {
-        Collections.sort(infoListVo.voList, new MyComparator());
-    }
-
     private void dataForView() {
         if (!CollectionUtils.isEmpty(infoListVo.voList)) {
             if (llAdd != null)
@@ -144,11 +120,6 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
         super.setupViews(view,savedInstanceState);
         EventBusUtil.getEventBus().register(this);
         ((MainFragmentViewPage) getActivity()).addListener(this);
-        sortList = PreferenceUtils.getPrefObj(getActivity(), Constants.CUSTOME_SORT, new TypeToken<LinkedList<Integer>>() {
-        }.getType());
-        if (sortList == null) {
-            sortList = new LinkedList<>();
-        }
     }
 
     @Override
@@ -217,10 +188,7 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
                             @Override
                             public void onResponse(NullReturnVo vo) {
                                 ToastUtil.showShort( R.string.custome_del_ok);
-                                sortList.remove(sortList.indexOf(((RecommendVo) getParam()).id));
                                 refresh();
-                                saveSortMap();
-
                             }
                         }, null, INDEX_TAG, NullReturnVo.class);
                         popupWindow.dismiss();
@@ -242,10 +210,6 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
         });
     }
 
-    private void saveSortMap() {
-        PreferenceUtils.setPrefString(getActivity(), Constants.CUSTOME_SORT, GsonUtils.getInstance().toJson(sortList));
-    }
-
     @Override
     public void onStartDrag(RecyclerView.ViewHolder viewHolder) {
         super.onStartDrag(viewHolder);
@@ -253,19 +217,8 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
     }
 
     @Override
-    public void onItemMove(Object o1, Object o2) {
-        super.onItemMove(o1, o2);
-//        sortMap.put(String.valueOf(((RecommendVo)o1).id),((RecommendVo)o2).id);
-        int move1 = sortList.indexOf(((RecommendVo) o1).id);
-        int move2 = sortList.indexOf(((RecommendVo) o2).id);
-        sortList.remove(move2);
-        sortList.add(move1, ((RecommendVo) o2).id);
-        saveSortMap();
-    }
-
-    @Override
     public boolean getCanMove() {
-        return true;
+        return false;
     }
 
     @Override
@@ -280,14 +233,5 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
             return true;
         }
         return false;
-    }
-
-    public class MyComparator implements Comparator<RecommendVo> {
-        @Override
-        public int compare(RecommendVo lhs, RecommendVo rhs) {
-            Integer start = sortList.indexOf(lhs.id);
-            Integer end = sortList.indexOf(rhs.id);
-            return start - end;
-        }
     }
 }

@@ -120,10 +120,11 @@ public class SoundItemsFragment extends BasePullLoadbleFragment<SoundItemsVo> im
         intent.putExtra(CommonFragmentActivity.TITLE, R.string.sound);
         StaticDataUtil.add(Constants.SOUND_CHANNEL, vo);
         intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, true);
+        intent.putExtra(CommonFragmentActivity.BANNER_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_VPN);
         intent.putExtra(CommonFragmentActivity.ADSSCROLL, false);
         intent.putExtra(CommonFragmentActivity.SLIDINGCLOSE, true);
         intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_SHOW, true);
-        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_2);
+        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_VPN);
         context.startActivity(intent);
     }
     private void receiverReg() {
@@ -160,7 +161,8 @@ public class SoundItemsFragment extends BasePullLoadbleFragment<SoundItemsVo> im
             case R.id.iv_play:
                 if (isPlaying()) {
                     pause();
-                    AdsManager.getInstans().showInterstitialAds(getActivity(), AdsContext.Categrey.CATEGREY_3,false);
+                    if(AdsContext.rateShow())
+                        AdsManager.getInstans().showInterstitialAds(getActivity(), AdsContext.Categrey.CATEGREY_VPN2,false);
                 } else {
                     if (current == -1) {
                         play(0);
@@ -395,9 +397,14 @@ public class SoundItemsFragment extends BasePullLoadbleFragment<SoundItemsVo> im
     public class NetWorkingReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (!checkCanPlay() && isPlaying()) {
-                pause();
-                showUpdateDialog(getActivity());
+            try {
+                if(mBound)
+                    if (!checkCanPlay() && isPlaying()) {
+                        pause();
+                        showUpdateDialog(getActivity());
+                    }
+            }catch (Exception e){
+                LogUtil.e(e);
             }
         }
     }

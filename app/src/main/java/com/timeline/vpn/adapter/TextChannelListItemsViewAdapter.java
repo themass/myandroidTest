@@ -54,10 +54,10 @@ public class TextChannelListItemsViewAdapter extends BaseRecyclerViewAdapter<Tex
         }
         if(position== Constants.BANNER_ADS_POS_1){
             holder.rvAds.setVisibility(View.VISIBLE);
-            AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_3);
+            AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN2);
         }else if(position== Constants.BANNER_ADS_POS_2){
             holder.rvAds.setVisibility(View.VISIBLE);
-            AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_1);
+            AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN1);
         }else{
             holder.rvAds.removeAllViews();
             holder.rvAds.setVisibility(View.GONE);

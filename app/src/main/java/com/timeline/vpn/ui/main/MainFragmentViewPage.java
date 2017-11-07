@@ -31,7 +31,6 @@ import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.data.config.ConfigActionJump;
 import com.timeline.vpn.data.config.LogAddTofile;
 import com.timeline.vpn.data.config.TabChangeEvent;
-import com.timeline.vpn.service.LogUploadService;
 import com.timeline.vpn.ui.base.app.BaseDrawerActivity;
 import com.timeline.vpn.ui.inte.OnBackKeyDownListener;
 import com.timeline.vpn.ui.maintab.TabCustomeFragment;
@@ -47,10 +46,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import co.mobiwise.materialintro.animation.MaterialIntroListener;
+import co.mobiwise.materialintro.shape.Focus;
+import co.mobiwise.materialintro.shape.FocusGravity;
+import co.mobiwise.materialintro.view.MaterialIntroView;
+
 /**
  * Created by themass on 2016/3/1.
  */
-public class MainFragmentViewPage extends BaseDrawerActivity implements ActivityCompat.OnRequestPermissionsResultCallback {
+public class MainFragmentViewPage extends BaseDrawerActivity implements ActivityCompat.OnRequestPermissionsResultCallback,MaterialIntroListener {
     public List<ItemFragment> list = new ArrayList<>();
     public boolean init = false;
     private Set<OnBackKeyDownListener> keyListeners = new HashSet<>();
@@ -61,8 +65,11 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
     private MyPagerAdapter myPagerAdapter;
     private String POSITION = "POSITION";
     private int index = 0;
+    private static final String SETTING_TAG="SETTING_TAG";
+    private static final String COUNTRY_TAG="COUNTRY_TAG";
     //权限检测类
     private PermissionHelper mPermissionHelper;
+    private MaterialIntroView materialIntroView;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -73,9 +80,9 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         EventBusUtil.getEventBus().register(logAdd);
         mPermissionHelper = new PermissionHelper(this);
         boolean uploadLog = PreferenceUtils.getPrefBoolean(this, Constants.LOG_UPLOAD_CONFIG, false);
-        if (uploadLog) {
-            startService(new Intent(this, LogUploadService.class));
-        }
+//        if (uploadLog) {
+//            startService(new Intent(this, LogUploadService.class));
+//        }
         mPermissionHelper.checkNeedPermissions();
     }
 
@@ -100,8 +107,30 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         initTabs();
 //        UpdateUserTask.start(this);
 //        AdsManager.getInstans().reqVideo(this);
-        if(!UserLoginUtil.isVIP2()&&AdsContext.rateShow())
-            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_1,false);
+        if(!UserLoginUtil.isVIP2())
+            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN,false);
+    }
+    public void showCountry(){
+        showHit(ivLocation,FocusGravity.LEFT,R.string.country_select_hit,COUNTRY_TAG);
+    }
+    public void showSetting(){
+        showHit(getNaviButton(),FocusGravity.RIGHT,R.string.hidden_area_hit,SETTING_TAG);
+    }
+    public void showHit(View view, FocusGravity gravity,int hitsId,String tag){
+        materialIntroView = new MaterialIntroView.Builder(MainFragmentViewPage.this)
+                .enableDotAnimation(true)
+                .setFocusGravity(gravity)
+                .setFocusType(Focus.MINIMUM)
+                .setDelayMillis(100)
+                .enableFadeAnimation(true)
+                .setInfoTextSize(18)
+                .performClick(true)
+                .setIdempotent(true)
+                .setInfoText(getString(hitsId))
+                .setTarget(view)
+                .setListener(MainFragmentViewPage.this)
+                .setUsageId(tag)
+                .show();
     }
     /**
      * Callback received when a permissions request has been completed.
@@ -169,7 +198,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
     public void onDestroy() {
         LogUtil.i("main destory");
         stopService(CharonVpnService.class);
-        stopService(LogUploadService.class);
+//        stopService(LogUploadService.class);
         EventBusUtil.getEventBus().unregister(jump);
         EventBusUtil.getEventBus().unregister(logAdd);
         super.onDestroy();
@@ -184,6 +213,10 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
             return true;
         }
         if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if(materialIntroView!=null && materialIntroView.isShown()){
+                ToastUtil.showShort(R.string.close_hit);
+                return true;
+            }
             boolean flag = false;
             for (OnBackKeyDownListener l : keyListeners) {
                 flag = flag || l.onkeyBackDown();
@@ -205,7 +238,10 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         }
         return super.onKeyDown(keyCode, event);
     }
-
+    @Override
+    public void onUserClicked(String materialIntroViewId) {
+        LogUtil.i(materialIntroViewId+"--click");
+    }
     public class ViewPagerOnTabSelectedListener implements TabLayout.OnTabSelectedListener {
         private final ViewPager mViewPager;
 
@@ -215,10 +251,15 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
 
         @Override
         public void onTabSelected(TabLayout.Tab tab) {
-            LogUtil.i("select:" + tab.getPosition());
+            LogUtil.i("tab select:" + tab.getPosition());
             mViewPager.setCurrentItem(tab.getPosition());
             setToolbarTitle(getString(list.get(tab.getPosition()).title), false);
             index = tab.getPosition();
+            if(list.get(tab.getPosition()).abslIndex==1 ){
+                showCountry();
+            }else if(list.get(tab.getPosition()).abslIndex==2 ){
+                showSetting();
+            }
         }
 
         @Override

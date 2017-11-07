@@ -24,7 +24,6 @@ import butterknife.BindView;
 import cn.jzvd.JZVideoPlayer;
 import cn.jzvd.JZVideoPlayerStandard;
 
-import static com.kuaiyou.g.a.getActivity;
 
 public class VideoListAdapter extends BaseRecyclerViewAdapter<VideoListAdapter.VideoHolder, RecommendVo> {
 
@@ -43,19 +42,19 @@ public class VideoListAdapter extends BaseRecyclerViewAdapter<VideoListAdapter.V
             RecommendVo vo = data.get(position);
             LogUtil.i("jcVideoPlayer="+holder.jcVideoPlayer.toString());
             holder.jcVideoPlayer.setUp(vo.actionUrl, JZVideoPlayer.SCREEN_LAYOUT_LIST, vo.title);
-            Glide.with(getActivity()).load(vo.img).into(holder.jcVideoPlayer.thumbImageView);
+            Glide.with(context).load(vo.img).into(holder.jcVideoPlayer.thumbImageView);
             if(position== Constants.BANNER_ADS_POS_1){
                 holder.rvAds.setVisibility(View.VISIBLE);
-                AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_3);
+                AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN1);
             }else if(position== Constants.BANNER_ADS_POS_2){
                 holder.rvAds.setVisibility(View.VISIBLE);
-                AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_1);
+                AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN2);
             }else if(position== Constants.BANNER_ADS_POS_3){
                 holder.rvAds.setVisibility(View.VISIBLE);
-                AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_3);
+                AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN);
             }else if(position== Constants.BANNER_ADS_POS_4){
                 holder.rvAds.setVisibility(View.VISIBLE);
-                AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_1);
+                AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN2);
             }else{
                 holder.rvAds.removeAllViews();
                 holder.rvAds.setVisibility(View.GONE);

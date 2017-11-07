@@ -26,6 +26,7 @@ import com.sspacee.common.ui.view.FavoriteImageView;
 import com.sspacee.common.ui.view.MyWebView;
 import com.sspacee.common.util.FileUtils;
 import com.sspacee.common.util.LogUtil;
+import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.net.HttpUtils;
 import com.timeline.vpn.R;
 import com.timeline.vpn.base.MyApplication;
@@ -76,6 +77,8 @@ public class TextItemsWebViewFragment extends BaseFragment{
         intent.putExtra(CommonFragmentActivity.ADSSCROLL, true);
         intent.putExtra(CommonFragmentActivity.SLIDINGCLOSE, true);
         intent.putExtra(CommonFragmentActivity.TOOLBAR_SHOW, false);
+        intent.putExtra(CommonFragmentActivity.BANNER_ADS_CATEGRY,  AdsContext.Categrey.CATEGREY_VPN3);
+        intent.putExtra(CommonFragmentActivity.BANNER_NEED_GONE, false);
         context.startActivity(intent);
     }
 

@@ -9,6 +9,7 @@ import com.sspacee.yewu.ads.adview.AdviewConstant;
 import com.sspacee.yewu.um.MobAgent;
 import com.timeline.vpn.R;
 import com.timeline.vpn.constant.Constants;
+import com.timeline.vpn.data.UserLoginUtil;
 import com.timeline.vpn.task.ScoreTask;
 
 import static com.sspacee.yewu.ads.base.AdsContext.AdsShowStatus.ADS_CLICK_MSG;
@@ -21,9 +22,10 @@ public class AdsContext {
     static {
     }
     public static enum Categrey{
-        CATEGREY_1("插屏:主页，3个channel;banner：国家选择，vip，3个channel", AdviewConstant.ADS_ADVIEW_KEY1),
-        CATEGREY_2("插屏： 3个list，其他推荐;banner：3个list，文章页",AdviewConstant.ADS_ADVIEW_KEY2),
-        CATEGREY_3("插屏： 暂停,积分,banner：列表信息流,vpn连接",AdviewConstant.ADS_ADVIEW_KEY_BANNER);
+        CATEGREY_VPN("插屏:主页，音频，图片，小说 channel页;   banner：vip页，音频，图片，小说，视频，收藏夹列表，", AdviewConstant.ADS_ADVIEW_KEY1),
+        CATEGREY_VPN1("插屏： 点击vpn页，音频，图片，小说 list 页，其他推荐 ;   banner：设置页，地区头，音频，图片，小说，视频，收藏夹列表",AdviewConstant.ADS_ADVIEW_KEY2),
+        CATEGREY_VPN2("插屏： 点击积分，视频暂停；  banner：vpn状态页,国家选择列表，音频，图片，小说 channel 头页 ",AdviewConstant.ADS_ADVIEW_KEY),
+        CATEGREY_VPN3("banner：文章页，音频，图片，小说，视频 头页 ",AdviewConstant.ADS_ADVIEW_KEY_BANNER);
         public String desc;
         public String key;
         Categrey(String desc,String key){
@@ -90,8 +92,14 @@ public class AdsContext {
     }
     // 3/5
     public static boolean rateShow(){
-        int i = Md5.getRandom(Constants.maxRate);
-        return i<=7;
+        if(UserLoginUtil.isVIP2()){
+            int i = Md5.getRandom(Constants.maxRate);
+            return i<=6;
+        }else{
+            int i = Md5.getRandom(Constants.maxRate);
+            return i<=7;
+        }
+
     }
     public static void adsNotify(Context context, AdsType type, AdsShowStatus event) {
         MobAgent.onEventAds(context, type, event);

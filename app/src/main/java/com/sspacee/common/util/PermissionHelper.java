@@ -19,11 +19,11 @@ public class PermissionHelper {
     public static final int CODE_READ_PHONE_STATE = 1;
     public static final int CODE_ACCESS_COARSE_LOCATION = 2;
     public static final int CODE_WRITE_EXTERNAL_STORAGE = 3;
-    public static final String GET_ACCOUNTS = Manifest.permission.GET_ACCOUNTS;
+//    public static final String GET_ACCOUNTS = Manifest.permission.GET_ACCOUNTS;
     public static final String READ_PHONE_STATE = Manifest.permission.READ_PHONE_STATE;
     public static final String ACCESS_COARSE_LOCATION = Manifest.permission.ACCESS_COARSE_LOCATION;
     public static final String WRITE_EXTERNAL_STORAGE = Manifest.permission.WRITE_EXTERNAL_STORAGE;
-    public static final String[] requestPermissions = new String[]{GET_ACCOUNTS, READ_PHONE_STATE, ACCESS_COARSE_LOCATION, WRITE_EXTERNAL_STORAGE};
+    public static final String[] requestPermissions = new String[]{ READ_PHONE_STATE, ACCESS_COARSE_LOCATION, WRITE_EXTERNAL_STORAGE};
     public static final String PACKAGE = "package:";
     private Activity mContext;
 

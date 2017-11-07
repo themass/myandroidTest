@@ -13,6 +13,8 @@ import android.widget.TextView;
 import com.sspacee.common.util.LogUtil;
 import com.timeline.vpn.R;
 
+import java.lang.reflect.Field;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
@@ -68,7 +70,19 @@ public abstract class BaseToolBarActivity extends BaseWeatherMenuActivity {
         super.onConfigurationChanged(newConfig);
         LogUtil.i("onConfigurationChanged->" + newConfig.orientation);
     }
-
+    public View getNaviButton() {
+        Field field = null;
+        try {
+            field =Toolbar.class.getDeclaredField("mNavButtonView");
+            field.setAccessible(true);
+            return  (View) field.get(getToolbar());
+        } catch (NoSuchFieldException e) {
+            LogUtil.e(e);
+        } catch (IllegalAccessException e) {
+            LogUtil.e(e);
+        }
+        return null;
+    }
     @Override
     public void onDestroy() {
         super.onDestroy();

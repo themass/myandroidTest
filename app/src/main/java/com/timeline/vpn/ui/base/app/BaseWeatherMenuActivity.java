@@ -34,8 +34,8 @@ import com.timeline.vpn.ui.fragment.LocationChooseFragment;
  * Created by themass on 2016/3/1.
  */
 public abstract class BaseWeatherMenuActivity extends LogActivity {
-    ImageView ivWeather;
-    ImageView ivLocation;
+    public ImageView ivWeather;
+    public ImageView ivLocation;
     LocationUtils.LocationListener mCityNameStatus = new LocationUtils.LocationListener() {
         @Override
         public void detecting() {
