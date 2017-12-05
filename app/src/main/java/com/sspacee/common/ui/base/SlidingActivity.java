@@ -22,6 +22,6 @@ public abstract class SlidingActivity extends AppCompatActivity {
     }
 
     protected int getMinTouchX() {
-        return 200;
+        return 350;
     }
 }

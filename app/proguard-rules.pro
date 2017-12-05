@@ -163,6 +163,12 @@
   **[] $VALUES;
   public *;
 }
+-dontwarn com.bumptech.glide.load.engine.bitmap_recycle.LruBitmapPool
+-dontwarn com.bumptech.glide.load.resource.bitmap.Downsampler
+-dontwarn com.bumptech.glide.load.resource.bitmap.HardwareConfigState
+-dontwarn com.bumptech.glide.manager.RequestManagerRetriever
+#-keepresourcexmlelements manifest/application/meta-data@value=GlideModule
+-keep class com.bumptech.glide.integration.okhttp3.OkHttpGlideModule
 
 -keep class jp.co.cyberagent.android.gpuimage.**{*;}
 -dontnote jp.co.cyberagent.android.gpuimage.**
@@ -176,8 +182,6 @@
 #  **[] $VALUES;
 #  public *;
 #}
-#-keep class com.bumptech.glide.** { *; }
-##-keepresourcexmlelements manifest/application/meta-data@value=GlideModule
 -keep class com.baidu.** { *;}
 -keep class android.support.v4.app.NotificationCompat**{ *; }
 -keep class MTT.ThirdAppInfoNew { *; }
@@ -194,7 +198,7 @@
 }
 
 #----------------------project------------
--keep class com.timeline.vpn.bean.**{ *; }
+-keep class com.timeline.sex.bean.**{ *; }
 -keep class org.strongswan.android.logic.**{ *; }
 -keep class sun.misc.Unsafe { *; }
 -keep class com.google.gson.stream.** { *; }

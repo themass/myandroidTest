@@ -38,14 +38,13 @@ public class LogUtil {
         Log.w(TAG, msg);
     }
 
-    public static void i(String msg) {
+    public static void i(Object msg) {
         if (msg == null) {
             Log.i(TAG, "null");
         } else {
-            Log.i(TAG, msg);
+            Log.i(TAG, msg.toString());
         }
     }
-
     public static void d(String msg) {
         Log.d(TAG, msg);
     }

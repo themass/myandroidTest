@@ -6,7 +6,7 @@ import com.android.volley.toolbox.HttpStack;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.net.interceptor.DnsRequestInterceptor;
 import com.sspacee.yewu.net.request.MultipartRequest;
-import com.timeline.vpn.base.MyApplication;
+import com.timeline.sex.base.MyApplication;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;

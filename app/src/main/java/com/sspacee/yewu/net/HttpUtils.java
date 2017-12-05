@@ -7,6 +7,7 @@ import android.widget.Toast;
 import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PackageUtils;
+import com.timeline.sex.constant.Constants;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -24,7 +25,6 @@ import java.util.Map;
 
 public class HttpUtils {
     private static final String DEFAULT_CHARSET = "UTF-8";
-    private static String USER_AGENT_SUFFIX = "VPN/%s";
 
     public static boolean isGzip(String name, String value) {
         return "Content-Encoding".equals(name) && "gzip".equals(value);
@@ -35,7 +35,7 @@ public class HttpUtils {
     }
 
     public static String getUserAgentSuffix(Context context) {
-        return String.format(USER_AGENT_SUFFIX, PackageUtils.getAppVersion(context));
+        return String.format(Constants.USER_AGENT_SUFFIX, PackageUtils.getAppVersion(context));
     }
 
     public static okhttp3.Headers getOkHeader() {

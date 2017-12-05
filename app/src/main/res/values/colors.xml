@@ -35,6 +35,7 @@
     <color name="base_black">#000000</color>
     <color name="base_half_transparent">#60000000</color>
     <color name="base_gray">#968d8d</color>
+    <color name="base_yellow">#ffaa00</color>
     <color name="transparent">#00000000</color>
     <color name="base_green">#26fa17</color>
     <color name="base_green1">#47d43d</color>

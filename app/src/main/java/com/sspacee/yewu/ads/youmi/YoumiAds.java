@@ -5,7 +5,7 @@ import android.widget.Toast;
 
 import com.sspacee.common.util.DeviceInfoUtils;
 import com.sspacee.common.util.LogUtil;
-import com.timeline.vpn.R;
+import com.timeline.sex.R;
 
 import net.youmi.android.AdManager;
 import net.youmi.android.listener.Interface_ActivityListener;
@@ -20,8 +20,8 @@ import net.youmi.android.os.PointsManager;
  */
 
 public class YoumiAds{
-    private static final String publiserId = "8521b58e067666ba";
-    private static final String appSecret = "a6daf867d009598d";
+    private static final String publiserId = "3dc86dca78ad1e76";
+    private static final String appSecret = "6bca36fbc5c1e70e";
     private static boolean preloadVideoOk = false;
     public static PointsEarnNotify pointsListener = new PointsEarnNotify() {
         public void onPointEarn(Context var1, EarnPointsOrderList var2) {

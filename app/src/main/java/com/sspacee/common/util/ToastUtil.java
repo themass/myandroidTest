@@ -2,7 +2,7 @@ package com.sspacee.common.util;
 
 import android.widget.Toast;
 
-import com.timeline.vpn.base.MyApplication;
+import com.timeline.sex.base.MyApplication;
 
 /**
  * Created by HugoXie on 16/5/23.

@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.ViewUtils;
+import com.timeline.sex.constant.Constants;
 
 import java.io.Serializable;
 
@@ -225,6 +226,11 @@ public abstract class BaseFragment extends LogFramgment {
 
     public void startActivity(Class clasz) {
         Intent intent = new Intent(getActivity(), clasz);
+        getActivity().startActivity(intent);
+    }
+    public void startActivity(Class clasz,Serializable param) {
+        Intent intent = new Intent(getActivity(), clasz);
+        intent.putExtra(Constants.CONFIG_PARAM,param);
         getActivity().startActivity(intent);
     }
 

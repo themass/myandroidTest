@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.timeline.vpn">
+    package="com.timeline.sex">
     <!-- 隐私权-->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -26,6 +26,11 @@
     <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" />
     <uses-permission android:name="com.android.browser.permission.READ_HISTORY_BOOKMARKS" />
     <uses-permission android:name="android.permission.EXPAND_STATUS_BAR"/>
+    <!-- SD卡读取权限，用户写入离线定位数据 -->
+    <uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS" />
+    <!-- 允许应用读取低级别的系统日志文件 -->
+    <uses-permission android:name="android.permission.READ_LOGS" />
+
     <uses-permission
         android:name="android.permission.PACKAGE_USAGE_STATS"
         tools:ignore="ProtectedPermissions" />
@@ -48,7 +53,7 @@
         android:resizeable="true"
         android:smallScreens="true" />
     <application
-        android:name=".base.MyApplication"
+        android:name="com.timeline.sex.base.MyApplication"
         android:allowBackup="false"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
@@ -56,11 +61,11 @@
         tools:replace="android:allowBackup">
         <meta-data
             android:name="com.baidu.lbsapi.API_KEY"
-            android:value="VFNwiTplUvpm7iLaV6FBLNOkxFYrEbp1" />
+            android:value="22wuSGquzPhb1nsI8zZC12phezysct1E" />
 
         <meta-data
             android:name="UMENG_APPKEY"
-            android:value="57b56211e0f55ab5da0002a3" />
+            android:value="5a211c3fa40fa3309100027c" />
         <meta-data
             android:name="UMENG_MESSAGE_SECRET"
             android:value="06ab5668a76ad1be10a1ec82e7f6ddfb" />
@@ -119,7 +124,13 @@
         <activity
             android:name=".ui.sound.VideoActivity"
             android:screenOrientation="portrait" />
-
+        <activity
+            android:name=".ui.sound.VideoChannleActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.sound.VideoShowActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".ui.sound.MyFullScreenImageGalleryActivity"
             android:screenOrientation="portrait" />
@@ -130,18 +141,7 @@
             android:name=".ui.config.QuickBrowserConfigActivity"
             android:screenOrientation="portrait"
             android:theme="@style/myTransparent" />
-        <service
-            android:name="org.strongswan.android.logic.VpnStateService"
-            android:exported="false" />
-        <service
-            android:name="org.strongswan.android.logic.CharonVpnService"
-            android:exported="false"
-            android:permission="android.permission.BIND_VPN_SERVICE">
-            <!--android:process="com.timeline.vpn.service.vpnservice">-->
-            <intent-filter>
-                <action android:name="android.net.VpnService" />
-            </intent-filter>
-        </service>
+
         <service android:name=".service.LogUploadService" />
         <service android:name=".service.LogToFileService" />
         <service android:name=".service.PlayService" />
@@ -167,7 +167,7 @@
         <!-- GDT -->
         <provider
             android:name="android.support.v4.content.FileProvider"
-            android:authorities="com.timeline.vpn.fileprovider"
+            android:authorities="com.timeline.sex.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
@@ -197,6 +197,40 @@
         <!--<meta-data-->
         <!--android:name="com.google.android.gms.version"-->
         <!--tools:replace="android:value"  android:value="8487000" />-->
+
+
+        <activity
+            android:name="com.way.yahoo.MainActivity"
+            android:label="@string/app_name"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait" >
+        </activity>
+        <activity
+            android:name="com.way.yahoo.ManagerCityActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/SecondAppTheme" />
+        <activity
+            android:name="com.way.yahoo.QueryCityActivity"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait"
+            android:theme="@style/SecondAppTheme"
+            android:windowSoftInputMode="stateHidden|adjustPan" />
+
+        <provider
+            android:name="com.way.db.CityProvider"
+            android:authorities="com.way.yahoo.provider.Citys" />
+
+        <activity
+            android:name="com.way.yahoo.AboutActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/SecondAppTheme"
+            android:windowSoftInputMode="stateHidden|adjustPan" />
+        <activity
+            android:name="com.way.yahoo.FeedBackActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/SecondAppTheme"
+            android:windowSoftInputMode="stateHidden|adjustPan" />
+
     </application>
 
 </manifest>

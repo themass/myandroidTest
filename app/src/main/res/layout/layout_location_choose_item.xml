@@ -3,7 +3,8 @@
     android:id="@+id/ll_location_choose"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="5dp"
+    android:paddingTop="@dimen/margin_3"
+    android:paddingBottom="@dimen/margin_3"
     android:background="?android:attr/selectableItemBackground"
     android:clickable="true"
     android:orientation="vertical">
@@ -19,7 +20,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_marginRight="5.0dip"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:paddingTop="@dimen/margin_3">
 
             <TextView
                 android:id="@+id/loc_tv_index"
@@ -59,6 +61,7 @@
             android:layout_width="@dimen/location_choose_width2"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
+            android:paddingTop="@dimen/margin_3"
             android:layout_marginRight="5.0dip"
             android:layout_toRightOf="@+id/ll_index"
             android:scaleType="fitCenter"

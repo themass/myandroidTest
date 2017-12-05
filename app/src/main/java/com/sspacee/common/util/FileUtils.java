@@ -199,9 +199,9 @@ public class FileUtils {
 //        return context.getFilesDir().getAbsolutePath()+File.separator +filePath;
         String sdStatus = Environment.getExternalStorageState();
         if (!sdStatus.equals(Environment.MEDIA_MOUNTED)) {
-            return context.getFilesDir().getAbsolutePath() + File.separator + "myfreevpn";
+            return context.getFilesDir().getAbsolutePath() + File.separator + "myfreesex";
         } else {
-            return File.separator + "sdcard" + File.separator + "myfreevpn";
+            return File.separator + "sdcard" + File.separator + "myfreesex";
         }
     }
 

@@ -11,7 +11,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.Scroller;
 
-import com.timeline.vpn.R;
+import com.timeline.sex.R;
 
 
 /**

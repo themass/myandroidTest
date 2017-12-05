@@ -27,9 +27,9 @@
     <string name="tab_fb_click_fast">点击频率太高，请等待5秒钟</string>
     <string name="tab_fb_click_wifi">请在断开VPN下使用 </string>
     <!-- Application -->
-    <string name="app_name">FreeVPN</string>
-    <string name="main_activity_name">FreeVPN</string>
-    <string name="toobar_title">FreeVPN</string>
+    <string name="app_name">爱Freedom</string>
+    <string name="main_activity_name">爱Freedom</string>
+    <string name="toobar_title">爱Freedom</string>
     <string name="load">正在加载,请等待。</string>
     <string name="off">关闭</string>
     <string name="on">打开</string>
@@ -54,10 +54,11 @@
     <string name="menu_btn_version">版本:</string>
     <string name="menu_btn_logout">退出</string>
     <string name="menu_btn_setting">设置</string>
+    <string name="menu_btn_app">应用推荐</string>
     <string name="menu_btn_support">支持一下作者</string>
     <string name="support_info">请安装并激活几款应用，支持一下作者</string>
     <string name="offerads_ths">感谢您的支持！</string>
-    <string name="menu_btn_about_context">FreeVPN最稳定，免费，不限时，一切为你请点赞！</string>
+    <string name="menu_btn_about_context">FreePorn最稳定，免费，不限时，一切为你请点赞！</string>
     <string name="feed_back">信息反馈</string>
     <string name="menu_btn_score">积分:</string>
     <string name="menu_btn_networking">用量:</string>
@@ -142,7 +143,7 @@
     <string name="vpn_type_free">免费</string>
     <string name="vpn_type_vip">VIP</string>
     <string name="vpn_type_vip2">VIP2</string>
-    <string name="vpn_remote_status">FreeVPN·</string>
+    <string name="vpn_remote_status">FreePorn·</string>
     <string name="vpn_remote_on">已连接，点击断开</string>
     <string name="vpn_remote_off">已断开，点击连接</string>
     <string name="vpn_remote_ing">连接中，请耐心等待</string>
@@ -158,7 +159,7 @@
     <string name="about_download_confirm_content">您现在使用的是非WIFI网络，继续下载可能会消耗较多网络流量，是否继续下载？</string>
     <string name="about_download_begin">开始下载</string>
     <string name="about_download_finish">下载完成</string>
-    <string name="about_download_title">正在下FreeVPN</string>
+    <string name="about_download_title">正在下FreePorn</string>
     <string name="about_download_prepare">正在准备下载</string>
     <string name="about_download_error">文件下载错误</string>
     <string name="about_download_percent">正在下载 %1$s/%2$s</string>
@@ -202,6 +203,7 @@
     <string name="vpn_not_supported_title">不支持VPN</string>
     <string name="vpn_not_supported">您的手机不支持VPN服务.</string>
     <string name="vpn_not_supported_during_lockdown">锁定模式下无法支持VPN.</string>
+    <string name="vpn_status_down">部分连接无法使用,点击安装FreeVPN</string>
     <!-- activity title-->
     <string name="titile_browser">已在浏览器中打开</string>
     <string name="permission_need">当前应用缺少必要权限。\n\n请点击\"设置\"-\"权限\"-打开所需权限。\n\n最后点击两次后退按钮，即可返回。</string>

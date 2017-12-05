@@ -12,5 +12,6 @@
         android:actionLayout="@layout/common_actionbar_image_view"
         android:icon="@drawable/ic_menu_space"
         android:title="@string/menu_haha"
+        android:visible="false"
         app:showAsAction="always" />
 </menu>

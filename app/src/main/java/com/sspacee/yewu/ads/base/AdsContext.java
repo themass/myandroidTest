@@ -7,10 +7,10 @@ import android.widget.Toast;
 import com.sspacee.common.util.Md5;
 import com.sspacee.yewu.ads.adview.AdviewConstant;
 import com.sspacee.yewu.um.MobAgent;
-import com.timeline.vpn.R;
-import com.timeline.vpn.constant.Constants;
-import com.timeline.vpn.data.UserLoginUtil;
-import com.timeline.vpn.task.ScoreTask;
+import com.timeline.sex.R;
+import com.timeline.sex.constant.Constants;
+import com.timeline.sex.data.UserLoginUtil;
+import com.timeline.sex.task.ScoreTask;
 
 import static com.sspacee.yewu.ads.base.AdsContext.AdsShowStatus.ADS_CLICK_MSG;
 
@@ -22,10 +22,10 @@ public class AdsContext {
     static {
     }
     public static enum Categrey{
-        CATEGREY_VPN("插屏:主页，音频，图片，小说 channel页;   banner：vip页，音频，图片，小说，视频，收藏夹列表，", AdviewConstant.ADS_ADVIEW_KEY1),
-        CATEGREY_VPN1("插屏： 点击vpn页，音频，图片，小说 list 页，其他推荐 ;   banner：设置页，地区头，音频，图片，小说，视频，收藏夹列表",AdviewConstant.ADS_ADVIEW_KEY2),
-        CATEGREY_VPN2("插屏： 点击积分，视频暂停；  banner：vpn状态页,国家选择列表，音频，图片，小说 channel 头页 ",AdviewConstant.ADS_ADVIEW_KEY),
-        CATEGREY_VPN3("banner：文章页，音频，图片，小说，视频 头页 ",AdviewConstant.ADS_ADVIEW_KEY_BANNER);
+        CATEGREY_VPN1("插屏:主页;   banner：主页，其他", AdviewConstant.ADS_ADVIEW_KEY1),
+        CATEGREY_VPN2("插屏：vpn页 ;   banner：vip页，文字，图片，声音",AdviewConstant.ADS_ADVIEW_KEY2),
+        CATEGREY_VPN3("插屏：点击积分，图片，文字；  banner：地区尾，文字，图片，声音 ",AdviewConstant.ADS_ADVIEW_KEY3),
+        CATEGREY_VPN4("插屏：视频暂停；banner：图文音视 ",AdviewConstant.ADS_ADVIEW_KEY4);
         public String desc;
         public String key;
         Categrey(String desc,String key){
@@ -94,12 +94,21 @@ public class AdsContext {
     public static boolean rateShow(){
         if(UserLoginUtil.isVIP2()){
             int i = Md5.getRandom(Constants.maxRate);
-            return i<=6;
+            return i<=4;
         }else{
             int i = Md5.getRandom(Constants.maxRate);
-            return i<=7;
+            return i<=6;
         }
 
+    }
+    public static boolean rateSmallShow(){
+        if(UserLoginUtil.isVIP2()){
+            int i = Md5.getRandom(Constants.maxRate);
+            return i<=2;
+        }else{
+            int i = Md5.getRandom(Constants.maxRate);
+            return i<=3;
+        }
     }
     public static void adsNotify(Context context, AdsType type, AdsShowStatus event) {
         MobAgent.onEventAds(context, type, event);

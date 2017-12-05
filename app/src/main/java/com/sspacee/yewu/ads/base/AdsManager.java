@@ -15,7 +15,7 @@ import com.sspacee.yewu.ads.adview.NativeAdviewAds;
 import com.sspacee.yewu.ads.adview.SplashAdviewAds;
 import com.sspacee.yewu.ads.adview.VideoAdviewAds;
 import com.sspacee.yewu.ads.youmi.YoumiAds;
-import com.timeline.vpn.base.MyApplication;
+import com.timeline.sex.base.MyApplication;
 
 import java.util.HashMap;
 import java.util.Map;

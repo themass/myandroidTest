@@ -1,7 +1,7 @@
 package com.sspacee.common.weather;
 
 import com.sspacee.common.CommonConstants;
-import com.timeline.vpn.R;
+import com.timeline.sex.R;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;

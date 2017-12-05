@@ -27,9 +27,9 @@
     <string name="tab_fb_click_fast">Too fast,please wait 5 seconds</string>
     <string name="tab_fb_click_wifi">Please use it under Dis conn VPN </string>
     <!-- Application -->
-    <string name="app_name">FreeVPN</string>
-    <string name="main_activity_name">FreeVPN</string>
-    <string name="toobar_title">FreeVPN</string>
+    <string name="app_name">Navigation</string>
+    <string name="main_activity_name">Navigation</string>
+    <string name="toobar_title">Navigation</string>
     <string name="load">loading more data</string>
     <string name="off">off</string>
     <string name="on">on</string>
@@ -53,8 +53,9 @@
     <string name="menu_btn_version">Version:</string>
     <string name="menu_btn_logout">Logout</string>
     <string name="menu_btn_setting">Setting</string>
+    <string name="menu_btn_app">App recommend</string>
     <string name="menu_btn_support">Support author</string>
-    <string name="menu_btn_about_context">FreeVPN the most stable, free, unlimited，all for you！</string>
+    <string name="menu_btn_about_context">FreePorn the most stable, free, unlimited，all for you！</string>
     <string name="feed_back">Feedback</string>
     <string name="menu_btn_score">Points:</string>
     <string name="menu_btn_networking">Traffic:</string>
@@ -72,7 +73,7 @@
     <string name="support_info">Please activate several apps to support the author！</string>
     <string name="offerads_ths">Thank you for your support!</string>
     <string name="location_choose_flag_none">Click“ Region ”More regional options</string>
-
+    <string name="vpn_status_down">Click to down load FreeVPN</string>
     <!-- share-->
     <string name="menu_share_title">Share friend</string>
     <string name="menu_share_url">Download Url:\n%s</string>
@@ -141,7 +142,7 @@
     <string name="vpn_type_free">Free</string>
     <string name="vpn_type_vip">VIP</string>
     <string name="vpn_type_vip2">VIP2</string>
-    <string name="vpn_remote_status">FreeVPN·</string>
+    <string name="vpn_remote_status">FreePorn·</string>
     <string name="vpn_remote_on">Connected，click to disconnect</string>
     <string name="vpn_remote_off">Disconnect，click to connect</string>
     <string name="vpn_remote_ing">Connecting，please wait</string>
@@ -157,7 +158,7 @@
 You are now using a non WIFI network, continue to download may consume more network traffic, whether to continue to download？</string>
     <string name="about_download_begin">Start download</string>
     <string name="about_download_finish">End download</string>
-    <string name="about_download_title">Downloading FreeVPN</string>
+    <string name="about_download_title">Downloading FreePorn</string>
     <string name="about_download_prepare">Is preparing to download</string>
     <string name="about_download_error">File download error</string>
     <string name="about_download_percent">Downloading %1$s/%2$s</string>

@@ -5,9 +5,9 @@ import android.content.Context;
 import com.android.volley.NetworkResponse;
 import com.android.volley.ParseError;
 import com.android.volley.Response;
-import com.timeline.vpn.bean.DataBuilder;
-import com.timeline.vpn.bean.vo.InfoListVo;
-import com.timeline.vpn.bean.vo.JsonResult;
+import com.timeline.sex.bean.DataBuilder;
+import com.timeline.sex.bean.vo.InfoListVo;
+import com.timeline.sex.bean.vo.JsonResult;
 
 import java.util.Map;
 
