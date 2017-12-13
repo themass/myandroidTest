@@ -243,6 +243,9 @@
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
+
+    <!--  天气-->
+    <style name="WayAppTheme" parent="@android:style/Theme.DeviceDefault.NoActionBar.Fullscreen"></style>
     <style name="SecondAppTheme" parent="@style/AppTheme">
         <item name="android:windowIsTranslucent">true</item>
     </style>
@@ -280,7 +283,7 @@
     </style>
     <!-- 从上往下运动动画 -->
     <style name="top_anim_style">
-        <item name="android:windowEnterAnimation">@anim/a</item>
+        <item name="android:windowEnterAnimation">@anim/in_from_top</item>
         <item name="android:windowExitAnimation">@anim/out_from_top</item>
     </style>
 
