@@ -18,7 +18,9 @@ import java.io.File;
 
 import butterknife.ButterKnife;
 
-import static com.sspacee.common.CommonConstants.tmpFilePath;
+import static com.sspacee.common.util.FileUtils.GLIDE_PATH;
+import static com.sspacee.common.util.FileUtils.LOG_PATH;
+import static com.sspacee.common.util.FileUtils.VOLLEY_PATH;
 
 /**
  * Created by themass on 2016/3/1.
@@ -71,10 +73,10 @@ public class MyApplication extends MultiDexApplication {
         return photoLoad;
     }
 
-    private void initFilePath() {
-        tmpFilePath = FileUtils.getWriteFilePath(this)+ File.separator+"log";
-        LogUtil.i("tmpFilePath=" + tmpFilePath);
-        FileUtils.ensureFile(this, tmpFilePath);
+    public void initFilePath() {
+        FileUtils.ensureFile(this, FileUtils.getWriteFilePath(this)+File.separator+LOG_PATH);
+        FileUtils.ensureFile(this, FileUtils.getWriteFilePath(this)+File.separator+GLIDE_PATH);
+        FileUtils.ensureFile(this, FileUtils.getWriteFilePath(this)+File.separator+VOLLEY_PATH);
     }
 
     @Override

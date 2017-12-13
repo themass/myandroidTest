@@ -5,7 +5,6 @@ import android.graphics.Color;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
-import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -106,11 +105,6 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
         final IndexRecommendAdapter.NaviItemViewHolder holder = (IndexRecommendAdapter.NaviItemViewHolder) viewHolder;
         final RecommendVo vo = (RecommendVo) data.get(position);
         holder.ivPhoto.setImageResource(0);
-        if (vo.title.length() > 9) {
-            holder.ivTitle.setTextSize(TypedValue.COMPLEX_UNIT_PX, context.getResources().getDimensionPixelSize(R.dimen.textsize_25));
-        } else {
-            holder.ivTitle.setTextSize(TypedValue.COMPLEX_UNIT_PX, context.getResources().getDimensionPixelSize(R.dimen.textsize_32));
-        }
         holder.ivTitle.setText(vo.title);
         if (!StringUtils.hasText(vo.color)) {
             vo.color = Constants.colorBg.get(position % Constants.colorBg.size());

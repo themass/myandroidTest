@@ -35,12 +35,12 @@ public class LogUploadService extends BaseLogService {
         boolean ret1 = FileUtils.mvFile(FileUtils.getCharonFilePath(), FileUtils.getCharonUploadFilePath());
         if (ret) {
             File file1 = new File(FileUtils.getBugUploadFilePath());
-            if (file1.exists() && file1.length() > 100)
+            if (file1.exists() && file1.length() > 30)
                 file.add(file1);
         }
         if (ret1) {
             File file2 = new File(FileUtils.getCharonUploadFilePath());
-            if (file2.exists() && file2.length() > 100)
+            if (file2.exists() && file2.length() > 30)
                 file.add(file2);
             file.add(file2);
         }

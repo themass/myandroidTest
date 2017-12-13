@@ -8,6 +8,7 @@ import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.timeline.vpn.R;
 import com.timeline.vpn.ui.base.app.BaseFragmentActivity;
+import com.timeline.vpn.ui.fragment.LocationChooseFragment;
 import com.timeline.vpn.ui.inte.FabOpListener;
 
 import java.io.Serializable;
@@ -34,6 +35,7 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
     private AdsContext.Categrey bannerCategrey =  AdsContext.Categrey.CATEGREY_VPN2;
     private AdsContext.Categrey interCategrey =  AdsContext.Categrey.CATEGREY_VPN2;
     private boolean needGonebanner = true;
+    private boolean showLoc= true;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         slidingClose = getIntent().getBooleanExtra(SLIDINGCLOSE, true);
@@ -84,8 +86,14 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
         if (title != null) {
             setToolbarTitle(title, true);
         }
+        if(fragment instanceof LocationChooseFragment){
+            showLoc = false;
+        }
     }
-
+    @Override
+    protected boolean showLoc(){
+        return showLoc;
+    }
     @Override
     public void setupView() {
         super.setupView();

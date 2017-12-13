@@ -65,7 +65,6 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
     private MyPagerAdapter myPagerAdapter;
     private String POSITION = "POSITION";
     private int index = 0;
-    private static final String SETTING_TAG="SETTING_TAG";
     private static final String COUNTRY_TAG="COUNTRY_TAG";
     //权限检测类
     private PermissionHelper mPermissionHelper;
@@ -112,9 +111,6 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
     }
     public void showCountry(){
         showHit(ivLocation,FocusGravity.LEFT,R.string.country_select_hit,COUNTRY_TAG);
-    }
-    public void showSetting(){
-        showHit(getNaviButton(),FocusGravity.RIGHT,R.string.hidden_area_hit,SETTING_TAG);
     }
     public void showHit(View view, FocusGravity gravity,int hitsId,String tag){
         materialIntroView = new MaterialIntroView.Builder(MainFragmentViewPage.this)
@@ -257,8 +253,6 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
             index = tab.getPosition();
             if(list.get(tab.getPosition()).abslIndex==1 ){
                 showCountry();
-            }else if(list.get(tab.getPosition()).abslIndex==2 ){
-                showSetting();
             }
         }
 

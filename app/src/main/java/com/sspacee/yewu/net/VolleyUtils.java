@@ -29,8 +29,6 @@ import java.io.File;
  */
 public class VolleyUtils {
     // 缓存目录
-    private static final String DEFAULT_CACHE_DIR = "myvolley";
-
     private static Context context;
     private static RequestQueue mRequestQueue;
     private static ImageLoader mImageLoader;
@@ -49,7 +47,7 @@ public class VolleyUtils {
             stack = new OkHttpStack();
         }
         Network network = new BasicNetwork(stack);
-        File cacheDir = new File(FileUtils.getWriteFilePath(context), DEFAULT_CACHE_DIR);
+        File cacheDir = new File(FileUtils.getWriteFilePath(context), FileUtils.VOLLEY_PATH);
         return new RequestQueue(new DiskBasedCacheEx(cacheDir, 50 * 1024 * 1024), network, 6); //修改为6个线程
     }
 

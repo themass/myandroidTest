@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.Environment;
 
 import com.sspacee.common.CommonConstants;
+import com.timeline.vpn.base.MyApplication;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -21,6 +22,10 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 public class FileUtils {
+    public static String CANHE_NAME="myfreevpn";
+    public static String LOG_PATH="log";
+    public static String GLIDE_PATH="glide_cache";
+    public static String VOLLEY_PATH="volley";
     private final static int BUFFER_SIZE = 1024;
 
     /**
@@ -170,20 +175,20 @@ public class FileUtils {
     }
 
     public static String getCharonFilePath() {
-        return CommonConstants.tmpFilePath + File.separator + CommonConstants.LOG_FILE;
+        return getWriteFilePath(MyApplication.getInstance()) + File.separator+LOG_PATH+ File.separator + CommonConstants.LOG_FILE;
 //        return context.getFilesDir().getAbsolutePath() + File.separator + LOG_FILE;
     }
 
     public static String getCharonUploadFilePath() {
-        return CommonConstants.tmpFilePath + File.separator + CommonConstants.LOG_FILE_FOR_UPLOAD;
+        return getWriteFilePath(MyApplication.getInstance()) + File.separator+LOG_PATH+ File.separator + CommonConstants.LOG_FILE_FOR_UPLOAD;
     }
 
     public static String getBugFilePath() {
-        return CommonConstants.tmpFilePath + File.separator + CommonConstants.BUG_FILE;
+        return getWriteFilePath(MyApplication.getInstance()) + File.separator+LOG_PATH+ File.separator + CommonConstants.BUG_FILE;
     }
 
     public static String getBugUploadFilePath() {
-        return CommonConstants.tmpFilePath + File.separator + CommonConstants.BUG_FILE_FOR_UPLOAD;
+        return getWriteFilePath(MyApplication.getInstance()) + File.separator+LOG_PATH+ File.separator + CommonConstants.BUG_FILE_FOR_UPLOAD;
     }
 
     public static boolean mvFile(String srcFile, String decFile) {
@@ -199,9 +204,9 @@ public class FileUtils {
 //        return context.getFilesDir().getAbsolutePath()+File.separator +filePath;
         String sdStatus = Environment.getExternalStorageState();
         if (!sdStatus.equals(Environment.MEDIA_MOUNTED)) {
-            return context.getFilesDir().getAbsolutePath() + File.separator + "myfreevpn";
+            return context.getFilesDir().getAbsolutePath() + File.separator + CANHE_NAME;
         } else {
-            return File.separator + "sdcard" + File.separator + "myfreevpn";
+            return File.separator + "sdcard" + File.separator + CANHE_NAME;
         }
     }
 
@@ -215,7 +220,7 @@ public class FileUtils {
     }
 
     public static void writeLogFile(String content, String fileName) {
-        File file = new File(CommonConstants.tmpFilePath, fileName);
+        File file = new File(getWriteFilePath(MyApplication.getInstance())+File.separator+LOG_PATH, fileName);
         try {
             if (!file.exists()) {
                 LogUtil.d("Create the file:" + fileName);
@@ -232,7 +237,7 @@ public class FileUtils {
     }
 
     public static void delLogFile(String fileName) {
-        File file = new File(CommonConstants.tmpFilePath, fileName);
+        File file = new File(getWriteFilePath(MyApplication.getInstance())+File.separator+LOG_PATH, fileName);
         if (file.exists()) {
             file.delete();
         }

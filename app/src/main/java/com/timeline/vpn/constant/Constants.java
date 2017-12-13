@@ -112,6 +112,8 @@ public class Constants {
     public static final String API_LOG_URL = "/monitor/bug.json";
     public static final String API_ADD_CUSTOME = "/user/custome/add.json";
     public static final String API_DEL_CUSTOME = "/user/custome/del.json";
+    public static final String API_APP_URL = "/data/appinfo.json";
+
     public static final VpnType mVpnType = VpnType.IKEV2_CERT;
     public static final int connTimeOut = 20;
     public static final String NET_ERROR = "network error";

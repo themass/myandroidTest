@@ -97,16 +97,24 @@ public abstract class BaseWeatherMenuActivity extends LogActivity {
             }
         }
         MenuItem menuLocation = menu.findItem(R.id.menu_location);
-        menuLocation.setActionView(R.layout.common_actionbar_image_view);
-        ivLocation = (ImageView) menuLocation.getActionView().findViewById(R.id.iv_menu);
-        menuLocation.getActionView().setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                LogUtil.i("menuLocation Click");
-                LocationChooseFragment.startFragment(BaseWeatherMenuActivity.this);
-            }
-        });
-        setupLocationIcon();
+        if(!showLoc()){
+            menuLocation.setVisible(false);
+        }
+        else{
+            menuLocation.setActionView(R.layout.common_actionbar_image_view);
+            ivLocation = (ImageView) menuLocation.getActionView().findViewById(R.id.iv_menu);
+            menuLocation.getActionView().setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    LogUtil.i("menuLocation Click");
+                    LocationChooseFragment.startFragment(BaseWeatherMenuActivity.this);
+                }
+            });
+            setupLocationIcon();
+        }
+        return true;
+    }
+    protected boolean showLoc(){
         return true;
     }
     protected void setupLocationIcon(){

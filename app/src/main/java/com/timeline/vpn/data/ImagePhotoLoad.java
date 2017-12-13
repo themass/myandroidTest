@@ -109,7 +109,7 @@ public class ImagePhotoLoad implements ImageGalleryAdapter.ImageThumbnailLoader,
                 .listener(new MyGlideLibModule.LoggingListener()).into(new DrawableImageViewTarget(iv));
     }
 
-    public void loadCommonImg(Context context, String url, ImageView iv) {
+    public static void loadCommonImg(Context context, String url, ImageView iv) {
         RequestOptions options = new RequestOptions()
                 .fitCenter()
                 .placeholder(R.drawable.vpn_trans_default);

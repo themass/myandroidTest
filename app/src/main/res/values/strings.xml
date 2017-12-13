@@ -196,6 +196,7 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="save_fail">save fail</string>
     <string name="save_img">save image</string>
     <string name="save_start">save start...</string>
+    <string name="menu_btn_app">App recommend</string>
     <!-- vpn error text -->
     <string name="error_lookup_failed">Failed. Please select another regin</string>
     <string name="error_unreachable">Failed. Please select another regin</string>

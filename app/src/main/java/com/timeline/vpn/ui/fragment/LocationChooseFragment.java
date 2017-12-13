@@ -69,7 +69,7 @@ public class LocationChooseFragment extends LoadableFragment<List<LocationVo>> i
         intent.putExtra(CommonFragmentActivity.TITLE, getFragmentTitle());
         intent.putExtra(CommonFragmentActivity.SLIDINGCLOSE, true);
         intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, true);
-        intent.putExtra(CommonFragmentActivity.ADSSCROLL, false);
+        intent.putExtra(CommonFragmentActivity.ADSSCROLL, true);
         intent.putExtra(CommonFragmentActivity.BANNER_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_VPN2);
         context.startActivity(intent);
     }

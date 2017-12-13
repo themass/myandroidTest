@@ -28,6 +28,7 @@ import com.timeline.vpn.data.config.LocationChooseEvent;
 import com.timeline.vpn.data.config.StateUseEvent;
 import com.timeline.vpn.data.config.UserLoginEvent;
 import com.timeline.vpn.ui.feedback.IWannaFragment;
+import com.timeline.vpn.ui.fragment.AppListFragment;
 import com.timeline.vpn.ui.fragment.FavoriteFragment;
 import com.timeline.vpn.ui.fragment.LocationChooseFragment;
 import com.timeline.vpn.ui.user.LoginActivity;
@@ -58,6 +59,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     MenuItem miLocation;
     MenuItem miSetting;
     MenuItem miFavorite;
+    MenuItem miApp;
     BaseService baseService;
 
     public void login(View view) {
@@ -82,6 +84,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         tvMenuUserLogin = (TextView) headerView.findViewById(R.id.tv_menu_login);
         ivAvatar = (ImageView) headerView.findViewById(R.id.iv_avatar);
         ivLevel = (ImageView) headerView.findViewById(R.id.iv_level);
+        miApp = nvDrawer.getMenu().findItem(R.id.menu_app);
         nvDrawer.setItemIconTintList(null);
         setUpVersion();
         setUpUserMenu();
@@ -184,13 +187,6 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
 
             @Override
             public void onDrawerOpened(View drawerView) {
-                boolean flag = PreferenceUtils.getPrefBoolean(BaseDrawerActivity.this, Constants.LOCATION_FLAG, false);
-                int count = PreferenceUtils.getPrefInt(BaseDrawerActivity.this, Constants.LOCATION_FLAG_COUNT, 0);
-                if (!flag && count < 3) {
-                    ToastUtil.showShort(R.string.location_choose_flag_none);
-                    count = count + 1;
-                    PreferenceUtils.setPrefInt(BaseDrawerActivity.this, Constants.LOCATION_FLAG_COUNT, count);
-                }
             }
 
             @Override
@@ -226,6 +222,9 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                     name = "支持作者";
                     adsOffers();
                     ToastUtil.showShort(R.string.support_info);
+                } else if (item.getItemId() == R.id.menu_app) {
+                    name = "应用推荐";
+                    AppListFragment.startFragment(BaseDrawerActivity.this);
                 }
                 MobAgent.onEventMenu(BaseDrawerActivity.this, name);
                 return false;

@@ -37,8 +37,6 @@ import java.util.Date;
 import butterknife.BindView;
 import butterknife.OnClick;
 
-import static com.sspacee.common.CommonConstants.tmpFilePath;
-
 /**
  * Created by themass on 2016/8/13.
  */
@@ -119,7 +117,7 @@ public class SettingActivity extends BaseSingleActivity {
     public void onCache(View view) {
         ToastUtil.showShort(R.string.menu_btn_cache_context);
         FileUtils.deleteFile(new File(FileUtils.getWriteFilePath(this)));
-        FileUtils.ensureFile(this, tmpFilePath);
+        MyApplication.getInstance().initFilePath();
         setCache();
         MobAgent.onEventMenu(this, "缓存");
     }

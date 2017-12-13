@@ -8,11 +8,11 @@ import java.io.File;
 
 public final class MyGlideDiskCacheFactory extends DiskLruCacheFactory {
     public MyGlideDiskCacheFactory(Context context) {
-        this(context, "image_manager_disk_cache", 262144000);
+        this(context, "glide_cache", 262144000);
     }
 
     public MyGlideDiskCacheFactory(Context context, int diskCacheSize) {
-        this(context, "image_manager_disk_cache", diskCacheSize);
+        this(context, "glide_cache", diskCacheSize);
     }
 
     public MyGlideDiskCacheFactory(final Context context, final String diskCacheName, int diskCacheSize) {

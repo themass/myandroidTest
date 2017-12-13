@@ -192,6 +192,7 @@
     <string name="no_browser">没有安装浏览器</string>
     <string name="edit">编辑</string>
     <string name="delete">删除</string>
+    <string name="menu_btn_app">应用推荐</string>
     <!-- vpn error text -->
     <string name="error_lookup_failed">失败.请换个地区重新连接</string>
     <string name="error_unreachable">失败.请换个地区重新连接</string>

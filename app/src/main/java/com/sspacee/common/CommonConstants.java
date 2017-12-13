@@ -23,5 +23,4 @@ public class CommonConstants {
     public static final String BUG_FILE = "log.log";
     public static final String BUG_FILE_FOR_UPLOAD = "log_upload.log";
     public static boolean DEBUG = false;
-    public static String tmpFilePath = "";
 }

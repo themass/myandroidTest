@@ -9,8 +9,8 @@ android {
         applicationId "com.timeline.vpn"
         minSdkVersion global_minSdkVersion
         targetSdkVersion global_targetSdkVersion
-        versionCode 1000003002
-        versionName "1.0.3.2"
+        versionCode 1000003005
+        versionName "1.0.3.5"
         // Enabling multidex support.
         multiDexEnabled true
     }
