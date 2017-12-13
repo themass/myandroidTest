@@ -199,10 +199,10 @@
 
 #----------------------project------------
 -keep class com.timeline.sex.bean.**{ *; }
--keep class org.strongswan.android.logic.**{ *; }
 -keep class sun.misc.Unsafe { *; }
 -keep class com.google.gson.stream.** { *; }
 -keep class com.sspacee.common.weather.**{ *; }
+-keep class com.way.**{ *; }
 #-----------   log   ------------
 -assumenosideeffects class android.util.Log {
     public static boolean isLoggable(java.lang.String, int);

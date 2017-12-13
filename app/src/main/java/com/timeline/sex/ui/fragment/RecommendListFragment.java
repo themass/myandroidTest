@@ -9,6 +9,7 @@ import android.widget.RelativeLayout;
 
 import com.sspacee.common.util.PackageUtils;
 import com.timeline.sex.R;
+import com.timeline.sex.base.MyApplication;
 import com.timeline.sex.constant.Constants;
 
 import butterknife.BindView;
@@ -30,7 +31,7 @@ public class RecommendListFragment extends RecommendFragment {
     public void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
         boolean install = PackageUtils.isPackageInstalled(getActivity(),Constants.VPN_PACKAGE);
-        if(install){
+        if(install || MyApplication.isTemp){
             layout.setVisibility(View.GONE);
         }
     }

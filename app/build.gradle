@@ -9,8 +9,8 @@ android {
         applicationId "com.timeline.sex"
         minSdkVersion global_minSdkVersion
         targetSdkVersion global_targetSdkVersion
-        versionCode 1000000002
-        versionName "1.0.0.2"
+        versionCode 1000000004
+        versionName "1.0.0.4"
         // Enabling multidex support.
         multiDexEnabled true
     }

@@ -23,4 +23,8 @@
         <attr name="textSpacing" format="float" />
         <attr name="text" format="string" />
     </declare-styleable>
+    <!--  天气-->
+    <declare-styleable name="WeatherTypefacedTextView">
+        <attr name="typeface" format="string" />
+    </declare-styleable>
 </resources>

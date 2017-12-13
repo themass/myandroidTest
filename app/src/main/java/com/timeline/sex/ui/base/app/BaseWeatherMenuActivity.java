@@ -1,5 +1,6 @@
 package com.timeline.sex.ui.base.app;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.Menu;
@@ -26,6 +27,7 @@ import com.sspacee.yewu.net.request.StringRequest;
 import com.timeline.sex.R;
 import com.timeline.sex.constant.Constants;
 import com.timeline.sex.data.StaticDataUtil;
+import com.way.yahoo.WayMainActivity;
 
 /**
  * Created by themass on 2016/3/1.
@@ -82,6 +84,8 @@ public abstract class BaseWeatherMenuActivity extends LogActivity {
                 public void onClick(View v) {
                     LogUtil.i("weatherClick");
                     startLocation(mCityNameStatus);
+                    Intent intent = new Intent(BaseWeatherMenuActivity.this,WayMainActivity.class);
+                    startActivity(intent);
                 }
             });
             if (StaticDataUtil.get(CommonConstants.WEATHER_KEY, WeatherInfo.class) != null) {

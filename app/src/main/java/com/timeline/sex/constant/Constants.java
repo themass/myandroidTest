@@ -62,9 +62,14 @@ public class Constants {
     public static final String LOGIN_USER_PW_LAST = "LOGIN_USER_PW_LAST";
     public static final String DEVID = "Devid";
     public static final String HTTP_TOKEN_KEY = "Sex-Token";
-    public static String AGENT_APP = "SEX";
-    public static String USER_AGENT_SUFFIX = AGENT_APP+"/%s";
-
+    public static final String AGENT_APP_MYPOOL = "SEX";
+    public static final String AGENT_APP_GOOGLE = "SEX_TEMP";
+    public static final String APP_MYPOOL = "MYPOOL";
+    public static final String APP_GOOGLE = "GOOGLEMARKET";
+    public static String USER_AGENT_SUFFIX = AGENT_APP_GOOGLE+"/%s";
+    public static void initUserAgent(String pref){
+        USER_AGENT_SUFFIX = pref+"/%s";
+    }
     public static final String HTTP_LANG = "lang";
     public static final String LON = "lon";
     public static final String LAT = "lat";

@@ -10,6 +10,7 @@ import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.SystemUtils;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.net.VolleyUtils;
+import com.timeline.sex.constant.Constants;
 import com.timeline.sex.data.DBManager;
 import com.timeline.sex.data.ImagePhotoLoad;
 import com.timeline.sex.data.VersionUpdater;
@@ -26,11 +27,12 @@ import static com.sspacee.common.CommonConstants.tmpFilePath;
  */
 public class MyApplication extends MultiDexApplication {
     //    private RefWatcher refWatcher;
-    public static final String UPDATE_STATUS_ACTION = "com.timeline.vpn.action.UPDATE_STATUS";
     public static volatile boolean isDebug = true;
     private static MyApplication instance = null;
     public Typeface typeface;
     private ImagePhotoLoad photoLoad;
+    public static final String UPDATE_STATUS_ACTION = "com.timeline.vpn.action.UPDATE_STATUS";
+    public static boolean isTemp = false;
 
     //    public static RefWatcher getRefWatcher(Context context) {
 //        MyApplication application = (MyApplication) context.getApplicationContext();
@@ -54,10 +56,17 @@ public class MyApplication extends MultiDexApplication {
         VolleyUtils.init();
         initFilePath();
         DBManager.getInstance().init(this);
+        String uc = DeviceInfoUtils.getMetaData(this, "UMENG_CHANNEL");
+        String ad = DeviceInfoUtils.getMetaData(this, "AdView_CHANNEL");
+        if(Constants.APP_MYPOOL.equals(uc)){
+            Constants.initUserAgent(Constants.AGENT_APP_MYPOOL);
+        }else{
+            Constants.initUserAgent(Constants.AGENT_APP_GOOGLE);
+            isTemp = true;
+        }
+
+        LogUtil.i("uc=" + uc + "; ad=" + ad);
         if (MyApplication.isDebug) {
-            String uc = DeviceInfoUtils.getMetaData(this, "UMENG_CHANNEL");
-            String ad = DeviceInfoUtils.getMetaData(this, "AdView_CHANNEL");
-            LogUtil.i("uc=" + uc + "; ad=" + ad);
             DensityUtil.logDensity(this);
             DBManager.getInstance().setDebug();
         }
