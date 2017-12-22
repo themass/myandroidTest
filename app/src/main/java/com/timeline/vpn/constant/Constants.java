@@ -15,6 +15,7 @@ public class Constants {
 
     public static final String REFERER = "referer";
     public static final String DEFAULT_REFERER = "http://www.sspacee.com/";
+    public static final String DEFAULT_API = "api.sspacee.com";
     public static final String IMAGE_RES_PRE = "timeline://img";
     public static final String URL = "url";
     public static final String DEFULT_LOCATION_NAME="随机";
