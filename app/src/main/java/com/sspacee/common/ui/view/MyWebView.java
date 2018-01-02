@@ -47,7 +47,7 @@ public class MyWebView extends WebView {
         if (additionalHttpHeaders == null) {
             additionalHttpHeaders = new HashMap<>();
         }
-        String ref = Constants.DEFAULT_REFERER;
+        String ref = Constants.DEFAULT_REFERER+","+url;
         if (additionalHttpHeaders.get(Constants.REFERER) != null)
             ref = additionalHttpHeaders.get(Constants.REFERER) + "," + Constants.DEFAULT_REFERER;
         additionalHttpHeaders.put(Constants.REFERER, ref);

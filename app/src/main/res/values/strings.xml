@@ -121,6 +121,7 @@
     <string name="version_low">version is to low！</string>
 
     <string name="hidden_area_hit">Hidden “Area” from the Settings</string>
+    <string name="wither_hit">See more weather</string>
     <string name="country_select_hit">Click to choose more countries</string>
     <string name="close_hit">Please complete the guide</string>
     <!-- error-->

@@ -5,17 +5,19 @@
     android:background="?android:attr/selectableItemBackground"
     android:clickable="true"
     android:orientation="horizontal"
-    android:paddingBottom="@dimen/margin_8"
-    android:paddingTop="@dimen/margin_8">
+    android:paddingBottom="@dimen/margin_6"
+    android:paddingTop="@dimen/margin_6">
 
     <TextView
         android:id="@+id/tv_index"
         style="@style/list_itme_index"
-        android:layout_alignBottom="@+id/tv_name" />
+        android:textColor="@color/index_channel_list_base_black"
+        android:layout_centerVertical="true" />
 
     <TextView
         android:id="@+id/tv_date"
         style="@style/list_itme_date"
+        android:textColor="@color/gray"
         android:layout_alignBottom="@+id/tv_name" />
 
     <ImageView

@@ -14,6 +14,7 @@
 -->
 <resources>
 
+    <attr format="reference" name="selectableItemBackground"/>
     <style name="ApplicationTheme" parent="@android:style/Theme.Holo" />
 
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
@@ -23,6 +24,7 @@
         <item name="colorControlHighlight">@color/fab_color_pressed</item>
         <item name="@android:windowAnimationStyle">@style/AnimationActivity</item>
         <item name="actionOverflowMenuStyle">@style/OverflowMenuStyle</item>
+        <item name="android:windowActionBarOverlay">true</item>
     </style>
 
     <style name="AppTheme.TransparentActivity">
@@ -207,14 +209,14 @@
     <style name="list_itme_name">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:textSize">@dimen/textsize_22</item>
-        <item name="android:textColor">@color/base_black</item>
+        <item name="android:textSize">@dimen/textsize_18</item>
+        <item name="android:textColor">@color/channel_list_base_black</item>
         <item name="android:singleLine">true</item>
     </style>
 
     <style name="list_itme_date" parent="list_itme_name">
         <item name="android:layout_width">wrap_content</item>
-        <item name="android:textSize">@dimen/textsize_18</item>
+        <item name="android:textSize">@dimen/textsize_14</item>
         <item name="android:layout_alignParentRight">true</item>
         <item name="android:gravity">right</item>
         <item name="android:paddingRight">@dimen/margin_8</item>
@@ -223,7 +225,7 @@
 
     <style name="list_itme_index" parent="list_itme_name">
         <item name="android:layout_width">@dimen/margin_40</item>
-        <item name="android:textSize">@dimen/textsize_18</item>
+        <item name="android:textSize">@dimen/textsize_12</item>
         <item name="android:layout_marginLeft">@dimen/margin_8</item>
 
     </style>

@@ -24,7 +24,7 @@ public class VideoChannleActivity extends BaseFragmentActivity {
         Fragment fragment = null;
         try {
             fragment = VideoChannleBodyFragment.class.newInstance();
-
+            fragment.setArguments(getIntent().getExtras());
         } catch (Exception e) {
             LogUtil.e(e);
         }

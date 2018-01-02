@@ -11,6 +11,8 @@ import com.timeline.sex.bean.vo.RecommendVo;
 import com.timeline.sex.constant.Constants;
 import com.timeline.sex.data.ImagePhotoLoad;
 
+import java.util.HashMap;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
@@ -33,7 +35,10 @@ public class VideoShowActivity extends LogActivity {
         setContentView(R.layout.layout_video_show);
         unbinder = ButterKnife.bind(this);
         vo = (RecommendVo)getIntent().getSerializableExtra(Constants.CONFIG_PARAM);
-        jzVideo.setUp(vo.actionUrl, JZVideoPlayerStandard.SCREEN_LAYOUT_NORMAL, vo.title);
+        HashMap<String,String> header = new HashMap<>();
+        header.put("Referer",vo.actionUrl);
+        jzVideo.setUp(vo.actionUrl, JZVideoPlayerStandard.SCREEN_LAYOUT_NORMAL, vo.title,header);
+        jzVideo.headData = header;
         ImagePhotoLoad.loadCommonImg(this,vo.img,jzVideo.thumbImageView);
         JZVideoPlayer.setJzUserAction(new MyUserActionStandard());
     }

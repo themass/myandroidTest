@@ -42,7 +42,7 @@ public class ImagePhotoLoad implements ImageGalleryAdapter.ImageThumbnailLoader,
     public static RequestManager getBuilder(Context context,String url){
 
         RequestManager build = Glide.with(context);
-        if(url.endsWith(".gif")){
+        if(url.contains(".gif")){
             build.asGif();
         }
         return build;
@@ -71,10 +71,9 @@ public class ImagePhotoLoad implements ImageGalleryAdapter.ImageThumbnailLoader,
     @Override
     public void loadImageThumbnail(ImageView iv, String imageUrl, int dimension) {
 //        imageThumbnailLoader.loadImageThumbnail(iv, imageUrl, dimension);
-
         RequestManager build=getBuilder(iv.getContext(),imageUrl);
         build.load(imageUrl).apply(options).transition(withCrossFade(400))
-                .listener(new MyGlideLibModule.LoggingListener()).into(new DrawableThumbnailImageViewTarget(iv));
+                .listener(new MyGlideLibModule.LoggingListener()).into(new DrawableImageViewTarget(iv));
     }
 
     @Override

@@ -123,6 +123,7 @@
     <string name="save_start">开始保存...</string>
 
     <string name="hidden_area_hit">设置里可以隐藏“专区”</string>
+    <string name="wither_hit">查看更多天气</string>
     <string name="country_select_hit">点击选择更多地区</string>
     <string name="close_hit">请先完成指引</string>
     <!-- 通用错误提示 -->

@@ -1,0 +1,56 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:paddingBottom="6dp"
+    android:paddingLeft="8dp"
+    android:paddingTop="6dp">
+    <ImageView
+        android:id="@+id/albumArt"
+        android:layout_width="55dp"
+        android:layout_height="55dp"
+        android:layout_alignParentLeft="true"
+        android:background="@color/fab_color_pressed"
+        android:src="@drawable/ic_notification_app_logo"
+        android:padding="1dp" />
+    <com.sspacee.common.ui.view.widgets.MusicVisualizer
+        android:id="@+id/visualizer"
+        android:layout_width="30dp"
+        android:layout_height="40dp"
+        android:layout_centerVertical="true"
+        android:layout_marginBottom="10dp"
+        android:layout_marginRight="15dp"
+        android:layout_alignParentRight="true"
+        android:visibility="gone"
+        />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="10dp"
+        android:layout_toLeftOf="@+id/visualizer"
+        android:layout_toRightOf="@+id/albumArt"
+        android:orientation="vertical"
+        android:paddingLeft="12dp"
+        android:paddingTop="5dp">
+        <TextView
+            android:id="@+id/song_title"
+            style="@style/TextAppearance.AppCompat.Body1"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/song_artist"
+            style="@style/TextAppearance.AppCompat.Widget.ActionMode.Subtitle"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:paddingTop="3dp"
+            android:singleLine="true"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+</RelativeLayout>

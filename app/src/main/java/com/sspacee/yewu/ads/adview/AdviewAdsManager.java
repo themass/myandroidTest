@@ -26,6 +26,7 @@ public class AdviewAdsManager {
         builder.setAdMobSize(InitConfiguration.AdMobSize.BANNER);
         builder.setAdGdtSize(InitConfiguration.AdGdtSize.BANNER);
         builder.setAdSize(InitConfiguration.AdSize.BANNER_SMART);
+        builder.setAdInMobiSize(InitConfiguration.AdInMobiSize.INMOBI_AD_UNIT_320x50);
 //        if (MyApplication.isDebug) {
 //            builder.setRunMode(InitConfiguration.RunMode.TEST);
 //        } else {

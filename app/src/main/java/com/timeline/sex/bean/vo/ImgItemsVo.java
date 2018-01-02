@@ -13,6 +13,7 @@ public class ImgItemsVo {
     public String name;
     public String fileDate;
     public int pics;
+    public String pic;
     public FavoriteVo tofavorite(){
         FavoriteVo vo = new FavoriteVo();
         vo.setItemUrl(url);

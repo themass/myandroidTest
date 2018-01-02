@@ -223,6 +223,7 @@
 -keep class android.support.v4.**{ *;}
 #-----------------end---------------------
 -keep class net.youmi.android.** {*;}
+-dontwarn com.squareup.picasso.**
 -dontwarn com.kyview.**
 -keep class com.moat.analytics.**{*;}
 -dontwarn com.moat.analytics.**
@@ -237,6 +238,7 @@
 -keep public class com.kyview.** {*;}
 -dontwarn com.kyview.**
 -dontnote com.kyview.**
+-keep class com.inmobi.**{ *; }
 -keep public class com.kuaiyou.** {*;}
 -keep public class com.google.android.gms.ads.** {
    public *;

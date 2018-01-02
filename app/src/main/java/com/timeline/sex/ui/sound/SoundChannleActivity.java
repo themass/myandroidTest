@@ -24,7 +24,7 @@ public class SoundChannleActivity extends BaseFragmentActivity {
         Fragment fragment = null;
         try {
             fragment = SoundChannleBodyFragment.class.newInstance();
-
+            fragment.setArguments(getIntent().getExtras());
         } catch (Exception e) {
             LogUtil.e(e);
         }

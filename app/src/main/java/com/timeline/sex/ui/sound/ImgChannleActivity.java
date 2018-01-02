@@ -9,6 +9,7 @@ import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.timeline.sex.R;
+import com.timeline.sex.constant.Constants;
 import com.timeline.sex.ui.base.app.BaseFragmentActivity;
 import com.timeline.sex.ui.fragment.ImgChannleBodyFragment;
 
@@ -22,9 +23,11 @@ public class ImgChannleActivity extends BaseFragmentActivity {
         setContentView(R.layout.common_fragment);
         setFabUpVisibility(View.VISIBLE);
         Fragment fragment = null;
+        getIntent().getStringExtra(Constants.IMG_CHANNEL);
         try {
             fragment = ImgChannleBodyFragment.class.newInstance();
-
+            Bundle bundle = new Bundle();
+            fragment.setArguments(getIntent().getExtras());
         } catch (Exception e) {
             LogUtil.e(e);
         }

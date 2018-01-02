@@ -24,7 +24,7 @@ public class TextChannleActivity extends BaseFragmentActivity {
         Fragment fragment = null;
         try {
             fragment = TextChannleBodyFragment.class.newInstance();
-
+            fragment.setArguments(getIntent().getExtras());
         } catch (Exception e) {
             LogUtil.e(e);
         }

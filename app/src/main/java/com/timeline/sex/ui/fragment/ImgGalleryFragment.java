@@ -16,6 +16,7 @@ import com.etiennelawlor.imagegallery.library.utilities.DisplayUtility;
 import com.sspacee.common.ui.view.FavoriteImageView;
 import com.sspacee.common.ui.view.GridSpacingItemDecoration;
 import com.sspacee.common.util.CollectionUtils;
+import com.sspacee.common.util.StringUtils;
 import com.timeline.sex.R;
 import com.timeline.sex.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.sex.base.MyApplication;
@@ -82,7 +83,7 @@ public class ImgGalleryFragment extends BasePullLoadbleFragment<ImgItemVo> imple
         }
         int lineW = DisplayUtility.dp2px(getActivity(),1);
         gridItemWidth = (DisplayUtility.getScreenWidth(getActivity())-(numOfColumns-1)*lineW)/numOfColumns;
-        gridItemHeight =gridItemWidth ;
+        gridItemHeight =(int)(gridItemWidth*1.3) ;
         GridLayoutManager layoutManager = new GridLayoutManager(getActivity(), numOfColumns);
         pullView.setLayoutManager(layoutManager);
         GridSpacingItemDecoration itemDecoration = new GridSpacingItemDecoration(numOfColumns, lineW, false);
@@ -108,8 +109,16 @@ public class ImgGalleryFragment extends BasePullLoadbleFragment<ImgItemVo> imple
             remteImages.clear();
             for (ImgItemVo item : data.voList) {
                 images.add(item.picUrl);
-                origeImages.add(item.origUrl);
-                remteImages.add(item.remoteUrl);
+                if(StringUtils.hasText(item.origUrl)){
+                    origeImages.add(item.origUrl);
+                }else{
+                    origeImages.add(item.picUrl);
+                }
+                if(StringUtils.hasText(item.remoteUrl)){
+                    remteImages.add(item.remoteUrl);
+                }else{
+                    remteImages.add(item.picUrl);
+                }
             }
         }
         pullView.notifyDataSetChanged();
@@ -162,10 +171,9 @@ public class ImgGalleryFragment extends BasePullLoadbleFragment<ImgItemVo> imple
         @Override
         public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
             View v = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.image_gallery_view, viewGroup, false);
-            v.setLayoutParams(this.getGridItemLayoutParams(v));
             ImageView view = (ImageView)v.findViewById(R.id.iv);
 //            view.setScaleType(ImageView.ScaleType.FIT_XY);
-//            view.setLayoutParams(this.getGridItemLayoutParams(view));
+            view.setLayoutParams(this.getGridItemLayoutParams(view));
             return new ImageGalleryAdapter.ImageViewHolder(v);
         }
         private ViewGroup.LayoutParams getGridItemLayoutParams(View view) {

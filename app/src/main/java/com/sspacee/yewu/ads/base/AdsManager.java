@@ -79,7 +79,6 @@ public class AdsManager {
         interstitialMap.get(AdsContext.AdsFrom.ADVIEW).interstitialExit(context,categrey.key);
     }
     public void offerAds(Context context){
-        YoumiAds.init(context);
         YoumiAds.offerAds(context);
     }
     public  void showNative(Context context, NativeAdsReadyListener listener){

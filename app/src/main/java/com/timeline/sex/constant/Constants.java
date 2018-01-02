@@ -18,7 +18,7 @@ public class Constants {
     public static final String IMAGE_RES_PRE = "timeline://img";
     public static final String URL = "url";
     public static final String DEFULT_LOCATION_NAME="随机";
-    public static final int STARTUP_SHOW_TIME_6000 = 6000; //启动页广告时长
+    public static final int STARTUP_SHOW_TIME_6000 = 7000; //启动页广告时长
     public static final int STARTUP_SHOW_TIME_7000 = 7000; //启动页广告时长
     public static final int BANNER_ADS_GONE_LONG = 13000; //广告显示时长
     public static final int BANNER_ADS_GONE_LONG_LONG = 240000; //广告显示时长
@@ -101,23 +101,24 @@ public class Constants {
     public static final String API_RECOMMEND_VIP_URL = "/data/recommend/vip.json?start=%s&limit=20";
     public static final String API_RECOMMEND_CUSTOME_URL = "/data/recommend/custome.json?start=%s&limit=100";
 
-    public static final String API_SOUND_CHANNLE_URL = "/sound/channel.json?start=%s&limit=20";
+    public static final String API_SOUND_CHANNLE_URL = "/sound/channel.json?start=%s&limit=20&channel=%s";
     public static final String API_SOUND_ITEMS_URL = "/sound/items.json?start=%s&limit=30&channel=%s";
 
-    public static final String API_TEXT_CHANNLE_URL = "/text/channel.json?start=%s&limit=50";
+    public static final String API_TEXT_CHANNLE_URL = "/text/channel.json?start=%s&limit=50&channel=%s";
     public static final String API_TEXT_ITEMS_URL = "/text/items.json?start=%s&limit=30&channel=%s&keyword=%s";
     public static final String API_TEXT_ITEM_URL = "/text/item.json?id=%s";
 
-    public static final String API_IMG_CHANNLE_URL = "/img/channel.json?start=%s&limit=50";
+    public static final String API_IMG_CHANNLE_URL = "/img/channel.json?start=%s&limit=50&channel=%s";
     public static final String API_IMG_ITEMS_URL = "/img/items.json?start=%s&limit=30&channel=%s";
+    public static final String API_IMG_ITEMS_IMG_URL = "/img/items/img.json?start=%s&limit=30&channel=%s";
     public static final String API_IMG_ITEM_URL = "/img/item.json?itemUrl=%s";
 
-    public static final String API_VIDEO_CHANNLE_URL = "/video/channel.json?start=%s&limit=50";
+    public static final String API_VIDEO_CHANNLE_URL = "/video/channel.json?start=%s&limit=50&channel=%s";
     public static final String API_VIDEO_CHANNEL_LIST_URL = "/video/channel/items.json?start=%s&limit=30&channel=%s";
     public static final String API_VIDEO_USER_URL = "/video/user.json?start=%s&limit=30";
     public static final String API_VIDEO_USER_ITEM_URL = "/video/user/items.json?start=%s&limit=30&userId=%s";
     public static final String VIDEO_USER_CHANNEL = "qvod_user";
-
+    public static final String CHANNEL = "channel";
     public static final String API_VIDEO_ITEMS_URL = "/video/items.json?start=%s&limit=20";
 
     public static final String API_LOGOUT_URL = "/user/logout.json";
@@ -144,6 +145,7 @@ public class Constants {
     public static final String TEXT_CHANNEL = "TEXT_CHANNEL";
     public static final String IMG_CHANNEL = "IMG_CHANNEL";
     public static final String VIDEO_CHANNEL = "IMG_CHANNEL";
+    public static final String VIDEO_TYPE_NORMAL= "normal";
     public static final int maxRate = 10;
     public static final String IMG_ITEMS = "IMG_ITEMS";
     public static final String SCORE_TMP = "SCORE_TMP";

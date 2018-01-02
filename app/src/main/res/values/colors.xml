@@ -33,6 +33,8 @@
     <color name="base_bg">#FFE8E8E8</color>
     <color name="base_red">#ff0000</color>
     <color name="base_black">#000000</color>
+    <color name="channel_list_base_black">#698b87</color>
+    <color name="index_channel_list_base_black">#788381</color>
     <color name="base_half_transparent">#60000000</color>
     <color name="base_gray">#968d8d</color>
     <color name="base_yellow">#ffaa00</color>
@@ -261,4 +263,10 @@
     <color name="forecast_bg_startcolor">#00416173</color>
     <color name="forecast_bg_endcolor">#3f416173</color>
     <color name="gray_background">#ff272627</color>
+
+
+    <color name="black_translucent">#66000000</color>
+    <color name="white_translucent">#c8ffffff</color>
+    <color name="song_red">#FF4081</color>
+    <color name="song_select_title">#57b9c2</color>
 </resources>

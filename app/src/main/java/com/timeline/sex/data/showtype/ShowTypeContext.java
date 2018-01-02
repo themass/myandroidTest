@@ -5,7 +5,6 @@ import android.content.Context;
 import com.romainpiel.shimmer.Shimmer;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.StringUtils;
-import com.sspacee.yewu.net.NetUtils;
 import com.timeline.sex.adapter.IndexRecommendAdapter;
 import com.timeline.sex.bean.vo.RecommendVo;
 import com.timeline.sex.constant.Constants;
@@ -30,8 +29,11 @@ public class ShowTypeContext {
         LogUtil.i(handle);
         if(handle!=null){
             handle.showTitle(holder,vo,shimmer,needShimmer,context);
-            if(StringUtils.hasText(vo.img) && NetUtils.isWifi(context))
-                handle.loadPhoto(holder,vo,shimmer,needShimmer,context);
+            if(StringUtils.hasText(vo.img)) {
+                handle.loadPhoto(holder, vo, shimmer, needShimmer, context);
+            }
+//            if(StringUtils.hasText(vo.img) && NetUtils.isWifi(context))
+//                handle.loadPhoto(holder,vo,shimmer,needShimmer,context);
         }
 
 

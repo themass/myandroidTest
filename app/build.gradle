@@ -9,10 +9,11 @@ android {
         applicationId "com.timeline.sex"
         minSdkVersion global_minSdkVersion
         targetSdkVersion global_targetSdkVersion
-        versionCode 1000000004
-        versionName "1.0.0.4"
+        versionCode 1000000005
+        versionName "1.0.0.5"
         // Enabling multidex support.
         multiDexEnabled true
+        vectorDrawables.useSupportLibrary = true
     }
     dexOptions {
 //        incremental true
@@ -71,9 +72,9 @@ android {
         mypool {
             manifestPlaceholders = [CHANNEL_VALUE: "MYPOOL", AD_CHANNEL_VALUE: "MYPOOL"]
         }
-        google {
-            manifestPlaceholders = [CHANNEL_VALUE: "GOOGLEMARKET", AD_CHANNEL_VALUE: "GOOGLEMARKET"]
-        }
+//        google {
+//            manifestPlaceholders = [CHANNEL_VALUE: "GOOGLEMARKET", AD_CHANNEL_VALUE: "GOOGLEMARKET"]
+//        }
     }
 }
 greendao {
@@ -93,6 +94,8 @@ dependencies {
     compile files('libs/AdViewSDK_Android.jar')
     compile files('libs/commons-io-2.4.jar')
     compile files('libs/httpcore-4.2.5.jar')
+    compile files('libs/Inmobi.jar')
+    compile files('libs/picasso.jar')
 
     compile 'cn.jzvd:jiaozivideoplayer:6.1.1'
     compile files('libs/play-services_aar_adapter.jar')
@@ -100,7 +103,7 @@ dependencies {
 
     compile files('libs/gdt_mob_release.jar')
     compile files('libs/httpcore-4.2.5.jar')
-    compile (name:'YoumiSdk_v7.5.0_2017-06-02',ext:'aar')
+    compile (name:'YoumiSdk_v7.5.0_2017-07-18',ext:'aar')
 //    compile(name: 'glide-transformations-2.0.1', ext: 'aar',)
     compile "com.android.support:appcompat-v7:$APPCOMPAT_VERSION"
     compile "com.android.support:support-v13:$APPCOMPAT_VERSION"
@@ -139,5 +142,12 @@ dependencies {
     //compile 'com.isanwenyu.highlight:highlight:1.8.0'
     //compile 'com.github.faruktoptas:FancyShowCaseView:1.0.0'
     //compile 'com.github.deano2390:MaterialShowcaseView:1.2.0'
+    compile 'com.sothree.slidinguppanel:library:3.3.1'
+//    compile 'net.steamcrafted:materialiconlib:1.1.1'
+//    compile 'com.afollestad.material-dialogs:core:0.9.1.0'
+//    compile('com.github.naman14:app-theme-engine:0.5.2@aar') {
+//        transitive = true
+//    }
+
 
 }

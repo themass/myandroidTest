@@ -52,15 +52,30 @@
                         android:singleLine="true"
                         android:textColor="@color/base_black"
                         android:textSize="@dimen/recommend_hit_size" />
+                    <TextView
+                        android:id="@+id/ads_logo"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom|left"
+                        android:layout_marginBottom="@dimen/margin_5"
+                        android:paddingLeft="@dimen/margin_5"
+                        android:paddingRight="@dimen/margin_5"
+                        android:layout_marginLeft="@dimen/margin_8"
+                        android:background="@color/ad_bg"
+                        android:text="@string/ads_logo"
+                        android:textSize="@dimen/textsize_16"
+                        android:textColor="@android:color/white"
+                        />
                 </FrameLayout>
                 <TextView
                     android:id="@+id/tv_title_below"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:singleLine="true"
-                    android:textSize="@dimen/textsize_14"/>
+                    android:textSize="@dimen/textsize_16"/>
             </LinearLayout>
         </android.support.v7.widget.CardView>
+
     </FrameLayout>
 
     <ImageView
@@ -73,18 +88,4 @@
         android:src="@drawable/ic_menu_edit"
         android:visibility="gone" />
 
-    <TextView
-        android:id="@+id/ads_logo"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|left"
-        android:layout_marginBottom="@dimen/margin_5"
-        android:paddingLeft="@dimen/margin_5"
-        android:paddingRight="@dimen/margin_5"
-        android:layout_marginLeft="@dimen/margin_8"
-        android:background="@color/ad_bg"
-        android:text="@string/ads_logo"
-        android:textSize="@dimen/textsize_16"
-        android:textColor="@android:color/white"
-        />
 </FrameLayout>

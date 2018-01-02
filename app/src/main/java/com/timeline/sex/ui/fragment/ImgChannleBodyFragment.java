@@ -1,6 +1,7 @@
 package com.timeline.sex.ui.fragment;
 
 
+import android.os.Bundle;
 import android.view.View;
 
 import com.kyview.natives.NativeAdInfo;
@@ -13,6 +14,7 @@ import com.timeline.sex.bean.vo.RecommendVo;
 import com.timeline.sex.constant.Constants;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -20,9 +22,17 @@ import java.util.List;
  */
 public class ImgChannleBodyFragment extends RecommendFragment implements NativeAdsReadyListener {
     private static final String INDEX_TAG = "img_tag";
+    private String channel = "";
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        Bundle b  = getArguments();
+        channel = ((HashMap<String,String>)b.getSerializable(Constants.CONFIG_PARAM)).get(Constants.CHANNEL);
+    }
+
     @Override
     public String getUrl(int start) {
-        return Constants.getUrlWithParam(Constants.API_IMG_CHANNLE_URL, start);
+        return Constants.getUrlWithParam(Constants.API_IMG_CHANNLE_URL, start,channel);
     }
     @Override
     public String getNetTag() {
@@ -35,7 +45,7 @@ public class ImgChannleBodyFragment extends RecommendFragment implements NativeA
         if (vo.dataType == RecommendVo.dataType_ADS) {
             ((NativeAdInfo) (vo.extra)).onClick(v);
         } else {
-            ImgChannelListFragment.startFragment(getActivity(), vo);
+            ImgChannelImgListFragment.startFragment(getActivity(), vo);
             MobAgent.onEventRecommond(getActivity(), vo.title);
         }
     }

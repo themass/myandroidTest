@@ -66,7 +66,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
     private String POSITION = "POSITION";
     private int index = 0;
     private static final String SETTING_TAG="SETTING_TAG";
-    private static final String COUNTRY_TAG="COUNTRY_TAG";
+    private static final String WITER_TAG="WITER_TAG";
     //权限检测类
     private PermissionHelper mPermissionHelper;
     private MaterialIntroView materialIntroView;
@@ -107,6 +107,10 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
     public void showSetting(){
         showHit(getNaviButton(),FocusGravity.RIGHT,R.string.hidden_area_hit,SETTING_TAG);
     }
+    public void showWither(){
+        if(ivWeather!=null)
+            showHit(ivWeather,FocusGravity.RIGHT,R.string.wither_hit,WITER_TAG);
+    }
     public void showHit(View view, FocusGravity gravity,int hitsId,String tag){
         materialIntroView = new MaterialIntroView.Builder(MainFragmentViewPage.this)
                 .enableDotAnimation(true)
@@ -123,6 +127,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
                 .setUsageId(tag)
                 .show();
     }
+
     /**
      * Callback received when a permissions request has been completed.
      */
@@ -249,6 +254,9 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
             index = tab.getPosition();
              if(list.get(tab.getPosition()).abslIndex==2 ){
                 showSetting();
+             }
+            if(list.get(tab.getPosition()).abslIndex==1){
+                showWither();
             }
         }
 
