@@ -46,15 +46,15 @@ import android.widget.Toast;
 import com.sspacee.common.util.FileUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.net.request.CommonResponse;
+import com.timeline.myapp.base.MyApplication;
+import com.timeline.myapp.bean.DataBuilder;
+import com.timeline.myapp.bean.vo.ServerVo;
+import com.timeline.myapp.bean.vo.VpnProfile;
+import com.timeline.myapp.constant.Constants;
+import com.timeline.myapp.data.BaseService;
+import com.timeline.myapp.data.LocationUtil;
+import com.timeline.myapp.ui.fragment.LocationChooseFragment;
 import com.timeline.vpn.R;
-import com.timeline.vpn.base.MyApplication;
-import com.timeline.vpn.bean.DataBuilder;
-import com.timeline.vpn.bean.vo.ServerVo;
-import com.timeline.vpn.bean.vo.VpnProfile;
-import com.timeline.vpn.constant.Constants;
-import com.timeline.vpn.data.BaseService;
-import com.timeline.vpn.data.LocationUtil;
-import com.timeline.vpn.ui.fragment.LocationChooseFragment;
 import com.timeline.vpn.ui.main.MainFragmentViewPage;
 
 import org.strongswan.android.logic.imc.ImcState;
@@ -540,6 +540,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
 
         Intent intent = new Intent(this, MainFragmentViewPage.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         PendingIntent pend =
                 PendingIntent.getActivity(MyApplication.getInstance(), new Random().nextInt(), intent, 0);
         builder.setContentIntent(pend)
@@ -581,7 +582,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            if (action.equals(ACTION_BUTTON)) {
+            if (action.equals(ACTION_BUTTON) && mService!=null) {
 //                EventBusUtil.getEventBus().post(new VpnClickEvent());
                 LogUtil.i("recive vpn Broadcast: " + mService.getState() + "; mCurrentProfile=" + mCurrentProfile);
                 if (VpnStateService.State.CONNECTED.equals(mService.getState())) {

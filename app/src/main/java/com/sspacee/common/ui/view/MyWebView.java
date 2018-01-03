@@ -6,7 +6,7 @@ import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.webkit.WebView;
 
-import com.timeline.vpn.constant.Constants;
+import com.timeline.myapp.constant.Constants;
 
 import java.util.HashMap;
 import java.util.Map;

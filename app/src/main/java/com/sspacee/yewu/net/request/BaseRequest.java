@@ -19,10 +19,10 @@ import com.sspacee.common.util.StringUtils;
 import com.sspacee.common.util.SystemUtils;
 import com.sspacee.common.util.cache.DiskBasedCacheEx;
 import com.sspacee.yewu.net.HttpUtils;
-import com.timeline.vpn.bean.vo.JsonResult;
-import com.timeline.vpn.constant.Constants;
-import com.timeline.vpn.data.StaticDataUtil;
-import com.timeline.vpn.data.UserLoginUtil;
+import com.timeline.myapp.bean.vo.JsonResult;
+import com.timeline.myapp.constant.Constants;
+import com.timeline.myapp.data.StaticDataUtil;
+import com.timeline.myapp.data.UserLoginUtil;
 
 import java.net.URL;
 import java.util.Date;

@@ -5,9 +5,9 @@ import android.net.Uri;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.StringUtils;
-import com.timeline.vpn.base.MyApplication;
-import com.timeline.vpn.constant.Constants;
-import com.timeline.vpn.data.StaticDataUtil;
+import com.timeline.myapp.base.MyApplication;
+import com.timeline.myapp.constant.Constants;
+import com.timeline.myapp.data.StaticDataUtil;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -4,7 +4,7 @@ import android.content.Context;
 import android.os.Environment;
 
 import com.sspacee.common.CommonConstants;
-import com.timeline.vpn.base.MyApplication;
+import com.timeline.myapp.base.MyApplication;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;

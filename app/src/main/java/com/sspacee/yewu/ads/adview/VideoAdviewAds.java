@@ -9,8 +9,8 @@ import com.kyview.manager.AdViewVideoManager;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.VideoAdsInter;
 import com.timeline.vpn.R;
-import com.timeline.vpn.constant.Constants;
-import com.timeline.vpn.task.ScoreTask;
+import com.timeline.myapp.constant.Constants;
+import com.timeline.myapp.task.ScoreTask;
 
 import static com.sspacee.yewu.ads.adview.AdviewConstant.ADS_ADVIEW_KEY2;
 

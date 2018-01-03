@@ -6,9 +6,9 @@ import android.support.v4.app.Fragment;
 import android.view.View;
 
 import com.timeline.vpn.R;
-import com.timeline.vpn.ui.base.features.TabBaseAdsFragment;
-import com.timeline.vpn.ui.fragment.RecommendCustomeFragment;
-import com.timeline.vpn.ui.user.AddCustomeInfoActivity;
+import com.timeline.myapp.ui.base.features.TabBaseAdsFragment;
+import com.timeline.myapp.ui.fragment.RecommendCustomeFragment;
+import com.timeline.myapp.ui.user.AddCustomeInfoActivity;
 
 
 /**

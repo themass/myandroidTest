@@ -20,7 +20,7 @@ import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.cache.BitmapLruCache;
 import com.sspacee.common.util.cache.DiskBasedCacheEx;
 import com.timeline.vpn.R;
-import com.timeline.vpn.base.MyApplication;
+import com.timeline.myapp.base.MyApplication;
 
 import java.io.File;
 

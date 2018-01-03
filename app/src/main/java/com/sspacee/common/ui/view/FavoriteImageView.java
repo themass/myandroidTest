@@ -5,8 +5,8 @@ import android.support.v7.widget.AppCompatImageView;
 import android.util.AttributeSet;
 
 import com.timeline.vpn.R;
-import com.timeline.vpn.bean.vo.FavoriteVo;
-import com.timeline.vpn.data.FavoriteUtil;
+import com.timeline.myapp.bean.vo.FavoriteVo;
+import com.timeline.myapp.data.FavoriteUtil;
 
 public class FavoriteImageView extends AppCompatImageView  implements FavoriteUtil.GetFavoriteListener, FavoriteUtil.ModFavoriteListener{
     public FavoriteImageView(Context context) {

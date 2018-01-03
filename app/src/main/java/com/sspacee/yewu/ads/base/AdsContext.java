@@ -8,9 +8,9 @@ import com.sspacee.common.util.Md5;
 import com.sspacee.yewu.ads.adview.AdviewConstant;
 import com.sspacee.yewu.um.MobAgent;
 import com.timeline.vpn.R;
-import com.timeline.vpn.constant.Constants;
-import com.timeline.vpn.data.UserLoginUtil;
-import com.timeline.vpn.task.ScoreTask;
+import com.timeline.myapp.constant.Constants;
+import com.timeline.myapp.data.UserLoginUtil;
+import com.timeline.myapp.task.ScoreTask;
 
 import static com.sspacee.yewu.ads.base.AdsContext.AdsShowStatus.ADS_CLICK_MSG;
 
@@ -94,12 +94,21 @@ public class AdsContext {
     public static boolean rateShow(){
         if(UserLoginUtil.isVIP2()){
             int i = Md5.getRandom(Constants.maxRate);
-            return i<=6;
+            return i<=4;
         }else{
             int i = Md5.getRandom(Constants.maxRate);
-            return i<=7;
+            return i<=6;
         }
 
+    }
+    public static boolean rateSmallShow() {
+        if (UserLoginUtil.isVIP2()) {
+            int i = Md5.getRandom(Constants.maxRate);
+            return i <= 2;
+        } else {
+            int i = Md5.getRandom(Constants.maxRate);
+            return i <= 3;
+        }
     }
     public static void adsNotify(Context context, AdsType type, AdsShowStatus event) {
         MobAgent.onEventAds(context, type, event);

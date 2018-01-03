@@ -25,14 +25,14 @@ import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.um.MobAgent;
+import com.timeline.myapp.constant.Constants;
+import com.timeline.myapp.data.UserLoginUtil;
+import com.timeline.myapp.data.config.ConfigActionJump;
+import com.timeline.myapp.data.config.LogAddTofile;
+import com.timeline.myapp.data.config.TabChangeEvent;
+import com.timeline.myapp.ui.base.app.BaseDrawerActivity;
+import com.timeline.myapp.ui.inte.OnBackKeyDownListener;
 import com.timeline.vpn.R;
-import com.timeline.vpn.constant.Constants;
-import com.timeline.vpn.data.UserLoginUtil;
-import com.timeline.vpn.data.config.ConfigActionJump;
-import com.timeline.vpn.data.config.LogAddTofile;
-import com.timeline.vpn.data.config.TabChangeEvent;
-import com.timeline.vpn.ui.base.app.BaseDrawerActivity;
-import com.timeline.vpn.ui.inte.OnBackKeyDownListener;
 import com.timeline.vpn.ui.maintab.TabCustomeFragment;
 import com.timeline.vpn.ui.maintab.TabVipFragment;
 import com.timeline.vpn.ui.maintab.TabVpnFragment;
@@ -113,20 +113,24 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         showHit(ivLocation,FocusGravity.LEFT,R.string.country_select_hit,COUNTRY_TAG);
     }
     public void showHit(View view, FocusGravity gravity,int hitsId,String tag){
-        materialIntroView = new MaterialIntroView.Builder(MainFragmentViewPage.this)
-                .enableDotAnimation(true)
-                .setFocusGravity(gravity)
-                .setFocusType(Focus.MINIMUM)
-                .setDelayMillis(100)
-                .enableFadeAnimation(true)
-                .setInfoTextSize(18)
-                .performClick(true)
-                .setIdempotent(true)
-                .setInfoText(getString(hitsId))
-                .setTarget(view)
-                .setListener(MainFragmentViewPage.this)
-                .setUsageId(tag)
-                .show();
+        try {
+            materialIntroView = new MaterialIntroView.Builder(MainFragmentViewPage.this)
+                    .enableDotAnimation(true)
+                    .setFocusGravity(gravity)
+                    .setFocusType(Focus.MINIMUM)
+                    .setDelayMillis(100)
+                    .enableFadeAnimation(true)
+                    .setInfoTextSize(18)
+                    .performClick(true)
+                    .setIdempotent(true)
+                    .setInfoText(getString(hitsId))
+                    .setTarget(view)
+                    .setListener(MainFragmentViewPage.this)
+                    .setUsageId(tag)
+                    .show();
+        }catch (Exception e){
+            LogUtil.e(e);
+        }
     }
     /**
      * Callback received when a permissions request has been completed.

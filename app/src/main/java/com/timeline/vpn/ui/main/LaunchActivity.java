@@ -14,8 +14,8 @@ import com.sspacee.common.ui.base.LogActivity;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.um.MobAgent;
 import com.timeline.vpn.R;
-import com.timeline.vpn.constant.Constants;
-import com.timeline.vpn.task.LoginTask;
+import com.timeline.myapp.constant.Constants;
+import com.timeline.myapp.task.LoginTask;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;

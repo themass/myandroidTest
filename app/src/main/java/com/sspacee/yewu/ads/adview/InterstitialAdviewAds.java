@@ -10,8 +10,8 @@ import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.InterstitialAdsInter;
 import com.timeline.vpn.R;
-import com.timeline.vpn.constant.Constants;
-import com.timeline.vpn.task.ScoreTask;
+import com.timeline.myapp.constant.Constants;
+import com.timeline.myapp.task.ScoreTask;
 
 /**
  * Created by themass on 2017/9/20.

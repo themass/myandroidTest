@@ -28,6 +28,8 @@
     <color name="fab_color_pressed">#007787</color>
     <color name="fab_color_shadow">#44000000</color>
     <color name="main_dark">#FF535353</color>
+    <color name="channel_list_base_black">#698b87</color>
+    <color name="index_channel_list_base_black">#788381</color>
     <!-- base color-->
     <color name="base_white">#ffffff</color>
     <color name="base_bg">#FFE8E8E8</color>
@@ -76,4 +78,9 @@
     <color name="text_like_counter">#2b5a83</color>
     <color name="other">#f55220</color>
 
+
+    <color name="black_translucent">#66000000</color>
+    <color name="white_translucent">#c8ffffff</color>
+    <color name="song_red">#FF4081</color>
+    <color name="song_select_title">#57b9c2</color>
 </resources>

@@ -3,9 +3,9 @@ package com.timeline.vpn.ui.maintab;
 
 import android.support.v4.app.Fragment;
 
-import com.timeline.vpn.ui.base.features.TabBaseAdsFragment;
-import com.timeline.vpn.ui.base.BannerHeaderFragment;
-import com.timeline.vpn.ui.fragment.RecommendVipFragment;
+import com.timeline.myapp.ui.base.BannerHeaderFragment;
+import com.timeline.myapp.ui.base.features.TabBaseAdsFragment;
+import com.timeline.myapp.ui.fragment.RecommendVipFragment;
 
 /**
  * Created by themass on 2015/9/1.
