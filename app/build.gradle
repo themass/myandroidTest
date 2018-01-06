@@ -69,12 +69,12 @@ android {
         }
     }
     productFlavors {
-        mypool {
+        sexmypool {
             manifestPlaceholders = [CHANNEL_VALUE: "MYPOOL", AD_CHANNEL_VALUE: "MYPOOL"]
         }
-//        google {
-//            manifestPlaceholders = [CHANNEL_VALUE: "GOOGLEMARKET", AD_CHANNEL_VALUE: "GOOGLEMARKET"]
-//        }
+        sexgoogle {
+            manifestPlaceholders = [CHANNEL_VALUE: "GOOGLEMARKET", AD_CHANNEL_VALUE: "GOOGLEMARKET"]
+        }
     }
 }
 greendao {
