@@ -10,6 +10,7 @@
         android:layout_height="wrap_content"
         android:background="@color/base_vip_ready"
         android:iconifiedByDefault="false"
+        android:visibility="gone"
         android:queryHint="@string/search" />
 
     <include layout="@layout/base_loadable_fragment"

@@ -56,6 +56,7 @@ public class VersionUpdater {
                     PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.LOG_UPLOAD_CONFIG, vo.logUp);
                     PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.NEED_DNSPOD_CONFIG, vo.needDnspod);
                     PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.NEED_NATIVE_ADS_CONFIG, vo.needNative);
+                    VideoUtil.init(vo.vitamioExt);
                     if (StringUtils.hasText(vo.dnspodIp)) {
                         HttpDNSUtil.DNS_POD_IP = vo.dnspodIp;
                     }

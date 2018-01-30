@@ -67,6 +67,7 @@ public class MyApplication extends MultiDexApplication {
 
         LogUtil.i("uc=" + uc + "; ad=" + ad);
         if (MyApplication.isDebug) {
+            Constants.initUserAgent(Constants.AGENT_APP_MYPOOL);
             DensityUtil.logDensity(this);
             DBManager.getInstance().setDebug();
         }

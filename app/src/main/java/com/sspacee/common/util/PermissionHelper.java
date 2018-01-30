@@ -23,7 +23,7 @@ public class PermissionHelper {
     public static final String READ_PHONE_STATE = Manifest.permission.READ_PHONE_STATE;
     public static final String ACCESS_COARSE_LOCATION = Manifest.permission.ACCESS_COARSE_LOCATION;
     public static final String WRITE_EXTERNAL_STORAGE = Manifest.permission.WRITE_EXTERNAL_STORAGE;
-    public static final String[] requestPermissions = new String[]{ READ_PHONE_STATE, ACCESS_COARSE_LOCATION, WRITE_EXTERNAL_STORAGE};
+    public static final String[] requestPermissions = new String[]{ACCESS_COARSE_LOCATION,READ_PHONE_STATE,WRITE_EXTERNAL_STORAGE};
     public static final String PACKAGE = "package:";
     private Activity mContext;
 

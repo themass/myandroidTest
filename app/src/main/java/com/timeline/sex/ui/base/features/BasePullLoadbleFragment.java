@@ -7,10 +7,12 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.SearchView;
 
 import com.sspacee.common.ui.view.DividerItemDecoration;
 import com.sspacee.common.ui.view.MyPullView;
 import com.sspacee.common.util.LogUtil;
+import com.sspacee.common.util.StringUtils;
 import com.timeline.sex.R;
 import com.timeline.sex.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.sex.bean.vo.InfoListVo;
@@ -38,6 +40,27 @@ public abstract class BasePullLoadbleFragment<T> extends LoadableFragment<InfoLi
         indexService = new BaseService();
         indexService.setup(getActivity());
         initPullView();
+        mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            // 当点击搜索按钮时触发该方法
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                keyword = query;
+                pullView.setRefresh(true);
+                return false;
+            }
+
+            // 当搜索内容改变时触发该方法
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                //没有内容时 在查询
+                if (!StringUtils.hasText(newText) && StringUtils.hasText(keyword)) {
+                    keyword = null;
+                    pullView.setRefresh(true);
+                    mSearchView.clearFocus();
+                }
+                return false;
+            }
+        });
     }
     protected void initPullView(){
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getActivity());
@@ -80,6 +103,7 @@ public abstract class BasePullLoadbleFragment<T> extends LoadableFragment<InfoLi
     @Override
     public void onItemClick(View view, T data, int postion) {
         pullView.notifyDataSetChanged();
+        mSearchView.clearFocus();
     }
 
     @Override

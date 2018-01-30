@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
+import android.widget.SearchView;
 import android.widget.TextView;
 
 import com.android.volley.Request;
@@ -48,10 +49,13 @@ public abstract class LoadableFragment<T> extends BaseFragment {
             startQuery(true);
         }
     };
-    private int DEFAULT_LAYOUT = R.layout.base_loadable_fragment;
+    private int DEFAULT_LAYOUT = R.layout.layout_search_load_list_view;
+
     private int fragmentLayoutId = DEFAULT_LAYOUT;
     private TextView tvRetry;
     protected BaseService indexService;
+    public SearchView mSearchView;
+    public String keyword = "";
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
@@ -62,7 +66,9 @@ public abstract class LoadableFragment<T> extends BaseFragment {
     protected int getRootViewId() {
         return DEFAULT_LAYOUT;
     }
-
+    protected boolean showSearchView(){
+        return false;
+    }
     @Override
     protected void setupViews(View view, Bundle savedInstanceState) {
         indexService = new BaseService();
@@ -71,10 +77,17 @@ public abstract class LoadableFragment<T> extends BaseFragment {
         mLoadRetryView = ViewUtils.find(view, R.id.load_retry);
         mContentView = ViewUtils.find(view, R.id.content);
         tvRetry = ViewUtils.find(view, R.id.tv_retry);
+        mSearchView = ViewUtils.find(view, R.id.searchView);
         LayoutInflater inflater = LayoutInflater.from(getActivity());
         onContentViewCreated(inflater, mContentView, savedInstanceState);
         mLoadRetryView.setOnClickListener(mRefreshClickListener);
         super.setupViews(view, savedInstanceState);
+        if(showSearchView()){
+            mSearchView.setVisibility(View.VISIBLE);
+        }else{
+            mSearchView.setVisibility(View.GONE);
+        }
+        mSearchView.clearFocus();
     }
 
     @Override

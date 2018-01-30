@@ -36,7 +36,7 @@ public class VideoShowActivity extends LogActivity {
         unbinder = ButterKnife.bind(this);
         vo = (RecommendVo)getIntent().getSerializableExtra(Constants.CONFIG_PARAM);
         HashMap<String,String> header = new HashMap<>();
-        header.put("Referer",vo.actionUrl);
+        header.put("Referer", com.sspacee.common.util.StringUtils.hasText(vo.param)?vo.param: vo.actionUrl);
         jzVideo.setUp(vo.actionUrl, JZVideoPlayerStandard.SCREEN_LAYOUT_NORMAL, vo.title,header);
         jzVideo.headData = header;
         ImagePhotoLoad.loadCommonImg(this,vo.img,jzVideo.thumbImageView);

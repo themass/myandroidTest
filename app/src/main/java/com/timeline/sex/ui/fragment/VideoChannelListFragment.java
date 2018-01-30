@@ -9,8 +9,10 @@ import com.sspacee.yewu.ads.base.AdsContext;
 import com.timeline.sex.bean.vo.RecommendVo;
 import com.timeline.sex.constant.Constants;
 import com.timeline.sex.data.StaticDataUtil;
+import com.timeline.sex.data.VideoUtil;
 import com.timeline.sex.ui.base.CommonFragmentActivity;
 import com.timeline.sex.ui.sound.VideoShowActivity;
+import com.timeline.sex.ui.sound.VitamioVideoPlayActivity;
 
 /**
  * Created by themass on 2016/8/12.
@@ -31,8 +33,12 @@ public class VideoChannelListFragment extends RecommendFragment {
         context.startActivity(intent);
     }
     @Override
+    protected boolean showSearchView(){
+        return true;
+    }
+    @Override
     public String getUrl(int start) {
-        return Constants.getUrlWithParam(Constants.API_VIDEO_CHANNEL_LIST_URL, start,vo.param);
+        return Constants.getUrlWithParam(Constants.API_VIDEO_CHANNEL_LIST_URL, start,vo.param,keyword);
     }
     @Override
     public String getNetTag() {
@@ -60,11 +66,15 @@ public class VideoChannelListFragment extends RecommendFragment {
     public void onItemClick(View v, int position) {
         RecommendVo vo = infoListVo.voList.get(position);
         if(Constants.VIDEO_TYPE_NORMAL.equalsIgnoreCase((String)vo.extra)){
-            startActivity(VideoShowActivity.class,vo);
+            if(VideoUtil.isVitamioExt(vo.actionUrl)){
+                startActivity(VitamioVideoPlayActivity.class, vo);
+            }else {
+                startActivity(VideoShowActivity.class, vo);
+            }
         }else{
             super.onItemClick(v,position);
         }
-
+        mSearchView.clearFocus();
     }
 
     @Override

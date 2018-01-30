@@ -37,7 +37,7 @@ public class ImgChannelImgListFragment extends RecommendFragment {
 
     @Override
     public String getUrl(int start) {
-        return Constants.getUrlWithParam(Constants.API_IMG_ITEMS_IMG_URL, start, vo.param);
+        return Constants.getUrlWithParam(Constants.API_IMG_ITEMS_IMG_URL, start, vo.param,keyword);
     }
 
     @Override
@@ -65,6 +65,10 @@ public class ImgChannelImgListFragment extends RecommendFragment {
         StaticDataUtil.del(Constants.IMG_CHANNEL);
     }
     @Override
+    protected boolean showSearchView(){
+        return true;
+    }
+    @Override
     public boolean getShowParam(){
         return true;
     }
@@ -76,6 +80,7 @@ public class ImgChannelImgListFragment extends RecommendFragment {
         imgItemsVo.url = revo.actionUrl;
         ImgGalleryFragment.startFragment(getActivity(), imgItemsVo);
         HistoryUtil.addHistory(getActivity(), imgItemsVo.url);
+        mSearchView.clearFocus();
     }
     @Override
     public void onDestroyView() {

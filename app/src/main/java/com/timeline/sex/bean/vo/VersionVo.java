@@ -15,4 +15,5 @@ public class VersionVo {
     public String dnspodIp;
     public Boolean needDnspod = true;
     public Boolean needNative = true;
+    public String vitamioExt;
 }

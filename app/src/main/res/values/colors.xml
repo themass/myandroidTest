@@ -269,4 +269,8 @@
     <color name="white_translucent">#c8ffffff</color>
     <color name="song_red">#FF4081</color>
     <color name="song_select_title">#57b9c2</color>
+
+    <color name="text_normal">#FF4081</color>
+    <color name="text_press">#bbFF4081</color>
+    <color name="control_bar_bg">#77000000</color>
 </resources>
