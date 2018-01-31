@@ -90,7 +90,7 @@ dependencies {
     compile files('libs/gson-2.2.4.jar')
     compile files('libs/volley.jar')
     compile files('libs/commons-codec.jar')
-    compile files('libs/BaiduLBS_Android.jar')
+//    compile files('libs/BaiduLBS_Android.jar')
     compile files('libs/AdViewSDK_Android.jar')
     compile files('libs/commons-io-2.4.jar')
     compile files('libs/httpcore-4.2.5.jar')
@@ -138,7 +138,7 @@ dependencies {
 
     //compile 'com.github.amlcurran.showcaseview:library:5.4.3'
     //compile 'com.github.wooplr:Spotlight:1.2.3'
-    compile 'com.github.iammert:MaterialIntroView:1.6.0'
+//    ------compile 'com.github.iammert:MaterialIntroView:1.6.0'
     //compile 'com.isanwenyu.highlight:highlight:1.8.0'
     //compile 'com.github.faruktoptas:FancyShowCaseView:1.0.0'
     //compile 'com.github.deano2390:MaterialShowcaseView:1.2.0'

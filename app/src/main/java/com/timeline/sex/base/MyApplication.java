@@ -14,7 +14,6 @@ import com.timeline.sex.constant.Constants;
 import com.timeline.sex.data.DBManager;
 import com.timeline.sex.data.ImagePhotoLoad;
 import com.timeline.sex.data.VersionUpdater;
-import com.way.common.util.WaySystemUtils;
 
 import java.io.File;
 
@@ -76,7 +75,6 @@ public class MyApplication extends MultiDexApplication {
         LogUtil.e("app start cost:" + cost);
         photoLoad = new ImagePhotoLoad(this);
         AdsManager.getInstans().init(this);
-        WaySystemUtils.copyDB(this);// 程序第一次运行将数据库copy过去
     }
 
     public ImagePhotoLoad getPhotoLoad() {

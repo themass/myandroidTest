@@ -7,7 +7,7 @@ import android.view.View;
 
 import com.timeline.sex.R;
 import com.timeline.sex.ui.base.features.TabBaseAdsFragment;
-import com.timeline.sex.ui.fragment.RecommendCustomeFragment;
+import com.timeline.sex.ui.maintab.body.RecommendCustomeFragment;
 import com.timeline.sex.ui.user.AddCustomeInfoActivity;
 
 

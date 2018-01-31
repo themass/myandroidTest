@@ -10,7 +10,7 @@ import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.timeline.sex.R;
 import com.timeline.sex.ui.base.app.BaseFragmentActivity;
-import com.timeline.sex.ui.fragment.VideoChannleBodyFragment;
+import com.timeline.sex.ui.fragment.body.VideoChannleBodyFragment;
 
 /**
  * Created by themass on 2015/9/1.

@@ -11,7 +11,7 @@ import com.sspacee.yewu.ads.base.AdsManager;
 import com.timeline.sex.R;
 import com.timeline.sex.constant.Constants;
 import com.timeline.sex.ui.base.app.BaseFragmentActivity;
-import com.timeline.sex.ui.fragment.ImgChannleBodyFragment;
+import com.timeline.sex.ui.fragment.body.ImgChannleBodyFragment;
 
 /**
  * Created by themass on 2015/9/1.
@@ -46,10 +46,4 @@ public class ImgChannleActivity extends BaseFragmentActivity {
         return true;
     }
 
-    @Override
-    public void setupView() {
-        super.setupView();
-        if(AdsContext.rateShow())
-            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN1,false);
-    }
 }

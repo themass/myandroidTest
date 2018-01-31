@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.Settings;
-import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.util.Pair;
 import android.view.GestureDetector;
@@ -22,6 +21,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.sspacee.common.ui.base.LogActivity;
 import com.timeline.sex.R;
 import com.timeline.sex.bean.vo.RecommendVo;
 import com.timeline.sex.constant.Constants;
@@ -44,7 +44,7 @@ import io.vov.vitamio.widget.VideoView;
  * @author WangZhiYao
  * @date 2016/9/14
  */
-public class VitamioVideoPlayActivity extends AppCompatActivity {
+public class VitamioVideoPlayActivity extends LogActivity {
 
     private static final String TAG = "VideoPlayActivity";
 

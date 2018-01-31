@@ -30,7 +30,6 @@ import com.timeline.sex.data.config.UserLoginEvent;
 import com.timeline.sex.ui.feedback.IWannaFragment;
 import com.timeline.sex.ui.fragment.AppListFragment;
 import com.timeline.sex.ui.fragment.FavoriteFragment;
-import com.timeline.sex.ui.fragment.LocationChooseFragment;
 import com.timeline.sex.ui.user.LoginActivity;
 import com.timeline.sex.ui.user.SettingActivity;
 
@@ -208,10 +207,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                 if (item.getItemId() == R.id.menu_louout) {
                     name = "登出";
                     logout(item);
-                } else if (item.getItemId() == R.id.menu_location) {
-                    name = "网络选择";
-                    LocationChooseFragment.startFragment(BaseDrawerActivity.this);
-                } else if (item.getItemId() == R.id.menu_feedback) {
+                }  else if (item.getItemId() == R.id.menu_feedback) {
                     name = "反馈";
                     IWannaFragment.startFragment(BaseDrawerActivity.this);
                 } else if (item.getItemId() == R.id.menu_setting) {

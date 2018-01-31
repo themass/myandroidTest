@@ -11,6 +11,7 @@ import com.timeline.sex.constant.Constants;
 import com.timeline.sex.data.StaticDataUtil;
 import com.timeline.sex.data.VideoUtil;
 import com.timeline.sex.ui.base.CommonFragmentActivity;
+import com.timeline.sex.ui.base.VideoWebViewActivity;
 import com.timeline.sex.ui.sound.VideoShowActivity;
 import com.timeline.sex.ui.sound.VitamioVideoPlayActivity;
 
@@ -72,7 +73,7 @@ public class VideoChannelListFragment extends RecommendFragment {
                 startActivity(VideoShowActivity.class, vo);
             }
         }else{
-            super.onItemClick(v,position);
+            VideoWebViewActivity.startWebViewActivity(getActivity(),vo.actionUrl,vo.title);
         }
         mSearchView.clearFocus();
     }

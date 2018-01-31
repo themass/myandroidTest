@@ -10,7 +10,7 @@ import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.timeline.sex.R;
 import com.timeline.sex.ui.base.app.BaseFragmentActivity;
-import com.timeline.sex.ui.fragment.TextChannleBodyFragment;
+import com.timeline.sex.ui.fragment.body.TextChannleBodyFragment;
 
 /**
  * Created by themass on 2015/9/1.
@@ -45,7 +45,7 @@ public class TextChannleActivity extends BaseFragmentActivity {
     @Override
     public void setupView() {
         super.setupView();
-        if(AdsContext.rateShow()){
+        if(AdsContext.rateSmallShow()){
             AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN2,false);
         }
     }

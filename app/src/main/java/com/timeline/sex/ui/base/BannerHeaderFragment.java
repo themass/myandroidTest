@@ -26,8 +26,13 @@ public class BannerHeaderFragment extends BaseFragment{
     public ViewGroup flBanner;
     private AdsGoneTask task = new AdsGoneTask();
     protected Handler mHandler = new Handler();
-    public static final String BANNER_ADS_CATEGRY = "BANNER_ADS_CATEGRY";
-
+    private AdsContext.Categrey ca;
+    private static String CATEGREY = "Categrey";
+    public static BannerHeaderFragment getNewInstans(AdsContext.Categrey ca){
+        BannerHeaderFragment fragment = new BannerHeaderFragment();
+        fragment.putSerializable(ca);
+        return fragment;
+    }
     @Override
     protected int getRootViewId() {
         return R.layout.common_banner;
@@ -36,6 +41,7 @@ public class BannerHeaderFragment extends BaseFragment{
     @Override
     protected void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
+        ca = (AdsContext.Categrey)getSerializable();
         EventBusUtil.getEventBus().register(this);
     }
 
@@ -60,14 +66,14 @@ public class BannerHeaderFragment extends BaseFragment{
     @Override
     public void onDestroyView() {
         EventBusUtil.getEventBus().unregister(this);
-        AdsManager.getInstans().exitBannerAds(getActivity(), flBanner, AdsContext.Categrey.CATEGREY_VPN1);
+        AdsManager.getInstans().exitBannerAds(getActivity(), flBanner, ca);
         super.onDestroyView();
 
     }
     public void showAds() {
         if (needShow()) {
             flBanner.setVisibility(View.VISIBLE);
-            AdsManager.getInstans().showBannerAds(getActivity(), flBanner,AdsContext.Categrey.CATEGREY_VPN1);
+            AdsManager.getInstans().showBannerAds(getActivity(), flBanner,ca);
         } else {
             if (flBanner != null)
                 flBanner.setVisibility(View.GONE);
