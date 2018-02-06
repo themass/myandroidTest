@@ -8,11 +8,14 @@ import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
 import com.sspacee.common.util.PackageUtils;
+import com.sspacee.yewu.um.MobAgent;
 import com.timeline.sex.R;
 import com.timeline.sex.base.MyApplication;
+import com.timeline.sex.bean.vo.RecommendVo;
 import com.timeline.sex.constant.Constants;
 import com.timeline.sex.ui.fragment.AppListFragment;
 import com.timeline.sex.ui.fragment.RecommendFragment;
+import com.timeline.sex.ui.fragment.VideoChannelListFragment;
 
 import butterknife.BindView;
 import butterknife.OnClick;
@@ -53,11 +56,16 @@ public class RecommendMovieFragment extends RecommendFragment {
 
     @Override
     public int getSpanCount() {
-        return 3;
+        return 2;
     }
 
     @Override
     public boolean getShowEdit() {
         return false;
+    }
+    public void onItemClick(View v, int position) {
+        RecommendVo vo = infoListVo.voList.get(position);
+        VideoChannelListFragment.startFragment(getActivity(), vo);
+        MobAgent.onEventRecommondChannel(getActivity(), vo.title);
     }
 }

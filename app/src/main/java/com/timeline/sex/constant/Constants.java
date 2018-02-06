@@ -34,7 +34,7 @@ public class Constants {
     public static final String TEXT_URL = "text";
     public static final String IMG_URL = "img";
     public static final String VIDEO_URL = "video";
-    public static final String MOVIE_URL = "movie";
+    public static final String VIDEOLIST_URL = "videoList";
     public static final String VIDEO_CHANNEL_URL = "video_item";
     public static final String VIDEO_CHANNEL_USER_URL = "video_item_user";
     public static final String URL_TMP = "://";
@@ -101,7 +101,7 @@ public class Constants {
 
     public static final String API_RECOMMEND_NIGHT_URL = "/data/recommend/night.json?start=%s&limit=20";
     public static final String API_RECOMMEND_MOVIE_URL = "/data/recommend/movie.json?start=%s&limit=20";
-    public static final String API_RECOMMEND_AREA_URL = "/data/recommend/vip.json?start=%s&limit=20";
+    public static final String API_RECOMMEND_AREA_URL = "/data/recommend/area.json?start=%s&limit=20";
     public static final String API_RECOMMEND_CUSTOME_URL = "/data/recommend/custome.json?start=%s&limit=100";
 
     public static final String API_SOUND_CHANNLE_URL = "/sound/channel.json?start=%s&limit=20&channel=%s";

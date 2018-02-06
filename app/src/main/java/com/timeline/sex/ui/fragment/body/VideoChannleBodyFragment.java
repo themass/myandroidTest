@@ -8,7 +8,6 @@ import com.kyview.natives.NativeAdInfo;
 import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.ads.base.NativeAdsReadyListener;
-import com.sspacee.yewu.um.MobAgent;
 import com.timeline.sex.bean.vo.InfoListVo;
 import com.timeline.sex.bean.vo.RecommendVo;
 import com.timeline.sex.constant.Constants;
@@ -52,8 +51,6 @@ public class VideoChannleBodyFragment extends RecommendFragment implements Nativ
             }else{
                 VideoChannelListFragment.startFragment(getActivity(), vo);
             }
-
-            MobAgent.onEventRecommond(getActivity(), vo.title);
         }
     }
     @Override

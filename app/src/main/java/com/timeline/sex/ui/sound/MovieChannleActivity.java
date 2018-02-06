@@ -6,8 +6,6 @@ import android.support.v4.app.Fragment;
 import android.view.View;
 
 import com.sspacee.common.util.LogUtil;
-import com.sspacee.yewu.ads.base.AdsContext;
-import com.sspacee.yewu.ads.base.AdsManager;
 import com.timeline.sex.R;
 import com.timeline.sex.ui.base.app.BaseFragmentActivity;
 import com.timeline.sex.ui.fragment.body.MovieChannleBodyFragment;
@@ -43,10 +41,10 @@ public class MovieChannleActivity extends BaseFragmentActivity {
         return true;
     }
 
-    @Override
-    public void setupView() {
-        super.setupView();
-        if(AdsContext.rateShow())
-            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN2,false);
-    }
+//    @Override
+//    public void setupView() {
+//        super.setupView();
+//        if(AdsContext.rateShow())
+//            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN2,false);
+//    }
 }

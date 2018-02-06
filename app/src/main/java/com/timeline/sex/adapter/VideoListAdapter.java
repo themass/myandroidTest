@@ -11,6 +11,7 @@ import android.widget.RelativeLayout;
 
 import com.bumptech.glide.Glide;
 import com.sspacee.common.util.LogUtil;
+import com.sspacee.common.util.StringUtils;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.timeline.sex.R;
@@ -18,6 +19,7 @@ import com.timeline.sex.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.sex.bean.vo.RecommendVo;
 import com.timeline.sex.constant.Constants;
 
+import java.util.HashMap;
 import java.util.List;
 
 import butterknife.BindView;
@@ -41,7 +43,10 @@ public class VideoListAdapter extends BaseRecyclerViewAdapter<VideoListAdapter.V
             VideoHolder holder = (VideoHolder)h;
             RecommendVo vo = data.get(position);
             LogUtil.i("jcVideoPlayer="+holder.jcVideoPlayer.toString());
-            holder.jcVideoPlayer.setUp(vo.actionUrl, JZVideoPlayer.SCREEN_LAYOUT_LIST, vo.title);
+            HashMap<String,String> header = new HashMap<>();
+            header.put("Referer", StringUtils.hasText(vo.param)?vo.param: vo.actionUrl);
+            holder.jcVideoPlayer.setUp(vo.actionUrl, JZVideoPlayer.SCREEN_LAYOUT_LIST, vo.title,header);
+            holder.jcVideoPlayer.headData = header;
             Glide.with(context).load(vo.img).into(holder.jcVideoPlayer.thumbImageView);
             if(Constants.BANNER_ADS_POS.contains(position)){
                 if(position%2==1){

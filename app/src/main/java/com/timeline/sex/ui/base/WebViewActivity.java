@@ -15,8 +15,6 @@ import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PackageUtils;
 import com.sspacee.common.util.SystemUtils;
 import com.sspacee.common.util.ToastUtil;
-import com.sspacee.yewu.ads.base.AdsContext;
-import com.sspacee.yewu.ads.base.AdsManager;
 import com.timeline.sex.R;
 import com.timeline.sex.constant.Constants;
 import com.timeline.sex.ui.base.app.BaseFragmentActivity;
@@ -57,9 +55,9 @@ public class WebViewActivity extends BaseFragmentActivity implements MyWebView.O
         adsDelayGone();
         adsNeed = getIntent().getBooleanExtra(Constants.ADS_SHOW_CONFIG, false);
         adsPopNeed = getIntent().getBooleanExtra(Constants.ADS_POP_SHOW_CONFIG, false);
-        if(adsPopNeed && AdsContext.rateShow()){
-            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN4,false);
-        }
+//        if(adsPopNeed && AdsContext.rateShow()){
+//            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN4,false);
+//        }
     }
     public boolean needShow() {
         return adsNeed || super.needShow();

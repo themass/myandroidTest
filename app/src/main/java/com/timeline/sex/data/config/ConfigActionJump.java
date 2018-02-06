@@ -11,10 +11,10 @@ import com.timeline.sex.constant.Constants;
 import com.timeline.sex.ui.base.WebViewActivity;
 import com.timeline.sex.ui.config.QuickBrowserConfigActivity;
 import com.timeline.sex.ui.sound.ImgChannleActivity;
-import com.timeline.sex.ui.sound.MovieChannleActivity;
 import com.timeline.sex.ui.sound.SoundChannleActivity;
 import com.timeline.sex.ui.sound.TextChannleActivity;
 import com.timeline.sex.ui.sound.VideoChannleActivity;
+import com.timeline.sex.ui.sound.VideoListShowActivity;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -42,7 +42,7 @@ public class ConfigActionJump {
         configMap.put(Constants.TEXT_URL, TextChannleActivity.class);
         configMap.put(Constants.IMG_URL, ImgChannleActivity.class);
         configMap.put(Constants.VIDEO_URL, VideoChannleActivity.class);
-        configMap.put(Constants.MOVIE_URL, MovieChannleActivity.class);
+        configMap.put(Constants.VIDEOLIST_URL, VideoListShowActivity.class);
 //        configMap.put(Constants.VIDEO_CHANNEL_USER_URL, VideoChannleUserActivity.class);
     }
 

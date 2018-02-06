@@ -70,7 +70,7 @@
     <dimen name="remote_vpn_title">10sp</dimen>
     <dimen name="remote_vpn_time">16sp</dimen>
     <dimen name="remote_vpn_content">14sp</dimen>
-    <dimen name="recommend_hit_size">22sp</dimen>
+    <dimen name="recommend_hit_size">18sp</dimen>
     <dimen name="toolbar_title_size">18sp</dimen>
 
     <dimen name="activity_horizontal_margin">16dp</dimen>

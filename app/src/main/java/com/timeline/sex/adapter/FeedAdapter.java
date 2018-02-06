@@ -2,6 +2,7 @@ package com.timeline.sex.adapter;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,9 +11,11 @@ import android.widget.TextSwitcher;
 import android.widget.TextView;
 
 import com.sspacee.common.util.DateUtils;
+import com.sspacee.common.util.StringUtils;
 import com.timeline.sex.R;
 import com.timeline.sex.bean.vo.IWannaVo;
 import com.timeline.sex.constant.Constants;
+import com.timeline.sex.data.UserLoginUtil;
 import com.timeline.sex.task.IWannaLikeTask;
 
 import java.util.Date;
@@ -27,6 +30,8 @@ import butterknife.ButterKnife;
 public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public static final String ACTION_LIKE_BUTTON_CLICKED = "action_like_button_button";
     public static final String ACTION_LIKE_IMAGE_CLICKED = "action_like_image_button";
+    public static final String style1 = "<span style=\"background:#BDD3F7\"> @All </span>";
+    public static final  String style2 = "<span style=\"background:#BDD3F7\"> %s </span>";
 
     public static final int VIEW_TYPE_DEFAULT = 1;
     public static final int VIEW_TYPE_LOADER = 2;
@@ -108,7 +113,8 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             tsLikesCounter.setCurrentText(tvContent.getResources().getQuantityString(
                     R.plurals.likes_count, feedItem.likes, feedItem.likes
             ));
-            tvContent.setText(feedItem.content);
+            tvContent.setText(Html.fromHtml(handleContent(feedItem.content)));
+//            tvContent.setText(feedItem.content);
             name.setText(feedItem.name);
             if (feedItem.like) {
                 imageView.setImageResource(R.drawable.ic_heart_small_red);
@@ -126,5 +132,15 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         public IWannaVo getFeedItem() {
             return feedItem;
         }
+    }
+    private static String handleContent(String content){
+        if(!StringUtils.hasText(content))
+            return "";
+        content = content.replaceAll("@All",style1).replaceAll("@all",style1);
+        if(UserLoginUtil.getUserCache()!=null){
+            String name = "@"+UserLoginUtil.getUserCache().name;
+            content = content.replaceAll(name,String.format(style2,name));
+        }
+        return content;
     }
 }

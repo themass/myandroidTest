@@ -87,7 +87,6 @@ public abstract class LoadableFragment<T> extends BaseFragment {
         }else{
             mSearchView.setVisibility(View.GONE);
         }
-        mSearchView.clearFocus();
     }
 
     @Override

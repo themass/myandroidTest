@@ -41,13 +41,6 @@
       <sourceFolder url="file://$MODULE_DIR$/src/sexgoogleDebug/java" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/sexgoogleDebug/rs" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/sexgoogleDebug/shaders" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/r/androidTest/sexgoogle/debug" isTestSource="true" generated="true" />
-      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/aidl/androidTest/sexgoogle/debug" isTestSource="true" generated="true" />
-      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/buildConfig/androidTest/sexgoogle/debug" isTestSource="true" generated="true" />
-      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/rs/androidTest/sexgoogle/debug" isTestSource="true" generated="true" />
-      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/apt/androidTest/sexgoogle/debug" isTestSource="true" generated="true" />
-      <sourceFolder url="file://$MODULE_DIR$/build/generated/res/rs/androidTest/sexgoogle/debug" type="java-test-resource" />
-      <sourceFolder url="file://$MODULE_DIR$/build/generated/res/resValues/androidTest/sexgoogle/debug" type="java-test-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/testSexgoogleDebug/res" type="java-test-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/testSexgoogleDebug/resources" type="java-test-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/testSexgoogleDebug/assets" type="java-test-resource" />
@@ -55,6 +48,13 @@
       <sourceFolder url="file://$MODULE_DIR$/src/testSexgoogleDebug/java" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/testSexgoogleDebug/rs" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/testSexgoogleDebug/shaders" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/r/androidTest/sexgoogle/debug" isTestSource="true" generated="true" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/aidl/androidTest/sexgoogle/debug" isTestSource="true" generated="true" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/buildConfig/androidTest/sexgoogle/debug" isTestSource="true" generated="true" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/rs/androidTest/sexgoogle/debug" isTestSource="true" generated="true" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/apt/androidTest/sexgoogle/debug" isTestSource="true" generated="true" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/res/rs/androidTest/sexgoogle/debug" type="java-test-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/res/resValues/androidTest/sexgoogle/debug" type="java-test-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/sexgoogle/res" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/sexgoogle/resources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/sexgoogle/assets" type="java-resource" />
@@ -114,6 +114,7 @@
       <excludeFolder url="file://$MODULE_DIR$/build/cache" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/assets" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/blame" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/builds" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/classes" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/incremental" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/incremental-classes" />
@@ -125,6 +126,8 @@
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/jniLibs" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/manifests" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/multi-dex" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/pre-dexed" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/proguard-rules" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/reload-dex" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/res" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/restart-dex" />
@@ -134,13 +137,13 @@
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/symbols" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/transforms" />
       <excludeFolder url="file://$MODULE_DIR$/build/outputs" />
+      <excludeFolder url="file://$MODULE_DIR$/build/reports" />
       <excludeFolder url="file://$MODULE_DIR$/build/tmp" />
     </content>
     <orderEntry type="jdk" jdkName="Android API 25 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" exported="" name="commons-io-2.4" level="project" />
     <orderEntry type="library" exported="" name="YoumiSdk_v7.5.0_2017-07-18-" level="project" />
-    <orderEntry type="library" exported="" name="InMobi" level="project" />
     <orderEntry type="library" exported="" name="transition-25.3.1" level="project" />
     <orderEntry type="library" exported="" name="annotations-4.3.1" level="project" />
     <orderEntry type="library" exported="" name="AdViewSDK_Android" level="project" />
@@ -148,7 +151,6 @@
     <orderEntry type="library" exported="" name="greendao-3.2.2" level="project" />
     <orderEntry type="library" exported="" name="play-services-ads-11.0.0" level="project" />
     <orderEntry type="library" exported="" name="gifdecoder-4.3.1" level="project" />
-    <orderEntry type="library" exported="" name="picasso" level="project" />
     <orderEntry type="library" exported="" name="glide-transformations-2.0.2" level="project" />
     <orderEntry type="library" exported="" scope="TEST" name="multidex-instrumentation-1.0.1" level="project" />
     <orderEntry type="library" exported="" name="butterknife-annotations-8.8.1" level="project" />

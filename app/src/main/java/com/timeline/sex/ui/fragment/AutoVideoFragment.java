@@ -28,6 +28,7 @@ import cn.jzvd.JZVideoPlayerManager;
 public class AutoVideoFragment extends BasePullLoadbleFragment<RecommendVo> {
     private VideoListAdapter videoListAdapter;
     private static final String TAG="avvideo";
+    private String channel;
     @Override
     protected BaseRecyclerViewAdapter getAdapter(){
         videoListAdapter = new VideoListAdapter(getActivity(), pullView.getRecyclerView(), infoListVo.voList, this);
@@ -40,6 +41,7 @@ public class AutoVideoFragment extends BasePullLoadbleFragment<RecommendVo> {
     @Override
     public void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
+        channel = (String) getSerializable();
 //        recyclerView.addOnScrollListener
         pullView.getRecyclerView().addOnChildAttachStateChangeListener(new RecyclerView.OnChildAttachStateChangeListener() {
             @Override
@@ -65,6 +67,11 @@ public class AutoVideoFragment extends BasePullLoadbleFragment<RecommendVo> {
     }
 
     @Override
+    protected boolean showSearchView() {
+        return true;
+    }
+
+    @Override
     public void onPause() {
         super.onPause();
         JZVideoPlayer.goOnPlayOnPause();
@@ -84,6 +91,6 @@ public class AutoVideoFragment extends BasePullLoadbleFragment<RecommendVo> {
     }
     @Override
     protected InfoListVo<RecommendVo> loadData(Context context) throws Exception {
-        return indexService.getInfoListData(Constants.getUrlWithParam(Constants.API_VIDEO_ITEMS_URL, infoListVo.pageNum), RecommendVo.class, TAG);
+        return indexService.getInfoListData(Constants.getUrlWithParam(Constants.API_VIDEO_CHANNEL_LIST_URL, infoListVo.pageNum,channel,keyword), RecommendVo.class, TAG);
     }
 }

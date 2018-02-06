@@ -22,6 +22,7 @@ import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.um.MobAgent;
 import com.timeline.sex.R;
+import com.timeline.sex.base.MyApplication;
 import com.timeline.sex.constant.Constants;
 import com.timeline.sex.data.UserLoginUtil;
 import com.timeline.sex.data.config.ConfigActionJump;
@@ -64,6 +65,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         setContentView(R.layout.layout_main_viewpage);
         EventBusUtil.getEventBus().register(jump);
         EventBusUtil.getEventBus().register(logAdd);
+        EventBusUtil.getEventBus().register(this);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -93,14 +95,15 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         LayoutInflater inflater = LayoutInflater.from(this);
         addData(inflater, R.string.tab_tag_movie, TabMovieFragment.class,
                 R.drawable.ac_bg_tab_index, R.string.tab_movie, null, 1);
-        addData(inflater, R.string.tab_tag_ng, TabNightFragment.class,
-                R.drawable.ac_bg_tab_index, R.string.tab_ng, null, 1);
-        if (PreferenceUtils.getPrefBoolean(this, Constants.AREA_SWITCH, true)) {
+
+        if (PreferenceUtils.getPrefBoolean(this, Constants.AREA_SWITCH, true) && !MyApplication.isTemp || MyApplication.isDebug) {
+            addData(inflater, R.string.tab_tag_ng, TabNightFragment.class,
+                    R.drawable.ac_bg_tab_index, R.string.tab_ng, null, 2);
             addData(inflater, R.string.tab_tag_area, TabAreaFragment.class,
-                    R.drawable.ac_bg_tab_index, R.string.tab_area, null, 2);
+                    R.drawable.ac_bg_tab_index, R.string.tab_area, null, 3);
         }
         addData(inflater, R.string.tab_tag_customer, TabCustomeFragment.class,
-                R.drawable.ac_bg_tab_index, R.string.tab_customer, null, 3);
+                R.drawable.ac_bg_tab_index, R.string.tab_customer, null, 4);
 
         myPagerAdapter = new MyPagerAdapter(getSupportFragmentManager());
         mViewPager.setAdapter(myPagerAdapter);
@@ -136,6 +139,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         stopService(LogUploadService.class);
         EventBusUtil.getEventBus().unregister(jump);
         EventBusUtil.getEventBus().unregister(logAdd);
+        EventBusUtil.getEventBus().unregister(this);
         super.onDestroy();
         MobAgent.killProcess(this);
         System.exit(0);

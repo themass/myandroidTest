@@ -2,6 +2,8 @@ package com.timeline.sex.ui.sound;
 
 
 import android.content.Intent;
+import android.hardware.Sensor;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
@@ -26,10 +28,12 @@ import cn.jzvd.JZVideoPlayerStandard;
 /**
  * Created by themass on 2015/9/1.
  */
-public class VideoShowActivity extends AppCompatActivity {
+public class VideoShowActivityj extends AppCompatActivity {
     private Unbinder unbinder;
     @BindView(R.id.jz_video)
     public JZVideoPlayerStandard jzVideo;
+    JZVideoPlayer.JZAutoFullscreenListener mSensorEventListener;
+    SensorManager mSensorManager;
     RecommendVo vo;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,12 +45,27 @@ public class VideoShowActivity extends AppCompatActivity {
         header.put("Referer", com.sspacee.common.util.StringUtils.hasText(vo.param)?vo.param: vo.actionUrl);
         jzVideo.setUp(vo.actionUrl, JZVideoPlayerStandard.SCREEN_LAYOUT_NORMAL, vo.title,header);
         jzVideo.headData = header;
+        mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+        mSensorEventListener = new JZVideoPlayer.JZAutoFullscreenListener();
         ImagePhotoLoad.loadCommonImg(this,vo.img,jzVideo.thumbImageView);
         JZVideoPlayer.setJzUserAction(new MyUserActionStandard());
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Sensor accelerometerSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        mSensorManager.registerListener(mSensorEventListener, accelerometerSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        //home back
+        JZVideoPlayer.goOnPlayOnResume();
+    }
+
     @Override
     public void onPause() {
         super.onPause();
+        mSensorManager.unregisterListener(mSensorEventListener);
+        JZVideoPlayer.clearSavedProgress(this, null);
+        //home back
         JZVideoPlayer.goOnPlayOnPause();
     }
     @Override
@@ -58,7 +77,6 @@ public class VideoShowActivity extends AppCompatActivity {
     }
     @Override
     public void onDestroy() {
-        JZVideoPlayer.releaseAllVideos();
         super.onDestroy();
         unbinder.unbind();
     }
@@ -77,7 +95,7 @@ public class VideoShowActivity extends AppCompatActivity {
             switch (type) {
                 case JZUserAction.ON_CLICK_PAUSE:
                     if(AdsContext.rateShow()){
-                        AdsManager.getInstans().showInterstitialAds(VideoShowActivity.this, AdsContext.Categrey.CATEGREY_VPN4,false);
+                        AdsManager.getInstans().showInterstitialAds(VideoShowActivityj.this, AdsContext.Categrey.CATEGREY_VPN4,false);
                     }                    break;
                 default:break;
             }

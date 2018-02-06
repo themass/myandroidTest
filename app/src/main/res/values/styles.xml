@@ -25,6 +25,11 @@
         <item name="@android:windowAnimationStyle">@style/AnimationActivity</item>
         <item name="actionOverflowMenuStyle">@style/OverflowMenuStyle</item>
         <item name="android:windowActionBarOverlay">true</item>
+        <item name="android:windowSoftInputMode">stateHidden</item>
+        <!--<item name="android:textColor">@android:color/white</item>-->
+        <!-- 设置 显示在toobar上菜单文字的颜色 -->
+        <item name="actionMenuTextColor">@android:color/white</item>
+
     </style>
 
     <style name="AppTheme.TransparentActivity">
@@ -59,8 +64,17 @@
         <item name="android:dropDownVerticalOffset">5dp</item>
         <!-- 弹出层水平方向上的偏移，即距离屏幕左边的距离，负值会导致右边出现空隙 -->
         <item name="android:dropDownHorizontalOffset">0dp</item>
+        <item name="android:textColor">@color/base_white</item>
+        <item name="android:actionMenuTextColor">@color/base_white</item>
+        <item name="actionMenuTextAppearance">@style/MenuTextStyle</item>
+        <item name="android:actionMenuTextAppearance">@style/MenuTextStyle</item>
     </style>
-
+    <style name="MenuTextStyle">
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textColorPrimary">@android:color/white</item>
+        <item name="android:actionMenuTextColor">@color/base_white</item>
+        <item name="android:textSize">22sp</item>
+    </style>
     <style name="ContextMenuButton">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
@@ -219,7 +233,7 @@
 
     <style name="list_itme_index" parent="list_itme_name">
         <item name="android:layout_width">@dimen/margin_40</item>
-        <item name="android:textSize">@dimen/textsize_12</item>
+        <item name="android:textSize">@dimen/textsize_14</item>
         <item name="android:layout_marginLeft">@dimen/margin_8</item>
 
     </style>

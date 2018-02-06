@@ -10,7 +10,7 @@ import com.timeline.sex.ui.fragment.RecommendFragment;
  * Created by themass on 2015/9/1.
  */
 public class RecommendAreaFragment extends RecommendFragment {
-    private static final String INDEX_TAG = "Vip_tag";
+    private static final String INDEX_TAG = "area_tag";
 
     @Override
     public String getUrl(int start) {

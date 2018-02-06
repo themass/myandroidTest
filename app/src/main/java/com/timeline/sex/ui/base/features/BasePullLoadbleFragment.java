@@ -7,6 +7,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.SearchView;
 
 import com.sspacee.common.ui.view.DividerItemDecoration;
@@ -46,6 +47,7 @@ public abstract class BasePullLoadbleFragment<T> extends LoadableFragment<InfoLi
             public boolean onQueryTextSubmit(String query) {
                 keyword = query;
                 pullView.setRefresh(true);
+                mSearchView.clearFocus();
                 return false;
             }
 
@@ -54,6 +56,7 @@ public abstract class BasePullLoadbleFragment<T> extends LoadableFragment<InfoLi
             public boolean onQueryTextChange(String newText) {
                 //没有内容时 在查询
                 if (!StringUtils.hasText(newText) && StringUtils.hasText(keyword)) {
+                    LogUtil.i("清空文字");
                     keyword = null;
                     pullView.setRefresh(true);
                     mSearchView.clearFocus();
@@ -61,7 +64,15 @@ public abstract class BasePullLoadbleFragment<T> extends LoadableFragment<InfoLi
                 return false;
             }
         });
+        getActivity().getWindow().setSoftInputMode( WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        mSearchView.clearFocus();
+    }
+
     protected void initPullView(){
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getActivity());
         pullView.setLayoutManager(layoutManager);
@@ -88,6 +99,7 @@ public abstract class BasePullLoadbleFragment<T> extends LoadableFragment<InfoLi
                 LogUtil.i("mData size=" + infoListVo.voList.size());
             }
             pullView.notifyDataSetChanged();
+            mSearchView.clearFocus();
         }
     }
     protected void sortData() {}
@@ -103,7 +115,6 @@ public abstract class BasePullLoadbleFragment<T> extends LoadableFragment<InfoLi
     @Override
     public void onItemClick(View view, T data, int postion) {
         pullView.notifyDataSetChanged();
-        mSearchView.clearFocus();
     }
 
     @Override

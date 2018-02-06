@@ -256,6 +256,11 @@ public static java.lang.String TABLENAME;
 -keep class net.sqlcipher.database.**{*;}
 -keep class rx.**{*;}
 
-#-------------------pili.pldroid.player------------------------
--keep class com.pili.pldroid.player.** { *; }
--keep class com.qiniu.qplayer.mediaEngine.MediaPlayer{*;}
+#-------------------vitamio.player------------------------
+-keep public class io.vov.vitamio.MediaPlayer { *; }
+-keep public class io.vov.vitamio.IMediaScannerService { *; }
+-keep public class io.vov.vitamio.MediaScanner { *; }
+-keep public class io.vov.vitamio.MediaScannerClient { *; }
+-keep public class io.vov.vitamio.VitamioLicense { *; }
+-keep public class io.vov.vitamio.Vitamio { *; }
+-keep public class io.vov.vitamio.MediaMetadataRetriever { *; }
