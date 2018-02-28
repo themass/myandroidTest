@@ -12,7 +12,7 @@
             android:id="@+id/card_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="@dimen/margin_5"
+            android:layout_margin="@dimen/margin_2"
             android:foreground="?android:attr/selectableItemBackground"
             android:gravity="center"
             card_view:cardCornerRadius="8dp"
@@ -22,7 +22,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:orientation="vertical"
-                android:padding="@dimen/margin_4">
+                android:padding="@dimen/margin_3">
                 <FrameLayout
                     android:id="@+id/fl_img"
                     android:layout_width="match_parent"
@@ -58,6 +58,7 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="bottom|left"
                         android:paddingLeft="@dimen/margin_5"
+                        android:layout_marginLeft="@dimen/margin_8"
                         android:paddingRight="@dimen/margin_5"
                         android:background="@color/ad_bg"
                         android:text="@string/ads_logo"

@@ -9,6 +9,7 @@ import com.sspacee.yewu.ads.base.AdsManager;
 import com.timeline.sex.R;
 import com.timeline.sex.ui.base.app.BaseFragmentActivity;
 import com.timeline.sex.ui.inte.FabOpListener;
+import com.timeline.sex.ui.inte.OnBackKeyDownListener;
 
 import java.io.Serializable;
 
@@ -34,6 +35,7 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
     private AdsContext.Categrey bannerCategrey =  AdsContext.Categrey.CATEGREY_VPN1;
     private AdsContext.Categrey interCategrey =  AdsContext.Categrey.CATEGREY_VPN1;
     private boolean needGonebanner = true;
+    private Fragment fragment = null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         slidingClose = getIntent().getBooleanExtra(SLIDINGCLOSE, true);
@@ -64,7 +66,6 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
         } else if (name instanceof Integer) {
             title = getString((Integer) name);
         }
-        Fragment fragment = null;
         try {
             fragment = (Fragment) f.newInstance();
             if (getIntent().getSerializableExtra(PARAM) != null) {
@@ -112,5 +113,17 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
     @Override
     protected AdsContext.Categrey getBannerCategrey() {
         return bannerCategrey;
+    }
+    @Override
+    public void onBackPressed() {
+        if(fragment instanceof OnBackKeyDownListener){
+            boolean ret = ((OnBackKeyDownListener)fragment).onkeyBackDown();
+            if(!ret){
+                super.onBackPressed();
+            }
+        }else{
+            super.onBackPressed();
+        }
+
     }
 }

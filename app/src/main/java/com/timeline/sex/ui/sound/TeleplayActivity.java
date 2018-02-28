@@ -13,7 +13,7 @@ import com.timeline.sex.ui.fragment.body.ImgChannleBodyFragment;
 /**
  * Created by themass on 2015/9/1.
  */
-public class ImgChannleActivity extends BaseFragmentActivity {
+public class TeleplayActivity extends BaseFragmentActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -30,7 +30,7 @@ public class ImgChannleActivity extends BaseFragmentActivity {
         getSupportFragmentManager().beginTransaction()
                 .add(R.id.fragment, fragment)
                 .commitAllowingStateLoss();
-        setToolbarTitle(R.string.img, true);
+        setToolbarTitle(R.string.tv, true);
 
     }
 

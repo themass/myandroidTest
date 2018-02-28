@@ -12,6 +12,7 @@ import com.timeline.sex.ui.base.WebViewActivity;
 import com.timeline.sex.ui.config.QuickBrowserConfigActivity;
 import com.timeline.sex.ui.sound.ImgChannleActivity;
 import com.timeline.sex.ui.sound.SoundChannleActivity;
+import com.timeline.sex.ui.sound.TeleplayActivity;
 import com.timeline.sex.ui.sound.TextChannleActivity;
 import com.timeline.sex.ui.sound.VideoChannleActivity;
 import com.timeline.sex.ui.sound.VideoListShowActivity;
@@ -43,6 +44,7 @@ public class ConfigActionJump {
         configMap.put(Constants.IMG_URL, ImgChannleActivity.class);
         configMap.put(Constants.VIDEO_URL, VideoChannleActivity.class);
         configMap.put(Constants.VIDEOLIST_URL, VideoListShowActivity.class);
+        configMap.put(Constants.TELEPLAY_URL, TeleplayActivity.class);
 //        configMap.put(Constants.VIDEO_CHANNEL_USER_URL, VideoChannleUserActivity.class);
     }
 

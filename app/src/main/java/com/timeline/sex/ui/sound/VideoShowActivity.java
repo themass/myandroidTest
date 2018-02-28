@@ -47,7 +47,11 @@ public class VideoShowActivity extends AppCompatActivity {
     @Override
     public void onPause() {
         super.onPause();
-        JZVideoPlayer.goOnPlayOnPause();
+        try {
+            JZVideoPlayer.goOnPlayOnPause();
+        }catch (Throwable e){
+            LogUtil.e(e);
+        }
     }
     @Override
     public void onBackPressed() {

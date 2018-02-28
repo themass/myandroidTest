@@ -11,4 +11,6 @@ public class IWannaVo {
     public long time;
     public boolean like;
     public boolean finished;
+    public String appName;
+    public String where;
 }

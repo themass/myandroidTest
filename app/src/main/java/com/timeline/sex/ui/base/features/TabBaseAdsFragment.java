@@ -8,8 +8,6 @@ import android.view.animation.OvershootInterpolator;
 import com.sspacee.common.util.LogUtil;
 import com.timeline.sex.R;
 import com.timeline.sex.data.AdsPopStrategy;
-import com.timeline.sex.ui.inte.OnBackKeyDownListener;
-import com.timeline.sex.ui.main.MainFragmentViewPage;
 
 import butterknife.BindView;
 import butterknife.OnClick;
@@ -17,7 +15,7 @@ import butterknife.OnClick;
 /**
  * Created by themass on 2016/3/31.
  */
-public abstract class TabBaseAdsFragment extends TabBaseFragment implements OnBackKeyDownListener {
+public abstract class TabBaseAdsFragment extends TabBaseFragment{
     private static final int ANIM_DURATION_FAB = 400;
     @BindView(R.id.fab_up)
     public FloatingActionButton fabUp;
@@ -32,16 +30,16 @@ public abstract class TabBaseAdsFragment extends TabBaseFragment implements OnBa
     public void next() {
     }
 
-    @Override
-    public boolean onkeyBackDown() {
-        return false;
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        ((MainFragmentViewPage) getActivity()).addListener(this);
-    }
+//    @Override
+//    public boolean onkeyBackDown() {
+//        return false;
+//    }
+//
+//    @Override
+//    public void onCreate(Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        ((MainFragmentViewPage) getActivity()).addListener(this);
+//    }
 
     @Override
     public void onResume() {

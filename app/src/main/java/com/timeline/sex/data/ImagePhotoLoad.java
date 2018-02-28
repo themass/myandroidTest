@@ -36,7 +36,9 @@ import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOption
  */
 public class ImagePhotoLoad implements ImageGalleryAdapter.ImageThumbnailLoader, FullScreenImageGalleryAdapter.FullScreenImageLoader {
     public static RequestOptions options = new RequestOptions().fitCenter().skipMemoryCache(true).placeholder(R.drawable.img_bg)
-            .priority(Priority.HIGH).format(DecodeFormat.PREFER_RGB_565);;
+            .priority(Priority.NORMAL).format(DecodeFormat.PREFER_RGB_565);
+    public static RequestOptions optionsHigh = new RequestOptions().fitCenter().skipMemoryCache(true).placeholder(R.drawable.img_bg)
+            .priority(Priority.IMMEDIATE).format(DecodeFormat.PREFER_RGB_565);;
     public ImagePhotoLoad(Context context) {
     }
     public static RequestManager getBuilder(Context context,String url){
@@ -79,7 +81,7 @@ public class ImagePhotoLoad implements ImageGalleryAdapter.ImageThumbnailLoader,
     @Override
     public void loadFullScreenImage(final ImageView iv, String imageUrl, int width, final LinearLayout bgLinearLayout) {
         RequestManager build=getBuilder(iv.getContext(),imageUrl);
-        build.load(imageUrl).apply(options).transition(withCrossFade(400))
+        build.load(imageUrl).apply(optionsHigh).transition(withCrossFade(400))
                 .listener(new MyGlideLibModule.LoggingListener()).into(new DrawableImageViewTarget(iv));
     }
 

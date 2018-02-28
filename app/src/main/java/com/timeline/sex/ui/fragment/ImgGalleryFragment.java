@@ -39,7 +39,7 @@ import butterknife.OnClick;
  * Created by themass on 2016/8/12.
  */
 public class ImgGalleryFragment extends BasePullLoadbleFragment<ImgItemVo> implements ImageGalleryAdapter.OnImageClickListener{
-    private static final String TEXT_TAG = "Img_ITEM_TAG";
+    private static final String IMG_ITEM_TAG = "Img_ITEM_TAG";
     @BindView(R.id.iv_favorite)
     FavoriteImageView ivFavorite;
     private ImgItemsVo vo;
@@ -126,7 +126,7 @@ public class ImgGalleryFragment extends BasePullLoadbleFragment<ImgItemVo> imple
 
     @Override
     protected InfoListVo<ImgItemVo> loadData(Context context) throws Exception {
-        return indexService.getInfoListData(Constants.getUrlWithParam(Constants.API_IMG_ITEM_URL, String.valueOf(vo.url)), ImgItemVo.class, TEXT_TAG);
+        return indexService.getInfoListData(Constants.getUrlWithParam(Constants.API_IMG_ITEM_URL, String.valueOf(vo.url)), ImgItemVo.class, IMG_ITEM_TAG);
     }
 
     @Override
@@ -161,7 +161,7 @@ public class ImgGalleryFragment extends BasePullLoadbleFragment<ImgItemVo> imple
     // endregion
     @Override
     public void onDestroyView() {
-        indexService.cancelRequest(TEXT_TAG);
+        indexService.cancelRequest(IMG_ITEM_TAG);
         super.onDestroyView();
     }
     public class MyImageGalleryAdapter extends ImageGalleryAdapter{

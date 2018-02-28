@@ -35,6 +35,7 @@ public class Constants {
     public static final String IMG_URL = "img";
     public static final String VIDEO_URL = "video";
     public static final String VIDEOLIST_URL = "videoList";
+    public static final String TELEPLAY_URL = "teleplay";
     public static final String VIDEO_CHANNEL_URL = "video_item";
     public static final String VIDEO_CHANNEL_USER_URL = "video_item_user";
     public static final String URL_TMP = "://";
@@ -115,13 +116,17 @@ public class Constants {
     public static final String API_IMG_ITEMS_URL = "/img/items.json?start=%s&limit=30&channel=%s";
     public static final String API_IMG_ITEMS_IMG_URL = "/img/items/img.json?start=%s&limit=30&channel=%s&keyword=%s";
     public static final String API_IMG_ITEM_URL = "/img/item.json?itemUrl=%s";
-
+    public static final String API_IMG_ITEM_PAGE_URL = "/img/item/page.json?start=%s&limit=30&itemUrl=%s";
 
     public static final String API_VIDEO_CHANNLE_URL = "/video/channel.json?start=%s&limit=50&channel=%s";
     public static final String API_VIDEO_CHANNEL_LIST_URL = "/video/channel/items.json?start=%s&limit=30&channel=%s&keyword=%s";
+    public static final String API_TV_ITEM_URL = "/video/tv/item.json?start=%s&limit=50&channel=%s";
+    public static final String API_TV_CHANNEL_URL = "/video/tv/channel.json?start=%s&limit=50&channel=%s&keyword=%s";
     public static final String API_VIDEO_USER_URL = "/video/user.json?start=%s&limit=30";
     public static final String API_VIDEO_USER_ITEM_URL = "/video/user/items.json?start=%s&limit=30&userId=%s";
+
     public static final String VIDEO_USER_CHANNEL = "qvod_user";
+    public static final String VIDEO_TV_CHANNEL = "teleplay_";
     public static final String CHANNEL = "channel";
     public static final String API_VIDEO_ITEMS_URL = "/video/items.json?start=%s&limit=20";
 
@@ -148,6 +153,7 @@ public class Constants {
     public static final String TEXT_FILE = "TEXT_FILE";
     public static final String TEXT_CHANNEL = "TEXT_CHANNEL";
     public static final String IMG_CHANNEL = "IMG_CHANNEL";
+    public static final String TV_CHANNEL = "TV_CHANNEL";
     public static final String VIDEO_CHANNEL = "IMG_CHANNEL";
     public static final String VIDEO_TYPE_NORMAL= "normal";
     public static final int maxRate = 10;

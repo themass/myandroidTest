@@ -106,6 +106,7 @@
     <string name="remark">Timeline RIGHTS RESERVED.</string>
     <string name="need_login">Login please</string>
     <string name="need_vip">Need VIP permission，please see "About"</string>
+    <string name="down_to_loadmore">down to loadmore</string>
 
     <string name="iwanna_tips">Tell me what du you want ,\nI\'ll be ready for you </string>
     <string name="iwanna_title">What do you want?</string>
@@ -121,6 +122,7 @@
     <string name="video">Sex video</string>
 
     <string name="img">Sex Img</string>
+    <string name="tv">TV</string>
     <string name="version_low">version is to low！</string>
 
     <string name="hidden_area_hit">Hidden “Area” from the Settings</string>

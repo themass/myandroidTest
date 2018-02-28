@@ -12,6 +12,7 @@ import com.timeline.sex.bean.vo.InfoListVo;
 import com.timeline.sex.bean.vo.RecommendVo;
 import com.timeline.sex.constant.Constants;
 import com.timeline.sex.ui.fragment.RecommendFragment;
+import com.timeline.sex.ui.fragment.TeleplayChannelFragment;
 import com.timeline.sex.ui.fragment.VideoChannelListFragment;
 import com.timeline.sex.ui.fragment.VideoChannelUserListFragment;
 

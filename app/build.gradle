@@ -9,8 +9,8 @@ android {
         applicationId "com.timeline.sex"
         minSdkVersion global_minSdkVersion
         targetSdkVersion global_targetSdkVersion
-        versionCode 1000000007
-        versionName "1.0.0.7"
+        versionCode 1000000009
+        versionName "1.0.0.9"
         // Enabling multidex support.
         multiDexEnabled true
         vectorDrawables.useSupportLibrary = true
@@ -133,6 +133,7 @@ dependencies {
 
     compile 'com.github.lawloretienne:imagegallery:0.1.0'
     compile 'com.umeng.analytics:analytics:latest.integration'
+//    compile 'com.zhy:flowlayout-lib:1.0.3'
 
     //compile 'com.github.amlcurran.showcaseview:library:5.4.3'
     //compile 'com.github.wooplr:Spotlight:1.2.3'

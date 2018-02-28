@@ -99,6 +99,10 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         public IWannaVo feedItem;
         @BindView(R.id.iv_ok)
         ImageView ivOk;
+        @BindView(R.id.tv_app_name)
+        public TextView appName;
+        @BindView(R.id.tv_where)
+        public TextView tvWhere;
         @BindView(R.id.tv_name)
         public TextView name;
         @BindView(R.id.tv_time)
@@ -121,6 +125,8 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             } else {
                 imageView.setImageResource(R.drawable.ic_heart_small_blue);
             }
+            appName.setText(feedItem.appName);
+            tvWhere.setText(feedItem.where);
             time.setText(DateUtils.format(new Date(feedItem.time),DateUtils.DATETIME_FORMAT));
             if (feedItem.finished || Constants.ADMIN.equals(feedItem.name)) {
                 ivOk.setVisibility(View.VISIBLE);

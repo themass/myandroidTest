@@ -117,6 +117,7 @@
     <string name="sound">淫声荡语</string>
     <string name="text">情趣小说</string>
     <string name="img">性感图片</string>
+    <string name="tv">TV</string>
     <string name="video">视频体验</string>
     <string name="version_low">版本太低，请升级！</string>
     <string name="no_select">未选择</string>
@@ -197,6 +198,7 @@
     <string name="no_browser">没有安装浏览器</string>
     <string name="edit">编辑</string>
     <string name="delete">删除</string>
+    <string name="down_to_loadmore">下来刷新更精彩</string>
     <!-- vpn error text -->
     <string name="error_lookup_failed">失败.请换个地区重新连接</string>
     <string name="error_unreachable">失败.请换个地区重新连接</string>

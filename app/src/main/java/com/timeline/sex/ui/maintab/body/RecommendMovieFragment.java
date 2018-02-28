@@ -15,6 +15,7 @@ import com.timeline.sex.bean.vo.RecommendVo;
 import com.timeline.sex.constant.Constants;
 import com.timeline.sex.ui.fragment.AppListFragment;
 import com.timeline.sex.ui.fragment.RecommendFragment;
+import com.timeline.sex.ui.fragment.TeleplayChannelFragment;
 import com.timeline.sex.ui.fragment.VideoChannelListFragment;
 
 import butterknife.BindView;
@@ -65,7 +66,12 @@ public class RecommendMovieFragment extends RecommendFragment {
     }
     public void onItemClick(View v, int position) {
         RecommendVo vo = infoListVo.voList.get(position);
-        VideoChannelListFragment.startFragment(getActivity(), vo);
+        if(vo.param.startsWith(Constants.VIDEO_TV_CHANNEL)){
+            TeleplayChannelFragment.startFragment(getActivity(),vo);
+        }else{
+            VideoChannelListFragment.startFragment(getActivity(), vo);
+        }
+
         MobAgent.onEventRecommondChannel(getActivity(), vo.title);
     }
 }
