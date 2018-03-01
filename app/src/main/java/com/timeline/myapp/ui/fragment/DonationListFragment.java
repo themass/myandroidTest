@@ -1,26 +1,26 @@
-package com.timeline.sex.ui.fragment;
+package com.timeline.myapp.ui.fragment;
 
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
-import com.timeline.sex.R;
-import com.timeline.sex.adapter.AppRecommendViewAdapter;
-import com.timeline.sex.adapter.base.BaseRecyclerViewAdapter;
-import com.timeline.sex.bean.vo.AppInfo;
-import com.timeline.sex.bean.vo.InfoListVo;
-import com.timeline.sex.constant.Constants;
-import com.timeline.sex.ui.base.CommonFragmentActivity;
-import com.timeline.sex.ui.base.features.BasePullLoadbleFragment;
-import com.timeline.sex.ui.sound.MyFullScreenImageGalleryActivity;
+import com.timeline.myapp.adapter.AppRecommendViewAdapter;
+import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
+import com.timeline.myapp.bean.vo.AppInfo;
+import com.timeline.myapp.bean.vo.InfoListVo;
+import com.timeline.myapp.constant.Constants;
+import com.timeline.myapp.ui.base.CommonFragmentActivity;
+import com.timeline.myapp.ui.base.features.BasePullLoadbleFragment;
+import com.timeline.myapp.ui.sound.MyFullScreenImageGalleryActivity;
+import com.timeline.vpn.R;
 
 import java.util.ArrayList;
 
 /**
  * Created by themass on 2016/8/12.
  */
-public class DonationListFragment extends BasePullLoadbleFragment<AppInfo>{
+public class DonationListFragment extends BasePullLoadbleFragment<AppInfo> {
     private static final String APP_TAG = "APP_TAG";
     private AppRecommendViewAdapter adapter;
     ArrayList<String> origeImages = new ArrayList<>();
