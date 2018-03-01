@@ -208,13 +208,13 @@
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:textSize">@dimen/textsize_22</item>
-        <item name="android:textColor">@color/base_black</item>
+        <item name="android:textColor">@color/channel_list_base_black</item>
         <item name="android:singleLine">true</item>
     </style>
 
     <style name="list_itme_date" parent="list_itme_name">
         <item name="android:layout_width">wrap_content</item>
-        <item name="android:textSize">@dimen/textsize_18</item>
+        <item name="android:textSize">@dimen/textsize_16</item>
         <item name="android:layout_alignParentRight">true</item>
         <item name="android:gravity">right</item>
         <item name="android:paddingRight">@dimen/margin_8</item>
@@ -223,10 +223,11 @@
 
     <style name="list_itme_index" parent="list_itme_name">
         <item name="android:layout_width">@dimen/margin_40</item>
-        <item name="android:textSize">@dimen/textsize_18</item>
+        <item name="android:textSize">@dimen/textsize_16</item>
         <item name="android:layout_marginLeft">@dimen/margin_8</item>
 
     </style>
+
 
     <style name="AppTheme.NoActionBar">
         <item name="windowActionBar">false</item>

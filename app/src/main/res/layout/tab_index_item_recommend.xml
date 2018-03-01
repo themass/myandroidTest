@@ -50,7 +50,8 @@
                         android:ellipsize="end"
                         android:gravity="center_horizontal"
                         android:singleLine="true"
-                        android:textColor="@color/base_black"
+                        android:textColor="@color/location_header_btn_bg"
+                        android:textStyle="bold"
                         android:textSize="@dimen/recommend_hit_size" />
                     <TextView
                         android:id="@+id/ads_logo"
@@ -71,6 +72,7 @@
                     android:id="@+id/tv_title_below"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:textColor="@color/index_channel_list_base_black"
                     android:singleLine="true"
                     android:textSize="@dimen/textsize_16"/>
             </LinearLayout>
