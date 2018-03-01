@@ -57,6 +57,7 @@
     <string name="menu_btn_logout">Logout</string>
     <string name="menu_btn_setting">Setting</string>
     <string name="menu_btn_app">App recommend</string>
+    <string name="menu_btn_donation">Donation</string>
     <string name="menu_btn_support">Support author</string>
     <string name="menu_btn_about_context">FreePorn the most stable, free, unlimited，all for you！</string>
     <string name="feed_back">Feedback</string>

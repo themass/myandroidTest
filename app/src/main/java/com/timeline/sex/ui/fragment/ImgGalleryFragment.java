@@ -152,7 +152,6 @@ public class ImgGalleryFragment extends BasePullLoadbleFragment<ImgItemVo> imple
         Intent intent = new Intent(getContext(), MyFullScreenImageGalleryActivity.class);
         Bundle bundle = new Bundle();
         bundle.putStringArrayList(MyFullScreenImageGalleryActivity.KEY_IMAGES, origeImages);
-        bundle.putStringArrayList(MyFullScreenImageGalleryActivity.KEY_IMAGES_REMOTE, remteImages);
         bundle.putInt(MyFullScreenImageGalleryActivity.KEY_POSITION, position);
         intent.putExtras(bundle);
         startActivity(intent);

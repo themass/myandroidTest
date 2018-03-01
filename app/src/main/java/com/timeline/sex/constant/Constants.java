@@ -98,7 +98,7 @@ public class Constants {
     public static final String API_IWANNA_LIKE_URL = "/data/feed/wanna/%s.json";
     public static final String API_VERSION_URL = "/data/version.json";
     public static final String API_APP_URL = "/data/appinfo.json";
-
+    public static final String API_DONATION_URL = "/data/donation.json";
 
     public static final String API_RECOMMEND_NIGHT_URL = "/data/recommend/night.json?start=%s&limit=20";
     public static final String API_RECOMMEND_MOVIE_URL = "/data/recommend/movie.json?start=%s&limit=20";

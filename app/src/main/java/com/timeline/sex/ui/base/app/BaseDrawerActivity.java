@@ -29,6 +29,7 @@ import com.timeline.sex.data.config.StateUseEvent;
 import com.timeline.sex.data.config.UserLoginEvent;
 import com.timeline.sex.ui.feedback.IWannaFragment;
 import com.timeline.sex.ui.fragment.AppListFragment;
+import com.timeline.sex.ui.fragment.DonationListFragment;
 import com.timeline.sex.ui.fragment.FavoriteFragment;
 import com.timeline.sex.ui.user.LoginActivity;
 import com.timeline.sex.ui.user.SettingActivity;
@@ -223,6 +224,9 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                 } else if (item.getItemId() == R.id.menu_app) {
                     name = "应用推荐";
                     AppListFragment.startFragment(BaseDrawerActivity.this);
+                } else if (item.getItemId() == R.id.menu_donation) {
+                    name = "捐赠";
+                    DonationListFragment.startFragment(BaseDrawerActivity.this);
                 }
                 MobAgent.onEventMenu(BaseDrawerActivity.this, name);
                 return false;

@@ -28,14 +28,12 @@ import butterknife.OnClick;
 
 public class MyFullScreenImageGalleryActivity extends BaseSingleActivity implements SaveImageCallBack{
     public static final String KEY_IMAGES = "KEY_IMAGES";
-    public static final String KEY_IMAGES_REMOTE = "KEY_IMAGES_REMOTE";
     public static final String KEY_POSITION = "KEY_POSITION";
     @BindView(R.id.vp_big_container)
     ViewPager viewPager;
     @BindView(R.id.tv_page)
     TextView tvPage;
     private List<String> images;
-    private List<String> imagesRemote;
     private int position;
     private final OnPageChangeListener viewPagerOnPageChangeListener = new OnPageChangeListener() {
         public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
@@ -59,7 +57,6 @@ public class MyFullScreenImageGalleryActivity extends BaseSingleActivity impleme
             Bundle extras = intent.getExtras();
             if (extras != null) {
                 this.images = extras.getStringArrayList(KEY_IMAGES);
-                this.imagesRemote =extras.getStringArrayList(KEY_IMAGES_REMOTE);
                 this.position = extras.getInt(KEY_POSITION);
             }
         }
@@ -68,7 +65,7 @@ public class MyFullScreenImageGalleryActivity extends BaseSingleActivity impleme
     @OnClick(R.id.iv_save)
     public void onSave(View view){
         ToastUtil.showShort(R.string.save_start);
-        SaveImageTask.startSave(MyFullScreenImageGalleryActivity.this,imagesRemote.get(viewPager.getCurrentItem()),MyFullScreenImageGalleryActivity.this);
+        SaveImageTask.startSave(MyFullScreenImageGalleryActivity.this,images.get(viewPager.getCurrentItem()),MyFullScreenImageGalleryActivity.this);
     }
     @Override
     public void setupView() {
