@@ -9,7 +9,6 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import com.sspacee.common.util.DateUtils;
-import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.FileSizeUtil;
 import com.sspacee.common.util.FileUtils;
 import com.sspacee.common.util.LogUtil;
@@ -19,17 +18,16 @@ import com.sspacee.common.util.SystemUtils;
 import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.um.MobAgent;
-import com.timeline.vpn.R;
 import com.timeline.myapp.base.MyApplication;
 import com.timeline.myapp.bean.vo.StateUseVo;
 import com.timeline.myapp.bean.vo.UserInfoVo;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.UserLoginUtil;
 import com.timeline.myapp.data.VersionUpdater;
-import com.timeline.myapp.data.config.TabChangeEvent;
 import com.timeline.myapp.service.LogUploadService;
 import com.timeline.myapp.ui.base.WebViewActivity;
 import com.timeline.myapp.ui.base.app.BaseSingleActivity;
+import com.timeline.vpn.R;
 
 import java.io.File;
 import java.util.Date;
@@ -41,8 +39,6 @@ import butterknife.OnClick;
  * Created by themass on 2016/8/13.
  */
 public class SettingActivity extends BaseSingleActivity {
-    @BindView(R.id.sw_area)
-    Switch swArea;
     @BindView(R.id.sw_sound)
     Switch swSound;
     @BindView(R.id.tv_timeuse)
@@ -60,14 +56,6 @@ public class SettingActivity extends BaseSingleActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_setting);
         setToolbarTitle(R.string.setting, true);
-        swArea.setChecked(PreferenceUtils.getPrefBoolean(this, Constants.AREA_SWITCH, true));
-        swArea.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                PreferenceUtils.setPrefBoolean(SettingActivity.this, Constants.AREA_SWITCH, isChecked);
-                LogUtil.i("swArea: " + isChecked);
-                EventBusUtil.getEventBus().post(new TabChangeEvent());
-            }
-        });
         swSound.setChecked(PreferenceUtils.getPrefBoolean(this, Constants.SOUND_SWITCH, true));
         swSound.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {

@@ -13,12 +13,12 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.sspacee.common.util.ToastUtil;
-import com.timeline.vpn.R;
 import com.timeline.myapp.adapter.MyFullScreenImageGalleryAdapter;
 import com.timeline.myapp.base.MyApplication;
 import com.timeline.myapp.task.SaveImageCallBack;
 import com.timeline.myapp.task.SaveImageTask;
 import com.timeline.myapp.ui.base.app.BaseSingleActivity;
+import com.timeline.vpn.R;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +26,7 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.OnClick;
 
-public class MyFullScreenImageGalleryActivity extends BaseSingleActivity implements SaveImageCallBack{
+public class MyFullScreenImageGalleryActivity extends BaseSingleActivity implements SaveImageCallBack {
     public static final String KEY_IMAGES = "KEY_IMAGES";
     public static final String KEY_IMAGES_REMOTE = "KEY_IMAGES_REMOTE";
     public static final String KEY_POSITION = "KEY_POSITION";

@@ -6,7 +6,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 
-import com.timeline.vpn.R;
 import com.timeline.myapp.adapter.AppRecommendViewAdapter;
 import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.myapp.bean.vo.AppInfo;
@@ -14,6 +13,7 @@ import com.timeline.myapp.bean.vo.InfoListVo;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.ui.base.CommonFragmentActivity;
 import com.timeline.myapp.ui.base.features.BasePullLoadbleFragment;
+import com.timeline.vpn.R;
 
 
 /**

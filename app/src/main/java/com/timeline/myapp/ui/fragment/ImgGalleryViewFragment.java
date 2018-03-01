@@ -12,7 +12,6 @@ import android.view.ViewGroup;
 import com.sspacee.common.ui.view.gallery.BigImagePreview;
 import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.common.util.DensityUtil;
-import com.timeline.vpn.R;
 import com.timeline.myapp.bean.vo.ImgItemVo;
 import com.timeline.myapp.bean.vo.ImgItemsVo;
 import com.timeline.myapp.bean.vo.InfoListVo;
@@ -20,6 +19,7 @@ import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.StaticDataUtil;
 import com.timeline.myapp.ui.base.CommonFragmentActivity;
 import com.timeline.myapp.ui.base.features.LoadableFragment;
+import com.timeline.vpn.R;
 
 import java.util.ArrayList;
 import java.util.List;

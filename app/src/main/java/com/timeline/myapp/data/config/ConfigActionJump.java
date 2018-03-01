@@ -13,6 +13,7 @@ import com.timeline.myapp.ui.sound.ImgChannleActivity;
 import com.timeline.myapp.ui.sound.SoundChannleActivity;
 import com.timeline.myapp.ui.sound.TextChannleActivity;
 import com.timeline.myapp.ui.sound.VideoChannleActivity;
+import com.timeline.myapp.ui.sound.VideoListShowActivity;
 import com.timeline.vpn.R;
 
 import org.greenrobot.eventbus.Subscribe;
@@ -42,6 +43,7 @@ public class ConfigActionJump {
         configMap.put(Constants.TEXT_URL, TextChannleActivity.class);
         configMap.put(Constants.IMG_URL, ImgChannleActivity.class);
         configMap.put(Constants.VIDEO_URL, VideoChannleActivity.class);
+        configMap.put(Constants.VIDEOLIST_URL, VideoListShowActivity.class);
 //        configMap.put(Constants.VIDEO_CHANNEL_USER_URL, VideoChannleUserActivity.class);
     }
 
@@ -71,7 +73,7 @@ public class ConfigActionJump {
     }
 
     private String parserUrl(String schema, String url, Map<String, String> param) {
-        if (HTTP_URL.equals(schema) || HTTPS_URL.equals(schema)) {
+        if (Constants.HTTP_URL.equals(schema) || Constants.HTTPS_URL.equals(schema)) {
             return url;
         } else {
             try {

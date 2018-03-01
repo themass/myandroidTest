@@ -17,7 +17,6 @@ import com.sspacee.common.ui.view.FavoriteImageView;
 import com.sspacee.common.ui.view.GridSpacingItemDecoration;
 import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.common.util.StringUtils;
-import com.timeline.vpn.R;
 import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.myapp.base.MyApplication;
 import com.timeline.myapp.bean.vo.ImgItemVo;
@@ -28,6 +27,7 @@ import com.timeline.myapp.data.StaticDataUtil;
 import com.timeline.myapp.ui.base.CommonFragmentActivity;
 import com.timeline.myapp.ui.base.features.BasePullLoadbleFragment;
 import com.timeline.myapp.ui.sound.MyFullScreenImageGalleryActivity;
+import com.timeline.vpn.R;
 
 import java.util.ArrayList;
 import java.util.List;

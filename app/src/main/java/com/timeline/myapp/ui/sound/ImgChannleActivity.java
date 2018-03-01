@@ -6,12 +6,10 @@ import android.support.v4.app.Fragment;
 import android.view.View;
 
 import com.sspacee.common.util.LogUtil;
-import com.sspacee.yewu.ads.base.AdsContext;
-import com.sspacee.yewu.ads.base.AdsManager;
-import com.timeline.vpn.R;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.ui.base.app.BaseFragmentActivity;
-import com.timeline.myapp.ui.fragment.ImgChannleBodyFragment;
+import com.timeline.myapp.ui.fragment.body.ImgChannleBodyFragment;
+import com.timeline.vpn.R;
 
 /**
  * Created by themass on 2015/9/1.
@@ -46,10 +44,4 @@ public class ImgChannleActivity extends BaseFragmentActivity {
         return true;
     }
 
-    @Override
-    public void setupView() {
-        super.setupView();
-        if(AdsContext.rateShow())
-            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN1,false);
-    }
 }

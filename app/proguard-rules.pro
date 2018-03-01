@@ -194,7 +194,7 @@
 }
 
 #----------------------project------------
--keep class com.timeline.vpn.bean.**{ *; }
+-keep class com.timeline.myapp.bean.**{ *; }
 -keep class org.strongswan.android.logic.**{ *; }
 -keep class sun.misc.Unsafe { *; }
 -keep class com.google.gson.stream.** { *; }

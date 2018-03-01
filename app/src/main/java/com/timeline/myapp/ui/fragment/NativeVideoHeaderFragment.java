@@ -13,7 +13,7 @@ import butterknife.BindView;
 /**
  * Created by themass on 2016/8/21.
  */
-public class NativeVideoHeaderFragment extends BaseFragment{
+public class NativeVideoHeaderFragment extends BaseFragment {
     @BindView(R.id.activity_native_video)
     public ViewGroup flBanner;
     @Override

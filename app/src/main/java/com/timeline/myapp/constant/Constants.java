@@ -35,6 +35,7 @@ public class Constants {
     public static final String TEXT_URL = "text";
     public static final String IMG_URL = "img";
     public static final String VIDEO_URL = "video";
+    public static final String VIDEOLIST_URL = "videoList";
     public static final String VIDEO_CHANNEL_URL = "video_item";
     public static final String VIDEO_CHANNEL_USER_URL = "video_item_user";
     public static final String URL_TMP = "://";
@@ -57,7 +58,6 @@ public class Constants {
     //user
     public static final String LOGIN_USER = "LOGIN_USER";
     public static final String LOGIN_USER_LAST = "LOGIN_USER_LAST";
-    public static final String AREA_SWITCH = "AREA_SWITCH";
     public static final String SOUND_SWITCH = "SOUND_SWITCH";
     public static final String LOGIN_USER_PW_LAST = "LOGIN_USER_PW_LAST";
     public static final String DEVID = "Devid";
@@ -94,7 +94,7 @@ public class Constants {
     public static final String API_RECOMMEND_CUSTOME_URL = "/data/recommend/custome.json?start=%s&limit=100";
 
     public static final String API_SOUND_CHANNLE_URL = "/sound/channel.json?start=%s&limit=20&channel=%s";
-    public static final String API_SOUND_ITEMS_URL = "/sound/items.json?start=%s&limit=30&channel=%s";
+    public static final String API_SOUND_ITEMS_URL = "/sound/items.json?start=%s&limit=30&channel=%s&keyword=%s";
 
     public static final String API_TEXT_CHANNLE_URL = "/text/channel.json?start=%s&limit=50&channel=%s";
     public static final String API_TEXT_ITEMS_URL = "/text/items.json?start=%s&limit=30&channel=%s&keyword=%s";
@@ -102,11 +102,12 @@ public class Constants {
 
     public static final String API_IMG_CHANNLE_URL = "/img/channel.json?start=%s&limit=50&channel=%s";
     public static final String API_IMG_ITEMS_URL = "/img/items.json?start=%s&limit=30&channel=%s";
-    public static final String API_IMG_ITEMS_IMG_URL = "/img/items/img.json?start=%s&limit=30&channel=%s";
+    public static final String API_IMG_ITEMS_IMG_URL = "/img/items/img.json?start=%s&limit=30&channel=%s&keyword=%s";
     public static final String API_IMG_ITEM_URL = "/img/item.json?itemUrl=%s";
 
+
     public static final String API_VIDEO_CHANNLE_URL = "/video/channel.json?start=%s&limit=50&channel=%s";
-    public static final String API_VIDEO_CHANNEL_LIST_URL = "/video/channel/items.json?start=%s&limit=30&channel=%s";
+    public static final String API_VIDEO_CHANNEL_LIST_URL = "/video/channel/items.json?start=%s&limit=30&channel=%s&keyword=%s";
     public static final String API_VIDEO_USER_URL = "/video/user.json?start=%s&limit=30";
     public static final String API_VIDEO_USER_ITEM_URL = "/video/user/items.json?start=%s&limit=30&userId=%s";
     public static final String VIDEO_USER_CHANNEL = "qvod_user";

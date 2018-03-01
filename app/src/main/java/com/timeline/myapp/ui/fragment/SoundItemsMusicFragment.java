@@ -122,7 +122,10 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
         intent.putExtra(CommonFragmentActivity.ADSSCROLL, false);
         context.startActivity(intent);
     }
-
+    @Override
+    protected boolean showSearchView(){
+        return true;
+    }
     private void receiverReg() {
         homeReceiver = new PlayerReceiver();
         // 创建IntentFilter
@@ -304,14 +307,14 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
 
     @Override
     protected InfoListVo<SoundItemsVo> loadData(Context context) throws Exception {
-        return indexService.getInfoListData(Constants.getUrlWithParam(Constants.API_SOUND_ITEMS_URL, infoListVo.pageNum, channel), SoundItemsVo.class, SOUND_TAG);
+        return indexService.getInfoListData(Constants.getUrlWithParam(Constants.API_SOUND_ITEMS_URL, infoListVo.pageNum, channel,keyword), SoundItemsVo.class, SOUND_TAG);
     }
 
     @Override
     public void onItemClick(View view, SoundItemsVo data, int postion) {
         LogUtil.i(data.file);
         play(postion);
-        pullView.notifyDataSetChanged();
+        super.onItemClick(view,data,postion);
     }
 
     public void onProgressChanged(SeekBar var1, int var2, boolean var3) {

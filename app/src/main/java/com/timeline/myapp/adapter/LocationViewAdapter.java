@@ -64,13 +64,13 @@ public class LocationViewAdapter extends BaseRecyclerViewAdapter<LocationViewAda
         holder.rbStar.setRating(vo.level);
         //TODO:改成vip高级vip图标
         if (vo.type == Constants.LOCATION_TYPE_FREE) {
-            holder.ivType.setImageResource(R.drawable.bg_type_free);
+            holder.ivType.setBackgroundResource(R.drawable.bg_type_free);
             holder.tvType.setText(R.string.vpn_type_free);
         } else if (vo.type == Constants.LOCATION_TYPE_VIP) {
-            holder.ivType.setImageResource(R.drawable.bg_type_vip);
+            holder.ivType.setBackgroundResource(R.drawable.bg_type_vip);
             holder.tvType.setText(R.string.vpn_type_vip);
         } else if (vo.type == Constants.LOCATION_TYPE_VIP2) {
-            holder.ivType.setImageResource(R.drawable.bg_type_advip);
+            holder.ivType.setBackgroundResource(R.drawable.bg_type_advip);
             holder.tvType.setText(R.string.vpn_type_vip2);
         }
        if(position==getItemCount()-1){
@@ -105,8 +105,8 @@ public class LocationViewAdapter extends BaseRecyclerViewAdapter<LocationViewAda
         @BindView(R.id.loc_tv_index)
         TextView tvIndex;
         @Nullable
-        @BindView(R.id.loc_iv_type)
-        ImageView ivType;
+        @BindView(R.id.rl_local_type)
+        RelativeLayout ivType;
         @Nullable
         @BindView(R.id.loc_tv_type)
         TextView tvType;

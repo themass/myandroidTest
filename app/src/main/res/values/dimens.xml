@@ -7,13 +7,13 @@
     <!-- tab -->
     <dimen name="tab_text_size">15sp</dimen>
     <!-- 业务-->
-    <dimen name="location_choose_width1">95dp</dimen>
-    <dimen name="location_choose_width2">85dp</dimen>
+    <dimen name="location_choose_width1">88dp</dimen>
+    <dimen name="location_choose_width2">80dp</dimen>
     <dimen name="location_choose_margin">5dp</dimen>
     <dimen name="location_choose_btn_size">17sp</dimen>
-    <dimen name="location_choose_tv_country">16sp</dimen>
+    <dimen name="location_choose_tv_country">13sp</dimen>
     <dimen name="location_choose_tv_type">15sp</dimen>
-    <dimen name="location_choose_tv_index">15sp</dimen>
+    <dimen name="location_choose_tv_index">13sp</dimen>
     <dimen name="location_choose_tv_net">14sp</dimen>
     <dimen name="drawer_header_login_tx_size">14sp</dimen>
     <dimen name="drawer_header_margin">16dp</dimen>
@@ -66,7 +66,7 @@
     <dimen name="remote_vpn_title">10sp</dimen>
     <dimen name="remote_vpn_time">16sp</dimen>
     <dimen name="remote_vpn_content">14sp</dimen>
-    <dimen name="recommend_hit_size">20sp</dimen>
+    <dimen name="recommend_hit_size">18sp</dimen>
     <dimen name="toolbar_title_size">18sp</dimen>
 
     <dimen name="activity_horizontal_margin">16dp</dimen>

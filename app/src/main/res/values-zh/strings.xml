@@ -17,10 +17,10 @@
 <resources>
     <!--  tab main -->
     <string name="tab_index">首页</string>
-    <string name="tab_vip">专区</string>
+    <string name="tab_local">地区</string>
     <string name="tab_customer">自定义</string>
     <string name="tab_tag_index">index</string>
-    <string name="tab_tag_vip">vip</string>
+    <string name="tab_tag_local">local</string>
     <string name="tab_tag_customer">customer</string>
     <string name="tab_vip_temp">内容准备中。。。敬请期待</string>
     <string name="tab_fb_click">点我赚积分,换VIP。。+</string>
@@ -38,7 +38,7 @@
     <string name="location_country">国家</string>
     <string name="location_features">名称&#038;Ping</string>
     <string name="location_choose_title">请选择地区</string>
-    <string name="location_choose_level">网  络：</string>
+    <string name="location_choose_level">网络：</string>
     <string name="location_choose_none">随机</string>
     <string name="location_choose_flag_none">点击“ 地区 ”有更多国家可选</string>
     <string name="location_choose_ping">Ping：</string>

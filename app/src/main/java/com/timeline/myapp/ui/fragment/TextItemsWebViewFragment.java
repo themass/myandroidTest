@@ -41,7 +41,7 @@ import butterknife.OnClick;
 /**
  * Created by themass on 2016/3/21.
  */
-public class TextItemsWebViewFragment extends BaseFragment{
+public class TextItemsWebViewFragment extends BaseFragment {
     protected Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {

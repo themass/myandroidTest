@@ -114,13 +114,11 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
         }
         if (vo.dataType == RecommendVo.dataType_ADS) {
             holder.ivADS.setVisibility(View.VISIBLE);
-        } else {
-            if(showParam){
-                holder.ivADS.setVisibility(View.VISIBLE);
-                holder.ivADS.setText(vo.showLogo);
-            }else {
-                holder.ivADS.setVisibility(View.GONE);
-            }
+        } else if(showParam && StringUtils.hasText(vo.showLogo)){
+            holder.ivADS.setVisibility(View.VISIBLE);
+            holder.ivADS.setText(vo.showLogo);
+        }else {
+            holder.ivADS.setVisibility(View.GONE);
         }
         if (vo.newShow !=null && vo.newShow==true) {
             holder.ivNew.setVisibility(View.VISIBLE);

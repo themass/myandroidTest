@@ -8,8 +8,9 @@
         android:layout_width="110dp"
         android:layout_height="110dp"
         android:layout_gravity="center"
-        android:layout_centerHorizontal="true"
-        android:padding="5dp">
+        android:padding="5dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true">
         <ImageButton
             android:id="@+id/iv_vpn_state"
             android:layout_width="100dp"

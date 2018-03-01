@@ -1,13 +1,13 @@
-package com.timeline.sex.ui.fragment.body;
+package com.timeline.myapp.ui.fragment.body;
 
 
 import android.os.Bundle;
 import android.view.View;
 
-import com.timeline.sex.bean.vo.RecommendVo;
-import com.timeline.sex.constant.Constants;
-import com.timeline.sex.ui.fragment.RecommendFragment;
-import com.timeline.sex.ui.fragment.SoundItemsMusicFragment;
+import com.timeline.myapp.bean.vo.RecommendVo;
+import com.timeline.myapp.constant.Constants;
+import com.timeline.myapp.ui.fragment.RecommendFragment;
+import com.timeline.myapp.ui.fragment.SoundItemsMusicFragment;
 
 import java.util.HashMap;
 

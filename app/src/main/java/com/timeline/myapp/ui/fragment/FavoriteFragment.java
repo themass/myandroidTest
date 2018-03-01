@@ -11,7 +11,6 @@ import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.ModelUtils;
 import com.sspacee.common.util.SystemUtils;
 import com.sspacee.common.util.ToastUtil;
-import com.timeline.vpn.R;
 import com.timeline.myapp.adapter.FavoriteViewAdapter;
 import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.myapp.bean.vo.FavoriteVo;
@@ -25,6 +24,7 @@ import com.timeline.myapp.data.config.FavoriteChangeEvent;
 import com.timeline.myapp.ui.base.CommonFragmentActivity;
 import com.timeline.myapp.ui.base.MenuOneContext;
 import com.timeline.myapp.ui.base.features.BasePullLoadbleFragment;
+import com.timeline.vpn.R;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -42,9 +42,6 @@ public class FavoriteFragment extends BasePullLoadbleFragment<FavoriteVo> implem
         Intent intent = new Intent(context, CommonFragmentActivity.class);
         intent.putExtra(CommonFragmentActivity.FRAGMENT, FavoriteFragment.class);
         intent.putExtra(CommonFragmentActivity.TITLE, R.string.menu_btn_favorite);
-        intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, true);
-        intent.putExtra(CommonFragmentActivity.ADSSCROLL, true);
-        intent.putExtra(CommonFragmentActivity.SLIDINGCLOSE, true);
         context.startActivity(intent);
     }
 

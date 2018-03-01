@@ -6,11 +6,9 @@ import android.support.v4.app.Fragment;
 import android.view.View;
 
 import com.sspacee.common.util.LogUtil;
-import com.sspacee.yewu.ads.base.AdsContext;
-import com.sspacee.yewu.ads.base.AdsManager;
-import com.timeline.vpn.R;
 import com.timeline.myapp.ui.base.app.BaseFragmentActivity;
 import com.timeline.myapp.ui.fragment.AutoVideoFragment;
+import com.timeline.vpn.R;
 
 import cn.jzvd.JZVideoPlayer;
 import cn.jzvd.JZVideoPlayerStandard;
@@ -52,11 +50,11 @@ public class VideoActivity extends BaseFragmentActivity {
     protected boolean enableSliding() {
         return true;
     }
-    @Override
-    public void setupView() {
-        super.setupView();
-        if(AdsContext.rateShow()){
-            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN1,false);
-        }
-    }
+//    @Override
+//    public void setupView() {
+//        super.setupView();
+//        if(AdsContext.rateShow()){
+//            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN1,false);
+//        }
+//    }
 }

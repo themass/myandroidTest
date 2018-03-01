@@ -9,8 +9,8 @@
         android:layout_height="40.0dip"
         android:orientation="horizontal"
         android:paddingBottom="5.0dip"
-        android:paddingLeft="15.0dip"
-        android:paddingRight="15.0dip"
+        android:paddingLeft="10.0dip"
+        android:paddingRight="10.0dip"
         android:paddingTop="5.0dip">
 
         <Button
@@ -36,14 +36,13 @@
             android:layout_height="fill_parent"
             android:text="@string/location_features" />
     </LinearLayout>
-
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/loc_rv_location"
+    <include
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:paddingBottom="5.0dip"
         android:paddingLeft="15.0dip"
         android:paddingRight="15.0dip"
         android:paddingTop="5.0dip"
-        android:scrollbars="none" />
+        layout="@layout/common_mypage_view"
+        />
 </LinearLayout>

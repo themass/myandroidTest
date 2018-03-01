@@ -3,12 +3,8 @@ package com.timeline.myapp.ui.fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.SearchView;
 
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.StringUtils;
@@ -30,21 +26,13 @@ import com.timeline.myapp.ui.base.MenuOneContext;
 import com.timeline.myapp.ui.base.features.BasePullLoadbleFragment;
 import com.timeline.vpn.R;
 
-import butterknife.BindView;
-
 /**
  * Created by themass on 2016/8/12.
  */
 public class TextChannelListFragment extends BasePullLoadbleFragment<TextItemsVo> implements MenuOneContext.MyOnMenuItemClickListener,BaseRecyclerViewAdapter.OnRecyclerViewItemLongClickListener<TextItemsVo> {
     private static final String TEXT_TAG = "text_tag";
-    @Nullable
-    @BindView(R.id.searchView)
-    SearchView mSearchView;
-
     private TextChannelListItemsViewAdapter adapter;
     private RecommendVo vo;
-    private String keyword = "";
-
     public static void startFragment(Context context, RecommendVo vo) {
         Intent intent = new Intent(context, CommonFragmentActivity.class);
         intent.putExtra(CommonFragmentActivity.FRAGMENT, TextChannelListFragment.class);
@@ -59,48 +47,20 @@ public class TextChannelListFragment extends BasePullLoadbleFragment<TextItemsVo
     }
 
     @Override
-    protected  int getRootViewId() {
-        return R.layout.layout_text_list_view;
-    }
-    @Override
-    protected void onContentViewCreated(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
-        inflater.inflate(R.layout.common_mypage_view, parent);
-    }
-
-    @Override
     protected BaseRecyclerViewAdapter getAdapter() {
         adapter = new TextChannelListItemsViewAdapter(getActivity(), pullView.getRecyclerView(), infoListVo.voList, this);
         adapter.setLongClickListener(this);
         return adapter;
     }
-
+    @Override
+    protected boolean showSearchView(){
+        return true;
+    }
     @Override
     public void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
         vo = StaticDataUtil.get(Constants.TEXT_CHANNEL, RecommendVo.class);
         StaticDataUtil.del(Constants.TEXT_CHANNEL);
-
-        mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            // 当点击搜索按钮时触发该方法
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                keyword = query;
-                pullView.setRefresh(true);
-                return false;
-            }
-
-            // 当搜索内容改变时触发该方法
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                //没有内容时 在查询
-                if (!StringUtils.hasText(newText) && StringUtils.hasText(keyword)) {
-                    keyword = null;
-                    pullView.setRefresh(true);
-                    mSearchView.clearFocus();
-                }
-                return false;
-            }
-        });
     }
     @Override
     protected InfoListVo<TextItemsVo> loadData(Context context) throws Exception {
@@ -117,7 +77,6 @@ public class TextChannelListFragment extends BasePullLoadbleFragment<TextItemsVo
         } else {
             TextItemsFragment.startFragment(getActivity(), data);
         }
-        mSearchView.clearFocus();
         super.onItemClick(view,data,postion);
     }
 

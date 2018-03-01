@@ -4,22 +4,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
-import com.sspacee.common.ui.view.DividerItemDecoration;
-import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.GsonUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
-import com.timeline.vpn.R;
 import com.timeline.myapp.adapter.LocationViewAdapter;
 import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.myapp.bean.vo.InfoListVo;
@@ -31,19 +26,18 @@ import com.timeline.myapp.data.UserLoginUtil;
 import com.timeline.myapp.data.config.LocationChooseEvent;
 import com.timeline.myapp.data.sort.LocSortFactor;
 import com.timeline.myapp.ui.base.CommonFragmentActivity;
-import com.timeline.myapp.ui.base.features.LoadableFragment;
+import com.timeline.myapp.ui.base.features.BasePullLoadbleFragment;
 import com.timeline.myapp.ui.user.LoginActivity;
+import com.timeline.vpn.R;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
 import butterknife.BindView;
 
 /**
  * Created by themass on 2016/8/12.
  */
-public class LocationChooseFragment extends LoadableFragment<List<LocationVo>> implements BaseRecyclerViewAdapter.OnRecyclerViewItemClickListener<LocationVo> {
+public class LocationChooseFragment extends BasePullLoadbleFragment<LocationVo>{
     private static final String LOCATION_TAG = "location_tag";
     @Nullable
     @BindView(R.id.loc_btn_type)
@@ -54,15 +48,10 @@ public class LocationChooseFragment extends LoadableFragment<List<LocationVo>> i
     @Nullable
     @BindView(R.id.loc_btn_features)
     Button tvFeature;
-    @Nullable
-    @BindView(R.id.loc_rv_location)
-    RecyclerView rvLocation;
-    private LocationViewAdapter adapter;
-    private List<LocationVo> data = new ArrayList<>();
     private int typeIndex = 0;
     private int countryIndex = 0;
-    private int feaIndex = 0;
-
+    private Boolean needFinish = true;
+    LocationViewAdapter  adapter;
     public static void startFragment(Context context) {
         Intent intent = new Intent(context, CommonFragmentActivity.class);
         intent.putExtra(CommonFragmentActivity.FRAGMENT, LocationChooseFragment.class);
@@ -84,31 +73,14 @@ public class LocationChooseFragment extends LoadableFragment<List<LocationVo>> i
     }
 
     @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        adapter = new LocationViewAdapter(getActivity(), rvLocation, data, this);
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getActivity());
-        rvLocation.setLayoutManager(layoutManager);
-//        rvLocation.addItemDecoration(new RecycleViewDivider(mContext, LinearLayoutManager.VERTICAL));
-        DividerItemDecoration itemDecoration = new DividerItemDecoration(getActivity(), LinearLayoutManager.VERTICAL, R.drawable.divider_item);
-        rvLocation.setAdapter(adapter);
-        rvLocation.addItemDecoration(itemDecoration);
+    public void setupViews(View view, Bundle savedInstanceState) {
+        super.setupViews(view, savedInstanceState);
+        needFinish=(Boolean) getSerializable();
         setUp();
     }
-
     @Override
-    protected void onDataLoaded(List<LocationVo> vo) {
-        if (!CollectionUtils.isEmpty(vo)) {
-            data.clear();
-            data.addAll(vo);
-            adapter.notifyDataSetChanged();
-        }
-    }
-
-    @Override
-    protected List<LocationVo> loadData(Context context) throws Exception {
-        InfoListVo<LocationVo> vo = indexService.getInfoListData(Constants.getUrl(Constants.API_LOCATION_URL), LocationVo.class, LOCATION_TAG);
-        return vo != null ? vo.voList : null;
+    protected InfoListVo<LocationVo> loadData(Context context) throws Exception {
+        return indexService.getInfoListData(Constants.getUrl(Constants.API_LOCATION_URL), LocationVo.class, LOCATION_TAG);
     }
 
     @Override
@@ -142,10 +114,9 @@ public class LocationChooseFragment extends LoadableFragment<List<LocationVo>> i
     }
 
     private void sort(String sortBy) {
-        Collections.sort(data, new LocSortFactor(sortBy));
+        Collections.sort(infoListVo.voList, new LocSortFactor(sortBy));
         adapter.notifyDataSetChanged();
     }
-
     @Override
     public void onItemClick(View view, LocationVo data, int postion) {
         LogUtil.i(postion + "---" + GsonUtils.getInstance().toJson(data));
@@ -165,6 +136,13 @@ public class LocationChooseFragment extends LoadableFragment<List<LocationVo>> i
         }
         LocationUtil.setLocation(getActivity(), data);
         EventBusUtil.getEventBus().postSticky(new LocationChooseEvent());
-        getActivity().finish();
+        if(needFinish==null || Boolean.TRUE.equals(needFinish)){
+            getActivity().finish();
+        }
+        pullView.notifyDataSetChanged();
+    }
+    protected BaseRecyclerViewAdapter getAdapter(){
+        adapter = new LocationViewAdapter(getActivity(),pullView.getRecyclerView(), infoListVo.voList, this);
+        return adapter;
     }
 }

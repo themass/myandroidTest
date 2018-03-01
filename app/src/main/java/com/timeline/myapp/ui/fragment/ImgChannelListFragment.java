@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.view.View;
 
 import com.sspacee.yewu.ads.base.AdsContext;
-import com.timeline.vpn.R;
 import com.timeline.myapp.adapter.ImgChannelListItemsViewAdapter;
 import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.myapp.bean.vo.ImgItemsVo;
@@ -17,6 +16,7 @@ import com.timeline.myapp.data.HistoryUtil;
 import com.timeline.myapp.data.StaticDataUtil;
 import com.timeline.myapp.ui.base.CommonFragmentActivity;
 import com.timeline.myapp.ui.base.features.BasePullLoadbleFragment;
+import com.timeline.vpn.R;
 
 /**
  * Created by themass on 2016/8/12.
@@ -46,7 +46,7 @@ public class ImgChannelListFragment extends BasePullLoadbleFragment<ImgItemsVo> 
         }
         StaticDataUtil.del(Constants.IMG_CHANNEL);
     }
-    protected  BaseRecyclerViewAdapter getAdapter(){
+    protected BaseRecyclerViewAdapter getAdapter(){
         adapter = new ImgChannelListItemsViewAdapter(getActivity(), pullView.getRecyclerView(), infoListVo.voList, this);
         return adapter;
     }

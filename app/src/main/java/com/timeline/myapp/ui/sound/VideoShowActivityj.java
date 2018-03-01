@@ -1,4 +1,4 @@
-package com.timeline.sex.ui.sound;
+package com.timeline.myapp.ui.sound;
 
 
 import android.content.Intent;
@@ -10,10 +10,10 @@ import android.support.v7.app.AppCompatActivity;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
-import com.timeline.sex.R;
-import com.timeline.sex.bean.vo.RecommendVo;
-import com.timeline.sex.constant.Constants;
-import com.timeline.sex.data.ImagePhotoLoad;
+import com.timeline.myapp.bean.vo.RecommendVo;
+import com.timeline.myapp.constant.Constants;
+import com.timeline.myapp.data.ImagePhotoLoad;
+import com.timeline.vpn.R;
 
 import java.util.HashMap;
 
@@ -95,7 +95,7 @@ public class VideoShowActivityj extends AppCompatActivity {
             switch (type) {
                 case JZUserAction.ON_CLICK_PAUSE:
                     if(AdsContext.rateShow()){
-                        AdsManager.getInstans().showInterstitialAds(VideoShowActivityj.this, AdsContext.Categrey.CATEGREY_VPN4,false);
+                        AdsManager.getInstans().showInterstitialAds(VideoShowActivityj.this, AdsContext.Categrey.CATEGREY_VPN3,false);
                     }                    break;
                 default:break;
             }

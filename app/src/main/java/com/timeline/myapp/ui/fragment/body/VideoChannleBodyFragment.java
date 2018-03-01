@@ -1,4 +1,4 @@
-package com.timeline.sex.ui.fragment.body;
+package com.timeline.myapp.ui.fragment.body;
 
 
 import android.os.Bundle;
@@ -8,12 +8,12 @@ import com.kyview.natives.NativeAdInfo;
 import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.ads.base.NativeAdsReadyListener;
-import com.timeline.sex.bean.vo.InfoListVo;
-import com.timeline.sex.bean.vo.RecommendVo;
-import com.timeline.sex.constant.Constants;
-import com.timeline.sex.ui.fragment.RecommendFragment;
-import com.timeline.sex.ui.fragment.VideoChannelListFragment;
-import com.timeline.sex.ui.fragment.VideoChannelUserListFragment;
+import com.timeline.myapp.bean.vo.InfoListVo;
+import com.timeline.myapp.bean.vo.RecommendVo;
+import com.timeline.myapp.constant.Constants;
+import com.timeline.myapp.ui.fragment.RecommendFragment;
+import com.timeline.myapp.ui.fragment.VideoChannelListFragment;
+import com.timeline.myapp.ui.fragment.VideoChannelUserListFragment;
 
 import java.util.ArrayList;
 import java.util.HashMap;

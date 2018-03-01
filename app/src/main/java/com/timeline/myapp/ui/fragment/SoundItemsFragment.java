@@ -42,7 +42,9 @@ import com.timeline.vpn.R;
 import butterknife.BindView;
 import butterknife.OnClick;
 
+import static com.timeline.myapp.service.PlayService.CURRENT;
 import static com.timeline.myapp.service.PlayService.CURRENTTIME;
+import static com.timeline.myapp.service.PlayService.DURATION;
 import static com.timeline.myapp.service.PlayService.MUSIC_CURRENT;
 import static com.timeline.myapp.service.PlayService.MUSIC_DURATION;
 import static com.timeline.myapp.service.PlayService.MUSIC_PREPARED;
@@ -365,12 +367,12 @@ public class SoundItemsFragment extends BasePullLoadbleFragment<SoundItemsVo> im
                     tvTime.setText(MediaUtil.formatTime(currentTime));
                     progressView.setProgress(currentTime);
                 } else if (action.equals(MUSIC_DURATION)) {
-                    int duration = intent.getIntExtra(PlayService.DURATION, -1);
+                    int duration = intent.getIntExtra(DURATION, -1);
                     progressView.setMax(duration);
                     tvDuration.setText(MediaUtil.formatTime(duration));
                 } else if (action.equals(UPDATE_ACTION)) {
                     //获取Intent中的current消息，current代表当前正在播放的歌曲
-                    current = intent.getIntExtra(PlayService.CURRENT, -1);
+                    current = intent.getIntExtra(CURRENT, -1);
                     tvTitle.setText(infoListVo.voList.get(current).name);
                     LogUtil.i("当前播放更新：" + current);
                 } else if (action.equals(MUSIC_PREPARED)) {

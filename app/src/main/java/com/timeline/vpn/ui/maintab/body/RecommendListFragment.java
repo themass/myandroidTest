@@ -1,4 +1,4 @@
-package com.timeline.myapp.ui.fragment;
+package com.timeline.vpn.ui.maintab.body;
 
 
 import android.os.Bundle;
@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.timeline.myapp.constant.Constants;
+import com.timeline.myapp.ui.fragment.RecommendFragment;
 import com.timeline.vpn.R;
 
 /**

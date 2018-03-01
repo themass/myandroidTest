@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.view.View;
 
 import com.sspacee.yewu.ads.base.AdsContext;
-import com.timeline.vpn.R;
 import com.timeline.myapp.adapter.ImgChannelListItemsViewAdapter;
 import com.timeline.myapp.bean.vo.ImgItemsVo;
 import com.timeline.myapp.bean.vo.RecommendVo;
@@ -14,6 +13,7 @@ import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.HistoryUtil;
 import com.timeline.myapp.data.StaticDataUtil;
 import com.timeline.myapp.ui.base.CommonFragmentActivity;
+import com.timeline.vpn.R;
 
 /**
  * Created by themass on 2016/8/12.
@@ -37,7 +37,7 @@ public class ImgChannelImgListFragment extends RecommendFragment {
 
     @Override
     public String getUrl(int start) {
-        return Constants.getUrlWithParam(Constants.API_IMG_ITEMS_IMG_URL, start, vo.param);
+        return Constants.getUrlWithParam(Constants.API_IMG_ITEMS_IMG_URL, start, vo.param,keyword);
     }
 
     @Override
@@ -65,6 +65,10 @@ public class ImgChannelImgListFragment extends RecommendFragment {
         StaticDataUtil.del(Constants.IMG_CHANNEL);
     }
     @Override
+    protected boolean showSearchView(){
+        return true;
+    }
+    @Override
     public boolean getShowParam(){
         return true;
     }
@@ -76,6 +80,7 @@ public class ImgChannelImgListFragment extends RecommendFragment {
         imgItemsVo.url = revo.actionUrl;
         ImgGalleryFragment.startFragment(getActivity(), imgItemsVo);
         HistoryUtil.addHistory(getActivity(), imgItemsVo.url);
+        mSearchView.clearFocus();
     }
     @Override
     public void onDestroyView() {

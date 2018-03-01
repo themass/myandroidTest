@@ -7,14 +7,17 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.widget.SearchView;
 
 import com.sspacee.common.ui.view.DividerItemDecoration;
 import com.sspacee.common.ui.view.MyPullView;
 import com.sspacee.common.util.LogUtil;
-import com.timeline.vpn.R;
+import com.sspacee.common.util.StringUtils;
 import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.myapp.bean.vo.InfoListVo;
 import com.timeline.myapp.data.BaseService;
+import com.timeline.vpn.R;
 
 import butterknife.BindView;
 
@@ -38,6 +41,30 @@ public abstract class BasePullLoadbleFragment<T> extends LoadableFragment<InfoLi
         indexService = new BaseService();
         indexService.setup(getActivity());
         initPullView();
+        mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            // 当点击搜索按钮时触发该方法
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                keyword = query;
+                pullView.setRefresh(true);
+                mSearchView.clearFocus();
+                return false;
+            }
+
+            // 当搜索内容改变时触发该方法
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                //没有内容时 在查询
+                if (!StringUtils.hasText(newText) && StringUtils.hasText(keyword)) {
+                    LogUtil.i("清空文字");
+                    keyword = null;
+                    pullView.setRefresh(true);
+                    mSearchView.clearFocus();
+                }
+                return false;
+            }
+        });
+        getActivity().getWindow().setSoftInputMode( WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
     }
     protected void initPullView(){
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getActivity());
@@ -65,6 +92,7 @@ public abstract class BasePullLoadbleFragment<T> extends LoadableFragment<InfoLi
                 LogUtil.i("mData size=" + infoListVo.voList.size());
             }
             pullView.notifyDataSetChanged();
+            mSearchView.clearFocus();
         }
     }
     protected void sortData() {}

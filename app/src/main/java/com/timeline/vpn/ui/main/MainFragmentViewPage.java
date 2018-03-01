@@ -34,7 +34,6 @@ import com.timeline.myapp.ui.base.app.BaseDrawerActivity;
 import com.timeline.myapp.ui.inte.OnBackKeyDownListener;
 import com.timeline.vpn.R;
 import com.timeline.vpn.ui.maintab.TabCustomeFragment;
-import com.timeline.vpn.ui.maintab.TabVipFragment;
 import com.timeline.vpn.ui.maintab.TabVpnFragment;
 
 import org.greenrobot.eventbus.Subscribe;
@@ -47,8 +46,6 @@ import java.util.List;
 import java.util.Set;
 
 import co.mobiwise.materialintro.animation.MaterialIntroListener;
-import co.mobiwise.materialintro.shape.Focus;
-import co.mobiwise.materialintro.shape.FocusGravity;
 import co.mobiwise.materialintro.view.MaterialIntroView;
 
 /**
@@ -109,29 +106,6 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         if(!UserLoginUtil.isVIP2())
             AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN,false);
     }
-    public void showCountry(){
-        showHit(ivLocation,FocusGravity.LEFT,R.string.country_select_hit,COUNTRY_TAG);
-    }
-    public void showHit(View view, FocusGravity gravity,int hitsId,String tag){
-        try {
-            materialIntroView = new MaterialIntroView.Builder(MainFragmentViewPage.this)
-                    .enableDotAnimation(true)
-                    .setFocusGravity(gravity)
-                    .setFocusType(Focus.MINIMUM)
-                    .setDelayMillis(100)
-                    .enableFadeAnimation(true)
-                    .setInfoTextSize(18)
-                    .performClick(true)
-                    .setIdempotent(true)
-                    .setInfoText(getString(hitsId))
-                    .setTarget(view)
-                    .setListener(MainFragmentViewPage.this)
-                    .setUsageId(tag)
-                    .show();
-        }catch (Exception e){
-            LogUtil.e(e);
-        }
-    }
     /**
      * Callback received when a permissions request has been completed.
      */
@@ -159,10 +133,8 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         LayoutInflater inflater = LayoutInflater.from(this);
         addData(inflater, R.string.tab_tag_index, TabVpnFragment.class,
                 R.drawable.ac_bg_tab_index, R.string.tab_index, null, 1);
-        if (PreferenceUtils.getPrefBoolean(this, Constants.AREA_SWITCH, true)) {
-            addData(inflater, R.string.tab_tag_vip, TabVipFragment.class,
-                    R.drawable.ac_bg_tab_index, R.string.tab_vip, null, 2);
-        }
+//        addData(inflater, R.string.tab_tag_local, TabLocalFragment.class,
+//                    R.drawable.ac_bg_tab_index, R.string.tab_local, null, 2);
         addData(inflater, R.string.tab_tag_customer, TabCustomeFragment.class,
                 R.drawable.ac_bg_tab_index, R.string.tab_customer, null, 3);
 
@@ -254,10 +226,6 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
             LogUtil.i("tab select:" + tab.getPosition());
             mViewPager.setCurrentItem(tab.getPosition());
             setToolbarTitle(getString(list.get(tab.getPosition()).title), false);
-            index = tab.getPosition();
-            if(list.get(tab.getPosition()).abslIndex==1 ){
-                showCountry();
-            }
         }
 
         @Override

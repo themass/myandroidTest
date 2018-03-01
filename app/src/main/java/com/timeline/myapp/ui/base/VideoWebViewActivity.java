@@ -1,4 +1,4 @@
-package com.timeline.sex.ui.base;
+package com.timeline.myapp.ui.base;
 
 import android.content.Context;
 import android.content.Intent;
@@ -14,9 +14,9 @@ import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PackageUtils;
 import com.sspacee.common.util.SystemUtils;
 import com.sspacee.common.util.ToastUtil;
-import com.timeline.sex.R;
-import com.timeline.sex.constant.Constants;
-import com.timeline.sex.ui.base.features.BaseWebViewFragment;
+import com.timeline.myapp.constant.Constants;
+import com.timeline.myapp.ui.base.features.BaseWebViewFragment;
+import com.timeline.vpn.R;
 
 /**
  * Created by themass on 2016/3/17.

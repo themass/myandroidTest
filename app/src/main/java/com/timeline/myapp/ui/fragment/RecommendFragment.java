@@ -53,7 +53,7 @@ public abstract class RecommendFragment extends BasePullLoadbleFragment<Recommen
         return adapter.getSwitchFlag();
     }
     protected  boolean getShowParam(){
-        return false;
+        return true;
     }
     @Override
     protected void initPullView() {

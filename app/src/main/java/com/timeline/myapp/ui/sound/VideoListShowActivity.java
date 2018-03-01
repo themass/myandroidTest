@@ -1,4 +1,4 @@
-package com.timeline.sex.ui.sound;
+package com.timeline.myapp.ui.sound;
 
 
 import android.content.Intent;
@@ -8,9 +8,9 @@ import android.util.Log;
 import android.widget.FrameLayout;
 
 import com.sspacee.common.util.LogUtil;
-import com.timeline.sex.R;
-import com.timeline.sex.constant.Constants;
-import com.timeline.sex.ui.fragment.AutoVideoFragment;
+import com.timeline.myapp.constant.Constants;
+import com.timeline.myapp.ui.fragment.AutoVideoFragment;
+import com.timeline.vpn.R;
 
 import java.util.HashMap;
 

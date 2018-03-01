@@ -1,4 +1,4 @@
-package com.timeline.myapp.ui.fragment;
+package com.timeline.vpn.ui.maintab.body;
 
 
 import android.content.Context;
@@ -26,6 +26,7 @@ import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.UserLoginUtil;
 import com.timeline.myapp.data.config.CustomeAddEvent;
 import com.timeline.myapp.data.config.UserLoginEvent;
+import com.timeline.myapp.ui.fragment.RecommendFragment;
 import com.timeline.myapp.ui.inte.OnBackKeyDownListener;
 import com.timeline.myapp.ui.user.AddCustomeInfoActivity;
 import com.timeline.vpn.R;
