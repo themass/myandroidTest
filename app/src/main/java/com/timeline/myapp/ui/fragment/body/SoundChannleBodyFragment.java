@@ -1,12 +1,13 @@
-package com.timeline.myapp.ui.fragment;
+package com.timeline.sex.ui.fragment.body;
 
 
 import android.os.Bundle;
 import android.view.View;
 
-import com.sspacee.yewu.um.MobAgent;
-import com.timeline.myapp.bean.vo.RecommendVo;
-import com.timeline.myapp.constant.Constants;
+import com.timeline.sex.bean.vo.RecommendVo;
+import com.timeline.sex.constant.Constants;
+import com.timeline.sex.ui.fragment.RecommendFragment;
+import com.timeline.sex.ui.fragment.SoundItemsMusicFragment;
 
 import java.util.HashMap;
 
@@ -35,7 +36,6 @@ public class SoundChannleBodyFragment extends RecommendFragment {
     public void onItemClick(View v, int position) {
         RecommendVo vo = infoListVo.voList.get(position);
         SoundItemsMusicFragment.startFragment(getActivity(), vo);
-        MobAgent.onEventRecommondChannel(getActivity(), vo.title);
     }
 
     @Override
