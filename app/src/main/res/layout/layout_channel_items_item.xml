@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
+<<<<<<< HEAD
     android:layout_height="wrap_content"
     android:orientation="horizontal"
+=======
+    android:layout_height="@dimen/margin_55"
+>>>>>>> 6cfe63c8b4ed593046f2cc4c5eabc74052a9a654
     android:background="?android:attr/selectableItemBackground"
     android:clickable="true"
     >
@@ -21,16 +25,16 @@
     <TextView
         android:id="@+id/tv_date"
         style="@style/list_itme_date"
-        android:textColor="@color/gray"
-        android:layout_alignBottom="@+id/tv_name" />
+        android:layout_centerVertical="true"
+        android:textColor="@color/gray" />
 
     <ImageView
         android:id="@+id/iv_song"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerVertical="true"
         android:layout_marginRight="@dimen/margin_8"
         android:layout_toLeftOf="@+id/tv_date"
+        android:layout_centerVertical="true"
         android:src="@drawable/song_play_icon"
         android:visibility="gone" />
 
@@ -38,6 +42,7 @@
         android:id="@+id/tv_name"
         style="@style/list_itme_name"
         android:layout_toLeftOf="@+id/iv_song"
+        android:layout_centerVertical="true"
         android:layout_toRightOf="@+id/tv_index" />
 </RelativeLayout>
 <RelativeLayout
