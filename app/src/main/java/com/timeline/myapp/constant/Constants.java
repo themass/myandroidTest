@@ -1,7 +1,6 @@
 package com.timeline.myapp.constant;
 
 
-import com.timeline.vpn.R;
 
 import org.strongswan.android.logic.VpnType;
 

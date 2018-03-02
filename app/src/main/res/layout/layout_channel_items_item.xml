@@ -1,12 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-<<<<<<< HEAD
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-=======
-    android:layout_height="@dimen/margin_55"
->>>>>>> 6cfe63c8b4ed593046f2cc4c5eabc74052a9a654
     android:background="?android:attr/selectableItemBackground"
     android:clickable="true"
     >

@@ -70,16 +70,12 @@
                     android:id="@+id/tv_title_below"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-<<<<<<< HEAD
-                    android:textColor="@color/base_black"
                     android:paddingBottom="@dimen/margin_3"
                     android:paddingTop="@dimen/margin_3"
                     android:gravity="center"
                     android:maxLines="2"
-=======
                     android:textColor="@color/index_channel_list_base_black"
                     android:singleLine="true"
->>>>>>> 6cfe63c8b4ed593046f2cc4c5eabc74052a9a654
                     android:textSize="@dimen/textsize_16"/>
             </LinearLayout>
         </android.support.v7.widget.CardView>
