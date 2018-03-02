@@ -72,6 +72,7 @@
     <string name="support_info">Please activate several apps to support the author！</string>
     <string name="offerads_ths">Thank you for your support!</string>
     <string name="location_choose_flag_none">Click“ Region ”More regional options</string>
+    <string name="menu_btn_donation">Donation</string>
 
     <!-- share-->
     <string name="menu_share_title">Share friend</string>

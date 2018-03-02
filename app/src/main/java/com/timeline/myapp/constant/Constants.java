@@ -112,6 +112,7 @@ public class Constants {
     public static final String VIDEO_USER_CHANNEL = "qvod_user";
     public static final String CHANNEL = "channel";
     public static final String API_VIDEO_ITEMS_URL = "/video/items.json?start=%s&limit=20";
+    public static final String API_DONATION_URL = "/data/donation.json";
 
     public static final String API_LOGOUT_URL = "/user/logout.json";
     public static final String API_LEAK_URL = "/monitor/leak.json";
