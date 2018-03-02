@@ -22,7 +22,7 @@
       </configuration>
     </facet>
   </component>
-  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_7" inherit-compiler-output="false">
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_7">
     <output url="file://$MODULE_DIR$/build/intermediates/classes/mypool/debug" />
     <output-test url="file://$MODULE_DIR$/build/intermediates/classes/test/mypool/debug" />
     <exclude-output />
@@ -41,13 +41,6 @@
       <sourceFolder url="file://$MODULE_DIR$/src/mypoolDebug/java" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/mypoolDebug/rs" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/mypoolDebug/shaders" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/testMypoolDebug/res" type="java-test-resource" />
-      <sourceFolder url="file://$MODULE_DIR$/src/testMypoolDebug/resources" type="java-test-resource" />
-      <sourceFolder url="file://$MODULE_DIR$/src/testMypoolDebug/assets" type="java-test-resource" />
-      <sourceFolder url="file://$MODULE_DIR$/src/testMypoolDebug/aidl" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/src/testMypoolDebug/java" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/src/testMypoolDebug/rs" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/src/testMypoolDebug/shaders" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/build/generated/source/r/androidTest/mypool/debug" isTestSource="true" generated="true" />
       <sourceFolder url="file://$MODULE_DIR$/build/generated/source/aidl/androidTest/mypool/debug" isTestSource="true" generated="true" />
       <sourceFolder url="file://$MODULE_DIR$/build/generated/source/buildConfig/androidTest/mypool/debug" isTestSource="true" generated="true" />
@@ -55,6 +48,13 @@
       <sourceFolder url="file://$MODULE_DIR$/build/generated/source/apt/androidTest/mypool/debug" isTestSource="true" generated="true" />
       <sourceFolder url="file://$MODULE_DIR$/build/generated/res/rs/androidTest/mypool/debug" type="java-test-resource" />
       <sourceFolder url="file://$MODULE_DIR$/build/generated/res/resValues/androidTest/mypool/debug" type="java-test-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/testMypoolDebug/res" type="java-test-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/testMypoolDebug/resources" type="java-test-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/testMypoolDebug/assets" type="java-test-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/testMypoolDebug/aidl" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/testMypoolDebug/java" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/testMypoolDebug/rs" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/testMypoolDebug/shaders" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/mypool/res" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/mypool/resources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/mypool/assets" type="java-resource" />
@@ -62,13 +62,6 @@
       <sourceFolder url="file://$MODULE_DIR$/src/mypool/java" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/mypool/rs" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/mypool/shaders" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/testMypool/res" type="java-test-resource" />
-      <sourceFolder url="file://$MODULE_DIR$/src/testMypool/resources" type="java-test-resource" />
-      <sourceFolder url="file://$MODULE_DIR$/src/testMypool/assets" type="java-test-resource" />
-      <sourceFolder url="file://$MODULE_DIR$/src/testMypool/aidl" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/src/testMypool/java" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/src/testMypool/rs" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/src/testMypool/shaders" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/androidTestMypool/res" type="java-test-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/androidTestMypool/resources" type="java-test-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/androidTestMypool/assets" type="java-test-resource" />
@@ -76,6 +69,13 @@
       <sourceFolder url="file://$MODULE_DIR$/src/androidTestMypool/java" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/androidTestMypool/rs" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/androidTestMypool/shaders" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/testMypool/res" type="java-test-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/testMypool/resources" type="java-test-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/testMypool/assets" type="java-test-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/testMypool/aidl" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/testMypool/java" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/testMypool/rs" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/testMypool/shaders" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/debug/res" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/debug/resources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/debug/assets" type="java-resource" />
@@ -97,13 +97,6 @@
       <sourceFolder url="file://$MODULE_DIR$/src/main/java" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/rs" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/shaders" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/test/res" type="java-test-resource" />
-      <sourceFolder url="file://$MODULE_DIR$/src/test/resources" type="java-test-resource" />
-      <sourceFolder url="file://$MODULE_DIR$/src/test/assets" type="java-test-resource" />
-      <sourceFolder url="file://$MODULE_DIR$/src/test/aidl" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/src/test/java" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/src/test/rs" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/src/test/shaders" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/androidTest/res" type="java-test-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/androidTest/resources" type="java-test-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/androidTest/assets" type="java-test-resource" />
@@ -111,76 +104,94 @@
       <sourceFolder url="file://$MODULE_DIR$/src/androidTest/java" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/androidTest/rs" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/androidTest/shaders" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/test/res" type="java-test-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/test/resources" type="java-test-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/test/assets" type="java-test-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/test/aidl" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/test/java" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/test/rs" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/test/shaders" isTestSource="true" />
+      <excludeFolder url="file://$MODULE_DIR$/build/cache" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/assets" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/blame" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/classes" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/incremental" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/incremental-safeguard" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/jniLibs" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/manifests" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/multi-dex" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/pre-dexed" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/proguard-rules" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/res" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/rs" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/shaders" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/symbols" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/transforms" />
       <excludeFolder url="file://$MODULE_DIR$/build/outputs" />
+      <excludeFolder url="file://$MODULE_DIR$/build/reports" />
+      <excludeFolder url="file://$MODULE_DIR$/build/tmp" />
     </content>
-    <orderEntry type="jdk" jdkName="Android API 25 Platform" jdkType="Android SDK" />
+    <orderEntry type="jdk" jdkName="Android API 25 Platform (1)" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" exported="" name="commons-io-2.4" level="project" />
-    <orderEntry type="library" exported="" name="glide-4.0.0" level="project" />
-    <orderEntry type="library" exported="" name="transition-25.3.1" level="project" />
-    <orderEntry type="library" exported="" name="AdViewSDK_Android" level="project" />
-    <orderEntry type="library" exported="" name="YoumiSdk_v7.5.0_2017-06-02-" level="project" />
-    <orderEntry type="library" exported="" name="play-services-gass-11.0.0" level="project" />
-    <orderEntry type="library" exported="" name="greendao-3.2.2" level="project" />
-    <orderEntry type="library" exported="" name="play-services-ads-11.0.0" level="project" />
-    <orderEntry type="library" exported="" name="glide-transformations-2.0.2" level="project" />
-    <orderEntry type="library" exported="" scope="TEST" name="multidex-instrumentation-1.0.1" level="project" />
-    <orderEntry type="library" exported="" name="butterknife-annotations-8.8.1" level="project" />
-    <orderEntry type="library" exported="" name="play-services-clearcut-11.0.0" level="project" />
-    <orderEntry type="library" exported="" name="jiaozivideoplayer-6.1.1" level="project" />
-    <orderEntry type="library" exported="" name="analytics-6.1.4" level="project" />
-    <orderEntry type="library" exported="" name="okhttp-3.9.0" level="project" />
-    <orderEntry type="library" exported="" name="support-v4-25.3.1" level="project" />
-    <orderEntry type="library" exported="" name="support-media-compat-25.3.1" level="project" />
-    <orderEntry type="library" exported="" name="play-services-tasks-11.0.0" level="project" />
-    <orderEntry type="library" exported="" name="logging-interceptor-3.9.0" level="project" />
-    <orderEntry type="library" exported="" name="support-annotations-25.3.1" level="project" />
-    <orderEntry type="library" exported="" name="disklrucache-4.0.0" level="project" />
-    <orderEntry type="library" exported="" name="support-vector-drawable-25.3.1" level="project" />
-    <orderEntry type="library" exported="" name="support-compat-25.3.1" level="project" />
-    <orderEntry type="library" exported="" name="play-services_aar_adapter" level="project" />
-    <orderEntry type="library" exported="" name="butterknife-8.8.1" level="project" />
-    <orderEntry type="library" exported="" name="gson-2.2.4" level="project" />
-    <orderEntry type="library" exported="" name="play-services-ads-lite-11.0.0" level="project" />
-    <orderEntry type="library" exported="" name="play-services-basement-11.0.0" level="project" />
-    <orderEntry type="library" exported="" name="volley" level="project" />
-    <orderEntry type="library" exported="" name="annotations-4.0.0" level="project" />
-    <orderEntry type="library" exported="" name="gpuimage-library-1.4.1" level="project" />
-    <orderEntry type="library" exported="" name="design-25.3.1" level="project" />
-    <orderEntry type="library" exported="" name="support-core-ui-25.3.1" level="project" />
-    <orderEntry type="library" exported="" name="cardview-v7-25.3.1" level="project" />
-    <orderEntry type="library" exported="" name="disklrucache-2.0.2" level="project" />
-    <orderEntry type="library" exported="" name="MaterialIntroView-1.6.0" level="project" />
-    <orderEntry type="library" exported="" name="commons-codec" level="project" />
-    <orderEntry type="library" exported="" name="support-v13-25.3.1" level="project" />
-    <orderEntry type="library" exported="" name="play-services-base-11.0.0" level="project" />
-    <orderEntry type="library" exported="" name="PhotoView-2.1.3" level="project" />
-    <orderEntry type="library" exported="" name="palette-v7-25.3.1" level="project" />
-    <orderEntry type="library" exported="" name="gifdecoder-4.0.0" level="project" />
-    <orderEntry type="library" exported="" name="BaiduLBS_Android" level="project" />
-    <orderEntry type="library" exported="" name="library-1.4.0" level="project" />
-    <orderEntry type="library" exported="" name="support-core-utils-25.3.1" level="project" />
-    <orderEntry type="library" exported="" name="support-fragment-25.3.1" level="project" />
-    <orderEntry type="library" exported="" name="okio-1.13.0" level="project" />
-    <orderEntry type="library" exported="" name="percent-25.3.1" level="project" />
-    <orderEntry type="library" exported="" name="httpcore-4.2.5" level="project" />
-    <orderEntry type="library" exported="" name="play-services-safetynet-11.0.0" level="project" />
-    <orderEntry type="library" exported="" name="eventbus-3.0.0" level="project" />
-    <orderEntry type="library" exported="" name="imagegallery-0.1.0" level="project" />
-    <orderEntry type="library" exported="" name="okhttp3-integration-4.0.0" level="project" />
-    <orderEntry type="library" exported="" name="gdt_mob_release" level="project" />
-    <orderEntry type="library" exported="" name="library-3.3.1" level="project" />
-    <orderEntry type="library" exported="" name="multidex-1.0.1" level="project" />
-    <orderEntry type="library" exported="" name="greendao-api-3.2.2" level="project" />
-    <orderEntry type="library" exported="" name="recyclerview-v7-25.3.1" level="project" />
-    <orderEntry type="library" exported="" name="appcompat-v7-25.3.1" level="project" />
-    <orderEntry type="library" exported="" name="animated-vector-drawable-25.3.1" level="project" />
+    <orderEntry type="library" exported="" name="com.android.support:multidex-1.0.1" level="project" />
+    <orderEntry type="library" exported="" name="com.android.support:support-v13-25.3.1" level="project" />
+    <orderEntry type="library" exported="" name="__local_jars__:C.\workspace\eclipse_work\myandroidTest\app\libs\commons-io-2.4.jar:unspecified@jar" level="project" />
+    <orderEntry type="library" exported="" name="com.github.iammert:MaterialIntroView-1.6.0" level="project" />
+    <orderEntry type="library" exported="" name="com.android.support:cardview-v7-25.3.1" level="project" />
+    <orderEntry type="library" exported="" name="com.android.support:support-core-ui-25.3.1" level="project" />
+    <orderEntry type="library" exported="" name="com.android.support:support-compat-25.3.1" level="project" />
+    <orderEntry type="library" exported="" name="com.github.bumptech.glide:disklrucache:4.0.0@jar" level="project" />
+    <orderEntry type="library" exported="" name="com.romainpiel.shimmer:library-1.4.0" level="project" />
+    <orderEntry type="library" exported="" name="com.android.support:support-core-utils-25.3.1" level="project" />
+    <orderEntry type="library" exported="" name="jp.wasabeef:glide-transformations-2.0.2" level="project" />
+    <orderEntry type="library" exported="" name="com.android.support:support-v4-25.3.1" level="project" />
+    <orderEntry type="library" exported="" name="com.android.support:support-media-compat-25.3.1" level="project" />
+    <orderEntry type="library" exported="" name="org.greenrobot:greendao:3.2.2@jar" level="project" />
+    <orderEntry type="library" exported="" name="__local_jars__:C.\workspace\eclipse_work\myandroidTest\app\libs\AdViewSDK_Android.jar:unspecified@jar" level="project" />
+    <orderEntry type="library" exported="" name="__local_jars__:C.\workspace\eclipse_work\myandroidTest\app\libs\gson-2.2.4.jar:unspecified@jar" level="project" />
+    <orderEntry type="library" exported="" name="com.jakewharton:butterknife-annotations:8.8.1@jar" level="project" />
+    <orderEntry type="library" exported="" name="com.github.lawloretienne:imagegallery-0.1.0" level="project" />
+    <orderEntry type="library" exported="" name="com.github.bumptech.glide:glide:4.0.0@jar" level="project" />
+    <orderEntry type="library" exported="" name="com.github.bumptech.glide:okhttp3-integration:4.0.0@jar" level="project" />
+    <orderEntry type="library" exported="" name="__local_jars__:C.\workspace\eclipse_work\myandroidTest\app\libs\gdt_mob_release.jar:unspecified@jar" level="project" />
+    <orderEntry type="library" exported="" name="com.android.support:transition-25.3.1" level="project" />
+    <orderEntry type="library" exported="" name="com.android.support:design-25.3.1" level="project" />
+    <orderEntry type="library" exported="" name="com.github.bumptech.glide:annotations:4.0.0@jar" level="project" />
+    <orderEntry type="library" exported="" name="com.google.android.gms:play-services-ads-11.0.0" level="project" />
+    <orderEntry type="library" exported="" name="__local_jars__:C.\workspace\eclipse_work\myandroidTest\app\libs\play-services_aar_adapter.jar:unspecified@jar" level="project" />
+    <orderEntry type="library" exported="" name="com.google.android.gms:play-services-base-11.0.0" level="project" />
+    <orderEntry type="library" exported="" name="com.google.android.gms:play-services-tasks-11.0.0" level="project" />
+    <orderEntry type="library" exported="" name="org.greenrobot:eventbus:3.0.0@jar" level="project" />
+    <orderEntry type="library" exported="" name="com.android.support:support-vector-drawable-25.3.1" level="project" />
+    <orderEntry type="library" exported="" name="com.android.support:recyclerview-v7-25.3.1" level="project" />
+    <orderEntry type="library" exported="" name="com.squareup.okhttp3:logging-interceptor:3.9.0@jar" level="project" />
+    <orderEntry type="library" exported="" name="org.greenrobot:greendao-api:3.2.2@jar" level="project" />
+    <orderEntry type="library" exported="" name="com.google.android.gms:play-services-ads-lite-11.0.0" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="com.android.support:multidex-instrumentation-1.0.1" level="project" />
+    <orderEntry type="library" exported="" name="com.google.android.gms:play-services-clearcut-11.0.0" level="project" />
+    <orderEntry type="library" exported="" name="com.android.support:percent-25.3.1" level="project" />
+    <orderEntry type="library" exported="" name="com.github.chrisbanes:PhotoView-2.1.3" level="project" />
+    <orderEntry type="library" exported="" name="YoumiSdk_v7.5.0_2017-06-02:@aar" level="project" />
+    <orderEntry type="library" exported="" name="com.google.android.gms:play-services-basement-11.0.0" level="project" />
+    <orderEntry type="library" exported="" name="__local_jars__:C.\workspace\eclipse_work\myandroidTest\app\libs\volley.jar:unspecified@jar" level="project" />
+    <orderEntry type="library" exported="" name="__local_jars__:C.\workspace\eclipse_work\myandroidTest\app\libs\BaiduLBS_Android.jar:unspecified@jar" level="project" />
+    <orderEntry type="library" exported="" name="com.jakewharton:disklrucache:2.0.2@jar" level="project" />
+    <orderEntry type="library" exported="" name="com.squareup.okio:okio:1.13.0@jar" level="project" />
+    <orderEntry type="library" exported="" name="com.android.support:support-fragment-25.3.1" level="project" />
+    <orderEntry type="library" exported="" name="com.sothree.slidinguppanel:library-3.3.1" level="project" />
+    <orderEntry type="library" exported="" name="com.google.android.gms:play-services-gass-11.0.0" level="project" />
+    <orderEntry type="library" exported="" name="com.jakewharton:butterknife-8.8.1" level="project" />
+    <orderEntry type="library" exported="" name="com.android.support:animated-vector-drawable-25.3.1" level="project" />
+    <orderEntry type="library" exported="" name="com.google.android.gms:play-services-safetynet-11.0.0" level="project" />
+    <orderEntry type="library" exported="" name="com.github.bumptech.glide:gifdecoder:4.0.0@jar" level="project" />
+    <orderEntry type="library" exported="" name="jp.co.cyberagent.android.gpuimage:gpuimage-library-1.4.1" level="project" />
+    <orderEntry type="library" exported="" name="com.android.support:appcompat-v7-25.3.1" level="project" />
+    <orderEntry type="library" exported="" name="com.umeng.analytics:analytics:6.1.4@jar" level="project" />
+    <orderEntry type="library" exported="" name="__local_jars__:C.\workspace\eclipse_work\myandroidTest\app\libs\commons-codec.jar:unspecified@jar" level="project" />
+    <orderEntry type="library" exported="" name="cn.jzvd:jiaozivideoplayer-6.1.1" level="project" />
+    <orderEntry type="library" exported="" name="com.squareup.okhttp3:okhttp:3.9.0@jar" level="project" />
+    <orderEntry type="library" exported="" name="com.android.support:palette-v7-25.3.1" level="project" />
+    <orderEntry type="library" exported="" name="com.android.support:support-annotations:25.3.1@jar" level="project" />
+    <orderEntry type="library" exported="" name="__local_jars__:C.\workspace\eclipse_work\myandroidTest\app\libs\httpcore-4.2.5.jar:unspecified@jar" level="project" />
   </component>
 </module>
