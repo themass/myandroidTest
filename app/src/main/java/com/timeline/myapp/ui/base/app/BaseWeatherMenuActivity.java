@@ -60,7 +60,8 @@ public abstract class BaseWeatherMenuActivity extends LogActivity {
         return true;
     }
     protected void setupLocationIcon(){
-        ImagePhotoLoad.getCountryImage(this, ivLocation, LocationUtil.getSelectLocationIcon(this));
+        if(ivLocation!=null)
+            ImagePhotoLoad.getCountryImage(this, ivLocation, LocationUtil.getSelectLocationIcon(this));
     }
 
     @Override

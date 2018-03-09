@@ -32,6 +32,7 @@ import com.timeline.myapp.base.MyApplication;
 import com.timeline.myapp.bean.vo.VersionVo;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.config.StateUseEvent;
+import com.timeline.myapp.data.config.VipDescEvent;
 import com.timeline.vpn.R;
 import com.timeline.vpn.ui.main.MainFragmentViewPage;
 
@@ -61,6 +62,7 @@ public class VersionUpdater {
                     }
                     if (vo.stateUse != null)
                         EventBusUtil.getEventBus().post(new StateUseEvent(vo.stateUse));
+                    EventBusUtil.getEventBus().post(new VipDescEvent(vo.vipDesc));
                     if (VersionUpdater.isNewVersion(vo.maxBuild)
                             && StringUtils.hasText(vo.url)) {
                         // 有新版本

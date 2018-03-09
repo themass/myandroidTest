@@ -46,7 +46,6 @@ public class ImgGalleryFragment extends BasePullLoadbleFragment<ImgItemVo> imple
     // region Member Variables
     private ArrayList<String> images = new ArrayList<>();
     private ArrayList<String> origeImages = new ArrayList<>();
-    private ArrayList<String> remteImages = new ArrayList<>();
     // endregion
     private int gridItemWidth;
     private int gridItemHeight;
@@ -106,18 +105,12 @@ public class ImgGalleryFragment extends BasePullLoadbleFragment<ImgItemVo> imple
         if (!CollectionUtils.isEmpty(data.voList)) {
             images.clear();
             origeImages.clear();
-            remteImages.clear();
             for (ImgItemVo item : data.voList) {
                 images.add(item.picUrl);
                 if(StringUtils.hasText(item.origUrl)){
                     origeImages.add(item.origUrl);
                 }else{
                     origeImages.add(item.picUrl);
-                }
-                if(StringUtils.hasText(item.remoteUrl)){
-                    remteImages.add(item.remoteUrl);
-                }else{
-                    remteImages.add(item.picUrl);
                 }
             }
         }
@@ -152,7 +145,6 @@ public class ImgGalleryFragment extends BasePullLoadbleFragment<ImgItemVo> imple
         Intent intent = new Intent(getContext(), MyFullScreenImageGalleryActivity.class);
         Bundle bundle = new Bundle();
         bundle.putStringArrayList(MyFullScreenImageGalleryActivity.KEY_IMAGES, origeImages);
-        bundle.putStringArrayList(MyFullScreenImageGalleryActivity.KEY_IMAGES_REMOTE, remteImages);
         bundle.putInt(MyFullScreenImageGalleryActivity.KEY_POSITION, position);
         intent.putExtras(bundle);
         startActivity(intent);

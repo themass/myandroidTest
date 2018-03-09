@@ -6,7 +6,7 @@ import org.strongswan.android.logic.VpnType;
 
 import java.util.Arrays;
 import java.util.List;
-
+import com.timeline.vpn.R;
 /**
  * Created by themass on 2015/9/1.
  */
