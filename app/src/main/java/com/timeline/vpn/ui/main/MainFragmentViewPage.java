@@ -30,8 +30,8 @@ import com.timeline.myapp.data.UserLoginUtil;
 import com.timeline.myapp.data.config.ConfigActionJump;
 import com.timeline.myapp.data.config.LogAddTofile;
 import com.timeline.myapp.data.config.TabChangeEvent;
+import com.timeline.myapp.ui.base.app.BaseDrawerActivity;
 import com.timeline.myapp.ui.inte.OnBackKeyDownListener;
-import com.timeline.sex.ui.base.app.BaseDrawerActivity;
 import com.timeline.vpn.R;
 import com.timeline.vpn.ui.maintab.TabCustomeFragment;
 import com.timeline.vpn.ui.maintab.TabVpnFragment;
@@ -46,7 +46,9 @@ import java.util.List;
 import java.util.Set;
 
 import co.mobiwise.materialintro.animation.MaterialIntroListener;
-import co.mobiwise.materialintro.view.MaterialIntroView;public class MainFragmentViewPage extends BaseDrawerActivity implements ActivityCompat.OnRequestPermissionsResultCallback,MaterialIntroListener {
+import co.mobiwise.materialintro.view.MaterialIntroView;
+
+public class MainFragmentViewPage extends BaseDrawerActivity implements ActivityCompat.OnRequestPermissionsResultCallback,MaterialIntroListener {
 
 
     /**

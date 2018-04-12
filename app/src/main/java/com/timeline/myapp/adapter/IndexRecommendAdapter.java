@@ -47,7 +47,7 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
         this.layoutManager = layoutManager;
         this.mOnEditClickListener = onEditClickListener;
         itemWidth = DensityUtil.getDensityDisplayMetrics(context).widthPixels / layoutManager.getSpanCount();
-        marginPix = context.getResources().getDimensionPixelSize(R.dimen.margin_4) * 2 + context.getResources().getDimensionPixelSize(R.dimen.margin_5) * 2;
+        marginPix = context.getResources().getDimensionPixelSize(R.dimen.margin_2) * 2 + context.getResources().getDimensionPixelSize(R.dimen.margin_3) * 2;
         imgWidth = itemWidth - marginPix;
         hExtra = context.getResources().getDimensionPixelSize(R.dimen.margin_3);
     }

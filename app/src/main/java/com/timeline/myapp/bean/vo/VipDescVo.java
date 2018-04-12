@@ -7,4 +7,5 @@ package com.timeline.myapp.bean.vo;
 public class VipDescVo {
     public String desc;
     public String desc1;
+    public Long score;
 }

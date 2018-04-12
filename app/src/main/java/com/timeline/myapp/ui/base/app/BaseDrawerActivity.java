@@ -1,4 +1,4 @@
-package com.timeline.sex.ui.base.app;
+package com.timeline.myapp.ui.base.app;
 
 import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
@@ -30,7 +30,6 @@ import com.timeline.myapp.data.config.StateUseEvent;
 import com.timeline.myapp.data.config.UserLoginEvent;
 import com.timeline.myapp.data.config.VipDescEvent;
 import com.timeline.myapp.ui.base.WebViewActivity;
-import com.timeline.myapp.ui.base.app.BaseToolBarActivity;
 import com.timeline.myapp.ui.feedback.IWannaFragment;
 import com.timeline.myapp.ui.fragment.AppListFragment;
 import com.timeline.myapp.ui.fragment.DonationListFragment;
@@ -94,7 +93,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         llLoginMenuHeader = (LinearLayout) headerView.findViewById(R.id.ll_menu_headview);
         tvMenuUserName = (TextView) headerView.findViewById(R.id.tv_menu_username);
         tvMenuUserLogin = (TextView) headerView.findViewById(R.id.tv_menu_login);
-         tvScore= (TextView) headerView.findViewById(R.id.tv_score);
+        tvScore= (TextView) headerView.findViewById(R.id.tv_score);
         tvDesc = (TextView) headerView.findViewById(R.id.tv_desc);
         tvDesc1 = (TextView) headerView.findViewById(R.id.tv_desc2);
         ivAvatar = (ImageView) headerView.findViewById(R.id.iv_avatar);
@@ -115,7 +114,6 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
             miLocation.setIcon(R.drawable.ic_menu_location);
         }
         miLocation.setTitle(LocationUtil.getSelectName(this));
-        setupLocationIcon();
     }
 
     private void setUpVersion() {
@@ -148,6 +146,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
             tvMenuUserLogin.setText(R.string.menu_btn_login);
             ivLevel.setVisibility(View.GONE);
         }
+        setScore(null);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -170,15 +169,19 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         tvDesc1.setText(event.stateUse.desc1);
 //        tvDesc.setText("每周减50积分，VIP状态随积分变动");
 //        tvDesc1.setText("VIP1=400积分； VIP2=600积分");
-        setScore();
+        setScore(event.stateUse.score);
     }
-    private void setScore() {
-        UserInfoVo vo = UserLoginUtil.getUserCache();
-        if (vo != null) {
-            tvScore.setText(vo.score + "积分");
-        } else {
-            int score = PreferenceUtils.getPrefInt(this, Constants.SCORE_TMP, 0);
-            tvScore.setText(score + "积分");
+    private void setScore(Long inScore) {
+        if(inScore!=null){
+            tvScore.setText(inScore + "积分");
+        }else {
+            UserInfoVo vo = UserLoginUtil.getUserCache();
+            if (vo != null) {
+                tvScore.setText(vo.score + "积分");
+            } else {
+                int score = PreferenceUtils.getPrefInt(this, Constants.SCORE_TMP, 0);
+                tvScore.setText(score + "积分");
+            }
         }
     }
     public void onAbout(View view) {
