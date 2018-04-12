@@ -8,13 +8,14 @@
         android:id="@+id/video_layout"
         android:layout_width="match_parent"
         android:layout_height="300dp"
+        android:background="@color/base_black"
         >
 
         <io.vov.vitamio.widget.VideoView
             android:id="@+id/videoview"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_gravity="bottom"/>
+            android:layout_gravity="center"/>
 
         <include layout="@layout/layout_video_control" />
     </FrameLayout>

@@ -66,9 +66,9 @@ public class BaseRequest<T> extends Request<T> {
         String loc = "lon:" + StaticDataUtil.get(Constants.LON, Double.class) + ";lat:" + StaticDataUtil.get(Constants.LAT, Double.class);
         this.authkey = ua.substring(ua.length() - 16, ua.length());
         headers.put("Loc", loc);
-        headers.put("User-Agent", ua);
-        if (!headers.containsKey("Referer")) {
-            headers.put("Referer", Constants.DEFAULT_REFERER);
+        headers.put(Constants.USER_AGENT, ua);
+        if (!headers.containsKey(Constants.REFERER)) {
+            headers.put(Constants.REFERER, Constants.DEFAULT_REFERER);
         }
         headers.put("Accept-Encoding", "gzip");
         headers.put("Accept-Language", SystemUtils.getLang(context));

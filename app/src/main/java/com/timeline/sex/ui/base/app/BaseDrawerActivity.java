@@ -12,8 +12,10 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.sspacee.common.util.DateUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PreferenceUtils;
+import com.sspacee.common.util.SystemUtils;
 import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.um.MobAgent;
@@ -27,6 +29,8 @@ import com.timeline.sex.data.VersionUpdater;
 import com.timeline.sex.data.config.LocationChooseEvent;
 import com.timeline.sex.data.config.StateUseEvent;
 import com.timeline.sex.data.config.UserLoginEvent;
+import com.timeline.sex.data.config.VipDescEvent;
+import com.timeline.sex.ui.base.WebViewActivity;
 import com.timeline.sex.ui.feedback.IWannaFragment;
 import com.timeline.sex.ui.fragment.AppListFragment;
 import com.timeline.sex.ui.fragment.DonationListFragment;
@@ -36,6 +40,8 @@ import com.timeline.sex.ui.user.SettingActivity;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+
+import java.util.Date;
 
 import butterknife.BindView;
 
@@ -51,8 +57,12 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     NavigationView nvDrawer;
     View headerView;
     LinearLayout llLoginMenuHeader;
+    LinearLayout llDesc;
     TextView tvMenuUserName;
     TextView tvMenuUserLogin;
+    TextView tvScore;
+    TextView tvDesc;
+    TextView tvDesc1;
     ImageView ivAvatar;
     ImageView ivLevel;
     MenuItem miLogout;
@@ -83,6 +93,9 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         llLoginMenuHeader = (LinearLayout) headerView.findViewById(R.id.ll_menu_headview);
         tvMenuUserName = (TextView) headerView.findViewById(R.id.tv_menu_username);
         tvMenuUserLogin = (TextView) headerView.findViewById(R.id.tv_menu_login);
+         tvScore= (TextView) headerView.findViewById(R.id.tv_score);
+        tvDesc = (TextView) headerView.findViewById(R.id.tv_desc);
+        tvDesc1 = (TextView) headerView.findViewById(R.id.tv_desc2);
         ivAvatar = (ImageView) headerView.findViewById(R.id.iv_avatar);
         ivLevel = (ImageView) headerView.findViewById(R.id.iv_level);
         nvDrawer.setItemIconTintList(null);
@@ -133,6 +146,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
             tvMenuUserLogin.setText(R.string.menu_btn_login);
             ivLevel.setVisibility(View.GONE);
         }
+        setScore(null);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -149,7 +163,37 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     public void onEvent(StateUseEvent event) {
         PreferenceUtils.setPrefObj(this, Constants.USER_STATUS, event.stateUse);
     }
-
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(VipDescEvent event) {
+        tvDesc.setText(event.stateUse.desc);
+        tvDesc1.setText(event.stateUse.desc1);
+//        tvDesc.setText("每周减50积分，VIP状态随积分变动");
+//        tvDesc1.setText("VIP1=400积分； VIP2=600积分");
+        setScore(event.stateUse.score);
+    }
+    private void setScore(Long inScore) {
+        if(inScore!=null){
+            tvScore.setText(inScore + "积分");
+        }else {
+            UserInfoVo vo = UserLoginUtil.getUserCache();
+            if (vo != null) {
+                tvScore.setText(vo.score + "积分");
+            } else {
+                int score = PreferenceUtils.getPrefInt(this, Constants.SCORE_TMP, 0);
+                tvScore.setText(score + "积分");
+            }
+        }
+    }
+    public void onAbout(View view) {
+        String url = Constants.ABOUT;
+        if (SystemUtils.isZH(this)) {
+            url = Constants.ABOUT_ZH;
+        }
+        url = url + "?" + DateUtils.format(new Date(), DateUtils.DATE_FORMAT);
+        WebViewActivity.startWebViewActivity(this, url, getString(R.string.menu_btn_about), false, false, null);
+        PreferenceUtils.setPrefBoolean(this, Constants.ABOUT_FIRST, true);
+        MobAgent.onEventMenu(this, "关于");
+    }
     public void logout(MenuItem item) {
         baseService.postData(Constants.getUrl(Constants.API_LOGOUT_URL), null, null, null, null, null);
         UserLoginUtil.logout(this);

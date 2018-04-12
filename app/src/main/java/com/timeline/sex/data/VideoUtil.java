@@ -2,10 +2,13 @@ package com.timeline.sex.data;
 
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.StringUtils;
+import com.timeline.sex.constant.Constants;
 
 import java.net.URI;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Set;
 
 /**
@@ -33,5 +36,17 @@ public class VideoUtil {
         }catch (Exception e){
             return false;
         }
+    }
+    public static Object[] getVideoSource(String url, boolean loop, String reffer){
+        LinkedHashMap map = new LinkedHashMap();
+        HashMap<String,String> header = new HashMap<>();
+        header.put(Constants.REFERER, reffer);
+        header.put(Constants.USER_AGENT, Constants.USER_AGENT_DEF);
+        map.put("高清", url);
+        Object[] dataSourceObjects = new Object[3];
+        dataSourceObjects[0] = map;
+        dataSourceObjects[1]=loop;
+        dataSourceObjects[2]=header;
+        return dataSourceObjects;
     }
 }

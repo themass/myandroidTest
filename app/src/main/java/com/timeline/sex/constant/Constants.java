@@ -12,8 +12,10 @@ import java.util.List;
  */
 public class Constants {
 
-    public static final String REFERER = "referer";
-    public static final String DEFAULT_REFERER = "http://www.secondaryspace.com/";
+    public static final String REFERER = "Referer";
+    public static final String USER_AGENT = "User-Agent";
+    public static final String USER_AGENT_DEF = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36";
+    public static final String DEFAULT_REFERER = "http://www.sspacee.com/";
     public static final String MAIN_URL = "http://www.sspacee.com/";
     public static final String IMAGE_RES_PRE = "timeline://img";
     public static final String URL = "url";
@@ -169,7 +171,7 @@ public class Constants {
     public static final String LOCATION_ICON_ALL ="timeline://img/flag_all.png";
     public static final int[] img = new int[]{R.drawable.bg_api};
     public static final String BOOK_CSS = " body{font-size:22px;font-family: 微软雅黑;letter-spacing:1.8px;line-height:1.2;background-color:rgba(0,0,0,0);}";
-    public static String BASE_IP = "api.secondaryspace.com";
+    public static String BASE_IP = "api.sspacee.com";
     public static String ABOUT_FIRST = "ABOUT_FbbIRST";
     public static String ABOUT_ZH = "http://file.sspacee.com/file/html/about_zh.html";
     public static String ABOUT = "http://file.sspacee.com/file/html/about.html";

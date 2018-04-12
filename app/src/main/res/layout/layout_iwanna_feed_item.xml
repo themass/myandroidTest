@@ -97,7 +97,7 @@
             android:layout_height="wrap_content"
             android:paddingRight="@dimen/margin_15"
             android:layout_toLeftOf="@+id/tv_time"
-            android:textColor="@color/fab_color_pressed"
+            android:textColor="@color/base_red_small"
             />
     </RelativeLayout>
 

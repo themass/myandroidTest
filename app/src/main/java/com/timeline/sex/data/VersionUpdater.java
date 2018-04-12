@@ -33,6 +33,7 @@ import com.timeline.sex.base.MyApplication;
 import com.timeline.sex.bean.vo.VersionVo;
 import com.timeline.sex.constant.Constants;
 import com.timeline.sex.data.config.StateUseEvent;
+import com.timeline.sex.data.config.VipDescEvent;
 import com.timeline.sex.ui.main.MainFragmentViewPage;
 
 import java.io.File;
@@ -62,6 +63,7 @@ public class VersionUpdater {
                     }
                     if (vo.stateUse != null)
                         EventBusUtil.getEventBus().post(new StateUseEvent(vo.stateUse));
+                    EventBusUtil.getEventBus().post(new VipDescEvent(vo.vipDesc));
                     if (VersionUpdater.isNewVersion(vo.maxBuild)
                             && StringUtils.hasText(vo.url)) {
                         // 有新版本

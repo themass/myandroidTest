@@ -12,8 +12,7 @@ import com.timeline.sex.R;
 import com.timeline.sex.bean.vo.RecommendVo;
 import com.timeline.sex.constant.Constants;
 import com.timeline.sex.data.ImagePhotoLoad;
-
-import java.util.HashMap;
+import com.timeline.sex.data.VideoUtil;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -37,10 +36,9 @@ public class VideoShowActivity extends AppCompatActivity {
         setContentView(R.layout.layout_video_show);
         unbinder = ButterKnife.bind(this);
         vo = (RecommendVo)getIntent().getSerializableExtra(Constants.CONFIG_PARAM);
-        HashMap<String,String> header = new HashMap<>();
-        header.put("Referer", com.sspacee.common.util.StringUtils.hasText(vo.param)?vo.param: vo.actionUrl);
-        jzVideo.setUp(vo.actionUrl, JZVideoPlayerStandard.SCREEN_LAYOUT_NORMAL, vo.title,header);
-        jzVideo.headData = header;
+        Object[] source = VideoUtil.getVideoSource(vo.actionUrl,false,com.sspacee.common.util.StringUtils.hasText(vo.param)?vo.param: vo.actionUrl);
+        jzVideo.setUp(source,0, JZVideoPlayerStandard.SCREEN_WINDOW_NORMAL, vo.title);
+//        jzVideo.headData = header;
         ImagePhotoLoad.loadCommonImg(this,vo.img,jzVideo.thumbImageView);
         JZVideoPlayer.setJzUserAction(new MyUserActionStandard());
     }
@@ -77,7 +75,7 @@ public class VideoShowActivity extends AppCompatActivity {
     class MyUserActionStandard implements JZUserActionStandard {
 
         @Override
-        public void onEvent(int type, String url, int screen, Object... objects) {
+        public void onEvent(int type, Object url, int screen, Object... objects) {
             switch (type) {
                 case JZUserAction.ON_CLICK_PAUSE:
                     if(AdsContext.rateShow()){

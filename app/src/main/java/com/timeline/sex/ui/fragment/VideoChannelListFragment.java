@@ -71,6 +71,7 @@ public class VideoChannelListFragment extends RecommendFragment {
             }else {
                 startActivity(VideoShowActivity.class, vo);
             }
+//            startActivity(VitamioVideoPlayActivity.class, vo);
         }else{
             super.onItemClick(v,position);
         }

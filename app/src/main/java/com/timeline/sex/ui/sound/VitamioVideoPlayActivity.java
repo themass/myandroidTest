@@ -276,7 +276,8 @@ public class VitamioVideoPlayActivity extends LogActivity {
         setContentView(R.layout.layout_vitamio_video_play);
         unbinder = ButterKnife.bind(this);
         vo = (RecommendVo)getIntent().getSerializableExtra(Constants.CONFIG_PARAM);
-        header.put("Referer", com.sspacee.common.util.StringUtils.hasText(vo.param)?vo.param: vo.actionUrl);
+        header.put(Constants.REFERER, com.sspacee.common.util.StringUtils.hasText(vo.param)?vo.param: vo.actionUrl);
+        header.put(Constants.USER_AGENT, Constants.USER_AGENT_DEF);
         init();
     }
 
@@ -679,6 +680,7 @@ public class VitamioVideoPlayActivity extends LogActivity {
 
         float width = getResources().getDisplayMetrics().heightPixels;
         float height = dp2px(300.f);
+//        float height= getResources().getDisplayMetrics().widthPixels;
         mVideoLayout.getLayoutParams().width = (int) width;
         mVideoLayout.getLayoutParams().height = (int) height;
 

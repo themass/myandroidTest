@@ -42,9 +42,9 @@ public class VideoShowActivityj extends AppCompatActivity {
         unbinder = ButterKnife.bind(this);
         vo = (RecommendVo)getIntent().getSerializableExtra(Constants.CONFIG_PARAM);
         HashMap<String,String> header = new HashMap<>();
-        header.put("Referer", com.sspacee.common.util.StringUtils.hasText(vo.param)?vo.param: vo.actionUrl);
-        jzVideo.setUp(vo.actionUrl, JZVideoPlayerStandard.SCREEN_LAYOUT_NORMAL, vo.title,header);
-        jzVideo.headData = header;
+        header.put(Constants.REFERER, com.sspacee.common.util.StringUtils.hasText(vo.param)?vo.param: vo.actionUrl);
+        jzVideo.setUp(vo.actionUrl, JZVideoPlayerStandard.SCREEN_WINDOW_NORMAL, vo.title,header);
+//        jzVideo.headData = header;
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         mSensorEventListener = new JZVideoPlayer.JZAutoFullscreenListener();
         ImagePhotoLoad.loadCommonImg(this,vo.img,jzVideo.thumbImageView);
@@ -91,7 +91,7 @@ public class VideoShowActivityj extends AppCompatActivity {
     class MyUserActionStandard implements JZUserActionStandard {
 
         @Override
-        public void onEvent(int type, String url, int screen, Object... objects) {
+        public void  onEvent(int type, Object url, int screen, Object... objects) {
             switch (type) {
                 case JZUserAction.ON_CLICK_PAUSE:
                     if(AdsContext.rateShow()){

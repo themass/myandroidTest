@@ -12,7 +12,6 @@ import com.timeline.sex.bean.vo.InfoListVo;
 import com.timeline.sex.bean.vo.RecommendVo;
 import com.timeline.sex.constant.Constants;
 import com.timeline.sex.ui.fragment.RecommendFragment;
-import com.timeline.sex.ui.fragment.TeleplayChannelFragment;
 import com.timeline.sex.ui.fragment.VideoChannelListFragment;
 import com.timeline.sex.ui.fragment.VideoChannelUserListFragment;
 
@@ -45,7 +44,7 @@ public class MovieChannleBodyFragment extends RecommendFragment implements Nativ
     public void onItemClick(View v, int position) {
         RecommendVo vo = infoListVo.voList.get(position);
         if (vo.dataType == RecommendVo.dataType_ADS) {
-            ((NativeAdInfo) (vo.extra)).onClick(v);
+            ((NativeAdInfo) (vo.extra)).onClick(v,(int)v.getX(),(int)v.getY());
         } else {
             if(Constants.VIDEO_USER_CHANNEL.equals(vo.param)){
                 VideoChannelUserListFragment.startFragment(getActivity(),vo);

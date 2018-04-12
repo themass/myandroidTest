@@ -18,12 +18,11 @@ import com.timeline.sex.R;
 import com.timeline.sex.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.sex.bean.vo.RecommendVo;
 import com.timeline.sex.constant.Constants;
+import com.timeline.sex.data.VideoUtil;
 
-import java.util.HashMap;
 import java.util.List;
 
 import butterknife.BindView;
-import cn.jzvd.JZVideoPlayer;
 import cn.jzvd.JZVideoPlayerStandard;
 
 
@@ -43,10 +42,9 @@ public class VideoListAdapter extends BaseRecyclerViewAdapter<VideoListAdapter.V
             VideoHolder holder = (VideoHolder)h;
             RecommendVo vo = data.get(position);
             LogUtil.i("jcVideoPlayer="+holder.jcVideoPlayer.toString());
-            HashMap<String,String> header = new HashMap<>();
-            header.put("Referer", StringUtils.hasText(vo.param)?vo.param: vo.actionUrl);
-            holder.jcVideoPlayer.setUp(vo.actionUrl, JZVideoPlayer.SCREEN_LAYOUT_LIST, vo.title,header);
-            holder.jcVideoPlayer.headData = header;
+            Object[] source = VideoUtil.getVideoSource(vo.actionUrl,false,StringUtils.hasText(vo.param)?vo.param: vo.actionUrl);
+            holder.jcVideoPlayer.setUp(source,0, JZVideoPlayerStandard.SCREEN_WINDOW_LIST, vo.title);
+//            holder.jcVideoPlayer.hea = header;
             Glide.with(context).load(vo.img).into(holder.jcVideoPlayer.thumbImageView);
             if(Constants.BANNER_ADS_POS.contains(position)){
                 if(position%2==1){
