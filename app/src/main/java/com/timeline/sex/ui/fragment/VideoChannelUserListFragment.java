@@ -2,6 +2,7 @@ package com.timeline.sex.ui.fragment;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.view.View;
 
 import com.sspacee.yewu.ads.base.AdsContext;
@@ -14,6 +15,7 @@ import com.timeline.sex.ui.base.CommonFragmentActivity;
  */
 public class VideoChannelUserListFragment extends RecommendFragment {
     private static final String VIDEO_TAG = "video_user_tag";
+    RecommendVo vo;
     public static void startFragment(Context context, RecommendVo vo) {
         Intent intent = new Intent(context, CommonFragmentActivity.class);
         intent.putExtra(CommonFragmentActivity.FRAGMENT, VideoChannelUserListFragment.class);
@@ -21,11 +23,19 @@ public class VideoChannelUserListFragment extends RecommendFragment {
         intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, true);
         intent.putExtra(CommonFragmentActivity.ADSSCROLL, false);
         intent.putExtra(CommonFragmentActivity.BANNER_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_VPN2);
+        intent.putExtra(CommonFragmentActivity.PARAM,vo);
         context.startActivity(intent);
     }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        vo = (RecommendVo)getArguments().getSerializable(CommonFragmentActivity.PARAM);
+    }
+
     @Override
     public String getUrl(int start) {
-        return Constants.getUrlWithParam(Constants.API_VIDEO_USER_URL, start);
+        return Constants.getUrlWithParam(Constants.API_VIDEO_USER_URL, vo.param,start);
     }
     @Override
     public String getNetTag() {

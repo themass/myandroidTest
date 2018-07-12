@@ -46,7 +46,7 @@ public class VideoChannleBodyFragment extends RecommendFragment implements Nativ
         if (vo.dataType == RecommendVo.dataType_ADS) {
             ((NativeAdInfo) (vo.extra)).onClick(v,(int)v.getX(),(int)v.getY());
         } else {
-            if(Constants.VIDEO_USER_CHANNEL.equals(vo.param)){
+            if(Constants.VIDEO_USER_CHANNEL.equals(vo.actionUrl)){
                 VideoChannelUserListFragment.startFragment(getActivity(),vo);
             }else{
                 VideoChannelListFragment.startFragment(getActivity(), vo);

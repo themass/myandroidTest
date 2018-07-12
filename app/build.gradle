@@ -9,8 +9,8 @@ android {
         applicationId "com.timeline.sex"
         minSdkVersion 16
         targetSdkVersion 21
-        versionCode 1000001001
-        versionName "1.0.1.1"
+        versionCode 1000001002
+        versionName "1.0.1.2"
         // Enabling multidex support.
         multiDexEnabled true
         vectorDrawables.useSupportLibrary = true

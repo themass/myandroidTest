@@ -13,8 +13,8 @@ public class LogToFileService extends BaseLogService {
     @Override
     public void onCreate() {
         super.onCreate();
-        thread = new WriteThread();
-        thread.start();
+//        thread = new WriteThread();
+//        thread.start();
     }
 
     @Override

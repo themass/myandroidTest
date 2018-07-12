@@ -8,8 +8,10 @@ import android.view.View;
 import com.timeline.sex.bean.vo.RecommendVo;
 import com.timeline.sex.constant.Constants;
 import com.timeline.sex.data.StaticDataUtil;
+import com.timeline.sex.data.VideoUtil;
 import com.timeline.sex.ui.base.CommonFragmentActivity;
 import com.timeline.sex.ui.sound.VideoShowActivity;
+import com.timeline.sex.ui.sound.VitamioVideoPlayActivity;
 
 /**
  * Created by themass on 2016/8/12.
@@ -26,7 +28,7 @@ public class VideoChannelUserItemsListFragment extends RecommendFragment {
     }
     @Override
     public String getUrl(int start) {
-        return Constants.getUrlWithParam(Constants.API_VIDEO_USER_ITEM_URL,start,vo.param);
+        return Constants.getUrlWithParam(Constants.API_VIDEO_USER_ITEM_URL,start,vo.actionUrl);
     }
     @Override
     public String getNetTag() {
@@ -44,7 +46,16 @@ public class VideoChannelUserItemsListFragment extends RecommendFragment {
     @Override
     public void onItemClick(View v, int position) {
         RecommendVo vo = infoListVo.voList.get(position);
-        startActivity(VideoShowActivity.class,vo);
+        if(Constants.VIDEO_TYPE_NORMAL.equalsIgnoreCase((String)vo.extra)){
+            if(VideoUtil.isVitamioExt(vo.actionUrl)){
+                startActivity(VitamioVideoPlayActivity.class, vo);
+            }else {
+                startActivity(VideoShowActivity.class, vo);
+            }
+//            startActivity(VitamioVideoPlayActivity.class, vo);
+        }else{
+            super.onItemClick(v,position);
+        }
     }
     @Override
     public void setupViews(View view, Bundle savedInstanceState) {

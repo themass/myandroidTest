@@ -57,7 +57,7 @@ public class FileSizeUtil {
             else {
                 blockSize = getFileSize(file);
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             e.printStackTrace();
             LogUtil.e("获取文件大小失败!");
         }
@@ -76,6 +76,7 @@ public class FileSizeUtil {
             FileInputStream fis;
             fis = new FileInputStream(file);
             size = fis.available();
+            fis.close();
         }
         else {
             file.createNewFile();
