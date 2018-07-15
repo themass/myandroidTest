@@ -7,7 +7,7 @@ import android.widget.Toast;
 import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PackageUtils;
-import com.timeline.sex.constant.Constants;
+import com.timeline.view.constant.Constants;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;

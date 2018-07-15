@@ -3,7 +3,8 @@ package com.sspacee.common.ui.view;
 import android.app.Dialog;
 import android.content.Context;
 
-import com.timeline.sex.R;
+import com.timeline.sexfree1.R;
+
 
 public class MyProgressDialog extends Dialog {
 

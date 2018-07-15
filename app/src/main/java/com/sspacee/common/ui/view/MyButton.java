@@ -4,7 +4,7 @@ import android.content.Context;
 import android.support.v7.widget.AppCompatButton;
 import android.util.AttributeSet;
 
-import com.timeline.sex.base.MyApplication;
+import com.timeline.view.base.MyApplication;
 
 /**
  * 自定义字体的Button

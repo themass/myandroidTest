@@ -19,10 +19,10 @@ import com.sspacee.common.util.StringUtils;
 import com.sspacee.common.util.SystemUtils;
 import com.sspacee.common.util.cache.DiskBasedCacheEx;
 import com.sspacee.yewu.net.HttpUtils;
-import com.timeline.sex.bean.vo.JsonResult;
-import com.timeline.sex.constant.Constants;
-import com.timeline.sex.data.StaticDataUtil;
-import com.timeline.sex.data.UserLoginUtil;
+import com.timeline.view.bean.vo.JsonResult;
+import com.timeline.view.constant.Constants;
+import com.timeline.view.data.StaticDataUtil;
+import com.timeline.view.data.UserLoginUtil;
 
 import java.net.URL;
 import java.util.Date;

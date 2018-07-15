@@ -54,6 +54,16 @@
                 android:background="?android:attr/selectableItemBackground"
                 android:text="@string/reg"
                 android:textColor="@color/gray" />
+            <Button
+                android:id="@+id/btn_findpass"
+                android:padding="@dimen/margin_5"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right"
+                android:layout_marginTop="10dp"
+                android:background="?android:attr/selectableItemBackground"
+                android:text="@string/findpass"
+                android:textColor="@color/gray" />
 
             <TextView
                 style="@style/tv_white_small"

@@ -19,8 +19,8 @@ import com.sspacee.common.util.FileUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.cache.BitmapLruCache;
 import com.sspacee.common.util.cache.DiskBasedCacheEx;
-import com.timeline.sex.R;
-import com.timeline.sex.base.MyApplication;
+import com.timeline.sexfree1.R;
+import com.timeline.view.base.MyApplication;
 
 import java.io.File;
 

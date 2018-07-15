@@ -11,7 +11,7 @@ import com.kyview.manager.AdViewSpreadManager;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.SplashAdsInter;
-import com.timeline.sex.R;
+import com.timeline.sexfree1.R;
 
 import static com.sspacee.yewu.ads.adview.AdviewConstant.ADS_ADVIEW_KEY2;
 import static com.sspacee.yewu.ads.adview.AdviewConstant.adsKeySet;

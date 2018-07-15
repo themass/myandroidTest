@@ -9,9 +9,9 @@ import com.kyview.manager.AdViewInstlManager;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.InterstitialAdsInter;
-import com.timeline.sex.R;
-import com.timeline.sex.constant.Constants;
-import com.timeline.sex.task.ScoreTask;
+import com.timeline.sexfree1.R;
+import com.timeline.view.constant.Constants;
+import com.timeline.view.task.ScoreTask;
 
 /**
  * Created by themass on 2017/9/20.

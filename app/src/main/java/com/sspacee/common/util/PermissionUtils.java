@@ -13,7 +13,7 @@ import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.timeline.sex.R;
+import com.timeline.sexfree1.R;
 
 import java.util.ArrayList;
 import java.util.HashMap;

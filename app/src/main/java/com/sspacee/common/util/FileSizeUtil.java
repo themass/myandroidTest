@@ -3,7 +3,7 @@ package com.sspacee.common.util;
 import android.text.format.Formatter;
 import android.util.Log;
 
-import com.timeline.sex.base.MyApplication;
+import com.timeline.view.base.MyApplication;
 
 import java.io.File;
 import java.io.FileInputStream;

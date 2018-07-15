@@ -54,6 +54,7 @@
     <string name="menu_btn_share">Share</string>
     <string name="menu_btn_bug">Report bug</string>
     <string name="menu_btn_version">Version:</string>
+    <string name="menu_btn_email">E-mail:</string>
     <string name="menu_btn_logout">Logout</string>
     <string name="menu_btn_setting">Setting</string>
     <string name="menu_btn_app">App recommend</string>
@@ -91,7 +92,13 @@
     <string name="login">Sign in</string>
     <string name="setting">Setting</string>
     <string name="reg">Sign up</string>
+    <string name="findpass">Forget Pass?</string>
     <string name="username_hint">Username</string>
+    <string name="email_hint">E-mail</string>
+    <string name="email_see">Send a email to you</string>
+    <string name="email_ok">email set ok</string>
+    <string name="email_fail">email set fail</string>
+    <string name="free_user">free use</string>
     <string name="password_hint">Password</string>
     <string name="re_password_hint">RePassword</string>
     <string name="re_code">Code</string>
@@ -121,7 +128,9 @@
     <string name="sound">Obscene</string>
     <string name="text">Interesting novel</string>
     <string name="video">Sex video</string>
-
+    <string name="submit">submit</string>
+    <string name="modify">modify</string>
+    <string name="vip_tips">please update to vip</string>
     <string name="img">Sex Img</string>
     <string name="tv">TV</string>
     <string name="version_low">version is to low！</string>

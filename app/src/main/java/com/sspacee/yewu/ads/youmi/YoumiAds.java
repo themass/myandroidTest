@@ -5,7 +5,7 @@ import android.widget.Toast;
 
 import com.sspacee.common.util.DeviceInfoUtils;
 import com.sspacee.common.util.LogUtil;
-import com.timeline.sex.R;
+import com.timeline.sexfree1.R;
 
 import net.youmi.android.AdManager;
 import net.youmi.android.listener.Interface_ActivityListener;

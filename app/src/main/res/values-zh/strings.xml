@@ -53,6 +53,7 @@
     <string name="menu_btn_name_default">猴子请来的</string>
     <string name="menu_btn_feedback">反馈 &amp; 建议</string>
     <string name="menu_btn_about">关于</string>
+    <string name="menu_btn_email">邮箱:</string>
     <string name="menu_btn_share">分享</string>
     <string name="menu_btn_bug">报告bug</string>
     <string name="menu_btn_version">版本:</string>
@@ -89,11 +90,22 @@
     <string name="close_over">再按一次退出程序!!</string>
     <string name="login">登录</string>
     <string name="reg">注册</string>
+    <string name="findpass">忘记密码?</string>
+    <string name="submit">提交</string>
+    <string name="modify">修改</string>
+    <string name="vip_tips">请升级VIP</string>
+
+    <string name="email_see">密码已经发送</string>
+
     <string name="setting">设置</string>
     <string name="sex">性别:</string>
     <string name="male">男</string>
     <string name="female">女</string>
     <string name="username_hint">用户名</string>
+    <string name="email_ok">邮箱设置成功</string>
+    <string name="email_fail">邮箱设置失败</string>
+    <string name="free_user">免费用户</string>
+    <string name="email_hint">邮箱</string>
     <string name="password_hint">密码</string>
     <string name="re_password_hint">再次输入密码</string>
     <string name="re_code">校验码</string>

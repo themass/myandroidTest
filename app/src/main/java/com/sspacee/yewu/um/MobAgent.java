@@ -4,7 +4,7 @@ import android.content.Context;
 
 import com.sspacee.common.CommonConstants;
 import com.sspacee.yewu.ads.base.AdsContext;
-import com.timeline.sex.base.MyApplication;
+import com.timeline.view.base.MyApplication;
 import com.umeng.analytics.MobclickAgent;
 
 import java.util.HashMap;

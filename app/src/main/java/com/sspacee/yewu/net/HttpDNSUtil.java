@@ -5,9 +5,9 @@ import android.net.Uri;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.StringUtils;
-import com.timeline.sex.base.MyApplication;
-import com.timeline.sex.constant.Constants;
-import com.timeline.sex.data.StaticDataUtil;
+import com.timeline.view.base.MyApplication;
+import com.timeline.view.constant.Constants;
+import com.timeline.view.data.StaticDataUtil;
 
 import java.util.HashMap;
 import java.util.Map;

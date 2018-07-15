@@ -8,9 +8,9 @@ import com.kyview.interfaces.AdViewVideoListener;
 import com.kyview.manager.AdViewVideoManager;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.VideoAdsInter;
-import com.timeline.sex.R;
-import com.timeline.sex.constant.Constants;
-import com.timeline.sex.task.ScoreTask;
+import com.timeline.sexfree1.R;
+import com.timeline.view.constant.Constants;
+import com.timeline.view.task.ScoreTask;
 
 import static com.sspacee.yewu.ads.adview.AdviewConstant.ADS_ADVIEW_KEY2;
 
