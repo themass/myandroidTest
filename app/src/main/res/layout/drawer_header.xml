@@ -76,7 +76,7 @@
             android:id="@+id/tv_score"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="@dimen/textsize_18"
+            android:textSize="@dimen/textsize_12"
             android:paddingTop="@dimen/margin_5"
             />
         <TextView

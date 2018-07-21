@@ -178,7 +178,11 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         }else {
             UserInfoVo vo = UserLoginUtil.getUserCache();
             if (vo != null) {
-                tvScore.setText(vo.score + "积分");
+                String score = vo.score + "积分";
+                if(vo.paidTime!=null){
+                    score=score+"(有效期"+vo.paidTime+")";
+                }
+                tvScore.setText(score);
             } else {
                 int score = PreferenceUtils.getPrefInt(this, Constants.SCORE_TMP, 0);
                 tvScore.setText(score + "积分");
