@@ -107,6 +107,7 @@
     <string name="free_user">免费用户</string>
     <string name="email_hint">邮箱</string>
     <string name="password_hint">密码</string>
+    <string name="password_error">密码错误</string>
     <string name="re_password_hint">再次输入密码</string>
     <string name="re_code">校验码</string>
     <string name="re_bt_code">获取校验码</string>
@@ -126,6 +127,8 @@
     <string name="vip_need">非VIP用户不允许访问,详见“关于”</string>
     <string name="area_setting">是否显示专区</string>
     <string name="sound_setting">音频非wifi网络下提示</string>
+    <string name="sound_picshow">电影封面隐藏</string>
+    <string name="area_mi">专区加密</string>
     <string name="sound_play_not_wifi">非wifi下听音频？</string>
     <string name="sound">淫声荡语</string>
     <string name="text">情趣小说</string>

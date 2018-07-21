@@ -51,7 +51,28 @@
                 </RelativeLayout>
 
                 <ImageView style="@style/divider_login" />
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="@dimen/margin_10">
 
+                    <TextView
+                        android:id="@+id/tv_area"
+                        style="@style/tv_setting"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:text="@string/area_mi" />
+
+                    <Switch
+                        android:id="@+id/sw_area_mi"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentRight="true"
+                        android:layout_centerVertical="true" />
+                </RelativeLayout>
+
+                <ImageView style="@style/divider_login" />
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -72,7 +93,28 @@
                         android:layout_alignParentRight="true"
                         android:layout_centerVertical="true" />
                 </RelativeLayout>
+                <ImageView style="@style/divider_login" />
 
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="@dimen/margin_10">
+
+                    <TextView
+                        android:id="@+id/tv_picshow"
+                        style="@style/tv_setting"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:text="@string/sound_picshow" />
+
+                    <Switch
+                        android:id="@+id/sw_picshow"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentRight="true"
+                        android:layout_centerVertical="true" />
+                </RelativeLayout>
                 <ImageView style="@style/divider_login" />
 
                 <RelativeLayout

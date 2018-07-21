@@ -41,7 +41,7 @@ public class VideoShowActivity extends AppCompatActivity {
         if(StringUtils.hasText(vo.urlToken)){
             url = url+vo.urlToken;
         }
-        Object[] source = VideoUtil.getVideoSource(url,false,com.sspacee.common.util.StringUtils.hasText(vo.param)?vo.param: vo.actionUrl);
+        Object[] source = VideoUtil.getVideoSource(url,false,com.sspacee.common.util.StringUtils.hasText(vo.baseurl)?vo.baseurl : vo.actionUrl);
         jzVideo.setUp(source,0, JZVideoPlayerStandard.SCREEN_WINDOW_NORMAL, vo.title);
 //        jzVideo.headData = header;
         ImagePhotoLoad.loadCommonImg(this,vo.img,jzVideo.thumbImageView);

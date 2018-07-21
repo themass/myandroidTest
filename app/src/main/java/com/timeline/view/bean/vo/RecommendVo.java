@@ -12,7 +12,8 @@ public class RecommendVo implements Serializable {
     public static final int dataType_RECOMMENT = 2;
     public static final int dataType_TEXT_CHANNEL = 3;
     public static final int dataType_SOUND_CHANNEL = 4;
-
+    public static final int dataType_VIDEO_CHANNEL = 5;
+    public static final int dataType_IMG_CHANNEL = 6;
     public String title;
     public String actionUrl;
     public String img;
@@ -32,7 +33,7 @@ public class RecommendVo implements Serializable {
     public Boolean newShow;
     public String showLogo;
     public String urlToken;
-
+    public String baseurl;
     public FavoriteVo tofavorite(int type) {
         FavoriteVo vo = new FavoriteVo();
         vo.setName(title);

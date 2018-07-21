@@ -50,7 +50,10 @@ import static com.sspacee.common.CommonConstants.tmpFilePath;
  */
 public class SettingActivity extends BaseSingleActivity {
     private static final String TAG = "setpass_tag";
-
+    @BindView(R.id.sw_area_mi)
+    Switch swAreaMi;
+    @BindView(R.id.sw_picshow)
+    Switch swPicshow;
     @BindView(R.id.sw_area)
     Switch swArea;
     @BindView(R.id.sw_sound)
@@ -71,6 +74,7 @@ public class SettingActivity extends BaseSingleActivity {
     @BindView(R.id.btn_submit)
     Button btnSubmit;
     BaseService baseService;
+    String mEmail;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -84,11 +88,25 @@ public class SettingActivity extends BaseSingleActivity {
                 EventBusUtil.getEventBus().post(new TabChangeEvent());
             }
         });
+        swPicshow.setChecked(PreferenceUtils.getPrefBoolean(this, Constants.VIDEO_PIC_SWITCH, true));
+        swPicshow.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                PreferenceUtils.setPrefBoolean(SettingActivity.this, Constants.VIDEO_PIC_SWITCH, isChecked);
+                LogUtil.i("VIDEO_PIC_SWITCH: " + isChecked);
+            }
+        });
         swSound.setChecked(PreferenceUtils.getPrefBoolean(this, Constants.SOUND_SWITCH, true));
         swSound.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 PreferenceUtils.setPrefBoolean(SettingActivity.this, Constants.SOUND_SWITCH, isChecked);
                 LogUtil.i("SOUND_SWITCH: " + isChecked);
+            }
+        });
+        swAreaMi.setChecked(PreferenceUtils.getPrefBoolean(this, Constants.AREA_MI_SWITCH, false));
+        swAreaMi.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                PreferenceUtils.setPrefBoolean(SettingActivity.this, Constants.AREA_MI_SWITCH   , isChecked);
+                LogUtil.i("AREA_MI_SWITCH: " + isChecked);
             }
         });
         baseService = new BaseService();
@@ -98,8 +116,14 @@ public class SettingActivity extends BaseSingleActivity {
         setScore();
         setVersion();
         setCache();
+        setUserEmail();
         etEmail.clearFocus();
         etEmail.setEnabled(false);
+    }
+    private  void setUserEmail(){
+        if(UserLoginUtil.getUserCache()!=null){
+            etEmail.setText(UserLoginUtil.getUserCache().email);
+        }
     }
     private void setCache(){
         tvCache.setText(FileSizeUtil.getAutoFileOrFilesSize(FileUtils.getWriteFilePath(this)));
@@ -140,6 +164,8 @@ public class SettingActivity extends BaseSingleActivity {
             ToastUtil.showShort(R.string.email_ok);
             btnSubmit.setText(R.string.modify);
             etEmail.setEnabled(false);
+            UserLoginUtil.getUserCache().email = mEmail;
+            setUserEmail();
         }
     };
     @OnClick(R.id.btn_submit)
@@ -159,6 +185,7 @@ public class SettingActivity extends BaseSingleActivity {
                 return;
             }
             RegForm form = new RegForm(null, null, null, null, email);
+            mEmail = email;
             baseService.postData(Constants.getUrl(Constants.API_SETEMAIL_URL), form, loginListener, new CommonResponse.ResponseErrorListener() {
                 @Override
                 protected void onError() {

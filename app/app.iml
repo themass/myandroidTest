@@ -180,7 +180,6 @@
     <orderEntry type="library" name="com.github.lawloretienne:imagegallery-0.1.0" level="project" />
     <orderEntry type="library" name="com.android.support:transition-25.3.1" level="project" />
     <orderEntry type="library" name="com.android.support:design-25.3.1" level="project" />
-    <orderEntry type="library" name="cn.jzvd:jiaozivideoplayer-6.2.8" level="project" />
     <orderEntry type="library" name="com.google.android.gms:play-services-ads-11.0.0" level="project" />
     <orderEntry type="library" name="__local_aars__:C.\workspace\eclipse_work\sspacee-vpn\app\libs\gson-2.2.4.jar:unspecified@jar" level="project" />
     <orderEntry type="library" name="__local_aars__:C.\workspace\eclipse_work\sspacee-vpn\app\libs\commons-codec.jar:unspecified@jar" level="project" />
@@ -208,6 +207,7 @@
     <orderEntry type="library" name="com.google.android.gms:play-services-gass-11.0.0" level="project" />
     <orderEntry type="library" name="com.jakewharton:butterknife-8.8.1" level="project" />
     <orderEntry type="library" name="__local_aars__:C.\workspace\eclipse_work\sspacee-vpn\app\libs\play-services_aar_adapter.jar:unspecified@jar" level="project" />
+    <orderEntry type="library" name="cn.jzvd:jiaozivideoplayer-6.2.12" level="project" />
     <orderEntry type="library" name="com.android.support:animated-vector-drawable-25.3.1" level="project" />
     <orderEntry type="library" name="com.google.android.gms:play-services-safetynet-11.0.0" level="project" />
     <orderEntry type="library" name="jp.co.cyberagent.android.gpuimage:gpuimage-library-1.4.1" level="project" />

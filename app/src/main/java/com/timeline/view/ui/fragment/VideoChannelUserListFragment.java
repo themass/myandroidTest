@@ -2,6 +2,7 @@ package com.timeline.view.ui.fragment;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.view.View;
 
 import com.sspacee.common.util.LogUtil;
@@ -17,6 +18,7 @@ public class VideoChannelUserListFragment extends RecommendFragment {
     private static final String VIDEO_TAG = "video_user_tag";
     RecommendVo vo;
     String token;
+    Thread t ;
     public static void startFragment(Context context, RecommendVo vo) {
         Intent intent = new Intent(context, CommonFragmentActivity.class);
         intent.putExtra(CommonFragmentActivity.FRAGMENT, VideoChannelUserListFragment.class);
@@ -29,22 +31,30 @@ public class VideoChannelUserListFragment extends RecommendFragment {
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
+    public void setupViews(View view, Bundle savedInstanceState) {
+        super.setupViews(view, savedInstanceState);
         vo = (RecommendVo)getArguments().getSerializable(CommonFragmentActivity.PARAM);
+        LogUtil.i(vo.title);
         if("蜜蜂资源".equals(vo.title)){
-            Thread t = new Thread(new Runnable() {
+            t = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    try {
-                        token = indexService.getStringData("http://sexbee1.top/getToken.php", "token");
-                        LogUtil.i(token);
-                    }catch (Exception e){
-                        LogUtil.e(e);
+                    int count = 0;
+                    while (count<3) {
+                        try {
+                            LogUtil.i("请求蜜蜂token"+vo.baseurl +"/getToken.php");
+                            token = indexService.getStringData(vo.baseurl +"/getToken.php", "token");
+                            LogUtil.i("蜜蜂token="+token);
+                            break;
+                        } catch (Exception e) {
+                            LogUtil.e(e);
+                            count++;
+                            continue;
+                        }
                     }
                 }
             });
-        t.start();
+            t.start();
         }
     }
 
@@ -84,6 +94,9 @@ public class VideoChannelUserListFragment extends RecommendFragment {
     public void onDestroyView() {
         indexService.cancelRequest(VIDEO_TAG);
         super.onDestroyView();
-
+        if(t!=null && t.isAlive()){
+            t.stop();
+            t = null;
+        }
     }
 }

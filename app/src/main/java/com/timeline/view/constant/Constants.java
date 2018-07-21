@@ -61,7 +61,9 @@ public class Constants {
     public static final String LOGIN_USER = "LOGIN_USER";
     public static final String LOGIN_USER_LAST = "LOGIN_USER_LAST";
     public static final String AREA_SWITCH = "AREA_SWITCH";
+    public static final String VIDEO_PIC_SWITCH = "VIDEO_PIC_SWITCH";
     public static final String SOUND_SWITCH = "SOUND_SWITCH";
+    public static final String AREA_MI_SWITCH = "AREA_MI_SWITCH";
     public static final String LOGIN_USER_PW_LAST = "LOGIN_USER_PW_LAST";
     public static final String DEVID = "Devid";
     public static final String HTTP_TOKEN_KEY = "Sex-Token";

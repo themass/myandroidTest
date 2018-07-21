@@ -15,6 +15,7 @@ import com.romainpiel.shimmer.Shimmer;
 import com.romainpiel.shimmer.ShimmerTextView;
 import com.sspacee.common.helper.OnStartDragListener;
 import com.sspacee.common.util.DensityUtil;
+import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.StringUtils;
 import com.sspacee.common.util.ToastUtil;
 import com.timeline.sexfree1.R;
@@ -119,6 +120,16 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
             holder.ivADS.setText(vo.showLogo);
         }else {
             holder.ivADS.setVisibility(View.GONE);
+        }
+        if(vo.dataType==RecommendVo.dataType_VIDEO_CHANNEL || vo.dataType==RecommendVo.dataType_IMG_CHANNEL){
+            boolean picShow = PreferenceUtils.getPrefBoolean(context, Constants.VIDEO_PIC_SWITCH,true);
+            if(!picShow){
+                vo.showType = Constants.ShowType.Normal;
+                vo.img="";
+                if(vo.rate>=1){
+                    vo.rate=0.8f;
+                }
+            }
         }
         if (vo.newShow !=null && vo.newShow==true) {
             holder.ivNew.setVisibility(View.VISIBLE);

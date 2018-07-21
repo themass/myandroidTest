@@ -100,6 +100,7 @@
     <string name="email_fail">email set fail</string>
     <string name="free_user">free use</string>
     <string name="password_hint">Password</string>
+    <string name="password_error">Password Error</string>
     <string name="re_password_hint">RePassword</string>
     <string name="re_code">Code</string>
     <string name="re_bt_code">Get Code</string>
@@ -124,6 +125,8 @@
     <string name="vip_need">Non VIP users are not allowed to visit</string>
     <string name="area_setting">Show Area Switch</string>
     <string name="sound_setting">Play audio in not wifi</string>
+    <string name="sound_picshow">Video pic show</string>
+    <string name="area_mi">Area encry</string>
     <string name="sound_play_not_wifi">You are now using a non WIFI network？</string>
     <string name="sound">Obscene</string>
     <string name="text">Interesting novel</string>

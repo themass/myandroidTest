@@ -1,5 +1,7 @@
 package com.timeline.view.ui.main;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
@@ -10,6 +12,8 @@ import android.support.v4.view.ViewPager;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -22,7 +26,6 @@ import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.um.MobAgent;
 import com.timeline.sexfree1.R;
-import com.timeline.view.base.MyApplication;
 import com.timeline.view.constant.Constants;
 import com.timeline.view.data.UserLoginUtil;
 import com.timeline.view.data.config.ConfigActionJump;
@@ -96,7 +99,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         addData(inflater, R.string.tab_tag_movie, TabMovieFragment.class,
                 R.drawable.ac_bg_tab_index, R.string.tab_movie, null, 1);
 
-        if (PreferenceUtils.getPrefBoolean(this, Constants.AREA_SWITCH, true) && !MyApplication.isTemp || MyApplication.isDebug) {
+        if (PreferenceUtils.getPrefBoolean(this, Constants.AREA_SWITCH, true)) {
             addData(inflater, R.string.tab_tag_ng, TabNightFragment.class,
                     R.drawable.ac_bg_tab_index, R.string.tab_ng, null, 2);
             addData(inflater, R.string.tab_tag_area, TabAreaFragment.class,
@@ -178,10 +181,42 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
 
         @Override
         public void onTabSelected(TabLayout.Tab tab) {
-            LogUtil.i("tab select:" + tab.getPosition());
+            LogUtil.i("tab select:" + tab.getPosition()+"; tag ="+tab.getTag());
             mViewPager.setCurrentItem(tab.getPosition());
             setToolbarTitle(getString(list.get(tab.getPosition()).title), false);
             index = tab.getPosition();
+            ItemFragment item = list.get(tab.getPosition());
+            boolean areami = PreferenceUtils.getPrefBoolean(MainFragmentViewPage.this, Constants.AREA_MI_SWITCH, false);
+            if(UserLoginUtil.getUserCache()!=null && areami && (item.tag==R.string.tab_tag_ng || item.tag==R.string.tab_tag_area)){
+                LayoutInflater inflater = LayoutInflater.from(MainFragmentViewPage.this);
+                ViewGroup miView = (ViewGroup)inflater.inflate(R.layout.layout_areami,null);
+                final EditText etMi = (EditText)miView.findViewById(R.id.et_mi);
+                AlertDialog dialog = null;
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainFragmentViewPage.this,R.style.mydialog);
+                builder.setView(miView);
+                builder.setCancelable(false);
+                //添加确定按钮
+                builder.setPositiveButton(R.string.del_ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        if(etMi.getText()!=null && etMi.getText().equals(UserLoginUtil.getUserCache().areaMi)){
+                            dialogInterface.dismiss();
+                        }else{
+                            ToastUtil.showShort(R.string.password_error);
+                            initTabs();
+                        }
+                    }
+                });
+                builder.setNegativeButton(R.string.del_cancel, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        ToastUtil.showShort(R.string.password_error);
+                        initTabs();
+                    }
+                });
+                dialog = builder.create();
+                dialog.show();
+            }
         }
 
         @Override

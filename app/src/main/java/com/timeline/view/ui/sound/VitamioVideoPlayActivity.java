@@ -276,7 +276,7 @@ public class VitamioVideoPlayActivity extends LogActivity {
         setContentView(R.layout.layout_vitamio_video_play);
         unbinder = ButterKnife.bind(this);
         vo = (RecommendVo)getIntent().getSerializableExtra(Constants.CONFIG_PARAM);
-        header.put(Constants.REFERER, com.sspacee.common.util.StringUtils.hasText(vo.param)?vo.param: vo.actionUrl);
+        header.put(Constants.REFERER, com.sspacee.common.util.StringUtils.hasText(vo.baseurl)?vo.baseurl : vo.actionUrl);
         header.put(Constants.USER_AGENT, Constants.USER_AGENT_DEF);
         init();
     }

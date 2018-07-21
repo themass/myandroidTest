@@ -14,4 +14,5 @@ public class UserInfoVo {
     public long score;
     public String email;
     public StateUseVo stateUse;
+    public String areaMi="";
 }

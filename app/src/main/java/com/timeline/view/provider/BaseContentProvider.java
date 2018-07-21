@@ -8,7 +8,7 @@ import com.sspacee.common.util.db.MyContentProvider;
 
 public class BaseContentProvider extends MyContentProvider {
 
-    public static final String AUTHORITY = "com.timeline.sex";
+    public static final String AUTHORITY = "com.timeline.sexfree1";
 
     private static final String BASE_URI = "content://" + AUTHORITY + "/";
 

@@ -168,7 +168,15 @@
         <item name="android:windowNoTitle">true</item><!--无标题-->
         <item name="android:windowBackground">@color/transparent</item><!--背景透明-->
     </style>
+    <style name="mydialog" parent="Theme.AppCompat.Light.Dialog">
+        <item name="android:windowBackground">@color/base_bg</item>
+        <item name="android:windowIsFloating">true</item><!--是否浮现在activity之上-->
+        <item name="android:windowFrame">@null</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:backgroundDimAmount">0.6</item>
 
+    </style>
     <style name="RatingBarStyle" parent="@android:style/Widget.Holo.RatingBar.Small" />
 
     <style name="NotificationContent">
