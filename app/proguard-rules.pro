@@ -198,7 +198,7 @@
 }
 
 #----------------------project------------
--keep class com.timeline.sex.bean.**{ *; }
+-keep class com.timeline.view.bean.**{ *; }
 -keep class sun.misc.Unsafe { *; }
 -keep class com.google.gson.stream.** { *; }
 -keep class com.sspacee.common.weather.**{ *; }

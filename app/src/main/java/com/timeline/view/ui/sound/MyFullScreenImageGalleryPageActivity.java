@@ -30,7 +30,7 @@ public class MyFullScreenImageGalleryPageActivity extends BaseSingleActivity imp
     public static final String KEY_IMAGES = "KEY_IMAGES";
     public static final String KEY_IMAGES_REMOTE = "KEY_IMAGES_REMOTE";
     public static final String KEY_POSITION = "KEY_POSITION";
-    @BindView(R.id.vp_container)
+    @BindView(R.id.vp_big_container)
     ViewPager viewPager;
     @BindView(R.id.tv_page)
     TextView tvPage;

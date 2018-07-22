@@ -102,6 +102,7 @@ public class LaunchActivity extends LogActivity {
         super.onResume();
         mHandler.postDelayed(mStartMainRunnable, Constants.STARTUP_SHOW_TIME_7000);
         MobAgent.onResume(this);
+        AdsManager.getInstans().showSplashAds(this,ivAds,skipView);
         setupSplashAd();
         delay1s();
     }

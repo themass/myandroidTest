@@ -178,6 +178,13 @@
         <service android:name="com.kyview.DownloadService" />
         <activity android:name="com.kyview.AdviewWebView" />
         <activity android:name="com.kyview.AdActivity" />
+        <activity android:name="com.kyview.AdViewLandingPage" />
+        <activity
+            android:name="com.kyview.AdViewVideoActivity"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
+            android:hardwareAccelerated="true" >
+        </activity>
+
         <!-- AdView SDK for imMobi -->
         <activity
             android:name="com.inmobi.rendering.InMobiAdActivity"

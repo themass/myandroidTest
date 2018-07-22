@@ -3,14 +3,14 @@ apply plugin: 'org.greenrobot.greendao'
 // gradle BuildVariants
 //Build Variants = Product Flavor + Build Type
 android {
-    compileSdkVersion 25
+    compileSdkVersion 26
     buildToolsVersion '26.0.2'
     defaultConfig {
-        applicationId "com.timeline.sex"
+        applicationId "com.timeline.sexfree1"
         minSdkVersion 16
         targetSdkVersion 21
-        versionCode 1000001002
-        versionName "1.0.1.2"
+        versionCode 1000002000
+        versionName "1.0.2.0"
         // Enabling multidex support.
         multiDexEnabled true
         vectorDrawables.useSupportLibrary = true
@@ -83,7 +83,7 @@ greendao {
     daoPackage 'com.ping.greendao.gen'
     targetGenDir 'src/main/java'
 }
-final APPCOMPAT_VERSION = '25.3.1'
+final APPCOMPAT_VERSION = '26.1.0'
 dependencies {
     //     compile fileTree(dir: 'libs', include: ['*.aar'])
     //    compile(name:'YoumiSdk_v7.5.0_2017-07-18',ext:'aar')
@@ -96,7 +96,7 @@ dependencies {
     compile files('libs/httpcore-4.2.5.jar')
     compile 'cn.jzvd:jiaozivideoplayer:6.2.12'
     compile files('libs/play-services_aar_adapter.jar')
-    compile 'com.google.android.gms:play-services-ads:11.0.0'
+    compile 'com.google.android.gms:play-services-ads:15.0.1'
     compile files('libs/gdt_mob_release.jar')
     compile files('libs/httpcore-4.2.5.jar')
     compile(name: 'YoumiSdk_v7.5.0_2017-07-18', ext: 'aar')
