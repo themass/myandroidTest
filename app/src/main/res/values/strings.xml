@@ -59,6 +59,8 @@
     <string name="menu_btn_score">Points:</string>
     <string name="menu_btn_networking">Traffic:</string>
     <string name="menu_btn_cache">Cache:</string>
+    <string name="menu_btn_email">E-mail:</string>
+
     <string name="menu_btn_timeuse">Time:</string>
     <string name="menu_btn_score_context">Points can change VIP，more info see "About"</string>
     <string name="menu_btn_cache_context">Cache clear</string>
@@ -72,7 +74,7 @@
     <string name="support_info">Please activate several apps to support the author！</string>
     <string name="offerads_ths">Thank you for your support!</string>
     <string name="location_choose_flag_none">Click“ Region ”More regional options</string>
-    <string name="menu_btn_donation">Donation</string>
+    <string name="menu_btn_donation">Pay VIP</string>
 
     <!-- share-->
     <string name="menu_share_title">Share friend</string>
@@ -116,6 +118,16 @@
     <string name="sound">Obscene</string>
     <string name="text">Interesting novel</string>
     <string name="video">Sex video</string>
+    <string name="submit">submit</string>
+    <string name="modify">modify</string>
+    <string name="vip_tips">please update to vip</string>
+    <string name="findpass">Forget Pass?</string>
+    <string name="email_hint">E-mail</string>
+    <string name="email_see">Send a email to you</string>
+    <string name="email_ok">email set ok</string>
+    <string name="email_fail">email set fail</string>
+    <string name="free_user">free use</string>
+    <string name="down_to_loadmore">down to loadmore</string>
 
     <string name="img">Sex Img</string>
     <string name="version_low">version is to low！</string>
@@ -142,6 +154,7 @@
     <string name="vpn_type_free">Free</string>
     <string name="vpn_type_vip">VIP</string>
     <string name="vpn_type_vip2">VIP2</string>
+    <string name="vpn_type_vip3">VIP3</string>
     <string name="vpn_remote_status">FreeVPN·</string>
     <string name="vpn_remote_on">Connected，click to disconnect</string>
     <string name="vpn_remote_off">Disconnect，click to connect</string>

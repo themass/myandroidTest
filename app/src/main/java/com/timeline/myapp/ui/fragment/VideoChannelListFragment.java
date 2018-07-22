@@ -11,7 +11,6 @@ import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.StaticDataUtil;
 import com.timeline.myapp.ui.base.CommonFragmentActivity;
 import com.timeline.myapp.ui.sound.VideoShowActivity;
-
 /**
  * Created by themass on 2016/8/12.
  */
@@ -63,6 +62,9 @@ public class VideoChannelListFragment extends RecommendFragment {
     @Override
     public void onItemClick(View v, int position) {
         RecommendVo vo = infoListVo.voList.get(position);
+        if(!checkUserLevel(vo.type)){
+            return;
+        }
         if(Constants.VIDEO_TYPE_NORMAL.equalsIgnoreCase((String)vo.extra)){
             startActivity(VideoShowActivity.class, vo);
         }else{

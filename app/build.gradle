@@ -3,14 +3,14 @@ apply plugin: 'org.greenrobot.greendao'
 // gradle BuildVariants
 //Build Variants = Product Flavor + Build Type
 android {
-    compileSdkVersion 25
+    compileSdkVersion 26
     buildToolsVersion "26.0.2"
     defaultConfig {
         applicationId "com.timeline.vpn"
         minSdkVersion 16
         targetSdkVersion 24
-        versionCode 1000004002
-        versionName "1.0.4.2"
+        versionCode 1000005000
+        versionName "1.0.5.0"
         // Enabling multidex support.
         multiDexEnabled true
         flavorDimensions "versionCode"
@@ -82,7 +82,7 @@ greendao {
     daoPackage 'com.ping.greendao.gen'
     targetGenDir 'src/main/java'
 }
-final APPCOMPAT_VERSION = '25.3.1'
+final APPCOMPAT_VERSION = '26.1.0'
 dependencies {
 
 //     compile fileTree(dir: 'libs', include: ['*.aar'])
@@ -95,9 +95,9 @@ dependencies {
     compile files('libs/commons-io-2.4.jar')
     compile files('libs/httpcore-4.2.5.jar')
 
-    compile 'cn.jzvd:jiaozivideoplayer:6.1.1'
+    compile 'cn.jzvd:jiaozivideoplayer:6.2.12'
     compile files('libs/play-services_aar_adapter.jar')
-    compile 'com.google.android.gms:play-services-ads:11.0.0'
+    compile 'com.google.android.gms:play-services-ads:15.0.1'
 
     compile files('libs/gdt_mob_release.jar')
     compile files('libs/httpcore-4.2.5.jar')
@@ -140,5 +140,6 @@ dependencies {
     //compile 'com.github.faruktoptas:FancyShowCaseView:1.0.0'
     //compile 'com.github.deano2390:MaterialShowcaseView:1.2.0'
     compile 'com.sothree.slidinguppanel:library:3.3.1'
+    compile 'com.github.JakeWharton:ViewPagerIndicator:2.4.1'
 
 }

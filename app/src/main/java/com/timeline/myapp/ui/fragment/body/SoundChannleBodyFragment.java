@@ -35,6 +35,9 @@ public class SoundChannleBodyFragment extends RecommendFragment {
     @Override
     public void onItemClick(View v, int position) {
         RecommendVo vo = infoListVo.voList.get(position);
+        if(!checkUserLevel(vo.type)){
+            return;
+        }
         SoundItemsMusicFragment.startFragment(getActivity(), vo);
     }
 

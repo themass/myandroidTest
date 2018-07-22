@@ -42,7 +42,6 @@ import com.timeline.vpn.R;
 
 import butterknife.BindView;
 import butterknife.OnClick;
-
 import static com.timeline.myapp.service.PlayService.CURRENT;
 import static com.timeline.myapp.service.PlayService.CURRENTTIME;
 import static com.timeline.myapp.service.PlayService.DURATION;

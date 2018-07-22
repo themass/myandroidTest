@@ -5,10 +5,11 @@ package com.timeline.myapp.bean.vo;
  */
 public class UserInfoVo {
     public String name;
-    public String photo;
     public int level;
     public String sex;
     public String token;
     public long score;
+    public String email;
     public StateUseVo stateUse;
+    public String paidTime;
 }

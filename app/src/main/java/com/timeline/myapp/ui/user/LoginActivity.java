@@ -39,6 +39,8 @@ public class LoginActivity extends BaseSingleActivity {
     Button btnLogin;
     @BindView(R.id.btn_reg)
     Button btnReg;
+    @BindView(R.id.btn_findpass)
+    Button btnFindPass;
     BaseService baseService;
     CommonResponse.ResponseOkListener loginListener = new CommonResponse.ResponseOkListener<UserInfoVo>() {
         @Override
@@ -72,7 +74,11 @@ public class LoginActivity extends BaseSingleActivity {
         finish();
         startActivity(RegActivity.class);
     }
-
+    @OnClick(R.id.btn_findpass)
+    public void tnFindPass(View view) {
+        finish();
+        startActivity(FindPassActivity.class);
+    }
     @OnClick(R.id.btn_login)
     public void login(View view) {
         String name = etUserName.getText().toString();

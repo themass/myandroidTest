@@ -9,8 +9,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextSwitcher;
 import android.widget.TextView;
-import butterknife.BindView;
-import butterknife.ButterKnife;
+
 import com.sspacee.common.util.DateUtils;
 import com.sspacee.common.util.StringUtils;
 import com.timeline.myapp.bean.vo.IWannaVo;
@@ -21,6 +20,9 @@ import com.timeline.vpn.R;
 
 import java.util.Date;
 import java.util.List;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
 /**
  * Created by froger_mcs on 05.11.14.

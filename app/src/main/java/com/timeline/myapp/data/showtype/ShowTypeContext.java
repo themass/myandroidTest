@@ -3,6 +3,7 @@ package com.timeline.myapp.data.showtype;
 import android.content.Context;
 
 import com.romainpiel.shimmer.Shimmer;
+import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.StringUtils;
 import com.timeline.myapp.adapter.IndexRecommendAdapter;
 import com.timeline.myapp.bean.vo.RecommendVo;
@@ -25,6 +26,7 @@ public class ShowTypeContext {
     }
     public static void loadPhoto(final IndexRecommendAdapter.NaviItemViewHolder holder, RecommendVo vo, final Shimmer shimmer, boolean needShimmer, Context context){
         ShowTypeHandle handle = map.get(vo.showType);
+        LogUtil.i(handle.toString());
         if(handle!=null){
             handle.showTitle(holder,vo,shimmer,needShimmer,context);
             if(StringUtils.hasText(vo.img)) {

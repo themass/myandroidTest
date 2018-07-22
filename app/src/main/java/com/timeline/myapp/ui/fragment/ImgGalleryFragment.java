@@ -39,13 +39,14 @@ import butterknife.OnClick;
  * Created by themass on 2016/8/12.
  */
 public class ImgGalleryFragment extends BasePullLoadbleFragment<ImgItemVo> implements ImageGalleryAdapter.OnImageClickListener{
-    private static final String TEXT_TAG = "Img_ITEM_TAG";
+    private static final String IMG_ITEM_TAG = "Img_ITEM_TAG";
     @BindView(R.id.iv_favorite)
     FavoriteImageView ivFavorite;
     private ImgItemsVo vo;
     // region Member Variables
     private ArrayList<String> images = new ArrayList<>();
     private ArrayList<String> origeImages = new ArrayList<>();
+    private ArrayList<String> remteImages = new ArrayList<>();
     // endregion
     private int gridItemWidth;
     private int gridItemHeight;
@@ -105,12 +106,18 @@ public class ImgGalleryFragment extends BasePullLoadbleFragment<ImgItemVo> imple
         if (!CollectionUtils.isEmpty(data.voList)) {
             images.clear();
             origeImages.clear();
+            remteImages.clear();
             for (ImgItemVo item : data.voList) {
                 images.add(item.picUrl);
                 if(StringUtils.hasText(item.origUrl)){
                     origeImages.add(item.origUrl);
                 }else{
                     origeImages.add(item.picUrl);
+                }
+                if(StringUtils.hasText(item.remoteUrl)){
+                    remteImages.add(item.remoteUrl);
+                }else{
+                    remteImages.add(item.picUrl);
                 }
             }
         }
@@ -119,7 +126,7 @@ public class ImgGalleryFragment extends BasePullLoadbleFragment<ImgItemVo> imple
 
     @Override
     protected InfoListVo<ImgItemVo> loadData(Context context) throws Exception {
-        return indexService.getInfoListData(Constants.getUrlWithParam(Constants.API_IMG_ITEM_URL, String.valueOf(vo.url)), ImgItemVo.class, TEXT_TAG);
+        return indexService.getInfoListData(Constants.getUrlWithParam(Constants.API_IMG_ITEM_URL, String.valueOf(vo.url)), ImgItemVo.class, IMG_ITEM_TAG);
     }
 
     @Override
@@ -153,7 +160,7 @@ public class ImgGalleryFragment extends BasePullLoadbleFragment<ImgItemVo> imple
     // endregion
     @Override
     public void onDestroyView() {
-        indexService.cancelRequest(TEXT_TAG);
+        indexService.cancelRequest(IMG_ITEM_TAG);
         super.onDestroyView();
     }
     public class MyImageGalleryAdapter extends ImageGalleryAdapter{

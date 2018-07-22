@@ -11,13 +11,12 @@ import com.timeline.myapp.data.StaticDataUtil;
 import com.timeline.myapp.ui.base.CommonFragmentActivity;
 import com.timeline.myapp.ui.sound.VideoShowActivity;
 
-
 /**
  * Created by themass on 2016/8/12.
  */
 public class VideoChannelUserItemsListFragment extends RecommendFragment {
     private static final String VIDEO_TAG = "video_user_tag";
-    private RecommendVo vo;
+    private RecommendVo revo;
     public static void startFragment(Context context, RecommendVo vo) {
         Intent intent = new Intent(context, CommonFragmentActivity.class);
         intent.putExtra(CommonFragmentActivity.FRAGMENT, VideoChannelUserItemsListFragment.class);
@@ -26,8 +25,12 @@ public class VideoChannelUserItemsListFragment extends RecommendFragment {
         context.startActivity(intent);
     }
     @Override
+    public  boolean showSearchView(){
+        return true;
+    }
+    @Override
     public String getUrl(int start) {
-        return Constants.getUrlWithParam(Constants.API_VIDEO_USER_ITEM_URL,start,vo.param);
+        return Constants.getUrlWithParam(Constants.API_VIDEO_USER_ITEM_URL,start,revo.actionUrl,keyword);
     }
     @Override
     public String getNetTag() {
@@ -45,13 +48,21 @@ public class VideoChannelUserItemsListFragment extends RecommendFragment {
     @Override
     public void onItemClick(View v, int position) {
         RecommendVo vo = infoListVo.voList.get(position);
-        startActivity(VideoShowActivity.class,vo);
+        if(!checkUserLevel(vo.type)){
+            return;
+        }
+        vo.urlToken = revo.urlToken;
+        if(Constants.VIDEO_TYPE_NORMAL.equalsIgnoreCase((String)vo.extra)){
+            startActivity(VideoShowActivity.class, vo);
+        }else{
+            super.onItemClick(v,position);
+        }
     }
     @Override
     public void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
-        vo = StaticDataUtil.get(Constants.VIDEO_CHANNEL, RecommendVo.class);
-        if(vo==null){
+        revo = StaticDataUtil.get(Constants.VIDEO_CHANNEL, RecommendVo.class);
+        if(revo==null){
             getActivity().finish();
         }
         StaticDataUtil.del(Constants.VIDEO_CHANNEL);

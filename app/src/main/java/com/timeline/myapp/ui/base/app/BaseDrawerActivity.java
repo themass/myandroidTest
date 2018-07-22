@@ -114,6 +114,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
             miLocation.setIcon(R.drawable.ic_menu_location);
         }
         miLocation.setTitle(LocationUtil.getSelectName(this));
+        setupLocationIcon();
     }
 
     private void setUpVersion() {
@@ -138,6 +139,8 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                 ivLevel.setImageResource(R.drawable.ic_level_vip);
             }else if (Constants.UserLevel.LEVEL_VIP2 == vo.level) {
                 ivLevel.setImageResource(R.drawable.ic_level_vip2);
+            }else if (Constants.UserLevel.LEVEL_VIP3 == vo.level) {
+                ivLevel.setImageResource(R.drawable.ic_level_vip3);
             }
         } else {
             miLogout.setVisible(false);
@@ -177,7 +180,11 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         }else {
             UserInfoVo vo = UserLoginUtil.getUserCache();
             if (vo != null) {
-                tvScore.setText(vo.score + "积分");
+                String score = vo.score + "积分";
+                if(vo.paidTime!=null){
+                    score=score+"(有效期"+vo.paidTime+")";
+                }
+                tvScore.setText(score);
             } else {
                 int score = PreferenceUtils.getPrefInt(this, Constants.SCORE_TMP, 0);
                 tvScore.setText(score + "积分");

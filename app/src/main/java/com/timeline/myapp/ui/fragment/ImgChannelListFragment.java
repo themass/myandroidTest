@@ -58,6 +58,7 @@ public class ImgChannelListFragment extends BasePullLoadbleFragment<ImgItemsVo> 
     @Override
     public void onItemClick(View view, ImgItemsVo data, int postion) {
         super.onItemClick(view,data,postion);
+
         ImgGalleryFragment.startFragment(getActivity(), data);
         HistoryUtil.addHistory(getActivity(), data.url);
     }

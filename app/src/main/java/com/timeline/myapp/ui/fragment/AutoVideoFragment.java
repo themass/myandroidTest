@@ -48,7 +48,7 @@ public class AutoVideoFragment extends BasePullLoadbleFragment<RecommendVo> {
             public void onChildViewAttachedToWindow(View view) {
                 if (JZVideoPlayerManager.getCurrentJzvd() != null && JZVideoPlayerManager.getCurrentJzvd().currentScreen == JZVideoPlayer.SCREEN_WINDOW_TINY) {
                     JZVideoPlayer videoPlayer = (JZVideoPlayer )view.findViewById(R.id.videoplayer);
-                    if (JZUtils.getCurrentUrlFromMap(videoPlayer.urlMap, videoPlayer.currentUrlMapIndex).equals(JZMediaManager.CURRENT_PLAYING_URL)) {
+                    if (JZUtils.getCurrentFromDataSource(videoPlayer.dataSourceObjects, videoPlayer.currentUrlMapIndex).equals(JZMediaManager.getCurrentDataSource())) {
                         JZVideoPlayer.backPress();
                     }
                 }

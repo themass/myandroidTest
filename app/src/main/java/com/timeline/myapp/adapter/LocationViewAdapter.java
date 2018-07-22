@@ -72,6 +72,9 @@ public class LocationViewAdapter extends BaseRecyclerViewAdapter<LocationViewAda
         } else if (vo.type == Constants.LOCATION_TYPE_VIP2) {
             holder.ivType.setBackgroundResource(R.drawable.bg_type_advip);
             holder.tvType.setText(R.string.vpn_type_vip2);
+        }else if (vo.type == Constants.LOCATION_TYPE_VIP3) {
+            holder.ivType.setBackgroundResource(R.drawable.bg_type_paid);
+            holder.tvType.setText(R.string.vpn_type_vip3);
         }
        if(position==getItemCount()-1){
             holder.rvAds.setVisibility(View.VISIBLE);

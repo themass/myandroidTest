@@ -2,16 +2,19 @@ package com.timeline.myapp.constant;
 
 
 
+import com.timeline.vpn.R;
+
 import org.strongswan.android.logic.VpnType;
 
 import java.util.Arrays;
 import java.util.List;
-import com.timeline.vpn.R;
 /**
  * Created by themass on 2015/9/1.
  */
 public class Constants {
 
+    public static final String USER_AGENT = "User-Agent";
+    public static final String USER_AGENT_DEF = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36";
     public static final String REFERER = "referer";
     public static final String DEFAULT_REFERER = "http://www.sspacee.com/";
     public static final String DEFAULT_API = "api.sspacee.com";
@@ -35,6 +38,7 @@ public class Constants {
     public static final String IMG_URL = "img";
     public static final String VIDEO_URL = "video";
     public static final String VIDEOLIST_URL = "videoList";
+    public static final String TELEPLAY_URL = "teleplay";
     public static final String VIDEO_CHANNEL_URL = "video_item";
     public static final String VIDEO_CHANNEL_USER_URL = "video_item_user";
     public static final String URL_TMP = "://";
@@ -45,6 +49,7 @@ public class Constants {
     public static final int LOCATION_TYPE_FREE = 0;
     public static final int LOCATION_TYPE_VIP = 1;
     public static final int LOCATION_TYPE_VIP2 = 2;
+    public static final int LOCATION_TYPE_VIP3 = 3;
     public static final List<Integer> BANNER_ADS_POS = Arrays.asList(2,9,16,23);
     public static final String[] sort_type = new String[]{"type_asc", "type_desc"};
     public static final String[] sort_country = new String[]{"ename_asc", "ename_desc"};
@@ -76,9 +81,12 @@ public class Constants {
     public static final String TEMP_PATH = "/tencent/vpn";
     public static final String VERSION_APP_INCOMING = "VERSION_APP_INCOMING"; // 服务器上的最新版本号
 
+    public static final String API_FINDPASS_URL = "/user/findpass.json";
+    public static final String API_SETEMAIL_URL = "/user/setemail.json";
     public static final String API_SERVERLIST_URL = "/host/server/list.json?location=%s";
     public static final String API_FAB_ADSCLICK_URL = "/user/ads/score.json?score=%s";
-    public static final String API_LOCATION_URL = "/host/server/location/cache.json";
+    public static final String API_LOCATION_URL = "/host/server/location/cache.json?type=%s";
+    public static final String API_LOCATION_VIP_URL = "/host/server/location/vip/cache.json";
     public static final String API_LOGIN_URL = "/user/login.json";
     public static final String API_REG_URL = "/user/reg.json";
     public static final String API_REG_CODE_URL = "/user/code.json";
@@ -87,6 +95,7 @@ public class Constants {
     public static final String API_IWANNA_LIKE_URL = "/data/feed/wanna/%s.json";
     public static final String API_VERSION_URL = "/data/version.json";
     public static final String API_APP_URL = "/data/appinfo.json";
+    public static final String API_DONATION_URL = "/data/donation.json";
 
     public static final String API_RECOMMEND_URL = "/data/recommend.json?start=%s&limit=20";
     public static final String API_RECOMMEND_VIP_URL = "/data/recommend/vip.json?start=%s&limit=20";
@@ -96,29 +105,33 @@ public class Constants {
     public static final String API_SOUND_ITEMS_URL = "/sound/items.json?start=%s&limit=30&channel=%s&keyword=%s";
 
     public static final String API_TEXT_CHANNLE_URL = "/text/channel.json?start=%s&limit=50&channel=%s";
-    public static final String API_TEXT_ITEMS_URL = "/text/items.json?start=%s&limit=30&channel=%s&keyword=%s";
+    public static final String API_TEXT_ITEMS_URL = "/text/items.json?start=%s&limit=60&channel=%s&keyword=%s";
     public static final String API_TEXT_ITEM_URL = "/text/item.json?id=%s";
 
     public static final String API_IMG_CHANNLE_URL = "/img/channel.json?start=%s&limit=50&channel=%s";
     public static final String API_IMG_ITEMS_URL = "/img/items.json?start=%s&limit=30&channel=%s";
     public static final String API_IMG_ITEMS_IMG_URL = "/img/items/img.json?start=%s&limit=30&channel=%s&keyword=%s";
     public static final String API_IMG_ITEM_URL = "/img/item.json?itemUrl=%s";
-
+    public static final String API_IMG_ITEM_PAGE_URL = "/img/item/page.json?start=%s&limit=30&itemUrl=%s";
 
     public static final String API_VIDEO_CHANNLE_URL = "/video/channel.json?start=%s&limit=50&channel=%s";
     public static final String API_VIDEO_CHANNEL_LIST_URL = "/video/channel/items.json?start=%s&limit=30&channel=%s&keyword=%s";
-    public static final String API_VIDEO_USER_URL = "/video/user.json?start=%s&limit=30";
-    public static final String API_VIDEO_USER_ITEM_URL = "/video/user/items.json?start=%s&limit=30&userId=%s";
-    public static final String VIDEO_USER_CHANNEL = "qvod_user";
-    public static final String CHANNEL = "channel";
-    public static final String API_VIDEO_ITEMS_URL = "/video/items.json?start=%s&limit=20";
-    public static final String API_DONATION_URL = "/data/donation.json";
+    public static final String API_TV_ITEM_URL = "/video/tv/item.json?start=%s&limit=50&channel=%s";
+    public static final String API_TV_CHANNEL_URL = "/video/tv/channel.json?start=%s&limit=50&channel=%s&keyword=%s";
+    public static final String API_VIDEO_USER_URL = "/video/user.json?channel=%s&start=%s&limit=30";
+    public static final String API_VIDEO_USER_ITEM_URL = "/video/user/items.json?start=%s&limit=30&userId=%s&keyword=%s";
 
     public static final String API_LOGOUT_URL = "/user/logout.json";
     public static final String API_LEAK_URL = "/monitor/leak.json";
     public static final String API_LOG_URL = "/monitor/bug.json";
     public static final String API_ADD_CUSTOME = "/user/custome/add.json";
     public static final String API_DEL_CUSTOME = "/user/custome/del.json";
+
+    public static final String VIDEO_USER_CHANNEL = "qvod_user";
+    public static final String VIDEO_TV_CHANNEL = "teleplay_";
+    public static final String CHANNEL = "channel";
+    public static final String API_VIDEO_ITEMS_URL = "/video/items.json?start=%s&limit=20";
+
     public static final VpnType mVpnType = VpnType.IKEV2_CERT;
     public static final int connTimeOut = 20;
     public static final VpnType vpnType = VpnType.IKEV2_EAP;
@@ -183,6 +196,7 @@ public class Constants {
         public static final int LEVEL_FREE = 0;
         public static final int LEVEL_VIP = 1;
         public static final int LEVEL_VIP2 = 2;
+        public static final int LEVEL_VIP3 = 3;
     }
 
     public static class OpenUrlPath {

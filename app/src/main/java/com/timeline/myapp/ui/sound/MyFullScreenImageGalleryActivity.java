@@ -12,6 +12,7 @@ import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.view.View;
 import android.widget.TextView;
 
+import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.ToastUtil;
 import com.timeline.myapp.adapter.MyFullScreenImageGalleryAdapter;
 import com.timeline.myapp.base.MyApplication;
@@ -29,12 +30,13 @@ import butterknife.OnClick;
 public class MyFullScreenImageGalleryActivity extends BaseSingleActivity implements SaveImageCallBack {
     public static final String KEY_IMAGES = "KEY_IMAGES";
     public static final String KEY_POSITION = "KEY_POSITION";
-    @BindView(R.id.vp_container)
+    @BindView(R.id.vp_big_container)
     ViewPager viewPager;
     @BindView(R.id.tv_page)
     TextView tvPage;
     private List<String> images;
     private int position;
+    MyFullScreenImageGalleryAdapter fullScreenImageGalleryAdapter;
     private final OnPageChangeListener viewPagerOnPageChangeListener = new OnPageChangeListener() {
         public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
         }
@@ -71,7 +73,8 @@ public class MyFullScreenImageGalleryActivity extends BaseSingleActivity impleme
     public void setupView() {
         ArrayList imageList = new ArrayList();
         imageList.addAll(this.images);
-        MyFullScreenImageGalleryAdapter fullScreenImageGalleryAdapter = new MyFullScreenImageGalleryAdapter(imageList);
+        LogUtil.i("activity start---"+viewPager.toString());
+        fullScreenImageGalleryAdapter = new MyFullScreenImageGalleryAdapter(imageList);
         fullScreenImageGalleryAdapter.setFullScreenImageLoader(MyApplication.getInstance().getPhotoLoad());
         this.viewPager.setAdapter(fullScreenImageGalleryAdapter);
         this.viewPager.addOnPageChangeListener(this.viewPagerOnPageChangeListener);

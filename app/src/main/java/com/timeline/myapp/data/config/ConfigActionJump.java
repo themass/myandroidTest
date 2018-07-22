@@ -36,8 +36,8 @@ public class ConfigActionJump {
     public static Map<String, Class<? extends AppCompatActivity>> configMap = new HashMap<>();
 
     static {
-        configMap.put(HTTP_URL, WebViewActivity.class);
-        configMap.put(HTTPS_URL, WebViewActivity.class);
+        configMap.put(Constants.HTTP_URL, WebViewActivity.class);
+        configMap.put(Constants.HTTPS_URL, WebViewActivity.class);
         configMap.put(Constants.BROWSER_URL, QuickBrowserConfigActivity.class);
         configMap.put(Constants.SOUND_URL, SoundChannleActivity.class);
         configMap.put(Constants.TEXT_URL, TextChannleActivity.class);
@@ -73,7 +73,7 @@ public class ConfigActionJump {
     }
 
     private String parserUrl(String schema, String url, Map<String, String> param) {
-        if (Constants.HTTP_URL.equals(schema) || Constants.HTTPS_URL.equals(schema)) {
+        if (HTTP_URL.equals(schema) || HTTPS_URL.equals(schema)) {
             return url;
         } else {
             try {

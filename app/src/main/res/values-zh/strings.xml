@@ -44,7 +44,7 @@
     <string name="location_choose_ping">Ping：</string>
     <string name="menu_haha">呦！被你发现了</string>
     <!-- menu -->
-    <string name="menu_btn_donation">捐款</string>
+    <string name="menu_btn_donation">购买VIP</string>
     <string name="menu_btn_login">立即登录</string>
     <string name="menu_btn_login_ready">已登录</string>
     <string name="menu_btn_name_default">猴子请来的</string>
@@ -64,6 +64,7 @@
     <string name="menu_btn_networking">用量:</string>
     <string name="menu_btn_cache">缓存:</string>
     <string name="menu_btn_timeuse">用时:</string>
+    <string name="menu_btn_email">邮箱:</string>
     <string name="menu_btn_score_context">积分可换VIP，详见“关于”</string>
     <string name="menu_btn_cache_context">缓存已清除</string>
     <string name="menu_btn_report_log">我们已收到您的问题！</string>
@@ -121,6 +122,17 @@
     <string name="save_fail">保存失败</string>
     <string name="save_img">保存到本地</string>
     <string name="save_start">开始保存...</string>
+    <string name="findpass">忘记密码?</string>
+    <string name="submit">提交</string>
+    <string name="modify">修改</string>
+    <string name="vip_tips">请升级VIP</string>
+    <string name="email_see">密码已经发送</string>
+    <string name="email_ok">邮箱设置成功</string>
+    <string name="email_fail">邮箱设置失败</string>
+    <string name="free_user">免费用户</string>
+    <string name="email_hint">邮箱</string>
+    <string name="down_to_loadmore">下来刷新更精彩</string>
+
 
     <string name="hidden_area_hit">设置里可以隐藏“专区”</string>
     <string name="country_select_hit">点击选择更多地区</string>
@@ -143,6 +155,7 @@
     <string name="vpn_type_free">免费</string>
     <string name="vpn_type_vip">VIP</string>
     <string name="vpn_type_vip2">VIP2</string>
+    <string name="vpn_type_vip3">VIP3</string>
     <string name="vpn_remote_status">FreeVPN·</string>
     <string name="vpn_remote_on">已连接，点击断开</string>
     <string name="vpn_remote_off">已断开，点击连接</string>

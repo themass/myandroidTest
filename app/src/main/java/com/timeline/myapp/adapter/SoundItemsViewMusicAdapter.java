@@ -12,10 +12,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.sspacee.common.ui.view.widgets.MusicVisualizer;
-import com.timeline.vpn.R;
 import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.myapp.bean.vo.SoundItemsVo;
 import com.timeline.myapp.ui.inte.MusicStateListener;
+import com.timeline.vpn.R;
 
 import java.util.List;
 
@@ -34,13 +34,13 @@ public class SoundItemsViewMusicAdapter extends BaseRecyclerViewAdapter<SoundIte
         mService = service;
     }
     @Override
-    public SoundItemView onCreateViewHolderData(ViewGroup parent, int viewType) {
+    public SoundItemsViewMusicAdapter.SoundItemView onCreateViewHolderData(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(context).inflate(R.layout.item_song, parent, false);
-        return new SoundItemView(view, this, this);
+        return new SoundItemsViewMusicAdapter.SoundItemView(view, this, this);
     }
 
     public void onBindViewHolderData(RecyclerView.ViewHolder h, int position) {
-        SoundItemView holder = (SoundItemView)h;
+        SoundItemsViewMusicAdapter.SoundItemView holder = (SoundItemsViewMusicAdapter.SoundItemView)h;
         SoundItemsVo vo = data.get(position);
         holder.title.setText(vo.name);
         holder.artist.setText(vo.fileDate);

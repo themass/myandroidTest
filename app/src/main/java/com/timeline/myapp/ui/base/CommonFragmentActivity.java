@@ -6,10 +6,10 @@ import android.support.v4.app.Fragment;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
-import com.timeline.vpn.R;
 import com.timeline.myapp.ui.base.app.BaseFragmentActivity;
-import com.timeline.myapp.ui.fragment.LocationChooseFragment;
 import com.timeline.myapp.ui.inte.FabOpListener;
+import com.timeline.myapp.ui.inte.OnBackKeyDownListener;
+import com.timeline.vpn.R;
 
 import java.io.Serializable;
 
@@ -35,7 +35,7 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
     private AdsContext.Categrey bannerCategrey =  AdsContext.Categrey.CATEGREY_VPN2;
     private AdsContext.Categrey interCategrey =  AdsContext.Categrey.CATEGREY_VPN2;
     private boolean needGonebanner = true;
-    private boolean showLoc= true;
+    private Fragment fragment = null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         slidingClose = getIntent().getBooleanExtra(SLIDINGCLOSE, true);
@@ -66,9 +66,9 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
         } else if (name instanceof Integer) {
             title = getString((Integer) name);
         }
-        Fragment fragment = null;
         try {
             fragment = (Fragment) f.newInstance();
+            LogUtil.i("commonactivity->"+fragment.getClass().getName());
             if (getIntent().getSerializableExtra(PARAM) != null) {
                 Bundle bundle = new Bundle();
                 bundle.putSerializable(PARAM, getIntent().getSerializableExtra(PARAM));
@@ -86,18 +86,12 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
         if (title != null) {
             setToolbarTitle(title, true);
         }
-        if(fragment instanceof LocationChooseFragment){
-            showLoc = false;
-        }
     }
-    @Override
-    protected boolean showLoc(){
-        return showLoc;
-    }
+
     @Override
     public void setupView() {
         super.setupView();
-        if(showInterstitialAds &&AdsContext.rateShow()){
+        if(showInterstitialAds && AdsContext.rateShow()){
             AdsManager.getInstans().showInterstitialAds(this, interCategrey,false);
         }
     }
@@ -120,5 +114,17 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
     @Override
     protected AdsContext.Categrey getBannerCategrey() {
         return bannerCategrey;
+    }
+    @Override
+    public void onBackPressed() {
+        if(fragment instanceof OnBackKeyDownListener){
+            boolean ret = ((OnBackKeyDownListener)fragment).onkeyBackDown();
+            if(!ret){
+                super.onBackPressed();
+            }
+        }else{
+            super.onBackPressed();
+        }
+
     }
 }

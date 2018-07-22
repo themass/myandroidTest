@@ -42,8 +42,11 @@ public class TextChannleBodyFragment extends RecommendFragment implements Native
     @Override
     public void onItemClick(View v, int position) {
         RecommendVo vo = infoListVo.voList.get(position);
+        if(!checkUserLevel(vo.type)){
+            return;
+        }
         if (vo.dataType == RecommendVo.dataType_ADS) {
-            ((NativeAdInfo) (vo.extra)).onClick(v);
+            ((NativeAdInfo) (vo.extra)).onClick(v,(int)v.getX(),(int)v.getY());
         } else {
             TextChannelListFragment.startFragment(getActivity(), vo);
         }

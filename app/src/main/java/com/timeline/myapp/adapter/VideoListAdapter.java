@@ -11,17 +11,18 @@ import android.widget.RelativeLayout;
 
 import com.bumptech.glide.Glide;
 import com.sspacee.common.util.LogUtil;
+import com.sspacee.common.util.StringUtils;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
-import com.timeline.vpn.R;
 import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.myapp.bean.vo.RecommendVo;
 import com.timeline.myapp.constant.Constants;
+import com.timeline.myapp.data.VideoUtil;
+import com.timeline.vpn.R;
 
 import java.util.List;
 
 import butterknife.BindView;
-import cn.jzvd.JZVideoPlayer;
 import cn.jzvd.JZVideoPlayerStandard;
 
 
@@ -41,7 +42,9 @@ public class VideoListAdapter extends BaseRecyclerViewAdapter<VideoListAdapter.V
             VideoHolder holder = (VideoHolder)h;
             RecommendVo vo = data.get(position);
             LogUtil.i("jcVideoPlayer="+holder.jcVideoPlayer.toString());
-            holder.jcVideoPlayer.setUp(vo.actionUrl, JZVideoPlayer.SCREEN_LAYOUT_LIST, vo.title);
+            Object[] source = VideoUtil.getVideoSource(vo.actionUrl,false, StringUtils.hasText(vo.param)?vo.param: vo.actionUrl);
+            holder.jcVideoPlayer.setUp(source,0, JZVideoPlayerStandard.SCREEN_WINDOW_LIST, vo.title);
+//            holder.jcVideoPlayer.hea = header;
             Glide.with(context).load(vo.img).into(holder.jcVideoPlayer.thumbImageView);
             if(Constants.BANNER_ADS_POS.contains(position)){
                 if(position%2==1){

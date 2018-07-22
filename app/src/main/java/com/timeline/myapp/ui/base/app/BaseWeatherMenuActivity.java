@@ -12,7 +12,7 @@ import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.LogUtil;
 import com.timeline.myapp.data.ImagePhotoLoad;
 import com.timeline.myapp.data.LocationUtil;
-import com.timeline.myapp.ui.fragment.LocationChooseFragment;
+import com.timeline.myapp.ui.fragment.LocationVipChooseFragment;
 import com.timeline.vpn.R;
 
 /**
@@ -49,7 +49,7 @@ public abstract class BaseWeatherMenuActivity extends LogActivity {
                 @Override
                 public void onClick(View v) {
                     LogUtil.i("menuLocation Click");
-                    LocationChooseFragment.startFragment(BaseWeatherMenuActivity.this);
+                    LocationVipChooseFragment.startFragment(BaseWeatherMenuActivity.this);
                 }
             });
             setupLocationIcon();

@@ -13,10 +13,10 @@ import android.widget.TextView;
 
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
-import com.timeline.vpn.R;
 import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.myapp.bean.vo.FavoriteVo;
 import com.timeline.myapp.constant.Constants;
+import com.timeline.vpn.R;
 
 import java.util.List;
 
@@ -58,8 +58,13 @@ public class FavoriteViewAdapter extends BaseRecyclerViewAdapter<FavoriteViewAda
             holder.ivType.setVisibility(View.GONE);
         }
         if(Constants.BANNER_ADS_POS.contains(position)){
-            holder.rvAds.setVisibility(View.VISIBLE);
-            AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN1);
+            if(position%2==1){
+                holder.rvAds.setVisibility(View.VISIBLE);
+                AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN2);
+            }else{
+                holder.rvAds.setVisibility(View.VISIBLE);
+                AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN3);
+            }
         }else{
             holder.rvAds.removeAllViews();
             holder.rvAds.setVisibility(View.GONE);

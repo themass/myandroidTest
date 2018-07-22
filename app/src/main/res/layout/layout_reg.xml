@@ -46,7 +46,14 @@
                 android:maxLines="1" />
 
             <ImageView style="@style/divider_login" />
-
+            <com.sspacee.common.ui.view.MyEditText
+                android:id="@+id/et_email"
+                style="@style/edit_login"
+                android:drawableLeft="@drawable/ic_email"
+                android:hint="@string/email_hint"
+                android:maxLines="1"
+                android:singleLine="true" />
+            <ImageView style="@style/divider_login" />
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

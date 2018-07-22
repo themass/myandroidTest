@@ -31,6 +31,8 @@ public class RecommendVo implements Serializable {
     public String minVersion;
     public Boolean newShow;
     public String showLogo;
+    public String urlToken;
+    public  String baseurl;
 
     public FavoriteVo tofavorite(int type) {
         FavoriteVo vo = new FavoriteVo();

@@ -13,6 +13,7 @@ import com.sspacee.common.helper.OnStartDragListener;
 import com.sspacee.common.helper.SimpleItemTouchHelperCallback;
 import com.sspacee.common.ui.view.RecycleViewDivider;
 import com.sspacee.common.util.EventBusUtil;
+import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.um.MobAgent;
 import com.timeline.myapp.adapter.IndexRecommendAdapter;
 import com.timeline.myapp.adapter.base.BasePhotoFlowRecycleViewAdapter;
@@ -20,8 +21,11 @@ import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.myapp.bean.vo.InfoListVo;
 import com.timeline.myapp.bean.vo.RecommendVo;
 import com.timeline.myapp.constant.Constants;
+import com.timeline.myapp.data.UserLoginUtil;
 import com.timeline.myapp.data.config.ConfigActionEvent;
 import com.timeline.myapp.ui.base.features.BasePullLoadbleFragment;
+import com.timeline.myapp.ui.user.LoginActivity;
+import com.timeline.vpn.R;
 
 import java.util.HashMap;
 import java.util.List;
@@ -76,9 +80,25 @@ public abstract class RecommendFragment extends BasePullLoadbleFragment<Recommen
     protected BaseRecyclerViewAdapter getAdapter(){
         return null;
     }
+    protected boolean checkUserLevel(int type){
+        if(type>0){
+            if(UserLoginUtil.getUserCache()==null){
+                startActivity(LoginActivity.class);
+                return false;
+            }
+            if(UserLoginUtil.getUserCache().level<type){
+                ToastUtil.showShort(R.string.vip_tips);
+                return false;
+            }
+        }
+        return true;
+    }
     @Override
     public void onItemClick(View v, int position) {
         RecommendVo vo = infoListVo.voList.get(position);
+        if(!checkUserLevel(vo.type)){
+            return;
+        }
         Map<String, Object> param = new HashMap<>();
         param.put(Constants.ADS_SHOW_CONFIG, vo.adsShow);
         param.put(Constants.ADS_POP_SHOW_CONFIG, vo.adsPopShow);

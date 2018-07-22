@@ -13,11 +13,11 @@ import android.widget.TextView;
 
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
-import com.timeline.vpn.R;
 import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.myapp.bean.vo.TextItemsVo;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.HistoryUtil;
+import com.timeline.vpn.R;
 
 import java.util.List;
 

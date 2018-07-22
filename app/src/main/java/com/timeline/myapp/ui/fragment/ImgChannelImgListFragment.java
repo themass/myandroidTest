@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.view.View;
 
 import com.sspacee.yewu.ads.base.AdsContext;
-import com.timeline.myapp.adapter.ImgChannelListItemsViewAdapter;
 import com.timeline.myapp.bean.vo.ImgItemsVo;
 import com.timeline.myapp.bean.vo.RecommendVo;
 import com.timeline.myapp.constant.Constants;
@@ -19,8 +18,7 @@ import com.timeline.vpn.R;
  * Created by themass on 2016/8/12.
  */
 public class ImgChannelImgListFragment extends RecommendFragment {
-    private static final String TEXT_TAG = "text_tag";
-    private ImgChannelListItemsViewAdapter adapter;
+    private static final String IMG_TAG = "img_tag";
     private RecommendVo vo;
 
     public static void startFragment(Context context, RecommendVo vo) {
@@ -42,7 +40,7 @@ public class ImgChannelImgListFragment extends RecommendFragment {
 
     @Override
     public String getNetTag() {
-        return TEXT_TAG;
+        return IMG_TAG;
     }
 
     @Override
@@ -75,16 +73,19 @@ public class ImgChannelImgListFragment extends RecommendFragment {
     @Override
     public void onItemClick(View v, int position) {
         RecommendVo revo = infoListVo.voList.get(position);
+        if(!checkUserLevel(revo.type)){
+            return;
+        }
         ImgItemsVo imgItemsVo = new ImgItemsVo();
         imgItemsVo.name = revo.title;
         imgItemsVo.url = revo.actionUrl;
-        ImgGalleryFragment.startFragment(getActivity(), imgItemsVo);
+        ImgItemFragment.startFragment(getActivity(), imgItemsVo);
         HistoryUtil.addHistory(getActivity(), imgItemsVo.url);
         mSearchView.clearFocus();
     }
     @Override
     public void onDestroyView() {
-        indexService.cancelRequest(TEXT_TAG);
+        indexService.cancelRequest(IMG_TAG);
         super.onDestroyView();
 
     }

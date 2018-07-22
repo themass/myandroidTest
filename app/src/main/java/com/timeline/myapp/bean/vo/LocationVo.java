@@ -1,9 +1,11 @@
 package com.timeline.myapp.bean.vo;
 
+import java.io.Serializable;
+
 /**
  * Created by themass on 2016/8/10.
  */
-public class LocationVo {
+public class LocationVo implements Serializable{
     public int id;
     public String img;
     public String name;

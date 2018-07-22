@@ -122,8 +122,20 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
         }
         if (vo.newShow !=null && vo.newShow==true) {
             holder.ivNew.setVisibility(View.VISIBLE);
+            holder.ivNew.setBackgroundResource(R.drawable.ic_new);
         } else {
-            holder.ivNew.setVisibility(View.GONE);
+            if(vo.type==0) {
+                holder.ivNew.setVisibility(View.GONE);
+            }else if(vo.type==1){
+                holder.ivNew.setVisibility(View.VISIBLE);
+                holder.ivNew.setBackgroundResource(R.drawable.ic_vip1);
+            }else if(vo.type==2){
+                holder.ivNew.setVisibility(View.VISIBLE);
+                holder.ivNew.setBackgroundResource(R.drawable.ic_vip2);
+            }else if(vo.type==3){
+                holder.ivNew.setVisibility(View.VISIBLE);
+                holder.ivNew.setBackgroundResource(R.drawable.ic_vip3);
+            }
         }
         holder.ivPhoto.setBackgroundColor(Color.parseColor(vo.color));
         ViewGroup.LayoutParams ivPhotoParam = holder.ivPhoto.getLayoutParams();

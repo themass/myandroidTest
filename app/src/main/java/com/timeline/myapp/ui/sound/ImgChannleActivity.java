@@ -6,7 +6,6 @@ import android.support.v4.app.Fragment;
 import android.view.View;
 
 import com.sspacee.common.util.LogUtil;
-import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.ui.base.app.BaseFragmentActivity;
 import com.timeline.myapp.ui.fragment.body.ImgChannleBodyFragment;
 import com.timeline.vpn.R;
@@ -21,7 +20,6 @@ public class ImgChannleActivity extends BaseFragmentActivity {
         setContentView(R.layout.common_fragment);
         setFabUpVisibility(View.VISIBLE);
         Fragment fragment = null;
-        getIntent().getStringExtra(Constants.IMG_CHANNEL);
         try {
             fragment = ImgChannleBodyFragment.class.newInstance();
             Bundle bundle = new Bundle();
