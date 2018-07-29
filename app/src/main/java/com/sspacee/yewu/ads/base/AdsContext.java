@@ -8,9 +8,9 @@ import com.sspacee.common.util.Md5;
 import com.sspacee.yewu.ads.adview.AdviewConstant;
 import com.sspacee.yewu.um.MobAgent;
 import com.timeline.sexfree1.R;
-import com.timeline.view.constant.Constants;
-import com.timeline.view.data.UserLoginUtil;
-import com.timeline.view.task.ScoreTask;
+import com.timeline.myapp.constant.Constants;
+import com.timeline.myapp.data.UserLoginUtil;
+import com.timeline.myapp.task.ScoreTask;
 
 import static com.sspacee.yewu.ads.base.AdsContext.AdsShowStatus.ADS_CLICK_MSG;
 
@@ -92,7 +92,7 @@ public class AdsContext {
     }
     // 3/5
     public static boolean rateShow(){
-        if(UserLoginUtil.isVIP2()){
+        if(UserLoginUtil.isVIP3()){
             int i = Md5.getRandom(Constants.maxRate);
             return i<=4;
         }else{

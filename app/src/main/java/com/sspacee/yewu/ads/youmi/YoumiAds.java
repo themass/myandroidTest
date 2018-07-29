@@ -20,8 +20,8 @@ import net.youmi.android.os.PointsManager;
  */
 
 public class YoumiAds{
-    private static final String publiserId = "3dc86dca78ad1e76";
-    private static final String appSecret = "6bca36fbc5c1e70e";
+    private static final String publiserId = "e2a678dc0cdb38d9";
+    private static final String appSecret = "cdb29ce2d8ee9ad4";
     private static boolean preloadVideoOk = false;
     public static PointsEarnNotify pointsListener = new PointsEarnNotify() {
         public void onPointEarn(Context var1, EarnPointsOrderList var2) {

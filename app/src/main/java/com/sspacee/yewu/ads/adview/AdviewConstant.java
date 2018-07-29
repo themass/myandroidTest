@@ -5,9 +5,9 @@ package com.sspacee.yewu.ads.adview;
  */
 
 public class AdviewConstant {
-    public static final String ADS_ADVIEW_KEY1 = "SDK2017222910113688i4f0j3tw7lqny";
-    public static final String ADS_ADVIEW_KEY2 = "SDK2017220210120078tfkcngreo9haa";
-    public static final String ADS_ADVIEW_KEY3 = "SDK20172202101217o9qjctig1rlh52c";
-    public static final String ADS_ADVIEW_KEY4 = "SDK20172202101236r27ftw4swtb9vsg";
+    public static final String ADS_ADVIEW_KEY1 = "SDK2018162404073915umxfjlayvikr9";
+    public static final String ADS_ADVIEW_KEY2 = "SDK20181624040736qf0iihjyji73lge";
+    public static final String ADS_ADVIEW_KEY3 = "SDK2018162404071618fuif0eabyh0r5";
+    public static final String ADS_ADVIEW_KEY4 = "SDK201816240407330077cqbvt0q85za";
     public static final String adsKeySet[] = new String[]{ADS_ADVIEW_KEY1,ADS_ADVIEW_KEY2,ADS_ADVIEW_KEY3,ADS_ADVIEW_KEY4};
 }

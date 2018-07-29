@@ -2,7 +2,7 @@ package com.sspacee.common.util;
 
 import android.widget.Toast;
 
-import com.timeline.view.base.MyApplication;
+import com.timeline.myapp.base.MyApplication;
 
 /**
  * Created by HugoXie on 16/5/23.

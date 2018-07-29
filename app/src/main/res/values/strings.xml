@@ -79,6 +79,8 @@
     <string name="offerads_ths">Thank you for your support!</string>
     <string name="location_choose_flag_none">Click“ Region ”More regional options</string>
     <string name="vpn_status_down">Click to down load FreeVPN</string>
+    <string name="menu_btn_contract">Contact us:  email</string>
+    <string name="menu_copy_emai">Email Copied OK</string>
     <!-- share-->
     <string name="menu_share_title">Share friend</string>
     <string name="menu_share_url">Download Url:\n%s</string>
@@ -118,12 +120,16 @@
     <string name="down_to_loadmore">down to loadmore</string>
 
     <string name="iwanna_tips">Tell me what du you want ,\nI\'ll be ready for you </string>
-    <string name="iwanna_title">What do you want?</string>
+    <string name="iwanna_title">I wanna?</string>
+    <string name="feedback_hint">$3 $5 VIP3</string>
+    <string name="recharge">Recharge:</string>
+    <string name="money_back_title">Score?</string>
     <string name="send">send</string>
     <string name="iwanna_content_error">Tell me something!</string>
     <string name="iwanna_content_success">I got it !</string>
     <string name="vip_need">Non VIP users are not allowed to visit</string>
-    <string name="area_setting">Show Area Switch</string>
+    <string name="vip_remove_ads">Upgrade VIP to advertise</string>
+    <string name="area_setting">Show Area</string>
     <string name="sound_setting">Play audio in not wifi</string>
     <string name="sound_picshow">Video pic show</string>
     <string name="area_mi">Area encry</string>
@@ -237,5 +243,11 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="skip">skip</string>
     <string name="search">enter search content</string>
     <!--slidingclose-->
+
+    <string-array name="recharge_arry">
+        <item>WeChat</item>
+        <item>Alipay</item>
+        <item>Other</item>
+    </string-array>
     <!--广告-->
 </resources>

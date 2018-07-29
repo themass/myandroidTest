@@ -9,9 +9,10 @@ import com.kyview.manager.AdViewVideoManager;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.VideoAdsInter;
 import com.timeline.sexfree1.R;
-import com.timeline.view.constant.Constants;
-import com.timeline.view.task.ScoreTask;
+import com.timeline.myapp.constant.Constants;
+import com.timeline.myapp.task.ScoreTask;
 
+import static com.sspacee.yewu.ads.adview.AdviewConstant.ADS_ADVIEW_KEY1;
 import static com.sspacee.yewu.ads.adview.AdviewConstant.ADS_ADVIEW_KEY2;
 
 /**
@@ -22,7 +23,7 @@ public class VideoAdviewAds extends VideoAdsInter{
     public boolean isReq = false;
     @Override
     public void reqVideo(final Context context, final Handler handler){
-        AdViewVideoManager.getInstance(context).requestAd(context, ADS_ADVIEW_KEY2, new AdViewVideoListener(){
+        AdViewVideoManager.getInstance(context).requestAd(context, ADS_ADVIEW_KEY1, new AdViewVideoListener(){
             @Override
             public void onAdFailed(String arg0) {
                 noAds(context,handler, AdsContext.AdsFrom.ADVIEW);
@@ -58,7 +59,7 @@ public class VideoAdviewAds extends VideoAdsInter{
     }
     @Override
     public void showVideo(final Context context){
-        AdViewVideoManager.getInstance(context).playVideo(context, ADS_ADVIEW_KEY2);
+        AdViewVideoManager.getInstance(context).playVideo(context, ADS_ADVIEW_KEY1);
     }
     @Override
     public void exitVideo(Context context){

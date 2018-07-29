@@ -9,4 +9,8 @@
         android:id="@+id/menu_url"
         android:title="@string/menu_btn_copy_url"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_favorite"
+        android:title="@string/menu_favorite"
+        app:showAsAction="never" />
 </menu>

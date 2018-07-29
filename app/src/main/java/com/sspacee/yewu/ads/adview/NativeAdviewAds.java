@@ -26,7 +26,7 @@ public class NativeAdviewAds extends NativeAdsInter{
     @Override
     public  void showNative(final Context context, final Handler handler, final NativeAdsReadyListener listener) {
         try {
-            AdViewNativeManager.getInstance(context).requestAd(context, AdviewConstant.ADS_ADVIEW_KEY1, 4, new AdViewNativeListener() {
+            AdViewNativeManager.getInstance(context).requestAd(context, AdviewConstant.ADS_ADVIEW_KEY1, 2, new AdViewNativeListener() {
 
                 @Override
                 public void onAdFailed(String s) {

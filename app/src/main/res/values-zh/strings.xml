@@ -86,6 +86,8 @@
     <string name="menu_share_copy_ok">已复制到剪切板</string>
     <string name="menu_share_copy_error">分享失败</string>
     <string name="menu_share_text_only">FAIL!! 只能分享text</string>
+    <string name="menu_btn_contract">联系我们:  email</string>
+    <string name="menu_copy_emai">邮箱已复制</string>
     <!--登录，注册-->
     <string name="close_over">再按一次退出程序!!</string>
     <string name="login">登录</string>
@@ -119,12 +121,15 @@
     <string name="remark">Timeline RIGHTS RESERVED.</string>
     <string name="need_login">请登录</string>
     <string name="need_vip">非VIP用户无法选择该地区</string>
+    <string name="recharge">充值:</string>
     <string name="iwanna_tips">告诉我你需要的内容，\n我会精心为您准备</string>
     <string name="iwanna_title">你想要什么？ </string>
+    <string name="money_back_title">积分充值反馈</string>
     <string name="send">发送</string>
     <string name="iwanna_content_error">请告诉我你的需求!</string>
     <string name="iwanna_content_success">我已收到你的请求 !</string>
     <string name="vip_need">非VIP用户不允许访问,详见“关于”</string>
+    <string name="vip_remove_ads">升级vip去广告</string>
     <string name="area_setting">是否显示专区</string>
     <string name="sound_setting">音频非wifi网络下提示</string>
     <string name="sound_picshow">电影封面隐藏</string>
@@ -142,6 +147,7 @@
     <string name="save_img">保存到本地</string>
     <string name="save_start">开始保存...</string>
 
+    <string name="feedback_hint">xxx积分 VIP3</string>
     <string name="hidden_area_hit">设置里可以隐藏“专区”</string>
     <string name="wither_hit">查看更多天气</string>
     <string name="country_select_hit">点击选择更多地区</string>
@@ -237,6 +243,11 @@
     <string name="ads_logo">推广</string>
     <string name="skip">跳过</string>
     <string name="search">请输入搜索内容</string>
+    <string-array name="recharge_arry">
+        <item>微信</item>
+        <item>支付宝</item>
+        <item>其他</item>
+    </string-array>
 
     <!--广告-->
     <!--slidingclose-->

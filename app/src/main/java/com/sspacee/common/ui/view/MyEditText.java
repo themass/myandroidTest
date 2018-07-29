@@ -5,7 +5,7 @@ import android.support.v7.widget.AppCompatEditText;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 
-import com.timeline.view.base.MyApplication;
+import com.timeline.myapp.base.MyApplication;
 
 /**
  * 自定义字体的EditText
