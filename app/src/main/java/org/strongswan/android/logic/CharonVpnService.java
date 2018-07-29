@@ -19,6 +19,8 @@ package org.strongswan.android.logic;
 
 import android.annotation.TargetApi;
 import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -36,7 +38,7 @@ import android.os.IBinder;
 import android.os.ParcelFileDescriptor;
 import android.security.KeyChain;
 import android.security.KeyChainException;
-import android.support.v7.app.NotificationCompat;
+import android.support.v4.app.NotificationCompat;
 import android.system.OsConstants;
 import android.util.Log;
 import android.view.View;
@@ -45,6 +47,7 @@ import android.widget.Toast;
 
 import com.sspacee.common.util.FileUtils;
 import com.sspacee.common.util.LogUtil;
+import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.yewu.net.request.CommonResponse;
 import com.timeline.myapp.base.MyApplication;
 import com.timeline.myapp.bean.DataBuilder;
@@ -102,6 +105,8 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
     private static final String WORK_ANME = "vpnThread";
     public static volatile boolean VPN_STATUS_NOTIF = false;
     private BaseService indexService;
+    private  NotificationManager notificationManager;
+    private static  final  String N_CHANNEL="FREEVPN_CHANNEL";
     /*
      * The libraries are extracted to /data/data/org.strongswan.android/...
      * during installation.  On newer releases most are loaded in JNI_OnLoad.
@@ -192,6 +197,8 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
         initButtonReceiver();
         indexService = new BaseService();
         indexService.setup(this);
+        notificationManager=(NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+
     }
 
     @Override
@@ -444,6 +451,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
             setState(VpnStateService.State.DISCONNECTING);
             needStop = false;
             deinitializeCharon();
+//            stopForeground(true);
         }
         Log.i(TAG, "charon stopped");
         setState(VpnStateService.State.DISABLED);
@@ -502,10 +510,21 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
             Toast.makeText(CharonVpnService.this,R.string.error_lookup_failed,Toast.LENGTH_SHORT).show();
         }
     };
+    private void test(){}
     private void createForegroundService(boolean needConnecting) {
+        if(!PreferenceUtils.getPrefBoolean(this, Constants.NOTIFY_SWITCH, true) ) {
+                return;
+        }
         LogUtil.i("start ForegroundService:" + mService.getState());
-        NotificationCompat.Builder builder =
-                new NotificationCompat.Builder(MyApplication.getInstance());
+        if (Build.VERSION.SDK_INT >= 26) {
+            NotificationChannel channel = new NotificationChannel(N_CHANNEL, "FreeVPN", NotificationManager.IMPORTANCE_HIGH);
+            channel.setDescription("freevpn");
+            channel.enableLights(false);
+            channel.enableVibration(false);
+            channel.setSound(null, null);
+            notificationManager.createNotificationChannel(channel);
+        }
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(MyApplication.getInstance(),N_CHANNEL);
         RemoteViews remoteViews = new RemoteViews(getPackageName(), R.layout.vpn_status_remote_view);
         remoteViews.setTextViewText(R.id.tv_vpn_time, LocationUtil.getSelectName(this));
         boolean canGo = true;
@@ -548,7 +567,9 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
                 .setWhen(System.currentTimeMillis())// 通知产生的时间，会在通知信息里显示
                 .setTicker("FreeVPN start")
                 .setOngoing(canGo)
-                .setSmallIcon(R.drawable.remote_vpn_on);
+                .setSmallIcon(R.drawable.remote_vpn_on)
+        .setVibrate(new long[]{0})
+        .setSound(null);
         Notification notify = builder.build();
         notify.flags = Notification.FLAG_ONGOING_EVENT;
         startForeground(FOREGROUND_NOTIFY_ID, notify);

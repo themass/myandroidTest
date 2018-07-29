@@ -6,6 +6,7 @@ import com.sspacee.common.util.SystemUtils;
 import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
+import com.timeline.myapp.base.MyApplication;
 import com.timeline.vpn.R;
 import com.timeline.myapp.constant.Constants;
 
@@ -31,6 +32,10 @@ public class AdsPopStrategy {
             }
             return;
         }
-        AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.CATEGREY_VPN,true);
+        if(AdsContext.rateShow() && !MyApplication.isDebug) {
+            AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.CATEGREY_VPN, true);
+        }else{
+            AdsManager.getInstans().showVideo(context);
+        }
     }
 }

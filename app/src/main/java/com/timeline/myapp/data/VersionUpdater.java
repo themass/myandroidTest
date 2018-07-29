@@ -2,6 +2,7 @@ package com.timeline.myapp.data;
 
 import android.app.Activity;
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -10,9 +11,11 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AlertDialog;
 
 import com.sspacee.common.util.EventBusUtil;
@@ -44,6 +47,7 @@ public class VersionUpdater {
     private static String version;
     private static int build;
     private static boolean isInitVersionSuccess = false;
+    private static final String D_CHANNEL= "D_CHANNEL";
 
     public static void checkUpdate(final Activity context, final boolean needToast) {
         // 检查版本更新
@@ -245,7 +249,7 @@ public class VersionUpdater {
         private final File apkFile;
         private Context context;
         private Handler handler;
-        private Notification.Builder builder;
+        private NotificationCompat.Builder  builder;
         private NotificationManager notificationManager;
 
         private DownloadRunnable(Context context, String url, File apkFile) {
@@ -254,7 +258,15 @@ public class VersionUpdater {
             this.apkFile = apkFile;
             this.handler = new Handler();
             this.notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-            this.builder = new Notification.Builder(context);
+            if (Build.VERSION.SDK_INT >= 26) {
+                NotificationChannel channel = new NotificationChannel(D_CHANNEL, "FreeVPN", NotificationManager.IMPORTANCE_HIGH);
+                channel.setDescription("freevpn");
+                channel.enableLights(false);
+                channel.enableVibration(false);
+                channel.setSound(null, null);
+                notificationManager.createNotificationChannel(channel);
+            }
+            builder = new NotificationCompat.Builder(MyApplication.getInstance(),D_CHANNEL);
         }
 
         @Override
@@ -281,11 +293,12 @@ public class VersionUpdater {
             int percent = total == 0 ? 0 : (int) ((current * 1.0) * 100 / total);
             builder.setContentText(percentText);
             builder.setProgress(100, percent, false);
-            notificationManager.notify(NOTIFICATION_ID, builder.getNotification());
+            notificationManager.notify(NOTIFICATION_ID, builder.build());
         }
 
         private void showNotification(String title, String message) {
             // 创建一个NotificationManager的引用
+
             Intent notificationIntent = new Intent(context, MainFragmentViewPage.class); //点击该通知后要跳转的Activity
             Bundle bundle = new Bundle();
             notificationIntent.putExtras(bundle);
@@ -294,7 +307,7 @@ public class VersionUpdater {
             // 定义Notification的各种属性
             Notification notification = builder.setContentTitle(title).setContentText(message)
                     .setSmallIcon(R.drawable.ic_launcher).setContentIntent(contentIntent)
-                    .getNotification();
+                    .build();
             notification.flags |= Notification.FLAG_AUTO_CANCEL;
             notificationManager.notify(NOTIFICATION_ID, notification);
         }

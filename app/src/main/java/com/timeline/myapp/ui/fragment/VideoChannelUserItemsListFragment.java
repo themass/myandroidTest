@@ -5,9 +5,12 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
+import com.sspacee.yewu.ads.base.AdsManager;
+import com.timeline.myapp.bean.vo.InfoListVo;
 import com.timeline.myapp.bean.vo.RecommendVo;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.StaticDataUtil;
+import com.timeline.myapp.data.VideoUtil;
 import com.timeline.myapp.ui.base.CommonFragmentActivity;
 import com.timeline.myapp.ui.sound.VideoShowActivity;
 
@@ -44,9 +47,15 @@ public class VideoChannelUserItemsListFragment extends RecommendFragment {
     public boolean getShowEdit() {
         return false;
     }
-
     @Override
-    public void onItemClick(View v, int position) {
+    protected void onDataLoaded(InfoListVo<RecommendVo> data) {
+        super.onDataLoaded(data);
+        if(data.pageNum==2){
+            AdsManager.getInstans().showNative(getActivity(),this);
+        }
+    }
+    @Override
+    public void onCustomerItemClick(View v, int position) {
         RecommendVo vo = infoListVo.voList.get(position);
         if(!checkUserLevel(vo.type)){
             return;
@@ -55,7 +64,7 @@ public class VideoChannelUserItemsListFragment extends RecommendFragment {
         if(Constants.VIDEO_TYPE_NORMAL.equalsIgnoreCase((String)vo.extra)){
             startActivity(VideoShowActivity.class, vo);
         }else{
-            super.onItemClick(v,position);
+            super.onCustomerItemClick(v,position);
         }
     }
     @Override

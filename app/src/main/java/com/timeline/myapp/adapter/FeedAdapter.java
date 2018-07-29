@@ -41,11 +41,12 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private OnFeedItemClickListener onFeedItemClickListener;
 
     private boolean showLoadingView = false;
-
-    public FeedAdapter(Context context, List<IWannaVo> data, OnFeedItemClickListener listener) {
+    private String likeUrl;
+    public FeedAdapter(Context context, List<IWannaVo> data, OnFeedItemClickListener listener, String likeUrl) {
         this.context = context;
         this.listener = listener;
         this.feedItems = data;
+        this.likeUrl = likeUrl;
     }
 
     @Override
@@ -68,7 +69,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 if (listener != null) {
                     listener.onCommentsClick(view, adapterPosition);
                 }
-                IWannaLikeTask.start(context, feedItems.get(adapterPosition).id);
+                IWannaLikeTask.start(context, likeUrl,feedItems.get(adapterPosition).id);
 //                }
 
             }
@@ -144,7 +145,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             return "";
         content = content.replaceAll("@All",style1).replaceAll("@all",style1);
         if(UserLoginUtil.getUserCache()!=null){
-            String name = "@"+UserLoginUtil.getUserCache().name;
+            String name = "@"+ UserLoginUtil.getUserCache().name;
             content = content.replaceAll(name,String.format(style2,name));
         }
         return content;

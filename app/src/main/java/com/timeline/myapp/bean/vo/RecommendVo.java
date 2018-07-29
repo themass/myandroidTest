@@ -39,6 +39,7 @@ public class RecommendVo implements Serializable {
         vo.setName(title);
         vo.setType(type);
         vo.setItemUrl(param);
+        vo.setItemUrl(actionUrl);
         vo.setO(this);
         return vo;
     }

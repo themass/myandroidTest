@@ -54,6 +54,8 @@ public class FavoriteViewAdapter extends BaseRecyclerViewAdapter<FavoriteViewAda
             holder.ivType.setImageResource(R.drawable.txt);
         }else if (vo.type == Constants.FavoriteType.IMG) {
             holder.ivType.setImageResource(R.drawable.img);
+        }else if (vo.type == Constants.FavoriteType.VIDEO) {
+            holder.ivType.setImageResource(R.drawable.video);
         } else{
             holder.ivType.setVisibility(View.GONE);
         }

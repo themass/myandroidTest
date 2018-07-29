@@ -13,6 +13,8 @@ public class VipLocationVo implements Serializable{
     public String name;
     public int count;
     public String desc;
+    public String ename;
+    public String edesc;
     public List<LocationVo> list;
 }
 

@@ -7,7 +7,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.os.Build;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -29,12 +28,12 @@ public class PermissionHelper {
     public static final String WRITE_EXTERNAL_STORAGE = Manifest.permission.WRITE_EXTERNAL_STORAGE;
     public static final String REQUEST_INSTALL_PACKAGES = Manifest.permission.REQUEST_INSTALL_PACKAGES;
     public static List<String> requestPermissions = Arrays.asList(READ_PHONE_STATE,WRITE_EXTERNAL_STORAGE,ACCESS_COARSE_LOCATION);
-    static {
-        LogUtil.i("os version="+Build.VERSION.SDK_INT );
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O){
-            requestPermissions.add(REQUEST_INSTALL_PACKAGES);
-        }
-    }
+//    static {
+//        LogUtil.i("os version="+Build.VERSION.SDK_INT );
+//        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O){
+//            requestPermissions.add(REQUEST_INSTALL_PACKAGES);
+//        }
+//    }
     public static final String PACKAGE = "package:";
     private Activity mContext;
 

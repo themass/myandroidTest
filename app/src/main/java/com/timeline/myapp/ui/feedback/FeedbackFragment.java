@@ -8,8 +8,10 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
+import android.widget.Spinner;
 
 import com.sspacee.common.ui.view.HeartAnimView;
 import com.sspacee.common.ui.view.MyProgressDialog;
@@ -25,7 +27,6 @@ import com.timeline.myapp.bean.vo.IWannaVo;
 import com.timeline.myapp.bean.vo.InfoListVo;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.BaseService;
-import com.timeline.myapp.data.LocationUtil;
 import com.timeline.myapp.data.UserLoginUtil;
 import com.timeline.myapp.ui.base.CommonFragmentActivity;
 import com.timeline.myapp.ui.base.features.LoadableFragment;
@@ -41,7 +42,7 @@ import butterknife.OnClick;
 /**
  * Created by themass on 2016/9/5.
  */
-public class IWannaFragment extends LoadableFragment<InfoListVo<IWannaVo>> implements FeedAdapter.OnFeedItemClickListener, MyPullView.OnRefreshListener, FabOpListener.SetFabListener {
+public class FeedbackFragment extends LoadableFragment<InfoListVo<IWannaVo>> implements FeedAdapter.OnFeedItemClickListener, MyPullView.OnRefreshListener, FabOpListener.SetFabListener {
     private static String TAG = "IWANNA";
     @BindView(R.id.my_pullview)
     MyPullView pullView;
@@ -49,6 +50,8 @@ public class IWannaFragment extends LoadableFragment<InfoListVo<IWannaVo>> imple
     RelativeLayout rlComment;
     @BindView(R.id.et_comment)
     EditText etComment;
+    @BindView(R.id.sp_recharge)
+    Spinner spRech;
     FeedAdapter feedAdapter;
     private BaseService indexService;
     private FabOpListener.OnFabListener listener;
@@ -73,7 +76,7 @@ public class IWannaFragment extends LoadableFragment<InfoListVo<IWannaVo>> imple
 
     public static void startFragment(Context context) {
         Intent intent = new Intent(context, CommonFragmentActivity.class);
-        intent.putExtra(CommonFragmentActivity.FRAGMENT, IWannaFragment.class);
+        intent.putExtra(CommonFragmentActivity.FRAGMENT, FeedbackFragment.class);
         intent.putExtra(CommonFragmentActivity.TITLE, getFragmentTitle());
         intent.putExtra(CommonFragmentActivity.SLIDINGCLOSE, true);
         context.startActivity(intent);
@@ -96,11 +99,14 @@ public class IWannaFragment extends LoadableFragment<InfoListVo<IWannaVo>> imple
         };
         infoVo.voList = new ArrayList<>();
         pullView.setLayoutManager(linearLayoutManager);
-        feedAdapter = new FeedAdapter(getActivity(), infoVo.voList, this, Constants.API_IWANNA_LIKE_URL);
+        feedAdapter = new FeedAdapter(getActivity(), infoVo.voList, this, Constants.API_FEEDBACK_LIKE_URL);
         pullView.setAdapter(feedAdapter);
         pullView.setListener(this);
         pullView.setItemAnimator(new FeedItemAnimator());
         myProgressDialog = new MyProgressDialog(getActivity());
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(), R.layout.layout_feed_spinner, getResources().getStringArray(R.array.recharge_arry));
+        spRech.setAdapter(adapter);
+        spRech.setSelection(0,true);
     }
 
     @OnClick(R.id.send)
@@ -111,7 +117,7 @@ public class IWannaFragment extends LoadableFragment<InfoListVo<IWannaVo>> imple
         }
         if (StringUtils.hasText(etComment.getText().toString())) {
             myProgressDialog.show();
-            indexService.postData(Constants.getUrl(Constants.API_IWANNA_URL), new IwannaForm(etComment.getText().toString()+"--locat:"+ LocationUtil.getSelectLocationId(getActivity())), okListener, errorListener, TAG, IWannaVo.class);
+            indexService.postData(Constants.getUrl(Constants.API_FEEDBACK_URL), new IwannaForm(etComment.getText().toString()+"--"+spRech.getSelectedItem() ), okListener, errorListener, TAG, IWannaVo.class);
         } else {
             ToastUtil.showShort(R.string.iwanna_content_error);
         }
@@ -119,7 +125,7 @@ public class IWannaFragment extends LoadableFragment<InfoListVo<IWannaVo>> imple
 
     @Override
     protected void onContentViewCreated(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
-        inflater.inflate(R.layout.layout_iwanna_fragment, parent);
+        inflater.inflate(R.layout.layout_iwanna_score_fragment, parent);
     }
 
     @Override
@@ -156,7 +162,7 @@ public class IWannaFragment extends LoadableFragment<InfoListVo<IWannaVo>> imple
 
     @Override
     protected InfoListVo<IWannaVo> loadData(Context context) throws Exception {
-        return indexService.getInfoListData(String.format(Constants.getUrl(Constants.API_IWANNA_URL), infoVo.pageNum), IWannaVo.class, TAG);
+        return indexService.getInfoListData(String.format(Constants.getUrl(Constants.API_FEEDBACK_URL), infoVo.pageNum), IWannaVo.class, TAG);
     }
 
     @Override

@@ -62,6 +62,7 @@ public class ImgChannelListFragment extends BasePullLoadbleFragment<ImgItemsVo> 
         ImgGalleryFragment.startFragment(getActivity(), data);
         HistoryUtil.addHistory(getActivity(), data.url);
     }
+
     @Override
     public void onDestroyView() {
         indexService.cancelRequest(TEXT_TAG);

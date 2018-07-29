@@ -32,6 +32,7 @@ import com.timeline.myapp.base.MyApplication;
 import com.timeline.myapp.bean.vo.TextItemsVo;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.StaticDataUtil;
+import com.timeline.myapp.task.SaveTextTask;
 import com.timeline.myapp.ui.base.CommonFragmentActivity;
 import com.timeline.vpn.R;
 
@@ -264,7 +265,9 @@ public class TextItemsWebViewFragment extends BaseFragment {
     }
     @OnClick(R.id.iv_favorite)
     public void favoriteClick(View view) {
-        ivFavorite.clickFavorite(vo.tofavorite());
+        if(url.startsWith(Constants.HTTP_URL)) {
+            ivFavorite.clickFavorite(vo.tofavorite());
+            SaveTextTask.startSave(getActivity(), url);
+        }
     }
-
 }

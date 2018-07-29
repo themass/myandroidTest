@@ -14,21 +14,23 @@ public class IWannaLikeTask extends AsyncTask {
     BaseService baseService;
     long id;
     private Context context;
+    private String url;
 
-    public IWannaLikeTask(Context context, long id) {
+    public IWannaLikeTask(Context context, String url, long id) {
         this.context = context;
         baseService = new BaseService();
         baseService.setup(context);
+        this.url=url;
         this.id = id;
     }
 
-    public static void start(Context context, long id) {
-        new IWannaLikeTask(context, id).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    public static void start(Context context, String url,long id) {
+        new IWannaLikeTask(context, url,id).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     @Override
     protected Object doInBackground(Object[] params) {
-        baseService.postData(String.format(Constants.getUrl(Constants.API_IWANNA_LIKE_URL), id), null, null, null, TAG, null);
+        baseService.postData(String.format(Constants.getUrl(url), id), null, null, null, TAG, null);
         return null;
     }
 }

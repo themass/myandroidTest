@@ -49,6 +49,8 @@ public class SettingActivity extends BaseSingleActivity {
 
     @BindView(R.id.sw_sound)
     Switch swSound;
+    @BindView(R.id.sw_notify)
+    Switch swNotify;
     @BindView(R.id.tv_timeuse)
     TextView tvTime;
     @BindView(R.id.tv_networking)
@@ -75,6 +77,13 @@ public class SettingActivity extends BaseSingleActivity {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 PreferenceUtils.setPrefBoolean(SettingActivity.this, Constants.SOUND_SWITCH, isChecked);
                 LogUtil.i("SOUND_SWITCH: " + isChecked);
+            }
+        });
+        swNotify.setChecked(PreferenceUtils.getPrefBoolean(this, Constants.NOTIFY_SWITCH, true));
+        swNotify.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                PreferenceUtils.setPrefBoolean(SettingActivity.this, Constants.NOTIFY_SWITCH, isChecked);
+                LogUtil.i("NOTIFY_SWITCH: " + isChecked);
             }
         });
         baseService = new BaseService();
@@ -119,10 +128,12 @@ public class SettingActivity extends BaseSingleActivity {
         @Override
         public void onResponse(NullReturnVo vo) {
             ToastUtil.showShort(R.string.email_ok);
-            btnSubmit.setText(R.string.modify);
-            etEmail.setEnabled(false);
-            UserLoginUtil.getUserCache().email = mEmail;
-            setUserEmail();
+            if(btnSubmit!=null && etEmail!=null) {
+                btnSubmit.setText(R.string.modify);
+                etEmail.setEnabled(false);
+                UserLoginUtil.getUserCache().email = mEmail;
+                setUserEmail();
+            }
         }
     };
     @OnClick(R.id.btn_submit)
@@ -174,6 +185,12 @@ public class SettingActivity extends BaseSingleActivity {
         VersionUpdater.checkUpdate(this, true);
         MobAgent.onEventMenu(this, "版本");
     }
+    @OnClick(R.id.tv_auther)
+    public void onContract(View view) {
+        SystemUtils.copy(SettingActivity.this, "gqli5296@gmail.com");
+        ToastUtil.showShort(R.string.menu_copy_emai);
+        MobAgent.onEventMenu(this, "联系我们");
+    }
 
     @OnClick(R.id.tv_about)
     public void onAbout(View view) {
@@ -202,7 +219,7 @@ public class SettingActivity extends BaseSingleActivity {
 
     @Override
     public boolean needShow() {
-        return true;
+        return false;
     }
 
     public void showShare() {

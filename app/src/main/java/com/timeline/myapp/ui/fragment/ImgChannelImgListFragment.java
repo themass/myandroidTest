@@ -6,7 +6,9 @@ import android.os.Bundle;
 import android.view.View;
 
 import com.sspacee.yewu.ads.base.AdsContext;
+import com.sspacee.yewu.ads.base.AdsManager;
 import com.timeline.myapp.bean.vo.ImgItemsVo;
+import com.timeline.myapp.bean.vo.InfoListVo;
 import com.timeline.myapp.bean.vo.RecommendVo;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.HistoryUtil;
@@ -71,7 +73,7 @@ public class ImgChannelImgListFragment extends RecommendFragment {
         return true;
     }
     @Override
-    public void onItemClick(View v, int position) {
+    public void onCustomerItemClick(View v, int position) {
         RecommendVo revo = infoListVo.voList.get(position);
         if(!checkUserLevel(revo.type)){
             return;
@@ -82,6 +84,13 @@ public class ImgChannelImgListFragment extends RecommendFragment {
         ImgItemFragment.startFragment(getActivity(), imgItemsVo);
         HistoryUtil.addHistory(getActivity(), imgItemsVo.url);
         mSearchView.clearFocus();
+    }
+    @Override
+    protected void onDataLoaded(InfoListVo<RecommendVo> data) {
+        super.onDataLoaded(data);
+        if(data.pageNum==3){
+            AdsManager.getInstans().showNative(getActivity(),this);
+        }
     }
     @Override
     public void onDestroyView() {

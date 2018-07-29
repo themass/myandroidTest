@@ -30,6 +30,7 @@ import com.timeline.myapp.data.config.StateUseEvent;
 import com.timeline.myapp.data.config.UserLoginEvent;
 import com.timeline.myapp.data.config.VipDescEvent;
 import com.timeline.myapp.ui.base.WebViewActivity;
+import com.timeline.myapp.ui.feedback.FeedbackChooseFragment;
 import com.timeline.myapp.ui.feedback.IWannaFragment;
 import com.timeline.myapp.ui.fragment.AppListFragment;
 import com.timeline.myapp.ui.fragment.DonationListFragment;
@@ -141,6 +142,8 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                 ivLevel.setImageResource(R.drawable.ic_level_vip2);
             }else if (Constants.UserLevel.LEVEL_VIP3 == vo.level) {
                 ivLevel.setImageResource(R.drawable.ic_level_vip3);
+            }else if (Constants.UserLevel.LEVEL_VIP4 == vo.level) {
+                ivLevel.setImageResource(R.drawable.ic_level_vip4);
             }
         } else {
             miLogout.setVisible(false);
@@ -261,7 +264,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                     logout(item);
                 }  else if (item.getItemId() == R.id.menu_feedback) {
                     name = "反馈";
-                    IWannaFragment.startFragment(BaseDrawerActivity.this);
+                    FeedbackChooseFragment.startFragment(BaseDrawerActivity.this);
                 } else if (item.getItemId() == R.id.menu_setting) {
                     name = "设置";
                     startActivity(SettingActivity.class);

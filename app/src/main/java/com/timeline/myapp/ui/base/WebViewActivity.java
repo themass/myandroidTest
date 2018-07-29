@@ -11,16 +11,19 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.sspacee.common.ui.view.MyWebView;
+import com.sspacee.common.util.AudioMngHelper;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PackageUtils;
 import com.sspacee.common.util.SystemUtils;
 import com.sspacee.common.util.ToastUtil;
-import com.sspacee.yewu.ads.base.AdsContext;
-import com.sspacee.yewu.ads.base.AdsManager;
-import com.timeline.vpn.R;
+import com.sspacee.yewu.net.request.CommonResponse;
+import com.timeline.myapp.bean.form.CustomeAddForm;
+import com.timeline.myapp.bean.vo.NullReturnVo;
 import com.timeline.myapp.constant.Constants;
+import com.timeline.myapp.data.BaseService;
 import com.timeline.myapp.ui.base.app.BaseFragmentActivity;
 import com.timeline.myapp.ui.base.features.BaseWebViewFragment;
+import com.timeline.vpn.R;
 
 import java.util.HashMap;
 
@@ -28,11 +31,14 @@ import java.util.HashMap;
  * Created by themass on 2016/3/17.
  */
 public class WebViewActivity extends BaseFragmentActivity implements MyWebView.OnTouchRightSlide {
+    private static final String TAG = "customeadd_tag";
+
     BaseWebViewFragment webViewFragment;
     private boolean adsNeed = false;
     private boolean adsPopNeed = false;
     private String url;
-
+    BaseService baseService;
+    private AudioMngHelper audioMngHelper;
     public static void startWebViewActivity(Context context, String url, String title, boolean adsShow, boolean adsPopShow, HashMap<String, Object> param) {
         Intent intent = new Intent(context, WebViewActivity.class);
         intent.putExtra(Constants.URL, url);
@@ -47,6 +53,8 @@ public class WebViewActivity extends BaseFragmentActivity implements MyWebView.O
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.common_fragment);
+        baseService = new BaseService();
+        baseService.setup(this);
         webViewFragment = new BaseWebViewFragment();
         getSupportFragmentManager().beginTransaction()
                 .add(R.id.fragment, webViewFragment)
@@ -57,10 +65,12 @@ public class WebViewActivity extends BaseFragmentActivity implements MyWebView.O
         adsDelayGone();
         adsNeed = getIntent().getBooleanExtra(Constants.ADS_SHOW_CONFIG, false);
         adsPopNeed = getIntent().getBooleanExtra(Constants.ADS_POP_SHOW_CONFIG, false);
-        if(adsPopNeed && AdsContext.rateShow()){
-            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN1,false);
-        }
+//        if(adsPopNeed && AdsContext.rateShow()){
+//            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN,false);
+//        }
+        audioMngHelper = new AudioMngHelper(this);
     }
+
     public boolean needShow() {
         return adsNeed || super.needShow();
     }
@@ -73,6 +83,11 @@ public class WebViewActivity extends BaseFragmentActivity implements MyWebView.O
                 finish();
                 return true;
             }
+        }else  if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+            audioMngHelper.setVoiceStep100(1).subVoice100();
+
+        }else  if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+            audioMngHelper.setVoiceStep100(1).addVoice100();
         }
         return true;
     }
@@ -88,7 +103,12 @@ public class WebViewActivity extends BaseFragmentActivity implements MyWebView.O
         getMenuInflater().inflate(R.menu.browser_menu, menu);
         return true;
     }
-
+    CommonResponse.ResponseOkListener listener = new CommonResponse.ResponseOkListener<NullReturnVo>() {
+        @Override
+        public void onResponse(NullReturnVo vo) {
+            ToastUtil.showShort(R.string.custome_ok);
+        }
+    };
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
@@ -105,6 +125,22 @@ public class WebViewActivity extends BaseFragmentActivity implements MyWebView.O
         } else if (id == R.id.menu_url) {
             SystemUtils.copy(this, url);
             return true;
+        } else if (id == R.id.menu_favorite) {
+            if(url.startsWith(Constants.HTTP_URL) ){
+                CustomeAddForm form = new CustomeAddForm();
+                form.title = getString(R.string.video);
+                form.uri = url;
+                Uri uri = Uri.parse(url);
+                form.schema = uri.getScheme();
+                form.uri = uri.getPath();
+                form.url = url;
+                baseService.postData(Constants.getUrl(Constants.API_ADD_CUSTOME), form, listener, new CommonResponse.ResponseErrorListener() {
+                    @Override
+                    protected void onError() {
+                        super.onError();
+                    }
+                }, TAG, NullReturnVo.class);
+            }
         }
         return super.onOptionsItemSelected(item);
     }

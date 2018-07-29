@@ -6,11 +6,15 @@ import android.os.Bundle;
 import android.view.View;
 
 import com.sspacee.yewu.ads.base.AdsContext;
+import com.sspacee.yewu.ads.base.AdsManager;
+import com.timeline.myapp.bean.vo.InfoListVo;
 import com.timeline.myapp.bean.vo.RecommendVo;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.StaticDataUtil;
+import com.timeline.myapp.data.VideoUtil;
 import com.timeline.myapp.ui.base.CommonFragmentActivity;
 import com.timeline.myapp.ui.sound.VideoShowActivity;
+
 /**
  * Created by themass on 2016/8/12.
  */
@@ -24,7 +28,7 @@ public class VideoChannelListFragment extends RecommendFragment {
         intent.putExtra(CommonFragmentActivity.TITLE, vo.title);
         if(AdsContext.rateSmallShow()){
             intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_SHOW, true);
-            intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_VPN3);
+            intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_VPN);
         }
         StaticDataUtil.add(Constants.VIDEO_CHANNEL, vo);
         context.startActivity(intent);
@@ -60,7 +64,7 @@ public class VideoChannelListFragment extends RecommendFragment {
     }
 
     @Override
-    public void onItemClick(View v, int position) {
+    public void onCustomerItemClick(View v, int position) {
         RecommendVo vo = infoListVo.voList.get(position);
         if(!checkUserLevel(vo.type)){
             return;
@@ -68,10 +72,16 @@ public class VideoChannelListFragment extends RecommendFragment {
         if(Constants.VIDEO_TYPE_NORMAL.equalsIgnoreCase((String)vo.extra)){
             startActivity(VideoShowActivity.class, vo);
         }else{
-            super.onItemClick(v,position);
+            super.onCustomerItemClick(v,position);
         }
     }
-
+    @Override
+    protected void onDataLoaded(InfoListVo<RecommendVo> data) {
+        super.onDataLoaded(data);
+        if(data.pageNum==2){
+            AdsManager.getInstans().showNative(getActivity(),this);
+        }
+    }
     @Override
     public void onDestroyView() {
         indexService.cancelRequest(VIDEO_TAG);

@@ -105,7 +105,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         initTabs();
 //        UpdateUserTask.start(this);
 //        AdsManager.getInstans().reqVideo(this);
-        if(!UserLoginUtil.isVIP2())
+//        if(!UserLoginUtil.isVIP2())
             AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN,false);
     }
     /**

@@ -197,6 +197,7 @@
     <style name="tv_setting">
         <item name="android:textSize">@dimen/textsize_18</item>
         <item name="android:textColor">@color/new_deep_black</item>
+        <item name="android:singleLine">true</item>
     </style>
 
     <style name="ToolbarStyle" parent="ThemeOverlay.AppCompat.Dark.ActionBar">

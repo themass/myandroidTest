@@ -14,6 +14,7 @@ import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.GsonUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PreferenceUtils;
+import com.sspacee.common.util.SystemUtils;
 import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.timeline.myapp.adapter.LocationViewAdapter;
@@ -140,7 +141,11 @@ public class LocationVipItemChooseFragment extends BasePullLoadbleFragment<Locat
                 return;
             } else {
                 if (data.type > vo.level) {
-                    ToastUtil.showShort(vipLocationVo.desc);
+                    if(SystemUtils.isZH(getActivity())) {
+                        ToastUtil.showShort(vipLocationVo.desc);
+                    }else{
+                        ToastUtil.showShort(vipLocationVo.edesc);
+                    }
                     return;
                 }
             }

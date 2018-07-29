@@ -50,7 +50,10 @@
     <string name="menu_btn_about">About</string>
     <string name="menu_btn_share">Share</string>
     <string name="menu_btn_bug">Report bug</string>
+    <string name="menu_btn_contract">Contact us:  email</string>
+    <string name="menu_copy_emai">Email Copied OK</string>
     <string name="menu_btn_version">Version:</string>
+    <string name="menu_btn_notify">Show Notify:</string>
     <string name="menu_btn_logout">Logout</string>
     <string name="menu_btn_setting">Setting</string>
     <string name="menu_btn_support">Support author</string>
@@ -74,7 +77,7 @@
     <string name="support_info">Please activate several apps to support the author！</string>
     <string name="offerads_ths">Thank you for your support!</string>
     <string name="location_choose_flag_none">Click“ Region ”More regional options</string>
-    <string name="menu_btn_donation">Pay VIP</string>
+    <string name="menu_btn_donation">Donation</string>
 
     <!-- share-->
     <string name="menu_share_title">Share friend</string>
@@ -105,14 +108,17 @@
     <string name="remark">Timeline RIGHTS RESERVED.</string>
     <string name="need_login">Login please</string>
     <string name="need_vip">Need VIP permission，please see "About"</string>
+    <string name="iwanna_title">I wanna?</string>
+    <string name="feedback_hint">$3 $5 VIP3</string>
+    <string name="recharge">Recharge:</string>
+    <string name="money_back_title">Score?</string>
 
     <string name="iwanna_tips">Tell me what du you want ,\nI\'ll be ready for you </string>
-    <string name="iwanna_title">What do you want?</string>
     <string name="send">send</string>
     <string name="iwanna_content_error">Tell me something!</string>
     <string name="iwanna_content_success">I got it !</string>
     <string name="vip_need">Non VIP users are not allowed to visit</string>
-    <string name="area_setting">Show Area Switch</string>
+    <string name="area_setting">Show Area</string>
     <string name="sound_setting">Play audio in not wifi</string>
     <string name="sound_play_not_wifi">You are now using a non WIFI network？</string>
     <string name="sound">Obscene</string>
@@ -155,6 +161,7 @@
     <string name="vpn_type_vip">VIP</string>
     <string name="vpn_type_vip2">VIP2</string>
     <string name="vpn_type_vip3">VIP3</string>
+    <string name="vpn_type_vip4">VIP4</string>
     <string name="vpn_remote_status">FreeVPN·</string>
     <string name="vpn_remote_on">Connected，click to disconnect</string>
     <string name="vpn_remote_off">Disconnect，click to connect</string>
@@ -231,6 +238,12 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="ads_logo">AD</string>
     <string name="skip">skip</string>
     <string name="search">enter search content</string>
+    <string name="vip_remove_ads">Upgrade VIP to advertise</string>
     <!--slidingclose-->
+    <string-array name="recharge_arry">
+        <item>WeChat</item>
+        <item>Alipay</item>
+        <item>Other</item>
+    </string-array>
     <!--广告-->
 </resources>

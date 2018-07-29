@@ -4,19 +4,24 @@ package com.timeline.myapp.ui.sound;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
 
+import com.sspacee.common.ui.view.FavoriteImageView;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.StringUtils;
+import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.timeline.myapp.bean.vo.RecommendVo;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.ImagePhotoLoad;
+import com.timeline.myapp.data.UserLoginUtil;
 import com.timeline.myapp.data.VideoUtil;
 import com.timeline.vpn.R;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 import butterknife.Unbinder;
 import cn.jzvd.JZUserAction;
 import cn.jzvd.JZUserActionStandard;
@@ -31,6 +36,8 @@ public class VideoShowActivity extends AppCompatActivity {
     @BindView(R.id.jz_video)
     public JZVideoPlayerStandard jzVideo;
     RecommendVo vo;
+    @BindView(R.id.iv_favorite)
+    FavoriteImageView ivFavorite;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,6 +53,12 @@ public class VideoShowActivity extends AppCompatActivity {
 //        jzVideo.headData = header;
         ImagePhotoLoad.loadCommonImg(this,vo.img,jzVideo.thumbImageView);
         JZVideoPlayer.setJzUserAction(new MyUserActionStandard());
+        ivFavorite.initSrc(vo.actionUrl);
+
+    }
+    @OnClick(R.id.iv_favorite)
+    public void favoriteClick(View view) {
+        ivFavorite.clickFavorite(vo.tofavorite(Constants.FavoriteType.VIDEO));
     }
     @Override
     public void onPause() {
@@ -85,7 +98,16 @@ public class VideoShowActivity extends AppCompatActivity {
                 case JZUserAction.ON_CLICK_PAUSE:
                     if(AdsContext.rateShow()){
                         AdsManager.getInstans().showInterstitialAds(VideoShowActivity.this, AdsContext.Categrey.CATEGREY_VPN2,false);
-                    }                    break;
+                    }
+                    break;
+                case JZUserAction.ON_AUTO_COMPLETE:
+                    if(!UserLoginUtil.isVIP2()){
+                        ToastUtil.showShort(R.string.vip_remove_ads);
+                        if(AdsContext.rateShow()) {
+                            AdsManager.getInstans().showVideo(VideoShowActivity.this);
+                        }
+                    }
+                    break;
                 default:break;
             }
         }

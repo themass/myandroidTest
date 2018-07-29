@@ -60,6 +60,7 @@ public class LocationChooseFragment extends BasePullLoadbleFragment<LocationVo>{
         intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, true);
         intent.putExtra(CommonFragmentActivity.ADSSCROLL, true);
         intent.putExtra(CommonFragmentActivity.BANNER_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_VPN2);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(intent);
     }
 

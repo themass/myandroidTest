@@ -50,6 +50,7 @@ public class Constants {
     public static final int LOCATION_TYPE_VIP = 1;
     public static final int LOCATION_TYPE_VIP2 = 2;
     public static final int LOCATION_TYPE_VIP3 = 3;
+    public static final int LOCATION_TYPE_VIP4 = 4;
     public static final List<Integer> BANNER_ADS_POS = Arrays.asList(2,9,16,23);
     public static final String[] sort_type = new String[]{"type_asc", "type_desc"};
     public static final String[] sort_country = new String[]{"ename_asc", "ename_desc"};
@@ -63,6 +64,7 @@ public class Constants {
     public static final String LOGIN_USER = "LOGIN_USER";
     public static final String LOGIN_USER_LAST = "LOGIN_USER_LAST";
     public static final String SOUND_SWITCH = "SOUND_SWITCH";
+    public static final String NOTIFY_SWITCH = "NOTIFY_SWITCH";
     public static final String LOGIN_USER_PW_LAST = "LOGIN_USER_PW_LAST";
     public static final String DEVID = "Devid";
     public static final String HTTP_TOKEN_KEY = "Vpn-Token";
@@ -91,8 +93,13 @@ public class Constants {
     public static final String API_REG_URL = "/user/reg.json";
     public static final String API_REG_CODE_URL = "/user/code.json";
     public static final String API_USER_INFO_URL = "/user/info.json";
-    public static final String API_IWANNA_URL = "/data/feed/wanna.json?start=%s&limit=20";
+
+    public static final String API_IWANNA_URL = "/data/feed/wanna.json?start=%s&limit=30";
     public static final String API_IWANNA_LIKE_URL = "/data/feed/wanna/%s.json";
+
+    public static final String API_FEEDBACK_URL = "/data/feed/score.json?start=%s&limit=40";
+    public static final String API_FEEDBACK_LIKE_URL = "/data/feed/score/%s.json";
+
     public static final String API_VERSION_URL = "/data/version.json";
     public static final String API_APP_URL = "/data/appinfo.json";
     public static final String API_DONATION_URL = "/data/donation.json";
@@ -190,6 +197,7 @@ public class Constants {
         public static final int TEXT = 0;
         public static final int SOUND = 1;
         public static final int IMG = 2;
+        public static final int VIDEO = 3;
     }
 
     public static class UserLevel {
@@ -197,6 +205,7 @@ public class Constants {
         public static final int LEVEL_VIP = 1;
         public static final int LEVEL_VIP2 = 2;
         public static final int LEVEL_VIP3 = 3;
+        public static final int LEVEL_VIP4 = 4;
     }
 
     public static class OpenUrlPath {

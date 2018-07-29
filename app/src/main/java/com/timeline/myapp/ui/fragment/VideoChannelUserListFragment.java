@@ -7,6 +7,8 @@ import android.view.View;
 
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
+import com.sspacee.yewu.ads.base.AdsManager;
+import com.timeline.myapp.bean.vo.InfoListVo;
 import com.timeline.myapp.bean.vo.RecommendVo;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.ui.base.CommonFragmentActivity;
@@ -64,7 +66,13 @@ public class VideoChannelUserListFragment extends RecommendFragment {
     }
 
 
-
+    @Override
+    protected void onDataLoaded(InfoListVo<RecommendVo> data) {
+        super.onDataLoaded(data);
+        if(data.pageNum==2){
+            AdsManager.getInstans().showNative(getActivity(),this);
+        }
+    }
     @Override
     public String getNetTag() {
         return VIDEO_TAG;
@@ -78,7 +86,7 @@ public class VideoChannelUserListFragment extends RecommendFragment {
         return false;
     }
     @Override
-    public void onItemClick(View v, int position) {
+    public void onCustomerItemClick(View v, int position) {
         RecommendVo vo = infoListVo.voList.get(position);
         if(!checkUserLevel(vo.type)){
             return;

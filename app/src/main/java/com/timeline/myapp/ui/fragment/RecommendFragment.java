@@ -9,11 +9,14 @@ import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.View;
 
+import com.kyview.natives.NativeAdInfo;
 import com.sspacee.common.helper.OnStartDragListener;
 import com.sspacee.common.helper.SimpleItemTouchHelperCallback;
 import com.sspacee.common.ui.view.RecycleViewDivider;
+import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.ToastUtil;
+import com.sspacee.yewu.ads.base.NativeAdsReadyListener;
 import com.sspacee.yewu.um.MobAgent;
 import com.timeline.myapp.adapter.IndexRecommendAdapter;
 import com.timeline.myapp.adapter.base.BasePhotoFlowRecycleViewAdapter;
@@ -27,6 +30,7 @@ import com.timeline.myapp.ui.base.features.BasePullLoadbleFragment;
 import com.timeline.myapp.ui.user.LoginActivity;
 import com.timeline.vpn.R;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +38,7 @@ import java.util.Map;
 /**
  * Created by themass on 2015/9/1.
  */
-public abstract class RecommendFragment extends BasePullLoadbleFragment<RecommendVo> implements BasePhotoFlowRecycleViewAdapter.OnRecyclerViewItemClickListener, OnStartDragListener, IndexRecommendAdapter.OnEditClickListener {
+public abstract class RecommendFragment extends BasePullLoadbleFragment<RecommendVo> implements BasePhotoFlowRecycleViewAdapter.OnRecyclerViewItemClickListener, OnStartDragListener, IndexRecommendAdapter.OnEditClickListener, NativeAdsReadyListener {
     protected ItemTouchHelper mItemTouchHelper;
     protected IndexRecommendAdapter adapter;
 
@@ -93,8 +97,14 @@ public abstract class RecommendFragment extends BasePullLoadbleFragment<Recommen
         }
         return true;
     }
-    @Override
-    public void onItemClick(View v, int position) {
+    public boolean adClick(View v,RecommendVo vo){
+        if (vo.dataType == RecommendVo.dataType_ADS) {
+            ((NativeAdInfo) (vo.extra)).onClick(v,(int)v.getX(),(int)v.getY());
+            return true;
+        }
+        return false;
+    }
+    public void onCustomerItemClick(View v, int position){
         RecommendVo vo = infoListVo.voList.get(position);
         if(!checkUserLevel(vo.type)){
             return;
@@ -105,7 +115,37 @@ public abstract class RecommendFragment extends BasePullLoadbleFragment<Recommen
         EventBusUtil.getEventBus().post(new ConfigActionEvent(getActivity(), vo.actionUrl, vo.title, param));
         MobAgent.onEventRecommondChannel(getActivity(), vo.title);
     }
-
+    @Override
+    public void onItemClick(View v, int position) {
+        RecommendVo vo = infoListVo.voList.get(position);
+        if(!adClick(v,vo)){
+            onCustomerItemClick(v,position);
+        }
+    }
+    public boolean onAdRecieved(List<NativeAdInfo> data) {
+        if (!CollectionUtils.isEmpty(data)) {
+            List<RecommendVo> list = new ArrayList<>();
+            for (NativeAdInfo nativeAdInfo : data) {
+                RecommendVo vo = new RecommendVo();
+                vo.desc = nativeAdInfo.getDescription();
+                vo.img = nativeAdInfo.getIconUrl();
+                vo.title = nativeAdInfo.getTitle();
+                vo.extra = nativeAdInfo;
+                nativeAdInfo.onDisplay(new View(getActivity()));
+                vo.dataType = RecommendVo.dataType_ADS;
+                if (nativeAdInfo.getImageWidth() != 0)
+                    vo.rate = nativeAdInfo.getImageHeight() / nativeAdInfo.getImageWidth();
+                else {
+                    vo.rate = 1f;
+                }
+                vo.showType = Constants.ShowType.Blur;
+                list.add(vo);
+            }
+            addData(list);
+            pullView.notifyDataSetChanged();
+        }
+        return true;
+    }
     @Override
     public void onLongItemClick(View view, int position) {
 

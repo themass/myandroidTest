@@ -37,7 +37,7 @@ public class TextItemsStrFragment extends LoadableFragment<String> {
         intent.putExtra(CommonFragmentActivity.FRAGMENT, TextItemsStrFragment.class);
         intent.putExtra(CommonFragmentActivity.TITLE, vo.name);
         StaticDataUtil.add(Constants.TEXT_FILE, vo);
-        if (!UserLoginUtil.isVIP2())
+        if (!UserLoginUtil.isVIP3())
             intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, true);
         intent.putExtra(CommonFragmentActivity.TOOLBAR_SHOW, false);
         context.startActivity(intent);

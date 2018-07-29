@@ -135,6 +135,9 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
             }else if(vo.type==3){
                 holder.ivNew.setVisibility(View.VISIBLE);
                 holder.ivNew.setBackgroundResource(R.drawable.ic_vip3);
+            }else if(vo.type==4){
+                holder.ivNew.setVisibility(View.VISIBLE);
+                holder.ivNew.setBackgroundResource(R.drawable.ic_vip4);
             }
         }
         holder.ivPhoto.setBackgroundColor(Color.parseColor(vo.color));

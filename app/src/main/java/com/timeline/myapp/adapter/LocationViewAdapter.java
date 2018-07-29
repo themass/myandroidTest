@@ -75,11 +75,17 @@ public class LocationViewAdapter extends BaseRecyclerViewAdapter<LocationViewAda
         }else if (vo.type == Constants.LOCATION_TYPE_VIP3) {
             holder.ivType.setBackgroundResource(R.drawable.bg_type_paid);
             holder.tvType.setText(R.string.vpn_type_vip3);
+        }else if (vo.type == Constants.LOCATION_TYPE_VIP4) {
+            holder.ivType.setBackgroundResource(R.drawable.bg_type_vip4);
+            holder.tvType.setText(R.string.vpn_type_vip4);
         }
        if(position==getItemCount()-1){
             holder.rvAds.setVisibility(View.VISIBLE);
             AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN);
-        }else{
+        }else if(position==3){
+            holder.rvAds.setVisibility(View.VISIBLE);
+            AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN2);
+        } else{
             holder.rvAds.removeAllViews();
             holder.rvAds.setVisibility(View.GONE);
         }

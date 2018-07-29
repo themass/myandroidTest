@@ -1,4 +1,4 @@
-package com.timeline.myapp.ui.base;
+package com.timeline.myapp.ui.feedback;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -16,7 +16,7 @@ import java.io.Serializable;
 /**
  * Created by themass on 2016/9/5.
  */
-public class LocationFragmentActivity extends BaseFragmentActivity implements FabOpListener.OnFabListener {
+public class FeedbackFragmentActivity extends BaseFragmentActivity implements FabOpListener.OnFabListener {
     public static final String FRAGMENT = "FRAGMENT";
     public static final String TITLE = "TITLE";
     public static final String PARAM = "PARAM";
@@ -108,11 +108,6 @@ public class LocationFragmentActivity extends BaseFragmentActivity implements Fa
     @Override
     protected boolean enableSliding() {
         return slidingClose;
-    }
-
-    @Override
-    protected boolean showLoc() {
-        return false;
     }
 
     @Override

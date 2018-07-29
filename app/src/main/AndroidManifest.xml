@@ -152,6 +152,10 @@
             android:theme="@style/StyledIndicators"
             android:screenOrientation="portrait" />
         <activity
+            android:name="com.timeline.myapp.ui.feedback.FeedbackFragmentActivity"
+            android:theme="@style/StyledIndicators"
+            android:screenOrientation="portrait" />
+        <activity
             android:name="com.timeline.myapp.ui.config.QuickBrowserConfigActivity"
             android:screenOrientation="portrait"
             android:theme="@style/myTransparent" />

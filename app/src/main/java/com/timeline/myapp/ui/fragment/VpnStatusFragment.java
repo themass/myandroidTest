@@ -32,6 +32,7 @@ import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.net.HttpUtils;
 import com.sspacee.yewu.net.request.CommonResponse;
 import com.sspacee.yewu.um.MobAgent;
+import com.timeline.myapp.data.UserLoginUtil;
 import com.timeline.vpn.R;
 import com.timeline.myapp.bean.DataBuilder;
 import com.timeline.myapp.bean.vo.HostVo;
@@ -165,7 +166,7 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
                 mService.disconnect();
             } else if (mService.getState() == VpnStateService.State.DISABLED) {
                 MobAgent.onEventLocationChoose(getActivity(), LocationUtil.getName(getActivity()));
-                if(AdsContext.rateShow()){
+                if(AdsContext.rateShow() && !UserLoginUtil.isVIP3()){
                     AdsManager.getInstans().showInterstitialAds(getActivity(), AdsContext.Categrey.CATEGREY_VPN1,false);
                 }
                 imgAnim();

@@ -7,10 +7,13 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.sspacee.common.util.EventBusUtil;
+import com.sspacee.common.util.FileUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.ModelUtils;
+import com.sspacee.common.util.PathUtil;
 import com.sspacee.common.util.SystemUtils;
 import com.sspacee.common.util.ToastUtil;
+import com.sspacee.yewu.net.NetUtils;
 import com.timeline.myapp.adapter.FavoriteViewAdapter;
 import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.myapp.bean.vo.FavoriteVo;
@@ -24,11 +27,13 @@ import com.timeline.myapp.data.config.FavoriteChangeEvent;
 import com.timeline.myapp.ui.base.CommonFragmentActivity;
 import com.timeline.myapp.ui.base.MenuOneContext;
 import com.timeline.myapp.ui.base.features.BasePullLoadbleFragment;
+import com.timeline.myapp.ui.sound.VideoShowActivity;
 import com.timeline.vpn.R;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.io.File;
 import java.util.List;
 
 
@@ -60,7 +65,7 @@ public class FavoriteFragment extends BasePullLoadbleFragment<FavoriteVo> implem
         EventBusUtil.getEventBus().register(this);
     }
     @Override
-    protected  BaseRecyclerViewAdapter getAdapter(){
+    protected BaseRecyclerViewAdapter getAdapter(){
         adapter = new FavoriteViewAdapter(getActivity(), pullView.getRecyclerView(), infoListVo.voList, this);
         adapter.setLongClickListener(this);
         return adapter;
@@ -75,8 +80,16 @@ public class FavoriteFragment extends BasePullLoadbleFragment<FavoriteVo> implem
         super.onItemClick(view,data,postion);
         if (data.type == Constants.FavoriteType.TEXT) {
             TextItemsVo vo = ModelUtils.json2Entry(data.extra, TextItemsVo.class);
-            if (vo != null)
-                TextItemsWebViewFragment.startFragment(getActivity(), vo);
+            if (vo != null) {
+                if(!NetUtils.checkNetwork(getActivity())){
+                    String fileName = PathUtil.getFileExtensionFromUrl(vo.fileUrl);
+                    String path = FileUtils.getWriteFilePath(getContext());
+                    File file = new File(path,fileName);
+                    if(file.exists())
+                        vo.fileUrl = "file:///"+path+File.separator+fileName;
+                }
+                TextItemsWebViewFragment.startFragment(getContext(),vo);
+            }
         } else if (data.type == Constants.FavoriteType.SOUND) {
             RecommendVo vo = ModelUtils.json2Entry(data.extra, RecommendVo.class);
             if (vo != null)
@@ -85,6 +98,10 @@ public class FavoriteFragment extends BasePullLoadbleFragment<FavoriteVo> implem
             ImgItemsVo vo = ModelUtils.json2Entry(data.extra, ImgItemsVo.class);
             if (vo != null)
                 ImgGalleryFragment.startFragment(getActivity(), vo);
+        }else if (data.type == Constants.FavoriteType.VIDEO) {
+            RecommendVo vo = ModelUtils.json2Entry(data.extra, RecommendVo.class);
+            if (vo != null)
+                startActivity(VideoShowActivity.class, vo);
         }
     }
     @Override

@@ -3,9 +3,14 @@
     <item
         android:id="@+id/menu_browser"
         android:title="@string/menu_btn_open_browser"
-        app:showAsAction="never" />
+        app:showAsAction="never"
+        />
     <item
         android:id="@+id/menu_url"
         android:title="@string/menu_btn_copy_url"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_favorite"
+        android:title="@string/menu_favorite"
         app:showAsAction="never" />
 </menu>

@@ -44,7 +44,7 @@
     <string name="location_choose_ping">Ping：</string>
     <string name="menu_haha">呦！被你发现了</string>
     <!-- menu -->
-    <string name="menu_btn_donation">购买VIP</string>
+    <string name="menu_btn_donation">捐赠</string>
     <string name="menu_btn_login">立即登录</string>
     <string name="menu_btn_login_ready">已登录</string>
     <string name="menu_btn_name_default">猴子请来的</string>
@@ -52,7 +52,10 @@
     <string name="menu_btn_about">关于</string>
     <string name="menu_btn_share">分享</string>
     <string name="menu_btn_bug">报告bug</string>
+    <string name="menu_btn_contract">联系我们:  email</string>
+    <string name="menu_copy_emai">邮箱已复制</string>
     <string name="menu_btn_version">版本:</string>
+    <string name="menu_btn_notify">显示通知栏:</string>
     <string name="menu_btn_logout">退出</string>
     <string name="menu_btn_setting">设置</string>
     <string name="menu_btn_support">支持一下作者</string>
@@ -156,6 +159,7 @@
     <string name="vpn_type_vip">VIP</string>
     <string name="vpn_type_vip2">VIP2</string>
     <string name="vpn_type_vip3">VIP3</string>
+    <string name="vpn_type_vip4">VIP4</string>
     <string name="vpn_remote_status">FreeVPN·</string>
     <string name="vpn_remote_on">已连接，点击断开</string>
     <string name="vpn_remote_off">已断开，点击连接</string>
@@ -228,7 +232,13 @@
     <string name="ads_logo">推广</string>
     <string name="skip">跳过</string>
     <string name="search">请输入搜索内容</string>
-
+    <string name="vip_remove_ads">升级vip去广告</string>
     <!--广告-->
     <!--slidingclose-->
+    <string-array name="recharge_arry">
+        <item>微信</item>
+        <item>支付宝</item>
+        <item>其他</item>
+    </string-array>
+
 </resources>
