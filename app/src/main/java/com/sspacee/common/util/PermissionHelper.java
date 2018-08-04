@@ -29,6 +29,13 @@ public class PermissionHelper {
     public static final String REQUEST_INSTALL_PACKAGES = Manifest.permission.REQUEST_INSTALL_PACKAGES;
     public static List<String> requestPermissions = Arrays.asList(READ_PHONE_STATE,WRITE_EXTERNAL_STORAGE,ACCESS_COARSE_LOCATION);
 //    static {
+//        if(SystemUtils.isZH(MyApplication.getInstance())){
+//
+//        }else{
+//            requestPermissions = Arrays.asList(WRITE_EXTERNAL_STORAGE,ACCESS_COARSE_LOCATION);
+//        }
+//    }
+//    static {
 //        LogUtil.i("os version="+Build.VERSION.SDK_INT );
 //        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O){
 //            requestPermissions.add(REQUEST_INSTALL_PACKAGES);
@@ -99,13 +106,16 @@ public class PermissionHelper {
      * @return
      */
     public void permissionsCheck(String permission, int resultCode) {
+        ActivityCompat.requestPermissions(mContext, new String[]{permission}, resultCode);
         // 注意这里要使用shouldShowRequestPermissionRationale而不要使用requestPermission方法
         if (ActivityCompat.shouldShowRequestPermissionRationale(mContext, permission)) {
             //如果用户以前拒绝过改权限申请，则给用户提示
+            LogUtil.i("shouldShowRequestPermissionRationale"+permission);
             showMissingPermissionDialog();
         } else {
             ActivityCompat.requestPermissions(mContext, new String[]{permission}, resultCode);
         }
+
 //        ActivityCompat.requestPermissions((Activity) mContext, new String[]{permission},resultCode);
     }
 

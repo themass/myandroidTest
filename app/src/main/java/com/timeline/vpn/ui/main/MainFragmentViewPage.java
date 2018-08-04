@@ -26,7 +26,7 @@ import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.um.MobAgent;
 import com.timeline.myapp.constant.Constants;
-import com.timeline.myapp.data.UserLoginUtil;
+import com.timeline.myapp.data.ConnLogUtil;
 import com.timeline.myapp.data.config.ConfigActionJump;
 import com.timeline.myapp.data.config.LogAddTofile;
 import com.timeline.myapp.data.config.TabChangeEvent;
@@ -34,6 +34,7 @@ import com.timeline.myapp.ui.base.app.BaseDrawerActivity;
 import com.timeline.myapp.ui.inte.OnBackKeyDownListener;
 import com.timeline.vpn.R;
 import com.timeline.vpn.ui.maintab.TabCustomeFragment;
+import com.timeline.vpn.ui.maintab.TabMovieFragment;
 import com.timeline.vpn.ui.maintab.TabVpnFragment;
 
 import org.greenrobot.eventbus.Subscribe;
@@ -103,6 +104,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         mTabLayout = (TabLayout) findViewById(R.id.tabs);
         mViewPager = (ViewPager) findViewById(R.id.vp_view);
         initTabs();
+        ConnLogUtil.sendAllLog(this);
 //        UpdateUserTask.start(this);
 //        AdsManager.getInstans().reqVideo(this);
 //        if(!UserLoginUtil.isVIP2())
@@ -137,13 +139,15 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
                 R.drawable.ac_bg_tab_index, R.string.tab_index, null, 1);
 //        addData(inflater, R.string.tab_tag_local, TabLocalFragment.class,
 //                    R.drawable.ac_bg_tab_index, R.string.tab_local, null, 2);
+        addData(inflater, R.string.tab_tag_movie, TabMovieFragment.class,
+                R.drawable.ac_bg_tab_index, R.string.tab_movie, null, 2);
         addData(inflater, R.string.tab_tag_customer, TabCustomeFragment.class,
                 R.drawable.ac_bg_tab_index, R.string.tab_customer, null, 3);
 
         myPagerAdapter = new MyPagerAdapter(getSupportFragmentManager());
         mViewPager.setAdapter(myPagerAdapter);
         mTabLayout.setupWithViewPager(mViewPager);//将TabLayout和ViewPager关联起来。
-        mTabLayout.setOnTabSelectedListener(new ViewPagerOnTabSelectedListener(mViewPager));
+        mTabLayout.addOnTabSelectedListener(new ViewPagerOnTabSelectedListener(mViewPager));
         for (int i = 0; i < mTabLayout.getTabCount(); i++) {
             TabLayout.Tab tab = mTabLayout.getTabAt(i);
             tab.setCustomView(myPagerAdapter.getTabView(i, (i == 0)));

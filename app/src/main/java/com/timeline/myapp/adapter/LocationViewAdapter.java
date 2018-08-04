@@ -37,11 +37,13 @@ public class LocationViewAdapter extends BaseRecyclerViewAdapter<LocationViewAda
     private ColorStateList indexColo = null;
     private ColorStateList indexSelectColo = null;
     private boolean needPing = false;
-    public LocationViewAdapter(Context context, RecyclerView recyclerView, List<LocationVo> data, OnRecyclerViewItemClickListener<LocationVo> listener) {
+    private int index;
+    public LocationViewAdapter(Context context, RecyclerView recyclerView, List<LocationVo> data, OnRecyclerViewItemClickListener<LocationVo> listener,int index) {
         super(context, recyclerView, data, listener);
         chooseId = LocationUtil.getSelectLocationId(context);
         indexColo = context.getResources().getColorStateList(R.color.location_index);
         indexSelectColo = context.getResources().getColorStateList(R.color.base_red);
+        this.index = index;
     }
     @Override
     public LocationViewAdapter.LocationItemView onCreateViewHolderData(ViewGroup parent, int viewType) {
@@ -79,13 +81,19 @@ public class LocationViewAdapter extends BaseRecyclerViewAdapter<LocationViewAda
             holder.ivType.setBackgroundResource(R.drawable.bg_type_vip4);
             holder.tvType.setText(R.string.vpn_type_vip4);
         }
-       if(position==getItemCount()-1){
+        AdsContext.Categrey one = AdsContext.Categrey.CATEGREY_VPN;
+        AdsContext.Categrey two = AdsContext.Categrey.CATEGREY_VPN1;
+        if(index%2==1) {
+            one = AdsContext.Categrey.CATEGREY_VPN2;
+            two = AdsContext.Categrey.CATEGREY_VPN3;
+        }
+        if (position == getItemCount() - 1) {
             holder.rvAds.setVisibility(View.VISIBLE);
-            AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN);
-        }else if(position==3){
+            AdsManager.getInstans().showBannerAds((FragmentActivity) context, holder.rvAds, one);
+        } else if (position == 3) {
             holder.rvAds.setVisibility(View.VISIBLE);
-            AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN2);
-        } else{
+            AdsManager.getInstans().showBannerAds((FragmentActivity) context, holder.rvAds, two);
+        } else {
             holder.rvAds.removeAllViews();
             holder.rvAds.setVisibility(View.GONE);
         }

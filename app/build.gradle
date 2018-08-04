@@ -9,8 +9,8 @@ android {
         applicationId "com.timeline.vpn"
         minSdkVersion 16
         targetSdkVersion 26
-        versionCode 1000005003
-        versionName "1.0.5.3"
+        versionCode 1000005005
+        versionName "1.0.5.5"
         // Enabling multidex support.
         multiDexEnabled true
         flavorDimensions "versionCode"
@@ -94,7 +94,7 @@ dependencies {
     implementation files('libs/AdViewSDK_Android.jar')
     implementation files('libs/commons-io-2.4.jar')
     implementation files('libs/httpcore-4.2.5.jar')
-
+    implementation files('libs/InMobi.jar')
     implementation 'cn.jzvd:jiaozivideoplayer:6.2.12'
     implementation files('libs/play-services_aar_adapter.jar')
     implementation 'com.google.android.gms:play-services-ads:15.0.1'
@@ -141,5 +141,10 @@ dependencies {
     //implementation 'com.github.deano2390:MaterialShowcaseView:1.2.0'
     implementation 'com.sothree.slidinguppanel:library:3.3.1'
     implementation 'com.github.JakeWharton:ViewPagerIndicator:2.4.1'
+
+    implementation 'com.squareup.picasso:picasso:2.5.2'
+    implementation 'com.google.android.gms:play-services-base:15.0.1'
+    implementation 'com.google.android.gms:play-services-location:15.0.1'
+    implementation 'com.google.android.gms:play-services-plus:15.0.1'
 
 }

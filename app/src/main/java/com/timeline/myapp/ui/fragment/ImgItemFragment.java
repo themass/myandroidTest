@@ -17,7 +17,6 @@ import com.etiennelawlor.imagegallery.library.adapters.FullScreenImageGalleryAda
 import com.etiennelawlor.imagegallery.library.utilities.DisplayUtility;
 import com.sspacee.common.ui.view.FavoriteImageView;
 import com.sspacee.common.util.ToastUtil;
-import com.timeline.vpn.R;
 import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.myapp.base.MyApplication;
 import com.timeline.myapp.bean.vo.ImgItemsVo;
@@ -29,6 +28,7 @@ import com.timeline.myapp.task.SaveImageCallBack;
 import com.timeline.myapp.task.SaveImageTask;
 import com.timeline.myapp.ui.base.CommonFragmentActivity;
 import com.timeline.myapp.ui.inte.OnBackKeyDownListener;
+import com.timeline.vpn.R;
 
 import butterknife.BindView;
 import butterknife.OnClick;
@@ -146,7 +146,7 @@ public class ImgItemFragment extends RecommendFragment implements SaveImageCallB
         return 3;
     }
     @Override
-    public void onItemClick(View v, int position) {
+    public void onCustomerItemClick(View v, int position) {
         this.viewPager.setCurrentItem(position);
         this.setPosition(position);
         switchView(true);

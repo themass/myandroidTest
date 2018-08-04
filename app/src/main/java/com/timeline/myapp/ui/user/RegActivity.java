@@ -10,12 +10,12 @@ import android.widget.RadioGroup;
 import com.qq.e.comm.util.StringUtil;
 import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.net.request.CommonResponse;
-import com.timeline.vpn.R;
 import com.timeline.myapp.bean.form.RegForm;
 import com.timeline.myapp.bean.vo.NullReturnVo;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.BaseService;
 import com.timeline.myapp.ui.base.app.BaseSingleActivity;
+import com.timeline.vpn.R;
 
 import java.util.regex.Pattern;
 
@@ -49,6 +49,8 @@ public class RegActivity extends BaseSingleActivity {
     Button btCode;
     @BindView(R.id.et_code)
     EditText etCode;
+    @BindView(R.id.et_ref)
+    EditText etRef;
     BaseService baseService;
     CommonResponse.ResponseOkListener loginListener = new CommonResponse.ResponseOkListener<NullReturnVo>() {
         @Override
@@ -110,7 +112,7 @@ public class RegActivity extends BaseSingleActivity {
             sex = Constants.SEX_F;
         }
         setEnabled(false);
-        RegForm form = new RegForm(name, pwd, repwd, sex,email);
+        RegForm form = new RegForm(name, pwd, repwd, sex,email,etRef.getText().toString());
         baseService.postData(Constants.getUrl(Constants.API_REG_URL), form, loginListener, new CommonResponse.ResponseErrorListener() {
             @Override
             protected void onError() {

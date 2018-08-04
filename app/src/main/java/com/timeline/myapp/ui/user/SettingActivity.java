@@ -152,7 +152,7 @@ public class SettingActivity extends BaseSingleActivity {
                 ToastUtil.showShort(R.string.empty_name_pwd);
                 return;
             }
-            RegForm form = new RegForm(null, null, null, null, email);
+            RegForm form = new RegForm(null, null, null, null, email,null);
             mEmail = email;
             baseService.postData(Constants.getUrl(Constants.API_SETEMAIL_URL), form, loginListener, new CommonResponse.ResponseErrorListener() {
                 @Override

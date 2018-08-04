@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 
 import com.sspacee.common.ui.view.MyScrollView;
 import com.sspacee.common.ui.view.MyTextView;
+import com.sspacee.yewu.ads.base.AdsContext;
 import com.timeline.myapp.bean.vo.TextItemVo;
 import com.timeline.myapp.bean.vo.TextItemsVo;
 import com.timeline.myapp.constant.Constants;
@@ -39,6 +40,10 @@ public class TextItemsFragment extends LoadableFragment<TextItemVo> {
         intent.putExtra(CommonFragmentActivity.TITLE, vo.name);
         StaticDataUtil.add(Constants.TEXT_FILE, vo);
         intent.putExtra(CommonFragmentActivity.TOOLBAR_SHOW, false);
+        intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, true);
+        intent.putExtra(CommonFragmentActivity.BANNER_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_VPN);
+        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_SHOW, true);
+        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_CATEGRY, AdsContext.Categrey.random());
         context.startActivity(intent);
     }
 

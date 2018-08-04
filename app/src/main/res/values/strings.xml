@@ -16,10 +16,12 @@
 -->
 <resources>
     <!--  tab main -->
+    <string name="tab_movie">Movie</string>
     <string name="tab_index">Home</string>
     <string name="tab_local">Loc</string>
     <string name="tab_customer">Customer</string>
     <string name="tab_tag_index">index</string>
+    <string name="tab_tag_movie">Movie</string>
     <string name="tab_tag_local">local</string>
     <string name="tab_tag_customer">customer</string>
     <string name="tab_vip_temp">Content preparation。。。Coming soon</string>
@@ -129,6 +131,7 @@
     <string name="vip_tips">please update to vip</string>
     <string name="findpass">Forget Pass?</string>
     <string name="email_hint">E-mail</string>
+    <string name="ref_hint">Inviter</string>
     <string name="email_see">Send a email to you</string>
     <string name="email_ok">email set ok</string>
     <string name="email_fail">email set fail</string>

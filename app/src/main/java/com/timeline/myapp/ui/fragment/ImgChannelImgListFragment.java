@@ -27,10 +27,10 @@ public class ImgChannelImgListFragment extends RecommendFragment {
         Intent intent = new Intent(context, CommonFragmentActivity.class);
         intent.putExtra(CommonFragmentActivity.FRAGMENT, ImgChannelImgListFragment.class);
         intent.putExtra(CommonFragmentActivity.TITLE, R.string.img);
-        if(AdsContext.rateSmallShow()){
-            intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_SHOW, true);
-            intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_VPN3);
-        }
+        intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, true);
+        intent.putExtra(CommonFragmentActivity.BANNER_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_VPN1);
+        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_SHOW, true);
+        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_CATEGRY, AdsContext.Categrey.random());
         StaticDataUtil.add(Constants.IMG_CHANNEL, vo);
         context.startActivity(intent);
     }

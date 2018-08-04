@@ -5,12 +5,12 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
+import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.timeline.myapp.bean.vo.InfoListVo;
 import com.timeline.myapp.bean.vo.RecommendVo;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.StaticDataUtil;
-import com.timeline.myapp.data.VideoUtil;
 import com.timeline.myapp.ui.base.CommonFragmentActivity;
 import com.timeline.myapp.ui.sound.VideoShowActivity;
 
@@ -25,6 +25,10 @@ public class VideoChannelUserItemsListFragment extends RecommendFragment {
         intent.putExtra(CommonFragmentActivity.FRAGMENT, VideoChannelUserItemsListFragment.class);
         StaticDataUtil.add(Constants.VIDEO_CHANNEL, vo);
         intent.putExtra(CommonFragmentActivity.TITLE, vo.title);
+        intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, true);
+        intent.putExtra(CommonFragmentActivity.BANNER_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_VPN3);
+        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_SHOW, true);
+        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_CATEGRY, AdsContext.Categrey.random());
         context.startActivity(intent);
     }
     @Override
@@ -63,6 +67,7 @@ public class VideoChannelUserItemsListFragment extends RecommendFragment {
         vo.urlToken = revo.urlToken;
         if(Constants.VIDEO_TYPE_NORMAL.equalsIgnoreCase((String)vo.extra)){
             startActivity(VideoShowActivity.class, vo);
+//            startActivity(VitamioVideoPlayActivity.class, vo);
         }else{
             super.onCustomerItemClick(v,position);
         }

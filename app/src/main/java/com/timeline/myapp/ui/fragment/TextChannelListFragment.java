@@ -39,10 +39,10 @@ public class TextChannelListFragment extends BasePullLoadbleFragment<TextItemsVo
         intent.putExtra(CommonFragmentActivity.TITLE, R.string.text);
         StaticDataUtil.add(Constants.TEXT_CHANNEL, vo);
         intent.putExtra(CommonFragmentActivity.ADSSCROLL, false);
-        if(AdsContext.rateSmallShow()){
-            intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_SHOW, true);
-            intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_VPN2);
-        }
+        intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, true);
+        intent.putExtra(CommonFragmentActivity.BANNER_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_VPN3);
+        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_SHOW, true);
+        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_CATEGRY, AdsContext.Categrey.random());
         context.startActivity(intent);
     }
 

@@ -7,7 +7,7 @@ public class JsonResult<T> {
     public String error;
     public String ip;
     public long cost;
-
+    public String userIp;
     public T getData() {
         return objData;
     }

@@ -26,6 +26,7 @@ import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.MediaUtil;
 import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.ToastUtil;
+import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.net.NetUtils;
 import com.timeline.myapp.adapter.SoundItemsViewMusicAdapter;
 import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
@@ -42,6 +43,7 @@ import com.timeline.vpn.R;
 
 import butterknife.BindView;
 import butterknife.OnClick;
+
 import static com.timeline.myapp.service.PlayService.CURRENT;
 import static com.timeline.myapp.service.PlayService.CURRENTTIME;
 import static com.timeline.myapp.service.PlayService.DURATION;
@@ -50,7 +52,6 @@ import static com.timeline.myapp.service.PlayService.MUSIC_DURATION;
 import static com.timeline.myapp.service.PlayService.MUSIC_PREPARED;
 import static com.timeline.myapp.service.PlayService.MUSIC_PREPAREING;
 import static com.timeline.myapp.service.PlayService.UPDATE_ACTION;
-
 
 /**
  * Created by themass on 2016/8/12.
@@ -119,6 +120,10 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
         intent.putExtra(CommonFragmentActivity.TITLE, R.string.sound);
         StaticDataUtil.add(Constants.SOUND_CHANNEL, vo);
         intent.putExtra(CommonFragmentActivity.ADSSCROLL, false);
+        intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, true);
+        intent.putExtra(CommonFragmentActivity.BANNER_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_VPN);
+        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_SHOW, true);
+        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_CATEGRY, AdsContext.Categrey.random());
         context.startActivity(intent);
     }
     @Override

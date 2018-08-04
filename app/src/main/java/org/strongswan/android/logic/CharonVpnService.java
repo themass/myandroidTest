@@ -45,16 +45,21 @@ import android.view.View;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 
+import com.sspacee.common.util.DateUtils;
 import com.sspacee.common.util.FileUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PreferenceUtils;
+import com.sspacee.yewu.net.NetUtils;
 import com.sspacee.yewu.net.request.CommonResponse;
 import com.timeline.myapp.base.MyApplication;
 import com.timeline.myapp.bean.DataBuilder;
+import com.timeline.myapp.bean.form.ConnLog;
 import com.timeline.myapp.bean.vo.ServerVo;
 import com.timeline.myapp.bean.vo.VpnProfile;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.BaseService;
+import com.timeline.myapp.data.ConnLogUtil;
+import com.timeline.myapp.data.DBManager;
 import com.timeline.myapp.data.LocationUtil;
 import com.timeline.myapp.ui.fragment.LocationChooseFragment;
 import com.timeline.vpn.R;
@@ -77,6 +82,7 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
@@ -309,25 +315,39 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
                 break;
             case STATE_CHILD_SA_UP:
                 setState(VpnStateService.State.CONNECTED);
+                logStatus(status);
                 break;
             case STATE_AUTH_ERROR:
                 setErrorDisconnect(VpnStateService.ErrorState.AUTH_FAILED);
+                logStatus(status);
                 break;
             case STATE_PEER_AUTH_ERROR:
                 setErrorDisconnect(VpnStateService.ErrorState.PEER_AUTH_FAILED);
                 break;
             case STATE_LOOKUP_ERROR:
                 setErrorDisconnect(VpnStateService.ErrorState.LOOKUP_FAILED);
+                logStatus(status);
                 break;
             case STATE_UNREACHABLE_ERROR:
                 setErrorDisconnect(VpnStateService.ErrorState.UNREACHABLE);
+                logStatus(status);
                 break;
             case STATE_GENERIC_ERROR:
                 setErrorDisconnect(VpnStateService.ErrorState.GENERIC_ERROR);
+                logStatus(status);
                 break;
             default:
                 Log.e(TAG, "Unknown status code received");
+                logStatus(status);
                 break;
+        }
+
+    }
+    private void logStatus(int status){
+        try {
+            ConnLogUtil.addLog(this,mCurrentProfile.getUsername(),mCurrentProfile.getGateway(),status);
+            LogUtil.e("name=" + mCurrentProfile.getUsername() + ";ip=" + mCurrentProfile.getGateway() + "; userIp=" + NetUtils.getIP(this));
+        }catch (Throwable e){
         }
     }
 
@@ -546,7 +566,9 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
             remoteViews.setTextViewText(R.id.tv_vpn_content, getString(R.string.vpn_remote_off));
             remoteViews.setViewVisibility(R.id.btn_vpn, View.VISIBLE);
             remoteViews.setViewVisibility(R.id.rb_conning, View.GONE);
+            stopForeground(true);
             VPN_STATUS_NOTIF = false;
+            return;
         }
         //点击的事件处理
         Intent buttonIntent = new Intent(ACTION_BUTTON);

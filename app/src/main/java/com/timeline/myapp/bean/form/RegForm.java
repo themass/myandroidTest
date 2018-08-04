@@ -11,12 +11,14 @@ public class RegForm {
     public String channel;
     public String code;
     public String email;
+    public String ref;
 
-    public RegForm(String name, String pwd, String rePwd, String sex, String email) {
+    public RegForm(String name, String pwd, String rePwd, String sex, String email, String ref) {
         this.name = name;
         this.pwd = pwd;
         this.rePwd = rePwd;
         this.sex = sex;
         this.email = email;
+        this.ref = ref;
     }
 }

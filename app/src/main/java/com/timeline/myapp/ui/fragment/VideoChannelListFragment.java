@@ -11,7 +11,6 @@ import com.timeline.myapp.bean.vo.InfoListVo;
 import com.timeline.myapp.bean.vo.RecommendVo;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.StaticDataUtil;
-import com.timeline.myapp.data.VideoUtil;
 import com.timeline.myapp.ui.base.CommonFragmentActivity;
 import com.timeline.myapp.ui.sound.VideoShowActivity;
 
@@ -26,10 +25,10 @@ public class VideoChannelListFragment extends RecommendFragment {
         Intent intent = new Intent(context, CommonFragmentActivity.class);
         intent.putExtra(CommonFragmentActivity.FRAGMENT, VideoChannelListFragment.class);
         intent.putExtra(CommonFragmentActivity.TITLE, vo.title);
-        if(AdsContext.rateSmallShow()){
-            intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_SHOW, true);
-            intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_VPN);
-        }
+        intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, true);
+        intent.putExtra(CommonFragmentActivity.BANNER_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_VPN1);
+        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_SHOW, true);
+        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_CATEGRY, AdsContext.Categrey.random());
         StaticDataUtil.add(Constants.VIDEO_CHANNEL, vo);
         context.startActivity(intent);
     }
@@ -71,6 +70,7 @@ public class VideoChannelListFragment extends RecommendFragment {
         }
         if(Constants.VIDEO_TYPE_NORMAL.equalsIgnoreCase((String)vo.extra)){
             startActivity(VideoShowActivity.class, vo);
+//            startActivity(VitamioVideoPlayActivity.class, vo);
         }else{
             super.onCustomerItemClick(v,position);
         }

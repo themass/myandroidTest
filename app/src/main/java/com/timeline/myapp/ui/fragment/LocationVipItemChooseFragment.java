@@ -55,6 +55,7 @@ public class LocationVipItemChooseFragment extends BasePullLoadbleFragment<Locat
     private int countryIndex = 0;
     LocationViewAdapter  adapter;
     VipLocationVo vipLocationVo;
+    int index;
     public static void startFragment(Context context) {
         Intent intent = new Intent(context, CommonFragmentActivity.class);
         intent.putExtra(CommonFragmentActivity.FRAGMENT, LocationVipItemChooseFragment.class);
@@ -77,9 +78,10 @@ public class LocationVipItemChooseFragment extends BasePullLoadbleFragment<Locat
 
     @Override
     public void setupViews(View view, Bundle savedInstanceState) {
-        super.setupViews(view, savedInstanceState);
-        LogUtil.i("location args="+getSerializable().toString());
         vipLocationVo = (VipLocationVo)getSerializable();
+        index = vipLocationVo.type;
+        LogUtil.i("location args="+getSerializable().toString());
+        super.setupViews(view, savedInstanceState);
         setUp();
     }
     @Override
@@ -156,7 +158,7 @@ public class LocationVipItemChooseFragment extends BasePullLoadbleFragment<Locat
         pullView.notifyDataSetChanged();
     }
     protected BaseRecyclerViewAdapter getAdapter(){
-        adapter = new LocationViewAdapter(getActivity(),pullView.getRecyclerView(), infoListVo.voList, this);
+        adapter = new LocationViewAdapter(getActivity(),pullView.getRecyclerView(), infoListVo.voList, this,index);
         return adapter;
     }
 }

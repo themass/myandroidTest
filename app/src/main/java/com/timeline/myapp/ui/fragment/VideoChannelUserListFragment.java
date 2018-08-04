@@ -25,9 +25,11 @@ public class VideoChannelUserListFragment extends RecommendFragment {
         Intent intent = new Intent(context, CommonFragmentActivity.class);
         intent.putExtra(CommonFragmentActivity.FRAGMENT, VideoChannelUserListFragment.class);
         intent.putExtra(CommonFragmentActivity.TITLE, vo.title);
-        intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, true);
         intent.putExtra(CommonFragmentActivity.ADSSCROLL, false);
+        intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, true);
         intent.putExtra(CommonFragmentActivity.BANNER_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_VPN2);
+        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_SHOW, true);
+        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_CATEGRY, AdsContext.Categrey.random());
         intent.putExtra(CommonFragmentActivity.PARAM,vo);
         context.startActivity(intent);
     }

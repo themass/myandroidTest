@@ -9,6 +9,7 @@ import com.timeline.myapp.bean.vo.InfoListVo;
 import com.timeline.myapp.bean.vo.JsonResult;
 import com.timeline.myapp.bean.vo.VpnProfile;
 import com.timeline.myapp.constant.Constants;
+import com.timeline.myapp.data.StaticDataUtil;
 
 import java.lang.reflect.Type;
 
@@ -41,6 +42,8 @@ public class DataBuilder {
             String str = AES2.decode(ret.data, key);
             ret.objData = GsonUtils.getInstance().fromJson(str, clasz);
         }
+        if(StringUtils.hasText(ret.userIp))
+            StaticDataUtil.add(Constants.USERIP,ret.userIp);
         return ret;
     }
 
@@ -55,6 +58,8 @@ public class DataBuilder {
             String str = AES2.decode(ret.data, key);
             ret.objData = GsonUtils.getInstance().fromJson(str, TypeItem);
         }
+        if(StringUtils.hasText(ret.userIp))
+            StaticDataUtil.add(Constants.USERIP,ret.userIp);
         return ret;
     }
 }

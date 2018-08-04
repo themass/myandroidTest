@@ -16,9 +16,11 @@
 -->
 <resources>
     <!--  tab main -->
+    <string name="tab_movie">娱乐</string>
     <string name="tab_index">首页</string>
     <string name="tab_local">地区</string>
     <string name="tab_customer">自定义</string>
+    <string name="tab_tag_movie">Movie</string>
     <string name="tab_tag_index">index</string>
     <string name="tab_tag_local">local</string>
     <string name="tab_tag_customer">customer</string>
@@ -43,6 +45,8 @@
     <string name="location_choose_flag_none">点击“ 地区 ”有更多国家可选</string>
     <string name="location_choose_ping">Ping：</string>
     <string name="menu_haha">呦！被你发现了</string>
+    <string name="recharge">充值:</string>
+    <string name="money_back_title">积分充值反馈</string>
     <!-- menu -->
     <string name="menu_btn_donation">捐赠</string>
     <string name="menu_btn_login">立即登录</string>
@@ -85,6 +89,7 @@
     <string name="menu_share_copy_ok">已复制到剪切板</string>
     <string name="menu_share_copy_error">分享失败</string>
     <string name="menu_share_text_only">FAIL!! 只能分享text</string>
+    <string name="feedback_hint">xxx积分 VIP3</string>
     <!--登录，注册-->
     <string name="close_over">再按一次退出程序!!</string>
     <string name="login">登录</string>
@@ -134,6 +139,7 @@
     <string name="email_fail">邮箱设置失败</string>
     <string name="free_user">免费用户</string>
     <string name="email_hint">邮箱</string>
+    <string name="ref_hint">邀请人</string>
     <string name="down_to_loadmore">下来刷新更精彩</string>
 
 

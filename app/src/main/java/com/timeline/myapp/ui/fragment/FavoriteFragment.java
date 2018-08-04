@@ -13,6 +13,7 @@ import com.sspacee.common.util.ModelUtils;
 import com.sspacee.common.util.PathUtil;
 import com.sspacee.common.util.SystemUtils;
 import com.sspacee.common.util.ToastUtil;
+import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.net.NetUtils;
 import com.timeline.myapp.adapter.FavoriteViewAdapter;
 import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
@@ -47,6 +48,10 @@ public class FavoriteFragment extends BasePullLoadbleFragment<FavoriteVo> implem
         Intent intent = new Intent(context, CommonFragmentActivity.class);
         intent.putExtra(CommonFragmentActivity.FRAGMENT, FavoriteFragment.class);
         intent.putExtra(CommonFragmentActivity.TITLE, R.string.menu_btn_favorite);
+        intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, true);
+        intent.putExtra(CommonFragmentActivity.BANNER_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_VPN3);
+        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_SHOW, false);
+        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_VPN3);
         context.startActivity(intent);
     }
 
@@ -93,11 +98,11 @@ public class FavoriteFragment extends BasePullLoadbleFragment<FavoriteVo> implem
         } else if (data.type == Constants.FavoriteType.SOUND) {
             RecommendVo vo = ModelUtils.json2Entry(data.extra, RecommendVo.class);
             if (vo != null)
-                SoundItemsFragment.startFragment(getActivity(), vo);
+                SoundItemsMusicFragment.startFragment(getActivity(), vo);
         }else if (data.type == Constants.FavoriteType.IMG) {
             ImgItemsVo vo = ModelUtils.json2Entry(data.extra, ImgItemsVo.class);
             if (vo != null)
-                ImgGalleryFragment.startFragment(getActivity(), vo);
+                ImgItemFragment.startFragment(getActivity(), vo);
         }else if (data.type == Constants.FavoriteType.VIDEO) {
             RecommendVo vo = ModelUtils.json2Entry(data.extra, RecommendVo.class);
             if (vo != null)

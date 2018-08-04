@@ -143,7 +143,7 @@ public class LocationChooseFragment extends BasePullLoadbleFragment<LocationVo>{
         pullView.notifyDataSetChanged();
     }
     protected BaseRecyclerViewAdapter getAdapter(){
-        adapter = new LocationViewAdapter(getActivity(),pullView.getRecyclerView(), infoListVo.voList, this);
+        adapter = new LocationViewAdapter(getActivity(),pullView.getRecyclerView(), infoListVo.voList, this,1);
         return adapter;
     }
 }

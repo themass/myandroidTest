@@ -32,8 +32,6 @@ import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.net.HttpUtils;
 import com.sspacee.yewu.net.request.CommonResponse;
 import com.sspacee.yewu.um.MobAgent;
-import com.timeline.myapp.data.UserLoginUtil;
-import com.timeline.vpn.R;
 import com.timeline.myapp.bean.DataBuilder;
 import com.timeline.myapp.bean.vo.HostVo;
 import com.timeline.myapp.bean.vo.ServerVo;
@@ -42,7 +40,9 @@ import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.BaseService;
 import com.timeline.myapp.data.LocationUtil;
 import com.timeline.myapp.data.StaticDataUtil;
+import com.timeline.myapp.data.UserLoginUtil;
 import com.timeline.myapp.data.config.VpnClickEvent;
+import com.timeline.vpn.R;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -59,7 +59,7 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
     private static final String DIALOG_TAG = "Dialog";
     private static final String INDEX_TAG = "vpn_status_tag";
     private static final int PREPARE_VPN_SERVICE = 0;
-    private static boolean isAnim = false;
+    private static volatile boolean isAnim = false;
     @BindView(R.id.tv_vpn_state_text)
     TextView tvVpnText;
     @BindView(R.id.iv_vpn_state)
@@ -73,15 +73,18 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
         @Override
         protected void onError() {
             super.onError();
+            conntingApi= false;
             imgError();
         }
     };
     private VpnStateService mService;
     private Handler handler = new Handler();
     private VpnProfile vpnProfile;
+    private volatile boolean conntingApi = false;
     CommonResponse.ResponseOkListener serverListener = new CommonResponse.ResponseOkListener<ServerVo>() {
         @Override
         public void onResponse(ServerVo serverVo) {
+            conntingApi= false;
             if (serverVo.hostList != null) {
                 if (serverVo.hostList.size() == 1) {
                     LogUtil.i("one host start ready");
@@ -138,6 +141,13 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
     public void showBanner(){
         AdsManager.getInstans().showBannerAds(getActivity(), rlContent,AdsContext.Categrey.CATEGREY_VPN);
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        conntingApi = false;
+    }
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();
@@ -171,10 +181,17 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
                 }
                 imgAnim();
                 int id = LocationUtil.getSelectLocationId(getActivity());
-                indexService.getData(String.format(Constants.getUrl(Constants.API_SERVERLIST_URL), id), serverListener, serverListenerError, INDEX_TAG, ServerVo.class);
+//                if(conntingApi==false) {
+//                    conntingApi = true;
+                    indexService.getData(String.format(Constants.getUrl(Constants.API_SERVERLIST_URL), id), serverListener, serverListenerError, INDEX_TAG, ServerVo.class);
+//                }
             } else {
                 ToastUtil.showShort( R.string.vpn_bg_click_later);
             }
+        }else{
+            getActivity().bindService(new Intent(getActivity(), VpnStateService.class),
+                    mServiceConnection, Service.BIND_AUTO_CREATE);
+            imgNormal();
         }
     }
 
@@ -240,7 +257,7 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
             ibVpnStatus.setBackgroundResource(R.drawable.vpn_ic_loading);
             ibVpnStatus.startAnimation(operatingAnim);
             tvVpnText.setText(R.string.vpn_bg_conning);
-            ibVpnStatus.setEnabled(false);
+            ibVpnStatus.setEnabled(true);
         }
     }
 
@@ -252,7 +269,7 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
             ibVpnStatus.setBackgroundResource(R.drawable.vpn_ic_dising);
             ibVpnStatus.startAnimation(operatingAnim);
             tvVpnText.setText(R.string.vpn_bg_disconning);
-            ibVpnStatus.setEnabled(false);
+            ibVpnStatus.setEnabled(true);
         }
     }
 

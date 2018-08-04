@@ -19,6 +19,7 @@ import com.sspacee.common.util.SystemUtils;
 import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.um.MobAgent;
+import com.timeline.myapp.base.MyApplication;
 import com.timeline.myapp.bean.vo.UserInfoVo;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.BaseService;
@@ -31,7 +32,6 @@ import com.timeline.myapp.data.config.UserLoginEvent;
 import com.timeline.myapp.data.config.VipDescEvent;
 import com.timeline.myapp.ui.base.WebViewActivity;
 import com.timeline.myapp.ui.feedback.FeedbackChooseFragment;
-import com.timeline.myapp.ui.feedback.IWannaFragment;
 import com.timeline.myapp.ui.fragment.AppListFragment;
 import com.timeline.myapp.ui.fragment.DonationListFragment;
 import com.timeline.myapp.ui.fragment.FavoriteFragment;
@@ -64,6 +64,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     TextView tvScore;
     TextView tvDesc;
     TextView tvDesc1;
+    TextView tvDesc2;
     ImageView ivAvatar;
     ImageView ivLevel;
     MenuItem miLogout;
@@ -72,7 +73,8 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     MenuItem miFavorite;
     MenuItem miApp;
     BaseService baseService;
-
+    MenuItem miApprecommond;
+    MenuItem miDona;
     public void login(View view) {
         startActivity(LoginActivity.class);
     }
@@ -89,6 +91,8 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         miLocation = nvDrawer.getMenu().findItem(R.id.menu_location);
         miSetting = nvDrawer.getMenu().findItem(R.id.menu_setting);
         miFavorite = nvDrawer.getMenu().findItem(R.id.menu_favorite);
+        miApprecommond = nvDrawer.getMenu().findItem(R.id.menu_app);
+        miDona = nvDrawer.getMenu().findItem(R.id.menu_donation);
         miApp = nvDrawer.getMenu().findItem(R.id.menu_app);
         headerView = nvDrawer.getHeaderView(0);
         llLoginMenuHeader = (LinearLayout) headerView.findViewById(R.id.ll_menu_headview);
@@ -96,7 +100,8 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         tvMenuUserLogin = (TextView) headerView.findViewById(R.id.tv_menu_login);
         tvScore= (TextView) headerView.findViewById(R.id.tv_score);
         tvDesc = (TextView) headerView.findViewById(R.id.tv_desc);
-        tvDesc1 = (TextView) headerView.findViewById(R.id.tv_desc2);
+        tvDesc1 = (TextView) headerView.findViewById(R.id.tv_desc1);
+        tvDesc2 = (TextView) headerView.findViewById(R.id.tv_desc2);
         ivAvatar = (ImageView) headerView.findViewById(R.id.iv_avatar);
         ivLevel = (ImageView) headerView.findViewById(R.id.iv_level);
         nvDrawer.setItemIconTintList(null);
@@ -105,6 +110,10 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         setUpLocation();
         baseService = new BaseService();
         baseService.setup(this);
+        if(MyApplication.isTemp){
+            miApprecommond.setVisible(false);
+            miDona.setVisible(false);
+        }
     }
 
     private void setUpLocation() {
@@ -173,6 +182,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     public void onEvent(VipDescEvent event) {
         tvDesc.setText(event.stateUse.desc);
         tvDesc1.setText(event.stateUse.desc1);
+        tvDesc2.setText(event.stateUse.desc2);
 //        tvDesc.setText("每周减50积分，VIP状态随积分变动");
 //        tvDesc1.setText("VIP1=400积分； VIP2=600积分");
         setScore(event.stateUse.score);

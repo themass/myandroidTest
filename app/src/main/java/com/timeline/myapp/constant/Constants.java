@@ -19,6 +19,8 @@ public class Constants {
     public static final String DEFAULT_REFERER = "http://www.sspacee.com/";
     public static final String DEFAULT_API = "api.sspacee.com";
     public static final String IMAGE_RES_PRE = "timeline://img";
+    public static final String APP_MYPOOL = "MYPOOL";
+    public static final String APP_GOOGLE = "GOOGLEMARKET";
     public static final String URL = "url";
     public static final String DEFULT_LOCATION_NAME="随机";
     public static final int STARTUP_SHOW_TIME_6000 = 7000; //启动页广告时长
@@ -29,7 +31,6 @@ public class Constants {
     public static final int VIP_SHIMMER_DURATION = 2300;
     public static final int RECOMMAND_SHIMMER_DURATION = 1500;
     public static final int ADS_JISHI = -1;
-
     public static final String HTTP_URL = "http";
     public static final String HTTPS_URL = "https";
     public static final String BROWSER_URL = "browser";
@@ -76,6 +77,7 @@ public class Constants {
     public static final String SEX_F = "F";
     public static final int HTTP_SUCCESS = 0;
     public static final int HTTP_SUCCESS_CLEAR = 1;
+    public static final String USERIP = "USERIP";
     // 有新版本时，是否打开app就提醒升级
     //用户反馈
     public static final String DEFAULT_FEEDBACK_APPKEY = "23575056";
@@ -127,10 +129,12 @@ public class Constants {
     public static final String API_TV_CHANNEL_URL = "/video/tv/channel.json?start=%s&limit=50&channel=%s&keyword=%s";
     public static final String API_VIDEO_USER_URL = "/video/user.json?channel=%s&start=%s&limit=30";
     public static final String API_VIDEO_USER_ITEM_URL = "/video/user/items.json?start=%s&limit=30&userId=%s&keyword=%s";
+    public static final String API_RECOMMEND_MOVIE_URL = "/data/recommend/movie.json?start=%s&limit=20";
 
     public static final String API_LOGOUT_URL = "/user/logout.json";
     public static final String API_LEAK_URL = "/monitor/leak.json";
     public static final String API_LOG_URL = "/monitor/bug.json";
+    public static final String API_CONNLOG_URL = "/monitor/connlog.json";
     public static final String API_ADD_CUSTOME = "/user/custome/add.json";
     public static final String API_DEL_CUSTOME = "/user/custome/del.json";
 
