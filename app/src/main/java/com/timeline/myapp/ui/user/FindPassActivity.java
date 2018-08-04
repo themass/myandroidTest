@@ -57,7 +57,7 @@ public class FindPassActivity extends BaseSingleActivity {
             return;
         }
         setEnabled(false);
-        RegForm form = new RegForm(null, null, null, null,email);
+        RegForm form = new RegForm(null, null, null, null,email,null);
         baseService.postData(Constants.getUrl(Constants.API_FINDPASS_URL), form, loginListener, new CommonResponse.ResponseErrorListener() {
             @Override
             protected void onError() {

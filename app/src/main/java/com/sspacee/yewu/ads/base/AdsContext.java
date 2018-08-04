@@ -32,6 +32,14 @@ public class AdsContext {
             this.desc =desc;
             this.key =key;
         }
+        public static void randomShow(Context context){
+            int size = AdsContext.Categrey.values().length;
+            AdsManager.getInstans().showInterstitialAds(context,AdsContext.Categrey.values()[Md5.getRandom(size)] , true);
+        }
+        public static Categrey random(){
+            int size = AdsContext.Categrey.values().length;
+            return AdsContext.Categrey.values()[Md5.getRandom(size)];
+        }
     }
     public static enum  AdsType {
         ADS_TYPE_INIT ("初始化"),
@@ -94,10 +102,16 @@ public class AdsContext {
     public static boolean rateShow(){
         if(UserLoginUtil.isVIP3()){
             int i = Md5.getRandom(Constants.maxRate);
+            return i<=3;
+        }else if(UserLoginUtil.isVIP2()){
+            int i = Md5.getRandom(Constants.maxRate);
             return i<=4;
+        }else if(UserLoginUtil.isVIP()){
+            int i = Md5.getRandom(Constants.maxRate);
+            return i<=5;
         }else{
             int i = Md5.getRandom(Constants.maxRate);
-            return i<=6;
+            return i<=7;
         }
 
     }

@@ -6,6 +6,8 @@ import android.support.v4.app.Fragment;
 import android.view.View;
 
 import com.sspacee.common.util.LogUtil;
+import com.sspacee.yewu.ads.base.AdsContext;
+import com.sspacee.yewu.ads.base.AdsManager;
 import com.timeline.sexfree1.R;
 import com.timeline.myapp.ui.base.app.BaseFragmentActivity;
 import com.timeline.myapp.ui.fragment.body.SoundChannleBodyFragment;
@@ -31,7 +33,13 @@ public class SoundChannleActivity extends BaseFragmentActivity {
                 .commitAllowingStateLoss();
         setToolbarTitle(R.string.sound, true);
     }
-
+    @Override
+    public void setupView() {
+        super.setupView();
+        if(AdsContext.rateSmallShow()){
+            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN1,false);
+        }
+    }
     public boolean needShow() {
         return true;
     }

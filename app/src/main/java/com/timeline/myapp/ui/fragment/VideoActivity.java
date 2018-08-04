@@ -1,4 +1,4 @@
-package com.timeline.myapp.ui.sound;
+package com.timeline.myapp.ui.fragment;
 
 
 import android.os.Bundle;
@@ -6,25 +6,26 @@ import android.support.v4.app.Fragment;
 import android.view.View;
 
 import com.sspacee.common.util.LogUtil;
-import com.sspacee.yewu.ads.base.AdsContext;
-import com.sspacee.yewu.ads.base.AdsManager;
-import com.timeline.sexfree1.R;
 import com.timeline.myapp.ui.base.app.BaseFragmentActivity;
-import com.timeline.myapp.ui.fragment.body.MovieChannleBodyFragment;
+import com.timeline.sexfree1.R;
+
+import cn.jzvd.JZVideoPlayer;
+import cn.jzvd.JZVideoPlayerStandard;
 
 /**
  * Created by themass on 2015/9/1.
  */
-public class MovieChannleActivity extends BaseFragmentActivity {
+public class VideoActivity extends BaseFragmentActivity {
+    Fragment fragment = null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        JZVideoPlayerStandard.FULLSCREEN_ORIENTATION=1;
         setContentView(R.layout.common_fragment);
-        setFabUpVisibility(View.VISIBLE);
-        Fragment fragment = null;
+        setFabUpVisibility(View.GONE);
         try {
-            fragment = MovieChannleBodyFragment.class.newInstance();
-            fragment.setArguments(getIntent().getExtras());
+            fragment = AutoVideoFragment.class.newInstance();
+
         } catch (Exception e) {
             LogUtil.e(e);
         }
@@ -32,9 +33,15 @@ public class MovieChannleActivity extends BaseFragmentActivity {
                 .add(R.id.fragment, fragment)
                 .commitAllowingStateLoss();
         setToolbarTitle(R.string.video, true);
-
     }
-
+    @Override
+    public void onBackPressed() {
+        if (JZVideoPlayer.backPress()) {
+            return;
+        }
+        super.onBackPressed();
+    }
+    @Override
     public boolean needShow() {
         return true;
     }
@@ -42,11 +49,11 @@ public class MovieChannleActivity extends BaseFragmentActivity {
     protected boolean enableSliding() {
         return true;
     }
-
-    @Override
-    public void setupView() {
-        super.setupView();
-        if(AdsContext.rateShow())
-            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN2,false);
-    }
+//    @Override
+//    public void setupView() {
+//        super.setupView();
+//        if(AdsContext.rateShow()){
+//            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN1,false);
+//        }
+//    }
 }

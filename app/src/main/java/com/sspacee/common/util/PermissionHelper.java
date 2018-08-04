@@ -1,7 +1,6 @@
 package com.sspacee.common.util;
 
 import android.Manifest;
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -12,9 +11,13 @@ import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 
+
 import com.timeline.sexfree1.R;
 
-@TargetApi(11)
+import java.util.Arrays;
+import java.util.List;
+
+
 public class PermissionHelper {
     public static final int CODE_GET_ACCOUNTS = 0;
     public static final int CODE_READ_PHONE_STATE = 1;
@@ -25,7 +28,13 @@ public class PermissionHelper {
     public static final String ACCESS_COARSE_LOCATION = Manifest.permission.ACCESS_COARSE_LOCATION;
     public static final String WRITE_EXTERNAL_STORAGE = Manifest.permission.WRITE_EXTERNAL_STORAGE;
     public static final String REQUEST_INSTALL_PACKAGES = Manifest.permission.REQUEST_INSTALL_PACKAGES;
-    public static final String[] requestPermissions = new String[]{REQUEST_INSTALL_PACKAGES,READ_PHONE_STATE,WRITE_EXTERNAL_STORAGE,ACCESS_COARSE_LOCATION};
+    public static List<String> requestPermissions = Arrays.asList(WRITE_EXTERNAL_STORAGE,ACCESS_COARSE_LOCATION);
+//    static {
+//        LogUtil.i("os version="+Build.VERSION.SDK_INT );
+//        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O){
+//            requestPermissions.add(REQUEST_INSTALL_PACKAGES);
+//        }
+//    }
     public static final String PACKAGE = "package:";
     private Activity mContext;
 
@@ -49,10 +58,10 @@ public class PermissionHelper {
 
     public boolean checkNeedPermissions() {
         boolean ret = false;
-        for (int i = 0; i < requestPermissions.length; i++) {
-            if (!checkPermission(requestPermissions[i])) {
-                if (!ActivityCompat.shouldShowRequestPermissionRationale(mContext, requestPermissions[i])) {
-                    ActivityCompat.requestPermissions(mContext, new String[]{requestPermissions[i]}, i);
+        for (String perm:requestPermissions) {
+            if (!checkPermission(perm)) {
+                if (!ActivityCompat.shouldShowRequestPermissionRationale(mContext, perm)) {
+                    ActivityCompat.requestPermissions(mContext, new String[]{perm}, 1);
                     ret = true;
                     break;
                 }
@@ -61,9 +70,9 @@ public class PermissionHelper {
         if (ret) {
             return ret;
         }
-        for (int i = 0; i < requestPermissions.length; i++) {
-            if (!checkPermission(requestPermissions[i])) {
-                if (ActivityCompat.shouldShowRequestPermissionRationale(mContext, requestPermissions[i])) {
+        for (String perm:requestPermissions) {
+            if (!checkPermission(perm)) {
+                if (ActivityCompat.shouldShowRequestPermissionRationale(mContext, perm)) {
                     //如果用户以前拒绝过改权限申请，则给用户提示
                     showMissingPermissionDialog();
                     break;

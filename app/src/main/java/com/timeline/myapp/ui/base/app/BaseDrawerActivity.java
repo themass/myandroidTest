@@ -66,10 +66,12 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     TextView tvScore;
     TextView tvDesc;
     TextView tvDesc1;
+    TextView tvDesc2;
     ImageView ivAvatar;
     ImageView ivLevel;
     MenuItem miLogout;
     MenuItem miLocation;
+    MenuItem miApprecommond;
     MenuItem miSetting;
     MenuItem miFavorite;
     MenuItem miApp;
@@ -93,6 +95,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         miSetting = nvDrawer.getMenu().findItem(R.id.menu_setting);
         miFavorite = nvDrawer.getMenu().findItem(R.id.menu_favorite);
         miDona = nvDrawer.getMenu().findItem(R.id.menu_donation);
+        miApprecommond = nvDrawer.getMenu().findItem(R.id.menu_app);
         miApp = nvDrawer.getMenu().findItem(R.id.menu_app);
         headerView = nvDrawer.getHeaderView(0);
         llLoginMenuHeader = (LinearLayout) headerView.findViewById(R.id.ll_menu_headview);
@@ -100,7 +103,8 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         tvMenuUserLogin = (TextView) headerView.findViewById(R.id.tv_menu_login);
          tvScore= (TextView) headerView.findViewById(R.id.tv_score);
         tvDesc = (TextView) headerView.findViewById(R.id.tv_desc);
-        tvDesc1 = (TextView) headerView.findViewById(R.id.tv_desc2);
+        tvDesc1 = (TextView) headerView.findViewById(R.id.tv_desc1);
+        tvDesc2 = (TextView) headerView.findViewById(R.id.tv_desc2);
         ivAvatar = (ImageView) headerView.findViewById(R.id.iv_avatar);
         ivLevel = (ImageView) headerView.findViewById(R.id.iv_level);
         nvDrawer.setItemIconTintList(null);
@@ -110,9 +114,10 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         baseService = new BaseService();
         baseService.setup(this);
         if(MyApplication.isTemp){
-            tvDesc1.setVisibility(View.GONE);
-            tvDesc.setVisibility(View.GONE);
+//            tvDesc1.setVisibility(View.GONE);
+//            tvDesc.setVisibility(View.GONE);
             miDona.setVisible(false);
+            miApprecommond.setVisible(false);
         }
     }
 
@@ -181,6 +186,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     public void onEvent(VipDescEvent event) {
         tvDesc.setText(event.stateUse.desc);
         tvDesc1.setText(event.stateUse.desc1);
+        tvDesc2.setText(event.stateUse.desc2);
         LogUtil.i(event.stateUse.desc);
 //        tvDesc.setText("每周减50积分，VIP状态随积分变动");
 //        tvDesc1.setText("VIP1=400积分； VIP2=600积分");

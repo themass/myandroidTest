@@ -17,6 +17,7 @@ import android.widget.PopupWindow;
 import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.ToastUtil;
+import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.net.request.CommonResponse;
 import com.timeline.myapp.bean.form.CustomeAddForm;
 import com.timeline.myapp.bean.vo.InfoListVo;
@@ -84,6 +85,9 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
     protected void onDataLoaded(InfoListVo<RecommendVo> data) {
         super.onDataLoaded(data);
         dataForView();
+        if(data.pageNum==2){
+            AdsManager.getInstans().showNative(getActivity(),this);
+        }
     }
 
     private void dataForView() {

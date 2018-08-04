@@ -2,7 +2,10 @@ package com.timeline.sexfree1.ui.main;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
@@ -20,6 +23,7 @@ import android.widget.TextView;
 import com.sspacee.common.util.DoubleClickExit;
 import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.LogUtil;
+import com.sspacee.common.util.PermissionHelper;
 import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
@@ -27,6 +31,7 @@ import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.um.MobAgent;
 import com.timeline.myapp.base.MyApplication;
 import com.timeline.myapp.constant.Constants;
+import com.timeline.myapp.data.ConnLogUtil;
 import com.timeline.myapp.data.UserLoginUtil;
 import com.timeline.myapp.data.config.ConfigActionJump;
 import com.timeline.myapp.data.config.LogAddTofile;
@@ -39,6 +44,7 @@ import com.timeline.sexfree1.ui.maintab.TabAreaFragment;
 import com.timeline.sexfree1.ui.maintab.TabCustomeFragment;
 import com.timeline.sexfree1.ui.maintab.TabMovieFragment;
 import com.timeline.sexfree1.ui.maintab.TabNightFragment;
+import com.timeline.sexfree1.ui.maintab.TabVpnFragment;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -64,19 +70,42 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
     private int index = 0;
     private static final String SETTING_TAG="SETTING_TAG";
     private static final String WITER_TAG="WITER_TAG";
-
+    private PermissionHelper mPermissionHelper;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_main_viewpage);
         EventBusUtil.getEventBus().register(jump);
         EventBusUtil.getEventBus().register(logAdd);
+        mPermissionHelper = new PermissionHelper(this);
         EventBusUtil.getEventBus().register(this);
+        mPermissionHelper.checkNeedPermissions();
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(TabChangeEvent event) {
         initTabs();
         LogUtil.i("onEvent:initTabs");
+    }
+    /**
+     * Callback received when a permissions request has been completed.
+     */
+    @Override
+    public void onRequestPermissionsResult(final int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        if (grantResults != null) {
+            for (int ret : grantResults) {
+                if (ret != PackageManager.PERMISSION_GRANTED) {
+                    finish();
+                }
+            }
+        }
+        mPermissionHelper.checkNeedPermissions();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        mPermissionHelper.checkNeedPermissions();
     }
 
     public void addListener(OnBackKeyDownListener keyListener) {
@@ -93,27 +122,40 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         initTabs();
 //        if(!UserLoginUtil.isVIP3())
             AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN2,false);
+        ConnLogUtil.sendAllLog(this);
+
     }
 
     private void initTabs() {
         list.clear();
         LayoutInflater inflater = LayoutInflater.from(this);
-        addData(inflater, R.string.tab_tag_movie, TabMovieFragment.class,
-                R.drawable.ac_bg_tab_index, R.string.tab_movie, null, 1);
+        if(MyApplication.isTemp) {
+            addData(inflater, R.string.tab_tag_index, TabVpnFragment.class,
+                    R.drawable.ac_bg_tab_index, R.string.tab_index, null, 1);
+        }else {
+            addData(inflater, R.string.tab_tag_movie, TabMovieFragment.class,
+                    R.drawable.ac_bg_tab_index, R.string.tab_movie, null, 1);
+        }
 
-        if ((PreferenceUtils.getPrefBoolean(this, Constants.AREA_SWITCH, true) &&!MyApplication.isTemp)|| MyApplication.isDebug) {
+
+        if (PreferenceUtils.getPrefBoolean(this, Constants.AREA_SWITCH, true)) {
             addData(inflater, R.string.tab_tag_ng, TabNightFragment.class,
                     R.drawable.ac_bg_tab_index, R.string.tab_ng, null, 2);
+            if(!MyApplication.isTemp) {
+                addData(inflater, R.string.tab_tag_area, TabAreaFragment.class,
+                        R.drawable.ac_bg_tab_index, R.string.tab_area, null, 3);
+            }else {
+                addData(inflater, R.string.tab_tag_movie, TabMovieFragment.class,
+                        R.drawable.ac_bg_tab_index, R.string.tab_movie, null, 3);
+            }
         }
-        addData(inflater, R.string.tab_tag_area, TabAreaFragment.class,
-                R.drawable.ac_bg_tab_index, R.string.tab_area, null, 3);
         addData(inflater, R.string.tab_tag_customer, TabCustomeFragment.class,
                 R.drawable.ac_bg_tab_index, R.string.tab_customer, null, 4);
 
         myPagerAdapter = new MyPagerAdapter(getSupportFragmentManager());
         mViewPager.setAdapter(myPagerAdapter);
         mTabLayout.setupWithViewPager(mViewPager);//将TabLayout和ViewPager关联起来。
-        mTabLayout.setOnTabSelectedListener(new ViewPagerOnTabSelectedListener(mViewPager));
+        mTabLayout.addOnTabSelectedListener(new ViewPagerOnTabSelectedListener(mViewPager));
         for (int i = 0; i < mTabLayout.getTabCount(); i++) {
             TabLayout.Tab tab = mTabLayout.getTabAt(i);
             tab.setCustomView(myPagerAdapter.getTabView(i, (i == 0)));

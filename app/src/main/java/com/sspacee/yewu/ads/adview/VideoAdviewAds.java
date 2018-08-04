@@ -7,6 +7,7 @@ import android.widget.Toast;
 import com.kyview.interfaces.AdViewVideoListener;
 import com.kyview.manager.AdViewVideoManager;
 import com.sspacee.yewu.ads.base.AdsContext;
+import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.ads.base.VideoAdsInter;
 import com.timeline.sexfree1.R;
 import com.timeline.myapp.constant.Constants;
@@ -27,6 +28,7 @@ public class VideoAdviewAds extends VideoAdsInter{
             @Override
             public void onAdFailed(String arg0) {
                 noAds(context,handler, AdsContext.AdsFrom.ADVIEW);
+                AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.CATEGREY_VPN1, true);
             }
 
             @Override

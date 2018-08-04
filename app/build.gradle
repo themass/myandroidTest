@@ -8,9 +8,9 @@ android {
     defaultConfig {
         applicationId "com.timeline.sexfree1"
         minSdkVersion 16
-        targetSdkVersion 21
-        versionCode 1000002003
-        versionName "1.0.2.3"
+        targetSdkVersion 26
+        versionCode 1000002004
+        versionName "1.0.2.4"
         // Enabling multidex support.
         multiDexEnabled true
         vectorDrawables.useSupportLibrary = true
@@ -99,6 +99,7 @@ dependencies {
     implementation 'com.google.android.gms:play-services-ads:15.0.1'
     implementation files('libs/gdt_mob_release.jar')
     implementation files('libs/httpcore-4.2.5.jar')
+    implementation files('libs/InMobi.jar')
     implementation(name: 'YoumiSdk_v7.5.0_2017-07-18', ext: 'aar')
     //    implementation(name: 'glide-transformations-2.0.1', ext: 'aar',)
     implementation "com.android.support:appcompat-v7:$APPCOMPAT_VERSION"
@@ -144,5 +145,11 @@ dependencies {
     //    implementation('com.github.naman14:app-theme-engine:0.5.2@aar') {
     //        transitive = true
     //    }
+//    implementation 'com.inmobi.monetization:inmobi-ads:7.1.1'
+    implementation 'com.squareup.picasso:picasso:2.5.2'
+    implementation 'com.google.android.gms:play-services-base:15.0.1'
+    implementation 'com.google.android.gms:play-services-location:15.0.1'
+    implementation 'com.google.android.gms:play-services-plus:15.0.1'
+
     implementation project(path: ':vitamio')
 }

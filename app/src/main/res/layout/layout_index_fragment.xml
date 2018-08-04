@@ -9,6 +9,7 @@
         android:layout_height="wrap_content"
         layout="@layout/layout_install_status"
         android:id="@+id/ll_vpn_status"
+        android:visibility="gone"
         />
     <include
         android:layout_width="match_parent"

@@ -20,6 +20,8 @@
     <string name="tab_ng">Night</string>
     <string name="tab_area">Area</string>
     <string name="tab_customer">Cust</string>
+    <string name="tab_index">Home</string>
+    <string name="tab_tag_index">Index</string>
 
     <string name="tab_tag_movie">Movie</string>
     <string name="tab_tag_ng">Night</string>
@@ -97,6 +99,7 @@
     <string name="findpass">Forget Pass?</string>
     <string name="username_hint">Username</string>
     <string name="email_hint">E-mail</string>
+    <string name="ref_hint">Inviter</string>
     <string name="email_see">Send a email to you</string>
     <string name="email_ok">email set ok</string>
     <string name="email_fail">email set fail</string>

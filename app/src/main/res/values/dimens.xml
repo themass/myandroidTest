@@ -24,6 +24,7 @@
     <dimen name="edit_tx_size">16sp</dimen>
     <dimen name="vpn_ic_width">7dip</dimen>
     <dimen name="vpn_ic_size">30dip</dimen>
+    <dimen name="textsize_11">11sp</dimen>
     <dimen name="textsize_12">12sp</dimen>
     <dimen name="textsize_10">10sp</dimen>
     <dimen name="textsize_14">14sp</dimen>

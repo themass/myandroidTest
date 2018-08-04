@@ -161,11 +161,12 @@ public class SettingActivity extends BaseSingleActivity {
     CommonResponse.ResponseOkListener loginListener = new CommonResponse.ResponseOkListener<NullReturnVo>() {
         @Override
         public void onResponse(NullReturnVo vo) {
-            ToastUtil.showShort(R.string.email_ok);
-            btnSubmit.setText(R.string.modify);
-            etEmail.setEnabled(false);
-            UserLoginUtil.getUserCache().email = mEmail;
-            setUserEmail();
+            if(btnSubmit!=null && etEmail!=null) {
+                btnSubmit.setText(R.string.modify);
+                etEmail.setEnabled(false);
+                UserLoginUtil.getUserCache().email = mEmail;
+                setUserEmail();
+            }
         }
     };
     @OnClick(R.id.btn_submit)
@@ -184,7 +185,7 @@ public class SettingActivity extends BaseSingleActivity {
                 ToastUtil.showShort(R.string.empty_name_pwd);
                 return;
             }
-            RegForm form = new RegForm(null, null, null, null, email);
+            RegForm form = new RegForm(null, null, null, null, email,null);
             mEmail = email;
             baseService.postData(Constants.getUrl(Constants.API_SETEMAIL_URL), form, loginListener, new CommonResponse.ResponseErrorListener() {
                 @Override

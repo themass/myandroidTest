@@ -25,14 +25,15 @@ public class AdviewAdsManager {
                 .setInstlCloseble(InitConfiguration.InstlSwitcher.CANCLOSED);     //插屏可关闭按钮
         builder.setAdMobSize(InitConfiguration.AdMobSize.BANNER);
         builder.setAdGdtSize(InitConfiguration.AdGdtSize.BANNER);
+        builder.setAdInMobiSize(InitConfiguration.AdInMobiSize.INMOBI_AD_UNIT_468x60);
         builder.setAdSize(InitConfiguration.AdSize.BANNER_SMART);
-        builder.setAdInMobiSize(InitConfiguration.AdInMobiSize.INMOBI_AD_UNIT_320x50);
 //        if (MyApplication.isDebug) {
 //            builder.setRunMode(InitConfiguration.RunMode.TEST);
 //        } else {
 //            builder.setRunMode(InitConfiguration.RunMode.NORMAL);
 //        }
         builder.setRunMode(InitConfiguration.RunMode.NORMAL);
+        builder.setInstlControlMode(InitConfiguration.InstlControlMode.UNSPECIFIED);
         initConfig = builder.build();
         AdViewSpreadManager.getInstance(context).init(initConfig, adsKeySet);
         AdViewBannerManager.getInstance(context).init(initConfig, adsKeySet);

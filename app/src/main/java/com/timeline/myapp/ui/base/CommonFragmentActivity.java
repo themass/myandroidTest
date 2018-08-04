@@ -2,6 +2,7 @@ package com.timeline.myapp.ui.base;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.view.View;
 
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
@@ -55,6 +56,7 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
         if(o!=null){
             bannerCategrey = (AdsContext.Categrey)o;
         }
+        setFabUpVisibility(View.VISIBLE);
         o = getIntent().getSerializableExtra(INTERSTITIAL_ADS_CATEGRY);
         if(o!=null){
             interCategrey = (AdsContext.Categrey)o;

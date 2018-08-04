@@ -68,6 +68,7 @@
         android:paddingLeft="@dimen/margin_22"
         android:paddingRight="@dimen/margin_22"
         android:paddingBottom="@dimen/margin_22"
+        android:paddingTop="@dimen/margin_5"
         android:layout_below="@+id/view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -77,17 +78,25 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="@dimen/textsize_12"
-            android:paddingTop="@dimen/margin_5"
             />
         <TextView
             android:id="@+id/tv_desc"
+            android:gravity="right"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="@dimen/textsize_14"
             android:textColor="@color/warning_text"
+            />
+        <TextView
+            android:id="@+id/tv_desc1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/textsize_12"
+            android:textColor="@color/base_green1"
             android:paddingTop="@dimen/margin_5"
             />
         <TextView
+            android:paddingTop="@dimen/margin_3"
             android:id="@+id/tv_desc2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
