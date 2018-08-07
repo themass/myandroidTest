@@ -5,8 +5,13 @@ package com.timeline.myapp.bean.form;
  */
 public class IwannaForm {
     public String content;
+    public int loca;
 
     public IwannaForm(String content) {
         this.content = content;
+    }
+    public IwannaForm(String content,int loca) {
+        this.content = content;
+        this.loca = loca;
     }
 }

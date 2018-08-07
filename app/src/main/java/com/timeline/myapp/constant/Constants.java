@@ -23,7 +23,7 @@ public class Constants {
     public static final String APP_GOOGLE = "GOOGLEMARKET";
     public static final String URL = "url";
     public static final String DEFULT_LOCATION_NAME="随机";
-    public static final int STARTUP_SHOW_TIME_6000 = 7000; //启动页广告时长
+    public static final int STARTUP_SHOW_TIME_6000 = 6000; //启动页广告时长
     public static final int STARTUP_SHOW_TIME_7000 = 7000; //启动页广告时长
     public static final int BANNER_ADS_GONE_LONG = 13000; //广告显示时长
     public static final int BANNER_ADS_GONE_LONG_LONG = 240000; //广告显示时长
@@ -148,7 +148,7 @@ public class Constants {
     public static final VpnType vpnType = VpnType.IKEV2_EAP;
     public static final String NET_ERROR = "network error";
     public static final int ADS_SHOW_SCORE = 10;
-    public static final int ADS_SHOW_CLICK = 20;
+    public static final int ADS_SHOW_CLICK = 30;
     public static final String D_URL = "D_URL";
     public static final String ADS_SHOW_CONFIG = "ADS_SHOW_CONFIG";
     public static final String ADS_POP_SHOW_CONFIG = "ADS_POP_SHOW_CONFIG";
@@ -169,7 +169,7 @@ public class Constants {
     public static final String IMG_ITEMS = "IMG_ITEMS";
     public static final String SCORE_TMP = "SCORE_TMP";
     public static final String SCORE_CLICK = "SCORE_CLICK";
-    public static final long SCORE_CLICK_INTERVAL = 4;
+    public static final long SCORE_CLICK_INTERVAL = 2;
     public static final String VPN_STATUS = "VPN_STATUS";
     public static final String SOUND_CHANNEL_CLICK = "SOUND_CHANNEL_CLICK";
     public static final int MAX_RETRY_COUNT = 4;

@@ -90,7 +90,7 @@ public class LocationViewAdapter extends BaseRecyclerViewAdapter<LocationViewAda
         if (position == getItemCount() - 1) {
             holder.rvAds.setVisibility(View.VISIBLE);
             AdsManager.getInstans().showBannerAds((FragmentActivity) context, holder.rvAds, one);
-        } else if (position == 3) {
+        } else if (position == 3 && AdsContext.rateShow()) {
             holder.rvAds.setVisibility(View.VISIBLE);
             AdsManager.getInstans().showBannerAds((FragmentActivity) context, holder.rvAds, two);
         } else {

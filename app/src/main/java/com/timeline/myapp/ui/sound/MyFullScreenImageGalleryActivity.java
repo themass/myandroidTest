@@ -12,7 +12,6 @@ import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.view.View;
 import android.widget.TextView;
 
-import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.ToastUtil;
 import com.timeline.myapp.adapter.MyFullScreenImageGalleryAdapter;
 import com.timeline.myapp.base.MyApplication;
@@ -36,7 +35,6 @@ public class MyFullScreenImageGalleryActivity extends BaseSingleActivity impleme
     TextView tvPage;
     private List<String> images;
     private int position;
-    MyFullScreenImageGalleryAdapter fullScreenImageGalleryAdapter;
     private final OnPageChangeListener viewPagerOnPageChangeListener = new OnPageChangeListener() {
         public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
         }
@@ -73,8 +71,7 @@ public class MyFullScreenImageGalleryActivity extends BaseSingleActivity impleme
     public void setupView() {
         ArrayList imageList = new ArrayList();
         imageList.addAll(this.images);
-        LogUtil.i("activity start---"+viewPager.toString());
-        fullScreenImageGalleryAdapter = new MyFullScreenImageGalleryAdapter(imageList);
+        MyFullScreenImageGalleryAdapter fullScreenImageGalleryAdapter = new MyFullScreenImageGalleryAdapter(imageList);
         fullScreenImageGalleryAdapter.setFullScreenImageLoader(MyApplication.getInstance().getPhotoLoad());
         this.viewPager.setAdapter(fullScreenImageGalleryAdapter);
         this.viewPager.addOnPageChangeListener(this.viewPagerOnPageChangeListener);

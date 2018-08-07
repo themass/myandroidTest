@@ -10,6 +10,7 @@ import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
+import com.timeline.myapp.data.UserLoginUtil;
 import com.timeline.myapp.data.config.HindBannerEvent;
 import com.timeline.vpn.R;
 
@@ -71,7 +72,7 @@ public class BannerHeaderFragment extends BaseFragment {
 
     }
     public void showAds() {
-        if (needShow()) {
+        if (needShow() && UserLoginUtil.showAds()) {
             flBanner.setVisibility(View.VISIBLE);
             AdsManager.getInstans().showBannerAds(getActivity(), flBanner,ca);
         } else {
@@ -88,7 +89,7 @@ public class BannerHeaderFragment extends BaseFragment {
         mHandler.removeCallbacks(task);
     }
     public boolean needShow() {
-        return true;
+        return AdsContext.rateShow();
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

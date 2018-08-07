@@ -532,9 +532,6 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
     };
     private void test(){}
     private void createForegroundService(boolean needConnecting) {
-        if(!PreferenceUtils.getPrefBoolean(this, Constants.NOTIFY_SWITCH, true) ) {
-                return;
-        }
         LogUtil.i("start ForegroundService:" + mService.getState());
         if (Build.VERSION.SDK_INT >= 26) {
             NotificationChannel channel = new NotificationChannel(N_CHANNEL, "FreeVPN", NotificationManager.IMPORTANCE_HIGH);
@@ -547,28 +544,32 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
         NotificationCompat.Builder builder = new NotificationCompat.Builder(MyApplication.getInstance(),N_CHANNEL);
         RemoteViews remoteViews = new RemoteViews(getPackageName(), R.layout.vpn_status_remote_view);
         remoteViews.setTextViewText(R.id.tv_vpn_time, LocationUtil.getSelectName(this));
-        boolean canGo = true;
+        boolean going = false;
         if (VpnStateService.State.CONNECTED.equals(mService.getState())) {
             remoteViews.setImageViewResource(R.id.btn_vpn, R.drawable.remote_vpn_on);
             remoteViews.setTextViewText(R.id.tv_vpn_content, getString(R.string.vpn_remote_on));
             remoteViews.setViewVisibility(R.id.btn_vpn, View.VISIBLE);
             remoteViews.setViewVisibility(R.id.rb_conning, View.GONE);
             VPN_STATUS_NOTIF = true;
-            canGo = false;
+            going = true;
         } else if (VpnStateService.State.CONNECTING.equals(mService.getState()) || needConnecting) {
             remoteViews.setImageViewResource(R.id.btn_vpn, R.drawable.remote_vpn_off);
             remoteViews.setTextViewText(R.id.tv_vpn_content, getString(R.string.vpn_remote_ing));
             remoteViews.setViewVisibility(R.id.btn_vpn, View.GONE);
             remoteViews.setViewVisibility(R.id.rb_conning, View.VISIBLE);
             VPN_STATUS_NOTIF = false;
+            going = true;
         } else {
             remoteViews.setImageViewResource(R.id.btn_vpn, R.drawable.remote_vpn_off);
             remoteViews.setTextViewText(R.id.tv_vpn_content, getString(R.string.vpn_remote_off));
             remoteViews.setViewVisibility(R.id.btn_vpn, View.VISIBLE);
             remoteViews.setViewVisibility(R.id.rb_conning, View.GONE);
-            stopForeground(true);
+            if(!PreferenceUtils.getPrefBoolean(this, Constants.NOTIFY_SWITCH, true) ) {
+                stopForeground(true);
+                return;
+            }
             VPN_STATUS_NOTIF = false;
-            return;
+            going = false;
         }
         //点击的事件处理
         Intent buttonIntent = new Intent(ACTION_BUTTON);
@@ -584,17 +585,36 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         PendingIntent pend =
                 PendingIntent.getActivity(MyApplication.getInstance(), new Random().nextInt(), intent, 0);
+
+        Intent intentCancel = new Intent(this, NotificationBroadcastReceiver.class);
+        intentCancel.setAction(NotificationBroadcastReceiver.CANNCELL_ACTION);
+        PendingIntent pandCanel =
+                PendingIntent.getActivity(MyApplication.getInstance(), new Random().nextInt(), intentCancel, 0);
+
         builder.setContentIntent(pend)
+                .setDeleteIntent(pandCanel)
                 .setContent(remoteViews)
                 .setWhen(System.currentTimeMillis())// 通知产生的时间，会在通知信息里显示
                 .setTicker("FreeVPN start")
-                .setOngoing(canGo)
+                .setOngoing(going)
+                .setAutoCancel(true)
                 .setSmallIcon(R.drawable.remote_vpn_on)
         .setVibrate(new long[]{0})
         .setSound(null);
         Notification notify = builder.build();
         notify.flags = Notification.FLAG_ONGOING_EVENT;
         startForeground(FOREGROUND_NOTIFY_ID, notify);
+    }
+    public class NotificationBroadcastReceiver extends BroadcastReceiver {
+        public static final String CANNCELL_ACTION="notification_cancelled";
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (CANNCELL_ACTION.equals(action)) {
+                stopForeground(true);
+            }
+
+        }
     }
     /**
      *

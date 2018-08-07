@@ -9,7 +9,6 @@ import android.support.v7.app.AppCompatActivity;
 
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
-import com.sspacee.yewu.ads.base.AdsManager;
 import com.timeline.myapp.bean.vo.RecommendVo;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.ImagePhotoLoad;
@@ -94,9 +93,8 @@ public class VideoShowActivityj extends AppCompatActivity {
         public void  onEvent(int type, Object url, int screen, Object... objects) {
             switch (type) {
                 case JZUserAction.ON_CLICK_PAUSE:
-                    if(AdsContext.rateShow()){
-                        AdsManager.getInstans().showInterstitialAds(VideoShowActivityj.this, AdsContext.Categrey.CATEGREY_VPN2,false);
-                    }                    break;
+                    AdsContext.showRand(VideoShowActivityj.this);
+                    break;
                 default:break;
             }
         }

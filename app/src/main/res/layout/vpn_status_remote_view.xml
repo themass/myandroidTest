@@ -1,72 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@color/base_white"
-    android:orientation="vertical"
+    android:orientation="horizontal"
     android:paddingBottom="@dimen/margin_5"
     android:paddingLeft="@dimen/margin_15"
     android:paddingRight="@dimen/margin_15"
     android:paddingTop="@dimen/margin_5">
 
+
+    <ImageView
+        android:id="@+id/iv_icon"
+        android:layout_width="@dimen/vpn_ic_size"
+        android:layout_height="@dimen/vpn_ic_size"
+        android:src="@drawable/ic_small"
+        android:layout_gravity="center_vertical"
+        android:paddingRight="@dimen/margin_5"/>
     <LinearLayout
-        android:id="@+id/ll_vpn_status"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_centerVertical="true"
-        android:gravity="center_vertical"
-        android:visibility="gone"
-        android:orientation="horizontal">
-
-        <ImageButton
-            android:id="@+id/btn_vpn"
-            style="@style/NotificationVpnStatus"
-            android:scaleType="fitCenter"
-            android:src="@drawable/vpn_remote_conning" />
-
-        <ProgressBar
-            android:id="@+id/rb_conning"
-            style="@style/NotificationVpnStatus"
-            android:indeterminateDrawable="@drawable/vpn_remote_conning"
-            android:indeterminateDuration="1800" />
-    </LinearLayout>
-
-    <TextView
-        android:id="@+id/tv_vpn_time"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_toLeftOf="@+id/ll_vpn_status"
-        android:textColor="@color/base_black"
-        android:layout_centerVertical="true"
-        android:padding="@dimen/margin_10"
-        android:textSize="@dimen/remote_vpn_time" />
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true">
-
+        android:orientation="vertical">
         <LinearLayout
             android:id="@+id/ll_vpn_head"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentTop="true"
             android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <ImageView
-                android:id="@+id/iv_icon"
-                android:layout_width="@dimen/vpn_ic_size"
-                android:layout_height="@dimen/vpn_ic_size"
-                android:src="@drawable/ic_small" />
-
+            android:orientation="horizontal"
+            android:layout_marginBottom="@dimen/margin_8">
             <TextView
                 android:id="@+id/tv_vpn_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="@dimen/margin_5"
                 android:textColor="@color/base_red"
                 android:text="@string/vpn_remote_status"
                 android:textSize="@dimen/remote_vpn_title" />
@@ -78,17 +43,45 @@
                 android:textColor="@color/base_black"
                 android:textSize="@dimen/remote_vpn_title" />
         </LinearLayout>
-
-        <TextView
-            android:id="@+id/tv_vpn_content"
-            style="@style/NotificationContent"
-            android:layout_width="match_parent"
+        <LinearLayout
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_below="@id/ll_vpn_head"
-            android:paddingLeft="@dimen/vpn_ic_size"
-            android:paddingTop="@dimen/margin_5"
-            android:textColor="@color/base_black"
-            android:textSize="@dimen/remote_vpn_content" />
-    </RelativeLayout>
-</RelativeLayout>
+            android:orientation="horizontal">
+            <TextView
+                android:id="@+id/tv_vpn_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/base_black"
+                android:textSize="@dimen/remote_vpn_time"
+                android:paddingRight="@dimen/margin_5"/>
+            <TextView
+                android:id="@+id/tv_vpn_content"
+                style="@style/NotificationContent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/base_black"
+                android:textSize="@dimen/remote_vpn_content" />
+        </LinearLayout>
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/ll_vpn_status"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical|right"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/btn_vpn"
+            android:visibility="gone"
+            style="@style/NotificationVpnStatus"
+            android:scaleType="fitCenter"
+            android:src="@drawable/vpn_remote_conning" />
+
+        <ProgressBar
+            android:id="@+id/rb_conning"
+            android:visibility="gone"
+            style="@style/NotificationVpnStatus"
+            android:indeterminateDrawable="@drawable/vpn_remote_conning"
+            android:indeterminateDuration="1800" />
+    </LinearLayout>
+</LinearLayout>

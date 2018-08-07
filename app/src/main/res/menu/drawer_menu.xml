@@ -41,4 +41,10 @@
             android:title="@string/menu_btn_logout"
             android:visible="false" />
     </group>
+    <group android:id="@+id/menu_group_6">
+        <item
+            android:icon="@drawable/ic_menu_delete"
+            android:title="@string/menu_btn_logout"
+            android:visible="false" />
+    </group>
 </menu>

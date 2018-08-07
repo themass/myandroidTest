@@ -88,13 +88,6 @@ public class FeedbackFragmentActivity extends BaseFragmentActivity implements Fa
     }
 
     @Override
-    public void setupView() {
-        super.setupView();
-        if(showInterstitialAds && AdsContext.rateShow()){
-            AdsManager.getInstans().showInterstitialAds(this, interCategrey,false);
-        }
-    }
-    @Override
     protected boolean needGoneBanner(){
         return needGonebanner;
     }

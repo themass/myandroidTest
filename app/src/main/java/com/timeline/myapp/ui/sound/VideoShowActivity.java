@@ -9,13 +9,11 @@ import android.view.View;
 import com.sspacee.common.ui.view.FavoriteImageView;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.StringUtils;
-import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
-import com.sspacee.yewu.ads.base.AdsManager;
 import com.timeline.myapp.bean.vo.RecommendVo;
 import com.timeline.myapp.constant.Constants;
+import com.timeline.myapp.data.ConnLogUtil;
 import com.timeline.myapp.data.ImagePhotoLoad;
-import com.timeline.myapp.data.UserLoginUtil;
 import com.timeline.myapp.data.VideoUtil;
 import com.timeline.vpn.R;
 
@@ -96,18 +94,15 @@ public class VideoShowActivity extends AppCompatActivity {
         public void onEvent(int type, Object url, int screen, Object... objects) {
             switch (type) {
                 case JZUserAction.ON_CLICK_PAUSE:
-                    if(AdsContext.rateShow()){
-                        AdsManager.getInstans().showInterstitialAds(VideoShowActivity.this, AdsContext.Categrey.random(),false);
-                    }
+                    AdsContext.showRand(VideoShowActivity.this);
                     break;
                 case JZUserAction.ON_AUTO_COMPLETE:
-                    if(!UserLoginUtil.isVIP2()){
-                        ToastUtil.showShort(R.string.vip_remove_ads);
-                        if(AdsContext.rateShow()) {
-                            AdsManager.getInstans().showVideo(VideoShowActivity.this);
-                        }
-                    }
+                    AdsContext.showRand(VideoShowActivity.this);
                     break;
+                case JZUserAction.ON_CLICK_START_ERROR:
+                    ConnLogUtil.addLog(VideoShowActivity.this,vo.extra+"--"+vo.baseurl,vo.actionUrl,0);
+                    break;
+
                 default:break;
             }
         }

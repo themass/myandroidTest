@@ -19,28 +19,23 @@ import static com.sspacee.yewu.ads.base.AdsContext.AdsShowStatus.ADS_CLICK_MSG;
  */
 
 public class AdsContext {
+    private static int showCount = 0;
     static {
     }
-    public static enum Categrey{
+    public static enum Categrey {
         CATEGREY_VPN("插屏:主页，音频，图片，小说 channel页;   banner：vip页，音频，图片，小说，视频，收藏夹列表，", AdviewConstant.ADS_ADVIEW_KEY1),
-        CATEGREY_VPN1("插屏： 点击vpn页，音频，图片，小说 list 页，其他推荐 ;   banner：设置页，地区头，音频，图片，小说，视频，收藏夹列表",AdviewConstant.ADS_ADVIEW_KEY2),
-        CATEGREY_VPN2("插屏： 点击积分，视频暂停；  banner：vpn状态页,国家选择列表，音频，图片，小说 channel 头页 ",AdviewConstant.ADS_ADVIEW_KEY),
-        CATEGREY_VPN3("banner：文章页，音频，图片，小说，视频 头页 ",AdviewConstant.ADS_ADVIEW_KEY_BANNER);
+        CATEGREY_VPN1("插屏： 点击vpn页，音频，图片，小说 list 页，其他推荐 ;   banner：设置页，地区头，音频，图片，小说，视频，收藏夹列表", AdviewConstant.ADS_ADVIEW_KEY2),
+        CATEGREY_VPN2("插屏： 点击积分，视频暂停；  banner：vpn状态页,国家选择列表，音频，图片，小说 channel 头页 ", AdviewConstant.ADS_ADVIEW_KEY),
+        CATEGREY_VPN3("banner：文章页，音频，图片，小说，视频 头页 ", AdviewConstant.ADS_ADVIEW_KEY_BANNER);
         public String desc;
         public String key;
-        Categrey(String desc,String key){
-            this.desc =desc;
-            this.key =key;
-        }
-        public static void randomShow(Context context){
-            int size = AdsContext.Categrey.values().length;
-            AdsManager.getInstans().showInterstitialAds(context,AdsContext.Categrey.values()[Md5.getRandom(size)] , true);
-        }
-        public static Categrey random(){
-            int size = AdsContext.Categrey.values().length;
-            return AdsContext.Categrey.values()[Md5.getRandom(size)];
+
+        Categrey(String desc, String key) {
+            this.desc = desc;
+            this.key = key;
         }
     }
+
     public static enum  AdsType {
         ADS_TYPE_INIT ("初始化"),
         ADS_TYPE_BANNER("BANNER广告"),
@@ -70,7 +65,7 @@ public class AdsContext {
     }
     public static enum AdsFrom{
         ADVIEW("adview");
-//        GDT("gdt");
+        //        GDT("gdt");
         public String desc;
         AdsFrom(String desc){
             this.desc =desc;
@@ -100,27 +95,23 @@ public class AdsContext {
     }
     // 3/5
     public static boolean rateShow(){
-        if(UserLoginUtil.isVIP2()){
+        if(showCount++>6){
+            return false;
+        }
+        if(UserLoginUtil.isVIP3()){
+            int i = Md5.getRandom(Constants.maxRate);
+            return i<=2;
+        }else if(UserLoginUtil.isVIP2()){
             int i = Md5.getRandom(Constants.maxRate);
             return i<=4;
+        }else if(UserLoginUtil.isVIP()){
+            int i = Md5.getRandom(Constants.maxRate);
+            return i<=5;
         }else{
             int i = Md5.getRandom(Constants.maxRate);
             return i<=6;
         }
 
-    }
-    public static boolean rateVideoShow(){
-        int i = Md5.getRandom(Constants.maxRate);
-        return i<=3;
-    }
-    public static boolean rateSmallShow() {
-        if (UserLoginUtil.isVIP2()) {
-            int i = Md5.getRandom(Constants.maxRate);
-            return i <= 2;
-        } else {
-            int i = Md5.getRandom(Constants.maxRate);
-            return i <= 3;
-        }
     }
     public static void adsNotify(Context context, AdsType type, AdsShowStatus event) {
         MobAgent.onEventAds(context, type, event);
@@ -130,6 +121,34 @@ public class AdsContext {
             ScoreTask.start(context, Constants.ADS_SHOW_CLICK);
         }
     }
-
+    public static int index=0;
+    public static Categrey getNext(){
+        int size = AdsContext.Categrey.values().length;
+        return AdsContext.Categrey.values()[(index++)%2];
+    }
+    public static void showNext(Context context){
+        if(UserLoginUtil.showAds()) {
+            int size = AdsContext.Categrey.values().length;
+            AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.values()[(index++) % 2], false);
+        }
+    }
+    public static void showNextAbs(Context context){
+        int size = AdsContext.Categrey.values().length;
+        AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.values()[(index++) % 3], false);
+    }
+    public static void showRand(Context context){
+        if(UserLoginUtil.showAds()) {
+            if (AdsContext.rateShow()) {
+                showNext(context);
+            }
+        }
+    }
+    public static void showRand(Context context,AdsContext.Categrey cate){
+        if(UserLoginUtil.showAds()) {
+            if (AdsContext.rateShow()) {
+                AdsManager.getInstans().showInterstitialAds(context, cate, false);
+            }
+        }
+    }
 
 }

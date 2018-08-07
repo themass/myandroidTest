@@ -169,8 +169,9 @@ public class SettingActivity extends BaseSingleActivity {
 
     @OnClick(R.id.rr_point)
     public void onScore(View view) {
-        ToastUtil.showShort(R.string.menu_btn_score_context);
-        MobAgent.onEventMenu(this, "积分");
+//        ToastUtil.showShort(R.string.menu_btn_score_context);
+//        MobAgent.onEventMenu(this, "积分");
+        onAbout(view);
     }
     @OnClick(R.id.rl_cache)
     public void onCache(View view) {
@@ -198,7 +199,7 @@ public class SettingActivity extends BaseSingleActivity {
         if (SystemUtils.isZH(this)) {
             url = Constants.ABOUT_ZH;
         }
-        url = url + "?" + DateUtils.format(new Date(), DateUtils.DATE_FORMAT);
+        url = url + "?" + DateUtils.format(new Date(), DateUtils.DATE_FORMAT_MM);
         WebViewActivity.startWebViewActivity(this, url, getString(R.string.menu_btn_about), false, false, null);
         PreferenceUtils.setPrefBoolean(this, Constants.ABOUT_FIRST, true);
         MobAgent.onEventMenu(this, "关于");

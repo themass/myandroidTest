@@ -45,7 +45,7 @@ public class QuickBrowserConfigActivity extends LogActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (adOk) {
-            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN,false);
+           AdsContext.showRand(this);
         } else {
             finishActivity();
         }

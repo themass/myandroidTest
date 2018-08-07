@@ -12,4 +12,5 @@ public class UserInfoVo {
     public String email;
     public StateUseVo stateUse;
     public String paidTime;
+    public boolean adsNo = false;
 }

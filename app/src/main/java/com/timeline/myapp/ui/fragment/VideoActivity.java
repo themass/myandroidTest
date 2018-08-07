@@ -1,4 +1,4 @@
-package com.timeline.myapp.ui.user;
+package com.timeline.myapp.ui.fragment;
 
 
 import android.os.Bundle;
@@ -7,7 +7,6 @@ import android.view.View;
 
 import com.sspacee.common.util.LogUtil;
 import com.timeline.myapp.ui.base.app.BaseFragmentActivity;
-import com.timeline.myapp.ui.fragment.AutoVideoFragment;
 import com.timeline.vpn.R;
 
 import cn.jzvd.JZVideoPlayer;

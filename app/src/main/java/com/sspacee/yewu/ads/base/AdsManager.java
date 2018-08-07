@@ -89,6 +89,7 @@ public class AdsManager {
         videoMap.get(AdsContext.AdsFrom.ADVIEW).reqVideo(context,mHandle);
     }
     public  boolean showVideo(Context context){
+        LogUtil.i("Adview req video ads");
         VideoAdviewAds ads = (VideoAdviewAds)videoMap.get(AdsContext.AdsFrom.ADVIEW);
         if(ads.isReq) {
             videoMap.get(AdsContext.AdsFrom.ADVIEW).showVideo(context);

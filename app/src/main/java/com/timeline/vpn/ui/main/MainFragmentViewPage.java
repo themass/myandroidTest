@@ -105,10 +105,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         mViewPager = (ViewPager) findViewById(R.id.vp_view);
         initTabs();
         ConnLogUtil.sendAllLog(this);
-//        UpdateUserTask.start(this);
-//        AdsManager.getInstans().reqVideo(this);
-//        if(!UserLoginUtil.isVIP2())
-            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN,false);
+        AdsContext.showNext(MainFragmentViewPage.this);
     }
     /**
      * Callback received when a permissions request has been completed.

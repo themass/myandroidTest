@@ -176,14 +176,13 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
                 mService.disconnect();
             } else if (mService.getState() == VpnStateService.State.DISABLED) {
                 MobAgent.onEventLocationChoose(getActivity(), LocationUtil.getName(getActivity()));
-                if(AdsContext.rateShow() && !UserLoginUtil.isVIP3()){
-                    AdsManager.getInstans().showInterstitialAds(getActivity(), AdsContext.Categrey.CATEGREY_VPN1,false);
-                }
+                if(!UserLoginUtil.isVIP3())
+                    AdsContext.showRand(getActivity());
                 imgAnim();
                 int id = LocationUtil.getSelectLocationId(getActivity());
 //                if(conntingApi==false) {
 //                    conntingApi = true;
-                    indexService.getData(String.format(Constants.getUrl(Constants.API_SERVERLIST_URL), id), serverListener, serverListenerError, INDEX_TAG, ServerVo.class);
+                indexService.getData(String.format(Constants.getUrl(Constants.API_SERVERLIST_URL), id), serverListener, serverListenerError, INDEX_TAG, ServerVo.class);
 //                }
             } else {
                 ToastUtil.showShort( R.string.vpn_bg_click_later);
@@ -227,8 +226,8 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
             } catch (ActivityNotFoundException ex) {
                 /* it seems some devices, even though they come with Android 4,
                  * don't have the VPN components built into the system image.
-				 * com.android.vpndialogs/com.android.vpndialogs.ConfirmDialog
-				 * will not be found then */
+                 * com.android.vpndialogs/com.android.vpndialogs.ConfirmDialog
+                 * will not be found then */
                 VpnNotSupportedError.showWithMessage(getActivity(), R.string.vpn_not_supported);
             }
         } else {	/* user already granted permission to use VpnService */

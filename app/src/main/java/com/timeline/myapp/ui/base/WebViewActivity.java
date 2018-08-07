@@ -72,7 +72,7 @@ public class WebViewActivity extends BaseFragmentActivity implements MyWebView.O
     }
 
     public boolean needShow() {
-        return adsNeed || super.needShow();
+        return adsNeed;
     }
 
     @Override

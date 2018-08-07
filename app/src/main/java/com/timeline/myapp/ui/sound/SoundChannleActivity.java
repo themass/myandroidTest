@@ -6,6 +6,7 @@ import android.support.v4.app.Fragment;
 import android.view.View;
 
 import com.sspacee.common.util.LogUtil;
+import com.sspacee.yewu.ads.base.AdsContext;
 import com.timeline.myapp.ui.base.app.BaseFragmentActivity;
 import com.timeline.myapp.ui.fragment.body.SoundChannleBodyFragment;
 import com.timeline.vpn.R;
@@ -31,7 +32,11 @@ public class SoundChannleActivity extends BaseFragmentActivity {
                 .commitAllowingStateLoss();
         setToolbarTitle(R.string.sound, true);
     }
-
+    @Override
+    public void setupView() {
+        super.setupView();
+        AdsContext.showRand(this, AdsContext.Categrey.CATEGREY_VPN2);
+    }
     public boolean needShow() {
         return true;
     }

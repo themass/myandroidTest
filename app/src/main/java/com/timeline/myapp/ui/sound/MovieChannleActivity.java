@@ -7,7 +7,6 @@ import android.view.View;
 
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
-import com.sspacee.yewu.ads.base.AdsManager;
 import com.timeline.myapp.ui.base.app.BaseFragmentActivity;
 import com.timeline.myapp.ui.fragment.body.MovieChannleBodyFragment;
 import com.timeline.vpn.R;
@@ -46,7 +45,6 @@ public class MovieChannleActivity extends BaseFragmentActivity {
     @Override
     public void setupView() {
         super.setupView();
-        if(AdsContext.rateShow())
-            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN2,false);
+        AdsContext.showRand(this, AdsContext.Categrey.CATEGREY_VPN2);
     }
 }

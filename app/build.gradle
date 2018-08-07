@@ -9,8 +9,8 @@ android {
         applicationId "com.timeline.vpn"
         minSdkVersion 16
         targetSdkVersion 26
-        versionCode 1000005005
-        versionName "1.0.5.5"
+        versionCode 1000006001
+        versionName "1.0.6.1"
         // Enabling multidex support.
         multiDexEnabled true
         flavorDimensions "versionCode"
@@ -78,7 +78,7 @@ android {
     }
 }
 greendao {
-    schemaVersion 1
+    schemaVersion 3
     daoPackage 'com.ping.greendao.gen'
     targetGenDir 'src/main/java'
 }

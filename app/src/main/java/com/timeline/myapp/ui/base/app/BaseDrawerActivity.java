@@ -78,7 +78,13 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     public void login(View view) {
         startActivity(LoginActivity.class);
     }
-
+    private void showmiDona(){
+        UserInfoVo vo = UserLoginUtil.getUserCache();
+        boolean canScore = vo==null?false:vo.score>300;
+        if(MyApplication.isTemp){
+            miDona.setVisible(canScore);
+        }
+    }
     @Override
     public void setContentView(int layoutResID) {
         LogUtil.i("setContentView   " + "drawer");
@@ -110,10 +116,9 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         setUpLocation();
         baseService = new BaseService();
         baseService.setup(this);
-        if(MyApplication.isTemp){
-            miApprecommond.setVisible(false);
-            miDona.setVisible(false);
-        }
+        UserInfoVo vo = UserLoginUtil.getUserCache();
+        boolean canScore = vo==null?false:vo.score>300;
+        showmiDona();
     }
 
     private void setUpLocation() {
@@ -167,6 +172,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(UserLoginEvent event) {
         setUpUserMenu();
+        showmiDona();
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -209,7 +215,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         if (SystemUtils.isZH(this)) {
             url = Constants.ABOUT_ZH;
         }
-        url = url + "?" + DateUtils.format(new Date(), DateUtils.DATE_FORMAT);
+        url = url + "?" + DateUtils.format(new Date(), DateUtils.DATE_FORMAT_MM);
         WebViewActivity.startWebViewActivity(this, url, getString(R.string.menu_btn_about), false, false, null);
         PreferenceUtils.setPrefBoolean(this, Constants.ABOUT_FIRST, true);
         MobAgent.onEventMenu(this, "关于");

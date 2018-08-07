@@ -28,7 +28,7 @@ public class DonationListFragment extends BasePullLoadbleFragment<AppInfo> {
         Intent intent = new Intent(context, CommonFragmentActivity.class);
         intent.putExtra(CommonFragmentActivity.FRAGMENT, DonationListFragment.class);
         intent.putExtra(CommonFragmentActivity.TITLE, R.string.menu_btn_donation);
-        intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, true);
+        intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, false);
         intent.putExtra(CommonFragmentActivity.ADSSCROLL, false);
         context.startActivity(intent);
     }

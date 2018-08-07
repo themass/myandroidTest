@@ -62,12 +62,12 @@
     <dimen name="title_height">48dip</dimen>
     <dimen name="heart_anim_h">150dip</dimen>
 
-    <dimen name="banner_h">45dip</dimen>
+    <dimen name="banner_h">53dip</dimen>
     <dimen name="vip_content_tv_size">20sp</dimen>
 
     <dimen name="loading_footer">12sp</dimen>
-    <dimen name="remote_vpn_title">10sp</dimen>
-    <dimen name="remote_vpn_time">16sp</dimen>
+    <dimen name="remote_vpn_title">13sp</dimen>
+    <dimen name="remote_vpn_time">13sp</dimen>
     <dimen name="remote_vpn_content">14sp</dimen>
     <dimen name="recommend_hit_size">18sp</dimen>
     <dimen name="toolbar_title_size">18sp</dimen>

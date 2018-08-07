@@ -111,7 +111,7 @@ public class IWannaFragment extends LoadableFragment<InfoListVo<IWannaVo>> imple
         }
         if (StringUtils.hasText(etComment.getText().toString())) {
             myProgressDialog.show();
-            indexService.postData(Constants.getUrl(Constants.API_IWANNA_URL), new IwannaForm(etComment.getText().toString()+"--locat:"+ LocationUtil.getSelectLocationId(getActivity())), okListener, errorListener, TAG, IWannaVo.class);
+            indexService.postData(Constants.getUrl(Constants.API_IWANNA_URL), new IwannaForm(etComment.getText().toString(), LocationUtil.getSelectLocationId(getActivity())), okListener, errorListener, TAG, IWannaVo.class);
         } else {
             ToastUtil.showShort(R.string.iwanna_content_error);
         }

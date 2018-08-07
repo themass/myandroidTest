@@ -90,8 +90,8 @@ public class LocationFragmentActivity extends BaseFragmentActivity implements Fa
     @Override
     public void setupView() {
         super.setupView();
-        if(showInterstitialAds && AdsContext.rateShow()){
-            AdsManager.getInstans().showInterstitialAds(this, interCategrey,false);
+        if(showInterstitialAds ){
+            AdsContext.showRand(this);
         }
     }
     @Override
