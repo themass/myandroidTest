@@ -5,7 +5,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.timeline.vpn.R;
+import com.timeline.nettypea.R;
 
 import java.util.ArrayList;
 import java.util.List;

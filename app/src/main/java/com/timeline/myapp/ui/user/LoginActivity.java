@@ -10,7 +10,7 @@ import com.qq.e.comm.util.StringUtil;
 import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.net.request.CommonResponse;
-import com.timeline.vpn.R;
+import com.timeline.nettypea.R;
 import com.timeline.myapp.bean.form.LoginForm;
 import com.timeline.myapp.bean.vo.UserInfoVo;
 import com.timeline.myapp.constant.Constants;

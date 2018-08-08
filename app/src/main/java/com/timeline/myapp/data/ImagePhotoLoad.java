@@ -20,7 +20,7 @@ import com.timeline.myapp.bean.vo.RecommendVo;
 import com.timeline.myapp.constant.BaseRes;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.showtype.ShowTypeContext;
-import com.timeline.vpn.R;
+import com.timeline.nettypea.R;
 
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 

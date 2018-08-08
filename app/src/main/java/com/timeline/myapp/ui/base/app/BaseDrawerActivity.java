@@ -1,5 +1,7 @@
 package com.timeline.myapp.ui.base.app;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
@@ -14,6 +16,7 @@ import android.widget.TextView;
 
 import com.sspacee.common.util.DateUtils;
 import com.sspacee.common.util.LogUtil;
+import com.sspacee.common.util.PackageUtils;
 import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.SystemUtils;
 import com.sspacee.common.util.ToastUtil;
@@ -24,6 +27,7 @@ import com.timeline.myapp.bean.vo.UserInfoVo;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.BaseService;
 import com.timeline.myapp.data.LocationUtil;
+import com.timeline.myapp.data.MyUrlUtil;
 import com.timeline.myapp.data.UserLoginUtil;
 import com.timeline.myapp.data.VersionUpdater;
 import com.timeline.myapp.data.config.LocationChooseEvent;
@@ -37,7 +41,7 @@ import com.timeline.myapp.ui.fragment.DonationListFragment;
 import com.timeline.myapp.ui.fragment.FavoriteFragment;
 import com.timeline.myapp.ui.user.LoginActivity;
 import com.timeline.myapp.ui.user.SettingActivity;
-import com.timeline.vpn.R;
+import com.timeline.nettypea.R;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -79,10 +83,9 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         startActivity(LoginActivity.class);
     }
     private void showmiDona(){
-        UserInfoVo vo = UserLoginUtil.getUserCache();
-        boolean canScore = vo==null?false:vo.score>300;
         if(MyApplication.isTemp){
-            miDona.setVisible(canScore);
+            miDona.setVisible(false);
+            miApprecommond.setVisible(false);
         }
     }
     @Override
@@ -117,7 +120,6 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         baseService = new BaseService();
         baseService.setup(this);
         UserInfoVo vo = UserLoginUtil.getUserCache();
-        boolean canScore = vo==null?false:vo.score>300;
         showmiDona();
     }
 
@@ -189,8 +191,6 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         tvDesc.setText(event.stateUse.desc);
         tvDesc1.setText(event.stateUse.desc1);
         tvDesc2.setText(event.stateUse.desc2);
-//        tvDesc.setText("每周减50积分，VIP状态随积分变动");
-//        tvDesc1.setText("VIP1=400积分； VIP2=600积分");
         setScore(event.stateUse.score);
     }
     private void setScore(Long inScore) {
@@ -211,13 +211,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         }
     }
     public void onAbout(View view) {
-        String url = Constants.ABOUT;
-        if (SystemUtils.isZH(this)) {
-            url = Constants.ABOUT_ZH;
-        }
-        url = url + "?" + DateUtils.format(new Date(), DateUtils.DATE_FORMAT_MM);
-        WebViewActivity.startWebViewActivity(this, url, getString(R.string.menu_btn_about), false, false, null);
-        PreferenceUtils.setPrefBoolean(this, Constants.ABOUT_FIRST, true);
+        MyUrlUtil.showAbout(this);
         MobAgent.onEventMenu(this, "关于");
     }
     public void logout(MenuItem item) {
@@ -287,11 +281,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                 }  else if (item.getItemId() == R.id.menu_favorite) {
                     name = "收藏夹";
                     FavoriteFragment.startFragment(BaseDrawerActivity.this);
-                }else if (item.getItemId() == R.id.menu_support) {
-                    name = "支持作者";
-                    adsOffers();
-                    ToastUtil.showShort(R.string.support_info);
-                } else if (item.getItemId() == R.id.menu_app) {
+                }else if (item.getItemId() == R.id.menu_app) {
                     name = "应用推荐";
                     AppListFragment.startFragment(BaseDrawerActivity.this);
                 } else if (item.getItemId() == R.id.menu_donation) {
@@ -304,9 +294,6 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         });
     }
 
-    private void adsOffers(){
-        AdsManager.getInstans().offerAds(this);
-    }
     @Override
     protected void onPause() {
         super.onPause();

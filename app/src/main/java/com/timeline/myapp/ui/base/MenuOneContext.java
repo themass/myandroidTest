@@ -6,7 +6,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.PopupMenu;
 
-import com.timeline.vpn.R;
+import com.timeline.nettypea.R;
 
 import java.lang.reflect.Method;
 

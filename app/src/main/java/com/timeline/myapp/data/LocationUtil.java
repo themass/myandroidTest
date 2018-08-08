@@ -4,7 +4,7 @@ import android.content.Context;
 
 import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.SystemUtils;
-import com.timeline.vpn.R;
+import com.timeline.nettypea.R;
 import com.timeline.myapp.bean.vo.LocationVo;
 import com.timeline.myapp.constant.Constants;
 

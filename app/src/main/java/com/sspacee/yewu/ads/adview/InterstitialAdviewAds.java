@@ -9,7 +9,7 @@ import com.kyview.manager.AdViewInstlManager;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.InterstitialAdsInter;
-import com.timeline.vpn.R;
+import com.timeline.nettypea.R;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.task.ScoreTask;
 

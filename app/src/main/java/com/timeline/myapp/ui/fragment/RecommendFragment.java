@@ -28,7 +28,7 @@ import com.timeline.myapp.data.UserLoginUtil;
 import com.timeline.myapp.data.config.ConfigActionEvent;
 import com.timeline.myapp.ui.base.features.BasePullLoadbleFragment;
 import com.timeline.myapp.ui.user.LoginActivity;
-import com.timeline.vpn.R;
+import com.timeline.nettypea.R;
 
 import java.util.ArrayList;
 import java.util.HashMap;

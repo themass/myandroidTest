@@ -14,4 +14,6 @@ public class VersionVo {
     public Boolean needDnspod = true;
     public Boolean needNative = true;
     public String vitamioExt;
+    public String officeNet;
+    public String aboutUrl;
 }

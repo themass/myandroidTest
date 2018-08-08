@@ -1,4 +1,4 @@
-package com.timeline.vpn.ui.main;
+package com.timeline.nettypea.ui.main;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -23,7 +23,6 @@ import com.sspacee.common.util.PermissionHelper;
 import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
-import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.um.MobAgent;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.ConnLogUtil;
@@ -32,10 +31,10 @@ import com.timeline.myapp.data.config.LogAddTofile;
 import com.timeline.myapp.data.config.TabChangeEvent;
 import com.timeline.myapp.ui.base.app.BaseDrawerActivity;
 import com.timeline.myapp.ui.inte.OnBackKeyDownListener;
-import com.timeline.vpn.R;
-import com.timeline.vpn.ui.maintab.TabCustomeFragment;
-import com.timeline.vpn.ui.maintab.TabMovieFragment;
-import com.timeline.vpn.ui.maintab.TabVpnFragment;
+import com.timeline.nettypea.R;
+import com.timeline.nettypea.ui.main.maintab.TabCustomeFragment;
+import com.timeline.nettypea.ui.main.maintab.TabMovieFragment;
+import com.timeline.nettypea.ui.main.maintab.TabVpnFragment;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;

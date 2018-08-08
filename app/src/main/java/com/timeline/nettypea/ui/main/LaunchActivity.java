@@ -1,4 +1,4 @@
-package com.timeline.vpn.ui.main;
+package com.timeline.nettypea.ui.main;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -13,7 +13,7 @@ import com.kyview.manager.AdViewSpreadManager;
 import com.sspacee.common.ui.base.LogActivity;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.um.MobAgent;
-import com.timeline.vpn.R;
+import com.timeline.nettypea.R;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.task.LoginTask;
 
@@ -70,7 +70,7 @@ public class LaunchActivity extends LogActivity {
 
     private void launch() {
         if(!AdViewSpreadManager.hasJumped) {
-            Intent intent = new Intent(this, MainFragmentViewPage.class);
+            Intent intent = new Intent(this, com.timeline.nettypea.ui.main.MainFragmentViewPage.class);
             startActivity(intent);
             finish();
         }

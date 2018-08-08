@@ -27,7 +27,7 @@ import android.util.TypedValue;
 import android.view.View;
 import android.widget.ProgressBar;
 
-import com.timeline.vpn.R;
+import com.timeline.nettypea.R;
 
 
 public class ProgressView extends View {

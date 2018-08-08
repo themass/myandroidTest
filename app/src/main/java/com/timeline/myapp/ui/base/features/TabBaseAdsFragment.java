@@ -6,10 +6,10 @@ import android.view.View;
 import android.view.animation.OvershootInterpolator;
 
 import com.sspacee.common.util.LogUtil;
-import com.timeline.vpn.R;
+import com.timeline.nettypea.R;
 import com.timeline.myapp.data.AdsPopStrategy;
 import com.timeline.myapp.ui.inte.OnBackKeyDownListener;
-import com.timeline.vpn.ui.main.MainFragmentViewPage;
+import com.timeline.nettypea.ui.main.MainFragmentViewPage;
 
 import butterknife.BindView;
 import butterknife.OnClick;

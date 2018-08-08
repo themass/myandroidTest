@@ -1,4 +1,4 @@
-package com.timeline.vpn.ui.maintab.body;
+package com.timeline.nettypea.ui.main.maintab.body;
 
 
 import android.content.Context;
@@ -29,8 +29,8 @@ import com.timeline.myapp.data.config.UserLoginEvent;
 import com.timeline.myapp.ui.fragment.RecommendFragment;
 import com.timeline.myapp.ui.inte.OnBackKeyDownListener;
 import com.timeline.myapp.ui.user.AddCustomeInfoActivity;
-import com.timeline.vpn.R;
-import com.timeline.vpn.ui.main.MainFragmentViewPage;
+import com.timeline.nettypea.R;
+import com.timeline.nettypea.ui.main.MainFragmentViewPage;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;

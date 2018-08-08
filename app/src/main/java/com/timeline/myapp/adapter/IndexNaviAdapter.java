@@ -16,7 +16,7 @@ import android.widget.TextView;
 import com.sspacee.common.util.DisplayUtil;
 import com.sspacee.common.util.Utils;
 import com.timeline.myapp.base.MyApplication;
-import com.timeline.vpn.R;
+import com.timeline.nettypea.R;
 
 import java.util.ArrayList;
 import java.util.List;

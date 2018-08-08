@@ -15,7 +15,7 @@ import com.sspacee.common.ui.view.widgets.MusicVisualizer;
 import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.myapp.bean.vo.SoundItemsVo;
 import com.timeline.myapp.ui.inte.MusicStateListener;
-import com.timeline.vpn.R;
+import com.timeline.nettypea.R;
 
 import java.util.List;
 

@@ -13,7 +13,7 @@ import com.timeline.myapp.bean.vo.InfoListVo;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.ui.base.CommonFragmentActivity;
 import com.timeline.myapp.ui.base.features.BasePullLoadbleFragment;
-import com.timeline.vpn.R;
+import com.timeline.nettypea.R;
 
 /**
  * Created by themass on 2016/8/12.

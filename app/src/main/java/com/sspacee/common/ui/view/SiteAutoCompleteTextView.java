@@ -10,7 +10,7 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import com.sspacee.common.util.StringUtils;
-import com.timeline.vpn.R;
+import com.timeline.nettypea.R;
 
 public class SiteAutoCompleteTextView extends AppCompatAutoCompleteTextView {
     private String[] siteSufixs = new String[]{".com", ".com.cn", ".net", ".org", ".edu", "int", ".cn"};

@@ -1,4 +1,4 @@
-package com.timeline.vpn.ui.maintab;
+package com.timeline.nettypea.ui.main.maintab;
 
 
 import android.support.v4.app.Fragment;
@@ -6,7 +6,7 @@ import android.support.v4.app.Fragment;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.timeline.myapp.ui.base.BannerHeaderFragment;
 import com.timeline.myapp.ui.base.features.TabBaseAdsFragment;
-import com.timeline.vpn.ui.maintab.body.RecommendMovieFragment;
+import com.timeline.nettypea.ui.main.maintab.body.RecommendMovieFragment;
 
 /**
  * Created by themass on 2015/9/1.

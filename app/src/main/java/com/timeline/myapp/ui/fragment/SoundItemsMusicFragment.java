@@ -39,7 +39,7 @@ import com.timeline.myapp.service.PlayService;
 import com.timeline.myapp.ui.base.CommonFragmentActivity;
 import com.timeline.myapp.ui.base.features.BasePullLoadbleFragment;
 import com.timeline.myapp.ui.inte.MusicStateListener;
-import com.timeline.vpn.R;
+import com.timeline.nettypea.R;
 
 import butterknife.BindView;
 import butterknife.OnClick;

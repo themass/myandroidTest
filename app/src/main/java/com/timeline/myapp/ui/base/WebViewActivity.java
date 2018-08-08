@@ -23,7 +23,7 @@ import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.BaseService;
 import com.timeline.myapp.ui.base.app.BaseFragmentActivity;
 import com.timeline.myapp.ui.base.features.BaseWebViewFragment;
-import com.timeline.vpn.R;
+import com.timeline.nettypea.R;
 
 import java.util.HashMap;
 

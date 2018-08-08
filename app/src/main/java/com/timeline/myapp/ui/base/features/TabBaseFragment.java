@@ -9,7 +9,7 @@ import android.view.ViewGroup;
 
 import com.sspacee.common.ui.base.BaseFragment;
 import com.sspacee.common.util.LogUtil;
-import com.timeline.vpn.R;
+import com.timeline.nettypea.R;
 
 /**
  * Created by themass on 2015/9/1.

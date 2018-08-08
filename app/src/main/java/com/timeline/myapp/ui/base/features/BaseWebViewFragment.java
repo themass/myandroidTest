@@ -22,7 +22,7 @@ import com.sspacee.common.ui.view.MyWebView;
 import com.sspacee.common.util.FileUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.net.HttpUtils;
-import com.timeline.vpn.R;
+import com.timeline.nettypea.R;
 import com.timeline.myapp.base.MyApplication;
 import com.timeline.myapp.constant.Constants;
 

@@ -18,6 +18,7 @@ import android.os.Handler;
 import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AlertDialog;
 
+import com.sspacee.common.util.DateUtils;
 import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.FileUtils;
 import com.sspacee.common.util.LogUtil;
@@ -36,8 +37,8 @@ import com.timeline.myapp.bean.vo.VersionVo;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.config.StateUseEvent;
 import com.timeline.myapp.data.config.VipDescEvent;
-import com.timeline.vpn.R;
-import com.timeline.vpn.ui.main.MainFragmentViewPage;
+import com.timeline.nettypea.R;
+import com.timeline.nettypea.ui.main.MainFragmentViewPage;
 
 import java.io.File;
 
@@ -61,6 +62,7 @@ public class VersionUpdater {
                     PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.LOG_UPLOAD_CONFIG, vo.logUp);
                     PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.NEED_DNSPOD_CONFIG, vo.needDnspod);
                     PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.NEED_NATIVE_ADS_CONFIG, vo.needNative);
+                    StaticDataUtil.add(Constants.VERSION_INFO,vo);
                     if (StringUtils.hasText(vo.dnspodIp)) {
                         HttpDNSUtil.DNS_POD_IP = vo.dnspodIp;
                     }

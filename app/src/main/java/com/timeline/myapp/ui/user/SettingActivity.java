@@ -1,6 +1,8 @@
 package com.timeline.myapp.ui.user;
 
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.view.View;
@@ -14,6 +16,7 @@ import com.sspacee.common.util.DateUtils;
 import com.sspacee.common.util.FileSizeUtil;
 import com.sspacee.common.util.FileUtils;
 import com.sspacee.common.util.LogUtil;
+import com.sspacee.common.util.PackageUtils;
 import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.StringUtils;
 import com.sspacee.common.util.SystemUtils;
@@ -28,12 +31,13 @@ import com.timeline.myapp.bean.vo.StateUseVo;
 import com.timeline.myapp.bean.vo.UserInfoVo;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.BaseService;
+import com.timeline.myapp.data.MyUrlUtil;
 import com.timeline.myapp.data.UserLoginUtil;
 import com.timeline.myapp.data.VersionUpdater;
 import com.timeline.myapp.service.LogUploadService;
 import com.timeline.myapp.ui.base.WebViewActivity;
 import com.timeline.myapp.ui.base.app.BaseSingleActivity;
-import com.timeline.vpn.R;
+import com.timeline.nettypea.R;
 
 import java.io.File;
 import java.util.Date;
@@ -186,6 +190,11 @@ public class SettingActivity extends BaseSingleActivity {
         VersionUpdater.checkUpdate(this, true);
         MobAgent.onEventMenu(this, "版本");
     }
+    @OnClick(R.id.tv_officialnet)
+    public void onOfficialnet(View view) {
+        MyUrlUtil.showOfficeNet(this);
+        MobAgent.onEventMenu(this, "官网");
+    }
     @OnClick(R.id.tv_auther)
     public void onContract(View view) {
         SystemUtils.copy(SettingActivity.this, "gqli5296@gmail.com");
@@ -195,12 +204,7 @@ public class SettingActivity extends BaseSingleActivity {
 
     @OnClick(R.id.tv_about)
     public void onAbout(View view) {
-        String url = Constants.ABOUT;
-        if (SystemUtils.isZH(this)) {
-            url = Constants.ABOUT_ZH;
-        }
-        url = url + "?" + DateUtils.format(new Date(), DateUtils.DATE_FORMAT_MM);
-        WebViewActivity.startWebViewActivity(this, url, getString(R.string.menu_btn_about), false, false, null);
+        MyUrlUtil.showAbout(this);
         PreferenceUtils.setPrefBoolean(this, Constants.ABOUT_FIRST, true);
         MobAgent.onEventMenu(this, "关于");
     }

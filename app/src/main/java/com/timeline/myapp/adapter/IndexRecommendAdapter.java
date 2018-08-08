@@ -22,7 +22,7 @@ import com.timeline.myapp.bean.vo.RecommendVo;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.ImagePhotoLoad;
 import com.timeline.myapp.data.VersionUpdater;
-import com.timeline.vpn.R;
+import com.timeline.nettypea.R;
 
 import java.util.List;
 

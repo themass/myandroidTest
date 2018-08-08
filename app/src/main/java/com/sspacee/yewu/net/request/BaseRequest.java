@@ -62,7 +62,7 @@ public class BaseRequest<T> extends Request<T> {
         }
         String sb = DeviceInfoUtils.getDeviceId(context) + "|" + time;
         String msg = time + Md5.encode(sb);
-        String ua = UA_DEFAULT + UA_APP_SUFFIX + ",channel="+uc+",cpu=" + SystemUtils.getCpuType() + ",IE" + msg;
+        String ua = UA_DEFAULT + UA_APP_SUFFIX + ",NETTYPE="+Constants.NETTYPE+",channel="+uc+",cpu=" + SystemUtils.getCpuType() + ",IE" + msg;
         String loc = "lon:" + StaticDataUtil.get(Constants.LON, Double.class) + ";lat:" + StaticDataUtil.get(Constants.LAT, Double.class);
         this.authkey = ua.substring(ua.length() - 16, ua.length());
         headers.put("Loc", loc);

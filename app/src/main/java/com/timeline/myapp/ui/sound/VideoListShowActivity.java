@@ -10,7 +10,7 @@ import android.widget.FrameLayout;
 import com.sspacee.common.util.LogUtil;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.ui.fragment.AutoVideoFragment;
-import com.timeline.vpn.R;
+import com.timeline.nettypea.R;
 
 import java.util.HashMap;
 

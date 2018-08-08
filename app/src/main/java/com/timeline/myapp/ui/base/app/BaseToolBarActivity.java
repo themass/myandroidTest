@@ -11,7 +11,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.sspacee.common.util.LogUtil;
-import com.timeline.vpn.R;
+import com.timeline.nettypea.R;
 
 import java.lang.reflect.Field;
 

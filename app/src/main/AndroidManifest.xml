@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.timeline.vpn">
+    package="com.timeline.nettypea">
     <!-- 隐私权-->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -84,7 +84,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.main.MainFragmentViewPage"
+            android:name="com.timeline.nettypea.ui.main.MainFragmentViewPage"
             android:label="@string/main_activity_name"
             android:launchMode="singleTask"
             android:screenOrientation="portrait" />
@@ -174,11 +174,6 @@
         <service android:name="com.timeline.myapp.service.LogUploadService" />
         <service android:name="com.timeline.myapp.service.LogToFileService" />
         <service android:name="com.timeline.myapp.service.PlayService" />
-        <!-- 百度定位-->
-        <service
-            android:name="com.baidu.location.f"
-            android:enabled="true"
-            android:process=":remote" />
 
         <!-- 广告sdk-->
         <!--must-->

@@ -293,6 +293,7 @@
                     android:background="?android:attr/selectableItemBackground"
                     android:padding="@dimen/margin_10"
                     android:text="@string/menu_btn_bug" />
+
                 <ImageView style="@style/divider_login" />
 
                 <TextView
@@ -303,6 +304,17 @@
                     android:background="?android:attr/selectableItemBackground"
                     android:padding="@dimen/margin_10"
                     android:text="@string/menu_btn_contract" />
+
+                <ImageView style="@style/divider_login" />
+
+                <TextView
+                    android:id="@+id/tv_officialnet"
+                    style="@style/tv_setting"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:padding="@dimen/margin_10"
+                    android:text="@string/menu_btn_official" />
             </LinearLayout>
         </android.support.v7.widget.CardView>
     </LinearLayout>

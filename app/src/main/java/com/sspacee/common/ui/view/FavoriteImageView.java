@@ -4,7 +4,7 @@ import android.content.Context;
 import android.support.v7.widget.AppCompatImageView;
 import android.util.AttributeSet;
 
-import com.timeline.vpn.R;
+import com.timeline.nettypea.R;
 import com.timeline.myapp.bean.vo.FavoriteVo;
 import com.timeline.myapp.data.FavoriteUtil;
 

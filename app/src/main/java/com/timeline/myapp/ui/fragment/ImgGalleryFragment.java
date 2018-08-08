@@ -18,7 +18,7 @@ package com.timeline.myapp.ui.fragment;//package com.timeline.myapp.ui.fragment;
 //import com.sspacee.common.util.CollectionUtils;
 //import com.sspacee.common.util.StringUtils;
 //import com.sspacee.yewu.ads.base.AdsContext;
-//import com.timeline.vpn.R;
+//import com.timeline.nettypea.R;
 //import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
 //import com.timeline.myapp.base.MyApplication;
 //import com.timeline.myapp.bean.vo.ImgItemVo;

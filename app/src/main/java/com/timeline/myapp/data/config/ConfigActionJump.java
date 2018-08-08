@@ -14,7 +14,7 @@ import com.timeline.myapp.ui.sound.SoundChannleActivity;
 import com.timeline.myapp.ui.sound.TextChannleActivity;
 import com.timeline.myapp.ui.sound.VideoChannleActivity;
 import com.timeline.myapp.ui.sound.VideoListShowActivity;
-import com.timeline.vpn.R;
+import com.timeline.nettypea.R;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;

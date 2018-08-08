@@ -13,7 +13,7 @@ import android.widget.TextView;
 import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.myapp.bean.vo.AppInfo;
 import com.timeline.myapp.data.ImagePhotoLoad;
-import com.timeline.vpn.R;
+import com.timeline.nettypea.R;
 
 import java.util.List;
 

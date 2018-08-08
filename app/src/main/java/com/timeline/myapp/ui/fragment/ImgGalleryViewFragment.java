@@ -12,7 +12,7 @@ package com.timeline.myapp.ui.fragment;//package com.timeline.myapp.ui.fragment;
 //import com.sspacee.common.ui.view.gallery.BigImagePreview;
 //import com.sspacee.common.util.CollectionUtils;
 //import com.sspacee.common.util.DensityUtil;
-//import com.timeline.vpn.R;
+//import com.timeline.nettypea.R;
 //import com.timeline.myapp.bean.vo.ImgItemVo;
 //import com.timeline.myapp.bean.vo.ImgItemsVo;
 //import com.timeline.myapp.bean.vo.InfoListVo;

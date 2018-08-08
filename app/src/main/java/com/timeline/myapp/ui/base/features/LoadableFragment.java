@@ -22,7 +22,7 @@ import com.sspacee.common.util.ViewUtils;
 import com.sspacee.yewu.net.VolleyUtils;
 import com.timeline.myapp.bean.vo.InfoListVo;
 import com.timeline.myapp.data.BaseService;
-import com.timeline.vpn.R;
+import com.timeline.nettypea.R;
 
 import java.lang.ref.WeakReference;
 import java.util.List;

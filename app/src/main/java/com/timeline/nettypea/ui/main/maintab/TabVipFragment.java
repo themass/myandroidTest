@@ -1,16 +1,16 @@
-package com.timeline.vpn.ui.maintab;
+package com.timeline.nettypea.ui.main.maintab;
 
 
 import android.support.v4.app.Fragment;
 
 import com.timeline.myapp.ui.base.BannerHeaderFragment;
 import com.timeline.myapp.ui.base.features.TabBaseAdsFragment;
-import com.timeline.myapp.ui.fragment.LocationChooseFragment;
+import com.timeline.nettypea.ui.main.maintab.body.RecommendVipFragment;
 
 /**
  * Created by themass on 2015/9/1.
  */
-public class TabLocalFragment extends TabBaseAdsFragment {
+public class TabVipFragment extends TabBaseAdsFragment {
 
     @Override
     protected Fragment getTabHeaderView() {
@@ -19,9 +19,7 @@ public class TabLocalFragment extends TabBaseAdsFragment {
 
     @Override
     protected Fragment getTabBodyView() {
-        LocationChooseFragment f = new LocationChooseFragment();
-        f.putSerializable(Boolean.FALSE);
-        return f;
+        return new RecommendVipFragment();
     }
 
 

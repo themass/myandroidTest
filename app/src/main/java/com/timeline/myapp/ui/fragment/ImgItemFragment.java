@@ -28,7 +28,7 @@ import com.timeline.myapp.task.SaveImageCallBack;
 import com.timeline.myapp.task.SaveImageTask;
 import com.timeline.myapp.ui.base.CommonFragmentActivity;
 import com.timeline.myapp.ui.inte.OnBackKeyDownListener;
-import com.timeline.vpn.R;
+import com.timeline.nettypea.R;
 
 import butterknife.BindView;
 import butterknife.OnClick;

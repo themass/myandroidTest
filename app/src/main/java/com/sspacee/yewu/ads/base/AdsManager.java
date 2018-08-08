@@ -14,7 +14,6 @@ import com.sspacee.yewu.ads.adview.InterstitialAdviewAds;
 import com.sspacee.yewu.ads.adview.NativeAdviewAds;
 import com.sspacee.yewu.ads.adview.SplashAdviewAds;
 import com.sspacee.yewu.ads.adview.VideoAdviewAds;
-import com.sspacee.yewu.ads.youmi.YoumiAds;
 import com.timeline.myapp.base.MyApplication;
 
 import java.util.HashMap;
@@ -77,10 +76,6 @@ public class AdsManager {
     }
     public void exitInterstitialAds(Context context,AdsContext.Categrey categrey){
         interstitialMap.get(AdsContext.AdsFrom.ADVIEW).interstitialExit(context,categrey.key);
-    }
-    public void offerAds(Context context){
-        YoumiAds.init(context);
-        YoumiAds.offerAds(context);
     }
     public  void showNative(Context context, NativeAdsReadyListener listener){
         nativeMap.get(AdsContext.AdsFrom.ADVIEW).showNative(context,mHandle,listener);

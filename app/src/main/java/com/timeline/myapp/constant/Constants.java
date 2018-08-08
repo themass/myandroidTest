@@ -2,7 +2,7 @@ package com.timeline.myapp.constant;
 
 
 
-import com.timeline.vpn.R;
+import com.timeline.nettypea.R;
 
 import org.strongswan.android.logic.VpnType;
 
@@ -17,10 +17,12 @@ public class Constants {
     public static final String USER_AGENT_DEF = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36";
     public static final String REFERER = "referer";
     public static final String DEFAULT_REFERER = "http://www.sspacee.com/";
+    public static final String OFFICIALNET  = "http://hostggg.com";
     public static final String DEFAULT_API = "api.sspacee.com";
     public static final String IMAGE_RES_PRE = "timeline://img";
     public static final String APP_MYPOOL = "MYPOOL";
     public static final String APP_GOOGLE = "GOOGLEMARKET";
+    public static final String NETTYPE = "NETTYPEA";
     public static final String URL = "url";
     public static final String DEFULT_LOCATION_NAME="随机";
     public static final int STARTUP_SHOW_TIME_6000 = 6000; //启动页广告时长
@@ -155,6 +157,7 @@ public class Constants {
     public static final String LOG_UPLOAD_CONFIG = "LOG_UPLOAD_CONFIG";
     public static final String NEED_DNSPOD_CONFIG = "NEED_DNSPOD_CONFIG";
     public static final String NEED_NATIVE_ADS_CONFIG = "NEED_NATIVE_ADS_CONFIG";
+    public static final String VERSION_INFO = "VERSION_INFO";
     public static final String CONFIG_PARAM = "CONFIG_PARAM";
     public static final String TITLE = "TITLE";
     public static final String ADSSHOW = "ADSSHOW";

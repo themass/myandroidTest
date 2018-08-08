@@ -18,7 +18,7 @@ import com.timeline.myapp.base.MyApplication;
 import com.timeline.myapp.task.SaveImageCallBack;
 import com.timeline.myapp.task.SaveImageTask;
 import com.timeline.myapp.ui.base.app.BaseSingleActivity;
-import com.timeline.vpn.R;
+import com.timeline.nettypea.R;
 
 import java.util.ArrayList;
 import java.util.List;
