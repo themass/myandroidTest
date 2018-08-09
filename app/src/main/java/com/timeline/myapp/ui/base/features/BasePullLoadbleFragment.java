@@ -17,7 +17,7 @@ import com.sspacee.common.util.StringUtils;
 import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.myapp.bean.vo.InfoListVo;
 import com.timeline.myapp.data.BaseService;
-import com.timeline.nettypea.R;
+import com.timeline.vpn.R;
 
 import butterknife.BindView;
 

@@ -29,7 +29,7 @@ import com.timeline.myapp.ui.base.CommonFragmentActivity;
 import com.timeline.myapp.ui.base.MenuOneContext;
 import com.timeline.myapp.ui.base.features.BasePullLoadbleFragment;
 import com.timeline.myapp.ui.sound.VideoShowActivity;
-import com.timeline.nettypea.R;
+import com.timeline.vpn.R;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;

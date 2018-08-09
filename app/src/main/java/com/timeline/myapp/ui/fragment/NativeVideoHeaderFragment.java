@@ -6,7 +6,7 @@ import android.view.ViewGroup;
 
 import com.sspacee.common.ui.base.BaseFragment;
 import com.sspacee.common.util.LogUtil;
-import com.timeline.nettypea.R;
+import com.timeline.vpn.R;
 
 import butterknife.BindView;
 

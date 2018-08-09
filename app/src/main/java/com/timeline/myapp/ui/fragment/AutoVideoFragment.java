@@ -15,7 +15,7 @@ import com.timeline.myapp.bean.vo.InfoListVo;
 import com.timeline.myapp.bean.vo.RecommendVo;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.ui.base.features.BasePullLoadbleFragment;
-import com.timeline.nettypea.R;
+import com.timeline.vpn.R;
 
 import cn.jzvd.JZMediaManager;
 import cn.jzvd.JZUtils;

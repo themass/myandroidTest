@@ -9,7 +9,7 @@ package com.timeline.myapp.ui.fragment;//package com.timeline.myapp.ui.fragment;
 //
 //import com.sspacee.common.ui.view.MyScrollView;
 //import com.sspacee.common.ui.view.MyTextView;
-//import com.timeline.nettypea.R;
+//import com.timeline.vpn.R;
 //import com.timeline.myapp.bean.vo.TextItemsVo;
 //import com.timeline.myapp.constant.Constants;
 //import com.timeline.myapp.data.BaseService;

@@ -41,7 +41,7 @@ import com.timeline.myapp.ui.fragment.DonationListFragment;
 import com.timeline.myapp.ui.fragment.FavoriteFragment;
 import com.timeline.myapp.ui.user.LoginActivity;
 import com.timeline.myapp.ui.user.SettingActivity;
-import com.timeline.nettypea.R;
+import com.timeline.vpn.R;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -72,6 +72,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     ImageView ivAvatar;
     ImageView ivLevel;
     MenuItem miLogout;
+    MenuItem miAbout;
     MenuItem miLocation;
     MenuItem miSetting;
     MenuItem miFavorite;
@@ -287,6 +288,9 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                 } else if (item.getItemId() == R.id.menu_donation) {
                     name = "捐赠";
                     DonationListFragment.startFragment(BaseDrawerActivity.this);
+                }else if (item.getItemId() == R.id.menu_about) {
+                    name = "关于";
+                    onAbout(null);
                 }
                 MobAgent.onEventMenu(BaseDrawerActivity.this, name);
                 return false;

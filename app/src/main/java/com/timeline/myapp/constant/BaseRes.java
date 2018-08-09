@@ -1,6 +1,6 @@
 package com.timeline.myapp.constant;
 
-import com.timeline.nettypea.R;
+import com.timeline.vpn.R;
 
 import java.util.HashMap;
 import java.util.Map;

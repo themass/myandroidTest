@@ -1,4 +1,4 @@
-package com.timeline.nettypea.ui.main.maintab;
+package com.timeline.vpn.ui.main.maintab;
 
 
 import android.os.Bundle;
@@ -7,8 +7,8 @@ import android.view.View;
 
 import com.timeline.myapp.ui.base.features.TabBaseAdsFragment;
 import com.timeline.myapp.ui.user.AddCustomeInfoActivity;
-import com.timeline.nettypea.R;
-import com.timeline.nettypea.ui.main.maintab.body.RecommendCustomeFragment;
+import com.timeline.vpn.R;
+import com.timeline.vpn.ui.main.maintab.body.RecommendCustomeFragment;
 
 
 /**

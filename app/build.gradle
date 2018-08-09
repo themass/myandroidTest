@@ -6,9 +6,9 @@ android {
     compileSdkVersion 26
     buildToolsVersion "27.0.3"
     defaultConfig {
-        applicationId "com.timeline.nettypea"
+        applicationId "com.timeline.vpn"
         minSdkVersion 16
-        targetSdkVersion 26
+        targetSdkVersion 22
         versionCode 1000007000
         versionName "1.0.7.0"
         // Enabling multidex support.

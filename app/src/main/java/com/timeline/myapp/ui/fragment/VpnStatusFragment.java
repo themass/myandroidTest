@@ -42,7 +42,7 @@ import com.timeline.myapp.data.LocationUtil;
 import com.timeline.myapp.data.StaticDataUtil;
 import com.timeline.myapp.data.UserLoginUtil;
 import com.timeline.myapp.data.config.VpnClickEvent;
-import com.timeline.nettypea.R;
+import com.timeline.vpn.R;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;

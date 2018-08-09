@@ -59,8 +59,8 @@ import com.timeline.myapp.data.BaseService;
 import com.timeline.myapp.data.ConnLogUtil;
 import com.timeline.myapp.data.LocationUtil;
 import com.timeline.myapp.ui.fragment.LocationChooseFragment;
-import com.timeline.nettypea.R;
-import com.timeline.nettypea.ui.main.MainFragmentViewPage;
+import com.timeline.vpn.R;
+import com.timeline.vpn.ui.main.MainFragmentViewPage;
 
 import org.strongswan.android.logic.imc.ImcState;
 import org.strongswan.android.logic.imc.RemediationInstruction;
@@ -523,7 +523,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
         @Override
         protected void onError() {
             super.onError();
-            Toast.makeText(CharonVpnService.this,R.string.error_lookup_failed,Toast.LENGTH_SHORT).show();
+            Toast.makeText(CharonVpnService.this, R.string.error_lookup_failed,Toast.LENGTH_SHORT).show();
         }
     };
     private void test(){}

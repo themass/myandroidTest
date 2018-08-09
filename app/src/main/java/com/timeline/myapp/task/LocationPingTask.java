@@ -9,7 +9,7 @@ import android.widget.TextView;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.StringUtils;
 import com.sspacee.yewu.net.HttpUtils;
-import com.timeline.nettypea.R;
+import com.timeline.vpn.R;
 import com.timeline.myapp.bean.vo.LocationVo;
 
 

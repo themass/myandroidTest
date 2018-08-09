@@ -7,7 +7,7 @@ import android.view.View;
 
 import com.sspacee.common.util.LogUtil;
 import com.timeline.myapp.ui.base.app.BaseFragmentActivity;
-import com.timeline.nettypea.R;
+import com.timeline.vpn.R;
 
 import cn.jzvd.JZVideoPlayer;
 import cn.jzvd.JZVideoPlayerStandard;

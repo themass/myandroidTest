@@ -5,7 +5,7 @@ import android.view.ViewGroup;
 
 import com.bumptech.glide.Glide;
 import com.etiennelawlor.imagegallery.library.adapters.FullScreenImageGalleryAdapter;
-import com.timeline.nettypea.R;
+import com.timeline.vpn.R;
 
 import java.util.List;
 

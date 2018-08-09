@@ -15,7 +15,7 @@ import com.timeline.myapp.bean.vo.NullReturnVo;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.BaseService;
 import com.timeline.myapp.ui.base.app.BaseSingleActivity;
-import com.timeline.nettypea.R;
+import com.timeline.vpn.R;
 
 import java.util.regex.Pattern;
 

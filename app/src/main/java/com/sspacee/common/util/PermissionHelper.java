@@ -11,7 +11,7 @@ import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 
-import com.timeline.nettypea.R;
+import com.timeline.vpn.R;
 
 import java.util.Arrays;
 import java.util.List;

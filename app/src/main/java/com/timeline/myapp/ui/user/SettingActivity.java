@@ -37,7 +37,7 @@ import com.timeline.myapp.data.VersionUpdater;
 import com.timeline.myapp.service.LogUploadService;
 import com.timeline.myapp.ui.base.WebViewActivity;
 import com.timeline.myapp.ui.base.app.BaseSingleActivity;
-import com.timeline.nettypea.R;
+import com.timeline.vpn.R;
 
 import java.io.File;
 import java.util.Date;

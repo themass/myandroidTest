@@ -7,7 +7,7 @@ import android.widget.Toast;
 import com.sspacee.common.util.Md5;
 import com.sspacee.yewu.ads.adview.AdviewConstant;
 import com.sspacee.yewu.um.MobAgent;
-import com.timeline.nettypea.R;
+import com.timeline.vpn.R;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.UserLoginUtil;
 import com.timeline.myapp.task.ScoreTask;
@@ -103,7 +103,7 @@ public class AdsContext {
             return i<=2;
         }else if(UserLoginUtil.isVIP2()){
             int i = Md5.getRandom(Constants.maxRate);
-            return i<=4;
+            return i<=3;
         }else if(UserLoginUtil.isVIP()){
             int i = Md5.getRandom(Constants.maxRate);
             return i<=5;

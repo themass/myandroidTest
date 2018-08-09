@@ -17,7 +17,7 @@ import android.widget.TextView;
 
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
-import com.timeline.nettypea.R;
+import com.timeline.vpn.R;
 import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.myapp.bean.vo.LocationVo;
 import com.timeline.myapp.constant.Constants;

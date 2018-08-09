@@ -1,4 +1,4 @@
-package com.timeline.nettypea.ui.main.maintab.body;
+package com.timeline.vpn.ui.main.maintab.body;
 
 
 import android.os.Bundle;
@@ -11,7 +11,7 @@ import com.timeline.myapp.bean.vo.RecommendVo;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.ui.fragment.RecommendFragment;
 import com.timeline.myapp.ui.fragment.VideoChannelListFragment;
-import com.timeline.nettypea.R;
+import com.timeline.vpn.R;
 
 /**
  * Created by themass on 2015/9/1.

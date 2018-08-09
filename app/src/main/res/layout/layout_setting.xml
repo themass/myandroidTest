@@ -33,7 +33,8 @@
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="@dimen/margin_10">
+                    android:padding="@dimen/margin_10"
+                    android:visibility="gone">
 
                     <TextView
                         android:id="@+id/tv_soundswitch"
@@ -51,7 +52,8 @@
                         android:layout_centerVertical="true" />
                 </RelativeLayout>
 
-                <ImageView style="@style/divider_login" />
+                <ImageView style="@style/divider_login"
+                    android:visibility="gone"/>
 
                 <RelativeLayout
                     android:id="@+id/rr_notify"
@@ -160,7 +162,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="?android:attr/selectableItemBackground"
-                    android:padding="@dimen/margin_10">
+                    android:padding="@dimen/margin_10"
+                    android:visibility="gone">
 
                     <TextView
                         style="@style/tv_setting"
@@ -175,10 +178,12 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_alignParentRight="true"
-                        android:layout_centerVertical="true" />
+                        android:layout_centerVertical="true"
+                        />
                 </RelativeLayout>
 
-                <ImageView style="@style/divider_login" />
+                <ImageView style="@style/divider_login"
+                    android:visibility="gone"/>
                 <TextView
                     android:id="@+id/tv_about"
                     style="@style/tv_setting"
@@ -186,9 +191,11 @@
                     android:layout_height="wrap_content"
                     android:background="?android:attr/selectableItemBackground"
                     android:padding="@dimen/margin_10"
-                    android:text="@string/menu_btn_about" />
+                    android:text="@string/menu_btn_about"
+                    android:visibility="gone"/>
 
-                <ImageView style="@style/divider_login" />
+                <ImageView style="@style/divider_login"
+                    android:visibility="gone"/>
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

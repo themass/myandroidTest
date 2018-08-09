@@ -12,7 +12,7 @@ import android.view.animation.OvershootInterpolator;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
-import com.timeline.nettypea.R;
+import com.timeline.vpn.R;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.AdsPopStrategy;
 import com.timeline.myapp.data.config.HindBannerEvent;

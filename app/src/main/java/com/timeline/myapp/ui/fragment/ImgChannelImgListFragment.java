@@ -14,7 +14,7 @@ import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.HistoryUtil;
 import com.timeline.myapp.data.StaticDataUtil;
 import com.timeline.myapp.ui.base.CommonFragmentActivity;
-import com.timeline.nettypea.R;
+import com.timeline.vpn.R;
 
 /**
  * Created by themass on 2016/8/12.

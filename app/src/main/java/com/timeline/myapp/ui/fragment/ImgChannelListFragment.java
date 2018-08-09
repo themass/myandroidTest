@@ -6,7 +6,7 @@ package com.timeline.myapp.ui.fragment;//package com.timeline.myapp.ui.fragment;
 //import android.view.View;
 //
 //import com.sspacee.yewu.ads.base.AdsContext;
-//import com.timeline.nettypea.R;
+//import com.timeline.vpn.R;
 //import com.timeline.myapp.adapter.ImgChannelListItemsViewAdapter;
 //import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
 //import com.timeline.myapp.bean.vo.ImgItemsVo;

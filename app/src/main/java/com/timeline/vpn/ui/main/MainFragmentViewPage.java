@@ -1,4 +1,4 @@
-package com.timeline.nettypea.ui.main;
+package com.timeline.vpn.ui.main;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -31,10 +31,10 @@ import com.timeline.myapp.data.config.LogAddTofile;
 import com.timeline.myapp.data.config.TabChangeEvent;
 import com.timeline.myapp.ui.base.app.BaseDrawerActivity;
 import com.timeline.myapp.ui.inte.OnBackKeyDownListener;
-import com.timeline.nettypea.R;
-import com.timeline.nettypea.ui.main.maintab.TabCustomeFragment;
-import com.timeline.nettypea.ui.main.maintab.TabMovieFragment;
-import com.timeline.nettypea.ui.main.maintab.TabVpnFragment;
+import com.timeline.vpn.R;
+import com.timeline.vpn.ui.main.maintab.TabCustomeFragment;
+import com.timeline.vpn.ui.main.maintab.TabMovieFragment;
+import com.timeline.vpn.ui.main.maintab.TabVpnFragment;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -135,8 +135,9 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
                 R.drawable.ac_bg_tab_index, R.string.tab_index, null, 1);
 //        addData(inflater, R.string.tab_tag_local, TabLocalFragment.class,
 //                    R.drawable.ac_bg_tab_index, R.string.tab_local, null, 2);
-        addData(inflater, R.string.tab_tag_movie, TabMovieFragment.class,
-                R.drawable.ac_bg_tab_index, R.string.tab_movie, null, 2);
+
+//        addData(inflater, R.string.tab_tag_movie, TabMovieFragment.class,
+//                R.drawable.ac_bg_tab_index, R.string.tab_movie, null, 2);
         addData(inflater, R.string.tab_tag_customer, TabCustomeFragment.class,
                 R.drawable.ac_bg_tab_index, R.string.tab_customer, null, 3);
 

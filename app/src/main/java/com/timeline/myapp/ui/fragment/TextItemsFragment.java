@@ -17,7 +17,7 @@ import com.timeline.myapp.data.BaseService;
 import com.timeline.myapp.data.StaticDataUtil;
 import com.timeline.myapp.ui.base.CommonFragmentActivity;
 import com.timeline.myapp.ui.base.features.LoadableFragment;
-import com.timeline.nettypea.R;
+import com.timeline.vpn.R;
 
 import butterknife.BindView;
 

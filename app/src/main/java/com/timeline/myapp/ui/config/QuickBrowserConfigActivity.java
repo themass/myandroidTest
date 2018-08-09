@@ -8,7 +8,7 @@ import com.sspacee.common.ui.base.LogActivity;
 import com.sspacee.common.util.PackageUtils;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
-import com.timeline.nettypea.R;
+import com.timeline.vpn.R;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.UserLoginUtil;
 import com.timeline.myapp.ui.base.WebViewActivity;

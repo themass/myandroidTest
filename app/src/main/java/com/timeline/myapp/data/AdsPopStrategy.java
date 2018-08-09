@@ -7,7 +7,7 @@ import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.timeline.myapp.constant.Constants;
-import com.timeline.nettypea.R;
+import com.timeline.vpn.R;
 
 /**
  * Created by themass on 2017/9/9.

@@ -13,7 +13,7 @@ import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
 import android.widget.LinearLayout;
 
-import com.timeline.nettypea.R;
+import com.timeline.vpn.R;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;

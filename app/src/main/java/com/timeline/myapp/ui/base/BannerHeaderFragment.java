@@ -12,7 +12,7 @@ import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.timeline.myapp.data.UserLoginUtil;
 import com.timeline.myapp.data.config.HindBannerEvent;
-import com.timeline.nettypea.R;
+import com.timeline.vpn.R;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;

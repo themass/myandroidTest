@@ -27,7 +27,7 @@ package com.timeline.myapp.ui.fragment;//package com.timeline.myapp.ui.fragment;
 //import com.sspacee.common.util.PreferenceUtils;
 //import com.sspacee.common.util.ToastUtil;
 //import com.sspacee.yewu.net.NetUtils;
-//import com.timeline.nettypea.R;
+//import com.timeline.vpn.R;
 //import com.timeline.myapp.adapter.SoundItemsViewAdapter;
 //import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
 //import com.timeline.myapp.bean.vo.InfoListVo;

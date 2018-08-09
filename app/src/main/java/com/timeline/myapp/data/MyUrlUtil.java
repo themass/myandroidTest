@@ -13,7 +13,7 @@ import com.sspacee.yewu.um.MobAgent;
 import com.timeline.myapp.bean.vo.VersionVo;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.ui.base.WebViewActivity;
-import com.timeline.nettypea.R;
+import com.timeline.vpn.R;
 
 import java.util.Date;
 

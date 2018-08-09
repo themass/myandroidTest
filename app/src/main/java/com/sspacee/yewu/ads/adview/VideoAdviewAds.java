@@ -8,7 +8,7 @@ import com.kyview.interfaces.AdViewVideoListener;
 import com.kyview.manager.AdViewVideoManager;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.VideoAdsInter;
-import com.timeline.nettypea.R;
+import com.timeline.vpn.R;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.task.ScoreTask;
 

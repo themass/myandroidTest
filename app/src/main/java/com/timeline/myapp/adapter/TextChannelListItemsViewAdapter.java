@@ -17,7 +17,7 @@ import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.myapp.bean.vo.TextItemsVo;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.HistoryUtil;
-import com.timeline.nettypea.R;
+import com.timeline.vpn.R;
 
 import java.util.List;
 

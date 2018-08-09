@@ -16,7 +16,7 @@ import com.timeline.myapp.bean.vo.IWannaVo;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.UserLoginUtil;
 import com.timeline.myapp.task.IWannaLikeTask;
-import com.timeline.nettypea.R;
+import com.timeline.vpn.R;
 
 import java.util.Date;
 import java.util.List;

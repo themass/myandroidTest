@@ -13,7 +13,7 @@ import com.sspacee.common.util.LogUtil;
 import com.timeline.myapp.data.ImagePhotoLoad;
 import com.timeline.myapp.data.LocationUtil;
 import com.timeline.myapp.ui.fragment.LocationVipChooseFragment;
-import com.timeline.nettypea.R;
+import com.timeline.vpn.R;
 
 /**
  * Created by themass on 2016/3/1.

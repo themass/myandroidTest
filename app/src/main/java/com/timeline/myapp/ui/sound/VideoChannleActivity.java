@@ -9,7 +9,7 @@ import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.timeline.myapp.ui.base.app.BaseFragmentActivity;
 import com.timeline.myapp.ui.fragment.body.VideoChannleBodyFragment;
-import com.timeline.nettypea.R;
+import com.timeline.vpn.R;
 
 /**
  * Created by themass on 2015/9/1.
