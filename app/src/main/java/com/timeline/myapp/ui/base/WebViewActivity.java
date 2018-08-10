@@ -75,14 +75,14 @@ public class WebViewActivity extends BaseFragmentActivity implements MyWebView.O
         adsDelayGone();
         adsNeed = getIntent().getBooleanExtra(Constants.ADS_SHOW_CONFIG, false);
         adsPopNeed = getIntent().getBooleanExtra(Constants.ADS_POP_SHOW_CONFIG, false);
-        if(adsPopNeed && AdsContext.rateShow()){
-            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN4,false);
+        if(adsPopNeed){
+            AdsContext.showRand(this);
         }
         audioMngHelper = new AudioMngHelper(this);
     }
 
     public boolean needShow() {
-        return adsNeed || super.needShow();
+        return adsNeed;
     }
 
     @Override

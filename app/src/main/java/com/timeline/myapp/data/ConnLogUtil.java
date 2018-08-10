@@ -6,6 +6,7 @@ import android.os.AsyncTask;
 import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.common.util.DateUtils;
 import com.sspacee.common.util.GsonUtils;
+import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.StringUtils;
 import com.sspacee.yewu.net.NetUtils;
 import com.timeline.myapp.bean.form.ConnLog;
@@ -46,7 +47,11 @@ public class ConnLogUtil {
 
         @Override
         protected Boolean doInBackground(String... params) {
-            DBManager.getInstance().getDaoSession().getConnLogDao().insert(log);
+            try {
+                DBManager.getInstance().getDaoSession().getConnLogDao().insert(log);
+            }catch (Throwable e){
+                LogUtil.e(e);
+            }
             return Boolean.TRUE;
         }
     }
@@ -61,12 +66,16 @@ public class ConnLogUtil {
 
         @Override
         protected Boolean doInBackground(String... params) {
-            List<ConnLog> logs =  DBManager.getInstance().getDaoSession().getConnLogDao().loadAll();
-            DBManager.getInstance().getDaoSession().getConnLogDao().deleteAll();
-            if(!CollectionUtils.isEmpty(logs)){
-                ConnLogForm form = new ConnLogForm();
-                form.log = GsonUtils.getInstance().toJson(logs);
-                indexService.postData(Constants.getUrl(Constants.API_CONNLOG_URL),form,null,null,"tag", NullReturnVo.class);
+            try {
+                List<ConnLog> logs = DBManager.getInstance().getDaoSession().getConnLogDao().loadAll();
+                DBManager.getInstance().getDaoSession().getConnLogDao().deleteAll();
+                if (!CollectionUtils.isEmpty(logs)) {
+                    ConnLogForm form = new ConnLogForm();
+                    form.log = GsonUtils.getInstance().toJson(logs);
+                    indexService.postData(Constants.getUrl(Constants.API_CONNLOG_URL), form, null, null, "tag", NullReturnVo.class);
+                }
+            }catch (Throwable e){
+                LogUtil.e(e);
             }
             return Boolean.TRUE;
         }

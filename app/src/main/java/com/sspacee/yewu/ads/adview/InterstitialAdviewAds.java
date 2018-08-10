@@ -25,7 +25,7 @@ public class InterstitialAdviewAds extends InterstitialAdsInter {
     @Override
     public void interstitialAds(final Context context, final Handler handler,final String key, final boolean score){
         try {
-            LogUtil.i("adview interstitialAds req");
+            LogUtil.i("adview interstitialAds req"+key);
             AdViewInstlManager.getInstance(context).requestAd(context, key, new AdViewInstlListener() {
 
                 @Override
@@ -48,16 +48,18 @@ public class InterstitialAdviewAds extends InterstitialAdsInter {
                     readyAds(context,handler, AdsContext.AdsFrom.ADVIEW);
                     AdViewInstlManager.getInstance(context)
                             .showAd(context, key);
-                    if(score){
-                        String msg = context.getResources().getString(R.string.tab_fb_click) + Constants.ADS_SHOW_SCORE;
-                        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
-                        ScoreTask.start(context, Constants.ADS_SHOW_SCORE);
-                    }
+//                    if(score){
+//                        String msg = context.getResources().getString(R.string.tab_fb_click) + Constants.ADS_SHOW_SCORE;
+//                        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
+//                        ScoreTask.start(context, Constants.ADS_SHOW_SCORE);
+//                    }
                 }
 
                 @Override
                 public void onAdFailed(String s) {
                     noAds(context,handler, AdsContext.AdsFrom.ADVIEW);
+                    if(!AdsContext.Categrey.CATEGREY_VPN3.key.equals(key))
+                        AdsContext.showRand(context, AdsContext.Categrey.CATEGREY_VPN3);
                 }
             });
         } catch (Throwable e) {

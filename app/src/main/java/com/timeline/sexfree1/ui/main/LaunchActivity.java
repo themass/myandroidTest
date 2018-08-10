@@ -100,7 +100,7 @@ public class LaunchActivity extends LogActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        mHandler.postDelayed(mStartMainRunnable, Constants.STARTUP_SHOW_TIME_7000);
+        mHandler.postDelayed(mStartMainRunnable, Constants.STARTUP_SHOW_TIME_6000);
         MobAgent.onResume(this);
         AdsManager.getInstans().showSplashAds(this,ivAds,skipView);
         AdsManager.getInstans().reqVideo(this);

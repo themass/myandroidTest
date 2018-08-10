@@ -94,9 +94,8 @@ public class VideoShowActivityj extends AppCompatActivity {
         public void  onEvent(int type, Object url, int screen, Object... objects) {
             switch (type) {
                 case JZUserAction.ON_CLICK_PAUSE:
-                    if(AdsContext.rateShow()){
-                        AdsManager.getInstans().showInterstitialAds(VideoShowActivityj.this, AdsContext.Categrey.CATEGREY_VPN4,false);
-                    }                    break;
+                    AdsContext.showRand(VideoShowActivityj.this);
+                    break;
                 default:break;
             }
         }

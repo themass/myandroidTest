@@ -8,6 +8,7 @@ import com.kyview.manager.AdViewInstlManager;
 import com.kyview.manager.AdViewNativeManager;
 import com.kyview.manager.AdViewSpreadManager;
 import com.kyview.manager.AdViewVideoManager;
+import com.timeline.myapp.base.MyApplication;
 
 import static com.sspacee.yewu.ads.adview.AdviewConstant.adsKeySet;
 
@@ -27,11 +28,11 @@ public class AdviewAdsManager {
         builder.setAdGdtSize(InitConfiguration.AdGdtSize.BANNER);
         builder.setAdInMobiSize(InitConfiguration.AdInMobiSize.INMOBI_AD_UNIT_468x60);
         builder.setAdSize(InitConfiguration.AdSize.BANNER_SMART);
-//        if (MyApplication.isDebug) {
-//            builder.setRunMode(InitConfiguration.RunMode.TEST);
-//        } else {
-//            builder.setRunMode(InitConfiguration.RunMode.NORMAL);
-//        }
+        if (MyApplication.isDebug) {
+            builder.setRunMode(InitConfiguration.RunMode.TEST);
+        } else {
+            builder.setRunMode(InitConfiguration.RunMode.NORMAL);
+        }
         builder.setRunMode(InitConfiguration.RunMode.NORMAL);
         builder.setInstlControlMode(InitConfiguration.InstlControlMode.UNSPECIFIED);
         initConfig = builder.build();

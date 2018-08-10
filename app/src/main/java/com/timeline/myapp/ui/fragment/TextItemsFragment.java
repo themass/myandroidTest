@@ -43,7 +43,6 @@ public class TextItemsFragment extends LoadableFragment<TextItemVo> {
         intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, true);
         intent.putExtra(CommonFragmentActivity.BANNER_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_VPN1);
         intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_SHOW, true);
-        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_CATEGRY, AdsContext.Categrey.random());
         context.startActivity(intent);
     }
 

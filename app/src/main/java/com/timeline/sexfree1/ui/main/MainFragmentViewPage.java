@@ -120,10 +120,8 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         mTabLayout = (TabLayout) findViewById(R.id.tabs);
         mViewPager = (ViewPager) findViewById(R.id.vp_view);
         initTabs();
-//        if(!UserLoginUtil.isVIP3())
-            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN2,false);
+        AdsContext.showNext(MainFragmentViewPage.this);
         ConnLogUtil.sendAllLog(this);
-
     }
 
     private void initTabs() {

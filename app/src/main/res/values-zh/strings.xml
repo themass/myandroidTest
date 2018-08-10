@@ -28,8 +28,8 @@
     <string name="tab_tag_area">Area</string>
     <string name="tab_tag_customer">customer</string>
     <string name="tab_vip_temp">内容准备中。。。敬请期待</string>
-    <string name="tab_fb_click">点我赚积分,换VIP。。+</string>
-    <string name="tab_fb_click_fast">点击频率太高，请等待5秒钟</string>
+    <string name="tab_fb_click">点广告赚积分 +</string>
+    <string name="tab_fb_click_fast">点击频率太高，请等待3秒钟</string>
     <string name="tab_fb_click_wifi">请在断开VPN下使用 </string>
     <!-- Application -->
     <string name="app_name">爱Freedom</string>
@@ -49,12 +49,12 @@
     <string name="location_choose_ping">Ping：</string>
     <string name="menu_haha">呦！被你发现了</string>
     <!-- menu -->
-    <string name="menu_btn_donation">捐款</string>
+    <string name="menu_btn_donation">爱心</string>
     <string name="menu_btn_login">立即登录</string>
     <string name="menu_btn_login_ready">已登录</string>
     <string name="menu_btn_name_default">猴子请来的</string>
     <string name="menu_btn_feedback">反馈 &amp; 建议</string>
-    <string name="menu_btn_about">关于</string>
+    <string name="menu_btn_about">关于Afreedom: 积分获取</string>
     <string name="menu_btn_email">邮箱:</string>
     <string name="menu_btn_share">分享</string>
     <string name="menu_btn_bug">报告bug</string>

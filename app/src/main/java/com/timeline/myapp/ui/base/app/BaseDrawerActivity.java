@@ -113,14 +113,22 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         setUpLocation();
         baseService = new BaseService();
         baseService.setup(this);
+        showmiDona();
+//        if(MyApplication.isTemp){
+////            tvDesc1.setVisibility(View.GONE);
+////            tvDesc.setVisibility(View.GONE);
+//            miDona.setVisible(false);
+//            miApprecommond.setVisible(false);
+//        }
+    }
+    private void showmiDona(){
+        UserInfoVo vo = UserLoginUtil.getUserCache();
+        boolean canScore = vo==null?false:vo.score>300;
         if(MyApplication.isTemp){
-//            tvDesc1.setVisibility(View.GONE);
-//            tvDesc.setVisibility(View.GONE);
-            miDona.setVisible(false);
+            miDona.setVisible(canScore);
             miApprecommond.setVisible(false);
         }
     }
-
     private void setUpLocation() {
         boolean flag = PreferenceUtils.getPrefBoolean(this, Constants.LOCATION_FLAG, false);
         if (!flag) {
@@ -171,6 +179,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(UserLoginEvent event) {
         setUpUserMenu();
+        showmiDona();
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -214,7 +223,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         if (SystemUtils.isZH(this)) {
             url = Constants.ABOUT_ZH;
         }
-        url = url + "?" + DateUtils.format(new Date(), DateUtils.DATE_FORMAT);
+        url = url + "?" + DateUtils.format(new Date(), DateUtils.DATE_FORMAT_MM);
         WebViewActivity.startWebViewActivity(this, url, getString(R.string.menu_btn_about), false, false, null);
         PreferenceUtils.setPrefBoolean(this, Constants.ABOUT_FIRST, true);
         MobAgent.onEventMenu(this, "关于");

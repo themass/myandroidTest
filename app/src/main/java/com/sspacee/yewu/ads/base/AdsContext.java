@@ -19,8 +19,6 @@ import static com.sspacee.yewu.ads.base.AdsContext.AdsShowStatus.ADS_CLICK_MSG;
  */
 
 public class AdsContext {
-    static {
-    }
     public static enum Categrey{
         CATEGREY_VPN1("插屏:主页;   banner：主页，其他", AdviewConstant.ADS_ADVIEW_KEY1),
         CATEGREY_VPN2("插屏：vpn页 ;   banner：vip页，文字，图片，声音",AdviewConstant.ADS_ADVIEW_KEY2),
@@ -32,15 +30,16 @@ public class AdsContext {
             this.desc =desc;
             this.key =key;
         }
-        public static void randomShow(Context context){
-            int size = AdsContext.Categrey.values().length;
-            AdsManager.getInstans().showInterstitialAds(context,AdsContext.Categrey.values()[Md5.getRandom(size)] , true);
-        }
-        public static Categrey random(){
-            int size = AdsContext.Categrey.values().length;
-            return AdsContext.Categrey.values()[Md5.getRandom(size)];
-        }
+//        public static void randomShow(Context context){
+//            int size = AdsContext.Categrey.values().length;
+//            AdsManager.getInstans().showInterstitialAds(context,AdsContext.Categrey.values()[Md5.getRandom(size)] , true);
+//        }
+//        public static Categrey random(){
+//            int size = AdsContext.Categrey.values().length;
+//            return AdsContext.Categrey.values()[Md5.getRandom(size)];
+//        }
     }
+
     public static enum  AdsType {
         ADS_TYPE_INIT ("初始化"),
         ADS_TYPE_BANNER("BANNER广告"),
@@ -105,13 +104,13 @@ public class AdsContext {
             return i<=3;
         }else if(UserLoginUtil.isVIP2()){
             int i = Md5.getRandom(Constants.maxRate);
-            return i<=4;
+            return i<=6;
         }else if(UserLoginUtil.isVIP()){
             int i = Md5.getRandom(Constants.maxRate);
-            return i<=5;
+            return i<=8;
         }else{
             int i = Md5.getRandom(Constants.maxRate);
-            return i<=7;
+            return i<=9;
         }
 
     }
@@ -132,6 +131,34 @@ public class AdsContext {
             ScoreTask.start(context, Constants.ADS_SHOW_CLICK);
         }
     }
-
+    public static int index=0;
+    public static Categrey getNext(){
+        int size = AdsContext.Categrey.values().length;
+        return AdsContext.Categrey.values()[(index++)%2];
+    }
+    public static void showNext(Context context){
+        if(UserLoginUtil.showAds()) {
+            int size = AdsContext.Categrey.values().length;
+            AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.values()[(index++) % 2], false);
+        }
+    }
+    public static void showNextAbs(Context context){
+        int size = AdsContext.Categrey.values().length;
+        AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.values()[(index++) % 2], false);
+    }
+    public static void showRand(Context context){
+        if(UserLoginUtil.showAds()) {
+            if (AdsContext.rateShow()) {
+                showNext(context);
+            }
+        }
+    }
+    public static void showRand(Context context,AdsContext.Categrey cate){
+        if(UserLoginUtil.showAds()) {
+            if (AdsContext.rateShow()) {
+                AdsManager.getInstans().showInterstitialAds(context, cate, false);
+            }
+        }
+    }
 
 }

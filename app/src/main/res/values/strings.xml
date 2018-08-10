@@ -28,8 +28,8 @@
     <string name="tab_tag_area">Area</string>
     <string name="tab_tag_customer">customer</string>
     <string name="tab_vip_temp">Content preparation。。。Coming soon</string>
-    <string name="tab_fb_click">Points me earn points, Change VIP。。+</string>
-    <string name="tab_fb_click_fast">Too fast,please wait 5 seconds</string>
+    <string name="tab_fb_click">Points ads to earn points +</string>
+    <string name="tab_fb_click_fast">Too fast,please wait 3 seconds</string>
     <string name="tab_fb_click_wifi">Please use it under Dis conn VPN </string>
     <!-- Application -->
     <string name="app_name">Navigation</string>
@@ -52,7 +52,7 @@
     <string name="menu_btn_login_ready">LoginOk</string>
     <string name="menu_btn_name_default">Who am i</string>
     <string name="menu_btn_feedback">Feedback </string>
-    <string name="menu_btn_about">About</string>
+    <string name="menu_btn_about">About: Afreedom Score</string>
     <string name="menu_btn_share">Share</string>
     <string name="menu_btn_bug">Report bug</string>
     <string name="menu_btn_version">Version:</string>
@@ -60,7 +60,7 @@
     <string name="menu_btn_logout">Logout</string>
     <string name="menu_btn_setting">Setting</string>
     <string name="menu_btn_app">App recommend</string>
-    <string name="menu_btn_donation">Donation</string>
+    <string name="menu_btn_donation">Support</string>
     <string name="menu_btn_support">Support author</string>
     <string name="menu_btn_about_context">FreePorn the most stable, free, unlimited，all for you！</string>
     <string name="feed_back">Feedback</string>

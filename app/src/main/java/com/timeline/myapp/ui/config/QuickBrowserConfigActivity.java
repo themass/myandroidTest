@@ -8,6 +8,7 @@ import com.sspacee.common.ui.base.LogActivity;
 import com.sspacee.common.util.PackageUtils;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
+import com.timeline.myapp.ui.sound.VideoShowActivityj;
 import com.timeline.sexfree1.R;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.UserLoginUtil;
@@ -45,7 +46,7 @@ public class QuickBrowserConfigActivity extends LogActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (adOk) {
-            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN4,false);
+            AdsContext.showRand(this);
         } else {
             finishActivity();
         }

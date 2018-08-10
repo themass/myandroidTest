@@ -46,7 +46,6 @@ public class VideoChannleActivity extends BaseFragmentActivity {
     @Override
     public void setupView() {
         super.setupView();
-        if(AdsContext.rateShow())
-            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN3,false);
+        AdsContext.showRand(this,AdsContext.Categrey.CATEGREY_VPN2);
     }
 }

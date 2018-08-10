@@ -25,16 +25,15 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
     public static final String BANNER_NEED_GONE = "BANNER_NEED_GONE";
     public static final String INTERSTITIAL_ADS_SHOW = "INTERSTITIAL_ADS_SHOW";
     public static final String BANNER_ADS_CATEGRY = "BANNER_ADS_CATEGRY";
-    public static final String INTERSTITIAL_ADS_CATEGRY = "INTERSTITIAL_ADS_CATEGRY";
+    public static final String INTERSTITIAL_ADS_CATEGRYGRY = "INTERSTITIAL_ADS_CATEGRY";
     public static final String ADSSCROLL = "ADSSCROLL";
     public static final String SLIDINGCLOSE = "SLIDINGCLOSE";
     public static final String TOOLBAR_SHOW = "TOOLBAR_SHOW";
-    private Boolean showAds = null;
+    private Boolean showAds = false;
     private boolean showInterstitialAds = false;
     private Boolean slidingClose = false;
     private Boolean toolbarShow = true;
     private AdsContext.Categrey bannerCategrey =  AdsContext.Categrey.CATEGREY_VPN1;
-    private AdsContext.Categrey interCategrey =  AdsContext.Categrey.CATEGREY_VPN1;
     private boolean needGonebanner = true;
     private Fragment fragment = null;
     @Override
@@ -57,10 +56,6 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
             bannerCategrey = (AdsContext.Categrey)o;
         }
         setFabUpVisibility(View.VISIBLE);
-        o = getIntent().getSerializableExtra(INTERSTITIAL_ADS_CATEGRY);
-        if(o!=null){
-            interCategrey = (AdsContext.Categrey)o;
-        }
         String title = null;
         Serializable name = getIntent().getSerializableExtra(TITLE);
         if (name instanceof String) {
@@ -92,8 +87,8 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
     @Override
     public void setupView() {
         super.setupView();
-        if(showInterstitialAds &&AdsContext.rateShow()){
-            AdsManager.getInstans().showInterstitialAds(this, interCategrey,false);
+        if(showInterstitialAds ){
+            AdsContext.showRand(this);
         }
     }
     @Override
@@ -101,10 +96,7 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
         return needGonebanner;
     }
     public boolean needShow() {
-        if (showAds != null) {
-            return showAds;
-        }
-        return false;
+        return showAds;
     }
 
     @Override

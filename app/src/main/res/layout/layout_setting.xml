@@ -216,7 +216,16 @@
                 </RelativeLayout>
 
                 <ImageView style="@style/divider_login" />
+                <TextView
+                    android:id="@+id/tv_about"
+                    style="@style/tv_setting"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:padding="@dimen/margin_10"
+                    android:text="@string/menu_btn_about" />
 
+                <ImageView style="@style/divider_login" />
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -300,17 +309,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/tv_about"
-                    style="@style/tv_setting"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="?android:attr/selectableItemBackground"
-                    android:padding="@dimen/margin_10"
-                    android:text="@string/menu_btn_about" />
-
-                <ImageView style="@style/divider_login" />
 
                 <TextView
                     android:id="@+id/tv_share"

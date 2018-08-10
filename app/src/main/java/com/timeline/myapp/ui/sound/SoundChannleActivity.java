@@ -36,9 +36,7 @@ public class SoundChannleActivity extends BaseFragmentActivity {
     @Override
     public void setupView() {
         super.setupView();
-        if(AdsContext.rateSmallShow()){
-            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN1,false);
-        }
+        AdsContext.showRand(this,AdsContext.Categrey.CATEGREY_VPN2);
     }
     public boolean needShow() {
         return true;

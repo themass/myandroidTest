@@ -9,8 +9,8 @@ android {
         applicationId "com.timeline.sexfree1"
         minSdkVersion 16
         targetSdkVersion 26
-        versionCode 1000002004
-        versionName "1.0.2.4"
+        versionCode 1000002008
+        versionName "1.0.2.8"
         // Enabling multidex support.
         multiDexEnabled true
         vectorDrawables.useSupportLibrary = true
@@ -79,7 +79,7 @@ android {
     }
 }
 greendao {
-    schemaVersion 1
+    schemaVersion 3
     daoPackage 'com.ping.greendao.gen'
     targetGenDir 'src/main/java'
 }
