@@ -53,7 +53,7 @@ public class ImagePhotoLoad implements ImageGalleryAdapter.ImageThumbnailLoader,
             iv.setImageResource(BaseRes.img.get(url));
         } else {
             RequestOptions options = new RequestOptions()
-                    .placeholder(R.drawable.vpn_trans_default)
+                    .placeholder(R.drawable.img_bg)
                     .priority(Priority.HIGH);
             Glide.with(context)
                     .load(url).apply(options)
@@ -79,7 +79,7 @@ public class ImagePhotoLoad implements ImageGalleryAdapter.ImageThumbnailLoader,
     public static void loadCommonImg(Context context, String url, ImageView iv) {
         RequestOptions options = new RequestOptions()
                 .fitCenter()
-                .placeholder(R.drawable.vpn_trans_default);
+                .placeholder(R.drawable.img_bg);
         Glide.with(context)
                 .load(url)
                 .apply(options)

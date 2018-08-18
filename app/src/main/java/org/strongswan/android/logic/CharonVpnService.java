@@ -45,7 +45,6 @@ import android.view.View;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 
-import com.sspacee.common.util.DateUtils;
 import com.sspacee.common.util.FileUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PreferenceUtils;
@@ -53,15 +52,13 @@ import com.sspacee.yewu.net.NetUtils;
 import com.sspacee.yewu.net.request.CommonResponse;
 import com.timeline.myapp.base.MyApplication;
 import com.timeline.myapp.bean.DataBuilder;
-import com.timeline.myapp.bean.form.ConnLog;
 import com.timeline.myapp.bean.vo.ServerVo;
 import com.timeline.myapp.bean.vo.VpnProfile;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.BaseService;
 import com.timeline.myapp.data.ConnLogUtil;
-import com.timeline.myapp.data.DBManager;
 import com.timeline.myapp.data.LocationUtil;
-import com.timeline.myapp.ui.fragment.LocationChooseFragment;
+import com.timeline.myapp.ui.fragment.LocationPageViewFragment;
 import com.timeline.vpn.R;
 import com.timeline.vpn.ui.main.MainFragmentViewPage;
 
@@ -82,7 +79,6 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
@@ -534,8 +530,8 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
     private void createForegroundService(boolean needConnecting) {
         LogUtil.i("start ForegroundService:" + mService.getState());
         if (Build.VERSION.SDK_INT >= 26) {
-            NotificationChannel channel = new NotificationChannel(N_CHANNEL, "FreeVPN", NotificationManager.IMPORTANCE_HIGH);
-            channel.setDescription("freevpn");
+            NotificationChannel channel = new NotificationChannel(N_CHANNEL, "玩家VPN", NotificationManager.IMPORTANCE_HIGH);
+            channel.setDescription("玩家VPN");
             channel.enableLights(false);
             channel.enableVibration(false);
             channel.setSound(null, null);
@@ -595,7 +591,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
                 .setDeleteIntent(pandCanel)
                 .setContent(remoteViews)
                 .setWhen(System.currentTimeMillis())// 通知产生的时间，会在通知信息里显示
-                .setTicker("FreeVPN start")
+                .setTicker("玩家VPN")
                 .setOngoing(going)
                 .setAutoCancel(true)
                 .setSmallIcon(R.drawable.remote_vpn_on)
@@ -656,7 +652,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
                     vpnClick();
                 }
             } else if (action.equals(LOCATION_BUTTON)) {
-                LocationChooseFragment.startFragment(CharonVpnService.this);
+                LocationPageViewFragment.startFragment(CharonVpnService.this);
                 collapseStatusBar(CharonVpnService.this);
             }
 

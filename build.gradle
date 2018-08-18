@@ -31,6 +31,7 @@ allprojects {
             dirs 'libs'
         }
         mavenLocal()
+
         maven {
             url "http://maven.lianjia.com/content/repositories/Lianjia-Mobile-Group"
             credentials {

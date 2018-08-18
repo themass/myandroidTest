@@ -1,5 +1,7 @@
 package com.timeline.myapp.data;
 
+import com.timeline.myapp.constant.Constants;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,5 +41,11 @@ public class StaticDataUtil {
     public static void clear() {
         data.clear();
     }
-
+    public static void checkTestIp(boolean istest){
+        if(istest){
+            StaticDataUtil.add(Constants.BASE_IP,"47.88.7.156");
+        }else{
+            StaticDataUtil.del(Constants.BASE_IP);
+        }
+    }
 }

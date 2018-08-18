@@ -86,7 +86,10 @@ public class LocationFragmentActivity extends BaseFragmentActivity implements Fa
             setToolbarTitle(title, true);
         }
     }
-
+    @Override
+    protected boolean needPingView(){
+    return true;
+}
     @Override
     public void setupView() {
         super.setupView();

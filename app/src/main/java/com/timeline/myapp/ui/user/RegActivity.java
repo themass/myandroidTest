@@ -57,6 +57,8 @@ public class RegActivity extends BaseSingleActivity {
         public void onResponse(NullReturnVo vo) {
             setEnabled(true);
             ToastUtil.showShort( R.string.reg_success);
+            startActivity(LoginActivity.class);
+            finish();
         }
     };
 

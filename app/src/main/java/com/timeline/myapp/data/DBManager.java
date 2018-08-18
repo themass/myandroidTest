@@ -14,7 +14,7 @@ import org.greenrobot.greendao.query.QueryBuilder;
 
 public class DBManager {
 
-    public static final String DB_NAME = "freeVPN";
+    public static final String DB_NAME = "vpnb";
     //多线程中要被共享的使用volatile关键字修饰
     private volatile static DBManager manager = new DBManager();
     private static DaoMaster sDaoMaster;

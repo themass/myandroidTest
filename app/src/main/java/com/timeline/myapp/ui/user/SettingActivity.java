@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.RelativeLayout;
 import android.widget.Switch;
 import android.widget.TextView;
 
@@ -15,6 +16,7 @@ import com.sspacee.common.util.FileSizeUtil;
 import com.sspacee.common.util.FileUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PreferenceUtils;
+import com.sspacee.common.util.ShareUtil;
 import com.sspacee.common.util.StringUtils;
 import com.sspacee.common.util.SystemUtils;
 import com.sspacee.common.util.ToastUtil;
@@ -28,6 +30,7 @@ import com.timeline.myapp.bean.vo.StateUseVo;
 import com.timeline.myapp.bean.vo.UserInfoVo;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.BaseService;
+import com.timeline.myapp.data.StaticDataUtil;
 import com.timeline.myapp.data.UserLoginUtil;
 import com.timeline.myapp.data.VersionUpdater;
 import com.timeline.myapp.service.LogUploadService;
@@ -47,6 +50,10 @@ import butterknife.OnClick;
 public class SettingActivity extends BaseSingleActivity {
     private static final String TAG = "setpass_tag";
 
+    @BindView(R.id.sw_test)
+    Switch swTest;
+    @BindView(R.id.rl_test)
+    RelativeLayout rlTest;
     @BindView(R.id.sw_sound)
     Switch swSound;
     @BindView(R.id.sw_notify)
@@ -59,6 +66,8 @@ public class SettingActivity extends BaseSingleActivity {
     TextView tvScore;
     @BindView(R.id.tv_version)
     TextView tvVersion;
+    @BindView(R.id.tv_qq)
+    TextView tvQQ;
     @BindView(R.id.tv_cache)
     TextView tvCache;
     @BindView(R.id.et_email)
@@ -86,6 +95,14 @@ public class SettingActivity extends BaseSingleActivity {
                 LogUtil.i("NOTIFY_SWITCH: " + isChecked);
             }
         });
+        swTest.setChecked(PreferenceUtils.getPrefBoolean(this, Constants.TEST_SWITCH, false));
+        swTest.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                PreferenceUtils.setPrefBoolean(SettingActivity.this, Constants.TEST_SWITCH, isChecked);
+                StaticDataUtil.checkTestIp(isChecked);
+                LogUtil.i("SOUND_SWITCH: " + isChecked);
+            }
+        });
         baseService = new BaseService();
         baseService.setup(this);
         setStateUse();
@@ -95,6 +112,11 @@ public class SettingActivity extends BaseSingleActivity {
         setUserEmail();
         etEmail.clearFocus();
         etEmail.setEnabled(false);
+        if(MyApplication.isDebug){
+            rlTest.setVisibility(View.VISIBLE);
+        }else{
+            rlTest.setVisibility(View.GONE);
+        }
     }
     private  void setUserEmail(){
         if(UserLoginUtil.getUserCache()!=null){
@@ -113,6 +135,7 @@ public class SettingActivity extends BaseSingleActivity {
             tvTime.setText("0 H");
             tvNet.setText("0 Gb");
         }
+        tvQQ.setText(getText(R.string.menu_btn_contract_qq)+StaticDataUtil.get(Constants.QQ,String.class));
     }
 
     private void setScore() {
@@ -192,13 +215,15 @@ public class SettingActivity extends BaseSingleActivity {
         ToastUtil.showShort(R.string.menu_copy_emai);
         MobAgent.onEventMenu(this, "联系我们");
     }
-
+    @OnClick(R.id.tv_qq)
+    public void onContractQQ(View view) {
+        SystemUtils.copy(SettingActivity.this, StaticDataUtil.get(Constants.QQ,String.class));
+        ToastUtil.showShort(R.string.menu_copy_qq);
+        MobAgent.onEventMenu(this, "QQ群");
+    }
     @OnClick(R.id.tv_about)
     public void onAbout(View view) {
-        String url = Constants.ABOUT;
-        if (SystemUtils.isZH(this)) {
-            url = Constants.ABOUT_ZH;
-        }
+        String url = Constants.ABOUT_ZH;
         url = url + "?" + DateUtils.format(new Date(), DateUtils.DATE_FORMAT_MM);
         WebViewActivity.startWebViewActivity(this, url, getString(R.string.menu_btn_about), false, false, null);
         PreferenceUtils.setPrefBoolean(this, Constants.ABOUT_FIRST, true);
@@ -224,30 +249,36 @@ public class SettingActivity extends BaseSingleActivity {
     }
 
     public void showShare() {
-        final String url = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.D_URL, null);
+        String url = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.D_URL, null);
         if (!StringUtils.hasText(url)) {
-            ToastUtil.showShort(R.string.menu_share_copy_error);
-            return;
+            url = Constants.DEFAULT_REFERER;
         }
-        String str = String.format(getResources().getString(R.string.menu_share_url), url);
-        AlertDialog.Builder confirmDialog = new AlertDialog.Builder(this);
-        confirmDialog.setTitle(R.string.menu_share_title);
-        confirmDialog.setMessage(str);
-        confirmDialog.setPositiveButton(R.string.menu_share_confirm, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                SystemUtils.copy(SettingActivity.this, url);
-                ToastUtil.showShort(R.string.menu_share_copy_ok);
-                dialog.dismiss();
-            }
-        });
-        confirmDialog.setNegativeButton(R.string.menu_share_cancel, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
-        confirmDialog.show();
+        ShareUtil util = new ShareUtil(this);
+        util.shareText(null,null,url+" 玩家VPN，最懂你的VPN", "玩家VPN","最懂你的VPN");
+//        final String url = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.D_URL, null);
+//        if (!StringUtils.hasText(url)) {
+//            ToastUtil.showShort(R.string.menu_share_copy_error);
+//            return;
+//        }
+//        String str = String.format(getResources().getString(R.string.menu_share_url), url);
+//        AlertDialog.Builder confirmDialog = new AlertDialog.Builder(this);
+//        confirmDialog.setTitle(R.string.menu_share_title);
+//        confirmDialog.setMessage(str);
+//        confirmDialog.setPositiveButton(R.string.menu_share_confirm, new DialogInterface.OnClickListener() {
+//            @Override
+//            public void onClick(DialogInterface dialog, int which) {
+//                SystemUtils.copy(SettingActivity.this, url);
+//                ToastUtil.showShort(R.string.menu_share_copy_ok);
+//                dialog.dismiss();
+//            }
+//        });
+//        confirmDialog.setNegativeButton(R.string.menu_share_cancel, new DialogInterface.OnClickListener() {
+//            @Override
+//            public void onClick(DialogInterface dialog, int which) {
+//                dialog.dismiss();
+//            }
+//        });
+//        confirmDialog.show();
     }
 
     @Override

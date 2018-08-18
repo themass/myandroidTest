@@ -61,6 +61,7 @@ public class VersionUpdater {
                     PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.LOG_UPLOAD_CONFIG, vo.logUp);
                     PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.NEED_DNSPOD_CONFIG, vo.needDnspod);
                     PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.NEED_NATIVE_ADS_CONFIG, vo.needNative);
+                    StaticDataUtil.add(Constants.QQ,vo.qq);
                     if (StringUtils.hasText(vo.dnspodIp)) {
                         HttpDNSUtil.DNS_POD_IP = vo.dnspodIp;
                     }
@@ -70,8 +71,8 @@ public class VersionUpdater {
                     if (VersionUpdater.isNewVersion(vo.maxBuild)
                             && StringUtils.hasText(vo.url)) {
                         // 有新版本
-                        //VersionUpdater.showUpdateDialog(context, vo, true);
-                        VersionUpdater.showGoogleUpdateDialog(context, vo, true);
+                        VersionUpdater.showUpdateDialog(context, vo, true);
+//                        VersionUpdater.showGoogleUpdateDialog(context, vo, true);
                     } else {
                         if (needToast)
                             ToastUtil.showShort(R.string.about_version_update_to_date);
@@ -238,7 +239,7 @@ public class VersionUpdater {
     }
 
     private static void startDownloadThread(final Context context, final String url) {
-        final File apkFile = new File(Environment.getExternalStorageDirectory(), Constants.TEMP_PATH + "/freevpn.apk");
+        final File apkFile = new File(Environment.getExternalStorageDirectory(), Constants.TEMP_PATH + "/玩家VPN.apk");
         ToastUtil.showShort(R.string.about_download_begin);
         new Thread(new DownloadRunnable(context, url, apkFile)).start();
     }
@@ -259,8 +260,8 @@ public class VersionUpdater {
             this.handler = new Handler();
             this.notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
             if (Build.VERSION.SDK_INT >= 26) {
-                NotificationChannel channel = new NotificationChannel(D_CHANNEL, "FreeVPN", NotificationManager.IMPORTANCE_HIGH);
-                channel.setDescription("freevpn");
+                NotificationChannel channel = new NotificationChannel(D_CHANNEL, "玩家VPN", NotificationManager.IMPORTANCE_HIGH);
+                channel.setDescription("玩家VPN");
                 channel.enableLights(false);
                 channel.enableVibration(false);
                 channel.setSound(null, null);
@@ -331,5 +332,26 @@ public class VersionUpdater {
             NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
             notificationManager.cancel(NOTIFICATION_ID);
         }
+    }
+
+    public static void showAlert(final Activity context) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle("注意");
+        builder.setMessage("\t\t\t\t禁止欺诈，\n" +
+                "\t\t\t\t传播病毒，\n" +
+                "\t\t\t\t非法宣传，\n" +
+                "\t\t\t\t盗取信息，\n" +
+                "\t\t\t\t一切非法活动，\n" +
+                "\t\t\t\t请文明上网。。。");
+        builder.setIcon(R.drawable.vpn_trans_default);
+        builder.setPositiveButton(R.string.about_version_confirm, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                PreferenceUtils.setPrefBoolean(context,Constants.ALERT,true);
+                dialog.dismiss();
+            }
+        });
+        builder.setCancelable(false);
+        builder.show();
     }
 }

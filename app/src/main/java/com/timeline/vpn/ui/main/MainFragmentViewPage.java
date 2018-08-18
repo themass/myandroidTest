@@ -27,15 +27,18 @@ import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.um.MobAgent;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.ConnLogUtil;
+import com.timeline.myapp.data.StaticDataUtil;
 import com.timeline.myapp.data.config.ConfigActionJump;
 import com.timeline.myapp.data.config.LogAddTofile;
 import com.timeline.myapp.data.config.TabChangeEvent;
 import com.timeline.myapp.ui.base.app.BaseDrawerActivity;
 import com.timeline.myapp.ui.inte.OnBackKeyDownListener;
+import com.timeline.myapp.ui.user.SettingActivity;
 import com.timeline.vpn.R;
 import com.timeline.vpn.ui.maintab.TabCustomeFragment;
 import com.timeline.vpn.ui.maintab.TabMovieFragment;
 import com.timeline.vpn.ui.maintab.TabVpnFragment;
+import com.timeline.vpn.ui.maintab.VpnFragment;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -67,7 +70,6 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
     private int index = 0;
     private static final String COUNTRY_TAG="COUNTRY_TAG";
     //权限检测类
-    private PermissionHelper mPermissionHelper;
     private MaterialIntroView materialIntroView;
 
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,19 +79,14 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         startService(CharonVpnService.class);
         EventBusUtil.getEventBus().register(jump);
         EventBusUtil.getEventBus().register(logAdd);
-        mPermissionHelper = new PermissionHelper(this);
         boolean uploadLog = PreferenceUtils.getPrefBoolean(this, Constants.LOG_UPLOAD_CONFIG, false);
-//        if (uploadLog) {
-//            startService(new Intent(this, LogUploadService.class));
-//        }
-        mPermissionHelper.checkNeedPermissions();
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(TabChangeEvent event) {
         initTabs();
         LogUtil.i("onEvent:initTabs");
-//        myPagerAdapter.notifyDataSetChanged();
+        myPagerAdapter.notifyDataSetChanged();
     }
 
     public void addListener(OnBackKeyDownListener keyListener) {
@@ -106,33 +103,17 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         initTabs();
         ConnLogUtil.sendAllLog(this);
         AdsContext.showNext(MainFragmentViewPage.this);
+        PermissionHelper.showPermit(this);
+        StaticDataUtil.checkTestIp(PreferenceUtils.getPrefBoolean(this, Constants.TEST_SWITCH, false));
     }
-    /**
-     * Callback received when a permissions request has been completed.
-     */
     @Override
-    public void onRequestPermissionsResult(final int requestCode, @NonNull String[] permissions,
-                                           @NonNull int[] grantResults) {
-        if (grantResults != null) {
-            for (int ret : grantResults) {
-                if (ret != PackageManager.PERMISSION_GRANTED) {
-                    finish();
-                }
-            }
-        }
-        mPermissionHelper.checkNeedPermissions();
+    protected boolean showLoc(){
+        return true;
     }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        mPermissionHelper.checkNeedPermissions();
-    }
-
     private void initTabs() {
         list.clear();
         LayoutInflater inflater = LayoutInflater.from(this);
-        addData(inflater, R.string.tab_tag_index, TabVpnFragment.class,
+        addData(inflater, R.string.tab_tag_index, VpnFragment.class,
                 R.drawable.ac_bg_tab_index, R.string.tab_index, null, 1);
 //        addData(inflater, R.string.tab_tag_local, TabLocalFragment.class,
 //                    R.drawable.ac_bg_tab_index, R.string.tab_local, null, 2);

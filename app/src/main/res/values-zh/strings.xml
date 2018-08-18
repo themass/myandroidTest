@@ -29,9 +29,9 @@
     <string name="tab_fb_click_fast">点击频率太高，请等待3秒钟</string>
     <string name="tab_fb_click_wifi">请在断开VPN下使用 </string>
     <!-- Application -->
-    <string name="app_name">FreeVPN</string>
-    <string name="main_activity_name">FreeVPN</string>
-    <string name="toobar_title">FreeVPN</string>
+    <string name="app_name">玩家VPN</string>
+    <string name="main_activity_name">玩家VPN</string>
+    <string name="toobar_title">玩家VPN</string>
     <string name="load">正在加载,请等待。</string>
     <string name="off">关闭</string>
     <string name="on">打开</string>
@@ -39,7 +39,7 @@
     <string name="location_type">类型</string>
     <string name="location_country">国家</string>
     <string name="location_features">名称&#038;Ping</string>
-    <string name="location_choose_title">请选择地区</string>
+    <string name="location_choose_title">请选择线路</string>
     <string name="location_choose_level">网络：</string>
     <string name="location_choose_none">随机</string>
     <string name="location_choose_flag_none">点击“ 地区 ”有更多国家可选</string>
@@ -48,16 +48,18 @@
     <string name="recharge">充值:</string>
     <string name="money_back_title">积分充值反馈</string>
     <!-- menu -->
-    <string name="menu_btn_donation">捐赠</string>
+    <string name="menu_btn_donation">付款</string>
     <string name="menu_btn_login">立即登录</string>
     <string name="menu_btn_login_ready">已登录</string>
     <string name="menu_btn_name_default">猴子请来的</string>
     <string name="menu_btn_feedback">反馈 &amp; 建议</string>
-    <string name="menu_btn_about">关于:FreeVPN 积分</string>
+    <string name="menu_btn_about">关于:玩家VPN 积分</string>
     <string name="menu_btn_share">分享</string>
     <string name="menu_btn_bug">报告bug</string>
     <string name="menu_btn_contract">联系我们:  email</string>
+    <string name="menu_btn_contract_qq">QQ 群: </string>
     <string name="menu_copy_emai">邮箱已复制</string>
+    <string name="menu_copy_qq">QQ号已复制</string>
     <string name="menu_btn_version">版本:</string>
     <string name="menu_btn_notify">显示通知栏:</string>
     <string name="menu_btn_logout">退出</string>
@@ -65,7 +67,7 @@
     <string name="menu_btn_support">支持一下作者</string>
     <string name="support_info">请安装并激活几款应用，支持一下作者</string>
     <string name="offerads_ths">感谢您的支持！</string>
-    <string name="menu_btn_about_context">FreeVPN最稳定，免费，不限时，一切为你请点赞！</string>
+    <string name="menu_btn_about_context">玩家VPN最稳定，免费，不限时，一切为你请点赞！</string>
     <string name="feed_back">信息反馈</string>
     <string name="menu_btn_score">积分:</string>
     <string name="menu_btn_networking">用量:</string>
@@ -76,6 +78,7 @@
     <string name="menu_btn_cache_context">缓存已清除</string>
     <string name="menu_btn_report_log">我们已收到您的问题！</string>
     <string name="menu_btn_country">地区 ：</string>
+    <string name="menu_btn_alert">注意：</string>
     <string name="menu_btn_open_browser">浏览器打开</string>
     <string name="menu_btn_copy_url">复制URL</string>
     <string name="menu_btn_favorite">收藏夹</string>
@@ -90,6 +93,7 @@
     <string name="menu_share_copy_error">分享失败</string>
     <string name="menu_share_text_only">FAIL!! 只能分享text</string>
     <string name="feedback_hint">xxx积分 VIP3</string>
+    <string name="login_song">新用户注册即可获得VIP1-7天体验</string>
     <!--登录，注册-->
     <string name="close_over">再按一次退出程序!!</string>
     <string name="login">登录</string>
@@ -141,7 +145,7 @@
     <string name="email_hint">邮箱</string>
     <string name="ref_hint">邀请人</string>
     <string name="down_to_loadmore">下来刷新更精彩</string>
-
+    <string name="location_ping">Ping：</string>
 
     <string name="hidden_area_hit">设置里可以隐藏“专区”</string>
     <string name="country_select_hit">点击选择更多地区</string>
@@ -166,7 +170,7 @@
     <string name="vpn_type_vip2">VIP2</string>
     <string name="vpn_type_vip3">VIP3</string>
     <string name="vpn_type_vip4">VIP4</string>
-    <string name="vpn_remote_status">FreeVPN·</string>
+    <string name="vpn_remote_status">玩家VPN·</string>
     <string name="vpn_remote_on">已连接，点击断开</string>
     <string name="vpn_remote_off">已断开，点击连接</string>
     <string name="vpn_remote_ing">连接中，请耐心等待</string>
@@ -182,7 +186,7 @@
     <string name="about_download_confirm_content">您现在使用的是非WIFI网络，继续下载可能会消耗较多网络流量，是否继续下载？</string>
     <string name="about_download_begin">开始下载</string>
     <string name="about_download_finish">下载完成</string>
-    <string name="about_download_title">正在下FreeVPN</string>
+    <string name="about_download_title">正在下玩家VPN</string>
     <string name="about_download_prepare">正在准备下载</string>
     <string name="about_download_error">文件下载错误</string>
     <string name="about_download_percent">正在下载 %1$s/%2$s</string>
@@ -235,6 +239,12 @@
     <string name="permission_read_phone_hint">没有此权限，无法开启这个功能，请开启权限。PERMISSION_READ_PHONE_STATE</string>
     <string name="permission_access_coarse_location_hint">没有此权限，无法开启这个功能，请开启权限。PERMISSION_ACCESS_COARSE_LOCATION</string>
     <string name="permission_white_external_hint">没有此权限，无法开启这个功能，请开启权限。PERMISSION_WRITE_EXTERNAL_STORAGE</string>
+    <string name="write_external_storage">存储</string>
+    <string name="access_coarse_location">粗略位置</string>
+    <string name="read_phone_state">设备型号</string>
+    <string name="permission_cus_title">亲爱的上帝</string>
+    <string name="permission_cus_msg">为了更好的服务，请打开权限</string>
+    <string name="cancel">取消</string>
     <string name="ads_logo">推广</string>
     <string name="skip">跳过</string>
     <string name="search">请输入搜索内容</string>

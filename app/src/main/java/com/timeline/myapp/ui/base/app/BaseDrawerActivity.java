@@ -1,5 +1,6 @@
 package com.timeline.myapp.ui.base.app;
 
+import android.content.Intent;
 import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
@@ -15,6 +16,8 @@ import android.widget.TextView;
 import com.sspacee.common.util.DateUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PreferenceUtils;
+import com.sspacee.common.util.ShareUtil;
+import com.sspacee.common.util.StringUtils;
 import com.sspacee.common.util.SystemUtils;
 import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.ads.base.AdsManager;
@@ -35,6 +38,7 @@ import com.timeline.myapp.ui.feedback.FeedbackChooseFragment;
 import com.timeline.myapp.ui.fragment.AppListFragment;
 import com.timeline.myapp.ui.fragment.DonationListFragment;
 import com.timeline.myapp.ui.fragment.FavoriteFragment;
+import com.timeline.myapp.ui.fragment.LocationPageViewFragment;
 import com.timeline.myapp.ui.user.LoginActivity;
 import com.timeline.myapp.ui.user.SettingActivity;
 import com.timeline.vpn.R;
@@ -78,13 +82,6 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     public void login(View view) {
         startActivity(LoginActivity.class);
     }
-    private void showmiDona(){
-        UserInfoVo vo = UserLoginUtil.getUserCache();
-        boolean canScore = vo==null?false:vo.score>300;
-        if(MyApplication.isTemp){
-            miDona.setVisible(canScore);
-        }
-    }
     @Override
     public void setContentView(int layoutResID) {
         LogUtil.i("setContentView   " + "drawer");
@@ -116,9 +113,6 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         setUpLocation();
         baseService = new BaseService();
         baseService.setup(this);
-        UserInfoVo vo = UserLoginUtil.getUserCache();
-        boolean canScore = vo==null?false:vo.score>300;
-        showmiDona();
     }
 
     private void setUpLocation() {
@@ -172,7 +166,6 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(UserLoginEvent event) {
         setUpUserMenu();
-        showmiDona();
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -186,11 +179,24 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     }
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(VipDescEvent event) {
-        tvDesc.setText(event.stateUse.desc);
-        tvDesc1.setText(event.stateUse.desc1);
-        tvDesc2.setText(event.stateUse.desc2);
-//        tvDesc.setText("每周减50积分，VIP状态随积分变动");
-//        tvDesc1.setText("VIP1=400积分； VIP2=600积分");
+        if(!StringUtils.hasText(event.stateUse.desc)){
+            tvDesc.setVisibility(View.GONE);
+        }else{
+            tvDesc.setVisibility(View.VISIBLE);
+            tvDesc.setText(event.stateUse.desc);
+        }
+        if(!StringUtils.hasText(event.stateUse.desc1)){
+            tvDesc1.setVisibility(View.GONE);
+        }else{
+            tvDesc1.setVisibility(View.VISIBLE);
+            tvDesc1.setText(event.stateUse.desc1);
+        }
+        if(!StringUtils.hasText(event.stateUse.desc2)){
+            tvDesc2.setVisibility(View.GONE);
+        }else{
+            tvDesc2.setVisibility(View.VISIBLE);
+            tvDesc2.setText(event.stateUse.desc2);
+        }
         setScore(event.stateUse.score);
     }
     private void setScore(Long inScore) {
@@ -211,10 +217,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         }
     }
     public void onAbout(View view) {
-        String url = Constants.ABOUT;
-        if (SystemUtils.isZH(this)) {
-            url = Constants.ABOUT_ZH;
-        }
+        String url = Constants.ABOUT_ZH;
         url = url + "?" + DateUtils.format(new Date(), DateUtils.DATE_FORMAT_MM);
         WebViewActivity.startWebViewActivity(this, url, getString(R.string.menu_btn_about), false, false, null);
         PreferenceUtils.setPrefBoolean(this, Constants.ABOUT_FIRST, true);
@@ -281,6 +284,9 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                 }  else if (item.getItemId() == R.id.menu_feedback) {
                     name = "反馈";
                     FeedbackChooseFragment.startFragment(BaseDrawerActivity.this);
+                } else if (item.getItemId() == R.id.menu_location) {
+                    name = "地区";
+                    LocationPageViewFragment.startFragment(BaseDrawerActivity.this);
                 } else if (item.getItemId() == R.id.menu_setting) {
                     name = "设置";
                     startActivity(SettingActivity.class);
@@ -291,7 +297,12 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                     name = "支持作者";
                     adsOffers();
                     ToastUtil.showShort(R.string.support_info);
-                } else if (item.getItemId() == R.id.menu_app) {
+                } else if (item.getItemId() == R.id.menu_share) {
+                    showShare();
+                    name = "分享";
+                } else if (item.getItemId() == R.id.menu_alert) {
+                    VersionUpdater.showAlert(BaseDrawerActivity.this);
+                }else if (item.getItemId() == R.id.menu_app) {
                     name = "应用推荐";
                     AppListFragment.startFragment(BaseDrawerActivity.this);
                 } else if (item.getItemId() == R.id.menu_donation) {
@@ -303,7 +314,6 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
             }
         });
     }
-
     private void adsOffers(){
         AdsManager.getInstans().offerAds(this);
     }
@@ -317,5 +327,14 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     protected void onResume() {
         super.onResume();
         MobAgent.onResumeForFragmentActiviy(this);
+    }
+
+    public void showShare() {
+        String url = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.D_URL, null);
+        if (!StringUtils.hasText(url)) {
+            url = Constants.DEFAULT_REFERER;
+        }
+        ShareUtil util = new ShareUtil(this);
+        util.shareText(null,null,url+" 玩家VPN，最懂你的VPN", "玩家VPN","最懂你的VPN");
     }
 }
