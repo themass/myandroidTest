@@ -17,7 +17,7 @@
 
     <include
         android:id="@+id/footer_view"
-        layout="@layout/footer"
+        layout="@layout/base_footer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"

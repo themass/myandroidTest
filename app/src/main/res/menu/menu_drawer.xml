@@ -1,0 +1,30 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:id="@+id/menu_group1">
+
+        <item
+            android:id="@+id/menu_signin"
+            android:icon="@drawable/ic_lock"
+            android:title="@string/singin" />
+        <item
+            android:id="@+id/menu_signout"
+            android:icon="@drawable/ic_unlock"
+            android:title="@string/singout"
+            android:visible="false"/>
+    </group>
+    <group android:id="@+id/menu_group_2">
+
+        <item
+            android:id="@+id/menu_share"
+            android:icon="@drawable/ic_m_share"
+            android:title="@string/menu_btn_share" />
+        <item
+            android:id="@+id/menu_about"
+            android:icon="@drawable/ic_m_about"
+            android:title="@string/menu_btn_about" />
+    </group>
+    <group android:id="@+id/menu_group_6">
+        <item
+            android:id="@+id/line"
+            android:title="" />
+    </group>
+</menu>

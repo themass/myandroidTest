@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/base_white"
+    android:orientation="horizontal"
+    android:paddingBottom="@dimen/margin_5"
+    android:paddingLeft="@dimen/margin_15"
+    android:paddingRight="@dimen/margin_15"
+    android:paddingTop="@dimen/margin_5">
+
+
+    <ImageView
+        android:id="@+id/iv_icon"
+        android:layout_width="@dimen/vpn_ic_size"
+        android:layout_height="@dimen/vpn_ic_size"
+        android:src="@drawable/ic_small"
+        android:layout_gravity="center_vertical"
+        android:paddingRight="@dimen/margin_5"/>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <LinearLayout
+            android:id="@+id/ll_vpn_head"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:layout_marginBottom="@dimen/margin_8">
+            <TextView
+                android:id="@+id/tv_vpn_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/base_red"
+                android:text="@string/vpn_noti_status"
+                android:textSize="@dimen/noti_vpn_title" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/margin_8"
+                android:text="enjoy time"
+                android:textColor="@color/base_black"
+                android:textSize="@dimen/noti_vpn_title" />
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <TextView
+                android:id="@+id/tv_vpn_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/base_black"
+                android:textSize="@dimen/noti_vpn_time"
+                android:paddingRight="@dimen/margin_5"/>
+            <TextView
+                android:id="@+id/tv_vpn_content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/base_black"
+                android:textSize="@dimen/noti_vpn_content" />
+        </LinearLayout>
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/ll_vpn_status"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical|right"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/btn_vpn"
+            android:visibility="gone"
+            style="@style/VpnNotifyStyle"
+            android:scaleType="fitCenter"
+            android:src="@drawable/vpn_notify_view" />
+
+        <ProgressBar
+            android:id="@+id/rb_conning"
+            android:visibility="gone"
+            style="@style/VpnNotifyStyle"
+            android:indeterminateDrawable="@drawable/vpn_notify_view"
+            android:indeterminateDuration="1800" />
+    </LinearLayout>
+</LinearLayout>

@@ -3,25 +3,9 @@
     <dimen name="default_elevation">8dp</dimen>
     <dimen name="btn_fab_size">56dp</dimen>
     <dimen name="btn_fab_margins">16dp</dimen>
-    <dimen name="global_menu_avatar_size">50dp</dimen>
-    <!-- tab -->
-    <dimen name="tab_text_size">15sp</dimen>
-    <!-- 业务-->
-    <dimen name="location_choose_width1">88dp</dimen>
-    <dimen name="location_choose_width2">80dp</dimen>
-    <dimen name="location_choose_margin">5dp</dimen>
-    <dimen name="location_choose_btn_size">17sp</dimen>
-    <dimen name="location_choose_tv_country">13sp</dimen>
-    <dimen name="location_choose_tv_type">15sp</dimen>
-    <dimen name="location_choose_tv_index">13sp</dimen>
-    <dimen name="location_choose_tv_net">14sp</dimen>
-    <dimen name="drawer_header_login_tx_size">14sp</dimen>
-    <dimen name="drawer_header_margin">16dp</dimen>
-    <dimen name="tab_index_vpn_conn">13sp</dimen>
-    <dimen name="menu_text_size">12sp</dimen>
-    <dimen name="edit_tx_size">16sp</dimen>
     <dimen name="vpn_ic_width">7dip</dimen>
     <dimen name="vpn_ic_size">30dip</dimen>
+    <dimen name="menu_text_size">12sp</dimen>
     <dimen name="textsize_10">10sp</dimen>
     <dimen name="textsize_11">11sp</dimen>
     <dimen name="textsize_12">12sp</dimen>
@@ -55,29 +39,17 @@
     <dimen name="margin_80">80dip</dimen>
     <dimen name="margin_70">70dip</dimen>
     <dimen name="margin_58">58dip</dimen>
-    <dimen name="tab_indicator_size">49dp</dimen>
-
-    <dimen name="padding_5">5dip</dimen>
-    <dimen name="padding_10">10dip</dimen>
-    <dimen name="title_height">48dip</dimen>
-    <dimen name="heart_anim_h">150dip</dimen>
-
-    <dimen name="banner_h">53dip</dimen>
-    <dimen name="vip_content_tv_size">20sp</dimen>
 
     <dimen name="loading_footer">12sp</dimen>
-    <dimen name="remote_vpn_title">13sp</dimen>
-    <dimen name="remote_vpn_time">13sp</dimen>
-    <dimen name="remote_vpn_content">14sp</dimen>
-    <dimen name="recommend_hit_size">18sp</dimen>
+    <dimen name="noti_vpn_title">13sp</dimen>
+    <dimen name="noti_vpn_time">13sp</dimen>
+    <dimen name="noti_vpn_content">14sp</dimen>
     <dimen name="toolbar_title_size">18sp</dimen>
-
+    <dimen name="recommend_text_size">18sp</dimen>
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
-    <dimen name="cover_size_mini">40dp</dimen>
-    <dimen name="inner_padding">3dp</dimen>
     <dimen name="fab_vertical_margin">-20dp</dimen>
-
+    <dimen name="vpn_conn">15sp</dimen>
     <!-- slidingclose-->
     <dimen name="fab_margin">16dp</dimen>
     <dimen name="toolbar_minHeight">0dp</dimen>

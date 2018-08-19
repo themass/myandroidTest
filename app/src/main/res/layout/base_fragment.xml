@@ -45,10 +45,10 @@
             android:layout_marginRight="@dimen/btn_fab_margins"
             android:clickable="true"
             android:scaleType="center"
-            android:src="@drawable/hand_fb"
             app:borderWidth="0dp"
             app:elevation="6dp"
             app:fabSize="normal"
+            android:visibility="gone"
             app:pressedTranslationZ="12dp"
             app:rippleColor="@color/base_red" />
 

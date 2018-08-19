@@ -6,11 +6,11 @@ android {
     compileSdkVersion 26
     buildToolsVersion "27.0.3"
     defaultConfig {
-        applicationId "com.timeline.vpn"
-        minSdkVersion 16
-        targetSdkVersion 22
-        versionCode 1000007000
-        versionName "1.0.7.0"
+        applicationId "com.qq.network"
+        minSdkVersion 18
+        targetSdkVersion 26
+        versionCode 1000008000
+        versionName "1.0.8.0"
         // Enabling multidex support.
         multiDexEnabled true
         flavorDimensions "versionCode"
@@ -45,9 +45,9 @@ android {
         }
 //        config {
 //            keyAlias 'myapp'
-//            keyPassword 'themass'
+//            keyPassword 'dengt'
 //            storeFile file('/home/web/local/mykey.jks')
-//            storePassword 'themass'
+//            storePassword 'dengt'
 //        }
     }
     buildTypes {
@@ -85,22 +85,15 @@ greendao {
 final APPCOMPAT_VERSION = '26.1.0'
 dependencies {
 
-//     implementation fileTree(dir: 'libs', include: ['*.aar'])
-//    implementation(name:'YoumiSdk_v7.5.0_2017-07-18',ext:'aar')
     implementation files('libs/gson-2.2.4.jar')
     implementation files('libs/volley.jar')
     implementation files('libs/commons-codec.jar')
-    implementation files('libs/AdViewSDK_Android.jar')
     implementation files('libs/commons-io-2.4.jar')
     implementation files('libs/httpcore-4.2.5.jar')
-    implementation files('libs/InMobi.jar')
-    implementation 'cn.jzvd:jiaozivideoplayer:6.2.12'
-    implementation files('libs/play-services_aar_adapter.jar')
-    implementation 'com.google.android.gms:play-services-ads:15.0.1'
+    implementation (name:'library-1.0.8',ext:'aar')
+    implementation (name:'radarview-1.0.2',ext:'aar')
 
-    implementation files('libs/gdt_mob_release.jar')
-    implementation files('libs/httpcore-4.2.5.jar')
-//    implementation(name: 'glide-transformations-2.0.1', ext: 'aar',)
+
     implementation "com.android.support:appcompat-v7:$APPCOMPAT_VERSION"
     implementation "com.android.support:support-v13:$APPCOMPAT_VERSION"
     implementation "com.android.support:support-v4:$APPCOMPAT_VERSION"
@@ -113,36 +106,24 @@ dependencies {
     implementation 'com.jakewharton:butterknife:8.8.1'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
     implementation 'com.jakewharton:disklrucache:2.0.2'
-    //3.4.1
     implementation 'com.squareup.okhttp3:okhttp:3.9.0'
     implementation 'com.squareup.okhttp3:logging-interceptor:3.9.0'
     implementation 'com.github.bumptech.glide:glide:4.0.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.0.0'
     implementation 'com.github.bumptech.glide:okhttp3-integration:4.0.0'
     implementation 'jp.wasabeef:glide-transformations:2.0.2'
-    // If you want to use the GPU Filters
     implementation 'jp.co.cyberagent.android.gpuimage:gpuimage-library:1.4.1'
-    implementation 'com.github.chrisbanes:PhotoView:2.1.3'
     implementation 'org.greenrobot:eventbus:3.0.0'
     implementation 'org.greenrobot:greendao:3.2.2'
-
     implementation 'com.romainpiel.shimmer:library:1.4.0@aar'
-
-    implementation 'com.github.lawloretienne:imagegallery:0.1.0'
     implementation 'com.umeng.analytics:analytics:latest.integration'
-
-    //implementation 'com.github.amlcurran.showcaseview:library:5.4.3'
-    //implementation 'com.github.wooplr:Spotlight:1.2.3'
-    implementation 'com.github.iammert:MaterialIntroView:1.6.0'
-    //implementation 'com.isanwenyu.highlight:highlight:1.8.0'
-    //implementation 'com.github.faruktoptas:FancyShowCaseView:1.0.0'
-    //implementation 'com.github.deano2390:MaterialShowcaseView:1.2.0'
     implementation 'com.sothree.slidinguppanel:library:3.3.1'
     implementation 'com.github.JakeWharton:ViewPagerIndicator:2.4.1'
+    implementation 'com.github.lawloretienne:imagegallery:0.1.0'
 
-    implementation 'com.squareup.picasso:picasso:2.5.2'
-    implementation 'com.google.android.gms:play-services-base:15.0.1'
-    implementation 'com.google.android.gms:play-services-location:15.0.1'
-    implementation 'com.google.android.gms:play-services-plus:15.0.1'
+//    compile 'com.gospelware.liquidbutton:liquidButtonLib:1.1.5'
+//    implementation 'com.king.view:radarview:1.0.2'
 
+
+//    implementation 'me.weyye.hipermission:library:1.0.7'
 }

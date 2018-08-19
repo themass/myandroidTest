@@ -45,22 +45,21 @@ import android.view.View;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 
-import com.sspacee.common.util.FileUtils;
-import com.sspacee.common.util.LogUtil;
-import com.sspacee.common.util.PreferenceUtils;
-import com.sspacee.yewu.net.NetUtils;
-import com.sspacee.yewu.net.request.CommonResponse;
-import com.timeline.myapp.base.MyApplication;
-import com.timeline.myapp.bean.DataBuilder;
-import com.timeline.myapp.bean.vo.ServerVo;
-import com.timeline.myapp.bean.vo.VpnProfile;
-import com.timeline.myapp.constant.Constants;
-import com.timeline.myapp.data.BaseService;
-import com.timeline.myapp.data.ConnLogUtil;
-import com.timeline.myapp.data.LocationUtil;
-import com.timeline.myapp.ui.fragment.LocationChooseFragment;
-import com.timeline.vpn.R;
-import com.timeline.vpn.ui.main.MainFragmentViewPage;
+import com.qq.BeanBuilder;
+import com.qq.Constants;
+import com.qq.MyApplication;
+import com.qq.ext.network.NetUtils;
+import com.qq.ext.network.req.CommonResponse;
+import com.qq.ext.util.FileUtils;
+import com.qq.ext.util.LogUtil;
+import com.qq.network.R;
+import com.qq.vpn.domain.res.ServerVo;
+import com.qq.vpn.domain.res.VpnProfile;
+import com.qq.vpn.main.MainActivity;
+import com.qq.vpn.support.ConnLogReport;
+import com.qq.vpn.support.LocationUtil;
+import com.qq.vpn.support.NetApiUtil;
+import com.qq.vpn.ui.fragment.LocationPageViewFragment;
 
 import org.strongswan.android.logic.imc.ImcState;
 import org.strongswan.android.logic.imc.RemediationInstruction;
@@ -106,9 +105,10 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
     private static final String TAG = CharonVpnService.class.getSimpleName();
     private static final String WORK_ANME = "vpnThread";
     public static volatile boolean VPN_STATUS_NOTIF = false;
-    private BaseService indexService;
+    private NetApiUtil api;
     private  NotificationManager notificationManager;
-    private static  final  String N_CHANNEL="FREEVPN_CHANNEL";
+    private static  final  String N_CHANNEL="DENGT_CHANNEL";
+    private static  final  String N_NAME="DENGT";
     /*
      * The libraries are extracted to /data/data/org.strongswan.android/...
      * during installation.  On newer releases most are loaded in JNI_OnLoad.
@@ -197,8 +197,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
                 mServiceConnection, Service.BIND_AUTO_CREATE);
         mWorkThread = new HandlerThread(WORK_ANME);
         initButtonReceiver();
-        indexService = new BaseService();
-        indexService.setup(this);
+        api = new NetApiUtil(this);
         notificationManager=(NotificationManager)getSystemService(NOTIFICATION_SERVICE);
 
     }
@@ -214,7 +213,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
     public void onDestroy() {
         LogUtil.i("charon service onDestroy");
         disconn();
-        indexService.cancelRequest(VPN_SERVER_CLICK);
+        api.cancelRequest(VPN_SERVER_CLICK);
         mWorkThread.quit();
         if (mService != null) {
             unbindService(mServiceConnection);
@@ -341,7 +340,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
     }
     private void logStatus(int status){
         try {
-            ConnLogUtil.addLog(this,mCurrentProfile.getUsername(),mCurrentProfile.getGateway(),status);
+            ConnLogReport.addLog(this,mCurrentProfile.getUsername(),mCurrentProfile.getGateway(),status);
             LogUtil.e("name=" + mCurrentProfile.getUsername() + ";ip=" + mCurrentProfile.getGateway() + "; userIp=" + NetUtils.getIP(this));
         }catch (Throwable e){
         }
@@ -513,7 +512,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
         @Override
         public void onResponse(ServerVo server) {
             if (server.hostList != null) {
-                VpnProfile pro = DataBuilder.builderVpnProfile(server.expire, server.name, server.pwd, server.hostList.get(0));
+                VpnProfile pro = BeanBuilder.builderVpnProfile(server.expire, server.name, server.pwd, server.hostList.get(0));
                 setNextProfile(pro);
             }
 
@@ -530,40 +529,36 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
     private void createForegroundService(boolean needConnecting) {
         LogUtil.i("start ForegroundService:" + mService.getState());
         if (Build.VERSION.SDK_INT >= 26) {
-            NotificationChannel channel = new NotificationChannel(N_CHANNEL, "FreeVPN", NotificationManager.IMPORTANCE_HIGH);
-            channel.setDescription("freevpn");
+            NotificationChannel channel = new NotificationChannel(N_CHANNEL, N_NAME, NotificationManager.IMPORTANCE_HIGH);
+            channel.setDescription("dengt");
             channel.enableLights(false);
             channel.enableVibration(false);
             channel.setSound(null, null);
             notificationManager.createNotificationChannel(channel);
         }
         NotificationCompat.Builder builder = new NotificationCompat.Builder(MyApplication.getInstance(),N_CHANNEL);
-        RemoteViews remoteViews = new RemoteViews(getPackageName(), R.layout.vpn_status_remote_view);
+        RemoteViews remoteViews = new RemoteViews(getPackageName(), R.layout.vpn_nofi_view);
         remoteViews.setTextViewText(R.id.tv_vpn_time, LocationUtil.getSelectName(this));
         boolean going = false;
         if (VpnStateService.State.CONNECTED.equals(mService.getState())) {
-            remoteViews.setImageViewResource(R.id.btn_vpn, R.drawable.remote_vpn_on);
-            remoteViews.setTextViewText(R.id.tv_vpn_content, getString(R.string.vpn_remote_on));
+            remoteViews.setImageViewResource(R.id.btn_vpn, R.drawable.vpn_on);
+            remoteViews.setTextViewText(R.id.tv_vpn_content, getString(R.string.vpn_noti_on));
             remoteViews.setViewVisibility(R.id.btn_vpn, View.VISIBLE);
             remoteViews.setViewVisibility(R.id.rb_conning, View.GONE);
             VPN_STATUS_NOTIF = true;
             going = true;
         } else if (VpnStateService.State.CONNECTING.equals(mService.getState()) || needConnecting) {
-            remoteViews.setImageViewResource(R.id.btn_vpn, R.drawable.remote_vpn_off);
-            remoteViews.setTextViewText(R.id.tv_vpn_content, getString(R.string.vpn_remote_ing));
+            remoteViews.setImageViewResource(R.id.btn_vpn, R.drawable.vpn_off);
+            remoteViews.setTextViewText(R.id.tv_vpn_content, getString(R.string.vpn_noti_load));
             remoteViews.setViewVisibility(R.id.btn_vpn, View.GONE);
             remoteViews.setViewVisibility(R.id.rb_conning, View.VISIBLE);
             VPN_STATUS_NOTIF = false;
             going = true;
         } else {
-            remoteViews.setImageViewResource(R.id.btn_vpn, R.drawable.remote_vpn_off);
-            remoteViews.setTextViewText(R.id.tv_vpn_content, getString(R.string.vpn_remote_off));
+            remoteViews.setImageViewResource(R.id.btn_vpn, R.drawable.vpn_off);
+            remoteViews.setTextViewText(R.id.tv_vpn_content, getString(R.string.vpn_noti_off));
             remoteViews.setViewVisibility(R.id.btn_vpn, View.VISIBLE);
             remoteViews.setViewVisibility(R.id.rb_conning, View.GONE);
-            if(!PreferenceUtils.getPrefBoolean(this, Constants.NOTIFY_SWITCH, true) ) {
-                stopForeground(true);
-                return;
-            }
             VPN_STATUS_NOTIF = false;
             going = false;
         }
@@ -576,7 +571,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
         PendingIntent locationPending = PendingIntent.getBroadcast(this, 1, locationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         remoteViews.setOnClickPendingIntent(R.id.tv_vpn_time, locationPending);
 
-        Intent intent = new Intent(this, MainFragmentViewPage.class);
+        Intent intent = new Intent(this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         PendingIntent pend =
@@ -591,10 +586,10 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
                 .setDeleteIntent(pandCanel)
                 .setContent(remoteViews)
                 .setWhen(System.currentTimeMillis())// 通知产生的时间，会在通知信息里显示
-                .setTicker("FreeVPN start")
+                .setTicker("灯塔VPN")
                 .setOngoing(going)
                 .setAutoCancel(true)
-                .setSmallIcon(R.drawable.remote_vpn_on)
+                .setSmallIcon(R.drawable.vpn_on)
         .setVibrate(new long[]{0})
         .setSound(null);
         Notification notify = builder.build();
@@ -633,7 +628,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
     }
     public void vpnClick(){
         int id = LocationUtil.getSelectLocationId(this);
-        indexService.getData(String.format(Constants.getUrl(Constants.API_SERVERLIST_URL), id), serverListener, serverListenerError, VPN_SERVER_CLICK, ServerVo.class);
+        api.getData(String.format(Constants.getUrl(Constants.API_SERVERLIST_URL), id), serverListener, serverListenerError, VPN_SERVER_CLICK, ServerVo.class);
         createForegroundService(true);
     }
 
@@ -652,7 +647,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
                     vpnClick();
                 }
             } else if (action.equals(LOCATION_BUTTON)) {
-                LocationChooseFragment.startFragment(CharonVpnService.this);
+                LocationPageViewFragment.startFragment(CharonVpnService.this);
                 collapseStatusBar(CharonVpnService.this);
             }
 
@@ -694,7 +689,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
 			/* even though the option displayed in the system dialog says "Configure"
 			 * we just use our main Activity */
             Context context = getApplicationContext();
-            Intent intent = new Intent(context, MainFragmentViewPage.class);
+            Intent intent = new Intent(context, MainActivity.class);
             PendingIntent pending = PendingIntent.getActivity(context, 0, intent,
                     PendingIntent.FLAG_UPDATE_CURRENT);
             builder.setConfigureIntent(pending);

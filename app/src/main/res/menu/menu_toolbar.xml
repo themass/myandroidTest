@@ -3,8 +3,15 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/menu_location"
-        android:actionLayout="@layout/common_actionbar_image_view"
-        android:icon="@drawable/ic_menu_space"
-        android:title="@string/menu_haha"
+        android:actionLayout="@layout/base_image_view"
+        android:icon="@drawable/ic_m_space"
+        android:title="@string/menu_no"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/menu_ping"
+        android:actionLayout="@layout/base_image_view"
+        android:icon="@drawable/ic_m_space"
+        android:title="@string/menu_no"
+        android:visible="false"
         app:showAsAction="always" />
 </menu>

@@ -14,22 +14,14 @@
 -->
 <resources>
     <!-- Material Design-->
-    <color name="style_color_primary">#2d5d82</color>
-    <color name="style_color_primary_dark">#21425d</color>
-    <color name="style_color_accent">#01bcd5</color>
+    <color name="style_color_primary">#818283</color>
+    <color name="style_color_primary_dark">#5f6060</color>
+    <color name="style_color_accent">#868e8f</color>
     <color name="style_color_primary_trans">#552d5d82</color>
     <color name="style_color_primary_trans1">#552d5d82</color>
-    <color name="btn_context_menu_normal">#ffffff</color>
-    <color name="btn_context_menu_pressed">#40000000</color>
-    <color name="btn_context_menu_text_red">#ffff0000</color>
-    <color name="btn_default_light_normal">#00000000</color>
-    <color name="btn_default_light_pressed">#40ffffff</color>
-    <color name="colorPane">#33C2CAC9</color>
-    <color name="fab_color_pressed">#007787</color>
+    <color name="fab_color_pressed">#4fdf84</color>
     <color name="fab_color_shadow">#44000000</color>
     <color name="main_dark">#FF535353</color>
-    <color name="channel_list_base_black">#698b87</color>
-    <color name="index_channel_list_base_black">#788381</color>
     <!-- base color-->
     <color name="base_white">#ffffff</color>
     <color name="base_bg">#FFE8E8E8</color>
@@ -40,48 +32,15 @@
     <color name="base_gray">#968d8d</color>
     <color name="transparent">#00000000</color>
     <color name="base_green">#26fa17</color>
-    <color name="base_green1">#47d43d</color>
+    <color name="base_green1">#65a060</color>
+    <color name="warning">#FF9909</color>
     <color name="gray">#5f5f5f</color>
     <color name="hint">#b6b2b2</color>
     <color name="click">#4588df</color>
-    <color name="heart_anim_view_bg">#662d5d82</color>
-    <color name="base_vip_ready">#6054b947</color>
     <color name="recyclerview_bg">#ffeaeaea</color>
-    <color name="reg_code">#3C9BA6</color>
-    <color name="text_bg">#60cf6246</color>
-    <color name="text_view_bg">#dce19f4f</color>
-    <color name="text_bg_white">#e0ffffff</color>
-    <!-- tab -->
-    <color name="tab_widget_text_color">#BAC4C4</color>
-    <color name="tab_indicator_color">#717981</color>
-
-    <color name="warning_text">#FF9909</color>
-    <color name="success_text">#99CC00</color>
-    <color name="panel_background">#333333</color>
-    <color name="panel_separator">#5a5a5a</color>
-
-    <!-- location -->
-    <color name="location_header_btn_bg">#39737c</color>
-    <color name="location_header_btn_click_bg">#5a5b5e</color>
     <color name="location_index">#2ca1b1</color>
-    <!---->
-    <color name="new_deep_black">#333333</color>
-    <color name="new_light_black">#999999</color>
-    <color name="new_light_green">#41bc6a</color>
-    <color name="new_globle_black">#2e313c</color>
-    <color name="btn_green_pressed">#2db259</color>
 
     <color name="line_login">#585a62</color>
-    <color name="btn_blue_normal">#3382ff</color>
-    <color name="ad_bg">#999999</color>
-
-    <!-- 标题 -->
-    <color name="text_like_counter">#2b5a83</color>
-    <color name="other">#f55220</color>
-
-
     <color name="black_translucent">#66000000</color>
     <color name="white_translucent">#c8ffffff</color>
-    <color name="song_red">#FF4081</color>
-    <color name="song_select_title">#57b9c2</color>
 </resources>
