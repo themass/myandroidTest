@@ -3,6 +3,7 @@ package com.timeline.myapp.adapter;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.support.annotation.Nullable;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,10 +14,14 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.sspacee.common.util.CollectionUtils;
+import com.sspacee.yewu.ads.base.AdsContext;
+import com.sspacee.yewu.ads.base.AdsManager;
 import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.myapp.bean.vo.LocationVo;
 import com.timeline.myapp.data.ImagePhotoLoad;
 import com.timeline.myapp.data.LocationUtil;
+import com.timeline.myapp.data.UserLoginUtil;
 import com.timeline.myapp.task.LocationPingTask;
 import com.timeline.vpn.R;
 
@@ -32,11 +37,16 @@ public class LocationItemAdapter extends BaseRecyclerViewAdapter<LocationItemAda
     private ColorStateList indexColo = null;
     private ColorStateList indexSelectColo = null;
     private boolean needPing = false;
+    private int index;
     public LocationItemAdapter(Context context, RecyclerView recyclerView, List<LocationVo> data, OnRecyclerViewItemClickListener<LocationVo> listener) {
         super(context, recyclerView, data, listener);
         chooseId = LocationUtil.getSelectLocationId(context);
         indexColo = context.getResources().getColorStateList(R.color.location_index);
         indexSelectColo = context.getResources().getColorStateList(R.color.base_red);
+        index = 0;
+        if(!CollectionUtils.isEmpty(data)){
+            index = data.get(0).type;
+        }
     }
     @Override
     public LocationItemAdapter.LocationItemView onCreateViewHolderData(ViewGroup parent, int viewType) {
@@ -57,8 +67,27 @@ public class LocationItemAdapter extends BaseRecyclerViewAdapter<LocationItemAda
         holder.tvCountry.setText(vo.name);
         holder.tvCountryEname.setText(vo.ename);
 
-        holder.rvAds.removeAllViews();
-        holder.rvAds.setVisibility(View.GONE);
+        AdsContext.Categrey one = AdsContext.Categrey.CATEGREY_VPN;
+        AdsContext.Categrey two = AdsContext.Categrey.CATEGREY_VPN1;
+        if(index%2==1) {
+            one = AdsContext.Categrey.CATEGREY_VPN2;
+            two = AdsContext.Categrey.CATEGREY_VPN3;
+        }
+        if(!UserLoginUtil.isVIP()) {
+            if (position == getItemCount() - 1) {
+                holder.rvAds.setVisibility(View.VISIBLE);
+                AdsManager.getInstans().showBannerAds((FragmentActivity) context, holder.rvAds, one);
+            } else if (position == 3) {
+                holder.rvAds.setVisibility(View.VISIBLE);
+                AdsManager.getInstans().showBannerAds((FragmentActivity) context, holder.rvAds, two);
+            } else {
+                holder.rvAds.removeAllViews();
+                holder.rvAds.setVisibility(View.GONE);
+            }
+        }else{
+            holder.rvAds.removeAllViews();
+            holder.rvAds.setVisibility(View.GONE);
+        }
         LocationPingTask.fillText(context,holder.pgPing,holder.tvPing,vo.ping);
 //        holder.tvPing.setTextColor(context.getResources().getColor(R.color.base_black));
         if(isNeedPing())

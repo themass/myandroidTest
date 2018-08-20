@@ -9,8 +9,8 @@ android {
         applicationId "com.timeline.vpn"
         minSdkVersion 16
         targetSdkVersion 26
-        versionCode 1000001102
-        versionName "1.0.1.102"
+        versionCode 1000001104
+        versionName "1.0.1.104"
         // Enabling multidex support.
         multiDexEnabled true
         flavorDimensions "versionCode"
@@ -69,10 +69,10 @@ android {
         }
     }
     productFlavors {
-        mypool {
+        wanjiamypool {
             manifestPlaceholders = [CHANNEL_VALUE: "MYPOOL", AD_CHANNEL_VALUE: "MYPOOL"]
         }
-        google {
+        wanjiagoogle {
             manifestPlaceholders = [CHANNEL_VALUE: "GOOGLEMARKET", AD_CHANNEL_VALUE: "GOOGLEMARKET"]
         }
     }

@@ -30,6 +30,7 @@ import com.sspacee.common.util.PermissionHelper;
 import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
+import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.net.HttpUtils;
 import com.sspacee.yewu.net.request.CommonResponse;
 import com.sspacee.yewu.um.MobAgent;
@@ -65,6 +66,8 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
 
     @BindView(R.id.rl_content)
     LinearLayout rlContent;
+    @BindView(R.id.rl_content_2)
+    LinearLayout rlContent2;
     @BindView(R.id.vpn)
     RadarView vpn;
     @BindView(R.id.tv_vpn_state_text)
@@ -135,8 +138,17 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
         lir = new LinearInterpolator();
         getActivity().bindService(new Intent(getActivity(), VpnStateService.class),
                 mServiceConnection, Service.BIND_AUTO_CREATE);
+        showBanner();
     }
-
+    public void showBanner(){
+        if(!UserLoginUtil.isVIP()) {
+            AdsManager.getInstans().showBannerAds(getActivity(), rlContent, AdsContext.Categrey.CATEGREY_VPN);
+            AdsManager.getInstans().showBannerAds(getActivity(), rlContent2, AdsContext.Categrey.CATEGREY_VPN3);
+        }else{
+            rlContent.setVisibility(View.GONE);
+            rlContent2.setVisibility(View.GONE);
+        }
+    }
 
     @Override
     public void onDestroyView() {
