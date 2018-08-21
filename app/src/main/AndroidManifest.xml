@@ -192,26 +192,6 @@
             android:hardwareAccelerated="true" >
         </activity>
 
-        <!-- AdView SDK for imMobi -->
-        <activity
-            android:name="com.inmobi.rendering.InMobiAdActivity"
-            android:configChanges="keyboardHidden|orientation|keyboard|smallestScreenSize|screenSize"
-            android:hardwareAccelerated="true"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
-        <!--Required Receiver for enhanced targeting for better ads.-->
-        <receiver
-            android:name="com.inmobi.commons.core.utilities.uid.ImIdShareBroadCastReceiver"
-            android:enabled="true"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="com.inmobi.share.id"/>
-            </intent-filter>
-        </receiver>
-
-        <service
-            android:name="com.inmobi.signals.activityrecognition.ActivityRecognitionManager"
-            android:enabled="true"/>
-
 
         <!-- AdView SDK for Youmi -->
         <!-- 视频组件 -->
@@ -237,17 +217,6 @@
             android:configChanges="keyboard|keyboardHidden|orientation"
             android:theme="@android:style/Theme.Translucent" >
         </activity>
-        <!-- AdView SDK for AdMob -->
-        <activity
-            android:name="com.google.android.gms.ads.AdActivity"
-            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
-            android:theme="@android:style/Theme.Translucent" />
-        <meta-data
-            android:name="com.google.android.gms.version"
-            android:value="@integer/google_play_services_version" />
-        <!--<meta-data-->
-        <!--android:name="com.google.android.gms.version"-->
-        <!--tools:replace="android:value"  android:value="8487000" />-->
 
     </application>
 

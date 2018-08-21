@@ -34,7 +34,7 @@ public class ImagePhotoLoad implements ImageGalleryAdapter.ImageThumbnailLoader,
             .priority(Priority.IMMEDIATE).format(DecodeFormat.PREFER_RGB_565);;
     public ImagePhotoLoad(Context context) {
     }
-    public static RequestManager getBuilder(Context context,String url){
+    public static RequestManager getBuilder(Context context, String url){
 
         RequestManager build = Glide.with(context);
         if(url.contains(".gif")){

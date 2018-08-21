@@ -49,7 +49,7 @@
     <string name="location_choose_ping">Ping：</string>
     <string name="menu_haha">呦！被你发现了</string>
     <!-- menu -->
-    <string name="menu_btn_donation">爱心</string>
+    <string name="menu_btn_donation">付款</string>
     <string name="menu_btn_login">立即登录</string>
     <string name="menu_btn_login_ready">已登录</string>
     <string name="menu_btn_name_default">猴子请来的</string>

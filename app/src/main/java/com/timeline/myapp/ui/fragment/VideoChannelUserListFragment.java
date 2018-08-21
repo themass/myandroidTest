@@ -49,7 +49,7 @@ public class VideoChannelUserListFragment extends RecommendFragment {
                             token = indexService.getStringData(vo.baseurl +"/getToken.php", "token");
                             LogUtil.i("蜜蜂token="+token);
                             break;
-                        } catch (Exception e) {
+                        } catch (Throwable e) {
                             LogUtil.e(e);
                             count++;
                             continue;
@@ -104,7 +104,7 @@ public class VideoChannelUserListFragment extends RecommendFragment {
         indexService.cancelRequest(VIDEO_TAG);
         super.onDestroyView();
         if(t!=null && t.isAlive()){
-            t.stop();
+            t.interrupt();
             t = null;
         }
     }

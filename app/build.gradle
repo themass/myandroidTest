@@ -9,8 +9,8 @@ android {
         applicationId "com.timeline.sexfree1"
         minSdkVersion 16
         targetSdkVersion 26
-        versionCode 1000002008
-        versionName "1.0.2.8"
+        versionCode 1000002009
+        versionName "1.0.2.9"
         // Enabling multidex support.
         multiDexEnabled true
         vectorDrawables.useSupportLibrary = true
@@ -73,9 +73,9 @@ android {
         sexmypool {
             manifestPlaceholders = [CHANNEL_VALUE: "MYPOOL", AD_CHANNEL_VALUE: "MYPOOL"]
         }
-        sexgoogle {
-            manifestPlaceholders = [CHANNEL_VALUE: "GOOGLEMARKET", AD_CHANNEL_VALUE: "GOOGLEMARKET"]
-        }
+//        sexgoogle {
+//            manifestPlaceholders = [CHANNEL_VALUE: "GOOGLEMARKET", AD_CHANNEL_VALUE: "GOOGLEMARKET"]
+//        }
     }
 }
 greendao {
@@ -85,23 +85,24 @@ greendao {
 }
 final APPCOMPAT_VERSION = '26.1.0'
 dependencies {
-    //     implementation fileTree(dir: 'libs', include: ['*.aar'])
     //    implementation(name:'YoumiSdk_v7.5.0_2017-07-18',ext:'aar')
-    implementation files('libs/gson-2.2.4.jar')
-    implementation files('libs/volley.jar')
-    implementation files('libs/commons-codec.jar')
-    //    implementation files('libs/BaiduLBS_Android.jar')
-    implementation files('libs/AdViewSDK_Android.jar')
-    implementation files('libs/commons-io-2.4.jar')
-    implementation files('libs/httpcore-4.2.5.jar')
-    implementation 'cn.jzvd:jiaozivideoplayer:6.2.12'
-    implementation files('libs/play-services_aar_adapter.jar')
-    implementation 'com.google.android.gms:play-services-ads:15.0.1'
-    implementation files('libs/gdt_mob_release.jar')
-    implementation files('libs/httpcore-4.2.5.jar')
-    implementation files('libs/InMobi.jar')
-    implementation(name: 'YoumiSdk_v7.5.0_2017-07-18', ext: 'aar')
-    //    implementation(name: 'glide-transformations-2.0.1', ext: 'aar',)
+//    implementation files('libs/gson-2.2.4.jar')
+//    implementation files('libs/volley.jar')
+//    implementation files('libs/commons-codec.jar')
+//    //    implementation files('libs/BaiduLBS_Android.jar')
+//    implementation files('libs/AdViewSDK_Android.jar')
+//    implementation files('libs/commons-io-2.4.jar')
+//    implementation files('libs/httpcore-4.2.5.jar')
+////    implementation 'com.google.android.gms:play-services-ads:15.0.1'
+//    implementation files('libs/gdt_mob_release.jar')
+//    implementation files('libs/httpcore-4.2.5.jar')
+//    implementation files('libs/InMobi.jar')
+//    implementation(name: 'YoumiSdk_v7.5.0_2017-07-18', ext: 'aar')
+
+    implementation fileTree(dir: 'libs', include: ['*.aar'])
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+
     implementation "com.android.support:appcompat-v7:$APPCOMPAT_VERSION"
     implementation "com.android.support:support-v13:$APPCOMPAT_VERSION"
     implementation "com.android.support:support-v4:$APPCOMPAT_VERSION"
@@ -131,6 +132,7 @@ dependencies {
     implementation 'com.github.lawloretienne:imagegallery:0.1.0'
     implementation 'com.umeng.analytics:analytics:latest.integration'
     implementation 'com.github.JakeWharton:ViewPagerIndicator:2.4.1'
+    implementation 'cn.jzvd:jiaozivideoplayer:6.2.12'
 
     //    implementation 'com.zhy:flowlayout-lib:1.0.3'
     //implementation 'com.github.amlcurran.showcaseview:library:5.4.3'
@@ -146,10 +148,10 @@ dependencies {
     //        transitive = true
     //    }
 //    implementation 'com.inmobi.monetization:inmobi-ads:7.1.1'
-    implementation 'com.squareup.picasso:picasso:2.5.2'
-    implementation 'com.google.android.gms:play-services-base:15.0.1'
-    implementation 'com.google.android.gms:play-services-location:15.0.1'
-    implementation 'com.google.android.gms:play-services-plus:15.0.1'
+//    implementation 'com.squareup.picasso:picasso:2.5.2'
+//    implementation 'com.google.android.gms:play-services-base:15.0.1'
+//    implementation 'com.google.android.gms:play-services-location:15.0.1'
+//    implementation 'com.google.android.gms:play-services-plus:15.0.1'
 
     implementation project(path: ':vitamio')
 }

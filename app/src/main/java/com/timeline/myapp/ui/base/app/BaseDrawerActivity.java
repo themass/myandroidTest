@@ -15,6 +15,8 @@ import android.widget.TextView;
 import com.sspacee.common.util.DateUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PreferenceUtils;
+import com.sspacee.common.util.ShareUtil;
+import com.sspacee.common.util.StringUtils;
 import com.sspacee.common.util.SystemUtils;
 import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.ads.base.AdsManager;
@@ -305,13 +307,23 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                 } else if (item.getItemId() == R.id.menu_donation) {
                     name = "捐赠";
                     DonationListFragment.startFragment(BaseDrawerActivity.this);
+                } else if (item.getItemId() == R.id.menu_share) {
+                    showShare();
+                    name = "分享";
                 }
                 MobAgent.onEventMenu(BaseDrawerActivity.this, name);
                 return false;
             }
         });
     }
-
+    public void showShare() {
+        String url = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.D_URL, null);
+        if (!StringUtils.hasText(url)) {
+            url = Constants.DEFAULT_REFERER;
+        }
+        ShareUtil util = new ShareUtil(this);
+        util.shareText(null,null,url+" 爱Freedom，精彩你的生活","爱Freedom","精彩你的生活");
+    }
     private void adsOffers(){
         AdsManager.getInstans().offerAds(this);
     }
