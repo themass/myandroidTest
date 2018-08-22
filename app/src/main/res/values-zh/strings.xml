@@ -94,6 +94,8 @@
     <string name="menu_share_text_only">FAIL!! 只能分享text</string>
     <string name="feedback_hint">xxx积分 VIP3</string>
     <string name="login_song">新用户注册即可获得VIP1-7天体验</string>
+    <string name="login_song_qq">加入QQ群免费体验vip2，详见“设置”</string>
+    <string name="login_copy_qq">QQ号已复制到剪切板</string>
     <!--登录，注册-->
     <string name="close_over">再按一次退出程序!!</string>
     <string name="login">登录</string>

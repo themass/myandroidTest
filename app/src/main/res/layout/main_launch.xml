@@ -10,7 +10,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:background="@drawable/ic_lunch_bottom" />
+        android:background="@drawable/ic_lunch_bottom_2" />
 
     <RelativeLayout
         android:id="@+id/rl_spread"

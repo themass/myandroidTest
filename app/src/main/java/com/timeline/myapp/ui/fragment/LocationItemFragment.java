@@ -11,6 +11,8 @@ import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.GsonUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PreferenceUtils;
+import com.sspacee.common.util.SystemUtils;
+import com.sspacee.common.util.ToastUtil;
 import com.timeline.myapp.adapter.LocationItemAdapter;
 import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.myapp.bean.vo.InfoListVo;
@@ -18,9 +20,12 @@ import com.timeline.myapp.bean.vo.LocationVo;
 import com.timeline.myapp.bean.vo.VipLocationVo;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.LocationUtil;
+import com.timeline.myapp.data.StaticDataUtil;
+import com.timeline.myapp.data.UserLoginUtil;
 import com.timeline.myapp.data.config.LocationChooseEvent;
 import com.timeline.myapp.data.config.PingEvent;
 import com.timeline.myapp.ui.base.features.BasePullLoadbleFragment;
+import com.timeline.myapp.ui.user.SettingActivity;
 import com.timeline.vpn.R;
 
 import org.greenrobot.eventbus.Subscribe;
@@ -80,6 +85,17 @@ public class LocationItemFragment extends BasePullLoadbleFragment<LocationVo> {
     @Override
     public void onItemClick(View view, LocationVo data, int postion) {
         LogUtil.i(postion + "---" + GsonUtils.getInstance().toJson(data));
+        if(data.type!=Constants.UserLevel.LEVEL_FREE &&UserLoginUtil.getUserCache()==null){
+            if(data.type==Constants.UserLevel.LEVEL_VIP){
+                ToastUtil.showShort(R.string.login_song);
+                return;
+            }else  if(data.type==Constants.UserLevel.LEVEL_VIP2){
+                ToastUtil.showShort(R.string.login_song_qq);
+                SystemUtils.copy(getActivity(), StaticDataUtil.get(Constants.QQ,String.class));
+                ToastUtil.showShort(getString(R.string.menu_copy_qq)+" : "+StaticDataUtil.get(Constants.QQ,String.class));
+                return;
+            }
+        }
         PreferenceUtils.setPrefBoolean(getActivity(), Constants.LOCATION_FLAG, true);
         LocationUtil.setLocation(getActivity(), data);
         EventBusUtil.getEventBus().postSticky(new LocationChooseEvent());

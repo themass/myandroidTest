@@ -84,6 +84,8 @@
     <string name="location_choose_flag_none">Click“ Region ”More regional options</string>
     <string name="menu_btn_donation">Paid</string>
     <string name="login_song">New user get VIP1-7 days free</string>
+    <string name="login_song_qq">Join in QQ vip2 free ，see“setting”</string>
+    <string name="login_copy_qq">QQ has copy</string>
     <string name="cancel">Cancel</string>
     <!-- share-->
     <string name="menu_share_title">Share friend</string>

@@ -181,9 +181,9 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
             VersionUpdater.showAlert(getActivity());
             return ;
         }
-        if(UserLoginUtil.getUserCache()==null){
-            ToastUtil.showLong(R.string.login_song);
-        }
+//        if(UserLoginUtil.getUserCache()==null){
+//            ToastUtil.showLong(R.string.login_song);
+//        }
         if (mService != null) {
             LogUtil.i("onVpnClick " + mService.getState());
             if (mService.getState() == VpnStateService.State.CONNECTED) {

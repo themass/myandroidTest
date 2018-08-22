@@ -117,7 +117,7 @@ public class AdsContext {
         MobAgent.onEventAds(context, type, event);
         if (event == ADS_CLICK_MSG) {
             String msg = context.getResources().getString(R.string.tab_fb_click) + Constants.ADS_SHOW_CLICK;
-            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
+//            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
             ScoreTask.start(context, Constants.ADS_SHOW_CLICK);
         }
     }
