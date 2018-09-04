@@ -28,6 +28,7 @@
     <string name="tab_fb_click">Points ads to earn points +</string>
     <string name="tab_fb_click_fast">Too fast,please wait 3 seconds</string>
     <string name="tab_fb_click_wifi">Please use it under Dis conn VPN </string>
+    <string name="location_ping">Ping：</string>
     <!-- Application -->
     <string name="app_name">FreeVPN</string>
     <string name="main_activity_name">FreeVPN</string>
@@ -79,7 +80,7 @@
     <string name="support_info">Please activate several apps to support the author！</string>
     <string name="offerads_ths">Thank you for your support!</string>
     <string name="location_choose_flag_none">Click“ Region ”More regional options</string>
-    <string name="menu_btn_donation">Donation</string>
+    <string name="menu_btn_donation">Paid</string>
 
     <!-- share-->
     <string name="menu_share_title">Share friend</string>
@@ -248,5 +249,11 @@ You are now using a non WIFI network, continue to download may consume more netw
         <item>Alipay</item>
         <item>Other</item>
     </string-array>
+    <string name="write_external_storage">storage</string>
+    <string name="access_coarse_location">location</string>
+    <string name="read_phone_state">device model</string>
+    <string name="permission_cus_title">Dear God</string>
+    <string name="permission_cus_msg">For better servic, open these permissions! </string>
+    <string name="cancel">Cancel</string>
     <!--广告-->
 </resources>

@@ -9,12 +9,12 @@ import android.widget.TextView;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.StringUtils;
 import com.sspacee.yewu.net.HttpUtils;
-import com.timeline.vpn.R;
 import com.timeline.myapp.bean.vo.LocationVo;
+import com.timeline.vpn.R;
 
 
 /**
- * Created by themass on 2016/3/8.
+ * Created by dengt on 2016/3/8.
  */
 public class LocationPingTask extends AsyncTask<Void, Void, Void> {
     Context context;
@@ -35,10 +35,10 @@ public class LocationPingTask extends AsyncTask<Void, Void, Void> {
             new LocationPingTask(context, vo, bar, tvPing).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         }
     }
-    private static void fillText(Context context,ProgressBar bar, TextView tvPing,Integer ping){
+    public static void fillText(Context context,ProgressBar bar, TextView tvPing,Integer ping){
         bar.setVisibility(View.GONE);
         tvPing.setVisibility(View.VISIBLE);
-        if(-1 ==ping){
+        if(ping==null || -1 ==ping){
             tvPing.setTextColor(context.getResources().getColor(R.color.base_black));
             tvPing.setText(" no ping");
             return;

@@ -13,11 +13,9 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.sspacee.common.util.SystemUtils;
-import com.sspacee.yewu.ads.base.AdsContext;
 import com.timeline.myapp.bean.vo.InfoListVo;
 import com.timeline.myapp.bean.vo.VipLocationVo;
 import com.timeline.myapp.constant.Constants;
-import com.timeline.myapp.data.BaseService;
 import com.timeline.myapp.ui.base.CommonFragmentActivity;
 import com.timeline.myapp.ui.base.LocationFragmentActivity;
 import com.timeline.myapp.ui.base.features.LoadableFragment;
@@ -27,9 +25,9 @@ import com.viewpagerindicator.TabPageIndicator;
 import butterknife.BindView;
 
 /**
- * Created by themass on 2016/8/12.
+ * Created by dengt on 2016/8/12.
  */
-public class LocationVipChooseFragment extends LoadableFragment<InfoListVo<VipLocationVo>> {
+public class LocationPageViewFragment extends LoadableFragment<InfoListVo<VipLocationVo>> {
     private static final String LOCATION_TAG = "location_tag";
     @Nullable
     @BindView(R.id.indicator)
@@ -41,12 +39,8 @@ public class LocationVipChooseFragment extends LoadableFragment<InfoListVo<VipLo
     FragmentPagerAdapter adapter;
     public static void startFragment(Context context) {
         Intent intent = new Intent(context, LocationFragmentActivity.class);
-        intent.putExtra(CommonFragmentActivity.FRAGMENT, LocationVipChooseFragment.class);
+        intent.putExtra(CommonFragmentActivity.FRAGMENT, LocationPageViewFragment.class);
         intent.putExtra(CommonFragmentActivity.TITLE, getFragmentTitle());
-        intent.putExtra(CommonFragmentActivity.SLIDINGCLOSE, true);
-        intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, false);
-        intent.putExtra(CommonFragmentActivity.ADSSCROLL, true);
-        intent.putExtra(CommonFragmentActivity.BANNER_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_VPN2);
         context.startActivity(intent);
     }
 
@@ -56,18 +50,15 @@ public class LocationVipChooseFragment extends LoadableFragment<InfoListVo<VipLo
 
     @Override
     protected void onContentViewCreated(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
-        inflater.inflate(R.layout.layout_location_vip_choose_fragment, parent);
+        inflater.inflate(R.layout.layout_location_page_fragment, parent);
     }
 
     @Override
     public void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
-        indexService = new BaseService();
-        indexService.setup(getActivity());
         adapter = new TabPageIndicatorAdapter(getChildFragmentManager());
         viewPager.setAdapter(adapter);
         indicator.setViewPager(viewPager);
-
     }
 
     @Override
@@ -99,7 +90,7 @@ public class LocationVipChooseFragment extends LoadableFragment<InfoListVo<VipLo
         @Override
         public Fragment getItem(int position) {
             //新建一个Fragment来展示ViewPager item的内容，并传递参数
-            LocationVipItemChooseFragment fragment = new LocationVipItemChooseFragment();
+            LocationItemFragment fragment = new LocationItemFragment();
             fragment.putSerializable(vo.voList.get(position));
             return fragment;
         }

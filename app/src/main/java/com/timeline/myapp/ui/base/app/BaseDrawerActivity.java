@@ -15,6 +15,8 @@ import android.widget.TextView;
 import com.sspacee.common.util.DateUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PreferenceUtils;
+import com.sspacee.common.util.ShareUtil;
+import com.sspacee.common.util.StringUtils;
 import com.sspacee.common.util.SystemUtils;
 import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.ads.base.AdsManager;
@@ -35,6 +37,7 @@ import com.timeline.myapp.ui.feedback.FeedbackChooseFragment;
 import com.timeline.myapp.ui.fragment.AppListFragment;
 import com.timeline.myapp.ui.fragment.DonationListFragment;
 import com.timeline.myapp.ui.fragment.FavoriteFragment;
+import com.timeline.myapp.ui.fragment.LocationPageViewFragment;
 import com.timeline.myapp.ui.user.LoginActivity;
 import com.timeline.myapp.ui.user.SettingActivity;
 import com.timeline.vpn.R;
@@ -79,11 +82,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         startActivity(LoginActivity.class);
     }
     private void showmiDona(){
-        UserInfoVo vo = UserLoginUtil.getUserCache();
-        boolean canScore = vo==null?false:vo.score>300;
-        if(MyApplication.isTemp){
-            miDona.setVisible(canScore);
-        }
+        miDona.setVisible(true);
     }
     @Override
     public void setContentView(int layoutResID) {
@@ -281,7 +280,10 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                 }  else if (item.getItemId() == R.id.menu_feedback) {
                     name = "反馈";
                     FeedbackChooseFragment.startFragment(BaseDrawerActivity.this);
-                } else if (item.getItemId() == R.id.menu_setting) {
+                }  else if (item.getItemId() == R.id.menu_location) {
+                    name = "地理";
+                    LocationPageViewFragment.startFragment(BaseDrawerActivity.this);
+                }else if (item.getItemId() == R.id.menu_setting) {
                     name = "设置";
                     startActivity(SettingActivity.class);
                 }  else if (item.getItemId() == R.id.menu_favorite) {
@@ -298,12 +300,23 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                     name = "捐赠";
                     DonationListFragment.startFragment(BaseDrawerActivity.this);
                 }
+                else if (item.getItemId() == R.id.menu_share) {
+                    showShare();
+                    name = "分享";
+                }
                 MobAgent.onEventMenu(BaseDrawerActivity.this, name);
                 return false;
             }
         });
     }
-
+    public void showShare() {
+        String url = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.D_URL, null);
+        if (!StringUtils.hasText(url)) {
+            url = Constants.DEFAULT_REFERER;
+        }
+        ShareUtil util = new ShareUtil(this);
+        util.shareText(null,null,url+" FreeVPN，精彩你的生活", "FreeVPN","精彩你的生活");
+    }
     private void adsOffers(){
         AdsManager.getInstans().offerAds(this);
     }

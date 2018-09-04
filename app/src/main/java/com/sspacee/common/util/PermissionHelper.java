@@ -3,6 +3,7 @@ package com.sspacee.common.util;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -13,22 +14,23 @@ import android.support.v4.content.ContextCompat;
 
 import com.timeline.vpn.R;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import me.weyye.hipermission.HiPermission;
+import me.weyye.hipermission.PermissionCallback;
+import me.weyye.hipermission.PermissionItem;
+
 
 public class PermissionHelper {
-    public static final int CODE_GET_ACCOUNTS = 0;
-    public static final int CODE_READ_PHONE_STATE = 1;
-    public static final int CODE_ACCESS_COARSE_LOCATION = 2;
-    public static final int CODE_WRITE_EXTERNAL_STORAGE = 3;
-//    public static final String GET_ACCOUNTS = Manifest.permission.GET_ACCOUNTS;
+    //    public static final String GET_ACCOUNTS = Manifest.permission.GET_ACCOUNTS;
     public static final String READ_PHONE_STATE = Manifest.permission.READ_PHONE_STATE;
     public static final String ACCESS_COARSE_LOCATION = Manifest.permission.ACCESS_COARSE_LOCATION;
     public static final String WRITE_EXTERNAL_STORAGE = Manifest.permission.WRITE_EXTERNAL_STORAGE;
     public static final String REQUEST_INSTALL_PACKAGES = Manifest.permission.REQUEST_INSTALL_PACKAGES;
     public static List<String> requestPermissions = Arrays.asList(READ_PHONE_STATE,WRITE_EXTERNAL_STORAGE,ACCESS_COARSE_LOCATION);
-//    static {
+    //    static {
 //        if(SystemUtils.isZH(MyApplication.getInstance())){
 //
 //        }else{
@@ -53,19 +55,19 @@ public class PermissionHelper {
      *
      * @return 权限已全部获取返回true，未全部获取返回false
      */
-    public boolean checkPermissions() {
+    public static boolean checkPermissions(Context context) {
         for (String permission : requestPermissions) {
-            if (!checkPermission(permission)) {
+            if (!checkPermission(context,permission)) {
                 return false;
             }
         }
         return true;
     }
 
-    public boolean checkNeedPermissions() {
+    public boolean checkNeedPermissions(Context context) {
         boolean ret = false;
         for (String perm:requestPermissions) {
-            if (!checkPermission(perm)) {
+            if (!checkPermission(context,perm)) {
                 if (!ActivityCompat.shouldShowRequestPermissionRationale(mContext, perm)) {
                     ActivityCompat.requestPermissions(mContext, new String[]{perm}, 1);
                     ret = true;
@@ -77,7 +79,7 @@ public class PermissionHelper {
             return ret;
         }
         for (String perm:requestPermissions) {
-            if (!checkPermission(perm)) {
+            if (!checkPermission(context,perm)) {
                 if (ActivityCompat.shouldShowRequestPermissionRationale(mContext, perm)) {
                     //如果用户以前拒绝过改权限申请，则给用户提示
                     showMissingPermissionDialog();
@@ -94,8 +96,8 @@ public class PermissionHelper {
      * @param permission 权限名称
      * @return 已授权返回true，未授权返回false
      */
-    public boolean checkPermission(String permission) {
-        return ContextCompat.checkSelfPermission(mContext, permission) == PackageManager.PERMISSION_GRANTED;
+    public static boolean checkPermission(Context context,String permission) {
+        return ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED;
     }
 
 
@@ -128,14 +130,14 @@ public class PermissionHelper {
 
         builder.setMessage(R.string.permission_need);
         // 拒绝, 退出应用
-        builder.setNegativeButton(R.string.del_cancel, new DialogInterface.OnClickListener() {
+        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 alertDialog.dismiss();
                 mContext.finish();
             }
         });
-        builder.setPositiveButton(R.string.menu_btn_setting, new DialogInterface.OnClickListener() {
+        builder.setPositiveButton(R.string.setting, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 startAppSettings();
@@ -150,4 +152,41 @@ public class PermissionHelper {
         intent.setData(Uri.parse(PACKAGE + mContext.getPackageName()));
         mContext.startActivityForResult(intent, 1);
     }
+
+    public static void showPermit(Context context){
+        List<PermissionItem> permissionItems = new ArrayList<PermissionItem>();
+        permissionItems.add(new PermissionItem(Manifest.permission.WRITE_EXTERNAL_STORAGE, context.getString(R.string.write_external_storage), R.drawable.permission_ic_storage));
+        permissionItems.add(new PermissionItem(Manifest.permission.ACCESS_COARSE_LOCATION, context.getString(R.string.access_coarse_location), R.drawable.permission_ic_location));
+        permissionItems.add(new PermissionItem(Manifest.permission.READ_PHONE_STATE, context.getString(R.string.read_phone_state), R.drawable.permission_ic_phone));
+
+        HiPermission.create(context)
+                .title(context.getString(R.string.permission_cus_title))
+                .permissions(permissionItems)
+                .msg(context.getString(R.string.permission_cus_msg))
+                .animStyle(R.style.PermissionAnimScale)
+                .style(R.style.PermissionDefaultBlueStyle)
+                .checkMutiPermission(new PermissionCallback() {
+                    @Override
+                    public void onClose() {
+                        LogUtil.i("onClose");
+                    }
+
+                    @Override
+                    public void onFinish() {
+                        LogUtil.i("onFinish");
+                    }
+
+                    @Override
+                    public void onDeny(String permission, int position) {
+                        LogUtil.i("onDeny:"+permission);
+                    }
+
+                    @Override
+                    public void onGuarantee(String permission, int position) {
+                        LogUtil.i("onGuarantee:"+permission);
+                    }
+                });
+    }
+
+
 }

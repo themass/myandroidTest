@@ -70,8 +70,8 @@ public class VersionUpdater {
                     if (VersionUpdater.isNewVersion(vo.maxBuild)
                             && StringUtils.hasText(vo.url)) {
                         // 有新版本
-                        //VersionUpdater.showUpdateDialog(context, vo, true);
-                        VersionUpdater.showGoogleUpdateDialog(context, vo, true);
+                        VersionUpdater.showUpdateDialog(context, vo, true);
+//                        VersionUpdater.showGoogleUpdateDialog(context, vo, true);
                     } else {
                         if (needToast)
                             ToastUtil.showShort(R.string.about_version_update_to_date);

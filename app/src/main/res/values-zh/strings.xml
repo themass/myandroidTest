@@ -47,8 +47,9 @@
     <string name="menu_haha">呦！被你发现了</string>
     <string name="recharge">充值:</string>
     <string name="money_back_title">积分充值反馈</string>
+    <string name="location_ping">Ping：</string>
     <!-- menu -->
-    <string name="menu_btn_donation">捐赠</string>
+    <string name="menu_btn_donation">付款</string>
     <string name="menu_btn_login">立即登录</string>
     <string name="menu_btn_login_ready">已登录</string>
     <string name="menu_btn_name_default">猴子请来的</string>
@@ -246,5 +247,10 @@
         <item>支付宝</item>
         <item>其他</item>
     </string-array>
-
+    <string name="write_external_storage">存储</string>
+    <string name="access_coarse_location">粗略位置</string>
+    <string name="read_phone_state">设备型号</string>
+    <string name="permission_cus_title">亲爱的上帝</string>
+    <string name="permission_cus_msg">为了更好的服务，请打开权限</string>
+    <string name="cancel">取消</string>
 </resources>

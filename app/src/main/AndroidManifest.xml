@@ -174,11 +174,6 @@
         <service android:name="com.timeline.myapp.service.LogUploadService" />
         <service android:name="com.timeline.myapp.service.LogToFileService" />
         <service android:name="com.timeline.myapp.service.PlayService" />
-        <!-- 百度定位-->
-        <service
-            android:name="com.baidu.location.f"
-            android:enabled="true"
-            android:process=":remote" />
 
         <!-- 广告sdk-->
         <!--must-->
@@ -221,17 +216,6 @@
             android:configChanges="keyboard|keyboardHidden|orientation"
             android:theme="@android:style/Theme.Translucent" >
         </activity>
-        <!-- AdView SDK for AdMob -->
-        <activity
-            android:name="com.google.android.gms.ads.AdActivity"
-            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
-            android:theme="@android:style/Theme.Translucent" />
-        <meta-data
-            android:name="com.google.android.gms.version"
-            android:value="@integer/google_play_services_version" />
-        <!--<meta-data-->
-        <!--android:name="com.google.android.gms.version"-->
-        <!--tools:replace="android:value"  android:value="8487000" />-->
     </application>
 
 </manifest>

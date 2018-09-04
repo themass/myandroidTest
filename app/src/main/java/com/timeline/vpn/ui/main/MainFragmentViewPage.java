@@ -36,6 +36,7 @@ import com.timeline.vpn.R;
 import com.timeline.vpn.ui.maintab.TabCustomeFragment;
 import com.timeline.vpn.ui.maintab.TabMovieFragment;
 import com.timeline.vpn.ui.maintab.TabVpnFragment;
+import com.timeline.vpn.ui.maintab.VpnFragment;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -65,11 +66,6 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
     private MyPagerAdapter myPagerAdapter;
     private String POSITION = "POSITION";
     private int index = 0;
-    private static final String COUNTRY_TAG="COUNTRY_TAG";
-    //权限检测类
-    private PermissionHelper mPermissionHelper;
-    private MaterialIntroView materialIntroView;
-
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_main_viewpage);
@@ -77,19 +73,14 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         startService(CharonVpnService.class);
         EventBusUtil.getEventBus().register(jump);
         EventBusUtil.getEventBus().register(logAdd);
-        mPermissionHelper = new PermissionHelper(this);
         boolean uploadLog = PreferenceUtils.getPrefBoolean(this, Constants.LOG_UPLOAD_CONFIG, false);
-//        if (uploadLog) {
-//            startService(new Intent(this, LogUploadService.class));
-//        }
-        mPermissionHelper.checkNeedPermissions();
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(TabChangeEvent event) {
         initTabs();
         LogUtil.i("onEvent:initTabs");
-//        myPagerAdapter.notifyDataSetChanged();
+        myPagerAdapter.notifyDataSetChanged();
     }
 
     public void addListener(OnBackKeyDownListener keyListener) {
@@ -106,33 +97,13 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         initTabs();
         ConnLogUtil.sendAllLog(this);
         AdsContext.showNext(MainFragmentViewPage.this);
-    }
-    /**
-     * Callback received when a permissions request has been completed.
-     */
-    @Override
-    public void onRequestPermissionsResult(final int requestCode, @NonNull String[] permissions,
-                                           @NonNull int[] grantResults) {
-        if (grantResults != null) {
-            for (int ret : grantResults) {
-                if (ret != PackageManager.PERMISSION_GRANTED) {
-                    finish();
-                }
-            }
-        }
-        mPermissionHelper.checkNeedPermissions();
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        mPermissionHelper.checkNeedPermissions();
+        PermissionHelper.showPermit(this);
     }
 
     private void initTabs() {
         list.clear();
         LayoutInflater inflater = LayoutInflater.from(this);
-        addData(inflater, R.string.tab_tag_index, TabVpnFragment.class,
+        addData(inflater, R.string.tab_tag_index, VpnFragment.class,
                 R.drawable.ac_bg_tab_index, R.string.tab_index, null, 1);
 //        addData(inflater, R.string.tab_tag_local, TabLocalFragment.class,
 //                    R.drawable.ac_bg_tab_index, R.string.tab_local, null, 2);
@@ -155,6 +126,10 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
                          int icon, int title, Bundle args, int abslIndex) {
         list.add(new ItemFragment(tag, clss, icon, title, args, abslIndex));
 
+    }
+    @Override
+    protected boolean showLoc(){
+        return true;
     }
 
     @Override
@@ -188,10 +163,6 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
             return true;
         }
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            if(materialIntroView!=null && materialIntroView.isShown()){
-                ToastUtil.showShort(R.string.close_hit);
-                return true;
-            }
             boolean flag = false;
             for (OnBackKeyDownListener l : keyListeners) {
                 flag = flag || l.onkeyBackDown();

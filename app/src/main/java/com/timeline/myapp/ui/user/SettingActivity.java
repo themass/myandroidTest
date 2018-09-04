@@ -15,6 +15,7 @@ import com.sspacee.common.util.FileSizeUtil;
 import com.sspacee.common.util.FileUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PreferenceUtils;
+import com.sspacee.common.util.ShareUtil;
 import com.sspacee.common.util.StringUtils;
 import com.sspacee.common.util.SystemUtils;
 import com.sspacee.common.util.ToastUtil;
@@ -224,30 +225,36 @@ public class SettingActivity extends BaseSingleActivity {
     }
 
     public void showShare() {
-        final String url = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.D_URL, null);
+//        final String url = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.D_URL, null);
+//        if (!StringUtils.hasText(url)) {
+//            ToastUtil.showShort(R.string.menu_share_copy_error);
+//            return;
+//        }
+//        String str = String.format(getResources().getString(R.string.menu_share_url), url);
+//        AlertDialog.Builder confirmDialog = new AlertDialog.Builder(this);
+//        confirmDialog.setTitle(R.string.menu_share_title);
+//        confirmDialog.setMessage(str);
+//        confirmDialog.setPositiveButton(R.string.menu_share_confirm, new DialogInterface.OnClickListener() {
+//            @Override
+//            public void onClick(DialogInterface dialog, int which) {
+//                SystemUtils.copy(SettingActivity.this, url);
+//                ToastUtil.showShort(R.string.menu_share_copy_ok);
+//                dialog.dismiss();
+//            }
+//        });
+//        confirmDialog.setNegativeButton(R.string.menu_share_cancel, new DialogInterface.OnClickListener() {
+//            @Override
+//            public void onClick(DialogInterface dialog, int which) {
+//                dialog.dismiss();
+//            }
+//        });
+//        confirmDialog.show();
+        String url = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.D_URL, null);
         if (!StringUtils.hasText(url)) {
-            ToastUtil.showShort(R.string.menu_share_copy_error);
-            return;
+            url = Constants.DEFAULT_REFERER;
         }
-        String str = String.format(getResources().getString(R.string.menu_share_url), url);
-        AlertDialog.Builder confirmDialog = new AlertDialog.Builder(this);
-        confirmDialog.setTitle(R.string.menu_share_title);
-        confirmDialog.setMessage(str);
-        confirmDialog.setPositiveButton(R.string.menu_share_confirm, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                SystemUtils.copy(SettingActivity.this, url);
-                ToastUtil.showShort(R.string.menu_share_copy_ok);
-                dialog.dismiss();
-            }
-        });
-        confirmDialog.setNegativeButton(R.string.menu_share_cancel, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
-        confirmDialog.show();
+        ShareUtil util = new ShareUtil(this);
+        util.shareText(null,null,url+" FreeVPN，精彩你的生活", "FreeVPN","精彩你的生活");
     }
 
     @Override

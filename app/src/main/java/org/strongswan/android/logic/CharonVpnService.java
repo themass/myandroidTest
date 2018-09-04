@@ -45,7 +45,6 @@ import android.view.View;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 
-import com.sspacee.common.util.DateUtils;
 import com.sspacee.common.util.FileUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PreferenceUtils;
@@ -53,15 +52,14 @@ import com.sspacee.yewu.net.NetUtils;
 import com.sspacee.yewu.net.request.CommonResponse;
 import com.timeline.myapp.base.MyApplication;
 import com.timeline.myapp.bean.DataBuilder;
-import com.timeline.myapp.bean.form.ConnLog;
 import com.timeline.myapp.bean.vo.ServerVo;
 import com.timeline.myapp.bean.vo.VpnProfile;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.BaseService;
 import com.timeline.myapp.data.ConnLogUtil;
-import com.timeline.myapp.data.DBManager;
 import com.timeline.myapp.data.LocationUtil;
-import com.timeline.myapp.ui.fragment.LocationChooseFragment;
+import com.timeline.myapp.ui.base.app.BaseDrawerActivity;
+import com.timeline.myapp.ui.fragment.LocationPageViewFragment;
 import com.timeline.vpn.R;
 import com.timeline.vpn.ui.main.MainFragmentViewPage;
 
@@ -82,7 +80,6 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
@@ -656,7 +653,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
                     vpnClick();
                 }
             } else if (action.equals(LOCATION_BUTTON)) {
-                LocationChooseFragment.startFragment(CharonVpnService.this);
+                LocationPageViewFragment.startFragment(CharonVpnService.this);
                 collapseStatusBar(CharonVpnService.this);
             }
 
