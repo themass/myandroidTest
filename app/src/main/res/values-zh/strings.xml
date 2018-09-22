@@ -57,6 +57,8 @@
     <string name="search">请输入搜索内容</string>
     <string name="menu_browser">浏览器打开</string>
     <string name="menu_copy">链接已复制</string>
+    <string name="menu_btn_country">地区：</string>
+
 
 
     <!-- 通用错误提示 -->

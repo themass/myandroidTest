@@ -30,9 +30,6 @@ import org.strongswan.android.logic.CharonVpnService;
 import java.util.ArrayList;
 import java.util.List;
 
-import me.weyye.hipermission.HiPermission;
-import me.weyye.hipermission.PermissionCallback;
-import me.weyye.hipermission.PermissionItem;
 
 public class MainActivity extends BaseDrawerMenuActivity implements ActivityCompat.OnRequestPermissionsResultCallback {
 

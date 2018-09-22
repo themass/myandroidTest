@@ -194,7 +194,7 @@
 }
 
 #----------------------project------------
--keep class com.qq.myapp.bean.**{ *; }
+-keep class com.qq.vpn.domain.**{ *; }
 -keep class org.strongswan.android.logic.**{ *; }
 -keep class sun.misc.Unsafe { *; }
 -keep class com.google.gson.stream.** { *; }

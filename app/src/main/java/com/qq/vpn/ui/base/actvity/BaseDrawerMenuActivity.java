@@ -11,7 +11,11 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.qq.Constants;
+import com.qq.MyApplication;
 import com.qq.ext.util.LogUtil;
+import com.qq.ext.util.PreferenceUtils;
+import com.qq.ext.util.ShareUtil;
+import com.qq.ext.util.StringUtils;
 import com.qq.vpn.main.login.SinginActivity;
 import com.qq.vpn.support.NetApiUtil;
 import com.qq.vpn.support.MyUrlUtil;
@@ -107,6 +111,7 @@ public class BaseDrawerMenuActivity extends ToolBarActivity {
                if (item.getItemId() == R.id.menu_about) {
                     onAbout(null);
                 }else if (item.getItemId() == R.id.menu_share) {
+                   showShare();
                }else if (item.getItemId() == R.id.menu_signin) {
                    startActivity(SinginActivity.class);
                }else if (item.getItemId() == R.id.menu_signout) {
@@ -116,6 +121,10 @@ public class BaseDrawerMenuActivity extends ToolBarActivity {
                 return false;
             }
         });
+    }
+    public void showShare() {
+        ShareUtil util = new ShareUtil(this);
+        util.shareText(null,null,Constants.SSPACEE+" 灯塔，照亮前进的路","灯塔","照亮前进的路");
     }
 
 }

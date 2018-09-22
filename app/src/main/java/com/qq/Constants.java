@@ -35,7 +35,7 @@ public class Constants {
     public static final String LOGIN_USER_LAST = "LOGIN_USER_LAST";
     public static final String LOGIN_USER_PW_LAST = "LOGIN_USER_PW_LAST";
     public static final String HTTP_TOKEN_KEY = "Vpn-Token";
-
+    public static final String D_URL = "D_URL";
     public static final int SKIP_SLOW= -1;
     public static final Pattern namePattern = Pattern.compile("[a-zA-Z0-9]{3,20}");
     public static final Pattern passPattern = Pattern.compile("[0-9A-Za-z]{6,10}");
@@ -63,6 +63,7 @@ public class Constants {
     public static String BASE_IP = "api.sspacee.com";
     public static String ABOUT_ZH = "http://file.sspacee.com/file/html/about_zh.html";
     public static String ABOUT = "http://file.sspacee.com/file/html/about.html";
+    public static String SSPACEE = "http://sspacee.com";
     public static List<String> colorBg = Arrays.asList("#552d5d82", "#55135689", "#552292e9", "#5583878b", "#7f8d8f45", "#ffc49924", "#ff83713f", "#ff569b2b", "#ff882b9b");
 
     public static String getUrl(String uri) {

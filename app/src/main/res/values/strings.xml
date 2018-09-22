@@ -76,6 +76,7 @@
     <string name="vpn_noti_on">Connected，click to disconnect</string>
     <string name="vpn_noti_off">Disconnect，click to connect</string>
     <string name="vpn_noti_load">Connecting，please wait</string>
+    <string name="setting">Setting</string>
 
     <!-- vpn error text -->
     <string name="error_lookup_failed">Failed. Please select another regin</string>
