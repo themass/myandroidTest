@@ -61,8 +61,7 @@ public class Constants {
     public static final String VPN_STATUS = "VPN_STATUS";
     public static final String LOCATION_ICON_ALL ="timeline://img/flag_all.png";
     public static String BASE_IP = "api.sspacee.com";
-    public static String ABOUT_ZH = "http://file.sspacee.com/file/html/about_zh.html";
-    public static String ABOUT = "http://file.sspacee.com/file/html/about.html";
+    public static String ABOUT = "http://file.sspacee.com/file/html/about_dengt.html";
     public static String SSPACEE = "http://sspacee.com";
     public static List<String> colorBg = Arrays.asList("#552d5d82", "#55135689", "#552292e9", "#5583878b", "#7f8d8f45", "#ffc49924", "#ff83713f", "#ff569b2b", "#ff882b9b");
 

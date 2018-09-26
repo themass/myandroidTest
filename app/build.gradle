@@ -40,7 +40,7 @@ android {
         config {
             keyAlias 'myapp'
             keyPassword 'themass'
-            storeFile file('D:/work/android-sdk/mykey.jks')
+            storeFile file('D:/work/android-sdk/dengt.jks')
             storePassword 'themass'
         }
 //        config {
