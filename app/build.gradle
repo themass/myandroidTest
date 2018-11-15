@@ -8,7 +8,7 @@ android {
     defaultConfig {
         applicationId "com.timeline.vpn"
         minSdkVersion 16
-        targetSdkVersion 22
+        targetSdkVersion 26
         versionCode 1000007000
         versionName "1.0.7.0"
         // Enabling multidex support.
