@@ -4,7 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import com.way.weather.plugin.util.Constants;
-import com.timeline.sexfree1.R;
+import com.qq.sexfree.R;
 
 public class WeatherIconUtils {
 

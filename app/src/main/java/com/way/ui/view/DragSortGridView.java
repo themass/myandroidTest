@@ -14,7 +14,7 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 
 import com.way.common.util.L;
-import com.timeline.sexfree1.R;
+import com.qq.sexfree.R;
 
 @SuppressLint("NewApi")
 public class DragSortGridView extends GridView {

@@ -5,7 +5,7 @@ import android.content.res.Resources;
 import android.text.TextUtils;
 
 import com.way.yahoo.App;
-import com.timeline.sexfree1.R;
+import com.qq.sexfree.R;
 
 /**
  * 应用的异常申明<br/>

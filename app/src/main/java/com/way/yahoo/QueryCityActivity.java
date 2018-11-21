@@ -29,7 +29,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.timeline.sexfree1.R;
+import com.qq.sexfree.R;
 import com.way.adapter.QueryCityAdapter;
 import com.way.beans.City;
 import com.way.common.util.L;

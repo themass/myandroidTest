@@ -10,7 +10,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.timeline.sexfree1.R;
+import com.qq.sexfree.R;
 import com.way.common.util.T;
 import com.way.ui.swipeback.SwipeBackActivity;
 

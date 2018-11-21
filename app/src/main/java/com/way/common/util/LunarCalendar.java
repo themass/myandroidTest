@@ -2,7 +2,7 @@ package com.way.common.util;
 
 import android.content.Context;
 
-import com.timeline.sexfree1.R;
+import com.qq.sexfree.R;
 
 
 public class LunarCalendar {

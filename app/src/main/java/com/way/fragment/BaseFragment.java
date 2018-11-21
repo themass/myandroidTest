@@ -14,7 +14,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.way.yahoo.App;
-import com.timeline.sexfree1.R;
+import com.qq.sexfree.R;
 
 /**
  * Created by wangdan on 15-1-16.

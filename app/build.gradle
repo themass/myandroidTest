@@ -5,11 +5,11 @@ android {
     compileSdkVersion 26
     buildToolsVersion '27.0.3'
     defaultConfig {
-        applicationId "com.timeline.sexfree1"
+        applicationId "com.qq.sexfree"
         minSdkVersion 16
-        targetSdkVersion 25
-        versionCode 1000002009
-        versionName "1.0.2.9"
+        targetSdkVersion 26
+        versionCode 1400000000
+        versionName "1.4.0.0"
         // Enabling multidex support.
         multiDexEnabled true
         vectorDrawables.useSupportLibrary = true
@@ -29,18 +29,18 @@ android {
         jniLibs.srcDirs = ['libs']
     }
     signingConfigs {
-        config {
-            keyAlias 'myapp'
-            keyPassword 'themass'
-            storeFile file('D:/work/android-sdk/mykey.jks')
-            storePassword 'themass'
-        }
 //        config {
 //            keyAlias 'myapp'
 //            keyPassword 'themass'
-//            storeFile file('/home/web/local/mykey.jks')
+//            storeFile file('D:/work/android-sdk/mykey.jks')
 //            storePassword 'themass'
 //        }
+        config {
+            keyAlias 'themass'
+            keyPassword 'themass'
+            storeFile file('D:/work/android-sdk/dengt.jks')
+            storePassword 'themass'
+        }
     }
     buildTypes {
         debug {
@@ -61,7 +61,7 @@ android {
         }
     }
     productFlavors {
-        weathermy {
+        weather_sex {
             manifestPlaceholders = [CHANNEL_VALUE: "MYPOOL", AD_CHANNEL_VALUE: "MYPOOL"]
         }
 //        sexgoogle {

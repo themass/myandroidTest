@@ -23,7 +23,8 @@ import android.widget.Toast;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
-import com.timeline.sexfree1.R;
+import com.qq.sexfree.R;
+
 import com.way.beans.City;
 import com.way.common.util.L;
 import com.way.common.util.MyStringRequest;

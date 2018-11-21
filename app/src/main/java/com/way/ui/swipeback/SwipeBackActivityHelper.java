@@ -11,7 +11,7 @@ import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 
-import com.timeline.sexfree1.R;
+import com.qq.sexfree.R;
 
 
 /**

@@ -13,7 +13,7 @@ import android.widget.TextView;
 import com.way.weather.plugin.bean.Index;
 import com.way.weather.plugin.bean.IndexDetail;
 import com.way.weather.plugin.bean.WeatherInfo;
-import com.timeline.sexfree1.R;
+import com.qq.sexfree.R;
 
 public class WeatherIndexView extends WeatherBaseView {
 	// 指数

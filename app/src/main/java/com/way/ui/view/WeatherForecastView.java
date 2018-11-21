@@ -10,7 +10,7 @@ import com.way.common.util.TimeUtils;
 import com.way.common.util.WeatherIconUtils;
 import com.way.weather.plugin.bean.Forecast;
 import com.way.weather.plugin.bean.WeatherInfo;
-import com.timeline.sexfree1.R;
+import com.qq.sexfree.R;
 
 public class WeatherForecastView extends WeatherBaseView {
 	// 预报

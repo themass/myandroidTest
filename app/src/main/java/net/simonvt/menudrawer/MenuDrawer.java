@@ -25,7 +25,7 @@ import android.view.ViewTreeObserver;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.Interpolator;
 
-import com.timeline.sexfree1.R;
+import com.qq.sexfree.R;
 
 @SuppressLint("NewApi")
 public abstract class MenuDrawer extends ViewGroup {

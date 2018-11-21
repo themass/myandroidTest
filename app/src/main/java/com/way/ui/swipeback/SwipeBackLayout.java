@@ -16,7 +16,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
-import com.timeline.sexfree1.R;
+import com.qq.sexfree.R;
 
 public class SwipeBackLayout extends FrameLayout {
 	/**

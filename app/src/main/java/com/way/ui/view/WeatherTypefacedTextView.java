@@ -7,7 +7,7 @@ import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.widget.TextView;
 
-import com.timeline.sexfree1.R;
+import com.qq.sexfree.R;
 
 public class WeatherTypefacedTextView extends TextView {
 	public WeatherTypefacedTextView(Context context) {

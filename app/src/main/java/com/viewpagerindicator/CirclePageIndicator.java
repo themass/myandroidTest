@@ -36,7 +36,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
 
-import com.timeline.sexfree1.R;
+import com.qq.sexfree.R;
 
 /**
  * Draws circles (one for each view). The current view position is filled and

@@ -13,7 +13,7 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 
 import com.way.common.util.L;
-import com.timeline.sexfree1.R;
+import com.qq.sexfree.R;
 
 public class CountDownView extends FrameLayout {
 

@@ -12,7 +12,7 @@ import com.way.common.util.LunarCalendarConvertUtil;
 import com.way.common.util.WeatherIconUtils;
 import com.way.weather.plugin.bean.RealTime;
 import com.way.weather.plugin.bean.WeatherInfo;
-import com.timeline.sexfree1.R;
+import com.qq.sexfree.R;
 
 public class WeatherDetailsView extends WeatherBaseView {
 	// 详细信息

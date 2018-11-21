@@ -28,7 +28,7 @@ import android.view.View;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 
-import com.timeline.sexfree1.R;
+import com.qq.sexfree.R;
 
 /**
  * This widget implements the dynamic action bar tab behavior that can change

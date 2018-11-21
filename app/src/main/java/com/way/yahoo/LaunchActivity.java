@@ -12,7 +12,7 @@ import android.view.WindowManager;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.timeline.sexfree1.R;
+import com.qq.sexfree.R;
 
 
 /**

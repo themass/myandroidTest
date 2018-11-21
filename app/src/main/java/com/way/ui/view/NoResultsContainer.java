@@ -5,7 +5,7 @@ import android.util.AttributeSet;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.timeline.sexfree1.R;
+import com.qq.sexfree.R;
 
 /**
  * This class is the default empty state view for most listviews/fragments It

@@ -8,7 +8,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
-import com.timeline.sexfree1.R;
+import com.qq.sexfree.R;
 
 public class SplashActivity extends Activity {
 	private static final int ACTIVITY_TIMEOUT_GOTO_NEXT = 0;

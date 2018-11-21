@@ -13,7 +13,7 @@ import android.widget.TextView;
 import com.way.beans.Category;
 import com.way.beans.City;
 import com.way.beans.Item;
-import com.timeline.sexfree1.R;
+import com.qq.sexfree.R;
 
 public class SideMenuAdapter extends BaseAdapter {
 	private static final int ITEM_TYPE = 0;

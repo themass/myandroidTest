@@ -8,7 +8,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.TextView;
 
-import com.timeline.sexfree1.R;
+import com.qq.sexfree.R;
 import com.way.ui.swipeback.SwipeBackActivity;
 import com.way.upgrade.core.CheckNewVersionListener;
 import com.way.upgrade.core.UpgradeManager;

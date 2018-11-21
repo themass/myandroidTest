@@ -38,7 +38,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
 
-import com.timeline.sexfree1.R;
+import com.qq.sexfree.R;
 
 /**
  * A TitlePageIndicator is a PageIndicator which displays the title of left view

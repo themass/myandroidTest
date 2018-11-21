@@ -3,7 +3,8 @@ package com.way.common.util;
 
 import android.util.Log;
 
-import com.timeline.sexfree1.BuildConfig;
+import com.qq.sexfree.BuildConfig;
+
 
 /**
  * Log统一管理类

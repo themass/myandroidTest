@@ -45,7 +45,7 @@ import com.way.weather.plugin.bean.WeatherInfo;
 import com.way.weather.plugin.spider.WeatherSpider;
 import com.way.yahoo.App;
 import com.way.yahoo.MainActivity;
-import com.timeline.sexfree1.R;
+import com.qq.sexfree.R;
 
 public class WeatherFragment extends Fragment implements ITaskManager,
 		SwipeRefreshLayout.OnRefreshListener {

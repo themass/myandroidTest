@@ -7,7 +7,7 @@ import java.util.TimeZone;
 
 import android.content.res.Resources;
 
-import com.timeline.sexfree1.R;
+import com.qq.sexfree.R;
 
 /**
  * User: qii Date: 12-8-28

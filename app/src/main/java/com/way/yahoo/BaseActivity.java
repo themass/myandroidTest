@@ -9,7 +9,7 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.widget.Toast;
 
-import com.timeline.sexfree1.R;
+import com.qq.sexfree.R;
 import com.way.beans.City;
 import com.way.common.util.LocationUtils;
 import com.way.common.util.LocationUtils.LocationListener;
