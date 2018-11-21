@@ -1,256 +1,152 @@
-<?xml version="1.0" encoding="utf-8"?><!--
-    Copyright (C) 2012-2013 Tobias Brunner
-    Copyright (C) 2012 Giuliano Grassi
-    Copyright (C) 2012 Ralf Sager
-    Hochschule fuer Technik Rapperswil
-
-    This program is free software; you can redistribute it and/or modify it
-    under the terms of the GNU General Public License as published by the
-    Free Software Foundation; either version 2 of the License, or (at your
-    option) any later version.  See <http://www.fsf.org/copyleft/gpl.txt>.
-
-    This program is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-    or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-    for more details.
--->
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!--  tab main -->
-    <string name="tab_movie">Movie</string>
-    <string name="tab_ng">Night</string>
-    <string name="tab_area">Area</string>
-    <string name="tab_customer">Cust</string>
-    <string name="tab_index">Home</string>
-    <string name="tab_tag_index">Index</string>
 
-    <string name="tab_tag_movie">Movie</string>
-    <string name="tab_tag_ng">Night</string>
-    <string name="tab_tag_area">Area</string>
-    <string name="tab_tag_customer">customer</string>
-    <string name="tab_vip_temp">Content preparation。。。Coming soon</string>
-    <string name="tab_fb_click">Points ads to earn points +</string>
-    <string name="tab_fb_click_fast">Too fast,please wait 3 seconds</string>
-    <string name="tab_fb_click_wifi">Please use it under Dis conn VPN </string>
-    <!-- Application -->
-    <string name="app_name">Navigation</string>
-    <string name="main_activity_name">Navigation</string>
-    <string name="toobar_title">Navigation</string>
-    <string name="load">loading more data</string>
-    <string name="off">off</string>
-    <string name="on">on</string>
-    <!-- 地区选择-->
-    <string name="location_type">type</string>
-    <string name="location_country">country</string>
-    <string name="location_features">name&#038;ping</string>
-    <string name="location_choose_title">Region selection</string>
-    <string name="location_choose_level">Net ：</string>
-    <string name="location_choose_none">Random</string>
-    <string name="location_choose_ping">Ping：</string>
-    <string name="menu_haha">Yo! You found it.</string>
-    <!-- menu -->
-    <string name="menu_btn_login">Login</string>
-    <string name="menu_btn_login_ready">LoginOk</string>
-    <string name="menu_btn_name_default">Who am i</string>
-    <string name="menu_btn_feedback">Feedback </string>
-    <string name="menu_btn_about">About: Afreedom Score</string>
-    <string name="menu_btn_share">Share</string>
-    <string name="menu_btn_bug">Report bug</string>
-    <string name="menu_btn_version">Version:</string>
-    <string name="menu_btn_email">E-mail:</string>
-    <string name="menu_btn_logout">Logout</string>
-    <string name="menu_btn_setting">Setting</string>
-    <string name="menu_btn_app">App recommend</string>
-    <string name="menu_btn_donation">Support</string>
-    <string name="menu_btn_support">Support author</string>
-    <string name="menu_btn_about_context">FreePorn the most stable, free, unlimited，all for you！</string>
-    <string name="feed_back">Feedback</string>
-    <string name="menu_btn_score">Points:</string>
-    <string name="menu_btn_networking">Traffic:</string>
-    <string name="menu_btn_cache">Cache:</string>
-    <string name="menu_btn_timeuse">Time:</string>
-    <string name="menu_btn_score_context">Points can change VIP，more info see "About"</string>
-    <string name="menu_btn_cache_context">Cache clear</string>
-    <string name="menu_btn_report_log">Thanks for report us</string>
-    <string name="menu_btn_country">Region：</string>
-    <string name="menu_btn_open_browser">Open in browser</string>
-    <string name="menu_btn_copy_url">Copy url</string>
-    <string name="menu_btn_favorite">My favorite</string>
-    <string name="menu_favorite">Favorite</string>
-    <string name="menu_favorite_cancel">Cancel Favorite</string>
-    <string name="support_info">Please activate several apps to support the author！</string>
-    <string name="offerads_ths">Thank you for your support!</string>
-    <string name="location_choose_flag_none">Click“ Region ”More regional options</string>
-    <string name="vpn_status_down">Click to down load FreeVPN</string>
-    <string name="menu_btn_contract">Contact us:  email</string>
-    <string name="menu_copy_emai">Email Copied OK</string>
-    <!-- share-->
-    <string name="menu_share_title">Share friend</string>
-    <string name="menu_share_url">Download Url:\n%s</string>
-    <string name="menu_share_confirm">CopyURL</string>
-    <string name="menu_share_cancel">Cancel</string>
-    <string name="menu_share_copy_ok">Copied OK</string>
-    <string name="menu_share_copy_error">Share failed</string>
-    <string name="menu_share_text_only">FAIL!! Just can share text</string>
-    <!--登录，注册-->
-    <string name="close_over">One more again!!</string>
-    <string name="login">Sign in</string>
-    <string name="setting">Setting</string>
-    <string name="reg">Sign up</string>
-    <string name="findpass">Forget Pass?</string>
-    <string name="username_hint">Username</string>
-    <string name="email_hint">E-mail</string>
-    <string name="ref_hint">Inviter</string>
-    <string name="email_see">Send a email to you</string>
-    <string name="email_ok">email set ok</string>
-    <string name="email_fail">email set fail</string>
-    <string name="free_user">free use</string>
-    <string name="password_hint">Password</string>
-    <string name="password_error">Password Error</string>
-    <string name="re_password_hint">RePassword</string>
-    <string name="re_code">Code</string>
-    <string name="re_bt_code">Get Code</string>
-    <string name="empty_name_pwd">Please fill in the information</string>
-    <string name="sex">Sex:</string>
-    <string name="female">Female</string>
-    <string name="male">Male</string>
-    <string name="error_repwd">Password error</string>
-    <string name="error_pattern_pass">Password must 6 to 10 letters or numbers</string>
-    <string name="error_pattern_name">Password must 3 to 20 letters or numbers</string>
-    <string name="reg_success">Register success，login now？</string>
-    <string name="remark">Timeline RIGHTS RESERVED.</string>
-    <string name="need_login">Login please</string>
-    <string name="need_vip">Need VIP permission，please see "About"</string>
-    <string name="down_to_loadmore">down to loadmore</string>
-
-    <string name="iwanna_tips">Tell me what du you want ,\nI\'ll be ready for you </string>
-    <string name="iwanna_title">I wanna?</string>
-    <string name="feedback_hint">$3 $5 VIP3</string>
-    <string name="recharge">Recharge:</string>
-    <string name="money_back_title">Score?</string>
-    <string name="send">send</string>
-    <string name="iwanna_content_error">Tell me something!</string>
-    <string name="iwanna_content_success">I got it !</string>
-    <string name="vip_need">Non VIP users are not allowed to visit</string>
-    <string name="vip_remove_ads">Upgrade VIP to advertise</string>
-    <string name="area_setting">Show Area</string>
-    <string name="sound_setting">Play audio in not wifi</string>
-    <string name="sound_picshow">Video pic show</string>
-    <string name="area_mi">Area encry</string>
-    <string name="sound_play_not_wifi">You are now using a non WIFI network？</string>
-    <string name="sound">Obscene</string>
-    <string name="text">Interesting novel</string>
-    <string name="video">Sex video</string>
-    <string name="submit">submit</string>
-    <string name="modify">modify</string>
-    <string name="vip_tips">please update to vip</string>
-    <string name="img">Sex Img</string>
-    <string name="tv">TV</string>
-    <string name="version_low">version is to low！</string>
-
-    <string name="hidden_area_hit">Hidden “Area” from the Settings</string>
-    <string name="wither_hit">See more weather</string>
-    <string name="country_select_hit">Click to choose more countries</string>
-    <string name="close_hit">Please complete the guide</string>
-    <!-- error-->
-    <string name="error_getlocation_fail">Failed to obtain location information！</string>
-    <string name="error_network_unknown">Connection server error, please check your network connection or try again later.</string>
-    <string name="error_network_no_connection">Network connection is not available, please try again later</string>
-    <string name="error_network_timeout">Network connection timeout, please try again later</string>
-    <string name="error_network_retry">Load error, please click Retry.</string>
-    <string name="error_network_nodata_retry">Nodata, please click Retry.</string>
-    <string name="error_unknown">Unknow error</string>
-    <!-- vpn状态改变 -->
-    <string name="vpn_bg_click_later">Try later please</string>
-    <string name="vpn_bg_click">Conn VPN</string>
-    <string name="vpn_bg_error">Click Retry</string>
-    <string name="vpn_bg_conning">Connecting..</string>
-    <string name="vpn_bg_disconning">Stoping..</string>
-    <string name="vpn_bg_conned">Disconnect</string>
-    <string name="vpn_need">Maybe need conn VPN first</string>
-    <string name="vpn_type_free">Free</string>
-    <string name="vpn_type_vip">VIP</string>
-    <string name="vpn_type_vip2">VIP2</string>
-    <string name="vpn_remote_status">FreePorn·</string>
-    <string name="vpn_remote_on">Connected，click to disconnect</string>
-    <string name="vpn_remote_off">Disconnect，click to connect</string>
-    <string name="vpn_remote_ing">Connecting，please wait</string>
-    <!--版本更新下载-->
-
-    <string name="about_version_update_to_date">Is the latest version</string>
-    <string name="about_version_download_title">Discover new version</string>
-    <string name="about_version_download">Download</string>
-    <string name="about_version_confirm">Confirm</string>
-    <string name="about_version_cancel">Cancel</string>
-    <string name="about_download_confirm_title">Confirm Download</string>
-    <string name="about_download_confirm_content">
-You are now using a non WIFI network, continue to download may consume more network traffic, whether to continue to download？</string>
-    <string name="about_download_begin">Start download</string>
-    <string name="about_download_finish">End download</string>
-    <string name="about_download_title">Downloading Freedom</string>
-    <string name="about_download_prepare">Is preparing to download</string>
-    <string name="about_download_error">File download error</string>
-    <string name="about_download_percent">Downloading %1$s/%2$s</string>
-
-    <!--其他-->
-    <item name="tag_pos" type="id" />
-    <item name="tag_val" type="id" />
-    <!--   like  -->
-    <plurals name="likes_count">
-        <item quantity="one">%d like</item>
-        <item quantity="other">%d likes</item>
-    </plurals>
-    <!-- 自定义-->
-    <string name="title_hint">Title</string>
-    <string name="url_hint">Site link</string>
-    <string name="open_hint">Open mode</string>
-    <string name="open_local">Local</string>
-    <string name="open_browser">Browser</string>
-    <string name="custome_title">Add Custome</string>
-    <string name="empty_info">Please fill in the information</string>
-    <string name="url_error">Url is error</string>
-    <string name="custome_ok">Add OK</string>
-    <string name="custome_del_ok">Del OK</string>
-    <string name="save">Save</string>
-    <string name="schema_hint">Schema</string>
-    <string name="schema_http">http://</string>
-    <string name="schema_https">https://</string>
-    <string name="del_hint">Confirm delete？</string>
-    <string name="del_cancel">Cancel</string>
-    <string name="del_ok">OK</string>
-    <string name="no_browser">no brower find</string>
-    <string name="edit">edit</string>
-    <string name="delete">delete</string>
-    <string name="no_select">no selected</string>
-    <string name="save_ok">save ok</string>
-    <string name="save_fail">save fail</string>
-    <string name="save_img">save image</string>
-    <string name="save_start">save start...</string>
-    <!-- vpn error text -->
-    <string name="error_lookup_failed">Failed. Please select another regin</string>
-    <string name="error_unreachable">Failed. Please select another regin</string>
-    <string name="error_peer_auth_failed">Verifying gateway authentication failed.</string>
-    <string name="error_auth_failed">Maybe Traffic has reached the upper limit, need VIP.</string>
-    <string name="error_assessment_failed">Security assessment failed.</string>
-    <string name="error_generic">Failed. Please select another regin.</string>
-    <string name="vpn_not_supported_title">VPN not supported</string>
-    <string name="vpn_not_supported">Your device does not support VPN applications.\nPlease contact the manufacturer.</string>
-    <string name="vpn_not_supported_during_lockdown">VPN connections are not supported in lockdown mode.</string>
-    <!-- activity title-->
-    <string name="titile_browser">Open in browser</string>
-    <string name="permission_need">necessary permissions missing。\n\nClick\"setting\"-\"permission\"-open all permissions。</string>
-    <string name="permission_get_accounts_hint">necessary permissions need。PERMISSION_GET_ACCOUNTS</string>
-    <string name="permission_read_phone_hint">necessary permissions need。PERMISSION_READ_PHONE_STATE</string>
-    <string name="permission_access_coarse_location_hint">necessary permissions need。PERMISSION_ACCESS_COARSE_LOCATION</string>
-    <string name="permission_white_external_hint">necessary permissions need。PERMISSION_WRITE_EXTERNAL_STORAGE</string>
-    <string name="ads_logo">AD</string>
-    <string name="skip">skip</string>
-    <string name="search">enter search content</string>
-    <!--slidingclose-->
-
-    <string-array name="recharge_arry">
-        <item>WeChat</item>
-        <item>Alipay</item>
-        <item>Other</item>
-    </string-array>
-    <!--广告-->
+    <string name="app_name">快播天气</string>
+    <string name="press_again_exit">再按一次退出</string>
+    <string name="speak_launch_project_weather">Launch Project Weather web site</string>
+    <string name="pull_to_refresh_pull_sub_label">上次刷新:%s</string>
+    <string name="pull_to_refresh_pull_sub_label_none">从未</string>
+    <string name="enter_city_name">请输入城市名称、拼音、区号或邮编</string>
+    <!-- time -->
+    <string name="year_before">年前</string>
+    <string name="month_before">月前</string>
+    <string name="day">天前</string>
+    <string name="hour">小时前</string>
+    <string name="min">分钟前</string>
+    <string name="sec">秒前</string>
+    <string name="justnow">刚刚</string>
+    <string name="yesterday">昨天</string>
+    <string name="the_day_before_yesterday">前天</string>
+    <string name="today">今天</string>
+    <string name="date_format">M月d日 HH:mm</string>
+    <string name="year_format">yyyy年 M月d日 HH:mm</string>
+    <string name="net_error">您的网络不给力哦！</string>
+    <string name="city_max_toast">最多只能添加9个城市哦！</string>
+    <string name="get_weatherifo_fail">获取天气失败了哦！</string>
+    <string name="cancle_auto_get_location">您取消了自动定位！</string>
+    <string name="getlocation_fail">获取位置信息失败！</string>
+    <string name="no_this_city">暂时没有该城市的数据！请手动选择！</string>
+    <string name="get_location_scuess">定位到您在：%s</string>
+    <string name="city_exists">您已经选择过该城市哦！</string>
+    <string name="share_fail">分享失败！</string>
+    <string name="please_wait">请稍后...</string>
+    <string name="share_to">您想分享到？</string>
+    <string name="app_information">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;\
+        更多服务请加入QQ群：146312741,\
+        欢迎访问我的博客主页:http://hostggg.com,\
+        欢迎各位提出宝贵的建议！</string>
+    <string name="all_rights_reserved">Copyright © 2012-2015 hostggg. All Rights Reserved.</string>
+    <string name="get_weatherinfo_scuessed">刷新成功</string>
+    <string name="widget_loading_tips">正在加载,请稍侯...</string>
+        <string name="comm_error_noneNetwork">没有网络连接</string>
+    <string name="comm_error_resultIllegal">数据解析出错</string>
+    <string name="comm_error_timeout">网络不给力</string>
+    <!-- lunar -->
+    <string name="nongli">农历</string>
+    <string name="nian">年</string>
+    <string name="chineseNumber1">一</string>
+    <string name="chineseNumber2">二</string>
+    <string name="chineseNumber3">三</string>
+    <string name="chineseNumber4">四</string>
+    <string name="chineseNumber5">五</string>
+    <string name="chineseNumber6">六</string>
+    <string name="chineseNumber7">七</string>
+    <string name="chineseNumber8">八</string>
+    <string name="chineseNumber9">九</string>
+    <string name="chineseNumber10">十</string>
+    <string name="chineseNumber11">十一</string>
+    <string name="chineseNumber12">十二</string>
+    <string name="chineseTen0">初</string>
+    <string name="chineseTen1">十</string>
+    <string name="chineseTen2">廿</string>
+    <string name="chineseTen3">三</string>
+    <string name="chineseTen4">二</string>
+    <string name="animals0">鼠</string>
+    <string name="animals1">牛</string>
+    <string name="animals2">虎</string>
+    <string name="animals3">兔</string>
+    <string name="animals4">龙</string>
+    <string name="animals5">蛇</string>
+    <string name="animals6">马</string>
+    <string name="animals7">羊</string>
+    <string name="animals8">猴</string>
+    <string name="animals9">鸡</string>
+    <string name="animals10">狗</string>
+    <string name="animals11">猪</string>
+    <string name="jia">甲</string>
+    <string name="yi">乙</string>
+    <string name="bing">丙</string>
+    <string name="ding">丁</string>
+    <string name="wutian">戊</string>
+    <string name="ji">己</string>
+    <string name="geng">庚</string>
+    <string name="xin">辛</string>
+    <string name="ren">壬</string>
+    <string name="gui">癸</string>
+    <string name="zi">子</string>
+    <string name="chou">丑</string>
+    <string name="yin">寅</string>
+    <string name="mao">卯</string>
+    <string name="chen">辰</string>
+    <string name="si">巳</string>
+    <string name="wudi">午</string>
+    <string name="wei">未</string>
+    <string name="shen">申</string>
+    <string name="you">酉</string>
+    <string name="xu">戌</string>
+    <string name="hai">亥</string>
+    <string name="leap_month">闰</string>
+    <string name="month">月</string>
+    <string name="zheng">正</string>
+    <string name="zhou">周</string>
+    <string name="year">年</string>
+    <string name="day_ri">日</string>
+    <string name="terms0">小寒</string>
+    <string name="terms1">大寒</string>
+    <string name="terms2">立春</string>
+    <string name="terms3">雨水</string>
+    <string name="terms4">惊蛰</string>
+    <string name="terms5">春分</string>
+    <!-- SPRD: bug259225 show two field according to CMCC case19 -->
+    <string name="terms6">清明/清明节</string>
+    <string name="terms7">谷雨</string>
+    <string name="terms8">立夏</string>
+    <string name="terms9">小满</string>
+    <string name="terms10">芒种</string>
+    <string name="terms11">夏至</string>
+    <string name="terms12">小暑</string>
+    <string name="terms13">大暑</string>
+    <string name="terms14">立秋</string>
+    <string name="terms15">处暑</string>
+    <string name="terms16">白露</string>
+    <string name="terms17">秋分</string>
+    <string name="terms18">寒露</string>
+    <string name="terms19">霜降</string>
+    <string name="terms20">立冬</string>
+    <string name="terms21">小雪</string>
+    <string name="terms22">大雪</string>
+    <string name="terms23">冬至</string>
+    <string name="chunjie">春节</string>
+    <string name="yuanxiao">元宵节</string>
+    <string name="duanwu">端午节</string>
+    <string name="zhongqiu">中秋节</string>
+    <string name="chongyang">重阳节</string>
+    <string name="laba">腊八</string>
+    <string name="xiaonian">小年</string>
+    <string name="chuxi">除夕</string>
+    <string name="qixi">七夕</string>
+    <string name="new_Year_day">元旦</string>
+    <string name="valentin_day">情人节</string>
+    <string name="women_day">妇女节</string>
+    <string name="arbor_day">植树节</string>
+    <string name="tomb_day">清明节</string>
+    <string name="labol_day">劳动节</string>
+    <string name="youth_day">青年节</string>
+    <string name="children_day">儿童节</string>
+    <string name="Communist_day">建党节</string>
+    <string name="army_day">建军节</string>
+    <string name="teacher_day">教师节</string>
+    <string name="national_day">国庆节</string>
+    <string name="christmas_day">圣诞节</string>
+    <string name="skip">跳过</string>
 </resources>

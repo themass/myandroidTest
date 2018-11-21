@@ -198,10 +198,9 @@
 }
 
 #----------------------project------------
--keep class com.timeline.myapp.bean.**{ *; }
+-keep class com.way.beans.**{ *; }
 -keep class sun.misc.Unsafe { *; }
 -keep class com.google.gson.stream.** { *; }
--keep class com.sspacee.common.weather.**{ *; }
 -keep class com.way.**{ *; }
 #-----------   log   ------------
 -assumenosideeffects class android.util.Log {
@@ -247,42 +246,3 @@
    public *;
 }
 
--keepattributes SourceFile,LineNumberTable
--keep class com.inmobi.** { *; }
--dontwarn com.inmobi.**
--keep public class com.google.android.gms.**
--dontwarn com.google.android.gms.**
--dontwarn com.squareup.picasso.**
--keep class com.google.android.gms.ads.identifier.AdvertisingIdClient{
-     public *;
-}
--keep class com.google.android.gms.ads.identifier.AdvertisingIdClient$Info{
-     public *;
-}
-# skip the Picasso library classes
--keep class com.squareup.picasso.** {*;}
--dontwarn com.squareup.picasso.**
--dontwarn com.squareup.okhttp.**
-# skip Moat classes
--keep class com.moat.** {*;}
--dontwarn com.moat.**
-# skip AVID classes
--keep class com.integralads.avid.library.* {*;}
-#-------------------greenrobot greendao------------------------
--keep class org.greenrobot.greendao.**{*;}
--keepclassmembers class * extends org.greenrobot.greendao.AbstractDao {
-public static java.lang.String TABLENAME;
-}
--keep class **$Properties
--dontwarn org.greenrobot.greendao.**
--keep class net.sqlcipher.database.**{*;}
--keep class rx.**{*;}
-
-#-------------------vitamio.player------------------------
--keep public class io.vov.vitamio.MediaPlayer { *; }
--keep public class io.vov.vitamio.IMediaScannerService { *; }
--keep public class io.vov.vitamio.MediaScanner { *; }
--keep public class io.vov.vitamio.MediaScannerClient { *; }
--keep public class io.vov.vitamio.VitamioLicense { *; }
--keep public class io.vov.vitamio.Vitamio { *; }
--keep public class io.vov.vitamio.MediaMetadataRetriever { *; }

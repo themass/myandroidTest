@@ -1,5 +1,4 @@
 apply plugin: 'com.android.application'
-apply plugin: 'org.greenrobot.greendao'
 // gradle BuildVariants
 //Build Variants = Product Flavor + Build Type
 android {
@@ -8,7 +7,7 @@ android {
     defaultConfig {
         applicationId "com.timeline.sexfree1"
         minSdkVersion 16
-        targetSdkVersion 26
+        targetSdkVersion 25
         versionCode 1000002009
         versionName "1.0.2.9"
         // Enabling multidex support.
@@ -23,14 +22,6 @@ android {
     }
     lintOptions {
         disable 'InvalidPackage'
-    }
-    packagingOptions {
-        exclude 'META-INF/LICENSE.txt'
-        exclude 'META-INF/maven/com.squareup.okhttp/okhttp/pom.xml'
-        exclude 'META-INF/maven/com.squareup.okhttp/okhttp/pom.properties'
-        exclude 'META-INF/maven/com.squareup.okio/okio/pom.xml'
-        exclude 'META-INF/maven/com.squareup.okio/okio/pom.properties'
-        exclude 'META-INF/services/javax.annotation.processing.Processor'
     }
     sourceSets.main {
         jni.srcDirs = [] // disables the default ndk-build call (with on-the-fly Android.mk files)
@@ -70,88 +61,22 @@ android {
         }
     }
     productFlavors {
-        sexmypool {
+        weathermy {
             manifestPlaceholders = [CHANNEL_VALUE: "MYPOOL", AD_CHANNEL_VALUE: "MYPOOL"]
         }
 //        sexgoogle {
 //            manifestPlaceholders = [CHANNEL_VALUE: "GOOGLEMARKET", AD_CHANNEL_VALUE: "GOOGLEMARKET"]
 //        }
     }
-}
-greendao {
-    schemaVersion 3
-    daoPackage 'com.ping.greendao.gen'
-    targetGenDir 'src/main/java'
+    useLibrary 'org.apache.http.legacy'
 }
 final APPCOMPAT_VERSION = '26.1.0'
 dependencies {
-    //    implementation(name:'YoumiSdk_v7.5.0_2017-07-18',ext:'aar')
-//    implementation files('libs/gson-2.2.4.jar')
-//    implementation files('libs/volley.jar')
-//    implementation files('libs/commons-codec.jar')
-//    //    implementation files('libs/BaiduLBS_Android.jar')
-//    implementation files('libs/AdViewSDK_Android.jar')
-//    implementation files('libs/commons-io-2.4.jar')
-//    implementation files('libs/httpcore-4.2.5.jar')
-////    implementation 'com.google.android.gms:play-services-ads:15.0.1'
-//    implementation files('libs/gdt_mob_release.jar')
-//    implementation files('libs/httpcore-4.2.5.jar')
-//    implementation files('libs/InMobi.jar')
-//    implementation(name: 'YoumiSdk_v7.5.0_2017-07-18', ext: 'aar')
-
     implementation fileTree(dir: 'libs', include: ['*.aar'])
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-
-
-    implementation "com.android.support:appcompat-v7:$APPCOMPAT_VERSION"
     implementation "com.android.support:support-v13:$APPCOMPAT_VERSION"
     implementation "com.android.support:support-v4:$APPCOMPAT_VERSION"
-    implementation "com.android.support:palette-v7:$APPCOMPAT_VERSION"
     implementation "com.android.support:recyclerview-v7:$APPCOMPAT_VERSION"
     implementation "com.android.support:cardview-v7:$APPCOMPAT_VERSION"
-    implementation "com.android.support:design:$APPCOMPAT_VERSION"
-    implementation "com.android.support:percent:$APPCOMPAT_VERSION"
-    implementation 'com.android.support:multidex:1.0.1'
-    implementation 'com.jakewharton:butterknife:8.8.1'
-    annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
-    implementation 'com.jakewharton:disklrucache:2.0.2'
-    //3.4.1
-    implementation 'com.squareup.okhttp3:okhttp:3.9.0'
-    implementation 'com.squareup.okhttp3:logging-interceptor:3.9.0'
-    implementation 'com.github.bumptech.glide:glide:4.3.1'
-    annotationProcessor 'com.github.bumptech.glide:compiler:4.3.1'
-    //    implementation 'com.github.bumptech.glide:okhttp3-integration:1.5.0@aar'
-    implementation 'com.github.bumptech.glide:okhttp3-integration:4.3.1'
-    implementation 'jp.wasabeef:glide-transformations:2.0.2'
-    // If you want to use the GPU Filters
-    implementation 'jp.co.cyberagent.android.gpuimage:gpuimage-library:1.4.1'
-    implementation 'com.github.chrisbanes:PhotoView:2.1.3'
-    implementation 'org.greenrobot:eventbus:3.0.0'
-    implementation 'org.greenrobot:greendao:3.2.2'
-    implementation 'com.romainpiel.shimmer:library:1.4.0@aar'
-    implementation 'com.github.lawloretienne:imagegallery:0.1.0'
-    implementation 'com.umeng.analytics:analytics:latest.integration'
-    implementation 'com.github.JakeWharton:ViewPagerIndicator:2.4.1'
-    implementation 'cn.jzvd:jiaozivideoplayer:6.2.12'
 
-    //    implementation 'com.zhy:flowlayout-lib:1.0.3'
-    //implementation 'com.github.amlcurran.showcaseview:library:5.4.3'
-    //implementation 'com.github.wooplr:Spotlight:1.2.3'
-    //    ------implementation 'com.github.iammert:MaterialIntroView:1.6.0'
-    //implementation 'com.isanwenyu.highlight:highlight:1.8.0'
-    //implementation 'com.github.faruktoptas:FancyShowCaseView:1.0.0'
-    //implementation 'com.github.deano2390:MaterialShowcaseView:1.2.0'
-    implementation 'com.sothree.slidinguppanel:library:3.3.1'
-    //    implementation 'net.steamcrafted:materialiconlib:1.1.1'
-    //    implementation 'com.afollestad.material-dialogs:core:0.9.1.0'
-    //    implementation('com.github.naman14:app-theme-engine:0.5.2@aar') {
-    //        transitive = true
-    //    }
-//    implementation 'com.inmobi.monetization:inmobi-ads:7.1.1'
-//    implementation 'com.squareup.picasso:picasso:2.5.2'
-//    implementation 'com.google.android.gms:play-services-base:15.0.1'
-//    implementation 'com.google.android.gms:play-services-location:15.0.1'
-//    implementation 'com.google.android.gms:play-services-plus:15.0.1'
-
-    implementation project(path: ':vitamio')
 }

@@ -6,17 +6,19 @@
 
     <ImageView
         android:id="@+id/lauch_ads_bottom"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:background="@drawable/ic_lauch_bottom" />
+        android:src="@drawable/google_logo_gray_1024"
+        />
 
     <RelativeLayout
         android:id="@+id/rl_spread"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@+id/lauch_ads_bottom" />
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true" />
 
     <RelativeLayout
         android:id="@+id/skip_view"
@@ -25,15 +27,16 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
         android:layout_margin="16dp"
-        android:clickable="true">
+        android:clickable="true"
+        >
 
         <TextView
-            android:id="@+id/tv_jishi"
+            android:id="@+id/tv_shu"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:background="@drawable/skip_bg"
             android:gravity="center"
             android:text="@string/skip"
-            android:textSize="@dimen/textsize_16" />
+             />
     </RelativeLayout>
 </RelativeLayout>
