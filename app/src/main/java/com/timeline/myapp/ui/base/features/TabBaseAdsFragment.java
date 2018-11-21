@@ -5,8 +5,9 @@ import android.support.design.widget.FloatingActionButton;
 import android.view.View;
 import android.view.animation.OvershootInterpolator;
 
+import com.qq.sexfree.R;
 import com.sspacee.common.util.LogUtil;
-import com.timeline.sexfree1.R;
+
 import com.timeline.myapp.data.AdsPopStrategy;
 
 import butterknife.BindView;

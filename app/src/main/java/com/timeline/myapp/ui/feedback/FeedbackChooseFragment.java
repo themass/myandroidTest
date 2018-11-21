@@ -12,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.qq.sexfree.R;
 import com.sspacee.common.ui.base.BaseFragment;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
@@ -20,7 +21,7 @@ import com.timeline.myapp.bean.vo.InfoListVo;
 import com.timeline.myapp.data.BaseService;
 import com.timeline.myapp.ui.base.CommonFragmentActivity;
 import com.timeline.myapp.ui.base.features.LoadableFragment;
-import com.timeline.sexfree1.R;
+
 import com.viewpagerindicator.TabPageIndicator;
 
 import java.util.ArrayList;

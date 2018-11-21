@@ -21,6 +21,7 @@ import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 
+import com.qq.sexfree.R;
 import com.sspacee.common.ui.base.BaseFragment;
 import com.sspacee.common.ui.view.FavoriteImageView;
 import com.sspacee.common.ui.view.MyWebView;
@@ -34,7 +35,7 @@ import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.StaticDataUtil;
 import com.timeline.myapp.task.SaveTextTask;
 import com.timeline.myapp.ui.base.CommonFragmentActivity;
-import com.timeline.sexfree1.R;
+
 
 import butterknife.BindView;
 import butterknife.OnClick;

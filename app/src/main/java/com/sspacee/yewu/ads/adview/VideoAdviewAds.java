@@ -6,12 +6,13 @@ import android.widget.Toast;
 
 import com.kyview.interfaces.AdViewVideoListener;
 import com.kyview.manager.AdViewVideoManager;
+import com.qq.sexfree.R;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.ads.base.VideoAdsInter;
 import com.timeline.myapp.ui.sound.VideoShowActivity;
 import com.timeline.myapp.ui.sound.VideoShowActivityj;
-import com.timeline.sexfree1.R;
+
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.task.ScoreTask;
 

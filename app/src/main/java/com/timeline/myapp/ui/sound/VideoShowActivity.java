@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
+import com.qq.sexfree.R;
 import com.sspacee.common.ui.view.FavoriteImageView;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.StringUtils;
@@ -13,7 +14,7 @@ import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.timeline.myapp.data.ConnLogUtil;
-import com.timeline.sexfree1.R;
+
 import com.timeline.myapp.bean.vo.RecommendVo;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.ImagePhotoLoad;

@@ -2,9 +2,10 @@ package com.timeline.myapp.data;
 
 import android.content.Context;
 
+import com.qq.sexfree.R;
 import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.SystemUtils;
-import com.timeline.sexfree1.R;
+
 import com.timeline.myapp.bean.vo.LocationVo;
 import com.timeline.myapp.constant.Constants;
 

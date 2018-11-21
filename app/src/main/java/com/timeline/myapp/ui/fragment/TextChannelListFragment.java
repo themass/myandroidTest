@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.qq.sexfree.R;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.StringUtils;
 import com.sspacee.common.util.SystemUtils;
@@ -24,7 +25,7 @@ import com.timeline.myapp.data.StaticDataUtil;
 import com.timeline.myapp.ui.base.CommonFragmentActivity;
 import com.timeline.myapp.ui.base.MenuOneContext;
 import com.timeline.myapp.ui.base.features.BasePullLoadbleFragment;
-import com.timeline.sexfree1.R;
+
 
 /**
  * Created by themass on 2016/8/12.
@@ -85,7 +86,7 @@ public class TextChannelListFragment extends BasePullLoadbleFragment<TextItemsVo
         int title;
         int icon = R.drawable.ic_menu_favorite_ed;
         if (favoriteVo == null) {
-            title =R.string.menu_favorite;
+            title = R.string.menu_favorite;
             icon = R.drawable.ic_menu_favorite_no;
         } else {
             title =R.string.menu_favorite_cancel;

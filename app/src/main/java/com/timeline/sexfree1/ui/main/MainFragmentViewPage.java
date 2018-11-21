@@ -20,6 +20,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.qq.sexfree.R;
 import com.sspacee.common.util.DoubleClickExit;
 import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.LogUtil;
@@ -39,7 +40,7 @@ import com.timeline.myapp.data.config.TabChangeEvent;
 import com.timeline.myapp.service.LogUploadService;
 import com.timeline.myapp.ui.base.app.BaseDrawerActivity;
 import com.timeline.myapp.ui.inte.OnBackKeyDownListener;
-import com.timeline.sexfree1.R;
+
 import com.timeline.sexfree1.ui.maintab.TabAreaFragment;
 import com.timeline.sexfree1.ui.maintab.TabCustomeFragment;
 import com.timeline.sexfree1.ui.maintab.TabMovieFragment;

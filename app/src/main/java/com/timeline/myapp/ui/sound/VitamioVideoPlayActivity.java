@@ -21,8 +21,9 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.qq.sexfree.R;
 import com.sspacee.common.ui.base.LogActivity;
-import com.timeline.sexfree1.R;
+
 import com.timeline.myapp.bean.vo.RecommendVo;
 import com.timeline.myapp.constant.Constants;
 

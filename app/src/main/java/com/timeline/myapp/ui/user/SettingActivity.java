@@ -10,6 +10,7 @@ import android.widget.EditText;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import com.qq.sexfree.R;
 import com.sspacee.common.util.DateUtils;
 import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.FileSizeUtil;
@@ -23,7 +24,7 @@ import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.net.request.CommonResponse;
 import com.sspacee.yewu.um.MobAgent;
-import com.timeline.sexfree1.R;
+
 import com.timeline.myapp.base.MyApplication;
 import com.timeline.myapp.bean.form.RegForm;
 import com.timeline.myapp.bean.vo.NullReturnVo;
@@ -254,7 +255,7 @@ public class SettingActivity extends BaseSingleActivity {
             url = Constants.DEFAULT_REFERER;
         }
         ShareUtil util = new ShareUtil(this);
-        util.shareText(null,null,url+" 爱Freedom，精彩你的生活","爱Freedom","精彩你的生活");
+        util.shareText(null,null,url+" 红颜影视，精彩你的生活","红颜影视","精彩你的生活");
     }
 
     @Override

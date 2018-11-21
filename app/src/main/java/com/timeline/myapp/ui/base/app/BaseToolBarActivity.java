@@ -10,9 +10,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.qq.sexfree.R;
 import com.sspacee.common.ui.base.LogActivity;
 import com.sspacee.common.util.LogUtil;
-import com.timeline.sexfree1.R;
+
 
 import java.lang.reflect.Field;
 

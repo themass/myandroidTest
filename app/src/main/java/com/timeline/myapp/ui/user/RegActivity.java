@@ -8,9 +8,10 @@ import android.widget.LinearLayout;
 import android.widget.RadioGroup;
 
 import com.qq.e.comm.util.StringUtil;
+import com.qq.sexfree.R;
 import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.net.request.CommonResponse;
-import com.timeline.sexfree1.R;
+
 import com.timeline.myapp.bean.form.RegForm;
 import com.timeline.myapp.bean.vo.NullReturnVo;
 import com.timeline.myapp.constant.Constants;

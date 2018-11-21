@@ -4,9 +4,10 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.qq.sexfree.R;
 import com.sspacee.common.ui.base.BaseFragment;
 import com.sspacee.common.util.LogUtil;
-import com.timeline.sexfree1.R;
+
 
 import butterknife.BindView;
 

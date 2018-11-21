@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
 
+import com.qq.sexfree.R;
 import com.sspacee.common.ui.view.HeartAnimView;
 import com.sspacee.common.ui.view.MyProgressDialog;
 import com.sspacee.common.ui.view.MyPullView;
@@ -19,7 +20,7 @@ import com.sspacee.common.util.StringUtils;
 import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.net.request.CommonResponse;
 import com.sspacee.yewu.net.request.CommonResponse.ResponseOkListener;
-import com.timeline.sexfree1.R;
+
 import com.timeline.myapp.adapter.FeedAdapter;
 import com.timeline.myapp.bean.form.IwannaForm;
 import com.timeline.myapp.bean.vo.IWannaVo;

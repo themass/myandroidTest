@@ -9,13 +9,14 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.qq.sexfree.R;
 import com.sspacee.common.ui.base.LogActivity;
 import com.sspacee.common.ui.view.MyWebView;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PackageUtils;
 import com.sspacee.common.util.SystemUtils;
 import com.sspacee.common.util.ToastUtil;
-import com.timeline.sexfree1.R;
+
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.ui.base.features.BaseWebViewFragment;
 

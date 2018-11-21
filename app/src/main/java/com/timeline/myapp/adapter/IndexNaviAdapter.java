@@ -13,10 +13,11 @@ import android.view.animation.Interpolator;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.qq.sexfree.R;
 import com.sspacee.common.util.DisplayUtil;
 import com.sspacee.common.util.Utils;
 import com.timeline.myapp.base.MyApplication;
-import com.timeline.sexfree1.R;
+
 
 import java.util.ArrayList;
 import java.util.List;

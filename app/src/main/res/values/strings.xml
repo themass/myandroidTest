@@ -32,9 +32,9 @@
     <string name="tab_fb_click_fast">Too fast,please wait 3 seconds</string>
     <string name="tab_fb_click_wifi">Please use it under Dis conn VPN </string>
     <!-- Application -->
-    <string name="app_name">Navigation</string>
-    <string name="main_activity_name">Navigation</string>
-    <string name="toobar_title">Navigation</string>
+    <string name="app_name">AFreedom</string>
+    <string name="main_activity_name">AFreedom</string>
+    <string name="toobar_title">AFreedom</string>
     <string name="load">loading more data</string>
     <string name="off">off</string>
     <string name="on">on</string>

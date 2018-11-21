@@ -15,6 +15,7 @@ import android.widget.TextView;
 
 import com.etiennelawlor.imagegallery.library.adapters.FullScreenImageGalleryAdapter;
 import com.etiennelawlor.imagegallery.library.utilities.DisplayUtility;
+import com.qq.sexfree.R;
 import com.sspacee.common.ui.view.FavoriteImageView;
 import com.sspacee.common.util.ToastUtil;
 import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
@@ -28,7 +29,7 @@ import com.timeline.myapp.task.SaveImageCallBack;
 import com.timeline.myapp.task.SaveImageTask;
 import com.timeline.myapp.ui.base.CommonFragmentActivity;
 import com.timeline.myapp.ui.inte.OnBackKeyDownListener;
-import com.timeline.sexfree1.R;
+
 
 import butterknife.BindView;
 import butterknife.OnClick;

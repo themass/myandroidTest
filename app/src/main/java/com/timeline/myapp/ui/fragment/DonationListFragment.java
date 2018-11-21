@@ -5,7 +5,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
-import com.timeline.sexfree1.R;
+
+import com.qq.sexfree.R;
 import com.timeline.myapp.adapter.AppRecommendViewAdapter;
 import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.myapp.bean.vo.AppInfo;

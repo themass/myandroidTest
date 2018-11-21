@@ -2,12 +2,13 @@ package com.timeline.myapp.data;
 
 import android.content.Context;
 
+import com.qq.sexfree.R;
 import com.sspacee.common.util.Md5;
 import com.sspacee.common.util.SystemUtils;
 import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
-import com.timeline.sexfree1.R;
+
 import com.timeline.myapp.base.MyApplication;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.ui.sound.VideoShowActivity;

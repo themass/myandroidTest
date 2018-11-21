@@ -10,6 +10,7 @@ import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.View;
 
 import com.kyview.natives.NativeAdInfo;
+import com.qq.sexfree.R;
 import com.sspacee.common.helper.OnStartDragListener;
 import com.sspacee.common.helper.SimpleItemTouchHelperCallback;
 import com.sspacee.common.ui.view.RecycleViewDivider;
@@ -18,7 +19,7 @@ import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.ads.base.NativeAdsReadyListener;
 import com.sspacee.yewu.um.MobAgent;
-import com.timeline.sexfree1.R;
+
 import com.timeline.myapp.adapter.IndexRecommendAdapter;
 import com.timeline.myapp.adapter.base.BasePhotoFlowRecycleViewAdapter;
 import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;

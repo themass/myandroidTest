@@ -4,10 +4,11 @@ import android.content.Context;
 import android.os.HandlerThread;
 import android.widget.Toast;
 
+import com.qq.sexfree.R;
 import com.sspacee.common.util.Md5;
 import com.sspacee.yewu.ads.adview.AdviewConstant;
 import com.sspacee.yewu.um.MobAgent;
-import com.timeline.sexfree1.R;
+
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.UserLoginUtil;
 import com.timeline.myapp.task.ScoreTask;
@@ -101,10 +102,10 @@ public class AdsContext {
     public static boolean rateShow(){
         if(UserLoginUtil.isVIP3()){
             int i = Md5.getRandom(Constants.maxRate);
-            return i<=3;
+            return i<=5;
         }else if(UserLoginUtil.isVIP2()){
             int i = Md5.getRandom(Constants.maxRate);
-            return i<=6;
+            return i<=7;
         }else if(UserLoginUtil.isVIP()){
             int i = Md5.getRandom(Constants.maxRate);
             return i<=8;

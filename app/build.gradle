@@ -6,11 +6,11 @@ android {
     compileSdkVersion 26
     buildToolsVersion '27.0.3'
     defaultConfig {
-        applicationId "com.timeline.sexfree1"
+        applicationId "com.qq.sexfree"
         minSdkVersion 16
         targetSdkVersion 26
-        versionCode 1000002009
-        versionName "1.0.2.9"
+        versionCode 1000004000
+        versionName "1.0.4.0"
         // Enabling multidex support.
         multiDexEnabled true
         vectorDrawables.useSupportLibrary = true

@@ -4,9 +4,10 @@ import android.content.Intent;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 
+import com.qq.sexfree.R;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.ToastUtil;
-import com.timeline.sexfree1.R;
+
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.ui.base.WebViewActivity;
 import com.timeline.myapp.ui.config.QuickBrowserConfigActivity;

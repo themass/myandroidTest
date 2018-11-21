@@ -17,12 +17,13 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 
+import com.qq.sexfree.R;
 import com.sspacee.common.ui.base.BaseFragment;
 import com.sspacee.common.ui.view.MyWebView;
 import com.sspacee.common.util.FileUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.net.HttpUtils;
-import com.timeline.sexfree1.R;
+
 import com.timeline.myapp.base.MyApplication;
 import com.timeline.myapp.constant.Constants;
 

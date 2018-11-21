@@ -4,7 +4,8 @@ import android.content.Context;
 import android.support.v7.widget.AppCompatImageView;
 import android.util.AttributeSet;
 
-import com.timeline.sexfree1.R;
+
+import com.qq.sexfree.R;
 import com.timeline.myapp.bean.vo.FavoriteVo;
 import com.timeline.myapp.data.FavoriteUtil;
 

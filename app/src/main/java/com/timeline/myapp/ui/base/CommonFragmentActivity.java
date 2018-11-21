@@ -4,10 +4,11 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.View;
 
+import com.qq.sexfree.R;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
-import com.timeline.sexfree1.R;
+
 import com.timeline.myapp.ui.base.app.BaseFragmentActivity;
 import com.timeline.myapp.ui.inte.FabOpListener;
 import com.timeline.myapp.ui.inte.OnBackKeyDownListener;
@@ -29,6 +30,7 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
     public static final String ADSSCROLL = "ADSSCROLL";
     public static final String SLIDINGCLOSE = "SLIDINGCLOSE";
     public static final String TOOLBAR_SHOW = "TOOLBAR_SHOW";
+    public static final String FAB_SHOW="FAB_SHOW";
     private Boolean showAds = false;
     private boolean showInterstitialAds = false;
     private Boolean slidingClose = false;
@@ -55,7 +57,7 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
         if(o!=null){
             bannerCategrey = (AdsContext.Categrey)o;
         }
-        setFabUpVisibility(View.VISIBLE);
+        setFabUpVisibility(getIntent().getIntExtra(FAB_SHOW,View.VISIBLE));
         String title = null;
         Serializable name = getIntent().getSerializableExtra(TITLE);
         if (name instanceof String) {

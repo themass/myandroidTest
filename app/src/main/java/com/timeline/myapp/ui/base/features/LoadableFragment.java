@@ -15,12 +15,13 @@ import android.widget.TextView;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.VolleyError;
+import com.qq.sexfree.R;
 import com.sspacee.common.ui.base.BaseFragment;
 import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.ViewUtils;
 import com.sspacee.yewu.net.VolleyUtils;
-import com.timeline.sexfree1.R;
+
 import com.timeline.myapp.bean.vo.InfoListVo;
 import com.timeline.myapp.data.BaseService;
 

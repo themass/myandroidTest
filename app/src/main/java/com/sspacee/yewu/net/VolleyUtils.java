@@ -14,12 +14,13 @@ import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.BasicNetwork;
 import com.android.volley.toolbox.HttpStack;
 import com.android.volley.toolbox.ImageLoader;
+import com.qq.sexfree.R;
 import com.sspacee.common.exce.MyVolleyError;
 import com.sspacee.common.util.FileUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.cache.BitmapLruCache;
 import com.sspacee.common.util.cache.DiskBasedCacheEx;
-import com.timeline.sexfree1.R;
+
 import com.timeline.myapp.base.MyApplication;
 
 import java.io.File;

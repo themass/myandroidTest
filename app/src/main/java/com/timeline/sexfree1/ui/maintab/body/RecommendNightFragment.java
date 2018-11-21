@@ -7,12 +7,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
+import com.qq.sexfree.R;
 import com.sspacee.common.util.PackageUtils;
 import com.timeline.myapp.base.MyApplication;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.ui.fragment.AppListFragment;
 import com.timeline.myapp.ui.fragment.RecommendFragment;
-import com.timeline.sexfree1.R;
+
 
 import butterknife.BindView;
 import butterknife.OnClick;

@@ -10,7 +10,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.timeline.sexfree1.R;
+
+import com.qq.sexfree.R;
 import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.myapp.bean.vo.AppInfo;
 import com.timeline.myapp.data.ImagePhotoLoad;

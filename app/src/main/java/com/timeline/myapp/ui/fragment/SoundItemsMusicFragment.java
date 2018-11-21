@@ -20,6 +20,7 @@ import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.qq.sexfree.R;
 import com.sspacee.common.ui.view.FavoriteImageView;
 import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.common.util.LogUtil;
@@ -39,7 +40,7 @@ import com.timeline.myapp.service.PlayService;
 import com.timeline.myapp.ui.base.CommonFragmentActivity;
 import com.timeline.myapp.ui.base.features.BasePullLoadbleFragment;
 import com.timeline.myapp.ui.inte.MusicStateListener;
-import com.timeline.sexfree1.R;
+
 
 import butterknife.BindView;
 import butterknife.OnClick;
@@ -123,6 +124,7 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
         intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, true);
         intent.putExtra(CommonFragmentActivity.BANNER_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_VPN1);
         intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_SHOW, true);
+        intent.putExtra(CommonFragmentActivity.FAB_SHOW, View.GONE);
         context.startActivity(intent);
     }
     @Override

@@ -3,13 +3,14 @@ package com.timeline.myapp.ui.feedback;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 
+import com.qq.sexfree.R;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.timeline.myapp.ui.base.app.BaseFragmentActivity;
 import com.timeline.myapp.ui.inte.FabOpListener;
 import com.timeline.myapp.ui.inte.OnBackKeyDownListener;
-import com.timeline.sexfree1.R;
+
 
 import java.io.Serializable;
 

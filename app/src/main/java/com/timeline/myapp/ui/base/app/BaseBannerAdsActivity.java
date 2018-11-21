@@ -9,10 +9,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.OvershootInterpolator;
 
+import com.qq.sexfree.R;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
-import com.timeline.sexfree1.R;
+
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.AdsPopStrategy;
 import com.timeline.myapp.data.config.HindBannerEvent;

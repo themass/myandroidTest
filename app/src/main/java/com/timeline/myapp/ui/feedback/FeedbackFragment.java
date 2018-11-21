@@ -13,6 +13,7 @@ import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 
+import com.qq.sexfree.R;
 import com.sspacee.common.ui.view.HeartAnimView;
 import com.sspacee.common.ui.view.MyProgressDialog;
 import com.sspacee.common.ui.view.MyPullView;
@@ -32,7 +33,7 @@ import com.timeline.myapp.ui.base.CommonFragmentActivity;
 import com.timeline.myapp.ui.base.features.LoadableFragment;
 import com.timeline.myapp.ui.inte.FabOpListener;
 import com.timeline.myapp.ui.user.LoginActivity;
-import com.timeline.sexfree1.R;
+
 
 import java.util.ArrayList;
 

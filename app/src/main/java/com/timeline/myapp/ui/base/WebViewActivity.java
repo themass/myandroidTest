@@ -11,6 +11,7 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.qq.e.comm.util.StringUtil;
+import com.qq.sexfree.R;
 import com.sspacee.common.ui.view.MyWebView;
 import com.sspacee.common.util.AudioMngHelper;
 import com.sspacee.common.util.EventBusUtil;
@@ -24,7 +25,7 @@ import com.sspacee.common.util.Utils;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.net.request.CommonResponse;
-import com.timeline.sexfree1.R;
+
 import com.timeline.myapp.bean.form.CustomeAddForm;
 import com.timeline.myapp.bean.vo.NullReturnVo;
 import com.timeline.myapp.constant.Constants;

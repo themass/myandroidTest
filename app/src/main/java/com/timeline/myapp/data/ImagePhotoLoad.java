@@ -13,9 +13,10 @@ import com.bumptech.glide.request.target.DrawableImageViewTarget;
 import com.etiennelawlor.imagegallery.library.adapters.FullScreenImageGalleryAdapter;
 import com.etiennelawlor.imagegallery.library.adapters.ImageGalleryAdapter;
 import com.qq.e.comm.util.StringUtil;
+import com.qq.sexfree.R;
 import com.romainpiel.shimmer.Shimmer;
 import com.sspacee.common.util.MyGlideLibModule;
-import com.timeline.sexfree1.R;
+
 import com.timeline.myapp.adapter.IndexRecommendAdapter;
 import com.timeline.myapp.bean.vo.RecommendVo;
 import com.timeline.myapp.constant.BaseRes;

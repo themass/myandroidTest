@@ -12,6 +12,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.qq.sexfree.R;
 import com.sspacee.common.util.DateUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PreferenceUtils;
@@ -23,7 +24,7 @@ import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.um.MobAgent;
 import com.timeline.myapp.ui.feedback.FeedbackChooseFragment;
 import com.timeline.myapp.ui.feedback.FeedbackFragmentActivity;
-import com.timeline.sexfree1.R;
+
 import com.timeline.myapp.base.MyApplication;
 import com.timeline.myapp.bean.vo.UserInfoVo;
 import com.timeline.myapp.constant.Constants;
@@ -299,7 +300,6 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                     FavoriteFragment.startFragment(BaseDrawerActivity.this);
                 }else if (item.getItemId() == R.id.menu_support) {
                     name = "支持作者";
-                    adsOffers();
                     ToastUtil.showShort(R.string.support_info);
                 } else if (item.getItemId() == R.id.menu_app) {
                     name = "应用推荐";
@@ -322,10 +322,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
             url = Constants.DEFAULT_REFERER;
         }
         ShareUtil util = new ShareUtil(this);
-        util.shareText(null,null,url+" 爱Freedom，精彩你的生活","爱Freedom","精彩你的生活");
-    }
-    private void adsOffers(){
-        AdsManager.getInstans().offerAds(this);
+        util.shareText(null,null,url+" 红颜影视，精彩你的生活","红颜影视","精彩你的生活");
     }
     @Override
     protected void onPause() {

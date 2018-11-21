@@ -8,8 +8,9 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.RecyclerView;
 import android.view.animation.DecelerateInterpolator;
 
+import com.qq.sexfree.R;
 import com.sspacee.common.util.SystemUtils;
-import com.timeline.sexfree1.R;
+
 import com.timeline.myapp.adapter.FeedAdapter;
 
 import java.util.HashMap;

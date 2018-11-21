@@ -7,6 +7,7 @@ import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
+import com.qq.sexfree.R;
 import com.sspacee.common.ui.view.MyScrollView;
 import com.sspacee.common.ui.view.MyTextView;
 import com.sspacee.yewu.ads.base.AdsContext;
@@ -17,7 +18,7 @@ import com.timeline.myapp.data.BaseService;
 import com.timeline.myapp.data.StaticDataUtil;
 import com.timeline.myapp.ui.base.CommonFragmentActivity;
 import com.timeline.myapp.ui.base.features.LoadableFragment;
-import com.timeline.sexfree1.R;
+
 
 import butterknife.BindView;
 

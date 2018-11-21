@@ -6,9 +6,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.qq.sexfree.R;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.ui.fragment.RecommendFragment;
-import com.timeline.sexfree1.R;
+
 
 /**
  * Created by themass on 2015/9/1.

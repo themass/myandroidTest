@@ -11,8 +11,9 @@ import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.qq.sexfree.R;
 import com.sspacee.common.ui.view.widgets.MusicVisualizer;
-import com.timeline.sexfree1.R;
+
 import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.myapp.bean.vo.SoundItemsVo;
 import com.timeline.myapp.ui.inte.MusicStateListener;

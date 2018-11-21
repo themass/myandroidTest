@@ -5,13 +5,14 @@ import android.os.Handler;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.qq.sexfree.R;
 import com.sspacee.common.ui.base.BaseFragment;
 import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.timeline.myapp.data.UserLoginUtil;
-import com.timeline.sexfree1.R;
+
 import com.timeline.myapp.data.config.HindBannerEvent;
 
 import org.greenrobot.eventbus.Subscribe;

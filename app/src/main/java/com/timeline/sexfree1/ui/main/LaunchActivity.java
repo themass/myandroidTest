@@ -9,20 +9,12 @@ import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.qq.sexfree.R;
 import com.sspacee.common.ui.base.LogActivity;
-import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.ads.base.AdsManager;
-import com.sspacee.yewu.ads.youmi.YoumiAds;
 import com.sspacee.yewu.um.MobAgent;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.task.LoginTask;
-import com.timeline.sexfree1.R;
-
-import net.youmi.android.nm.cm.ErrorCode;
-import net.youmi.android.nm.sp.SplashViewSettings;
-import net.youmi.android.nm.sp.SpotListener;
-import net.youmi.android.nm.sp.SpotManager;
-import net.youmi.android.nm.sp.SpotRequestListener;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -68,16 +60,6 @@ public class LaunchActivity extends LogActivity {
         MobAgent.init(this);
         unbinder = ButterKnife.bind(this);
         LoginTask.start(this);
-        YoumiAds.init(this);
-        SpotManager.getInstance(this).requestSpot(new SpotRequestListener(){
-            public void onRequestSuccess(){
-                LogUtil.i("youmi onRequestSuccess");
-            }
-            public void onRequestFailed(int var1){
-                LogUtil.i("youmi onRequestFailed");
-            }
-        });
-
     }
 
     @OnClick(R.id.skip_view)
@@ -104,10 +86,8 @@ public class LaunchActivity extends LogActivity {
         MobAgent.onResume(this);
         AdsManager.getInstans().showSplashAds(this,ivAds,skipView);
         AdsManager.getInstans().reqVideo(this);
-        setupSplashAd();
         delay1s();
     }
-
     private void delay1s() {
         mHandler.sendEmptyMessageDelayed(Constants.ADS_JISHI, 1000);
     }
@@ -117,65 +97,6 @@ public class LaunchActivity extends LogActivity {
         super.onPause();
         MobAgent.onPause(this);
     }
-    /**
-     * 设置开屏广告
-     */
-    private void setupSplashAd() {
-
-        // 对开屏进行设置
-        SplashViewSettings splashViewSettings = new SplashViewSettings();
-        //		// 设置是否展示失败自动跳转，默认自动跳转
-        splashViewSettings.setAutoJumpToTargetWhenShowFailed(false);
-        // 设置跳转的窗口类
-        splashViewSettings.setTargetClass(MainFragmentViewPage.class);
-        // 设置开屏的容器
-        splashViewSettings.setSplashViewContainer(ivAds);
-
-        // 展示开屏广告
-        SpotManager.getInstance(this)
-                .showSplash(this, splashViewSettings, new SpotListener() {
-                    @Override
-                    public void onShowSuccess() {
-                        LogUtil.i("开屏展示成功");
-                    }
-
-                    @Override
-                    public void onShowFailed(int errorCode) {
-                        LogUtil.i("开屏展示失败");
-                        AdsManager.getInstans().showSplashAds(LaunchActivity.this,ivAds,skipView);
-                        switch (errorCode) {
-                            case ErrorCode.NON_NETWORK:
-                                LogUtil.i("网络异常");
-                                break;
-                            case ErrorCode.NON_AD:
-                                LogUtil.i("暂无开屏广告");
-                                break;
-                            case ErrorCode.RESOURCE_NOT_READY:
-                                LogUtil.i("开屏资源还没准备好");
-                                break;
-                            case ErrorCode.SHOW_INTERVAL_LIMITED:
-                                LogUtil.i("开屏展示间隔限制");
-                                break;
-                            case ErrorCode.WIDGET_NOT_IN_VISIBILITY_STATE:
-                                LogUtil.i("开屏控件处在不可见状态");
-                                break;
-                            default:
-                                LogUtil.i("errorCode: "+ errorCode);
-                                break;
-                        }
-                    }
-
-                    @Override
-                    public void onSpotClosed() {
-                        LogUtil.i("开屏被关闭");
-                    }
-
-                    @Override
-                    public void onSpotClicked(boolean isWebPage) {
-                        LogUtil.i("是否是网页广告？"+(isWebPage ? "是" : "不是"));
-                    }
-                });
-    }
 
     @Override
     public void onDestroy() {
@@ -183,7 +104,6 @@ public class LaunchActivity extends LogActivity {
         mHandler.removeMessages(Constants.ADS_JISHI);
         mHandler.removeCallbacks(mStartMainRunnable);
         AdsManager.getInstans().exitSplashAds(this,ivAds);
-        SpotManager.getInstance(this).onDestroy();
         super.onDestroy();
     }
 }

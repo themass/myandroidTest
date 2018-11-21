@@ -9,6 +9,7 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
 import com.qq.e.comm.util.StringUtil;
+import com.qq.sexfree.R;
 import com.sspacee.common.ui.view.MyEditText;
 import com.sspacee.common.ui.view.SiteAutoCompleteTextView;
 import com.sspacee.common.util.EventBusUtil;
@@ -17,7 +18,7 @@ import com.sspacee.common.util.StringUtils;
 import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.net.VolleyUtils;
 import com.sspacee.yewu.net.request.CommonResponse;
-import com.timeline.sexfree1.R;
+
 import com.timeline.myapp.bean.form.CustomeAddForm;
 import com.timeline.myapp.bean.vo.NullReturnVo;
 import com.timeline.myapp.constant.Constants;

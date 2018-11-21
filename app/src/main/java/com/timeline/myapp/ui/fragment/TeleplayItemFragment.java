@@ -5,8 +5,9 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
+import com.qq.sexfree.R;
 import com.sspacee.yewu.ads.base.AdsContext;
-import com.timeline.sexfree1.R;
+
 import com.timeline.myapp.bean.vo.RecommendVo;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.HistoryUtil;

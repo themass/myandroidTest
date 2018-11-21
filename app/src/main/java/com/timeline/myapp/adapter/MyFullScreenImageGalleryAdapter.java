@@ -5,7 +5,8 @@ import android.view.ViewGroup;
 
 import com.bumptech.glide.Glide;
 import com.etiennelawlor.imagegallery.library.adapters.FullScreenImageGalleryAdapter;
-import com.timeline.sexfree1.R;
+import com.qq.sexfree.R;
+
 
 import java.util.List;
 

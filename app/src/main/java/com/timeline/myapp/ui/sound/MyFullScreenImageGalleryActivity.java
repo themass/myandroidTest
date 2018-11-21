@@ -12,8 +12,9 @@ import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.view.View;
 import android.widget.TextView;
 
+import com.qq.sexfree.R;
 import com.sspacee.common.util.ToastUtil;
-import com.timeline.sexfree1.R;
+
 import com.timeline.myapp.adapter.MyFullScreenImageGalleryAdapter;
 import com.timeline.myapp.base.MyApplication;
 import com.timeline.myapp.task.SaveImageCallBack;

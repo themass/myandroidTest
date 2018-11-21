@@ -6,7 +6,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.PopupMenu;
 
-import com.timeline.sexfree1.R;
+
+import com.qq.sexfree.R;
 
 import java.lang.reflect.Method;
 

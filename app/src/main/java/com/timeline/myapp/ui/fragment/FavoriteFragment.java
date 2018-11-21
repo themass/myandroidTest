@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.qq.sexfree.R;
 import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.FileUtils;
 import com.sspacee.common.util.LogUtil;
@@ -16,7 +17,7 @@ import com.sspacee.common.util.SystemUtils;
 import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.net.NetUtils;
-import com.timeline.sexfree1.R;
+
 import com.timeline.myapp.adapter.FavoriteViewAdapter;
 import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.myapp.bean.vo.FavoriteVo;

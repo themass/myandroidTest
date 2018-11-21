@@ -5,9 +5,10 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.View;
 
+import com.qq.sexfree.R;
 import com.sspacee.common.util.LogUtil;
 import com.timeline.myapp.ui.base.app.BaseFragmentActivity;
-import com.timeline.sexfree1.R;
+
 
 import cn.jzvd.JZVideoPlayer;
 import cn.jzvd.JZVideoPlayerStandard;

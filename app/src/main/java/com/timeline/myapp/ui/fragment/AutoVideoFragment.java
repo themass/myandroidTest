@@ -8,8 +8,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.qq.sexfree.R;
 import com.sspacee.common.util.LogUtil;
-import com.timeline.sexfree1.R;
+
 import com.timeline.myapp.adapter.VideoListAdapter;
 import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.myapp.bean.vo.InfoListVo;

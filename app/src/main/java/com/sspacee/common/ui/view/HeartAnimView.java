@@ -14,9 +14,10 @@ import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.PopupWindow;
 
+import com.qq.sexfree.R;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.SystemUtils;
-import com.timeline.sexfree1.R;
+
 
 
 /**

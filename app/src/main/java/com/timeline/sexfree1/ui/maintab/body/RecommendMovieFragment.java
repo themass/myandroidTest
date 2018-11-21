@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
+import com.qq.sexfree.R;
 import com.sspacee.common.util.PackageUtils;
 import com.sspacee.yewu.um.MobAgent;
 import com.timeline.myapp.base.MyApplication;
@@ -16,7 +17,7 @@ import com.timeline.myapp.ui.fragment.AppListFragment;
 import com.timeline.myapp.ui.fragment.RecommendFragment;
 import com.timeline.myapp.ui.fragment.TeleplayChannelFragment;
 import com.timeline.myapp.ui.fragment.VideoChannelListFragment;
-import com.timeline.sexfree1.R;
+
 
 import butterknife.BindView;
 import butterknife.OnClick;

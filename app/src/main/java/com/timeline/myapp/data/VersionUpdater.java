@@ -18,6 +18,7 @@ import android.os.Handler;
 import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AlertDialog;
 
+import com.qq.sexfree.R;
 import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.FileUtils;
 import com.sspacee.common.util.LogUtil;
@@ -36,7 +37,7 @@ import com.timeline.myapp.bean.vo.VersionVo;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.config.StateUseEvent;
 import com.timeline.myapp.data.config.VipDescEvent;
-import com.timeline.sexfree1.R;
+
 import com.timeline.sexfree1.ui.main.MainFragmentViewPage;
 
 import java.io.File;

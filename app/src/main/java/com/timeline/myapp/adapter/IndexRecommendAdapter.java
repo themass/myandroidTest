@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.qq.sexfree.R;
 import com.romainpiel.shimmer.Shimmer;
 import com.romainpiel.shimmer.ShimmerTextView;
 import com.sspacee.common.helper.OnStartDragListener;
@@ -18,7 +19,7 @@ import com.sspacee.common.util.DensityUtil;
 import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.StringUtils;
 import com.sspacee.common.util.ToastUtil;
-import com.timeline.sexfree1.R;
+
 import com.timeline.myapp.adapter.base.BasePhotoFlowRecycleViewAdapter;
 import com.timeline.myapp.bean.vo.RecommendVo;
 import com.timeline.myapp.constant.Constants;

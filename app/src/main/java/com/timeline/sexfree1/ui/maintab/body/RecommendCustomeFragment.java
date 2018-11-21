@@ -14,6 +14,7 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.PopupWindow;
 
+import com.qq.sexfree.R;
 import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.ToastUtil;
@@ -30,7 +31,7 @@ import com.timeline.myapp.data.config.UserLoginEvent;
 import com.timeline.myapp.ui.fragment.RecommendFragment;
 import com.timeline.myapp.ui.inte.OnBackKeyDownListener;
 import com.timeline.myapp.ui.user.AddCustomeInfoActivity;
-import com.timeline.sexfree1.R;
+
 import com.timeline.sexfree1.ui.main.MainFragmentViewPage;
 
 import org.greenrobot.eventbus.Subscribe;

@@ -10,11 +10,12 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.SearchView;
 
+import com.qq.sexfree.R;
 import com.sspacee.common.ui.view.DividerItemDecoration;
 import com.sspacee.common.ui.view.MyPullView;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.StringUtils;
-import com.timeline.sexfree1.R;
+
 import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.myapp.bean.vo.InfoListVo;
 import com.timeline.myapp.data.BaseService;

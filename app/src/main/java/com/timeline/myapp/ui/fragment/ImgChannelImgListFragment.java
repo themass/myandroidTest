@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
+import com.qq.sexfree.R;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.timeline.myapp.bean.vo.ImgItemsVo;
@@ -14,7 +15,7 @@ import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.HistoryUtil;
 import com.timeline.myapp.data.StaticDataUtil;
 import com.timeline.myapp.ui.base.CommonFragmentActivity;
-import com.timeline.sexfree1.R;
+
 
 /**
  * Created by themass on 2016/8/12.
