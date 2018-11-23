@@ -49,6 +49,37 @@
     <!-- menu -->
     <string name="menu_btn_about">关于:灯塔VPN</string>
     <string name="menu_btn_share">分享</string>
+    <string name="menu_btn_donation">付款</string>
+    <string name="menu_btn_login">立即登录</string>
+    <string name="menu_btn_login_ready">已登录</string>
+    <string name="menu_btn_name_default">猴子请来的</string>
+    <string name="menu_btn_feedback">反馈 &amp; 建议</string>
+    <string name="menu_btn_bug">报告bug</string>
+    <string name="menu_btn_contract">联系我们:  email</string>
+    <string name="menu_copy_emai">邮箱已复制</string>
+    <string name="menu_btn_version">版本:</string>
+    <string name="menu_btn_notify">显示通知栏:</string>
+    <string name="menu_btn_logout">退出</string>
+    <string name="menu_btn_setting">设置</string>
+    <string name="menu_btn_support">支持一下作者</string>
+    <string name="support_info">请安装并激活几款应用，支持一下作者</string>
+    <string name="offerads_ths">感谢您的支持！</string>
+    <string name="menu_btn_about_context">FreeVPN最稳定，免费，不限时，一切为你请点赞！</string>
+    <string name="feed_back">信息反馈</string>
+    <string name="menu_btn_score">积分:</string>
+    <string name="menu_btn_networking">用量:</string>
+    <string name="menu_btn_cache">缓存:</string>
+    <string name="menu_btn_timeuse">用时:</string>
+    <string name="menu_btn_email">邮箱:</string>
+    <string name="menu_btn_score_context">积分可换VIP，详见“关于”</string>
+    <string name="menu_btn_cache_context">缓存已清除</string>
+    <string name="menu_btn_report_log">我们已收到您的问题！</string>
+    <string name="menu_btn_open_browser">浏览器打开</string>
+    <string name="menu_btn_copy_url">复制URL</string>
+    <string name="menu_btn_favorite">收藏夹</string>
+    <string name="menu_favorite">收藏</string>
+    <string name="menu_favorite_cancel">取消收藏</string>
+
     <string name="close_over">再按一次退出程序!!</string>
     <string name="no_browser">没有安装浏览器</string>
     <string name="cancel">取消</string>
@@ -59,6 +90,13 @@
     <string name="menu_copy">链接已复制</string>
     <string name="menu_btn_country">地区：</string>
 
+    <string name="feedback_hint">xxx积分 VIP3</string>
+    <string name="money_back_title">积分充值反馈</string>
+    <string name="iwanna_title">你想要什么？ </string>
+    <string name="send">发送</string>
+    <string name="iwanna_content_error">请告诉我你的需求!</string>
+    <string name="iwanna_content_success">我已收到你的请求 !</string>
+    <string name="recharge">充值:</string>
 
 
     <!-- 通用错误提示 -->
@@ -92,6 +130,10 @@
     <string name="vpn_not_supported">您的手机不支持VPN服务.</string>
     <string name="vpn_not_supported_during_lockdown">锁定模式下无法支持VPN.</string>
 
+    <string name="tab_fb_click">点广告赚积分 +</string>
+    <string name="tab_fb_click_fast">点击频率太高，请等待3秒钟</string>
+    <string name="tab_fb_click_wifi">请在断开VPN下使用 </string>
+
     <string name="permission_need">当前应用缺少必要权限。\n\n请点击\"设置\"-\"权限\"-打开所需权限。\n\n最后点击两次后退按钮，即可返回。</string>
     <string name="permission_get_accounts_hint">没有此权限，无法开启这个功能，请开启权限。PERMISSION_GET_ACCOUNTS</string>
     <string name="permission_read_phone_hint">没有此权限，无法开启这个功能，请开启权限。PERMISSION_READ_PHONE_STATE</string>
@@ -99,4 +141,9 @@
     <string name="permission_white_external_hint">没有此权限，无法开启这个功能，请开启权限。PERMISSION_WRITE_EXTERNAL_STORAGE</string>
     <item name="tag_pos" type="id" />
     <item name="tag_val" type="id" />
+    <string-array name="recharge_arry">
+        <item>微信</item>
+        <item>支付宝</item>
+        <item>其他</item>
+    </string-array>
 </resources>

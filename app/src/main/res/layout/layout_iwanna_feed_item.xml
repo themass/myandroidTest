@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?android:attr/selectableItemBackground"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/margin_15"
+    android:paddingTop="@dimen/margin_15">
+    <TextView
+        android:id="@+id/tv_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingLeft="@dimen/margin_4"
+        android:text="11111"
+        android:textColor="@color/location_index"
+        android:textSize="@dimen/textsize_14"
+        />
+
+    <ImageView
+        android:id="@+id/iv_ok"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@+id/tv_name"
+        android:paddingLeft="@dimen/margin_15"
+        android:src="@drawable/ic_ok" />
+
+    <TextView
+        android:id="@+id/tv_where"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingRight="@dimen/margin_22"
+        android:layout_alignParentRight="true"
+        android:text="11111"
+        android:textColor="@color/new_light_black"
+        android:textSize="@dimen/textsize_10"
+        />
+
+    <TextView
+        android:id="@+id/tv_content"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tv_name"
+        android:paddingLeft="@dimen/margin_10"
+        android:text="@string/iwanna_tips"
+        android:textColor="@color/new_globle_black"
+        android:textSize="@dimen/textsize_18" />
+
+    <RelativeLayout
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_below="@+id/tv_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+        <RelativeLayout
+            android:id="@+id/rl_live"
+            android:layout_height="wrap_content"
+            android:layout_width="@dimen/margin_100"
+            android:layout_alignParentRight="true">
+            <ImageView
+                android:id="@+id/iv_heart"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_heart_small_blue" />
+
+            <TextSwitcher
+                android:id="@+id/tsLikesCounter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/margin_8"
+                android:layout_marginRight="@dimen/margin_8"
+                android:layout_toRightOf="@+id/iv_heart"
+                android:inAnimation="@anim/slide_in_likes_counter"
+                android:outAnimation="@anim/slide_out_likes_counter">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/text_like_counter" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/text_like_counter" />
+            </TextSwitcher>
+        </RelativeLayout>
+        <TextView
+            android:id="@+id/tv_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toLeftOf="@+id/rl_live"
+            android:paddingRight="@dimen/margin_22"
+            android:textColor="@color/base_gray"
+            android:text="111111"/>
+        <TextView
+            android:id="@+id/tv_app_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingRight="@dimen/margin_15"
+            android:layout_toLeftOf="@+id/tv_time"
+            android:textColor="@color/base_red_small"
+            />
+    </RelativeLayout>
+    <RelativeLayout
+        android:id="@+id/rv_ads"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tv_index"
+        android:gravity="center"
+        android:paddingTop="@dimen/margin_2"
+        android:background="@color/base_white"
+        android:visibility="gone"/>
+</RelativeLayout>

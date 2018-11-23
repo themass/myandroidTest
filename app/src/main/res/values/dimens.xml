@@ -39,7 +39,8 @@
     <dimen name="margin_80">80dip</dimen>
     <dimen name="margin_70">70dip</dimen>
     <dimen name="margin_58">58dip</dimen>
-
+    <dimen name="padding_10">10dip</dimen>
+    <dimen name="edit_tx_size">16sp</dimen>
     <dimen name="loading_footer">12sp</dimen>
     <dimen name="noti_vpn_title">13sp</dimen>
     <dimen name="noti_vpn_time">13sp</dimen>
@@ -53,4 +54,9 @@
     <!-- slidingclose-->
     <dimen name="fab_margin">16dp</dimen>
     <dimen name="toolbar_minHeight">0dp</dimen>
+    <dimen name="global_menu_avatar_size">50dp</dimen>
+    <dimen name="drawer_header_login_tx_size">14sp</dimen>
+    <dimen name="drawer_header_margin">16dp</dimen>
+    <dimen name="heart_anim_h">150dip</dimen>
+
 </resources>

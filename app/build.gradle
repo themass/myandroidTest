@@ -85,13 +85,8 @@ greendao {
 final APPCOMPAT_VERSION = '26.1.0'
 dependencies {
 
-    implementation files('libs/gson-2.2.4.jar')
-    implementation files('libs/volley.jar')
-    implementation files('libs/commons-codec.jar')
-    implementation files('libs/commons-io-2.4.jar')
-    implementation files('libs/httpcore-4.2.5.jar')
-    implementation (name:'library-1.0.8',ext:'aar')
-    implementation (name:'radarview-1.0.2',ext:'aar')
+    implementation fileTree(dir: 'libs', include: ['*.aar'])
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
 
 
     implementation "com.android.support:appcompat-v7:$APPCOMPAT_VERSION"

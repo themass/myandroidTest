@@ -3,6 +3,7 @@ package com.qq.vpn.adapter;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.support.annotation.Nullable;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,18 +11,18 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.RatingBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.qq.ext.util.StringUtils;
+import com.qq.ads.base.AdsContext;
+import com.qq.ads.base.AdsManager;
+import com.qq.ext.util.CollectionUtils;
 import com.qq.network.R;
 import com.qq.vpn.adapter.base.BaseRecyclerViewAdapter;
 import com.qq.vpn.domain.res.LocationVo;
-import com.qq.Constants;
 import com.qq.vpn.support.ImagePhotoLoad;
 import com.qq.vpn.support.LocationUtil;
-import com.qq.vpn.support.LocationPingTask;
+import com.qq.vpn.support.task.LocationPingTask;
 
 import java.util.List;
 
@@ -35,11 +36,16 @@ public class LocationItemAdapter extends BaseRecyclerViewAdapter<LocationItemAda
     private ColorStateList indexColo = null;
     private ColorStateList indexSelectColo = null;
     private boolean needPing = false;
+    private int index;
     public LocationItemAdapter(Context context, RecyclerView recyclerView, List<LocationVo> data, OnRecyclerViewItemClickListener<LocationVo> listener) {
         super(context, recyclerView, data, listener);
         chooseId = LocationUtil.getSelectLocationId(context);
         indexColo = context.getResources().getColorStateList(R.color.location_index);
         indexSelectColo = context.getResources().getColorStateList(R.color.base_red);
+        index = 0;
+        if(!CollectionUtils.isEmpty(data)){
+            index = data.get(0).type;
+        }
     }
     @Override
     public LocationItemAdapter.LocationItemView onCreateViewHolderData(ViewGroup parent, int viewType) {
@@ -60,14 +66,26 @@ public class LocationItemAdapter extends BaseRecyclerViewAdapter<LocationItemAda
         holder.tvCountry.setText(vo.name);
         holder.tvCountryEname.setText(vo.ename);
 
-        holder.rvAds.removeAllViews();
-        holder.rvAds.setVisibility(View.GONE);
+        AdsContext.Categrey one = AdsContext.Categrey.CATEGREY_VPN;
+//        AdsContext.Categrey two = AdsContext.Categrey.CATEGREY_VPN1;
+//        if(index%2==1) {
+//            one = AdsContext.Categrey.CATEGREY_VPN1;
+////            two = AdsContext.Categrey.CATEGREY_VPN1;
+//        }
+        if (position == 1) {
+            holder.rvAds.setVisibility(View.VISIBLE);
+            AdsManager.getInstans().showBannerAds((FragmentActivity) context, holder.rvAds, one);
+        }  else {
+            holder.rvAds.removeAllViews();
+            holder.rvAds.setVisibility(View.GONE);
+        }
         LocationPingTask.fillText(context,holder.pgPing,holder.tvPing,vo.ping);
 //        holder.tvPing.setTextColor(context.getResources().getColor(R.color.base_black));
         if(isNeedPing())
             LocationPingTask.ping(context,data.get(position),holder.pgPing,holder.tvPing);
         ImagePhotoLoad.getCountryImage(context, holder.ivCountry, vo.img);
     }
+
 
     public boolean isNeedPing() {
         return needPing;

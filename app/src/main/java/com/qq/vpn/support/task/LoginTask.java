@@ -1,4 +1,4 @@
-package com.qq.vpn.support;
+package com.qq.vpn.support.task;
 
 import android.content.Context;
 import android.os.AsyncTask;
@@ -14,6 +14,7 @@ import com.qq.ext.util.PreferenceUtils;
 import com.qq.ext.util.StringUtils;
 import com.qq.vpn.domain.req.LoginForm;
 import com.qq.vpn.domain.res.UserInfoVo;
+import com.qq.vpn.support.UserLoginUtil;
 
 import java.util.Map;
 

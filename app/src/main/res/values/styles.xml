@@ -94,4 +94,25 @@
         <item name="android:layout_width">match_parent</item>
         <item name="android:background">@color/base_red_small</item>
     </style>
+    <style name="edit">
+        <item name="android:textSize">@dimen/edit_tx_size</item>
+        <item name="android:textColorHint">@color/hint</item>
+        <item name="android:textColor">@color/new_deep_black</item>
+        <item name="android:paddingLeft">@dimen/padding_10</item>
+        <item name="android:paddingRight">@dimen/padding_10</item>
+        <item name="android:paddingTop">5dip</item>
+        <item name="android:paddingBottom">5dip</item>
+        <item name="android:gravity">center_vertical|left</item>
+        <item name="android:drawablePadding">10dip</item>
+        <item name="android:textCursorDrawable">@null</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:minHeight">@dimen/margin_58</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+    <style name="dialog" parent="Theme.AppCompat.Light.Dialog">
+        <item name="android:windowFrame">@null</item><!--边框-->
+        <item name="android:windowIsFloating">true</item><!--是否浮现在activity之上-->
+        <item name="android:windowNoTitle">true</item><!--无标题-->
+        <item name="android:windowBackground">@color/transparent</item><!--背景透明-->
+    </style>
     </resources>

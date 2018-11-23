@@ -13,6 +13,7 @@ import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.KeyEvent;
 
+import com.qq.ads.base.AdsContext;
 import com.qq.ext.util.DoubleClickExit;
 import com.qq.ext.util.EventBusUtil;
 import com.qq.MobAgent;
@@ -56,6 +57,7 @@ public class MainActivity extends BaseDrawerMenuActivity implements ActivityComp
         myPagerAdapter = new MyPagerAdapter(getSupportFragmentManager());
         mViewPager.setAdapter(myPagerAdapter);
         myPagerAdapter.notifyDataSetChanged();
+        AdsContext.showNext(this);
     }
     @Override
     public void onDestroy() {
