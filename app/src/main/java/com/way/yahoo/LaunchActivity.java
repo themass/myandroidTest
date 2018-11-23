@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.app.FragmentActivity;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
@@ -12,13 +13,14 @@ import android.view.WindowManager;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.ads.base.AdsManager;
 import com.qq.sexfree.R;
 
 
 /**
  * Created by dengt on 2016/3/22.
  */
-public class LaunchActivity extends Activity {
+public class LaunchActivity extends FragmentActivity {
     public static final int SKIP_SLOW= -1;
     public static final int STARTUP_SHOW_TIME_3000 = 3000;
     RelativeLayout ivAds;
@@ -86,6 +88,7 @@ public class LaunchActivity extends Activity {
     protected void onResume() {
         super.onResume();
         delay1s();
+        AdsManager.getInstans().showSplashAds(this,ivAds,skipView);
         mHandler.postDelayed(mStartMainRunnable, STARTUP_SHOW_TIME_3000);
     }
 
