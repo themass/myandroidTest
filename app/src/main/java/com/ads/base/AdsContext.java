@@ -4,15 +4,8 @@ import android.content.Context;
 import android.os.HandlerThread;
 import android.widget.Toast;
 
-import com.sspacee.common.util.Md5;
-import com.sspacee.yewu.ads.adview.AdviewConstant;
-import com.sspacee.yewu.um.MobAgent;
-import com.timeline.myapp.constant.Constants;
-import com.timeline.myapp.data.UserLoginUtil;
-import com.timeline.myapp.task.ScoreTask;
-import com.timeline.vpn.R;
-
-import static com.sspacee.yewu.ads.base.AdsContext.AdsShowStatus.ADS_CLICK_MSG;
+import com.ads.adview.AdviewConstant;
+import com.qq.sexfree.R;
 
 /**
  * Created by themass on 2017/9/14.
@@ -93,62 +86,6 @@ public class AdsContext {
     static {
         adsMsgThread.start();
     }
-    // 3/5
-    public static boolean rateShow(){
-        if(showCount++>6){
-            return false;
-        }
-        if(UserLoginUtil.isVIP3()){
-            int i = Md5.getRandom(Constants.maxRate);
-            return i<=2;
-        }else if(UserLoginUtil.isVIP2()){
-            int i = Md5.getRandom(Constants.maxRate);
-            return i<=3;
-        }else if(UserLoginUtil.isVIP()){
-            int i = Md5.getRandom(Constants.maxRate);
-            return i<=4;
-        }else{
-            int i = Md5.getRandom(Constants.maxRate);
-            return i<=6;
-        }
 
-    }
-    public static void adsNotify(Context context, AdsType type, AdsShowStatus event) {
-        MobAgent.onEventAds(context, type, event);
-        if (event == ADS_CLICK_MSG) {
-            String msg = context.getResources().getString(R.string.tab_fb_click) + Constants.ADS_SHOW_CLICK;
-            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
-            ScoreTask.start(context, Constants.ADS_SHOW_CLICK);
-        }
-    }
-    public static int index=0;
-    public static Categrey getNext(){
-        int size = AdsContext.Categrey.values().length;
-        return AdsContext.Categrey.values()[(index++)%2];
-    }
-    public static void showNext(Context context){
-        if(UserLoginUtil.showAds()) {
-            int size = AdsContext.Categrey.values().length;
-            AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.values()[(index++) % 2], false);
-        }
-    }
-    public static void showNextAbs(Context context){
-        int size = AdsContext.Categrey.values().length;
-        AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.values()[(index++) % 3], false);
-    }
-    public static void showRand(Context context){
-        if(UserLoginUtil.showAds()) {
-            if (AdsContext.rateShow()) {
-                showNext(context);
-            }
-        }
-    }
-    public static void showRand(Context context,AdsContext.Categrey cate){
-        if(UserLoginUtil.showAds()) {
-            if (AdsContext.rateShow()) {
-                AdsManager.getInstans().showInterstitialAds(context, cate, false);
-            }
-        }
-    }
 
 }

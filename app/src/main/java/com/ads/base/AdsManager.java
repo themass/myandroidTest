@@ -14,7 +14,6 @@ import com.ads.adview.InterstitialAdviewAds;
 import com.ads.adview.NativeAdviewAds;
 import com.ads.adview.SplashAdviewAds;
 import com.ads.adview.VideoAdviewAds;
-import com.ads.youmi.YoumiAds;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -73,10 +72,6 @@ public class AdsManager {
     }
     public void exitInterstitialAds(Context context,AdsContext.Categrey categrey){
         interstitialMap.get(AdsContext.AdsFrom.ADVIEW).interstitialExit(context,categrey.key);
-    }
-    public void offerAds(Context context){
-        YoumiAds.init(context);
-        YoumiAds.offerAds(context);
     }
     public  void showNative(Context context, NativeAdsReadyListener listener){
         nativeMap.get(AdsContext.AdsFrom.ADVIEW).showNative(context,mHandle,listener);
