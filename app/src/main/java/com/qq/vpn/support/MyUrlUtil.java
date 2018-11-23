@@ -16,9 +16,6 @@ import java.util.Date;
 public class MyUrlUtil {
     public static void showAbout(Context context){
         String url =Constants.ABOUT;
-        if (SystemUtils.isZH(context)) {
-            url = Constants.ABOUT_ZH;
-        }
         url = url + "?" + DateUtils.format(new Date(), DateUtils.DATE_FORMAT_MM);
         if (PackageUtils.hasBrowser(context)) {
             Uri uri = Uri.parse(url);

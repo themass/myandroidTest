@@ -9,8 +9,8 @@ android {
         applicationId "com.qq.network"
         minSdkVersion 18
         targetSdkVersion 26
-        versionCode 1000008001
-        versionName "1.0.8.1"
+        versionCode 1000008002
+        versionName "1.0.8.2"
         // Enabling multidex support.
         multiDexEnabled true
         flavorDimensions "versionCode"
@@ -38,7 +38,7 @@ android {
     }
     signingConfigs {
         config {
-            keyAlias 'myapp'
+            keyAlias 'themass'
             keyPassword 'themass'
             storeFile file('D:/work/android-sdk/dengt.jks')
             storePassword 'themass'
