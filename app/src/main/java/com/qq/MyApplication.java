@@ -3,6 +3,7 @@ package com.qq;
 import android.graphics.Typeface;
 import android.support.multidex.MultiDexApplication;
 
+import com.qq.ads.base.AdsManager;
 import com.qq.ext.network.HttpUtils;
 import com.qq.ext.network.VolleyUtils;
 import com.qq.ext.util.DensityUtil;
@@ -13,6 +14,7 @@ import com.qq.ext.util.StringUtils;
 import com.qq.ext.util.SystemUtils;
 import com.qq.vpn.support.DBManager;
 import com.qq.vpn.support.ImagePhotoLoad;
+import com.qq.vpn.support.VersionUpdater;
 
 import java.io.File;
 
@@ -62,6 +64,8 @@ public class MyApplication extends MultiDexApplication {
         LogUtil.i("cpu=" + SystemUtils.getCpuType());
         LogUtil.e("app start cost:" + cost);
         photoLoad = new ImagePhotoLoad(this);
+        AdsManager.getInstans().init(this);
+        VersionUpdater.init(this);
     }
 
     public ImagePhotoLoad getPhotoLoad() {

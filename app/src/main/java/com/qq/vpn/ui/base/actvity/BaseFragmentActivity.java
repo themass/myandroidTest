@@ -1,5 +1,7 @@
 package com.qq.vpn.ui.base.actvity;
 
+import android.os.Handler;
+import android.os.Message;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -7,8 +9,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.OvershootInterpolator;
 
+import com.qq.Constants;
+import com.qq.ads.base.AdsContext;
+import com.qq.ads.base.AdsManager;
 import com.qq.ext.util.LogUtil;
 import com.qq.network.R;
+import com.qq.vpn.support.AdsPopStrategy;
+import com.qq.vpn.support.config.HindBannerEvent;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -30,9 +37,15 @@ public abstract class BaseFragmentActivity extends ToolBarActivity {
     public FloatingActionButton fabUp;
     @BindView(R.id.ct_bar)
     public CollapsingToolbarLayout ctBar;
+    private AdsGoneTask task = new AdsGoneTask();
+    protected Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+        }
+    };
     @OnClick(R.id.fab_up)
     public void onClickFab(View view) {
-
+        AdsPopStrategy.clickAdsShowBtn(this);
     }
 
     @Override
@@ -41,7 +54,10 @@ public abstract class BaseFragmentActivity extends ToolBarActivity {
         getLayoutInflater().inflate(layoutResID, (ViewGroup) findViewById(R.id.fl_content), true);
         bindViews();
         setupToolbar();
-        fabUp.setVisibility(View.GONE);
+        fabUp.setVisibility(View.VISIBLE);
+        if(needGoneBanner())
+            mHandler.postDelayed(task, Constants.BANNER_ADS_GONE_LONG);
+//        flBanner.setBackgroundResource(R.color.base_white);
     }
     protected boolean needGoneBanner(){
         return true;
@@ -81,24 +97,58 @@ public abstract class BaseFragmentActivity extends ToolBarActivity {
     @Override
     public void onResume() {
         super.onResume();
-        hidenAds();
+        showAds();
         startIntroAnimation();
     }
 
+    public void adsDelayGone() {
+        mHandler.postDelayed(task, Constants.BANNER_ADS_GONE_SHORT);
+    }
 
     @Override
     protected void onPause() {
         super.onPause();
+        hidenAds();
     }
+    public void showAds() {
+        if (needShow()) {
+            AdsManager.getInstans().showBannerAds(this, flBanner,getBannerCategrey());
+        } else {
+            flBanner.setVisibility(View.GONE);
+        }
+    }
+    protected AdsContext.AdsFrom getBannerAdsFrom(){
+        return AdsContext.AdsFrom.ADVIEW;
+    }
+
+    public boolean needShow() {
+        return true;
+    }
+
     public void hidenAds() {
         if (flBanner != null) {
             flBanner.removeAllViews();
             flBanner.setVisibility(View.GONE);
         }
+        mHandler.removeCallbacks(task);
+    }
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(HindBannerEvent event) {
+        hidenAds();
     }
     @Override
     public void onDestroy() {
+        AdsManager.getInstans().exitBannerAds(this, flBanner,getBannerCategrey());
         super.onDestroy();
+    }
+    protected AdsContext.Categrey getBannerCategrey(){
+        return AdsContext.Categrey.CATEGREY_VPN1;
+    }
+    class AdsGoneTask implements Runnable {
+        @Override
+        public void run() {
+            hidenAds();
+        }
     }
 
 }

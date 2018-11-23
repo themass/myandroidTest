@@ -104,6 +104,10 @@
         <activity
             android:name="com.qq.vpn.main.login.SinginActivity"
             android:screenOrientation="portrait" />
+        <activity
+            android:name="com.qq.vpn.main.feedback.FeedbackFragmentActivity"
+            android:theme="@style/StyledIndicators"
+            android:screenOrientation="portrait" />
         <service
             android:name="org.strongswan.android.logic.VpnStateService"
             android:exported="false" />
@@ -116,6 +120,48 @@
                 <action android:name="android.net.VpnService" />
             </intent-filter>
         </service>
+
+        <!-- 广告sdk-->
+        <!--must-->
+        <activity
+            android:name="com.kuaiyou.video.vast.activity.VASTAdActivity"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
+            android:hardwareAccelerated="true"
+            android:screenOrientation="landscape"/>
+        <service android:name="com.kyview.DownloadService" />
+        <activity android:name="com.kyview.AdviewWebView" />
+        <activity android:name="com.kyview.AdActivity" />
+        <activity
+            android:name="com.kyview.AdViewVideoActivity"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
+            android:hardwareAccelerated="true" >
+        </activity>
+        <activity android:name="com.kyview.AdViewLandingPage" />
+
+        <!-- AdView SDK for Youmi -->
+        <!-- 视频组件 -->
+        <!-- GDT -->
+        <provider
+            android:name="android.support.v4.content.FileProvider"
+            android:authorities="com.qq.vpn.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_provider" />
+        </provider>
+
+        <!-- 声明SDK所需要的组件 -->
+        <service
+            android:name="com.qq.e.comm.DownloadService"
+            android:exported="false" >
+        </service>
+
+        <activity
+            android:name="com.qq.e.ads.ADActivity"
+            android:configChanges="keyboard|keyboardHidden|orientation"
+            android:theme="@android:style/Theme.Translucent" >
+        </activity>
     </application>
 
 </manifest>

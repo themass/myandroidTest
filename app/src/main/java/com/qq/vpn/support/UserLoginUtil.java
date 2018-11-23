@@ -33,4 +33,21 @@ public class UserLoginUtil {
     public static UserInfoVo getUserCache() {
         return StaticDataUtil.get(Constants.LOGIN_USER, UserInfoVo.class);
     }
+    public static boolean isVIP() {
+        UserInfoVo vo = getUserCache();
+        return !(vo == null || vo.level < Constants.UserLevel.LEVEL_VIP);
+    }
+
+    public static boolean isVIP2() {
+        UserInfoVo vo = getUserCache();
+        return !(vo == null || vo.level < Constants.UserLevel.LEVEL_VIP2);
+    }
+    public static boolean isVIP3() {
+        UserInfoVo vo = getUserCache();
+        return !(vo == null || vo.level < Constants.UserLevel.LEVEL_VIP3);
+    }
+    public static boolean showAds() {
+        UserInfoVo vo = getUserCache();
+        return vo == null || !vo.adsNo;
+    }
 }

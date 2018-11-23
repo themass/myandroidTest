@@ -1,4 +1,4 @@
-package com.qq.vpn.support;
+package com.qq.vpn.support.task;
 
 import android.content.Context;
 import android.os.AsyncTask;

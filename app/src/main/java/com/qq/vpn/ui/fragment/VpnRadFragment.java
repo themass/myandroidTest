@@ -29,6 +29,8 @@ import com.king.view.radarview.RadarView;
 import com.qq.BeanBuilder;
 import com.qq.Constants;
 import com.qq.MobAgent;
+import com.qq.ads.base.AdsContext;
+import com.qq.ads.base.AdsManager;
 import com.qq.ext.network.HttpUtils;
 import com.qq.ext.network.req.CommonResponse;
 import com.qq.ext.util.LogUtil;
@@ -132,8 +134,11 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
         lir = new LinearInterpolator();
         getActivity().bindService(new Intent(getActivity(), VpnStateService.class),
                 mServiceConnection, Service.BIND_AUTO_CREATE);
+        showBanner();
     }
-
+    public void showBanner(){
+        AdsManager.getInstans().showBannerAds(getActivity(), rlContent, AdsContext.Categrey.CATEGREY_VPN);
+    }
 
     @Override
     public void onDestroyView() {

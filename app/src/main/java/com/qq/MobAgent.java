@@ -2,6 +2,7 @@ package com.qq;
 
 import android.content.Context;
 
+import com.qq.ads.base.AdsContext;
 import com.umeng.analytics.MobclickAgent;
 
 import java.util.HashMap;
@@ -78,5 +79,11 @@ public class MobAgent {
     public static void killProcess(Context context) {
         MobclickAgent.onKillProcess(context);
     }
-
+    public static void onEventAds(Context context, AdsContext.AdsType type, AdsContext.AdsShowStatus event) {
+        Map<String, String> map = new HashMap<>();
+        map.put("name", type.desc);
+        map.put("event", event.desc);
+        map.put("status", type.desc + " - " + event.desc);
+        MobclickAgent.onEvent(context, "adsshow", map);
+    }
 }

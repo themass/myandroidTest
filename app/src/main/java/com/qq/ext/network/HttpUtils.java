@@ -73,7 +73,7 @@ public class HttpUtils {
     public static int pingVal(String ip) {
         String result = null;
         try {
-            Process p = Runtime.getRuntime().exec("ping -c 3 -w 100 " + ip);
+            Process p = Runtime.getRuntime().exec("ping -c 2 -w 4 " + ip);
             InputStream input = p.getInputStream();
             BufferedReader in = new BufferedReader(new InputStreamReader(input));
             String content;

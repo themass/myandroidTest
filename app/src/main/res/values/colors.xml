@@ -43,4 +43,18 @@
     <color name="line_login">#585a62</color>
     <color name="black_translucent">#66000000</color>
     <color name="white_translucent">#c8ffffff</color>
+
+    <color name="btn_context_menu_normal">#ffffff</color>
+    <color name="btn_context_menu_pressed">#40000000</color>
+    <color name="btn_context_menu_text_red">#ffff0000</color>
+
+    <color name="new_deep_black">#333333</color>
+    <color name="new_light_black">#999999</color>
+    <color name="new_light_green">#41bc6a</color>
+    <color name="new_globle_black">#2e313c</color>
+    <color name="btn_green_pressed">#2db259</color>
+    <color name="text_like_counter">#2b5a83</color>
+    <color name="other">#f55220</color>
+    <color name="heart_anim_view_bg">#662d5d82</color>
+
 </resources>

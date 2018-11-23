@@ -9,8 +9,10 @@ import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.kyview.manager.AdViewSpreadManager;
 import com.qq.MobAgent;
-import com.qq.vpn.support.LoginTask;
+import com.qq.ads.base.AdsManager;
+import com.qq.vpn.support.task.LoginTask;
 import com.qq.vpn.ui.base.actvity.LogActivity;
 import com.qq.network.R;
 import com.qq.Constants;
@@ -29,7 +31,7 @@ public class LaunchActivity extends LogActivity {
     @BindView(R.id.skip_view)
     RelativeLayout skipView;
     @BindView(R.id.tv_shu)
-    TextView tvShu;
+    TextView tvJishi;
     private int max = Constants.STARTUP_SHOW_TIME_3000;
     private int now = 0;
     private Unbinder unbinder;
@@ -44,10 +46,10 @@ public class LaunchActivity extends LogActivity {
         public void handleMessage(Message msg) {
             now = now + 1000;
             if (now < max) {
-                tvShu.setText((max - now) / 1000 + " s");
+                tvJishi.setText((max - now) / 1000 + " s");
                 delay1s();
             } else {
-                tvShu.setText(R.string.skip);
+                tvJishi.setText(R.string.skip);
             }
         }
     };
@@ -67,9 +69,12 @@ public class LaunchActivity extends LogActivity {
     }
 
     private void launch() {
-        Intent intent = new Intent(this, MainActivity.class);
-        startActivity(intent);
-        finish();
+        if(!AdViewSpreadManager.hasJumped) {
+            Intent intent = new Intent(this, MainActivity.class);
+            startActivity(intent);
+            finish();
+        }
+
     }
 
     public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -82,12 +87,14 @@ public class LaunchActivity extends LogActivity {
     protected void onResume() {
         super.onResume();
         mHandler.postDelayed(mStartMainRunnable, Constants.STARTUP_SHOW_TIME_3000);
+        AdsManager.getInstans().showSplashAds(this,ivAds,skipView);
         MobAgent.onResume(this);
+        AdsManager.getInstans().reqVideo(this);
         delay1s();
     }
 
     private void delay1s() {
-        mHandler.sendEmptyMessageDelayed(Constants.SKIP_SLOW, 1000);
+        mHandler.sendEmptyMessageDelayed(Constants.ADS_JISHI, 1000);
     }
 
     @Override
@@ -99,8 +106,9 @@ public class LaunchActivity extends LogActivity {
     @Override
     public void onDestroy() {
         unbinder.unbind();
-        mHandler.removeMessages(Constants.SKIP_SLOW);
+        mHandler.removeMessages(Constants.ADS_JISHI);
         mHandler.removeCallbacks(mStartMainRunnable);
+        AdsManager.getInstans().exitSplashAds(this,ivAds);
         super.onDestroy();
     }
 }

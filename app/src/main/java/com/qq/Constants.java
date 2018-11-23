@@ -26,7 +26,7 @@ public class Constants {
     public static final String IMAGE_CONF = "timeline://img";
     public static final String URL = "url";
     public static final String DEFULT_LOCATION_NAME="随机";
-    public static final int STARTUP_SHOW_TIME_3000 = 2000; //启动页广告时长
+    public static final int STARTUP_SHOW_TIME_3000 = 5000; //启动页广告时长
     public static final int SHIMMER_DURATION = 1500;
     public static final String HTTP_URL = "http";
     public static final String HTTPS_URL = "https";
@@ -45,6 +45,14 @@ public class Constants {
     public static final String LON = "lon";
     public static final String LAT = "lat";
     public static final int HTTP_SUCCESS = 0;
+    public static final String API_IWANNA_LIKE_URL = "/data/feed/wanna/%s.json";
+    public static final String API_IWANNA_URL = "/data/feed/wanna.json?start=%s&limit=30";
+
+    public static final String API_FEEDBACK_LIKE_URL = "/data/feed/score/%s.json";
+    public static final String API_FEEDBACK_URL = "/data/feed/score.json?start=%s&limit=40";
+
+    public static final String API_FAB_ADSCLICK_URL = "/user/ads/score.json?score=%s";
+    public static final String API_VERSION_URL = "/data/version.json";
     public static final String API_SERVERLIST_URL = "/host/server/list.json?location=%s";
     public static final String API_LOCATION_URL = "/host/server/location/cache.json?type=%s";
     public static final String API_LOCATION_VIP_URL = "/host/server/location/vip/cache.json";
@@ -140,5 +148,38 @@ public class Constants {
         img.put("flag_vn", R.drawable.flag_vn);
         img.put("flag_all", R.drawable.flag_all);
     }
+    public static final String SEX_M = "M";
+    public static final String SEX_F = "F";
+    public static String USER_STATUS = "USER_STATUS";
+    public static final String SCORE_TMP = "SCORE_TMP";
+    public static String ABOUT_FIRST = "ABOUT_FbbIRST";
+    public static final String ADS_SHOW_CONFIG = "ADS_SHOW_CONFIG";
+    public static final String ADS_POP_SHOW_CONFIG = "ADS_POP_SHOW_CONFIG";
+    public static final String LOG_UPLOAD_CONFIG = "LOG_UPLOAD_CONFIG";
+    public static final String NEED_DNSPOD_CONFIG = "NEED_DNSPOD_CONFIG";
+    public static final String NEED_NATIVE_ADS_CONFIG = "NEED_NATIVE_ADS_CONFIG";
+    public static final String VERSION_APP_INCOMING = "VERSION_APP_INCOMING"; // 服务器上的最新版本号
+    public static final String SETTING_PREF_NEED_CHECK_UPDATE_NEXT_TIME = "SETTING_PREF_NEED_CHECK_UPDATE_NEXT_TIME";
+    public static final int ADS_JISHI = -1;
+    public static final int ADS_SHOW_CLICK = 30;
+    public static final int maxRate = 10;
+    public static final int BANNER_ADS_GONE_LONG = 13000; //广告显示时长
+    public static final String SCORE_CLICK = "SCORE_CLICK";
+    public static final long SCORE_CLICK_INTERVAL = 2;
+    public static final int BANNER_ADS_GONE_SHORT = 5000; //启动页广告时长
+    public static final String ADMIN = "themass";
 
+
+    public static class UserLevel {
+        public static final int LEVEL_FREE = 0;
+        public static final int LEVEL_VIP = 1;
+        public static final int LEVEL_VIP2 = 2;
+        public static final int LEVEL_VIP3 = 3;
+        public static final int LEVEL_VIP4 = 4;
+    }
+
+    public static class OpenUrlPath {
+        public static final int local = 0;
+        public static final int browser = 1;
+    }
 }
