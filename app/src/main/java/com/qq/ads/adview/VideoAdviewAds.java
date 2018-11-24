@@ -14,7 +14,7 @@ import static com.qq.ads.adview.AdviewConstant.ADS_ADVIEW_KEY;
 
 
 /**
- * Created by themass on 2017/9/22.
+ * Created by dengt on 2017/9/22.
  */
 
 public class VideoAdviewAds extends VideoAdsInter {

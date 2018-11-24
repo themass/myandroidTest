@@ -4,7 +4,7 @@ import android.content.Context;
 import android.os.Handler;
 
 /**
- * Created by themass on 2017/9/22.
+ * Created by dengt on 2017/9/22.
  */
 
 public abstract class VideoAdsInter extends AdsEventAdaptor implements BaseAdsInter{

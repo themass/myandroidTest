@@ -13,7 +13,7 @@ import com.qq.vpn.ui.inte.OnBackKeyDownListener;
 import java.io.Serializable;
 
 /**
- * Created by themass on 2016/9/5.
+ * Created by dengt on 2016/9/5.
  */
 public class FeedbackFragmentActivity extends BaseFragmentActivity implements FabOpListener.OnFabListener {
     public static final String FRAGMENT = "FRAGMENT";
@@ -43,7 +43,7 @@ public class FeedbackFragmentActivity extends BaseFragmentActivity implements Fa
         boolean scroll = getIntent().getBooleanExtra(ADSSCROLL, true);
         toolbarShow = getIntent().getBooleanExtra(TOOLBAR_SHOW, true);
         showInterstitialAds =getIntent().getBooleanExtra(INTERSTITIAL_ADS_SHOW, false);
-        needGonebanner = getIntent().getBooleanExtra(BANNER_NEED_GONE, true);
+        needGonebanner = getIntent().getBooleanExtra(BANNER_NEED_GONE, false);
         if (!scroll) {
             disableScrollBanner();
         }

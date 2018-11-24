@@ -46,6 +46,7 @@
         android:textSize="@dimen/textsize_18" />
 
     <RelativeLayout
+        android:id="@+id/rl_index"
         android:layout_height="wrap_content"
         android:layout_width="match_parent"
         android:layout_below="@+id/tv_content"
@@ -104,7 +105,7 @@
         android:id="@+id/rv_ads"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/tv_index"
+        android:layout_below="@+id/rl_index"
         android:gravity="center"
         android:paddingTop="@dimen/margin_2"
         android:background="@color/base_white"

@@ -6,7 +6,7 @@ import android.support.v4.app.FragmentActivity;
 import android.widget.RelativeLayout;
 
 /**
- * Created by themass on 2017/9/20.
+ * Created by dengt on 2017/9/20.
  */
 
 public abstract class SplashAdsInter extends AdsEventAdaptor implements BaseAdsInter{

@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by themass on 2017/9/21.
+ * Created by dengt on 2017/9/21.
  */
 
 public class NativeAdviewAds extends NativeAdsInter {

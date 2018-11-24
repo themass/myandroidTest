@@ -28,7 +28,7 @@ import java.util.List;
 import butterknife.BindView;
 
 /**
- * Created by themass on 2016/8/12.
+ * Created by dengt on 2016/8/12.
  */
 public class FeedbackChooseFragment extends LoadableFragment<InfoListVo<FeedbackCateVo>> {
     @Nullable

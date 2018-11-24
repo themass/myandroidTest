@@ -26,7 +26,7 @@ public class Constants {
     public static final String IMAGE_CONF = "timeline://img";
     public static final String URL = "url";
     public static final String DEFULT_LOCATION_NAME="随机";
-    public static final int STARTUP_SHOW_TIME_3000 = 5000; //启动页广告时长
+    public static final int STARTUP_SHOW_TIME_3000 = 4000; //启动页广告时长
     public static final int SHIMMER_DURATION = 1500;
     public static final String HTTP_URL = "http";
     public static final String HTTPS_URL = "https";
@@ -163,7 +163,7 @@ public class Constants {
     public static final int ADS_JISHI = -1;
     public static final int ADS_SHOW_CLICK = 30;
     public static final int maxRate = 10;
-    public static final int BANNER_ADS_GONE_LONG = 13000; //广告显示时长
+    public static final int BANNER_ADS_GONE_LONG = 7000; //广告显示时长
     public static final String SCORE_CLICK = "SCORE_CLICK";
     public static final long SCORE_CLICK_INTERVAL = 2;
     public static final int BANNER_ADS_GONE_SHORT = 5000; //启动页广告时长

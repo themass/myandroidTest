@@ -47,6 +47,7 @@
     <color name="btn_context_menu_normal">#ffffff</color>
     <color name="btn_context_menu_pressed">#40000000</color>
     <color name="btn_context_menu_text_red">#ffff0000</color>
+    <color name="tab_widget_text_color">#BAC4C4</color>
 
     <color name="new_deep_black">#333333</color>
     <color name="new_light_black">#999999</color>
@@ -56,5 +57,8 @@
     <color name="text_like_counter">#2b5a83</color>
     <color name="other">#f55220</color>
     <color name="heart_anim_view_bg">#662d5d82</color>
+    <color name="channel_list_base_black">#698b87</color>
+    <color name="btn_blue_normal">#3382ff</color>
+
 
 </resources>

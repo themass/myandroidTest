@@ -4,7 +4,7 @@ package com.qq.vpn.domain.res;
 import com.qq.vpn.ui.base.fragment.BaseFragment;
 
 /**
- * Created by themass on 2016/9/5.
+ * Created by dengt on 2016/9/5.
  */
 public class FeedbackCateVo {
     public String name;

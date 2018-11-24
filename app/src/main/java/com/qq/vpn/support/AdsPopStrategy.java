@@ -10,7 +10,7 @@ import com.qq.ext.util.ToastUtil;
 import com.qq.network.R;
 
 /**
- * Created by themass on 2017/9/9.
+ * Created by dengt on 2017/9/9.
  */
 
 public class AdsPopStrategy {

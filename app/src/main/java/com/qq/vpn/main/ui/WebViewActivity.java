@@ -27,7 +27,7 @@ import java.util.HashMap;
 public class WebViewActivity extends BaseFragmentActivity implements MyWebView.OnTouchRightSlide {
     private static final String TAG = "customeadd_tag";
     BaseWebViewFragment webViewFragment;
-    private boolean adsNeed = false;
+    private boolean adsNeed = true;
     private String url;
     public static void startWebViewActivity(Context context, String url, String title, boolean adsShow, boolean adsPopShow, HashMap<String, Object> param) {
         Intent intent = new Intent(context, WebViewActivity.class);
@@ -48,6 +48,7 @@ public class WebViewActivity extends BaseFragmentActivity implements MyWebView.O
         String title = getIntent().getStringExtra(Constants.TITLE);
         url = getIntent().getStringExtra(Constants.URL);
         setToolbarTitle(title);
+        fabUp.setVisibility(View.GONE);
     }
 
     public boolean needShow() {

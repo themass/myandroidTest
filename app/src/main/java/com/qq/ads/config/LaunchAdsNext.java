@@ -4,7 +4,7 @@ package com.qq.ads.config;
 import com.qq.ads.base.AdsContext;
 
 /**
- * Created by themass on 2017/9/15.
+ * Created by dengt on 2017/9/15.
  */
 
 public class LaunchAdsNext {

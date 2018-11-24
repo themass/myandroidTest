@@ -7,7 +7,7 @@ import com.qq.Constants;
 import com.qq.vpn.support.NetApiUtil;
 
 /**
- * Created by themass on 2016/8/29.
+ * Created by dengt on 2016/8/29.
  */
 public class IWannaLikeTask extends AsyncTask {
     private static String TAG = "IWannaLikeTask";

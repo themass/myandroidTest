@@ -1,7 +1,7 @@
 package com.qq.vpn.domain.res;
 
 /**
- * Created by themass on 2018/3/8.
+ * Created by dengt on 2018/3/8.
  */
 
 public class VipDescVo {

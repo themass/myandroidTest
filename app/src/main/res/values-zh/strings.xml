@@ -76,9 +76,8 @@
     <string name="menu_btn_report_log">我们已收到您的问题！</string>
     <string name="menu_btn_open_browser">浏览器打开</string>
     <string name="menu_btn_copy_url">复制URL</string>
-    <string name="menu_btn_favorite">收藏夹</string>
-    <string name="menu_favorite">收藏</string>
-    <string name="menu_favorite_cancel">取消收藏</string>
+    <string name="location_choose_flag_none">点击“ 地区 ”有更多国家可选</string>
+    <string name="iwanna_tips">告诉我你需要的内容，\n我会精心为您准备</string>
 
     <string name="close_over">再按一次退出程序!!</string>
     <string name="no_browser">没有安装浏览器</string>

@@ -1,7 +1,7 @@
 package com.qq.vpn.domain.req;
 
 /**
- * Created by themass on 2016/9/7.
+ * Created by dengt on 2016/9/7.
  */
 public class IwannaForm {
     public String content;

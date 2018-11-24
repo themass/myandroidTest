@@ -172,9 +172,9 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
                 mService.disconnect();
             } else if (mService.getState() == VpnStateService.State.DISABLED) {
                 MobAgent.onEventLocationChoose(getActivity(), LocationUtil.getName(getActivity()));
-               imgAnim();
                 int id = LocationUtil.getSelectLocationId(getActivity());
                 api.getData(String.format(Constants.getUrl(Constants.API_SERVERLIST_URL), id), serverListener, serverListenerError, INDEX_TAG, ServerVo.class);
+                imgAnim();
             } else {
                 ToastUtil.showShort( R.string.vpn_click_later);
             }

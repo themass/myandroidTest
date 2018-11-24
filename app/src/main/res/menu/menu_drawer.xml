@@ -15,6 +15,10 @@
             android:icon="@drawable/ic_menu_share"
             android:title="@string/menu_btn_share" />
         <item
+            android:id="@+id/menu_about"
+            android:icon="@drawable/ic_menu_about"
+            android:title="@string/menu_btn_about" />
+        <item
             android:id="@+id/menu_setting"
             android:icon="@drawable/ic_menu_setting"
             android:title="@string/menu_btn_setting" />

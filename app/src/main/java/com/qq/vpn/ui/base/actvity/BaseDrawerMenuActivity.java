@@ -1,5 +1,7 @@
 package com.qq.vpn.ui.base.actvity;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
@@ -69,6 +71,7 @@ public class BaseDrawerMenuActivity extends ToolBarActivity {
     MenuItem miLogout;
     MenuItem miLocation;
     MenuItem miSetting;
+    MenuItem miAbout;
     public void login(View view) {
         startActivity(SinginActivity.class);
     }
@@ -83,6 +86,7 @@ public class BaseDrawerMenuActivity extends ToolBarActivity {
         miLogout = nvDrawer.getMenu().findItem(R.id.menu_louout);
         miLocation = nvDrawer.getMenu().findItem(R.id.menu_location);
         miSetting = nvDrawer.getMenu().findItem(R.id.menu_setting);
+        miAbout = nvDrawer.getMenu().findItem(R.id.menu_about);
         headerView = nvDrawer.getHeaderView(0);
         llLoginMenuHeader = (LinearLayout) headerView.findViewById(R.id.ll_menu_headview);
         tvMenuUserName = (TextView) headerView.findViewById(R.id.tv_menu_username);
@@ -206,13 +210,14 @@ public class BaseDrawerMenuActivity extends ToolBarActivity {
     }
     public void onAbout(View view) {
         String url = Constants.ABOUT;
-        if (SystemUtils.isZH(this)) {
-            url = Constants.ABOUT_ZH;
-        }
         url = url + "?" + DateUtils.format(new Date(), DateUtils.DATE_FORMAT_MM);
-        WebViewActivity.startWebViewActivity(this, url, getString(R.string.menu_btn_about), false, false, null);
+//        WebViewActivity.startWebViewActivity(this, url, getString(R.string.menu_btn_about), false, false, null);
         PreferenceUtils.setPrefBoolean(this, Constants.ABOUT_FIRST, true);
         MobAgent.onEventMenu(this, "关于");
+        final Uri uri = Uri.parse(url);
+        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivityForResult(intent, 0);
     }
     public void logout(MenuItem item) {
         api.postData(Constants.getUrl(Constants.API_LOGOUT_URL), null, null, null, null, null);
@@ -278,6 +283,9 @@ public class BaseDrawerMenuActivity extends ToolBarActivity {
                 }  else if (item.getItemId() == R.id.menu_location) {
                     name = "地理";
                     LocationPageViewFragment.startFragment(BaseDrawerMenuActivity.this);
+                } else if (item.getItemId() == R.id.menu_about) {
+                    name = "关于";
+                    onAbout(null);
                 }else if (item.getItemId() == R.id.menu_setting) {
                     name = "设置";
 //                    startActivity(SettingActivity.class);

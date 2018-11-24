@@ -15,7 +15,7 @@ import com.qq.vpn.support.task.ScoreTask;
 import static com.qq.ads.base.AdsContext.AdsShowStatus.ADS_CLICK_MSG;
 
 /**
- * Created by themass on 2017/9/14.
+ * Created by dengt on 2017/9/14.
  */
 
 public class AdsContext {
@@ -132,7 +132,7 @@ public class AdsContext {
     }
     public static void showNextAbs(Context context){
         int size = AdsContext.Categrey.values().length;
-        AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.values()[(index++) % 3], false);
+        AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.values()[(index++) % size], false);
     }
     public static void showRand(Context context){
         if(UserLoginUtil.showAds()) {

@@ -7,6 +7,7 @@ import android.view.animation.OvershootInterpolator;
 
 import com.qq.ext.util.LogUtil;
 import com.qq.network.R;
+import com.qq.vpn.support.AdsPopStrategy;
 import com.qq.vpn.ui.inte.OnBackKeyDownListener;
 import com.qq.vpn.main.MainActivity;
 
@@ -25,6 +26,7 @@ public abstract class TabBaseAdsFragment extends TabBaseFragment implements OnBa
 
     @OnClick(R.id.fab_up)
     public void onClickFab(View view) {
+        AdsPopStrategy.clickAdsShowBtn(getActivity());
     }
 
     public void next() {

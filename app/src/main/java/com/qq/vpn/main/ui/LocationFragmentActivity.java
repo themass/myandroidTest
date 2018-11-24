@@ -22,6 +22,10 @@ public class LocationFragmentActivity extends BaseFragmentActivity implements Fa
     private Boolean toolbarShow = true;
     private Fragment fragment = null;
     @Override
+    protected boolean needGoneBanner(){
+        return false;
+    }
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.common_fragment);

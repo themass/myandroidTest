@@ -1,7 +1,7 @@
 package com.qq.vpn.domain.res;
 
 /**
- * Created by themass on 2016/9/5.
+ * Created by dengt on 2016/9/5.
  */
 public class IWannaVo {
     public long id;

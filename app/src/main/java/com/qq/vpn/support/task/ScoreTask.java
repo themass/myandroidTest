@@ -13,7 +13,7 @@ import com.qq.vpn.support.UserLoginUtil;
 import com.qq.vpn.support.config.UserLoginEvent;
 
 /**
- * Created by themass on 2016/8/29.
+ * Created by dengt on 2016/8/29.
  */
 public class ScoreTask extends AsyncTask {
     private static String TAG = "fab_click_tag";

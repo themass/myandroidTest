@@ -5,7 +5,7 @@ import android.os.Handler;
 import android.os.Message;
 
 /**
- * Created by themass on 2017/9/21.
+ * Created by dengt on 2017/9/21.
  */
 
 public abstract class AdsEventAdaptor {

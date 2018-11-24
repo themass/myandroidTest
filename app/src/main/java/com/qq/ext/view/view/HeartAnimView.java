@@ -21,7 +21,7 @@ import com.qq.network.R;
 /**
  * 提示框 自定义view，使用PopupWindow 实现，注意显示时机
  *
- * @author themass
+ * @author dengt
  */
 public class HeartAnimView {
     private static final DecelerateInterpolator DECCELERATE_INTERPOLATOR = new DecelerateInterpolator();

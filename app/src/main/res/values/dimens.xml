@@ -58,5 +58,7 @@
     <dimen name="drawer_header_login_tx_size">14sp</dimen>
     <dimen name="drawer_header_margin">16dp</dimen>
     <dimen name="heart_anim_h">150dip</dimen>
+    <dimen name="title_height">48dip</dimen>
+    <dimen name="location_choose_btn_size">17sp</dimen>
 
 </resources>

@@ -12,7 +12,7 @@ import com.qq.ads.base.BannerInter;
 import com.qq.ext.util.LogUtil;
 
 /**
- * Created by themass on 2017/9/20.
+ * Created by dengt on 2017/9/20.
  */
 
 public class BannerAdviewAds extends BannerInter {

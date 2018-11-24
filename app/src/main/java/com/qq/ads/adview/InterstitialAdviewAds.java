@@ -13,7 +13,7 @@ import com.qq.ext.util.LogUtil;
 import com.qq.network.R;
 
 /**
- * Created by themass on 2017/9/20.
+ * Created by dengt on 2017/9/20.
  */
 
 public class InterstitialAdviewAds extends InterstitialAdsInter {
