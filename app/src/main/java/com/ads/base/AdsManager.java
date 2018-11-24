@@ -54,7 +54,7 @@ public class AdsManager {
             super.handleMessage(msg);
         }
     };
-    public void showBannerAds(FragmentActivity context, ViewGroup group, AdsContext.Categrey categrey){
+    public void showBannerAds(Context context, ViewGroup group, AdsContext.Categrey categrey){
             bannerDescMap.get(AdsContext.AdsFrom.ADVIEW).bannerAds(context,group,categrey.key,mHandle);
     }
     public void exitBannerAds(FragmentActivity context, ViewGroup group, AdsContext.Categrey categrey){

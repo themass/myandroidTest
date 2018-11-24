@@ -1,5 +1,6 @@
 package com.ads.adview;
 
+import android.content.Context;
 import android.os.Handler;
 import android.support.v4.app.FragmentActivity;
 import android.view.View;
@@ -9,6 +10,8 @@ import com.ads.base.AdsContext;
 import com.ads.base.BannerInter;
 import com.kyview.interfaces.AdViewBannerListener;
 import com.kyview.manager.AdViewBannerManager;
+
+import java.net.ContentHandler;
 
 /**
  * Created by themass on 2017/9/20.
@@ -20,7 +23,7 @@ public class BannerAdviewAds extends BannerInter {
         return AdsContext.AdsType.ADS_TYPE_SPREAD;
     }
     @Override
-    public void bannerAds(final FragmentActivity context, final ViewGroup group, final String key, final Handler handler){
+    public void bannerAds(final Context context, final ViewGroup group, final String key, final Handler handler){
         final View view = AdViewBannerManager.getInstance(context).getAdViewLayout(context, key);
         if (view != null) {
             ViewGroup parent = (ViewGroup) view.getParent();

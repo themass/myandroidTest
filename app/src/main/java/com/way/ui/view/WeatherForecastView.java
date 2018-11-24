@@ -1,11 +1,15 @@
 package com.way.ui.view;
 
 import android.content.Context;
+import android.support.v4.app.FragmentActivity;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.ads.base.AdsContext;
+import com.ads.base.AdsManager;
 import com.way.common.util.TimeUtils;
 import com.way.common.util.WeatherIconUtils;
 import com.way.weather.plugin.bean.Forecast;
@@ -44,7 +48,7 @@ public class WeatherForecastView extends WeatherBaseView {
 	TextView lowTempDay3;
 	TextView lowTempDay4;
 	TextView lowTempDay5;
-
+	RelativeLayout flBanner;
 	public WeatherForecastView(Context c) {
 		this(c, null);
 	}
@@ -112,6 +116,8 @@ public class WeatherForecastView extends WeatherBaseView {
 				.findViewById(R.id.forecast_low_temp_tv);
 		lowTempDay5 = (TextView) forecastViewDay5
 				.findViewById(R.id.forecast_low_temp_tv);
+		flBanner = (RelativeLayout)findViewById(R.id.fl_adsview);
+
 	}
 
 	public void setWeatherInfo(Forecast forecast) {
@@ -149,6 +155,7 @@ public class WeatherForecastView extends WeatherBaseView {
 		lowTempDay5.setText(forecast.getTmpLow(5) + "°");
 
 		forecastFootView.setText("");
+		AdsManager.getInstans().showBannerAds( getContext(), flBanner, AdsContext.Categrey.CATEGREY_VPN1);
 	}
 
 	@Override
