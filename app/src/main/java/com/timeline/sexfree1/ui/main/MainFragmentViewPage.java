@@ -121,8 +121,8 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         mTabLayout = (TabLayout) findViewById(R.id.tabs);
         mViewPager = (ViewPager) findViewById(R.id.vp_view);
         initTabs();
-        AdsContext.showNext(MainFragmentViewPage.this);
         ConnLogUtil.sendAllLog(this);
+        AdsContext.showNext(MainFragmentViewPage.this);
     }
 
     private void initTabs() {

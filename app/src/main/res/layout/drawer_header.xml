@@ -81,7 +81,6 @@
             />
         <TextView
             android:id="@+id/tv_desc"
-            android:gravity="right"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="@dimen/textsize_14"

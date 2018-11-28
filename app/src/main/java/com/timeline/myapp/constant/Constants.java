@@ -22,11 +22,11 @@ public class Constants {
     public static final String IMAGE_RES_PRE = "timeline://img";
     public static final String URL = "url";
     public static final String DEFULT_LOCATION_NAME="随机";
-    public static final int STARTUP_SHOW_TIME_6000 = 6000; //启动页广告时长
-    public static final int STARTUP_SHOW_TIME_7000 = 6000; //启动页广告时长
-    public static final int BANNER_ADS_GONE_LONG = 13000; //广告显示时长
+    public static final int STARTUP_SHOW_TIME_6000 = 5000; //启动页广告时长
+    public static final int STARTUP_SHOW_TIME_7000 = 5000; //启动页广告时长
+    public static final int BANNER_ADS_GONE_LONG = 11000; //广告显示时长
     public static final int BANNER_ADS_GONE_LONG_LONG = 240000; //广告显示时长
-    public static final int BANNER_ADS_GONE_SHORT = 5000; //启动页广告时长
+    public static final int BANNER_ADS_GONE_SHORT = 6000; //启动页广告时长
     public static final int VIP_SHIMMER_DURATION = 2300;
     public static final int RECOMMAND_SHIMMER_DURATION = 1500;
     public static final int ADS_JISHI = -1;

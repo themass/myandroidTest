@@ -9,8 +9,8 @@ android {
         applicationId "com.qq.sexfree"
         minSdkVersion 16
         targetSdkVersion 26
-        versionCode 1000004000
-        versionName "1.0.4.0"
+        versionCode 1000008002
+        versionName "1.0.8.2"
         // Enabling multidex support.
         multiDexEnabled true
         vectorDrawables.useSupportLibrary = true
@@ -39,9 +39,9 @@ android {
     }
     signingConfigs {
         config {
-            keyAlias 'myapp'
+            keyAlias 'themass'
             keyPassword 'themass'
-            storeFile file('D:/work/android-sdk/mykey.jks')
+            storeFile file('D:/work/android-sdk/dengt.jks')
             storePassword 'themass'
         }
 //        config {
@@ -70,7 +70,7 @@ android {
         }
     }
     productFlavors {
-        sexmypool {
+        sex_weather {
             manifestPlaceholders = [CHANNEL_VALUE: "MYPOOL", AD_CHANNEL_VALUE: "MYPOOL"]
         }
 //        sexgoogle {

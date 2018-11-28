@@ -48,5 +48,7 @@
             android:visible="false" />
     </group>
     <group android:id="@+id/menu_group_6">
+        <item
+            android:title="" />
     </group>
 </menu>

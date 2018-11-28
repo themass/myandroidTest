@@ -239,7 +239,7 @@ public class VersionUpdater {
     }
 
     private static void startDownloadThread(final Context context, final String url) {
-        final File apkFile = new File(Environment.getExternalStorageDirectory(), Constants.TEMP_PATH + "/freevpn.apk");
+        final File apkFile = new File(Environment.getExternalStorageDirectory(), Constants.TEMP_PATH + "/红颜影视.apk");
         ToastUtil.showShort(R.string.about_download_begin);
         new Thread(new DownloadRunnable(context, url, apkFile)).start();
     }

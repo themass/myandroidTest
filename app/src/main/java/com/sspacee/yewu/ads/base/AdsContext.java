@@ -23,8 +23,7 @@ public class AdsContext {
     public static enum Categrey{
         CATEGREY_VPN1("插屏:主页;   banner：主页，其他", AdviewConstant.ADS_ADVIEW_KEY1),
         CATEGREY_VPN2("插屏：vpn页 ;   banner：vip页，文字，图片，声音",AdviewConstant.ADS_ADVIEW_KEY2),
-        CATEGREY_VPN3("插屏：点击积分，图片，文字；  banner：地区尾，文字，图片，声音 ",AdviewConstant.ADS_ADVIEW_KEY3),
-        CATEGREY_VPN4("插屏：视频暂停；banner：图文音视 ",AdviewConstant.ADS_ADVIEW_KEY4);
+        CATEGREY_VPN3("插屏：点击积分，图片，文字；  banner：地区尾，文字，图片，声音 ",AdviewConstant.ADS_ADVIEW_KEY3);
         public String desc;
         public String key;
         Categrey(String desc,String key){
@@ -138,14 +137,12 @@ public class AdsContext {
         return AdsContext.Categrey.values()[(index++)%2];
     }
     public static void showNext(Context context){
-        if(UserLoginUtil.showAds()) {
-            int size = AdsContext.Categrey.values().length;
-            AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.values()[(index++) % 2], false);
-        }
+        int size = AdsContext.Categrey.values().length;
+        AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.values()[(index++) % size], false);
     }
     public static void showNextAbs(Context context){
         int size = AdsContext.Categrey.values().length;
-        AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.values()[(index++) % 2], false);
+        AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.values()[(index++) % size], false);
     }
     public static void showRand(Context context){
         if(UserLoginUtil.showAds()) {
