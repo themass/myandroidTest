@@ -31,7 +31,6 @@
         android:layout_centerVertical="true"
         android:layout_marginRight="@dimen/margin_8"
         android:layout_toLeftOf="@+id/tv_date"
-        android:src="@drawable/song_play_icon"
         android:visibility="gone" />
 
     <TextView

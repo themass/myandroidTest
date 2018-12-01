@@ -194,11 +194,11 @@
 }
 
 #----------------------project------------
--keep class com.timeline.myapp.bean.**{ *; }
+-keep class com.qq.myapp.bean.**{ *; }
 -keep class org.strongswan.android.logic.**{ *; }
 -keep class sun.misc.Unsafe { *; }
 -keep class com.google.gson.stream.** { *; }
--keep class com.sspacee.common.weather.**{ *; }
+-keep class com.qq.common.weather.**{ *; }
 #-----------   log   ------------
 -assumenosideeffects class android.util.Log {
     public static boolean isLoggable(java.lang.String, int);

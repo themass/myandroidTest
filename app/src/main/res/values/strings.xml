@@ -16,15 +16,12 @@
 -->
 <resources>
     <!--  tab main -->
-    <string name="tab_movie">Movie</string>
     <string name="tab_index">Home</string>
     <string name="tab_local">Loc</string>
     <string name="tab_customer">Customer</string>
     <string name="tab_tag_index">index</string>
-    <string name="tab_tag_movie">Movie</string>
     <string name="tab_tag_local">local</string>
     <string name="tab_tag_customer">customer</string>
-    <string name="tab_vip_temp">Content preparation。。。Coming soon</string>
     <string name="tab_fb_click">Points ads to earn points +</string>
     <string name="tab_fb_click_fast">Too fast,please wait 3 seconds</string>
     <string name="tab_fb_click_wifi">Please use it under Dis conn VPN </string>
@@ -37,11 +34,7 @@
     <string name="off">off</string>
     <string name="on">on</string>
     <!-- 地区选择-->
-    <string name="location_type">type</string>
-    <string name="location_country">country</string>
-    <string name="location_features">name&#038;ping</string>
     <string name="location_choose_title">Region selection</string>
-    <string name="location_choose_level">Net ：</string>
     <string name="location_choose_none">Random</string>
     <string name="location_choose_ping">Ping：</string>
     <string name="menu_haha">Yo! You found it.</string>
@@ -60,7 +53,6 @@
     <string name="menu_btn_logout">Logout</string>
     <string name="menu_btn_setting">Setting</string>
     <string name="menu_btn_support">Support author</string>
-    <string name="menu_btn_about_context">FreeVPN the most stable, free, unlimited，all for you！</string>
     <string name="feed_back">Feedback</string>
     <string name="menu_btn_score">Points:</string>
     <string name="menu_btn_networking">Traffic:</string>
@@ -74,13 +66,8 @@
     <string name="menu_btn_country">Region：</string>
     <string name="menu_btn_open_browser">Open in browser</string>
     <string name="menu_btn_copy_url">Copy url</string>
-    <string name="menu_btn_favorite">My favorite</string>
-    <string name="menu_favorite">Favorite</string>
-    <string name="menu_favorite_cancel">Cancel Favorite</string>
     <string name="support_info">Please activate several apps to support the author！</string>
     <string name="offerads_ths">Thank you for your support!</string>
-    <string name="location_choose_flag_none">Click“ Region ”More regional options</string>
-    <string name="menu_btn_donation">Paid</string>
 
     <!-- share-->
     <string name="menu_share_title">Share friend</string>
@@ -88,9 +75,6 @@
     <string name="menu_share_confirm">CopyURL</string>
     <string name="menu_share_cancel">Cancel</string>
     <string name="menu_share_copy_ok">Copied OK</string>
-    <string name="menu_share_copy_error">Share failed</string>
-    <string name="menu_share_text_only">FAIL!! Just can share text</string>
-    <!--登录，注册-->
     <string name="close_over">One more again!!</string>
     <string name="login">Sign in</string>
     <string name="setting">Setting</string>
@@ -98,8 +82,6 @@
     <string name="username_hint">Username</string>
     <string name="password_hint">Password</string>
     <string name="re_password_hint">RePassword</string>
-    <string name="re_code">Code</string>
-    <string name="re_bt_code">Get Code</string>
     <string name="empty_name_pwd">Please fill in the information</string>
     <string name="sex">Sex:</string>
     <string name="female">Female</string>
@@ -108,13 +90,13 @@
     <string name="error_pattern_pass">Password must 6 to 10 letters or numbers</string>
     <string name="error_pattern_name">Password must 3 to 20 letters or numbers</string>
     <string name="reg_success">Register success，login now？</string>
-    <string name="remark">Timeline RIGHTS RESERVED.</string>
+    <string name="remark">Dengt RIGHTS RESERVED.</string>
     <string name="need_login">Login please</string>
     <string name="need_vip">Need VIP permission，please see "About"</string>
     <string name="iwanna_title">I wanna?</string>
     <string name="feedback_hint">$3 $5 VIP3</string>
-    <string name="recharge">Recharge:</string>
     <string name="money_back_title">Score?</string>
+    <string name="recharge">recharge</string>
 
     <string name="iwanna_tips">Tell me what du you want ,\nI\'ll be ready for you </string>
     <string name="send">send</string>
@@ -122,29 +104,14 @@
     <string name="iwanna_content_success">I got it !</string>
     <string name="vip_need">Non VIP users are not allowed to visit</string>
     <string name="area_setting">Show Area</string>
-    <string name="sound_setting">Play audio in not wifi</string>
-    <string name="sound_play_not_wifi">You are now using a non WIFI network？</string>
-    <string name="sound">Obscene</string>
-    <string name="text">Interesting novel</string>
-    <string name="video">Sex video</string>
     <string name="submit">submit</string>
     <string name="modify">modify</string>
     <string name="vip_tips">please update to vip</string>
-    <string name="findpass">Forget Pass?</string>
-    <string name="email_hint">E-mail</string>
-    <string name="ref_hint">Inviter</string>
-    <string name="email_see">Send a email to you</string>
-    <string name="email_ok">email set ok</string>
-    <string name="email_fail">email set fail</string>
     <string name="free_user">free use</string>
     <string name="down_to_loadmore">down to loadmore</string>
-
-    <string name="img">Sex Img</string>
     <string name="version_low">version is to low！</string>
 
-    <string name="hidden_area_hit">Hidden “Area” from the Settings</string>
     <string name="country_select_hit">Click to choose more countries</string>
-    <string name="close_hit">Please complete the guide</string>
     <!-- error-->
     <string name="error_getlocation_fail">Failed to obtain location information！</string>
     <string name="error_network_unknown">Connection server error, please check your network connection or try again later.</string>
@@ -217,11 +184,6 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="edit">edit</string>
     <string name="delete">delete</string>
     <string name="no_select">no selected</string>
-    <string name="save_ok">save ok</string>
-    <string name="save_fail">save fail</string>
-    <string name="save_img">save image</string>
-    <string name="save_start">save start...</string>
-    <string name="menu_btn_app">App recommend</string>
     <!-- vpn error text -->
     <string name="error_lookup_failed">Failed. Please select another regin</string>
     <string name="error_unreachable">Failed. Please select another regin</string>

@@ -45,23 +45,22 @@ import android.view.View;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 
-import com.sspacee.common.util.FileUtils;
-import com.sspacee.common.util.LogUtil;
-import com.sspacee.common.util.PreferenceUtils;
-import com.sspacee.yewu.net.NetUtils;
-import com.sspacee.yewu.net.request.CommonResponse;
-import com.timeline.myapp.base.MyApplication;
-import com.timeline.myapp.bean.DataBuilder;
-import com.timeline.myapp.bean.vo.ServerVo;
-import com.timeline.myapp.bean.vo.VpnProfile;
-import com.timeline.myapp.constant.Constants;
-import com.timeline.myapp.data.BaseService;
-import com.timeline.myapp.data.ConnLogUtil;
-import com.timeline.myapp.data.LocationUtil;
-import com.timeline.myapp.ui.base.app.BaseDrawerActivity;
-import com.timeline.myapp.ui.fragment.LocationPageViewFragment;
-import com.timeline.vpn.R;
-import com.timeline.vpn.ui.main.MainFragmentViewPage;
+import com.qq.common.util.FileUtils;
+import com.qq.common.util.LogUtil;
+import com.qq.common.util.PreferenceUtils;
+import com.qq.yewu.net.NetUtils;
+import com.qq.myapp.base.MyApplication;
+import com.qq.myapp.bean.DataBuilder;
+import com.qq.myapp.bean.vo.ServerVo;
+import com.qq.myapp.bean.vo.VpnProfile;
+import com.qq.myapp.constant.Constants;
+import com.qq.myapp.data.BaseService;
+import com.qq.myapp.data.ConnLogUtil;
+import com.qq.myapp.data.LocationUtil;
+import com.qq.myapp.ui.fragment.LocationPageViewFragment;
+import com.qq.fq2.R;
+import com.qq.vpn.ui.main.MainFragmentViewPage;
+import com.qq.yewu.net.request.CommonResponse;
 
 import org.strongswan.android.logic.imc.ImcState;
 import org.strongswan.android.logic.imc.RemediationInstruction;
@@ -543,21 +542,21 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
         remoteViews.setTextViewText(R.id.tv_vpn_time, LocationUtil.getSelectName(this));
         boolean going = false;
         if (VpnStateService.State.CONNECTED.equals(mService.getState())) {
-            remoteViews.setImageViewResource(R.id.btn_vpn, R.drawable.remote_vpn_on);
+            remoteViews.setImageViewResource(R.id.btn_vpn, R.drawable.vpn_on);
             remoteViews.setTextViewText(R.id.tv_vpn_content, getString(R.string.vpn_remote_on));
             remoteViews.setViewVisibility(R.id.btn_vpn, View.VISIBLE);
             remoteViews.setViewVisibility(R.id.rb_conning, View.GONE);
             VPN_STATUS_NOTIF = true;
             going = true;
         } else if (VpnStateService.State.CONNECTING.equals(mService.getState()) || needConnecting) {
-            remoteViews.setImageViewResource(R.id.btn_vpn, R.drawable.remote_vpn_off);
+            remoteViews.setImageViewResource(R.id.btn_vpn, R.drawable.vpn_off);
             remoteViews.setTextViewText(R.id.tv_vpn_content, getString(R.string.vpn_remote_ing));
             remoteViews.setViewVisibility(R.id.btn_vpn, View.GONE);
             remoteViews.setViewVisibility(R.id.rb_conning, View.VISIBLE);
             VPN_STATUS_NOTIF = false;
             going = true;
         } else {
-            remoteViews.setImageViewResource(R.id.btn_vpn, R.drawable.remote_vpn_off);
+            remoteViews.setImageViewResource(R.id.btn_vpn, R.drawable.vpn_off);
             remoteViews.setTextViewText(R.id.tv_vpn_content, getString(R.string.vpn_remote_off));
             remoteViews.setViewVisibility(R.id.btn_vpn, View.VISIBLE);
             remoteViews.setViewVisibility(R.id.rb_conning, View.GONE);
@@ -595,7 +594,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
                 .setTicker("FreeVPN start")
                 .setOngoing(going)
                 .setAutoCancel(true)
-                .setSmallIcon(R.drawable.remote_vpn_on)
+                .setSmallIcon(R.drawable.vpn_on)
         .setVibrate(new long[]{0})
         .setSound(null);
         Notification notify = builder.build();

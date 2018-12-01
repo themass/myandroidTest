@@ -5,7 +5,6 @@
         android:id="@+id/menu_one"
         android:actionLayout="@layout/common_actionbar_image_view"
         android:icon="@drawable/ic_menu_favorite_ed"
-        android:title="@string/menu_favorite"
         app:showAsAction="never" />
     <item
         android:id="@+id/menu_share"

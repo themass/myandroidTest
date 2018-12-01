@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.timeline.vpn">
+    package="com.qq.fq2">
     <!-- 隐私权-->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -49,7 +49,7 @@
         android:resizeable="true"
         android:smallScreens="true" />
     <application
-        android:name="com.timeline.myapp.base.MyApplication"
+        android:name="com.qq.myapp.base.MyApplication"
         android:allowBackup="false"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
@@ -74,7 +74,7 @@
             android:value="${AD_CHANNEL_VALUE}" />
 
         <activity
-            android:name=".ui.main.LaunchActivity"
+            android:name="com.qq.vpn.ui.main.LaunchActivity"
             android:screenOrientation="portrait">
             <intent-filter tools:ignore="GoogleAppIndexingWarning">
                 <action android:name="android.intent.action.VIEW" />
@@ -84,79 +84,46 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.main.MainFragmentViewPage"
+            android:name="com.qq.vpn.ui.main.MainFragmentViewPage"
             android:label="@string/main_activity_name"
             android:launchMode="singleTask"
+            android:theme="@style/StyledIndicators"
             android:screenOrientation="portrait" />
         <activity
-            android:name="com.timeline.myapp.ui.base.WebViewActivity"
+            android:name="com.qq.myapp.ui.base.WebViewActivity"
             android:configChanges="orientation|keyboardHidden|screenSize" />
         <activity
-            android:name="com.timeline.myapp.ui.user.LoginActivity"
+            android:name="com.qq.myapp.ui.user.LoginActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name="com.timeline.myapp.ui.user.RegActivity"
+            android:name="com.qq.myapp.ui.user.RegActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name="com.timeline.myapp.ui.user.FindPassActivity"
+            android:name="com.qq.myapp.ui.user.SettingActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name="com.timeline.myapp.ui.user.SettingActivity"
+            android:name="com.qq.myapp.ui.user.AddCustomeInfoActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name="com.timeline.myapp.ui.user.AddCustomeInfoActivity"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name="com.timeline.myapp.ui.sound.SoundChannleActivity"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name="com.timeline.myapp.ui.sound.TextChannleActivity"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name="com.timeline.myapp.ui.sound.ImgChannleActivity"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name="com.timeline.myapp.ui.sound.VideoActivity"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name="com.timeline.myapp.ui.sound.VideoChannleActivity"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name="com.timeline.myapp.ui.sound.MovieChannleActivity"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name="com.timeline.myapp.ui.base.VideoWebViewActivity"
+            android:name="com.qq.myapp.ui.base.VideoWebViewActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:hardwareAccelerated="true"
             android:screenOrientation="nosensor"
             android:theme="@style/AppTheme"/>
-        <activity
-            android:name="com.timeline.myapp.ui.sound.VideoShowActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden"
-            android:screenOrientation="portrait"
-            android:theme="@style/AppTheme"/>
-        <activity
-            android:name="com.timeline.myapp.ui.sound.VideoListShowActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden"
-            android:screenOrientation="portrait"
-            android:theme="@style/AppTheme"/>
-        <activity
-            android:name="com.timeline.myapp.ui.sound.MyFullScreenImageGalleryActivity"
-            android:screenOrientation="portrait" />
 
         <activity
-            android:name="com.timeline.myapp.ui.base.CommonFragmentActivity"
+            android:name="com.qq.myapp.ui.base.CommonFragmentActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name="com.timeline.myapp.ui.base.LocationFragmentActivity"
+            android:name="com.qq.myapp.ui.base.LocationFragmentActivity"
             android:theme="@style/StyledIndicators"
             android:screenOrientation="portrait" />
         <activity
-            android:name="com.timeline.myapp.ui.feedback.FeedbackFragmentActivity"
+            android:name="com.qq.myapp.ui.feedback.FeedbackFragmentActivity"
             android:theme="@style/StyledIndicators"
             android:screenOrientation="portrait" />
         <activity
-            android:name="com.timeline.myapp.ui.config.QuickBrowserConfigActivity"
+            android:name="com.qq.myapp.ui.config.QuickBrowserConfigActivity"
             android:screenOrientation="portrait"
             android:theme="@style/myTransparent" />
         <service
@@ -171,51 +138,64 @@
                 <action android:name="android.net.VpnService" />
             </intent-filter>
         </service>
-        <service android:name="com.timeline.myapp.service.LogUploadService" />
-        <service android:name="com.timeline.myapp.service.LogToFileService" />
-        <service android:name="com.timeline.myapp.service.PlayService" />
+        <service android:name="com.qq.myapp.service.LogUploadService" />
+        <service android:name="com.qq.myapp.service.LogToFileService" />
 
         <!-- 广告sdk-->
         <!--must-->
         <activity
-            android:name="com.kuaiyou.video.vast.activity.VASTAdActivity"
+            android:name="com.kyview.AdViewVideoActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:hardwareAccelerated="true"
             android:screenOrientation="landscape"/>
         <service android:name="com.kyview.DownloadService" />
-        <activity android:name="com.kyview.AdviewWebView" />
-        <activity android:name="com.kyview.AdActivity" />
-        <activity
-            android:name="com.kyview.AdViewVideoActivity"
-            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
-            android:hardwareAccelerated="true" >
-        </activity>
         <activity android:name="com.kyview.AdViewLandingPage" />
+        <activity android:name="com.kyview.AdActivity" />
 
-        <!-- AdView SDK for Youmi -->
-        <!-- 视频组件 -->
-        <!-- GDT -->
-        <provider
-            android:name="android.support.v4.content.FileProvider"
-            android:authorities="com.timeline.myapp.fileprovider"
-            android:exported="false"
-            android:grantUriPermissions="true">
-            <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_provider" />
-        </provider>
-
-        <!-- 声明SDK所需要的组件 -->
+        <!-- AdView SDK for tencent Gdt -->
         <service
             android:name="com.qq.e.comm.DownloadService"
-            android:exported="false" >
-        </service>
-
+            android:exported="false"></service>
         <activity
             android:name="com.qq.e.ads.ADActivity"
             android:configChanges="keyboard|keyboardHidden|orientation"
-            android:theme="@android:style/Theme.Translucent" >
-        </activity>
+            android:theme="@android:style/Theme.Translucent"></activity>
+        <activity
+            android:name="com.qq.e.ads.PortraitADActivity"
+            android:configChanges="keyboard|keyboardHidden|orientation"
+            android:theme="@android:style/Theme.Translucent"></activity>
+        <activity
+            android:name="com.qq.e.ads.LandscapeADActivity"
+            android:configChanges="keyboard|keyboardHidden|orientation"
+            android:theme="@android:style/Theme.Translucent"></activity>
+
+        <!-- AdView SDK for Baidu -->
+        <activity
+            android:name="com.baidu.mobads.AppActivity"
+            android:configChanges="keyboard|keyboardHidden|orientation" />
+
+        <!-- AdView SDK for AdMob -->
+        <activity
+            android:name="com.google.android.gms.ads.AdActivity"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
+            android:theme="@android:style/Theme.Translucent" />
+
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+
+        <!-- AdView SDK for 自定义测试广告平台amazon -->
+        <activity
+            android:name="com.amazon.device.ads.MraidBrowser"
+            android:configChanges="keyboardHidden|orientation" />
+        <activity
+            android:name="com.amazon.device.ads.VideoActionHandler"
+            android:configChanges="keyboardHidden|orientation" />
+        <activity
+            android:name="com.kuaiyou.AdViewInstlActivity"
+            android:configChanges="orientation|keyboardHidden"
+            android:theme="@android:style/Theme.Translucent" />
+
     </application>
 
 </manifest>

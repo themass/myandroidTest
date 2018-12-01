@@ -6,11 +6,11 @@ android {
     compileSdkVersion 26
     buildToolsVersion "27.0.3"
     defaultConfig {
-        applicationId "com.timeline.vpn"
+        applicationId "com.qq.fq2"
         minSdkVersion 16
         targetSdkVersion 26
-        versionCode 1000007004
-        versionName "1.0.7.4"
+        versionCode 1001008000
+        versionName "1.1.8.0"
         // Enabling multidex support.
         multiDexEnabled true
         flavorDimensions "versionCode"
@@ -38,9 +38,9 @@ android {
     }
     signingConfigs {
         config {
-            keyAlias 'myapp'
+            keyAlias 'themass'
             keyPassword 'themass'
-            storeFile file('D:/work/android-sdk/mykey.jks')
+            storeFile file('D:/work/android-sdk/dengt.jks')
             storePassword 'themass'
         }
 //        config {
@@ -69,12 +69,12 @@ android {
         }
     }
     productFlavors {
-        mypool {
+        free_fq2_my {
             manifestPlaceholders = [CHANNEL_VALUE: "MYPOOL", AD_CHANNEL_VALUE: "MYPOOL"]
         }
-//        google {
-//            manifestPlaceholders = [CHANNEL_VALUE: "GOOGLEMARKET", AD_CHANNEL_VALUE: "GOOGLEMARKET"]
-//        }
+        free_fq2_google {
+            manifestPlaceholders = [CHANNEL_VALUE: "GOOGLEMARKET", AD_CHANNEL_VALUE: "GOOGLEMARKET"]
+        }
     }
 }
 greendao {
@@ -88,7 +88,7 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.aar'])
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    implementation 'cn.jzvd:jiaozivideoplayer:6.2.12'
+//    implementation 'cn.jzvd:jiaozivideoplayer:6.2.12'
 //    implementation(name: 'glide-transformations-2.0.1', ext: 'aar',)
     implementation "com.android.support:appcompat-v7:$APPCOMPAT_VERSION"
     implementation "com.android.support:support-v13:$APPCOMPAT_VERSION"
@@ -130,8 +130,9 @@ dependencies {
     implementation 'com.github.JakeWharton:ViewPagerIndicator:2.4.1'
 
 //    implementation 'com.squareup.picasso:picasso:2.5.2'
-//    implementation 'com.google.android.gms:play-services-base:15.0.1'
-//    implementation 'com.google.android.gms:play-services-location:15.0.1'
-//    implementation 'com.google.android.gms:play-services-plus:15.0.1'
+    implementation 'com.google.android.gms:play-services-ads:15.0.1'
+    implementation 'com.google.android.gms:play-services-base:15.0.1'
+    implementation 'com.google.android.gms:play-services-location:15.0.1'
+    implementation 'com.google.android.gms:play-services-plus:15.0.1'
 
 }
