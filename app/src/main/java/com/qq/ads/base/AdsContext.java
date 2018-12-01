@@ -9,6 +9,7 @@ import com.qq.MobAgent;
 import com.qq.ads.adview.AdviewConstant;
 import com.qq.ext.util.Md5;
 import com.qq.network.R;
+import com.qq.vpn.support.AdsPopStrategy;
 import com.qq.vpn.support.UserLoginUtil;
 import com.qq.vpn.support.task.ScoreTask;
 
@@ -24,7 +25,10 @@ public class AdsContext {
     }
     public static enum Categrey {
         CATEGREY_VPN("插屏:主页，音频，图片，小说 channel页;   banner：vip页，音频，图片，小说，视频，收藏夹列表，", AdviewConstant.ADS_ADVIEW_KEY),
-        CATEGREY_VPN1("插屏： 点击vpn页，音频，图片，小说 list 页，其他推荐 ;   banner：设置页，地区头，音频，图片，小说，视频，收藏夹列表", AdviewConstant.ADS_ADVIEW_KEY1);
+        CATEGREY_VPN1("插屏： 点击vpn页，音频，图片，小说 list 页，其他推荐 ;   banner：设置页，地区头，音频，图片，小说，视频，收藏夹列表", AdviewConstant.ADS_ADVIEW_KEY1),
+        CATEGREY_VPN2("插屏： 点击vpn页，音频，图片，小说 list 页，其他推荐 ;   banner：设置页，地区头，音频，图片，小说，视频，收藏夹列表", AdviewConstant.ADS_ADVIEW_KEY2),
+        CATEGREY_VPN3("插屏： 点击vpn页，音频，图片，小说 list 页，其他推荐 ;   banner：设置页，地区头，音频，图片，小说，视频，收藏夹列表", AdviewConstant.ADS_ADVIEW_KEY3);
+
         public String desc;
         public String key;
 
@@ -114,6 +118,9 @@ public class AdsContext {
     public static void adsNotify(Context context, AdsType type, AdsShowStatus event) {
         MobAgent.onEventAds(context, type, event);
         if (event == ADS_CLICK_MSG) {
+            if(!AdsPopStrategy.clickAdsClickBtn(context)){
+                return;
+            }
             String msg = context.getResources().getString(R.string.tab_fb_click) + Constants.ADS_SHOW_CLICK;
             Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
             ScoreTask.start(context, Constants.ADS_SHOW_CLICK);

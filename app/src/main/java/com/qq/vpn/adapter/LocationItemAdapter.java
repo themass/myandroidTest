@@ -66,12 +66,12 @@ public class LocationItemAdapter extends BaseRecyclerViewAdapter<LocationItemAda
         holder.tvCountry.setText(vo.name);
         holder.tvCountryEname.setText(vo.ename);
 
-        AdsContext.Categrey one = AdsContext.Categrey.CATEGREY_VPN;
-//        AdsContext.Categrey two = AdsContext.Categrey.CATEGREY_VPN1;
-//        if(index%2==1) {
-//            one = AdsContext.Categrey.CATEGREY_VPN1;
-////            two = AdsContext.Categrey.CATEGREY_VPN1;
-//        }
+        AdsContext.Categrey one = AdsContext.Categrey.CATEGREY_VPN2;
+//        AdsContext.Categrey two = AdsContext.Categrey.CATEGREY_VPN3;
+        if(index%2==1) {
+            one = AdsContext.Categrey.CATEGREY_VPN3;
+//            two = AdsContext.Categrey.CATEGREY_VPN1;
+        }
         if (position == 1) {
             holder.rvAds.setVisibility(View.VISIBLE);
             AdsManager.getInstans().showBannerAds((FragmentActivity) context, holder.rvAds, one);

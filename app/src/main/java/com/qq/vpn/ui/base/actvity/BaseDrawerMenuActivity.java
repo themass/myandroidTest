@@ -26,6 +26,7 @@ import com.qq.ext.util.SystemUtils;
 import com.qq.ext.util.ToastUtil;
 import com.qq.network.R;
 import com.qq.vpn.domain.res.UserInfoVo;
+import com.qq.vpn.main.SettingActivity;
 import com.qq.vpn.main.feedback.FeedbackChooseFragment;
 import com.qq.vpn.main.login.SinginActivity;
 import com.qq.vpn.main.ui.WebViewActivity;
@@ -116,7 +117,6 @@ public class BaseDrawerMenuActivity extends ToolBarActivity {
 
     private void setUpVersion() {
         VersionUpdater.checkUpdate(BaseDrawerMenuActivity.this,false);
-
     }
     private void setUpUserMenu() {
         UserInfoVo vo = UserLoginUtil.getUserCache();
@@ -199,7 +199,7 @@ public class BaseDrawerMenuActivity extends ToolBarActivity {
             if (vo != null) {
                 String score = vo.score + "积分";
                 if(vo.paidTime!=null){
-                    score=score+"(有效期"+vo.paidTime+")";
+                    score=score+"(VIP3有效期"+vo.paidTime+")";
                 }
                 tvScore.setText(score);
             } else {
@@ -288,7 +288,7 @@ public class BaseDrawerMenuActivity extends ToolBarActivity {
                     onAbout(null);
                 }else if (item.getItemId() == R.id.menu_setting) {
                     name = "设置";
-//                    startActivity(SettingActivity.class);
+                    startActivity(SettingActivity.class);
                 }
                 else if (item.getItemId() == R.id.menu_share) {
                     showShare();

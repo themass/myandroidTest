@@ -26,7 +26,7 @@ public class Constants {
     public static final String IMAGE_CONF = "timeline://img";
     public static final String URL = "url";
     public static final String DEFULT_LOCATION_NAME="随机";
-    public static final int STARTUP_SHOW_TIME_3000 = 4000; //启动页广告时长
+    public static final int STARTUP_SHOW_TIME_3000 = 5000; //启动页广告时长
     public static final int SHIMMER_DURATION = 1500;
     public static final String HTTP_URL = "http";
     public static final String HTTPS_URL = "https";
@@ -36,6 +36,9 @@ public class Constants {
     public static final String LOGIN_USER_PW_LAST = "LOGIN_USER_PW_LAST";
     public static final String HTTP_TOKEN_KEY = "Vpn-Token";
     public static final String D_URL = "D_URL";
+    public static final String NOTIFY_SWITCH = "NOTIFY_SWITCH";
+    public static final String SCORE_CLICK_CLICK = "SCORE_CLICK_CLICK";
+
     public static final int SKIP_SLOW= -1;
     public static final Pattern namePattern = Pattern.compile("[a-zA-Z0-9]{3,20}");
     public static final Pattern passPattern = Pattern.compile("[0-9A-Za-z]{6,10}");
@@ -67,6 +70,7 @@ public class Constants {
     public static final String CONFIG_PARAM = "CONFIG_PARAM";
     public static final String TITLE = "TITLE";
     public static final String VPN_STATUS = "VPN_STATUS";
+    public static final String TEMP_PATH = "/freevpn/dt";
     public static final String LOCATION_ICON_ALL ="timeline://img/flag_all.png";
     public static String BASE_IP = "api.sspacee.com";
     public static String ABOUT = "http://file.sspacee.com/file/html/about_dengt.html";

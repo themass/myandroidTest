@@ -105,6 +105,9 @@
             android:name="com.qq.vpn.main.login.SinginActivity"
             android:screenOrientation="portrait" />
         <activity
+            android:name="com.qq.vpn.main.SettingActivity"
+            android:screenOrientation="portrait" />
+        <activity
             android:name="com.qq.vpn.main.feedback.FeedbackFragmentActivity"
             android:theme="@style/StyledIndicators"
             android:screenOrientation="portrait" />
@@ -124,44 +127,57 @@
         <!-- 广告sdk-->
         <!--must-->
         <activity
-            android:name="com.kuaiyou.video.vast.activity.VASTAdActivity"
+            android:name="com.kyview.AdViewVideoActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:hardwareAccelerated="true"
             android:screenOrientation="landscape"/>
         <service android:name="com.kyview.DownloadService" />
-        <activity android:name="com.kyview.AdviewWebView" />
-        <activity android:name="com.kyview.AdActivity" />
-        <activity
-            android:name="com.kyview.AdViewVideoActivity"
-            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
-            android:hardwareAccelerated="true" >
-        </activity>
         <activity android:name="com.kyview.AdViewLandingPage" />
+        <activity android:name="com.kyview.AdActivity" />
 
-        <!-- AdView SDK for Youmi -->
-        <!-- 视频组件 -->
-        <!-- GDT -->
-        <provider
-            android:name="android.support.v4.content.FileProvider"
-            android:authorities="com.qq.vpn.fileprovider"
-            android:exported="false"
-            android:grantUriPermissions="true">
-            <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_provider" />
-        </provider>
-
-        <!-- 声明SDK所需要的组件 -->
+        <!-- AdView SDK for tencent Gdt -->
         <service
             android:name="com.qq.e.comm.DownloadService"
-            android:exported="false" >
-        </service>
-
+            android:exported="false"></service>
         <activity
             android:name="com.qq.e.ads.ADActivity"
             android:configChanges="keyboard|keyboardHidden|orientation"
-            android:theme="@android:style/Theme.Translucent" >
-        </activity>
+            android:theme="@android:style/Theme.Translucent"></activity>
+        <activity
+            android:name="com.qq.e.ads.PortraitADActivity"
+            android:configChanges="keyboard|keyboardHidden|orientation"
+            android:theme="@android:style/Theme.Translucent"></activity>
+        <activity
+            android:name="com.qq.e.ads.LandscapeADActivity"
+            android:configChanges="keyboard|keyboardHidden|orientation"
+            android:theme="@android:style/Theme.Translucent"></activity>
+
+        <!-- AdView SDK for Baidu -->
+        <activity
+            android:name="com.baidu.mobads.AppActivity"
+            android:configChanges="keyboard|keyboardHidden|orientation" />
+
+        <!-- AdView SDK for AdMob -->
+        <activity
+            android:name="com.google.android.gms.ads.AdActivity"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
+            android:theme="@android:style/Theme.Translucent" />
+
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+
+        <!-- AdView SDK for 自定义测试广告平台amazon -->
+        <activity
+            android:name="com.amazon.device.ads.MraidBrowser"
+            android:configChanges="keyboardHidden|orientation" />
+        <activity
+            android:name="com.amazon.device.ads.VideoActionHandler"
+            android:configChanges="keyboardHidden|orientation" />
+        <activity
+            android:name="com.kuaiyou.AdViewInstlActivity"
+            android:configChanges="orientation|keyboardHidden"
+            android:theme="@android:style/Theme.Translucent" />
     </application>
 
 </manifest>
