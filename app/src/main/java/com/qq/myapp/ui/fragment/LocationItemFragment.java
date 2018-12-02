@@ -61,14 +61,14 @@ public class LocationItemFragment extends BasePullLoadbleFragment<LocationVo> {
     }
     @Override
     protected InfoListVo<LocationVo> loadData(Context context) throws Exception {
-//        if(!CollectionUtils.isEmpty(vipLocationVo.list)) {
-//            InfoListVo<LocationVo> data = new InfoListVo();
-//            data.hasMore = false;
-//            data.pageNum = 1;
-//            data.total = vipLocationVo.list.size();
-//            data.voList = vipLocationVo.list;
-//            return data;
-//        }
+        if(!pullView.isRefreshing() && !CollectionUtils.isEmpty(vipLocationVo.list) ) {
+            InfoListVo<LocationVo> data = new InfoListVo();
+            data.hasMore = false;
+            data.pageNum = 1;
+            data.total = vipLocationVo.list.size();
+            data.voList = vipLocationVo.list;
+            return data;
+        }
         return indexService.getInfoListData(Constants.getUrlWithParam(Constants.API_LOCATION_URL,vipLocationVo.type), LocationVo.class, LOCATION_TAG);
     }
 
