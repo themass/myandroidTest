@@ -9,7 +9,7 @@ import android.view.View;
 
 import com.qq.MobAgent;
 import com.qq.ext.util.EventBusUtil;
-import com.qq.ext.view.view.RecycleViewDivider;
+import com.qq.ext.view.RecycleViewDivider;
 import com.qq.vpn.adapter.RecommendAdapter;
 import com.qq.vpn.adapter.base.BaseRecyclerViewAdapter;
 import com.qq.vpn.adapter.base.PhotoFlowRecycleViewAdapter;

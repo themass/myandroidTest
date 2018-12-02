@@ -9,6 +9,7 @@ buildscript {
                 password 'mobile213456'
             }
         }
+        google()
         mavenCentral()
         jcenter {
             url "http://jcenter.bintray.com"

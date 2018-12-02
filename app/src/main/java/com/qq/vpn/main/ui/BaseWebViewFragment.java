@@ -20,7 +20,7 @@ import android.widget.ProgressBar;
 import com.qq.ext.network.HttpUtils;
 import com.qq.ext.util.FileUtils;
 import com.qq.ext.util.LogUtil;
-import com.qq.ext.view.view.MyWebView;
+import com.qq.ext.view.MyWebView;
 import com.qq.network.R;
 import com.qq.Constants;
 import com.qq.MyApplication;

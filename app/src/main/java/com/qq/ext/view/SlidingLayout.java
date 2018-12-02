@@ -1,4 +1,4 @@
-package com.qq.ext.view.view;
+package com.qq.ext.view;
 
 import android.app.Activity;
 import android.content.Context;

@@ -115,9 +115,9 @@ dependencies {
     implementation 'com.github.JakeWharton:ViewPagerIndicator:2.4.1'
     implementation 'com.github.lawloretienne:imagegallery:0.1.0'
     implementation 'com.google.android.gms:play-services-ads:15.0.1'
-//    implementation 'com.google.android.gms:play-services-base:15.0.1'
-//    implementation 'com.google.android.gms:play-services-location:15.0.1'
-//    implementation 'com.google.android.gms:play-services-plus:15.0.1'
+    implementation 'com.google.android.gms:play-services-base:15.0.1'
+    implementation 'com.google.android.gms:play-services-location:15.0.1'
+    implementation 'com.google.android.gms:play-services-plus:15.0.1'
 
     implementation 'pl.droidsonroids.gif:android-gif-drawable:1.2.6'
 //    compile 'com.gospelware.liquidbutton:liquidButtonLib:1.1.5'

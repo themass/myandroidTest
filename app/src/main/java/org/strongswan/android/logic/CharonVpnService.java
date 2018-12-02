@@ -82,14 +82,16 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 
+import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
+
 public class CharonVpnService extends VpnService implements VpnStateService.VpnStateListener {
     public static final String PROFILE = "PROFILE";
     public static final int FOREGROUND_NOTIFY_ID = 100;
     /**
      * 通知栏按钮点击事件对应的ACTION
      */
-    public final static String ACTION_BUTTON = "com.vpn.notifications.intent.action.ButtonClick";
-    public final static String LOCATION_BUTTON = "com.vpn.notifications.intent.action.LocationClick";
+    public final static String ACTION_BUTTON = "com.qq.vpn.notifications.intent.action.ButtonClick";
+    public final static String LOCATION_BUTTON = "com.qq.vpn.notifications.intent.action.LocationClick";
     public final static String INTENT_CLICK_TAG = "ClickId";
     public final static String VPN_SERVER_CLICK = "VPN_SERVER_CLICK";
     /**
@@ -473,6 +475,9 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
     }
 
     public void conn() {
+        if(mService==null){
+            return;
+        }
         Log.i(TAG, "charon started mCurrentState=" + mService.getState() + "  thread=" + Thread.currentThread().getName());
         if (mCurrentProfile != null) {
             disconn();
@@ -568,12 +573,13 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
         remoteViews.setOnClickPendingIntent(R.id.btn_vpn, pendingIntent);
 
         Intent locationIntent = new Intent(LOCATION_BUTTON);
+        locationIntent.addFlags(FLAG_ACTIVITY_NEW_TASK );
         PendingIntent locationPending = PendingIntent.getBroadcast(this, 1, locationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         remoteViews.setOnClickPendingIntent(R.id.tv_vpn_time, locationPending);
 
         Intent intent = new Intent(this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.addFlags(FLAG_ACTIVITY_NEW_TASK);
         PendingIntent pend =
                 PendingIntent.getActivity(MyApplication.getInstance(), new Random().nextInt(), intent, 0);
 

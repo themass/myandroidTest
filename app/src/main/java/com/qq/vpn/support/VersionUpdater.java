@@ -57,23 +57,25 @@ public class VersionUpdater {
             VersionUpdater.checkNewVersion(context, new CommonResponse.ResponseOkListener<VersionVo>() {
                 @Override
                 public void onResponse(final VersionVo vo) {
-                    VersionUpdater.setNewVersion(context, vo.maxBuild);
-                    PreferenceUtils.setPrefString(MyApplication.getInstance(), Constants.D_URL, vo.url);
-                    PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.ADS_SHOW_CONFIG, vo.adsShow);
-                    PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.LOG_UPLOAD_CONFIG, vo.logUp);
-                    PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.NEED_DNSPOD_CONFIG, vo.needDnspod);
-                    PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.NEED_NATIVE_ADS_CONFIG, vo.needNative);
-                    if (vo.stateUse != null)
-                        EventBusUtil.getEventBus().post(new StateUseEvent(vo.stateUse));
-                    EventBusUtil.getEventBus().post(new VipDescEvent(vo.vipDesc));
-                    if (VersionUpdater.isNewVersion(vo.maxBuild)
-                            && StringUtils.hasText(vo.url) && vo.update) {
-                        // 有新版本
-                        VersionUpdater.showUpdateDialog(context, vo, true);
-//                        VersionUpdater.showGoogleUpdateDialog(context, vo, true);
-                    } else {
-                        if (needToast)
-                            ToastUtil.showShort(R.string.about_version_update_to_date);
+                    if(vo!=null) {
+                        VersionUpdater.setNewVersion(context, vo.maxBuild);
+                        PreferenceUtils.setPrefString(MyApplication.getInstance(), Constants.D_URL, vo.url);
+                        PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.ADS_SHOW_CONFIG, vo.adsShow);
+                        PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.LOG_UPLOAD_CONFIG, vo.logUp);
+                        PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.NEED_DNSPOD_CONFIG, vo.needDnspod);
+                        PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.NEED_NATIVE_ADS_CONFIG, vo.needNative);
+                        if (vo.stateUse != null)
+                            EventBusUtil.getEventBus().post(new StateUseEvent(vo.stateUse));
+                        EventBusUtil.getEventBus().post(new VipDescEvent(vo.vipDesc));
+                        if (VersionUpdater.isNewVersion(vo.maxBuild)
+                                && StringUtils.hasText(vo.url) && vo.update) {
+                            // 有新版本
+                            VersionUpdater.showUpdateDialog(context, vo, true);
+                            //                        VersionUpdater.showGoogleUpdateDialog(context, vo, true);
+                        } else {
+                            if (needToast)
+                                ToastUtil.showShort(R.string.about_version_update_to_date);
+                        }
                     }
                 }
             }, new CommonResponse.ResponseErrorListener() {

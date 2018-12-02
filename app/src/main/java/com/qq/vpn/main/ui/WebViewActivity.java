@@ -15,7 +15,7 @@ import com.qq.ext.util.LogUtil;
 import com.qq.ext.util.PackageUtils;
 import com.qq.ext.util.SystemUtils;
 import com.qq.ext.util.ToastUtil;
-import com.qq.ext.view.view.MyWebView;
+import com.qq.ext.view.MyWebView;
 import com.qq.vpn.ui.base.actvity.BaseFragmentActivity;
 import com.qq.network.R;
 

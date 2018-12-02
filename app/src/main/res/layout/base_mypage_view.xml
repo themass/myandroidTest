@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.qq.ext.view.view.MyPullView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.qq.ext.view.MyPullView xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/my_pullview"
     android:layout_width="match_parent"
     android:layout_height="wrap_content" />

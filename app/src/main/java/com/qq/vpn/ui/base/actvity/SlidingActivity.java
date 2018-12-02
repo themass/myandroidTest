@@ -3,7 +3,7 @@ package com.qq.vpn.ui.base.actvity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
-import com.qq.ext.view.view.SlidingLayout;
+import com.qq.ext.view.SlidingLayout;
 
 
 public abstract class SlidingActivity extends AppCompatActivity {

@@ -12,8 +12,8 @@ import android.widget.SearchView;
 
 import com.qq.ext.util.LogUtil;
 import com.qq.ext.util.StringUtils;
-import com.qq.ext.view.view.DividerItemDecoration;
-import com.qq.ext.view.view.MyPullView;
+import com.qq.ext.view.DividerItemDecoration;
+import com.qq.ext.view.MyPullView;
 import com.qq.vpn.adapter.base.BaseRecyclerViewAdapter;
 import com.qq.vpn.domain.res.InfoListVo;
 import com.qq.network.R;

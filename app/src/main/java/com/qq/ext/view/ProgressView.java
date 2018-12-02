@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.qq.ext.view.view;
+package com.qq.ext.view;
 
 import android.content.Context;
 import android.graphics.Canvas;

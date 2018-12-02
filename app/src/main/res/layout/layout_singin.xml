@@ -16,7 +16,7 @@
             android:layout_centerVertical="true"
             android:orientation="vertical">
 
-            <com.qq.ext.view.view.MyEditText
+            <com.qq.ext.view.MyEditText
                 android:id="@+id/et_name"
                 android:hint="@string/name_hint"
                 android:layout_height="@dimen/margin_48"
@@ -24,7 +24,7 @@
                 android:maxLines="1"
                 android:singleLine="true" />
 
-            <com.qq.ext.view.view.MyEditText
+            <com.qq.ext.view.MyEditText
                 android:layout_height="@dimen/margin_48"
                 android:layout_width="match_parent"
                 android:id="@+id/et_pass"

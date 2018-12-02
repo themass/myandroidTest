@@ -32,7 +32,11 @@ public class LocationPingTask extends AsyncTask<Void, Void, Void> {
         if (vo.ping!=null) {
             fillText(context,bar,tvPing,vo.ping);
         } else {
-            new LocationPingTask(context, vo, bar, tvPing).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            try {
+                new LocationPingTask(context, vo, bar, tvPing).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            }catch (RuntimeException e){
+                LogUtil.e(e);
+            }
         }
     }
     public static void fillText(Context context,ProgressBar bar, TextView tvPing,Integer ping){
