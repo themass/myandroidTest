@@ -48,11 +48,11 @@ public class LocationPingTask extends AsyncTask<Void, Void, Void> {
             return;
         }
         if(ping>130 && ping<200){
-            ping = ping -20;
+            ping = ping -15;
         }else if(ping>=200 && ping <400){
-            ping = ping -30;
+            ping = ping -20;
         }else if(ping>=400){
-            ping = ping-40;
+            ping = ping-30;
         }
         if(0 ==ping){
             tvPing.setTextColor(context.getResources().getColor(R.color.base_red));

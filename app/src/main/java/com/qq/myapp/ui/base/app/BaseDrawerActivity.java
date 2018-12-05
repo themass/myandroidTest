@@ -14,13 +14,16 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.qq.common.util.CollectionUtils;
 import com.qq.common.util.DateUtils;
 import com.qq.common.util.LogUtil;
 import com.qq.common.util.PreferenceUtils;
 import com.qq.common.util.ShareUtil;
 import com.qq.common.util.StringUtils;
 import com.qq.common.util.SystemUtils;
+import com.qq.myapp.bean.vo.DomainVo;
 import com.qq.yewu.ads.base.AdsManager;
+import com.qq.yewu.net.request.CommonResponse;
 import com.qq.yewu.um.MobAgent;
 import com.qq.myapp.base.MyApplication;
 import com.qq.myapp.bean.vo.UserInfoVo;
@@ -72,6 +75,8 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     MenuItem miLocation;
     MenuItem miSetting;
     BaseService baseService;
+    private final String DOAMIN_TAG="DOAMIN_TAG";
+
     public void login(View view) {
         startActivity(LoginActivity.class);
     }
@@ -97,13 +102,24 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         ivAvatar = (ImageView) headerView.findViewById(R.id.iv_avatar);
         ivLevel = (ImageView) headerView.findViewById(R.id.iv_level);
         nvDrawer.setItemIconTintList(null);
+        baseService = new BaseService();
+        baseService.setup(this);
         setUpVersion();
         setUpUserMenu();
         setUpLocation();
-        baseService = new BaseService();
-        baseService.setup(this);
+        setUpDomain();
     }
-
+    private void setUpDomain(){
+        baseService.getData(Constants.getUrlHost(Constants.API_DOMAIN_URL), new CommonResponse.ResponseOkListener<DomainVo>() {
+            @Override
+            public void onResponse(DomainVo vo) {
+                super.onResponse(vo);
+                if(vo!=null && !CollectionUtils.isEmpty(vo.dns)){
+                    Constants.BASE_IP = vo.dns.get(0);
+                }
+            }
+        }, null, DOAMIN_TAG, DomainVo.class);
+    }
     private void setUpLocation() {
         boolean flag = PreferenceUtils.getPrefBoolean(this, Constants.LOCATION_FLAG, false);
         if (!flag) {

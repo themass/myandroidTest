@@ -82,7 +82,7 @@ public class Constants {
     public static final String API_FEEDBACK_LIKE_URL = "/data/feed/score/%s.json";
 
     public static final String API_VERSION_URL = "/data/version.json";
-
+    public static final String API_DOMAIN_URL = "/data/domain.json";
     public static final String API_RECOMMEND_URL = "/data/recommend.json?start=%s&limit=20";
     public static final String API_RECOMMEND_CUSTOME_URL = "/data/recommend/custome.json?start=%s&limit=100";
 
@@ -120,9 +120,10 @@ public class Constants {
     public static final String CUSTOME_SORT = "CUSTOME_SORT";
     public static final String LOCATION_ICON_ALL ="timeline://img/flag_all.png";
     public static String BASE_IP = "api.sspacee.com";
+    public static final String HOSTGGG = "api.hostggg.com";
     public static String ABOUT_FIRST = "ABOUT_FbbIRST";
-    public static String ABOUT_ZH = "http://file.sspacee.com/file/html/about_dengt.html";
-    public static String ABOUT = "http://file.sspacee.com/file/html/about_dengt.html";
+    public static String ABOUT_ZH = "http://file.sspacee.com/file/html/about.html";
+    public static String ABOUT = "http://file.sspacee.com/file/html/about.html";
     public static String USER_STATUS = "USER_STATUS";
     //        public static String BASE_IP = "192.168.1.12:8080";
 //    public static String BASE_IP = "10.33.65.180:8080";
@@ -134,7 +135,9 @@ public class Constants {
     public static String getUrl(String uri) {
         return "http://" + BASE_IP + "/vpn/api" + uri;
     }
-
+    public static String getUrlHost(String uri) {
+        return "http://" + HOSTGGG + "/vpn/api" + uri;
+    }
     public static String getUrlWithParam(String url, Object... param) {
         return String.format(getUrl(url), param);
     }

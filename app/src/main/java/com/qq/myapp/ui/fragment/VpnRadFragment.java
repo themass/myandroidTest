@@ -319,7 +319,8 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
                 vo.ttlTime = HttpUtils.ping(vo.gateway);
                 LogUtil.i(vo.toString());
                 if (vo.ttlTime > 0) {
-                    startVpn(server, vo);
+                    if(mService!=null && mService.getState() == VpnStateService.State.DISABLED)
+                        startVpn(server, vo);
                 }
             }catch (Exception e){
                 LogUtil.e(e);
