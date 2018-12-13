@@ -56,14 +56,15 @@ public class Constants {
 
     public static final String API_FAB_ADSCLICK_URL = "/user/ads/score.json?score=%s";
     public static final String API_VERSION_URL = "/data/version.json";
-    public static final String API_SERVERLIST_URL = "/host/server/list.json?location=%s";
-    public static final String API_LOCATION_URL = "/host/server/location/cache.json?type=%s";
-    public static final String API_LOCATION_VIP_URL = "/host/server/location/vip/cache.json";
+    public static final String API_SERVERLIST_URL = "/host/server/list/v2.json?location=%s";
+    public static final String API_LOCATION_URL = "/host/server/location/cache/v2.json?type=%s";
+    public static final String API_LOCATION_VIP_URL = "/host/server/location/vip/cache/v2.json";
     public static final String API_RECOMMEND_URL = "/data/recommend.json?start=%s&limit=20";
     public static final String API_CONNLOG_URL = "/monitor/connlog.json";
     public static final String API_LOGIN_URL = "/user/login.json";
     public static final String API_REG_URL = "/user/reg.json";
     public static final String API_LOGOUT_URL = "/user/logout.json";
+    public static final String API_DOMAIN_URL = "/data/domain.json";
     public static final int connTimeOut = 20;
     public static final VpnType vpnType = VpnType.IKEV2_EAP;
     public static final String NET_ERROR = "network error";
@@ -72,13 +73,17 @@ public class Constants {
     public static final String VPN_STATUS = "VPN_STATUS";
     public static final String TEMP_PATH = "/freevpn/dt";
     public static final String LOCATION_ICON_ALL ="timeline://img/flag_all.png";
-    public static String BASE_IP = "api.sspacee.com";
+    public static  String BASE_IP = "api.sspacee.com";
+    public static final String HOSTGGG = "api.hostggg.com";
     public static String ABOUT = "http://file.sspacee.com/file/html/about_dengt.html";
     public static String SSPACEE = "http://sspacee.com";
     public static List<String> colorBg = Arrays.asList("#552d5d82", "#55135689", "#552292e9", "#5583878b", "#7f8d8f45", "#ffc49924", "#ff83713f", "#ff569b2b", "#ff882b9b");
 
     public static String getUrl(String uri) {
         return "http://" + BASE_IP + "/vpn/api" + uri;
+    }
+    public static String getUrlHost(String uri) {
+        return "http://" + HOSTGGG + "/vpn/api" + uri;
     }
 
     public static String getUrlWithParam(String url, Object... param) {

@@ -17,6 +17,8 @@ import android.widget.TextView;
 import com.qq.Constants;
 import com.qq.MobAgent;
 import com.qq.MyApplication;
+import com.qq.ext.network.req.CommonResponse;
+import com.qq.ext.util.CollectionUtils;
 import com.qq.ext.util.DateUtils;
 import com.qq.ext.util.LogUtil;
 import com.qq.ext.util.PreferenceUtils;
@@ -25,6 +27,7 @@ import com.qq.ext.util.StringUtils;
 import com.qq.ext.util.SystemUtils;
 import com.qq.ext.util.ToastUtil;
 import com.qq.network.R;
+import com.qq.vpn.domain.res.DomainVo;
 import com.qq.vpn.domain.res.UserInfoVo;
 import com.qq.vpn.main.SettingActivity;
 import com.qq.vpn.main.feedback.FeedbackChooseFragment;
@@ -44,6 +47,7 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.Date;
+import java.util.List;
 
 import butterknife.BindView;
 
@@ -73,6 +77,7 @@ public class BaseDrawerMenuActivity extends ToolBarActivity {
     MenuItem miLocation;
     MenuItem miSetting;
     MenuItem miAbout;
+    private final String DOAMIN_TAG="DOAMIN_TAG";
     public void login(View view) {
         startActivity(SinginActivity.class);
     }
@@ -102,8 +107,19 @@ public class BaseDrawerMenuActivity extends ToolBarActivity {
         setUpVersion();
         setUpUserMenu();
         setUpLocation();
+        setUpDomain();
     }
-
+    private void setUpDomain(){
+        api.getData(Constants.getUrlHost(Constants.API_DOMAIN_URL), new CommonResponse.ResponseOkListener<DomainVo>() {
+            @Override
+            public void onResponse(DomainVo vo) {
+                super.onResponse(vo);
+                if(vo!=null && !CollectionUtils.isEmpty(vo.dns)){
+                    Constants.BASE_IP = vo.dns.get(0);
+                }
+            }
+        }, null, DOAMIN_TAG, DomainVo.class);
+    }
     private void setUpLocation() {
         boolean flag = PreferenceUtils.getPrefBoolean(this, Constants.LOCATION_FLAG, false);
         if (!flag) {
