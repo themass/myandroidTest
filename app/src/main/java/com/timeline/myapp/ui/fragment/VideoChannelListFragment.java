@@ -32,6 +32,10 @@ public class VideoChannelListFragment extends RecommendFragment {
         context.startActivity(intent);
     }
     @Override
+    public boolean showSearChannel(){
+        return true;
+    }
+    @Override
     protected boolean showSearchView(){
         return true;
     }

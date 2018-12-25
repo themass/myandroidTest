@@ -32,6 +32,10 @@ public class MovieChannleBodyFragment extends RecommendFragment {
         channel = ((HashMap<String,String>)b.getSerializable(Constants.CONFIG_PARAM)).get(Constants.CHANNEL);
     }
     @Override
+    public boolean showSearChannel(){
+        return true;
+    }
+    @Override
     public String getUrl(int start) {
         return Constants.getUrlWithParam(Constants.API_VIDEO_CHANNLE_URL, start,channel);
     }

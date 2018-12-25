@@ -20,8 +20,8 @@ import com.timeline.myapp.ui.base.features.BasePullLoadbleFragment;
 
 import cn.jzvd.JZMediaManager;
 import cn.jzvd.JZUtils;
-import cn.jzvd.JZVideoPlayer;
-import cn.jzvd.JZVideoPlayerManager;
+import cn.jzvd.Jzvd;
+import cn.jzvd.JzvdMgr;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -47,22 +47,24 @@ public class AutoVideoFragment extends BasePullLoadbleFragment<RecommendVo> {
         pullView.getRecyclerView().addOnChildAttachStateChangeListener(new RecyclerView.OnChildAttachStateChangeListener() {
             @Override
             public void onChildViewAttachedToWindow(View view) {
-                if (JZVideoPlayerManager.getCurrentJzvd() != null && JZVideoPlayerManager.getCurrentJzvd().currentScreen == JZVideoPlayer.SCREEN_WINDOW_TINY) {
-                    JZVideoPlayer videoPlayer = (JZVideoPlayer )view.findViewById(R.id.videoplayer);
-                    if (JZUtils.getCurrentFromDataSource(videoPlayer.dataSourceObjects, videoPlayer.currentUrlMapIndex).equals(JZMediaManager.getCurrentDataSource())) {
-                        JZVideoPlayer.backPress();
-                    }
-                }
+//                if (JzvdMgr.getCurrentJzvd() != null && JzvdMgr.getCurrentJzvd().currentScreen == Jzvd.SCREEN_WINDOW_TINY) {
+//                    Jzvd videoPlayer = (Jzvd )view.findViewById(R.id.videoplayer);
+//                    if (JZUtils.getCurrentFromDataSource(videoPlayer.jzDataSource, videoPlayer.i).equals(JZMediaManager.getCurrentDataSource())) {
+//                        Jzvd.backPress();
+//                    }
+//                }
+                Jzvd.onChildViewAttachedToWindow(view, R.id.videoplayer);
             }
 
             @Override
             public void onChildViewDetachedFromWindow(View view) {
-                if (JZVideoPlayerManager.getCurrentJzvd() != null && JZVideoPlayerManager.getCurrentJzvd().currentScreen != JZVideoPlayer.SCREEN_WINDOW_TINY) {
-                    JZVideoPlayer videoPlayer = JZVideoPlayerManager.getCurrentJzvd();
-                    if (((ViewGroup) view).indexOfChild(videoPlayer) != -1 && videoPlayer.currentState == JZVideoPlayer.CURRENT_STATE_PLAYING) {
-                        videoPlayer.startWindowTiny();
-                    }
-                }
+//                if (JzvdMgr.getCurrentJzvd() != null && JzvdMgr.getCurrentJzvd().currentScreen != Jzvd.SCREEN_WINDOW_TINY) {
+//                    Jzvd videoPlayer = JzvdMgr.getCurrentJzvd();
+//                    if (((ViewGroup) view).indexOfChild(videoPlayer) != -1 && videoPlayer.currentState == Jzvd.CURRENT_STATE_PLAYING) {
+//                        videoPlayer.startWindowTiny();
+//                    }
+//                }
+                Jzvd.onChildViewDetachedFromWindow(view);
             }
         });
     }
@@ -75,13 +77,13 @@ public class AutoVideoFragment extends BasePullLoadbleFragment<RecommendVo> {
     @Override
     public void onPause() {
         super.onPause();
-        JZVideoPlayer.goOnPlayOnPause();
+        Jzvd.goOnPlayOnPause();
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        JZVideoPlayer.releaseAllVideos();
+        Jzvd.releaseAllVideos();
     }
 
     @Override

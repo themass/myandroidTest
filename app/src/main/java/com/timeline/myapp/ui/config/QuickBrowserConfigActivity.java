@@ -8,8 +8,6 @@ import com.qq.sexfree.R;
 import com.sspacee.common.ui.base.LogActivity;
 import com.sspacee.common.util.PackageUtils;
 import com.sspacee.yewu.ads.base.AdsContext;
-import com.sspacee.yewu.ads.base.AdsManager;
-import com.timeline.myapp.ui.sound.VideoShowActivityj;
 
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.UserLoginUtil;

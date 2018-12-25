@@ -4,14 +4,28 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/ll_search"
+        android:visibility="gone">
+        <Spinner
+            android:layout_alignParentRight="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/sp_search"
+            />
     <SearchView
         android:id="@+id/searchView"
+        android:layout_toLeftOf="@+id/sp_search"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/base_vip_ready"
         android:iconifiedByDefault="true"
-        android:visibility="gone"
         android:queryHint="@string/search" />
+
+
+    </RelativeLayout>
 
     <include layout="@layout/base_loadable_fragment"
         android:layout_width="match_parent"

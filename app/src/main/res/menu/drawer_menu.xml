@@ -29,7 +29,7 @@
                 android:id="@+id/menu_donation"
                 android:icon="@drawable/ic_menu_app"
                 android:title="@string/menu_btn_donation"
-            android:visible="false"/>
+            />
         <item
             android:id="@+id/menu_app"
             android:icon="@drawable/ic_menu_recomm"
@@ -38,7 +38,8 @@
             android:id="@+id/menu_support"
             android:icon="@drawable/ic_menu_support"
             android:title="@string/menu_btn_support"
-            android:visible="false"/>
+            android:visible="false"
+            />
     </group>
     <group android:id="@+id/menu_group_4">
         <item

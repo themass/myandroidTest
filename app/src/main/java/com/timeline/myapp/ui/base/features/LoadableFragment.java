@@ -8,8 +8,11 @@ import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.SearchView;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.android.volley.Request;
@@ -56,7 +59,10 @@ public abstract class LoadableFragment<T> extends BaseFragment {
     private TextView tvRetry;
     protected BaseService indexService;
     public SearchView mSearchView;
+    public ViewGroup mRlSearch;
+    public Spinner spRech;
     public String keyword = "";
+    public boolean inChannel = true;
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
@@ -70,6 +76,9 @@ public abstract class LoadableFragment<T> extends BaseFragment {
     protected boolean showSearchView(){
         return false;
     }
+    protected boolean showSearChannel(){
+        return false;
+    }
     @Override
     protected void setupViews(View view, Bundle savedInstanceState) {
         indexService = new BaseService();
@@ -79,14 +88,22 @@ public abstract class LoadableFragment<T> extends BaseFragment {
         mContentView = ViewUtils.find(view, R.id.content);
         tvRetry = ViewUtils.find(view, R.id.tv_retry);
         mSearchView = ViewUtils.find(view, R.id.searchView);
+        mRlSearch = ViewUtils.find(view, R.id.ll_search);
+        spRech = ViewUtils.find(view, R.id.sp_search);
         LayoutInflater inflater = LayoutInflater.from(getActivity());
         onContentViewCreated(inflater, mContentView, savedInstanceState);
         mLoadRetryView.setOnClickListener(mRefreshClickListener);
         super.setupViews(view, savedInstanceState);
         if(showSearchView()){
-            mSearchView.setVisibility(View.VISIBLE);
+            mRlSearch.setVisibility(View.VISIBLE);
         }else{
-            mSearchView.setVisibility(View.GONE);
+            mRlSearch.setVisibility(View.GONE);
+        }
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(), R.layout.layout_feed_spinner, getResources().getStringArray(R.array.search));
+        spRech.setAdapter(adapter);
+        spRech.setSelection(0,true);
+        if(!showSearChannel()){
+            spRech.setVisibility(View.GONE);
         }
     }
 

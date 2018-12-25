@@ -21,10 +21,12 @@ import com.timeline.myapp.bean.vo.RecommendVo;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.VideoUtil;
 
+import java.util.HashMap;
 import java.util.List;
 
 import butterknife.BindView;
-import cn.jzvd.JZVideoPlayerStandard;
+import cn.jzvd.JZDataSource;
+import cn.jzvd.JzvdStd;
 
 
 public class VideoListAdapter extends BaseRecyclerViewAdapter<VideoListAdapter.VideoHolder, RecommendVo> {
@@ -43,8 +45,13 @@ public class VideoListAdapter extends BaseRecyclerViewAdapter<VideoListAdapter.V
             VideoHolder holder = (VideoHolder)h;
             RecommendVo vo = data.get(position);
             LogUtil.i("jcVideoPlayer="+holder.jcVideoPlayer.toString());
-            Object[] source = VideoUtil.getVideoSource(vo.actionUrl,false,StringUtils.hasText(vo.param)?vo.param: vo.actionUrl);
-            holder.jcVideoPlayer.setUp(source,0, JZVideoPlayerStandard.SCREEN_WINDOW_LIST, vo.title);
+            HashMap<String,String> header = new HashMap<>();
+            header.put(Constants.REFERER, StringUtils.hasText(vo.baseurl)?vo.baseurl: vo.actionUrl);
+            JZDataSource source = new JZDataSource(vo.actionUrl ,vo.title);
+            source.headerMap = header;
+            holder.jcVideoPlayer.setUp(source,JzvdStd.SCREEN_WINDOW_LIST);
+//            Object[] source = VideoUtil.getVideoSource(vo.actionUrl,false,StringUtils.hasText(vo.param)?vo.param: vo.actionUrl);
+//            holder.jcVideoPlayer.setUp(StringUtils.hasText(vo.param)?vo.param: vo.actionUrl,vo.title, JzvdStd .SCREEN_WINDOW_LIST);
 //            holder.jcVideoPlayer.hea = header;
             Glide.with(context).load(vo.img).into(holder.jcVideoPlayer.thumbImageView);
             if(Constants.BANNER_ADS_POS.contains(position)){
@@ -64,7 +71,7 @@ public class VideoListAdapter extends BaseRecyclerViewAdapter<VideoListAdapter.V
         public  static class VideoHolder  extends BaseRecyclerViewAdapter.BaseRecyclerViewHolder<RecommendVo>{
             @Nullable
             @BindView(R.id.videoplayer)
-            JZVideoPlayerStandard jcVideoPlayer;
+            JzvdStd jcVideoPlayer;
             @Nullable
             @BindView(R.id.rv_ads)
             RelativeLayout rvAds;

@@ -13,6 +13,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.qq.sexfree.R;
+import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.common.util.DateUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PreferenceUtils;
@@ -21,7 +22,9 @@ import com.sspacee.common.util.StringUtils;
 import com.sspacee.common.util.SystemUtils;
 import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.ads.base.AdsManager;
+import com.sspacee.yewu.net.request.CommonResponse;
 import com.sspacee.yewu.um.MobAgent;
+import com.timeline.myapp.bean.vo.DomainVo;
 import com.timeline.myapp.ui.feedback.FeedbackChooseFragment;
 import com.timeline.myapp.ui.feedback.FeedbackFragmentActivity;
 
@@ -80,6 +83,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     MenuItem miApp;
     MenuItem miDona;
     BaseService baseService;
+    private final String DOAMIN_TAG="DOAMIN_TAG";
 
     public void login(View view) {
         startActivity(LoginActivity.class);
@@ -123,6 +127,18 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
 //            miDona.setVisible(false);
 //            miApprecommond.setVisible(false);
 //        }
+        setUpDomain();
+    }
+    private void setUpDomain(){
+        baseService.getData(Constants.getUrlHost(Constants.API_DOMAIN_URL), new CommonResponse.ResponseOkListener<DomainVo>() {
+            @Override
+            public void onResponse(DomainVo vo) {
+                super.onResponse(vo);
+                if(vo!=null && !CollectionUtils.isEmpty(vo.dns)){
+                    Constants.BASE_IP = vo.dns.get(0);
+                }
+            }
+        }, null, DOAMIN_TAG, DomainVo.class);
     }
     private void showmiDona(){
         UserInfoVo vo = UserLoginUtil.getUserCache();

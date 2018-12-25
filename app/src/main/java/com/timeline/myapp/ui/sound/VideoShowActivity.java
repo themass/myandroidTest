@@ -21,14 +21,16 @@ import com.timeline.myapp.data.ImagePhotoLoad;
 import com.timeline.myapp.data.UserLoginUtil;
 import com.timeline.myapp.data.VideoUtil;
 
+import java.util.HashMap;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
+import cn.jzvd.JZDataSource;
 import cn.jzvd.JZUserAction;
-import cn.jzvd.JZUserActionStandard;
-import cn.jzvd.JZVideoPlayer;
-import cn.jzvd.JZVideoPlayerStandard;
+import cn.jzvd.Jzvd;
+import cn.jzvd.JzvdStd;
 
 /**
  * Created by themass on 2015/9/1.
@@ -36,7 +38,7 @@ import cn.jzvd.JZVideoPlayerStandard;
 public class VideoShowActivity extends AppCompatActivity {
     private Unbinder unbinder;
     @BindView(R.id.jz_video)
-    public JZVideoPlayerStandard jzVideo;
+    public JzvdStd jzVideo;
     RecommendVo vo;
     @BindView(R.id.iv_favorite)
     FavoriteImageView ivFavorite;
@@ -50,11 +52,16 @@ public class VideoShowActivity extends AppCompatActivity {
         if(StringUtils.hasText(vo.urlToken)){
             url = url+vo.urlToken;
         }
-        Object[] source = VideoUtil.getVideoSource(url,false,com.sspacee.common.util.StringUtils.hasText(vo.baseurl)?vo.baseurl : vo.actionUrl);
-        jzVideo.setUp(source,0, JZVideoPlayerStandard.SCREEN_WINDOW_NORMAL, vo.title);
+        HashMap<String,String> header = new HashMap<>();
+        header.put(Constants.REFERER, StringUtils.hasText(vo.baseurl)?vo.baseurl : vo.actionUrl);
+        JZDataSource source = new JZDataSource(url,vo.title);
+        source.headerMap = header;
+        jzVideo.setUp(source,JzvdStd.SCREEN_WINDOW_NORMAL);
+//        Object[] source = VideoUtil.getVideoSource(url,false,StringUtils.hasText(vo.baseurl)?vo.baseurl : vo.actionUrl);
+//        jzVideo.setUp(source, JzvdStd .SCREEN_WINDOW_NORMAL);
 //        jzVideo.headData = header;
         ImagePhotoLoad.loadCommonImg(this,vo.img,jzVideo.thumbImageView);
-        JZVideoPlayer.setJzUserAction(new MyUserActionStandard());
+        jzVideo.setJzUserAction(new MyUserActionStandard());
         ivFavorite.initSrc(vo.actionUrl);
 
     }
@@ -66,21 +73,21 @@ public class VideoShowActivity extends AppCompatActivity {
     public void onPause() {
         super.onPause();
         try {
-            JZVideoPlayer.goOnPlayOnPause();
+            Jzvd.goOnPlayOnPause();
         }catch (Throwable e){
             LogUtil.e(e);
         }
     }
     @Override
     public void onBackPressed() {
-        if (JZVideoPlayer.backPress()) {
+        if (Jzvd.backPress()) {
             return;
         }
         super.onBackPressed();
     }
     @Override
     public void onDestroy() {
-        JZVideoPlayer.releaseAllVideos();
+        Jzvd.releaseAllVideos();
         super.onDestroy();
         unbinder.unbind();
     }
@@ -92,7 +99,7 @@ public class VideoShowActivity extends AppCompatActivity {
     protected boolean enableSliding() {
         return true;
     }
-    class MyUserActionStandard implements JZUserActionStandard {
+    class MyUserActionStandard implements JZUserAction {
 
         @Override
         public void onEvent(int type, Object url, int screen, Object... objects) {

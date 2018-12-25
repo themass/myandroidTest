@@ -252,5 +252,9 @@ You are now using a non WIFI network, continue to download may consume more netw
         <item>Alipay</item>
         <item>Other</item>
     </string-array>
+    <string-array name="search">
+        <item>Channel</item>
+        <item>AllNet</item>
+    </string-array>
     <!--广告-->
 </resources>

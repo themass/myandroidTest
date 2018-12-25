@@ -9,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 
 import com.qq.sexfree.R;
 import com.sspacee.common.util.LogUtil;
+import com.sspacee.common.util.StringUtils;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
 
@@ -21,10 +22,10 @@ import java.util.HashMap;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
+import cn.jzvd.JZDataSource;
 import cn.jzvd.JZUserAction;
-import cn.jzvd.JZUserActionStandard;
-import cn.jzvd.JZVideoPlayer;
-import cn.jzvd.JZVideoPlayerStandard;
+import cn.jzvd.Jzvd;
+import cn.jzvd.JzvdStd;
 
 /**
  * Created by themass on 2015/9/1.
@@ -32,8 +33,8 @@ import cn.jzvd.JZVideoPlayerStandard;
 public class VideoShowActivityj extends AppCompatActivity {
     private Unbinder unbinder;
     @BindView(R.id.jz_video)
-    public JZVideoPlayerStandard jzVideo;
-    JZVideoPlayer.JZAutoFullscreenListener mSensorEventListener;
+    public JzvdStd jzVideo;
+    Jzvd.JZAutoFullscreenListener mSensorEventListener;
     SensorManager mSensorManager;
     RecommendVo vo;
     @Override
@@ -43,13 +44,15 @@ public class VideoShowActivityj extends AppCompatActivity {
         unbinder = ButterKnife.bind(this);
         vo = (RecommendVo)getIntent().getSerializableExtra(Constants.CONFIG_PARAM);
         HashMap<String,String> header = new HashMap<>();
-        header.put(Constants.REFERER, com.sspacee.common.util.StringUtils.hasText(vo.param)?vo.param: vo.actionUrl);
-        jzVideo.setUp(vo.actionUrl, JZVideoPlayerStandard.SCREEN_WINDOW_NORMAL, vo.title,header);
+        header.put(Constants.REFERER, StringUtils.hasText(vo.param)?vo.param: vo.actionUrl);
+        JZDataSource source = new JZDataSource(vo.actionUrl, vo.title);
+        source.headerMap = header;
+        jzVideo.setUp(source,JzvdStd.SCREEN_WINDOW_NORMAL);
 //        jzVideo.headData = header;
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-        mSensorEventListener = new JZVideoPlayer.JZAutoFullscreenListener();
+        mSensorEventListener = new Jzvd.JZAutoFullscreenListener();
         ImagePhotoLoad.loadCommonImg(this,vo.img,jzVideo.thumbImageView);
-        JZVideoPlayer.setJzUserAction(new MyUserActionStandard());
+        Jzvd.setJzUserAction(new MyUserActionStandard());
     }
 
     @Override
@@ -58,20 +61,20 @@ public class VideoShowActivityj extends AppCompatActivity {
         Sensor accelerometerSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         mSensorManager.registerListener(mSensorEventListener, accelerometerSensor, SensorManager.SENSOR_DELAY_NORMAL);
         //home back
-        JZVideoPlayer.goOnPlayOnResume();
+        Jzvd.goOnPlayOnResume();
     }
 
     @Override
     public void onPause() {
         super.onPause();
         mSensorManager.unregisterListener(mSensorEventListener);
-        JZVideoPlayer.clearSavedProgress(this, null);
+        Jzvd.clearSavedProgress(this, null);
         //home back
-        JZVideoPlayer.goOnPlayOnPause();
+        Jzvd.goOnPlayOnPause();
     }
     @Override
     public void onBackPressed() {
-        if (JZVideoPlayer.backPress()) {
+        if (Jzvd.backPress()) {
             return;
         }
         super.onBackPressed();
@@ -89,7 +92,7 @@ public class VideoShowActivityj extends AppCompatActivity {
     protected boolean enableSliding() {
         return true;
     }
-    class MyUserActionStandard implements JZUserActionStandard {
+    class MyUserActionStandard implements JZUserAction {
 
         @Override
         public void  onEvent(int type, Object url, int screen, Object... objects) {

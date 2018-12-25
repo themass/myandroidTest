@@ -35,20 +35,26 @@ public abstract class BasePullLoadbleFragment<T> extends LoadableFragment<InfoLi
     protected void onContentViewCreated(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
         inflater.inflate(R.layout.common_mypage_view, parent);
     }
-
     @Override
     public void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
         indexService = new BaseService();
         indexService.setup(getActivity());
         initPullView();
-        mSearchView.setSubmitButtonEnabled(true);
+
         mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             // 当点击搜索按钮时触发该方法
             @Override
             public boolean onQueryTextSubmit(String query) {
                 LogUtil.i("搜"+query);
                 keyword = query;
+                if(spRech.getSelectedItemPosition()==0){
+                    inChannel = true;
+                }else{
+                    inChannel = false;
+                }
+                if(StringUtils.hasText(keyword)&&!inChannel)
+                    keyword = keyword+"_"+inChannel;
                 pullView.setRefresh(true);
                 mSearchView.clearFocus();
                 return false;

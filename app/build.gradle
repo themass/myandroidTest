@@ -9,8 +9,8 @@ android {
         applicationId "com.qq.sexfree"
         minSdkVersion 16
         targetSdkVersion 26
-        versionCode 1000008002
-        versionName "1.0.8.2"
+        versionCode 1000008003
+        versionName "1.0.8.3"
         // Enabling multidex support.
         multiDexEnabled true
         vectorDrawables.useSupportLibrary = true
@@ -23,6 +23,10 @@ android {
     }
     lintOptions {
         disable 'InvalidPackage'
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
     packagingOptions {
         exclude 'META-INF/LICENSE.txt'
@@ -78,6 +82,7 @@ android {
 //        }
     }
 }
+
 greendao {
     schemaVersion 3
     daoPackage 'com.ping.greendao.gen'
@@ -132,7 +137,8 @@ dependencies {
     implementation 'com.github.lawloretienne:imagegallery:0.1.0'
     implementation 'com.umeng.analytics:analytics:latest.integration'
     implementation 'com.github.JakeWharton:ViewPagerIndicator:2.4.1'
-    implementation 'cn.jzvd:jiaozivideoplayer:6.2.12'
+    implementation 'cn.jzvd:jiaozivideoplayer:6.4.1'
+    implementation "com.google.guava:guava:23.0-android"
 
     //    implementation 'com.zhy:flowlayout-lib:1.0.3'
     //implementation 'com.github.amlcurran.showcaseview:library:5.4.3'
@@ -152,6 +158,9 @@ dependencies {
 //    implementation 'com.google.android.gms:play-services-base:15.0.1'
 //    implementation 'com.google.android.gms:play-services-location:15.0.1'
 //    implementation 'com.google.android.gms:play-services-plus:15.0.1'
-
+    implementation 'com.google.android.gms:play-services-ads:15.0.1'
+    implementation 'com.google.android.gms:play-services-base:15.0.1'
+    implementation 'com.google.android.gms:play-services-location:15.0.1'
+    implementation 'com.google.android.gms:play-services-plus:15.0.1'
     implementation project(path: ':vitamio')
 }

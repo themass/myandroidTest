@@ -140,8 +140,4 @@ public class LoginActivity extends BaseSingleActivity {
     protected boolean enableSliding() {
         return true;
     }
-    @Override
-    public boolean needShow() {
-        return false;
-    }
 }

@@ -101,7 +101,7 @@ public class AdsContext {
     public static boolean rateShow(){
         if(UserLoginUtil.isVIP3()){
             int i = Md5.getRandom(Constants.maxRate);
-            return i<=5;
+            return i<=6;
         }else if(UserLoginUtil.isVIP2()){
             int i = Md5.getRandom(Constants.maxRate);
             return i<=7;

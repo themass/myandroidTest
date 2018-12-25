@@ -107,8 +107,4 @@ public class MyFullScreenImageGalleryPageActivity extends BaseSingleActivity imp
     public void onFailed(){
         ToastUtil.showShort(R.string.save_fail);
     }
-    @Override
-    public boolean needShow() {
-        return false;
-    }
 }

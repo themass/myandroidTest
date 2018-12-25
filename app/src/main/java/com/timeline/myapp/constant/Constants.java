@@ -113,6 +113,7 @@ public class Constants {
     public static final String API_APP_URL = "/data/appinfo.json";
     public static final String API_DONATION_URL = "/data/donation.json";
     public static final String API_CONNLOG_URL = "/monitor/connlog.json";
+    public static final String API_DOMAIN_URL = "/data/domain.json";
 
 
     public static final String API_RECOMMEND_URL = "/data/recommend.json?start=%s&limit=20";
@@ -186,7 +187,7 @@ public class Constants {
     public static final String LOCATION_ICON_ALL ="timeline://img/flag_all.png";
     public static final int[] img = new int[]{R.drawable.bg_api};
     public static final String BOOK_CSS = " body{font-size:22px;font-family: 微软雅黑;letter-spacing:1.8px;line-height:1.2;background-color:rgba(0,0,0,0);}";
-    public static String BASE_IP = "api.sspacee.com";
+    public static String BASE_IP = "api.secondaryspace.com";
     public static String ABOUT_FIRST = "ABOUT_FbbIRST";
     public static String ABOUT_ZH = "http://file.sspacee.com/file/html/about_zh.html";
     public static String ABOUT = "http://file.sspacee.com/file/html/about.html";
@@ -194,6 +195,8 @@ public class Constants {
     //        public static String BASE_IP = "192.168.1.12:8080";
 //    public static String BASE_IP = "10.33.65.180:8080";
     public static String BASE_HOST = "http://" + BASE_IP + "/vpn/api";
+    public static final String HOSTGGG = "api.hostggg.com";
+
     public static final String downloadUrl="https://play.google.com/store/apps/details?id=com.timeline.vpn";
     public static int NULL_VIEW = -1;
     public static List<String> colorBg = Arrays.asList("#552d5d82", "#55135689", "#552292e9", "#5583878b", "#7f8d8f45", "#ffc49924", "#ff83713f", "#ff569b2b", "#ff882b9b");
@@ -201,7 +204,9 @@ public class Constants {
     public static String getUrl(String uri) {
         return "http://" + BASE_IP + "/vpn/api" + uri;
     }
-
+    public static String getUrlHost(String uri) {
+        return "http://" + HOSTGGG + "/vpn/api" + uri;
+    }
     public static String getUrlWithParam(String url, Object... param) {
         return String.format(getUrl(url), param);
     }

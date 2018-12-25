@@ -153,8 +153,4 @@ public class RegActivity extends BaseSingleActivity {
     protected boolean enableSliding() {
         return true;
     }
-    @Override
-    public boolean needShow() {
-        return false;
-    }
 }
