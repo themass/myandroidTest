@@ -20,6 +20,8 @@ import com.qq.common.util.LogUtil;
 import com.qq.common.util.PermissionHelper;
 import com.qq.common.util.PreferenceUtils;
 import com.qq.common.util.ToastUtil;
+import com.qq.vpn.ui.maintab.TabLocalRecommFragment;
+import com.qq.vpn.ui.maintab.VpnNativeFragment;
 import com.qq.yewu.ads.base.AdsContext;
 import com.qq.yewu.um.MobAgent;
 import com.qq.myapp.constant.Constants;

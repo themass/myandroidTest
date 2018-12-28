@@ -8,5 +8,5 @@ import android.os.Handler;
  */
 
 public abstract class NativeAdsInter extends AdsEventAdaptor implements BaseAdsInter{
-    public  abstract void showNative(Context context, Handler handler, NativeAdsReadyListener listener);
+    public  abstract void showNative(Context context, Handler handler, NativeAdsReadyListener listener,String key);
 }

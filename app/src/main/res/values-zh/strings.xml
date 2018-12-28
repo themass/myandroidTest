@@ -26,8 +26,9 @@
     <string name="tab_fb_click_wifi">请在断开VPN下使用 </string>
     <!-- Application -->
     <string name="app_name">FreeVPN</string>
+    <string name="app_name_show">Free</string>
     <string name="main_activity_name">FreeVPN</string>
-    <string name="toobar_title">FreeVPN</string>
+    <string name="toobar_title">Free</string>
     <string name="load">正在加载,请等待。</string>
     <string name="off">关闭</string>
     <string name="on">打开</string>

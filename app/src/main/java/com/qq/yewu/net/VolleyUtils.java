@@ -39,6 +39,9 @@ public class VolleyUtils {
         VolleyUtils.context = MyApplication.getInstance();
         mRequestQueue = newRequestQueue(context, null);
         mImageLoader = new ImageLoader(mRequestQueue, new BitmapLruCache(context));
+        start();
+    }
+    public static void  start(){
         mRequestQueue.start();
     }
 

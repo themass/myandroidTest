@@ -16,6 +16,9 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
 import android.widget.ImageButton;
@@ -28,9 +31,11 @@ import com.qq.common.ui.base.BaseFragment;
 import com.qq.common.util.LogUtil;
 import com.qq.common.util.PermissionHelper;
 import com.qq.common.util.ToastUtil;
+import com.qq.myapp.ui.base.NativeHeaderFragment;
 import com.qq.yewu.ads.base.AdsContext;
 import com.qq.yewu.ads.base.AdsManager;
 import com.qq.yewu.net.HttpUtils;
+import com.qq.yewu.net.VolleyUtils;
 import com.qq.yewu.net.request.CommonResponse;
 import com.qq.yewu.um.MobAgent;
 import com.qq.myapp.bean.DataBuilder;
@@ -62,6 +67,8 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
     private static final int PREPARE_VPN_SERVICE = 0;
     private BaseService indexService;
 
+    @BindView(R.id.rl_content_native)
+    LinearLayout rlContentNative;
     @BindView(R.id.rl_content)
     LinearLayout rlContent;
     @BindView(R.id.vpn)
@@ -75,10 +82,17 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
     PingTask task;
     StatChangeJob job = null;
     private LinearInterpolator lir = null;
+    protected Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+        }
+    };
+    VpnCheckTask vpnCheck=    new VpnCheckTask();
     CommonResponse.ResponseErrorListener serverListenerError = new CommonResponse.ResponseErrorListener() {
         @Override
         protected void onError() {
             super.onError();
+            mHandler.removeCallbacks(vpnCheck);
             imgError();
         }
     };
@@ -135,9 +149,20 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
         getActivity().bindService(new Intent(getActivity(), VpnStateService.class),
                 mServiceConnection, Service.BIND_AUTO_CREATE);
         showBanner();
+
     }
     public void showBanner(){
         AdsManager.getInstans().showBannerAds(getActivity(), rlContent,AdsContext.Categrey.CATEGREY_VPN);
+        FragmentManager fm = getChildFragmentManager();
+        Fragment fragment = fm.findFragmentById(R.id.rl_content_native);
+        if (fragment == null) {
+            Fragment header = NativeHeaderFragment.getNewInstans(AdsContext.Categrey.CATEGREY_VPN3);
+            if (header == null) {
+                rlContentNative.setVisibility(View.GONE);
+            } else {
+                fm.beginTransaction().replace(R.id.rl_content_native, header).commitAllowingStateLoss();
+            }
+        }
     }
 
     @Override
@@ -172,11 +197,12 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
                 mService.disconnect();
             } else if (mService.getState() == VpnStateService.State.DISABLED) {
                 MobAgent.onEventLocationChoose(getActivity(), LocationUtil.getName(getActivity()));
-               imgAnim();
                 if(!UserLoginUtil.isVIP3())
                     AdsContext.showRand(getActivity());
                 int id = LocationUtil.getSelectLocationId(getActivity());
                 indexService.getData(String.format(Constants.getUrl(Constants.API_SERVERLIST_URL), id), serverListener, serverListenerError, INDEX_TAG, ServerVo.class);
+                mHandler.postDelayed(vpnCheck,Constants.VPN_CHECK_TIME);
+                imgAnim();
             } else {
                 ToastUtil.showShort( R.string.vpn_bg_click_later);
             }
@@ -377,6 +403,7 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
 
         @Override
         public void run() {
+            mHandler.removeCallbacks(vpnCheck);
             LogUtil.i("vpn stateChanged stateChanged " + state + "  ;errorState=" + errorState + " ;imcState=" + imcState);
             if (hasError()) {
                 imgError();
@@ -402,6 +429,17 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
                     StaticDataUtil.del(Constants.VPN_STATUS);
                     break;
             }
+        }
+    }
+    class VpnCheckTask implements Runnable {
+        @Override
+        public void run() {
+            indexService = new BaseService();
+            indexService.setup(getActivity());
+            getActivity().bindService(new Intent(getActivity(), VpnStateService.class),
+                    mServiceConnection, Service.BIND_AUTO_CREATE);
+            VolleyUtils.start();
+            imgError();
         }
     }
 }

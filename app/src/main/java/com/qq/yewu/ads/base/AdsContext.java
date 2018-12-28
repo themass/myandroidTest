@@ -130,6 +130,10 @@ public class AdsContext {
         int size = AdsContext.Categrey.values().length;
         return AdsContext.Categrey.values()[(index++)%2];
     }
+    public static Categrey getIndex(int num){
+        int size = AdsContext.Categrey.values().length;
+        return AdsContext.Categrey.values()[(num)%size];
+    }
     public static void showNext(Context context){
         if(UserLoginUtil.showAds()) {
             int size = AdsContext.Categrey.values().length;

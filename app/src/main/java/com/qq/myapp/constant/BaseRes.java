@@ -44,6 +44,7 @@ public class BaseRes {
         img.put("flag_us", R.drawable.flag_us);
         img.put("flag_vn", R.drawable.flag_vn);
         img.put("flag_all", R.drawable.flag_all);
+        img.put("adview_test", R.drawable.adview_test);
     }
 
 

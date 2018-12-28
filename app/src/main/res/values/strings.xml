@@ -28,8 +28,9 @@
     <string name="location_ping">Ping：</string>
     <!-- Application -->
     <string name="app_name">FreeVPN</string>
+    <string name="app_name_show">Free</string>
     <string name="main_activity_name">FreeVPN</string>
-    <string name="toobar_title">FreeVPN</string>
+    <string name="toobar_title">Free</string>
     <string name="load">loading more data</string>
     <string name="off">off</string>
     <string name="on">on</string>

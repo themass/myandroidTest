@@ -47,4 +47,11 @@
         android:layout_below="@+id/fl_bg"
         android:orientation="vertical">
     </LinearLayout>
+    <LinearLayout
+        android:id="@+id/rl_content_native"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/rl_content"
+        android:orientation="vertical">
+    </LinearLayout>
 </RelativeLayout>

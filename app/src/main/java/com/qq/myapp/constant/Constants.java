@@ -30,6 +30,8 @@ public class Constants {
     public static final int BANNER_ADS_GONE_SHORT = 5000; //启动页广告时长
     public static final int VIP_SHIMMER_DURATION = 2300;
     public static final int RECOMMAND_SHIMMER_DURATION = 1500;
+    public static final int VPN_CHECK_TIME = 7000; //启动页广告时长
+
     public static final int ADS_JISHI = -1;
     public static final String HTTP_URL = "http";
     public static final String HTTPS_URL = "https";
