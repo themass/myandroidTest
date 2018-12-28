@@ -21,7 +21,7 @@
     <!-- Application -->
     <string name="app_name">LightVPN</string>
     <string name="main_activity_name">LightVPN</string>
-    <string name="toobar_title">LightVPN</string>
+    <string name="toobar_title">Light</string>
     <string name="load">loading data..</string>
     <string name="off">off</string>
     <string name="on">on</string>

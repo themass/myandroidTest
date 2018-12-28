@@ -83,7 +83,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder viewHolder, int position) {
         ((CellFeedViewHolder) viewHolder).bindView(feedItems.get(position));
-        AdsContext.Categrey one = AdsContext.Categrey.CATEGREY_VPN;
+        AdsContext.Categrey one = AdsContext.Categrey.CATEGREY_VPN2;
         if (position == 1) {
             ((CellFeedViewHolder) viewHolder).rvAds.setVisibility(View.VISIBLE);
             AdsManager.getInstans().showBannerAds((FragmentActivity) context, ((CellFeedViewHolder) viewHolder).rvAds, one);

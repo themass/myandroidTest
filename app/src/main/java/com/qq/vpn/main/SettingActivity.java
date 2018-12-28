@@ -194,6 +194,6 @@ public class SettingActivity extends BaseSingleActivity {
     }
     @Override
     protected AdsContext.Categrey getBannerCategrey(){
-        return AdsContext.Categrey.CATEGREY_VPN;
+        return AdsContext.Categrey.CATEGREY_VPN1;
     }
 }

@@ -21,7 +21,7 @@
     <!-- Application -->
     <string name="app_name">灯塔VPN</string>
     <string name="main_activity_name">灯塔VPN</string>
-    <string name="toobar_title">灯塔VPN</string>
+    <string name="toobar_title">灯塔</string>
     <string name="load">正在加载,请等待。</string>
     <string name="off">关闭</string>
     <string name="on">打开</string>

@@ -6,6 +6,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -14,6 +15,7 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.kyview.natives.NativeAdInfo;
 import com.qq.ads.base.AdsContext;
 import com.qq.ads.base.AdsManager;
 import com.qq.ext.util.CollectionUtils;
@@ -37,15 +39,14 @@ public class LocationItemAdapter extends BaseRecyclerViewAdapter<LocationItemAda
     private ColorStateList indexSelectColo = null;
     private boolean needPing = false;
     private int index;
-    public LocationItemAdapter(Context context, RecyclerView recyclerView, List<LocationVo> data, OnRecyclerViewItemClickListener<LocationVo> listener) {
+    List<LocationVo> nativeData;
+    public LocationItemAdapter(Context context, RecyclerView recyclerView, List<LocationVo> data, OnRecyclerViewItemClickListener<LocationVo> listener,List<LocationVo> nativeData) {
         super(context, recyclerView, data, listener);
         chooseId = LocationUtil.getSelectLocationId(context);
         indexColo = context.getResources().getColorStateList(R.color.location_index);
         indexSelectColo = context.getResources().getColorStateList(R.color.base_red);
         index = 0;
-        if(!CollectionUtils.isEmpty(data)){
-            index = data.get(0).type;
-        }
+        this.nativeData = nativeData;
     }
     @Override
     public LocationItemAdapter.LocationItemView onCreateViewHolderData(ViewGroup parent, int viewType) {
@@ -56,7 +57,9 @@ public class LocationItemAdapter extends BaseRecyclerViewAdapter<LocationItemAda
     public void onBindViewHolderData(RecyclerView.ViewHolder h, int position) {
         LocationItemAdapter.LocationItemView holder = (LocationItemAdapter.LocationItemView)h;
         LocationVo vo = data.get(position);
-
+        if(!CollectionUtils.isEmpty(data)){
+            index = data.get(0).type;
+        }
         if (chooseId == vo.id) {
             holder.tvIndex.setTextColor(indexSelectColo);
         } else {
@@ -72,12 +75,36 @@ public class LocationItemAdapter extends BaseRecyclerViewAdapter<LocationItemAda
             one = AdsContext.Categrey.CATEGREY_VPN3;
 //            two = AdsContext.Categrey.CATEGREY_VPN1;
         }
-        if (position == 1) {
-            holder.rvAds.setVisibility(View.VISIBLE);
-            AdsManager.getInstans().showBannerAds((FragmentActivity) context, holder.rvAds, one);
-        }  else {
+        if (position == 3) {
+//            if(CollectionUtils.isEmpty(nativeData)){
+//                LocationVo item = new LocationVo();
+//                item.img="timeline://img/flag_de.png";
+//                item.ename="aaaaaadasdADaADadSddDadADadsdSDSADDSAFSDGSGSFDGSFDGSFDVSFDVSFDVSFDVSDFV";
+//                nativeData.add(item);
+//            }
+            if (!CollectionUtils.isEmpty(nativeData)&& index<2) {
+                holder.natvieView.setVisibility(View.VISIBLE);
+                holder.rvAds.setVisibility(View.GONE);
+                ImagePhotoLoad.loadCommonImg(context, nativeData.get(0).img,holder.icon);
+                holder.desc.setText(nativeData.get(0).ename);
+                holder.natvieView.setOnTouchListener(new View.OnTouchListener() {
+
+                    @Override
+                    public boolean onTouch(View v, MotionEvent event) {
+                        if(nativeData.get(0).ext!=null && nativeData.get(0).ext instanceof NativeAdInfo )
+                            ((NativeAdInfo)nativeData.get(0).ext).onClick(v, (int)event.getX(), (int)event.getY());
+                        return true;
+                    }
+                });
+            } else {
+                holder.natvieView.setVisibility(View.GONE);
+                holder.rvAds.setVisibility(View.VISIBLE);
+                AdsManager.getInstans().showBannerAds((FragmentActivity) context, holder.rvAds, one);
+            }
+        }else{
             holder.rvAds.removeAllViews();
             holder.rvAds.setVisibility(View.GONE);
+            holder.natvieView.setVisibility(View.GONE);
         }
         LocationPingTask.fillText(context,holder.pgPing,holder.tvPing,vo.ping);
 //        holder.tvPing.setTextColor(context.getResources().getColor(R.color.base_black));
@@ -123,6 +150,15 @@ public class LocationItemAdapter extends BaseRecyclerViewAdapter<LocationItemAda
         @Nullable
         @BindView(R.id.rv_ads)
         RelativeLayout rvAds;
+        @Nullable
+        @BindView(R.id.natvieView)
+        RelativeLayout natvieView;
+        @Nullable
+        @BindView(R.id.desc)
+        TextView desc;
+        @Nullable
+        @BindView(R.id.icon)
+        ImageView icon;
         public LocationItemView(View itemView, View.OnClickListener l, View.OnLongClickListener longListener) {
             super(itemView, l, longListener);
         }

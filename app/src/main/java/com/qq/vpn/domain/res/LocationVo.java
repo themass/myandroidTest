@@ -1,5 +1,7 @@
 package com.qq.vpn.domain.res;
 
+import com.kyview.natives.NativeAdInfo;
+
 import java.io.Serializable;
 
 /**
@@ -18,7 +20,7 @@ public class LocationVo implements Serializable{
     public int port;
     public int ttlTime;
     public Integer ping;
-
+    public Object ext;
     @Override
     public String toString() {
         return "LocationVo{" +
@@ -34,5 +36,13 @@ public class LocationVo implements Serializable{
                 ", ttlTime=" + ttlTime +
                 ", ping='" + ping + '\'' +
                 '}';
+    }
+    public static LocationVo fromNative(NativeAdInfo info){
+        LocationVo vo = new LocationVo();
+        vo.ext =info;
+        vo.img = info.getIconUrl();
+        vo.name = info.getTitle();
+        vo.ename = info.getDesc();
+        return  vo;
     }
 }

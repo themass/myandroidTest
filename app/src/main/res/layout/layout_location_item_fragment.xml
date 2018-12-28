@@ -114,4 +114,8 @@
         android:paddingTop="@dimen/margin_2"
         android:background="@color/base_white"
         android:visibility="gone"/>
+    <include
+        layout="@layout/native_ad_item2"
+        android:id="@+id/natvieView"
+        android:visibility="gone"/>
 </LinearLayout>

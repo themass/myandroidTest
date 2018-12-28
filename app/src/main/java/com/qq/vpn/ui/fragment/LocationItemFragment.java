@@ -6,6 +6,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.kyview.natives.NativeAdInfo;
+import com.qq.ads.base.AdsContext;
+import com.qq.ads.base.AdsManager;
+import com.qq.ads.base.NativeAdsReadyListener;
 import com.qq.ext.util.CollectionUtils;
 import com.qq.ext.util.EventBusUtil;
 import com.qq.ext.util.GsonUtils;
@@ -26,14 +30,18 @@ import com.qq.network.R;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by dengt on 2016/8/12.
  */
-public class LocationItemFragment extends BasePullLoadbleFragment<LocationVo>{
+public class LocationItemFragment extends BasePullLoadbleFragment<LocationVo>implements NativeAdsReadyListener {
     public static final String LOCATION_TAG = "location_tag";
     LocationItemAdapter adapter;
     VipLocationVo vipLocationVo;
     int index;
+    private List<LocationVo> nativeData = new ArrayList<>();
     public static int getFragmentTitle() {
         return R.string.location_select;
     }
@@ -42,7 +50,17 @@ public class LocationItemFragment extends BasePullLoadbleFragment<LocationVo>{
     protected void onContentViewCreated(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
         inflater.inflate(R.layout.base_mypage_view, parent);
     }
-
+    public boolean onAdRecieved(List<NativeAdInfo> data){
+        nativeData.clear();
+        for(NativeAdInfo item:data){
+            LocationVo vo = LocationVo.fromNative(item);
+            item.onDisplay(new View(
+                    getActivity()));
+            nativeData.add(vo);
+        }
+        adapter.notifyDataSetChanged();
+        return true;
+    }
     @Override
     public void setupViews(View view, Bundle savedInstanceState) {
         vipLocationVo = (VipLocationVo)getSerializable();
@@ -50,6 +68,8 @@ public class LocationItemFragment extends BasePullLoadbleFragment<LocationVo>{
         LogUtil.i("location args="+getSerializable().toString());
         super.setupViews(view, savedInstanceState);
         EventBusUtil.getEventBus().register(this);
+
+        AdsManager.getInstans().showNative(getActivity(),this, AdsContext.getIndex(index));
     }
     @Override
     protected InfoListVo<LocationVo> loadData(Context context) throws Exception {
@@ -86,7 +106,7 @@ public class LocationItemFragment extends BasePullLoadbleFragment<LocationVo>{
         pullView.notifyDataSetChanged();
     }
     protected BaseRecyclerViewAdapter getAdapter(){
-        adapter = new LocationItemAdapter(getActivity(),pullView.getRecyclerView(), infoListVo.voList, this);
+        adapter = new LocationItemAdapter(getActivity(),pullView.getRecyclerView(), infoListVo.voList, this,nativeData);
         return adapter;
     }
 }
