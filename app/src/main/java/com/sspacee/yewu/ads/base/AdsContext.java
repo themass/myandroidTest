@@ -8,36 +8,34 @@ import com.qq.sexfree.R;
 import com.sspacee.common.util.Md5;
 import com.sspacee.yewu.ads.adview.AdviewConstant;
 import com.sspacee.yewu.um.MobAgent;
-
 import com.timeline.myapp.constant.Constants;
+import com.timeline.myapp.data.AdsPopStrategy;
 import com.timeline.myapp.data.UserLoginUtil;
 import com.timeline.myapp.task.ScoreTask;
 
 import static com.sspacee.yewu.ads.base.AdsContext.AdsShowStatus.ADS_CLICK_MSG;
 
+
 /**
- * Created by themass on 2017/9/14.
+ * Created by dengt on 2017/9/14.
  */
 
 public class AdsContext {
-    public static enum Categrey{
-        CATEGREY_VPN1("插屏:主页;   banner：主页，其他", AdviewConstant.ADS_ADVIEW_KEY1),
-        CATEGREY_VPN2("插屏：vpn页 ;   banner：vip页，文字，图片，声音",AdviewConstant.ADS_ADVIEW_KEY2),
-        CATEGREY_VPN3("插屏：点击积分，图片，文字；  banner：地区尾，文字，图片，声音 ",AdviewConstant.ADS_ADVIEW_KEY3);
+    private static int showCount = 0;
+    static {
+    }
+    public static enum Categrey {
+        CATEGREY_VPN1("插屏： 点击vpn页，音频，图片，小说 list 页，其他推荐 ;   banner：设置页，地区头，音频，图片，小说，视频，收藏夹列表", AdviewConstant.ADS_ADVIEW_KEY1),
+        CATEGREY_VPN2("插屏： 点击vpn页，音频，图片，小说 list 页，其他推荐 ;   banner：设置页，地区头，音频，图片，小说，视频，收藏夹列表", AdviewConstant.ADS_ADVIEW_KEY2),
+        CATEGREY_VPN3("插屏： 点击vpn页，音频，图片，小说 list 页，其他推荐 ;   banner：设置页，地区头，音频，图片，小说，视频，收藏夹列表", AdviewConstant.ADS_ADVIEW_KEY3);
+
         public String desc;
         public String key;
-        Categrey(String desc,String key){
-            this.desc =desc;
-            this.key =key;
+
+        Categrey(String desc, String key) {
+            this.desc = desc;
+            this.key = key;
         }
-//        public static void randomShow(Context context){
-//            int size = AdsContext.Categrey.values().length;
-//            AdsManager.getInstans().showInterstitialAds(context,AdsContext.Categrey.values()[Md5.getRandom(size)] , true);
-//        }
-//        public static Categrey random(){
-//            int size = AdsContext.Categrey.values().length;
-//            return AdsContext.Categrey.values()[Md5.getRandom(size)];
-//        }
     }
 
     public static enum  AdsType {
@@ -69,7 +67,7 @@ public class AdsContext {
     }
     public static enum AdsFrom{
         ADVIEW("adview");
-//        GDT("gdt");
+        //        GDT("gdt");
         public String desc;
         AdsFrom(String desc){
             this.desc =desc;
@@ -99,33 +97,30 @@ public class AdsContext {
     }
     // 3/5
     public static boolean rateShow(){
+        if(showCount++>6){
+            return false;
+        }
         if(UserLoginUtil.isVIP3()){
             int i = Md5.getRandom(Constants.maxRate);
-            return i<=6;
+            return i<=2;
         }else if(UserLoginUtil.isVIP2()){
             int i = Md5.getRandom(Constants.maxRate);
-            return i<=7;
+            return i<=3;
         }else if(UserLoginUtil.isVIP()){
             int i = Md5.getRandom(Constants.maxRate);
-            return i<=8;
+            return i<=4;
         }else{
             int i = Md5.getRandom(Constants.maxRate);
-            return i<=9;
+            return i<=6;
         }
 
-    }
-    public static boolean rateSmallShow(){
-        if(UserLoginUtil.isVIP2()){
-            int i = Md5.getRandom(Constants.maxRate);
-            return i<=2;
-        }else{
-            int i = Md5.getRandom(Constants.maxRate);
-            return i<=3;
-        }
     }
     public static void adsNotify(Context context, AdsType type, AdsShowStatus event) {
         MobAgent.onEventAds(context, type, event);
         if (event == ADS_CLICK_MSG) {
+            if(!AdsPopStrategy.clickAdsClickBtn(context)){
+                return;
+            }
             String msg = context.getResources().getString(R.string.tab_fb_click) + Constants.ADS_SHOW_CLICK;
             Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
             ScoreTask.start(context, Constants.ADS_SHOW_CLICK);
@@ -136,9 +131,15 @@ public class AdsContext {
         int size = AdsContext.Categrey.values().length;
         return AdsContext.Categrey.values()[(index++)%2];
     }
-    public static void showNext(Context context){
+    public static Categrey getIndex(int num){
         int size = AdsContext.Categrey.values().length;
-        AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.values()[(index++) % size], false);
+        return AdsContext.Categrey.values()[(num)%size];
+    }
+    public static void showNext(Context context){
+        if(UserLoginUtil.showAds()) {
+            int size = AdsContext.Categrey.values().length;
+            AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.values()[(index++) % 2], false);
+        }
     }
     public static void showNextAbs(Context context){
         int size = AdsContext.Categrey.values().length;

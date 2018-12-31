@@ -14,6 +14,8 @@ import java.util.List;
  */
 public class Constants {
 
+    public static final String SCORE_CLICK_CLICK = "SCORE_CLICK_CLICK";
+
     public static final String REFERER = "Referer";
     public static final String USER_AGENT = "User-Agent";
     public static final String USER_AGENT_DEF = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36";

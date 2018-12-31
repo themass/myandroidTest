@@ -71,12 +71,4 @@ public class MovieChannleBodyFragment extends RecommendFragment {
     public boolean getShowEdit() {
         return false;
     }
-
-    @Override
-    protected void onDataLoaded(InfoListVo<RecommendVo> data) {
-        super.onDataLoaded(data);
-        if(data.pageNum==2){
-            AdsManager.getInstans().showNative(getActivity(),this);
-        }
-    }
 }

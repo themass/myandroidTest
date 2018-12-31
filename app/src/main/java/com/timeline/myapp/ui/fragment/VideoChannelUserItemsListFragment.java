@@ -11,6 +11,7 @@ import com.timeline.myapp.bean.vo.InfoListVo;
 import com.timeline.myapp.bean.vo.RecommendVo;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.StaticDataUtil;
+import com.timeline.myapp.data.UserLoginUtil;
 import com.timeline.myapp.ui.base.CommonFragmentActivity;
 import com.timeline.myapp.ui.sound.VideoShowActivity;
 
@@ -55,18 +56,12 @@ public class VideoChannelUserItemsListFragment extends RecommendFragment {
         return false;
     }
     @Override
-    protected void onDataLoaded(InfoListVo<RecommendVo> data) {
-        super.onDataLoaded(data);
-        if(data.pageNum==2){
-            AdsManager.getInstans().showNative(getActivity(),this);
-        }
-    }
-    @Override
     public void onCustomerItemClick(View v, int position) {
         RecommendVo vo = infoListVo.voList.get(position);
         if(!checkUserLevel(vo.type)){
             return;
         }
+        UserLoginUtil.showScoreNotice(2);
         vo.urlToken = revo.urlToken;
         if(Constants.VIDEO_TYPE_NORMAL.equalsIgnoreCase((String)vo.extra)){
             startActivity(VideoShowActivity.class, vo);

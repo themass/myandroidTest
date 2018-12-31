@@ -2,20 +2,29 @@ package com.timeline.myapp.adapter;
 
 import android.content.Context;
 import android.support.annotation.Nullable;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.kyview.natives.NativeAdInfo;
 import com.qq.sexfree.R;
 import com.sspacee.common.ui.view.widgets.MusicVisualizer;
 
+import com.sspacee.common.util.CollectionUtils;
+import com.sspacee.yewu.ads.base.AdsContext;
+import com.sspacee.yewu.ads.base.AdsManager;
 import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.myapp.bean.vo.SoundItemsVo;
+import com.timeline.myapp.constant.Constants;
+import com.timeline.myapp.data.ImagePhotoLoad;
 import com.timeline.myapp.ui.inte.MusicStateListener;
 
 import java.util.List;
@@ -28,8 +37,10 @@ import butterknife.BindView;
 public class SoundItemsViewMusicAdapter extends BaseRecyclerViewAdapter<SoundItemsViewMusicAdapter.SoundItemView, SoundItemsVo>   {
     public int lastPosition = -1;
     MusicStateListener mService = null;
-    public SoundItemsViewMusicAdapter(Context context, RecyclerView recyclerView, List<SoundItemsVo> data, OnRecyclerViewItemClickListener<SoundItemsVo> listener) {
+    List<NativeAdInfo> nativeData;
+    public SoundItemsViewMusicAdapter(Context context, RecyclerView recyclerView, List<SoundItemsVo> data, OnRecyclerViewItemClickListener<SoundItemsVo> listener,List<NativeAdInfo> nativeData) {
         super(context, recyclerView, data, listener);
+        this.nativeData =nativeData;
     }
     public void setPlayServise(MusicStateListener service){
         mService = service;
@@ -61,6 +72,35 @@ public class SoundItemsViewMusicAdapter extends BaseRecyclerViewAdapter<SoundIte
             holder.title.setTextColor(context.getResources().getColor(R.color.main_dark));
             holder.visualizer.setVisibility(View.GONE);
         }
+        if (!CollectionUtils.isEmpty(nativeData)&& position==3) {
+            holder.natvieView.setVisibility(View.VISIBLE);
+            ImagePhotoLoad.loadCommonImg(context, nativeData.get(0).getIconUrl(),holder.icon);
+            holder.desc.setText(nativeData.get(0).getDesc());
+            holder.natvieView.setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    nativeData.get(0).onClick(v, (int)event.getX(), (int)event.getY());
+                    return true;
+                }
+            });
+        }else{
+            holder.natvieView.setVisibility(View.GONE);
+        }
+        if(Constants.BANNER_ADS_POS.contains(position)){
+            if(position%3==0){
+                holder.rvAds.setVisibility(View.VISIBLE);
+                AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN3);
+            }if(position%3==1){
+                holder.rvAds.setVisibility(View.VISIBLE);
+                AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN2);
+            }else{
+                holder.rvAds.setVisibility(View.VISIBLE);
+                AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN1);
+            }
+        }else{
+            holder.rvAds.removeAllViews();
+            holder.rvAds.setVisibility(View.GONE);
+        }
     }
     private void setAnimation(View viewToAnimate, int position) {
         // If the bound view wasn't previously displayed on screen, it's animated
@@ -86,6 +126,18 @@ public class SoundItemsViewMusicAdapter extends BaseRecyclerViewAdapter<SoundIte
         @Nullable
         @BindView(R.id.visualizer)
         protected MusicVisualizer visualizer;
+        @Nullable
+        @BindView(R.id.rv_ads)
+        RelativeLayout rvAds;
+        @Nullable
+        @BindView(R.id.natvieView)
+        RelativeLayout natvieView;
+        @Nullable
+        @BindView(R.id.desc)
+        TextView desc;
+        @Nullable
+        @BindView(R.id.icon)
+        ImageView icon;
         public SoundItemView(View itemView, View.OnClickListener l, View.OnLongClickListener longListener) {
             super(itemView, l, longListener);
         }

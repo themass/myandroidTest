@@ -15,18 +15,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by themass on 2017/9/21.
+ * Created by dengt on 2017/9/21.
  */
 
-public class NativeAdviewAds extends NativeAdsInter{
+public class NativeAdviewAds extends NativeAdsInter {
     @Override
     protected AdsContext.AdsType getAdsType(){
         return AdsContext.AdsType.ADS_TYPE_NATIVE;
     }
     @Override
-    public  void showNative(final Context context, final Handler handler, final NativeAdsReadyListener listener) {
+    public  void showNative(final Context context, final Handler handler, final NativeAdsReadyListener listener, String key) {
         try {
-            AdViewNativeManager.getInstance(context).requestAd(context, AdviewConstant.ADS_ADVIEW_KEY1, 2, new AdViewNativeListener() {
+            AdViewNativeManager.getInstance(context).requestAd(context, key, 2, new AdViewNativeListener() {
 
                 @Override
                 public void onAdFailed(String s) {

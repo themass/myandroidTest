@@ -22,9 +22,6 @@ public class TeleplayChannelFragment extends RecommendFragment {
         Intent intent = new Intent(context, CommonFragmentActivity.class);
         intent.putExtra(CommonFragmentActivity.FRAGMENT, TeleplayChannelFragment.class);
         intent.putExtra(CommonFragmentActivity.TITLE, vo.title);
-        if(AdsContext.rateSmallShow()){
-            intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_SHOW, true);
-        }
         StaticDataUtil.add(Constants.VIDEO_CHANNEL, vo);
         context.startActivity(intent);
     }

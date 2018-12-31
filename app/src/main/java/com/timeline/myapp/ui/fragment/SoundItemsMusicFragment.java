@@ -20,6 +20,7 @@ import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.kyview.natives.NativeAdInfo;
 import com.qq.sexfree.R;
 import com.sspacee.common.ui.view.FavoriteImageView;
 import com.sspacee.common.util.CollectionUtils;
@@ -28,6 +29,8 @@ import com.sspacee.common.util.MediaUtil;
 import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
+import com.sspacee.yewu.ads.base.AdsManager;
+import com.sspacee.yewu.ads.base.NativeAdsReadyListener;
 import com.sspacee.yewu.net.NetUtils;
 import com.timeline.myapp.adapter.SoundItemsViewMusicAdapter;
 import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
@@ -36,11 +39,15 @@ import com.timeline.myapp.bean.vo.RecommendVo;
 import com.timeline.myapp.bean.vo.SoundItemsVo;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.StaticDataUtil;
+import com.timeline.myapp.data.UserLoginUtil;
 import com.timeline.myapp.service.PlayService;
 import com.timeline.myapp.ui.base.CommonFragmentActivity;
 import com.timeline.myapp.ui.base.features.BasePullLoadbleFragment;
 import com.timeline.myapp.ui.inte.MusicStateListener;
 
+
+import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.OnClick;
@@ -57,7 +64,7 @@ import static com.timeline.myapp.service.PlayService.UPDATE_ACTION;
 /**
  * Created by themass on 2016/8/12.
  */
-public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsVo> implements SeekBar.OnSeekBarChangeListener, View.OnClickListener,MusicStateListener {
+public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsVo> implements SeekBar.OnSeekBarChangeListener, View.OnClickListener,MusicStateListener, NativeAdsReadyListener {
     private static final String SOUND_TAG = "SOUND_TAG";
     @Nullable
     @BindView(R.id.progress)
@@ -91,6 +98,8 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
     private RecommendVo vo;
     private PlayService mService;
     private boolean mBound = false;
+    private List<NativeAdInfo> nativeData = new ArrayList<>();
+
     private final ServiceConnection mConnection = new ServiceConnection() {
 
         @Override
@@ -267,9 +276,19 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
         inflater.inflate(R.layout.layout_sound_list_music, parent, true);
     }
     protected BaseRecyclerViewAdapter getAdapter(){
-        adapter = new SoundItemsViewMusicAdapter(getActivity(), pullView.getRecyclerView(), infoListVo.voList, this);
+        adapter = new SoundItemsViewMusicAdapter(getActivity(), pullView.getRecyclerView(), infoListVo.voList, this,nativeData);
         adapter.setPlayServise(this);
         return adapter;
+    }
+    public boolean onAdRecieved(List<NativeAdInfo> data){
+        nativeData.clear();
+        for(NativeAdInfo item:data){
+            item.onDisplay(new View(
+                    getActivity()));
+            nativeData.add(item);
+        }
+        adapter.notifyDataSetChanged();
+        return true;
     }
     @Override
     public void setupViews(View view, Bundle savedInstanceState) {
@@ -291,6 +310,7 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
 //        AdsContext.nativeVideoAds(getActivity(),group);
 //        adapter.setFooterView(group);
         receiverReg();
+        AdsManager.getInstans().showNative(getActivity(),this, AdsContext.getIndex(1));
     }
 
     @Override
@@ -319,6 +339,7 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
     public void onItemClick(View view, SoundItemsVo data, int postion) {
         LogUtil.i(data.file);
         play(postion);
+        UserLoginUtil.showScoreNotice(1);
         super.onItemClick(view,data,postion);
     }
 

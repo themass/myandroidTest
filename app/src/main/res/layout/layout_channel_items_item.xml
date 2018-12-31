@@ -2,15 +2,15 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
+    android:paddingTop="@dimen/margin_10"
+    android:paddingBottom="@dimen/margin_10"
+    android:orientation="vertical"
     android:background="?android:attr/selectableItemBackground"
     android:clickable="true"
     >
 <RelativeLayout
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingTop="@dimen/margin_15"
-    android:paddingBottom="@dimen/margin_15"
    >
     <TextView
         android:id="@+id/tv_index"
@@ -47,5 +47,8 @@
     android:gravity="center"
     android:visibility="gone">
 </RelativeLayout>
-
+<include
+    layout="@layout/native_ad_item2"
+    android:id="@+id/natvieView"
+    android:visibility="gone"/>
 </LinearLayout>

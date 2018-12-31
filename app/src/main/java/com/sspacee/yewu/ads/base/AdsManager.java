@@ -7,6 +7,7 @@ import android.support.v4.app.FragmentActivity;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
+
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.ads.adview.AdviewAdsManager;
 import com.sspacee.yewu.ads.adview.BannerAdviewAds;
@@ -20,7 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by themass on 2017/9/20.
+ * Created by dengt on 2017/9/20.
  */
 
 public class AdsManager {
@@ -58,10 +59,10 @@ public class AdsManager {
             super.handleMessage(msg);
         }
     };
-    public void showBannerAds(FragmentActivity context, ViewGroup group,AdsContext.Categrey categrey){
+    public void showBannerAds(FragmentActivity context, ViewGroup group, AdsContext.Categrey categrey){
             bannerDescMap.get(AdsContext.AdsFrom.ADVIEW).bannerAds(context,group,categrey.key,mHandle);
     }
-    public void exitBannerAds(FragmentActivity context, ViewGroup group,AdsContext.Categrey categrey){
+    public void exitBannerAds(FragmentActivity context, ViewGroup group, AdsContext.Categrey categrey){
         bannerDescMap.get(AdsContext.AdsFrom.ADVIEW).bannerExit(context,group,categrey.key);
     }
     public void showSplashAds(FragmentActivity context, RelativeLayout group, RelativeLayout skipView){
@@ -77,13 +78,14 @@ public class AdsManager {
     public void exitInterstitialAds(Context context,AdsContext.Categrey categrey){
         interstitialMap.get(AdsContext.AdsFrom.ADVIEW).interstitialExit(context,categrey.key);
     }
-    public  void showNative(Context context, NativeAdsReadyListener listener){
-        nativeMap.get(AdsContext.AdsFrom.ADVIEW).showNative(context,mHandle,listener);
+    public  void showNative(Context context, NativeAdsReadyListener listener,AdsContext.Categrey categrey){
+        nativeMap.get(AdsContext.AdsFrom.ADVIEW).showNative(context,mHandle,listener,categrey.key);
     }
     public  void reqVideo(Context context){
         videoMap.get(AdsContext.AdsFrom.ADVIEW).reqVideo(context,mHandle);
     }
     public  boolean showVideo(Context context){
+        LogUtil.i("Adview req video ads");
         VideoAdviewAds ads = (VideoAdviewAds)videoMap.get(AdsContext.AdsFrom.ADVIEW);
         if(ads.isReq) {
             videoMap.get(AdsContext.AdsFrom.ADVIEW).showVideo(context);

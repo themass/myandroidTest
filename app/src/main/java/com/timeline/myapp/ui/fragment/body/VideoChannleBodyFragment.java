@@ -65,14 +65,4 @@ public class VideoChannleBodyFragment extends RecommendFragment {
     public boolean getShowEdit() {
         return false;
     }
-
-
-
-    @Override
-    protected void onDataLoaded(InfoListVo<RecommendVo> data) {
-        super.onDataLoaded(data);
-        if(data.pageNum==3 || data.pageNum==8){
-            AdsManager.getInstans().showNative(getActivity(),this);
-        }
-    }
 }

@@ -5,6 +5,7 @@ import android.content.Intent;
 
 import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.PreferenceUtils;
+import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.um.MobAgent;
 import com.timeline.myapp.base.MyApplication;
 import com.timeline.myapp.bean.vo.UserInfoVo;
@@ -62,12 +63,20 @@ public class UserLoginUtil {
         UserInfoVo vo = getUserCache();
         return !(vo == null || vo.level < Constants.UserLevel.LEVEL_VIP2);
     }
+
     public static boolean isVIP3() {
         UserInfoVo vo = getUserCache();
         return !(vo == null || vo.level < Constants.UserLevel.LEVEL_VIP3);
     }
+
     public static boolean showAds() {
         UserInfoVo vo = getUserCache();
         return vo == null || !vo.adsNo;
+    }
+
+    public static void showScoreNotice(int score){
+     if(UserLoginUtil.getUserCache()==null||UserLoginUtil.getUserCache().score<300) {
+        ToastUtil.showShort("点广告赚30积分，本次消耗"+score+"积分");
+        }
     }
 }

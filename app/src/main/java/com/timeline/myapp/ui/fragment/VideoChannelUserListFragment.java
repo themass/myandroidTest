@@ -66,14 +66,6 @@ public class VideoChannelUserListFragment extends RecommendFragment {
         return Constants.getUrlWithParam(Constants.API_VIDEO_USER_URL, vo.param,start);
     }
 
-
-    @Override
-    protected void onDataLoaded(InfoListVo<RecommendVo> data) {
-        super.onDataLoaded(data);
-        if(data.pageNum==2){
-            AdsManager.getInstans().showNative(getActivity(),this);
-        }
-    }
     @Override
     public String getNetTag() {
         return VIDEO_TAG;
