@@ -20,6 +20,8 @@ import java.util.regex.Pattern;
  */
 public class Constants {
 
+    public static final String SCORE_CLICK_CLICK = "SCORE_CLICK_CLICK";
+
     public static final String USER_AGENT = "User-Agent";
     public static final String REFERER = "referer";
     public static final String DEFAULT_REFERER = "http://api.sspacee.com";
@@ -38,7 +40,6 @@ public class Constants {
     public static final String HTTP_TOKEN_KEY = "Vpn-Token";
     public static final String D_URL = "D_URL";
     public static final String NOTIFY_SWITCH = "NOTIFY_SWITCH";
-    public static final String SCORE_CLICK_CLICK = "SCORE_CLICK_CLICK";
 
     public static final int SKIP_SLOW= -1;
     public static final Pattern namePattern = Pattern.compile("[a-zA-Z0-9]{3,20}");
