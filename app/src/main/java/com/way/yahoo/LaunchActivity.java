@@ -22,7 +22,7 @@ import com.qq.sexfree.R;
  */
 public class LaunchActivity extends FragmentActivity {
     public static final int SKIP_SLOW= -1;
-    public static final int STARTUP_SHOW_TIME_3000 = 3000;
+    public static final int STARTUP_SHOW_TIME_3000 = 4000;
     RelativeLayout ivAds;
     RelativeLayout skipView;
     TextView tvShu;

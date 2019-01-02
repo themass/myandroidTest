@@ -7,6 +7,8 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.ads.base.AdsContext;
+import com.ads.base.AdsManager;
 import com.way.common.util.LunarCalendar;
 import com.way.common.util.LunarCalendarConvertUtil;
 import com.way.common.util.WeatherIconUtils;
@@ -23,6 +25,8 @@ public class WeatherDetailsView extends WeatherBaseView {
 	TextView windTV;
 	TextView windDescTV;
 	TextView detailsFootTV;
+	RelativeLayout flBanner;
+
 	private LunarCalendar mLunarCalendar;
 
 	public WeatherDetailsView(Context c) {
@@ -49,6 +53,7 @@ public class WeatherDetailsView extends WeatherBaseView {
 		windTV = (TextView) findViewById(R.id.wind_tv);
 		windDescTV = (TextView) findViewById(R.id.wind_desc);
 		detailsFootTV = (TextView) findViewById(R.id.weather_details_foot_tv);
+		flBanner = (RelativeLayout)findViewById(R.id.fl_adsview);
 	}
 
 	public void setWeatherInfo(RealTime realTime) {
@@ -82,6 +87,8 @@ public class WeatherDetailsView extends WeatherBaseView {
 				+ mLunarCalendar.animalsYear(mLunarCalendar.lunarYear)
 				+ ")年"
 				+ str[1] + str[2]);
+		AdsManager.getInstans().showBannerAds( getContext(), flBanner, AdsContext.Categrey.CATEGREY_VPN1);
+
 	}
 
 	@Override

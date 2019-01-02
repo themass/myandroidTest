@@ -6,6 +6,8 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.ads.base.AdsContext;
+import com.ads.base.AdsManager;
 import com.way.weather.plugin.bean.AQI;
 import com.way.weather.plugin.bean.WeatherInfo;
 import com.qq.sexfree.R;
@@ -18,6 +20,7 @@ public class WeatherAqiView extends WeatherBaseView {
 	TextView pm25TV;
 	TextView aqiDescTV;
 	TextView aqiFootTV;
+	RelativeLayout flBanner;
 
 	public WeatherAqiView(Context c) {
 		this(c, null);
@@ -41,6 +44,8 @@ public class WeatherAqiView extends WeatherBaseView {
 		pm25TV = (TextView) findViewById(R.id.pm25);
 		aqiDescTV = (TextView) findViewById(R.id.aqi_desc);
 		aqiFootTV = (TextView) findViewById(R.id.weather_aqi_foot_tv);
+		flBanner = (RelativeLayout)findViewById(R.id.fl_adsview);
+
 	}
 
 	public void setWeatherInfo(AQI aqi) {
@@ -52,6 +57,7 @@ public class WeatherAqiView extends WeatherBaseView {
 		pm25TV.setText(aqi.getPm25() + "μg/m³");
 		aqiDescTV.setText(aqi.getAqi_desc());
 		aqiFootTV.setText("中国环境检测总站");
+		AdsManager.getInstans().showBannerAds( getContext(), flBanner, AdsContext.Categrey.CATEGREY_VPN2);
 	}
 
 	private int getAqiIcon(int aqi) {

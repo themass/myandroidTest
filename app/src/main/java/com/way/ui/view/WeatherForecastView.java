@@ -155,7 +155,7 @@ public class WeatherForecastView extends WeatherBaseView {
 		lowTempDay5.setText(forecast.getTmpLow(5) + "°");
 
 		forecastFootView.setText("");
-		AdsManager.getInstans().showBannerAds( getContext(), flBanner, AdsContext.Categrey.CATEGREY_VPN1);
+		AdsManager.getInstans().showBannerAds( getContext(), flBanner, AdsContext.Categrey.CATEGREY_VPN);
 	}
 
 	@Override

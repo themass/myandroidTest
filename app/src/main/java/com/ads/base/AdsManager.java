@@ -73,8 +73,8 @@ public class AdsManager {
     public void exitInterstitialAds(Context context,AdsContext.Categrey categrey){
         interstitialMap.get(AdsContext.AdsFrom.ADVIEW).interstitialExit(context,categrey.key);
     }
-    public  void showNative(Context context, NativeAdsReadyListener listener){
-        nativeMap.get(AdsContext.AdsFrom.ADVIEW).showNative(context,mHandle,listener);
+    public  void showNative(Context context, NativeAdsReadyListener listener,AdsContext.Categrey categrey){
+        nativeMap.get(AdsContext.AdsFrom.ADVIEW).showNative(context,mHandle,listener,categrey.key);
     }
     public  void reqVideo(Context context){
         videoMap.get(AdsContext.AdsFrom.ADVIEW).reqVideo(context,mHandle);

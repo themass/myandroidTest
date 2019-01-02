@@ -61,6 +61,7 @@ public class WeatherIndexView extends WeatherBaseView {
 	TextView insolationIndexDetail;
 	TextView sportIndexDetail;
 	TextView travelIndexDetail;
+	RelativeLayout flBanner;
 
 	public WeatherIndexView(Context c) {
 		this(c, null);
@@ -153,6 +154,8 @@ public class WeatherIndexView extends WeatherBaseView {
 				.findViewById(R.id.index_detail_tv);
 		travelIndexDetail = (TextView) travelIndexView
 				.findViewById(R.id.index_detail_tv);
+		flBanner = (RelativeLayout)findViewById(R.id.fl_adsview);
+
 	}
 
 	public void setWeatherInfo(Index index) {

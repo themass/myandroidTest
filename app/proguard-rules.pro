@@ -221,9 +221,26 @@
 }
 -keep class android.support.v4.**{ *;}
 #-----------------end---------------------
--keep class net.youmi.android.** {*;}
--dontwarn com.squareup.picasso.**
--dontwarn com.kyview.**
+#竞价相关
+-keep public class com.kyview.** {*;}
+-keep public class com.kuaiyou.** {*;}
+#以下为部分聚合相关的，如果有相关包名的警告，根据提示log添加dontwarn即可
+-keepclassmembers class * {public *;}
+-keep public class * {public *;}
+-keep class com.baidu.mobads.** {
+public protected *;
+}
+-keep class com.qq.e.** {
+public protected *;
+}
+-keep class com.tencent.gdt.**{
+public protected *;
+}
+-optimizationpasses 5
+-dontusemixedcaseclassnames
+-dontskipnonpubliclibraryclasses
+-dontpreverify
+-verbose
 -keep class com.moat.analytics.**{*;}
 -dontwarn com.moat.analytics.**
 -dontwarn com.dropbox.**
@@ -237,7 +254,44 @@
 -keep public class com.kyview.** {*;}
 -dontwarn com.kyview.**
 -dontnote com.kyview.**
--keep class com.inmobi.**{ *; }
+-dontwarn com.kuaiyou.**
+-dontnote com.kuaiyou.**
+-dontwarn android.app.**
+-dontnote android.app.**
+-dontwarn pl.droidsonroids.**
+-dontnote pl.droidsonroids.**
+-dontwarn com.androidquery.**
+-dontnote com.androidquery.**
+-dontwarn com.bytedance.**
+-dontnote com.bytedance.**
+-dontwarn org.greenrobot.**
+-dontnote org.greenrobot.**
+-dontwarn okhttp3.internal.**
+-dontnote okhttp3.internal.**
+-dontwarn com.bumptech.**
+-dontnote com.bumptech.**
+-dontwarn com.android.org.**
+-dontnote com.android.org.**
+-dontwarn com.google.gson.**
+-dontnote com.google.gson.**
+-dontwarn com.qq.**
+-dontnote com.qq.**
+-dontwarn android.arch.**
+-dontnote android.arch.**
+-dontwarn com.amazon.**
+-dontnote com.amazon.**
+-dontwarn com.etiennelawlor.**
+-dontnote com.etiennelawlor.**
+-keep public class com.google.android.gms.**
+-dontwarn com.google.android.gms.**
+-dontwarn com.squareup.picasso.**
+-keep class com.google.android.gms.ads.identifier.AdvertisingIdClient{
+     public *;
+}
+-keep class com.google.android.gms.ads.identifier.AdvertisingIdClient$Info{
+     public *;
+}
+-keep public class com.bytedance.** {*;}
 -keep public class com.kuaiyou.** {*;}
 -keep public class com.google.android.gms.ads.** {
    public *;
@@ -246,3 +300,31 @@
    public *;
 }
 
+-keepattributes SourceFile,LineNumberTable
+-keep public class com.google.android.gms.**
+-dontwarn com.google.android.gms.**
+-dontwarn com.squareup.picasso.**
+-keep class com.google.android.gms.ads.identifier.AdvertisingIdClient{
+     public *;
+}
+-keep class com.google.android.gms.ads.identifier.AdvertisingIdClient$Info{
+     public *;
+}
+# skip the Picasso library classes
+-keep class com.squareup.picasso.** {*;}
+-dontwarn com.squareup.picasso.**
+-dontwarn com.squareup.okhttp.**
+# skip Moat classes
+-keep class com.moat.** {*;}
+-dontwarn com.moat.**
+# skip AVID classes
+-keep class com.integralads.avid.library.* {*;}
+#-------------------greenrobot greendao------------------------
+-keep class org.greenrobot.greendao.**{*;}
+-keepclassmembers class * extends org.greenrobot.greendao.AbstractDao {
+public static java.lang.String TABLENAME;
+}
+-keep class **$Properties
+-dontwarn org.greenrobot.greendao.**
+-keep class net.sqlcipher.database.**{*;}
+-keep class rx.**{*;}

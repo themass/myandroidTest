@@ -1,25 +1,26 @@
 package com.ads.base;
-
 import android.content.Context;
 import android.os.HandlerThread;
-import android.widget.Toast;
 
 import com.ads.adview.AdviewConstant;
-import com.qq.sexfree.R;
+import com.way.common.util.Md5;
+
 
 /**
- * Created by themass on 2017/9/14.
+ * Created by dengt on 2017/9/14.
  */
 
 public class AdsContext {
     private static int showCount = 0;
+    public static final int maxRate = 10;
+
     static {
     }
     public static enum Categrey {
-        CATEGREY_VPN("插屏:主页，音频，图片，小说 channel页;   banner：vip页，音频，图片，小说，视频，收藏夹列表，", AdviewConstant.ADS_ADVIEW_KEY1),
-        CATEGREY_VPN1("插屏： 点击vpn页，音频，图片，小说 list 页，其他推荐 ;   banner：设置页，地区头，音频，图片，小说，视频，收藏夹列表", AdviewConstant.ADS_ADVIEW_KEY2),
-        CATEGREY_VPN2("插屏： 点击积分，视频暂停；  banner：vpn状态页,国家选择列表，音频，图片，小说 channel 头页 ", AdviewConstant.ADS_ADVIEW_KEY),
-        CATEGREY_VPN3("banner：文章页，音频，图片，小说，视频 头页 ", AdviewConstant.ADS_ADVIEW_KEY_BANNER);
+        CATEGREY_VPN("插屏:主页，音频，图片，小说 channel页;   banner：vip页，音频，图片，小说，视频，收藏夹列表，", AdviewConstant.ADS_ADVIEW_KEY),
+        CATEGREY_VPN1("插屏： 点击vpn页，音频，图片，小说 list 页，其他推荐 ;   banner：设置页，地区头，音频，图片，小说，视频，收藏夹列表", AdviewConstant.ADS_ADVIEW_KEY1),
+        CATEGREY_VPN2("插屏： 点击vpn页，音频，图片，小说 list 页，其他推荐 ;   banner：设置页，地区头，音频，图片，小说，视频，收藏夹列表", AdviewConstant.ADS_ADVIEW_KEY2);
+
         public String desc;
         public String key;
 
@@ -86,6 +87,42 @@ public class AdsContext {
     static {
         adsMsgThread.start();
     }
-
+    // 3/5
+    public static boolean rateShow(){
+        if(showCount++>6){
+            return false;
+        }
+        int i = Md5.getRandom(maxRate);
+        return i<=6;
+    }
+    public static void adsNotify(Context context, AdsType type, AdsShowStatus event) {
+    }
+    public static int index=0;
+    public static Categrey getNext(){
+        int size = AdsContext.Categrey.values().length;
+        return AdsContext.Categrey.values()[(index++)%2];
+    }
+    public static Categrey getIndex(int num){
+        int size = AdsContext.Categrey.values().length;
+        return AdsContext.Categrey.values()[(num)%size];
+    }
+    public static void showNext(Context context){
+            int size = AdsContext.Categrey.values().length;
+            AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.values()[(index++) % 2], false);
+    }
+    public static void showNextAbs(Context context){
+        int size = AdsContext.Categrey.values().length;
+        AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.values()[(index++) % size], false);
+    }
+    public static void showRand(Context context){
+            if (AdsContext.rateShow()) {
+                showNext(context);
+            }
+    }
+    public static void showRand(Context context,AdsContext.Categrey cate){
+            if (AdsContext.rateShow()) {
+                AdsManager.getInstans().showInterstitialAds(context, cate, false);
+        }
+    }
 
 }

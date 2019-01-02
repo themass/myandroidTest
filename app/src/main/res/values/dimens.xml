@@ -49,7 +49,7 @@
     <dimen name="customviews_color_picker_btn_size">50.0dip</dimen>
     <dimen name="customviews_color_picker_btn_padding">10.0dip</dimen>
     <dimen name="abs__config_prefDialogWidth">320.0dip</dimen>
-    <dimen name="abs__action_bar_default_height">48.0dip</dimen>
+    <dimen name="abs__action_bar_default_height">55.0dip</dimen>
     <dimen name="abs__action_bar_icon_vertical_padding">8.0dip</dimen>
     <dimen name="abs__action_bar_title_text_size">18.0dip</dimen>
     <dimen name="abs__action_bar_subtitle_text_size">14.0dip</dimen>
@@ -109,7 +109,7 @@
 
     <item name="drag_list_divider_height" type="dimen">@dimen/margin_sm</item>
 
-    <dimen name="topbar_icon_size">22.0dip</dimen>
+    <dimen name="topbar_icon_size">30.0dip</dimen>
     <dimen name="current_condition_icon_size">36.0dip</dimen>
     <dimen name="current_condition_height">180.0dip</dimen>
     <dimen name="current_temperature_phone_textsize">150.0sp</dimen>

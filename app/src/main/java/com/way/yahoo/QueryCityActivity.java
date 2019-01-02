@@ -341,7 +341,7 @@ public class QueryCityActivity extends BaseActivity implements OnClickListener,
 				.findViewById(R.id.cancel_locate_city_btn);
 		btn.setOnClickListener(this);
 		mCountDownView.setCountDownFinishedListener(countDownFinishedListener);
-		mCountDownView.startCountDown(30);
+		mCountDownView.startCountDown(10);
 	}
 
 	private void dismissCountDownView() {
