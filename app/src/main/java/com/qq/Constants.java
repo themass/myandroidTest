@@ -193,4 +193,13 @@ public class Constants {
         public static final int local = 0;
         public static final int browser = 1;
     }
+    public static final String APPID = "1107910019";
+    public static final String NativeExpressPosID = "4030442926305847";
+    public static final String NativeExpressPosID_2 = "4060641976606855";
+    public static final String NativeExpressPosID_3 = "4070341986203884";
+    public static final int AD_COUNT = 8;    // 加载广告的条数，取值范围为[1, 10]
+    public static int FIRST_AD_POSITION = 1; // 第一条广告的位置
+    public static int ITEMS_PER_AD_SIX = 6;     // 每间隔10个条目插入一条广告
+    public static int ITEMS_PER_AD_THREE = 3;     // 每间隔10个条目插入一条广告
+    public static int ITEMS_PER_AD_BANNER = 1;     // 每间隔10个条目插入一条广告
 }

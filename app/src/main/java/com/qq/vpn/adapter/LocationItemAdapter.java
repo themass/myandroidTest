@@ -18,6 +18,7 @@ import android.widget.TextView;
 import com.kyview.natives.NativeAdInfo;
 import com.qq.ads.base.AdsContext;
 import com.qq.ads.base.AdsManager;
+import com.qq.ads.base.GdtNativeManager;
 import com.qq.ext.util.CollectionUtils;
 import com.qq.network.R;
 import com.qq.vpn.adapter.base.BaseRecyclerViewAdapter;
@@ -39,14 +40,15 @@ public class LocationItemAdapter extends BaseRecyclerViewAdapter<LocationItemAda
     private ColorStateList indexSelectColo = null;
     private boolean needPing = false;
     private int index;
-    List<LocationVo> nativeData;
-    public LocationItemAdapter(Context context, RecyclerView recyclerView, List<LocationVo> data, OnRecyclerViewItemClickListener<LocationVo> listener,List<LocationVo> nativeData) {
+    GdtNativeManager gdtNativeManager;
+    public LocationItemAdapter(Context context, RecyclerView recyclerView, List<LocationVo> data, OnRecyclerViewItemClickListener<LocationVo> listener,GdtNativeManager gdtNativeManager) {
         super(context, recyclerView, data, listener);
         chooseId = LocationUtil.getSelectLocationId(context);
         indexColo = context.getResources().getColorStateList(R.color.location_index);
         indexSelectColo = context.getResources().getColorStateList(R.color.base_red);
         index = 0;
-        this.nativeData = nativeData;
+        this.gdtNativeManager =gdtNativeManager;
+
     }
     @Override
     public LocationItemAdapter.LocationItemView onCreateViewHolderData(ViewGroup parent, int viewType) {
@@ -75,35 +77,13 @@ public class LocationItemAdapter extends BaseRecyclerViewAdapter<LocationItemAda
             one = AdsContext.Categrey.CATEGREY_VPN3;
 //            two = AdsContext.Categrey.CATEGREY_VPN1;
         }
-        if (position == 3) {
-//            if(CollectionUtils.isEmpty(nativeData)){
-//                LocationVo item = new LocationVo();
-//                item.img="timeline://img/flag_de.png";
-//                item.ename="aaaaaadasdADaADadSddDadADadsdSDSADDSAFSDGSGSFDGSFDGSFDVSFDVSFDVSFDVSDFV";
-//                nativeData.add(item);
-//            }
-            if (!CollectionUtils.isEmpty(nativeData)&& index<2) {
-                holder.natvieView.setVisibility(View.VISIBLE);
-                holder.rvAds.setVisibility(View.GONE);
-                ImagePhotoLoad.loadCommonImg(context, nativeData.get(0).img,holder.icon);
-                holder.desc.setText(nativeData.get(0).ename);
-                holder.natvieView.setOnTouchListener(new View.OnTouchListener() {
-
-                    @Override
-                    public boolean onTouch(View v, MotionEvent event) {
-                        if(nativeData.get(0).ext!=null && nativeData.get(0).ext instanceof NativeAdInfo )
-                            ((NativeAdInfo)nativeData.get(0).ext).onClick(v, (int)event.getX(), (int)event.getY());
-                        return true;
-                    }
-                });
-            } else {
+        if(gdtNativeManager!=null){
+            if(!gdtNativeManager.showAds(position,holder.natvieView)){
                 holder.natvieView.setVisibility(View.GONE);
-                holder.rvAds.setVisibility(View.VISIBLE);
-                AdsManager.getInstans().showBannerAds((FragmentActivity) context, holder.rvAds, one);
+            }else{
+                holder.natvieView.setVisibility(View.VISIBLE);
             }
         }else{
-            holder.rvAds.removeAllViews();
-            holder.rvAds.setVisibility(View.GONE);
             holder.natvieView.setVisibility(View.GONE);
         }
         LocationPingTask.fillText(context,holder.pgPing,holder.tvPing,vo.ping);
