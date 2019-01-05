@@ -14,7 +14,7 @@ import com.qq.ads.base.AdsManager;
 import com.qq.ads.base.NativeAdsReadyListener;
 import com.qq.ext.util.CollectionUtils;
 import com.qq.ext.util.EventBusUtil;
-import com.qq.network.R;
+import com.qq.fq3.R;
 import com.qq.vpn.support.ImagePhotoLoad;
 
 import java.util.List;

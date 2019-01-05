@@ -11,7 +11,7 @@ import com.kyview.manager.AdViewSpreadManager;
 import com.qq.ads.base.AdsContext;
 import com.qq.ads.base.SplashAdsInter;
 import com.qq.ext.util.LogUtil;
-import com.qq.network.R;
+import com.qq.fq3.R;
 
 import static com.qq.ads.adview.AdviewConstant.ADS_ADVIEW_KEY;
 import static com.qq.ads.adview.AdviewConstant.adsKeySet;

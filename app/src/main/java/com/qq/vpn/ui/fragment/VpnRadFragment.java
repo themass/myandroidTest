@@ -36,10 +36,11 @@ import com.qq.ads.base.AdsContext;
 import com.qq.ads.base.AdsManager;
 import com.qq.ext.network.HttpUtils;
 import com.qq.ext.network.req.CommonResponse;
+import com.qq.ext.util.IpUtil;
 import com.qq.ext.util.LogUtil;
 import com.qq.ext.util.PermissionHelper;
 import com.qq.ext.util.ToastUtil;
-import com.qq.network.R;
+import com.qq.fq3.R;
 import com.qq.vpn.domain.res.HostVo;
 import com.qq.vpn.domain.res.ServerVo;
 import com.qq.vpn.domain.res.VpnProfile;
@@ -190,6 +191,8 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
             PermissionHelper.showPermit(getActivity());
             return ;
         }
+        if(IpUtil.isCN(getActivity()))
+             ToastUtil.showShort("中国地区无法使用，请下载灯塔VPN");
         if (mService != null) {
             LogUtil.i("onVpnClick " + mService.getState());
             if (mService.getState() == VpnStateService.State.CONNECTED) {

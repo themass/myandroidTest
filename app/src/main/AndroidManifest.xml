@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.qq.network">
+    package="com.qq.fq3">
     <!-- 隐私权-->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -61,7 +61,7 @@
 
         <meta-data
             android:name="UMENG_APPKEY"
-            android:value="5bab4dc0f1f556e5840000bf" />
+            android:value="5c29f510b465f5b820000217" />
         <meta-data
             android:name="UMENG_MESSAGE_SECRET"
             android:value="06ab5668a76ad1be10a1ec82e7f6ddfb" />

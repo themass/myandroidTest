@@ -3,7 +3,7 @@ package com.qq.ext.view;
 import android.app.Dialog;
 import android.content.Context;
 
-import com.qq.network.R;
+import com.qq.fq3.R;
 
 
 public class MyProgressDialog extends Dialog {

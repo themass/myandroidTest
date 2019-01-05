@@ -6,7 +6,7 @@ import android.view.View;
 import android.view.animation.OvershootInterpolator;
 
 import com.qq.ext.util.LogUtil;
-import com.qq.network.R;
+import com.qq.fq3.R;
 import com.qq.vpn.support.AdsPopStrategy;
 import com.qq.vpn.ui.inte.OnBackKeyDownListener;
 import com.qq.vpn.main.MainActivity;

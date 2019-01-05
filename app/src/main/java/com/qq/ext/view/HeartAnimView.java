@@ -16,7 +16,7 @@ import android.widget.PopupWindow;
 
 import com.qq.ext.util.LogUtil;
 import com.qq.ext.util.SystemUtils;
-import com.qq.network.R;
+import com.qq.fq3.R;
 
 /**
  * 提示框 自定义view，使用PopupWindow 实现，注意显示时机

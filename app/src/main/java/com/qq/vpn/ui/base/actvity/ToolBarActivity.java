@@ -15,7 +15,7 @@ import android.widget.TextView;
 
 import com.qq.ext.util.EventBusUtil;
 import com.qq.ext.util.LogUtil;
-import com.qq.network.R;
+import com.qq.fq3.R;
 import com.qq.vpn.support.ImagePhotoLoad;
 import com.qq.vpn.support.LocationUtil;
 import com.qq.vpn.support.config.LocationChooseEvent;

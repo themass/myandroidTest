@@ -26,7 +26,7 @@ import com.qq.ext.util.ShareUtil;
 import com.qq.ext.util.StringUtils;
 import com.qq.ext.util.SystemUtils;
 import com.qq.ext.util.ToastUtil;
-import com.qq.network.R;
+import com.qq.fq3.R;
 import com.qq.vpn.domain.res.DomainVo;
 import com.qq.vpn.domain.res.UserInfoVo;
 import com.qq.vpn.main.SettingActivity;
@@ -321,7 +321,7 @@ public class BaseDrawerMenuActivity extends ToolBarActivity {
             url = Constants.DEFAULT_REFERER;
         }
         ShareUtil util = new ShareUtil(this);
-        util.shareText(null,null,url+" 灯塔V梯子，精彩你的生活", "灯塔V梯子","精彩你的生活");
+        util.shareText(null,null,url+" EuropeVPN，Alive your life", "EuropeVPN","Alive your life");
     }
     @Override
     protected void onPause() {

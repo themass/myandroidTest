@@ -13,7 +13,7 @@ import android.widget.TextView;
 
 import com.qq.ext.util.DensityUtil;
 import com.qq.ext.util.StringUtils;
-import com.qq.network.R;
+import com.qq.fq3.R;
 import com.romainpiel.shimmer.Shimmer;
 import com.romainpiel.shimmer.ShimmerTextView;
 import com.qq.Constants;

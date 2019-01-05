@@ -9,7 +9,7 @@ import com.qq.ext.util.LogUtil;
 import com.qq.vpn.ui.base.actvity.BaseFragmentActivity;
 import com.qq.vpn.ui.inte.FabOpListener;
 import com.qq.vpn.ui.inte.OnBackKeyDownListener;
-import com.qq.network.R;
+import com.qq.fq3.R;
 
 import java.io.Serializable;
 

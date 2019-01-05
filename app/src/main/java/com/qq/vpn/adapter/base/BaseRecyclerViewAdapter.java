@@ -6,7 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 
-import com.qq.network.R;
+import com.qq.fq3.R;
 
 import java.util.ArrayList;
 import java.util.List;

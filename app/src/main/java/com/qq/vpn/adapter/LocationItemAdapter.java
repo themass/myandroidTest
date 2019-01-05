@@ -19,7 +19,7 @@ import com.kyview.natives.NativeAdInfo;
 import com.qq.ads.base.AdsContext;
 import com.qq.ads.base.AdsManager;
 import com.qq.ext.util.CollectionUtils;
-import com.qq.network.R;
+import com.qq.fq3.R;
 import com.qq.vpn.adapter.base.BaseRecyclerViewAdapter;
 import com.qq.vpn.domain.res.LocationVo;
 import com.qq.vpn.support.ImagePhotoLoad;

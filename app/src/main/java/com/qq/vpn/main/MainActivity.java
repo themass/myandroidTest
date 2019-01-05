@@ -23,7 +23,7 @@ import com.qq.vpn.main.ui.ItemFragment;
 import com.qq.vpn.support.ConnLogReport;
 import com.qq.vpn.support.config.ActionConfigBus;
 import com.qq.vpn.ui.base.actvity.BaseDrawerMenuActivity;
-import com.qq.network.R;
+import com.qq.fq3.R;
 import com.qq.vpn.main.tab.VpnFragment;
 
 import org.strongswan.android.logic.CharonVpnService;

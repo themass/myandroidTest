@@ -9,7 +9,7 @@ import com.qq.ext.util.PackageUtils;
 import com.qq.Constants;
 import com.qq.ext.util.SystemUtils;
 import com.qq.vpn.main.ui.WebViewActivity;
-import com.qq.network.R;
+import com.qq.fq3.R;
 
 import java.util.Date;
 

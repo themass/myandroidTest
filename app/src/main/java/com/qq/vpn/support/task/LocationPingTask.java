@@ -9,7 +9,7 @@ import android.widget.TextView;
 import com.qq.ext.network.HttpUtils;
 import com.qq.ext.util.LogUtil;
 import com.qq.ext.util.StringUtils;
-import com.qq.network.R;
+import com.qq.fq3.R;
 import com.qq.vpn.domain.res.LocationVo;
 
 

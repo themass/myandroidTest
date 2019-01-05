@@ -16,7 +16,7 @@ import com.qq.ext.view.DividerItemDecoration;
 import com.qq.ext.view.MyPullView;
 import com.qq.vpn.adapter.base.BaseRecyclerViewAdapter;
 import com.qq.vpn.domain.res.InfoListVo;
-import com.qq.network.R;
+import com.qq.fq3.R;
 
 import butterknife.BindView;
 

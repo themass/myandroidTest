@@ -8,7 +8,7 @@ import com.qq.Constants;
 import com.qq.MobAgent;
 import com.qq.ads.adview.AdviewConstant;
 import com.qq.ext.util.Md5;
-import com.qq.network.R;
+import com.qq.fq3.R;
 import com.qq.vpn.support.AdsPopStrategy;
 import com.qq.vpn.support.UserLoginUtil;
 import com.qq.vpn.support.task.ScoreTask;

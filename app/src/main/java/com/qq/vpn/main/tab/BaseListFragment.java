@@ -8,7 +8,7 @@ import android.view.ViewGroup;
 
 import com.qq.Constants;
 import com.qq.vpn.ui.fragment.RecommendFragment;
-import com.qq.network.R;
+import com.qq.fq3.R;
 
 /**
  * Created by dengt on 2015/9/1.

@@ -3,6 +3,8 @@ package com.qq.ext.util;
 import android.content.Context;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.telephony.TelephonyManager;
+import android.text.TextUtils;
 import android.util.Log;
 
 import org.json.JSONObject;
@@ -12,6 +14,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Locale;
 
 public class IpUtil {
     private static String[] platforms = {
@@ -88,5 +91,17 @@ public class IpUtil {
     private static String intToIp(int ip) {
         return (ip & 0xFF) + "." + ((ip >> 8) & 0xFF) + "." + ((ip >> 16) &     0xFF) + "." + (ip >> 24 & 0xFF);
     }
+    public static boolean isCN(Context context) {
+        TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+        String countryIso = tm.getSimCountryIso();
+        boolean isCN = false;//判断是不是大陆
+        if (!TextUtils.isEmpty(countryIso)) {
+            countryIso = countryIso.toUpperCase(Locale.US);
+            if (countryIso.contains("CN")) {
+                isCN = true;
+            }
+        }
+        return isCN;
 
+    }
 }

@@ -6,11 +6,11 @@ android {
     compileSdkVersion 26
     buildToolsVersion "27.0.3"
     defaultConfig {
-        applicationId "com.qq.network"
+        applicationId "com.qq.fq3"
         minSdkVersion 18
         targetSdkVersion 26
-        versionCode 1000008005
-        versionName "1.0.8.5"
+        versionCode 1000001000
+        versionName "1.0.1.0"
         // Enabling multidex support.
         multiDexEnabled true
         flavorDimensions "versionCode"
@@ -69,10 +69,10 @@ android {
         }
     }
     productFlavors {
-        dtmypool {
+        free_fq3 {
             manifestPlaceholders = [CHANNEL_VALUE: "MYPOOL", AD_CHANNEL_VALUE: "MYPOOL"]
         }
-        dtgoogle {
+        free_fq3 {
             manifestPlaceholders = [CHANNEL_VALUE: "GOOGLEMARKET", AD_CHANNEL_VALUE: "GOOGLEMARKET"]
         }
     }

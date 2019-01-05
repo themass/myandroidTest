@@ -21,7 +21,7 @@ import com.qq.ext.network.HttpUtils;
 import com.qq.ext.util.FileUtils;
 import com.qq.ext.util.LogUtil;
 import com.qq.ext.view.MyWebView;
-import com.qq.network.R;
+import com.qq.fq3.R;
 import com.qq.Constants;
 import com.qq.MyApplication;
 import com.qq.vpn.ui.base.fragment.BaseFragment;

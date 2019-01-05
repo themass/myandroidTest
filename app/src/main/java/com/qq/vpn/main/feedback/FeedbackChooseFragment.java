@@ -14,7 +14,7 @@ import android.view.ViewGroup;
 
 import com.qq.ads.base.AdsContext;
 import com.qq.ext.util.LogUtil;
-import com.qq.network.R;
+import com.qq.fq3.R;
 import com.qq.vpn.domain.res.FeedbackCateVo;
 import com.qq.vpn.domain.res.InfoListVo;
 import com.qq.vpn.ui.base.actvity.CommonFragmentActivity;

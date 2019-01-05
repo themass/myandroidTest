@@ -25,7 +25,7 @@ import com.qq.vpn.support.LocationUtil;
 import com.qq.vpn.support.config.LocationChooseEvent;
 import com.qq.vpn.support.config.PingEvent;
 import com.qq.vpn.ui.base.fragment.BasePullLoadbleFragment;
-import com.qq.network.R;
+import com.qq.fq3.R;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;

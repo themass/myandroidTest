@@ -14,7 +14,7 @@ import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
 import com.qq.Constants;
-import com.qq.network.R;
+import com.qq.fq3.R;
 import com.qq.vpn.main.MainActivity;
 
 import java.util.ArrayList;
@@ -32,7 +32,7 @@ public class PermissionHelper {
     public static final String ACCESS_COARSE_LOCATION = Manifest.permission.ACCESS_COARSE_LOCATION;
     public static final String WRITE_EXTERNAL_STORAGE = Manifest.permission.WRITE_EXTERNAL_STORAGE;
     public static final String REQUEST_INSTALL_PACKAGES = Manifest.permission.REQUEST_INSTALL_PACKAGES;
-    public static List<String> requestPermissions = Arrays.asList(READ_PHONE_STATE,WRITE_EXTERNAL_STORAGE,ACCESS_COARSE_LOCATION);
+    public static List<String> requestPermissions = Arrays.asList(ACCESS_COARSE_LOCATION,WRITE_EXTERNAL_STORAGE);
 //    static {
 //        if(SystemUtils.isZH(MyApplication.getInstance())){
 //
@@ -160,7 +160,7 @@ public class PermissionHelper {
         List<PermissionItem> permissionItems = new ArrayList<PermissionItem>();
         permissionItems.add(new PermissionItem(Manifest.permission.WRITE_EXTERNAL_STORAGE, context.getString(R.string.write_external_storage), R.drawable.permission_ic_storage));
         permissionItems.add(new PermissionItem(Manifest.permission.ACCESS_COARSE_LOCATION, context.getString(R.string.access_coarse_location), R.drawable.permission_ic_location));
-        permissionItems.add(new PermissionItem(Manifest.permission.READ_PHONE_STATE, context.getString(R.string.read_phone_state), R.drawable.permission_ic_phone));
+//        permissionItems.add(new PermissionItem(Manifest.permission.READ_PHONE_STATE, context.getString(R.string.read_phone_state), R.drawable.permission_ic_phone));
 
         HiPermission.create(context)
                 .title(context.getString(R.string.permission_cus_title))

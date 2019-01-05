@@ -19,7 +19,7 @@ import com.qq.Constants;
 import com.qq.vpn.main.ui.LocationFragmentActivity;
 import com.qq.vpn.ui.base.actvity.CommonFragmentActivity;
 import com.qq.vpn.ui.base.fragment.LoadableFragment;
-import com.qq.network.R;
+import com.qq.fq3.R;
 import com.viewpagerindicator.TabPageIndicator;
 
 import butterknife.BindView;

@@ -19,9 +19,9 @@
     <string name="tab_index">首页</string>
     <string name="tab_tag_index">index</string>
     <!-- Application -->
-    <string name="app_name">灯塔VPN</string>
-    <string name="main_activity_name">灯塔VPN</string>
-    <string name="toobar_title">灯塔</string>
+    <string name="app_name">欧洲VPN</string>
+    <string name="main_activity_name">欧洲VPN</string>
+    <string name="toobar_title">欧洲VPN</string>
     <string name="load">正在加载,请等待。</string>
     <string name="off">关闭</string>
     <string name="on">打开</string>
@@ -64,7 +64,7 @@
     <string name="menu_btn_support">支持一下作者</string>
     <string name="support_info">请安装并激活几款应用，支持一下作者</string>
     <string name="offerads_ths">感谢您的支持！</string>
-    <string name="menu_btn_about_context">FreeVPN最稳定，免费，不限时，一切为你请点赞！</string>
+    <string name="menu_btn_about_context">欧洲VPN最稳定，免费，不限时，一切为你请点赞！</string>
     <string name="feed_back">信息反馈</string>
     <string name="menu_btn_score">积分:</string>
     <string name="menu_btn_networking">用量:</string>
@@ -113,7 +113,7 @@
     <string name="vpn_conning">连接..</string>
     <string name="vpn_disconning">断连..</string>
     <string name="vpn_conned">断开</string>
-    <string name="vpn_noti_status">灯塔VPN·</string>
+    <string name="vpn_noti_status">欧洲VPN·</string>
     <string name="vpn_noti_on">已连接，点击断开</string>
     <string name="vpn_noti_off">已断开，点击连接</string>
     <string name="vpn_noti_load">连接中，请耐心等待</string>
@@ -149,7 +149,7 @@
     <string name="about_download_confirm_content">您现在使用的是非WIFI网络，继续下载可能会消耗较多网络流量，是否继续下载？</string>
     <string name="about_download_begin">开始下载</string>
     <string name="about_download_finish">下载完成</string>
-    <string name="about_download_title">正在下FreeVPN</string>
+    <string name="about_download_title">正在下欧洲VPN</string>
     <string name="about_download_prepare">正在准备下载</string>
     <string name="about_download_error">文件下载错误</string>
     <string name="about_download_percent">正在下载 %1$s/%2$s</string>

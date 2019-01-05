@@ -19,7 +19,7 @@ import com.qq.ext.util.ToastUtil;
 import com.qq.ext.view.HeartAnimView;
 import com.qq.ext.view.MyProgressDialog;
 import com.qq.ext.view.MyPullView;
-import com.qq.network.R;
+import com.qq.fq3.R;
 import com.qq.vpn.adapter.FeedAdapter;
 import com.qq.vpn.domain.req.IwannaForm;
 import com.qq.vpn.domain.res.IWannaVo;

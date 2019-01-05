@@ -52,7 +52,7 @@ import com.qq.ext.network.NetUtils;
 import com.qq.ext.network.req.CommonResponse;
 import com.qq.ext.util.FileUtils;
 import com.qq.ext.util.LogUtil;
-import com.qq.network.R;
+import com.qq.fq3.R;
 import com.qq.vpn.domain.res.ServerVo;
 import com.qq.vpn.domain.res.VpnProfile;
 import com.qq.vpn.main.MainActivity;
@@ -592,7 +592,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
                 .setDeleteIntent(pandCanel)
                 .setContent(remoteViews)
                 .setWhen(System.currentTimeMillis())// 通知产生的时间，会在通知信息里显示
-                .setTicker("灯塔VPN")
+                .setTicker("EuropeVPN")
                 .setOngoing(going)
                 .setAutoCancel(true)
                 .setSmallIcon(R.drawable.vpn_on)

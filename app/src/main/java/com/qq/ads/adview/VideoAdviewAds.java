@@ -8,7 +8,7 @@ import com.kyview.interfaces.AdViewVideoListener;
 import com.kyview.manager.AdViewVideoManager;
 import com.qq.ads.base.AdsContext;
 import com.qq.ads.base.VideoAdsInter;
-import com.qq.network.R;
+import com.qq.fq3.R;
 
 import static com.qq.ads.adview.AdviewConstant.ADS_ADVIEW_KEY;
 

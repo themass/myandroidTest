@@ -18,7 +18,7 @@ import com.qq.ext.util.FileUtils;
 import com.qq.ext.util.LogUtil;
 import com.qq.ext.util.cache.BitmapLruCache;
 import com.qq.ext.util.cache.DiskBasedCacheEx;
-import com.qq.network.R;
+import com.qq.fq3.R;
 import com.qq.MyApplication;
 
 import java.io.File;

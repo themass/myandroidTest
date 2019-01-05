@@ -19,9 +19,9 @@
     <string name="tab_index">Home</string>
     <string name="tab_tag_index">index</string>
     <!-- Application -->
-    <string name="app_name">LightVPN</string>
-    <string name="main_activity_name">LightVPN</string>
-    <string name="toobar_title">Light</string>
+    <string name="app_name">EuropeVPN</string>
+    <string name="main_activity_name">EuropeVPN</string>
+    <string name="toobar_title">EuropeVPN</string>
     <string name="load">loading data..</string>
     <string name="off">off</string>
     <string name="on">on</string>
@@ -62,7 +62,7 @@
     <string name="menu_btn_logout">Logout</string>
     <string name="menu_btn_setting">Setting</string>
     <string name="menu_btn_support">Support author</string>
-    <string name="menu_btn_about_context">FreeVPN the most stable, free, unlimited，all for you！</string>
+    <string name="menu_btn_about_context">EuropeVPN the most stable, free, unlimited，all for you！</string>
     <string name="feed_back">Feedback</string>
     <string name="menu_btn_score">Points:</string>
     <string name="menu_btn_networking">Traffic:</string>
@@ -111,7 +111,7 @@
     <string name="vpn_conning">Connecting..</string>
     <string name="vpn_disconning">Stoping..</string>
     <string name="vpn_conned">Disconnect</string>
-    <string name="vpn_noti_status">LightVPN·</string>
+    <string name="vpn_noti_status">EuropeVPN·</string>
     <string name="vpn_noti_on">Connected，click to disconnect</string>
     <string name="vpn_noti_off">Disconnect，click to connect</string>
     <string name="vpn_noti_load">Connecting，please wait</string>
@@ -149,7 +149,7 @@
 You are now using a non WIFI network, continue to download may consume more network traffic, whether to continue to download？</string>
     <string name="about_download_begin">Start download</string>
     <string name="about_download_finish">End download</string>
-    <string name="about_download_title">Downloading FreeVPN</string>
+    <string name="about_download_title">Downloading EuropeVPN</string>
     <string name="about_download_prepare">Is preparing to download</string>
     <string name="about_download_error">File download error</string>
     <string name="about_download_percent">Downloading %1$s/%2$s</string>

@@ -17,7 +17,7 @@ import com.qq.ext.util.SystemUtils;
 import com.qq.ext.util.ToastUtil;
 import com.qq.ext.view.MyWebView;
 import com.qq.vpn.ui.base.actvity.BaseFragmentActivity;
-import com.qq.network.R;
+import com.qq.fq3.R;
 
 import java.util.HashMap;
 

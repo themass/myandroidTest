@@ -9,7 +9,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.animation.DecelerateInterpolator;
 
 import com.qq.ext.util.SystemUtils;
-import com.qq.network.R;
+import com.qq.fq3.R;
 import com.qq.vpn.adapter.FeedAdapter;
 
 import java.util.HashMap;

@@ -10,7 +10,7 @@ import android.widget.RadioGroup;
 import com.qq.Constants;
 import com.qq.ext.network.req.CommonResponse;
 import com.qq.ext.util.ToastUtil;
-import com.qq.network.R;
+import com.qq.fq3.R;
 import com.qq.vpn.domain.req.RegForm;
 import com.qq.vpn.domain.res.NullReturnVo;
 import com.qq.vpn.support.NetApiUtil;

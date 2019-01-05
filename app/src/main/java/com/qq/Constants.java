@@ -5,7 +5,7 @@ package com.qq;
 import android.content.Context;
 
 import com.android.volley.Response;
-import com.qq.network.R;
+import com.qq.fq3.R;
 
 import org.strongswan.android.logic.VpnType;
 
@@ -73,7 +73,7 @@ public class Constants {
     public static final String CONFIG_PARAM = "CONFIG_PARAM";
     public static final String TITLE = "TITLE";
     public static final String VPN_STATUS = "VPN_STATUS";
-    public static final String TEMP_PATH = "/freevpn/dt";
+    public static final String TEMP_PATH = "/Europevpn/dt";
     public static final String LOCATION_ICON_ALL ="timeline://img/flag_all.png";
     public static  String BASE_IP = "api.sspacee.com";
     public static final String HOSTGGG = "api.hostggg.com";
@@ -193,4 +193,15 @@ public class Constants {
         public static final int local = 0;
         public static final int browser = 1;
     }
+    public static final String APPID = "1107913815";
+    public static final String NativeExpressPosID = "5000340900490421";
+    public static final String NativeExpressPosID_2 = "4040043428148918";
+    public static final String NativeExpressPosID_3 = "6060749996967352";
+    public static final String NativeExpressPosID_4 = "2000442936104955";
+    public static final String NativeExpressPosID_5 = "4000940996404914";
+    public static final int AD_COUNT = 8;    // 加载广告的条数，取值范围为[1, 10]
+    public static int FIRST_AD_POSITION = 1; // 第一条广告的位置
+    public static int ITEMS_PER_AD_SIX = 6;     // 每间隔10个条目插入一条广告
+    public static int ITEMS_PER_AD_THREE = 3;     // 每间隔10个条目插入一条广告
+    public static int ITEMS_PER_AD_BANNER = 1;     // 每间隔10个条目插入一条广告
 }

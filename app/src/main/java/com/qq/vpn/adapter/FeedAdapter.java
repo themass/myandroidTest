@@ -17,7 +17,7 @@ import com.qq.ads.base.AdsContext;
 import com.qq.ads.base.AdsManager;
 import com.qq.ext.util.DateUtils;
 import com.qq.ext.util.StringUtils;
-import com.qq.network.R;
+import com.qq.fq3.R;
 import com.qq.vpn.domain.res.IWannaVo;
 import com.qq.vpn.support.UserLoginUtil;
 import com.qq.vpn.support.task.IWannaLikeTask;

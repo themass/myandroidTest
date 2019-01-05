@@ -4,7 +4,7 @@ import android.content.Context;
 
 import com.qq.ext.util.PreferenceUtils;
 import com.qq.ext.util.SystemUtils;
-import com.qq.network.R;
+import com.qq.fq3.R;
 import com.qq.vpn.domain.res.LocationVo;
 import com.qq.Constants;
 

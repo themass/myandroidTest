@@ -21,7 +21,7 @@ import com.qq.ext.util.LogUtil;
 import com.qq.ext.util.ViewUtils;
 import com.qq.vpn.domain.res.InfoListVo;
 import com.qq.vpn.support.NetApiUtil;
-import com.qq.network.R;
+import com.qq.fq3.R;
 
 import java.lang.ref.WeakReference;
 import java.util.List;

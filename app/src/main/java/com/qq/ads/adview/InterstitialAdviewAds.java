@@ -10,7 +10,7 @@ import com.qq.Constants;
 import com.qq.ads.base.AdsContext;
 import com.qq.ads.base.InterstitialAdsInter;
 import com.qq.ext.util.LogUtil;
-import com.qq.network.R;
+import com.qq.fq3.R;
 
 /**
  * Created by dengt on 2017/9/20.

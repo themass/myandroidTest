@@ -19,7 +19,7 @@ import com.romainpiel.shimmer.Shimmer;
 import com.qq.vpn.domain.res.RecommendVo;
 import com.qq.Constants;
 import com.qq.vpn.support.showtype.ShowTypeContext;
-import com.qq.network.R;
+import com.qq.fq3.R;
 
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 

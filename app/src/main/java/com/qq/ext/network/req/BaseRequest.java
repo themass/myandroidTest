@@ -40,7 +40,7 @@ public class BaseRequest<T> extends Request<T> {
         }
         String sb = DeviceInfoUtils.getDeviceId(context) + "|" + time;
         String msg = time + Md5.encode(sb);
-        String ua = Constants.NetWork.UA_DEFAULT + Constants.NetWork.UA_APP_SUFFIX +",channel="+Constants.NetWork.uc+",NETTYPE=VPNC,"+",cpu=" + SystemUtils.getCpuType() + ",IE" + msg;
+        String ua = Constants.NetWork.UA_DEFAULT + Constants.NetWork.UA_APP_SUFFIX +",channel="+Constants.NetWork.uc+",NETTYPE=VPND,"+",cpu=" + SystemUtils.getCpuType() + ",IE" + msg;
         String loc = "lon:" + StaticDataUtil.get(Constants.LON, Double.class) + ";lat:" + StaticDataUtil.get(Constants.LAT, Double.class);
         this.key = ua.substring(ua.length() - 16, ua.length());
         headers.put(Constants.USER_AGENT, ua);

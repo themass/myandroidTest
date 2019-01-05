@@ -11,7 +11,7 @@ import com.qq.ext.network.req.CommonResponse;
 import com.qq.ext.util.PreferenceUtils;
 import com.qq.ext.util.StringUtils;
 import com.qq.ext.util.ToastUtil;
-import com.qq.network.R;
+import com.qq.fq3.R;
 import com.qq.vpn.domain.req.LoginForm;
 import com.qq.vpn.domain.res.UserInfoVo;
 import com.qq.vpn.support.NetApiUtil;

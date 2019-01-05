@@ -14,7 +14,7 @@ import com.qq.MobAgent;
 import com.qq.ads.base.AdsManager;
 import com.qq.vpn.support.task.LoginTask;
 import com.qq.vpn.ui.base.actvity.LogActivity;
-import com.qq.network.R;
+import com.qq.fq3.R;
 import com.qq.Constants;
 
 import butterknife.BindView;

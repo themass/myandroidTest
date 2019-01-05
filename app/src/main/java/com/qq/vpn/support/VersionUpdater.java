@@ -34,7 +34,7 @@ import com.qq.ext.util.PackageUtils;
 import com.qq.ext.util.PreferenceUtils;
 import com.qq.ext.util.StringUtils;
 import com.qq.ext.util.ToastUtil;
-import com.qq.network.R;
+import com.qq.fq3.R;
 import com.qq.vpn.domain.res.VersionVo;
 import com.qq.vpn.main.MainActivity;
 import com.qq.vpn.support.config.StateUseEvent;
@@ -261,7 +261,7 @@ public class VersionUpdater {
             this.handler = new Handler();
             this.notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
             if (Build.VERSION.SDK_INT >= 26) {
-                NotificationChannel channel = new NotificationChannel(D_CHANNEL, "FreeVPN", NotificationManager.IMPORTANCE_HIGH);
+                NotificationChannel channel = new NotificationChannel(D_CHANNEL, "EuropeVPN", NotificationManager.IMPORTANCE_HIGH);
                 channel.setDescription("freevpn");
                 channel.enableLights(false);
                 channel.enableVibration(false);
