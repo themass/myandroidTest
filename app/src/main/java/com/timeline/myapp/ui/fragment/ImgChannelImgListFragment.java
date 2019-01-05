@@ -80,7 +80,7 @@ public class ImgChannelImgListFragment extends RecommendFragment {
         if(!checkUserLevel(revo.type)){
             return;
         }
-        UserLoginUtil.showScoreNotice(3);
+        UserLoginUtil.showScoreNotice(2);
         ImgItemsVo imgItemsVo = new ImgItemsVo();
         imgItemsVo.name = revo.title;
         imgItemsVo.url = revo.actionUrl;

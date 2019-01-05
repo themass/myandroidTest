@@ -34,6 +34,7 @@ public class RecommendVo implements Serializable {
     public String showLogo;
     public String urlToken;
     public String baseurl;
+    public String channelType;
     public FavoriteVo tofavorite(int type) {
         FavoriteVo vo = new FavoriteVo();
         vo.setName(title);

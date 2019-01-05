@@ -8,9 +8,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.qq.e.ads.nativ.NativeExpressADView;
 import com.qq.sexfree.R;
 import com.sspacee.common.util.LogUtil;
 
+import com.sspacee.yewu.ads.base.GdtNativeManager;
 import com.timeline.myapp.adapter.VideoListAdapter;
 import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.myapp.bean.vo.InfoListVo;
@@ -18,21 +20,22 @@ import com.timeline.myapp.bean.vo.RecommendVo;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.ui.base.features.BasePullLoadbleFragment;
 
-import cn.jzvd.JZMediaManager;
-import cn.jzvd.JZUtils;
+import java.util.HashMap;
+
 import cn.jzvd.Jzvd;
-import cn.jzvd.JzvdMgr;
 
 /**
  * A placeholder fragment containing a simple view.
  */
-public class AutoVideoFragment extends BasePullLoadbleFragment<RecommendVo> {
+public class AutoVideoFragment extends BasePullLoadbleFragment<RecommendVo> implements GdtNativeManager.OnLoadListener{
     private VideoListAdapter videoListAdapter;
     private static final String TAG="avvideo";
     private String channel;
+    GdtNativeManager gdtNativeManager =new GdtNativeManager(this,Constants.FIRST_AD_POSITION,Constants.ITEMS_PER_AD_THREE,Constants.AD_COUNT);;
+
     @Override
     protected BaseRecyclerViewAdapter getAdapter(){
-        videoListAdapter = new VideoListAdapter(getActivity(), pullView.getRecyclerView(), infoListVo.voList, this);
+        videoListAdapter = new VideoListAdapter(getActivity(), pullView.getRecyclerView(), infoListVo.voList, this,gdtNativeManager);
         return videoListAdapter;
     }
     @Override
@@ -67,6 +70,7 @@ public class AutoVideoFragment extends BasePullLoadbleFragment<RecommendVo> {
                 Jzvd.onChildViewDetachedFromWindow(view);
             }
         });
+        gdtNativeManager.loadData2(getActivity());
     }
 
     @Override
@@ -95,5 +99,9 @@ public class AutoVideoFragment extends BasePullLoadbleFragment<RecommendVo> {
     @Override
     protected InfoListVo<RecommendVo> loadData(Context context) throws Exception {
         return indexService.getInfoListData(Constants.getUrlWithParam(Constants.API_VIDEO_CHANNEL_LIST_URL, infoListVo.pageNum,channel,keyword), RecommendVo.class, TAG);
+    }
+
+    public void onload(HashMap<Integer, NativeExpressADView> mAdViewPositionMap){
+        videoListAdapter.notifyDataSetChanged();
     }
 }

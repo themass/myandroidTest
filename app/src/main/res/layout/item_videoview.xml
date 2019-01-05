@@ -15,4 +15,11 @@
         android:layout_height="wrap_content"
         android:gravity="center">
     </RelativeLayout>
+    <include
+        android:layout_below="@+id/rv_ads"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        layout="@layout/native_ad_item2"
+        android:id="@+id/natvieView"
+        android:visibility="gone"/>
 </RelativeLayout>

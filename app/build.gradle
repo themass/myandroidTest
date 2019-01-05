@@ -9,8 +9,8 @@ android {
         applicationId "com.qq.sexfree"
         minSdkVersion 16
         targetSdkVersion 26
-        versionCode 1000008005
-        versionName "1.0.8.5"
+        versionCode 1000008006
+        versionName "1.0.8.6"
         // Enabling multidex support.
         multiDexEnabled true
         vectorDrawables.useSupportLibrary = true
@@ -68,7 +68,7 @@ android {
             minifyEnabled true
             zipAlignEnabled true // Zipalign优化
             shrinkResources true // 移除无用的resource文件
-            debuggable false
+            debuggable true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.config
         }

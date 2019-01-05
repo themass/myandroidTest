@@ -7,7 +7,9 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.qq.sexfree.R;
@@ -16,6 +18,7 @@ import com.sspacee.common.util.StringUtils;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
 
+import com.sspacee.yewu.ads.base.GdtNativeManager;
 import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.myapp.bean.vo.RecommendVo;
 import com.timeline.myapp.constant.Constants;
@@ -30,9 +33,10 @@ import cn.jzvd.JzvdStd;
 
 
 public class VideoListAdapter extends BaseRecyclerViewAdapter<VideoListAdapter.VideoHolder, RecommendVo> {
-
-    public VideoListAdapter(Context context, RecyclerView recyclerView, List<RecommendVo> data, OnRecyclerViewItemClickListener<RecommendVo> listener) {
+    GdtNativeManager gdtNativeManager;
+    public VideoListAdapter(Context context, RecyclerView recyclerView, List<RecommendVo> data, OnRecyclerViewItemClickListener<RecommendVo> listener,GdtNativeManager gdtNativeManager) {
         super(context, recyclerView, data, listener);
+        this.gdtNativeManager = gdtNativeManager;
     }
     @Override
     public VideoHolder onCreateViewHolderData(ViewGroup parent, int viewType) {
@@ -54,13 +58,23 @@ public class VideoListAdapter extends BaseRecyclerViewAdapter<VideoListAdapter.V
 //            holder.jcVideoPlayer.setUp(StringUtils.hasText(vo.param)?vo.param: vo.actionUrl,vo.title, JzvdStd .SCREEN_WINDOW_LIST);
 //            holder.jcVideoPlayer.hea = header;
             Glide.with(context).load(vo.img).into(holder.jcVideoPlayer.thumbImageView);
+            if(gdtNativeManager!=null){
+                if(!gdtNativeManager.showAds(position,holder.natvieView)){
+                    holder.natvieView.setVisibility(View.GONE);
+                }
+            }else{
+                holder.natvieView.setVisibility(View.GONE);
+            }
             if(Constants.BANNER_ADS_POS.contains(position)){
-                if(position%2==1){
+                if(position%3==0){
+                    holder.rvAds.setVisibility(View.VISIBLE);
+                    AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN3);
+                }if(position%3==1){
                     holder.rvAds.setVisibility(View.VISIBLE);
                     AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN2);
                 }else{
                     holder.rvAds.setVisibility(View.VISIBLE);
-                    AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN3);
+                    AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN1);
                 }
             }else{
                 holder.rvAds.removeAllViews();
@@ -75,6 +89,15 @@ public class VideoListAdapter extends BaseRecyclerViewAdapter<VideoListAdapter.V
             @Nullable
             @BindView(R.id.rv_ads)
             RelativeLayout rvAds;
+            @Nullable
+            @BindView(R.id.natvieView)
+            RelativeLayout natvieView;
+            @Nullable
+            @BindView(R.id.desc)
+            TextView desc;
+            @Nullable
+            @BindView(R.id.icon)
+            ImageView icon;
             public VideoHolder(View itemView, View.OnClickListener l, View.OnLongClickListener longListener) {
                 super(itemView, l, longListener);
             }

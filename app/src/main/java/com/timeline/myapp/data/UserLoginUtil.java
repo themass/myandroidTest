@@ -6,6 +6,7 @@ import android.content.Intent;
 import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.ToastUtil;
+import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.um.MobAgent;
 import com.timeline.myapp.base.MyApplication;
 import com.timeline.myapp.bean.vo.UserInfoVo;
@@ -75,8 +76,8 @@ public class UserLoginUtil {
     }
 
     public static void showScoreNotice(int score){
-     if(UserLoginUtil.getUserCache()==null||UserLoginUtil.getUserCache().score<300) {
-        ToastUtil.showShort("点广告赚30积分，本次消耗"+score+"积分");
-        }
+     if(UserLoginUtil.getUserCache()==null||UserLoginUtil.getUserCache().score<100) {
+         ToastUtil.showShort("点广告赚30积分去广告，本次消耗"+score+"积分");
+     }
     }
 }

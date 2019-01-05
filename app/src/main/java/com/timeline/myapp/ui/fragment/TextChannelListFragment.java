@@ -7,20 +7,19 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.kyview.natives.NativeAdInfo;
+import com.qq.e.ads.nativ.NativeExpressADView;
 import com.qq.sexfree.R;
-import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.StringUtils;
 import com.sspacee.common.util.SystemUtils;
 import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
-import com.sspacee.yewu.ads.base.AdsManager;
+import com.sspacee.yewu.ads.base.GdtNativeManager;
 import com.sspacee.yewu.ads.base.NativeAdsReadyListener;
-import com.timeline.myapp.adapter.TextChannelListItemsViewAdapter;
+import com.timeline.myapp.adapter.NativeTextChannelListItemsViewAdapter;
 import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.myapp.bean.vo.FavoriteVo;
 import com.timeline.myapp.bean.vo.InfoListVo;
-import com.timeline.myapp.bean.vo.LocationVo;
 import com.timeline.myapp.bean.vo.RecommendVo;
 import com.timeline.myapp.bean.vo.TextItemsVo;
 import com.timeline.myapp.constant.Constants;
@@ -33,17 +32,19 @@ import com.timeline.myapp.ui.base.MenuOneContext;
 import com.timeline.myapp.ui.base.features.BasePullLoadbleFragment;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 
 /**
  * Created by themass on 2016/8/12.
  */
-public class TextChannelListFragment extends BasePullLoadbleFragment<TextItemsVo> implements MenuOneContext.MyOnMenuItemClickListener,BaseRecyclerViewAdapter.OnRecyclerViewItemLongClickListener<TextItemsVo>, NativeAdsReadyListener {
+public class TextChannelListFragment extends BasePullLoadbleFragment<TextItemsVo> implements MenuOneContext.MyOnMenuItemClickListener,BaseRecyclerViewAdapter.OnRecyclerViewItemLongClickListener<TextItemsVo>, NativeAdsReadyListener,GdtNativeManager.OnLoadListener {
     private static final String TEXT_TAG = "text_tag";
-    private TextChannelListItemsViewAdapter adapter;
+    private NativeTextChannelListItemsViewAdapter adapter;
     private RecommendVo vo;
     private List<NativeAdInfo> nativeData = new ArrayList<>();
+    GdtNativeManager gdtNativeManager =new GdtNativeManager(this,Constants.FIRST_AD_POSITION,Constants.ITEMS_PER_AD_SIX,Constants.AD_COUNT);;
     public static void startFragment(Context context, RecommendVo vo) {
         Intent intent = new Intent(context, CommonFragmentActivity.class);
         intent.putExtra(CommonFragmentActivity.FRAGMENT, TextChannelListFragment.class);
@@ -65,9 +66,13 @@ public class TextChannelListFragment extends BasePullLoadbleFragment<TextItemsVo
         adapter.notifyDataSetChanged();
         return true;
     }
+    public void onload(HashMap<Integer, NativeExpressADView> mAdViewPositionMap){
+        adapter.notifyDataSetChanged();
+    }
     @Override
     protected BaseRecyclerViewAdapter getAdapter() {
-        adapter = new TextChannelListItemsViewAdapter(getActivity(), pullView.getRecyclerView(), infoListVo.voList, this,nativeData);
+//        adapter = new TextChannelListItemsViewAdapter(getActivity(), pullView.getRecyclerView(), infoListVo.voList, this,nativeData);
+        adapter = new NativeTextChannelListItemsViewAdapter(getActivity(), pullView.getRecyclerView(), infoListVo.voList, this,gdtNativeManager);
         adapter.setLongClickListener(this);
         return adapter;
     }
@@ -80,7 +85,8 @@ public class TextChannelListFragment extends BasePullLoadbleFragment<TextItemsVo
         super.setupViews(view, savedInstanceState);
         vo = StaticDataUtil.get(Constants.TEXT_CHANNEL, RecommendVo.class);
         StaticDataUtil.del(Constants.TEXT_CHANNEL);
-        AdsManager.getInstans().showNative(getActivity(),this, AdsContext.getIndex(0));
+//        AdsManager.getInstans().showNative(getActivity(),this, AdsContext.getIndex(0));
+        gdtNativeManager.loadData(getActivity());
     }
     @Override
     protected InfoListVo<TextItemsVo> loadData(Context context) throws Exception {
@@ -130,5 +136,7 @@ public class TextChannelListFragment extends BasePullLoadbleFragment<TextItemsVo
         indexService.cancelRequest(TEXT_TAG);
         super.onDestroyView();
     }
+
+
 
 }

@@ -20,7 +20,7 @@ import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import com.kyview.natives.NativeAdInfo;
+import com.qq.e.ads.nativ.NativeExpressADView;
 import com.qq.sexfree.R;
 import com.sspacee.common.ui.view.FavoriteImageView;
 import com.sspacee.common.util.CollectionUtils;
@@ -30,7 +30,7 @@ import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
-import com.sspacee.yewu.ads.base.NativeAdsReadyListener;
+import com.sspacee.yewu.ads.base.GdtNativeManager;
 import com.sspacee.yewu.net.NetUtils;
 import com.timeline.myapp.adapter.SoundItemsViewMusicAdapter;
 import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
@@ -46,8 +46,7 @@ import com.timeline.myapp.ui.base.features.BasePullLoadbleFragment;
 import com.timeline.myapp.ui.inte.MusicStateListener;
 
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 
 import butterknife.BindView;
 import butterknife.OnClick;
@@ -64,7 +63,7 @@ import static com.timeline.myapp.service.PlayService.UPDATE_ACTION;
 /**
  * Created by themass on 2016/8/12.
  */
-public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsVo> implements SeekBar.OnSeekBarChangeListener, View.OnClickListener,MusicStateListener, NativeAdsReadyListener {
+public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsVo> implements SeekBar.OnSeekBarChangeListener, View.OnClickListener,MusicStateListener ,GdtNativeManager.OnLoadListener {
     private static final String SOUND_TAG = "SOUND_TAG";
     @Nullable
     @BindView(R.id.progress)
@@ -98,7 +97,7 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
     private RecommendVo vo;
     private PlayService mService;
     private boolean mBound = false;
-    private List<NativeAdInfo> nativeData = new ArrayList<>();
+    GdtNativeManager gdtNativeManager =new GdtNativeManager(this,Constants.FIRST_AD_POSITION,Constants.ITEMS_PER_AD_THREE,Constants.AD_COUNT);;
 
     private final ServiceConnection mConnection = new ServiceConnection() {
 
@@ -118,6 +117,9 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
             mBound = false;
         }
     };
+    public void onload(HashMap<Integer, NativeExpressADView> mAdViewPositionMap){
+        adapter.notifyDataSetChanged();
+    }
     private int current = -1;
     private int currentTime;        //当前播放进度
     private int duration;            //播放长度
@@ -276,20 +278,11 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
         inflater.inflate(R.layout.layout_sound_list_music, parent, true);
     }
     protected BaseRecyclerViewAdapter getAdapter(){
-        adapter = new SoundItemsViewMusicAdapter(getActivity(), pullView.getRecyclerView(), infoListVo.voList, this,nativeData);
+        adapter = new SoundItemsViewMusicAdapter(getActivity(), pullView.getRecyclerView(), infoListVo.voList, this,gdtNativeManager);
         adapter.setPlayServise(this);
         return adapter;
     }
-    public boolean onAdRecieved(List<NativeAdInfo> data){
-        nativeData.clear();
-        for(NativeAdInfo item:data){
-            item.onDisplay(new View(
-                    getActivity()));
-            nativeData.add(item);
-        }
-        adapter.notifyDataSetChanged();
-        return true;
-    }
+
     @Override
     public void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
@@ -310,7 +303,7 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
 //        AdsContext.nativeVideoAds(getActivity(),group);
 //        adapter.setFooterView(group);
         receiverReg();
-        AdsManager.getInstans().showNative(getActivity(),this, AdsContext.getIndex(1));
+        gdtNativeManager.loadData(getActivity());
     }
 
     @Override

@@ -97,7 +97,7 @@ public class AdsContext {
     }
     // 3/5
     public static boolean rateShow(){
-        if(showCount++>6){
+        if(showCount++>15){
             return false;
         }
         if(UserLoginUtil.isVIP3()){

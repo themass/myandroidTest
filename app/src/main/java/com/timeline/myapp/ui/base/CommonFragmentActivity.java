@@ -47,9 +47,9 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
         toolbarShow = getIntent().getBooleanExtra(TOOLBAR_SHOW, true);
         showInterstitialAds =getIntent().getBooleanExtra(INTERSTITIAL_ADS_SHOW, false);
         needGonebanner = getIntent().getBooleanExtra(BANNER_NEED_GONE, true);
-        if (!scroll) {
-            disableScrollBanner();
-        }
+//        if (!scroll) {
+//            disableScrollBanner();
+//        }
         showToolbar(toolbarShow);
         Class f = (Class) getIntent().getSerializableExtra(FRAGMENT);
         showAds = getIntent().getBooleanExtra(BANNER_ADS_SHOW, false);

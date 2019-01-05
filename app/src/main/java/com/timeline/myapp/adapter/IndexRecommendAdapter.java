@@ -2,13 +2,16 @@ package com.timeline.myapp.adapter;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.support.annotation.Nullable;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.qq.sexfree.R;
@@ -16,10 +19,13 @@ import com.romainpiel.shimmer.Shimmer;
 import com.romainpiel.shimmer.ShimmerTextView;
 import com.sspacee.common.helper.OnStartDragListener;
 import com.sspacee.common.util.DensityUtil;
+import com.sspacee.common.util.DisplayUtil;
 import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.StringUtils;
+import com.sspacee.common.util.SystemUtils;
 import com.sspacee.common.util.ToastUtil;
 
+import com.sspacee.yewu.ads.base.GdtNativeManager;
 import com.timeline.myapp.adapter.base.BasePhotoFlowRecycleViewAdapter;
 import com.timeline.myapp.bean.vo.RecommendVo;
 import com.timeline.myapp.constant.Constants;
@@ -43,7 +49,9 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
     private boolean needShimmer = true;
     private OnEditClickListener mOnEditClickListener;
     public boolean showParam = false;
-    public IndexRecommendAdapter(Context context, RecyclerView recyclerView, List<RecommendVo> data, StaggeredGridLayoutManager layoutManager, OnRecyclerViewItemClickListener listener, OnStartDragListener dragStartListener, OnEditClickListener onEditClickListener, boolean showEdit) {
+    GdtNativeManager gdtNativeManager;
+
+    public IndexRecommendAdapter(Context context, RecyclerView recyclerView, List<RecommendVo> data, StaggeredGridLayoutManager layoutManager, OnRecyclerViewItemClickListener listener, OnStartDragListener dragStartListener, OnEditClickListener onEditClickListener, boolean showEdit,GdtNativeManager gdtNativeManager) {
         super(context, recyclerView, data, listener, dragStartListener);
         this.showEdit = showEdit;
         this.layoutManager = layoutManager;
@@ -52,6 +60,11 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
         marginPix = context.getResources().getDimensionPixelSize(R.dimen.margin_2) * 2 + context.getResources().getDimensionPixelSize(R.dimen.margin_3) * 2;
         imgWidth = itemWidth - marginPix;
         hExtra = context.getResources().getDimensionPixelSize(R.dimen.margin_3);
+        this.gdtNativeManager =gdtNativeManager;
+
+    }
+    public IndexRecommendAdapter(Context context, RecyclerView recyclerView, List<RecommendVo> data, StaggeredGridLayoutManager layoutManager, OnRecyclerViewItemClickListener listener, OnStartDragListener dragStartListener, OnEditClickListener onEditClickListener, boolean showEdit) {
+        this(context,recyclerView,data,layoutManager,listener,dragStartListener,onEditClickListener,showEdit,null);
     }
     public void setShowParam(boolean show){
         showParam = show;
@@ -91,6 +104,7 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
                 }
             }
         });
+
     }
 
     public void switchFlag(boolean flag) {
@@ -153,14 +167,30 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
             }
         }
         holder.ivPhoto.setBackgroundColor(Color.parseColor(vo.color));
-        ViewGroup.LayoutParams ivPhotoParam = holder.ivPhoto.getLayoutParams();
-        ivPhotoParam.height = (int) (imgWidth * vo.rate);
-        ivPhotoParam.width = imgWidth;
-        holder.ivPhoto.setLayoutParams(ivPhotoParam);
+        if(vo.rate==0){
+            ViewGroup.LayoutParams ivPhotoParam = holder.ivPhoto.getLayoutParams();
+            ivPhotoParam.width = imgWidth;
+            ivPhotoParam.height = context.getResources().getDimensionPixelSize(R.dimen.banner_h);
+            holder.ivPhoto.setLayoutParams(ivPhotoParam);
+        }else {
+            ViewGroup.LayoutParams ivPhotoParam = holder.ivPhoto.getLayoutParams();
+            ivPhotoParam.height = (int) (imgWidth * vo.rate);
+            ivPhotoParam.width = imgWidth;
+            holder.ivPhoto.setLayoutParams(ivPhotoParam);
+        }
         final Shimmer shimmer = new Shimmer();
         shimmer.setDuration(Constants.RECOMMAND_SHIMMER_DURATION);
         holder.ivTitle.setVisibility(View.VISIBLE);
         ImagePhotoLoad.loadPhoto(holder, vo, shimmer,needShimmer, context);
+        if(gdtNativeManager!=null){
+            if(!gdtNativeManager.showAds(position,holder.natvieView)){
+                holder.natvieView.setVisibility(View.GONE);
+            }else{
+                holder.natvieView.setVisibility(View.VISIBLE);
+            }
+        }else{
+            holder.natvieView.setVisibility(View.GONE);
+        }
     }
 
     public interface OnEditClickListener {
@@ -170,6 +200,8 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
     public static class NaviItemViewHolder extends BasePhotoFlowRecycleViewAdapter.BaseViewHolder {
         @BindView(R.id.card_view)
         public CardView cardView;
+        @BindView(R.id.fl_img)
+        public FrameLayout flImg;
         @BindView(R.id.tv_title)
         public ShimmerTextView ivTitle;
         @BindView(R.id.iv_photo)
@@ -182,6 +214,9 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
         public View ivNew;
         @BindView(R.id.tv_title_below)
         public TextView tvTitleBelow;
+        @Nullable
+        @BindView(R.id.natvieView)
+        RelativeLayout natvieView;
         public NaviItemViewHolder(View view) {
             super(view);
         }

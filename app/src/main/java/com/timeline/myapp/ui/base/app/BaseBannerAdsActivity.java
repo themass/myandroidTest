@@ -9,17 +9,23 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.OvershootInterpolator;
 
+import com.qq.e.ads.nativ.NativeExpressADView;
 import com.qq.sexfree.R;
+import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
 
+import com.sspacee.yewu.ads.base.GdtNativeManager;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.AdsPopStrategy;
 import com.timeline.myapp.data.config.HindBannerEvent;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+
+import java.util.Collections;
+import java.util.HashMap;
 
 import butterknife.BindView;
 import butterknife.OnClick;
@@ -28,7 +34,7 @@ import butterknife.OnClick;
 /**
  * Created by themass on 2016/8/21.
  */
-public abstract class BaseBannerAdsActivity extends BaseToolBarActivity{
+public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implements GdtNativeManager.OnLoadListener {
     private static final int ANIM_DURATION_FAB = 400;
     @BindView(R.id.fl_content)
     public ViewGroup flContent;
@@ -39,11 +45,20 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity{
     @BindView(R.id.ct_bar)
     public CollapsingToolbarLayout ctBar;
     private AdsGoneTask task = new AdsGoneTask();
+    GdtNativeManager gdtNativeManager = new GdtNativeManager(this,Constants.FIRST_AD_POSITION,Constants.FIRST_AD_POSITION,Constants.ITEMS_PER_AD_BANNER);
     protected Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
         }
     };
+    public void onload(HashMap<Integer, NativeExpressADView> mAdViewPositionMap){
+        if(!CollectionUtils.isEmpty(mAdViewPositionMap)){
+            gdtNativeManager.showAds(Constants.FIRST_AD_POSITION,flBanner);
+
+        }else{
+            AdsManager.getInstans().showBannerAds(this, flBanner,getBannerCategrey());
+        }
+    }
     @OnClick(R.id.fab_up)
     public void onClickFab(View view) {
         AdsPopStrategy.clickAdsShowBtn(this);
@@ -109,11 +124,15 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity{
     @Override
     protected void onPause() {
         super.onPause();
-        hidenAds();
+        if(gdtNativeManager.getAdSize()==0) {
+            LogUtil.i("hidenAds： "+gdtNativeManager.getAdSize());
+            hidenAds();
+        }
     }
     public void showAds() {
         if (needShow()) {
-            AdsManager.getInstans().showBannerAds(this, flBanner,getBannerCategrey());
+            if(gdtNativeManager.getAdSize()==0)
+                gdtNativeManager.loadDataBanner(this);
         } else {
             flBanner.setVisibility(View.GONE);
         }

@@ -15,6 +15,7 @@ import android.widget.LinearLayout;
 
 
 import com.qq.sexfree.R;
+import com.sspacee.common.util.LogUtil;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -77,7 +78,11 @@ public class MyPullView extends LinearLayout {
                     int count = rvContent.getAdapter().getItemCount();
                     if (rvContent.getLayoutManager() instanceof StaggeredGridLayoutManager) {
                         int[] visibleItems = ((StaggeredGridLayoutManager) rvContent.getLayoutManager()).findLastVisibleItemPositions(null);
-                        int lastitem = Math.max(visibleItems[0], visibleItems[1]);
+                        LogUtil.i("size="+visibleItems.length);
+                        int lastitem = visibleItems[0];
+                        if(visibleItems.length>1){
+                            lastitem = Math.max(visibleItems[0], visibleItems[1]);
+                        }
                         if ((lastitem > count - 5) && listener.needLoad()) {
                             loadData(OnRefreshListener.LOADMORE);
                             showLoadingLabel();

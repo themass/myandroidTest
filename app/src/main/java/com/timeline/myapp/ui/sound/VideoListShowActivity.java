@@ -7,13 +7,22 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.FrameLayout;
 
+import com.qq.e.ads.nativ.NativeExpressAD;
+import com.qq.e.ads.nativ.NativeExpressADView;
+import com.qq.e.ads.nativ.NativeExpressMediaListener;
+import com.qq.e.comm.constants.AdPatternType;
+import com.qq.e.comm.pi.AdData;
+import com.qq.e.comm.util.AdError;
+import com.qq.e.comm.util.GDTLogger;
 import com.qq.sexfree.R;
 import com.sspacee.common.util.LogUtil;
 
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.ui.fragment.AutoVideoFragment;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
@@ -47,4 +56,5 @@ public class VideoListShowActivity extends AppCompatActivity {
         LogUtil.i(getClass().getSimpleName() + "-onNewIntent");
         super.onNewIntent(intent);
     }
+
 }

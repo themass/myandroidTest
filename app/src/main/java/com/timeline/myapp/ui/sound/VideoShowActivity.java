@@ -5,14 +5,18 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.view.ViewGroup;
 
+import com.qq.e.ads.nativ.NativeExpressADView;
 import com.qq.sexfree.R;
 import com.sspacee.common.ui.view.FavoriteImageView;
+import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.StringUtils;
 import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
+import com.sspacee.yewu.ads.base.GdtNativeManager;
 import com.timeline.myapp.data.ConnLogUtil;
 
 import com.timeline.myapp.bean.vo.RecommendVo;
@@ -35,13 +39,23 @@ import cn.jzvd.JzvdStd;
 /**
  * Created by themass on 2015/9/1.
  */
-public class VideoShowActivity extends AppCompatActivity {
+public class VideoShowActivity extends AppCompatActivity implements GdtNativeManager.OnLoadListener{
     private Unbinder unbinder;
     @BindView(R.id.jz_video)
     public JzvdStd jzVideo;
     RecommendVo vo;
     @BindView(R.id.iv_favorite)
     FavoriteImageView ivFavorite;
+    @BindView(R.id.natvieView)
+    ViewGroup natvieView;
+    GdtNativeManager gdtNativeManager = new GdtNativeManager(this,Constants.FIRST_AD_POSITION,Constants.FIRST_AD_POSITION,Constants.ITEMS_PER_AD_BANNER);
+    public void onload(HashMap<Integer, NativeExpressADView> mAdViewPositionMap){
+        if(!CollectionUtils.isEmpty(mAdViewPositionMap)){
+            gdtNativeManager.showAds(Constants.FIRST_AD_POSITION,natvieView);
+        }else{
+            AdsManager.getInstans().showBannerAds(this, natvieView, AdsContext.Categrey.CATEGREY_VPN3);
+        }
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,7 +77,9 @@ public class VideoShowActivity extends AppCompatActivity {
         ImagePhotoLoad.loadCommonImg(this,vo.img,jzVideo.thumbImageView);
         jzVideo.setJzUserAction(new MyUserActionStandard());
         ivFavorite.initSrc(vo.actionUrl);
-
+        if(AdsContext.rateShow()){
+            gdtNativeManager.loadDataVideoDetail(this);
+        }
     }
     @OnClick(R.id.iv_favorite)
     public void favoriteClick(View view) {

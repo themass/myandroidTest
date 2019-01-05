@@ -10,6 +10,7 @@ import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.View;
 
 import com.kyview.natives.NativeAdInfo;
+import com.qq.e.ads.nativ.NativeExpressADView;
 import com.qq.sexfree.R;
 import com.sspacee.common.helper.OnStartDragListener;
 import com.sspacee.common.helper.SimpleItemTouchHelperCallback;
@@ -17,6 +18,7 @@ import com.sspacee.common.ui.view.RecycleViewDivider;
 import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.ToastUtil;
+import com.sspacee.yewu.ads.base.GdtNativeManager;
 import com.sspacee.yewu.ads.base.NativeAdsReadyListener;
 import com.sspacee.yewu.um.MobAgent;
 
@@ -39,10 +41,14 @@ import java.util.Map;
 /**
  * Created by themass on 2015/9/1.
  */
-public abstract class RecommendFragment extends BasePullLoadbleFragment<RecommendVo> implements BasePhotoFlowRecycleViewAdapter.OnRecyclerViewItemClickListener, OnStartDragListener, IndexRecommendAdapter.OnEditClickListener, NativeAdsReadyListener {
+public abstract class RecommendFragment extends BasePullLoadbleFragment<RecommendVo> implements BasePhotoFlowRecycleViewAdapter.OnRecyclerViewItemClickListener, OnStartDragListener, IndexRecommendAdapter.OnEditClickListener,  GdtNativeManager.OnLoadListener {
     protected ItemTouchHelper mItemTouchHelper;
     protected IndexRecommendAdapter adapter;
-
+    public GdtNativeManager gdtNativeManager = new GdtNativeManager(this,Constants.FIRST_AD_POSITION,Constants.ITEMS_PER_AD_SIX,Constants.ITEMS_PER_AD_SIX);
+    @Override
+    public void onload(HashMap<Integer, NativeExpressADView> mAdViewPositionMap){
+        adapter.notifyDataSetChanged();
+    }
     public void addData(List<RecommendVo> data) {
         infoListVo.voList.addAll(data);
         initSort();
@@ -69,7 +75,7 @@ public abstract class RecommendFragment extends BasePullLoadbleFragment<Recommen
         final StaggeredGridLayoutManager layoutManager = new StaggeredGridLayoutManager(getSpanCount(), StaggeredGridLayoutManager.VERTICAL);
         pullView.setLayoutManager(layoutManager);
         pullView.setItemAnimator(new DefaultItemAnimator());
-        adapter = new IndexRecommendAdapter(this.getActivity(), pullView.getRecyclerView(), infoListVo.voList, layoutManager, this, this, this, getShowEdit());
+        adapter = new IndexRecommendAdapter(this.getActivity(), pullView.getRecyclerView(), infoListVo.voList, layoutManager, this, this, this, getShowEdit(),gdtNativeManager);
         adapter.setShowParam(getShowParam());
         adapter.setNeedShimmer(getNeedShimmer());
         pullView.setListener(this);

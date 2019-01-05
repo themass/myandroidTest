@@ -53,7 +53,7 @@ public class Constants {
     public static final int LOCATION_TYPE_FREE = 0;
     public static final int LOCATION_TYPE_VIP = 1;
     public static final int LOCATION_TYPE_VIP2 = 2;
-    public static final List<Integer> BANNER_ADS_POS = Arrays.asList(2,8,13,18,21,30,40,50);
+    public static final List<Integer> BANNER_ADS_POS = Arrays.asList(8,13,18,21,30,40,50);
     public static final String[] sort_type = new String[]{"type_asc", "type_desc"};
     public static final String[] sort_country = new String[]{"ename_asc", "ename_desc"};
     public static final String[] sort_fea = new String[]{"level_asc", "level_desc"};
@@ -145,6 +145,7 @@ public class Constants {
     public static final String API_VIDEO_USER_ITEM_URL = "/video/user/items.json?start=%s&limit=30&userId=%s&keyword=%s";
 
     public static final String VIDEO_USER_CHANNEL = "qvod_user";
+    public static final String VIDEO_LIST_CHANNEL = "videoList";
     public static final String VIDEO_TV_CHANNEL = "teleplay_";
     public static final String CHANNEL = "channel";
     public static final String API_VIDEO_ITEMS_URL = "/video/items.json?start=%s&limit=20";
@@ -238,4 +239,16 @@ public class Constants {
         public static final int Text = 2;
         public static final int Text_Below = 3;
     }
+
+    public static final String APPID = "1107913815";
+    public static final String NativeExpressPosID = "5000340900490421";
+    public static final String NativeExpressPosID_2 = "4040043428148918";
+    public static final String NativeExpressPosID_3 = "6060749996967352";
+    public static final String NativeExpressPosID_4 = "2000442936104955";
+    public static final String NativeExpressPosID_5 = "4000940996404914";
+    public static final int AD_COUNT = 8;    // 加载广告的条数，取值范围为[1, 10]
+    public static int FIRST_AD_POSITION = 1; // 第一条广告的位置
+    public static int ITEMS_PER_AD_SIX = 6;     // 每间隔10个条目插入一条广告
+    public static int ITEMS_PER_AD_THREE = 3;     // 每间隔10个条目插入一条广告
+    public static int ITEMS_PER_AD_BANNER = 1;     // 每间隔10个条目插入一条广告
 }

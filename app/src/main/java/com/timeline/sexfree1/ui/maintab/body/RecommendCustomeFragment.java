@@ -14,11 +14,13 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.PopupWindow;
 
+import com.qq.e.ads.nativ.NativeExpressADView;
 import com.qq.sexfree.R;
 import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.ads.base.AdsManager;
+import com.sspacee.yewu.ads.base.GdtNativeManager;
 import com.sspacee.yewu.net.request.CommonResponse;
 import com.timeline.myapp.bean.form.CustomeAddForm;
 import com.timeline.myapp.bean.vo.InfoListVo;
@@ -37,6 +39,8 @@ import com.timeline.sexfree1.ui.main.MainFragmentViewPage;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.util.HashMap;
+
 import butterknife.BindView;
 import butterknife.OnClick;
 
@@ -44,10 +48,11 @@ import butterknife.OnClick;
 /**
  * Created by themass on 2015/9/1.
  */
-public class RecommendCustomeFragment extends RecommendFragment implements OnBackKeyDownListener {
+public class RecommendCustomeFragment extends RecommendFragment implements OnBackKeyDownListener{
     private static final String INDEX_TAG = "Recommend_custome_tag";
     @BindView(R.id.lb_add)
     ImageButton llAdd;
+
     @Override
     public String getNetTag() {
         return INDEX_TAG;
@@ -92,6 +97,9 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
         if (!CollectionUtils.isEmpty(infoListVo.voList)) {
             if (llAdd != null)
                 llAdd.setVisibility(View.GONE);
+            for(RecommendVo vo:infoListVo.voList){
+                vo.rate=0;
+            }
         } else {
             if (llAdd != null)
                 llAdd.setVisibility(View.VISIBLE);
@@ -123,6 +131,7 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
         super.setupViews(view,savedInstanceState);
         EventBusUtil.getEventBus().register(this);
         ((MainFragmentViewPage) getActivity()).addListener(this);
+        gdtNativeManager.loadDataCustomer(getActivity());
     }
 
     @Override
@@ -134,7 +143,7 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
 
     @Override
     public int getSpanCount() {
-        return 2;
+        return 1;
     }
 
     @Override

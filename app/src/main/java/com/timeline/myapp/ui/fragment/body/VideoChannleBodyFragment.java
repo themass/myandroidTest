@@ -6,11 +6,14 @@ import android.view.View;
 
 import com.kyview.natives.NativeAdInfo;
 import com.sspacee.common.util.CollectionUtils;
+import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.ads.base.NativeAdsReadyListener;
+import com.sspacee.yewu.um.MobAgent;
 import com.timeline.myapp.bean.vo.InfoListVo;
 import com.timeline.myapp.bean.vo.RecommendVo;
 import com.timeline.myapp.constant.Constants;
+import com.timeline.myapp.data.config.ConfigActionEvent;
 import com.timeline.myapp.ui.fragment.RecommendFragment;
 import com.timeline.myapp.ui.fragment.VideoChannelListFragment;
 import com.timeline.myapp.ui.fragment.VideoChannelUserListFragment;
@@ -18,6 +21,7 @@ import com.timeline.myapp.ui.fragment.VideoChannelUserListFragment;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by themass on 2015/9/1.
@@ -48,6 +52,12 @@ public class VideoChannleBodyFragment extends RecommendFragment {
         }
         if(Constants.VIDEO_USER_CHANNEL.equals(vo.actionUrl)){
             VideoChannelUserListFragment.startFragment(getActivity(),vo);
+        }if(Constants.VIDEO_LIST_CHANNEL.equals(vo.actionUrl)){
+            Map<String, Object> param = new HashMap<>();
+            param.put(Constants.ADS_SHOW_CONFIG, vo.adsShow);
+            param.put(Constants.ADS_POP_SHOW_CONFIG, vo.adsPopShow);
+            String actionUrl = "videoList://config?channel="+vo.param;
+            EventBusUtil.getEventBus().post(new ConfigActionEvent(getActivity(), actionUrl, vo.title, param));
         }else{
             VideoChannelListFragment.startFragment(getActivity(), vo);
         }

@@ -21,6 +21,7 @@ import com.sspacee.common.ui.view.widgets.MusicVisualizer;
 import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
+import com.sspacee.yewu.ads.base.GdtNativeManager;
 import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.myapp.bean.vo.SoundItemsVo;
 import com.timeline.myapp.constant.Constants;
@@ -37,10 +38,10 @@ import butterknife.BindView;
 public class SoundItemsViewMusicAdapter extends BaseRecyclerViewAdapter<SoundItemsViewMusicAdapter.SoundItemView, SoundItemsVo>   {
     public int lastPosition = -1;
     MusicStateListener mService = null;
-    List<NativeAdInfo> nativeData;
-    public SoundItemsViewMusicAdapter(Context context, RecyclerView recyclerView, List<SoundItemsVo> data, OnRecyclerViewItemClickListener<SoundItemsVo> listener,List<NativeAdInfo> nativeData) {
+    GdtNativeManager gdtNativeManager;
+    public SoundItemsViewMusicAdapter(Context context, RecyclerView recyclerView, List<SoundItemsVo> data, OnRecyclerViewItemClickListener<SoundItemsVo> listener,GdtNativeManager gdtNativeManager) {
         super(context, recyclerView, data, listener);
-        this.nativeData =nativeData;
+        this.gdtNativeManager =gdtNativeManager;
     }
     public void setPlayServise(MusicStateListener service){
         mService = service;
@@ -72,17 +73,10 @@ public class SoundItemsViewMusicAdapter extends BaseRecyclerViewAdapter<SoundIte
             holder.title.setTextColor(context.getResources().getColor(R.color.main_dark));
             holder.visualizer.setVisibility(View.GONE);
         }
-        if (!CollectionUtils.isEmpty(nativeData)&& position==3) {
-            holder.natvieView.setVisibility(View.VISIBLE);
-            ImagePhotoLoad.loadCommonImg(context, nativeData.get(0).getIconUrl(),holder.icon);
-            holder.desc.setText(nativeData.get(0).getDesc());
-            holder.natvieView.setOnTouchListener(new View.OnTouchListener() {
-                @Override
-                public boolean onTouch(View v, MotionEvent event) {
-                    nativeData.get(0).onClick(v, (int)event.getX(), (int)event.getY());
-                    return true;
-                }
-            });
+        if(gdtNativeManager!=null){
+            if(!gdtNativeManager.showAds(position,holder.natvieView)){
+                holder.natvieView.setVisibility(View.GONE);
+            }
         }else{
             holder.natvieView.setVisibility(View.GONE);
         }
