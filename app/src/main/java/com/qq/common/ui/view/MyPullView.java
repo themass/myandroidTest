@@ -76,7 +76,10 @@ public class MyPullView extends LinearLayout {
                     int count = rvContent.getAdapter().getItemCount();
                     if (rvContent.getLayoutManager() instanceof StaggeredGridLayoutManager) {
                         int[] visibleItems = ((StaggeredGridLayoutManager) rvContent.getLayoutManager()).findLastVisibleItemPositions(null);
-                        int lastitem = Math.max(visibleItems[0], visibleItems[1]);
+                        int lastitem = visibleItems[0];
+                        if(visibleItems.length>1){
+                            lastitem = Math.max(visibleItems[0], visibleItems[1]);
+                        }
                         if ((lastitem > count - 5) && listener.needLoad()) {
                             loadData(OnRefreshListener.LOADMORE);
                             showLoadingLabel();

@@ -42,10 +42,11 @@ import butterknife.OnClick;
 /**
  * Created by dengt on 2015/9/1.
  */
-public class RecommendCustomeFragment extends RecommendFragment implements OnBackKeyDownListener {
+public class RecommendCustomeFragment extends RecommendFragment implements OnBackKeyDownListener{
     private static final String INDEX_TAG = "Recommend_custome_tag";
     @BindView(R.id.lb_add)
     ImageButton llAdd;
+
     @Override
     public String getNetTag() {
         return INDEX_TAG;
@@ -65,11 +66,11 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
     }
     @Override
     public void onRefresh(int type) {
-       if(UserLoginUtil.getUserCache()!=null){
-           super.onRefresh(type);
-       }else {
-           pullView.setRefresh(false);
-       }
+        if(UserLoginUtil.getUserCache()!=null){
+            super.onRefresh(type);
+        }else {
+            pullView.setRefresh(false);
+        }
     }
     @Override
     protected InfoListVo<RecommendVo> loadData(Context context) throws Exception {
@@ -90,6 +91,9 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
         if (!CollectionUtils.isEmpty(infoListVo.voList)) {
             if (llAdd != null)
                 llAdd.setVisibility(View.GONE);
+            for(RecommendVo vo:infoListVo.voList){
+                vo.rate=0;
+            }
         } else {
             if (llAdd != null)
                 llAdd.setVisibility(View.VISIBLE);
@@ -121,6 +125,7 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
         super.setupViews(view,savedInstanceState);
         EventBusUtil.getEventBus().register(this);
         ((MainFragmentViewPage) getActivity()).addListener(this);
+        gdtNativeManager.loadDataCustomer(getActivity());
     }
 
     @Override
@@ -132,7 +137,7 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
 
     @Override
     public int getSpanCount() {
-        return 2;
+        return 1;
     }
 
     @Override

@@ -13,6 +13,7 @@ import com.qq.common.util.GsonUtils;
 import com.qq.common.util.LogUtil;
 import com.qq.common.util.PreferenceUtils;
 import com.qq.common.util.ToastUtil;
+import com.qq.e.ads.nativ.NativeExpressADView;
 import com.qq.myapp.adapter.LocationItemAdapter;
 import com.qq.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.qq.myapp.bean.vo.InfoListVo;
@@ -36,12 +37,13 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
  * Created by dengt on 2016/8/12.
  */
-public class LocationItemFragment extends BasePullLoadbleFragment<LocationVo>implements NativeAdsReadyListener,  GdtNativeManager.OnLoadListener {
+public class LocationItemFragment extends BasePullLoadbleFragment<LocationVo>implements   GdtNativeManager.OnLoadListener {
     public static final String LOCATION_TAG = "location_tag";
     LocationItemAdapter adapter;
     VipLocationVo vipLocationVo;
@@ -74,17 +76,17 @@ public class LocationItemFragment extends BasePullLoadbleFragment<LocationVo>imp
         gdtNativeManager.loadData(getActivity());
 
     }
-    public boolean onAdRecieved(List<NativeAdInfo> data){
-        nativeData.clear();
-        for(NativeAdInfo item:data){
-            LocationVo vo = LocationVo.fromNative(item);
-            item.onDisplay(new View(
-                    getActivity()));
-            nativeData.add(vo);
-        }
-        adapter.notifyDataSetChanged();
-        return true;
-    }
+//    public boolean onAdRecieved(List<NativeAdInfo> data){
+//        nativeData.clear();
+//        for(NativeAdInfo item:data){
+//            LocationVo vo = LocationVo.fromNative(item);
+//            item.onDisplay(new View(
+//                    getActivity()));
+//            nativeData.add(vo);
+//        }
+//        adapter.notifyDataSetChanged();
+//        return true;
+//    }
     @Override
     protected InfoListVo<LocationVo> loadData(Context context) throws Exception {
         if(!pullView.isRefreshing() && !CollectionUtils.isEmpty(vipLocationVo.list) ) {
@@ -149,7 +151,7 @@ public class LocationItemFragment extends BasePullLoadbleFragment<LocationVo>imp
 //        pullView.notifyDataSetChanged();
     }
     protected BaseRecyclerViewAdapter getAdapter(){
-        adapter = new LocationItemAdapter(getActivity(),pullView.getRecyclerView(), infoListVo.voList, this,nativeData);
+        adapter = new LocationItemAdapter(getActivity(),pullView.getRecyclerView(), infoListVo.voList, this,gdtNativeManager);
         return adapter;
     }
 }
