@@ -246,6 +246,14 @@ public class Constants {
     public static final String NativeExpressPosID_3 = "6060749996967352";
     public static final String NativeExpressPosID_4 = "2000442936104955";
     public static final String NativeExpressPosID_5 = "4000940996404914";
+    public static final String OpenExpressPosID = "5000841478245930";
+    public static final String InterExpressPosID = "5070746428748941";
+    public static final String InterExpressPosID_1 = "3020341478247963";
+    public static final String InterExpressPosID_2 = "2000749438943934";
+    public static final String InterExpressPosID_3 = "3020857093539023";
+    public static final List<String> gdtInterlist= Arrays.asList(InterExpressPosID_1,InterExpressPosID_2,InterExpressPosID_3);
+    public static final String AD_GDT_SWITCH = "AD_GDT_SWITCH";
+
     public static final int AD_COUNT = 8;    // 加载广告的条数，取值范围为[1, 10]
     public static int FIRST_AD_POSITION = 1; // 第一条广告的位置
     public static int ITEMS_PER_AD_SIX = 6;     // 每间隔10个条目插入一条广告

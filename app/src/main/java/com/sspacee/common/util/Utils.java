@@ -1,11 +1,13 @@
 package com.sspacee.common.util;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Point;
 import android.os.Build;
 import android.view.Display;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -64,5 +66,8 @@ public class Utils {
             return "";
         }
     }
-
+    public static final void hideSoftInput(Activity activity) {
+        InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(activity.getCurrentFocus().getWindowToken(), 0); //强制隐藏键盘
+    }
 }

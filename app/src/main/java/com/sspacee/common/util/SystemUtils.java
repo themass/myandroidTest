@@ -156,6 +156,7 @@ public class SystemUtils {
     public static String getLang(Context context) {
         Locale locale = context.getResources().getConfiguration().locale;
         String language = locale.getLanguage();
+        LogUtil.i(language);
         if (language.contains("zh"))
             return CommonConstants.LANG_ZH;
         else

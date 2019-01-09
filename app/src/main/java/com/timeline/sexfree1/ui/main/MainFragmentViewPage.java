@@ -26,9 +26,11 @@ import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PermissionHelper;
 import com.sspacee.common.util.PreferenceUtils;
+import com.sspacee.common.util.SystemUtils;
 import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
+import com.sspacee.yewu.ads.base.GdtInterManger;
 import com.sspacee.yewu.um.MobAgent;
 import com.timeline.myapp.base.MyApplication;
 import com.timeline.myapp.constant.Constants;
@@ -58,7 +60,7 @@ import java.util.Set;
 /**
  * Created by themass on 2016/3/1.
  */
-public class MainFragmentViewPage extends BaseDrawerActivity implements ActivityCompat.OnRequestPermissionsResultCallback {
+public class MainFragmentViewPage extends BaseDrawerActivity implements ActivityCompat.OnRequestPermissionsResultCallback ,GdtInterManger.OnGdtInterListener {
     public List<ItemFragment> list = new ArrayList<>();
     public boolean init = false;
     private Set<OnBackKeyDownListener> keyListeners = new HashSet<>();
@@ -72,6 +74,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
     private static final String SETTING_TAG="SETTING_TAG";
     private static final String WITER_TAG="WITER_TAG";
     private PermissionHelper mPermissionHelper;
+    private GdtInterManger gdtInterManger;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_main_viewpage);
@@ -120,9 +123,17 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
     public void setupView() {
         mTabLayout = (TabLayout) findViewById(R.id.tabs);
         mViewPager = (ViewPager) findViewById(R.id.vp_view);
+        gdtInterManger = new GdtInterManger(this,this);
         initTabs();
         ConnLogUtil.sendAllLog(this);
-        AdsContext.showNext(MainFragmentViewPage.this);
+//
+        boolean gdt = PreferenceUtils.getPrefBoolean(this,Constants.AD_GDT_SWITCH,true);
+        if(SystemUtils.isZH(this) && gdt){
+            gdtInterManger.showAd();
+        }else{
+            AdsContext.showNext(MainFragmentViewPage.this);
+        }
+
     }
 
     private void initTabs() {
@@ -177,6 +188,9 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         mViewPager.setCurrentItem(savedInstanceState.getInt(POSITION));
+    }
+    public void onNoAD(){
+        AdsContext.showNext(MainFragmentViewPage.this);
     }
 
     @Override
