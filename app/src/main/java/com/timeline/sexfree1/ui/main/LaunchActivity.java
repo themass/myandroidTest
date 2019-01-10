@@ -69,7 +69,8 @@ public class LaunchActivity extends LogActivity implements GdtOpenManager.OnGdtO
 
     @OnClick(R.id.skip_view)
     public void skip(View view) {
-        launch();
+
+//        launch();
     }
 
     private void launch() {
@@ -87,7 +88,7 @@ public class LaunchActivity extends LogActivity implements GdtOpenManager.OnGdtO
     @Override
     protected void onResume() {
         super.onResume();
-        mHandler.postDelayed(mStartMainRunnable, Constants.STARTUP_SHOW_TIME_6000);
+        mHandler.postDelayed(mStartMainRunnable, max);
         MobAgent.onResume(this);
         boolean gdt = PreferenceUtils.getPrefBoolean(this,Constants.AD_GDT_SWITCH,true);
         if(SystemUtils.isZH(this) && gdt){
