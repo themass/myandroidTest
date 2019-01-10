@@ -51,10 +51,13 @@ public class GdtOpenManager {
         @Override
         public void onADTick(long millisUntilFinished) {
             Log.i("AD_DEMO", "SplashADTick " + millisUntilFinished + "ms");
-            if(skipView!=null)
-                 skipView.setText( Math.round(millisUntilFinished / 1000f)+ " s");
+            if (skipView != null) {
+                skipView.setText(Math.round(millisUntilFinished / 1000f) + " s");
+                if (Math.round(millisUntilFinished / 1000f) == 0) {
+                    skipView.setText(R.string.skip);
+                }
+            }
         }
-
         @Override
         public void onADExposure() {
             Log.i("AD_DEMO", "SplashADExposure");
