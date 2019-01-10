@@ -16,6 +16,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.kyview.natives.NativeAdInfo;
+import com.qq.Constants;
 import com.qq.ads.base.AdsContext;
 import com.qq.ads.base.AdsManager;
 import com.qq.ext.util.CollectionUtils;
@@ -69,37 +70,13 @@ public class LocationItemAdapter extends BaseRecyclerViewAdapter<LocationItemAda
         holder.tvCountry.setText(vo.name);
         holder.tvCountryEname.setText(vo.ename);
 
-        AdsContext.Categrey one = AdsContext.Categrey.CATEGREY_VPN2;
-//        AdsContext.Categrey two = AdsContext.Categrey.CATEGREY_VPN3;
-        if(index%2==1) {
-            one = AdsContext.Categrey.CATEGREY_VPN3;
-//            two = AdsContext.Categrey.CATEGREY_VPN1;
-        }
-        if (position == 3) {
-//            if(CollectionUtils.isEmpty(nativeData)){
-//                LocationVo item = new LocationVo();
-//                item.img="timeline://img/flag_de.png";
-//                item.ename="aaaaaadasdADaADadSddDadADadsdSDSADDSAFSDGSGSFDGSFDGSFDVSFDVSFDVSFDVSDFV";
-//                nativeData.add(item);
-//            }
-            if (!CollectionUtils.isEmpty(nativeData)&& index<2) {
-                holder.natvieView.setVisibility(View.VISIBLE);
-                holder.rvAds.setVisibility(View.GONE);
-                ImagePhotoLoad.loadCommonImg(context, nativeData.get(0).img,holder.icon);
-                holder.desc.setText(nativeData.get(0).ename);
-                holder.natvieView.setOnTouchListener(new View.OnTouchListener() {
-
-                    @Override
-                    public boolean onTouch(View v, MotionEvent event) {
-                        if(nativeData.get(0).ext!=null && nativeData.get(0).ext instanceof NativeAdInfo )
-                            ((NativeAdInfo)nativeData.get(0).ext).onClick(v, (int)event.getX(), (int)event.getY());
-                        return true;
-                    }
-                });
-            } else {
-                holder.natvieView.setVisibility(View.GONE);
-                holder.rvAds.setVisibility(View.VISIBLE);
-                AdsManager.getInstans().showBannerAds((FragmentActivity) context, holder.rvAds, one);
+        if (Constants.BANNER_ADS_POS.contains(position)) {
+            holder.natvieView.setVisibility(View.GONE);
+            holder.rvAds.setVisibility(View.VISIBLE);
+            if(position%2==1){
+                AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN2);
+            }else{
+                AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN3);
             }
         }else{
             holder.rvAds.removeAllViews();

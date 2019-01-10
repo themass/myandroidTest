@@ -39,6 +39,7 @@ import com.qq.ext.network.req.CommonResponse;
 import com.qq.ext.util.IpUtil;
 import com.qq.ext.util.LogUtil;
 import com.qq.ext.util.PermissionHelper;
+import com.qq.ext.util.SystemUtils;
 import com.qq.ext.util.ToastUtil;
 import com.qq.fq3.R;
 import com.qq.vpn.domain.res.HostVo;
@@ -153,16 +154,16 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
     }
     public void showBanner(){
         AdsManager.getInstans().showBannerAds(getActivity(), rlContent, AdsContext.Categrey.CATEGREY_VPN);
-        FragmentManager fm = getChildFragmentManager();
-        Fragment fragment = fm.findFragmentById(R.id.rl_content_native);
-        if (fragment == null) {
-            Fragment header = NativeHeaderFragment.getNewInstans(AdsContext.Categrey.CATEGREY_VPN3);
-            if (header == null) {
-                rlContentNative.setVisibility(View.GONE);
-            } else {
-                fm.beginTransaction().replace(R.id.rl_content_native, header).commitAllowingStateLoss();
-            }
-        }
+//        FragmentManager fm = getChildFragmentManager();
+//        Fragment fragment = fm.findFragmentById(R.id.rl_content_native);
+//        if (fragment == null) {
+//            Fragment header = NativeHeaderFragment.getNewInstans(AdsContext.Categrey.CATEGREY_VPN3);
+//            if (header == null) {
+//                rlContentNative.setVisibility(View.GONE);
+//            } else {
+//                fm.beginTransaction().replace(R.id.rl_content_native, header).commitAllowingStateLoss();
+//            }
+//        }
     }
 
     @Override
@@ -191,8 +192,10 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
             PermissionHelper.showPermit(getActivity());
             return ;
         }
-        if(IpUtil.isCN(getActivity()))
-             ToastUtil.showShort("中国地区无法使用，请下载灯塔VPN");
+        if(SystemUtils.isZH(getActivity())) {
+            ToastUtil.showLong("中国地区无法使用，请下载灯塔VPN 或者 FreeVPN");
+            return;
+        }
         if (mService != null) {
             LogUtil.i("onVpnClick " + mService.getState());
             if (mService.getState() == VpnStateService.State.CONNECTED) {
