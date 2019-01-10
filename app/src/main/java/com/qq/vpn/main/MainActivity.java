@@ -13,11 +13,15 @@ import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.KeyEvent;
 
+import com.qq.Constants;
 import com.qq.ads.base.AdsContext;
+import com.qq.ads.base.GdtInterManger;
 import com.qq.ext.util.DoubleClickExit;
 import com.qq.ext.util.EventBusUtil;
 import com.qq.MobAgent;
 import com.qq.ext.util.LogUtil;
+import com.qq.ext.util.PreferenceUtils;
+import com.qq.ext.util.SystemUtils;
 import com.qq.ext.util.ToastUtil;
 import com.qq.vpn.main.ui.ItemFragment;
 import com.qq.vpn.support.ConnLogReport;
@@ -32,7 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class MainActivity extends BaseDrawerMenuActivity implements ActivityCompat.OnRequestPermissionsResultCallback {
+public class MainActivity extends BaseDrawerMenuActivity implements ActivityCompat.OnRequestPermissionsResultCallback,GdtInterManger.OnGdtInterListener {
 
 
     /**
@@ -41,6 +45,7 @@ public class MainActivity extends BaseDrawerMenuActivity implements ActivityComp
     private List<ItemFragment> list = new ArrayList<>();
     private ViewPager mViewPager;
     private MyPagerAdapter myPagerAdapter;
+    private GdtInterManger gdtInterManger;
     public ActionConfigBus configBus = new ActionConfigBus();
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,8 +62,18 @@ public class MainActivity extends BaseDrawerMenuActivity implements ActivityComp
         myPagerAdapter = new MyPagerAdapter(getSupportFragmentManager());
         mViewPager.setAdapter(myPagerAdapter);
         myPagerAdapter.notifyDataSetChanged();
+        boolean gdt = PreferenceUtils.getPrefBoolean(this, Constants.AD_GDT_SWITCH,true);
+        if(SystemUtils.isZH(this) && gdt){
+            gdtInterManger = new GdtInterManger(this,this);
+            gdtInterManger.showAd();
+        }else{
+            AdsContext.showNext(this);
+        }
+    }
+    public void onNoAD(){
         AdsContext.showNext(this);
     }
+
     @Override
     public void onDestroy() {
         stopService(CharonVpnService.class);

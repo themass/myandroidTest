@@ -14,4 +14,5 @@ public class VersionVo {
     public Boolean needDnspod = true;
     public Boolean needNative = true;
     public boolean update = false;
+    public Boolean showGdt = false;
 }

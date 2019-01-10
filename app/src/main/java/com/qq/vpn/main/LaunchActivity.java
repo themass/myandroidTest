@@ -12,9 +12,12 @@ import android.widget.TextView;
 import com.kyview.manager.AdViewSpreadManager;
 import com.qq.MobAgent;
 import com.qq.ads.base.AdsManager;
+import com.qq.ads.base.GdtOpenManager;
+import com.qq.ext.util.PreferenceUtils;
+import com.qq.ext.util.SystemUtils;
+import com.qq.network.R;
 import com.qq.vpn.support.task.LoginTask;
 import com.qq.vpn.ui.base.actvity.LogActivity;
-import com.qq.network.R;
 import com.qq.Constants;
 
 import butterknife.BindView;
@@ -25,16 +28,17 @@ import butterknife.Unbinder;
 /**
  * Created by dengt on 2016/3/22.
  */
-public class LaunchActivity extends LogActivity {
+public class LaunchActivity extends LogActivity implements GdtOpenManager.OnGdtOpenListener {
     @BindView(R.id.rl_spread)
     RelativeLayout ivAds;
     @BindView(R.id.skip_view)
     RelativeLayout skipView;
     @BindView(R.id.tv_shu)
     TextView tvJishi;
-    private int max = Constants.STARTUP_SHOW_TIME_3000;
+    private int max = Constants.STARTUP_SHOW_TIME_3000+1000;
     private int now = 0;
     private Unbinder unbinder;
+    private GdtOpenManager gdtOpenManager;
     private Runnable mStartMainRunnable = new Runnable() {
         @Override
         public void run() {
@@ -61,20 +65,19 @@ public class LaunchActivity extends LogActivity {
         MobAgent.init(this);
         unbinder = ButterKnife.bind(this);
         LoginTask.start(this);
+        gdtOpenManager = new GdtOpenManager(this,ivAds,tvJishi,this);
     }
 
     @OnClick(R.id.skip_view)
     public void skip(View view) {
-        launch();
+        if(getResources().getText(R.string.skip).equals(tvJishi.getText()))
+            launch();
     }
 
     private void launch() {
-        if(!AdViewSpreadManager.hasJumped) {
-            Intent intent = new Intent(this, MainActivity.class);
-            startActivity(intent);
-            finish();
-        }
-
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
+        finish();
     }
 
     public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -86,13 +89,20 @@ public class LaunchActivity extends LogActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        mHandler.postDelayed(mStartMainRunnable, Constants.STARTUP_SHOW_TIME_3000);
-        AdsManager.getInstans().showSplashAds(this,ivAds,skipView);
+        mHandler.postDelayed(mStartMainRunnable, max);
         MobAgent.onResume(this);
-        AdsManager.getInstans().reqVideo(this);
+        boolean gdt = PreferenceUtils.getPrefBoolean(this,Constants.AD_GDT_SWITCH,true);
+        if(SystemUtils.isZH(this) && gdt){
+            gdtOpenManager.showAd();
+        }else{
+            showAdview();
+        }
+
+    }
+    private void showAdview(){
+        AdsManager.getInstans().showSplashAds(this,ivAds,skipView);
         delay1s();
     }
-
     private void delay1s() {
         mHandler.sendEmptyMessageDelayed(Constants.ADS_JISHI, 1000);
     }
@@ -111,4 +121,11 @@ public class LaunchActivity extends LogActivity {
         AdsManager.getInstans().exitSplashAds(this,ivAds);
         super.onDestroy();
     }
+    public void onADDismissed(){
+//        launch();
+    }
+    public void onNoAD(){
+        showAdview();
+    }
 }
+

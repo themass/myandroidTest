@@ -202,4 +202,10 @@ public class Constants {
     public static int ITEMS_PER_AD_SIX = 6;     // 每间隔10个条目插入一条广告
     public static int ITEMS_PER_AD_THREE = 3;     // 每间隔10个条目插入一条广告
     public static int ITEMS_PER_AD_BANNER = 1;     // 每间隔10个条目插入一条广告
+    public static final String OpenExpressPosID = "3030942408955040";
+    public static final String InterExpressPosID = "1030646468450094";
+    public static final String InterExpressPosID_1 = "3090547438653075";
+    public static final String InterExpressPosID_2 = "9060842740686491";
+    public static final List<String> gdtInterlist= Arrays.asList(InterExpressPosID_1,InterExpressPosID_2);
+    public static final String AD_GDT_SWITCH = "AD_GDT_SWITCH";
 }

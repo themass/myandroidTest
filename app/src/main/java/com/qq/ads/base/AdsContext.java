@@ -1,5 +1,6 @@
 package com.qq.ads.base;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.HandlerThread;
 import android.widget.Toast;
@@ -8,6 +9,8 @@ import com.qq.Constants;
 import com.qq.MobAgent;
 import com.qq.ads.adview.AdviewConstant;
 import com.qq.ext.util.Md5;
+import com.qq.ext.util.PreferenceUtils;
+import com.qq.ext.util.SystemUtils;
 import com.qq.network.R;
 import com.qq.vpn.support.AdsPopStrategy;
 import com.qq.vpn.support.UserLoginUtil;
@@ -142,8 +145,15 @@ public class AdsContext {
         }
     }
     public static void showNextAbs(Context context){
-        int size = AdsContext.Categrey.values().length;
-        AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.values()[(index++) % size], false);
+        boolean gdt = PreferenceUtils.getPrefBoolean(context,Constants.AD_GDT_SWITCH,true);
+        if(SystemUtils.isZH(context) && gdt && context instanceof  Activity){
+            int index = Md5.getRandom(Constants.gdtInterlist.size());
+            GdtInterManger gdtInterManger = new GdtInterManger((Activity) context,null,Constants.gdtInterlist.get(index));
+            gdtInterManger.showAd();
+        }else {
+            int size = AdsContext.Categrey.values().length;
+            AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.values()[(index++) % size], false);
+        }
     }
     public static void showRand(Context context){
         if(UserLoginUtil.showAds()) {
@@ -152,10 +162,15 @@ public class AdsContext {
             }
         }
     }
-    public static void showRand(Context context,AdsContext.Categrey cate){
-        if(UserLoginUtil.showAds()) {
-            if (AdsContext.rateShow()) {
-                AdsManager.getInstans().showInterstitialAds(context, cate, false);
+    public static void showRand(Context context, AdsContext.Categrey cate){
+        if (AdsContext.rateShow()) {
+            boolean gdt = PreferenceUtils.getPrefBoolean(context,Constants.AD_GDT_SWITCH,true);
+            if(SystemUtils.isZH(context) && gdt && context instanceof Activity){
+                int index = Md5.getRandom(Constants.gdtInterlist.size());
+                GdtInterManger gdtInterManger = new GdtInterManger((Activity) context,null,Constants.gdtInterlist.get(index));
+                gdtInterManger.showAd();
+            }else{
+                AdsContext.showNext(context);
             }
         }
     }
