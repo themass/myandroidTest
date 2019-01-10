@@ -69,10 +69,9 @@ public class LaunchActivity extends LogActivity implements GdtOpenManager.OnGdtO
 
     @OnClick(R.id.skip_view)
     public void skip(View view) {
-
-//        launch();
+        if(getResources().getText(R.string.skip).equals(tvJishi.getText()))
+            launch();
     }
-
     private void launch() {
         Intent intent = new Intent(this, MainFragmentViewPage.class);
         startActivity(intent);
@@ -121,7 +120,7 @@ public class LaunchActivity extends LogActivity implements GdtOpenManager.OnGdtO
         super.onDestroy();
     }
     public void onADDismissed(){
-        launch();
+//        launch();
     }
     public void onNoAD(){
         showAdview();
