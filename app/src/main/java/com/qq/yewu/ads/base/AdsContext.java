@@ -1,9 +1,12 @@
 package com.qq.yewu.ads.base;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.HandlerThread;
 import android.widget.Toast;
 
+import com.qq.common.util.PreferenceUtils;
+import com.qq.common.util.SystemUtils;
 import com.qq.myapp.data.AdsPopStrategy;
 import com.qq.yewu.ads.adview.AdviewConstant;
 import com.qq.yewu.um.MobAgent;
@@ -137,12 +140,19 @@ public class AdsContext {
     public static void showNext(Context context){
         if(UserLoginUtil.showAds()) {
             int size = AdsContext.Categrey.values().length;
-            com.qq.yewu.ads.base.AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.values()[(index++) % 2], false);
+            AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.values()[(index++) % 2], false);
         }
     }
     public static void showNextAbs(Context context){
-        int size = AdsContext.Categrey.values().length;
-        com.qq.yewu.ads.base.AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.values()[(index++) % 3], false);
+        boolean gdt = PreferenceUtils.getPrefBoolean(context,Constants.AD_GDT_SWITCH,true);
+        if(SystemUtils.isZH(context) && gdt && context instanceof  Activity){
+            int index = Md5.getRandom(Constants.gdtInterlist.size());
+            GdtInterManger gdtInterManger = new GdtInterManger((Activity) context,null,Constants.gdtInterlist.get(index));
+            gdtInterManger.showAd();
+        }else {
+            int size = AdsContext.Categrey.values().length;
+            AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.values()[(index++) % size], false);
+        }
     }
     public static void showRand(Context context){
         if(UserLoginUtil.showAds()) {
@@ -151,10 +161,15 @@ public class AdsContext {
             }
         }
     }
-    public static void showRand(Context context,AdsContext.Categrey cate){
-        if(UserLoginUtil.showAds()) {
-            if (AdsContext.rateShow()) {
-                com.qq.yewu.ads.base.AdsManager.getInstans().showInterstitialAds(context, cate, false);
+    public static void showRand(Context context, AdsContext.Categrey cate){
+        if (AdsContext.rateShow()) {
+            boolean gdt = PreferenceUtils.getPrefBoolean(context,Constants.AD_GDT_SWITCH,true);
+            if(SystemUtils.isZH(context) && gdt && context instanceof Activity){
+                int index = Md5.getRandom(Constants.gdtInterlist.size());
+                GdtInterManger gdtInterManger = new GdtInterManger((Activity) context,null,Constants.gdtInterlist.get(index));
+                gdtInterManger.showAd();
+            }else{
+                AdsContext.showNext(context);
             }
         }
     }

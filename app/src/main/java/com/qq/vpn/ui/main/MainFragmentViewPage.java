@@ -13,6 +13,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.qq.common.util.SystemUtils;
 import com.qq.vpn.ui.maintab.TabLocalFragment;
 import com.qq.common.util.DoubleClickExit;
 import com.qq.common.util.EventBusUtil;
@@ -23,6 +24,7 @@ import com.qq.common.util.ToastUtil;
 import com.qq.vpn.ui.maintab.TabLocalRecommFragment;
 import com.qq.vpn.ui.maintab.VpnNativeFragment;
 import com.qq.yewu.ads.base.AdsContext;
+import com.qq.yewu.ads.base.GdtInterManger;
 import com.qq.yewu.um.MobAgent;
 import com.qq.myapp.constant.Constants;
 import com.qq.myapp.data.ConnLogUtil;
@@ -46,7 +48,7 @@ import java.util.Set;
 
 import co.mobiwise.materialintro.animation.MaterialIntroListener;
 
-public class MainFragmentViewPage extends BaseDrawerActivity implements ActivityCompat.OnRequestPermissionsResultCallback,MaterialIntroListener {
+public class MainFragmentViewPage extends BaseDrawerActivity implements ActivityCompat.OnRequestPermissionsResultCallback,MaterialIntroListener,GdtInterManger.OnGdtInterListener  {
 
 
     /**
@@ -62,6 +64,8 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
     private MyPagerAdapter myPagerAdapter;
     private String POSITION = "POSITION";
     private int index = 0;
+    private GdtInterManger gdtInterManger;
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_main_viewpage);
@@ -70,6 +74,9 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         EventBusUtil.getEventBus().register(jump);
         EventBusUtil.getEventBus().register(logAdd);
         boolean uploadLog = PreferenceUtils.getPrefBoolean(this, Constants.LOG_UPLOAD_CONFIG, false);
+    }
+    public void onNoAD(){
+        AdsContext.showNext(this);
     }
     @Override
     public boolean needPingView(){
@@ -95,7 +102,14 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         mViewPager = (ViewPager) findViewById(R.id.vp_view);
         initTabs();
         ConnLogUtil.sendAllLog(this);
-        AdsContext.showNext(MainFragmentViewPage.this);
+        boolean gdt = PreferenceUtils.getPrefBoolean(this, Constants.AD_GDT_SWITCH,true);
+
+        if(SystemUtils.isZH(this) && gdt){
+            gdtInterManger = new GdtInterManger(this,this);
+            gdtInterManger.showAd();
+        }else{
+            AdsContext.showNext(this);
+        }
     }
 
     private void initTabs() {
