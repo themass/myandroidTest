@@ -198,7 +198,7 @@
 }
 
 #----------------------project------------
--keep class com.timeline.myapp.bean.**{ *; }
+-keep class com.qq.myapp.bean.**{ *; }
 -keep class sun.misc.Unsafe { *; }
 -keep class com.google.gson.stream.** { *; }
 -keep class com.sspacee.common.weather.**{ *; }

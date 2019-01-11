@@ -7,7 +7,7 @@ import android.widget.Toast;
 import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PackageUtils;
-import com.timeline.myapp.constant.Constants;
+import com.qq.myapp.constant.Constants;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;

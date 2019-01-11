@@ -14,9 +14,9 @@ import com.qq.e.ads.nativ.NativeExpressMediaListener;
 import com.qq.e.comm.constants.AdPatternType;
 import com.qq.e.comm.pi.AdData;
 import com.qq.e.comm.util.AdError;
-import com.qq.sexfree.R;
-import com.timeline.myapp.constant.Constants;
-import com.timeline.myapp.task.ScoreTask;
+import com.qq.kuaibo.R;
+import com.qq.myapp.constant.Constants;
+import com.qq.myapp.task.ScoreTask;
 
 import java.util.HashMap;
 import java.util.List;

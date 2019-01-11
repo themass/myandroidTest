@@ -3,7 +3,7 @@
 //import android.content.Context;
 //import android.widget.Toast;
 //
-//import com.qq.sexfree.R;
+//import com.qq.kuaibo.R;
 //import com.sspacee.common.util.DeviceInfoUtils;
 //import com.sspacee.common.util.LogUtil;
 //

@@ -5,9 +5,9 @@ import android.support.v7.widget.AppCompatImageView;
 import android.util.AttributeSet;
 
 
-import com.qq.sexfree.R;
-import com.timeline.myapp.bean.vo.FavoriteVo;
-import com.timeline.myapp.data.FavoriteUtil;
+import com.qq.kuaibo.R;
+import com.qq.myapp.bean.vo.FavoriteVo;
+import com.qq.myapp.data.FavoriteUtil;
 
 public class FavoriteImageView extends AppCompatImageView  implements FavoriteUtil.GetFavoriteListener, FavoriteUtil.ModFavoriteListener{
     public FavoriteImageView(Context context) {

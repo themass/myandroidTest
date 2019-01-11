@@ -9,7 +9,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-import com.qq.sexfree.R;
+import com.qq.kuaibo.R;
 import com.sspacee.common.util.StringUtils;
 
 

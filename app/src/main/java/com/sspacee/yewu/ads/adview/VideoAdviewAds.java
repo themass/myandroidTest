@@ -6,15 +6,15 @@ import android.widget.Toast;
 
 import com.kyview.interfaces.AdViewVideoListener;
 import com.kyview.manager.AdViewVideoManager;
-import com.qq.sexfree.R;
+import com.qq.kuaibo.R;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.ads.base.VideoAdsInter;
-import com.timeline.myapp.ui.sound.VideoShowActivity;
-import com.timeline.myapp.ui.sound.VideoShowActivityj;
+import com.qq.myapp.ui.sound.VideoShowActivity;
+import com.qq.myapp.ui.sound.VideoShowActivityj;
 
-import com.timeline.myapp.constant.Constants;
-import com.timeline.myapp.task.ScoreTask;
+import com.qq.myapp.constant.Constants;
+import com.qq.myapp.task.ScoreTask;
 
 import io.vov.vitamio.provider.MediaStore;
 

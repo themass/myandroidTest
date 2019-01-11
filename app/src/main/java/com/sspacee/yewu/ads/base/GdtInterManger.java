@@ -8,11 +8,9 @@ import com.qq.e.ads.interstitial.AbstractInterstitialADListener;
 import com.qq.e.ads.interstitial.InterstitialAD;
 import com.qq.e.comm.util.AdError;
 import com.qq.e.comm.util.GDTLogger;
-import com.qq.sexfree.R;
-import com.sspacee.common.util.Utils;
-import com.timeline.myapp.constant.Constants;
-import com.timeline.myapp.task.ScoreTask;
-import com.timeline.sexfree1.ui.main.MainFragmentViewPage;
+import com.qq.kuaibo.R;
+import com.qq.myapp.constant.Constants;
+import com.qq.myapp.task.ScoreTask;
 
 public class GdtInterManger {
     private  InterstitialAD iad;

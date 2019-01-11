@@ -9,8 +9,8 @@ import com.android.volley.Response;
 import com.android.volley.Response.ErrorListener;
 import com.android.volley.Response.Listener;
 import com.sspacee.common.util.LogUtil;
-import com.timeline.myapp.bean.DataBuilder;
-import com.timeline.myapp.bean.vo.JsonResult;
+import com.qq.myapp.bean.DataBuilder;
+import com.qq.myapp.bean.vo.JsonResult;
 
 import java.io.File;
 import java.util.List;

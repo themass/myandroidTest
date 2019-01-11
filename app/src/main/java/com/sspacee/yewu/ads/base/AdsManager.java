@@ -15,7 +15,7 @@ import com.sspacee.yewu.ads.adview.InterstitialAdviewAds;
 import com.sspacee.yewu.ads.adview.NativeAdviewAds;
 import com.sspacee.yewu.ads.adview.SplashAdviewAds;
 import com.sspacee.yewu.ads.adview.VideoAdviewAds;
-import com.timeline.myapp.base.MyApplication;
+import com.qq.myapp.base.MyApplication;
 
 import java.util.HashMap;
 import java.util.Map;

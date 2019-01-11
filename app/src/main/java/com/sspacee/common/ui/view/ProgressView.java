@@ -27,7 +27,7 @@ import android.util.TypedValue;
 import android.view.View;
 import android.widget.ProgressBar;
 
-import com.qq.sexfree.R;
+import com.qq.kuaibo.R;
 
 
 public class ProgressView extends View {

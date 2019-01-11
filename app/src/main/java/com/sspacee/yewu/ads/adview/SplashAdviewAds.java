@@ -8,7 +8,7 @@ import android.widget.RelativeLayout;
 
 import com.kyview.interfaces.AdViewSpreadListener;
 import com.kyview.manager.AdViewSpreadManager;
-import com.qq.sexfree.R;
+import com.qq.kuaibo.R;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.SplashAdsInter;

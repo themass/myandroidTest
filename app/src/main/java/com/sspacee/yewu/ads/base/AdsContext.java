@@ -5,18 +5,16 @@ import android.content.Context;
 import android.os.HandlerThread;
 import android.widget.Toast;
 
-import com.qq.e.comm.util.Md5Util;
-import com.qq.sexfree.R;
+import com.qq.kuaibo.R;
 import com.sspacee.common.util.Md5;
 import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.SystemUtils;
 import com.sspacee.yewu.ads.adview.AdviewConstant;
 import com.sspacee.yewu.um.MobAgent;
-import com.timeline.myapp.constant.Constants;
-import com.timeline.myapp.data.AdsPopStrategy;
-import com.timeline.myapp.data.UserLoginUtil;
-import com.timeline.myapp.task.ScoreTask;
-import com.timeline.sexfree1.ui.main.MainFragmentViewPage;
+import com.qq.myapp.constant.Constants;
+import com.qq.myapp.data.AdsPopStrategy;
+import com.qq.myapp.data.UserLoginUtil;
+import com.qq.myapp.task.ScoreTask;
 
 import static com.sspacee.yewu.ads.base.AdsContext.AdsShowStatus.ADS_CLICK_MSG;
 

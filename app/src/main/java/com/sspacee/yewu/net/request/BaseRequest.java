@@ -19,10 +19,10 @@ import com.sspacee.common.util.StringUtils;
 import com.sspacee.common.util.SystemUtils;
 import com.sspacee.common.util.cache.DiskBasedCacheEx;
 import com.sspacee.yewu.net.HttpUtils;
-import com.timeline.myapp.bean.vo.JsonResult;
-import com.timeline.myapp.constant.Constants;
-import com.timeline.myapp.data.StaticDataUtil;
-import com.timeline.myapp.data.UserLoginUtil;
+import com.qq.myapp.bean.vo.JsonResult;
+import com.qq.myapp.constant.Constants;
+import com.qq.myapp.data.StaticDataUtil;
+import com.qq.myapp.data.UserLoginUtil;
 
 import java.net.URL;
 import java.util.Date;
@@ -62,7 +62,7 @@ public class BaseRequest<T> extends Request<T> {
         }
         String sb = DeviceInfoUtils.getDeviceId(context) + "|" + time;
         String msg = time + Md5.encode(sb);
-        String ua = UA_DEFAULT + UA_APP_SUFFIX + ",channel="+uc+",cpu=" + SystemUtils.getCpuType() + ",IE" + msg;
+        String ua = UA_DEFAULT + UA_APP_SUFFIX + ",channel="+uc+",NETTYPE=SEXPLAY,cpu=" + SystemUtils.getCpuType() + ",IE" + msg;
         String loc = "lon:" + StaticDataUtil.get(Constants.LON, Double.class) + ";lat:" + StaticDataUtil.get(Constants.LAT, Double.class);
         this.authkey = ua.substring(ua.length() - 16, ua.length());
         headers.put("Loc", loc);

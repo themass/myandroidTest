@@ -11,9 +11,9 @@ import android.widget.Toast;
 import com.qq.e.ads.splash.SplashAD;
 import com.qq.e.ads.splash.SplashADListener;
 import com.qq.e.comm.util.AdError;
-import com.qq.sexfree.R;
-import com.timeline.myapp.constant.Constants;
-import com.timeline.myapp.task.ScoreTask;
+import com.qq.kuaibo.R;
+import com.qq.myapp.constant.Constants;
+import com.qq.myapp.task.ScoreTask;
 
 public class GdtOpenManager {
     private TextView skipView;

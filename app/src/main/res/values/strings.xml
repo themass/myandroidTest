@@ -32,9 +32,9 @@
     <string name="tab_fb_click_fast">Too fast,please wait 3 seconds</string>
     <string name="tab_fb_click_wifi">Please use it under Dis conn VPN </string>
     <!-- Application -->
-    <string name="app_name">AFreedom</string>
-    <string name="main_activity_name">AFreedom</string>
-    <string name="toobar_title">AFreedom</string>
+    <string name="app_name">YouGet</string>
+    <string name="main_activity_name">YouGet</string>
+    <string name="toobar_title">YouGet</string>
     <string name="load">loading more data</string>
     <string name="off">off</string>
     <string name="on">on</string>
@@ -52,7 +52,7 @@
     <string name="menu_btn_login_ready">LoginOk</string>
     <string name="menu_btn_name_default">Who am i</string>
     <string name="menu_btn_feedback">Feedback </string>
-    <string name="menu_btn_about">About: Afreedom Score</string>
+    <string name="menu_btn_about">About: YouGet Score</string>
     <string name="menu_btn_share">Share</string>
     <string name="menu_btn_bug">Report bug</string>
     <string name="menu_btn_version">Version:</string>
@@ -62,7 +62,7 @@
     <string name="menu_btn_app">App recommend</string>
     <string name="menu_btn_donation">Support</string>
     <string name="menu_btn_support">Support author</string>
-    <string name="menu_btn_about_context">FreePorn the most stable, free, unlimited，all for you！</string>
+    <string name="menu_btn_about_context">YouGet the most stable, free, unlimited，all for you！</string>
     <string name="feed_back">Feedback</string>
     <string name="menu_btn_score">Points:</string>
     <string name="menu_btn_networking">Traffic:</string>
@@ -80,7 +80,7 @@
     <string name="support_info">Please activate several apps to support the author！</string>
     <string name="offerads_ths">Thank you for your support!</string>
     <string name="location_choose_flag_none">Click“ Region ”More regional options</string>
-    <string name="vpn_status_down">Click to down load FreeVPN</string>
+    <string name="vpn_status_down">Click to down load YouGet</string>
     <string name="menu_btn_contract">Contact us:  email</string>
     <string name="menu_copy_emai">Email Copied OK</string>
     <!-- share-->
@@ -170,7 +170,7 @@
     <string name="vpn_type_free">Free</string>
     <string name="vpn_type_vip">VIP</string>
     <string name="vpn_type_vip2">VIP2</string>
-    <string name="vpn_remote_status">FreePorn·</string>
+    <string name="vpn_remote_status">YouGet·</string>
     <string name="vpn_remote_on">Connected，click to disconnect</string>
     <string name="vpn_remote_off">Disconnect，click to connect</string>
     <string name="vpn_remote_ing">Connecting，please wait</string>
@@ -186,7 +186,7 @@
 You are now using a non WIFI network, continue to download may consume more network traffic, whether to continue to download？</string>
     <string name="about_download_begin">Start download</string>
     <string name="about_download_finish">End download</string>
-    <string name="about_download_title">Downloading Freedom</string>
+    <string name="about_download_title">Downloading YouGet</string>
     <string name="about_download_prepare">Is preparing to download</string>
     <string name="about_download_error">File download error</string>
     <string name="about_download_percent">Downloading %1$s/%2$s</string>
@@ -246,6 +246,12 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="skip">skip</string>
     <string name="search">enter search content</string>
     <!--slidingclose-->
+    <string name="write_external_storage">storage</string>
+    <string name="access_coarse_location">location</string>
+    <string name="read_phone_state">device model</string>
+    <string name="permission_cus_title">Dear God</string>
+    <string name="permission_cus_msg">For better servic, open these permissions! </string>
+    <string name="cancel">cancel</string>
 
     <string-array name="recharge_arry">
         <item>WeChat</item>

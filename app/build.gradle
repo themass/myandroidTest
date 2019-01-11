@@ -6,11 +6,11 @@ android {
     compileSdkVersion 26
     buildToolsVersion '27.0.3'
     defaultConfig {
-        applicationId "com.qq.sexfree"
+        applicationId "com.qq.kuaibo"
         minSdkVersion 16
         targetSdkVersion 26
-        versionCode 1000008007
-        versionName "1.0.8.7"
+        versionCode 1000001001
+        versionName "1.0.1.1"
         // Enabling multidex support.
         multiDexEnabled true
         vectorDrawables.useSupportLibrary = true
@@ -42,7 +42,7 @@ android {
         jniLibs.srcDirs = ['libs']
     }
     signingConfigs {
-        config {
+        config { 
             keyAlias 'themass'
             keyPassword 'themass'
             storeFile file('D:/work/android-sdk/dengt.jks')
@@ -68,18 +68,18 @@ android {
             minifyEnabled true
             zipAlignEnabled true // Zipalign优化
             shrinkResources true // 移除无用的resource文件
-            debuggable true
+            debuggable false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.config
         }
     }
     productFlavors {
-        sex_weather {
+        sex_mypool_play {
             manifestPlaceholders = [CHANNEL_VALUE: "MYPOOL", AD_CHANNEL_VALUE: "MYPOOL"]
         }
-//        sexgoogle {
-//            manifestPlaceholders = [CHANNEL_VALUE: "GOOGLEMARKET", AD_CHANNEL_VALUE: "GOOGLEMARKET"]
-//        }
+        sex_google_play {
+            manifestPlaceholders = [CHANNEL_VALUE: "GOOGLEMARKET", AD_CHANNEL_VALUE: "GOOGLEMARKET"]
+        }
     }
 }
 

@@ -4,7 +4,7 @@ import com.sspacee.common.exce.HttpException;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.net.interceptor.GzipRequestInterceptor;
 import com.sspacee.yewu.net.interceptor.LoggingInterceptor;
-import com.timeline.myapp.constant.Constants;
+import com.qq.myapp.constant.Constants;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
