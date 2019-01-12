@@ -47,7 +47,7 @@
     <string name="location_ping">Ping：</string>
     <string name="menu_no">走开</string>
     <!-- menu -->
-    <string name="menu_btn_about">关于VIP-> 点我</string>
+    <string name="menu_btn_about">关于VIP</string>
     <string name="menu_btn_share">分享</string>
     <string name="menu_btn_donation">付款</string>
     <string name="menu_btn_login">立即登录</string>

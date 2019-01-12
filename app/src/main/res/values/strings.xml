@@ -46,7 +46,7 @@
     <string name="location_ping">Ping：</string>
     <string name="menu_no">no</string>
     <!-- menu -->
-    <string name="menu_btn_about">VIP About->Click me</string>
+    <string name="menu_btn_about">VIP About</string>
     <string name="menu_btn_share">Share</string>
     <string name="menu_btn_country">Region：</string>
     <!-- menu -->

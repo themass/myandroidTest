@@ -15,13 +15,16 @@ import com.qq.ext.util.EventBusUtil;
 import com.qq.ext.util.GsonUtils;
 import com.qq.ext.util.LogUtil;
 import com.qq.ext.util.PreferenceUtils;
+import com.qq.ext.util.ToastUtil;
 import com.qq.vpn.adapter.LocationItemAdapter;
 import com.qq.vpn.adapter.base.BaseRecyclerViewAdapter;
 import com.qq.vpn.domain.res.InfoListVo;
 import com.qq.vpn.domain.res.LocationVo;
 import com.qq.vpn.domain.res.VipLocationVo;
 import com.qq.Constants;
+import com.qq.vpn.main.login.SinginActivity;
 import com.qq.vpn.support.LocationUtil;
+import com.qq.vpn.support.UserLoginUtil;
 import com.qq.vpn.support.config.LocationChooseEvent;
 import com.qq.vpn.support.config.PingEvent;
 import com.qq.vpn.ui.base.fragment.BasePullLoadbleFragment;
@@ -99,6 +102,16 @@ public class LocationItemFragment extends BasePullLoadbleFragment<LocationVo>imp
     @Override
     public void onItemClick(View view, LocationVo data, int postion) {
         LogUtil.i(postion + "---" + GsonUtils.getInstance().toJson(data));
+        if(UserLoginUtil.getUserCache()==null){
+            if(vipLocationVo.type!=0){
+                ToastUtil.showShort(vipLocationVo.desc);
+                startActivity(SinginActivity.class);
+                return;
+            }
+        }else if(UserLoginUtil.getUserCache().level<vipLocationVo.type){
+            ToastUtil.showShort(vipLocationVo.desc);
+            return;
+        }
         PreferenceUtils.setPrefBoolean(getActivity(), Constants.LOCATION_FLAG, true);
         LocationUtil.setLocation(getActivity(), data);
         EventBusUtil.getEventBus().postSticky(new LocationChooseEvent());
