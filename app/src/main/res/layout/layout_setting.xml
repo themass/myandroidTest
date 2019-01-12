@@ -123,7 +123,8 @@
                     android:layout_height="wrap_content"
                     android:background="?android:attr/selectableItemBackground"
                     android:padding="@dimen/margin_10"
-                    android:text="@string/menu_btn_about" />
+                    android:text="@string/menu_btn_about"
+                    android:visibility="gone"/>
 
                 <ImageView style="@style/divider_login" />
                 <RelativeLayout

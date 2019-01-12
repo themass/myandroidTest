@@ -99,6 +99,10 @@
             android:theme="@style/StyledIndicators"
             android:screenOrientation="portrait" />
         <activity
+            android:name="com.qq.vpn.main.ui.QuickBrowserConfigActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/myTransparent" />
+        <activity
             android:name="com.qq.vpn.main.login.SingupActivity"
             android:screenOrientation="portrait" />
         <activity

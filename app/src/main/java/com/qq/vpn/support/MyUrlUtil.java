@@ -22,7 +22,7 @@ public class MyUrlUtil {
             Intent it = new Intent(Intent.ACTION_VIEW, uri);
             context.startActivity(it);
         } else {
-            WebViewActivity.startWebViewActivity(context, url, context.getString(R.string.menu_btn_about), false, false, null);
+//            WebViewActivity.startWebViewActivity(context, url, context.getString(R.string.menu_btn_about), false, false, null);
         }
     }
 }

@@ -64,7 +64,6 @@
     <LinearLayout
         android:id="@+id/ll_desc"
         android:clickable="true"
-        android:onClick="onAbout"
         android:background="@drawable/btn_context_menu"
         android:paddingLeft="@dimen/margin_3"
         android:paddingRight="@dimen/margin_3"
@@ -73,20 +72,23 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
-        <TextView
-            android:id="@+id/tv_about"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@color/base_red"
-            android:text="@string/menu_btn_about"
-            android:textSize="@dimen/textsize_18"
-            />
+
         <TextView
             android:id="@+id/tv_score"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="@dimen/textsize_12"
             />
+
+        <TextView
+            android:id="@+id/tv_about"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/menu_btn_about"
+            android:textColor="@color/base_red"
+            android:visibility="gone"
+            android:textSize="@dimen/textsize_18" />
+
         <TextView
             android:id="@+id/tv_desc"
             android:layout_width="wrap_content"

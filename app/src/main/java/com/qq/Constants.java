@@ -34,6 +34,8 @@ public class Constants {
     public static final int SHIMMER_DURATION = 1500;
     public static final String HTTP_URL = "http";
     public static final String HTTPS_URL = "https";
+    public static final String BROWSER_URL = "browser";
+
     public static final String LOCATION_FLAG = "LOCATION_FLAG";
     public static final String LOGIN_USER = "LOGIN_USER";
     public static final String LOGIN_USER_LAST = "LOGIN_USER_LAST";
