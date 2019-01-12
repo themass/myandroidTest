@@ -221,14 +221,14 @@ public class SettingActivity extends BaseSingleActivity {
 
     @OnClick(R.id.tv_about)
     public void onAbout(View view) {
-        String url = Constants.ABOUT;
-        if (SystemUtils.isZH(this)) {
-            url = Constants.ABOUT_ZH;
-        }
-        url = url + "?" + DateUtils.format(new Date(), DateUtils.DATE_FORMAT_MM);
-        WebViewActivity.startWebViewActivity(this, url, getString(R.string.menu_btn_about), false, false, null);
-        PreferenceUtils.setPrefBoolean(this, Constants.ABOUT_FIRST, true);
-        MobAgent.onEventMenu(this, "关于");
+//        String url = Constants.ABOUT;
+//        if (SystemUtils.isZH(this)) {
+//            url = Constants.ABOUT_ZH;
+//        }
+//        url = url + "?" + DateUtils.format(new Date(), DateUtils.DATE_FORMAT_MM);
+//        WebViewActivity.startWebViewActivity(this, url, getString(R.string.menu_btn_about), false, false, null);
+//        PreferenceUtils.setPrefBoolean(this, Constants.ABOUT_FIRST, true);
+//        MobAgent.onEventMenu(this, "关于");
     }
 
     @OnClick(R.id.tv_share)
