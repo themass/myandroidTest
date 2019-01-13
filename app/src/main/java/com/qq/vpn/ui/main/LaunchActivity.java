@@ -66,6 +66,13 @@ public class LaunchActivity extends LogActivity implements GdtOpenManager.OnGdtO
         unbinder = ButterKnife.bind(this);
         LoginTask.start(this);
         gdtOpenManager = new GdtOpenManager(this,ivAds,tvJishi,this);
+        mHandler.postDelayed(mStartMainRunnable, max);
+        boolean gdt = PreferenceUtils.getPrefBoolean(this,Constants.AD_GDT_SWITCH,true);
+        if(SystemUtils.isZH(this) && gdt){
+            gdtOpenManager.showAd();
+        }else{
+            showAdview();
+        }
     }
 
     @OnClick(R.id.skip_view)
@@ -89,15 +96,7 @@ public class LaunchActivity extends LogActivity implements GdtOpenManager.OnGdtO
     @Override
     protected void onResume() {
         super.onResume();
-        mHandler.postDelayed(mStartMainRunnable, max);
         MobAgent.onResume(this);
-        boolean gdt = PreferenceUtils.getPrefBoolean(this,Constants.AD_GDT_SWITCH,true);
-        if(SystemUtils.isZH(this) && gdt){
-            gdtOpenManager.showAd();
-        }else{
-            showAdview();
-        }
-
     }
     private void showAdview(){
         AdsManager.getInstans().showSplashAds(this,ivAds,skipView);
@@ -122,7 +121,7 @@ public class LaunchActivity extends LogActivity implements GdtOpenManager.OnGdtO
         super.onDestroy();
     }
     public void onADDismissed(){
-        launch();
+//        launch();
     }
     public void onNoAD(){
         showAdview();
