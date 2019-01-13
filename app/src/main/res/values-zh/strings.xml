@@ -44,7 +44,7 @@
     <string name="menu_btn_login_ready">已登录</string>
     <string name="menu_btn_name_default">猴子请来的</string>
     <string name="menu_btn_feedback">反馈 &amp; 建议</string>
-    <string name="menu_btn_about">关于积分->点我 </string>
+    <string name="menu_btn_about">关于VIP </string>
     <string name="menu_btn_share">分享</string>
     <string name="menu_btn_bug">报告bug</string>
     <string name="menu_btn_contract">联系我们:  email</string>

@@ -41,7 +41,7 @@ public class Constants {
     public static final String LOCATION_CHOOSE = "LOCATION_CHOOSE1";
     public static final String LOCATION_FLAG = "LOCATION_FLAG";
     public static final String LOCATION_FLAG_COUNT = "LOCATION_FLAG_COUNT";
-    public static final List<Integer> BANNER_ADS_POS = Arrays.asList(2,9,16,23);
+    public static final List<Integer> BANNER_ADS_POS = Arrays.asList(1,6,13,18);
     public static final String sortType = "type";
     public static final String sortCountry = "ename";
     public static final String sortASC = "asc";

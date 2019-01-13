@@ -31,8 +31,8 @@ public class LocationFragmentActivity extends BaseFragmentActivity implements Fa
     private boolean showInterstitialAds = false;
     private Boolean slidingClose = false;
     private Boolean toolbarShow = true;
-    private AdsContext.Categrey bannerCategrey =  AdsContext.Categrey.CATEGREY_VPN2;
-    private AdsContext.Categrey interCategrey =  AdsContext.Categrey.CATEGREY_VPN2;
+    private AdsContext.Categrey bannerCategrey =  AdsContext.Categrey.CATEGREY_VPN;
+    private AdsContext.Categrey interCategrey =  AdsContext.Categrey.CATEGREY_VPN1;
     private boolean needGonebanner = true;
     private Fragment fragment = null;
     @Override
@@ -93,19 +93,14 @@ public class LocationFragmentActivity extends BaseFragmentActivity implements Fa
     @Override
     public void setupView() {
         super.setupView();
-        if(showInterstitialAds ){
-            AdsContext.showRand(this);
-        }
+        AdsContext.showRand(this,interCategrey);
     }
     @Override
     protected boolean needGoneBanner(){
-        return needGonebanner;
+        return false;
     }
     public boolean needShow() {
-        if (showAds != null) {
-            return showAds;
-        }
-        return false;
+        return true;
     }
 
     @Override

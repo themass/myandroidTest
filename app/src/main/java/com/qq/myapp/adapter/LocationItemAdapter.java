@@ -18,6 +18,7 @@ import android.widget.TextView;
 
 import com.kyview.natives.NativeAdInfo;
 import com.qq.common.util.LogUtil;
+import com.qq.myapp.constant.Constants;
 import com.qq.myapp.data.ImagePhotoLoad;
 import com.qq.yewu.ads.base.AdsContext;
 import com.qq.yewu.ads.base.AdsManager;
@@ -82,11 +83,31 @@ public class LocationItemAdapter extends BaseRecyclerViewAdapter<LocationItemAda
         holder.tvCountry.setText(vo.name);
         holder.tvCountryEname.setText(vo.ename);
 
-        AdsContext.Categrey one;
-        if(index<2 && index%2==1) {
-            one = AdsContext.Categrey.CATEGREY_VPN2;
-        }else{
-            one = AdsContext.Categrey.CATEGREY_VPN3;
+        AdsContext.Categrey one = AdsContext.Categrey.CATEGREY_VPN2;
+        if(index<2) {
+            if (index % 2 == 0) {
+                if (position % 2 == 0) {
+                    one = AdsContext.Categrey.CATEGREY_VPN3;
+                } else {
+                    one = AdsContext.Categrey.CATEGREY_VPN1;
+                }
+            } else {
+                if (position % 2 == 0) {
+                    one = AdsContext.Categrey.CATEGREY_VPN2;
+                } else {
+                    one = AdsContext.Categrey.CATEGREY_VPN1;
+                }
+            }
+        }else {
+            one = null;
+        }
+
+        if (Constants.BANNER_ADS_POS.contains(position)&&one!=null) {
+            holder.rvAds.setVisibility(View.VISIBLE);
+            AdsManager.getInstans().showBannerAds((FragmentActivity) context, holder.rvAds, one);
+        }  else {
+            holder.rvAds.removeAllViews();
+            holder.rvAds.setVisibility(View.GONE);
         }
         if(gdtNativeManager!=null){
             if(!gdtNativeManager.showAds(position,holder.natvieView)){

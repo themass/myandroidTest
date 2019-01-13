@@ -74,6 +74,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     MenuItem miLogout;
     MenuItem miLocation;
     MenuItem miSetting;
+    MenuItem miAbout;
     BaseService baseService;
     private final String DOAMIN_TAG="DOAMIN_TAG";
 
@@ -92,6 +93,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         miLocation = nvDrawer.getMenu().findItem(R.id.menu_location);
         miSetting = nvDrawer.getMenu().findItem(R.id.menu_setting);
         headerView = nvDrawer.getHeaderView(0);
+        miAbout = nvDrawer.getMenu().findItem(R.id.menu_about);
         llLoginMenuHeader = (LinearLayout) headerView.findViewById(R.id.ll_menu_headview);
         tvMenuUserName = (TextView) headerView.findViewById(R.id.tv_menu_username);
         tvMenuUserLogin = (TextView) headerView.findViewById(R.id.tv_menu_login);
@@ -286,6 +288,9 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                 }else if (item.getItemId() == R.id.menu_setting) {
                     name = "设置";
                     startActivity(SettingActivity.class);
+                }else if (item.getItemId() == R.id.menu_about) {
+                    name = "关于";
+                    onAbout(null);
                 }
                 else if (item.getItemId() == R.id.menu_share) {
                     showShare();
