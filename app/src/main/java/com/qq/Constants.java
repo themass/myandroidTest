@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 public class Constants {
 
     public static final String SCORE_CLICK_CLICK = "SCORE_CLICK_CLICK";
-    public static final List<Integer> BANNER_ADS_POS = Arrays.asList(3,8,13,18,21,30,40,50);
+    public static final List<Integer> BANNER_ADS_POS = Arrays.asList(1,6,11,16,21);
 
     public static final String USER_AGENT = "User-Agent";
     public static final String REFERER = "referer";

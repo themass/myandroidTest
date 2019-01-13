@@ -65,7 +65,10 @@ public class LaunchActivity extends LogActivity {
 
     @OnClick(R.id.skip_view)
     public void skip(View view) {
-        launch();
+
+//        launch();
+        if(getResources().getText(R.string.skip).equals(tvJishi.getText()))
+            launch();
     }
 
     private void launch() {

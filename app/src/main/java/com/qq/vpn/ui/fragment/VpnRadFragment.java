@@ -203,7 +203,7 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
                 mService.disconnect();
             } else if (mService.getState() == VpnStateService.State.DISABLED) {
                 MobAgent.onEventLocationChoose(getActivity(), LocationUtil.getName(getActivity()));
-                if(!UserLoginUtil.isVIP3())
+                if(!UserLoginUtil.isVIP())
                     AdsContext.showRand(getActivity());
                 int id = LocationUtil.getSelectLocationId(getActivity());
                 api.getData(String.format(Constants.getUrl(Constants.API_SERVERLIST_URL), id), serverListener, serverListenerError, INDEX_TAG, ServerVo.class);
