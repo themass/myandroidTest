@@ -32,7 +32,7 @@ public class LaunchActivity extends LogActivity {
     RelativeLayout skipView;
     @BindView(R.id.tv_shu)
     TextView tvJishi;
-    private int max = Constants.STARTUP_SHOW_TIME_3000;
+    private int max = Constants.STARTUP_SHOW_TIME_3000+2000;
     private int now = 0;
     private Unbinder unbinder;
     private Runnable mStartMainRunnable = new Runnable() {
@@ -61,6 +61,9 @@ public class LaunchActivity extends LogActivity {
         MobAgent.init(this);
         unbinder = ButterKnife.bind(this);
         LoginTask.start(this);
+        AdsManager.getInstans().showSplashAds(this,ivAds,skipView);
+        delay1s();
+        mHandler.postDelayed(mStartMainRunnable, max);
     }
 
     @OnClick(R.id.skip_view)
@@ -89,11 +92,7 @@ public class LaunchActivity extends LogActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        mHandler.postDelayed(mStartMainRunnable, Constants.STARTUP_SHOW_TIME_3000);
-        AdsManager.getInstans().showSplashAds(this,ivAds,skipView);
         MobAgent.onResume(this);
-        AdsManager.getInstans().reqVideo(this);
-        delay1s();
     }
 
     private void delay1s() {
