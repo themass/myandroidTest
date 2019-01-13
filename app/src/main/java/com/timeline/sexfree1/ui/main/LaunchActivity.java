@@ -34,7 +34,7 @@ public class LaunchActivity extends LogActivity implements GdtOpenManager.OnGdtO
     RelativeLayout skipView;
     @BindView(R.id.tv_jishi)
     TextView tvJishi;
-    private int max = Constants.STARTUP_SHOW_TIME_6000;
+    private int max = Constants.STARTUP_SHOW_TIME_6000+2000;
     private int now = 0;
     private Unbinder unbinder;
     private GdtOpenManager gdtOpenManager;
@@ -65,6 +65,13 @@ public class LaunchActivity extends LogActivity implements GdtOpenManager.OnGdtO
         unbinder = ButterKnife.bind(this);
         LoginTask.start(this);
         gdtOpenManager = new GdtOpenManager(this,ivAds,tvJishi,this);
+        boolean gdt = PreferenceUtils.getPrefBoolean(this,Constants.AD_GDT_SWITCH,true);
+        if(SystemUtils.isZH(this) && gdt){
+            gdtOpenManager.showAd();
+        }else{
+            showAdview();
+        }
+        mHandler.postDelayed(mStartMainRunnable, max);
     }
 
     @OnClick(R.id.skip_view)
@@ -87,15 +94,7 @@ public class LaunchActivity extends LogActivity implements GdtOpenManager.OnGdtO
     @Override
     protected void onResume() {
         super.onResume();
-        mHandler.postDelayed(mStartMainRunnable, max);
         MobAgent.onResume(this);
-        boolean gdt = PreferenceUtils.getPrefBoolean(this,Constants.AD_GDT_SWITCH,true);
-        if(SystemUtils.isZH(this) && gdt){
-            gdtOpenManager.showAd();
-        }else{
-            showAdview();
-        }
-
     }
     private void showAdview(){
         AdsManager.getInstans().showSplashAds(this,ivAds,skipView);
