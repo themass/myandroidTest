@@ -64,7 +64,6 @@
     <LinearLayout
         android:id="@+id/ll_desc"
         android:clickable="true"
-        android:onClick="onAbout"
         android:background="@drawable/btn_context_menu"
         android:paddingLeft="@dimen/margin_3"
         android:paddingRight="@dimen/margin_3"
@@ -79,6 +78,7 @@
             android:layout_height="wrap_content"
             android:textColor="@color/base_red"
             android:text="@string/menu_btn_about"
+            android:visibility="gone"
             android:textSize="@dimen/textsize_18"
             />
         <TextView
