@@ -11,6 +11,7 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.qq.Constants;
+import com.qq.ads.base.AdsContext;
 import com.qq.ext.util.LogUtil;
 import com.qq.ext.util.PackageUtils;
 import com.qq.ext.util.SystemUtils;
@@ -106,5 +107,8 @@ public class WebViewActivity extends BaseFragmentActivity implements MyWebView.O
         } else {
             toolbar.setVisibility(View.VISIBLE);
         }
+    }
+    protected AdsContext.Categrey getBannerCategrey(){
+        return AdsContext.Categrey.CATEGREY_VPN1;
     }
 }

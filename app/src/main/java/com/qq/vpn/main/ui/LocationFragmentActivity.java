@@ -31,8 +31,8 @@ public class LocationFragmentActivity extends BaseFragmentActivity implements Fa
     private boolean showInterstitialAds = false;
     private Boolean slidingClose = false;
     private Boolean toolbarShow = true;
-    private AdsContext.Categrey bannerCategrey =  AdsContext.Categrey.CATEGREY_VPN;
-    private AdsContext.Categrey interCategrey =  AdsContext.Categrey.CATEGREY_VPN2;
+    private AdsContext.Categrey bannerCategrey =  AdsContext.Categrey.CATEGREY_VPN1;
+    private AdsContext.Categrey interCategrey =  AdsContext.Categrey.CATEGREY_VPN3;
     private boolean needGonebanner = true;
     private Fragment fragment = null;
     @Override
@@ -43,7 +43,7 @@ public class LocationFragmentActivity extends BaseFragmentActivity implements Fa
         boolean scroll = getIntent().getBooleanExtra(ADSSCROLL, true);
         toolbarShow = getIntent().getBooleanExtra(TOOLBAR_SHOW, true);
         showInterstitialAds =getIntent().getBooleanExtra(INTERSTITIAL_ADS_SHOW, false);
-        needGonebanner = getIntent().getBooleanExtra(BANNER_NEED_GONE, true);
+        needGonebanner = getIntent().getBooleanExtra(BANNER_NEED_GONE, false);
         if (!scroll) {
             disableScrollBanner();
         }

@@ -15,6 +15,7 @@ import android.view.KeyEvent;
 
 import com.qq.Constants;
 import com.qq.ads.base.AdsContext;
+import com.qq.ads.base.AdsManager;
 import com.qq.ads.base.GdtInterManger;
 import com.qq.ext.util.DoubleClickExit;
 import com.qq.ext.util.EventBusUtil;
@@ -67,11 +68,12 @@ public class MainActivity extends BaseDrawerMenuActivity implements ActivityComp
             gdtInterManger = new GdtInterManger(this,this);
             gdtInterManger.showAd();
         }else{
-            AdsContext.showNext(this);
+            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false);
         }
     }
     public void onNoAD(){
-        AdsContext.showNext(this);
+        AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false);
+
     }
 
     @Override

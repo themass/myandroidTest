@@ -122,7 +122,7 @@ public abstract class BaseFragmentActivity extends ToolBarActivity {
     }
 
     public boolean needShow() {
-        return true;
+        return false;
     }
 
     public void hidenAds() {

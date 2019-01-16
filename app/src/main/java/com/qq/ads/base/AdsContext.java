@@ -100,21 +100,21 @@ public class AdsContext {
     }
     // 3/5
     public static boolean rateShow(){
-        if(showCount++>8){
+        if(showCount++>4){
             return false;
         }
         if(UserLoginUtil.isVIP3()){
             int i = Md5.getRandom(Constants.maxRate);
-            return i<=2;
+            return i<=1;
         }else if(UserLoginUtil.isVIP2()){
             int i = Md5.getRandom(Constants.maxRate);
-            return i<=4;
+            return i<=2;
         }else if(UserLoginUtil.isVIP()){
             int i = Md5.getRandom(Constants.maxRate);
-            return i<=5;
+            return i<=3;
         }else{
             int i = Md5.getRandom(Constants.maxRate);
-            return i<=7;
+            return i<=Constants.PROBABILITY;
         }
 
     }
@@ -134,14 +134,6 @@ public class AdsContext {
         int size = AdsContext.Categrey.values().length;
         return AdsContext.Categrey.values()[(index++)%2];
     }
-    public static void showRandCate(Context context, AdsContext.Categrey cate){
-        if(UserLoginUtil.showAds()) {
-            if (AdsContext.rateShow()) {
-                index++;
-                AdsManager.getInstans().showInterstitialAds(context, cate, false);
-            }
-        }
-    }
     public static Categrey getIndex(int num){
         int size = AdsContext.Categrey.values().length;
         return AdsContext.Categrey.values()[(num)%size];
@@ -160,7 +152,7 @@ public class AdsContext {
             gdtInterManger.showAd();
         }else {
             int size = AdsContext.Categrey.values().length;
-            AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.values()[(index++) % size], false);
+            AdsManager.getInstans().showInterstitialAds(context, Categrey.CATEGREY_VPN2, false);
         }
     }
     public static void showRand(Context context){
@@ -171,16 +163,15 @@ public class AdsContext {
         }
     }
     public static void showRand(Context context, AdsContext.Categrey cate){
-
-        boolean gdt = PreferenceUtils.getPrefBoolean(context,Constants.AD_GDT_SWITCH,true);
-        if(SystemUtils.isZH(context) && gdt && context instanceof Activity){
-            if (AdsContext.rateShow()) {
+        if (AdsContext.rateShow()) {
+            boolean gdt = PreferenceUtils.getPrefBoolean(context,Constants.AD_GDT_SWITCH,true);
+            if(SystemUtils.isZH(context) && gdt && context instanceof  Activity){
                 int index = Md5.getRandom(Constants.gdtInterlist.size());
-                GdtInterManger gdtInterManger = new GdtInterManger((Activity) context, null, Constants.gdtInterlist.get(index));
+                GdtInterManger gdtInterManger = new GdtInterManger((Activity) context,null,Constants.gdtInterlist.get(index));
                 gdtInterManger.showAd();
+            }else{
+                AdsManager.getInstans().showInterstitialAds(context, cate, false);
             }
-        }else{
-            AdsContext.showRandCate(context,cate);
         }
     }
 

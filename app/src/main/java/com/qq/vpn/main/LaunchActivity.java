@@ -35,7 +35,7 @@ public class LaunchActivity extends LogActivity implements GdtOpenManager.OnGdtO
     RelativeLayout skipView;
     @BindView(R.id.tv_shu)
     TextView tvJishi;
-    private int max = Constants.STARTUP_SHOW_TIME_3000+2000;
+    private int max = Constants.STARTUP_SHOW_TIME_3000+1000;
     private int now = 0;
     private Unbinder unbinder;
     private GdtOpenManager gdtOpenManager;

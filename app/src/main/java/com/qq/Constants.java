@@ -28,7 +28,7 @@ public class Constants {
     public static final String IMAGE_CONF = "timeline://img";
     public static final String URL = "url";
     public static final String DEFULT_LOCATION_NAME="随机";
-    public static final int STARTUP_SHOW_TIME_3000 = 7000; //启动页广告时长
+    public static final int STARTUP_SHOW_TIME_3000 = 6000; //启动页广告时长
     public static final int VPN_CHECK_TIME = 7000; //启动页广告时长
     public static final int SHIMMER_DURATION = 1500;
     public static final String HTTP_URL = "http";
@@ -40,6 +40,7 @@ public class Constants {
     public static final String HTTP_TOKEN_KEY = "Vpn-Token";
     public static final String D_URL = "D_URL";
     public static final String NOTIFY_SWITCH = "NOTIFY_SWITCH";
+    public static int PROBABILITY = 4;
 
     public static final int SKIP_SLOW= -1;
     public static final Pattern namePattern = Pattern.compile("[a-zA-Z0-9]{3,20}");
@@ -179,7 +180,7 @@ public class Constants {
     public static final long SCORE_CLICK_INTERVAL = 2;
     public static final int BANNER_ADS_GONE_SHORT = 5000; //启动页广告时长
     public static final String ADMIN = "themass";
-    public static final List<Integer> BANNER_ADS_POS = Arrays.asList(1,6,13,18);
+    public static final List<Integer> BANNER_ADS_POS = Arrays.asList(1,8,24,38);
 
 
     public static class UserLevel {
