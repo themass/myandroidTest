@@ -76,7 +76,7 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
 //        flBanner.setBackgroundResource(R.color.base_white);
     }
     protected boolean needGoneBanner(){
-        return true;
+        return false;
     }
     public void disableScrollBanner() {
         AppBarLayout.LayoutParams params =

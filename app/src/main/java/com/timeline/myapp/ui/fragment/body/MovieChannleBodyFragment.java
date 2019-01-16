@@ -56,7 +56,7 @@ public class MovieChannleBodyFragment extends RecommendFragment {
        else {
             if(Constants.VIDEO_USER_CHANNEL.equals(vo.actionUrl)){
                 VideoChannelUserListFragment.startFragment(getActivity(),vo);
-            }if(Constants.VIDEO_LIST_CHANNEL.equals(vo.actionUrl)){
+            }else if(Constants.VIDEO_LIST_CHANNEL.equals(vo.actionUrl)){
                 Map<String, Object> param = new HashMap<>();
                 param.put(Constants.ADS_SHOW_CONFIG, vo.adsShow);
                 param.put(Constants.ADS_POP_SHOW_CONFIG, vo.adsPopShow);

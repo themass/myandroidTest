@@ -131,7 +131,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         if(SystemUtils.isZH(this) && gdt){
             gdtInterManger.showAd();
         }else{
-            AdsContext.showNext(MainFragmentViewPage.this);
+            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN1, false);
         }
 
     }
@@ -190,7 +190,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         mViewPager.setCurrentItem(savedInstanceState.getInt(POSITION));
     }
     public void onNoAD(){
-        AdsContext.showNext(MainFragmentViewPage.this);
+        AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN1, false);
     }
 
     @Override

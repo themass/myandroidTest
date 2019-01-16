@@ -24,7 +24,7 @@ public class AdsPopStrategy {
         if(SystemUtils.isApkDebugable(context)){
             AdsManager.getInstans().showVideo(context);
         }
-        AdsContext.showNextAbs(context);
+        AdsContext.showRand(context,AdsContext.Categrey.CATEGREY_VPN1);
         Long lastClickTime = StaticDataUtil.get(Constants.SCORE_CLICK, Long.class, 0l);
         long curent = System.currentTimeMillis();
         long interval = curent - lastClickTime;

@@ -54,7 +54,7 @@ public class SoundItemsViewAdapter extends BaseRecyclerViewAdapter<SoundItemsVie
                 AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN2);
             }else{
                 holder.rvAds.setVisibility(View.VISIBLE);
-                AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN3);
+                AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN1);
             }
         }else{
             holder.rvAds.removeAllViews();

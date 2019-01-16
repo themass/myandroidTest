@@ -46,7 +46,7 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
         boolean scroll = getIntent().getBooleanExtra(ADSSCROLL, true);
         toolbarShow = getIntent().getBooleanExtra(TOOLBAR_SHOW, true);
         showInterstitialAds =getIntent().getBooleanExtra(INTERSTITIAL_ADS_SHOW, false);
-        needGonebanner = getIntent().getBooleanExtra(BANNER_NEED_GONE, true);
+        needGonebanner = getIntent().getBooleanExtra(BANNER_NEED_GONE, false);
 //        if (!scroll) {
 //            disableScrollBanner();
 //        }
@@ -90,7 +90,7 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
     public void setupView() {
         super.setupView();
         if(showInterstitialAds ){
-            AdsContext.showRand(this);
+            AdsContext.showRand(this,AdsContext.Categrey.CATEGREY_VPN3);
         }
     }
     @Override

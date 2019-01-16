@@ -52,8 +52,8 @@ public class TextChannelListFragment extends BasePullLoadbleFragment<TextItemsVo
         StaticDataUtil.add(Constants.TEXT_CHANNEL, vo);
         intent.putExtra(CommonFragmentActivity.ADSSCROLL, false);
         intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, true);
-        intent.putExtra(CommonFragmentActivity.BANNER_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_VPN3);
-        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_SHOW, true);
+        intent.putExtra(CommonFragmentActivity.BANNER_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_VPN2);
+        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_SHOW, false);
         context.startActivity(intent);
     }
     public boolean onAdRecieved(List<NativeAdInfo> data){

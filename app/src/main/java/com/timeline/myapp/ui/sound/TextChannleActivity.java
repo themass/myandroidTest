@@ -46,6 +46,10 @@ public class TextChannleActivity extends BaseFragmentActivity {
     @Override
     public void setupView() {
         super.setupView();
-        AdsContext.showRand(this);
+        AdsContext.showRand(this,AdsContext.Categrey.CATEGREY_VPN3);
     }
+    protected AdsContext.Categrey getBannerCategrey(){
+        return AdsContext.Categrey.CATEGREY_VPN2;
+    }
+
 }

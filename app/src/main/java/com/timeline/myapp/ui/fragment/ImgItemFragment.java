@@ -18,6 +18,7 @@ import com.etiennelawlor.imagegallery.library.utilities.DisplayUtility;
 import com.qq.sexfree.R;
 import com.sspacee.common.ui.view.FavoriteImageView;
 import com.sspacee.common.util.ToastUtil;
+import com.sspacee.yewu.ads.base.AdsContext;
 import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.myapp.base.MyApplication;
 import com.timeline.myapp.bean.vo.ImgItemsVo;
@@ -61,6 +62,7 @@ public class ImgItemFragment extends RecommendFragment implements SaveImageCallB
         intent.putExtra(CommonFragmentActivity.TITLE, vo.name);
         StaticDataUtil.add(Constants.IMG_ITEMS, vo);
         intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, true);
+        intent.putExtra(CommonFragmentActivity.BANNER_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_VPN1);
         intent.putExtra(CommonFragmentActivity.ADSSCROLL, true);
         intent.putExtra(CommonFragmentActivity.SLIDINGCLOSE, true);
         intent.putExtra(CommonFragmentActivity.TOOLBAR_SHOW, false);

@@ -102,21 +102,21 @@ public class AdsContext {
     }
     // 3/5
     public static boolean rateShow(){
-        if(showCount++>15){
+        if(showCount++>7){
             return false;
         }
         if(UserLoginUtil.isVIP3()){
             int i = Md5.getRandom(Constants.maxRate);
-            return i<=2;
+            return i<=1;
         }else if(UserLoginUtil.isVIP2()){
             int i = Md5.getRandom(Constants.maxRate);
-            return i<=3;
+            return i<=2;
         }else if(UserLoginUtil.isVIP()){
             int i = Md5.getRandom(Constants.maxRate);
-            return i<=4;
+            return i<=3;
         }else{
             int i = Md5.getRandom(Constants.maxRate);
-            return i<=6;
+            return i<=Constants.PROBABILITY;
         }
 
     }
@@ -172,7 +172,7 @@ public class AdsContext {
                 GdtInterManger gdtInterManger = new GdtInterManger((Activity) context,null,Constants.gdtInterlist.get(index));
                 gdtInterManger.showAd();
             }else{
-                AdsContext.showNext(context);
+                AdsManager.getInstans().showInterstitialAds(context, cate, false);
             }
         }
     }

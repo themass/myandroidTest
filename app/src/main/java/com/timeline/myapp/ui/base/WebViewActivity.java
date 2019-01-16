@@ -165,4 +165,7 @@ public class WebViewActivity extends BaseFragmentActivity implements MyWebView.O
             getToolbar().setVisibility(View.VISIBLE);
         }
     }
+    protected AdsContext.Categrey getBannerCategrey(){
+        return AdsContext.Categrey.CATEGREY_VPN3;
+    }
 }

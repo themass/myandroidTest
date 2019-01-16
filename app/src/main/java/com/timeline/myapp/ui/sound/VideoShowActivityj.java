@@ -98,7 +98,7 @@ public class VideoShowActivityj extends AppCompatActivity {
         public void  onEvent(int type, Object url, int screen, Object... objects) {
             switch (type) {
                 case JZUserAction.ON_CLICK_PAUSE:
-                    AdsContext.showRand(VideoShowActivityj.this);
+                    AdsContext.showRand(VideoShowActivityj.this, AdsContext.Categrey.CATEGREY_VPN1);
                     break;
                 default:break;
             }

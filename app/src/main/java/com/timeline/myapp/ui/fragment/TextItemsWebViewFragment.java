@@ -76,10 +76,10 @@ public class TextItemsWebViewFragment extends BaseFragment {
         intent.putExtra(CommonFragmentActivity.TITLE, R.string.app_name);
         StaticDataUtil.add(Constants.TEXT_FILE, vo);
         intent.putExtra(CommonFragmentActivity.TOOLBAR_SHOW, false);
-        intent.putExtra(CommonFragmentActivity.BANNER_NEED_GONE, true);
+        intent.putExtra(CommonFragmentActivity.BANNER_NEED_GONE, false);
         intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, true);
         intent.putExtra(CommonFragmentActivity.BANNER_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_VPN3);
-        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_SHOW, true);
+        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_SHOW, false);
         context.startActivity(intent);
     }
 

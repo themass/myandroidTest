@@ -32,7 +32,7 @@ public class Constants {
     public static final int VIP_SHIMMER_DURATION = 2300;
     public static final int RECOMMAND_SHIMMER_DURATION = 1500;
     public static final int ADS_JISHI = -1;
-
+    public static int PROBABILITY = 4;
     public static final String HTTP_URL = "http";
     public static final String HTTPS_URL = "https";
     public static final String BROWSER_URL = "browser";
@@ -53,7 +53,9 @@ public class Constants {
     public static final int LOCATION_TYPE_FREE = 0;
     public static final int LOCATION_TYPE_VIP = 1;
     public static final int LOCATION_TYPE_VIP2 = 2;
-    public static final List<Integer> BANNER_ADS_POS = Arrays.asList(8,13,18,21,30,40,50);
+    public static final List<Integer> BANNER_ADS_POS = Arrays.asList(2,15,35,55);
+//    public static final List<Integer> BANNER_ADS_POS = Arrays.asList(3,13,18,21,30,40,50);
+
     public static final String[] sort_type = new String[]{"type_asc", "type_desc"};
     public static final String[] sort_country = new String[]{"ename_asc", "ename_desc"};
     public static final String[] sort_fea = new String[]{"level_asc", "level_desc"};

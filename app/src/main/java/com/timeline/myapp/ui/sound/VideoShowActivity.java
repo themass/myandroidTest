@@ -53,7 +53,7 @@ public class VideoShowActivity extends AppCompatActivity implements GdtNativeMan
         if(!CollectionUtils.isEmpty(mAdViewPositionMap)){
             gdtNativeManager.showAds(Constants.FIRST_AD_POSITION,natvieView);
         }else{
-            AdsManager.getInstans().showBannerAds(this, natvieView, AdsContext.Categrey.CATEGREY_VPN3);
+            AdsManager.getInstans().showBannerAds(this, natvieView, AdsContext.Categrey.CATEGREY_VPN2);
         }
     }
     @Override
@@ -121,10 +121,10 @@ public class VideoShowActivity extends AppCompatActivity implements GdtNativeMan
         public void onEvent(int type, Object url, int screen, Object... objects) {
             switch (type) {
                 case JZUserAction.ON_CLICK_PAUSE:
-                    AdsContext.showRand(VideoShowActivity.this);
+                    AdsContext.showRand(VideoShowActivity.this,AdsContext.Categrey.CATEGREY_VPN2);
                     break;
                 case JZUserAction.ON_AUTO_COMPLETE:
-                    AdsContext.showRand(VideoShowActivity.this);
+                    AdsContext.showRand(VideoShowActivity.this,AdsContext.Categrey.CATEGREY_VPN2);
                     break;
                 case JZUserAction.ON_CLICK_START_ERROR:
                     ConnLogUtil.addLog(VideoShowActivity.this,vo.extra+"--"+vo.baseurl,vo.actionUrl,0);

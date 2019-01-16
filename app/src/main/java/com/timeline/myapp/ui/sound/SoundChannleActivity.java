@@ -37,7 +37,7 @@ public class SoundChannleActivity extends BaseFragmentActivity {
     @Override
     public void setupView() {
         super.setupView();
-        AdsContext.showRand(this,AdsContext.Categrey.CATEGREY_VPN2);
+        AdsContext.showRand(this,AdsContext.Categrey.CATEGREY_VPN3);
     }
     public boolean needShow() {
         return true;
@@ -46,4 +46,8 @@ public class SoundChannleActivity extends BaseFragmentActivity {
     protected boolean enableSliding() {
         return true;
     }
+    protected AdsContext.Categrey getBannerCategrey(){
+        return AdsContext.Categrey.CATEGREY_VPN2;
+    }
+
 }
