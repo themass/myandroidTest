@@ -15,4 +15,6 @@ public class VersionVo {
     public Boolean needNative = true;
     public boolean update = false;
     public Boolean showGdt = false;
+    public Integer probability=4;
+
 }
