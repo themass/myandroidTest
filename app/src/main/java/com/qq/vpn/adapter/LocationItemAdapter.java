@@ -70,18 +70,17 @@ public class LocationItemAdapter extends BaseRecyclerViewAdapter<LocationItemAda
         holder.tvCountry.setText(vo.name);
         holder.tvCountryEname.setText(vo.ename);
 
-        if (Constants.BANNER_ADS_POS.contains(position)) {
-            holder.natvieView.setVisibility(View.GONE);
-            holder.rvAds.setVisibility(View.VISIBLE);
+        if(Constants.BANNER_ADS_POS.contains(position)&&index==0){
             if(position%2==1){
+                holder.rvAds.setVisibility(View.VISIBLE);
                 AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN2);
             }else{
+                holder.rvAds.setVisibility(View.VISIBLE);
                 AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN3);
             }
         }else{
             holder.rvAds.removeAllViews();
             holder.rvAds.setVisibility(View.GONE);
-            holder.natvieView.setVisibility(View.GONE);
         }
         LocationPingTask.fillText(context,holder.pgPing,holder.tvPing,vo.ping);
 //        holder.tvPing.setTextColor(context.getResources().getColor(R.color.base_black));

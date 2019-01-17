@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 public class Constants {
 
     public static final String SCORE_CLICK_CLICK = "SCORE_CLICK_CLICK";
-    public static final List<Integer> BANNER_ADS_POS = Arrays.asList(1,6,11,16,21);
+    public static final List<Integer> BANNER_ADS_POS = Arrays.asList(1,10,25,38);
 
     public static final String USER_AGENT = "User-Agent";
     public static final String REFERER = "referer";
@@ -43,7 +43,7 @@ public class Constants {
     public static final String HTTP_TOKEN_KEY = "Vpn-Token";
     public static final String D_URL = "D_URL";
     public static final String NOTIFY_SWITCH = "NOTIFY_SWITCH";
-
+    public static int PROBABILITY=5;
     public static final int SKIP_SLOW= -1;
     public static final Pattern namePattern = Pattern.compile("[a-zA-Z0-9]{3,20}");
     public static final Pattern passPattern = Pattern.compile("[0-9A-Za-z]{6,10}");

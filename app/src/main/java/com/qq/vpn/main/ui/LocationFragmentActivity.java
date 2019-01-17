@@ -32,7 +32,7 @@ public class LocationFragmentActivity extends BaseFragmentActivity implements Fa
     private Boolean slidingClose = false;
     private Boolean toolbarShow = true;
     private AdsContext.Categrey bannerCategrey =  AdsContext.Categrey.CATEGREY_VPN;
-    private AdsContext.Categrey interCategrey =  AdsContext.Categrey.CATEGREY_VPN1;
+    private AdsContext.Categrey interCategrey =  AdsContext.Categrey.CATEGREY_VPN2;
     private boolean needGonebanner = true;
     private Fragment fragment = null;
     @Override

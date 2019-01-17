@@ -14,6 +14,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 
 import com.qq.ads.base.AdsContext;
+import com.qq.ads.base.AdsManager;
 import com.qq.ext.util.DoubleClickExit;
 import com.qq.ext.util.EventBusUtil;
 import com.qq.MobAgent;
@@ -57,7 +58,7 @@ public class MainActivity extends BaseDrawerMenuActivity implements ActivityComp
         myPagerAdapter = new MyPagerAdapter(getSupportFragmentManager());
         mViewPager.setAdapter(myPagerAdapter);
         myPagerAdapter.notifyDataSetChanged();
-        AdsContext.showNext(this);
+        AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false);
     }
     @Override
     public void onDestroy() {

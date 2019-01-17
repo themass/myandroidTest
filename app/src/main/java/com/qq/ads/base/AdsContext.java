@@ -1,5 +1,6 @@
 package com.qq.ads.base;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.HandlerThread;
 import android.widget.Toast;
@@ -8,6 +9,8 @@ import com.qq.Constants;
 import com.qq.MobAgent;
 import com.qq.ads.adview.AdviewConstant;
 import com.qq.ext.util.Md5;
+import com.qq.ext.util.PreferenceUtils;
+import com.qq.ext.util.SystemUtils;
 import com.qq.fq3.R;
 import com.qq.vpn.support.AdsPopStrategy;
 import com.qq.vpn.support.UserLoginUtil;
@@ -97,21 +100,21 @@ public class AdsContext {
     }
     // 3/5
     public static boolean rateShow(){
-        if(showCount++>6){
+        if(showCount++>4){
             return false;
         }
         if(UserLoginUtil.isVIP3()){
             int i = Md5.getRandom(Constants.maxRate);
-            return i<=2;
+            return i<=1;
         }else if(UserLoginUtil.isVIP2()){
             int i = Md5.getRandom(Constants.maxRate);
-            return i<=3;
+            return i<=2;
         }else if(UserLoginUtil.isVIP()){
             int i = Md5.getRandom(Constants.maxRate);
-            return i<=4;
+            return i<=3;
         }else{
             int i = Md5.getRandom(Constants.maxRate);
-            return i<=6;
+            return i<=Constants.PROBABILITY;
         }
 
     }
@@ -143,7 +146,7 @@ public class AdsContext {
     }
     public static void showNextAbs(Context context){
         int size = AdsContext.Categrey.values().length;
-        AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.values()[(index++) % size], false);
+        AdsManager.getInstans().showInterstitialAds(context, Categrey.CATEGREY_VPN2, false);
     }
     public static void showRand(Context context){
         if(UserLoginUtil.showAds()) {
@@ -152,11 +155,9 @@ public class AdsContext {
             }
         }
     }
-    public static void showRand(Context context,AdsContext.Categrey cate){
-        if(UserLoginUtil.showAds()) {
-            if (AdsContext.rateShow()) {
-                AdsManager.getInstans().showInterstitialAds(context, cate, false);
-            }
+    public static void showRand(Context context, AdsContext.Categrey cate){
+        if (AdsContext.rateShow()) {
+            AdsManager.getInstans().showInterstitialAds(context, cate, false);
         }
     }
 
