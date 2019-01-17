@@ -9,8 +9,8 @@ android {
         applicationId "com.qq.fq2"
         minSdkVersion 16
         targetSdkVersion 26
-        versionCode 1001008006
-        versionName "1.1.8.6"
+        versionCode 1001008008
+        versionName "1.1.8.8"
         // Enabling multidex support.
         multiDexEnabled true
         flavorDimensions "versionCode"

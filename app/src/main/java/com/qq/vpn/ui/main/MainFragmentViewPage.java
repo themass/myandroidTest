@@ -24,6 +24,7 @@ import com.qq.common.util.ToastUtil;
 import com.qq.vpn.ui.maintab.TabLocalRecommFragment;
 import com.qq.vpn.ui.maintab.VpnNativeFragment;
 import com.qq.yewu.ads.base.AdsContext;
+import com.qq.yewu.ads.base.AdsManager;
 import com.qq.yewu.ads.base.GdtInterManger;
 import com.qq.yewu.um.MobAgent;
 import com.qq.myapp.constant.Constants;
@@ -108,7 +109,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
             gdtInterManger = new GdtInterManger(this,this);
             gdtInterManger.showAd();
         }else{
-            AdsContext.showNext(this);
+            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false);
         }
     }
 

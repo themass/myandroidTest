@@ -51,7 +51,7 @@ public class WebViewActivity extends BaseFragmentActivity implements MyWebView.O
     }
     @Override
     protected AdsContext.Categrey getBannerCategrey(){
-        return AdsContext.Categrey.CATEGREY_VPN3;
+        return AdsContext.Categrey.CATEGREY_VPN1;
     }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
