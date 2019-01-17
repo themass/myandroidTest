@@ -246,7 +246,7 @@ public class SettingActivity extends BaseSingleActivity {
 
     @Override
     public boolean needShow() {
-        return true;
+        return false;
     }
 
     public void showShare() {

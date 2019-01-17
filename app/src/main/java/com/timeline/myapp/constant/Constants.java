@@ -53,7 +53,7 @@ public class Constants {
     public static final int LOCATION_TYPE_FREE = 0;
     public static final int LOCATION_TYPE_VIP = 1;
     public static final int LOCATION_TYPE_VIP2 = 2;
-    public static final List<Integer> BANNER_ADS_POS = Arrays.asList(2,15,35,55);
+    public static final List<Integer> BANNER_ADS_POS = Arrays.asList(1,14,34,54);
 //    public static final List<Integer> BANNER_ADS_POS = Arrays.asList(3,13,18,21,30,40,50);
 
     public static final String[] sort_type = new String[]{"type_asc", "type_desc"};
@@ -256,9 +256,9 @@ public class Constants {
     public static final List<String> gdtInterlist= Arrays.asList(InterExpressPosID_1,InterExpressPosID_2,InterExpressPosID_3);
     public static final String AD_GDT_SWITCH = "AD_GDT_SWITCH";
 
-    public static final int AD_COUNT = 8;    // 加载广告的条数，取值范围为[1, 10]
+    public static final int AD_COUNT = 6;    // 加载广告的条数，取值范围为[1, 10]
     public static int FIRST_AD_POSITION = 1; // 第一条广告的位置
-    public static int ITEMS_PER_AD_SIX = 6;     // 每间隔10个条目插入一条广告
-    public static int ITEMS_PER_AD_THREE = 3;     // 每间隔10个条目插入一条广告
+    public static int ITEMS_PER_AD_SIX = 12;     // 每间隔10个条目插入一条广告
+    public static int ITEMS_PER_AD_THREE = 6;     // 每间隔10个条目插入一条广告
     public static int ITEMS_PER_AD_BANNER = 1;     // 每间隔10个条目插入一条广告
 }

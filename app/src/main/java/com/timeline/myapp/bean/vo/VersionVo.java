@@ -18,6 +18,6 @@ public class VersionVo {
     public Boolean needNative = true;
     public String vitamioExt;
     public Boolean showGdt = false;
-    public Integer probability=5;
+    public Integer probability=4;
 
 }

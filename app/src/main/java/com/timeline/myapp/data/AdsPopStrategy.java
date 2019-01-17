@@ -21,10 +21,7 @@ import com.timeline.sexfree1.ui.main.MainFragmentViewPage;
 public class AdsPopStrategy {
     private static long lastToastShow=0;
     public static void clickAdsShowBtn(Context context){
-        if(SystemUtils.isApkDebugable(context)){
-            AdsManager.getInstans().showVideo(context);
-        }
-        AdsContext.showRand(context,AdsContext.Categrey.CATEGREY_VPN1);
+        AdsContext.showNextAbs(context);
         Long lastClickTime = StaticDataUtil.get(Constants.SCORE_CLICK, Long.class, 0l);
         long curent = System.currentTimeMillis();
         long interval = curent - lastClickTime;

@@ -142,7 +142,7 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
     }
 
     public boolean needShow() {
-        return true;
+        return false;
     }
 
     public void hidenAds() {

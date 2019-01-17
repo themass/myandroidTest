@@ -71,15 +71,12 @@ public class NativeTextChannelListItemsViewAdapter extends BaseRecyclerViewAdapt
             holder.natvieView.setVisibility(View.GONE);
         }
         if(Constants.BANNER_ADS_POS.contains(position)){
-            if(position%3==0){
-                holder.rvAds.setVisibility(View.VISIBLE);
-                AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN3);
-            }if(position%3==1){
-                holder.rvAds.setVisibility(View.VISIBLE);
-                AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN2);
-            }else{
+            if(position%2==1){
                 holder.rvAds.setVisibility(View.VISIBLE);
                 AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN1);
+            }else{
+                holder.rvAds.setVisibility(View.VISIBLE);
+                AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN2);
             }
         }else{
             holder.rvAds.removeAllViews();
