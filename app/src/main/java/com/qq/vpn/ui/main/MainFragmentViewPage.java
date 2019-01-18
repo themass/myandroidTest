@@ -77,7 +77,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         boolean uploadLog = PreferenceUtils.getPrefBoolean(this, Constants.LOG_UPLOAD_CONFIG, false);
     }
     public void onNoAD(){
-        AdsContext.showNext(this);
+        AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false);
     }
     @Override
     public boolean needPingView(){

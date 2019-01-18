@@ -38,7 +38,8 @@ public class GdtInterManger {
                 if(listener!=null){
                     listener.onNoAD();
                 }else{
-                    AdsContext.showNext(activity);
+                    AdsManager.getInstans().showInterstitialAds(activity, AdsContext.getNext(), false);
+
                 }
             }
             public void onADClicked() {
