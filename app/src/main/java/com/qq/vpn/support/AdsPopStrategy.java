@@ -16,7 +16,7 @@ import com.qq.network.R;
 public class AdsPopStrategy {
     private static long lastToastShow=0;
     public static void clickAdsShowBtn(Context context){
-        AdsContext.showNextAbs(context);
+        AdsContext.showNextAbs(context, AdsContext.Categrey.CATEGREY_VPN2);
         Long lastClickTime = StaticDataUtil.get(Constants.SCORE_CLICK, Long.class, 0l);
         long curent = System.currentTimeMillis();
         long interval = curent - lastClickTime;

@@ -138,13 +138,8 @@ public class AdsContext {
         int size = AdsContext.Categrey.values().length;
         return AdsContext.Categrey.values()[(num)%size];
     }
-    public static void showNext(Context context){
-        if(UserLoginUtil.showAds()) {
-            int size = AdsContext.Categrey.values().length;
-            AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.values()[(index++) % 2], false);
-        }
-    }
-    public static void showNextAbs(Context context){
+
+    public static void showNextAbs(Context context,AdsContext.Categrey cate){
         boolean gdt = PreferenceUtils.getPrefBoolean(context,Constants.AD_GDT_SWITCH,true);
         if(SystemUtils.isZH(context) && gdt && context instanceof  Activity){
             int index = Md5.getRandom(Constants.gdtInterlist.size());
@@ -152,14 +147,12 @@ public class AdsContext {
             gdtInterManger.showAd();
         }else {
             int size = AdsContext.Categrey.values().length;
-            AdsManager.getInstans().showInterstitialAds(context, Categrey.CATEGREY_VPN2, false);
+            AdsManager.getInstans().showInterstitialAds(context, cate, false);
         }
     }
     public static void showRand(Context context){
         if(UserLoginUtil.showAds()) {
-            if (AdsContext.rateShow()) {
-                showNext(context);
-            }
+            showRand(context,getNext());
         }
     }
     public static void showRand(Context context, AdsContext.Categrey cate){

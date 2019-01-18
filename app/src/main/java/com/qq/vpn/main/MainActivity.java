@@ -73,7 +73,6 @@ public class MainActivity extends BaseDrawerMenuActivity implements ActivityComp
     }
     public void onNoAD(){
         AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false);
-
     }
 
     @Override

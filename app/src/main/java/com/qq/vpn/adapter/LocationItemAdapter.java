@@ -72,7 +72,7 @@ public class LocationItemAdapter extends BaseRecyclerViewAdapter<LocationItemAda
         holder.tvCountry.setText(vo.name);
         holder.tvCountryEname.setText(vo.ename);
 
-        if(Constants.BANNER_ADS_POS.contains(position)){
+        if(Constants.BANNER_ADS_POS.contains(position)&&index==0){
             if(position%2==1){
                 holder.rvAds.setVisibility(View.VISIBLE);
                 AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN2);
@@ -84,7 +84,7 @@ public class LocationItemAdapter extends BaseRecyclerViewAdapter<LocationItemAda
             holder.rvAds.removeAllViews();
             holder.rvAds.setVisibility(View.GONE);
         }
-        if(gdtNativeManager!=null){
+        if(gdtNativeManager!=null&&index==1){
             if(!gdtNativeManager.showAds(position,holder.natvieView)){
                 holder.natvieView.setVisibility(View.GONE);
             }else{
