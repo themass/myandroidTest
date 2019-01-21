@@ -3,7 +3,7 @@ package com.sspacee.common.ui.view;
 import android.app.Dialog;
 import android.content.Context;
 
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 
 
 public class MyProgressDialog extends Dialog {

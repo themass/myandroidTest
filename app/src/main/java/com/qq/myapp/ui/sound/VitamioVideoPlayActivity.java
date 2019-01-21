@@ -21,7 +21,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 import com.sspacee.common.ui.base.LogActivity;
 
 import com.qq.myapp.bean.vo.RecommendVo;

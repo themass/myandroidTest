@@ -13,7 +13,7 @@ import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 import com.sspacee.common.ui.view.HeartAnimView;
 import com.sspacee.common.ui.view.MyProgressDialog;
 import com.sspacee.common.ui.view.MyPullView;

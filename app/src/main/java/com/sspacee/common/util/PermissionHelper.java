@@ -14,7 +14,7 @@ import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
 
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 
 import java.util.ArrayList;
 import java.util.Arrays;

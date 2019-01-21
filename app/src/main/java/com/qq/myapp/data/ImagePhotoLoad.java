@@ -13,7 +13,7 @@ import com.bumptech.glide.request.target.DrawableImageViewTarget;
 import com.etiennelawlor.imagegallery.library.adapters.FullScreenImageGalleryAdapter;
 import com.etiennelawlor.imagegallery.library.adapters.ImageGalleryAdapter;
 import com.qq.e.comm.util.StringUtil;
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 import com.romainpiel.shimmer.Shimmer;
 import com.sspacee.common.util.MyGlideLibModule;
 

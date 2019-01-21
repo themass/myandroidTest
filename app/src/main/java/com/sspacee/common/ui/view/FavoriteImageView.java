@@ -5,7 +5,7 @@ import android.support.v7.widget.AppCompatImageView;
 import android.util.AttributeSet;
 
 
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 import com.qq.myapp.bean.vo.FavoriteVo;
 import com.qq.myapp.data.FavoriteUtil;
 

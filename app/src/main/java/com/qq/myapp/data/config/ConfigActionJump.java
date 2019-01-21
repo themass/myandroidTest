@@ -4,7 +4,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.ToastUtil;
 

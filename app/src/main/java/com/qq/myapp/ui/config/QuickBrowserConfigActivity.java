@@ -4,7 +4,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 import com.sspacee.common.ui.base.LogActivity;
 import com.sspacee.common.util.PackageUtils;
 import com.sspacee.yewu.ads.base.AdsContext;

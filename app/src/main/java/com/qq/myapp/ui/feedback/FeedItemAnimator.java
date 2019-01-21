@@ -8,7 +8,7 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.RecyclerView;
 import android.view.animation.DecelerateInterpolator;
 
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 import com.sspacee.common.util.SystemUtils;
 
 import com.qq.myapp.adapter.FeedAdapter;

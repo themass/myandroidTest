@@ -5,7 +5,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.View;
 
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 import com.qq.myapp.ui.base.features.TabBaseAdsFragment;
 import com.qq.myapp.ui.user.AddCustomeInfoActivity;
 

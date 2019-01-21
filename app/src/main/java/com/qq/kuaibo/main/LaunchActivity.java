@@ -9,7 +9,7 @@ import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 import com.sspacee.common.ui.base.LogActivity;
 import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.SystemUtils;

@@ -3,7 +3,7 @@ package com.qq.myapp.constant;
 
 
 
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 
 import java.util.Arrays;
 import java.util.List;

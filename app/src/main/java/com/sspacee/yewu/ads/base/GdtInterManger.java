@@ -8,7 +8,7 @@ import com.qq.e.ads.interstitial.AbstractInterstitialADListener;
 import com.qq.e.ads.interstitial.InterstitialAD;
 import com.qq.e.comm.util.AdError;
 import com.qq.e.comm.util.GDTLogger;
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 import com.qq.myapp.constant.Constants;
 import com.qq.myapp.task.ScoreTask;
 

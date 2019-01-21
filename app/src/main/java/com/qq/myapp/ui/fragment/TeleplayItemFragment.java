@@ -5,7 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 import com.sspacee.yewu.ads.base.AdsContext;
 
 import com.qq.myapp.bean.vo.RecommendVo;

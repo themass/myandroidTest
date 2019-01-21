@@ -9,7 +9,7 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 import com.sspacee.common.ui.base.LogActivity;
 import com.sspacee.common.ui.view.MyWebView;
 import com.sspacee.common.util.LogUtil;

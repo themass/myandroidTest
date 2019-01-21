@@ -21,7 +21,7 @@ import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 import com.sspacee.common.ui.base.BaseFragment;
 import com.sspacee.common.ui.view.FavoriteImageView;
 import com.sspacee.common.ui.view.MyWebView;

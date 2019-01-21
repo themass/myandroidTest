@@ -2,7 +2,7 @@ package com.qq.myapp.data;
 
 import android.content.Context;
 
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.SystemUtils;
 

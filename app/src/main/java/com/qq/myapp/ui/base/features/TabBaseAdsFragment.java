@@ -5,7 +5,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.view.View;
 import android.view.animation.OvershootInterpolator;
 
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 import com.sspacee.common.util.LogUtil;
 
 import com.qq.myapp.data.AdsPopStrategy;

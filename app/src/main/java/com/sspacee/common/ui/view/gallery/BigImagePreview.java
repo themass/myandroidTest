@@ -23,7 +23,7 @@ import com.bumptech.glide.request.target.DrawableImageViewTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.github.chrisbanes.photoview.OnViewTapListener;
 import com.github.chrisbanes.photoview.PhotoViewAttacher;
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 
 
 import java.util.ArrayList;

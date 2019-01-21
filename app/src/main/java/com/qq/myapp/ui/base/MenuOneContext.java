@@ -7,7 +7,7 @@ import android.view.View;
 import android.widget.PopupMenu;
 
 
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 
 import java.lang.reflect.Method;
 

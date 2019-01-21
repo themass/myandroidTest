@@ -7,7 +7,7 @@ import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 import com.sspacee.common.ui.view.MyScrollView;
 import com.sspacee.common.ui.view.MyTextView;
 import com.sspacee.yewu.ads.base.AdsContext;

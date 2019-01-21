@@ -6,7 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 
 import java.util.ArrayList;
 import java.util.List;

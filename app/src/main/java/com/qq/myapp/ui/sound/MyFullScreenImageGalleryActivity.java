@@ -12,7 +12,7 @@ import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.view.View;
 import android.widget.TextView;
 
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 import com.sspacee.common.util.ToastUtil;
 
 import com.qq.myapp.adapter.MyFullScreenImageGalleryAdapter;

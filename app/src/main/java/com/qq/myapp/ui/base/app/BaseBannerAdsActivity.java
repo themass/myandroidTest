@@ -10,7 +10,7 @@ import android.view.ViewGroup;
 import android.view.animation.OvershootInterpolator;
 
 import com.qq.e.ads.nativ.NativeExpressADView;
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
@@ -54,7 +54,6 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
     public void onload(HashMap<Integer, NativeExpressADView> mAdViewPositionMap){
         if(!CollectionUtils.isEmpty(mAdViewPositionMap)){
             gdtNativeManager.showAds(Constants.FIRST_AD_POSITION,flBanner);
-
         }else{
             AdsManager.getInstans().showBannerAds(this, flBanner,getBannerCategrey());
         }

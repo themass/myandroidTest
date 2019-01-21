@@ -18,7 +18,7 @@ import android.widget.TextView;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.VolleyError;
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 import com.sspacee.common.ui.base.BaseFragment;
 import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.common.util.LogUtil;

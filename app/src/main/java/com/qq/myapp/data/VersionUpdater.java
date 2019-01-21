@@ -18,7 +18,7 @@ import android.os.Handler;
 import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AlertDialog;
 
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.FileUtils;
 import com.sspacee.common.util.LogUtil;

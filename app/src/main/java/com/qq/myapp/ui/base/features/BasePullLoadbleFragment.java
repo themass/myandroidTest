@@ -10,7 +10,7 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.SearchView;
 
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 import com.sspacee.common.ui.view.DividerItemDecoration;
 import com.sspacee.common.ui.view.MyPullView;
 import com.sspacee.common.util.LogUtil;

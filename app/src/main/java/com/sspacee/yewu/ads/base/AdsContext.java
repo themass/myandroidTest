@@ -5,7 +5,7 @@ import android.content.Context;
 import android.os.HandlerThread;
 import android.widget.Toast;
 
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 import com.sspacee.common.util.Md5;
 import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.SystemUtils;

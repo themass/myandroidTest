@@ -9,7 +9,7 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
 import com.qq.e.comm.util.StringUtil;
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 import com.sspacee.common.ui.view.MyEditText;
 import com.sspacee.common.ui.view.SiteAutoCompleteTextView;
 import com.sspacee.common.util.EventBusUtil;

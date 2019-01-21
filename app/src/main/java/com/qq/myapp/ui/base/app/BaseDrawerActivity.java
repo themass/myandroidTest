@@ -12,7 +12,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.common.util.DateUtils;
 import com.sspacee.common.util.LogUtil;

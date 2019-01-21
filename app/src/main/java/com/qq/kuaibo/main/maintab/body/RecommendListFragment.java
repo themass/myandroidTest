@@ -6,7 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 import com.qq.myapp.constant.Constants;
 import com.qq.myapp.ui.fragment.RecommendFragment;
 

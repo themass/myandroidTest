@@ -8,7 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.qq.e.ads.nativ.NativeExpressADView;
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 import com.sspacee.common.ui.view.FavoriteImageView;
 import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.common.util.LogUtil;

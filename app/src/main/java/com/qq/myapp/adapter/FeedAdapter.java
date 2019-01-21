@@ -10,7 +10,7 @@ import android.widget.ImageView;
 import android.widget.TextSwitcher;
 import android.widget.TextView;
 
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 import com.sspacee.common.util.DateUtils;
 import com.sspacee.common.util.StringUtils;
 

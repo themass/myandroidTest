@@ -15,7 +15,7 @@ import android.widget.TextView;
 
 import com.etiennelawlor.imagegallery.library.adapters.FullScreenImageGalleryAdapter;
 import com.etiennelawlor.imagegallery.library.utilities.DisplayUtility;
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 import com.sspacee.common.ui.view.FavoriteImageView;
 import com.sspacee.common.util.ToastUtil;
 import com.qq.myapp.adapter.base.BaseRecyclerViewAdapter;

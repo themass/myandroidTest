@@ -11,7 +11,7 @@ import android.view.View;
 
 import com.kyview.natives.NativeAdInfo;
 import com.qq.e.ads.nativ.NativeExpressADView;
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 import com.sspacee.common.helper.OnStartDragListener;
 import com.sspacee.common.helper.SimpleItemTouchHelperCallback;
 import com.sspacee.common.ui.view.RecycleViewDivider;

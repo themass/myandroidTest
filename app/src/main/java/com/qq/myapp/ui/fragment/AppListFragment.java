@@ -7,7 +7,7 @@ import android.os.Bundle;
 import android.view.View;
 
 
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 import com.qq.myapp.adapter.AppRecommendViewAdapter;
 import com.qq.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.qq.myapp.bean.vo.AppInfo;

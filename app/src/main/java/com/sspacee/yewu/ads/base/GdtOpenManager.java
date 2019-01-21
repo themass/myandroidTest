@@ -11,7 +11,7 @@ import android.widget.Toast;
 import com.qq.e.ads.splash.SplashAD;
 import com.qq.e.ads.splash.SplashADListener;
 import com.qq.e.comm.util.AdError;
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 import com.qq.myapp.constant.Constants;
 import com.qq.myapp.task.ScoreTask;
 

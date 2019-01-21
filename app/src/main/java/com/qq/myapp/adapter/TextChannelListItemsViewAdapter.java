@@ -14,7 +14,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.kyview.natives.NativeAdInfo;
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;

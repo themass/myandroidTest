@@ -17,7 +17,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 import com.sspacee.common.ui.base.BaseFragment;
 import com.sspacee.common.ui.view.MyWebView;
 import com.sspacee.common.util.FileUtils;

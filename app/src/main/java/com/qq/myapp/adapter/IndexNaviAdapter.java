@@ -13,7 +13,7 @@ import android.view.animation.Interpolator;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 import com.sspacee.common.util.DisplayUtil;
 import com.sspacee.common.util.Utils;
 import com.qq.myapp.base.MyApplication;

@@ -15,7 +15,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.kyview.natives.NativeAdInfo;
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 import com.sspacee.common.ui.view.widgets.MusicVisualizer;
 
 import com.sspacee.common.util.CollectionUtils;

@@ -14,7 +14,7 @@ import com.qq.e.comm.constants.AdPatternType;
 import com.qq.e.comm.pi.AdData;
 import com.qq.e.comm.util.AdError;
 import com.qq.e.comm.util.GDTLogger;
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 import com.sspacee.common.util.LogUtil;
 
 import com.qq.myapp.constant.Constants;

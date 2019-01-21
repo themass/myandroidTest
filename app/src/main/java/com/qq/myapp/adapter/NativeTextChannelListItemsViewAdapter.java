@@ -15,7 +15,7 @@ import android.widget.TextView;
 
 import com.kyview.natives.NativeAdInfo;
 import com.qq.e.ads.nativ.NativeExpressADView;
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.ads.base.AdsContext;

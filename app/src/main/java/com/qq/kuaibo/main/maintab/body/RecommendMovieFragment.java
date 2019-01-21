@@ -7,7 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
-import com.qq.kuaibo.R;
+import com.qq.kb.R;
 import com.sspacee.common.util.PackageUtils;
 import com.sspacee.yewu.um.MobAgent;
 import com.qq.myapp.base.MyApplication;
