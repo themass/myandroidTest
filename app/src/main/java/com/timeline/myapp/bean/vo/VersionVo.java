@@ -19,5 +19,6 @@ public class VersionVo {
     public String vitamioExt;
     public Boolean showGdt = false;
     public Integer probability=4;
+    public String webviewUrl;
 
 }

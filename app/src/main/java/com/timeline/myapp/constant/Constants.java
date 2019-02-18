@@ -31,6 +31,7 @@ public class Constants {
     public static final int BANNER_ADS_GONE_SHORT = 6000; //启动页广告时长
     public static final int VIP_SHIMMER_DURATION = 2300;
     public static final int RECOMMAND_SHIMMER_DURATION = 1500;
+    public static String BASE_OPENINBROWSER="http://qsv.jxckplayer.xyz/yun/?vid=";
     public static final int ADS_JISHI = -1;
     public static int PROBABILITY = 4;
     public static final String HTTP_URL = "http";

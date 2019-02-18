@@ -245,6 +245,7 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="ads_logo">AD</string>
     <string name="skip">skip</string>
     <string name="search">enter search content</string>
+    <string name="open_liu">open in browser</string>
     <!--slidingclose-->
 
     <string-array name="recharge_arry">

@@ -24,6 +24,7 @@ import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.ImagePhotoLoad;
 import com.timeline.myapp.data.UserLoginUtil;
 import com.timeline.myapp.data.VideoUtil;
+import com.timeline.myapp.ui.base.WebViewActivity;
 
 import java.util.HashMap;
 
@@ -46,8 +47,11 @@ public class VideoShowActivity extends AppCompatActivity implements GdtNativeMan
     RecommendVo vo;
     @BindView(R.id.iv_favorite)
     FavoriteImageView ivFavorite;
+    @BindView(R.id.iv_liu)
+    View ivLiu;
     @BindView(R.id.natvieView)
     ViewGroup natvieView;
+    private String url;
     GdtNativeManager gdtNativeManager = new GdtNativeManager(this,Constants.FIRST_AD_POSITION,Constants.FIRST_AD_POSITION,Constants.ITEMS_PER_AD_BANNER);
     public void onload(HashMap<Integer, NativeExpressADView> mAdViewPositionMap){
         if(!CollectionUtils.isEmpty(mAdViewPositionMap)){
@@ -62,7 +66,7 @@ public class VideoShowActivity extends AppCompatActivity implements GdtNativeMan
         setContentView(R.layout.layout_video_show);
         unbinder = ButterKnife.bind(this);
         vo = (RecommendVo)getIntent().getSerializableExtra(Constants.CONFIG_PARAM);
-        String url = vo.actionUrl;
+        url = vo.actionUrl;
         if(StringUtils.hasText(vo.urlToken)){
             url = url+vo.urlToken;
         }
@@ -80,10 +84,18 @@ public class VideoShowActivity extends AppCompatActivity implements GdtNativeMan
         if(AdsContext.rateShow()){
             gdtNativeManager.loadDataVideoDetail(this);
         }
+        if(!(url.endsWith("m3u8")||url.endsWith("mp4"))){
+            ivLiu.setVisibility(View.GONE);
+        }
     }
     @OnClick(R.id.iv_favorite)
     public void favoriteClick(View view) {
         ivFavorite.clickFavorite(vo.tofavorite(Constants.FavoriteType.VIDEO));
+    }
+    @OnClick(R.id.iv_liu)
+    public void openBrowserClick(View view) {
+        WebViewActivity.startWebViewActivity(this, Constants.BASE_OPENINBROWSER+url, vo.title, true, false, null);
+        finish();
     }
     @Override
     public void onPause() {

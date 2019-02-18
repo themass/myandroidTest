@@ -22,6 +22,9 @@ public class BannerAdviewAds extends BannerInter {
     }
     @Override
     public void bannerAds(final FragmentActivity context, final ViewGroup group,final String key, final Handler handler){
+        if(group==null){
+            return;
+        }
         final View view = AdViewBannerManager.getInstance(context).getAdViewLayout(context, key);
         if (view != null) {
             ViewGroup parent = (ViewGroup) view.getParent();

@@ -64,6 +64,7 @@ public class VersionUpdater {
                     PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.NEED_NATIVE_ADS_CONFIG, vo.needNative);
                     PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.AD_GDT_SWITCH, vo.showGdt);
                     Constants.PROBABILITY = vo.probability==null?Constants.PROBABILITY:vo.probability;
+                    Constants.BASE_OPENINBROWSER = StringUtils.hasText(vo.webviewUrl)?vo.webviewUrl:Constants.BASE_OPENINBROWSER;
                     if (StringUtils.hasText(vo.dnspodIp)) {
                         HttpDNSUtil.DNS_POD_IP = vo.dnspodIp;
                     }

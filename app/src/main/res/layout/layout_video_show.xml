@@ -15,9 +15,20 @@
         android:layout_height="@dimen/margin_30"
         android:layout_gravity="bottom"
         android:layout_alignParentBottom="true"
-        android:layout_marginBottom="@dimen/margin_22"
+        android:layout_marginBottom="@dimen/margin_55"
         android:layout_marginLeft="@dimen/margin_22"
         android:background="@drawable/ic_menu_favorite_no" />
+    <ImageView
+        android:id="@+id/iv_liu"
+        android:layout_width="@dimen/margin_30"
+        android:layout_height="@dimen/margin_30"
+        android:layout_gravity="bottom"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="@dimen/margin_55"
+        android:layout_toRightOf="@id/iv_favorite"
+        android:layout_marginLeft="@dimen/margin_22"
+        android:src="@drawable/iv_liu"
+         />
 
     <include
         android:id="@+id/natvieView"

@@ -246,6 +246,7 @@
     <string name="ads_logo">推广</string>
     <string name="skip">跳过</string>
     <string name="search">请输入搜索内容</string>
+    <string name="open_liu">浏览器打开</string>
     <string-array name="recharge_arry">
         <item>微信</item>
         <item>支付宝</item>
