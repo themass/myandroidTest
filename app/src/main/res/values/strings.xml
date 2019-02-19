@@ -60,7 +60,7 @@
     <string name="menu_btn_networking">Traffic:</string>
     <string name="menu_btn_cache">Cache:</string>
     <string name="menu_btn_email">E-mail:</string>
-    <string name="menu_btn_recomm">Earn Points</string>
+    <string name="menu_btn_recomm">Share Earn Points</string>
     <string name="menu_btn_recomm_copy">Copy Unique Referral Link</string>
     <string name="menu_reg_recomm">Inviter(optional)</string>
     <string name="menu_btn_recomm_reward">Complete ads and Earning 100 Points</string>
