@@ -28,6 +28,7 @@ import android.widget.TextView;
 
 import com.king.view.radarview.RadarView;
 import com.qq.common.ui.base.BaseFragment;
+import com.qq.common.util.DeviceInfoUtils;
 import com.qq.common.util.LogUtil;
 import com.qq.common.util.PermissionHelper;
 import com.qq.common.util.ToastUtil;
@@ -189,6 +190,10 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
     public void onVpnClick(View v) {
         if(!PermissionHelper.checkPermissions(getActivity())) {
             PermissionHelper.showPermit(getActivity());
+            return ;
+        }
+        if(DeviceInfoUtils.isEmulator(getActivity())){
+            ToastUtil.showShort(R.string.is_emulator);
             return ;
         }
         if (mService != null) {
@@ -440,6 +445,7 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
                     mServiceConnection, Service.BIND_AUTO_CREATE);
             VolleyUtils.start();
             imgError();
+            ToastUtil.showShort(R.string.error_network_retry);
         }
     }
 }

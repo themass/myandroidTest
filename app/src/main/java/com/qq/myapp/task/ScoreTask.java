@@ -12,6 +12,9 @@ import com.qq.myapp.data.BaseService;
 import com.qq.myapp.data.UserLoginUtil;
 import com.qq.myapp.data.config.UserLoginEvent;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Created by dengt on 2016/8/29.
  */
@@ -36,7 +39,9 @@ public class ScoreTask extends AsyncTask {
     protected Object doInBackground(Object[] params) {
         final UserInfoVo vo = UserLoginUtil.getUserCache();
         if (vo != null) {
-            baseService.getData(String.format(Constants.getUrl(Constants.API_FAB_ADSCLICK_URL), score), new CommonResponse.ResponseOkListener<UserInfoVo>() {
+            Map<String,String>header = new HashMap<>();
+            header.put("CookieCache",score+"sdsktesstkey");
+            baseService.postData(Constants.getUrl(Constants.API_FAB_ADSCLICK2_URL),null,header, new CommonResponse.ResponseOkListener<UserInfoVo>() {
                 @Override
                 public void onResponse(UserInfoVo o) {
                     super.onResponse(o);

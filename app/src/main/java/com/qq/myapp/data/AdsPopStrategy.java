@@ -15,9 +15,13 @@ import com.qq.fq2.R;
 
 public class AdsPopStrategy {
     private static long lastToastShow=0;
+    public static int count =0;
     public static void clickAdsShowBtn(Context context){
         if(SystemUtils.isApkDebugable(context)){
             AdsManager.getInstans().showVideo(context);
+        }
+        if(count++>5){
+            return;
         }
         AdsContext.showNextAbs(context, AdsContext.Categrey.CATEGREY_VPN1);
         Long lastClickTime = StaticDataUtil.get(Constants.SCORE_CLICK, Long.class, 0l);

@@ -23,6 +23,7 @@
     <string name="tab_tag_local">local</string>
     <string name="tab_tag_customer">customer</string>
     <string name="tab_fb_click">Points ads to earn points +</string>
+    <string name="tab_fb_click_no">No ads,please try later</string>
     <string name="tab_fb_click_fast">Too fast,please wait 3 seconds</string>
     <string name="tab_fb_click_wifi">Please use it under Dis conn VPN </string>
     <string name="location_ping">Ping：</string>
@@ -59,6 +60,10 @@
     <string name="menu_btn_networking">Traffic:</string>
     <string name="menu_btn_cache">Cache:</string>
     <string name="menu_btn_email">E-mail:</string>
+    <string name="menu_btn_recomm">Earn Points</string>
+    <string name="menu_btn_recomm_copy">Copy Unique Referral Link</string>
+    <string name="menu_reg_recomm">Inviter(optional)</string>
+    <string name="menu_btn_recomm_reward">Complete ads and Earning 100 Points</string>
 
     <string name="menu_btn_timeuse">Time:</string>
     <string name="menu_btn_score_context">Points can change VIP，more info see "About"</string>
@@ -219,4 +224,7 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="permission_cus_msg">For better servic, open these permissions! </string>
     <string name="cancel">Cancel</string>
     <!--广告-->
+    <string name="repeated_click">Do not click repeatedly</string>
+    <string name="is_emulator">Emulator is not supported</string>
+
 </resources>

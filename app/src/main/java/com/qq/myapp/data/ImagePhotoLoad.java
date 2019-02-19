@@ -12,6 +12,7 @@ import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.DrawableImageViewTarget;
 import com.etiennelawlor.imagegallery.library.adapters.FullScreenImageGalleryAdapter;
 import com.etiennelawlor.imagegallery.library.adapters.ImageGalleryAdapter;
+import com.qq.common.util.LogUtil;
 import com.qq.fq2.R;
 import com.qq.myapp.adapter.IndexRecommendAdapter;
 import com.qq.myapp.bean.vo.RecommendVo;
@@ -48,10 +49,11 @@ public class ImagePhotoLoad implements ImageGalleryAdapter.ImageThumbnailLoader,
         if (iv == null || !StringUtils.hasText(url)) {
             return;
         }
-        if (url.startsWith(Constants.IMAGE_RES_PRE)) {
-            url = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf("."));
-            iv.setImageResource(BaseRes.img.get(url));
-        } else {
+
+        String imgPath = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf("."));
+        if(BaseRes.img.containsKey(imgPath)){
+            iv.setImageResource(BaseRes.img.get(imgPath));
+        }else{
             RequestOptions options = new RequestOptions()
                     .placeholder(R.drawable.img_bg)
                     .priority(Priority.HIGH).fitCenter();
@@ -59,6 +61,7 @@ public class ImagePhotoLoad implements ImageGalleryAdapter.ImageThumbnailLoader,
                     .load(url).apply(options)
                     .into(iv);
         }
+
     }
 
     @Override

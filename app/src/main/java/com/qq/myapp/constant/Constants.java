@@ -41,7 +41,7 @@ public class Constants {
     public static final String LOCATION_CHOOSE = "LOCATION_CHOOSE1";
     public static final String LOCATION_FLAG = "LOCATION_FLAG";
     public static final String LOCATION_FLAG_COUNT = "LOCATION_FLAG_COUNT";
-    public static final List<Integer> BANNER_ADS_POS = Arrays.asList(1,6,13,18);
+    public static final List<Integer> BANNER_ADS_POS = Arrays.asList(1,6,17,26);
     public static final String sortType = "type";
     public static final String sortCountry = "ename";
     public static final String sortASC = "asc";
@@ -71,6 +71,7 @@ public class Constants {
 
     public static final String API_SERVERLIST_URL = "/host/server/list.json?location=%s";
     public static final String API_FAB_ADSCLICK_URL = "/user/ads/score.json?score=%s";
+    public static final String API_FAB_ADSCLICK2_URL = "/user/ads/check.json";
     public static final String API_LOCATION_URL = "/host/server/location/cache.json?type=%s";
     public static final String API_LOCATION_VIP_URL = "/host/server/location/vip/cache.json";
     public static final String API_LOGIN_URL = "/user/login.json";
@@ -100,6 +101,8 @@ public class Constants {
     public static final String NET_ERROR = "network error";
     public static final int ADS_SHOW_SCORE = 10;
     public static final int ADS_SHOW_CLICK = 30;
+    public static final int ADS_REWARD_SHOW_CLICK = 100;
+
     public static final String D_URL = "D_URL";
     public static final String ADS_SHOW_CONFIG = "ADS_SHOW_CONFIG";
     public static final String ADS_POP_SHOW_CONFIG = "ADS_POP_SHOW_CONFIG";
@@ -115,7 +118,7 @@ public class Constants {
     public static final String SCORE_TMP = "SCORE_TMP";
     public static final String SCORE_CLICK = "SCORE_CLICK";
     public static final String SCORE_CLICK_CLICK = "SCORE_CLICK_CLICK";
-    public static final long SCORE_CLICK_INTERVAL = 4;
+    public static final long SCORE_CLICK_INTERVAL = 10;
     public static final String VPN_STATUS = "VPN_STATUS";
     public static final int MAX_RETRY_COUNT = 4;
     public static final String ADMIN = "themass";
@@ -178,4 +181,11 @@ public class Constants {
 
     public static final List<String> gdtInterlist= Arrays.asList(InterExpressPosID_1,InterExpressPosID_2,InterExpressPosID_3);
     public static final String AD_GDT_SWITCH = "AD_GDT_SWITCH";
+
+    public static final String ADMOB_REWARD_ID="ca-app-pub-7849865307083433~9233060875";
+    public static final String ADMOB_REWARD_UNIT_ID="ca-app-pub-7849865307083433/1108754074";
+    public static final String ADMOB_REWARD_UNIT_ID2="ca-app-pub-7849865307083433/1842540805";
+    public static final String ADMOB_REWARD_UNIT_ID3="ca-app-pub-7849865307083433/5020078921";
+    public static final List<String> ADMOB_REWARD_UNIT_IDS=Arrays.asList(ADMOB_REWARD_UNIT_ID,ADMOB_REWARD_UNIT_ID2,ADMOB_REWARD_UNIT_ID3);
+
 }

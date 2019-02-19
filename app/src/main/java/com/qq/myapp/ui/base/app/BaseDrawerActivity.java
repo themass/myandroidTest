@@ -21,6 +21,7 @@ import com.qq.common.util.PreferenceUtils;
 import com.qq.common.util.ShareUtil;
 import com.qq.common.util.StringUtils;
 import com.qq.common.util.SystemUtils;
+import com.qq.common.util.ToastUtil;
 import com.qq.myapp.bean.vo.DomainVo;
 import com.qq.yewu.ads.base.AdsManager;
 import com.qq.yewu.net.request.CommonResponse;
@@ -75,6 +76,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     MenuItem miLocation;
     MenuItem miSetting;
     MenuItem miAbout;
+    MenuItem miRecomm;
     BaseService baseService;
     private final String DOAMIN_TAG="DOAMIN_TAG";
 
@@ -94,6 +96,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         miSetting = nvDrawer.getMenu().findItem(R.id.menu_setting);
         headerView = nvDrawer.getHeaderView(0);
         miAbout = nvDrawer.getMenu().findItem(R.id.menu_about);
+        miRecomm = nvDrawer.getMenu().findItem(R.id.menu_recomm);
         llLoginMenuHeader = (LinearLayout) headerView.findViewById(R.id.ll_menu_headview);
         tvMenuUserName = (TextView) headerView.findViewById(R.id.tv_menu_username);
         tvMenuUserLogin = (TextView) headerView.findViewById(R.id.tv_menu_login);
@@ -291,23 +294,39 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                 }else if (item.getItemId() == R.id.menu_about) {
                     name = "关于";
                     onAbout(null);
-                }
-                else if (item.getItemId() == R.id.menu_share) {
-                    showShare();
+                }else if (item.getItemId() == R.id.menu_share) {
+                    String url = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.D_URL, null);
+                    if (!StringUtils.hasText(url)) {
+                        url = Constants.DEFAULT_REFERER;
+                    }
+                    showShare(url);
                     name = "分享";
+                } else if (item.getItemId() == R.id.menu_recomm) {
+                    String userName = Constants.ADMIN;
+                    if(UserLoginUtil.getUserCache()!=null){
+                        userName = UserLoginUtil.getUserCache().name;
+                    }
+                    String url = Constants.DEFAULT_REFERER+"?ref="+userName;
+                    SystemUtils.copy(BaseDrawerActivity.this, url);
+                    ToastUtil.showShort(R.string.menu_btn_recomm_copy);
+                    showShare(url);
+                    name = "推广积分";
+                }else if (item.getItemId() == R.id.menu_recomm_reward) {
+                    ToastUtil.showShort(R.string.menu_btn_recomm_reward);
+                    showReward();
+                    name = "广告积分";
                 }
                 MobAgent.onEventMenu(BaseDrawerActivity.this, name);
                 return false;
             }
         });
     }
-    public void showShare() {
-        String url = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.D_URL, null);
-        if (!StringUtils.hasText(url)) {
-            url = Constants.DEFAULT_REFERER;
-        }
+    public void showReward(){
+        return;
+    }
+    public void showShare(String url) {
         ShareUtil util = new ShareUtil(this);
-        util.shareText(null,null,url+" Free为屁嗯，最好的梯子，没有之一", "Free为屁嗯","Free为屁嗯，最好的梯子，没有之一");
+        util.shareText(null,null,url+" FreeV9N，美日韩新德非俄香台等十几个国家地区全免费", "Free为屁嗯","FreeV9N，美日韩新德非俄香台等十几个国家地区全免费");
     }
     private void adsOffers(){
         AdsManager.getInstans().offerAds(this);

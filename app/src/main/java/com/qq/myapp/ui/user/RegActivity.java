@@ -37,6 +37,8 @@ public class RegActivity extends BaseSingleActivity {
     EditText etPassword;
     @BindView(R.id.et_repassword)
     EditText etRePassword;
+    @BindView(R.id.et_ref)
+    EditText etRef;
     @BindView(R.id.btn_reg)
     Button btnReg;
     @BindView(R.id.btn_login)
@@ -95,7 +97,8 @@ public class RegActivity extends BaseSingleActivity {
             sex = Constants.SEX_F;
         }
         setEnabled(false);
-        RegForm form = new RegForm(name, pwd, repwd, sex,"test@163.com",Constants.ADMIN);
+        String refName = etRef.getText().toString();
+        RegForm form = new RegForm(name, pwd, repwd, sex,"test@163.com",StringUtil.isEmpty(refName)?Constants.ADMIN:refName);
         baseService.postData(Constants.getUrl(Constants.API_REG_URL), form, loginListener, new CommonResponse.ResponseErrorListener() {
             @Override
             protected void onError() {

@@ -45,6 +45,15 @@ public class BaseRes {
         img.put("flag_vn", R.drawable.flag_vn);
         img.put("flag_all", R.drawable.flag_all);
         img.put("adview_test", R.drawable.adview_test);
+        img.put("flag_bg", R.drawable.flag_bg);
+        img.put("flag_db", R.drawable.flag_db);
+        img.put("flag_hu", R.drawable.flag_hu);
+        img.put("flag_in", R.drawable.flag_in);
+        img.put("flag_it", R.drawable.flag_it);
+        img.put("flag_mo", R.drawable.flag_mo);
+        img.put("flag_phil", R.drawable.flag_phil);
+        img.put("flag_wu", R.drawable.flag_wu);
+
     }
 
 

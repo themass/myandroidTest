@@ -10,6 +10,7 @@ import com.qq.fq2.R;
 import com.qq.myapp.data.AdsPopStrategy;
 import com.qq.myapp.ui.inte.OnBackKeyDownListener;
 import com.qq.vpn.ui.main.MainFragmentViewPage;
+import com.qq.yewu.ads.base.AdmobRewardManger;
 
 import butterknife.BindView;
 import butterknife.OnClick;
@@ -17,16 +18,19 @@ import butterknife.OnClick;
 /**
  * Created by dengt on 2016/3/31.
  */
-public abstract class TabBaseAdsFragment extends TabBaseFragment implements OnBackKeyDownListener {
+public abstract class TabBaseAdsFragment extends TabBaseFragment implements OnBackKeyDownListener , AdmobRewardManger.OnAdmobRewardListener{
     private static final int ANIM_DURATION_FAB = 400;
     @BindView(R.id.fab_up)
     public FloatingActionButton fabUp;
     private long lastToastShow = 0l;
     private boolean pendingIntroAnimation;
-
+    public AdmobRewardManger admobRewardManger;
     @OnClick(R.id.fab_up)
     public void onClickFab(View view) {
-        AdsPopStrategy.clickAdsShowBtn(getActivity());
+        if(getActivity() instanceof MainFragmentViewPage){
+            ((MainFragmentViewPage)getActivity()).showReward();
+        }
+//        admobRewardManger.showAd();
     }
 
     public void next() {
@@ -36,11 +40,15 @@ public abstract class TabBaseAdsFragment extends TabBaseFragment implements OnBa
     public boolean onkeyBackDown() {
         return false;
     }
-
+    @Override
+    public void onNoRewardAD(){
+        AdsPopStrategy.clickAdsShowBtn(getActivity());
+    }
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ((MainFragmentViewPage) getActivity()).addListener(this);
+//        admobRewardManger = new AdmobRewardManger(getActivity(),this);
     }
 
     @Override
@@ -50,6 +58,7 @@ public abstract class TabBaseAdsFragment extends TabBaseFragment implements OnBa
             pendingIntroAnimation = false;
             startIntroAnimation();
         }
+//        admobRewardManger.onAdResume();
     }
 
     @Override
@@ -69,5 +78,17 @@ public abstract class TabBaseAdsFragment extends TabBaseFragment implements OnBa
                 .setStartDelay(600)
                 .setDuration(ANIM_DURATION_FAB)
                 .start();
+    }
+
+    @Override
+    public void onPause() {
+//        admobRewardManger.onAdPause();
+        super.onPause();
+    }
+
+    @Override
+    public void onDestroy() {
+//        admobRewardManger.onAdDestroy();
+        super.onDestroy();
     }
 }

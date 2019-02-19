@@ -14,6 +14,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.qq.common.util.SystemUtils;
+import com.qq.myapp.data.AdsPopStrategy;
 import com.qq.vpn.ui.maintab.TabLocalFragment;
 import com.qq.common.util.DoubleClickExit;
 import com.qq.common.util.EventBusUtil;
@@ -23,6 +24,7 @@ import com.qq.common.util.PreferenceUtils;
 import com.qq.common.util.ToastUtil;
 import com.qq.vpn.ui.maintab.TabLocalRecommFragment;
 import com.qq.vpn.ui.maintab.VpnNativeFragment;
+import com.qq.yewu.ads.base.AdmobRewardManger;
 import com.qq.yewu.ads.base.AdsContext;
 import com.qq.yewu.ads.base.AdsManager;
 import com.qq.yewu.ads.base.GdtInterManger;
@@ -47,9 +49,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import co.mobiwise.materialintro.animation.MaterialIntroListener;
-
-public class MainFragmentViewPage extends BaseDrawerActivity implements ActivityCompat.OnRequestPermissionsResultCallback,MaterialIntroListener,GdtInterManger.OnGdtInterListener  {
+public class MainFragmentViewPage extends BaseDrawerActivity implements ActivityCompat.OnRequestPermissionsResultCallback,GdtInterManger.OnGdtInterListener,AdmobRewardManger.OnAdmobRewardListener  {
 
 
     /**
@@ -66,7 +66,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
     private String POSITION = "POSITION";
     private int index = 0;
     private GdtInterManger gdtInterManger;
-
+    public AdmobRewardManger admobRewardManger;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_main_viewpage);
@@ -75,10 +75,22 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         EventBusUtil.getEventBus().register(jump);
         EventBusUtil.getEventBus().register(logAdd);
         boolean uploadLog = PreferenceUtils.getPrefBoolean(this, Constants.LOG_UPLOAD_CONFIG, false);
+        admobRewardManger = new AdmobRewardManger(this,this);
     }
     public void onNoAD(){
         AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false);
     }
+    @Override
+    public void onNoRewardAD(){
+        AdsPopStrategy.clickAdsShowBtn(this);
+    }
+
+    @Override
+    public void showReward() {
+        super.showReward();
+        admobRewardManger.showAd();
+    }
+
     @Override
     public boolean needPingView(){
         return true;
@@ -162,9 +174,22 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
 //        stopService(LogUploadService.class);
         EventBusUtil.getEventBus().unregister(jump);
         EventBusUtil.getEventBus().unregister(logAdd);
+        admobRewardManger.onAdDestroy();
         super.onDestroy();
         MobAgent.killProcess(this);
         System.exit(0);
+    }
+
+    @Override
+    protected void onPause() {
+        admobRewardManger.onAdPause();
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        admobRewardManger.onAdResume();
+        super.onResume();
     }
 
     @Override
@@ -195,10 +220,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         }
         return super.onKeyDown(keyCode, event);
     }
-    @Override
-    public void onUserClicked(String materialIntroViewId) {
-        LogUtil.i(materialIntroViewId+"--click");
-    }
+
     public class ViewPagerOnTabSelectedListener implements TabLayout.OnTabSelectedListener {
         private final ViewPager mViewPager;
 

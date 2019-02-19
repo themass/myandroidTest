@@ -9,8 +9,8 @@ android {
         applicationId "com.qq.fq2"
         minSdkVersion 16
         targetSdkVersion 26
-        versionCode 1001008008
-        versionName "1.1.8.8"
+        versionCode 1001008009
+        versionName "1.1.8.9"
         // Enabling multidex support.
         multiDexEnabled true
         flavorDimensions "versionCode"
@@ -122,7 +122,7 @@ dependencies {
 
     //implementation 'com.github.amlcurran.showcaseview:library:5.4.3'
     //implementation 'com.github.wooplr:Spotlight:1.2.3'
-    implementation 'com.github.iammert:MaterialIntroView:1.6.0'
+//    implementation 'com.github.iammert:MaterialIntroView:1.6.0'
     //implementation 'com.isanwenyu.highlight:highlight:1.8.0'
     //implementation 'com.github.faruktoptas:FancyShowCaseView:1.0.0'
     //implementation 'com.github.deano2390:MaterialShowcaseView:1.2.0'
@@ -134,5 +134,7 @@ dependencies {
     implementation 'com.google.android.gms:play-services-base:15.0.1'
     implementation 'com.google.android.gms:play-services-location:15.0.1'
     implementation 'com.google.android.gms:play-services-plus:15.0.1'
+    // adview
+    implementation 'pl.droidsonroids.gif:android-gif-drawable:1.2.6'
 
 }

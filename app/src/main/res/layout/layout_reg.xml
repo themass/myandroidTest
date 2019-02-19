@@ -46,6 +46,14 @@
                 android:maxLines="1" />
 
             <ImageView style="@style/divider_login" />
+            <com.qq.common.ui.view.MyEditText
+                android:id="@+id/et_ref"
+                style="@style/edit_login"
+                android:drawableLeft="@drawable/ic_ref"
+                android:hint="@string/menu_reg_recomm"
+                android:maxLines="1" />
+
+            <ImageView style="@style/divider_login" />
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

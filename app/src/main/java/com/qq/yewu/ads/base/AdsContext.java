@@ -7,6 +7,7 @@ import android.widget.Toast;
 
 import com.qq.common.util.PreferenceUtils;
 import com.qq.common.util.SystemUtils;
+import com.qq.common.util.ToastUtil;
 import com.qq.myapp.data.AdsPopStrategy;
 import com.qq.yewu.ads.adview.AdviewConstant;
 import com.qq.yewu.um.MobAgent;
@@ -16,6 +17,10 @@ import com.qq.myapp.data.UserLoginUtil;
 import com.qq.myapp.task.ScoreTask;
 import com.qq.common.util.Md5;
 
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import static com.qq.yewu.ads.base.AdsContext.AdsShowStatus.ADS_CLICK_MSG;
 
 /**
@@ -23,6 +28,7 @@ import static com.qq.yewu.ads.base.AdsContext.AdsShowStatus.ADS_CLICK_MSG;
  */
 
 public class AdsContext {
+    public static Set<String> adsClick = new HashSet<>();
     private static int showCount = 0;
     static {
     }
@@ -98,6 +104,15 @@ public class AdsContext {
         adsMsgThread.start();
     } // 3/5
     // 3/5
+
+    public static boolean hasClick(Context context,String key){
+        if(adsClick.contains(key)){
+            ToastUtil.showShort(R.string.repeated_click);
+            return true;
+        }
+        adsClick.add(key);
+        return false;
+    }
     public static boolean rateShow(){
         if(showCount++>4){
             return false;
@@ -123,8 +138,8 @@ public class AdsContext {
             if(!AdsPopStrategy.clickAdsClickBtn(context)){
                 return;
             }
-            String msg = context.getResources().getString(R.string.tab_fb_click) + Constants.ADS_SHOW_CLICK;
-            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
+//            String msg = context.getResources().getString(R.string.tab_fb_click) + Constants.ADS_SHOW_CLICK;
+//            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
             ScoreTask.start(context, Constants.ADS_SHOW_CLICK);
         }
     }

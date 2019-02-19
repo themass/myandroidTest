@@ -22,7 +22,7 @@
     <string name="tab_tag_index">index</string>
     <string name="tab_tag_local">local</string>
     <string name="tab_tag_customer">customer</string>
-    <string name="tab_fb_click_fast">点击频率太高，请等待3秒钟</string>
+    <string name="tab_fb_click_fast">点击频率太高，请勿在点击</string>
     <string name="tab_fb_click_wifi">请在断开VPN下使用 </string>
     <!-- Application -->
     <string name="app_name">FreeVPN</string>
@@ -68,6 +68,14 @@
     <string name="menu_btn_country">地区 ：</string>
     <string name="menu_btn_open_browser">浏览器打开</string>
     <string name="menu_btn_copy_url">复制URL</string>
+    <string name="menu_btn_recomm">推广返积分</string>
+    <string name="menu_btn_recomm_copy">专属链接已复制，推广赚积分</string>
+    <string name="menu_reg_recomm">邀请人(可不填)</string>
+    <string name="menu_btn_recomm_reward">看广告赚100积分</string>
+    <string name="cancel">取消</string>
+
+
+
     <!-- share-->
     <string name="menu_share_title">分享</string>
     <string name="menu_share_url">下载地址:\n%s</string>
@@ -76,6 +84,7 @@
     <string name="menu_share_copy_ok">已复制到剪切板</string>
     <string name="feedback_hint">xxx积分 VIP3</string>
     <string name="tab_fb_click">点击广告赚积分 +</string>
+    <string name="tab_fb_click_no">暂无广告，稍后再试</string>
 
     <!--登录，注册-->
     <string name="close_over">再按一次退出程序!!</string>
@@ -134,7 +143,7 @@
     <string name="vpn_remote_status">FreeVPN·</string>
     <string name="vpn_remote_on">已连接，点击断开</string>
     <string name="vpn_remote_off">已断开，点击连接</string>
-    <string name="vpn_remote_ing">连接中，请耐心等待</string>
+    <string name="vpn_remote_ing">连接中，请等待</string>
     <string name="vpn_need">可能需要先连接VPN</string>
     <string name="recharge">充值</string>
     <!--版本更新下载-->
@@ -215,5 +224,10 @@
     <string name="read_phone_state">设备型号</string>
     <string name="permission_cus_title">亲爱的上帝</string>
     <string name="permission_cus_msg">为了更好的服务，请打开权限</string>
-    <string name="cancel">取消</string>
+
+
+    <string name="repeated_click">请勿重复点击</string>
+    <string name="is_emulator">暂不支持模拟器</string>
+
+
 </resources>

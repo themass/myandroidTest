@@ -2,6 +2,7 @@ package com.qq.myapp.ui.base;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.view.View;
 
 import com.qq.common.util.LogUtil;
 import com.qq.yewu.ads.base.AdsContext;
@@ -84,6 +85,7 @@ public class LocationFragmentActivity extends BaseFragmentActivity implements Fa
         if (title != null) {
             setToolbarTitle(title, true);
         }
+        setFabUpVisibility(View.VISIBLE);
     }
     @Override
     protected boolean needPingView(){
@@ -122,6 +124,6 @@ public class LocationFragmentActivity extends BaseFragmentActivity implements Fa
         }else{
             super.onBackPressed();
         }
-
     }
+
 }
