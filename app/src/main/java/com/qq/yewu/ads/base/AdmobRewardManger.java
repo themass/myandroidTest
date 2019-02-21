@@ -54,8 +54,6 @@ public class AdmobRewardManger {
             @Override
             public void onRewardedVideoAdFailedToLoad(int errorCode) {
                 LogUtil.i( "onRewardedVideoAdFailedToLoad--"+errorCode);
-                String msg = mActivity.getResources().getString(R.string.tab_fb_click_no);
-                ToastUtil.showShort(msg);
             }
 
             @Override
@@ -107,6 +105,7 @@ public class AdmobRewardManger {
         }else{
             loadRewardedVideoAd();
             mLlistener.onNoRewardAD();
+            ToastUtil.showShort(R.string.tab_fb_click_no);
         }
     }
     public interface OnAdmobRewardListener{

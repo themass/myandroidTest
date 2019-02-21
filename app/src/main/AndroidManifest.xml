@@ -206,7 +206,7 @@
         </provider>
         <provider
             android:name="com.baidu.mobads.openad.FileProvider"
-            android:authorities="com.qq.network.bd.provider"
+            android:authorities="com.qq.fq2.bd.provider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
