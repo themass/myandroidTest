@@ -36,10 +36,11 @@ public class GdtOpenManager {
 
         @Override
         public void onADClicked() {
-            Log.i("AD_DEMO", "SplashADClicked");
-            String msg = activity.getResources().getString(R.string.tab_fb_click) + Constants.ADS_SHOW_CLICK;
-            Toast.makeText(activity, msg, Toast.LENGTH_SHORT).show();
-            ScoreTask.start(activity, Constants.ADS_SHOW_CLICK);
+            if(!AdsContext.hasClick(activity,"GdtOpen"+Constants.OpenExpressPosID)) {
+//                String msg = activity.getResources().getString(R.string.tab_fb_click) + Constants.ADS_SHOW_CLICK;
+//                Toast.makeText(activity, msg, Toast.LENGTH_SHORT).show();
+                ScoreTask.start(activity, Constants.ADS_SHOW_CLICK);
+            }
         }
 
         /**

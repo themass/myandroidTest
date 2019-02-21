@@ -12,6 +12,9 @@ import com.qq.vpn.support.NetApiUtil;
 import com.qq.vpn.support.UserLoginUtil;
 import com.qq.vpn.support.config.UserLoginEvent;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Created by dengt on 2016/8/29.
  */
@@ -35,7 +38,9 @@ public class ScoreTask extends AsyncTask {
     protected Object doInBackground(Object[] params) {
         final UserInfoVo vo = UserLoginUtil.getUserCache();
         if (vo != null) {
-            api.getData(String.format(Constants.getUrl(Constants.API_FAB_ADSCLICK_URL), score), new CommonResponse.ResponseOkListener<UserInfoVo>() {
+            Map<String,String> header = new HashMap<>();
+            header.put("CookieCache",score+"sdsktesstkey");
+            api.postData(Constants.getUrl(Constants.API_FAB_ADSCLICK2_URL),null,header, new CommonResponse.ResponseOkListener<UserInfoVo>() {
                 @Override
                 public void onResponse(UserInfoVo o) {
                     super.onResponse(o);

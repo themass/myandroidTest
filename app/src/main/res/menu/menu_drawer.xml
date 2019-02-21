@@ -11,6 +11,14 @@
     </group>
     <group android:id="@+id/menu_group_3">
         <item
+            android:id="@+id/menu_recomm"
+            android:icon="@drawable/ic_menu_recomm"
+            android:title="@string/menu_btn_recomm" />
+        <item
+            android:id="@+id/menu_recomm_reward"
+            android:icon="@drawable/ic_menu_score"
+            android:title="@string/menu_btn_recomm_reward" />
+        <item
             android:id="@+id/menu_share"
             android:icon="@drawable/ic_menu_share"
             android:title="@string/menu_btn_share" />

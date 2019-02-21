@@ -11,6 +11,7 @@ import com.qq.ads.base.AdsContext;
 import com.qq.ads.base.InterstitialAdsInter;
 import com.qq.ext.util.LogUtil;
 import com.qq.network.R;
+import com.qq.vpn.support.task.ScoreTask;
 
 /**
  * Created by dengt on 2017/9/20.
@@ -29,7 +30,9 @@ public class InterstitialAdviewAds extends InterstitialAdsInter {
 
                 @Override
                 public void onAdClick(String s) {
-                    clickAds(context,handler, AdsContext.AdsFrom.ADVIEW);
+                    if(!AdsContext.hasClick(context,"interstitial"+s)) {
+                        clickAds(context, handler, AdsContext.AdsFrom.ADVIEW);
+                    }
                 }
 
                 @Override

@@ -53,6 +53,7 @@ public class Constants {
     public static final int HTTP_SUCCESS = 0;
     public static final String API_IWANNA_LIKE_URL = "/data/feed/wanna/%s.json";
     public static final String API_IWANNA_URL = "/data/feed/wanna.json?start=%s&limit=30";
+    public static final String API_FAB_ADSCLICK2_URL = "/user/ads/check.json";
 
     public static final String API_FEEDBACK_LIKE_URL = "/data/feed/score/%s.json";
     public static final String API_FEEDBACK_URL = "/data/feed/score.json?start=%s&limit=40";
@@ -159,6 +160,15 @@ public class Constants {
         img.put("flag_us", R.drawable.flag_us);
         img.put("flag_vn", R.drawable.flag_vn);
         img.put("flag_all", R.drawable.flag_all);
+        img.put("flag_bg", R.drawable.flag_bg);
+        img.put("flag_db", R.drawable.flag_db);
+        img.put("flag_hu", R.drawable.flag_hu);
+        img.put("flag_in", R.drawable.flag_in);
+        img.put("flag_it", R.drawable.flag_it);
+        img.put("flag_mo", R.drawable.flag_mo);
+        img.put("flag_phil", R.drawable.flag_phil);
+        img.put("flag_wu", R.drawable.flag_wu);
+
     }
     public static final String SEX_M = "M";
     public static final String SEX_F = "F";
@@ -177,10 +187,10 @@ public class Constants {
     public static final int maxRate = 10;
     public static final int BANNER_ADS_GONE_LONG = 7000; //广告显示时长
     public static final String SCORE_CLICK = "SCORE_CLICK";
-    public static final long SCORE_CLICK_INTERVAL = 2;
+    public static final long SCORE_CLICK_INTERVAL = 10;
     public static final int BANNER_ADS_GONE_SHORT = 5000; //启动页广告时长
     public static final String ADMIN = "themass";
-    public static final List<Integer> BANNER_ADS_POS = Arrays.asList(1,8,24,38);
+    public static final List<Integer> BANNER_ADS_POS = Arrays.asList(1,6,17,26);
 
 
     public static class UserLevel {
@@ -210,4 +220,11 @@ public class Constants {
     public static final String InterExpressPosID_2 = "9060842740686491";
     public static final List<String> gdtInterlist= Arrays.asList(InterExpressPosID_1,InterExpressPosID_2);
     public static final String AD_GDT_SWITCH = "AD_GDT_SWITCH";
+    public static final String ADMOB_REWARD_ID="ca-app-pub-7849865307083433~6442519654";
+    public static final String ADMOB_REWARD_UNIT_ID="ca-app-pub-7849865307083433/7099517165";
+    public static final String ADMOB_REWARD_UNIT_ID2="ca-app-pub-7849865307083433/6124636405";
+    public static final String ADMOB_REWARD_UNIT_ID3="ca-app-pub-7849865307083433/2002516423";
+    public static final List<String> ADMOB_REWARD_UNIT_IDS=Arrays.asList(ADMOB_REWARD_UNIT_ID,ADMOB_REWARD_UNIT_ID2,ADMOB_REWARD_UNIT_ID3);
+    public static final int ADS_REWARD_SHOW_CLICK = 100;
+
 }

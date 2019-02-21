@@ -12,27 +12,31 @@ import android.view.View;
 
 import com.qq.Constants;
 import com.qq.ads.base.AdsContext;
+import com.qq.ext.network.req.CommonResponse;
+import com.qq.ext.util.AudioMngHelper;
 import com.qq.ext.util.LogUtil;
 import com.qq.ext.util.PackageUtils;
 import com.qq.ext.util.SystemUtils;
 import com.qq.ext.util.ToastUtil;
 import com.qq.ext.view.MyWebView;
+import com.qq.vpn.domain.res.NullReturnVo;
 import com.qq.vpn.ui.base.actvity.BaseFragmentActivity;
 import com.qq.network.R;
 
 import java.util.HashMap;
-
-/**
- * Created by dengt on 2016/3/17.
- */
 public class WebViewActivity extends BaseFragmentActivity implements MyWebView.OnTouchRightSlide {
     private static final String TAG = "customeadd_tag";
+
     BaseWebViewFragment webViewFragment;
-    private boolean adsNeed = true;
+    private boolean adsNeed = false;
+    private boolean adsPopNeed = false;
     private String url;
+    private AudioMngHelper audioMngHelper;
     public static void startWebViewActivity(Context context, String url, String title, boolean adsShow, boolean adsPopShow, HashMap<String, Object> param) {
         Intent intent = new Intent(context, WebViewActivity.class);
         intent.putExtra(Constants.URL, url);
+        intent.putExtra(Constants.ADS_SHOW_CONFIG, adsShow);
+        intent.putExtra(Constants.ADS_POP_SHOW_CONFIG, adsPopShow);
         intent.putExtra(Constants.CONFIG_PARAM, param);
         intent.putExtra(Constants.TITLE, title);
         context.startActivity(intent);
@@ -49,9 +53,21 @@ public class WebViewActivity extends BaseFragmentActivity implements MyWebView.O
         String title = getIntent().getStringExtra(Constants.TITLE);
         url = getIntent().getStringExtra(Constants.URL);
         setToolbarTitle(title);
-        fabUp.setVisibility(View.GONE);
+        adsDelayGone();
+        adsNeed = getIntent().getBooleanExtra(Constants.ADS_SHOW_CONFIG, false);
+        adsPopNeed = getIntent().getBooleanExtra(Constants.ADS_POP_SHOW_CONFIG, false);
+        if(adsPopNeed){
+            AdsContext.showNextAbs(this, AdsContext.Categrey.CATEGREY_VPN2);
+        }
+        audioMngHelper = new AudioMngHelper(this);
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        LogUtil.i("onCreateOptionsMenu");
+        getMenuInflater().inflate(R.menu.menu_browser, menu);
+        return true;
+    }
     public boolean needShow() {
         return adsNeed;
     }
@@ -64,6 +80,11 @@ public class WebViewActivity extends BaseFragmentActivity implements MyWebView.O
                 finish();
                 return true;
             }
+        }else  if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+            audioMngHelper.setVoiceStep100(1).subVoice100();
+
+        }else  if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+            audioMngHelper.setVoiceStep100(1).addVoice100();
         }
         return true;
     }
@@ -71,13 +92,6 @@ public class WebViewActivity extends BaseFragmentActivity implements MyWebView.O
     @Override
     public void onTouchRight(int distans) {
 
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        LogUtil.i("onCreateOptionsMenu");
-        getMenuInflater().inflate(R.menu.menu_browser, menu);
-        return true;
     }
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {

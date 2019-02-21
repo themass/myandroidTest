@@ -43,9 +43,12 @@ public class GdtInterManger {
             }
             public void onADClicked() {
                 GDTLogger.i("ON InterstitialAD Clicked");
-                String msg = activity.getResources().getString(R.string.tab_fb_click) + Constants.ADS_SHOW_CLICK;
-                Toast.makeText(activity, msg, Toast.LENGTH_SHORT).show();
-                ScoreTask.start(activity, Constants.ADS_SHOW_CLICK);
+                if(!AdsContext.hasClick(activity,"GdtInter"+Constants.InterExpressPosID)) {
+//                    String msg = activity.getResources().getString(R.string.tab_fb_click) + Constants.ADS_SHOW_CLICK;
+//                    Toast.makeText(activity, msg, Toast.LENGTH_SHORT).show();
+                    ScoreTask.start(activity, Constants.ADS_SHOW_CLICK);
+                }
+
             }
             @Override
             public void onADReceive() {

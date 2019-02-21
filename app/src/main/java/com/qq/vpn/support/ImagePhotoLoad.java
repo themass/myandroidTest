@@ -47,17 +47,19 @@ public class ImagePhotoLoad implements ImageGalleryAdapter.ImageThumbnailLoader,
         if (iv == null || !StringUtils.hasText(url)) {
             return;
         }
-        if (url.startsWith(Constants.IMAGE_CONF)) {
-            url = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf("."));
-            iv.setImageResource(Constants.img.get(url));
-        } else {
+
+        String imgPath = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf("."));
+        if(Constants.img.containsKey(imgPath)){
+            iv.setImageResource(Constants.img.get(imgPath));
+        }else{
             RequestOptions options = new RequestOptions()
                     .placeholder(R.drawable.img_bg)
-                    .priority(Priority.HIGH);
+                    .priority(Priority.HIGH).fitCenter();
             Glide.with(context)
                     .load(url).apply(options)
                     .into(iv);
         }
+
     }
 
     @Override

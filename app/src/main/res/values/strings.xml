@@ -35,7 +35,7 @@
     <string name="singin">sign in </string>
     <string name="singup">sign up </string>
     <string name="singout">sign out</string>
-    <string name="ref_hint">ref user</string>
+    <string name="ref_hint">ref user(optional)</string>
     <string name="empty_name_pwd">name not null</string>
     <string name="repwd_err">Password error</string>
     <string name="pattern_pass_err">Password chat 6 to 10</string>
@@ -74,6 +74,11 @@
     <string name="menu_btn_report_log">Thanks for report us</string>
     <string name="menu_btn_open_browser">Open in browser</string>
     <string name="menu_btn_copy_url">Copy url</string>
+    <string name="menu_btn_recomm">Share Earn Points</string>
+    <string name="menu_btn_recomm_copy">Copy Unique Referral Link</string>
+    <string name="menu_reg_recomm">Inviter(optional)</string>
+    <string name="menu_btn_recomm_reward">Complete ads and Earning 100 Points</string>
+
 
     <string name="support_info">Please activate several apps to support the author！</string>
     <string name="offerads_ths">Thank you for your support!</string>
@@ -160,4 +165,9 @@ You are now using a non WIFI network, continue to download may consume more netw
         <item>Alipay</item>
         <item>Other</item>
     </string-array>
+
+    <string name="repeated_click">Do not click repeatedly</string>
+    <string name="is_emulator">Emulator is not supported</string>
+    <string name="tab_fb_click_no">No ads,please try later</string>
+
 </resources>

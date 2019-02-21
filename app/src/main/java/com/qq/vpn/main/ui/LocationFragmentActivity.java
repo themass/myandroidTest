@@ -2,6 +2,7 @@ package com.qq.vpn.main.ui;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.view.View;
 
 import com.qq.ads.base.AdsContext;
 import com.qq.ext.util.LogUtil;
@@ -84,6 +85,7 @@ public class LocationFragmentActivity extends BaseFragmentActivity implements Fa
         if (title != null) {
             setToolbarTitle(title, true);
         }
+        setFabUpVisibility(View.VISIBLE);
     }
     @Override
     protected boolean needPingView(){

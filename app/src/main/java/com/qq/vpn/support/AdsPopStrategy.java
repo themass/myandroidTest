@@ -15,7 +15,11 @@ import com.qq.network.R;
 
 public class AdsPopStrategy {
     private static long lastToastShow=0;
+    public static int count =0;
     public static void clickAdsShowBtn(Context context){
+        if(count++>5){
+            return;
+        }
         AdsContext.showNextAbs(context, AdsContext.Categrey.CATEGREY_VPN2);
         Long lastClickTime = StaticDataUtil.get(Constants.SCORE_CLICK, Long.class, 0l);
         long curent = System.currentTimeMillis();

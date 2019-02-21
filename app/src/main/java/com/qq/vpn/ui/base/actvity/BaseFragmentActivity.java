@@ -1,7 +1,9 @@
 package com.qq.vpn.ui.base.actvity;
 
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.Nullable;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -10,6 +12,7 @@ import android.view.ViewGroup;
 import android.view.animation.OvershootInterpolator;
 
 import com.qq.Constants;
+import com.qq.ads.base.AdmobRewardManger;
 import com.qq.ads.base.AdsContext;
 import com.qq.ads.base.AdsManager;
 import com.qq.ext.util.LogUtil;
@@ -27,7 +30,7 @@ import butterknife.OnClick;
 /**
  * Created by dengt on 2016/8/21.
  */
-public abstract class BaseFragmentActivity extends ToolBarActivity {
+public abstract class BaseFragmentActivity extends ToolBarActivity implements AdmobRewardManger.OnAdmobRewardListener{
     private static final int ANIM_DURATION_FAB = 400;
     @BindView(R.id.fl_content)
     public ViewGroup flContent;
@@ -37,6 +40,8 @@ public abstract class BaseFragmentActivity extends ToolBarActivity {
     public FloatingActionButton fabUp;
     @BindView(R.id.ct_bar)
     public CollapsingToolbarLayout ctBar;
+    public AdmobRewardManger admobRewardManger;
+
     private AdsGoneTask task = new AdsGoneTask();
     protected Handler mHandler = new Handler() {
         @Override
@@ -45,7 +50,16 @@ public abstract class BaseFragmentActivity extends ToolBarActivity {
     };
     @OnClick(R.id.fab_up)
     public void onClickFab(View view) {
+        admobRewardManger.showAd();
+    }
+    @Override
+    public void onNoRewardAD(){
         AdsPopStrategy.clickAdsShowBtn(this);
+    }
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        admobRewardManger = new AdmobRewardManger(this,this);
     }
 
     @Override
@@ -99,6 +113,7 @@ public abstract class BaseFragmentActivity extends ToolBarActivity {
         super.onResume();
         showAds();
         startIntroAnimation();
+        admobRewardManger.onAdResume();
     }
 
     public void adsDelayGone() {
@@ -109,6 +124,7 @@ public abstract class BaseFragmentActivity extends ToolBarActivity {
     protected void onPause() {
         super.onPause();
         hidenAds();
+        admobRewardManger.onAdPause();
     }
     public void showAds() {
         if (needShow()) {
@@ -139,6 +155,7 @@ public abstract class BaseFragmentActivity extends ToolBarActivity {
     @Override
     public void onDestroy() {
         AdsManager.getInstans().exitBannerAds(this, flBanner,getBannerCategrey());
+        admobRewardManger.onAdDestroy();
         super.onDestroy();
     }
     protected AdsContext.Categrey getBannerCategrey(){

@@ -307,21 +307,38 @@ public class BaseDrawerMenuActivity extends ToolBarActivity {
                     startActivity(SettingActivity.class);
                 }
                 else if (item.getItemId() == R.id.menu_share) {
-                    showShare();
+                    String url = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.D_URL, null);
+                    if (!StringUtils.hasText(url)) {
+                        url = Constants.DEFAULT_REFERER;
+                    }
+                    showShare(url);
                     name = "分享";
+                }else if (item.getItemId() == R.id.menu_recomm) {
+                    String userName = Constants.ADMIN;
+                    if(UserLoginUtil.getUserCache()!=null){
+                        userName = UserLoginUtil.getUserCache().name;
+                    }
+                    String url = Constants.DEFAULT_REFERER+"?ref="+userName;
+                    SystemUtils.copy(BaseDrawerMenuActivity.this, url);
+                    ToastUtil.showShort(R.string.menu_btn_recomm_copy);
+                    showShare(url);
+                    name = "推广积分";
+                }else if (item.getItemId() == R.id.menu_recomm_reward) {
+                    ToastUtil.showShort(R.string.menu_btn_recomm_reward);
+                    showReward();
+                    name = "广告积分";
                 }
                 MobAgent.onEventMenu(BaseDrawerMenuActivity.this, name);
                 return false;
             }
         });
     }
-    public void showShare() {
-        String url = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.D_URL, null);
-        if (!StringUtils.hasText(url)) {
-            url = Constants.DEFAULT_REFERER;
-        }
+    public void showReward(){
+        return;
+    }
+    public void showShare(String url) {
         ShareUtil util = new ShareUtil(this);
-        util.shareText(null,null,url+" 灯塔V梯子，精彩你的生活", "灯塔V梯子","精彩你的生活");
+        util.shareText(null,null,url+" 灯塔V9N，美日韩新德非俄香台等十几个国家地区全免费", "灯塔V9N","FreeV9N，美日韩新德非俄香台等十几个国家地区全免费");
     }
     @Override
     protected void onPause() {

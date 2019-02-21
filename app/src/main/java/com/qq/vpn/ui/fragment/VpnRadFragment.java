@@ -35,7 +35,9 @@ import com.qq.MobAgent;
 import com.qq.ads.base.AdsContext;
 import com.qq.ads.base.AdsManager;
 import com.qq.ext.network.HttpUtils;
+import com.qq.ext.network.VolleyUtils;
 import com.qq.ext.network.req.CommonResponse;
+import com.qq.ext.util.DeviceInfoUtils;
 import com.qq.ext.util.LogUtil;
 import com.qq.ext.util.PermissionHelper;
 import com.qq.ext.util.ToastUtil;
@@ -188,6 +190,10 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
     public void onVpnClick(View v) {
         if(!PermissionHelper.checkPermissions(getActivity())) {
             PermissionHelper.showPermit(getActivity());
+            return ;
+        }
+        if(DeviceInfoUtils.isEmulator(getActivity())){
+            ToastUtil.showShort(R.string.is_emulator);
             return ;
         }
         if (mService != null) {
@@ -430,10 +436,12 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
     class VpnCheckTask implements Runnable {
         @Override
         public void run() {
+            imgError();
             api = new NetApiUtil(getActivity());
             getActivity().bindService(new Intent(getActivity(), VpnStateService.class),
                     mServiceConnection, Service.BIND_AUTO_CREATE);
-            imgError();
+            VolleyUtils.init();
+
         }
     }
 }

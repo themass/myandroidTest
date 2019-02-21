@@ -312,7 +312,6 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
                 break;
             case STATE_CHILD_SA_UP:
                 setState(VpnStateService.State.CONNECTED);
-                logStatus(status);
                 break;
             case STATE_AUTH_ERROR:
                 setErrorDisconnect(VpnStateService.ErrorState.AUTH_FAILED);
