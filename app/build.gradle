@@ -9,8 +9,8 @@ android {
         applicationId "com.qq.sexfree"
         minSdkVersion 16
         targetSdkVersion 26
-        versionCode 1000008008
-        versionName "1.0.8.8"
+        versionCode 1000008010
+        versionName "1.0.8.10"
         // Enabling multidex support.
         multiDexEnabled true
         vectorDrawables.useSupportLibrary = true
@@ -163,4 +163,7 @@ dependencies {
     implementation 'com.google.android.gms:play-services-location:15.0.1'
     implementation 'com.google.android.gms:play-services-plus:15.0.1'
     implementation project(path: ':vitamio')
+
+    implementation 'pl.droidsonroids.gif:android-gif-drawable:1.2.6'
+
 }
