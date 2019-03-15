@@ -15,6 +15,7 @@ import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PathUtil;
 import com.sspacee.common.util.Utils;
 import com.sspacee.yewu.net.HttpUtils;
+import com.timeline.myapp.constant.Constants;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -42,8 +43,8 @@ public class SaveTextTask extends AsyncTask<String,Void,Void>{
             Uri uri = Uri.parse(url);
             String filename = PathUtil.getFileExtensionFromUrl(url);
             File file = new File( FileUtils.getWriteFilePath(context),filename);
-            FileUtils.deleteFile(file);
-            HttpUtils.download(context,url,file,null);
+            if(!file.exists() && url.startsWith(Constants.HTTP_URL))
+                HttpUtils.download(context,url,file,null);
         } catch (Exception e) {
             LogUtil.e(e);
         }

@@ -10,6 +10,7 @@ import com.qq.sexfree.R;
 import com.sspacee.common.util.Md5;
 import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.SystemUtils;
+import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.ads.adview.AdviewConstant;
 import com.sspacee.yewu.um.MobAgent;
 import com.timeline.myapp.constant.Constants;
@@ -17,6 +18,9 @@ import com.timeline.myapp.data.AdsPopStrategy;
 import com.timeline.myapp.data.UserLoginUtil;
 import com.timeline.myapp.task.ScoreTask;
 import com.timeline.sexfree1.ui.main.MainFragmentViewPage;
+
+import java.util.HashSet;
+import java.util.Set;
 
 import static com.sspacee.yewu.ads.base.AdsContext.AdsShowStatus.ADS_CLICK_MSG;
 
@@ -27,6 +31,8 @@ import static com.sspacee.yewu.ads.base.AdsContext.AdsShowStatus.ADS_CLICK_MSG;
 
 public class AdsContext {
     private static int showCount = 0;
+    public static Set<String> adsClick = new HashSet<>();
+
     static {
     }
     public static enum Categrey {
@@ -77,6 +83,14 @@ public class AdsContext {
         AdsFrom(String desc){
             this.desc =desc;
         }
+    }
+    public static boolean hasClick(Context context,String key){
+        if(adsClick.contains(key)){
+            ToastUtil.showShort(R.string.repeated_click);
+            return true;
+        }
+        adsClick.add(key);
+        return false;
     }
     public static class AdsMsgObj{
         AdsType type;

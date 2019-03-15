@@ -54,7 +54,8 @@ public class Constants {
     public static final int LOCATION_TYPE_FREE = 0;
     public static final int LOCATION_TYPE_VIP = 1;
     public static final int LOCATION_TYPE_VIP2 = 2;
-    public static final List<Integer> BANNER_ADS_POS = Arrays.asList(1,14,34,54);
+    public static final long SCORE_CLICK_INTERVAL = 10;
+    public static final List<Integer> BANNER_ADS_POS = Arrays.asList(1,6,17,26);
 //    public static final List<Integer> BANNER_ADS_POS = Arrays.asList(3,13,18,21,30,40,50);
 
     public static final String[] sort_type = new String[]{"type_asc", "type_desc"};
@@ -111,6 +112,7 @@ public class Constants {
     public static final String API_USER_INFO_URL = "/user/info.json";
     public static final String API_IWANNA_URL = "/data/feed/wanna.json?start=%s&limit=30";
     public static final String API_IWANNA_LIKE_URL = "/data/feed/wanna/%s.json";
+    public static final String API_FAB_ADSCLICK2_URL = "/user/ads/check.json";
 
     public static final String API_FEEDBACK_URL = "/data/feed/score.json?start=%s&limit=40";
     public static final String API_FEEDBACK_LIKE_URL = "/data/feed/score/%s.json";
@@ -184,7 +186,6 @@ public class Constants {
     public static final String IMG_ITEMS = "IMG_ITEMS";
     public static final String SCORE_TMP = "SCORE_TMP";
     public static final String SCORE_CLICK = "SCORE_CLICK";
-    public static final long SCORE_CLICK_INTERVAL = 2;
     public static final String VPN_STATUS = "VPN_STATUS";
     public static final String SOUND_CHANNEL_CLICK = "SOUND_CHANNEL_CLICK";
     public static final int MAX_RETRY_COUNT = 4;
@@ -262,4 +263,11 @@ public class Constants {
     public static int ITEMS_PER_AD_SIX = 12;     // 每间隔10个条目插入一条广告
     public static int ITEMS_PER_AD_THREE = 6;     // 每间隔10个条目插入一条广告
     public static int ITEMS_PER_AD_BANNER = 1;     // 每间隔10个条目插入一条广告
+
+    public static final String ADMOB_REWARD_ID="ca-app-pub-7849865307083433~6442519654";
+    public static final String ADMOB_REWARD_UNIT_ID="ca-app-pub-7849865307083433/7099517165";
+    public static final String ADMOB_REWARD_UNIT_ID2="ca-app-pub-7849865307083433/6124636405";
+    public static final String ADMOB_REWARD_UNIT_ID3="ca-app-pub-7849865307083433/2002516423";
+    public static final List<String> ADMOB_REWARD_UNIT_IDS=Arrays.asList(ADMOB_REWARD_UNIT_ID,ADMOB_REWARD_UNIT_ID2,ADMOB_REWARD_UNIT_ID3);
+    public static final int ADS_REWARD_SHOW_CLICK = 100;
 }

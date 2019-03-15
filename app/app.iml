@@ -160,6 +160,7 @@
     <orderEntry type="library" name="Gradle: com.google.android.gms:play-services-ads-lite-15.0.1" level="project" />
     <orderEntry type="library" name="Gradle: com.android.support:multidex-1.0.2" level="project" />
     <orderEntry type="library" name="Gradle: com.github.bumptech.glide:okhttp3-integration:4.3.1@jar" level="project" />
+    <orderEntry type="library" name="Gradle: __local_aars__:D.\work\gradle-4.1\caches\transforms-1\files-1.1\MAT-moat-mobile-app-kit.aar\c19368cc01827514738b0b8027e435e8:unspecified@jar" level="project" />
     <orderEntry type="library" name="Gradle: com.github.lawloretienne:imagegallery-0.1.0" level="project" />
     <orderEntry type="library" name="Gradle: com.android.support:support-media-compat-26.1.0" level="project" />
     <orderEntry type="library" name="Gradle: com.android.support:support-annotations:26.1.0@jar" level="project" />
@@ -212,11 +213,13 @@
     <orderEntry type="library" name="Gradle: com.google.android.gms:play-services-gass-15.0.1" level="project" />
     <orderEntry type="library" name="Gradle: com.android.support:support-compat-26.1.0" level="project" />
     <orderEntry type="library" name="Gradle: com.google.android.gms:play-services-ads-identifier-15.0.1" level="project" />
+    <orderEntry type="library" name="Gradle: __local_aars__:D.\work\myworkspace\sspacee-sex\app\libs\InMobi.jar:unspecified@jar" level="project" />
     <orderEntry type="library" name="Gradle: com.google.errorprone:error_prone_annotations:2.0.18@jar" level="project" />
     <orderEntry type="library" name="Gradle: com.jakewharton:disklrucache:2.0.2@jar" level="project" />
     <orderEntry type="library" name="Gradle: com.google.android.gms:play-services-location-15.0.1" level="project" />
     <orderEntry type="library" name="Gradle: __local_aars__:D.\work\myworkspace\sspacee-sex\app\libs\httpcore-4.2.5.jar:unspecified@jar" level="project" />
     <orderEntry type="library" name="Gradle: com.squareup.okhttp3:okhttp:3.9.0@jar" level="project" />
+    <orderEntry type="library" name="Gradle: com.squareup.picasso:picasso:2.5.2@jar" level="project" />
     <orderEntry type="library" name="Gradle: com.android.support:support-v13-26.1.0" level="project" />
     <orderEntry type="library" name="Gradle: org.greenrobot:greendao-api:3.2.2@jar" level="project" />
     <orderEntry type="library" name="Gradle: com.google.android.gms:play-services-audience-15.0.1" level="project" />

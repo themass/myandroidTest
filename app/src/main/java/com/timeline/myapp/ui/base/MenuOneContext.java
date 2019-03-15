@@ -36,6 +36,26 @@ public class MenuOneContext {
 //        menuHelper.setForceShowIcon(true);
 //        menuHelper.show();
     }
+    public static void showDelOneMenu(Context context, View v,int title,int icon,final MyOnMenuItemClickListener listener,final int position){
+        PopupMenu popupMenu = new PopupMenu(context, v);
+        popupMenu.getMenuInflater().inflate(R.menu.menu_oneline, popupMenu.getMenu());
+        MenuItem item = popupMenu.getMenu().findItem(R.id.menu_one);
+        item.setTitle(title);
+        item.setIcon(icon);
+        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            public boolean onMenuItemClick(MenuItem item) {
+                if(listener!=null){
+                    return listener.onMenuItemClick(item,position);
+                }
+                return false;
+            }
+        });
+        setIconEnable(popupMenu.getMenu(),true);
+        popupMenu.show();
+//        MenuPopupHelper menuHelper = new MenuPopupHelper(context, (MenuBuilder) popupMenu.getMenu(), v);
+//        menuHelper.setForceShowIcon(true);
+//        menuHelper.show();
+    }
     private static void setIconEnable(Menu menu, boolean enable)
     {
         try

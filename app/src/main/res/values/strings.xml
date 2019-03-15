@@ -62,6 +62,7 @@
     <string name="menu_btn_app">App recommend</string>
     <string name="menu_btn_donation">Support</string>
     <string name="menu_btn_support">Support author</string>
+    <string name="menu_btn_hist">History</string>
     <string name="menu_btn_about_context">FreePorn the most stable, free, unlimited，all for you！</string>
     <string name="feed_back">Feedback</string>
     <string name="menu_btn_score">Points:</string>
@@ -77,6 +78,7 @@
     <string name="menu_btn_favorite">My favorite</string>
     <string name="menu_favorite">Favorite</string>
     <string name="menu_favorite_cancel">Cancel Favorite</string>
+    <string name="menu_del_all">Clear History</string>
     <string name="support_info">Please activate several apps to support the author！</string>
     <string name="offerads_ths">Thank you for your support!</string>
     <string name="location_choose_flag_none">Click“ Region ”More regional options</string>
@@ -99,7 +101,7 @@
     <string name="findpass">Forget Pass?</string>
     <string name="username_hint">Username</string>
     <string name="email_hint">E-mail</string>
-    <string name="ref_hint">Inviter</string>
+    <string name="ref_hint">ref user(optional)</string>
     <string name="email_see">Send a email to you</string>
     <string name="email_ok">email set ok</string>
     <string name="email_fail">email set fail</string>
@@ -146,6 +148,10 @@
     <string name="img">Sex Img</string>
     <string name="tv">TV</string>
     <string name="version_low">version is to low！</string>
+    <string name="menu_btn_recomm">Share Earn Points</string>
+    <string name="menu_btn_recomm_copy">Copy Unique Referral Link</string>
+    <string name="menu_reg_recomm">Inviter(optional)</string>
+    <string name="menu_btn_recomm_reward">Complete ads and Earning 100 Points</string>
 
     <string name="hidden_area_hit">Hidden “Area” from the Settings</string>
     <string name="wither_hit">See more weather</string>
@@ -258,4 +264,7 @@ You are now using a non WIFI network, continue to download may consume more netw
         <item>AllNet</item>
     </string-array>
     <!--广告-->
+    <string name="repeated_click">Do not click repeatedly</string>
+    <string name="is_emulator">Emulator is not supported</string>
+    <string name="tab_fb_click_no">No ads,please try later</string>
 </resources>

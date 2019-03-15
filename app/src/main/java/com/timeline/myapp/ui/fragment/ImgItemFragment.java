@@ -21,10 +21,12 @@ import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.myapp.base.MyApplication;
+import com.timeline.myapp.bean.vo.HistVo;
 import com.timeline.myapp.bean.vo.ImgItemsVo;
 import com.timeline.myapp.bean.vo.InfoListVo;
 import com.timeline.myapp.bean.vo.RecommendVo;
 import com.timeline.myapp.constant.Constants;
+import com.timeline.myapp.data.HistUtil;
 import com.timeline.myapp.data.StaticDataUtil;
 import com.timeline.myapp.task.SaveImageCallBack;
 import com.timeline.myapp.task.SaveImageTask;
@@ -115,6 +117,7 @@ public class ImgItemFragment extends RecommendFragment implements SaveImageCallB
 
         disappearAnimation = new AlphaAnimation(1, 0);
         disappearAnimation.setDuration(800);
+        HistUtil.addFavorite(getActivity(),vo.toHistVo());
     }
     protected BaseRecyclerViewAdapter getAdapter(){return null;}
     @OnClick(R.id.iv_favorite)

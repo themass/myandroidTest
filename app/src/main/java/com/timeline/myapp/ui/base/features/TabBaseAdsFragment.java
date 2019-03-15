@@ -8,7 +8,9 @@ import android.view.animation.OvershootInterpolator;
 import com.qq.sexfree.R;
 import com.sspacee.common.util.LogUtil;
 
+import com.sspacee.yewu.ads.base.AdmobRewardManger;
 import com.timeline.myapp.data.AdsPopStrategy;
+import com.timeline.sexfree1.ui.main.MainFragmentViewPage;
 
 import butterknife.BindView;
 import butterknife.OnClick;
@@ -16,7 +18,7 @@ import butterknife.OnClick;
 /**
  * Created by themass on 2016/3/31.
  */
-public abstract class TabBaseAdsFragment extends TabBaseFragment{
+public abstract class TabBaseAdsFragment extends TabBaseFragment implements AdmobRewardManger.OnAdmobRewardListener{
     private static final int ANIM_DURATION_FAB = 400;
     @BindView(R.id.fab_up)
     public FloatingActionButton fabUp;
@@ -25,12 +27,17 @@ public abstract class TabBaseAdsFragment extends TabBaseFragment{
 
     @OnClick(R.id.fab_up)
     public void onClickFab(View view) {
-        AdsPopStrategy.clickAdsShowBtn(getActivity());
+        if(getActivity() instanceof MainFragmentViewPage){
+            ((MainFragmentViewPage)getActivity()).showReward();
+        }
     }
 
     public void next() {
     }
-
+    @Override
+    public void onNoRewardAD(){
+        AdsPopStrategy.clickAdsShowBtn(getActivity());
+    }
 //    @Override
 //    public boolean onkeyBackDown() {
 //        return false;

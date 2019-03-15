@@ -28,12 +28,14 @@ import com.sspacee.common.util.PermissionHelper;
 import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.SystemUtils;
 import com.sspacee.common.util.ToastUtil;
+import com.sspacee.yewu.ads.base.AdmobRewardManger;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.ads.base.GdtInterManger;
 import com.sspacee.yewu.um.MobAgent;
 import com.timeline.myapp.base.MyApplication;
 import com.timeline.myapp.constant.Constants;
+import com.timeline.myapp.data.AdsPopStrategy;
 import com.timeline.myapp.data.ConnLogUtil;
 import com.timeline.myapp.data.UserLoginUtil;
 import com.timeline.myapp.data.config.ConfigActionJump;
@@ -60,7 +62,7 @@ import java.util.Set;
 /**
  * Created by themass on 2016/3/1.
  */
-public class MainFragmentViewPage extends BaseDrawerActivity implements ActivityCompat.OnRequestPermissionsResultCallback ,GdtInterManger.OnGdtInterListener {
+public class MainFragmentViewPage extends BaseDrawerActivity implements ActivityCompat.OnRequestPermissionsResultCallback ,GdtInterManger.OnGdtInterListener ,AdmobRewardManger.OnAdmobRewardListener {
     public List<ItemFragment> list = new ArrayList<>();
     public boolean init = false;
     private Set<OnBackKeyDownListener> keyListeners = new HashSet<>();
@@ -75,6 +77,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
     private static final String WITER_TAG="WITER_TAG";
     private PermissionHelper mPermissionHelper;
     private GdtInterManger gdtInterManger;
+    public AdmobRewardManger admobRewardManger;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_main_viewpage);
@@ -83,6 +86,17 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         mPermissionHelper = new PermissionHelper(this);
         EventBusUtil.getEventBus().register(this);
         mPermissionHelper.checkNeedPermissions();
+        admobRewardManger = new AdmobRewardManger(this,this);
+    }
+    @Override
+    public void onNoRewardAD(){
+        AdsPopStrategy.clickAdsShowBtn(this);
+    }
+
+    @Override
+    public void showReward() {
+        super.showReward();
+        admobRewardManger.showAd();
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -200,11 +214,22 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         EventBusUtil.getEventBus().unregister(jump);
         EventBusUtil.getEventBus().unregister(logAdd);
         EventBusUtil.getEventBus().unregister(this);
+        admobRewardManger.onAdDestroy();
         super.onDestroy();
         MobAgent.killProcess(this);
         System.exit(0);
     }
+    @Override
+    protected void onPause() {
+        admobRewardManger.onAdPause();
+        super.onPause();
+    }
 
+    @Override
+    protected void onResume() {
+        admobRewardManger.onAdResume();
+        super.onResume();
+    }
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         LogUtil.i("onKeyUp");

@@ -13,7 +13,7 @@ import com.timeline.myapp.bean.vo.ImgItemsVo;
 import com.timeline.myapp.bean.vo.InfoListVo;
 import com.timeline.myapp.bean.vo.RecommendVo;
 import com.timeline.myapp.constant.Constants;
-import com.timeline.myapp.data.HistoryUtil;
+import com.timeline.myapp.data.HistUtil;
 import com.timeline.myapp.data.StaticDataUtil;
 import com.timeline.myapp.data.UserLoginUtil;
 import com.timeline.myapp.ui.base.CommonFragmentActivity;
@@ -85,7 +85,6 @@ public class ImgChannelImgListFragment extends RecommendFragment {
         imgItemsVo.name = revo.title;
         imgItemsVo.url = revo.actionUrl;
         ImgItemFragment.startFragment(getActivity(), imgItemsVo);
-        HistoryUtil.addHistory(getActivity(), imgItemsVo.url);
         mSearchView.clearFocus();
     }
     @Override

@@ -43,7 +43,14 @@ public class RecommendVo implements Serializable {
         vo.setO(this);
         return vo;
     }
-
+    public HistVo toHistVo(int type) {
+        HistVo vo = new HistVo();
+        vo.setName(title);
+        vo.setType(type);
+        vo.setItemUrl(actionUrl==null?param:actionUrl);
+        vo.setO(this);
+        return vo;
+    }
     @Override
     public String toString() {
         return "RecommendVo{" +

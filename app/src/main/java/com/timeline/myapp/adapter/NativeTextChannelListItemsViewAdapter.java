@@ -24,7 +24,7 @@ import com.sspacee.yewu.ads.base.GdtNativeManager;
 import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.timeline.myapp.bean.vo.TextItemsVo;
 import com.timeline.myapp.constant.Constants;
-import com.timeline.myapp.data.HistoryUtil;
+import com.timeline.myapp.data.HistUtil;
 import com.timeline.myapp.data.ImagePhotoLoad;
 
 import java.util.HashMap;
@@ -58,7 +58,7 @@ public class NativeTextChannelListItemsViewAdapter extends BaseRecyclerViewAdapt
         holder.tvDate.setText(vo.fileDate);
         if (position == getSelected()) {
             holder.tvName.setTextColor(context.getResources().getColor(R.color.click));
-        } else if (HistoryUtil.getHistory(context, vo.fileUrl) != null) {
+        } else if (HistUtil.getFavorite(context, vo.fileUrl) != null) {
             holder.tvName.setTextColor(context.getResources().getColor(R.color.base_gray));
         } else {
             holder.tvName.setTextColor(context.getResources().getColor(R.color.base_black));

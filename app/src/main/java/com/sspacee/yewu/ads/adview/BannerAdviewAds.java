@@ -43,7 +43,9 @@ public class BannerAdviewAds extends BannerInter {
 
                 @Override
                 public void onAdClick(String s) {
-                    clickAds(context,handler, AdsContext.AdsFrom.ADVIEW);
+                    if(!AdsContext.hasClick(context,"banner"+s)) {
+                        clickAds(context, handler, AdsContext.AdsFrom.ADVIEW);
+                    }
                 }
 
                 @Override

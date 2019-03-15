@@ -38,7 +38,9 @@ public class SplashAdviewAds extends SplashAdsInter {
             AdViewSpreadManager.getInstance(context).request(context, ADS_ADVIEW_KEY2, new AdViewSpreadListener() {
                 @Override
                 public void onAdClick(String s) {
-                    clickAds(context,handler, AdsContext.AdsFrom.ADVIEW);
+                    if(!AdsContext.hasClick(context,"Splash"+s)) {
+                        clickAds(context, handler, AdsContext.AdsFrom.ADVIEW);
+                    }
                 }
 
                 @Override

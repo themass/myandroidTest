@@ -44,6 +44,7 @@ import com.timeline.myapp.ui.feedback.IWannaFragment;
 import com.timeline.myapp.ui.fragment.AppListFragment;
 import com.timeline.myapp.ui.fragment.DonationListFragment;
 import com.timeline.myapp.ui.fragment.FavoriteFragment;
+import com.timeline.myapp.ui.fragment.HistFragment;
 import com.timeline.myapp.ui.user.LoginActivity;
 import com.timeline.myapp.ui.user.SettingActivity;
 
@@ -323,23 +324,44 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                 } else if (item.getItemId() == R.id.menu_donation) {
                     name = "捐赠";
                     DonationListFragment.startFragment(BaseDrawerActivity.this);
+                } else if (item.getItemId() == R.id.menu_hist) {
+                    name = "历史";
+                    HistFragment.startFragment(BaseDrawerActivity.this);
                 } else if (item.getItemId() == R.id.menu_share) {
-                    showShare();
+                    String url = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.D_URL, null);
+                    if (!StringUtils.hasText(url)) {
+                        url = Constants.DEFAULT_REFERER;
+                    }
+                    showShare(url);
                     name = "分享";
+                }else if (item.getItemId() == R.id.menu_recomm) {
+                    String userName = Constants.ADMIN;
+                    if(UserLoginUtil.getUserCache()!=null){
+                        userName = UserLoginUtil.getUserCache().name;
+                    }
+                    String url = Constants.DEFAULT_REFERER+"?ref="+userName;
+                    SystemUtils.copy(BaseDrawerActivity.this, url);
+                    ToastUtil.showShort(R.string.menu_btn_recomm_copy);
+                    showShare(url);
+                    name = "推广积分";
+                }else if (item.getItemId() == R.id.menu_recomm_reward) {
+                    ToastUtil.showShort(R.string.menu_btn_recomm_reward);
+                    showReward();
+                    name = "广告积分";
                 }
                 MobAgent.onEventMenu(BaseDrawerActivity.this, name);
                 return false;
             }
         });
     }
-    public void showShare() {
-        String url = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.D_URL, null);
-        if (!StringUtils.hasText(url)) {
-            url = Constants.DEFAULT_REFERER;
-        }
-        ShareUtil util = new ShareUtil(this);
-        util.shareText(null,null,url+" 红颜影视，精彩你的生活","红颜影视","精彩你的生活");
+    public void showReward(){
+        return;
     }
+    public void showShare(String url) {
+        ShareUtil util = new ShareUtil(this);
+        util.shareText(null,null,url+"红颜影视，你想看的这里都有", "红颜影视","你想看的这里都有");
+    }
+
     @Override
     protected void onPause() {
         super.onPause();

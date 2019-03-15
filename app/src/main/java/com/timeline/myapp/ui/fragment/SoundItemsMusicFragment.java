@@ -38,6 +38,7 @@ import com.timeline.myapp.bean.vo.InfoListVo;
 import com.timeline.myapp.bean.vo.RecommendVo;
 import com.timeline.myapp.bean.vo.SoundItemsVo;
 import com.timeline.myapp.constant.Constants;
+import com.timeline.myapp.data.HistUtil;
 import com.timeline.myapp.data.StaticDataUtil;
 import com.timeline.myapp.data.UserLoginUtil;
 import com.timeline.myapp.service.PlayService;
@@ -303,6 +304,7 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
 //        AdsContext.nativeVideoAds(getActivity(),group);
 //        adapter.setFooterView(group);
         receiverReg();
+        HistUtil.addFavorite(getActivity(),vo.toHistVo(Constants.FavoriteType.SOUND));
         gdtNativeManager.loadData(getActivity());
     }
 

@@ -24,5 +24,13 @@ public class TextItemsVo implements Serializable {
         vo.setType(Constants.FavoriteType.TEXT);
         return vo;
     }
+    public HistVo toHist() {
+        HistVo vo = new HistVo();
+        vo.setName(name);
+        vo.setO(this);
+        vo.setItemUrl(fileUrl);
+        vo.setType(Constants.FavoriteType.TEXT);
+        return vo;
+    }
 }
 

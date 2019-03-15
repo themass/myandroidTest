@@ -1,7 +1,9 @@
 package com.timeline.myapp.ui.base.app;
 
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.Nullable;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -13,6 +15,7 @@ import com.qq.e.ads.nativ.NativeExpressADView;
 import com.qq.sexfree.R;
 import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.common.util.LogUtil;
+import com.sspacee.yewu.ads.base.AdmobRewardManger;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
 
@@ -34,7 +37,7 @@ import butterknife.OnClick;
 /**
  * Created by themass on 2016/8/21.
  */
-public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implements GdtNativeManager.OnLoadListener {
+public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implements GdtNativeManager.OnLoadListener, AdmobRewardManger.OnAdmobRewardListener {
     private static final int ANIM_DURATION_FAB = 400;
     @BindView(R.id.fl_content)
     public ViewGroup flContent;
@@ -45,6 +48,8 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
     @BindView(R.id.ct_bar)
     public CollapsingToolbarLayout ctBar;
     private AdsGoneTask task = new AdsGoneTask();
+    public AdmobRewardManger admobRewardManger;
+
     GdtNativeManager gdtNativeManager = new GdtNativeManager(this,Constants.FIRST_AD_POSITION,Constants.FIRST_AD_POSITION,Constants.ITEMS_PER_AD_BANNER);
     protected Handler mHandler = new Handler() {
         @Override
@@ -61,7 +66,16 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
     }
     @OnClick(R.id.fab_up)
     public void onClickFab(View view) {
+        admobRewardManger.showAd();
+    }
+    @Override
+    public void onNoRewardAD(){
         AdsPopStrategy.clickAdsShowBtn(this);
+    }
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        admobRewardManger = new AdmobRewardManger(this,this);
     }
 
     @Override
@@ -115,6 +129,7 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
         super.onResume();
         showAds();
         startIntroAnimation();
+        admobRewardManger.onAdResume();
     }
 
     public void adsDelayGone() {
@@ -124,6 +139,7 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
     @Override
     protected void onPause() {
         super.onPause();
+        admobRewardManger.onAdPause();
         if(gdtNativeManager.getAdSize()==0) {
             LogUtil.i("hidenAds： "+gdtNativeManager.getAdSize());
             hidenAds();
@@ -159,6 +175,7 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
     @Override
     public void onDestroy() {
         AdsManager.getInstans().exitBannerAds(this, flBanner,getBannerCategrey());
+        admobRewardManger.onAdDestroy();
         super.onDestroy();
     }
     protected AdsContext.Categrey getBannerCategrey(){

@@ -2,6 +2,7 @@ package com.timeline.myapp.ui.sound;
 
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -14,6 +15,7 @@ import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.StringUtils;
 import com.sspacee.common.util.ToastUtil;
+import com.sspacee.common.util.Utils;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.ads.base.GdtNativeManager;
@@ -21,9 +23,11 @@ import com.timeline.myapp.data.ConnLogUtil;
 
 import com.timeline.myapp.bean.vo.RecommendVo;
 import com.timeline.myapp.constant.Constants;
+import com.timeline.myapp.data.HistUtil;
 import com.timeline.myapp.data.ImagePhotoLoad;
 import com.timeline.myapp.data.UserLoginUtil;
 import com.timeline.myapp.data.VideoUtil;
+import com.timeline.myapp.data.urlparser.UrlParser;
 import com.timeline.myapp.ui.base.WebViewActivity;
 
 import java.util.HashMap;
@@ -84,9 +88,11 @@ public class VideoShowActivity extends AppCompatActivity implements GdtNativeMan
         if(AdsContext.rateShow()){
             gdtNativeManager.loadDataVideoDetail(this);
         }
-        if(!(url.endsWith("m3u8")||url.endsWith("mp4"))){
+        Uri uri = Uri.parse(url);
+        if(!(uri.getPath().endsWith(".m3u8")||uri.getPath().endsWith(".mp4"))){
             ivLiu.setVisibility(View.GONE);
         }
+        HistUtil.addFavorite(this,vo.toHistVo(Constants.FavoriteType.VIDEO));
     }
     @OnClick(R.id.iv_favorite)
     public void favoriteClick(View view) {
@@ -94,8 +100,13 @@ public class VideoShowActivity extends AppCompatActivity implements GdtNativeMan
     }
     @OnClick(R.id.iv_liu)
     public void openBrowserClick(View view) {
-        WebViewActivity.startWebViewActivity(this, Constants.BASE_OPENINBROWSER+url, vo.title, true, false, null);
-        finish();
+        Uri uri = Uri.parse(url);
+        if(uri.getPath().endsWith(".m3u8")){
+            WebViewActivity.startWebViewActivity(this, Constants.BASE_OPENINBROWSER+url, vo.title, true, false, null);
+        }else {
+            WebViewActivity.startWebViewActivity(this, url, vo.title, true, false, null);
+        }
+//        finish();
     }
     @Override
     public void onPause() {

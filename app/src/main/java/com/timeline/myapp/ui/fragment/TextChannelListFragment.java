@@ -24,7 +24,7 @@ import com.timeline.myapp.bean.vo.RecommendVo;
 import com.timeline.myapp.bean.vo.TextItemsVo;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.FavoriteUtil;
-import com.timeline.myapp.data.HistoryUtil;
+import com.timeline.myapp.data.HistUtil;
 import com.timeline.myapp.data.StaticDataUtil;
 import com.timeline.myapp.data.UserLoginUtil;
 import com.timeline.myapp.ui.base.CommonFragmentActivity;
@@ -97,7 +97,7 @@ public class TextChannelListFragment extends BasePullLoadbleFragment<TextItemsVo
     public void onItemClick(View view, TextItemsVo data, int postion) {
         UserLoginUtil.showScoreNotice(2);
         adapter.setSelected(-1);
-        HistoryUtil.addHistory(getActivity(), data.fileUrl);
+        HistUtil.addFavorite(getActivity(), infoListVo.voList.get(postion).toHist());
         if (StringUtils.hasText(data.fileUrl)) {
 //            TextItemsStrFragment.startFragment(getActivity(),data);
             TextItemsWebViewFragment.startFragment(getActivity(), data);

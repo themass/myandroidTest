@@ -84,7 +84,7 @@ android {
 }
 
 greendao {
-    schemaVersion 3
+    schemaVersion 4
     daoPackage 'com.ping.greendao.gen'
     targetGenDir 'src/main/java'
 }
@@ -165,5 +165,5 @@ dependencies {
     implementation project(path: ':vitamio')
 
     implementation 'pl.droidsonroids.gif:android-gif-drawable:1.2.6'
-
+    implementation 'com.squareup.picasso:picasso:2.5.2'
 }

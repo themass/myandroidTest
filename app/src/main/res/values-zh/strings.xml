@@ -63,6 +63,7 @@
     <string name="menu_btn_setting">设置</string>
     <string name="menu_btn_app">应用推荐</string>
     <string name="menu_btn_support">支持一下作者</string>
+    <string name="menu_btn_hist">浏览历史</string>
     <string name="support_info">请安装并激活几款应用，支持一下作者</string>
     <string name="offerads_ths">感谢您的支持！</string>
     <string name="menu_btn_about_context">FreePorn最稳定，免费，不限时，一切为你请点赞！</string>
@@ -80,6 +81,7 @@
     <string name="menu_btn_favorite">收藏夹</string>
     <string name="menu_favorite">收藏</string>
     <string name="menu_favorite_cancel">取消收藏</string>
+    <string name="menu_del_all">清空历史</string>
     <!-- share-->
     <string name="menu_share_title">分享</string>
     <string name="menu_share_url">下载地址:\n%s</string>
@@ -110,7 +112,7 @@
     <string name="email_fail">邮箱设置失败</string>
     <string name="free_user">免费用户</string>
     <string name="email_hint">邮箱</string>
-    <string name="ref_hint">邀请人</string>
+    <string name="ref_hint">推荐人(可不填)</string>
     <string name="password_hint">密码</string>
     <string name="password_error">密码错误</string>
     <string name="re_password_hint">再次输入密码</string>
@@ -149,7 +151,10 @@
     <string name="save_fail">保存失败</string>
     <string name="save_img">保存到本地</string>
     <string name="save_start">开始保存...</string>
-
+    <string name="menu_btn_recomm">推广返积分</string>
+    <string name="menu_btn_recomm_copy">专属链接已复制，推广赚积分</string>
+    <string name="menu_reg_recomm">邀请人(可不填)</string>
+    <string name="menu_btn_recomm_reward">看广告赚100积分</string>
     <string name="feedback_hint">xxx积分 VIP3</string>
     <string name="hidden_area_hit">设置里可以隐藏“专区”</string>
     <string name="wither_hit">查看更多天气</string>
@@ -259,5 +264,7 @@
 
     <!--广告-->
     <!--slidingclose-->
-
+    <string name="repeated_click">请勿重复点击</string>
+    <string name="is_emulator">暂不支持模拟器</string>
+    <string name="tab_fb_click_no">暂无广告，稍后再试</string>
 </resources>

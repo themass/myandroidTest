@@ -22,5 +22,13 @@ public class ImgItemsVo {
         vo.setName(name);
         return vo;
     }
+    public HistVo toHistVo(){
+        HistVo vo = new HistVo();
+        vo.setItemUrl(url);
+        vo.setType(Constants.FavoriteType.IMG);
+        vo.setO(this);
+        vo.setName(name);
+        return vo;
+    }
 }
 

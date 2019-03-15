@@ -23,7 +23,8 @@ public class AdviewAdsManager {
                 .setUpdateMode(InitConfiguration.UpdateMode.EVERYTIME)   // 实时获取配置
                 .setBannerCloseble(InitConfiguration.BannerSwitcher.DEFAULT)    //横幅可关闭按钮
                 .setInstlDisplayType(InitConfiguration.InstlDisplayType.POPUPWINDOW_MODE)// 为默认情况,设置插屏展示模式，popupwindow模式可设置窗体外可点击
-                .setInstlCloseble(InitConfiguration.InstlSwitcher.CANCLOSED);     //插屏可关闭按钮
+                .setInstlCloseble(InitConfiguration.InstlSwitcher.CANCLOSED)     //插屏可关闭按钮
+                .setAdInMobiSize(InitConfiguration.AdInMobiSize.INMOBI_AD_UNIT_320x50);
         builder.setAdMobSize(InitConfiguration.AdMobSize.BANNER);
         builder.setAdGdtSize(InitConfiguration.AdGdtSize.BANNER);
         builder.setAdInMobiSize(InitConfiguration.AdInMobiSize.INMOBI_AD_UNIT_468x60);

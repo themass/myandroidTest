@@ -107,6 +107,7 @@ public class TextItemsWebViewFragment extends BaseFragment {
             }
             ivFavorite.initSrc(url);
         }
+        SaveTextTask.startSave(getActivity(), url);
     }
 
     public void setListener(MyWebView.OnTouchRightSlide listener) {
@@ -269,7 +270,6 @@ public class TextItemsWebViewFragment extends BaseFragment {
     public void favoriteClick(View view) {
         if(url.startsWith(Constants.HTTP_URL)) {
             ivFavorite.clickFavorite(vo.tofavorite());
-            SaveTextTask.startSave(getActivity(), url);
         }
     }
 }

@@ -143,8 +143,8 @@ public class GdtNativeManager implements NativeExpressAD.NativeExpressADListener
     @Override
     public void onADClicked(NativeExpressADView adView) {
         Log.i(TAG, "onADClicked: " + adView.toString());
-        String msg = context.getResources().getString(R.string.tab_fb_click) + Constants.ADS_SHOW_CLICK;
-        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
+//        String msg = context.getResources().getString(R.string.tab_fb_click) + Constants.ADS_SHOW_CLICK;
+//        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
         ScoreTask.start(context, Constants.ADS_SHOW_CLICK);
     }
 

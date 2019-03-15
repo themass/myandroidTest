@@ -10,7 +10,6 @@ import com.sspacee.yewu.ads.base.AdsContext;
 
 import com.timeline.myapp.bean.vo.RecommendVo;
 import com.timeline.myapp.constant.Constants;
-import com.timeline.myapp.data.HistoryUtil;
 import com.timeline.myapp.data.StaticDataUtil;
 import com.timeline.myapp.data.VideoUtil;
 import com.timeline.myapp.ui.base.CommonFragmentActivity;
@@ -68,7 +67,6 @@ public class TeleplayItemFragment extends RecommendFragment {
     @Override
     public void onCustomerItemClick(View v, int position) {
         RecommendVo revo = infoListVo.voList.get(position);
-        HistoryUtil.addHistory(getActivity(), revo.actionUrl);
         if(Constants.VIDEO_TYPE_NORMAL.equalsIgnoreCase((String)revo.extra)){
             if(VideoUtil.isVitamioExt(vo.actionUrl)){
                 startActivity(VitamioVideoPlayActivity.class, revo);
