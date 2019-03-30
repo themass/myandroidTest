@@ -208,6 +208,26 @@
 }
 #------------adview-----------------------
 #-----------------gdt---------------------
+-keepattributes SourceFile,LineNumberTable
+-keep class com.inmobi.** { *; }
+-dontwarn com.inmobi.**
+-keep public class com.google.android.gms.**
+-dontwarn com.google.android.gms.**
+-dontwarn com.squareup.picasso.**
+-keep class com.google.android.gms.ads.identifier.AdvertisingIdClient{public *;}
+-keep class com.google.android.gms.ads.identifier.AdvertisingIdClient$Info{public *;}
+
+#skip the Picasso library classes
+-keep class com.squareup.picasso.** {*;}
+-dontwarn com.squareup.picasso.**
+-dontwarn com.squareup.okhttp.**
+
+#skip Moat classes
+-keep class com.moat.** {*;}
+-dontwarn com.moat.**
+
+#skip AVID classes
+-keep class com.integralads.avid.library.** {*;}
 -keep class com.qq.e.** {*; }
 -keep class com.tencent.**{*; }
 -keep class com.tencent.lbsapi.*
@@ -281,6 +301,8 @@ public protected *;
 -keep public class com.google.android.gms.**
 -dontwarn com.google.android.gms.**
 -dontwarn com.squareup.picasso.**
+-dontwarn com.google.**
+-dontnote com.google.**
 -keep class com.google.android.gms.ads.identifier.AdvertisingIdClient{
      public *;
 }
@@ -324,3 +346,5 @@ public static java.lang.String TABLENAME;
 -dontwarn org.greenrobot.greendao.**
 -keep class net.sqlcipher.database.**{*;}
 -keep class rx.**{*;}
+
+

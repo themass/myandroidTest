@@ -13,6 +13,7 @@ import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.KeyEvent;
 
+import com.qq.ads.base.AdmobRewardManger;
 import com.qq.ads.base.AdsContext;
 import com.qq.ads.base.AdsManager;
 import com.qq.ext.util.DoubleClickExit;
@@ -21,6 +22,7 @@ import com.qq.MobAgent;
 import com.qq.ext.util.LogUtil;
 import com.qq.ext.util.ToastUtil;
 import com.qq.vpn.main.ui.ItemFragment;
+import com.qq.vpn.support.AdsPopStrategy;
 import com.qq.vpn.support.ConnLogReport;
 import com.qq.vpn.support.config.ActionConfigBus;
 import com.qq.vpn.ui.base.actvity.BaseDrawerMenuActivity;
@@ -33,7 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class MainActivity extends BaseDrawerMenuActivity implements ActivityCompat.OnRequestPermissionsResultCallback {
+public class MainActivity extends BaseDrawerMenuActivity implements ActivityCompat.OnRequestPermissionsResultCallback ,AdmobRewardManger.OnAdmobRewardListener{
 
 
     /**
@@ -42,6 +44,7 @@ public class MainActivity extends BaseDrawerMenuActivity implements ActivityComp
     private List<ItemFragment> list = new ArrayList<>();
     private ViewPager mViewPager;
     private MyPagerAdapter myPagerAdapter;
+    public AdmobRewardManger admobRewardManger;
     public ActionConfigBus configBus = new ActionConfigBus();
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,16 +62,38 @@ public class MainActivity extends BaseDrawerMenuActivity implements ActivityComp
         mViewPager.setAdapter(myPagerAdapter);
         myPagerAdapter.notifyDataSetChanged();
         AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false);
+        admobRewardManger = new AdmobRewardManger(this,this);
+    }
+    @Override
+    public void onNoRewardAD(){
+        AdsPopStrategy.clickAdsShowBtn(this);
+    }
+
+    @Override
+    public void showReward() {
+        super.showReward();
+        admobRewardManger.showAd();
     }
     @Override
     public void onDestroy() {
         stopService(CharonVpnService.class);
         EventBusUtil.getEventBus().unregister(configBus);
+        admobRewardManger.onAdDestroy();
         super.onDestroy();
         MobAgent.killProcess(this);
         System.exit(0);
     }
+    @Override
+    protected void onPause() {
+        admobRewardManger.onAdPause();
+        super.onPause();
+    }
 
+    @Override
+    protected void onResume() {
+        admobRewardManger.onAdResume();
+        super.onResume();
+    }
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         LogUtil.i("onKeyUp");

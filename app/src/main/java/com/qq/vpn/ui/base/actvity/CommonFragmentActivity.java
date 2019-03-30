@@ -54,7 +54,7 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
         if(o!=null){
             bannerCategrey = (AdsContext.Categrey)o;
         }
-        setFabUpVisibility(View.VISIBLE);
+        setFabUpVisibility(View.GONE);
         String title = null;
         Serializable name = getIntent().getSerializableExtra(TITLE);
         if (name instanceof String) {

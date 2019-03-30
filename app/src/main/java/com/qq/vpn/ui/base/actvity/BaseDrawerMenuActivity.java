@@ -2,6 +2,7 @@ package com.qq.vpn.ui.base.actvity;
 
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
@@ -17,6 +18,7 @@ import android.widget.TextView;
 import com.qq.Constants;
 import com.qq.MobAgent;
 import com.qq.MyApplication;
+import com.qq.ads.base.AdmobRewardManger;
 import com.qq.ext.network.req.CommonResponse;
 import com.qq.ext.util.CollectionUtils;
 import com.qq.ext.util.DateUtils;
@@ -33,6 +35,7 @@ import com.qq.vpn.main.SettingActivity;
 import com.qq.vpn.main.feedback.FeedbackChooseFragment;
 import com.qq.vpn.main.login.SinginActivity;
 import com.qq.vpn.main.ui.WebViewActivity;
+import com.qq.vpn.support.AdsPopStrategy;
 import com.qq.vpn.support.LocationUtil;
 import com.qq.vpn.support.NetApiUtil;
 import com.qq.vpn.support.UserLoginUtil;
@@ -50,6 +53,7 @@ import java.util.Date;
 import java.util.List;
 
 import butterknife.BindView;
+import butterknife.OnClick;
 
 /**
  * Created by dengt on 14-03-12.
@@ -77,6 +81,7 @@ public class BaseDrawerMenuActivity extends ToolBarActivity {
     MenuItem miLocation;
     MenuItem miSetting;
     MenuItem miAbout;
+
     private final String DOAMIN_TAG="DOAMIN_TAG";
     public void login(View view) {
         startActivity(SinginActivity.class);
@@ -130,7 +135,6 @@ public class BaseDrawerMenuActivity extends ToolBarActivity {
         miLocation.setTitle(LocationUtil.getSelectName(this));
         setupLocationIcon();
     }
-
     private void setUpVersion() {
         VersionUpdater.checkUpdate(BaseDrawerMenuActivity.this,false);
     }
@@ -309,11 +313,39 @@ public class BaseDrawerMenuActivity extends ToolBarActivity {
                 else if (item.getItemId() == R.id.menu_share) {
                     showShare();
                     name = "分享";
+                } else if (item.getItemId() == R.id.menu_share) {
+                String url = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.D_URL, null);
+                if (!StringUtils.hasText(url)) {
+                    url = Constants.DEFAULT_REFERER;
                 }
+                showShare(url);
+                name = "分享";
+            }else if (item.getItemId() == R.id.menu_recomm) {
+                String userName = Constants.ADMIN;
+                if(UserLoginUtil.getUserCache()!=null){
+                    userName = UserLoginUtil.getUserCache().name;
+                }
+                String url = Constants.DEFAULT_REFERER+"?ref="+userName;
+                SystemUtils.copy(BaseDrawerMenuActivity.this, url);
+                ToastUtil.showShort(R.string.menu_btn_recomm_copy);
+                showShare(url);
+                name = "推广积分";
+            }else if (item.getItemId() == R.id.menu_recomm_reward) {
+                ToastUtil.showShort(R.string.menu_btn_recomm_reward);
+                showReward();
+                name = "广告积分";
+            }
                 MobAgent.onEventMenu(BaseDrawerMenuActivity.this, name);
                 return false;
             }
         });
+    }
+    public void showReward(){
+        return;
+    }
+    public void showShare(String url) {
+        ShareUtil util = new ShareUtil(this);
+        util.shareText(null,null,url+" EuropeVPN，Alive your life", "EuropeVPN","Alive your life");
     }
     public void showShare() {
         String url = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.D_URL, null);

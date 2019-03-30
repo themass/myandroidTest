@@ -118,6 +118,7 @@ public class LocationItemFragment extends BasePullLoadbleFragment<LocationVo>imp
         getActivity().finish();
         pullView.notifyDataSetChanged();
     }
+
     protected BaseRecyclerViewAdapter getAdapter(){
         adapter = new LocationItemAdapter(getActivity(),pullView.getRecyclerView(), infoListVo.voList, this,nativeData);
         return adapter;

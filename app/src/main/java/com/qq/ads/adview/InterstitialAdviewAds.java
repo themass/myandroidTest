@@ -29,7 +29,9 @@ public class InterstitialAdviewAds extends InterstitialAdsInter {
 
                 @Override
                 public void onAdClick(String s) {
-                    clickAds(context,handler, AdsContext.AdsFrom.ADVIEW);
+                    if(!AdsContext.hasClick(context,"interstitial"+s)) {
+                        clickAds(context, handler, AdsContext.AdsFrom.ADVIEW);
+                    }
                 }
 
                 @Override

@@ -50,7 +50,8 @@
             app:elevation="6dp"
             app:fabSize="normal"
             app:pressedTranslationZ="12dp"
-            app:rippleColor="@color/base_red" />
+            app:rippleColor="@color/base_red"
+            android:visibility="gone"/>
 
     </android.support.design.widget.CoordinatorLayout>
 

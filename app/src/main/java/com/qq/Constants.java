@@ -21,7 +21,8 @@ import java.util.regex.Pattern;
 public class Constants {
 
     public static final String SCORE_CLICK_CLICK = "SCORE_CLICK_CLICK";
-    public static final List<Integer> BANNER_ADS_POS = Arrays.asList(1,10,25,38);
+    public static final long SCORE_CLICK_INTERVAL = 10;
+    public static final List<Integer> BANNER_ADS_POS = Arrays.asList(1,6,17,26);
 
     public static final String USER_AGENT = "User-Agent";
     public static final String REFERER = "referer";
@@ -58,6 +59,7 @@ public class Constants {
 
     public static final String API_FEEDBACK_LIKE_URL = "/data/feed/score/%s.json";
     public static final String API_FEEDBACK_URL = "/data/feed/score.json?start=%s&limit=40";
+    public static final String API_FAB_ADSCLICK2_URL = "/user/ads/check.json";
 
     public static final String API_FAB_ADSCLICK_URL = "/user/ads/score.json?score=%s";
     public static final String API_VERSION_URL = "/data/version.json";
@@ -179,7 +181,6 @@ public class Constants {
     public static final int maxRate = 10;
     public static final int BANNER_ADS_GONE_LONG = 7000; //广告显示时长
     public static final String SCORE_CLICK = "SCORE_CLICK";
-    public static final long SCORE_CLICK_INTERVAL = 2;
     public static final int BANNER_ADS_GONE_SHORT = 5000; //启动页广告时长
     public static final String ADMIN = "themass";
 
@@ -207,4 +208,12 @@ public class Constants {
     public static int ITEMS_PER_AD_SIX = 6;     // 每间隔10个条目插入一条广告
     public static int ITEMS_PER_AD_THREE = 3;     // 每间隔10个条目插入一条广告
     public static int ITEMS_PER_AD_BANNER = 1;     // 每间隔10个条目插入一条广告
+
+
+    public static final String ADMOB_REWARD_ID="ca-app-pub-7849865307083433~8151718344";
+    public static final String ADMOB_REWARD_UNIT_ID="ca-app-pub-7849865307083433/6653338143";
+    public static final String ADMOB_REWARD_UNIT_ID2="ca-app-pub-7849865307083433/6653338143";
+    public static final String ADMOB_REWARD_UNIT_ID3="ca-app-pub-7849865307083433/6653338143";
+    public static final List<String> ADMOB_REWARD_UNIT_IDS=Arrays.asList(ADMOB_REWARD_UNIT_ID,ADMOB_REWARD_UNIT_ID2,ADMOB_REWARD_UNIT_ID3);
+    public static final int ADS_REWARD_SHOW_CLICK = 100;
 }

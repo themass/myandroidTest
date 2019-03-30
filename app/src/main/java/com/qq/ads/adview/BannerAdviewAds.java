@@ -38,11 +38,11 @@ public class BannerAdviewAds extends BannerInter {
         try{
             AdViewBannerManager.getInstance(context).requestAd(context, key, new AdViewBannerListener() {
 
-                @Override
                 public void onAdClick(String s) {
-                    clickAds(context,handler, AdsContext.AdsFrom.ADVIEW);
+                    if(!AdsContext.hasClick(context,"banner"+s)) {
+                        clickAds(context, handler, AdsContext.AdsFrom.ADVIEW);
+                    }
                 }
-
                 @Override
                 public void onAdDisplay(String s) {
                     displayAds(context,handler, AdsContext.AdsFrom.ADVIEW);

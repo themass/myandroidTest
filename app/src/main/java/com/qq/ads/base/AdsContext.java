@@ -11,10 +11,14 @@ import com.qq.ads.adview.AdviewConstant;
 import com.qq.ext.util.Md5;
 import com.qq.ext.util.PreferenceUtils;
 import com.qq.ext.util.SystemUtils;
+import com.qq.ext.util.ToastUtil;
 import com.qq.fq3.R;
 import com.qq.vpn.support.AdsPopStrategy;
 import com.qq.vpn.support.UserLoginUtil;
 import com.qq.vpn.support.task.ScoreTask;
+
+import java.util.HashSet;
+import java.util.Set;
 
 import static com.qq.ads.base.AdsContext.AdsShowStatus.ADS_CLICK_MSG;
 
@@ -24,6 +28,8 @@ import static com.qq.ads.base.AdsContext.AdsShowStatus.ADS_CLICK_MSG;
 
 public class AdsContext {
     private static int showCount = 0;
+    public static Set<String> adsClick = new HashSet<>();
+
     static {
     }
     public static enum Categrey {
@@ -40,7 +46,14 @@ public class AdsContext {
             this.key = key;
         }
     }
-
+    public static boolean hasClick(Context context,String key){
+        if(adsClick.contains(key)){
+            ToastUtil.showShort(R.string.repeated_click);
+            return true;
+        }
+        adsClick.add(key);
+        return false;
+    }
     public static enum  AdsType {
         ADS_TYPE_INIT ("初始化"),
         ADS_TYPE_BANNER("BANNER广告"),
@@ -124,9 +137,9 @@ public class AdsContext {
             if(!AdsPopStrategy.clickAdsClickBtn(context)){
                 return;
             }
-            String msg = context.getResources().getString(R.string.tab_fb_click) + Constants.ADS_SHOW_CLICK;
-            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
-            ScoreTask.start(context, Constants.ADS_SHOW_CLICK);
+//            String msg = context.getResources().getString(R.string.tab_fb_click) + Constants.ADS_SHOW_CLICK;
+//            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
+//            ScoreTask.start(context, Constants.ADS_SHOW_CLICK);
         }
     }
     public static int index=0;

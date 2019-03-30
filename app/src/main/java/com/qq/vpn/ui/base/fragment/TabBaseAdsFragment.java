@@ -5,6 +5,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.view.View;
 import android.view.animation.OvershootInterpolator;
 
+import com.qq.ads.base.AdmobRewardManger;
 import com.qq.ext.util.LogUtil;
 import com.qq.fq3.R;
 import com.qq.vpn.support.AdsPopStrategy;
@@ -17,7 +18,7 @@ import butterknife.OnClick;
 /**
  * Created by dengt on 2016/3/31.
  */
-public abstract class TabBaseAdsFragment extends TabBaseFragment implements OnBackKeyDownListener {
+public abstract class TabBaseAdsFragment extends TabBaseFragment implements OnBackKeyDownListener, AdmobRewardManger.OnAdmobRewardListener{
     private static final int ANIM_DURATION_FAB = 400;
     @BindView(R.id.fab_up)
     public FloatingActionButton fabUp;
@@ -26,9 +27,14 @@ public abstract class TabBaseAdsFragment extends TabBaseFragment implements OnBa
 
     @OnClick(R.id.fab_up)
     public void onClickFab(View view) {
+        if(getActivity() instanceof MainActivity){
+            ((MainActivity)getActivity()).showReward();
+        }
+    }
+    @Override
+    public void onNoRewardAD(){
         AdsPopStrategy.clickAdsShowBtn(getActivity());
     }
-
     public void next() {
     }
 

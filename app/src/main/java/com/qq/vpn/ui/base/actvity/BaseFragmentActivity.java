@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.view.animation.OvershootInterpolator;
 
 import com.qq.Constants;
+import com.qq.ads.base.AdmobRewardManger;
 import com.qq.ads.base.AdsContext;
 import com.qq.ads.base.AdsManager;
 import com.qq.ext.util.LogUtil;
@@ -54,7 +55,7 @@ public abstract class BaseFragmentActivity extends ToolBarActivity {
         getLayoutInflater().inflate(layoutResID, (ViewGroup) findViewById(R.id.fl_content), true);
         bindViews();
         setupToolbar();
-        fabUp.setVisibility(View.VISIBLE);
+        fabUp.setVisibility(View.GONE);
         if(needGoneBanner())
             mHandler.postDelayed(task, Constants.BANNER_ADS_GONE_LONG);
 //        flBanner.setBackgroundResource(R.color.base_white);

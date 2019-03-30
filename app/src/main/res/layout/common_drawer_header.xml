@@ -71,7 +71,8 @@
         android:layout_below="@+id/view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        >
 
         <TextView
             android:id="@+id/tv_score"
@@ -86,8 +87,8 @@
             android:layout_height="wrap_content"
             android:text="@string/menu_btn_about"
             android:textColor="@color/base_red"
-            android:visibility="gone"
-            android:textSize="@dimen/textsize_18" />
+            android:textSize="@dimen/textsize_18"
+            android:visibility="gone"/>
 
         <TextView
             android:id="@+id/tv_desc"
@@ -103,6 +104,7 @@
             android:textSize="@dimen/textsize_12"
             android:textColor="@color/base_green1"
             android:paddingTop="@dimen/margin_5"
+            android:visibility="gone"
             />
         <TextView
             android:paddingTop="@dimen/margin_3"
@@ -112,6 +114,7 @@
             android:textSize="@dimen/textsize_12"
             android:textColor="@color/fab_color_pressed"
             android:layout_marginBottom="@dimen/margin_3"
+            android:visibility="gone"
             />
     </LinearLayout>
     <View
