@@ -202,9 +202,9 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
                 mService.disconnect();
             } else if (mService.getState() == VpnStateService.State.DISABLED) {
                 MobAgent.onEventLocationChoose(getActivity(), LocationUtil.getName(getActivity()));
+                mHandler.postDelayed(vpnCheck,Constants.VPN_CHECK_TIME);
                 int id = LocationUtil.getSelectLocationId(getActivity());
                 api.getData(String.format(Constants.getUrl(Constants.API_SERVERLIST_URL), id), serverListener, serverListenerError, INDEX_TAG, ServerVo.class);
-                mHandler.postDelayed(vpnCheck,Constants.VPN_CHECK_TIME);
                 imgAnim();
             } else {
                 ToastUtil.showShort( R.string.vpn_click_later);
@@ -263,10 +263,13 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
             case PREPARE_VPN_SERVICE:
                 if (resultCode == Activity.RESULT_OK && mService != null) {
                     mService.connect(vpnProfile);
+                }else{
+                    mHandler.postDelayed(vpnCheck,Constants.SHIMMER_DURATION);
                 }
                 break;
             default:
                 super.onActivityResult(requestCode, resultCode, data);
+                mHandler.postDelayed(vpnCheck,Constants.SHIMMER_DURATION);
         }
     }
 

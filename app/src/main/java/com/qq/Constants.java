@@ -29,7 +29,7 @@ public class Constants {
     public static final String URL = "url";
     public static final String DEFULT_LOCATION_NAME="随机";
     public static final int STARTUP_SHOW_TIME_3000 = 6000; //启动页广告时长
-    public static final int VPN_CHECK_TIME = 7000; //启动页广告时长
+    public static final int VPN_CHECK_TIME = 6000; //启动页广告时长
     public static final int SHIMMER_DURATION = 1500;
     public static final String HTTP_URL = "http";
     public static final String HTTPS_URL = "https";

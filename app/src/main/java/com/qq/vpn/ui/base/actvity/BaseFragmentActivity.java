@@ -68,10 +68,17 @@ public abstract class BaseFragmentActivity extends ToolBarActivity implements Ad
         getLayoutInflater().inflate(layoutResID, (ViewGroup) findViewById(R.id.fl_content), true);
         bindViews();
         setupToolbar();
-        fabUp.setVisibility(View.VISIBLE);
+        if(needFadUp()) {
+            fabUp.setVisibility(View.VISIBLE);
+        }else{
+            fabUp.setVisibility(View.GONE);
+        }
         if(needGoneBanner())
             mHandler.postDelayed(task, Constants.BANNER_ADS_GONE_LONG);
 //        flBanner.setBackgroundResource(R.color.base_white);
+    }
+    protected boolean needFadUp(){
+        return true;
     }
     protected boolean needGoneBanner(){
         return true;

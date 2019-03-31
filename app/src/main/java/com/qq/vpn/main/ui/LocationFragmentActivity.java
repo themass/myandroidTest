@@ -85,7 +85,10 @@ public class LocationFragmentActivity extends BaseFragmentActivity implements Fa
         if (title != null) {
             setToolbarTitle(title, true);
         }
-        setFabUpVisibility(View.VISIBLE);
+        setFabUpVisibility(View.GONE);
+    }
+    public boolean needFadUp(){
+        return false;
     }
     @Override
     protected boolean needPingView(){
