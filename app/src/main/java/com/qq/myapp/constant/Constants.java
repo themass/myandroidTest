@@ -61,6 +61,7 @@ public class Constants {
     public static final String SEX_F = "F";
     public static final int HTTP_SUCCESS = 0;
     public static final int HTTP_SUCCESS_CLEAR = 1;
+    public static final int HTTP_LOGIN = 2;
     public static final String USERIP = "USERIP";
     // 有新版本时，是否打开app就提醒升级
     //用户反馈
@@ -94,6 +95,8 @@ public class Constants {
     public static final String API_CONNLOG_URL = "/monitor/connlog.json";
     public static final String API_ADD_CUSTOME = "/user/custome/add.json";
     public static final String API_DEL_CUSTOME = "/user/custome/del.json";
+    public static final String API_EMU = "/monitor/emulator.json";
+
 
     public static final VpnType mVpnType = VpnType.IKEV2_CERT;
     public static final int connTimeOut = 20;

@@ -18,6 +18,7 @@ import android.widget.TextView;
 
 import com.kyview.natives.NativeAdInfo;
 import com.qq.common.util.LogUtil;
+import com.qq.common.util.SystemUtils;
 import com.qq.myapp.constant.Constants;
 import com.qq.myapp.data.ImagePhotoLoad;
 import com.qq.yewu.ads.base.AdsContext;
@@ -73,15 +74,17 @@ public class LocationItemAdapter extends BaseRecyclerViewAdapter<LocationItemAda
         if (chooseId == vo.id) {
             holder.tvIndex.setTextColor(indexSelectColo);
             holder.tvCountry.setTextColor(indexSelectColo);
-            holder.tvCountryEname.setTextColor(indexSelectColo);
         } else {
             holder.tvIndex.setTextColor(indexColo);
             holder.tvCountry.setTextColor(black);
-            holder.tvCountryEname.setTextColor(black);
         }
         holder.tvIndex.setText("#" + (position + 1));
-        holder.tvCountry.setText(vo.name);
-        holder.tvCountryEname.setText(vo.ename);
+        if(SystemUtils.isZH(context)){
+            holder.tvCountry.setText(vo.name);
+        }else{
+            holder.tvCountry.setText(vo.ename);
+        }
+
 
         if(Constants.BANNER_ADS_POS.contains(position)&&index==0){
             if(position%2==1){
@@ -136,9 +139,6 @@ public class LocationItemAdapter extends BaseRecyclerViewAdapter<LocationItemAda
         @Nullable
         @BindView(R.id.loc_tv_country)
         TextView tvCountry;
-        @Nullable
-        @BindView(R.id.loc_tv_country_ename)
-        TextView tvCountryEname;
         @Nullable
         @BindView(R.id.tv_ping)
         TextView tvPing;

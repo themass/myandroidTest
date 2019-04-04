@@ -32,6 +32,7 @@ import com.qq.common.util.DeviceInfoUtils;
 import com.qq.common.util.LogUtil;
 import com.qq.common.util.PermissionHelper;
 import com.qq.common.util.ToastUtil;
+import com.qq.myapp.task.EmuTask;
 import com.qq.myapp.ui.base.NativeHeaderFragment;
 import com.qq.yewu.ads.base.AdsContext;
 import com.qq.yewu.ads.base.AdsManager;
@@ -78,12 +79,15 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
     TextView tvVpnText;
     @BindView(R.id.iv_vpn_state)
     ImageButton ibVpnStatus;
+    @BindView(R.id.rl_content_em)
+    TextView tvEmText;
     @BindView(R.id.vpn_but)
     RelativeLayout vpnBut;
     PingTask task;
     StatChangeJob job = null;
     private LinearInterpolator lir = null;
-    protected Handler mHandler = new Handler() {
+    private static boolean allPerm=false;
+    protected static Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
         }
@@ -93,12 +97,11 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
         @Override
         protected void onError() {
             super.onError();
-            mHandler.removeCallbacks(vpnCheck);
             imgError();
+            mHandler.removeCallbacks(vpnCheck);
         }
     };
     private VpnStateService mService;
-    private Handler handler = new Handler();
     private VpnProfile vpnProfile;
     CommonResponse.ResponseOkListener serverListener = new CommonResponse.ResponseOkListener<ServerVo>() {
         @Override
@@ -150,6 +153,12 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
         getActivity().bindService(new Intent(getActivity(), VpnStateService.class),
                 mServiceConnection, Service.BIND_AUTO_CREATE);
         showBanner();
+        if(DeviceInfoUtils.isEmulator(getActivity())){
+            ToastUtil.showShort(R.string.is_emulator);
+            ibVpnStatus.setClickable(false);
+            tvEmText.setVisibility(View.VISIBLE);
+            EmuTask.start(getActivity());
+        }
 
     }
     public void showBanner(){
@@ -176,7 +185,7 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
         if (mService != null)
             mService.unregisterListener(this);
         if (job != null) {
-            handler.removeCallbacks(job);
+            mHandler.removeCallbacks(job);
         }
         getActivity().unbindService(mServiceConnection);
 
@@ -188,26 +197,26 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
     }
     @OnClick(R.id.iv_vpn_state)
     public void onVpnClick(View v) {
-        if(!PermissionHelper.checkPermissions(getActivity())) {
-            PermissionHelper.showPermit(getActivity());
-            return ;
-        }
-        if(DeviceInfoUtils.isEmulator(getActivity())){
-            ToastUtil.showShort(R.string.is_emulator);
-            return ;
-        }
+        if(allPerm==false)
+            if(!PermissionHelper.checkPermissions(getActivity())) {
+                PermissionHelper.showPermit(getActivity());
+                return ;
+            }
+        allPerm = true;
+
         if (mService != null) {
             LogUtil.i("onVpnClick " + mService.getState());
             if (mService.getState() == VpnStateService.State.CONNECTED) {
                 mService.disconnect();
             } else if (mService.getState() == VpnStateService.State.DISABLED) {
-                MobAgent.onEventLocationChoose(getActivity(), LocationUtil.getName(getActivity()));
+//                MobAgent.onEventLocationChoose(getActivity(), LocationUtil.getName(getActivity()));
+                mHandler.postDelayed(vpnCheck,Constants.VPN_CHECK_TIME);
+                imgAnim();
                 if(!UserLoginUtil.isVIP2())
                     AdsContext.showRand(getActivity());
                 int id = LocationUtil.getSelectLocationId(getActivity());
                 indexService.getData(String.format(Constants.getUrl(Constants.API_SERVERLIST_URL), id), serverListener, serverListenerError, INDEX_TAG, ServerVo.class);
-                mHandler.postDelayed(vpnCheck,Constants.VPN_CHECK_TIME);
-                imgAnim();
+
             } else {
                 ToastUtil.showShort( R.string.vpn_bg_click_later);
             }
@@ -222,10 +231,10 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
     public void stateChanged() {
         if (mService != null) {
             if (job != null) {
-                handler.removeCallbacks(job);
+                mHandler.removeCallbacks(job);
             }
             job = new StatChangeJob(mService.getState(), mService.getErrorState(), mService.getImcState());
-            handler.post(job);
+            mHandler.post(job);
         }
 
     }

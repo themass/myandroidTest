@@ -30,6 +30,7 @@ public class TabCustomeFragment extends TabBaseAdsFragment {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        fabUp.setVisibility(View.VISIBLE);
         fabUp.setImageResource(R.drawable.add_option);
     }
 

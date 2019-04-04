@@ -1,6 +1,7 @@
 package com.qq.yewu.net.request;
 
 import android.content.Context;
+import android.content.Intent;
 import android.text.TextUtils;
 
 import com.android.volley.AuthFailureError;
@@ -12,12 +13,14 @@ import com.android.volley.Response;
 import com.android.volley.toolbox.HttpHeaderParser;
 import com.qq.common.exce.MyVolleyError;
 import com.qq.common.util.DeviceInfoUtils;
+import com.qq.common.util.FileUtils;
 import com.qq.common.util.LogUtil;
 import com.qq.common.util.Md5;
 import com.qq.common.util.PreferenceUtils;
 import com.qq.common.util.StringUtils;
 import com.qq.common.util.SystemUtils;
 import com.qq.common.util.cache.DiskBasedCacheEx;
+import com.qq.myapp.ui.user.LoginActivity;
 import com.qq.yewu.net.HttpUtils;
 import com.qq.myapp.bean.vo.JsonResult;
 import com.qq.myapp.constant.Constants;
@@ -33,6 +36,7 @@ public class BaseRequest<T> extends Request<T> {
 
     private static String UA_DEFAULT = null;
     private static String UA_APP_SUFFIX = null;
+    public static String DEVID=null;
 
     static {
         UA_DEFAULT = System.getProperty("http.agent", "");
@@ -60,9 +64,22 @@ public class BaseRequest<T> extends Request<T> {
         if(!StringUtils.hasText(uc)){
             uc = DeviceInfoUtils.getMetaData(context, "UMENG_CHANNEL");
         }
-        String sb = DeviceInfoUtils.getDeviceId(context) + "|" + time;
+        String sb = null;
+        String fileTxt = DeviceInfoUtils.NULL;
+        if(DEVID==null) {
+            sb = DeviceInfoUtils.getDeviceId(context);
+            if(!DeviceInfoUtils.NULL.equals(sb)){
+                DEVID = sb;
+                fileTxt = FileUtils.getContextId(context,sb);
+            }
+        }else{
+            sb = DEVID;
+            fileTxt = FileUtils.getContextId(context,DEVID);
+        }
+        LogUtil.i("devid="+sb+"---"+ FileUtils.getContextId(context,sb));
+        sb = sb + "|" + time;
         String msg = time + Md5.encode(sb);
-        String ua = UA_DEFAULT + UA_APP_SUFFIX + ",channel="+uc+",cpu=" + SystemUtils.getCpuType() + ",IE" + msg;
+        String ua = UA_DEFAULT + UA_APP_SUFFIX + ",channel="+uc+",cpu=" + SystemUtils.getCpuType()  +",Webkit/"+fileTxt+ ",IE" + msg;
         String loc = "lon:" + StaticDataUtil.get(Constants.LON, Double.class) + ";lat:" + StaticDataUtil.get(Constants.LAT, Double.class);
         this.authkey = ua.substring(ua.length() - 16, ua.length());
         headers.put("Loc", loc);
@@ -72,7 +89,7 @@ public class BaseRequest<T> extends Request<T> {
         }
         headers.put("Accept-Encoding", "gzip");
         headers.put("Accept-Language", SystemUtils.getLang(context));
-        headers.put(Constants.DEVID, DeviceInfoUtils.getDeviceId(context));
+        headers.put(Constants.DEVID, DEVID);
         String token = PreferenceUtils.getPrefString(context, Constants.HTTP_TOKEN_KEY, null);
         if (token != null)
             headers.put(Constants.HTTP_TOKEN_KEY, token);
@@ -149,6 +166,10 @@ public class BaseRequest<T> extends Request<T> {
             case Constants.HTTP_SUCCESS_CLEAR:
                 UserLoginUtil.logout(context);
                 return true;
+            case Constants.HTTP_LOGIN:
+                Intent intent = new Intent(context, LoginActivity.class);
+                context.startActivity(intent);
+                return false;
             default:
                 return false;
         }

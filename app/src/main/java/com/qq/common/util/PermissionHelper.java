@@ -13,6 +13,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 
 import com.qq.fq2.R;
+import com.qq.myapp.base.MyApplication;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,13 +31,13 @@ public class PermissionHelper {
     public static final String WRITE_EXTERNAL_STORAGE = Manifest.permission.WRITE_EXTERNAL_STORAGE;
     public static final String REQUEST_INSTALL_PACKAGES = Manifest.permission.REQUEST_INSTALL_PACKAGES;
     public static List<String> requestPermissions = Arrays.asList(READ_PHONE_STATE,WRITE_EXTERNAL_STORAGE,ACCESS_COARSE_LOCATION);
-    //    static {
-//        if(SystemUtils.isZH(MyApplication.getInstance())){
-//
-//        }else{
-//            requestPermissions = Arrays.asList(WRITE_EXTERNAL_STORAGE,ACCESS_COARSE_LOCATION);
-//        }
-//    }
+        static {
+        if(SystemUtils.isZH(MyApplication.getInstance())){
+
+        }else{
+            requestPermissions = Arrays.asList(WRITE_EXTERNAL_STORAGE,ACCESS_COARSE_LOCATION);
+        }
+    }
 //    static {
 //        LogUtil.i("os version="+Build.VERSION.SDK_INT );
 //        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O){

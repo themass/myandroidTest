@@ -13,6 +13,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.qq.common.util.DeviceInfoUtils;
 import com.qq.common.util.SystemUtils;
 import com.qq.myapp.data.AdsPopStrategy;
 import com.qq.vpn.ui.maintab.TabLocalFragment;
@@ -123,6 +124,10 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         }else{
             AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false);
         }
+        if(!PermissionHelper.checkPermissions(this)) {
+            PermissionHelper.showPermit(this);
+        }
+
     }
 
     private void initTabs() {

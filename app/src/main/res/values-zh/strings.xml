@@ -191,12 +191,12 @@
     <string name="edit">编辑</string>
     <string name="delete">删除</string>
     <!-- vpn error text -->
-    <string name="error_lookup_failed">失败.请换个地区重新连接</string>
-    <string name="error_unreachable">失败.请换个地区重新连接</string>
+    <string name="error_lookup_failed">失败.请重试或者换线路</string>
+    <string name="error_unreachable">失败.请重试或者换线路</string>
     <string name="error_peer_auth_failed">服务器鉴权失败.</string>
     <string name="error_auth_failed">可能流量使用已达上限，请升级VIP</string>
     <string name="error_assessment_failed">安全段错误.</string>
-    <string name="error_generic">失败.请换个地区重新连接</string>
+    <string name="error_generic">失败.请重试或者换线路</string>
     <string name="vpn_not_supported_title">不支持VPN</string>
     <string name="vpn_not_supported">您的手机不支持VPN服务.</string>
     <string name="vpn_not_supported_during_lockdown">锁定模式下无法支持VPN.</string>
