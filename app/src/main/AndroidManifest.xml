@@ -126,6 +126,10 @@
             android:name="com.qq.myapp.ui.config.QuickBrowserConfigActivity"
             android:screenOrientation="portrait"
             android:theme="@style/myTransparent" />
+        <activity
+            android:name="com.qq.myapp.ui.base.MyFullScreenImageGalleryActivity"
+            android:theme="@style/StyledIndicators"
+            android:screenOrientation="portrait" />
         <service
             android:name="org.strongswan.android.logic.VpnStateService"
             android:exported="false" />

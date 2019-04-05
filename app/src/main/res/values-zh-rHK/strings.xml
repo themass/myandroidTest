@@ -17,43 +17,35 @@
 <resources>
     <!--  tab main -->
     <string name="tab_index">首页</string>
+    <string name="tab_local">地区</string>
+    <string name="tab_customer">自定义</string>
     <string name="tab_tag_index">index</string>
+    <string name="tab_tag_local">local</string>
+    <string name="tab_tag_customer">customer</string>
+    <string name="tab_fb_click_fast">点击频率太高，请勿在点击</string>
+    <string name="tab_fb_click_wifi">请在断开VPN下使用 </string>
     <!-- Application -->
-    <string name="app_name">灯塔VPN</string>
-    <string name="main_activity_name">灯塔VPN</string>
-    <string name="toobar_title">灯塔</string>
+    <string name="app_name">FreeVPN</string>
+    <string name="app_name_show">Free</string>
+    <string name="main_activity_name">FreeVPN</string>
+    <string name="toobar_title">Free</string>
     <string name="load">正在加载,请等待。</string>
     <string name="off">关闭</string>
     <string name="on">打开</string>
-    <string name="write_external_storage">存储</string>
-    <string name="access_coarse_location">粗略位置</string>
-    <string name="read_phone_state">设备型号</string>
-    <string name="permission_cus_title">亲爱的上帝</string>
-    <string name="permission_cus_msg">为了更好的服务，请打开权限</string>
-    <string name="name_hint">用户名 </string>
-    <string name="pass_hint">密码 </string>
-    <string name="singin">登录</string>
-    <string name="singup">注册</string>
-    <string name="singout">退出</string>
-    <string name="ref_hint">推荐人(可不填)</string>
-    <string name="empty_name_pwd">名字不能空</string>
-    <string name="repwd_err">密码错误</string>
-    <string name="pattern_pass_err">密码必须6-10个字符</string>
-    <string name="pattern_name_err">名称必须30-10个字符 </string>
-    <string name="singup_success">注册成功，请登录吧</string>
-
-    <string name="location_select">请选择地区</string>
-    <string name="location_select_none">随机</string>
+    <!-- 地区选择-->
+    <string name="location_choose_title">请选择地区</string>
+    <string name="location_choose_none">随机</string>
+    <string name="location_choose_ping">Ping：</string>
+    <string name="menu_haha">呦！被你发现了</string>
+    <string name="money_back_title">积分反馈</string>
     <string name="location_ping">Ping：</string>
-    <string name="menu_no">走开</string>
     <!-- menu -->
-    <string name="menu_btn_about">关于VIP</string>
-    <string name="menu_btn_share">分享</string>
-    <string name="menu_btn_donation">付款</string>
     <string name="menu_btn_login">立即登录</string>
     <string name="menu_btn_login_ready">已登录</string>
     <string name="menu_btn_name_default">猴子请来的</string>
     <string name="menu_btn_feedback">反馈 &amp; 建议</string>
+    <string name="menu_btn_about">关于VIP </string>
+    <string name="menu_btn_share">分享</string>
     <string name="menu_btn_bug">报告bug</string>
     <string name="menu_btn_contract">联系我们:  email</string>
     <string name="menu_copy_emai">邮箱已复制</string>
@@ -64,7 +56,6 @@
     <string name="menu_btn_support">支持一下作者</string>
     <string name="support_info">请安装并激活几款应用，支持一下作者</string>
     <string name="offerads_ths">感谢您的支持！</string>
-    <string name="menu_btn_about_context">FreeVPN最稳定，免费，不限时，一切为你请点赞！</string>
     <string name="feed_back">信息反馈</string>
     <string name="menu_btn_score">积分:</string>
     <string name="menu_btn_networking">用量:</string>
@@ -74,34 +65,61 @@
     <string name="menu_btn_score_context">积分可换VIP，详见“关于”</string>
     <string name="menu_btn_cache_context">缓存已清除</string>
     <string name="menu_btn_report_log">我们已收到您的问题！</string>
+    <string name="menu_btn_country">地区 ：</string>
     <string name="menu_btn_open_browser">浏览器打开</string>
     <string name="menu_btn_copy_url">复制URL</string>
-    <string name="location_choose_flag_none">点击“ 地区 ”有更多国家可选</string>
-    <string name="iwanna_tips">告诉我你需要的内容，\n我会精心为您准备</string>
     <string name="menu_btn_recomm">推广返积分</string>
     <string name="menu_btn_recomm_copy">专属链接已复制，推广赚积分</string>
     <string name="menu_reg_recomm">邀请人(可不填)</string>
     <string name="menu_btn_recomm_reward">看广告赚100积分</string>
-
-    <string name="close_over">再按一次退出程序!!</string>
-    <string name="no_browser">没有安装浏览器</string>
     <string name="cancel">取消</string>
-    <string name="setting">设置</string>
-    <string name="skip">跳过</string>
-    <string name="search">请输入搜索内容</string>
-    <string name="menu_browser">浏览器打开</string>
-    <string name="menu_copy">链接已复制</string>
-    <string name="menu_btn_country">地区：</string>
 
+
+
+    <!-- share-->
+    <string name="menu_share_title">分享</string>
+    <string name="menu_share_url">下载地址:\n%s</string>
+    <string name="menu_share_confirm">复制链接</string>
+    <string name="menu_share_cancel">取消</string>
+    <string name="menu_share_copy_ok">已复制到剪切板</string>
     <string name="feedback_hint">xxx积分 VIP3</string>
-    <string name="money_back_title">积分充值反馈</string>
+    <string name="tab_fb_click">点击广告赚积分 +</string>
+    <string name="tab_fb_click_no">暂无广告，稍后再试</string>
+
+    <!--登录，注册-->
+    <string name="close_over">再按一次退出程序!!</string>
+    <string name="login">登录</string>
+    <string name="reg">注册</string>
+    <string name="setting">设置</string>
+    <string name="sex">性别:</string>
+    <string name="male">男</string>
+    <string name="female">女</string>
+    <string name="username_hint">用户名</string>
+    <string name="password_hint">密码</string>
+    <string name="re_password_hint">再次输入密码</string>
+    <string name="empty_name_pwd">请把信息填完整</string>
+    <string name="error_repwd">2次密码不一致</string>
+    <string name="error_pattern_pass">密码必须是6-10位的数字或字母</string>
+    <string name="error_pattern_name">用户名必须是3-20位的数字或字母</string>
+    <string name="reg_success">注册成功，现在登录？</string>
+    <string name="remark">DengT RIGHTS RESERVED.</string>
+    <string name="need_login">请登录</string>
+    <string name="need_vip">非VIP用户无法选择该地区</string>
+    <string name="iwanna_tips">告诉我你需要的内容，\n我会精心为您准备</string>
     <string name="iwanna_title">你想要什么？ </string>
     <string name="send">发送</string>
     <string name="iwanna_content_error">请告诉我你的需求!</string>
     <string name="iwanna_content_success">我已收到你的请求 !</string>
-    <string name="recharge">充值:</string>
-
-
+    <string name="vip_need">非VIP用户不允许访问,详见“关于”</string>
+    <string name="area_setting">是否显示专区</string>
+    <string name="version_low">版本太低，请升级！</string>
+    <string name="no_select">未选择</string>
+    <string name="submit">提交</string>
+    <string name="modify">修改</string>
+    <string name="vip_tips">请升级VIP</string>
+    <string name="free_user">免费用户</string>
+    <string name="down_to_loadmore">下来刷新更精彩</string>
+    <string name="country_select_hit">点击选择更多地区</string>
     <!-- 通用错误提示 -->
     <string name="error_getlocation_fail">获取位置信息失败！</string>
     <string name="error_network_unknown">连接服务器出现错误，请检查您的网络连接或稍后重试</string>
@@ -111,37 +129,23 @@
     <string name="error_network_nodata_retry">暂无数据，请点击重试.</string>
     <string name="error_unknown">未知道错误</string>
     <!-- vpn状态改变 -->
-    <string name="vpn_click_later">请稍后再试</string>
-    <string name="vpn_click">连接VPN</string>
-    <string name="vpn_error">点击重试</string>
-    <string name="vpn_conning">连接..</string>
-    <string name="vpn_disconning">断连..</string>
-    <string name="vpn_conned">断开</string>
-    <string name="vpn_noti_status">灯塔VPN·</string>
-    <string name="vpn_noti_on">已连接，点击断开</string>
-    <string name="vpn_noti_off">已断开，点击连接</string>
-    <string name="vpn_noti_load">连接中，请耐心等待</string>
-
-    <!-- vpn error text -->
-    <string name="error_lookup_failed">失败.请重试或者换线路</string>
-    <string name="error_unreachable">失败.请重试或者换线路</string>
-    <string name="error_peer_auth_failed">服务器鉴权失败.</string>
-    <string name="error_auth_failed">可能流量使用已达上限，请升级VIP</string>
-    <string name="error_assessment_failed">安全段错误.</string>
-    <string name="error_generic">失败.请重试或者换线路</string>
-    <string name="vpn_not_supported_title">不支持VPN</string>
-    <string name="vpn_not_supported">您的手机不支持VPN服务.</string>
-    <string name="vpn_not_supported_during_lockdown">锁定模式下无法支持VPN.</string>
-
-    <string name="tab_fb_click">点广告赚积分 +</string>
-    <string name="tab_fb_click_fast">点击频率太高，请等待3秒钟</string>
-    <string name="tab_fb_click_wifi">请在断开VPN下使用 </string>
-
-    <string name="permission_need">当前应用缺少必要权限。\n\n请点击\"设置\"-\"权限\"-打开所需权限。\n\n最后点击两次后退按钮，即可返回。</string>
-    <string name="permission_get_accounts_hint">没有此权限，无法开启这个功能，请开启权限。PERMISSION_GET_ACCOUNTS</string>
-    <string name="permission_read_phone_hint">没有此权限，无法开启这个功能，请开启权限。PERMISSION_READ_PHONE_STATE</string>
-    <string name="permission_access_coarse_location_hint">没有此权限，无法开启这个功能，请开启权限。PERMISSION_ACCESS_COARSE_LOCATION</string>
-    <string name="permission_white_external_hint">没有此权限，无法开启这个功能，请开启权限。PERMISSION_WRITE_EXTERNAL_STORAGE</string>
+    <string name="vpn_bg_click_later">请稍后再试</string>
+    <string name="vpn_bg_click">连接VPN</string>
+    <string name="vpn_bg_error">点击重试</string>
+    <string name="vpn_bg_conning">连接..</string>
+    <string name="vpn_bg_disconning">断连..</string>
+    <string name="vpn_bg_conned">断开</string>
+    <string name="vpn_type_free">免费</string>
+    <string name="vpn_type_vip">VIP</string>
+    <string name="vpn_type_vip2">VIP2</string>
+    <string name="vpn_type_vip3">VIP3</string>
+    <string name="vpn_type_vip4">VIP4</string>
+    <string name="vpn_remote_status">FreeVPN·</string>
+    <string name="vpn_remote_on">已连接，点击断开</string>
+    <string name="vpn_remote_off">已断开，点击连接</string>
+    <string name="vpn_remote_ing">连接中，请等待</string>
+    <string name="vpn_need">可能需要先连接VPN</string>
+    <string name="recharge">充值</string>
     <!--版本更新下载-->
 
     <string name="about_version_update_to_date">已是最新版本</string>
@@ -157,15 +161,79 @@
     <string name="about_download_prepare">正在准备下载</string>
     <string name="about_download_error">文件下载错误</string>
     <string name="about_download_percent">正在下载 %1$s/%2$s</string>
+    <!--其他-->
     <item name="tag_pos" type="id" />
     <item name="tag_val" type="id" />
+    <!--   like  -->
+    <plurals name="likes_count">
+        <item quantity="one">%d like</item>
+        <item quantity="other">%d likes</item>
+    </plurals>
+    <!-- 自定义-->
+    <string name="title_hint">标题</string>
+    <string name="url_hint">网站链接</string>
+    <string name="open_hint">打开方式</string>
+    <string name="open_local">本地打开</string>
+    <string name="open_browser">浏览器打开</string>
+    <string name="custome_title">添加自定义</string>
+    <string name="empty_info">请把信息填写完整</string>
+    <string name="url_error">url错误</string>
+    <string name="custome_ok">添加成功</string>
+    <string name="custome_del_ok">删除成功</string>
+    <string name="save">保存</string>
+    <string name="schema_hint">Schema</string>
+    <string name="schema_http">http://</string>
+    <string name="schema_https">https://</string>
+    <string name="del_hint">确认删除？</string>
+    <string name="del_cancel">取消</string>
+    <string name="del_ok">确认</string>
+    <string name="no_browser">没有安装浏览器</string>
+    <string name="edit">编辑</string>
+    <string name="delete">删除</string>
+    <!-- vpn error text -->
+    <string name="error_lookup_failed">失败.请重试或者换线路</string>
+    <string name="error_unreachable">失败.请重试或者换线路</string>
+    <string name="error_peer_auth_failed">服务器鉴权失败.</string>
+    <string name="error_auth_failed">可能流量使用已达上限，请升级VIP</string>
+    <string name="error_assessment_failed">安全段错误.</string>
+    <string name="error_generic">失败.请重试或者换线路</string>
+    <string name="vpn_not_supported_title">不支持VPN</string>
+    <string name="vpn_not_supported">您的手机不支持VPN服务.</string>
+    <string name="vpn_not_supported_during_lockdown">锁定模式下无法支持VPN.</string>
+    <!-- activity title-->
+    <string name="titile_browser">已在浏览器中打开</string>
+    <string name="permission_need">当前应用缺少必要权限。\n\n请点击\"设置\"-\"权限\"-打开所需权限。\n\n最后点击两次后退按钮，即可返回。</string>
+
+    <string name="permission_get_accounts_hint">没有此权限，无法开启这个功能，请开启权限。PERMISSION_GET_ACCOUNTS</string>
+    <string name="permission_read_phone_hint">没有此权限，无法开启这个功能，请开启权限。PERMISSION_READ_PHONE_STATE</string>
+    <string name="permission_access_coarse_location_hint">没有此权限，无法开启这个功能，请开启权限。PERMISSION_ACCESS_COARSE_LOCATION</string>
+    <string name="permission_white_external_hint">没有此权限，无法开启这个功能，请开启权限。PERMISSION_WRITE_EXTERNAL_STORAGE</string>
+    <string name="ads_logo">推广</string>
+    <string name="skip">跳过</string>
+    <string name="search">请输入搜索内容</string>
+    <string name="vip_remove_ads">升级vip去广告</string>
+    <!--广告-->
+    <!--slidingclose-->
     <string-array name="recharge_arry">
         <item>微信</item>
         <item>支付宝</item>
         <item>其他</item>
     </string-array>
+    <string name="write_external_storage">存储</string>
+    <string name="access_coarse_location">粗略位置</string>
+    <string name="read_phone_state">设备型号</string>
+    <string name="permission_cus_title">亲爱的上帝</string>
+    <string name="permission_cus_msg">为了更好的服务，请打开权限</string>
+
+
     <string name="repeated_click">请勿重复点击</string>
     <string name="is_emulator">暂不支持模拟器</string>
-    <string name="tab_fb_click_no">暂无广告，稍后再试</string>
+    <string name="save_start">开始下载...</string>
+    <string name="save_ok">保存成功</string>
+    <string name="save_fail">保存失败</string>
+    <string name="save_img">保存到本地</string>
+    <string name="menu_btn_donation">支付</string>
+
+
 
 </resources>

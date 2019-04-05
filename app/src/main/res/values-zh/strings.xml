@@ -228,6 +228,12 @@
 
     <string name="repeated_click">请勿重复点击</string>
     <string name="is_emulator">暂不支持模拟器</string>
+    <string name="save_start">开始下载...</string>
+    <string name="save_ok">保存成功</string>
+    <string name="save_fail">保存失败</string>
+    <string name="save_img">保存到本地</string>
+    <string name="menu_btn_donation">支付</string>
+
 
 
 </resources>

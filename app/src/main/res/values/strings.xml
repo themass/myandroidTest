@@ -226,5 +226,11 @@ You are now using a non WIFI network, continue to download may consume more netw
     <!--广告-->
     <string name="repeated_click">Do not click repeatedly</string>
     <string name="is_emulator">Emulator is not supported</string>
+    <string name="save_start">save start...</string>
+    <string name="save_ok">save ok</string>
+    <string name="save_fail">save fail</string>
+    <string name="save_img">save image</string>
+    <string name="menu_btn_donation">Paid</string>
+
 
 </resources>

@@ -45,6 +45,7 @@ public class Constants {
     public static final String sortType = "type";
     public static final String sortCountry = "ename";
     public static final String sortASC = "asc";
+
     //user
     public static final String LOGIN_USER = "LOGIN_USER";
     public static final String LOGIN_USER_LAST = "LOGIN_USER_LAST";
@@ -71,7 +72,7 @@ public class Constants {
     public static final String VERSION_APP_INCOMING = "VERSION_APP_INCOMING"; // 服务器上的最新版本号
 
     public static final String API_SERVERLIST_URL = "/host/server/list.json?location=%s";
-    public static final String API_FAB_ADSCLICK_URL = "/user/ads/score.json?score=%s";
+//    public static final String API_FAB_ADSCLICK_URL = "/user/ads/score.json?score=%s";
     public static final String API_FAB_ADSCLICK2_URL = "/user/ads/check.json";
     public static final String API_LOCATION_URL = "/host/server/location/cache.json?type=%s";
     public static final String API_LOCATION_VIP_URL = "/host/server/location/vip/cache.json";
@@ -96,6 +97,7 @@ public class Constants {
     public static final String API_ADD_CUSTOME = "/user/custome/add.json";
     public static final String API_DEL_CUSTOME = "/user/custome/del.json";
     public static final String API_EMU = "/monitor/emulator.json";
+    public static final String API_DONATION_URL = "/data/donation.json";
 
 
     public static final VpnType mVpnType = VpnType.IKEV2_CERT;

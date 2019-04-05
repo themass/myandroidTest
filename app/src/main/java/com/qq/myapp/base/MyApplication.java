@@ -34,6 +34,7 @@ public class MyApplication extends MultiDexApplication {
     public Typeface typeface;
     private ImagePhotoLoad photoLoad;
     public static boolean isTemp = false;
+    public String uc = null;
 
     //    public static RefWatcher getRefWatcher(Context context) {
 //        MyApplication application = (MyApplication) context.getApplicationContext();
@@ -57,7 +58,7 @@ public class MyApplication extends MultiDexApplication {
         VolleyUtils.init();
         initFilePath();
         DBManager.getInstance().init(this);
-        String uc = DeviceInfoUtils.getMetaData(this, "UMENG_CHANNEL");
+        uc = DeviceInfoUtils.getMetaData(this, "UMENG_CHANNEL");
         String ad = DeviceInfoUtils.getMetaData(this, "AdView_CHANNEL");
         if(Constants.APP_MYPOOL.equals(uc)){
         }else{

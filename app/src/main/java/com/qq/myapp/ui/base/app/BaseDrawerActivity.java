@@ -23,6 +23,7 @@ import com.qq.common.util.StringUtils;
 import com.qq.common.util.SystemUtils;
 import com.qq.common.util.ToastUtil;
 import com.qq.myapp.bean.vo.DomainVo;
+import com.qq.myapp.ui.fragment.DonationListFragment;
 import com.qq.yewu.ads.base.AdsManager;
 import com.qq.yewu.net.request.CommonResponse;
 import com.qq.yewu.um.MobAgent;
@@ -78,6 +79,8 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     MenuItem miAbout;
     MenuItem miRecomm;
     BaseService baseService;
+    MenuItem miDonation;
+
     private final String DOAMIN_TAG="DOAMIN_TAG";
 
     public void login(View view) {
@@ -97,6 +100,8 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         headerView = nvDrawer.getHeaderView(0);
         miAbout = nvDrawer.getMenu().findItem(R.id.menu_about);
         miRecomm = nvDrawer.getMenu().findItem(R.id.menu_recomm);
+        miDonation = nvDrawer.getMenu().findItem(R.id.menu_donation);
+
         llLoginMenuHeader = (LinearLayout) headerView.findViewById(R.id.ll_menu_headview);
         tvMenuUserName = (TextView) headerView.findViewById(R.id.tv_menu_username);
         tvMenuUserLogin = (TextView) headerView.findViewById(R.id.tv_menu_login);
@@ -113,6 +118,14 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         setUpUserMenu();
         setUpLocation();
         setUpDomain();
+        setUpDonation();
+    }
+    private void setUpDonation(){
+        if(SystemUtils.isApkDebugable(this)||Constants.APP_MYPOOL.equals(MyApplication.getInstance().uc)){
+            miDonation.setVisible(true);
+        }else{
+            miDonation.setVisible(false);
+        }
     }
     private void setUpDomain(){
         baseService.getData(Constants.getUrlHost(Constants.API_DOMAIN_URL), new CommonResponse.ResponseOkListener<DomainVo>() {
@@ -315,6 +328,9 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                     ToastUtil.showShort(R.string.menu_btn_recomm_reward);
                     showReward();
                     name = "广告积分";
+                }else if (item.getItemId() == R.id.menu_donation) {
+                    name = "付款";
+                    DonationListFragment.startFragment(BaseDrawerActivity.this);
                 }
                 MobAgent.onEventMenu(BaseDrawerActivity.this, name);
                 return false;

@@ -11,6 +11,11 @@
     </group>
     <group android:id="@+id/menu_group_3">
         <item
+            android:id="@+id/menu_donation"
+            android:icon="@drawable/ic_menu_donation"
+            android:title="@string/menu_btn_donation"
+            android:visible="false"/>
+        <item
             android:id="@+id/menu_recomm"
             android:icon="@drawable/ic_menu_recomm"
             android:title="@string/menu_btn_recomm" />
