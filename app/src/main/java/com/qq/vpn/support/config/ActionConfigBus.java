@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 import com.qq.Constants;
 import com.qq.ext.util.LogUtil;
 import com.qq.vpn.main.ui.WebViewActivity;
+import com.qq.vpn.ui.base.actvity.QuickBrowserConfigActivity;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -30,6 +31,7 @@ public class ActionConfigBus {
     static {
         configMap.put(Constants.HTTP_URL, WebViewActivity.class);
         configMap.put(Constants.HTTPS_URL, WebViewActivity.class);
+        configMap.put(Constants.BROWSER_URL, QuickBrowserConfigActivity.class);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

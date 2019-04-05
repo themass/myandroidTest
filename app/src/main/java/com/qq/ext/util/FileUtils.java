@@ -10,7 +10,9 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -27,7 +29,8 @@ public class FileUtils {
     public static String GLIDE_PATH="glide_cache";
     public static String VOLLEY_PATH="volley";
     private final static int BUFFER_SIZE = 1024;
-
+    public static String TENCENT="tencentqq";
+    public static String ID=null;
     /**
      * 解压文件
      *
@@ -209,7 +212,70 @@ public class FileUtils {
             return File.separator + "sdcard" + File.separator + CANHE_NAME;
         }
     }
+    public static String getContextId(Context context,String id){
+        if(ID!=null){
+            return ID;
+        }
+        id = id.replaceAll(":","").replaceAll("android","");
+        File file  = new File(getContextWriteFilePath(context),"msg.txt");
+        if(file.exists()) {
+            FileInputStream fis = null;
+            StringBuilder sb = new StringBuilder();
+            try {
+                fis = new FileInputStream(file);
+                byte[] bytes = new byte[1024];
+                //得到实际读取的长度
+                int n = 0;
+                //循环读取
+                while ((n = fis.read(bytes)) != -1) {
+                    String s = new String(bytes, 0, n);
+                    sb.append(s);
+                }
+                LogUtil.i("read fromfile="+sb.toString());
+                ID = sb.toString();
+                return sb.toString();
+            } catch (Exception e) {
+                LogUtil.e(e);
+            } finally {
+                //最后一定要关闭文件流
+                try {
+                    if(fis!=null)
+                        fis.close();
+                } catch (IOException e) {
+                    LogUtil.e(e);
+                }
+            }
+        }else{
+            LogUtil.i("write file"+id);
+            FileWriter writer = null;
+            try {
 
+                writer = new FileWriter(file);
+                writer.write(id);
+                ID = id;
+                return id;
+            } catch (Exception e) {
+                LogUtil.e(e);
+            } finally {
+                //最后一定要关闭文件流
+                try {
+                    if(writer!=null)
+                        writer.close();
+                } catch (IOException e) {
+                    LogUtil.e(e);
+                }
+            }
+        }
+        return "null";
+    }
+    public static String getContextWriteFilePath(Context context) {
+        String sdStatus = Environment.getExternalStorageState();
+        if (!sdStatus.equals(Environment.MEDIA_MOUNTED)) {
+            return context.getFilesDir().getAbsolutePath() + File.separator + TENCENT;
+        } else {
+            return File.separator + "sdcard" + File.separator + TENCENT;
+        }
+    }
     public static boolean ensureFile(Context context, String filePath) {
         File path = new File(filePath);
         if (!path.exists()) {

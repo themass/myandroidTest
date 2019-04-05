@@ -39,6 +39,7 @@
     <color name="click">#4588df</color>
     <color name="recyclerview_bg">#ffeaeaea</color>
     <color name="location_index">#2ca1b1</color>
+    <color name="colorPane">#33C2CAC9</color>
 
     <color name="line_login">#585a62</color>
     <color name="black_translucent">#66000000</color>

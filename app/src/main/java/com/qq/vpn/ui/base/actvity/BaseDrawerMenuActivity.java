@@ -41,6 +41,7 @@ import com.qq.vpn.support.config.LocationChooseEvent;
 import com.qq.vpn.support.config.StateUseEvent;
 import com.qq.vpn.support.config.UserLoginEvent;
 import com.qq.vpn.support.config.VipDescEvent;
+import com.qq.vpn.ui.fragment.DonationListFragment;
 import com.qq.vpn.ui.fragment.LocationPageViewFragment;
 
 import org.greenrobot.eventbus.Subscribe;
@@ -77,6 +78,7 @@ public class BaseDrawerMenuActivity extends ToolBarActivity {
     MenuItem miLocation;
     MenuItem miSetting;
     MenuItem miAbout;
+    MenuItem miDonation;
     private final String DOAMIN_TAG="DOAMIN_TAG";
     public void login(View view) {
         startActivity(SinginActivity.class);
@@ -93,6 +95,7 @@ public class BaseDrawerMenuActivity extends ToolBarActivity {
         miLocation = nvDrawer.getMenu().findItem(R.id.menu_location);
         miSetting = nvDrawer.getMenu().findItem(R.id.menu_setting);
         miAbout = nvDrawer.getMenu().findItem(R.id.menu_about);
+        miDonation = nvDrawer.getMenu().findItem(R.id.menu_donation);
         headerView = nvDrawer.getHeaderView(0);
         llLoginMenuHeader = (LinearLayout) headerView.findViewById(R.id.ll_menu_headview);
         tvMenuUserName = (TextView) headerView.findViewById(R.id.tv_menu_username);
@@ -108,6 +111,7 @@ public class BaseDrawerMenuActivity extends ToolBarActivity {
         setUpUserMenu();
         setUpLocation();
         setUpDomain();
+        setUpDonation();
     }
     private void setUpDomain(){
         api.getData(Constants.getUrlHost(Constants.API_DOMAIN_URL), new CommonResponse.ResponseOkListener<DomainVo>() {
@@ -167,7 +171,13 @@ public class BaseDrawerMenuActivity extends ToolBarActivity {
         }
         setScore(null);
     }
-
+    private void setUpDonation(){
+        if(SystemUtils.isApkDebugable(this)||Constants.MYPOOL.equals(Constants.NetWork.uc)){
+            miDonation.setVisible(true);
+        }else{
+            miDonation.setVisible(false);
+        }
+    }
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(UserLoginEvent event) {
         setUpUserMenu();
@@ -305,6 +315,9 @@ public class BaseDrawerMenuActivity extends ToolBarActivity {
                 }else if (item.getItemId() == R.id.menu_setting) {
                     name = "设置";
                     startActivity(SettingActivity.class);
+                }else if (item.getItemId() == R.id.menu_donation) {
+                    name = "付款";
+                    DonationListFragment.startFragment(BaseDrawerMenuActivity.this);
                 }
                 else if (item.getItemId() == R.id.menu_share) {
                     String url = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.D_URL, null);

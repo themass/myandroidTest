@@ -2,6 +2,7 @@ package com.qq.vpn.main.feedback;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.view.View;
 
 import com.qq.ads.base.AdsContext;
 import com.qq.ext.util.LogUtil;
@@ -84,6 +85,7 @@ public class FeedbackFragmentActivity extends BaseFragmentActivity implements Fa
         if (title != null) {
             setToolbarTitle(title, true);
         }
+        fabUp.setVisibility(View.GONE);
     }
 
     @Override

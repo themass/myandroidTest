@@ -92,6 +92,9 @@
             android:name="com.qq.vpn.main.ui.WebViewActivity"
             android:configChanges="orientation|keyboardHidden|screenSize" />
         <activity
+            android:name="com.qq.vpn.ui.base.actvity.QuickBrowserConfigActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize" />
+        <activity
             android:name="com.qq.vpn.ui.base.actvity.CommonFragmentActivity"
             android:screenOrientation="portrait" />
         <activity
@@ -109,6 +112,10 @@
             android:screenOrientation="portrait" />
         <activity
             android:name="com.qq.vpn.main.feedback.FeedbackFragmentActivity"
+            android:theme="@style/StyledIndicators"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name="com.qq.vpn.main.ui.MyFullScreenImageGalleryActivity"
             android:theme="@style/StyledIndicators"
             android:screenOrientation="portrait" />
         <service

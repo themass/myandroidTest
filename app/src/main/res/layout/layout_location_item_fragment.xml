@@ -28,46 +28,22 @@
             android:layout_width="@dimen/margin_48"
             android:layout_height="@dimen/margin_48"
             android:layout_gravity="center_vertical"
-            android:layout_marginRight="@dimen/margin_5"
+            android:layout_marginLeft="@dimen/margin_15"
+            android:layout_marginRight="@dimen/margin_25"
             android:layout_toRightOf="@+id/loc_tv_index"
             android:scaleType="fitCenter"
             android:layout_centerVertical="true"
             android:src="@drawable/flag_af" />
 
-        <LinearLayout
+        <TextView
+            android:id="@+id/loc_tv_country"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/loc_ll_country_name"
-            android:layout_toRightOf="@id/loc_iv_country"
+            android:layout_height="match_parent"
             android:layout_centerVertical="true"
-            android:orientation="horizontal">
-            <TextView
-                android:id="@+id/loc_tv_country"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:gravity="center_vertical"
-                android:textColor="@color/base_black"
-                android:textSize="@dimen/textsize_12" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:gravity="center"
-                android:paddingLeft="@dimen/margin_5"
-                android:paddingRight="@dimen/margin_5"
-                android:text="-"
-                android:textColor="@color/base_black"
-                android:textSize="@dimen/textsize_12" />
-
-            <TextView
-                android:id="@+id/loc_tv_country_ename"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:gravity="center"
-                android:maxLines="1"
-                android:textColor="@color/base_black"
-                android:textSize="@dimen/textsize_14" />
-        </LinearLayout>
+            android:layout_toRightOf="@id/loc_iv_country"
+            android:gravity="center_vertical"
+            android:textColor="@color/base_black"
+            android:textSize="@dimen/textsize_12" />
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

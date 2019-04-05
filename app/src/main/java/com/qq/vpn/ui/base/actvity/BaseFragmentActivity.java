@@ -78,7 +78,7 @@ public abstract class BaseFragmentActivity extends ToolBarActivity implements Ad
 //        flBanner.setBackgroundResource(R.color.base_white);
     }
     protected boolean needFadUp(){
-        return true;
+        return false;
     }
     protected boolean needGoneBanner(){
         return true;

@@ -22,6 +22,7 @@ import butterknife.ButterKnife;
 
 import static com.qq.ext.util.FileUtils.GLIDE_PATH;
 import static com.qq.ext.util.FileUtils.LOG_PATH;
+import static com.qq.ext.util.FileUtils.TENCENT;
 import static com.qq.ext.util.FileUtils.VOLLEY_PATH;
 
 
@@ -76,6 +77,7 @@ public class MyApplication extends MultiDexApplication {
         FileUtils.ensureFile(this, FileUtils.getWriteFilePath(this)+File.separator+LOG_PATH);
         FileUtils.ensureFile(this, FileUtils.getWriteFilePath(this)+File.separator+GLIDE_PATH);
         FileUtils.ensureFile(this, FileUtils.getWriteFilePath(this)+File.separator+VOLLEY_PATH);
+        FileUtils.ensureFile(this, FileUtils.getContextWriteFilePath(this)+File.separator+TENCENT);
     }
 
     @Override

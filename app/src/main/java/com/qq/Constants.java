@@ -24,15 +24,16 @@ public class Constants {
 
     public static final String USER_AGENT = "User-Agent";
     public static final String REFERER = "referer";
-    public static final String DEFAULT_REFERER = "http://api.sspacee.com";
+    public static final String DEFAULT_REFERER = "http://www.sspacee.com";
     public static final String IMAGE_CONF = "timeline://img";
     public static final String URL = "url";
     public static final String DEFULT_LOCATION_NAME="随机";
     public static final int STARTUP_SHOW_TIME_3000 = 6000; //启动页广告时长
-    public static final int VPN_CHECK_TIME = 6000; //启动页广告时长
+    public static final int VPN_CHECK_TIME = 7000; //启动页广告时长
     public static final int SHIMMER_DURATION = 1500;
     public static final String HTTP_URL = "http";
     public static final String HTTPS_URL = "https";
+    public static final String BROWSER_URL = "browser";
     public static final String LOCATION_FLAG = "LOCATION_FLAG";
     public static final String LOGIN_USER = "LOGIN_USER";
     public static final String LOGIN_USER_LAST = "LOGIN_USER_LAST";
@@ -51,6 +52,8 @@ public class Constants {
     public static final String LON = "lon";
     public static final String LAT = "lat";
     public static final int HTTP_SUCCESS = 0;
+    public static final int HTTP_SUCCESS_CLEAR = 1;
+    public static final int HTTP_LOGIN = 2;
     public static final String API_IWANNA_LIKE_URL = "/data/feed/wanna/%s.json";
     public static final String API_IWANNA_URL = "/data/feed/wanna.json?start=%s&limit=30";
     public static final String API_FAB_ADSCLICK2_URL = "/user/ads/check.json";
@@ -58,7 +61,7 @@ public class Constants {
     public static final String API_FEEDBACK_LIKE_URL = "/data/feed/score/%s.json";
     public static final String API_FEEDBACK_URL = "/data/feed/score.json?start=%s&limit=40";
 
-    public static final String API_FAB_ADSCLICK_URL = "/user/ads/score.json?score=%s";
+//    public static final String API_FAB_ADSCLICK_URL = "/user/ads/score.json?score=%s";
     public static final String API_VERSION_URL = "/data/version.json";
     public static final String API_SERVERLIST_URL = "/host/server/list/v2.json?location=%s";
     public static final String API_LOCATION_URL = "/host/server/location/cache/v2.json?type=%s";
@@ -69,6 +72,9 @@ public class Constants {
     public static final String API_REG_URL = "/user/reg.json";
     public static final String API_LOGOUT_URL = "/user/logout.json";
     public static final String API_DOMAIN_URL = "/data/domain.json";
+    public static final String API_EMU = "/monitor/emulator.json";
+    public static final String API_DONATION_URL = "/data/donation.json";
+
     public static final int connTimeOut = 20;
     public static final VpnType vpnType = VpnType.IKEV2_EAP;
     public static final String NET_ERROR = "network error";
@@ -117,6 +123,7 @@ public class Constants {
         public static String uc = null;
         public static String CHARSET = "utf-8";
     }
+    public static final String MYPOOL="MYPOOL";
     public static final int UM_INTERVAL = 40;
     public static final String LANG_ZH = "zh";
     public static final String LANG_US = "en";

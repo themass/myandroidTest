@@ -8,6 +8,8 @@ import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.telephony.TelephonyManager;
 
+import com.lahm.library.EasyProtectorLib;
+
 import java.io.IOException;
 import java.net.NetworkInterface;
 import java.util.Collections;
@@ -25,6 +27,7 @@ import java.util.zip.ZipFile;
  * Desc  : 获取设备相关的信息
  */
 public class DeviceInfoUtils {
+    public static final String NULL="null";
     /**
      * 获取设备ID.
      *
@@ -68,7 +71,7 @@ public class DeviceInfoUtils {
             }
         } catch (Exception e) {
             LogUtil.e(e);
-            deviceId.append("uuid").append(getUUID(context));
+            return DeviceInfoUtils.NULL;
         }
         return deviceId.toString();
     }
@@ -196,15 +199,29 @@ public class DeviceInfoUtils {
         }
     }
     public static boolean isEmulator(Context context) {
-        return Build.FINGERPRINT.startsWith("generic")
-                || Build.FINGERPRINT.toLowerCase().contains("vbox")
-                || Build.FINGERPRINT.toLowerCase().contains("test-keys")
-                || Build.MODEL.contains("google_sdk")
-                || Build.MODEL.contains("Emulator")
-                || Build.SERIAL.equalsIgnoreCase("android")
-                || Build.MODEL.contains("Android SDK built for x86")
-                || Build.MANUFACTURER.contains("Genymotion")
-                || (Build.BRAND.startsWith("generic") && Build.DEVICE.startsWith("generic"))
-                || "google_sdk".equals(Build.PRODUCT);
+//        EasyProtectorLib.checkIsDebug(context)||
+        return EasyProtectorLib.checkIsDebug(context)||EasyProtectorLib.checkIsDebug(context)||isXposedExistByThrow()||EasyProtectorLib.checkIsRunningInEmulator(context,null);
+//        || Build.FINGERPRINT.startsWith("generic")
+//                || Build.FINGERPRINT.toLowerCase().contains("vbox")
+//                || Build.FINGERPRINT.toLowerCase().contains("test-keys")
+//                || Build.MODEL.contains("google_sdk")
+//                || Build.MODEL.contains("Emulator")
+//                || Build.SERIAL.equalsIgnoreCase("android")
+//                || Build.MODEL.contains("Android SDK built for x86")
+//                || Build.MANUFACTURER.contains("Genymotion")
+//                || (Build.BRAND.startsWith("generic") && Build.DEVICE.startsWith("generic"))
+//                || "google_sdk".equals(Build.PRODUCT);
+    }
+    private static final String XPOSED_BRIDGE = "xposed";
+
+    public static boolean isXposedExistByThrow() {
+        try {
+            throw new Exception("gg");
+        } catch (Exception e) {
+            for (StackTraceElement stackTraceElement : e.getStackTrace()) {
+                if (stackTraceElement.getClassName().toLowerCase().contains(XPOSED_BRIDGE)) return true;
+            }
+            return false;
+        }
     }
 }

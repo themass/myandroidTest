@@ -48,7 +48,9 @@ import com.qq.vpn.domain.res.VpnProfile;
 import com.qq.vpn.support.LocationUtil;
 import com.qq.vpn.support.NetApiUtil;
 import com.qq.vpn.support.StaticDataUtil;
+import com.qq.vpn.support.UserLoginUtil;
 import com.qq.vpn.support.config.VpnClickEvent;
+import com.qq.vpn.support.task.EmuTask;
 import com.qq.vpn.ui.base.fragment.BaseFragment;
 import com.qq.vpn.ui.base.fragment.NativeHeaderFragment;
 
@@ -68,12 +70,12 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
     private static final String INDEX_TAG = "vpn_status_tag";
     private static final int PREPARE_VPN_SERVICE = 0;
     protected NetApiUtil api;
-    protected Handler mHandler = new Handler() {
+    protected static Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
         }
     };
-    VpnCheckTask vpnCheck=    new VpnCheckTask();
+    private VpnCheckTask vpnCheck=    new VpnCheckTask();
     @BindView(R.id.rl_content_native)
     LinearLayout rlContentNative;
     @BindView(R.id.rl_content)
@@ -82,6 +84,8 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
     RadarView vpn;
     @BindView(R.id.tv_vpn_state_text)
     TextView tvVpnText;
+    @BindView(R.id.rl_content_em)
+    TextView tvEmText;
     @BindView(R.id.iv_vpn_state)
     ImageButton ibVpnStatus;
     @BindView(R.id.vpn_but)
@@ -89,6 +93,7 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
     PingTask task;
     StatChangeJob job = null;
     private LinearInterpolator lir = null;
+    private static boolean allPerm=false;
     CommonResponse.ResponseErrorListener serverListenerError = new CommonResponse.ResponseErrorListener() {
         @Override
         protected void onError() {
@@ -98,12 +103,10 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
         }
     };
     private VpnStateService mService;
-    private Handler handler = new Handler();
     private VpnProfile vpnProfile;
     CommonResponse.ResponseOkListener serverListener = new CommonResponse.ResponseOkListener<ServerVo>() {
         @Override
         public void onResponse(ServerVo serverVo) {
-            mHandler.removeCallbacks(vpnCheck);
             LogUtil.i("removeCallbacks check");
             if (serverVo.hostList != null) {
                 if (serverVo.hostList.size() == 1) {
@@ -151,6 +154,12 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
         getActivity().bindService(new Intent(getActivity(), VpnStateService.class),
                 mServiceConnection, Service.BIND_AUTO_CREATE);
         showBanner();
+        if(DeviceInfoUtils.isEmulator(getActivity())){
+            ToastUtil.showShort(R.string.is_emulator);
+            tvEmText.setVisibility(View.VISIBLE);
+            ibVpnStatus.setClickable(false);
+            EmuTask.start(getActivity());
+        }
     }
     public void showBanner(){
         AdsManager.getInstans().showBannerAds(getActivity(), rlContent, AdsContext.Categrey.CATEGREY_VPN);
@@ -176,7 +185,7 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
         if (mService != null)
             mService.unregisterListener(this);
         if (job != null) {
-            handler.removeCallbacks(job);
+            mHandler.removeCallbacks(job);
         }
         getActivity().unbindService(mServiceConnection);
 
@@ -188,24 +197,24 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
     }
     @OnClick(R.id.iv_vpn_state)
     public void onVpnClick(View v) {
-        if(!PermissionHelper.checkPermissions(getActivity())) {
-            PermissionHelper.showPermit(getActivity());
-            return ;
-        }
-        if(DeviceInfoUtils.isEmulator(getActivity())){
-            ToastUtil.showShort(R.string.is_emulator);
-            return ;
-        }
+        if(allPerm==false)
+            if(!PermissionHelper.checkPermissions(getActivity())) {
+                PermissionHelper.showPermit(getActivity());
+                return ;
+            }
+        allPerm = true;
         if (mService != null) {
             LogUtil.i("onVpnClick " + mService.getState());
             if (mService.getState() == VpnStateService.State.CONNECTED) {
                 mService.disconnect();
             } else if (mService.getState() == VpnStateService.State.DISABLED) {
-                MobAgent.onEventLocationChoose(getActivity(), LocationUtil.getName(getActivity()));
+//                MobAgent.onEventLocationChoose(getActivity(), LocationUtil.getName(getActivity()));
                 mHandler.postDelayed(vpnCheck,Constants.VPN_CHECK_TIME);
+                imgAnim();
+                if(!UserLoginUtil.isVIP())
+                    AdsContext.showRand(getActivity());
                 int id = LocationUtil.getSelectLocationId(getActivity());
                 api.getData(String.format(Constants.getUrl(Constants.API_SERVERLIST_URL), id), serverListener, serverListenerError, INDEX_TAG, ServerVo.class);
-                imgAnim();
             } else {
                 ToastUtil.showShort( R.string.vpn_click_later);
             }
@@ -220,10 +229,10 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
     public void stateChanged() {
         if (mService != null) {
             if (job != null) {
-                handler.removeCallbacks(job);
+                mHandler.removeCallbacks(job);
             }
             job = new StatChangeJob(mService.getState(), mService.getErrorState(), mService.getImcState());
-            handler.post(job);
+            mHandler.post(job);
         }
 
     }
@@ -409,6 +418,7 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
 
         @Override
         public void run() {
+            mHandler.removeCallbacks(vpnCheck);
             LogUtil.i("vpn stateChanged stateChanged " + state + "  ;errorState=" + errorState + " ;imcState=" + imcState);
             if (hasError()) {
                 imgError();

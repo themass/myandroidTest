@@ -85,7 +85,7 @@ public class LocationFragmentActivity extends BaseFragmentActivity implements Fa
         if (title != null) {
             setToolbarTitle(title, true);
         }
-        setFabUpVisibility(View.GONE);
+        setFabUpVisibility(View.VISIBLE);
     }
     public boolean needFadUp(){
         return false;
@@ -107,7 +107,10 @@ public class LocationFragmentActivity extends BaseFragmentActivity implements Fa
     public boolean needShow() {
         return true;
     }
-
+    @Override
+    protected boolean needLocationView() {
+        return false;
+    }
     @Override
     protected boolean enableSliding() {
         return slidingClose;

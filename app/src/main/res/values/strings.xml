@@ -77,7 +77,7 @@
     <string name="menu_btn_recomm">Share Earn Points</string>
     <string name="menu_btn_recomm_copy">Copy Unique Referral Link</string>
     <string name="menu_reg_recomm">Inviter(optional)</string>
-    <string name="menu_btn_recomm_reward">Complete ads and Earning 100 Points</string>
+    <string name="menu_btn_recomm_reward">Earning 100 Points</string>
 
 
     <string name="support_info">Please activate several apps to support the author！</string>
@@ -123,12 +123,12 @@
     <string name="setting">Setting</string>
 
     <!-- vpn error text -->
-    <string name="error_lookup_failed">Failed. Please select another regin</string>
-    <string name="error_unreachable">Failed. Please select another regin</string>
+    <string name="error_lookup_failed">Failed. Please try agin or select another one</string>
+    <string name="error_unreachable">Failed. Please try agin or select another one</string>
     <string name="error_peer_auth_failed">Verifying gateway authentication failed.</string>
     <string name="error_auth_failed">Maybe Traffic has reached the upper limit, need VIP.</string>
     <string name="error_assessment_failed">Security assessment failed.</string>
-    <string name="error_generic">Failed. Please select another regin.</string>
+    <string name="error_generic">Failed. Please try agin or select another one.</string>
     <string name="vpn_not_supported_title">VPN not supported</string>
     <string name="vpn_not_supported">Your device does not support VPN applications.\nPlease contact the manufacturer.</string>
     <string name="vpn_not_supported_during_lockdown">VPN connections are not supported in lockdown mode.</string>
@@ -169,5 +169,8 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="repeated_click">Do not click repeatedly</string>
     <string name="is_emulator">Emulator is not supported</string>
     <string name="tab_fb_click_no">No ads,please try later</string>
-
+    <string name="save_start">save start...</string>
+    <string name="save_ok">save ok</string>
+    <string name="save_fail">save fail</string>
+    <string name="save_img">save image</string>
 </resources>

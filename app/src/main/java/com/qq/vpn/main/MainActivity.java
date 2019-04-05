@@ -18,10 +18,12 @@ import com.qq.ads.base.AdmobRewardManger;
 import com.qq.ads.base.AdsContext;
 import com.qq.ads.base.AdsManager;
 import com.qq.ads.base.GdtInterManger;
+import com.qq.ext.util.DeviceInfoUtils;
 import com.qq.ext.util.DoubleClickExit;
 import com.qq.ext.util.EventBusUtil;
 import com.qq.MobAgent;
 import com.qq.ext.util.LogUtil;
+import com.qq.ext.util.PermissionHelper;
 import com.qq.ext.util.PreferenceUtils;
 import com.qq.ext.util.SystemUtils;
 import com.qq.ext.util.ToastUtil;
@@ -84,6 +86,9 @@ public class MainActivity extends BaseDrawerMenuActivity implements ActivityComp
             gdtInterManger.showAd();
         }else{
             AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false);
+        }
+        if(!PermissionHelper.checkPermissions(this)) {
+            PermissionHelper.showPermit(this);
         }
     }
     public void onNoAD(){

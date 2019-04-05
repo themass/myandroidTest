@@ -21,6 +21,7 @@ import com.qq.ads.base.AdsContext;
 import com.qq.ads.base.AdsManager;
 import com.qq.ads.base.GdtNativeManager;
 import com.qq.ext.util.CollectionUtils;
+import com.qq.ext.util.SystemUtils;
 import com.qq.network.R;
 import com.qq.vpn.adapter.base.BaseRecyclerViewAdapter;
 import com.qq.vpn.domain.res.LocationVo;
@@ -39,6 +40,7 @@ public class LocationItemAdapter extends BaseRecyclerViewAdapter<LocationItemAda
     private int chooseId = 0;
     private ColorStateList indexColo = null;
     private ColorStateList indexSelectColo = null;
+    private ColorStateList black = null;
     private boolean needPing = false;
     private int index;
     GdtNativeManager gdtNativeManager;
@@ -46,6 +48,7 @@ public class LocationItemAdapter extends BaseRecyclerViewAdapter<LocationItemAda
         super(context, recyclerView, data, listener);
         chooseId = LocationUtil.getSelectLocationId(context);
         indexColo = context.getResources().getColorStateList(R.color.location_index);
+        black = context.getResources().getColorStateList(R.color.base_black);
         indexSelectColo = context.getResources().getColorStateList(R.color.base_red);
         index = 0;
         this.gdtNativeManager =gdtNativeManager;
@@ -65,12 +68,17 @@ public class LocationItemAdapter extends BaseRecyclerViewAdapter<LocationItemAda
         }
         if (chooseId == vo.id) {
             holder.tvIndex.setTextColor(indexSelectColo);
+            holder.tvCountry.setTextColor(indexSelectColo);
         } else {
             holder.tvIndex.setTextColor(indexColo);
+            holder.tvCountry.setTextColor(black);
         }
         holder.tvIndex.setText("#" + (position + 1));
-        holder.tvCountry.setText(vo.name);
-        holder.tvCountryEname.setText(vo.ename);
+        if(SystemUtils.isZH(context)){
+            holder.tvCountry.setText(vo.name);
+        }else{
+            holder.tvCountry.setText(vo.ename);
+        }
 
         if(Constants.BANNER_ADS_POS.contains(position)&&index==0){
             if(position%2==1){
@@ -125,9 +133,6 @@ public class LocationItemAdapter extends BaseRecyclerViewAdapter<LocationItemAda
         @Nullable
         @BindView(R.id.loc_tv_country)
         TextView tvCountry;
-        @Nullable
-        @BindView(R.id.loc_tv_country_ename)
-        TextView tvCountryEname;
         @Nullable
         @BindView(R.id.tv_ping)
         TextView tvPing;
