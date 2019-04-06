@@ -33,7 +33,7 @@ public class Constants {
     public static final int RECOMMAND_SHIMMER_DURATION = 1500;
     public static String BASE_OPENINBROWSER="http://qsv.jxckplayer.xyz/yun/?vid=";
     public static final int ADS_JISHI = -1;
-    public static int PROBABILITY = 4;
+    public static int PROBABILITY = 8;
     public static final String HTTP_URL = "http";
     public static final String HTTPS_URL = "https";
     public static final String BROWSER_URL = "browser";

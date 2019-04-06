@@ -116,18 +116,18 @@ public class AdsContext {
     }
     // 3/5
     public static boolean rateShow(){
-        if(showCount++>4){
+        if(showCount++>14){
             return false;
         }
         if(UserLoginUtil.isVIP3()){
             int i = Md5.getRandom(Constants.maxRate);
-            return i<=1;
+            return i<=2;
         }else if(UserLoginUtil.isVIP2()){
             int i = Md5.getRandom(Constants.maxRate);
-            return i<=2;
+            return i<=4;
         }else if(UserLoginUtil.isVIP()){
             int i = Md5.getRandom(Constants.maxRate);
-            return i<=3;
+            return i<=6;
         }else{
             int i = Md5.getRandom(Constants.maxRate);
             return i<=Constants.PROBABILITY;

@@ -13,6 +13,7 @@ import com.qq.sexfree.R;
 import com.sspacee.common.ui.view.FavoriteImageView;
 import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.common.util.LogUtil;
+import com.sspacee.common.util.PackageUtils;
 import com.sspacee.common.util.StringUtils;
 import com.sspacee.common.util.ToastUtil;
 import com.sspacee.common.util.Utils;
@@ -104,7 +105,12 @@ public class VideoShowActivity extends AppCompatActivity implements GdtNativeMan
         if(uri.getPath().endsWith(".m3u8")){
             WebViewActivity.startWebViewActivity(this, Constants.BASE_OPENINBROWSER+url, vo.title, true, false, null);
         }else {
-            WebViewActivity.startWebViewActivity(this, url, vo.title, true, false, null);
+            if (PackageUtils.hasBrowser(this)) {
+                Intent it = new Intent(Intent.ACTION_VIEW, uri);
+                startActivity(it);
+            }else {
+                WebViewActivity.startWebViewActivity(this, url, vo.title, true, false, null);
+            }
         }
 //        finish();
     }
