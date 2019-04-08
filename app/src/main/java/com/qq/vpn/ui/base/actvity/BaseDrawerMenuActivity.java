@@ -172,7 +172,7 @@ public class BaseDrawerMenuActivity extends ToolBarActivity {
         setScore(null);
     }
     private void setUpDonation(){
-        if(SystemUtils.isApkDebugable(this)||Constants.MYPOOL.equals(Constants.NetWork.uc)){
+        if(SystemUtils.isApkDebugable(this)||Constants.MYPOOL.equals(Constants.NetWork.uc)||SystemUtils.isZH(this)){
             miDonation.setVisible(true);
         }else{
             miDonation.setVisible(false);

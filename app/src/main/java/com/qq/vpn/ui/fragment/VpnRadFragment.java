@@ -94,6 +94,7 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
     StatChangeJob job = null;
     private LinearInterpolator lir = null;
     private static boolean allPerm=false;
+    private static boolean isEmulator=false;
     CommonResponse.ResponseErrorListener serverListenerError = new CommonResponse.ResponseErrorListener() {
         @Override
         protected void onError() {
@@ -157,7 +158,8 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
         if(DeviceInfoUtils.isEmulator(getActivity())){
             ToastUtil.showShort(R.string.is_emulator);
             tvEmText.setVisibility(View.VISIBLE);
-            ibVpnStatus.setClickable(false);
+//            ibVpnStatus.setClickable(false);
+            isEmulator = true;
             EmuTask.start(getActivity());
         }
     }
@@ -203,6 +205,12 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
                 return ;
             }
         allPerm = true;
+        if(isEmulator&&!UserLoginUtil.isVIP()){
+            ToastUtil.showShort(R.string.is_emulator);
+            return;
+        }else{
+            tvEmText.setVisibility(View.GONE);
+        }
         if (mService != null) {
             LogUtil.i("onVpnClick " + mService.getState());
             if (mService.getState() == VpnStateService.State.CONNECTED) {

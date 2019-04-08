@@ -154,7 +154,7 @@
 You are now using a non WIFI network, continue to download may consume more network traffic, whether to continue to download？</string>
     <string name="about_download_begin">Start download</string>
     <string name="about_download_finish">End download</string>
-    <string name="about_download_title">Downloading FreeVPN</string>
+    <string name="about_download_title">Downloading LightVPN</string>
     <string name="about_download_prepare">Is preparing to download</string>
     <string name="about_download_error">File download error</string>
     <string name="about_download_percent">Downloading %1$s/%2$s</string>
@@ -167,7 +167,7 @@ You are now using a non WIFI network, continue to download may consume more netw
     </string-array>
 
     <string name="repeated_click">Do not click repeatedly</string>
-    <string name="is_emulator">Emulator is not supported</string>
+    <string name="is_emulator">XP，Emulator just supported VIP</string>
     <string name="tab_fb_click_no">No ads,please try later</string>
     <string name="save_start">save start...</string>
     <string name="save_ok">save ok</string>

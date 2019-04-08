@@ -152,7 +152,14 @@ public class SystemUtils {
     public static boolean isZH(Context context) {
         return Constants.LANG_ZH.equals(getLang(context));
     }
-
+    public static boolean getLangDetail(Context context) {
+        Locale locale = context.getResources().getConfiguration().locale;
+        String language = locale.getLanguage().toLowerCase();
+        if (language.contains("zh")||language.contains("cn")||language.contains("tw")||language.contains("hk") || language.contains("en"))
+            return true;
+        else
+            return false;
+    }
     public static String getLang(Context context) {
         Locale locale = context.getResources().getConfiguration().locale;
         String language = locale.getLanguage().toLowerCase();

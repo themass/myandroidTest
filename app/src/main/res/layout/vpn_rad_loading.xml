@@ -52,7 +52,7 @@
         android:visibility="gone"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="@dimen/textsize_18"
+        android:textSize="@dimen/textsize_16"
         android:gravity="center"
         android:background="@color/warning"
         android:text="@string/is_emulator"

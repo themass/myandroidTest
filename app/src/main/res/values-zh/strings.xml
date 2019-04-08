@@ -153,7 +153,7 @@
     <string name="about_download_confirm_content">您现在使用的是非WIFI网络，继续下载可能会消耗较多网络流量，是否继续下载？</string>
     <string name="about_download_begin">开始下载</string>
     <string name="about_download_finish">下载完成</string>
-    <string name="about_download_title">正在下FreeVPN</string>
+    <string name="about_download_title">正在下灯塔VPN</string>
     <string name="about_download_prepare">正在准备下载</string>
     <string name="about_download_error">文件下载错误</string>
     <string name="about_download_percent">正在下载 %1$s/%2$s</string>
@@ -165,7 +165,7 @@
         <item>其他</item>
     </string-array>
     <string name="repeated_click">请勿重复点击</string>
-    <string name="is_emulator">暂不支持模拟器</string>
+    <string name="is_emulator">XP,分身,模拟器,盒子只支持VIP用户</string>
     <string name="tab_fb_click_no">暂无广告，稍后再试</string>
     <string name="save_start">开始下载...</string>
     <string name="save_ok">保存成功</string>

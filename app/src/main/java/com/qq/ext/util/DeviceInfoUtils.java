@@ -224,4 +224,14 @@ public class DeviceInfoUtils {
             return false;
         }
     }
+    public static String xposedExistByThrow() {
+        try {
+            throw new Exception("gg");
+        } catch (Exception e) {
+            for (StackTraceElement stackTraceElement : e.getStackTrace()) {
+                if (stackTraceElement.getClassName().toLowerCase().contains(XPOSED_BRIDGE)) return stackTraceElement.getClassName();
+            }
+            return "false";
+        }
+    }
 }

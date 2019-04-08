@@ -41,7 +41,7 @@ public class Constants {
     public static final String HTTP_TOKEN_KEY = "Vpn-Token";
     public static final String D_URL = "D_URL";
     public static final String NOTIFY_SWITCH = "NOTIFY_SWITCH";
-    public static int PROBABILITY = 4;
+    public static int PROBABILITY = 7;
 
     public static final int SKIP_SLOW= -1;
     public static final Pattern namePattern = Pattern.compile("[a-zA-Z0-9]{3,20}");
