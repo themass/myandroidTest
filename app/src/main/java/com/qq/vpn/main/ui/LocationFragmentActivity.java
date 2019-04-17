@@ -93,7 +93,7 @@ public class LocationFragmentActivity extends BaseFragmentActivity implements Fa
     @Override
     public void setupView() {
         super.setupView();
-        AdsContext.showRand(this,interCategrey);
+//        AdsContext.showRand(this,interCategrey);
     }
     @Override
     protected boolean needGoneBanner(){
