@@ -176,8 +176,7 @@ public class VpnStatusFragment extends BaseFragment implements VpnStateService.V
                 mService.disconnect();
             } else if (mService.getState() == VpnStateService.State.DISABLED) {
                 MobAgent.onEventLocationChoose(getActivity(), LocationUtil.getName(getActivity()));
-                if(!UserLoginUtil.isVIP3())
-                    AdsContext.showRand(getActivity());
+                AdsContext.showRand(getActivity(),AdsContext.getNext());
                 imgAnim();
                 int id = LocationUtil.getSelectLocationId(getActivity());
 //                if(conntingApi==false) {

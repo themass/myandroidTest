@@ -161,7 +161,14 @@ public class SystemUtils {
         else
             return CommonConstants.LANG_US;
     }
-
+    public static boolean getLangDetail(Context context) {
+        Locale locale = context.getResources().getConfiguration().locale;
+        String language = locale.getLanguage().toLowerCase();
+        if (language.contains("zh")||language.contains("cn")||language.contains("tw")||language.contains("hk") || language.contains("en"))
+            return true;
+        else
+            return false;
+    }
     public static String getCpuType() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             return "" + Arrays.asList(Build.SUPPORTED_ABIS);

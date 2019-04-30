@@ -31,11 +31,15 @@ import com.qq.common.ui.base.BaseFragment;
 import com.qq.common.util.DeviceInfoUtils;
 import com.qq.common.util.LogUtil;
 import com.qq.common.util.PermissionHelper;
+import com.qq.common.util.PreferenceUtils;
 import com.qq.common.util.ToastUtil;
+import com.qq.myapp.base.MyApplication;
 import com.qq.myapp.task.EmuTask;
 import com.qq.myapp.ui.base.NativeHeaderFragment;
+import com.qq.vpn.ui.main.MainFragmentViewPage;
 import com.qq.yewu.ads.base.AdsContext;
 import com.qq.yewu.ads.base.AdsManager;
+import com.qq.yewu.ads.mobvista.WallMobvAds;
 import com.qq.yewu.net.HttpUtils;
 import com.qq.yewu.net.VolleyUtils;
 import com.qq.yewu.net.request.CommonResponse;
@@ -68,7 +72,7 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
     private static final String INDEX_TAG = "vpn_status_tag";
     private static final int PREPARE_VPN_SERVICE = 0;
     private BaseService indexService;
-
+    private volatile boolean hasStart=false;
     @BindView(R.id.rl_content_native)
     LinearLayout rlContentNative;
     @BindView(R.id.rl_content)
@@ -83,10 +87,16 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
     TextView tvEmText;
     @BindView(R.id.vpn_but)
     RelativeLayout vpnBut;
+    @BindView(R.id.rl_gift)
+    RelativeLayout rlGift;
     PingTask task;
     StatChangeJob job = null;
+    private int count=0;
     private LinearInterpolator lir = null;
     private static boolean allPerm=false;
+    private static boolean isEmulator=false;
+    private WallMobvAds wallMobvAds = new WallMobvAds();
+    private  static boolean open=false;
     protected static Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -143,7 +153,12 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
     protected int getRootViewId() {
         return R.layout.vpn_rad_loading;
     }
-
+    @OnClick(R.id.rl_points)
+    public void onPoints(View v) {
+        if(getActivity() instanceof MainFragmentViewPage){
+            ((MainFragmentViewPage)getActivity()).showReward();
+        }
+    }
     @Override
     protected void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
@@ -155,10 +170,12 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
         showBanner();
         if(DeviceInfoUtils.isEmulator(getActivity())){
             ToastUtil.showShort(R.string.is_emulator);
-            ibVpnStatus.setClickable(false);
+//            ibVpnStatus.setClickable(false);
             tvEmText.setVisibility(View.VISIBLE);
+            isEmulator = true;
             EmuTask.start(getActivity());
         }
+        wallMobvAds.load(getActivity(),rlGift);
 
     }
     public void showBanner(){
@@ -198,12 +215,26 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
     @OnClick(R.id.iv_vpn_state)
     public void onVpnClick(View v) {
         if(allPerm==false)
-            if(!PermissionHelper.checkPermissions(getActivity())) {
+            if(!PermissionHelper.checkPermissions(getActivity()) &&!UserLoginUtil.isVIP2()) {
                 PermissionHelper.showPermit(getActivity());
                 return ;
             }
         allPerm = true;
-
+        if(isEmulator&&!UserLoginUtil.isVIP()){
+            ToastUtil.showShort(R.string.is_emulator);
+            return;
+        }else{
+            tvEmText.setVisibility(View.GONE);
+        }
+        if(!open && !UserLoginUtil.isVIP()){
+            ToastUtil.showShort(R.string.chose_first);
+            LocationPageViewFragment.startFragment(getActivity());
+            open=true;
+            return;
+        }
+        startVpn();
+    }
+    private void startVpn(){
         if (mService != null) {
             LogUtil.i("onVpnClick " + mService.getState());
             if (mService.getState() == VpnStateService.State.CONNECTED) {
@@ -212,8 +243,8 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
 //                MobAgent.onEventLocationChoose(getActivity(), LocationUtil.getName(getActivity()));
                 mHandler.postDelayed(vpnCheck,Constants.VPN_CHECK_TIME);
                 imgAnim();
-                if(!UserLoginUtil.isVIP2())
-                    AdsContext.showRand(getActivity());
+                AdsContext.showRand(getActivity(),AdsContext.getNext());
+                AdsContext.vpnClick(getActivity());
                 int id = LocationUtil.getSelectLocationId(getActivity());
                 indexService.getData(String.format(Constants.getUrl(Constants.API_SERVERLIST_URL), id), serverListener, serverListenerError, INDEX_TAG, ServerVo.class);
 
@@ -359,8 +390,10 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
                 vo.ttlTime = HttpUtils.ping(vo.gateway);
                 LogUtil.i(vo.toString());
                 if (vo.ttlTime > 0) {
-                    if(mService!=null && mService.getState() == VpnStateService.State.DISABLED)
+                    if(mService!=null && mService.getState() == VpnStateService.State.DISABLED && !hasStart) {
+                        hasStart = true;
                         startVpn(server, vo);
+                    }
                 }
             }catch (Exception e){
                 LogUtil.e(e);
@@ -418,6 +451,7 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
         @Override
         public void run() {
             mHandler.removeCallbacks(vpnCheck);
+            hasStart = false;
             LogUtil.i("vpn stateChanged stateChanged " + state + "  ;errorState=" + errorState + " ;imcState=" + imcState);
             if (hasError()) {
                 imgError();
@@ -425,6 +459,7 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
             }
             switch (state) {
                 case CONNECTED:
+                    AdsContext.vpnClick(getActivity());
                     StaticDataUtil.add(Constants.VPN_STATUS,1);
                     imgConn();
                     break;
@@ -453,8 +488,14 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
             getActivity().bindService(new Intent(getActivity(), VpnStateService.class),
                     mServiceConnection, Service.BIND_AUTO_CREATE);
             VolleyUtils.start();
-            imgError();
-            ToastUtil.showShort(R.string.error_network_retry);
+            if(count>1){
+                count=0;
+                ToastUtil.showShort(R.string.error_network_retry);
+                imgError();
+            }else {
+                count++;
+                startVpn();
+            }
         }
     }
 }

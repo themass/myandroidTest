@@ -9,8 +9,8 @@ android {
         applicationId "com.qq.fq2"
         minSdkVersion 16
         targetSdkVersion 26
-        versionCode 1001008011
-        versionName "1.1.8.11"
+        versionCode 1001008015
+        versionName "1.1.8.15"
         // Enabling multidex support.
         multiDexEnabled true
         flavorDimensions "versionCode"
@@ -129,7 +129,7 @@ dependencies {
     implementation 'com.sothree.slidinguppanel:library:3.3.1'
     implementation 'com.github.JakeWharton:ViewPagerIndicator:2.4.1'
 
-//    implementation 'com.squareup.picasso:picasso:2.5.2'
+    implementation 'com.squareup.picasso:picasso:2.5.2'
     implementation 'com.google.android.gms:play-services-ads:15.0.1'
     implementation 'com.google.android.gms:play-services-base:15.0.1'
     implementation 'com.google.android.gms:play-services-location:15.0.1'
@@ -137,6 +137,7 @@ dependencies {
     // adview
     implementation 'pl.droidsonroids.gif:android-gif-drawable:1.2.6'
     implementation 'com.lahm.library:easy-protector-release:1.1.0'
+//    implementation 'com.squareup.picasso:picasso:2.5.2'
 
 
 }

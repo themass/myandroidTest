@@ -3,11 +3,15 @@ package com.qq.myapp.constant;
 
 
 import com.qq.fq2.R;
+import com.qq.yewu.ads.adview.AdviewConstant;
 
 import org.strongswan.android.logic.VpnType;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 /**
  * Created by dengt on 2015/9/1.
  */
@@ -23,15 +27,15 @@ public class Constants {
     public static final String APP_GOOGLE = "GOOGLEMARKET";
     public static final String URL = "url";
     public static final String DEFULT_LOCATION_NAME="随机";
-    public static final int STARTUP_SHOW_TIME_6000 = 5000; //启动页广告时长
+    public static final int STARTUP_SHOW_TIME_6000 = 6000; //启动页广告时长
     public static final int STARTUP_SHOW_TIME_7000 = 6000; //启动页广告时长
     public static final int BANNER_ADS_GONE_LONG = 7000; //广告显示时长
     public static final int BANNER_ADS_GONE_LONG_LONG = 240000; //广告显示时长
     public static final int BANNER_ADS_GONE_SHORT = 5000; //启动页广告时长
     public static final int VIP_SHIMMER_DURATION = 2300;
     public static final int RECOMMAND_SHIMMER_DURATION = 1500;
-    public static final int VPN_CHECK_TIME = 7000; //启动页广告时长
-    public static int PROBABILITY =5;
+    public static final int VPN_CHECK_TIME = 6000; //启动页广告时长
+    public static int PROBABILITY =7;
     public static final int ADS_JISHI = -1;
     public static final String HTTP_URL = "http";
     public static final String HTTPS_URL = "https";
@@ -64,6 +68,9 @@ public class Constants {
     public static final int HTTP_SUCCESS_CLEAR = 1;
     public static final int HTTP_LOGIN = 2;
     public static final String USERIP = "USERIP";
+    public static final String CLICK_KEY="CLICK_KEY";
+    public static final String TRAF_KEY="TRAF_KEY";
+
     // 有新版本时，是否打开app就提醒升级
     //用户反馈
     public static final String DEFAULT_FEEDBACK_APPKEY = "23575056";
@@ -191,6 +198,34 @@ public class Constants {
     public static final String ADMOB_REWARD_UNIT_ID="ca-app-pub-7849865307083433/1108754074";
     public static final String ADMOB_REWARD_UNIT_ID2="ca-app-pub-7849865307083433/1842540805";
     public static final String ADMOB_REWARD_UNIT_ID3="ca-app-pub-7849865307083433/5020078921";
-    public static final List<String> ADMOB_REWARD_UNIT_IDS=Arrays.asList(ADMOB_REWARD_UNIT_ID,ADMOB_REWARD_UNIT_ID2,ADMOB_REWARD_UNIT_ID3);
+    public static final List<String> ADMOB_REWARD_UNIT_IDS=Arrays.asList(ADMOB_REWARD_UNIT_ID,ADMOB_REWARD_UNIT_ID,ADMOB_REWARD_UNIT_ID);
 
+    public static final String INMOBI_APPID="6cc6e6f318a04869a33c79f4b9d71e27";
+    public static final String INMOBI_ACCOUNTID="e5b7a52a95cd4802b49b279caa0e2c0d";
+    public static final Long INMOBI_APPKEY=1555588600038l;
+
+
+    public static final String Mob_APPID="114042";
+    public static final String Mob_APPKEY="f1f0a8637166a0459402b9de3c88a93f";
+    public static final String Mob_UNIT_REWARD="87735";
+    public static final String Mob_UNIT_INTV="88138";
+
+    public static final String Mob_UNIT_BANNER1="88137";
+    public static final String Mob_UNIT_BANNER2="88136";
+    public static final String Mob_UNIT_BANNER3="88135";
+    public static final String Mob_UNIT_BANNER="88134";
+
+    public static final String Mob_UNIT_WALL="88139";
+
+    public static final String Mob_UNIT_SPLASH="88133";
+    public static final String Mob_UNIT_SPLASH_KAY="Mob_UNIT_SPLASH_KAY";
+
+
+    public static Map<String ,String> adviewToMobvBanner = new HashMap<>();
+    static {
+        adviewToMobvBanner.put(AdviewConstant.ADS_ADVIEW_KEY1,Mob_UNIT_BANNER1);
+        adviewToMobvBanner.put(AdviewConstant.ADS_ADVIEW_KEY2,Mob_UNIT_BANNER2);
+        adviewToMobvBanner.put(AdviewConstant.ADS_ADVIEW_KEY4,Mob_UNIT_BANNER3);
+        adviewToMobvBanner.put(AdviewConstant.ADS_ADVIEW_KEY,Mob_UNIT_BANNER);
+    }
 }

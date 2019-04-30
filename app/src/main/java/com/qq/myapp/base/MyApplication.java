@@ -74,6 +74,7 @@ public class MyApplication extends MultiDexApplication {
         LogUtil.e("app start cost:" + cost);
         photoLoad = new ImagePhotoLoad(this);
         AdsManager.getInstans().init(this);
+
     }
 
     public ImagePhotoLoad getPhotoLoad() {

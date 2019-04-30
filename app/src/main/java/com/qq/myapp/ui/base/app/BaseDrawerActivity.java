@@ -24,6 +24,7 @@ import com.qq.common.util.SystemUtils;
 import com.qq.common.util.ToastUtil;
 import com.qq.myapp.bean.vo.DomainVo;
 import com.qq.myapp.ui.fragment.DonationListFragment;
+import com.qq.yewu.ads.base.AdsContext;
 import com.qq.yewu.ads.base.AdsManager;
 import com.qq.yewu.net.request.CommonResponse;
 import com.qq.yewu.um.MobAgent;
@@ -121,7 +122,8 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         setUpDonation();
     }
     private void setUpDonation(){
-        if(SystemUtils.isApkDebugable(this)||Constants.APP_MYPOOL.equals(MyApplication.getInstance().uc)){
+        int vpnCount = AdsContext.getVpnClick(this);
+        if(SystemUtils.isApkDebugable(this)||Constants.APP_MYPOOL.equals(MyApplication.getInstance().uc)||(UserLoginUtil.getUserCache()!=null &&vpnCount>6)){
             miDonation.setVisible(true);
         }else{
             miDonation.setVisible(false);
@@ -189,6 +191,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(UserLoginEvent event) {
         setUpUserMenu();
+        setUpDonation();
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -207,23 +210,18 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         tvDesc2.setText(event.stateUse.desc2);
 //        tvDesc.setText("每周减50积分，VIP状态随积分变动");
 //        tvDesc1.setText("VIP1=400积分； VIP2=600积分");
-        setScore(event.stateUse.score);
+//        setScore(event.stateUse.score);
     }
     private void setScore(Long inScore) {
-        if(inScore!=null){
-            tvScore.setText(inScore + "积分");
-        }else {
-            UserInfoVo vo = UserLoginUtil.getUserCache();
-            if (vo != null) {
-                String score = vo.score + "积分";
-                if(vo.paidTime!=null){
-                    score=score+"(VIP3有效期"+vo.paidTime+")";
-                }
-                tvScore.setText(score);
-            } else {
-                int score = PreferenceUtils.getPrefInt(this, Constants.SCORE_TMP, 0);
-                tvScore.setText(score + "积分");
+        UserInfoVo vo = UserLoginUtil.getUserCache();
+        if (vo != null) {
+            String score = vo.score + "积分";
+            if(vo.paidTime!=null){
+                score=score+"("+vo.paidTime+")";
             }
+            tvScore.setText(score);
+        } else {
+            tvScore.setText("请先登录");
         }
     }
     public void onAbout(View view) {

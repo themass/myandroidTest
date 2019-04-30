@@ -154,6 +154,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
             mWorkThread.start();
             mWorkHandler = new Handler(mWorkThread.getLooper());
             /* we are now ready to start the handler thread */
+            createForegroundService(false);
         }
     };
 
@@ -202,7 +203,6 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
         indexService = new BaseService();
         indexService.setup(this);
         notificationManager=(NotificationManager)getSystemService(NOTIFICATION_SERVICE);
-
     }
 
     @Override

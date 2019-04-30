@@ -23,7 +23,8 @@ public class AdsPopStrategy {
         if(count++>5){
             return;
         }
-        AdsContext.showNextAbs(context, AdsContext.Categrey.CATEGREY_VPN1);
+        AdsContext.showRand(context,AdsContext.getNext());
+
         Long lastClickTime = StaticDataUtil.get(Constants.SCORE_CLICK, Long.class, 0l);
         long curent = System.currentTimeMillis();
         long interval = curent - lastClickTime;

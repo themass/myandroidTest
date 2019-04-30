@@ -13,8 +13,8 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.qq.common.util.DeviceInfoUtils;
 import com.qq.common.util.SystemUtils;
+import com.qq.myapp.base.MyApplication;
 import com.qq.myapp.data.AdsPopStrategy;
 import com.qq.vpn.ui.maintab.TabLocalFragment;
 import com.qq.common.util.DoubleClickExit;
@@ -23,12 +23,12 @@ import com.qq.common.util.LogUtil;
 import com.qq.common.util.PermissionHelper;
 import com.qq.common.util.PreferenceUtils;
 import com.qq.common.util.ToastUtil;
-import com.qq.vpn.ui.maintab.TabLocalRecommFragment;
-import com.qq.vpn.ui.maintab.VpnNativeFragment;
-import com.qq.yewu.ads.base.AdmobRewardManger;
+import com.qq.yewu.ads.reward.AdmobRewardManger;
 import com.qq.yewu.ads.base.AdsContext;
 import com.qq.yewu.ads.base.AdsManager;
 import com.qq.yewu.ads.base.GdtInterManger;
+import com.qq.yewu.ads.reward.BaseRewardManger;
+import com.qq.yewu.ads.reward.RewardInterface;
 import com.qq.yewu.um.MobAgent;
 import com.qq.myapp.constant.Constants;
 import com.qq.myapp.data.ConnLogUtil;
@@ -50,7 +50,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class MainFragmentViewPage extends BaseDrawerActivity implements ActivityCompat.OnRequestPermissionsResultCallback,GdtInterManger.OnGdtInterListener,AdmobRewardManger.OnAdmobRewardListener  {
+public class MainFragmentViewPage extends BaseDrawerActivity implements ActivityCompat.OnRequestPermissionsResultCallback,GdtInterManger.OnGdtInterListener,RewardInterface.OnAdmobRewardListener {
 
 
     /**
@@ -67,7 +67,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
     private String POSITION = "POSITION";
     private int index = 0;
     private GdtInterManger gdtInterManger;
-    public AdmobRewardManger admobRewardManger;
+    public BaseRewardManger admobRewardManger;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_main_viewpage);
@@ -76,14 +76,15 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         EventBusUtil.getEventBus().register(jump);
         EventBusUtil.getEventBus().register(logAdd);
         boolean uploadLog = PreferenceUtils.getPrefBoolean(this, Constants.LOG_UPLOAD_CONFIG, false);
-        admobRewardManger = new AdmobRewardManger(this,this);
+        admobRewardManger = new BaseRewardManger(this,this);
     }
     public void onNoAD(){
         AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false);
     }
     @Override
     public void onNoRewardAD(){
-        AdsPopStrategy.clickAdsShowBtn(this);
+        if(!admobRewardManger.next())
+            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN1, false);
     }
 
     @Override
@@ -118,9 +119,12 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         ConnLogUtil.sendAllLog(this);
         boolean gdt = PreferenceUtils.getPrefBoolean(this, Constants.AD_GDT_SWITCH,true);
 
-        if(SystemUtils.isZH(this) && gdt){
-            gdtInterManger = new GdtInterManger(this,this);
-            gdtInterManger.showAd();
+        if(Constants.APP_GOOGLE.equals(MyApplication.getInstance().uc)){
+            int vpnCount = AdsContext.getVpnClick(this);
+            float traf = PreferenceUtils.getPrefFloat(this,Constants.TRAF_KEY,0);
+            if(vpnCount>6&&traf>150){
+                AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false);
+            }
         }else{
             AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false);
         }

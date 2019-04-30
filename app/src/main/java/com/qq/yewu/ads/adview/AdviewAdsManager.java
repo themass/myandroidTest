@@ -16,7 +16,8 @@ import static com.qq.yewu.ads.adview.AdviewConstant.adsKeySet;
  */
 
 public class AdviewAdsManager {
-    public  static InitConfiguration initConfig;
+    public static InitConfiguration initConfig;
+
     public static void init(Context context) {
         InitConfiguration.Builder builder = new InitConfiguration.Builder(context)
                 .setUpdateMode(InitConfiguration.UpdateMode.EVERYTIME)   // 实时获取配置
@@ -26,6 +27,7 @@ public class AdviewAdsManager {
         builder.setAdMobSize(InitConfiguration.AdMobSize.BANNER);
         builder.setAdGdtSize(InitConfiguration.AdGdtSize.BANNER);
         builder.setAdSize(InitConfiguration.AdSize.BANNER_SMART);
+        builder.setAdInMobiSize(InitConfiguration.AdInMobiSize.INMOBI_AD_UNIT_320x50);
 //        if (MyApplication.isDebug) {
 //            builder.setRunMode(InitConfiguration.RunMode.TEST);
 //        } else {
@@ -33,10 +35,30 @@ public class AdviewAdsManager {
 //        }
         builder.setRunMode(InitConfiguration.RunMode.NORMAL);
         initConfig = builder.build();
-        AdViewSpreadManager.getInstance(context).init(initConfig, adsKeySet);
-        AdViewBannerManager.getInstance(context).init(initConfig, adsKeySet);
-        AdViewInstlManager.getInstance(context).init(initConfig, adsKeySet);
-        AdViewNativeManager.getInstance(context).init(initConfig, adsKeySet);
-        AdViewVideoManager.getInstance(context).init(initConfig, adsKeySet);
+        try {
+            AdViewSpreadManager.getInstance(context).init(initConfig, adsKeySet);
+        } catch (Exception e) {
+
+        }
+        try {
+            AdViewBannerManager.getInstance(context).init(initConfig, adsKeySet);
+        } catch (Exception e) {
+
+        }
+        try {
+            AdViewInstlManager.getInstance(context).init(initConfig, adsKeySet);
+        } catch (Exception e) {
+
+        }
+        try {
+            AdViewNativeManager.getInstance(context).init(initConfig, adsKeySet);
+        } catch (Exception e) {
+
+        }
+        try {
+            AdViewVideoManager.getInstance(context).init(initConfig, adsKeySet);
+        } catch (Exception e) {
+
+        }
     }
 }

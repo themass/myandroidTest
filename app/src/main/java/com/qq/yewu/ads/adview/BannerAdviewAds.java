@@ -10,15 +10,17 @@ import com.kyview.manager.AdViewBannerManager;
 import com.qq.common.util.LogUtil;
 import com.qq.yewu.ads.base.AdsContext;
 import com.qq.yewu.ads.base.BannerInter;
+import com.qq.yewu.ads.mobvista.BannerMobvAds;
 
 /**
  * Created by dengt on 2017/9/20.
  */
 
 public class BannerAdviewAds extends BannerInter {
+    private BannerMobvAds mobvBanner = new BannerMobvAds();
     @Override
     protected AdsContext.AdsType getAdsType(){
-        return AdsContext.AdsType.ADS_TYPE_SPREAD;
+        return AdsContext.AdsType.ADS_TYPE_BANNER;
     }
     @Override
     public void bannerAds(final FragmentActivity context, final ViewGroup group,final String key, final Handler handler){
@@ -59,7 +61,8 @@ public class BannerAdviewAds extends BannerInter {
                 @Override
                 public void onAdFailed(String s) {
                     noAds(context,handler, AdsContext.AdsFrom.ADVIEW);
-                    group.setVisibility(View.GONE);
+//                    group.setVisibility(View.GONE);
+                    mobvBanner.bannerAds(context,group,key,handler);
                 }
 
                 @Override
@@ -70,6 +73,7 @@ public class BannerAdviewAds extends BannerInter {
             });
         } catch (Throwable e) {
             noAds(context,handler, AdsContext.AdsFrom.ADVIEW);
+            mobvBanner.bannerAds(context,group,key,handler);
             LogUtil.e(e);
          }
     }

@@ -3,22 +3,24 @@ package com.qq.yewu.ads.base;
 import android.app.Activity;
 import android.content.Context;
 import android.os.HandlerThread;
-import android.widget.Toast;
 
+import com.qq.common.util.DateUtils;
+import com.qq.common.util.LogUtil;
+import com.qq.common.util.Md5;
 import com.qq.common.util.PreferenceUtils;
 import com.qq.common.util.SystemUtils;
 import com.qq.common.util.ToastUtil;
-import com.qq.myapp.data.AdsPopStrategy;
-import com.qq.yewu.ads.adview.AdviewConstant;
-import com.qq.yewu.um.MobAgent;
 import com.qq.fq2.R;
+import com.qq.myapp.base.MyApplication;
 import com.qq.myapp.constant.Constants;
+import com.qq.myapp.data.AdsPopStrategy;
 import com.qq.myapp.data.UserLoginUtil;
 import com.qq.myapp.task.ScoreTask;
-import com.qq.common.util.Md5;
+import com.qq.yewu.ads.adview.AdviewConstant;
+import com.qq.yewu.um.MobAgent;
 
+import java.util.Date;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import static com.qq.yewu.ads.base.AdsContext.AdsShowStatus.ADS_CLICK_MSG;
@@ -28,8 +30,9 @@ import static com.qq.yewu.ads.base.AdsContext.AdsShowStatus.ADS_CLICK_MSG;
  */
 
 public class AdsContext {
-    public static Set<String> adsClick = new HashSet<>();
     private static int showCount = 0;
+    public static Set<String> adsClick = new HashSet<>();
+
     static {
     }
     public static enum Categrey {
@@ -37,6 +40,7 @@ public class AdsContext {
         CATEGREY_VPN1("插屏： 点击vpn页，音频，图片，小说 list 页，其他推荐 ;   banner：设置页，地区头，音频，图片，小说，视频，收藏夹列表", AdviewConstant.ADS_ADVIEW_KEY2),
         CATEGREY_VPN2("插屏： 点击积分，视频暂停；  banner：vpn状态页,国家选择列表，音频，图片，小说 channel 头页 ", AdviewConstant.ADS_ADVIEW_KEY),
         CATEGREY_VPN3("banner：文章页，音频，图片，小说，视频 头页 ", AdviewConstant.ADS_ADVIEW_KEY4);
+
         public String desc;
         public String key;
 
@@ -74,37 +78,14 @@ public class AdsContext {
         }
     }
     public static enum AdsFrom{
-        ADVIEW("adview");
-        //        GDT("gdt");
+        ADVIEW("adview"),
+        GDT("gdt"),
+        MOBVISTA("mobvista");
         public String desc;
         AdsFrom(String desc){
             this.desc =desc;
         }
     }
-    public static class AdsMsgObj{
-        AdsType type;
-        AdsShowStatus status;
-        AdsFrom from;
-        boolean score;
-        public AdsMsgObj(Context context,AdsType type,AdsShowStatus status,AdsFrom from){
-            this.type = type;
-            this.status = status;
-            this.from=from;
-        }
-        public AdsMsgObj(Context context,AdsType type,AdsShowStatus status,AdsFrom from,boolean score){
-            this.type = type;
-            this.status = status;
-            this.from=from;
-            this.score=score;
-        }
-    }
-
-    public static HandlerThread adsMsgThread = new HandlerThread("ads_msg_back");
-    static {
-        adsMsgThread.start();
-    } // 3/5
-    // 3/5
-
     public static boolean hasClick(Context context,String key){
         if(adsClick.contains(key)){
             ToastUtil.showShort(R.string.repeated_click);
@@ -113,8 +94,35 @@ public class AdsContext {
         adsClick.add(key);
         return false;
     }
+    public static class AdsMsgObj{
+        AdsType type;
+        AdsShowStatus status;
+        AdsFrom from;
+        boolean score;
+        Context context;
+        public AdsMsgObj(Context context,AdsType type,AdsShowStatus status,AdsFrom from){
+            this.type = type;
+            this.status = status;
+            this.from=from;
+            this.context = context;
+        }
+
+        public AdsMsgObj(Context context,AdsType type,AdsShowStatus status,AdsFrom from,boolean score){
+            this.type = type;
+            this.status = status;
+            this.from=from;
+            this.score=score;
+            this.context = context;
+        }
+    }
+
+    public static HandlerThread adsMsgThread = new HandlerThread("ads_msg_back");
+    static {
+        adsMsgThread.start();
+    }
+    // 3/5
     public static boolean rateShow(){
-        if(showCount++>4){
+        if(showCount++>10){
             return false;
         }
         if(UserLoginUtil.isVIP3()){
@@ -122,10 +130,10 @@ public class AdsContext {
             return i<=1;
         }else if(UserLoginUtil.isVIP2()){
             int i = Md5.getRandom(Constants.maxRate);
-            return i<=2;
+            return i<=3;
         }else if(UserLoginUtil.isVIP()){
             int i = Md5.getRandom(Constants.maxRate);
-            return i<=3;
+            return i<=5;
         }else{
             int i = Md5.getRandom(Constants.maxRate);
             return i<=Constants.PROBABILITY;
@@ -152,25 +160,8 @@ public class AdsContext {
         int size = AdsContext.Categrey.values().length;
         return AdsContext.Categrey.values()[(num)%size];
     }
-
-    public static void showNextAbs(Context context,AdsContext.Categrey cate){
-        boolean gdt = PreferenceUtils.getPrefBoolean(context,Constants.AD_GDT_SWITCH,true);
-        if(SystemUtils.isZH(context) && gdt && context instanceof  Activity){
-            int index = Md5.getRandom(Constants.gdtInterlist.size());
-            GdtInterManger gdtInterManger = new GdtInterManger((Activity) context,null,Constants.gdtInterlist.get(index));
-            gdtInterManger.showAd();
-        }else {
-            int size = AdsContext.Categrey.values().length;
-            AdsManager.getInstans().showInterstitialAds(context, cate, false);
-        }
-    }
-    public static void showRand(Context context){
-        if(UserLoginUtil.showAds()) {
-            showRand(context,getNext());
-        }
-    }
     public static void showRand(Context context, AdsContext.Categrey cate){
-        if (AdsContext.rateShow()) {
+        if (AdsContext.rateShow() && Constants.APP_MYPOOL.equals(MyApplication.getInstance().uc)) {
             boolean gdt = PreferenceUtils.getPrefBoolean(context,Constants.AD_GDT_SWITCH,true);
             if(SystemUtils.isZH(context) && gdt && context instanceof  Activity){
                 int index = Md5.getRandom(Constants.gdtInterlist.size());
@@ -180,6 +171,17 @@ public class AdsContext {
                 AdsManager.getInstans().showInterstitialAds(context, cate, false);
             }
         }
+    }
+    public static void vpnClick(Context context){
+        String key =Constants.CLICK_KEY+ DateUtils.format(new Date(),DateUtils.DATE_FORMAT_MM);
+        int vpnCount = PreferenceUtils.getPrefInt(context,key,0);
+        LogUtil.i("vpnCount="+vpnCount);
+        vpnCount=vpnCount>100?100:++vpnCount;
+        PreferenceUtils.setPrefInt(context,key,vpnCount);
+    }
+    public static int getVpnClick(Context context){
+        String key =Constants.CLICK_KEY+DateUtils.format(new Date(),DateUtils.DATE_FORMAT_MM);
+        return  PreferenceUtils.getPrefInt(context,key,0);
     }
 
 }

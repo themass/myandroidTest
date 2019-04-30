@@ -10,7 +10,7 @@ import com.qq.fq2.R;
 import com.qq.myapp.data.AdsPopStrategy;
 import com.qq.myapp.ui.inte.OnBackKeyDownListener;
 import com.qq.vpn.ui.main.MainFragmentViewPage;
-import com.qq.yewu.ads.base.AdmobRewardManger;
+import com.qq.yewu.ads.reward.AdmobRewardManger;
 
 import butterknife.BindView;
 import butterknife.OnClick;

@@ -6,24 +6,34 @@ import android.os.Handler;
 import android.os.Message;
 import android.view.KeyEvent;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.kyview.manager.AdViewSpreadManager;
 import com.qq.common.ui.base.LogActivity;
+import com.qq.common.util.EventBusUtil;
+import com.qq.common.util.LogUtil;
+import com.qq.common.util.PermissionHelper;
 import com.qq.common.util.PreferenceUtils;
 import com.qq.common.util.SystemUtils;
+import com.qq.yewu.ads.base.AdsContext;
 import com.qq.yewu.ads.base.AdsManager;
 import com.qq.yewu.ads.base.GdtOpenManager;
+import com.qq.yewu.ads.config.LaunchAdsNext;
 import com.qq.yewu.um.MobAgent;
 import com.qq.fq2.R;
 import com.qq.myapp.constant.Constants;
 import com.qq.myapp.task.LoginTask;
 
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
+
+import static com.qq.yewu.ads.adview.AdviewConstant.ADS_ADVIEW_KEY1;
 
 /**
  * Created by dengt on 2016/3/22.
@@ -35,10 +45,19 @@ public class LaunchActivity extends LogActivity implements GdtOpenManager.OnGdtO
     RelativeLayout skipView;
     @BindView(R.id.tv_shu)
     TextView tvJishi;
+    @BindView(R.id.rl_banner1)
+    RelativeLayout banner1;
+    @BindView(R.id.rl_banner2)
+    RelativeLayout banner2;
+    @BindView(R.id.rl_banner3)
+    RelativeLayout banner3;
+    @BindView(R.id.ll_banner)
+    LinearLayout llBanner;
     private int max = Constants.STARTUP_SHOW_TIME_6000+1000;
     private int now = 0;
     private Unbinder unbinder;
     private GdtOpenManager gdtOpenManager;
+    boolean perm = true;
     private Runnable mStartMainRunnable = new Runnable() {
         @Override
         public void run() {
@@ -63,16 +82,20 @@ public class LaunchActivity extends LogActivity implements GdtOpenManager.OnGdtO
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_launch);
         MobAgent.init(this);
+        AdsManager.getInstans().init(this);
         unbinder = ButterKnife.bind(this);
         LoginTask.start(this);
         gdtOpenManager = new GdtOpenManager(this,ivAds,tvJishi,this);
         mHandler.postDelayed(mStartMainRunnable, max);
         boolean gdt = PreferenceUtils.getPrefBoolean(this,Constants.AD_GDT_SWITCH,true);
-        if(SystemUtils.isZH(this) && gdt){
+        EventBusUtil.getEventBus().register(this);
+        perm =PermissionHelper.checkPermission(this,PermissionHelper.READ_PHONE_STATE);
+        if(SystemUtils.isZH(this) && gdt && perm){
             gdtOpenManager.showAd();
         }else{
             showAdview();
         }
+
     }
 
     @OnClick(R.id.skip_view)
@@ -99,13 +122,30 @@ public class LaunchActivity extends LogActivity implements GdtOpenManager.OnGdtO
         MobAgent.onResume(this);
     }
     private void showAdview(){
-        AdsManager.getInstans().showSplashAds(this,ivAds,skipView);
+        if(perm){
+            AdsManager.getInstans().showSplashAds(AdsContext.AdsFrom.ADVIEW,this,ivAds,skipView);
+        }else{
+            LogUtil.i("MOBVISTA");
+            AdsManager.getInstans().showSplashAds(AdsContext.AdsFrom.MOBVISTA,this,ivAds,skipView);
+//            onBannerShow(null);
+        }
         delay1s();
     }
     private void delay1s() {
         mHandler.sendEmptyMessageDelayed(Constants.ADS_JISHI, 1000);
     }
-
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onBannerShow(LaunchAdsNext next){
+        if(next.from== AdsContext.AdsFrom.ADVIEW){
+            AdsManager.getInstans().showSplashAds(AdsContext.AdsFrom.MOBVISTA,this,ivAds,skipView);
+        }else {
+            llBanner.setVisibility(View.VISIBLE);
+            ivAds.setVisibility(View.GONE);
+            AdsManager.getInstans().showBannerAds(this, banner1, AdsContext.Categrey.CATEGREY_VPN2);
+            AdsManager.getInstans().showBannerAds(this, banner2, AdsContext.Categrey.CATEGREY_VPN3);
+            AdsManager.getInstans().showBannerAds(this, banner3, AdsContext.Categrey.CATEGREY_VPN1);
+        }
+    }
     @Override
     protected void onPause() {
         super.onPause();

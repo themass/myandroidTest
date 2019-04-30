@@ -1,4 +1,5 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
+
     <group android:id="@+id/menu_group_1">
         <item
             android:id="@+id/menu_location"
@@ -9,6 +10,7 @@
             android:icon="@drawable/ic_menu_feedback"
             android:title="@string/menu_btn_feedback" />
     </group>
+
     <group android:id="@+id/menu_group_3">
         <item
             android:id="@+id/menu_donation"
@@ -49,4 +51,6 @@
             android:title="@string/menu_btn_logout"
             android:visible="false" />
     </group>
+
+
 </menu>

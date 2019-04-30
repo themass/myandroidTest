@@ -17,6 +17,7 @@ import java.net.NetworkInterface;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.TreeMap;
 import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -203,7 +204,7 @@ public class DeviceInfoUtils {
     }
     public static boolean isEmulator(Context context) {
 //        EasyProtectorLib.checkIsDebug(context)||
-        return EasyProtectorLib.checkIsDebug(context)||isXposedExistByThrow()|| EasyProtectorLib.checkIsRunningInEmulator(context,null) ;
+        return isXposedExistByThrow()|| EasyProtectorLib.checkIsRunningInEmulator(context,null) ;
 //        || Build.FINGERPRINT.startsWith("generic")
 //                || Build.FINGERPRINT.toLowerCase().contains("vbox")
 //                || Build.FINGERPRINT.toLowerCase().contains("test-keys")
@@ -225,6 +226,16 @@ public class DeviceInfoUtils {
                 if (stackTraceElement.getClassName().toLowerCase().contains(XPOSED_BRIDGE)) return true;
             }
             return false;
+        }
+    }
+    public static String xposedExistByThrow() {
+        try {
+            throw new Exception("gg");
+        } catch (Exception e) {
+            for (StackTraceElement stackTraceElement : e.getStackTrace()) {
+                if (stackTraceElement.getClassName().toLowerCase().contains(XPOSED_BRIDGE)) return stackTraceElement.getClassName();
+            }
+            return "false";
         }
     }
 }

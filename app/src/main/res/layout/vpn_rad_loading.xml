@@ -52,7 +52,7 @@
         android:visibility="gone"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="@dimen/textsize_18"
+        android:textSize="@dimen/textsize_14"
         android:gravity="center"
         android:background="@color/warning_text"
         android:text="@string/is_emulator"
@@ -67,4 +67,27 @@
         android:layout_below="@+id/rl_content_em"
         android:orientation="vertical">
     </LinearLayout>
+    <RelativeLayout
+        android:layout_width="55dp"
+        android:layout_height="55dp"
+        android:id="@+id/rl_gift"
+        android:layout_marginLeft="@dimen/margin_10"
+        android:layout_toLeftOf="@+id/fl_bg"
+        android:layout_alignBottom="@+id/fl_bg"
+        android:layout_marginBottom="@dimen/margin_22"
+        >
+    </RelativeLayout>
+    <ImageButton
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:id="@+id/rl_points"
+        android:visibility="gone"
+        android:layout_marginRight="@dimen/margin_25"
+        android:layout_alignParentRight="true"
+        android:layout_alignBottom="@+id/fl_bg"
+        android:layout_marginBottom="@dimen/margin_22"
+        android:src="@drawable/hand_fb1"
+        android:background="?android:attr/selectableItemBackground"
+        >
+    </ImageButton>
 </RelativeLayout>

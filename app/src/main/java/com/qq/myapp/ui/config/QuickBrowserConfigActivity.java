@@ -44,7 +44,7 @@ public class QuickBrowserConfigActivity extends LogActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (adOk) {
-           AdsContext.showRand(this);
+           AdsContext.showRand(this,AdsContext.getNext());
         } else {
             finishActivity();
         }

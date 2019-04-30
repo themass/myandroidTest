@@ -12,13 +12,14 @@ import android.view.ViewGroup;
 import android.view.animation.OvershootInterpolator;
 
 import com.qq.common.util.LogUtil;
-import com.qq.yewu.ads.base.AdmobRewardManger;
+import com.qq.yewu.ads.reward.AdmobRewardManger;
 import com.qq.yewu.ads.base.AdsContext;
 import com.qq.yewu.ads.base.AdsManager;
 import com.qq.fq2.R;
 import com.qq.myapp.constant.Constants;
 import com.qq.myapp.data.AdsPopStrategy;
 import com.qq.myapp.data.config.HindBannerEvent;
+import com.qq.yewu.ads.reward.BaseRewardManger;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -40,7 +41,7 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
     public FloatingActionButton fabUp;
     @BindView(R.id.ct_bar)
     public CollapsingToolbarLayout ctBar;
-    public AdmobRewardManger admobRewardManger;
+    public BaseRewardManger admobRewardManger;
     private AdsGoneTask task = new AdsGoneTask();
     protected Handler mHandler = new Handler() {
         @Override
@@ -58,7 +59,7 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        admobRewardManger = new AdmobRewardManger(this,this);
+        admobRewardManger = new BaseRewardManger(this,this);
     }
 
     @Override

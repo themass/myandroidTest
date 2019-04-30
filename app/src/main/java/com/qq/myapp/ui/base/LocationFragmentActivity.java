@@ -5,6 +5,10 @@ import android.support.v4.app.Fragment;
 import android.view.View;
 
 import com.qq.common.util.LogUtil;
+import com.qq.common.util.PreferenceUtils;
+import com.qq.myapp.base.MyApplication;
+import com.qq.myapp.constant.Constants;
+import com.qq.myapp.data.UserLoginUtil;
 import com.qq.yewu.ads.base.AdsContext;
 import com.qq.myapp.ui.base.app.BaseFragmentActivity;
 import com.qq.myapp.ui.inte.FabOpListener;
@@ -59,6 +63,7 @@ public class LocationFragmentActivity extends BaseFragmentActivity implements Fa
         if(o!=null){
             interCategrey = (AdsContext.Categrey)o;
         }
+        AdsContext.showRand(this,AdsContext.getNext());
         String title = null;
         Serializable name = getIntent().getSerializableExtra(TITLE);
         if (name instanceof String) {

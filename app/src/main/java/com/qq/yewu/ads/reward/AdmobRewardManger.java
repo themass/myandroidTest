@@ -1,4 +1,4 @@
-package com.qq.yewu.ads.base;
+package com.qq.yewu.ads.reward;
 
 import android.app.Activity;
 import android.util.Log;
@@ -19,13 +19,13 @@ import com.qq.fq2.R;
 import com.qq.myapp.constant.Constants;
 import com.qq.myapp.task.ScoreTask;
 
-public class AdmobRewardManger {
+public class AdmobRewardManger implements RewardInterface{
     private RewardedVideoAd mRewardedVideoAd;
     private final Activity mActivity;
-    private final OnAdmobRewardListener mLlistener;
+    private final RewardInterface.OnAdmobRewardListener mLlistener;
     int index = 0;
     public  static int count=0;
-    public AdmobRewardManger(Activity activity, OnAdmobRewardListener listener){
+    public AdmobRewardManger(Activity activity, RewardInterface.OnAdmobRewardListener listener){
         this.mActivity = activity;
         this.mLlistener = listener;
         MobileAds.initialize(activity, Constants.ADMOB_REWARD_ID);
@@ -108,7 +108,7 @@ public class AdmobRewardManger {
             ToastUtil.showShort(R.string.tab_fb_click_no);
         }
     }
-    public interface OnAdmobRewardListener{
-        public void onNoRewardAD();
+    public boolean next(){
+        return true;
     }
 }

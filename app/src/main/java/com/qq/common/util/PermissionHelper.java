@@ -32,7 +32,7 @@ public class PermissionHelper {
     public static final String REQUEST_INSTALL_PACKAGES = Manifest.permission.REQUEST_INSTALL_PACKAGES;
     public static List<String> requestPermissions = Arrays.asList(READ_PHONE_STATE,WRITE_EXTERNAL_STORAGE,ACCESS_COARSE_LOCATION);
         static {
-        if(SystemUtils.isZH(MyApplication.getInstance())){
+        if(SystemUtils.getLangDetail(MyApplication.getInstance())){
 
         }else{
             requestPermissions = Arrays.asList(WRITE_EXTERNAL_STORAGE,ACCESS_COARSE_LOCATION);
