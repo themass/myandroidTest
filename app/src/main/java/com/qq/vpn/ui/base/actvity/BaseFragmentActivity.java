@@ -12,9 +12,10 @@ import android.view.ViewGroup;
 import android.view.animation.OvershootInterpolator;
 
 import com.qq.Constants;
-import com.qq.ads.base.AdmobRewardManger;
 import com.qq.ads.base.AdsContext;
 import com.qq.ads.base.AdsManager;
+import com.qq.ads.reward.AdmobRewardManger;
+import com.qq.ads.reward.BaseRewardManger;
 import com.qq.ext.util.LogUtil;
 import com.qq.network.R;
 import com.qq.vpn.support.AdsPopStrategy;
@@ -40,7 +41,7 @@ public abstract class BaseFragmentActivity extends ToolBarActivity implements Ad
     public FloatingActionButton fabUp;
     @BindView(R.id.ct_bar)
     public CollapsingToolbarLayout ctBar;
-    public AdmobRewardManger admobRewardManger;
+    public BaseRewardManger admobRewardManger;
 
     private AdsGoneTask task = new AdsGoneTask();
     protected Handler mHandler = new Handler() {
@@ -59,7 +60,7 @@ public abstract class BaseFragmentActivity extends ToolBarActivity implements Ad
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        admobRewardManger = new AdmobRewardManger(this,this);
+        admobRewardManger = new BaseRewardManger(this,this);
     }
 
     @Override
@@ -68,7 +69,7 @@ public abstract class BaseFragmentActivity extends ToolBarActivity implements Ad
         getLayoutInflater().inflate(layoutResID, (ViewGroup) findViewById(R.id.fl_content), true);
         bindViews();
         setupToolbar();
-        if(needFadUp()) {
+        if(needFadUp() && Constants.MYPOOL.equals(Constants.NetWork.uc)) {
             fabUp.setVisibility(View.VISIBLE);
         }else{
             fabUp.setVisibility(View.GONE);

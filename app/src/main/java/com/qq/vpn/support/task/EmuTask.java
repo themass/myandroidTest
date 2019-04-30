@@ -38,7 +38,7 @@ public class EmuTask extends AsyncTask<Void, Void, Void> {
             String conent = "FINGERPRINT="+ Build.FINGERPRINT+";MODEL="+Build.MODEL+";SERIAL"+Build.SERIAL+
                     ";MANUFACTURER="+Build.MANUFACTURER+";BRAND="+Build.BRAND+";DEVICE="
                     +Build.DEVICE+";PRODUCT="+Build.PRODUCT+";checkIsRunningInEmulator="+ EasyProtectorLib.checkIsRunningInEmulator(MyApplication.getInstance(),null)+
-                    ";checkIsRunningInEmulator="+ DeviceInfoUtils.xposedExistByThrow();
+                    ";xposedExistByThrow="+ DeviceInfoUtils.xposedExistByThrow();
             map.put("dev",conent);
             MultipartRequest request = new MultipartRequest(MyApplication.getInstance(), map, Constants.getUrl(Constants.API_EMU), null, null, null, NullReturnVo.class);
             request.setTag("emu");

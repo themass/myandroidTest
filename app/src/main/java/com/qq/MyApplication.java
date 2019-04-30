@@ -34,6 +34,8 @@ public class MyApplication extends MultiDexApplication {
     private static MyApplication instance = null;
     public Typeface typeface;
     private ImagePhotoLoad photoLoad;
+    public static boolean isTemp = false;
+
     public static MyApplication getInstance() {
         return instance;
     }
@@ -49,6 +51,7 @@ public class MyApplication extends MultiDexApplication {
         ButterKnife.setDebug(isDebug);
         VolleyUtils.init();
         initFilePath();
+
         DBManager.getInstance().init(this);
         if(!StringUtils.hasText(Constants.NetWork.uc)){
             Constants.NetWork.uc = DeviceInfoUtils.getMetaData(this, "UMENG_CHANNEL");
@@ -60,6 +63,10 @@ public class MyApplication extends MultiDexApplication {
             LogUtil.i("uc=" + Constants.NetWork.uc);
             DensityUtil.logDensity(this);
             DBManager.getInstance().setDebug();
+        }
+        if(Constants.MYPOOL.equals(DeviceInfoUtils.getMetaData(this, "UMENG_CHANNEL"))){
+        }else{
+            isTemp = true;
         }
         long cost = System.currentTimeMillis() - start;
         LogUtil.i("cpu=" + SystemUtils.getCpuType());

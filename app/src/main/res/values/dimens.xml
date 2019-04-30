@@ -60,5 +60,6 @@
     <dimen name="heart_anim_h">150dip</dimen>
     <dimen name="title_height">48dip</dimen>
     <dimen name="location_choose_btn_size">17sp</dimen>
+    <dimen name="banner_h">53dip</dimen>
 
 </resources>

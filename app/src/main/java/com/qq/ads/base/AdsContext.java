@@ -7,7 +7,10 @@ import android.widget.Toast;
 
 import com.qq.Constants;
 import com.qq.MobAgent;
+import com.qq.MyApplication;
 import com.qq.ads.adview.AdviewConstant;
+import com.qq.ext.util.DateUtils;
+import com.qq.ext.util.LogUtil;
 import com.qq.ext.util.Md5;
 import com.qq.ext.util.PreferenceUtils;
 import com.qq.ext.util.SystemUtils;
@@ -17,6 +20,7 @@ import com.qq.vpn.support.AdsPopStrategy;
 import com.qq.vpn.support.UserLoginUtil;
 import com.qq.vpn.support.task.ScoreTask;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -75,8 +79,9 @@ public class AdsContext {
         }
     }
     public static enum AdsFrom{
-        ADVIEW("adview");
-        //        GDT("gdt");
+        ADVIEW("adview"),
+        GDT("gdt"),
+        MOBVISTA("mobvista");
         public String desc;
         AdsFrom(String desc){
             this.desc =desc;
@@ -95,16 +100,20 @@ public class AdsContext {
         AdsShowStatus status;
         AdsFrom from;
         boolean score;
+        Context context;
         public AdsMsgObj(Context context,AdsType type,AdsShowStatus status,AdsFrom from){
             this.type = type;
             this.status = status;
             this.from=from;
+            this.context = context;
         }
+
         public AdsMsgObj(Context context,AdsType type,AdsShowStatus status,AdsFrom from,boolean score){
             this.type = type;
             this.status = status;
             this.from=from;
             this.score=score;
+            this.context = context;
         }
     }
 
@@ -114,7 +123,7 @@ public class AdsContext {
     }
     // 3/5
     public static boolean rateShow(){
-        if(showCount++>7){
+        if(showCount++>10){
             return false;
         }
         if(UserLoginUtil.isVIP3()){
@@ -152,25 +161,8 @@ public class AdsContext {
         int size = AdsContext.Categrey.values().length;
         return AdsContext.Categrey.values()[(num)%size];
     }
-
-    public static void showNextAbs(Context context,AdsContext.Categrey cate){
-        boolean gdt = PreferenceUtils.getPrefBoolean(context,Constants.AD_GDT_SWITCH,true);
-        if(SystemUtils.isZH(context) && gdt && context instanceof  Activity){
-            int index = Md5.getRandom(Constants.gdtInterlist.size());
-            GdtInterManger gdtInterManger = new GdtInterManger((Activity) context,null,Constants.gdtInterlist.get(index));
-            gdtInterManger.showAd();
-        }else {
-            int size = AdsContext.Categrey.values().length;
-            AdsManager.getInstans().showInterstitialAds(context, cate, false);
-        }
-    }
-    public static void showRand(Context context){
-        if(UserLoginUtil.showAds()) {
-            showRand(context,getNext());
-        }
-    }
     public static void showRand(Context context, AdsContext.Categrey cate){
-        if (AdsContext.rateShow()) {
+        if (AdsContext.rateShow() && Constants.MYPOOL.equals(Constants.NetWork.uc)) {
             boolean gdt = PreferenceUtils.getPrefBoolean(context,Constants.AD_GDT_SWITCH,true);
             if(SystemUtils.isZH(context) && gdt && context instanceof  Activity){
                 int index = Md5.getRandom(Constants.gdtInterlist.size());
@@ -181,5 +173,15 @@ public class AdsContext {
             }
         }
     }
-
+    public static void vpnClick(Context context){
+        String key =Constants.CLICK_KEY+DateUtils.format(new Date(),DateUtils.DATE_FORMAT_MM);
+        int vpnCount = PreferenceUtils.getPrefInt(context,key,0);
+        LogUtil.i("vpnCount="+vpnCount);
+        vpnCount=vpnCount>100?100:++vpnCount;
+        PreferenceUtils.setPrefInt(context,key,vpnCount);
+    }
+    public static int getVpnClick(Context context){
+        String key =Constants.CLICK_KEY+DateUtils.format(new Date(),DateUtils.DATE_FORMAT_MM);
+        return  PreferenceUtils.getPrefInt(context,key,0);
+    }
 }

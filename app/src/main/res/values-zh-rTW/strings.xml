@@ -49,8 +49,8 @@
     <!-- menu -->
     <string name="menu_btn_about">关于VIP</string>
     <string name="menu_btn_share">分享</string>
-    <string name="menu_btn_donation">付款</string>
-    <string name="menu_btn_login">立即登录</string>
+    <string name="menu_btn_donation">升级VIP</string>
+    <string name="menu_btn_login">登录|注册</string>
     <string name="menu_btn_login_ready">已登录</string>
     <string name="menu_btn_name_default">猴子请来的</string>
     <string name="menu_btn_feedback">反馈 &amp; 建议</string>
@@ -125,7 +125,7 @@
     <!-- vpn error text -->
     <string name="error_lookup_failed">失败.请重试或者换线路</string>
     <string name="error_unreachable">失败.请重试或者换线路</string>
-    <string name="error_peer_auth_failed">服务器鉴权失败.</string>
+    <string name="error_peer_auth_failed">鉴权失败.请重试或者换线路</string>
     <string name="error_auth_failed">可能流量使用已达上限，请升级VIP</string>
     <string name="error_assessment_failed">安全段错误.</string>
     <string name="error_generic">失败.请重试或者换线路</string>
@@ -171,4 +171,6 @@
     <string name="save_ok">保存成功</string>
     <string name="save_fail">保存失败</string>
     <string name="save_img">保存到本地</string>
+    <string name="login_first">请先登录</string>
+    <string name="chose_first">请选择线路</string>
 </resources>

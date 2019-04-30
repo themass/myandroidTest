@@ -1,24 +1,19 @@
 package com.qq.vpn.main;
 
-import android.Manifest;
-import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.util.Log;
 import android.view.KeyEvent;
 
 import com.qq.Constants;
-import com.qq.ads.base.AdmobRewardManger;
 import com.qq.ads.base.AdsContext;
 import com.qq.ads.base.AdsManager;
 import com.qq.ads.base.GdtInterManger;
-import com.qq.ext.util.DeviceInfoUtils;
+import com.qq.ads.reward.AdmobRewardManger;
+import com.qq.ads.reward.BaseRewardManger;
 import com.qq.ext.util.DoubleClickExit;
 import com.qq.ext.util.EventBusUtil;
 import com.qq.MobAgent;
@@ -52,7 +47,7 @@ public class MainActivity extends BaseDrawerMenuActivity implements ActivityComp
     private MyPagerAdapter myPagerAdapter;
     private GdtInterManger gdtInterManger;
     public ActionConfigBus configBus = new ActionConfigBus();
-    public AdmobRewardManger admobRewardManger;
+    public BaseRewardManger admobRewardManger;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,11 +56,12 @@ public class MainActivity extends BaseDrawerMenuActivity implements ActivityComp
         startService(CharonVpnService.class);
         EventBusUtil.getEventBus().register(configBus);
         ConnLogReport.send(this);
-        admobRewardManger = new AdmobRewardManger(this,this);
+        admobRewardManger = new BaseRewardManger(this,this);
     }
     @Override
     public void onNoRewardAD(){
-        AdsPopStrategy.clickAdsShowBtn(this);
+        if(!admobRewardManger.next())
+            AdsContext.showRand(this,AdsContext.getNext());
     }
 
     @Override
@@ -85,7 +81,16 @@ public class MainActivity extends BaseDrawerMenuActivity implements ActivityComp
             gdtInterManger = new GdtInterManger(this,this);
             gdtInterManger.showAd();
         }else{
-            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false);
+
+            if(Constants.GOOGLEMARKET.equals(Constants.NetWork.uc)){
+                int vpnCount = AdsContext.getVpnClick(this);
+                float traf = PreferenceUtils.getPrefFloat(this,Constants.TRAF_KEY,0);
+                if(vpnCount>6&&traf>80){
+                    AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false);
+                }
+            }else{
+                AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false);
+            }
         }
         if(!PermissionHelper.checkPermissions(this)) {
             PermissionHelper.showPermit(this);

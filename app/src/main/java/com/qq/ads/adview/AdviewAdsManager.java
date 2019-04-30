@@ -34,6 +34,7 @@ public class AdviewAdsManager {
 //        }
         builder.setRunMode(InitConfiguration.RunMode.NORMAL);
         initConfig = builder.build();
+
         AdViewSpreadManager.getInstance(context).init(initConfig, adsKeySet);
         AdViewBannerManager.getInstance(context).init(initConfig, adsKeySet);
         AdViewInstlManager.getInstance(context).init(initConfig, adsKeySet);

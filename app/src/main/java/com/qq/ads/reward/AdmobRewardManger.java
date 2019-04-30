@@ -1,4 +1,4 @@
-package com.qq.ads.base;
+package com.qq.ads.reward;
 
 import android.app.Activity;
 
@@ -13,13 +13,13 @@ import com.qq.ext.util.ToastUtil;
 import com.qq.network.R;
 import com.qq.vpn.support.task.ScoreTask;
 
-public class AdmobRewardManger {
+public class AdmobRewardManger implements RewardInterface{
     private RewardedVideoAd mRewardedVideoAd;
     private final Activity mActivity;
-    private final OnAdmobRewardListener mLlistener;
+    private final RewardInterface.OnAdmobRewardListener mLlistener;
     int index = 0;
     public  static int count=0;
-    public AdmobRewardManger(Activity activity, OnAdmobRewardListener listener){
+    public AdmobRewardManger(Activity activity, RewardInterface.OnAdmobRewardListener listener){
         this.mActivity = activity;
         this.mLlistener = listener;
         MobileAds.initialize(activity, Constants.ADMOB_REWARD_ID);
@@ -36,7 +36,7 @@ public class AdmobRewardManger {
 
             @Override
             public void onRewardedVideoAdLeftApplication() {
-                LogUtil.i("onRewardedVideoAdLeftApplication");
+                LogUtil.i("admob onRewardedVideoAdLeftApplication");
             }
 
             @Override
@@ -48,8 +48,6 @@ public class AdmobRewardManger {
             @Override
             public void onRewardedVideoAdFailedToLoad(int errorCode) {
                 LogUtil.i( "onRewardedVideoAdFailedToLoad--"+errorCode);
-//                String msg = mActivity.getResources().getString(R.string.tab_fb_click_no);
-//                ToastUtil.showShort(msg);
             }
 
             @Override
@@ -91,7 +89,7 @@ public class AdmobRewardManger {
     }
     public void showAd(){
 
-        LogUtil.i("showAd "+mRewardedVideoAd.isLoaded());
+        LogUtil.i("admob showAd "+mRewardedVideoAd.isLoaded());
         if(count>=3){
             ToastUtil.showShort(R.string.tab_fb_click_fast);
             return;
@@ -104,7 +102,7 @@ public class AdmobRewardManger {
             ToastUtil.showShort(R.string.tab_fb_click_no);
         }
     }
-    public interface OnAdmobRewardListener{
-        public void onNoRewardAD();
+    public boolean next(){
+        return true;
     }
 }

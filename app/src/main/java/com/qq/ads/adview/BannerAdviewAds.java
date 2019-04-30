@@ -9,6 +9,7 @@ import com.kyview.interfaces.AdViewBannerListener;
 import com.kyview.manager.AdViewBannerManager;
 import com.qq.ads.base.AdsContext;
 import com.qq.ads.base.BannerInter;
+import com.qq.ads.mobvista.BannerMobvAds;
 import com.qq.ext.util.LogUtil;
 
 /**
@@ -16,9 +17,10 @@ import com.qq.ext.util.LogUtil;
  */
 
 public class BannerAdviewAds extends BannerInter {
+    private BannerMobvAds mobvBanner = new BannerMobvAds();
     @Override
     protected AdsContext.AdsType getAdsType(){
-        return AdsContext.AdsType.ADS_TYPE_SPREAD;
+        return AdsContext.AdsType.ADS_TYPE_BANNER;
     }
     @Override
     public void bannerAds(final FragmentActivity context, final ViewGroup group, final String key, final Handler handler){
@@ -59,17 +61,18 @@ public class BannerAdviewAds extends BannerInter {
                 @Override
                 public void onAdFailed(String s) {
                     noAds(context,handler, AdsContext.AdsFrom.ADVIEW);
-                    group.setVisibility(View.GONE);
+//                    group.setVisibility(View.GONE);
+                    mobvBanner.bannerAds(context,group,key,handler);
                 }
 
                 @Override
                 public void onAdReady(String s) {
                    readyAds(context,handler, AdsContext.AdsFrom.ADVIEW);
-
                 }
             });
         } catch (Throwable e) {
             noAds(context,handler, AdsContext.AdsFrom.ADVIEW);
+            mobvBanner.bannerAds(context,group,key,handler);
             LogUtil.e(e);
          }
     }

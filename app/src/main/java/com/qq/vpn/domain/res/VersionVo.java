@@ -16,5 +16,6 @@ public class VersionVo {
     public boolean update = false;
     public Boolean showGdt = false;
     public Integer probability=4;
-
+    public String mobvistaNative;
+    public float traf;
 }

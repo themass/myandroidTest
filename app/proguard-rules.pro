@@ -315,6 +315,36 @@ public protected *;
 -dontwarn com.moat.**
 # skip AVID classes
 -keep class com.integralads.avid.library.* {*;}
+
+
+
+-keepattributes SourceFile,LineNumberTable
+-keep class com.inmobi.** { *; }
+-dontwarn com.inmobi.**
+-keep public class com.google.android.gms.**
+-dontwarn com.google.android.gms.**
+-dontwarn com.squareup.picasso.**
+-keep class com.google.android.gms.ads.identifier.AdvertisingIdClient{public *;}
+-keep class com.google.android.gms.ads.identifier.AdvertisingIdClient$Info{public *;}
+#skip the Picasso library classes
+-keep class com.squareup.picasso.** {*;}
+-dontwarn com.squareup.picasso.**
+-dontwarn com.squareup.okhttp.**
+#skip Moat classes
+-keep class com.moat.** {*;}
+-dontwarn com.moat.**
+#skip AVID classes
+-keep class com.integralads.avid.library.** {*;}
+
+-keepattributes Signature
+-keepattributes *Annotation*
+-keep class com.mintegral.** {*; }
+-keep interface com.mintegral.** {*; }
+-keep class android.support.v4.** { *; }
+-dontwarn com.mintegral.**
+-keep class **.R$* { public static final int mintegral*; }
+-keep class com.alphab.** {*; }
+-keep interface com.alphab.** {*; }
 #-------------------greenrobot greendao------------------------
 -keep class org.greenrobot.greendao.**{*;}
 -keepclassmembers class * extends org.greenrobot.greendao.AbstractDao {

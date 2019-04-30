@@ -12,7 +12,31 @@
         android:layout_centerHorizontal="true"
         android:src="@drawable/google_logo_gray_1024"
         />
-
+    <LinearLayout
+        android:id="@+id/ll_banner"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentTop="true"
+        android:orientation="vertical"
+        android:layout_marginTop="@dimen/margin_150"
+        android:visibility="gone"
+        >
+        <RelativeLayout
+            android:id="@+id/rl_banner1"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/margin_70"
+            android:layout_marginBottom="@dimen/margin_40"/>
+        <RelativeLayout
+            android:id="@+id/rl_banner2"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/margin_70"
+            android:layout_marginBottom="@dimen/margin_40"/>
+        <RelativeLayout
+            android:id="@+id/rl_banner3"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/margin_70"
+            android:layout_marginBottom="@dimen/margin_40"/>
+    </LinearLayout>
     <RelativeLayout
         android:id="@+id/rl_spread"
         android:layout_width="match_parent"

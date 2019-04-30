@@ -200,7 +200,7 @@ public class DeviceInfoUtils {
     }
     public static boolean isEmulator(Context context) {
 //        EasyProtectorLib.checkIsDebug(context)||
-        return EasyProtectorLib.checkIsDebug(context)||EasyProtectorLib.checkIsDebug(context)||isXposedExistByThrow()||EasyProtectorLib.checkIsRunningInEmulator(context,null);
+        return isXposedExistByThrow()||EasyProtectorLib.checkIsRunningInEmulator(context,null);
 //        || Build.FINGERPRINT.startsWith("generic")
 //                || Build.FINGERPRINT.toLowerCase().contains("vbox")
 //                || Build.FINGERPRINT.toLowerCase().contains("test-keys")

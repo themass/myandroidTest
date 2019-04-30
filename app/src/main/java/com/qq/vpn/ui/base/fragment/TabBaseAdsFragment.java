@@ -5,8 +5,10 @@ import android.support.design.widget.FloatingActionButton;
 import android.view.View;
 import android.view.animation.OvershootInterpolator;
 
-import com.qq.ads.base.AdmobRewardManger;
+import com.qq.Constants;
+import com.qq.ads.reward.AdmobRewardManger;
 import com.qq.ext.util.LogUtil;
+import com.qq.ext.util.SystemUtils;
 import com.qq.network.R;
 import com.qq.vpn.support.AdsPopStrategy;
 import com.qq.vpn.ui.inte.OnBackKeyDownListener;
@@ -56,6 +58,11 @@ public abstract class TabBaseAdsFragment extends TabBaseFragment implements OnBa
         super.onViewCreated(view, savedInstanceState);
         if (savedInstanceState == null) {
             pendingIntroAnimation = true;
+        }
+        if(Constants.MYPOOL.equals(Constants.NetWork.uc)) {
+            fabUp.setVisibility(View.VISIBLE);
+        }else{
+            fabUp.setVisibility(View.GONE);
         }
     }
 

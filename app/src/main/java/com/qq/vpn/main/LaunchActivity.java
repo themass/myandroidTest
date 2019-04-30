@@ -6,19 +6,27 @@ import android.os.Handler;
 import android.os.Message;
 import android.view.KeyEvent;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.kyview.manager.AdViewSpreadManager;
 import com.qq.MobAgent;
+import com.qq.ads.base.AdsContext;
 import com.qq.ads.base.AdsManager;
 import com.qq.ads.base.GdtOpenManager;
+import com.qq.ads.config.LaunchAdsNext;
+import com.qq.ext.util.EventBusUtil;
+import com.qq.ext.util.PermissionHelper;
 import com.qq.ext.util.PreferenceUtils;
 import com.qq.ext.util.SystemUtils;
 import com.qq.network.R;
 import com.qq.vpn.support.task.LoginTask;
 import com.qq.vpn.ui.base.actvity.LogActivity;
 import com.qq.Constants;
+
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -35,10 +43,19 @@ public class LaunchActivity extends LogActivity implements GdtOpenManager.OnGdtO
     RelativeLayout skipView;
     @BindView(R.id.tv_shu)
     TextView tvJishi;
+    @BindView(R.id.rl_banner1)
+    RelativeLayout banner1;
+    @BindView(R.id.rl_banner2)
+    RelativeLayout banner2;
+    @BindView(R.id.rl_banner3)
+    RelativeLayout banner3;
+    @BindView(R.id.ll_banner)
+    LinearLayout llBanner;
     private int max = Constants.STARTUP_SHOW_TIME_3000+1000;
     private int now = 0;
     private Unbinder unbinder;
     private GdtOpenManager gdtOpenManager;
+    boolean perm = true;
     private Runnable mStartMainRunnable = new Runnable() {
         @Override
         public void run() {
@@ -66,6 +83,15 @@ public class LaunchActivity extends LogActivity implements GdtOpenManager.OnGdtO
         unbinder = ButterKnife.bind(this);
         LoginTask.start(this);
         gdtOpenManager = new GdtOpenManager(this,ivAds,tvJishi,this);
+        mHandler.postDelayed(mStartMainRunnable, max);
+        boolean gdt = PreferenceUtils.getPrefBoolean(this,Constants.AD_GDT_SWITCH,true);
+        perm = PermissionHelper.checkPermission(this,PermissionHelper.READ_PHONE_STATE);
+        if(SystemUtils.isZH(this) && gdt && perm){
+            gdtOpenManager.showAd();
+        }else{
+            showAdview();
+        }
+        EventBusUtil.getEventBus().register(this);
     }
 
     @OnClick(R.id.skip_view)
@@ -89,19 +115,28 @@ public class LaunchActivity extends LogActivity implements GdtOpenManager.OnGdtO
     @Override
     protected void onResume() {
         super.onResume();
-        mHandler.postDelayed(mStartMainRunnable, max);
         MobAgent.onResume(this);
-        boolean gdt = PreferenceUtils.getPrefBoolean(this,Constants.AD_GDT_SWITCH,true);
-        if(SystemUtils.isZH(this) && gdt){
-            gdtOpenManager.showAd();
-        }else{
-            showAdview();
-        }
-
     }
     private void showAdview(){
-        AdsManager.getInstans().showSplashAds(this,ivAds,skipView);
+        if(perm){
+            AdsManager.getInstans().showSplashAds(AdsContext.AdsFrom.ADVIEW,this,ivAds,skipView);
+        }else{
+            AdsManager.getInstans().showSplashAds(AdsContext.AdsFrom.MOBVISTA,this,ivAds,skipView);
+//            onBannerShow(null);
+        }
         delay1s();
+    }
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onBannerShow(LaunchAdsNext next){
+        if(next.from== AdsContext.AdsFrom.ADVIEW){
+            AdsManager.getInstans().showSplashAds(AdsContext.AdsFrom.MOBVISTA,this,ivAds,skipView);
+        }else {
+            llBanner.setVisibility(View.VISIBLE);
+            ivAds.setVisibility(View.GONE);
+            AdsManager.getInstans().showBannerAds(this, banner1, AdsContext.Categrey.CATEGREY_VPN2);
+            AdsManager.getInstans().showBannerAds(this, banner2, AdsContext.Categrey.CATEGREY_VPN3);
+            AdsManager.getInstans().showBannerAds(this, banner3, AdsContext.Categrey.CATEGREY_VPN1);
+        }
     }
     private void delay1s() {
         mHandler.sendEmptyMessageDelayed(Constants.ADS_JISHI, 1000);

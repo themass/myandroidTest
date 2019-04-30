@@ -5,6 +5,7 @@ package com.qq;
 import android.content.Context;
 
 import com.android.volley.Response;
+import com.qq.ads.adview.AdviewConstant;
 import com.qq.network.R;
 
 import org.strongswan.android.logic.VpnType;
@@ -29,7 +30,7 @@ public class Constants {
     public static final String URL = "url";
     public static final String DEFULT_LOCATION_NAME="随机";
     public static final int STARTUP_SHOW_TIME_3000 = 6000; //启动页广告时长
-    public static final int VPN_CHECK_TIME = 7000; //启动页广告时长
+    public static final int VPN_CHECK_TIME = 6000; //启动页广告时长
     public static final int SHIMMER_DURATION = 1500;
     public static final String HTTP_URL = "http";
     public static final String HTTPS_URL = "https";
@@ -42,6 +43,8 @@ public class Constants {
     public static final String D_URL = "D_URL";
     public static final String NOTIFY_SWITCH = "NOTIFY_SWITCH";
     public static int PROBABILITY = 7;
+    public static final String CLICK_KEY="CLICK_KEY";
+    public static final String TRAF_KEY="TRAF_KEY";
 
     public static final int SKIP_SLOW= -1;
     public static final Pattern namePattern = Pattern.compile("[a-zA-Z0-9]{3,20}");
@@ -124,6 +127,7 @@ public class Constants {
         public static String CHARSET = "utf-8";
     }
     public static final String MYPOOL="MYPOOL";
+    public static final String GOOGLEMARKET="GOOGLEMARKET";
     public static final int UM_INTERVAL = 40;
     public static final String LANG_ZH = "zh";
     public static final String LANG_US = "en";
@@ -194,7 +198,7 @@ public class Constants {
     public static final int maxRate = 10;
     public static final int BANNER_ADS_GONE_LONG = 7000; //广告显示时长
     public static final String SCORE_CLICK = "SCORE_CLICK";
-    public static final long SCORE_CLICK_INTERVAL = 10;
+    public static final long SCORE_CLICK_INTERVAL = 3;
     public static final int BANNER_ADS_GONE_SHORT = 5000; //启动页广告时长
     public static final String ADMIN = "themass";
     public static final List<Integer> BANNER_ADS_POS = Arrays.asList(1,6,17,26);
@@ -231,7 +235,36 @@ public class Constants {
     public static final String ADMOB_REWARD_UNIT_ID="ca-app-pub-7849865307083433/7099517165";
     public static final String ADMOB_REWARD_UNIT_ID2="ca-app-pub-7849865307083433/6124636405";
     public static final String ADMOB_REWARD_UNIT_ID3="ca-app-pub-7849865307083433/2002516423";
-    public static final List<String> ADMOB_REWARD_UNIT_IDS=Arrays.asList(ADMOB_REWARD_UNIT_ID,ADMOB_REWARD_UNIT_ID2,ADMOB_REWARD_UNIT_ID3);
+    public static final List<String> ADMOB_REWARD_UNIT_IDS=Arrays.asList(ADMOB_REWARD_UNIT_ID,ADMOB_REWARD_UNIT_ID,ADMOB_REWARD_UNIT_ID);
     public static final int ADS_REWARD_SHOW_CLICK = 100;
+    public static final String INMOBI_APPID="842d8c1b71f5498e8f361e5c5df2d8c2";
+    public static final String INMOBI_ACCOUNTID="e5b7a52a95cd4802b49b279caa0e2c0d";
+    public static final Long INMOBI_APPKEY=1554324733355l;
+    public static final String INMOBI_UNIT_REWARD="87735";
+    public static final String INMOBI_UNIT2="114042";
 
+
+    public static final String Mob_APPID="114043";
+    public static final String Mob_APPKEY="f1f0a8637166a0459402b9de3c88a93f";
+    public static final String Mob_UNIT_REWARD="87733";
+    public static final String Mob_UNIT_INTV="87966";
+
+    public static final String Mob_UNIT_BANNER1="87968";
+    public static final String Mob_UNIT_BANNER2="87969";
+    public static final String Mob_UNIT_BANNER3="87970";
+    public static final String Mob_UNIT_BANNER="87971";
+
+    public static final String Mob_UNIT_WALL="87986";
+
+    public static final String Mob_UNIT_SPLASH="87967";
+    public static final String Mob_UNIT_SPLASH_KAY="Mob_UNIT_SPLASH_KAY";
+
+
+    public static Map<String ,String> adviewToMobvBanner = new HashMap<>();
+    static {
+        adviewToMobvBanner.put(AdviewConstant.ADS_ADVIEW_KEY1,Mob_UNIT_BANNER1);
+        adviewToMobvBanner.put(AdviewConstant.ADS_ADVIEW_KEY2,Mob_UNIT_BANNER2);
+        adviewToMobvBanner.put(AdviewConstant.ADS_ADVIEW_KEY3,Mob_UNIT_BANNER3);
+        adviewToMobvBanner.put(AdviewConstant.ADS_ADVIEW_KEY,Mob_UNIT_BANNER);
+    }
 }

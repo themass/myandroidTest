@@ -4,8 +4,12 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.View;
 
+import com.qq.Constants;
+import com.qq.MyApplication;
 import com.qq.ads.base.AdsContext;
 import com.qq.ext.util.LogUtil;
+import com.qq.ext.util.PreferenceUtils;
+import com.qq.vpn.support.UserLoginUtil;
 import com.qq.vpn.ui.base.actvity.BaseFragmentActivity;
 import com.qq.vpn.ui.inte.FabOpListener;
 import com.qq.vpn.ui.inte.OnBackKeyDownListener;
@@ -85,7 +89,10 @@ public class LocationFragmentActivity extends BaseFragmentActivity implements Fa
         if (title != null) {
             setToolbarTitle(title, true);
         }
-        setFabUpVisibility(View.VISIBLE);
+        if(Constants.MYPOOL.equals(Constants.NetWork.uc)) {
+            setFabUpVisibility(View.VISIBLE);
+        }
+
     }
     public boolean needFadUp(){
         return false;
@@ -98,7 +105,7 @@ public class LocationFragmentActivity extends BaseFragmentActivity implements Fa
     @Override
     public void setupView() {
         super.setupView();
-        AdsContext.showRand(this,interCategrey);
+        AdsContext.showRand(this,AdsContext.getNext());
     }
     @Override
     protected boolean needGoneBanner(){

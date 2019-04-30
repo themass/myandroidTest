@@ -7,6 +7,10 @@ import android.support.v4.app.FragmentActivity;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
+import com.inmobi.sdk.InMobiSdk;
+import com.mintegral.msdk.MIntegralSDK;
+import com.mintegral.msdk.out.MIntegralSDKFactory;
+import com.qq.Constants;
 import com.qq.MyApplication;
 import com.qq.ads.adview.AdviewAdsManager;
 import com.qq.ads.adview.BannerAdviewAds;
@@ -14,7 +18,16 @@ import com.qq.ads.adview.InterstitialAdviewAds;
 import com.qq.ads.adview.NativeAdviewAds;
 import com.qq.ads.adview.SplashAdviewAds;
 import com.qq.ads.adview.VideoAdviewAds;
+import com.qq.ads.config.BannerAdsNext;
+import com.qq.ads.config.LaunchAdsNext;
+import com.qq.ads.mobvista.InterstitialMobvAds;
+import com.qq.ads.mobvista.SplashMobvAds;
+import com.qq.ext.util.EventBusUtil;
 import com.qq.ext.util.LogUtil;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,9 +51,29 @@ public class AdsManager {
         AdviewAdsManager.init(context);
         bannerDescMap.put(AdsContext.AdsFrom.ADVIEW,new BannerAdviewAds());
         interstitialMap.put(AdsContext.AdsFrom.ADVIEW,new InterstitialAdviewAds());
+        interstitialMap.put(AdsContext.AdsFrom.MOBVISTA,new InterstitialMobvAds());
         splashMap.put(AdsContext.AdsFrom.ADVIEW,new SplashAdviewAds());
+        splashMap.put(AdsContext.AdsFrom.MOBVISTA,new SplashMobvAds());
         nativeMap.put(AdsContext.AdsFrom.ADVIEW,new NativeAdviewAds());
         videoMap.put(AdsContext.AdsFrom.ADVIEW, new VideoAdviewAds());
+        JSONObject consentObject = new JSONObject();
+        try {
+            // Provide correct consent value to sdk which is obtained by User
+            consentObject.put(InMobiSdk.IM_GDPR_CONSENT_AVAILABLE, true);
+            // Provide 0 if GDPR is not applicable and 1 if applicable
+            consentObject.put("gdpr", "0");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        InMobiSdk.init(context, Constants.INMOBI_ACCOUNTID, consentObject);
+        final MIntegralSDK sdk = MIntegralSDKFactory.getMIntegralSDK();
+        Map<String, String> map = sdk.getMTGConfigurationMap(Constants.Mob_APPID, Constants.Mob_APPKEY);
+        // if you modify applicationId, please add the following attributes,
+        // otherwise it will crash
+        // map.put(MIntegralConstans.PACKAGE_NAME_MANIFEST, "your AndroidManifest
+        // package value");
+
+        sdk.init(map, context);
     }
     private Handler mHandle = new Handler(){
         @Override
@@ -48,30 +81,40 @@ public class AdsManager {
             AdsContext.AdsMsgObj obj = (AdsContext.AdsMsgObj)msg.obj;
             LogUtil.i("Adstype = "+obj.type.name()+"; status="+obj.status.name()+"; from="+obj.from.name());
             AdsContext.adsNotify(MyApplication.getInstance(),obj.type,obj.status);
-//            if(obj.type== AdsContext.AdsType.ADS_TYPE_BANNER && obj.status== AdsContext.AdsShowStatus.ADS_NO_MSG){
-//                EventBusUtil.getEventBus().post(new BannerAdsNext(obj.from));
-//            }
-//            if(obj.type== AdsContext.AdsType.ADS_TYPE_SPREAD && obj.status== AdsContext.AdsShowStatus.ADS_NO_MSG){
-//                EventBusUtil.getEventBus().post(new LaunchAdsNext(obj.from));
-//            }
+            if(obj.type== AdsContext.AdsType.ADS_TYPE_BANNER && obj.status== AdsContext.AdsShowStatus.ADS_NO_MSG){
+                EventBusUtil.getEventBus().post(new BannerAdsNext(obj.from));
+            }
+            if(obj.type== AdsContext.AdsType.ADS_TYPE_SPREAD && obj.status== AdsContext.AdsShowStatus.ADS_NO_MSG){
+                EventBusUtil.getEventBus().post(new LaunchAdsNext(obj.from));
+            }
+            if(obj.type== AdsContext.AdsType.ADS_TYPE_INTERSTITIAL && obj.status== AdsContext.AdsShowStatus.ADS_NO_MSG && obj.from== AdsContext.AdsFrom.ADVIEW){
+                showInterstitialAds(obj.context,AdsContext.Categrey.CATEGREY_VPN,false,AdsContext.AdsFrom.MOBVISTA);
+            }
             super.handleMessage(msg);
         }
     };
     public void showBannerAds(FragmentActivity context, ViewGroup group, AdsContext.Categrey categrey){
             bannerDescMap.get(AdsContext.AdsFrom.ADVIEW).bannerAds(context,group,categrey.key,mHandle);
     }
+    public void showBannerAds(FragmentActivity context, ViewGroup group, AdsContext.Categrey categrey, AdsContext.AdsFrom from){
+        bannerDescMap.get(from).bannerAds(context,group,categrey.key,mHandle);
+    }
     public void exitBannerAds(FragmentActivity context, ViewGroup group, AdsContext.Categrey categrey){
         bannerDescMap.get(AdsContext.AdsFrom.ADVIEW).bannerExit(context,group,categrey.key);
     }
-    public void showSplashAds(FragmentActivity context, RelativeLayout group, RelativeLayout skipView){
-        splashMap.get(AdsContext.AdsFrom.ADVIEW).launchAds(context,group,skipView,mHandle);
+    public void showSplashAds(AdsContext.AdsFrom from ,FragmentActivity context, RelativeLayout group, RelativeLayout skipView){
+        splashMap.get(from).launchAds(context,group,skipView,mHandle);
     }
+
     public void exitSplashAds(Context context,RelativeLayout group){
         splashMap.get(AdsContext.AdsFrom.ADVIEW).lanchExit(context,group);
     }
 
     public void showInterstitialAds(Context context, AdsContext.Categrey categrey, boolean score){
         interstitialMap.get(AdsContext.AdsFrom.ADVIEW).interstitialAds(context,mHandle,categrey.key,score);
+    }
+    public void showInterstitialAds(Context context, AdsContext.Categrey categrey, boolean score,AdsContext.AdsFrom from){
+        interstitialMap.get(from).interstitialAds(context,mHandle,categrey.key,score);
     }
     public void exitInterstitialAds(Context context,AdsContext.Categrey categrey){
         interstitialMap.get(AdsContext.AdsFrom.ADVIEW).interstitialExit(context,categrey.key);

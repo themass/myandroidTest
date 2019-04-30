@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.View;
 
+import com.qq.Constants;
 import com.qq.ads.base.AdsContext;
 import com.qq.ext.util.LogUtil;
 import com.qq.vpn.ui.base.actvity.BaseFragmentActivity;
@@ -86,8 +87,8 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
     @Override
     public void setupView() {
         super.setupView();
-        if(showInterstitialAds ){
-            AdsContext.showRand(this);
+        if(showInterstitialAds){
+            AdsContext.showRand(this,AdsContext.getNext());
         }
     }
     @Override

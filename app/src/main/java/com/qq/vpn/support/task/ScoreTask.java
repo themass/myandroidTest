@@ -7,6 +7,8 @@ import com.qq.Constants;
 import com.qq.ext.network.req.CommonResponse;
 import com.qq.ext.util.EventBusUtil;
 import com.qq.ext.util.PreferenceUtils;
+import com.qq.ext.util.ToastUtil;
+import com.qq.network.R;
 import com.qq.vpn.domain.res.UserInfoVo;
 import com.qq.vpn.support.NetApiUtil;
 import com.qq.vpn.support.UserLoginUtil;
@@ -48,11 +50,12 @@ public class ScoreTask extends AsyncTask {
                     UserLoginUtil.login(context, o);
                 }
             }, null, TAG, UserInfoVo.class);
-        } else {
-            int socreTmp = PreferenceUtils.getPrefInt(context, Constants.SCORE_TMP, 0);
-            PreferenceUtils.setPrefInt(context, Constants.SCORE_TMP, score + socreTmp);
-            EventBusUtil.getEventBus().post(new UserLoginEvent());
         }
+//        else {
+//            int socreTmp = PreferenceUtils.getPrefInt(context, Constants.SCORE_TMP, 0);
+//            PreferenceUtils.setPrefInt(context, Constants.SCORE_TMP, score + socreTmp);
+//            EventBusUtil.getEventBus().post(new UserLoginEvent());
+//        }
         return null;
     }
 }

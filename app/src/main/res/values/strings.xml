@@ -83,7 +83,7 @@
     <string name="support_info">Please activate several apps to support the author！</string>
     <string name="offerads_ths">Thank you for your support!</string>
     <string name="location_choose_flag_none">Click“ Region ”More regional options</string>
-    <string name="menu_btn_donation">Paid</string>
+    <string name="menu_btn_donation">Upgrade VIP</string>
 
     <string name="menu_browser">Open in browser</string>
     <string name="menu_copy">Copy url</string>
@@ -173,4 +173,6 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="save_ok">save ok</string>
     <string name="save_fail">save fail</string>
     <string name="save_img">save image</string>
+    <string name="login_first">login first</string>
+    <string name="chose_first">Please select route</string>
 </resources>

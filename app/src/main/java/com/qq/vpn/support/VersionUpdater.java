@@ -65,6 +65,10 @@ public class VersionUpdater {
                         PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.NEED_DNSPOD_CONFIG, vo.needDnspod);
                         PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.NEED_NATIVE_ADS_CONFIG, vo.needNative);
                         PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.AD_GDT_SWITCH, vo.showGdt);
+                        if(StringUtils.hasText(vo.mobvistaNative)){
+                            PreferenceUtils.setPrefString(MyApplication.getInstance(), Constants.Mob_UNIT_SPLASH_KAY, vo.mobvistaNative);
+                        }
+                        PreferenceUtils.setPrefFloat(MyApplication.getInstance(),Constants.TRAF_KEY,vo.traf);
                         Constants.PROBABILITY = vo.probability==null?Constants.PROBABILITY:vo.probability;
 
                         if (vo.stateUse != null)

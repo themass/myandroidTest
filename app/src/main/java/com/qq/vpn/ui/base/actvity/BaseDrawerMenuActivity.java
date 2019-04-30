@@ -17,6 +17,7 @@ import android.widget.TextView;
 import com.qq.Constants;
 import com.qq.MobAgent;
 import com.qq.MyApplication;
+import com.qq.ads.base.AdsContext;
 import com.qq.ext.network.req.CommonResponse;
 import com.qq.ext.util.CollectionUtils;
 import com.qq.ext.util.DateUtils;
@@ -172,7 +173,8 @@ public class BaseDrawerMenuActivity extends ToolBarActivity {
         setScore(null);
     }
     private void setUpDonation(){
-        if(SystemUtils.isApkDebugable(this)||Constants.MYPOOL.equals(Constants.NetWork.uc)||SystemUtils.isZH(this)){
+        int vpnCount = AdsContext.getVpnClick(this);
+        if(SystemUtils.isApkDebugable(this)||Constants.MYPOOL.equals(Constants.NetWork.uc)||(UserLoginUtil.getUserCache()!=null &&vpnCount>12)){
             miDonation.setVisible(true);
         }else{
             miDonation.setVisible(false);
@@ -180,6 +182,7 @@ public class BaseDrawerMenuActivity extends ToolBarActivity {
     }
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(UserLoginEvent event) {
+        setUpDonation();
         setUpUserMenu();
     }
 
@@ -215,23 +218,18 @@ public class BaseDrawerMenuActivity extends ToolBarActivity {
             tvDesc2.setVisibility(View.VISIBLE);
             tvDesc2.setText(event.stateUse.desc2);
         }
-        setScore(event.stateUse.score);
+//        setScore(event.stateUse.score);
     }
     private void setScore(Long inScore) {
-        if(inScore!=null){
-            tvScore.setText(inScore + "积分");
-        }else {
-            UserInfoVo vo = UserLoginUtil.getUserCache();
-            if (vo != null) {
-                String score = vo.score + "积分";
-                if(vo.paidTime!=null){
-                    score=score+"(VIP3有效期"+vo.paidTime+")";
-                }
-                tvScore.setText(score);
-            } else {
-                int score = PreferenceUtils.getPrefInt(this, Constants.SCORE_TMP, 0);
-                tvScore.setText(score + "积分");
+        UserInfoVo vo = UserLoginUtil.getUserCache();
+        if (vo != null) {
+            String score = vo.score + "积分";
+            if(vo.paidTime!=null){
+                score=score+"("+vo.paidTime+")";
             }
+            tvScore.setText(score);
+        } else {
+            tvScore.setText(R.string.login_first);
         }
     }
     public void onAbout(View view) {
