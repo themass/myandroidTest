@@ -121,6 +121,8 @@ public class Constants {
     public static final String API_RECOMMEND_URL = "/data/recommend.json?start=%s&limit=20";
     public static final String API_RECOMMEND_NIGHT_URL = "/data/recommend/night.json?start=%s&limit=20";
     public static final String API_RECOMMEND_MOVIE_URL = "/data/recommend/movie.json?start=%s&limit=20";
+    public static final String API_RECOMMEND_MOVIE2_URL = "/data/recommend/movie.json?start=%s&limit=20";
+
     public static final String API_RECOMMEND_AREA_URL = "/data/recommend/area.json?start=%s&limit=20";
     public static final String API_RECOMMEND_CUSTOME_URL = "/data/recommend/custome.json?start=%s&limit=100";
 
@@ -137,7 +139,7 @@ public class Constants {
     public static final String API_IMG_ITEM_URL = "/img/item.json?itemUrl=%s";
     public static final String API_IMG_ITEM_PAGE_URL = "/img/item/page.json?start=%s&limit=30&itemUrl=%s";
 
-    public static final String API_VIDEO_CHANNLE_URL = "/video/channel.json?start=%s&limit=50&channel=%s";
+    public static final String  API_VIDEO_CHANNLE_URL = "/video/channel.json?start=%s&limit=50&channel=%s";
     public static final String API_VIDEO_CHANNEL_LIST_URL = "/video/channel/items.json?start=%s&limit=30&channel=%s&keyword=%s";
     public static final String API_TV_ITEM_URL = "/video/tv/item.json?start=%s&limit=50&channel=%s";
     public static final String API_TV_CHANNEL_URL = "/video/tv/channel.json?start=%s&limit=50&channel=%s&keyword=%s";
@@ -251,7 +253,7 @@ public class Constants {
     public static final String InterExpressPosID_1 = "3020341478247963";
     public static final String InterExpressPosID_2 = "2000749438943934";
     public static final String InterExpressPosID_3 = "3020857093539023";
-    public static final List<String> gdtInterlist= Arrays.asList(InterExpressPosID_1,InterExpressPosID_2,InterExpressPosID_3);
+    public static final List<String> gdtInterlist= Arrays.asList(InterExpressPosID_1,InterExpressPosID_2,InterExpressPosID_2);
     public static final String AD_GDT_SWITCH = "AD_GDT_SWITCH";
 
     public static final int AD_COUNT = 8;    // 加载广告的条数，取值范围为[1, 10]

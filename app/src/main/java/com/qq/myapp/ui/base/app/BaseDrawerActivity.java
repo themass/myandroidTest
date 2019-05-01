@@ -84,7 +84,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     MenuItem miDona;
     BaseService baseService;
     private final String DOAMIN_TAG="DOAMIN_TAG";
-
+    private String qq;
     public void login(View view) {
         startActivity(LoginActivity.class);
     }
@@ -142,7 +142,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     }
     private void showmiDona(){
         UserInfoVo vo = UserLoginUtil.getUserCache();
-        boolean canScore = vo==null?false:vo.score>300;
+        boolean canScore = vo==null?false:vo.score>1000;
         if(MyApplication.isTemp){
             miDona.setVisible(canScore);
             miApprecommond.setVisible(false);
@@ -219,6 +219,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
 //        tvDesc.setText("每周减50积分，VIP状态随积分变动");
 //        tvDesc1.setText("VIP1=400积分； VIP2=600积分");
         setScore(event.stateUse.score);
+        qq = event.stateUse.desc2;
     }
     private void setScore(Long inScore) {
         if(inScore!=null){
@@ -246,6 +247,8 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
 //        WebViewActivity.startWebViewActivity(this, url, getString(R.string.menu_btn_about), false, false, null);
 //        PreferenceUtils.setPrefBoolean(this, Constants.ABOUT_FIRST, true);
 //        MobAgent.onEventMenu(this, "关于");
+        SystemUtils.copy(this, qq);
+        ToastUtil.showShort(R.string.menu_copy_qq);
     }
     public void logout(MenuItem item) {
         baseService.postData(Constants.getUrl(Constants.API_LOGOUT_URL), null, null, null, null, null);

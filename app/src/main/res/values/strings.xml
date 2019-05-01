@@ -83,6 +83,7 @@
     <string name="vpn_status_down">Click to down load YouGet</string>
     <string name="menu_btn_contract">Contact us:  email</string>
     <string name="menu_copy_emai">Email Copied OK</string>
+    <string name="menu_copy_qq">QQ Copied OK</string>
     <!-- share-->
     <string name="menu_share_title">Share friend</string>
     <string name="menu_share_url">Download Url:\n%s</string>

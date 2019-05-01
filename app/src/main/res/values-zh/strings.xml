@@ -90,6 +90,8 @@
     <string name="menu_share_text_only">FAIL!! 只能分享text</string>
     <string name="menu_btn_contract">联系我们:  email</string>
     <string name="menu_copy_emai">邮箱已复制</string>
+    <string name="menu_copy_qq">QQ 已复制</string>
+
     <!--登录，注册-->
     <string name="close_over">再按一次退出程序!!</string>
     <string name="login">登录</string>

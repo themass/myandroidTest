@@ -48,7 +48,7 @@ public class RecommendMovieFragment extends RecommendFragment {
     }
     @Override
     public String getUrl(int start) {
-        return Constants.getUrlWithParam(Constants.API_RECOMMEND_MOVIE_URL,start);
+        return Constants.getUrlWithParam(Constants.API_RECOMMEND_MOVIE2_URL,start);
     }
 
     @Override

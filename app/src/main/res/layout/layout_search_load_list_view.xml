@@ -22,7 +22,8 @@
         android:layout_height="wrap_content"
         android:background="@color/base_vip_ready"
         android:iconifiedByDefault="true"
-        android:queryHint="@string/search" />
+        android:queryHint="@string/search"
+       />
 
 
     </RelativeLayout>

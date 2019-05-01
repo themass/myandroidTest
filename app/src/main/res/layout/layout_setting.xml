@@ -184,8 +184,10 @@
             android:layout_margin="@dimen/margin_10"
             android:background="@color/transparent"
             android:clickable="false"
+            android:visibility="gone"
             card_view:cardCornerRadius="8dp"
-            card_view:cardUseCompatPadding="false">
+            card_view:cardUseCompatPadding="false"
+            >
 
             <LinearLayout
                 android:layout_width="match_parent"
