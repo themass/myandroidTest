@@ -13,6 +13,7 @@ import com.qq.sexfree.R;
 import com.sspacee.common.ui.base.LogActivity;
 import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.SystemUtils;
+import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.ads.base.GdtOpenManager;
 import com.sspacee.yewu.um.MobAgent;
@@ -32,7 +33,7 @@ public class LaunchActivity extends LogActivity implements GdtOpenManager.OnGdtO
     RelativeLayout ivAds;
     @BindView(R.id.skip_view)
     RelativeLayout skipView;
-    @BindView(R.id.tv_jishi)
+    @BindView(R.id.tv_shu)
     TextView tvJishi;
     private int max = Constants.STARTUP_SHOW_TIME_6000+1000;
     private int now = 0;
@@ -97,7 +98,7 @@ public class LaunchActivity extends LogActivity implements GdtOpenManager.OnGdtO
         MobAgent.onResume(this);
     }
     private void showAdview(){
-        AdsManager.getInstans().showSplashAds(this,ivAds,skipView);
+        AdsManager.getInstans().showSplashAds(AdsContext.AdsFrom.ADVIEW,this,ivAds,skipView);
         delay1s();
     }
     private void delay1s() {

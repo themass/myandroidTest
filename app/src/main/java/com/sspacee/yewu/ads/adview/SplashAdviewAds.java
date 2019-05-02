@@ -13,12 +13,11 @@ import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.SplashAdsInter;
 
-
 import static com.sspacee.yewu.ads.adview.AdviewConstant.ADS_ADVIEW_KEY2;
 import static com.sspacee.yewu.ads.adview.AdviewConstant.adsKeySet;
 
 /**
- * Created by themass on 2017/9/20.
+ * Created by dengt on 2017/9/20.
  */
 
 public class SplashAdviewAds extends SplashAdsInter {

@@ -37,7 +37,7 @@ public class ImgChannleActivity extends BaseFragmentActivity {
     @Override
     public void setupView() {
         super.setupView();
-        AdsContext.showRand(this, AdsContext.Categrey.CATEGREY_VPN3);
+        AdsContext.showRand(this, AdsContext.Categrey.CATEGREY_VPN2);
     }
     public boolean needShow() {
         return true;

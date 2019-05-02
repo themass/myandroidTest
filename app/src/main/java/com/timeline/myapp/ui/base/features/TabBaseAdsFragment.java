@@ -8,7 +8,7 @@ import android.view.animation.OvershootInterpolator;
 import com.qq.sexfree.R;
 import com.sspacee.common.util.LogUtil;
 
-import com.sspacee.yewu.ads.base.AdmobRewardManger;
+import com.sspacee.yewu.ads.reward.AdmobRewardManger;
 import com.timeline.myapp.data.AdsPopStrategy;
 import com.timeline.sexfree1.ui.main.MainFragmentViewPage;
 
@@ -22,6 +22,8 @@ public abstract class TabBaseAdsFragment extends TabBaseFragment implements Admo
     private static final int ANIM_DURATION_FAB = 400;
     @BindView(R.id.fab_up)
     public FloatingActionButton fabUp;
+    @BindView(R.id.fab_up2)
+    public FloatingActionButton fabUp2;
     private long lastToastShow = 0l;
     private boolean pendingIntroAnimation;
 
@@ -70,6 +72,13 @@ public abstract class TabBaseAdsFragment extends TabBaseFragment implements Admo
         LogUtil.i("fabUp--" + getClass().getSimpleName());
         fabUp.setTranslationY(2 * getResources().getDimensionPixelOffset(R.dimen.btn_fab_size));
         fabUp.animate()
+                .translationY(0)
+                .setInterpolator(new OvershootInterpolator(1.f))
+                .setStartDelay(600)
+                .setDuration(ANIM_DURATION_FAB)
+                .start();
+        fabUp2.setTranslationY(2 * getResources().getDimensionPixelOffset(R.dimen.btn_fab_size));
+        fabUp2.animate()
                 .translationY(0)
                 .setInterpolator(new OvershootInterpolator(1.f))
                 .setStartDelay(600)

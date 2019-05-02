@@ -77,7 +77,7 @@ public class WebViewActivity extends BaseFragmentActivity implements MyWebView.O
         adsNeed = getIntent().getBooleanExtra(Constants.ADS_SHOW_CONFIG, false);
         adsPopNeed = getIntent().getBooleanExtra(Constants.ADS_POP_SHOW_CONFIG, false);
         if(adsPopNeed){
-            AdsContext.showNextAbs(this, AdsContext.Categrey.CATEGREY_VPN2);
+            AdsContext.showRand(this, AdsContext.Categrey.CATEGREY_VPN2);
         }
         audioMngHelper = new AudioMngHelper(this);
     }

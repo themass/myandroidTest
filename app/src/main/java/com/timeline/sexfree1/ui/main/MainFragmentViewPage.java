@@ -28,10 +28,11 @@ import com.sspacee.common.util.PermissionHelper;
 import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.SystemUtils;
 import com.sspacee.common.util.ToastUtil;
-import com.sspacee.yewu.ads.base.AdmobRewardManger;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.ads.base.GdtInterManger;
+import com.sspacee.yewu.ads.reward.AdmobRewardManger;
+import com.sspacee.yewu.ads.reward.BaseRewardManger;
 import com.sspacee.yewu.um.MobAgent;
 import com.timeline.myapp.base.MyApplication;
 import com.timeline.myapp.constant.Constants;
@@ -77,7 +78,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
     private static final String WITER_TAG="WITER_TAG";
     private PermissionHelper mPermissionHelper;
     private GdtInterManger gdtInterManger;
-    public AdmobRewardManger admobRewardManger;
+    public BaseRewardManger admobRewardManger;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_main_viewpage);
@@ -86,7 +87,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         mPermissionHelper = new PermissionHelper(this);
         EventBusUtil.getEventBus().register(this);
         mPermissionHelper.checkNeedPermissions();
-        admobRewardManger = new AdmobRewardManger(this,this);
+        admobRewardManger = new BaseRewardManger(this,this);
     }
     @Override
     public void onNoRewardAD(){

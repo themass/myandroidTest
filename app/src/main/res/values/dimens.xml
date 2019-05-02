@@ -3,6 +3,7 @@
     <dimen name="default_elevation">8dp</dimen>
     <dimen name="btn_fab_size">56dp</dimen>
     <dimen name="btn_fab_margins">16dp</dimen>
+    <dimen name="btn_fab_margins2">90dp</dimen>
     <dimen name="global_menu_avatar_size">50dp</dimen>
     <!-- tab -->
     <dimen name="tab_text_size">15sp</dimen>

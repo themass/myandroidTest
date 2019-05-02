@@ -90,7 +90,7 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
     public void setupView() {
         super.setupView();
         if(showInterstitialAds ){
-            AdsContext.showRand(this,AdsContext.Categrey.CATEGREY_VPN3);
+            AdsContext.showRand(this,AdsContext.Categrey.CATEGREY_VPN2);
         }
     }
     @Override

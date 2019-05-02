@@ -3,10 +3,10 @@ package com.sspacee.yewu.ads.base;
 import android.app.Activity;
 import android.content.Context;
 import android.os.HandlerThread;
-import android.widget.Toast;
 
-import com.qq.e.comm.util.Md5Util;
 import com.qq.sexfree.R;
+import com.sspacee.common.util.DateUtils;
+import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.Md5;
 import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.SystemUtils;
@@ -17,13 +17,12 @@ import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.AdsPopStrategy;
 import com.timeline.myapp.data.UserLoginUtil;
 import com.timeline.myapp.task.ScoreTask;
-import com.timeline.sexfree1.ui.main.MainFragmentViewPage;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
 import static com.sspacee.yewu.ads.base.AdsContext.AdsShowStatus.ADS_CLICK_MSG;
-
 
 /**
  * Created by dengt on 2017/9/14.
@@ -77,8 +76,9 @@ public class AdsContext {
         }
     }
     public static enum AdsFrom{
-        ADVIEW("adview");
-        //        GDT("gdt");
+        ADVIEW("adview"),
+        GDT("gdt"),
+        MOBVISTA("mobvista");
         public String desc;
         AdsFrom(String desc){
             this.desc =desc;
@@ -97,16 +97,20 @@ public class AdsContext {
         AdsShowStatus status;
         AdsFrom from;
         boolean score;
+        Context context;
         public AdsMsgObj(Context context,AdsType type,AdsShowStatus status,AdsFrom from){
             this.type = type;
             this.status = status;
             this.from=from;
+            this.context = context;
         }
+
         public AdsMsgObj(Context context,AdsType type,AdsShowStatus status,AdsFrom from,boolean score){
             this.type = type;
             this.status = status;
             this.from=from;
             this.score=score;
+            this.context = context;
         }
     }
 
@@ -116,18 +120,18 @@ public class AdsContext {
     }
     // 3/5
     public static boolean rateShow(){
-        if(showCount++>14){
+        if(showCount++>10){
             return false;
         }
         if(UserLoginUtil.isVIP3()){
             int i = Md5.getRandom(Constants.maxRate);
-            return i<=2;
+            return i<=1;
         }else if(UserLoginUtil.isVIP2()){
             int i = Md5.getRandom(Constants.maxRate);
-            return i<=4;
+            return i<=3;
         }else if(UserLoginUtil.isVIP()){
             int i = Md5.getRandom(Constants.maxRate);
-            return i<=6;
+            return i<=5;
         }else{
             int i = Md5.getRandom(Constants.maxRate);
             return i<=Constants.PROBABILITY;
@@ -140,8 +144,8 @@ public class AdsContext {
             if(!AdsPopStrategy.clickAdsClickBtn(context)){
                 return;
             }
-            String msg = context.getResources().getString(R.string.tab_fb_click) + Constants.ADS_SHOW_CLICK;
-            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
+//            String msg = context.getResources().getString(R.string.tab_fb_click) + Constants.ADS_SHOW_CLICK;
+//            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
             ScoreTask.start(context, Constants.ADS_SHOW_CLICK);
         }
     }
@@ -154,25 +158,7 @@ public class AdsContext {
         int size = AdsContext.Categrey.values().length;
         return AdsContext.Categrey.values()[(num)%size];
     }
-
-    public static void showNextAbs(Context context,AdsContext.Categrey cate){
-        boolean gdt = PreferenceUtils.getPrefBoolean(context,Constants.AD_GDT_SWITCH,true);
-        if(SystemUtils.isZH(context) && gdt && context instanceof  Activity){
-            int index = Md5.getRandom(Constants.gdtInterlist.size());
-            GdtInterManger gdtInterManger = new GdtInterManger((Activity) context,null,Constants.gdtInterlist.get(index));
-            gdtInterManger.showAd();
-        }else {
-            int size = AdsContext.Categrey.values().length;
-            AdsManager.getInstans().showInterstitialAds(context, cate, false);
-        }
-    }
-    public static void showRand(Context context){
-        if(UserLoginUtil.showAds()) {
-            showRand(context,getNext());
-        }
-    }
     public static void showRand(Context context, AdsContext.Categrey cate){
-        if (AdsContext.rateShow()) {
             boolean gdt = PreferenceUtils.getPrefBoolean(context,Constants.AD_GDT_SWITCH,true);
             if(SystemUtils.isZH(context) && gdt && context instanceof  Activity){
                 int index = Md5.getRandom(Constants.gdtInterlist.size());
@@ -181,7 +167,26 @@ public class AdsContext {
             }else{
                 AdsManager.getInstans().showInterstitialAds(context, cate, false);
             }
+    }
+    public static void showRand(Context context){
+        boolean gdt = PreferenceUtils.getPrefBoolean(context,Constants.AD_GDT_SWITCH,true);
+        if(SystemUtils.isZH(context) && gdt && context instanceof  Activity){
+            int index = Md5.getRandom(Constants.gdtInterlist.size());
+            GdtInterManger gdtInterManger = new GdtInterManger((Activity) context,null,Constants.gdtInterlist.get(index));
+            gdtInterManger.showAd();
+        }else{
+            AdsManager.getInstans().showInterstitialAds(context, getNext(), false);
         }
     }
-
+//    public static void vpnClick(Context context){
+//        String key =Constants.CLICK_KEY+ DateUtils.format(new Date(),DateUtils.DATE_FORMAT_MM);
+//        int vpnCount = PreferenceUtils.getPrefInt(context,key,0);
+//        LogUtil.i("vpnCount="+vpnCount);
+//        vpnCount=vpnCount>100?100:++vpnCount;
+//        PreferenceUtils.setPrefInt(context,key,vpnCount);
+//    }
+//    public static int getVpnClick(Context context){
+//        String key =Constants.CLICK_KEY+DateUtils.format(new Date(),DateUtils.DATE_FORMAT_MM);
+//        return  PreferenceUtils.getPrefInt(context,key,0);
+//    }0
 }

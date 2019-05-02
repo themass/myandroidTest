@@ -15,11 +15,12 @@ import com.qq.e.ads.nativ.NativeExpressADView;
 import com.qq.sexfree.R;
 import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.common.util.LogUtil;
-import com.sspacee.yewu.ads.base.AdmobRewardManger;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
 
 import com.sspacee.yewu.ads.base.GdtNativeManager;
+import com.sspacee.yewu.ads.reward.AdmobRewardManger;
+import com.sspacee.yewu.ads.reward.BaseRewardManger;
 import com.timeline.myapp.constant.Constants;
 import com.timeline.myapp.data.AdsPopStrategy;
 import com.timeline.myapp.data.config.HindBannerEvent;
@@ -27,7 +28,6 @@ import com.timeline.myapp.data.config.HindBannerEvent;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import java.util.Collections;
 import java.util.HashMap;
 
 import butterknife.BindView;
@@ -48,7 +48,7 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
     @BindView(R.id.ct_bar)
     public CollapsingToolbarLayout ctBar;
     private AdsGoneTask task = new AdsGoneTask();
-    public AdmobRewardManger admobRewardManger;
+    public BaseRewardManger admobRewardManger;
 
     GdtNativeManager gdtNativeManager = new GdtNativeManager(this,Constants.FIRST_AD_POSITION,Constants.FIRST_AD_POSITION,Constants.ITEMS_PER_AD_BANNER);
     protected Handler mHandler = new Handler() {
@@ -75,7 +75,7 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        admobRewardManger = new AdmobRewardManger(this,this);
+        admobRewardManger = new BaseRewardManger(this,this);
     }
 
     @Override

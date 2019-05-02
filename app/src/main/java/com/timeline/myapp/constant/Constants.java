@@ -4,9 +4,12 @@ package com.timeline.myapp.constant;
 
 
 import com.qq.sexfree.R;
+import com.sspacee.yewu.ads.adview.AdviewConstant;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -270,4 +273,33 @@ public class Constants {
     public static final String ADMOB_REWARD_UNIT_ID3="ca-app-pub-7849865307083433/2002516423";
     public static final List<String> ADMOB_REWARD_UNIT_IDS=Arrays.asList(ADMOB_REWARD_UNIT_ID,ADMOB_REWARD_UNIT_ID2,ADMOB_REWARD_UNIT_ID3);
     public static final int ADS_REWARD_SHOW_CLICK = 100;
+
+    public static final String INMOBI_APPID="842d8c1b71f5498e8f361e5c5df2d8c2";
+    public static final String INMOBI_ACCOUNTID="e5b7a52a95cd4802b49b279caa0e2c0d";
+    public static final Long INMOBI_APPKEY=1554324733355l;
+    public static final String INMOBI_UNIT_REWARD="87735";
+    public static final String INMOBI_UNIT2="114042";
+
+
+    public static final String Mob_APPID="107991";
+    public static final String Mob_APPKEY="f1f0a8637166a0459402b9de3c88a93f";
+    public static final String Mob_UNIT_REWARD="87733";
+    public static final String Mob_UNIT_INTV="88397";
+
+    public static final String Mob_UNIT_BANNER1="88400";
+    public static final String Mob_UNIT_BANNER2="88399";
+    public static final String Mob_UNIT_BANNER3="88398";
+
+    public static final String Mob_UNIT_WALL="64480";
+
+    public static final String Mob_UNIT_SPLASH="88396";
+    public static final String Mob_UNIT_SPLASH_KAY="Mob_UNIT_SPLASH_KAY";
+
+
+    public static Map<String ,String> adviewToMobvBanner = new HashMap<>();
+    static {
+        adviewToMobvBanner.put(AdviewConstant.ADS_ADVIEW_KEY1,Mob_UNIT_BANNER1);
+        adviewToMobvBanner.put(AdviewConstant.ADS_ADVIEW_KEY2,Mob_UNIT_BANNER2);
+        adviewToMobvBanner.put(AdviewConstant.ADS_ADVIEW_KEY3,Mob_UNIT_BANNER3);
+    }
 }
