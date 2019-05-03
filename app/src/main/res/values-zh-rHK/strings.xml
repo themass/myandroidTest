@@ -194,7 +194,9 @@
     <string name="error_lookup_failed">失败.请重试或者换线路</string>
     <string name="error_unreachable">失败.请重试或者换线路</string>
     <string name="error_peer_auth_failed">鉴权失败.请重试或者换线路</string>
-    <string name="error_auth_failed">可能流量使用已达上限，请升级VIP</string>
+    <string name="error_auth_failed">可能当日流量使用已达上限，请升级VIP</string>
+    <string name="error_auth_failed2">可能匿名当日流量使用已达上限，请登陆账号</string>
+
     <string name="error_assessment_failed">安全段错误.</string>
     <string name="error_generic">失败.请重试或者换线路</string>
     <string name="vpn_not_supported_title">不支持VPN</string>

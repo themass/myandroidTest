@@ -194,7 +194,8 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="error_lookup_failed">Failed. Please try agin or select another one</string>
     <string name="error_unreachable">Failed. Please try agin or select another one</string>
     <string name="error_peer_auth_failed">Verifying gateway authentication failed.</string>
-    <string name="error_auth_failed">Maybe Traffic has reached the upper limit, need VIP.</string>
+    <string name="error_auth_failed">Maybe daily Traffic has reached limit, upgrade VIP.</string>
+    <string name="error_auth_failed2">Maybe daily anonymous traffic reached limit，please login </string>
     <string name="error_assessment_failed">Security assessment failed.</string>
     <string name="error_generic">Failed. Please try agin or select another one.</string>
     <string name="vpn_not_supported_title">VPN not supported</string>
