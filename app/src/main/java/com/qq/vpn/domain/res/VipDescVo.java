@@ -8,5 +8,6 @@ public class VipDescVo {
     public String desc;
     public String desc1;
     public String desc2;
+    public String desc3;
     public Long score;
 }

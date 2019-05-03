@@ -59,11 +59,7 @@ public abstract class TabBaseAdsFragment extends TabBaseFragment implements OnBa
         if (savedInstanceState == null) {
             pendingIntroAnimation = true;
         }
-        if(Constants.MYPOOL.equals(Constants.NetWork.uc)) {
-            fabUp.setVisibility(View.VISIBLE);
-        }else{
-            fabUp.setVisibility(View.GONE);
-        }
+        fabUp.setVisibility(View.VISIBLE);
     }
 
     private void startIntroAnimation() {

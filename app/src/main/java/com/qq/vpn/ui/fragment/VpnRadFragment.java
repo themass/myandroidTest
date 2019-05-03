@@ -228,7 +228,7 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
         }else{
             tvEmText.setVisibility(View.GONE);
         }
-        if(!open && !UserLoginUtil.isVIP()){
+        if(!open && UserLoginUtil.getUserCache()==null){
             ToastUtil.showShort(R.string.chose_first);
             LocationPageViewFragment.startFragment(getActivity());
             open=true;

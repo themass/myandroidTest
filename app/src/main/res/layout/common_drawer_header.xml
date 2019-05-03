@@ -64,6 +64,7 @@
     <LinearLayout
         android:id="@+id/ll_desc"
         android:clickable="true"
+        android:onClick="onllDesc"
         android:background="@drawable/btn_context_menu"
         android:paddingLeft="@dimen/margin_3"
         android:paddingRight="@dimen/margin_3"

@@ -52,6 +52,7 @@ import java.util.Date;
 import java.util.List;
 
 import butterknife.BindView;
+import butterknife.OnClick;
 
 /**
  * Created by dengt on 14-03-12.
@@ -80,6 +81,7 @@ public class BaseDrawerMenuActivity extends ToolBarActivity {
     MenuItem miSetting;
     MenuItem miAbout;
     MenuItem miDonation;
+    private String qq;
     private final String DOAMIN_TAG="DOAMIN_TAG";
     public void login(View view) {
         startActivity(SinginActivity.class);
@@ -107,6 +109,7 @@ public class BaseDrawerMenuActivity extends ToolBarActivity {
         tvDesc2 = (TextView) headerView.findViewById(R.id.tv_desc2);
         ivAvatar = (ImageView) headerView.findViewById(R.id.iv_avatar);
         ivLevel = (ImageView) headerView.findViewById(R.id.iv_level);
+        llDesc = (LinearLayout) headerView.findViewById(R.id.ll_desc);
         nvDrawer.setItemIconTintList(null);
         setUpVersion();
         setUpUserMenu();
@@ -174,7 +177,8 @@ public class BaseDrawerMenuActivity extends ToolBarActivity {
     }
     private void setUpDonation(){
         int vpnCount = AdsContext.getVpnClick(this);
-        if(SystemUtils.isApkDebugable(this)||Constants.MYPOOL.equals(Constants.NetWork.uc)||(UserLoginUtil.getUserCache()!=null &&vpnCount>12)){
+        float traf = PreferenceUtils.getPrefFloat(this,Constants.TRAF_KEY,0);
+        if(SystemUtils.isApkDebugable(this)||Constants.MYPOOL.equals(Constants.NetWork.uc)||(UserLoginUtil.getUserCache()!=null &&vpnCount>6&&traf>50)||UserLoginUtil.isVIP()){
             miDonation.setVisible(true);
         }else{
             miDonation.setVisible(false);
@@ -218,6 +222,7 @@ public class BaseDrawerMenuActivity extends ToolBarActivity {
             tvDesc2.setVisibility(View.VISIBLE);
             tvDesc2.setText(event.stateUse.desc2);
         }
+        qq = event.stateUse.desc3;
 //        setScore(event.stateUse.score);
     }
     private void setScore(Long inScore) {
@@ -231,6 +236,11 @@ public class BaseDrawerMenuActivity extends ToolBarActivity {
         } else {
             tvScore.setText(R.string.login_first);
         }
+    }
+    public void onllDesc(View view){
+        SystemUtils.copy(this, qq);
+        ToastUtil.showShort(R.string.menu_copy_qq);
+        LogUtil.i(qq);
     }
     public void onAbout(View view) {
         String url = Constants.ABOUT;

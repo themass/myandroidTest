@@ -77,16 +77,23 @@ public class MainActivity extends BaseDrawerMenuActivity implements ActivityComp
         mViewPager.setAdapter(myPagerAdapter);
         myPagerAdapter.notifyDataSetChanged();
         boolean gdt = PreferenceUtils.getPrefBoolean(this, Constants.AD_GDT_SWITCH,true);
+        gdtInterManger = new GdtInterManger(this,this);
         if(SystemUtils.isZH(this) && gdt){
-            gdtInterManger = new GdtInterManger(this,this);
             gdtInterManger.showAd();
         }else{
 
             if(Constants.GOOGLEMARKET.equals(Constants.NetWork.uc)){
                 int vpnCount = AdsContext.getVpnClick(this);
                 float traf = PreferenceUtils.getPrefFloat(this,Constants.TRAF_KEY,0);
-                if(vpnCount>6&&traf>80){
+                if(vpnCount>4&&traf>30){
                     AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false);
+                }else{
+                    boolean perm = PermissionHelper.checkPermission(this,PermissionHelper.READ_PHONE_STATE);
+                    if(perm==false || SystemUtils.isZH(this)==false){
+                        AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false, AdsContext.AdsFrom.MOBVISTA);
+                    }else{
+                        gdtInterManger.showAd();
+                    }
                 }
             }else{
                 AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false);
@@ -97,7 +104,8 @@ public class MainActivity extends BaseDrawerMenuActivity implements ActivityComp
         }
     }
     public void onNoAD(){
-        AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false);
+        AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false,AdsContext.AdsFrom.MOBVISTA);
+//        AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false);
     }
 
     @Override

@@ -68,6 +68,7 @@ public class VersionUpdater {
                         if(StringUtils.hasText(vo.mobvistaNative)){
                             PreferenceUtils.setPrefString(MyApplication.getInstance(), Constants.Mob_UNIT_SPLASH_KAY, vo.mobvistaNative);
                         }
+                        LogUtil.i("traf="+vo.traf);
                         PreferenceUtils.setPrefFloat(MyApplication.getInstance(),Constants.TRAF_KEY,vo.traf);
                         Constants.PROBABILITY = vo.probability==null?Constants.PROBABILITY:vo.probability;
 

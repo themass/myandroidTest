@@ -10,8 +10,8 @@ android {
         applicationId "com.qq.network"
         minSdkVersion 18
         targetSdkVersion 26
-        versionCode 1000008019
-        versionName "1.0.8.19"
+        versionCode 1000008020
+        versionName "1.0.8.20"
         // Enabling multidex support.
         multiDexEnabled true
         flavorDimensions "versionCode"

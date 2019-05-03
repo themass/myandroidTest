@@ -57,6 +57,7 @@
     <string name="menu_btn_bug">报告bug</string>
     <string name="menu_btn_contract">联系我们:  email</string>
     <string name="menu_copy_emai">邮箱已复制</string>
+    <string name="menu_copy_qq">QQ 已复制</string>
     <string name="menu_btn_version">版本:</string>
     <string name="menu_btn_notify">显示通知栏:</string>
     <string name="menu_btn_logout">退出</string>
@@ -126,7 +127,8 @@
     <string name="error_lookup_failed">失败.请重试或者换线路</string>
     <string name="error_unreachable">失败.请重试或者换线路</string>
     <string name="error_peer_auth_failed">鉴权失败.请重试或者换线路</string>
-    <string name="error_auth_failed">可能流量使用已达上限，请升级VIP</string>
+    <string name="error_auth_failed">可能当日流量使用已达上限，请升级VIP</string>
+    <string name="error_auth_failed2">可能匿名当日流量使用已达上限，请登陆账号</string>
     <string name="error_assessment_failed">安全段错误.</string>
     <string name="error_generic">失败.请重试或者换线路</string>
     <string name="vpn_not_supported_title">不支持VPN</string>
@@ -172,5 +174,5 @@
     <string name="save_fail">保存失败</string>
     <string name="save_img">保存到本地</string>
     <string name="login_first">请先登录</string>
-    <string name="chose_first">请选择线路</string>
+    <string name="chose_first">请选择线路，登陆后将不再提示</string>
 </resources>
