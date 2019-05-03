@@ -81,7 +81,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     MenuItem miRecomm;
     BaseService baseService;
     MenuItem miDonation;
-
+    private String qq;
     private final String DOAMIN_TAG="DOAMIN_TAG";
 
     public void login(View view) {
@@ -112,6 +112,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         tvDesc2 = (TextView) headerView.findViewById(R.id.tv_desc2);
         ivAvatar = (ImageView) headerView.findViewById(R.id.iv_avatar);
         ivLevel = (ImageView) headerView.findViewById(R.id.iv_level);
+        llDesc = (LinearLayout) headerView.findViewById(R.id.ll_desc);
         nvDrawer.setItemIconTintList(null);
         baseService = new BaseService();
         baseService.setup(this);
@@ -123,7 +124,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     }
     private void setUpDonation(){
         int vpnCount = AdsContext.getVpnClick(this);
-        if(SystemUtils.isApkDebugable(this)||Constants.APP_MYPOOL.equals(MyApplication.getInstance().uc)||(UserLoginUtil.getUserCache()!=null &&vpnCount>6)){
+        if(SystemUtils.isApkDebugable(this)||Constants.APP_MYPOOL.equals(MyApplication.getInstance().uc)||(UserLoginUtil.getUserCache()!=null &&vpnCount>5)||UserLoginUtil.isVIP()){
             miDonation.setVisible(true);
         }else{
             miDonation.setVisible(false);
@@ -150,7 +151,11 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         miLocation.setTitle(LocationUtil.getSelectName(this));
         setupLocationIcon();
     }
-
+    public void onllDesc(View view){
+        SystemUtils.copy(this, qq);
+        ToastUtil.showShort(R.string.menu_copy_qq);
+        LogUtil.i(qq);
+    }
     private void setUpVersion() {
         VersionUpdater.checkUpdate(BaseDrawerActivity.this,false);
     }
@@ -208,6 +213,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         tvDesc.setText(event.stateUse.desc);
         tvDesc1.setText(event.stateUse.desc1);
         tvDesc2.setText(event.stateUse.desc2);
+        qq = event.stateUse.desc3;
 //        tvDesc.setText("每周减50积分，VIP状态随积分变动");
 //        tvDesc1.setText("VIP1=400积分； VIP2=600积分");
 //        setScore(event.stateUse.score);

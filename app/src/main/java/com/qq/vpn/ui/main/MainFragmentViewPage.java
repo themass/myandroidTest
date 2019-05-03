@@ -118,15 +118,26 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         initTabs();
         ConnLogUtil.sendAllLog(this);
         boolean gdt = PreferenceUtils.getPrefBoolean(this, Constants.AD_GDT_SWITCH,true);
-
-        if(Constants.APP_GOOGLE.equals(MyApplication.getInstance().uc)){
-            int vpnCount = AdsContext.getVpnClick(this);
-            float traf = PreferenceUtils.getPrefFloat(this,Constants.TRAF_KEY,0);
-            if(vpnCount>6&&traf>150){
+        gdtInterManger = new GdtInterManger(this,this);
+        if(SystemUtils.isZH(this) && gdt){
+            gdtInterManger.showAd();
+        }else {
+            if (Constants.APP_GOOGLE.equals(MyApplication.getInstance().uc)) {
+                int vpnCount = AdsContext.getVpnClick(this);
+                float traf = PreferenceUtils.getPrefFloat(this, Constants.TRAF_KEY, 0);
+                if (vpnCount > 3 && traf > 30) {
+                    AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false);
+                } else {
+                    boolean perm = PermissionHelper.checkPermission(this, PermissionHelper.READ_PHONE_STATE);
+                    if (perm == false || SystemUtils.isZH(this) == false) {
+                        AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false, AdsContext.AdsFrom.MOBVISTA);
+                    } else {
+                        gdtInterManger.showAd();
+                    }
+                }
+            } else {
                 AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false);
             }
-        }else{
-            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false);
         }
         if(!PermissionHelper.checkPermissions(this)) {
             PermissionHelper.showPermit(this);

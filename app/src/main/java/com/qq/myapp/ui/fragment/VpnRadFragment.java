@@ -226,7 +226,7 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
         }else{
             tvEmText.setVisibility(View.GONE);
         }
-        if(!open && !UserLoginUtil.isVIP()){
+        if(!open && UserLoginUtil.getUserCache()==null){
             ToastUtil.showShort(R.string.chose_first);
             LocationPageViewFragment.startFragment(getActivity());
             open=true;
@@ -244,7 +244,6 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
                 mHandler.postDelayed(vpnCheck,Constants.VPN_CHECK_TIME);
                 imgAnim();
                 AdsContext.showRand(getActivity(),AdsContext.getNext());
-                AdsContext.vpnClick(getActivity());
                 int id = LocationUtil.getSelectLocationId(getActivity());
                 indexService.getData(String.format(Constants.getUrl(Constants.API_SERVERLIST_URL), id), serverListener, serverListenerError, INDEX_TAG, ServerVo.class);
 

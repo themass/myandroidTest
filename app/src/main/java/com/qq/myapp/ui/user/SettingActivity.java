@@ -129,7 +129,7 @@ public class SettingActivity extends BaseSingleActivity {
     }
     @OnClick(R.id.tv_auther)
     public void onContract(View view) {
-        SystemUtils.copy(SettingActivity.this, "gqli5296@gmail.com");
+        SystemUtils.copy(SettingActivity.this, "dengthelper@gmail.com");
         ToastUtil.showShort(R.string.menu_copy_emai);
         MobAgent.onEventMenu(this, "联系我们");
     }

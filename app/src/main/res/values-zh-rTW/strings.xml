@@ -234,7 +234,8 @@
     <string name="save_img">保存到本地</string>
     <string name="menu_btn_donation">升级VIP</string>
     <string name="login_first">请先登录</string>
-    <string name="chose_first">请选择线路</string>
+    <string name="chose_first">请选择线路,登陆后不再显示</string>
+    <string name="menu_copy_qq">QQ 已复制</string>
 
 
 </resources>
