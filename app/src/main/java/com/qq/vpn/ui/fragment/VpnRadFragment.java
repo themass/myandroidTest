@@ -430,7 +430,11 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
                     if (imcState == ImcState.BLOCK) {
                         ToastUtil.showShort(R.string.error_assessment_failed);
                     } else {
-                        ToastUtil.showShort( R.string.error_auth_failed);
+                        if(UserLoginUtil.getUserCache()==null){
+                            ToastUtil.showShort( R.string.error_auth_failed2);
+                        }else {
+                            ToastUtil.showShort(R.string.error_auth_failed);
+                        }
                     }
                     break;
                 case PEER_AUTH_FAILED:
