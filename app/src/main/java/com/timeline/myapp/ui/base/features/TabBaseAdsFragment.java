@@ -8,6 +8,7 @@ import android.view.animation.OvershootInterpolator;
 import com.qq.sexfree.R;
 import com.sspacee.common.util.LogUtil;
 
+import com.sspacee.yewu.ads.mobvista.WallMobvAds;
 import com.sspacee.yewu.ads.reward.AdmobRewardManger;
 import com.timeline.myapp.data.AdsPopStrategy;
 import com.timeline.sexfree1.ui.main.MainFragmentViewPage;
@@ -25,6 +26,7 @@ public abstract class TabBaseAdsFragment extends TabBaseFragment implements Admo
     @BindView(R.id.fab_up2)
     public FloatingActionButton fabUp2;
     private long lastToastShow = 0l;
+    private WallMobvAds wallMobvAds = new WallMobvAds();
     private boolean pendingIntroAnimation;
 
     @OnClick(R.id.fab_up)
@@ -33,7 +35,10 @@ public abstract class TabBaseAdsFragment extends TabBaseFragment implements Admo
             ((MainFragmentViewPage)getActivity()).showReward();
         }
     }
-
+    @OnClick(R.id.fab_up2)
+    public void onClickFab2(View view) {
+        wallMobvAds.openWall(getActivity());
+    }
     public void next() {
     }
     @Override
@@ -66,6 +71,8 @@ public abstract class TabBaseAdsFragment extends TabBaseFragment implements Admo
         if (savedInstanceState == null) {
             pendingIntroAnimation = true;
         }
+//        wallMobvAds.load(getActivity(),fabUp2);
+        wallMobvAds.preloadWall(getActivity());
     }
 
     private void startIntroAnimation() {

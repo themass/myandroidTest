@@ -19,6 +19,7 @@ import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
 
 import com.sspacee.yewu.ads.base.GdtNativeManager;
+import com.sspacee.yewu.ads.mobvista.WallMobvAds;
 import com.sspacee.yewu.ads.reward.AdmobRewardManger;
 import com.sspacee.yewu.ads.reward.BaseRewardManger;
 import com.timeline.myapp.constant.Constants;
@@ -45,11 +46,13 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
     public ViewGroup flBanner;
     @BindView(R.id.fab_up)
     public FloatingActionButton fabUp;
+    @BindView(R.id.fab_up2)
+    public FloatingActionButton fabUp2;
     @BindView(R.id.ct_bar)
     public CollapsingToolbarLayout ctBar;
     private AdsGoneTask task = new AdsGoneTask();
     public BaseRewardManger admobRewardManger;
-
+    private WallMobvAds wallMobvAds = new WallMobvAds();
     GdtNativeManager gdtNativeManager = new GdtNativeManager(this,Constants.FIRST_AD_POSITION,Constants.FIRST_AD_POSITION,Constants.ITEMS_PER_AD_BANNER);
     protected Handler mHandler = new Handler() {
         @Override
@@ -68,6 +71,10 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
     public void onClickFab(View view) {
         admobRewardManger.showAd();
     }
+    @OnClick(R.id.fab_up2)
+    public void onClickFab2(View view) {
+        wallMobvAds.openWall(this);
+    }
     @Override
     public void onNoRewardAD(){
         AdsPopStrategy.clickAdsShowBtn(this);
@@ -85,9 +92,11 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
         bindViews();
         setupToolbar();
         fabUp.setVisibility(View.GONE);
+        fabUp2.setVisibility(View.GONE);
         if(needGoneBanner())
             mHandler.postDelayed(task, Constants.BANNER_ADS_GONE_LONG);
 //        flBanner.setBackgroundResource(R.color.base_white);
+        wallMobvAds.preloadWall(this);
     }
     protected boolean needGoneBanner(){
         return false;
@@ -107,6 +116,7 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
 
     public void setFabUpVisibility(int v) {
         fabUp.setVisibility(v);
+        fabUp2.setVisibility(v);
     }
 
     public void setFabUpClickListener(View.OnClickListener l) {
@@ -117,6 +127,13 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
         LogUtil.i("fabUp--" + getClass().getSimpleName());
         fabUp.setTranslationY(2 * getResources().getDimensionPixelOffset(R.dimen.btn_fab_size));
         fabUp.animate()
+                .translationY(0)
+                .setInterpolator(new OvershootInterpolator(1.f))
+                .setStartDelay(600)
+                .setDuration(ANIM_DURATION_FAB)
+                .start();
+        fabUp2.setTranslationY(2 * getResources().getDimensionPixelOffset(R.dimen.btn_fab_size));
+        fabUp2.animate()
                 .translationY(0)
                 .setInterpolator(new OvershootInterpolator(1.f))
                 .setStartDelay(600)
