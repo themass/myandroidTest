@@ -133,9 +133,9 @@ public class LaunchActivity extends LogActivity implements GdtOpenManager.OnGdtO
         }else {
             llBanner.setVisibility(View.VISIBLE);
             ivAds.setVisibility(View.GONE);
-            AdsManager.getInstans().showBannerAds(this, banner1, AdsContext.Categrey.CATEGREY_VPN2);
+//            AdsManager.getInstans().showBannerAds(this, banner1, AdsContext.Categrey.CATEGREY_VPN2);
             AdsManager.getInstans().showBannerAds(this, banner2, AdsContext.Categrey.CATEGREY_VPN3);
-            AdsManager.getInstans().showBannerAds(this, banner3, AdsContext.Categrey.CATEGREY_VPN1);
+//            AdsManager.getInstans().showBannerAds(this, banner3, AdsContext.Categrey.CATEGREY_VPN1);
         }
     }
     private void delay1s() {

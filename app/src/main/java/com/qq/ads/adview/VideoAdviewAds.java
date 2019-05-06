@@ -24,7 +24,7 @@ public class VideoAdviewAds extends VideoAdsInter {
         AdViewVideoManager.getInstance(context).requestAd(context, ADS_ADVIEW_KEY, new AdViewVideoListener(){
             @Override
             public void onAdFailed(String arg0) {
-                noAds(context,handler, AdsContext.AdsFrom.ADVIEW);
+                noAds(context,handler, AdsContext.AdsFrom.ADVIEW,0);
             }
 
             @Override

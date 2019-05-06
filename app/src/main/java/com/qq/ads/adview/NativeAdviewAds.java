@@ -30,7 +30,7 @@ public class NativeAdviewAds extends NativeAdsInter {
 
                 @Override
                 public void onAdFailed(String s) {
-                    noAds(context,handler, AdsContext.AdsFrom.ADVIEW);
+                    noAds(context,handler, AdsContext.AdsFrom.ADVIEW,0);
                  }
 
                 @Override
@@ -47,7 +47,7 @@ public class NativeAdviewAds extends NativeAdsInter {
                 }
             }); //设置原生回调接口
         } catch (Throwable e) {
-            noAds(context,handler, AdsContext.AdsFrom.ADVIEW);
+            noAds(context,handler, AdsContext.AdsFrom.ADVIEW,0);
             LogUtil.e("原声广告fail：", e);
         }
     }

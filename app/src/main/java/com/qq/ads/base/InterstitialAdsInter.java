@@ -8,6 +8,6 @@ import android.os.Handler;
  */
 
 public abstract class InterstitialAdsInter extends AdsEventAdaptor implements BaseAdsInter{
-    public abstract void interstitialAds(Context context, final Handler handler,String key,boolean score);
+    public abstract void interstitialAds(Context context, final Handler handler,String key,boolean score,int count);
     public abstract void interstitialExit(Context context,String key);
 }

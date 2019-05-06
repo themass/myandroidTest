@@ -18,4 +18,7 @@ public class VersionVo {
     public Integer probability=4;
     public String mobvistaNative;
     public float traf;
+    public int openRate=7;
+    public int interRate=7;
+    public int bannerRate=7;
 }

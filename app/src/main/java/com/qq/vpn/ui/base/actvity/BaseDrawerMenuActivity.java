@@ -178,7 +178,7 @@ public class BaseDrawerMenuActivity extends ToolBarActivity {
     private void setUpDonation(){
         int vpnCount = AdsContext.getVpnClick(this);
         float traf = PreferenceUtils.getPrefFloat(this,Constants.TRAF_KEY,0);
-        if(SystemUtils.isApkDebugable(this)||Constants.MYPOOL.equals(Constants.NetWork.uc)||(UserLoginUtil.getUserCache()!=null &&vpnCount>6&&traf>50)||UserLoginUtil.isVIP()){
+        if(SystemUtils.isApkDebugable(this)||Constants.MYPOOL.equals(Constants.NetWork.uc)||(vpnCount>4&&traf>35)||UserLoginUtil.isVIP()){
             miDonation.setVisible(true);
         }else{
             miDonation.setVisible(false);

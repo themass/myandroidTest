@@ -100,7 +100,7 @@ public class BannerMobvAds extends BannerInter {
                 public void onAdLoadError(String message) {
                     LogUtil.e("mobv onAdLoadError:" + message);
                     group.setVisibility(View.GONE);
-                    noAds(context,handler, AdsContext.AdsFrom.MOBVISTA);
+                    noAds(context,handler, AdsContext.AdsFrom.MOBVISTA,0);
                 }
 
                 @Override
@@ -120,7 +120,7 @@ public class BannerMobvAds extends BannerInter {
             });
             nativeHandle.load();
         } catch (Throwable e) {
-            noAds(context,handler, AdsContext.AdsFrom.MOBVISTA);
+            noAds(context,handler, AdsContext.AdsFrom.MOBVISTA,0);
             LogUtil.e(e);
          }
     }

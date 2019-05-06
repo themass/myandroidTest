@@ -27,7 +27,7 @@ public class InterstitialMobvAds extends InterstitialAdsInter {
         return AdsContext.AdsType.ADS_TYPE_INTERSTITIAL;
     }
     @Override
-    public void interstitialAds(final Context context, final Handler handler,final String key, final boolean score){
+    public void interstitialAds(final Context context, final Handler handler,String key,boolean score,final int count){
         try {
             LogUtil.i("mobv interstitialAds req");
             HashMap<String, Object> hashMap = new HashMap<String, Object>();
@@ -42,7 +42,7 @@ public class InterstitialMobvAds extends InterstitialAdsInter {
 
                 @Override
                 public void onInterstitialShowFail(String errorMsg) {
-                    noAds(context,handler, AdsContext.AdsFrom.MOBVISTA);
+                    noAds(context,handler, AdsContext.AdsFrom.MOBVISTA,count);
                     LogUtil.e("mobv onInterstitialShowFail:"+errorMsg);
                 }
 
@@ -54,7 +54,7 @@ public class InterstitialMobvAds extends InterstitialAdsInter {
 
                 @Override
                 public void onInterstitialLoadFail(String errorMsg) {
-                    noAds(context,handler, AdsContext.AdsFrom.MOBVISTA);
+                    noAds(context,handler, AdsContext.AdsFrom.MOBVISTA,count);
                     LogUtil.e("mobv onInterstitialLoadFail:"+errorMsg);
                 }
 
@@ -70,10 +70,11 @@ public class InterstitialMobvAds extends InterstitialAdsInter {
             });
             mInterstitialHandler.preload();
         } catch (Throwable e) {
-            noAds(context,handler, AdsContext.AdsFrom.MOBVISTA);
+            noAds(context,handler, AdsContext.AdsFrom.MOBVISTA,count);
             LogUtil.e(e);
         }
     }
+
     @Override
     public void interstitialExit(Context context,String key){
 

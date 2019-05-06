@@ -20,6 +20,7 @@ import com.qq.ads.adview.SplashAdviewAds;
 import com.qq.ads.adview.VideoAdviewAds;
 import com.qq.ads.config.BannerAdsNext;
 import com.qq.ads.config.LaunchAdsNext;
+import com.qq.ads.mobvista.BannerMobvAds;
 import com.qq.ads.mobvista.InterstitialMobvAds;
 import com.qq.ads.mobvista.SplashMobvAds;
 import com.qq.ext.util.EventBusUtil;
@@ -50,6 +51,7 @@ public class AdsManager {
         LogUtil.i("AdsManager initok");
         AdviewAdsManager.init(context);
         bannerDescMap.put(AdsContext.AdsFrom.ADVIEW,new BannerAdviewAds());
+        bannerDescMap.put(AdsContext.AdsFrom.MOBVISTA,new BannerMobvAds());
         interstitialMap.put(AdsContext.AdsFrom.ADVIEW,new InterstitialAdviewAds());
         interstitialMap.put(AdsContext.AdsFrom.MOBVISTA,new InterstitialMobvAds());
         splashMap.put(AdsContext.AdsFrom.ADVIEW,new SplashAdviewAds());
@@ -87,9 +89,12 @@ public class AdsManager {
             if(obj.type== AdsContext.AdsType.ADS_TYPE_SPREAD && obj.status== AdsContext.AdsShowStatus.ADS_NO_MSG){
                 EventBusUtil.getEventBus().post(new LaunchAdsNext(obj.from));
             }
-            if(obj.type== AdsContext.AdsType.ADS_TYPE_INTERSTITIAL && obj.status== AdsContext.AdsShowStatus.ADS_NO_MSG && obj.from== AdsContext.AdsFrom.ADVIEW){
-                showInterstitialAds(obj.context,AdsContext.Categrey.CATEGREY_VPN,false,AdsContext.AdsFrom.MOBVISTA);
+            if(obj.type== AdsContext.AdsType.ADS_TYPE_INTERSTITIAL && obj.status== AdsContext.AdsShowStatus.ADS_NO_MSG && obj.from== AdsContext.AdsFrom.ADVIEW && obj.addCount()){
+                showInterstitialAds(obj.context,AdsContext.Categrey.CATEGREY_VPN,false,AdsContext.AdsFrom.MOBVISTA,obj.count);
+            }else if(obj.type== AdsContext.AdsType.ADS_TYPE_INTERSTITIAL && obj.status== AdsContext.AdsShowStatus.ADS_NO_MSG && obj.from== AdsContext.AdsFrom.MOBVISTA && obj.addCount()){
+                showInterstitialAds(obj.context,AdsContext.Categrey.CATEGREY_VPN3,false,AdsContext.AdsFrom.ADVIEW,obj.count);
             }
+            LogUtil.i("count="+obj.count);
             super.handleMessage(msg);
         }
     };
@@ -111,10 +116,13 @@ public class AdsManager {
     }
 
     public void showInterstitialAds(Context context, AdsContext.Categrey categrey, boolean score){
-        interstitialMap.get(AdsContext.AdsFrom.ADVIEW).interstitialAds(context,mHandle,categrey.key,score);
+        interstitialMap.get(AdsContext.AdsFrom.ADVIEW).interstitialAds(context,mHandle,categrey.key,score,0);
     }
     public void showInterstitialAds(Context context, AdsContext.Categrey categrey, boolean score,AdsContext.AdsFrom from){
-        interstitialMap.get(from).interstitialAds(context,mHandle,categrey.key,score);
+        interstitialMap.get(from).interstitialAds(context,mHandle,categrey.key,score,0);
+    }
+    public void showInterstitialAds(Context context, AdsContext.Categrey categrey, boolean score,AdsContext.AdsFrom from,int count){
+        interstitialMap.get(from).interstitialAds(context,mHandle,categrey.key,score,count);
     }
     public void exitInterstitialAds(Context context,AdsContext.Categrey categrey){
         interstitialMap.get(AdsContext.AdsFrom.ADVIEW).interstitialExit(context,categrey.key);

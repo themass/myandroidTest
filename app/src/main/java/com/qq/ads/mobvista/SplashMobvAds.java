@@ -116,7 +116,7 @@ public class SplashMobvAds extends SplashAdsInter {
                 @Override
                 public void onAdLoadError(String message) {
                     LogUtil.e("mobv onAdLoadError:" + message);
-                    noAds(context,handler, AdsContext.AdsFrom.MOBVISTA);
+                    noAds(context,handler, AdsContext.AdsFrom.MOBVISTA,0);
                 }
 
                 @Override
@@ -136,7 +136,7 @@ public class SplashMobvAds extends SplashAdsInter {
             });
             nativeHandle.load();
         } catch (Throwable e) {
-            noAds(context,handler, AdsContext.AdsFrom.ADVIEW);
+            noAds(context,handler, AdsContext.AdsFrom.MOBVISTA,0);
             LogUtil.e(e);
         }
     }

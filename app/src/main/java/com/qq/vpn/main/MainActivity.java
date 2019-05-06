@@ -61,7 +61,7 @@ public class MainActivity extends BaseDrawerMenuActivity implements ActivityComp
     @Override
     public void onNoRewardAD(){
         if(!admobRewardManger.next())
-            AdsContext.showRand(this,AdsContext.getNext());
+            AdsManager.getInstans().showInterstitialAds(this,AdsContext.Categrey.CATEGREY_VPN3,false,AdsContext.AdsFrom.MOBVISTA);
     }
 
     @Override
@@ -81,22 +81,21 @@ public class MainActivity extends BaseDrawerMenuActivity implements ActivityComp
         if(SystemUtils.isZH(this) && gdt){
             gdtInterManger.showAd();
         }else{
-
+            boolean perm = PermissionHelper.checkPermission(this,PermissionHelper.READ_PHONE_STATE);
             if(Constants.GOOGLEMARKET.equals(Constants.NetWork.uc)){
                 int vpnCount = AdsContext.getVpnClick(this);
                 float traf = PreferenceUtils.getPrefFloat(this,Constants.TRAF_KEY,0);
-                if(vpnCount>4&&traf>30){
+                if(vpnCount>3&&traf>30){
                     AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false);
                 }else{
-                    boolean perm = PermissionHelper.checkPermission(this,PermissionHelper.READ_PHONE_STATE);
-                    if(perm==false || SystemUtils.isZH(this)==false){
-                        AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false, AdsContext.AdsFrom.MOBVISTA);
+                    if(perm==false || !SystemUtils.isZH(this)){
+                        AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN3, false, AdsContext.AdsFrom.MOBVISTA,1);
                     }else{
                         gdtInterManger.showAd();
                     }
                 }
             }else{
-                AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false);
+                  AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false);
             }
         }
         if(!PermissionHelper.checkPermissions(this)) {

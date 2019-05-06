@@ -59,7 +59,7 @@ public class SplashAdviewAds extends SplashAdsInter {
 
                 @Override
                 public void onAdFailed(String s) {
-                    noAds(context,handler, AdsContext.AdsFrom.ADVIEW);
+                    noAds(context,handler, AdsContext.AdsFrom.ADVIEW,0);
                 }
 
                 @Override
@@ -68,7 +68,7 @@ public class SplashAdviewAds extends SplashAdsInter {
                 }
             }, group, skipView);
         } catch (Throwable e) {
-            noAds(context,handler, AdsContext.AdsFrom.ADVIEW);
+            noAds(context,handler, AdsContext.AdsFrom.ADVIEW,0);
             LogUtil.e(e);
         }
     }

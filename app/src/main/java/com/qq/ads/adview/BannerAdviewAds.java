@@ -60,7 +60,7 @@ public class BannerAdviewAds extends BannerInter {
 
                 @Override
                 public void onAdFailed(String s) {
-                    noAds(context,handler, AdsContext.AdsFrom.ADVIEW);
+                    noAds(context,handler, AdsContext.AdsFrom.ADVIEW,0);
 //                    group.setVisibility(View.GONE);
                     mobvBanner.bannerAds(context,group,key,handler);
                 }
@@ -71,7 +71,7 @@ public class BannerAdviewAds extends BannerInter {
                 }
             });
         } catch (Throwable e) {
-            noAds(context,handler, AdsContext.AdsFrom.ADVIEW);
+            noAds(context,handler, AdsContext.AdsFrom.ADVIEW,0);
             mobvBanner.bannerAds(context,group,key,handler);
             LogUtil.e(e);
          }

@@ -23,7 +23,7 @@ public class InterstitialAdviewAds extends InterstitialAdsInter {
         return AdsContext.AdsType.ADS_TYPE_INTERSTITIAL;
     }
     @Override
-    public void interstitialAds(final Context context, final Handler handler,final String key, final boolean score){
+    public void interstitialAds(final Context context, final Handler handler,final String key, final boolean score,final int count){
         try {
             LogUtil.i("adview interstitialAds req");
             AdViewInstlManager.getInstance(context).requestAd(context, key, new AdViewInstlListener() {
@@ -54,11 +54,11 @@ public class InterstitialAdviewAds extends InterstitialAdsInter {
 
                 @Override
                 public void onAdFailed(String s) {
-                    noAds(context,handler, AdsContext.AdsFrom.ADVIEW);
+                    noAds(context,handler, AdsContext.AdsFrom.ADVIEW,count);
                 }
             });
         } catch (Throwable e) {
-            noAds(context,handler, AdsContext.AdsFrom.ADVIEW);
+            noAds(context,handler, AdsContext.AdsFrom.ADVIEW,count);
             LogUtil.e(e);
         }
     }

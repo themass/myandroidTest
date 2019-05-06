@@ -101,6 +101,7 @@ public class AdsContext {
         AdsFrom from;
         boolean score;
         Context context;
+        public int count=0;
         public AdsMsgObj(Context context,AdsType type,AdsShowStatus status,AdsFrom from){
             this.type = type;
             this.status = status;
@@ -115,6 +116,15 @@ public class AdsContext {
             this.score=score;
             this.context = context;
         }
+        public boolean addCount(){
+            count = count+1;
+            LogUtil.i("count="+count);
+            if(count>=2){
+                return false;
+            }
+            return true;
+        }
+
     }
 
     public static HandlerThread adsMsgThread = new HandlerThread("ads_msg_back");
@@ -123,18 +133,18 @@ public class AdsContext {
     }
     // 3/5
     public static boolean rateShow(){
-        if(showCount++>10){
+        if(showCount++>8){
             return false;
         }
         if(UserLoginUtil.isVIP3()){
             int i = Md5.getRandom(Constants.maxRate);
-            return i<=1;
+            return i<=2;
         }else if(UserLoginUtil.isVIP2()){
             int i = Md5.getRandom(Constants.maxRate);
             return i<=3;
         }else if(UserLoginUtil.isVIP()){
             int i = Md5.getRandom(Constants.maxRate);
-            return i<=5;
+            return i<=4;
         }else{
             int i = Md5.getRandom(Constants.maxRate);
             return i<=Constants.PROBABILITY;
@@ -162,26 +172,40 @@ public class AdsContext {
         return AdsContext.Categrey.values()[(num)%size];
     }
     public static void showRand(Context context, AdsContext.Categrey cate){
-        if (AdsContext.rateShow() && Constants.MYPOOL.equals(Constants.NetWork.uc)) {
-            boolean gdt = PreferenceUtils.getPrefBoolean(context,Constants.AD_GDT_SWITCH,true);
-            if(SystemUtils.isZH(context) && gdt && context instanceof  Activity){
-                int index = Md5.getRandom(Constants.gdtInterlist.size());
-                GdtInterManger gdtInterManger = new GdtInterManger((Activity) context,null,Constants.gdtInterlist.get(index));
-                gdtInterManger.showAd();
-            }else{
-                AdsManager.getInstans().showInterstitialAds(context, cate, false);
+        if(AdsContext.rateShow()) {
+            if (Constants.MYPOOL.equals(Constants.NetWork.uc)) {
+                boolean gdt = PreferenceUtils.getPrefBoolean(context, Constants.AD_GDT_SWITCH, true);
+                if (SystemUtils.isZH(context) && gdt && context instanceof Activity) {
+                    int index = Md5.getRandom(Constants.gdtInterlist.size());
+                    GdtInterManger gdtInterManger = new GdtInterManger((Activity) context, null, Constants.gdtInterlist.get(index));
+                    gdtInterManger.showAd();
+                } else {
+                    AdsManager.getInstans().showInterstitialAds(context, cate, false);
+                }
+            } else {
+                int vpnCount = AdsContext.getVpnClick(context);
+                if(Md5.getRandom(Constants.maxRate)>5 ||vpnCount>5){
+                    AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.CATEGREY_VPN3, false, AdsContext.AdsFrom.MOBVISTA);
+                }else {
+                    AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.CATEGREY_VPN3, false, AdsContext.AdsFrom.MOBVISTA,1);
+                }
             }
         }
     }
+    public static void showRand2(Context context, AdsContext.Categrey cate){
+        if(AdsContext.rateShow()) {
+            AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.CATEGREY_VPN3, false, AdsContext.AdsFrom.MOBVISTA,1);
+        }
+    }
     public static void vpnClick(Context context){
-        String key =Constants.CLICK_KEY+DateUtils.format(new Date(),DateUtils.DATE_FORMAT_MM);
+        String key =Constants.CLICK_KEY+DateUtils.format(new Date(),DateUtils.DATE_MM_FORMAT);
         int vpnCount = PreferenceUtils.getPrefInt(context,key,0);
-        LogUtil.i("vpnCount="+vpnCount);
+        LogUtil.i("key="+key+"   vpnCount="+vpnCount);
         vpnCount=vpnCount>100?100:++vpnCount;
         PreferenceUtils.setPrefInt(context,key,vpnCount);
     }
     public static int getVpnClick(Context context){
-        String key =Constants.CLICK_KEY+DateUtils.format(new Date(),DateUtils.DATE_FORMAT_MM);
+        String key =Constants.CLICK_KEY+DateUtils.format(new Date(),DateUtils.DATE_MM_FORMAT);
         return  PreferenceUtils.getPrefInt(context,key,0);
     }
 }
