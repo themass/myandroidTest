@@ -14,6 +14,8 @@ public class DateUtils {
     public static final String DATETIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
     public static final String DATE_FORMAT_MM = "MMddHHmm";
     public static final String DATE_FORMAT = "yyyyMMdd";
+    public static final String DATE_MM_FORMAT = "yyyyMM";
+
     private static final long ONE_MINUTE = 60000L;
     private static final long ONE_HOUR = 3600000L;
 

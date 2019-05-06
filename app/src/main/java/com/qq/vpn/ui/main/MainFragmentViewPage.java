@@ -125,7 +125,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
             if (Constants.APP_GOOGLE.equals(MyApplication.getInstance().uc)) {
                 int vpnCount = AdsContext.getVpnClick(this);
                 float traf = PreferenceUtils.getPrefFloat(this, Constants.TRAF_KEY, 0);
-                if (vpnCount > 3 && traf > 30) {
+                if (vpnCount > 2 && traf > 25) {
                     AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false);
                 } else {
                     boolean perm = PermissionHelper.checkPermission(this, PermissionHelper.READ_PHONE_STATE);

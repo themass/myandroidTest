@@ -135,116 +135,114 @@
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/javaPrecompile" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/jniLibs" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/manifests" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/merged-not-compiled-resources" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/multi-dex" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/prebuild" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/proguard-rules" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/processing-tools" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/res" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/res_stripped" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/rs" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/shaders" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/splits-support" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/symbols" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/tmp" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/transforms" />
       <excludeFolder url="file://$MODULE_DIR$/build/outputs" />
-      <excludeFolder url="file://$MODULE_DIR$/build/reports" />
       <excludeFolder url="file://$MODULE_DIR$/build/tmp" />
     </content>
     <orderEntry type="jdk" jdkName="Android API 26 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="Gradle: com.github.chrisbanes:PhotoView-2.1.3" level="project" />
-    <orderEntry type="library" name="Gradle: __local_aars__:D.\work\myworkspace\sspacee-sex\app\libs\gson-2.2.4.jar:unspecified@jar" level="project" />
-    <orderEntry type="library" name="Gradle: com.google.android.gms:play-services-basement-15.0.1" level="project" />
-    <orderEntry type="library" name="Gradle: __local_aars__:D.\work\gradle-5.1.1-all\caches\transforms-1\files-1.1\library-1.0.8.aar\0c4975f6ff6bfa60d9dfa579dd45c526:unspecified@jar" level="project" />
-    <orderEntry type="library" name="Gradle: com.google.android.gms:play-services-ads-base-15.0.1" level="project" />
-    <orderEntry type="library" name="Gradle: __local_aars__:D.\work\gradle-5.1.1-all\caches\transforms-1\files-1.1\mintegral_alphab.aar\17c42c05ef639fd11a3f3f8c344820d2:unspecified@jar" level="project" />
-    <orderEntry type="library" name="Gradle: __local_aars__:D.\work\gradle-5.1.1-all\caches\transforms-1\files-1.1\mintegral_interstitialvideo.aar\ef03d2442706324ec00c15baaae48cdc:unspecified@jar" level="project" />
-    <orderEntry type="library" scope="TEST" name="Gradle: com.android.support:multidex-1.0.1" level="project" />
-    <orderEntry type="library" name="Gradle: com.google.android.gms:play-services-ads-lite-15.0.1" level="project" />
-    <orderEntry type="library" name="Gradle: com.android.support:multidex-1.0.2" level="project" />
-    <orderEntry type="library" name="Gradle: com.github.lawloretienne:imagegallery-0.1.0" level="project" />
-    <orderEntry type="library" name="Gradle: com.android.support:support-media-compat-26.1.0" level="project" />
-    <orderEntry type="library" name="Gradle: com.android.support:support-annotations:26.1.0@jar" level="project" />
-    <orderEntry type="library" name="Gradle: com.android.support:support-v4-26.1.0" level="project" />
-    <orderEntry type="library" name="Gradle: com.github.bumptech.glide:okhttp3-integration:4.0.0@jar" level="project" />
-    <orderEntry type="library" name="Gradle: __local_aars__:D.\work\gradle-5.1.1-all\caches\transforms-1\files-1.1\mintegral_playercommon.aar\1941266d5bcd9df6c81bd3773d2c418f:unspecified@jar" level="project" />
-    <orderEntry type="library" name="Gradle: __local_aars__:D.\work\myworkspace\sspacee-sex\app\libs\volley.jar:unspecified@jar" level="project" />
-    <orderEntry type="library" name="Gradle: com.android.support:recyclerview-v7-26.1.0" level="project" />
-    <orderEntry type="library" name="Gradle: org.greenrobot:greendao:3.2.2@jar" level="project" />
-    <orderEntry type="library" name="Gradle: __local_aars__:D.\work\gradle-5.1.1-all\caches\transforms-1\files-1.1\mintegral_mtgjscommon.aar\8be08c342c8e55066340ef31665cdc4e:unspecified@jar" level="project" />
-    <orderEntry type="library" name="Gradle: __local_aars__:D.\work\gradle-5.1.1-all\caches\transforms-1\files-1.1\mintegral_appwallext.aar\81145718247de96746fbae0413138a8d:unspecified@jar" level="project" />
-    <orderEntry type="library" name="Gradle: android.arch.lifecycle:common:1.0.0@jar" level="project" />
-    <orderEntry type="library" name="Gradle: com.android.support:support-vector-drawable-26.1.0" level="project" />
-    <orderEntry type="library" name="Gradle: com.android.support:support-core-ui-26.1.0" level="project" />
-    <orderEntry type="library" scope="TEST" name="Gradle: com.android.support:multidex-instrumentation-1.0.2" level="project" />
-    <orderEntry type="library" name="Gradle: com.google.android.gms:play-services-ads-15.0.1" level="project" />
-    <orderEntry type="library" name="Gradle: com.github.bumptech.glide:gifdecoder:4.0.0@jar" level="project" />
-    <orderEntry type="library" name="Gradle: com.android.support:support-core-utils-26.1.0" level="project" />
-    <orderEntry type="library" name="Gradle: org.greenrobot:eventbus:3.0.0@jar" level="project" />
-    <orderEntry type="library" name="Gradle: com.squareup.okhttp3:logging-interceptor:3.9.0@jar" level="project" />
-    <orderEntry type="library" name="Gradle: com.google.android.gms:play-services-tasks-15.0.1" level="project" />
-    <orderEntry type="library" name="Gradle: com.google.android.gms:play-services-places-placereport-15.0.1" level="project" />
-    <orderEntry type="library" name="Gradle: com.android.support:cardview-v7-26.1.0" level="project" />
-    <orderEntry type="library" name="Gradle: com.android.support:customtabs-26.1.0" level="project" />
-    <orderEntry type="library" name="Gradle: __local_aars__:D.\work\myworkspace\sspacee-sex\app\libs\commons-io-2.4.jar:unspecified@jar" level="project" />
-    <orderEntry type="library" name="Gradle: com.android.support:design-26.1.0" level="project" />
-    <orderEntry type="library" name="Gradle: com.github.bumptech.glide:disklrucache:4.0.0@jar" level="project" />
-    <orderEntry type="library" name="Gradle: __local_aars__:D.\work\myworkspace\sspacee-sex\app\libs\commons-codec.jar:unspecified@jar" level="project" />
-    <orderEntry type="library" name="Gradle: com.google.android.gms:play-services-plus-15.0.1" level="project" />
-    <orderEntry type="library" name="Gradle: pl.droidsonroids.gif:android-gif-drawable-1.2.6" level="project" />
-    <orderEntry type="library" name="Gradle: __local_aars__:D.\work\myworkspace\sspacee-sex\app\libs\play-services_aar_adapter.jar:unspecified@jar" level="project" />
-    <orderEntry type="library" name="Gradle: com.jakewharton:butterknife-8.8.1" level="project" />
-    <orderEntry type="library" name="Gradle: __local_aars__:D.\work\gradle-5.1.1-all\caches\transforms-1\files-1.1\mintegral_mtgdownloads.aar\ce274d111f3c981bb032b356dc403348:unspecified@jar" level="project" />
-    <orderEntry type="library" name="Gradle: __local_aars__:D.\work\gradle-5.1.1-all\caches\transforms-1\files-1.1\mintegral_videojs.aar\07847c8ad0833fe9482100c6d1e9ba80:unspecified@jar" level="project" />
-    <orderEntry type="library" name="Gradle: com.sothree.slidinguppanel:library-3.3.1" level="project" />
-    <orderEntry type="library" name="Gradle: __local_aars__:D.\work\gradle-5.1.1-all\caches\transforms-1\files-1.1\mintegral_chinacommon.aar\e36f70e8db302a1e17ebd44549e37262:unspecified@jar" level="project" />
-    <orderEntry type="library" name="Gradle: jp.co.cyberagent.android.gpuimage:gpuimage-library-1.4.1" level="project" />
-    <orderEntry type="library" name="Gradle: com.android.support:animated-vector-drawable-26.1.0" level="project" />
-    <orderEntry type="library" name="Gradle: __local_aars__:D.\work\gradle-5.1.1-all\caches\transforms-1\files-1.1\mintegral_mtgnative.aar\652264e49d0c57ab9cf044efcb9870ba:unspecified@jar" level="project" />
-    <orderEntry type="library" name="Gradle: __local_aars__:D.\work\myworkspace\sspacee-sex\app\libs\android-query-full.0.26.7.jar:unspecified@jar" level="project" />
-    <orderEntry type="library" name="Gradle: com.github.bumptech.glide:annotations:4.0.0@jar" level="project" />
-    <orderEntry type="library" name="Gradle: __local_aars__:D.\work\gradle-5.1.1-all\caches\transforms-1\files-1.1\radarview-1.0.2.aar\d3efa10ef672052d7f7b656e4fd55a92:unspecified@jar" level="project" />
-    <orderEntry type="library" name="Gradle: __local_aars__:D.\work\myworkspace\sspacee-sex\app\libs\Baidu_MobAds_SDK_aar_adapter.jar:unspecified@jar" level="project" />
-    <orderEntry type="library" name="Gradle: com.squareup.okio:okio:1.13.0@jar" level="project" />
-    <orderEntry type="library" name="Gradle: com.android.support:transition-26.1.0" level="project" />
-    <orderEntry type="library" name="Gradle: com.jakewharton:butterknife-annotations:8.8.1@jar" level="project" />
-    <orderEntry type="library" name="Gradle: com.android.support:appcompat-v7-26.1.0" level="project" />
-    <orderEntry type="library" name="Gradle: com.android.support:support-fragment-26.1.0" level="project" />
-    <orderEntry type="library" name="Gradle: android.arch.core:common:1.0.0@jar" level="project" />
-    <orderEntry type="library" name="Gradle: com.umeng.analytics:analytics:6.1.4@jar" level="project" />
-    <orderEntry type="library" name="Gradle: com.google.android.gms:play-services-base-15.0.1" level="project" />
-    <orderEntry type="library" name="Gradle: com.github.JakeWharton:ViewPagerIndicator-2.4.1" level="project" />
-    <orderEntry type="library" name="Gradle: __local_aars__:D.\work\gradle-5.1.1-all\caches\transforms-1\files-1.1\mintegral_nativeex.aar\4659182fae8602bd454835d58ac5a059:unspecified@jar" level="project" />
-    <orderEntry type="library" name="Gradle: jp.wasabeef:glide-transformations-2.0.2" level="project" />
-    <orderEntry type="library" name="Gradle: __local_aars__:D.\work\myworkspace\sspacee-sex\app\libs\gdt_mob_release.jar:unspecified@jar" level="project" />
-    <orderEntry type="library" name="Gradle: com.google.android.gms:play-services-gass-15.0.1" level="project" />
-    <orderEntry type="library" name="Gradle: __local_aars__:D.\work\gradle-5.1.1-all\caches\transforms-1\files-1.1\open_ad_sdk.aar\38f9dfb2980e8263f9371f6623d0dc69:unspecified@jar" level="project" />
-    <orderEntry type="library" name="Gradle: com.android.support:support-compat-26.1.0" level="project" />
-    <orderEntry type="library" name="Gradle: com.google.android.gms:play-services-ads-identifier-15.0.1" level="project" />
-    <orderEntry type="library" name="Gradle: __local_aars__:D.\work\gradle-5.1.1-all\caches\transforms-1\files-1.1\Baidu_MobAds_SDK.aar\93091fdcb514cfe61dc1e7ed31434b1e:unspecified@jar" level="project" />
-    <orderEntry type="library" name="Gradle: __local_aars__:D.\work\gradle-5.1.1-all\caches\transforms-1\files-1.1\mintegral_videofeeds.aar\8f813fd2d3b033c002dfc8d32456683f:unspecified@jar" level="project" />
-    <orderEntry type="library" name="Gradle: __local_aars__:D.\work\myworkspace\sspacee-sex\app\libs\InMobi.jar:unspecified@jar" level="project" />
-    <orderEntry type="library" name="Gradle: __local_aars__:D.\work\gradle-5.1.1-all\caches\transforms-1\files-1.1\mintegral_reward.aar\6068c244d31aa3f7c8efd80cbf93fa44:unspecified@jar" level="project" />
-    <orderEntry type="library" name="Gradle: __local_aars__:D.\work\gradle-5.1.1-all\caches\transforms-1\files-1.1\MAT-moat-mobile-app-kit.aar\3ddd09652afe32d39df0852e22387dcd:unspecified@jar" level="project" />
-    <orderEntry type="library" name="Gradle: com.lahm.library:easy-protector-release-1.1.0" level="project" />
-    <orderEntry type="library" name="Gradle: com.jakewharton:disklrucache:2.0.2@jar" level="project" />
-    <orderEntry type="library" name="Gradle: com.google.android.gms:play-services-location-15.0.1" level="project" />
-    <orderEntry type="library" name="Gradle: __local_aars__:D.\work\gradle-5.1.1-all\caches\transforms-1\files-1.1\mintegral_interstitial.aar\2e55fe789d6f470896be1b398d9d92fd:unspecified@jar" level="project" />
-    <orderEntry type="library" name="Gradle: __local_aars__:D.\work\myworkspace\sspacee-sex\app\libs\httpcore-4.2.5.jar:unspecified@jar" level="project" />
-    <orderEntry type="library" name="Gradle: __local_aars__:D.\work\myworkspace\sspacee-sex\app\libs\adview-android-ass-3.9.8.jar:unspecified@jar" level="project" />
-    <orderEntry type="library" name="Gradle: com.squareup.okhttp3:okhttp:3.9.0@jar" level="project" />
-    <orderEntry type="library" name="Gradle: com.squareup.picasso:picasso:2.5.2@jar" level="project" />
-    <orderEntry type="library" name="Gradle: com.android.support:support-v13-26.1.0" level="project" />
-    <orderEntry type="library" name="Gradle: __local_aars__:D.\work\gradle-5.1.1-all\caches\transforms-1\files-1.1\mintegral_interactiveads.aar\3a268b37f8ad16a028e6ddc8c717bc97:unspecified@jar" level="project" />
-    <orderEntry type="library" name="Gradle: __local_aars__:D.\work\gradle-5.1.1-all\caches\transforms-1\files-1.1\mintegral_appwall.aar\4c8f00de617f211ed9911f12c6dd66c4:unspecified@jar" level="project" />
-    <orderEntry type="library" name="Gradle: org.greenrobot:greendao-api:3.2.2@jar" level="project" />
-    <orderEntry type="library" name="Gradle: __local_aars__:D.\work\gradle-5.1.1-all\caches\transforms-1\files-1.1\mintegral_offerwall.aar\4d0649a7a5656090ef959b9a7ee02104:unspecified@jar" level="project" />
-    <orderEntry type="library" name="Gradle: com.github.bumptech.glide:glide:4.0.0@jar" level="project" />
-    <orderEntry type="library" name="Gradle: com.google.android.gms:play-services-audience-15.0.1" level="project" />
-    <orderEntry type="library" name="Gradle: __local_aars__:D.\work\gradle-5.1.1-all\caches\transforms-1\files-1.1\mintegral_videocommon.aar\fb2ce4df7515a1c31a3dbfe2f57adf43:unspecified@jar" level="project" />
-    <orderEntry type="library" name="Gradle: com.android.support:percent-26.1.0" level="project" />
-    <orderEntry type="library" name="Gradle: com.android.support:palette-v7-26.1.0" level="project" />
-    <orderEntry type="library" name="Gradle: com.romainpiel.shimmer:library-1.4.0" level="project" />
-    <orderEntry type="library" name="Gradle: android.arch.lifecycle:runtime-1.0.0" level="project" />
+    <orderEntry type="library" name="com.android.support:multidex-1.0.2" level="project" />
+    <orderEntry type="library" name="__local_aars__:D.\work\gradle-4.9-all\gradle-4.9\caches\transforms-1\files-1.1\mintegral_mtgjscommon.aar\04742accbf6e9b03da452188e53a3f16:unspecified@jar" level="project" />
+    <orderEntry type="library" scope="TEST" name="com.android.support:multidex-1.0.1" level="project" />
+    <orderEntry type="library" name="__local_aars__:D.\work\myworkspace\sspacee-sex\app\libs\volley.jar:unspecified@jar" level="project" />
+    <orderEntry type="library" name="com.android.support:support-media-compat-26.1.0" level="project" />
+    <orderEntry type="library" name="__local_aars__:D.\work\myworkspace\sspacee-sex\app\libs\InMobi.jar:unspecified@jar" level="project" />
+    <orderEntry type="library" name="com.android.support:recyclerview-v7-26.1.0" level="project" />
+    <orderEntry type="library" name="android.arch.lifecycle:common:1.0.0@jar" level="project" />
+    <orderEntry type="library" name="__local_aars__:D.\work\gradle-4.9-all\gradle-4.9\caches\transforms-1\files-1.1\mintegral_common.aar\da87d25a7918ea10faac7c969c775695:unspecified@jar" level="project" />
+    <orderEntry type="library" name="com.github.bumptech.glide:disklrucache:4.0.0@jar" level="project" />
+    <orderEntry type="library" name="android.arch.lifecycle:runtime-1.0.0" level="project" />
+    <orderEntry type="library" name="com.android.support:appcompat-v7-26.1.0" level="project" />
+    <orderEntry type="library" name="com.google.android.gms:play-services-ads-base-15.0.1" level="project" />
+    <orderEntry type="library" name="com.android.support:support-annotations:26.1.0@jar" level="project" />
+    <orderEntry type="library" name="__local_aars__:D.\work\gradle-4.9-all\gradle-4.9\caches\transforms-1\files-1.1\mintegral_appwallext.aar\9be38ffab726eaecaada75cd4a0c9a11:unspecified@jar" level="project" />
+    <orderEntry type="library" name="com.romainpiel.shimmer:library-1.4.0" level="project" />
+    <orderEntry type="library" name="__local_aars__:D.\work\myworkspace\sspacee-sex\app\libs\gdt_mob_release.jar:unspecified@jar" level="project" />
+    <orderEntry type="library" name="com.android.support:support-core-ui-26.1.0" level="project" />
+    <orderEntry type="library" name="jp.wasabeef:glide-transformations-2.0.2" level="project" />
+    <orderEntry type="library" name="__local_aars__:D.\work\gradle-4.9-all\gradle-4.9\caches\transforms-1\files-1.1\Baidu_MobAds_SDK.aar\9c11335d0478aa2c5d072bccd83a0160:unspecified@jar" level="project" />
+    <orderEntry type="library" name="__local_aars__:D.\work\gradle-4.9-all\gradle-4.9\caches\transforms-1\files-1.1\open_ad_sdk.aar\66ba2dab5fdda74bec7d47768a3babeb:unspecified@jar" level="project" />
+    <orderEntry type="library" name="__local_aars__:D.\work\gradle-4.9-all\gradle-4.9\caches\transforms-1\files-1.1\mintegral_videocommon.aar\f1a795cbd2ddd641b9272ed0ed3c605c:unspecified@jar" level="project" />
+    <orderEntry type="library" name="__local_aars__:D.\work\gradle-4.9-all\gradle-4.9\caches\transforms-1\files-1.1\radarview-1.0.2.aar\1d818c3701a37eb5902459b5f4d0f412:unspecified@jar" level="project" />
+    <orderEntry type="library" name="com.google.android.gms:play-services-basement-15.0.1" level="project" />
+    <orderEntry type="library" name="__local_aars__:D.\work\myworkspace\sspacee-sex\app\libs\Baidu_MobAds_SDK_aar_adapter.jar:unspecified@jar" level="project" />
+    <orderEntry type="library" name="__local_aars__:D.\work\myworkspace\sspacee-sex\app\libs\gson-2.2.4.jar:unspecified@jar" level="project" />
+    <orderEntry type="library" name="org.greenrobot:greendao:3.2.2@jar" level="project" />
+    <orderEntry type="library" name="__local_aars__:D.\work\gradle-4.9-all\gradle-4.9\caches\transforms-1\files-1.1\mintegral_mtgdownloads.aar\1fef834ae8e62c80a32e0fa1dfecf838:unspecified@jar" level="project" />
+    <orderEntry type="library" name="com.lahm.library:easy-protector-release-1.1.0" level="project" />
+    <orderEntry type="library" name="com.android.support:support-compat-26.1.0" level="project" />
+    <orderEntry type="library" name="com.jakewharton:butterknife-annotations:8.8.1@jar" level="project" />
+    <orderEntry type="library" name="com.github.lawloretienne:imagegallery-0.1.0" level="project" />
+    <orderEntry type="library" name="com.github.bumptech.glide:okhttp3-integration:4.0.0@jar" level="project" />
+    <orderEntry type="library" name="com.github.bumptech.glide:glide:4.0.0@jar" level="project" />
+    <orderEntry type="library" name="android.arch.core:common:1.0.0@jar" level="project" />
+    <orderEntry type="library" name="com.android.support:customtabs-26.1.0" level="project" />
+    <orderEntry type="library" name="com.github.bumptech.glide:annotations:4.0.0@jar" level="project" />
+    <orderEntry type="library" name="__local_aars__:D.\work\myworkspace\sspacee-sex\app\libs\adview-android-ass-3.9.8.jar:unspecified@jar" level="project" />
+    <orderEntry type="library" name="__local_aars__:D.\work\gradle-4.9-all\gradle-4.9\caches\transforms-1\files-1.1\mintegral_reward.aar\ffebc90d609c3d63f7e072186a5a6c35:unspecified@jar" level="project" />
+    <orderEntry type="library" name="com.github.JakeWharton:ViewPagerIndicator-2.4.1" level="project" />
+    <orderEntry type="library" scope="TEST" name="com.android.support:multidex-instrumentation-1.0.2" level="project" />
+    <orderEntry type="library" name="com.google.android.gms:play-services-location-15.0.1" level="project" />
+    <orderEntry type="library" name="com.squareup.picasso:picasso:2.5.2@jar" level="project" />
+    <orderEntry type="library" name="com.google.android.gms:play-services-gass-15.0.1" level="project" />
+    <orderEntry type="library" name="com.google.android.gms:play-services-audience-15.0.1" level="project" />
+    <orderEntry type="library" name="__local_aars__:D.\work\gradle-4.9-all\gradle-4.9\caches\transforms-1\files-1.1\mintegral_offerwall.aar\b0ab1a7d67e188d3443c6e81c3ab9557:unspecified@jar" level="project" />
+    <orderEntry type="library" name="__local_aars__:D.\work\gradle-4.9-all\gradle-4.9\caches\transforms-1\files-1.1\mintegral_videofeeds.aar\2be679f30efe7789e3b56065454bc362:unspecified@jar" level="project" />
+    <orderEntry type="library" name="com.android.support:support-v13-26.1.0" level="project" />
+    <orderEntry type="library" name="com.android.support:transition-26.1.0" level="project" />
+    <orderEntry type="library" name="com.android.support:design-26.1.0" level="project" />
+    <orderEntry type="library" name="org.greenrobot:eventbus:3.0.0@jar" level="project" />
+    <orderEntry type="library" name="pl.droidsonroids.gif:android-gif-drawable-1.2.6" level="project" />
+    <orderEntry type="library" name="com.squareup.okhttp3:logging-interceptor:3.9.0@jar" level="project" />
+    <orderEntry type="library" name="org.greenrobot:greendao-api:3.2.2@jar" level="project" />
+    <orderEntry type="library" name="com.google.android.gms:play-services-base-15.0.1" level="project" />
+    <orderEntry type="library" name="com.android.support:palette-v7-26.1.0" level="project" />
+    <orderEntry type="library" name="__local_aars__:D.\work\gradle-4.9-all\gradle-4.9\caches\transforms-1\files-1.1\mintegral_interactiveads.aar\211a248198c185fffe0e23eb4be2a9a9:unspecified@jar" level="project" />
+    <orderEntry type="library" name="com.google.android.gms:play-services-places-placereport-15.0.1" level="project" />
+    <orderEntry type="library" name="__local_aars__:D.\work\gradle-4.9-all\gradle-4.9\caches\transforms-1\files-1.1\mintegral_appwall.aar\2fcd503b441f18c5adf186d526b0a205:unspecified@jar" level="project" />
+    <orderEntry type="library" name="com.android.support:support-fragment-26.1.0" level="project" />
+    <orderEntry type="library" name="com.github.chrisbanes:PhotoView-2.1.3" level="project" />
+    <orderEntry type="library" name="__local_aars__:D.\work\myworkspace\sspacee-sex\app\libs\play-services_aar_adapter.jar:unspecified@jar" level="project" />
+    <orderEntry type="library" name="com.android.support:support-vector-drawable-26.1.0" level="project" />
+    <orderEntry type="library" name="__local_aars__:D.\work\gradle-4.9-all\gradle-4.9\caches\transforms-1\files-1.1\MAT-moat-mobile-app-kit.aar\a864b4f212cbcf8f1852b6c399f10008:unspecified@jar" level="project" />
+    <orderEntry type="library" name="__local_aars__:D.\work\gradle-4.9-all\gradle-4.9\caches\transforms-1\files-1.1\mintegral_alphab.aar\35392299ccca52967b8d597fbd43577c:unspecified@jar" level="project" />
+    <orderEntry type="library" name="com.google.android.gms:play-services-plus-15.0.1" level="project" />
+    <orderEntry type="library" name="com.jakewharton:disklrucache:2.0.2@jar" level="project" />
+    <orderEntry type="library" name="com.android.support:support-core-utils-26.1.0" level="project" />
+    <orderEntry type="library" name="com.squareup.okio:okio:1.13.0@jar" level="project" />
+    <orderEntry type="library" name="__local_aars__:D.\work\gradle-4.9-all\gradle-4.9\caches\transforms-1\files-1.1\mintegral_interstitial.aar\6653c20b5c7d106225546dfeac46503f:unspecified@jar" level="project" />
+    <orderEntry type="library" name="__local_aars__:D.\work\gradle-4.9-all\gradle-4.9\caches\transforms-1\files-1.1\mintegral_playercommon.aar\e6829a87443883afa9b1d7868165c4ca:unspecified@jar" level="project" />
+    <orderEntry type="library" name="__local_aars__:D.\work\myworkspace\sspacee-sex\app\libs\android-query-full.0.26.7.jar:unspecified@jar" level="project" />
+    <orderEntry type="library" name="com.android.support:percent-26.1.0" level="project" />
+    <orderEntry type="library" name="__local_aars__:D.\work\myworkspace\sspacee-sex\app\libs\commons-codec.jar:unspecified@jar" level="project" />
+    <orderEntry type="library" name="__local_aars__:D.\work\myworkspace\sspacee-sex\app\libs\commons-io-2.4.jar:unspecified@jar" level="project" />
+    <orderEntry type="library" name="com.sothree.slidinguppanel:library-3.3.1" level="project" />
+    <orderEntry type="library" name="com.jakewharton:butterknife-8.8.1" level="project" />
+    <orderEntry type="library" name="com.google.android.gms:play-services-tasks-15.0.1" level="project" />
+    <orderEntry type="library" name="com.google.android.gms:play-services-ads-15.0.1" level="project" />
+    <orderEntry type="library" name="__local_aars__:D.\work\gradle-4.9-all\gradle-4.9\caches\transforms-1\files-1.1\mintegral_videojs.aar\ffea8f927f08518713a3b807ba6e5274:unspecified@jar" level="project" />
+    <orderEntry type="library" name="com.github.bumptech.glide:gifdecoder:4.0.0@jar" level="project" />
+    <orderEntry type="library" name="jp.co.cyberagent.android.gpuimage:gpuimage-library-1.4.1" level="project" />
+    <orderEntry type="library" name="com.google.android.gms:play-services-ads-lite-15.0.1" level="project" />
+    <orderEntry type="library" name="__local_aars__:D.\work\myworkspace\sspacee-sex\app\libs\httpcore-4.2.5.jar:unspecified@jar" level="project" />
+    <orderEntry type="library" name="com.umeng.analytics:analytics:6.1.4@jar" level="project" />
+    <orderEntry type="library" name="com.android.support:support-v4-26.1.0" level="project" />
+    <orderEntry type="library" name="com.google.android.gms:play-services-ads-identifier-15.0.1" level="project" />
+    <orderEntry type="library" name="com.android.support:animated-vector-drawable-26.1.0" level="project" />
+    <orderEntry type="library" name="__local_aars__:D.\work\gradle-4.9-all\gradle-4.9\caches\transforms-1\files-1.1\mintegral_interstitialvideo.aar\4a059bf6625c537fd4137d236a30574e:unspecified@jar" level="project" />
+    <orderEntry type="library" name="com.squareup.okhttp3:okhttp:3.9.0@jar" level="project" />
+    <orderEntry type="library" name="__local_aars__:D.\work\gradle-4.9-all\gradle-4.9\caches\transforms-1\files-1.1\mintegral_mtgnative.aar\fe88a9ece66cb13dc8dd6da1677dae20:unspecified@jar" level="project" />
+    <orderEntry type="library" name="__local_aars__:D.\work\gradle-4.9-all\gradle-4.9\caches\transforms-1\files-1.1\mintegral_nativeex.aar\3ac8e56ebc48f8b473ef903d9041a564:unspecified@jar" level="project" />
+    <orderEntry type="library" name="com.android.support:cardview-v7-26.1.0" level="project" />
+    <orderEntry type="library" name="__local_aars__:D.\work\gradle-4.9-all\gradle-4.9\caches\transforms-1\files-1.1\library-1.0.8.aar\ad717abce8b7ae4da4d11d4383559fca:unspecified@jar" level="project" />
   </component>
 </module>

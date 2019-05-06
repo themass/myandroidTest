@@ -23,7 +23,7 @@ public class BannerAdviewAds extends BannerInter {
         return AdsContext.AdsType.ADS_TYPE_BANNER;
     }
     @Override
-    public void bannerAds(final FragmentActivity context, final ViewGroup group,final String key, final Handler handler){
+    public void bannerAds(final FragmentActivity context, final ViewGroup group, final String key, final Handler handler){
         final View view = AdViewBannerManager.getInstance(context).getAdViewLayout(context, key);
         if (view != null) {
             ViewGroup parent = (ViewGroup) view.getParent();
@@ -60,7 +60,7 @@ public class BannerAdviewAds extends BannerInter {
 
                 @Override
                 public void onAdFailed(String s) {
-                    noAds(context,handler, AdsContext.AdsFrom.ADVIEW);
+                    noAds(context,handler, AdsContext.AdsFrom.ADVIEW,0);
 //                    group.setVisibility(View.GONE);
                     mobvBanner.bannerAds(context,group,key,handler);
                 }
@@ -68,17 +68,16 @@ public class BannerAdviewAds extends BannerInter {
                 @Override
                 public void onAdReady(String s) {
                    readyAds(context,handler, AdsContext.AdsFrom.ADVIEW);
-
                 }
             });
         } catch (Throwable e) {
-            noAds(context,handler, AdsContext.AdsFrom.ADVIEW);
+            noAds(context,handler, AdsContext.AdsFrom.ADVIEW,0);
             mobvBanner.bannerAds(context,group,key,handler);
             LogUtil.e(e);
          }
     }
     @Override
-    public void bannerExit(FragmentActivity context,ViewGroup group,final String key){
+    public void bannerExit(FragmentActivity context, ViewGroup group, final String key){
         LogUtil.i("bannerExit:"+key);
         group.removeView(group.findViewWithTag(key));
     }

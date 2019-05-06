@@ -2,16 +2,12 @@ package com.qq.yewu.ads.adview;
 
 import android.content.Context;
 import android.os.Handler;
-import android.widget.Toast;
 
 import com.kyview.interfaces.AdViewInstlListener;
 import com.kyview.manager.AdViewInstlManager;
 import com.qq.common.util.LogUtil;
 import com.qq.yewu.ads.base.AdsContext;
 import com.qq.yewu.ads.base.InterstitialAdsInter;
-import com.qq.fq2.R;
-import com.qq.myapp.constant.Constants;
-import com.qq.myapp.task.ScoreTask;
 
 /**
  * Created by dengt on 2017/9/20.
@@ -23,7 +19,7 @@ public class InterstitialAdviewAds extends InterstitialAdsInter {
         return AdsContext.AdsType.ADS_TYPE_INTERSTITIAL;
     }
     @Override
-    public void interstitialAds(final Context context, final Handler handler,final String key, final boolean score){
+    public void interstitialAds(final Context context, final Handler handler,final String key, final boolean score,final int count){
         try {
             LogUtil.i("adview interstitialAds req");
             AdViewInstlManager.getInstance(context).requestAd(context, key, new AdViewInstlListener() {
@@ -50,20 +46,15 @@ public class InterstitialAdviewAds extends InterstitialAdsInter {
                     readyAds(context,handler, AdsContext.AdsFrom.ADVIEW);
                     AdViewInstlManager.getInstance(context)
                             .showAd(context, key);
-                    if(score){
-                        String msg = context.getResources().getString(R.string.tab_fb_click) + Constants.ADS_SHOW_SCORE;
-                        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
-                        ScoreTask.start(context, Constants.ADS_SHOW_SCORE);
-                    }
                 }
 
                 @Override
                 public void onAdFailed(String s) {
-                    noAds(context,handler, AdsContext.AdsFrom.ADVIEW);
+                    noAds(context,handler, AdsContext.AdsFrom.ADVIEW,count);
                 }
             });
         } catch (Throwable e) {
-            noAds(context,handler, AdsContext.AdsFrom.ADVIEW);
+            noAds(context,handler, AdsContext.AdsFrom.ADVIEW,count);
             LogUtil.e(e);
         }
     }

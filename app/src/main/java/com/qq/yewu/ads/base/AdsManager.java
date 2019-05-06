@@ -12,6 +12,7 @@ import com.mintegral.msdk.MIntegralSDK;
 import com.mintegral.msdk.out.MIntegralSDKFactory;
 import com.qq.common.util.EventBusUtil;
 import com.qq.common.util.LogUtil;
+import com.qq.myapp.base.MyApplication;
 import com.qq.myapp.constant.Constants;
 import com.qq.yewu.ads.adview.AdviewAdsManager;
 import com.qq.yewu.ads.adview.BannerAdviewAds;
@@ -19,9 +20,9 @@ import com.qq.yewu.ads.adview.InterstitialAdviewAds;
 import com.qq.yewu.ads.adview.NativeAdviewAds;
 import com.qq.yewu.ads.adview.SplashAdviewAds;
 import com.qq.yewu.ads.adview.VideoAdviewAds;
-import com.qq.myapp.base.MyApplication;
 import com.qq.yewu.ads.config.BannerAdsNext;
 import com.qq.yewu.ads.config.LaunchAdsNext;
+import com.qq.yewu.ads.mobvista.BannerMobvAds;
 import com.qq.yewu.ads.mobvista.InterstitialMobvAds;
 import com.qq.yewu.ads.mobvista.SplashMobvAds;
 
@@ -50,6 +51,7 @@ public class AdsManager {
         LogUtil.i("AdsManager initok");
         AdviewAdsManager.init(context);
         bannerDescMap.put(AdsContext.AdsFrom.ADVIEW,new BannerAdviewAds());
+        bannerDescMap.put(AdsContext.AdsFrom.MOBVISTA,new BannerMobvAds());
         interstitialMap.put(AdsContext.AdsFrom.ADVIEW,new InterstitialAdviewAds());
         interstitialMap.put(AdsContext.AdsFrom.MOBVISTA,new InterstitialMobvAds());
         splashMap.put(AdsContext.AdsFrom.ADVIEW,new SplashAdviewAds());
@@ -65,7 +67,6 @@ public class AdsManager {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        InMobiSdk.init(context, Constants.INMOBI_ACCOUNTID, consentObject);
         InMobiSdk.init(context, Constants.INMOBI_ACCOUNTID, consentObject);
         final MIntegralSDK sdk = MIntegralSDKFactory.getMIntegralSDK();
         Map<String, String> map = sdk.getMTGConfigurationMap(Constants.Mob_APPID, Constants.Mob_APPKEY);
@@ -88,35 +89,44 @@ public class AdsManager {
             if(obj.type== AdsContext.AdsType.ADS_TYPE_SPREAD && obj.status== AdsContext.AdsShowStatus.ADS_NO_MSG){
                 EventBusUtil.getEventBus().post(new LaunchAdsNext(obj.from));
             }
-            if(obj.type== AdsContext.AdsType.ADS_TYPE_INTERSTITIAL && obj.status== AdsContext.AdsShowStatus.ADS_NO_MSG && obj.from== AdsContext.AdsFrom.ADVIEW){
-                showInterstitialAds(obj.context,AdsContext.Categrey.CATEGREY_VPN,false,AdsContext.AdsFrom.MOBVISTA);
+            if(obj.type== AdsContext.AdsType.ADS_TYPE_INTERSTITIAL && obj.status== AdsContext.AdsShowStatus.ADS_NO_MSG && obj.from== AdsContext.AdsFrom.ADVIEW && obj.addCount()){
+                showInterstitialAds(obj.context,AdsContext.Categrey.CATEGREY_VPN,false,AdsContext.AdsFrom.MOBVISTA,obj.count);
+            }else if(obj.type== AdsContext.AdsType.ADS_TYPE_INTERSTITIAL && obj.status== AdsContext.AdsShowStatus.ADS_NO_MSG && obj.from== AdsContext.AdsFrom.MOBVISTA && obj.addCount()){
+                showInterstitialAds(obj.context,AdsContext.Categrey.CATEGREY_VPN3,false,AdsContext.AdsFrom.ADVIEW,obj.count);
             }
             super.handleMessage(msg);
         }
     };
-    public void showBannerAds(FragmentActivity context, ViewGroup group,AdsContext.Categrey categrey){
+    public void offerAds(Context context){
+    }
+    public void showBannerAds(FragmentActivity context, ViewGroup group, AdsContext.Categrey categrey){
             bannerDescMap.get(AdsContext.AdsFrom.ADVIEW).bannerAds(context,group,categrey.key,mHandle);
     }
-    public void exitBannerAds(FragmentActivity context, ViewGroup group,AdsContext.Categrey categrey){
+    public void showBannerAds(FragmentActivity context, ViewGroup group, AdsContext.Categrey categrey, AdsContext.AdsFrom from){
+        bannerDescMap.get(from).bannerAds(context,group,categrey.key,mHandle);
+    }
+    public void exitBannerAds(FragmentActivity context, ViewGroup group, AdsContext.Categrey categrey){
         bannerDescMap.get(AdsContext.AdsFrom.ADVIEW).bannerExit(context,group,categrey.key);
     }
     public void showSplashAds(AdsContext.AdsFrom from ,FragmentActivity context, RelativeLayout group, RelativeLayout skipView){
         splashMap.get(from).launchAds(context,group,skipView,mHandle);
     }
+
     public void exitSplashAds(Context context,RelativeLayout group){
         splashMap.get(AdsContext.AdsFrom.ADVIEW).lanchExit(context,group);
     }
 
     public void showInterstitialAds(Context context, AdsContext.Categrey categrey, boolean score){
-        interstitialMap.get(AdsContext.AdsFrom.ADVIEW).interstitialAds(context,mHandle,categrey.key,score);
+        interstitialMap.get(AdsContext.AdsFrom.ADVIEW).interstitialAds(context,mHandle,categrey.key,score,0);
     }
     public void showInterstitialAds(Context context, AdsContext.Categrey categrey, boolean score,AdsContext.AdsFrom from){
-        interstitialMap.get(from).interstitialAds(context,mHandle,categrey.key,score);
+        interstitialMap.get(from).interstitialAds(context,mHandle,categrey.key,score,0);
+    }
+    public void showInterstitialAds(Context context, AdsContext.Categrey categrey, boolean score,AdsContext.AdsFrom from,int count){
+        interstitialMap.get(from).interstitialAds(context,mHandle,categrey.key,score,count);
     }
     public void exitInterstitialAds(Context context,AdsContext.Categrey categrey){
         interstitialMap.get(AdsContext.AdsFrom.ADVIEW).interstitialExit(context,categrey.key);
-    }
-    public void offerAds(Context context){
     }
     public  void showNative(Context context, NativeAdsReadyListener listener,AdsContext.Categrey categrey){
         nativeMap.get(AdsContext.AdsFrom.ADVIEW).showNative(context,mHandle,listener,categrey.key);

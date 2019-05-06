@@ -9,31 +9,33 @@ import android.os.Message;
  */
 
 public abstract class AdsEventAdaptor {
-    public void noAds(Context context, Handler handler, com.qq.yewu.ads.base.AdsContext.AdsFrom from){
+    public void noAds(Context context, Handler handler, AdsContext.AdsFrom from,int count){
         Message msg = Message.obtain();
-        msg.obj = new com.qq.yewu.ads.base.AdsContext.AdsMsgObj(context,getAdsType(), com.qq.yewu.ads.base.AdsContext.AdsShowStatus.ADS_NO_MSG, from);
+        AdsContext.AdsMsgObj o = new AdsContext.AdsMsgObj(context,getAdsType(), AdsContext.AdsShowStatus.ADS_NO_MSG, from);
+        o.count=count;
+        msg.obj = o;
         handler.sendMessage(msg);
     }
-    public void readyAds(Context context, Handler handler, com.qq.yewu.ads.base.AdsContext.AdsFrom from){
+    public void readyAds(Context context,Handler handler,AdsContext.AdsFrom from){
         Message msg = Message.obtain();
-        msg.obj = new com.qq.yewu.ads.base.AdsContext.AdsMsgObj(context,getAdsType(), com.qq.yewu.ads.base.AdsContext.AdsShowStatus.ADS_READY_MSG, from);
+        msg.obj = new AdsContext.AdsMsgObj(context,getAdsType(), AdsContext.AdsShowStatus.ADS_READY_MSG, from);
         handler.sendMessage(msg);
     }
-    public void clickAds(Context context, Handler handler, com.qq.yewu.ads.base.AdsContext.AdsFrom from){
+    public void clickAds(Context context, Handler handler, AdsContext.AdsFrom from){
         Message msg = Message.obtain();
-        msg.obj = new com.qq.yewu.ads.base.AdsContext.AdsMsgObj(context,getAdsType(), com.qq.yewu.ads.base.AdsContext.AdsShowStatus.ADS_CLICK_MSG, from);
+        msg.obj = new AdsContext.AdsMsgObj(context,getAdsType(), AdsContext.AdsShowStatus.ADS_CLICK_MSG, from);
         handler.sendMessage(msg);
     }
-    public void displayAds(Context context, Handler handler, com.qq.yewu.ads.base.AdsContext.AdsFrom from){
+    public void displayAds(Context context, Handler handler, AdsContext.AdsFrom from){
         Message msg = Message.obtain();
-        msg.obj = new com.qq.yewu.ads.base.AdsContext.AdsMsgObj(context,getAdsType(), com.qq.yewu.ads.base.AdsContext.AdsShowStatus.ADS_PRESENT_MSG, from);
+        msg.obj = new AdsContext.AdsMsgObj(context,getAdsType(), AdsContext.AdsShowStatus.ADS_PRESENT_MSG, from);
         handler.sendMessage(msg);
     }
-    public void closeAds(Context context, Handler handler, com.qq.yewu.ads.base.AdsContext.AdsFrom from){
+    public void closeAds(Context context, Handler handler, AdsContext.AdsFrom from){
         Message msg = Message.obtain();
-        msg.obj = new com.qq.yewu.ads.base.AdsContext.AdsMsgObj(context,getAdsType(), com.qq.yewu.ads.base.AdsContext.AdsShowStatus.ADS_DISMISS_MSG, from);
+        msg.obj = new AdsContext.AdsMsgObj(context,getAdsType(), AdsContext.AdsShowStatus.ADS_DISMISS_MSG, from);
         handler.sendMessage(msg);
     }
 
-    protected abstract com.qq.yewu.ads.base.AdsContext.AdsType getAdsType();
+    protected abstract AdsContext.AdsType getAdsType();
 }

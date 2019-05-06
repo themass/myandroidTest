@@ -194,8 +194,8 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="error_lookup_failed">Failed. Please try agin or select another one</string>
     <string name="error_unreachable">Failed. Please try agin or select another one</string>
     <string name="error_peer_auth_failed">Verifying gateway authentication failed.</string>
-    <string name="error_auth_failed">Maybe daily Traffic has reached limit, upgrade VIP.</string>
-    <string name="error_auth_failed2">Maybe daily anonymous traffic reached limit，please login </string>
+    <string name="error_auth_failed">Daily trff over, upgrade VIP.</string>
+    <string name="error_auth_failed2">Daily anonymous trff over，please login </string>
     <string name="error_assessment_failed">Security assessment failed.</string>
     <string name="error_generic">Failed. Please try agin or select another one.</string>
     <string name="vpn_not_supported_title">VPN not supported</string>
@@ -233,8 +233,7 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="save_img">save image</string>
     <string name="menu_btn_donation">Upgrade VIP</string>
     <string name="login_first">login first</string>
-    <string name="chose_first">Please select route,No display after login</string>
     <string name="menu_copy_qq">QQ Copied OK</string>
-
+    <string name="chose_first">Upgrade VIP，remove ADS</string>
 
 </resources>

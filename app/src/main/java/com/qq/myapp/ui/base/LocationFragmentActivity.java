@@ -63,7 +63,7 @@ public class LocationFragmentActivity extends BaseFragmentActivity implements Fa
         if(o!=null){
             interCategrey = (AdsContext.Categrey)o;
         }
-        AdsContext.showRand(this,AdsContext.getNext());
+        AdsContext.showRand2(this,AdsContext.getNext());
         String title = null;
         Serializable name = getIntent().getSerializableExtra(TITLE);
         if (name instanceof String) {

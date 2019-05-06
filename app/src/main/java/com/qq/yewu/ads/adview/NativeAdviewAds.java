@@ -18,19 +18,19 @@ import java.util.List;
  * Created by dengt on 2017/9/21.
  */
 
-public class NativeAdviewAds extends NativeAdsInter{
+public class NativeAdviewAds extends NativeAdsInter {
     @Override
     protected AdsContext.AdsType getAdsType(){
         return AdsContext.AdsType.ADS_TYPE_NATIVE;
     }
     @Override
-    public  void showNative(final Context context, final Handler handler, final NativeAdsReadyListener listener,String key) {
+    public  void showNative(final Context context, final Handler handler, final NativeAdsReadyListener listener, String key) {
         try {
             AdViewNativeManager.getInstance(context).requestAd(context, key, 2, new AdViewNativeListener() {
 
                 @Override
                 public void onAdFailed(String s) {
-                    noAds(context,handler, AdsContext.AdsFrom.ADVIEW);
+                    noAds(context,handler, AdsContext.AdsFrom.ADVIEW,0);
                  }
 
                 @Override
@@ -47,7 +47,7 @@ public class NativeAdviewAds extends NativeAdsInter{
                 }
             }); //设置原生回调接口
         } catch (Throwable e) {
-            noAds(context,handler, AdsContext.AdsFrom.ADVIEW);
+            noAds(context,handler, AdsContext.AdsFrom.ADVIEW,0);
             LogUtil.e("原声广告fail：", e);
         }
     }
