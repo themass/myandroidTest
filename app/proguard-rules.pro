@@ -353,3 +353,5 @@ public static java.lang.String TABLENAME;
 
 -keepattributes Signature
 -keepattributes *Annotation*
+
+-keep class com.android.vending.billing.**

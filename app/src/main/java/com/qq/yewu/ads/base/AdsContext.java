@@ -136,17 +136,15 @@ public class AdsContext {
         if(showCount++>8){
             return false;
         }
+        int i = Md5.getRandom(Constants.maxRate);
+        LogUtil.i("i=---"+i);
         if(UserLoginUtil.isVIP3()){
-            int i = Md5.getRandom(Constants.maxRate);
-            return i<=2;
+            return i<=1;
         }else if(UserLoginUtil.isVIP2()){
-            int i = Md5.getRandom(Constants.maxRate);
-            return i<=3;
+            return i<=2;
         }else if(UserLoginUtil.isVIP()){
-            int i = Md5.getRandom(Constants.maxRate);
-            return i<=4;
+            return i<=3;
         }else{
-            int i = Md5.getRandom(Constants.maxRate);
             return i<=Constants.PROBABILITY;
         }
 
@@ -193,9 +191,9 @@ public class AdsContext {
         }
     }
     public static void showRand2(Context context, AdsContext.Categrey cate){
-//        if(AdsContext.rateShow()&&AdsContext.rateShow()) {
+        if(AdsContext.rateShow()) {
             AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.CATEGREY_VPN3, false, AdsContext.AdsFrom.MOBVISTA,1);
-//        }
+        }
     }
     public static void vpnClick(Context context){
         String key =Constants.CLICK_KEY+ DateUtils.format(new Date(),DateUtils.DATE_MM_FORMAT);
