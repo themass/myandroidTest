@@ -283,7 +283,7 @@ public class Constants {
 
     public static final String Mob_APPID="107991";
     public static final String Mob_APPKEY="f1f0a8637166a0459402b9de3c88a93f";
-    public static final String Mob_UNIT_REWARD="87733";
+    public static final String Mob_UNIT_REWARD="88395";
     public static final String Mob_UNIT_INTV="88397";
 
     public static final String Mob_UNIT_BANNER1="88400";
@@ -291,6 +291,8 @@ public class Constants {
     public static final String Mob_UNIT_BANNER3="88398";
 
     public static final String Mob_UNIT_WALL="64480";
+
+    public static final String Mob_UNIT_FEED="89430";
 
     public static final String Mob_UNIT_SPLASH="88396";
     public static final String Mob_UNIT_SPLASH_KAY="Mob_UNIT_SPLASH_KAY";

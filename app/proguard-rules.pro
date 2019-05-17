@@ -388,3 +388,14 @@ public static java.lang.String TABLENAME;
 -keep public class io.vov.vitamio.VitamioLicense { *; }
 -keep public class io.vov.vitamio.Vitamio { *; }
 -keep public class io.vov.vitamio.MediaMetadataRetriever { *; }
+
+
+-keepattributes Signature
+-keepattributes *Annotation*
+-keep class com.mintegral.** {*; }
+-keep interface com.mintegral.** {*; }
+-keep class android.support.v4.** { *; }
+-dontwarn com.mintegral.**
+-keep class **.R$* { public static final int mintegral*; }
+-keep class com.alphab.** {*; }
+-keep interface com.alphab.** {*; }

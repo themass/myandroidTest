@@ -20,6 +20,7 @@ import com.sspacee.common.util.Utils;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.ads.base.GdtNativeManager;
+import com.sspacee.yewu.ads.mobvista.FeedImgMobvAds;
 import com.sspacee.yewu.ads.reward.AdmobRewardManger;
 import com.sspacee.yewu.ads.reward.BaseRewardManger;
 import com.timeline.myapp.data.AdsPopStrategy;
@@ -61,12 +62,14 @@ public class VideoShowActivity extends AppCompatActivity implements GdtNativeMan
     ViewGroup natvieView;
     private String url;
     public BaseRewardManger admobRewardManger;
+    public FeedImgMobvAds feedImgMobvAds;
     GdtNativeManager gdtNativeManager = new GdtNativeManager(this,Constants.FIRST_AD_POSITION,Constants.FIRST_AD_POSITION,Constants.ITEMS_PER_AD_BANNER);
     public void onload(HashMap<Integer, NativeExpressADView> mAdViewPositionMap){
         if(!CollectionUtils.isEmpty(mAdViewPositionMap)){
             gdtNativeManager.showAds(Constants.FIRST_AD_POSITION,natvieView);
         }else{
-            AdsManager.getInstans().showBannerAds(this, natvieView, AdsContext.Categrey.CATEGREY_VPN2);
+            feedImgMobvAds.load(this,natvieView);
+//            AdsManager.getInstans().showBannerAds(this, natvieView, AdsContext.Categrey.CATEGREY_VPN2);
         }
     }
     @Override
@@ -90,8 +93,12 @@ public class VideoShowActivity extends AppCompatActivity implements GdtNativeMan
         ImagePhotoLoad.loadCommonImg(this,vo.img,jzVideo.thumbImageView);
         jzVideo.setJzUserAction(new MyUserActionStandard());
         ivFavorite.initSrc(vo.actionUrl);
+        feedImgMobvAds = new FeedImgMobvAds();
+        feedImgMobvAds.init(this);
         if(AdsContext.rateShow()){
             gdtNativeManager.loadDataVideoDetail(this);
+        }else{
+            feedImgMobvAds.load(this,natvieView);
         }
         Uri uri = Uri.parse(url);
         if(!(uri.getPath().endsWith(".m3u8")||uri.getPath().endsWith(".mp4"))){
@@ -99,6 +106,7 @@ public class VideoShowActivity extends AppCompatActivity implements GdtNativeMan
         }
         HistUtil.addFavorite(this,vo.toHistVo(Constants.FavoriteType.VIDEO));
         admobRewardManger = new BaseRewardManger(this,this);
+
     }
     @OnClick(R.id.iv_favorite)
     public void favoriteClick(View view) {

@@ -120,7 +120,7 @@ public class AdsContext {
     }
     // 3/5
     public static boolean rateShow(){
-        if(showCount++>10){
+        if(showCount++>15){
             return false;
         }
         if(UserLoginUtil.isVIP3()){
@@ -159,23 +159,27 @@ public class AdsContext {
         return AdsContext.Categrey.values()[(num)%size];
     }
     public static void showRand(Context context, AdsContext.Categrey cate){
-            boolean gdt = PreferenceUtils.getPrefBoolean(context,Constants.AD_GDT_SWITCH,true);
-            if(SystemUtils.isZH(context) && gdt && context instanceof  Activity){
+        if(rateShow()) {
+            boolean gdt = PreferenceUtils.getPrefBoolean(context, Constants.AD_GDT_SWITCH, true);
+            if (SystemUtils.isZH(context) && gdt && context instanceof Activity) {
                 int index = Md5.getRandom(Constants.gdtInterlist.size());
-                GdtInterManger gdtInterManger = new GdtInterManger((Activity) context,null,Constants.gdtInterlist.get(index));
+                GdtInterManger gdtInterManger = new GdtInterManger((Activity) context, null, Constants.gdtInterlist.get(index));
                 gdtInterManger.showAd();
-            }else{
+            } else {
                 AdsManager.getInstans().showInterstitialAds(context, cate, false);
             }
+        }
     }
     public static void showRand(Context context){
-        boolean gdt = PreferenceUtils.getPrefBoolean(context,Constants.AD_GDT_SWITCH,true);
-        if(SystemUtils.isZH(context) && gdt && context instanceof  Activity){
-            int index = Md5.getRandom(Constants.gdtInterlist.size());
-            GdtInterManger gdtInterManger = new GdtInterManger((Activity) context,null,Constants.gdtInterlist.get(index));
-            gdtInterManger.showAd();
-        }else{
-            AdsManager.getInstans().showInterstitialAds(context, getNext(), false);
+        if(rateShow()) {
+            boolean gdt = PreferenceUtils.getPrefBoolean(context, Constants.AD_GDT_SWITCH, true);
+            if (SystemUtils.isZH(context) && gdt && context instanceof Activity) {
+                int index = Md5.getRandom(Constants.gdtInterlist.size());
+                GdtInterManger gdtInterManger = new GdtInterManger((Activity) context, null, Constants.gdtInterlist.get(index));
+                gdtInterManger.showAd();
+            } else {
+                AdsManager.getInstans().showInterstitialAds(context, getNext(), false);
+            }
         }
     }
 //    public static void vpnClick(Context context){
