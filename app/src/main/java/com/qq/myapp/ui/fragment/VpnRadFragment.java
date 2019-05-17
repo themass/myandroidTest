@@ -267,6 +267,7 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
             }
             job = new StatChangeJob(mService.getState(), mService.getErrorState(), mService.getImcState());
             mHandler.post(job);
+            mHandler.postDelayed(vpnCheck,Constants.VPN_CHECK_TIME);
         }
 
     }
@@ -455,15 +456,16 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
 
         @Override
         public void run() {
-            mHandler.removeCallbacks(vpnCheck);
             hasStart = false;
             LogUtil.i("vpn stateChanged stateChanged " + state + "  ;errorState=" + errorState + " ;imcState=" + imcState);
             if (hasError()) {
+                mHandler.removeCallbacks(vpnCheck);
                 imgError();
                 return;
             }
             switch (state) {
                 case CONNECTED:
+                    mHandler.removeCallbacks(vpnCheck);
                     AdsContext.vpnClick(getActivity());
                     StaticDataUtil.add(Constants.VPN_STATUS,1);
                     imgConn();
@@ -473,12 +475,15 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
                     break;
                 case DISCONNECTING:
 //                    imgAnim();
+                    mHandler.removeCallbacks(vpnCheck);
                     break;
                 case DISABLED:
+                    mHandler.removeCallbacks(vpnCheck);
                     imgNormal();
                     StaticDataUtil.del(Constants.VPN_STATUS);
                     break;
                 default:
+                    mHandler.removeCallbacks(vpnCheck);
                     imgError();
                     StaticDataUtil.del(Constants.VPN_STATUS);
                     break;

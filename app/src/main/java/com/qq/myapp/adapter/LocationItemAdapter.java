@@ -97,7 +97,18 @@ public class LocationItemAdapter extends BaseRecyclerViewAdapter<LocationItemAda
         }else if((position==data.size()-1)&&index==0){
             holder.rvAds.setVisibility(View.VISIBLE);
             AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN2, AdsContext.AdsFrom.MOBVISTA);
-        }else{
+        }else  if(Constants.BANNER_ADS_POS1.contains(position)&&index==1){
+            if(position%2==1){
+                holder.rvAds.setVisibility(View.VISIBLE);
+                AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN,AdsContext.AdsFrom.MOBVISTA);
+            }else{
+                holder.rvAds.setVisibility(View.VISIBLE);
+                AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN3,AdsContext.AdsFrom.MOBVISTA);
+            }
+        }else if((position==data.size()-1)&&index==1){
+            holder.rvAds.setVisibility(View.VISIBLE);
+            AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN, AdsContext.AdsFrom.MOBVISTA);
+        } else{
             holder.rvAds.removeAllViews();
             holder.rvAds.setVisibility(View.GONE);
         }

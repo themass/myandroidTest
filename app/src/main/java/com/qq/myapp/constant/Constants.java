@@ -46,6 +46,8 @@ public class Constants {
     public static final String LOCATION_FLAG = "LOCATION_FLAG";
     public static final String LOCATION_FLAG_COUNT = "LOCATION_FLAG_COUNT";
     public static final List<Integer> BANNER_ADS_POS = Arrays.asList(1,6,17,26);
+    public static final List<Integer> BANNER_ADS_POS1 = Arrays.asList(3,10);
+
     public static final String sortType = "type";
     public static final String sortCountry = "ename";
     public static final String sortASC = "asc";
@@ -205,19 +207,19 @@ public class Constants {
     public static final Long INMOBI_APPKEY=1555588600038l;
 
 
-    public static final String Mob_APPID="114042";
+    public static final String Mob_APPID="114279";
     public static final String Mob_APPKEY="f1f0a8637166a0459402b9de3c88a93f";
-    public static final String Mob_UNIT_REWARD="87735";
-    public static final String Mob_UNIT_INTV="88138";
+    public static final String Mob_UNIT_REWARD="88846";
+    public static final String Mob_UNIT_INTV="88839";
 
-    public static final String Mob_UNIT_BANNER1="88137";
-    public static final String Mob_UNIT_BANNER2="88136";
-    public static final String Mob_UNIT_BANNER3="88135";
-    public static final String Mob_UNIT_BANNER="88134";
+    public static final String Mob_UNIT_BANNER1="88845";
+    public static final String Mob_UNIT_BANNER2="88844";
+    public static final String Mob_UNIT_BANNER3="88843";
+    public static final String Mob_UNIT_BANNER="88842";
 
-    public static final String Mob_UNIT_WALL="88139";
+    public static final String Mob_UNIT_WALL="88840";
 
-    public static final String Mob_UNIT_SPLASH="88133";
+    public static final String Mob_UNIT_SPLASH="88838";
     public static final String Mob_UNIT_SPLASH_KAY="Mob_UNIT_SPLASH_KAY";
 
 

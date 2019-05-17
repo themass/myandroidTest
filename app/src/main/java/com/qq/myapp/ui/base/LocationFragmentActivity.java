@@ -49,9 +49,7 @@ public class LocationFragmentActivity extends BaseFragmentActivity implements Fa
         toolbarShow = getIntent().getBooleanExtra(TOOLBAR_SHOW, true);
         showInterstitialAds =getIntent().getBooleanExtra(INTERSTITIAL_ADS_SHOW, false);
         needGonebanner = getIntent().getBooleanExtra(BANNER_NEED_GONE, false);
-        if (!scroll) {
-            disableScrollBanner();
-        }
+        disableScrollBanner();
         showToolbar(toolbarShow);
         Class f = (Class) getIntent().getSerializableExtra(FRAGMENT);
         showAds = getIntent().getBooleanExtra(BANNER_ADS_SHOW, false);
