@@ -25,10 +25,10 @@
     <string name="tab_fb_click_fast">点击频率太高，请勿在点击</string>
     <string name="tab_fb_click_wifi">请在断开VPN下使用 </string>
     <!-- Application -->
-    <string name="app_name">FreeVPN</string>
-    <string name="app_name_show">Free</string>
-    <string name="main_activity_name">FreeVPN</string>
-    <string name="toobar_title">Free</string>
+    <string name="app_name">AFree</string>
+    <string name="app_name_show">AFree</string>
+    <string name="main_activity_name">AFree</string>
+    <string name="toobar_title">AFree</string>
     <string name="load">正在加载,请等待。</string>
     <string name="off">关闭</string>
     <string name="on">打开</string>
@@ -130,7 +130,7 @@
     <string name="error_unknown">未知道错误</string>
     <!-- vpn状态改变 -->
     <string name="vpn_bg_click_later">请稍后再试</string>
-    <string name="vpn_bg_click">连接VPN</string>
+    <string name="vpn_bg_click">连接V</string>
     <string name="vpn_bg_error">点击重试</string>
     <string name="vpn_bg_conning">连接..</string>
     <string name="vpn_bg_disconning">断连..</string>
@@ -140,7 +140,7 @@
     <string name="vpn_type_vip2">VIP2</string>
     <string name="vpn_type_vip3">VIP3</string>
     <string name="vpn_type_vip4">VIP4</string>
-    <string name="vpn_remote_status">FreeVPN·</string>
+    <string name="vpn_remote_status">AFree·</string>
     <string name="vpn_remote_on">已连接，点击断开</string>
     <string name="vpn_remote_off">已断开，点击连接</string>
     <string name="vpn_remote_ing">连接中，请等待</string>
@@ -157,7 +157,7 @@
     <string name="about_download_confirm_content">您现在使用的是非WIFI网络，继续下载可能会消耗较多网络流量，是否继续下载？</string>
     <string name="about_download_begin">开始下载</string>
     <string name="about_download_finish">下载完成</string>
-    <string name="about_download_title">正在下FreeVPN</string>
+    <string name="about_download_title">正在下AFree</string>
     <string name="about_download_prepare">正在准备下载</string>
     <string name="about_download_error">文件下载错误</string>
     <string name="about_download_percent">正在下载 %1$s/%2$s</string>
@@ -196,7 +196,6 @@
     <string name="error_peer_auth_failed">鉴权失败.请重试或者换线路</string>
     <string name="error_auth_failed">可能当日流量使用已达上限，请升级VIP</string>
     <string name="error_auth_failed2">可能匿名当日流量使用已达上限，请登陆账号</string>
-
     <string name="error_assessment_failed">安全段错误.</string>
     <string name="error_generic">失败.请重试或者换线路</string>
     <string name="vpn_not_supported_title">不支持VPN</string>

@@ -28,7 +28,7 @@
     <string name="app_name">AFree</string>
     <string name="app_name_show">AFree</string>
     <string name="main_activity_name">AFree</string>
-    <string name="toobar_title">Free</string>
+    <string name="toobar_title">AFree</string>
     <string name="load">正在加载,请等待。</string>
     <string name="off">关闭</string>
     <string name="on">打开</string>

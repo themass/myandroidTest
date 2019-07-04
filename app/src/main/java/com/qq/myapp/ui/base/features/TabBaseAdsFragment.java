@@ -10,6 +10,8 @@ import com.qq.fq2.R;
 import com.qq.myapp.data.AdsPopStrategy;
 import com.qq.myapp.ui.inte.OnBackKeyDownListener;
 import com.qq.vpn.ui.main.MainFragmentViewPage;
+import com.qq.yewu.ads.base.AdsContext;
+import com.qq.yewu.ads.base.AdsManager;
 import com.qq.yewu.ads.reward.AdmobRewardManger;
 
 import butterknife.BindView;
@@ -42,7 +44,8 @@ public abstract class TabBaseAdsFragment extends TabBaseFragment implements OnBa
     }
     @Override
     public void onNoRewardAD(){
-        AdsPopStrategy.clickAdsShowBtn(getActivity());
+        AdsManager.getInstans().showInterstitialAds(getActivity(), AdsContext.Categrey.CATEGREY_VPN1, false,AdsContext.AdsFrom.MOBVISTA,1);
+//        AdsPopStrategy.clickAdsShowBtn(getActivity());
     }
     @Override
     public void onCreate(Bundle savedInstanceState) {
