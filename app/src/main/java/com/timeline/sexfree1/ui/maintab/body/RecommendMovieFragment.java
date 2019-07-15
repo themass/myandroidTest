@@ -8,16 +8,22 @@ import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
 import com.qq.sexfree.R;
+import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.PackageUtils;
 import com.sspacee.yewu.um.MobAgent;
 import com.timeline.myapp.base.MyApplication;
 import com.timeline.myapp.bean.vo.RecommendVo;
 import com.timeline.myapp.constant.Constants;
+import com.timeline.myapp.data.config.ConfigActionEvent;
 import com.timeline.myapp.ui.fragment.AppListFragment;
 import com.timeline.myapp.ui.fragment.RecommendFragment;
 import com.timeline.myapp.ui.fragment.TeleplayChannelFragment;
 import com.timeline.myapp.ui.fragment.VideoChannelListFragment;
+import com.timeline.myapp.ui.fragment.VideoChannelUserListFragment;
 
+
+import java.util.HashMap;
+import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.OnClick;
@@ -70,10 +76,21 @@ public class RecommendMovieFragment extends RecommendFragment {
         if(!checkUserLevel(vo.type)){
             return;
         }
+
         if(vo.param.startsWith(Constants.VIDEO_TV_CHANNEL)){
             TeleplayChannelFragment.startFragment(getActivity(),vo);
         }else{
-            VideoChannelListFragment.startFragment(getActivity(), vo);
+            if(Constants.VIDEO_USER_CHANNEL.equals(vo.actionUrl)){
+                VideoChannelUserListFragment.startFragment(getActivity(),vo);
+            }else if(Constants.VIDEO_LIST_CHANNEL.equals(vo.actionUrl)){
+                Map<String, Object> param = new HashMap<>();
+                param.put(Constants.ADS_SHOW_CONFIG, vo.adsShow);
+                param.put(Constants.ADS_POP_SHOW_CONFIG, vo.adsPopShow);
+                String actionUrl = "videoList://config?channel="+vo.param;
+                EventBusUtil.getEventBus().post(new ConfigActionEvent(getActivity(), actionUrl, vo.title, param));
+            }else{
+                VideoChannelListFragment.startFragment(getActivity(), vo);
+            }
         }
 
         MobAgent.onEventRecommondChannel(getActivity(), vo.title);
