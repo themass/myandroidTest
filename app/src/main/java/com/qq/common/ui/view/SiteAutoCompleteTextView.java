@@ -10,7 +10,7 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import com.qq.common.util.StringUtils;
-import com.qq.ks1.R;
+import com.qq.ks.free1.R;
 
 public class SiteAutoCompleteTextView extends AppCompatAutoCompleteTextView {
     private String[] siteSufixs = new String[]{".com", ".com.cn", ".net", ".org", ".edu", "int", ".cn"};

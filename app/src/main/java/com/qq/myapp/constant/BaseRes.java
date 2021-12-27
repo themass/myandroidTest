@@ -1,6 +1,6 @@
 package com.qq.myapp.constant;
 
-import com.qq.ks1.R;
+import com.qq.ks.free1.R;
 
 import java.util.HashMap;
 import java.util.Map;

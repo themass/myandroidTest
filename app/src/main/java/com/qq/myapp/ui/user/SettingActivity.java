@@ -34,7 +34,7 @@ import com.qq.myapp.data.VersionUpdater;
 import com.qq.myapp.service.LogUploadService;
 import com.qq.myapp.ui.base.WebViewActivity;
 import com.qq.myapp.ui.base.app.BaseSingleActivity;
-import com.qq.ks1.R;
+import com.qq.ks.free1.R;
 
 import java.io.File;
 import java.util.Date;

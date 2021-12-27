@@ -37,7 +37,7 @@ import com.qq.myapp.bean.vo.VersionVo;
 import com.qq.myapp.constant.Constants;
 import com.qq.myapp.data.config.StateUseEvent;
 import com.qq.myapp.data.config.VipDescEvent;
-import com.qq.ks1.R;
+import com.qq.ks.free1.R;
 import com.qq.ks.ui.main.MainFragmentViewPage;
 
 import java.io.File;

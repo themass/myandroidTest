@@ -2,7 +2,7 @@ package com.qq.myapp.constant;
 
 
 
-import com.qq.ks1.R;
+import com.qq.ks.free1.R;
 import com.qq.yewu.ads.adview.AdviewConstant;
 
 import org.strongswan.android.logic.VpnType;

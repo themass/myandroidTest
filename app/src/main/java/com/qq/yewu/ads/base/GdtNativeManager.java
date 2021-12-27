@@ -13,7 +13,7 @@ import com.qq.e.ads.nativ.NativeExpressMediaListener;
 import com.qq.e.comm.constants.AdPatternType;
 import com.qq.e.comm.pi.AdData;
 import com.qq.e.comm.util.AdError;
-import com.qq.ks1.R;
+import com.qq.ks.free1.R;
 import com.qq.myapp.constant.Constants;
 import com.qq.myapp.task.ScoreTask;
 

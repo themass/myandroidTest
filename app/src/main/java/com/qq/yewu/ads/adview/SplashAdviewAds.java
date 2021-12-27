@@ -9,7 +9,7 @@ import android.widget.RelativeLayout;
 import com.kyview.interfaces.AdViewSpreadListener;
 import com.kyview.manager.AdViewSpreadManager;
 import com.qq.common.util.LogUtil;
-import com.qq.ks1.R;
+import com.qq.ks.free1.R;
 import com.qq.yewu.ads.base.AdsContext;
 import com.qq.yewu.ads.base.SplashAdsInter;
 

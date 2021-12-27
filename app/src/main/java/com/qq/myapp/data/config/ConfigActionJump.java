@@ -9,7 +9,7 @@ import com.qq.common.util.ToastUtil;
 import com.qq.myapp.constant.Constants;
 import com.qq.myapp.ui.base.WebViewActivity;
 import com.qq.myapp.ui.config.QuickBrowserConfigActivity;
-import com.qq.ks1.R;
+import com.qq.ks.free1.R;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;

@@ -8,7 +8,7 @@ import android.view.ViewGroup;
 
 import com.qq.myapp.constant.Constants;
 import com.qq.myapp.ui.fragment.RecommendFragment;
-import com.qq.ks1.R;
+import com.qq.ks.free1.R;
 
 /**
  * Created by dengt on 2015/9/1.

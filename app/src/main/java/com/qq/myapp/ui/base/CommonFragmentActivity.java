@@ -9,7 +9,7 @@ import com.qq.yewu.ads.base.AdsContext;
 import com.qq.myapp.ui.base.app.BaseFragmentActivity;
 import com.qq.myapp.ui.inte.FabOpListener;
 import com.qq.myapp.ui.inte.OnBackKeyDownListener;
-import com.qq.ks1.R;
+import com.qq.ks.free1.R;
 
 import java.io.Serializable;
 

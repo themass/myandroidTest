@@ -14,7 +14,7 @@ import com.qq.common.util.LogUtil;
 import com.qq.myapp.data.LocationUtil;
 import com.qq.myapp.data.config.PingEvent;
 import com.qq.myapp.ui.fragment.LocationPageViewFragment;
-import com.qq.ks1.R;
+import com.qq.ks.free1.R;
 
 /**
  * Created by dengt on 2016/3/1.

@@ -31,7 +31,7 @@ import com.qq.myapp.data.UserLoginUtil;
 import com.qq.myapp.data.config.ConfigActionEvent;
 import com.qq.myapp.ui.base.features.BasePullLoadbleFragment;
 import com.qq.myapp.ui.user.LoginActivity;
-import com.qq.ks1.R;
+import com.qq.ks.free1.R;
 
 import java.util.ArrayList;
 import java.util.HashMap;

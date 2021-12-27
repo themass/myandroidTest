@@ -58,7 +58,7 @@ import com.qq.myapp.data.BaseService;
 import com.qq.myapp.data.ConnLogUtil;
 import com.qq.myapp.data.LocationUtil;
 import com.qq.myapp.ui.fragment.LocationPageViewFragment;
-import com.qq.ks1.R;
+import com.qq.ks.free1.R;
 import com.qq.ks.ui.main.MainFragmentViewPage;
 import com.qq.yewu.net.request.CommonResponse;
 

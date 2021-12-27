@@ -20,7 +20,7 @@ import com.qq.myapp.bean.vo.InfoListVo;
 import com.qq.myapp.data.BaseService;
 import com.qq.myapp.ui.base.CommonFragmentActivity;
 import com.qq.myapp.ui.base.features.LoadableFragment;
-import com.qq.ks1.R;
+import com.qq.ks.free1.R;
 import com.viewpagerindicator.TabPageIndicator;
 
 import java.util.ArrayList;

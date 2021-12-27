@@ -13,7 +13,7 @@ import com.bumptech.glide.request.target.DrawableImageViewTarget;
 import com.etiennelawlor.imagegallery.library.adapters.FullScreenImageGalleryAdapter;
 import com.etiennelawlor.imagegallery.library.adapters.ImageGalleryAdapter;
 import com.qq.common.util.LogUtil;
-import com.qq.ks1.R;
+import com.qq.ks.free1.R;
 import com.qq.myapp.adapter.IndexRecommendAdapter;
 import com.qq.myapp.bean.vo.RecommendVo;
 import com.qq.myapp.constant.BaseRes;

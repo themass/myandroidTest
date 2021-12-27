@@ -15,7 +15,7 @@ import com.qq.myapp.bean.vo.NullReturnVo;
 import com.qq.myapp.constant.Constants;
 import com.qq.myapp.data.BaseService;
 import com.qq.myapp.ui.base.app.BaseSingleActivity;
-import com.qq.ks1.R;
+import com.qq.ks.free1.R;
 
 import java.util.regex.Pattern;
 

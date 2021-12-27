@@ -13,7 +13,7 @@ import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
 import android.widget.LinearLayout;
 
-import com.qq.ks1.R;
+import com.qq.ks.free1.R;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;

@@ -12,7 +12,7 @@ import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 
-import com.qq.ks1.R;
+import com.qq.ks.free1.R;
 import com.qq.myapp.base.MyApplication;
 
 import java.util.ArrayList;

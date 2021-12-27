@@ -16,7 +16,7 @@ import com.qq.common.util.SystemUtils;
 import com.qq.common.util.ToastUtil;
 import com.qq.myapp.constant.Constants;
 import com.qq.myapp.ui.base.features.BaseWebViewFragment;
-import com.qq.ks1.R;
+import com.qq.ks.free1.R;
 
 /**
  * Created by dengt on 2016/3/17.

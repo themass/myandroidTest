@@ -35,7 +35,7 @@ import com.qq.myapp.data.config.LogAddTofile;
 import com.qq.myapp.data.config.TabChangeEvent;
 import com.qq.myapp.ui.base.app.BaseDrawerActivity;
 import com.qq.myapp.ui.inte.OnBackKeyDownListener;
-import com.qq.ks1.R;
+import com.qq.ks.free1.R;
 import com.qq.ks.ui.maintab.TabCustomeFragment;
 import com.qq.ks.ui.maintab.VpnFragment;
 

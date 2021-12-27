@@ -11,7 +11,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.qq.common.util.LogUtil;
-import com.qq.ks1.R;
+import com.qq.ks.free1.R;
 
 import java.lang.reflect.Field;
 

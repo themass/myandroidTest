@@ -10,7 +10,7 @@ import android.view.animation.DecelerateInterpolator;
 
 import com.qq.common.util.SystemUtils;
 import com.qq.myapp.adapter.FeedAdapter;
-import com.qq.ks1.R;
+import com.qq.ks.free1.R;
 
 import java.util.HashMap;
 import java.util.List;

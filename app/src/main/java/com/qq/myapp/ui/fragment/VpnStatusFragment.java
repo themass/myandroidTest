@@ -42,7 +42,7 @@ import com.qq.myapp.data.LocationUtil;
 import com.qq.myapp.data.StaticDataUtil;
 import com.qq.myapp.data.UserLoginUtil;
 import com.qq.myapp.data.config.VpnClickEvent;
-import com.qq.ks1.R;
+import com.qq.ks.free1.R;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;

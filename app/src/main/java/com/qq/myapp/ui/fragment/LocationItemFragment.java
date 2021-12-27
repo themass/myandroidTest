@@ -26,7 +26,7 @@ import com.qq.myapp.data.UserLoginUtil;
 import com.qq.myapp.data.config.LocationChooseEvent;
 import com.qq.myapp.data.config.PingEvent;
 import com.qq.myapp.ui.base.features.BasePullLoadbleFragment;
-import com.qq.ks1.R;
+import com.qq.ks.free1.R;
 import com.qq.myapp.ui.user.LoginActivity;
 import com.qq.yewu.ads.base.AdsContext;
 import com.qq.yewu.ads.base.AdsManager;

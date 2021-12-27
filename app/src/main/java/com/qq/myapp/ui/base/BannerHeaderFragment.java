@@ -12,7 +12,7 @@ import com.qq.yewu.ads.base.AdsContext;
 import com.qq.yewu.ads.base.AdsManager;
 import com.qq.myapp.data.UserLoginUtil;
 import com.qq.myapp.data.config.HindBannerEvent;
-import com.qq.ks1.R;
+import com.qq.ks.free1.R;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;

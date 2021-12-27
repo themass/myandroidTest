@@ -7,7 +7,7 @@ import android.view.View;
 
 import com.qq.myapp.ui.base.features.TabBaseAdsFragment;
 import com.qq.myapp.ui.user.AddCustomeInfoActivity;
-import com.qq.ks1.R;
+import com.qq.ks.free1.R;
 import com.qq.ks.ui.maintab.body.RecommendCustomeFragment;
 
 

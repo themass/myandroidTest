@@ -9,7 +9,7 @@ import android.view.ViewGroup;
 
 import com.qq.common.ui.base.BaseFragment;
 import com.qq.common.util.LogUtil;
-import com.qq.ks1.R;
+import com.qq.ks.free1.R;
 
 /**
  * Created by dengt on 2015/9/1.

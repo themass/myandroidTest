@@ -6,11 +6,11 @@ android {
     compileSdkVersion 26
     buildToolsVersion "29.0.2"
     defaultConfig {
-        applicationId "com.qq.ks1"
+        applicationId "com.qq.ks.free1"
         minSdkVersion 16
         targetSdkVersion 26
-        versionCode 1001008020
-        versionName "1.1.8.20"
+        versionCode 1001008021
+        versionName "1.1.8.21"
         // Enabling multidex support.
         multiDexEnabled true
         flavorDimensions "versionCode"

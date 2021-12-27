@@ -23,7 +23,7 @@ import com.qq.myapp.constant.Constants;
 import com.qq.myapp.ui.base.CommonFragmentActivity;
 import com.qq.myapp.ui.base.LocationFragmentActivity;
 import com.qq.myapp.ui.base.features.LoadableFragment;
-import com.qq.ks1.R;
+import com.qq.ks.free1.R;
 import com.qq.yewu.ads.base.AdsContext;
 import com.qq.yewu.ads.base.AdsManager;
 import com.qq.yewu.ads.base.NativeAdsReadyListener;

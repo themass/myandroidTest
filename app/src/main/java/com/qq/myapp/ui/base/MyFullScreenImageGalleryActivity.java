@@ -13,7 +13,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.qq.common.util.ToastUtil;
-import com.qq.ks1.R;
+import com.qq.ks.free1.R;
 import com.qq.myapp.adapter.MyFullScreenImageGalleryAdapter;
 import com.qq.myapp.base.MyApplication;
 import com.qq.myapp.task.SaveImageCallBack;

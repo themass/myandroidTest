@@ -19,7 +19,7 @@ import com.qq.common.util.FileUtils;
 import com.qq.common.util.LogUtil;
 import com.qq.common.util.cache.BitmapLruCache;
 import com.qq.common.util.cache.DiskBasedCacheEx;
-import com.qq.ks1.R;
+import com.qq.ks.free1.R;
 import com.qq.myapp.base.MyApplication;
 
 import java.io.File;

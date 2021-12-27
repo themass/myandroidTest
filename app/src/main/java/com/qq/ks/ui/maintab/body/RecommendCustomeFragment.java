@@ -29,7 +29,7 @@ import com.qq.myapp.data.config.UserLoginEvent;
 import com.qq.myapp.ui.fragment.RecommendFragment;
 import com.qq.myapp.ui.inte.OnBackKeyDownListener;
 import com.qq.myapp.ui.user.AddCustomeInfoActivity;
-import com.qq.ks1.R;
+import com.qq.ks.free1.R;
 import com.qq.ks.ui.main.MainFragmentViewPage;
 
 import org.greenrobot.eventbus.Subscribe;

@@ -24,7 +24,7 @@ import com.qq.myapp.constant.Constants;
 import com.qq.myapp.data.BaseService;
 import com.qq.myapp.ui.base.app.BaseFragmentActivity;
 import com.qq.myapp.ui.base.features.BaseWebViewFragment;
-import com.qq.ks1.R;
+import com.qq.ks.free1.R;
 
 import java.util.HashMap;
 

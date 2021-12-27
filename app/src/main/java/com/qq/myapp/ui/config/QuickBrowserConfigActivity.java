@@ -7,7 +7,7 @@ import android.os.Bundle;
 import com.qq.common.ui.base.LogActivity;
 import com.qq.common.util.PackageUtils;
 import com.qq.yewu.ads.base.AdsContext;
-import com.qq.ks1.R;
+import com.qq.ks.free1.R;
 import com.qq.myapp.constant.Constants;
 import com.qq.myapp.data.UserLoginUtil;
 import com.qq.myapp.ui.base.WebViewActivity;

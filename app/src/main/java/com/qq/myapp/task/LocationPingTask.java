@@ -10,7 +10,7 @@ import com.qq.common.util.LogUtil;
 import com.qq.common.util.StringUtils;
 import com.qq.yewu.net.HttpUtils;
 import com.qq.myapp.bean.vo.LocationVo;
-import com.qq.ks1.R;
+import com.qq.ks.free1.R;
 
 
 /**

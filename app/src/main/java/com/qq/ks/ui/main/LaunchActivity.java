@@ -21,7 +21,7 @@ import com.qq.yewu.ads.base.AdsManager;
 import com.qq.yewu.ads.base.GdtOpenManager;
 import com.qq.yewu.ads.config.LaunchAdsNext;
 import com.qq.yewu.um.MobAgent;
-import com.qq.ks1.R;
+import com.qq.ks.free1.R;
 import com.qq.myapp.constant.Constants;
 import com.qq.myapp.task.LoginTask;
 

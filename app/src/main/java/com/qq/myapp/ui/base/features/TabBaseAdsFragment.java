@@ -6,7 +6,7 @@ import android.view.View;
 import android.view.animation.OvershootInterpolator;
 
 import com.qq.common.util.LogUtil;
-import com.qq.ks1.R;
+import com.qq.ks.free1.R;
 import com.qq.myapp.ui.inte.OnBackKeyDownListener;
 import com.qq.ks.ui.main.MainFragmentViewPage;
 import com.qq.yewu.ads.base.AdsContext;
