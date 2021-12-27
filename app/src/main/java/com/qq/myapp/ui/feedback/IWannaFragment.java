@@ -31,7 +31,7 @@ import com.qq.myapp.ui.base.CommonFragmentActivity;
 import com.qq.myapp.ui.base.features.LoadableFragment;
 import com.qq.myapp.ui.inte.FabOpListener;
 import com.qq.myapp.ui.user.LoginActivity;
-import com.qq.fq2.R;
+import com.qq.ks1.R;
 
 import java.util.ArrayList;
 

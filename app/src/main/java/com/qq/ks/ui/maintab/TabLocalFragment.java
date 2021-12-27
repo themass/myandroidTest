@@ -1,4 +1,4 @@
-package com.qq.vpn.ui.maintab;
+package com.qq.ks.ui.maintab;
 
 
 import android.support.v4.app.Fragment;
@@ -6,7 +6,6 @@ import android.support.v4.app.Fragment;
 import com.qq.myapp.ui.base.BannerHeaderFragment;
 import com.qq.myapp.ui.base.features.TabBaseAdsFragment;
 import com.qq.myapp.ui.fragment.LocationPageViewFragment;
-import com.qq.vpn.ui.maintab.body.RecommendListFragment;
 import com.qq.yewu.ads.base.AdsContext;
 
 

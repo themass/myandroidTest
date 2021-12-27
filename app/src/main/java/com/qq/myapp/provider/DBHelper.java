@@ -5,6 +5,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 
+
 public class DBHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "vpn_db.db";

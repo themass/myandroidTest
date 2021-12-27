@@ -1,4 +1,4 @@
-package com.qq.vpn.ui.maintab.body;
+package com.qq.ks.ui.maintab.body;
 
 
 import android.os.Bundle;
@@ -8,7 +8,7 @@ import android.view.ViewGroup;
 
 import com.qq.myapp.constant.Constants;
 import com.qq.myapp.ui.fragment.RecommendFragment;
-import com.qq.fq2.R;
+import com.qq.ks1.R;
 
 /**
  * Created by dengt on 2015/9/1.

@@ -15,7 +15,7 @@ import com.qq.common.ui.base.BaseFragment;
 import com.qq.common.util.CollectionUtils;
 import com.qq.common.util.EventBusUtil;
 import com.qq.common.util.LogUtil;
-import com.qq.fq2.R;
+import com.qq.ks1.R;
 import com.qq.myapp.bean.vo.LocationVo;
 import com.qq.myapp.data.ImagePhotoLoad;
 import com.qq.myapp.data.UserLoginUtil;

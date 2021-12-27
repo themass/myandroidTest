@@ -11,7 +11,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.Scroller;
 
-import com.qq.fq2.R;
+import com.qq.ks1.R;
 
 
 /**

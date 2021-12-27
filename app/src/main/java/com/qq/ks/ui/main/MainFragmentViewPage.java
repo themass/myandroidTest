@@ -1,4 +1,4 @@
-package com.qq.vpn.ui.main;
+package com.qq.ks.ui.main;
 
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
@@ -15,15 +15,13 @@ import android.widget.TextView;
 
 import com.qq.common.util.SystemUtils;
 import com.qq.myapp.base.MyApplication;
-import com.qq.myapp.data.AdsPopStrategy;
-import com.qq.vpn.ui.maintab.TabLocalFragment;
+import com.qq.ks.ui.maintab.TabLocalFragment;
 import com.qq.common.util.DoubleClickExit;
 import com.qq.common.util.EventBusUtil;
 import com.qq.common.util.LogUtil;
 import com.qq.common.util.PermissionHelper;
 import com.qq.common.util.PreferenceUtils;
 import com.qq.common.util.ToastUtil;
-import com.qq.yewu.ads.reward.AdmobRewardManger;
 import com.qq.yewu.ads.base.AdsContext;
 import com.qq.yewu.ads.base.AdsManager;
 import com.qq.yewu.ads.base.GdtInterManger;
@@ -37,9 +35,9 @@ import com.qq.myapp.data.config.LogAddTofile;
 import com.qq.myapp.data.config.TabChangeEvent;
 import com.qq.myapp.ui.base.app.BaseDrawerActivity;
 import com.qq.myapp.ui.inte.OnBackKeyDownListener;
-import com.qq.fq2.R;
-import com.qq.vpn.ui.maintab.TabCustomeFragment;
-import com.qq.vpn.ui.maintab.VpnFragment;
+import com.qq.ks1.R;
+import com.qq.ks.ui.maintab.TabCustomeFragment;
+import com.qq.ks.ui.maintab.VpnFragment;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;

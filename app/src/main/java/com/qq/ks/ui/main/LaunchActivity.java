@@ -1,4 +1,4 @@
-package com.qq.vpn.ui.main;
+package com.qq.ks.ui.main;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -21,7 +21,7 @@ import com.qq.yewu.ads.base.AdsManager;
 import com.qq.yewu.ads.base.GdtOpenManager;
 import com.qq.yewu.ads.config.LaunchAdsNext;
 import com.qq.yewu.um.MobAgent;
-import com.qq.fq2.R;
+import com.qq.ks1.R;
 import com.qq.myapp.constant.Constants;
 import com.qq.myapp.task.LoginTask;
 
@@ -32,8 +32,6 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
-
-import static com.qq.yewu.ads.adview.AdviewConstant.ADS_ADVIEW_KEY1;
 
 /**
  * Created by dengt on 2016/3/22.

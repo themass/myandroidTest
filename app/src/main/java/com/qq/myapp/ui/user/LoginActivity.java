@@ -10,7 +10,7 @@ import com.qq.e.comm.util.StringUtil;
 import com.qq.common.util.PreferenceUtils;
 import com.qq.common.util.ToastUtil;
 import com.qq.yewu.net.request.CommonResponse;
-import com.qq.fq2.R;
+import com.qq.ks1.R;
 import com.qq.myapp.bean.form.LoginForm;
 import com.qq.myapp.bean.vo.UserInfoVo;
 import com.qq.myapp.constant.Constants;

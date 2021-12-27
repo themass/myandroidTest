@@ -16,7 +16,7 @@ import com.qq.myapp.bean.vo.IWannaVo;
 import com.qq.myapp.constant.Constants;
 import com.qq.myapp.data.UserLoginUtil;
 import com.qq.myapp.task.IWannaLikeTask;
-import com.qq.fq2.R;
+import com.qq.ks1.R;
 
 import java.util.Date;
 import java.util.List;

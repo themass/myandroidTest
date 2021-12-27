@@ -15,7 +15,7 @@ import com.qq.common.util.LogUtil;
 import com.qq.yewu.ads.reward.AdmobRewardManger;
 import com.qq.yewu.ads.base.AdsContext;
 import com.qq.yewu.ads.base.AdsManager;
-import com.qq.fq2.R;
+import com.qq.ks1.R;
 import com.qq.myapp.constant.Constants;
 import com.qq.myapp.data.AdsPopStrategy;
 import com.qq.myapp.data.config.HindBannerEvent;

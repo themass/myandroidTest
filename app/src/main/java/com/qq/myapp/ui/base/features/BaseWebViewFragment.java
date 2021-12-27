@@ -22,7 +22,7 @@ import com.qq.common.ui.view.MyWebView;
 import com.qq.common.util.FileUtils;
 import com.qq.common.util.LogUtil;
 import com.qq.yewu.net.HttpUtils;
-import com.qq.fq2.R;
+import com.qq.ks1.R;
 import com.qq.myapp.base.MyApplication;
 import com.qq.myapp.constant.Constants;
 

@@ -1,4 +1,4 @@
-//package com.qq.vpn.ui.maintab;
+//package com.qq.ks.ui.maintab;
 //
 //
 //import android.support.v4.app.Fragment;
@@ -6,7 +6,7 @@
 //import com.qq.myapp.ui.base.features.TabBaseAdsFragment;
 //import com.qq.myapp.ui.fragment.LocationPageViewFragment;
 //import com.qq.myapp.ui.fragment.VpnStatusFragment;
-//import com.qq.vpn.ui.maintab.body.RecommendListFragment;
+//import com.qq.ks.ui.maintab.body.RecommendListFragment;
 //
 ///**
 // * Created by dengt on 2015/9/1.

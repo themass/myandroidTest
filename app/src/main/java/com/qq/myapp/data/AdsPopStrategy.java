@@ -7,7 +7,7 @@ import com.qq.yewu.ads.base.AdsManager;
 import com.qq.common.util.SystemUtils;
 import com.qq.common.util.ToastUtil;
 import com.qq.myapp.constant.Constants;
-import com.qq.fq2.R;
+import com.qq.ks1.R;
 
 /**
  * Created by dengt on 2017/9/9.

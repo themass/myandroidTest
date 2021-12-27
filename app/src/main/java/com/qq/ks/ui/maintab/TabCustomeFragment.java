@@ -1,4 +1,4 @@
-package com.qq.vpn.ui.maintab;
+package com.qq.ks.ui.maintab;
 
 
 import android.os.Bundle;
@@ -7,8 +7,8 @@ import android.view.View;
 
 import com.qq.myapp.ui.base.features.TabBaseAdsFragment;
 import com.qq.myapp.ui.user.AddCustomeInfoActivity;
-import com.qq.fq2.R;
-import com.qq.vpn.ui.maintab.body.RecommendCustomeFragment;
+import com.qq.ks1.R;
+import com.qq.ks.ui.maintab.body.RecommendCustomeFragment;
 
 
 /**

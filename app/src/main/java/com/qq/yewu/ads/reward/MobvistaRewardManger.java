@@ -6,7 +6,7 @@ import com.mintegral.msdk.out.MTGRewardVideoHandler;
 import com.mintegral.msdk.out.RewardVideoListener;
 import com.qq.common.util.LogUtil;
 import com.qq.common.util.ToastUtil;
-import com.qq.fq2.R;
+import com.qq.ks1.R;
 import com.qq.myapp.constant.Constants;
 import com.qq.myapp.task.ScoreTask;
 

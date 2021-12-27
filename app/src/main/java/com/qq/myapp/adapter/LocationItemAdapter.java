@@ -28,7 +28,7 @@ import com.qq.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.qq.myapp.bean.vo.LocationVo;
 import com.qq.myapp.data.LocationUtil;
 import com.qq.myapp.task.LocationPingTask;
-import com.qq.fq2.R;
+import com.qq.ks1.R;
 import com.qq.yewu.ads.base.GdtNativeManager;
 
 import java.util.List;

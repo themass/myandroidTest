@@ -7,7 +7,7 @@ import com.inmobi.ads.InMobiInterstitial;
 import com.inmobi.ads.listeners.InterstitialAdEventListener;
 import com.qq.common.util.LogUtil;
 import com.qq.common.util.ToastUtil;
-import com.qq.fq2.R;
+import com.qq.ks1.R;
 import com.qq.myapp.constant.Constants;
 import com.qq.myapp.task.ScoreTask;
 

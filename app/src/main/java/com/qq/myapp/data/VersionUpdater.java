@@ -37,8 +37,8 @@ import com.qq.myapp.bean.vo.VersionVo;
 import com.qq.myapp.constant.Constants;
 import com.qq.myapp.data.config.StateUseEvent;
 import com.qq.myapp.data.config.VipDescEvent;
-import com.qq.fq2.R;
-import com.qq.vpn.ui.main.MainFragmentViewPage;
+import com.qq.ks1.R;
+import com.qq.ks.ui.main.MainFragmentViewPage;
 
 import java.io.File;
 import java.util.Date;

@@ -27,7 +27,7 @@ import com.qq.myapp.adapter.base.BasePhotoFlowRecycleViewAdapter;
 import com.qq.myapp.bean.vo.RecommendVo;
 import com.qq.myapp.constant.Constants;
 import com.qq.myapp.data.VersionUpdater;
-import com.qq.fq2.R;
+import com.qq.ks1.R;
 
 import java.util.List;
 

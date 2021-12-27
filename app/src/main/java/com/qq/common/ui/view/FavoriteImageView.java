@@ -4,7 +4,7 @@
 //import android.support.v7.widget.AppCompatImageView;
 //import android.util.AttributeSet;
 //
-//import com.qq.fq2.R;
+//import com.qq.ks1.R;
 //import com.qq.myapp.bean.vo.FavoriteVo;
 //
 //public class FavoriteImageView extends AppCompatImageView  implements FavoriteUtil.GetFavoriteListener, FavoriteUtil.ModFavoriteListener{

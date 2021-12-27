@@ -6,10 +6,9 @@ import android.view.View;
 import android.view.animation.OvershootInterpolator;
 
 import com.qq.common.util.LogUtil;
-import com.qq.fq2.R;
-import com.qq.myapp.data.AdsPopStrategy;
+import com.qq.ks1.R;
 import com.qq.myapp.ui.inte.OnBackKeyDownListener;
-import com.qq.vpn.ui.main.MainFragmentViewPage;
+import com.qq.ks.ui.main.MainFragmentViewPage;
 import com.qq.yewu.ads.base.AdsContext;
 import com.qq.yewu.ads.base.AdsManager;
 import com.qq.yewu.ads.reward.AdmobRewardManger;

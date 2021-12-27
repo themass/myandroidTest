@@ -10,7 +10,7 @@ import com.qq.common.util.Md5;
 import com.qq.common.util.PreferenceUtils;
 import com.qq.common.util.SystemUtils;
 import com.qq.common.util.ToastUtil;
-import com.qq.fq2.R;
+import com.qq.ks1.R;
 import com.qq.myapp.base.MyApplication;
 import com.qq.myapp.constant.Constants;
 import com.qq.myapp.data.AdsPopStrategy;

@@ -6,7 +6,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.PopupMenu;
 
-import com.qq.fq2.R;
+import com.qq.ks1.R;
 
 import java.lang.reflect.Method;
 

@@ -44,7 +44,7 @@ import com.qq.myapp.ui.feedback.FeedbackChooseFragment;
 import com.qq.myapp.ui.fragment.LocationPageViewFragment;
 import com.qq.myapp.ui.user.LoginActivity;
 import com.qq.myapp.ui.user.SettingActivity;
-import com.qq.fq2.R;
+import com.qq.ks1.R;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;

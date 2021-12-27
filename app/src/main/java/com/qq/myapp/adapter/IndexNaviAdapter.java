@@ -16,7 +16,7 @@ import android.widget.TextView;
 import com.qq.common.util.DisplayUtil;
 import com.qq.common.util.Utils;
 import com.qq.myapp.base.MyApplication;
-import com.qq.fq2.R;
+import com.qq.ks1.R;
 
 import java.util.ArrayList;
 import java.util.List;

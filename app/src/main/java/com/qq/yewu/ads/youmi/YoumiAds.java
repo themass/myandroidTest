@@ -5,7 +5,7 @@
 //
 //import com.qq.common.util.DeviceInfoUtils;
 //import com.qq.common.util.LogUtil;
-//import com.qq.fq2.R;
+//import com.qq.ks1.R;
 //
 //import net.youmi.android.AdManager;
 //import net.youmi.android.listener.Interface_ActivityListener;

@@ -1,4 +1,4 @@
-package com.qq.vpn.ui.maintab.body;
+package com.qq.ks.ui.maintab.body;
 
 
 import android.content.Context;
@@ -29,8 +29,8 @@ import com.qq.myapp.data.config.UserLoginEvent;
 import com.qq.myapp.ui.fragment.RecommendFragment;
 import com.qq.myapp.ui.inte.OnBackKeyDownListener;
 import com.qq.myapp.ui.user.AddCustomeInfoActivity;
-import com.qq.fq2.R;
-import com.qq.vpn.ui.main.MainFragmentViewPage;
+import com.qq.ks1.R;
+import com.qq.ks.ui.main.MainFragmentViewPage;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;

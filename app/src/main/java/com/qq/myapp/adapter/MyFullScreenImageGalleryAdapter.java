@@ -5,7 +5,7 @@ import android.view.ViewGroup;
 
 import com.bumptech.glide.Glide;
 import com.etiennelawlor.imagegallery.library.adapters.FullScreenImageGalleryAdapter;
-import com.qq.fq2.R;
+import com.qq.ks1.R;
 
 import java.util.List;
 

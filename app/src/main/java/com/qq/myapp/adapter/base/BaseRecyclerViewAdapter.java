@@ -5,7 +5,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.qq.fq2.R;
+import com.qq.ks1.R;
 
 import java.util.ArrayList;
 import java.util.List;

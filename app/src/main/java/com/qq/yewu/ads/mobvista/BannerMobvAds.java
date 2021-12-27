@@ -19,7 +19,7 @@ import com.mintegral.msdk.out.MIntegralSDKFactory;
 import com.mintegral.msdk.out.MtgNativeHandler;
 import com.mintegral.msdk.out.NativeListener;
 import com.qq.common.util.LogUtil;
-import com.qq.fq2.R;
+import com.qq.ks1.R;
 import com.qq.myapp.constant.Constants;
 import com.qq.myapp.data.ImagePhotoLoad;
 import com.qq.yewu.ads.base.AdsContext;

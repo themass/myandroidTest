@@ -22,7 +22,7 @@ import com.qq.common.util.ViewUtils;
 import com.qq.yewu.net.VolleyUtils;
 import com.qq.myapp.bean.vo.InfoListVo;
 import com.qq.myapp.data.BaseService;
-import com.qq.fq2.R;
+import com.qq.ks1.R;
 
 import java.lang.ref.WeakReference;
 import java.util.List;

@@ -17,7 +17,7 @@ import com.qq.common.util.StringUtils;
 import com.qq.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.qq.myapp.bean.vo.InfoListVo;
 import com.qq.myapp.data.BaseService;
-import com.qq.fq2.R;
+import com.qq.ks1.R;
 
 import butterknife.BindView;
 

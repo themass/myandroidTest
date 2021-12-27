@@ -4,7 +4,7 @@ import android.content.Context;
 
 import com.qq.common.util.PreferenceUtils;
 import com.qq.common.util.SystemUtils;
-import com.qq.fq2.R;
+import com.qq.ks1.R;
 import com.qq.myapp.bean.vo.LocationVo;
 import com.qq.myapp.constant.Constants;
 

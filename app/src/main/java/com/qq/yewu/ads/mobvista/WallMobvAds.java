@@ -12,7 +12,7 @@ import com.mintegral.msdk.MIntegralSDK;
 import com.mintegral.msdk.out.MIntegralSDKFactory;
 import com.mintegral.msdk.out.MtgWallHandler;
 import com.qq.common.util.LogUtil;
-import com.qq.fq2.R;
+import com.qq.ks1.R;
 import com.qq.myapp.constant.Constants;
 
 import java.util.HashMap;

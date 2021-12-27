@@ -23,7 +23,7 @@
 //import com.bumptech.glide.request.transition.Transition;
 //import com.github.chrisbanes.photoview.OnViewTapListener;
 //import com.github.chrisbanes.photoview.PhotoViewAttacher;
-//import com.qq.fq2.R;
+//import com.qq.ks1.R;
 //
 //import java.util.ArrayList;
 //import java.util.List;
