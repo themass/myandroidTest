@@ -4,7 +4,7 @@ apply plugin: 'org.greenrobot.greendao'
 //Build Variants = Product Flavor + Build Type
 android {
     compileSdkVersion 26
-    buildToolsVersion '27.0.3'
+    buildToolsVersion "29.0.2"
     defaultConfig {
         applicationId "com.timeline.sexfree1"
         minSdkVersion 16
@@ -41,7 +41,7 @@ android {
         config {
             keyAlias 'myapp'
             keyPassword 'themass'
-            storeFile file('D:/work/android-sdk/mykey.jks')
+            storeFile file('/Users/gqli/soft/myapp')
             storePassword 'themass'
         }
 //        config {
