@@ -146,16 +146,16 @@ public class Constants {
     public static String USER_STATUS = "USER_STATUS";
     //        public static String BASE_IP = "192.168.1.12:8080";
 //    public static String BASE_IP = "10.33.65.180:8080";
-    public static String BASE_HOST = "http://" + BASE_IP + "/vpn/api";
+    public static String BASE_HOST = "http://" + BASE_IP + "/vvv/api";
     public static final String downloadUrl="https://play.google.com/store/apps/details?id=com.qq.fq2";
     public static int NULL_VIEW = -1;
     public static List<String> colorBg = Arrays.asList("#552d5d82", "#55135689", "#552292e9", "#5583878b", "#7f8d8f45", "#ffc49924", "#ff83713f", "#ff569b2b", "#ff882b9b");
 
     public static String getUrl(String uri) {
-        return "http://" + BASE_IP + "/vpn/api" + uri;
+        return "http://" + BASE_IP + "/vvv/api" + uri;
     }
     public static String getUrlHost(String uri) {
-        return "http://" + HOSTGGG + "/vpn/api" + uri;
+        return "http://" + HOSTGGG + "/vvv/api" + uri;
     }
     public static String getUrlWithParam(String url, Object... param) {
         return String.format(getUrl(url), param);
