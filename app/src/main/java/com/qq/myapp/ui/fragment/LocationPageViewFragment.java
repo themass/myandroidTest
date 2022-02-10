@@ -129,9 +129,6 @@ public class LocationPageViewFragment extends LoadableFragment<InfoListVo<VipLoc
 
         @Override
         public CharSequence getPageTitle(int position) {
-            if (SystemUtils.isZH(getActivity())) {
-                return vo.voList.get(position).name;
-            }
             return vo.voList.get(position).ename;
         }
 

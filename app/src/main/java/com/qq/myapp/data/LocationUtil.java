@@ -15,7 +15,7 @@ import com.qq.myapp.constant.Constants;
 public class LocationUtil {
     public static String getSelectName(Context context) {
         LocationVo vo = PreferenceUtils.getPrefObj(context, Constants.LOCATION_CHOOSE, LocationVo.class);
-        String name = vo == null ? context.getString(R.string.location_choose_none) : (SystemUtils.isZH(context) ? vo.name : vo.ename);
+        String name = vo == null ? context.getString(R.string.location_choose_none) : vo.ename;
         return context.getString(R.string.menu_btn_country) + name;
     }
     public static String getSelectLocationIcon(Context context) {

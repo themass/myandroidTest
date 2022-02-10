@@ -73,11 +73,7 @@ public class LocationItemAdapter extends BaseRecyclerViewAdapter<LocationItemAda
             holder.tvCountry.setTextColor(black);
         }
         holder.tvIndex.setText("#" + (position + 1));
-        if(SystemUtils.isZH(context)){
-            holder.tvCountry.setText(vo.name);
-        }else{
-            holder.tvCountry.setText(vo.ename);
-        }
+        holder.tvCountry.setText(vo.ename);
 
 
         if(Constants.BANNER_ADS_POS.contains(position)&&index==0){
