@@ -69,10 +69,7 @@ android {
         }
     }
     productFlavors {
-        free_fq2_my {
-            manifestPlaceholders = [CHANNEL_VALUE: "MYPOOL", AD_CHANNEL_VALUE: "MYPOOL"]
-        }
-        free_fq2_google {
+        free {
             manifestPlaceholders = [CHANNEL_VALUE: "GOOGLEMARKET", AD_CHANNEL_VALUE: "GOOGLEMARKET"]
         }
     }
@@ -118,7 +115,6 @@ dependencies {
     implementation 'com.romainpiel.shimmer:library:1.4.0@aar'
 
     implementation 'com.github.lawloretienne:imagegallery:0.1.0'
-    implementation 'com.umeng.analytics:analytics:latest.integration'
 
     //implementation 'com.github.amlcurran.showcaseview:library:5.4.3'
     //implementation 'com.github.wooplr:Spotlight:1.2.3'
