@@ -33,7 +33,6 @@ public class MyApplication extends MultiDexApplication {
     private static MyApplication instance = null;
     public Typeface typeface;
     private ImagePhotoLoad photoLoad;
-    public static boolean isTemp = false;
     public String uc = null;
 
     //    public static RefWatcher getRefWatcher(Context context) {
@@ -60,10 +59,6 @@ public class MyApplication extends MultiDexApplication {
         DBManager.getInstance().init(this);
         uc = DeviceInfoUtils.getMetaData(this, "UMENG_CHANNEL");
         String ad = DeviceInfoUtils.getMetaData(this, "AdView_CHANNEL");
-        if(Constants.APP_MYPOOL.equals(uc)){
-        }else{
-            isTemp = true;
-        }
         if (MyApplication.isDebug) {
             LogUtil.i("uc=" + uc + "; ad=" + ad);
             DensityUtil.logDensity(this);

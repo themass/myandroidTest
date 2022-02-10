@@ -166,36 +166,12 @@ public class SettingActivity extends BaseSingleActivity {
     }
 
     public void showShare() {
-//        final String url = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.D_URL, null);
-//        if (!StringUtils.hasText(url)) {
-//            ToastUtil.showShort(R.string.menu_share_copy_error);
-//            return;
-//        }
-//        String str = String.format(getResources().getString(R.string.menu_share_url), url);
-//        AlertDialog.Builder confirmDialog = new AlertDialog.Builder(this);
-//        confirmDialog.setTitle(R.string.menu_share_title);
-//        confirmDialog.setMessage(str);
-//        confirmDialog.setPositiveButton(R.string.menu_share_confirm, new DialogInterface.OnClickListener() {
-//            @Override
-//            public void onClick(DialogInterface dialog, int which) {
-//                SystemUtils.copy(SettingActivity.this, url);
-//                ToastUtil.showShort(R.string.menu_share_copy_ok);
-//                dialog.dismiss();
-//            }
-//        });
-//        confirmDialog.setNegativeButton(R.string.menu_share_cancel, new DialogInterface.OnClickListener() {
-//            @Override
-//            public void onClick(DialogInterface dialog, int which) {
-//                dialog.dismiss();
-//            }
-//        });
-//        confirmDialog.show();
         String url = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.D_URL, null);
         if (!StringUtils.hasText(url)) {
             url = Constants.DEFAULT_REFERER;
         }
         ShareUtil util = new ShareUtil(this);
-        util.shareText(null,null,url+" Free为屁嗯，最好的梯子，没有之一", "Free为屁嗯","Free为屁嗯，最好的梯子，没有之一");
+        util.shareText(null,null,url+" FreeVqn,best tool", "FreeVqn","FreeVqn");
     }
 
     @Override

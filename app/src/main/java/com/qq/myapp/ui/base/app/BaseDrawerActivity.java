@@ -123,13 +123,13 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         setUpDonation();
     }
     private void setUpDonation(){
-        int vpnCount = AdsContext.getVpnClick(this);
-        float traf = PreferenceUtils.getPrefFloat(this, Constants.TRAF_KEY, 0);
-        if(SystemUtils.isApkDebugable(this)||Constants.APP_MYPOOL.equals(MyApplication.getInstance().uc)||(vpnCount>4&&traf>35)||UserLoginUtil.isVIP()){
-            miDonation.setVisible(true);
-        }else{
-            miDonation.setVisible(false);
-        }
+//        int vpnCount = AdsContext.getVpnClick(this);
+//        float traf = PreferenceUtils.getPrefFloat(this, Constants.TRAF_KEY, 0);
+//        if(SystemUtils.isApkDebugable(this)||Constants.APP_MYPOOL.equals(MyApplication.getInstance().uc)||(vpnCount>4&&traf>35)||UserLoginUtil.isVIP()){
+//            miDonation.setVisible(true);
+//        }else{
+//            miDonation.setVisible(false);
+//        }
     }
     private void setUpDomain(){
         baseService.getData(Constants.getUrlHost(Constants.API_DOMAIN_URL), new CommonResponse.ResponseOkListener<DomainVo>() {

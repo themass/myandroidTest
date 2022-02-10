@@ -219,9 +219,11 @@
                     android:layout_height="wrap_content"
                     android:background="?android:attr/selectableItemBackground"
                     android:padding="@dimen/margin_10"
-                    android:text="@string/menu_btn_share" />
+                    android:text="@string/menu_btn_share"
+                    android:visibility="gone"/>
 
-                <ImageView style="@style/divider_login" />
+                <ImageView style="@style/divider_login"
+                    android:visibility="gone"/>
 
                 <TextView
                     android:id="@+id/tv_bug"
@@ -240,7 +242,8 @@
                     android:layout_height="wrap_content"
                     android:background="?android:attr/selectableItemBackground"
                     android:padding="@dimen/margin_10"
-                    android:text="@string/menu_btn_contract" />
+                    android:text="@string/menu_btn_contract"
+                    android:visibility="gone"/>
             </LinearLayout>
         </android.support.v7.widget.CardView>
     </LinearLayout>
