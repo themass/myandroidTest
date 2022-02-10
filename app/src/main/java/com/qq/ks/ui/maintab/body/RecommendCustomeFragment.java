@@ -125,7 +125,6 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
         super.setupViews(view,savedInstanceState);
         EventBusUtil.getEventBus().register(this);
         ((MainFragmentViewPage) getActivity()).addListener(this);
-        gdtNativeManager.loadDataCustomer(getActivity());
     }
 
     @Override

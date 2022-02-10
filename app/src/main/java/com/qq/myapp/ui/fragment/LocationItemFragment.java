@@ -2,7 +2,6 @@ package com.qq.myapp.ui.fragment;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,12 +12,10 @@ import com.qq.common.util.GsonUtils;
 import com.qq.common.util.LogUtil;
 import com.qq.common.util.PreferenceUtils;
 import com.qq.common.util.ToastUtil;
-import com.qq.e.ads.nativ.NativeExpressADView;
 import com.qq.myapp.adapter.LocationItemAdapter;
 import com.qq.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.qq.myapp.bean.vo.InfoListVo;
 import com.qq.myapp.bean.vo.LocationVo;
-import com.qq.myapp.bean.vo.NativeAdInfo;
 import com.qq.myapp.bean.vo.VipLocationVo;
 import com.qq.myapp.constant.Constants;
 import com.qq.myapp.data.LocationUtil;
@@ -28,10 +25,6 @@ import com.qq.myapp.data.config.PingEvent;
 import com.qq.myapp.ui.base.features.BasePullLoadbleFragment;
 import com.qq.ks.free1.R;
 import com.qq.myapp.ui.user.LoginActivity;
-import com.qq.yewu.ads.base.AdsContext;
-import com.qq.yewu.ads.base.AdsManager;
-import com.qq.yewu.ads.base.GdtNativeManager;
-import com.qq.yewu.ads.base.NativeAdsReadyListener;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -43,7 +36,7 @@ import java.util.List;
 /**
  * Created by dengt on 2016/8/12.
  */
-public class LocationItemFragment extends BasePullLoadbleFragment<LocationVo>implements   GdtNativeManager.OnLoadListener {
+public class LocationItemFragment extends BasePullLoadbleFragment<LocationVo> {
     public static final String LOCATION_TAG = "location_tag";
     LocationItemAdapter adapter;
     VipLocationVo vipLocationVo;
@@ -54,11 +47,6 @@ public class LocationItemFragment extends BasePullLoadbleFragment<LocationVo>imp
     private List<LocationVo> nativeData = new ArrayList<>();
     public static int getFragmentTitle() {
         return R.string.location_choose_title;
-    }
-    public GdtNativeManager gdtNativeManager = new GdtNativeManager(this,Constants.FIRST_AD_POSITION,Constants.ITEMS_PER_AD_SIX,Constants.ITEMS_PER_AD_SIX);
-    @Override
-    public void onload(HashMap<Integer, NativeExpressADView> mAdViewPositionMap){
-        adapter.notifyDataSetChanged();
     }
     @Override
     protected void onContentViewCreated(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
@@ -73,7 +61,6 @@ public class LocationItemFragment extends BasePullLoadbleFragment<LocationVo>imp
         super.setupViews(view, savedInstanceState);
         EventBusUtil.getEventBus().register(this);
 //        AdsManager.getInstans().showNative(getActivity(),this, AdsContext.getIndex(index));
-        gdtNativeManager.loadData(getActivity());
 
     }
 //    public boolean onAdRecieved(List<NativeAdInfo> data){
@@ -151,7 +138,7 @@ public class LocationItemFragment extends BasePullLoadbleFragment<LocationVo>imp
 //        pullView.notifyDataSetChanged();
     }
     protected BaseRecyclerViewAdapter getAdapter(){
-        adapter = new LocationItemAdapter(getActivity(),pullView.getRecyclerView(), infoListVo.voList, this,gdtNativeManager);
+        adapter = new LocationItemAdapter(getActivity(),pullView.getRecyclerView(), infoListVo.voList, this);
         return adapter;
     }
 }

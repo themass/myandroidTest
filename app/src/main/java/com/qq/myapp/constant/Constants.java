@@ -193,8 +193,6 @@ public class Constants {
     public static final String InterExpressPosID_2 = "9000343720565852";
     public static final String InterExpressPosID_3 = "1010745790065883";
 
-    public static final List<String> gdtInterlist= Arrays.asList(InterExpressPosID_1,InterExpressPosID_2,InterExpressPosID_3);
-    public static final String AD_GDT_SWITCH = "AD_GDT_SWITCH";
 
     public static final String ADMOB_REWARD_ID="ca-app-pub-7849865307083433~9233060875";
     public static final String ADMOB_REWARD_UNIT_ID="ca-app-pub-7849865307083433/1108754074";

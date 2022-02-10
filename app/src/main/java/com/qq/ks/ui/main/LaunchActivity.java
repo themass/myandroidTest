@@ -18,7 +18,6 @@ import com.qq.common.util.PreferenceUtils;
 import com.qq.common.util.SystemUtils;
 import com.qq.yewu.ads.base.AdsContext;
 import com.qq.yewu.ads.base.AdsManager;
-import com.qq.yewu.ads.base.GdtOpenManager;
 import com.qq.yewu.ads.config.LaunchAdsNext;
 import com.qq.yewu.um.MobAgent;
 import com.qq.ks.free1.R;
@@ -36,7 +35,7 @@ import butterknife.Unbinder;
 /**
  * Created by dengt on 2016/3/22.
  */
-public class LaunchActivity extends LogActivity implements GdtOpenManager.OnGdtOpenListener {
+public class LaunchActivity extends LogActivity {
     @BindView(R.id.rl_spread)
     RelativeLayout ivAds;
     @BindView(R.id.skip_view)
@@ -54,7 +53,6 @@ public class LaunchActivity extends LogActivity implements GdtOpenManager.OnGdtO
     private int max = Constants.STARTUP_SHOW_TIME_6000+1000;
     private int now = 0;
     private Unbinder unbinder;
-    private GdtOpenManager gdtOpenManager;
     boolean perm = true;
     private Runnable mStartMainRunnable = new Runnable() {
         @Override
@@ -83,16 +81,9 @@ public class LaunchActivity extends LogActivity implements GdtOpenManager.OnGdtO
         AdsManager.getInstans().init(this);
         unbinder = ButterKnife.bind(this);
         LoginTask.start(this);
-        gdtOpenManager = new GdtOpenManager(this,ivAds,tvJishi,this);
         mHandler.postDelayed(mStartMainRunnable, max);
-        boolean gdt = PreferenceUtils.getPrefBoolean(this,Constants.AD_GDT_SWITCH,true);
         EventBusUtil.getEventBus().register(this);
-        perm =PermissionHelper.checkPermission(this,PermissionHelper.READ_PHONE_STATE);
-        if(SystemUtils.isZH(this) && gdt && perm){
-            gdtOpenManager.showAd();
-        }else{
-            showAdview();
-        }
+        showAdview();
 
     }
 

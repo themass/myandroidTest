@@ -24,7 +24,6 @@ import com.qq.common.util.PreferenceUtils;
 import com.qq.common.util.ToastUtil;
 import com.qq.yewu.ads.base.AdsContext;
 import com.qq.yewu.ads.base.AdsManager;
-import com.qq.yewu.ads.base.GdtInterManger;
 import com.qq.yewu.ads.reward.BaseRewardManger;
 import com.qq.yewu.ads.reward.RewardInterface;
 import com.qq.yewu.um.MobAgent;
@@ -48,7 +47,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class MainFragmentViewPage extends BaseDrawerActivity implements ActivityCompat.OnRequestPermissionsResultCallback,GdtInterManger.OnGdtInterListener,RewardInterface.OnAdmobRewardListener {
+public class MainFragmentViewPage extends BaseDrawerActivity implements ActivityCompat.OnRequestPermissionsResultCallback,RewardInterface.OnAdmobRewardListener {
 
 
     /**
@@ -64,7 +63,6 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
     private MyPagerAdapter myPagerAdapter;
     private String POSITION = "POSITION";
     private int index = 0;
-    private GdtInterManger gdtInterManger;
     public BaseRewardManger admobRewardManger;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -117,28 +115,8 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         mViewPager = (ViewPager) findViewById(R.id.vp_view);
         initTabs();
         ConnLogUtil.sendAllLog(this);
-        boolean gdt = PreferenceUtils.getPrefBoolean(this, Constants.AD_GDT_SWITCH,true);
-        gdtInterManger = new GdtInterManger(this,this);
-        if(SystemUtils.isZH(this) && gdt){
-            gdtInterManger.showAd();
-        }else {
-            if (Constants.APP_GOOGLE.equals(MyApplication.getInstance().uc)) {
-                int vpnCount = AdsContext.getVpnClick(this);
-                float traf = PreferenceUtils.getPrefFloat(this, Constants.TRAF_KEY, 0);
-                if (vpnCount > 2 && traf > 25) {
-                    AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false);
-                } else {
-                    boolean perm = PermissionHelper.checkPermission(this, PermissionHelper.READ_PHONE_STATE);
-                    if (perm == false || SystemUtils.isZH(this) == false) {
-                        AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false, AdsContext.AdsFrom.MOBVISTA);
-                    } else {
-                        gdtInterManger.showAd();
-                    }
-                }
-            } else {
-                AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false);
-            }
-        }
+        AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false, AdsContext.AdsFrom.MOBVISTA);
+
         if(!PermissionHelper.checkPermissions(this)) {
             PermissionHelper.showPermit(this);
         }

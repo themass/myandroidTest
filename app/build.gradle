@@ -131,9 +131,5 @@ dependencies {
     implementation 'com.google.android.gms:play-services-location:15.0.1'
     implementation 'com.google.android.gms:play-services-plus:15.0.1'
     // adview
-    implementation 'pl.droidsonroids.gif:android-gif-drawable:1.2.6'
-    implementation 'com.lahm.library:easy-protector-release:1.1.0'
-    implementation 'com.squareup.picasso:picasso:2.5.2'
-
 
 }

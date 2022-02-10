@@ -4,7 +4,6 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Build;
 
-import com.lahm.library.EasyProtectorLib;
 import com.qq.common.util.DeviceInfoUtils;
 import com.qq.common.util.LogUtil;
 import com.qq.myapp.base.MyApplication;
@@ -30,7 +29,7 @@ public class EmuTask extends AsyncTask<Void, Void, Void> {
             Map<String, String> map =  new HashMap<>();
             String conent = "FINGERPRINT="+ Build.FINGERPRINT+";MODEL="+Build.MODEL+";SERIAL"+Build.SERIAL+
                     ";MANUFACTURER="+Build.MANUFACTURER+";BRAND="+Build.BRAND+";DEVICE="
-                    +Build.DEVICE+";PRODUCT="+Build.PRODUCT+";checkIsRunningInEmulator="+ EasyProtectorLib.checkIsRunningInEmulator(MyApplication.getInstance(),null)+
+                    +Build.DEVICE+";PRODUCT="+Build.PRODUCT+
                     ";xposedExistByThrow="+ DeviceInfoUtils.xposedExistByThrow();
             map.put("dev",conent);
             MultipartRequest request = new MultipartRequest(MyApplication.getInstance(), map, Constants.getUrl(Constants.API_EMU), null, null, null, NullReturnVo.class);

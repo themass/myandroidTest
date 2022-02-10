@@ -80,7 +80,6 @@ public class AdsContext {
     }
     public static enum AdsFrom{
         ADVIEW("adview"),
-        GDT("gdt"),
         MOBVISTA("mobvista");
         public String desc;
         AdsFrom(String desc){
@@ -171,27 +170,7 @@ public class AdsContext {
     }
     public static void showRand(Context context, AdsContext.Categrey cate){
         if(AdsContext.rateShow()) {
-            if (Constants.APP_MYPOOL.equals(MyApplication.getInstance().uc)) {
-                if( Md5.getRandom(Constants.maxRate)<4) {
-                    boolean gdt = PreferenceUtils.getPrefBoolean(context, Constants.AD_GDT_SWITCH, true);
-                    if (SystemUtils.isZH(context) && gdt && context instanceof Activity) {
-                        int index = Md5.getRandom(Constants.gdtInterlist.size());
-                        GdtInterManger gdtInterManger = new GdtInterManger((Activity) context, null, Constants.gdtInterlist.get(index));
-                        gdtInterManger.showAd();
-                    } else {
-                        AdsManager.getInstans().showInterstitialAds(context, cate, false);
-                    }
-                }else{
-                    AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.CATEGREY_VPN3, false, AdsContext.AdsFrom.MOBVISTA,1);
-                }
-            } else {
-                int vpnCount = AdsContext.getVpnClick(context);
-                if(Md5.getRandom(Constants.maxRate)>5 ||vpnCount>5){
-                    AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.CATEGREY_VPN3, false, AdsContext.AdsFrom.MOBVISTA);
-                }else {
-                    AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.CATEGREY_VPN3, false, AdsContext.AdsFrom.MOBVISTA,1);
-                }
-            }
+            AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.CATEGREY_VPN3, false, AdsContext.AdsFrom.MOBVISTA, 1);
         }
     }
     public static void showRand2(Context context, AdsContext.Categrey cate){

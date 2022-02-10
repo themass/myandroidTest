@@ -7,7 +7,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioGroup;
 
-import com.qq.e.comm.util.StringUtil;
+import com.qq.common.util.StringUtils;
 import com.qq.common.util.ToastUtil;
 import com.qq.yewu.net.request.CommonResponse;
 import com.qq.myapp.bean.form.RegForm;
@@ -76,7 +76,7 @@ public class RegActivity extends BaseSingleActivity {
         String pwd = etPassword.getText().toString();
         String repwd = etRePassword.getText().toString();
         int id = radioGroup.getCheckedRadioButtonId();
-        if (id == -1 || StringUtil.isEmpty(name) || StringUtil.isEmpty(pwd) || StringUtil.isEmpty(repwd)) {
+        if (id == -1 || StringUtils.isEmpty(name) || StringUtils.isEmpty(pwd) || StringUtils.isEmpty(repwd)) {
             ToastUtil.showShort( R.string.empty_name_pwd);
             return;
         }
@@ -98,7 +98,7 @@ public class RegActivity extends BaseSingleActivity {
         }
         setEnabled(false);
         String refName = etRef.getText().toString();
-        RegForm form = new RegForm(name, pwd, repwd, sex,"test@163.com",StringUtil.isEmpty(refName)?Constants.ADMIN:refName);
+        RegForm form = new RegForm(name, pwd, repwd, sex,"test@gmail.com",StringUtils.isEmpty(refName)?Constants.ADMIN:refName);
         baseService.postData(Constants.getUrl(Constants.API_REG_URL), form, loginListener, new CommonResponse.ResponseErrorListener() {
             @Override
             protected void onError() {

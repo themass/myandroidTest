@@ -7,7 +7,6 @@ import android.support.v4.app.FragmentActivity;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
-import com.inmobi.sdk.InMobiSdk;
 import com.mintegral.msdk.MIntegralSDK;
 import com.mintegral.msdk.out.MIntegralSDKFactory;
 import com.qq.common.util.EventBusUtil;
@@ -59,15 +58,6 @@ public class AdsManager {
         nativeMap.put(AdsContext.AdsFrom.ADVIEW,new NativeAdviewAds());
         videoMap.put(AdsContext.AdsFrom.ADVIEW, new VideoAdviewAds());
         JSONObject consentObject = new JSONObject();
-        try {
-            // Provide correct consent value to sdk which is obtained by User
-            consentObject.put(InMobiSdk.IM_GDPR_CONSENT_AVAILABLE, true);
-            // Provide 0 if GDPR is not applicable and 1 if applicable
-            consentObject.put("gdpr", "0");
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        InMobiSdk.init(context, Constants.INMOBI_ACCOUNTID, consentObject);
         final MIntegralSDK sdk = MIntegralSDKFactory.getMIntegralSDK();
         Map<String, String> map = sdk.getMTGConfigurationMap(Constants.Mob_APPID, Constants.Mob_APPKEY);
         // if you modify applicationId, please add the following attributes,

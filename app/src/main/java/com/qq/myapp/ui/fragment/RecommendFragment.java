@@ -16,9 +16,6 @@ import com.qq.common.ui.view.RecycleViewDivider;
 import com.qq.common.util.CollectionUtils;
 import com.qq.common.util.EventBusUtil;
 import com.qq.common.util.ToastUtil;
-import com.qq.e.ads.nativ.NativeExpressADView;
-import com.qq.yewu.ads.base.AdsManager;
-import com.qq.yewu.ads.base.GdtNativeManager;
 import com.qq.yewu.ads.base.NativeAdsReadyListener;
 import com.qq.yewu.um.MobAgent;
 import com.qq.myapp.adapter.IndexRecommendAdapter;
@@ -41,14 +38,9 @@ import java.util.Map;
 /**
  * Created by dengt on 2015/9/1.
  */
-public abstract class RecommendFragment extends BasePullLoadbleFragment<RecommendVo> implements BasePhotoFlowRecycleViewAdapter.OnRecyclerViewItemClickListener, OnStartDragListener, IndexRecommendAdapter.OnEditClickListener, NativeAdsReadyListener,  GdtNativeManager.OnLoadListener {
+public abstract class RecommendFragment extends BasePullLoadbleFragment<RecommendVo> implements BasePhotoFlowRecycleViewAdapter.OnRecyclerViewItemClickListener, OnStartDragListener, IndexRecommendAdapter.OnEditClickListener, NativeAdsReadyListener {
     protected ItemTouchHelper mItemTouchHelper;
     protected IndexRecommendAdapter adapter;
-    public GdtNativeManager gdtNativeManager = new GdtNativeManager(this,Constants.FIRST_AD_POSITION,Constants.ITEMS_PER_AD_SIX,Constants.ITEMS_PER_AD_SIX);
-    @Override
-    public void onload(HashMap<Integer, NativeExpressADView> mAdViewPositionMap){
-        adapter.notifyDataSetChanged();
-    }
     public void addData(List<RecommendVo> data) {
         infoListVo.voList.addAll(data);
         initSort();
@@ -74,7 +66,7 @@ public abstract class RecommendFragment extends BasePullLoadbleFragment<Recommen
         final StaggeredGridLayoutManager layoutManager = new StaggeredGridLayoutManager(getSpanCount(), StaggeredGridLayoutManager.VERTICAL);
         pullView.setLayoutManager(layoutManager);
         pullView.setItemAnimator(new DefaultItemAnimator());
-        adapter = new IndexRecommendAdapter(this.getActivity(), pullView.getRecyclerView(), infoListVo.voList, layoutManager, this, this, this, getShowEdit(),gdtNativeManager);
+        adapter = new IndexRecommendAdapter(this.getActivity(), pullView.getRecyclerView(), infoListVo.voList, layoutManager, this, this, this, getShowEdit());
         adapter.setShowParam(getShowParam());
         adapter.setNeedShimmer(getNeedShimmer());
         pullView.setListener(this);

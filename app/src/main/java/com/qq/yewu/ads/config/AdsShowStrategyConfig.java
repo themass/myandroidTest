@@ -12,7 +12,7 @@ import java.util.List;
 
 public class AdsShowStrategyConfig {
     private int bannerIndex = 0;
-    public List<String> banners = Arrays.asList("adview","gdt");
+    public List<String> banners = Arrays.asList("adview");
     public List<String> splash;
     public String getNextBanner(){
         if(bannerIndex<banners.size()){

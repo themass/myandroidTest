@@ -205,15 +205,6 @@
     public static int d(...);
 }
 #------------adview-----------------------
-#-----------------gdt---------------------
--keep class com.qq.e.** {*; }
--keep class com.tencent.**{*; }
--keep class com.tencent.lbsapi.*
--keep class com.tencent.lbsapi.core.*
--keep class android.support.v4.app.NotificationCompat**{
-    public *;
-}
--keep class android.support.v4.**{ *;}
 #-----------------end---------------------
 #竞价相关
 -keep public class com.kyview.** {*;}

@@ -14,9 +14,7 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.qq.common.util.PreferenceUtils;
 import com.qq.myapp.data.ImagePhotoLoad;
-import com.qq.yewu.ads.base.GdtNativeManager;
 import com.romainpiel.shimmer.Shimmer;
 import com.romainpiel.shimmer.ShimmerTextView;
 import com.qq.common.helper.OnStartDragListener;
@@ -46,9 +44,8 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
     private boolean needShimmer = true;
     private OnEditClickListener mOnEditClickListener;
     public boolean showParam = false;
-    GdtNativeManager gdtNativeManager;
 
-    public IndexRecommendAdapter(Context context, RecyclerView recyclerView, List<RecommendVo> data, StaggeredGridLayoutManager layoutManager, OnRecyclerViewItemClickListener listener, OnStartDragListener dragStartListener, OnEditClickListener onEditClickListener, boolean showEdit,GdtNativeManager gdtNativeManager) {
+    public IndexRecommendAdapter(Context context, RecyclerView recyclerView, List<RecommendVo> data, StaggeredGridLayoutManager layoutManager, OnRecyclerViewItemClickListener listener, OnStartDragListener dragStartListener, OnEditClickListener onEditClickListener, boolean showEdit) {
         super(context, recyclerView, data, listener, dragStartListener);
         this.showEdit = showEdit;
         this.layoutManager = layoutManager;
@@ -57,11 +54,7 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
         marginPix = context.getResources().getDimensionPixelSize(R.dimen.margin_2) * 2 + context.getResources().getDimensionPixelSize(R.dimen.margin_3) * 2;
         imgWidth = itemWidth - marginPix;
         hExtra = context.getResources().getDimensionPixelSize(R.dimen.margin_3);
-        this.gdtNativeManager =gdtNativeManager;
 
-    }
-    public IndexRecommendAdapter(Context context, RecyclerView recyclerView, List<RecommendVo> data, StaggeredGridLayoutManager layoutManager, OnRecyclerViewItemClickListener listener, OnStartDragListener dragStartListener, OnEditClickListener onEditClickListener, boolean showEdit) {
-        this(context,recyclerView,data,layoutManager,listener,dragStartListener,onEditClickListener,showEdit,null);
     }
     public void setShowParam(boolean show){
         showParam = show;
@@ -169,15 +162,7 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
         shimmer.setDuration(Constants.RECOMMAND_SHIMMER_DURATION);
         holder.ivTitle.setVisibility(View.VISIBLE);
         ImagePhotoLoad.loadPhoto(holder, vo, shimmer,needShimmer, context);
-        if(gdtNativeManager!=null){
-            if(!gdtNativeManager.showAds(position,holder.natvieView)){
-                holder.natvieView.setVisibility(View.GONE);
-            }else{
-                holder.natvieView.setVisibility(View.VISIBLE);
-            }
-        }else{
-            holder.natvieView.setVisibility(View.GONE);
-        }
+        holder.natvieView.setVisibility(View.GONE);
     }
 
     public interface OnEditClickListener {

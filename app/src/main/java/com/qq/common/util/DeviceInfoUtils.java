@@ -10,7 +10,6 @@ import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.telephony.TelephonyManager;
 
-import com.lahm.library.EasyProtectorLib;
 
 import java.io.IOException;
 import java.net.NetworkInterface;
@@ -52,13 +51,6 @@ public class DeviceInfoUtils {
                 deviceId.append(wifiMac);
                 return deviceId.toString();
             }
-            // IMEI（imei）
-            String dev = DeviceInfoUtils.getImei(context);
-            if (StringUtils.hasText(dev)) {
-                deviceId.append("imei");
-                deviceId.append(dev);
-                return deviceId.toString();
-            }
             // 序列号（sn）
             String serial = DeviceInfoUtils.getSimSerialNumber(context);
             if (StringUtils.hasText(serial)) {
@@ -80,10 +72,6 @@ public class DeviceInfoUtils {
         return deviceId.toString();
     }
 
-    public static String getImei(Context context) {
-        TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-        return tm.getSimSerialNumber();
-    }
 
     /**
      * 获取序列号
@@ -205,7 +193,7 @@ public class DeviceInfoUtils {
     public static boolean isEmulator(Context context) {
 //        EasyProtectorLib.checkIsDebug(context)||
         try {
-            return isXposedExistByThrow() || EasyProtectorLib.checkIsRunningInEmulator(context, null);
+            return isXposedExistByThrow() ;
         }catch (Exception e){
             return false;
         }

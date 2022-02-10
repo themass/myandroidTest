@@ -6,17 +6,14 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.webkit.WebView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.kyview.natives.NativeAdInfo;
 import com.qq.common.util.LogUtil;
 import com.qq.common.util.SystemUtils;
 import com.qq.myapp.constant.Constants;
@@ -29,7 +26,6 @@ import com.qq.myapp.bean.vo.LocationVo;
 import com.qq.myapp.data.LocationUtil;
 import com.qq.myapp.task.LocationPingTask;
 import com.qq.ks.free1.R;
-import com.qq.yewu.ads.base.GdtNativeManager;
 
 import java.util.List;
 
@@ -45,16 +41,14 @@ public class LocationItemAdapter extends BaseRecyclerViewAdapter<LocationItemAda
     private ColorStateList black = null;
     private boolean needPing = false;
     private int index;
-    GdtNativeManager gdtNativeManager;
 
-    public LocationItemAdapter(Context context, RecyclerView recyclerView, List<LocationVo> data, OnRecyclerViewItemClickListener<LocationVo> listener,GdtNativeManager gdtNativeManager) {
+    public LocationItemAdapter(Context context, RecyclerView recyclerView, List<LocationVo> data, OnRecyclerViewItemClickListener<LocationVo> listener) {
         super(context, recyclerView, data, listener);
         initSelectLocation();
         indexColo = context.getResources().getColorStateList(R.color.location_index);
         black = context.getResources().getColorStateList(R.color.base_black);
         indexSelectColo = context.getResources().getColorStateList(R.color.base_red);
         index = 0;
-        this.gdtNativeManager =gdtNativeManager;
         LogUtil.i(index+"");
     }
     @Override
@@ -112,15 +106,7 @@ public class LocationItemAdapter extends BaseRecyclerViewAdapter<LocationItemAda
             holder.rvAds.removeAllViews();
             holder.rvAds.setVisibility(View.GONE);
         }
-        if(gdtNativeManager!=null&&index==1){
-            if(!gdtNativeManager.showAds(position,holder.natvieView)){
-                holder.natvieView.setVisibility(View.GONE);
-            }else{
-                holder.natvieView.setVisibility(View.VISIBLE);
-            }
-        }else{
-            holder.natvieView.setVisibility(View.GONE);
-        }
+        holder.natvieView.setVisibility(View.GONE);
 
         LocationPingTask.fillText(context,holder.pgPing,holder.tvPing,vo.ping);
 //        holder.tvPing.setTextColor(context.getResources().getColor(R.color.base_black));
