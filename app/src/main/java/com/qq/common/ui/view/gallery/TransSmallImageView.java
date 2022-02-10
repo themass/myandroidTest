@@ -5,12 +5,14 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.PointF;
-import android.support.v7.widget.AppCompatImageView;
 import android.util.AttributeSet;
 import android.view.WindowManager;
+
+import androidx.appcompat.widget.AppCompatImageView;
 
 /**
  * 有移动动画的ImageView
@@ -66,7 +68,7 @@ public class TransSmallImageView extends AppCompatImageView {
         AnimatorSet set = new AnimatorSet();
         float imgHeight = getScreenWidth() * height / width;
         float dy = getResources().getDisplayMetrics().density * 4.0f + 0.5f;
-        ObjectAnimator animator = ObjectAnimator.ofInt(getParent(), "backgroundColor",
+        @SuppressLint("ObjectAnimatorBinding") ObjectAnimator animator = ObjectAnimator.ofInt(getParent(), "backgroundColor",
                 Color.TRANSPARENT, Color.parseColor("#000000"));
         animator.setEvaluator(new ArgbEvaluator());
         set.playTogether(
@@ -111,7 +113,7 @@ public class TransSmallImageView extends AppCompatImageView {
 
         float dy = getResources().getDisplayMetrics().density * 4.0f + 0.5f;
         AnimatorSet set = new AnimatorSet();
-        ObjectAnimator animator = ObjectAnimator.ofInt(getParent(), "backgroundColor",
+        @SuppressLint("ObjectAnimatorBinding") ObjectAnimator animator = ObjectAnimator.ofInt(getParent(), "backgroundColor",
                 Color.parseColor("#000000"), Color.TRANSPARENT);
         animator.setEvaluator(new ArgbEvaluator());
         set.playTogether(

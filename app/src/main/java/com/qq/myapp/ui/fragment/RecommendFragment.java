@@ -2,20 +2,21 @@ package com.qq.myapp.ui.fragment;
 
 
 import android.content.Context;
-import android.support.v7.widget.DefaultItemAnimator;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.StaggeredGridLayoutManager;
-import android.support.v7.widget.helper.ItemTouchHelper;
+
+import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 import android.view.View;
 
-import com.kyview.natives.NativeAdInfo;
 import com.qq.common.helper.OnStartDragListener;
 import com.qq.common.helper.SimpleItemTouchHelperCallback;
 import com.qq.common.ui.view.RecycleViewDivider;
 import com.qq.common.util.CollectionUtils;
 import com.qq.common.util.EventBusUtil;
 import com.qq.common.util.ToastUtil;
+import com.qq.myapp.bean.vo.NativeAdInfo;
 import com.qq.yewu.ads.base.NativeAdsReadyListener;
 import com.qq.yewu.um.MobAgent;
 import com.qq.myapp.adapter.IndexRecommendAdapter;
@@ -97,7 +98,6 @@ public abstract class RecommendFragment extends BasePullLoadbleFragment<Recommen
     }
     public boolean adClick(View v,RecommendVo vo){
         if (vo.dataType == RecommendVo.dataType_ADS) {
-            ((NativeAdInfo) (vo.extra)).onClick(v,(int)v.getX(),(int)v.getY());
             return true;
         }
         return false;
@@ -121,27 +121,27 @@ public abstract class RecommendFragment extends BasePullLoadbleFragment<Recommen
         }
     }
     public boolean onAdRecieved(List<NativeAdInfo> data) {
-        if (!CollectionUtils.isEmpty(data)) {
-            List<RecommendVo> list = new ArrayList<>();
-            for (NativeAdInfo nativeAdInfo : data) {
-                RecommendVo vo = new RecommendVo();
-                vo.desc = nativeAdInfo.getDescription();
-                vo.img = nativeAdInfo.getIconUrl();
-                vo.title = nativeAdInfo.getTitle();
-                vo.extra = nativeAdInfo;
-                nativeAdInfo.onDisplay(new View(getActivity()));
-                vo.dataType = RecommendVo.dataType_ADS;
-                if (nativeAdInfo.getImageWidth() != 0)
-                    vo.rate = nativeAdInfo.getImageHeight() / nativeAdInfo.getImageWidth();
-                else {
-                    vo.rate = 1f;
-                }
-                vo.showType = Constants.ShowType.Blur;
-                list.add(vo);
-            }
-            addData(list);
-            pullView.notifyDataSetChanged();
-        }
+//        if (!CollectionUtils.isEmpty(data)) {
+//            List<RecommendVo> list = new ArrayList<>();
+//            for (NativeAdInfo nativeAdInfo : data) {
+//                RecommendVo vo = new RecommendVo();
+//                vo.desc = nativeAdInfo.getDescription();
+//                vo.img = nativeAdInfo.getIconUrl();
+//                vo.title = nativeAdInfo.getTitle();
+//                vo.extra = nativeAdInfo;
+//                nativeAdInfo.onDisplay(new View(getActivity()));
+//                vo.dataType = RecommendVo.dataType_ADS;
+//                if (nativeAdInfo.getImageWidth() != 0)
+//                    vo.rate = nativeAdInfo.getImageHeight() / nativeAdInfo.getImageWidth();
+//                else {
+//                    vo.rate = 1f;
+//                }
+//                vo.showType = Constants.ShowType.Blur;
+//                list.add(vo);
+//            }
+//            addData(list);
+//            pullView.notifyDataSetChanged();
+//        }
         return true;
     }
     @Override

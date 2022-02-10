@@ -1,7 +1,9 @@
 package com.qq.myapp.ui.feedback;
 
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
+import androidx.fragment.app.Fragment;
+
+import androidx.fragment.app.Fragment;
 
 import com.qq.common.util.LogUtil;
 import com.qq.yewu.ads.base.AdsContext;

@@ -1,7 +1,7 @@
 package com.qq.myapp.ui.base.features;
 
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import android.view.View;
 import android.view.animation.OvershootInterpolator;
 

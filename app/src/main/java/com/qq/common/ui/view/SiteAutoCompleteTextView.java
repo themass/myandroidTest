@@ -1,13 +1,14 @@
 package com.qq.common.ui.view;
 
 import android.content.Context;
-import android.support.v7.widget.AppCompatAutoCompleteTextView;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
+
+import androidx.appcompat.widget.AppCompatAutoCompleteTextView;
 
 import com.qq.common.util.StringUtils;
 import com.qq.ks.free1.R;

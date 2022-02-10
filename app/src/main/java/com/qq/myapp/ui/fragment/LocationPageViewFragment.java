@@ -3,20 +3,20 @@ package com.qq.myapp.ui.fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.ViewPager;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.viewpager.widget.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.kyview.natives.NativeAdInfo;
+import com.qq.common.ui.view.indicator.TabPageIndicator;
 import com.qq.common.util.CollectionUtils;
 import com.qq.common.util.LogUtil;
-import com.qq.common.util.SystemUtils;
 import com.qq.myapp.bean.vo.InfoListVo;
+import com.qq.myapp.bean.vo.NativeAdInfo;
 import com.qq.myapp.bean.vo.RecommendVo;
 import com.qq.myapp.bean.vo.VipLocationVo;
 import com.qq.myapp.constant.Constants;
@@ -24,10 +24,7 @@ import com.qq.myapp.ui.base.CommonFragmentActivity;
 import com.qq.myapp.ui.base.LocationFragmentActivity;
 import com.qq.myapp.ui.base.features.LoadableFragment;
 import com.qq.ks.free1.R;
-import com.qq.yewu.ads.base.AdsContext;
-import com.qq.yewu.ads.base.AdsManager;
 import com.qq.yewu.ads.base.NativeAdsReadyListener;
-import com.viewpagerindicator.TabPageIndicator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,20 +63,20 @@ public class LocationPageViewFragment extends LoadableFragment<InfoListVo<VipLoc
         if (!CollectionUtils.isEmpty(data)) {
             List<RecommendVo> list = new ArrayList<>();
             for (NativeAdInfo nativeAdInfo : data) {
-                RecommendVo vo = new RecommendVo();
-                vo.desc = nativeAdInfo.getDescription();
-                vo.img = nativeAdInfo.getIconUrl();
-                vo.title = nativeAdInfo.getTitle();
-                vo.extra = nativeAdInfo;
-                nativeAdInfo.onDisplay(new View(getActivity()));
-                vo.dataType = RecommendVo.dataType_ADS;
-                if (nativeAdInfo.getImageWidth() != 0)
-                    vo.rate = nativeAdInfo.getImageHeight() / nativeAdInfo.getImageWidth();
-                else {
-                    vo.rate = 1f;
-                }
-                vo.showType = Constants.ShowType.Blur;
-                list.add(vo);
+//                RecommendVo vo = new RecommendVo();
+//                vo.desc = nativeAdInfo.getDescription();
+//                vo.img = nativeAdInfo.getIconUrl();
+//                vo.title = nativeAdInfo.getTitle();
+//                vo.extra = nativeAdInfo;
+//                nativeAdInfo.onDisplay(new View(getActivity()));
+//                vo.dataType = RecommendVo.dataType_ADS;
+//                if (nativeAdInfo.getImageWidth() != 0)
+//                    vo.rate = nativeAdInfo.getImageHeight() / nativeAdInfo.getImageWidth();
+//                else {
+//                    vo.rate = 1f;
+//                }
+//                vo.showType = Constants.ShowType.Blur;
+//                list.add(vo);
             }
             LogUtil.i(list.toString());
         }

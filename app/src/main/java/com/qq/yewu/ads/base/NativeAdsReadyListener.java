@@ -1,6 +1,7 @@
 package com.qq.yewu.ads.base;
 
-import com.kyview.natives.NativeAdInfo;
+
+import com.qq.myapp.bean.vo.NativeAdInfo;
 
 import java.util.List;
 

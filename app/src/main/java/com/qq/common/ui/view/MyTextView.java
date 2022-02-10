@@ -2,9 +2,10 @@ package com.qq.common.ui.view;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.support.v7.widget.AppCompatTextView;
 import android.text.Layout;
 import android.util.AttributeSet;
+
+import androidx.appcompat.widget.AppCompatTextView;
 
 import com.qq.common.util.DensityUtil;
 import com.qq.common.util.Tools;

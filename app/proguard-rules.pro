@@ -178,7 +178,7 @@
 #-keep class com.bumptech.glide.** { *; }
 ##-keepresourcexmlelements manifest/application/meta-data@value=GlideModule
 -keep class com.baidu.** { *;}
--keep class android.support.v4.app.NotificationCompat**{ *; }
+-keep class androidx.core.app.NotificationCompat**{ *; }
 
 # Preserve all native method names and the names of their classes.
 -keepclassmembers class * {

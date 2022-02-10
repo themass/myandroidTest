@@ -34,9 +34,3 @@ allprojects {
         }
     }
 }
-subprojects {
-    ext.global_compileSdkVersion = 25
-    ext.global_buildToolsVersion = "26.0.2"
-    ext.global_minSdkVersion = 16
-    ext.global_targetSdkVersion = 24
-}

@@ -8,10 +8,11 @@ import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.PointF;
-import android.support.v7.widget.AppCompatImageView;
 import android.util.AttributeSet;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
+
+import androidx.appcompat.widget.AppCompatImageView;
 
 /**
  * 有移动动画的ImageView

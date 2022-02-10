@@ -4,8 +4,9 @@ package com.qq.ks.ui.maintab.body;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.RecyclerView;
+
+import androidx.appcompat.app.AlertDialog;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -17,6 +18,7 @@ import android.widget.PopupWindow;
 import com.qq.common.util.CollectionUtils;
 import com.qq.common.util.EventBusUtil;
 import com.qq.common.util.ToastUtil;
+import com.qq.myapp.bean.vo.NativeAdInfo;
 import com.qq.yewu.net.request.CommonResponse;
 import com.qq.myapp.bean.form.CustomeAddForm;
 import com.qq.myapp.bean.vo.InfoListVo;
@@ -34,6 +36,8 @@ import com.qq.ks.ui.main.MainFragmentViewPage;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.OnClick;
@@ -239,4 +243,5 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
         }
         return false;
     }
+
 }

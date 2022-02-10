@@ -3,16 +3,18 @@ package com.qq.myapp.ui.feedback;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.ViewPager;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.viewpager.widget.ViewPager;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.qq.common.ui.base.BaseFragment;
+import com.qq.common.ui.view.indicator.TabPageIndicator;
 import com.qq.common.util.LogUtil;
 import com.qq.yewu.ads.base.AdsContext;
 import com.qq.myapp.bean.vo.FeedbackCateVo;
@@ -21,7 +23,6 @@ import com.qq.myapp.data.BaseService;
 import com.qq.myapp.ui.base.CommonFragmentActivity;
 import com.qq.myapp.ui.base.features.LoadableFragment;
 import com.qq.ks.free1.R;
-import com.viewpagerindicator.TabPageIndicator;
 
 import java.util.ArrayList;
 import java.util.List;

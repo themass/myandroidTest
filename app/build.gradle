@@ -125,8 +125,6 @@ dependencies {
     implementation 'com.umeng.umsdk:apm:1.5.2' // 错误分析升级为独立SDK，看crash数据请一定集
 
     implementation 'com.sothree.slidinguppanel:library:3.3.1'
-//    implementation 'com.github.JakeWharton:ViewPagerIndicator:2.4.1'
-//    implementation 'com.viewpagerindicator:library:2.4.1@aar'
 
     implementation 'com.google.android.gms:play-services-ads:15.0.1'
     implementation 'com.google.android.gms:play-services-base:15.0.1'

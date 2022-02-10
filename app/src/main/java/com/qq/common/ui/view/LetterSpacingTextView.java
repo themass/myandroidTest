@@ -1,11 +1,12 @@
 package com.qq.common.ui.view;
 
 import android.content.Context;
-import android.support.v7.widget.AppCompatTextView;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.ScaleXSpan;
 import android.util.AttributeSet;
+
+import androidx.appcompat.widget.AppCompatTextView;
 
 public class LetterSpacingTextView extends AppCompatTextView {
 

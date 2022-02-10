@@ -12,26 +12,29 @@ public class BaseRewardManger implements RewardInterface {
         base = admobRewardManger;
     }
     public void onAdResume(){
-        base.onAdResume();
+
+//        base.onAdResume();
     }
 
     public void onAdPause(){
-        base.onAdPause();
+
+//        base.onAdPause();
     }
 
     public void onAdDestroy(){
-        base.onAdDestroy();
+//        base.onAdDestroy();
     }
-    public void showAd(){
-        base.showAd();
+    public void showAd()
+    {
+//        base.showAd();
     }
     public boolean next(){
-        if(base == admobRewardManger){
-            base=mobvistaRewardManger;
-            base.showAd();
-            return true;
-        }
-        base = admobRewardManger;
+//        if(base == admobRewardManger){
+//            base=mobvistaRewardManger;
+//            base.showAd();
+//            return true;
+//        }
+//        base = admobRewardManger;
         return false;
     }
 

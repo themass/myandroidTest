@@ -1,6 +1,5 @@
 package com.qq.myapp.bean.vo;
 
-import com.kyview.natives.NativeAdInfo;
 
 import java.io.Serializable;
 
@@ -37,12 +36,12 @@ public class LocationVo implements Serializable{
                 ", ping='" + ping + '\'' +
                 '}';
     }
-    public static LocationVo fromNative(NativeAdInfo info){
-        LocationVo vo = new LocationVo();
-        vo.ext =info;
-        vo.img = info.getIconUrl();
-        vo.name = info.getTitle();
-        vo.ename = info.getDesc();
-        return  vo;
-    }
+//    public static LocationVo fromNative(NativeAdInfo info){
+//        LocationVo vo = new LocationVo();
+//        vo.ext =info;
+//        vo.img = info.getIconUrl();
+//        vo.name = info.getTitle();
+//        vo.ename = info.getDesc();
+//        return  vo;
+//    }
 }

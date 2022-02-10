@@ -3,12 +3,12 @@ package com.qq.yewu.ads.base;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v4.app.FragmentActivity;
+import androidx.fragment.app.FragmentActivity;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
-import com.mintegral.msdk.MIntegralSDK;
-import com.mintegral.msdk.out.MIntegralSDKFactory;
+import androidx.fragment.app.FragmentActivity;
+
 import com.qq.common.util.EventBusUtil;
 import com.qq.common.util.LogUtil;
 import com.qq.myapp.base.MyApplication;
@@ -58,14 +58,14 @@ public class AdsManager {
         nativeMap.put(AdsContext.AdsFrom.ADVIEW,new NativeAdviewAds());
         videoMap.put(AdsContext.AdsFrom.ADVIEW, new VideoAdviewAds());
         JSONObject consentObject = new JSONObject();
-        final MIntegralSDK sdk = MIntegralSDKFactory.getMIntegralSDK();
-        Map<String, String> map = sdk.getMTGConfigurationMap(Constants.Mob_APPID, Constants.Mob_APPKEY);
-        // if you modify applicationId, please add the following attributes,
-        // otherwise it will crash
-        // map.put(MIntegralConstans.PACKAGE_NAME_MANIFEST, "your AndroidManifest
-        // package value");
-
-        sdk.init(map, context);
+//        final MIntegralSDK sdk = MIntegralSDKFactory.getMIntegralSDK();
+//        Map<String, String> map = sdk.getMTGConfigurationMap(Constants.Mob_APPID, Constants.Mob_APPKEY);
+//        // if you modify applicationId, please add the following attributes,
+//        // otherwise it will crash
+//        // map.put(MIntegralConstans.PACKAGE_NAME_MANIFEST, "your AndroidManifest
+//        // package value");
+//
+//        sdk.init(map, context);
     }
     private Handler mHandle = new Handler(){
         @Override

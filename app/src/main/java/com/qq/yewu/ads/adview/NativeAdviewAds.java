@@ -3,9 +3,6 @@ package com.qq.yewu.ads.adview;
 import android.content.Context;
 import android.os.Handler;
 
-import com.kyview.interfaces.AdViewNativeListener;
-import com.kyview.manager.AdViewNativeManager;
-import com.kyview.natives.NativeAdInfo;
 import com.qq.common.util.LogUtil;
 import com.qq.yewu.ads.base.AdsContext;
 import com.qq.yewu.ads.base.NativeAdsInter;
@@ -25,30 +22,30 @@ public class NativeAdviewAds extends NativeAdsInter {
     }
     @Override
     public  void showNative(final Context context, final Handler handler, final NativeAdsReadyListener listener, String key) {
-        try {
-            AdViewNativeManager.getInstance(context).requestAd(context, key, 2, new AdViewNativeListener() {
-
-                @Override
-                public void onAdFailed(String s) {
-                    noAds(context,handler, AdsContext.AdsFrom.ADVIEW,0);
-                 }
-
-                @Override
-                public void onAdRecieved(String s, ArrayList arrayList) {
-                    readyAds(context,handler, AdsContext.AdsFrom.ADVIEW);
-                    if (listener != null) {
-                        listener.onAdRecieved((List<NativeAdInfo>) arrayList);
-                    }
-                }
-
-                @Override
-                public void onAdStatusChanged(String s, int i) {
-                    clickAds(context,handler, AdsContext.AdsFrom.ADVIEW);
-                }
-            }); //设置原生回调接口
-        } catch (Throwable e) {
-            noAds(context,handler, AdsContext.AdsFrom.ADVIEW,0);
-            LogUtil.e("原声广告fail：", e);
-        }
+//        try {
+//            AdViewNativeManager.getInstance(context).requestAd(context, key, 2, new AdViewNativeListener() {
+//
+//                @Override
+//                public void onAdFailed(String s) {
+//                    noAds(context,handler, AdsContext.AdsFrom.ADVIEW,0);
+//                 }
+//
+//                @Override
+//                public void onAdRecieved(String s, ArrayList arrayList) {
+//                    readyAds(context,handler, AdsContext.AdsFrom.ADVIEW);
+//                    if (listener != null) {
+//                        listener.onAdRecieved((List<NativeAdInfo>) arrayList);
+//                    }
+//                }
+//
+//                @Override
+//                public void onAdStatusChanged(String s, int i) {
+//                    clickAds(context,handler, AdsContext.AdsFrom.ADVIEW);
+//                }
+//            }); //设置原生回调接口
+//        } catch (Throwable e) {
+//            noAds(context,handler, AdsContext.AdsFrom.ADVIEW,0);
+//            LogUtil.e("原声广告fail：", e);
+//        }
     }
 }

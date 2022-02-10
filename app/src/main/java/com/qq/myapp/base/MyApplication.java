@@ -1,7 +1,8 @@
 package com.qq.myapp.base;
 
 import android.graphics.Typeface;
-import android.support.multidex.MultiDexApplication;
+
+import androidx.multidex.MultiDexApplication;
 
 import com.qq.myapp.data.ImagePhotoLoad;
 import com.qq.yewu.ads.base.AdsManager;

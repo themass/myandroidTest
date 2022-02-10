@@ -1,7 +1,7 @@
 package com.qq.ks.ui.maintab;
 
 
-import android.support.v4.app.Fragment;
+import androidx.fragment.app.Fragment;
 
 import com.qq.myapp.ui.base.features.TabBaseAdsFragment;
 import com.qq.myapp.ui.fragment.VpnRadFragment;

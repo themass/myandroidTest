@@ -2,7 +2,7 @@ package com.qq.myapp.ui.base;
 
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,13 +10,13 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.kyview.natives.NativeAdInfo;
 import com.qq.common.ui.base.BaseFragment;
 import com.qq.common.util.CollectionUtils;
 import com.qq.common.util.EventBusUtil;
 import com.qq.common.util.LogUtil;
 import com.qq.ks.free1.R;
 import com.qq.myapp.bean.vo.LocationVo;
+import com.qq.myapp.bean.vo.NativeAdInfo;
 import com.qq.myapp.data.ImagePhotoLoad;
 import com.qq.myapp.data.UserLoginUtil;
 import com.qq.myapp.data.config.HindBannerEvent;
@@ -57,18 +57,18 @@ public class NativeHeaderFragment extends BaseFragment implements NativeAdsReady
     }
     public boolean onAdRecieved(final List<NativeAdInfo> data){
         if(!CollectionUtils.isEmpty(data)){
-            ImagePhotoLoad.loadCommonImg(getActivity(), data.get(0).getIconUrl(),icon);
-            desc.setText(data.get(0).getDesc());
-            data.get(0).onDisplay(new View(
-                    getActivity()));
-            natvieView.setOnTouchListener(new View.OnTouchListener() {
-
-                @Override
-                public boolean onTouch(View v, MotionEvent event) {
-                    data.get(0).onClick(v, (int) event.getX(), (int) event.getY());
-                    return true;
-                }
-            });
+//            ImagePhotoLoad.loadCommonImg(getActivity(), data.get(0).getIconUrl(),icon);
+////            desc.setText(data.get(0).getDesc());
+////            data.get(0).onDisplay(new View(
+////                    getActivity()));
+////            natvieView.setOnTouchListener(new View.OnTouchListener() {
+////
+////                @Override
+////                public boolean onTouch(View v, MotionEvent event) {
+////                    data.get(0).onClick(v, (int) event.getX(), (int) event.getY());
+////                    return true;
+////                }
+////            });
         }
         return true;
     }

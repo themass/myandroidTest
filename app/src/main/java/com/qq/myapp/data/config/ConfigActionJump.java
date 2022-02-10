@@ -2,7 +2,7 @@ package com.qq.myapp.data.config;
 
 import android.content.Intent;
 import android.net.Uri;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.qq.common.util.LogUtil;
 import com.qq.common.util.ToastUtil;
