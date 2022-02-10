@@ -3,17 +3,21 @@ apply plugin: 'org.greenrobot.greendao'
 // gradle BuildVariants
 //Build Variants = Product Flavor + Build Type
 android {
-    compileSdkVersion 26
+    compileSdkVersion 30
     buildToolsVersion "29.0.2"
     defaultConfig {
         applicationId "com.qq.ks.free1"
         minSdkVersion 16
-        targetSdkVersion 26
+        targetSdkVersion 30
         versionCode 1001008021
         versionName "1.1.8.21"
         // Enabling multidex support.
         multiDexEnabled true
         flavorDimensions "versionCode"
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
     dexOptions {
 //        incremental true
@@ -79,7 +83,6 @@ greendao {
     daoPackage 'com.ping.greendao.gen'
     targetGenDir 'src/main/java'
 }
-final APPCOMPAT_VERSION = '26.1.0'
 dependencies {
 
     implementation fileTree(dir: 'libs', include: ['*.aar'])
@@ -87,17 +90,19 @@ dependencies {
 
 //    implementation 'cn.jzvd:jiaozivideoplayer:6.2.12'
 //    implementation(name: 'glide-transformations-2.0.1', ext: 'aar',)
-    implementation "com.android.support:appcompat-v7:$APPCOMPAT_VERSION"
-    implementation "com.android.support:support-v13:$APPCOMPAT_VERSION"
-    implementation "com.android.support:support-v4:$APPCOMPAT_VERSION"
-    implementation "com.android.support:palette-v7:$APPCOMPAT_VERSION"
-    implementation "com.android.support:recyclerview-v7:$APPCOMPAT_VERSION"
-    implementation "com.android.support:cardview-v7:$APPCOMPAT_VERSION"
-    implementation "com.android.support:design:$APPCOMPAT_VERSION"
-    implementation "com.android.support:percent:$APPCOMPAT_VERSION"
+    implementation "androidx.appcompat:appcompat:1.1.0"
+    implementation "androidx.legacy:legacy-support-v13:1.0.0"
+    implementation "androidx.legacy:legacy-support-v4:1.0.0"
+    implementation "androidx.palette:palette:1.0.0"
+    implementation "androidx.recyclerview:recyclerview"
+    implementation "androidx.cardview:cardview"
+//    implementation "com.google.android.material:material:1.5.0-alpha01"
+    api 'com.google.android.material:material:1.1.0-alpha06'
+
+    implementation "androidx.percentlayout:percentlayout:1.0.0"
     implementation "com.android.support:multidex:1.0.1"
-    implementation 'com.jakewharton:butterknife:8.8.1'
-    annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
+    implementation 'com.jakewharton:butterknife:10.2.1'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:10.2.1'
     implementation 'com.jakewharton:disklrucache:2.0.2'
     //3.4.1
     implementation 'com.squareup.okhttp3:okhttp:3.9.0'
@@ -115,21 +120,24 @@ dependencies {
     implementation 'com.romainpiel.shimmer:library:1.4.0@aar'
 
     implementation 'com.github.lawloretienne:imagegallery:0.1.0'
+    implementation  'com.umeng.umsdk:common:9.4.4'// 必选
+    implementation  'com.umeng.umsdk:asms:1.4.1'// 必选
+    implementation 'com.umeng.umsdk:apm:1.5.2' // 错误分析升级为独立SDK，看crash数据请一定集
 
-    //implementation 'com.github.amlcurran.showcaseview:library:5.4.3'
-    //implementation 'com.github.wooplr:Spotlight:1.2.3'
-//    implementation 'com.github.iammert:MaterialIntroView:1.6.0'
-    //implementation 'com.isanwenyu.highlight:highlight:1.8.0'
-    //implementation 'com.github.faruktoptas:FancyShowCaseView:1.0.0'
-    //implementation 'com.github.deano2390:MaterialShowcaseView:1.2.0'
     implementation 'com.sothree.slidinguppanel:library:3.3.1'
-    implementation 'com.github.JakeWharton:ViewPagerIndicator:2.4.1'
+//    implementation 'com.github.JakeWharton:ViewPagerIndicator:2.4.1'
+//    implementation 'com.viewpagerindicator:library:2.4.1@aar'
 
-//    implementation 'com.squareup.picasso:picasso:2.5.2'
     implementation 'com.google.android.gms:play-services-ads:15.0.1'
     implementation 'com.google.android.gms:play-services-base:15.0.1'
     implementation 'com.google.android.gms:play-services-location:15.0.1'
     implementation 'com.google.android.gms:play-services-plus:15.0.1'
-    // adview
 
+
+    implementation 'com.mbridge.msdk.oversea:reward:16.0.11'
+    implementation 'com.mbridge.msdk.oversea:mbnative:16.0.11'
+    implementation 'com.mbridge.msdk.oversea:mbnativeadvanced:16.0.11'
+    implementation 'com.mbridge.msdk.oversea:newinterstitial:16.0.11'
+    implementation 'com.mbridge.msdk.oversea:mbbanner:16.0.11'
+    implementation 'com.mbridge.msdk.oversea:mbsplash:16.0.11'
 }
