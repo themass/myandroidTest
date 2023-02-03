@@ -13,7 +13,7 @@ import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
 import android.widget.LinearLayout;
 
-import com.timeline.sexfree1.R;
+import com.ks.sexfree1.R;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;

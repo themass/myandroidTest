@@ -8,7 +8,7 @@ import android.util.AttributeSet;
 
 import com.sspacee.common.util.DensityUtil;
 import com.sspacee.common.util.Tools;
-import com.timeline.myapp.base.MyApplication;
+import com.ks.myapp.base.MyApplication;
 
 /**
  * 自定义TextView

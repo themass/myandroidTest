@@ -7,18 +7,14 @@ import android.widget.Toast;
 import com.kyview.interfaces.AdViewVideoListener;
 import com.kyview.manager.AdViewVideoManager;
 import com.sspacee.yewu.ads.base.AdsContext;
-import com.sspacee.yewu.ads.base.AdsManager;
 import com.sspacee.yewu.ads.base.VideoAdsInter;
-import com.timeline.myapp.ui.sound.VideoShowActivity;
-import com.timeline.myapp.ui.sound.VideoShowActivityj;
-import com.timeline.sexfree1.R;
-import com.timeline.myapp.constant.Constants;
-import com.timeline.myapp.task.ScoreTask;
+import com.ks.sexfree1.R;
+import com.ks.myapp.constant.Constants;
+import com.ks.myapp.task.ScoreTask;
 
 import io.vov.vitamio.provider.MediaStore;
 
 import static com.sspacee.yewu.ads.adview.AdviewConstant.ADS_ADVIEW_KEY1;
-import static com.sspacee.yewu.ads.adview.AdviewConstant.ADS_ADVIEW_KEY2;
 
 /**
  * Created by themass on 2017/9/22.

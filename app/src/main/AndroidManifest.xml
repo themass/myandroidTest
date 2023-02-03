@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.timeline.sexfree1">
+    package="com.ks.sexfree1">
     <!-- 隐私权-->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -57,7 +57,7 @@
         android:resizeable="true"
         android:smallScreens="true" />
     <application
-        android:name="com.timeline.myapp.base.MyApplication"
+        android:name="com.ks.myapp.base.MyApplication"
         android:allowBackup="false"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
@@ -94,85 +94,85 @@
             android:launchMode="singleTask"
             android:screenOrientation="portrait" />
         <activity
-            android:name="com.timeline.myapp.ui.base.WebViewActivity"
+            android:name="com.ks.myapp.ui.base.WebViewActivity"
             android:configChanges="orientation|keyboardHidden|screenSize" />
         <activity
-            android:name="com.timeline.myapp.ui.user.LoginActivity"
+            android:name="com.ks.myapp.ui.user.LoginActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name="com.timeline.myapp.ui.user.RegActivity"
+            android:name="com.ks.myapp.ui.user.RegActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name="com.timeline.myapp.ui.user.FindPassActivity"
+            android:name="com.ks.myapp.ui.user.FindPassActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name="com.timeline.myapp.ui.user.SettingActivity"
+            android:name="com.ks.myapp.ui.user.SettingActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name="com.timeline.myapp.ui.user.AddCustomeInfoActivity"
+            android:name="com.ks.myapp.ui.user.AddCustomeInfoActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name="com.timeline.myapp.ui.sound.SoundChannleActivity"
+            android:name="com.ks.myapp.ui.sound.SoundChannleActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name="com.timeline.myapp.ui.sound.TextChannleActivity"
+            android:name="com.ks.myapp.ui.sound.TextChannleActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name="com.timeline.myapp.ui.sound.ImgChannleActivity"
+            android:name="com.ks.myapp.ui.sound.ImgChannleActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name="com.timeline.myapp.ui.sound.VideoActivity"
+            android:name="com.ks.myapp.ui.sound.VideoActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name="com.timeline.myapp.ui.sound.VideoChannleActivity"
+            android:name="com.ks.myapp.ui.sound.VideoChannleActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name="com.timeline.myapp.ui.sound.MovieChannleActivity"
+            android:name="com.ks.myapp.ui.sound.MovieChannleActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name="com.timeline.myapp.ui.base.VideoWebViewActivity"
+            android:name="com.ks.myapp.ui.base.VideoWebViewActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:hardwareAccelerated="true"
             android:screenOrientation="nosensor"
             android:theme="@style/AppTheme"/>
         <activity
-            android:name="com.timeline.myapp.ui.sound.VitamioVideoPlayActivity"
+            android:name="com.ks.myapp.ui.sound.VitamioVideoPlayActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme"/>
         <activity
-            android:name="com.timeline.myapp.ui.sound.VideoShowActivity"
+            android:name="com.ks.myapp.ui.sound.VideoShowActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme"/>
         <activity
-            android:name="com.timeline.myapp.ui.sound.VideoListShowActivity"
+            android:name="com.ks.myapp.ui.sound.VideoListShowActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme"/>
         <activity
-            android:name="com.timeline.myapp.ui.sound.VideoShowActivityj"
+            android:name="com.ks.myapp.ui.sound.VideoShowActivityj"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme"/>
         <activity
-            android:name="com.timeline.myapp.ui.sound.MyFullScreenImageGalleryActivity"
+            android:name="com.ks.myapp.ui.sound.MyFullScreenImageGalleryActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name="com.timeline.myapp.ui.base.CommonFragmentActivity"
+            android:name="com.ks.myapp.ui.base.CommonFragmentActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name="com.timeline.myapp.ui.feedback.FeedbackFragmentActivity"
+            android:name="com.ks.myapp.ui.feedback.FeedbackFragmentActivity"
             android:theme="@style/StyledIndicators"
             android:screenOrientation="portrait" />
         <activity
-            android:name="com.timeline.myapp.ui.config.QuickBrowserConfigActivity"
+            android:name="com.ks.myapp.ui.config.QuickBrowserConfigActivity"
             android:screenOrientation="portrait"
             android:theme="@style/myTransparent" />
 
-        <service android:name="com.timeline.myapp.service.LogUploadService" />
-        <service android:name="com.timeline.myapp.service.LogToFileService" />
-        <service android:name="com.timeline.myapp.service.PlayService" />
+        <service android:name="com.ks.myapp.service.LogUploadService" />
+        <service android:name="com.ks.myapp.service.LogToFileService" />
+        <service android:name="com.ks.myapp.service.PlayService" />
 
 
         <!-- 广告sdk-->
@@ -198,7 +198,7 @@
         <!-- GDT -->
         <provider
             android:name="android.support.v4.content.FileProvider"
-            android:authorities="com.timeline.sexfree1.fileprovider"
+            android:authorities="com.ks.sexfree1.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data

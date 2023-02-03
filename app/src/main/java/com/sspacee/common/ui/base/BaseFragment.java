@@ -8,7 +8,7 @@ import android.view.ViewGroup;
 
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.ViewUtils;
-import com.timeline.myapp.constant.Constants;
+import com.ks.myapp.constant.Constants;
 
 import java.io.Serializable;
 

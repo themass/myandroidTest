@@ -16,7 +16,7 @@ import android.widget.PopupWindow;
 
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.SystemUtils;
-import com.timeline.sexfree1.R;
+import com.ks.sexfree1.R;
 
 
 /**

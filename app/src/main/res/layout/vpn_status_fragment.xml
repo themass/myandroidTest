@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <fragment xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/vpn_status_frag"
-    class="com.timeline.myapp.ui.fragment.VpnStatusFragment"
+    class="com.ks.myapp.ui.fragment.VpnStatusFragment"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content" />
 

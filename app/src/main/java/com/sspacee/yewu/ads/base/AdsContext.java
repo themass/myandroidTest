@@ -7,10 +7,10 @@ import android.widget.Toast;
 import com.sspacee.common.util.Md5;
 import com.sspacee.yewu.ads.adview.AdviewConstant;
 import com.sspacee.yewu.um.MobAgent;
-import com.timeline.sexfree1.R;
-import com.timeline.myapp.constant.Constants;
-import com.timeline.myapp.data.UserLoginUtil;
-import com.timeline.myapp.task.ScoreTask;
+import com.ks.sexfree1.R;
+import com.ks.myapp.constant.Constants;
+import com.ks.myapp.data.UserLoginUtil;
+import com.ks.myapp.task.ScoreTask;
 
 import static com.sspacee.yewu.ads.base.AdsContext.AdsShowStatus.ADS_CLICK_MSG;
 

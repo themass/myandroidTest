@@ -5,8 +5,8 @@ import android.content.Context;
 import com.android.volley.NetworkResponse;
 import com.android.volley.ParseError;
 import com.android.volley.Response;
-import com.timeline.myapp.bean.DataBuilder;
-import com.timeline.myapp.bean.vo.JsonResult;
+import com.ks.myapp.bean.DataBuilder;
+import com.ks.myapp.bean.vo.JsonResult;
 
 import java.util.Map;
 

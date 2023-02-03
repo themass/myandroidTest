@@ -12,7 +12,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 
 
-import com.timeline.sexfree1.R;
+import com.ks.sexfree1.R;
 
 import java.util.Arrays;
 import java.util.List;

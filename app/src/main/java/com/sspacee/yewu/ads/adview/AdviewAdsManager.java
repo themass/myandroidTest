@@ -8,7 +8,7 @@ import com.kyview.manager.AdViewInstlManager;
 import com.kyview.manager.AdViewNativeManager;
 import com.kyview.manager.AdViewSpreadManager;
 import com.kyview.manager.AdViewVideoManager;
-import com.timeline.myapp.base.MyApplication;
+import com.ks.myapp.base.MyApplication;
 
 import static com.sspacee.yewu.ads.adview.AdviewConstant.adsKeySet;
 

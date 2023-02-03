@@ -198,7 +198,7 @@
 }
 
 #----------------------project------------
--keep class com.timeline.myapp.bean.**{ *; }
+-keep class com.ks.myapp.bean.**{ *; }
 -keep class sun.misc.Unsafe { *; }
 -keep class com.google.gson.stream.** { *; }
 -keep class com.sspacee.common.weather.**{ *; }
@@ -232,8 +232,8 @@
 -keeppackagenames I
 -keep class I.* {*;}
 -keepattributes Exceptions
--keepattribute Signature
--keepattribute Deprecated
+-keepattributes Signature
+-keepattributes Deprecated
 -keepattributes *Annotation*
 -keep public class com.kyview.** {*;}
 -dontwarn com.kyview.**

@@ -2,16 +2,12 @@ package com.sspacee.yewu.ads.adview;
 
 import android.content.Context;
 import android.os.Handler;
-import android.widget.Toast;
 
 import com.kyview.interfaces.AdViewInstlListener;
 import com.kyview.manager.AdViewInstlManager;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.InterstitialAdsInter;
-import com.timeline.sexfree1.R;
-import com.timeline.myapp.constant.Constants;
-import com.timeline.myapp.task.ScoreTask;
 
 /**
  * Created by themass on 2017/9/20.

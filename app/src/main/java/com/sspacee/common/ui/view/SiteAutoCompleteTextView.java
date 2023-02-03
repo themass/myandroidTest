@@ -10,7 +10,7 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import com.sspacee.common.util.StringUtils;
-import com.timeline.sexfree1.R;
+import com.ks.sexfree1.R;
 
 
 public class SiteAutoCompleteTextView extends AppCompatAutoCompleteTextView {
