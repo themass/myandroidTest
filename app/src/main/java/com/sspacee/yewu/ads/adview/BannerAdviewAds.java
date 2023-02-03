@@ -1,7 +1,7 @@
 package com.sspacee.yewu.ads.adview;
 
 import android.os.Handler;
-import android.support.v4.app.FragmentActivity;
+import androidx.fragment.app.FragmentActivity;
 import android.view.View;
 import android.view.ViewGroup;
 

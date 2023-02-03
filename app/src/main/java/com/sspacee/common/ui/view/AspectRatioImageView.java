@@ -2,7 +2,7 @@ package com.sspacee.common.ui.view;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
-import android.support.v7.widget.AppCompatImageView;
+import androidx.appcompat.widget.AppCompatImageView;
 import android.util.AttributeSet;
 
 public class AspectRatioImageView extends AppCompatImageView {

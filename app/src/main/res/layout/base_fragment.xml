@@ -11,7 +11,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <android.support.design.widget.CollapsingToolbarLayout
+            <com.google.android.material.appbar.CollapsingToolbarLayoutt
                 android:id="@+id/ct_bar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -27,7 +27,7 @@
                     android:layout_marginBottom="@dimen/margin_2"
                     android:gravity="center"
                     app:layout_collapseMode="parallax" />
-            </android.support.design.widget.CollapsingToolbarLayout>
+            </com.google.android.material.appbar.CollapsingToolbarLayoutt>
         </android.support.design.widget.AppBarLayout>
 
         <FrameLayout
@@ -36,7 +36,7 @@
             android:layout_height="match_parent"
             app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
-        <android.support.design.widget.FloatingActionButton
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab_up"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

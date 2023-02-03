@@ -1,10 +1,10 @@
 package com.ks.myapp.ui.base.features;
 
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.view.View;
 import android.view.animation.OvershootInterpolator;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.sspacee.common.util.LogUtil;
 import com.ks.sexfree1.R;
 import com.ks.myapp.data.AdsPopStrategy;

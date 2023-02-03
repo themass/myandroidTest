@@ -1,23 +1,24 @@
 package com.ks.myapp.ui.base.features;
 
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.SearchView;
 
+import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
+import com.ks.myapp.bean.vo.InfoListVo;
+import com.ks.myapp.data.BaseService;
+import com.ks.sexfree1.R;
 import com.sspacee.common.ui.view.DividerItemDecoration;
 import com.sspacee.common.ui.view.MyPullView;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.StringUtils;
-import com.ks.sexfree1.R;
-import com.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
-import com.ks.myapp.bean.vo.InfoListVo;
-import com.ks.myapp.data.BaseService;
 
 import butterknife.BindView;
 

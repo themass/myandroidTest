@@ -1,7 +1,8 @@
 package com.ks.myapp.base;
 
 import android.graphics.Typeface;
-import android.support.multidex.MultiDexApplication;
+
+import androidx.multidex.MultiDexApplication;
 
 import com.sspacee.common.util.DensityUtil;
 import com.sspacee.common.util.DeviceInfoUtils;

@@ -2,7 +2,7 @@ package com.ks.myapp.data.showtype;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.view.View;
 
 import com.bumptech.glide.RequestManager;

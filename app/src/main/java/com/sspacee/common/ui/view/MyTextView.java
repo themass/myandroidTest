@@ -2,9 +2,11 @@ package com.sspacee.common.ui.view;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.support.v7.widget.AppCompatTextView;
+import androidx.appcompat.widget.AppCompatTextView;
 import android.text.Layout;
 import android.util.AttributeSet;
+
+import androidx.appcompat.widget.AppCompatTextView;
 
 import com.sspacee.common.util.DensityUtil;
 import com.sspacee.common.util.Tools;

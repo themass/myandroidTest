@@ -1,7 +1,7 @@
 package com.ks.sexfree1.ui.maintab;
 
 
-import android.support.v4.app.Fragment;
+import androidx.fragment.app.Fragment;
 
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.ks.myapp.ui.base.BannerHeaderFragment;

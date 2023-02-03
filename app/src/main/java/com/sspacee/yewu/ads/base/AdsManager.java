@@ -3,7 +3,7 @@ package com.sspacee.yewu.ads.base;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v4.app.FragmentActivity;
+import androidx.fragment.app.FragmentActivity;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 

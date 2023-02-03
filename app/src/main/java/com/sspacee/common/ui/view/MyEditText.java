@@ -1,9 +1,10 @@
 package com.sspacee.common.ui.view;
 
 import android.content.Context;
-import android.support.v7.widget.AppCompatEditText;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
+
+import androidx.appcompat.widget.AppCompatEditText;
 
 import com.ks.myapp.base.MyApplication;
 

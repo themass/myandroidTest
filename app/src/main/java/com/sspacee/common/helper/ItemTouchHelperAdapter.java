@@ -16,11 +16,9 @@
 
 package com.sspacee.common.helper;
 
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.helper.ItemTouchHelper;
+import androidx.recyclerview.widget.RecyclerView;
 
 /**
- * Interface to listen for a move or dismissal event from a {@link ItemTouchHelper.Callback}.
  *
  * @author Paul Burke (ipaulpro)
  */
@@ -36,7 +34,6 @@ public interface ItemTouchHelperAdapter {
      * @param fromPosition The start position of the moved item.
      * @param toPosition   Then resolved position of the moved item.
      * @return True if the item was moved to the new adapter position.
-     * @see RecyclerView#getAdapterPositionFor(RecyclerView.ViewHolder)
      * @see RecyclerView.ViewHolder#getAdapterPosition()
      */
     boolean onItemMove(int fromPosition, int toPosition);
@@ -49,7 +46,6 @@ public interface ItemTouchHelperAdapter {
      * adjusting the underlying data to reflect this removal.
      *
      * @param position The position of the item dismissed.
-     * @see RecyclerView#getAdapterPositionFor(RecyclerView.ViewHolder)
      * @see RecyclerView.ViewHolder#getAdapterPosition()
      */
     void onItemDismiss(int position);

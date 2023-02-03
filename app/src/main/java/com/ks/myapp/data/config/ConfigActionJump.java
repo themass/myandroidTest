@@ -2,7 +2,7 @@ package com.ks.myapp.data.config;
 
 import android.content.Intent;
 import android.net.Uri;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.ToastUtil;
