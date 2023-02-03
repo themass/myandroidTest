@@ -35,20 +35,12 @@
 # 保留我们使用的四大组件，自定义的Application等等这些类不被混淆
 # 因为这些子类都有可能被外部调用
 -keep public class * extends android.app.Activity
--keep public class * extends android.app.Appliction
 -keep public class * extends android.app.Service
 -keep public class * extends android.content.BroadcastReceiver
 -keep public class * extends android.content.ContentProvider
 -keep public class * extends android.app.backup.BackupAgentHelper
 -keep public class * extends android.preference.Preference
 -keep public class * extends android.view.View
-# 保留support下的所有类及其内部类
--keep class android.support.** {*;}
-# 保留继承的
--keep public class * extends android.support.v4.**
--dontnote android.support.v4.**
--keep public class * extends android.support.v7.**
--keep public class * extends android.support.annotation.**
 # 保留R下面的资源
 -keep class **.R$* {*;}
 # 保留在Activity中的方法参数是view的方法，
@@ -147,14 +139,6 @@
 -keepclassmembers class * extends org.greenrobot.eventbus.util.ThrowableFailureEvent {
     <init>(java.lang.Throwable);
 }
-#umeng
--dontnote com.umeng.analytics.**
--dontnote com.umeng.message.**
--dontwarn com.umeng.**
--keep class com.umeng.**{*;}
--keep class u.aly.**{*;}
--keep class com.google.**{*;}
--dontnote u.aly.**
 #glid
 -keep public class * implements com.bumptech.glide.module.GlideModule
 -keep public class * extends com.bumptech.glide.module.AppGlideModule
@@ -170,17 +154,8 @@
 # for DexGuard only
 #-keepresourcexmlelements manifest/application/meta-data@value=GlideModule
 #-dontnote com.bumptech.glide.**
-#-keep public class * implements com.bumptech.glide.module.GlideModule
-#-keep public enum com.bumptech.glide.load.resource.bitmap.ImageHeaderParser$** {
-#  **[] $VALUES;
-#  public *;
-#}
-#-keep class com.bumptech.glide.** { *; }
-##-keepresourcexmlelements manifest/application/meta-data@value=GlideModule
--keep class com.baidu.** { *;}
 -keep class androidx.core.app.NotificationCompat**{ *; }
 
-# Preserve all native method names and the names of their classes.
 -keepclassmembers class * {
     native <methods>;
 }
@@ -204,134 +179,7 @@
     public static int w(...);
     public static int d(...);
 }
-#------------adview-----------------------
-#-----------------end---------------------
-#竞价相关
--keep public class com.kyview.** {*;}
--keep public class com.kuaiyou.** {*;}
-#以下为部分聚合相关的，如果有相关包名的警告，根据提示log添加dontwarn即可
--keepclassmembers class * {public *;}
--keep public class * {public *;}
--keep class com.baidu.mobads.** {
-public protected *;
-}
--keep class com.qq.e.** {
-public protected *;
-}
--keep class com.tencent.gdt.**{
-public protected *;
-}
--optimizationpasses 5
--dontusemixedcaseclassnames
--dontskipnonpubliclibraryclasses
--dontpreverify
--verbose
--keep class com.moat.analytics.**{*;}
--dontwarn com.moat.analytics.**
--dontwarn com.dropbox.**
--keep class LBSAPIProtocol.*
--keeppackagenames I
--keep class I.* {*;}
--keepattributes Exceptions
--keepattribute Signature
--keepattribute Deprecated
--keepattributes *Annotation*
--keep public class com.kyview.** {*;}
--dontwarn com.kyview.**
--dontnote com.kyview.**
--dontwarn com.kuaiyou.**
--dontnote com.kuaiyou.**
--dontwarn android.app.**
--dontnote android.app.**
--dontwarn pl.droidsonroids.**
--dontnote pl.droidsonroids.**
--dontwarn com.androidquery.**
--dontnote com.androidquery.**
--dontwarn com.bytedance.**
--dontnote com.bytedance.**
--dontwarn org.greenrobot.**
--dontnote org.greenrobot.**
--dontwarn okhttp3.internal.**
--dontnote okhttp3.internal.**
--dontwarn com.bumptech.**
--dontnote com.bumptech.**
--dontwarn com.android.org.**
--dontnote com.android.org.**
--dontwarn com.google.gson.**
--dontnote com.google.gson.**
--dontwarn com.qq.**
--dontnote com.qq.**
--dontwarn android.arch.**
--dontnote android.arch.**
--dontwarn com.amazon.**
--dontnote com.amazon.**
--dontwarn com.etiennelawlor.**
--dontnote com.etiennelawlor.**
--keep public class com.google.android.gms.**
--dontwarn com.google.android.gms.**
--dontwarn com.squareup.picasso.**
--keep class com.google.android.gms.ads.identifier.AdvertisingIdClient{
-     public *;
-}
--keep class com.google.android.gms.ads.identifier.AdvertisingIdClient$Info{
-     public *;
-}
--keep public class com.bytedance.** {*;}
--keep public class com.kuaiyou.** {*;}
--keep public class com.google.android.gms.ads.** {
-   public *;
-}
--keep public class com.google.ads.** {
-   public *;
-}
 
--keepattributes SourceFile,LineNumberTable
--keep public class com.google.android.gms.**
--dontwarn com.google.android.gms.**
--dontwarn com.squareup.picasso.**
--keep class com.google.android.gms.ads.identifier.AdvertisingIdClient{
-     public *;
-}
--keep class com.google.android.gms.ads.identifier.AdvertisingIdClient$Info{
-     public *;
-}
-# skip the Picasso library classes
--keep class com.squareup.picasso.** {*;}
--dontwarn com.squareup.picasso.**
--dontwarn com.squareup.okhttp.**
-# skip Moat classes
--keep class com.moat.** {*;}
--dontwarn com.moat.**
-# skip AVID classes
--keep class com.integralads.avid.library.* {*;}
-
--keepattributes SourceFile,LineNumberTable
--keep class com.inmobi.** { *; }
--dontwarn com.inmobi.**
--keep public class com.google.android.gms.**
--dontwarn com.google.android.gms.**
--dontwarn com.squareup.picasso.**
--keep class com.google.android.gms.ads.identifier.AdvertisingIdClient{public *;}
--keep class com.google.android.gms.ads.identifier.AdvertisingIdClient$Info{public *;}
-#skip the Picasso library classes
--keep class com.squareup.picasso.** {*;}
--dontwarn com.squareup.picasso.**
--dontwarn com.squareup.okhttp.**
-#skip Moat classes
--keep class com.moat.** {*;}
--dontwarn com.moat.**
-#skip AVID classes
--keep class com.integralads.avid.library.** {*;}
-
--keepattributes Signature
--keepattributes *Annotation*
--keep class com.mintegral.** {*; }
--keep interface com.mintegral.** {*; }
--keep class android.support.v4.** { *; }
--dontwarn com.mintegral.**
--keep class **.R$* { public static final int mintegral*; }
--keep class com.alphab.** {*; }
--keep interface com.alphab.** {*; }
 #-------------------greenrobot greendao------------------------
 -keep class org.greenrobot.greendao.**{*;}
 -keepclassmembers class * extends org.greenrobot.greendao.AbstractDao {
@@ -344,5 +192,3 @@ public static java.lang.String TABLENAME;
 
 -keepattributes Signature
 -keepattributes *Annotation*
-
--keep class com.android.vending.billing.**

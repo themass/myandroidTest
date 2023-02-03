@@ -9,8 +9,8 @@ android {
         applicationId "com.qq.ks.free1"
         minSdkVersion 16
         targetSdkVersion 30
-        versionCode 1001008021
-        versionName "1.1.8.21"
+        versionCode 1001000000
+        versionName "1.1.0.0"
         // Enabling multidex support.
         multiDexEnabled true
         flavorDimensions "versionCode"
