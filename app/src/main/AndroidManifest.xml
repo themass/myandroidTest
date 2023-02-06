@@ -62,7 +62,10 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme.Slide"
-        tools:replace="android:allowBackup">
+        android:usesCleartextTraffic="true"
+        tools:replace="android:allowBackup"
+        >
+        <uses-library android:name="org.apache.http.legacy" android:required="false" />
 
         <meta-data
             android:name="UMENG_APPKEY"
@@ -176,28 +179,10 @@
 
 
         <!-- 广告sdk-->
-        <!--must-->
-        <activity
-            android:name="com.kuaiyou.video.vast.activity.VASTAdActivity"
-            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
-            android:hardwareAccelerated="true"
-            android:screenOrientation="landscape"/>
-        <service android:name="com.kyview.DownloadService" />
-        <activity android:name="com.kyview.AdviewWebView" />
-        <activity android:name="com.kyview.AdActivity" />
-        <activity android:name="com.kyview.AdViewLandingPage" />
-        <activity
-            android:name="com.kyview.AdViewVideoActivity"
-            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
-            android:hardwareAccelerated="true" >
-        </activity>
-
-
-        <!-- AdView SDK for Youmi -->
         <!-- 视频组件 -->
         <!-- GDT -->
         <provider
-            android:name="android.support.v4.content.FileProvider"
+            android:name="androidx.core.content.FileProvider"
             android:authorities="com.ks.sexfree1.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">

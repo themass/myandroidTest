@@ -39,6 +39,7 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity{
     @BindView(R.id.ct_bar)
     public CollapsingToolbarLayout ctBar;
     private AdsGoneTask task = new AdsGoneTask();
+
     protected Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {

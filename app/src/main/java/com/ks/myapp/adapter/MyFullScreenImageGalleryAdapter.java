@@ -20,7 +20,7 @@ public class MyFullScreenImageGalleryAdapter extends FullScreenImageGalleryAdapt
     @Override
     public void destroyItem(ViewGroup container, int position, Object object) {
         View view = (View)object;
-        Glide.with(view).clear(view.findViewById(R.id.iv));
+        Glide.with(view).clear((View)view.findViewById(R.id.iv));
         super.destroyItem(container,position,object);
 
     }

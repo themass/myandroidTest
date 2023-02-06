@@ -44,7 +44,8 @@ public class HttpDNSUtil {
     }
 
     public static String getIPByHost(String url) {
-        boolean needDnspod = PreferenceUtils.getPrefBoolean(MyApplication.getInstance(), Constants.NEED_DNSPOD_CONFIG, true) && url.contains("api.sspacee.com");
+//        boolean needDnspod = PreferenceUtils.getPrefBoolean(MyApplication.getInstance(), Constants.NEED_DNSPOD_CONFIG, true) && url.contains("api.sspacee.com");
+        boolean needDnspod = false;
         LogUtil.i("needDnspod="+needDnspod);
         if (!needDnspod) {
             return url;

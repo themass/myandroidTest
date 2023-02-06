@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
+
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.ks.myapp.bean.vo.InfoListVo;
@@ -20,7 +21,6 @@ import com.ks.myapp.ui.sound.VideoShowActivity;
 public class VideoChannelListFragment extends RecommendFragment {
     private static final String VIDEO_TAG = "video_tag";
     private RecommendVo vo;
-
     public static void startFragment(Context context, RecommendVo vo) {
         Intent intent = new Intent(context, CommonFragmentActivity.class);
         intent.putExtra(CommonFragmentActivity.FRAGMENT, VideoChannelListFragment.class);
