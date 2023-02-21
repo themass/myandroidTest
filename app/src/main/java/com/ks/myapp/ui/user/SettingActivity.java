@@ -58,6 +58,10 @@ public class SettingActivity extends BaseSingleActivity {
     Switch swArea;
     @BindView(R.id.sw_sound)
     Switch swSound;
+    @BindView(R.id.sw_playcore)
+    Switch swPlayCore;
+    @BindView(R.id.sw_playVideo)
+    Switch sw_playVideo;
     @BindView(R.id.tv_timeuse)
     TextView tvTime;
     @BindView(R.id.tv_networking)
@@ -80,6 +84,24 @@ public class SettingActivity extends BaseSingleActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_setting);
         setToolbarTitle(R.string.setting, true);
+
+        sw_playVideo.setChecked(PreferenceUtils.getPrefBoolean(this, Constants.PLAYVIDEO_SWITCH, true));
+        sw_playVideo.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                PreferenceUtils.setPrefBoolean(SettingActivity.this, Constants.PLAYVIDEO_SWITCH, isChecked);
+                LogUtil.i("swPlayCore: " + isChecked);
+                EventBusUtil.getEventBus().post(new TabChangeEvent());
+            }
+        });
+
+        swPlayCore.setChecked(PreferenceUtils.getPrefBoolean(this, Constants.PLAYCORE_SWITCH, true));
+        swPlayCore.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                PreferenceUtils.setPrefBoolean(SettingActivity.this, Constants.PLAYCORE_SWITCH, isChecked);
+                LogUtil.i("swPlayCore: " + isChecked);
+                EventBusUtil.getEventBus().post(new TabChangeEvent());
+            }
+        });
         swArea.setChecked(PreferenceUtils.getPrefBoolean(this, Constants.AREA_SWITCH, true));
         swArea.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {

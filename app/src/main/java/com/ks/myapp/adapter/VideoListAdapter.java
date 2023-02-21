@@ -4,13 +4,18 @@ import android.content.Context;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
 import com.bumptech.glide.Glide;
+import com.ks.myapp.data.VideoUtil;
+import com.ks.myapp.ui.sound.media.JZMediaExo;
+import com.ks.myapp.ui.sound.media.JZMediaIjk;
 import com.sspacee.common.util.LogUtil;
+import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.StringUtils;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
@@ -18,12 +23,12 @@ import com.ks.sexfree1.R;
 import com.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.ks.myapp.bean.vo.RecommendVo;
 import com.ks.myapp.constant.Constants;
-import com.ks.myapp.data.VideoUtil;
 
 import java.util.List;
 
 import butterknife.BindView;
-import cn.jzvd.JZVideoPlayerStandard;
+import cn.jzvd.Jzvd;
+import cn.jzvd.JzvdStd;
 
 
 public class VideoListAdapter extends BaseRecyclerViewAdapter<VideoListAdapter.VideoHolder, RecommendVo> {
@@ -42,10 +47,22 @@ public class VideoListAdapter extends BaseRecyclerViewAdapter<VideoListAdapter.V
             VideoHolder holder = (VideoHolder)h;
             RecommendVo vo = data.get(position);
             LogUtil.i("jcVideoPlayer="+holder.jcVideoPlayer.toString());
-            Object[] source = VideoUtil.getVideoSource(vo.actionUrl,false,StringUtils.hasText(vo.param)?vo.param: vo.actionUrl);
-            holder.jcVideoPlayer.setUp(source,0, JZVideoPlayerStandard.SCREEN_WINDOW_LIST, vo.title);
+
+            boolean playCore = PreferenceUtils.getPrefBoolean(context, Constants.PLAYCORE_SWITCH, true);
+            if(!playCore) {
+                holder.jcVideoPlayer.setUp(vo.actionUrl, vo.title, JzvdStd.SCREEN_NORMAL, JZMediaExo.class);
+            } else {
+                holder.jcVideoPlayer.setUp(vo.actionUrl, vo.title, JzvdStd.SCREEN_NORMAL, JZMediaIjk.class);
+            }
+            holder.jcVideoPlayer.jzDataSource.headerMap = VideoUtil.getVideoSourceHeader(vo.actionUrl, com.sspacee.common.util.StringUtils.hasText(vo.baseurl) ? vo.baseurl : vo.actionUrl);
+//
+
+            https://vd2.bdstatic.com/mda-pb6cpnvt5v2kjqke/sc/cae_h264/1675761743990346865/mda-pb6cpnvt5v2kjqke.mp4
+//            holder.jcVideoPlayer.setUp(vo.actionUrl, vo.title, Jzvd.SCREEN_NORMAL);
+//
+//            holder.jcVideoPlayer.starsetUpvo.actionUrionUrl,vo.title, Jzvd.SCREEN_NORMAL);
 //            holder.jcVideoPlayer.hea = header;
-            Glide.with(context).load(vo.img).into(holder.jcVideoPlayer.thumbImageView);
+            Glide.with(context).load(vo.img).into(holder.jcVideoPlayer.posterImageView);
             if(Constants.BANNER_ADS_POS.contains(position)){
                 if(position%2==1){
                     holder.rvAds.setVisibility(View.VISIBLE);
@@ -63,7 +80,7 @@ public class VideoListAdapter extends BaseRecyclerViewAdapter<VideoListAdapter.V
         public  static class VideoHolder  extends BaseRecyclerViewAdapter.BaseRecyclerViewHolder<RecommendVo>{
             @Nullable
             @BindView(R.id.videoplayer)
-            JZVideoPlayerStandard jcVideoPlayer;
+            JzvdStd jcVideoPlayer;
             @Nullable
             @BindView(R.id.rv_ads)
             RelativeLayout rvAds;

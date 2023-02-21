@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -48,5 +49,11 @@ public class VideoUtil {
         dataSourceObjects[1]=loop;
         dataSourceObjects[2]=header;
         return dataSourceObjects;
+    }
+    public static HashMap<String,String> getVideoSourceHeader(String url, String reffer){
+        HashMap<String,String> header = new HashMap<>();
+        header.put(Constants.REFERER, reffer);
+        header.put(Constants.USER_AGENT, Constants.USER_AGENT_DEF);
+        return header;
     }
 }

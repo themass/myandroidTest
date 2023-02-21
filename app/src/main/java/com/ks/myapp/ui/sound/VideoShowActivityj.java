@@ -8,7 +8,11 @@ import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.ks.myapp.data.VideoUtil;
+import com.ks.myapp.ui.sound.media.JZMediaExo;
+import com.ks.myapp.ui.sound.media.JZMediaIjk;
 import com.sspacee.common.util.LogUtil;
+import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.ks.sexfree1.R;
 import com.ks.myapp.bean.vo.RecommendVo;
@@ -20,10 +24,8 @@ import java.util.HashMap;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
-import cn.jzvd.JZUserAction;
-import cn.jzvd.JZUserActionStandard;
-import cn.jzvd.JZVideoPlayer;
-import cn.jzvd.JZVideoPlayerStandard;
+import cn.jzvd.Jzvd;
+import cn.jzvd.JzvdStd;
 
 /**
  * Created by themass on 2015/9/1.
@@ -31,8 +33,8 @@ import cn.jzvd.JZVideoPlayerStandard;
 public class VideoShowActivityj extends AppCompatActivity {
     private Unbinder unbinder;
     @BindView(R.id.jz_video)
-    public JZVideoPlayerStandard jzVideo;
-    JZVideoPlayer.JZAutoFullscreenListener mSensorEventListener;
+    public JzvdStd jzVideo;
+    Jzvd.JZAutoFullscreenListener mSensorEventListener;
     SensorManager mSensorManager;
     RecommendVo vo;
     @Override
@@ -41,14 +43,19 @@ public class VideoShowActivityj extends AppCompatActivity {
         setContentView(R.layout.layout_video_show);
         unbinder = ButterKnife.bind(this);
         vo = (RecommendVo)getIntent().getSerializableExtra(Constants.CONFIG_PARAM);
-        HashMap<String,String> header = new HashMap<>();
-        header.put(Constants.REFERER, com.sspacee.common.util.StringUtils.hasText(vo.param)?vo.param: vo.actionUrl);
-        jzVideo.setUp(vo.actionUrl, JZVideoPlayerStandard.SCREEN_WINDOW_NORMAL, vo.title,header);
-//        jzVideo.headData = header;
+
+        boolean playCore = PreferenceUtils.getPrefBoolean(this, Constants.PLAYCORE_SWITCH, true);
+        if(!playCore) {
+            jzVideo.setUp(vo.actionUrl, vo.title, JzvdStd.SCREEN_NORMAL, JZMediaExo.class);
+        } else {
+            jzVideo.setUp(vo.actionUrl, vo.title, JzvdStd.SCREEN_NORMAL, JZMediaIjk.class);
+        }
+        jzVideo.jzDataSource.headerMap = VideoUtil.getVideoSourceHeader(vo.actionUrl, com.sspacee.common.util.StringUtils.hasText(vo.baseurl) ? vo.baseurl : vo.actionUrl);
+//
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-        mSensorEventListener = new JZVideoPlayer.JZAutoFullscreenListener();
-        ImagePhotoLoad.loadCommonImg(this,vo.img,jzVideo.thumbImageView);
-        JZVideoPlayer.setJzUserAction(new MyUserActionStandard());
+        mSensorEventListener = new Jzvd.JZAutoFullscreenListener();
+        ImagePhotoLoad.loadCommonImg(this,vo.img,jzVideo.posterImageView);
+//        Jzvd.set(new MyUserActionStandard());
     }
 
     @Override
@@ -57,20 +64,20 @@ public class VideoShowActivityj extends AppCompatActivity {
         Sensor accelerometerSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         mSensorManager.registerListener(mSensorEventListener, accelerometerSensor, SensorManager.SENSOR_DELAY_NORMAL);
         //home back
-        JZVideoPlayer.goOnPlayOnResume();
+        Jzvd.goOnPlayOnResume();
     }
 
     @Override
     public void onPause() {
         super.onPause();
         mSensorManager.unregisterListener(mSensorEventListener);
-        JZVideoPlayer.clearSavedProgress(this, null);
+//        Jzvd.clearSavedProgress(this, null);
         //home back
-        JZVideoPlayer.goOnPlayOnPause();
+        Jzvd.goOnPlayOnPause();
     }
     @Override
     public void onBackPressed() {
-        if (JZVideoPlayer.backPress()) {
+        if (Jzvd.backPress()) {
             return;
         }
         super.onBackPressed();
@@ -88,16 +95,16 @@ public class VideoShowActivityj extends AppCompatActivity {
     protected boolean enableSliding() {
         return true;
     }
-    class MyUserActionStandard implements JZUserActionStandard {
-
-        @Override
-        public void  onEvent(int type, Object url, int screen, Object... objects) {
-            switch (type) {
-                case JZUserAction.ON_CLICK_PAUSE:
-                    AdsContext.showRand(VideoShowActivityj.this);
-                    break;
-                default:break;
-            }
-        }
-    }
+//    class MyUserActionStandard implements JZUserActionStandard {
+//
+//        @Override
+//        public void  onEvent(int type, Object url, int screen, Object... objects) {
+//            switch (type) {
+//                case JZUserAction.ON_CLICK_PAUSE:
+//                    AdsContext.showRand(VideoShowActivityj.this);
+//                    break;
+//                default:break;
+//            }
+//        }
+//    }
 }

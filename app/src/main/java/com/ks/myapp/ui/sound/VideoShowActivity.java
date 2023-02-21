@@ -5,12 +5,14 @@ import android.content.Intent;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import android.view.View;
+import android.widget.ImageView;
 
+import com.ks.myapp.ui.sound.media.JZMediaExo;
+import com.ks.myapp.ui.sound.media.JZMediaIjk;
 import com.sspacee.common.ui.view.FavoriteImageView;
 import com.sspacee.common.util.LogUtil;
+import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.StringUtils;
-import com.sspacee.yewu.ads.base.AdsContext;
-import com.ks.myapp.data.ConnLogUtil;
 import com.ks.sexfree1.R;
 import com.ks.myapp.bean.vo.RecommendVo;
 import com.ks.myapp.constant.Constants;
@@ -21,10 +23,8 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
-import cn.jzvd.JZUserAction;
-import cn.jzvd.JZUserActionStandard;
-import cn.jzvd.JZVideoPlayer;
-import cn.jzvd.JZVideoPlayerStandard;
+import cn.jzvd.Jzvd;
+import cn.jzvd.JzvdStd;
 
 /**
  * Created by themass on 2015/9/1.
@@ -32,7 +32,7 @@ import cn.jzvd.JZVideoPlayerStandard;
 public class VideoShowActivity extends AppCompatActivity {
     private Unbinder unbinder;
     @BindView(R.id.jz_video)
-    public JZVideoPlayerStandard jzVideo;
+    public JzvdStd jzVideo;
     RecommendVo vo;
     @BindView(R.id.iv_favorite)
     FavoriteImageView ivFavorite;
@@ -46,11 +46,19 @@ public class VideoShowActivity extends AppCompatActivity {
         if(StringUtils.hasText(vo.urlToken)){
             url = url+vo.urlToken;
         }
-        Object[] source = VideoUtil.getVideoSource(url,false,com.sspacee.common.util.StringUtils.hasText(vo.baseurl)?vo.baseurl : vo.actionUrl);
-        jzVideo.setUp(source,0, JZVideoPlayerStandard.SCREEN_WINDOW_NORMAL, vo.title);
+
+        boolean playCore = PreferenceUtils.getPrefBoolean(this, Constants.PLAYCORE_SWITCH, true);
+        if(!playCore) {
+            jzVideo.setUp(vo.actionUrl, vo.title, JzvdStd.SCREEN_NORMAL, JZMediaExo.class);
+        } else {
+            jzVideo.setUp(vo.actionUrl, vo.title, JzvdStd.SCREEN_NORMAL, JZMediaIjk.class);
+        }
+        jzVideo.jzDataSource.headerMap = VideoUtil.getVideoSourceHeader(url, com.sspacee.common.util.StringUtils.hasText(vo.baseurl) ? vo.baseurl : vo.actionUrl);
+//
 //        jzVideo.headData = header;
-        ImagePhotoLoad.loadCommonImg(this,vo.img,jzVideo.thumbImageView);
-        JZVideoPlayer.setJzUserAction(new MyUserActionStandard());
+        jzVideo.posterImageView.setScaleType(ImageView.ScaleType.CENTER);
+        ImagePhotoLoad.loadCommonImg(this,vo.img,jzVideo.posterImageView);
+//        Jzvd.setJzUserAction(new MyUserActionStandard());
         ivFavorite.initSrc(vo.actionUrl);
 
     }
@@ -62,21 +70,21 @@ public class VideoShowActivity extends AppCompatActivity {
     public void onPause() {
         super.onPause();
         try {
-            JZVideoPlayer.goOnPlayOnPause();
+            Jzvd.goOnPlayOnPause();
         }catch (Throwable e){
             LogUtil.e(e);
         }
     }
     @Override
     public void onBackPressed() {
-        if (JZVideoPlayer.backPress()) {
+        if (Jzvd.backPress()) {
             return;
         }
         super.onBackPressed();
     }
     @Override
     public void onDestroy() {
-        JZVideoPlayer.releaseAllVideos();
+        Jzvd.releaseAllVideos();
         super.onDestroy();
         unbinder.unbind();
     }
@@ -88,23 +96,23 @@ public class VideoShowActivity extends AppCompatActivity {
     protected boolean enableSliding() {
         return true;
     }
-    class MyUserActionStandard implements JZUserActionStandard {
-
-        @Override
-        public void onEvent(int type, Object url, int screen, Object... objects) {
-            switch (type) {
-                case JZUserAction.ON_CLICK_PAUSE:
-                    AdsContext.showRand(VideoShowActivity.this);
-                    break;
-                case JZUserAction.ON_AUTO_COMPLETE:
-                    AdsContext.showRand(VideoShowActivity.this);
-                    break;
-                case JZUserAction.ON_CLICK_START_ERROR:
-                    ConnLogUtil.addLog(VideoShowActivity.this,vo.extra+"--"+vo.baseurl,vo.actionUrl,0);
-                    break;
-
-                default:break;
-            }
-        }
-    }
+//    class MyUserActionStandard implements JZUserActionStandard {
+//
+//        @Override
+//        public void onEvent(int type, Object url, int screen, Object... objects) {
+//            switch (type) {
+//                case JZUserAction.ON_CLICK_PAUSE:
+//                    AdsContext.showRand(VideoShowActivity.this);
+//                    break;
+//                case JZUserAction.ON_AUTO_COMPLETE:
+//                    AdsContext.showRand(VideoShowActivity.this);
+//                    break;
+//                case JZUserAction.ON_CLICK_START_ERROR:
+//                    ConnLogUtil.addLog(VideoShowActivity.this,vo.extra+"--"+vo.baseurl,vo.actionUrl,0);
+//                    break;
+//
+//                default:break;
+//            }
+//        }
+//    }
 }

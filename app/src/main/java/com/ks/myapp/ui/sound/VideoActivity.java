@@ -10,8 +10,8 @@ import com.ks.sexfree1.R;
 import com.ks.myapp.ui.base.app.BaseFragmentActivity;
 import com.ks.myapp.ui.fragment.AutoVideoFragment;
 
-import cn.jzvd.JZVideoPlayer;
-import cn.jzvd.JZVideoPlayerStandard;
+import cn.jzvd.Jzvd;
+import cn.jzvd.JzvdStd;
 
 /**
  * Created by themass on 2015/9/1.
@@ -21,7 +21,7 @@ public class VideoActivity extends BaseFragmentActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        JZVideoPlayerStandard.FULLSCREEN_ORIENTATION=1;
+        JzvdStd.FULLSCREEN_ORIENTATION=1;
         setContentView(R.layout.common_fragment);
         setFabUpVisibility(View.GONE);
         try {
@@ -37,7 +37,7 @@ public class VideoActivity extends BaseFragmentActivity {
     }
     @Override
     public void onBackPressed() {
-        if (JZVideoPlayer.backPress()) {
+        if (Jzvd.backPress()) {
             return;
         }
         super.onBackPressed();

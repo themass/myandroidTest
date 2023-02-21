@@ -38,27 +38,6 @@ public class VideoChannelUserListFragment extends RecommendFragment {
         super.setupViews(view, savedInstanceState);
         vo = (RecommendVo)getArguments().getSerializable(CommonFragmentActivity.PARAM);
         LogUtil.i(vo.title);
-        if("蜜蜂资源".equals(vo.title)){
-            t = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    int count = 0;
-                    while (count<3) {
-                        try {
-                            LogUtil.i("请求蜜蜂token"+vo.baseurl +"/getToken.php");
-                            token = indexService.getStringData(vo.baseurl +"/getToken.php", "token");
-                            LogUtil.i("蜜蜂token="+token);
-                            break;
-                        } catch (Throwable e) {
-                            LogUtil.e(e);
-                            count++;
-                            continue;
-                        }
-                    }
-                }
-            });
-            t.start();
-        }
     }
 
     @Override

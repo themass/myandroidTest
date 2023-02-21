@@ -3,6 +3,7 @@ package com.ks.myapp.ui.sound;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.media.AudioManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -646,9 +647,17 @@ public class VitamioVideoPlayActivity extends LogActivity {
      */
     private void setupFullScreen() {
         // 设置窗口模式
+
         WindowManager.LayoutParams attrs = getWindow().getAttributes();
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
         attrs.flags |= WindowManager.LayoutParams.FLAG_FULLSCREEN;
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
+                | View.SYSTEM_UI_FLAG_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
         getWindow().setAttributes(attrs);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
 
@@ -658,14 +667,28 @@ public class VitamioVideoPlayActivity extends LogActivity {
         manager.getDefaultDisplay().getMetrics(metrics);
 
         // 设置Video布局尺寸
-        mVideoLayout.getLayoutParams().width = metrics.widthPixels;
-        mVideoLayout.getLayoutParams().height = metrics.heightPixels;
+        mVideoLayout.getLayoutParams().width = metrics.heightPixels;
+        mVideoLayout.getLayoutParams().height = metrics.widthPixels;
 
         // 设置为全屏拉伸
         mVideoView.setVideoLayout(VideoView.VIDEO_LAYOUT_SCALE, 0);
         mIvIsFullscreen.setImageResource(R.drawable.not_fullscreen);
 
         mIsFullScreen = true;
+    }
+    protected void hideBottomUIMenu() {
+        //隐藏虚拟按键，并且全屏
+        if (Build.VERSION.SDK_INT >11 && Build.VERSION.SDK_INT < 19) { // lower api
+            View v = this.getWindow().getDecorView();
+            v.setSystemUiVisibility(View.GONE);
+        } else if (Build.VERSION.SDK_INT  == 19) {
+            //for new api versions.
+            View decorView = getWindow().getDecorView();
+            int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_FULLSCREEN;
+            decorView.setSystemUiVisibility(uiOptions);
+
+        }
     }
 
     /**
@@ -675,11 +698,12 @@ public class VitamioVideoPlayActivity extends LogActivity {
         WindowManager.LayoutParams attrs = getWindow().getAttributes();
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         attrs.flags &= (~WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
         getWindow().setAttributes(attrs);
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
 
         float width = getResources().getDisplayMetrics().heightPixels;
-        float height = dp2px(300.f);
+        float height = getResources().getDisplayMetrics().widthPixels;;
 //        float height= getResources().getDisplayMetrics().widthPixels;
         mVideoLayout.getLayoutParams().width = (int) width;
         mVideoLayout.getLayoutParams().height = (int) height;
@@ -687,7 +711,6 @@ public class VitamioVideoPlayActivity extends LogActivity {
         // 设置为全屏
         mVideoView.setVideoLayout(VideoView.VIDEO_LAYOUT_SCALE, 0);
         mIvIsFullscreen.setImageResource(R.drawable.play_fullscreen);
-
         mIsFullScreen = false;
     }
 

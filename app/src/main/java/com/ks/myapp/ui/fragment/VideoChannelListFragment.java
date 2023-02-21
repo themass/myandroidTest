@@ -2,10 +2,14 @@ package com.ks.myapp.ui.fragment;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.view.View;
+import android.view.WindowManager;
 
 
+import com.ks.myapp.ui.sound.VitamioVideoPlayActivity;
+import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
 import com.ks.myapp.bean.vo.InfoListVo;
@@ -26,6 +30,7 @@ public class VideoChannelListFragment extends RecommendFragment {
         intent.putExtra(CommonFragmentActivity.FRAGMENT, VideoChannelListFragment.class);
         intent.putExtra(CommonFragmentActivity.TITLE, vo.title);
         intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, true);
+        intent.putExtra(CommonFragmentActivity.TOOLBAR_SHOW, false);
         intent.putExtra(CommonFragmentActivity.BANNER_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_VPN1);
         intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_SHOW, true);
         StaticDataUtil.add(Constants.VIDEO_CHANNEL, vo);
@@ -54,6 +59,11 @@ public class VideoChannelListFragment extends RecommendFragment {
     @Override
     public void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
+
+//        WindowManager.LayoutParams params = getActivity().getWindow().getAttributes();
+//        params.systemUiVisibility = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+//        getActivity().getWindow().setAttributes(params);
+
         vo = StaticDataUtil.get(Constants.VIDEO_CHANNEL, RecommendVo.class);
         if(vo==null){
             getActivity().finish();
@@ -68,8 +78,12 @@ public class VideoChannelListFragment extends RecommendFragment {
             return;
         }
         if(Constants.VIDEO_TYPE_NORMAL.equalsIgnoreCase((String)vo.extra)){
-            startActivity(VideoShowActivity.class, vo);
-//            startActivity(VitamioVideoPlayActivity.class, vo);
+            boolean playvideo = PreferenceUtils.getPrefBoolean(getContext(), Constants.PLAYVIDEO_SWITCH, true);
+            if(playvideo){
+                startActivity(VideoShowActivity.class, vo);
+            } else {
+                startActivity(VitamioVideoPlayActivity.class, vo);
+            }
         }else{
             super.onCustomerItemClick(v,position);
         }
