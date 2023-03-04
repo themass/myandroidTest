@@ -16,7 +16,7 @@ import java.net.URLEncoder;
  */
 public class PathUtil {
     public static final String BROWSER_SCHEMA = "browser://config?url=%s";
-    private static final String FILEPATH = "freevpn";
+    private static final String FILEPATH = "AFreedom";
 
     public static File getFileDiskCacheDir(Context context, String fileName) throws IOException {
         return getFileDiskCacheDir(context, fileName, true);

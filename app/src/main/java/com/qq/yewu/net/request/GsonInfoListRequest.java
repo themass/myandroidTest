@@ -19,7 +19,7 @@ public class GsonInfoListRequest<T> extends BaseRequest<InfoListVo<T>> {
 
     public GsonInfoListRequest(Context context, String url, Class<T> clasz, Map<String, String> headers,
                                Response.Listener<InfoListVo<T>> listener, Response.ErrorListener errorListener) {
-        super(context, Method.GET, url, headers, listener, errorListener);
+        super(context, Method.POST, url, headers, listener, errorListener);
         this.clasz = clasz;
     }
 

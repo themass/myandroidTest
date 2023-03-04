@@ -112,7 +112,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
     public static volatile boolean VPN_STATUS_NOTIF = false;
     private BaseService indexService;
     private  NotificationManager notificationManager;
-    private static  final  String N_CHANNEL="FREEVPN_CHANNEL";
+    private static  final  String N_CHANNEL="FREEVVV_CHANNEL";
     /*
      * The libraries are extracted to /data/data/org.strongswan.android/...
      * during installation.  On newer releases most are loaded in JNI_OnLoad.
@@ -536,8 +536,8 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
     private void createForegroundService(boolean needConnecting) {
         LogUtil.i("start ForegroundService:" + mService.getState());
         if (Build.VERSION.SDK_INT >= 26) {
-            NotificationChannel channel = new NotificationChannel(N_CHANNEL, "FreeVPN", NotificationManager.IMPORTANCE_HIGH);
-            channel.setDescription("freevpn");
+            NotificationChannel channel = new NotificationChannel(N_CHANNEL, "AFreedom", NotificationManager.IMPORTANCE_HIGH);
+            channel.setDescription("AFreedom");
             channel.enableLights(false);
             channel.enableVibration(false);
             channel.setSound(null, null);
@@ -599,7 +599,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
                 .setDeleteIntent(pandCanel)
                 .setContent(remoteViews)
                 .setWhen(System.currentTimeMillis())// 通知产生的时间，会在通知信息里显示
-                .setTicker("FreeVPN start")
+                .setTicker("AFreedom start")
                 .setOngoing(going)
                 .setAutoCancel(true)
                 .setSmallIcon(R.drawable.vpn_on)

@@ -3,14 +3,14 @@ apply plugin: 'org.greenrobot.greendao'
 // gradle BuildVariants
 //Build Variants = Product Flavor + Build Type
 android {
-    compileSdkVersion 30
+    compileSdkVersion 31
     buildToolsVersion "29.0.2"
     defaultConfig {
         applicationId "com.qq.ks.free1"
         minSdkVersion 16
-        targetSdkVersion 30
-        versionCode 1001000000
-        versionName "1.1.0.0"
+        targetSdkVersion 31
+        versionCode 1001000005
+        versionName "1.1.0.5"
         // Enabling multidex support.
         multiDexEnabled true
         flavorDimensions "versionCode"
@@ -24,6 +24,7 @@ android {
         preDexLibraries true
         javaMaxHeapSize "4g"
     }
+
     lintOptions {
         disable 'InvalidPackage'
     }
@@ -55,14 +56,14 @@ android {
 //        }
     }
     buildTypes {
-        debug {
-            minifyEnabled false
-            debuggable true
-            zipAlignEnabled false // Zipalign优化
-            shrinkResources false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.config
-        }
+//        debug {
+//            minifyEnabled false
+//            debuggable true
+//            zipAlignEnabled false // Zipalign优化
+//            shrinkResources false
+//            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+//            signingConfig signingConfigs.config
+//        }
         release {
             minifyEnabled true
             zipAlignEnabled true // Zipalign优化
@@ -74,7 +75,7 @@ android {
     }
     productFlavors {
         free {
-            manifestPlaceholders = [CHANNEL_VALUE: "GOOGLEMARKET", AD_CHANNEL_VALUE: "GOOGLEMARKET"]
+            manifestPlaceholders = [CHANNEL_VALUE: "GOOGLEMARKET"]
         }
     }
 }

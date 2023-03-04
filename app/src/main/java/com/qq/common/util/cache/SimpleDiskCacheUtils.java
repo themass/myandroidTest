@@ -15,7 +15,7 @@ import java.util.Map;
  */
 public class SimpleDiskCacheUtils {
     private static final int DISK_CACHE_SIZE = 1024 * 1024 * 50; // 10MB
-    private static final String DISK_CACHE_DIR = "vpn_cache";
+    private static final String DISK_CACHE_DIR = "vvv_cache";
     private static final Object sLockObject = new Object();
     private static SimpleDiskCache sSimpleDiskCache;
     private static Map<String, CacheTask> sCacheTasks = new HashMap<>();

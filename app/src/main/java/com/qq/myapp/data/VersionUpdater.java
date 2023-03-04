@@ -249,7 +249,7 @@ public class VersionUpdater {
 
     private static void startDownloadThread(final Context context, final String url) {
         String data = DateUtils.format(new Date(),DateUtils.DATE_FORMAT);
-        final File apkFile = new File(Environment.getExternalStorageDirectory(), Constants.TEMP_PATH + "/freevpn-"+data+".apk");
+        final File apkFile = new File(Environment.getExternalStorageDirectory(), Constants.TEMP_PATH + "/AFreedom-"+data+".apk");
         ToastUtil.showShort(R.string.about_download_begin);
         new Thread(new DownloadRunnable(context, url, apkFile)).start();
     }
@@ -270,8 +270,8 @@ public class VersionUpdater {
             this.handler = new Handler();
             this.notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
             if (Build.VERSION.SDK_INT >= 26) {
-                NotificationChannel channel = new NotificationChannel(D_CHANNEL, "FreeVPN", NotificationManager.IMPORTANCE_HIGH);
-                channel.setDescription("freevpn");
+                NotificationChannel channel = new NotificationChannel(D_CHANNEL, "AFreedom", NotificationManager.IMPORTANCE_HIGH);
+                channel.setDescription("AFreedom");
                 channel.enableLights(false);
                 channel.enableVibration(false);
                 channel.setSound(null, null);

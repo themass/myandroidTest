@@ -18,7 +18,7 @@ public class GsonRequest<T> extends BaseRequest<T> {
 
     public GsonRequest(Context context, String url, Class<T> clasz, Map<String, String> headers,
                        Response.Listener<T> listener, Response.ErrorListener errorListener) {
-        super(context, Method.GET, url, headers, listener, errorListener);
+        super(context, Method.POST, url, headers, listener, errorListener);
         this.clasz = clasz;
     }
     @Override

@@ -75,7 +75,7 @@ public class Constants {
     //用户反馈
     public static final String DEFAULT_FEEDBACK_APPKEY = "23575056";
     public static final String SETTING_PREF_NEED_CHECK_UPDATE_NEXT_TIME = "SETTING_PREF_NEED_CHECK_UPDATE_NEXT_TIME";
-    public static final String TEMP_PATH = "/freevpn/free";
+    public static final String TEMP_PATH = "/AFreedom/free";
     public static final String VERSION_APP_INCOMING = "VERSION_APP_INCOMING"; // 服务器上的最新版本号
 
     public static final String API_SERVERLIST_URL = "/host/server/list.json?location=%s";
@@ -145,7 +145,7 @@ public class Constants {
     //        public static String BASE_IP = "192.168.1.12:8080";
 //    public static String BASE_IP = "10.33.65.180:8080";
     public static String BASE_HOST = "http://" + BASE_IP + "/vvv/api";
-    public static final String downloadUrl="https://play.google.com/store/apps/details?id=com.qq.fq2";
+    public static final String downloadUrl="https://play.google.com/store/apps/details?id=com.qq.ks.free1";
     public static int NULL_VIEW = -1;
     public static List<String> colorBg = Arrays.asList("#552d5d82", "#55135689", "#552292e9", "#5583878b", "#7f8d8f45", "#ffc49924", "#ff83713f", "#ff569b2b", "#ff882b9b");
 

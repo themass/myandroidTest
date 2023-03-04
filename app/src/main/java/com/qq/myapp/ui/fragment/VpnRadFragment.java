@@ -66,7 +66,7 @@ import butterknife.OnClick;
  */
 public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnStateListener {
     private static final String DIALOG_TAG = "Dialog";
-    private static final String INDEX_TAG = "vpn_status_tag";
+    private static final String INDEX_TAG = "vvv_status_tag";
     private static final int PREPARE_VPN_SERVICE = 0;
     private BaseService indexService;
     private volatile boolean hasStart=false;
@@ -137,7 +137,7 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
 
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            LogUtil.i("VpnStateService->onServiceConnected");
+            LogUtil.i("VvvStateService->onServiceConnected");
             mService = ((VpnStateService.LocalBinder) service).getService();
             mService.registerListener(VpnRadFragment.this);
             vpnProfile = mService.getProfile();

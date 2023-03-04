@@ -24,7 +24,7 @@ import java.util.Map;
 
 public class HttpUtils {
     private static final String DEFAULT_CHARSET = "UTF-8";
-    private static String USER_AGENT_SUFFIX = "VPN/%s";
+    private static String USER_AGENT_SUFFIX = "VVV/%s";
 
     public static boolean isGzip(String name, String value) {
         return "Content-Encoding".equals(name) && "gzip".equals(value);

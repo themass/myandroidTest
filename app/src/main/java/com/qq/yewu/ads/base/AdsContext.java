@@ -181,7 +181,7 @@ public class AdsContext {
     public static void vpnClick(Context context){
         String key =Constants.CLICK_KEY+ DateUtils.format(new Date(),DateUtils.DATE_MM_FORMAT);
         int vpnCount = PreferenceUtils.getPrefInt(context,key,0);
-        LogUtil.i("key="+key+"   vpnCount="+vpnCount);
+        LogUtil.i("key="+key+"   vvvCount="+vpnCount);
         vpnCount=vpnCount>100?100:++vpnCount;
         PreferenceUtils.setPrefInt(context,key,vpnCount);
     }
