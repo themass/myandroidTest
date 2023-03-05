@@ -2,16 +2,10 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/menu_weather"
+        android:id="@+id/menu_bar_setting"
         android:actionLayout="@layout/common_actionbar_image_view"
-        android:icon="@drawable/ic_menu_space"
+        android:icon="@drawable/ic_menu_setting"
         android:title="@string/menu_haha"
-        app:showAsAction="always" />
-    <item
-        android:id="@+id/menu_location"
-        android:actionLayout="@layout/common_actionbar_image_view"
-        android:icon="@drawable/ic_menu_space"
-        android:title="@string/menu_haha"
-        android:visible="false"
+        android:visible="true"
         app:showAsAction="always" />
 </menu>

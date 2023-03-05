@@ -11,7 +11,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.sspacee.common.ui.base.LogActivity;
 import com.sspacee.common.util.LogUtil;
 import com.ks.sexfree1.R;
 
@@ -25,7 +24,7 @@ import butterknife.Unbinder;
 /**
  * Created by Miroslaw Stanek on 19.01.15.
  */
-public abstract class BaseToolBarActivity extends LogActivity {
+public abstract class BaseToolBarActivity extends BaseToolbarMenuActivity {
 
     @Nullable
     @BindView(R.id.toolbar)
