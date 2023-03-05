@@ -31,6 +31,7 @@ public abstract class BaseToolbarMenuActivity extends LogActivity {
             getMenuInflater().inflate(R.menu.menu_toolbar, menu);
         }
         MenuItem setting = menu.findItem(R.id.menu_bar_setting);
+        setting.setActionView(R.layout.common_actionbar_image_view);
         ivSetting = (ImageView) setting.getActionView().findViewById(R.id.iv_menu);
         setting.getActionView().setOnClickListener(new View.OnClickListener() {
             @Override
