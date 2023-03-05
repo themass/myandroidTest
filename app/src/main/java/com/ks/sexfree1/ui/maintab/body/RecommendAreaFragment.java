@@ -34,7 +34,7 @@ public class RecommendAreaFragment extends RecommendFragment {
 
     @Override
     public int getSpanCount() {
-        return 2;
+        return 3;
     }
 
     @Override

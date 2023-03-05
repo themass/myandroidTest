@@ -5,6 +5,7 @@ import android.view.View;
 import android.view.animation.OvershootInterpolator;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.ks.myapp.ui.user.SettingActivity;
 import com.sspacee.common.util.LogUtil;
 import com.ks.sexfree1.R;
 import com.ks.myapp.data.AdsPopStrategy;
@@ -24,6 +25,7 @@ public abstract class TabBaseAdsFragment extends TabBaseFragment{
 
     @OnClick(R.id.fab_up)
     public void onClickFab(View view) {
+        startActivity(SettingActivity.class);
         AdsPopStrategy.clickAdsShowBtn(getActivity());
     }
 

@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.OvershootInterpolator;
 
+import com.ks.myapp.ui.user.SettingActivity;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.ads.base.AdsManager;
@@ -47,6 +48,8 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity{
     };
     @OnClick(R.id.fab_up)
     public void onClickFab(View view) {
+
+        startActivity(SettingActivity.class);
         AdsPopStrategy.clickAdsShowBtn(this);
     }
 
