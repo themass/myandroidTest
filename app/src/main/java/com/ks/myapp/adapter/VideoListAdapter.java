@@ -14,6 +14,7 @@ import com.bumptech.glide.Glide;
 import com.ks.myapp.data.VideoUtil;
 import com.ks.myapp.ui.sound.media.JZMediaExo;
 import com.ks.myapp.ui.sound.media.JZMediaIjk;
+import com.sspacee.common.util.DateUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.StringUtils;
@@ -49,6 +50,11 @@ public class VideoListAdapter extends BaseRecyclerViewAdapter<VideoListAdapter.V
             LogUtil.i("jcVideoPlayer="+holder.jcVideoPlayer.toString());
 
             boolean playCore = PreferenceUtils.getPrefBoolean(context, Constants.PLAYCORE_SWITCH, true);
+//            if(vo.actionUrl.contains("?")){
+//                vo.actionUrl = vo.actionUrl+"&t="+ (System.currentTimeMillis()/1000);
+//            }else{
+//                vo.actionUrl = vo.actionUrl+"?t="+ (System.currentTimeMillis()/1000);
+//            }
             if(!playCore) {
                 holder.jcVideoPlayer.setUp(vo.actionUrl, vo.title, JzvdStd.SCREEN_NORMAL, JZMediaExo.class);
             } else {

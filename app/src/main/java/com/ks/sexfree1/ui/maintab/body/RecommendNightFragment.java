@@ -61,7 +61,7 @@ public class RecommendNightFragment extends RecommendFragment {
 
     @Override
     public int getSpanCount() {
-        return 2;
+        return 3;
     }
 
     @Override
