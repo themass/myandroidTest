@@ -14,7 +14,7 @@ import com.etiennelawlor.imagegallery.library.adapters.FullScreenImageGalleryAda
 import com.etiennelawlor.imagegallery.library.adapters.ImageGalleryAdapter;
 import com.qq.e.comm.util.StringUtil;
 import com.romainpiel.shimmer.Shimmer;
-import com.sspacee.common.util.MyGlideLibModule;
+import com.sspacee.common.util.netglide.MyGlideLibModule;
 import com.ks.sexfree1.R;
 import com.ks.myapp.adapter.IndexRecommendAdapter;
 import com.ks.myapp.bean.vo.RecommendVo;

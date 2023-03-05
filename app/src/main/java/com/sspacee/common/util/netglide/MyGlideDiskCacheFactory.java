@@ -1,8 +1,9 @@
-package com.sspacee.common.util;
+package com.sspacee.common.util.netglide;
 
 import android.content.Context;
 
 import com.bumptech.glide.load.engine.cache.DiskLruCacheFactory;
+import com.sspacee.common.util.FileUtils;
 
 import java.io.File;
 

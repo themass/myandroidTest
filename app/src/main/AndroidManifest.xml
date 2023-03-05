@@ -81,6 +81,8 @@
             android:name="AdView_CHANNEL"
             android:value="${AD_CHANNEL_VALUE}" />
 
+        <meta-data android:name="com.bumptech.glide.integration.okhttp.OkHttpGlideModule" tools:node="remove" />
+        <meta-data android:name="com.sspacee.common.util.netglide.UnsafeOkHttpClient" android:value="MyGlideModule" />
         <activity
             android:name=".ui.main.LaunchActivity"
             android:screenOrientation="portrait">

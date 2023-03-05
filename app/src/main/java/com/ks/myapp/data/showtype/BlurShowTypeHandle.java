@@ -6,7 +6,7 @@ import android.view.View;
 import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.request.target.DrawableImageViewTarget;
 import com.romainpiel.shimmer.Shimmer;
-import com.sspacee.common.util.MyGlideLibModule;
+import com.sspacee.common.util.netglide.MyGlideLibModule;
 import com.ks.myapp.adapter.IndexRecommendAdapter;
 import com.ks.myapp.bean.vo.RecommendVo;
 import com.ks.myapp.data.ImagePhotoLoad;
