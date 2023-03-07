@@ -7,8 +7,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.view.View;
 import android.widget.ImageView;
 
+import com.ks.myapp.ui.base.app.BaseToolBarActivity;
 import com.ks.myapp.ui.sound.media.JZMediaExo;
 import com.ks.myapp.ui.sound.media.JZMediaIjk;
+import com.ks.myapp.ui.user.SettingActivity;
 import com.sspacee.common.ui.view.FavoriteImageView;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PreferenceUtils;

@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.ks.myapp.ui.sound.media.JzvdStdTinyWindow;
+import com.ks.myapp.ui.user.SettingActivity;
 import com.sspacee.common.util.LogUtil;
 import com.ks.sexfree1.R;
 import com.ks.myapp.adapter.VideoListAdapter;
@@ -70,6 +71,7 @@ public class AutoVideoFragment extends BasePullLoadbleFragment<RecommendVo> {
                 }
             }
         });
+
     }
 
     @Override
