@@ -3,21 +3,21 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:background="?attr/selectableItemBackground"
-    android:paddingBottom="6dp"
-    android:paddingLeft="8dp"
-    android:paddingTop="6dp">
+    android:paddingBottom="@dimen/margin_3"
+    android:paddingLeft="@dimen/margin_8"
+    android:paddingTop="@dimen/margin_3">
     <ImageView
         android:id="@+id/albumArt"
-        android:layout_width="55dp"
-        android:layout_height="55dp"
+        android:layout_width="@dimen/margin_40"
+        android:layout_height="@dimen/margin_40"
         android:layout_alignParentLeft="true"
         android:background="@color/fab_color_pressed"
         android:src="@drawable/ic_notification_app_logo"
         android:padding="1dp" />
     <com.sspacee.common.ui.view.widgets.MusicVisualizer
         android:id="@+id/visualizer"
-        android:layout_width="30dp"
-        android:layout_height="40dp"
+        android:layout_width="@dimen/margin_30"
+        android:layout_height="@dimen/margin_40"
         android:layout_centerVertical="true"
         android:layout_marginBottom="10dp"
         android:layout_marginRight="15dp"
@@ -26,13 +26,13 @@
         />
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="@dimen/margin_40"
         android:layout_marginRight="10dp"
         android:layout_toLeftOf="@+id/visualizer"
         android:layout_toRightOf="@+id/albumArt"
         android:orientation="vertical"
-        android:paddingLeft="12dp"
-        android:paddingTop="5dp">
+        android:paddingLeft="@dimen/margin_10"
+        android:paddingTop="@dimen/margin_5">
         <TextView
             android:id="@+id/song_title"
             style="@style/TextAppearance.AppCompat.Body1"
@@ -40,7 +40,7 @@
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:singleLine="true"
-            android:textSize="16sp" />
+            android:textSize="@dimen/textsize_14" />
 
         <TextView
             android:id="@+id/song_artist"
@@ -48,9 +48,9 @@
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:ellipsize="end"
-            android:paddingTop="3dp"
+            android:paddingTop="@dimen/margin_2"
             android:singleLine="true"
-            android:textSize="13sp" />
+            android:textSize="@dimen/textsize_12" />
     </LinearLayout>
 
 </RelativeLayout>

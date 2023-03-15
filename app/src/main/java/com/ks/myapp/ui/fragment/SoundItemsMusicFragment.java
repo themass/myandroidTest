@@ -8,6 +8,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import androidx.annotation.Nullable;
@@ -25,7 +26,9 @@ import com.sspacee.common.ui.view.FavoriteImageView;
 import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.MediaUtil;
+import com.sspacee.common.util.PackageUtils;
 import com.sspacee.common.util.PreferenceUtils;
+import com.sspacee.common.util.SystemUtils;
 import com.sspacee.common.util.ToastUtil;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.net.NetUtils;
@@ -44,6 +47,7 @@ import com.ks.sexfree1.R;
 
 import butterknife.BindView;
 import butterknife.OnClick;
+import cn.jzvd.Jzvd;
 
 import static com.ks.myapp.service.PlayService.CURRENT;
 import static com.ks.myapp.service.PlayService.CURRENTTIME;
@@ -124,6 +128,7 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
         intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, true);
         intent.putExtra(CommonFragmentActivity.BANNER_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_VPN1);
         intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_SHOW, true);
+        intent.putExtra(CommonFragmentActivity.FABUP_SHOW, false);
         context.startActivity(intent);
     }
     @Override
@@ -155,7 +160,23 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
     public void favoriteClick(View view) {
         ivFavorite.clickFavorite(vo.tofavorite(Constants.FavoriteType.SOUND));
     }
-
+    @OnClick(R.id.iv_browser)
+    public void browserClick(View view) {
+        SystemUtils.copy(getContext(), infoListVo.voList.get(adapter.getSelected()<0?0:adapter.getSelected()).file);
+        startBrower();
+    }
+    public void startBrower(){
+        LogUtil.i("selected = "+adapter.getSelected()+"; file = "+infoListVo.voList.get(adapter.getSelected()<0?0:adapter.getSelected()).file);
+        if (PackageUtils.hasBrowser(getContext())) {
+            Uri uri = Uri.parse(infoListVo.voList.get(adapter.getSelected()<0?0:adapter.getSelected()).file);
+            Intent it = new Intent(Intent.ACTION_VIEW, uri);
+            if (it.resolveActivity(getActivity().getPackageManager()) != null){
+                startActivity(it);
+            }
+        } else {
+            ToastUtil.showShort(R.string.no_browser);
+        }
+    }
     public void onClick(View view) {
         if(mService==null){
             return ;

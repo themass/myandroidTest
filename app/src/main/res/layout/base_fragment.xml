@@ -38,8 +38,8 @@
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab_up"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="@dimen/margin_40"
+            android:layout_height="@dimen/margin_40"
             android:layout_gravity="bottom|right"
             android:layout_marginBottom="@dimen/btn_fab_margins"
             android:layout_marginRight="@dimen/btn_fab_margins"
@@ -49,7 +49,7 @@
             app:borderWidth="0dp"
             app:elevation="6dp"
             app:fabSize="normal"
-            app:pressedTranslationZ="12dp"
+            app:pressedTranslationZ="5dp"
             app:rippleColor="@color/base_red" />
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>

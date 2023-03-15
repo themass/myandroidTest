@@ -21,6 +21,7 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
     public static final String TITLE = "TITLE";
     public static final String PARAM = "PARAM";
     public static final String BANNER_ADS_SHOW = "BANNER_ADS_SHOW";
+    public static final String FABUP_SHOW = "FABUP_SHOW";
     public static final String BANNER_NEED_GONE = "BANNER_NEED_GONE";
     public static final String INTERSTITIAL_ADS_SHOW = "INTERSTITIAL_ADS_SHOW";
     public static final String BANNER_ADS_CATEGRY = "BANNER_ADS_CATEGRY";
@@ -32,6 +33,7 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
     private boolean showInterstitialAds = false;
     private Boolean slidingClose = false;
     private Boolean toolbarShow = true;
+    private Boolean needFabup = true;
     private AdsContext.Categrey bannerCategrey =  AdsContext.Categrey.CATEGREY_VPN1;
     private boolean needGonebanner = true;
     private Fragment fragment = null;
@@ -50,11 +52,14 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
         showToolbar(toolbarShow);
         Class f = (Class) getIntent().getSerializableExtra(FRAGMENT);
         showAds = getIntent().getBooleanExtra(BANNER_ADS_SHOW, false);
+        needFabup = getIntent().getBooleanExtra(FABUP_SHOW, true);
         Object o = getIntent().getSerializableExtra(BANNER_ADS_CATEGRY);
         if(o!=null){
             bannerCategrey = (AdsContext.Categrey)o;
         }
-        setFabUpVisibility(View.VISIBLE);
+        if(needFabup) {
+            setFabUpVisibility(View.VISIBLE);
+        }
         String title = null;
         Serializable name = getIntent().getSerializableExtra(TITLE);
         if (name instanceof String) {

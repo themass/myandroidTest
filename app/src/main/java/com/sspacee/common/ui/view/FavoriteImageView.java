@@ -38,9 +38,9 @@ public class FavoriteImageView extends AppCompatImageView  implements FavoriteUt
     }
     public void modFavoriteBg(boolean ret) {
         if (ret) {
-            setBackgroundResource(R.drawable.ic_menu_favorite_ed);
+            setImageResource(R.drawable.ic_menu_favorite_ed);
         } else {
-            setBackgroundResource(R.drawable.ic_menu_favorite_no);
+            setImageResource(R.drawable.ic_menu_favorite_no);
         }
     }
 }

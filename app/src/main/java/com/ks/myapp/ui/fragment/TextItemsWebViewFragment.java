@@ -26,6 +26,7 @@ import com.sspacee.common.ui.view.FavoriteImageView;
 import com.sspacee.common.ui.view.MyWebView;
 import com.sspacee.common.util.FileUtils;
 import com.sspacee.common.util.LogUtil;
+import com.sspacee.common.util.SystemUtils;
 import com.sspacee.yewu.ads.base.AdsContext;
 import com.sspacee.yewu.net.HttpUtils;
 import com.ks.myapp.base.MyApplication;
@@ -269,6 +270,7 @@ public class TextItemsWebViewFragment extends BaseFragment {
         if(url.startsWith(Constants.HTTP_URL)) {
             ivFavorite.clickFavorite(vo.tofavorite());
             SaveTextTask.startSave(getActivity(), url);
+            SystemUtils.copy(getActivity(), url);
         }
     }
 }

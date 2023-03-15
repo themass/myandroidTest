@@ -2,17 +2,20 @@ package com.ks.myapp.ui.sound;
 
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import android.view.View;
 import android.widget.ImageView;
 
+import com.ks.myapp.ui.base.WebViewActivity;
 import com.ks.myapp.ui.base.app.BaseToolBarActivity;
 import com.ks.myapp.ui.sound.media.JZMediaExo;
 import com.ks.myapp.ui.sound.media.JZMediaIjk;
 import com.ks.myapp.ui.user.SettingActivity;
 import com.sspacee.common.ui.view.FavoriteImageView;
 import com.sspacee.common.util.LogUtil;
+import com.sspacee.common.util.PackageUtils;
 import com.sspacee.common.util.PreferenceUtils;
 import com.sspacee.common.util.StringUtils;
 import com.ks.sexfree1.R;
@@ -20,6 +23,8 @@ import com.ks.myapp.bean.vo.RecommendVo;
 import com.ks.myapp.constant.Constants;
 import com.ks.myapp.data.ImagePhotoLoad;
 import com.ks.myapp.data.VideoUtil;
+import com.sspacee.common.util.SystemUtils;
+import com.sspacee.common.util.ToastUtil;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -68,6 +73,11 @@ public class VideoShowActivity extends AppCompatActivity {
     public void favoriteClick(View view) {
         ivFavorite.clickFavorite(vo.tofavorite(Constants.FavoriteType.VIDEO));
     }
+    @OnClick(R.id.iv_browser)
+    public void browserClick(View view) {
+        SystemUtils.copy(this, vo.actionUrl==null?vo.param:vo.actionUrl);
+        startBrower();
+    }
     @Override
     public void onPause() {
         super.onPause();
@@ -75,6 +85,15 @@ public class VideoShowActivity extends AppCompatActivity {
             Jzvd.goOnPlayOnPause();
         }catch (Throwable e){
             LogUtil.e(e);
+        }
+    }
+    public void startBrower(){
+        if (PackageUtils.hasBrowser(this)) {
+            Uri uri = Uri.parse(vo.actionUrl);
+            Intent it = new Intent(Intent.ACTION_VIEW, uri);
+            startActivity(it);
+        } else {
+            ToastUtil.showShort(R.string.no_browser);
         }
     }
     @Override

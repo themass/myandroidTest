@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@color/main_dark"
-    android:paddingBottom="10dp"
+    android:paddingBottom="5dp"
     android:paddingLeft="10dp"
     android:paddingRight="10dp"
     android:paddingTop="5dp">
@@ -13,23 +13,17 @@
     <RelativeLayout
         android:id="@+id/rl_content"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="@dimen/margin_25"
         android:paddingLeft="5dp">
-
-        <TextView
-            android:id="@+id/tv_play_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:text="@string/no_select"
-            android:textColor="@android:color/white" />
 
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:id="@+id/ll_play_status">
+
 
             <ImageView
                 android:id="@+id/iv_pre"
@@ -51,6 +45,23 @@
                 android:layout_height="wrap_content"
                 android:src="@android:drawable/ic_media_next" />
         </LinearLayout>
+        <com.sspacee.common.ui.view.MarqueeTextView
+            android:id="@+id/tv_play_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_toLeftOf="@+id/ll_play_status"
+            android:layout_marginLeft="@dimen/margin_10"
+
+            android:text="@string/no_select"
+            android:ellipsize="marquee"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:scrollHorizontally="true"
+            android:singleLine="true"
+            android:textColor="@android:color/white" />
+
     </RelativeLayout>
 
     <LinearLayout

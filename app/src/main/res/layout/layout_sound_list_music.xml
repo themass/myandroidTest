@@ -15,12 +15,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true" />
-    <com.sspacee.common.ui.view.FavoriteImageView
-        android:id="@+id/iv_favorite"
-        android:layout_width="@dimen/margin_40"
-        android:layout_height="@dimen/margin_40"
+    <include
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
         android:layout_above="@+id/music_status"
-        android:layout_marginBottom="@dimen/margin_25"
-        android:layout_marginLeft="@dimen/margin_25"
-        android:background="@drawable/ic_menu_favorite_no" />
+        android:layout_marginRight="@dimen/margin_22"
+        android:layout_marginBottom="@dimen/margin_10"
+        layout="@layout/layout_favorite_bar"/>
+
 </RelativeLayout>

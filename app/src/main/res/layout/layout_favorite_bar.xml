@@ -1,0 +1,25 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+    <com.sspacee.common.ui.view.FavoriteImageView
+        android:id="@+id/iv_favorite"
+        android:layout_width="@dimen/margin_43"
+        android:layout_height="@dimen/margin_43"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_menu_favorite_no"
+        android:padding="@dimen/margin_5"
+        android:layout_alignParentBottom="true"
+        android:background="@drawable/btn_default_light"/>
+    <ImageView
+        android:id="@+id/iv_browser"
+        android:layout_width="@dimen/margin_43"
+        android:layout_height="@dimen/margin_43"
+        android:layout_above="@id/iv_favorite"
+        android:layout_marginBottom="@dimen/margin_10"
+        android:clickable="true"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_browser1"
+        android:padding="@dimen/margin_5"
+        android:background="@drawable/btn_default_light" />
+</RelativeLayout>

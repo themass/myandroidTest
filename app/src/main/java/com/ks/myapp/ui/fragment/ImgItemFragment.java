@@ -16,6 +16,7 @@ import android.widget.TextView;
 import com.etiennelawlor.imagegallery.library.adapters.FullScreenImageGalleryAdapter;
 import com.etiennelawlor.imagegallery.library.utilities.DisplayUtility;
 import com.sspacee.common.ui.view.FavoriteImageView;
+import com.sspacee.common.util.SystemUtils;
 import com.sspacee.common.util.ToastUtil;
 import com.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.ks.myapp.base.MyApplication;
@@ -117,6 +118,7 @@ public class ImgItemFragment extends RecommendFragment implements SaveImageCallB
     @OnClick(R.id.iv_favorite)
     public void favoriteClick(View view) {
         ivFavorite.clickFavorite(vo.tofavorite());
+        SystemUtils.copy(getActivity(), vo.url);
     }
 
     @Override
