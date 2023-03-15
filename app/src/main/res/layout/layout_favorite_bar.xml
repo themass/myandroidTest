@@ -4,22 +4,47 @@
     android:layout_height="wrap_content">
     <com.sspacee.common.ui.view.FavoriteImageView
         android:id="@+id/iv_favorite"
-        android:layout_width="@dimen/margin_43"
-        android:layout_height="@dimen/margin_43"
+        android:layout_width="@dimen/margin_40"
+        android:layout_height="@dimen/margin_40"
         android:scaleType="fitCenter"
         android:src="@drawable/ic_menu_favorite_no"
-        android:padding="@dimen/margin_5"
+        android:padding="@dimen/margin_4"
         android:layout_alignParentBottom="true"
         android:background="@drawable/btn_default_light"/>
     <ImageView
-        android:id="@+id/iv_browser"
-        android:layout_width="@dimen/margin_43"
-        android:layout_height="@dimen/margin_43"
+        android:id="@+id/iv_open_browser"
+        android:layout_width="@dimen/margin_40"
+        android:layout_height="@dimen/margin_40"
         android:layout_above="@id/iv_favorite"
-        android:layout_marginBottom="@dimen/margin_10"
+        android:layout_marginBottom="@dimen/margin_2"
+        android:clickable="true"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_menu_share"
+        android:padding="@dimen/margin_4"
+        android:background="@drawable/btn_default_light" />
+    <ImageView
+        android:id="@+id/iv_mp4_web"
+        android:layout_width="@dimen/margin_40"
+        android:layout_height="@dimen/margin_40"
+        android:layout_above="@id/iv_open_browser"
+        android:layout_marginBottom="@dimen/margin_2"
         android:clickable="true"
         android:scaleType="fitCenter"
         android:src="@drawable/ic_browser1"
-        android:padding="@dimen/margin_5"
-        android:background="@drawable/btn_default_light" />
+        android:padding="@dimen/margin_4"
+        android:background="@drawable/btn_default_light"
+        android:visibility="gone"/>
+    <ImageView
+        android:id="@+id/iv_mp4_web2"
+        android:layout_width="@dimen/margin_40"
+        android:layout_height="@dimen/margin_40"
+        android:layout_above="@id/iv_mp4_web"
+        android:layout_marginBottom="@dimen/margin_2"
+        android:clickable="true"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_browser1"
+        android:padding="@dimen/margin_4"
+        android:background="@drawable/btn_default_light"
+        android:visibility="gone"/>
+
 </RelativeLayout>

@@ -21,8 +21,10 @@ import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 
+import com.ks.myapp.bean.vo.FavoriteVo;
 import com.sspacee.common.ui.base.BaseFragment;
 import com.sspacee.common.ui.view.FavoriteImageView;
+import com.sspacee.common.ui.view.MyFavoriteView;
 import com.sspacee.common.ui.view.MyWebView;
 import com.sspacee.common.util.FileUtils;
 import com.sspacee.common.util.LogUtil;
@@ -43,7 +45,8 @@ import butterknife.OnClick;
 /**
  * Created by themass on 2016/3/21.
  */
-public class TextItemsWebViewFragment extends BaseFragment {
+public class TextItemsWebViewFragment extends BaseFragment implements  MyFavoriteView.OnFavoriteItemClick {
+    @SuppressLint("HandlerLeak")
     protected Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -55,8 +58,8 @@ public class TextItemsWebViewFragment extends BaseFragment {
     ProgressBar progressbar;
     @BindView(R.id.fl_bg)
     RelativeLayout flBg;
-    @BindView(R.id.iv_favorite)
-    FavoriteImageView ivFavorite;
+    @BindView(R.id.my_favoriteview)
+    MyFavoriteView myFavoriteView;
     CookieManager cookieManager = null;
     private boolean mFirstPageLoad = true;
     private String url;
@@ -105,7 +108,8 @@ public class TextItemsWebViewFragment extends BaseFragment {
             if (!TextUtils.isEmpty(url)) {
                 webView.loadUrl(url);
             }
-            ivFavorite.initSrc(url);
+            myFavoriteView.setListener(this);
+            myFavoriteView.initFavoriteBackGroud(url);
         }
     }
 
@@ -265,12 +269,15 @@ public class TextItemsWebViewFragment extends BaseFragment {
         }
         super.onDestroyView();
     }
-    @OnClick(R.id.iv_favorite)
-    public void favoriteClick(View view) {
-        if(url.startsWith(Constants.HTTP_URL)) {
-            ivFavorite.clickFavorite(vo.tofavorite());
-            SaveTextTask.startSave(getActivity(), url);
-            SystemUtils.copy(getActivity(), url);
-        }
+
+    @Override
+    public FavoriteVo getFavoriteDataUrl() {
+        SaveTextTask.startSave(getActivity(), url);
+        return vo.tofavorite();
+    }
+
+    @Override
+    public String getBrowserDatUrl() {
+        return url;
     }
 }

@@ -8,12 +8,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.view.View;
 import android.widget.ImageView;
 
+import com.ks.myapp.bean.vo.FavoriteVo;
 import com.ks.myapp.ui.base.WebViewActivity;
 import com.ks.myapp.ui.base.app.BaseToolBarActivity;
 import com.ks.myapp.ui.sound.media.JZMediaExo;
 import com.ks.myapp.ui.sound.media.JZMediaIjk;
 import com.ks.myapp.ui.user.SettingActivity;
 import com.sspacee.common.ui.view.FavoriteImageView;
+import com.sspacee.common.ui.view.MyFavoriteView;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PackageUtils;
 import com.sspacee.common.util.PreferenceUtils;
@@ -36,13 +38,13 @@ import cn.jzvd.JzvdStd;
 /**
  * Created by themass on 2015/9/1.
  */
-public class VideoShowActivity extends AppCompatActivity {
+public class VideoShowActivity extends AppCompatActivity implements MyFavoriteView.OnFavoriteItemClick {
     private Unbinder unbinder;
     @BindView(R.id.jz_video)
     public JzvdStd jzVideo;
     RecommendVo vo;
-    @BindView(R.id.iv_favorite)
-    FavoriteImageView ivFavorite;
+    @BindView(R.id.my_favoriteview)
+    MyFavoriteView myFavoriteView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -66,17 +68,10 @@ public class VideoShowActivity extends AppCompatActivity {
         jzVideo.posterImageView.setScaleType(ImageView.ScaleType.CENTER);
         ImagePhotoLoad.loadCommonImg(this,vo.img,jzVideo.posterImageView);
 //        Jzvd.setJzUserAction(new MyUserActionStandard());
-        ivFavorite.initSrc(vo.actionUrl);
+        myFavoriteView.setListener(this);
+        myFavoriteView.initFavoriteBackGroud(vo.actionUrl);
+        myFavoriteView.showVideoLocal();
 
-    }
-    @OnClick(R.id.iv_favorite)
-    public void favoriteClick(View view) {
-        ivFavorite.clickFavorite(vo.tofavorite(Constants.FavoriteType.VIDEO));
-    }
-    @OnClick(R.id.iv_browser)
-    public void browserClick(View view) {
-        SystemUtils.copy(this, vo.actionUrl==null?vo.param:vo.actionUrl);
-        startBrower();
     }
     @Override
     public void onPause() {
@@ -85,15 +80,6 @@ public class VideoShowActivity extends AppCompatActivity {
             Jzvd.goOnPlayOnPause();
         }catch (Throwable e){
             LogUtil.e(e);
-        }
-    }
-    public void startBrower(){
-        if (PackageUtils.hasBrowser(this)) {
-            Uri uri = Uri.parse(vo.actionUrl);
-            Intent it = new Intent(Intent.ACTION_VIEW, uri);
-            startActivity(it);
-        } else {
-            ToastUtil.showShort(R.string.no_browser);
         }
     }
     @Override
@@ -116,6 +102,16 @@ public class VideoShowActivity extends AppCompatActivity {
     }
     protected boolean enableSliding() {
         return true;
+    }
+
+    @Override
+    public FavoriteVo getFavoriteDataUrl() {
+        return vo.tofavorite(Constants.FavoriteType.VIDEO);
+    }
+
+    @Override
+    public String getBrowserDatUrl() {
+        return vo.actionUrl;
     }
 //    class MyUserActionStandard implements JZUserActionStandard {
 //

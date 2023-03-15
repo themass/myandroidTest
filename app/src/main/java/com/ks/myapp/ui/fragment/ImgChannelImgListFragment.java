@@ -31,6 +31,7 @@ public class ImgChannelImgListFragment extends RecommendFragment {
         intent.putExtra(CommonFragmentActivity.BANNER_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_VPN1);
         intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_SHOW, true);
         StaticDataUtil.add(Constants.IMG_CHANNEL, vo);
+        intent.putExtra(CommonFragmentActivity.TOOLBAR_SHOW, false);
         context.startActivity(intent);
     }
 

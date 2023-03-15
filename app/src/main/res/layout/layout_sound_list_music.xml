@@ -15,13 +15,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true" />
-    <include
+    <com.sspacee.common.ui.view.MyFavoriteView
+        android:id="@+id/my_favoriteview"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_above="@+id/music_status"
         android:layout_marginRight="@dimen/margin_22"
-        android:layout_marginBottom="@dimen/margin_10"
-        layout="@layout/layout_favorite_bar"/>
+        android:layout_marginBottom="@dimen/margin_10" />
 
 </RelativeLayout>

@@ -22,7 +22,9 @@ import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.ks.myapp.bean.vo.FavoriteVo;
 import com.sspacee.common.ui.view.FavoriteImageView;
+import com.sspacee.common.ui.view.MyFavoriteView;
 import com.sspacee.common.util.CollectionUtils;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.MediaUtil;
@@ -61,7 +63,7 @@ import static com.ks.myapp.service.PlayService.UPDATE_ACTION;
 /**
  * Created by themass on 2016/8/12.
  */
-public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsVo> implements SeekBar.OnSeekBarChangeListener, View.OnClickListener,MusicStateListener {
+public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsVo> implements SeekBar.OnSeekBarChangeListener, View.OnClickListener,MusicStateListener, MyFavoriteView.OnFavoriteItemClick {
     private static final String SOUND_TAG = "SOUND_TAG";
     @Nullable
     @BindView(R.id.progress)
@@ -87,8 +89,10 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
     @Nullable
     @BindView(R.id.pb_loading)
     ProgressBar pbLoading;
-    @BindView(R.id.iv_favorite)
-    FavoriteImageView ivFavorite;
+    @Nullable
+    @BindView(R.id.my_favoriteview)
+    MyFavoriteView myFavoriteView;
+
     boolean ignorNet;
     private SoundItemsViewMusicAdapter adapter;
     private String channel;
@@ -129,6 +133,7 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
         intent.putExtra(CommonFragmentActivity.BANNER_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_VPN1);
         intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_SHOW, true);
         intent.putExtra(CommonFragmentActivity.FABUP_SHOW, false);
+        intent.putExtra(CommonFragmentActivity.TOOLBAR_SHOW, false);
         context.startActivity(intent);
     }
     @Override
@@ -156,27 +161,6 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
         getActivity().registerReceiver(netReceiver, filter1);
     }
 
-    @OnClick(R.id.iv_favorite)
-    public void favoriteClick(View view) {
-        ivFavorite.clickFavorite(vo.tofavorite(Constants.FavoriteType.SOUND));
-    }
-    @OnClick(R.id.iv_browser)
-    public void browserClick(View view) {
-        SystemUtils.copy(getContext(), infoListVo.voList.get(adapter.getSelected()<0?0:adapter.getSelected()).file);
-        startBrower();
-    }
-    public void startBrower(){
-        LogUtil.i("selected = "+adapter.getSelected()+"; file = "+infoListVo.voList.get(adapter.getSelected()<0?0:adapter.getSelected()).file);
-        if (PackageUtils.hasBrowser(getContext())) {
-            Uri uri = Uri.parse(infoListVo.voList.get(adapter.getSelected()<0?0:adapter.getSelected()).file);
-            Intent it = new Intent(Intent.ACTION_VIEW, uri);
-            if (it.resolveActivity(getActivity().getPackageManager()) != null){
-                startActivity(it);
-            }
-        } else {
-            ToastUtil.showShort(R.string.no_browser);
-        }
-    }
     public void onClick(View view) {
         if(mService==null){
             return ;
@@ -302,7 +286,8 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
         channel = vo.param;
         Intent intent = new Intent(getActivity(), PlayService.class);
         getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-        ivFavorite.initSrc(vo.param);
+        myFavoriteView.initFavoriteBackGroud(vo.param);
+        myFavoriteView.setListener(this);
         ivPre.setOnClickListener(this);
         ivPlay.setOnClickListener(this);
         ivNext.setOnClickListener(this);
@@ -379,6 +364,16 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
             }
         });
         confirmDialog.show();
+    }
+
+    @Override
+    public FavoriteVo getFavoriteDataUrl() {
+        return vo.tofavorite(Constants.FavoriteType.SOUND);
+    }
+
+    @Override
+    public String getBrowserDatUrl() {
+        return infoListVo.voList.get(adapter.getSelected()<0?0:adapter.getSelected()).file;
     }
 
     /**

@@ -21,6 +21,7 @@ public class FavoriteImageView extends AppCompatImageView  implements FavoriteUt
     public FavoriteImageView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context,attrs,defStyleAttr);
     }
+
     public void clickFavorite(final FavoriteVo vo){
         FavoriteUtil.modLocalFavoritesAsync(getContext(), vo, FavoriteImageView.this);
     }

@@ -15,7 +15,9 @@ import android.widget.TextView;
 
 import com.etiennelawlor.imagegallery.library.adapters.FullScreenImageGalleryAdapter;
 import com.etiennelawlor.imagegallery.library.utilities.DisplayUtility;
+import com.ks.myapp.bean.vo.FavoriteVo;
 import com.sspacee.common.ui.view.FavoriteImageView;
+import com.sspacee.common.ui.view.MyFavoriteView;
 import com.sspacee.common.util.SystemUtils;
 import com.sspacee.common.util.ToastUtil;
 import com.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
@@ -37,10 +39,10 @@ import butterknife.OnClick;
 /**
  * Created by themass on 2016/8/12.
  */
-public class ImgItemFragment extends RecommendFragment implements SaveImageCallBack,OnBackKeyDownListener {
+public class ImgItemFragment extends RecommendFragment implements SaveImageCallBack,OnBackKeyDownListener, MyFavoriteView.OnFavoriteItemClick{
     private static final String IMG_ITEM_TAG = "Img_ITEM_TAG";
-    @BindView(R.id.iv_favorite)
-    FavoriteImageView ivFavorite;
+    @BindView(R.id.my_favoriteview)
+    MyFavoriteView myFavoriteView;
     @BindView(R.id.full_view)
     RelativeLayout fullView;
     @BindView(R.id.rl_list)
@@ -64,6 +66,7 @@ public class ImgItemFragment extends RecommendFragment implements SaveImageCallB
         intent.putExtra(CommonFragmentActivity.ADSSCROLL, true);
         intent.putExtra(CommonFragmentActivity.SLIDINGCLOSE, true);
         intent.putExtra(CommonFragmentActivity.TOOLBAR_SHOW, false);
+        intent.putExtra(CommonFragmentActivity.FABUP_SHOW, false);
         context.startActivity(intent);
     }
     @OnClick(R.id.iv_save)
@@ -103,7 +106,8 @@ public class ImgItemFragment extends RecommendFragment implements SaveImageCallB
         super.setupViews(view, savedInstanceState);
         vo = StaticDataUtil.get(Constants.IMG_ITEMS, ImgItemsVo.class);
         StaticDataUtil.del(Constants.IMG_ITEMS);
-        ivFavorite.initSrc(vo.url);
+        myFavoriteView.setListener(this);
+        myFavoriteView.initFavoriteBackGroud(vo.url);
         fullScreenImageGalleryAdapter = new MyFullScreenImageGalleryAdapter();
         fullScreenImageGalleryAdapter.setFullScreenImageLoader(MyApplication.getInstance().getPhotoLoad());
         this.viewPager.setAdapter(fullScreenImageGalleryAdapter);
@@ -115,11 +119,6 @@ public class ImgItemFragment extends RecommendFragment implements SaveImageCallB
         disappearAnimation.setDuration(800);
     }
     protected BaseRecyclerViewAdapter getAdapter(){return null;}
-    @OnClick(R.id.iv_favorite)
-    public void favoriteClick(View view) {
-        ivFavorite.clickFavorite(vo.tofavorite());
-        SystemUtils.copy(getActivity(), vo.url);
-    }
 
     @Override
     public void onContentViewCreated(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
@@ -180,6 +179,16 @@ public class ImgItemFragment extends RecommendFragment implements SaveImageCallB
     public void onDestroyView() {
         indexService.cancelRequest(IMG_ITEM_TAG);
         super.onDestroyView();
+    }
+
+    @Override
+    public FavoriteVo getFavoriteDataUrl() {
+        return vo.tofavorite();
+    }
+
+    @Override
+    public String getBrowserDatUrl() {
+        return infoListVo.voList.get(0).actionUrl;
     }
 
     public class MyFullScreenImageGalleryAdapter extends PagerAdapter {
