@@ -66,6 +66,7 @@ public class GlobalVideoChannelListFragment extends RecommendFragment {
             getActivity().finish();
         }
         mSearchView.setQuery(vo.param,true);
+        mSearchView.findFocus();
         StaticDataUtil.del(Constants.VIDEO_CHANNEL);
     }
 
