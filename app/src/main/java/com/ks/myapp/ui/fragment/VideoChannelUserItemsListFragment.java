@@ -28,6 +28,8 @@ public class VideoChannelUserItemsListFragment extends RecommendFragment {
         intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, true);
         intent.putExtra(CommonFragmentActivity.BANNER_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_VPN3);
         intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_SHOW, true);
+        intent.putExtra(CommonFragmentActivity.TOOLBAR_SHOW, false);
+
         context.startActivity(intent);
     }
     @Override
@@ -44,7 +46,7 @@ public class VideoChannelUserItemsListFragment extends RecommendFragment {
     }
     @Override
     public int getSpanCount() {
-        return 2;
+        return 3;
     }
     @Override
     public boolean getShowEdit() {

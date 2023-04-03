@@ -1,7 +1,9 @@
 package com.ks.myapp.base;
 
+import android.content.Context;
 import android.graphics.Typeface;
 
+import androidx.multidex.MultiDex;
 import androidx.multidex.MultiDexApplication;
 
 import com.sspacee.common.util.DensityUtil;
@@ -93,4 +95,9 @@ public class MyApplication extends MultiDexApplication {
     public void onTerminate() {
         super.onTerminate();
     }
-}
+    @Override
+    protected void attachBaseContext(Context base) {
+        super.attachBaseContext(base);
+        MultiDex.install(this);
+    }
+    }

@@ -95,7 +95,7 @@
 
         <SeekBar
             android:id="@+id/progress"
-            android:layout_width="0dp"
+            android:layout_width="5dp"
             android:layout_height="wrap_content"
             android:layout_marginLeft="@dimen/inner_padding"
             android:layout_marginRight="@dimen/inner_padding"

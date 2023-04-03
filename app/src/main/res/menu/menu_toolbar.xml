@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/menu_bar_setting"
-        android:actionLayout="@layout/common_actionbar_image_view"
+        app:actionViewClass="android.widget.SearchView"
         android:icon="@drawable/ic_menu_setting"
         android:title="@string/menu_haha"
         android:visible="true"

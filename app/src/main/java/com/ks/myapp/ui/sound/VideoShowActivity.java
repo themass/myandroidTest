@@ -14,7 +14,9 @@ import com.ks.myapp.ui.base.app.BaseToolBarActivity;
 import com.ks.myapp.ui.sound.media.JZMediaExo;
 import com.ks.myapp.ui.sound.media.JZMediaIjk;
 import com.ks.myapp.ui.user.SettingActivity;
+import com.nightonke.boommenu.BoomMenuButton;
 import com.sspacee.common.ui.view.FavoriteImageView;
+import com.sspacee.common.ui.view.MyBoomView;
 import com.sspacee.common.ui.view.MyFavoriteView;
 import com.sspacee.common.util.LogUtil;
 import com.sspacee.common.util.PackageUtils;
@@ -45,11 +47,13 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
     RecommendVo vo;
     @BindView(R.id.my_favoriteview)
     MyFavoriteView myFavoriteView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_video_show);
         unbinder = ButterKnife.bind(this);
+
         vo = (RecommendVo)getIntent().getSerializableExtra(Constants.CONFIG_PARAM);
         String url = vo.actionUrl;
         if(StringUtils.hasText(vo.urlToken)){
