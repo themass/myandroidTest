@@ -163,9 +163,9 @@ public class MyJzvdStd extends JzvdStd {
             //快速滑动 快进退8s，快速滑动一次，此函数会被调用多次
             if(xVelocity>100){
                 if(deltaX>0){
-                    mSeekTimePosition = mSeekTimePosition + 8000;
+                    mSeekTimePosition = getCurrentPositionWhenPlaying() + 8000;
                 }else {
-                    mSeekTimePosition = mSeekTimePosition - 8000;
+                    mSeekTimePosition = getCurrentPositionWhenPlaying() - 8000;
                 }
             }else{
                 mSeekTimePosition = (int) (mGestureDownPosition + deltaX * totalTimeDuration / (maxW * PROGRESS_DRAG_RATE));
