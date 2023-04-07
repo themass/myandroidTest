@@ -45,6 +45,8 @@ public class ConfigActionJump {
         configMap.put(Constants.VIDEO_URL, VideoChannleActivity.class);
         configMap.put(Constants.VIDEOLIST_URL, VideoListShowActivity.class);
         configMap.put(Constants.TELEPLAY_URL, TeleplayActivity.class);
+
+        configMap.put(Constants.LOCAL ,TeleplayActivity.class);
 //        configMap.put(Constants.VIDEO_CHANNEL_USER_URL, VideoChannleUserActivity.class);
     }
 

@@ -17,8 +17,8 @@
 <resources>
     <!--  tab main -->
     <string name="tab_movie">Movie</string>
-    <string name="tab_ng">Night</string>
-    <string name="tab_area">Area</string>
+    <string name="tab_ng">Good</string>
+    <string name="tab_area">Local</string>
     <string name="tab_customer">Cust</string>
     <string name="tab_index">Home</string>
     <string name="tab_tag_index">Index</string>

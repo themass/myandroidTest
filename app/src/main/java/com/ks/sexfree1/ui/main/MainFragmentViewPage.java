@@ -21,6 +21,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.android.material.tabs.TabLayout;
+import com.ks.sexfree1.ui.maintab.TabLocalFragment;
 import com.sspacee.common.util.DoubleClickExit;
 import com.sspacee.common.util.EventBusUtil;
 import com.sspacee.common.util.LogUtil;
@@ -140,7 +141,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
             addData(inflater, R.string.tab_tag_ng, TabNightFragment.class,
                     R.drawable.ac_bg_tab_index, R.string.tab_ng, null, 2);
             if(!MyApplication.isTemp) {
-                addData(inflater, R.string.tab_tag_area, TabAreaFragment.class,
+                addData(inflater, R.string.tab_tag_area, TabLocalFragment.class,
                         R.drawable.ac_bg_tab_index, R.string.tab_area, null, 3);
             }else {
                 addData(inflater, R.string.tab_tag_movie, TabMovieFragment.class,

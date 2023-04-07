@@ -55,6 +55,7 @@
     <dimen name="margin_120">120dip</dimen>
     <dimen name="margin_100">100dip</dimen>
     <dimen name="margin_150">150dip</dimen>
+    <dimen name="margin_300">300dip</dimen>
     <dimen name="margin_250">250dip</dimen>
     <dimen name="margin_400">400dip</dimen>
 
