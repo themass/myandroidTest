@@ -6,6 +6,7 @@ import android.graphics.Typeface;
 import androidx.multidex.MultiDex;
 import androidx.multidex.MultiDexApplication;
 
+import com.ks.sexfree1.R;
 import com.sspacee.common.util.DensityUtil;
 import com.sspacee.common.util.DeviceInfoUtils;
 import com.sspacee.common.util.FileUtils;
@@ -21,6 +22,7 @@ import com.ks.myapp.data.VersionUpdater;
 import java.io.File;
 
 import butterknife.ButterKnife;
+import uk.co.chrisjenx.calligraphy.CalligraphyConfig;
 
 import static com.sspacee.common.CommonConstants.tmpFilePath;
 
@@ -79,6 +81,12 @@ public class MyApplication extends MultiDexApplication {
         LogUtil.e("app start cost:" + cost);
         photoLoad = new ImagePhotoLoad(this);
         AdsManager.getInstans().init(this);
+        CalligraphyConfig.initDefault(
+                new CalligraphyConfig.Builder()
+                        .setDefaultFontPath("fonts/Roboto-Monospace-Regular.ttf")
+                        .setFontAttrId(R.attr.fontPath)
+                        .build()
+        );
     }
 
     public ImagePhotoLoad getPhotoLoad() {

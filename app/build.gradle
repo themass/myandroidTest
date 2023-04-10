@@ -151,4 +151,8 @@ dependencies {
 //    implementation 'tv.danmaku.ijk.media:ijkplayer-armv7a:0.8.4'
 
     implementation project(path: ':vitamio')
+
+    implementation 'io.reactivex:rxjava:1.1.9'
+    implementation 'io.reactivex:rxandroid:1.2.1'
+    implementation 'uk.co.chrisjenx:calligraphy:2.2.0'
 }

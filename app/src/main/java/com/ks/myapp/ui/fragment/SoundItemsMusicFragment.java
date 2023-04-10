@@ -311,7 +311,7 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
         indexService.cancelRequest(SOUND_TAG);
         getActivity().unregisterReceiver(homeReceiver);
         getActivity().unregisterReceiver(netReceiver);
-        getActivity().unbindService(mConnection);
+//        getActivity().unbindService(mConnection);
         super.onDestroyView();
     }
 

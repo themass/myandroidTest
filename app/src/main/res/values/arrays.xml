@@ -20,5 +20,4 @@
         <item>@string/permission_access_coarse_location_hint</item>
         <item>@string/permission_white_external_hint</item>
     </string-array>
-
 </resources>
