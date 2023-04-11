@@ -96,7 +96,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
 
     @Override
     public boolean needPingView(){
-        return true;
+        return false;
     }
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(TabChangeEvent event) {

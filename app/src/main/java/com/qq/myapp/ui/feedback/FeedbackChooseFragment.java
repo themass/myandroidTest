@@ -84,12 +84,12 @@ public class FeedbackChooseFragment extends LoadableFragment<InfoListVo<Feedback
         InfoListVo<FeedbackCateVo> list = new InfoListVo<FeedbackCateVo>();
         list.hasMore=false;
         list.pageNum=1;
-        list.total=2;
+        list.total=1;
         List<FeedbackCateVo> cateVoList = new ArrayList<>();
         FeedbackCateVo wannt = new FeedbackCateVo(getString(R.string.iwanna_title),IWannaFragment.class);
         cateVoList.add(wannt);
-        FeedbackCateVo feed = new FeedbackCateVo(getString(R.string.money_back_title),FeedbackFragment.class);
-        cateVoList.add(feed);
+//        FeedbackCateVo feed = new FeedbackCateVo(getString(R.string.money_back_title),FeedbackFragment.class);
+//        cateVoList.add(feed);
         list.voList = cateVoList;
         return list;
     }

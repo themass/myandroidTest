@@ -53,6 +53,8 @@ public class BaseRes {
         img.put("flag_mo", R.drawable.flag_mo);
         img.put("flag_phil", R.drawable.flag_phil);
         img.put("flag_wu", R.drawable.flag_wu);
+        img.put("google", R.drawable.google);
+        img.put("youtobe", R.drawable.youtobe);
 
     }
 

@@ -111,7 +111,6 @@ public class SettingActivity extends BaseSingleActivity {
     @OnClick(R.id.rr_point)
     public void onScore(View view) {
 //        ToastUtil.showShort(R.string.menu_btn_score_context);
-//        MobAgent.onEventMenu(this, "积分");
         onAbout(view);
     }
     @OnClick(R.id.rl_cache)
@@ -120,18 +119,15 @@ public class SettingActivity extends BaseSingleActivity {
         FileUtils.deleteFile(new File(FileUtils.getWriteFilePath(this)));
         MyApplication.getInstance().initFilePath();
         setCache();
-        MobAgent.onEventMenu(this, "缓存");
     }
     @OnClick(R.id.rr_version)
     public void onVersion(View view) {
         VersionUpdater.checkUpdate(this, true);
-        MobAgent.onEventMenu(this, "版本");
     }
     @OnClick(R.id.tv_auther)
     public void onContract(View view) {
-        SystemUtils.copy(SettingActivity.this, "dengthelper@gmail.com");
+        SystemUtils.copy(SettingActivity.this, "justbegin010@gmail.com");
         ToastUtil.showShort(R.string.menu_copy_emai);
-        MobAgent.onEventMenu(this, "联系我们");
     }
 
     @OnClick(R.id.tv_about)
@@ -140,7 +136,6 @@ public class SettingActivity extends BaseSingleActivity {
         url = url + "?" + DateUtils.format(new Date(), DateUtils.DATE_FORMAT_MM);
 //        WebViewActivity.startWebViewActivity(this, url, getString(R.string.menu_btn_about), false, false, null);
         PreferenceUtils.setPrefBoolean(this, Constants.ABOUT_FIRST, true);
-        MobAgent.onEventMenu(this, "关于");
         final Uri uri = Uri.parse(url);
         Intent intent = new Intent(Intent.ACTION_VIEW, uri);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -150,7 +145,6 @@ public class SettingActivity extends BaseSingleActivity {
     @OnClick(R.id.tv_share)
     public void onShare(View view) {
         showShare();
-        MobAgent.onEventMenu(this, "分享");
     }
 
     @OnClick(R.id.tv_bug)

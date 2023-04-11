@@ -133,7 +133,7 @@ public class LocationItemFragment extends BasePullLoadbleFragment<LocationVo> {
         PreferenceUtils.setPrefBoolean(getActivity(), Constants.LOCATION_FLAG, true);
         LocationUtil.setLocation(getActivity(), data);
         EventBusUtil.getEventBus().postSticky(new LocationChooseEvent());
-        ToastUtil.showShort(data.name+"--"+data.ename);
+        ToastUtil.showShort(data.ename);
 //        getActivity().finish();
 //        pullView.notifyDataSetChanged();
     }

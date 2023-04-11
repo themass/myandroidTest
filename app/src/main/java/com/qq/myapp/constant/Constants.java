@@ -20,9 +20,7 @@ public class Constants {
     public static final String USER_AGENT = "User-Agent";
     public static final String USER_AGENT_DEF = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36";
     public static final String REFERER = "referer";
-    public static final String DEFAULT_REFERER = "http://www.sspacee.com/";
-    public static final String DEFAULT_API = "api.sspacee.com";
-    public static final String IMAGE_RES_PRE = "timeline://img";
+    public static final String DEFAULT_REFERER = "http://www.ok123find.top/";
     public static final String URL = "url";
     public static final String DEFULT_LOCATION_NAME="Random";
     public static final int STARTUP_SHOW_TIME_6000 = 3000; //启动页广告时长
@@ -71,12 +69,10 @@ public class Constants {
     public static final String CLICK_KEY="CLICK_KEY";
     public static final String TRAF_KEY="TRAF_KEY";
 
-    // 有新版本时，是否打开app就提醒升级
-    //用户反馈
     public static final String DEFAULT_FEEDBACK_APPKEY = "23575056";
     public static final String SETTING_PREF_NEED_CHECK_UPDATE_NEXT_TIME = "SETTING_PREF_NEED_CHECK_UPDATE_NEXT_TIME";
     public static final String TEMP_PATH = "/AFreedom/free";
-    public static final String VERSION_APP_INCOMING = "VERSION_APP_INCOMING"; // 服务器上的最新版本号
+    public static final String VERSION_APP_INCOMING = "VERSION_APP_INCOMING";
 
     public static final String API_SERVERLIST_URL = "/host/server/list.json?location=%s";
 //    public static final String API_FAB_ADSCLICK_URL = "/user/ads/score.json?score=%s";
@@ -136,15 +132,14 @@ public class Constants {
     public static final String ADMIN = "themass";
     public static final String CUSTOME_SORT = "CUSTOME_SORT";
     public static final String LOCATION_ICON_ALL ="timeline://img/flag_all.png";
-    public static String BASE_IP = "api.sspacee.com";
-    public static final String HOSTGGG = "api.hostggg.com";
+    public static String BASE_IP = "api.ok123find.top";
+    public static String BASE_IP_BAK = "api.sspacee.com";
     public static String ABOUT_FIRST = "ABOUT_FbbIRST";
-    public static String ABOUT_ZH = "http://file.sspacee.com/file/html/about.html";
-    public static String ABOUT = "http://file.sspacee.com/file/html/about.html";
+    public static String ABOUT_ZH = "http://file.ok123find.top/file/html/about.html";
+    public static String ABOUT = "http://file.ok123find.top/file/html/about.html";
     public static String USER_STATUS = "USER_STATUS";
     //        public static String BASE_IP = "192.168.1.12:8080";
 //    public static String BASE_IP = "10.33.65.180:8080";
-    public static String BASE_HOST = "http://" + BASE_IP + "/vvv/api";
     public static final String downloadUrl="https://play.google.com/store/apps/details?id=com.qq.ks.free1";
     public static int NULL_VIEW = -1;
     public static List<String> colorBg = Arrays.asList("#552d5d82", "#55135689", "#552292e9", "#5583878b", "#7f8d8f45", "#ffc49924", "#ff83713f", "#ff569b2b", "#ff882b9b");
@@ -153,7 +148,7 @@ public class Constants {
         return "http://" + BASE_IP + "/vvv/api" + uri;
     }
     public static String getUrlHost(String uri) {
-        return "http://" + HOSTGGG + "/vvv/api" + uri;
+        return "http://" + BASE_IP_BAK + "/vvv/api" + uri;
     }
     public static String getUrlWithParam(String url, Object... param) {
         return String.format(getUrl(url), param);

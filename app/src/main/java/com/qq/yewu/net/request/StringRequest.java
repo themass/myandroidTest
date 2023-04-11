@@ -14,7 +14,7 @@ public class StringRequest extends BaseRequest<String> {
     }
 
     public StringRequest(Context context, String url, Response.Listener<String> listener, Response.ErrorListener errorListener) {
-        this(context, Method.POST, url, listener, errorListener);
+        this(context, Method.GET, url, listener, errorListener);
     }
 
     protected Response<String> parseNetworkResponse(NetworkResponse response) {

@@ -102,6 +102,7 @@
             android:textSize="@dimen/textsize_12"
             android:textColor="@color/base_green1"
             android:paddingTop="@dimen/margin_5"
+            android:visibility="gone"
             />
         <TextView
             android:paddingTop="@dimen/margin_3"
@@ -110,6 +111,7 @@
             android:layout_height="wrap_content"
             android:textSize="@dimen/textsize_12"
             android:textColor="@color/fab_color_pressed"
+            android:visibility="gone"
             />
     </LinearLayout>
     <View

@@ -8,7 +8,9 @@
     <com.qq.common.ui.view.indicator.TabPageIndicator
         android:id="@+id/indicator"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        style="@style/MyPageIndicatorDefaults"
+        android:visibility="gone">
     </com.qq.common.ui.view.indicator.TabPageIndicator>
 
     <androidx.viewpager.widget.ViewPager

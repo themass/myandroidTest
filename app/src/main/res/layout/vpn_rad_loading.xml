@@ -86,7 +86,7 @@
         android:layout_alignParentRight="true"
         android:layout_alignBottom="@+id/fl_bg"
         android:layout_marginBottom="@dimen/margin_22"
-        android:src="@drawable/hand_fb1"
+        android:src="@drawable/hand_fb_ad_v2"
         android:background="?android:attr/selectableItemBackground"
         >
     </ImageButton>

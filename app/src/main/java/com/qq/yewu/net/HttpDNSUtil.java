@@ -55,6 +55,7 @@ public class HttpDNSUtil {
             return url;
         }
         String ipStr = StaticDataUtil.get(host, String.class);
+        LogUtil.i("host="+host+"; ipStr="+ipStr);
         if (ipStr == null) {
             Integer errorCount = countMap.get(ipStr);
             errorCount = (errorCount == null) ? 0 : errorCount;

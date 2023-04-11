@@ -18,6 +18,7 @@
     <style name="MyPageIndicatorDefaults" parent="@style/AppTheme.Slide">
         <item name="vpiIconPageIndicatorStyle">@style/Widget.IconPageIndicator</item>
         <item name="vpiTabPageIndicatorStyle">@style/MyTabPageIndicator</item>
+        <item name="vpiUnderlinePageIndicatorStyle">@style/CustomUnderlinePageIndicator</item>
     </style>
 
     <style name="Widget" />

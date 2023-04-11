@@ -271,7 +271,7 @@ public class VersionUpdater {
             this.notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
             if (Build.VERSION.SDK_INT >= 26) {
                 NotificationChannel channel = new NotificationChannel(D_CHANNEL, "AFreedom", NotificationManager.IMPORTANCE_HIGH);
-                channel.setDescription("AFreedom");
+                channel.setDescription("AFreeVPN");
                 channel.enableLights(false);
                 channel.enableVibration(false);
                 channel.setSound(null, null);

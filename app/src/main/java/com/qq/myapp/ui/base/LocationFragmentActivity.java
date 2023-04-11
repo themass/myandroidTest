@@ -4,11 +4,13 @@ import android.os.Bundle;
 import androidx.fragment.app.Fragment;
 import android.view.View;
 
+import com.qq.common.util.EventBusUtil;
 import com.qq.common.util.LogUtil;
 import com.qq.common.util.PreferenceUtils;
 import com.qq.myapp.base.MyApplication;
 import com.qq.myapp.constant.Constants;
 import com.qq.myapp.data.UserLoginUtil;
+import com.qq.myapp.data.config.PingEvent;
 import com.qq.yewu.ads.base.AdsContext;
 import com.qq.myapp.ui.base.app.BaseFragmentActivity;
 import com.qq.myapp.ui.inte.FabOpListener;
@@ -89,10 +91,11 @@ public class LocationFragmentActivity extends BaseFragmentActivity implements Fa
             setToolbarTitle(title, true);
         }
         setFabUpVisibility(View.VISIBLE);
+        fabUp.setImageResource(R.drawable.ic_ping_clear_b);
     }
     @Override
     protected boolean needPingView(){
-        return true;
+        return false;
     }
 
     @Override
@@ -128,5 +131,9 @@ public class LocationFragmentActivity extends BaseFragmentActivity implements Fa
             super.onBackPressed();
         }
     }
-
+    @Override
+    public void onClickFab(View view) {
+        super.onClickFab(view);
+        EventBusUtil.getEventBus().post(new PingEvent());
+    }
 }

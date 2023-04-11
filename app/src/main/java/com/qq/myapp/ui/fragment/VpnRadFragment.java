@@ -326,7 +326,7 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
     private void imgConn() {
         stopAnim();
         ibVpnStatus.setBackgroundResource(R.drawable.vpn_ic_conn);
-        tvVpnText.setText(R.string.vpn_bg_click);
+        tvVpnText.setText(R.string.vpn_bg_conned);
     }
 
     private void imgNormal() {

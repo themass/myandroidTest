@@ -154,9 +154,9 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         setupLocationIcon();
     }
     public void onllDesc(View view){
-        SystemUtils.copy(this, qq);
-        ToastUtil.showShort(R.string.menu_copy_qq);
-        LogUtil.i(qq);
+//        SystemUtils.copy(this, qq);
+//        ToastUtil.showShort(R.string.menu_copy_qq);
+//        LogUtil.i(qq);
     }
     private void setUpVersion() {
         VersionUpdater.checkUpdate(BaseDrawerActivity.this,false);
@@ -229,7 +229,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
             }
             tvScore.setText(score);
         } else {
-            tvScore.setText("请先登录");
+            tvScore.setText("login  please");
         }
     }
     public void onAbout(View view) {
@@ -237,7 +237,6 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         url = url + "?" + DateUtils.format(new Date(), DateUtils.DATE_FORMAT_MM);
 //        WebViewActivity.startWebViewActivity(this, url, getString(R.string.menu_btn_about), false, false, null);
         PreferenceUtils.setPrefBoolean(this, Constants.ABOUT_FIRST, true);
-        MobAgent.onEventMenu(this, "关于");
         final Uri uri = Uri.parse(url);
         Intent intent = new Intent(Intent.ACTION_VIEW, uri);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

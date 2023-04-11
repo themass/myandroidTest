@@ -14,12 +14,14 @@ import android.view.ViewGroup;
 
 import com.qq.common.ui.view.indicator.TabPageIndicator;
 import com.qq.common.util.CollectionUtils;
+import com.qq.common.util.EventBusUtil;
 import com.qq.common.util.LogUtil;
 import com.qq.myapp.bean.vo.InfoListVo;
 import com.qq.myapp.bean.vo.NativeAdInfo;
 import com.qq.myapp.bean.vo.RecommendVo;
 import com.qq.myapp.bean.vo.VipLocationVo;
 import com.qq.myapp.constant.Constants;
+import com.qq.myapp.data.config.PingEvent;
 import com.qq.myapp.ui.base.CommonFragmentActivity;
 import com.qq.myapp.ui.base.LocationFragmentActivity;
 import com.qq.myapp.ui.base.features.LoadableFragment;

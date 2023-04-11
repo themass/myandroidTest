@@ -28,9 +28,9 @@
     <string name="tab_fb_click_wifi">Please use it under Dis conn V </string>
     <string name="location_ping">Ping：</string>
     <!-- Application -->
-    <string name="app_name">AFreedom</string>
+    <string name="app_name">AFreeVPN</string>
     <string name="app_name_show">Free</string>
-    <string name="main_activity_name">AFreedom</string>
+    <string name="main_activity_name">AFreeVPN</string>
     <string name="toobar_title">Free</string>
     <string name="load">loading more data</string>
     <string name="off">off</string>
@@ -42,7 +42,7 @@
     <string name="menu_haha">Yo! You found it.</string>
     <!-- menu -->
     <string name="menu_btn_login">Login</string>
-    <string name="menu_btn_login_ready">LoginOk</string>
+    <string name="menu_btn_login_ready">Success</string>
     <string name="menu_btn_name_default">Who am i</string>
     <string name="menu_btn_feedback">Feedback </string>
     <string name="menu_btn_about">About VIP </string>
@@ -132,14 +132,14 @@
     <string name="vpn_bg_error">Click Retry</string>
     <string name="vpn_bg_conning">Connecting..</string>
     <string name="vpn_bg_disconning">Stoping..</string>
-    <string name="vpn_bg_conned">Disconnect</string>
+    <string name="vpn_bg_conned">Conn OK</string>
     <string name="vpn_need">Maybe need conn VPN first</string>
     <string name="vpn_type_free">Free</string>
     <string name="vpn_type_vip">VIP</string>
     <string name="vpn_type_vip2">VIP2</string>
     <string name="vpn_type_vip3">VIP3</string>
     <string name="vpn_type_vip4">VIP4</string>
-    <string name="vpn_remote_status">AFreedom·</string>
+    <string name="vpn_remote_status">AFreeVPN·</string>
     <string name="vpn_remote_on">Connected，click to disconnect</string>
     <string name="vpn_remote_off">Disconnect，click to connect</string>
     <string name="vpn_remote_ing">Connecting，please wait</string>
@@ -155,7 +155,7 @@
 You are now using a non WIFI network, continue to download may consume more network traffic, whether to continue to download？</string>
     <string name="about_download_begin">Start download</string>
     <string name="about_download_finish">End download</string>
-    <string name="about_download_title">Downloading AFreedom</string>
+    <string name="about_download_title">Downloading AFreeVPN</string>
     <string name="about_download_prepare">Is preparing to download</string>
     <string name="about_download_error">File download error</string>
     <string name="about_download_percent">Downloading %1$s/%2$s</string>
