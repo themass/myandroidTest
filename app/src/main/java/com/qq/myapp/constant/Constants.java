@@ -117,6 +117,8 @@ public class Constants {
     public static final String LOG_UPLOAD_CONFIG = "LOG_UPLOAD_CONFIG";
     public static final String NEED_DNSPOD_CONFIG = "NEED_DNSPOD_CONFIG";
     public static final String NEED_NATIVE_ADS_CONFIG = "NEED_NATIVE_ADS_CONFIG";
+    public static final String IS_CHAIN = "IS_CHAIN";
+    public static final String USER_IP = "USER_IP";
     public static final String CONFIG_PARAM = "CONFIG_PARAM";
     public static final String TITLE = "TITLE";
     public static final String ADSSHOW = "ADSSHOW";
@@ -133,10 +135,11 @@ public class Constants {
     public static final String CUSTOME_SORT = "CUSTOME_SORT";
     public static final String LOCATION_ICON_ALL ="timeline://img/flag_all.png";
     public static String BASE_IP = "api.ok123find.top";
-    public static String BASE_IP_BAK = "api.sspacee.com";
+    public static String BASE_IP_BAK = "api.faceopen.top";
     public static String ABOUT_FIRST = "ABOUT_FbbIRST";
-    public static String ABOUT_ZH = "http://file.ok123find.top/file/html/about.html";
-    public static String ABOUT = "http://file.ok123find.top/file/html/about.html";
+    public static String ABOUT = "http://file.ok123find.top/about.html";
+
+    public static String IP_ADDRESS = "http://www.geoplugin.net/json.gp?ip=";
     public static String USER_STATUS = "USER_STATUS";
     //        public static String BASE_IP = "192.168.1.12:8080";
 //    public static String BASE_IP = "10.33.65.180:8080";

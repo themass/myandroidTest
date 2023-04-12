@@ -26,15 +26,29 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.efs.sdk.base.core.util.Log;
+import com.google.android.gms.common.util.JsonUtils;
 import com.king.view.radarview.RadarView;
 import com.qq.common.ui.base.BaseFragment;
 import com.qq.common.util.DeviceInfoUtils;
+import com.qq.common.util.EventBusUtil;
+import com.qq.common.util.GsonUtils;
+import com.qq.common.util.IPUtils;
+import com.qq.common.util.IpUtil;
 import com.qq.common.util.LogUtil;
 import com.qq.common.util.PermissionHelper;
+import com.qq.common.util.PreferenceUtils;
+import com.qq.common.util.StringUtils;
 import com.qq.common.util.ToastUtil;
+import com.qq.myapp.base.MyApplication;
+import com.qq.myapp.bean.vo.IpAdress;
+import com.qq.myapp.bean.vo.UserInfoVo;
+import com.qq.myapp.data.config.IsChainEvent;
+import com.qq.myapp.data.config.StateUseEvent;
 import com.qq.myapp.task.EmuTask;
 import com.qq.myapp.ui.base.NativeHeaderFragment;
 import com.qq.ks.ui.main.MainFragmentViewPage;
+import com.qq.myapp.ui.user.LoginActivity;
 import com.qq.yewu.ads.base.AdsContext;
 import com.qq.yewu.ads.base.AdsManager;
 import com.qq.yewu.ads.mobvista.WallMobvAds;
@@ -67,6 +81,8 @@ import butterknife.OnClick;
 public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnStateListener {
     private static final String DIALOG_TAG = "Dialog";
     private static final String INDEX_TAG = "vvv_status_tag";
+    private static final String IPADRESS_TAG = "vvv_ip_get_tag";
+
     private static final int PREPARE_VPN_SERVICE = 0;
     private BaseService indexService;
     private volatile boolean hasStart=false;
@@ -82,6 +98,8 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
     ImageButton ibVpnStatus;
     @BindView(R.id.rl_content_em)
     TextView tvEmText;
+    @BindView(R.id.tv_not_chain)
+    TextView tvNotChain;
     @BindView(R.id.vpn_but)
     RelativeLayout vpnBut;
     @BindView(R.id.rl_gift)
@@ -94,6 +112,30 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
     private static boolean isEmulator=false;
     private WallMobvAds wallMobvAds = new WallMobvAds();
     private  static boolean open=false;
+
+    CommonResponse.ResponseOkListener ipAddressOk = new CommonResponse.ResponseOkListener<String>() {
+        @Override
+        public void onResponse(String str) {
+            LogUtil.i("ipAddressOk-》"+str);
+            try {
+                if (!StringUtils.isEmpty(str)) {
+                    IpAdress vo = GsonUtils.getInstance().fromJson(str, IpAdress.class);
+                    if ("China".equals(vo.geoplugin_countryName) || "CN".equals(vo.geoplugin_countryCode)) {
+                        onEvent(new IsChainEvent());
+                    }
+                }
+            }catch (Exception e){
+                LogUtil.e("ipAddressOK",e);
+            }
+        }
+    };
+    CommonResponse.ResponseErrorListener ipAddressError = new CommonResponse.ResponseErrorListener() {
+        @Override
+        protected void onError() {
+            super.onError();
+        }
+    };
+
     protected static Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -173,6 +215,20 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
             EmuTask.start(getActivity());
         }
         wallMobvAds.load(getActivity(),rlGift);
+        EventBusUtil.getEventBus().register(this);
+    }
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(IsChainEvent event) {
+        if(!UserLoginUtil.isVIP()) {
+            if(PreferenceUtils.getPrefBoolean(MyApplication.getInstance(), Constants.IS_CHAIN,false)) {
+                tvNotChain.setVisibility(View.VISIBLE);
+                ToastUtil.showLong(R.string.support_Chinese);
+            }else{
+                String ip = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.USER_IP, IpUtil.getInNetIp(getContext()));
+                LogUtil.i("ip="+ip);
+                indexService.getStringData(Constants.IP_ADDRESS+ip, ipAddressOk, ipAddressError, IPADRESS_TAG);
+            }
+        }
 
     }
     public void showBanner(){
@@ -212,7 +268,7 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
     @OnClick(R.id.iv_vpn_state)
     public void onVpnClick(View v) {
         if(allPerm==false)
-            if(!PermissionHelper.checkPermissions(getActivity()) &&!UserLoginUtil.isVIP2()) {
+            if(!PermissionHelper.checkPermissions(getActivity()) &&!UserLoginUtil.isVIP()) {
                 PermissionHelper.showPermit(getActivity());
                 return ;
             }
@@ -223,12 +279,10 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
         }else{
             tvEmText.setVisibility(View.GONE);
         }
-//        if(!open && UserLoginUtil.getUserCache()==null){
-//            ToastUtil.showShort(R.string.chose_first);
-//            LocationPageViewFragment.startFragment(getActivity());
-//            open=true;
-//            return;
-//        }
+        if(PreferenceUtils.getPrefBoolean(MyApplication.getInstance(), Constants.IS_CHAIN,false)&&!UserLoginUtil.isVIP()){
+            ToastUtil.showLong(R.string.support_Chinese);
+            return;
+        }
         startVpn();
     }
     private void startVpn(){
@@ -241,7 +295,7 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
                 mHandler.postDelayed(vpnCheck,Constants.VPN_CHECK_TIME);
                 imgAnim();
                 AdsContext.showRand(getActivity(),AdsContext.getNext());
-                if(!UserLoginUtil.isVIP2())
+                if(!UserLoginUtil.isVIP())
                     ToastUtil.showShort(R.string.chose_first);
                 int id = LocationUtil.getSelectLocationId(getActivity());
                 indexService.getData(String.format(Constants.getUrl(Constants.API_SERVERLIST_URL), id), serverListener, serverListenerError, INDEX_TAG, ServerVo.class);

@@ -203,6 +203,7 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="vpn_not_supported_during_lockdown">VPN connections are not supported in lockdown mode.</string>
     <!-- activity title-->
     <string name="titile_browser">Open in browser</string>
+    <string name="support_Chinese">Oh My God, you are a Chinese, \nyou can not use this app, \ngo home， go go </string>
     <string name="permission_need">necessary permissions missing。\n\nClick\"setting\"-\"permission\"-open all permissions。</string>
     <string name="permission_get_accounts_hint">necessary permissions need。PERMISSION_GET_ACCOUNTS</string>
     <string name="permission_read_phone_hint">necessary permissions need。PERMISSION_READ_PHONE_STATE</string>

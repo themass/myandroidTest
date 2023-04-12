@@ -27,6 +27,7 @@ import com.qq.common.util.PackageUtils;
 import com.qq.common.util.PreferenceUtils;
 import com.qq.common.util.StringUtils;
 import com.qq.common.util.ToastUtil;
+import com.qq.myapp.data.config.IsChainEvent;
 import com.qq.yewu.net.HttpDNSUtil;
 import com.qq.yewu.net.HttpUtils;
 import com.qq.yewu.net.NetUtils;
@@ -65,6 +66,10 @@ public class VersionUpdater {
                         PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.LOG_UPLOAD_CONFIG, vo.logUp);
                         PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.NEED_DNSPOD_CONFIG, vo.needDnspod);
                         PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.NEED_NATIVE_ADS_CONFIG, vo.needNative);
+                        PreferenceUtils.setPrefString(MyApplication.getInstance(), Constants.USER_IP, vo.userIp);
+                        PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.IS_CHAIN, vo.chinaUser);
+                        EventBusUtil.getEventBus().post(new IsChainEvent());
+                        LogUtil.i("version="+vo.toString());
                         Constants.PROBABILITY = vo.probability==null?Constants.PROBABILITY:vo.probability;
                         if(StringUtils.hasText(vo.mobvistaNative)){
                             PreferenceUtils.setPrefString(MyApplication.getInstance(), Constants.Mob_UNIT_SPLASH_KAY, vo.mobvistaNative);

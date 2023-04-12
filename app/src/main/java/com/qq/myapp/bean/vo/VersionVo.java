@@ -17,5 +17,30 @@ public class VersionVo {
     public Integer probability=5;
     public String mobvistaNative;
     public float traf;
+    public Boolean chinaUser = false;
+    public String userIp;
 
+    @Override
+    public String toString() {
+        return "VersionVo{" +
+                "version='" + version + '\'' +
+                ", content='" + content + '\'' +
+                ", url='" + url + '\'' +
+                ", minBuild=" + minBuild +
+                ", maxBuild=" + maxBuild +
+                ", adsShow=" + adsShow +
+                ", logUp=" + logUp +
+                ", stateUse=" + stateUse +
+                ", vipDesc=" + vipDesc +
+                ", dnspodIp='" + dnspodIp + '\'' +
+                ", needDnspod=" + needDnspod +
+                ", needNative=" + needNative +
+                ", update=" + update +
+                ", probability=" + probability +
+                ", mobvistaNative='" + mobvistaNative + '\'' +
+                ", traf=" + traf +
+                ", chinaUser=" + chinaUser +
+                ", userIp='" + userIp + '\'' +
+                '}';
+    }
 }

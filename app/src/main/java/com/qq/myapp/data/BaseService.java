@@ -53,14 +53,18 @@ public class BaseService {
         return future.get();
     }
 
-    public String getStringData(String url, String tag) throws Exception {
+    public String getStringDataSync(String url, String tag) throws Exception {
         RequestFuture<String> future = RequestFuture.newFuture();
         StringRequest request = new StringRequest(context, Request.Method.GET, url, future, future);
         request.setTag(tag);
         VolleyUtils.addRequest(request);
         return future.get();
     }
-
+    public void getStringData(String url, CommonResponse.ResponseOkListener<String> listener, CommonResponse.ResponseErrorListener errorListener, String tag) {
+        StringRequest request = new StringRequest(context, Request.Method.GET, url, listener, errorListener);
+        request.setTag(tag);
+        VolleyUtils.addRequest(request);
+    }
     public <T> void getData(String url, CommonResponse.ResponseOkListener<T> listener, CommonResponse.ResponseErrorListener errorListener, String tag, Class<T> t) {
         GsonRequest request = new GsonRequest(context, url, t, null, listener, errorListener);
         request.setTag(tag);

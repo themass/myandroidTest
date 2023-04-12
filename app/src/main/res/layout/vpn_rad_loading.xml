@@ -60,11 +60,24 @@
         android:padding="@dimen/margin_8"
         android:orientation="vertical">
     </TextView>
+    <TextView
+        android:id="@+id/tv_not_chain"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/textsize_12"
+        android:gravity="center"
+        android:background="@color/warning_text"
+        android:text="@string/support_Chinese"
+        android:layout_below="@+id/rl_content_em"
+        android:padding="@dimen/margin_8"
+        android:orientation="vertical">
+    </TextView>
     <LinearLayout
         android:id="@+id/rl_content_native"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/rl_content_em"
+        android:layout_below="@+id/tv_not_chain"
         android:orientation="vertical">
     </LinearLayout>
     <RelativeLayout
