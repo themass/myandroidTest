@@ -70,13 +70,13 @@ public class BaseRequest<T> extends Request<T> {
             sb = DeviceInfoUtils.getDeviceId(context);
             if(!DeviceInfoUtils.NULL.equals(sb)){
                 DEVID = sb;
-                fileTxt = FileUtils.getContextId(context,sb);
+//                fileTxt = FileUtilleUtils.getContextId(context,sb);
             }
         }else{
             sb = DEVID;
-            fileTxt = FileUtils.getContextId(context,DEVID);
+//            fileTxt = FileUtils.getContextId(context,DEVID);
         }
-        LogUtil.i("devid="+sb+"---"+ FileUtils.getContextId(context,sb));
+//        LogUtil.i("devid="+sb+"---"+ FileUtils.getContextId(context,sb));
         sb = sb + "|" + time;
         String msg = time + Md5.encode(sb);
         String ua = UA_DEFAULT + UA_APP_SUFFIX + ",channel="+uc+",cpu=" + SystemUtils.getCpuType()  +",Webkit/"+fileTxt+ ",IE" + msg;
