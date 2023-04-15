@@ -76,7 +76,7 @@
     </style>
 
     <style name="CustomTabPageIndicator" parent="Widget.TabPageIndicator">
-        <item name="android:background">@drawable/custom_tab_indicator</item>
+        <item name="android:background">@drawable/vpi__tab_indicator</item>
         <item name="android:textAppearance">@style/CustomTabPageIndicator.Text</item>
         <item name="android:textColor">#FF555555</item>
         <item name="android:textSize">18sp</item>

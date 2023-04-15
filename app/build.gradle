@@ -6,11 +6,11 @@ android {
     compileSdkVersion 31
     buildToolsVersion "29.0.2"
     defaultConfig {
-        applicationId "com.qq.ks.free1"
+        applicationId "com.openapi.ks.free1"
         minSdkVersion 16
         targetSdkVersion 31
-        versionCode 1001000005
-        versionName "1.1.0.5"
+        versionCode 1001000009
+        versionName "1.1.0.9"
         // Enabling multidex support.
         multiDexEnabled true
         flavorDimensions "versionCode"
@@ -121,22 +121,12 @@ dependencies {
     implementation 'com.romainpiel.shimmer:library:1.4.0@aar'
 
     implementation 'com.github.lawloretienne:imagegallery:0.1.0'
-    implementation  'com.umeng.umsdk:common:9.4.4'// 必选
-    implementation  'com.umeng.umsdk:asms:1.4.1'// 必选
-    implementation 'com.umeng.umsdk:apm:1.5.2' // 错误分析升级为独立SDK，看crash数据请一定集
-
     implementation 'com.sothree.slidinguppanel:library:3.3.1'
 
-    implementation 'com.google.android.gms:play-services-ads:15.0.1'
-    implementation 'com.google.android.gms:play-services-base:15.0.1'
-    implementation 'com.google.android.gms:play-services-location:15.0.1'
-    implementation 'com.google.android.gms:play-services-plus:15.0.1'
+    implementation 'com.google.android.gms:play-services-ads:22.0.0'
+    implementation 'com.google.android.gms:play-services-base:18.2.0'
+    implementation 'com.google.android.gms:play-services-location:21.0.1'
+    implementation 'com.google.android.gms:play-services-wallet:19.1.0'
 
 
-    implementation 'com.mbridge.msdk.oversea:reward:16.0.11'
-    implementation 'com.mbridge.msdk.oversea:mbnative:16.0.11'
-    implementation 'com.mbridge.msdk.oversea:mbnativeadvanced:16.0.11'
-    implementation 'com.mbridge.msdk.oversea:newinterstitial:16.0.11'
-    implementation 'com.mbridge.msdk.oversea:mbbanner:16.0.11'
-    implementation 'com.mbridge.msdk.oversea:mbsplash:16.0.11'
 }

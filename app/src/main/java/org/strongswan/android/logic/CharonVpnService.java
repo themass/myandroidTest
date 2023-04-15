@@ -45,24 +45,22 @@ import android.view.View;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 
-import androidx.core.app.NotificationCompat;
-
-import com.qq.common.util.FileUtils;
-import com.qq.common.util.LogUtil;
-import com.qq.common.util.PreferenceUtils;
-import com.qq.yewu.net.NetUtils;
-import com.qq.myapp.base.MyApplication;
-import com.qq.myapp.bean.DataBuilder;
-import com.qq.myapp.bean.vo.ServerVo;
-import com.qq.myapp.bean.vo.VpnProfile;
-import com.qq.myapp.constant.Constants;
-import com.qq.myapp.data.BaseService;
-import com.qq.myapp.data.ConnLogUtil;
-import com.qq.myapp.data.LocationUtil;
-import com.qq.myapp.ui.fragment.LocationPageViewFragment;
-import com.qq.ks.free1.R;
-import com.qq.ks.ui.main.MainFragmentViewPage;
-import com.qq.yewu.net.request.CommonResponse;
+import com.openapi.common.util.FileUtils;
+import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.PreferenceUtils;
+import com.openapi.yewu.net.NetUtils;
+import com.openapi.myapp.base.MyApplication;
+import com.openapi.myapp.bean.DataBuilder;
+import com.openapi.myapp.bean.vo.ServerVo;
+import com.openapi.myapp.bean.vo.VpnProfile;
+import com.openapi.myapp.constant.Constants;
+import com.openapi.myapp.data.BaseService;
+import com.openapi.myapp.data.ConnLogUtil;
+import com.openapi.myapp.data.LocationUtil;
+import com.openapi.myapp.ui.fragment.LocationPageViewFragment;
+import com.openapi.ks.free1.R;
+import com.openapi.ks.ui.main.MainFragmentViewPage;
+import com.openapi.yewu.net.request.CommonResponse;
 
 import org.strongswan.android.logic.imc.ImcState;
 import org.strongswan.android.logic.imc.RemediationInstruction;
@@ -93,8 +91,8 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
     /**
      * 通知栏按钮点击事件对应的ACTION
      */
-    public final static String ACTION_BUTTON = "com.qq.fq2.notifications.intent.action.ButtonClick";
-    public final static String LOCATION_BUTTON = "com.qq.fq2.notifications.intent.action.LocationClick";
+    public final static String ACTION_BUTTON = "com.openapi.ks.free1.notifications.intent.action.ButtonClick";
+    public final static String LOCATION_BUTTON = "com.openapi.ks.free1.notifications.intent.action.LocationClick";
     public final static String INTENT_CLICK_TAG = "ClickId";
     public final static String VPN_SERVER_CLICK = "VPN_SERVER_CLICK";
     /**

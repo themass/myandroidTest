@@ -1,19 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.qq.ks.free1">
+    package="com.openapi.ks.free1">
     <!-- 隐私权-->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+<!--    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />-->
 <!--    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>-->
-    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" tools:node="remove"/>
-    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" tools:node="remove" />
+<!--    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" tools:node="remove"/>-->
+<!--    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" tools:node="remove" />-->
 
-    <uses-permission android:name="android.permission.GET_TASKS" />
     <!--<uses-permission android:name="android.permission.REAL_GET_TASKS" />-->
-    <uses-permission android:name="android.permission.USE_CREDENTIALS" />
-    <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
+<!--    <uses-permission android:name="android.permission.USE_CREDENTIALS" />-->
+<!--    <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />-->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_UPDATES" />
@@ -48,7 +47,7 @@
         android:resizeable="true"
         android:smallScreens="true" />
     <application
-        android:name="com.qq.myapp.base.MyApplication"
+        android:name="com.openapi.myapp.base.MyApplication"
         android:allowBackup="false"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
@@ -73,7 +72,7 @@
         <uses-library android:name="org.apache.http.legacy" android:required="false"/>
 
         <activity
-            android:name="com.qq.ks.ui.main.LaunchActivity"
+            android:name="com.openapi.ks.ui.main.LaunchActivity"
             android:screenOrientation="portrait"
             android:exported="true">
             <intent-filter tools:ignore="GoogleAppIndexingWarning">
@@ -83,50 +82,50 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.qq.ks.ui.main.MainFragmentViewPage"
+            android:name="com.openapi.ks.ui.main.MainFragmentViewPage"
             android:label="@string/main_activity_name"
             android:launchMode="singleTask"
             android:theme="@style/StyledIndicators"
             android:screenOrientation="portrait" />
         <activity
-            android:name="com.qq.myapp.ui.base.WebViewActivity"
+            android:name="com.openapi.myapp.ui.base.WebViewActivity"
             android:configChanges="orientation|keyboardHidden|screenSize" />
         <activity
-            android:name="com.qq.myapp.ui.user.LoginActivity"
+            android:name="com.openapi.myapp.ui.user.LoginActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name="com.qq.myapp.ui.user.RegActivity"
+            android:name="com.openapi.myapp.ui.user.RegActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name="com.qq.myapp.ui.user.SettingActivity"
+            android:name="com.openapi.myapp.ui.user.SettingActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name="com.qq.myapp.ui.user.AddCustomeInfoActivity"
+            android:name="com.openapi.myapp.ui.user.AddCustomeInfoActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name="com.qq.myapp.ui.base.VideoWebViewActivity"
+            android:name="com.openapi.myapp.ui.base.VideoWebViewActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:hardwareAccelerated="true"
             android:screenOrientation="nosensor"
             android:theme="@style/AppTheme"/>
 
         <activity
-            android:name="com.qq.myapp.ui.base.CommonFragmentActivity"
+            android:name="com.openapi.myapp.ui.base.CommonFragmentActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name="com.qq.myapp.ui.base.LocationFragmentActivity"
+            android:name="com.openapi.myapp.ui.base.LocationFragmentActivity"
             android:theme="@style/StyledIndicators"
             android:screenOrientation="portrait" />
         <activity
-            android:name="com.qq.myapp.ui.feedback.FeedbackFragmentActivity"
+            android:name="com.openapi.myapp.ui.feedback.FeedbackFragmentActivity"
             android:theme="@style/StyledIndicators"
             android:screenOrientation="portrait" />
         <activity
-            android:name="com.qq.myapp.ui.config.QuickBrowserConfigActivity"
+            android:name="com.openapi.myapp.ui.config.QuickBrowserConfigActivity"
             android:screenOrientation="portrait"
             android:theme="@style/myTransparent" />
         <activity
-            android:name="com.qq.myapp.ui.base.MyFullScreenImageGalleryActivity"
+            android:name="com.openapi.myapp.ui.base.MyFullScreenImageGalleryActivity"
             android:theme="@style/StyledIndicators"
             android:screenOrientation="portrait" />
         <service
@@ -141,8 +140,8 @@
                 <action android:name="android.net.VpnService" />
             </intent-filter>
         </service>
-        <service android:name="com.qq.myapp.service.LogUploadService" />
-        <service android:name="com.qq.myapp.service.LogToFileService" />
+        <service android:name="com.openapi.myapp.service.LogUploadService" />
+        <service android:name="com.openapi.myapp.service.LogToFileService" />
 
         <!-- 广告sdk-->
         <!-- AdView SDK for AdMob -->

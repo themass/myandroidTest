@@ -27,7 +27,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/title_hint" />
 
-                <com.qq.common.ui.view.MyEditText
+                <com.openapi.common.ui.view.MyEditText
                     android:id="@+id/et_title"
                     style="@style/edit_login"
                     android:hint="@string/title_hint"
@@ -85,7 +85,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/url_hint" />
 
-                <com.qq.common.ui.view.SiteAutoCompleteTextView
+                <com.openapi.common.ui.view.SiteAutoCompleteTextView
                     android:id="@+id/et_url"
                     style="@style/edit_login"
                     android:hint="@string/url_hint"

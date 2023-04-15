@@ -16,7 +16,7 @@
             android:layout_centerVertical="true"
             android:orientation="vertical">
 
-            <com.qq.common.ui.view.MyEditText
+            <com.openapi.common.ui.view.MyEditText
                 android:id="@+id/et_username"
                 style="@style/edit_login"
                 android:drawableLeft="@drawable/ic_login_user"
@@ -26,7 +26,7 @@
 
             <ImageView style="@style/divider_login" />
 
-            <com.qq.common.ui.view.MyEditText
+            <com.openapi.common.ui.view.MyEditText
                 android:id="@+id/et_password"
                 style="@style/edit_login"
                 android:drawableLeft="@drawable/ic_login_pass"

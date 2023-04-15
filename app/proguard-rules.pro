@@ -167,7 +167,7 @@
 }
 
 #----------------------project------------
--keep class com.qq.myapp.bean.**{ *; }
+-keep class com.openapi.myapp.bean.**{ *; }
 -keep class org.strongswan.android.logic.**{ *; }
 #-keep class sun.misc.Unsafe { *; }
 -keep class com.google.gson.stream.** { *; }

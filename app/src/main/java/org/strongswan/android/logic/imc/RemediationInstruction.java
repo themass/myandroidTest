@@ -20,7 +20,7 @@ import android.os.Parcelable;
 import android.util.Xml;
 
 
-import com.qq.common.util.LogUtil;
+import com.openapi.common.util.LogUtil;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;

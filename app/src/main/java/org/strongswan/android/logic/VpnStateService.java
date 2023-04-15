@@ -23,7 +23,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 
-import com.qq.myapp.bean.vo.VpnProfile;
+import com.openapi.myapp.bean.vo.VpnProfile;
 
 import org.strongswan.android.logic.imc.ImcState;
 import org.strongswan.android.logic.imc.RemediationInstruction;

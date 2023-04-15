@@ -234,7 +234,6 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="save_img">save image</string>
     <string name="menu_btn_donation">Upgrade VIP</string>
     <string name="login_first">login first</string>
-    <string name="menu_copy_qq">QQ Copied OK</string>
     <string name="chose_first">Upgrade VIP，remove ADS</string>
 
 </resources>
