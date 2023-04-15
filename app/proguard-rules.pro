@@ -198,10 +198,10 @@
 }
 
 #----------------------project------------
--keep class com.ks.myapp.bean.**{ *; }
+-keep class com.openapi.ks.myapp.bean.**{ *; }
 -keep class sun.misc.Unsafe { *; }
 -keep class com.google.gson.stream.** { *; }
--keep class com.sspacee.common.weather.**{ *; }
+-keep class com.openapi.commons.common.weather.**{ *; }
 -keep class com.way.**{ *; }
 #-----------   log   ------------
 -assumenosideeffects class android.util.Log {

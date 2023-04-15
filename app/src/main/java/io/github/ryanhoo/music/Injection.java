@@ -2,7 +2,7 @@ package io.github.ryanhoo.music;
 
 import android.content.Context;
 
-import com.ks.myapp.base.MyApplication;
+import com.openapi.ks.myapp.base.MyApplication;
 
 /**
  * Created with Android Studio.

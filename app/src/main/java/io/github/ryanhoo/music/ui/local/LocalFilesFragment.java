@@ -16,7 +16,7 @@ import java.util.List;
 import butterknife.BindViews;
 import butterknife.ButterKnife;
 import butterknife.OnCheckedChanged;
-import com.ks.sexfree1.R;
+import com.openapi.ks.moviefree1.R;
 import io.github.ryanhoo.music.ui.base.BaseFragment;
 import io.github.ryanhoo.music.ui.local.all.AllLocalMusicFragment;
 import io.github.ryanhoo.music.ui.local.folder.FolderFragment;

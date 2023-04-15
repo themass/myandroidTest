@@ -14,7 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 
-import com.ks.sexfree1.R;
+import com.openapi.ks.moviefree1.R;
 import io.github.ryanhoo.music.utils.GradientUtils;
 import rx.Subscription;
 import rx.subscriptions.CompositeSubscription;

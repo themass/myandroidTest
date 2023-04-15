@@ -6,11 +6,11 @@ android {
     compileSdkVersion 30
     buildToolsVersion "29.0.2"
     defaultConfig {
-        applicationId "com.qq.ks.sexfree1"
-        minSdkVersion 16
+        applicationId "com.openapi.ks.moviefree1"
+        minSdkVersion 19
         targetSdkVersion 30
-        versionCode 1001000000
-        versionName "1.1.0.0"
+        versionCode 1001000001
+        versionName "1.1.0.1"
         // Enabling multidex support.
         multiDexEnabled true
         flavorDimensions "versionCode"
@@ -49,9 +49,9 @@ android {
         }
 //        config {
 //            keyAlias 'myapp'
-//            keyPassword 'themass'
+//            keyPassword 'openapi'
 //            storeFile file('/home/web/local/mykey.jks')
-//            storePassword 'themass'
+//            storePassword 'openapi'
 //        }
     }
     buildTypes {

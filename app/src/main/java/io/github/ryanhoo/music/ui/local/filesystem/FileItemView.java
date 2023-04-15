@@ -13,7 +13,7 @@ import java.util.Locale;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import com.ks.sexfree1.R;
+import com.openapi.ks.moviefree1.R;
 import io.github.ryanhoo.music.ui.base.adapter.IAdapterView;
 import io.github.ryanhoo.music.utils.FileUtils;
 

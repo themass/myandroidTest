@@ -45,7 +45,7 @@
                 android:layout_height="wrap_content"
                 android:src="@android:drawable/ic_media_next" />
         </LinearLayout>
-        <com.sspacee.common.ui.view.MarqueeTextView
+        <com.openapi.commons.common.ui.view.MarqueeTextView
             android:id="@+id/tv_play_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

@@ -18,7 +18,7 @@ import androidx.annotation.Nullable;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import com.ks.sexfree1.R;
+import com.openapi.ks.moviefree1.R;
 import io.github.ryanhoo.music.RxBus;
 import io.github.ryanhoo.music.data.model.PlayList;
 import io.github.ryanhoo.music.data.model.Song;

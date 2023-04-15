@@ -17,7 +17,7 @@
             android:id="@+id/my_pullview"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
-        <com.sspacee.common.ui.view.MyFavoriteView
+        <com.openapi.commons.common.ui.view.MyFavoriteView
             android:id="@+id/my_favoriteview"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

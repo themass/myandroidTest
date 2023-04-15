@@ -14,7 +14,7 @@ import androidx.annotation.NonNull;
 import androidx.core.view.ViewCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.ks.sexfree1.R;
+import com.openapi.ks.moviefree1.R;
 
 /**
  * Created with Android Studio.

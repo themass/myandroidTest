@@ -11,7 +11,7 @@ import android.view.View;
 import androidx.annotation.ColorInt;
 import androidx.annotation.Dimension;
 
-import com.ks.sexfree1.R;
+import com.openapi.ks.moviefree1.R;
 
 /**
  * Created with Android Studio.

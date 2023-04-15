@@ -2,7 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content">
-    <com.sspacee.common.ui.view.FavoriteImageView
+    <com.openapi.commons.common.ui.view.FavoriteImageView
         android:id="@+id/iv_favorite"
         android:layout_width="@dimen/margin_40"
         android:layout_height="@dimen/margin_40"

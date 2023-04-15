@@ -49,5 +49,6 @@
         android:button="@drawable/selector_main_nav_settings"
         android:background="?attr/selectableItemBackgroundBorderless"
         tools:button="@drawable/ic_main_nav_settings"
+        android:visibility="gone"
         />
 </RadioGroup>

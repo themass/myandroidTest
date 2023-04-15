@@ -12,7 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 
-import com.ks.sexfree1.R;
+import com.openapi.ks.moviefree1.R;
 import io.github.ryanhoo.music.data.model.PlayList;
 import io.github.ryanhoo.music.ui.base.BaseDialogFragment;
 

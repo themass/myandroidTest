@@ -14,7 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
-import com.ks.sexfree1.R;
+import com.openapi.ks.moviefree1.R;
 import io.github.ryanhoo.music.data.model.PlayList;
 import io.github.ryanhoo.music.data.source.AppRepository;
 import io.github.ryanhoo.music.ui.base.BaseDialogFragment;

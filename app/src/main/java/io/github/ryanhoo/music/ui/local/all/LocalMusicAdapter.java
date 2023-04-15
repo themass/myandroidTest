@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
-import com.ks.sexfree1.R;
+import com.openapi.ks.moviefree1.R;
 import io.github.ryanhoo.music.data.model.Song;
 import io.github.ryanhoo.music.ui.common.AbstractSummaryAdapter;
 import io.github.ryanhoo.music.ui.details.SongItemView;

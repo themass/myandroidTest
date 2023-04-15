@@ -7,8 +7,8 @@ import android.widget.TextView;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import com.ks.sexfree1.R;
-import com.sspacee.common.ui.view.widgets.MusicVisualizer;
+import com.openapi.ks.moviefree1.R;
+import com.openapi.commons.common.ui.view.widgets.MusicVisualizer;
 
 import io.github.ryanhoo.music.data.model.Song;
 import io.github.ryanhoo.music.ui.base.adapter.IAdapterView;

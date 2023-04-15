@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
 >
-        <com.sspacee.common.ui.view.MyEditText
+        <com.openapi.commons.common.ui.view.MyEditText
             android:id="@+id/et_mi"
             style="@style/edit_login"
             android:hint="@string/password_hint"

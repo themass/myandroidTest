@@ -2,11 +2,11 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-    <com.ks.myapp.ui.sound.media.MyJzvdStd
+    <com.openapi.ks.myapp.ui.sound.media.MyJzvdStd
         android:id="@+id/jz_video"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
-    <com.sspacee.common.ui.view.MyFavoriteView
+    <com.openapi.commons.common.ui.view.MyFavoriteView
         android:id="@+id/my_favoriteview"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

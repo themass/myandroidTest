@@ -19,7 +19,7 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import com.ks.sexfree1.R;
+import com.openapi.ks.moviefree1.R;
 import io.github.ryanhoo.music.RxBus;
 import io.github.ryanhoo.music.data.model.Folder;
 import io.github.ryanhoo.music.data.model.PlayList;

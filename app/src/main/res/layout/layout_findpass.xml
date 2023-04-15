@@ -17,7 +17,7 @@
             android:orientation="vertical">
 
 
-            <com.sspacee.common.ui.view.MyEditText
+            <com.openapi.commons.common.ui.view.MyEditText
                 android:id="@+id/et_email"
                 style="@style/edit_login"
                 android:drawableLeft="@drawable/ic_email"

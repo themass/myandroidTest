@@ -6,12 +6,12 @@
     android:padding="@dimen/margin_3"
     android:background="@drawable/boob_bg2">
 
-    <com.sspacee.common.ui.view.MyWebView
+    <com.openapi.commons.common.ui.view.MyWebView
         android:id="@+id/wv_content"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:visibility="visible" />
-    <com.sspacee.common.ui.view.MyFavoriteView
+    <com.openapi.commons.common.ui.view.MyFavoriteView
         android:id="@+id/my_favoriteview"
         android:layout_above="@+id/music_status"
         android:layout_width="wrap_content"
