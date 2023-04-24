@@ -535,7 +535,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
         LogUtil.i("start ForegroundService:" + mService.getState());
         if (Build.VERSION.SDK_INT >= 26) {
             NotificationChannel channel = new NotificationChannel(N_CHANNEL, "AFreedom", NotificationManager.IMPORTANCE_HIGH);
-            channel.setDescription("AFreeVPN");
+            channel.setDescription("GlobalVPN");
             channel.enableLights(false);
             channel.enableVibration(false);
             channel.setSound(null, null);
@@ -597,7 +597,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
                 .setDeleteIntent(pandCanel)
                 .setContent(remoteViews)
                 .setWhen(System.currentTimeMillis())// 通知产生的时间，会在通知信息里显示
-                .setTicker("AFreeVPN start")
+                .setTicker("GlobalVPN start")
                 .setOngoing(going)
                 .setAutoCancel(true)
                 .setSmallIcon(R.drawable.vpn_on)

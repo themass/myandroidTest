@@ -5,6 +5,7 @@ import android.content.Intent;
 
 import com.openapi.common.util.EventBusUtil;
 import com.openapi.common.util.PreferenceUtils;
+import com.openapi.myapp.data.config.IsChainEvent;
 import com.openapi.yewu.um.MobAgent;
 import com.openapi.myapp.base.MyApplication;
 import com.openapi.myapp.bean.vo.UserInfoVo;
@@ -34,6 +35,7 @@ public class UserLoginUtil {
         PreferenceUtils.setPrefString(context, Constants.HTTP_TOKEN_KEY, vo.token);
         StaticDataUtil.add(Constants.LOGIN_USER, vo);
         EventBusUtil.getEventBus().post(new UserLoginEvent());
+        EventBusUtil.getEventBus().post(new IsChainEvent());
         context.sendBroadcast(new Intent(MyApplication.UPDATE_STATUS_ACTION));
         if (vo.stateUse != null)
             EventBusUtil.getEventBus().post(new StateUseEvent(vo.stateUse));

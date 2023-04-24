@@ -14,14 +14,14 @@ import android.view.ViewGroup;
 import android.view.animation.OvershootInterpolator;
 
 import com.openapi.common.util.LogUtil;
-import com.openapi.yewu.ads.reward.AdmobRewardManger;
+import com.openapi.myapp.data.AdsPopStrategy;
+import com.openapi.myapp.data.config.HindBannerEvent;
+import com.openapi.yewu.ads.admob.AdmobRewardAds;
 import com.openapi.yewu.ads.base.AdsContext;
 import com.openapi.yewu.ads.base.AdsManager;
 import com.openapi.ks.free1.R;
 import com.openapi.myapp.constant.Constants;
-import com.openapi.myapp.data.AdsPopStrategy;
-import com.openapi.myapp.data.config.HindBannerEvent;
-import com.openapi.yewu.ads.reward.BaseRewardManger;
+import com.openapi.yewu.ads.base.BaseRewardManger;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -33,7 +33,7 @@ import butterknife.OnClick;
 /**
  * Created by dengt on 2016/8/21.
  */
-public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implements AdmobRewardManger.OnAdmobRewardListener {
+public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implements AdmobRewardAds.OnAdmobRewardListener {
     private static final int ANIM_DURATION_FAB = 400;
     @BindView(R.id.fl_content)
     public ViewGroup flContent;
@@ -100,7 +100,6 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
     }
 
     private void startIntroAnimation() {
-        LogUtil.i("fabUp--" + getClass().getSimpleName());
         fabUp.setTranslationY(2 * getResources().getDimensionPixelOffset(R.dimen.btn_fab_size));
         fabUp.animate()
                 .translationY(0)
@@ -131,17 +130,17 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
 
     public void showAds() {
         if (needShow()) {
-            AdsManager.getInstans().showBannerAds(this, flBanner,getBannerCategrey());
+            AdsManager.getInstans().showBannerAds(this, flBanner,getBannerCategrey(), getBannerAdsFrom());
         } else {
             flBanner.setVisibility(View.GONE);
         }
     }
     protected AdsContext.AdsFrom getBannerAdsFrom(){
-        return AdsContext.AdsFrom.ADVIEW;
+        return AdsContext.AdsFrom.ADMOB;
     }
 
     public boolean needShow() {
-        return true;
+        return false;
     }
 
     public void hidenAds() {

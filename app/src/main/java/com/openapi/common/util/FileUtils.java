@@ -24,7 +24,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 public class FileUtils {
-    public static String CANHE_NAME="AFreeVPN";
+    public static String CANHE_NAME="Global";
     public static String LOG_PATH="log";
     public static String GLIDE_PATH="glide_cache";
     public static String VOLLEY_PATH="volley";

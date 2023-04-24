@@ -60,6 +60,6 @@ public abstract class TabBaseFragment extends BaseFragment {
     }
 
     public void setUp(View view, LayoutInflater inflater) {
-        LogUtil.i(getClass().getSimpleName() + "-setUp");
+//        LogUtil.i(getClass().getSimpleName() + "-setUp");
     }
 }

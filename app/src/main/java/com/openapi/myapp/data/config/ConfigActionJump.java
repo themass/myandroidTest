@@ -44,7 +44,7 @@ public class ConfigActionJump {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(ConfigActionEvent event) {
-        LogUtil.i("ConfigActionJump onEvent-" + event.url + "-" + Thread.currentThread().getName());
+//        LogUtil.i("ConfigActionJump onEvent-" + event.url + "-" + Thread.currentThread().getName());
         Uri uri = Uri.parse(event.url);
         Set<String> names = uri.getQueryParameterNames();
         HashMap<String, String> param = new HashMap<>();

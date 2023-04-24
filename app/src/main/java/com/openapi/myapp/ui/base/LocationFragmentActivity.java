@@ -36,17 +36,14 @@ public class LocationFragmentActivity extends BaseFragmentActivity implements Fa
     private Boolean toolbarShow = true;
     private AdsContext.Categrey bannerCategrey =  AdsContext.Categrey.CATEGREY_VPN1;
     private AdsContext.Categrey interCategrey =  AdsContext.Categrey.CATEGREY_VPN1;
-    private boolean needGonebanner = false;
     private Fragment fragment = null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         slidingClose = getIntent().getBooleanExtra(SLIDINGCLOSE, true);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.common_fragment);
-        boolean scroll = getIntent().getBooleanExtra(ADSSCROLL, true);
         toolbarShow = getIntent().getBooleanExtra(TOOLBAR_SHOW, true);
         showInterstitialAds =getIntent().getBooleanExtra(INTERSTITIAL_ADS_SHOW, false);
-        needGonebanner = getIntent().getBooleanExtra(BANNER_NEED_GONE, false);
         disableScrollBanner();
         showToolbar(toolbarShow);
         Class f = (Class) getIntent().getSerializableExtra(FRAGMENT);
@@ -59,7 +56,7 @@ public class LocationFragmentActivity extends BaseFragmentActivity implements Fa
         if(o!=null){
             interCategrey = (AdsContext.Categrey)o;
         }
-        AdsContext.showRand2(this,AdsContext.getNext());
+        AdsContext.showRand(this,AdsContext.getNext());
         String title = null;
         Serializable name = getIntent().getSerializableExtra(TITLE);
         if (name instanceof String) {
@@ -99,7 +96,7 @@ public class LocationFragmentActivity extends BaseFragmentActivity implements Fa
         return false;
     }
     public boolean needShow() {
-        return true;
+        return false;
     }
 
     @Override
@@ -129,7 +126,7 @@ public class LocationFragmentActivity extends BaseFragmentActivity implements Fa
     }
     @Override
     public void onClickFab(View view) {
-        super.onClickFab(view);
+//        super.onClickFab(view);
         EventBusUtil.getEventBus().post(new PingEvent());
     }
 }

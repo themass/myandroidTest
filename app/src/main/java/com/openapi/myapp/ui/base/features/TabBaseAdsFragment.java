@@ -7,11 +7,12 @@ import android.view.animation.OvershootInterpolator;
 
 import com.openapi.common.util.LogUtil;
 import com.openapi.ks.free1.R;
+import com.openapi.myapp.data.AdsPopStrategy;
 import com.openapi.myapp.ui.inte.OnBackKeyDownListener;
 import com.openapi.ks.ui.main.MainFragmentViewPage;
 import com.openapi.yewu.ads.base.AdsContext;
 import com.openapi.yewu.ads.base.AdsManager;
-import com.openapi.yewu.ads.reward.AdmobRewardManger;
+import com.openapi.yewu.ads.admob.AdmobRewardAds;
 
 import butterknife.BindView;
 import butterknife.OnClick;
@@ -19,19 +20,21 @@ import butterknife.OnClick;
 /**
  * Created by dengt on 2016/3/31.
  */
-public abstract class TabBaseAdsFragment extends TabBaseFragment implements OnBackKeyDownListener , AdmobRewardManger.OnAdmobRewardListener{
+public abstract class TabBaseAdsFragment extends TabBaseFragment implements OnBackKeyDownListener , AdmobRewardAds.OnAdmobRewardListener{
     private static final int ANIM_DURATION_FAB = 400;
     @BindView(R.id.fab_up)
     public FloatingActionButton fabUp;
-    private long lastToastShow = 0l;
     private boolean pendingIntroAnimation;
-    public AdmobRewardManger admobRewardManger;
+    public AdmobRewardAds admobRewardAds;
     @OnClick(R.id.fab_up)
     public void onClickFab(View view) {
+        LogUtil.i("onClickFab -- tabbase" + getClass().getName());
+        LogUtil.i(getActivity().getClass().getName());
         if(getActivity() instanceof MainFragmentViewPage){
             ((MainFragmentViewPage)getActivity()).showReward();
+        }else {
+            admobRewardAds.showAd();
         }
-//        admobRewardManger.showAd();
     }
 
     public void next() {
@@ -50,7 +53,7 @@ public abstract class TabBaseAdsFragment extends TabBaseFragment implements OnBa
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ((MainFragmentViewPage) getActivity()).addListener(this);
-//        admobRewardManger = new AdmobRewardManger(getActivity(),this);
+        admobRewardAds = new AdmobRewardAds(getActivity(),this);
     }
 
     @Override
@@ -60,7 +63,7 @@ public abstract class TabBaseAdsFragment extends TabBaseFragment implements OnBa
             pendingIntroAnimation = false;
             startIntroAnimation();
         }
-//        admobRewardManger.onAdResume();
+        admobRewardAds.onAdResume();
     }
 
     @Override
@@ -72,7 +75,6 @@ public abstract class TabBaseAdsFragment extends TabBaseFragment implements OnBa
     }
 
     private void startIntroAnimation() {
-        LogUtil.i("fabUp--" + getClass().getSimpleName());
         fabUp.setTranslationY(2 * getResources().getDimensionPixelOffset(R.dimen.btn_fab_size));
         fabUp.animate()
                 .translationY(0)
@@ -84,13 +86,13 @@ public abstract class TabBaseAdsFragment extends TabBaseFragment implements OnBa
 
     @Override
     public void onPause() {
-//        admobRewardManger.onAdPause();
+        admobRewardAds.onAdPause();
         super.onPause();
     }
 
     @Override
     public void onDestroy() {
-//        admobRewardManger.onAdDestroy();
+        admobRewardAds.onAdDestroy();
         super.onDestroy();
     }
 }

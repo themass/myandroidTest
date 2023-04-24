@@ -25,6 +25,7 @@ import com.openapi.myapp.bean.vo.LocationVo;
 import com.openapi.myapp.data.LocationUtil;
 import com.openapi.myapp.task.LocationPingTask;
 import com.openapi.ks.free1.R;
+import com.openapi.yewu.ads.config.BannerAdsNext;
 
 import java.util.List;
 
@@ -58,6 +59,7 @@ public class LocationItemAdapter extends BaseRecyclerViewAdapter<LocationItemAda
     public void initSelectLocation(){
         chooseId = LocationUtil.getSelectLocationId(context);
     }
+
     public void onBindViewHolderData(RecyclerView.ViewHolder h, int position) {
         LocationItemAdapter.LocationItemView holder = (LocationItemAdapter.LocationItemView)h;
         LocationVo vo = data.get(position);
@@ -73,30 +75,20 @@ public class LocationItemAdapter extends BaseRecyclerViewAdapter<LocationItemAda
         }
         holder.tvIndex.setText("#" + (position + 1));
         holder.tvCountry.setText(vo.ename);
+        holder.tvCountryCategory.setText(vo.category);
 
 
         if(Constants.BANNER_ADS_POS.contains(position)&&index==0){
             if(position%2==1){
                 holder.rvAds.setVisibility(View.VISIBLE);
-                AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN2);
+                AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN1,AdsContext.AdsFrom.ADMOB);
             }else{
                 holder.rvAds.setVisibility(View.VISIBLE);
-                AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN3);
+                AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN2,AdsContext.AdsFrom.MOBVISTA);
             }
-        }else if((position==data.size()-1)&&index==0){
+        } else if((position==data.size()-1)&&index==1){
             holder.rvAds.setVisibility(View.VISIBLE);
-            AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN2, AdsContext.AdsFrom.MOBVISTA);
-        }else  if(Constants.BANNER_ADS_POS1.contains(position)&&index==1){
-            if(position%2==1){
-                holder.rvAds.setVisibility(View.VISIBLE);
-                AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN,AdsContext.AdsFrom.MOBVISTA);
-            }else{
-                holder.rvAds.setVisibility(View.VISIBLE);
-                AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN3,AdsContext.AdsFrom.MOBVISTA);
-            }
-        }else if((position==data.size()-1)&&index==1){
-            holder.rvAds.setVisibility(View.VISIBLE);
-            AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN, AdsContext.AdsFrom.MOBVISTA);
+            AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN);
         } else{
             holder.rvAds.removeAllViews();
             holder.rvAds.setVisibility(View.GONE);
@@ -134,6 +126,9 @@ public class LocationItemAdapter extends BaseRecyclerViewAdapter<LocationItemAda
         @Nullable
         @BindView(R.id.loc_tv_country)
         TextView tvCountry;
+        @Nullable
+        @BindView(R.id.loc_tv_country_category)
+        TextView tvCountryCategory;
         @Nullable
         @BindView(R.id.tv_ping)
         TextView tvPing;

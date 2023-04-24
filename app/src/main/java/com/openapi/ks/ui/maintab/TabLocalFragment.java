@@ -39,7 +39,7 @@ public class TabLocalFragment extends TabBaseAdsFragment {
     }
     @Override
     public void onClickFab(View view) {
-        super.onClickFab(view);
+//        super.onClickFab(view);
         EventBusUtil.getEventBus().post(new PingEvent());
     }
 }

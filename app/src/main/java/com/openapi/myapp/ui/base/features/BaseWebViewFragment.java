@@ -173,7 +173,7 @@ public class BaseWebViewFragment extends BaseFragment {
             @Override
             public void onLoadResource(WebView view, String url) {
                 super.onLoadResource(view, url);
-                LogUtil.i("onLoadResource->" + url);
+//                LogUtil.i("onLoadResource->" + url);
                 mUrl = url;
             }
 

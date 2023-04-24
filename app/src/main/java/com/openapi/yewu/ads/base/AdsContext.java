@@ -36,8 +36,7 @@ public class AdsContext {
     public static enum Categrey {
         CATEGREY_VPN("插屏:主页，音频，图片，小说 channel页;   banner：vip页，音频，图片，小说，视频，收藏夹列表，", AdviewConstant.ADS_ADVIEW_KEY1),
         CATEGREY_VPN1("插屏： 点击vpn页，音频，图片，小说 list 页，其他推荐 ;   banner：设置页，地区头，音频，图片，小说，视频，收藏夹列表", AdviewConstant.ADS_ADVIEW_KEY2),
-        CATEGREY_VPN2("插屏： 点击vpn页，音频，图片，小说 list 页，其他推荐 ;   banner：设置页，地区头，音频，图片，小说，视频，收藏夹列表", AdviewConstant.ADS_ADVIEW_KEY),
-        CATEGREY_VPN3("插屏： 点击vpn页，音频，图片，小说 list 页，其他推荐 ;   banner：设置页，地区头，音频，图片，小说，视频，收藏夹列表", AdviewConstant.ADS_ADVIEW_KEY4);
+        CATEGREY_VPN2("插屏： 点击vpn页，音频，图片，小说 list 页，其他推荐 ;   banner：设置页，地区头，音频，图片，小说，视频，收藏夹列表", AdviewConstant.ADS_ADVIEW_KEY);
 
         public String desc;
         public String key;
@@ -77,7 +76,8 @@ public class AdsContext {
     }
     public static enum AdsFrom{
         ADVIEW("adview"),
-        MOBVISTA("mobvista");
+        MOBVISTA("mobvista"),
+        ADMOB("admob");
         public String desc;
         AdsFrom(String desc){
             this.desc =desc;
@@ -158,32 +158,11 @@ public class AdsContext {
     }
     public static int index=0;
     public static Categrey getNext(){
-        int size = AdsContext.Categrey.values().length;
         return AdsContext.Categrey.values()[(index++)%2];
-    }
-    public static Categrey getIndex(int num){
-        int size = AdsContext.Categrey.values().length;
-        return AdsContext.Categrey.values()[(num)%size];
     }
     public static void showRand(Context context, AdsContext.Categrey cate){
         if(AdsContext.rateShow()) {
-            AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.CATEGREY_VPN3, false, AdsContext.AdsFrom.MOBVISTA, 1);
+            AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.CATEGREY_VPN, false, AdsContext.AdsFrom.MOBVISTA, 1);
         }
-    }
-    public static void showRand2(Context context, AdsContext.Categrey cate){
-        if(AdsContext.rateShow()) {
-            AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.CATEGREY_VPN3, false, AdsContext.AdsFrom.MOBVISTA,1);
-        }
-    }
-    public static void vpnClick(Context context){
-        String key =Constants.CLICK_KEY+ DateUtils.format(new Date(),DateUtils.DATE_MM_FORMAT);
-        int vpnCount = PreferenceUtils.getPrefInt(context,key,0);
-        LogUtil.i("key="+key+"   vvvCount="+vpnCount);
-        vpnCount=vpnCount>100?100:++vpnCount;
-        PreferenceUtils.setPrefInt(context,key,vpnCount);
-    }
-    public static int getVpnClick(Context context){
-        String key =Constants.CLICK_KEY+DateUtils.format(new Date(),DateUtils.DATE_MM_FORMAT);
-        return  PreferenceUtils.getPrefInt(context,key,0);
     }
 }

@@ -1,4 +1,4 @@
-package com.openapi.yewu.ads.reward;
+package com.openapi.yewu.ads.base;
 
 public interface RewardInterface {
     public void onAdResume();

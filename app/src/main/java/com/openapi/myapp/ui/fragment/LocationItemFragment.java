@@ -56,7 +56,6 @@ public class LocationItemFragment extends BasePullLoadbleFragment<LocationVo> {
     public void setupViews(View view, Bundle savedInstanceState) {
         vipLocationVo = (VipLocationVo)getSerializable();
         index = vipLocationVo.type;
-        LogUtil.i("location args="+getSerializable().toString());
         super.setupViews(view, savedInstanceState);
         EventBusUtil.getEventBus().register(this);
 //        AdsManager.getInstans().showNative(getActivity(),this, AdsContext.getIndex(index));

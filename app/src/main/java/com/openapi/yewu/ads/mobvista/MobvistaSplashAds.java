@@ -4,8 +4,18 @@ import android.content.Context;
 import android.os.Handler;
 import androidx.fragment.app.FragmentActivity;
 
+import android.widget.Button;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
+import com.mbridge.msdk.out.MBSplashHandler;
+import com.mbridge.msdk.out.MBSplashLoadListener;
+import com.mbridge.msdk.out.MBSplashShowListener;
+import com.mbridge.msdk.out.MBridgeIds;
+import com.openapi.common.util.EventBusUtil;
+import com.openapi.common.util.LogUtil;
+import com.openapi.myapp.constant.Constants;
+import com.openapi.myapp.data.config.SplashAdDissmisEvent;
 import com.openapi.yewu.ads.base.AdsContext;
 import com.openapi.yewu.ads.base.SplashAdsInter;
 
@@ -13,14 +23,15 @@ import com.openapi.yewu.ads.base.SplashAdsInter;
  * Created by dengt on 2017/9/20.
  */
 
-public class SplashMobvAds extends SplashAdsInter {
-//    private MtgNativeHandler nativeHandle;
+public class MobvistaSplashAds extends SplashAdsInter {
+    private MBSplashHandler mbSplashHandler;
     @Override
     protected AdsContext.AdsType getAdsType(){
         return AdsContext.AdsType.ADS_TYPE_SPREAD;
     }
     @Override
     public  void lanchExit(Context context,RelativeLayout group){
+        mbSplashHandler.onDestroy();
     }
 //    protected void fillFullScreenLayout(Context context,RelativeLayout group, List<Campaign> campaigns) {
 ////        if (campaigns != null && campaigns.size() > 0) {
@@ -68,43 +79,73 @@ public class SplashMobvAds extends SplashAdsInter {
     }
     @Override
     public  void launchAds(final FragmentActivity context, final RelativeLayout group, RelativeLayout skipView, final Handler handler){
-//        try {
-//            String key = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.Mob_UNIT_SPLASH_KAY, Constants.Mob_UNIT_SPLASH);
-//            Map<String, Object> properties = MtgNativeHandler.getNativeProperties(key);
-//            nativeHandle = new MtgNativeHandler(properties, context);
-//            nativeHandle.addTemplate(new NativeListener.Template(MIntegralConstans.TEMPLATE_BIG_IMG, 1));
-//            nativeHandle.setAdListener(new NativeListener.NativeAdListener() {
-//                @Override
-//                public void onAdLoaded(List<Campaign> campaigns, int template) {
-//                    fillFullScreenLayout(context,group,campaigns);
-//                    preloadNative();
-//                }
-//
-//                @Override
-//                public void onAdLoadError(String message) {
-//                    LogUtil.e("mobv onAdLoadError:" + message);
-//                    noAds(context,handler, AdsContext.AdsFrom.MOBVISTA,0);
-//                }
-//
-//                @Override
-//                public void onAdFramesLoaded(List<Frame> list) {
-//
-//                }
-//
-//                @Override
-//                public void onLoggingImpression(int adsourceType) {
-//
-//                }
-//
-//                @Override
-//                public void onAdClick(Campaign campaign) {
-//                    clickAds(context, handler, AdsContext.AdsFrom.MOBVISTA);
-//                }
-//            });
-//            nativeHandle.load();
-//        } catch (Throwable e) {
-//            noAds(context,handler, AdsContext.AdsFrom.MOBVISTA,0);
-//            LogUtil.e(e);
-//        }
+        //上架GP版本SDK无activity参数
+        try{
+            mbSplashHandler = new MBSplashHandler(Constants.Mob_SPLASH_UNIT, Constants.Mob_SPLASH_UNIT_PLACE);
+            mbSplashHandler.setLoadTimeOut(3000);
+            Button textView = new Button(context);
+            textView.setText("logo");
+            mbSplashHandler.setLogoView(textView, 100, 100);
+
+            mbSplashHandler.setSplashLoadListener(new MBSplashLoadListener() {
+                @Override
+                public void onLoadSuccessed(MBridgeIds ids, int reqType) {
+                    LogUtil.i( " MobvistaSplashAds onLoadSuccessed: "+ids);
+                }
+
+                @Override
+                public void onLoadFailed(MBridgeIds ids, String msg,int reqType) {
+                    LogUtil.i( " MobvistaSplashAds onLoadFailed: "+ids);
+                    noAds(context,handler, AdsContext.AdsFrom.MOBVISTA,0);
+                }
+
+                @Override
+                public void isSupportZoomOut(MBridgeIds mBridgeIds, boolean b) {
+
+                }
+            });
+
+            mbSplashHandler.setSplashShowListener(new MBSplashShowListener() {
+                @Override
+                public void onShowSuccessed(MBridgeIds ids) {
+                    LogUtil.i( " MobvistaSplashAds onShowSuccessed: "+ids);
+                }
+
+                @Override
+                public void onShowFailed(MBridgeIds ids, String msg) {
+                    LogUtil.i( " MobvistaSplashAds onShowFailed: "+msg+ids);
+                    noAds(context,handler, AdsContext.AdsFrom.MOBVISTA,0);
+                }
+
+                @Override
+                public void onAdClicked(MBridgeIds ids) {
+                    clickAds(context, handler, AdsContext.AdsFrom.MOBVISTA);
+                }
+
+                @Override
+                public void onDismiss(MBridgeIds ids, int type) {
+                    closeAds(context,handler, AdsContext.AdsFrom.MOBVISTA);
+                    EventBusUtil.getEventBus().post(new SplashAdDissmisEvent(AdsContext.AdsFrom.MOBVISTA.desc));
+                }
+
+                @Override
+                public void onAdTick(MBridgeIds ids, long millisUntilFinished) {
+                }
+
+                @Override
+                public void onZoomOutPlayStart(MBridgeIds mBridgeIds) {
+
+                }
+
+                @Override
+                public void onZoomOutPlayFinish(MBridgeIds mBridgeIds) {
+
+                }
+            });
+            mbSplashHandler.loadAndShow(group);
+        } catch (Throwable e) {
+            noAds(context,handler, AdsContext.AdsFrom.MOBVISTA,0);
+            LogUtil.e(e);
+        }
     }
 }

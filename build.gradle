@@ -11,6 +11,12 @@ buildscript {
             url  "https://dl-maven-android.mintegral.com/repository/mbridge_android_sdk_oversea"
         }
         google()
+        mavenCentral()
+        //上架GP市场应用 安卓X版本
+        maven {
+            url  "https://dl-maven-android.mintegral.com/repository/mbridge_android_sdk_oversea"
+        }
+
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:4.0.0'
@@ -34,5 +40,11 @@ allprojects {
             url  "https://dl-maven-android.mintegral.com/repository/mbridge_android_sdk_oversea"
         }
         google()
+        mavenCentral()
+        //上架GP市场应用 安卓X版本
+        maven {
+            url  "https://dl-maven-android.mintegral.com/repository/mbridge_android_sdk_oversea"
+        }
+
     }
 }

@@ -68,12 +68,10 @@ public class VersionUpdater {
                         PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.NEED_NATIVE_ADS_CONFIG, vo.needNative);
                         PreferenceUtils.setPrefString(MyApplication.getInstance(), Constants.USER_IP, vo.userIp);
                         PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.IS_CHAIN, vo.chinaUser);
+                        PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.CHECK_CHAIN, vo.checkChina);
                         EventBusUtil.getEventBus().post(new IsChainEvent());
                         LogUtil.i("version="+vo.toString());
                         Constants.PROBABILITY = vo.probability==null?Constants.PROBABILITY:vo.probability;
-                        if(StringUtils.hasText(vo.mobvistaNative)){
-                            PreferenceUtils.setPrefString(MyApplication.getInstance(), Constants.Mob_UNIT_SPLASH_KAY, vo.mobvistaNative);
-                        }
                         PreferenceUtils.setPrefFloat(MyApplication.getInstance(),Constants.TRAF_KEY,vo.traf);
                         if (StringUtils.hasText(vo.dnspodIp)) {
                             HttpDNSUtil.DNS_POD_IP = vo.dnspodIp;
@@ -276,7 +274,7 @@ public class VersionUpdater {
             this.notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
             if (Build.VERSION.SDK_INT >= 26) {
                 NotificationChannel channel = new NotificationChannel(D_CHANNEL, "AFreedom", NotificationManager.IMPORTANCE_HIGH);
-                channel.setDescription("AFreeVPN");
+                channel.setDescription("GlobalVPN");
                 channel.enableLights(false);
                 channel.enableVibration(false);
                 channel.setSound(null, null);

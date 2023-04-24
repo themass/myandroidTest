@@ -159,7 +159,7 @@ public class SettingActivity extends BaseSingleActivity {
             url = Constants.DEFAULT_REFERER;
         }
         ShareUtil util = new ShareUtil(this);
-        util.shareText(null,null,url+" FreeVqn,best tool", "FreeVqn","FreeVqn");
+        util.shareText(null,null,url+" GlobalVPN,best tool", "GlobalVPN","GlobalVPN");
     }
 
     @Override

@@ -13,6 +13,7 @@ import android.widget.TextView;
 import com.openapi.common.ui.base.LogActivity;
 import com.openapi.common.util.EventBusUtil;
 import com.openapi.common.util.LogUtil;
+import com.openapi.myapp.data.config.SplashAdDissmisEvent;
 import com.openapi.yewu.ads.base.AdsContext;
 import com.openapi.yewu.ads.base.AdsManager;
 import com.openapi.yewu.ads.config.LaunchAdsNext;
@@ -75,7 +76,6 @@ public class LaunchActivity extends LogActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_launch);
         MobAgent.init(this);
-        AdsManager.getInstans().init(this);
         unbinder = ButterKnife.bind(this);
         LoginTask.start(this);
         mHandler.postDelayed(mStartMainRunnable, max);
@@ -108,13 +108,7 @@ public class LaunchActivity extends LogActivity {
         MobAgent.onResume(this);
     }
     private void showAdview(){
-        if(perm){
-            AdsManager.getInstans().showSplashAds(AdsContext.AdsFrom.ADVIEW,this,ivAds,skipView);
-        }else{
-            LogUtil.i("MOBVISTA");
-            AdsManager.getInstans().showSplashAds(AdsContext.AdsFrom.MOBVISTA,this,ivAds,skipView);
-//            onBannerShow(null);
-        }
+        AdsManager.getInstans().showSplashAds(AdsContext.AdsFrom.MOBVISTA,this,ivAds,skipView);
         delay1s();
     }
     private void delay1s() {
@@ -122,14 +116,9 @@ public class LaunchActivity extends LogActivity {
     }
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onBannerShow(LaunchAdsNext next){
-        if(next.from== AdsContext.AdsFrom.ADVIEW){
-            AdsManager.getInstans().showSplashAds(AdsContext.AdsFrom.MOBVISTA,this,ivAds,skipView);
-        }else {
-            llBanner.setVisibility(View.VISIBLE);
-            ivAds.setVisibility(View.GONE);
-            AdsManager.getInstans().showBannerAds(this, banner1, AdsContext.Categrey.CATEGREY_VPN2);
-//            AdsManager.getInstans().showBannerAds(this, banner2, AdsContext.Categrey.CATEGREY_VPN3);
-//            AdsManager.getInstans().showBannerAds(this, banner3, AdsContext.Categrey.CATEGREY_VPN1);
+        LogUtil.i("LaunchAdsNext "+next.from);
+        if(next.from== AdsContext.AdsFrom.MOBVISTA){
+            AdsManager.getInstans().showSplashAds(AdsContext.AdsFrom.ADMOB,this,ivAds,skipView);
         }
     }
     @Override
@@ -145,11 +134,10 @@ public class LaunchActivity extends LogActivity {
         mHandler.removeCallbacks(mStartMainRunnable);
         AdsManager.getInstans().exitSplashAds(this,ivAds);
         super.onDestroy();
+        EventBusUtil.getEventBus().unregister(this);
     }
-    public void onADDismissed(){
-//        launch();
-    }
-    public void onNoAD(){
-        showAdview();
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onADDismissed(SplashAdDissmisEvent event){
+        launch();
     }
 }

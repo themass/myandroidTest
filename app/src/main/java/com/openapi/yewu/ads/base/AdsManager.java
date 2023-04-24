@@ -9,7 +9,10 @@ import android.widget.RelativeLayout;
 
 import com.openapi.common.util.EventBusUtil;
 import com.openapi.common.util.LogUtil;
-import com.openapi.myapp.base.MyApplication;
+import com.openapi.yewu.ads.admob.AdmobAdsManager;
+import com.openapi.yewu.ads.admob.AdmobBannerAds;
+import com.openapi.yewu.ads.admob.AdmobInterstitialAds;
+import com.openapi.yewu.ads.admob.AdmobSplashAds;
 import com.openapi.yewu.ads.adview.AdviewAdsManager;
 import com.openapi.yewu.ads.adview.BannerAdviewAds;
 import com.openapi.yewu.ads.adview.InterstitialAdviewAds;
@@ -18,9 +21,10 @@ import com.openapi.yewu.ads.adview.SplashAdviewAds;
 import com.openapi.yewu.ads.adview.VideoAdviewAds;
 import com.openapi.yewu.ads.config.BannerAdsNext;
 import com.openapi.yewu.ads.config.LaunchAdsNext;
-import com.openapi.yewu.ads.mobvista.BannerMobvAds;
-import com.openapi.yewu.ads.mobvista.InterstitialMobvAds;
-import com.openapi.yewu.ads.mobvista.SplashMobvAds;
+import com.openapi.yewu.ads.mobvista.MobivistaBannerAds;
+import com.openapi.yewu.ads.mobvista.MobvistaInterstitialAds;
+import com.openapi.yewu.ads.mobvista.MobvistaAdsManager;
+import com.openapi.yewu.ads.mobvista.MobvistaSplashAds;
 
 import org.json.JSONObject;
 
@@ -45,12 +49,17 @@ public class AdsManager {
     public void init(Context context){
         LogUtil.i("AdsManager initok");
         AdviewAdsManager.init(context);
+        AdmobAdsManager.init(context);
+        MobvistaAdsManager.init(context);
         bannerDescMap.put(AdsContext.AdsFrom.ADVIEW,new BannerAdviewAds());
-        bannerDescMap.put(AdsContext.AdsFrom.MOBVISTA,new BannerMobvAds());
+        bannerDescMap.put(AdsContext.AdsFrom.MOBVISTA,new MobivistaBannerAds());
+        bannerDescMap.put(AdsContext.AdsFrom.ADMOB,new AdmobBannerAds());
         interstitialMap.put(AdsContext.AdsFrom.ADVIEW,new InterstitialAdviewAds());
-        interstitialMap.put(AdsContext.AdsFrom.MOBVISTA,new InterstitialMobvAds());
+        interstitialMap.put(AdsContext.AdsFrom.MOBVISTA,new MobvistaInterstitialAds());
+        interstitialMap.put(AdsContext.AdsFrom.ADMOB,new AdmobInterstitialAds());
         splashMap.put(AdsContext.AdsFrom.ADVIEW,new SplashAdviewAds());
-        splashMap.put(AdsContext.AdsFrom.MOBVISTA,new SplashMobvAds());
+        splashMap.put(AdsContext.AdsFrom.MOBVISTA,new MobvistaSplashAds());
+        splashMap.put(AdsContext.AdsFrom.ADMOB,new AdmobSplashAds());
         nativeMap.put(AdsContext.AdsFrom.ADVIEW,new NativeAdviewAds());
         videoMap.put(AdsContext.AdsFrom.ADVIEW, new VideoAdviewAds());
         JSONObject consentObject = new JSONObject();
@@ -68,7 +77,7 @@ public class AdsManager {
         public void handleMessage(Message msg) {
             AdsContext.AdsMsgObj obj = (AdsContext.AdsMsgObj)msg.obj;
             LogUtil.i("Adstype = "+obj.type.name()+"; status="+obj.status.name()+"; from="+obj.from.name());
-            AdsContext.adsNotify(MyApplication.getInstance(),obj.type,obj.status);
+//            AdsContext.adsNotify(MyApplication.getInstance(),obj.type,obj.status);
             if(obj.type== AdsContext.AdsType.ADS_TYPE_BANNER && obj.status== AdsContext.AdsShowStatus.ADS_NO_MSG){
                 EventBusUtil.getEventBus().post(new BannerAdsNext(obj.from));
             }
@@ -78,7 +87,9 @@ public class AdsManager {
             if(obj.type== AdsContext.AdsType.ADS_TYPE_INTERSTITIAL && obj.status== AdsContext.AdsShowStatus.ADS_NO_MSG && obj.from== AdsContext.AdsFrom.ADVIEW && obj.addCount()){
                 showInterstitialAds(obj.context,AdsContext.Categrey.CATEGREY_VPN,false,AdsContext.AdsFrom.MOBVISTA,obj.count);
             }else if(obj.type== AdsContext.AdsType.ADS_TYPE_INTERSTITIAL && obj.status== AdsContext.AdsShowStatus.ADS_NO_MSG && obj.from== AdsContext.AdsFrom.MOBVISTA && obj.addCount()){
-                showInterstitialAds(obj.context,AdsContext.Categrey.CATEGREY_VPN3,false,AdsContext.AdsFrom.ADVIEW,obj.count);
+                showInterstitialAds(obj.context,AdsContext.Categrey.CATEGREY_VPN,false,AdsContext.AdsFrom.ADVIEW,obj.count);
+            }else if(obj.type== AdsContext.AdsType.ADS_TYPE_INTERSTITIAL && obj.status== AdsContext.AdsShowStatus.ADS_NO_MSG && obj.from== AdsContext.AdsFrom.ADMOB && obj.addCount()){
+                showInterstitialAds(obj.context,AdsContext.Categrey.CATEGREY_VPN,false,AdsContext.AdsFrom.MOBVISTA,obj.count);
             }
             super.handleMessage(msg);
         }
@@ -99,7 +110,7 @@ public class AdsManager {
     }
 
     public void exitSplashAds(Context context,RelativeLayout group){
-        splashMap.get(AdsContext.AdsFrom.ADVIEW).lanchExit(context,group);
+        splashMap.get(AdsContext.AdsFrom.ADMOB).lanchExit(context,group);
     }
 
     public void showInterstitialAds(Context context, AdsContext.Categrey categrey, boolean score){

@@ -87,7 +87,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     }
     @Override
     public void setContentView(int layoutResID) {
-        LogUtil.i("setContentView   " + "drawer");
+//        LogUtil.i("setContentView   " + "drawer");
         super.setContentViewWithoutInject(R.layout.menu_drawer);
         ViewGroup viewGroup = (ViewGroup) findViewById(R.id.fl_content_root);
         LayoutInflater.from(this).inflate(layoutResID, viewGroup, true);
@@ -219,7 +219,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     private void setScore(Long inScore) {
         UserInfoVo vo = UserLoginUtil.getUserCache();
         if (vo != null) {
-            String score = vo.score + "积分";
+            String score = vo.score + " integral";
             if(vo.paidTime!=null){
                 score=score+"("+vo.paidTime+")";
             }
@@ -343,7 +343,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     }
     public void showShare(String url) {
         ShareUtil util = new ShareUtil(this);
-        util.shareText(null,null,url+" FreeV9N，美日韩新德非俄香台等十几个国家地区全免费", "Free为屁嗯","FreeV9N，美日韩新德非俄香台等十几个国家地区全免费");
+        util.shareText(null,null,url, "GlobalVPN","GlobalVPN");
     }
     private void adsOffers(){
         AdsManager.getInstans().offerAds(this);

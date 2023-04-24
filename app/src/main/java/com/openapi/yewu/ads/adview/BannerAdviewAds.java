@@ -8,14 +8,14 @@ import android.view.ViewGroup;
 import com.openapi.common.util.LogUtil;
 import com.openapi.yewu.ads.base.AdsContext;
 import com.openapi.yewu.ads.base.BannerInter;
-import com.openapi.yewu.ads.mobvista.BannerMobvAds;
+import com.openapi.yewu.ads.mobvista.MobivistaBannerAds;
 
 /**
  * Created by dengt on 2017/9/20.
  */
 
 public class BannerAdviewAds extends BannerInter {
-    private BannerMobvAds mobvBanner = new BannerMobvAds();
+    private MobivistaBannerAds mobvBanner = new MobivistaBannerAds();
     @Override
     protected AdsContext.AdsType getAdsType(){
         return AdsContext.AdsType.ADS_TYPE_BANNER;

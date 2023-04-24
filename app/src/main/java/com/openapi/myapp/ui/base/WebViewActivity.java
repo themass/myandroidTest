@@ -102,7 +102,7 @@ public class WebViewActivity extends BaseFragmentActivity implements MyWebView.O
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        LogUtil.i("onCreateOptionsMenu");
+//        LogUtil.i("onCreateOptionsMenu");
         getMenuInflater().inflate(R.menu.browser_menu, menu);
         return true;
     }

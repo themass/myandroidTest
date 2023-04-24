@@ -20,6 +20,6 @@ public class VpnNativeFragment extends TabBaseAdsFragment {
 
     @Override
     protected Fragment getTabBodyView() {
-            return NativeHeaderFragment.getNewInstans(AdsContext.Categrey.CATEGREY_VPN3);
+            return NativeHeaderFragment.getNewInstans(AdsContext.Categrey.CATEGREY_VPN);
     }
 }

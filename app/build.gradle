@@ -7,10 +7,10 @@ android {
     buildToolsVersion "29.0.2"
     defaultConfig {
         applicationId "com.openapi.ks.free1"
-        minSdkVersion 16
+        minSdkVersion 19
         targetSdkVersion 31
-        versionCode 1001000009
-        versionName "1.1.0.9"
+        versionCode 1001001002
+        versionName "1.1.1.2"
         // Enabling multidex support.
         multiDexEnabled true
         flavorDimensions "versionCode"
@@ -124,9 +124,16 @@ dependencies {
     implementation 'com.sothree.slidinguppanel:library:3.3.1'
 
     implementation 'com.google.android.gms:play-services-ads:22.0.0'
-    implementation 'com.google.android.gms:play-services-base:18.2.0'
-    implementation 'com.google.android.gms:play-services-location:21.0.1'
-    implementation 'com.google.android.gms:play-services-wallet:19.1.0'
+//    implementation 'com.google.android.gms:play-services-base:18.2.0'
+//    implementation 'com.google.android.gms:play-services-location:21.0.1'
+//    implementation 'com.google.android.gms:play-services-wallet:19.1.0'
+
+    implementation 'com.mbridge.msdk.oversea:reward:16.4.31'
+//如果您需要使用竞价广告,请添加此条依赖语句。(mbbid)
+    implementation 'com.mbridge.msdk.oversea:mbbid:16.4.31'
+    implementation 'com.mbridge.msdk.oversea:mbsplash:16.4.31'
+    implementation 'com.mbridge.msdk.oversea:mbbanner:16.4.31'
+    implementation 'com.mbridge.msdk.oversea:newinterstitial:16.4.31'
 
 
 }

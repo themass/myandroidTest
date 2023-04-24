@@ -20,6 +20,7 @@ public class LocationVo implements Serializable{
     public int ttlTime;
     public Integer ping;
     public Object ext;
+    public String category;
     @Override
     public String toString() {
         return "LocationVo{" +

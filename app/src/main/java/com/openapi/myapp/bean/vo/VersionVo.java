@@ -18,6 +18,7 @@ public class VersionVo {
     public String mobvistaNative;
     public float traf;
     public Boolean chinaUser = false;
+    public Boolean checkChina = true;
     public String userIp;
 
     @Override

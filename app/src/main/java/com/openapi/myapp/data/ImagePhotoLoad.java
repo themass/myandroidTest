@@ -53,7 +53,7 @@ public class ImagePhotoLoad implements ImageGalleryAdapter.ImageThumbnailLoader,
             iv.setImageResource(BaseRes.img.get(imgPath));
         }else{
             RequestOptions options = new RequestOptions()
-                    .placeholder(R.drawable.img_bg)
+                    .placeholder(R.drawable.flag_def)
                     .priority(Priority.HIGH).fitCenter();
             Glide.with(context)
                     .load(url).apply(options)

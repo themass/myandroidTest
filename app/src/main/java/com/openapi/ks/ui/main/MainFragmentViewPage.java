@@ -23,8 +23,8 @@ import com.openapi.common.util.PreferenceUtils;
 import com.openapi.common.util.ToastUtil;
 import com.openapi.yewu.ads.base.AdsContext;
 import com.openapi.yewu.ads.base.AdsManager;
-import com.openapi.yewu.ads.reward.BaseRewardManger;
-import com.openapi.yewu.ads.reward.RewardInterface;
+import com.openapi.yewu.ads.base.BaseRewardManger;
+import com.openapi.yewu.ads.base.RewardInterface;
 import com.openapi.yewu.um.MobAgent;
 import com.openapi.myapp.constant.Constants;
 import com.openapi.myapp.data.ConnLogUtil;
@@ -70,17 +70,12 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         startService(CharonVpnService.class);
         EventBusUtil.getEventBus().register(jump);
         EventBusUtil.getEventBus().register(logAdd);
-        boolean uploadLog = PreferenceUtils.getPrefBoolean(this, Constants.LOG_UPLOAD_CONFIG, false);
         admobRewardManger = new BaseRewardManger(this,this);
-    }
-    public void onNoAD(){
-        AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false);
     }
     @Override
     public void onNoRewardAD(){
         if(!admobRewardManger.next()) {
-//            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN1, false);
-            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN1, false,AdsContext.AdsFrom.MOBVISTA,1);
+            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN1, false,AdsContext.AdsFrom.ADMOB,1);
         }
     }
 
@@ -114,7 +109,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         mViewPager = (ViewPager) findViewById(R.id.vp_view);
         initTabs();
         ConnLogUtil.sendAllLog(this);
-        AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false, AdsContext.AdsFrom.MOBVISTA);
+        AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false, AdsContext.AdsFrom.ADMOB);
 
         if(!PermissionHelper.checkPermissions(this)) {
             PermissionHelper.showPermit(this);

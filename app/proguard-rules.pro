@@ -1,4 +1,3 @@
-#
 # 对于一些基本指令的添加
 #
 #############################################
@@ -190,5 +189,25 @@ public static java.lang.String TABLENAME;
 -keep class net.sqlcipher.database.**{*;}
 -keep class rx.**{*;}
 
+#--------mobvista
 -keepattributes Signature
 -keepattributes *Annotation*
+-keep class com.mbridge.** {*; }
+-keep interface com.mbridge.** {*; }
+-dontwarn com.mbridge.**
+-keepclassmembers class **.R$* { public static final int mbridge*; }
+
+-keep public class com.mbridge.* extends androidx.** { *; }
+-keep public class androidx.viewpager.widget.PagerAdapter{*;}
+-keep public class androidx.viewpager.widget.ViewPager.OnPageChangeListener{*;}
+-keep interface androidx.annotation.IntDef{*;}
+-keep interface androidx.annotation.Nullable{*;}
+-keep interface androidx.annotation.CheckResult{*;}
+-keep interface androidx.annotation.NonNull{*;}
+-keep public class androidx.fragment.app.Fragment{*;}
+-keep public class androidx.core.content.FileProvider{*;}
+-keep public class androidx.core.app.NotificationCompat{*;}
+-keep public class androidx.appcompat.widget.AppCompatImageView {*;}
+-keep public class androidx.recyclerview.*{*;}
+-keep class com.mbridge.msdk.foundation.tools.FastKV{*;}
+-keep class com.mbridge.msdk.foundation.tools.FastKV$Builder{*;}

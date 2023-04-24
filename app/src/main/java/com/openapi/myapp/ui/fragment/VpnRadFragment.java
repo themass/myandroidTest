@@ -40,11 +40,13 @@ import com.openapi.common.util.ToastUtil;
 import com.openapi.myapp.base.MyApplication;
 import com.openapi.myapp.bean.vo.IpAdress;
 import com.openapi.myapp.data.config.IsChainEvent;
+import com.openapi.myapp.data.config.UserLoginEvent;
 import com.openapi.myapp.task.EmuTask;
 import com.openapi.myapp.ui.base.NativeHeaderFragment;
 import com.openapi.ks.ui.main.MainFragmentViewPage;
 import com.openapi.yewu.ads.base.AdsContext;
 import com.openapi.yewu.ads.base.AdsManager;
+import com.openapi.yewu.ads.config.BannerAdsNext;
 import com.openapi.yewu.ads.mobvista.WallMobvAds;
 import com.openapi.yewu.net.HttpUtils;
 import com.openapi.yewu.net.VolleyUtils;
@@ -217,16 +219,16 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
             EmuTask.start(getActivity());
         }
         wallMobvAds.load(getActivity(),rlGift);
-        if(!UserLoginUtil.isVIP()&&PreferenceUtils.getPrefBoolean(MyApplication.getInstance(), Constants.IS_CHAIN,false)) {
-            tvNotChain.setVisibility(View.VISIBLE);
-        }
+//        if(!UserLoginUtil.isVIP()&&PreferenceUtils.getPrefBoolean(MyApplication.getInstance(), Constants.IS_CHAIN,false)) {
+//            tvNotChain.setVisibility(View.VISIBLE);
+//        }
 
     }
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(IsChainEvent event) {
         if(!UserLoginUtil.isVIP()) {
             if(PreferenceUtils.getPrefBoolean(MyApplication.getInstance(), Constants.IS_CHAIN,false)) {
-                tvNotChain.setVisibility(View.VISIBLE);
+//                tvNotChain.setVisibility(View.VISIBLE);
                 ToastUtil.showLong(R.string.support_Chinese);
             }else{
                 String ip = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.USER_IP, IpUtil.getInNetIp(getContext()));
@@ -236,12 +238,20 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
         }
 
     }
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(BannerAdsNext next){
+        if(next.from == AdsContext.AdsFrom.ADMOB){
+            AdsManager.getInstans().showBannerAds(getActivity(), rlContent,AdsContext.Categrey.CATEGREY_VPN,AdsContext.AdsFrom.MOBVISTA);
+        }else if(next.from == AdsContext.AdsFrom.MOBVISTA){
+            AdsManager.getInstans().showBannerAds(getActivity(), rlContent,AdsContext.Categrey.CATEGREY_VPN,AdsContext.AdsFrom.ADVIEW);
+        }
+    }
     public void showBanner(){
-        AdsManager.getInstans().showBannerAds(getActivity(), rlContent,AdsContext.Categrey.CATEGREY_VPN);
+        AdsManager.getInstans().showBannerAds(getActivity(), rlContent,AdsContext.Categrey.CATEGREY_VPN,AdsContext.AdsFrom.ADMOB);
         FragmentManager fm = getChildFragmentManager();
         Fragment fragment = fm.findFragmentById(R.id.rl_content_native);
         if (fragment == null) {
-            Fragment header = NativeHeaderFragment.getNewInstans(AdsContext.Categrey.CATEGREY_VPN3);
+            Fragment header = NativeHeaderFragment.getNewInstans(AdsContext.Categrey.CATEGREY_VPN);
             if (header == null) {
                 rlContentNative.setVisibility(View.GONE);
             } else {
@@ -284,9 +294,13 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
         }else{
             tvEmText.setVisibility(View.GONE);
         }
-        if(PreferenceUtils.getPrefBoolean(MyApplication.getInstance(), Constants.IS_CHAIN,false)&&!UserLoginUtil.isVIP()){
-            ToastUtil.showLong(R.string.support_Chinese);
-            return;
+        if (mService.getState() != VpnStateService.State.CONNECTED) {
+            if (PreferenceUtils.getPrefBoolean(MyApplication.getInstance(), Constants.CHECK_CHAIN, true)) {
+                if (PreferenceUtils.getPrefBoolean(MyApplication.getInstance(), Constants.IS_CHAIN, false) && !UserLoginUtil.isVIP()) {
+                    ToastUtil.showLong(R.string.support_Chinese);
+                    return;
+                }
+            }
         }
         startVpn();
     }
@@ -299,7 +313,7 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
 //                MobAgent.onEventLocationChoose(getActivity(), LocationUtil.getName(getActivity()));
                 mHandler.postDelayed(vpnCheck,Constants.VPN_CHECK_TIME);
                 imgAnim();
-                AdsContext.showRand(getActivity(),AdsContext.getNext());
+//                AdsContext.showRand(getActivity(),AdsContext.getNext());
                 if(!UserLoginUtil.isVIP())
                     ToastUtil.showShort(R.string.chose_first);
                 int id = LocationUtil.getSelectLocationId(getActivity());
@@ -446,7 +460,6 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
             HostVo vo = params[0];
             try {
                 vo.ttlTime = HttpUtils.ping(vo.gateway);
-                LogUtil.i(vo.toString());
                 if (vo.ttlTime > 0) {
                     if(mService!=null && mService.getState() == VpnStateService.State.DISABLED && !hasStart) {
                         hasStart = true;
@@ -513,7 +526,6 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
         @Override
         public void run() {
             hasStart = false;
-            LogUtil.i("vpn stateChanged stateChanged " + state + "  ;errorState=" + errorState + " ;imcState=" + imcState);
             if (hasError()) {
                 mHandler.removeCallbacks(vpnCheck);
                 imgError();
@@ -522,7 +534,6 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
             switch (state) {
                 case CONNECTED:
                     mHandler.removeCallbacks(vpnCheck);
-                    AdsContext.vpnClick(getActivity());
                     StaticDataUtil.add(Constants.VPN_STATUS,1);
                     imgConn();
                     break;

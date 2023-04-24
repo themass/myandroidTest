@@ -22,15 +22,15 @@ public class Constants {
     public static final String DEFAULT_REFERER = "http://www.ok123find.top/";
     public static final String URL = "url";
     public static final String DEFULT_LOCATION_NAME="Random";
-    public static final int STARTUP_SHOW_TIME_6000 = 3000; //启动页广告时长
-    public static final int STARTUP_SHOW_TIME_7000 = 6000; //启动页广告时长
+    public static final int STARTUP_SHOW_TIME_6000 = 6000; //启动页广告时长
+    public static final int STARTUP_SHOW_TIME_7000 = 7000; //启动页广告时长
     public static final int BANNER_ADS_GONE_LONG = 7000; //广告显示时长
     public static final int BANNER_ADS_GONE_LONG_LONG = 240000; //广告显示时长
     public static final int BANNER_ADS_GONE_SHORT = 5000; //启动页广告时长
     public static final int VIP_SHIMMER_DURATION = 2300;
     public static final int RECOMMAND_SHIMMER_DURATION = 1500;
     public static final int VPN_CHECK_TIME = 6000; //启动页广告时长
-    public static int PROBABILITY =7;
+    public static int PROBABILITY =4;
     public static final int ADS_JISHI = -1;
     public static final String HTTP_URL = "http";
     public static final String HTTPS_URL = "https";
@@ -40,8 +40,7 @@ public class Constants {
     public static final String LOCATION_CHOOSE = "LOCATION_CHOOSE1";
     public static final String LOCATION_FLAG = "LOCATION_FLAG";
     public static final String LOCATION_FLAG_COUNT = "LOCATION_FLAG_COUNT";
-    public static final List<Integer> BANNER_ADS_POS = Arrays.asList(1,6,17,26);
-    public static final List<Integer> BANNER_ADS_POS1 = Arrays.asList(3,10);
+    public static final List<Integer> BANNER_ADS_POS = Arrays.asList(1,4,9,12);
 
     public static final String sortType = "type";
     public static final String sortCountry = "ename";
@@ -117,12 +116,13 @@ public class Constants {
     public static final String NEED_DNSPOD_CONFIG = "NEED_DNSPOD_CONFIG";
     public static final String NEED_NATIVE_ADS_CONFIG = "NEED_NATIVE_ADS_CONFIG";
     public static final String IS_CHAIN = "IS_CHAIN";
+    public static final String CHECK_CHAIN = "CHECK_CHAIN";
     public static final String USER_IP = "USER_IP";
     public static final String CONFIG_PARAM = "CONFIG_PARAM";
     public static final String TITLE = "TITLE";
     public static final String ADSSHOW = "ADSSHOW";
     public static final String FILE_UPLOAD = "fileList";
-    public static final int maxRate = 10;
+    public static final int maxRate = 20;
     public static final String IMG_ITEMS = "IMG_ITEMS";
     public static final String SCORE_TMP = "SCORE_TMP";
     public static final String SCORE_CLICK = "SCORE_CLICK";
@@ -189,38 +189,71 @@ public class Constants {
     public static final String InterExpressPosID_3 = "1010745790065883";
 
 
-    public static final String ADMOB_REWARD_ID="ca-app-pub-7849865307083433~9233060875";
+    public static final String ADMOB_REWARD_ID_TEST="ca-app-pub-3940256099942544/5224354917";
+    public static final String ADMOB_REWARD_ID="ca-app-pub-6599725010915516/3828026144";
+
+    public static final String ADMOB_BANNER_ID="ca-app-pub-6599725010915516/9607553162";
+    public static final String ADMOB_BANNER_ID_TEST="ca-app-pub-3940256099942544/6300978111";
+    public static final String ADMOB_BANNER_ID2="ca-app-pub-6599725010915516/3259822574";
+
+    public static final String ADMOB_INTER_ID="ca-app-pub-6599725010915516/3216323064";
+    public static final String ADMOB_INTER_ID_TEST="ca-app-pub-3940256099942544/1033173712";
+
+    public static final String ADMOB_SPLASH_ID="ca-app-pub-6599725010915516/2591019995";
+    public static final String ADMOB_SPLASH_ID_TEST="ca-app-pub-3940256099942544/3419835294";
+
+
+
     public static final String ADMOB_REWARD_UNIT_ID="ca-app-pub-7849865307083433/1108754074";
     public static final String ADMOB_REWARD_UNIT_ID2="ca-app-pub-7849865307083433/1842540805";
     public static final String ADMOB_REWARD_UNIT_ID3="ca-app-pub-7849865307083433/5020078921";
     public static final List<String> ADMOB_REWARD_UNIT_IDS=Arrays.asList(ADMOB_REWARD_UNIT_ID,ADMOB_REWARD_UNIT_ID,ADMOB_REWARD_UNIT_ID);
 
-    public static final String INMOBI_APPID="6cc6e6f318a04869a33c79f4b9d71e27";
-    public static final String INMOBI_ACCOUNTID="e5b7a52a95cd4802b49b279caa0e2c0d";
-    public static final Long INMOBI_APPKEY=1555588600038l;
 
 
-    public static final String Mob_APPID="114279";
+    public static final String Mob_APPID_TEST="144002";
+    public static final String Mob_APPKEY_TEST="7c22942b749fe6a6e361b675e96b3ee9";
+    public static final String Mob_SPLASH_UNIT_TEST="328916";
+    public static final String Mob_SPLASH_UNIT_PLACE_TEST="1542060";
+    public static final String Mob_INTER_UNIT_TEST="290653";
+    public static final String Mob_INTER_UNIT_PLACE_TEST="462374";
+    public static final String Mob_REWARD_UNIT_TEST="290651";
+    public static final String Mob_REWARD_UNIT_PLACE_TEST="462372";
+
+    public static final String Mob_UNIT_BANNER_PLACE_TEST="290655";
+    public static final String Mob_UNIT_BANNER1_TEST="462376";
+    public static final String Mob_UNIT_BANNER2_TEST="462376";
+    public static final String Mob_UNIT_BANNER3_TEST="462376";
+    public static final String Mob_UNIT_BANNER_TEST="462376";
+
+    public static final String Mob_APPID="209825";
     public static final String Mob_APPKEY="f1f0a8637166a0459402b9de3c88a93f";
-    public static final String Mob_UNIT_REWARD="88846";
-    public static final String Mob_UNIT_INTV="88839";
+    public static final String Mob_SPLASH_UNIT="809686";
+    public static final String Mob_SPLASH_UNIT_PLACE="2392263";
+    public static final String Mob_INTER_UNIT="809698";
+    public static final String Mob_INTER_UNIT_PLACE="2392276";
+    public static final String Mob_REWARD_UNIT="809687";
+    public static final String Mob_REWARD_UNIT_PLACE="2392264";
 
-    public static final String Mob_UNIT_BANNER1="88845";
-    public static final String Mob_UNIT_BANNER2="88844";
-    public static final String Mob_UNIT_BANNER3="88843";
-    public static final String Mob_UNIT_BANNER="88842";
+    public static final String Mob_UNIT_BANNER_PLACE="811116";
+    public static final String Mob_UNIT_BANNER1="2394073";
+    public static final String Mob_UNIT_BANNER2="2394071";
+    public static final String Mob_UNIT_BANNER3="2394069";
+    public static final String Mob_UNIT_BANNER="2394067";
 
     public static final String Mob_UNIT_WALL="88840";
-
-    public static final String Mob_UNIT_SPLASH="88838";
-    public static final String Mob_UNIT_SPLASH_KAY="Mob_UNIT_SPLASH_KAY";
-
 
     public static Map<String ,String> adviewToMobvBanner = new HashMap<>();
     static {
         adviewToMobvBanner.put(AdviewConstant.ADS_ADVIEW_KEY1,Mob_UNIT_BANNER1);
         adviewToMobvBanner.put(AdviewConstant.ADS_ADVIEW_KEY2,Mob_UNIT_BANNER2);
-        adviewToMobvBanner.put(AdviewConstant.ADS_ADVIEW_KEY4,Mob_UNIT_BANNER3);
         adviewToMobvBanner.put(AdviewConstant.ADS_ADVIEW_KEY,Mob_UNIT_BANNER);
     }
+    public static Map<String ,String> adviewToAdmobBanner = new HashMap<>();
+    static {
+        adviewToAdmobBanner.put(AdviewConstant.ADS_ADVIEW_KEY1,ADMOB_BANNER_ID2);
+        adviewToAdmobBanner.put(AdviewConstant.ADS_ADVIEW_KEY2,ADMOB_BANNER_ID);
+        adviewToAdmobBanner.put(AdviewConstant.ADS_ADVIEW_KEY,ADMOB_BANNER_ID);
+    }
+
 }

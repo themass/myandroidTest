@@ -17,7 +17,7 @@
 
         <TextView
             android:id="@+id/loc_tv_index"
-            android:layout_width="@dimen/margin_22"
+            android:layout_width="@dimen/margin_30"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_centerVertical="true"
@@ -28,8 +28,8 @@
             android:layout_width="@dimen/margin_48"
             android:layout_height="@dimen/margin_48"
             android:layout_gravity="center_vertical"
-            android:layout_marginLeft="@dimen/margin_15"
-            android:layout_marginRight="@dimen/margin_25"
+            android:layout_marginLeft="@dimen/margin_10"
+            android:layout_marginRight="@dimen/margin_10"
             android:layout_toRightOf="@+id/loc_tv_index"
             android:scaleType="fitCenter"
             android:layout_centerVertical="true"
@@ -44,20 +44,32 @@
             android:gravity="center_vertical"
             android:textColor="@color/base_black"
             android:textSize="@dimen/textsize_12" />
+        <TextView
+            android:layout_toLeftOf="@id/ll_ping"
+            android:layout_centerVertical="true"
+            android:id="@+id/loc_tv_country_category"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginRight="@dimen/margin_15"
+            android:gravity="center_vertical"
+            android:textColor="@color/base_black"
+            android:textStyle="bold|italic"
+            android:textSize="@dimen/textsize_12" />
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
+            android:id="@+id/ll_ping"
             android:orientation="horizontal">
             <TextView
                 android:id="@+id/textView"
-                android:layout_width="@dimen/margin_55"
+                android:layout_width="@dimen/margin_40"
                 android:layout_height="match_parent"
                 android:gravity="left"
                 android:text="@string/location_ping"
                 android:textColor="@color/base_black"
-                android:textSize="@dimen/textsize_12" />
+                android:textSize="@dimen/textsize_10" />
 
             <FrameLayout
                 android:layout_width="wrap_content"
@@ -76,7 +88,7 @@
                     android:maxLines="1"
                     android:text="no ping"
                     android:textColor="@color/base_black"
-                    android:textSize="@dimen/textsize_12" />
+                    android:textSize="@dimen/textsize_10" />
             </FrameLayout>
         </LinearLayout>
     </RelativeLayout>

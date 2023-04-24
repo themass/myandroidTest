@@ -51,7 +51,7 @@ public class VideoWebViewActivity extends LogActivity implements MyWebView.OnTou
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        LogUtil.i("onCreateOptionsMenu");
+//        LogUtil.i("onCreateOptionsMenu");
         getMenuInflater().inflate(R.menu.browser_menu, menu);
         return true;
     }

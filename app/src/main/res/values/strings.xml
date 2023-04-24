@@ -28,10 +28,10 @@
     <string name="tab_fb_click_wifi">Please use it under Dis conn V </string>
     <string name="location_ping">Ping：</string>
     <!-- Application -->
-    <string name="app_name">AFreeVPN</string>
-    <string name="app_name_show">Free</string>
-    <string name="main_activity_name">AFreeVPN</string>
-    <string name="toobar_title">Free</string>
+    <string name="app_name">GlobalVPN</string>
+    <string name="app_name_show">GlobalVPN</string>
+    <string name="main_activity_name">GlobalVPN</string>
+    <string name="toobar_title">GlobalVPN</string>
     <string name="load">loading more data</string>
     <string name="off">off</string>
     <string name="on">on</string>
@@ -113,7 +113,7 @@
     <string name="submit">submit</string>
     <string name="modify">modify</string>
     <string name="vip_tips">please update to vip</string>
-    <string name="free_user">free use</string>
+    <string name="free_user">GlobalVPN use</string>
     <string name="down_to_loadmore">down to loadmore</string>
     <string name="version_low">version is to low！</string>
 
@@ -134,14 +134,14 @@
     <string name="vpn_bg_disconning">Stoping..</string>
     <string name="vpn_bg_conned">Conn OK</string>
     <string name="vpn_need">Maybe need conn VPN first</string>
-    <string name="vpn_type_free">Free</string>
+    <string name="vpn_type_free">FREE</string>
     <string name="vpn_type_vip">VIP</string>
     <string name="vpn_type_vip2">VIP2</string>
     <string name="vpn_type_vip3">VIP3</string>
     <string name="vpn_type_vip4">VIP4</string>
-    <string name="vpn_remote_status">AFreeVPN·</string>
-    <string name="vpn_remote_on">Connected，click to disconnect</string>
-    <string name="vpn_remote_off">Disconnect，click to connect</string>
+    <string name="vpn_remote_status">GlobalVPN·</string>
+    <string name="vpn_remote_on">- click to disconn</string>
+    <string name="vpn_remote_off">- click to conn</string>
     <string name="vpn_remote_ing">Connecting，please wait</string>
     <!--版本更新下载-->
 
@@ -155,7 +155,7 @@
 You are now using a non WIFI network, continue to download may consume more network traffic, whether to continue to download？</string>
     <string name="about_download_begin">Start download</string>
     <string name="about_download_finish">End download</string>
-    <string name="about_download_title">Downloading AFreeVPN</string>
+    <string name="about_download_title">Downloading GlobalVPN</string>
     <string name="about_download_prepare">Is preparing to download</string>
     <string name="about_download_error">File download error</string>
     <string name="about_download_percent">Downloading %1$s/%2$s</string>
@@ -203,7 +203,7 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="vpn_not_supported_during_lockdown">VPN connections are not supported in lockdown mode.</string>
     <!-- activity title-->
     <string name="titile_browser">Open in browser</string>
-    <string name="support_Chinese">Oh My God, you are a Chinese, \nyou can not use this app, \ngo home， go go </string>
+    <string name="support_Chinese">Oh My God, you are a Chinese, \nYou can not use this app </string>
     <string name="permission_need">necessary permissions missing。\n\nClick\"setting\"-\"permission\"-open all permissions。</string>
     <string name="permission_get_accounts_hint">necessary permissions need。PERMISSION_GET_ACCOUNTS</string>
     <string name="permission_read_phone_hint">necessary permissions need。PERMISSION_READ_PHONE_STATE</string>

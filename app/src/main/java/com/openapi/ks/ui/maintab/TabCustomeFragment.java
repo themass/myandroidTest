@@ -5,6 +5,8 @@ import android.os.Bundle;
 import androidx.fragment.app.Fragment;
 import android.view.View;
 
+import com.openapi.common.util.EventBusUtil;
+import com.openapi.myapp.data.config.PingEvent;
 import com.openapi.myapp.ui.base.features.TabBaseAdsFragment;
 import com.openapi.myapp.ui.user.AddCustomeInfoActivity;
 import com.openapi.ks.free1.R;
@@ -38,4 +40,5 @@ public class TabCustomeFragment extends TabBaseAdsFragment {
     public void onClickFab(View view) {
         AddCustomeInfoActivity.startActivity(getActivity(), null);
     }
+
 }
