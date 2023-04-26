@@ -46,8 +46,8 @@ public abstract class TabBaseAdsFragment extends TabBaseFragment implements OnBa
     }
     @Override
     public void onNoRewardAD(){
-        AdsManager.getInstans().showInterstitialAds(getActivity(), AdsContext.Categrey.CATEGREY_VPN1, false,AdsContext.AdsFrom.MOBVISTA,1);
-//        AdsPopStrategy.clickAdsShowBtn(getActivity());
+//        AdsManager.getInstans().showInterstitialAds(getActivity(), AdsContext.Categrey.CATEGREY_VPN1, false,AdsContext.AdsFrom.MOBVISTA,1);
+        AdsPopStrategy.clickAdsShowBtn(getActivity());
     }
     @Override
     public void onCreate(Bundle savedInstanceState) {

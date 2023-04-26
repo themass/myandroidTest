@@ -6,10 +6,6 @@ buildscript {
         maven { url 'https://raw.github.com/Raizlabs/maven-releases/master/releases' }
         maven { url "https://plugins.gradle.org/m2/" }
         maven { url 'https://maven.google.com'  }
-        maven { url 'https://repo1.maven.org/maven2/' }
-        maven {
-            url  "https://dl-maven-android.mintegral.com/repository/mbridge_android_sdk_oversea"
-        }
         google()
         mavenCentral()
         //上架GP市场应用 安卓X版本
@@ -35,10 +31,6 @@ allprojects {
         maven { url 'https://raw.github.com/Raizlabs/maven-releases/master/releases' }
         maven { url "https://plugins.gradle.org/m2/" }
         maven { url 'https://maven.google.com'  }
-        maven { url 'https://repo1.maven.org/maven2/' }
-        maven {
-            url  "https://dl-maven-android.mintegral.com/repository/mbridge_android_sdk_oversea"
-        }
         google()
         mavenCentral()
         //上架GP市场应用 安卓X版本

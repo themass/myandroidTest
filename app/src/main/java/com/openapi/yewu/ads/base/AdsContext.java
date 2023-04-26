@@ -162,7 +162,7 @@ public class AdsContext {
     }
     public static void showRand(Context context, AdsContext.Categrey cate){
         if(AdsContext.rateShow()) {
-            AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.CATEGREY_VPN, false, AdsContext.AdsFrom.MOBVISTA, 1);
+            AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.CATEGREY_VPN, false, AdsFrom.ADMOB, 1);
         }
     }
 }

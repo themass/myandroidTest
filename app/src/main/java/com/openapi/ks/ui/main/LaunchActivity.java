@@ -108,7 +108,7 @@ public class LaunchActivity extends LogActivity {
         MobAgent.onResume(this);
     }
     private void showAdview(){
-        AdsManager.getInstans().showSplashAds(AdsContext.AdsFrom.MOBVISTA,this,ivAds,skipView);
+        AdsManager.getInstans().showSplashAds(AdsContext.AdsFrom.ADMOB,this,ivAds,skipView);
         delay1s();
     }
     private void delay1s() {

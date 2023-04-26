@@ -85,12 +85,13 @@ public class AdsManager {
                 EventBusUtil.getEventBus().post(new LaunchAdsNext(obj.from));
             }
             if(obj.type== AdsContext.AdsType.ADS_TYPE_INTERSTITIAL && obj.status== AdsContext.AdsShowStatus.ADS_NO_MSG && obj.from== AdsContext.AdsFrom.ADVIEW && obj.addCount()){
-                showInterstitialAds(obj.context,AdsContext.Categrey.CATEGREY_VPN,false,AdsContext.AdsFrom.MOBVISTA,obj.count);
+                showInterstitialAds(obj.context,AdsContext.Categrey.CATEGREY_VPN,false,AdsContext.AdsFrom.ADMOB,obj.count);
             }else if(obj.type== AdsContext.AdsType.ADS_TYPE_INTERSTITIAL && obj.status== AdsContext.AdsShowStatus.ADS_NO_MSG && obj.from== AdsContext.AdsFrom.MOBVISTA && obj.addCount()){
-                showInterstitialAds(obj.context,AdsContext.Categrey.CATEGREY_VPN,false,AdsContext.AdsFrom.ADVIEW,obj.count);
-            }else if(obj.type== AdsContext.AdsType.ADS_TYPE_INTERSTITIAL && obj.status== AdsContext.AdsShowStatus.ADS_NO_MSG && obj.from== AdsContext.AdsFrom.ADMOB && obj.addCount()){
-                showInterstitialAds(obj.context,AdsContext.Categrey.CATEGREY_VPN,false,AdsContext.AdsFrom.MOBVISTA,obj.count);
+                showInterstitialAds(obj.context,AdsContext.Categrey.CATEGREY_VPN,false,AdsContext.AdsFrom.ADMOB,obj.count);
             }
+//            else if(obj.type== AdsContext.AdsType.ADS_TYPE_INTERSTITIAL && obj.status== AdsContext.AdsShowStatus.ADS_NO_MSG && obj.from== AdsContext.AdsFrom.ADMOB && obj.addCount()){
+//                showInterstitialAds(obj.context,AdsContext.Categrey.CATEGREY_VPN,false,AdsContext.AdsFrom.MOBVISTA,obj.count);
+//            }
             super.handleMessage(msg);
         }
     };

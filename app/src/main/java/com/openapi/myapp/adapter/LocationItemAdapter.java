@@ -82,10 +82,11 @@ public class LocationItemAdapter extends BaseRecyclerViewAdapter<LocationItemAda
             if(position%2==1){
                 holder.rvAds.setVisibility(View.VISIBLE);
                 AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN1,AdsContext.AdsFrom.ADMOB);
-            }else{
-                holder.rvAds.setVisibility(View.VISIBLE);
-                AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN2,AdsContext.AdsFrom.MOBVISTA);
             }
+//            else{
+//                holder.rvAds.setVisibility(View.VISIBLE);
+//                AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN2,AdsContext.AdsFrom.MOBVISTA);
+//            }
         } else if((position==data.size()-1)&&index==1){
             holder.rvAds.setVisibility(View.VISIBLE);
             AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN);

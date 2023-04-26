@@ -240,11 +240,11 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
     }
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(BannerAdsNext next){
-        if(next.from == AdsContext.AdsFrom.ADMOB){
-            AdsManager.getInstans().showBannerAds(getActivity(), rlContent,AdsContext.Categrey.CATEGREY_VPN,AdsContext.AdsFrom.MOBVISTA);
-        }else if(next.from == AdsContext.AdsFrom.MOBVISTA){
-            AdsManager.getInstans().showBannerAds(getActivity(), rlContent,AdsContext.Categrey.CATEGREY_VPN,AdsContext.AdsFrom.ADVIEW);
-        }
+//        if(next.from == AdsContext.AdsFrom.ADMOB){
+//            AdsManager.getInstans().showBannerAds(getActivity(), rlContent,AdsContext.Categrey.CATEGREY_VPN,AdsContext.AdsFrom.MOBVISTA);
+//        }else if(next.from == AdsContext.AdsFrom.MOBVISTA){
+//            AdsManager.getInstans().showBannerAds(getActivity(), rlContent,AdsContext.Categrey.CATEGREY_VPN,AdsContext.AdsFrom.ADVIEW);
+//        }
     }
     public void showBanner(){
         AdsManager.getInstans().showBannerAds(getActivity(), rlContent,AdsContext.Categrey.CATEGREY_VPN,AdsContext.AdsFrom.ADMOB);
