@@ -74,9 +74,11 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
     }
     @Override
     public void onNoRewardAD(){
-        if(!admobRewardManger.next()) {
-            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN1, false,AdsContext.AdsFrom.ADMOB,1);
-        }
+//        if(!admobRewardManger.next()) {
+//            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN1, false,AdsContext.AdsFrom.ADMOB,1);
+//        }
+        AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN1, false,AdsContext.AdsFrom.ADMOB,1);
+
     }
 
     @Override

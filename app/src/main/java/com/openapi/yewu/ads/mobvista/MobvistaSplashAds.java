@@ -8,10 +8,6 @@ import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
-import com.mbridge.msdk.out.MBSplashHandler;
-import com.mbridge.msdk.out.MBSplashLoadListener;
-import com.mbridge.msdk.out.MBSplashShowListener;
-import com.mbridge.msdk.out.MBridgeIds;
 import com.openapi.common.util.EventBusUtil;
 import com.openapi.common.util.LogUtil;
 import com.openapi.myapp.constant.Constants;
@@ -24,14 +20,15 @@ import com.openapi.yewu.ads.base.SplashAdsInter;
  */
 
 public class MobvistaSplashAds extends SplashAdsInter {
-    private MBSplashHandler mbSplashHandler;
+//    private MBSplashHandler mbSplashHandler;
     @Override
     protected AdsContext.AdsType getAdsType(){
         return AdsContext.AdsType.ADS_TYPE_SPREAD;
     }
     @Override
     public  void lanchExit(Context context,RelativeLayout group){
-        mbSplashHandler.onDestroy();
+
+//        mbSplashHandler.onDestroy();
     }
 //    protected void fillFullScreenLayout(Context context,RelativeLayout group, List<Campaign> campaigns) {
 ////        if (campaigns != null && campaigns.size() > 0) {
@@ -81,68 +78,68 @@ public class MobvistaSplashAds extends SplashAdsInter {
     public  void launchAds(final FragmentActivity context, final RelativeLayout group, RelativeLayout skipView, final Handler handler){
         //上架GP版本SDK无activity参数
         try{
-            mbSplashHandler = new MBSplashHandler(Constants.Mob_SPLASH_UNIT, Constants.Mob_SPLASH_UNIT_PLACE);
-            mbSplashHandler.setLoadTimeOut(3000);
-            Button textView = new Button(context);
-            textView.setText("logo");
-            mbSplashHandler.setLogoView(textView, 100, 100);
-
-            mbSplashHandler.setSplashLoadListener(new MBSplashLoadListener() {
-                @Override
-                public void onLoadSuccessed(MBridgeIds ids, int reqType) {
-                    LogUtil.i( " MobvistaSplashAds onLoadSuccessed: "+ids);
-                }
-
-                @Override
-                public void onLoadFailed(MBridgeIds ids, String msg,int reqType) {
-                    LogUtil.i( " MobvistaSplashAds onLoadFailed: "+ids);
-                    noAds(context,handler, AdsContext.AdsFrom.MOBVISTA,0);
-                }
-
-                @Override
-                public void isSupportZoomOut(MBridgeIds mBridgeIds, boolean b) {
-
-                }
-            });
-
-            mbSplashHandler.setSplashShowListener(new MBSplashShowListener() {
-                @Override
-                public void onShowSuccessed(MBridgeIds ids) {
-                    LogUtil.i( " MobvistaSplashAds onShowSuccessed: "+ids);
-                }
-
-                @Override
-                public void onShowFailed(MBridgeIds ids, String msg) {
-                    LogUtil.i( " MobvistaSplashAds onShowFailed: "+msg+ids);
-                    noAds(context,handler, AdsContext.AdsFrom.MOBVISTA,0);
-                }
-
-                @Override
-                public void onAdClicked(MBridgeIds ids) {
-                    clickAds(context, handler, AdsContext.AdsFrom.MOBVISTA);
-                }
-
-                @Override
-                public void onDismiss(MBridgeIds ids, int type) {
-                    closeAds(context,handler, AdsContext.AdsFrom.MOBVISTA);
-                    EventBusUtil.getEventBus().post(new SplashAdDissmisEvent(AdsContext.AdsFrom.MOBVISTA.desc));
-                }
-
-                @Override
-                public void onAdTick(MBridgeIds ids, long millisUntilFinished) {
-                }
-
-                @Override
-                public void onZoomOutPlayStart(MBridgeIds mBridgeIds) {
-
-                }
-
-                @Override
-                public void onZoomOutPlayFinish(MBridgeIds mBridgeIds) {
-
-                }
-            });
-            mbSplashHandler.loadAndShow(group);
+//            mbSplashHandler = new MBSplashHandler(Constants.Mob_SPLASH_UNIT, Constants.Mob_SPLASH_UNIT_PLACE);
+//            mbSplashHandler.setLoadTimeOut(3000);
+//            Button textView = new Button(context);
+//            textView.setText("logo");
+//            mbSplashHandler.setLogoView(textView, 100, 100);
+//
+//            mbSplashHandler.setSplashLoadListener(new MBSplashLoadListener() {
+//                @Override
+//                public void onLoadSuccessed(MBridgeIds ids, int reqType) {
+//                    LogUtil.i( " MobvistaSplashAds onLoadSuccessed: "+ids);
+//                }
+//
+//                @Override
+//                public void onLoadFailed(MBridgeIds ids, String msg,int reqType) {
+//                    LogUtil.i( " MobvistaSplashAds onLoadFailed: "+ids);
+//                    noAds(context,handler, AdsContext.AdsFrom.MOBVISTA,0);
+//                }
+//
+//                @Override
+//                public void isSupportZoomOut(MBridgeIds mBridgeIds, boolean b) {
+//
+//                }
+//            });
+//
+//            mbSplashHandler.setSplashShowListener(new MBSplashShowListener() {
+//                @Override
+//                public void onShowSuccessed(MBridgeIds ids) {
+//                    LogUtil.i( " MobvistaSplashAds onShowSuccessed: "+ids);
+//                }
+//
+//                @Override
+//                public void onShowFailed(MBridgeIds ids, String msg) {
+//                    LogUtil.i( " MobvistaSplashAds onShowFailed: "+msg+ids);
+//                    noAds(context,handler, AdsContext.AdsFrom.MOBVISTA,0);
+//                }
+//
+//                @Override
+//                public void onAdClicked(MBridgeIds ids) {
+//                    clickAds(context, handler, AdsContext.AdsFrom.MOBVISTA);
+//                }
+//
+//                @Override
+//                public void onDismiss(MBridgeIds ids, int type) {
+//                    closeAds(context,handler, AdsContext.AdsFrom.MOBVISTA);
+//                    EventBusUtil.getEventBus().post(new SplashAdDissmisEvent(AdsContext.AdsFrom.MOBVISTA.desc));
+//                }
+//
+//                @Override
+//                public void onAdTick(MBridgeIds ids, long millisUntilFinished) {
+//                }
+//
+//                @Override
+//                public void onZoomOutPlayStart(MBridgeIds mBridgeIds) {
+//
+//                }
+//
+//                @Override
+//                public void onZoomOutPlayFinish(MBridgeIds mBridgeIds) {
+//
+//                }
+//            });
+//            mbSplashHandler.loadAndShow(group);
         } catch (Throwable e) {
             noAds(context,handler, AdsContext.AdsFrom.MOBVISTA,0);
             LogUtil.e(e);

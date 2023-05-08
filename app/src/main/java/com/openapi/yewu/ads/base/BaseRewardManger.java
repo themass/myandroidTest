@@ -33,7 +33,7 @@ public class BaseRewardManger implements RewardInterface {
     }
     public boolean next(){
         if(base == admobRewardManger){
-//            base=mobvistaRewardManger;
+            base=mobvistaRewardManger;
             base.showAd();
             return true;
         }
