@@ -4,7 +4,6 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;
 
-import com.qq.e.comm.util.StringUtil;
 import com.openapi.commons.common.util.FileUtils;
 import com.openapi.commons.common.util.LogUtil;
 import com.openapi.commons.common.util.PathUtil;

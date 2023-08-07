@@ -107,6 +107,7 @@ public class TextItemsWebViewFragment extends BaseFragment implements  MyFavorit
             }
             myFavoriteView.setListener(this);
             myFavoriteView.initFavoriteBackGroud(url);
+//            myFavoriteView.showVideoLocal();
         }
     }
 

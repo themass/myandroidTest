@@ -10,7 +10,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.qq.e.comm.util.StringUtil;
 import com.openapi.commons.common.ui.view.MyWebView;
 import com.openapi.commons.common.util.AudioMngHelper;
 import com.openapi.commons.common.util.LogUtil;

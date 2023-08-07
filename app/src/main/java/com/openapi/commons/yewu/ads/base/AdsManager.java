@@ -11,10 +11,8 @@ import com.openapi.commons.common.util.LogUtil;
 import com.openapi.commons.yewu.ads.adview.AdviewAdsManager;
 import com.openapi.commons.yewu.ads.adview.BannerAdviewAds;
 import com.openapi.commons.yewu.ads.adview.InterstitialAdviewAds;
-import com.openapi.commons.yewu.ads.adview.NativeAdviewAds;
 import com.openapi.commons.yewu.ads.adview.SplashAdviewAds;
 import com.openapi.commons.yewu.ads.adview.VideoAdviewAds;
-import com.openapi.commons.yewu.ads.youmi.YoumiAds;
 import com.openapi.ks.myapp.base.MyApplication;
 
 import java.util.HashMap;
@@ -30,7 +28,6 @@ public class AdsManager {
     private Map<AdsContext.AdsFrom,SplashAdsInter> splashMap = new HashMap<>();
     private Map<AdsContext.AdsFrom,BannerInter> bannerDescMap = new HashMap<>();
     private Map<AdsContext.AdsFrom,InterstitialAdsInter> interstitialMap = new HashMap<>();
-    private Map<AdsContext.AdsFrom,NativeAdsInter> nativeMap = new HashMap<>();
     private Map<AdsContext.AdsFrom,VideoAdsInter> videoMap = new HashMap<>();
     public static AdsManager getInstans(){
         return  manager;
@@ -41,7 +38,6 @@ public class AdsManager {
         bannerDescMap.put(AdsContext.AdsFrom.ADVIEW,new BannerAdviewAds());
         interstitialMap.put(AdsContext.AdsFrom.ADVIEW,new InterstitialAdviewAds());
         splashMap.put(AdsContext.AdsFrom.ADVIEW,new SplashAdviewAds());
-        nativeMap.put(AdsContext.AdsFrom.ADVIEW,new NativeAdviewAds());
         videoMap.put(AdsContext.AdsFrom.ADVIEW, new VideoAdviewAds());
     }
     private Handler mHandle = new Handler(){
@@ -79,10 +75,8 @@ public class AdsManager {
         interstitialMap.get(AdsContext.AdsFrom.ADVIEW).interstitialExit(context,categrey.key);
     }
     public void offerAds(Context context){
-        YoumiAds.offerAds(context);
-    }
-    public  void showNative(Context context, NativeAdsReadyListener listener){
-        nativeMap.get(AdsContext.AdsFrom.ADVIEW).showNative(context,mHandle,listener);
+
+//        YoumiAds.offerAds(context);
     }
     public  void reqVideo(Context context){
         videoMap.get(AdsContext.AdsFrom.ADVIEW).reqVideo(context,mHandle);

@@ -9,8 +9,8 @@
 <RelativeLayout
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingTop="@dimen/margin_15"
-    android:paddingBottom="@dimen/margin_15"
+    android:paddingTop="@dimen/margin_10"
+    android:paddingBottom="@dimen/margin_10"
    >
     <TextView
         android:id="@+id/tv_index"
@@ -34,11 +34,17 @@
         android:src="@drawable/song_play_icon"
         android:visibility="gone" />
 
-    <TextView
+    <com.openapi.commons.common.ui.view.MarqueeTextView
         android:id="@+id/tv_name"
         style="@style/list_itme_name"
         android:layout_toLeftOf="@+id/iv_song"
-        android:layout_toRightOf="@+id/tv_index" />
+        android:layout_toRightOf="@+id/tv_index"
+        android:focusable="true"
+        android:ellipsize="marquee"
+        android:focusableInTouchMode="true"
+        android:marqueeRepeatLimit="marquee_forever"
+        android:scrollHorizontally="true"
+        android:singleLine="true" />
 </RelativeLayout>
 <RelativeLayout
     android:id="@+id/rv_ads"

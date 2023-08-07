@@ -8,11 +8,11 @@ import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.SearchView;
 
+import com.openapi.commons.common.util.StringUtils;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.ui.fragment.GlobalVideoChannelListFragment;
 
 import com.openapi.ks.moviefree1.R;
-import com.qq.e.comm.util.StringUtil;
 import com.openapi.commons.common.ui.base.LogActivity;
 import com.openapi.commons.common.util.LogUtil;
 
@@ -49,7 +49,7 @@ public abstract class BaseToolbarMenuActivity extends LogActivity {
         mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String s) {
-                if(!StringUtil.isEmpty(s)) {
+                if(!StringUtils.isEmpty(s)) {
                     RecommendVo vo = new RecommendVo();
                     vo.title = "全局搜索";
                     vo.param = s;

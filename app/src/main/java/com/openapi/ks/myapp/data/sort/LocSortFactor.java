@@ -1,6 +1,6 @@
 package com.openapi.ks.myapp.data.sort;
 
-import com.qq.e.comm.util.StringUtil;
+import com.openapi.commons.common.util.StringUtils;
 import com.openapi.ks.myapp.bean.vo.LocationVo;
 import com.openapi.ks.myapp.constant.Constants;
 
@@ -18,7 +18,7 @@ public class LocSortFactor implements Comparator<LocationVo> {
 
     @Override
     public int compare(LocationVo lhs, LocationVo rhs) {
-        if (StringUtil.isEmpty(sortFactor)) {
+        if (StringUtils.isEmpty(sortFactor)) {
             return 0;
         }
         String[] sortArr = sortFactor.split("_");

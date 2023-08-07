@@ -86,7 +86,7 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
         super.onDataLoaded(data);
         dataForView();
         if(data.pageNum==2){
-            AdsManager.getInstans().showNative(getActivity(),this);
+//            AdsManager.getInstans().showNative(getActivity(),this);
         }
     }
 

@@ -6,8 +6,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 
-import com.qq.e.comm.util.StringUtil;
 import com.openapi.commons.common.util.PreferenceUtils;
+import com.openapi.commons.common.util.StringUtils;
 import com.openapi.commons.common.util.ToastUtil;
 import com.openapi.commons.yewu.net.request.CommonResponse;
 import com.openapi.ks.moviefree1.R;
@@ -59,11 +59,11 @@ public class LoginActivity extends BaseSingleActivity {
         baseService = new BaseService();
         baseService.setup(this);
         String name = PreferenceUtils.getPrefString(this, Constants.LOGIN_USER_LAST, null);
-        if (!StringUtil.isEmpty(name)) {
+        if (!StringUtils.isEmpty(name)) {
             etUserName.setText(name);
         }
         String pwd = PreferenceUtils.getPrefString(this, Constants.LOGIN_USER_PW_LAST, null);
-        if (!StringUtil.isEmpty(pwd)) {
+        if (!StringUtils.isEmpty(pwd)) {
             etPassword.setText(pwd);
         }
 
@@ -83,7 +83,7 @@ public class LoginActivity extends BaseSingleActivity {
     public void login(View view) {
         String name = etUserName.getText().toString();
         String pwd = etPassword.getText().toString();
-        if (StringUtil.isEmpty(name) || StringUtil.isEmpty(pwd)) {
+        if (StringUtils.isEmpty(name) || StringUtils.isEmpty(pwd)) {
             ToastUtil.showShort(R.string.empty_name_pwd);
             return;
         }

@@ -39,6 +39,7 @@ public class TextChannelListFragment extends BasePullLoadbleFragment<TextItemsVo
         intent.putExtra(CommonFragmentActivity.TITLE, R.string.text);
         StaticDataUtil.add(Constants.TEXT_CHANNEL, vo);
         intent.putExtra(CommonFragmentActivity.ADSSCROLL, false);
+        intent.putExtra(CommonFragmentActivity.TOOLBAR_SHOW, false);
         intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, true);
         intent.putExtra(CommonFragmentActivity.BANNER_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_VPN3);
         intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_SHOW, true);
@@ -70,7 +71,7 @@ public class TextChannelListFragment extends BasePullLoadbleFragment<TextItemsVo
     public void onItemClick(View view, TextItemsVo data, int postion) {
         adapter.setSelected(-1);
         HistoryUtil.addHistory(getActivity(), data.fileUrl);
-        if (StringUtils.hasText(data.fileUrl)) {
+        if (StringUtils.hasText(data.fileUrl) && data.fileUrl.endsWith("html")) {
 //            TextItemsStrFragment.startFragment(getActivity(),data);
             TextItemsWebViewFragment.startFragment(getActivity(), data);
         } else {

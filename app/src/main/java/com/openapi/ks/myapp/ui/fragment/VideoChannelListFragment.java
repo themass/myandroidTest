@@ -90,7 +90,7 @@ public class VideoChannelListFragment extends RecommendFragment {
     protected void onDataLoaded(InfoListVo<RecommendVo> data) {
         super.onDataLoaded(data);
         if(data.pageNum==2){
-            AdsManager.getInstans().showNative(getActivity(),this);
+//            AdsManager.getInstans().showNative(getActivity(),this);
         }
     }
     @Override

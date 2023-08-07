@@ -10,14 +10,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 import android.view.View;
 
-import com.kyview.natives.NativeAdInfo;
 import com.openapi.commons.common.helper.OnStartDragListener;
 import com.openapi.commons.common.helper.SimpleItemTouchHelperCallback;
 import com.openapi.commons.common.ui.view.RecycleViewDivider;
-import com.openapi.commons.common.util.CollectionUtils;
 import com.openapi.commons.common.util.EventBusUtil;
 import com.openapi.commons.common.util.ToastUtil;
-import com.openapi.commons.yewu.ads.base.NativeAdsReadyListener;
 import com.openapi.commons.yewu.um.MobAgent;
 import com.openapi.ks.moviefree1.R;
 import com.openapi.ks.myapp.adapter.IndexRecommendAdapter;
@@ -39,7 +36,7 @@ import java.util.Map;
 /**
  * Created by openapi on 2015/9/1.
  */
-public abstract class RecommendFragment extends BasePullLoadbleFragment<RecommendVo> implements BasePhotoFlowRecycleViewAdapter.OnRecyclerViewItemClickListener, OnStartDragListener, IndexRecommendAdapter.OnEditClickListener, NativeAdsReadyListener {
+public abstract class RecommendFragment extends BasePullLoadbleFragment<RecommendVo> implements BasePhotoFlowRecycleViewAdapter.OnRecyclerViewItemClickListener, OnStartDragListener, IndexRecommendAdapter.OnEditClickListener {
     protected ItemTouchHelper mItemTouchHelper;
     protected IndexRecommendAdapter adapter;
 
@@ -99,10 +96,6 @@ public abstract class RecommendFragment extends BasePullLoadbleFragment<Recommen
         return true;
     }
     public boolean adClick(View v,RecommendVo vo){
-        if (vo.dataType == RecommendVo.dataType_ADS) {
-            ((NativeAdInfo) (vo.extra)).onClick(v,(int)v.getX(),(int)v.getY());
-            return true;
-        }
         return false;
     }
     public void onCustomerItemClick(View v, int position){
@@ -122,30 +115,6 @@ public abstract class RecommendFragment extends BasePullLoadbleFragment<Recommen
         if(!adClick(v,vo)){
             onCustomerItemClick(v,position);
         }
-    }
-    public boolean onAdRecieved(List<NativeAdInfo> data) {
-        if (!CollectionUtils.isEmpty(data)) {
-            List<RecommendVo> list = new ArrayList<>();
-            for (NativeAdInfo nativeAdInfo : data) {
-                RecommendVo vo = new RecommendVo();
-                vo.desc = nativeAdInfo.getDescription();
-                vo.img = nativeAdInfo.getIconUrl();
-                vo.title = nativeAdInfo.getTitle();
-                vo.extra = nativeAdInfo;
-                nativeAdInfo.onDisplay(new View(getActivity()));
-                vo.dataType = RecommendVo.dataType_ADS;
-                if (nativeAdInfo.getImageWidth() != 0)
-                    vo.rate = nativeAdInfo.getImageHeight() / nativeAdInfo.getImageWidth();
-                else {
-                    vo.rate = 1f;
-                }
-                vo.showType = Constants.ShowType.Blur;
-                list.add(vo);
-            }
-            addData(list);
-            pullView.notifyDataSetChanged();
-        }
-        return true;
     }
     @Override
     public void onLongItemClick(View view, int position) {

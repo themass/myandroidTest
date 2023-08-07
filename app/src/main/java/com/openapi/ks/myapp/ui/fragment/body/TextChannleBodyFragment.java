@@ -4,7 +4,6 @@ package com.openapi.ks.myapp.ui.fragment.body;
 import android.os.Bundle;
 import android.view.View;
 
-import com.kyview.natives.NativeAdInfo;
 import com.openapi.commons.yewu.ads.base.AdsManager;
 import com.openapi.ks.myapp.bean.vo.InfoListVo;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
@@ -57,8 +56,5 @@ public class TextChannleBodyFragment extends RecommendFragment {
     @Override
     protected void onDataLoaded(InfoListVo<RecommendVo> data) {
         super.onDataLoaded(data);
-        if(data.pageNum==3){
-            AdsManager.getInstans().showNative(getActivity(),this);
-        }
     }
 }

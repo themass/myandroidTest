@@ -8,7 +8,6 @@ import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
-import com.qq.e.comm.util.StringUtil;
 import com.openapi.commons.common.ui.view.MyEditText;
 import com.openapi.commons.common.ui.view.SiteAutoCompleteTextView;
 import com.openapi.commons.common.util.EventBusUtil;
@@ -115,7 +114,7 @@ public class AddCustomeInfoActivity extends BaseSingleActivity {
         form.uri = etUrl.getText().toString();
         int id = radioGroup.getCheckedRadioButtonId();
         int id1 = radioSchemaGroup.getCheckedRadioButtonId();
-        if (id == -1 || StringUtil.isEmpty(form.title) || StringUtil.isEmpty(form.uri)) {
+        if (id == -1 || StringUtils.isEmpty(form.title) || StringUtils.isEmpty(form.uri)) {
             ToastUtil.showShort( R.string.empty_info);
             return;
         }

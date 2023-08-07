@@ -306,4 +306,8 @@ public class StringUtils {
         e.printStackTrace(new PrintWriter(writer, true));
         return writer.toString();
     }
+
+    public static boolean isEmpty(String name) {
+        return name==null || name.trim().length()==0;
+    }
 }

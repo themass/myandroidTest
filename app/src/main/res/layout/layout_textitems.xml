@@ -14,7 +14,7 @@
         android:scrollbarFadeDuration="300"
         android:scrollbarStyle="outsideOverlay">
 
-        <com.openapi.commons.common.ui.view.MyTextView xmlns:android="http://schemas.android.com/apk/res/android"
+        <com.openapi.commons.common.ui.view.MyTextView
             android:id="@+id/tv_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -24,4 +24,12 @@
             android:textColor="@color/base_black"
             android:textSize="@dimen/textsize_22" />
     </com.openapi.commons.common.ui.view.MyScrollView>
+    <com.openapi.commons.common.ui.view.MyFavoriteView
+        android:id="@+id/my_favoriteview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginRight="@dimen/margin_22"
+        android:layout_marginBottom="@dimen/margin_55" />
 </RelativeLayout>

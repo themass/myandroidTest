@@ -7,7 +7,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioGroup;
 
-import com.qq.e.comm.util.StringUtil;
+import com.openapi.commons.common.util.StringUtils;
 import com.openapi.commons.common.util.ToastUtil;
 import com.openapi.commons.yewu.net.request.CommonResponse;
 import com.openapi.ks.moviefree1.R;
@@ -87,7 +87,7 @@ public class RegActivity extends BaseSingleActivity {
         String repwd = etRePassword.getText().toString();
         String email = etEmail.getText().toString();
         int id = radioGroup.getCheckedRadioButtonId();
-        if (id == -1 || StringUtil.isEmpty(name) || StringUtil.isEmpty(pwd) || StringUtil.isEmpty(repwd)|| StringUtil.isEmpty(email)) {
+        if (id == -1 || StringUtils.isEmpty(name) || StringUtils.isEmpty(pwd) || StringUtils.isEmpty(repwd)|| StringUtils.isEmpty(email)) {
             ToastUtil.showShort( R.string.empty_name_pwd);
             return;
         }

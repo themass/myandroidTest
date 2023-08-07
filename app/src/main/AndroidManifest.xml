@@ -69,11 +69,8 @@
         <uses-library android:name="org.apache.http.legacy" android:required="false" />
 
         <meta-data
-            android:name="UMENG_APPKEY"
-            android:value="5b56eb94b27b0a21af000024" />
-        <meta-data
-            android:name="UMENG_MESSAGE_SECRET"
-            android:value="06ab5668a76ad1be10a1ec82e7f6ddfb" />
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-6599725010915516~3496945548"/>
 
         <meta-data
             android:name="UMENG_CHANNEL"
@@ -200,11 +197,6 @@
             android:exported="false" >
         </service>
 
-        <activity
-            android:name="com.qq.e.ads.ADActivity"
-            android:configChanges="keyboard|keyboardHidden|orientation"
-            android:theme="@android:style/Theme.Translucent" >
-        </activity>
         <activity
             android:name="io.github.ryanhoo.music.ui.main.MuiscMainActivity"
             android:screenOrientation="portrait">

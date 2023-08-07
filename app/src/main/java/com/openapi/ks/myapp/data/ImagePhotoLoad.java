@@ -12,7 +12,7 @@ import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.DrawableImageViewTarget;
 import com.etiennelawlor.imagegallery.library.adapters.FullScreenImageGalleryAdapter;
 import com.etiennelawlor.imagegallery.library.adapters.ImageGalleryAdapter;
-import com.qq.e.comm.util.StringUtil;
+import com.openapi.commons.common.util.StringUtils;
 import com.romainpiel.shimmer.Shimmer;
 import com.openapi.commons.common.util.netglide.MyGlideLibModule;
 import com.openapi.ks.moviefree1.R;
@@ -47,7 +47,7 @@ public class ImagePhotoLoad implements ImageGalleryAdapter.ImageThumbnailLoader,
     }
 
     public static void getCountryImage(Context context, ImageView iv, String url) {
-        if (iv == null || StringUtil.isEmpty(url)) {
+        if (iv == null || StringUtils.isEmpty(url)) {
             return;
         }
         if (url.startsWith(Constants.IMAGE_RES_PRE)) {

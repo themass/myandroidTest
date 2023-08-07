@@ -4,10 +4,10 @@ import android.content.Context;
 import android.os.AsyncTask;
 
 import com.android.volley.toolbox.RequestFuture;
-import com.qq.e.comm.util.StringUtil;
 import com.openapi.commons.common.util.BeanUtil;
 import com.openapi.commons.common.util.LogUtil;
 import com.openapi.commons.common.util.PreferenceUtils;
+import com.openapi.commons.common.util.StringUtils;
 import com.openapi.commons.yewu.net.VolleyUtils;
 import com.openapi.commons.yewu.net.request.MultipartRequest;
 import com.openapi.ks.myapp.base.MyApplication;
@@ -31,11 +31,11 @@ public class LoginTask extends AsyncTask<Void, Void, Void> {
         try {
             RequestFuture<UserInfoVo> future = RequestFuture.newFuture();
             String name = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.LOGIN_USER_LAST, null);
-            if (StringUtil.isEmpty(name)) {
+            if (StringUtils.isEmpty(name)) {
                 return null;
             }
             String pwd = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.LOGIN_USER_PW_LAST, null);
-            if ( StringUtil.isEmpty(pwd)) {
+            if ( StringUtils.isEmpty(pwd)) {
                 return null;
             }
             int score = PreferenceUtils.getPrefInt(MyApplication.getInstance(), Constants.SCORE_TMP, 0);

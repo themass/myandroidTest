@@ -9,9 +9,9 @@ import android.provider.MediaStore;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.Target;
-import com.qq.e.comm.util.StringUtil;
 import com.openapi.commons.common.util.LogUtil;
 import com.openapi.commons.common.util.PathUtil;
+import com.openapi.commons.common.util.StringUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -68,7 +68,7 @@ public class SaveImageTask extends AsyncTask<String,Void,Void>{
         File appDir =PathUtil.initPicturesDiskCacheFile();
         String name = PathUtil.getFileExtensionFromUrl(url);
         LogUtil.i(name);
-        if(StringUtil.isEmpty(name)){
+        if(StringUtils.isEmpty(name)){
             name = System.currentTimeMillis()+"";
         }
         currentFile = new File(appDir, name);
