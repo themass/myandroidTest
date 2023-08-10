@@ -8,9 +8,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 
+import com.openapi.commons.common.util.LogUtil;
 import com.openapi.ks.myapp.bean.vo.FavoriteVo;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.config.ConfigActionEvent;
@@ -34,7 +36,8 @@ public class MyFavoriteView extends LinearLayout {
 
     public static String url_pre1 = "https://jx1.pkdyplayer.com/m3u8/?url=";
     public static String url_pre2 =  "https://www.m3u8hls.com#";
-
+    int currentSpeedIndex = 0;
+    float [] speedX = {1.0f,1.25f,1.5f,1.75f,2f};
     @Nullable
     @BindView(R.id.iv_favorite)
     FavoriteImageView ivFavorite;
@@ -44,6 +47,8 @@ public class MyFavoriteView extends LinearLayout {
     ImageView mp4Web;
     @BindView(R.id.iv_mp4_web2)
     ImageView mp4Web2;
+    @BindView(R.id.speed)
+    TextView speed;
     private OnFavoriteItemClick onFavoriteItemClick;
 
     public MyFavoriteView(Context context) {
@@ -75,13 +80,26 @@ public class MyFavoriteView extends LinearLayout {
     }
     public void showVideoLocal(){
         mp4Web.setVisibility(View.VISIBLE);
-        mp4Web2.setVisibility(View.VISIBLE);
+//        mp4Web2.setVisibility(View.VISIBLE);
+        speed.setVisibility(View.VISIBLE);
+        speed.setText(speedX[currentSpeedIndex] + "X");
     }
     @OnClick(R.id.iv_favorite)
     public void favoriteClick(View view) {
         ivFavorite.clickFavorite(onFavoriteItemClick.getFavoriteDataUrl());
     }
-
+    @OnClick(R.id.speed)
+    public void speedClick(View view) {
+        int index = currentSpeedIndex;
+        currentSpeedIndex = (currentSpeedIndex+1)%speedX.length;
+        boolean ret = onFavoriteItemClick.setSpeed(speedX[currentSpeedIndex]);
+        if(!ret) {
+            currentSpeedIndex = index;
+            return;
+        }
+        speed.setText(speedX[currentSpeedIndex] + "X");
+        ToastUtil.showShort(speedX[currentSpeedIndex] + "X");
+    }
     @OnClick(R.id.iv_open_browser)
     public void browserClick(View view) {
         SystemUtils.copy(getContext(), onFavoriteItemClick.getBrowserDatUrl());
@@ -122,6 +140,8 @@ public class MyFavoriteView extends LinearLayout {
 
         FavoriteVo getFavoriteDataUrl();
         String getBrowserDatUrl();
+
+        default boolean setSpeed(float speed){return false;};
 
     }
 

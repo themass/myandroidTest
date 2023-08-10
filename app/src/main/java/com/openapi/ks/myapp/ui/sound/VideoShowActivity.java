@@ -22,6 +22,7 @@ import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.ImagePhotoLoad;
 import com.openapi.ks.myapp.data.VideoUtil;
+import com.openapi.ks.myapp.ui.sound.media.MyJzvdStd;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -35,7 +36,7 @@ import cn.jzvd.JzvdStd;
 public class VideoShowActivity extends AppCompatActivity implements MyFavoriteView.OnFavoriteItemClick {
     private Unbinder unbinder;
     @BindView(R.id.jz_video)
-    public JzvdStd jzVideo;
+    public MyJzvdStd jzVideo;
     RecommendVo vo;
     @BindView(R.id.my_favoriteview)
     MyFavoriteView myFavoriteView;
@@ -67,7 +68,6 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
         myFavoriteView.setListener(this);
         myFavoriteView.initFavoriteBackGroud(vo.actionUrl);
         myFavoriteView.showVideoLocal();
-
     }
     @Override
     public void onPause() {
@@ -103,6 +103,12 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
     @Override
     public FavoriteVo getFavoriteDataUrl() {
         return vo.tofavorite(Constants.FavoriteType.VIDEO);
+    }
+
+   //倍速功能
+    @Override
+    public boolean setSpeed(float speed) {
+        return jzVideo.setSpeed(speed);
     }
 
     @Override

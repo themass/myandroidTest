@@ -65,6 +65,8 @@
     <dimen name="margin_58">58dip</dimen>
     <dimen name="tab_indicator_size">49dp</dimen>
 
+    <dimen name="margin_favrite">38dip</dimen>
+
     <dimen name="padding_5">5dip</dimen>
     <dimen name="padding_10">10dip</dimen>
     <dimen name="title_height">48dip</dimen>

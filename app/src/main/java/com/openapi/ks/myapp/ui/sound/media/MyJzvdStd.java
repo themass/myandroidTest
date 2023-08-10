@@ -10,10 +10,13 @@ import android.view.VelocityTracker;
 import android.view.View;
 import android.view.WindowManager;
 
+import com.openapi.commons.common.ui.view.MyFavoriteView;
+import com.openapi.commons.common.util.ToastUtil;
 import com.openapi.ks.moviefree1.R;
 import com.openapi.commons.common.util.LogUtil;
 
 import cn.jzvd.JZUtils;
+import cn.jzvd.Jzvd;
 import cn.jzvd.JzvdStd;
 
 /**
@@ -23,6 +26,7 @@ import cn.jzvd.JzvdStd;
 public class MyJzvdStd extends JzvdStd {
 
     VelocityTracker mVelocityTracker = VelocityTracker.obtain();
+    MyFavoriteView myFavoriteView;
 
     public MyJzvdStd(Context context) {
         super(context);
@@ -32,6 +36,11 @@ public class MyJzvdStd extends JzvdStd {
         super(context, attrs);
     }
 
+    @Override
+    public void init(Context context) {
+        super.init(context);
+        myFavoriteView = findViewById(R.id.my_favoriteview);
+    }
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         int id = v.getId();
@@ -186,4 +195,17 @@ public class MyJzvdStd extends JzvdStd {
 //                        mDownY = y;
         }
     }
+    public boolean setSpeed(float speed){
+        if(mediaInterface != null) {
+            mediaInterface.setSpeed(speed);
+            return true;
+        }
+        ToastUtil.showShort("请先播放视频");
+        return false;
+    }
+    @Override
+    public int getLayoutId() {
+        return R.layout.my_jzvd_layout;
+    }
+
 }
