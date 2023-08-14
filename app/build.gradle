@@ -9,8 +9,8 @@ android {
         applicationId "com.openapi.ks.free1"
         minSdkVersion 19
         targetSdkVersion 31
-        versionCode 1001001004
-        versionName "1.1.1.4"
+        versionCode 1001001005
+        versionName "1.1.1.5"
         // Enabling multidex support.
         multiDexEnabled true
         flavorDimensions "versionCode"
