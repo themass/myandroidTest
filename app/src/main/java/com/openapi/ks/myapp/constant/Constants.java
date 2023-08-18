@@ -40,7 +40,9 @@ public class Constants {
     public static final String TELEPLAY_URL = "teleplay";
 
     public static final String LOCAL = "local";
-    public static final String LOCAL_SOUND_URL = "sound";
+    public static final String LOCAL_SOUND = "local_sound";
+    public static final String LOCAL_SOUND2 = "local_sound2";
+
     public static final String LOCAL_MOVIE_URL = "movie";
     public static final String LOCAL_PIC_URL = "pic";
 

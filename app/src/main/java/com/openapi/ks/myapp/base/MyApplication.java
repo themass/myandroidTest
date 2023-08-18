@@ -1,11 +1,16 @@
 package com.openapi.ks.myapp.base;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Typeface;
+import android.preference.PreferenceManager;
+import android.util.Log;
+import android.widget.Toast;
 
 import androidx.multidex.MultiDex;
 import androidx.multidex.MultiDexApplication;
 
+import com.androidnetworking.AndroidNetworking;
 import com.openapi.ks.moviefree1.R;
 import com.openapi.commons.common.util.DensityUtil;
 import com.openapi.commons.common.util.DeviceInfoUtils;
@@ -18,13 +23,26 @@ import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.DBManager;
 import com.openapi.ks.myapp.data.ImagePhotoLoad;
 import com.openapi.ks.myapp.data.VersionUpdater;
+import com.rks.musicx.misc.utils.Encryption;
+import com.rks.musicx.misc.utils.Extras;
+import com.rks.musicx.misc.utils.Helper;
+import com.rks.musicx.misc.utils.permissionManager;
 
 import java.io.File;
 
 import butterknife.ButterKnife;
-import uk.co.chrisjenx.calligraphy.CalligraphyConfig;
+import io.github.inflationx.calligraphy3.CalligraphyConfig;
+import io.github.inflationx.calligraphy3.CalligraphyInterceptor;
+import io.github.inflationx.viewpump.ViewPump;
 
 import static com.openapi.commons.common.CommonConstants.tmpFilePath;
+import static com.rks.musicx.misc.utils.Constants.SAVE_EQ;
+import static com.rks.musicx.misc.utils.Constants.TAG_METADATA;
+
+import org.solovyev.android.checkout.Billing;
+import org.solovyev.android.checkout.PlayStoreListener;
+
+import javax.annotation.Nonnull;
 
 /**
  * Created by openapi on 2016/3/1.
@@ -81,12 +99,18 @@ public class MyApplication extends MultiDexApplication {
         LogUtil.e("app start cost:" + cost);
         photoLoad = new ImagePhotoLoad(this);
         AdsManager.getInstans().init(this);
-        CalligraphyConfig.initDefault(
-                new CalligraphyConfig.Builder()
+//        CalligraphyConfig.initDefault(
+//                new CalligraphyConfig.Builder()
+//                        .setDefaultFontPath("fonts/Roboto-Monospace-Regular.ttf")
+//                        .setFontAttrId(R.attr.fontPath)
+//                        .build()
+//        );
+        ViewPump.init(ViewPump.builder()
+                .addInterceptor(new CalligraphyInterceptor(new CalligraphyConfig.Builder()
                         .setDefaultFontPath("fonts/Roboto-Monospace-Regular.ttf")
                         .setFontAttrId(R.attr.fontPath)
-                        .build()
-        );
+                        .build())).build());
+        musicXInit();
     }
 
     public ImagePhotoLoad getPhotoLoad() {
@@ -108,4 +132,59 @@ public class MyApplication extends MultiDexApplication {
         super.attachBaseContext(base);
         MultiDex.install(this);
     }
+
+    private static SharedPreferences mPreferences, metaData, eqPref;
+    @Nonnull
+    private final Billing mBilling = new Billing(this, new Billing.DefaultConfiguration() {
+        @Nonnull
+        @Override
+        public String getPublicKey() {
+            final String s = "use your key";
+            return Encryption.xor(s, "dummy");
+        }
+    });
+
+    public static SharedPreferences getmPreferences() {
+        return mPreferences;
     }
+
+    public static SharedPreferences getMetaData() {
+        return metaData;
+    }
+
+    public static SharedPreferences getEqPref() {
+        return eqPref;
+    }
+
+    public void musicXInit() {
+        createDirectory();
+        Extras.init();
+        mPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        metaData = getApplicationContext().getSharedPreferences(TAG_METADATA, MODE_PRIVATE);
+        eqPref = getApplicationContext().getSharedPreferences(SAVE_EQ, MODE_PRIVATE);
+        Extras.getInstance().setwidgetPosition(100);
+        Extras.getInstance().eqSwitch(false);
+        mBilling.addPlayStoreListener(new PlayStoreListener() {
+            @Override
+            public void onPurchasesChanged() {
+                Toast.makeText(MyApplication.this, "Play Store: purchases have changed!", Toast.LENGTH_LONG).show();
+            }
+        });
+        AndroidNetworking.initialize(this);
+    }
+
+    private void createDirectory() {
+        if (permissionManager.writeExternalStorageGranted(getApplicationContext())) {
+            Helper.createAppDir("Lyrics");
+            Helper.createAppDir(".AlbumArtwork");
+            Helper.createAppDir(".ArtistArtwork");
+        } else {
+            Log.d("oops error", "Failed to create directory");
+        }
+    }
+
+    @Nonnull
+    public Billing getmBilling() {
+        return mBilling;
+    }
+}

@@ -42,7 +42,7 @@
     <uses-permission android:name="android.permission.WRITE_CALENDAR" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-sdk tools:overrideLibrary="com.andremion.music.cover" />
+<!--    <uses-sdk tools:overrideLibrary="com.andremion.music.cover" />-->
     <!--permission
         android:name="com.android.launcher.permission.READ_SETTINGS"
         android:permissionGroup="android.permission-group.SYSTEM_TOOLS"
@@ -79,7 +79,8 @@
         <meta-data android:name="com.openapi.commons.common.util.netglide.UnsafeOkHttpClient" android:value="MyGlideModule" />
         <activity
             android:name=".ui.main.LaunchActivity"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:exported="true">
             <intent-filter tools:ignore="GoogleAppIndexingWarning">
                 <action android:name="android.intent.action.VIEW" />
                 <action android:name="android.intent.action.MAIN" />
@@ -184,7 +185,7 @@
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_provider" />
+                android:resource="@xml/file_provider_paths" />
         </provider>
 
         <activity
@@ -200,7 +201,8 @@
             android:name="io.github.ryanhoo.music.ui.details.PlayListDetailsActivity"
             android:screenOrientation="portrait"/>
 
-        <service android:name="io.github.ryanhoo.music.player.PlaybackService">
+        <service android:name="io.github.ryanhoo.music.player.PlaybackService"
+            android:exported="true">
             <intent-filter>
                 <action android:name="io.github.ryanhoo.music.ACTION.PLAY_TOGGLE"/>
                 <action android:name="io.github.ryanhoo.music.ACTION.PLAY_NEXT"/>
@@ -208,6 +210,104 @@
                 <action android:name="io.github.ryanhoo.music.ACTION.STOP_SERVICE"/>
             </intent-filter>
         </service>
+
+
+        <service
+            android:name="com.rks.musicx.services.MusicXService"
+            android:enabled="true" />
+
+        <!--- Receiver -->
+        <receiver android:name="com.rks.musicx.ui.homeWidget.MusicxWidget4x2"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/musicxwidget"/>
+        </receiver>
+
+        <receiver android:name="com.rks.musicx.ui.homeWidget.MusicXwidget4x4"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/musicxwidget4x4"/>
+        </receiver>
+
+        <receiver android:name="com.rks.musicx.ui.homeWidget.MusicXWidget5x5"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/musicxwidget5x5"/>
+        </receiver>
+
+        <receiver android:name="com.rks.musicx.services.MediaButtonReceiver"
+            android:exported="true">
+            <intent-filter android:priority="1001">
+                <action android:name="android.intent.action.MEDIA_BUTTON"/>
+            </intent-filter>
+        </receiver>
+
+        <!--- Activities -->
+
+        <activity
+            android:name="com.rks.musicx.ui.activities.MusicXMainActivity"
+            android:label="@string/app_name"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppThemeNormalLight"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:mimeType="audio/*" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.rks.musicx.ui.activities.PlayingActivity"
+            android:label="@string/app_name"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppThemeNormalLight"/>
+
+        <activity
+            android:name="com.rks.musicx.ui.activities.EqualizerActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppThemeNormalLight"/>
+        <activity
+            android:name="com.rks.musicx.ui.activities.SettingsActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppThemeNormalLight"/>
+        <activity
+            android:name="com.rks.musicx.ui.activities.AboutActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppThemeNormalLight"/>
+        <activity
+            android:name="com.rks.musicx.ui.activities.IntroActivity"
+            android:label="@string/Intro"
+            android:theme="@style/AppThemeNormalLight"/>
+
+        <activity android:name="com.rks.musicx.ui.activities.DonationActivity"
+            android:label="@string/donation"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppThemeNormalLight"/>
+
+        <activity android:name="com.rks.musicx.ui.activities.ShortcutActivity"
+            android:label="@string/shortcuts"
+            android:theme="@style/AppThemeNormalLight"/>
+
     </application>
 
 </manifest>

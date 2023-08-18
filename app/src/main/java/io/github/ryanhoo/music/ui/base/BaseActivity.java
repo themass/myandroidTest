@@ -15,10 +15,11 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 
 import com.openapi.ks.moviefree1.R;
+
+import io.github.inflationx.viewpump.ViewPumpContextWrapper;
 import io.github.ryanhoo.music.utils.GradientUtils;
 import rx.Subscription;
 import rx.subscriptions.CompositeSubscription;
-import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
 /**
  * Created with Android Studio.
@@ -33,7 +34,7 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     @Override
     protected void attachBaseContext(Context newBase) {
-        super.attachBaseContext(CalligraphyContextWrapper.wrap(newBase));
+        super.attachBaseContext(ViewPumpContextWrapper.wrap(newBase));
     }
 
     @Override

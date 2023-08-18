@@ -41,6 +41,7 @@ import com.openapi.ks.myapp.ui.fragment.DonationListFragment;
 import com.openapi.ks.myapp.ui.fragment.FavoriteFragment;
 import com.openapi.ks.myapp.ui.user.LoginActivity;
 import com.openapi.ks.myapp.ui.user.SettingActivity;
+import com.rks.musicx.ui.fragments.PlayingViews.Playing1Fragment;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -296,6 +297,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                 }  else if (item.getItemId() == R.id.menu_favorite) {
                     name = "收藏夹";
                     FavoriteFragment.startFragment(BaseDrawerActivity.this);
+//                    Playing1Fragment.startFragment(BaseDrawerActivity.this);
                 }else if (item.getItemId() == R.id.menu_support) {
                     name = "支持作者";
                     adsOffers();

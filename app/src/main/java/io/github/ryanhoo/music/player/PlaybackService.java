@@ -297,7 +297,7 @@ public class PlaybackService extends Service implements IPlayback, IPlayback.Cal
                 ? R.drawable.ic_remote_view_pause : R.drawable.ic_remote_view_play);
         Bitmap album = AlbumUtils.parseAlbum(getPlayingSong());
         if (album == null) {
-            remoteView.setImageViewResource(R.id.image_view_album, R.mipmap.ic_launcher);
+            remoteView.setImageViewResource(R.id.image_view_album, R.drawable.ic_launcher);
         } else {
             remoteView.setImageViewBitmap(R.id.image_view_album, album);
 

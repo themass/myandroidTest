@@ -16,6 +16,7 @@ import com.openapi.ks.myapp.ui.sound.TeleplayActivity;
 import com.openapi.ks.myapp.ui.sound.TextChannleActivity;
 import com.openapi.ks.myapp.ui.sound.VideoChannleActivity;
 import com.openapi.ks.myapp.ui.sound.VideoListShowActivity;
+import com.rks.musicx.ui.activities.MusicXMainActivity;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -48,7 +49,8 @@ public class ConfigActionJump {
         configMap.put(Constants.VIDEOLIST_URL, VideoListShowActivity.class);
         configMap.put(Constants.TELEPLAY_URL, TeleplayActivity.class);
 
-        configMap.put(Constants.LOCAL , MuiscMainActivity.class);
+        configMap.put(Constants.LOCAL_SOUND , MuiscMainActivity.class);
+        configMap.put(Constants.LOCAL_SOUND2 , MusicXMainActivity.class);
 //        configMap.put(Constants.VIDEO_CHANNEL_USER_URL, VideoChannleUserActivity.class);
     }
 

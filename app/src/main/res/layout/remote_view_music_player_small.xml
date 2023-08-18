@@ -18,7 +18,7 @@
         android:layout_marginRight="12dp"
         android:layout_centerVertical="true"
         android:scaleType="centerCrop"
-        android:src="@mipmap/ic_launcher"
+        android:src="@drawable/ic_launcher"
         />
 
     <FrameLayout
