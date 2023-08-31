@@ -135,7 +135,7 @@ public class BaseWebViewFragment extends BaseFragment {
         settings.setAllowFileAccess(true);
         settings.setLoadWithOverviewMode(true);
         settings.setDomStorageEnabled(true);
-        settings.setAppCacheEnabled(true);
+        settings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
         settings.setGeolocationEnabled(true);
         settings.setGeolocationDatabasePath(getActivity().getCacheDir().toString());
         settings.setUserAgentString(settings.getUserAgentString() + " " + HttpUtils.getUserAgentSuffix(getActivity()));
