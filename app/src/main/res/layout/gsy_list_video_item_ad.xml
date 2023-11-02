@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <com.openapi.ks.myapp.ui.gsy.SampleCoverVideo
+        android:id="@+id/video_item_player"
+        android:layout_width="match_parent"
+        android:layout_height="260dp" />
+
+
+    <com.openapi.ks.myapp.ui.gsy.ListADVideoPlayer
+        android:id="@+id/video_ad_player"
+        android:layout_width="match_parent"
+        android:layout_height="260dp"
+        android:visibility="gone" />
+
+
+</RelativeLayout>

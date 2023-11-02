@@ -10,6 +10,9 @@ import com.openapi.ks.moviefree1.R;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.ui.base.WebViewActivity;
 import com.openapi.ks.myapp.ui.config.QuickBrowserConfigActivity;
+import com.openapi.ks.myapp.ui.gsy.GSYAutoVideoListFragment;
+import com.openapi.ks.myapp.ui.gsy.GSYVideoListShowActivity;
+import com.openapi.ks.myapp.ui.gsy.ad.GSYADVideoListShowActivity;
 import com.openapi.ks.myapp.ui.sound.ImgChannleActivity;
 import com.openapi.ks.myapp.ui.sound.SoundChannleActivity;
 import com.openapi.ks.myapp.ui.sound.TeleplayActivity;
@@ -46,7 +49,8 @@ public class ConfigActionJump {
         configMap.put(Constants.TEXT_URL, TextChannleActivity.class);
         configMap.put(Constants.IMG_URL, ImgChannleActivity.class);
         configMap.put(Constants.VIDEO_URL, VideoChannleActivity.class);
-        configMap.put(Constants.VIDEOLIST_URL, VideoListShowActivity.class);
+//        configMap.put(Constants.VIDEOLIST_URL, VideoListShowActivity.class);
+        configMap.put(Constants.VIDEOLIST_URL, GSYVideoListShowActivity.class);
         configMap.put(Constants.TELEPLAY_URL, TeleplayActivity.class);
 
         configMap.put(Constants.LOCAL_SOUND , MuiscMainActivity.class);

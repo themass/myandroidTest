@@ -9,6 +9,7 @@ buildscript {
         maven {
             url  "https://dl-maven-android.mintegral.com/repository/mbridge_android_sdk_oversea"
         }
+        maven { url "https://maven.aliyun.com/repository/public" }
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:4.0.0'
@@ -32,5 +33,6 @@ allprojects {
         maven {
             url  "https://dl-maven-android.mintegral.com/repository/mbridge_android_sdk_oversea"
         }
+        maven { url "https://maven.aliyun.com/repository/public" }
     }
 }

@@ -4,8 +4,18 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Toast;
 
 
+import com.android.volley.VolleyError;
+import com.openapi.commons.common.util.LogUtil;
+import com.openapi.commons.common.util.StringUtils;
+import com.openapi.commons.common.util.ToastUtil;
+import com.openapi.commons.yewu.net.request.CommonResponse;
+import com.openapi.ks.moviefree1.R;
+import com.openapi.ks.myapp.bean.vo.UserInfoVo;
+import com.openapi.ks.myapp.data.UserLoginUtil;
+import com.openapi.ks.myapp.ui.sound.VideoShowActivityLazyUrl;
 import com.openapi.ks.myapp.ui.sound.VitamioVideoPlayActivity;
 import com.openapi.commons.common.util.PreferenceUtils;
 import com.openapi.commons.yewu.ads.base.AdsContext;
@@ -75,15 +85,19 @@ public class VideoChannelListFragment extends RecommendFragment {
         if(!checkUserLevel(vo.type)){
             return;
         }
+        //如果需要服务端实时抓取url，需要再次发起请求 hsex
         if(Constants.VIDEO_TYPE_NORMAL.equalsIgnoreCase((String)vo.extra)){
-            boolean playvideo = PreferenceUtils.getPrefBoolean(getContext(), Constants.PLAYVIDEO_SWITCH, true);
-            if(playvideo){
-                startActivity(VideoShowActivity.class, vo);
-            } else {
-                startActivity(VitamioVideoPlayActivity.class, vo);
-            }
+            openVideoShow(vo);
         }else{
             super.onCustomerItemClick(v,position);
+        }
+    }
+    private void openVideoShow(RecommendVo urlVo){
+        boolean playvideo = PreferenceUtils.getPrefBoolean(getContext(), Constants.PLAYVIDEO_SWITCH, true);
+        if(playvideo){
+            startActivity(VideoShowActivityLazyUrl.class, urlVo);
+        } else {
+            startActivity(VitamioVideoPlayActivity.class, urlVo);
         }
     }
     @Override

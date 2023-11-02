@@ -1,35 +1,47 @@
-package com.openapi.ks.myapp.ui.fragment;
+package com.openapi.ks.myapp.ui.gsy;
 
 import android.content.Context;
 import android.content.res.Configuration;
+import android.graphics.Point;
 import android.os.Bundle;
-import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.openapi.commons.common.util.LogUtil;
 import com.openapi.ks.moviefree1.R;
-import com.openapi.ks.myapp.adapter.VideoListAdapter;
 import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.openapi.ks.myapp.bean.vo.InfoListVo;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.ui.base.features.BasePullLoadbleFragment;
+import com.openapi.ks.myapp.ui.sound.media.JzvdStdTinyWindow;
+import com.shuyu.gsyvideoplayer.GSYVideoManager;
+import com.shuyu.gsyvideoplayer.listener.GSYSampleCallBack;
+import com.shuyu.gsyvideoplayer.utils.CommonUtil;
+import com.shuyu.gsyvideoplayer.utils.Debuger;
+import com.shuyu.gsyvideoplayer.utils.GSYVideoHelper;
+import com.shuyu.gsyvideoplayer.video.NormalGSYVideoPlayer;
+import com.shuyu.gsyvideoplayer.video.base.GSYVideoPlayer;
 
-import cn.jzvd.JZDataSource;
 import cn.jzvd.Jzvd;
 
 /**
  * A placeholder fragment containing a simple view.
  */
-public class AutoVideoFragment extends BasePullLoadbleFragment<RecommendVo> {
-    private VideoListAdapter videoListAdapter;
+public class GSYAutoVideoListFragmentPlayer extends BasePullLoadbleFragment<RecommendVo> {
+    private GSYVideoListAdapterPlayer videoListAdapter;
     private static final String TAG="avvideo";
     private String channel;
+    private boolean isSmall = false;
     @Override
     protected BaseRecyclerViewAdapter getAdapter(){
-        videoListAdapter = new VideoListAdapter(getActivity(), pullView.getRecyclerView(), infoListVo.voList, this);
+        videoListAdapter = new GSYVideoListAdapterPlayer(getActivity(), pullView.getRecyclerView(), infoListVo.voList, this);
         return videoListAdapter;
     }
     @Override
@@ -40,32 +52,21 @@ public class AutoVideoFragment extends BasePullLoadbleFragment<RecommendVo> {
     public void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
         channel = (String) getSerializable();
-//        recyclerView.addOnScrollListener
         pullView.getRecyclerView().addOnChildAttachStateChangeListener(new RecyclerView.OnChildAttachStateChangeListener() {
             @Override
-            public void onChildViewAttachedToWindow(View view) {
-                if (Jzvd.CURRENT_JZVD != null && Jzvd.CURRENT_JZVD.screen == Jzvd.SCREEN_TINY) {
-                    Jzvd jzvd = view.findViewById(R.id.videoplayer);
-                    if(jzvd.jzDataSource.containsTheUrl(Jzvd.CURRENT_JZVD.jzDataSource.getCurrentUrl())){
-                        Jzvd.backPress();
-                    }
-                }
+            public void onChildViewAttachedToWindow(View view) {//这个的本质是gotoThisJzvd，不管他是不是原来的容器
+                SampleCoverVideo mGsyVideoPlayer = view.findViewById(R.id.video_item_player);
+                mGsyVideoPlayer.hideSmallVideo();
+                isSmall = false;
             }
 
             @Override
             public void onChildViewDetachedFromWindow(View view) {
-//                if (Jzvd.CURRENT_JZVD != null && Jzvd.CURRENT_JZVD.screen != Jzvd.SCREEN_TINY) {
-//                    Jzvd videoPlayer = Jzvd.CURRENT_JZVD;
-//                    if (((ViewGroup) view).indexOfChild(videoPlayer) != -1 && videoPlayer.state == Jzvd.STATE_PLAYING) {
-//                        ((JzvdStdTinyWindow) Jzvd.CURRENT_JZVD).gotoTinyScreen();
-//                    }
-//                }
-                Jzvd jzvd = view.findViewById(R.id.videoplayer);
-                if (jzvd != null && Jzvd.CURRENT_JZVD != null &&
-                        jzvd.jzDataSource.containsTheUrl(Jzvd.CURRENT_JZVD.jzDataSource.getCurrentUrl())) {
-                    if (Jzvd.CURRENT_JZVD != null && Jzvd.CURRENT_JZVD.screen != Jzvd.SCREEN_FULLSCREEN) {
-                        Jzvd.releaseAllVideos();
-                    }
+                SampleCoverVideo mGsyVideoPlayer = view.findViewById(R.id.video_item_player);
+                if (mGsyVideoPlayer.getCurrentState() == GSYVideoPlayer.CURRENT_STATE_PLAYING && !isSmall) {
+                    int size = CommonUtil.dip2px(getActivity(), 150);
+                    mGsyVideoPlayer.showSmallVideo(new Point(size, size), true, true);
+                    isSmall = true;
                 }
             }
         });
@@ -80,13 +81,13 @@ public class AutoVideoFragment extends BasePullLoadbleFragment<RecommendVo> {
     @Override
     public void onPause() {
         super.onPause();
-        Jzvd.goOnPlayOnPause();
+        GSYVideoManager.onPause();
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        Jzvd.releaseAllVideos();
+        GSYVideoManager.releaseAllVideos();
     }
 
     @Override

@@ -9,6 +9,7 @@ import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.FrameLayout;
 
 import com.openapi.commons.common.ui.view.MyFavoriteView;
 import com.openapi.commons.common.util.ToastUtil;
@@ -27,6 +28,7 @@ public class MyJzvdStd extends JzvdStd {
 
     VelocityTracker mVelocityTracker = VelocityTracker.obtain();
     MyFavoriteView myFavoriteView;
+    FrameLayout initLoading;
 
     public MyJzvdStd(Context context) {
         super(context);
@@ -40,6 +42,13 @@ public class MyJzvdStd extends JzvdStd {
     public void init(Context context) {
         super.init(context);
         myFavoriteView = findViewById(R.id.my_favoriteview);
+        initLoading = findViewById(R.id.loading_init);
+    }
+    public void loadingInit(){
+        initLoading.setVisibility(VISIBLE);
+    }
+    public void closeLoadingInit(){
+        initLoading.setVisibility(GONE);
     }
     @Override
     public boolean onTouch(View v, MotionEvent event) {

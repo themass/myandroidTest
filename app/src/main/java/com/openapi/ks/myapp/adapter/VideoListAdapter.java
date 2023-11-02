@@ -27,7 +27,6 @@ import com.openapi.ks.myapp.constant.Constants;
 import java.util.List;
 
 import butterknife.BindView;
-import cn.jzvd.Jzvd;
 import cn.jzvd.JzvdStd;
 
 
@@ -39,7 +38,7 @@ public class VideoListAdapter extends BaseRecyclerViewAdapter<VideoListAdapter.V
     @Override
     public VideoHolder onCreateViewHolderData(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(context).inflate(R.layout.item_videoview, parent, false);
-        return new VideoHolder(view, this, this);
+    return new VideoHolder(view, this, this);
     }
         @Override
         public void onBindViewHolderData(RecyclerView.ViewHolder h, int position) {

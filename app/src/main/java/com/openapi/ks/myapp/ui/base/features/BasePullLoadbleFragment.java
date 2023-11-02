@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.FrameLayout;
 import android.widget.SearchView;
 
 import androidx.annotation.Nullable;
@@ -30,6 +31,10 @@ public abstract class BasePullLoadbleFragment<T> extends LoadableFragment<InfoLi
     @Nullable
     @BindView(R.id.my_pullview)
     public MyPullView pullView;
+    @Nullable
+    @BindView(R.id.video_full_container)
+    public FrameLayout fullContainer;
+
     public InfoListVo<T> infoListVo = new InfoListVo<T>();
     @Override
     protected void onContentViewCreated(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {

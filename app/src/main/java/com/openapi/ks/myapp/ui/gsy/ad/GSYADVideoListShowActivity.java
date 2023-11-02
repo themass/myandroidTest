@@ -1,16 +1,19 @@
-package com.openapi.ks.myapp.ui.sound;
+package com.openapi.ks.myapp.ui.gsy.ad;
 
 
 import android.content.Intent;
 import android.os.Bundle;
-import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.FrameLayout;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.openapi.commons.common.util.LogUtil;
 import com.openapi.ks.moviefree1.R;
 import com.openapi.ks.myapp.constant.Constants;
-import com.openapi.ks.myapp.ui.fragment.AutoVideoListFragment;
+import com.openapi.ks.myapp.ui.gsy.GSYAutoVideoListFragment;
+import com.shuyu.gsyvideoplayer.GSYVideoADManager;
+import com.shuyu.gsyvideoplayer.GSYVideoManager;
 
 import java.util.HashMap;
 
@@ -20,7 +23,7 @@ import butterknife.Unbinder;
 /**
  * Created by openapi on 2015/9/1.
  */
-public class VideoListShowActivity extends AppCompatActivity {
+public class GSYADVideoListShowActivity extends AppCompatActivity {
     private Unbinder unbinder;
     private HashMap<String, String> vo;
     @Override
@@ -31,7 +34,7 @@ public class VideoListShowActivity extends AppCompatActivity {
         vo = (HashMap<String, String>)getIntent().getSerializableExtra(Constants.CONFIG_PARAM);
         FrameLayout layout  = (FrameLayout)findViewById(R.id.fragment);
         try {
-            AutoVideoListFragment fragment = AutoVideoListFragment.class.newInstance();
+            GSYADAutoVideoListFragment fragment = GSYADAutoVideoListFragment.class.newInstance();
             fragment.putSerializable(vo.get(Constants.CHANNEL));
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.fragment, fragment)
@@ -45,5 +48,15 @@ public class VideoListShowActivity extends AppCompatActivity {
     protected void onNewIntent(Intent intent) {
         LogUtil.i(getClass().getSimpleName() + "-onNewIntent");
         super.onNewIntent(intent);
+    }
+    @Override
+    public void onBackPressed() {
+        if (GSYVideoADManager.backFromWindowFull(this)) {
+            return;
+        }
+        if (GSYVideoManager.backFromWindowFull(this)) {
+            return;
+        }
+        super.onBackPressed();
     }
 }

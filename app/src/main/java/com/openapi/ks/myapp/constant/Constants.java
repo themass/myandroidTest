@@ -145,6 +145,8 @@ public class Constants {
 
     public static final String API_VIDEO_CHANNLE_URL = "/video/channel.json?start=%s&limit=50&channel=%s";
     public static final String API_VIDEO_CHANNEL_LIST_URL = "/video/channel/items.json?start=%s&limit=50&channel=%s&keyword=%s";
+
+    public static final String API_VIDEO_ITEM_URL = "/video/item/url.json?id=%s";
     public static final String API_TV_ITEM_URL = "/video/tv/item.json?start=%s&limit=50&channel=%s";
     public static final String API_TV_CHANNEL_URL = "/video/tv/channel.json?start=%s&limit=50&channel=%s&keyword=%s";
     public static final String API_VIDEO_USER_URL = "/video/user.json?channel=%s&start=%s&limit=50";

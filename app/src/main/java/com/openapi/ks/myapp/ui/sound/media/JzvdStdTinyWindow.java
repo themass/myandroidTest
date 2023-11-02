@@ -7,6 +7,9 @@ import android.view.Gravity;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
+import com.openapi.commons.common.util.DisplayUtil;
+import com.openapi.ks.moviefree1.R;
+
 import cn.jzvd.JZDataSource;
 import cn.jzvd.JZUtils;
 import cn.jzvd.JzvdStd;
@@ -46,6 +49,7 @@ public class JzvdStdTinyWindow extends JzvdStd {
         ViewGroup vgg = (ViewGroup) (JZUtils.scanForActivity(getContext())).getWindow().getDecorView();//和他也没有关系
         FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(400, 400);
         lp.gravity = Gravity.RIGHT | Gravity.BOTTOM;
+        lp.bottomMargin = DisplayUtil.dp2px(getContext(), R.dimen.margin_40);
         //添加滑动事件等
         vgg.addView(this, lp);
         setScreenTiny();

@@ -8,7 +8,7 @@ import android.view.View;
 import com.openapi.commons.common.util.LogUtil;
 import com.openapi.ks.moviefree1.R;
 import com.openapi.ks.myapp.ui.base.app.BaseFragmentActivity;
-import com.openapi.ks.myapp.ui.fragment.AutoVideoFragment;
+import com.openapi.ks.myapp.ui.fragment.AutoVideoListFragment;
 
 import cn.jzvd.Jzvd;
 import cn.jzvd.JzvdStd;
@@ -25,7 +25,7 @@ public class VideoActivity extends BaseFragmentActivity {
         setContentView(R.layout.common_fragment);
         setFabUpVisibility(View.GONE);
         try {
-            fragment = AutoVideoFragment.class.newInstance();
+            fragment = AutoVideoListFragment.class.newInstance();
 
         } catch (Exception e) {
             LogUtil.e(e);
