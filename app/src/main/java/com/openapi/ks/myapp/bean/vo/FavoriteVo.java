@@ -24,7 +24,7 @@ public class FavoriteVo {
 
     @Generated(hash = 554894695)
     public FavoriteVo(Long id, String name, String updateTime, int type,
-                      String itemUrl, String extra) {
+            String itemUrl, String extra) {
         this.id = id;
         this.name = name;
         this.updateTime = updateTime;
@@ -92,4 +92,5 @@ public class FavoriteVo {
     public void setO(Object o) {
         this.o = o;
     }
+
 }

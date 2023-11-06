@@ -25,7 +25,7 @@ public class RecommendVo implements Serializable {
     public boolean adsPopShow;
     public int type;
     public int showType;
-    public Integer id;
+    public Long id;
     public String param;
     public Object extra;
     public int dataType = dataType_RECOMMENT;

@@ -71,6 +71,7 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
                         super.onErrorResponse(volleyError);
                         LogUtil.e(volleyError.getMessage(), volleyError);
                         jzVideo.closeLoadingInit();
+                        openVideoShow(vo);
                     }
                 }, VIDEO_TAG, RecommendVo.class);
 
@@ -102,7 +103,6 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
             jzVideo.setUp(urlVo.actionUrl, vo.title, JzvdStd.SCREEN_NORMAL, JZMediaIjk.class);
         }
         jzVideo.jzDataSource.headerMap = VideoUtil.getVideoSourceHeader(url, StringUtils.hasText(urlVo.baseurl) ? urlVo.baseurl : urlVo.actionUrl);
-//
     }
     @Override
     public void onPause() {

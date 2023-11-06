@@ -30,6 +30,7 @@ import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
 import com.openapi.ks.myapp.ui.base.MenuOneContext;
 import com.openapi.ks.myapp.ui.base.features.BasePullLoadbleFragment;
 import com.openapi.ks.myapp.ui.sound.VideoShowActivity;
+import com.openapi.ks.myapp.ui.sound.VideoShowActivityLazyUrl;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -105,7 +106,7 @@ public class FavoriteFragment extends BasePullLoadbleFragment<FavoriteVo> implem
         }else if (data.type == Constants.FavoriteType.VIDEO) {
             RecommendVo vo = ModelUtils.json2Entry(data.extra, RecommendVo.class);
             if (vo != null)
-                startActivity(VideoShowActivity.class, vo);
+                startActivity(VideoShowActivityLazyUrl.class, vo);
         }
     }
     @Override

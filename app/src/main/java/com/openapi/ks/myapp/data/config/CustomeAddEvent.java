@@ -8,10 +8,10 @@ import java.util.Map;
 public class CustomeAddEvent {
     public String url;
     public String title;
-    public Integer id;
+    public Long id;
     public Map<String, Object> param;
 
-    public CustomeAddEvent(Integer id, String url, String title, Map<String, Object> param) {
+    public CustomeAddEvent(Long id, String url, String title, Map<String, Object> param) {
         this.id = id;
         this.url = url;
         this.title = title;

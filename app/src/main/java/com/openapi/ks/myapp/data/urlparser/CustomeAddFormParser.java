@@ -17,7 +17,7 @@ public class CustomeAddFormParser {
         list.add(new BrowserParser());
     }
 
-    public static CustomeAddForm parser(String url, Integer id, String title) {
+    public static CustomeAddForm parser(String url, Long id, String title) {
         for (UrlParser p : list) {
             if (p.canParser(url)) {
                 CustomeAddForm form = p.parser(url);

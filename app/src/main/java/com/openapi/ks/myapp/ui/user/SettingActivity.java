@@ -61,21 +61,8 @@ public class SettingActivity extends BaseSingleActivity {
     Switch swPlayCore;
     @BindView(R.id.sw_playVideo)
     Switch sw_playVideo;
-    @BindView(R.id.tv_timeuse)
-    TextView tvTime;
-    @BindView(R.id.tv_networking)
-    TextView tvNet;
-    @BindView(R.id.tv_score)
-    TextView tvScore;
     @BindView(R.id.tv_version)
     TextView tvVersion;
-    @BindView(R.id.tv_cache)
-    TextView tvCache;
-
-    @BindView(R.id.et_email)
-    EditText etEmail;
-    @BindView(R.id.btn_submit)
-    Button btnSubmit;
     BaseService baseService;
     String mEmail;
     @Override
@@ -133,134 +120,23 @@ public class SettingActivity extends BaseSingleActivity {
         baseService = new BaseService();
         baseService.setup(this);
         hidenAds();
-        setStateUse();
-        setScore();
         setVersion();
-        setCache();
-        setUserEmail();
-        etEmail.clearFocus();
-        etEmail.setEnabled(false);
-    }
-    private  void setUserEmail(){
-        if(UserLoginUtil.getUserCache()!=null){
-            etEmail.setText(UserLoginUtil.getUserCache().email);
-        }
-    }
-    private void setCache(){
-        tvCache.setText(FileSizeUtil.getAutoFileOrFilesSize(FileUtils.getWriteFilePath(this)));
-    }
-    private void setStateUse() {
-        StateUseVo vo = PreferenceUtils.getPrefObj(this, Constants.USER_STATUS, StateUseVo.class);
-        if (vo != null) {
-            tvTime.setText(vo.timeUse);
-            tvNet.setText(vo.trafficUse);
-        } else {
-            tvTime.setText("0 H");
-            tvNet.setText("0 Gb");
-        }
-    }
-
-    private void setScore() {
-        UserInfoVo vo = UserLoginUtil.getUserCache();
-        if (vo != null) {
-            tvScore.setText(vo.score + "");
-        } else {
-            int score = PreferenceUtils.getPrefInt(this, Constants.SCORE_TMP, 0);
-            tvScore.setText(score + "");
-        }
     }
 
     private void setVersion() {
         tvVersion.setText(VersionUpdater.getVersion());
     }
 
-    @OnClick(R.id.rr_point)
-    public void onScore(View view) {
-//        ToastUtil.showShort(R.string.menu_btn_score_context);
-        onAbout(view);
-        MobAgent.onEventMenu(this, "积分");
-    }
-    CommonResponse.ResponseOkListener loginListener = new CommonResponse.ResponseOkListener<NullReturnVo>() {
-        @Override
-        public void onResponse(NullReturnVo vo) {
-            if(btnSubmit!=null && etEmail!=null) {
-                btnSubmit.setText(R.string.modify);
-                etEmail.setEnabled(false);
-                UserLoginUtil.getUserCache().email = mEmail;
-                setUserEmail();
-            }
-        }
-    };
-    @OnClick(R.id.btn_submit)
-    public void setEmail(Button view) {
-        if(UserLoginUtil.getUserCache()==null){
-            startActivity(LoginActivity.class);
-            return;
-        }
-        if(btnSubmit.getText().equals(getResources().getString(R.string.modify))){
-            btnSubmit.setText(R.string.submit);
-            etEmail.setEnabled(true);
-            return;
-        }else {
-            String email = etEmail.getText().toString();
-            if (!StringUtils.hasText(email) || !email.contains("@")) {
-                ToastUtil.showShort(R.string.empty_name_pwd);
-                return;
-            }
-            RegForm form = new RegForm(null, null, null, null, email,null);
-            mEmail = email;
-            baseService.postData(Constants.getUrl(Constants.API_SETEMAIL_URL), form, loginListener, new CommonResponse.ResponseErrorListener() {
-                @Override
-                protected void onError() {
-                    super.onError();
-                    ToastUtil.showShort(R.string.email_fail);
-                }
-            }, TAG, NullReturnVo.class);
-        }
-    }
-    @OnClick(R.id.rl_cache)
-    public void onCache(View view) {
-        ToastUtil.showShort(R.string.menu_btn_cache_context);
-        FileUtils.deleteFile(new File(FileUtils.getWriteFilePath(this)));
-        FileUtils.ensureFile(this, tmpFilePath);
-        setCache();
-        MobAgent.onEventMenu(this, "缓存");
-    }
-    @OnClick(R.id.tv_auther)
-    public void onContract(View view) {
-        SystemUtils.copy(SettingActivity.this, "gqli5296@gmail.com");
-        ToastUtil.showShort(R.string.menu_copy_emai);
-        MobAgent.onEventMenu(this, "联系我们");
-    }
     @OnClick(R.id.rr_version)
     public void onVersion(View view) {
         VersionUpdater.checkUpdate(this, true);
         MobAgent.onEventMenu(this, "版本");
     }
 
-    @OnClick(R.id.tv_about)
-    public void onAbout(View view) {
-        String url = Constants.ABOUT;
-        if (SystemUtils.isZH(this)) {
-            url = Constants.ABOUT_ZH;
-        }
-        url = url + "?" + DateUtils.format(new Date(), DateUtils.DATE_FORMAT_MM);
-        WebViewActivity.startWebViewActivity(this, url, getString(R.string.menu_btn_about), false, false, null);
-        PreferenceUtils.setPrefBoolean(this, Constants.ABOUT_FIRST, true);
-        MobAgent.onEventMenu(this, "关于");
-    }
-
     @OnClick(R.id.tv_share)
     public void onShare(View view) {
         showShare();
         MobAgent.onEventMenu(this, "分享");
-    }
-
-    @OnClick(R.id.tv_bug)
-    public void onBug(View view) {
-        startService(LogUploadService.class);
-        ToastUtil.showShort(R.string.menu_btn_report_log);
-        MobAgent.onEventMenu(this, "bug");
     }
 
     @Override
