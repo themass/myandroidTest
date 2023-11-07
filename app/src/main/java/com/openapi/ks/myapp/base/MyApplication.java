@@ -87,12 +87,15 @@ public class MyApplication extends MultiDexApplication {
         DBManager.getInstance().init(this);
         String uc = DeviceInfoUtils.getMetaData(this, "UMENG_CHANNEL");
         String ad = DeviceInfoUtils.getMetaData(this, "AdView_CHANNEL");
-        if(Constants.APP_MYPOOL.equals(uc)){
-            Constants.initUserAgent(Constants.AGENT_APP_MYPOOL);
-        }else{
-            Constants.initUserAgent(Constants.AGENT_APP_GOOGLE);
-            isTemp = true;
-        }
+        Constants.initUserAgent(Constants.AGENT_APP_MYPOOL);
+        isTemp = false;
+        //欺骗应用市场
+//        if(Constants.APP_MYPOOL.equals(uc)){
+//            Constants.initUserAgent(Constants.AGENT_APP_MYPOOL);
+//        }else{
+//            Constants.initUserAgent(Constants.AGENT_APP_GOOGLE);
+//            isTemp = true;
+//        }
 
         LogUtil.i("uc=" + uc + "; ad=" + ad);
         if (MyApplication.isDebug) {

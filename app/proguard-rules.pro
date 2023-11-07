@@ -148,14 +148,6 @@
 -keepclassmembers class * extends org.greenrobot.eventbus.util.ThrowableFailureEvent {
     <init>(java.lang.Throwable);
 }
-#umeng
--dontnote com.umeng.analytics.**
--dontnote com.umeng.message.**
--dontwarn com.umeng.**
--keep class com.umeng.**{*;}
--keep class u.aly.**{*;}
--keep class com.google.**{*;}
--dontnote u.aly.**
 #glid
 -keep public class * implements com.bumptech.glide.module.GlideModule
 -keep public class * extends com.bumptech.glide.module.AppGlideModule
@@ -203,6 +195,19 @@
 -keep class com.google.gson.stream.** { *; }
 -keep class com.openapi.commons.common.weather.**{ *; }
 -keep class com.way.**{ *; }
+-keep class com.ping.**{ *; }
+-keepclassmembers class * extends org.greenrobot.greendao.AbstractDao {
+public static java.lang.String TABLENAME;
+}
+-keep class **$Properties { *; }
+
+# If you DO use SQLCipher:
+-keep class org.greenrobot.greendao.database.SqlCipherEncryptedHelper { *; }
+
+# If you do NOT use SQLCipher:
+-dontwarn net.sqlcipher.database.**
+# If you do NOT use RxJava:
+-dontwarn rx.**
 #-----------   log   ------------
 -assumenosideeffects class android.util.Log {
     public static boolean isLoggable(java.lang.String, int);
@@ -279,10 +284,10 @@ public static java.lang.String TABLENAME;
 -keep class rx.**{*;}
 
 #-------------------vitamio.player------------------------
--keep public class io.vov.vitamio.MediaPlayer { *; }
--keep public class io.vov.vitamio.IMediaScannerService { *; }
--keep public class io.vov.vitamio.MediaScanner { *; }
--keep public class io.vov.vitamio.MediaScannerClient { *; }
--keep public class io.vov.vitamio.VitamioLicense { *; }
--keep public class io.vov.vitamio.Vitamio { *; }
--keep public class io.vov.vitamio.MediaMetadataRetriever { *; }
+-keep public class io.vov.vitamio.** { *; }
+
+-keep public class cn.jzvd.** {*; }
+
+-keep class tv.danmaku.ijk.media.player.** {*; }
+-dontwarn tv.danmaku.ijk.media.player.*
+-keep interface tv.danmaku.ijk.media.player.** { *; }

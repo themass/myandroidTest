@@ -122,6 +122,7 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
     }
     @Override
     public void onDestroy() {
+        indexService.cancelRequest(VIDEO_TAG);
         Jzvd.releaseAllVideos();
         super.onDestroy();
         unbinder.unbind();

@@ -60,7 +60,8 @@ public class BaseRequest<T> extends Request<T> {
         if(!StringUtils.hasText(uc)){
             uc = DeviceInfoUtils.getMetaData(context, "UMENG_CHANNEL");
         }
-        String sb = DeviceInfoUtils.getDeviceId(context) + "|" + time;
+        String devId = DeviceInfoUtils.getDeviceId(context);
+        String sb =  devId+ "|" + time;
         String msg = time + Md5.encode(sb);
         String ua = UA_DEFAULT + UA_APP_SUFFIX + ",channel="+uc+",cpu=" + SystemUtils.getCpuType() + ",IE" + msg;
         String loc = "lon:" + StaticDataUtil.get(Constants.LON, Double.class) + ";lat:" + StaticDataUtil.get(Constants.LAT, Double.class);
@@ -72,7 +73,7 @@ public class BaseRequest<T> extends Request<T> {
         }
         headers.put("Accept-Encoding", "gzip");
         headers.put("Accept-Language", SystemUtils.getLang(context));
-        headers.put(Constants.DEVID, DeviceInfoUtils.getDeviceId(context));
+        headers.put(Constants.DEVID, devId);
         String token = PreferenceUtils.getPrefString(context, Constants.HTTP_TOKEN_KEY, null);
         if (token != null)
             headers.put(Constants.HTTP_TOKEN_KEY, token);
