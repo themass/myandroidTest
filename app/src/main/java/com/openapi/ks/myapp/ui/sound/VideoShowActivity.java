@@ -8,8 +8,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.widget.ImageView;
 
 import com.openapi.ks.myapp.bean.vo.FavoriteVo;
-import com.openapi.ks.myapp.ui.sound.media.JZMediaExo;
-import com.openapi.ks.myapp.ui.sound.media.JZMediaIjk;
 
 import com.nightonke.boommenu.BoomMenuButton;
 
@@ -53,12 +51,7 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
             url = url+vo.urlToken;
         }
 
-        boolean playCore = PreferenceUtils.getPrefBoolean(this, Constants.PLAYCORE_SWITCH, true);
-        if(!playCore) {
-            jzVideo.setUp(vo.actionUrl, vo.title, JzvdStd.SCREEN_NORMAL, JZMediaExo.class);
-        } else {
-            jzVideo.setUp(vo.actionUrl, vo.title, JzvdStd.SCREEN_NORMAL, JZMediaIjk.class);
-        }
+        jzVideo.setUp(vo.actionUrl, vo.title, JzvdStd.SCREEN_NORMAL, JzvdPlayerFactory.getPlayManager());
         jzVideo.jzDataSource.headerMap = VideoUtil.getVideoSourceHeader(url, StringUtils.hasText(vo.baseurl) ? vo.baseurl : vo.actionUrl);
 //
 //        jzVideo.headData = header;

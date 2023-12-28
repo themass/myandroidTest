@@ -37,6 +37,8 @@ public class Constants {
     public static final String IMG_URL = "img";
     public static final String VIDEO_URL = "video";
     public static final String VIDEOLIST_URL = "videoList";
+
+    public static final String VIDEOLIST_URL1 = "videoList1";
     public static final String TELEPLAY_URL = "teleplay";
 
     public static final String LOCAL = "local";
@@ -71,6 +73,7 @@ public class Constants {
     public static final String LOGIN_USER_LAST = "LOGIN_USER_LAST";
     public static final String AREA_SWITCH = "AREA_SWITCH";
     public static final String PLAYVIDEO_SWITCH = "PLAYVIDEO_SWITCH";
+    public static final String LISTVIDEO_TINY_SWITCH = "LISTVIDEO_TINY_SWITCH";
     public static final String PLAYCORE_SWITCH = "PLAYCORE_SWITCH";
     public static final String VIDEO_PIC_SWITCH = "VIDEO_PIC_SWITCH";
     public static final String SOUND_SWITCH = "SOUND_SWITCH";

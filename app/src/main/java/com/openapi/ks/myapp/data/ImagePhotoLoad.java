@@ -12,6 +12,7 @@ import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.DrawableImageViewTarget;
 import com.etiennelawlor.imagegallery.library.adapters.FullScreenImageGalleryAdapter;
 import com.etiennelawlor.imagegallery.library.adapters.ImageGalleryAdapter;
+import com.openapi.commons.common.util.LogUtil;
 import com.openapi.commons.common.util.StringUtils;
 import com.romainpiel.shimmer.Shimmer;
 import com.openapi.commons.common.util.netglide.MyGlideLibModule;

@@ -22,8 +22,6 @@ import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.BaseService;
 import com.openapi.ks.myapp.data.ImagePhotoLoad;
 import com.openapi.ks.myapp.data.VideoUtil;
-import com.openapi.ks.myapp.ui.sound.media.JZMediaExo;
-import com.openapi.ks.myapp.ui.sound.media.JZMediaIjk;
 import com.openapi.ks.myapp.ui.sound.media.MyJzvdStd;
 
 import butterknife.BindView;
@@ -96,12 +94,7 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
         if(StringUtils.hasText(urlVo.urlToken)){
             url = url+urlVo.urlToken;
         }
-        boolean playCore = PreferenceUtils.getPrefBoolean(this, Constants.PLAYCORE_SWITCH, true);
-        if(!playCore) {
-            jzVideo.setUp(urlVo.actionUrl, vo.title, JzvdStd.SCREEN_NORMAL, JZMediaExo.class);
-        } else {
-            jzVideo.setUp(urlVo.actionUrl, vo.title, JzvdStd.SCREEN_NORMAL, JZMediaIjk.class);
-        }
+        jzVideo.setUp(urlVo.actionUrl, vo.title, JzvdStd.SCREEN_NORMAL, JzvdPlayerFactory.getPlayManager());
         jzVideo.jzDataSource.headerMap = VideoUtil.getVideoSourceHeader(url, StringUtils.hasText(urlVo.baseurl) ? urlVo.baseurl : urlVo.actionUrl);
     }
     @Override

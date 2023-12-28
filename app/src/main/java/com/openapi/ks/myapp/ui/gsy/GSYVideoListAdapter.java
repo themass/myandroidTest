@@ -7,26 +7,16 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.openapi.commons.common.util.LogUtil;
-import com.openapi.commons.common.util.PreferenceUtils;
-import com.openapi.commons.common.util.StringUtils;
-import com.openapi.commons.yewu.ads.base.AdsContext;
-import com.openapi.commons.yewu.ads.base.AdsManager;
 import com.openapi.ks.moviefree1.R;
-import com.openapi.ks.myapp.adapter.VideoListAdapter;
 import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
-import com.openapi.ks.myapp.constant.Constants;
-import com.openapi.ks.myapp.data.ImagePhotoLoad;
-import com.openapi.ks.myapp.data.VideoUtil;
-import com.openapi.ks.myapp.ui.sound.media.JZMediaExo;
-import com.openapi.ks.myapp.ui.sound.media.JZMediaIjk;
 import com.shuyu.gsyvideoplayer.utils.GSYVideoHelper;
 
 import java.util.List;
@@ -74,6 +64,9 @@ public class GSYVideoListAdapter extends BaseRecyclerViewAdapter<GSYVideoListAda
         @Nullable
         @BindView(R.id.list_item_btn)
         ImageView listItemBtn;
+        @Nullable
+        @BindView(R.id.list_item_title)
+        TextView listItemTitle;
 
         ImageView imageView;
         private GSYVideoHelper smallVideoHelper;
@@ -93,6 +86,7 @@ public class GSYVideoListAdapter extends BaseRecyclerViewAdapter<GSYVideoListAda
             Glide.with(context).load(videoModel.img).into(imageView);
             smallVideoHelper.addVideoPlayer(position, imageView, TAG, listItemContainer, listItemBtn);
             smallVideoHelper.getGsyVideoPlayer().getTitleTextView().setVisibility(View.VISIBLE);
+            listItemTitle.setText(videoModel.title);
             listItemBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {

@@ -121,6 +121,7 @@ public class MyApplication extends MultiDexApplication {
                         .setFontAttrId(R.attr.fontPath)
                         .build())).build());
         musicXInit();
+        ijkInit();
     }
 
     public ImagePhotoLoad getPhotoLoad() {
@@ -198,11 +199,11 @@ public class MyApplication extends MultiDexApplication {
 //        //系统内核模式
 //        PlayerFactory.setPlayManager(SystemPlayerManager.class);
         //ijk内核，默认模式
-        PlayerFactory.setPlayManager(IjkPlayerManager.class);
+//        PlayerFactory.setPlayManager(IjkPlayerManager.class);
 
 
         //exo缓存模式，支持m3u8，只支持exo
-        CacheFactory.setCacheManager(ExoPlayerCacheManager.class);
+//        CacheFactory.setCacheManager(ExoPlayerCacheManager.class);
         //代理缓存模式，支持所有模式，不支持m3u8等，默认
 //        CacheFactory.setCacheManager(ProxyCacheManager.class);
     }

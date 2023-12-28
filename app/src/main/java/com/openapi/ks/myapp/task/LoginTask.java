@@ -47,6 +47,8 @@ public class LoginTask extends AsyncTask<Void, Void, Void> {
             UserInfoVo user = future.get();
             if(user!=null){
                 UserLoginUtil.login(MyApplication.getInstance(),user);
+            }else {
+                PreferenceUtils.remove(MyApplication.getInstance(), Constants.HTTP_TOKEN_KEY);
             }
         }catch (Exception e){
             LogUtil.e(e);

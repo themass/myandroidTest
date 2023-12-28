@@ -9,8 +9,8 @@ android {
         applicationId "com.openapi.ks.moviefree1"
         minSdkVersion 21
         targetSdkVersion 31
-        versionCode 1001000003
-        versionName "1.1.0.3"
+        versionCode 1001000004
+        versionName "1.1.0.4"
         // Enabling multidex support.
         multiDexEnabled true
         flavorDimensions "versionCode"
@@ -66,10 +66,10 @@ android {
             signingConfig signingConfigs.config
         }
         release {
-            minifyEnabled false
+            minifyEnabled true
             debuggable true
-            zipAlignEnabled false // Zipalign优化
-            shrinkResources false
+            zipAlignEnabled true // Zipalign优化
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.config
         }
@@ -151,11 +151,18 @@ dependencies {
 
     //和 gsy 冲突了，
     implementation 'com.google.android.exoplayer:exoplayer:2.12.1'
+//    implementation 'tv.danmaku.ijk.media:ijkplayer-armv5:0.8.8'
+//    implementation 'tv.danmaku.ijk.media:ijkplayer-arm64:0.8.8'
+//    implementation 'tv.danmaku.ijk.media:ijkplayer-x86:0.8.8'
+//    implementation 'tv.danmaku.ijk.media:ijkplayer-x86_64:0.8.8'
 //    implementation 'tv.danmaku.ijk.media:ijkplayer-java:0.8.8'
+//    implementation 'tv.danmaku.ijk.media:ijkplayer-armv7a:0.8.8'
 
+//    implementation 'tv.danmaku.ijk.media:ijkplayer-java:0.8.8'
+//    implementation 'tv.danmaku.ijk.media:ijkplayer-armv7a:0.8.4'
 //    implementation 'com.aliyun.sdk.android:AliyunPlayer:4.5.0-full'
 //    implementation 'com.alivc.conan:AlivcConan:0.9.5'
-//    implementation 'tv.danmaku.ijk.media:ijkplayer-armv7a:0.8.4'
+
 
     implementation project(path: ':vitamio')
     implementation project(path: ':library')
@@ -187,4 +194,6 @@ dependencies {
     }
 
     implementation 'com.github.CarGuo.GSYVideoPlayer:GSYVideoPlayer:v8.4.0-release-jitpack'
+    //是否需要AliPlayer模式
+    implementation 'com.github.CarGuo.GSYVideoPlayer:GSYVideoPlayer-aliplay:v8.4.0-release-jitpack'
 }

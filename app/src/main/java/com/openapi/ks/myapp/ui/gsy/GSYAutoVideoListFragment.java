@@ -126,7 +126,7 @@ public class GSYAutoVideoListFragment extends BasePullLoadbleFragment<RecommendV
                         //如果是小窗口就不需要处理
                         if (!smallVideoHelper.isSmall() && !smallVideoHelper.isFull()) {
                             //小窗口
-                            int size = CommonUtil.dip2px(getActivity(), 150);
+                            int size = CommonUtil.dip2px(getActivity(), 170);
                             //actionbar为true才不会掉下面去
                             smallVideoHelper.showSmallVideo(new Point(size, size), true, true);
                         }

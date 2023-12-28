@@ -9,8 +9,6 @@ import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.openapi.ks.myapp.data.VideoUtil;
-import com.openapi.ks.myapp.ui.sound.media.JZMediaExo;
-import com.openapi.ks.myapp.ui.sound.media.JZMediaIjk;
 import com.openapi.commons.common.util.LogUtil;
 import com.openapi.commons.common.util.PreferenceUtils;
 import com.openapi.commons.common.util.StringUtils;
@@ -42,13 +40,7 @@ public class VideoShowActivityj extends AppCompatActivity {
         setContentView(R.layout.layout_video_show);
         unbinder = ButterKnife.bind(this);
         vo = (RecommendVo)getIntent().getSerializableExtra(Constants.CONFIG_PARAM);
-
-        boolean playCore = PreferenceUtils.getPrefBoolean(this, Constants.PLAYCORE_SWITCH, true);
-        if(!playCore) {
-            jzVideo.setUp(vo.actionUrl, vo.title, JzvdStd.SCREEN_NORMAL, JZMediaExo.class);
-        } else {
-            jzVideo.setUp(vo.actionUrl, vo.title, JzvdStd.SCREEN_NORMAL, JZMediaIjk.class);
-        }
+        jzVideo.setUp(vo.actionUrl, vo.title, JzvdStd.SCREEN_NORMAL, JzvdPlayerFactory.getPlayManager());
         jzVideo.jzDataSource.headerMap = VideoUtil.getVideoSourceHeader(vo.actionUrl, StringUtils.hasText(vo.baseurl) ? vo.baseurl : vo.actionUrl);
 //
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);

@@ -101,4 +101,34 @@ public class HttpDNSUtil {
         }
         return url;
     }
+    public static String getIPByHostNotCache(String hostName){
+        HttpUrl httpUrl = new HttpUrl.Builder()
+                .scheme("http")
+                .host(DNS_POD_IP)
+                .addPathSegment("d")
+                .addQueryParameter("dn", hostName)
+                .build();
+        OkHttpClient okHttpClient = new OkHttpClient();
+        Request request = new Request.Builder()
+                .url(httpUrl)
+                .get()
+                .build();
+        String result = null;
+        try {
+            Response response = okHttpClient.newCall(request).execute();
+            if (response.isSuccessful()) {
+                String body = response.body().string();
+                LogUtil.i("dnsPod return " + body);
+                if (StringUtils.hasText(body)) {
+                    String[] ips = body.split(";");
+                    result = ips[0];
+                    LogUtil.i("HttpDNS the host has replaced with ip " + result);
+                    return result;
+                }
+            }
+        }catch (Exception e){
+            return "0.0.0.0";
+        }
+        return "0.0.0.0";
+    }
 }

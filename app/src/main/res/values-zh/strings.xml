@@ -138,6 +138,8 @@
     <string name="playcore_setting">播放器内核-ijk</string>
     <string name="sound_setting">音频非wifi网络下提示</string>
     <string name="sound_picshow">电影封面隐藏</string>
+    <string name="list_video_tiny_need">列表视频支持小窗</string>
+
     <string name="area_mi">专区加密</string>
     <string name="sound_play_not_wifi">非wifi下听音频？</string>
     <string name="sound">淫声荡语</string>

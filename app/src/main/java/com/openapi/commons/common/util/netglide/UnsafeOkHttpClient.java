@@ -1,5 +1,7 @@
 package com.openapi.commons.common.util.netglide;
 
+import com.openapi.ks.myapp.base.MyApplication;
+
 import java.security.cert.CertificateException;
 
 import javax.net.ssl.HostnameVerifier;
@@ -41,6 +43,7 @@ public class UnsafeOkHttpClient {
         final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
 
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
+        builder.dns(OkHttpDns.getInstance(MyApplication.getInstance()));
         builder.sslSocketFactory(sslSocketFactory, (X509TrustManager)trustAllCerts[0]);
         builder.hostnameVerifier(new HostnameVerifier() {
             @Override

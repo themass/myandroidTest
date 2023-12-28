@@ -46,6 +46,11 @@ import com.openapi.ks.moviefree1.ui.maintab.TabCustomeFragment;
 import com.openapi.ks.moviefree1.ui.maintab.TabMovieFragment;
 import com.openapi.ks.moviefree1.ui.maintab.TabNightFragment;
 import com.openapi.ks.moviefree1.ui.maintab.TabVpnFragment;
+import com.openapi.ks.myapp.ui.sound.JzvdPlayerFactory;
+import com.openapi.ks.myapp.ui.sound.media.JZMediaExo;
+import com.openapi.ks.myapp.ui.sound.media.JZMediaIjk;
+import com.shuyu.gsyvideoplayer.player.IjkPlayerManager;
+import com.shuyu.gsyvideoplayer.player.PlayerFactory;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -54,6 +59,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import tv.danmaku.ijk.media.exo2.Exo2PlayerManager;
 
 /**
  * Created by openapi on 2016/3/1.
@@ -93,6 +100,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
     @Override
     public void onRequestPermissionsResult(final int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (grantResults != null) {
             for (int ret : grantResults) {
                 if (ret != PackageManager.PERMISSION_GRANTED) {
@@ -158,6 +166,14 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         for (int i = 0; i < mTabLayout.getTabCount(); i++) {
             TabLayout.Tab tab = mTabLayout.getTabAt(i);
             tab.setCustomView(myPagerAdapter.getTabView(i, (i == 0)));
+        }
+        boolean playCore = PreferenceUtils.getPrefBoolean(this, Constants.PLAYCORE_SWITCH, true);
+        if(!playCore) {
+            PlayerFactory.setPlayManager(Exo2PlayerManager.class);
+            JzvdPlayerFactory.setPlayManager(JZMediaExo.class);
+        } else {
+            PlayerFactory.setPlayManager(IjkPlayerManager.class);
+            JzvdPlayerFactory.setPlayManager(JZMediaIjk.class);
         }
     }
 

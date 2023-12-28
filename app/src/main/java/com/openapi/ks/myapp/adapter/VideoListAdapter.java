@@ -11,11 +11,10 @@ import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
 import com.bumptech.glide.Glide;
+import com.openapi.ks.myapp.data.ImagePhotoLoad;
 import com.openapi.ks.myapp.data.VideoUtil;
-import com.openapi.ks.myapp.ui.sound.media.JZMediaExo;
-import com.openapi.ks.myapp.ui.sound.media.JZMediaIjk;
+import com.openapi.ks.myapp.ui.sound.JzvdPlayerFactory;
 import com.openapi.commons.common.util.LogUtil;
-import com.openapi.commons.common.util.PreferenceUtils;
 import com.openapi.commons.common.util.StringUtils;
 import com.openapi.commons.yewu.ads.base.AdsContext;
 import com.openapi.commons.yewu.ads.base.AdsManager;
@@ -47,17 +46,13 @@ public class VideoListAdapter extends BaseRecyclerViewAdapter<VideoListAdapter.V
             RecommendVo vo = data.get(position);
             LogUtil.i("jcVideoPlayer="+holder.jcVideoPlayer.toString());
 
-            boolean playCore = PreferenceUtils.getPrefBoolean(context, Constants.PLAYCORE_SWITCH, true);
 //            if(vo.actionUrl.contains("?")){
 //                vo.actionUrl = vo.actionUrl+"&t="+ (System.currentTimeMillis()/1000);
 //            }else{
 //                vo.actionUrl = vo.actionUrl+"?t="+ (System.currentTimeMillis()/1000);
 //            }
-            if(!playCore) {
-                holder.jcVideoPlayer.setUp(vo.actionUrl, vo.title, JzvdStd.SCREEN_NORMAL, JZMediaExo.class);
-            } else {
-                holder.jcVideoPlayer.setUp(vo.actionUrl, vo.title, JzvdStd.SCREEN_NORMAL, JZMediaIjk.class);
-            }
+
+            holder.jcVideoPlayer.setUp(vo.actionUrl, vo.title, JzvdStd.SCREEN_NORMAL, JzvdPlayerFactory.getPlayManager());
             holder.jcVideoPlayer.jzDataSource.headerMap = VideoUtil.getVideoSourceHeader(vo.actionUrl, StringUtils.hasText(vo.baseurl) ? vo.baseurl : vo.actionUrl);
 //
 
@@ -66,7 +61,7 @@ public class VideoListAdapter extends BaseRecyclerViewAdapter<VideoListAdapter.V
 //
 //            holder.jcVideoPlayer.starsetUpvo.actionUrionUrl,vo.title, Jzvd.SCREEN_NORMAL);
 //            holder.jcVideoPlayer.hea = header;
-            Glide.with(context).load(vo.img).into(holder.jcVideoPlayer.posterImageView);
+            ImagePhotoLoad.loadCommonImg(context,vo.img,holder.jcVideoPlayer.posterImageView);
             if(Constants.BANNER_ADS_POS.contains(position)){
                 if(position%2==1){
                     holder.rvAds.setVisibility(View.VISIBLE);

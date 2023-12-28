@@ -196,13 +196,13 @@ public class FileUtils {
     }
 
     public static String getWriteFilePath(Context context) {
-//        return context.getFilesDir().getAbsolutePath()+File.separator +filePath;
-        String sdStatus = Environment.getExternalStorageState();
-        if (!sdStatus.equals(Environment.MEDIA_MOUNTED)) {
-            return context.getFilesDir().getAbsolutePath() + File.separator + "myfreesex";
-        } else {
-            return File.separator + "sdcard" + File.separator + "myfreesex";
-        }
+        return context.getFilesDir().getAbsolutePath()+File.separator +"myfreesex";
+//        String sdStatus = Environment.getExternalStorageState();
+//        if (!sdStatus.equals(Environment.MEDIA_MOUNTED)) {
+//            return context.getFilesDir().getAbsolutePath() + File.separator + "myfreesex";
+//        } else {
+//            return File.separator + "sdcard" + File.separator + "myfreesex";
+//        }
     }
 
     public static boolean ensureFile(Context context, String filePath) {

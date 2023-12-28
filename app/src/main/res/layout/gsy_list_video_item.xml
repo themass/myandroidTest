@@ -1,23 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="@dimen/margin_5">
 
     <FrameLayout
         android:id="@+id/list_item_container"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
+        android:layout_height="@dimen/list_video_high"
         android:scaleType="centerCrop"
         android:src="@drawable/img_bg" />
 
 
     <ImageView
         android:id="@+id/list_item_btn"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
         android:layout_gravity="center_vertical"
-        android:src="@drawable/video_click_play_selector" />
+        android:src="@drawable/jz_click_play_selector"
+        />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/textsize_12"
+        android:textColor="@color/white"
+        android:maxLines="1"
+        android:layout_alignParentTop="true"
+        android:paddingLeft="@dimen/margin_8"
+        android:visibility="visible"
+        android:id="@+id/list_item_title"
+        />
 
 </RelativeLayout>

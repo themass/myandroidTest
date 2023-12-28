@@ -16,10 +16,13 @@ import com.bumptech.glide.request.target.Target;
 import com.openapi.commons.common.util.LogUtil;
 import com.openapi.commons.yewu.net.OkHttpStack;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.TimeUnit;
 
+import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
+import okhttp3.Response;
 
 import static android.R.attr.resource;
 

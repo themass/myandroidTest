@@ -61,6 +61,9 @@ public class SettingActivity extends BaseSingleActivity {
     Switch swPlayCore;
     @BindView(R.id.sw_playVideo)
     Switch sw_playVideo;
+
+    @BindView(R.id.sw_list_video)
+    Switch sw_listVideo;
     @BindView(R.id.tv_version)
     TextView tvVersion;
     BaseService baseService;
@@ -80,7 +83,16 @@ public class SettingActivity extends BaseSingleActivity {
             }
         });
 
-        swPlayCore.setChecked(PreferenceUtils.getPrefBoolean(this, Constants.PLAYCORE_SWITCH, true));
+        sw_listVideo.setChecked(PreferenceUtils.getPrefBoolean(this, Constants.LISTVIDEO_TINY_SWITCH, true));
+        sw_listVideo.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                PreferenceUtils.setPrefBoolean(SettingActivity.this, Constants.LISTVIDEO_TINY_SWITCH, isChecked);
+                LogUtil.i("LISTVIDEO_TINY_SWITCH: " + isChecked);
+                EventBusUtil.getEventBus().post(new TabChangeEvent());
+            }
+        });
+
+        swPlayCore.setChecked(PreferenceUtils.getPrefBoolean(this, Constants.PLAYCORE_SWITCH, false));
         swPlayCore.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 PreferenceUtils.setPrefBoolean(SettingActivity.this, Constants.PLAYCORE_SWITCH, isChecked);

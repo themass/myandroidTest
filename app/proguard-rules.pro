@@ -191,6 +191,7 @@
 
 #----------------------project------------
 -keep class com.openapi.ks.myapp.bean.**{ *; }
+-keep class com.openapi.ks.myapp.ui.sound.media.**{ *; }
 -keep class sun.misc.Unsafe { *; }
 -keep class com.google.gson.stream.** { *; }
 -keep class com.openapi.commons.common.weather.**{ *; }
@@ -286,8 +287,35 @@ public static java.lang.String TABLENAME;
 #-------------------vitamio.player------------------------
 -keep public class io.vov.vitamio.** { *; }
 
+-keep public class cn.jzvd.JZMediaSystem {*; }
 -keep public class cn.jzvd.** {*; }
-
 -keep class tv.danmaku.ijk.media.player.** {*; }
 -dontwarn tv.danmaku.ijk.media.player.*
 -keep interface tv.danmaku.ijk.media.player.** { *; }
+
+-keep class com.shuyu.gsyvideoplayer.video.** { *; }
+-dontwarn com.shuyu.gsyvideoplayer.video.**
+-keep class com.shuyu.gsyvideoplayer.video.base.** { *; }
+-dontwarn com.shuyu.gsyvideoplayer.video.base.**
+-keep class com.shuyu.gsyvideoplayer.utils.** { *; }
+-dontwarn com.shuyu.gsyvideoplayer.utils.**
+-keep class com.shuyu.gsyvideoplayer.player.** {*;}
+-dontwarn com.shuyu.gsyvideoplayer.player.**
+-keep class tv.danmaku.ijk.** { *; }
+-dontwarn tv.danmaku.ijk.**
+
+-keep class androidx.media3.** {*;}
+-keep interface androidx.media3.**
+
+-keep class com.google.android.exoplayer2.** {*;}
+-keep interface com.google.android.exoplayer2.**
+
+-keep class com.shuyu.alipay.** {*;}
+-keep interface com.shuyu.alipay.**
+
+-keep class com.alivc.**{*;}
+-keep class com.aliyun.**{*;}
+-keep class com.cicada.**{*;}
+-dontwarn com.alivc.**
+-dontwarn com.aliyun.**
+-dontwarn com.cicada.**

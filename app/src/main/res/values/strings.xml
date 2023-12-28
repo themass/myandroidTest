@@ -137,6 +137,7 @@
     <string name="playvideo_setting">play video-jiaozi</string>
     <string name="sound_setting">Play audio in not wifi</string>
     <string name="sound_picshow">Video pic show</string>
+    <string name="list_video_tiny_need">List Video tiny need</string>
     <string name="area_mi">Area encry</string>
     <string name="sound_play_not_wifi">You are now using a non WIFI network？</string>
     <string name="sound">Obscene</string>
