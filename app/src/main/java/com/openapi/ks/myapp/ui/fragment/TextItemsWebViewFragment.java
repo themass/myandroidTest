@@ -159,7 +159,7 @@ public class TextItemsWebViewFragment extends BaseFragment implements  MyFavorit
         settings.setAllowFileAccess(true);
         settings.setLoadWithOverviewMode(true);
         settings.setDomStorageEnabled(true);
-        settings.setAppCacheEnabled(true);
+//        settings.setAppCacheEnabled(true);
         settings.setGeolocationEnabled(true);
         settings.setGeolocationDatabasePath(getActivity().getCacheDir().toString());
         settings.setUserAgentString(settings.getUserAgentString() + " " + HttpUtils.getUserAgentSuffix(getActivity()));
@@ -225,7 +225,7 @@ public class TextItemsWebViewFragment extends BaseFragment implements  MyFavorit
             @Override
             public void onLoadResource(WebView view, String url) {
                 super.onLoadResource(view, url);
-                LogUtil.i("onLoadResource->" + url);
+                //LogUtil.i("onLoadResource->" + url);
                 mUrl = url;
             }
 

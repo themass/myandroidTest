@@ -98,6 +98,9 @@
             android:name="com.openapi.ks.myapp.ui.base.WebViewActivity"
             android:configChanges="orientation|keyboardHidden|screenSize" />
         <activity
+            android:name="com.openapi.ks.myapp.ui.base.Testwebview"
+            android:configChanges="orientation|keyboardHidden|screenSize" />
+        <activity
             android:name="com.openapi.ks.myapp.ui.user.LoginActivity"
             android:screenOrientation="portrait" />
         <activity

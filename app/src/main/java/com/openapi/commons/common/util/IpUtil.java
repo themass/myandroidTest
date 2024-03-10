@@ -88,5 +88,13 @@ public class IpUtil {
     private static String intToIp(int ip) {
         return (ip & 0xFF) + "." + ((ip >> 8) & 0xFF) + "." + ((ip >> 16) &     0xFF) + "." + (ip >> 24 & 0xFF);
     }
-
+    public static String getDomain(String urlPath) {
+        try {
+            URL url = new URL(urlPath);
+            return url.getHost();
+        }catch (Exception e){
+            LogUtil.e(e);
+            return "";
+        }
+    }
 }

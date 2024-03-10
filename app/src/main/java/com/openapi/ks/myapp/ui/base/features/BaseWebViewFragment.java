@@ -2,6 +2,8 @@ package com.openapi.ks.myapp.ui.base.features;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Bundle;
@@ -20,11 +22,19 @@ import android.widget.ProgressBar;
 import com.openapi.commons.common.ui.base.BaseFragment;
 import com.openapi.commons.common.ui.view.MyWebView;
 import com.openapi.commons.common.util.FileUtils;
+import com.openapi.commons.common.util.IpUtil;
 import com.openapi.commons.common.util.LogUtil;
+import com.openapi.commons.common.util.Utils;
 import com.openapi.commons.yewu.net.HttpUtils;
 import com.openapi.ks.moviefree1.R;
 import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.constant.Constants;
+import com.openapi.ks.myapp.data.urlparser.UrlParser;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 import butterknife.BindView;
 
@@ -120,7 +130,41 @@ public class BaseWebViewFragment extends BaseFragment {
         if (progressbar != null)
             progressbar.setVisibility(shown ? View.VISIBLE : View.GONE);
     }
-
+//初始化webView 时调用
+    /**
+     * 设置 cookies
+     * @param cookiesPath 请求地址
+     */
+    public void setCookies(String cookiesPath) {
+        Map<String, String> cookieMap = new HashMap<>();
+        String domain = IpUtil.getDomain(cookiesPath);
+        String cookie = MyApplication.getInstance().getSharedPreferences("cookie", Context.MODE_PRIVATE).getString(domain, "");// 从SharedPreferences中获取整个Cookie串
+        if (!TextUtils.isEmpty(cookie)) {
+            String[] cookieArray = cookie.split(";");// 多个Cookie是使用分号分隔的
+            for (int i = 0; i < cookieArray.length; i++) {
+                int position = cookieArray[i].indexOf("=");// 在Cookie中键值使用等号分隔
+                String cookieName = cookieArray[i].substring(0, position);// 获取键
+                String cookieValue = cookieArray[i].substring(position + 1);// 获取值
+                String value = cookieName + "=" + cookieValue;// 键值对拼接成 value
+                LogUtil.i("cookie", value);
+                CookieManager.getInstance().setCookie( domain, value);// 设置 Cookie
+            }
+        }
+    }
+//stop 生命周期调用
+    /**
+     * 保存 Cookie
+     */
+    private void saveCookie(String path) {
+            String domain = IpUtil.getDomain(path);
+            CookieManager cookieManager = CookieManager.getInstance();
+            String cookieStr = cookieManager.getCookie(domain);
+            LogUtil.i(cookieStr);
+            SharedPreferences preferences = MyApplication.getInstance().getSharedPreferences("cookie", Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putString(domain, cookieStr);
+            editor.commit();
+    }
     @SuppressLint({"JavascriptInterface", "SetJavaScriptEnabled"})
     private void init(final WebView webView) {
         cookieManager = CookieManager.getInstance();
@@ -135,14 +179,19 @@ public class BaseWebViewFragment extends BaseFragment {
         settings.setAllowFileAccess(true);
         settings.setLoadWithOverviewMode(true);
         settings.setDomStorageEnabled(true);
-        settings.setAppCacheEnabled(true);
+//        settings.setAppCacheEnabled(true);
         settings.setGeolocationEnabled(true);
         settings.setGeolocationDatabasePath(getActivity().getCacheDir().toString());
         settings.setUserAgentString(settings.getUserAgentString() + " " + HttpUtils.getUserAgentSuffix(getActivity()));
+        String cacheDirPath = MyApplication.getInstance().getFilesDir().getAbsolutePath()+"cache/";
         LogUtil.i("ua=" + settings.getUserAgentString());
         webView.setWebChromeClient(new WebChromeClient());
         webView.setWebViewClient(new WebViewClient() {
             private String mUrl;
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                //setCookies(url);
+                return super.shouldOverrideUrlLoading(view, url);
+            }
 
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
@@ -162,12 +211,14 @@ public class BaseWebViewFragment extends BaseFragment {
                 if (webViewListener != null) {
                     webViewListener.onPageFinished();
                 }
+
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     cookieManager.flush();
                 } else {
                     CookieSyncManager.createInstance(MyApplication.getInstance());
                     CookieSyncManager.getInstance().sync();
                 }
+                //saveCookie(url);
             }
 
             @Override
