@@ -26,8 +26,8 @@
     <!--<uses-permission android:name="android.permission.SET_DEBUG_APP" />-->
     <!--<uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" />-->
     <!--<uses-permission android:name="com.android.browser.permission.READ_HISTORY_BOOKMARKS" />-->
-    <uses-permission android:name="android.permission.EXPAND_STATUS_BAR"/>
-    <uses-permission android:name="android.permission.GET_TASKS"/>
+    <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" />
+    <uses-permission android:name="android.permission.GET_TASKS" />
     <!-- SD卡读取权限，用户写入离线定位数据 -->
     <!--<uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS" />-->
     <!-- 允许应用读取低级别的系统日志文件 -->
@@ -42,7 +42,7 @@
     <uses-permission android:name="android.permission.WRITE_CALENDAR" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-<!--    <uses-sdk tools:overrideLibrary="com.andremion.music.cover" />-->
+    <!--    <uses-sdk tools:overrideLibrary="com.andremion.music.cover" />-->
     <!--permission
         android:name="com.android.launcher.permission.READ_SETTINGS"
         android:permissionGroup="android.permission-group.SYSTEM_TOOLS"
@@ -60,14 +60,15 @@
     <application
         android:name="com.openapi.ks.myapp.base.MyApplication"
         android:allowBackup="false"
+        android:allowNativeHeapPointerTagging="false"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme.Slide"
         android:usesCleartextTraffic="true"
-        tools:replace="android:allowBackup"
-        android:allowNativeHeapPointerTagging="false"
-        >
-        <uses-library android:name="org.apache.http.legacy" android:required="false" />
+        tools:replace="android:allowBackup">
+        <uses-library
+            android:name="org.apache.http.legacy"
+            android:required="false" />
 
         <meta-data
             android:name="UMENG_CHANNEL"
@@ -76,12 +77,17 @@
             android:name="AdView_CHANNEL"
             android:value="${AD_CHANNEL_VALUE}" />
 
-        <meta-data android:name="com.bumptech.glide.integration.okhttp.OkHttpGlideModule" tools:node="remove" />
-        <meta-data android:name="com.openapi.commons.common.util.netglide.UnsafeOkHttpClient" android:value="MyGlideModule" />
+        <meta-data
+            android:name="com.bumptech.glide.integration.okhttp.OkHttpGlideModule"
+            tools:node="remove" />
+        <meta-data
+            android:name="com.openapi.commons.common.util.netglide.UnsafeOkHttpClient"
+            android:value="MyGlideModule" />
+
         <activity
             android:name=".ui.main.LaunchActivity"
-            android:screenOrientation="portrait"
-            android:exported="true">
+            android:exported="true"
+            android:screenOrientation="portrait">
             <intent-filter tools:ignore="GoogleAppIndexingWarning">
                 <action android:name="android.intent.action.VIEW" />
                 <action android:name="android.intent.action.MAIN" />
@@ -138,38 +144,38 @@
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:hardwareAccelerated="true"
             android:screenOrientation="nosensor"
-            android:theme="@style/AppTheme"/>
+            android:theme="@style/AppTheme" />
         <activity
             android:name="com.openapi.ks.myapp.ui.sound.VitamioVideoPlayActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme"/>
+            android:theme="@style/AppTheme" />
         <activity
             android:name="com.openapi.ks.myapp.ui.sound.VideoShowActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme"/>
+            android:theme="@style/AppTheme" />
         <activity
             android:name="com.openapi.ks.myapp.ui.sound.VideoListShowActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme"/>
+            android:theme="@style/AppTheme" />
 
         <activity
             android:name="com.openapi.ks.myapp.ui.sound.VideoShowActivityj"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme"/>
+            android:theme="@style/AppTheme" />
         <activity
             android:name="com.openapi.ks.myapp.ui.sound.VideoShowActivityLazyUrl"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme"/>
+            android:theme="@style/AppTheme" />
         <activity
             android:name="com.openapi.ks.myapp.ui.gsy.ad.GSYADVideoListShowActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme"/>
+            android:theme="@style/AppTheme" />
         <activity
             android:name="com.openapi.ks.myapp.ui.sound.MyFullScreenImageGalleryActivity"
             android:screenOrientation="portrait" />
@@ -178,8 +184,8 @@
             android:screenOrientation="portrait" />
         <activity
             android:name="com.openapi.ks.myapp.ui.feedback.FeedbackFragmentActivity"
-            android:theme="@style/StyledIndicators"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"
+            android:theme="@style/StyledIndicators" />
         <activity
             android:name="com.openapi.ks.myapp.ui.config.QuickBrowserConfigActivity"
             android:screenOrientation="portrait"
@@ -205,24 +211,23 @@
 
         <activity
             android:name="io.github.ryanhoo.music.ui.main.MuiscMainActivity"
-            android:screenOrientation="portrait">
-        </activity>
+            android:screenOrientation="portrait"></activity>
         <activity
-            android:label="@string/mp.activity.title.file_system"
             android:name="io.github.ryanhoo.music.ui.local.filesystem.FileSystemActivity"
-            android:screenOrientation="portrait"
-            />
+            android:label="@string/mp.activity.title.file_system"
+            android:screenOrientation="portrait" />
         <activity
             android:name="io.github.ryanhoo.music.ui.details.PlayListDetailsActivity"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
 
-        <service android:name="io.github.ryanhoo.music.player.PlaybackService"
+        <service
+            android:name="io.github.ryanhoo.music.player.PlaybackService"
             android:exported="true">
             <intent-filter>
-                <action android:name="io.github.ryanhoo.music.ACTION.PLAY_TOGGLE"/>
-                <action android:name="io.github.ryanhoo.music.ACTION.PLAY_NEXT"/>
-                <action android:name="io.github.ryanhoo.music.ACTION.PLAY_LAST"/>
-                <action android:name="io.github.ryanhoo.music.ACTION.STOP_SERVICE"/>
+                <action android:name="io.github.ryanhoo.music.ACTION.PLAY_TOGGLE" />
+                <action android:name="io.github.ryanhoo.music.ACTION.PLAY_NEXT" />
+                <action android:name="io.github.ryanhoo.music.ACTION.PLAY_LAST" />
+                <action android:name="io.github.ryanhoo.music.ACTION.STOP_SERVICE" />
             </intent-filter>
         </service>
 
@@ -232,43 +237,47 @@
             android:enabled="true" />
 
         <!--- Receiver -->
-        <receiver android:name="com.rks.musicx.ui.homeWidget.MusicxWidget4x2"
+        <receiver
+            android:name="com.rks.musicx.ui.homeWidget.MusicxWidget4x2"
             android:enabled="true"
             android:exported="false">
             <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/musicxwidget"/>
+                android:resource="@xml/musicxwidget" />
         </receiver>
 
-        <receiver android:name="com.rks.musicx.ui.homeWidget.MusicXwidget4x4"
+        <receiver
+            android:name="com.rks.musicx.ui.homeWidget.MusicXwidget4x4"
             android:enabled="true"
             android:exported="false">
             <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/musicxwidget4x4"/>
+                android:resource="@xml/musicxwidget4x4" />
         </receiver>
 
-        <receiver android:name="com.rks.musicx.ui.homeWidget.MusicXWidget5x5"
+        <receiver
+            android:name="com.rks.musicx.ui.homeWidget.MusicXWidget5x5"
             android:enabled="true"
             android:exported="false">
             <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/musicxwidget5x5"/>
+                android:resource="@xml/musicxwidget5x5" />
         </receiver>
 
-        <receiver android:name="com.rks.musicx.services.MediaButtonReceiver"
+        <receiver
+            android:name="com.rks.musicx.services.MediaButtonReceiver"
             android:exported="true">
             <intent-filter android:priority="1001">
-                <action android:name="android.intent.action.MEDIA_BUTTON"/>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
         </receiver>
 
@@ -276,12 +285,13 @@
 
         <activity
             android:name="com.rks.musicx.ui.activities.MusicXMainActivity"
+            android:exported="true"
             android:label="@string/app_name"
             android:screenOrientation="portrait"
-            android:theme="@style/AppThemeNormalLight"
-            android:exported="true">
+            android:theme="@style/AppThemeNormalLight">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
@@ -295,33 +305,35 @@
             android:name="com.rks.musicx.ui.activities.PlayingActivity"
             android:label="@string/app_name"
             android:screenOrientation="portrait"
-            android:theme="@style/AppThemeNormalLight"/>
+            android:theme="@style/AppThemeNormalLight" />
 
         <activity
             android:name="com.rks.musicx.ui.activities.EqualizerActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/AppThemeNormalLight"/>
+            android:theme="@style/AppThemeNormalLight" />
         <activity
             android:name="com.rks.musicx.ui.activities.SettingsActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/AppThemeNormalLight"/>
+            android:theme="@style/AppThemeNormalLight" />
         <activity
             android:name="com.rks.musicx.ui.activities.AboutActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/AppThemeNormalLight"/>
+            android:theme="@style/AppThemeNormalLight" />
         <activity
             android:name="com.rks.musicx.ui.activities.IntroActivity"
             android:label="@string/Intro"
-            android:theme="@style/AppThemeNormalLight"/>
+            android:theme="@style/AppThemeNormalLight" />
 
-        <activity android:name="com.rks.musicx.ui.activities.DonationActivity"
+        <activity
+            android:name="com.rks.musicx.ui.activities.DonationActivity"
             android:label="@string/donation"
             android:screenOrientation="portrait"
-            android:theme="@style/AppThemeNormalLight"/>
+            android:theme="@style/AppThemeNormalLight" />
 
-        <activity android:name="com.rks.musicx.ui.activities.ShortcutActivity"
+        <activity
+            android:name="com.rks.musicx.ui.activities.ShortcutActivity"
             android:label="@string/shortcuts"
-            android:theme="@style/AppThemeNormalLight"/>
+            android:theme="@style/AppThemeNormalLight" />
 
     </application>
 

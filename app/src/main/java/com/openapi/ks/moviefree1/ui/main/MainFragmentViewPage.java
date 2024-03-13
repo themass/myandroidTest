@@ -49,6 +49,7 @@ import com.openapi.ks.moviefree1.ui.maintab.TabVpnFragment;
 import com.openapi.ks.myapp.ui.sound.JzvdPlayerFactory;
 import com.openapi.ks.myapp.ui.sound.media.JZMediaExo;
 import com.openapi.ks.myapp.ui.sound.media.JZMediaIjk;
+import com.openapi.ks.test.Test;
 import com.shuyu.gsyvideoplayer.player.IjkPlayerManager;
 import com.shuyu.gsyvideoplayer.player.PlayerFactory;
 
@@ -87,6 +88,12 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         mPermissionHelper = new PermissionHelper(this);
         EventBusUtil.getEventBus().register(this);
         mPermissionHelper.checkNeedPermissions();
+        Test testKotlin = new Test("xxx", 1);
+        testKotlin.sayHello();  // 输出：Hello, my name is xxx and I am 1 years old.
+        testKotlin.sayHello();  // 输出：Hello, my name is xxx and I am 1 years old.
+        testKotlin.sayHello();  // 输出：Hello, my name is xxx and I am 1 years old.
+        testKotlin.sayHello();  // 输出：Hello, my name is xxx and I am 1 years old.
+        testKotlin.sayHello();  // 输出：Hello, my name is xxx and I am 1 years old.
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

@@ -170,6 +170,7 @@ public class BaseWebViewFragment extends BaseFragment {
         cookieManager = CookieManager.getInstance();
         cookieManager.setAcceptCookie(true);
         WebSettings settings = webView.getSettings();
+
         settings.setJavaScriptEnabled(true);
         settings.setDatabaseEnabled(false);
         settings.setSaveFormData(false);
