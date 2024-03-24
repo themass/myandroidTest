@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:paddingLeft="@dimen/mp.margin.xlarge"
     android:paddingRight="@dimen/mp.margin.xlarge"
     android:paddingBottom="@dimen/mp.margin.normal"
-    android:paddingTop="@dimen/mp.margin.large"
-    >
+    android:paddingTop="@dimen/mp.margin.large">
 
     <EditText
         android:id="@+id/edit_text"
@@ -19,7 +17,6 @@
         android:maxLength="@integer/mp.limits.play_list_name"
         android:singleLine="true"
         android:imeOptions="actionDone"
-        android:inputType="textCapWords"
-        />
+        android:inputType="textCapWords" />
 
 </FrameLayout>

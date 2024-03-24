@@ -13,6 +13,7 @@
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/item_view"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
@@ -23,7 +24,8 @@
     android:paddingBottom="10dp"
     android:paddingLeft="5dp"
     android:paddingRight="5dp"
-    android:paddingTop="10dp">
+    android:paddingTop="10dp"
+    tools:viewBindingIgnore="true">
 
 
     <com.rks.musicx.misc.widgets.CircleImageView
@@ -35,7 +37,7 @@
         android:scaleType="centerCrop"
         android:src="@drawable/ic_launcher"
         app:border_color="@color/translucent_white_8p"
-        app:border_width="4dp"/>
+        app:border_width="4dp" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -53,7 +55,7 @@
             android:maxLines="1"
             android:text="SONG TITLE"
             android:textColor="@color/colorPrimaryText"
-            android:textSize="16sp"/>
+            android:textSize="16sp" />
 
         <TextView
             android:id="@+id/artist"
@@ -65,7 +67,7 @@
             android:paddingTop="4dp"
             android:text="SONG ARTIST"
             android:textColor="@color/colorSecondaryText"
-            android:textSize="14sp"/>
+            android:textSize="14sp" />
 
     </LinearLayout>
 
@@ -78,5 +80,5 @@
         android:paddingLeft="4dp"
         android:paddingRight="4dp"
         android:tint="@android:color/white"
-        app:srcCompat="@drawable/ic_menu"/>
+        app:srcCompat="@drawable/ic_menu" />
 </LinearLayout>

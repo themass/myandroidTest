@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~ ©2017 Rajneesh Singh
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -13,11 +12,11 @@
   -->
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:app="http://schemas.android.com/apk/res-auto"
-              android:id="@+id/item_view"
-              android:layout_width="match_parent"
-              android:layout_height="wrap_content"
-              android:layout_margin="4dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/item_view"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="4dp"
     android:background="?android:attr/selectableItemBackground"
     android:clickable="true"
     android:elevation="4dp"
@@ -33,7 +32,7 @@
         android:background="@color/default_artwork_bg"
         android:scaleType="centerCrop"
         android:src="@drawable/ic_launcher"
-        android:transitionName="TransitionArtwork"/>
+        android:transitionName="TransitionArtwork" />
 
     <LinearLayout
         android:id="@+id/backgroundColor"
@@ -63,7 +62,7 @@
                 android:maxLines="1"
                 android:text="SONG TITLE"
                 android:textColor="@color/colorPrimaryText"
-                android:textSize="16sp"/>
+                android:textSize="16sp" />
 
             <TextView
                 android:id="@+id/artist_name"
@@ -74,7 +73,7 @@
                 android:maxLines="1"
                 android:text="SONG ARTIST"
                 android:textColor="@color/colorSecondaryText"
-                android:textSize="13sp"/>
+                android:textSize="13sp" />
 
         </LinearLayout>
 
@@ -90,7 +89,7 @@
             android:theme="@style/ButtonStyle"
             android:tint="@android:color/white"
             android:visibility="gone"
-            app:srcCompat="@drawable/ic_menu"/>
+            app:srcCompat="@drawable/ic_menu" />
     </LinearLayout>
 
 </LinearLayout>

@@ -13,7 +13,8 @@
         android:visibility="gone"
         android:queryHint="@string/search" />
 
-    <include layout="@layout/base_loadable_fragment"
+    <include
+        layout="@layout/base_loadable_fragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 </LinearLayout>

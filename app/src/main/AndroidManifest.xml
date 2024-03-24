@@ -334,7 +334,25 @@
             android:name="com.rks.musicx.ui.activities.ShortcutActivity"
             android:label="@string/shortcuts"
             android:theme="@style/AppThemeNormalLight" />
+        <activity
+            android:name="chat.asrassistant.activity.ChatActivity"
+            android:launchMode="singleTop"
+            android:theme="@style/AppTheme">
+        </activity>
+        <activity
+            android:name="chat.asrassistant.activity.ConfigActivity"
+            android:launchMode="singleTop"
+            android:theme="@style/AppTheme">
+        </activity>
 
+        <activity
+            android:name="chat.ui.CustomLayoutDialogsActivity"
+            android:theme="@style/AppTheme" >
+        </activity>
+        <activity
+            android:name="chat.ui.CustomLayoutMessagesActivity"
+            android:theme="@style/AppTheme" >
+        </activity>
     </application>
 
 </manifest>

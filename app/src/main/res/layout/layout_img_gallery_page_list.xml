@@ -1,22 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout  xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    >
-    <include layout="@layout/layout_img_big_page_view"
+    android:layout_height="match_parent">
+
+    <include
+        layout="@layout/layout_img_big_page_view"
         android:id="@+id/full_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone"/>
+        android:visibility="gone" />
+
     <RelativeLayout
         android:id="@+id/rl_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:visibility="visible">
-        <include layout="@layout/common_mypage_view"
+
+        <include
+            layout="@layout/common_mypage_view"
             android:id="@+id/my_pullview"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
+
         <com.openapi.commons.common.ui.view.MyFavoriteView
             android:id="@+id/my_favoriteview"
             android:layout_width="wrap_content"

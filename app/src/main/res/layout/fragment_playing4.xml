@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~ ©2017 Rajneesh Singh
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -14,9 +13,12 @@
 
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true">
+    android:fitsSystemWindows="true"
+    tools:viewBindingIgnore="true"
+    >
 
     <ImageView
         android:id="@+id/blurArtwork"
@@ -25,7 +27,7 @@
         android:background="@color/default_artwork_bg"
         android:fitsSystemWindows="true"
         android:scaleType="centerCrop"
-        android:src="@drawable/musicx_launcher"/>
+        android:src="@drawable/musicx_launcher" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -51,7 +53,7 @@
                 android:contentDescription="@null"
                 android:paddingLeft="4dp"
                 android:paddingRight="4dp"
-                android:src="@drawable/ic_action_favorite_outline"/>
+                android:src="@drawable/ic_action_favorite_outline" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -72,7 +74,7 @@
                     android:text="Sonu Nigam"
                     android:textColor="@color/white"
                     android:textSize="18sp"
-                    android:textStyle="bold"/>
+                    android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/song_artist"
@@ -87,7 +89,7 @@
                     android:paddingTop="4dp"
                     android:text="Agneepath"
                     android:textColor="@color/white"
-                    android:textSize="16sp"/>
+                    android:textSize="16sp" />
 
             </LinearLayout>
 
@@ -100,7 +102,7 @@
                 android:paddingLeft="4dp"
                 android:paddingRight="4dp"
                 android:tint="@android:color/white"
-                app:srcCompat="@drawable/ic_menu"/>
+                app:srcCompat="@drawable/ic_menu" />
 
         </LinearLayout>
 

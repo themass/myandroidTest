@@ -24,6 +24,7 @@
             android:textColor="@color/base_black"
             android:textSize="@dimen/textsize_22" />
     </com.openapi.commons.common.ui.view.MyScrollView>
+
     <com.openapi.commons.common.ui.view.MyFavoriteView
         android:id="@+id/my_favoriteview"
         android:layout_width="wrap_content"

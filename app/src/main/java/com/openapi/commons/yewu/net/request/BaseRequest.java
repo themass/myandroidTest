@@ -24,6 +24,8 @@ import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.StaticDataUtil;
 import com.openapi.ks.myapp.data.UserLoginUtil;
 
+import org.apache.http.protocol.HTTP;
+
 import java.net.URL;
 import java.util.Date;
 import java.util.HashMap;
@@ -67,6 +69,7 @@ public class BaseRequest<T> extends Request<T> {
         String loc = "lon:" + StaticDataUtil.get(Constants.LON, Double.class) + ";lat:" + StaticDataUtil.get(Constants.LAT, Double.class);
         this.authkey = ua.substring(ua.length() - 16, ua.length());
         headers.put("Loc", loc);
+//        headers.put(HTTP.CONTENT_TYPE, "aapplication/json");
         headers.put(Constants.USER_AGENT, ua);
         if (!headers.containsKey(Constants.REFERER)) {
             headers.put(Constants.REFERER, Constants.DEFAULT_REFERER);

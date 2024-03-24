@@ -3,7 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <include layout="@layout/common_mypage_view"
+    <include
+        layout="@layout/common_mypage_view"
         android:id="@+id/my_pullview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />

@@ -12,16 +12,18 @@
   -->
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:app="http://schemas.android.com/apk/res-auto"
-              android:id="@+id/item_view"
-              android:layout_width="fill_parent"
-              android:layout_height="wrap_content"
-              android:gravity="center_vertical"
-              android:orientation="horizontal"
-              android:paddingBottom="10dp"
-              android:paddingLeft="10dp"
-              android:paddingRight="10dp"
-              android:paddingTop="10dp">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/item_view"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingBottom="10dp"
+    android:paddingLeft="10dp"
+    android:paddingRight="10dp"
+    android:paddingTop="10dp"
+    tools:viewBindingIgnore="true">
 
 
     <LinearLayout
@@ -41,7 +43,7 @@
             android:maxLines="1"
             android:text="Playlist TITLE"
             android:textColor="@color/colorPrimaryText"
-            android:textSize="16sp"/>
+            android:textSize="16sp" />
 
         <TextView
             android:id="@+id/song_count"
@@ -52,7 +54,7 @@
             android:layout_marginTop="4dp"
             android:text="Playlist Song Count"
             android:textColor="@color/colorPrimaryText"
-            android:textSize="14sp"/>
+            android:textSize="14sp" />
 
     </LinearLayout>
 
@@ -64,6 +66,6 @@
         android:layout_weight="0"
         android:background="@drawable/ripple"
         android:tint="@android:color/white"
-        app:srcCompat="@drawable/ic_menu"/>
+        app:srcCompat="@drawable/ic_menu" />
 
 </LinearLayout>

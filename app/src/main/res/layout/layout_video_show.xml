@@ -2,16 +2,17 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+
     <com.openapi.ks.myapp.ui.sound.media.MyJzvdStd
         android:id="@+id/jz_video"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
-<!--    <com.openapi.commons.common.ui.view.MyFavoriteView-->
-<!--        android:id="@+id/my_favoriteview"-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_gravity="right|bottom"-->
-<!--        android:layout_marginRight="@dimen/margin_22"-->
-<!--        android:layout_marginBottom="@dimen/margin_55"-->
-<!--        android:visibility="gone"/>-->
+    <!--    <com.openapi.commons.common.ui.view.MyFavoriteView-->
+    <!--        android:id="@+id/my_favoriteview"-->
+    <!--        android:layout_width="wrap_content"-->
+    <!--        android:layout_height="wrap_content"-->
+    <!--        android:layout_gravity="right|bottom"-->
+    <!--        android:layout_marginRight="@dimen/margin_22"-->
+    <!--        android:layout_marginBottom="@dimen/margin_55"-->
+    <!--        android:visibility="gone"/>-->
 </FrameLayout>

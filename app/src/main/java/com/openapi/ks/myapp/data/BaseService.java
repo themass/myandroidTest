@@ -5,6 +5,7 @@ import android.content.Context;
 import com.android.volley.Request;
 import com.android.volley.toolbox.RequestFuture;
 import com.openapi.commons.common.util.BeanUtil;
+import com.openapi.commons.common.util.LogUtil;
 import com.openapi.commons.yewu.net.VolleyUtils;
 import com.openapi.commons.yewu.net.request.CommonResponse;
 import com.openapi.commons.yewu.net.request.GsonInfoListRequest;
@@ -69,8 +70,10 @@ public class BaseService {
 
     public <T> void postData(String url, Object param, CommonResponse.ResponseOkListener<T> listener, CommonResponse.ResponseErrorListener errorListener, String tag, Class<T> t) {
         Map<String, String> map = null;
-        if (param != null)
+        if (param != null) {
             map = BeanUtil.transBean2Map(param);
+            LogUtil.i(map);
+        }
         MultipartRequest request = new MultipartRequest(context, map, url, null, listener, errorListener, t);
         request.setTag(tag);
         VolleyUtils.addRequest(request);

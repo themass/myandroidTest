@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~ ©2017 Rajneesh Singh
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -13,10 +12,12 @@
   -->
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:app="http://schemas.android.com/apk/res-auto"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent"
-              android:orientation="vertical">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:viewBindingIgnore="true">
 
     <FrameLayout
         android:id="@+id/coverView"
@@ -44,7 +45,7 @@
             app:pointer_halo_border_width="2dp"
             app:pointer_halo_color="@color/colorAccent"
             app:pointer_halo_width="1dp"
-            app:use_custom_radii="true"/>
+            app:use_custom_radii="true" />
 
         <com.rks.musicx.misc.widgets.CircleImageView
             android:id="@+id/album_cover"
@@ -54,7 +55,7 @@
             android:clickable="true"
             android:src="@drawable/musicx_launcher"
             app:border_color="@color/translucent_white_8p"
-            app:border_width="4dp"/>
+            app:border_width="4dp" />
 
         <FrameLayout
             android:layout_width="75dp"
@@ -72,7 +73,7 @@
                 android:scaleType="fitCenter"
                 android:src="@drawable/aw_ic_play"
                 android:tag="bg_tint_accent_color"
-                app:borderWidth="0dp"/>
+                app:borderWidth="0dp" />
 
         </FrameLayout>
 
@@ -93,7 +94,7 @@
             android:maxLines="1"
             android:text="3:26"
             android:textColor="@color/white"
-            android:textSize="24sp"/>
+            android:textSize="24sp" />
 
         <TextView
             android:id="@+id/divider"
@@ -105,7 +106,7 @@
             android:maxLines="1"
             android:text="|"
             android:textColor="@color/white"
-            android:textSize="24sp"/>
+            android:textSize="24sp" />
 
         <TextView
             android:id="@+id/totalDur"
@@ -115,7 +116,7 @@
             android:maxLines="1"
             android:text="3.67"
             android:textColor="@color/white"
-            android:textSize="24sp"/>
+            android:textSize="24sp" />
 
     </LinearLayout>
 

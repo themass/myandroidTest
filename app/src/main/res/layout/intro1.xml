@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~ ©2017 Rajneesh Singh
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -35,7 +34,7 @@
             android:paddingEnd="25dp"
             android:paddingStart="25dp"
             android:paddingTop="25dp"
-            android:src="@drawable/ic_launcher"/>
+            android:src="@drawable/ic_launcher" />
 
 
         <TextView
@@ -51,13 +50,13 @@
             android:paddingTop="25dp"
             android:text="@string/app_info"
             android:textColor="@color/white"
-            android:textSize="20sp"/>
+            android:textSize="20sp" />
 
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="64dp"
-            android:layout_below="@+id/info"/>
+            android:layout_below="@+id/info" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -75,8 +74,7 @@
             fontPath="Header.ttf"
             tools:ignore="MissingPrefix"
             android:textColor="@color/white"
-            android:textSize="50sp"
-            />
+            android:textSize="50sp" />
 
     </RelativeLayout>
 

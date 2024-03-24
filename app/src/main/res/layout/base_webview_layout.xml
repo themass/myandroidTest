@@ -1,9 +1,11 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/fl_bg"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:gravity="center"
-    android:padding="@dimen/margin_3">
+    android:padding="@dimen/margin_3"
+    tools:viewBindingIgnore="true">
 
     <com.openapi.commons.common.ui.view.MyWebView
         android:id="@+id/wv_content"

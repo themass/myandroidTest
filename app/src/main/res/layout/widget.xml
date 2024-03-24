@@ -12,12 +12,14 @@
   -->
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:id="@+id/item_view"
-              android:layout_width="fill_parent"
-              android:layout_height="wrap_content"
-              android:background="@color/MaterialGrey"
-              android:gravity="center_vertical"
-              android:orientation="horizontal">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/item_view"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/MaterialGrey"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    tools:viewBindingIgnore="true">
 
     <ImageView
         android:id="@+id/artwork"
@@ -25,7 +27,7 @@
         android:layout_height="110dp"
         android:contentDescription="@null"
         android:scaleType="centerCrop"
-        android:src="@drawable/ic_launcher"/>
+        android:src="@drawable/ic_launcher" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -57,7 +59,7 @@
                     android:maxLines="1"
                     android:text="Hello"
                     android:textColor="@color/white"
-                    android:textSize="16sp"/>
+                    android:textSize="16sp" />
 
                 <TextView
                     android:id="@+id/artist"
@@ -70,10 +72,11 @@
                     android:paddingTop="4dp"
                     android:text="Adele"
                     android:textColor="@color/white"
-                    android:textSize="13sp"/>
+                    android:textSize="13sp" />
 
 
             </LinearLayout>
+
             <ImageButton
                 android:id="@+id/action_favorite"
                 android:layout_width="wrap_content"
@@ -82,7 +85,7 @@
                 android:contentDescription="@null"
                 android:scaleType="fitCenter"
                 android:layout_gravity="center"
-                android:src="@drawable/ic_action_favorite_outline"/>
+                android:src="@drawable/ic_action_favorite_outline" />
         </LinearLayout>
 
         <LinearLayout

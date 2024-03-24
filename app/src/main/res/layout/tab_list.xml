@@ -12,6 +12,7 @@
   -->
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/item_view"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
@@ -19,7 +20,8 @@
     android:background="?android:attr/selectableItemBackground"
     android:gravity="center_vertical"
     android:orientation="vertical"
-    android:padding="4dp">
+    android:padding="4dp"
+    tools:viewBindingIgnore="true">
 
     <TextView
         android:id="@+id/remove_title"

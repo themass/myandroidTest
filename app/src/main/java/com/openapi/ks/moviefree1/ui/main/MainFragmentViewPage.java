@@ -49,7 +49,6 @@ import com.openapi.ks.moviefree1.ui.maintab.TabVpnFragment;
 import com.openapi.ks.myapp.ui.sound.JzvdPlayerFactory;
 import com.openapi.ks.myapp.ui.sound.media.JZMediaExo;
 import com.openapi.ks.myapp.ui.sound.media.JZMediaIjk;
-import com.openapi.ks.test.Test;
 import com.shuyu.gsyvideoplayer.player.IjkPlayerManager;
 import com.shuyu.gsyvideoplayer.player.PlayerFactory;
 
@@ -61,6 +60,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.openapi.ks.moviefree1.ui.maintab.TabChatMessagesFragment;
 import tv.danmaku.ijk.media.exo2.Exo2PlayerManager;
 
 /**
@@ -88,12 +88,6 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         mPermissionHelper = new PermissionHelper(this);
         EventBusUtil.getEventBus().register(this);
         mPermissionHelper.checkNeedPermissions();
-        Test testKotlin = new Test("xxx", 1);
-        testKotlin.sayHello();  // 输出：Hello, my name is xxx and I am 1 years old.
-        testKotlin.sayHello();  // 输出：Hello, my name is xxx and I am 1 years old.
-        testKotlin.sayHello();  // 输出：Hello, my name is xxx and I am 1 years old.
-        testKotlin.sayHello();  // 输出：Hello, my name is xxx and I am 1 years old.
-        testKotlin.sayHello();  // 输出：Hello, my name is xxx and I am 1 years old.
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -163,8 +157,10 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
                         R.drawable.ac_bg_tab_index, R.string.tab_movie, null, 3);
             }
         }
+        addData(inflater, R.string.tab_tag_chat, TabChatMessagesFragment.class,
+                R.drawable.ac_bg_tab_index, R.string.tab_chat, null, 4);
         addData(inflater, R.string.tab_tag_customer, TabCustomeFragment.class,
-                R.drawable.ac_bg_tab_index, R.string.tab_customer, null, 4);
+                R.drawable.ac_bg_tab_index, R.string.tab_customer, null, 5);
 
         myPagerAdapter = new MyPagerAdapter(getSupportFragmentManager());
         mViewPager.setAdapter(myPagerAdapter);

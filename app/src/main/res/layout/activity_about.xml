@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~ ©2017 Rajneesh Singh
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -18,7 +17,8 @@
     android:id="@+id/about_background"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true">
+    android:fitsSystemWindows="true"
+    tools:viewBindingIgnore="true">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -50,8 +50,7 @@
                         android:layout_height="wrap_content"
                         android:text="About"
                         android:textColor="@color/white"
-                        android:textSize="24sp"
-                        />
+                        android:textSize="24sp" />
 
                 </LinearLayout>
 
@@ -88,7 +87,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
-                        android:src="@drawable/ic_launcher"/>
+                        android:src="@drawable/ic_launcher" />
 
                     <TextView
                         android:id="@+id/about_app_title"
@@ -100,8 +99,7 @@
                         android:textColor="@color/white"
                         android:textSize="50sp"
                         android:textStyle="bold"
-                        tools:ignore="MissingPrefix"
-                        />
+                        tools:ignore="MissingPrefix" />
 
                     <TextView
                         android:id="@+id/about_app_disc"
@@ -110,8 +108,7 @@
                         android:layout_gravity="center"
                         android:padding="5dp"
                         android:textColor="@color/white"
-                        android:textSize="20sp"
-                        />
+                        android:textSize="20sp" />
 
                     <TextView
                         android:id="@+id/about_app_ver"
@@ -123,8 +120,7 @@
                         android:paddingRight="5dp"
                         android:paddingTop="5dp"
                         android:textColor="@color/white"
-                        android:textSize="16sp"
-                        />
+                        android:textSize="16sp" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 

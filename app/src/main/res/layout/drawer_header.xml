@@ -59,7 +59,8 @@
         android:layout_height="1dp"
         android:layout_gravity="bottom"
         android:background="#dddddd"
-        android:layout_below="@+id/ll_menu_headview"/>
+        android:layout_below="@+id/ll_menu_headview" />
+
     <LinearLayout
         android:id="@+id/ll_desc"
         android:clickable="true"
@@ -73,41 +74,42 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
+
         <TextView
             android:id="@+id/tv_score"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="@dimen/textsize_12"
-            />
+            android:textSize="@dimen/textsize_12" />
+
         <TextView
             android:id="@+id/tv_desc"
             android:gravity="right"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="@dimen/textsize_14"
-            android:textColor="@color/warning_text"
-            />
+            android:textColor="@color/warning_text" />
+
         <TextView
             android:id="@+id/tv_desc1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="@dimen/textsize_12"
             android:textColor="@color/base_green1"
-            android:paddingTop="@dimen/margin_5"
-            />
+            android:paddingTop="@dimen/margin_5" />
+
         <TextView
             android:paddingTop="@dimen/margin_3"
             android:id="@+id/tv_desc2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="@dimen/textsize_12"
-            android:textColor="@color/fab_color_pressed"
-            />
+            android:textColor="@color/fab_color_pressed" />
     </LinearLayout>
+
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_gravity="bottom"
         android:background="#dddddd"
-        android:layout_below="@+id/ll_desc"/>
+        android:layout_below="@+id/ll_desc" />
 </RelativeLayout>

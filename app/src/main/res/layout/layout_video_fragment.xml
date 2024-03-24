@@ -3,11 +3,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_marginTop="@dimen/margin_10">
+
     <include
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/my_pullview"
         layout="@layout/common_mypage_view" />
+
     <FrameLayout
         android:id="@+id/video_full_container"
         android:layout_width="match_parent"

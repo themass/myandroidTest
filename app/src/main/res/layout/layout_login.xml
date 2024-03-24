@@ -54,6 +54,7 @@
                 android:background="?android:attr/selectableItemBackground"
                 android:text="@string/reg"
                 android:textColor="@color/gray" />
+
             <Button
                 android:id="@+id/btn_findpass"
                 android:padding="@dimen/margin_5"

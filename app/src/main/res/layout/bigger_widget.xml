@@ -25,7 +25,7 @@
         android:layout_height="200dp"
         android:contentDescription="@null"
         android:scaleType="centerCrop"
-        android:src="@drawable/ic_launcher"/>
+        android:src="@drawable/ic_launcher" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -58,7 +58,7 @@
                     android:maxLines="1"
                     android:text="Hello"
                     android:textColor="@color/white"
-                    android:textSize="16sp"/>
+                    android:textSize="16sp" />
 
                 <TextView
                     android:id="@+id/artist"
@@ -71,10 +71,11 @@
                     android:paddingTop="4dp"
                     android:text="Adele"
                     android:textColor="@color/white"
-                    android:textSize="13sp"/>
+                    android:textSize="13sp" />
 
 
             </LinearLayout>
+
             <ImageButton
                 android:id="@+id/action_favorite"
                 android:layout_width="wrap_content"
@@ -83,7 +84,7 @@
                 android:contentDescription="@null"
                 android:scaleType="fitCenter"
                 android:layout_gravity="center"
-                android:src="@drawable/ic_action_favorite_outline"/>
+                android:src="@drawable/ic_action_favorite_outline" />
         </LinearLayout>
 
         <LinearLayout

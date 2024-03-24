@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~ ©2017 Rajneesh Singh
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -14,10 +13,12 @@
 
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/about_background"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true">
+    android:fitsSystemWindows="true"
+    tools:viewBindingIgnore="true">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -49,8 +50,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/support"
                         android:textColor="@color/white"
-                        android:textSize="24sp"
-                        />
+                        android:textSize="24sp" />
 
                 </LinearLayout>
 
@@ -74,7 +74,7 @@
             app:fastScrollPopupTextColor="@android:color/primary_text_dark"
             app:fastScrollPopupTextSize="44sp"
             app:fastScrollThumbColor="?attr/accentColor"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
+            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
     </RelativeLayout>
 

@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~ ©2017 Rajneesh Singh
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -13,11 +12,13 @@
   -->
 
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#FFC107"
-    android:fitsSystemWindows="true">
+    android:fitsSystemWindows="true"
+    tools:viewBindingIgnore="true">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -38,8 +39,7 @@
                 android:paddingRight="10dp"
                 android:text="6 Beautiful Cool Playing View"
                 android:textColor="@color/white"
-                android:textSize="28sp"
-                />
+                android:textSize="28sp" />
 
             <LinearLayout
                 android:layout_width="fill_parent"
@@ -54,12 +54,12 @@
                     android:layout_gravity="center"
                     android:paddingLeft="16dp"
                     android:paddingRight="16dp"
-                    android:src="@drawable/playing_view"/>
+                    android:src="@drawable/playing_view" />
             </LinearLayout>
 
             <TextView
                 android:layout_width="fill_parent"
-                android:layout_height="64dp"/>
+                android:layout_height="64dp" />
 
         </LinearLayout>
 

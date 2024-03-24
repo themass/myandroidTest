@@ -31,8 +31,6 @@ import com.shuyu.gsyvideoplayer.utils.GSYVideoHelper;
 import com.shuyu.gsyvideoplayer.video.NormalGSYVideoPlayer;
 import com.shuyu.gsyvideoplayer.video.base.GSYVideoPlayer;
 
-import org.checkerframework.common.returnsreceiver.qual.This;
-
 /**
  * A placeholder fragment containing a simple view.
  */

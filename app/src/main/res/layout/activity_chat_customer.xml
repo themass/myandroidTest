@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/decoration_color">
+
+    <RelativeLayout
+        android:id="@+id/rl_input"
+        android:layout_width="match_parent"
+        android:layout_height="65dp"
+        android:layout_alignParentBottom="true">
+
+        <Button
+            android:visibility="gone"
+            android:id="@+id/bt_asr"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:background="@drawable/comment_red_btn"
+            android:paddingTop="10dp"
+            android:paddingBottom="15dp"
+            android:text="按住 说话"
+            android:textColor="@color/white"
+            android:textSize="26sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/bt_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="10dp"
+            android:src="@drawable/switch__text_icon1" />
+
+        <RelativeLayout
+            android:id="@+id/chat_bottom"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_alignParentBottom="true"
+            android:background="#F7F7F7"
+            android:focusableInTouchMode="true">
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_above="@+id/input"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp"
+                android:background="@color/gray_light"/>
+
+            <tz.co.hosannahighertech.messagekit.messages.MessageInput
+                android:id="@+id/input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                app:attachmentButtonBackground="?attr/selectableItemBackgroundBorderless"
+                app:attachmentButtonDefaultIconColor="@color/green"
+                app:attachmentButtonDefaultIconPressedColor="@color/green_dark"
+                app:attachmentButtonHeight="27dp"
+                app:attachmentButtonWidth="27dp"
+                app:inputButtonBackground="@drawable/bg_custom_layout_send"
+                app:inputButtonDefaultIconColor="@color/white"
+                app:inputButtonDefaultIconDisabledColor="@color/white60"
+                app:inputHint="@string/hint_enter_a_message"
+                app:showAttachmentButton="true"/>
+        </RelativeLayout>
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/rl_bar"
+        android:layout_width="match_parent"
+        android:layout_height="50dp">
+
+        <TextView
+            android:id="@+id/tv_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="小气包"
+            android:textColor="@color/black_text_color"
+            android:textSize="@dimen/size_button" />
+
+        <LinearLayout
+            android:id="@+id/ll_settings"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="20dp">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/wx_chat_icon2" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="3.5dp"
+                android:src="@drawable/wx_chat_icon2" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="3.5dp"
+                android:src="@drawable/wx_chat_icon2" />
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0.5dp"
+            android:background="@color/list_divider_line"
+            android:layout_alignParentBottom="true" />
+
+    </RelativeLayout>
+
+    <androidx.viewpager.widget.ViewPager
+        android:id="@+id/viewpager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/rl_input"
+        android:layout_below="@id/rl_bar">
+
+    </androidx.viewpager.widget.ViewPager>
+
+</RelativeLayout>

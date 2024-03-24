@@ -1,19 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="@dimen/mp.list.itemHeight"
-    android:background="@drawable/selector_list_background"
-    >
+    android:background="@drawable/selector_list_background">
 
     <View
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="?attr/selectableItemBackground"
-        android:layout_marginBottom="@dimen/mp.divider.line"
-        />
+        android:layout_marginBottom="@dimen/mp.divider.line" />
 
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/image_view_file"
@@ -24,8 +21,7 @@
         android:layout_marginRight="@dimen/mp.padding.large"
         android:scaleType="center"
         app:srcCompat="@drawable/ic_file_music"
-        android:background="@color/transparent"
-        />
+        android:background="@color/transparent" />
 
     <LinearLayout
         android:orientation="vertical"
@@ -39,21 +35,18 @@
         android:layout_marginLeft="@dimen/mp.material.marginLeft"
         android:layout_marginStart="@dimen/mp.material.marginLeft"
         android:layout_marginRight="@dimen/mp.margin.normal"
-        android:layout_marginEnd="@dimen/mp.margin.normal"
-        >
+        android:layout_marginEnd="@dimen/mp.margin.normal">
 
         <TextView
             style="@style/MP.Theme.TextAppearance.List.Title"
             android:id="@+id/text_view_name"
-            tools:text="A little bit longer.mp3"
-            />
+            tools:text="A little bit longer.mp3" />
 
         <TextView
             style="@style/MP.Theme.TextAppearance.List.Hint"
             android:id="@+id/text_view_info"
             android:layout_marginTop="@dimen/mp.margin.small"
-            tools:text="1.9 M"
-            />
+            tools:text="1.9 M" />
     </LinearLayout>
 
     <TextView
@@ -64,6 +57,5 @@
         android:layout_alignParentEnd="true"
         android:layout_marginRight="@dimen/mp.margin.large"
         android:layout_marginEnd="@dimen/mp.margin.large"
-        tools:text="2016-06-28"
-        />
+        tools:text="2016-06-28" />
 </RelativeLayout>

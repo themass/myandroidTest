@@ -6,6 +6,7 @@
     android:orientation="vertical"
     android:paddingBottom="@dimen/margin_15"
     android:paddingTop="@dimen/margin_15">
+
     <TextView
         android:id="@+id/tv_name"
         android:layout_width="wrap_content"
@@ -13,8 +14,7 @@
         android:paddingLeft="@dimen/margin_4"
         android:text="11111"
         android:textColor="@color/location_index"
-        android:textSize="@dimen/textsize_14"
-        />
+        android:textSize="@dimen/textsize_14" />
 
     <ImageView
         android:id="@+id/iv_ok"
@@ -32,8 +32,7 @@
         android:layout_alignParentRight="true"
         android:text="11111"
         android:textColor="@color/new_light_black"
-        android:textSize="@dimen/textsize_10"
-        />
+        android:textSize="@dimen/textsize_10" />
 
     <TextView
         android:id="@+id/tv_content"
@@ -51,11 +50,13 @@
         android:layout_below="@+id/tv_content"
         android:gravity="center_vertical"
         android:orientation="horizontal">
+
         <RelativeLayout
             android:id="@+id/rl_live"
             android:layout_height="wrap_content"
             android:layout_width="@dimen/margin_100"
             android:layout_alignParentRight="true">
+
             <ImageView
                 android:id="@+id/iv_heart"
                 android:layout_width="wrap_content"
@@ -83,6 +84,7 @@
                     android:textColor="@color/text_like_counter" />
             </TextSwitcher>
         </RelativeLayout>
+
         <TextView
             android:id="@+id/tv_time"
             android:layout_width="wrap_content"
@@ -90,15 +92,15 @@
             android:layout_toLeftOf="@+id/rl_live"
             android:paddingRight="@dimen/margin_22"
             android:textColor="@color/base_gray"
-            android:text="111111"/>
+            android:text="111111" />
+
         <TextView
             android:id="@+id/tv_app_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingRight="@dimen/margin_15"
             android:layout_toLeftOf="@+id/tv_time"
-            android:textColor="@color/base_red_small"
-            />
+            android:textColor="@color/base_red_small" />
     </RelativeLayout>
 
 </RelativeLayout>

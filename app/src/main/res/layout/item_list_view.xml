@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~ ©2017 Rajneesh Singh
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -13,18 +12,18 @@
   -->
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:app="http://schemas.android.com/apk/res-auto"
-              android:id="@+id/item_view"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/item_view"
     android:layout_width="fill_parent"
-              android:layout_height="wrap_content"
-              android:background="?android:attr/selectableItemBackground"
+    android:layout_height="wrap_content"
+    android:background="?android:attr/selectableItemBackground"
     android:foreground="?android:attr/selectableItemBackground"
-              android:gravity="center_vertical"
-              android:orientation="horizontal"
-              android:paddingBottom="10dp"
-              android:paddingLeft="5dp"
-              android:paddingRight="5dp"
-              android:paddingTop="10dp">
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingBottom="10dp"
+    android:paddingLeft="5dp"
+    android:paddingRight="5dp"
+    android:paddingTop="10dp">
 
 
     <com.rks.musicx.misc.widgets.CircleImageView
@@ -37,7 +36,7 @@
         android:src="@drawable/ic_launcher"
         android:transitionName="TransitionArtwork"
         app:border_color="@color/translucent_white_8p"
-        app:border_width="4dp"/>
+        app:border_width="4dp" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -55,7 +54,7 @@
             android:maxLines="1"
             android:text="SONG TITLE"
             android:textColor="@color/colorPrimaryText"
-            android:textSize="16sp"/>
+            android:textSize="16sp" />
 
         <TextView
             android:id="@+id/listartistname"
@@ -66,7 +65,7 @@
             android:maxLines="1"
             android:text="SONG ARTIST"
             android:textColor="@color/colorSecondaryText"
-            android:textSize="14sp"/>
+            android:textSize="14sp" />
     </LinearLayout>
 
 

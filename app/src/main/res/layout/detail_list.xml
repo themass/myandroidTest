@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~ ©2017 Rajneesh Singh
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -13,17 +12,17 @@
   -->
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:app="http://schemas.android.com/apk/res-auto"
-              android:id="@+id/item_view"
-              android:layout_width="fill_parent"
-              android:layout_height="wrap_content"
-              android:foreground="?android:attr/selectableItemBackground"
-              android:gravity="center_vertical"
-              android:orientation="horizontal"
-              android:paddingBottom="8dp"
-              android:paddingLeft="4dp"
-              android:paddingRight="4dp"
-              android:paddingTop="8dp">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/item_view"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:foreground="?android:attr/selectableItemBackground"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingBottom="8dp"
+    android:paddingLeft="4dp"
+    android:paddingRight="4dp"
+    android:paddingTop="8dp">
 
     <TextView
         android:id="@+id/number"
@@ -33,8 +32,7 @@
         android:gravity="center"
         android:text="No."
         android:textColor="@android:color/white"
-        android:textSize="16sp"
-        />
+        android:textSize="16sp" />
 
     <LinearLayout
         android:id="@+id/queue_info"
@@ -51,8 +49,7 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:textColor="@color/white"
-            android:textSize="16sp"
-            />
+            android:textSize="16sp" />
 
         <TextView
             android:id="@+id/artist"
@@ -62,7 +59,7 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:textColor="@color/white"
-            android:textSize="14sp"/>
+            android:textSize="14sp" />
 
     </LinearLayout>
 
@@ -74,6 +71,6 @@
         android:layout_weight="0"
         android:background="@drawable/ripple"
         android:tint="@android:color/white"
-        app:srcCompat="@drawable/ic_menu"/>
+        app:srcCompat="@drawable/ic_menu" />
 
 </LinearLayout>

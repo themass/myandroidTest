@@ -12,12 +12,15 @@
   -->
 
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                                                 xmlns:app="http://schemas.android.com/apk/res-auto"
-                                                 android:id="@+id/settings_view"
-                                                 android:layout_width="match_parent"
-                                                 android:layout_height="match_parent"
-                                                 android:fitsSystemWindows="true"
-                                                 android:orientation="vertical">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+
+    android:id="@+id/settings_view"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical"
+    tools:viewBindingIgnore="true">
 
 
     <RelativeLayout
@@ -49,8 +52,7 @@
                         android:layout_height="wrap_content"
                         android:text="Settings"
                         android:textColor="@color/white"
-                        android:textSize="24sp"
-                        />
+                        android:textSize="24sp" />
 
                 </LinearLayout>
 
@@ -62,7 +64,7 @@
             android:id="@+id/settings_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_below="@+id/app_bar_layout"/>
+            android:layout_below="@+id/app_bar_layout" />
 
     </RelativeLayout>
 

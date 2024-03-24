@@ -76,5 +76,9 @@ public class MultipartRequest<T> extends BaseRequest<T> {
             return Response.error(new ParseError(e));
         }
     }
+//    @Override
+//    public String getBodyContentType() {
+//        return "application/json; charset=" + this.getParamsEncoding();
+//    }
 
 }

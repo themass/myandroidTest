@@ -1,18 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="@dimen/mp.list.itemHeight"
-    android:background="@color/mp.list.background"
-    >
+    android:background="@color/mp.list.background">
 
     <View
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="?attr/selectableItemBackground"
-        android:layout_marginBottom="@dimen/mp.divider.line"
-        />
+        android:layout_marginBottom="@dimen/mp.divider.line" />
 
     <LinearLayout
         android:orientation="vertical"
@@ -26,22 +23,20 @@
         android:layout_marginLeft="@dimen/mp.margin.large"
         android:layout_marginStart="@dimen/mp.margin.large"
         android:layout_marginRight="@dimen/mp.margin.normal"
-        android:layout_marginEnd="@dimen/mp.margin.normal"
-        >
+        android:layout_marginEnd="@dimen/mp.margin.normal">
 
         <TextView
             style="@style/MP.Theme.TextAppearance.List.Title"
             android:id="@+id/text_view_name"
-            tools:text="A little bit longer"
-            />
+            tools:text="A little bit longer" />
 
         <TextView
             style="@style/MP.Theme.TextAppearance.List.Hint"
             android:id="@+id/text_view_artist"
             android:layout_marginTop="@dimen/mp.margin.small"
-            tools:text="A little bit longer"
-            />
+            tools:text="A little bit longer" />
     </LinearLayout>
+
     <LinearLayout
         android:id="@+id/rl_select"
         android:layout_width="wrap_content"
@@ -52,6 +47,7 @@
         android:layout_centerVertical="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true">
+
         <com.openapi.commons.common.ui.view.widgets.MusicVisualizer
             android:id="@+id/visualizer"
             android:layout_width="40dp"
@@ -59,13 +55,12 @@
             android:padding="1dp"
             android:layout_gravity="center_vertical"
             android:layout_marginLeft="8dp"
-            android:visibility="gone"
-            />
+            android:visibility="gone" />
+
         <TextView
             style="@style/MP.Theme.TextAppearance.List.Hint"
             android:id="@+id/text_view_duration"
             tools:text="03:22"
-            android:layout_gravity="center_vertical"
-            />
+            android:layout_gravity="center_vertical" />
     </LinearLayout>
 </RelativeLayout>

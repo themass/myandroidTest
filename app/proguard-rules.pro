@@ -319,3 +319,20 @@ public static java.lang.String TABLENAME;
 -dontwarn com.alivc.**
 -dontwarn com.aliyun.**
 -dontwarn com.cicada.**
+
+-keep class * extends messagekit.messages.MessageHolders$OutcomingTextMessageViewHolder {
+     public <init>(android.view.View, java.lang.Object);
+     public <init>(android.view.View);
+ }
+-keep class * extends messagekit.messages.MessageHolders$IncomingTextMessageViewHolder {
+     public <init>(android.view.View, java.lang.Object);
+     public <init>(android.view.View);
+ }
+-keep class * extends messagekit.messages.MessageHolders$IncomingImageMessageViewHolder {
+     public <init>(android.view.View, java.lang.Object);
+     public <init>(android.view.View);
+ }
+-keep class * extends messagekit.messages.MessageHolders$OutcomingImageMessageViewHolder {
+     public <init>(android.view.View, java.lang.Object);
+     public <init>(android.view.View);
+ }

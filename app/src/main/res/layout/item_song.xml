@@ -6,6 +6,7 @@
     android:paddingBottom="@dimen/margin_3"
     android:paddingLeft="@dimen/margin_8"
     android:paddingTop="@dimen/margin_3">
+
     <ImageView
         android:id="@+id/albumArt"
         android:layout_width="@dimen/margin_40"
@@ -14,6 +15,7 @@
         android:background="@color/fab_color_pressed"
         android:src="@drawable/ic_notification_app_logo"
         android:padding="1dp" />
+
     <com.openapi.commons.common.ui.view.widgets.MusicVisualizer
         android:id="@+id/visualizer"
         android:layout_width="@dimen/margin_30"
@@ -22,8 +24,8 @@
         android:layout_marginRight="15dp"
         android:layout_alignParentRight="true"
         android:padding="1dp"
-        android:visibility="gone"
-        />
+        android:visibility="gone" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="@dimen/margin_40"
@@ -33,6 +35,7 @@
         android:orientation="vertical"
         android:paddingLeft="@dimen/margin_10"
         android:paddingTop="@dimen/margin_5">
+
         <TextView
             android:id="@+id/song_title"
             style="@style/TextAppearance.AppCompat.Body1"

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/srl_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <tz.co.hosannahighertech.messagekit.messages.MessagesList
+            android:id="@+id/messagesList"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:incomingAvatarHeight="40dp"
+            app:incomingAvatarWidth="40dp"
+            app:incomingBubbleDrawable="@drawable/chat_tv_receive"
+            app:incomingDefaultBubbleSelectedColor="@color/brown"
+            app:incomingDefaultBubbleColor="@color/white"
+            app:incomingTextSize="15sp"
+            app:outcomingDefaultBubbleSelectedColor="@color/ivory_dark"
+            app:outcomingBubbleDrawable="@drawable/chat_tv_send"
+            app:outcomingTimeTextColor="@color/gray_dark_transparent"
+            app:outcomingDefaultBubbleColor="@color/green"
+            app:outcomingTextSize="15sp" />
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    <include
+        android:id="@+id/footer_view"
+        layout="@layout/footer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:visibility="gone" />
+</FrameLayout>

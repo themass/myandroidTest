@@ -27,6 +27,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import chat.asrassistant.activity.ChatActivity;
+import chat.ui.CustomLayoutDialogsActivity;
 import io.github.ryanhoo.music.ui.main.MuiscMainActivity;
 
 import static com.openapi.ks.myapp.constant.Constants.HTTPS_URL;
@@ -52,6 +54,9 @@ public class ConfigActionJump {
 
         configMap.put(Constants.LOCAL_SOUND , MuiscMainActivity.class);
         configMap.put(Constants.LOCAL_SOUND2 , MusicXMainActivity.class);
+        configMap.put(Constants.LOCAL_CHAT , ChatActivity.class);
+        configMap.put(Constants.LOCAL_CHAT2 , CustomLayoutDialogsActivity.class);
+
 //        configMap.put(Constants.VIDEO_CHANNEL_USER_URL, VideoChannleUserActivity.class);
     }
 

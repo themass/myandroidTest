@@ -44,6 +44,8 @@ public class Constants {
     public static final String LOCAL = "local";
     public static final String LOCAL_SOUND = "local_sound";
     public static final String LOCAL_SOUND2 = "local_sound2";
+    public static final String LOCAL_CHAT = "local_chat";
+    public static final String LOCAL_CHAT2 = "local_chat2";
 
     public static final String LOCAL_MOVIE_URL = "movie";
     public static final String LOCAL_PIC_URL = "pic";
@@ -154,6 +156,8 @@ public class Constants {
     public static final String API_TV_CHANNEL_URL = "/video/tv/channel.json?start=%s&limit=50&channel=%s&keyword=%s";
     public static final String API_VIDEO_USER_URL = "/video/user.json?channel=%s&start=%s&limit=50";
     public static final String API_VIDEO_USER_ITEM_URL = "/video/user/items.json?start=%s&limit=50&userId=%s&keyword=%s";
+
+    public static final String CHAT_URL = "/chat/nostream.json";
 
     public static final String VIDEO_USER_CHANNEL = "qvod_user";
     public static final String VIDEO_TV_CHANNEL = "teleplay_";

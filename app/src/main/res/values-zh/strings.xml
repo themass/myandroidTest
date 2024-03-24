@@ -20,6 +20,8 @@
     <string name="tab_ng">夜色</string>
     <string name="tab_area">本地</string>
     <string name="tab_customer">自定义</string>
+    <string name="tab_chat">对话</string>
+
     <string name="tab_tag_index">Index</string>
     <string name="tab_index">首页</string>
 
@@ -27,6 +29,8 @@
     <string name="tab_tag_ng">Night</string>
     <string name="tab_tag_area">Area</string>
     <string name="tab_tag_customer">customer</string>
+    <string name="tab_tag_chat">chat</string>
+
     <string name="tab_vip_temp">内容准备中。。。敬请期待</string>
     <string name="tab_fb_click">点广告赚积分 +</string>
     <string name="tab_fb_click_fast">点击频率太高，请等待3秒钟</string>
@@ -516,4 +520,26 @@
     <string name="clear_squeue_summary">Clear Saved Queue Database</string>
     <string name="app_desc">Elegant Material Music Player</string>
     <string name="default_dir">set current dir as default dir</string>
+
+    <string name="accessibility_desc">WorkTool</string>
+    <string name="tips">如果需要使用或停止该应用，应用需打开 无障碍服务 进行权限设置</string>
+
+    <!-- 升级对话框 -->
+    <string name="update_title" translatable="false">发现新版本</string>
+    <string name="update_content" translatable="false">更新内容</string>
+    <string name="update_failed" translatable="false">自动更新失败</string>
+    <string name="update_no_update" translatable="false">当前已是最新版本</string>
+
+    <!-- UI -->
+    <string name="tip">提示</string>
+    <string name="input_new_host">请输入新的host</string>
+    <string name="confirm">确认</string>
+    <string name="add">新增</string>
+    <string name="host_list">host列表</string>
+    <string name="hold_please"> 请稍等...</string>
+    <string name="hint_enter_a_message">Type a message…</string>
+    <string name="on_log_click_message">Your custom long click handler</string>
+    <string name="on_log_selected_messages"> %1$d Messages are selected</string>
+    <string name="action_copy">Copy</string>
+    <string name="copied_message">Message copied!</string>
 </resources>

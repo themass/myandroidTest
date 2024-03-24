@@ -1,11 +1,19 @@
 package com.openapi.ks.myapp.data;
 
 import android.content.Context;
+import android.os.AsyncTask;
 
+import com.openapi.commons.common.util.LogUtil;
+import com.openapi.ks.myapp.bean.form.ChatLog;
+import com.openapi.ks.myapp.bean.vo.HistoryVo;
+import com.ping.greendao.gen.ChatLogDao;
 import com.ping.greendao.gen.DaoMaster;
 import com.ping.greendao.gen.DaoSession;
 
 import org.greenrobot.greendao.query.QueryBuilder;
+import org.greenrobot.greendao.query.WhereCondition;
+
+import java.util.List;
 
 /**
  * 创建数据库、创建数据库表、包含增删改查的操作以及数据库的升级
@@ -33,6 +41,8 @@ public class DBManager {
 
     public void init(Context context) {
         this.context = context;
+        long count = manager.getDaoSession().getChatLogDao().count();
+        LogUtil.i("count ===="+count);
     }
 
     /**
@@ -90,6 +100,28 @@ public class DBManager {
         if (sDaoSession != null) {
             sDaoSession.clear();
             sDaoSession = null;
+        }
+    }
+    public void saveChatLog(ChatLog log){
+        manager.getDaoSession().getChatLogDao().save(log);
+        new DelChatLogTask().execute();
+
+    }
+    public static class DelChatLogTask extends AsyncTask<String, Integer, Boolean> {
+        private Context context;
+
+        public DelChatLogTask() {
+        }
+
+        @Override
+        protected Boolean doInBackground(String... params) {
+            List<ChatLog> logs = manager.getDaoSession().getChatLogDao().queryBuilder().limit(1).orderDesc(ChatLogDao.Properties.Id).list();
+            LogUtil.i(logs);
+            if (logs.size() == 1) {
+                ChatLog log = logs.get(0);
+                manager.getDaoSession().getChatLogDao().queryBuilder().where(ChatLogDao.Properties.Id.le(log.getId() - 1000)).buildDelete().executeDeleteWithoutDetachingEntities();
+            }
+            return Boolean.TRUE;
         }
     }
 }

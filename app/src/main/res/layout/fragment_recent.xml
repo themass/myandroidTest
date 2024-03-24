@@ -18,119 +18,119 @@
     android:foreground="?android:attr/selectableItemBackground"
     android:orientation="vertical">
 
+    <LinearLayout
+        android:id="@+id/added"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="4dp"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+
         <LinearLayout
-            android:id="@+id/added"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="4dp"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior">
+            android:orientation="horizontal">
 
-
-            <LinearLayout
-                android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/recentAdded"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                android:layout_gravity="left"
+                android:layout_marginStart="4dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:gravity="left"
+                android:maxLines="1"
+                android:padding="4dp"
+                android:text="Recently Added"
+                android:textColor="@color/colorPrimaryText"
+                android:textSize="16sp" />
 
-                <TextView
-                    android:id="@+id/recentAdded"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="left"
-                    android:layout_marginStart="4dp"
-                    android:layout_weight="1"
-                    android:ellipsize="end"
-                    android:gravity="left"
-                    android:maxLines="1"
-                    android:padding="4dp"
-                    android:text="Recently Added"
-                    android:textColor="@color/colorPrimaryText"
-                    android:textSize="16sp" />
-
-                <TextView
-                    android:id="@+id/recentAddedMore"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="right"
-                    android:layout_marginEnd="4dp"
-                    android:layout_weight="1"
-                    android:ellipsize="end"
-                    android:gravity="right"
-                    android:maxLines="1"
-                    android:padding="4dp"
-                    android:text="More"
-                    android:textColor="?attr/accentColor"
-                    android:textSize="16sp" />
-            </LinearLayout>
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recentadded"
-                android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/recentAddedMore"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:scrollbars="none"
-                app:layout_behavior="@string/appbar_scrolling_view_behavior" />
-
+                android:layout_gravity="right"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:gravity="right"
+                android:maxLines="1"
+                android:padding="4dp"
+                android:text="More"
+                android:textColor="?attr/accentColor"
+                android:textSize="16sp" />
         </LinearLayout>
 
-        <LinearLayout
-            android:id="@+id/played"
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recentadded"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:orientation="vertical"
-            android:padding="4dp"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior">
+            android:scrollbars="none"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/played"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:orientation="vertical"
+        android:padding="4dp"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
 
-            <LinearLayout
-                android:layout_width="match_parent"
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="4dp">
+
+
+            <TextView
+                android:id="@+id/recentPlayed"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="4dp">
+                android:layout_gravity="left"
+                android:layout_marginStart="4dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:gravity="left"
+                android:maxLines="1"
+                android:padding="4dp"
+                android:text="Recently Played"
+                android:textColor="@color/colorPrimaryText"
+                android:textSize="16sp" />
 
-
-                <TextView
-                    android:id="@+id/recentPlayed"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="left"
-                    android:layout_marginStart="4dp"
-                    android:layout_weight="1"
-                    android:ellipsize="end"
-                    android:gravity="left"
-                    android:maxLines="1"
-                    android:padding="4dp"
-                    android:text="Recently Played"
-                    android:textColor="@color/colorPrimaryText"
-                    android:textSize="16sp" />
-
-                <TextView
-                    android:id="@+id/recentPlayedMore"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="right"
-                    android:layout_marginEnd="4dp"
-                    android:layout_weight="1"
-                    android:ellipsize="end"
-                    android:gravity="right"
-                    android:maxLines="1"
-                    android:padding="4dp"
-                    android:text="More"
-                    android:textColor="?attr/accentColor"
-                    android:textSize="16sp" />
-            </LinearLayout>
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recentplaying"
-                android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/recentPlayedMore"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:orientation="horizontal"
-                android:scrollbars="none"
-                app:layout_behavior="@string/appbar_scrolling_view_behavior" />
-
-
+                android:layout_gravity="right"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:gravity="right"
+                android:maxLines="1"
+                android:padding="4dp"
+                android:text="More"
+                android:textColor="?attr/accentColor"
+                android:textSize="16sp" />
         </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recentplaying"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:orientation="horizontal"
+            android:scrollbars="none"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+
+    </LinearLayout>
 
 </LinearLayout>

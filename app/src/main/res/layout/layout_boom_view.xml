@@ -4,6 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content">
+
     <com.nightonke.boommenu.BoomMenuButton
         android:id="@+id/bmb_tool"
         android:layout_width="wrap_content"
@@ -16,7 +17,5 @@
         app:bmb_buttonPlaceEnum="buttonPlace_sc_4_1"
         app:bmb_normalColor="@android:color/holo_blue_light"
         app:bmb_highlightedColor="@android:color/holo_blue_bright"
-        app:bmb_buttonBottomMargin="@dimen/margin_2"
-        >
-    </com.nightonke.boommenu.BoomMenuButton>
+        app:bmb_buttonBottomMargin="@dimen/margin_2"></com.nightonke.boommenu.BoomMenuButton>
 </FrameLayout>
