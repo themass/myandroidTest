@@ -1,11 +1,11 @@
-package com.openapi.ks.moviefree1.ui.maintab.body;
+package com.openapi.ks.myapp.ui.fragment;
 
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
-import androidx.appcompat.app.AlertDialog;
-import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -14,27 +14,37 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.PopupWindow;
 
+import androidx.appcompat.app.AlertDialog;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.openapi.commons.common.util.CollectionUtils;
 import com.openapi.commons.common.util.EventBusUtil;
+import com.openapi.commons.common.util.LogUtil;
+import com.openapi.commons.common.util.PreferenceUtils;
 import com.openapi.commons.common.util.ToastUtil;
-import com.openapi.commons.yewu.ads.base.AdsManager;
+import com.openapi.commons.yewu.ads.base.AdsContext;
 import com.openapi.commons.yewu.net.request.CommonResponse;
+import com.openapi.ks.moviefree1.R;
+import com.openapi.ks.moviefree1.ui.main.MainFragmentViewPage;
+import com.openapi.ks.myapp.bean.form.ChatSessionLog;
 import com.openapi.ks.myapp.bean.form.CustomeAddForm;
 import com.openapi.ks.myapp.bean.vo.InfoListVo;
 import com.openapi.ks.myapp.bean.vo.NullReturnVo;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.constant.Constants;
+import com.openapi.ks.myapp.data.DBManager;
 import com.openapi.ks.myapp.data.UserLoginUtil;
+import com.openapi.ks.myapp.data.config.ChatSessionEvent;
 import com.openapi.ks.myapp.data.config.CustomeAddEvent;
 import com.openapi.ks.myapp.data.config.UserLoginEvent;
-import com.openapi.ks.myapp.ui.fragment.RecommendFragment;
+import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
 import com.openapi.ks.myapp.ui.inte.OnBackKeyDownListener;
 import com.openapi.ks.myapp.ui.user.AddCustomeInfoActivity;
-import com.openapi.ks.moviefree1.R;
-import com.openapi.ks.moviefree1.ui.main.MainFragmentViewPage;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.OnClick;
@@ -43,10 +53,19 @@ import butterknife.OnClick;
 /**
  * Created by openapi on 2015/9/1.
  */
-public class RecommendCustomeFragment extends RecommendFragment implements OnBackKeyDownListener {
-    private static final String INDEX_TAG = "Recommend_custome_tag";
+public class ChatSessionFragment extends RecommendFragment  {
+    private static final String INDEX_TAG = "chat_session_tag";
     @BindView(R.id.lb_add)
     ImageButton llAdd;
+    public static void startFragment(Context context) {
+        Intent intent = new Intent(context, CommonFragmentActivity.class);
+        intent.putExtra(CommonFragmentActivity.FRAGMENT, ChatSessionFragment.class);
+        intent.putExtra(CommonFragmentActivity.TITLE, R.string.menu_btn_chat_session);
+        intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, true);
+        intent.putExtra(CommonFragmentActivity.BANNER_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_VPN3);
+        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_SHOW, false);
+        context.startActivity(intent);
+    }
     @Override
     public String getNetTag() {
         return INDEX_TAG;
@@ -66,77 +85,40 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
     }
     @Override
     public void onRefresh(int type) {
-       if(UserLoginUtil.getUserCache()!=null){
-           super.onRefresh(type);
-       }else {
-           pullView.setRefresh(false);
-       }
+        pullView.setRefresh(false);
     }
     @Override
     protected InfoListVo<RecommendVo> loadData(Context context) throws Exception {
-        if (UserLoginUtil.getUserCache() != null) {
-            return super.loadData(context);
-        } else {
-            return new InfoListVo<RecommendVo>();
+        Long id =  PreferenceUtils.getPrefLong(getActivity(), Constants.CHAT_SESSION, 0);
+        List<ChatSessionLog> chatSessionLogList = DBManager.getInstance().getDaoSession().getChatSessionLogDao().loadAll();
+        InfoListVo<RecommendVo> volist = new InfoListVo<RecommendVo>();
+        for(ChatSessionLog log:chatSessionLogList){
+            RecommendVo vo = new RecommendVo();
+            vo.title = log.name;
+            vo.id = log.id;
+            vo.rate=0.2F;
+            vo.showType = 2;
+            if(id == vo.id){
+                vo.color = "#698b87";
+            }else{
+                vo.color = "#666666";
+            }
+            volist.voList.add(vo);
+
         }
-    }
-
-    @Override
-    protected void onDataLoaded(InfoListVo<RecommendVo> data) {
-        super.onDataLoaded(data);
-        dataForView();
-        if(data.pageNum==2){
-//            AdsManager.getInstans().showNative(getActivity(),this);
-        }
-    }
-
-    private void dataForView() {
-        if (!CollectionUtils.isEmpty(infoListVo.voList)) {
-            if (llAdd != null)
-                llAdd.setVisibility(View.GONE);
-        } else {
-            if (llAdd != null)
-                llAdd.setVisibility(View.VISIBLE);
-        }
-    }
-
-    @OnClick(R.id.lb_add)
-    public void onAdd() {
-        AddCustomeInfoActivity.startActivity(getActivity(), null);
-    }
-
-    @Override
-    public String getUrl(int start) {
-        return Constants.getUrlWithParam(Constants.API_RECOMMEND_CUSTOME_URL,start);
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent(CustomeAddEvent event) {
-        refresh();
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent(UserLoginEvent event) {
-        refresh();
+        volist.hasMore = false;
+        return volist;
     }
 
     @Override
     public void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view,savedInstanceState);
-        EventBusUtil.getEventBus().register(this);
-        ((MainFragmentViewPage) getActivity()).addListener(this);
-    }
 
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        EventBusUtil.getEventBus().unregister(this);
-        ((MainFragmentViewPage) getActivity()).removeListener(this);
     }
 
     @Override
     public int getSpanCount() {
-        return 2;
+        return 1;
     }
 
     @Override
@@ -145,8 +127,33 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
     }
 
     @Override
+    public String getUrl(int start) {
+        return null;
+    }
+
+    @Override
     public void onLongItemClick(View view, final int position) {
-        switchFlag(true);
+        showPopupWindow(view, position);
+    }
+    @Override
+    protected void onDataLoaded(InfoListVo<RecommendVo> data) {
+        super.onDataLoaded(data);
+        if (!CollectionUtils.isEmpty(infoListVo.voList)) {
+            if (llAdd != null)
+                llAdd.setVisibility(View.GONE);
+        } else {
+            if (llAdd != null)
+                llAdd.setVisibility(View.VISIBLE);
+        }
+    }
+    public void onCustomerItemClick(View v, int position){
+        RecommendVo data = infoListVo.voList.get(position);
+        LogUtil.i("onItemClick");
+        Long id =  PreferenceUtils.getPrefLong(getActivity(), Constants.CHAT_SESSION, 0);
+        if(id != data.id){
+            EventBusUtil.getEventBus().post(new ChatSessionEvent(data.id));
+        }
+        getActivity().finish();
     }
 
     @Override
@@ -188,14 +195,15 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
                 builder.setPositiveButton(R.string.del_ok, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        Object o = infoListVo.voList.get(postion);
-                        indexService.postData(Constants.getUrl(Constants.API_DEL_CUSTOME), o, new CommonResponse.ResponseOkListener<NullReturnVo>(o) {
-                            @Override
-                            public void onResponse(NullReturnVo vo) {
-                                ToastUtil.showShort( R.string.custome_del_ok);
-                                refresh();
-                            }
-                        }, null, INDEX_TAG, NullReturnVo.class);
+                        if(infoListVo.voList.size()<2){
+                            ToastUtil.showLong(R.string.custome_del_fail);
+                            return;
+                        }else{
+                            RecommendVo o = infoListVo.voList.get(postion);
+                            DBManager.getInstance().getDaoSession().getChatSessionLogDao().deleteByKey(o.id);
+                            refresh();
+                        }
+
                         popupWindow.dismiss();
                     }
                 });
@@ -203,16 +211,8 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
                 builder.show();
             }
         });
-        Button btnEdit = (Button) contentView.findViewById(R.id.btn_edit);
-        btnEdit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                popupWindow.dismiss();
-                RecommendVo o = infoListVo.voList.get(postion);
-                CustomeAddForm form = new CustomeAddForm(o.id, o.title, o.actionUrl);
-                AddCustomeInfoActivity.startActivity(getActivity(), form);
-            }
-        });
+        contentView.findViewById(R.id.btn_edit).setVisibility(View.GONE);
+
     }
 
     @Override
@@ -226,17 +226,9 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
         return false;
     }
 
-    @Override
+//    @Override
     public boolean getShowEdit() {
-        return true;
-    }
-
-    @Override
-    public boolean onkeyBackDown() {
-        if (getSwitchFlag()) {
-            switchFlag(false);
-            return true;
-        }
         return false;
     }
+
 }

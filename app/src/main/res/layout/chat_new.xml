@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="300dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@color/base_white">
+
+    <EditText
+        android:id="@+id/chat_name"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:textSize="16sp"
+        android:padding="10dp"
+        android:textColor="@android:color/black"
+        android:layout_alignParentTop="true"
+        android:hint="@string/chat_new" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/chat_name"
+        android:layout_marginBottom="10dp">
+
+        <Button
+            android:id="@+id/chat_cancel"
+            android:layout_width="120dp"
+            android:layout_height="wrap_content"
+            android:text="@string/cancel"
+            android:textSize="@dimen/textsize_14"
+            android:background="?android:attr/selectableItemBackground"
+            android:layout_alignParentLeft="true"/>
+
+        <Button
+            android:id="@+id/chat_ok"
+            android:layout_width="120dp"
+            android:text="@string/save"
+            android:textSize="@dimen/textsize_14"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:background="?android:attr/selectableItemBackground" />
+    </RelativeLayout>
+
+</RelativeLayout>

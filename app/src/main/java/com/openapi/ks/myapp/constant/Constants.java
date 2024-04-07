@@ -73,6 +73,7 @@ public class Constants {
     //user
     public static final String LOGIN_USER = "LOGIN_USER";
     public static final String LOGIN_USER_LAST = "LOGIN_USER_LAST";
+    public static final String CHAT_SESSION = "CHAT_SESSION";
     public static final String AREA_SWITCH = "AREA_SWITCH";
     public static final String PLAYVIDEO_SWITCH = "PLAYVIDEO_SWITCH";
     public static final String LISTVIDEO_TINY_SWITCH = "LISTVIDEO_TINY_SWITCH";

@@ -7,7 +7,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
 import com.openapi.ks.myapp.ui.base.app.BaseFragmentActivity;
-import com.rks.musicx.base.BaseActivity;
 
 import chat.ui.data.model.Dialog;
 import chat.ui.utils.AppUtils;

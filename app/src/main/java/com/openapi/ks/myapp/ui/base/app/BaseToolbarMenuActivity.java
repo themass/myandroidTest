@@ -5,11 +5,13 @@ import android.app.Activity;
 import android.content.Intent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.SearchView;
 
 import com.openapi.commons.common.util.StringUtils;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
+import com.openapi.ks.myapp.data.UserLoginUtil;
 import com.openapi.ks.myapp.ui.fragment.GlobalVideoChannelListFragment;
 
 import com.openapi.ks.moviefree1.R;
@@ -62,11 +64,25 @@ public abstract class BaseToolbarMenuActivity extends LogActivity {
                 return true;
             }
         });
+        if(UserLoginUtil.isVIP()){
+            setting.setVisible(true);
+            mSearchView.setVisibility(View.VISIBLE);
+        }else {
+            if (showSearchView()) {
+                mSearchView.setVisibility(View.VISIBLE);
+            } else {
+                mSearchView.setVisibility(View.GONE);
+            }
+            setting.setVisible(showSearchView());
+        }
         return true;
     }
     @Override
     public void onOptionsMenuClosed(Menu menu) {
         super.onOptionsMenuClosed(menu);
         LogUtil.i("onOptionsMenuClosed");
+    }
+    public boolean showSearchView(){
+        return false;
     }
 }

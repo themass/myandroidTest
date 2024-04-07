@@ -22,7 +22,6 @@ import com.openapi.commons.common.util.SystemUtils;
 import com.openapi.commons.common.util.ToastUtil;
 import com.openapi.commons.yewu.ads.base.AdsManager;
 import com.openapi.commons.yewu.um.MobAgent;
-import com.openapi.ks.myapp.ui.feedback.FeedbackChooseFragment;
 import com.openapi.ks.moviefree1.R;
 import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.bean.vo.UserInfoVo;
@@ -36,12 +35,13 @@ import com.openapi.ks.myapp.data.config.StateUseEvent;
 import com.openapi.ks.myapp.data.config.UserLoginEvent;
 import com.openapi.ks.myapp.data.config.VipDescEvent;
 import com.openapi.ks.myapp.ui.base.WebViewActivity;
+import com.openapi.ks.myapp.ui.feedback.IWannaFragment;
 import com.openapi.ks.myapp.ui.fragment.AppListFragment;
+import com.openapi.ks.myapp.ui.fragment.ChatSessionFragment;
 import com.openapi.ks.myapp.ui.fragment.DonationListFragment;
 import com.openapi.ks.myapp.ui.fragment.FavoriteFragment;
 import com.openapi.ks.myapp.ui.user.LoginActivity;
 import com.openapi.ks.myapp.ui.user.SettingActivity;
-import com.rks.musicx.ui.fragments.PlayingViews.Playing1Fragment;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -78,7 +78,8 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     MenuItem miFavorite;
     MenuItem miApp;
     MenuItem miDona;
-    BaseService baseService;
+    MenuItem chatSessions;
+    public BaseService baseService;
 
     public void login(View view) {
         startActivity(LoginActivity.class);
@@ -99,6 +100,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         miDona = nvDrawer.getMenu().findItem(R.id.menu_donation);
         miApprecommond = nvDrawer.getMenu().findItem(R.id.menu_app);
         miApp = nvDrawer.getMenu().findItem(R.id.menu_app);
+        chatSessions = nvDrawer.getMenu().findItem(R.id.menu_chat_session);
         headerView = nvDrawer.getHeaderView(0);
         llLoginMenuHeader = (LinearLayout) headerView.findViewById(R.id.ll_menu_headview);
         tvMenuUserName = (TextView) headerView.findViewById(R.id.tv_menu_username);
@@ -109,13 +111,14 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         tvDesc2 = (TextView) headerView.findViewById(R.id.tv_desc2);
         ivAvatar = (ImageView) headerView.findViewById(R.id.iv_avatar);
         ivLevel = (ImageView) headerView.findViewById(R.id.iv_level);
+
         nvDrawer.setItemIconTintList(null);
         setUpVersion();
         setUpUserMenu();
         setUpLocation();
         baseService = new BaseService();
         baseService.setup(this);
-        showmiDona();
+//        showmiDona();
 //        if(MyApplication.isTemp){
 ////            tvDesc1.setVisibility(View.GONE);
 ////            tvDesc.setVisibility(View.GONE);
@@ -127,7 +130,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         UserInfoVo vo = UserLoginUtil.getUserCache();
         boolean canScore = vo==null?false:vo.score>300;
         if(MyApplication.isTemp){
-            miDona.setVisible(canScore);
+//            miDona.setVisible(canScore);
             miApprecommond.setVisible(false);
         }
     }
@@ -290,7 +293,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                     logout(item);
                 }  else if (item.getItemId() == R.id.menu_feedback) {
                     name = "反馈";
-                    FeedbackChooseFragment.startFragment(BaseDrawerActivity.this);
+                    IWannaFragment.startFragment(BaseDrawerActivity.this);
                 } else if (item.getItemId() == R.id.menu_setting) {
                     name = "设置";
                     startActivity(SettingActivity.class);
@@ -311,6 +314,9 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                 } else if (item.getItemId() == R.id.menu_share) {
                     showShare();
                     name = "分享";
+                }else if (item.getItemId() == R.id.menu_chat_session) {
+                    name = "新建对话";
+                    ChatSessionFragment.startFragment(BaseDrawerActivity.this);
                 }
                 MobAgent.onEventMenu(BaseDrawerActivity.this, name);
                 return false;

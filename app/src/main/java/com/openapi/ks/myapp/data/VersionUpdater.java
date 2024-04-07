@@ -146,7 +146,7 @@ public class VersionUpdater {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle(title);
         builder.setMessage(vo.content);
-        builder.setIcon(R.drawable.vpn_trans_default);
+        builder.setIcon(R.drawable.ic_launcher);
         if (vo.minBuild != vo.maxBuild) {
             builder.setNegativeButton(R.string.about_version_cancel, new DialogInterface.OnClickListener() {
                 @Override
@@ -182,7 +182,7 @@ public class VersionUpdater {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle(title);
         builder.setMessage(vo.content);
-        builder.setIcon(R.drawable.vpn_trans_default);
+        builder.setIcon(R.drawable.ic_launcher);
         if (vo.minBuild != vo.maxBuild) {
             builder.setNegativeButton(R.string.about_version_cancel, new DialogInterface.OnClickListener() {
                 @Override

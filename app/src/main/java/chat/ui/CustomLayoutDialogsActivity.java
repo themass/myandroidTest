@@ -32,7 +32,7 @@ public class CustomLayoutDialogsActivity extends DemoDialogsActivity {
 
     @Override
     public void onDialogClick(Dialog dialog) {
-        CustomLayoutMessagesActivity.open(this);
+        CustomChatMessagesActivity.open(this);
     }
 
     private void initAdapter() {

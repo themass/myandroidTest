@@ -35,7 +35,6 @@
 # 保留我们使用的四大组件，自定义的Application等等这些类不被混淆
 # 因为这些子类都有可能被外部调用
 -keep public class * extends android.app.Activity
--keep public class * extends android.app.Appliction
 -keep public class * extends android.app.Service
 -keep public class * extends android.content.BroadcastReceiver
 -keep public class * extends android.content.ContentProvider
@@ -102,7 +101,6 @@
 -keep class butterknife.** { *; }
 -dontwarn butterknife.internal.**
 -keep class **$$ViewBinder { *; }
--dontwarn butterknife.Views$InjectViewProcessor
 -keepclasseswithmembernames class * {
     @butterknife.* <fields>;
 }
@@ -117,7 +115,6 @@
 -dontwarn java.nio.file.Files
 -dontwarn java.nio.file.Path
 -dontwarn java.nio.file.OpenOption
--dontwarn org.codehaus.mojo.animal_sniffer.IgnoreJRERequirement
 #apache
 -keep class org.apache.http.**{ *; }
 -dontwarn org.apache.http.**
@@ -176,7 +173,6 @@
 #}
 -keep class com.baidu.** { *;}
 -keep class android.support.v4.app.NotificationCompat**{ *; }
--keep class MTT.ThirdAppInfoNew { *; }
 
 # Preserve all native method names and the names of their classes.
 -keepclassmembers class * {
@@ -190,9 +186,9 @@
 }
 
 #----------------------project------------
+-keep class chat.ui.data.**{ *; }
 -keep class com.openapi.ks.myapp.bean.**{ *; }
 -keep class com.openapi.ks.myapp.ui.sound.media.**{ *; }
--keep class sun.misc.Unsafe { *; }
 -keep class com.google.gson.stream.** { *; }
 -keep class com.openapi.commons.common.weather.**{ *; }
 -keep class com.way.**{ *; }
@@ -259,12 +255,6 @@ public static java.lang.String TABLENAME;
 -keep public class com.google.android.gms.**
 -dontwarn com.google.android.gms.**
 -dontwarn com.squareup.picasso.**
--keep class com.google.android.gms.ads.identifier.AdvertisingIdClient{
-     public *;
-}
--keep class com.google.android.gms.ads.identifier.AdvertisingIdClient$Info{
-     public *;
-}
 # skip the Picasso library classes
 -keep class com.squareup.picasso.** {*;}
 -dontwarn com.squareup.picasso.**
@@ -284,6 +274,75 @@ public static java.lang.String TABLENAME;
 -keep class net.sqlcipher.database.**{*;}
 -keep class rx.**{*;}
 
+# A resource is loaded with a relative path so the package of this class must be preserved.
+-keepnames class okhttp3.internal.publicsuffix.PublicSuffixDatabase
+
+# Animal Sniffer compileOnly dependency to ensure APIs are compatible with older versions of Java.
+-dontwarn org.codehaus.mojo.animal_sniffer.*
+
+# OkHttp platform used only on JVM and when Conscrypt dependency is available.
+-dontwarn okhttp3.internal.platform.ConscryptPlatform
+
+
+-dontwarn okio.**
+-dontwarn com.squareup.okhttp.**
+-dontwarn okhttp3.**
+-dontwarn javax.annotation.**
+
+-keep public class * extends android.app.Activity
+-keep public class * extends android.app.Application
+-keep public class * extends android.app.Service
+-keep public class * extends android.content.BroadcastReceiver
+-keep public class * extends android.content.ContentProvider
+-keep public class * extends android.app.backup.BackupAgent
+-keep public class * extends android.preference.Preference
+-keep public class * extends android.app.Fragment
+
+# For native methods, see http://proguard.sourceforge.net/manual/examples.html#native
+-keepclasseswithmembernames class * {
+ native <methods>;
+}
+
+-keep public class * extends android.view.View {
+ public <init>(android.content.Context);
+ public <init>(android.content.Context, android.util.AttributeSet);
+ public <init>(android.content.Context, android.util.AttributeSet, int);
+ public void set*(...);
+}
+
+-keepclasseswithmembers class * {
+ public <init>(android.content.Context, android.util.AttributeSet);
+}
+
+-keepclasseswithmembers class * {
+ public <init>(android.content.Context, android.util.AttributeSet, int);
+}
+
+-keepclassmembers class * extends android.app.Activity {
+ public void *(android.view.View);
+}
+
+# For enumeration classes, see http://proguard.sourceforge.net/manual/examples.html#enumerations
+-keepclassmembers enum * {
+ public static **[] values();
+ public static ** valueOf(java.lang.String);
+}
+
+-keep class * implements android.os.Parcelable {
+ public static final android.os.Parcelable$Creator *;
+}
+
+-keepclassmembers class **.R$* {
+ public static <fields>;
+}
+-keep class android.support.v7.internal.** { *; }
+-keep interface android.support.v7.internal.** { *; }
+-keep class android.support.v7.** { *; }
+-keep interface android.support.v7.** { *; }
+# The support library contains references to newer platform versions.
+# Don't warn about those in case this app is linking against an older
+# platform version. We know about them, and they are safe.
+-dontwarn android.support.**
 #-------------------vitamio.player------------------------
 -keep public class io.vov.vitamio.** { *; }
 
@@ -320,19 +379,31 @@ public static java.lang.String TABLENAME;
 -dontwarn com.aliyun.**
 -dontwarn com.cicada.**
 
--keep class * extends messagekit.messages.MessageHolders$OutcomingTextMessageViewHolder {
+-keep class  tz.co.hosannahighertech.messagekit.messages.** { *; }
+-keep class  chat.ui.CustomChatMessagesActivity$MyOutComingMassageHandler {
+   public <init>(android.view.View, java.lang.Object);
+   public <init>(android.view.View);
+}
+
+-keep class * extends tz.co.hosannahighertech.messagekit.messages.** { *; }
+-keep class * extends chat.ui.CustomChatMessagesActivity$MyOutComingMassageHandler {
+   public <init>(android.view.View, java.lang.Object);
+   public <init>(android.view.View);
+}
+
+-keep class * extends tz.co.hosannahighertech.messagekit.messages.MessageHolders$OutcomingTextMessageViewHolder {
      public <init>(android.view.View, java.lang.Object);
      public <init>(android.view.View);
  }
--keep class * extends messagekit.messages.MessageHolders$IncomingTextMessageViewHolder {
+-keep class * extends tz.co.hosannahighertech.messagekit.messages.MessageHolders$IncomingTextMessageViewHolder {
      public <init>(android.view.View, java.lang.Object);
      public <init>(android.view.View);
  }
--keep class * extends messagekit.messages.MessageHolders$IncomingImageMessageViewHolder {
+-keep class * extends tz.co.hosannahighertech.messagekit.messages.MessageHolders$IncomingImageMessageViewHolder {
      public <init>(android.view.View, java.lang.Object);
      public <init>(android.view.View);
  }
--keep class * extends messagekit.messages.MessageHolders$OutcomingImageMessageViewHolder {
+-keep class * extends tz.co.hosannahighertech.messagekit.messages.MessageHolders$OutcomingImageMessageViewHolder {
      public <init>(android.view.View, java.lang.Object);
      public <init>(android.view.View);
  }

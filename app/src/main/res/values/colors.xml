@@ -14,8 +14,8 @@
 -->
 <resources>
     <!-- Material Design-->
-    <color name="style_color_primary">#2d5d82</color>
-    <color name="style_color_primary_dark">#21425d</color>
+    <color name="style_color_primary">#38be55</color>
+    <color name="style_color_primary_dark">#B8C2BA</color>
     <color name="style_color_accent">#01bcd5</color>
     <color name="style_color_primary_trans">#552d5d82</color>
     <color name="style_color_primary_trans1">#552d5d82</color>

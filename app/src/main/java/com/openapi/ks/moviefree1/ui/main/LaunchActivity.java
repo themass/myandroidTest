@@ -10,18 +10,24 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.openapi.commons.common.ui.base.LogActivity;
-import com.openapi.commons.common.util.LogUtil;
+import com.openapi.commons.common.util.PreferenceUtils;
 import com.openapi.commons.yewu.ads.base.AdsManager;
 import com.openapi.commons.yewu.um.MobAgent;
+import com.openapi.ks.myapp.bean.form.ChatSessionLog;
 import com.openapi.ks.myapp.constant.Constants;
+import com.openapi.ks.myapp.data.DBManager;
 import com.openapi.ks.myapp.task.LoginTask;
 import com.openapi.ks.moviefree1.R;
 
+
+import java.util.Date;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
+import chat.ui.CustomChatMessagesActivity;
 
 /**
  * Created by openapi on 2016/3/22.
@@ -62,6 +68,7 @@ public class LaunchActivity extends LogActivity {
         MobAgent.init(this);
         unbinder = ButterKnife.bind(this);
         LoginTask.start(this);
+        initChatSession();
     }
 
     @OnClick(R.id.skip_view)
@@ -70,11 +77,34 @@ public class LaunchActivity extends LogActivity {
     }
 
     private void launch() {
-        Intent intent = new Intent(this, MainFragmentViewPage.class);
+        Intent intent = new Intent(this, CustomChatMessagesActivity.class);
         startActivity(intent);
         finish();
     }
+    public void initChatSession(){
+        List<ChatSessionLog> list = DBManager.getInstance().getDaoSession().getChatSessionLogDao().loadAll();
+        if(list.size()==0) {
+            ChatSessionLog log = new ChatSessionLog();
+            log.setName(getString(R.string.app_name));
+            log.setCreateTime(new Date());
+            log.setSetting("");
+            DBManager.getInstance().getDaoSession().getChatSessionLogDao().insert(log);
+            PreferenceUtils.setSettingLong(this, Constants.CHAT_SESSION,log.id);
+        }else{
+            Long id = PreferenceUtils.getPrefLong(this, Constants.CHAT_SESSION,0);
+            boolean exist = false;
+            for (ChatSessionLog log:list) {
+                if(log.id==id){
+                    exist = true;
+                    break;
+                }
+            }
+            if(!exist){
+                PreferenceUtils.setSettingLong(this, Constants.CHAT_SESSION,list.get(0).id);
+            }
+        }
 
+    }
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             return true;

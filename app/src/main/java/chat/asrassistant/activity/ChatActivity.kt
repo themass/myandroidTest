@@ -5,7 +5,6 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.view.MotionEvent
 import android.view.View
 import androidx.core.app.ActivityCompat
 import androidx.recyclerview.widget.RecyclerView
@@ -15,16 +14,10 @@ import chat.asrassistant.config.Config
 import chat.asrassistant.model.ChatMessageBean
 import chat.asrassistant.utils.AsrUtil
 import chat.asrassistant.utils.HttpUtil
-import chat.ui.data.fixtures.MessagesFixtures
-import com.blankj.utilcode.util.LogUtils
 import com.openapi.ks.moviefree1.R
 import com.openapi.ks.myapp.bean.form.ChatLog
-import com.openapi.ks.myapp.bean.form.ConnLog
-import com.openapi.ks.myapp.data.BaseService
 import com.openapi.ks.myapp.data.DBManager
 import com.openapi.ks.myapp.ui.base.app.BaseFragmentActivity
-import com.ping.greendao.gen.ChatLogDao
-import io.vov.vitamio.utils.Log
 import kotlinx.android.synthetic.main.activity_chat.*
 import kotlinx.android.synthetic.main.activity_chat_customer.input
 import kotlinx.android.synthetic.main.fragment_layout.*

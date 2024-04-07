@@ -56,7 +56,7 @@ public class ImagePhotoLoad implements ImageGalleryAdapter.ImageThumbnailLoader,
             iv.setImageResource(BaseRes.img.get(url));
         } else {
             RequestOptions options = new RequestOptions()
-                    .placeholder(R.drawable.vpn_trans_default)
+                    .placeholder(R.drawable.ic_launcher)
                     .priority(Priority.HIGH);
             Glide.with(context)
                     .load(url).apply(options)

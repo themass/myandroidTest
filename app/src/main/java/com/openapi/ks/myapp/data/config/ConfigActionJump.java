@@ -17,7 +17,6 @@ import com.openapi.ks.myapp.ui.sound.TeleplayActivity;
 import com.openapi.ks.myapp.ui.sound.TextChannleActivity;
 import com.openapi.ks.myapp.ui.sound.VideoChannleActivity;
 import com.openapi.ks.myapp.ui.sound.VideoListShowActivity;
-import com.rks.musicx.ui.activities.MusicXMainActivity;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -29,7 +28,6 @@ import java.util.Set;
 
 import chat.asrassistant.activity.ChatActivity;
 import chat.ui.CustomLayoutDialogsActivity;
-import io.github.ryanhoo.music.ui.main.MuiscMainActivity;
 
 import static com.openapi.ks.myapp.constant.Constants.HTTPS_URL;
 import static com.openapi.ks.myapp.constant.Constants.HTTP_URL;
@@ -52,8 +50,6 @@ public class ConfigActionJump {
         configMap.put(Constants.VIDEOLIST_URL, VideoListShowActivity.class);
         configMap.put(Constants.TELEPLAY_URL, TeleplayActivity.class);
 
-        configMap.put(Constants.LOCAL_SOUND , MuiscMainActivity.class);
-        configMap.put(Constants.LOCAL_SOUND2 , MusicXMainActivity.class);
         configMap.put(Constants.LOCAL_CHAT , ChatActivity.class);
         configMap.put(Constants.LOCAL_CHAT2 , CustomLayoutDialogsActivity.class);
 

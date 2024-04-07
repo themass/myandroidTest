@@ -35,9 +35,9 @@
     <string name="tab_fb_click_fast">Too fast,please wait 3 seconds</string>
     <string name="tab_fb_click_wifi">Please use it under Dis conn VPN </string>
     <!-- Application -->
-    <string name="app_name">Navigation</string>
-    <string name="main_activity_name">Navigation</string>
-    <string name="toobar_title">Navigation</string>
+    <string name="app_name">Kimi Chat</string>
+    <string name="main_activity_name">Kimi Chat</string>
+    <string name="toobar_title">Kimi Chat</string>
     <string name="load">loading more data</string>
     <string name="off">off</string>
     <string name="on">on</string>
@@ -78,6 +78,7 @@
     <string name="menu_btn_open_browser">Open in browser</string>
     <string name="menu_btn_copy_url">Copy url</string>
     <string name="menu_btn_favorite">My favorite</string>
+    <string name="menu_btn_chat_session">Chat Session</string>
     <string name="menu_favorite">Favorite</string>
     <string name="menu_favorite_cancel">Cancel Favorite</string>
     <string name="support_info">Please activate several apps to support the author！</string>
@@ -126,7 +127,7 @@
     <string name="down_to_loadmore">down to loadmore</string>
 
     <string name="iwanna_tips">Tell me what du you want ,\nI\'ll be ready for you </string>
-    <string name="iwanna_title">I wanna?</string>
+    <string name="iwanna_title">support</string>
     <string name="feedback_hint">$3 $5 VIP3</string>
     <string name="recharge">Recharge:</string>
     <string name="money_back_title">Score?</string>
@@ -222,6 +223,8 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="schema_https">https://</string>
     <string name="del_hint">Confirm delete？</string>
     <string name="del_cancel">Cancel</string>
+    <string name="custome_del_fail">delete fail</string>
+
     <string name="del_ok">OK</string>
     <string name="no_browser">no brower find</string>ƒ
     <string name="edit">edit</string>
@@ -355,6 +358,7 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="action_add_to_queue">Add to queue</string>
     <string name="action_set_as_next_track">Next track</string>
     <string name="about">About</string>
+    <string name="chat_new">chat session name</string>
     <plurals name="albums_count">
         <item quantity="one">%d Albums</item>
         <item quantity="other">%d Albums</item>
@@ -366,6 +370,7 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="action_set_ringtone">Set Ringtone</string>
     <string name="action_share">Share</string>
     <string name="action_delete">Delete</string>
+    <string name="action_sessiom">New Session</string>
     <string name="action_details">Details</string>
     <string name="delete_music">Delete Song from device ?</string>
     <string name="cancel">Cancel</string>

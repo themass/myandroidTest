@@ -133,8 +133,8 @@ public class SettingActivity extends BaseSingleActivity {
         baseService.setup(this);
         hidenAds();
         setVersion();
-    }
 
+    }
     private void setVersion() {
         tvVersion.setText(VersionUpdater.getVersion());
     }

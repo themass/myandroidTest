@@ -5,13 +5,11 @@ import android.os.AsyncTask;
 
 import com.openapi.commons.common.util.LogUtil;
 import com.openapi.ks.myapp.bean.form.ChatLog;
-import com.openapi.ks.myapp.bean.vo.HistoryVo;
 import com.ping.greendao.gen.ChatLogDao;
 import com.ping.greendao.gen.DaoMaster;
 import com.ping.greendao.gen.DaoSession;
 
 import org.greenrobot.greendao.query.QueryBuilder;
-import org.greenrobot.greendao.query.WhereCondition;
 
 import java.util.List;
 

@@ -4,6 +4,7 @@ package com.openapi.ks.myapp.bean.form;
 import org.greenrobot.greendao.annotation.Entity;
 import org.greenrobot.greendao.annotation.Generated;
 import org.greenrobot.greendao.annotation.Id;
+import org.greenrobot.greendao.annotation.Index;
 
 import java.util.Date;
 
@@ -16,23 +17,23 @@ public class ChatLog {
     public String chatId;
     public Date createTime;
 
+    @Index
+    public Long sessionId;
 
-
-    @Generated(hash = 1087848595)
-    public ChatLog(Long id, String content, int who, String chatId,
-            Date createTime) {
+    @Generated(hash = 1846307593)
+    public ChatLog(Long id, String content, int who, String chatId, Date createTime,
+            Long sessionId) {
         this.id = id;
         this.content = content;
         this.who = who;
         this.chatId = chatId;
         this.createTime = createTime;
+        this.sessionId = sessionId;
     }
 
     @Generated(hash = 1994978153)
     public ChatLog() {
     }
-
-
 
     public Long getId() {
         return id;
@@ -72,5 +73,13 @@ public class ChatLog {
 
     public void setCreateTime(Date createTime) {
         this.createTime = createTime;
+    }
+
+    public Long getSessionId() {
+        return sessionId;
+    }
+
+    public void setSessionId(Long sessionId) {
+        this.sessionId = sessionId;
     }
 }
