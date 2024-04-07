@@ -59,9 +59,6 @@ public class BaseRequest<T> extends Request<T> {
         if (headers == null) {
             headers = new HashMap<>();
         }
-        if(!StringUtils.hasText(uc)){
-            uc = DeviceInfoUtils.getMetaData(context, "UMENG_CHANNEL");
-        }
         String devId = DeviceInfoUtils.getDeviceId(context);
         String sb =  devId+ "|" + time;
         String msg = time + Md5.encode(sb);

@@ -63,8 +63,6 @@ public class MyApplication extends MultiDexApplication {
         VolleyUtils.init();
         initFilePath();
         DBManager.getInstance().init(this);
-        String uc = DeviceInfoUtils.getMetaData(this, "UMENG_CHANNEL");
-        String ad = DeviceInfoUtils.getMetaData(this, "AdView_CHANNEL");
         Constants.initUserAgent(Constants.AGENT_APP_MYPOOL);
         isTemp = false;
         //欺骗应用市场
@@ -75,7 +73,6 @@ public class MyApplication extends MultiDexApplication {
 //            isTemp = true;
 //        }
 
-        LogUtil.i("uc=" + uc + "; ad=" + ad);
         if (MyApplication.isDebug) {
             Constants.initUserAgent(Constants.AGENT_APP_MYPOOL);
             DensityUtil.logDensity(this);

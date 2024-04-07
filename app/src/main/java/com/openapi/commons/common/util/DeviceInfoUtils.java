@@ -38,27 +38,27 @@ public class DeviceInfoUtils {
         deviceId.append("android");
 
         try {
-            // wifi mac地址
-            String wifiMac = DeviceInfoUtils.getMac(context);
-            if (StringUtils.hasText(wifiMac)) {
-                deviceId.append("wifi");
-                deviceId.append(wifiMac);
-                return deviceId.toString();
-            }
-            // IMEI（imei）
-            String dev = DeviceInfoUtils.getImei(context);
-            if (StringUtils.hasText(dev)) {
-                deviceId.append("imei");
-                deviceId.append(dev);
-                return deviceId.toString();
-            }
-            // 序列号（sn）
-            String serial = DeviceInfoUtils.getSimSerialNumber(context);
-            if (StringUtils.hasText(serial)) {
-                deviceId.append("sn");
-                deviceId.append(serial);
-                return deviceId.toString();
-            }
+//            // wifi mac地址
+//            String wifiMac = DeviceInfoUtils.getMac(context);
+//            if (StringUtils.hasText(wifiMac)) {
+//                deviceId.append("wifi");
+//                deviceId.append(wifiMac);
+//                return deviceId.toString();
+//            }
+//            // IMEI（imei）
+//            String dev = DeviceInfoUtils.getImei(context);
+//            if (StringUtils.hasText(dev)) {
+//                deviceId.append("imei");
+//                deviceId.append(dev);
+//                return deviceId.toString();
+//            }
+//            // 序列号（sn）
+//            String serial = DeviceInfoUtils.getSimSerialNumber(context);
+//            if (StringUtils.hasText(serial)) {
+//                deviceId.append("sn");
+//                deviceId.append(serial);
+//                return deviceId.toString();
+//            }
             // 如果上面都没有， 则生成一个id：随机码
             String id = SystemUtils.getAndroidId(context);
             if (StringUtils.hasText(id)) {
@@ -73,10 +73,10 @@ public class DeviceInfoUtils {
         return deviceId.toString();
     }
 
-    public static String getImei(Context context) {
-        TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-        return tm.getSimSerialNumber();
-    }
+//    public static String getImei(Context context) {
+//        TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+//        return tm.getSimSerialNumber();
+//    }
 
     /**
      * 获取序列号
