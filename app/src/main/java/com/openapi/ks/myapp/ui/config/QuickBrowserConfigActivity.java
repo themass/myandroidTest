@@ -7,7 +7,7 @@ import android.os.Bundle;
 import com.openapi.commons.common.ui.base.LogActivity;
 import com.openapi.commons.common.util.PackageUtils;
 import com.openapi.commons.yewu.ads.base.AdsContext;
-import com.openapi.ks.moviefree1.R;
+import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.UserLoginUtil;
 import com.openapi.ks.myapp.ui.base.WebViewActivity;

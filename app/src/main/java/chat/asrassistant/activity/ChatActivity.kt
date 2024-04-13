@@ -14,7 +14,7 @@ import chat.asrassistant.config.Config
 import chat.asrassistant.model.ChatMessageBean
 import chat.asrassistant.utils.AsrUtil
 import chat.asrassistant.utils.HttpUtil
-import com.openapi.ks.moviefree1.R
+import com.openapi.ks.chat.R
 import com.openapi.ks.myapp.bean.form.ChatLog
 import com.openapi.ks.myapp.data.DBManager
 import com.openapi.ks.myapp.ui.base.app.BaseFragmentActivity

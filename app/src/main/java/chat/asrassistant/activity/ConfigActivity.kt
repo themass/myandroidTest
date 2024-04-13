@@ -9,7 +9,7 @@ import com.blankj.utilcode.util.LogUtils
 import com.blankj.utilcode.util.ToastUtils
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog
 import kotlinx.android.synthetic.main.activity_config.*
-import com.openapi.ks.moviefree1.R
+import com.openapi.ks.chat.R
 import chat.asrassistant.config.Config
 import chat.asrassistant.utils.DonateUtil
 import chat.asrassistant.utils.HttpUtil

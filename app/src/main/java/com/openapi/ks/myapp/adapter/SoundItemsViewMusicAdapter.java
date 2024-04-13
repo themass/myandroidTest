@@ -12,7 +12,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.openapi.commons.common.ui.view.widgets.MusicVisualizer;
-import com.openapi.ks.moviefree1.R;
+import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.openapi.ks.myapp.bean.vo.SoundItemsVo;
 import com.openapi.ks.myapp.ui.inte.MusicStateListener;

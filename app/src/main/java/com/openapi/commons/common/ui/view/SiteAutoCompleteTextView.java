@@ -11,7 +11,7 @@ import android.widget.TextView;
 import androidx.appcompat.widget.AppCompatAutoCompleteTextView;
 
 import com.openapi.commons.common.util.StringUtils;
-import com.openapi.ks.moviefree1.R;
+import com.openapi.ks.chat.R;
 
 
 public class SiteAutoCompleteTextView extends AppCompatAutoCompleteTextView {

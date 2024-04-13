@@ -15,7 +15,7 @@ import com.openapi.commons.common.util.PreferenceUtils;
 import com.openapi.commons.common.util.StringUtils;
 import com.openapi.commons.common.util.ToastUtil;
 import com.openapi.commons.yewu.net.request.CommonResponse;
-import com.openapi.ks.moviefree1.R;
+import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.bean.vo.FavoriteVo;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.constant.Constants;

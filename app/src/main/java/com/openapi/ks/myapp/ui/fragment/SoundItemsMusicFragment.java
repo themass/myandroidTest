@@ -41,7 +41,7 @@ import com.openapi.ks.myapp.service.PlayService;
 import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
 import com.openapi.ks.myapp.ui.base.features.BasePullLoadbleFragment;
 import com.openapi.ks.myapp.ui.inte.MusicStateListener;
-import com.openapi.ks.moviefree1.R;
+import com.openapi.ks.chat.R;
 
 import butterknife.BindView;
 import cn.jzvd.Jzvd;

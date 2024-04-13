@@ -13,7 +13,7 @@ import android.widget.TextView;
 
 import com.openapi.commons.yewu.ads.base.AdsContext;
 import com.openapi.commons.yewu.ads.base.AdsManager;
-import com.openapi.ks.moviefree1.R;
+import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.openapi.ks.myapp.bean.vo.TextItemsVo;
 import com.openapi.ks.myapp.constant.Constants;

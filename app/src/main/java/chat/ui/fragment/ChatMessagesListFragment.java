@@ -9,7 +9,7 @@ import com.openapi.commons.common.util.LogUtil;
 import com.openapi.commons.common.util.PreferenceUtils;
 import com.openapi.commons.common.util.StringUtils;
 import com.openapi.commons.yewu.net.request.CommonResponse;
-import com.openapi.ks.moviefree1.R;
+import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.bean.form.ChatLog;
 import com.openapi.ks.myapp.bean.vo.Choice;
 import com.openapi.ks.myapp.bean.vo.InfoListVo;

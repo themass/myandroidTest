@@ -7,7 +7,7 @@ import android.view.View;
 
 import com.openapi.ks.myapp.ui.base.features.TabBaseAdsFragment;
 import com.openapi.ks.myapp.ui.user.AddCustomeInfoActivity;
-import com.openapi.ks.moviefree1.R;
+import com.openapi.ks.chat.R;
 import com.openapi.ks.moviefree1.ui.maintab.body.RecommendCustomeFragment;
 
 

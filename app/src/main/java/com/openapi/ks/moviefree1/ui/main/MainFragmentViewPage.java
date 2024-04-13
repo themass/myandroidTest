@@ -40,7 +40,7 @@ import com.openapi.ks.myapp.data.config.TabChangeEvent;
 import com.openapi.ks.myapp.service.LogUploadService;
 import com.openapi.ks.myapp.ui.base.app.BaseDrawerActivity;
 import com.openapi.ks.myapp.ui.inte.OnBackKeyDownListener;
-import com.openapi.ks.moviefree1.R;
+import com.openapi.ks.chat.R;
 
 import com.openapi.ks.moviefree1.ui.maintab.TabCustomeFragment;
 import com.openapi.ks.moviefree1.ui.maintab.TabMovieFragment;

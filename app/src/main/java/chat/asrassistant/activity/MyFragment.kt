@@ -7,7 +7,7 @@ import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.android.synthetic.main.fragment_layout.*
-import com.openapi.ks.moviefree1.R
+import com.openapi.ks.chat.R
 import chat.asrassistant.adapter.ChatAdapter
 import chat.asrassistant.model.ChatMessageBean
 import chat.ui.data.fixtures.MessagesFixtures

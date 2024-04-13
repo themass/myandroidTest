@@ -22,7 +22,7 @@ import android.webkit.WebViewClient;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.openapi.commons.common.util.LogUtil;
-import com.openapi.ks.moviefree1.R;
+import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.constant.Constants;
 
 public class Testwebview extends AppCompatActivity {

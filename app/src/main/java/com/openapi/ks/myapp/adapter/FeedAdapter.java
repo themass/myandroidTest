@@ -12,7 +12,7 @@ import android.widget.TextView;
 
 import com.openapi.commons.common.util.DateUtils;
 import com.openapi.commons.common.util.StringUtils;
-import com.openapi.ks.moviefree1.R;
+import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.bean.vo.IWannaVo;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.UserLoginUtil;

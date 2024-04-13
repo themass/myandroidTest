@@ -26,7 +26,7 @@ import com.openapi.commons.common.util.IpUtil;
 import com.openapi.commons.common.util.LogUtil;
 import com.openapi.commons.common.util.Utils;
 import com.openapi.commons.yewu.net.HttpUtils;
-import com.openapi.ks.moviefree1.R;
+import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.urlparser.UrlParser;

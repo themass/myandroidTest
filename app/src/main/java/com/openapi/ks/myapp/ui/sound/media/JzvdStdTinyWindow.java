@@ -8,7 +8,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 import com.openapi.commons.common.util.DisplayUtil;
-import com.openapi.ks.moviefree1.R;
+import com.openapi.ks.chat.R;
 
 import cn.jzvd.JZDataSource;
 import cn.jzvd.JZUtils;

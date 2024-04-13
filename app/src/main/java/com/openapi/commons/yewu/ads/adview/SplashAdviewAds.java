@@ -8,7 +8,7 @@ import android.widget.RelativeLayout;
 
 import com.openapi.commons.yewu.ads.base.AdsContext;
 import com.openapi.commons.yewu.ads.base.SplashAdsInter;
-import com.openapi.ks.moviefree1.R;
+import com.openapi.ks.chat.R;
 
 import static com.openapi.commons.yewu.ads.adview.AdviewConstant.ADS_ADVIEW_KEY2;
 import static com.openapi.commons.yewu.ads.adview.AdviewConstant.adsKeySet;

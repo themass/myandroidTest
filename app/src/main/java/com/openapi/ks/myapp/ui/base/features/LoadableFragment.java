@@ -20,7 +20,7 @@ import com.openapi.commons.common.util.CollectionUtils;
 import com.openapi.commons.common.util.LogUtil;
 import com.openapi.commons.common.util.ViewUtils;
 import com.openapi.commons.yewu.net.VolleyUtils;
-import com.openapi.ks.moviefree1.R;
+import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.bean.vo.InfoListVo;
 import com.openapi.ks.myapp.data.BaseService;
 

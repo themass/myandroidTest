@@ -6,7 +6,7 @@ import android.net.Uri
 import com.blankj.utilcode.util.ToastUtils
 import com.blankj.utilcode.util.Utils
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog
-import com.openapi.ks.moviefree1.R
+import com.openapi.ks.chat.R
 
 object DonateUtil {
 

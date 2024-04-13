@@ -21,7 +21,7 @@ import com.openapi.ks.myapp.bean.vo.InfoListVo;
 import com.openapi.ks.myapp.data.BaseService;
 import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
 import com.openapi.ks.myapp.ui.base.features.LoadableFragment;
-import com.openapi.ks.moviefree1.R;
+import com.openapi.ks.chat.R;
 import com.viewpagerindicator.TabPageIndicator;
 
 import java.util.ArrayList;

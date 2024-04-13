@@ -12,7 +12,7 @@ import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.ui.fragment.AppListFragment;
 import com.openapi.ks.myapp.ui.fragment.RecommendFragment;
-import com.openapi.ks.moviefree1.R;
+import com.openapi.ks.chat.R;
 
 import butterknife.BindView;
 import butterknife.OnClick;

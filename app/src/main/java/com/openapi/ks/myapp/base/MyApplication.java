@@ -6,7 +6,7 @@ import android.graphics.Typeface;
 import androidx.multidex.MultiDex;
 import androidx.multidex.MultiDexApplication;
 
-import com.openapi.ks.moviefree1.R;
+import com.openapi.ks.chat.R;
 import com.openapi.commons.common.util.DensityUtil;
 import com.openapi.commons.common.util.DeviceInfoUtils;
 import com.openapi.commons.common.util.FileUtils;

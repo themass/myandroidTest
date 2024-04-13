@@ -4,7 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 
-import com.openapi.ks.moviefree1.R;
+import com.openapi.ks.chat.R;
 
 import chat.ui.data.fixtures.DialogsFixtures;
 import chat.ui.data.model.Dialog;

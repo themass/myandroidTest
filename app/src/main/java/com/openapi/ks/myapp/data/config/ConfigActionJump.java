@@ -6,7 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.openapi.commons.common.util.LogUtil;
 import com.openapi.commons.common.util.ToastUtil;
-import com.openapi.ks.moviefree1.R;
+import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.ui.base.Testwebview;
 import com.openapi.ks.myapp.ui.base.WebViewActivity;

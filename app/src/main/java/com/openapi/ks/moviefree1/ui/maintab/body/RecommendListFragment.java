@@ -8,7 +8,7 @@ import android.view.ViewGroup;
 
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.ui.fragment.RecommendFragment;
-import com.openapi.ks.moviefree1.R;
+import com.openapi.ks.chat.R;
 
 /**
  * Created by openapi on 2015/9/1.

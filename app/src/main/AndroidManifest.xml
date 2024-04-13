@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.openapi.ks.moviefree1">
+    package="com.openapi.ks.chat">
     <!-- 隐私权-->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -78,7 +78,7 @@
             android:value="MyGlideModule" />
 
         <activity
-            android:name=".ui.main.LaunchActivity"
+            android:name="com.openapi.ks.moviefree1.ui.main.LaunchActivity"
             android:exported="true"
             android:screenOrientation="portrait">
             <intent-filter tools:ignore="GoogleAppIndexingWarning">
@@ -90,7 +90,7 @@
 
         </activity>
         <activity
-            android:name=".ui.main.MainFragmentViewPage"
+            android:name="com.openapi.ks.moviefree1.ui.main.MainFragmentViewPage"
             android:label="@string/main_activity_name"
             android:launchMode="singleTask"
             android:screenOrientation="portrait" />
@@ -185,17 +185,12 @@
             android:screenOrientation="portrait"
             android:theme="@style/myTransparent" />
 
-        <service android:name="com.openapi.ks.myapp.service.LogUploadService" />
-        <service android:name="com.openapi.ks.myapp.service.LogToFileService" />
-        <service android:name="com.openapi.ks.myapp.service.PlayService" />
-
-
         <!-- 广告sdk-->
         <!-- 视频组件 -->
         <!-- GDT -->
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="com.openapi.ks.moviefree1.fileprovider"
+            android:authorities="com.openapi.ks.chat.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data

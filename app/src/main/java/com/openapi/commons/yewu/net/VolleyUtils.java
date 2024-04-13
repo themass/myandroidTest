@@ -19,7 +19,7 @@ import com.openapi.commons.common.util.FileUtils;
 import com.openapi.commons.common.util.LogUtil;
 import com.openapi.commons.common.util.cache.BitmapLruCache;
 import com.openapi.commons.common.util.cache.DiskBasedCacheEx;
-import com.openapi.ks.moviefree1.R;
+import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.base.MyApplication;
 
 import java.io.File;

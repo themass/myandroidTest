@@ -11,7 +11,7 @@ import androidx.annotation.Nullable;
 
 import com.openapi.ks.myapp.bean.vo.FavoriteVo;
 
-import com.openapi.ks.moviefree1.R;
+import com.openapi.ks.chat.R;
 import com.nightonke.boommenu.BoomButtons.SimpleCircleButton;
 import com.nightonke.boommenu.BoomButtons.TextOutsideCircleButton;
 import com.nightonke.boommenu.BoomMenuButton;

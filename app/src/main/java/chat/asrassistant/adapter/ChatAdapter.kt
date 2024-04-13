@@ -3,7 +3,7 @@ package chat.asrassistant.adapter
 import android.content.Context
 import android.widget.ImageView
 import android.widget.TextView
-import com.openapi.ks.moviefree1.R
+import com.openapi.ks.chat.R
 import chat.asrassistant.adapter.base.RvMultiAdapter
 import chat.asrassistant.adapter.base.RvViewHolder
 import chat.asrassistant.model.ChatMessageBean

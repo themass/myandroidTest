@@ -30,7 +30,7 @@ import com.openapi.ks.myapp.data.config.UserLoginEvent;
 import com.openapi.ks.myapp.ui.fragment.RecommendFragment;
 import com.openapi.ks.myapp.ui.inte.OnBackKeyDownListener;
 import com.openapi.ks.myapp.ui.user.AddCustomeInfoActivity;
-import com.openapi.ks.moviefree1.R;
+import com.openapi.ks.chat.R;
 import com.openapi.ks.moviefree1.ui.main.MainFragmentViewPage;
 
 import org.greenrobot.eventbus.Subscribe;

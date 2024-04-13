@@ -4,7 +4,7 @@ import android.content.Context;
 import androidx.appcompat.widget.AppCompatImageView;
 import android.util.AttributeSet;
 
-import com.openapi.ks.moviefree1.R;
+import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.bean.vo.FavoriteVo;
 import com.openapi.ks.myapp.data.FavoriteUtil;
 

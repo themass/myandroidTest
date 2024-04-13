@@ -6,7 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 
 import com.openapi.commons.yewu.ads.base.AdsContext;
-import com.openapi.ks.moviefree1.R;
+import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.HistoryUtil;

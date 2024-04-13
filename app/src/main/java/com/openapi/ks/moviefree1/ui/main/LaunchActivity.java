@@ -17,7 +17,7 @@ import com.openapi.ks.myapp.bean.form.ChatSessionLog;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.DBManager;
 import com.openapi.ks.myapp.task.LoginTask;
-import com.openapi.ks.moviefree1.R;
+import com.openapi.ks.chat.R;
 
 
 import java.util.Date;
