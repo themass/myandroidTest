@@ -5,7 +5,7 @@ import com.android.volley.VolleyError;
 import com.openapi.commons.yewu.net.VolleyUtils;
 
 /**
- * Created by openapi on 2016/8/17.
+ * Created by dengt on 2016/8/17.
  */
 public class CommonResponse {
     public static class ResponseErrorListener implements Response.ErrorListener {

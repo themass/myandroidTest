@@ -70,33 +70,27 @@ android {
             storeFile file('/Users/liguoqing/soft/myapp/key')
             storePassword 'themass'
         }
-//        config {
-//            keyAlias 'myapp'
-//            keyPassword 'openapi'
-//            storeFile file('/home/web/local/mykey.jks')
-//            storePassword 'openapi'
-//        }
     }
     buildTypes {
-//        debug {
-//            minifyEnabled false
-//            debuggable true
-//            zipAlignEnabled false // Zipalign优化
-//            shrinkResources false
-//            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-//            signingConfig signingConfigs.config
-//        }
-        release {
-            minifyEnabled true
-            debuggable false
-            zipAlignEnabled true // Zipalign优化
-            shrinkResources true
+        debug {
+            minifyEnabled false
+            debuggable true
+            zipAlignEnabled false // Zipalign优化
+            shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.config
         }
+//        release {
+//            minifyEnabled true
+//            debuggable false
+//            zipAlignEnabled true // Zipalign优化
+//            shrinkResources true
+//            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+//            signingConfig signingConfigs.config
+//        }
     }
     productFlavors {
-        sexfree {
+        chat {
             manifestPlaceholders = [CHANNEL_VALUE: "GOOGLEMARKET", AD_CHANNEL_VALUE: "GOOGLEMARKET"]
         }
     }
@@ -138,6 +132,7 @@ dependencies {
     implementation 'androidx.multidex:multidex:2.0.0'
 //    implementation 'androidx.multidex:multidex:2.0.1'
 
+    implementation 'com.google.android.gms:play-services-ads:22.0.0'
 
 
 //    implementation 'com.google.android.gms:play-services-ads:22.2.0'
@@ -146,16 +141,12 @@ dependencies {
 //    implementation 'com.google.android.gms:play-services-plus:21.5.0'
 
 
+    implementation 'com.github.bumptech.glide:glide:4.0.0'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.0.0'
+    implementation 'com.github.bumptech.glide:okhttp3-integration:4.0.0'
     implementation 'jp.wasabeef:glide-transformations:2.0.2'
-    api 'com.github.bumptech.glide:glide:4.12.0'
-    annotationProcessor 'com.github.bumptech.glide:compiler:4.12.0'
-    implementation 'com.github.bumptech.glide:glide:4.12.0'
-//    implementation 'com.github.bumptech.glide:okhttp3-integration:4.10.0'
-    implementation("com.github.bumptech.glide:okhttp3-integration:4.9.0") {
-        exclude group: 'glide-parent'
-    }
-    implementation 'com.squareup.okhttp3:logging-interceptor:4.3.1'
-    implementation 'com.squareup.okhttp3:okhttp:4.10.0'
+    implementation 'com.squareup.okhttp3:logging-interceptor:3.9.0'
+    implementation 'com.squareup.okhttp3:okhttp:3.9.0'
 
 
 
@@ -181,18 +172,6 @@ dependencies {
     implementation 'cn.jzvd:jiaozivideoplayer:7.7.0'
     //和 gsy 冲突了，不能升级版本，不兼容
     implementation 'com.google.android.exoplayer:exoplayer:2.12.1'
-//    implementation 'tv.danmaku.ijk.media:ijkplayer-armv5:0.8.8'
-//    implementation 'tv.danmaku.ijk.media:ijkplayer-arm64:0.8.8'
-//    implementation 'tv.danmaku.ijk.media:ijkplayer-x86:0.8.8'
-//    implementation 'tv.danmaku.ijk.media:ijkplayer-x86_64:0.8.8'
-//    implementation 'tv.danmaku.ijk.media:ijkplayer-java:0.8.8'
-//    implementation 'tv.danmaku.ijk.media:ijkplayer-armv7a:0.8.8'
-
-//    implementation 'tv.danmaku.ijk.media:ijkplayer-java:0.8.8'
-//    implementation 'tv.danmaku.ijk.media:ijkplayer-armv7a:0.8.4'
-//    implementation 'com.aliyun.sdk.android:AliyunPlayer:4.5.0-full'
-//    implementation 'com.alivc.conan:AlivcConan:0.9.5'
-
 
     implementation project(path: ':vitamio')
     implementation project(path: ':play_widget')
@@ -213,26 +192,6 @@ dependencies {
 //    implementation 'org.solovyev.android:checkout:1.0.1'
     implementation 'com.amitshekhar.android:android-networking:1.0.0'
 
-//    implementation 'com.afollestad.material-dialogs:input:3.3.0'
-//    implementation 'com.afollestad.material-dialogs:files:3.3.0'
-//    implementation 'com.afollestad.material-dialogs:color:3.3.0'
-//    implementation 'com.afollestad.material-dialogs:datetime:3.3.0'
-//    implementation 'com.afollestad.material-dialogs:bottomsheets:3.3.0'
-//    implementation 'com.afollestad.material-dialogs:lifecycle:3.3.0'
-//    implementation 'com.afollestad.material-dialogs:core:3.3.0'
-//
-//    implementation('com.crashlytics.sdk.android:crashlytics:2.10.1@aar') {
-//        transitive = true;
-//    }
-//    implementation('com.afollestad.material-dialogs:commons:0.9.4.5@aar') {
-//        transitive = true
-//    }
-//    implementation('com.afollestad.material-dialogs:core:0.9.4.5@aar') {
-//        transitive = true
-//    }
-//    implementation('com.crashlytics.sdk.android:crashlytics:2.6.8@aar') {
-//        transitive = true;
-//    }
 
     implementation 'com.github.CarGuo.GSYVideoPlayer:GSYVideoPlayer:v8.4.0-release-jitpack'
     //是否需要AliPlayer模式

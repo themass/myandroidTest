@@ -3,9 +3,8 @@ package com.openapi.commons.yewu.um;
 import android.content.Context;
 
 import com.openapi.commons.yewu.ads.base.AdsContext;
-
 /**
- * Created by openapi on 2016/8/18.
+ * Created by dengt on 2016/8/18.
  */
 public class MobAgent {
     public static void onResume(Context context) {

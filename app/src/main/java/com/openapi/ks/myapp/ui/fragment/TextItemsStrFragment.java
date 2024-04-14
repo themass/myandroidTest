@@ -7,8 +7,8 @@ package com.openapi.ks.myapp.ui.fragment;//package com.timeline.myapp.ui.fragmen
 //import android.view.LayoutInflater;
 //import android.view.ViewGroup;
 //
-//import com.openapi.common.ui.view.MyScrollView;
-//import com.openapi.common.ui.view.MyTextView;
+//import com.openapi.commons.common.ui.view.MyScrollView;
+//import com.openapi.commons.common.ui.view.MyTextView;
 //import com.timeline.sexfree1.R;
 //import com.timeline.myapp.bean.vo.TextItemsVo;
 //import com.timeline.myapp.constant.Constants;

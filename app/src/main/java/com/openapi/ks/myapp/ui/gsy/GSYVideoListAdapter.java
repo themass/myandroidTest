@@ -14,7 +14,7 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.openapi.ks.chat.R;
+import com.openapi.ks.chatfree.R;
 import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.shuyu.gsyvideoplayer.utils.GSYVideoHelper;

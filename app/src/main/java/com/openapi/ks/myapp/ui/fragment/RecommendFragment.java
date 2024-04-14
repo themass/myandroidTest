@@ -16,7 +16,7 @@ import com.openapi.commons.common.ui.view.RecycleViewDivider;
 import com.openapi.commons.common.util.EventBusUtil;
 import com.openapi.commons.common.util.ToastUtil;
 import com.openapi.commons.yewu.um.MobAgent;
-import com.openapi.ks.chat.R;
+import com.openapi.ks.chatfree.R;
 import com.openapi.ks.myapp.adapter.IndexRecommendAdapter;
 import com.openapi.ks.myapp.adapter.base.BasePhotoFlowRecycleViewAdapter;
 import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;

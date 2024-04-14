@@ -10,7 +10,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.openapi.ks.chat.R;
+import com.openapi.ks.chatfree.R;
 import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.openapi.ks.myapp.bean.vo.AppInfo;
 import com.openapi.ks.myapp.data.ImagePhotoLoad;

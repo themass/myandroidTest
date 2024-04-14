@@ -2,9 +2,9 @@ package com.openapi.commons.yewu.net;
 
 import com.openapi.commons.common.exce.HttpException;
 import com.openapi.commons.common.util.LogUtil;
-import com.openapi.commons.yewu.net.interceptor.GzipRequestInterceptor;
 import com.openapi.commons.yewu.net.interceptor.LoggingInterceptor;
 import com.openapi.ks.myapp.constant.Constants;
+import com.openapi.commons.yewu.net.interceptor.GzipRequestInterceptor;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;

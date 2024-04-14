@@ -9,9 +9,9 @@
 //import android.view.View;
 //import android.view.ViewGroup;
 //
-//import com.openapi.common.ui.view.gallery.BigImagePreview;
-//import com.openapi.common.util.CollectionUtils;
-//import com.openapi.common.util.DensityUtil;
+//import com.openapi.commons.common.ui.view.gallery.BigImagePreview;
+//import com.openapi.commons.common.util.CollectionUtils;
+//import com.openapi.commons.common.util.DensityUtil;
 //import com.timeline.sexfree1.R;
 //import com.timeline.myapp.bean.vo.ImgItemVo;
 //import com.timeline.myapp.bean.vo.ImgItemsVo;

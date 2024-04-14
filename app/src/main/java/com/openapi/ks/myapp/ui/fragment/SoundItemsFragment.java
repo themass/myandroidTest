@@ -20,12 +20,12 @@ package com.openapi.ks.myapp.ui.fragment;//package com.timeline.myapp.ui.fragmen
 //import android.widget.SeekBar;
 //import android.widget.TextView;
 //
-//import com.openapi.common.ui.view.FavoriteImageView;
-//import com.openapi.common.util.CollectionUtils;
-//import com.openapi.common.util.LogUtil;
-//import com.openapi.common.util.MediaUtil;
-//import com.openapi.common.util.PreferenceUtils;
-//import com.openapi.common.util.ToastUtil;
+//import com.openapi.commons.common.ui.view.FavoriteImageView;
+//import com.openapi.commons.common.util.CollectionUtils;
+//import com.openapi.commons.common.util.LogUtil;
+//import com.openapi.commons.common.util.MediaUtil;
+//import com.openapi.commons.common.util.PreferenceUtils;
+//import com.openapi.commons.common.util.ToastUtil;
 //import com.openapi.yewu.net.NetUtils;
 //import com.timeline.sexfree1.R;
 //import com.timeline.myapp.adapter.SoundItemsViewAdapter;

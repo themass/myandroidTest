@@ -5,7 +5,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.openapi.ks.chat.R;
+import com.openapi.ks.chatfree.R;
 
 import java.util.ArrayList;
 import java.util.List;

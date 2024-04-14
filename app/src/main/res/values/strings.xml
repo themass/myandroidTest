@@ -14,7 +14,7 @@
     or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
     for more details.
 -->
-<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+<resources xmlns:tools="http://schemas.android.com/tools" xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <!--  tab main -->
     <string name="tab_movie">Movie</string>
     <string name="tab_ng">Good</string>
@@ -57,6 +57,7 @@
     <string name="menu_btn_feedback">Feedback </string>
     <string name="menu_btn_about">About: Afreedom Score</string>
     <string name="menu_btn_share">Share</string>
+    <string name="menu_btn_character">AI character demo</string>
     <string name="menu_btn_bug">Report bug</string>
     <string name="menu_btn_version">Version:</string>
     <string name="menu_btn_email">E-mail:</string>
@@ -86,7 +87,7 @@
     <string name="location_choose_flag_none">Click“ Region ”More regional options</string>
     <string name="vpn_status_down">Click to down load FreeVPN</string>
     <string name="menu_btn_contract">Contact us:  email</string>
-    <string name="menu_copy_emai">Email Copied OK</string>
+    <string name="menu_copy_emai">Copied OK</string>
     <!-- share-->
     <string name="menu_share_title">Share friend</string>
     <string name="menu_share_url">Download Url:\n%s</string>
@@ -224,7 +225,7 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="del_hint">Confirm delete？</string>
     <string name="del_cancel">Cancel</string>
     <string name="custome_del_fail">delete fail</string>
-
+    <string name="my_charater">setting my Ai charater</string>
     <string name="del_ok">OK</string>
     <string name="no_browser">no brower find</string>ƒ
     <string name="edit">edit</string>
@@ -527,6 +528,8 @@ You are now using a non WIFI network, continue to download may consume more netw
 
     <string name="accessibility_desc">WorkTool</string>
     <string name="tips">如果需要使用或停止该应用，应用需打开 无障碍服务 进行权限设置</string>
+    <string name="tab_fb_click_no">No ads,please try later</string>
+    <string name="repeated_click">Do not click repeatedly</string>
 
     <!-- 升级对话框 -->
     <string name="update_title" translatable="false">发现新版本</string>
@@ -546,4 +549,5 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="on_log_selected_messages"> %1$d Messages are selected</string>
     <string name="action_copy">Copy</string>
     <string name="copied_message">Message copied!</string>
+
 </resources>

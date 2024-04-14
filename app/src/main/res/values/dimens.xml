@@ -201,4 +201,6 @@
 
     <dimen name="setting_start_font_size">13sp</dimen>
     <dimen name="setting_end_font_size">13sp</dimen>
+    <dimen name="text_view_min_height">48dp</dimen>
+
 </resources>

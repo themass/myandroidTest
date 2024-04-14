@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.openapi.ks.chat">
+    package="com.openapi.ks.chatfree">
     <!-- 隐私权-->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -69,6 +69,9 @@
             android:name="org.apache.http.legacy"
             android:required="false" />
 
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-6599725010915516~2513490769"/>
 
         <meta-data
             android:name="com.bumptech.glide.integration.okhttp.OkHttpGlideModule"
@@ -78,7 +81,7 @@
             android:value="MyGlideModule" />
 
         <activity
-            android:name="com.openapi.ks.moviefree1.ui.main.LaunchActivity"
+            android:name=".ui.main.LaunchActivity"
             android:exported="true"
             android:screenOrientation="portrait">
             <intent-filter tools:ignore="GoogleAppIndexingWarning">
@@ -90,7 +93,7 @@
 
         </activity>
         <activity
-            android:name="com.openapi.ks.moviefree1.ui.main.MainFragmentViewPage"
+            android:name=".ui.main.MainFragmentViewPage"
             android:label="@string/main_activity_name"
             android:launchMode="singleTask"
             android:screenOrientation="portrait" />

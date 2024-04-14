@@ -22,6 +22,7 @@ import java.util.zip.ZipFile;
 
 public class FileUtils {
     private final static int BUFFER_SIZE = 1024;
+    public static String VOLLEY_PATH="volley";
 
     /**
      * 解压文件

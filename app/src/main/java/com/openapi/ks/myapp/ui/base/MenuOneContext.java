@@ -6,7 +6,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.PopupMenu;
 
-import com.openapi.ks.chat.R;
+import com.openapi.ks.chatfree.R;
 
 import java.lang.reflect.Method;
 

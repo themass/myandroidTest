@@ -7,7 +7,7 @@ import android.view.animation.OvershootInterpolator;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.openapi.ks.myapp.ui.user.SettingActivity;
 import com.openapi.commons.common.util.LogUtil;
-import com.openapi.ks.chat.R;
+import com.openapi.ks.chatfree.R;
 import com.openapi.ks.myapp.data.AdsPopStrategy;
 
 import butterknife.BindView;

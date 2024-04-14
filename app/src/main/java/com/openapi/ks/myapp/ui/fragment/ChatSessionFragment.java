@@ -4,7 +4,6 @@ package com.openapi.ks.myapp.ui.fragment;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -23,31 +22,19 @@ import com.openapi.commons.common.util.LogUtil;
 import com.openapi.commons.common.util.PreferenceUtils;
 import com.openapi.commons.common.util.ToastUtil;
 import com.openapi.commons.yewu.ads.base.AdsContext;
-import com.openapi.commons.yewu.net.request.CommonResponse;
-import com.openapi.ks.chat.R;
-import com.openapi.ks.moviefree1.ui.main.MainFragmentViewPage;
+import com.openapi.ks.chatfree.R;
 import com.openapi.ks.myapp.bean.form.ChatSessionLog;
-import com.openapi.ks.myapp.bean.form.CustomeAddForm;
 import com.openapi.ks.myapp.bean.vo.InfoListVo;
-import com.openapi.ks.myapp.bean.vo.NullReturnVo;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.DBManager;
 import com.openapi.ks.myapp.data.UserLoginUtil;
 import com.openapi.ks.myapp.data.config.ChatSessionEvent;
-import com.openapi.ks.myapp.data.config.CustomeAddEvent;
-import com.openapi.ks.myapp.data.config.UserLoginEvent;
 import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
-import com.openapi.ks.myapp.ui.inte.OnBackKeyDownListener;
-import com.openapi.ks.myapp.ui.user.AddCustomeInfoActivity;
-
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.List;
 
 import butterknife.BindView;
-import butterknife.OnClick;
 
 
 /**

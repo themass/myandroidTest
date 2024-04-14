@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?android:attr/selectableItemBackground"
+    android:clickable="true"
+    android:padding="@dimen/margin_5">
+    <ImageView
+        android:id="@+id/iv_bg"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        />
+    <LinearLayout
+        android:id="@+id/ll_bg"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="@dimen/margin_10"
+        android:background="@color/transparent"
+        android:layout_alignParentTop="true"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:id="@+id/tv_name"
+            android:background="@color/white"
+            android:textSize="@dimen/textsize_16"
+            android:paddingTop="@dimen/margin_3" />
+
+        <TextView
+            android:id="@+id/tv_content"
+            android:background="@color/transparent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="@dimen/margin_3"
+            android:textColor="@color/base_gray"
+            android:textSize="@dimen/textsize_14" />
+    </LinearLayout>
+    <RelativeLayout
+        android:id="@+id/rv_ads"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/banner_h"
+        android:gravity="center"
+        android:layout_below="@id/ll_bg"
+        android:visibility="gone"/>
+</RelativeLayout>

@@ -18,7 +18,7 @@ import com.openapi.commons.common.util.LogUtil;
 import com.openapi.commons.common.util.StringUtils;
 import com.openapi.commons.yewu.ads.base.AdsContext;
 import com.openapi.commons.yewu.ads.base.AdsManager;
-import com.openapi.ks.chat.R;
+import com.openapi.ks.chatfree.R;
 import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.constant.Constants;
@@ -68,7 +68,7 @@ public class VideoListAdapter extends BaseRecyclerViewAdapter<VideoListAdapter.V
                     AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN2);
                 }else{
                     holder.rvAds.setVisibility(View.VISIBLE);
-                    AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN3);
+                    AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN1);
                 }
             }else{
                 holder.rvAds.removeAllViews();

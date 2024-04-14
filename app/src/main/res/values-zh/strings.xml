@@ -14,7 +14,7 @@
     or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
     for more details.
 -->
-<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+<resources xmlns:tools="http://schemas.android.com/tools" xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <!--  tab main -->
     <string name="tab_movie">电影</string>
     <string name="tab_ng">夜色</string>
@@ -61,6 +61,7 @@
     <string name="menu_btn_about">关于Afreedom: 积分获取</string>
     <string name="menu_btn_email">邮箱:</string>
     <string name="menu_btn_share">分享</string>
+    <string name="menu_btn_character">更多机器人设置demo</string>
     <string name="menu_btn_bug">报告bug</string>
     <string name="menu_btn_version">版本:</string>
     <string name="menu_btn_logout">退出</string>
@@ -95,7 +96,7 @@
     <string name="menu_share_copy_error">分享失败</string>
     <string name="menu_share_text_only">FAIL!! 只能分享text</string>
     <string name="menu_btn_contract">联系我们:  email</string>
-    <string name="menu_copy_emai">邮箱已复制</string>
+    <string name="menu_copy_emai">已复制</string>
     <!--登录，注册-->
     <string name="close_over">再按一次退出程序!!</string>
     <string name="login">登录</string>
@@ -225,6 +226,8 @@
     <string name="custome_del_ok">删除成功</string>
     <string name="custome_del_fail">删除失败</string>
     <string name="save">保存</string>
+    <string name="my_charater">设置我的机器人性格</string>
+
     <string name="schema_hint">Schema</string>
     <string name="schema_http">http://</string>
     <string name="schema_https">https://</string>
@@ -549,4 +552,10 @@
     <string name="on_log_selected_messages"> %1$d Messages are selected</string>
     <string name="action_copy">Copy</string>
     <string name="copied_message">Message copied!</string>
+
+    <string name="tab_fb_click_no">没有广告，请重试</string>
+    <string name="repeated_click">请不要重复点击</string>
+
+
+
 </resources>

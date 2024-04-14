@@ -15,7 +15,7 @@ import com.openapi.commons.common.util.SystemUtils;
 import com.openapi.commons.common.util.ToastUtil;
 import com.openapi.commons.yewu.ads.base.AdsContext;
 import com.openapi.commons.yewu.net.NetUtils;
-import com.openapi.ks.chat.R;
+import com.openapi.ks.chatfree.R;
 import com.openapi.ks.myapp.adapter.FavoriteViewAdapter;
 import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.openapi.ks.myapp.bean.vo.FavoriteVo;

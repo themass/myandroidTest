@@ -7,7 +7,7 @@ import android.view.View;
 
 import com.openapi.commons.common.util.LogUtil;
 import com.openapi.commons.yewu.ads.base.AdsContext;
-import com.openapi.ks.chat.R;
+import com.openapi.ks.chatfree.R;
 import com.openapi.ks.myapp.ui.base.app.BaseFragmentActivity;
 import com.openapi.ks.myapp.ui.fragment.body.MovieChannleBodyFragment;
 

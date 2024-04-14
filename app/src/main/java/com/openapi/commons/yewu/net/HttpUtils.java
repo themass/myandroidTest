@@ -7,7 +7,6 @@ import android.widget.Toast;
 import com.openapi.commons.common.util.CollectionUtils;
 import com.openapi.commons.common.util.LogUtil;
 import com.openapi.commons.common.util.PackageUtils;
-import com.openapi.ks.myapp.constant.Constants;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -25,6 +24,7 @@ import java.util.Map;
 
 public class HttpUtils {
     private static final String DEFAULT_CHARSET = "UTF-8";
+    private static String USER_AGENT_SUFFIX = "VVV/%s";
 
     public static boolean isGzip(String name, String value) {
         return "Content-Encoding".equals(name) && "gzip".equals(value);
@@ -35,7 +35,7 @@ public class HttpUtils {
     }
 
     public static String getUserAgentSuffix(Context context) {
-        return String.format(Constants.USER_AGENT_SUFFIX, PackageUtils.getAppVersion(context));
+        return String.format(USER_AGENT_SUFFIX, PackageUtils.getAppVersion(context));
     }
 
     public static okhttp3.Headers getOkHeader() {
@@ -73,7 +73,7 @@ public class HttpUtils {
     public static int pingVal(String ip) {
         String result = null;
         try {
-            Process p = Runtime.getRuntime().exec("ping -c 3 -w 100 " + ip);
+            Process p = Runtime.getRuntime().exec("ping -c 2 -w 3 " + ip);
             InputStream input = p.getInputStream();
             BufferedReader in = new BufferedReader(new InputStreamReader(input));
             String content;

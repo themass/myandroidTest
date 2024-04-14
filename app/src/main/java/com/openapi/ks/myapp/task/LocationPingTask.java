@@ -9,7 +9,7 @@ import android.widget.TextView;
 import com.openapi.commons.common.util.LogUtil;
 import com.openapi.commons.common.util.StringUtils;
 import com.openapi.commons.yewu.net.HttpUtils;
-import com.openapi.ks.chat.R;
+import com.openapi.ks.chatfree.R;
 import com.openapi.ks.myapp.bean.vo.LocationVo;
 
 

@@ -6,7 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.openapi.commons.common.util.LogUtil;
 import com.openapi.commons.common.util.ToastUtil;
-import com.openapi.ks.chat.R;
+import com.openapi.ks.chatfree.R;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.ui.base.Testwebview;
 import com.openapi.ks.myapp.ui.base.WebViewActivity;
@@ -25,9 +25,6 @@ import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-
-import chat.asrassistant.activity.ChatActivity;
-import chat.ui.CustomLayoutDialogsActivity;
 
 import static com.openapi.ks.myapp.constant.Constants.HTTPS_URL;
 import static com.openapi.ks.myapp.constant.Constants.HTTP_URL;
@@ -49,9 +46,6 @@ public class ConfigActionJump {
         configMap.put(Constants.VIDEO_URL, VideoChannleActivity.class);
         configMap.put(Constants.VIDEOLIST_URL, VideoListShowActivity.class);
         configMap.put(Constants.TELEPLAY_URL, TeleplayActivity.class);
-
-        configMap.put(Constants.LOCAL_CHAT , ChatActivity.class);
-        configMap.put(Constants.LOCAL_CHAT2 , CustomLayoutDialogsActivity.class);
 
 //        configMap.put(Constants.VIDEO_CHANNEL_USER_URL, VideoChannleUserActivity.class);
     }

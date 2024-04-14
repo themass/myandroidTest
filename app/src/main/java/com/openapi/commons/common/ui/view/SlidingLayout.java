@@ -11,7 +11,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.Scroller;
 
-import com.openapi.ks.chat.R;
+import com.openapi.ks.chatfree.R;
 
 
 /**

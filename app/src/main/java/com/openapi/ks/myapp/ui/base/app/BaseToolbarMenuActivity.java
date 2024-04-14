@@ -14,7 +14,7 @@ import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.data.UserLoginUtil;
 import com.openapi.ks.myapp.ui.fragment.GlobalVideoChannelListFragment;
 
-import com.openapi.ks.chat.R;
+import com.openapi.ks.chatfree.R;
 import com.openapi.commons.common.ui.base.LogActivity;
 import com.openapi.commons.common.util.LogUtil;
 

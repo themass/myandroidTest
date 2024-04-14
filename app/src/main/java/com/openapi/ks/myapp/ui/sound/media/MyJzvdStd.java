@@ -13,7 +13,7 @@ import android.widget.FrameLayout;
 
 import com.openapi.commons.common.ui.view.MyFavoriteView;
 import com.openapi.commons.common.util.ToastUtil;
-import com.openapi.ks.chat.R;
+import com.openapi.ks.chatfree.R;
 import com.openapi.commons.common.util.LogUtil;
 
 import cn.jzvd.JZUtils;

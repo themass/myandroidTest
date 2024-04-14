@@ -6,7 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 
 import com.openapi.commons.yewu.ads.base.AdsContext;
-import com.openapi.ks.chat.R;
+import com.openapi.ks.chatfree.R;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.HistoryUtil;
@@ -27,7 +27,7 @@ public class TeleplayItemFragment extends RecommendFragment {
         Intent intent = new Intent(context, CommonFragmentActivity.class);
         intent.putExtra(CommonFragmentActivity.FRAGMENT, TeleplayItemFragment.class);
         intent.putExtra(CommonFragmentActivity.TITLE, R.string.tv);
-        if(AdsContext.rateSmallShow()){
+        if(AdsContext.rateShow()){
             intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_SHOW, true);
         }
         StaticDataUtil.add(Constants.TV_CHANNEL, vo);

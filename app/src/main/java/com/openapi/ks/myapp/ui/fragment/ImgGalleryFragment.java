@@ -13,10 +13,10 @@
 //
 //import com.etiennelawlor.imagegallery.library.adapters.ImageGalleryAdapter;
 //import com.etiennelawlor.imagegallery.library.utilities.DisplayUtility;
-//import com.openapi.common.ui.view.FavoriteImageView;
-//import com.openapi.common.ui.view.GridSpacingItemDecoration;
-//import com.openapi.common.util.CollectionUtils;
-//import com.openapi.common.util.StringUtils;
+//import com.openapi.commons.common.ui.view.FavoriteImageView;
+//import com.openapi.commons.common.ui.view.GridSpacingItemDecoration;
+//import com.openapi.commons.common.util.CollectionUtils;
+//import com.openapi.commons.common.util.StringUtils;
 //import com.openapi.yewu.ads.base.AdsContext;
 //import com.timeline.sexfree1.R;
 //import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;

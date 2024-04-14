@@ -4,9 +4,9 @@ import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.toolbox.HttpStack;
 import com.openapi.commons.common.util.LogUtil;
+import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.commons.yewu.net.interceptor.DnsRequestInterceptor;
 import com.openapi.commons.yewu.net.request.MultipartRequest;
-import com.openapi.ks.myapp.base.MyApplication;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -37,7 +37,7 @@ import okhttp3.ResponseBody;
 import okhttp3.logging.HttpLoggingInterceptor;
 
 /**
- * OkHttp backed {@link com.android.volley.toolbox.HttpStack HttpStack} that does not
+ * OkHttp backed {@link HttpStack HttpStack} that does not
  * use okhttp-urlconnection
  */
 public class OkHttpStack implements HttpStack {
@@ -76,7 +76,7 @@ public class OkHttpStack implements HttpStack {
         return entity;
     }
 
-    private static void setConnectionParametersForRequest(okhttp3.Request.Builder builder, com.android.volley.Request<?> request)
+    private static void setConnectionParametersForRequest(okhttp3.Request.Builder builder, Request<?> request)
             throws IOException, AuthFailureError {
         switch (request.getMethod()) {
             case Request.Method.DEPRECATED_GET_OR_POST:
@@ -103,7 +103,7 @@ public class OkHttpStack implements HttpStack {
         }
     }
 
-    private static void setHeaderForRequest(okhttp3.Request.Builder builder, com.android.volley.Request<?> request, Map<String, String> additionalHeaders) throws AuthFailureError {
+    private static void setHeaderForRequest(okhttp3.Request.Builder builder, Request<?> request, Map<String, String> additionalHeaders) throws AuthFailureError {
         Map<String, String> headers = request.getHeaders();
         for (final String name : headers.keySet()) {
             builder.addHeader(name, headers.get(name));
@@ -147,7 +147,7 @@ public class OkHttpStack implements HttpStack {
     }
 
     @Override
-    public HttpResponse performRequest(com.android.volley.Request<?> request, Map<String, String> additionalHeaders)
+    public HttpResponse performRequest(Request<?> request, Map<String, String> additionalHeaders)
             throws IOException, AuthFailureError {
         okhttp3.Request.Builder okHttpRequestBuilder = new okhttp3.Request.Builder();
         setConnectionParametersForRequest(okHttpRequestBuilder, request);

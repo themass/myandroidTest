@@ -19,7 +19,7 @@ import com.openapi.commons.common.util.FileUtils;
 import com.openapi.commons.common.util.LogUtil;
 import com.openapi.commons.common.util.cache.BitmapLruCache;
 import com.openapi.commons.common.util.cache.DiskBasedCacheEx;
-import com.openapi.ks.chat.R;
+import com.openapi.ks.chatfree.R;
 import com.openapi.ks.myapp.base.MyApplication;
 
 import java.io.File;
@@ -29,8 +29,6 @@ import java.io.File;
  */
 public class VolleyUtils {
     // 缓存目录
-    private static final String DEFAULT_CACHE_DIR = "myvolley";
-
     private static Context context;
     private static RequestQueue mRequestQueue;
     private static ImageLoader mImageLoader;
@@ -41,6 +39,9 @@ public class VolleyUtils {
         VolleyUtils.context = MyApplication.getInstance();
         mRequestQueue = newRequestQueue(context, null);
         mImageLoader = new ImageLoader(mRequestQueue, new BitmapLruCache(context));
+        start();
+    }
+    public static void  start(){
         mRequestQueue.start();
     }
 
@@ -49,7 +50,7 @@ public class VolleyUtils {
             stack = new OkHttpStack();
         }
         Network network = new BasicNetwork(stack);
-        File cacheDir = new File(FileUtils.getWriteFilePath(context), DEFAULT_CACHE_DIR);
+        File cacheDir = new File(FileUtils.getWriteFilePath(context), FileUtils.VOLLEY_PATH);
         return new RequestQueue(new DiskBasedCacheEx(cacheDir, 50 * 1024 * 1024), network, 6); //修改为6个线程
     }
 

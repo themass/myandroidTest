@@ -16,7 +16,7 @@ import android.widget.PopupWindow;
 
 import com.openapi.commons.common.util.LogUtil;
 import com.openapi.commons.common.util.SystemUtils;
-import com.openapi.ks.chat.R;
+import com.openapi.ks.chatfree.R;
 
 
 /**

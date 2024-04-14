@@ -6,6 +6,8 @@ public class ChatHistory {
     public String id;
     public String content;
 
+    public String charater;
+
     public String getId() {
         return id;
     }
@@ -20,5 +22,13 @@ public class ChatHistory {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public String getCharater() {
+        return charater;
+    }
+
+    public void setCharater(String charater) {
+        this.charater = charater;
     }
 }

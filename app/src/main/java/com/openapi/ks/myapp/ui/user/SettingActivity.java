@@ -21,7 +21,7 @@ import com.openapi.commons.common.util.ToastUtil;
 import com.openapi.commons.yewu.ads.base.AdsContext;
 import com.openapi.commons.yewu.net.request.CommonResponse;
 import com.openapi.commons.yewu.um.MobAgent;
-import com.openapi.ks.chat.R;
+import com.openapi.ks.chatfree.R;
 import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.bean.form.RegForm;
 import com.openapi.ks.myapp.bean.vo.NullReturnVo;
@@ -35,6 +35,7 @@ import com.openapi.ks.myapp.data.config.TabChangeEvent;
 import com.openapi.ks.myapp.service.LogUploadService;
 import com.openapi.ks.myapp.ui.base.WebViewActivity;
 import com.openapi.ks.myapp.ui.base.app.BaseSingleActivity;
+import com.openapi.ks.myapp.ui.fragment.SettingCharacterFragment;
 
 import java.io.File;
 import java.util.Date;
@@ -66,6 +67,10 @@ public class SettingActivity extends BaseSingleActivity {
     Switch sw_listVideo;
     @BindView(R.id.tv_version)
     TextView tvVersion;
+    @BindView(R.id.tv_setting_character)
+    TextView tvCharacter;
+    @BindView(R.id.et_setting_content)
+    EditText etCharacter;
     BaseService baseService;
     String mEmail;
     @Override
@@ -129,6 +134,10 @@ public class SettingActivity extends BaseSingleActivity {
                 LogUtil.i("AREA_MI_SWITCH: " + isChecked);
             }
         });
+        String content = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.MY_SETTING,"");
+        if(!StringUtils.isEmpty(content)) {
+            etCharacter.setText(content);
+        }
         baseService = new BaseService();
         baseService.setup(this);
         hidenAds();
@@ -150,7 +159,17 @@ public class SettingActivity extends BaseSingleActivity {
         showShare();
         MobAgent.onEventMenu(this, "分享");
     }
+    @OnClick(R.id.tv_setting_character)
+    public void onCharacter(View view) {
+        SettingCharacterFragment.startFragment(this);
+        MobAgent.onEventMenu(this, "设置人设");
+    }
+    @OnClick(R.id.bt_setting_save)
+    public void onCharacterSave(View view) {
+        PreferenceUtils.setPrefString(MyApplication.getInstance(), Constants.MY_SETTING, etCharacter.getText().toString());
+        MobAgent.onEventMenu(this, "设置人设");
 
+    }
     @Override
     public boolean needShow() {
         return true;

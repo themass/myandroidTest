@@ -36,8 +36,8 @@ import com.openapi.ks.myapp.bean.vo.VersionVo;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.config.StateUseEvent;
 import com.openapi.ks.myapp.data.config.VipDescEvent;
-import com.openapi.ks.chat.R;
-import com.openapi.ks.moviefree1.ui.main.MainFragmentViewPage;
+import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chatfree.ui.main.MainFragmentViewPage;
 
 import java.io.File;
 

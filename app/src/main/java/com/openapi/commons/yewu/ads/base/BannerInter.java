@@ -1,11 +1,12 @@
 package com.openapi.commons.yewu.ads.base;
 
 import android.os.Handler;
-import androidx.fragment.app.FragmentActivity;
 import android.view.ViewGroup;
 
+import androidx.fragment.app.FragmentActivity;
+
 /**
- * Created by openapi on 2017/9/20.
+ * Created by dengt on 2017/9/20.
  */
 
 public abstract class BannerInter extends AdsEventAdaptor implements BaseAdsInter{

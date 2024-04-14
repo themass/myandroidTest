@@ -13,7 +13,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.openapi.commons.common.util.ToastUtil;
-import com.openapi.ks.chat.R;
+import com.openapi.ks.chatfree.R;
 import com.openapi.ks.myapp.adapter.MyFullScreenImageGalleryAdapter;
 import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.task.SaveImageCallBack;

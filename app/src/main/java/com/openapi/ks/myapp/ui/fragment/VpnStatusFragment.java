@@ -24,9 +24,9 @@
 //import android.widget.RelativeLayout;
 //import android.widget.TextView;
 //
-//import com.openapi.common.ui.base.BaseFragment;
-//import com.openapi.common.util.LogUtil;
-//import com.openapi.common.util.ToastUtil;
+//import com.openapi.commons.common.ui.base.BaseFragment;
+//import com.openapi.commons.common.util.LogUtil;
+//import com.openapi.commons.common.util.ToastUtil;
 //import com.openapi.yewu.ads.base.AdsContext;
 //import com.openapi.yewu.ads.base.AdsManager;
 //import com.openapi.yewu.net.HttpUtils;

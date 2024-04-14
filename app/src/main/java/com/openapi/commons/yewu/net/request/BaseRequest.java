@@ -1,6 +1,7 @@
 package com.openapi.commons.yewu.net.request;
 
 import android.content.Context;
+import android.content.Intent;
 import android.text.TextUtils;
 
 import com.android.volley.AuthFailureError;
@@ -18,13 +19,12 @@ import com.openapi.commons.common.util.PreferenceUtils;
 import com.openapi.commons.common.util.StringUtils;
 import com.openapi.commons.common.util.SystemUtils;
 import com.openapi.commons.common.util.cache.DiskBasedCacheEx;
-import com.openapi.commons.yewu.net.HttpUtils;
 import com.openapi.ks.myapp.bean.vo.JsonResult;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.StaticDataUtil;
 import com.openapi.ks.myapp.data.UserLoginUtil;
-
-import org.apache.http.protocol.HTTP;
+import com.openapi.ks.myapp.ui.user.LoginActivity;
+import com.openapi.commons.yewu.net.HttpUtils;
 
 import java.net.URL;
 import java.util.Date;
@@ -35,6 +35,7 @@ public class BaseRequest<T> extends Request<T> {
 
     private static String UA_DEFAULT = null;
     private static String UA_APP_SUFFIX = null;
+    public static String DEVID=null;
 
     static {
         UA_DEFAULT = System.getProperty("http.agent", "");
@@ -59,21 +60,35 @@ public class BaseRequest<T> extends Request<T> {
         if (headers == null) {
             headers = new HashMap<>();
         }
-        String devId = DeviceInfoUtils.getDeviceId(context);
-        String sb =  devId+ "|" + time;
+        if(!StringUtils.hasText(uc)){
+            uc = DeviceInfoUtils.getMetaData(context, "UMENG_CHANNEL");
+        }
+        String sb = null;
+        String fileTxt = DeviceInfoUtils.NULL;
+        if(DEVID==null) {
+            sb = DeviceInfoUtils.getDeviceId(context);
+            if(!DeviceInfoUtils.NULL.equals(sb)){
+                DEVID = sb;
+//                fileTxt = FileUtilleUtils.getContextId(context,sb);
+            }
+        }else{
+            sb = DEVID;
+//            fileTxt = FileUtils.getContextId(context,DEVID);
+        }
+//        LogUtil.i("devid="+sb+"---"+ FileUtils.getContextId(context,sb));
+        sb = sb + "|" + time;
         String msg = time + Md5.encode(sb);
-        String ua = UA_DEFAULT + UA_APP_SUFFIX + ",channel="+uc+",cpu=" + SystemUtils.getCpuType() + ",IE" + msg;
+        String ua = UA_DEFAULT + UA_APP_SUFFIX + ",channel="+uc+",cpu=" + SystemUtils.getCpuType()  +",Webkit/"+fileTxt+ ",IE" + msg;
         String loc = "lon:" + StaticDataUtil.get(Constants.LON, Double.class) + ";lat:" + StaticDataUtil.get(Constants.LAT, Double.class);
         this.authkey = ua.substring(ua.length() - 16, ua.length());
         headers.put("Loc", loc);
-//        headers.put(HTTP.CONTENT_TYPE, "aapplication/json");
-        headers.put(Constants.USER_AGENT, ua);
-        if (!headers.containsKey(Constants.REFERER)) {
-            headers.put(Constants.REFERER, Constants.DEFAULT_REFERER);
+        headers.put("User-Agent", ua);
+        if (!headers.containsKey("Referer")) {
+            headers.put("Referer", Constants.DEFAULT_REFERER);
         }
         headers.put("Accept-Encoding", "gzip");
         headers.put("Accept-Language", SystemUtils.getLang(context));
-        headers.put(Constants.DEVID, devId);
+        headers.put(Constants.DEVID, DEVID);
         String token = PreferenceUtils.getPrefString(context, Constants.HTTP_TOKEN_KEY, null);
         if (token != null)
             headers.put(Constants.HTTP_TOKEN_KEY, token);
@@ -150,6 +165,10 @@ public class BaseRequest<T> extends Request<T> {
             case Constants.HTTP_SUCCESS_CLEAR:
                 UserLoginUtil.logout(context);
                 return true;
+            case Constants.HTTP_LOGIN:
+                Intent intent = new Intent(context, LoginActivity.class);
+                context.startActivity(intent);
+                return false;
             default:
                 return false;
         }

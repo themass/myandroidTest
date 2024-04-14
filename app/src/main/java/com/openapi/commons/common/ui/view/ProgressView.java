@@ -27,7 +27,7 @@ import android.util.TypedValue;
 import android.view.View;
 import android.widget.ProgressBar;
 
-import com.openapi.ks.chat.R;
+import com.openapi.ks.chatfree.R;
 
 
 public class ProgressView extends View {

@@ -6,21 +6,26 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.View;
+import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.openapi.commons.common.util.DoubleClickExit;
 import com.openapi.commons.common.util.EventBusUtil;
 import com.openapi.commons.common.util.GsonUtils;
 import com.openapi.commons.common.util.LogUtil;
 import com.openapi.commons.common.util.PermissionHelper;
+import com.openapi.commons.common.util.PreferenceUtils;
 import com.openapi.commons.common.util.StringUtils;
 import com.openapi.commons.common.util.ToastUtil;
 import com.openapi.commons.yewu.ads.base.AdsContext;
 import com.openapi.commons.yewu.net.request.CommonResponse;
 import com.openapi.commons.yewu.um.MobAgent;
-import com.openapi.ks.chat.R;
+import com.openapi.ks.chatfree.R;
+import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.bean.form.ChatLog;
 import com.openapi.ks.myapp.bean.vo.Choice;
 import com.openapi.ks.myapp.bean.vo.UserInfoVo;
@@ -31,6 +36,7 @@ import com.openapi.ks.myapp.data.config.ChatSessionEvent;
 import com.openapi.ks.myapp.data.config.ConfigActionJump;
 import com.openapi.ks.myapp.data.config.UserLoginEvent;
 import com.openapi.ks.myapp.service.LogUploadService;
+import com.openapi.ks.myapp.ui.base.BannerHeaderFragment;
 import com.openapi.ks.myapp.ui.inte.OnBackKeyDownListener;
 import com.openapi.ks.myapp.ui.user.LoginActivity;
 
@@ -70,6 +76,8 @@ public class CustomChatMessagesActivity extends BaseChatMessagesActivity
     MessagesList messagesList;
     @BindView(R.id.input)
     MessageInput input;
+    @BindView(R.id.fl_banner)
+    FrameLayout banner;
     private Set<OnBackKeyDownListener> keyListeners = new HashSet<>();
     private List<SimpleMessage> history = new ArrayList<>();
     CommonResponse.ResponseOkListener listener = new CommonResponse.ResponseOkListener<Choice>() {
@@ -102,7 +110,18 @@ public class CustomChatMessagesActivity extends BaseChatMessagesActivity
         EventBusUtil.getEventBus().register(this);
         mPermissionHelper.checkNeedPermissions();
         AdsContext.showNext(this);
+        initBanner();
+    }
+    private void initBanner(){
+        BannerHeaderFragment myFragment = BannerHeaderFragment.getNewInstans(AdsContext.Categrey.CATEGREY_VPN);
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        // 开始Fragment事务
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        // 将Fragment添加到FrameLayout中
+        fragmentTransaction.add(R.id.fl_banner, myFragment);
 
+        // 提交事务
+        fragmentTransaction.commit();
     }
 
     @Override
@@ -125,6 +144,7 @@ public class CustomChatMessagesActivity extends BaseChatMessagesActivity
             startActivity(new Intent(this, LoginActivity.class));
             return true;
         }
+        String content = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.MY_SETTING,"");
         if (!input.toString().isEmpty()) {
             Message myMsg = new Message(MessagesFixtures.getRandomId(), my, input.toString());
             messagesAdapter.addToStart(myMsg, true);
@@ -142,6 +162,7 @@ public class CustomChatMessagesActivity extends BaseChatMessagesActivity
             ChatHistory chatHistory = new ChatHistory();
             chatHistory.setContent(GsonUtils.getInstance().toJson(history));
             chatHistory.setId(holdMsg.getId());
+            chatHistory.setCharater(content);
             baseService.postData(String.format(Constants.getUrl(Constants.CHAT_URL)),chatHistory, listener, new CommonResponse.ResponseErrorListener() {
                 @Override
                 protected void onError() {
