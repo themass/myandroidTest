@@ -3,6 +3,7 @@ package com.openapi.commons.common.util;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -15,6 +16,7 @@ import androidx.core.content.ContextCompat;
 
 import com.openapi.ks.chatfree.R;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -24,13 +26,16 @@ public class PermissionHelper {
     public static final int CODE_READ_PHONE_STATE = 1;
     public static final int CODE_ACCESS_COARSE_LOCATION = 2;
     public static final int CODE_WRITE_EXTERNAL_STORAGE = 3;
-//    public static final String GET_ACCOUNTS = Manifest.permission.GET_ACCOUNTS;
+    //    public static final String GET_ACCOUNTS = Manifest.permission.GET_ACCOUNTS;
     public static final String READ_PHONE_STATE = Manifest.permission.READ_PHONE_STATE;
     public static final String ACCESS_COARSE_LOCATION = Manifest.permission.ACCESS_COARSE_LOCATION;
     public static final String WRITE_EXTERNAL_STORAGE = Manifest.permission.WRITE_EXTERNAL_STORAGE;
     public static final String REQUEST_INSTALL_PACKAGES = Manifest.permission.REQUEST_INSTALL_PACKAGES;
-    public static List<String> requestPermissions = Arrays.asList(WRITE_EXTERNAL_STORAGE);
-//    static {
+    public static final String READ_EXTERNAL_STORAGE = Manifest.permission.READ_EXTERNAL_STORAGE;
+    public static final String CAMERA = Manifest.permission.CAMERA;
+    public static final String RECORD_AUDIO = Manifest.permission.RECORD_AUDIO;
+    public static List<String> requestPermissions = Arrays.asList(RECORD_AUDIO, CAMERA, WRITE_EXTERNAL_STORAGE);
+    //    static {
 //        LogUtil.i("os version="+Build.VERSION.SDK_INT );
 //        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O){
 //            requestPermissions.add(REQUEST_INSTALL_PACKAGES);
@@ -59,7 +64,7 @@ public class PermissionHelper {
 
     public boolean checkNeedPermissions() {
         boolean ret = false;
-        for (String perm:requestPermissions) {
+        for (String perm : requestPermissions) {
             if (!checkPermission(perm)) {
                 if (!ActivityCompat.shouldShowRequestPermissionRationale(mContext, perm)) {
                     ActivityCompat.requestPermissions(mContext, new String[]{perm}, 1);
@@ -71,7 +76,7 @@ public class PermissionHelper {
         if (ret) {
             return ret;
         }
-        for (String perm:requestPermissions) {
+        for (String perm : requestPermissions) {
             if (!checkPermission(perm)) {
                 if (ActivityCompat.shouldShowRequestPermissionRationale(mContext, perm)) {
                     //如果用户以前拒绝过改权限申请，则给用户提示
@@ -108,7 +113,6 @@ public class PermissionHelper {
         } else {
             ActivityCompat.requestPermissions(mContext, new String[]{permission}, resultCode);
         }
-//        ActivityCompat.requestPermissions((Activity) mContext, new String[]{permission},resultCode);
     }
 
 
@@ -117,7 +121,7 @@ public class PermissionHelper {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
         final AlertDialog alertDialog = builder.create();
-
+        ToastUtil.showLong(R.string.permission_need_toast);
         builder.setMessage(R.string.permission_need);
         // 拒绝, 退出应用
         builder.setNegativeButton(R.string.del_cancel, new DialogInterface.OnClickListener() {
@@ -142,4 +146,5 @@ public class PermissionHelper {
         intent.setData(Uri.parse(PACKAGE + mContext.getPackageName()));
         mContext.startActivityForResult(intent, 1);
     }
+
 }

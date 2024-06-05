@@ -14,7 +14,8 @@ public class ImgItemsVo {
     public String fileDate;
     public int pics;
     public String pic;
-    public FavoriteVo tofavorite(){
+
+    public FavoriteVo tofavorite() {
         FavoriteVo vo = new FavoriteVo();
         vo.setItemUrl(url);
         vo.setType(Constants.FavoriteType.IMG);

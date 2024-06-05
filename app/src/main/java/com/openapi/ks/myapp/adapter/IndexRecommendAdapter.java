@@ -2,9 +2,11 @@ package com.openapi.ks.myapp.adapter;
 
 import android.content.Context;
 import android.graphics.Color;
+
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,6 +44,7 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
     private boolean needShimmer = true;
     private OnEditClickListener mOnEditClickListener;
     public boolean showParam = false;
+
     public IndexRecommendAdapter(Context context, RecyclerView recyclerView, List<RecommendVo> data, StaggeredGridLayoutManager layoutManager, OnRecyclerViewItemClickListener listener, OnStartDragListener dragStartListener, OnEditClickListener onEditClickListener, boolean showEdit) {
         super(context, recyclerView, data, listener, dragStartListener);
         this.showEdit = showEdit;
@@ -52,9 +55,11 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
         imgWidth = itemWidth - marginPix;
         hExtra = context.getResources().getDimensionPixelSize(R.dimen.margin_3);
     }
-    public void setShowParam(boolean show){
+
+    public void setShowParam(boolean show) {
         showParam = show;
     }
+
     public void setNeedShimmer(boolean needShimmer) {
         this.needShimmer = needShimmer;
     }
@@ -81,7 +86,7 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
                 RecommendVo vo = (RecommendVo) data.get(position);
                 if (StringUtils.hasText(vo.minVersion)) {
                     if (VersionUpdater.getVersion().compareTo(vo.minVersion) < 0) {
-                        ToastUtil.showShort( R.string.version_low);
+                        ToastUtil.showShort(R.string.version_low);
                         return;
                     }
                 }
@@ -115,38 +120,38 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
         }
         if (vo.dataType == RecommendVo.dataType_ADS) {
             holder.ivADS.setVisibility(View.VISIBLE);
-        } else if(showParam && StringUtils.hasText(vo.showLogo)){
+        } else if (showParam && StringUtils.hasText(vo.showLogo)) {
             holder.ivADS.setVisibility(View.VISIBLE);
             holder.ivADS.setText(vo.showLogo);
-        }else {
+        } else {
             holder.ivADS.setVisibility(View.GONE);
         }
-        if(vo.dataType==RecommendVo.dataType_VIDEO_CHANNEL || vo.dataType==RecommendVo.dataType_IMG_CHANNEL){
-            boolean picShow = PreferenceUtils.getPrefBoolean(context, Constants.VIDEO_PIC_SWITCH,true);
-            if(!picShow){
+        if (vo.dataType == RecommendVo.dataType_VIDEO_CHANNEL || vo.dataType == RecommendVo.dataType_IMG_CHANNEL) {
+            boolean picShow = PreferenceUtils.getPrefBoolean(context, Constants.VIDEO_PIC_SWITCH, true);
+            if (!picShow) {
                 vo.showType = Constants.ShowType.Normal;
-                vo.img="";
-                if(vo.rate>=1){
-                    vo.rate=0.8f;
+                vo.img = "";
+                if (vo.rate >= 1) {
+                    vo.rate = 0.8f;
                 }
             }
         }
-        if (vo.newShow !=null && vo.newShow==true) {
+        if (vo.newShow != null && vo.newShow == true) {
             holder.ivNew.setVisibility(View.VISIBLE);
             holder.ivNew.setBackgroundResource(R.drawable.ic_new);
         } else {
-            if(vo.type==0) {
+            if (vo.type == 0) {
                 holder.ivNew.setVisibility(View.GONE);
-            }else if(vo.type==1){
+            } else if (vo.type == 1) {
                 holder.ivNew.setVisibility(View.VISIBLE);
                 holder.ivNew.setBackgroundResource(R.drawable.ic_vip1);
-            }else if(vo.type==2){
+            } else if (vo.type == 2) {
                 holder.ivNew.setVisibility(View.VISIBLE);
                 holder.ivNew.setBackgroundResource(R.drawable.ic_vip2);
-            }else if(vo.type==3){
+            } else if (vo.type == 3) {
                 holder.ivNew.setVisibility(View.VISIBLE);
                 holder.ivNew.setBackgroundResource(R.drawable.ic_vip3);
-            }else if(vo.type==4){
+            } else if (vo.type == 4) {
                 holder.ivNew.setVisibility(View.VISIBLE);
                 holder.ivNew.setBackgroundResource(R.drawable.ic_vip4);
             }
@@ -159,7 +164,7 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
         final Shimmer shimmer = new Shimmer();
         shimmer.setDuration(Constants.RECOMMAND_SHIMMER_DURATION);
         holder.ivTitle.setVisibility(View.VISIBLE);
-        ImagePhotoLoad.loadPhoto(holder, vo, shimmer,needShimmer, context);
+        ImagePhotoLoad.loadPhoto(holder, vo, shimmer, needShimmer, context);
     }
 
     public interface OnEditClickListener {
@@ -181,6 +186,7 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
         public View ivNew;
         @BindView(R.id.tv_title_below)
         public TextView tvTitleBelow;
+
         public NaviItemViewHolder(View view) {
             super(view);
         }

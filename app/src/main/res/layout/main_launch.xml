@@ -10,8 +10,8 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:src="@drawable/ic_lauch_bottom"
-        />
+        android:src="@drawable/ic_lauch_bottom" />
+
     <LinearLayout
         android:id="@+id/ll_banner"
         android:layout_width="match_parent"
@@ -19,23 +19,25 @@
         android:layout_alignParentTop="true"
         android:orientation="vertical"
         android:layout_marginTop="@dimen/margin_150"
-        android:visibility="gone"
-        >
+        android:visibility="gone">
+
         <RelativeLayout
             android:id="@+id/rl_banner1"
             android:layout_width="match_parent"
             android:layout_height="@dimen/margin_100"
-            android:layout_marginBottom="@dimen/margin_40"/>
+            android:layout_marginBottom="@dimen/margin_40" />
+
         <RelativeLayout
             android:id="@+id/rl_banner2"
             android:layout_width="match_parent"
             android:layout_height="@dimen/margin_70"
-            android:layout_marginBottom="@dimen/margin_40"/>
+            android:layout_marginBottom="@dimen/margin_40" />
+
         <RelativeLayout
             android:id="@+id/rl_banner3"
             android:layout_width="match_parent"
             android:layout_height="@dimen/margin_70"
-            android:layout_marginBottom="@dimen/margin_40"/>
+            android:layout_marginBottom="@dimen/margin_40" />
     </LinearLayout>
 
     <RelativeLayout
@@ -52,8 +54,7 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
         android:layout_margin="16dp"
-        android:clickable="true"
-        >
+        android:clickable="true">
 
         <TextView
             android:id="@+id/tv_shu"
@@ -61,7 +62,6 @@
             android:layout_height="48dp"
             android:background="@drawable/skip_bg"
             android:gravity="center"
-            android:text="@string/skip"
-            />
+            android:text="@string/skip" />
     </RelativeLayout>
 </RelativeLayout>

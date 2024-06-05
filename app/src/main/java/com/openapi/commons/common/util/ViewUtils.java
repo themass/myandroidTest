@@ -2,8 +2,10 @@ package com.openapi.commons.common.util;
 
 import android.app.Activity;
 import android.content.Context;
+
 import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.ViewPager;
+
 import android.view.View;
 import android.widget.Adapter;
 import android.widget.AdapterView;

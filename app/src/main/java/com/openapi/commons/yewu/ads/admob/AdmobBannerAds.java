@@ -27,12 +27,14 @@ import com.openapi.commons.yewu.ads.base.BannerInter;
 
 public class AdmobBannerAds extends BannerInter {
     private MobivistaBannerAds mobvBanner = new MobivistaBannerAds();
+
     @Override
-    protected AdsContext.AdsType getAdsType(){
+    protected AdsContext.AdsType getAdsType() {
         return AdsContext.AdsType.ADS_TYPE_BANNER;
     }
+
     @Override
-    public void bannerAds(final FragmentActivity context, final ViewGroup group, final String key, final Handler handler){
+    public void bannerAds(final FragmentActivity context, final ViewGroup group, final String key, final Handler handler) {
         AdView adView = new AdView(context);
         adView.setAdUnitId(Constants.ADMOB_BANNER_ID);
         if (adView != null) {
@@ -41,12 +43,12 @@ public class AdmobBannerAds extends BannerInter {
                 parent.removeAllViews();
             }
             adView.setTag(key);
-        }else{
-            LogUtil.e("admob banner banner is error :"+key);
-            return ;
+        } else {
+            LogUtil.e("admob banner banner is error :" + key);
+            return;
         }
-        try{
-            LogUtil.i("admob banner  req :"+key);
+        try {
+            LogUtil.i("admob banner  req :" + key);
             group.addView(adView);
             AdRequest adRequest = new AdRequest.Builder().build();
 
@@ -56,11 +58,11 @@ public class AdmobBannerAds extends BannerInter {
 
             // Step 5 - Start loading the ad in the background.
             adView.loadAd(adRequest);
-            adView.setAdListener(new AdListener(){
+            adView.setAdListener(new AdListener() {
                 @Override
                 public void onAdClicked() {
                     LogUtil.i("admob banner  onAdClicked ");
-                    if(!AdsContext.hasClick(context,"banner")) {
+                    if (!AdsContext.hasClick(context, "banner")) {
                         clickAds(context, handler, AdsContext.AdsFrom.ADMOB);
                     }
                 }
@@ -68,16 +70,16 @@ public class AdmobBannerAds extends BannerInter {
                 @Override
                 public void onAdClosed() {
                     LogUtil.i("admob banner  onAdClosed ");
-                    closeAds(context,handler, AdsContext.AdsFrom.ADMOB);
+                    closeAds(context, handler, AdsContext.AdsFrom.ADMOB);
                     group.setVisibility(View.GONE);
                 }
 
                 @Override
                 public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
-                    LogUtil.i("admob banner onAdFailedToLoad "+loadAdError.toString());
-                    noAds(context,handler, AdsContext.AdsFrom.ADMOB,0);
-    //                   group.setVisibility(View.GONE);
-                    mobvBanner.bannerAds(context,group,key,handler);
+                    LogUtil.i("admob banner onAdFailedToLoad " + loadAdError.toString());
+                    noAds(context, handler, AdsContext.AdsFrom.ADMOB, 0);
+                    //                   group.setVisibility(View.GONE);
+                    mobvBanner.bannerAds(context, group, key, handler);
                 }
 
                 @Override
@@ -88,22 +90,23 @@ public class AdmobBannerAds extends BannerInter {
                 @Override
                 public void onAdLoaded() {
                     LogUtil.i("admob banner nAdLoaded ");
-                    readyAds(context,handler, AdsContext.AdsFrom.ADMOB);
+                    readyAds(context, handler, AdsContext.AdsFrom.ADMOB);
                 }
 
                 @Override
                 public void onAdOpened() {
                     LogUtil.i("admob banner  onAdOpened ");
-                    displayAds(context,handler, AdsContext.AdsFrom.ADMOB);
+                    displayAds(context, handler, AdsContext.AdsFrom.ADMOB);
                 }
 
             });
         } catch (Throwable e) {
-            noAds(context,handler, AdsContext.AdsFrom.ADVIEW,0);
-            mobvBanner.bannerAds(context,group,key,handler);
+            noAds(context, handler, AdsContext.AdsFrom.ADVIEW, 0);
+            mobvBanner.bannerAds(context, group, key, handler);
             LogUtil.e(e);
-         }
+        }
     }
+
     private AdSize getAdSize(Activity context) {
         // Step 2 - Determine the screen width (less decorations) to use for the ad width.
         Display display = context.getWindowManager().getDefaultDisplay();
@@ -118,9 +121,10 @@ public class AdmobBannerAds extends BannerInter {
         // Step 3 - Get adaptive ad size and return for setting on the ad view.
         return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(context, adWidth);
     }
+
     @Override
-    public void bannerExit(FragmentActivity context, ViewGroup group, final String key){
-        LogUtil.i("admob banner bannerExit:"+key);
+    public void bannerExit(FragmentActivity context, ViewGroup group, final String key) {
+        LogUtil.i("admob banner bannerExit:" + key);
         group.removeView(group.findViewWithTag(key));
     }
 

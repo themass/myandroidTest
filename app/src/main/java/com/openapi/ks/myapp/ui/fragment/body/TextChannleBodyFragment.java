@@ -19,16 +19,19 @@ import java.util.HashMap;
 public class TextChannleBodyFragment extends RecommendFragment {
     private static final String INDEX_TAG = "text_tag";
     private String channel = "";
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Bundle b  = getArguments();
-        channel = ((HashMap<String,String>)b.getSerializable(Constants.CONFIG_PARAM)).get(Constants.CHANNEL);
+        Bundle b = getArguments();
+        channel = ((HashMap<String, String>) b.getSerializable(Constants.CONFIG_PARAM)).get(Constants.CHANNEL);
     }
+
     @Override
     public String getUrl(int start) {
-        return Constants.getUrlWithParam(Constants.API_TEXT_CHANNLE_URL, start,channel);
+        return Constants.getUrlWithParam(Constants.API_TEXT_CHANNLE_URL, start, channel);
     }
+
     @Override
     public String getNetTag() {
         return INDEX_TAG;
@@ -37,7 +40,7 @@ public class TextChannleBodyFragment extends RecommendFragment {
     @Override
     public void onCustomerItemClick(View v, int position) {
         RecommendVo vo = infoListVo.voList.get(position);
-        if(!checkUserLevel(vo.type)){
+        if (!checkUserLevel(vo.type)) {
             return;
         }
         TextChannelListFragment.startFragment(getActivity(), vo);

@@ -27,7 +27,7 @@ public class TeleplayItemFragment extends RecommendFragment {
         Intent intent = new Intent(context, CommonFragmentActivity.class);
         intent.putExtra(CommonFragmentActivity.FRAGMENT, TeleplayItemFragment.class);
         intent.putExtra(CommonFragmentActivity.TITLE, R.string.tv);
-        if(AdsContext.rateShow()){
+        if (AdsContext.rateShow()) {
             intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_SHOW, true);
         }
         StaticDataUtil.add(Constants.TV_CHANNEL, vo);
@@ -58,29 +58,32 @@ public class TeleplayItemFragment extends RecommendFragment {
     public void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
         vo = StaticDataUtil.get(Constants.TV_CHANNEL, RecommendVo.class);
-        if(vo==null){
+        if (vo == null) {
             getActivity().finish();
         }
         StaticDataUtil.del(Constants.TV_CHANNEL);
     }
+
     @Override
-    public boolean getShowParam(){
+    public boolean getShowParam() {
         return true;
     }
+
     @Override
     public void onCustomerItemClick(View v, int position) {
         RecommendVo revo = infoListVo.voList.get(position);
         HistoryUtil.addHistory(getActivity(), revo.actionUrl);
-        if(Constants.VIDEO_TYPE_NORMAL.equalsIgnoreCase((String)revo.extra)){
-            if(VideoUtil.isVitamioExt(vo.actionUrl)){
+        if (Constants.VIDEO_TYPE_NORMAL.equalsIgnoreCase((String) revo.extra)) {
+            if (VideoUtil.isVitamioExt(vo.actionUrl)) {
                 startActivity(VitamioVideoPlayActivity.class, revo);
-            }else {
+            } else {
                 startActivity(VideoShowActivity.class, revo);
             }
-        }else{
-            super.onCustomerItemClick(v,position);
+        } else {
+            super.onCustomerItemClick(v, position);
         }
     }
+
     @Override
     public void onDestroyView() {
         indexService.cancelRequest(IMG_TAG);

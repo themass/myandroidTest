@@ -17,18 +17,20 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+
 /**
  * 图片下载
- * 
  */
-public class SaveImageTask extends AsyncTask<String,Void,Void>{
+public class SaveImageTask extends AsyncTask<String, Void, Void> {
     private String url;
     private Context context;
     private SaveImageCallBack callBack;
     private File currentFile;
-    public static void startSave(Context context, String url, SaveImageCallBack callBack){
-        new SaveImageTask(context,url,callBack).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+
+    public static void startSave(Context context, String url, SaveImageCallBack callBack) {
+        new SaveImageTask(context, url, callBack).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
+
     public SaveImageTask(Context context, String url, SaveImageCallBack callBack) {
         this.url = url;
         this.callBack = callBack;
@@ -44,9 +46,9 @@ public class SaveImageTask extends AsyncTask<String,Void,Void>{
                     .load(url)
                     .into(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
                     .get();
-            if (bitmap != null){
+            if (bitmap != null) {
                 // 在这里执行图片保存方法
-                saveImageToGallery(context,url,bitmap);
+                saveImageToGallery(context, url, bitmap);
             }
         } catch (Exception e) {
             LogUtil.e(e);
@@ -56,7 +58,7 @@ public class SaveImageTask extends AsyncTask<String,Void,Void>{
 
     @Override
     protected void onPostExecute(Void aVoid) {
-        if (currentFile!=null && currentFile.exists()) {
+        if (currentFile != null && currentFile.exists()) {
             callBack.onSuccess();
         } else {
             callBack.onFailed();
@@ -65,11 +67,11 @@ public class SaveImageTask extends AsyncTask<String,Void,Void>{
 
     public void saveImageToGallery(Context context, String url, Bitmap bmp) {
         // 首先保存图片
-        File appDir =PathUtil.initPicturesDiskCacheFile();
+        File appDir = PathUtil.initPicturesDiskCacheFile();
         String name = PathUtil.getFileExtensionFromUrl(url);
         LogUtil.i(name);
-        if(StringUtils.isEmpty(name)){
-            name = System.currentTimeMillis()+"";
+        if (StringUtils.isEmpty(name)) {
+            name = System.currentTimeMillis() + "";
         }
         currentFile = new File(appDir, name);
         FileOutputStream fos = null;

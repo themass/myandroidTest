@@ -1,5 +1,4 @@
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="8dp"
@@ -7,22 +6,30 @@
     android:layout_marginRight="16dp"
     android:layout_marginTop="8dp">
 
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@id/messageUserAvatar"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginLeft="8dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:background="@drawable/download" />
+
     <LinearLayout
         android:id="@id/bubble"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
-        android:layout_marginLeft="40dp"
-        android:layout_marginStart="40dp"
+        android:layout_toLeftOf="@id/messageUserAvatar"
+        android:layout_marginLeft="30dp"
+        android:layout_marginStart="30dp"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
         <ImageButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@null"
-            android:src="@drawable/ic_play_white"/>
+            android:id="@+id/ib_audio"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:background="@drawable/audio_animation_list_right_3" />
 
         <TextView
             android:id="@+id/duration"
@@ -30,21 +37,29 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
             android:layout_marginStart="10dp"
-            android:textColor="@color/white"
-            android:textSize="15sp"/>
+            android:textColor="@color/black"
+            android:textSize="15sp" />
 
     </LinearLayout>
-
     <TextView
-        android:id="@+id/time"
+        android:id="@+id/tv_message"
+        android:padding="@dimen/margin_10"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@id/bubble"
-        android:layout_alignStart="@id/bubble"
+        android:layout_alignRight="@id/bubble"
         android:layout_below="@id/bubble"
-        android:layout_marginLeft="16dp"
-        android:layout_marginStart="16dp"
-        android:textColor="@color/gray_dark"
-        android:textSize="14sp"/>
-
+        android:layout_marginEnd="@dimen/margin_5"
+        android:layout_alignEnd="@id/bubble"
+        android:layout_marginLeft="30dp"
+        android:layout_marginStart="30dp"
+        android:visibility="gone"
+        android:textColor="@color/black"
+        android:background="@color/base_white" />
+    <TextView
+        android:id="@id/messageTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignRight="@id/bubble"
+        android:layout_below="@id/tv_message"
+        android:layout_marginRight="10dp" />
 </RelativeLayout>

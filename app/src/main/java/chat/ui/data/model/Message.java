@@ -18,6 +18,12 @@ public class Message implements IMessage,
     private final User user;
     private Image image;
     private Voice voice;
+    private int msgType = MessageType.TXT_TYPE;
+
+    public Message() {
+        this.id = "0";
+        this.user = null;
+    }
 
     public Message(String id, User user, String text) {
         this(id, user, text, new Date());
@@ -75,6 +81,10 @@ public class Message implements IMessage,
         this.image = image;
     }
 
+    public Image getImage() {
+        return image;
+    }
+
     public void setVoice(Voice voice) {
         this.voice = voice;
     }
@@ -105,6 +115,23 @@ public class Message implements IMessage,
         public int getDuration() {
             return duration;
         }
+
+        @Override
+        public String toString() {
+            return "Voice{" +
+                    "url='" + url + '\'' +
+                    ", duration=" + duration +
+                    '}';
+        }
+    }
+
+
+    public int getMsgType() {
+        return msgType;
+    }
+
+    public void setMsgType(int msgType) {
+        this.msgType = msgType;
     }
 
     @Override

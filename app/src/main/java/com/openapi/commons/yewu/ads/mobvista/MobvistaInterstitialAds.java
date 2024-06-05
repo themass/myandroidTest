@@ -12,11 +12,12 @@ import com.openapi.commons.yewu.ads.base.InterstitialAdsInter;
 
 public class MobvistaInterstitialAds extends InterstitialAdsInter {
     @Override
-    protected AdsContext.AdsType getAdsType(){
+    protected AdsContext.AdsType getAdsType() {
         return AdsContext.AdsType.ADS_TYPE_INTERSTITIAL;
     }
+
     @Override
-    public void interstitialAds(final Context context, final Handler handler,String key,boolean score,final int count){
+    public void interstitialAds(final Context context, final Handler handler, String key, boolean score, final int count) {
 //        MBNewInterstitialHandler  mMBInterstitalVideoHandler = new MBNewInterstitialHandler(context, Constants.Mob_INTER_UNIT, Constants.Mob_INTER_UNIT_PLACE);
 //        mMBInterstitalVideoHandler.playVideoMute(MBridgeConstans.REWARD_VIDEO_PLAY_MUTE);
 //        mMBInterstitalVideoHandler.setInterstitialVideoListener(new NewInterstitialListener() {
@@ -90,7 +91,7 @@ public class MobvistaInterstitialAds extends InterstitialAdsInter {
     }
 
     @Override
-    public void interstitialExit(Context context,String key){
+    public void interstitialExit(Context context, String key) {
 
     }
 }

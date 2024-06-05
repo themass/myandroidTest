@@ -40,10 +40,11 @@ import butterknife.BindView;
 /**
  * Created by openapi on 2015/9/1.
  */
-public class ChatSessionFragment extends RecommendFragment  {
+public class ChatSessionFragment extends RecommendFragment {
     private static final String INDEX_TAG = "chat_session_tag";
     @BindView(R.id.lb_add)
     ImageButton llAdd;
+
     public static void startFragment(Context context) {
         Intent intent = new Intent(context, CommonFragmentActivity.class);
         intent.putExtra(CommonFragmentActivity.FRAGMENT, ChatSessionFragment.class);
@@ -53,6 +54,7 @@ public class ChatSessionFragment extends RecommendFragment  {
         intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_SHOW, false);
         context.startActivity(intent);
     }
+
     @Override
     public String getNetTag() {
         return INDEX_TAG;
@@ -62,32 +64,35 @@ public class ChatSessionFragment extends RecommendFragment  {
     protected void onContentViewCreated(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
         inflater.inflate(R.layout.layout_recommd_custome, parent, true);
     }
+
     @Override
     protected void startQuery(boolean showLoading) {
-        if(UserLoginUtil.getUserCache()!=null) {
+        if (UserLoginUtil.getUserCache() != null) {
             super.startQuery(showLoading);
-        }else{
+        } else {
             hideLoading();
         }
     }
+
     @Override
     public void onRefresh(int type) {
         pullView.setRefresh(false);
     }
+
     @Override
     protected InfoListVo<RecommendVo> loadData(Context context) throws Exception {
-        Long id =  PreferenceUtils.getPrefLong(getActivity(), Constants.CHAT_SESSION, 0);
+        Long id = PreferenceUtils.getPrefLong(getActivity(), Constants.CHAT_SESSION, 0);
         List<ChatSessionLog> chatSessionLogList = DBManager.getInstance().getDaoSession().getChatSessionLogDao().loadAll();
         InfoListVo<RecommendVo> volist = new InfoListVo<RecommendVo>();
-        for(ChatSessionLog log:chatSessionLogList){
+        for (ChatSessionLog log : chatSessionLogList) {
             RecommendVo vo = new RecommendVo();
             vo.title = log.name;
             vo.id = log.id;
-            vo.rate=0.2F;
+            vo.rate = 0.2F;
             vo.showType = 2;
-            if(id == vo.id){
+            if (id == vo.id) {
                 vo.color = "#698b87";
-            }else{
+            } else {
                 vo.color = "#666666";
             }
             volist.voList.add(vo);
@@ -99,7 +104,7 @@ public class ChatSessionFragment extends RecommendFragment  {
 
     @Override
     public void setupViews(View view, Bundle savedInstanceState) {
-        super.setupViews(view,savedInstanceState);
+        super.setupViews(view, savedInstanceState);
 
     }
 
@@ -122,6 +127,7 @@ public class ChatSessionFragment extends RecommendFragment  {
     public void onLongItemClick(View view, final int position) {
         showPopupWindow(view, position);
     }
+
     @Override
     protected void onDataLoaded(InfoListVo<RecommendVo> data) {
         super.onDataLoaded(data);
@@ -133,11 +139,12 @@ public class ChatSessionFragment extends RecommendFragment  {
                 llAdd.setVisibility(View.VISIBLE);
         }
     }
-    public void onCustomerItemClick(View v, int position){
+
+    public void onCustomerItemClick(View v, int position) {
         RecommendVo data = infoListVo.voList.get(position);
         LogUtil.i("onItemClick");
-        Long id =  PreferenceUtils.getPrefLong(getActivity(), Constants.CHAT_SESSION, 0);
-        if(id != data.id){
+        Long id = PreferenceUtils.getPrefLong(getActivity(), Constants.CHAT_SESSION, 0);
+        if (id != data.id) {
             EventBusUtil.getEventBus().post(new ChatSessionEvent(data.id));
         }
         getActivity().finish();
@@ -182,10 +189,10 @@ public class ChatSessionFragment extends RecommendFragment  {
                 builder.setPositiveButton(R.string.del_ok, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        if(infoListVo.voList.size()<2){
+                        if (infoListVo.voList.size() < 2) {
                             ToastUtil.showLong(R.string.custome_del_fail);
                             return;
-                        }else{
+                        } else {
                             RecommendVo o = infoListVo.voList.get(postion);
                             DBManager.getInstance().getDaoSession().getChatSessionLogDao().deleteByKey(o.id);
                             refresh();
@@ -213,7 +220,7 @@ public class ChatSessionFragment extends RecommendFragment  {
         return false;
     }
 
-//    @Override
+    //    @Override
     public boolean getShowEdit() {
         return false;
     }

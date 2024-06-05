@@ -20,16 +20,19 @@ import java.util.HashMap;
 public class VideoChannleBodyFragment extends RecommendFragment {
     private static final String INDEX_TAG = "video_tag";
     private String channel = "";
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Bundle b  = getArguments();
-        channel = ((HashMap<String,String>)b.getSerializable(Constants.CONFIG_PARAM)).get(Constants.CHANNEL);
+        Bundle b = getArguments();
+        channel = ((HashMap<String, String>) b.getSerializable(Constants.CONFIG_PARAM)).get(Constants.CHANNEL);
     }
+
     @Override
     public String getUrl(int start) {
-        return Constants.getUrlWithParam(Constants.API_VIDEO_CHANNLE_URL, start,channel);
+        return Constants.getUrlWithParam(Constants.API_VIDEO_CHANNLE_URL, start, channel);
     }
+
     @Override
     public String getNetTag() {
         return INDEX_TAG;
@@ -38,19 +41,21 @@ public class VideoChannleBodyFragment extends RecommendFragment {
     @Override
     public void onCustomerItemClick(View v, int position) {
         RecommendVo vo = infoListVo.voList.get(position);
-        if(!checkUserLevel(vo.type)){
+        if (!checkUserLevel(vo.type)) {
             return;
         }
-        if(Constants.VIDEO_USER_CHANNEL.equals(vo.actionUrl)){
-            VideoChannelUserListFragment.startFragment(getActivity(),vo);
-        }else{
+        if (Constants.VIDEO_USER_CHANNEL.equals(vo.actionUrl)) {
+            VideoChannelUserListFragment.startFragment(getActivity(), vo);
+        } else {
             VideoChannelListFragment.startFragment(getActivity(), vo);
         }
     }
+
     @Override
-    protected  boolean getShowParam(){
+    protected boolean getShowParam() {
         return true;
     }
+
     @Override
     public int getSpanCount() {
         return 3;
@@ -60,7 +65,6 @@ public class VideoChannleBodyFragment extends RecommendFragment {
     public boolean getShowEdit() {
         return false;
     }
-
 
 
     @Override

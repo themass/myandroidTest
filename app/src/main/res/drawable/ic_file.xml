@@ -4,19 +4,16 @@
     android:width="24dp"
     android:height="30dp"
     android:viewportWidth="24"
-    android:viewportHeight="30"
-    >
+    android:viewportHeight="30">
 
     <group
-            android:translateX="-21.000000"
-            android:translateY="-537.000000">
-        <group
-                android:translateY="72.000000">
-            <group
-                    android:translateY="453.000000">
+        android:translateX="-21.000000"
+        android:translateY="-537.000000">
+        <group android:translateY="72.000000">
+            <group android:translateY="453.000000">
                 <group
-                        android:translateX="21.000000"
-                        android:translateY="12.000000">
+                    android:translateX="21.000000"
+                    android:translateY="12.000000">
                     <path
                         android:name="Shape"
                         android:fillColor="#AADDF9FF"

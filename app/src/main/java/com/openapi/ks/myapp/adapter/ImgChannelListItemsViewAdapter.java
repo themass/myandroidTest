@@ -1,9 +1,11 @@
 package com.openapi.ks.myapp.adapter;
 
 import android.content.Context;
+
 import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,7 +41,7 @@ public class ImgChannelListItemsViewAdapter extends BaseRecyclerViewAdapter<ImgC
     }
 
     public void onBindViewHolderData(RecyclerView.ViewHolder h, int position) {
-        ImgChannleListView holder = (ImgChannleListView)h;
+        ImgChannleListView holder = (ImgChannleListView) h;
         ImgItemsVo vo = data.get(position);
         holder.tvIndex.setText("#" + (position + 1));
         holder.tvName.setText(vo.name);
@@ -48,22 +50,23 @@ public class ImgChannelListItemsViewAdapter extends BaseRecyclerViewAdapter<ImgC
             holder.tvName.setTextColor(context.getResources().getColor(R.color.click));
         } else if (HistoryUtil.getHistory(context, vo.url) != null) {
             holder.tvName.setTextColor(context.getResources().getColor(R.color.base_gray));
-        }else {
+        } else {
             holder.tvName.setTextColor(context.getResources().getColor(R.color.base_black));
         }
-        if(Constants.BANNER_ADS_POS.contains(position)){
-            if(position%2==1){
+        if (Constants.BANNER_ADS_POS.contains(position)) {
+            if (position % 2 == 1) {
                 holder.rvAds.setVisibility(View.VISIBLE);
-                AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN2);
-            }else{
+                AdsManager.getInstans().showBannerAds((FragmentActivity) context, holder.rvAds, AdsContext.Categrey.CATEGREY_VPN2);
+            } else {
                 holder.rvAds.setVisibility(View.VISIBLE);
-                AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN3);
+                AdsManager.getInstans().showBannerAds((FragmentActivity) context, holder.rvAds, AdsContext.Categrey.CATEGREY_VPN3);
             }
-        }else{
+        } else {
             holder.rvAds.removeAllViews();
             holder.rvAds.setVisibility(View.GONE);
         }
     }
+
     public static class ImgChannleListView extends BaseRecyclerViewAdapter.BaseRecyclerViewHolder<TextItemsVo> {
         @Nullable
         @BindView(R.id.tv_index)
@@ -77,6 +80,7 @@ public class ImgChannelListItemsViewAdapter extends BaseRecyclerViewAdapter<ImgC
         @Nullable
         @BindView(R.id.rv_ads)
         RelativeLayout rvAds;
+
         public ImgChannleListView(View itemView, View.OnClickListener l, View.OnLongClickListener longListener) {
             super(itemView, l, longListener);
         }

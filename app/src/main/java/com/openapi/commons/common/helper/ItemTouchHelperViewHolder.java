@@ -28,6 +28,7 @@ public interface ItemTouchHelperViewHolder {
 
 
     /**
+     *
      */
     void onItemClear();
 }

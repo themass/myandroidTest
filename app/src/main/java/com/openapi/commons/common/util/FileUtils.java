@@ -22,7 +22,7 @@ import java.util.zip.ZipFile;
 
 public class FileUtils {
     private final static int BUFFER_SIZE = 1024;
-    public static String VOLLEY_PATH="volley";
+    public static String VOLLEY_PATH = "volley";
 
     /**
      * 解压文件
@@ -197,13 +197,13 @@ public class FileUtils {
     }
 
     public static String getWriteFilePath(Context context) {
-        return context.getFilesDir().getAbsolutePath()+File.separator +"myfreesex";
-//        String sdStatus = Environment.getExternalStorageState();
-//        if (!sdStatus.equals(Environment.MEDIA_MOUNTED)) {
-//            return context.getFilesDir().getAbsolutePath() + File.separator + "myfreesex";
-//        } else {
-//            return File.separator + "sdcard" + File.separator + "myfreesex";
-//        }
+//        return context.getFilesDir().getAbsolutePath()+File.separator +"kimichat";
+        String sdStatus = Environment.getExternalStorageState();
+        if (!sdStatus.equals(Environment.MEDIA_MOUNTED)) {
+            return context.getFilesDir().getAbsolutePath() + File.separator + "my_kimichat";
+        } else {
+            return File.separator + "sdcard" + File.separator + "my_kimichat";
+        }
     }
 
     public static boolean ensureFile(Context context, String filePath) {

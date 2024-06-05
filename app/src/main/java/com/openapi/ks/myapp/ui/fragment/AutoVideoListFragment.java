@@ -3,7 +3,9 @@ package com.openapi.ks.myapp.ui.fragment;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.os.Bundle;
+
 import androidx.recyclerview.widget.RecyclerView;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,17 +29,20 @@ import cn.jzvd.Jzvd;
  */
 public class AutoVideoListFragment extends BasePullLoadbleFragment<RecommendVo> {
     private VideoListAdapter videoListAdapter;
-    private static final String TAG="avvideo";
+    private static final String TAG = "avvideo";
     private String channel;
+
     @Override
-    protected BaseRecyclerViewAdapter getAdapter(){
+    protected BaseRecyclerViewAdapter getAdapter() {
         videoListAdapter = new VideoListAdapter(getActivity(), pullView.getRecyclerView(), infoListVo.voList, this);
         return videoListAdapter;
     }
+
     @Override
     protected void onContentViewCreated(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
         inflater.inflate(R.layout.layout_video_fragment, parent);
     }
+
     @Override
     public void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
@@ -49,7 +54,7 @@ public class AutoVideoListFragment extends BasePullLoadbleFragment<RecommendVo> 
 //                LogUtil.i("onChildViewAttachedToWindow  "+ Jzvd.CURRENT_JZVD.screen+"--");
                 if (Jzvd.CURRENT_JZVD != null && Jzvd.CURRENT_JZVD.screen == Jzvd.SCREEN_TINY) {
                     Jzvd jzvd = view.findViewById(R.id.videoplayer);
-                    if(jzvd.jzDataSource.containsTheUrl(Jzvd.CURRENT_JZVD.jzDataSource.getCurrentUrl())){
+                    if (jzvd.jzDataSource.containsTheUrl(Jzvd.CURRENT_JZVD.jzDataSource.getCurrentUrl())) {
                         Jzvd.backPress();
                     }
                 }
@@ -131,8 +136,9 @@ public class AutoVideoListFragment extends BasePullLoadbleFragment<RecommendVo> 
         super.onConfigurationChanged(newConfig);
         LogUtil.i("onConfigurationChanged");
     }
+
     @Override
     protected InfoListVo<RecommendVo> loadData(Context context) throws Exception {
-        return indexService.getInfoListData(Constants.getUrlWithParam(Constants.API_VIDEO_CHANNEL_LIST_URL, infoListVo.pageNum,channel,keyword), RecommendVo.class, TAG);
+        return indexService.getInfoListData(Constants.getUrlWithParam(Constants.API_VIDEO_CHANNEL_LIST_URL, infoListVo.pageNum, channel, keyword), RecommendVo.class, TAG);
     }
 }

@@ -32,7 +32,7 @@ import com.shuyu.gsyvideoplayer.video.NormalGSYVideoPlayer;
  */
 public class GSYAutoVideoListFragment extends BasePullLoadbleFragment<RecommendVo> {
     private GSYVideoListAdapter videoListAdapter;
-    private static final String TAG="avvideo";
+    private static final String TAG = "avvideo";
     private String channel;
     GSYVideoHelper smallVideoHelper;
     GSYVideoHelper.GSYVideoHelperBuilder gsySmallVideoHelperBuilder;
@@ -41,14 +41,16 @@ public class GSYAutoVideoListFragment extends BasePullLoadbleFragment<RecommendV
     LinearLayoutManager linearLayoutManager;
 
     @Override
-    protected BaseRecyclerViewAdapter getAdapter(){
+    protected BaseRecyclerViewAdapter getAdapter() {
         videoListAdapter = new GSYVideoListAdapter(getActivity(), pullView.getRecyclerView(), infoListVo.voList, this);
         return videoListAdapter;
     }
+
     @Override
     protected void onContentViewCreated(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
         inflater.inflate(R.layout.layout_video_fragment, parent);
     }
+
     @Override
     public void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
@@ -89,6 +91,7 @@ public class GSYAutoVideoListFragment extends BasePullLoadbleFragment<RecommendV
                         }
 
                     }
+
                     @Override
                     public void onEnterFullscreen(String url, Object... objects) {
                         mSearchView.setVisibility(View.GONE);
@@ -96,7 +99,7 @@ public class GSYAutoVideoListFragment extends BasePullLoadbleFragment<RecommendV
 
                     @Override
                     public void onQuitFullscreen(String url, Object... objects) {
-                        if(showSearchView())
+                        if (showSearchView())
                             mSearchView.setVisibility(View.VISIBLE);
                     }
                 });
@@ -163,8 +166,9 @@ public class GSYAutoVideoListFragment extends BasePullLoadbleFragment<RecommendV
         super.onConfigurationChanged(newConfig);
         LogUtil.i("onConfigurationChanged");
     }
+
     @Override
     protected InfoListVo<RecommendVo> loadData(Context context) throws Exception {
-        return indexService.getInfoListData(Constants.getUrlWithParam(Constants.API_VIDEO_CHANNEL_LIST_URL, infoListVo.pageNum,channel,keyword), RecommendVo.class, TAG);
+        return indexService.getInfoListData(Constants.getUrlWithParam(Constants.API_VIDEO_CHANNEL_LIST_URL, infoListVo.pageNum, channel, keyword), RecommendVo.class, TAG);
     }
 }

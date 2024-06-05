@@ -3,17 +3,15 @@
     android:width="6dp"
     android:height="60dp"
     android:viewportWidth="6"
-    android:viewportHeight="60"
-    >
+    android:viewportHeight="60">
 
     <group
-            android:translateX="-353.999911"
-            android:translateY="-144.000000">
-        <group
-                android:translateY="121.000000">
+        android:translateX="-353.999911"
+        android:translateY="-144.000000">
+        <group android:translateY="121.000000">
             <group
-                    android:translateX="354.000000"
-                    android:translateY="1.000000">
+                android:translateX="354.000000"
+                android:translateY="1.000000">
                 <path
                     android:name="Scroll-Indicator"
                     android:fillColor="#DDF9FF"

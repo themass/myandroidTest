@@ -115,7 +115,7 @@ public class AddCustomeInfoActivity extends BaseSingleActivity {
         int id = radioGroup.getCheckedRadioButtonId();
         int id1 = radioSchemaGroup.getCheckedRadioButtonId();
         if (id == -1 || StringUtils.isEmpty(form.title) || StringUtils.isEmpty(form.uri)) {
-            ToastUtil.showShort( R.string.empty_info);
+            ToastUtil.showShort(R.string.empty_info);
             return;
         }
         if (radioSchemaGroup.getCheckedRadioButtonId() == R.id.http) {
@@ -123,9 +123,9 @@ public class AddCustomeInfoActivity extends BaseSingleActivity {
         } else {
             form.schema = Constants.HTTPS_URL;
         }
-        if(!form.uri.startsWith(Constants.HTTP_URL)) {
+        if (!form.uri.startsWith(Constants.HTTP_URL)) {
             form.url = form.schema + Constants.URL_TMP + form.uri;
-        }else{
+        } else {
             form.url = form.uri;
         }
         if (radioGroup.getCheckedRadioButtonId() == R.id.open_browser) {

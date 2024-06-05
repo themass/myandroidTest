@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~ ©2017 Rajneesh Singh
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -23,19 +22,19 @@
         <menu>
             <item
                 android:id="@+id/a_to_z"
-                android:title="A-Z"/>
+                android:title="A-Z" />
             <item
                 android:id="@+id/z_to_a"
-                android:title="Z-A"/>
+                android:title="Z-A" />
             <item
                 android:id="@+id/album_no_songs"
-                android:title="Songs in album"/>
+                android:title="Songs in album" />
             <item
                 android:id="@+id/album_year"
-                android:title="Album first year"/>
+                android:title="Album first year" />
             <item
                 android:id="@+id/last_year"
-                android:title="Album last year"/>
+                android:title="Album last year" />
         </menu>
     </item>
 </menu>

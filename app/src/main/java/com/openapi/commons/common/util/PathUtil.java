@@ -81,14 +81,16 @@ public class PathUtil {
         final String cacheDir = "/Android/data/" + context.getPackageName() + "/cache/";
         return new File(Environment.getExternalStorageDirectory().getPath() + cacheDir);
     }
-    public static File initPicturesDiskCacheFile(){
+
+    public static File initPicturesDiskCacheFile() {
         File file = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsoluteFile();//注意小米手机必须这样获得public绝对路径
-        File appDir = new File(file ,FILEPATH);
+        File appDir = new File(file, FILEPATH);
         if (!appDir.exists()) {
             appDir.mkdirs();
         }
         return appDir;
     }
+
     public static String getLocalOpenUrl(String url) {
         try {
             String ecode = URLEncoder.encode(url, "utf-8");
@@ -98,6 +100,7 @@ public class PathUtil {
             return null;
         }
     }
+
     public static String getFileExtensionFromUrl(String url) {
         if (!TextUtils.isEmpty(url)) {
             int fragment = url.lastIndexOf('#');

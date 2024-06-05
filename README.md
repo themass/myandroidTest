@@ -1,4 +1,3 @@
-
 Strongswan Android app imported as gradle project and setup for hacking
 
 # How to build it #

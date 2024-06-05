@@ -1,8 +1,10 @@
 package com.openapi.ks.myapp.adapter;
 
 import android.content.Context;
+
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,12 +29,15 @@ import butterknife.BindView;
 public class SoundItemsViewMusicAdapter extends BaseRecyclerViewAdapter<SoundItemsViewMusicAdapter.SoundItemView, SoundItemsVo> {
     public int lastPosition = -1;
     MusicStateListener mService = null;
+
     public SoundItemsViewMusicAdapter(Context context, RecyclerView recyclerView, List<SoundItemsVo> data, OnRecyclerViewItemClickListener<SoundItemsVo> listener) {
         super(context, recyclerView, data, listener);
     }
-    public void setPlayServise(MusicStateListener service){
+
+    public void setPlayServise(MusicStateListener service) {
         mService = service;
     }
+
     @Override
     public SoundItemsViewMusicAdapter.SoundItemView onCreateViewHolderData(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(context).inflate(R.layout.item_song, parent, false);
@@ -40,7 +45,7 @@ public class SoundItemsViewMusicAdapter extends BaseRecyclerViewAdapter<SoundIte
     }
 
     public void onBindViewHolderData(RecyclerView.ViewHolder h, int position) {
-        SoundItemsViewMusicAdapter.SoundItemView holder = (SoundItemsViewMusicAdapter.SoundItemView)h;
+        SoundItemsViewMusicAdapter.SoundItemView holder = (SoundItemsViewMusicAdapter.SoundItemView) h;
         SoundItemsVo vo = data.get(position);
         holder.title.setText(vo.name);
         holder.artist.setText(vo.fileDate);
@@ -61,6 +66,7 @@ public class SoundItemsViewMusicAdapter extends BaseRecyclerViewAdapter<SoundIte
             holder.visualizer.setVisibility(View.GONE);
         }
     }
+
     private void setAnimation(View viewToAnimate, int position) {
         // If the bound view wasn't previously displayed on screen, it's animated
         if (position > lastPosition) {
@@ -69,7 +75,6 @@ public class SoundItemsViewMusicAdapter extends BaseRecyclerViewAdapter<SoundIte
             lastPosition = position;
         }
     }
-
 
 
     static class SoundItemView extends BaseRecyclerViewAdapter.BaseRecyclerViewHolder<SoundItemsVo> {
@@ -85,6 +90,7 @@ public class SoundItemsViewMusicAdapter extends BaseRecyclerViewAdapter<SoundIte
         @Nullable
         @BindView(R.id.visualizer)
         protected MusicVisualizer visualizer;
+
         public SoundItemView(View itemView, View.OnClickListener l, View.OnLongClickListener longListener) {
             super(itemView, l, longListener);
         }

@@ -10,6 +10,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
+
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 
@@ -58,7 +59,7 @@ import static com.openapi.ks.myapp.service.PlayService.UPDATE_ACTION;
 /**
  * Created by openapi on 2016/8/12.
  */
-public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsVo> implements SeekBar.OnSeekBarChangeListener, View.OnClickListener,MusicStateListener, MyFavoriteView.OnFavoriteItemClick {
+public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsVo> implements SeekBar.OnSeekBarChangeListener, View.OnClickListener, MusicStateListener, MyFavoriteView.OnFavoriteItemClick {
     private static final String SOUND_TAG = "SOUND_TAG";
     @Nullable
     @BindView(R.id.progress)
@@ -131,10 +132,12 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
         intent.putExtra(CommonFragmentActivity.TOOLBAR_SHOW, false);
         context.startActivity(intent);
     }
+
     @Override
-    protected boolean showSearchView(){
+    protected boolean showSearchView() {
         return true;
     }
+
     private void receiverReg() {
         homeReceiver = new PlayerReceiver();
         // 创建IntentFilter
@@ -157,8 +160,8 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
     }
 
     public void onClick(View view) {
-        if(mService==null){
-            return ;
+        if (mService == null) {
+            return;
         }
         switch (view.getId()) {
             case R.id.iv_play:
@@ -251,7 +254,7 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
         if (position < 0) {
             position = 0;
         }
-        if(position==0){
+        if (position == 0) {
             adapter.setSelected(0);
         }
         if (position >= adapter.getItemCount())
@@ -265,16 +268,18 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
     public void onContentViewCreated(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
         inflater.inflate(R.layout.layout_sound_list_music, parent, true);
     }
-    protected BaseRecyclerViewAdapter getAdapter(){
+
+    protected BaseRecyclerViewAdapter getAdapter() {
         adapter = new SoundItemsViewMusicAdapter(getActivity(), pullView.getRecyclerView(), infoListVo.voList, this);
         adapter.setPlayServise(this);
         return adapter;
     }
+
     @Override
     public void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
         vo = StaticDataUtil.get(Constants.SOUND_CHANNEL, RecommendVo.class);
-        if(vo==null){
+        if (vo == null) {
             getActivity().finish();
         }
         StaticDataUtil.del(Constants.SOUND_CHANNEL);
@@ -312,14 +317,14 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
 
     @Override
     protected InfoListVo<SoundItemsVo> loadData(Context context) throws Exception {
-        return indexService.getInfoListData(Constants.getUrlWithParam(Constants.API_SOUND_ITEMS_URL, infoListVo.pageNum, channel,keyword), SoundItemsVo.class, SOUND_TAG);
+        return indexService.getInfoListData(Constants.getUrlWithParam(Constants.API_SOUND_ITEMS_URL, infoListVo.pageNum, channel, keyword), SoundItemsVo.class, SOUND_TAG);
     }
 
     @Override
     public void onItemClick(View view, SoundItemsVo data, int postion) {
         LogUtil.i(data.file);
         play(postion);
-        super.onItemClick(view,data,postion);
+        super.onItemClick(view, data, postion);
     }
 
     public void onProgressChanged(SeekBar var1, int var2, boolean var3) {
@@ -368,7 +373,7 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
 
     @Override
     public String getBrowserDatUrl() {
-        return infoListVo.voList.get(adapter.getSelected()<0?0:adapter.getSelected()).file;
+        return infoListVo.voList.get(adapter.getSelected() < 0 ? 0 : adapter.getSelected()).file;
     }
 
     /**
@@ -419,12 +424,12 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
         @Override
         public void onReceive(Context context, Intent intent) {
             try {
-                if(mBound)
+                if (mBound)
                     if (!checkCanPlay() && isPlaying()) {
                         pause();
                         showUpdateDialog(getActivity());
                     }
-            }catch (Exception e){
+            } catch (Exception e) {
                 LogUtil.e(e);
             }
         }

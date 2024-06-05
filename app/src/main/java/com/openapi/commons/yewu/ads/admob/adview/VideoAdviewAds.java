@@ -12,8 +12,9 @@ import com.openapi.commons.yewu.ads.base.VideoAdsInter;
 
 public class VideoAdviewAds extends VideoAdsInter {
     public boolean isReq = false;
+
     @Override
-    public void reqVideo(final Context context, final Handler handler){
+    public void reqVideo(final Context context, final Handler handler) {
 //        AdViewVideoManager.getInstance(context).requestAd(context, ADS_ADVIEW_KEY, new AdViewVideoListener(){
 //            @Override
 //            public void onAdFailed(String arg0) {
@@ -45,12 +46,14 @@ public class VideoAdviewAds extends VideoAdsInter {
 //            }
 //        });
     }
+
     @Override
-    public void showVideo(final Context context){
+    public void showVideo(final Context context) {
 //        AdViewVideoManager.getInstance(context).playVideo(context, ADS_ADVIEW_KEY);
     }
+
     @Override
-    public void exitVideo(Context context){
+    public void exitVideo(Context context) {
     }
 
     @Override

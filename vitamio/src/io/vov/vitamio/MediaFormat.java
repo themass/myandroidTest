@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 package io.vov.vitamio;
+
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,9 +23,9 @@ import java.util.Map;
 /**
  * Encapsulates the information describing the format of media data,
  * be it audio or video.
- *
+ * <p>
  * The format of the media data is specified as string/value pairs.
- *
+ * <p>
  * Keys common to all audio/video formats, <b>all keys not marked optional are mandatory</b>:
  *
  * <table>
@@ -33,7 +34,7 @@ import java.util.Map;
  * <tr><td>{@link #KEY_MAX_INPUT_SIZE}</td><td>Integer</td><td>optional, maximum size of a buffer of input data</td></tr>
  * <tr><td>{@link #KEY_BIT_RATE}</td><td>Integer</td><td><b>encoder-only</b>, desired bitrate in bits/second</td></tr>
  * </table>
- *
+ * <p>
  * Video formats have the following keys:
  * <table>
  * <tr><th>Name</th><th>Value Type</th><th>Description</th></tr>
@@ -56,7 +57,7 @@ import java.util.Map;
  * maximum resolution may require more memory even if that resolution is never
  * reached.  These fields have no effect for codecs that do not support adaptive
  * playback.<br /><br />
- *
+ * <p>
  * Audio formats have the following keys:
  * <table>
  * <tr><th>Name</th><th>Value Type</th><th>Description</th></tr>
@@ -67,7 +68,7 @@ import java.util.Map;
  * <tr><td>{@link #KEY_CHANNEL_MASK}</td><td>Integer</td><td>optional, a mask of audio channel assignments</td></tr>
  * <tr><td>{@link #KEY_FLAC_COMPRESSION_LEVEL}</td><td>Integer</td><td><b>encoder-only</b>, optional, if content is FLAC audio, specifies the desired compression level.</td></tr>
  * </table>
- *
+ * <p>
  * Subtitle formats have the following keys:
  * <table>
  * <tr><td>{@link #KEY_MIME}</td><td>String</td><td>The type of the format.</td></tr>
@@ -88,12 +89,12 @@ public final class MediaFormat {
      * or 639-2/T codes.  The associated value is a string.
      */
     public static final String KEY_LANGUAGE = "language";
-    
+
     /**
      * A key describing the title of the content
      */
     public static final String KEY_TITLE = "title";
-    
+
     /**
      * A key describing the external subtitle path
      */
@@ -137,7 +138,8 @@ public final class MediaFormat {
      */
     public static final String KEY_MAX_HEIGHT = "max-height";
 
-    /** A key describing the maximum size in bytes of a buffer of data
+    /**
+     * A key describing the maximum size in bytes of a buffer of data
      * described by this MediaFormat.
      * The associated value is an integer
      */
@@ -184,7 +186,7 @@ public final class MediaFormat {
      * repeated (once) if no new frame became available since.
      */
     public static final String KEY_REPEAT_PREVIOUS_FRAME_AFTER
-        = "repeat-previous-frame-after";
+            = "repeat-previous-frame-after";
 
     /**
      * If specified when configuring a video decoder rendering to a surface,
@@ -193,7 +195,7 @@ public final class MediaFormat {
      * The associated value is an integer of value 1.
      */
     public static final String KEY_PUSH_BLANK_BUFFERS_ON_STOP
-        = "push-blank-buffers-on-shutdown";
+            = "push-blank-buffers-on-shutdown";
 
     /**
      * A key describing the duration (in microseconds) of the content.
@@ -288,20 +290,20 @@ public final class MediaFormat {
      * Returns the value of an integer key.
      */
     public final int getInteger(String name) {
-        return ((Integer)mMap.get(name)).intValue();
+        return ((Integer) mMap.get(name)).intValue();
     }
 
     /**
      * Returns the value of an integer key, or the default value if the
      * key is missing or is for another type value.
+     *
      * @hide
      */
     public final int getInteger(String name, int defaultValue) {
         try {
             return getInteger(name);
-        }
-        catch (NullPointerException  e) { /* no such field */ }
-        catch (ClassCastException e) { /* field of different type */ }
+        } catch (NullPointerException e) { /* no such field */ } catch (
+                ClassCastException e) { /* field of different type */ }
         return defaultValue;
     }
 
@@ -309,28 +311,28 @@ public final class MediaFormat {
      * Returns the value of a long key.
      */
     public final long getLong(String name) {
-        return ((Long)mMap.get(name)).longValue();
+        return ((Long) mMap.get(name)).longValue();
     }
 
     /**
      * Returns the value of a float key.
      */
     public final float getFloat(String name) {
-        return ((Float)mMap.get(name)).floatValue();
+        return ((Float) mMap.get(name)).floatValue();
     }
 
     /**
      * Returns the value of a string key.
      */
     public final String getString(String name) {
-        return (String)mMap.get(name);
+        return (String) mMap.get(name);
     }
 
     /**
      * Returns the value of a ByteBuffer key.
      */
     public final ByteBuffer getByteBuffer(String name) {
-        return (ByteBuffer)mMap.get(name);
+        return (ByteBuffer) mMap.get(name);
     }
 
     /**
@@ -370,8 +372,9 @@ public final class MediaFormat {
 
     /**
      * Creates a minimal audio format.
-     * @param mime The mime type of the content.
-     * @param sampleRate The sampling rate of the content.
+     *
+     * @param mime         The mime type of the content.
+     * @param sampleRate   The sampling rate of the content.
      * @param channelCount The number of audio channels in the content.
      */
     public static final MediaFormat createAudioFormat(
@@ -388,11 +391,12 @@ public final class MediaFormat {
 
     /**
      * Creates a minimal subtitle format.
-     * @param title The content of the Subtitle
+     *
+     * @param title    The content of the Subtitle
      * @param language The language of the content, using either ISO 639-1 or 639-2/T
-     *        codes.  Specify null or "und" if language information is only included
-     *        in the content.  (This will also work if there are multiple language
-     *        tracks in the content.)
+     *                 codes.  Specify null or "und" if language information is only included
+     *                 in the content.  (This will also work if there are multiple language
+     *                 tracks in the content.)
      */
     public static final MediaFormat createSubtitleFormat(
             String title,
@@ -406,8 +410,9 @@ public final class MediaFormat {
 
     /**
      * Creates a minimal video format.
-     * @param mime The mime type of the content.
-     * @param width The width of the content (in pixels)
+     *
+     * @param mime   The mime type of the content.
+     * @param width  The width of the content (in pixels)
      * @param height The height of the content (in pixels)
      */
     public static final MediaFormat createVideoFormat(

@@ -17,16 +17,17 @@ import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOption
  * Created by openapi on 2017/11/30.
  */
 
-public class BlurShowTypeHandle implements ShowTypeHandle{
-    public void loadPhoto(final IndexRecommendAdapter.NaviItemViewHolder holder, RecommendVo vo, final Shimmer shimmer, boolean needShimmer, Context context){
-        RequestManager build = ImagePhotoLoad.getBuilder(context,vo.img);
+public class BlurShowTypeHandle implements ShowTypeHandle {
+    public void loadPhoto(final IndexRecommendAdapter.NaviItemViewHolder holder, RecommendVo vo, final Shimmer shimmer, boolean needShimmer, Context context) {
+        RequestManager build = ImagePhotoLoad.getBuilder(context, vo.img);
         build.load(vo.img)
-                    .transition(withCrossFade(500)).apply(ImagePhotoLoad.options).listener(new MyGlideLibModule.LoggingListener()).into(new DrawableImageViewTarget(holder.ivPhoto));
+                .transition(withCrossFade(500)).apply(ImagePhotoLoad.options).listener(new MyGlideLibModule.LoggingListener()).into(new DrawableImageViewTarget(holder.ivPhoto));
 
     }
-    public void showTitle(final IndexRecommendAdapter.NaviItemViewHolder holder, RecommendVo vo, final Shimmer shimmer, boolean needShimmer, Context context){
+
+    public void showTitle(final IndexRecommendAdapter.NaviItemViewHolder holder, RecommendVo vo, final Shimmer shimmer, boolean needShimmer, Context context) {
         holder.ivTitle.setVisibility(View.VISIBLE);
-        if(needShimmer){
+        if (needShimmer) {
             shimmer.start(holder.ivTitle);
         }
         holder.tvTitleBelow.setVisibility(View.GONE);

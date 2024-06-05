@@ -12,9 +12,10 @@ import java.util.Map;
  */
 
 public class WallMobvAds {
-//    private MtgWallHandler mtgHandler ;
+    //    private MtgWallHandler mtgHandler ;
     private Map<String, Object> properties;
-    public void load(final FragmentActivity context,ViewGroup viewGroup){
+
+    public void load(final FragmentActivity context, ViewGroup viewGroup) {
 //        try{
 //            viewGroup.removeAllViews();
 //            properties = MtgWallHandler.getWallProperties(Constants.Mob_UNIT_WALL);
@@ -68,6 +69,7 @@ public class WallMobvAds {
 //            LogUtil.e(e);
 //         }
     }
+
     /**
      * Preloading the appwall can improve the revenue for you.
      */
@@ -91,7 +93,6 @@ public class WallMobvAds {
 //            Log.e("MTGActivity", "", e);
 //        }
     }
-
 
 
 }

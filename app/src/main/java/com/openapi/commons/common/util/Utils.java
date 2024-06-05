@@ -50,6 +50,7 @@ public class Utils {
     }
 
     /**
+     *
      */
     public static class UrlUtil {
         public static String encode(String param) {

@@ -2,7 +2,9 @@ package com.openapi.ks.myapp.ui.sound;
 
 
 import android.os.Bundle;
+
 import androidx.fragment.app.Fragment;
+
 import android.view.View;
 
 import com.openapi.commons.common.util.LogUtil;
@@ -32,11 +34,13 @@ public class SoundChannleActivity extends BaseFragmentActivity {
                 .commitAllowingStateLoss();
         setToolbarTitle(R.string.sound, true);
     }
+
     @Override
     public void setupView() {
         super.setupView();
-        AdsContext.showRand(this,AdsContext.Categrey.CATEGREY_VPN2);
+        AdsContext.showRand(this, AdsContext.Categrey.CATEGREY_VPN2);
     }
+
     public boolean needShow() {
         return true;
     }

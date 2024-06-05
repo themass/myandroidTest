@@ -1,8 +1,10 @@
 package com.openapi.commons.common.ui.view;
 
 import android.content.Context;
+
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
+
 import android.util.AttributeSet;
 
 /**

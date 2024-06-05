@@ -4,5 +4,5 @@
     android:id="@+id/vpn_status_frag"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    tools:viewBindingIgnore="true"/>
+    tools:viewBindingIgnore="true" />
 

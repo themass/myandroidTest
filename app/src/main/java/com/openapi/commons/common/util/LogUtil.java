@@ -45,6 +45,7 @@ public class LogUtil {
             Log.i(TAG, msg.toString());
         }
     }
+
     public static void d(String msg) {
         Log.d(TAG, msg);
     }

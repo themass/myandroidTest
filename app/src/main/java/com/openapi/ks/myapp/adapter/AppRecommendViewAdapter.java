@@ -1,9 +1,11 @@
 package com.openapi.ks.myapp.adapter;
 
 import android.os.SystemClock;
+
 import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,7 +25,7 @@ import butterknife.BindView;
  * Created by openapi on 2016/8/12.
  */
 public class AppRecommendViewAdapter extends BaseRecyclerViewAdapter<AppRecommendViewAdapter.AppRecommendListView, AppInfo> {
-    public AppRecommendViewAdapter(FragmentActivity context, RecyclerView recyclerView, List<AppInfo> data,OnRecyclerViewItemClickListener<AppInfo> listener) {
+    public AppRecommendViewAdapter(FragmentActivity context, RecyclerView recyclerView, List<AppInfo> data, OnRecyclerViewItemClickListener<AppInfo> listener) {
         super(context, recyclerView, data, listener);
     }
 
@@ -32,18 +34,21 @@ public class AppRecommendViewAdapter extends BaseRecyclerViewAdapter<AppRecommen
         View view = LayoutInflater.from(context).inflate(R.layout.layout_app_item, parent, false);
         return new AppRecommendListView(view, this, this);
     }
+
     @Override
     public void onBindViewHolderData(RecyclerView.ViewHolder h, int position) {
-        AppRecommendListView holder = (AppRecommendListView)h;
+        AppRecommendListView holder = (AppRecommendListView) h;
         AppInfo vo = data.get(position);
-        ImagePhotoLoad.loadCommonImg(context,vo.img, holder.ivApp);
+        ImagePhotoLoad.loadCommonImg(context, vo.img, holder.ivApp);
         holder.tvName.setText(vo.name);
         holder.tvDate.setText(vo.date);
         holder.tvDesc.setText(vo.desc);
     }
+
     public int getUniqueId() {
         return (int) SystemClock.currentThreadTimeMillis();
     }
+
     public static class AppRecommendListView extends BaseRecyclerViewAdapter.BaseRecyclerViewHolder<AppInfo> {
         @Nullable
         @BindView(R.id.iv_app)

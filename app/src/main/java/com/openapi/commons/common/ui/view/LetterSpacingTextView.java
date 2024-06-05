@@ -1,7 +1,9 @@
 package com.openapi.commons.common.ui.view;
 
 import android.content.Context;
+
 import androidx.appcompat.widget.AppCompatTextView;
+
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.ScaleXSpan;

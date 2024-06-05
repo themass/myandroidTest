@@ -18,11 +18,12 @@ public class MyFullScreenImageGalleryAdapter extends FullScreenImageGalleryAdapt
     public MyFullScreenImageGalleryAdapter(List<String> images) {
         super(images);
     }
+
     @Override
     public void destroyItem(ViewGroup container, int position, Object object) {
-        View view = (View)object;
-        Glide.with(view).clear((View)view.findViewById(R.id.iv));
-        super.destroyItem(container,position,object);
+        View view = (View) object;
+        Glide.with(view).clear((View) view.findViewById(R.id.iv));
+        super.destroyItem(container, position, object);
 
     }
 }

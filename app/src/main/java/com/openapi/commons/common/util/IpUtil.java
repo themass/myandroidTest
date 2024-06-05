@@ -20,6 +20,7 @@ public class IpUtil {
             "http://pv.sohu.com/cityjson?ie=utf-8"
 
     };
+
     public static String getOutNetIP(Context context, int index) {
         if (index < platforms.length) {
             BufferedReader buff = null;
@@ -69,6 +70,7 @@ public class IpUtil {
         }
         return getOutNetIP(context, ++index);
     }
+
     public static String getInNetIp(Context context) {
         //获取wifi服务
         WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
@@ -86,13 +88,14 @@ public class IpUtil {
 
     //这段是转换成点分式IP的码
     private static String intToIp(int ip) {
-        return (ip & 0xFF) + "." + ((ip >> 8) & 0xFF) + "." + ((ip >> 16) &     0xFF) + "." + (ip >> 24 & 0xFF);
+        return (ip & 0xFF) + "." + ((ip >> 8) & 0xFF) + "." + ((ip >> 16) & 0xFF) + "." + (ip >> 24 & 0xFF);
     }
+
     public static String getDomain(String urlPath) {
         try {
             URL url = new URL(urlPath);
             return url.getHost();
-        }catch (Exception e){
+        } catch (Exception e) {
             LogUtil.e(e);
             return "";
         }

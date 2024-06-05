@@ -131,8 +131,10 @@ public class BaseWebViewFragment extends BaseFragment {
             progressbar.setVisibility(shown ? View.VISIBLE : View.GONE);
     }
 //初始化webView 时调用
+
     /**
      * 设置 cookies
+     *
      * @param cookiesPath 请求地址
      */
     public void setCookies(String cookiesPath) {
@@ -147,24 +149,26 @@ public class BaseWebViewFragment extends BaseFragment {
                 String cookieValue = cookieArray[i].substring(position + 1);// 获取值
                 String value = cookieName + "=" + cookieValue;// 键值对拼接成 value
                 LogUtil.i("cookie", value);
-                CookieManager.getInstance().setCookie( domain, value);// 设置 Cookie
+                CookieManager.getInstance().setCookie(domain, value);// 设置 Cookie
             }
         }
     }
 //stop 生命周期调用
+
     /**
      * 保存 Cookie
      */
     private void saveCookie(String path) {
-            String domain = IpUtil.getDomain(path);
-            CookieManager cookieManager = CookieManager.getInstance();
-            String cookieStr = cookieManager.getCookie(domain);
-            LogUtil.i(cookieStr);
-            SharedPreferences preferences = MyApplication.getInstance().getSharedPreferences("cookie", Context.MODE_PRIVATE);
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.putString(domain, cookieStr);
-            editor.commit();
+        String domain = IpUtil.getDomain(path);
+        CookieManager cookieManager = CookieManager.getInstance();
+        String cookieStr = cookieManager.getCookie(domain);
+        LogUtil.i(cookieStr);
+        SharedPreferences preferences = MyApplication.getInstance().getSharedPreferences("cookie", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putString(domain, cookieStr);
+        editor.commit();
     }
+
     @SuppressLint({"JavascriptInterface", "SetJavaScriptEnabled"})
     private void init(final WebView webView) {
         cookieManager = CookieManager.getInstance();
@@ -184,11 +188,12 @@ public class BaseWebViewFragment extends BaseFragment {
         settings.setGeolocationEnabled(true);
         settings.setGeolocationDatabasePath(getActivity().getCacheDir().toString());
         settings.setUserAgentString(settings.getUserAgentString() + " " + HttpUtils.getUserAgentSuffix(getActivity()));
-        String cacheDirPath = MyApplication.getInstance().getFilesDir().getAbsolutePath()+"cache/";
+        String cacheDirPath = MyApplication.getInstance().getFilesDir().getAbsolutePath() + "cache/";
         LogUtil.i("ua=" + settings.getUserAgentString());
         webView.setWebChromeClient(new WebChromeClient());
         webView.setWebViewClient(new WebViewClient() {
             private String mUrl;
+
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 //setCookies(url);
                 return super.shouldOverrideUrlLoading(view, url);

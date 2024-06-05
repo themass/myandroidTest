@@ -7,8 +7,10 @@ package com.openapi.ks.myapp.ui.sound;
 
 import android.content.Intent;
 import android.os.Bundle;
+
 import androidx.viewpager.widget.ViewPager;
 import androidx.viewpager.widget.ViewPager.OnPageChangeListener;
+
 import android.view.View;
 import android.widget.TextView;
 
@@ -26,7 +28,7 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.OnClick;
 
-public class MyFullScreenImageGalleryActivity extends BaseSingleActivity implements SaveImageCallBack{
+public class MyFullScreenImageGalleryActivity extends BaseSingleActivity implements SaveImageCallBack {
     public static final String KEY_IMAGES = "KEY_IMAGES";
     public static final String KEY_POSITION = "KEY_POSITION";
     @BindView(R.id.vp_big_container)
@@ -50,6 +52,7 @@ public class MyFullScreenImageGalleryActivity extends BaseSingleActivity impleme
         public void onPageScrollStateChanged(int state) {
         }
     };
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Intent intent = this.getIntent();
@@ -62,11 +65,13 @@ public class MyFullScreenImageGalleryActivity extends BaseSingleActivity impleme
         }
         this.setContentView(R.layout.layout_img_big_page_view);
     }
+
     @OnClick(R.id.iv_save)
-    public void onSave(View view){
+    public void onSave(View view) {
         ToastUtil.showShort(R.string.save_start);
-        SaveImageTask.startSave(MyFullScreenImageGalleryActivity.this,images.get(viewPager.getCurrentItem()),MyFullScreenImageGalleryActivity.this);
+        SaveImageTask.startSave(MyFullScreenImageGalleryActivity.this, images.get(viewPager.getCurrentItem()), MyFullScreenImageGalleryActivity.this);
     }
+
     @Override
     public void setupView() {
         ArrayList imageList = new ArrayList();
@@ -96,13 +101,15 @@ public class MyFullScreenImageGalleryActivity extends BaseSingleActivity impleme
     private void removeListeners() {
         this.viewPager.removeOnPageChangeListener(this.viewPagerOnPageChangeListener);
     }
-    public void onSuccess(){
+
+    public void onSuccess() {
         ToastUtil.showShort(R.string.save_ok);
     }
 
-    public void onFailed(){
+    public void onFailed() {
         ToastUtil.showShort(R.string.save_fail);
     }
+
     @Override
     public boolean needShow() {
         return false;

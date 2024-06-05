@@ -5,18 +5,20 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import android.util.TypedValue;
 import android.view.View;
 
 public class RecycleViewDivider extends RecyclerView.ItemDecoration {
     /*
-        * RecyclerView的布局方向，默认先赋值
-        * 为纵向布局
-        * RecyclerView 布局可横向，也可纵向
-        * 横向和纵向对应的分割想画法不一样
-        * */
+     * RecyclerView的布局方向，默认先赋值
+     * 为纵向布局
+     * RecyclerView 布局可横向，也可纵向
+     * 横向和纵向对应的分割想画法不一样
+     * */
     private int mOrientation = LinearLayoutManager.VERTICAL;
 
     /**
@@ -44,7 +46,7 @@ public class RecycleViewDivider extends RecyclerView.ItemDecoration {
         mItemSize = (int) TypedValue.applyDimension(mItemSize, TypedValue.COMPLEX_UNIT_DIP, context.getResources().getDisplayMetrics());
         mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mPaint.setColor(Color.TRANSPARENT);
-         /*设置填充*/
+        /*设置填充*/
         mPaint.setStyle(Paint.Style.FILL);
     }
 

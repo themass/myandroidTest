@@ -24,7 +24,7 @@ import java.util.Map;
 
 public class HttpUtils {
     private static final String DEFAULT_CHARSET = "UTF-8";
-    private static String USER_AGENT_SUFFIX = "VVV/%s";
+    private static String USER_AGENT_SUFFIX = "SEX/%s";
 
     public static boolean isGzip(String name, String value) {
         return "Content-Encoding".equals(name) && "gzip".equals(value);
@@ -70,6 +70,7 @@ public class HttpUtils {
         }
         return -1;
     }
+
     public static int pingVal(String ip) {
         String result = null;
         try {
@@ -78,16 +79,16 @@ public class HttpUtils {
             BufferedReader in = new BufferedReader(new InputStreamReader(input));
             String content;
             int delay = 0;
-            while((content=in.readLine())!=null){
+            while ((content = in.readLine()) != null) {
                 LogUtil.i(content);
-                if(content.contains("avg")){
-                    int i=content.indexOf("/",20);
-                    int j=content.indexOf(".", i);
-                    delay =Integer.parseInt(content.substring(i+1, j));
+                if (content.contains("avg")) {
+                    int i = content.indexOf("/", 20);
+                    int j = content.indexOf(".", i);
+                    delay = Integer.parseInt(content.substring(i + 1, j));
                     break;
                 }
             }
-            LogUtil.i( "result content : " + delay);
+            LogUtil.i("result content : " + delay);
             int status = p.waitFor();
             if (status == 0) {
                 return delay;
@@ -101,6 +102,7 @@ public class HttpUtils {
         }
         return 0;
     }
+
     public static String generateGetUrl(String url, Map<String, String> params) {
         if (!CollectionUtils.isEmpty(params)) {
             StringBuilder sb = new StringBuilder(url).append("?");
@@ -128,35 +130,35 @@ public class HttpUtils {
         try {
             URL url = new URL(actionUrl);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
-      /* 允许Input、Output，不使用Cache */
+            /* 允许Input、Output，不使用Cache */
             con.setDoInput(true);
             con.setDoOutput(true);
             con.setUseCaches(false);
-      /* 设定传送的method=POST */
+            /* 设定传送的method=POST */
             con.setRequestMethod("POST");
-      /* setRequestProperty */
+            /* setRequestProperty */
             con.setRequestProperty("Connection", "Keep-Alive");
             con.setRequestProperty("Charset", "UTF-8");
-      /* 设定DataOutputStream */
+            /* 设定DataOutputStream */
             DataOutputStream ds = new DataOutputStream(con.getOutputStream());
             ds.writeBytes(Hyphens + boundary + end);
             ds.writeBytes(end);
-      /* 取得文件的FileInputStream */
+            /* 取得文件的FileInputStream */
             FileInputStream fStream = new FileInputStream(file);
-      /* 设定每次写入1024bytes */
+            /* 设定每次写入1024bytes */
             int bufferSize = 1024;
             byte[] buffer = new byte[bufferSize];
             int length;
-      /* 从文件读取数据到缓冲区 */
+            /* 从文件读取数据到缓冲区 */
             while ((length = fStream.read(buffer)) != -1) {
-        /* 将数据写入DataOutputStream中 */
+                /* 将数据写入DataOutputStream中 */
                 ds.write(buffer, 0, length);
             }
             ds.writeBytes(end);
             ds.writeBytes(Hyphens + boundary + Hyphens + end);
             fStream.close();
             ds.flush();
-      /* 取得Response内容 */
+            /* 取得Response内容 */
             InputStream is = con.getInputStream();
             int ch;
             StringBuilder sb = new StringBuilder();

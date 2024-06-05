@@ -4,8 +4,10 @@ package com.openapi.ks.chatfree.ui.maintab.body;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
+
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
+
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -46,6 +48,7 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
     private static final String INDEX_TAG = "Recommend_custome_tag";
     @BindView(R.id.lb_add)
     ImageButton llAdd;
+
     @Override
     public String getNetTag() {
         return INDEX_TAG;
@@ -55,22 +58,25 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
     protected void onContentViewCreated(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
         inflater.inflate(R.layout.layout_recommd_custome, parent, true);
     }
+
     @Override
     protected void startQuery(boolean showLoading) {
-        if(UserLoginUtil.getUserCache()!=null) {
+        if (UserLoginUtil.getUserCache() != null) {
             super.startQuery(showLoading);
-        }else{
+        } else {
             hideLoading();
         }
     }
+
     @Override
     public void onRefresh(int type) {
-       if(UserLoginUtil.getUserCache()!=null){
-           super.onRefresh(type);
-       }else {
-           pullView.setRefresh(false);
-       }
+        if (UserLoginUtil.getUserCache() != null) {
+            super.onRefresh(type);
+        } else {
+            pullView.setRefresh(false);
+        }
     }
+
     @Override
     protected InfoListVo<RecommendVo> loadData(Context context) throws Exception {
         if (UserLoginUtil.getUserCache() != null) {
@@ -84,7 +90,7 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
     protected void onDataLoaded(InfoListVo<RecommendVo> data) {
         super.onDataLoaded(data);
         dataForView();
-        if(data.pageNum==2){
+        if (data.pageNum == 2) {
 //            AdsManager.getInstans().showNative(getActivity(),this);
         }
     }
@@ -106,7 +112,7 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
 
     @Override
     public String getUrl(int start) {
-        return Constants.getUrlWithParam(Constants.API_RECOMMEND_CUSTOME_URL,start);
+        return Constants.getUrlWithParam(Constants.API_RECOMMEND_CUSTOME_URL, start);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -121,7 +127,7 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
 
     @Override
     public void setupViews(View view, Bundle savedInstanceState) {
-        super.setupViews(view,savedInstanceState);
+        super.setupViews(view, savedInstanceState);
         EventBusUtil.getEventBus().register(this);
         ((MainFragmentViewPage) getActivity()).addListener(this);
     }
@@ -191,7 +197,7 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
                         indexService.postData(Constants.getUrl(Constants.API_DEL_CUSTOME), o, new CommonResponse.ResponseOkListener<NullReturnVo>(o) {
                             @Override
                             public void onResponse(NullReturnVo vo) {
-                                ToastUtil.showShort( R.string.custome_del_ok);
+                                ToastUtil.showShort(R.string.custome_del_ok);
                                 refresh();
                             }
                         }, null, INDEX_TAG, NullReturnVo.class);

@@ -28,8 +28,7 @@ public class FileSizeUtil {
         try {
             if (file.isDirectory()) {
                 blockSize = getFileSizes(file);
-            }
-            else {
+            } else {
                 blockSize = getFileSize(file);
             }
         } catch (Exception e) {
@@ -53,15 +52,14 @@ public class FileSizeUtil {
         try {
             if (file.isDirectory()) {
                 blockSize = getFileSizes(file);
-            }
-            else {
+            } else {
                 blockSize = getFileSize(file);
             }
         } catch (Throwable e) {
             e.printStackTrace();
             LogUtil.e("获取文件大小失败!");
         }
-        return Formatter.formatFileSize(MyApplication.getInstance(),blockSize);
+        return Formatter.formatFileSize(MyApplication.getInstance(), blockSize);
     }
 
 
@@ -77,8 +75,7 @@ public class FileSizeUtil {
             fis = new FileInputStream(file);
             size = fis.available();
             fis.close();
-        }
-        else {
+        } else {
             file.createNewFile();
             Log.e("获取文件大小", "文件不存在!");
         }
@@ -97,16 +94,12 @@ public class FileSizeUtil {
         for (int i = 0; i < flist.length; i++) {
             if (flist[i].isDirectory()) {
                 size = size + getFileSizes(flist[i]);
-            }
-            else {
+            } else {
                 size = size + getFileSize(flist[i]);
             }
         }
         return size;
     }
-
-
-
 
 
     /**

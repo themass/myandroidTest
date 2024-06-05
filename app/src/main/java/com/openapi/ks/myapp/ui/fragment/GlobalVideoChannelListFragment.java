@@ -23,6 +23,7 @@ import com.openapi.commons.yewu.ads.base.AdsManager;
 public class GlobalVideoChannelListFragment extends RecommendFragment {
     private static final String VIDEO_TAG = "video_tag";
     private RecommendVo vo;
+
     public static void startFragment(Context context, RecommendVo vo) {
         Intent intent = new Intent(context, CommonFragmentActivity.class);
         intent.putExtra(CommonFragmentActivity.FRAGMENT, GlobalVideoChannelListFragment.class);
@@ -34,26 +35,32 @@ public class GlobalVideoChannelListFragment extends RecommendFragment {
         StaticDataUtil.add(Constants.VIDEO_CHANNEL, vo);
         context.startActivity(intent);
     }
+
     @Override
-    protected boolean showSearchView(){
+    protected boolean showSearchView() {
         return true;
     }
+
     @Override
     public String getUrl(int start) {
-        return Constants.getUrlWithParam(Constants.API_VIDEO_CHANNEL_LIST_URL, start,"剧情片",keyword+"-");
+        return Constants.getUrlWithParam(Constants.API_VIDEO_CHANNEL_LIST_URL, start, "剧情片", keyword + "-");
     }
+
     @Override
     public String getNetTag() {
         return VIDEO_TAG;
     }
+
     @Override
     public int getSpanCount() {
         return 3;
     }
+
     @Override
     public boolean getShowEdit() {
         return false;
     }
+
     @Override
     public void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
@@ -63,10 +70,10 @@ public class GlobalVideoChannelListFragment extends RecommendFragment {
 //        getActivity().getWindow().setAttributes(params);
 
         vo = StaticDataUtil.get(Constants.VIDEO_CHANNEL, RecommendVo.class);
-        if(vo==null){
+        if (vo == null) {
             getActivity().finish();
         }
-        mSearchView.setQuery(vo.param,true);
+        mSearchView.setQuery(vo.param, true);
         mSearchView.findFocus();
         StaticDataUtil.del(Constants.VIDEO_CHANNEL);
     }
@@ -74,27 +81,29 @@ public class GlobalVideoChannelListFragment extends RecommendFragment {
     @Override
     public void onCustomerItemClick(View v, int position) {
         RecommendVo vo = infoListVo.voList.get(position);
-        if(!checkUserLevel(vo.type)){
+        if (!checkUserLevel(vo.type)) {
             return;
         }
-        if(Constants.VIDEO_TYPE_NORMAL.equalsIgnoreCase((String)vo.extra)){
+        if (Constants.VIDEO_TYPE_NORMAL.equalsIgnoreCase((String) vo.extra)) {
             boolean playvideo = PreferenceUtils.getPrefBoolean(getContext(), Constants.PLAYVIDEO_SWITCH, true);
-            if(playvideo){
+            if (playvideo) {
                 startActivity(VideoShowActivityLazyUrl.class, vo);
             } else {
                 startActivity(VitamioVideoPlayActivity.class, vo);
             }
-        }else{
-            super.onCustomerItemClick(v,position);
+        } else {
+            super.onCustomerItemClick(v, position);
         }
     }
+
     @Override
     protected void onDataLoaded(InfoListVo<RecommendVo> data) {
         super.onDataLoaded(data);
-        if(data.pageNum==2){
+        if (data.pageNum == 2) {
 //            AdsManager.getInstans().showNative(getActivity(),this);
         }
     }
+
     @Override
     public void onDestroyView() {
         indexService.cancelRequest(VIDEO_TAG);

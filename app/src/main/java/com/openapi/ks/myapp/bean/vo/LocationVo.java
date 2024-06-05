@@ -12,7 +12,7 @@ public class LocationVo {
     public String cityName;
     public int level;
     public String gateway;
-    public int hostId=0;
+    public int hostId = 0;
     public int port;
     public int ttlTime;
     public Integer ping;

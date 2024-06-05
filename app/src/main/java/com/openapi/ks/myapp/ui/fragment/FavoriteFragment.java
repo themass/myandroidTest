@@ -42,7 +42,7 @@ import java.util.List;
 /**
  * Created by openapi on 2016/8/12.
  */
-public class FavoriteFragment extends BasePullLoadbleFragment<FavoriteVo> implements FavoriteUtil.ModFavoriteListener,MenuOneContext.MyOnMenuItemClickListener, BaseRecyclerViewAdapter.OnRecyclerViewItemLongClickListener<FavoriteVo> {
+public class FavoriteFragment extends BasePullLoadbleFragment<FavoriteVo> implements FavoriteUtil.ModFavoriteListener, MenuOneContext.MyOnMenuItemClickListener, BaseRecyclerViewAdapter.OnRecyclerViewItemLongClickListener<FavoriteVo> {
     private FavoriteViewAdapter adapter;
 
     public static void startFragment(Context context) {
@@ -69,12 +69,14 @@ public class FavoriteFragment extends BasePullLoadbleFragment<FavoriteVo> implem
         super.setupViews(view, savedInstanceState);
         EventBusUtil.getEventBus().register(this);
     }
+
     @Override
-    protected  BaseRecyclerViewAdapter getAdapter(){
+    protected BaseRecyclerViewAdapter getAdapter() {
         adapter = new FavoriteViewAdapter(getActivity(), pullView.getRecyclerView(), infoListVo.voList, this);
         adapter.setLongClickListener(this);
         return adapter;
     }
+
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(FavoriteChangeEvent event) {
         pullView.setRefresh(true);
@@ -82,55 +84,59 @@ public class FavoriteFragment extends BasePullLoadbleFragment<FavoriteVo> implem
 
     @Override
     public void onItemClick(View view, FavoriteVo data, int postion) {
-        super.onItemClick(view,data,postion);
+        super.onItemClick(view, data, postion);
         if (data.type == Constants.FavoriteType.TEXT) {
             TextItemsVo vo = ModelUtils.json2Entry(data.extra, TextItemsVo.class);
             if (vo != null) {
-                if(!NetUtils.checkNetwork(getActivity())){
+                if (!NetUtils.checkNetwork(getActivity())) {
                     String fileName = PathUtil.getFileExtensionFromUrl(vo.fileUrl);
                     String path = FileUtils.getWriteFilePath(getContext());
-                    File file = new File(path,fileName);
-                    if(file.exists())
-                        vo.fileUrl = "file:///"+path+File.separator+fileName;
+                    File file = new File(path, fileName);
+                    if (file.exists())
+                        vo.fileUrl = "file:///" + path + File.separator + fileName;
                 }
-                TextItemsWebViewFragment.startFragment(getContext(),vo);
+                TextItemsWebViewFragment.startFragment(getContext(), vo);
             }
         } else if (data.type == Constants.FavoriteType.SOUND) {
             RecommendVo vo = ModelUtils.json2Entry(data.extra, RecommendVo.class);
             if (vo != null)
                 SoundItemsMusicFragment.startFragment(getActivity(), vo);
-        }else if (data.type == Constants.FavoriteType.IMG) {
+        } else if (data.type == Constants.FavoriteType.IMG) {
             ImgItemsVo vo = ModelUtils.json2Entry(data.extra, ImgItemsVo.class);
             if (vo != null)
                 ImgItemFragment.startFragment(getActivity(), vo);
-        }else if (data.type == Constants.FavoriteType.VIDEO) {
+        } else if (data.type == Constants.FavoriteType.VIDEO) {
             RecommendVo vo = ModelUtils.json2Entry(data.extra, RecommendVo.class);
             if (vo != null)
                 startActivity(VideoShowActivityLazyUrl.class, vo);
         }
     }
+
     @Override
-    public void onItemLongClick(View view, FavoriteVo data, int position){
+    public void onItemLongClick(View view, FavoriteVo data, int position) {
         MenuOneContext.showOneMenu(getActivity(), view, R.string.menu_favorite_cancel, R.drawable.ic_menu_favorite_ed, FavoriteFragment.this, position);
     }
+
     @Override
-    public boolean onMenuItemClick(MenuItem item, int position){
-        if(item.getItemId()==R.id.menu_share){
+    public boolean onMenuItemClick(MenuItem item, int position) {
+        if (item.getItemId() == R.id.menu_share) {
             if (infoListVo.voList.get(position).type == Constants.FavoriteType.TEXT) {
                 SystemUtils.copy(getActivity(), infoListVo.voList.get(position).itemUrl);
                 ToastUtil.showShort(R.string.menu_share_copy_ok);
-            }else{
+            } else {
                 ToastUtil.showShort(R.string.menu_share_text_only);
             }
             LogUtil.i(infoListVo.voList.get(position).itemUrl);
-        }else {
+        } else {
             FavoriteUtil.modLocalFavoritesAsync(getActivity(), infoListVo.voList.get(position), this);
         }
         return true;
     }
-    public void modFavorite(boolean ret){
+
+    public void modFavorite(boolean ret) {
         pullView.setRefresh(true);
     }
+
     @Override
     public void onDestroyView() {
         EventBusUtil.getEventBus().unregister(this);

@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
+
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -61,6 +62,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.openapi.ks.chatfree.ui.maintab.TabChatMessagesFragment;
+
 import tv.danmaku.ijk.media.exo2.Exo2PlayerManager;
 
 /**
@@ -77,9 +79,10 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
     private MyPagerAdapter myPagerAdapter;
     private String POSITION = "POSITION";
     private int index = 0;
-    private static final String SETTING_TAG="SETTING_TAG";
-    private static final String WITER_TAG="WITER_TAG";
+    private static final String SETTING_TAG = "SETTING_TAG";
+    private static final String WITER_TAG = "WITER_TAG";
     private PermissionHelper mPermissionHelper;
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_main_viewpage);
@@ -95,6 +98,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         initTabs();
         LogUtil.i("onEvent:initTabs");
     }
+
     /**
      * Callback received when a permissions request has been completed.
      */
@@ -137,10 +141,10 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
     private void initTabs() {
         list.clear();
         LayoutInflater inflater = LayoutInflater.from(this);
-        if(MyApplication.isTemp) {
+        if (MyApplication.isTemp) {
             addData(inflater, R.string.tab_tag_index, TabVpnFragment.class,
                     R.drawable.ac_bg_tab_index, R.string.tab_index, null, 1);
-        }else {
+        } else {
             addData(inflater, R.string.tab_tag_movie, TabMovieFragment.class,
                     R.drawable.ac_bg_tab_index, R.string.tab_movie, null, 1);
         }
@@ -149,10 +153,10 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         if (PreferenceUtils.getPrefBoolean(this, Constants.AREA_SWITCH, true)) {
             addData(inflater, R.string.tab_tag_ng, TabNightFragment.class,
                     R.drawable.ac_bg_tab_index, R.string.tab_ng, null, 2);
-            if(!MyApplication.isTemp) {
+            if (!MyApplication.isTemp) {
                 addData(inflater, R.string.tab_tag_area, TabLocalFragment.class,
                         R.drawable.ac_bg_tab_index, R.string.tab_area, null, 3);
-            }else {
+            } else {
                 addData(inflater, R.string.tab_tag_movie, TabMovieFragment.class,
                         R.drawable.ac_bg_tab_index, R.string.tab_movie, null, 3);
             }
@@ -171,7 +175,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
             tab.setCustomView(myPagerAdapter.getTabView(i, (i == 0)));
         }
         boolean playCore = PreferenceUtils.getPrefBoolean(this, Constants.PLAYCORE_SWITCH, true);
-        if(!playCore) {
+        if (!playCore) {
             PlayerFactory.setPlayManager(Exo2PlayerManager.class);
             JzvdPlayerFactory.setPlayManager(JZMediaExo.class);
         } else {
@@ -210,30 +214,31 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         System.exit(0);
     }
 
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        LogUtil.i("onKeyUp");
-        if (closeDrawer()) {
-            return true;
-        }
-        if (keyCode == KeyEvent.KEYCODE_BACK) {
-            boolean flag = false;
-            for (OnBackKeyDownListener l : keyListeners) {
-                flag = flag || l.onkeyBackDown();
-            }
-            if (flag) {
-                return true;
-            }
+//    @Override
+//    public boolean onKeyDown(int keyCode, KeyEvent event) {
+//        LogUtil.i("onKeyUp");
+//        if (closeDrawer()) {
+//            return true;
+//        }
+//        if (keyCode == KeyEvent.KEYCODE_BACK) {
+//            boolean flag = false;
+//            for (OnBackKeyDownListener l : keyListeners) {
+//                flag = flag || l.onkeyBackDown();
+//            }
+//            if (flag) {
+//                return true;
+//            }
+//
+//            if (!DoubleClickExit.check()) {
+//                ToastUtil.showShort(getString(R.string.close_over));
+//                return true;
+//            } else {
+//                finish();
+//            }
+//        }
+//        return super.onKeyDown(keyCode, event);
+//    }
 
-            if (!DoubleClickExit.check()) {
-                ToastUtil.showShort(getString(R.string.close_over));
-                return true;
-            } else {
-                finish();
-            }
-        }
-        return super.onKeyDown(keyCode, event);
-    }
     public class ViewPagerOnTabSelectedListener implements TabLayout.OnTabSelectedListener {
         private final ViewPager mViewPager;
 
@@ -243,27 +248,27 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
 
         @Override
         public void onTabSelected(TabLayout.Tab tab) {
-            LogUtil.i("tab select:" + tab.getPosition()+"; tag ="+tab.getTag());
+            LogUtil.i("tab select:" + tab.getPosition() + "; tag =" + tab.getTag());
             mViewPager.setCurrentItem(tab.getPosition());
             setToolbarTitle(getString(list.get(tab.getPosition()).title), false);
             index = tab.getPosition();
             ItemFragment item = list.get(tab.getPosition());
             boolean areami = PreferenceUtils.getPrefBoolean(MainFragmentViewPage.this, Constants.AREA_MI_SWITCH, false);
-            if(UserLoginUtil.getUserCache()!=null && areami && (item.tag==R.string.tab_tag_ng || item.tag==R.string.tab_tag_area)){
+            if (UserLoginUtil.getUserCache() != null && areami && (item.tag == R.string.tab_tag_ng || item.tag == R.string.tab_tag_area)) {
                 LayoutInflater inflater = LayoutInflater.from(MainFragmentViewPage.this);
-                ViewGroup miView = (ViewGroup)inflater.inflate(R.layout.layout_areami,null);
-                final EditText etMi = (EditText)miView.findViewById(R.id.et_mi);
+                ViewGroup miView = (ViewGroup) inflater.inflate(R.layout.layout_areami, null);
+                final EditText etMi = (EditText) miView.findViewById(R.id.et_mi);
                 AlertDialog dialog = null;
-                AlertDialog.Builder builder = new AlertDialog.Builder(MainFragmentViewPage.this,R.style.mydialog);
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainFragmentViewPage.this, R.style.mydialog);
                 builder.setView(miView);
                 builder.setCancelable(false);
                 //添加确定按钮
                 builder.setPositiveButton(R.string.del_ok, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        if(etMi.getText()!=null && etMi.getText().equals(UserLoginUtil.getUserCache().areaMi)){
+                        if (etMi.getText() != null && etMi.getText().equals(UserLoginUtil.getUserCache().areaMi)) {
                             dialogInterface.dismiss();
-                        }else{
+                        } else {
                             ToastUtil.showShort(R.string.password_error);
                             initTabs();
                         }

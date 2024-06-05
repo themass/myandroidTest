@@ -3,8 +3,10 @@ package com.openapi.ks.myapp.ui.feedback;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -99,14 +101,14 @@ public class FeedbackFragment extends LoadableFragment<InfoListVo<IWannaVo>> imp
         };
         infoVo.voList = new ArrayList<>();
         pullView.setLayoutManager(linearLayoutManager);
-        feedAdapter = new FeedAdapter(getActivity(), infoVo.voList, this,Constants.API_FEEDBACK_LIKE_URL);
+        feedAdapter = new FeedAdapter(getActivity(), infoVo.voList, this, Constants.API_FEEDBACK_LIKE_URL);
         pullView.setAdapter(feedAdapter);
         pullView.setListener(this);
         pullView.setItemAnimator(new FeedItemAnimator());
         myProgressDialog = new MyProgressDialog(getActivity());
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(), R.layout.layout_feed_spinner, getResources().getStringArray(R.array.recharge_arry));
         spRech.setAdapter(adapter);
-        spRech.setSelection(0,true);
+        spRech.setSelection(0, true);
     }
 
     @OnClick(R.id.send)
@@ -117,7 +119,7 @@ public class FeedbackFragment extends LoadableFragment<InfoListVo<IWannaVo>> imp
         }
         if (StringUtils.hasText(etComment.getText().toString())) {
             myProgressDialog.show();
-            indexService.postData(Constants.getUrl(Constants.API_FEEDBACK_URL), new IwannaForm(etComment.getText().toString()+"--"+spRech.getSelectedItem() ), okListener, errorListener, TAG, IWannaVo.class);
+            indexService.postData(Constants.getUrl(Constants.API_FEEDBACK_URL), new IwannaForm(etComment.getText().toString() + "--" + spRech.getSelectedItem()), okListener, errorListener, TAG, IWannaVo.class);
         } else {
             ToastUtil.showShort(R.string.iwanna_content_error);
         }

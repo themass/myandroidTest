@@ -19,7 +19,6 @@ package com.openapi.commons.common.helper;
 import androidx.recyclerview.widget.RecyclerView;
 
 /**
- *
  * @author Paul Burke (ipaulpro)
  */
 public interface ItemTouchHelperAdapter {

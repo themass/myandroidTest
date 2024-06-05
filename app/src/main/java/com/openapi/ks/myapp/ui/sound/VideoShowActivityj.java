@@ -34,18 +34,19 @@ public class VideoShowActivityj extends AppCompatActivity {
     Jzvd.JZAutoFullscreenListener mSensorEventListener;
     SensorManager mSensorManager;
     RecommendVo vo;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_video_show);
         unbinder = ButterKnife.bind(this);
-        vo = (RecommendVo)getIntent().getSerializableExtra(Constants.CONFIG_PARAM);
+        vo = (RecommendVo) getIntent().getSerializableExtra(Constants.CONFIG_PARAM);
         jzVideo.setUp(vo.actionUrl, vo.title, JzvdStd.SCREEN_NORMAL, JzvdPlayerFactory.getPlayManager());
         jzVideo.jzDataSource.headerMap = VideoUtil.getVideoSourceHeader(vo.actionUrl, StringUtils.hasText(vo.baseurl) ? vo.baseurl : vo.actionUrl);
 //
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         mSensorEventListener = new Jzvd.JZAutoFullscreenListener();
-        ImagePhotoLoad.loadCommonImg(this,vo.img,jzVideo.posterImageView);
+        ImagePhotoLoad.loadCommonImg(this, vo.img, jzVideo.posterImageView);
 //        Jzvd.set(new MyUserActionStandard());
     }
 
@@ -66,6 +67,7 @@ public class VideoShowActivityj extends AppCompatActivity {
         //home back
         Jzvd.goOnPlayOnPause();
     }
+
     @Override
     public void onBackPressed() {
         if (Jzvd.backPress()) {
@@ -73,16 +75,19 @@ public class VideoShowActivityj extends AppCompatActivity {
         }
         super.onBackPressed();
     }
+
     @Override
     public void onDestroy() {
         super.onDestroy();
         unbinder.unbind();
     }
+
     @Override
     protected void onNewIntent(Intent intent) {
         LogUtil.i(getClass().getSimpleName() + "-onNewIntent");
         super.onNewIntent(intent);
     }
+
     protected boolean enableSliding() {
         return true;
     }

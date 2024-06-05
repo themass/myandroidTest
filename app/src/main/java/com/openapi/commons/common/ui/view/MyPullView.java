@@ -1,6 +1,7 @@
 package com.openapi.commons.common.ui.view;
 
 import android.content.Context;
+
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -35,6 +36,7 @@ public class MyPullView extends LinearLayout {
     TranslateAnimation mShowAction;
     TranslateAnimation mHiddenAction;
     private OnRefreshListener listener;
+
     public MyPullView(Context context) {
         super(context);
         setupView();

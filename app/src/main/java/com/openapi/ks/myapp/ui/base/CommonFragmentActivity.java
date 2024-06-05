@@ -1,7 +1,9 @@
 package com.openapi.ks.myapp.ui.base;
 
 import android.os.Bundle;
+
 import androidx.fragment.app.Fragment;
+
 import android.view.View;
 
 import com.openapi.commons.common.util.LogUtil;
@@ -34,9 +36,10 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
     private Boolean slidingClose = false;
     private Boolean toolbarShow = true;
     private Boolean needFabup = true;
-    private AdsContext.Categrey bannerCategrey =  AdsContext.Categrey.CATEGREY_VPN1;
+    private AdsContext.Categrey bannerCategrey = AdsContext.Categrey.CATEGREY_VPN1;
     private boolean needGonebanner = true;
     private Fragment fragment = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         slidingClose = getIntent().getBooleanExtra(SLIDINGCLOSE, true);
@@ -44,7 +47,7 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
         setContentView(R.layout.common_fragment);
         boolean scroll = getIntent().getBooleanExtra(ADSSCROLL, true);
         toolbarShow = getIntent().getBooleanExtra(TOOLBAR_SHOW, true);
-        showInterstitialAds =getIntent().getBooleanExtra(INTERSTITIAL_ADS_SHOW, false);
+        showInterstitialAds = getIntent().getBooleanExtra(INTERSTITIAL_ADS_SHOW, false);
         needGonebanner = getIntent().getBooleanExtra(BANNER_NEED_GONE, true);
         if (!scroll) {
             disableScrollBanner();
@@ -54,10 +57,10 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
         showAds = getIntent().getBooleanExtra(BANNER_ADS_SHOW, false);
         needFabup = getIntent().getBooleanExtra(FABUP_SHOW, true);
         Object o = getIntent().getSerializableExtra(BANNER_ADS_CATEGRY);
-        if(o!=null){
-            bannerCategrey = (AdsContext.Categrey)o;
+        if (o != null) {
+            bannerCategrey = (AdsContext.Categrey) o;
         }
-        if(needFabup) {
+        if (needFabup) {
             setFabUpVisibility(View.VISIBLE);
         }
         String title = null;
@@ -91,14 +94,16 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
     @Override
     public void setupView() {
         super.setupView();
-        if(showInterstitialAds ){
+        if (showInterstitialAds) {
             AdsContext.showRand(this);
         }
     }
+
     @Override
-    protected boolean needGoneBanner(){
+    protected boolean needGoneBanner() {
         return needGonebanner;
     }
+
     public boolean needShow() {
         return showAds;
     }
@@ -112,14 +117,15 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
     protected AdsContext.Categrey getBannerCategrey() {
         return bannerCategrey;
     }
+
     @Override
     public void onBackPressed() {
-        if(fragment instanceof OnBackKeyDownListener){
-            boolean ret = ((OnBackKeyDownListener)fragment).onkeyBackDown();
-            if(!ret){
+        if (fragment instanceof OnBackKeyDownListener) {
+            boolean ret = ((OnBackKeyDownListener) fragment).onkeyBackDown();
+            if (!ret) {
                 super.onBackPressed();
             }
-        }else{
+        } else {
             super.onBackPressed();
         }
 

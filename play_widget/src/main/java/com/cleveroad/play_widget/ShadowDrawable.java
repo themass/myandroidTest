@@ -88,6 +88,7 @@ class ShadowDrawable extends Drawable {
 
     /**
      * set shadow size multiplier allow change shadow size in percents.
+     *
      * @param multiplier size in percents;
      */
     public void setShadowSizeMultiplier(float multiplier) {

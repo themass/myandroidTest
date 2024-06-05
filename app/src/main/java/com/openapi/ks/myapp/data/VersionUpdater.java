@@ -15,6 +15,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.NotificationCompat;
 
@@ -47,7 +48,7 @@ public class VersionUpdater {
     private static String version;
     private static int build;
     private static boolean isInitVersionSuccess = false;
-    private static final String D_CHANNEL= "D_CHANNEL";
+    private static final String D_CHANNEL = "D_CHANNEL";
 
     public static void checkUpdate(final Activity context, final boolean needToast) {
         // 检查版本更新
@@ -249,7 +250,7 @@ public class VersionUpdater {
         private final File apkFile;
         private Context context;
         private Handler handler;
-        private NotificationCompat.Builder  builder;
+        private NotificationCompat.Builder builder;
         private NotificationManager notificationManager;
 
         private DownloadRunnable(Context context, String url, File apkFile) {
@@ -266,7 +267,7 @@ public class VersionUpdater {
                 channel.setSound(null, null);
                 notificationManager.createNotificationChannel(channel);
             }
-            builder = new NotificationCompat.Builder(MyApplication.getInstance(),D_CHANNEL);
+            builder = new NotificationCompat.Builder(MyApplication.getInstance(), D_CHANNEL);
         }
 
         @Override

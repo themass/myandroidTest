@@ -49,6 +49,7 @@ public class FindPassActivity extends BaseSingleActivity {
         baseService = new BaseService();
         baseService.setup(this);
     }
+
     @OnClick(R.id.btn_findpass)
     public void tnFindPass(View view) {
         String email = etEmail.getText().toString();
@@ -57,7 +58,7 @@ public class FindPassActivity extends BaseSingleActivity {
             return;
         }
         setEnabled(false);
-        RegForm form = new RegForm(null, null, null, null,email,null);
+        RegForm form = new RegForm(null, null, null, null, email, null);
         baseService.postData(Constants.getUrl(Constants.API_FINDPASS_URL), form, loginListener, new CommonResponse.ResponseErrorListener() {
             @Override
             protected void onError() {
@@ -95,10 +96,12 @@ public class FindPassActivity extends BaseSingleActivity {
             etEmail.setEnabled(isEnable);
         }
     }
+
     @Override
     protected boolean enableSliding() {
         return true;
     }
+
     @Override
     public boolean needShow() {
         return false;

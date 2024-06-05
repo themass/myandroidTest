@@ -1,6 +1,7 @@
 package com.openapi.ks.myapp.adapter;
 
 import android.content.Context;
+
 import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
@@ -34,17 +35,19 @@ public class VideoListAdapter extends BaseRecyclerViewAdapter<VideoListAdapter.V
     public VideoListAdapter(Context context, RecyclerView recyclerView, List<RecommendVo> data, OnRecyclerViewItemClickListener<RecommendVo> listener) {
         super(context, recyclerView, data, listener);
     }
+
     @Override
     public VideoHolder onCreateViewHolderData(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(context).inflate(R.layout.item_videoview, parent, false);
-    return new VideoHolder(view, this, this);
+        return new VideoHolder(view, this, this);
     }
-        @Override
-        public void onBindViewHolderData(RecyclerView.ViewHolder h, int position) {
-            //This is the point
-            VideoHolder holder = (VideoHolder)h;
-            RecommendVo vo = data.get(position);
-            LogUtil.i("jcVideoPlayer="+holder.jcVideoPlayer.toString());
+
+    @Override
+    public void onBindViewHolderData(RecyclerView.ViewHolder h, int position) {
+        //This is the point
+        VideoHolder holder = (VideoHolder) h;
+        RecommendVo vo = data.get(position);
+        LogUtil.i("jcVideoPlayer=" + holder.jcVideoPlayer.toString());
 
 //            if(vo.actionUrl.contains("?")){
 //                vo.actionUrl = vo.actionUrl+"&t="+ (System.currentTimeMillis()/1000);
@@ -52,39 +55,41 @@ public class VideoListAdapter extends BaseRecyclerViewAdapter<VideoListAdapter.V
 //                vo.actionUrl = vo.actionUrl+"?t="+ (System.currentTimeMillis()/1000);
 //            }
 
-            holder.jcVideoPlayer.setUp(vo.actionUrl, vo.title, JzvdStd.SCREEN_NORMAL, JzvdPlayerFactory.getPlayManager());
-            holder.jcVideoPlayer.jzDataSource.headerMap = VideoUtil.getVideoSourceHeader(vo.actionUrl, StringUtils.hasText(vo.baseurl) ? vo.baseurl : vo.actionUrl);
+        holder.jcVideoPlayer.setUp(vo.actionUrl, vo.title, JzvdStd.SCREEN_NORMAL, JzvdPlayerFactory.getPlayManager());
+        holder.jcVideoPlayer.jzDataSource.headerMap = VideoUtil.getVideoSourceHeader(vo.actionUrl, StringUtils.hasText(vo.baseurl) ? vo.baseurl : vo.actionUrl);
 //
 
-            https://vd2.bdstatic.com/mda-pb6cpnvt5v2kjqke/sc/cae_h264/1675761743990346865/mda-pb6cpnvt5v2kjqke.mp4
+        https:
+//vd2.bdstatic.com/mda-pb6cpnvt5v2kjqke/sc/cae_h264/1675761743990346865/mda-pb6cpnvt5v2kjqke.mp4
 //            holder.jcVideoPlayer.setUp(vo.actionUrl, vo.title, Jzvd.SCREEN_NORMAL);
 //
 //            holder.jcVideoPlayer.starsetUpvo.actionUrionUrl,vo.title, Jzvd.SCREEN_NORMAL);
 //            holder.jcVideoPlayer.hea = header;
-            ImagePhotoLoad.loadCommonImg(context,vo.img,holder.jcVideoPlayer.posterImageView);
-            if(Constants.BANNER_ADS_POS.contains(position)){
-                if(position%2==1){
-                    holder.rvAds.setVisibility(View.VISIBLE);
-                    AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN2);
-                }else{
-                    holder.rvAds.setVisibility(View.VISIBLE);
-                    AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN1);
-                }
-            }else{
-                holder.rvAds.removeAllViews();
-                holder.rvAds.setVisibility(View.GONE);
+        ImagePhotoLoad.loadCommonImg(context, vo.img, holder.jcVideoPlayer.posterImageView);
+        if (Constants.BANNER_ADS_POS.contains(position)) {
+            if (position % 2 == 1) {
+                holder.rvAds.setVisibility(View.VISIBLE);
+                AdsManager.getInstans().showBannerAds((FragmentActivity) context, holder.rvAds, AdsContext.Categrey.CATEGREY_VPN2);
+            } else {
+                holder.rvAds.setVisibility(View.VISIBLE);
+                AdsManager.getInstans().showBannerAds((FragmentActivity) context, holder.rvAds, AdsContext.Categrey.CATEGREY_VPN1);
             }
-        }
-
-        public  static class VideoHolder  extends BaseRecyclerViewAdapter.BaseRecyclerViewHolder<RecommendVo>{
-            @Nullable
-            @BindView(R.id.videoplayer)
-            JzvdStd jcVideoPlayer;
-            @Nullable
-            @BindView(R.id.rv_ads)
-            RelativeLayout rvAds;
-            public VideoHolder(View itemView, View.OnClickListener l, View.OnLongClickListener longListener) {
-                super(itemView, l, longListener);
-            }
+        } else {
+            holder.rvAds.removeAllViews();
+            holder.rvAds.setVisibility(View.GONE);
         }
     }
+
+    public static class VideoHolder extends BaseRecyclerViewAdapter.BaseRecyclerViewHolder<RecommendVo> {
+        @Nullable
+        @BindView(R.id.videoplayer)
+        JzvdStd jcVideoPlayer;
+        @Nullable
+        @BindView(R.id.rv_ads)
+        RelativeLayout rvAds;
+
+        public VideoHolder(View itemView, View.OnClickListener l, View.OnLongClickListener longListener) {
+            super(itemView, l, longListener);
+        }
+    }
+}

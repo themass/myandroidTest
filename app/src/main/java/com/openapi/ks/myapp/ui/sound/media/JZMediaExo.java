@@ -100,7 +100,7 @@ public class JZMediaExo extends JZMediaInterface implements Player.EventListener
 
             String currUrl = jzvd.jzDataSource.getCurrentUrl().toString();
             MediaSource videoSource;
-            LogUtil.i("jz media url = "+ currUrl);
+            LogUtil.i("jz media url = " + currUrl);
             if (currUrl.contains(".m3u8")) {
                 videoSource = new HlsMediaSource.Factory(dataSourceFactory)
                         .createMediaSource(MediaItem.fromUri(currUrl));
@@ -108,7 +108,7 @@ public class JZMediaExo extends JZMediaInterface implements Player.EventListener
                 // 否者会被断言 Assertions.checkArgument(handler != null && eventListener != null);
                 // 并且报错  IllegalArgumentException()  所以不需要添加监听器时 注释掉
                 //      videoSource .addEventListener( handler, null);
-                LogUtil.i("jz media videoSource = HlsMediaSource ;url ="+ currUrl);
+                LogUtil.i("jz media videoSource = HlsMediaSource ;url =" + currUrl);
             } else {
                 videoSource = new ProgressiveMediaSource.Factory(dataSourceFactory)
                         .createMediaSource(MediaItem.fromUri(currUrl));

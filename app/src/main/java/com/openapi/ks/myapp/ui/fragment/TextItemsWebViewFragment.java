@@ -42,7 +42,7 @@ import butterknife.BindView;
 /**
  * Created by openapi on 2016/3/21.
  */
-public class TextItemsWebViewFragment extends BaseFragment implements  MyFavoriteView.OnFavoriteItemClick {
+public class TextItemsWebViewFragment extends BaseFragment implements MyFavoriteView.OnFavoriteItemClick {
     @SuppressLint("HandlerLeak")
     protected Handler mHandler = new Handler() {
         @Override
@@ -97,7 +97,7 @@ public class TextItemsWebViewFragment extends BaseFragment implements  MyFavorit
         if (webView != null) {
             init(webView);
             vo = StaticDataUtil.get(Constants.TEXT_FILE, TextItemsVo.class);
-            if(vo==null){
+            if (vo == null) {
                 getActivity().finish();
             }
             StaticDataUtil.del(Constants.TEXT_FILE);

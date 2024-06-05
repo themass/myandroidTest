@@ -56,6 +56,7 @@ public abstract class LoadableFragment<T> extends BaseFragment {
     protected BaseService indexService;
     public SearchView mSearchView;
     public String keyword = "";
+
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
@@ -66,9 +67,11 @@ public abstract class LoadableFragment<T> extends BaseFragment {
     protected int getRootViewId() {
         return DEFAULT_LAYOUT;
     }
-    protected boolean showSearchView(){
+
+    protected boolean showSearchView() {
         return false;
     }
+
     @Override
     protected void setupViews(View view, Bundle savedInstanceState) {
         indexService = new BaseService();
@@ -82,9 +85,9 @@ public abstract class LoadableFragment<T> extends BaseFragment {
         onContentViewCreated(inflater, mContentView, savedInstanceState);
         mLoadRetryView.setOnClickListener(mRefreshClickListener);
         super.setupViews(view, savedInstanceState);
-        if(showSearchView()){
+        if (showSearchView()) {
             mSearchView.setVisibility(View.VISIBLE);
-        }else{
+        } else {
             mSearchView.setVisibility(View.GONE);
         }
     }
@@ -95,7 +98,7 @@ public abstract class LoadableFragment<T> extends BaseFragment {
         if (mData == null) {
             startQuery(true);
         } else {
-            if(isDestory) {
+            if (isDestory) {
                 onDataLoaded(mData);
                 hideLoading();
             }

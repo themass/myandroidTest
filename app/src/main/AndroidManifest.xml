@@ -3,13 +3,17 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.openapi.ks.chatfree">
     <!-- 隐私权-->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <!--uses-permission android:name="android.permission.GET_ACCOUNTS" /-->
-<!--    <uses-permission android:name="android.permission.READ_PHONE_STATE" />-->
+    <!--    <uses-permission android:name="android.permission.READ_PHONE_STATE" />-->
     <!--<uses-permission android:name="android.permission.CALL_PHONE" />-->
-<!--    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />-->
-<!--    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />-->
+    <!--    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />-->
+    <!--    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />-->
 
     <!--<uses-permission android:name="android.permission.GET_TASKS" />-->
     <!--<uses-permission android:name="android.permission.REAL_GET_TASKS" />-->
@@ -21,7 +25,8 @@
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.VIBRATE" />
-    <!--<uses-permission android:name="android.permission.RECORD_AUDIO" />-->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.INTERNET" />
     <!--<uses-permission android:name="android.permission.SET_DEBUG_APP" />-->
     <!--<uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" />-->
@@ -38,9 +43,9 @@
         tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <!--<uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS" />-->
-<!--    <uses-permission android:name="android.permission.READ_CALENDAR" />-->
-<!--    <uses-permission android:name="android.permission.WRITE_CALENDAR" />-->
-<!--    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />-->
+    <!--    <uses-permission android:name="android.permission.READ_CALENDAR" />-->
+    <!--    <uses-permission android:name="android.permission.WRITE_CALENDAR" />-->
+    <!--    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />-->
     <!--    <uses-sdk tools:overrideLibrary="com.andremion.music.cover" />-->
     <!--permission
         android:name="com.android.launcher.permission.READ_SETTINGS"
@@ -71,7 +76,7 @@
 
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-6599725010915516~2513490769"/>
+            android:value="ca-app-pub-6599725010915516~2513490769" />
 
         <meta-data
             android:name="com.bumptech.glide.integration.okhttp.OkHttpGlideModule"
@@ -201,24 +206,18 @@
                 android:resource="@xml/file_provider_paths" />
         </provider>
 
-
-        <activity
-            android:name="chat.asrassistant.activity.ChatActivity"
-            android:launchMode="singleTop"
-            android:theme="@style/AppTheme">
-        </activity>
-        <activity
-            android:name="chat.asrassistant.activity.ConfigActivity"
-            android:launchMode="singleTop"
-            android:theme="@style/AppTheme">
-        </activity>
-
         <activity
             android:name="chat.ui.CustomLayoutDialogsActivity"
-            android:theme="@style/AppTheme" >
-        </activity>
+            android:theme="@style/AppTheme"></activity>
         <activity
             android:name="chat.ui.CustomChatMessagesActivity"
+            android:theme="@style/AppTheme"
+            android:exported="true">
+
+        </activity>
+
+        <activity
+            android:name="com.hrl.chaui.activity.ChatActivity"
             android:theme="@style/AppTheme"
             android:exported="true">
 

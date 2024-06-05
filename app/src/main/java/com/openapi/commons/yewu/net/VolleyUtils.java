@@ -41,7 +41,8 @@ public class VolleyUtils {
         mImageLoader = new ImageLoader(mRequestQueue, new BitmapLruCache(context));
         start();
     }
-    public static void  start(){
+
+    public static void start() {
         mRequestQueue.start();
     }
 

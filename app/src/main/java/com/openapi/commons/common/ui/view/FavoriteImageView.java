@@ -1,14 +1,16 @@
 package com.openapi.commons.common.ui.view;
 
 import android.content.Context;
+
 import androidx.appcompat.widget.AppCompatImageView;
+
 import android.util.AttributeSet;
 
 import com.openapi.ks.chatfree.R;
 import com.openapi.ks.myapp.bean.vo.FavoriteVo;
 import com.openapi.ks.myapp.data.FavoriteUtil;
 
-public class FavoriteImageView extends AppCompatImageView  implements FavoriteUtil.GetFavoriteListener, FavoriteUtil.ModFavoriteListener{
+public class FavoriteImageView extends AppCompatImageView implements FavoriteUtil.GetFavoriteListener, FavoriteUtil.ModFavoriteListener {
     public FavoriteImageView(Context context) {
         super(context);
 
@@ -19,15 +21,17 @@ public class FavoriteImageView extends AppCompatImageView  implements FavoriteUt
     }
 
     public FavoriteImageView(Context context, AttributeSet attrs, int defStyleAttr) {
-        super(context,attrs,defStyleAttr);
+        super(context, attrs, defStyleAttr);
     }
 
-    public void clickFavorite(final FavoriteVo vo){
+    public void clickFavorite(final FavoriteVo vo) {
         FavoriteUtil.modLocalFavoritesAsync(getContext(), vo, FavoriteImageView.this);
     }
-    public  void initSrc(String url){
+
+    public void initSrc(String url) {
         FavoriteUtil.getLocalFavoritesAsync(getContext(), url, this);
     }
+
     @Override
     public void modFavorite(boolean ret) {
         modFavoriteBg(ret);
@@ -37,6 +41,7 @@ public class FavoriteImageView extends AppCompatImageView  implements FavoriteUt
     public void isFavorite(String itemUrl, boolean ret) {
         modFavoriteBg(ret);
     }
+
     public void modFavoriteBg(boolean ret) {
         if (ret) {
             setImageResource(R.drawable.ic_menu_favorite_ed);

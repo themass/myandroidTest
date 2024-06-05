@@ -8,24 +8,30 @@ import org.greenrobot.greendao.annotation.Index;
 
 import java.util.Date;
 
+import chat.ui.data.model.MessageType;
+
 @Entity
 public class ChatLog {
+
+
     @Id(autoincrement = true)
     public Long id;
     public String content;
     public int who;
+    public int msgType = MessageType.TXT_TYPE;
     public String chatId;
     public Date createTime;
 
     @Index
     public Long sessionId;
 
-    @Generated(hash = 1846307593)
-    public ChatLog(Long id, String content, int who, String chatId, Date createTime,
-            Long sessionId) {
+    @Generated(hash = 2092679692)
+    public ChatLog(Long id, String content, int who, int msgType, String chatId,
+                   Date createTime, Long sessionId) {
         this.id = id;
         this.content = content;
         this.who = who;
+        this.msgType = msgType;
         this.chatId = chatId;
         this.createTime = createTime;
         this.sessionId = sessionId;
@@ -81,5 +87,13 @@ public class ChatLog {
 
     public void setSessionId(Long sessionId) {
         this.sessionId = sessionId;
+    }
+
+    public int getMsgType() {
+        return msgType;
+    }
+
+    public void setMsgType(int msgType) {
+        this.msgType = msgType;
     }
 }

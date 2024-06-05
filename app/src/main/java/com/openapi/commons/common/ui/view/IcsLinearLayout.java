@@ -17,9 +17,9 @@ import android.widget.LinearLayout;
  */
 class IcsLinearLayout extends LinearLayout {
     private static final int[] LL = new int[]{
-        /* 0 */ android.R.attr.divider,
-        /* 1 */ android.R.attr.showDividers,
-        /* 2 */ android.R.attr.dividerPadding,
+            /* 0 */ android.R.attr.divider,
+            /* 1 */ android.R.attr.showDividers,
+            /* 2 */ android.R.attr.dividerPadding,
     };
     private static final int LL_DIVIDER = 0;
     private static final int LL_SHOW_DIVIDER = 1;

@@ -16,16 +16,16 @@ public class IWannaLikeTask extends AsyncTask {
     private Context context;
     private String url;
 
-    public IWannaLikeTask(Context context, String url,long id) {
+    public IWannaLikeTask(Context context, String url, long id) {
         this.context = context;
         baseService = new BaseService();
         baseService.setup(context);
-        this.url=url;
+        this.url = url;
         this.id = id;
     }
 
-    public static void start(Context context, String url,long id) {
-        new IWannaLikeTask(context, url,id).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    public static void start(Context context, String url, long id) {
+        new IWannaLikeTask(context, url, id).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     @Override

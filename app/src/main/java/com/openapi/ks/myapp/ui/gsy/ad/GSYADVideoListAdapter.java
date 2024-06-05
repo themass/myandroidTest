@@ -46,7 +46,7 @@ public class GSYADVideoListAdapter extends BaseRecyclerViewAdapter<GSYADVideoLis
 
     @Override
     public void onBindViewHolderData(RecyclerView.ViewHolder h, int position) {
-        final GSYRecyclerItemViewHolder holder = (GSYRecyclerItemViewHolder)h;
+        final GSYRecyclerItemViewHolder holder = (GSYRecyclerItemViewHolder) h;
 
         //多个播放时必须在setUpLazy、setUp和getGSYVideoManager()等前面设置
         holder.gsyVideoPlayer.setPlayTag(TAG);
@@ -166,6 +166,7 @@ public class GSYADVideoListAdapter extends BaseRecyclerViewAdapter<GSYADVideoLis
         });
 
     }
+
     /**
      * 全屏幕按键处理
      */
@@ -189,6 +190,7 @@ public class GSYADVideoListAdapter extends BaseRecyclerViewAdapter<GSYADVideoLis
     public boolean isNeedAdOnStart() {
         return true;
     }
+
     public static class GSYRecyclerItemViewHolder extends BaseRecyclerViewHolder<RecommendVo> {
 
         public final static String TAG = "RecyclerView2List";

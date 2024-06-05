@@ -23,16 +23,17 @@ public class ConnLogUtil {
         log.name = name;
         log.host = host;
         log.status = status;
-        String userIp = StaticDataUtil.get(Constants.USERIP,String.class);
-        if(StringUtils.hasText(userIp)) {
+        String userIp = StaticDataUtil.get(Constants.USERIP, String.class);
+        if (StringUtils.hasText(userIp)) {
             log.userIp = userIp;
-        }else{
+        } else {
             log.userIp = NetUtils.getIP(context);
         }
         log.time = DateUtils.format(new Date(), DateUtils.DATE_FORMAT);
         new AddInfoTask(context, log).execute();
     }
-    public static void sendAllLog(Context context){
+
+    public static void sendAllLog(Context context) {
         new SendInfoTask(context).execute();
     }
 
@@ -49,15 +50,17 @@ public class ConnLogUtil {
         protected Boolean doInBackground(String... params) {
             try {
                 DBManager.getInstance().getDaoSession().getConnLogDao().insert(log);
-            }catch (Throwable e){
+            } catch (Throwable e) {
                 LogUtil.e(e);
             }
             return Boolean.TRUE;
         }
     }
+
     public static class SendInfoTask extends AsyncTask<String, Integer, Boolean> {
         private Context context;
         protected BaseService indexService;
+
         public SendInfoTask(Context context) {
             indexService = new BaseService();
             indexService.setup(context);
@@ -74,7 +77,7 @@ public class ConnLogUtil {
                     form.log = GsonUtils.getInstance().toJson(logs);
                     indexService.postData(Constants.getUrl(Constants.API_CONNLOG_URL), form, null, null, "tag", NullReturnVo.class);
                 }
-            }catch (Throwable e){
+            } catch (Throwable e) {
                 LogUtil.e(e);
             }
             return Boolean.TRUE;

@@ -14,7 +14,7 @@ public class RecommendAreaFragment extends RecommendFragment {
 
     @Override
     public String getUrl(int start) {
-        return Constants.getUrlWithParam(Constants.API_RECOMMEND_AREA_URL,start);
+        return Constants.getUrlWithParam(Constants.API_RECOMMEND_AREA_URL, start);
     }
 
     @Override

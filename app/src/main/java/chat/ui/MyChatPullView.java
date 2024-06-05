@@ -37,6 +37,7 @@ public class MyChatPullView extends LinearLayout {
     TranslateAnimation mShowAction;
     TranslateAnimation mHiddenAction;
     private OnRefreshListener listener;
+
     public MyChatPullView(Context context) {
         super(context);
         setupView();

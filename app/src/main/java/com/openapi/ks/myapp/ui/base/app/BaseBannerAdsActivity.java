@@ -6,6 +6,7 @@ import android.os.Message;
 import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.appbar.CollapsingToolbarLayout;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.OvershootInterpolator;
@@ -29,7 +30,7 @@ import butterknife.OnClick;
 /**
  * Created by openapi on 2016/8/21.
  */
-public abstract class BaseBannerAdsActivity extends BaseToolBarActivity{
+public abstract class BaseBannerAdsActivity extends BaseToolBarActivity {
     private static final int ANIM_DURATION_FAB = 400;
     @BindView(R.id.fl_content)
     public ViewGroup flContent;
@@ -46,6 +47,7 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity{
         public void handleMessage(Message msg) {
         }
     };
+
     @OnClick(R.id.fab_up)
     public void onClickFab(View view) {
 
@@ -60,13 +62,15 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity{
         bindViews();
         setupToolbar();
         fabUp.setVisibility(View.GONE);
-        if(needGoneBanner())
+        if (needGoneBanner())
             mHandler.postDelayed(task, Constants.BANNER_ADS_GONE_LONG);
 //        flBanner.setBackgroundResource(R.color.base_white);
     }
-    protected boolean needGoneBanner(){
+
+    protected boolean needGoneBanner() {
         return true;
     }
+
     public void disableScrollBanner() {
         AppBarLayout.LayoutParams params =
                 (AppBarLayout.LayoutParams) ctBar.getLayoutParams();
@@ -115,14 +119,16 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity{
         super.onPause();
         hidenAds();
     }
+
     public void showAds() {
         if (needShow()) {
-            AdsManager.getInstans().showBannerAds(this, flBanner,getBannerCategrey());
+            AdsManager.getInstans().showBannerAds(this, flBanner, getBannerCategrey());
         } else {
             flBanner.setVisibility(View.GONE);
         }
     }
-    protected AdsContext.AdsFrom getBannerAdsFrom(){
+
+    protected AdsContext.AdsFrom getBannerAdsFrom() {
         return AdsContext.AdsFrom.ADVIEW;
     }
 
@@ -137,18 +143,22 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity{
         }
         mHandler.removeCallbacks(task);
     }
+
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(HindBannerEvent event) {
         hidenAds();
     }
+
     @Override
     public void onDestroy() {
-        AdsManager.getInstans().exitBannerAds(this, flBanner,getBannerCategrey());
+        AdsManager.getInstans().exitBannerAds(this, flBanner, getBannerCategrey());
         super.onDestroy();
     }
-    protected AdsContext.Categrey getBannerCategrey(){
+
+    protected AdsContext.Categrey getBannerCategrey() {
         return AdsContext.Categrey.CATEGREY_VPN1;
     }
+
     class AdsGoneTask implements Runnable {
         @Override
         public void run() {

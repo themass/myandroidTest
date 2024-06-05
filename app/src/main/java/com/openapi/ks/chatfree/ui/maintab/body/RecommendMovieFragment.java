@@ -28,6 +28,7 @@ public class RecommendMovieFragment extends RecommendFragment {
     private static final String INDEX_TAG = "MovieRecommend_tag";
     @BindView(R.id.ll_vpn_status)
     RelativeLayout layout;
+
     @Override
     protected void onContentViewCreated(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
         inflater.inflate(R.layout.layout_index_fragment, parent);
@@ -37,17 +38,19 @@ public class RecommendMovieFragment extends RecommendFragment {
     public void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
         boolean install = PackageUtils.isPackageInstalled(getActivity(), Constants.VPN_PACKAGE);
-        if(install || MyApplication.isTemp){
+        if (install || MyApplication.isTemp) {
             layout.setVisibility(View.GONE);
         }
     }
+
     @OnClick(R.id.ll_vpn_status)
-    public void downLoad(View view){
+    public void downLoad(View view) {
         AppListFragment.startFragment(getActivity());
     }
+
     @Override
     public String getUrl(int start) {
-        return Constants.getUrlWithParam(Constants.API_RECOMMEND_MOVIE_URL,start);
+        return Constants.getUrlWithParam(Constants.API_RECOMMEND_MOVIE_URL, start);
     }
 
     @Override
@@ -64,14 +67,15 @@ public class RecommendMovieFragment extends RecommendFragment {
     public boolean getShowEdit() {
         return false;
     }
+
     public void onCustomerItemClick(View v, int position) {
         RecommendVo vo = infoListVo.voList.get(position);
-        if(!checkUserLevel(vo.type)){
+        if (!checkUserLevel(vo.type)) {
             return;
         }
-        if(vo.param.startsWith(Constants.VIDEO_TV_CHANNEL)){
-            TeleplayChannelFragment.startFragment(getActivity(),vo);
-        }else{
+        if (vo.param.startsWith(Constants.VIDEO_TV_CHANNEL)) {
+            TeleplayChannelFragment.startFragment(getActivity(), vo);
+        } else {
             VideoChannelListFragment.startFragment(getActivity(), vo);
         }
 

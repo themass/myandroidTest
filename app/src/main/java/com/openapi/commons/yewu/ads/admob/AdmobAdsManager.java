@@ -18,7 +18,7 @@ public class AdmobAdsManager {
         MobileAds.initialize(context, new OnInitializationCompleteListener() {
             @Override
             public void onInitializationComplete(InitializationStatus initializationStatus) {
-                LogUtil.i("AdmobAdsManager init- "+initializationStatus.getAdapterStatusMap());
+                LogUtil.i("AdmobAdsManager init- " + initializationStatus.getAdapterStatusMap());
             }
         });
 

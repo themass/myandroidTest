@@ -13,7 +13,7 @@ public class RegForm {
     public String email;
     public String ref;
 
-    public RegForm(String name, String pwd, String rePwd, String sex, String email,String ref) {
+    public RegForm(String name, String pwd, String rePwd, String sex, String email, String ref) {
         this.name = name;
         this.pwd = pwd;
         this.rePwd = rePwd;

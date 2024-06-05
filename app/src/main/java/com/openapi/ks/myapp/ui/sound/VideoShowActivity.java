@@ -3,6 +3,7 @@ package com.openapi.ks.myapp.ui.sound;
 
 import android.content.Intent;
 import android.os.Bundle;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.widget.ImageView;
@@ -45,10 +46,10 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
         setContentView(R.layout.layout_video_show);
         unbinder = ButterKnife.bind(this);
 
-        vo = (RecommendVo)getIntent().getSerializableExtra(Constants.CONFIG_PARAM);
+        vo = (RecommendVo) getIntent().getSerializableExtra(Constants.CONFIG_PARAM);
         String url = vo.actionUrl;
-        if(StringUtils.hasText(vo.urlToken)){
-            url = url+vo.urlToken;
+        if (StringUtils.hasText(vo.urlToken)) {
+            url = url + vo.urlToken;
         }
 
         jzVideo.setUp(vo.actionUrl, vo.title, JzvdStd.SCREEN_NORMAL, JzvdPlayerFactory.getPlayManager());
@@ -56,21 +57,23 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
 //
 //        jzVideo.headData = header;
         jzVideo.posterImageView.setScaleType(ImageView.ScaleType.CENTER);
-        ImagePhotoLoad.loadCommonImg(this,vo.img,jzVideo.posterImageView);
+        ImagePhotoLoad.loadCommonImg(this, vo.img, jzVideo.posterImageView);
 //        Jzvd.setJzUserAction(new MyUserActionStandard());
         myFavoriteView.setListener(this);
         myFavoriteView.initFavoriteBackGroud(vo.actionUrl);
         myFavoriteView.showVideoLocal();
     }
+
     @Override
     public void onPause() {
         super.onPause();
         try {
             Jzvd.goOnPlayOnPause();
-        }catch (Throwable e){
+        } catch (Throwable e) {
             LogUtil.e(e);
         }
     }
+
     @Override
     public void onBackPressed() {
         if (Jzvd.backPress()) {
@@ -78,17 +81,20 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
         }
         super.onBackPressed();
     }
+
     @Override
     public void onDestroy() {
         Jzvd.releaseAllVideos();
         super.onDestroy();
         unbinder.unbind();
     }
+
     @Override
     protected void onNewIntent(Intent intent) {
         LogUtil.i(getClass().getSimpleName() + "-onNewIntent");
         super.onNewIntent(intent);
     }
+
     protected boolean enableSliding() {
         return true;
     }
@@ -98,7 +104,7 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
         return vo.tofavorite(Constants.FavoriteType.VIDEO);
     }
 
-   //倍速功能
+    //倍速功能
     @Override
     public boolean setSpeed(float speed) {
         return jzVideo.setSpeed(speed);

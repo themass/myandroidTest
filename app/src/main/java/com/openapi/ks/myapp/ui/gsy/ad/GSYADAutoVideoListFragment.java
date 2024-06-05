@@ -36,7 +36,7 @@ import com.shuyu.gsyvideoplayer.video.base.GSYVideoPlayer;
  */
 public class GSYADAutoVideoListFragment extends BasePullLoadbleFragment<RecommendVo> {
     private GSYADVideoListAdapter videoListAdapter;
-    private static final String TAG="avvideo";
+    private static final String TAG = "avvideo";
     private String channel;
     private boolean isSmall = false;
     private int lastVisibleItem;
@@ -44,15 +44,18 @@ public class GSYADAutoVideoListFragment extends BasePullLoadbleFragment<Recommen
     private LinearLayoutManager linearLayoutManager;
     private GSYVideoHelper smallVideoHelper;
     private GSYVideoHelper.GSYVideoHelperBuilder gsySmallVideoHelperBuilder;
+
     @Override
-    protected GSYADVideoListAdapter getAdapter(){
+    protected GSYADVideoListAdapter getAdapter() {
         videoListAdapter = new GSYADVideoListAdapter(getActivity(), pullView.getRecyclerView(), infoListVo.voList, this);
         return videoListAdapter;
     }
+
     @Override
     protected void onContentViewCreated(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
         inflater.inflate(R.layout.layout_video_fragment, parent);
     }
+
     @Override
     public void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
@@ -105,20 +108,23 @@ public class GSYADAutoVideoListFragment extends BasePullLoadbleFragment<Recommen
         GSYVideoManager.releaseAllVideos();
         GSYVideoADManager.releaseAllVideos();
     }
+
     @Override
     public void onResume() {
         super.onResume();
         GSYVideoManager.onResume();
         GSYVideoADManager.onResume();
     }
+
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         //你的代码
         super.onConfigurationChanged(newConfig);
         LogUtil.i("onConfigurationChanged");
     }
+
     @Override
     protected InfoListVo<RecommendVo> loadData(Context context) throws Exception {
-        return indexService.getInfoListData(Constants.getUrlWithParam(Constants.API_VIDEO_CHANNEL_LIST_URL, infoListVo.pageNum,channel,keyword), RecommendVo.class, TAG);
+        return indexService.getInfoListData(Constants.getUrlWithParam(Constants.API_VIDEO_CHANNEL_LIST_URL, infoListVo.pageNum, channel, keyword), RecommendVo.class, TAG);
     }
 }

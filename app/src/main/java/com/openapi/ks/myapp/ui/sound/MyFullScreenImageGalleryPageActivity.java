@@ -7,8 +7,10 @@ package com.openapi.ks.myapp.ui.sound;
 
 import android.content.Intent;
 import android.os.Bundle;
+
 import androidx.viewpager.widget.ViewPager;
 import androidx.viewpager.widget.ViewPager.OnPageChangeListener;
+
 import android.view.View;
 import android.widget.TextView;
 
@@ -26,7 +28,7 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.OnClick;
 
-public class MyFullScreenImageGalleryPageActivity extends BaseSingleActivity implements SaveImageCallBack{
+public class MyFullScreenImageGalleryPageActivity extends BaseSingleActivity implements SaveImageCallBack {
     public static final String KEY_IMAGES = "KEY_IMAGES";
     public static final String KEY_IMAGES_REMOTE = "KEY_IMAGES_REMOTE";
     public static final String KEY_POSITION = "KEY_POSITION";
@@ -52,6 +54,7 @@ public class MyFullScreenImageGalleryPageActivity extends BaseSingleActivity imp
         public void onPageScrollStateChanged(int state) {
         }
     };
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Intent intent = this.getIntent();
@@ -59,17 +62,19 @@ public class MyFullScreenImageGalleryPageActivity extends BaseSingleActivity imp
             Bundle extras = intent.getExtras();
             if (extras != null) {
                 this.images = extras.getStringArrayList(KEY_IMAGES);
-                this.imagesRemote =extras.getStringArrayList(KEY_IMAGES_REMOTE);
+                this.imagesRemote = extras.getStringArrayList(KEY_IMAGES_REMOTE);
                 this.position = extras.getInt(KEY_POSITION);
             }
         }
         this.setContentView(R.layout.layout_img_big_page_view);
     }
+
     @OnClick(R.id.iv_save)
-    public void onSave(View view){
+    public void onSave(View view) {
         ToastUtil.showShort(R.string.save_start);
-        SaveImageTask.startSave(MyFullScreenImageGalleryPageActivity.this,imagesRemote.get(viewPager.getCurrentItem()),MyFullScreenImageGalleryPageActivity.this);
+        SaveImageTask.startSave(MyFullScreenImageGalleryPageActivity.this, imagesRemote.get(viewPager.getCurrentItem()), MyFullScreenImageGalleryPageActivity.this);
     }
+
     @Override
     public void setupView() {
         ArrayList imageList = new ArrayList();
@@ -99,13 +104,15 @@ public class MyFullScreenImageGalleryPageActivity extends BaseSingleActivity imp
     private void removeListeners() {
         this.viewPager.removeOnPageChangeListener(this.viewPagerOnPageChangeListener);
     }
-    public void onSuccess(){
+
+    public void onSuccess() {
         ToastUtil.showShort(R.string.save_ok);
     }
 
-    public void onFailed(){
+    public void onFailed() {
         ToastUtil.showShort(R.string.save_fail);
     }
+
     @Override
     public boolean needShow() {
         return false;

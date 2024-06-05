@@ -36,6 +36,7 @@ public abstract class BasePullLoadbleFragment<T> extends LoadableFragment<InfoLi
     public FrameLayout fullContainer;
 
     public InfoListVo<T> infoListVo = new InfoListVo<T>();
+
     @Override
     protected void onContentViewCreated(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
         inflater.inflate(R.layout.common_mypage_view, parent);
@@ -52,7 +53,7 @@ public abstract class BasePullLoadbleFragment<T> extends LoadableFragment<InfoLi
             // 当点击搜索按钮时触发该方法
             @Override
             public boolean onQueryTextSubmit(String query) {
-                LogUtil.i("搜"+query);
+                LogUtil.i("搜" + query);
                 keyword = query;
                 pullView.setRefresh(true);
                 mSearchView.clearFocus();
@@ -72,7 +73,7 @@ public abstract class BasePullLoadbleFragment<T> extends LoadableFragment<InfoLi
                 return false;
             }
         });
-        getActivity().getWindow().setSoftInputMode( WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
+        getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
     }
 
     @Override
@@ -81,7 +82,7 @@ public abstract class BasePullLoadbleFragment<T> extends LoadableFragment<InfoLi
         mSearchView.clearFocus();
     }
 
-    protected void initPullView(){
+    protected void initPullView() {
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getActivity());
         pullView.setLayoutManager(layoutManager);
         DividerItemDecoration itemDecoration = new DividerItemDecoration(getActivity(), LinearLayoutManager.VERTICAL, R.drawable.divider_item);
@@ -89,6 +90,7 @@ public abstract class BasePullLoadbleFragment<T> extends LoadableFragment<InfoLi
         pullView.getRecyclerView().addItemDecoration(itemDecoration);
         pullView.setListener(this);
     }
+
     @Override
     protected void onDataLoaded(InfoListVo<T> data) {
         if (pullView != null) {
@@ -110,16 +112,22 @@ public abstract class BasePullLoadbleFragment<T> extends LoadableFragment<InfoLi
             mSearchView.clearFocus();
         }
     }
-    protected void sortData() {}
 
-    protected void initSort() {}
-    protected  void loadMoreData(InfoListVo<T> data){
+    protected void sortData() {
+    }
+
+    protected void initSort() {
+    }
+
+    protected void loadMoreData(InfoListVo<T> data) {
         infoListVo.voList.addAll(data.voList);
     }
-    protected  void freshData(InfoListVo<T> data){
+
+    protected void freshData(InfoListVo<T> data) {
         infoListVo.voList.clear();
         infoListVo.voList.addAll(data.voList);
     }
+
     @Override
     public void onItemClick(View view, T data, int postion) {
         pullView.notifyDataSetChanged();

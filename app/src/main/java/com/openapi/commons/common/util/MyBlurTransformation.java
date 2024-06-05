@@ -22,11 +22,7 @@ public class MyBlurTransformation extends BlurTransformation {
     }
 
     public MyBlurTransformation(Context context, int radius, int sampling) {
-        super(context, radius, sampling);
-    }
-
-    public Resource<Bitmap> transform(Context context, Resource<Bitmap> resource, int outWidth, int outHeight) {
-        return super.transform(resource, outWidth, outHeight);
+        super(radius, sampling);
     }
 
     public int hashCode() {

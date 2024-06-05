@@ -16,7 +16,7 @@ import butterknife.OnClick;
 /**
  * Created by openapi on 2016/3/31.
  */
-public abstract class TabBaseAdsFragment extends TabBaseFragment{
+public abstract class TabBaseAdsFragment extends TabBaseFragment {
     private static final int ANIM_DURATION_FAB = 400;
     @BindView(R.id.fab_up)
     public FloatingActionButton fabUp;

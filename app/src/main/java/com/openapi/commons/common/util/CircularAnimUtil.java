@@ -36,7 +36,7 @@ public class CircularAnimUtil {
         int finalRadius = (int) Math.sqrt(w * w + h * h) + 1;
 
         Animator anim =
-            ViewAnimationUtils.createCircularReveal(myView, cx, cy, startRadius, finalRadius);
+                ViewAnimationUtils.createCircularReveal(myView, cx, cy, startRadius, finalRadius);
         myView.setVisibility(View.VISIBLE);
         anim.setDuration(durationMills);
         anim.start();
@@ -61,7 +61,7 @@ public class CircularAnimUtil {
         int initialRadius = (int) Math.sqrt(w * w + h * h) + 1;
 
         Animator anim =
-            ViewAnimationUtils.createCircularReveal(myView, cx, cy, initialRadius, endRadius);
+                ViewAnimationUtils.createCircularReveal(myView, cx, cy, initialRadius, endRadius);
         anim.setDuration(durationMills);
         anim.addListener(new AnimatorListenerAdapter() {
             @Override
@@ -101,7 +101,7 @@ public class CircularAnimUtil {
         decorView.addView(view, w, h);
         final int finalRadius = (int) Math.sqrt(w * w + h * h) + 1;
         Animator
-            anim = ViewAnimationUtils.createCircularReveal(view, cx, cy, 0, finalRadius);
+                anim = ViewAnimationUtils.createCircularReveal(view, cx, cy, 0, finalRadius);
         anim.setDuration(durationMills);
         anim.addListener(new AnimatorListenerAdapter() {
             @Override
@@ -125,7 +125,7 @@ public class CircularAnimUtil {
                     public void run() {
 
                         Animator anim =
-                            ViewAnimationUtils.createCircularReveal(view, cx, cy, finalRadius, 0);
+                                ViewAnimationUtils.createCircularReveal(view, cx, cy, finalRadius, 0);
                         anim.setDuration(durationMills);
                         anim.addListener(new AnimatorListenerAdapter() {
                             @Override

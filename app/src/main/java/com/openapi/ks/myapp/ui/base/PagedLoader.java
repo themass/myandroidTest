@@ -3,6 +3,7 @@ package com.openapi.ks.myapp.ui.base;
 import com.openapi.ks.myapp.bean.vo.InfoListVo;
 
 /**
+ *
  */
 public interface PagedLoader<T> {
     int PAGE_SIZE = 20;

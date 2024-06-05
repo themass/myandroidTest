@@ -35,7 +35,7 @@ public class BaseRequest<T> extends Request<T> {
 
     private static String UA_DEFAULT = null;
     private static String UA_APP_SUFFIX = null;
-    public static String DEVID=null;
+    public static String DEVID = null;
 
     static {
         UA_DEFAULT = System.getProperty("http.agent", "");
@@ -60,25 +60,25 @@ public class BaseRequest<T> extends Request<T> {
         if (headers == null) {
             headers = new HashMap<>();
         }
-        if(!StringUtils.hasText(uc)){
+        if (!StringUtils.hasText(uc)) {
             uc = DeviceInfoUtils.getMetaData(context, "UMENG_CHANNEL");
         }
         String sb = null;
         String fileTxt = DeviceInfoUtils.NULL;
-        if(DEVID==null) {
+        if (DEVID == null) {
             sb = DeviceInfoUtils.getDeviceId(context);
-            if(!DeviceInfoUtils.NULL.equals(sb)){
+            if (!DeviceInfoUtils.NULL.equals(sb)) {
                 DEVID = sb;
 //                fileTxt = FileUtilleUtils.getContextId(context,sb);
             }
-        }else{
+        } else {
             sb = DEVID;
 //            fileTxt = FileUtils.getContextId(context,DEVID);
         }
 //        LogUtil.i("devid="+sb+"---"+ FileUtils.getContextId(context,sb));
         sb = sb + "|" + time;
         String msg = time + Md5.encode(sb);
-        String ua = UA_DEFAULT + UA_APP_SUFFIX + ",channel="+uc+",cpu=" + SystemUtils.getCpuType()  +",Webkit/"+fileTxt+ ",IE" + msg;
+        String ua = UA_DEFAULT + UA_APP_SUFFIX + ",channel=" + uc + ",cpu=" + SystemUtils.getCpuType() + ",Webkit/" + fileTxt + ",IE" + msg;
         String loc = "lon:" + StaticDataUtil.get(Constants.LON, Double.class) + ";lat:" + StaticDataUtil.get(Constants.LAT, Double.class);
         this.authkey = ua.substring(ua.length() - 16, ua.length());
         headers.put("Loc", loc);

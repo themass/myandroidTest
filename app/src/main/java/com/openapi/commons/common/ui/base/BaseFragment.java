@@ -228,9 +228,10 @@ public abstract class BaseFragment extends LogFramgment {
         Intent intent = new Intent(getActivity(), clasz);
         getActivity().startActivity(intent);
     }
-    public void startActivity(Class clasz,Serializable param) {
+
+    public void startActivity(Class clasz, Serializable param) {
         Intent intent = new Intent(getActivity(), clasz);
-        intent.putExtra(Constants.CONFIG_PARAM,param);
+        intent.putExtra(Constants.CONFIG_PARAM, param);
         getActivity().startActivity(intent);
     }
 

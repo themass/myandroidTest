@@ -26,7 +26,6 @@ import com.openapi.ks.myapp.data.ImagePhotoLoad;
 import java.util.List;
 
 import butterknife.BindView;
-import chat.iflytek.ise.result.entity.Phone;
 
 /**
  * Created by openapi on 2016/8/12.
@@ -48,26 +47,27 @@ public class SettingCharacterAdapter extends BaseRecyclerViewAdapter<SettingChar
     }
 
     public void onBindViewHolderData(RecyclerView.ViewHolder h, int position) {
-        ItemtView holder = (ItemtView)h;
+        ItemtView holder = (ItemtView) h;
         CharacterVo vo = data.get(position);
         holder.tvName.setText(vo.title);
         holder.tvContent.setText(vo.content);
-        if(!StringUtils.isEmpty(vo.getUrl())) {
+        if (!StringUtils.isEmpty(vo.getUrl())) {
             ImagePhotoLoad.loadCommonImg(context, vo.getUrl(), holder.ivBg);
         }
-        if(Constants.BANNER_ADS_POS.contains(position)){
-            if(position%2==1){
+        if (Constants.BANNER_ADS_POS.contains(position)) {
+            if (position % 2 == 1) {
                 holder.rvAds.setVisibility(View.VISIBLE);
-                AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN2);
-            }else{
+                AdsManager.getInstans().showBannerAds((FragmentActivity) context, holder.rvAds, AdsContext.Categrey.CATEGREY_VPN2);
+            } else {
                 holder.rvAds.setVisibility(View.VISIBLE);
-                AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN3);
+                AdsManager.getInstans().showBannerAds((FragmentActivity) context, holder.rvAds, AdsContext.Categrey.CATEGREY_VPN3);
             }
-        }else{
+        } else {
             holder.rvAds.removeAllViews();
             holder.rvAds.setVisibility(View.GONE);
         }
     }
+
     public static class ItemtView extends BaseRecyclerViewHolder<CharacterVo> {
         @Nullable
         @BindView(R.id.iv_bg)
@@ -81,6 +81,7 @@ public class SettingCharacterAdapter extends BaseRecyclerViewAdapter<SettingChar
         @Nullable
         @BindView(R.id.rv_ads)
         RelativeLayout rvAds;
+
         public ItemtView(View itemView, View.OnClickListener l, View.OnLongClickListener longListener) {
             super(itemView, l, longListener);
         }

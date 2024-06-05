@@ -3,8 +3,10 @@ package com.openapi.ks.myapp.ui.fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+
 import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.ViewPager;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,7 +39,7 @@ import butterknife.OnClick;
 /**
  * Created by openapi on 2016/8/12.
  */
-public class ImgItemFragment extends RecommendFragment implements SaveImageCallBack,OnBackKeyDownListener, MyFavoriteView.OnFavoriteItemClick{
+public class ImgItemFragment extends RecommendFragment implements SaveImageCallBack, OnBackKeyDownListener, MyFavoriteView.OnFavoriteItemClick {
     private static final String IMG_ITEM_TAG = "Img_ITEM_TAG";
     @BindView(R.id.my_favoriteview)
     MyFavoriteView myFavoriteView;
@@ -54,6 +56,7 @@ public class ImgItemFragment extends RecommendFragment implements SaveImageCallB
     MyFullScreenImageGalleryAdapter fullScreenImageGalleryAdapter;
     AlphaAnimation appearAnimation;
     AlphaAnimation disappearAnimation;
+
     // endregion
     public static void startFragment(Context context, ImgItemsVo vo) {
         Intent intent = new Intent(context, CommonFragmentActivity.class);
@@ -67,21 +70,25 @@ public class ImgItemFragment extends RecommendFragment implements SaveImageCallB
         intent.putExtra(CommonFragmentActivity.FABUP_SHOW, false);
         context.startActivity(intent);
     }
+
     @OnClick(R.id.iv_save)
-    public void onSave(View view){
+    public void onSave(View view) {
         ToastUtil.showShort(R.string.save_start);
-        SaveImageTask.startSave(getActivity(),infoListVo.voList.get(viewPager.getCurrentItem()).actionUrl,this);
+        SaveImageTask.startSave(getActivity(), infoListVo.voList.get(viewPager.getCurrentItem()).actionUrl, this);
     }
-    public void onSuccess(){
+
+    public void onSuccess() {
         ToastUtil.showShort(R.string.save_ok);
     }
 
-    public void onFailed(){
+    public void onFailed() {
         ToastUtil.showShort(R.string.save_fail);
     }
+
     private void setPosition(int position) {
         tvPage.setText(String.format("%s/%s", String.valueOf(position + 1), infoListVo.total));
     }
+
     private final ViewPager.OnPageChangeListener viewPagerOnPageChangeListener = new ViewPager.OnPageChangeListener() {
         public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
         }
@@ -90,7 +97,7 @@ public class ImgItemFragment extends RecommendFragment implements SaveImageCallB
             if (ImgItemFragment.this.viewPager != null) {
                 ImgItemFragment.this.viewPager.setCurrentItem(position);
                 ImgItemFragment.this.setPosition(position);
-                if((position==infoListVo.voList.size()-1)&&infoListVo.hasMore){
+                if ((position == infoListVo.voList.size() - 1) && infoListVo.hasMore) {
                     ToastUtil.showShort(R.string.down_to_loadmore);
                 }
             }
@@ -99,6 +106,7 @@ public class ImgItemFragment extends RecommendFragment implements SaveImageCallB
         public void onPageScrollStateChanged(int state) {
         }
     };
+
     @Override
     public void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
@@ -116,7 +124,10 @@ public class ImgItemFragment extends RecommendFragment implements SaveImageCallB
         disappearAnimation = new AlphaAnimation(1, 0);
         disappearAnimation.setDuration(800);
     }
-    protected BaseRecyclerViewAdapter getAdapter(){return null;}
+
+    protected BaseRecyclerViewAdapter getAdapter() {
+        return null;
+    }
 
     @Override
     public void onContentViewCreated(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
@@ -128,50 +139,58 @@ public class ImgItemFragment extends RecommendFragment implements SaveImageCallB
         super.onDataLoaded(data);
         fullScreenImageGalleryAdapter.notifyDataSetChanged();
     }
+
     @Override
     public String getUrl(int start) {
-        return Constants.getUrlWithParam(Constants.API_IMG_ITEM_PAGE_URL, start,String.valueOf(vo.url));
+        return Constants.getUrlWithParam(Constants.API_IMG_ITEM_PAGE_URL, start, String.valueOf(vo.url));
     }
+
     @Override
-    public  String getNetTag(){
+    public String getNetTag() {
         return IMG_ITEM_TAG;
     }
+
     @Override
-    public  boolean getShowEdit(){
+    public boolean getShowEdit() {
         return false;
     }
+
     @Override
     public int getSpanCount() {
         return 3;
     }
+
     @Override
     public void onCustomerItemClick(View v, int position) {
         this.viewPager.setCurrentItem(position);
         this.setPosition(position);
         switchView(true);
     }
-    private void switchView(boolean onFull){
-        if(onFull){
+
+    private void switchView(boolean onFull) {
+        if (onFull) {
 
             listView.startAnimation(disappearAnimation);
             fullView.startAnimation(appearAnimation);
             listView.setVisibility(View.GONE);
             fullView.setVisibility(View.VISIBLE);
-        }else{
+        } else {
             listView.startAnimation(appearAnimation);
             fullView.startAnimation(disappearAnimation);
             listView.setVisibility(View.VISIBLE);
             fullView.setVisibility(View.GONE);
         }
     }
+
     @Override
     public boolean onkeyBackDown() {
-        if(fullView.getVisibility()==View.VISIBLE) {
+        if (fullView.getVisibility() == View.VISIBLE) {
             switchView(false);
             return true;
         }
         return false;
     }
+
     // endregion
     @Override
     public void onDestroyView() {

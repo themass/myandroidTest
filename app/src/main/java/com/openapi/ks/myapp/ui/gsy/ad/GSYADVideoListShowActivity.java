@@ -26,13 +26,14 @@ import butterknife.Unbinder;
 public class GSYADVideoListShowActivity extends AppCompatActivity {
     private Unbinder unbinder;
     private HashMap<String, String> vo;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.common_fragment);
         unbinder = ButterKnife.bind(this);
-        vo = (HashMap<String, String>)getIntent().getSerializableExtra(Constants.CONFIG_PARAM);
-        FrameLayout layout  = (FrameLayout)findViewById(R.id.fragment);
+        vo = (HashMap<String, String>) getIntent().getSerializableExtra(Constants.CONFIG_PARAM);
+        FrameLayout layout = (FrameLayout) findViewById(R.id.fragment);
         try {
             GSYADAutoVideoListFragment fragment = GSYADAutoVideoListFragment.class.newInstance();
             fragment.putSerializable(vo.get(Constants.CHANNEL));
@@ -41,14 +42,16 @@ public class GSYADVideoListShowActivity extends AppCompatActivity {
                     .commitAllowingStateLoss();
 
         } catch (Exception e) {
-            Log.e("","",e);
+            Log.e("", "", e);
         }
     }
+
     @Override
     protected void onNewIntent(Intent intent) {
         LogUtil.i(getClass().getSimpleName() + "-onNewIntent");
         super.onNewIntent(intent);
     }
+
     @Override
     public void onBackPressed() {
         if (GSYVideoADManager.backFromWindowFull(this)) {

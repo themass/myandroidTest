@@ -2,7 +2,9 @@ package com.openapi.ks.myapp.data.showtype;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+
 import androidx.annotation.Nullable;
+
 import android.view.View;
 
 import com.bumptech.glide.RequestManager;
@@ -20,9 +22,9 @@ import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOption
  * Created by openapi on 2017/11/30.
  */
 
-public class NormalShowTypeHandle implements ShowTypeHandle{
-    public void loadPhoto(final IndexRecommendAdapter.NaviItemViewHolder holder, RecommendVo vo, final Shimmer shimmer, boolean needShimmer, Context context){
-        RequestManager build = ImagePhotoLoad.getBuilder(context,vo.img);
+public class NormalShowTypeHandle implements ShowTypeHandle {
+    public void loadPhoto(final IndexRecommendAdapter.NaviItemViewHolder holder, RecommendVo vo, final Shimmer shimmer, boolean needShimmer, Context context) {
+        RequestManager build = ImagePhotoLoad.getBuilder(context, vo.img);
         build.load(vo.img).apply(ImagePhotoLoad.options).transition(withCrossFade(500)).listener(new MyGlideLibModule.LoggingListener()).into(new DrawableImageViewTarget(holder.ivPhoto) {
             @Override
             public void onResourceReady(Drawable resource, @Nullable Transition<? super Drawable> transition) {
@@ -32,9 +34,10 @@ public class NormalShowTypeHandle implements ShowTypeHandle{
             }
         });
     }
-    public void showTitle(final IndexRecommendAdapter.NaviItemViewHolder holder, RecommendVo vo, final Shimmer shimmer, boolean needShimmer, Context context){
+
+    public void showTitle(final IndexRecommendAdapter.NaviItemViewHolder holder, RecommendVo vo, final Shimmer shimmer, boolean needShimmer, Context context) {
         holder.ivTitle.setVisibility(View.VISIBLE);
-        if(needShimmer){
+        if (needShimmer) {
             shimmer.start(holder.ivTitle);
         }
         holder.tvTitleBelow.setVisibility(View.GONE);

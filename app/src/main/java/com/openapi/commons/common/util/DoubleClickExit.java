@@ -2,10 +2,10 @@ package com.openapi.commons.common.util;
 
 /**
  * Created by HugoXie on 16/6/25.
- *
+ * <p>
  * Email: Hugo3641@gamil.com
  * GitHub: https://github.com/xcc3641
- * Info: 
+ * Info:
  */
 public class DoubleClickExit {
     /**

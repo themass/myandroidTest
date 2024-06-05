@@ -5,11 +5,12 @@
     android:background="?android:attr/selectableItemBackground"
     android:clickable="true"
     android:padding="@dimen/margin_5">
+
     <ImageView
         android:id="@+id/iv_bg"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        />
+        android:layout_height="wrap_content" />
+
     <LinearLayout
         android:id="@+id/ll_bg"
         android:layout_width="match_parent"
@@ -37,11 +38,12 @@
             android:textColor="@color/base_gray"
             android:textSize="@dimen/textsize_14" />
     </LinearLayout>
+
     <RelativeLayout
         android:id="@+id/rv_ads"
         android:layout_width="match_parent"
         android:layout_height="@dimen/banner_h"
         android:gravity="center"
         android:layout_below="@id/ll_bg"
-        android:visibility="gone"/>
+        android:visibility="gone" />
 </RelativeLayout>

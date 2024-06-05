@@ -9,4 +9,4 @@
     app:layout_scrollFlags="scroll|enterAlways"
     app:tabSelectedTextColor="@color/base_white"
     app:tabTextColor="@color/tab_widget_text_color"
-    tools:viewBindingIgnore="true"/>
+    tools:viewBindingIgnore="true" />

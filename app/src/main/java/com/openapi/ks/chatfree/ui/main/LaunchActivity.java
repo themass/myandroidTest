@@ -10,6 +10,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.hrl.chaui.activity.ChatActivity;
 import com.openapi.commons.common.ui.base.LogActivity;
 import com.openapi.commons.common.util.EventBusUtil;
 import com.openapi.commons.common.util.LogUtil;
@@ -50,7 +51,7 @@ public class LaunchActivity extends LogActivity {
     RelativeLayout banner3;
     @BindView(R.id.ll_banner)
     LinearLayout llBanner;
-    private int max = Constants.STARTUP_SHOW_TIME_6000+1000;
+    private int max = Constants.STARTUP_SHOW_TIME_6000 + 1000;
     private int now = 0;
     private Unbinder unbinder;
     boolean perm = true;
@@ -88,7 +89,7 @@ public class LaunchActivity extends LogActivity {
 
     @OnClick(R.id.skip_view)
     public void skip(View view) {
-        if(getResources().getText(R.string.skip).equals(tvJishi.getText()))
+        if (getResources().getText(R.string.skip).equals(tvJishi.getText()))
             launch();
     }
 
@@ -104,25 +105,30 @@ public class LaunchActivity extends LogActivity {
         }
         return super.onKeyDown(keyCode, event);
     }
+
     @Override
     protected void onResume() {
         super.onResume();
         MobAgent.onResume(this);
     }
-    private void showAdview(){
-        AdsManager.getInstans().showSplashAds(AdsContext.AdsFrom.ADMOB,this,ivAds,skipView);
+
+    private void showAdview() {
+        AdsManager.getInstans().showSplashAds(AdsContext.AdsFrom.ADMOB, this, ivAds, skipView);
         delay1s();
     }
+
     private void delay1s() {
         mHandler.sendEmptyMessageDelayed(Constants.ADS_JISHI, 1000);
     }
+
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onBannerShow(LaunchAdsNext next){
-        LogUtil.i("LaunchAdsNext "+next.from);
-        if(next.from== AdsContext.AdsFrom.MOBVISTA){
-            AdsManager.getInstans().showSplashAds(AdsContext.AdsFrom.ADMOB,this,ivAds,skipView);
+    public void onBannerShow(LaunchAdsNext next) {
+        LogUtil.i("LaunchAdsNext " + next.from);
+        if (next.from == AdsContext.AdsFrom.MOBVISTA) {
+            AdsManager.getInstans().showSplashAds(AdsContext.AdsFrom.ADMOB, this, ivAds, skipView);
         }
     }
+
     @Override
     protected void onPause() {
         super.onPause();
@@ -134,12 +140,14 @@ public class LaunchActivity extends LogActivity {
         unbinder.unbind();
         mHandler.removeMessages(Constants.ADS_JISHI);
         mHandler.removeCallbacks(mStartMainRunnable);
-        AdsManager.getInstans().exitSplashAds(this,ivAds);
+        AdsManager.getInstans().exitSplashAds(this, ivAds);
         super.onDestroy();
         EventBusUtil.getEventBus().unregister(this);
     }
+
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onADDismissed(SplashAdDissmisEvent event){
+    public void onADDismissed(SplashAdDissmisEvent event) {
+        mHandler.removeCallbacks(mStartMainRunnable);
         launch();
     }
 }

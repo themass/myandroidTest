@@ -13,11 +13,12 @@ import com.openapi.commons.yewu.ads.base.NativeAdsReadyListener;
 
 public class NativeAdviewAds extends NativeAdsInter {
     @Override
-    protected AdsContext.AdsType getAdsType(){
+    protected AdsContext.AdsType getAdsType() {
         return AdsContext.AdsType.ADS_TYPE_NATIVE;
     }
+
     @Override
-    public  void showNative(final Context context, final Handler handler, final NativeAdsReadyListener listener, String key) {
+    public void showNative(final Context context, final Handler handler, final NativeAdsReadyListener listener, String key) {
 //        try {
 //            AdViewNativeManager.getInstance(context).requestAd(context, key, 2, new AdViewNativeListener() {
 //

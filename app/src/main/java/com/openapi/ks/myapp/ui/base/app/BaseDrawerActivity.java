@@ -3,6 +3,7 @@ package com.openapi.ks.myapp.ui.base.app;
 import androidx.annotation.Nullable;
 import androidx.drawerlayout.widget.DrawerLayout;
 
+import android.content.Intent;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -23,6 +24,7 @@ import com.openapi.commons.common.util.ToastUtil;
 import com.openapi.commons.yewu.ads.base.AdsManager;
 import com.openapi.commons.yewu.um.MobAgent;
 import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chatfree.ui.main.MainFragmentViewPage;
 import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.bean.vo.UserInfoVo;
 import com.openapi.ks.myapp.constant.Constants;
@@ -49,6 +51,7 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.util.Date;
 
 import butterknife.BindView;
+import chat.ui.CustomChatMessagesActivity;
 
 /**
  * Created by Miroslaw Stanek on 15.07.15.
@@ -105,7 +108,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         llLoginMenuHeader = (LinearLayout) headerView.findViewById(R.id.ll_menu_headview);
         tvMenuUserName = (TextView) headerView.findViewById(R.id.tv_menu_username);
         tvMenuUserLogin = (TextView) headerView.findViewById(R.id.tv_menu_login);
-         tvScore= (TextView) headerView.findViewById(R.id.tv_score);
+        tvScore = (TextView) headerView.findViewById(R.id.tv_score);
         tvDesc = (TextView) headerView.findViewById(R.id.tv_desc);
         tvDesc1 = (TextView) headerView.findViewById(R.id.tv_desc1);
         tvDesc2 = (TextView) headerView.findViewById(R.id.tv_desc2);
@@ -126,14 +129,16 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
 //            miApprecommond.setVisible(false);
 //        }
     }
-    private void showmiDona(){
+
+    private void showmiDona() {
         UserInfoVo vo = UserLoginUtil.getUserCache();
-        boolean canScore = vo==null?false:vo.score>300;
-        if(MyApplication.isTemp){
+        boolean canScore = vo == null ? false : vo.score > 300;
+        if (MyApplication.isTemp) {
 //            miDona.setVisible(canScore);
             miApprecommond.setVisible(false);
         }
     }
+
     private void setUpLocation() {
         boolean flag = PreferenceUtils.getPrefBoolean(this, Constants.LOCATION_FLAG, false);
         if (!flag) {
@@ -145,8 +150,9 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     }
 
     private void setUpVersion() {
-        VersionUpdater.checkUpdate(BaseDrawerActivity.this,false);
+        VersionUpdater.checkUpdate(BaseDrawerActivity.this, false);
     }
+
     private void setUpUserMenu() {
         UserInfoVo vo = UserLoginUtil.getUserCache();
         if (vo != null) {
@@ -164,11 +170,11 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                 ivLevel.setImageResource(R.drawable.ic_level_free);
             } else if (Constants.UserLevel.LEVEL_VIP == vo.level) {
                 ivLevel.setImageResource(R.drawable.ic_level_vip);
-            }else if (Constants.UserLevel.LEVEL_VIP2 == vo.level) {
+            } else if (Constants.UserLevel.LEVEL_VIP2 == vo.level) {
                 ivLevel.setImageResource(R.drawable.ic_level_vip2);
-            }else if (Constants.UserLevel.LEVEL_VIP3 == vo.level) {
+            } else if (Constants.UserLevel.LEVEL_VIP3 == vo.level) {
                 ivLevel.setImageResource(R.drawable.ic_level_vip3);
-            }else if (Constants.UserLevel.LEVEL_VIP4 == vo.level) {
+            } else if (Constants.UserLevel.LEVEL_VIP4 == vo.level) {
                 ivLevel.setImageResource(R.drawable.ic_level_vip4);
             }
         } else {
@@ -196,6 +202,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     public void onEvent(StateUseEvent event) {
         PreferenceUtils.setPrefObj(this, Constants.USER_STATUS, event.stateUse);
     }
+
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(VipDescEvent event) {
         tvDesc.setText(event.stateUse.desc);
@@ -206,15 +213,16 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
 //        tvDesc1.setText("VIP1=400积分； VIP2=600积分");
         setScore(event.stateUse.score);
     }
+
     private void setScore(Long inScore) {
-        if(inScore!=null){
+        if (inScore != null) {
             tvScore.setText(inScore + "积分");
-        }else {
+        } else {
             UserInfoVo vo = UserLoginUtil.getUserCache();
             if (vo != null) {
                 String score = vo.score + "积分";
-                if(vo.paidTime!=null){
-                    score=score+"(有效期"+vo.paidTime+")";
+                if (vo.paidTime != null) {
+                    score = score + "(有效期" + vo.paidTime + ")";
                 }
                 tvScore.setText(score);
             } else {
@@ -223,6 +231,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
             }
         }
     }
+
     public void onAbout(View view) {
         String url = Constants.ABOUT;
         if (SystemUtils.isZH(this)) {
@@ -233,6 +242,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         PreferenceUtils.setPrefBoolean(this, Constants.ABOUT_FIRST, true);
         MobAgent.onEventMenu(this, "关于");
     }
+
     public void logout(MenuItem item) {
         baseService.postData(Constants.getUrl(Constants.API_LOGOUT_URL), null, null, null, null, null);
         UserLoginUtil.logout(this);
@@ -258,7 +268,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                         if (!closeDrawer()) {
                             drawerLayout.openDrawer(Gravity.LEFT);
                         }
-                    }catch(Exception e){
+                    } catch (Exception e) {
                         LogUtil.e(e);
                     }
                 }
@@ -291,30 +301,35 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                 if (item.getItemId() == R.id.menu_louout) {
                     name = "登出";
                     logout(item);
-                }  else if (item.getItemId() == R.id.menu_feedback) {
+                } else if (item.getItemId() == R.id.menu_feedback) {
                     name = "反馈";
                     IWannaFragment.startFragment(BaseDrawerActivity.this);
                 } else if (item.getItemId() == R.id.menu_setting) {
                     name = "设置";
                     startActivity(SettingActivity.class);
-                }  else if (item.getItemId() == R.id.menu_favorite) {
+                } else if (item.getItemId() == R.id.menu_favorite) {
                     name = "收藏夹";
                     FavoriteFragment.startFragment(BaseDrawerActivity.this);
 //                    Playing1Fragment.startFragment(BaseDrawerActivity.this);
-                }else if (item.getItemId() == R.id.menu_support) {
+                } else if (item.getItemId() == R.id.menu_support) {
                     name = "支持作者";
                     adsOffers();
                     ToastUtil.showShort(R.string.support_info);
                 } else if (item.getItemId() == R.id.menu_app) {
                     name = "应用推荐";
+                    if(UserLoginUtil.isVIP2()) {
+                        Intent intent = new Intent(BaseDrawerActivity.this, MainFragmentViewPage.class);
+                        startActivity(intent);
+                    }else {
                     AppListFragment.startFragment(BaseDrawerActivity.this);
+                    }
                 } else if (item.getItemId() == R.id.menu_donation) {
                     name = "捐赠";
                     DonationListFragment.startFragment(BaseDrawerActivity.this);
                 } else if (item.getItemId() == R.id.menu_share) {
                     showShare();
                     name = "分享";
-                }else if (item.getItemId() == R.id.menu_chat_session) {
+                } else if (item.getItemId() == R.id.menu_chat_session) {
                     name = "新建对话";
                     ChatSessionFragment.startFragment(BaseDrawerActivity.this);
                 }
@@ -323,17 +338,20 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
             }
         });
     }
+
     public void showShare() {
         String url = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.D_URL, null);
         if (!StringUtils.hasText(url)) {
             url = Constants.DEFAULT_REFERER;
         }
         ShareUtil util = new ShareUtil(this);
-        util.shareText(null,null,url+" 爱Freedom，精彩你的生活","爱Freedom","精彩你的生活");
+        util.shareText(null, null, url + " 爱Freedom，精彩你的生活", "爱Freedom", "精彩你的生活");
     }
-    private void adsOffers(){
+
+    private void adsOffers() {
         AdsManager.getInstans().offerAds(this);
     }
+
     @Override
     protected void onPause() {
         super.onPause();

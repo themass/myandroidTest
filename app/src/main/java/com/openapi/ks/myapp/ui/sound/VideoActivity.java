@@ -2,7 +2,9 @@ package com.openapi.ks.myapp.ui.sound;
 
 
 import android.os.Bundle;
+
 import androidx.fragment.app.Fragment;
+
 import android.view.View;
 
 import com.openapi.commons.common.util.LogUtil;
@@ -18,10 +20,11 @@ import cn.jzvd.JzvdStd;
  */
 public class VideoActivity extends BaseFragmentActivity {
     Fragment fragment = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        JzvdStd.FULLSCREEN_ORIENTATION=1;
+        JzvdStd.FULLSCREEN_ORIENTATION = 1;
         setContentView(R.layout.common_fragment);
         setFabUpVisibility(View.GONE);
         try {
@@ -35,6 +38,7 @@ public class VideoActivity extends BaseFragmentActivity {
                 .commitAllowingStateLoss();
         setToolbarTitle(R.string.video, true);
     }
+
     @Override
     public void onBackPressed() {
         if (Jzvd.backPress()) {
@@ -42,6 +46,7 @@ public class VideoActivity extends BaseFragmentActivity {
         }
         super.onBackPressed();
     }
+
     @Override
     public boolean needShow() {
         return true;

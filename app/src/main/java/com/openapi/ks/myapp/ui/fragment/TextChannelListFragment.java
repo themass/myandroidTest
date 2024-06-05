@@ -33,6 +33,7 @@ public class TextChannelListFragment extends BasePullLoadbleFragment<TextItemsVo
     private static final String TEXT_TAG = "text_tag";
     private TextChannelListItemsViewAdapter adapter;
     private RecommendVo vo;
+
     public static void startFragment(Context context, RecommendVo vo) {
         Intent intent = new Intent(context, CommonFragmentActivity.class);
         intent.putExtra(CommonFragmentActivity.FRAGMENT, TextChannelListFragment.class);
@@ -52,16 +53,19 @@ public class TextChannelListFragment extends BasePullLoadbleFragment<TextItemsVo
         adapter.setLongClickListener(this);
         return adapter;
     }
+
     @Override
-    protected boolean showSearchView(){
+    protected boolean showSearchView() {
         return true;
     }
+
     @Override
     public void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
         vo = StaticDataUtil.get(Constants.TEXT_CHANNEL, RecommendVo.class);
         StaticDataUtil.del(Constants.TEXT_CHANNEL);
     }
+
     @Override
     protected InfoListVo<TextItemsVo> loadData(Context context) throws Exception {
         return indexService.getInfoListData(Constants.getUrlWithParam(Constants.API_TEXT_ITEMS_URL, infoListVo.pageNum, vo.param, keyword), TextItemsVo.class, TEXT_TAG);
@@ -77,7 +81,7 @@ public class TextChannelListFragment extends BasePullLoadbleFragment<TextItemsVo
         } else {
             TextItemsFragment.startFragment(getActivity(), data);
         }
-        super.onItemClick(view,data,postion);
+        super.onItemClick(view, data, postion);
     }
 
     @Override
@@ -86,24 +90,26 @@ public class TextChannelListFragment extends BasePullLoadbleFragment<TextItemsVo
         int title;
         int icon = R.drawable.ic_menu_favorite_ed;
         if (favoriteVo == null) {
-            title =R.string.menu_favorite;
+            title = R.string.menu_favorite;
             icon = R.drawable.ic_menu_favorite_no;
         } else {
-            title =R.string.menu_favorite_cancel;
+            title = R.string.menu_favorite_cancel;
         }
-        MenuOneContext.showOneMenu(getActivity(),view,title,icon,TextChannelListFragment.this,position);
+        MenuOneContext.showOneMenu(getActivity(), view, title, icon, TextChannelListFragment.this, position);
     }
+
     @Override
-    public boolean onMenuItemClick(MenuItem item, int position){
-        if(item.getItemId()==R.id.menu_share){
+    public boolean onMenuItemClick(MenuItem item, int position) {
+        if (item.getItemId() == R.id.menu_share) {
             SystemUtils.copy(getActivity(), infoListVo.voList.get(position).fileUrl);
             ToastUtil.showShort(R.string.menu_share_copy_ok);
             LogUtil.i(infoListVo.voList.get(position).fileUrl);
-        }else {
+        } else {
             FavoriteUtil.modLocalFavoritesAsync(getActivity(), infoListVo.voList.get(position).tofavorite(), null);
         }
         return true;
     }
+
     @Override
     public void onDestroyView() {
         indexService.cancelRequest(TEXT_TAG);

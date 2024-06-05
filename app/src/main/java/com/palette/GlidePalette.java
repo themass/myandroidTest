@@ -101,14 +101,14 @@ public class GlidePalette<ModelType, TranscodeType> extends BitmapPalette implem
 
     @Override
     public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<TranscodeType> target, boolean isFirstResource) {
-        LogUtil.i("onLoadFailed - " + model+ "--- " + e.toString());
+        LogUtil.i("onLoadFailed - " + model + "--- " + e.toString());
         return this.callback != null && this.callback.onLoadFailed(e, model, target, isFirstResource);
     }
 
     @Override
     public boolean onResourceReady(TranscodeType resource, Object model, Target<TranscodeType> target, DataSource dataSource, boolean isFirstResource) {
 
-        LogUtil.i("onResourceReady - " + model+ "--- " + resource.toString());
+        LogUtil.i("onResourceReady - " + model + "--- " + resource.toString());
         Bitmap b = null;
         if (resource instanceof Bitmap) {
             b = (Bitmap) resource;

@@ -15,6 +15,7 @@ import com.openapi.ks.chatfree.R;
  */
 public class RecommendListFragment extends RecommendFragment {
     private static final String INDEX_TAG = "Recommend_tag";
+
     @Override
     protected void onContentViewCreated(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
         inflater.inflate(R.layout.layout_index_fragment, parent);
@@ -24,9 +25,10 @@ public class RecommendListFragment extends RecommendFragment {
     public void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
     }
+
     @Override
     public String getUrl(int start) {
-        return Constants.getUrlWithParam(Constants.API_RECOMMEND_URL,start);
+        return Constants.getUrlWithParam(Constants.API_RECOMMEND_URL, start);
     }
 
     @Override

@@ -15,15 +15,17 @@ import com.openapi.commons.yewu.ads.base.AdsContext;
 
 public class SplashAdviewAds extends SplashAdsInter {
     @Override
-    protected AdsContext.AdsType getAdsType(){
+    protected AdsContext.AdsType getAdsType() {
         return AdsContext.AdsType.ADS_TYPE_SPREAD;
     }
+
     @Override
-    public  void lanchExit(Context context,RelativeLayout group){
+    public void lanchExit(Context context, RelativeLayout group) {
 //        AdViewSpreadManager.getInstance(context).destroySpread(ADS_ADVIEW_KEY);
     }
+
     @Override
-    public  void launchAds(final FragmentActivity context, RelativeLayout group, RelativeLayout skipView, final Handler handler){
+    public void launchAds(final FragmentActivity context, RelativeLayout group, RelativeLayout skipView, final Handler handler) {
 //        try {
 //            AdViewSpreadManager.getInstance(context).init(AdviewAdsManager.initConfig, adsKeySet);
 //            AdViewSpreadManager.getInstance(context).setSpreadLogo(R.drawable.ic_trans_logo);

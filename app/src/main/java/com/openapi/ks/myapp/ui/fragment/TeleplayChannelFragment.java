@@ -22,37 +22,43 @@ public class TeleplayChannelFragment extends RecommendFragment {
         Intent intent = new Intent(context, CommonFragmentActivity.class);
         intent.putExtra(CommonFragmentActivity.FRAGMENT, TeleplayChannelFragment.class);
         intent.putExtra(CommonFragmentActivity.TITLE, vo.title);
-        if(AdsContext.rateShow()){
+        if (AdsContext.rateShow()) {
             intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_SHOW, true);
         }
         StaticDataUtil.add(Constants.VIDEO_CHANNEL, vo);
         context.startActivity(intent);
     }
+
     @Override
-    protected boolean showSearchView(){
+    protected boolean showSearchView() {
         return true;
     }
+
     @Override
     public String getUrl(int start) {
-        return Constants.getUrlWithParam(Constants.API_TV_CHANNEL_URL, start,vo.param,keyword);
+        return Constants.getUrlWithParam(Constants.API_TV_CHANNEL_URL, start, vo.param, keyword);
     }
+
     @Override
     public String getNetTag() {
         return VIDEO_TAG;
     }
+
     @Override
     public int getSpanCount() {
         return 3;
     }
+
     @Override
     public boolean getShowEdit() {
         return false;
     }
+
     @Override
     public void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
         vo = StaticDataUtil.get(Constants.VIDEO_CHANNEL, RecommendVo.class);
-        if(vo==null){
+        if (vo == null) {
             getActivity().finish();
         }
         StaticDataUtil.del(Constants.VIDEO_CHANNEL);
@@ -61,7 +67,7 @@ public class TeleplayChannelFragment extends RecommendFragment {
     @Override
     public void onCustomerItemClick(View v, int position) {
         RecommendVo revo = infoListVo.voList.get(position);
-        TeleplayItemFragment.startFragment(getActivity(),revo);
+        TeleplayItemFragment.startFragment(getActivity(), revo);
     }
 
     @Override

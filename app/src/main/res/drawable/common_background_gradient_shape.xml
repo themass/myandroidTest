@@ -6,6 +6,5 @@
         android:endColor="@color/mp.theme.dark_blue.background"
         android:startColor="@color/mp.theme.dark_blue.gradientColor"
         android:type="radial"
-        android:gradientRadius="1000dp"
-        />
+        android:gradientRadius="1000dp" />
 </shape>

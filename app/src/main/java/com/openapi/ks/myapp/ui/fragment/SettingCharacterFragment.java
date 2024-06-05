@@ -11,6 +11,7 @@ import com.openapi.commons.common.util.FileUtils;
 import com.openapi.commons.common.util.LogUtil;
 import com.openapi.commons.common.util.ModelUtils;
 import com.openapi.commons.common.util.PathUtil;
+import com.openapi.commons.common.util.PreferenceUtils;
 import com.openapi.commons.common.util.SystemUtils;
 import com.openapi.commons.common.util.ToastUtil;
 import com.openapi.commons.yewu.ads.base.AdsContext;
@@ -19,6 +20,7 @@ import com.openapi.ks.chatfree.R;
 import com.openapi.ks.myapp.adapter.FavoriteViewAdapter;
 import com.openapi.ks.myapp.adapter.SettingCharacterAdapter;
 import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
+import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.bean.vo.CharacterVo;
 import com.openapi.ks.myapp.bean.vo.FavoriteVo;
 import com.openapi.ks.myapp.bean.vo.IWannaVo;
@@ -44,7 +46,7 @@ import java.util.List;
 /**
  * Created by openapi on 2016/8/12.
  */
-public class SettingCharacterFragment extends BasePullLoadbleFragment<CharacterVo> implements  BaseRecyclerViewAdapter.OnRecyclerViewItemLongClickListener<CharacterVo> {
+public class SettingCharacterFragment extends BasePullLoadbleFragment<CharacterVo> implements BaseRecyclerViewAdapter.OnRecyclerViewItemLongClickListener<CharacterVo> {
     private SettingCharacterAdapter adapter;
     private static String TAG = "Character";
 
@@ -69,12 +71,14 @@ public class SettingCharacterFragment extends BasePullLoadbleFragment<CharacterV
         super.setupViews(view, savedInstanceState);
         EventBusUtil.getEventBus().register(this);
     }
+
     @Override
-    protected  BaseRecyclerViewAdapter getAdapter(){
+    protected BaseRecyclerViewAdapter getAdapter() {
         adapter = new SettingCharacterAdapter(getActivity(), pullView.getRecyclerView(), infoListVo.voList, this);
         adapter.setLongClickListener(this);
         return adapter;
     }
+
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(FavoriteChangeEvent event) {
         pullView.setRefresh(true);
@@ -82,15 +86,19 @@ public class SettingCharacterFragment extends BasePullLoadbleFragment<CharacterV
 
     @Override
     public void onItemClick(View view, CharacterVo data, int postion) {
-        super.onItemClick(view,data,postion);
-        SystemUtils.copy(getActivity(),data.getContent());
-        ToastUtil.showShort(R.string.menu_copy_emai);
+        super.onItemClick(view, data, postion);
+        SystemUtils.copy(getActivity(), data.getContent());
+        PreferenceUtils.setPrefString(MyApplication.getInstance(), Constants.MY_SETTING, data.getContent());
+        ToastUtil.showShort(R.string.save);
     }
+
     @Override
-    public void onItemLongClick(View view, CharacterVo data, int position){
-        SystemUtils.copy(getActivity(),data.getContent());
-        ToastUtil.showShort(R.string.menu_copy_emai);
+    public void onItemLongClick(View view, CharacterVo data, int position) {
+        SystemUtils.copy(getActivity(), data.getContent());
+        PreferenceUtils.setPrefString(MyApplication.getInstance(), Constants.MY_SETTING, data.getContent());
+        ToastUtil.showShort(R.string.save);
     }
+
     @Override
     public void onDestroyView() {
         EventBusUtil.getEventBus().unregister(this);

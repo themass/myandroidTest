@@ -24,7 +24,7 @@ public class MusicVisualizer extends View {
 
             //run every 150 ms
             postDelayed(this, 150);
-            if(startAnima)
+            if (startAnima)
                 invalidate();
         }
     };
@@ -33,12 +33,15 @@ public class MusicVisualizer extends View {
         super(context);
         new MusicVisualizer(context, null);
     }
-    public void startAnima(){
+
+    public void startAnima() {
         startAnima = true;
     }
-    public void stopAnima(){
+
+    public void stopAnima() {
         startAnima = false;
     }
+
     public MusicVisualizer(Context context, AttributeSet attrs) {
         super(context, attrs);
 

@@ -17,11 +17,12 @@ import java.util.Set;
 public class VideoUtil {
     public static String vitamioExt = "avi,rmvb,3gp,wmv";
     public static Set set = new HashSet();
+
     public static void init(String str) {
         LogUtil.i(str);
-        if(StringUtils.hasText(str)){
+        if (StringUtils.hasText(str)) {
             set.addAll(Arrays.asList(str.split(",")));
-        }else{
+        } else {
             set.addAll(Arrays.asList(vitamioExt.split(",")));
         }
         LogUtil.i(set.toString());
@@ -31,26 +32,28 @@ public class VideoUtil {
         try {
             URI uri = new URI(key);
             String path = uri.getPath();
-            path = path.substring(path.lastIndexOf(".")+1);
+            path = path.substring(path.lastIndexOf(".") + 1);
             return set.contains(path.toLowerCase());
-        }catch (Exception e){
+        } catch (Exception e) {
             return false;
         }
     }
-    public static Object[] getVideoSource(String url, boolean loop, String reffer){
+
+    public static Object[] getVideoSource(String url, boolean loop, String reffer) {
         LinkedHashMap map = new LinkedHashMap();
-        HashMap<String,String> header = new HashMap<>();
+        HashMap<String, String> header = new HashMap<>();
         header.put(Constants.REFERER, reffer);
         header.put(Constants.USER_AGENT, Constants.USER_AGENT_DEF);
         map.put("高清", url);
         Object[] dataSourceObjects = new Object[3];
         dataSourceObjects[0] = map;
-        dataSourceObjects[1]=loop;
-        dataSourceObjects[2]=header;
+        dataSourceObjects[1] = loop;
+        dataSourceObjects[2] = header;
         return dataSourceObjects;
     }
-    public static HashMap<String,String> getVideoSourceHeader(String url, String reffer){
-        HashMap<String,String> header = new HashMap<>();
+
+    public static HashMap<String, String> getVideoSourceHeader(String url, String reffer) {
+        HashMap<String, String> header = new HashMap<>();
         header.put(Constants.REFERER, reffer);
         header.put(Constants.USER_AGENT, Constants.USER_AGENT_DEF);
         return header;

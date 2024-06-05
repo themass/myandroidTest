@@ -73,6 +73,7 @@ public class SettingActivity extends BaseSingleActivity {
     EditText etCharacter;
     BaseService baseService;
     String mEmail;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -130,12 +131,12 @@ public class SettingActivity extends BaseSingleActivity {
         swAreaMi.setChecked(PreferenceUtils.getPrefBoolean(this, Constants.AREA_MI_SWITCH, false));
         swAreaMi.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                PreferenceUtils.setPrefBoolean(SettingActivity.this, Constants.AREA_MI_SWITCH   , isChecked);
+                PreferenceUtils.setPrefBoolean(SettingActivity.this, Constants.AREA_MI_SWITCH, isChecked);
                 LogUtil.i("AREA_MI_SWITCH: " + isChecked);
             }
         });
-        String content = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.MY_SETTING,"");
-        if(!StringUtils.isEmpty(content)) {
+        String content = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.MY_SETTING, "");
+        if (!StringUtils.isEmpty(content)) {
             etCharacter.setText(content);
         }
         baseService = new BaseService();
@@ -144,6 +145,7 @@ public class SettingActivity extends BaseSingleActivity {
         setVersion();
 
     }
+
     private void setVersion() {
         tvVersion.setText(VersionUpdater.getVersion());
     }
@@ -159,17 +161,20 @@ public class SettingActivity extends BaseSingleActivity {
         showShare();
         MobAgent.onEventMenu(this, "分享");
     }
+
     @OnClick(R.id.tv_setting_character)
     public void onCharacter(View view) {
         SettingCharacterFragment.startFragment(this);
         MobAgent.onEventMenu(this, "设置人设");
     }
+
     @OnClick(R.id.bt_setting_save)
     public void onCharacterSave(View view) {
         PreferenceUtils.setPrefString(MyApplication.getInstance(), Constants.MY_SETTING, etCharacter.getText().toString());
         MobAgent.onEventMenu(this, "设置人设");
 
     }
+
     @Override
     public boolean needShow() {
         return true;
@@ -181,15 +186,16 @@ public class SettingActivity extends BaseSingleActivity {
             url = Constants.DEFAULT_REFERER;
         }
         ShareUtil util = new ShareUtil(this);
-        util.shareText(null,null,url+" 爱Freedom，精彩你的生活","爱Freedom","精彩你的生活");
+        util.shareText(null, null, url + " 爱Freedom，精彩你的生活", "爱Freedom", "精彩你的生活");
     }
 
     @Override
     protected boolean enableSliding() {
         return true;
     }
+
     @Override
-    protected AdsContext.Categrey getBannerCategrey(){
+    protected AdsContext.Categrey getBannerCategrey() {
         return AdsContext.Categrey.CATEGREY_VPN2;
     }
 }

@@ -14,7 +14,7 @@ public class BitmapUtil {
     public static final int UNCONSTRAINED = -1;
 
     /*
-     * 
+     *
      * 获得设置信息
      */
     public static Options getOptions(String path) {

@@ -47,7 +47,7 @@ public class AdmobRewardAds implements RewardInterface {
                     public void onAdLoaded(@NonNull RewardedAd ad) {
                         mRewardedVideoAd = ad;
                         LogUtil.i(" admob reward ad onAdLoaded = " + ad.getAdUnitId());
-                        mRewardedVideoAd.setFullScreenContentCallback(new FullScreenContentCallback(){
+                        mRewardedVideoAd.setFullScreenContentCallback(new FullScreenContentCallback() {
                             public void onAdClicked() {
                             }
 

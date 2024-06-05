@@ -308,6 +308,6 @@ public class StringUtils {
     }
 
     public static boolean isEmpty(String name) {
-        return name==null || name.trim().length()==0;
+        return name == null || name.trim().length() == 0;
     }
 }

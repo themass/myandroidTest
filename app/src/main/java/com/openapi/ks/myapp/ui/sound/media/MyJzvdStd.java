@@ -44,12 +44,15 @@ public class MyJzvdStd extends JzvdStd {
         myFavoriteView = findViewById(R.id.my_favoriteview);
         initLoading = findViewById(R.id.loading_init);
     }
-    public void loadingInit(){
+
+    public void loadingInit() {
         initLoading.setVisibility(VISIBLE);
     }
-    public void closeLoadingInit(){
+
+    public void closeLoadingInit() {
         initLoading.setVisibility(GONE);
     }
+
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         int id = v.getId();
@@ -94,9 +97,9 @@ public class MyJzvdStd extends JzvdStd {
         int maxH = mScreenHeight;
         int maxW = mScreenWidth;
         if (screen == SCREEN_FULLSCREEN) {
-             maxH = mScreenHeight;
-             maxW = mScreenWidth;
-        }else {
+            maxH = mScreenHeight;
+            maxW = mScreenWidth;
+        } else {
             maxH = mScreenWidth;
             maxW = mScreenHeight;
         }
@@ -132,7 +135,7 @@ public class MyJzvdStd extends JzvdStd {
                         }
                     } else {//右侧改变声音
                         mChangeVolume = true;
-                        if(mAudioManager == null){
+                        if (mAudioManager == null) {
                             LogUtil.i("mAudioManager is null");
                             mAudioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
                         }
@@ -152,17 +155,17 @@ public class MyJzvdStd extends JzvdStd {
             float xVelocity = mVelocityTracker.getXVelocity();//速度
             xVelocity = Math.abs(xVelocity);//去绝对值。向左滑，值为负数
             //快速滑动 快进退8s，快速滑动一次，此函数会被调用多次
-            if(xVelocity>100){
-                if(deltaX>0){
+            if (xVelocity > 100) {
+                if (deltaX > 0) {
                     mSeekTimePosition = getCurrentPositionWhenPlaying() + 8000;
-                }else {
+                } else {
                     mSeekTimePosition = getCurrentPositionWhenPlaying() - 8000;
                 }
-            }else{
+            } else {
                 mSeekTimePosition = (int) (mGestureDownPosition + deltaX * totalTimeDuration / (maxW * PROGRESS_DRAG_RATE));
             }
 
-            LogUtil.i("sudu= "+xVelocity+"---deltaX="+deltaX+"---totalTimeDuration="+totalTimeDuration);
+            LogUtil.i("sudu= " + xVelocity + "---deltaX=" + deltaX + "---totalTimeDuration=" + totalTimeDuration);
 
 //            mSeekTimePosition = (int) (mGestureDownPosition + deltaX * totalTimeDuration / (maxW * PROGRESS_DRAG_RATE));
             if (mSeekTimePosition > totalTimeDuration)
@@ -173,7 +176,7 @@ public class MyJzvdStd extends JzvdStd {
             showProgressDialog(deltaX, seekTime, mSeekTimePosition, totalTime, totalTimeDuration);
         }
         if (mChangeVolume) {
-            if(mAudioManager == null){
+            if (mAudioManager == null) {
                 LogUtil.i("mAudioManager is null");
                 mAudioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
             }
@@ -204,14 +207,16 @@ public class MyJzvdStd extends JzvdStd {
 //                        mDownY = y;
         }
     }
-    public boolean setSpeed(float speed){
-        if(mediaInterface != null) {
+
+    public boolean setSpeed(float speed) {
+        if (mediaInterface != null) {
             mediaInterface.setSpeed(speed);
             return true;
         }
         ToastUtil.showShort("请先播放视频");
         return false;
     }
+
     @Override
     public int getLayoutId() {
         return R.layout.my_jzvd_layout;

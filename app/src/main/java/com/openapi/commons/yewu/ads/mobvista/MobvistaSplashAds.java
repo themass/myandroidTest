@@ -15,13 +15,14 @@ import com.openapi.commons.yewu.ads.base.AdsContext;
  */
 
 public class MobvistaSplashAds extends SplashAdsInter {
-//    private MBSplashHandler mbSplashHandler;
+    //    private MBSplashHandler mbSplashHandler;
     @Override
-    protected AdsContext.AdsType getAdsType(){
+    protected AdsContext.AdsType getAdsType() {
         return AdsContext.AdsType.ADS_TYPE_SPREAD;
     }
+
     @Override
-    public  void lanchExit(Context context,RelativeLayout group){
+    public void lanchExit(Context context, RelativeLayout group) {
 
 //        mbSplashHandler.onDestroy();
     }
@@ -69,10 +70,11 @@ public class MobvistaSplashAds extends SplashAdsInter {
 //        sdk.preload(preloadMap);
 
     }
+
     @Override
-    public  void launchAds(final FragmentActivity context, final RelativeLayout group, RelativeLayout skipView, final Handler handler){
+    public void launchAds(final FragmentActivity context, final RelativeLayout group, RelativeLayout skipView, final Handler handler) {
         //上架GP版本SDK无activity参数
-        try{
+        try {
 //            mbSplashHandler = new MBSplashHandler(Constants.Mob_SPLASH_UNIT, Constants.Mob_SPLASH_UNIT_PLACE);
 //            mbSplashHandler.setLoadTimeOut(3000);
 //            Button textView = new Button(context);
@@ -136,7 +138,7 @@ public class MobvistaSplashAds extends SplashAdsInter {
 //            });
 //            mbSplashHandler.loadAndShow(group);
         } catch (Throwable e) {
-            noAds(context,handler, AdsContext.AdsFrom.MOBVISTA,0);
+            noAds(context, handler, AdsContext.AdsFrom.MOBVISTA, 0);
             LogUtil.e(e);
         }
     }

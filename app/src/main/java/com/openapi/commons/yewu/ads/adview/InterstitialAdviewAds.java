@@ -12,11 +12,12 @@ import com.openapi.commons.yewu.ads.base.InterstitialAdsInter;
 
 public class InterstitialAdviewAds extends InterstitialAdsInter {
     @Override
-    protected AdsContext.AdsType getAdsType(){
+    protected AdsContext.AdsType getAdsType() {
         return AdsContext.AdsType.ADS_TYPE_INTERSTITIAL;
     }
+
     @Override
-    public void interstitialAds(final Context context, final Handler handler,final String key, final boolean score,final int count){
+    public void interstitialAds(final Context context, final Handler handler, final String key, final boolean score, final int count) {
 //        try {
 //            LogUtil.i("adview interstitialAds req");
 //            AdViewInstlManager.getInstance(context).requestAd(context, key, new AdViewInstlListener() {
@@ -55,8 +56,9 @@ public class InterstitialAdviewAds extends InterstitialAdsInter {
 //            LogUtil.e(e);
 //        }
     }
+
     @Override
-    public void interstitialExit(Context context,String key){
+    public void interstitialExit(Context context, String key) {
 
     }
 }

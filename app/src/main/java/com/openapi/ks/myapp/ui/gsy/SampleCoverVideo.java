@@ -32,7 +32,7 @@ public class SampleCoverVideo extends StandardGSYVideoPlayer {
 
     String mCoverOriginUrl;
 
-    int  mCoverOriginId = 0;
+    int mCoverOriginId = 0;
 
     int mDefaultRes;
 
@@ -88,9 +88,9 @@ public class SampleCoverVideo extends StandardGSYVideoPlayer {
     public GSYBaseVideoPlayer startWindowFullscreen(Context context, boolean actionBar, boolean statusBar) {
         GSYBaseVideoPlayer gsyBaseVideoPlayer = super.startWindowFullscreen(context, actionBar, statusBar);
         SampleCoverVideo sampleCoverVideo = (SampleCoverVideo) gsyBaseVideoPlayer;
-        if(mCoverOriginUrl != null) {
+        if (mCoverOriginUrl != null) {
             sampleCoverVideo.loadCoverImage(mCoverOriginUrl, mDefaultRes);
-        } else  if(mCoverOriginId != 0) {
+        } else if (mCoverOriginId != 0) {
             sampleCoverVideo.loadCoverImageBy(mCoverOriginId, mDefaultRes);
         }
         return gsyBaseVideoPlayer;

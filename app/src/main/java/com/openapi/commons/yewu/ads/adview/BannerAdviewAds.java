@@ -16,12 +16,14 @@ import com.openapi.commons.yewu.ads.mobvista.MobivistaBannerAds;
 
 public class BannerAdviewAds extends BannerInter {
     private MobivistaBannerAds mobvBanner = new MobivistaBannerAds();
+
     @Override
-    protected AdsContext.AdsType getAdsType(){
+    protected AdsContext.AdsType getAdsType() {
         return AdsContext.AdsType.ADS_TYPE_BANNER;
     }
+
     @Override
-    public void bannerAds(final FragmentActivity context, final ViewGroup group, final String key, final Handler handler){
+    public void bannerAds(final FragmentActivity context, final ViewGroup group, final String key, final Handler handler) {
 //        final View view = AdViewBannerManager.getInstance(context).getAdViewLayout(context, key);
 //        if (view != null) {
 //            ViewGroup parent = (ViewGroup) view.getParent();
@@ -74,9 +76,10 @@ public class BannerAdviewAds extends BannerInter {
 //            LogUtil.e(e);
 //         }
     }
+
     @Override
-    public void bannerExit(FragmentActivity context, ViewGroup group, final String key){
-        LogUtil.i("bannerExit:"+key);
+    public void bannerExit(FragmentActivity context, ViewGroup group, final String key) {
+        LogUtil.i("bannerExit:" + key);
         group.removeView(group.findViewWithTag(key));
     }
 

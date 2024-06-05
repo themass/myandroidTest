@@ -34,6 +34,11 @@
 
 # 保留我们使用的四大组件，自定义的Application等等这些类不被混淆
 # 因为这些子类都有可能被外部调用
+-keep class android.support.v4.** { *; }
+-keep class androidx.core.** { *; }
+-keep class ** implements android.os.Parcelable {
+  public static final android.os.Parcelable$Creator *;
+}
 -keep public class * extends android.app.Activity
 -keep public class * extends android.app.Service
 -keep public class * extends android.content.BroadcastReceiver
@@ -135,6 +140,25 @@
 -keep class android.location.Location.** { *; }
 -dontwarn android.location.Location
 -dontnote android.location.Location
+# AndroidX核心库
+-keep class androidx.core.** { *; }
+
+# 权限请求相关的类
+-keep class * extends androidx.activity.ComponentActivity {
+    public void onRequestPermissionsResult(int, java.lang.String[], int[]);
+}
+-keep class * extends androidx.fragment.app.Fragment {
+    public void onRequestPermissionsResult(int, java.lang.String[], int[]);
+}
+
+# ActivityCompat 和 FragmentCompat
+-keep class androidx.core.app.ActivityCompat {
+    public static final int *;
+    public static void requestPermissions(***);
+}
+-keep class androidx.core.app.FragmentCompat {
+    public static void requestPermissions(***);
+}
 #--------------------------------------------------------
 #eventBus
 -keepattributes *Annotation*
@@ -184,9 +208,27 @@
 -keepclasseswithmembers class * {
     native <methods>;
 }
+-keep class androidx.** { *; }
+-dontwarn androidx.**
+-keep class * extends androidx.lifecycle.ViewModel { *; }
+-keep class * extends androidx.lifecycle.LiveData { *; }
+-keep class * extends androidx.room.** { *; }
+-keep class * extends androidx.navigation.** { *; }
+-keep class * extends androidx.work.** { *; }
+-keep class androidx.core.app.** { *; }
+-keep class * extends androidx.activity.ComponentActivity { *; }
+-keep class * extends androidx.fragment.app.Fragment { *; }
+-keep class * extends androidx.activity.ComponentActivity { *; }
+-keep class * extends androidx.fragment.app.Fragment { *; }
+-keep public class * implements androidx.viewbinding.ViewBinding { *; }
+-keepclassmembers class * extends androidx.viewbinding.ViewBinding {
+    <fields>;
+    void set*(***);
+}
 
 #----------------------project------------
 -keep class chat.ui.data.**{ *; }
+-keep class com.openapi.commons.common.util.**{ *; }
 -keep class com.openapi.ks.myapp.bean.**{ *; }
 -keep class com.openapi.ks.myapp.ui.sound.media.**{ *; }
 -keep class com.google.gson.stream.** { *; }
@@ -328,10 +370,6 @@ public static java.lang.String TABLENAME;
  public static ** valueOf(java.lang.String);
 }
 
--keep class * implements android.os.Parcelable {
- public static final android.os.Parcelable$Creator *;
-}
-
 -keepclassmembers class **.R$* {
  public static <fields>;
 }
@@ -380,16 +418,8 @@ public static java.lang.String TABLENAME;
 -dontwarn com.cicada.**
 
 -keep class  tz.co.hosannahighertech.messagekit.messages.** { *; }
--keep class  chat.ui.CustomChatMessagesActivity$MyOutComingMassageHandler {
-   public <init>(android.view.View, java.lang.Object);
-   public <init>(android.view.View);
-}
-
+-keep class chat.ui.adapter.media.holders.** {*;}
 -keep class * extends tz.co.hosannahighertech.messagekit.messages.** { *; }
--keep class * extends chat.ui.CustomChatMessagesActivity$MyOutComingMassageHandler {
-   public <init>(android.view.View, java.lang.Object);
-   public <init>(android.view.View);
-}
 
 -keep class * extends tz.co.hosannahighertech.messagekit.messages.MessageHolders$OutcomingTextMessageViewHolder {
      public <init>(android.view.View, java.lang.Object);
@@ -407,3 +437,15 @@ public static java.lang.String TABLENAME;
      public <init>(android.view.View, java.lang.Object);
      public <init>(android.view.View);
  }
+
+ #火山引擎
+ -keep class com.bytedance.speech.speechengine.SpeechEngineImpl {*;}
+
+#picture
+ -keep class com.sun.jna.* { *; }
+ -keepclassmembers class * extends com.sun.jna.* { public *; }
+-keep class com.luck.picture.lib.** { *; }
+-keep class com.luck.lib.camerax.** { *; }
+-dontwarn com.yalantis.ucrop**
+-keep class com.yalantis.ucrop** { *; }
+-keep interface com.yalantis.ucrop** { *; }

@@ -43,6 +43,7 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
     @BindView(R.id.my_favoriteview)
     MyFavoriteView myFavoriteView;
     protected BaseService indexService;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,9 +51,9 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
         unbinder = ButterKnife.bind(this);
         indexService = new BaseService();
         indexService.setup(this);
-        vo = (RecommendVo)getIntent().getSerializableExtra(Constants.CONFIG_PARAM);
+        vo = (RecommendVo) getIntent().getSerializableExtra(Constants.CONFIG_PARAM);
         //需要单独发起解析url 的请求
-        if(vo.needLazyUrl){
+        if (vo.needLazyUrl) {
             try {
                 ToastUtil.showShort(R.string.load);
                 jzVideo.loadingInit();
@@ -63,7 +64,7 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
                         openVideoShow(o);
                         jzVideo.closeLoadingInit();
                     }
-                }, new CommonResponse.ResponseErrorListener(){
+                }, new CommonResponse.ResponseErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError volleyError) {
                         super.onErrorResponse(volleyError);
@@ -73,39 +74,41 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
                     }
                 }, VIDEO_TAG, RecommendVo.class);
 
-            }catch (Exception e){
+            } catch (Exception e) {
                 jzVideo.closeLoadingInit();
                 openVideoShow(vo);
             }
-        }else{//否则直接打开播放页面
+        } else {//否则直接打开播放页面
             openVideoShow(vo);
         }
 //        jzVideo.headData = header;
         jzVideo.posterImageView.setScaleType(ImageView.ScaleType.CENTER);
-        ImagePhotoLoad.loadCommonImg(this,vo.img,jzVideo.posterImageView);
+        ImagePhotoLoad.loadCommonImg(this, vo.img, jzVideo.posterImageView);
 //        Jzvd.setJzUserAction(new MyUserActionStandard());
         myFavoriteView.setListener(this);
         myFavoriteView.initFavoriteBackGroud(vo.actionUrl);
         myFavoriteView.showVideoLocal();
     }
 
-    private void openVideoShow(RecommendVo urlVo){
+    private void openVideoShow(RecommendVo urlVo) {
         String url = urlVo.actionUrl;
-        if(StringUtils.hasText(urlVo.urlToken)){
-            url = url+urlVo.urlToken;
+        if (StringUtils.hasText(urlVo.urlToken)) {
+            url = url + urlVo.urlToken;
         }
         jzVideo.setUp(urlVo.actionUrl, vo.title, JzvdStd.SCREEN_NORMAL, JzvdPlayerFactory.getPlayManager());
         jzVideo.jzDataSource.headerMap = VideoUtil.getVideoSourceHeader(url, StringUtils.hasText(urlVo.baseurl) ? urlVo.baseurl : urlVo.actionUrl);
     }
+
     @Override
     public void onPause() {
         super.onPause();
         try {
             Jzvd.goOnPlayOnPause();
-        }catch (Throwable e){
+        } catch (Throwable e) {
             LogUtil.e(e);
         }
     }
+
     @Override
     public void onBackPressed() {
         if (Jzvd.backPress()) {
@@ -113,6 +116,7 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
         }
         super.onBackPressed();
     }
+
     @Override
     public void onDestroy() {
         indexService.cancelRequest(VIDEO_TAG);
@@ -120,11 +124,13 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
         super.onDestroy();
         unbinder.unbind();
     }
+
     @Override
     protected void onNewIntent(Intent intent) {
         LogUtil.i(getClass().getSimpleName() + "-onNewIntent");
         super.onNewIntent(intent);
     }
+
     protected boolean enableSliding() {
         return true;
     }
@@ -134,7 +140,7 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
         return vo.tofavorite(Constants.FavoriteType.VIDEO);
     }
 
-   //倍速功能
+    //倍速功能
     @Override
     public boolean setSpeed(float speed) {
         return jzVideo.setSpeed(speed);

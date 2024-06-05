@@ -2,6 +2,7 @@ package com.openapi.ks.myapp.data.config;
 
 import android.content.Intent;
 import android.net.Uri;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.openapi.commons.common.util.LogUtil;
@@ -71,7 +72,7 @@ public class ConfigActionJump {
             intent.putExtra(Constants.TITLE, event.title);
             event.context.startActivity(intent);
         } else {
-            ToastUtil.showShort( R.string.version_low);
+            ToastUtil.showShort(R.string.version_low);
         }
     }
 

@@ -22,18 +22,20 @@ import butterknife.BindView;
 /**
  * Created by openapi on 2016/8/21.
  */
-public class BannerHeaderFragment extends BaseFragment{
+public class BannerHeaderFragment extends BaseFragment {
     @BindView(R.id.fl_banner)
     public ViewGroup flBanner;
     private AdsGoneTask task = new AdsGoneTask();
     protected Handler mHandler = new Handler();
     private AdsContext.Categrey ca;
     private static String CATEGREY = "Categrey";
-    public static BannerHeaderFragment getNewInstans(AdsContext.Categrey ca){
+
+    public static BannerHeaderFragment getNewInstans(AdsContext.Categrey ca) {
         BannerHeaderFragment fragment = new BannerHeaderFragment();
         fragment.putSerializable(ca);
         return fragment;
     }
+
     @Override
     protected int getRootViewId() {
         return R.layout.common_banner;
@@ -42,7 +44,7 @@ public class BannerHeaderFragment extends BaseFragment{
     @Override
     protected void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
-        ca = (AdsContext.Categrey)getSerializable();
+        ca = (AdsContext.Categrey) getSerializable();
         EventBusUtil.getEventBus().register(this);
     }
 
@@ -71,15 +73,17 @@ public class BannerHeaderFragment extends BaseFragment{
         super.onDestroyView();
 
     }
+
     public void showAds() {
         if (needShow() && UserLoginUtil.showAds()) {
             flBanner.setVisibility(View.VISIBLE);
-            AdsManager.getInstans().showBannerAds(getActivity(), flBanner,ca);
+            AdsManager.getInstans().showBannerAds(getActivity(), flBanner, ca);
         } else {
             if (flBanner != null)
                 flBanner.setVisibility(View.GONE);
         }
     }
+
     public void hidenAds() {
         if (flBanner != null) {
             LogUtil.i("remove all views");
@@ -88,6 +92,7 @@ public class BannerHeaderFragment extends BaseFragment{
         }
         mHandler.removeCallbacks(task);
     }
+
     public boolean needShow() {
         return AdsContext.rateShow();
     }
@@ -96,6 +101,7 @@ public class BannerHeaderFragment extends BaseFragment{
     public void onEvent(HindBannerEvent event) {
         hidenAds();
     }
+
     class AdsGoneTask implements Runnable {
         @Override
         public void run() {

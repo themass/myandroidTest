@@ -6,7 +6,8 @@ package com.openapi.ks.myapp.data.config;
  */
 public class SplashAdDissmisEvent {
     public String adFrom;
-    public SplashAdDissmisEvent(String adFrom){
-        this.adFrom  = adFrom;
+
+    public SplashAdDissmisEvent(String adFrom) {
+        this.adFrom = adFrom;
     }
 }

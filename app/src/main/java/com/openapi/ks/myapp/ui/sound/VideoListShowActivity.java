@@ -3,6 +3,7 @@ package com.openapi.ks.myapp.ui.sound;
 
 import android.content.Intent;
 import android.os.Bundle;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
@@ -21,24 +22,26 @@ import java.util.HashMap;
 
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
+
 /**
  * Created by openapi on 2015/9/1.
  */
 public class VideoListShowActivity extends AppCompatActivity {
     private Unbinder unbinder;
     private HashMap<String, String> vo;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.common_fragment);
         unbinder = ButterKnife.bind(this);
-        vo = (HashMap<String, String>)getIntent().getSerializableExtra(Constants.CONFIG_PARAM);
+        vo = (HashMap<String, String>) getIntent().getSerializableExtra(Constants.CONFIG_PARAM);
         try {
             BasePullLoadbleFragment fragment;
             boolean needTiny = PreferenceUtils.getPrefBoolean(this, Constants.LISTVIDEO_TINY_SWITCH, true);
-            if(!needTiny){
+            if (!needTiny) {
                 fragment = AutoVideoListFragment.class.newInstance();
-            }else{
+            } else {
 
                 fragment = GSYAutoVideoListFragment.class.newInstance();
             }
@@ -48,9 +51,10 @@ public class VideoListShowActivity extends AppCompatActivity {
                     .commitAllowingStateLoss();
 
         } catch (Exception e) {
-            Log.e("","",e);
+            Log.e("", "", e);
         }
     }
+
     @Override
     protected void onNewIntent(Intent intent) {
         LogUtil.i(getClass().getSimpleName() + "-onNewIntent");

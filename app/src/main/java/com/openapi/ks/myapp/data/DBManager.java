@@ -40,7 +40,7 @@ public class DBManager {
     public void init(Context context) {
         this.context = context;
         long count = manager.getDaoSession().getChatLogDao().count();
-        LogUtil.i("count ===="+count);
+        LogUtil.i("count ====" + count);
     }
 
     /**
@@ -100,11 +100,13 @@ public class DBManager {
             sDaoSession = null;
         }
     }
-    public void saveChatLog(ChatLog log){
+
+    public void saveChatLog(ChatLog log) {
         manager.getDaoSession().getChatLogDao().save(log);
         new DelChatLogTask().execute();
 
     }
+
     public static class DelChatLogTask extends AsyncTask<String, Integer, Boolean> {
         private Context context;
 
@@ -117,7 +119,7 @@ public class DBManager {
             LogUtil.i(logs);
             if (logs.size() == 1) {
                 ChatLog log = logs.get(0);
-                manager.getDaoSession().getChatLogDao().queryBuilder().where(ChatLogDao.Properties.Id.le(log.getId() - 1000)).buildDelete().executeDeleteWithoutDetachingEntities();
+                manager.getDaoSession().getChatLogDao().queryBuilder().where(ChatLogDao.Properties.Id.le(log.getId() - 30)).buildDelete().executeDeleteWithoutDetachingEntities();
             }
             return Boolean.TRUE;
         }

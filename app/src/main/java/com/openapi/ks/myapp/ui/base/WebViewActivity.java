@@ -40,6 +40,7 @@ public class WebViewActivity extends BaseFragmentActivity implements MyWebView.O
     private String url;
     BaseService baseService;
     private AudioMngHelper audioMngHelper;
+
     public static void startWebViewActivity(Context context, String url, String title, boolean adsShow, boolean adsPopShow, HashMap<String, Object> param) {
         Intent intent = new Intent(context, WebViewActivity.class);
         intent.putExtra(Constants.URL, url);
@@ -66,7 +67,7 @@ public class WebViewActivity extends BaseFragmentActivity implements MyWebView.O
         adsDelayGone();
         adsNeed = getIntent().getBooleanExtra(Constants.ADS_SHOW_CONFIG, false);
         adsPopNeed = getIntent().getBooleanExtra(Constants.ADS_POP_SHOW_CONFIG, false);
-        if(adsPopNeed){
+        if (adsPopNeed) {
             AdsContext.showRand(this);
         }
         audioMngHelper = new AudioMngHelper(this);
@@ -84,10 +85,10 @@ public class WebViewActivity extends BaseFragmentActivity implements MyWebView.O
                 finish();
                 return true;
             }
-        }else  if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+        } else if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
             audioMngHelper.setVoiceStep100(1).subVoice100();
 
-        }else  if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+        } else if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
             audioMngHelper.setVoiceStep100(1).addVoice100();
         }
         return true;
@@ -104,12 +105,14 @@ public class WebViewActivity extends BaseFragmentActivity implements MyWebView.O
         getMenuInflater().inflate(R.menu.browser_menu, menu);
         return true;
     }
+
     CommonResponse.ResponseOkListener listener = new CommonResponse.ResponseOkListener<NullReturnVo>() {
         @Override
         public void onResponse(NullReturnVo vo) {
             ToastUtil.showShort(R.string.custome_ok);
         }
     };
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
@@ -127,7 +130,7 @@ public class WebViewActivity extends BaseFragmentActivity implements MyWebView.O
             SystemUtils.copy(this, url);
             return true;
         } else if (id == R.id.menu_favorite) {
-            if(url.startsWith(Constants.HTTP_URL) ){
+            if (url.startsWith(Constants.HTTP_URL)) {
                 CustomeAddForm form = new CustomeAddForm();
                 form.title = getString(R.string.video);
                 form.uri = url;

@@ -25,7 +25,7 @@ import java.util.zip.ZipFile;
  * Desc  : 获取设备相关的信息
  */
 public class DeviceInfoUtils {
-    public static final String NULL="null";
+    public static final String NULL = "null";
 
     /**
      * 获取设备ID.

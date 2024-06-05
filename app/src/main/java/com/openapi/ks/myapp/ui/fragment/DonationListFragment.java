@@ -20,10 +20,11 @@ import java.util.ArrayList;
 /**
  * Created by openapi on 2016/8/12.
  */
-public class DonationListFragment extends BasePullLoadbleFragment<AppInfo>{
+public class DonationListFragment extends BasePullLoadbleFragment<AppInfo> {
     private static final String APP_TAG = "APP_TAG";
     private AppRecommendViewAdapter adapter;
     ArrayList<String> origeImages = new ArrayList<>();
+
     public static void startFragment(Context context) {
         Intent intent = new Intent(context, CommonFragmentActivity.class);
         intent.putExtra(CommonFragmentActivity.FRAGMENT, DonationListFragment.class);
@@ -32,9 +33,10 @@ public class DonationListFragment extends BasePullLoadbleFragment<AppInfo>{
         intent.putExtra(CommonFragmentActivity.ADSSCROLL, false);
         context.startActivity(intent);
     }
+
     @Override
     protected BaseRecyclerViewAdapter getAdapter() {
-        adapter = new AppRecommendViewAdapter(getActivity(), pullView.getRecyclerView(), infoListVo.voList,this);
+        adapter = new AppRecommendViewAdapter(getActivity(), pullView.getRecyclerView(), infoListVo.voList, this);
         return adapter;
     }
 
@@ -42,6 +44,7 @@ public class DonationListFragment extends BasePullLoadbleFragment<AppInfo>{
     public void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
     }
+
     @Override
     protected InfoListVo<AppInfo> loadData(Context context) throws Exception {
         return indexService.getInfoListData(Constants.getUrl(Constants.API_DONATION_URL), AppInfo.class, APP_TAG);
@@ -50,7 +53,7 @@ public class DonationListFragment extends BasePullLoadbleFragment<AppInfo>{
     @Override
     protected void onDataLoaded(InfoListVo<AppInfo> data) {
         super.onDataLoaded(data);
-        if(infoListVo.voList!=null) {
+        if (infoListVo.voList != null) {
             origeImages.clear();
             for (AppInfo info : infoListVo.voList) {
                 origeImages.add(info.img);
@@ -67,6 +70,7 @@ public class DonationListFragment extends BasePullLoadbleFragment<AppInfo>{
         intent.putExtras(bundle);
         startActivity(intent);
     }
+
     @Override
     public void onDestroyView() {
         indexService.cancelRequest(APP_TAG);

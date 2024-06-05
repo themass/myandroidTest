@@ -35,9 +35,9 @@ import butterknife.OnClick;
 public class MyFavoriteView extends LinearLayout {
 
     public static String url_pre1 = "https://jx1.pkdyplayer.com/m3u8/?url=";
-    public static String url_pre2 =  "https://www.m3u8hls.com#";
+    public static String url_pre2 = "https://www.m3u8hls.com#";
     int currentSpeedIndex = 0;
-    float [] speedX = {1.0f,1.25f,1.5f,1.75f,2f};
+    float[] speedX = {1.0f, 1.25f, 1.5f, 1.75f, 2f};
     @Nullable
     @BindView(R.id.iv_favorite)
     FavoriteImageView ivFavorite;
@@ -65,6 +65,7 @@ public class MyFavoriteView extends LinearLayout {
         super(context, attrs, defStyleAttr);
         setupView();
     }
+
     public void setListener(MyFavoriteView.OnFavoriteItemClick listener) {
         this.onFavoriteItemClick = listener;
     }
@@ -75,37 +76,43 @@ public class MyFavoriteView extends LinearLayout {
         addView(myView);
         ButterKnife.bind(this);
     }
-    public void initFavoriteBackGroud(String url){
+
+    public void initFavoriteBackGroud(String url) {
         ivFavorite.initSrc(url);
     }
-    public void showVideoLocal(){
+
+    public void showVideoLocal() {
         mp4Web.setVisibility(View.VISIBLE);
 //        mp4Web2.setVisibility(View.VISIBLE);
         speed.setVisibility(View.VISIBLE);
         speed.setText(speedX[currentSpeedIndex] + "X");
     }
+
     @OnClick(R.id.iv_favorite)
     public void favoriteClick(View view) {
         ivFavorite.clickFavorite(onFavoriteItemClick.getFavoriteDataUrl());
     }
+
     @OnClick(R.id.speed)
     public void speedClick(View view) {
         int index = currentSpeedIndex;
-        currentSpeedIndex = (currentSpeedIndex+1)%speedX.length;
+        currentSpeedIndex = (currentSpeedIndex + 1) % speedX.length;
         boolean ret = onFavoriteItemClick.setSpeed(speedX[currentSpeedIndex]);
-        if(!ret) {
+        if (!ret) {
             currentSpeedIndex = index;
             return;
         }
         speed.setText(speedX[currentSpeedIndex] + "X");
         ToastUtil.showShort(speedX[currentSpeedIndex] + "X");
     }
+
     @OnClick(R.id.iv_open_browser)
     public void browserClick(View view) {
         SystemUtils.copy(getContext(), onFavoriteItemClick.getBrowserDatUrl());
         ToastUtil.showShort(R.string.menu_share_copy_ok);
         startBrower();
     }
+
     @OnClick(R.id.iv_mp4_web)
     public void mp4OpenClick(View view) {
         SystemUtils.copy(getContext(), onFavoriteItemClick.getBrowserDatUrl());
@@ -113,8 +120,9 @@ public class MyFavoriteView extends LinearLayout {
         Map<String, Object> param = new HashMap<>();
         param.put(Constants.ADS_SHOW_CONFIG, false);
         param.put(Constants.ADS_POP_SHOW_CONFIG, false);
-        EventBusUtil.getEventBus().post(new ConfigActionEvent(getContext(), url_pre1+onFavoriteItemClick.getBrowserDatUrl(), "m3u8-1线", param));
+        EventBusUtil.getEventBus().post(new ConfigActionEvent(getContext(), url_pre1 + onFavoriteItemClick.getBrowserDatUrl(), "m3u8-1线", param));
     }
+
     @OnClick(R.id.iv_mp4_web2)
     public void mp42OpenClick(View view) {
         SystemUtils.copy(getContext(), onFavoriteItemClick.getBrowserDatUrl());
@@ -122,8 +130,9 @@ public class MyFavoriteView extends LinearLayout {
         Map<String, Object> param = new HashMap<>();
         param.put(Constants.ADS_SHOW_CONFIG, false);
         param.put(Constants.ADS_POP_SHOW_CONFIG, false);
-        EventBusUtil.getEventBus().post(new ConfigActionEvent(getContext(), url_pre2+onFavoriteItemClick.getBrowserDatUrl(), "m3u8-2线", param));
+        EventBusUtil.getEventBus().post(new ConfigActionEvent(getContext(), url_pre2 + onFavoriteItemClick.getBrowserDatUrl(), "m3u8-2线", param));
     }
+
     public void startBrower() {
         if (PackageUtils.hasBrowser(getContext())) {
             Uri uri = Uri.parse(onFavoriteItemClick.getBrowserDatUrl());
@@ -139,9 +148,14 @@ public class MyFavoriteView extends LinearLayout {
     public interface OnFavoriteItemClick {
 
         FavoriteVo getFavoriteDataUrl();
+
         String getBrowserDatUrl();
 
-        default boolean setSpeed(float speed){return false;};
+        default boolean setSpeed(float speed) {
+            return false;
+        }
+
+        ;
 
     }
 

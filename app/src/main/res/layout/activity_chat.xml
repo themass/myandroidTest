@@ -19,7 +19,7 @@
             android:background="@drawable/comment_red_btn"
             android:paddingTop="10dp"
             android:paddingBottom="15dp"
-            android:text="按住 说话"
+            android:text="@string/click_say"
             android:textColor="@color/white"
             android:textSize="26sp"
             android:textStyle="bold" />

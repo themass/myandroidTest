@@ -18,6 +18,7 @@ public class BaseFragmentActivity extends BaseBannerAdsActivity {
         super.onResume();
         MobAgent.onResumeForFragmentActiviy(this);
     }
+
     @Override
     public void onBackPressed() {
         // 点击后退关闭轮播插屏广告

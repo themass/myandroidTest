@@ -88,7 +88,7 @@ public class PlayLayout extends RelativeLayout implements OnShadowChangeListener
     private ImageView mIvSkipNext;
     private ImageView mIvRepeat;
 
-    private TextView dur,current;
+    private TextView dur, current;
     private LinearLayout timeview;
 
     private @Nullable OnButtonsClickListener mClickListener;
@@ -432,6 +432,7 @@ public class PlayLayout extends RelativeLayout implements OnShadowChangeListener
 
     /**
      * Set OnButtonsClickListener for layout
+     *
      * @param listener -> OnButtonsClickListener
      */
     public void setOnButtonsClickListener(@Nullable OnButtonsClickListener listener) {
@@ -440,6 +441,7 @@ public class PlayLayout extends RelativeLayout implements OnShadowChangeListener
 
     /**
      * Set OnButtonsLongClickListener for layout
+     *
      * @param listener -> OnButtonsLongClickListener
      */
     public void setOnButtonsLongClickListener(@Nullable OnButtonsLongClickListener listener) {
@@ -991,7 +993,7 @@ public class PlayLayout extends RelativeLayout implements OnShadowChangeListener
      */
     public void setShadowProvider(@NonNull ShadowPercentageProvider provider) {
         //noinspection ConstantConditions
-        if (provider==null) {
+        if (provider == null) {
             throw new IllegalArgumentException("ShadowPercentageProvider cannot be null");
         }
         mShadowProvider = provider;
@@ -1294,6 +1296,7 @@ public class PlayLayout extends RelativeLayout implements OnShadowChangeListener
      */
     public interface OnProgressChangedListener {
         void onPreSetProgress();
+
         void onProgressChanged(float progress);
     }
 

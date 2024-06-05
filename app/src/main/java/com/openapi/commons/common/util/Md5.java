@@ -36,7 +36,8 @@ public class Md5 {
         }
         return resultSb.toString();
     }
-    public static int getRandom(int max){
+
+    public static int getRandom(int max) {
         Random random = new Random();
         return random.nextInt(max);
     }

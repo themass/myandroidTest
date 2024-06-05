@@ -36,11 +36,12 @@ public class RecommendVo implements Serializable {
     public String baseurl;
 
     public Boolean needLazyUrl;
+
     public FavoriteVo tofavorite(int type) {
         FavoriteVo vo = new FavoriteVo();
         vo.setName(title);
         vo.setType(type);
-        vo.setItemUrl(actionUrl==null?param:actionUrl);
+        vo.setItemUrl(actionUrl == null ? param : actionUrl);
         vo.setO(this);
         return vo;
     }

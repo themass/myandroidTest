@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~ ©2017 Rajneesh Singh
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -13,7 +12,7 @@
   -->
 
 <resources>
-  <string-array name="blurChoice">
+    <string-array name="blurChoice">
         <item>20%</item>
         <item>40%</item>
         <item>60%</item>

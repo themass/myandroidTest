@@ -13,9 +13,10 @@ import butterknife.BindView;
 /**
  * Created by openapi on 2016/8/21.
  */
-public class NativeVideoHeaderFragment extends BaseFragment{
+public class NativeVideoHeaderFragment extends BaseFragment {
     @BindView(R.id.activity_native_video)
     public ViewGroup flBanner;
+
     @Override
     protected int getRootViewId() {
         return R.layout.layout_youmi_native_video;
@@ -30,10 +31,10 @@ public class NativeVideoHeaderFragment extends BaseFragment{
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
-        if(!isVisibleToUser){
+        if (!isVisibleToUser) {
 //            BaseAdsController.onPause(getActivity());
 //            BaseAdsController.onStop(getActivity());
         }
-        LogUtil.i("NativeVideoHeaderFragment:setUserVisibleHint:"+isVisibleToUser);
+        LogUtil.i("NativeVideoHeaderFragment:setUserVisibleHint:" + isVisibleToUser);
     }
 }

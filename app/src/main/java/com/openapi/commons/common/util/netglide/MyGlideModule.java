@@ -26,7 +26,7 @@ public class MyGlideModule extends AppGlideModule {
     @Override
     public void applyOptions(Context context, GlideBuilder builder) {
 //        builder.setDiskCache(new InternalCacheDiskCacheFactory(context, 1024 * 1024 * 100));//内部磁盘缓存
-        builder.setDiskCache(new MyGlideDiskCacheFactory(context, "myglide",100 * 1024 * 1024));//磁盘缓存到外部存储
+        builder.setDiskCache(new MyGlideDiskCacheFactory(context, "myglide", 100 * 1024 * 1024));//磁盘缓存到外部存储
         MemorySizeCalculator calculator = new MemorySizeCalculator.Builder(context).build();
         int defaultMemoryCacheSize = calculator.getMemoryCacheSize();
         int defaultBitmapPoolSize = calculator.getBitmapPoolSize();
@@ -37,9 +37,10 @@ public class MyGlideModule extends AppGlideModule {
                 new RequestOptions()
                         .format(DecodeFormat.PREFER_ARGB_8888));
     }
+
     @Override
     public void registerComponents(@NonNull Context context, @NonNull Glide glide, @NonNull Registry registry) {
-        OkHttpClient okHttpClient= UnsafeOkHttpClient.getUnsafeOkHttpClient();
+        OkHttpClient okHttpClient = UnsafeOkHttpClient.getUnsafeOkHttpClient();
         registry.replace(GlideUrl.class, InputStream.class, new OkHttpUrlLoader.Factory(okHttpClient));
     }
 }

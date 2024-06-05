@@ -3,6 +3,7 @@ package com.openapi.ks.myapp.base;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
+
 import androidx.multidex.MultiDex;
 import androidx.multidex.MultiDexApplication;
 
@@ -18,14 +19,8 @@ import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.DBManager;
 import com.openapi.ks.myapp.data.ImagePhotoLoad;
 import com.openapi.ks.myapp.data.VersionUpdater;
-
 import java.io.File;
-
 import butterknife.ButterKnife;
-import io.github.inflationx.calligraphy3.CalligraphyConfig;
-import io.github.inflationx.calligraphy3.CalligraphyInterceptor;
-import io.github.inflationx.viewpump.ViewPump;
-
 import static com.openapi.commons.common.CommonConstants.tmpFilePath;
 
 
@@ -40,6 +35,7 @@ public class MyApplication extends MultiDexApplication {
     private ImagePhotoLoad photoLoad;
     public static final String UPDATE_STATUS_ACTION = "com.openapi.ks.moviefree1.action.UPDATE_STATUS";
     public static boolean isTemp = false;
+
 
     //    public static RefWatcher getRefWatcher(Context context) {
 //        MyApplication application = (MyApplication) context.getApplicationContext();
@@ -77,7 +73,7 @@ public class MyApplication extends MultiDexApplication {
             Constants.initUserAgent(Constants.AGENT_APP_MYPOOL);
             DensityUtil.logDensity(this);
             DBManager.getInstance().setDebug();
-            isTemp =  false;
+            isTemp = false;
         }
         long cost = System.currentTimeMillis() - start;
         LogUtil.i("cpu=" + SystemUtils.getCpuType());
@@ -90,11 +86,6 @@ public class MyApplication extends MultiDexApplication {
 //                        .setFontAttrId(R.attr.fontPath)
 //                        .build()
 //        );
-        ViewPump.init(ViewPump.builder()
-                .addInterceptor(new CalligraphyInterceptor(new CalligraphyConfig.Builder()
-                        .setDefaultFontPath("fonts/Roboto-Monospace-Regular.ttf")
-                        .setFontAttrId(R.attr.fontPath)
-                        .build())).build());
         ijkInit();
         initChat();
     }
@@ -104,7 +95,7 @@ public class MyApplication extends MultiDexApplication {
     }
 
     private void initFilePath() {
-        tmpFilePath = FileUtils.getWriteFilePath(this)+ File.separator+"log";
+        tmpFilePath = FileUtils.getWriteFilePath(this) + File.separator + "log";
         LogUtil.i("tmpFilePath=" + tmpFilePath);
         FileUtils.ensureFile(this, tmpFilePath);
     }
@@ -113,6 +104,7 @@ public class MyApplication extends MultiDexApplication {
     public void onTerminate() {
         super.onTerminate();
     }
+
     @Override
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
@@ -120,6 +112,7 @@ public class MyApplication extends MultiDexApplication {
     }
 
     private static SharedPreferences mPreferences, metaData, eqPref;
+
     public static SharedPreferences getmPreferences() {
         return mPreferences;
     }
@@ -132,7 +125,7 @@ public class MyApplication extends MultiDexApplication {
         return eqPref;
     }
 
-    private void ijkInit(){
+    private void ijkInit() {
         //EXOPlayer内核，支持格式更多
 //        PlayerFactory.setPlayManager(Exo2PlayerManager.class);
 //        //系统内核模式
@@ -147,18 +140,13 @@ public class MyApplication extends MultiDexApplication {
 //        CacheFactory.setCacheManager(ProxyCacheManager.class);
     }
 
-    public void initChat(){
-//        //初始化工具类
-//        Utils.init(this);
-//        GsonUtils.setGsonDelegate(new Gson());
-//        // 应用程序入口处调用，避免手机内存过小，杀死后台进程后通过历史intent进入Activity造成SpeechUtility对象为null
-//        // 如在Application中调用初始化，需要在Mainifest中注册该Applicaiton
-//        // 注意：此接口在非主进程调用会返回null对象，如需在非主进程使用语音功能，请增加参数：SpeechConstant.FORCE_LOGIN+"=true"
-//        // 参数间使用半角“,”分隔。
-//        // 设置你申请的应用appid,请勿在'='与appid之间添加空格及空转义符
-//        // 注意： appid 必须和下载的SDK保持一致，否则会出现10407错误
-//        LogUtil.e("初始化讯飞");
-//        SpeechUtility createUtility = SpeechUtility.createUtility(this, "appid=" + "");
-//        LogUtil.e("初始化讯飞 " + createUtility);
+    public void initChat() {
+
+//        StorageService.unpack(this, "model-small-cn", "model",
+//                (model) -> {
+//                    MyApplication.modelCh = model;
+//                },
+//                (e) -> LogUtil.e("model-small-cn", e));
     }
+
 }

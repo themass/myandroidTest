@@ -2,7 +2,9 @@ package com.openapi.commons.common.ui.view;
 
 import android.content.Context;
 import android.graphics.Canvas;
+
 import androidx.appcompat.widget.AppCompatTextView;
+
 import android.text.Layout;
 import android.util.AttributeSet;
 

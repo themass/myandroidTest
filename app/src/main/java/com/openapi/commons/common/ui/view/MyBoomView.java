@@ -81,6 +81,7 @@ public class MyBoomView extends FrameLayout {
     public interface OnFavoriteItemClick {
 
         FavoriteVo getFavoriteDataUrl();
+
         String getBrowserDatUrl();
 
     }

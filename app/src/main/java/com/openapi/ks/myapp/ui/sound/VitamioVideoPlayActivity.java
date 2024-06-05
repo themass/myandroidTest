@@ -184,11 +184,11 @@ public class VitamioVideoPlayActivity extends LogActivity {
      * 当前亮度
      */
     private int mShowLightness;
-    HashMap<String,String> header = new HashMap<>();
+    HashMap<String, String> header = new HashMap<>();
     private Handler mHandler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message msg) {
-            if(mVideoView==null){
+            if (mVideoView == null) {
                 return true;
             }
             switch (msg.what) {
@@ -276,8 +276,8 @@ public class VitamioVideoPlayActivity extends LogActivity {
         Vitamio.isInitialized(this);
         setContentView(R.layout.layout_vitamio_video_play);
         unbinder = ButterKnife.bind(this);
-        vo = (RecommendVo)getIntent().getSerializableExtra(Constants.CONFIG_PARAM);
-        header.put(Constants.REFERER, com.openapi.commons.common.util.StringUtils.hasText(vo.baseurl)?vo.baseurl : vo.actionUrl);
+        vo = (RecommendVo) getIntent().getSerializableExtra(Constants.CONFIG_PARAM);
+        header.put(Constants.REFERER, com.openapi.commons.common.util.StringUtils.hasText(vo.baseurl) ? vo.baseurl : vo.actionUrl);
         header.put(Constants.USER_AGENT, Constants.USER_AGENT_DEF);
         init();
     }
@@ -286,7 +286,7 @@ public class VitamioVideoPlayActivity extends LogActivity {
         // 获取屏幕宽度
         Pair<Integer, Integer> screenPair = ScreenResolution.getResolution(this);
         mScreenWidth = screenPair.first;
-        mVideoView.setVideoPath(vo.actionUrl,header);
+        mVideoView.setVideoPath(vo.actionUrl, header);
         // 设置缓冲大小为2M
         mVideoView.setBufferSize(1024 * 1024 * 2);
 
@@ -325,15 +325,15 @@ public class VitamioVideoPlayActivity extends LogActivity {
      */
     private void addVideoViewListener() {
         // 准备播放完成
-        mVideoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener(){
-            public void onPrepared(MediaPlayer mp){
+        mVideoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            public void onPrepared(MediaPlayer mp) {
                 mVideoTotalTime = mVideoView.getDuration();
             }
         });
 
         // 正在缓冲
-        mVideoView.setOnBufferingUpdateListener(new MediaPlayer.OnBufferingUpdateListener(){
-            public void onBufferingUpdate(MediaPlayer mp, int percent){
+        mVideoView.setOnBufferingUpdateListener(new MediaPlayer.OnBufferingUpdateListener() {
+            public void onBufferingUpdate(MediaPlayer mp, int percent) {
                 if (!mIntoSeek) {
                     mProgressBar.setVisibility(View.VISIBLE);
                 }
@@ -347,8 +347,8 @@ public class VitamioVideoPlayActivity extends LogActivity {
                 }
             }
         });
-        mVideoView.setOnInfoListener(new MediaPlayer.OnInfoListener(){
-            public  boolean onInfo(MediaPlayer mp, int what, int extra){
+        mVideoView.setOnInfoListener(new MediaPlayer.OnInfoListener() {
+            public boolean onInfo(MediaPlayer mp, int what, int extra) {
                 switch (what) {
                     // 缓冲完成
                     case MediaPlayer.MEDIA_INFO_BUFFERING_END:
@@ -371,8 +371,8 @@ public class VitamioVideoPlayActivity extends LogActivity {
         });
 
         // 视频播放出错
-        mVideoView.setOnErrorListener(new MediaPlayer.OnErrorListener(){
-            public boolean onError(MediaPlayer mp, int what, int extra){
+        mVideoView.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+            public boolean onError(MediaPlayer mp, int what, int extra) {
                 if (what == MediaPlayer.MEDIA_ERROR_UNKNOWN) {
                     Toast.makeText(VitamioVideoPlayActivity.this, "该视频无法播放！", Toast.LENGTH_SHORT).show();
                 }
@@ -382,8 +382,8 @@ public class VitamioVideoPlayActivity extends LogActivity {
         });
 
         // 视频播放完成
-        mVideoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener(){
-            public void onCompletion(MediaPlayer mp){
+        mVideoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            public void onCompletion(MediaPlayer mp) {
                 Toast.makeText(VitamioVideoPlayActivity.this, "视频播放完成", Toast.LENGTH_SHORT).show();
                 mHandler.removeMessages(UPDATE_PLAY_TIME);
                 mHandler.removeMessages(HIDE_CONTROL_BAR);
@@ -676,12 +676,13 @@ public class VitamioVideoPlayActivity extends LogActivity {
 
         mIsFullScreen = true;
     }
+
     protected void hideBottomUIMenu() {
         //隐藏虚拟按键，并且全屏
-        if (Build.VERSION.SDK_INT >11 && Build.VERSION.SDK_INT < 19) { // lower api
+        if (Build.VERSION.SDK_INT > 11 && Build.VERSION.SDK_INT < 19) { // lower api
             View v = this.getWindow().getDecorView();
             v.setSystemUiVisibility(View.GONE);
-        } else if (Build.VERSION.SDK_INT  == 19) {
+        } else if (Build.VERSION.SDK_INT == 19) {
             //for new api versions.
             View decorView = getWindow().getDecorView();
             int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
@@ -703,7 +704,8 @@ public class VitamioVideoPlayActivity extends LogActivity {
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
 
         float width = getResources().getDisplayMetrics().heightPixels;
-        float height = getResources().getDisplayMetrics().widthPixels;;
+        float height = getResources().getDisplayMetrics().widthPixels;
+        ;
 //        float height= getResources().getDisplayMetrics().widthPixels;
         mVideoLayout.getLayoutParams().width = (int) width;
         mVideoLayout.getLayoutParams().height = (int) height;

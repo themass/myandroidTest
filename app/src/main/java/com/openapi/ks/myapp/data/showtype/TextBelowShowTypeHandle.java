@@ -18,13 +18,14 @@ import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOption
  * Created by openapi on 2017/11/30.
  */
 
-public class TextBelowShowTypeHandle implements ShowTypeHandle{
-    public void loadPhoto(final IndexRecommendAdapter.NaviItemViewHolder holder, RecommendVo vo, final Shimmer shimmer, boolean needShimmer, Context context){
-        RequestManager build = ImagePhotoLoad.getBuilder(context,vo.img);
-        LogUtil.d("GLIDE request "+vo.img);
+public class TextBelowShowTypeHandle implements ShowTypeHandle {
+    public void loadPhoto(final IndexRecommendAdapter.NaviItemViewHolder holder, RecommendVo vo, final Shimmer shimmer, boolean needShimmer, Context context) {
+        RequestManager build = ImagePhotoLoad.getBuilder(context, vo.img);
+        LogUtil.d("GLIDE request " + vo.img);
         build.load(vo.img).apply(ImagePhotoLoad.options).transition(withCrossFade(500)).listener(new MyGlideLibModule.LoggingListener()).into(new DrawableImageViewTarget(holder.ivPhoto));
     }
-    public void showTitle(final IndexRecommendAdapter.NaviItemViewHolder holder, RecommendVo vo, final Shimmer shimmer, boolean needShimmer, Context context){
+
+    public void showTitle(final IndexRecommendAdapter.NaviItemViewHolder holder, RecommendVo vo, final Shimmer shimmer, boolean needShimmer, Context context) {
         holder.ivTitle.setVisibility(View.GONE);
         holder.tvTitleBelow.setVisibility(View.VISIBLE);
     }

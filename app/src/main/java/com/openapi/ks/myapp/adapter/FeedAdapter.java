@@ -1,7 +1,9 @@
 package com.openapi.ks.myapp.adapter;
 
 import android.content.Context;
+
 import androidx.recyclerview.widget.RecyclerView;
+
 import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -31,7 +33,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public static final String ACTION_LIKE_BUTTON_CLICKED = "action_like_button_button";
     public static final String ACTION_LIKE_IMAGE_CLICKED = "action_like_image_button";
     public static final String style1 = "<span style=\"background:#BDD3F7\"> @All </span>";
-    public static final  String style2 = "<span style=\"background:#BDD3F7\"> %s </span>";
+    public static final String style2 = "<span style=\"background:#BDD3F7\"> %s </span>";
 
     public static final int VIEW_TYPE_DEFAULT = 1;
     public static final int VIEW_TYPE_LOADER = 2;
@@ -42,7 +44,8 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private boolean showLoadingView = false;
     private String likeUrl;
-    public FeedAdapter(Context context, List<IWannaVo> data, OnFeedItemClickListener listener,String likeUrl) {
+
+    public FeedAdapter(Context context, List<IWannaVo> data, OnFeedItemClickListener listener, String likeUrl) {
         this.context = context;
         this.listener = listener;
         this.feedItems = data;
@@ -69,7 +72,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 if (listener != null) {
                     listener.onCommentsClick(view, adapterPosition);
                 }
-                IWannaLikeTask.start(context, likeUrl,feedItems.get(adapterPosition).id);
+                IWannaLikeTask.start(context, likeUrl, feedItems.get(adapterPosition).id);
 //                }
 
             }
@@ -108,6 +111,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         public TextView name;
         @BindView(R.id.tv_time)
         public TextView time;
+
         public CellFeedViewHolder(View view) {
             super(view);
             ButterKnife.bind(this, view);
@@ -128,7 +132,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             }
             appName.setText(feedItem.appName);
             tvWhere.setText(feedItem.where);
-            time.setText(DateUtils.format(new Date(feedItem.time),DateUtils.DATETIME_FORMAT));
+            time.setText(DateUtils.format(new Date(feedItem.time), DateUtils.DATETIME_FORMAT));
             if (feedItem.finished || Constants.ADMIN.equals(feedItem.name)) {
                 ivOk.setVisibility(View.VISIBLE);
             } else {
@@ -140,13 +144,14 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             return feedItem;
         }
     }
-    private static String handleContent(String content){
-        if(!StringUtils.hasText(content))
+
+    private static String handleContent(String content) {
+        if (!StringUtils.hasText(content))
             return "";
-        content = content.replaceAll("@All",style1).replaceAll("@all",style1);
-        if(UserLoginUtil.getUserCache()!=null){
-            String name = "@"+UserLoginUtil.getUserCache().name;
-            content = content.replaceAll(name,String.format(style2,name));
+        content = content.replaceAll("@All", style1).replaceAll("@all", style1);
+        if (UserLoginUtil.getUserCache() != null) {
+            String name = "@" + UserLoginUtil.getUserCache().name;
+            content = content.replaceAll(name, String.format(style2, name));
         }
         return content;
     }

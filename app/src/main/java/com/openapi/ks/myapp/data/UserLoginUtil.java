@@ -62,10 +62,12 @@ public class UserLoginUtil {
         UserInfoVo vo = getUserCache();
         return !(vo == null || vo.level < Constants.UserLevel.LEVEL_VIP2);
     }
+
     public static boolean isVIP3() {
         UserInfoVo vo = getUserCache();
         return !(vo == null || vo.level < Constants.UserLevel.LEVEL_VIP3);
     }
+
     public static boolean showAds() {
         UserInfoVo vo = getUserCache();
         return vo == null || !vo.adsNo;

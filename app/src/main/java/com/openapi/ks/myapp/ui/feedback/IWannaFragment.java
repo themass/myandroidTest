@@ -3,8 +3,10 @@ package com.openapi.ks.myapp.ui.feedback;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -95,7 +97,7 @@ public class IWannaFragment extends LoadableFragment<InfoListVo<IWannaVo>> imple
         };
         infoVo.voList = new ArrayList<>();
         pullView.setLayoutManager(linearLayoutManager);
-        feedAdapter = new FeedAdapter(getActivity(), infoVo.voList, this,Constants.API_IWANNA_LIKE_URL);
+        feedAdapter = new FeedAdapter(getActivity(), infoVo.voList, this, Constants.API_IWANNA_LIKE_URL);
         pullView.setAdapter(feedAdapter);
         pullView.setListener(this);
         pullView.setItemAnimator(new FeedItemAnimator());

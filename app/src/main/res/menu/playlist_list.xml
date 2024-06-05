@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~ ©2017 Rajneesh Singh
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -13,7 +12,7 @@
   -->
 
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-      xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
         android:id="@+id/menu_refresh"
@@ -27,15 +26,15 @@
         <menu>
             <item
                 android:id="@+id/menu_sort_by_az"
-                android:title="@string/sort_order_entry_az"/>
+                android:title="@string/sort_order_entry_az" />
 
             <item
                 android:id="@+id/menu_sort_by_za"
-                android:title="@string/sort_order_entry_za"/>
+                android:title="@string/sort_order_entry_za" />
 
             <item
                 android:id="@+id/menu_sort_by_date"
-                android:title="@string/sort_order_entry_date"/>
+                android:title="@string/sort_order_entry_date" />
 
         </menu>
 
@@ -44,10 +43,11 @@
     <item
         android:id="@+id/action_create_playlist"
         android:title="@string/create_playlist"
-        app:showAsAction="never"/>
+        app:showAsAction="never" />
 
 
-    <item android:id="@+id/shuffle_all"
-        android:title="@string/shuffle_all"/>
+    <item
+        android:id="@+id/shuffle_all"
+        android:title="@string/shuffle_all" />
 
 </menu>

@@ -24,9 +24,9 @@ import java.util.Date;
 import java.util.List;
 
 import butterknife.BindView;
-import chat.asrassistant.model.ChatMessageBean;
 import chat.ui.data.fixtures.MessagesFixtures;
 import chat.ui.data.model.ChatHistory;
+import chat.ui.data.model.ChatMessageBean;
 import chat.ui.data.model.Message;
 import chat.ui.data.model.SimpleMessage;
 import chat.ui.data.model.User;
@@ -66,8 +66,8 @@ public class ChatMessagesListFragment extends BaseMessagesFragment
             messagesAdapter.update(holdMsg);
         }
     };
-    User my = new User( "0",MessagesFixtures.names.get(0), "https://img.zcool.cn/community/0160ad5dccabf4a8012129e2104360.jpg@1280w_1l_2o_100sh.jpg", true);
-    User gpt = new User("110",MessagesFixtures.names.get(0), "https://img2.baidu.com/it/u=2884927241,1894596673&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500", true);
+    User my = new User( "0","", "https://img.zcool.cn/community/0160ad5dccabf4a8012129e2104360.jpg@1280w_1l_2o_100sh.jpg", true);
+    User gpt = new User("110","", "https://img2.baidu.com/it/u=2884927241,1894596673&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500", true);
     private static String TAG="chat";
 
     @Override

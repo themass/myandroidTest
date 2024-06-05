@@ -6,5 +6,5 @@ import com.openapi.ks.myapp.bean.vo.NativeAdInfo;
 import java.util.List;
 
 public interface NativeAdsReadyListener {
-        boolean onAdRecieved(List<NativeAdInfo> data);
-    }
+    boolean onAdRecieved(List<NativeAdInfo> data);
+}

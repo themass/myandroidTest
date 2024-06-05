@@ -56,7 +56,7 @@ public class RegActivity extends BaseSingleActivity {
         @Override
         public void onResponse(NullReturnVo vo) {
             setEnabled(true);
-            ToastUtil.showShort( R.string.reg_success);
+            ToastUtil.showShort(R.string.reg_success);
         }
     };
 
@@ -87,8 +87,8 @@ public class RegActivity extends BaseSingleActivity {
         String repwd = etRePassword.getText().toString();
         String email = etEmail.getText().toString();
         int id = radioGroup.getCheckedRadioButtonId();
-        if (id == -1 || StringUtils.isEmpty(name) || StringUtils.isEmpty(pwd) || StringUtils.isEmpty(repwd)|| StringUtils.isEmpty(email)) {
-            ToastUtil.showShort( R.string.empty_name_pwd);
+        if (id == -1 || StringUtils.isEmpty(name) || StringUtils.isEmpty(pwd) || StringUtils.isEmpty(repwd) || StringUtils.isEmpty(email)) {
+            ToastUtil.showShort(R.string.empty_name_pwd);
             return;
         }
         if (!passPattern.matcher(pwd).matches()) {
@@ -104,7 +104,7 @@ public class RegActivity extends BaseSingleActivity {
             return;
         }
         if (!pwd.equals(repwd)) {
-            ToastUtil.showShort( R.string.error_repwd);
+            ToastUtil.showShort(R.string.error_repwd);
             return;
         }
         String sex = Constants.SEX_M;
@@ -112,7 +112,7 @@ public class RegActivity extends BaseSingleActivity {
             sex = Constants.SEX_F;
         }
         setEnabled(false);
-        RegForm form = new RegForm(name, pwd, repwd, sex,email,etRef.getText().toString());
+        RegForm form = new RegForm(name, pwd, repwd, sex, email, etRef.getText().toString());
         baseService.postData(Constants.getUrl(Constants.API_REG_URL), form, loginListener, new CommonResponse.ResponseErrorListener() {
             @Override
             protected void onError() {
@@ -152,6 +152,7 @@ public class RegActivity extends BaseSingleActivity {
     protected boolean enableSliding() {
         return true;
     }
+
     @Override
     public boolean needShow() {
         return false;

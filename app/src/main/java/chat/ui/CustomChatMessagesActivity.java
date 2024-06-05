@@ -1,18 +1,32 @@
 package chat.ui;
 
+import static com.luck.picture.lib.permissions.PermissionConfig.READ_EXTERNAL_STORAGE;
+import static com.luck.picture.lib.permissions.PermissionConfig.WRITE_EXTERNAL_STORAGE;
+import static com.openapi.commons.common.util.PermissionHelper.CAMERA;
+import static com.openapi.commons.common.util.PermissionHelper.RECORD_AUDIO;
+
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.hrl.chaui.widget.RecordButton;
+import com.luck.picture.lib.basic.PictureSelector;
+import com.luck.picture.lib.entity.LocalMedia;
+import com.openapi.commons.common.asr.AsrByteDance;
+import com.openapi.commons.common.ui.view.InputRecordView;
+import com.openapi.commons.common.ui.view.Mp3ToWav;
 import com.openapi.commons.common.util.DoubleClickExit;
 import com.openapi.commons.common.util.EventBusUtil;
 import com.openapi.commons.common.util.GsonUtils;
@@ -28,13 +42,11 @@ import com.openapi.ks.chatfree.R;
 import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.bean.form.ChatLog;
 import com.openapi.ks.myapp.bean.vo.Choice;
-import com.openapi.ks.myapp.bean.vo.UserInfoVo;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.DBManager;
 import com.openapi.ks.myapp.data.UserLoginUtil;
-import com.openapi.ks.myapp.data.config.ChatSessionEvent;
 import com.openapi.ks.myapp.data.config.ConfigActionJump;
-import com.openapi.ks.myapp.data.config.UserLoginEvent;
+import com.openapi.ks.myapp.data.config.PermEvent;
 import com.openapi.ks.myapp.service.LogUploadService;
 import com.openapi.ks.myapp.ui.base.BannerHeaderFragment;
 import com.openapi.ks.myapp.ui.inte.OnBackKeyDownListener;
@@ -42,31 +54,35 @@ import com.openapi.ks.myapp.ui.user.LoginActivity;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import butterknife.BindView;
+import chat.ui.adapter.MyMessagesListAdapter;
+import chat.ui.data.model.ChatMessageBean;
 import chat.ui.data.model.ChatHistory;
-import chat.asrassistant.model.ChatMessageBean;
 import chat.ui.data.fixtures.MessagesFixtures;
 import chat.ui.data.model.Message;
+import chat.ui.data.model.MessageType;
+import chat.ui.data.model.MsgContent;
 import chat.ui.data.model.SimpleMessage;
-import chat.ui.data.model.User;
 import chat.ui.utils.AppUtils;
-import de.hdodenhof.circleimageview.CircleImageView;
-import tz.co.hosannahighertech.messagekit.commons.models.IMessage;
-import tz.co.hosannahighertech.messagekit.messages.MessageHolders;
-import tz.co.hosannahighertech.messagekit.messages.MessageInput;
+import pub.devrel.easypermissions.AfterPermissionGranted;
+import pub.devrel.easypermissions.AppSettingsDialog;
+import pub.devrel.easypermissions.EasyPermissions;
 import tz.co.hosannahighertech.messagekit.messages.MessagesList;
-import tz.co.hosannahighertech.messagekit.messages.MessagesListAdapter;
 
 public class CustomChatMessagesActivity extends BaseChatMessagesActivity
-        implements MessageInput.InputListener,
-        MessageInput.AttachmentsListener, ActivityCompat.OnRequestPermissionsResultCallback{
+        implements ActivityCompat.OnRequestPermissionsResultCallback, AsrByteDance.AsrCallBackListener, EasyPermissions.PermissionCallbacks,
+        EasyPermissions.RationaleCallbacks {
 
     public static void open(Context context) {
         context.startActivity(new Intent(context, CustomChatMessagesActivity.class));
@@ -75,20 +91,23 @@ public class CustomChatMessagesActivity extends BaseChatMessagesActivity
     @BindView(R.id.messagesList)
     MessagesList messagesList;
     @BindView(R.id.input)
-    MessageInput input;
+    InputRecordView input;
     @BindView(R.id.fl_banner)
     FrameLayout banner;
     private Set<OnBackKeyDownListener> keyListeners = new HashSet<>();
     private List<SimpleMessage> history = new ArrayList<>();
+    private AsrByteDance asrByteDance = new AsrByteDance();
     CommonResponse.ResponseOkListener listener = new CommonResponse.ResponseOkListener<Choice>() {
         @Override
         public void onResponse(Choice vo) {
             Message holdMsg = new Message(vo.getId(), gpt, vo.getMessage().getContent());
             LogUtil.i(vo);
-            history.add(new SimpleMessage(holdMsg.getText(),"assistant"));
-            if(!StringUtils.isEmpty(vo.getMessage().getContent())){
+            history.add(new SimpleMessage(holdMsg.getText(), "assistant"));
+            if (!StringUtils.isEmpty(vo.getMessage().getContent())) {
+                MsgContent msgContent = new MsgContent();
+                msgContent.setContent(vo.getMessage().getContent());
                 ChatLog relog = new ChatLog();
-                relog.content = vo.getMessage().getContent();
+                relog.content = GsonUtils.getInstance().toJson(msgContent);
                 relog.who = ChatMessageBean.TYPE_RECEIVED;
                 relog.setChatId(vo.getId());
                 relog.createTime = new Date();
@@ -98,9 +117,11 @@ public class CustomChatMessagesActivity extends BaseChatMessagesActivity
             messagesAdapter.update(holdMsg);
         }
     };
-    private static String TAG="chat";
+    private static String TAG = "chat";
     private ConfigActionJump jump = new ConfigActionJump();
     private PermissionHelper mPermissionHelper;
+    public static final int RC_CAMERA_PERM = 123;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -108,11 +129,36 @@ public class CustomChatMessagesActivity extends BaseChatMessagesActivity
         EventBusUtil.getEventBus().register(jump);
         mPermissionHelper = new PermissionHelper(this);
         EventBusUtil.getEventBus().register(this);
-        mPermissionHelper.checkNeedPermissions();
+//        mPermissionHelper.checkNeedPermissions();
         AdsContext.showNext(this);
         initBanner();
+        initPerm();
     }
-    private void initBanner(){
+
+    private boolean hasPerm() {
+        return EasyPermissions.hasPermissions(this, PermissionHelper.requestPermissions.toArray(new String[PermissionHelper.requestPermissions.size()]));
+    }
+
+    private void request() {
+        LogUtil.i("perm 弹窗");
+        EasyPermissions.requestPermissions(this,
+                getString(R.string.permission_need_toast), RC_CAMERA_PERM,
+                RECORD_AUDIO, CAMERA, WRITE_EXTERNAL_STORAGE);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void initPermEvent(PermEvent event){
+        initPerm();
+    }
+    @AfterPermissionGranted(RC_CAMERA_PERM)
+    public void initPerm(){
+        LogUtil.i("onTouchEvent stop");
+        if(!hasPerm()){
+            request();
+        }
+    }
+
+    private void initBanner() {
         BannerHeaderFragment myFragment = BannerHeaderFragment.getNewInstans(AdsContext.Categrey.CATEGREY_VPN);
         FragmentManager fragmentManager = getSupportFragmentManager();
         // 开始Fragment事务
@@ -128,69 +174,50 @@ public class CustomChatMessagesActivity extends BaseChatMessagesActivity
     public void setupView() {
         super.setupView();
         initAdapter();
-        input.setInputListener(this);
-        input.setAttachmentsListener(this);
+        initVosk();
+//        input.setInputListener(this);
+//        input.setAttachmentsListener(this);
+        input.setAudioFinishListener(new RecordButton.OnFinishedRecordListener() {
+            @Override
+            public void onFinishedRecord(String audioPath, int time) {
+                LogUtil.i("录音结束回调");
+                File file = new File(audioPath);
+                if (file.exists()) {
+                    sendAudioMessage(audioPath, time);
+                }
+            }
+        });
+        input.setPicSelectListener(new InputRecordView.PicSelectListener() {
+            @Override
+            public void sendMessage(String content) {
+                sendTextMsg(content);
+            }
+
+            @Override
+            public Activity picSelect() {
+                return CustomChatMessagesActivity.this;
+            }
+        });
     }
+
     @Override
     public void onSelectionChanged(int count) {
         super.onSelectionChanged(count);
         AppUtils.showToast(this, getString(R.string.on_log_selected_messages, count), false);
     }
 
-    @Override
-    public boolean onSubmit(CharSequence input) {
-        if(UserLoginUtil.getUserCache()==null){
-            ToastUtil.showShort(R.string.need_login);
-            startActivity(new Intent(this, LoginActivity.class));
-            return true;
-        }
-        String content = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.MY_SETTING,"");
-        if (!input.toString().isEmpty()) {
-            Message myMsg = new Message(MessagesFixtures.getRandomId(), my, input.toString());
-            messagesAdapter.addToStart(myMsg, true);
-            LogUtil.i(input.toString());
-            Message holdMsg = new Message(MessagesFixtures.getRandomId(), gpt, getString(R.string.hold_please));
-            messagesAdapter.addToStart(holdMsg, true);
-            ChatLog relog = new ChatLog();
-            relog.content = input.toString();
-            relog.who = ChatMessageBean.TYPE_SEND;
-            relog.setChatId(myMsg.getId());
-            relog.createTime = new Date();
-            relog.sessionId = sessionId;
-            DBManager.getInstance().saveChatLog(relog);
-            history.add(new SimpleMessage(myMsg.getText(),"user"));
-            ChatHistory chatHistory = new ChatHistory();
-            chatHistory.setContent(GsonUtils.getInstance().toJson(history));
-            chatHistory.setId(holdMsg.getId());
-            chatHistory.setCharater(content);
-            baseService.postData(String.format(Constants.getUrl(Constants.CHAT_URL)),chatHistory, listener, new CommonResponse.ResponseErrorListener() {
-                @Override
-                protected void onError() {
-                    super.onError();
-                }
-            }, TAG, Choice.class);
-        }
-        return true;
-    }
-
-    @Override
-    public void onAddAttachments() {
-//        messagesAdapter.addToStart(MessagesFixtures.getImageMessage(), true);
-        ToastUtil.showShort(R.string.tab_vip_temp);
-    }
-
     private void initAdapter() {
-        MessageHolders holdersConfig = new MessageHolders()
-                .setIncomingTextLayout(R.layout.item_custom_incoming_text_message)
-                .setOutcomingTextLayout(R.layout.item_custom_outcoming_text_message)
-                .setIncomingImageLayout(R.layout.item_custom_incoming_image_message)
-                .setOutcomingImageLayout(R.layout.item_custom_outcoming_image_message);
-        holdersConfig.setOutcomingTextConfig(MyOutComingMassageHandler.class, R.layout.item_custom_outcoming_text_message);
-
-        messagesAdapter = new MessagesListAdapter<>(super.senderId, holdersConfig, super.imageLoader);
+        messagesAdapter = new MyMessagesListAdapter(super.senderId);
         messagesAdapter.enableSelectionMode(this);
         messagesAdapter.setLoadMoreListener(this);
         messagesList.setAdapter(messagesAdapter);
+        messagesList.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                input.closeKeypad();
+                return false;
+            }
+        });
         loadMessages();
 
     }
@@ -199,15 +226,21 @@ public class CustomChatMessagesActivity extends BaseChatMessagesActivity
     public void onRequestPermissionsResult(final int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this);
+
         if (grantResults != null) {
+            Arrays.stream(grantResults).allMatch(o -> o == PackageManager.PERMISSION_GRANTED);
             for (int ret : grantResults) {
                 if (ret != PackageManager.PERMISSION_GRANTED) {
-                    finish();
+                    ToastUtil.showLong(R.string.permission_need_toast);
+                    return;
                 }
             }
+            asrByteDance.sendEngine(this);
         }
-        mPermissionHelper.checkNeedPermissions();
+//        mPermissionHelper.checkNeedPermissions();
     }
+
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         LogUtil.i("onKeyUp");
@@ -236,6 +269,7 @@ public class CustomChatMessagesActivity extends BaseChatMessagesActivity
         }
         return super.onKeyDown(keyCode, event);
     }
+
     public void addListener(OnBackKeyDownListener keyListener) {
         keyListeners.add(keyListener);
     }
@@ -243,6 +277,7 @@ public class CustomChatMessagesActivity extends BaseChatMessagesActivity
     public void removeListener(OnBackKeyDownListener keyListener) {
         keyListeners.remove(keyListener);
     }
+
     @Override
     public void onDestroy() {
         LogUtil.i("main destory");
@@ -250,35 +285,345 @@ public class CustomChatMessagesActivity extends BaseChatMessagesActivity
         EventBusUtil.getEventBus().unregister(jump);
         EventBusUtil.getEventBus().unregister(this);
         super.onDestroy();
+        stopSpeed();
         MobAgent.killProcess(this);
         System.exit(0);
     }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        mPermissionHelper.checkNeedPermissions();
-    }
-    public static class MyOutComingMassageHandler extends MessageHolders.OutcomingTextMessageViewHolder<IMessage> {
-        CircleImageView messageUserAvatar;
-        public MyOutComingMassageHandler(View itemView, Object payload) {
-            super(itemView, payload);
-            messageUserAvatar = (CircleImageView) itemView.findViewById(R.id.messageUserAvatar);
-        }
-
-        @Override
-        public void onBind(IMessage message) {
-            super.onBind(message);
-            UserInfoVo vo = UserLoginUtil.getUserCache();
-            if (vo != null) {
-                if (Constants.SEX_M.equals(vo.sex)) {
-                    messageUserAvatar.setImageResource(R.drawable.ic_default_nan);
-                } else {
-                    messageUserAvatar.setImageResource(R.drawable.ic_default_nv);
-                }
-            }else {
-                messageUserAvatar.setImageResource(R.drawable.ic_default_nan);
+//        mPermissionHelper.checkNeedPermissions();
+        if (resultCode == RESULT_OK) {
+            switch (requestCode) {
+                case InputRecordView.REQUEST_CODE_FILE:
+//                    String filePath = data.getStringExtra(FilePickerActivity.RESULT_FILE_PATH);
+//                    LogUtil.d("获取到的文件路径:"+filePath);
+//                    sendFileMessage(mSenderId, mTargetId, filePath);
+                    break;
+                case InputRecordView.REQUEST_CODE_IMAGE:
+                    // 图片选择结果回调
+                    List<LocalMedia> selectListPic = PictureSelector.obtainSelectorList(data);
+                    for (LocalMedia media : selectListPic) {
+                        LogUtil.i("获取图片路径成功:" + media.getPath());
+                        sendImageMessage(media);
+                    }
+                    break;
+                case InputRecordView.REQUEST_CODE_VEDIO:
+                    // 视频选择结果回调
+                    List<LocalMedia> selectListVideo = PictureSelector.obtainSelectorList(data);
+                    for (LocalMedia media : selectListVideo) {
+                        LogUtil.i("获取视频路径成功:" + media.getPath());
+                        sendVodeoMessage(media);
+                    }
+                    break;
+                case AppSettingsDialog.DEFAULT_SETTINGS_REQ_CODE:
+                    if(hasPerm()){
+                        ToastUtil.showShort(R.string.permission_need_toast);
+                    }
+                    break;
             }
-//            imageLoader.loadImage(messageUserAvatar,message.getUser().getAvatar(),null);
         }
+    }
+
+    //文本消息
+    private void sendTextMsg(String hello) {
+        //开始发送
+        if (UserLoginUtil.getUserCache() == null) {
+            ToastUtil.showShort(R.string.need_login);
+            startActivity(new Intent(this, LoginActivity.class));
+            return;
+        }
+        String content = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.MY_SETTING, "");
+        if (!StringUtils.isEmpty(hello)) {
+            MsgContent msgContent = new MsgContent();
+            msgContent.setContent(hello);
+            Message myMsg = new Message(MessagesFixtures.getRandomId(), my, hello);
+            messagesAdapter.addToStart(myMsg, true);
+            LogUtil.i("发送消息： " + hello);
+            Message holdMsg = new Message(MessagesFixtures.getRandomId(), gpt, getString(R.string.hold_please));
+            messagesAdapter.addToStart(holdMsg, true);
+            ChatLog relog = new ChatLog();
+            relog.content = GsonUtils.getInstance().toJson(msgContent);
+            relog.who = ChatMessageBean.TYPE_SEND;
+            relog.setChatId(myMsg.getId());
+            relog.createTime = new Date();
+            relog.sessionId = sessionId;
+            DBManager.getInstance().saveChatLog(relog);
+            history.add(new SimpleMessage(myMsg.getText(), "user"));
+            ChatHistory chatHistory = new ChatHistory();
+            chatHistory.setContent(GsonUtils.getInstance().toJson(history));
+            chatHistory.setId(holdMsg.getId());
+            chatHistory.setCharater(content);
+            baseService.postData(String.format(Constants.getUrl(Constants.CHAT_URL)), chatHistory, listener, new CommonResponse.ResponseErrorListener() {
+                @Override
+                protected void onError() {
+                    super.onError();
+                }
+            }, TAG, Choice.class);
+        }
+    }
+
+
+    //图片消息
+    private void sendImageMessage(final LocalMedia media) {
+//        final com.hrl.chaui.bean.Message mMessgae = getBaseSendMessage(MsgType.IMAGE);
+//        ImageMsgBody mImageMsgBody = new ImageMsgBody();
+//        mImageMsgBody.setThumbUrl(media.getCompressPath());
+//        mMessgae.setBody(mImageMsgBody);
+        //开始发送
+//        mAdapter.addData(mMessgae);
+//        模拟两秒后发送成功
+//        updateMsg(mMessgae);
+    }
+
+
+    //视频消息
+    private void sendVodeoMessage(final LocalMedia media) {
+//        final com.hrl.chaui.bean.Message mMessgae = getBaseSendMessage(MsgType.VIDEO);
+//        //生成缩略图路径
+//        String vedioPath = media.getPath();
+//        MediaMetadataRetriever mediaMetadataRetriever = new MediaMetadataRetriever();
+//        mediaMetadataRetriever.setDataSource(vedioPath);
+//        Bitmap bitmap = mediaMetadataRetriever.getFrameAtTime();
+//        String imgname = System.currentTimeMillis() + ".jpg";
+//        String urlpath = Environment.getExternalStorageDirectory() + "/" + imgname;
+//        File f = new File(urlpath);
+//        try {
+//            if (f.exists()) {
+//                f.delete();
+//            }
+//            FileOutputStream out = new FileOutputStream(f);
+//            bitmap.compress(Bitmap.CompressFormat.PNG, 90, out);
+//            out.flush();
+//            out.close();
+//        } catch (Exception e) {
+//            com.hrl.chaui.util.LogUtil.d("视频缩略图路径获取失败：" + e.toString());
+//            e.printStackTrace();
+//        }
+//        VideoMsgBody mImageMsgBody = new VideoMsgBody();
+//        mImageMsgBody.setExtra(urlpath);
+//        mMessgae.setBody(mImageMsgBody);
+        //开始发送
+//        mAdapter.addData(mMessgae);
+//        //模拟两秒后发送成功
+//        updateMsg(mMessgae);
+
+    }
+
+    //文件消息
+    private void sendFileMessage(String from, String to, final String path) {
+//        final com.hrl.chaui.bean.Message mMessgae = getBaseSendMessage(MsgType.FILE);
+//        FileMsgBody mFileMsgBody = new FileMsgBody();
+//        mFileMsgBody.setLocalPath(path);
+//        mFileMsgBody.setDisplayName(FileUtils.getFileName(path));
+//        mFileMsgBody.setSize(FileUtils.getFileLength(path));
+//        mMessgae.setBody(mFileMsgBody);
+        //开始发送
+//        mAdapter.addData(mMessgae);
+//        //模拟两秒后发送成功
+//        updateMsg(mMessgae);
+
+    }
+
+    List<MsgContent> msgContents = new ArrayList<>();
+
+    //语音消息
+    private void sendAudioMessage(final String path, int time) {
+        if (UserLoginUtil.getUserCache() == null) {
+            ToastUtil.showShort(R.string.need_login);
+            startActivity(new Intent(this, LoginActivity.class));
+            return;
+        }
+        String wavPath = path.replace("mp3", "wav");
+        Mp3ToWav.convertMP3ToPCM(path, wavPath);
+        String asr = path;
+        if (!StringUtils.isEmpty(path)) {
+            Message myMsg = new Message(MessagesFixtures.getRandomId(), my, null);
+            myMsg.setMsgType(MessageType.AUDIO_TYPE);
+            myMsg.setVoice(new Message.Voice(path, time));
+            messagesAdapter.addToStart(myMsg, true);
+
+            Message holdMsg = new Message(MessagesFixtures.getRandomId(), gpt, getString(R.string.hold_please));
+            messagesAdapter.addToStart(holdMsg, true);
+
+            MsgContent msgContent = new MsgContent();
+            msgContent.setContent(path);
+            msgContent.setOrg(asr);
+            msgContent.setTime(time);
+            msgContent.setMsgId(myMsg.getId());
+            msgContent.setHoldId(holdMsg.getId());
+            msgContents.add(msgContent);
+
+            recognizeFile(wavPath, msgContent);
+        }
+    }
+
+
+    private void updateMsg(final com.hrl.chaui.bean.Message mMessgae) {
+
+    }
+
+    //----------------------------------------------------------------------
+//    private SpeechService speechService;
+//    private SpeechStreamService speechStreamService;
+//    public Model modelEn;
+
+    private void initVosk() {
+        asrByteDance.initEngine(this, this);
+        asrByteDance.sendEngine(this);
+//        LibVosk.setLogLevel(LogLevel.INFO);
+//        StorageService.unpack(this, "model-small-cn", "model",
+//                (model) -> {
+//                    LogUtil.i("model-en-us ok");
+//                    this.modelEn = model;
+//                },
+//                (e) -> LogUtil.e("model-en-us error", e));
+    }
+
+    private void stopSpeed() {
+//        if (speechService != null) {
+//            speechService.stop();
+//            speechService.shutdown();
+//        }
+//
+//        if (speechStreamService != null) {
+//            speechStreamService.stop();
+//        }
+    }
+
+    private void recognizeFile(String filePath, MsgContent msgContent) {
+        asrByteDance.sendEngine(filePath, msgContent);
+//        if (speechStreamService != null) {
+//            speechStreamService.stop();
+//            speechStreamService = null;
+//        } else {
+//            try {
+//                LogUtil.i(this.modelEn);
+//                Recognizer rec = new Recognizer(this.modelEn, 16000.f);
+////                InputStream ais = getAssets().open(
+////                        "10001-90210-01803.wav");
+//                InputStream ais = new FileInputStream(wavPath);;
+//                if (ais.skip(44) != 44) throw new IOException("File too short");
+//
+//                speechStreamService = new SpeechStreamService(rec, ais, 16000);
+//                speechStreamService.start(this);
+//            } catch (IOException e) {
+//                LogUtil.e(e);
+//            }
+//        }
+    }
+
+//    @Override
+//    public void onResult(String hypothesis) {
+//        LogUtil.i("onResult:" + hypothesis);
+//    }
+//
+//    @Override
+//    public void onFinalResult(String hypothesis) {
+//        LogUtil.i("onFinalResult:" + hypothesis);
+//        if (speechStreamService != null) {
+//            speechStreamService = null;
+//        }
+//    }
+
+//    @Override
+//    public void onPartialResult(String hypothesis) {
+//        LogUtil.i("onPartialResult:" + hypothesis);
+//    }
+//
+//    @Override
+//    public void onError(Exception e) {
+//        LogUtil.e("onError:", e);
+//    }
+//
+//    @Override
+//    public void onTimeout() {
+//        LogUtil.e("onTimeout");
+//    }
+
+    @Override
+    public void speechAsrResult(String data, boolean isFinish) {
+
+        if (isFinish && !StringUtils.isEmpty(data)) {
+            this.runOnUiThread(() -> {
+                try {
+                    // 从回调的 json 数据中解析 ASR 结果
+                    JSONObject reader = new JSONObject(data);
+                    if (!reader.has("result")) {
+                        return;
+                    }
+                    String text = reader.getJSONArray("result").getJSONObject(0).getString("text");
+                    if (text.isEmpty()) {
+                        text = "......";
+                    }
+                    LogUtil.i("发送消息： " + text);
+                    LogUtil.i("msgContents:"+msgContents);
+                    MsgContent msgContent = msgContents.remove(0);
+                    msgContent.setOrg(text);
+                    Message sendMsg = messagesAdapter.getMessageByIndex(messagesAdapter.getMessagePositionById(msgContent.getMsgId()));
+                    sendMsg.setText(text);
+                    LogUtil.i("find msg id="+msgContent.getMsgId()+"; sendMsg="+sendMsg+"; msgContent="+msgContent);
+                    messagesAdapter.update(sendMsg);
+                    String content = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.MY_SETTING, "");
+                    ChatLog relog = new ChatLog();
+                    relog.content = GsonUtils.getInstance().toJson(msgContent);
+                    relog.msgType = MessageType.AUDIO_TYPE;
+                    relog.who = ChatMessageBean.TYPE_SEND;
+                    relog.setChatId(msgContent.getMsgId());
+                    relog.createTime = new Date();
+                    relog.sessionId = sessionId;
+                    DBManager.getInstance().saveChatLog(relog);
+
+
+                    history.add(new SimpleMessage(text, "user"));
+                    ChatHistory chatHistory = new ChatHistory();
+                    chatHistory.setContent(GsonUtils.getInstance().toJson(history));
+                    chatHistory.setId(msgContent.getHoldId());
+                    chatHistory.setCharater(content);
+                    baseService.postData(String.format(Constants.getUrl(Constants.CHAT_URL)), chatHistory, listener, new CommonResponse.ResponseErrorListener() {
+                        @Override
+                        protected void onError() {
+                            super.onError();
+                        }
+                    }, TAG, Choice.class);
+                } catch (JSONException e) {
+                    LogUtil.e(e);
+                }
+            });
+
+        }
+    }
+
+    @Override
+    public void speechStart(String id) {
+
+    }
+
+    @Override
+    public void speechStop() {
+
+    }
+
+    @Override
+    public void onPermissionsGranted(int requestCode, @NonNull List<String> perms) {
+
+    }
+
+    @Override
+    public void onPermissionsDenied(int requestCode, @NonNull List<String> perms) {
+        if (EasyPermissions.somePermissionPermanentlyDenied(this, perms)) {
+            new AppSettingsDialog.Builder(this).setRationale(R.string.permission_need).build().show();
+        }
+    }
+
+    @Override
+    public void onRationaleAccepted(int requestCode) {
+
+    }
+
+    @Override
+    public void onRationaleDenied(int requestCode) {
+
     }
 }

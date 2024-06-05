@@ -7,8 +7,9 @@ import com.openapi.commons.yewu.ads.base.AdsContext;
  */
 
 public class BannerAdsNext {
-    public BannerAdsNext(AdsContext.AdsFrom from){
+    public BannerAdsNext(AdsContext.AdsFrom from) {
         this.from = from;
     }
+
     public AdsContext.AdsFrom from;
 }

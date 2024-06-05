@@ -8,8 +8,9 @@ import com.openapi.commons.common.ui.base.BaseFragment;
 public class FeedbackCateVo {
     public String name;
     public Class<? extends BaseFragment> clasz;
-    public FeedbackCateVo(String name, Class<? extends BaseFragment>  clasz){
-        this.name=name;
+
+    public FeedbackCateVo(String name, Class<? extends BaseFragment> clasz) {
+        this.name = name;
         this.clasz = clasz;
     }
 }

@@ -43,7 +43,7 @@ public class HttpDNSUtil {
     public static String getIPByHost(String url) {
 //        boolean needDnspod = PreferenceUtils.getPrefBoolean(MyApplication.getInstance(), Constants.NEED_DNSPOD_CONFIG, true) && url.contains("api.openapi.com");
         boolean needDnspod = false;
-        LogUtil.i("needDnspod="+needDnspod);
+        LogUtil.i("needDnspod=" + needDnspod);
         if (!needDnspod) {
             return url;
         }
@@ -101,7 +101,8 @@ public class HttpDNSUtil {
         }
         return url;
     }
-    public static String getIPByHostNotCache(String hostName){
+
+    public static String getIPByHostNotCache(String hostName) {
         HttpUrl httpUrl = new HttpUrl.Builder()
                 .scheme("http")
                 .host(DNS_POD_IP)
@@ -126,7 +127,7 @@ public class HttpDNSUtil {
                     return result;
                 }
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             return "0.0.0.0";
         }
         return "0.0.0.0";

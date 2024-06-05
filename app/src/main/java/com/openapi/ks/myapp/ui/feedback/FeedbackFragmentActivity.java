@@ -1,6 +1,7 @@
 package com.openapi.ks.myapp.ui.feedback;
 
 import android.os.Bundle;
+
 import androidx.fragment.app.Fragment;
 
 import com.openapi.commons.common.util.LogUtil;
@@ -31,10 +32,11 @@ public class FeedbackFragmentActivity extends BaseFragmentActivity implements Fa
     private boolean showInterstitialAds = false;
     private Boolean slidingClose = false;
     private Boolean toolbarShow = true;
-    private AdsContext.Categrey bannerCategrey =  AdsContext.Categrey.CATEGREY_VPN2;
-    private AdsContext.Categrey interCategrey =  AdsContext.Categrey.CATEGREY_VPN2;
+    private AdsContext.Categrey bannerCategrey = AdsContext.Categrey.CATEGREY_VPN2;
+    private AdsContext.Categrey interCategrey = AdsContext.Categrey.CATEGREY_VPN2;
     private boolean needGonebanner = true;
     private Fragment fragment = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         slidingClose = getIntent().getBooleanExtra(SLIDINGCLOSE, true);
@@ -42,7 +44,7 @@ public class FeedbackFragmentActivity extends BaseFragmentActivity implements Fa
         setContentView(R.layout.common_fragment);
         boolean scroll = getIntent().getBooleanExtra(ADSSCROLL, true);
         toolbarShow = getIntent().getBooleanExtra(TOOLBAR_SHOW, true);
-        showInterstitialAds =getIntent().getBooleanExtra(INTERSTITIAL_ADS_SHOW, false);
+        showInterstitialAds = getIntent().getBooleanExtra(INTERSTITIAL_ADS_SHOW, false);
         needGonebanner = getIntent().getBooleanExtra(BANNER_NEED_GONE, true);
         if (!scroll) {
             disableScrollBanner();
@@ -51,12 +53,12 @@ public class FeedbackFragmentActivity extends BaseFragmentActivity implements Fa
         Class f = (Class) getIntent().getSerializableExtra(FRAGMENT);
         showAds = getIntent().getBooleanExtra(BANNER_ADS_SHOW, false);
         Object o = getIntent().getSerializableExtra(BANNER_ADS_CATEGRY);
-        if(o!=null){
-            bannerCategrey = (AdsContext.Categrey)o;
+        if (o != null) {
+            bannerCategrey = (AdsContext.Categrey) o;
         }
         o = getIntent().getSerializableExtra(INTERSTITIAL_ADS_CATEGRY);
-        if(o!=null){
-            interCategrey = (AdsContext.Categrey)o;
+        if (o != null) {
+            interCategrey = (AdsContext.Categrey) o;
         }
         String title = null;
         Serializable name = getIntent().getSerializableExtra(TITLE);
@@ -87,9 +89,10 @@ public class FeedbackFragmentActivity extends BaseFragmentActivity implements Fa
     }
 
     @Override
-    protected boolean needGoneBanner(){
+    protected boolean needGoneBanner() {
         return needGonebanner;
     }
+
     public boolean needShow() {
         if (showAds != null) {
             return showAds;
@@ -106,14 +109,15 @@ public class FeedbackFragmentActivity extends BaseFragmentActivity implements Fa
     protected AdsContext.Categrey getBannerCategrey() {
         return bannerCategrey;
     }
+
     @Override
     public void onBackPressed() {
-        if(fragment instanceof OnBackKeyDownListener){
-            boolean ret = ((OnBackKeyDownListener)fragment).onkeyBackDown();
-            if(!ret){
+        if (fragment instanceof OnBackKeyDownListener) {
+            boolean ret = ((OnBackKeyDownListener) fragment).onkeyBackDown();
+            if (!ret) {
                 super.onBackPressed();
             }
-        }else{
+        } else {
             super.onBackPressed();
         }
 

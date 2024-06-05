@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-        android:width="24dp"
-        android:height="30dp"
-        android:viewportWidth="24"
-        android:viewportHeight="30"
-    >
+    android:width="24dp"
+    android:height="30dp"
+    android:viewportWidth="24"
+    android:viewportHeight="30">
 
     <group
         android:translateX="-129.000000"
@@ -32,7 +31,7 @@ M11.2555688,14.0087989 C11.2555688,14.0087989 12.0998113,13.9099552
 15.6062988,17.5142196 15.2396385,16.8314237 C14.9953198,16.3764525
 14.5710835,15.9392924 14.3081448,15.8524946 C13.5185823,15.5918548
 12.8471465,15.7189647 12.8471465,15.7189647 L11.2555688,14.0087989 Z M13.5,10.5
-L13.5,2.25 L21.75,10.5 L13.5,10.5 Z"/>
+L13.5,2.25 L21.75,10.5 L13.5,10.5 Z" />
         </group>
     </group>
 </vector>

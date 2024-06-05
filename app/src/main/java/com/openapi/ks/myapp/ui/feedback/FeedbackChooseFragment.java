@@ -3,6 +3,7 @@ package com.openapi.ks.myapp.ui.feedback;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -41,6 +42,7 @@ public class FeedbackChooseFragment extends LoadableFragment<InfoListVo<Feedback
     ViewPager viewPager;
     InfoListVo<FeedbackCateVo> vo = new InfoListVo<FeedbackCateVo>();
     FragmentPagerAdapter adapter;
+
     public static void startFragment(Context context) {
         Intent intent = new Intent(context, FeedbackFragmentActivity.class);
         intent.putExtra(CommonFragmentActivity.FRAGMENT, FeedbackChooseFragment.class);
@@ -82,13 +84,13 @@ public class FeedbackChooseFragment extends LoadableFragment<InfoListVo<Feedback
     @Override
     protected InfoListVo<FeedbackCateVo> loadData(Context context) throws Exception {
         InfoListVo<FeedbackCateVo> list = new InfoListVo<FeedbackCateVo>();
-        list.hasMore=false;
-        list.pageNum=1;
-        list.total=2;
+        list.hasMore = false;
+        list.pageNum = 1;
+        list.total = 2;
         List<FeedbackCateVo> cateVoList = new ArrayList<>();
-        FeedbackCateVo wannt = new FeedbackCateVo(getString(R.string.iwanna_title),IWannaFragment.class);
+        FeedbackCateVo wannt = new FeedbackCateVo(getString(R.string.iwanna_title), IWannaFragment.class);
         cateVoList.add(wannt);
-        FeedbackCateVo feed = new FeedbackCateVo(getString(R.string.money_back_title),FeedbackFragment.class);
+        FeedbackCateVo feed = new FeedbackCateVo(getString(R.string.money_back_title), FeedbackFragment.class);
         cateVoList.add(feed);
         list.voList = cateVoList;
         return list;
@@ -110,11 +112,11 @@ public class FeedbackChooseFragment extends LoadableFragment<InfoListVo<Feedback
         @Override
         public Fragment getItem(int position) {
             //新建一个Fragment来展示ViewPager item的内容，并传递参数
-            Class<? extends BaseFragment> clasz =  vo.voList.get(position).clasz;
+            Class<? extends BaseFragment> clasz = vo.voList.get(position).clasz;
             BaseFragment fragment = null;
             try {
                 fragment = clasz.newInstance();
-            }catch (Exception e){
+            } catch (Exception e) {
                 LogUtil.e(e);
             }
             return fragment;

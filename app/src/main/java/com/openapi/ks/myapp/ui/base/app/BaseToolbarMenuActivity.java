@@ -25,6 +25,7 @@ import com.openapi.commons.common.util.LogUtil;
 public abstract class BaseToolbarMenuActivity extends LogActivity {
     public ImageView ivSetting;
     public SearchView mSearchView;
+
     public void startActivity(Class<? extends Activity> c) {
         Intent intent = new Intent(this, c);
         startActivity(intent);
@@ -51,7 +52,7 @@ public abstract class BaseToolbarMenuActivity extends LogActivity {
         mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String s) {
-                if(!StringUtils.isEmpty(s)) {
+                if (!StringUtils.isEmpty(s)) {
                     RecommendVo vo = new RecommendVo();
                     vo.title = "全局搜索";
                     vo.param = s;
@@ -59,15 +60,16 @@ public abstract class BaseToolbarMenuActivity extends LogActivity {
                 }
                 return true;
             }
+
             @Override
             public boolean onQueryTextChange(String s) {
                 return true;
             }
         });
-        if(UserLoginUtil.isVIP()){
+        if (UserLoginUtil.isVIP()) {
             setting.setVisible(true);
             mSearchView.setVisibility(View.VISIBLE);
-        }else {
+        } else {
             if (showSearchView()) {
                 mSearchView.setVisibility(View.VISIBLE);
             } else {
@@ -77,12 +79,14 @@ public abstract class BaseToolbarMenuActivity extends LogActivity {
         }
         return true;
     }
+
     @Override
     public void onOptionsMenuClosed(Menu menu) {
         super.onOptionsMenuClosed(menu);
         LogUtil.i("onOptionsMenuClosed");
     }
-    public boolean showSearchView(){
+
+    public boolean showSearchView() {
         return false;
     }
 }

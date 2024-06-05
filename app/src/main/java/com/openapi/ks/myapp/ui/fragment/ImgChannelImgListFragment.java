@@ -37,7 +37,7 @@ public class ImgChannelImgListFragment extends RecommendFragment {
 
     @Override
     public String getUrl(int start) {
-        return Constants.getUrlWithParam(Constants.API_IMG_ITEMS_IMG_URL, start, vo.param,keyword);
+        return Constants.getUrlWithParam(Constants.API_IMG_ITEMS_IMG_URL, start, vo.param, keyword);
     }
 
     @Override
@@ -59,23 +59,26 @@ public class ImgChannelImgListFragment extends RecommendFragment {
     public void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
         vo = StaticDataUtil.get(Constants.IMG_CHANNEL, RecommendVo.class);
-        if(vo==null){
+        if (vo == null) {
             getActivity().finish();
         }
         StaticDataUtil.del(Constants.IMG_CHANNEL);
     }
+
     @Override
-    protected boolean showSearchView(){
+    protected boolean showSearchView() {
         return true;
     }
+
     @Override
-    public boolean getShowParam(){
+    public boolean getShowParam() {
         return true;
     }
+
     @Override
     public void onCustomerItemClick(View v, int position) {
         RecommendVo revo = infoListVo.voList.get(position);
-        if(!checkUserLevel(revo.type)){
+        if (!checkUserLevel(revo.type)) {
             return;
         }
         ImgItemsVo imgItemsVo = new ImgItemsVo();
@@ -85,13 +88,15 @@ public class ImgChannelImgListFragment extends RecommendFragment {
         HistoryUtil.addHistory(getActivity(), imgItemsVo.url);
         mSearchView.clearFocus();
     }
+
     @Override
     protected void onDataLoaded(InfoListVo<RecommendVo> data) {
         super.onDataLoaded(data);
-        if(data.pageNum==3){
+        if (data.pageNum == 3) {
 //            AdsManager.getInstans().showNative(getActivity(),this);
         }
     }
+
     @Override
     public void onDestroyView() {
         indexService.cancelRequest(IMG_TAG);

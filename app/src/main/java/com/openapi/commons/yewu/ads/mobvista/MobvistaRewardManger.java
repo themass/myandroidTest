@@ -5,12 +5,13 @@ import android.app.Activity;
 import com.openapi.commons.yewu.ads.base.RewardInterface;
 
 public class MobvistaRewardManger implements RewardInterface {
-//    private MBRewardVideoHandler mMBRewardVideoHandler;
+    //    private MBRewardVideoHandler mMBRewardVideoHandler;
     private final Activity mActivity;
     private final OnAdmobRewardListener mLlistener;
     int index = 0;
-    public  static int count=0;
-    public MobvistaRewardManger(Activity activity, OnAdmobRewardListener listener){
+    public static int count = 0;
+
+    public MobvistaRewardManger(Activity activity, OnAdmobRewardListener listener) {
         this.mActivity = activity;
         this.mLlistener = listener;
 //        loadRewardedVideoAd();
@@ -80,9 +81,11 @@ public class MobvistaRewardManger implements RewardInterface {
 //
 ////        loadRewardedVideoAd();
     }
+
     public void loadRewardedVideoAd() {
 
     }
+
     public void onAdResume() {
 
     }
@@ -94,7 +97,8 @@ public class MobvistaRewardManger implements RewardInterface {
     public void onAdDestroy() {
 
     }
-    public void showAd(){
+
+    public void showAd() {
 
 //        LogUtil.i("mobv showAd "+mMBRewardVideoHandler.isReady());
 //        if(count>=3){
@@ -109,7 +113,8 @@ public class MobvistaRewardManger implements RewardInterface {
 //            ToastUtil.showShort(R.string.tab_fb_click_no);
 //        }
     }
-    public boolean next(){
+
+    public boolean next() {
         return false;
     }
 }

@@ -1,9 +1,11 @@
 package com.openapi.ks.myapp.adapter;
 
 import android.content.Context;
+
 import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,7 +39,7 @@ public class SoundItemsViewAdapter extends BaseRecyclerViewAdapter<SoundItemsVie
     }
 
     public void onBindViewHolderData(RecyclerView.ViewHolder h, int position) {
-        SoundItemsViewAdapter.SoundItemView holder = (SoundItemsViewAdapter.SoundItemView)h;
+        SoundItemsViewAdapter.SoundItemView holder = (SoundItemsViewAdapter.SoundItemView) h;
         SoundItemsVo vo = data.get(position);
         holder.tvIndex.setText("#" + (position + 1));
         holder.tvName.setText(vo.name);
@@ -47,19 +49,20 @@ public class SoundItemsViewAdapter extends BaseRecyclerViewAdapter<SoundItemsVie
         } else {
             holder.ivSong.setVisibility(View.GONE);
         }
-        if(Constants.BANNER_ADS_POS.contains(position)){
-            if(position%2==1){
+        if (Constants.BANNER_ADS_POS.contains(position)) {
+            if (position % 2 == 1) {
                 holder.rvAds.setVisibility(View.VISIBLE);
-                AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN2);
-            }else{
+                AdsManager.getInstans().showBannerAds((FragmentActivity) context, holder.rvAds, AdsContext.Categrey.CATEGREY_VPN2);
+            } else {
                 holder.rvAds.setVisibility(View.VISIBLE);
-                AdsManager.getInstans().showBannerAds((FragmentActivity)context,holder.rvAds, AdsContext.Categrey.CATEGREY_VPN3);
+                AdsManager.getInstans().showBannerAds((FragmentActivity) context, holder.rvAds, AdsContext.Categrey.CATEGREY_VPN3);
             }
-        }else{
+        } else {
             holder.rvAds.removeAllViews();
             holder.rvAds.setVisibility(View.GONE);
         }
     }
+
     static class SoundItemView extends BaseRecyclerViewAdapter.BaseRecyclerViewHolder<SoundItemsVo> {
         @Nullable
         @BindView(R.id.tv_index)
@@ -76,6 +79,7 @@ public class SoundItemsViewAdapter extends BaseRecyclerViewAdapter<SoundItemsVie
         @Nullable
         @BindView(R.id.rv_ads)
         RelativeLayout rvAds;
+
         public SoundItemView(View itemView, View.OnClickListener l, View.OnLongClickListener longListener) {
             super(itemView, l, longListener);
         }

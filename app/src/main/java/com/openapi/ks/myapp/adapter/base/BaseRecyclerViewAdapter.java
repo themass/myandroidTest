@@ -1,7 +1,9 @@
 package com.openapi.ks.myapp.adapter.base;
 
 import android.content.Context;
+
 import androidx.recyclerview.widget.RecyclerView;
+
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -40,30 +42,35 @@ public abstract class BaseRecyclerViewAdapter<T extends BaseRecyclerViewAdapter.
             this.data = new ArrayList<>();
         }
     }
+
     public View getHeaderView() {
         return mHeaderView;
     }
+
     public void setHeaderView(View headerView) {
         mHeaderView = headerView;
         notifyItemInserted(0);
     }
+
     public View getFooterView() {
         return mFooterView;
     }
+
     public void setFooterView(View footerView) {
         mFooterView = footerView;
-        notifyItemInserted(getItemCount()-1);
+        notifyItemInserted(getItemCount() - 1);
     }
+
     @Override
     public int getItemViewType(int position) {
-        if (mHeaderView == null && mFooterView == null){
+        if (mHeaderView == null && mFooterView == null) {
             return TYPE_NORMAL;
         }
-        if (position == 0 && mHeaderView!=null){
+        if (position == 0 && mHeaderView != null) {
             //第一个item应该加载Header
             return TYPE_HEADER;
         }
-        if (position == getItemCount()-1 && mFooterView!=null){
+        if (position == getItemCount() - 1 && mFooterView != null) {
             //最后一个,应该加载Footer
             return TYPE_FOOTER;
         }
@@ -72,44 +79,52 @@ public abstract class BaseRecyclerViewAdapter<T extends BaseRecyclerViewAdapter.
 
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        if(mHeaderView != null && viewType == TYPE_HEADER) {
+        if (mHeaderView != null && viewType == TYPE_HEADER) {
             return new HeadFooterWarper(mHeaderView);
         }
-        if(mFooterView != null && viewType == TYPE_FOOTER){
+        if (mFooterView != null && viewType == TYPE_FOOTER) {
             return new HeadFooterWarper(mFooterView);
         }
-        return onCreateViewHolderData(parent,viewType);
+        return onCreateViewHolderData(parent, viewType);
     }
+
     //返回View中Item的个数，这个时候，总的个数应该是ListView中Item的个数加上HeaderView和FooterView
     @Override
     public int getItemCount() {
-        if(mHeaderView == null && mFooterView == null){
+        if (mHeaderView == null && mFooterView == null) {
             return data.size();
-        }else if(mHeaderView == null && mFooterView != null){
+        } else if (mHeaderView == null && mFooterView != null) {
             return data.size() + 1;
-        }else if (mHeaderView != null && mFooterView == null){
+        } else if (mHeaderView != null && mFooterView == null) {
             return data.size() + 1;
-        }else {
+        } else {
             return data.size() + 2;
         }
     }
+
     protected abstract RecyclerView.ViewHolder onCreateViewHolderData(ViewGroup parent, int viewType);
+
     protected abstract void onBindViewHolderData(RecyclerView.ViewHolder holder, int position);
-    protected void onBindHeadViewHolderData(RecyclerView.ViewHolder holder){}
-    protected void onBindFooterViewHolderData(RecyclerView.ViewHolder holder){}
+
+    protected void onBindHeadViewHolderData(RecyclerView.ViewHolder holder) {
+    }
+
+    protected void onBindFooterViewHolderData(RecyclerView.ViewHolder holder) {
+    }
+
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-        BaseRecyclerViewAdapter.BaseRecyclerViewHolder h = (BaseRecyclerViewAdapter.BaseRecyclerViewHolder)holder;
-        int div = mHeaderView!=null?1:0;
-        if(h instanceof BaseRecyclerViewAdapter.HeadFooterWarper ){
-            if(position==0){
+        BaseRecyclerViewAdapter.BaseRecyclerViewHolder h = (BaseRecyclerViewAdapter.BaseRecyclerViewHolder) holder;
+        int div = mHeaderView != null ? 1 : 0;
+        if (h instanceof BaseRecyclerViewAdapter.HeadFooterWarper) {
+            if (position == 0) {
                 onBindHeadViewHolderData(holder);
-            }else{
+            } else {
                 onBindFooterViewHolderData(holder);
             }
-        }else{
-            h.setData(position-div, data.get(position-div));
-            onBindViewHolderData(holder,position-div);
+        } else {
+            h.setData(position - div, data.get(position - div));
+            onBindViewHolderData(holder, position - div);
         }
 
     }
@@ -157,7 +172,7 @@ public abstract class BaseRecyclerViewAdapter<T extends BaseRecyclerViewAdapter.
             super(itemView);
             ButterKnife.bind(this, itemView);
             v = itemView;
-            if(l!=null)
+            if (l != null)
                 v.setOnClickListener(l);
             if (longListener != null)
                 v.setOnLongClickListener(longListener);
@@ -168,9 +183,10 @@ public abstract class BaseRecyclerViewAdapter<T extends BaseRecyclerViewAdapter.
             v.setTag(R.id.tag_val, val);
         }
     }
-    public class HeadFooterWarper extends BaseRecyclerViewHolder{
+
+    public class HeadFooterWarper extends BaseRecyclerViewHolder {
         public HeadFooterWarper(View itemView) {
-            super(itemView,null,null);
+            super(itemView, null, null);
         }
     }
 }

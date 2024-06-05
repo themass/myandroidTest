@@ -28,7 +28,7 @@ import butterknife.BindView;
 /**
  * Created by openapi on 2016/8/12.
  */
-public class TextItemsFragment extends LoadableFragment<TextItemVo> implements  MyFavoriteView.OnFavoriteItemClick {
+public class TextItemsFragment extends LoadableFragment<TextItemVo> implements MyFavoriteView.OnFavoriteItemClick {
     private static final String TEXT_TAG = "TEXT_ITEM_TAG";
     @BindView(R.id.tv_view)
     MyTextView tvView;
@@ -91,6 +91,7 @@ public class TextItemsFragment extends LoadableFragment<TextItemVo> implements  
         indexService.cancelRequest(TEXT_TAG);
         super.onDestroyView();
     }
+
     @Override
     public FavoriteVo getFavoriteDataUrl() {
         SaveTextTask.startSave(getActivity(), url);

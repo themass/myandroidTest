@@ -23,11 +23,13 @@ public class DensityUtil {
         final float scale = context.getResources().getDisplayMetrics().density;
         return (int) (dpValue * scale + 0.5f);
     }
+
     public static int getScreenWidth(Context context) {
         DisplayMetrics displayMetrics = new DisplayMetrics();
         ((Activity) context).getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         return displayMetrics.widthPixels;
     }
+
     /**
      * px转换dip
      *
@@ -53,9 +55,11 @@ public class DensityUtil {
         LogUtil.w("dpi =" + getDensityDisplayMetrics(context).densityDpi);
         LogUtil.w("Metrics=" + getDensityDisplayMetrics(context));
     }
+
     public static int dip2sp(Context context, float sp) {
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, sp, context.getResources().getDisplayMetrics());
     }
+
     /**
      * 获取ActionBarSize
      */

@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
+
 import android.view.View;
 
 import com.openapi.commons.common.helper.OnStartDragListener;
@@ -46,6 +47,7 @@ public abstract class RecommendFragment extends BasePullLoadbleFragment<Recommen
         sortData();
         mData.voList.addAll(data);
     }
+
     @Override
     protected InfoListVo<RecommendVo> loadData(Context context) throws Exception {
         return indexService.getInfoListData(getUrl(infoListVo.pageNum), RecommendVo.class, getNetTag());
@@ -58,9 +60,11 @@ public abstract class RecommendFragment extends BasePullLoadbleFragment<Recommen
     protected boolean getSwitchFlag() {
         return adapter.getSwitchFlag();
     }
-    protected  boolean getShowParam(){
+
+    protected boolean getShowParam() {
         return true;
     }
+
     @Override
     protected void initPullView() {
         final StaggeredGridLayoutManager layoutManager = new StaggeredGridLayoutManager(getSpanCount(), StaggeredGridLayoutManager.VERTICAL);
@@ -78,29 +82,33 @@ public abstract class RecommendFragment extends BasePullLoadbleFragment<Recommen
         mItemTouchHelper = new ItemTouchHelper(callback);
         mItemTouchHelper.attachToRecyclerView(pullView.getRecyclerView());
     }
+
     //initPullView 方法被复写，这个函数无用了
-    protected BaseRecyclerViewAdapter getAdapter(){
+    protected BaseRecyclerViewAdapter getAdapter() {
         return null;
     }
-    protected boolean checkUserLevel(int type){
-        if(type>0){
-            if(UserLoginUtil.getUserCache()==null){
+
+    protected boolean checkUserLevel(int type) {
+        if (type > 0) {
+            if (UserLoginUtil.getUserCache() == null) {
                 startActivity(LoginActivity.class);
                 return false;
             }
-            if(UserLoginUtil.getUserCache().level<type){
+            if (UserLoginUtil.getUserCache().level < type) {
                 ToastUtil.showShort(R.string.vip_tips);
                 return false;
             }
         }
         return true;
     }
-    public boolean adClick(View v,RecommendVo vo){
+
+    public boolean adClick(View v, RecommendVo vo) {
         return false;
     }
-    public void onCustomerItemClick(View v, int position){
+
+    public void onCustomerItemClick(View v, int position) {
         RecommendVo vo = infoListVo.voList.get(position);
-        if(!checkUserLevel(vo.type)){
+        if (!checkUserLevel(vo.type)) {
             return;
         }
         Map<String, Object> param = new HashMap<>();
@@ -109,13 +117,15 @@ public abstract class RecommendFragment extends BasePullLoadbleFragment<Recommen
         EventBusUtil.getEventBus().post(new ConfigActionEvent(getActivity(), vo.actionUrl, vo.title, param));
         MobAgent.onEventRecommondChannel(getActivity(), vo.title);
     }
+
     @Override
     public void onItemClick(View v, int position) {
         RecommendVo vo = infoListVo.voList.get(position);
-        if(!adClick(v,vo)){
-            onCustomerItemClick(v,position);
+        if (!adClick(v, vo)) {
+            onCustomerItemClick(v, position);
         }
     }
+
     @Override
     public void onLongItemClick(View view, int position) {
 

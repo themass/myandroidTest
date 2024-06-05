@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Service;
 import android.content.Intent;
 import android.content.res.Configuration;
+
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 
@@ -72,12 +73,13 @@ public abstract class BaseToolBarActivity extends BaseToolbarMenuActivity {
         super.onConfigurationChanged(newConfig);
         LogUtil.i("onConfigurationChanged->" + newConfig.orientation);
     }
+
     public View getNaviButton() {
         Field field = null;
         try {
-            field =Toolbar.class.getDeclaredField("mNavButtonView");
+            field = Toolbar.class.getDeclaredField("mNavButtonView");
             field.setAccessible(true);
-            return  (View) field.get(getToolbar());
+            return (View) field.get(getToolbar());
         } catch (NoSuchFieldException e) {
             LogUtil.e(e);
         } catch (IllegalAccessException e) {
@@ -85,6 +87,7 @@ public abstract class BaseToolBarActivity extends BaseToolbarMenuActivity {
         }
         return null;
     }
+
     @Override
     public void onDestroy() {
         super.onDestroy();

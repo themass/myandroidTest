@@ -14,7 +14,7 @@ public class RecommendLocalFragment extends RecommendFragment {
 
     @Override
     public String getUrl(int start) {
-        return Constants.getUrlWithParam(Constants.API_RECOMMEND_LOCAL_URL,start);
+        return Constants.getUrlWithParam(Constants.API_RECOMMEND_LOCAL_URL, start);
     }
 
     @Override

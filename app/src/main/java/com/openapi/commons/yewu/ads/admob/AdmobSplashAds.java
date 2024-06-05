@@ -26,17 +26,20 @@ import com.openapi.ks.myapp.data.config.SplashAdDissmisEvent;
 
 public class AdmobSplashAds extends SplashAdsInter {
     private AppOpenAd appOpenAd;
+
     @Override
-    protected AdsContext.AdsType getAdsType(){
+    protected AdsContext.AdsType getAdsType() {
         return AdsContext.AdsType.ADS_TYPE_SPREAD;
     }
+
     @Override
-    public  void lanchExit(Context context,RelativeLayout group){
+    public void lanchExit(Context context, RelativeLayout group) {
 //        AdViewSpreadManager.getInstance(context).destroySpread(ADS_ADVIEW_KEY);
     }
+
     @Override
-    public  void launchAds(final FragmentActivity context, RelativeLayout group, RelativeLayout skipView, final Handler handler){
-        try{
+    public void launchAds(final FragmentActivity context, RelativeLayout group, RelativeLayout skipView, final Handler handler) {
+        try {
             LogUtil.i("admob flash load ");
             AdManagerAdRequest request = new AdManagerAdRequest.Builder().build();
             AppOpenAd.load(
@@ -51,7 +54,7 @@ public class AdmobSplashAds extends SplashAdsInter {
                          */
                         @Override
                         public void onAdLoaded(AppOpenAd ad) {
-                            LogUtil.i("admob flash onAdLoaded "+ad.getAdUnitId());
+                            LogUtil.i("admob flash onAdLoaded " + ad.getAdUnitId());
                             appOpenAd = ad;
                             appOpenAd.setFullScreenContentCallback(
                                     new FullScreenContentCallback() {
@@ -67,7 +70,7 @@ public class AdmobSplashAds extends SplashAdsInter {
                                         /** Called when fullscreen content failed to show. */
                                         @Override
                                         public void onAdFailedToShowFullScreenContent(AdError adError) {
-                                            LogUtil.i("admob flash onAdFailedToShowFullScreenContent "+adError.toString());
+                                            LogUtil.i("admob flash onAdFailedToShowFullScreenContent " + adError.toString());
                                             appOpenAd = null;
                                         }
 
@@ -87,13 +90,13 @@ public class AdmobSplashAds extends SplashAdsInter {
                          */
                         @Override
                         public void onAdFailedToLoad(LoadAdError loadAdError) {
-                            LogUtil.i("admob splash onAdFailedToLoad "+loadAdError.toString());
+                            LogUtil.i("admob splash onAdFailedToLoad " + loadAdError.toString());
                             EventBusUtil.getEventBus().post(new LaunchAdsNext(AdsContext.AdsFrom.ADMOB));
                         }
                     });
         } catch (Throwable e) {
-            noAds(context,handler, AdsContext.AdsFrom.ADMOB,0);
-            LogUtil.e("admob flash "+e);
+            noAds(context, handler, AdsContext.AdsFrom.ADMOB, 0);
+            LogUtil.e("admob flash " + e);
         }
     }
 }

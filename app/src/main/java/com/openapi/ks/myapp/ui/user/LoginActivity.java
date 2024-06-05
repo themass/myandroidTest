@@ -74,11 +74,13 @@ public class LoginActivity extends BaseSingleActivity {
         finish();
         startActivity(RegActivity.class);
     }
+
     @OnClick(R.id.btn_findpass)
     public void tnFindPass(View view) {
         finish();
         startActivity(FindPassActivity.class);
     }
+
     @OnClick(R.id.btn_login)
     public void login(View view) {
         String name = etUserName.getText().toString();
@@ -135,10 +137,12 @@ public class LoginActivity extends BaseSingleActivity {
             btnReg.setEnabled(isEnable);
         }
     }
+
     @Override
     protected boolean enableSliding() {
         return true;
     }
+
     @Override
     public boolean needShow() {
         return false;

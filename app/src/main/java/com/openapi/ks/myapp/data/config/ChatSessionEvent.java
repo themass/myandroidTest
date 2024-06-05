@@ -8,7 +8,7 @@ import io.vov.vitamio.utils.Log;
 
 
 public class ChatSessionEvent {
-    public  Long id;
+    public Long id;
 
     public ChatSessionEvent(Long id) {
         this.id = id;

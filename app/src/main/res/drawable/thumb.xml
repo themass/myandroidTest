@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~ ©2017 Rajneesh Singh
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -15,17 +14,17 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="oval">
 
-    <solid android:color="?attr/accentColor"/>
+    <solid android:color="?attr/accentColor" />
 
     <padding
         android:bottom="2dp"
         android:left="2dp"
         android:right="2dp"
-        android:top="2dp"/>
+        android:top="2dp" />
 
     <size
         android:width="16dp"
-        android:height="16dp"/>
+        android:height="16dp" />
 
 
 </shape>

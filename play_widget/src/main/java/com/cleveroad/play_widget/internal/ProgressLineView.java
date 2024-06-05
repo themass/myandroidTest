@@ -169,7 +169,7 @@ public class ProgressLineView extends ImageView {
     protected void onDraw(Canvas canvas) {
 //        super.onDraw(canvas);
         float fullProgressDegree = (180.0f + ADDITIONAL_PROGRESS_DEGREE * 2) * mProgress;
-        if (fullProgressDegree>0.05f) {
+        if (fullProgressDegree > 0.05f) {
             canvas.drawArc(mRect, BEGIN_PROGRESS_DEGREE, fullProgressDegree, false, mProgressPaint);
         }
         float ballPositionAngle = BEGIN_PROGRESS_DEGREE + fullProgressDegree;
@@ -276,7 +276,6 @@ public class ProgressLineView extends ImageView {
     public void setOnProgressChangedListener(@Nullable PlayLayout.OnProgressChangedListener progressChangedListener) {
         mProgressChangedListener = progressChangedListener;
     }
-
 
 
 }
