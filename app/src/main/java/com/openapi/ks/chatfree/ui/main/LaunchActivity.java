@@ -32,6 +32,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
 import chat.ui.CustomChatMessagesActivity;
+import chat.ui.CustomChatMessagesWithAsrActivity;
 
 /**
  * Created by openapi on 2016/3/22.
@@ -94,7 +95,7 @@ public class LaunchActivity extends LogActivity {
     }
 
     private void launch() {
-        Intent intent = new Intent(this, CustomChatMessagesActivity.class);
+        Intent intent = new Intent(this, CustomChatMessagesWithAsrActivity.class);
         startActivity(intent);
         finish();
     }

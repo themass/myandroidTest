@@ -1,5 +1,12 @@
 package com.openapi.commons.common.asr.utils;
 
+import android.content.Context;
+
+import com.openapi.commons.common.util.PreferenceUtils;
+import com.openapi.commons.common.util.StringUtils;
+import com.openapi.ks.myapp.base.MyApplication;
+import com.openapi.ks.myapp.constant.Constants;
+
 /**
  * SensitiveDefines
  * Defines in this class should be different for different business,
@@ -14,8 +21,33 @@ public class SensitiveDefines {
     public static final String DID = "mytest";
 
     // Online & Resource Authorization
-    public static final String APPID = "4966581804";
-    public static final String TOKEN = "Bearer;yT2m2hVfJjhy79G6MfTB4Jv3X7JRpGs7";
+    private static final String APPID = "4966581804";
+    private static final String TOKEN = "Bearer;yT2m2hVfJjhy79G6MfTB4Jv3X7JRpGs7";
+    private static final String ASR_DEFAULT_CLUSTER = "volcengine_input_common";
+
+    public static String getAppId(Context context){
+        String v = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.ASR_APPID, APPID);
+        if(!StringUtils.isEmpty(v)){
+            return v;
+        }
+        return APPID;
+    }
+    public static String getAppToken(Context context){
+        String v = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.ASR_TOKEN, TOKEN);
+        if(!StringUtils.isEmpty(v)){
+            return v;
+        }
+        return TOKEN;
+    }
+    public static String getAppCluster(Context context){
+        String v = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.ASR_DEFAULT_CLUSTER, ASR_DEFAULT_CLUSTER);
+        if(!StringUtils.isEmpty(v)){
+            return v;
+        }
+        return ASR_DEFAULT_CLUSTER;
+    }
+
+
     public static final String APP_VERSION = "YOUR APP VERSION";
 
     // Offline Authorization
@@ -32,7 +64,7 @@ public class SensitiveDefines {
 
     // ASR
     public static final String ASR_DEFAULT_URI = "/api/v2/asr";
-    public static final String ASR_DEFAULT_CLUSTER = "volcengine_input_common";
+
 
     // AU
     public static final String AU_DEFAULT_URI = "/api/v1/sauc";

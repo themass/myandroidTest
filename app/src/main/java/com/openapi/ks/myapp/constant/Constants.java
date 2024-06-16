@@ -342,4 +342,10 @@ public class Constants {
     public static int PROBABILITY = 4;
     public static final int HTTP_LOGIN = 2;
 
+
+    public static final String ASR_APPID = "ASR_APPID";
+    public static final String ASR_TOKEN = "ASR_TOKEN";
+    public static final String ASR_DEFAULT_CLUSTER = "ASR_DEFAULT_CLUSTER";
+
+
 }

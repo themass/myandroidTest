@@ -551,5 +551,5 @@
     <string name="input_pass">按住录音</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
-
+    <string name="error_reopen">发生错误，请重新打开APP</string>
 </resources>

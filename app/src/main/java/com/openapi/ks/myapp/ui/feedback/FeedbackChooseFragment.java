@@ -14,6 +14,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.google.android.material.tabs.TabLayout;
 import com.openapi.commons.common.ui.base.BaseFragment;
 import com.openapi.commons.common.util.LogUtil;
 import com.openapi.ks.myapp.bean.vo.FeedbackCateVo;
@@ -23,7 +24,6 @@ import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
 import com.openapi.ks.myapp.ui.base.features.LoadableFragment;
 import com.openapi.ks.chatfree.R;
 import com.openapi.commons.yewu.ads.base.AdsContext;
-import com.viewpagerindicator.TabPageIndicator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +36,7 @@ import butterknife.BindView;
 public class FeedbackChooseFragment extends LoadableFragment<InfoListVo<FeedbackCateVo>> {
     @Nullable
     @BindView(R.id.indicator)
-    TabPageIndicator indicator;
+    TabLayout indicator;
     @Nullable
     @BindView(R.id.pager)
     ViewPager viewPager;
@@ -70,14 +70,14 @@ public class FeedbackChooseFragment extends LoadableFragment<InfoListVo<Feedback
         indexService.setup(getActivity());
         adapter = new TabPageIndicatorAdapter(getChildFragmentManager());
         viewPager.setAdapter(adapter);
-        indicator.setViewPager(viewPager);
+        indicator.setupWithViewPager(viewPager);
 
     }
 
     @Override
     protected void onDataLoaded(InfoListVo<FeedbackCateVo> data) {
         vo = data;
-        indicator.notifyDataSetChanged();
+//        indicator.notifyDataSetChanged();
         adapter.notifyDataSetChanged();
     }
 

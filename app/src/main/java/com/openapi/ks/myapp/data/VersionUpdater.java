@@ -62,6 +62,9 @@ public class VersionUpdater {
                     PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.LOG_UPLOAD_CONFIG, vo.logUp);
                     PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.NEED_DNSPOD_CONFIG, vo.needDnspod);
                     PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), Constants.NEED_NATIVE_ADS_CONFIG, vo.needNative);
+                    PreferenceUtils.setPrefString(MyApplication.getInstance(), Constants.ASR_APPID, vo.appId);
+                    PreferenceUtils.setPrefString(MyApplication.getInstance(), Constants.ASR_TOKEN, vo.token);
+                    PreferenceUtils.setPrefString(MyApplication.getInstance(), Constants.ASR_DEFAULT_CLUSTER, vo.asrDefaultCluster);
                     if (StringUtils.hasText(vo.dnspodIp)) {
                         HttpDNSUtil.DNS_POD_IP = vo.dnspodIp;
                     }

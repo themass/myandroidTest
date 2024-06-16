@@ -5,10 +5,10 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <com.viewpagerindicator.TabPageIndicator
+    <com.google.android.material.tabs.TabLayout
         android:id="@+id/indicator"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"></com.viewpagerindicator.TabPageIndicator>
+        android:layout_height="wrap_content"/>
 
     <androidx.viewpager.widget.ViewPager
         android:id="@+id/pager"

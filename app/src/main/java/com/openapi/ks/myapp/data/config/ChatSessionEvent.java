@@ -1,7 +1,5 @@
 package com.openapi.ks.myapp.data.config;
 
-import io.vov.vitamio.utils.Log;
-
 /**
  * Created by openapi on 2017/9/15.
  */

@@ -545,5 +545,7 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="input_pass">Hold to talk</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
+    <string name="error_reopen">An error has occurred,\nplease restart the APP</string>
+
 
 </resources>

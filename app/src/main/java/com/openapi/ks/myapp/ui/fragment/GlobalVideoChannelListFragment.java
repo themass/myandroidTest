@@ -12,7 +12,6 @@ import com.openapi.ks.myapp.data.StaticDataUtil;
 import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
 import com.openapi.ks.myapp.ui.sound.VideoShowActivity;
 import com.openapi.ks.myapp.ui.sound.VideoShowActivityLazyUrl;
-import com.openapi.ks.myapp.ui.sound.VitamioVideoPlayActivity;
 import com.openapi.commons.common.util.PreferenceUtils;
 import com.openapi.commons.yewu.ads.base.AdsContext;
 import com.openapi.commons.yewu.ads.base.AdsManager;
@@ -89,7 +88,7 @@ public class GlobalVideoChannelListFragment extends RecommendFragment {
             if (playvideo) {
                 startActivity(VideoShowActivityLazyUrl.class, vo);
             } else {
-                startActivity(VitamioVideoPlayActivity.class, vo);
+//                startActivity(VitamioVideoPlayActivity.class, vo);
             }
         } else {
             super.onCustomerItemClick(v, position);

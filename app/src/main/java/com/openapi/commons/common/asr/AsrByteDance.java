@@ -81,7 +81,7 @@ public class AsrByteDance implements SpeechEngine.SpeechListener {
         }
     }
     int ret = SpeechEngineDefines.ERR_ADDRESS_INVALID;
-    public void sendEngine(Context context) {
+    public void initSendEngine(Context context) {
         if(ret != SpeechEngineDefines.ERR_NO_ERROR) {
             handler.post(() -> {
                 LogUtil.i("SDK 版本号: " + mSpeechEngine.getVersion());
@@ -126,17 +126,14 @@ public class AsrByteDance implements SpeechEngine.SpeechListener {
         mSpeechEngine.setOptionString(SpeechEngineDefines.PARAMS_KEY_ASR_ADDRESS_STRING, SensitiveDefines.DEFAULT_ADDRESS);
         mSpeechEngine.setOptionString(SpeechEngineDefines.PARAMS_KEY_ASR_URI_STRING, SensitiveDefines.ASR_DEFAULT_URI);
 
-        String appid = SensitiveDefines.APPID;
         //【必需配置】鉴权相关：Appid
-        mSpeechEngine.setOptionString(SpeechEngineDefines.PARAMS_KEY_APP_ID_STRING, appid);
+        mSpeechEngine.setOptionString(SpeechEngineDefines.PARAMS_KEY_APP_ID_STRING, SensitiveDefines.getAppId(MyApplication.getInstance()));
 
-        String token = SensitiveDefines.TOKEN;
         //【必需配置】鉴权相关：Token
-        mSpeechEngine.setOptionString(SpeechEngineDefines.PARAMS_KEY_APP_TOKEN_STRING, token);
+        mSpeechEngine.setOptionString(SpeechEngineDefines.PARAMS_KEY_APP_TOKEN_STRING, SensitiveDefines.getAppToken(MyApplication.getInstance()));
 
-        String cluster = SensitiveDefines.ASR_DEFAULT_CLUSTER;
         //【必需配置】识别服务所用集群
-        mSpeechEngine.setOptionString(SpeechEngineDefines.PARAMS_KEY_ASR_CLUSTER_STRING, cluster);
+        mSpeechEngine.setOptionString(SpeechEngineDefines.PARAMS_KEY_ASR_CLUSTER_STRING, SensitiveDefines.getAppCluster(MyApplication.getInstance()));
 
         //【可选配置】在线请求的建连与接收超时，一般不需配置使用默认值即可
         mSpeechEngine.setOptionInt(SpeechEngineDefines.PARAMS_KEY_ASR_CONN_TIMEOUT_INT, 3000);

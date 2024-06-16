@@ -8,15 +8,7 @@ import android.widget.Toast;
 
 
 import com.android.volley.VolleyError;
-import com.openapi.commons.common.util.LogUtil;
-import com.openapi.commons.common.util.StringUtils;
-import com.openapi.commons.common.util.ToastUtil;
-import com.openapi.commons.yewu.net.request.CommonResponse;
-import com.openapi.ks.chatfree.R;
-import com.openapi.ks.myapp.bean.vo.UserInfoVo;
-import com.openapi.ks.myapp.data.UserLoginUtil;
 import com.openapi.ks.myapp.ui.sound.VideoShowActivityLazyUrl;
-import com.openapi.ks.myapp.ui.sound.VitamioVideoPlayActivity;
 import com.openapi.commons.common.util.PreferenceUtils;
 import com.openapi.commons.yewu.ads.base.AdsContext;
 import com.openapi.commons.yewu.ads.base.AdsManager;
@@ -105,7 +97,7 @@ public class VideoChannelListFragment extends RecommendFragment {
         if (playvideo) {
             startActivity(VideoShowActivityLazyUrl.class, urlVo);
         } else {
-            startActivity(VitamioVideoPlayActivity.class, urlVo);
+//            startActivity(VitamioVideoPlayActivity.class, urlVo);
         }
     }
 

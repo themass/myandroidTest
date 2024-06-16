@@ -1,2 +1,2 @@
-include ':app', ':vitamio', ':play_widget'
+include ':app'
 include ':vosk_models'

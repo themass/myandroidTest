@@ -9,7 +9,6 @@ import com.openapi.commons.common.util.LogUtil;
 import com.openapi.commons.common.util.ToastUtil;
 import com.openapi.ks.chatfree.R;
 import com.openapi.ks.myapp.constant.Constants;
-import com.openapi.ks.myapp.ui.base.Testwebview;
 import com.openapi.ks.myapp.ui.base.WebViewActivity;
 import com.openapi.ks.myapp.ui.config.QuickBrowserConfigActivity;
 import com.openapi.ks.myapp.ui.sound.ImgChannleActivity;

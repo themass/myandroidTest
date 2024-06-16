@@ -27,12 +27,7 @@ import com.openapi.commons.common.util.FileUtils;
 import com.openapi.commons.common.util.PermissionHelper;
 import com.openapi.ks.chatfree.R;
 import com.hrl.chaui.util.LogUtil;
-import com.openapi.ks.myapp.data.config.PermEvent;
-
 import java.io.File;
-
-import io.vov.vitamio.utils.Log;
-
 public class RecordButton extends androidx.appcompat.widget.AppCompatButton {
 
     public RecordButton(Context context) {

@@ -14,7 +14,6 @@ import com.openapi.ks.myapp.data.StaticDataUtil;
 import com.openapi.ks.myapp.data.VideoUtil;
 import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
 import com.openapi.ks.myapp.ui.sound.VideoShowActivity;
-import com.openapi.ks.myapp.ui.sound.VitamioVideoPlayActivity;
 
 /**
  * Created by openapi on 2016/8/12.
@@ -75,7 +74,7 @@ public class TeleplayItemFragment extends RecommendFragment {
         HistoryUtil.addHistory(getActivity(), revo.actionUrl);
         if (Constants.VIDEO_TYPE_NORMAL.equalsIgnoreCase((String) revo.extra)) {
             if (VideoUtil.isVitamioExt(vo.actionUrl)) {
-                startActivity(VitamioVideoPlayActivity.class, revo);
+//                startActivity(VitamioVideoPlayActivity.class, revo);
             } else {
                 startActivity(VideoShowActivity.class, revo);
             }
