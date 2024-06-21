@@ -93,7 +93,7 @@ public class Settings {
             }
         }
         // not found
-        register(new SettingItem(type, id, val, R.string.no_url));
+        register(new SettingItem(type, id, val, cn.jzvd.R.string.no_url));
     }
 
     public boolean getBoolean(int id) {

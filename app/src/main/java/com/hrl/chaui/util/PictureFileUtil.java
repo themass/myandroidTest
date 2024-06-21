@@ -93,8 +93,8 @@ public class PictureFileUtil {
 
     static {
         PictureWindowAnimationStyle defaultAnimationStyle = new PictureWindowAnimationStyle();
-        defaultAnimationStyle.setActivityEnterAnimation(R.anim.ps_anim_enter);
-        defaultAnimationStyle.setActivityExitAnimation(R.anim.ps_anim_exit);
+        defaultAnimationStyle.setActivityEnterAnimation(com.luck.picture.lib.R.anim.ps_anim_enter);
+        defaultAnimationStyle.setActivityExitAnimation(com.luck.picture.lib.R.anim.ps_anim_exit);
         selectorStyle.setWindowAnimationStyle(defaultAnimationStyle);
     }
 
@@ -139,7 +139,7 @@ public class PictureFileUtil {
 
                     @Override
                     public long onSelectAnim(View view) {
-                        Animation animation = AnimationUtils.loadAnimation(mContext, R.anim.ps_anim_modal_in);
+                        Animation animation = AnimationUtils.loadAnimation(mContext, com.luck.picture.lib.R.anim.ps_anim_modal_in);
                         view.startAnimation(animation);
                         return animation.getDuration();
                     }
@@ -189,7 +189,7 @@ public class PictureFileUtil {
 
                     @Override
                     public long onSelectAnim(View view) {
-                        Animation animation = AnimationUtils.loadAnimation(mContext, R.anim.ps_anim_modal_in);
+                        Animation animation = AnimationUtils.loadAnimation(mContext, com.luck.picture.lib.R.anim.ps_anim_modal_in);
                         view.startAnimation(animation);
                         return animation.getDuration();
                     }
@@ -376,19 +376,19 @@ public class PictureFileUtil {
                 options.setStatusBarColor(statusBarColor);
                 options.setToolbarColor(statusBarColor);
             } else {
-                options.setStatusBarColor(ContextCompat.getColor(MyApplication.getInstance(), R.color.ps_color_grey));
-                options.setToolbarColor(ContextCompat.getColor(MyApplication.getInstance(), R.color.ps_color_grey));
+                options.setStatusBarColor(ContextCompat.getColor(MyApplication.getInstance(), com.luck.picture.lib.R.color.ps_color_grey));
+                options.setToolbarColor(ContextCompat.getColor(MyApplication.getInstance(), com.luck.picture.lib.R.color.ps_color_grey));
             }
             TitleBarStyle titleBarStyle = selectorStyle.getTitleBarStyle();
             if (StyleUtils.checkStyleValidity(titleBarStyle.getTitleTextColor())) {
                 options.setToolbarWidgetColor(titleBarStyle.getTitleTextColor());
             } else {
-                options.setToolbarWidgetColor(ContextCompat.getColor(MyApplication.getInstance(), R.color.ps_color_white));
+                options.setToolbarWidgetColor(ContextCompat.getColor(MyApplication.getInstance(), com.luck.picture.lib.R.color.ps_color_white));
             }
         } else {
-            options.setStatusBarColor(ContextCompat.getColor(MyApplication.getInstance(), R.color.ps_color_grey));
-            options.setToolbarColor(ContextCompat.getColor(MyApplication.getInstance(), R.color.ps_color_grey));
-            options.setToolbarWidgetColor(ContextCompat.getColor(MyApplication.getInstance(), R.color.ps_color_white));
+            options.setStatusBarColor(ContextCompat.getColor(MyApplication.getInstance(), com.luck.picture.lib.R.color.ps_color_grey));
+            options.setToolbarColor(ContextCompat.getColor(MyApplication.getInstance(), com.luck.picture.lib.R.color.ps_color_grey));
+            options.setToolbarWidgetColor(ContextCompat.getColor(MyApplication.getInstance(), com.luck.picture.lib.R.color.ps_color_white));
         }
         return options;
     }
@@ -565,7 +565,7 @@ public class PictureFileUtil {
         } else {
             ConstraintLayout.LayoutParams layoutParams =
                     new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.MATCH_PARENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
-            layoutParams.topToBottom = R.id.title_bar;
+            layoutParams.topToBottom = com.luck.picture.lib.R.id.title_bar;
             layoutParams.leftToLeft = ConstraintSet.PARENT_ID;
             layoutParams.leftMargin = dp10;
             layoutParams.rightMargin = dp10;

@@ -69,9 +69,9 @@ public class ProgressView extends View {
         mPaint.setStrokeCap(Paint.Cap.ROUND);
 
         TypedValue outValue = new TypedValue();
-        context.getTheme().resolveAttribute(R.attr.colorAccent, outValue, true);
+        context.getTheme().resolveAttribute(com.luck.picture.lib.R.attr.colorAccent, outValue, true);
         mForegroundColor = outValue.data;
-        context.getTheme().resolveAttribute(R.attr.colorControlHighlight, outValue, true);
+        context.getTheme().resolveAttribute(com.luck.picture.lib.R.attr.colorControlHighlight, outValue, true);
         mBackgroundColor = outValue.data;
 
         mProgress = 0;

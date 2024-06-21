@@ -7,7 +7,7 @@
     android:layout_marginTop="8dp">
 
     <de.hdodenhof.circleimageview.CircleImageView
-        android:id="@id/messageUserAvatar"
+        android:id="@+id/messageUserAvatar"
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_marginLeft="8dp"
@@ -56,7 +56,7 @@
         android:textColor="@color/black"
         android:background="@color/color_f9f9f9" />
     <TextView
-        android:id="@id/messageTime"
+        android:id="@+id/messageTime"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignRight="@id/bubble"

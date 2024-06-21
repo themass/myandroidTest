@@ -11,7 +11,6 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import com.hrl.chaui.util.ChatUiHelper;
-import com.hrl.chaui.util.PictureFileUtil;
 import com.hrl.chaui.widget.RecordButton;
 import com.hrl.chaui.widget.StateButton;
 import com.openapi.commons.common.util.ToastUtil;

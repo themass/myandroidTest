@@ -70,7 +70,7 @@ public class SoundItemsViewMusicAdapter extends BaseRecyclerViewAdapter<SoundIte
     private void setAnimation(View viewToAnimate, int position) {
         // If the bound view wasn't previously displayed on screen, it's animated
         if (position > lastPosition) {
-            Animation animation = AnimationUtils.loadAnimation(context, R.anim.abc_slide_in_bottom);
+            Animation animation = AnimationUtils.loadAnimation(context, R.anim.slide_out_to_left);
             viewToAnimate.startAnimation(animation);
             lastPosition = position;
         }
