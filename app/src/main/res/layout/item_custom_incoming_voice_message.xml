@@ -6,13 +6,22 @@
     android:layout_marginRight="16dp"
     android:layout_marginTop="8dp">
 
-    <tz.co.hosannahighertech.messagekit.utils.ShapeImageView
+    <de.hdodenhof.circleimageview.CircleImageView
         android:id="@id/messageUserAvatar"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        android:layout_above="@+id/time"
         android:layout_marginEnd="8dp"
         android:layout_marginRight="8dp" />
+    <!--this view is needed for custom holder-->
+    <ImageView
+        android:id="@+id/onlineIndicator"
+        android:layout_width="12dp"
+        android:layout_height="12dp"
+        android:layout_alignEnd="@id/messageUserAvatar"
+        android:layout_alignRight="@id/messageUserAvatar"
+        android:layout_alignTop="@id/messageUserAvatar"
+        android:layout_marginEnd="5dp"
+        android:layout_marginRight="5dp" />
 
     <LinearLayout
         android:id="@id/bubble"
@@ -27,14 +36,14 @@
 
         <ImageButton
             android:id="@+id/ib_audio"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
             android:background="@drawable/audio_animation_list_left_3" />
 
         <TextView
             android:id="@+id/duration"
-            android:layout_width="13dp"
-            android:layout_height="24dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginLeft="8dp"
             android:layout_marginEnd="4dp"
@@ -43,17 +52,26 @@
             android:textSize="15sp" />
 
     </LinearLayout>
-
     <TextView
-        android:id="@+id/time"
+        android:id="@+id/tv_message"
+        android:padding="@dimen/margin_10"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignEnd="@id/bubble"
-        android:layout_alignRight="@id/bubble"
+        android:layout_alignLeft="@id/bubble"
         android:layout_below="@id/bubble"
-        android:layout_marginLeft="16dp"
-        android:layout_marginStart="16dp"
-        android:textColor="@color/gray_dark"
-        android:textSize="14sp" />
+        android:layout_alignStart="@id/bubble"
+        android:layout_marginRight="30dp"
+        android:layout_marginEnd="30dp"
+        android:layout_marginStart="@dimen/margin_5"
+        android:visibility="gone"
+        android:textColor="@color/black"
+        android:background="@color/color_f9f9f9" />
+    <TextView
+        android:id="@id/messageTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignRight="@id/bubble"
+        android:layout_below="@id/tv_message"
+        android:layout_marginRight="10dp" />
 
 </RelativeLayout>

@@ -89,11 +89,13 @@ public class CustomChatMessagesActivity extends BaseChatMessagesActivity {
     @BindView(R.id.fl_banner)
     FrameLayout banner;
     private Set<OnBackKeyDownListener> keyListeners = new HashSet<>();
+    public Message holdMsg = null;
+    public ChatLog relogLlm = null;
     public List<SimpleMessage> history = new ArrayList<>();
     CommonResponse.ResponseOkListener listener = new CommonResponse.ResponseOkListener<Choice>() {
         @Override
         public void onResponse(Choice vo) {
-            Message holdMsg = new Message(vo.getId(), gpt, vo.getMessage().getContent());
+            holdMsg = new Message(vo.getId(), gpt, vo.getMessage().getContent());
             LogUtil.i(vo);
             history.add(new SimpleMessage(holdMsg.getText(), "assistant"));
             if (!StringUtils.isEmpty(vo.getMessage().getContent())) {
@@ -106,8 +108,12 @@ public class CustomChatMessagesActivity extends BaseChatMessagesActivity {
                 relog.createTime = new Date();
                 relog.sessionId = sessionId;
                 DBManager.getInstance().saveChatLog(relog);
+                relogLlm = relog;
+            }else {
+                relogLlm = null;
             }
             messagesAdapter.update(holdMsg);
+            llmCallBack(vo.getMessage().getContent());
         }
     };
     public static String TAG = "chat";
@@ -270,7 +276,7 @@ public class CustomChatMessagesActivity extends BaseChatMessagesActivity {
     }
 
     //文本消息
-    private void sendTextMsg(String hello) {
+    public void sendTextMsg(String hello) {
         //开始发送
         if (UserLoginUtil.getUserCache() == null) {
             ToastUtil.showShort(R.string.need_login);
@@ -357,4 +363,5 @@ public class CustomChatMessagesActivity extends BaseChatMessagesActivity {
 
     public void recognizeFile(String filePath, MsgContent msgContent) {
     }
+    public void llmCallBack(String text){}
 }

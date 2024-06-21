@@ -6,15 +6,15 @@ apply plugin: 'kotlin-android-extensions'
 // gradle BuildVariants
 //Build Variants = Product Flavor + Build Type
 android {
-    compileSdk 33
+    compileSdk 34
 //    buildTools "29.0.2"
     ndkVersion "23.1.7779620"
     defaultConfig {
         applicationId "com.openapi.ks.chat"
         minSdk 28
         targetSdk 33
-        versionCode 1001000010
-        versionName "1.1.1.0"
+        versionCode 1001000012
+        versionName "1.1.1.2"
         // Enabling multidex support.
         multiDexEnabled true
         flavorDimensions "versionCode"
@@ -194,7 +194,11 @@ dependencies {
 //    implementation 'com.alphacephei:vosk-android:0.3.47@aar'
 //    implementation 'net.java.dev.jna:jna:5.13.0@aar'
 //asr bytedance
-    implementation 'com.bytedance.speechengine:speechengine_asr_tob:1.1.6'
+//    implementation 'com.bytedance.speechengine:speechengine_asr_tob:1.1.6'
+//    implementation 'com.bytedance.speechengine:speechengine_tts_tob:5.4.7'
+    implementation 'com.bytedance.speechengine:speechengine_tob:0.0.3'
+
+
     implementation 'pub.devrel:easypermissions:3.0.0'
 
 }

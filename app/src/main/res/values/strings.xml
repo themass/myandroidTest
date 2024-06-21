@@ -139,6 +139,7 @@
     <string name="vip_remove_ads">Upgrade VIP to advertise</string>
     <string name="area_setting">Show Area</string>
     <string name="playcore_setting">play core-ijk</string>
+    <string name="use_tts">Enable Speech</string>
     <string name="playvideo_setting">play video-jiaozi</string>
     <string name="sound_setting">Play audio in not wifi</string>
     <string name="sound_picshow">Video pic show</string>

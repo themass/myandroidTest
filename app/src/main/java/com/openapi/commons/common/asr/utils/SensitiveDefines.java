@@ -24,6 +24,9 @@ public class SensitiveDefines {
     private static final String APPID = "4966581804";
     private static final String TOKEN = "Bearer;yT2m2hVfJjhy79G6MfTB4Jv3X7JRpGs7";
     private static final String ASR_DEFAULT_CLUSTER = "volcengine_input_common";
+    private static final String TTS_DEFAULT_CLUSTER = "volcano_tts";
+    private static final String DEFUALT_VOICE="BV001_streaming";
+    public static final String DEFUALT_VOICE_USER="通用女声";
 
     public static String getAppId(Context context){
         String v = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.ASR_APPID, APPID);
@@ -46,6 +49,20 @@ public class SensitiveDefines {
         }
         return ASR_DEFAULT_CLUSTER;
     }
+    public static String getTtsAppCluster(Context context){
+        String v = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.TTS_DEFAULT_CLUSTER, TTS_DEFAULT_CLUSTER);
+        if(!StringUtils.isEmpty(v)){
+            return v;
+        }
+        return TTS_DEFAULT_CLUSTER;
+    }
+    public static String geTtsVoice(Context context){
+        String v = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.TTS_DEFAULT_VOICE, DEFUALT_VOICE);
+        if(!StringUtils.isEmpty(v)){
+            return v;
+        }
+        return DEFUALT_VOICE;
+    }
 
 
     public static final String APP_VERSION = "YOUR APP VERSION";
@@ -65,46 +82,10 @@ public class SensitiveDefines {
     // ASR
     public static final String ASR_DEFAULT_URI = "/api/v2/asr";
 
-
-    // AU
-    public static final String AU_DEFAULT_URI = "/api/v1/sauc";
-    public static final String AU_DEFAULT_CLUSTER = "YOUR AU CLUSTER";
-
     // TTS
     public static final String TTS_DEFAULT_URI = "/api/v1/tts/ws_binary";
-    public static final String TTS_DEFAULT_CLUSTER = "YOUR TTS CLUSTER";
-    public static final String TTS_DEFAULT_BACKEND_CLUSTER = "YOUR TTS BACKEND CLUSTER";
-    public static final String TTS_DEFAULT_ONLINE_VOICE = "TTS ONLINE VOICE";
-    public static final String TTS_DEFAULT_ONLINE_VOICE_TYPE = "TTS ONLINE VOICE TYPE";
-    public static final String TTS_DEFAULT_OFFLINE_VOICE = "TTS OFFLINE VOICE";
-    public static final String TTS_DEFAULT_OFFLINE_VOICE_TYPE = "TTS OFFLINE VOICE TYPE";
-    public static final String TTS_DEFAULT_ONLINE_LANGUAGE = "TTS ONLINE LANGUAGE";
-    public static final String TTS_DEFAULT_OFFLINE_LANGUAGE = "TTS OFFLINE LANGUAGE";
-    public static final String[] TTS_DEFAULT_DOWNLOAD_OFFLINE_VOICES = new String[]{};
-
     // VoiceClone
     public static final String VOICECLONE_DEFAULT_UIDS = "uid_1;uid_2";
     public static final int VOICECLONE_DEFAULT_TASK_ID = -1;
-
-    // VoiceConv
-    public static final String VOICECONV_DEFAULT_URI = "/api/v1/voice_conv/ws";
-    public static final String VOICECONV_DEFAULT_CLUSTER = "YOUR VOICECONV CLUSTER";
-    public static final String VOICECONV_DEFAULT_VOICE = "VOICECONV VOICE";
-    public static final String VOICECONV_DEFAULT_VOICE_TYPE = "VOICECONV VOICE TYPE";
-
-    // Fulllink
-    public static final String FULLLINK_DEFAULT_URI = "FULLLINK URI";
-
-    // Dialog
-    public static final String DIALOG_DEFAULT_URI = "DIALOG URI";
-    public static final String DIALOG_DEFAULT_APP_ID = "DIALOG APP ID";
-    public static final String DIALOG_DEFAULT_ID = "DIALOG ID";
-    public static final String DIALOG_DEFAULT_ROLE = "DIALOG ROLE";
-    public static final String DIALOG_DEFAULT_CLOTHES_TYPE = "DIALOG CLOTHES TYPE";
-    public static final String DIALOG_DEFAULT_TTA_VOICE_TYPE = "DIALOG TTA_VOICE_TYPE";
-
-    // CAPT
-    public static final String CAPT_DEFAULT_MDD_URI = "CAPT MDD URI";
-    public static final String CAPT_DEFAULT_CLUSTER = "YOUR CAPT CLUSTER";
 
 }

@@ -200,9 +200,9 @@ public class FileUtils {
 //        return context.getFilesDir().getAbsolutePath()+File.separator +"kimichat";
         String sdStatus = Environment.getExternalStorageState();
         if (!sdStatus.equals(Environment.MEDIA_MOUNTED)) {
-            return context.getFilesDir().getAbsolutePath() + File.separator + "my_kimichat";
+            return context.getFilesDir().getAbsolutePath() + File.separator + "Akimichat";
         } else {
-            return File.separator + "sdcard" + File.separator + "my_kimichat";
+            return File.separator + "sdcard" + File.separator + "Akimichat";
         }
     }
 

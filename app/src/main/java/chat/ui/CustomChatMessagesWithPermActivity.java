@@ -2,6 +2,7 @@ package chat.ui;
 
 import static com.luck.picture.lib.permissions.PermissionConfig.WRITE_EXTERNAL_STORAGE;
 import static com.openapi.commons.common.util.PermissionHelper.CAMERA;
+import static com.openapi.commons.common.util.PermissionHelper.READ_EXTERNAL_STORAGE;
 import static com.openapi.commons.common.util.PermissionHelper.RECORD_AUDIO;
 
 import android.app.Activity;
@@ -105,7 +106,7 @@ private boolean hasPerm() {
         LogUtil.i("perm 弹窗");
         EasyPermissions.requestPermissions(this,
                 getString(R.string.permission_need_toast), RC_CAMERA_PERM,
-                RECORD_AUDIO, CAMERA, WRITE_EXTERNAL_STORAGE);
+                RECORD_AUDIO, CAMERA, WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

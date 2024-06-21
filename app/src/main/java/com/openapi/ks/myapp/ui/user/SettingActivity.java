@@ -65,6 +65,8 @@ public class SettingActivity extends BaseSingleActivity {
 
     @BindView(R.id.sw_list_video)
     Switch sw_listVideo;
+    @BindView(R.id.sw_tts)
+    Switch sw_tts;
     @BindView(R.id.tv_version)
     TextView tvVersion;
     @BindView(R.id.tv_setting_character)
@@ -133,6 +135,13 @@ public class SettingActivity extends BaseSingleActivity {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 PreferenceUtils.setPrefBoolean(SettingActivity.this, Constants.AREA_MI_SWITCH, isChecked);
                 LogUtil.i("AREA_MI_SWITCH: " + isChecked);
+            }
+        });
+        sw_tts.setChecked(PreferenceUtils.getPrefBoolean(MyApplication.getInstance(), Constants.TTS_OPEN, false));
+        sw_tts.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                PreferenceUtils.setPrefBoolean(SettingActivity.this, Constants.TTS_OPEN, isChecked);
+                LogUtil.i("TTS_OPEN: " + isChecked);
             }
         });
         String content = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.MY_SETTING, "");

@@ -12,23 +12,19 @@ import com.openapi.commons.common.util.StringUtils;
 import com.openapi.ks.chatfree.R;
 import com.openapi.ks.myapp.base.MyApplication;
 
-import chat.ui.BaseChatMessagesActivity;
 import chat.ui.data.model.Message;
 import chat.ui.utils.FormatUtils;
-import tz.co.hosannahighertech.messagekit.commons.models.IMessage;
-import tz.co.hosannahighertech.messagekit.messages.MessageHolders;
-import tz.co.hosannahighertech.messagekit.utils.DateFormatter;
 
 /*
  * Created by troy379 on 05.04.17.
  */
-public class OutcomingVoiceMessageViewHolder
+public class OutComingVoiceMessageViewHolder
         extends MyOutComingMassageHandler {
 
     private TextView tvDuration;
     private TextView messageText;
 
-    public OutcomingVoiceMessageViewHolder(View itemView, Object payload) {
+    public OutComingVoiceMessageViewHolder(View itemView, Object payload) {
         super(itemView, payload);
         tvDuration = itemView.findViewById(R.id.duration);
         messageText = itemView.findViewById(R.id.tv_message);
@@ -54,10 +50,23 @@ public class OutcomingVoiceMessageViewHolder
         messageText.setVisibility(View.GONE);
     }
 
-    private static ImageButton ivAudio;
+    public static ImageButton ivAudio;
 
     public static void click(View view, Message message) {
         LogUtil.i("msg clicked " + message);
+        if(MediaManager.isStart()){
+            if(IncomingVoiceMessageViewHolder.ivAudio!=null){
+                IncomingVoiceMessageViewHolder.ivAudio.setBackgroundResource(R.drawable.audio_animation_list_left_3);
+                IncomingVoiceMessageViewHolder.ivAudio = null;
+                MediaManager.reset();
+            }
+        }
+        if(ivAudio!= null && ivAudio==view.findViewById(R.id.ib_audio)){
+            ivAudio.setBackgroundResource(R.drawable.audio_animation_list_right_3);
+            MediaManager.reset();
+            ivAudio = null;
+            return;
+        }
         if (ivAudio != null) {
             ivAudio.setBackgroundResource(R.drawable.audio_animation_list_right_3);
             ivAudio = null;

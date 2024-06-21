@@ -145,11 +145,6 @@
             android:screenOrientation="nosensor"
             android:theme="@style/AppTheme" />
         <activity
-            android:name="com.openapi.ks.myapp.ui.sound.VitamioVideoPlayActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden"
-            android:screenOrientation="portrait"
-            android:theme="@style/AppTheme" />
-        <activity
             android:name="com.openapi.ks.myapp.ui.sound.VideoShowActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:screenOrientation="portrait"

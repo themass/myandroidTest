@@ -321,7 +321,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                         Intent intent = new Intent(BaseDrawerActivity.this, MainFragmentViewPage.class);
                         startActivity(intent);
                     }else {
-                    AppListFragment.startFragment(BaseDrawerActivity.this);
+                        AppListFragment.startFragment(BaseDrawerActivity.this);
                     }
                 } else if (item.getItemId() == R.id.menu_donation) {
                     name = "捐赠";

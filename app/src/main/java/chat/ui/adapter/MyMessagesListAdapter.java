@@ -3,9 +3,11 @@ package chat.ui.adapter;
 import android.view.View;
 import com.openapi.commons.common.util.LogUtil;
 import com.openapi.ks.chatfree.R;
+
+import chat.ui.BaseChatMessagesActivity;
 import chat.ui.adapter.media.holders.IncomingVoiceMessageViewHolder;
 import chat.ui.adapter.media.holders.MyOutComingMassageHandler;
-import chat.ui.adapter.media.holders.OutcomingVoiceMessageViewHolder;
+import chat.ui.adapter.media.holders.OutComingVoiceMessageViewHolder;
 import chat.ui.data.model.Message;
 import tz.co.hosannahighertech.messagekit.commons.ImageLoader;
 import tz.co.hosannahighertech.messagekit.commons.models.IMessage;
@@ -30,7 +32,7 @@ public class MyMessagesListAdapter extends MessagesListAdapter<Message> implemen
                 CONTENT_TYPE_VOICE,
                 IncomingVoiceMessageViewHolder.class,
                 R.layout.item_custom_incoming_voice_message,
-                OutcomingVoiceMessageViewHolder.class,
+                OutComingVoiceMessageViewHolder.class,
                 R.layout.item_custom_outcoming_voice_message,
                 this);
         setOnMessageViewClickListener(this);
@@ -50,12 +52,22 @@ public class MyMessagesListAdapter extends MessagesListAdapter<Message> implemen
     @Override
     public void onMessageViewClick(View view, IMessage message) {
         Message msg = (Message) message;
-        if (msg.getVoice() != null) {
-            OutcomingVoiceMessageViewHolder.click(view, msg);
-            OutcomingVoiceMessageViewHolder.onLongClick(view, msg);
-        } else if (msg.getImage() != null) {
+        if(msg.getUser() == BaseChatMessagesActivity.my){
+            if (msg.getVoice() != null) {
+                OutComingVoiceMessageViewHolder.click(view, msg);
+                OutComingVoiceMessageViewHolder.onLongClick(view, msg);
+            } else if (msg.getImage() != null) {
 
+            }
+        }if(msg.getUser() == BaseChatMessagesActivity.gpt){
+            if (msg.getVoice() != null) {
+                IncomingVoiceMessageViewHolder.click(view, msg);
+                IncomingVoiceMessageViewHolder.onLongClick(view, msg);
+            } else if (msg.getImage() != null) {
+
+            }
         }
+
     }
     public int getMessagePositionById(String id) {
         for (int i = 0; i < items.size(); i++) {

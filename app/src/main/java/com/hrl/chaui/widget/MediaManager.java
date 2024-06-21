@@ -9,6 +9,8 @@ import android.media.MediaPlayer.OnErrorListener;
 import android.os.Handler;
 import android.util.Log;
 
+import com.openapi.commons.common.util.LogUtil;
+
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -24,6 +26,7 @@ public class MediaManager {
 
     public static void playSound(Context context, String filePathString,
                                  OnCompletionListener onCompletionListener) {//
+        LogUtil.i("play audio url="+filePathString);
         if (mPlayer == null) {
             mPlayer = getMediaPlayer(context);
             //保险起见，设置报错监听

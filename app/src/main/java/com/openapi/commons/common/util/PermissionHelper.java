@@ -34,7 +34,7 @@ public class PermissionHelper {
     public static final String READ_EXTERNAL_STORAGE = Manifest.permission.READ_EXTERNAL_STORAGE;
     public static final String CAMERA = Manifest.permission.CAMERA;
     public static final String RECORD_AUDIO = Manifest.permission.RECORD_AUDIO;
-    public static List<String> requestPermissions = Arrays.asList(RECORD_AUDIO, CAMERA, WRITE_EXTERNAL_STORAGE);
+    public static List<String> requestPermissions = Arrays.asList(RECORD_AUDIO, CAMERA, WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE);
     //    static {
 //        LogUtil.i("os version="+Build.VERSION.SDK_INT );
 //        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O){
