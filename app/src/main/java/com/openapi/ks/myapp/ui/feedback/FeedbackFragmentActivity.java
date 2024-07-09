@@ -1,6 +1,7 @@
 package com.openapi.ks.myapp.ui.feedback;
 
 import android.os.Bundle;
+import android.view.View;
 
 import androidx.fragment.app.Fragment;
 
@@ -86,6 +87,7 @@ public class FeedbackFragmentActivity extends BaseFragmentActivity implements Fa
         if (title != null) {
             setToolbarTitle(title, true);
         }
+        fabUp.setVisibility(View.GONE);
     }
 
     @Override

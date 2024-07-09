@@ -31,6 +31,7 @@ import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.BaseService;
 import com.openapi.ks.myapp.data.UserLoginUtil;
 import com.openapi.ks.myapp.data.VersionUpdater;
+import com.openapi.ks.myapp.data.config.PlayCoreEvent;
 import com.openapi.ks.myapp.data.config.TabChangeEvent;
 import com.openapi.ks.myapp.service.LogUploadService;
 import com.openapi.ks.myapp.ui.base.WebViewActivity;
@@ -67,6 +68,8 @@ public class SettingActivity extends BaseSingleActivity {
     Switch sw_listVideo;
     @BindView(R.id.sw_tts)
     Switch sw_tts;
+    @BindView(R.id.sw_videoplay)
+    Switch sw_videoplay;
     @BindView(R.id.tv_version)
     TextView tvVersion;
     @BindView(R.id.tv_setting_character)
@@ -142,6 +145,14 @@ public class SettingActivity extends BaseSingleActivity {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 PreferenceUtils.setPrefBoolean(SettingActivity.this, Constants.TTS_OPEN, isChecked);
                 LogUtil.i("TTS_OPEN: " + isChecked);
+            }
+        });
+        sw_videoplay.setChecked(PreferenceUtils.getPrefBoolean(MyApplication.getInstance(), Constants.PLAYCORE_SWITCH, true));
+        sw_videoplay.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                PreferenceUtils.setPrefBoolean(SettingActivity.this, Constants.PLAYCORE_SWITCH, isChecked);
+                LogUtil.i("PLAYCORE_SWITCH: " + isChecked);
+                EventBusUtil.getEventBus().post(new PlayCoreEvent());
             }
         });
         String content = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.MY_SETTING, "");

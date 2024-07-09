@@ -7,10 +7,12 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.OptIn;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.media3.common.util.UnstableApi;
 import androidx.viewpager.widget.ViewPager;
 
 import android.view.KeyEvent;
@@ -37,6 +39,7 @@ import com.openapi.ks.myapp.data.ConnLogUtil;
 import com.openapi.ks.myapp.data.UserLoginUtil;
 import com.openapi.ks.myapp.data.config.ConfigActionJump;
 import com.openapi.ks.myapp.data.config.LogAddTofile;
+import com.openapi.ks.myapp.data.config.PlayCoreEvent;
 import com.openapi.ks.myapp.data.config.TabChangeEvent;
 import com.openapi.ks.myapp.service.LogUploadService;
 import com.openapi.ks.myapp.ui.base.app.BaseDrawerActivity;
@@ -98,7 +101,17 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         initTabs();
         LogUtil.i("onEvent:initTabs");
     }
-
+    @OptIn(markerClass = UnstableApi.class) @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(PlayCoreEvent event) {
+        boolean playCore = PreferenceUtils.getPrefBoolean(this, Constants.PLAYCORE_SWITCH, true);
+        if (!playCore) {
+            PlayerFactory.setPlayManager(Exo2PlayerManager.class);
+            JzvdPlayerFactory.setPlayManager(JZMediaExo.class);
+        } else {
+            PlayerFactory.setPlayManager(IjkPlayerManager.class);
+            JzvdPlayerFactory.setPlayManager(JZMediaIjk.class);
+        }
+    }
     /**
      * Callback received when a permissions request has been completed.
      */
@@ -138,7 +151,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         ConnLogUtil.sendAllLog(this);
     }
 
-    private void initTabs() {
+    @OptIn(markerClass = UnstableApi.class) private void initTabs() {
         list.clear();
         LayoutInflater inflater = LayoutInflater.from(this);
         if (MyApplication.isTemp) {
@@ -174,14 +187,9 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
             TabLayout.Tab tab = mTabLayout.getTabAt(i);
             tab.setCustomView(myPagerAdapter.getTabView(i, (i == 0)));
         }
-        boolean playCore = PreferenceUtils.getPrefBoolean(this, Constants.PLAYCORE_SWITCH, true);
-        if (!playCore) {
-            PlayerFactory.setPlayManager(Exo2PlayerManager.class);
-            JzvdPlayerFactory.setPlayManager(JZMediaExo.class);
-        } else {
-            PlayerFactory.setPlayManager(IjkPlayerManager.class);
-            JzvdPlayerFactory.setPlayManager(JZMediaIjk.class);
-        }
+        // 设置播放器内核
+        onEvent(new PlayCoreEvent());
+
     }
 
     private void addData(LayoutInflater inflater, int tag, Class<? extends Fragment> clss,
@@ -210,8 +218,8 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         EventBusUtil.getEventBus().unregister(logAdd);
         EventBusUtil.getEventBus().unregister(this);
         super.onDestroy();
-        MobAgent.killProcess(this);
-        System.exit(0);
+//        MobAgent.killProcess(this);
+//        System.exit(0);
     }
 
 //    @Override

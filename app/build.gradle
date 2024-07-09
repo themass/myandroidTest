@@ -16,8 +16,8 @@ android {
         applicationId "com.openapi.ks.chatfree"
         minSdk 28
         targetSdk 33
-        versionCode 1001000017
-        versionName "1.1.1.7"
+        versionCode 1001000020
+        versionName "1.1.0.20"
         // Enabling multidex support.
         multiDexEnabled true
         flavorDimensions "versionCode"
@@ -137,8 +137,8 @@ dependencies {
     implementation 'com.github.bumptech.glide:okhttp3-integration:4.15.1'
     implementation 'jp.wasabeef:glide-transformations:4.3.0'
 
-    implementation 'com.squareup.okhttp3:logging-interceptor:3.9.0'
-    implementation 'com.squareup.okhttp3:okhttp:3.9.0'
+    implementation 'com.squareup.okhttp3:logging-interceptor:4.9.3'
+    implementation 'com.squareup.okhttp3:okhttp:4.9.3'
 
 
     annotationProcessor 'com.jakewharton:butterknife-compiler:10.2.3'
@@ -160,12 +160,12 @@ dependencies {
 
     implementation 'cn.jzvd:jiaozivideoplayer:7.7.0'
     //和 gsy 冲突了，不能升级版本，不兼容
-    implementation 'com.google.android.exoplayer:exoplayer:2.12.1'
+    implementation 'com.google.android.exoplayer:exoplayer:2.19.1'
 
     implementation 'io.reactivex:rxjava:1.1.9'
     implementation 'io.reactivex:rxandroid:1.2.1'
 
-    implementation 'com.github.CarGuo.GSYVideoPlayer:GSYVideoPlayer:v8.4.0-release-jitpack'
+    implementation 'com.github.CarGuo.GSYVideoPlayer:GSYVideoPlayer:v8.6.0-release-jitpack'
     //是否需要AliPlayer模式
 //    implementation 'com.github.CarGuo.GSYVideoPlayer:GSYVideoPlayer-aliplay:v8.4.0-release-jitpack'
 

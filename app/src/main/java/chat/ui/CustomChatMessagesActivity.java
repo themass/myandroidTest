@@ -123,7 +123,7 @@ public class CustomChatMessagesActivity extends BaseChatMessagesActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_custom_layout_messages);
-        EventBusUtil.getEventBus().register(jump);
+//        EventBusUtil.getEventBus().register(jump);
         EventBusUtil.getEventBus().register(this);
         AdsContext.showNext(this);
         initBanner();
@@ -231,7 +231,7 @@ public class CustomChatMessagesActivity extends BaseChatMessagesActivity {
     public void onDestroy() {
         LogUtil.i("main destory");
         stopService(LogUploadService.class);
-        EventBusUtil.getEventBus().unregister(jump);
+//        EventBusUtil.getEventBus().unregister(jump);
         EventBusUtil.getEventBus().unregister(this);
         super.onDestroy();
         MobAgent.killProcess(this);

@@ -449,3 +449,12 @@ public static java.lang.String TABLENAME;
 -dontwarn com.yalantis.ucrop**
 -keep class com.yalantis.ucrop** { *; }
 -keep interface com.yalantis.ucrop** { *; }
+-keep interface org.xmlpull.v1.** { *; }
+-dontwarn org.xmlpull.v1.**
+-keep class android.content.res.XmlResourceParser { *; }
+-dontwarn android.content.res.XmlResourceParser
+-keep class org.kxml2.io.** { *; }
+-dontwarn org.kxml2.io.**
+
+-keep class retrofit2.** { *; }
+-dontwarn retrofit2.**

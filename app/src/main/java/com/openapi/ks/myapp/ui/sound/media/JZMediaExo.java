@@ -6,35 +6,39 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
 import android.view.Surface;
-
-import com.google.android.exoplayer2.C;
-import com.google.android.exoplayer2.DefaultLoadControl;
-import com.google.android.exoplayer2.DefaultRenderersFactory;
-import com.google.android.exoplayer2.ExoPlaybackException;
-import com.google.android.exoplayer2.LoadControl;
-import com.google.android.exoplayer2.MediaItem;
-import com.google.android.exoplayer2.PlaybackParameters;
-import com.google.android.exoplayer2.Player;
-import com.google.android.exoplayer2.RenderersFactory;
-import com.google.android.exoplayer2.SimpleExoPlayer;
-import com.google.android.exoplayer2.Timeline;
-import com.google.android.exoplayer2.source.MediaSource;
-import com.google.android.exoplayer2.source.ProgressiveMediaSource;
-import com.google.android.exoplayer2.source.TrackGroupArray;
-import com.google.android.exoplayer2.source.hls.HlsMediaSource;
-import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
-import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.trackselection.TrackSelection;
-import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
-import com.google.android.exoplayer2.trackselection.TrackSelector;
-import com.google.android.exoplayer2.upstream.BandwidthMeter;
-import com.google.android.exoplayer2.upstream.DataSource;
-import com.google.android.exoplayer2.upstream.DefaultAllocator;
-import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
-import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
-import com.google.android.exoplayer2.util.Util;
-import com.google.android.exoplayer2.video.VideoListener;
 import com.openapi.ks.myapp.constant.Constants;
+
+import androidx.annotation.OptIn;
+import androidx.media3.common.C;
+import androidx.media3.common.MediaItem;
+import androidx.media3.common.PlaybackException;
+import androidx.media3.common.PlaybackParameters;
+import androidx.media3.common.Player;
+import androidx.media3.common.Timeline;
+import androidx.media3.common.VideoSize;
+import androidx.media3.common.util.UnstableApi;
+import androidx.media3.datasource.DataSource;
+import androidx.media3.datasource.DefaultDataSourceFactory;
+import androidx.media3.exoplayer.DefaultLoadControl;
+import androidx.media3.exoplayer.DefaultRenderersFactory;
+import androidx.media3.exoplayer.ExoPlaybackException;
+import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.exoplayer.LoadControl;
+import androidx.media3.exoplayer.RenderersFactory;
+import androidx.media3.exoplayer.SimpleExoPlayer;
+import androidx.media3.exoplayer.hls.HlsMediaSource;
+import androidx.media3.exoplayer.source.MediaSource;
+import androidx.media3.exoplayer.source.ProgressiveMediaSource;
+import androidx.media3.exoplayer.source.TrackGroupArray;
+import androidx.media3.exoplayer.trackselection.AdaptiveTrackSelection;
+import androidx.media3.exoplayer.trackselection.DefaultTrackSelector;
+import androidx.media3.exoplayer.trackselection.ExoTrackSelection;
+import androidx.media3.exoplayer.trackselection.TrackSelectionArray;
+import androidx.media3.exoplayer.trackselection.TrackSelector;
+import androidx.media3.exoplayer.upstream.BandwidthMeter;
+import androidx.media3.exoplayer.upstream.DefaultAllocator;
+import androidx.media3.exoplayer.upstream.DefaultBandwidthMeter;
+
 import com.openapi.commons.common.util.LogUtil;
 
 import cn.jzvd.JZMediaInterface;
@@ -43,11 +47,12 @@ import cn.jzvd.Jzvd;
 /**
  * Created by MinhDV on 5/3/18.
  */
-public class JZMediaExo extends JZMediaInterface implements Player.EventListener, VideoListener {
-    private SimpleExoPlayer simpleExoPlayer;
+@UnstableApi public class JZMediaExo extends JZMediaInterface implements Player.Listener {
+    private ExoPlayer simpleExoPlayer;
     private Runnable callback;
     private String TAG = "JZMediaExo";
     private long previousSeek = 0;
+    private boolean playWhenReady = true;
 
     public JZMediaExo(Jzvd jzvd) {
         super(jzvd);
@@ -58,7 +63,7 @@ public class JZMediaExo extends JZMediaInterface implements Player.EventListener
         simpleExoPlayer.setPlayWhenReady(true);
     }
 
-    @Override
+    @OptIn(markerClass = UnstableApi.class) @Override
     public void prepare() {
         Log.e(TAG, "prepare");
         Context context = jzvd.getContext();
@@ -73,7 +78,7 @@ public class JZMediaExo extends JZMediaInterface implements Player.EventListener
         mMediaHandler.post(() -> {
 
 
-            TrackSelection.Factory videoTrackSelectionFactory =
+            ExoTrackSelection.Factory videoTrackSelectionFactory =
                     new AdaptiveTrackSelection.Factory();
             TrackSelector trackSelector =
                     new DefaultTrackSelector(context, videoTrackSelectionFactory);
@@ -83,14 +88,14 @@ public class JZMediaExo extends JZMediaInterface implements Player.EventListener
                     .setBufferDurationsMs(360000, 600000, 1000, 5000)
                     .setPrioritizeTimeOverSizeThresholds(false)
                     .setTargetBufferBytes(C.LENGTH_UNSET)
-                    .createDefaultLoadControl();
+                    .build();
 
 
             BandwidthMeter bandwidthMeter = new DefaultBandwidthMeter.Builder(context).build();
             // 2. Create the player
 
             RenderersFactory renderersFactory = new DefaultRenderersFactory(context);
-            simpleExoPlayer = new SimpleExoPlayer.Builder(context, renderersFactory)
+            simpleExoPlayer = new ExoPlayer.Builder(context, renderersFactory)
                     .setTrackSelector(trackSelector)
                     .setLoadControl(loadControl)
                     .setBandwidthMeter(bandwidthMeter)
@@ -114,7 +119,7 @@ public class JZMediaExo extends JZMediaInterface implements Player.EventListener
                         .createMediaSource(MediaItem.fromUri(currUrl));
             }
             simpleExoPlayer.setMediaSource(videoSource);
-            simpleExoPlayer.addVideoListener(this);
+//            simpleExoPlayer.addVideoListener(this);
 
             Log.e(TAG, "URL Link = " + currUrl);
 
@@ -140,8 +145,8 @@ public class JZMediaExo extends JZMediaInterface implements Player.EventListener
     }
 
     @Override
-    public void onVideoSizeChanged(int width, int height, int unappliedRotationDegrees, float pixelWidthHeightRatio) {
-        handler.post(() -> jzvd.onVideoSizeChanged((int) (width * pixelWidthHeightRatio), height));
+    public void onVideoSizeChanged(VideoSize videoSize) {
+        handler.post(() -> jzvd.onVideoSizeChanged((int) (videoSize.width * videoSize.pixelWidthHeightRatio), videoSize.height));
     }
 
     @Override
@@ -179,7 +184,7 @@ public class JZMediaExo extends JZMediaInterface implements Player.EventListener
     public void release() {
         if (mMediaHandler != null && mMediaHandlerThread != null && simpleExoPlayer != null) {//不知道有没有妖孽
             HandlerThread tmpHandlerThread = mMediaHandlerThread;
-            SimpleExoPlayer tmpMediaPlayer = simpleExoPlayer;
+            ExoPlayer tmpMediaPlayer = simpleExoPlayer;
             JZMediaInterface.SAVED_SURFACE = null;
 
             mMediaHandler.post(() -> {
@@ -216,29 +221,14 @@ public class JZMediaExo extends JZMediaInterface implements Player.EventListener
         simpleExoPlayer.setPlaybackParameters(playbackParameters);
     }
 
-    @Override
-    public void onTimelineChanged(final Timeline timeline, Object manifest, final int reason) {
-        Log.e(TAG, "onTimelineChanged");
-//        JZMediaPlayer.instance().mainThreadHandler.post(() -> {
-//                if (reason == 0) {
-//
-//                    JzvdMgr.getCurrentJzvd().onInfo(reason, timeline.getPeriodCount());
-//                }
-//        });
-    }
 
     @Override
-    public void onTracksChanged(TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
-
-    }
-
-    @Override
-    public void onLoadingChanged(boolean isLoading) {
+    public void onIsLoadingChanged(boolean isLoading) {
         Log.e(TAG, "onLoadingChanged");
     }
 
     @Override
-    public void onPlayerStateChanged(final boolean playWhenReady, final int playbackState) {
+    public void onPlayerStateChanged(boolean playWhenReady, @Player.State int playbackState){
         Log.e(TAG, "onPlayerStateChanged" + playbackState + "/ready=" + String.valueOf(playWhenReady));
         handler.post(() -> {
             switch (playbackState) {
@@ -276,7 +266,7 @@ public class JZMediaExo extends JZMediaInterface implements Player.EventListener
     }
 
     @Override
-    public void onPlayerError(ExoPlaybackException error) {
+    public void onPlayerError(PlaybackException error) {
         Log.e(TAG, "onPlayerError ->" + error.toString());
         handler.post(() -> jzvd.onError(1000, 1000));
     }
@@ -291,10 +281,10 @@ public class JZMediaExo extends JZMediaInterface implements Player.EventListener
 
     }
 
-    @Override
-    public void onSeekProcessed() {
-        handler.post(() -> jzvd.onSeekComplete());
-    }
+//    @Override
+//    public void seekTo(int mediaItemIndex, long positionMs) {
+//        handler.post(() -> jzvd.onSeekComplete());
+//    }
 
     @Override
     public void setSurface(Surface surface) {

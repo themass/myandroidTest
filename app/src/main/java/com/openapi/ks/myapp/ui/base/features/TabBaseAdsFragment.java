@@ -25,7 +25,7 @@ public abstract class TabBaseAdsFragment extends TabBaseFragment {
 
     @OnClick(R.id.fab_up)
     public void onClickFab(View view) {
-        startActivity(SettingActivity.class);
+//        startActivity(SettingActivity.class);
         AdsPopStrategy.clickAdsShowBtn(getActivity());
     }
 

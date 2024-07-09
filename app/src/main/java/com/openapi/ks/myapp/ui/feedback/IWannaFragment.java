@@ -77,6 +77,7 @@ public class IWannaFragment extends LoadableFragment<InfoListVo<IWannaVo>> imple
         intent.putExtra(CommonFragmentActivity.FRAGMENT, IWannaFragment.class);
         intent.putExtra(CommonFragmentActivity.TITLE, getFragmentTitle());
         intent.putExtra(CommonFragmentActivity.SLIDINGCLOSE, true);
+        intent.putExtra(CommonFragmentActivity.FABUP_SHOW, false);
         context.startActivity(intent);
     }
 
