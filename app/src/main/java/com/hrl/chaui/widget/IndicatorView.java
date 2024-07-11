@@ -11,7 +11,7 @@ import android.os.Message;
 import android.util.AttributeSet;
 import android.widget.LinearLayout;
 
-import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chat.R;
 
 public class IndicatorView extends LinearLayout {
 

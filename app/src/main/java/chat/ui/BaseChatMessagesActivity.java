@@ -19,7 +19,7 @@ import com.openapi.commons.common.util.GsonUtils;
 import com.openapi.commons.common.util.LogUtil;
 import com.openapi.commons.common.util.PreferenceUtils;
 import com.openapi.commons.common.util.ToastUtil;
-import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.bean.form.ChatLog;
 import com.openapi.ks.myapp.bean.form.ChatSessionLog;
 import com.openapi.ks.myapp.constant.Constants;

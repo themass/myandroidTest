@@ -24,7 +24,7 @@ import com.openapi.ks.myapp.data.StaticDataUtil;
 import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
 import com.openapi.ks.myapp.ui.base.MenuOneContext;
 import com.openapi.ks.myapp.ui.base.features.BasePullLoadbleFragment;
-import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chat.R;
 
 /**
  * Created by openapi on 2016/8/12.

@@ -14,7 +14,7 @@ import com.hrl.chaui.util.ChatUiHelper;
 import com.hrl.chaui.widget.RecordButton;
 import com.hrl.chaui.widget.StateButton;
 import com.openapi.commons.common.util.ToastUtil;
-import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chat.R;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;

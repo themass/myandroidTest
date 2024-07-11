@@ -5,7 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
-import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.adapter.AppRecommendViewAdapter;
 import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.openapi.ks.myapp.bean.vo.AppInfo;

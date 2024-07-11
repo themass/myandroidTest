@@ -4,7 +4,7 @@ import android.content.Context;
 
 import com.openapi.commons.common.util.PreferenceUtils;
 import com.openapi.commons.common.util.SystemUtils;
-import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.bean.vo.LocationVo;
 import com.openapi.ks.myapp.constant.Constants;
 

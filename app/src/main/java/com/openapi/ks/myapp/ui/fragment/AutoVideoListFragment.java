@@ -13,7 +13,7 @@ import android.widget.FrameLayout;
 
 import com.openapi.commons.common.util.DensityUtil;
 import com.openapi.commons.common.util.LogUtil;
-import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.adapter.VideoListAdapter;
 import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.openapi.ks.myapp.bean.vo.InfoListVo;

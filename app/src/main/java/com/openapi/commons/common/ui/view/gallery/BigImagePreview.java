@@ -25,7 +25,7 @@ import com.bumptech.glide.request.target.DrawableImageViewTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.github.chrisbanes.photoview.OnViewTapListener;
 import com.github.chrisbanes.photoview.PhotoViewAttacher;
-import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chat.R;
 
 import java.util.ArrayList;
 import java.util.List;

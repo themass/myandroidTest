@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.openapi.ks.chatfree"
+    package="com.openapi.ks.chat"
     android:versionCode="1"
     android:versionName="1.0">
     <!-- 隐私权-->
@@ -88,7 +88,7 @@
             android:value="MyGlideModule" />
 
         <activity
-            android:name=".ui.main.LaunchActivity"
+            android:name="com.openapi.ks.chatfree.ui.main.LaunchActivity"
             android:exported="true"
             android:screenOrientation="portrait">
             <intent-filter tools:ignore="GoogleAppIndexingWarning">
@@ -100,7 +100,7 @@
 
         </activity>
         <activity
-            android:name=".ui.main.MainFragmentViewPage"
+            android:name="com.openapi.ks.chatfree.ui.main.MainFragmentViewPage"
             android:label="@string/main_activity_name"
             android:launchMode="singleTask"
             android:screenOrientation="portrait" />

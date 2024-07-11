@@ -16,7 +16,7 @@ import com.openapi.commons.common.util.LogUtil;
 import com.openapi.commons.common.util.StringUtils;
 import com.romainpiel.shimmer.Shimmer;
 import com.openapi.commons.common.util.netglide.MyGlideLibModule;
-import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.adapter.IndexRecommendAdapter;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.constant.BaseRes;

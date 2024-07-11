@@ -13,7 +13,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 
-import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chat.R;
 
 import java.util.Arrays;
 import java.util.List;

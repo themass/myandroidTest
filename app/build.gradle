@@ -8,16 +8,16 @@ apply plugin: 'com.jakewharton.butterknife'
 // gradle BuildVariants
 //Build Variants = Product Flavor + Build Type
 android {
-    namespace "com.openapi.ks.chatfree"
+    namespace "com.openapi.ks.chat"
     compileSdk 34
 //    buildTools "29.0.2"
     ndkVersion "23.1.7779620"
     defaultConfig {
-        applicationId "com.openapi.ks.chatfree"
+        applicationId "com.openapi.ks.chat"
         minSdk 28
-        targetSdk 33
-        versionCode 1001000020
-        versionName "1.1.0.20"
+        targetSdk 34
+        versionCode 1001000022
+        versionName "1.1.0.22"
         // Enabling multidex support.
         multiDexEnabled true
         flavorDimensions "versionCode"

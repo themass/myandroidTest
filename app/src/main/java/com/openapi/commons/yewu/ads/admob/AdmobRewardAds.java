@@ -15,7 +15,7 @@ import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback;
 import com.openapi.commons.common.util.LogUtil;
 import com.openapi.commons.common.util.ToastUtil;
 import com.openapi.commons.yewu.ads.base.RewardInterface;
-import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.task.ScoreTask;
 

@@ -16,7 +16,7 @@ import com.openapi.ks.myapp.ui.fragment.AppListFragment;
 import com.openapi.ks.myapp.ui.fragment.RecommendFragment;
 import com.openapi.ks.myapp.ui.fragment.TeleplayChannelFragment;
 import com.openapi.ks.myapp.ui.fragment.VideoChannelListFragment;
-import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chat.R;
 
 import butterknife.BindView;
 import butterknife.OnClick;

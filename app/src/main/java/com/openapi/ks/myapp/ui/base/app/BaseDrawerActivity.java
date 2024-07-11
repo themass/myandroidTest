@@ -23,7 +23,7 @@ import com.openapi.commons.common.util.SystemUtils;
 import com.openapi.commons.common.util.ToastUtil;
 import com.openapi.commons.yewu.ads.base.AdsManager;
 import com.openapi.commons.yewu.um.MobAgent;
-import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chat.R;
 import com.openapi.ks.chatfree.ui.main.MainFragmentViewPage;
 import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.bean.vo.UserInfoVo;

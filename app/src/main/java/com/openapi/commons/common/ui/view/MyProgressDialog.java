@@ -3,7 +3,7 @@ package com.openapi.commons.common.ui.view;
 import android.app.Dialog;
 import android.content.Context;
 
-import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chat.R;
 
 
 public class MyProgressDialog extends Dialog {

@@ -8,7 +8,7 @@ import android.widget.LinearLayout;
 
 import com.openapi.commons.common.util.ToastUtil;
 import com.openapi.commons.yewu.net.request.CommonResponse;
-import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.bean.form.RegForm;
 import com.openapi.ks.myapp.bean.vo.NullReturnVo;
 import com.openapi.ks.myapp.constant.Constants;

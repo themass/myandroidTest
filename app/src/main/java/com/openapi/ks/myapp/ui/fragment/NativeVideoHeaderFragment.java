@@ -6,7 +6,7 @@ import android.view.ViewGroup;
 
 import com.openapi.commons.common.ui.base.BaseFragment;
 import com.openapi.commons.common.util.LogUtil;
-import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chat.R;
 
 import butterknife.BindView;
 

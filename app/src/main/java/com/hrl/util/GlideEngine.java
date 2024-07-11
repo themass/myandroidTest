@@ -8,7 +8,7 @@ import com.bumptech.glide.load.resource.bitmap.CenterCrop;
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.luck.picture.lib.engine.ImageEngine;
 import com.luck.picture.lib.utils.ActivityCompatHelper;
-import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chat.R;
 
 /**
  * @author：luck

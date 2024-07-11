@@ -10,7 +10,7 @@ import com.openapi.commons.common.util.PreferenceUtils;
 import com.openapi.commons.common.util.StringUtils;
 import com.openapi.commons.common.util.ToastUtil;
 import com.openapi.commons.yewu.net.request.CommonResponse;
-import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.bean.form.LoginForm;
 import com.openapi.ks.myapp.bean.vo.UserInfoVo;
 import com.openapi.ks.myapp.constant.Constants;

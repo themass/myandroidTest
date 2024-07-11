@@ -13,7 +13,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.openapi.commons.common.util.LogUtil;
-import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chat.R;
 
 import java.lang.reflect.Field;
 

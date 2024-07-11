@@ -23,7 +23,7 @@
 //import android.widget.Toast;
 //
 //import com.openapi.commons.common.ui.base.LogActivity;
-//import com.openapi.ks.chatfree.R;
+//import com.openapi.ks.chat.R;
 //import com.openapi.ks.myapp.bean.vo.RecommendVo;
 //import com.openapi.ks.myapp.constant.Constants;
 //

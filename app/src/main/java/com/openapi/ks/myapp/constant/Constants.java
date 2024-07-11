@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.openapi.commons.yewu.ads.adview.AdviewConstant;
-import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chat.R;
 
 /**
  * Created by openapi on 2015/9/1.

@@ -9,7 +9,7 @@ import android.view.View;
 import android.view.Window;
 import android.widget.Button;
 
-import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chat.R;
 
 
 public class SetPermissionDialog extends Dialog implements View.OnClickListener {

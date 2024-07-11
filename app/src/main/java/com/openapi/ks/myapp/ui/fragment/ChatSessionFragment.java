@@ -22,7 +22,7 @@ import com.openapi.commons.common.util.LogUtil;
 import com.openapi.commons.common.util.PreferenceUtils;
 import com.openapi.commons.common.util.ToastUtil;
 import com.openapi.commons.yewu.ads.base.AdsContext;
-import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.bean.form.ChatSessionLog;
 import com.openapi.ks.myapp.bean.vo.InfoListVo;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;

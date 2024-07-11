@@ -2,7 +2,7 @@ package chat.ui.adapter.media.holders;
 
 import android.view.View;
 
-import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.bean.vo.UserInfoVo;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.UserLoginUtil;

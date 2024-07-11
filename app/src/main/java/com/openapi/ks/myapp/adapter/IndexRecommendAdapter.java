@@ -20,7 +20,7 @@ import com.openapi.commons.common.util.DensityUtil;
 import com.openapi.commons.common.util.PreferenceUtils;
 import com.openapi.commons.common.util.StringUtils;
 import com.openapi.commons.common.util.ToastUtil;
-import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.adapter.base.BasePhotoFlowRecycleViewAdapter;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.constant.Constants;

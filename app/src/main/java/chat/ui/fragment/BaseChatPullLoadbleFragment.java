@@ -16,7 +16,7 @@ import com.openapi.commons.common.ui.view.DividerItemDecoration;
 import com.openapi.commons.common.ui.view.MyPullView;
 import com.openapi.commons.common.util.LogUtil;
 import com.openapi.commons.common.util.StringUtils;
-import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.openapi.ks.myapp.bean.vo.InfoListVo;
 import com.openapi.ks.myapp.data.BaseService;

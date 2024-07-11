@@ -22,7 +22,7 @@ import com.openapi.ks.myapp.bean.vo.InfoListVo;
 import com.openapi.ks.myapp.data.BaseService;
 import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
 import com.openapi.ks.myapp.ui.base.features.LoadableFragment;
-import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chat.R;
 import com.openapi.commons.yewu.ads.base.AdsContext;
 
 import java.util.ArrayList;

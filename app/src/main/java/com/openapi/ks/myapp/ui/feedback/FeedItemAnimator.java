@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.view.animation.DecelerateInterpolator;
 
 import com.openapi.commons.common.util.SystemUtils;
-import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.adapter.FeedAdapter;
 
 import java.util.HashMap;

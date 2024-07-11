@@ -25,7 +25,7 @@ import android.widget.TextView;
 import com.openapi.commons.common.util.EventBusUtil;
 import com.openapi.commons.common.util.FileUtils;
 import com.openapi.commons.common.util.PermissionHelper;
-import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chat.R;
 import com.hrl.chaui.util.LogUtil;
 import java.io.File;
 public class RecordButton extends androidx.appcompat.widget.AppCompatButton {

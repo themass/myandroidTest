@@ -13,7 +13,7 @@ import androidx.annotation.FloatRange;
 import androidx.annotation.IntRange;
 import androidx.appcompat.widget.AppCompatButton;
 
-import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chat.R;
 
 
 public class StateButton extends AppCompatButton {

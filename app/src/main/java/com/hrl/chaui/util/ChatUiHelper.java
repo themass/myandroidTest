@@ -30,7 +30,7 @@ import androidx.viewpager.widget.ViewPager;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.openapi.commons.common.util.EventBusUtil;
 import com.openapi.commons.common.util.PermissionHelper;
-import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chat.R;
 import com.hrl.chaui.emoji.EmojiAdapter;
 import com.hrl.chaui.emoji.EmojiBean;
 import com.hrl.chaui.emoji.EmojiDao;

@@ -34,7 +34,7 @@ import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
 import com.openapi.ks.myapp.ui.base.features.LoadableFragment;
 import com.openapi.ks.myapp.ui.inte.FabOpListener;
 import com.openapi.ks.myapp.ui.user.LoginActivity;
-import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chat.R;
 
 import java.util.ArrayList;
 

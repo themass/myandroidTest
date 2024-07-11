@@ -2,7 +2,7 @@ package chat.ui.adapter;
 
 import android.view.View;
 import com.openapi.commons.common.util.LogUtil;
-import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chat.R;
 
 import chat.ui.BaseChatMessagesActivity;
 import chat.ui.adapter.media.holders.IncomingVoiceMessageViewHolder;

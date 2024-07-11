@@ -37,7 +37,7 @@ import com.openapi.commons.common.util.ToastUtil;
 import com.openapi.commons.yewu.ads.base.AdsContext;
 import com.openapi.commons.yewu.net.request.CommonResponse;
 import com.openapi.commons.yewu.um.MobAgent;
-import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.bean.form.ChatLog;
 import com.openapi.ks.myapp.bean.vo.Choice;

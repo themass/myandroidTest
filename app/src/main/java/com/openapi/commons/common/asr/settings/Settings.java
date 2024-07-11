@@ -7,7 +7,7 @@ import android.content.Context;
 import android.content.res.Resources;
 
 
-import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chat.R;
 
 import java.util.ArrayList;
 import java.util.List;

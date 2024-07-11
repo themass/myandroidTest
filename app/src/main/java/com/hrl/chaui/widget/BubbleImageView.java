@@ -13,7 +13,7 @@ import android.util.TypedValue;
 
 import androidx.appcompat.widget.AppCompatImageView;
 
-import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chat.R;
 
 
 /**

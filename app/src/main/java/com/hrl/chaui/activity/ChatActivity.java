@@ -25,7 +25,7 @@ import com.luck.picture.lib.basic.PictureSelector;
 import com.openapi.commons.common.ui.view.InputRecordView;
 import com.openapi.commons.common.util.EventBusUtil;
 import com.openapi.commons.common.util.PermissionHelper;
-import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chat.R;
 import com.hrl.chaui.adapter.ChatAdapter;
 import com.hrl.chaui.bean.AudioMsgBody;
 import com.hrl.chaui.bean.FileMsgBody;

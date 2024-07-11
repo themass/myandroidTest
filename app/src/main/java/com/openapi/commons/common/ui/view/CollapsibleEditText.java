@@ -7,7 +7,7 @@ import android.view.ViewGroup;
 
 import androidx.core.content.ContextCompat;
 
-import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chat.R;
 
 public class CollapsibleEditText extends androidx.appcompat.widget.AppCompatEditText {
     private boolean isExpanded = false; // 用于跟踪EditText的展开状态

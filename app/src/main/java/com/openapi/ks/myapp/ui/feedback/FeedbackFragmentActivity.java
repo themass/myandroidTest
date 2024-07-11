@@ -10,7 +10,7 @@ import com.openapi.commons.yewu.ads.base.AdsContext;
 import com.openapi.ks.myapp.ui.base.app.BaseFragmentActivity;
 import com.openapi.ks.myapp.ui.inte.FabOpListener;
 import com.openapi.ks.myapp.ui.inte.OnBackKeyDownListener;
-import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chat.R;
 
 import java.io.Serializable;
 

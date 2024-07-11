@@ -15,7 +15,7 @@ import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
 import android.widget.LinearLayout;
 
-import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chat.R;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;

@@ -6,7 +6,7 @@ import androidx.appcompat.widget.AppCompatImageView;
 
 import android.util.AttributeSet;
 
-import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.bean.vo.FavoriteVo;
 import com.openapi.ks.myapp.data.FavoriteUtil;
 

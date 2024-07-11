@@ -9,7 +9,7 @@ import com.openapi.commons.common.util.LogUtil;
 import com.openapi.commons.common.util.Md5;
 import com.openapi.commons.common.util.ToastUtil;
 import com.openapi.commons.yewu.um.MobAgent;
-import com.openapi.ks.chatfree.R;
+import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.AdsPopStrategy;
 import com.openapi.ks.myapp.data.UserLoginUtil;
