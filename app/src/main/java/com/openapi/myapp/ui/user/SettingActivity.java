@@ -17,7 +17,7 @@ import com.openapi.common.util.ShareUtil;
 import com.openapi.common.util.StringUtils;
 import com.openapi.common.util.SystemUtils;
 import com.openapi.common.util.ToastUtil;
-import com.openapi.ks.free1.R2;
+import com.openapi.ks.free1.R;
 import com.openapi.yewu.ads.base.AdsContext;
 import com.openapi.yewu.um.MobAgent;
 import com.openapi.myapp.base.MyApplication;
@@ -29,7 +29,6 @@ import com.openapi.myapp.data.UserLoginUtil;
 import com.openapi.myapp.data.VersionUpdater;
 import com.openapi.myapp.service.LogUploadService;
 import com.openapi.myapp.ui.base.app.BaseSingleActivity;
-import com.openapi.ks.free1.R;
 
 import java.io.File;
 import java.util.Date;
