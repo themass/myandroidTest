@@ -13,6 +13,7 @@ import android.provider.Settings;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+
 import com.openapi.ks.free1.R;
 
 import java.util.ArrayList;
@@ -146,14 +147,14 @@ public class PermissionHelper {
 
     public static void showPermit(Context context){
         List<PermissionItem> permissionItems = new ArrayList<PermissionItem>();
-        permissionItems.add(new PermissionItem(Manifest.permission.WRITE_EXTERNAL_STORAGE, context.getString(R.string.write_external_storage), R.drawable.permission_ic_storage));
+        permissionItems.add(new PermissionItem(Manifest.permission.WRITE_EXTERNAL_STORAGE, context.getString(R.string.write_external_storage), me.weyye.hipermission.R.drawable.permission_ic_storage));
 
         HiPermission.create(context)
                 .title(context.getString(R.string.permission_cus_title))
                 .permissions(permissionItems)
                 .msg(context.getString(R.string.permission_cus_msg))
-                .animStyle(R.style.PermissionAnimScale)
-                .style(R.style.PermissionDefaultBlueStyle)
+                .animStyle(me.weyye.hipermission.R.style.PermissionAnimScale)
+                .style(me.weyye.hipermission.R.style.PermissionDefaultBlueStyle)
                 .checkMutiPermission(new PermissionCallback() {
                     @Override
                     public void onClose() {

@@ -1,23 +1,28 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
+    ext.kotlin_version = '1.6.21'
     repositories {
         // maven { url 'https://maven.fabric.io/public' }
         maven { url "https://jitpack.io" }
-        maven { url 'https://raw.github.com/Raizlabs/maven-releases/master/releases' }
-        maven { url "https://plugins.gradle.org/m2/" }
-        maven { url 'https://maven.google.com'  }
+//        maven { url 'https://raw.github.com/Raizlabs/maven-releases/master/releases' }
+        maven { url "https://plugins.gradle.org/m2" }
+        maven { url 'https://maven.google.com' }
+        maven { url 'https://repo1.maven.org/maven2' }
         google()
-        mavenCentral()
-        //上架GP市场应用 安卓X版本
+        maven { url "https://maven.aliyun.com/repository/public" }
         maven {
-            url  "https://dl-maven-android.mintegral.com/repository/mbridge_android_sdk_oversea"
+            url "https://artifact.bytedance.com/repository/Volcengine/"
         }
-
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.0.0'
-        classpath 'org.greenrobot:greendao-gradle-plugin:3.3.0'
-        classpath 'com.jakewharton:butterknife-gradle-plugin:9.0.0-rc2'
+        classpath 'com.android.tools.build:gradle:8.2.1'
+//        classpath 'org.greenrobot:greendao-gradle-plugin:3.3.0'
+        classpath 'org.greenrobot:greendao-gradle-plugin:3.3.1' // add plugin
+        classpath 'com.jakewharton:butterknife-gradle-plugin:10.2.3'
+        classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "org.jetbrains.kotlin:kotlin-android-extensions:$kotlin_version"
+
     }
 }
 
@@ -28,15 +33,14 @@ allprojects {
         }
         // maven { url 'https://maven.fabric.io/public' }
         maven { url "https://jitpack.io" }
-        maven { url 'https://raw.github.com/Raizlabs/maven-releases/master/releases' }
-        maven { url "https://plugins.gradle.org/m2/" }
-        maven { url 'https://maven.google.com'  }
+//        maven { url 'https://raw.github.com/Raizlabs/maven-releases/master/releases' }
+        maven { url "https://plugins.gradle.org/m2" }
+        maven { url 'https://maven.google.com' }
+        maven { url 'https://repo1.maven.org/maven2' }
         google()
-        mavenCentral()
-        //上架GP市场应用 安卓X版本
+        maven { url "https://maven.aliyun.com/repository/public" }
         maven {
-            url  "https://dl-maven-android.mintegral.com/repository/mbridge_android_sdk_oversea"
+            url "https://artifact.bytedance.com/repository/Volcengine/"
         }
-
     }
 }

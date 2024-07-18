@@ -5,7 +5,6 @@ import android.view.ViewGroup;
 
 import com.bumptech.glide.Glide;
 import com.etiennelawlor.imagegallery.library.adapters.FullScreenImageGalleryAdapter;
-import com.openapi.ks.free1.R;
 
 import java.util.List;
 
@@ -20,7 +19,7 @@ public class MyFullScreenImageGalleryAdapter extends FullScreenImageGalleryAdapt
     @Override
     public void destroyItem(ViewGroup container, int position, Object object) {
         View view = (View)object;
-        Glide.with(view).clear((View) view.findViewById(R.id.iv));
+        Glide.with(view).clear((View) view.findViewById(com.etiennelawlor.imagegallery.library.R.id.iv));
         super.destroyItem(container,position,object);
 
     }
