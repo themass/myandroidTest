@@ -1,0 +1,134 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						2,
+						3
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.6.0"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						3
+					]
+				},
+				{
+					"build" : "openjtalk",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.6.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "openjtalk",
+					"targetIndexes" : 
+					[
+						1
+					]
+				},
+				{
+					"build" : "fftpack",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.6.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "fftpack",
+					"targetIndexes" : 
+					[
+						0
+					]
+				},
+				{
+					"build" : "wave_utils",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.6.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "wave_utils",
+					"targetIndexes" : 
+					[
+						2
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3
+					],
+					"name" : "moereng",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 2,
+					"id" : "libfftpack::@2e1272070b29c078411e",
+					"jsonFile" : "target-libfftpack-Debug-f2f96ca1ac95b0a57661.json",
+					"name" : "libfftpack",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "libopenjtalk::@78e8dfbf8fb7662f2039",
+					"jsonFile" : "target-libopenjtalk-Debug-2abd96f94b5aa5d65315.json",
+					"name" : "libopenjtalk",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "libwaveutils::@1c6e75f1f19384d7f0da",
+					"jsonFile" : "target-libwaveutils-Debug-47972049075301f4ecd1.json",
+					"name" : "libwaveutils",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "moereng::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-moereng-Debug-e61f42c316b4ff47b614.json",
+					"name" : "moereng",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/2k642n59/arm64-v8a",
+		"source" : "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 1
+	}
+}

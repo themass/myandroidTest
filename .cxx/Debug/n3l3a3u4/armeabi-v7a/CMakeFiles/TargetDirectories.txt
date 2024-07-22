@@ -1,0 +1,12 @@
+/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/armeabi-v7a/CMakeFiles/rebuild_cache.dir
+/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/armeabi-v7a/CMakeFiles/edit_cache.dir
+/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/armeabi-v7a/CMakeFiles/moereng.dir
+/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/armeabi-v7a/openjtalk/CMakeFiles/rebuild_cache.dir
+/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/armeabi-v7a/openjtalk/CMakeFiles/edit_cache.dir
+/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/armeabi-v7a/openjtalk/CMakeFiles/libopenjtalk.dir
+/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/armeabi-v7a/fftpack/CMakeFiles/rebuild_cache.dir
+/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/armeabi-v7a/fftpack/CMakeFiles/edit_cache.dir
+/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/armeabi-v7a/fftpack/CMakeFiles/libfftpack.dir
+/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/armeabi-v7a/wave_utils/CMakeFiles/rebuild_cache.dir
+/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/armeabi-v7a/wave_utils/CMakeFiles/edit_cache.dir
+/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/armeabi-v7a/wave_utils/CMakeFiles/libwaveutils.dir

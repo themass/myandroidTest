@@ -1,0 +1,202 @@
+[
+{
+  "directory": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/arm64-v8a",
+  "command": "/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android28 --sysroot=/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -Dmoereng_EXPORTS -I/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/vits -isystem /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/ncnn/arm64-v8a/include/ncnn -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -fno-limit-debug-info  -fPIC -fno-rtti -fno-exceptions -pthread -o CMakeFiles/moereng.dir/vits/SynthesizerTrn.cpp.o -c /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/vits/SynthesizerTrn.cpp",
+  "file": "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/vits/SynthesizerTrn.cpp"
+},
+{
+  "directory": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/arm64-v8a",
+  "command": "/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android28 --sysroot=/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -Dmoereng_EXPORTS -I/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/vits -isystem /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/ncnn/arm64-v8a/include/ncnn -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -fno-limit-debug-info  -fPIC -fno-rtti -fno-exceptions -pthread -o CMakeFiles/moereng.dir/vits/utils.cpp.o -c /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/vits/utils.cpp",
+  "file": "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/vits/utils.cpp"
+},
+{
+  "directory": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/arm64-v8a",
+  "command": "/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android28 --sysroot=/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -Dmoereng_EXPORTS -I/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/vits -isystem /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/ncnn/arm64-v8a/include/ncnn -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -fno-limit-debug-info  -fPIC -fno-rtti -fno-exceptions -pthread -o CMakeFiles/moereng.dir/vitsncnn_jni.cpp.o -c /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/vitsncnn_jni.cpp",
+  "file": "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/vitsncnn_jni.cpp"
+},
+{
+  "directory": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/arm64-v8a",
+  "command": "/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android28 --sysroot=/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -fno-limit-debug-info  -fPIC -o openjtalk/CMakeFiles/libopenjtalk.dir/api/api.cpp.o -c /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/api/api.cpp",
+  "file": "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/api/api.cpp"
+},
+{
+  "directory": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/arm64-v8a",
+  "command": "/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android28 --sysroot=/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -fno-limit-debug-info  -fPIC -o openjtalk/CMakeFiles/libopenjtalk.dir/asset_manager_api/manager.cpp.o -c /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/asset_manager_api/manager.cpp",
+  "file": "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/asset_manager_api/manager.cpp"
+},
+{
+  "directory": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/arm64-v8a",
+  "command": "/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android28 --sysroot=/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -fno-limit-debug-info  -fPIC -o openjtalk/CMakeFiles/libopenjtalk.dir/mecab/char_property.cpp.o -c /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/mecab/char_property.cpp",
+  "file": "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/mecab/char_property.cpp"
+},
+{
+  "directory": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/arm64-v8a",
+  "command": "/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android28 --sysroot=/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -fno-limit-debug-info  -fPIC -o openjtalk/CMakeFiles/libopenjtalk.dir/mecab/connector.cpp.o -c /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/mecab/connector.cpp",
+  "file": "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/mecab/connector.cpp"
+},
+{
+  "directory": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/arm64-v8a",
+  "command": "/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android28 --sysroot=/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -fno-limit-debug-info  -fPIC -o openjtalk/CMakeFiles/libopenjtalk.dir/mecab/context_id.cpp.o -c /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/mecab/context_id.cpp",
+  "file": "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/mecab/context_id.cpp"
+},
+{
+  "directory": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/arm64-v8a",
+  "command": "/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android28 --sysroot=/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -fno-limit-debug-info  -fPIC -o openjtalk/CMakeFiles/libopenjtalk.dir/mecab/dictionary.cpp.o -c /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/mecab/dictionary.cpp",
+  "file": "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/mecab/dictionary.cpp"
+},
+{
+  "directory": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/arm64-v8a",
+  "command": "/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android28 --sysroot=/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -fno-limit-debug-info  -fPIC -o openjtalk/CMakeFiles/libopenjtalk.dir/mecab/dictionary_rewriter.cpp.o -c /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/mecab/dictionary_rewriter.cpp",
+  "file": "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/mecab/dictionary_rewriter.cpp"
+},
+{
+  "directory": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/arm64-v8a",
+  "command": "/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android28 --sysroot=/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -fno-limit-debug-info  -fPIC -o openjtalk/CMakeFiles/libopenjtalk.dir/mecab/eval.cpp.o -c /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/mecab/eval.cpp",
+  "file": "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/mecab/eval.cpp"
+},
+{
+  "directory": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/arm64-v8a",
+  "command": "/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android28 --sysroot=/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -fno-limit-debug-info  -fPIC -o openjtalk/CMakeFiles/libopenjtalk.dir/mecab/feature_index.cpp.o -c /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/mecab/feature_index.cpp",
+  "file": "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/mecab/feature_index.cpp"
+},
+{
+  "directory": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/arm64-v8a",
+  "command": "/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android28 --sysroot=/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -fno-limit-debug-info  -fPIC -o openjtalk/CMakeFiles/libopenjtalk.dir/mecab/iconv_utils.cpp.o -c /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/mecab/iconv_utils.cpp",
+  "file": "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/mecab/iconv_utils.cpp"
+},
+{
+  "directory": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/arm64-v8a",
+  "command": "/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android28 --sysroot=/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -fno-limit-debug-info  -fPIC -o openjtalk/CMakeFiles/libopenjtalk.dir/mecab/lbfgs.cpp.o -c /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/mecab/lbfgs.cpp",
+  "file": "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/mecab/lbfgs.cpp"
+},
+{
+  "directory": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/arm64-v8a",
+  "command": "/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android28 --sysroot=/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -fno-limit-debug-info  -fPIC -o openjtalk/CMakeFiles/libopenjtalk.dir/mecab/libmecab.cpp.o -c /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/mecab/libmecab.cpp",
+  "file": "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/mecab/libmecab.cpp"
+},
+{
+  "directory": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/arm64-v8a",
+  "command": "/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android28 --sysroot=/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -fno-limit-debug-info  -fPIC -o openjtalk/CMakeFiles/libopenjtalk.dir/mecab/mecab.cpp.o -c /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/mecab/mecab.cpp",
+  "file": "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/mecab/mecab.cpp"
+},
+{
+  "directory": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/arm64-v8a",
+  "command": "/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android28 --sysroot=/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -fno-limit-debug-info  -fPIC -o openjtalk/CMakeFiles/libopenjtalk.dir/mecab/nbest_generator.cpp.o -c /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/mecab/nbest_generator.cpp",
+  "file": "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/mecab/nbest_generator.cpp"
+},
+{
+  "directory": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/arm64-v8a",
+  "command": "/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android28 --sysroot=/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -fno-limit-debug-info  -fPIC -o openjtalk/CMakeFiles/libopenjtalk.dir/mecab/param.cpp.o -c /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/mecab/param.cpp",
+  "file": "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/mecab/param.cpp"
+},
+{
+  "directory": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/arm64-v8a",
+  "command": "/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android28 --sysroot=/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -fno-limit-debug-info  -fPIC -o openjtalk/CMakeFiles/libopenjtalk.dir/mecab/string_buffer.cpp.o -c /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/mecab/string_buffer.cpp",
+  "file": "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/mecab/string_buffer.cpp"
+},
+{
+  "directory": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/arm64-v8a",
+  "command": "/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android28 --sysroot=/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -fno-limit-debug-info  -fPIC -o openjtalk/CMakeFiles/libopenjtalk.dir/mecab/tagger.cpp.o -c /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/mecab/tagger.cpp",
+  "file": "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/mecab/tagger.cpp"
+},
+{
+  "directory": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/arm64-v8a",
+  "command": "/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android28 --sysroot=/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -fno-limit-debug-info  -fPIC -o openjtalk/CMakeFiles/libopenjtalk.dir/mecab/tokenizer.cpp.o -c /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/mecab/tokenizer.cpp",
+  "file": "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/mecab/tokenizer.cpp"
+},
+{
+  "directory": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/arm64-v8a",
+  "command": "/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android28 --sysroot=/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -fno-limit-debug-info  -fPIC -o openjtalk/CMakeFiles/libopenjtalk.dir/mecab/utils.cpp.o -c /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/mecab/utils.cpp",
+  "file": "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/mecab/utils.cpp"
+},
+{
+  "directory": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/arm64-v8a",
+  "command": "/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android28 --sysroot=/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -fno-limit-debug-info  -fPIC -o openjtalk/CMakeFiles/libopenjtalk.dir/mecab/viterbi.cpp.o -c /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/mecab/viterbi.cpp",
+  "file": "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/mecab/viterbi.cpp"
+},
+{
+  "directory": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/arm64-v8a",
+  "command": "/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android28 --sysroot=/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -fno-limit-debug-info  -fPIC -o openjtalk/CMakeFiles/libopenjtalk.dir/mecab/writer.cpp.o -c /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/mecab/writer.cpp",
+  "file": "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/mecab/writer.cpp"
+},
+{
+  "directory": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/arm64-v8a",
+  "command": "/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang --target=aarch64-none-linux-android28 --sysroot=/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC -o openjtalk/CMakeFiles/libopenjtalk.dir/jpcommon/jpcommon.c.o -c /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/jpcommon/jpcommon.c",
+  "file": "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/jpcommon/jpcommon.c"
+},
+{
+  "directory": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/arm64-v8a",
+  "command": "/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang --target=aarch64-none-linux-android28 --sysroot=/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC -o openjtalk/CMakeFiles/libopenjtalk.dir/jpcommon/jpcommon_label.c.o -c /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/jpcommon/jpcommon_label.c",
+  "file": "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/jpcommon/jpcommon_label.c"
+},
+{
+  "directory": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/arm64-v8a",
+  "command": "/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang --target=aarch64-none-linux-android28 --sysroot=/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC -o openjtalk/CMakeFiles/libopenjtalk.dir/jpcommon/jpcommon_node.c.o -c /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/jpcommon/jpcommon_node.c",
+  "file": "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/jpcommon/jpcommon_node.c"
+},
+{
+  "directory": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/arm64-v8a",
+  "command": "/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang --target=aarch64-none-linux-android28 --sysroot=/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC -o openjtalk/CMakeFiles/libopenjtalk.dir/mecab2njd/mecab2njd.c.o -c /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/mecab2njd/mecab2njd.c",
+  "file": "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/mecab2njd/mecab2njd.c"
+},
+{
+  "directory": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/arm64-v8a",
+  "command": "/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang --target=aarch64-none-linux-android28 --sysroot=/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC -o openjtalk/CMakeFiles/libopenjtalk.dir/njd/njd.c.o -c /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/njd/njd.c",
+  "file": "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/njd/njd.c"
+},
+{
+  "directory": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/arm64-v8a",
+  "command": "/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang --target=aarch64-none-linux-android28 --sysroot=/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC -o openjtalk/CMakeFiles/libopenjtalk.dir/njd/njd_node.c.o -c /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/njd/njd_node.c",
+  "file": "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/njd/njd_node.c"
+},
+{
+  "directory": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/arm64-v8a",
+  "command": "/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang --target=aarch64-none-linux-android28 --sysroot=/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC -o openjtalk/CMakeFiles/libopenjtalk.dir/njd2jpcommon/njd2jpcommon.c.o -c /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/njd2jpcommon/njd2jpcommon.c",
+  "file": "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/njd2jpcommon/njd2jpcommon.c"
+},
+{
+  "directory": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/arm64-v8a",
+  "command": "/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang --target=aarch64-none-linux-android28 --sysroot=/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC -o openjtalk/CMakeFiles/libopenjtalk.dir/njd_set_accent_phrase/njd_set_accent_phrase.c.o -c /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/njd_set_accent_phrase/njd_set_accent_phrase.c",
+  "file": "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/njd_set_accent_phrase/njd_set_accent_phrase.c"
+},
+{
+  "directory": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/arm64-v8a",
+  "command": "/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang --target=aarch64-none-linux-android28 --sysroot=/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC -o openjtalk/CMakeFiles/libopenjtalk.dir/njd_set_accent_type/njd_set_accent_type.c.o -c /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/njd_set_accent_type/njd_set_accent_type.c",
+  "file": "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/njd_set_accent_type/njd_set_accent_type.c"
+},
+{
+  "directory": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/arm64-v8a",
+  "command": "/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang --target=aarch64-none-linux-android28 --sysroot=/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC -o openjtalk/CMakeFiles/libopenjtalk.dir/njd_set_digit/njd_set_digit.c.o -c /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/njd_set_digit/njd_set_digit.c",
+  "file": "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/njd_set_digit/njd_set_digit.c"
+},
+{
+  "directory": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/arm64-v8a",
+  "command": "/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang --target=aarch64-none-linux-android28 --sysroot=/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC -o openjtalk/CMakeFiles/libopenjtalk.dir/njd_set_long_vowel/njd_set_long_vowel.c.o -c /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/njd_set_long_vowel/njd_set_long_vowel.c",
+  "file": "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/njd_set_long_vowel/njd_set_long_vowel.c"
+},
+{
+  "directory": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/arm64-v8a",
+  "command": "/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang --target=aarch64-none-linux-android28 --sysroot=/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC -o openjtalk/CMakeFiles/libopenjtalk.dir/njd_set_pronunciation/njd_set_pronunciation.c.o -c /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/njd_set_pronunciation/njd_set_pronunciation.c",
+  "file": "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/njd_set_pronunciation/njd_set_pronunciation.c"
+},
+{
+  "directory": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/arm64-v8a",
+  "command": "/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang --target=aarch64-none-linux-android28 --sysroot=/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC -o openjtalk/CMakeFiles/libopenjtalk.dir/njd_set_unvoiced_vowel/njd_set_unvoiced_vowel.c.o -c /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/njd_set_unvoiced_vowel/njd_set_unvoiced_vowel.c",
+  "file": "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/njd_set_unvoiced_vowel/njd_set_unvoiced_vowel.c"
+},
+{
+  "directory": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/arm64-v8a",
+  "command": "/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang --target=aarch64-none-linux-android28 --sysroot=/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC -o openjtalk/CMakeFiles/libopenjtalk.dir/text2mecab/text2mecab.c.o -c /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/text2mecab/text2mecab.c",
+  "file": "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/text2mecab/text2mecab.c"
+},
+{
+  "directory": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/arm64-v8a",
+  "command": "/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android28 --sysroot=/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -fno-limit-debug-info  -fPIC -o fftpack/CMakeFiles/libfftpack.dir/fftpack.cpp.o -c /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/fftpack/fftpack.cpp",
+  "file": "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/fftpack/fftpack.cpp"
+},
+{
+  "directory": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/Debug/n3l3a3u4/arm64-v8a",
+  "command": "/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android28 --sysroot=/Users/liguoqing/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -fno-limit-debug-info  -fPIC -o wave_utils/CMakeFiles/libwaveutils.dir/wave.cpp.o -c /Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/wave_utils/wave.cpp",
+  "file": "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/wave_utils/wave.cpp"
+}
+]

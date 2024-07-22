@@ -1,0 +1,55 @@
+{
+  "buildFiles": [
+    "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/CMakeLists.txt",
+    "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/fftpack/CMakeLists.txt",
+    "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/ncnn/arm64-v8a/lib/cmake/glslang/glslang-config-version.cmake",
+    "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/ncnn/arm64-v8a/lib/cmake/glslang/glslang-config.cmake",
+    "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/ncnn/arm64-v8a/lib/cmake/glslang/glslang-targets-release.cmake",
+    "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/ncnn/arm64-v8a/lib/cmake/glslang/glslang-targets.cmake",
+    "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/ncnn/arm64-v8a/lib/cmake/ncnn/ncnn-release.cmake",
+    "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/ncnn/arm64-v8a/lib/cmake/ncnn/ncnn.cmake",
+    "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/ncnn/arm64-v8a/lib/cmake/ncnn/ncnnConfig.cmake",
+    "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/CMakeLists.txt",
+    "/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/wave_utils/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/Users/liguoqing/Library/Android/sdk/cmake/3.18.1/bin/ninja",
+      "-C",
+      "/Users/liguoqing/work/myandroidTest/VITS/.cxx/RelWithDebInfo/g3x6x6i4/arm64-v8a",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/Users/liguoqing/Library/Android/sdk/cmake/3.18.1/bin/ninja",
+    "-C",
+    "/Users/liguoqing/work/myandroidTest/VITS/.cxx/RelWithDebInfo/g3x6x6i4/arm64-v8a",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {
+    "libwaveutils::@1c6e75f1f19384d7f0da": {
+      "artifactName": "libwaveutils",
+      "abi": "arm64-v8a",
+      "output": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/RelWithDebInfo/g3x6x6i4/arm64-v8a/wave_utils/liblibwaveutils.a",
+      "runtimeFiles": []
+    },
+    "moereng::@6890427a1f51a3e7e1df": {
+      "artifactName": "moereng",
+      "abi": "arm64-v8a",
+      "output": "/Users/liguoqing/work/myandroidTest/VITS/build/intermediates/cxx/RelWithDebInfo/g3x6x6i4/obj/arm64-v8a/libmoereng.so",
+      "runtimeFiles": []
+    },
+    "libopenjtalk::@78e8dfbf8fb7662f2039": {
+      "artifactName": "libopenjtalk",
+      "abi": "arm64-v8a",
+      "output": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/RelWithDebInfo/g3x6x6i4/arm64-v8a/openjtalk/liblibopenjtalk.a",
+      "runtimeFiles": []
+    },
+    "libfftpack::@2e1272070b29c078411e": {
+      "artifactName": "libfftpack",
+      "abi": "arm64-v8a",
+      "output": "/Users/liguoqing/work/myandroidTest/VITS/.cxx/RelWithDebInfo/g3x6x6i4/arm64-v8a/fftpack/liblibfftpack.a",
+      "runtimeFiles": []
+    }
+  }
+}

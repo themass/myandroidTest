@@ -1,0 +1,134 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						2,
+						3
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.6.0"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						3
+					]
+				},
+				{
+					"build" : "openjtalk",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.6.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "openjtalk",
+					"targetIndexes" : 
+					[
+						1
+					]
+				},
+				{
+					"build" : "fftpack",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.6.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "fftpack",
+					"targetIndexes" : 
+					[
+						0
+					]
+				},
+				{
+					"build" : "wave_utils",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.6.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "wave_utils",
+					"targetIndexes" : 
+					[
+						2
+					]
+				}
+			],
+			"name" : "RelWithDebInfo",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3
+					],
+					"name" : "moereng",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 2,
+					"id" : "libfftpack::@2e1272070b29c078411e",
+					"jsonFile" : "target-libfftpack-RelWithDebInfo-03b099ee24295be3b4ca.json",
+					"name" : "libfftpack",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "libopenjtalk::@78e8dfbf8fb7662f2039",
+					"jsonFile" : "target-libopenjtalk-RelWithDebInfo-f92045994183fd1dc700.json",
+					"name" : "libopenjtalk",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "libwaveutils::@1c6e75f1f19384d7f0da",
+					"jsonFile" : "target-libwaveutils-RelWithDebInfo-0c77afe2c7d8539b738d.json",
+					"name" : "libwaveutils",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "moereng::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-moereng-RelWithDebInfo-5a3861d886fccffc68e0.json",
+					"name" : "moereng",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/Users/liguoqing/work/ChatWaifu_Mobile/VITS/.cxx/RelWithDebInfo/3h44t195/arm64-v8a",
+		"source" : "/Users/liguoqing/work/ChatWaifu_Mobile/VITS/src/main/cpp"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 1
+	}
+}

@@ -1,0 +1,11 @@
+/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/CMakeLists.txt
+/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/fftpack/CMakeLists.txt
+/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/ncnn/armeabi-v7a/lib/cmake/glslang/glslang-config-version.cmake
+/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/ncnn/armeabi-v7a/lib/cmake/glslang/glslang-config.cmake
+/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/ncnn/armeabi-v7a/lib/cmake/glslang/glslang-targets-release.cmake
+/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/ncnn/armeabi-v7a/lib/cmake/glslang/glslang-targets.cmake
+/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/ncnn/armeabi-v7a/lib/cmake/ncnn/ncnn-release.cmake
+/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/ncnn/armeabi-v7a/lib/cmake/ncnn/ncnn.cmake
+/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/ncnn/armeabi-v7a/lib/cmake/ncnn/ncnnConfig.cmake
+/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/openjtalk/CMakeLists.txt
+/Users/liguoqing/work/myandroidTest/VITS/src/main/cpp/wave_utils/CMakeLists.txt
