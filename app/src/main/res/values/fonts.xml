@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-
-    <string name="mp.font.roboto.regular" translatable="false">fonts/Roboto-Regular.ttf</string>
-    <string name="mp.font.roboto.medium" translatable="false">fonts/Roboto-Medium.ttf</string>
-    <string name="mp.font.roboto.thin" translatable="false">fonts/Roboto-Thin.ttf</string>
-    <string name="mp.font.roboto.monospace.regular" translatable="false">fonts/Roboto-Monospace-Regular.ttf</string>
-</resources>

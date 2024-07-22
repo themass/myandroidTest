@@ -1,45 +1,61 @@
-buildscript {
-    ext.kotlin_version = '1.6.21'
-    repositories {
-        // maven { url 'https://maven.fabric.io/public' }
-        maven { url "https://jitpack.io" }
-//        maven { url 'https://raw.github.com/Raizlabs/maven-releases/master/releases' }
-        maven { url "https://plugins.gradle.org/m2" }
-        maven { url 'https://maven.google.com' }
-        maven { url 'https://repo1.maven.org/maven2' }
-        google()
-        maven { url "https://maven.aliyun.com/repository/public" }
-        maven {
-            url "https://artifact.bytedance.com/repository/Volcengine/"
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    namespace 'com.chatwaifu.vits'
+    compileSdk rootProject.ext.compileSdkVersion
+
+    defaultConfig {
+        minSdk rootProject.ext.minSdkVersion
+        targetSdk rootProject.ext.targetSdkVersion
+        versionCode 3
+        versionName "1.2.1"
+
+        externalNativeBuild {
+            cmake {
+                cppFlags '-std=c++11'
+            }
+        }
+        ndk{
+            abiFilters 'armeabi-v7a', 'arm64-v8a'
         }
     }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:8.2.1'
-//        classpath 'org.greenrobot:greendao-gradle-plugin:3.3.0'
-        classpath 'org.greenrobot:greendao-gradle-plugin:3.3.1' // add plugin
-        classpath 'com.jakewharton:butterknife-gradle-plugin:10.2.3'
-        classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath "org.jetbrains.kotlin:kotlin-android-extensions:$kotlin_version"
 
+    externalNativeBuild {
+        cmake {
+            path file('src/main/cpp/CMakeLists.txt')
+            version '3.18.1'
+        }
+    }
+    buildFeatures {
+        viewBinding true
+    }
+
+    sourceSets {
+        main {
+            jni.srcDirs = ["src/main/cpp"]
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = "17"
     }
 }
 
-allprojects {
-    repositories {
-        flatDir {
-            dirs 'libs'
-        }
-        // maven { url 'https://maven.fabric.io/public' }
-        maven { url "https://jitpack.io" }
-//        maven { url 'https://raw.github.com/Raizlabs/maven-releases/master/releases' }
-        maven { url "https://plugins.gradle.org/m2" }
-        maven { url 'https://maven.google.com' }
-        maven { url 'https://repo1.maven.org/maven2' }
-        google()
-        maven { url "https://maven.aliyun.com/repository/public" }
-        maven {
-            url "https://artifact.bytedance.com/repository/Volcengine/"
-        }
-    }
+dependencies {
+
+    implementation "androidx.core:core-ktx:${rootProject.ext.kotlin_ktx}"
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.7.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'com.google.code.gson:gson:2.10'
+    implementation 'androidx.navigation:navigation-fragment:2.5.3'
+    implementation 'androidx.navigation:navigation-ui-ktx:2.5.3'
+    implementation 'com.belerweb:pinyin4j:2.5.0'
+    implementation "com.github.houbb:pinyin:0.4.0"
 }
