@@ -1,0 +1,9 @@
+# ninja log v5
+0	1234	1721305523	CMakeFiles/lipsync.dir/lipsync.cpp.o	da231662529ef098
+1234	1493	1721305524	/Users/liguoqing/work/myandroidTest/Lipsync/build/intermediates/cxx/Debug/4h472m6t/obj/arm64-v8a/liblipsync.so	7d468d5849c4a039
+0	16	0	clean	e3b0ae394b319f25
+1	1688	1721306413	CMakeFiles/lipsync.dir/lipsync.cpp.o	da231662529ef098
+1688	1956	1721306413	/Users/liguoqing/work/myandroidTest/Lipsync/build/intermediates/cxx/Debug/4h472m6t/obj/arm64-v8a/liblipsync.so	7d468d5849c4a039
+0	23	0	clean	e3b0ae394b319f25
+1	1946	1721356360	CMakeFiles/lipsync.dir/lipsync.cpp.o	da231662529ef098
+1947	2217	1721356360	/Users/liguoqing/work/myandroidTest/Lipsync/build/intermediates/cxx/Debug/4h472m6t/obj/arm64-v8a/liblipsync.so	7d468d5849c4a039

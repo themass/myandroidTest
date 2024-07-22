@@ -1,0 +1,14 @@
+/Users/liguoqing/work/myandroidTest/Live2D/CMakeLists.txt
+/Users/liguoqing/work/myandroidTest/Live2D/src/SDKRoot/Framework/CMakeLists.txt
+/Users/liguoqing/work/myandroidTest/Live2D/src/SDKRoot/Framework/src/CMakeLists.txt
+/Users/liguoqing/work/myandroidTest/Live2D/src/SDKRoot/Framework/src/Effect/CMakeLists.txt
+/Users/liguoqing/work/myandroidTest/Live2D/src/SDKRoot/Framework/src/Id/CMakeLists.txt
+/Users/liguoqing/work/myandroidTest/Live2D/src/SDKRoot/Framework/src/Math/CMakeLists.txt
+/Users/liguoqing/work/myandroidTest/Live2D/src/SDKRoot/Framework/src/Model/CMakeLists.txt
+/Users/liguoqing/work/myandroidTest/Live2D/src/SDKRoot/Framework/src/Motion/CMakeLists.txt
+/Users/liguoqing/work/myandroidTest/Live2D/src/SDKRoot/Framework/src/Physics/CMakeLists.txt
+/Users/liguoqing/work/myandroidTest/Live2D/src/SDKRoot/Framework/src/Rendering/CMakeLists.txt
+/Users/liguoqing/work/myandroidTest/Live2D/src/SDKRoot/Framework/src/Rendering/OpenGL/CMakeLists.txt
+/Users/liguoqing/work/myandroidTest/Live2D/src/SDKRoot/Framework/src/Type/CMakeLists.txt
+/Users/liguoqing/work/myandroidTest/Live2D/src/SDKRoot/Framework/src/Utils/CMakeLists.txt
+/Users/liguoqing/work/myandroidTest/Live2D/src/main/cpp/CMakeLists.txt

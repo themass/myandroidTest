@@ -1,0 +1,3 @@
+/Users/liguoqing/work/myandroidTest/Lipsync/.cxx/Debug/4h472m6t/arm64-v8a/CMakeFiles/rebuild_cache.dir
+/Users/liguoqing/work/myandroidTest/Lipsync/.cxx/Debug/4h472m6t/arm64-v8a/CMakeFiles/edit_cache.dir
+/Users/liguoqing/work/myandroidTest/Lipsync/.cxx/Debug/4h472m6t/arm64-v8a/CMakeFiles/lipsync.dir

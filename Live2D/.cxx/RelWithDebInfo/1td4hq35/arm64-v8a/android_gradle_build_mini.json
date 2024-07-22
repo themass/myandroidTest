@@ -1,0 +1,46 @@
+{
+  "buildFiles": [
+    "/Users/liguoqing/work/myandroidTest/Live2D/CMakeLists.txt",
+    "/Users/liguoqing/work/myandroidTest/Live2D/src/SDKRoot/Framework/CMakeLists.txt",
+    "/Users/liguoqing/work/myandroidTest/Live2D/src/SDKRoot/Framework/src/CMakeLists.txt",
+    "/Users/liguoqing/work/myandroidTest/Live2D/src/SDKRoot/Framework/src/Effect/CMakeLists.txt",
+    "/Users/liguoqing/work/myandroidTest/Live2D/src/SDKRoot/Framework/src/Id/CMakeLists.txt",
+    "/Users/liguoqing/work/myandroidTest/Live2D/src/SDKRoot/Framework/src/Math/CMakeLists.txt",
+    "/Users/liguoqing/work/myandroidTest/Live2D/src/SDKRoot/Framework/src/Model/CMakeLists.txt",
+    "/Users/liguoqing/work/myandroidTest/Live2D/src/SDKRoot/Framework/src/Motion/CMakeLists.txt",
+    "/Users/liguoqing/work/myandroidTest/Live2D/src/SDKRoot/Framework/src/Physics/CMakeLists.txt",
+    "/Users/liguoqing/work/myandroidTest/Live2D/src/SDKRoot/Framework/src/Rendering/CMakeLists.txt",
+    "/Users/liguoqing/work/myandroidTest/Live2D/src/SDKRoot/Framework/src/Rendering/OpenGL/CMakeLists.txt",
+    "/Users/liguoqing/work/myandroidTest/Live2D/src/SDKRoot/Framework/src/Type/CMakeLists.txt",
+    "/Users/liguoqing/work/myandroidTest/Live2D/src/SDKRoot/Framework/src/Utils/CMakeLists.txt",
+    "/Users/liguoqing/work/myandroidTest/Live2D/src/main/cpp/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/Users/liguoqing/Library/Android/sdk/cmake/3.18.1/bin/ninja",
+      "-C",
+      "/Users/liguoqing/work/myandroidTest/Live2D/.cxx/RelWithDebInfo/1td4hq35/arm64-v8a",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/Users/liguoqing/Library/Android/sdk/cmake/3.18.1/bin/ninja",
+    "-C",
+    "/Users/liguoqing/work/myandroidTest/Live2D/.cxx/RelWithDebInfo/1td4hq35/arm64-v8a",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {
+    "chatwaifu-live2d::@6890427a1f51a3e7e1df": {
+      "artifactName": "chatwaifu-live2d",
+      "abi": "arm64-v8a",
+      "output": "/Users/liguoqing/work/myandroidTest/Live2D/build/intermediates/cxx/RelWithDebInfo/1td4hq35/obj/arm64-v8a/libchatwaifu-live2d.so",
+      "runtimeFiles": []
+    },
+    "Framework::@41d41ff99763606b9026": {
+      "artifactName": "Framework",
+      "abi": "arm64-v8a",
+      "output": "/Users/liguoqing/work/myandroidTest/Live2D/.cxx/RelWithDebInfo/1td4hq35/arm64-v8a/SDKRoot/Framework/libFramework.a",
+      "runtimeFiles": []
+    }
+  }
+}

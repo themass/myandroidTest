@@ -1,0 +1,3 @@
+/Users/liguoqing/work/ChatWaifu_Mobile/Lipsync/.cxx/RelWithDebInfo/4a401ao2/arm64-v8a/CMakeFiles/rebuild_cache.dir
+/Users/liguoqing/work/ChatWaifu_Mobile/Lipsync/.cxx/RelWithDebInfo/4a401ao2/arm64-v8a/CMakeFiles/edit_cache.dir
+/Users/liguoqing/work/ChatWaifu_Mobile/Lipsync/.cxx/RelWithDebInfo/4a401ao2/arm64-v8a/CMakeFiles/lipsync.dir

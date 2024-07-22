@@ -1,0 +1,6 @@
+# ninja log v5
+0	667	1710067886	CMakeFiles/lipsync.dir/lipsync.cpp.o	cdf3edda797781fd
+668	865	1710067886	/Users/liguoqing/work/ChatWaifu_Mobile/Lipsync/build/intermediates/cxx/Debug/1c5e4u4p/obj/arm64-v8a/liblipsync.so	8c1dce86faacf502
+0	8	0	clean	e3b0ae394b319f25
+1	672	1712193906	CMakeFiles/lipsync.dir/lipsync.cpp.o	cdf3edda797781fd
+673	902	1712193907	/Users/liguoqing/work/ChatWaifu_Mobile/Lipsync/build/intermediates/cxx/Debug/1c5e4u4p/obj/arm64-v8a/liblipsync.so	8c1dce86faacf502
