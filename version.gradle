@@ -1,0 +1,11 @@
+ext{
+    minSdkVersion = 24
+    targetSdkVersion = 34
+    compileSdkVersion = 34
+
+    compose_kotlin_compiler_ext_ver = '1.4.0'
+
+    kotlin_ktx = '1.13.1'
+
+    lifecycle_livedata_ktx = '2.6.1'
+}
