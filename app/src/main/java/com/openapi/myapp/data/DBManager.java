@@ -2,8 +2,9 @@ package com.openapi.myapp.data;
 
 import android.content.Context;
 
-import com.ping.greendao.gen.DaoMaster;
-import com.ping.greendao.gen.DaoSession;
+
+import com.openapi.myapp.bean.form.DaoMaster;
+import com.openapi.myapp.bean.form.DaoSession;
 
 import org.greenrobot.greendao.query.QueryBuilder;
 

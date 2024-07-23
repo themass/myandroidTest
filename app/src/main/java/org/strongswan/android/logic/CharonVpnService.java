@@ -48,6 +48,7 @@ import android.widget.Toast;
 import com.openapi.common.util.FileUtils;
 import com.openapi.common.util.LogUtil;
 import com.openapi.common.util.PreferenceUtils;
+import com.openapi.ks.free1.R;
 import com.openapi.yewu.net.NetUtils;
 import com.openapi.myapp.base.MyApplication;
 import com.openapi.myapp.bean.DataBuilder;
@@ -58,7 +59,6 @@ import com.openapi.myapp.data.BaseService;
 import com.openapi.myapp.data.ConnLogUtil;
 import com.openapi.myapp.data.LocationUtil;
 import com.openapi.myapp.ui.fragment.LocationPageViewFragment;
-import com.openapi.ks.free1.R;
 import com.openapi.ks.ui.main.MainFragmentViewPage;
 import com.openapi.yewu.net.request.CommonResponse;
 
@@ -125,7 +125,11 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
             System.loadLibrary("charon");
             System.loadLibrary("ipsec");
         }
-        System.loadLibrary("androidbridge");
+        try {
+            System.loadLibrary("androidbridge");
+        }catch (Exception e){
+            LogUtil.e("", e);
+        }
     }
 
     private final Object mServiceLock = new Object();
@@ -527,7 +531,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
         @Override
         protected void onError() {
             super.onError();
-            Toast.makeText(CharonVpnService.this,R.string.error_lookup_failed,Toast.LENGTH_SHORT).show();
+            Toast.makeText(CharonVpnService.this, R.string.error_lookup_failed,Toast.LENGTH_SHORT).show();
         }
     };
     private void test(){}
@@ -573,25 +577,25 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
         }
         //点击的事件处理
         Intent buttonIntent = new Intent(ACTION_BUTTON);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 1, buttonIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 1, buttonIntent, PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
         remoteViews.setOnClickPendingIntent(R.id.btn_vpn, pendingIntent);
 
         Intent locationIntent = new Intent(LOCATION_BUTTON);
         locationIntent.addFlags(FLAG_ACTIVITY_NEW_TASK );
 
-        PendingIntent locationPending = PendingIntent.getBroadcast(this, 1, locationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent locationPending = PendingIntent.getBroadcast(this, 1, locationIntent, PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
         remoteViews.setOnClickPendingIntent(R.id.tv_vpn_time, locationPending);
 
         Intent intent = new Intent(this, MainFragmentViewPage.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         PendingIntent pend =
-                PendingIntent.getActivity(MyApplication.getInstance(), new Random().nextInt(), intent, 0);
+                PendingIntent.getActivity(MyApplication.getInstance(), new Random().nextInt(), intent, PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
 
         Intent intentCancel = new Intent(this, NotificationBroadcastReceiver.class);
         intentCancel.setAction(NotificationBroadcastReceiver.CANNCELL_ACTION);
         PendingIntent pandCanel =
-                PendingIntent.getActivity(MyApplication.getInstance(), new Random().nextInt(), intentCancel, 0);
+                PendingIntent.getActivity(MyApplication.getInstance(), new Random().nextInt(), intentCancel, PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
 
         builder.setContentIntent(pend)
                 .setDeleteIntent(pandCanel)
@@ -702,7 +706,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
             Context context = getApplicationContext();
             Intent intent = new Intent(context, MainFragmentViewPage.class);
             PendingIntent pending = PendingIntent.getActivity(context, 0, intent,
-                    PendingIntent.FLAG_UPDATE_CURRENT);
+                    PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
             builder.setConfigureIntent(pending);
             return builder;
         }
