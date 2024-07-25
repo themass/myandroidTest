@@ -1,6 +1,11 @@
 package com.chatwaifu.mobile.ui.base
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.rememberDrawerState
@@ -12,6 +17,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.viewinterop.AndroidViewBinding
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -60,7 +68,7 @@ fun ChatWaifuRootView(
 
     ChatWaifuDrawerScaffold(
         drawerState = drawerState,
-        onItemClicked = {navigationItemType ->
+        onItemClicked = { navigationItemType ->
             when (navigationItemType) {
                 NavigationItemType.TYPE_CHANNEL_LIST -> {
                     scope.launch {
@@ -68,7 +76,7 @@ fun ChatWaifuRootView(
                     }
                     onChannelListClick()
                 }
-                NavigationItemType.TYPE_CHAT_LOG ->{
+                NavigationItemType.TYPE_CHAT_LOG -> {
                     scope.launch {
                         drawerState.close()
                     }
@@ -80,15 +88,22 @@ fun ChatWaifuRootView(
                     }
                     onSettingClick()
                 }
+                NavigationItemType.TYPE_TEST -> {
+                    scope.launch {
+                        drawerState.close()
+                    }
+                }
             }
         }
     ) {
         AndroidViewBinding(ContentMainBinding::inflate)
     }
+
 }
 
 enum class NavigationItemType{
     TYPE_SETTING,
     TYPE_CHAT_LOG,
     TYPE_CHANNEL_LIST,
+    TYPE_TEST,
 }

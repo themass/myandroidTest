@@ -16,16 +16,21 @@
 
 package com.chatwaifu.mobile.ui.base
 
+import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -36,6 +41,8 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Button
+import androidx.compose.material.ButtonDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
@@ -50,13 +57,18 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment.Companion.CenterStart
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -64,6 +76,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.openapi.ks.chat.R
 import com.chatwaifu.mobile.ui.theme.ChatWaifu_MobileTheme
+
 
 /**
  * drawer scaffold
@@ -91,6 +104,7 @@ fun ChatWaifuDrawerScaffold(
     }
 }
 
+
 /**
  * drawer content
  */
@@ -98,8 +112,6 @@ fun ChatWaifuDrawerScaffold(
 fun ChatWaifuDrawerContent(
     onItemClicked: (NavigationItemType) -> Unit
 ) {
-    // Use windowInsetsTopHeight() to add a spacer which pushes the drawer content
-    // below the status bar (y-axis)
     var selectItem by rememberSaveable {
         mutableStateOf(NavigationItemType.TYPE_CHANNEL_LIST)
     }
@@ -111,7 +123,7 @@ fun ChatWaifuDrawerContent(
         Spacer(Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
         DrawerHeader()
         DividerItem()
-        DrawerItemHeader(stringResource(id = R.string.drawer_function_list))
+//        DrawerItemHeader(stringResource(id = R.string.drawer_function_list))
         DrawerItem(
             stringResource(id = R.string.drawer_item_channel_list),
             selectItem == NavigationItemType.TYPE_CHANNEL_LIST,
@@ -136,8 +148,16 @@ fun ChatWaifuDrawerContent(
             selectItem = NavigationItemType.TYPE_SETTING
             onItemClicked(NavigationItemType.TYPE_SETTING)
         }
+        Text(
+            text = "",
+            modifier = Modifier
+                .fillMaxSize()
+                .clickable(enabled = true, onClick ={ onItemClicked(NavigationItemType.TYPE_TEST) }),
+                color = Color.Transparent
+        )
     }
 }
+
 
 @Composable
 private fun DrawerItem(

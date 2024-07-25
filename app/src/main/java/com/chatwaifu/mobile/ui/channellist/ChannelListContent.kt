@@ -70,7 +70,7 @@ fun ChannelListContent(
     Scaffold(
         topBar = {
             ChannelNameBar(
-                channelName = "Character List",
+                channelName = "Kimi Chat",
                 onNavIconPressed = onNavIconPressed,
                 scrollBehavior = scrollBehavior,
             )

@@ -73,6 +73,7 @@ class ChannelListFragment : Fragment() {
                 }
             }
         }
+
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -99,6 +100,11 @@ class ChannelListFragment : Fragment() {
         activityViewModel.currentVITSModelName = item.characterName
         activityViewModel.loadChatListCache(item.characterName)
         activityViewModel.loadVitsModel(item.characterVitsPath)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        activityViewModel.destory(requireContext())
     }
 
     companion object {

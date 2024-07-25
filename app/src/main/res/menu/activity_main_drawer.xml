@@ -7,15 +7,15 @@
         <item
             android:id="@+id/drawer_channel_list"
             android:icon="@drawable/ic_drawer_character_list"
-            android:title="Character List" />
+            android:title="Kimi Chat" />
         <item
             android:id="@+id/drawer_chat_log"
             android:icon="@drawable/ic_drawer_character_log"
-            android:title="Chat Log" />
+            android:title="ChatModle" />
         <item
             android:id="@+id/drawer_setting"
             android:icon="@drawable/ic_drawer_character_setting"
-            android:title="Setting" />
+            android:title="WifeSetting" />
 
     </group>
 </menu>

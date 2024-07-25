@@ -2,6 +2,7 @@ package com.chatwaifu.mobile
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.media.MediaMetadataRetriever
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -18,6 +19,11 @@ import com.chatwaifu.mobile.utils.LocalModelManager
 import com.chatwaifu.translate.ITranslate
 import com.chatwaifu.translate.baidu.BaiduTranslateService
 import com.chatwaifu.vits.utils.SoundGenerateHelper
+import com.hrl.chaui.widget.MediaManager
+import com.openapi.commons.common.asr.AsrByteDance
+import com.openapi.commons.common.util.FileUtils
+import com.openapi.commons.common.util.LogUtil
+import com.openapi.commons.common.util.StringUtils
 import com.openapi.ks.myapp.base.MyApplication
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CoroutineScope
@@ -26,6 +32,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import java.io.IOException
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 
@@ -34,7 +41,7 @@ import kotlin.coroutines.resume
  * Author: Voine
  * Date: 2023/2/18
  */
-class ChatActivityViewModel : ViewModel() {
+class ChatActivityViewModel : ViewModel(), AsrByteDance.AsrCallBackListener {
     companion object {
         private const val TAG = "ChatActivityViewModel"
     }
@@ -65,7 +72,7 @@ class ChatActivityViewModel : ViewModel() {
     var currentVITSModelName: String = ""
     var needTranslate: Boolean = true
     var needChatGPTProxy: Boolean = false
-
+    private var asrByteDance: AsrByteDance? = null
     private var inputFunc: ((input: String) -> Unit)? = null
     private val chatGPTNetService: ChatGPTNetService? by lazy {
         ChatGPTNetService(MyApplication.getInstance())
@@ -94,12 +101,11 @@ class ChatActivityViewModel : ViewModel() {
         sp.getString(Constant.SAVED_CHAT_KEY, null)?.let {
             chatGPTNetService?.setPrivateKey(it)
         }
-        val translateAppId = sp.getString(Constant.SAVED_TRANSLATE_APP_ID, null)
-        val translateKey = sp.getString(Constant.SAVED_TRANSLATE_KEY, null)
-        setBaiduTranslate(translateAppId ?: return, translateKey ?: return)
+        setBaiduTranslate()
         needTranslate = sp.getBoolean(Constant.SAVED_USE_TRANSLATE, true)
         needChatGPTProxy = sp.getBoolean(Constant.SAVED_USE_CHATGPT_PROXY, false)
-        val proxyUrl = if(needChatGPTProxy) sp.getString(Constant.SAVED_USE_CHATGPT_PROXY_URL, null) else null
+        val proxyUrl =
+            if (needChatGPTProxy) sp.getString(Constant.SAVED_USE_CHATGPT_PROXY_URL, null) else null
         chatGPTNetService?.updateRetrofit(proxyUrl)
     }
 
@@ -121,7 +127,8 @@ class ChatActivityViewModel : ViewModel() {
                 Log.d(TAG, "生成结果 result: $responseText")
                 Log.d(TAG, "翻译结果 result: $translateText")
                 chatStatusLiveData.postValue(ChatStatus.GENERATE_SOUND)
-                generateAndPlaySound(responseText)
+                generateAndPlaySound(translateText)
+//                sendVoice(responseText)
             }
         }
     }
@@ -134,11 +141,9 @@ class ChatActivityViewModel : ViewModel() {
         }
     }
 
-    private fun setBaiduTranslate(appid: String, privateKey: String) {
+    private fun setBaiduTranslate() {
         translate = BaiduTranslateService(
             MyApplication.getInstance(),
-            appid = appid,
-            privateKey = privateKey
         )
     }
 
@@ -154,8 +159,14 @@ class ChatActivityViewModel : ViewModel() {
             loadingUILiveData.postValue(Pair(false, ""))
         }
         lipsValueHandler.initLipSync()
+        asrByteDance = AsrByteDance()
+        asrByteDance!!.initEngine(context, this)
+        asrByteDance!!.initAsrEngine(context)
+        asrByteDance!!.initTtsEngine(context)
     }
-
+    fun destory(context: Context){
+        asrByteDance?.stopEngine()
+    }
     fun loadVitsModel(basePath: String) {
         loadingUILiveData.postValue(Pair(true, "Load VITS Model...."))
         val rootFiles = localModelManager.getVITSModelFiles(basePath)
@@ -222,14 +233,19 @@ class ChatActivityViewModel : ViewModel() {
         }
     }
 
+    private fun sendVoice(needPlayText: String?) {
+        asrByteDance!!.sendTtsEngine(needPlayText)
+    }
+
     private fun generateAndPlaySound(needPlayText: String?) {
         vitsHelper.generateAndPlay(text = needPlayText,
             targetSpeakerId = localModelManager.getVITSSpeakerId(currentLive2DModelName),
             callback = { isSuccess ->
-            Log.d(TAG, "generate sound $isSuccess")
-            if (chatStatusLiveData.value == ChatStatus.GENERATE_SOUND) {
-                chatStatusLiveData.postValue(ChatStatus.DEFAULT)
-            }},
+                Log.d(TAG, "generate sound $isSuccess")
+                if (chatStatusLiveData.value == ChatStatus.GENERATE_SOUND) {
+                    chatStatusLiveData.postValue(ChatStatus.DEFAULT)
+                }
+            },
             forwardResult = {
                 lipsValueHandler.sendLipsValues(it)
             }
@@ -272,8 +288,35 @@ class ChatActivityViewModel : ViewModel() {
     fun resetOpenDrawerAction() {
         drawerShouldBeOpened.value = false
     }
-}
 
+    override fun speechAsrResult(data: String?, isFinish: Boolean) {
+        if (isFinish && !StringUtils.isEmpty(data)) {
+            Log.d(TAG, "speechAsrResult sound: $data")
+        }
+    }
+
+    override fun speechStart(id: String?) {
+        LogUtil.i("speechStart")
+    }
+
+    override fun speechStop() {
+        LogUtil.i("speechStop")
+    }
+
+    override fun callBackTtsData(name: String?) {
+        val fileName = "tts_$name.wav"
+        val abFileName = FileUtils.getWriteFilePath(MyApplication.getInstance()) + "/" + fileName
+        val abUrlFileName = "file://$abFileName"
+        MediaManager.release()
+        MediaManager.playSound(MyApplication.getInstance(), abUrlFileName) {
+            LogUtil.i("play over")
+            MediaManager.release()
+            if (chatStatusLiveData.value == ChatStatus.GENERATE_SOUND) {
+                chatStatusLiveData.postValue(ChatStatus.DEFAULT)
+            }
+        }
+    }
+}
 fun <T> CancellableContinuation<T>.safeResume(value: T) {
     if (this.isActive) {
         (this as? Continuation<T>)?.resume(value)

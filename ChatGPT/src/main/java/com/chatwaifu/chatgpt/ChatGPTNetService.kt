@@ -28,7 +28,7 @@ class ChatGPTNetService(val context: Context) {
         private const val TAG = "ChatGPTNetService"
         private const val CHATGPT_BASE_URL = "http://openapi2.ok123find.top/"
         val CHATGPT_DEAFULT_PROXY_URL = "http://openapi2.ok123find.top/"
-        private const val TIME_OUT_SECOND = 100L
+        private const val TIME_OUT_SECOND = 10L
         private const val MAX_LIST_SIZE = 100
     }
 
@@ -77,10 +77,6 @@ class ChatGPTNetService(val context: Context) {
     }
 
     fun sendChatMessage(msg: String, callback: (response: ChatGPTResponseData?) -> Unit) {
-        if (TEST_MODE) {
-            getResponseFromTest(msg, callback)
-            return
-        }
         val sendPart = sendMessageAssistantList + RequestMessageBean(
             RequestMessageBean.ROLE_USER,
             msg
@@ -102,7 +98,7 @@ class ChatGPTNetService(val context: Context) {
                     val errorMsg = try {
                         Gson().fromJson(errorJson, ErrorBody::class.java).error?.message
                     } catch (e: Exception) {
-                        e.printStackTrace()
+                        Log.e(TAG,"",e)
                         null
                     }
                     callback.invoke(
@@ -127,8 +123,8 @@ class ChatGPTNetService(val context: Context) {
             }
 
             override fun onFailure(call: Call<ChatGPTResponseData>, t: Throwable) {
-                t.printStackTrace()
-                Toast.makeText(context, "gpt response error ${t.message}", Toast.LENGTH_SHORT)
+                Log.e(TAG,"大模型调用失败",t)
+//                Toast.makeText(context, "gpt response error ${t.message}", Toast.LENGTH_SHORT)
                 callback.invoke(null)
             }
         })
@@ -141,24 +137,6 @@ class ChatGPTNetService(val context: Context) {
             writeTimeout(TIME_OUT_SECOND, TimeUnit.SECONDS)
             addInterceptor(interceptor)
             build()
-        }
-    }
-
-    private fun getResponseFromTest(msg: String, callback: (response: ChatGPTResponseData?) -> Unit) {
-        CoroutineScope(Dispatchers.IO).launch {
-            delay(5000)
-            val response = ChatGPTResponseData().apply {
-                choices =
-                    listOf(
-                        ListBean(
-                            message = ResponseInnerMessageBean(
-                                role = "atri",
-                                content = "萝卜子是对机器人的蔑称！萝卜子是对机器人的蔑称萝卜子是对机器人的蔑称萝卜子是对机器人的蔑称萝卜子是对机器人的蔑称萝卜子是对机器人的蔑称萝卜子是对机器人的蔑称萝卜子是对机器人的蔑称萝卜子是对机器人的蔑称"
-                            ), finish_reason = "", index = 0
-                        )
-                    )
-            }
-            callback.invoke(response)
         }
     }
 }

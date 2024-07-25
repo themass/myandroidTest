@@ -64,13 +64,14 @@ class BaiduTranslateService(
                 call: Call<BaiduTranslateResponseData>,
                 response: Response<BaiduTranslateResponseData>
             ) {
+                var req = call.request().url().toString()
                 Log.d(TAG,"receive response $response")
-                callback.invoke(response.body()?.trans_result?.firstOrNull()?.dst)
+                val res = response.body()?.trans_result?.firstOrNull()?.dst
+                callback.invoke(res)
             }
 
             override fun onFailure(call: Call<BaiduTranslateResponseData>, t: Throwable) {
-                t.printStackTrace()
-                Toast.makeText(context, "translate error ...", Toast.LENGTH_SHORT)
+                Log.e(TAG,"",t)
                 callback.invoke(null)
             }
         })
