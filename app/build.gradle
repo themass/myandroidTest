@@ -16,8 +16,8 @@ android {
         applicationId "com.openapi.ks.chat"
         minSdk 28
         targetSdk 34
-        versionCode 1001000022
-        versionName "1.1.0.22"
+        versionCode 1001000024
+        versionName "1.1.0.24"
         // Enabling multidex support.
         multiDexEnabled true
         flavorDimensions "versionCode"
@@ -141,7 +141,7 @@ dependencies {
     implementation "androidx.cardview:cardview"
     //material 版本不能动，会影响kotlin版本
     implementation 'com.google.android.material:material:1.12.0'
-    annotationProcessor 'androidx.annotation:annotation:1.8.0'
+    annotationProcessor 'androidx.annotation:annotation:1.8.1'
     implementation "androidx.percentlayout:percentlayout:1.0.0"
     implementation 'androidx.multidex:multidex:2.0.1'
     //不能升级，影响kotlin版本
@@ -226,7 +226,7 @@ dependencies {
     implementation 'androidx.navigation:navigation-ui-ktx:2.7.7'
     implementation 'androidx.navigation:navigation-fragment-ktx:2.7.7'
     implementation 'com.belerweb:pinyin4j:2.5.0'
-    implementation 'androidx.annotation:annotation:1.8.0'
+    implementation 'androidx.annotation:annotation:1.8.1'
     implementation 'com.kunminx.archi:unpeek-livedata:4.4.1-beta1'
 
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:${rootProject.ext.lifecycle_livedata_ktx}"
@@ -235,7 +235,7 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-runtime-ktx:${rootProject.ext.lifecycle_livedata_ktx}"
     implementation "androidx.lifecycle:lifecycle-runtime-compose:${rootProject.ext.lifecycle_livedata_ktx}"
     implementation "androidx.core:core-ktx:${rootProject.ext.kotlin_ktx}"
-    implementation "androidx.activity:activity-ktx:1.9.0"
+    implementation "androidx.activity:activity-ktx:1.9.1"
 
 
     // compose lib
@@ -253,4 +253,7 @@ dependencies {
     implementation 'androidx.compose.runtime:runtime-livedata'
     debugImplementation 'androidx.compose.ui:ui-test-manifest'
     debugImplementation 'androidx.compose.ui:ui-tooling'
+
+    implementation 'io.noties.markwon:core:4.6.2'
+
 }

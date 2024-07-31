@@ -84,7 +84,7 @@ class ChatGPTNetService(val context: Context) {
         val requestMsg = systemRole?.let { system ->
             listOf(system) + sendPart
         } ?: sendPart
-
+        Log.d(TAG, "send msg $requestMsg")
         val call = chatAPI.sendMsg(ChatGPTRequestData(messages = requestMsg).toRequestBody())
         call.enqueue(object : Callback<ChatGPTResponseData> {
             override fun onResponse(

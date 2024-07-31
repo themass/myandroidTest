@@ -2,18 +2,17 @@ package com.chatwaifu.mobile
 
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.view.MotionEvent
-import androidx.navigation.NavController
-import androidx.navigation.fragment.NavHostFragment
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.NavController
+import androidx.navigation.fragment.NavHostFragment
 import com.chatwaifu.mobile.ui.base.ChatWaifuRootView
 import com.chatwaifu.mobile.ui.channellist.ChannelListBean
-import com.chatwaifu.mobile.ui.channellist.exampleUIList
 import com.chatwaifu.mobile.ui.showToast
 import com.chatwaifu.mobile.ui.theme.ChatWaifu_MobileTheme
 import com.openapi.commons.common.util.LogUtil
+import com.openapi.commons.yewu.ads.base.AdsContext
 import com.openapi.ks.chat.R
 
 class ChatActivity : AppCompatActivity() {
@@ -44,6 +43,7 @@ class ChatActivity : AppCompatActivity() {
                 }
             }
         )
+        AdsContext.showNext(this)
         chatViewModel.refreshAllKeys()
         LogUtil.i("进入 mainLoop")
         chatViewModel.mainLoop()

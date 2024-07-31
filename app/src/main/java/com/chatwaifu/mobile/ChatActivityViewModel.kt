@@ -24,6 +24,7 @@ import com.openapi.commons.common.asr.AsrByteDance
 import com.openapi.commons.common.util.FileUtils
 import com.openapi.commons.common.util.LogUtil
 import com.openapi.commons.common.util.StringUtils
+import com.openapi.commons.yewu.ads.base.AdsContext
 import com.openapi.ks.myapp.base.MyApplication
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CoroutineScope
@@ -128,6 +129,7 @@ class ChatActivityViewModel : ViewModel(), AsrByteDance.AsrCallBackListener {
                 Log.d(TAG, "翻译结果 result: $translateText")
                 chatStatusLiveData.postValue(ChatStatus.GENERATE_SOUND)
                 generateAndPlaySound(translateText)
+                AdsContext.showRand(MyApplication.getInstance())
 //                sendVoice(responseText)
             }
         }

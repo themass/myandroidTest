@@ -571,7 +571,7 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_login222">LoginActivity222</string>
 
-    <string name="drawer_item_channel_list">Slave List</string>
+    <string name="drawer_item_channel_list">Her</string>
     <string name="drawer_item_setting">Setting</string>
     <string name="drawer_item_chat">ChatLog</string>
 
