@@ -13,24 +13,26 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.chatwaifu.mobile.ChatActivity;
 import com.chatwaifu.mobile.ui.login.WaifuLoginActivity;
 import com.google.android.material.navigation.NavigationView;
-import com.openapi.commons.common.util.DateUtils;
-import com.openapi.commons.common.util.LogUtil;
-import com.openapi.commons.common.util.PreferenceUtils;
-import com.openapi.commons.common.util.ShareUtil;
-import com.openapi.commons.common.util.StringUtils;
-import com.openapi.commons.common.util.SystemUtils;
-import com.openapi.commons.common.util.ToastUtil;
-import com.openapi.commons.yewu.ads.base.AdsManager;
-import com.openapi.commons.yewu.um.MobAgent;
+import com.openai.CommonConstants;
+import com.openai.commonevent.UserNeedLogin;
+import com.openai.commonutil.PreferenceUtils;
+import com.openai.commonutil.StringUtils;
+import com.openai.commonutil.DateUtils;
+import com.openai.commonutil.LogUtil;
+import com.openai.commonutil.ShareUtil;
+import com.openai.commonutil.SystemUtils;
+import com.openai.commonutil.ToastUtil;
+import com.openai.ads.yewu.ads.base.AdsManager;
+import com.openai.ads.yewu.um.MobAgent;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.chatfree.ui.main.MainFragmentViewPage;
 import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.bean.vo.UserInfoVo;
 import com.openapi.ks.myapp.constant.Constants;
-import com.openapi.ks.myapp.data.BaseService;
-import com.openapi.ks.myapp.data.LocationUtil;
+import com.openai.net.BaseService;
 import com.openapi.ks.myapp.data.UserLoginUtil;
 import com.openapi.ks.myapp.data.VersionUpdater;
 import com.openapi.ks.myapp.data.config.LocationChooseEvent;
@@ -52,7 +54,6 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.util.Date;
 
 import butterknife.BindView;
-import chat.ui.CustomChatMessagesActivity;
 
 /**
  * Created by Miroslaw Stanek on 15.07.15.
@@ -147,7 +148,6 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         } else {
             miLocation.setIcon(R.drawable.ic_menu_location);
         }
-        miLocation.setTitle(LocationUtil.getSelectName(this));
     }
 
     private void setUpVersion() {
@@ -197,6 +197,11 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(LocationChooseEvent event) {
         setUpLocation();
+    }
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(UserNeedLogin event) {
+        UserLoginUtil.logout(this);
+        startActivity(LoginActivity.class);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -316,7 +321,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                     name = "支持作者";
 //                    adsOffers();
                     ToastUtil.showShort(R.string.support_info);
-                    startActivity(WaifuLoginActivity.class);
+                    startActivity(ChatActivity.class);
                 } else if (item.getItemId() == R.id.menu_app) {
                     name = "应用推荐";
                     if(UserLoginUtil.isVIP2()) {
@@ -344,7 +349,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     public void showShare() {
         String url = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.D_URL, null);
         if (!StringUtils.hasText(url)) {
-            url = Constants.DEFAULT_REFERER;
+            url = CommonConstants.DEFAULT_REFERER;
         }
         ShareUtil util = new ShareUtil(this);
         util.shareText(null, null, url + " 爱Freedom，精彩你的生活", "爱Freedom", "精彩你的生活");

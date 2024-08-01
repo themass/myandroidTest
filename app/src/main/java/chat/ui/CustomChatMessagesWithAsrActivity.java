@@ -4,15 +4,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.MediaMetadataRetriever;
 
-import com.hrl.chaui.widget.MediaManager;
-import com.openapi.commons.common.asr.AsrByteDance;
-import com.openapi.commons.common.util.FileUtils;
-import com.openapi.commons.common.util.GsonUtils;
-import com.openapi.commons.common.util.LogUtil;
-import com.openapi.commons.common.util.PreferenceUtils;
-import com.openapi.commons.common.util.StringUtils;
-import com.openapi.commons.common.util.ToastUtil;
-import com.openapi.commons.yewu.net.request.CommonResponse;
+import com.openai.commonview.view.widget.MediaManager;
+import com.openai.asr.AsrByteDance;
+import com.openai.asr.AsrConstants;
+import com.openai.commonutil.FileUtils;
+import com.openai.commonutil.GsonUtils;
+import com.openai.commonutil.PreferenceUtils;
+import com.openai.commonutil.StringUtils;
+import com.openai.commonutil.LogUtil;
+import com.openai.commonutil.ToastUtil;
+import com.openai.net.request.CommonResponse;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.bean.form.ChatLog;
@@ -52,7 +53,7 @@ public class CustomChatMessagesWithAsrActivity extends CustomChatMessagesActivit
     public void initVosk() {
         super.initVosk();
         if(mPermissionHelper.checkPermissions() && asrByteDance ==null) {
-            asrByteDance = new AsrByteDance();
+            asrByteDance = new AsrByteDance(MyApplication.getInstance());
             asrByteDance.initEngine(this, this);
             asrByteDance.initAsrEngine(this);
             asrByteDance.initTtsEngine(this);
@@ -69,7 +70,7 @@ public class CustomChatMessagesWithAsrActivity extends CustomChatMessagesActivit
         if (asrByteDance == null) {
             ToastUtil.showLong(R.string.hold_please);
         }
-        asrByteDance.sendEngine(filePath, msgContent);
+        asrByteDance.sendEngine(filePath, msgContent.getMsgId());
     }
     @Override
     public void speechAsrResult(String data, boolean isFinish) {
@@ -201,7 +202,7 @@ public class CustomChatMessagesWithAsrActivity extends CustomChatMessagesActivit
     public void llmCallBack(String text) {
         super.llmCallBack(text);
         LogUtil.i("开始tts   "+text);
-        boolean needTts = PreferenceUtils.getPrefBoolean(MyApplication.getInstance(), Constants.TTS_OPEN, false);
+        boolean needTts = PreferenceUtils.getPrefBoolean(MyApplication.getInstance(), AsrConstants.TTS_OPEN, false);
         if(needTts) {
             asrByteDance.sendTtsEngine(text);
         }

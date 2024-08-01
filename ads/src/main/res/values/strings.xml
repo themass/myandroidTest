@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="tab_fb_click_no">No ads,please try later</string>
+
+    <string name="tab_fb_click">Points ads to earn points +</string>
+    <string name="tab_fb_click_fast">Too fast,please wait 3 seconds</string>
+    <string name="repeated_click">Do not click repeatedly</string>
+
+</resources>

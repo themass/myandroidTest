@@ -15,14 +15,14 @@ import android.widget.TextView;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.VolleyError;
-import com.openapi.commons.common.ui.base.BaseFragment;
-import com.openapi.commons.common.util.CollectionUtils;
-import com.openapi.commons.common.util.LogUtil;
-import com.openapi.commons.common.util.ViewUtils;
-import com.openapi.commons.yewu.net.VolleyUtils;
+import com.openapi.ks.myapp.ui.base.app.BaseFragment;
+import com.openai.commonutil.CollectionUtils;
+import com.openai.commonutil.LogUtil;
+import com.openai.commonutil.ViewUtils;
+import com.openai.net.VolleyUtils;
 import com.openapi.ks.chat.R;
-import com.openapi.ks.myapp.bean.vo.InfoListVo;
-import com.openapi.ks.myapp.data.BaseService;
+import com.openai.net.request.InfoListVo;
+import com.openai.net.BaseService;
 
 import java.lang.ref.WeakReference;
 import java.util.List;
@@ -165,14 +165,14 @@ public abstract class LoadableFragment<T> extends BaseFragment {
         mLoadingView.setVisibility(View.GONE);
         mLoadRetryView.setVisibility(View.VISIBLE);
         mContentView.setVisibility(View.GONE);
-        tvRetry.setText(R.string.error_network_retry);
+        tvRetry.setText(com.openai.commonutil.R.string.error_network_retry);
     }
 
     private void showNodataRetry() {
         mLoadingView.setVisibility(View.GONE);
         mLoadRetryView.setVisibility(View.VISIBLE);
         mContentView.setVisibility(View.GONE);
-        tvRetry.setText(R.string.error_network_nodata_retry);
+        tvRetry.setText(com.openai.commonutil.R.string.error_network_nodata_retry);
     }
 
     protected void setData(T data) {

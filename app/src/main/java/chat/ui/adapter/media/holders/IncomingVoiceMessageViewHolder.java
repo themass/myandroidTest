@@ -6,14 +6,14 @@ import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
-import com.hrl.chaui.widget.MediaManager;
-import com.openapi.commons.common.util.LogUtil;
-import com.openapi.commons.common.util.StringUtils;
+import com.openai.commonview.view.widget.MediaManager;
+import com.openai.commonutil.LogUtil;
+import com.openai.commonutil.StringUtils;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.base.MyApplication;
 
 import chat.ui.data.model.Message;
-import com.openapi.commons.common.util.FormatUtils;
+import com.openai.commonutil.FormatUtils;
 import tz.co.hosannahighertech.messagekit.messages.MessageHolders;
 import tz.co.hosannahighertech.messagekit.utils.DateFormatter;
 

@@ -5,8 +5,10 @@ import android.net.Uri;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.openapi.commons.common.util.LogUtil;
-import com.openapi.commons.common.util.ToastUtil;
+import com.openai.CommonConstants;
+import com.openai.commonevent.ConfigActionEvent;
+import com.openai.commonutil.LogUtil;
+import com.openai.commonutil.ToastUtil;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.ui.base.WebViewActivity;
@@ -65,12 +67,12 @@ public class ConfigActionJump {
         }
         Class<? extends AppCompatActivity> activity = configMap.get(uri.getScheme());
         if (activity != null) {
-            Boolean adsShow = event.param != null ? (Boolean) event.param.get(Constants.ADS_SHOW_CONFIG) : null;
-            Boolean adsPopShow = event.param != null ? (Boolean) event.param.get(Constants.ADS_POP_SHOW_CONFIG) : null;
+            Boolean adsShow = event.param != null ? (Boolean) event.param.get(CommonConstants.ADS_SHOW_CONFIG) : null;
+            Boolean adsPopShow = event.param != null ? (Boolean) event.param.get(CommonConstants.ADS_POP_SHOW_CONFIG) : null;
             Intent intent = new Intent(event.context, activity);
             intent.putExtra(Constants.URL, parserUrl(uri.getScheme(), event.url, param));
-            intent.putExtra(Constants.ADS_SHOW_CONFIG, adsShow);
-            intent.putExtra(Constants.ADS_POP_SHOW_CONFIG, adsPopShow);
+            intent.putExtra(CommonConstants.ADS_SHOW_CONFIG, adsShow);
+            intent.putExtra(CommonConstants.ADS_POP_SHOW_CONFIG, adsPopShow);
             intent.putExtra(Constants.CONFIG_PARAM, param);
             intent.putExtra(Constants.TITLE, event.title);
             event.context.startActivity(intent);

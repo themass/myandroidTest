@@ -14,8 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import com.openapi.commons.common.ui.view.DividerItemDecoration;
-import com.openapi.commons.common.util.LogUtil;
+import com.openai.commonutil.LogUtil;
 import com.openapi.ks.chat.R;
 
 import butterknife.BindView;

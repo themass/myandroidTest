@@ -3,7 +3,7 @@ package com.openapi.ks.myapp.data;
 import android.content.Context;
 import android.os.AsyncTask;
 
-import com.openapi.commons.common.util.LogUtil;
+import com.openai.commonutil.LogUtil;
 import com.openapi.ks.myapp.bean.form.ChatLog;
 import com.openapi.ks.myapp.bean.form.ChatLogDao;
 import com.openapi.ks.myapp.bean.form.DaoMaster;
@@ -50,6 +50,7 @@ public class DBManager {
      */
     public DaoMaster getDaoMaster() {
         if (sDaoMaster == null) {
+
             DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(context, DB_NAME, null);
             sDaoMaster = new DaoMaster(helper.getWritableDatabase());
         }

@@ -18,7 +18,7 @@
         android:layout_marginRight="16dp"
         android:background="@color/gray" />
 
-    <com.openapi.commons.common.ui.view.InputRecordView
+    <com.openai.commonview.view.InputRecordView
         android:id="@+id/input"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

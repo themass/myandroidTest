@@ -1,5 +1,7 @@
 package com.openapi.ks.myapp.bean.vo;
 
+import com.openai.commonevent.FavoriteVo;
+
 import java.io.Serializable;
 
 /**

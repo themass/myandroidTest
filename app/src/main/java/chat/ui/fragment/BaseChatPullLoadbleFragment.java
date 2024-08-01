@@ -7,10 +7,10 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 import androidx.annotation.Nullable;
-import com.openapi.commons.common.util.LogUtil;
+import com.openai.commonutil.LogUtil;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
-import com.openapi.ks.myapp.bean.vo.InfoListVo;
+import com.openai.net.request.InfoListVo;
 import com.openapi.ks.myapp.ui.base.features.LoadableFragment;
 
 

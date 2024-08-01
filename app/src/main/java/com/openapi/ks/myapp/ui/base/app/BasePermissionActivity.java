@@ -1,9 +1,9 @@
 package com.openapi.ks.myapp.ui.base.app;
 
-import static com.luck.picture.lib.permissions.PermissionConfig.WRITE_EXTERNAL_STORAGE;
-import static com.openapi.commons.common.util.PermissionHelper.CAMERA;
-import static com.openapi.commons.common.util.PermissionHelper.READ_EXTERNAL_STORAGE;
-import static com.openapi.commons.common.util.PermissionHelper.RECORD_AUDIO;
+import static com.openai.commonutil.PermissionHelper.CAMERA;
+import static com.openai.commonutil.PermissionHelper.READ_EXTERNAL_STORAGE;
+import static com.openai.commonutil.PermissionHelper.RECORD_AUDIO;
+import static com.openai.commonutil.PermissionHelper.WRITE_EXTERNAL_STORAGE;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -12,12 +12,10 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
-import com.openapi.commons.common.ui.base.LogActivity;
-import com.openapi.commons.common.util.LogUtil;
-import com.openapi.commons.common.util.PermissionHelper;
-import com.openapi.commons.common.util.ToastUtil;
-import com.openapi.ks.chat.R;
-import com.openapi.ks.myapp.data.config.PermEvent;
+import com.openai.commonutil.LogUtil;
+import com.openai.commonutil.PermissionHelper;
+import com.openai.commonutil.ToastUtil;
+import com.openai.commonevent.PermEvent;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -51,7 +49,7 @@ public class BasePermissionActivity extends LogActivity
     private void request() {
         LogUtil.i("perm 弹窗");
         EasyPermissions.requestPermissions(this,
-                getString(R.string.permission_need_toast), RC_CAMERA_PERM,
+                getString(com.openai.commonutil.R.string.permission_need_toast), RC_CAMERA_PERM,
                 RECORD_AUDIO, CAMERA, WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE);
     }
 
@@ -75,7 +73,7 @@ public class BasePermissionActivity extends LogActivity
         if (grantResults != null) {
             for (int ret : grantResults) {
                 if (ret != PackageManager.PERMISSION_GRANTED) {
-                    ToastUtil.showLong(R.string.permission_need_toast);
+                    ToastUtil.showLong(com.openai.commonutil.R.string.permission_need_toast);
                     return;
                 }
             }
@@ -87,7 +85,7 @@ public class BasePermissionActivity extends LogActivity
     }
     public void fromSetting() {
         if(hasPerm()){
-            ToastUtil.showShort(R.string.permission_need_toast);
+            ToastUtil.showShort(com.openai.commonutil.R.string.permission_need_toast);
         }
     }
     @Override
@@ -117,7 +115,7 @@ public class BasePermissionActivity extends LogActivity
     @Override
     public void onPermissionsDenied(int requestCode, @NonNull List<String> perms) {
         if (EasyPermissions.somePermissionPermanentlyDenied(this, perms)) {
-            new AppSettingsDialog.Builder(this).setRationale(R.string.permission_need).build().show();
+            new AppSettingsDialog.Builder(this).setRationale(com.openai.commonutil.R.string.permission_need).build().show();
         }
     }
 

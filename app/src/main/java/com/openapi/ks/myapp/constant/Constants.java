@@ -2,23 +2,14 @@ package com.openapi.ks.myapp.constant;
 
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
-import com.openapi.commons.yewu.ads.adview.AdviewConstant;
-import com.openapi.ks.chat.R;
 
 /**
  * Created by openapi on 2015/9/1.
  */
 public class Constants {
 
-    public static final String REFERER = "Referer";
-    public static final String USER_AGENT = "User-Agent";
-    public static final String USER_AGENT_DEF = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36";
-    public static final String DEFAULT_REFERER = "http://www.ok123find.top/";
-    public static final String MAIN_URL = "http://www.ok123find.top/";
+
     public static final String IMAGE_RES_PRE = "timeline://img";
     public static final String URL = "url";
     public static final String DEFULT_LOCATION_NAME = "随机";
@@ -84,8 +75,7 @@ public class Constants {
     public static final String SOUND_SWITCH = "SOUND_SWITCH";
     public static final String AREA_MI_SWITCH = "AREA_MI_SWITCH";
     public static final String LOGIN_USER_PW_LAST = "LOGIN_USER_PW_LAST";
-    public static final String DEVID = "Devid";
-    public static final String HTTP_TOKEN_KEY = "Sex-Token";
+
     public static final String AGENT_APP_MYPOOL = "SEX";
     public static final String AGENT_APP_GOOGLE = "SEX_TEMP";
     public static final String APP_MYPOOL = "MYPOOL";
@@ -96,14 +86,9 @@ public class Constants {
         USER_AGENT_SUFFIX = pref + "/%s";
     }
 
-    public static final String HTTP_LANG = "lang";
-    public static final String LON = "lon";
-    public static final String LAT = "lat";
-    public static final String PORT = "port";
     public static final String SEX_M = "M";
     public static final String SEX_F = "F";
-    public static final int HTTP_SUCCESS = 0;
-    public static final int HTTP_SUCCESS_CLEAR = 1;
+
     public static final String USERIP = "USERIP";
 
     // 有新版本时，是否打开app就提醒升级
@@ -175,15 +160,10 @@ public class Constants {
     public static final String API_LOG_URL = "/monitor/bug.json";
     public static final String API_ADD_CUSTOME = "/user/custome/add.json";
     public static final String API_DEL_CUSTOME = "/user/custome/del.json";
-    public static final int connTimeOut = 20;
-    public static final String NET_ERROR = "network error";
-    public static final int ADS_SHOW_SCORE = 10;
-    public static final int ADS_SHOW_CLICK = 30;
-    public static final int ADS_SHOW_VIDEO_SCORE = 30;
+
     public static final String D_URL = "D_URL";
     public static final String MY_SETTING = "MY_SETTING";
-    public static final String ADS_SHOW_CONFIG = "ADS_SHOW_CONFIG";
-    public static final String ADS_POP_SHOW_CONFIG = "ADS_POP_SHOW_CONFIG";
+
     public static final String LOG_UPLOAD_CONFIG = "LOG_UPLOAD_CONFIG";
     public static final String NEED_DNSPOD_CONFIG = "NEED_DNSPOD_CONFIG";
     public static final String NEED_NATIVE_ADS_CONFIG = "NEED_NATIVE_ADS_CONFIG";
@@ -198,18 +178,15 @@ public class Constants {
     public static final String TV_CHANNEL = "TV_CHANNEL";
     public static final String VIDEO_CHANNEL = "IMG_CHANNEL";
     public static final String VIDEO_TYPE_NORMAL = "normal";
-    public static final int maxRate = 10;
     public static final String IMG_ITEMS = "IMG_ITEMS";
     public static final String SCORE_TMP = "SCORE_TMP";
-    public static final String SCORE_CLICK = "SCORE_CLICK";
-    public static final long SCORE_CLICK_INTERVAL = 2;
+
     public static final String VPN_STATUS = "VPN_STATUS";
     public static final String SOUND_CHANNEL_CLICK = "SOUND_CHANNEL_CLICK";
     public static final int MAX_RETRY_COUNT = 4;
     public static final String ADMIN = "openapi";
     public static final String CUSTOME_SORT = "CUSTOME_SORT";
     public static final String LOCATION_ICON_ALL = "timeline://img/flag_all.png";
-    public static final int[] img = new int[]{R.drawable.bg_api};
     public static final String BOOK_CSS = " body{font-size:22px;font-family: 微软雅黑;letter-spacing:1.8px;line-height:1.2;background-color:rgba(0,0,0,0);}";
     public static String BASE_IP = "api.ok123find.top";
     public static String ABOUT_FIRST = "ABOUT_FbbIRST";
@@ -253,104 +230,6 @@ public class Constants {
         public static final int Text = 2;
         public static final int Text_Below = 3;
     }
-
-    public static final String APPID = "1108006908";
-    public static final String NativeExpressPosID = "6010441996206888";
-    public static final String NativeExpressPosID_2 = "1090544966701912";
-    public static final int AD_COUNT = 8;    // 加载广告的条数，取值范围为[1, 10]
-    public static int FIRST_AD_POSITION = 1; // 第一条广告的位置
-    public static int ITEMS_PER_AD_SIX = 6;     // 每间隔10个条目插入一条广告
-    public static int ITEMS_PER_AD_THREE = 3;     // 每间隔10个条目插入一条广告
-    public static int ITEMS_PER_AD_BANNER = 1;     // 每间隔10个条目插入一条广告
-    public static final String OpenExpressPosID = "9060242730064757";
-    public static final String InterExpressPosID = "7040843730666709";
-    public static final String InterExpressPosID_1 = "9060947720962850";
-    public static final String InterExpressPosID_2 = "9000343720565852";
-    public static final String InterExpressPosID_3 = "1010745790065883";
-
-
-    public static final String ADMOB_REWARD_ID_TEST = "ca-app-pub-3940256099942544/5224354917";
-    public static final String ADMOB_REWARD_ID = "ca-app-pub-6599725010915516/5135784679";
-
-    public static final String ADMOB_BANNER_ID = "ca-app-pub-6599725010915516/4233766548";
-    public static final String ADMOB_BANNER_ID_TEST = "ca-app-pub-3940256099942544/6300978111";
-    public static final String ADMOB_BANNER_ID2 = "ca-app-pub-6599725010915516/6148132379";
-
-    public static final String ADMOB_INTER_ID = "ca-app-pub-6599725010915516/9330697473";
-    public static final String ADMOB_INTER_ID_TEST = "ca-app-pub-3940256099942544/1033173712";
-
-    public static final String ADMOB_SPLASH_ID = "ca-app-pub-6599725010915516/3521969031";
-    public static final String ADMOB_SPLASH_ID_TEST = "ca-app-pub-3940256099942544/3419835294";
-
-
-    public static final String ADMOB_REWARD_UNIT_ID = "ca-app-pub-7849865307083433/1108754074";
-    public static final String ADMOB_REWARD_UNIT_ID2 = "ca-app-pub-7849865307083433/1842540805";
-    public static final String ADMOB_REWARD_UNIT_ID3 = "ca-app-pub-7849865307083433/5020078921";
-    public static final List<String> ADMOB_REWARD_UNIT_IDS = Arrays.asList(ADMOB_REWARD_UNIT_ID, ADMOB_REWARD_UNIT_ID, ADMOB_REWARD_UNIT_ID);
-
-
-    public static final String Mob_APPID_TEST = "144002";
-    public static final String Mob_APPKEY_TEST = "7c22942b749fe6a6e361b675e96b3ee9";
-    public static final String Mob_SPLASH_UNIT_TEST = "328916";
-    public static final String Mob_SPLASH_UNIT_PLACE_TEST = "1542060";
-    public static final String Mob_INTER_UNIT_TEST = "290653";
-    public static final String Mob_INTER_UNIT_PLACE_TEST = "462374";
-    public static final String Mob_REWARD_UNIT_TEST = "290651";
-    public static final String Mob_REWARD_UNIT_PLACE_TEST = "462372";
-
-    public static final String Mob_UNIT_BANNER_PLACE_TEST = "290655";
-    public static final String Mob_UNIT_BANNER1_TEST = "462376";
-    public static final String Mob_UNIT_BANNER2_TEST = "462376";
-    public static final String Mob_UNIT_BANNER3_TEST = "462376";
-    public static final String Mob_UNIT_BANNER_TEST = "462376";
-
-    public static final String Mob_APPID = "209825";
-    public static final String Mob_APPKEY = "f1f0a8637166a0459402b9de3c88a93f";
-    public static final String Mob_SPLASH_UNIT = "809686";
-    public static final String Mob_SPLASH_UNIT_PLACE = "2392263";
-    public static final String Mob_INTER_UNIT = "809698";
-    public static final String Mob_INTER_UNIT_PLACE = "2392276";
-    public static final String Mob_REWARD_UNIT = "809687";
-    public static final String Mob_REWARD_UNIT_PLACE = "2392264";
-
-    public static final String Mob_UNIT_BANNER_PLACE = "811116";
-    public static final String Mob_UNIT_BANNER1 = "2394073";
-    public static final String Mob_UNIT_BANNER2 = "2394071";
-    public static final String Mob_UNIT_BANNER3 = "2394069";
-    public static final String Mob_UNIT_BANNER = "2394067";
-
-    public static final String Mob_UNIT_WALL = "88840";
-
-    public static Map<String, String> adviewToMobvBanner = new HashMap<>();
-
-    static {
-        adviewToMobvBanner.put(AdviewConstant.ADS_ADVIEW_KEY1, Mob_UNIT_BANNER1);
-        adviewToMobvBanner.put(AdviewConstant.ADS_ADVIEW_KEY2, Mob_UNIT_BANNER2);
-        adviewToMobvBanner.put(AdviewConstant.ADS_ADVIEW_KEY, Mob_UNIT_BANNER);
-    }
-
-    public static Map<String, String> adviewToAdmobBanner = new HashMap<>();
-
-    static {
-        adviewToAdmobBanner.put(AdviewConstant.ADS_ADVIEW_KEY1, ADMOB_BANNER_ID2);
-        adviewToAdmobBanner.put(AdviewConstant.ADS_ADVIEW_KEY2, ADMOB_BANNER_ID);
-        adviewToAdmobBanner.put(AdviewConstant.ADS_ADVIEW_KEY, ADMOB_BANNER_ID);
-    }
-
-    public static final int ADS_REWARD_SHOW_CLICK = 100;
-    public static final String SCORE_CLICK_CLICK = "SCORE_CLICK_CLICK";
-    public static int PROBABILITY = 3;
-    public static final int HTTP_LOGIN = 2;
-
-
-    public static final String ASR_APPID = "ASR_APPID";
-    public static final String ASR_TOKEN = "ASR_TOKEN";
-    public static final String TTS_OPEN = "TTS_OPEN";
-
-    public static final String ASR_DEFAULT_CLUSTER = "ASR_DEFAULT_CLUSTER";
-    public static final String TTS_DEFAULT_CLUSTER = "TTS_DEFAULT_CLUSTER";
-    public static final String TTS_DEFAULT_VOICE = "TTS_DEFAULT_VOICE";
-
 
 
 }

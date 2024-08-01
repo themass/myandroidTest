@@ -1,0 +1,86 @@
+apply plugin: 'com.android.library'
+apply plugin: 'org.jetbrains.kotlin.android'
+
+android {
+    namespace 'com.chatwaifu'
+    compileSdk rootProject.ext.compileSdkVersion
+
+    defaultConfig {
+        minSdk rootProject.ext.minSdkVersion
+        targetSdk rootProject.ext.targetSdkVersion
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+        renderscriptTargetApi 18
+        renderscriptSupportModeEnabled true
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+    buildFeatures {
+        viewBinding true
+    }
+    buildFeatures {
+        compose true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion = "${compose_kotlin_compiler_ext_ver}"
+    }
+}
+
+dependencies {
+    implementation project(":VITS")
+    implementation project(":Live2D")
+    implementation project(":Log")
+    implementation project(":Lipsync")
+    implementation project(':Sherpa')
+    implementation project(":ChatGPT")
+    implementation project(":Translate")
+    implementation project(":asr")
+    implementation project(":commonutil")
+    implementation project(":ads")
+
+
+    implementation "androidx.appcompat:appcompat:1.7.0"
+    implementation "com.google.android.material:material:1.12.0"
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+//    implementation 'com.google.code.gson:gson:2.10.1'
+    implementation 'androidx.navigation:navigation-fragment:2.7.7'
+    implementation 'androidx.navigation:navigation-ui-ktx:2.7.7'
+    implementation 'androidx.navigation:navigation-fragment-ktx:2.7.7'
+    implementation 'com.belerweb:pinyin4j:2.5.0'
+    implementation 'androidx.annotation:annotation:1.8.1'
+    implementation 'com.kunminx.archi:unpeek-livedata:4.4.1-beta1'
+    // compose lib
+    implementation platform("androidx.compose:compose-bom:2023.04.01")
+    implementation "androidx.compose.ui:ui:$compose_kotlin_compiler_ext_ver"
+    implementation "androidx.compose.ui:ui-viewbinding:$compose_kotlin_compiler_ext_ver"
+    implementation "androidx.compose.material:material:$compose_kotlin_compiler_ext_ver"
+    implementation "androidx.compose.material:material-icons-extended:$compose_kotlin_compiler_ext_ver"
+    implementation "androidx.compose.ui:ui-tooling-preview:$compose_kotlin_compiler_ext_ver"
+    implementation "androidx.compose.runtime:runtime:$compose_kotlin_compiler_ext_ver"
+    implementation "androidx.compose.runtime:runtime-livedata:$compose_kotlin_compiler_ext_ver"
+
+    implementation "androidx.compose.material3:material3:1.2.1"
+    implementation "androidx.compose.material3:material3-window-size-class:1.2.1"
+
+    implementation 'androidx.activity:activity-compose:1.9.1'
+    implementation "androidx.activity:activity-ktx:1.9.1"
+    implementation "androidx.core:core-ktx:${rootProject.ext.kotlin_ktx}"
+
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:${rootProject.ext.lifecycle_livedata_ktx}"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:${rootProject.ext.lifecycle_livedata_ktx}"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-compose:${rootProject.ext.lifecycle_livedata_ktx}"
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:${rootProject.ext.lifecycle_livedata_ktx}"
+    implementation "androidx.lifecycle:lifecycle-runtime-compose:${rootProject.ext.lifecycle_livedata_ktx}"
+}

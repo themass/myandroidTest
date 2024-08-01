@@ -19,21 +19,21 @@ import android.widget.PopupWindow;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
-import com.hrl.chaui.widget.RecordButton;
+import com.openai.commonview.view.widget.RecordButton;
 import com.luck.picture.lib.basic.PictureSelector;
 import com.luck.picture.lib.entity.LocalMedia;
-import com.openapi.commons.common.ui.view.InputRecordView;
-import com.openapi.commons.common.ui.view.Mp3ToWav;
-import com.openapi.commons.common.util.DoubleClickExit;
-import com.openapi.commons.common.util.EventBusUtil;
-import com.openapi.commons.common.util.GsonUtils;
-import com.openapi.commons.common.util.LogUtil;
-import com.openapi.commons.common.util.PreferenceUtils;
-import com.openapi.commons.common.util.StringUtils;
-import com.openapi.commons.common.util.ToastUtil;
-import com.openapi.commons.yewu.ads.base.AdsContext;
-import com.openapi.commons.yewu.net.request.CommonResponse;
-import com.openapi.commons.yewu.um.MobAgent;
+import com.openai.commonutil.PreferenceUtils;
+import com.openai.commonutil.StringUtils;
+import com.openai.commonview.view.InputRecordView;
+import com.openai.commonutil.Mp3ToWav;
+import com.openai.commonutil.DoubleClickExit;
+import com.openai.commonutil.EventBusUtil;
+import com.openai.commonutil.GsonUtils;
+import com.openai.commonutil.LogUtil;
+import com.openai.commonutil.ToastUtil;
+import com.openai.ads.yewu.ads.base.AdsContext;
+import com.openai.net.request.CommonResponse;
+import com.openai.ads.yewu.um.MobAgent;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.bean.form.ChatLog;
@@ -43,11 +43,8 @@ import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.DBManager;
 import com.openapi.ks.myapp.data.UserLoginUtil;
 import com.openapi.ks.myapp.data.config.ChatSessionEvent;
-import com.openapi.ks.myapp.data.config.ConfigActionJump;
-import com.openapi.ks.myapp.service.LogUploadService;
 import com.openapi.ks.myapp.ui.base.BannerHeaderFragment;
 import com.openapi.ks.myapp.ui.base.app.BaseDrawerActivity;
-import com.openapi.ks.myapp.ui.base.app.BasePermissionActivity;
 import com.openapi.ks.myapp.ui.inte.OnBackKeyDownListener;
 import com.openapi.ks.myapp.ui.user.LoginActivity;
 
@@ -344,7 +341,6 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements Me
     @Override
     public void onDestroy() {
         LogUtil.i("main destory");
-        stopService(LogUploadService.class);
 //        EventBusUtil.getEventBus().unregister(jump);
         EventBusUtil.getEventBus().unregister(this);
         super.onDestroy();

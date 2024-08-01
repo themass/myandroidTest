@@ -1,2 +1,6 @@
 include ':app',':Lipsync',':Log',':Live2D',':Sherpa',':VITS',':ChatGPT',':Translate'
 
+include ':asr'
+include ':commonutil'
+include ':ads'
+include ':waifu'

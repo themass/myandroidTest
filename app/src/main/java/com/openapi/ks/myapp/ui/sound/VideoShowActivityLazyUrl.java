@@ -3,23 +3,21 @@ package com.openapi.ks.myapp.ui.sound;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.ImageView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.volley.VolleyError;
-import com.openapi.commons.common.ui.view.MyFavoriteView;
-import com.openapi.commons.common.util.LogUtil;
-import com.openapi.commons.common.util.PreferenceUtils;
-import com.openapi.commons.common.util.StringUtils;
-import com.openapi.commons.common.util.ToastUtil;
-import com.openapi.commons.yewu.net.request.CommonResponse;
+import com.openai.commonview.view.MyFavoriteView;
+import com.openai.commonutil.LogUtil;
+import com.openai.commonutil.StringUtils;
+import com.openai.commonutil.ToastUtil;
+import com.openai.net.request.CommonResponse;
 import com.openapi.ks.chat.R;
-import com.openapi.ks.myapp.bean.vo.FavoriteVo;
+import com.openai.commonevent.FavoriteVo;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.constant.Constants;
-import com.openapi.ks.myapp.data.BaseService;
+import com.openai.net.BaseService;
 import com.openapi.ks.myapp.data.ImagePhotoLoad;
 import com.openapi.ks.myapp.data.VideoUtil;
 import com.openapi.ks.myapp.ui.sound.media.MyJzvdStd;
