@@ -204,7 +204,7 @@ public class ImgItemFragment extends RecommendFragment implements SaveImageCallB
     }
 
     @Override
-    public String getBrowserDatUrl() {
+    public String getBrowserDataUrl() {
         return infoListVo.voList.get(0).actionUrl;
     }
 

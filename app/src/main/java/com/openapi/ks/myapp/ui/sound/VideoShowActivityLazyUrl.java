@@ -41,7 +41,7 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
     @BindView(R.id.my_favoriteview)
     MyFavoriteView myFavoriteView;
     protected BaseService indexService;
-
+    private String url;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,6 +50,7 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
         indexService = new BaseService();
         indexService.setup(this);
         vo = (RecommendVo) getIntent().getSerializableExtra(Constants.CONFIG_PARAM);
+        url = vo.actionUrl;
         LogUtil.i("data="+vo);
         //需要单独发起解析url 的请求
         if (vo.needLazyUrl) {
@@ -90,7 +91,7 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
     }
 
     private void openVideoShow(RecommendVo urlVo) {
-        String url = urlVo.actionUrl;
+        url = urlVo.actionUrl;
         if (StringUtils.hasText(urlVo.urlToken)) {
             url = url + urlVo.urlToken;
         }
@@ -146,8 +147,8 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
     }
 
     @Override
-    public String getBrowserDatUrl() {
-        return vo.actionUrl;
+    public String getBrowserDataUrl() {
+        return url;
     }
 //    class MyUserActionStandard implements JZUserActionStandard {
 //

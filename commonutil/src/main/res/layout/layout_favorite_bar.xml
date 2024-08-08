@@ -11,7 +11,6 @@
         android:src="@drawable/ic_menu_favorite_no"
         android:padding="@dimen/margin_2"
         android:layout_alignParentBottom="true"
-        android:onClick="favoriteClick"
         android:background="@drawable/btn_default_light" />
 
     <ImageView
@@ -24,7 +23,6 @@
         android:scaleType="fitCenter"
         android:src="@drawable/ic_menu_share"
         android:padding="@dimen/margin_2"
-        android:onClick="browserClick"
         android:background="@drawable/btn_default_light" />
 
     <ImageView
@@ -38,7 +36,6 @@
         android:src="@drawable/ic_browser1"
         android:padding="@dimen/margin_2"
         android:background="@drawable/btn_default_light"
-        android:onClick="browserClick"
         android:visibility="gone" />
 
     <ImageView
@@ -52,7 +49,6 @@
         android:src="@drawable/ic_browser1"
         android:padding="@dimen/margin_2"
         android:background="@drawable/btn_default_light"
-        android:onClick="mp42OpenClick"
         android:visibility="gone" />
 
     <TextView
@@ -62,7 +58,6 @@
         android:layout_above="@id/iv_mp4_web2"
         android:layout_marginBottom="@dimen/margin_2"
         android:clickable="true"
-        android:onClick="speedClick"
         android:textColor="@color/base_white"
         android:background="@drawable/btn_default_light"
         android:visibility="gone" />

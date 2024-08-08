@@ -108,7 +108,7 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
     }
 
     @Override
-    public String getBrowserDatUrl() {
+    public String getBrowserDataUrl() {
         return vo.actionUrl;
     }
 //    class MyUserActionStandard implements JZUserActionStandard {

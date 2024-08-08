@@ -371,7 +371,7 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
     }
 
     @Override
-    public String getBrowserDatUrl() {
+    public String getBrowserDataUrl() {
         return infoListVo.voList.get(adapter.getSelected() < 0 ? 0 : adapter.getSelected()).file;
     }
 

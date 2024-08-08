@@ -43,10 +43,13 @@ public class VideoChannelUserListFragment extends RecommendFragment {
 
     @Override
     public String getUrl(int start) {
-        return Constants.getUrlWithParam(Constants.API_VIDEO_USER_URL, vo.param, start);
+        return Constants.getUrlWithParam(Constants.API_VIDEO_USER_URL, vo.param, keyword, start);
     }
 
-
+    @Override
+    public boolean showSearchView() {
+        return true;
+    }
     @Override
     protected void onDataLoaded(InfoListVo<RecommendVo> data) {
         super.onDataLoaded(data);

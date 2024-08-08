@@ -99,7 +99,7 @@ public class TextItemsFragment extends LoadableFragment<TextItemVo> implements M
     }
 
     @Override
-    public String getBrowserDatUrl() {
+    public String getBrowserDataUrl() {
         return url;
     }
 }

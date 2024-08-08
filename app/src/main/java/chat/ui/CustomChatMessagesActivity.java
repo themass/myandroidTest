@@ -179,23 +179,20 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements Me
             }
         });
         Button btnOk = (Button) contentView.findViewById(R.id.chat_ok);
-        btnOk.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (nameView.getText().toString().isEmpty()) {
-                    LogUtil.i("没有填名称");
-                    return;
-                }
-                ChatSessionLog log = new ChatSessionLog();
-                log.setName(nameView.getText().toString());
-                log.setCreateTime(new Date());
-                log.setSetting("");
-                DBManager.getInstance().getDaoSession().getChatSessionLogDao().insert(log);
-                onEvent(new ChatSessionEvent(log.id));
-                ToastUtil.showShort(R.string.save_ok);
-                LogUtil.i("对话名称：" + nameView.getText().toString() + "---" + log.id);
-                popupWindow.dismiss();
+        btnOk.setOnClickListener(v -> {
+            if (nameView.getText().toString().isEmpty()) {
+                LogUtil.i("没有填名称");
+                return;
             }
+            ChatSessionLog log = new ChatSessionLog();
+            log.setName(nameView.getText().toString());
+            log.setCreateTime(new Date());
+            log.setSetting("");
+            DBManager.getInstance().getDaoSession().getChatSessionLogDao().insert(log);
+            onEvent(new ChatSessionEvent(log.id));
+            ToastUtil.showShort(R.string.save_ok);
+            LogUtil.i("对话名称：" + nameView.getText().toString() + "---" + log.id);
+            popupWindow.dismiss();
         });
     }
     @Override
@@ -230,14 +227,11 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements Me
         super.setupView();
         showToolbar(true);
         initAdapter();
-        input.setAudioFinishListener(new RecordButton.OnFinishedRecordListener() {
-            @Override
-            public void onFinishedRecord(String audioPath, int time) {
-                LogUtil.i("录音结束回调");
-                File file = new File(audioPath);
-                if (file.exists()) {
-                    sendAudioMessage(audioPath, time);
-                }
+        input.setAudioFinishListener((audioPath, time) -> {
+            LogUtil.i("录音结束回调");
+            File file = new File(audioPath);
+            if (file.exists()) {
+                sendAudioMessage(audioPath, time);
             }
         });
         input.setPicSelectListener(new InputRecordView.PicSelectListener() {
@@ -258,12 +252,9 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements Me
         messagesAdapter.enableSelectionMode(this);
         messagesAdapter.setLoadMoreListener(this);
         messagesList.setAdapter(messagesAdapter);
-        messagesList.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                input.closeKeypad();
-                return false;
-            }
+        messagesList.setOnTouchListener((v, event) -> {
+            input.closeKeypad();
+            return false;
         });
         loadMessages();
 

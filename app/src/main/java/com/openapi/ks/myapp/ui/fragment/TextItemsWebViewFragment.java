@@ -275,7 +275,7 @@ public class TextItemsWebViewFragment extends BaseFragment implements MyFavorite
     }
 
     @Override
-    public String getBrowserDatUrl() {
+    public String getBrowserDataUrl() {
         return url;
     }
 }

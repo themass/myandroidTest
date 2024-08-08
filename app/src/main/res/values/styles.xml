@@ -220,42 +220,4 @@
         <item name="android:layout_marginLeft">@dimen/margin_8</item>
 
     </style>
-
-    <!-- Base application theme. -->
-
-
-    <!-- Widget -->
-
-    <!-- Widget - Divider -->
-
-
-    <!-- TextAppearance -->
-
-
-    <style name="like_toast_dialog_style">
-        <item name="android:windowFrame">@null</item>
-        <item name="android:windowIsFloating">true</item>
-        <item name="android:windowIsTranslucent">true</item>
-        <item name="android:windowNoTitle">true</item>
-        <item name="android:backgroundDimEnabled">false</item>
-        <item name="android:windowContentOverlay">@null</item>
-
-    </style>
-
-
-    <!--默认样式-->
-
-
-    <style name="common_my_dialog_style" parent="android:style/Theme.Dialog">
-        <item name="android:windowIsFloating">true</item>
-        <item name="android:windowIsTranslucent">false</item>
-        <item name="android:windowNoTitle">true</item>
-        <item name="android:windowFullscreen">false</item>
-        <item name="android:windowBackground">@android:color/transparent</item>
-        <item name="android:windowAnimationStyle">@null</item>
-        <item name="android:backgroundDimEnabled">true</item>
-        <item name="android:backgroundDimAmount">0.4</item>
-    </style>
-
-
 </resources>

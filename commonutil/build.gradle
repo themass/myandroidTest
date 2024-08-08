@@ -32,7 +32,7 @@ android {
     }
 }
 greendao {
-    schemaVersion 6
+    schemaVersion 8
 //    daoPackage 'com.ping.greendao.gen'
 //    targetGenDir 'src/main/java'
 }

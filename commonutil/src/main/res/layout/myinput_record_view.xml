@@ -102,7 +102,6 @@
                 android:visibility="gone"
                 app:normalBackgroundColor="#127CD6"
                 app:pressedBackgroundColor="#0f519b"
-                android:onClick="onViewClicked"
                 app:radius="5dp" />
         </LinearLayout>
 

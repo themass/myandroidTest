@@ -1,11 +1,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <group>
+    <group android:id="@+id/group1">
         <item
             android:id="@+id/menu_chat_session"
             android:icon="@drawable/ic_menu_chathistory"
             android:title="@string/menu_btn_chat_session" />
     </group>
-    <group>
+    <group  android:id="@+id/group2">
         <item
             android:id="@+id/menu_location"
             android:icon="@drawable/ic_menu_location"
@@ -21,7 +21,7 @@
             android:title="@string/menu_btn_favorite"
             android:visible="false" />
     </group>
-    <group>
+    <group  android:id="@+id/group3">
         <item
             android:id="@+id/menu_share"
             android:icon="@drawable/ic_menu_share"
@@ -30,9 +30,6 @@
             android:id="@+id/menu_app"
             android:icon="@drawable/ic_menu_recomm"
             android:title="@string/menu_btn_app" />
-
-    </group>
-    <group>
         <item
             android:id="@+id/menu_donation"
             android:icon="@drawable/ic_menu_app"
@@ -43,6 +40,9 @@
             android:icon="@drawable/ic_menu_support"
             android:title="@string/menu_btn_support"
             android:visible="true" />
+
+    </group>
+    <group android:id="@+id/group4">
         <item
             android:id="@+id/menu_setting"
             android:icon="@drawable/ic_menu_setting"
@@ -55,5 +55,5 @@
             android:title="@string/menu_btn_logout"
             android:visible="false" />
     </group>
-    <group></group>
+    <group android:id="@+id/group5"/>
 </menu>

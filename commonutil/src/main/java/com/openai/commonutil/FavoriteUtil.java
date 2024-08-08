@@ -27,11 +27,15 @@ public class FavoriteUtil {
     }
 
     public static FavoriteVo getFavorite(Context context, String url) {
-        List<FavoriteVo> list = DBManager.getInstance().getDaoSession().getFavoriteVoDao().queryRaw("where T.ITEM_URL=?", url);
-        if (CollectionUtils.isEmpty(list)) {
+        try {
+            List<FavoriteVo> list = DBManager.getInstance().getDaoSession().getFavoriteVoDao().queryRaw("where T.ITEM_URL=?", url);
+            if (CollectionUtils.isEmpty(list)) {
+                return null;
+            }
+            return list.get(0);
+        }catch (Exception e){
             return null;
         }
-        return list.get(0);
     }
 
     public static void getLocalFavoritesAsync(Context context, String url, GetFavoriteListener listener) {

@@ -78,6 +78,13 @@ public class InputRecordView extends LinearLayout {
                 .bindAudioBtn(mBtnAudio)
                 .bindAudioIv(mIvAudio)
                 .bindEmojiData(this);
+
+        mBtnSend.setOnClickListener(v -> onViewClicked(v));
+        findViewById(R.id.rlFile).setOnClickListener(v -> onViewClicked(v));
+        findViewById(R.id.rlVideo).setOnClickListener(v -> onViewClicked(v));
+        findViewById(R.id.rlPhoto).setOnClickListener(v -> onViewClicked(v));
+        findViewById(R.id.rlLocation).setOnClickListener(v -> onViewClicked(v));
+
     }
 
     public void onViewClicked(View view) {

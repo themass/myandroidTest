@@ -27,8 +27,6 @@
     <string name="permission_need_toast">当前应用缺少必要权限,影响使用</string>
 
     <!-- 地区选择-->
-    <string name="location_country">国家</string>
-    <string name="location_choose_none">随机</string>
     <string name="menu_haha">呦！被你发现了</string>
 
 

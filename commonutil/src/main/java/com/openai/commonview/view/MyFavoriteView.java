@@ -10,8 +10,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import androidx.annotation.Nullable;
-
 import com.openai.CommonConstants;
 import com.openai.commonevent.ConfigActionEvent;
 import com.openai.commonevent.FavoriteVo;
@@ -29,8 +27,9 @@ import java.util.Map;
  */
 public class MyFavoriteView extends LinearLayout {
 
-    public static String url_pre1 = "https://jx1.pkdyplayer.com/m3u8/?url=";
-    public static String url_pre2 = "https://www.m3u8hls.com#";
+//    public static String url_pre1 = "https://jx1.pkdyplayer.com/m3u8/?url=";
+    public static String url_pre1 = "http://file.ok123find.top/index2.html?play=";
+    public static String url_pre2 = "https://m3u8play.com?play=";
     int currentSpeedIndex = 0;
     float[] speedX = {1.0f, 1.25f, 1.5f, 1.75f, 2f};
     FavoriteImageView ivFavorite;
@@ -68,6 +67,12 @@ public class MyFavoriteView extends LinearLayout {
         mp4Web = findViewById(R.id.iv_mp4_web);
         mp4Web2 = findViewById(R.id.iv_mp4_web2);
         speed = findViewById(R.id.speed);
+        ivFavorite.setOnClickListener(v -> favoriteClick(v));
+        ivBrowser.setOnClickListener(v -> browserClick(v));
+        mp4Web.setOnClickListener(v -> mp4OpenClick(v));
+        mp4Web2.setOnClickListener(v -> mp42OpenClick(v));
+        speed.setOnClickListener(v -> speedClick(v));
+
     }
 
     public void initFavoriteBackGroud(String url) {
@@ -98,32 +103,38 @@ public class MyFavoriteView extends LinearLayout {
     }
 
     public void browserClick(View view) {
-        SystemUtils.copy(getContext(), onFavoriteItemClick.getBrowserDatUrl());
+        SystemUtils.copy(getContext(), onFavoriteItemClick.getBrowserDataUrl());
         ToastUtil.showShort(R.string.menu_share_copy_ok);
         startBrower();
     }
 
     public void mp4OpenClick(View view) {
-        SystemUtils.copy(getContext(), onFavoriteItemClick.getBrowserDatUrl());
+        SystemUtils.copy(getContext(), onFavoriteItemClick.getBrowserDataUrl());
         ToastUtil.showShort(R.string.menu_share_copy_ok);
-        Map<String, Object> param = new HashMap<>();
-        param.put(CommonConstants.ADS_SHOW_CONFIG, false);
-        param.put(CommonConstants.ADS_POP_SHOW_CONFIG, false);
-        EventBusUtil.getEventBus().post(new ConfigActionEvent(getContext(), url_pre1 + onFavoriteItemClick.getBrowserDatUrl(), "m3u8-1线", param));
+        String url = url_pre1 + onFavoriteItemClick.getBrowserDataUrl();
+//        Map<String, Object> param = new HashMap<>();
+//        param.put(CommonConstants.ADS_SHOW_CONFIG, false);
+//        param.put(CommonConstants.ADS_POP_SHOW_CONFIG, false);
+//        EventBusUtil.getEventBus().post(new ConfigActionEvent(getContext(), url_pre1 + onFavoriteItemClick.getBrowserDataUrl(), "m3u8-1线", param));
+        if (PackageUtils.hasBrowser(getContext())) {
+            Uri uri = Uri.parse(url);
+            Intent it = new Intent(Intent.ACTION_VIEW, uri);
+            getContext().startActivity(it);
+        }
     }
 
     public void mp42OpenClick(View view) {
-        SystemUtils.copy(getContext(), onFavoriteItemClick.getBrowserDatUrl());
+        SystemUtils.copy(getContext(), onFavoriteItemClick.getBrowserDataUrl());
         ToastUtil.showShort(R.string.menu_share_copy_ok);
         Map<String, Object> param = new HashMap<>();
         param.put(CommonConstants.ADS_SHOW_CONFIG, false);
         param.put(CommonConstants.ADS_POP_SHOW_CONFIG, false);
-        EventBusUtil.getEventBus().post(new ConfigActionEvent(getContext(), url_pre2 + onFavoriteItemClick.getBrowserDatUrl(), "m3u8-2线", param));
+        EventBusUtil.getEventBus().post(new ConfigActionEvent(getContext(), url_pre2 + onFavoriteItemClick.getBrowserDataUrl(), "m3u8-2线", param));
     }
 
     public void startBrower() {
         if (PackageUtils.hasBrowser(getContext())) {
-            Uri uri = Uri.parse(onFavoriteItemClick.getBrowserDatUrl());
+            Uri uri = Uri.parse(onFavoriteItemClick.getBrowserDataUrl());
             Intent it = new Intent(Intent.ACTION_VIEW, uri);
             if (it.resolveActivity(getContext().getPackageManager()) != null) {
                 getContext().startActivity(it);
@@ -137,7 +148,7 @@ public class MyFavoriteView extends LinearLayout {
 
         FavoriteVo getFavoriteDataUrl();
 
-        String getBrowserDatUrl();
+        String getBrowserDataUrl();
 
         default boolean setSpeed(float speed) {
             return false;

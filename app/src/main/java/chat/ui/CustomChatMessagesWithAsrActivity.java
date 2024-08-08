@@ -186,12 +186,7 @@ public class CustomChatMessagesWithAsrActivity extends CustomChatMessagesActivit
                     DBManager.getInstance().saveChatLog(relogLlm);
                 }
 
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        messagesAdapter.update(holdMsg);
-                    }
-                });
+                runOnUiThread(() -> messagesAdapter.update(holdMsg));
             }
         }).start();
 

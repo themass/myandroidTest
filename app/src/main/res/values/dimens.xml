@@ -61,7 +61,5 @@
 
     <dimen name="list_video_high">200dp</dimen>
 
-    <dimen name="text_view_min_height">48dp</dimen>
-
 
 </resources>
