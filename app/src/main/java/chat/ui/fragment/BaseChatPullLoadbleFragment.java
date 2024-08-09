@@ -11,6 +11,7 @@ import com.openai.commonutil.LogUtil;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.openai.net.request.InfoListVo;
+import com.openapi.ks.myapp.data.DBManager;
 import com.openapi.ks.myapp.ui.base.features.LoadableFragment;
 
 

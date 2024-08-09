@@ -28,8 +28,10 @@ import java.util.Map;
 public class MyFavoriteView extends LinearLayout {
 
 //    public static String url_pre1 = "https://jx1.pkdyplayer.com/m3u8/?url=";
-    public static String url_pre1 = "http://file.ok123find.top/index2.html?play=";
-    public static String url_pre2 = "https://m3u8play.com?play=";
+//    public static String url_pre1 = "http://file.ok123find.top/index2.html?play=";
+    public static String url_pre1 = "https://www.xcvods.com/addons/dplayer/?url=";
+//    public static String url_pre2 = "https://m3u8play.com?play=";
+    public static String url_pre2 = "http://file.ok123find.top/index2.html?play=";
     int currentSpeedIndex = 0;
     float[] speedX = {1.0f, 1.25f, 1.5f, 1.75f, 2f};
     FavoriteImageView ivFavorite;
@@ -81,7 +83,7 @@ public class MyFavoriteView extends LinearLayout {
 
     public void showVideoLocal() {
         mp4Web.setVisibility(View.VISIBLE);
-//        mp4Web2.setVisibility(View.VISIBLE);
+        mp4Web2.setVisibility(View.VISIBLE);
         speed.setVisibility(View.VISIBLE);
         speed.setText(speedX[currentSpeedIndex] + "X");
     }
@@ -126,10 +128,18 @@ public class MyFavoriteView extends LinearLayout {
     public void mp42OpenClick(View view) {
         SystemUtils.copy(getContext(), onFavoriteItemClick.getBrowserDataUrl());
         ToastUtil.showShort(R.string.menu_share_copy_ok);
-        Map<String, Object> param = new HashMap<>();
-        param.put(CommonConstants.ADS_SHOW_CONFIG, false);
-        param.put(CommonConstants.ADS_POP_SHOW_CONFIG, false);
-        EventBusUtil.getEventBus().post(new ConfigActionEvent(getContext(), url_pre2 + onFavoriteItemClick.getBrowserDataUrl(), "m3u8-2线", param));
+        String url = url_pre2 + onFavoriteItemClick.getBrowserDataUrl();
+        if (PackageUtils.hasBrowser(getContext())) {
+            Uri uri = Uri.parse(url);
+            Intent it = new Intent(Intent.ACTION_VIEW, uri);
+            getContext().startActivity(it);
+        }
+//        SystemUtils.copy(getContext(), onFavoriteItemClick.getBrowserDataUrl());
+//        ToastUtil.showShort(R.string.menu_share_copy_ok);
+//        Map<String, Object> param = new HashMap<>();
+//        param.put(CommonConstants.ADS_SHOW_CONFIG, false);
+//        param.put(CommonConstants.ADS_POP_SHOW_CONFIG, false);
+//        EventBusUtil.getEventBus().post(new ConfigActionEvent(getContext(), url_pre2 + onFavoriteItemClick.getBrowserDataUrl(), "m3u8-2线", param));
     }
 
     public void startBrower() {

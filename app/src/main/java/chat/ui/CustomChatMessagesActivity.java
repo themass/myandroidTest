@@ -149,6 +149,7 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements Me
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(ChatSessionEvent event) {
         PreferenceUtils.setSettingLong(this, Constants.CHAT_SESSION, event.id);
+        sessionId = event.id;
         messagesAdapter.clear(true);
         loadMessages();
     }
@@ -399,12 +400,22 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements Me
             chatHistory.setContent(GsonUtils.getInstance().toJson(history));
             chatHistory.setId(holdMsg.getId());
             chatHistory.setCharater(content);
-            baseService.postData(String.format(Constants.getUrl(Constants.CHAT_URL)), chatHistory, listener, new CommonResponse.ResponseErrorListener() {
-                @Override
-                protected void onError() {
-                    super.onError();
-                }
-            }, TAG, Choice.class);
+            if(sessionId == 1l){
+                chatHistory.setContent(myMsg.getText());
+                baseService.postData(String.format(Constants.getUrl(Constants.TRANSWORD_URL)), chatHistory, listener, new CommonResponse.ResponseErrorListener() {
+                    @Override
+                    protected void onError() {
+                        super.onError();
+                    }
+                }, TAG, Choice.class);
+            }else{
+                baseService.postData(String.format(Constants.getUrl(Constants.CHAT_URL)), chatHistory, listener, new CommonResponse.ResponseErrorListener() {
+                    @Override
+                    protected void onError() {
+                        super.onError();
+                    }
+                }, TAG, Choice.class);
+            }
 //            AdsContext.showRand(this);
         }
     }

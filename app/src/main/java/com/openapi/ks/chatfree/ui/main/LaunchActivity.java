@@ -10,6 +10,8 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.openapi.ks.myapp.bean.form.ChatSessionLog;
+import com.openapi.ks.myapp.data.DBManager;
 import com.openapi.ks.myapp.ui.base.app.LogActivity;
 import com.openai.commonutil.EventBusUtil;
 import com.openai.commonutil.LogUtil;
@@ -83,7 +85,19 @@ public class LaunchActivity extends LogActivity {
         mHandler.postDelayed(mStartMainRunnable, max);
         EventBusUtil.getEventBus().register(this);
         showAdview();
-
+        initChatSession();
+    }
+    private void initChatSession(){
+        ChatSessionLog logDef = new ChatSessionLog();
+        logDef.id = 0l;
+        logDef.name = "默认";
+        logDef.setting = "";
+        DBManager.getInstance().getDaoSession().getChatSessionLogDao().insertOrReplace(logDef);
+        ChatSessionLog logtrans = new ChatSessionLog();
+        logtrans.id = 1l;
+        logtrans.name = "单词翻译";
+        logtrans.setting = "";
+        DBManager.getInstance().getDaoSession().getChatSessionLogDao().insertOrReplace(logtrans);
     }
 
     @OnClick(R.id.skip_view)

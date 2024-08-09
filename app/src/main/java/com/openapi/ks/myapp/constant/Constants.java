@@ -149,6 +149,7 @@ public class Constants {
     public static final String API_VIDEO_USER_ITEM_URL = "/video/user/items.json?start=%s&limit=50&userId=%s&keyword=%s";
 
     public static final String CHAT_URL = "/chat/nostream.json";
+    public static final String TRANSWORD_URL = "/chat/transword.json";
 
     public static final String VIDEO_USER_CHANNEL = "qvod_user";
     public static final String VIDEO_TV_CHANNEL = "teleplay_";

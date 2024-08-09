@@ -11,7 +11,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.openai.commonutil.LogUtil;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.constant.Constants;
-import com.openapi.ks.myapp.ui.gsy.GSYAutoVideoListFragment;
 import com.shuyu.gsyvideoplayer.GSYVideoADManager;
 import com.shuyu.gsyvideoplayer.GSYVideoManager;
 

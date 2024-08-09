@@ -101,6 +101,7 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
             // We've bound to PlayerService, cast the IBindViewer and get PlayerService instance
             PlayService.LocalBinder binder = (PlayService.LocalBinder) service;
             mService = binder.getService();
+            LogUtil.i("bind music mService");
             if (!CollectionUtils.isEmpty(infoListVo.voList)) {
                 mService.setData(infoListVo.voList);
             }
@@ -258,8 +259,7 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
         }
         if (position >= adapter.getItemCount())
             position = adapter.getItemCount() - 1;
-        ivPlay
-                .setImageResource(android.R.drawable.ic_media_play);
+        ivPlay.setImageResource(android.R.drawable.ic_media_play);
         mService.playPosi(position);
     }
 
@@ -285,6 +285,7 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
         channel = vo.param;
         Intent intent = new Intent(getActivity(), PlayService.class);
         getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+        LogUtil.i("start bind music service");
         myFavoriteView.initFavoriteBackGroud(vo.param);
         myFavoriteView.setListener(this);
         ivPre.setOnClickListener(this);
