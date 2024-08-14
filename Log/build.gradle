@@ -1,7 +1,7 @@
 plugins {
     id 'com.android.library'
     id 'org.jetbrains.kotlin.android'
-    id 'kotlin-kapt'
+//    id 'kotlin-kapt'
 }
 
 android {
@@ -12,13 +12,7 @@ android {
         minSdk rootProject.ext.minSdkVersion
         targetSdk rootProject.ext.targetSdkVersion
         consumerProguardFiles "consumer-rules.pro"
-        javaCompileOptions{
-            annotationProcessorOptions {
-                arguments = ["room.schemaLocation":
-                                     "$projectDir/schemas".toString()]
-            }
         }
-    }
 
     buildTypes {
         release {
@@ -41,5 +35,5 @@ dependencies {
     implementation 'com.google.android.material:material:1.5.0'
     implementation 'androidx.room:room-runtime:2.5.0'
     implementation "androidx.room:room-ktx:2.5.0"
-    kapt "androidx.room:room-compiler:2.5.0"
+//    kapt "androidx.room:room-compiler:2.5.0"
 }

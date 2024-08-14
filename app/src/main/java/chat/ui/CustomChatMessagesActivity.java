@@ -19,6 +19,8 @@ import android.widget.PopupWindow;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.android.volley.Response;
+import com.google.android.gms.common.util.JsonUtils;
 import com.openai.commonview.view.widget.RecordButton;
 import com.luck.picture.lib.basic.PictureSelector;
 import com.luck.picture.lib.entity.LocalMedia;
@@ -32,13 +34,18 @@ import com.openai.commonutil.GsonUtils;
 import com.openai.commonutil.LogUtil;
 import com.openai.commonutil.ToastUtil;
 import com.openai.ads.yewu.ads.base.AdsContext;
+import com.openai.net.VolleyUtils;
 import com.openai.net.request.CommonResponse;
 import com.openai.ads.yewu.um.MobAgent;
+import com.openai.net.request.GsonInfoListRequest;
+import com.openai.net.request.GsonRequest;
+import com.openai.net.request.InfoListVo;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.bean.form.ChatLog;
 import com.openapi.ks.myapp.bean.form.ChatSessionLog;
 import com.openapi.ks.myapp.bean.vo.Choice;
+import com.openapi.ks.myapp.bean.vo.VersionVo;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.DBManager;
 import com.openapi.ks.myapp.data.UserLoginUtil;
@@ -90,6 +97,7 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements Me
     protected ImageLoader imageLoader;
     protected MyMessagesListAdapter messagesAdapter;
     public Long sessionId = 0l;
+    public String sessionName = "Default";
     private Menu menu;
     public int selectionCount;
 
@@ -246,6 +254,21 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements Me
                 return CustomChatMessagesActivity.this;
             }
         });
+        initChatSession();
+    }
+    public void initChatSession(){
+        GsonInfoListRequest request = new GsonInfoListRequest(this, Constants.getUrl(Constants.CHAT_SESSION_URL), ChatSessionLog.class, null, new Response.Listener<InfoListVo<ChatSessionLog>>(){
+            @Override
+            public void onResponse(InfoListVo<ChatSessionLog> chatSessionLogInfoListVo) {
+                if(chatSessionLogInfoListVo!=null && chatSessionLogInfoListVo.voList!=null){
+                    chatSessionLogInfoListVo.voList.forEach(o -> {
+                        DBManager.getInstance().getDaoSession().getChatSessionLogDao().insertOrReplace(o);
+                    });
+                }
+            }
+        }, new CommonResponse.ResponseErrorListener());
+        request.setTag("initChatSession");
+        VolleyUtils.addRequest(request);
     }
 
     private void initAdapter() {
@@ -283,8 +306,10 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements Me
             }
         }
         ChatSessionLog sessionLog = DBManager.getInstance().getDaoSession().getChatSessionLogDao().load(sessionId);
-        if (sessionLog != null)
+        if (sessionLog != null){
+            sessionName = sessionLog.name;
             setToolbarTitle(sessionLog.getName(), false);
+        }
     }
 
     protected MessagesListAdapter.Formatter<Message> getMessageStringFormatter() {
@@ -400,7 +425,8 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements Me
             chatHistory.setContent(GsonUtils.getInstance().toJson(history));
             chatHistory.setId(holdMsg.getId());
             chatHistory.setCharater(content);
-            if(sessionId == 1l){
+            if(sessionId !=0l){
+                chatHistory.setCharater(sessionName);
                 chatHistory.setContent(myMsg.getText());
                 baseService.postData(String.format(Constants.getUrl(Constants.TRANSWORD_URL)), chatHistory, listener, new CommonResponse.ResponseErrorListener() {
                     @Override

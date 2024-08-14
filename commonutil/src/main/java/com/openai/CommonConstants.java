@@ -7,10 +7,7 @@ package com.openai;
 public class CommonConstants {
     public static final String LANG_ZH = "zh";
     public static final String LANG_US = "en";
-    public static final String BUG_FILE = "log.log";
-    public static final String BUG_FILE_FOR_UPLOAD = "log_upload.log";
     public static boolean DEBUG = false;
-    public static String tmpFilePath = "";
     public static final String REFERER = "Referer";
     public static final String USER_AGENT = "User-Agent";
     public static final String USER_AGENT_DEF = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36";

@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.openai.commonutil.CollectionUtils;
 import com.openai.commonutil.EventBusUtil;
+import com.openai.commonutil.GsonUtils;
 import com.openai.commonutil.LogUtil;
 import com.openai.commonutil.PreferenceUtils;
 import com.openai.commonutil.ToastUtil;
@@ -33,7 +34,9 @@ import com.openapi.ks.myapp.data.UserLoginUtil;
 import com.openapi.ks.myapp.data.config.ChatSessionEvent;
 import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import butterknife.BindView;
 
@@ -84,6 +87,17 @@ public class ChatSessionFragment extends RecommendFragment {
     protected InfoListVo<RecommendVo> loadData(Context context) throws Exception {
         Long id = PreferenceUtils.getPrefLong(getActivity(), Constants.CHAT_SESSION, 0);
         List<ChatSessionLog> chatSessionLogList = DBManager.getInstance().getDaoSession().getChatSessionLogDao().loadAll();
+        chatSessionLogList.sort(new Comparator<ChatSessionLog>() {
+            @Override
+            public int compare(ChatSessionLog o1, ChatSessionLog o2) {
+                if(o1.type == o2.type){
+                    long l = o1.id - o2.id;
+                    return (int)l;
+                }
+                return o1.type== ChatSessionLog.TYPE.DEF.type?-1:1;
+            }
+        });
+        LogUtil.i(GsonUtils.getInstance().toJson(chatSessionLogList));
         InfoListVo<RecommendVo> volist = new InfoListVo<RecommendVo>();
         for (ChatSessionLog log : chatSessionLogList) {
             RecommendVo vo = new RecommendVo();

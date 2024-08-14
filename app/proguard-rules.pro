@@ -228,12 +228,17 @@
 
 #----------------------project------------
 -keep class chat.ui.data.**{ *; }
--keep class com.openapi.commons.common.util.**{ *; }
 -keep class com.openapi.ks.myapp.bean.**{ *; }
 -keep class com.openapi.ks.myapp.ui.sound.media.**{ *; }
 -keep class com.google.gson.stream.** { *; }
 -keep class com.openapi.commons.common.weather.**{ *; }
--keep class com.way.**{ *; }
+
+-keep class com.openai.commonutil.**{ *; }
+-keep class com.openai.commonevent.**{ *; }
+-keep class com.openai.net.**{ *; }
+-keep class com.openai.emoji.**{ *; }
+-keep class com.openai.ads.**{ *; }
+
 -keep class com.ping.**{ *; }
 -keepclassmembers class * extends org.greenrobot.greendao.AbstractDao {
 public static java.lang.String TABLENAME;
@@ -382,7 +387,6 @@ public static java.lang.String TABLENAME;
 # platform version. We know about them, and they are safe.
 -dontwarn android.support.**
 #-------------------vitamio.player------------------------
--keep public class io.vov.vitamio.** { *; }
 
 -keep public class cn.jzvd.JZMediaSystem {*; }
 -keep public class cn.jzvd.** {*; }

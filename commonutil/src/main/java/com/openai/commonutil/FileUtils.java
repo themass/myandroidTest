@@ -170,31 +170,16 @@ public class FileUtils {
         return new DecimalFormat("0.#").format(size / Math.pow(1024, digitGroups)) + " " + units[digitGroups];
     }
 
-    public static String getBugFilePath() {
-        return CommonConstants.tmpFilePath + File.separator + CommonConstants.BUG_FILE;
-    }
-
-    public static String getBugUploadFilePath() {
-        return CommonConstants.tmpFilePath + File.separator + CommonConstants.BUG_FILE_FOR_UPLOAD;
-    }
-
-    public static boolean mvFile(String srcFile, String decFile) {
-        File file = new File(srcFile);
-        if (file.exists()) {
-            return file.renameTo(new File(decFile));
-        } else {
-            return false;
-        }
-    }
-
     public static String getWriteFilePath(Context context) {
-//        return context.getFilesDir().getAbsolutePath()+File.separator +"kimichat";
-        String sdStatus = Environment.getExternalStorageState();
-        if (!sdStatus.equals(Environment.MEDIA_MOUNTED)) {
-            return context.getFilesDir().getAbsolutePath() + File.separator + "Akimichat";
-        } else {
-            return File.separator + "sdcard" + File.separator + "Akimichat";
-        }
+        return context.getFilesDir().getAbsolutePath()+File.separator +"Akimichat";
+//        String sdStatus = Environment.getExternalStorageState();
+//        File rootFile = Environment.getExternalStorageDirectory();
+//        LogUtil.i("sdStatus:"+sdStatus+"; filepath:"+rootFile.getAbsolutePath()+"; path:"+rootFile.getPath());
+//        if (!sdStatus.equals(Environment.MEDIA_MOUNTED)) {
+//            return context.getFilesDir().getAbsolutePath() + File.separator + "Akimichat";
+//        } else {
+//            return rootFile.getPath() + File.separator + "Akimichat";
+//        }
     }
 
     public static boolean ensureFile(Context context, String filePath) {
@@ -205,30 +190,4 @@ public class FileUtils {
         }
         return true;
     }
-
-    public static void writeLogFile(String content, String fileName) {
-        File file = new File(CommonConstants.tmpFilePath, fileName);
-        try {
-            if (!file.exists()) {
-                LogUtil.d("Create the file:" + fileName);
-                file.createNewFile();
-            }
-            RandomAccessFile raf = new RandomAccessFile(file, "rw");
-            raf.seek(file.length());
-            raf.write("/r/n".getBytes());
-            raf.write(content.getBytes());
-            raf.close();
-        } catch (Exception e) {
-            LogUtil.d("Error on writeFilToSD.");
-        }
-    }
-
-    public static void delLogFile(String fileName) {
-        File file = new File(CommonConstants.tmpFilePath, fileName);
-        if (file.exists()) {
-            file.delete();
-        }
-
-    }
-
 }

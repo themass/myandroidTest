@@ -8,23 +8,26 @@ import org.greenrobot.greendao.annotation.Index;
 import org.greenrobot.greendao.annotation.Keep;
 import org.greenrobot.greendao.annotation.Unique;
 
+import java.util.Comparator;
 import java.util.Date;
 
 @Entity
-public class ChatSessionLog {
+public class ChatSessionLog implements Comparator<ChatSessionLog> {
     @Id(autoincrement = true)
     public Long id;
     @Unique
     public String name;
     public Date createTime;
     public String setting;
+    public int type = TYPE.CUSTOMER.type;
 
     @Keep
-    public ChatSessionLog(Long id, String name, Date createTime, String setting) {
+    public ChatSessionLog(Long id, String name, Date createTime, String setting,int type) {
         this.id = id;
         this.name = name;
         this.createTime = createTime;
         this.setting = setting;
+        this.type = type;
     }
 
     @Keep
@@ -61,5 +64,31 @@ public class ChatSessionLog {
 
     public void setSetting(String setting) {
         this.setting = setting;
+    }
+
+    public int getType() {
+        return type;
+    }
+
+    public void setType(int type) {
+        this.type = type;
+    }
+
+    @Override
+    public int compare(ChatSessionLog o1, ChatSessionLog o2) {
+        if(o1.type == o2.type){
+            long l = o2.id - o1.id;
+            return (int)l;
+        }
+        return o1.type== TYPE.DEF.type?1:-1;
+    }
+
+    public static enum TYPE{
+        DEF(0),
+        CUSTOMER(1);
+        public int type;
+        TYPE(int type) {
+            this.type = type;
+        }
     }
 }

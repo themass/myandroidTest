@@ -21,8 +21,6 @@ import com.openapi.ks.myapp.data.ImagePhotoLoad;
 import com.openapi.ks.myapp.data.VersionUpdater;
 import java.io.File;
 import butterknife.ButterKnife;
-import static com.openai.CommonConstants.tmpFilePath;
-
 
 /**
  * Created by openapi on 2016/3/1.
@@ -100,7 +98,7 @@ public class MyApplication extends MultiDexApplication {
     }
 
     private void initFilePath() {
-        tmpFilePath = FileUtils.getWriteFilePath(this) + File.separator + "log";
+        String tmpFilePath = FileUtils.getWriteFilePath(this) + File.separator + "log";
         LogUtil.i("tmpFilePath=" + tmpFilePath);
         FileUtils.ensureFile(this, tmpFilePath);
     }

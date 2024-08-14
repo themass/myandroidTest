@@ -90,14 +90,10 @@ public class LaunchActivity extends LogActivity {
     private void initChatSession(){
         ChatSessionLog logDef = new ChatSessionLog();
         logDef.id = 0l;
-        logDef.name = "默认";
+        logDef.name = "Default";
         logDef.setting = "";
+        logDef.type = ChatSessionLog.TYPE.DEF.type;
         DBManager.getInstance().getDaoSession().getChatSessionLogDao().insertOrReplace(logDef);
-        ChatSessionLog logtrans = new ChatSessionLog();
-        logtrans.id = 1l;
-        logtrans.name = "单词翻译";
-        logtrans.setting = "";
-        DBManager.getInstance().getDaoSession().getChatSessionLogDao().insertOrReplace(logtrans);
     }
 
     @OnClick(R.id.skip_view)

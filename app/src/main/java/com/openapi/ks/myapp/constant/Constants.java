@@ -114,6 +114,7 @@ public class Constants {
     public static final String API_CHARACTER_URL = "/user/setting/character.json";
     public static final String API_FEEDBACK_LIKE_URL = "/data/feed/score/%s.json";
     public static final String API_VERSION_URL = "/data/version.json";
+
     public static final String API_APP_URL = "/data/appinfo.json";
     public static final String API_DONATION_URL = "/data/donation.json";
     public static final String API_CONNLOG_URL = "/monitor/connlog.json";
@@ -150,6 +151,7 @@ public class Constants {
 
     public static final String CHAT_URL = "/chat/nostream.json";
     public static final String TRANSWORD_URL = "/chat/transword.json";
+    public static final String CHAT_SESSION_URL = "/chat/sessions.json";
 
     public static final String VIDEO_USER_CHANNEL = "qvod_user";
     public static final String VIDEO_TV_CHANNEL = "teleplay_";

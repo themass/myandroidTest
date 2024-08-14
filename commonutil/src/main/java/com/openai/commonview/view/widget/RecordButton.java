@@ -213,7 +213,6 @@ public class RecordButton extends androidx.appcompat.widget.AppCompatButton {
      */
     //int num = 0 ;
     private void startRecording() {
-        int count =0;
         if (mRecorder != null) {
             mRecorder.reset();
         } else {
@@ -228,17 +227,12 @@ public class RecordButton extends androidx.appcompat.widget.AppCompatButton {
         LogUtil.d("文件创建成功:" + file.exists());
         mRecorder.setOutputFile(mFile);
         try {
-            count++;
             mRecorder.prepare();
             mRecorder.start();
         } catch (Exception e) {
-            if(count>2){
-                return;
-            }
             LogUtil.e("preparestart异常,重新开始录音:" + e.toString(),e);
             mRecorder.release();
             mRecorder = null;
-            startRecording();
         }
        /* mThread = new  ObtainDecibelThread();
         mThread.start();*/
