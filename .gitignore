@@ -37,3 +37,9 @@ app/src/main/jni/openssl/
 app/src/main/jni/strongswan/
 .idea/
 app/src/main/obj/
+
+.DS_Store
+app/.DS_Store
+app/src/.DS_Store
+app/src/main/.DS_Store
+src/main/res/.DS_Store
