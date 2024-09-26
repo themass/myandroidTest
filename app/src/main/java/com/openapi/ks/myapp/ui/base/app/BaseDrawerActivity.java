@@ -13,8 +13,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.chatwaifu.mobile.ChatActivity;
-import com.chatwaifu.mobile.ui.login.WaifuLoginActivity;
 import com.google.android.material.navigation.NavigationView;
 import com.openai.CommonConstants;
 import com.openai.commonevent.UserNeedLogin;
@@ -54,6 +52,7 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.util.Date;
 
 import butterknife.BindView;
+import test.WaveTest2;
 
 /**
  * Created by Miroslaw Stanek on 15.07.15.
@@ -319,9 +318,9 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
 //                    Playing1Fragment.startFragment(BaseDrawerActivity.this);
                 } else if (item.getItemId() == R.id.menu_support) {
                     name = "支持作者";
-//                    adsOffers();
+                    adsOffers();
                     ToastUtil.showShort(R.string.support_info);
-                    startActivity(ChatActivity.class);
+//                    startActivity(ChatActivity.class);
                 } else if (item.getItemId() == R.id.menu_app) {
                     name = "应用推荐";
                     if(UserLoginUtil.isVIP2()) {
@@ -336,6 +335,9 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                 } else if (item.getItemId() == R.id.menu_share) {
                     showShare();
                     name = "分享";
+                }  else if (item.getItemId() == R.id.menu_test) {
+                    startActivity(WaveTest2.class);
+                    name = "测试";
                 } else if (item.getItemId() == R.id.menu_chat_session) {
                     name = "新建对话";
                     ChatSessionFragment.startFragment(BaseDrawerActivity.this);

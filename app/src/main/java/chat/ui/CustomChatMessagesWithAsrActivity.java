@@ -108,7 +108,7 @@ public class CustomChatMessagesWithAsrActivity extends CustomChatMessagesActivit
                     relog.sessionId = sessionId;
                     DBManager.getInstance().saveChatLog(relog);
 
-                    history.add(new SimpleMessage(text, "user"));
+                    history.add(new SimpleMessage(sessionId, text, "user"));
                     ChatHistory chatHistory = new ChatHistory();
                     chatHistory.setContent(GsonUtils.getInstance().toJson(history));
                     chatHistory.setId(msgContent.getHoldId());

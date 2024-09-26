@@ -104,12 +104,14 @@ public class ChatSessionFragment extends RecommendFragment {
             vo.title = log.name;
             vo.id = log.id;
             vo.rate = 0.2F;
+            vo.param = log.setting;
             vo.showType = 2;
-            if (id == vo.id) {
+            if (id.equals(vo.id)) {
                 vo.color = "#698b87";
             } else {
                 vo.color = "#666666";
             }
+            LogUtil.i("color = "+vo.color);
             volist.voList.add(vo);
 
         }
@@ -157,10 +159,10 @@ public class ChatSessionFragment extends RecommendFragment {
 
     public void onCustomerItemClick(View v, int position) {
         RecommendVo data = infoListVo.voList.get(position);
-        LogUtil.i("onItemClick");
+        LogUtil.i("onItemClick data = "+GsonUtils.getInstance().toJson(data));
         Long id = PreferenceUtils.getPrefLong(getActivity(), Constants.CHAT_SESSION, 0);
         if (id != data.id) {
-            EventBusUtil.getEventBus().post(new ChatSessionEvent(data.id));
+            EventBusUtil.getEventBus().post(new ChatSessionEvent(data.id, data.param));
         }
         getActivity().finish();
     }

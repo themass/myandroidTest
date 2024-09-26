@@ -11,6 +11,7 @@ import android.text.TextUtils;
 import android.view.View;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
+import android.webkit.PermissionRequest;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
@@ -172,6 +173,8 @@ public class BaseWebViewFragment extends BaseFragment {
         WebSettings settings = webView.getSettings();
 
         settings.setJavaScriptEnabled(true);
+        settings.setMediaPlaybackRequiresUserGesture(false); // 如果需要自动播放媒体
+
         settings.setDatabaseEnabled(false);
         settings.setSaveFormData(false);
         settings.setBuiltInZoomControls(false);
@@ -239,6 +242,13 @@ public class BaseWebViewFragment extends BaseFragment {
                     errorPage = errorPage.replace("####", url);
                     webView.loadData(errorPage, "text/html; charset=UTF-8", null);
                 }
+            }
+        });
+        webView.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public void onPermissionRequest(PermissionRequest request) {
+                // 处理权限请求
+                request.grant(request.getResources());
             }
         });
     }

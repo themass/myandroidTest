@@ -45,6 +45,8 @@
     <string name="menu_btn_feedback">Feedback </string>
     <string name="menu_btn_about">About: Afreedom Score</string>
     <string name="menu_btn_share">Share</string>
+    <string name="menu_btn_test">test</string>
+
     <string name="menu_btn_character">AI character Setting</string>
     <string name="menu_btn_version">Version:</string>
     <string name="menu_btn_logout">Logout</string>

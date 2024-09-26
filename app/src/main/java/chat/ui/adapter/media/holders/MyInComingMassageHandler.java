@@ -1,30 +1,42 @@
 package chat.ui.adapter.media.holders;
 
 import android.view.View;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
 
 import com.openai.commonutil.LogUtil;
 import com.openapi.ks.chat.R;
-import com.openapi.ks.myapp.base.MyApplication;
-import com.openapi.ks.myapp.bean.vo.UserInfoVo;
-import com.openapi.ks.myapp.constant.Constants;
-import com.openapi.ks.myapp.data.UserLoginUtil;
+
+import org.markdown4j.Markdown4jProcessor;
+
+import java.io.IOException;
 
 import chat.ui.data.model.Message;
-import de.hdodenhof.circleimageview.CircleImageView;
-import io.noties.markwon.Markwon;
 import tz.co.hosannahighertech.messagekit.messages.MessageHolders;
 
 public class MyInComingMassageHandler extends MessageHolders.IncomingTextMessageViewHolder<Message> {
-
+    WebView composeView ;
     public MyInComingMassageHandler(View itemView, Object payload) {
         super(itemView, payload);
+        composeView = itemView.findViewById(R.id.markdownMessageText);
+        WebSettings webSettings = composeView.getSettings();
+// 设置默认字体大小
+        webSettings.setDefaultFontSize(14);
     }
 
     @Override
     public void onBind(Message message) {
         super.onBind(message);
-        Markwon markwon = Markwon.builder(MyApplication.getInstance()).build();
-        markwon.setMarkdown(text, message.getText());
-        LogUtil.i(message.getText());
+//        RichText.fromMarkdown(message.getText()).into(text);
+        // 设置 ComposeView 的内容
+        String html = message.getText().replace("[assistant]:","").replace("[assistant]","");
+        try {
+            html = new Markdown4jProcessor().process(message.getText());
+        }catch (Exception e){
+
+        }
+        composeView.loadDataWithBaseURL(null,html,"text/html","utf-8",null);
+        LogUtil.i("html 内容="+html);
+
     }
 }

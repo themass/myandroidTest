@@ -64,6 +64,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import butterknife.BindView;
 import chat.ui.adapter.MyMessagesListAdapter;
@@ -75,6 +76,8 @@ import chat.ui.data.model.MessageType;
 import chat.ui.data.model.MsgContent;
 import chat.ui.data.model.SimpleMessage;
 import chat.ui.data.model.User;
+import test.WaveActivity;
+import test.WaveTest2;
 import tz.co.hosannahighertech.messagekit.commons.ImageLoader;
 import tz.co.hosannahighertech.messagekit.messages.MessagesList;
 import tz.co.hosannahighertech.messagekit.messages.MessagesListAdapter;
@@ -97,6 +100,8 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements Me
     protected ImageLoader imageLoader;
     protected MyMessagesListAdapter messagesAdapter;
     public Long sessionId = 0l;
+    public String setting = "";
+
     public String sessionName = "Default";
     private Menu menu;
     public int selectionCount;
@@ -109,7 +114,7 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements Me
         public void onResponse(Choice vo) {
             holdMsg = new Message(vo.getId(), User.gpt, vo.getMessage().getContent());
             LogUtil.i(vo);
-            history.add(new SimpleMessage(holdMsg.getText(), "assistant"));
+            history.add(new SimpleMessage(sessionId, holdMsg.getText(), "assistant"));
             if (!StringUtils.isEmpty(vo.getMessage().getContent())) {
                 MsgContent msgContent = new MsgContent();
                 msgContent.setContent(vo.getMessage().getContent());
@@ -158,6 +163,7 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements Me
     public void onEvent(ChatSessionEvent event) {
         PreferenceUtils.setSettingLong(this, Constants.CHAT_SESSION, event.id);
         sessionId = event.id;
+        setting = event.settingName;
         messagesAdapter.clear(true);
         loadMessages();
     }
@@ -198,7 +204,7 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements Me
             log.setCreateTime(new Date());
             log.setSetting("");
             DBManager.getInstance().getDaoSession().getChatSessionLogDao().insert(log);
-            onEvent(new ChatSessionEvent(log.id));
+            onEvent(new ChatSessionEvent(log.id, log.setting));
             ToastUtil.showShort(R.string.save_ok);
             LogUtil.i("对话名称：" + nameView.getText().toString() + "---" + log.id);
             popupWindow.dismiss();
@@ -260,6 +266,7 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements Me
         GsonInfoListRequest request = new GsonInfoListRequest(this, Constants.getUrl(Constants.CHAT_SESSION_URL), ChatSessionLog.class, null, new Response.Listener<InfoListVo<ChatSessionLog>>(){
             @Override
             public void onResponse(InfoListVo<ChatSessionLog> chatSessionLogInfoListVo) {
+                LogUtil.i("session list = "+GsonUtils.getInstance().toJson(chatSessionLogInfoListVo));
                 if(chatSessionLogInfoListVo!=null && chatSessionLogInfoListVo.voList!=null){
                     chatSessionLogInfoListVo.voList.forEach(o -> {
                         DBManager.getInstance().getDaoSession().getChatSessionLogDao().insertOrReplace(o);
@@ -286,6 +293,11 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements Me
 
     public void loadMessages() {
         sessionId = PreferenceUtils.getPrefLong(this, Constants.CHAT_SESSION, 0);
+        ChatSessionLog chatSessionLog = DBManager.getInstance().getDaoSession().getChatSessionLogDao().load(sessionId);
+        LogUtil.i("chatSessionLog = "+GsonUtils.getInstance().toJson(chatSessionLog));
+        if(chatSessionLog!=null){
+            setting = chatSessionLog.getSetting();
+        }
         LogUtil.i("loadMessages sessionId=" + sessionId);
         List<ChatLog> chatlogs = DBManager.getInstance().getDaoSession().getChatLogDao().queryRaw(" where SESSION_ID=" + sessionId);
         for (ChatLog log : chatlogs) {
@@ -420,14 +432,16 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements Me
             relog.createTime = new Date();
             relog.sessionId = sessionId;
             DBManager.getInstance().saveChatLog(relog);
-            history.add(new SimpleMessage(myMsg.getText(), "user"));
+            history.add(new SimpleMessage(sessionId, myMsg.getText(), "user"));
+            List<SimpleMessage> filterList =  history.stream().filter( o-> sessionId == o.getId()).collect(Collectors.toList());
             ChatHistory chatHistory = new ChatHistory();
-            chatHistory.setContent(GsonUtils.getInstance().toJson(history));
+            chatHistory.setContent(GsonUtils.getInstance().toJson(filterList));
             chatHistory.setId(holdMsg.getId());
+            chatHistory.setSettingName(setting);
             chatHistory.setCharater(content);
-            if(sessionId !=0l){
+            if(StringUtils.hasText(setting)){
                 chatHistory.setCharater(sessionName);
-                chatHistory.setContent(myMsg.getText());
+//                chatHistory.setContent(myMsg.getText());
                 baseService.postData(String.format(Constants.getUrl(Constants.TRANSWORD_URL)), chatHistory, listener, new CommonResponse.ResponseErrorListener() {
                     @Override
                     protected void onError() {

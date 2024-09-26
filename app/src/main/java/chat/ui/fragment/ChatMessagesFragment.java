@@ -87,11 +87,13 @@ public class ChatMessagesFragment extends BaseChatPullLoadbleFragment
     public Message holdMsg = null;
     public ChatLog relogLlm = null;
     public List<SimpleMessage> history = new ArrayList<>();
+    public String sessionName = "Default";
 
     protected final String senderId = "0";
     protected ImageLoader imageLoader;
     protected MyMessagesListAdapter messagesAdapter;
     public Long sessionId = 0l;
+    public String setting = "";
     private Menu menu;
     public int selectionCount;
     CommonResponse.ResponseOkListener listener = new CommonResponse.ResponseOkListener<Choice>() {
@@ -99,7 +101,7 @@ public class ChatMessagesFragment extends BaseChatPullLoadbleFragment
         public void onResponse(Choice vo) {
             holdMsg = new Message(vo.getId(), User.gpt, vo.getMessage().getContent());
             LogUtil.i(vo);
-            history.add(new SimpleMessage(holdMsg.getText(), "assistant"));
+            history.add(new SimpleMessage(sessionId,holdMsg.getText(), "assistant"));
             if (!StringUtils.isEmpty(vo.getMessage().getContent())) {
                 MsgContent msgContent = new MsgContent();
                 msgContent.setContent(vo.getMessage().getContent());
@@ -165,6 +167,7 @@ public class ChatMessagesFragment extends BaseChatPullLoadbleFragment
     public void onEvent(ChatSessionEvent event) {
         PreferenceUtils.setSettingLong(getActivity(), Constants.CHAT_SESSION, event.id);
         sessionId = event.id;
+        setting = event.settingName;
         messagesAdapter.clear(true);
         startQuery(true);
     }
@@ -207,7 +210,7 @@ public class ChatMessagesFragment extends BaseChatPullLoadbleFragment
                 log.setCreateTime(new Date());
                 log.setSetting("");
                 DBManager.getInstance().getDaoSession().getChatSessionLogDao().insert(log);
-                onEvent(new ChatSessionEvent(log.id));
+                onEvent(new ChatSessionEvent(log.id, log.setting));
                 ToastUtil.showShort(R.string.save_ok);
                 LogUtil.i("对话名称：" + nameView.getText().toString() + "---" + log.id);
                 popupWindow.dismiss();
@@ -308,12 +311,14 @@ public class ChatMessagesFragment extends BaseChatPullLoadbleFragment
             relog.createTime = new Date();
             relog.sessionId = sessionId;
             DBManager.getInstance().saveChatLog(relog);
-            history.add(new SimpleMessage(myMsg.getText(), "user"));
+            history.add(new SimpleMessage(sessionId, myMsg.getText(), "user"));
             ChatHistory chatHistory = new ChatHistory();
             chatHistory.setContent(GsonUtils.getInstance().toJson(history));
             chatHistory.setId(holdMsg.getId());
+            chatHistory.setSettingName(setting);
             chatHistory.setCharater(content);
-            if(sessionId == 1l){
+            if(StringUtils.hasText(setting)){
+                chatHistory.setCharater(sessionName);
                 chatHistory.setContent(myMsg.getText());
                 indexService.postData(String.format(Constants.getUrl(Constants.TRANSWORD_URL)), chatHistory, listener, new CommonResponse.ResponseErrorListener() {
                     @Override

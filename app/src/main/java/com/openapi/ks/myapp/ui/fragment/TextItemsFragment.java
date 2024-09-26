@@ -1,18 +1,35 @@
 package com.openapi.ks.myapp.ui.fragment;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.Html;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.CookieManager;
+import android.webkit.CookieSyncManager;
+import android.webkit.WebChromeClient;
+import android.webkit.WebResourceError;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 
+import com.openai.commonutil.FileUtils;
+import com.openai.commonutil.LogUtil;
 import com.openai.commonview.view.MyFavoriteView;
 import com.openai.commonview.view.MyScrollView;
 import com.openai.commonview.view.MyTextView;
 import com.openai.ads.yewu.ads.base.AdsContext;
 import com.openai.commonevent.FavoriteVo;
+import com.openai.commonview.view.MyWebView;
+import com.openai.net.HttpUtils;
+import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.bean.vo.TextItemVo;
 import com.openapi.ks.myapp.bean.vo.TextItemsVo;
 import com.openapi.ks.myapp.constant.Constants;
@@ -31,7 +48,7 @@ import butterknife.BindView;
 public class TextItemsFragment extends LoadableFragment<TextItemVo> implements MyFavoriteView.OnFavoriteItemClick {
     private static final String TEXT_TAG = "TEXT_ITEM_TAG";
     @BindView(R.id.tv_view)
-    MyTextView tvView;
+    MyWebView webView;
     @BindView(R.id.sv_text)
     MyScrollView svText;
     @BindView(R.id.my_favoriteview)
@@ -40,7 +57,7 @@ public class TextItemsFragment extends LoadableFragment<TextItemVo> implements M
     private TextItemsVo vo;
     private String infoVo;
     private String url;
-
+    CookieManager cookieManager = null;
     public static void startFragment(Context context, TextItemsVo vo) {
         Intent intent = new Intent(context, CommonFragmentActivity.class);
         intent.putExtra(CommonFragmentActivity.FRAGMENT, TextItemsFragment.class);
@@ -52,7 +69,15 @@ public class TextItemsFragment extends LoadableFragment<TextItemVo> implements M
         intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_SHOW, true);
         context.startActivity(intent);
     }
-
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+//        flBg.setBackgroundResource(R.drawable.boob_bg2);
+        WebView webView = getWebView();
+        if (webView != null) {
+            init(webView);
+        }
+    }
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -78,7 +103,8 @@ public class TextItemsFragment extends LoadableFragment<TextItemVo> implements M
     @Override
     protected void onDataLoaded(TextItemVo data) {
         infoVo = data.file;
-        tvView.setText(Html.fromHtml(infoVo).toString().trim());
+        webView.loadDataWithBaseURL(null,infoVo,"text/html","utf-8",null);
+//        tvView.setText(Html.fromHtml(infoVo).toString().trim());
     }
 
     @Override
@@ -101,5 +127,106 @@ public class TextItemsFragment extends LoadableFragment<TextItemVo> implements M
     @Override
     public String getBrowserDataUrl() {
         return url;
+    }
+    public void setListener(MyWebView.OnTouchRightSlide listener) {
+        if (webView != null)
+            webView.setListener(listener);
+    }
+
+    public WebView getWebView() {
+        return webView;
+    }
+    @SuppressLint({"JavascriptInterface", "SetJavaScriptEnabled"})
+    private void init(final WebView webView) {
+        cookieManager = CookieManager.getInstance();
+        cookieManager.setAcceptCookie(true);
+        WebSettings settings = webView.getSettings();
+        settings.setJavaScriptEnabled(true);
+        settings.setDatabaseEnabled(false);
+        settings.setSaveFormData(false);
+        settings.setBuiltInZoomControls(false);
+        settings.setSupportZoom(false); // 可以缩放
+        settings.setUseWideViewPort(false);
+        settings.setAllowFileAccess(true);
+        settings.setLoadWithOverviewMode(true);
+        settings.setDomStorageEnabled(true);
+//        settings.setAppCacheEnabled(true);
+        settings.setGeolocationEnabled(true);
+        settings.setGeolocationDatabasePath(getActivity().getCacheDir().toString());
+        settings.setUserAgentString(settings.getUserAgentString() + " " + HttpUtils.getUserAgentSuffix(getActivity()));
+        webView.setWebChromeClient(new WebChromeClient());
+        webView.setBackgroundColor(0);
+        webView.setWebViewClient(new WebViewClient() {
+            private String mUrl;
+
+            @Override
+            public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                super.onPageStarted(view, url, favicon);
+                LogUtil.i("onPageStarted->" + url);
+            }
+//
+//            @Override
+//            public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
+//                WebResourceResponse response = super.shouldInterceptRequest(view, url);
+//                LogUtil.i("资源：" + url);
+//                if (url.contains("mybook.css")) {
+//                    try {
+//                        LogUtil.i("本地css");
+//                        response = new WebResourceResponse("text/css", "UTF-8", new StringBufferInputStream(Constants.BOOK_CSS));
+//                    } catch (Exception e) {
+//                        LogUtil.e(e);
+//                    }
+//                }
+//                return response;
+//            }
+//
+//            @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+//            @Override
+//            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+//                WebResourceResponse response = super.shouldInterceptRequest(view, request);
+//                LogUtil.i("资源：" + request.getUrl().toString());
+//                if (request.getUrl().toString().contains("mybook.css")) {
+//                    try {
+//                        LogUtil.i("本地css");
+//                        response = new WebResourceResponse("text/css", "UTF-8", new StringBufferInputStream(Constants.BOOK_CSS));
+//                    } catch (Exception e) {
+//                        LogUtil.e(e);
+//                    }
+//                }
+//                return response;
+//            }
+
+
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                LogUtil.i("onPageFinished->" + url);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    cookieManager.flush();
+                } else {
+                    CookieSyncManager.createInstance(MyApplication.getInstance());
+                    CookieSyncManager.getInstance().sync();
+                }
+            }
+
+            @Override
+            public void onLoadResource(WebView view, String url) {
+                super.onLoadResource(view, url);
+                //LogUtil.i("onLoadResource->" + url);
+                mUrl = url;
+            }
+
+            @Override
+            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                super.onReceivedError(view, request, error);
+                LogUtil.e("onReceivedError->" + error.toString());
+                if (url.equals(mUrl)) {
+                    String errorPage = FileUtils.readAssets(getActivity(), "error_page.html");
+                    errorPage = errorPage.replace("####", url);
+                    webView.loadData(errorPage, "text/html; charset=UTF-8", null);
+                }
+            }
+        });
+
     }
 }

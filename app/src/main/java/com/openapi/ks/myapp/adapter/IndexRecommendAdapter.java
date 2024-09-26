@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.openai.commonutil.LogUtil;
 import com.romainpiel.shimmer.Shimmer;
 import com.romainpiel.shimmer.ShimmerTextView;
 import com.openai.commonview.touchhelper.OnStartDragListener;
@@ -115,7 +116,10 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
         holder.ivPhoto.setImageResource(0);
         holder.ivTitle.setText(vo.title);
         holder.tvTitleBelow.setText(vo.title);
-        if (!StringUtils.hasText(vo.color)) {
+        if (!StringUtils.hasText(vo.
+
+
+                color)) {
             vo.color = Constants.colorBg.get(position % Constants.colorBg.size());
         }
         if (vo.dataType == RecommendVo.dataType_ADS) {
@@ -157,6 +161,7 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
             }
         }
         holder.ivPhoto.setBackgroundColor(Color.parseColor(vo.color));
+        LogUtil.i("color2 = "+vo.color);
         ViewGroup.LayoutParams ivPhotoParam = holder.ivPhoto.getLayoutParams();
         ivPhotoParam.height = (int) (imgWidth * vo.rate);
         ivPhotoParam.width = imgWidth;

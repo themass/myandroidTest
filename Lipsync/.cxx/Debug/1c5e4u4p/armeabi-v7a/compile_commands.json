@@ -1,7 +1,0 @@
-[
-{
-  "directory": "/Users/liguoqing/work/ChatWaifu_Mobile/Lipsync/.cxx/Debug/1c5e4u4p/armeabi-v7a",
-  "command": "/Users/liguoqing/Library/Android/sdk/ndk/23.1.7779620/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=armv7-none-linux-androideabi24 --gcc-toolchain=/Users/liguoqing/Library/Android/sdk/ndk/23.1.7779620/toolchains/llvm/prebuilt/darwin-x86_64 --sysroot=/Users/liguoqing/Library/Android/sdk/ndk/23.1.7779620/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -Dlipsync_EXPORTS -isystem /Users/liguoqing/work/ChatWaifu_Mobile/Lipsync/src/main/cpp/ovr/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -march=armv7-a -mthumb -Wformat -Werror=format-security   -fno-limit-debug-info  -fPIC -o CMakeFiles/lipsync.dir/lipsync.cpp.o -c /Users/liguoqing/work/ChatWaifu_Mobile/Lipsync/src/main/cpp/lipsync.cpp",
-  "file": "/Users/liguoqing/work/ChatWaifu_Mobile/Lipsync/src/main/cpp/lipsync.cpp"
-}
-]

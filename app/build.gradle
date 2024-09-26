@@ -15,8 +15,8 @@ android {
         applicationId "com.openapi.ks.chat"
         minSdk rootProject.ext.minSdkVersion
         targetSdk rootProject.ext.targetSdkVersion
-        versionCode 1001000025
-        versionName "1.1.0.24"
+        versionCode 1001000028
+        versionName "1.1.0.28"
         // Enabling multidex support.
         multiDexEnabled true
         flavorDimensions "versionCode"
@@ -119,14 +119,13 @@ dependencies {
     implementation project(":asr")
     implementation project(":commonutil")
     implementation project(":ads")
-    implementation project(":waifu")
     implementation files('../commonutil/libs/volley.jar')
 
 
     implementation 'com.google.android.material:material:1.12.0'
     implementation 'androidx.navigation:navigation-fragment-ktx:2.7.7'
     implementation 'androidx.navigation:navigation-ui-ktx:2.7.7'
-    annotationProcessor 'androidx.annotation:annotation:1.8.1'
+    annotationProcessor 'androidx.annotation:annotation:1.8.2'
     implementation "androidx.percentlayout:percentlayout:1.0.0"
     implementation 'androidx.multidex:multidex:2.0.1'
 
@@ -148,9 +147,17 @@ dependencies {
     implementation 'pub.devrel:easypermissions:3.0.0'
     implementation 'org.greenrobot:greendao:3.3.0'
 
+//    implementation "androidx.compose.ui:ui:$compose_kotlin_compiler_ext_ver"
+//    implementation "androidx.compose.ui:ui-viewbinding:$compose_kotlin_compiler_ext_ver"
+//    implementation "androidx.compose.material:material:$compose_kotlin_compiler_ext_ver"
+//    implementation "androidx.compose.material:material-icons-extended:$compose_kotlin_compiler_ext_ver"
+//    implementation "androidx.compose.ui:ui-tooling-preview:$compose_kotlin_compiler_ext_ver"
+//    implementation 'com.github.mukeshsolanki:MarkdownView-Android:2.0.0'
+    implementation 'org.commonjava.googlecode.markdown4j:markdown4j:2.2-cj-1.1'
 
+    implementation 'com.github.xfans:VoiceWaveView:1.0.2'
+    implementation 'com.github.Jay-Goo:WaveLineView:v1.0.4'
+    implementation 'com.github.Jay-Goo:AndroidMP3Recorder:v1.0.7'
 
-
-    implementation 'io.noties.markwon:core:4.6.2'
 
 }

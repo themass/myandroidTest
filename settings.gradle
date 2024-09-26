@@ -1,6 +1,4 @@
-include ':app',':Lipsync',':Log',':Live2D',':Sherpa',':VITS',':ChatGPT',':Translate'
-
+include ':app'
 include ':asr'
 include ':commonutil'
 include ':ads'
-include ':waifu'
