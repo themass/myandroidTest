@@ -94,10 +94,8 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements Me
     private Set<OnBackKeyDownListener> keyListeners = new HashSet<>();
     public Message holdMsg = null;
     public ChatLog relogLlm = null;
-    public List<SimpleMessage> history = new ArrayList<>();
 
     protected final String senderId = "0";
-    protected ImageLoader imageLoader;
     protected MyMessagesListAdapter messagesAdapter;
     public Long sessionId = 0l;
     public String setting = "";
@@ -114,7 +112,6 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements Me
         public void onResponse(Choice vo) {
             holdMsg = new Message(vo.getId(), User.gpt, vo.getMessage().getContent());
             LogUtil.i(vo);
-            history.add(new SimpleMessage(sessionId, holdMsg.getText(), "assistant"));
             if (!StringUtils.isEmpty(vo.getMessage().getContent())) {
                 MsgContent msgContent = new MsgContent();
                 msgContent.setContent(vo.getMessage().getContent());
@@ -166,6 +163,7 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements Me
         setting = event.settingName;
         messagesAdapter.clear(true);
         loadMessages();
+        LogUtil.i("onEvent sessionChange loadMessages settingName="+setting);
     }
 
     private void createNewChatSession() {
@@ -268,9 +266,7 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements Me
             public void onResponse(InfoListVo<ChatSessionLog> chatSessionLogInfoListVo) {
                 LogUtil.i("session list = "+GsonUtils.getInstance().toJson(chatSessionLogInfoListVo));
                 if(chatSessionLogInfoListVo!=null && chatSessionLogInfoListVo.voList!=null){
-                    chatSessionLogInfoListVo.voList.forEach(o -> {
-                        DBManager.getInstance().getDaoSession().getChatSessionLogDao().insertOrReplace(o);
-                    });
+                        DBManager.getInstance().getDaoSession().getChatSessionLogDao().insertOrReplaceInTx(chatSessionLogInfoListVo.voList);
                 }
             }
         }, new CommonResponse.ResponseErrorListener());
@@ -298,8 +294,9 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements Me
         if(chatSessionLog!=null){
             setting = chatSessionLog.getSetting();
         }
-        LogUtil.i("loadMessages sessionId=" + sessionId);
         List<ChatLog> chatlogs = DBManager.getInstance().getDaoSession().getChatLogDao().queryRaw(" where SESSION_ID=" + sessionId);
+        LogUtil.i("loadMessages sessionId=" + sessionId+"; chatlogs size="+chatlogs.size());
+
         for (ChatLog log : chatlogs) {
             if (log.getWho() != ChatMessageBean.TYPE_SYSTEM) {
                 MsgContent msgContent = GsonUtils.getObj(log.content, MsgContent.class);
@@ -432,30 +429,18 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements Me
             relog.createTime = new Date();
             relog.sessionId = sessionId;
             DBManager.getInstance().saveChatLog(relog);
-            history.add(new SimpleMessage(sessionId, myMsg.getText(), "user"));
-            List<SimpleMessage> filterList =  history.stream().filter( o-> sessionId == o.getId()).collect(Collectors.toList());
             ChatHistory chatHistory = new ChatHistory();
-            chatHistory.setContent(GsonUtils.getInstance().toJson(filterList));
+            chatHistory.setText(hello);
+            chatHistory.setSessinId(sessionId);
             chatHistory.setId(holdMsg.getId());
             chatHistory.setSettingName(setting);
             chatHistory.setCharater(content);
-            if(StringUtils.hasText(setting)){
-                chatHistory.setCharater(sessionName);
-//                chatHistory.setContent(myMsg.getText());
-                baseService.postData(String.format(Constants.getUrl(Constants.TRANSWORD_URL)), chatHistory, listener, new CommonResponse.ResponseErrorListener() {
-                    @Override
-                    protected void onError() {
-                        super.onError();
-                    }
-                }, TAG, Choice.class);
-            }else{
-                baseService.postData(String.format(Constants.getUrl(Constants.CHAT_URL)), chatHistory, listener, new CommonResponse.ResponseErrorListener() {
-                    @Override
-                    protected void onError() {
-                        super.onError();
-                    }
-                }, TAG, Choice.class);
-            }
+            baseService.postData(String.format(Constants.getUrl(Constants.CHAT_URL)), chatHistory, listener, new CommonResponse.ResponseErrorListener() {
+                @Override
+                protected void onError() {
+                    super.onError();
+                }
+            }, TAG, Choice.class);
 //            AdsContext.showRand(this);
         }
     }

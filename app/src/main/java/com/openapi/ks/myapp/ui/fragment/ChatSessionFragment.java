@@ -86,6 +86,7 @@ public class ChatSessionFragment extends RecommendFragment {
     @Override
     protected InfoListVo<RecommendVo> loadData(Context context) throws Exception {
         Long id = PreferenceUtils.getPrefLong(getActivity(), Constants.CHAT_SESSION, 0);
+        LogUtil.i("def sessionId="+id);
         List<ChatSessionLog> chatSessionLogList = DBManager.getInstance().getDaoSession().getChatSessionLogDao().loadAll();
         chatSessionLogList.sort(new Comparator<ChatSessionLog>() {
             @Override

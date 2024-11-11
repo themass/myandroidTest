@@ -115,9 +115,9 @@ public class AsrChatMessagesFragment extends ChatMessagesFragment
                     relog.sessionId = sessionId;
                     DBManager.getInstance().saveChatLog(relog);
 
-                    history.add(new SimpleMessage(sessionId, text, "user"));
                     ChatHistory chatHistory = new ChatHistory();
-                    chatHistory.setContent(GsonUtils.getInstance().toJson(history));
+                    chatHistory.setText(text);
+                    chatHistory.setSessinId(sessionId);
                     chatHistory.setId(msgContent.getHoldId());
                     chatHistory.setCharater(content);
                     indexService.postData(String.format(Constants.getUrl(Constants.CHAT_URL)), chatHistory, listener, new CommonResponse.ResponseErrorListener() {

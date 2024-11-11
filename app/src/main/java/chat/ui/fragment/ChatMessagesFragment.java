@@ -86,7 +86,6 @@ public class ChatMessagesFragment extends BaseChatPullLoadbleFragment
     private Set<OnBackKeyDownListener> keyListeners = new HashSet<>();
     public Message holdMsg = null;
     public ChatLog relogLlm = null;
-    public List<SimpleMessage> history = new ArrayList<>();
     public String sessionName = "Default";
 
     protected final String senderId = "0";
@@ -101,7 +100,6 @@ public class ChatMessagesFragment extends BaseChatPullLoadbleFragment
         public void onResponse(Choice vo) {
             holdMsg = new Message(vo.getId(), User.gpt, vo.getMessage().getContent());
             LogUtil.i(vo);
-            history.add(new SimpleMessage(sessionId,holdMsg.getText(), "assistant"));
             if (!StringUtils.isEmpty(vo.getMessage().getContent())) {
                 MsgContent msgContent = new MsgContent();
                 msgContent.setContent(vo.getMessage().getContent());
@@ -170,6 +168,7 @@ public class ChatMessagesFragment extends BaseChatPullLoadbleFragment
         setting = event.settingName;
         messagesAdapter.clear(true);
         startQuery(true);
+        LogUtil.i("onEvent sessionChange settingName="+setting);
     }
 
     private void createNewChatSession() {
@@ -311,32 +310,21 @@ public class ChatMessagesFragment extends BaseChatPullLoadbleFragment
             relog.createTime = new Date();
             relog.sessionId = sessionId;
             DBManager.getInstance().saveChatLog(relog);
-            history.add(new SimpleMessage(sessionId, myMsg.getText(), "user"));
             ChatHistory chatHistory = new ChatHistory();
-            chatHistory.setContent(GsonUtils.getInstance().toJson(history));
+            chatHistory.setText(hello);
             chatHistory.setId(holdMsg.getId());
+            chatHistory.setSessinId(sessionId);
             chatHistory.setSettingName(setting);
             chatHistory.setCharater(content);
-            if(StringUtils.hasText(setting)){
-                chatHistory.setCharater(sessionName);
-                chatHistory.setContent(myMsg.getText());
-                indexService.postData(String.format(Constants.getUrl(Constants.TRANSWORD_URL)), chatHistory, listener, new CommonResponse.ResponseErrorListener() {
-                    @Override
-                    protected void onError() {
-                        super.onError();
+            chatHistory.setCharater(sessionName);
+            indexService.postData(String.format(Constants.getUrl(Constants.CHAT_URL)), chatHistory, listener, new CommonResponse.ResponseErrorListener() {
+                @Override
+                protected void onError() {
+                    super.onError();
+                }
+            }, TAG, Choice.class);
                     }
-                }, TAG, Choice.class);
-            }else{
-                indexService.postData(String.format(Constants.getUrl(Constants.CHAT_URL)), chatHistory, listener, new CommonResponse.ResponseErrorListener() {
-                    @Override
-                    protected void onError() {
-                        super.onError();
-                    }
-                }, TAG, Choice.class);
-            }
-
 //            AdsContext.showRand(this);
-        }
     }
 
     @Override
