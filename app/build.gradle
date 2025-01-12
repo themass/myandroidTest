@@ -15,8 +15,8 @@ android {
         applicationId "com.openapi.ks.chat"
         minSdk rootProject.ext.minSdkVersion
         targetSdk rootProject.ext.targetSdkVersion
-        versionCode 1001000029
-        versionName "1.1.0.29"
+        versionCode 1001000031
+        versionName "1.1.0.30"
         // Enabling multidex support.
         multiDexEnabled true
         flavorDimensions "versionCode"
@@ -120,6 +120,7 @@ dependencies {
     implementation project(":commonutil")
     implementation project(":ads")
     implementation files('../commonutil/libs/volley.jar')
+    implementation project(":messagekit")
 
 
     implementation 'com.google.android.material:material:1.12.0'
@@ -136,7 +137,7 @@ dependencies {
     annotationProcessor 'com.jakewharton:butterknife-compiler:10.2.3'
     implementation 'com.jakewharton:butterknife:10.2.3'
 
-    implementation 'jp.co.cyberagent.android.gpuimage:gpuimage-library:1.4.1'
+//    implementation 'jp.co.cyberagent.android:gpuimage:2.x.x'
     implementation 'cn.jzvd:jiaozivideoplayer:7.7.0'
     //和 gsy 冲突了，不能升级版本，不兼容
     implementation 'com.google.android.exoplayer:exoplayer:2.19.1'

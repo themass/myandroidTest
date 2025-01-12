@@ -9,12 +9,14 @@ buildscript {
         maven { url 'https://repo1.maven.org/maven2' }
         google()
         maven { url "https://maven.aliyun.com/repository/public" }
+        maven { url "https://maven.aliyun.com/repository/jcenter" }
+
         maven {
             url "https://artifact.bytedance.com/repository/Volcengine/"
         }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.2.1'
+        classpath 'com.android.tools.build:gradle:8.2.2'
 //        classpath 'org.greenrobot:greendao-gradle-plugin:3.3.0'
         classpath 'org.greenrobot:greendao-gradle-plugin:3.3.1' // add plugin
         classpath 'com.jakewharton:butterknife-gradle-plugin:10.2.3'
@@ -38,6 +40,8 @@ allprojects {
         maven { url 'https://repo1.maven.org/maven2' }
         google()
         maven { url "https://maven.aliyun.com/repository/public" }
+        maven { url "https://maven.aliyun.com/repository/jcenter" }
+
         maven {
             url "https://artifact.bytedance.com/repository/Volcengine/"
         }

@@ -39,6 +39,7 @@ greendao {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.aar'])
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation project(":messagekit")
 
     api 'com.google.code.gson:gson:2.10.1'
     api 'org.greenrobot:eventbus:3.0.0'
@@ -61,7 +62,7 @@ dependencies {
     api 'com.github.CarGuo.GSYVideoPlayer:GSYVideoPlayer:v9.0.0-release-jitpack'
 
     // 对话框，chat
-    api 'tz.co.hosannahighertech:messagekit:1.0.0apha4'
+//    api 'tz.co.hosannahighertech:messagekit:1.0.0apha4'
     api 'de.hdodenhof:circleimageview:3.1.0'
     api 'com.github.siyamed:android-shape-imageview:0.9.3'
     // 输入框，语音+图片

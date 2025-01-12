@@ -26,9 +26,13 @@
 
     <string name="tab_tag_movie">Movie</string>
     <string name="tab_tag_ng">Night</string>
+    <string name="tab_tag_english">English</string>
+    <string name="tab_tag_math">Math</string>
+    <string name="tab_tag_chinese">Chinese</string>
     <string name="tab_tag_area">Area</string>
-    <string name="tab_tag_customer">customer</string>
     <string name="tab_tag_chat">chat</string>
+    <string name="tab_tag_customer">customer</string>
+
 
     <!-- Application -->
     <string name="app_name">Kimi Chat</string>

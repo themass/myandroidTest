@@ -24,7 +24,6 @@ import com.openai.commonutil.PreferenceUtils;
 import com.openai.commonutil.ToastUtil;
 import com.openai.ads.yewu.ads.base.AdsContext;
 import com.openapi.ks.chat.R;
-import com.openapi.ks.chat.R2;
 import com.openapi.ks.myapp.bean.form.ChatSessionLog;
 import com.openai.net.request.InfoListVo;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;

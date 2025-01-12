@@ -33,6 +33,9 @@ import com.openai.commonutil.PreferenceUtils;
 import com.openai.commonutil.ToastUtil;
 import com.openai.ads.yewu.ads.base.AdsContext;
 import com.openai.ads.yewu.um.MobAgent;
+import com.openapi.ks.chatfree.ui.maintab.teach.TabChineseFragment;
+import com.openapi.ks.chatfree.ui.maintab.teach.TabEnglishFragment;
+import com.openapi.ks.chatfree.ui.maintab.teach.TabMathFragment;
 import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.ConnLogUtil;
@@ -147,33 +150,25 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         ConnLogUtil.sendAllLog(this);
     }
 
-    @OptIn(markerClass = UnstableApi.class) private void initTabs() {
+    @OptIn(markerClass = UnstableApi.class)
+    private void initTabs() {
         list.clear();
         LayoutInflater inflater = LayoutInflater.from(this);
-        if (MyApplication.isTemp) {
-            addData(inflater, R.string.tab_tag_index, TabVpnFragment.class,
-                    R.drawable.ac_bg_tab_index, R.string.tab_index, null, 1);
-        } else {
             addData(inflater, R.string.tab_tag_movie, TabMovieFragment.class,
                     R.drawable.ac_bg_tab_index, R.string.tab_movie, null, 1);
-        }
-
-
         if (PreferenceUtils.getPrefBoolean(this, Constants.AREA_SWITCH, true)) {
             addData(inflater, R.string.tab_tag_ng, TabNightFragment.class,
                     R.drawable.ac_bg_tab_index, R.string.tab_ng, null, 2);
-            if (!MyApplication.isTemp) {
-                addData(inflater, R.string.tab_tag_area, TabLocalFragment.class,
-                        R.drawable.ac_bg_tab_index, R.string.tab_area, null, 3);
-            } else {
-                addData(inflater, R.string.tab_tag_movie, TabMovieFragment.class,
-                        R.drawable.ac_bg_tab_index, R.string.tab_movie, null, 3);
-            }
         }
-        addData(inflater, R.string.tab_tag_chat, TabChatMessagesFragment.class,
-                R.drawable.ac_bg_tab_index, R.string.tab_chat, null, 4);
+
+        addData(inflater, R.string.tab_tag_english, TabEnglishFragment.class,
+                R.drawable.ac_bg_tab_index, R.string.tab_tag_english, null, 3);
+        addData(inflater, R.string.tab_tag_math, TabMathFragment.class,
+                R.drawable.ac_bg_tab_index, R.string.tab_tag_math, null, 4);
+        addData(inflater, R.string.tab_tag_chinese, TabChineseFragment.class,
+                R.drawable.ac_bg_tab_index, R.string.tab_tag_chinese, null, 5);
         addData(inflater, R.string.tab_tag_customer, TabCustomeFragment.class,
-                R.drawable.ac_bg_tab_index, R.string.tab_customer, null, 5);
+                R.drawable.ac_bg_tab_index, R.string.tab_customer, null, 6);
 
         myPagerAdapter = new MyPagerAdapter(getSupportFragmentManager());
         mViewPager.setAdapter(myPagerAdapter);
