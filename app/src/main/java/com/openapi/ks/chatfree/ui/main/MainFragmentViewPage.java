@@ -50,7 +50,6 @@ import com.openapi.ks.chat.R;
 import com.openapi.ks.chatfree.ui.maintab.TabCustomeFragment;
 import com.openapi.ks.chatfree.ui.maintab.TabMovieFragment;
 import com.openapi.ks.chatfree.ui.maintab.TabNightFragment;
-import com.openapi.ks.chatfree.ui.maintab.TabVpnFragment;
 import com.openapi.ks.myapp.ui.sound.JzvdPlayerFactory;
 import com.openapi.ks.myapp.ui.sound.media.JZMediaExo;
 import com.openapi.ks.myapp.ui.sound.media.JZMediaIjk;

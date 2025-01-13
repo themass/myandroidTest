@@ -52,6 +52,7 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.util.Date;
 
 import butterknife.BindView;
+import io.livekit.android.example.voiceassistant.LivekitVoiceAgentActivity;
 import test.WaveTest2;
 
 /**
@@ -333,7 +334,8 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                     name = "捐赠";
                     DonationListFragment.startFragment(BaseDrawerActivity.this);
                 } else if (item.getItemId() == R.id.menu_share) {
-                    showShare();
+//                    showShare();
+                    startActivity(LivekitVoiceAgentActivity.class);
                     name = "分享";
                 }  else if (item.getItemId() == R.id.menu_test) {
                     startActivity(WaveTest2.class);

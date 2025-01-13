@@ -41,7 +41,7 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(":messagekit")
 
-    api 'com.google.code.gson:gson:2.10.1'
+    api 'com.google.code.gson:gson:2.11.0'
     api 'org.greenrobot:eventbus:3.0.0'
     api 'jp.wasabeef:glide-transformations:4.3.0'
 

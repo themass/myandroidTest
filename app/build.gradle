@@ -121,6 +121,8 @@ dependencies {
     implementation project(":ads")
     implementation files('../commonutil/libs/volley.jar')
     implementation project(":messagekit")
+    implementation project(':livekitvoice')
+
 
 
     implementation 'com.google.android.material:material:1.12.0'
@@ -148,12 +150,6 @@ dependencies {
     implementation 'pub.devrel:easypermissions:3.0.0'
     implementation 'org.greenrobot:greendao:3.3.0'
 
-//    implementation "androidx.compose.ui:ui:$compose_kotlin_compiler_ext_ver"
-//    implementation "androidx.compose.ui:ui-viewbinding:$compose_kotlin_compiler_ext_ver"
-//    implementation "androidx.compose.material:material:$compose_kotlin_compiler_ext_ver"
-//    implementation "androidx.compose.material:material-icons-extended:$compose_kotlin_compiler_ext_ver"
-//    implementation "androidx.compose.ui:ui-tooling-preview:$compose_kotlin_compiler_ext_ver"
-//    implementation 'com.github.mukeshsolanki:MarkdownView-Android:2.0.0'
     implementation 'org.commonjava.googlecode.markdown4j:markdown4j:2.2-cj-1.1'
 
     implementation 'com.github.xfans:VoiceWaveView:1.0.2'
