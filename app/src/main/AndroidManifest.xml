@@ -111,6 +111,16 @@
             android:label="@string/main_activity_name"
             android:launchMode="singleTask"
             android:screenOrientation="portrait" />
+
+        <activity android:name="test.wave.MainActivity"
+            android:exported="true">
+        </activity>
+        <activity android:name="test.wave.MainActivity2"
+            android:exported="true">
+        </activity>
+        <activity android:name="test.wave.RippleActivity"
+            android:exported="true">
+        </activity>
         <activity
             android:name="com.openapi.ks.myapp.ui.base.WebViewActivity"
             android:configChanges="orientation|keyboardHidden|screenSize" />
@@ -230,6 +240,24 @@
             android:theme="@style/AppTheme"
             android:exported="true">
         </activity>
+        <activity
+            android:name="test.HorizonActivity"
+            android:theme="@style/AppTheme"
+            android:exported="true">
+        </activity>
+        <activity android:name="test.audiovisualizeview.AudioVisualizeViewMainActivity" android:exported="true">
+        </activity>
+
+        <activity android:name="test.audiovisualizeview.ReflectVisualizeActivity" android:exported="true"/>
+        <activity android:name="test.audiovisualizeview.CircleVisualizeActivity" android:exported="true"/>
+        <activity android:name="test.audiovisualizeview.SingleVisualizeActivity" android:exported="true"/>
+        <activity android:name="test.audiovisualizeview.WaveVisualizeActivity" android:exported="true"/>
+        <activity android:name="test.audiovisualizeview.NetVisualizeActivity" android:exported="true"/>
+        <activity android:name="test.audiovisualizeview.GrainVisualizeActivity" android:exported="true"/>
+        <activity android:name="test.AudioWavesMainActivity" android:exported="true"/>
+        <activity android:name="test.narayanacharya.waveviewexample.BuilderExampleActivity" android:exported="true"/>
+        <activity android:name="test.narayanacharya.waveviewexample.FireZenkMainActivity" android:exported="true"/>
+
     </application>
 
 </manifest>

@@ -8,5 +8,10 @@
             android:name="io.livekit.android.example.voiceassistant.LivekitVoiceAgentActivity"
             android:exported="true">
         </activity>
+        <activity
+            android:theme="@style/Theme.LiveKitVoiceAssistant"
+            android:name="io.livekit.android.example.voiceassistant.MainActivity"
+            android:exported="true">
+        </activity>
     </application>
 </manifest>

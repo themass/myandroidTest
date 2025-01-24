@@ -31,7 +31,38 @@
             app:wlvBackgroundColor="@android:color/white"
             app:wlvMoveSpeed="290"
             />
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="350dp"
+            android:layout_gravity="center"
+            >
 
+            <com.aghajari.waveanimation.AXWaveView
+                android:id="@+id/wave"
+                android:layout_width="200dp"
+                android:layout_height="200dp"
+                app:shader_color_1="#2BCEFF"
+                app:shader_color_2="#0976E3"
+                android:layout_gravity="center"
+                app:circle="true"
+                app:amplitude="-1"/>
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:layout_gravity="center"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                app:srcCompat="@drawable/mic"
+                app:tint="@android:color/white"/>
+
+        </FrameLayout>
+        <com.aghajari.waveanimation.AXLineWaveView
+            android:id="@+id/line_wave"
+            android:layout_width="match_parent"
+            android:layout_height="36dp"
+            app:shader_color_1="#0976E3"
+            app:shader_color_2="#0976E3"
+            app:main_wave="false"
+            app:max_alpha="120" />
         <me.xfans.lib.voicewaveview.VoiceWaveView
                 android:id="@+id/voiceWaveView0"
                 android:layout_width="wrap_content"
@@ -79,6 +110,7 @@
                 app:waveMode="left_right"
                 android:gravity="right|center_vertical"
         />
+
     </LinearLayout>
 
 </ScrollView>

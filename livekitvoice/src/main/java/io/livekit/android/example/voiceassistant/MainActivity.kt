@@ -1,0 +1,21 @@
+package io.livekit.android.example.voiceassistant
+
+import android.os.Bundle
+import android.util.Log
+import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.FragmentTransaction
+import io.livekit.android.annotations.Beta
+
+class MainActivity : AppCompatActivity() {
+    @OptIn(Beta::class)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+        requireToken { url, token ->
+            val fragment = LivekitVoiceAgentFragment.newInstance(url, token)
+            val transaction: FragmentTransaction = supportFragmentManager.beginTransaction()
+            transaction.add(R.id.fragment_container, fragment)
+            transaction.commit()
+        }
+    }
+}

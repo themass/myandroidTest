@@ -2,4 +2,6 @@
 <resources>
 
     <style name="Theme.LiveKitVoiceAssistantExample" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.LiveKitVoiceAssistant" parent="Theme.AppCompat.Light.NoActionBar" />
+
 </resources>

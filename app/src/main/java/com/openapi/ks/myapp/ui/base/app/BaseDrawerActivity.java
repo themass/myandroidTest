@@ -52,8 +52,15 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.util.Date;
 
 import butterknife.BindView;
-import io.livekit.android.example.voiceassistant.LivekitVoiceAgentActivity;
+import test.AudioWavesMainActivity;
+import test.HorizonActivity;
 import test.WaveTest2;
+import test.audiovisualizeview.AudioVisualizeViewMainActivity;
+import test.narayanacharya.waveviewexample.BuilderExampleActivity;
+import test.narayanacharya.waveviewexample.FireZenkMainActivity;
+import test.soundwave.AudioRecordingFragment;
+import test.wave.MainActivity;
+import test.wave.RippleActivity;
 
 /**
  * Created by Miroslaw Stanek on 15.07.15.
@@ -321,7 +328,6 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                     name = "支持作者";
                     adsOffers();
                     ToastUtil.showShort(R.string.support_info);
-//                    startActivity(ChatActivity.class);
                 } else if (item.getItemId() == R.id.menu_app) {
                     name = "应用推荐";
                     if(UserLoginUtil.isVIP2()) {
@@ -335,10 +341,17 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                     DonationListFragment.startFragment(BaseDrawerActivity.this);
                 } else if (item.getItemId() == R.id.menu_share) {
 //                    showShare();
-                    startActivity(LivekitVoiceAgentActivity.class);
                     name = "分享";
                 }  else if (item.getItemId() == R.id.menu_test) {
                     startActivity(WaveTest2.class);
+                    startActivity(MainActivity.class);
+                    startActivity(RippleActivity.class);
+                    AudioRecordingFragment.startFragment(BaseDrawerActivity.this);
+                    startActivity(HorizonActivity.class);
+                    startActivity(AudioWavesMainActivity.class);
+                    startActivity(AudioVisualizeViewMainActivity.class);
+                    startActivity(FireZenkMainActivity.class);
+                    startActivity(BuilderExampleActivity.class);
                     name = "测试";
                 } else if (item.getItemId() == R.id.menu_chat_session) {
                     name = "新建对话";

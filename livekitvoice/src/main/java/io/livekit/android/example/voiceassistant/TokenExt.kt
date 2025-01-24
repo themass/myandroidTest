@@ -26,7 +26,7 @@ fun ComponentActivity.requireToken(onTokenGenerated: (url: String, token: String
             // NOTE: If you prefer not to use LiveKit Sandboxes for testing, you can generate your
             // tokens manually by visiting https://cloud.livekit.io/projects/p_/settings/keys
             // and using one of your API Keys to generate a token with custom TTL and permissions.
-            onTokenGenerated("wss://testvoice-b8y35yvd.livekit.cloud", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzY3MjM4NjYsImlzcyI6IkFQSVdkR012eHBaNUZ6SiIsIm5iZiI6MTczNjY4Nzg2Niwic3ViIjoiZ3FsaSIsInZpZGVvIjp7ImNhblB1Ymxpc2giOnRydWUsImNhblB1Ymxpc2hEYXRhIjp0cnVlLCJjYW5TdWJzY3JpYmUiOnRydWUsInJvb20iOiJ0ZXN0cm9vbSIsInJvb21Kb2luIjp0cnVlfX0.PKGBRM3J5E7SrY42r0YjQ5p7ChKeV8WuBNEmmjpOZ3w")
+            onTokenGenerated("wss://testvoice-b8y35yvd.livekit.cloud", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzcwNTg3NjMsImlzcyI6IkFQSVNBTk5tRUdCUXhmWSIsIm5iZiI6MTczNzAyMjc2Mywic3ViIjoiZ3FsaSIsInZpZGVvIjp7ImNhblB1Ymxpc2giOnRydWUsImNhblB1Ymxpc2hEYXRhIjp0cnVlLCJjYW5TdWJzY3JpYmUiOnRydWUsInJvb20iOiJ0ZXN0cm9vbSIsInJvb21Kb2luIjp0cnVlfX0.UJQVhxwY0fyHZHj6juu0nvDfMiMdT05tZUtAHLsNTXw")
             Timber.w { "sandboxID not populated, using default URL and token." }
         }
         return

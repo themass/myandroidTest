@@ -24,6 +24,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.android.material.tabs.TabLayout;
+import com.openapi.ks.chatfree.ui.maintab.LiveKitTabFragment;
 import com.openapi.ks.chatfree.ui.maintab.TabLocalFragment;
 import com.openai.commonutil.DoubleClickExit;
 import com.openai.commonutil.EventBusUtil;
@@ -153,7 +154,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
     private void initTabs() {
         list.clear();
         LayoutInflater inflater = LayoutInflater.from(this);
-            addData(inflater, R.string.tab_tag_movie, TabMovieFragment.class,
+            addData(inflater, R.string.tab_tag_movie, LiveKitTabFragment.class,
                     R.drawable.ac_bg_tab_index, R.string.tab_movie, null, 1);
         if (PreferenceUtils.getPrefBoolean(this, Constants.AREA_SWITCH, true)) {
             addData(inflater, R.string.tab_tag_ng, TabNightFragment.class,

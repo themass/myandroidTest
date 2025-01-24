@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/layout"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <SeekBar
+        android:id="@+id/seek_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="16dp"
+        android:layout_gravity="top"/>
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/button"
+        android:text="第二个波浪线"
+        android:layout_marginTop="16dp"
+        android:layout_below="@+id/seek_bar"
+        android:onClick="startWave"
+        tools:ignore="OnClick" />
+    <com.aghajari.waveanimation.AXLineWaveView
+        android:id="@+id/line_wave"
+        android:layout_width="match_parent"
+        android:layout_height="36dp"
+        android:layout_alignParentBottom="true"
+        app:shader_color_1="#0976E3"
+        app:shader_color_2="#0976E3"
+        app:main_wave="false"
+        app:max_alpha="120" />
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_below="@+id/button"
+        >
+
+        <com.aghajari.waveanimation.AXWaveView
+            android:id="@+id/wave"
+            android:layout_width="250dp"
+            android:layout_height="wrap_content"
+            app:shader_color_1="#2BCEFF"
+            app:shader_color_2="#0976E3"
+            android:layout_gravity="center"
+            app:circle="true"
+            app:amplitude="-1"/>
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:layout_gravity="center"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            app:srcCompat="@drawable/mic"
+            app:tint="@android:color/white"/>
+
+    </FrameLayout>
+
+
+
+</RelativeLayout>
