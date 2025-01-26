@@ -15,10 +15,10 @@ import tz.co.hosannahighertech.messagekit.commons.models.IMessage;
 import tz.co.hosannahighertech.messagekit.messages.MessageHolders;
 import tz.co.hosannahighertech.messagekit.messages.MessagesListAdapter;
 
-public class MyMessagesListAdapter extends MessagesListAdapter<Message> implements MessageHolders.ContentChecker<Message>, MessagesListAdapter.OnMessageViewClickListener, MessagesListAdapter.OnMessageViewLongClickListener {
+public class MyMessagesListAdapter extends MessagesListAdapter<Message> implements MessageHolders.ContentChecker<Message> {
     public static final byte CONTENT_TYPE_VOICE = 1;
     private static MessageHolders holdersConfig = new MessageHolders()
-            .setIncomingTextConfig(MyInComingMassageHandler.class,R.layout.item_custom_incoming_text_message)
+            .setIncomingTextConfig(MyInComingMassageHandler.class,R.layout.item_custom_incoming_text_message_new)
             .setOutcomingTextLayout(R.layout.item_custom_outcoming_text_message)
             .setIncomingImageLayout(R.layout.item_custom_incoming_image_message)
             .setOutcomingImageLayout(R.layout.item_custom_outcoming_image_message)
@@ -32,44 +32,45 @@ public class MyMessagesListAdapter extends MessagesListAdapter<Message> implemen
         holdersConfig.registerContentType(
                 CONTENT_TYPE_VOICE,
                 IncomingVoiceMessageViewHolder.class,
-                R.layout.item_custom_incoming_voice_message,
+                R.layout.item_custom_incoming_voice_message_new,
                 OutComingVoiceMessageViewHolder.class,
                 R.layout.item_custom_outcoming_voice_message,
                 this);
-        setOnMessageViewClickListener(this);
-        setOnMessageViewLongClickListener(this);
+//        setOnMessageViewClickListener(this);
+//        setOnMessageViewLongClickListener(this);
     }
 
     @Override
     public boolean hasContentFor(Message message, byte type) {
         if (type == CONTENT_TYPE_VOICE) {
-            return message.getVoice() != null
-                    && message.getVoice().getUrl() != null
-                    && !message.getVoice().getUrl().isEmpty();
+            return message.getVoice() != null;
+//            return message.getVoice() != null
+//                    && message.getVoice().getUrl() != null
+//                    && !message.getVoice().getUrl().isEmpty();
         }
         return false;
     }
 
-    @Override
-    public void onMessageViewClick(View view, IMessage message) {
-        Message msg = (Message) message;
-        if(msg.getUser() == User.my){
-            if (msg.getVoice() != null) {
-                OutComingVoiceMessageViewHolder.click(view, msg);
-                OutComingVoiceMessageViewHolder.onLongClick(view, msg);
-            } else if (msg.getImage() != null) {
+//    @Override
+//    public void onMessageViewClick(View view, IMessage message) {
+//        Message msg = (Message) message;
+//        if(msg.getUser() == User.my){
+//            if (msg.getVoice() != null) {
+//                OutComingVoiceMessageViewHolder.click(view, msg);
+//                OutComingVoiceMessageViewHolder.onLongClick(view, msg);
+//            } else if (msg.getImage() != null) {
+//
+//            }
+//        }if(msg.getUser() == User.gpt){
+//            if (msg.getVoice() != null) {
+//                IncomingVoiceMessageViewHolder.click(view, msg);
+//                IncomingVoiceMessageViewHolder.onLongClick(view, msg);
+//            } else if (msg.getImage() != null) {
+//
+//            }
+//        }
 
-            }
-        }if(msg.getUser() == User.gpt){
-            if (msg.getVoice() != null) {
-                IncomingVoiceMessageViewHolder.click(view, msg);
-                IncomingVoiceMessageViewHolder.onLongClick(view, msg);
-            } else if (msg.getImage() != null) {
-
-            }
-        }
-
-    }
+//    }
     public int getMessagePositionById(String id) {
         for (int i = 0; i < items.size(); i++) {
             Wrapper wrapper = items.get(i);
@@ -83,14 +84,14 @@ public class MyMessagesListAdapter extends MessagesListAdapter<Message> implemen
         return -1;
     }
 
-    @Override
-    public void onMessageViewLongClick(View view, IMessage message) {
-        LogUtil.i("onMessageViewLongClick:"+message);
-//        Message msg = (Message) message;
-//        if (msg.getVoice() != null) {
-//            OutcomingVoiceMessageViewHolder.onLongClick(view, msg);
-//        } else if (msg.getImage() != null) {
-//
-//        }
-    }
+//    @Override
+//    public void onMessageViewLongClick(View view, IMessage message) {
+//        LogUtil.i("onMessageViewLongClick:"+message);
+////        Message msg = (Message) message;
+////        if (msg.getVoice() != null) {
+////            OutcomingVoiceMessageViewHolder.onLongClick(view, msg);
+////        } else if (msg.getImage() != null) {
+////
+////        }
+//    }
 }

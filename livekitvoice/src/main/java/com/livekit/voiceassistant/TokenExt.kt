@@ -1,4 +1,4 @@
-package io.livekit.android.example.voiceassistant
+package com.livekit.voiceassistant
 
 import android.widget.Toast
 import androidx.activity.ComponentActivity

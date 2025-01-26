@@ -1,4 +1,4 @@
-package io.livekit.android.example.voiceassistant.ui
+package com.livekit.voiceassistant.ui
 
 
 import androidx.compose.animation.AnimatedVisibility

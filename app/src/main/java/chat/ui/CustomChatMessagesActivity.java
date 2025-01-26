@@ -21,6 +21,7 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.android.volley.Response;
 import com.google.android.gms.common.util.JsonUtils;
+import com.openai.asr.AsrConstants;
 import com.openai.commonview.view.widget.RecordButton;
 import com.luck.picture.lib.basic.PictureSelector;
 import com.luck.picture.lib.entity.LocalMedia;
@@ -52,6 +53,7 @@ import com.openapi.ks.myapp.data.UserLoginUtil;
 import com.openapi.ks.myapp.data.config.ChatSessionEvent;
 import com.openapi.ks.myapp.ui.base.BannerHeaderFragment;
 import com.openapi.ks.myapp.ui.base.app.BaseDrawerActivity;
+import com.openapi.ks.myapp.ui.fragment.ChatSessionFragment;
 import com.openapi.ks.myapp.ui.inte.OnBackKeyDownListener;
 import com.openapi.ks.myapp.ui.user.LoginActivity;
 
@@ -82,7 +84,7 @@ import tz.co.hosannahighertech.messagekit.commons.ImageLoader;
 import tz.co.hosannahighertech.messagekit.messages.MessagesList;
 import tz.co.hosannahighertech.messagekit.messages.MessagesListAdapter;
 
-public class CustomChatMessagesActivity extends BaseDrawerActivity implements MessagesListAdapter.SelectionListener,
+public class CustomChatMessagesActivity extends BaseDrawerActivity implements
         MessagesListAdapter.OnLoadMoreListener{
 
     @BindView(R.id.messagesList)
@@ -111,7 +113,7 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements Me
         @Override
         public void onResponse(Choice vo) {
             holdMsg = new Message(vo.getId(), User.gpt, vo.getMessage().getContent());
-            LogUtil.i(vo);
+            initHoldMsg(holdMsg);
             if (!StringUtils.isEmpty(vo.getMessage().getContent())) {
                 MsgContent msgContent = new MsgContent();
                 msgContent.setContent(vo.getMessage().getContent());
@@ -135,6 +137,8 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements Me
     public boolean onCreateOptionsMenu(Menu menu) {
         this.menu = menu;
         getMenuInflater().inflate(R.menu.chat_actions_menu, menu);
+        boolean needTts = PreferenceUtils.getPrefBoolean(MyApplication.getInstance(), AsrConstants.TTS_OPEN, false);
+        menu.findItem(R.id.sound_switch).setIcon(needTts?R.drawable.song_play_icon:R.drawable.song_not_play_icon);
         return true;
     }
 
@@ -150,6 +154,19 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements Me
                 break;
             case R.id.action_chat_session:
                 createNewChatSession();
+                break;
+            case R.id.action_chat_sessions:
+                ChatSessionFragment.startFragment(this);
+                break;
+            case R.id.sound_switch:
+                boolean needTts = PreferenceUtils.getPrefBoolean(MyApplication.getInstance(), AsrConstants.TTS_OPEN, false);
+                if(needTts){
+                    item.setIcon(R.drawable.song_not_play_icon);
+                    PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), AsrConstants.TTS_OPEN, false);
+                }else{
+                    item.setIcon(R.drawable.song_play_icon);
+                    PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), AsrConstants.TTS_OPEN, true);
+                }
                 break;
         }
         return true;
@@ -207,13 +224,6 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements Me
             LogUtil.i("对话名称：" + nameView.getText().toString() + "---" + log.id);
             popupWindow.dismiss();
         });
-    }
-    @Override
-    public void onSelectionChanged(int count) {
-        this.selectionCount = count;
-        menu.findItem(R.id.action_delete).setVisible(count > 0);
-        menu.findItem(R.id.action_copy).setVisible(count > 0);
-        ToastUtil.showShort(getString(R.string.on_log_selected_messages, count));
     }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -276,7 +286,6 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements Me
 
     private void initAdapter() {
         messagesAdapter = new MyMessagesListAdapter(senderId);
-        messagesAdapter.enableSelectionMode(this);
         messagesAdapter.setLoadMoreListener(this);
         messagesList.setAdapter(messagesAdapter);
         messagesList.setOnTouchListener((v, event) -> {
@@ -420,8 +429,9 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements Me
             Message myMsg = new Message(MessagesFixtures.getRandomId(), User.my, hello);
             messagesAdapter.addToStart(myMsg, true);
             LogUtil.i("发送消息： " + hello);
-            Message holdMsg = new Message(MessagesFixtures.getRandomId(), User.gpt, getString(R.string.hold_please));
-            messagesAdapter.addToStart(holdMsg, true);
+            Message holdMsgTmp = new Message(MessagesFixtures.getRandomId(), User.gpt, getString(R.string.hold_please));
+            initHoldMsg(holdMsgTmp);
+            messagesAdapter.addToStart(holdMsgTmp, true);
             ChatLog relog = new ChatLog();
             relog.content = GsonUtils.getInstance().toJson(msgContent);
             relog.who = ChatMessageBean.TYPE_SEND;
@@ -432,7 +442,7 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements Me
             ChatHistory chatHistory = new ChatHistory();
             chatHistory.setText(hello);
             chatHistory.setSessinId(sessionId);
-            chatHistory.setId(holdMsg.getId());
+            chatHistory.setId(holdMsgTmp.getId());
             chatHistory.setSettingName(setting);
             chatHistory.setCharater(content);
             baseService.postData(String.format(Constants.getUrl(Constants.CHAT_URL)), chatHistory, listener, new CommonResponse.ResponseErrorListener() {
@@ -475,22 +485,24 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements Me
             myMsg.setVoice(new Message.Voice(path, time));
             messagesAdapter.addToStart(myMsg, true);
 
-            Message holdMsg = new Message(MessagesFixtures.getRandomId(), User.gpt, getString(R.string.hold_please));
-            messagesAdapter.addToStart(holdMsg, true);
+            Message holdMsgTmp = new Message(MessagesFixtures.getRandomId(), User.gpt, getString(R.string.hold_please));
+            initHoldMsg(holdMsgTmp);
+            messagesAdapter.addToStart(holdMsgTmp, true);
 
             MsgContent msgContent = new MsgContent();
             msgContent.setContent(path);
             msgContent.setOrg(asr);
             msgContent.setTime(time);
             msgContent.setMsgId(myMsg.getId());
-            msgContent.setHoldId(holdMsg.getId());
+            msgContent.setHoldId(holdMsgTmp.getId());
             msgContents.add(msgContent);
 
             recognizeFile(wavPath, msgContent);
         }
     }
 
-
+    public void initHoldMsg(Message msg){
+    }
     public void recognizeFile(String filePath, MsgContent msgContent) {
     }
     public void llmCallBack(String text){}

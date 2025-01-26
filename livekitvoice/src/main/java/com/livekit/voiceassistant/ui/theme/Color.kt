@@ -1,4 +1,4 @@
-package io.livekit.android.example.voiceassistant.ui.theme
+package com.livekit.voiceassistant.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

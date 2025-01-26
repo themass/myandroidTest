@@ -215,4 +215,12 @@ public class CustomChatMessagesWithAsrActivity extends CustomChatMessagesActivit
         super.onResume();
         MediaManager.resume();
     }
+    @Override
+    public void initHoldMsg(Message msg){
+        boolean needTts = PreferenceUtils.getPrefBoolean(MyApplication.getInstance(), AsrConstants.TTS_OPEN, false);
+        if(needTts) {
+            msg.setMsgType(MessageType.AUDIO_TYPE);
+            msg.setVoice(new Message.Voice(null, 0));
+        }
+    }
 }

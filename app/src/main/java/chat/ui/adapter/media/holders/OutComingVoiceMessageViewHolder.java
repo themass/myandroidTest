@@ -23,7 +23,7 @@ public class OutComingVoiceMessageViewHolder
 
     private TextView tvDuration;
     private TextView messageText;
-
+    private Message message;
     public OutComingVoiceMessageViewHolder(View itemView, Object payload) {
         super(itemView, payload);
         tvDuration = itemView.findViewById(R.id.duration);
@@ -32,22 +32,29 @@ public class OutComingVoiceMessageViewHolder
     }
 
     public static void onLongClick(View view, Message msg) {
-        TextView messageText = view.findViewById(R.id.tv_message);
-        if(!StringUtils.isEmpty(msg.getText())){
-            messageText.setText(msg.getText());
-            messageText.setVisibility(View.VISIBLE);
-        }else{
-            messageText.setVisibility(View.GONE);
-        }
+//        TextView messageText = view.findViewById(R.id.tv_message);
+//        if(!StringUtils.isEmpty(msg.getText())){
+//            messageText.setText(msg.getText());
+//            messageText.setVisibility(View.VISIBLE);
+//        }else{
+//            messageText.setVisibility(View.GONE);
+//        }
     }
 
     @Override
     public void onBind(Message message) {
         super.onBind(message);
+        this.message = message;
         tvDuration.setText(
                 FormatUtils.getDurationString(
                         message.getVoice().getDuration()));
         messageText.setVisibility(View.GONE);
+        bubble.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                click(v, message);
+            }
+        });
     }
 
     public static ImageButton ivAudio;

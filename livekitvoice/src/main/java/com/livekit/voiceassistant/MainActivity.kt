@@ -1,10 +1,10 @@
-package io.livekit.android.example.voiceassistant
+package com.livekit.voiceassistant
 
 import android.os.Bundle
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentTransaction
 import io.livekit.android.annotations.Beta
+import io.livekit.android.example.voiceassistant.R
 
 class MainActivity : AppCompatActivity() {
     @OptIn(Beta::class)

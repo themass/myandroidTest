@@ -56,5 +56,7 @@ dependencies {
     implementation("com.github.ajalt:timberkt:1.5.1")
     implementation("androidx.appcompat:appcompat:1.7.0")
     debugImplementation("androidx.compose.ui:ui-tooling")
+    implementation("com.aghajari.waveanimation:AXWaveAnimation:1.0.0")
+
 
 }

@@ -30,5 +30,5 @@
     <dimen name="margin_58">58dip</dimen>
     <dimen name="heart_anim_h">150dip</dimen>
     <dimen name="margin_favrite">38dip</dimen>
-
+    <dimen name="loading_footer">12sp</dimen>
 </resources>

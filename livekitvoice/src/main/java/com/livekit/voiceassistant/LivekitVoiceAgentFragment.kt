@@ -1,10 +1,10 @@
-@file:OptIn(Beta::class)
-
-package io.livekit.android.example.voiceassistant
+package com.livekit.voiceassistant
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
+import android.util.Log
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,49 +17,61 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
+import androidx.fragment.app.Fragment
 import com.github.ajalt.timberkt.Timber
-import io.livekit.android.LiveKit
 import io.livekit.android.annotations.Beta
 import io.livekit.android.compose.local.RoomScope
 import io.livekit.android.compose.state.rememberVoiceAssistant
 import io.livekit.android.compose.state.transcriptions.rememberParticipantTranscriptions
 import io.livekit.android.compose.state.transcriptions.rememberTranscriptions
+import com.livekit.voiceassistant.ui.UserTranscription
+import com.livekit.voiceassistant.wave.MyWaveView
 import io.livekit.android.compose.ui.audio.VoiceAssistantBarVisualizer
-import io.livekit.android.example.voiceassistant.ui.UserTranscription
-import io.livekit.android.example.voiceassistant.ui.theme.LiveKitVoiceAssistantExampleTheme
-import io.livekit.android.util.LoggingLevel
 
-class LivekitVoiceAgentActivity : ComponentActivity() {
+@Beta
+class LivekitVoiceAgentFragment : Fragment() {
+    private var url: String? = null
+    private var token: String? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        LiveKit.loggingLevel = LoggingLevel.DEBUG
-        requireNeededPermissions {
-            requireToken { url, token ->
-                Timber.i { "Token: $token" }
-                setContent {
-                    LiveKitVoiceAssistantExampleTheme {
-                        VoiceAssistant(
-                            url,
-                            token,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
-                }
-            }
+        arguments?.let {
+            url = it.getString("url")
+            token = it.getString("token")
+            Log.i("myTag", "token：$token")
+            Log.i("myTag", "url:$url")
         }
     }
 
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        val view = ComposeView(requireContext())
+        view.setContent {
+            url?.let { url ->
+                token?.let { token ->
+                    VoiceAssistantFragmentContent(url, token)
+                }
+            }
+        }
+        return view
+    }
+
     @Composable
-    fun VoiceAssistant(url: String, token: String, modifier: Modifier = Modifier) {
-        ConstraintLayout(modifier = modifier) {
+    fun VoiceAssistantFragmentContent(url: String, token: String) {
+        ConstraintLayout(modifier = Modifier.fillMaxSize()) {
             RoomScope(
                 url,
                 token,
                 audio = true,
-                connect = true,
+                connect = true
             ) { room ->
                 val (audioVisualizer, chatLog) = createRefs()
                 Timber.i { "Token: $token" }
@@ -76,9 +88,9 @@ class LivekitVoiceAgentActivity : ComponentActivity() {
                 VoiceAssistantBarVisualizer(
                     voiceAssistant = voiceAssistant,
                     modifier = Modifier
-                        .padding(8.dp)
-                        .fillMaxWidth()
-                        .constrainAs(audioVisualizer) {
+                       .padding(8.dp)
+                       .fillMaxWidth()
+                       .constrainAs(audioVisualizer) {
                             height = Dimension.percent(0.1f)
                             width = Dimension.percent(0.8f)
 
@@ -87,7 +99,12 @@ class LivekitVoiceAgentActivity : ComponentActivity() {
                             end.linkTo(parent.end)
                         }
                 )
-
+                AndroidView(factory = { context ->
+                    MyWaveView(
+                        context,
+                        voiceAssistant
+                    )
+                })
                 // Get and display the transcriptions.
                 val segments = rememberTranscriptions()
                 val localSegments = rememberParticipantTranscriptions(room.localParticipant)
@@ -97,7 +114,7 @@ class LivekitVoiceAgentActivity : ComponentActivity() {
                     userScrollEnabled = true,
                     state = lazyListState,
                     modifier = Modifier
-                        .constrainAs(chatLog) {
+                       .constrainAs(chatLog) {
                             bottom.linkTo(parent.bottom)
                             start.linkTo(parent.start)
                             end.linkTo(parent.end)
@@ -111,8 +128,8 @@ class LivekitVoiceAgentActivity : ComponentActivity() {
                     ) { segment ->
                         Box(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(8.dp)
+                               .fillMaxWidth()
+                               .padding(8.dp)
                         ) {
                             if (localSegments.contains(segment)) {
                                 UserTranscription(
@@ -134,6 +151,17 @@ class LivekitVoiceAgentActivity : ComponentActivity() {
                     lazyListState.scrollToItem((segments.size - 1).coerceAtLeast(0))
                 }
             }
+        }
+    }
+
+    companion object {
+        fun newInstance(url: String, token: String): LivekitVoiceAgentFragment {
+            val fragment = LivekitVoiceAgentFragment()
+            val args = Bundle()
+            args.putString("url", url)
+            args.putString("token", token)
+            fragment.arguments = args
+            return fragment
         }
     }
 }

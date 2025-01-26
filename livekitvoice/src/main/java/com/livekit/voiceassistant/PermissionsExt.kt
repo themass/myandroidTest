@@ -1,4 +1,4 @@
-package io.livekit.android.example.voiceassistant
+package com.livekit.voiceassistant
 
 import android.Manifest
 import android.content.pm.PackageManager
