@@ -19,7 +19,7 @@ public class MyMessagesListAdapter extends MessagesListAdapter<Message> implemen
     public static final byte CONTENT_TYPE_VOICE = 1;
     private static MessageHolders holdersConfig = new MessageHolders()
             .setIncomingTextConfig(MyInComingMassageHandler.class,R.layout.item_custom_incoming_text_message_new)
-            .setOutcomingTextLayout(R.layout.item_custom_outcoming_text_message)
+            .setOutcomingTextLayout(R.layout.item_custom_outcoming_text_message_new)
             .setIncomingImageLayout(R.layout.item_custom_incoming_image_message)
             .setOutcomingImageLayout(R.layout.item_custom_outcoming_image_message)
             .setOutcomingTextConfig(MyOutComingMassageHandler.class, R.layout.item_custom_outcoming_text_message);
@@ -34,7 +34,7 @@ public class MyMessagesListAdapter extends MessagesListAdapter<Message> implemen
                 IncomingVoiceMessageViewHolder.class,
                 R.layout.item_custom_incoming_voice_message_new,
                 OutComingVoiceMessageViewHolder.class,
-                R.layout.item_custom_outcoming_voice_message,
+                R.layout.item_custom_outcoming_voice_message_new,
                 this);
 //        setOnMessageViewClickListener(this);
 //        setOnMessageViewLongClickListener(this);

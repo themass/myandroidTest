@@ -4,6 +4,8 @@ import android.graphics.drawable.AnimationDrawable;
 import android.media.MediaPlayer;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.openai.commonview.view.widget.MediaManager;
@@ -23,11 +25,13 @@ public class OutComingVoiceMessageViewHolder
 
     private TextView tvDuration;
     private TextView messageText;
+    private RelativeLayout llSound;
     private Message message;
     public OutComingVoiceMessageViewHolder(View itemView, Object payload) {
         super(itemView, payload);
         tvDuration = itemView.findViewById(R.id.duration);
         messageText = itemView.findViewById(R.id.tv_message);
+        llSound = itemView.findViewById(R.id.ll_sound);
 
     }
 
@@ -48,8 +52,7 @@ public class OutComingVoiceMessageViewHolder
         tvDuration.setText(
                 FormatUtils.getDurationString(
                         message.getVoice().getDuration()));
-        messageText.setVisibility(View.GONE);
-        bubble.setOnClickListener(new View.OnClickListener() {
+        llSound.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 click(v, message);
