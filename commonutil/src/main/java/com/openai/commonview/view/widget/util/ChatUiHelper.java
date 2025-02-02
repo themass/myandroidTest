@@ -61,7 +61,7 @@ public class ChatUiHelper {
     private EditText mEditText;
     private InputMethodManager mInputManager;
     private SharedPreferences mSp;
-    private ImageView mIvEmoji;
+//    private ImageView mIvEmoji;
     private PermissionHelper mPermissionHelper;
 
     public ChatUiHelper() {
@@ -174,7 +174,7 @@ public class ChatUiHelper {
                 if (event.getAction() == MotionEvent.ACTION_UP && mBottomLayout.isShown()) {
                     lockContentHeight();//显示软件盘时，锁定内容高度，防止跳闪。
                     hideBottomLayout(true);//隐藏表情布局，显示软件盘
-                    mIvEmoji.setImageResource(R.drawable.ic_emoji);
+//                    mIvEmoji.setImageResource(R.drawable.phone);
                     //软件盘显示后，释放内容高度
                     mEditText.postDelayed(new Runnable() {
                         @Override
@@ -295,55 +295,55 @@ public class ChatUiHelper {
 
     //绑定表情按钮点击事件
     public ChatUiHelper bindToEmojiButton(ImageView emojiBtn) {
-        mIvEmoji = emojiBtn;
-        emojiBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mEditText.clearFocus();
-                if (!mEmojiLayout.isShown()) {
-                    if (mAddLayout.isShown()) {
-                        showEmotionLayout();
-                        hideMoreLayout();
-                        hideAudioButton();
-                        return;
-                    }
-                } else if (mEmojiLayout.isShown() && !mAddLayout.isShown()) {
-                    mIvEmoji.setImageResource(R.drawable.ic_emoji);
-                    if (mBottomLayout.isShown()) {
-                        lockContentHeight();//显示软件盘时，锁定内容高度，防止跳闪。
-                        hideBottomLayout(true);//隐藏表情布局，显示软件盘
-                        unlockContentHeightDelayed();//软件盘显示后，释放内容高度
-                    } else {
-                        if (isSoftInputShown()) {//同上
-                            lockContentHeight();
-                            showBottomLayout();
-                            unlockContentHeightDelayed();
-                        } else {
-                            showBottomLayout();//两者都没显示，直接显示表情布局
-                        }
-                    }
-
-
-                    return;
-                }
-                showEmotionLayout();
-                hideMoreLayout();
-                hideAudioButton();
-                if (mBottomLayout.isShown()) {
-                    lockContentHeight();//显示软件盘时，锁定内容高度，防止跳闪。
-                    hideBottomLayout(true);//隐藏表情布局，显示软件盘
-                    unlockContentHeightDelayed();//软件盘显示后，释放内容高度
-                } else {
-                    if (isSoftInputShown()) {//同上
-                        lockContentHeight();
-                        showBottomLayout();
-                        unlockContentHeightDelayed();
-                    } else {
-                        showBottomLayout();//两者都没显示，直接显示表情布局
-                    }
-                }
-            }
-        });
+//        mIvEmoji = emojiBtn;
+//        emojiBtn.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+////                mEditText.clearFocus();
+////                if (!mEmojiLayout.isShown()) {
+////                    if (mAddLayout.isShown()) {
+////                        showEmotionLayout();
+////                        hideMoreLayout();
+////                        hideAudioButton();
+////                        return;
+////                    }
+////                } else if (mEmojiLayout.isShown() && !mAddLayout.isShown()) {
+////                    mIvEmoji.setImageResource(R.drawable.phone);
+////                    if (mBottomLayout.isShown()) {
+////                        lockContentHeight();//显示软件盘时，锁定内容高度，防止跳闪。
+////                        hideBottomLayout(true);//隐藏表情布局，显示软件盘
+////                        unlockContentHeightDelayed();//软件盘显示后，释放内容高度
+////                    } else {
+////                        if (isSoftInputShown()) {//同上
+////                            lockContentHeight();
+////                            showBottomLayout();
+////                            unlockContentHeightDelayed();
+////                        } else {
+////                            showBottomLayout();//两者都没显示，直接显示表情布局
+////                        }
+////                    }
+////
+////
+////                    return;
+////                }
+////                showEmotionLayout();
+////                hideMoreLayout();
+////                hideAudioButton();
+////                if (mBottomLayout.isShown()) {
+////                    lockContentHeight();//显示软件盘时，锁定内容高度，防止跳闪。
+////                    hideBottomLayout(true);//隐藏表情布局，显示软件盘
+////                    unlockContentHeightDelayed();//软件盘显示后，释放内容高度
+////                } else {
+////                    if (isSoftInputShown()) {//同上
+////                        lockContentHeight();
+////                        showBottomLayout();
+////                        unlockContentHeightDelayed();
+////                    } else {
+////                        showBottomLayout();//两者都没显示，直接显示表情布局
+////                    }
+////                }
+//            }
+//        });
         return this;
     }
 
@@ -420,12 +420,12 @@ public class ChatUiHelper {
 
     private void showEmotionLayout() {
         mEmojiLayout.setVisibility(View.VISIBLE);
-        mIvEmoji.setImageResource(R.drawable.ic_keyboard);
+//        mIvEmoji.setImageResource(R.drawable.ic_keyboard);
     }
 
     private void hideEmotionLayout() {
         mEmojiLayout.setVisibility(View.GONE);
-        mIvEmoji.setImageResource(R.drawable.ic_emoji);
+//        mIvEmoji.setImageResource(R.drawable.phone);
     }
 
     /**

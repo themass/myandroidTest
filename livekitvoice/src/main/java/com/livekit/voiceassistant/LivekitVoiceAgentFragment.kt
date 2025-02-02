@@ -5,6 +5,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,6 +18,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -67,13 +70,27 @@ class LivekitVoiceAgentFragment : Fragment() {
     @Composable
     fun VoiceAssistantFragmentContent(url: String, token: String) {
         ConstraintLayout(modifier = Modifier.fillMaxSize()) {
+            val (audioVisualizer, chatLog) = createRefs()
+
+            // 背景虚化效果
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .blur(10.dp) // 设置虚化效果
+                    .background(Color.White.copy(alpha = 0.5f)) // 设置半透明背景
+            ) {
+//                val voiceAssistant = rememberVoiceAssistant() // 初始化 voiceAssistant
+                AndroidView(factory = { context ->
+                    MyWaveView(context)
+                })
+            }
+
             RoomScope(
                 url,
                 token,
                 audio = true,
                 connect = true
             ) { room ->
-                val (audioVisualizer, chatLog) = createRefs()
                 Timber.i { "Token: $token" }
 
                 val voiceAssistant = rememberVoiceAssistant()
@@ -84,27 +101,7 @@ class LivekitVoiceAgentFragment : Fragment() {
                     Timber.i { "agent state: $agentState" }
                 }
 
-                // Amplitude visualization of the Assistant's voice track.
-                VoiceAssistantBarVisualizer(
-                    voiceAssistant = voiceAssistant,
-                    modifier = Modifier
-                       .padding(8.dp)
-                       .fillMaxWidth()
-                       .constrainAs(audioVisualizer) {
-                            height = Dimension.percent(0.1f)
-                            width = Dimension.percent(0.8f)
 
-                            top.linkTo(parent.top)
-                            start.linkTo(parent.start)
-                            end.linkTo(parent.end)
-                        }
-                )
-                AndroidView(factory = { context ->
-                    MyWaveView(
-                        context,
-                        voiceAssistant
-                    )
-                })
                 // Get and display the transcriptions.
                 val segments = rememberTranscriptions()
                 val localSegments = rememberParticipantTranscriptions(room.localParticipant)
@@ -114,7 +111,7 @@ class LivekitVoiceAgentFragment : Fragment() {
                     userScrollEnabled = true,
                     state = lazyListState,
                     modifier = Modifier
-                       .constrainAs(chatLog) {
+                        .constrainAs(chatLog) {
                             bottom.linkTo(parent.bottom)
                             start.linkTo(parent.start)
                             end.linkTo(parent.end)
@@ -128,8 +125,8 @@ class LivekitVoiceAgentFragment : Fragment() {
                     ) { segment ->
                         Box(
                             modifier = Modifier
-                               .fillMaxWidth()
-                               .padding(8.dp)
+                                .fillMaxWidth()
+                                .padding(8.dp)
                         ) {
                             if (localSegments.contains(segment)) {
                                 UserTranscription(
@@ -150,6 +147,21 @@ class LivekitVoiceAgentFragment : Fragment() {
                 LaunchedEffect(segments) {
                     lazyListState.scrollToItem((segments.size - 1).coerceAtLeast(0))
                 }
+                // Amplitude visualization of the Assistant's voice track.
+                VoiceAssistantBarVisualizer(
+                    voiceAssistant = voiceAssistant,
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .fillMaxWidth()
+                        .constrainAs(audioVisualizer) {
+                            height = Dimension.percent(0.1f)
+                            width = Dimension.percent(0.8f)
+                            bottom.linkTo(parent.bottom) // 将视图底部与父视图底部对齐
+//                            top.linkTo(parent.top)
+                            start.linkTo(parent.start)
+                            end.linkTo(parent.end)
+                        }
+                )
             }
         }
     }

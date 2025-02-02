@@ -268,6 +268,12 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
                 return CustomChatMessagesActivity.this;
             }
         });
+        input.setPhoneClickListener(new InputRecordView.PhoneClickListener() {
+            @Override
+            public void click() {
+                LogUtil.i("click phone");
+            }
+        });
         initChatSession();
     }
     public void initChatSession(){

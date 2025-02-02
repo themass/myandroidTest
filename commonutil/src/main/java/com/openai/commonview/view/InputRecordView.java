@@ -36,7 +36,7 @@ public class InputRecordView extends LinearLayout {
     LinearLayout mLlContent;
     ChatUiHelper mUiHelper;
     PicSelectListener picSelectListener;
-
+    PhoneClickListener phoneClickListener;
     public InputRecordView(Context context) {
         super(context);
         setupView();
@@ -86,6 +86,15 @@ public class InputRecordView extends LinearLayout {
         findViewById(R.id.rlLocation).setOnClickListener(v -> onViewClicked(v));
 
     }
+    public void setPhoneClickListener(PhoneClickListener phoneClickListener){
+        this.phoneClickListener = phoneClickListener;
+        mIvEmo.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                phoneClickListener.click();
+            }
+        });
+    }
 
     public void onViewClicked(View view) {
         int id = view.getId();
@@ -118,7 +127,7 @@ public class InputRecordView extends LinearLayout {
         mUiHelper.hideBottomLayout(false);
         mUiHelper.hideSoftInput();
         mEtContent.clearFocus();
-        mIvEmo.setImageResource(R.drawable.ic_emoji);
+        mIvEmo.setImageResource(R.drawable.phone);
     }
 
     public static interface PicSelectListener {
@@ -126,5 +135,7 @@ public class InputRecordView extends LinearLayout {
 
         public Activity picSelect();
     }
-
+    public static interface PhoneClickListener {
+        public void click();
+    }
 }

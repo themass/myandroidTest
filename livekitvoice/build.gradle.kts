@@ -55,8 +55,10 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:5.0.0-alpha.14")
     implementation("com.github.ajalt:timberkt:1.5.1")
     implementation("androidx.appcompat:appcompat:1.7.0")
+    implementation("androidx.constraintlayout:constraintlayout:2.2.0")
     debugImplementation("androidx.compose.ui:ui-tooling")
     implementation("com.aghajari.waveanimation:AXWaveAnimation:1.0.0")
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
 
 
 }

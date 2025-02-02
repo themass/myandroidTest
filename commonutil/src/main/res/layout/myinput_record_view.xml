@@ -74,16 +74,17 @@
 
             <ImageView
                 android:id="@+id/ivEmo"
-                android:layout_width="35dp"
-                android:layout_height="35dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:background="?attr/selectableItemBackground"
                 android:scaleType="fitXY"
-                android:src="@drawable/ic_emoji" />
+                android:clickable="true"
+                android:src="@drawable/phone" />
 
             <ImageView
                 android:id="@+id/ivAdd"
-                android:layout_width="35dp"
-                android:layout_height="35dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:layout_marginRight="5dp"
                 android:layout_marginLeft="5dp"
                 android:scaleType="fitXY"
@@ -96,7 +97,6 @@
                 android:layout_height="30dp"
                 android:layout_marginRight="10dp"
                 android:padding="1dp"
-                android:text="发送"
                 android:textColor="@color/white"
                 android:textSize="13sp"
                 android:visibility="gone"

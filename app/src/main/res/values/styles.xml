@@ -218,6 +218,12 @@
         <item name="android:layout_width">@dimen/margin_40</item>
         <item name="android:textSize">@dimen/textsize_12</item>
         <item name="android:layout_marginLeft">@dimen/margin_8</item>
-
+    </style>
+    <style name="menu_style_margin" parent="Widget.AppCompat.ActionButton">
+        <item name="android:layout_marginStart">2dp</item>
+        <item name="android:layout_marginEnd">2dp</item>
+        <item name="android:layout_marginTop">2dp</item>
+        <item name="android:layout_marginBottom">2dp</item>
+        <item name="android:padding">5dp</item>
     </style>
 </resources>

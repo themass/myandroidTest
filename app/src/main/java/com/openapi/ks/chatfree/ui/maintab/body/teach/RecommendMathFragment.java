@@ -73,7 +73,12 @@ public class RecommendMathFragment extends RecommendFragment {
         if (!checkUserLevel(vo.type)) {
             return;
         }
-        TeleplayChannelFragment.startFragment(getActivity(), vo);
+        if (vo.param.startsWith(Constants.VIDEO_TV_CHANNEL)) {
+            TeleplayChannelFragment.startFragment(getActivity(), vo);
+        } else {
+            VideoChannelListFragment.startFragment(getActivity(), vo);
+        }
+
         MobAgent.onEventRecommondChannel(getActivity(), vo.title);
     }
 }

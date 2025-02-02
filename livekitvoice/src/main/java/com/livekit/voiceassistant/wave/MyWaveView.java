@@ -18,8 +18,11 @@ import io.livekit.android.example.voiceassistant.R;
 public class MyWaveView extends LinearLayout {
 
     AXWaveView circleWave;
-    AXLineWaveView lineWave;
     VoiceAssistant voiceAssistant;
+    public MyWaveView(Context context) {
+        super(context);
+        setupView();
+    }
     public MyWaveView(Context context, VoiceAssistant assistant) {
         super(context);
         this.voiceAssistant = assistant;
@@ -29,6 +32,9 @@ public class MyWaveView extends LinearLayout {
     public MyWaveView(Context context, AttributeSet attrs) {
         super(context, attrs);
         setupView();
+    }
+    public void setVoiceAssistant(VoiceAssistant voiceAssistant){
+        this.voiceAssistant = voiceAssistant;
     }
 
     public MyWaveView(Context context, AttributeSet attrs, int defStyleAttr) {
@@ -42,6 +48,5 @@ public class MyWaveView extends LinearLayout {
         View myView = mInflater.inflate(R.layout.wave_view, null);
         addView(myView);
         circleWave = findViewById(R.id.circle_wave);
-        lineWave = findViewById(R.id.line_wave);
     }
 }
