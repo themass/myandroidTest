@@ -198,8 +198,12 @@ public class CustomChatMessagesWithAsrActivity extends CustomChatMessagesActivit
         super.llmCallBack(text);
         LogUtil.i("开始tts   "+text);
         boolean needTts = PreferenceUtils.getPrefBoolean(MyApplication.getInstance(), AsrConstants.TTS_OPEN, false);
-        if(needTts) {
-            asrByteDance.sendTtsEngine(text);
+        try {
+            if (needTts) {
+                asrByteDance.sendTtsEngine(text);
+            }
+        }catch (Exception e){
+            LogUtil.e(e);
         }
     }
 

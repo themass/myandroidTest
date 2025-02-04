@@ -218,7 +218,11 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
             log.setName(nameView.getText().toString());
             log.setCreateTime(new Date());
             log.setSetting("");
-            DBManager.getInstance().getDaoSession().getChatSessionLogDao().insert(log);
+            try {
+                DBManager.getInstance().getDaoSession().getChatSessionLogDao().insert(log);
+            }catch (Exception e){
+                LogUtil.e(e);
+            }
             onEvent(new ChatSessionEvent(log.id, log.setting));
             ToastUtil.showShort(R.string.save_ok);
             LogUtil.i("对话名称：" + nameView.getText().toString() + "---" + log.id);

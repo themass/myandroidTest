@@ -66,41 +66,45 @@ public class IncomingVoiceMessageViewHolder
     public static ImageButton ivAudio;
     public static void click(View view, Message message) {
         LogUtil.i("msg clicked " + message);
-        if(StringUtils.isEmpty(message.getVoice().getUrl())){
-            return;
-        }
-        if(MediaManager.isStart()){
-            if(OutComingVoiceMessageViewHolder.ivAudio!=null){
-                OutComingVoiceMessageViewHolder.ivAudio.setBackgroundResource(R.drawable.audio_animation_list_right_3);
-                OutComingVoiceMessageViewHolder.ivAudio = null;
-                MediaManager.reset();
+        try {
+            if (StringUtils.isEmpty(message.getVoice().getUrl())) {
+                return;
             }
-        }
-        if(ivAudio!= null  && ivAudio==view.findViewById(R.id.ib_audio)){
-            MediaManager.reset();
-            ivAudio.setBackgroundResource(R.drawable.audio_animation_list_left_3);
-            ivAudio = null;
-            return;
-        }
-
-        if (ivAudio != null) {
-            ivAudio.setBackgroundResource(R.drawable.audio_animation_list_left_3);
-            ivAudio = null;
-            MediaManager.reset();
-        }
-        ivAudio = view.findViewById(R.id.ib_audio);
-        MediaManager.reset();
-        ivAudio.setBackgroundResource(R.drawable.audio_animation_left_list);
-        AnimationDrawable drawable = (AnimationDrawable) ivAudio.getBackground();
-        drawable.start();
-        MediaManager.playSound(MyApplication.getInstance(), message.getVoice().getUrl(), new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mp) {
-                LogUtil.i("play over");
+            if (MediaManager.isStart()) {
+                if (OutComingVoiceMessageViewHolder.ivAudio != null) {
+                    OutComingVoiceMessageViewHolder.ivAudio.setBackgroundResource(R.drawable.audio_animation_list_right_3);
+                    OutComingVoiceMessageViewHolder.ivAudio = null;
+                    MediaManager.reset();
+                }
+            }
+            if (ivAudio != null && ivAudio == view.findViewById(R.id.ib_audio)) {
+                MediaManager.reset();
                 ivAudio.setBackgroundResource(R.drawable.audio_animation_list_left_3);
                 ivAudio = null;
-                MediaManager.release();
+                return;
             }
-        });
+
+            if (ivAudio != null) {
+                ivAudio.setBackgroundResource(R.drawable.audio_animation_list_left_3);
+                ivAudio = null;
+                MediaManager.reset();
+            }
+            ivAudio = view.findViewById(R.id.ib_audio);
+            MediaManager.reset();
+            ivAudio.setBackgroundResource(R.drawable.audio_animation_left_list);
+            AnimationDrawable drawable = (AnimationDrawable) ivAudio.getBackground();
+            drawable.start();
+            MediaManager.playSound(MyApplication.getInstance(), message.getVoice().getUrl(), new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mp) {
+                    LogUtil.i("play over");
+                    ivAudio.setBackgroundResource(R.drawable.audio_animation_list_left_3);
+                    ivAudio = null;
+                    MediaManager.release();
+                }
+            });
+        }catch (Exception e){
+            LogUtil.e(e);
+        }
     }
 }

@@ -27,7 +27,7 @@ public class InputRecordView extends LinearLayout {
     EditText mEtContent;
     RelativeLayout mRlBottomLayout;//表情,添加底部布局
     ImageView mIvAdd;
-    ImageView mIvEmo;
+    ImageView mIvPhone;
     StateButton mBtnSend;//发送按钮
     ImageView mIvAudio;//录音图片
     RecordButton mBtnAudio;//录音按钮
@@ -59,7 +59,7 @@ public class InputRecordView extends LinearLayout {
         mEtContent = findViewById(R.id.et_content);
         mRlBottomLayout = findViewById(R.id.bottom_layout);
         mIvAdd = findViewById(R.id.ivAdd);
-        mIvEmo = findViewById(R.id.ivEmo);
+        mIvPhone = findViewById(R.id.iv_phone);
         mBtnSend = findViewById(R.id.btn_send);
         mIvAudio = findViewById(R.id.ivAudio);
         mBtnAudio = findViewById(R.id.btnAudio);
@@ -74,7 +74,7 @@ public class InputRecordView extends LinearLayout {
                 .bindEmojiLayout(mLlEmotion)
                 .bindAddLayout(mLlAdd)
                 .bindToAddButton(mIvAdd)
-                .bindToEmojiButton(mIvEmo)
+                .bindToEmojiButton(mIvPhone)
                 .bindAudioBtn(mBtnAudio)
                 .bindAudioIv(mIvAudio)
                 .bindEmojiData(this);
@@ -88,7 +88,7 @@ public class InputRecordView extends LinearLayout {
     }
     public void setPhoneClickListener(PhoneClickListener phoneClickListener){
         this.phoneClickListener = phoneClickListener;
-        mIvEmo.setOnClickListener(new OnClickListener() {
+        mIvPhone.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
                 phoneClickListener.click();
@@ -127,7 +127,7 @@ public class InputRecordView extends LinearLayout {
         mUiHelper.hideBottomLayout(false);
         mUiHelper.hideSoftInput();
         mEtContent.clearFocus();
-        mIvEmo.setImageResource(R.drawable.phone);
+        mIvPhone.setImageResource(R.drawable.phone);
     }
 
     public static interface PicSelectListener {

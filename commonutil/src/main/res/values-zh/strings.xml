@@ -36,12 +36,13 @@
     <string name="input_pass">按住录音</string>
     <string name="coming_soon_please"> 敬请期待...</string>
     <string name="click_say">按住 说话</string>
-
+    <string name="send">发送</string>
     <string name="input_picture">相册</string>
     <string name="input_video">视频</string>
     <string name="input_file">文件</string>
     <string name="input_position">位置</string>
     <string name="menu_share_copy_ok">已复制到剪切板</string>
     <string name="no_browser">没有安装浏览器</string>
+    <string name="load">加载更多..</string>
 
 </resources>
