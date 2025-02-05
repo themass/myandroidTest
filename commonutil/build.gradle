@@ -59,7 +59,6 @@ dependencies {
     api 'org.greenrobot:greendao:3.3.0'
 
     api 'com.google.android.exoplayer:exoplayer:2.19.1'
-//    api 'com.github.CarGuo.GSYVideoPlayer:GSYVideoPlayer:v9.0.0-release-jitpack'
     api 'com.github.CarGuo.GSYVideoPlayer:gsyvideoplayer:v10.0.0'
 
     // 对话框，chat
@@ -77,7 +76,8 @@ dependencies {
     // simple camerax library (Not necessary)
     api 'io.github.lucksiege:camerax:v3.11.2'
 
-    
+    api 'com.android.volley:volley:1.2.1'
+
     implementation "androidx.appcompat:appcompat:1.7.0"
     implementation "androidx.legacy:legacy-support-v13:1.0.0"
     implementation "androidx.legacy:legacy-support-v4:1.0.0"

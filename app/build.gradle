@@ -119,7 +119,6 @@ dependencies {
     implementation project(":asr")
     implementation project(":commonutil")
     implementation project(":ads")
-    implementation files('../commonutil/libs/volley.jar')
     implementation project(":messagekit")
     implementation project(':livekitvoice')
 
