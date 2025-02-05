@@ -15,8 +15,8 @@ android {
         applicationId "com.openapi.ks.chat"
         minSdk rootProject.ext.minSdkVersion
         targetSdk rootProject.ext.targetSdkVersion
-        versionCode 1001000032
-        versionName "1.1.0.32"
+        versionCode 100100003
+        versionName "1.1.0.3"
         // Enabling multidex support.
         multiDexEnabled true
         flavorDimensions "versionCode"
