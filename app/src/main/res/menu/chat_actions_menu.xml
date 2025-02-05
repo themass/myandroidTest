@@ -28,6 +28,7 @@
         android:id="@+id/sound_switch"
         android:icon="@drawable/song_play_icon"
         android:title="@string/action_sessiom"
-        app:showAsAction="always" />
+        app:showAsAction="always"
+        android:visible="false"/>
 
 </menu>

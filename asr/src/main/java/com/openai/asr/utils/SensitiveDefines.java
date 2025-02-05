@@ -20,8 +20,8 @@ public class SensitiveDefines {
     public static final String DID = "mytest";
 
     // Online & Resource Authorization
-    private static final String APPID = "4966581804";
-    private static final String TOKEN = "Bearer;yT2m2hVfJjhy79G6MfTB4Jv3X7JRpGs7";
+    private static final String APPID = "4319026663";
+    private static final String TOKEN = "Bearer;YJYBl-jGgkv-AZfQrwObHWfbwa5w3aAX";
     private static final String ASR_DEFAULT_CLUSTER = "volcengine_input_common";
     private static final String TTS_DEFAULT_CLUSTER = "volcano_tts";
     private static final String DEFUALT_VOICE="BV001_streaming";
