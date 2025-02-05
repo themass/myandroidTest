@@ -1,45 +1,58 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="8dp"
     android:layout_marginLeft="16dp"
+    android:layout_marginTop="8dp"
     android:layout_marginRight="10dp"
-    android:layout_marginTop="8dp">
+    android:layout_marginBottom="8dp">
 
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/messageUserAvatar"
         android:layout_width="16dp"
         android:layout_height="16dp"
+        android:layout_alignParentRight="true"
         android:layout_marginLeft="8dp"
         android:layout_marginTop="15dp"
-        android:layout_alignParentRight="true"
         android:background="@drawable/ic_default_nan" />
 
     <!--this view is needed for custom holder-->
-
-    <LinearLayout
-        android:id="@id/bubble"
+    <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_marginLeft="15dp"
-        android:layout_marginStart="15dp"
-        android:orientation="vertical">
+        android:layout_marginLeft="3dp"
+        android:layout_marginEnd="3dp"
+        android:layout_toLeftOf="@id/messageUserAvatar">
 
-        <TextView
-            android:id="@id/messageText"
-            android:textColor="@color/black"
+        <LinearLayout
+            android:id="@id/bubble"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_marginStart="15dp"
+            android:layout_marginLeft="15dp"
+            android:orientation="vertical"
+            >
 
-    </LinearLayout>
+            <TextView
+                android:id="@id/messageText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/black" />
 
-    <TextView
-        android:id="@+id/messageTime"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignRight="@id/bubble"
-        android:layout_below="@id/bubble"
-        android:layout_marginRight="10dp" />
+        </LinearLayout>
 
+        <RelativeLayout
+            android:id="@+id/ll_sound"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="10dp"
+            android:layout_below="@+id/bubble">
+            <TextView
+                android:id="@+id/messageTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="10dp"
+                android:layout_alignParentRight="true"/>
+        </RelativeLayout>
+    </RelativeLayout>
 </RelativeLayout>

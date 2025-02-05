@@ -53,11 +53,7 @@
 
     <!-- slidingclose-->
     <dimen name="toolbar_minHeight">0dp</dimen>
-    <!-- Common -->
-
-    <!-- Music -->
-
-    <!-- CharacterView -->
+    <dimen name="list_video_high">200dp</dimen>
 
 
 </resources>

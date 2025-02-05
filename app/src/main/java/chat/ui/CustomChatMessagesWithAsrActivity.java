@@ -75,15 +75,17 @@ public class CustomChatMessagesWithAsrActivity extends CustomChatMessagesActivit
     @Override
     public void speechAsrResult(String data, boolean isFinish) {
 
-        if (isFinish && !StringUtils.isEmpty(data)) {
+        if (isFinish) {
             this.runOnUiThread(() -> {
                 try {
                     // 从回调的 json 数据中解析 ASR 结果
+                    LogUtil.i("data="+data);
                     JSONObject reader = new JSONObject(data);
-                    if (!reader.has("result")) {
-                        return;
+                    String  text = "......";
+                    if (reader.has("result")) {
+                         text = reader.getJSONArray("result").getJSONObject(0).getString("text");
                     }
-                    String text = reader.getJSONArray("result").getJSONObject(0).getString("text");
+
                     if (text.isEmpty()) {
                         text = "......";
                     }

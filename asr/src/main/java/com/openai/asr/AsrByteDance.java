@@ -46,7 +46,7 @@ public class AsrByteDance implements SpeechEngine.SpeechListener {
                 // Callback: 错误信息回调
                 LogUtil.i("Callback: 错误信息: " + stdData);
 //                speechError(stdData);
-                asrCallBackListener.speechAsrResult("......", true);
+                asrCallBackListener.speechAsrResult("{}", true);
                 break;
             case SpeechEngineDefines.MESSAGE_TYPE_CONNECTION_CONNECTED:
 //                LogUtil.i("Callback: 建连成功: data: " + stdData);

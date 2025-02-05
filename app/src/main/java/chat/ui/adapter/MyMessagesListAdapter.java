@@ -19,10 +19,9 @@ public class MyMessagesListAdapter extends MessagesListAdapter<Message> implemen
     public static final byte CONTENT_TYPE_VOICE = 1;
     private static MessageHolders holdersConfig = new MessageHolders()
             .setIncomingTextConfig(MyInComingMassageHandler.class,R.layout.item_custom_incoming_text_message_new)
-            .setOutcomingTextLayout(R.layout.item_custom_outcoming_text_message_new)
             .setIncomingImageLayout(R.layout.item_custom_incoming_image_message)
             .setOutcomingImageLayout(R.layout.item_custom_outcoming_image_message)
-            .setOutcomingTextConfig(MyOutComingMassageHandler.class, R.layout.item_custom_outcoming_text_message);
+            .setOutcomingTextConfig(MyOutComingMassageHandler.class, R.layout.item_custom_outcoming_text_message_new);
     protected static ImageLoader imageLoader = (imageView, url, payload) -> {
         imageView.setImageResource(R.drawable.ai_chat);
     };
