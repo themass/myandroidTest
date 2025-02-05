@@ -65,4 +65,15 @@ dependencies {
     implementation("androidx.recyclerview:recyclerview:1.3.2")
 
 
+    implementation("com.github.xfans:VoiceWaveView:1.0.2")
+    implementation( "com.github.Jay-Goo:WaveLineView:v1.0.4")
+    implementation( "com.github.Jay-Goo:AndroidMP3Recorder:v1.0.7")
+    implementation( "com.aghajari.waveanimation:AXWaveAnimation:1.0.0")
+    implementation( "com.skyfishjy.ripplebackground:library:1.0.1")
+    implementation( "com.cleveroad:audiovisualization:1.0.1")
+    implementation( "com.yalantis:eqwaves:1.0.1")
+    implementation( "com.github.GitHubZJY:AudioVisualizeView:v1.0.2")
+    implementation( "org.firezenk:audiowaves:1.1@aar")
+    implementation( "com.narayanacharya:WaveView:0.9.4")
+
 }

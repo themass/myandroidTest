@@ -15,5 +15,31 @@
             android:name="com.livekit.voiceassistant.MainActivity"
             android:exported="true">
         </activity>
+
+        <activity
+            android:name="test.WaveActivity"
+            android:exported="true">
+        </activity>
+        <activity
+            android:name="test.WaveTest2"
+            android:exported="true">
+        </activity>
+        <activity
+            android:name="test.HorizonActivity"
+            android:exported="true">
+        </activity>
+        <activity android:name="test.audiovisualizeview.AudioVisualizeViewMainActivity" android:exported="true">
+        </activity>
+
+        <activity android:name="test.audiovisualizeview.ReflectVisualizeActivity" android:exported="true"/>
+        <activity android:name="test.audiovisualizeview.CircleVisualizeActivity" android:exported="true"/>
+        <activity android:name="test.audiovisualizeview.SingleVisualizeActivity" android:exported="true"/>
+        <activity android:name="test.audiovisualizeview.WaveVisualizeActivity" android:exported="true"/>
+        <activity android:name="test.audiovisualizeview.NetVisualizeActivity" android:exported="true"/>
+        <activity android:name="test.audiovisualizeview.GrainVisualizeActivity" android:exported="true"/>
+        <activity android:name="test.AudioWavesMainActivity" android:exported="true"/>
+        <activity android:name="test.narayanacharya.waveviewexample.BuilderExampleActivity" android:exported="true"/>
+        <activity android:name="test.narayanacharya.waveviewexample.FireZenkMainActivity" android:exported="true"/>
+
     </application>
 </manifest>

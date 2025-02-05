@@ -3,6 +3,7 @@ package com.openapi.ks.myapp.ui.base.app;
 import androidx.annotation.Nullable;
 import androidx.drawerlayout.widget.DrawerLayout;
 
+import android.content.Context;
 import android.content.Intent;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -37,6 +38,7 @@ import com.openapi.ks.myapp.data.config.LocationChooseEvent;
 import com.openapi.ks.myapp.data.config.StateUseEvent;
 import com.openapi.ks.myapp.data.config.UserLoginEvent;
 import com.openapi.ks.myapp.data.config.VipDescEvent;
+import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
 import com.openapi.ks.myapp.ui.base.WebViewActivity;
 import com.openapi.ks.myapp.ui.feedback.IWannaFragment;
 import com.openapi.ks.myapp.ui.fragment.AppListFragment;
@@ -351,7 +353,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                     startActivity(WaveTest2.class);
                     startActivity(MainActivity.class);
                     startActivity(RippleActivity.class);
-                    AudioRecordingFragment.startFragment(BaseDrawerActivity.this);
+                    startFragment();
                     startActivity(HorizonActivity.class);
                     startActivity(AudioWavesMainActivity.class);
                     startActivity(AudioVisualizeViewMainActivity.class);
@@ -367,7 +369,14 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
             }
         });
     }
-
+    public void startFragment() {
+        Intent intent = new Intent(BaseDrawerActivity.this, CommonFragmentActivity.class);
+        intent.putExtra(CommonFragmentActivity.FRAGMENT, AudioRecordingFragment.class);
+        intent.putExtra(CommonFragmentActivity.TITLE, R.string.menu_btn_donation);
+        intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, false);
+        intent.putExtra(CommonFragmentActivity.ADSSCROLL, false);
+        startActivity(intent);
+    }
     public void showShare() {
         String url = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.D_URL, null);
         if (!StringUtils.hasText(url)) {
