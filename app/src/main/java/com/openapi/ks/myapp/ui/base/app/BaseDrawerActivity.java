@@ -5,6 +5,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 
 import android.content.Context;
 import android.content.Intent;
+import android.provider.MediaStore;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -341,6 +342,9 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                     showShare();
                     name = "分享";
                 }  else if (item.getItemId() == R.id.menu_test) {
+
+                        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                        startActivityForResult(intent, 11);
 //                    startActivity(WaveTest2.class);
 //                    startActivity(MainActivity.class);
 //                    startActivity(RippleActivity.class);

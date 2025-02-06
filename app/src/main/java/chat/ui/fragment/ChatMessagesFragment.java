@@ -99,7 +99,6 @@ public class ChatMessagesFragment extends BaseChatPullLoadbleFragment
         @Override
         public void onResponse(Choice vo) {
             holdMsg = new Message(vo.getId(), User.gpt, vo.getMessage().getContent());
-            LogUtil.i(vo);
             if (!StringUtils.isEmpty(vo.getMessage().getContent())) {
                 MsgContent msgContent = new MsgContent();
                 msgContent.setContent(vo.getMessage().getContent());

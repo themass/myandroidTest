@@ -161,7 +161,6 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
             }
         }
         holder.ivPhoto.setBackgroundColor(Color.parseColor(vo.color));
-        LogUtil.i("color2 = "+vo.color);
         ViewGroup.LayoutParams ivPhotoParam = holder.ivPhoto.getLayoutParams();
         ivPhotoParam.height = (int) (imgWidth * vo.rate);
         ivPhotoParam.width = imgWidth;

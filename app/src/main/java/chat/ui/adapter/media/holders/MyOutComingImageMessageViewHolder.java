@@ -1,24 +1,15 @@
 package chat.ui.adapter.media.holders;
 
-import android.graphics.drawable.AnimationDrawable;
-import android.media.MediaPlayer;
-import android.util.TypedValue;
+import android.content.Intent;
+import android.os.Bundle;
 import android.view.View;
-import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
-
-import androidx.core.view.ViewCompat;
-
-import com.openai.commonutil.FormatUtils;
 import com.openai.commonutil.LogUtil;
-import com.openai.commonview.view.widget.MediaManager;
-import com.openapi.ks.chat.R;
-import com.openapi.ks.myapp.base.MyApplication;
+import com.openapi.ks.myapp.ui.sound.MyFullScreenImageGalleryActivity;
+
+import java.util.ArrayList;
 
 import chat.ui.data.model.Message;
-import tz.co.hosannahighertech.messagekit.messages.MessagesListStyle;
 import tz.co.hosannahighertech.messagekit.utils.RoundedImageView;
 
 /*
@@ -29,13 +20,12 @@ public class MyOutComingImageMessageViewHolder
 
     private Message message;
     protected ImageView image;
-    protected View imageOverlay;
+//    protected View imageOverlay;
 
     public MyOutComingImageMessageViewHolder(View itemView, Object payload) {
         super(itemView, payload);
         image = (ImageView) itemView.findViewById(tz.co.hosannahighertech.messagekit.R.id.image);
-        imageOverlay = itemView.findViewById(tz.co.hosannahighertech.messagekit.R.id.imageOverlay);
-
+//        imageOverlay = itemView.findViewById(tz.co.hosannahighertech.messagekit.R.id.imageOverlay);
         if (image instanceof RoundedImageView) {
             ((RoundedImageView) image).setCorners(
                     tz.co.hosannahighertech.messagekit.R.dimen.message_bubble_corners_radius,
@@ -54,10 +44,22 @@ public class MyOutComingImageMessageViewHolder
         if (image != null && imageLoader != null) {
             imageLoader.loadImage(image, message.getImageUrl(), null);
         }
-
-        if (imageOverlay != null) {
-            imageOverlay.setSelected(isSelected());
-        }
+        image.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String url = "file://"+message.getImageUrl();
+                LogUtil.i("打开图片"+url);
+                ArrayList list = new ArrayList();
+                list.add(url);
+                Intent intent = new Intent(view.getContext(), MyFullScreenImageGalleryActivity.class);
+                Bundle bundle = new Bundle();
+                bundle.putStringArrayList(MyFullScreenImageGalleryActivity.KEY_IMAGES, list);
+                bundle.putInt(MyFullScreenImageGalleryActivity.KEY_POSITION, 1);
+                intent.putExtras(bundle);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                image.getContext().startActivity(intent);
+            }
+        });
     }
 
 }

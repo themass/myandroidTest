@@ -69,7 +69,6 @@ public class SaveImageTask extends AsyncTask<String, Void, Void> {
         // 首先保存图片
         File appDir = PathUtil.initPicturesDiskCacheFile();
         String name = PathUtil.getFileExtensionFromUrl(url);
-        LogUtil.i(name);
         if (StringUtils.isEmpty(name)) {
             name = System.currentTimeMillis() + "";
         }

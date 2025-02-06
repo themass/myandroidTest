@@ -20,9 +20,11 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.android.volley.Response;
+import com.google.common.collect.Lists;
 import com.luck.picture.lib.basic.PictureSelector;
 import com.luck.picture.lib.entity.LocalMedia;
 import com.openai.asr.AsrConstants;
+import com.openai.commonutil.ImageUtils;
 import com.openai.commonutil.PreferenceUtils;
 import com.openai.commonutil.StringUtils;
 import com.openai.commonview.view.InputRecordView;
@@ -58,6 +60,7 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -72,6 +75,9 @@ import chat.ui.data.model.Message;
 import chat.ui.data.model.MessageType;
 import chat.ui.data.model.MsgContent;
 import chat.ui.data.model.User;
+import okhttp3.MultipartBody;
+import okhttp3.Request;
+import okhttp3.RequestBody;
 import tz.co.hosannahighertech.messagekit.messages.MessagesList;
 import tz.co.hosannahighertech.messagekit.messages.MessagesListAdapter;
 
@@ -103,6 +109,7 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
     CommonResponse.ResponseOkListener listener = new CommonResponse.ResponseOkListener<Choice>() {
         @Override
         public void onResponse(Choice vo) {
+            LogUtil.i("llm 返回"+ GsonUtils.getInstance().toJson(vo));
             holdMsg = new Message(vo.getId(), User.gpt, vo.getMessage().getContent());
             initHoldMsg(holdMsg);
             if (!StringUtils.isEmpty(vo.getMessage().getContent())) {
@@ -318,7 +325,8 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
                     holdMsg.setVoice(new Message.Voice(msgContent.getContent(), msgContent.getTime()));
                 }
                 if (log.msgType == MessageType.IMAGE_TYPE) {
-
+                    holdMsg = new Message(log.getChatId(), log.getWho() == ChatMessageBean.TYPE_RECEIVED ? User.gpt : User.my, msgContent.getOrg(), log.getCreateTime());
+                    holdMsg.setImage(new Message.Image(msgContent.getContent()));
                 }
                 holdMsg.setMsgType(log.getMsgType());
                 messagesAdapter.addToStart(holdMsg, true);
@@ -399,7 +407,7 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
                     // 图片选择结果回调
                     List<LocalMedia> selectListPic = PictureSelector.obtainSelectorList(data);
                     for (LocalMedia media : selectListPic) {
-                        LogUtil.i("获取图片路径成功:" + media.getPath()+media.getRealPath());
+                        LogUtil.i("获取图片路径成功:" + media.getRealPath());
                         sendImageMessage(media);
                     }
                     break;
@@ -446,12 +454,7 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
             chatHistory.setId(holdMsgTmp.getId());
             chatHistory.setSettingName(setting);
             chatHistory.setCharater(content);
-            baseService.postData(String.format(Constants.getUrl(Constants.CHAT_URL)), chatHistory, listener, new CommonResponse.ResponseErrorListener() {
-                @Override
-                protected void onError() {
-                    super.onError();
-                }
-            }, TAG, Choice.class);
+            baseService.postData(String.format(Constants.getUrl(Constants.CHAT_URL)), chatHistory, listener, new CommonResponse.ResponseErrorListener(), TAG, Choice.class);
 //            AdsContext.showRand(this);
         }
     }
@@ -459,10 +462,39 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
 
     //图片消息
     private void sendImageMessage(final LocalMedia media) {
-        Message myMsg = new Message(MessagesFixtures.getRandomId(), User.my, "");
-        myMsg.setMsgType(MessageType.IMAGE_TYPE);
-        myMsg.setImage(new Message.Image(media.getRealPath()));
-        messagesAdapter.addToStart(myMsg, true);
+        if (UserLoginUtil.getUserCache() == null) {
+            ToastUtil.showShort(R.string.need_login);
+            startActivity(new Intent(this, LoginActivity.class));
+            return;
+        }
+        try {
+            MsgContent msgContent = new MsgContent();
+            msgContent.setContent(media.getRealPath());
+            Message myMsg = new Message(MessagesFixtures.getRandomId(), User.my, "");
+            myMsg.setMsgType(MessageType.IMAGE_TYPE);
+            myMsg.setImage(new Message.Image(media.getRealPath()));
+            messagesAdapter.addToStart(myMsg, true);
+            LogUtil.i("发送消息： " + media.getRealPath());
+            Message holdMsgTmp = new Message(MessagesFixtures.getRandomId(), User.gpt, getString(R.string.hold_please));
+            initHoldMsg(holdMsgTmp);
+            messagesAdapter.addToStart(holdMsgTmp, true);
+            ChatLog relog = new ChatLog();
+            relog.content = GsonUtils.getInstance().toJson(msgContent);
+            relog.who = ChatMessageBean.TYPE_SEND;
+            relog.msgType = MessageType.IMAGE_TYPE;
+            relog.setChatId(myMsg.getId());
+            relog.createTime = new Date();
+            relog.sessionId = sessionId;
+            DBManager.getInstance().saveChatLog(relog);
+            ChatHistory chatHistory = new ChatHistory();
+            chatHistory.setSessinId(sessionId);
+            chatHistory.setId(holdMsgTmp.getId());
+            LogUtil.i("站位id"+chatHistory.getId());
+            baseService.postData(String.format(Constants.getUrl(Constants.CHAT_IMAGE_URL)), chatHistory, Arrays.asList(new File(media.getRealPath())), listener,new CommonResponse.ResponseErrorListener(), "image",TAG, Choice.class);
+        }catch (Exception e){
+            LogUtil.e(e);
+        }
+
     }
 
 

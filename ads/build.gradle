@@ -29,6 +29,7 @@ android {
 dependencies {
     api 'com.google.android.gms:play-services-ads:23.2.0'
     api 'com.facebook.android:audience-network-sdk:6.+'
+    implementation 'com.facebook.infer.annotation:infer-annotation:0.18.0'
 
     implementation project(":commonutil")
 

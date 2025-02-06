@@ -67,7 +67,6 @@ public class LocationPingTask extends AsyncTask<Void, Void, Void> {
     protected Void doInBackground(Void... params) {
         try {
             vo.ping = HttpUtils.pingVal(vo.gateway);
-            LogUtil.i(vo.toString());
         } catch (Exception e) {
             LogUtil.e(e);
         }

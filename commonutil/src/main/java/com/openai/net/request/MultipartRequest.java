@@ -36,14 +36,22 @@ public class MultipartRequest<T> extends BaseRequest<T> {
         this.name = name;
         this.clasz = clasz;
     }
-
+    public MultipartRequest(Context context,
+                            String url, Map<String, String> headers, List<File> file, Map<String, String> param, String name, Listener<T> listener,
+                            ErrorListener errorListener, Class<T> clasz) {
+        super(context, Method.POST, url, headers, listener, errorListener);
+        this.file = file;
+        this.name = name;
+        this.param = param;
+        this.clasz = clasz;
+    }
     @Override
-    protected Map<String, String> getParams() throws AuthFailureError {
+    public Map<String, String> getParams() throws AuthFailureError {
         return param;
     }
 
     @Override
-    protected Map<String, String> getPostParams() throws AuthFailureError {
+    public Map<String, String> getPostParams() throws AuthFailureError {
         return param;
     }
 
@@ -67,7 +75,6 @@ public class MultipartRequest<T> extends BaseRequest<T> {
     protected Response<T> parseNetworkResponse(NetworkResponse response) {
         try {
             String json = getResponseStr(response);
-            LogUtil.i(json);
             JsonResult<T> data = DataBuilder.parserVo(clasz, json, getAuthkey());
             return parserData(data, response);
         } catch (Exception e) {

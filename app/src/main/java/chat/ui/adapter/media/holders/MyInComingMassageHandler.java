@@ -23,8 +23,8 @@ public class MyInComingMassageHandler extends MessageHolders.IncomingTextMessage
         composeView = itemView.findViewById(R.id.markdownMessageText);
         messageUserAvatar = (CircleImageView) itemView.findViewById(R.id.messageUserAvatar);
         WebSettings webSettings = composeView.getSettings();
-// 设置默认字体大小
-        webSettings.setDefaultFontSize(14);
+        // 设置默认字体大小
+        webSettings.setDefaultFontSize(16);
     }
 
     @Override

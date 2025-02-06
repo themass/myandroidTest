@@ -478,3 +478,11 @@ public static java.lang.String TABLENAME;
 -keep class * extends androidx.lifecycle.AndroidViewModel
 -keep class com.chatwaifu.lipsync.** {*; }
 -keep class com.chatwaifu.lipsync.LipSyncJNI$* { *; }
+
+-keep class com.facebook.** { *; }
+-keepclassmembers class com.facebook.** {
+    <fields>;
+    <methods>;
+}
+-keep class com.facebook.infer.annotation.Nullsafe$Mode { *; }
+-keep class com.facebook.ads.** { *; }

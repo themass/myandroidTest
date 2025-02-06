@@ -57,27 +57,6 @@ public class MyMessagesListAdapter extends MessagesListAdapter<Message> implemen
         }
         return false;
     }
-
-//    @Override
-//    public void onMessageViewClick(View view, IMessage message) {
-//        Message msg = (Message) message;
-//        if(msg.getUser() == User.my){
-//            if (msg.getVoice() != null) {
-//                OutComingVoiceMessageViewHolder.click(view, msg);
-//                OutComingVoiceMessageViewHolder.onLongClick(view, msg);
-//            } else if (msg.getImage() != null) {
-//
-//            }
-//        }if(msg.getUser() == User.gpt){
-//            if (msg.getVoice() != null) {
-//                IncomingVoiceMessageViewHolder.click(view, msg);
-//                IncomingVoiceMessageViewHolder.onLongClick(view, msg);
-//            } else if (msg.getImage() != null) {
-//
-//            }
-//        }
-
-    //    }
     public int getMessagePositionById(String id) {
         for (int i = 0; i < items.size(); i++) {
             Wrapper wrapper = items.get(i);
@@ -90,15 +69,4 @@ public class MyMessagesListAdapter extends MessagesListAdapter<Message> implemen
         }
         return -1;
     }
-
-//    @Override
-//    public void onMessageViewLongClick(View view, IMessage message) {
-//        LogUtil.i("onMessageViewLongClick:"+message);
-////        Message msg = (Message) message;
-////        if (msg.getVoice() != null) {
-////            OutcomingVoiceMessageViewHolder.onLongClick(view, msg);
-////        } else if (msg.getImage() != null) {
-////
-////        }
-//    }
 }

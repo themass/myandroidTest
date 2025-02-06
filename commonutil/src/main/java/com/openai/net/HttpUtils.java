@@ -80,7 +80,6 @@ public class HttpUtils {
             String content;
             int delay = 0;
             while ((content = in.readLine()) != null) {
-                LogUtil.i(content);
                 if (content.contains("avg")) {
                     int i = content.indexOf("/", 20);
                     int j = content.indexOf(".", i);

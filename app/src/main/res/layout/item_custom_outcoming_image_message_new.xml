@@ -26,8 +26,6 @@
             android:id="@id/bubble"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:maxHeight="@dimen/message_image_size"
-            android:maxWidth="@dimen/message_image_size"
             android:layout_alignParentRight="true"
             android:layout_marginStart="@dimen/message_bubble_padding_start"
             android:layout_marginLeft="@dimen/message_bubble_padding_start"
@@ -36,25 +34,14 @@
             <ImageView
                 android:id="@id/image"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:adjustViewBounds="true"
-                android:scaleType="fitCenter"/>
-
-            <View
-                android:id="@id/imageOverlay"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignStart="@id/image"
-                android:layout_alignLeft="@id/image"
-                android:layout_alignTop="@id/image"
-                android:layout_alignEnd="@id/image"
-                android:layout_alignRight="@id/image"
-                android:layout_alignBottom="@id/image" />
+                android:layout_height="@dimen/message_image_size"
+                android:scaleType="fitCenter"
+                android:adjustViewBounds="true"/>
         </LinearLayout>
 
         <RelativeLayout
             android:id="@+id/ll_sound"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@+id/bubble"
             android:paddingTop="10dp">

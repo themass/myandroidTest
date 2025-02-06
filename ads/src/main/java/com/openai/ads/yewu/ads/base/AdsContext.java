@@ -143,7 +143,6 @@ public class AdsContext {
             return false;
         }
         int i = Md5.getRandom(Constants.maxRate);
-        LogUtil.i("i=---" + i);
 //        if (UserLoginUtil.isVIP3()) {
 //            return i <= 1;
 //        } else if (UserLoginUtil.isVIP2()) {

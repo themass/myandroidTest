@@ -133,6 +133,13 @@ public class OkHttpStack implements HttpStack {
                 RequestBody fileBody = RequestBody.create(MediaType.parse("application/octet-stream"), file);
                 builder.addFormDataPart(((MultipartRequest) r).getName(), file.getName(), fileBody);
             }
+            Map<String, String> param = ((MultipartRequest) r).getParams();
+            LogUtil.i("添加 消息参数"+(param==null?" null":param.size()));
+            if ( param!= null) {
+                param.entrySet().forEach( o -> {
+                    builder.addFormDataPart(o.getKey(), o.getValue());
+                });
+            }
             return builder.build();
         }
         final byte[] body = r.getBody();

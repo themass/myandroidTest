@@ -48,4 +48,15 @@ public class ChatHistory {
     public void setSettingName(String settingName) {
         this.settingName = settingName;
     }
+
+    @Override
+    public String toString() {
+        return "ChatHistory{" +
+                "id='" + id + '\'' +
+                ", sessinId=" + sessinId +
+                ", text='" + text + '\'' +
+                ", settingName='" + settingName + '\'' +
+                ", charater='" + charater + '\'' +
+                '}';
+    }
 }
