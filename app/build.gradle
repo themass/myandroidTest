@@ -15,8 +15,8 @@ android {
         applicationId "com.openapi.ks.chat"
         minSdk rootProject.ext.minSdkVersion
         targetSdk rootProject.ext.targetSdkVersion
-        versionCode 100100003
-        versionName "1.1.0.3"
+        versionCode 1001000034
+        versionName "1.1.0.34"
         // Enabling multidex support.
         multiDexEnabled true
         flavorDimensions "versionCode"
@@ -150,9 +150,4 @@ dependencies {
     implementation 'org.greenrobot:greendao:3.3.0'
 
     implementation 'org.commonjava.googlecode.markdown4j:markdown4j:2.2-cj-1.1'
-
-
-
-
-
 }

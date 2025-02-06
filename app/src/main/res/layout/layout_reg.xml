@@ -53,9 +53,8 @@
                 android:drawableLeft="@drawable/ic_email"
                 android:hint="@string/email_hint"
                 android:maxLines="1"
-                android:singleLine="true" />
-
-            <ImageView style="@style/divider_login" />
+                android:singleLine="true"
+                android:visibility="gone"/>
 
             <ImageView style="@style/divider_login" />
 
@@ -65,7 +64,8 @@
                 android:drawableLeft="@drawable/ic_ref"
                 android:hint="@string/ref_hint"
                 android:maxLines="1"
-                android:singleLine="true" />
+                android:singleLine="true"
+                android:visibility="gone"/>
 
             <ImageView style="@style/divider_login" />
 
@@ -96,7 +96,8 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:gravity="center_horizontal">
 
                 <TextView
                     android:layout_width="wrap_content"

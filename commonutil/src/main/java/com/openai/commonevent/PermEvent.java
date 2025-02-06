@@ -1,13 +1,15 @@
 package com.openai.commonevent;
 
+import java.util.List;
+
 /**
  * Created by openapi on 2017/9/15.
  */
 
 
 public class PermEvent {
-
-    public PermEvent() {
-
+    public List<String> perms;
+    public PermEvent(List<String> perms) {
+        this.perms = perms;
     }
 }

@@ -37,8 +37,8 @@ public class RegActivity extends BaseSingleActivity {
     EditText etPassword;
     @BindView(R.id.et_repassword)
     EditText etRePassword;
-    @BindView(R.id.et_email)
-    EditText etEmail;
+//    @BindView(R.id.et_email)
+//    EditText etEmail;
     @BindView(R.id.btn_reg)
     Button btnReg;
     @BindView(R.id.btn_login)
@@ -49,14 +49,16 @@ public class RegActivity extends BaseSingleActivity {
     Button btCode;
     @BindView(R.id.et_code)
     EditText etCode;
-    @BindView(R.id.et_ref)
-    EditText etRef;
+//    @BindView(R.id.et_ref)
+//    EditText etRef;
     BaseService baseService;
     CommonResponse.ResponseOkListener loginListener = new CommonResponse.ResponseOkListener<NullReturnVo>() {
         @Override
         public void onResponse(NullReturnVo vo) {
             setEnabled(true);
             ToastUtil.showShort(R.string.reg_success);
+            finish();
+            startActivity(LoginActivity.class);
         }
     };
 
@@ -85,9 +87,9 @@ public class RegActivity extends BaseSingleActivity {
         String name = etUserName.getText().toString();
         String pwd = etPassword.getText().toString();
         String repwd = etRePassword.getText().toString();
-        String email = etEmail.getText().toString();
+//        String email = etEmail.getText().toString();
         int id = radioGroup.getCheckedRadioButtonId();
-        if (id == -1 || StringUtils.isEmpty(name) || StringUtils.isEmpty(pwd) || StringUtils.isEmpty(repwd) || StringUtils.isEmpty(email)) {
+        if (id == -1 || StringUtils.isEmpty(name) || StringUtils.isEmpty(pwd) || StringUtils.isEmpty(repwd)) {
             ToastUtil.showShort(R.string.empty_name_pwd);
             return;
         }
@@ -99,10 +101,10 @@ public class RegActivity extends BaseSingleActivity {
             ToastUtil.showShort(R.string.error_pattern_name);
             return;
         }
-        if (!email.contains("@")) {
-            ToastUtil.showShort(R.string.empty_name_pwd);
-            return;
-        }
+//        if (!email.contains("@")) {
+//            ToastUtil.showShort(R.string.empty_name_pwd);
+//            return;
+//        }
         if (!pwd.equals(repwd)) {
             ToastUtil.showShort(R.string.error_repwd);
             return;
@@ -112,7 +114,7 @@ public class RegActivity extends BaseSingleActivity {
             sex = Constants.SEX_F;
         }
         setEnabled(false);
-        RegForm form = new RegForm(name, pwd, repwd, sex, email, etRef.getText().toString());
+        RegForm form = new RegForm(name, pwd, repwd, sex, "test@gmail.com", "");
         baseService.postData(Constants.getUrl(Constants.API_REG_URL), form, loginListener, new CommonResponse.ResponseErrorListener() {
             @Override
             protected void onError() {

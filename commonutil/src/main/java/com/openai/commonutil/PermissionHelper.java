@@ -24,12 +24,12 @@ public class PermissionHelper {
     public static final String READ_PHONE_STATE = Manifest.permission.READ_PHONE_STATE;
     public static final String ACCESS_COARSE_LOCATION = Manifest.permission.ACCESS_COARSE_LOCATION;
     public static final String WRITE_EXTERNAL_STORAGE = Manifest.permission.WRITE_EXTERNAL_STORAGE;
-    public static final String REQUEST_INSTALL_PACKAGES = Manifest.permission.REQUEST_INSTALL_PACKAGES;
     public static final String READ_EXTERNAL_STORAGE = Manifest.permission.READ_EXTERNAL_STORAGE;
 
     public static final String CAMERA = Manifest.permission.CAMERA;
     public static final String RECORD_AUDIO = Manifest.permission.RECORD_AUDIO;
-    public static List<String> requestPermissions = Arrays.asList(RECORD_AUDIO, CAMERA, WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE);
+    public static List<String> requestPermissions = Arrays.asList(RECORD_AUDIO, WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE);
+
     //    static {
 //        LogUtil.i("os version="+Build.VERSION.SDK_INT );
 //        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O){
@@ -48,8 +48,8 @@ public class PermissionHelper {
      *
      * @return 权限已全部获取返回true，未全部获取返回false
      */
-    public boolean checkPermissions() {
-        for (String permission : requestPermissions) {
+    public boolean checkPermissions(List<String> permissions) {
+        for (String permission : permissions) {
             if (!checkPermission(permission)) {
                 return false;
             }

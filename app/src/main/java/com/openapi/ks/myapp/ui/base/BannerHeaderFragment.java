@@ -28,7 +28,6 @@ public class BannerHeaderFragment extends BaseFragment {
     private AdsGoneTask task = new AdsGoneTask();
     protected Handler mHandler = new Handler();
     private AdsContext.Categrey ca;
-    private static String CATEGREY = "Categrey";
 
     public static BannerHeaderFragment getNewInstans(AdsContext.Categrey ca) {
         BannerHeaderFragment fragment = new BannerHeaderFragment();
@@ -75,9 +74,10 @@ public class BannerHeaderFragment extends BaseFragment {
     }
 
     public void showAds() {
-        if (needShow() && UserLoginUtil.showAds()) {
+        if (needShow()) {
+            LogUtil.i("展示banner");
             flBanner.setVisibility(View.VISIBLE);
-            AdsManager.getInstans().showBannerAds(getActivity(), flBanner, ca);
+            AdsManager.getInstans().showBannerAds(getActivity(), flBanner, ca, AdsContext.AdsFrom.FACEBOOK);
         } else {
             if (flBanner != null)
                 flBanner.setVisibility(View.GONE);
@@ -94,7 +94,8 @@ public class BannerHeaderFragment extends BaseFragment {
     }
 
     public boolean needShow() {
-        return AdsContext.rateShow();
+        return true;
+//        return AdsContext.rateShow();
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

@@ -97,6 +97,5 @@ public class AdmobInterstitialAds extends InterstitialAdsInter {
 
     @Override
     public void interstitialExit(Context context, String key) {
-
     }
 }

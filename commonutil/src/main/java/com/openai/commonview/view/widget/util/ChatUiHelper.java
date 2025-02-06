@@ -250,9 +250,9 @@ public class ChatUiHelper {
         audioIv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                boolean ret = mPermissionHelper.checkPermissions();
+                boolean ret = mPermissionHelper.checkPermissions(PermissionHelper.requestPermissions);
                 if(!ret){
-                    EventBusUtil.getEventBus().post(new PermEvent());
+                    EventBusUtil.getEventBus().post(new PermEvent(PermissionHelper.requestPermissions));
                     return;
                 }
                 //如果录音按钮显示

@@ -2,36 +2,25 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginLeft="16dp"
-    android:layout_marginTop="8dp"
-    android:layout_marginRight="16dp"
-    android:layout_marginBottom="8dp">
+    android:layout_marginBottom="@dimen/message_padding_bottom"
+    android:layout_marginLeft="@dimen/message_padding_left"
+    android:layout_marginRight="@dimen/message_padding_right"
+    android:layout_marginTop="@dimen/message_padding_top">
 
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/messageUserAvatar"
-        android:layout_width="16dp"
-        android:layout_height="16dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginTop="15dp"/>
-
-    <!--this view is needed for custom holder-->
-<!--    <ImageView-->
-<!--        android:layout_width="12dp"-->
-<!--        android:layout_height="12dp"-->
-<!--        android:layout_alignTop="@id/messageUserAvatar"-->
-<!--        android:layout_alignEnd="@id/messageUserAvatar"-->
-<!--        android:layout_alignRight="@id/messageUserAvatar"-->
-<!--        android:layout_marginEnd="5dp"-->
-<!--        android:layout_marginRight="5dp"-->
-<!--        android:src="@drawable/song_play_icon" />-->
+        android:layout_width="@dimen/message_avatar_width"
+        android:layout_height="@dimen/message_avatar_height"
+        android:layout_marginEnd="@dimen/message_avatar_padding"
+        android:layout_marginRight="@dimen/message_avatar_padding"
+        android:layout_marginTop="@dimen/message_avatar_padding_top"/>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_marginEnd="3dp"
-        android:layout_marginRight="3dp"
+        android:layout_marginEnd="@dimen/message_bubble_padding"
+        android:layout_marginRight="@dimen/message_bubble_padding"
         android:layout_toRightOf="@id/messageUserAvatar"
         >
         <LinearLayout

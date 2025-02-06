@@ -1,15 +1,19 @@
 package chat.ui.adapter;
 
-import android.view.View;
-import com.openai.commonutil.LogUtil;
-import com.openapi.ks.chat.R;
+import android.net.Uri;
 
-import chat.ui.adapter.media.holders.IncomingVoiceMessageViewHolder;
+import com.openapi.ks.chat.R;
+import com.openapi.ks.myapp.base.MyApplication;
+import com.openapi.ks.myapp.data.ImagePhotoLoad;
+
+import java.io.File;
+
+import chat.ui.adapter.media.holders.MyIncomingVoiceMessageViewHolder;
 import chat.ui.adapter.media.holders.MyInComingMassageHandler;
+import chat.ui.adapter.media.holders.MyOutComingImageMessageViewHolder;
 import chat.ui.adapter.media.holders.MyOutComingMassageHandler;
-import chat.ui.adapter.media.holders.OutComingVoiceMessageViewHolder;
+import chat.ui.adapter.media.holders.MyOutComingVoiceMessageViewHolder;
 import chat.ui.data.model.Message;
-import chat.ui.data.model.User;
 import tz.co.hosannahighertech.messagekit.commons.ImageLoader;
 import tz.co.hosannahighertech.messagekit.commons.models.IMessage;
 import tz.co.hosannahighertech.messagekit.messages.MessageHolders;
@@ -18,21 +22,25 @@ import tz.co.hosannahighertech.messagekit.messages.MessagesListAdapter;
 public class MyMessagesListAdapter extends MessagesListAdapter<Message> implements MessageHolders.ContentChecker<Message> {
     public static final byte CONTENT_TYPE_VOICE = 1;
     private static MessageHolders holdersConfig = new MessageHolders()
-            .setIncomingTextConfig(MyInComingMassageHandler.class,R.layout.item_custom_incoming_text_message_new)
+            .setIncomingTextConfig(MyInComingMassageHandler.class, R.layout.item_custom_incoming_text_message_new)
             .setIncomingImageLayout(R.layout.item_custom_incoming_image_message)
-            .setOutcomingImageLayout(R.layout.item_custom_outcoming_image_message)
+            .setOutcomingImageConfig(MyOutComingImageMessageViewHolder.class, R.layout.item_custom_outcoming_image_message_new)
             .setOutcomingTextConfig(MyOutComingMassageHandler.class, R.layout.item_custom_outcoming_text_message_new);
     protected static ImageLoader imageLoader = (imageView, url, payload) -> {
-        imageView.setImageResource(R.drawable.ai_chat);
+        File file = new File(url);
+        Uri uri = Uri.fromFile(file);
+
+        ImagePhotoLoad.loadCommonImg(MyApplication.getInstance(),uri ,imageView);
+//        imageView.setImageResource(R.drawable.ai_chat);
     };
 
     public MyMessagesListAdapter(String senderId) {
         super(senderId, holdersConfig, imageLoader);
         holdersConfig.registerContentType(
                 CONTENT_TYPE_VOICE,
-                IncomingVoiceMessageViewHolder.class,
+                MyIncomingVoiceMessageViewHolder.class,
                 R.layout.item_custom_incoming_voice_message_new,
-                OutComingVoiceMessageViewHolder.class,
+                MyOutComingVoiceMessageViewHolder.class,
                 R.layout.item_custom_outcoming_voice_message_new,
                 this);
 //        setOnMessageViewClickListener(this);
@@ -69,7 +77,7 @@ public class MyMessagesListAdapter extends MessagesListAdapter<Message> implemen
 //            }
 //        }
 
-//    }
+    //    }
     public int getMessagePositionById(String id) {
         for (int i = 0; i < items.size(); i++) {
             Wrapper wrapper = items.get(i);

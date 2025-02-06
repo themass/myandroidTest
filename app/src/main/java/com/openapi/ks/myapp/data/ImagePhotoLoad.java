@@ -1,6 +1,7 @@
 package com.openapi.ks.myapp.data;
 
 import android.content.Context;
+import android.net.Uri;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
@@ -83,6 +84,16 @@ public class ImagePhotoLoad implements ImageGalleryAdapter.ImageThumbnailLoader,
     }
 
     public static void loadCommonImg(Context context, String url, ImageView iv) {
+        RequestOptions options = new RequestOptions()
+                .fitCenter()
+                .placeholder(R.drawable.img_bg);
+        Glide.with(context)
+                .load(url)
+                .apply(options)
+                .transition(withCrossFade())
+                .into(iv);
+    }
+    public static void loadCommonImg(Context context, Uri url, ImageView iv) {
         RequestOptions options = new RequestOptions()
                 .fitCenter()
                 .placeholder(R.drawable.img_bg);

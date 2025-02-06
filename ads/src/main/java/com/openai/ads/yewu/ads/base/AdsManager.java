@@ -20,6 +20,9 @@ import com.openai.ads.yewu.ads.adview.SplashAdviewAds;
 import com.openai.ads.yewu.ads.adview.VideoAdviewAds;
 import com.openai.ads.yewu.ads.config.BannerAdsNext;
 import com.openai.ads.yewu.ads.config.LaunchAdsNext;
+import com.openai.ads.yewu.ads.facebook.FacebookAdsManager;
+import com.openai.ads.yewu.ads.facebook.FacebookBannerAds;
+import com.openai.ads.yewu.ads.facebook.FacebookInterstitialAds;
 import com.openai.ads.yewu.ads.mobvista.MobivistaBannerAds;
 import com.openai.ads.yewu.ads.mobvista.MobvistaAdsManager;
 import com.openai.ads.yewu.ads.mobvista.MobvistaInterstitialAds;
@@ -57,12 +60,16 @@ public class AdsManager {
         AdviewAdsManager.init(context);
         AdmobAdsManager.init(context);
         MobvistaAdsManager.init(context);
+        FacebookAdsManager.init(context);
         bannerDescMap.put(AdsContext.AdsFrom.ADVIEW, new BannerAdviewAds());
         bannerDescMap.put(AdsContext.AdsFrom.MOBVISTA, new MobivistaBannerAds());
         bannerDescMap.put(AdsContext.AdsFrom.ADMOB, new AdmobBannerAds());
+        bannerDescMap.put(AdsContext.AdsFrom.FACEBOOK, new FacebookBannerAds());
         interstitialMap.put(AdsContext.AdsFrom.ADVIEW, new InterstitialAdviewAds());
         interstitialMap.put(AdsContext.AdsFrom.MOBVISTA, new MobvistaInterstitialAds());
         interstitialMap.put(AdsContext.AdsFrom.ADMOB, new AdmobInterstitialAds());
+        interstitialMap.put(AdsContext.AdsFrom.FACEBOOK, new FacebookInterstitialAds());
+
         splashMap.put(AdsContext.AdsFrom.ADVIEW, new SplashAdviewAds());
         splashMap.put(AdsContext.AdsFrom.MOBVISTA, new MobvistaSplashAds());
         splashMap.put(AdsContext.AdsFrom.ADMOB, new AdmobSplashAds());
@@ -95,6 +102,8 @@ public class AdsManager {
                 showInterstitialAds(obj.context, AdsContext.Categrey.CATEGREY_VPN, false, AdsContext.AdsFrom.ADMOB, obj.count);
             } else if (obj.type == AdsContext.AdsType.ADS_TYPE_INTERSTITIAL && obj.status == AdsContext.AdsShowStatus.ADS_NO_MSG && obj.from == AdsContext.AdsFrom.MOBVISTA && obj.addCount()) {
                 showInterstitialAds(obj.context, AdsContext.Categrey.CATEGREY_VPN, false, AdsContext.AdsFrom.ADMOB, obj.count);
+            }else if (obj.type == AdsContext.AdsType.ADS_TYPE_INTERSTITIAL && obj.status == AdsContext.AdsShowStatus.ADS_NO_MSG && obj.from == AdsContext.AdsFrom.ADMOB && obj.addCount()) {
+                showInterstitialAds(obj.context, AdsContext.Categrey.CATEGREY_VPN, false, AdsContext.AdsFrom.FACEBOOK, obj.count);
             }
 //            else if(obj.type== AdsContext.AdsType.ADS_TYPE_INTERSTITIAL && obj.status== AdsContext.AdsShowStatus.ADS_NO_MSG && obj.from== AdsContext.AdsFrom.ADMOB && obj.addCount()){
 //                showInterstitialAds(obj.context,AdsContext.Categrey.CATEGREY_VPN,false,AdsContext.AdsFrom.MOBVISTA,obj.count);

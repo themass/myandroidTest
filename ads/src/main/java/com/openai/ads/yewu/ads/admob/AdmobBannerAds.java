@@ -36,7 +36,7 @@ public class AdmobBannerAds extends BannerInter {
     @Override
     public void bannerAds(final FragmentActivity context, final ViewGroup group, final String key, final Handler handler) {
         AdView adView = new AdView(context);
-        adView.setAdUnitId(Constants.ADMOB_BANNER_ID);
+        adView.setAdUnitId(Constants.adviewToAdmobBanner.get(key));
         if (adView != null) {
             ViewGroup parent = (ViewGroup) adView.getParent();
             if (parent != null) {

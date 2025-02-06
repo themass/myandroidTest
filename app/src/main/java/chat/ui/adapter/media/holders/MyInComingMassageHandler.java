@@ -12,13 +12,16 @@ import org.markdown4j.Markdown4jProcessor;
 import java.io.IOException;
 
 import chat.ui.data.model.Message;
+import de.hdodenhof.circleimageview.CircleImageView;
 import tz.co.hosannahighertech.messagekit.messages.MessageHolders;
 
 public class MyInComingMassageHandler extends MessageHolders.IncomingTextMessageViewHolder<Message> {
     WebView composeView ;
+    CircleImageView messageUserAvatar;
     public MyInComingMassageHandler(View itemView, Object payload) {
         super(itemView, payload);
         composeView = itemView.findViewById(R.id.markdownMessageText);
+        messageUserAvatar = (CircleImageView) itemView.findViewById(R.id.messageUserAvatar);
         WebSettings webSettings = composeView.getSettings();
 // 设置默认字体大小
         webSettings.setDefaultFontSize(14);
@@ -37,6 +40,7 @@ public class MyInComingMassageHandler extends MessageHolders.IncomingTextMessage
         }
         composeView.loadDataWithBaseURL(null,html,"text/html","utf-8",null);
         LogUtil.i("html 内容="+html);
+        messageUserAvatar.setImageResource(R.drawable.ai_chat);
 
     }
 }

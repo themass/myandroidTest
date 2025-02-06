@@ -20,6 +20,7 @@ import com.openai.commonevent.PermEvent;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -42,25 +43,26 @@ public class BasePermissionActivity extends LogActivity
     }
 
 //----------------------------------------------------------
-    public boolean hasPerm() {
+    public boolean hasPerm(List<String> perms) {
         return EasyPermissions.hasPermissions(this, PermissionHelper.requestPermissions.toArray(new String[PermissionHelper.requestPermissions.size()]));
     }
 
-    private void request() {
+    private void request(String... perms) {
         LogUtil.i("perm 弹窗");
         EasyPermissions.requestPermissions(this,
-                getString(com.openai.commonutil.R.string.permission_need_toast), RC_CAMERA_PERM,
-                RECORD_AUDIO, CAMERA, WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE);
+                getString(com.openai.commonutil.R.string.permission_need_toast), RC_CAMERA_PERM, perms);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void initPermEvent(PermEvent event){
-        initPerm();
+        if(!hasPerm(event.perms)){
+            request(event.perms.toArray(new String[event.perms.size()]));
+        }
     }
     @AfterPermissionGranted(RC_CAMERA_PERM)
     public void initPerm(){
         LogUtil.i("onTouchEvent stop");
-        if(!hasPerm()){
+        if(!hasPerm(new ArrayList<>())){
             request();
         }
     }
@@ -84,9 +86,9 @@ public class BasePermissionActivity extends LogActivity
         }
     }
     public void fromSetting() {
-        if(hasPerm()){
-            ToastUtil.showShort(com.openai.commonutil.R.string.permission_need_toast);
-        }
+//        if(hasPerm()){
+//            ToastUtil.showShort(com.openai.commonutil.R.string.permission_need_toast);
+//        }
     }
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {

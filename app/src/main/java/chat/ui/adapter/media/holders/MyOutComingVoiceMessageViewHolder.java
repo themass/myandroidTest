@@ -4,13 +4,11 @@ import android.graphics.drawable.AnimationDrawable;
 import android.media.MediaPlayer;
 import android.view.View;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.openai.commonview.view.widget.MediaManager;
 import com.openai.commonutil.LogUtil;
-import com.openai.commonutil.StringUtils;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.base.MyApplication;
 
@@ -20,14 +18,14 @@ import com.openai.commonutil.FormatUtils;
 /*
  * Created by troy379 on 05.04.17.
  */
-public class OutComingVoiceMessageViewHolder
+public class MyOutComingVoiceMessageViewHolder
         extends MyOutComingMassageHandler {
 
     private TextView tvDuration;
     private TextView messageText;
     private RelativeLayout llSound;
     private Message message;
-    public OutComingVoiceMessageViewHolder(View itemView, Object payload) {
+    public MyOutComingVoiceMessageViewHolder(View itemView, Object payload) {
         super(itemView, payload);
         tvDuration = itemView.findViewById(R.id.duration);
         messageText = itemView.findViewById(R.id.tv_message);
@@ -65,9 +63,9 @@ public class OutComingVoiceMessageViewHolder
     public static void click(View view, Message message) {
         LogUtil.i("msg clicked " + message);
         if(MediaManager.isStart()){
-            if(IncomingVoiceMessageViewHolder.ivAudio!=null){
-                IncomingVoiceMessageViewHolder.ivAudio.setBackgroundResource(R.drawable.audio_animation_list_left_3);
-                IncomingVoiceMessageViewHolder.ivAudio = null;
+            if(MyIncomingVoiceMessageViewHolder.ivAudio!=null){
+                MyIncomingVoiceMessageViewHolder.ivAudio.setBackgroundResource(R.drawable.audio_animation_list_left_3);
+                MyIncomingVoiceMessageViewHolder.ivAudio = null;
                 MediaManager.reset();
             }
         }

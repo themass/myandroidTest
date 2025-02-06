@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.MediaMetadataRetriever;
 
+import com.openai.commonutil.PermissionHelper;
 import com.openai.commonview.view.widget.MediaManager;
 import com.openai.asr.AsrByteDance;
 import com.openai.asr.AsrConstants;
@@ -52,7 +53,7 @@ public class CustomChatMessagesWithAsrActivity extends CustomChatMessagesActivit
     @Override
     public void initVosk() {
         super.initVosk();
-        if(mPermissionHelper.checkPermissions() && asrByteDance ==null) {
+        if(mPermissionHelper.checkPermissions(PermissionHelper.requestPermissions) && asrByteDance ==null) {
             asrByteDance = new AsrByteDance(MyApplication.getInstance());
             asrByteDance.initEngine(this, this);
             asrByteDance.initAsrEngine(this);

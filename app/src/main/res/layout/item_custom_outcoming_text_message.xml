@@ -1,16 +1,16 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="8dp"
-    android:layout_marginLeft="16dp"
-    android:layout_marginRight="10dp"
-    android:layout_marginTop="8dp">
+    android:layout_marginBottom="@dimen/message_padding_bottom"
+    android:layout_marginLeft="@dimen/message_padding_left"
+    android:layout_marginRight="@dimen/message_padding_right"
+    android:layout_marginTop="@dimen/message_padding_top">
 
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/messageUserAvatar"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_marginLeft="8dp"
+        android:layout_width="@dimen/message_avatar_width"
+        android:layout_height="@dimen/message_avatar_height"
+        android:layout_marginLeft="@dimen/message_avatar_padding"
         android:layout_alignParentRight="true"
         android:background="@drawable/download"
         android:visibility="gone"/>

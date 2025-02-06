@@ -14,6 +14,7 @@ import com.openai.commonutil.R;
 import com.openai.commonutil.ToastUtil;
 import com.openai.commonview.view.widget.RecordButton;
 import com.openai.commonview.view.widget.StateButton;
+import com.openai.commonview.view.widget.picselecter.PictureFileUtil;
 import com.openai.commonview.view.widget.util.ChatUiHelper;
 
 /**
@@ -102,8 +103,8 @@ public class InputRecordView extends LinearLayout {
             picSelectListener.sendMessage(mEtContent.getText().toString());
             mEtContent.setText("");
         } else if (id == R.id.rlPhoto) {
-            ToastUtil.showShort(R.string.coming_soon_please);
-//                PictureFileUtil.openGalleryPic(picSelectListener.picSelect(), REQUEST_CODE_IMAGE);
+//            ToastUtil.showShort(R.string.coming_soon_please);
+            PictureFileUtil.openGalleryPic(picSelectListener.picSelect(), REQUEST_CODE_IMAGE);
         } else if (id == R.id.rlVideo) {
             ToastUtil.showShort(R.string.coming_soon_please);
 //                PictureFileUtil.openGalleryAudio(picSelectListener.picSelect(), REQUEST_CODE_VEDIO);

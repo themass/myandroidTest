@@ -7,7 +7,6 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.openai.commonutil.ToastUtil;
 import com.openai.commonview.view.widget.MediaManager;
 import com.openai.commonutil.LogUtil;
 import com.openai.commonutil.StringUtils;
@@ -16,14 +15,14 @@ import com.openapi.ks.myapp.base.MyApplication;
 
 import chat.ui.data.model.Message;
 import com.openai.commonutil.FormatUtils;
-import tz.co.hosannahighertech.messagekit.messages.MessageHolders;
+
 import tz.co.hosannahighertech.messagekit.utils.DateFormatter;
 
 
 /*
  * Created by troy379 on 05.04.17.
  */
-public class IncomingVoiceMessageViewHolder
+public class MyIncomingVoiceMessageViewHolder
         extends MyInComingMassageHandler {
 
     private TextView tvDuration;
@@ -31,7 +30,7 @@ public class IncomingVoiceMessageViewHolder
     private LinearLayout llSound;
     private Message message;
 
-    public IncomingVoiceMessageViewHolder(View itemView, Object payload) {
+    public MyIncomingVoiceMessageViewHolder(View itemView, Object payload) {
         super(itemView, payload);
         tvDuration = itemView.findViewById(R.id.duration);
         tvTime = itemView.findViewById(R.id.messageTime);
@@ -71,9 +70,9 @@ public class IncomingVoiceMessageViewHolder
                 return;
             }
             if (MediaManager.isStart()) {
-                if (OutComingVoiceMessageViewHolder.ivAudio != null) {
-                    OutComingVoiceMessageViewHolder.ivAudio.setBackgroundResource(R.drawable.audio_animation_list_right_3);
-                    OutComingVoiceMessageViewHolder.ivAudio = null;
+                if (MyOutComingVoiceMessageViewHolder.ivAudio != null) {
+                    MyOutComingVoiceMessageViewHolder.ivAudio.setBackgroundResource(R.drawable.audio_animation_list_right_3);
+                    MyOutComingVoiceMessageViewHolder.ivAudio = null;
                     MediaManager.reset();
                 }
             }

@@ -64,7 +64,8 @@
                 android:layout_marginTop="10dp"
                 android:background="?android:attr/selectableItemBackground"
                 android:text="@string/findpass"
-                android:textColor="@color/gray" />
+                android:textColor="@color/gray"
+                android:visibility="gone"/>
 
             <TextView
                 style="@style/tv_white_small"

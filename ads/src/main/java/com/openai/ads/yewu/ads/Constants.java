@@ -29,7 +29,6 @@ public class Constants {
     public static final String ADMOB_REWARD_ID = "ca-app-pub-6599725010915516/5135784679";
 
     public static final String ADMOB_BANNER_ID = "ca-app-pub-6599725010915516/4233766548";
-    public static final String ADMOB_BANNER_ID_TEST = "ca-app-pub-3940256099942544/6300978111";
     public static final String ADMOB_BANNER_ID2 = "ca-app-pub-6599725010915516/6148132379";
 
     public static final String ADMOB_INTER_ID = "ca-app-pub-6599725010915516/9330697473";
@@ -77,6 +76,9 @@ public class Constants {
 
     public static final String Mob_UNIT_WALL = "88840";
 
+    public static final String FACEBOOK_BANNER_ID = "1326501941825966_1326517011824459";
+    public static final String FACEBOOK_INTER_ID = "1326501941825966_1326559621820198";
+
     public static Map<String, String> adviewToMobvBanner = new HashMap<>();
 
     static {
@@ -91,6 +93,14 @@ public class Constants {
         adviewToAdmobBanner.put(AdviewConstant.ADS_ADVIEW_KEY1, ADMOB_BANNER_ID2);
         adviewToAdmobBanner.put(AdviewConstant.ADS_ADVIEW_KEY2, ADMOB_BANNER_ID);
         adviewToAdmobBanner.put(AdviewConstant.ADS_ADVIEW_KEY, ADMOB_BANNER_ID);
+    }
+
+    public static Map<String, String> adviewToFacebookBanner = new HashMap<>();
+
+    static {
+        adviewToFacebookBanner.put(AdviewConstant.ADS_ADVIEW_KEY1, FACEBOOK_BANNER_ID);
+        adviewToFacebookBanner.put(AdviewConstant.ADS_ADVIEW_KEY2, FACEBOOK_BANNER_ID);
+        adviewToFacebookBanner.put(AdviewConstant.ADS_ADVIEW_KEY, FACEBOOK_BANNER_ID);
     }
 
     public static final int ADS_REWARD_SHOW_CLICK = 100;

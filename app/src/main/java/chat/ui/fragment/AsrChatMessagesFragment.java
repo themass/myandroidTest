@@ -59,7 +59,7 @@ public class AsrChatMessagesFragment extends ChatMessagesFragment
         if(mPermissionHelper == null) {
             mPermissionHelper = new PermissionHelper(getActivity());
         }
-        if(mPermissionHelper.checkPermissions() && asrByteDance ==null) {
+        if(mPermissionHelper.checkPermissions(PermissionHelper.requestPermissions) && asrByteDance ==null) {
             asrByteDance = new AsrByteDance(MyApplication.getInstance());
             asrByteDance.initEngine(getActivity(), this);
             asrByteDance.initAsrEngine(getActivity());

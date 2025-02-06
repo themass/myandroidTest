@@ -20,9 +20,9 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.android.volley.Response;
-import com.openai.asr.AsrConstants;
 import com.luck.picture.lib.basic.PictureSelector;
 import com.luck.picture.lib.entity.LocalMedia;
+import com.openai.asr.AsrConstants;
 import com.openai.commonutil.PreferenceUtils;
 import com.openai.commonutil.StringUtils;
 import com.openai.commonview.view.InputRecordView;
@@ -399,7 +399,7 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
                     // 图片选择结果回调
                     List<LocalMedia> selectListPic = PictureSelector.obtainSelectorList(data);
                     for (LocalMedia media : selectListPic) {
-                        LogUtil.i("获取图片路径成功:" + media.getPath());
+                        LogUtil.i("获取图片路径成功:" + media.getPath()+media.getRealPath());
                         sendImageMessage(media);
                     }
                     break;
@@ -459,6 +459,10 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
 
     //图片消息
     private void sendImageMessage(final LocalMedia media) {
+        Message myMsg = new Message(MessagesFixtures.getRandomId(), User.my, "");
+        myMsg.setMsgType(MessageType.IMAGE_TYPE);
+        myMsg.setImage(new Message.Image(media.getRealPath()));
+        messagesAdapter.addToStart(myMsg, true);
     }
 
 
