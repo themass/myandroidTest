@@ -36,6 +36,13 @@
                 android:layout_height="wrap_content"
                 android:background="@color/transparent"
                 tools:ignore="WebViewLayout" />
+            <RelativeLayout
+                android:id="@+id/rv_ads"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/banner_h"
+                android:gravity="center"
+                android:visibility="gone"
+                 />
         </LinearLayout>
 
         <LinearLayout
@@ -45,7 +52,7 @@
             android:paddingLeft="10dp"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingTop="15dp"
+            android:paddingTop="@dimen/message_time_padding_top"
             android:clickable="false">
 
             <ImageButton

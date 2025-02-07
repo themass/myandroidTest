@@ -36,7 +36,9 @@ import com.bumptech.glide.request.transition.Transition;
 import com.luck.lib.camerax.CameraImageEngine;
 import com.luck.lib.camerax.SimpleCameraX;
 import com.luck.picture.lib.animators.AnimationType;
+import com.luck.picture.lib.basic.PictureSelectionModel;
 import com.luck.picture.lib.config.PictureMimeType;
+import com.luck.picture.lib.config.SelectModeConfig;
 import com.luck.picture.lib.engine.CompressEngine;
 import com.luck.picture.lib.engine.CompressFileEngine;
 import com.luck.picture.lib.engine.CropFileEngine;
@@ -97,10 +99,10 @@ public class PictureFileUtil {
      * @param mContext 上下文信息
      */
     public static void openGalleryPic(Activity mContext, int requestCode) {
-
         PictureSelector.create(mContext)
                 .openGallery(SelectMimeType.ofImage())
                 .setSelectorUIStyle(selectorStyle)
+                .setSelectionMode(SelectModeConfig.MULTIPLE )
                 .setImageEngine(GlideEngine.createGlideEngine())
                 .setVideoPlayerEngine(new IjkPlayerEngine())
                 .setSandboxFileEngine(new MeSandboxFileEngine())
@@ -140,10 +142,8 @@ public class PictureFileUtil {
                     }
                 })
 //                .setQueryOnlyMimeType(PictureMimeType.ofGIF())
-                .isMaxSelectEnabledMask(true)
+                .isMaxSelectEnabledMask(false)
                 .isDirectReturnSingle(true)
-//                .setMaxSelectNum(9)
-//                .setMaxVideoSelectNum(9)
                 .setRecyclerAnimationMode(AnimationType.DEFAULT_ANIMATION)
                 .isGif(true)
                 .forResult(requestCode);

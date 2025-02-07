@@ -78,7 +78,6 @@ public class AdsContext {
 
     public static enum AdsFrom {
         ADVIEW("adview"),
-        MOBVISTA("mobvista"),
         ADMOB("admob"),
         FACEBOOK("facebook");
         public String desc;
@@ -177,13 +176,16 @@ public class AdsContext {
             AdsManager.getInstans().showInterstitialAds(context, Categrey.CATEGREY_VPN, false, AdsFrom.ADMOB, 1);
         }
     }
-
+    public static void showRand(Context context, AdsFrom from) {
+        if (AdsContext.rateShow()) {
+            AdsManager.getInstans().showInterstitialAds(context, Categrey.CATEGREY_VPN, false, from, 1);
+        }
+    }
     public static void showRand(Context context) {
         if (AdsContext.rateShow()) {
             AdsManager.getInstans().showInterstitialAds(context, Categrey.CATEGREY_VPN, false, AdsFrom.ADMOB, 1);
         }
     }
-
     public static void showNext(Context context) {
         AdsManager.getInstans().showInterstitialAds(context, AdsContext.getNext(), false, AdsFrom.ADMOB, 1);
     }

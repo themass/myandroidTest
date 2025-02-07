@@ -28,7 +28,6 @@ public class MyIncomingVoiceMessageViewHolder
     private TextView tvDuration;
     private TextView tvTime;
     private LinearLayout llSound;
-    private Message message;
 
     public MyIncomingVoiceMessageViewHolder(View itemView, Object payload) {
         super(itemView, payload);
@@ -40,7 +39,6 @@ public class MyIncomingVoiceMessageViewHolder
     @Override
     public void onBind(Message message) {
         super.onBind(message);
-        this.message = message;
         tvDuration.setText(
                 FormatUtils.getDurationString(
                         message.getVoice().getDuration()));

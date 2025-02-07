@@ -161,6 +161,10 @@ public class SystemUtils {
         else
             return CommonConstants.LANG_US;
     }
+    public static String getUserLang(Context context) {
+        Locale locale = context.getResources().getConfiguration().locale;
+        return locale.getLanguage();
+    }
 
     public static String getCpuType() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {

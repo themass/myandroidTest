@@ -65,6 +65,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import butterknife.BindView;
 import chat.ui.adapter.MyMessagesListAdapter;
@@ -100,16 +101,19 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
     public String setting = "";
 
     public String sessionName = "Default";
-    private Menu menu;
     public int selectionCount;
 
     public List<MsgContent> msgContents = new ArrayList<>();
-
+    private static AtomicInteger counter = new AtomicInteger(0);
 
     CommonResponse.ResponseOkListener listener = new CommonResponse.ResponseOkListener<Choice>() {
         @Override
         public void onResponse(Choice vo) {
             LogUtil.i("llm 返回"+ GsonUtils.getInstance().toJson(vo));
+            int count = counter.addAndGet(1);
+            if(count == 2){
+                AdsContext.showNext(MyApplication.getInstance());
+            }
             holdMsg = new Message(vo.getId(), User.gpt, vo.getMessage().getContent());
             initHoldMsg(holdMsg);
             if (!StringUtils.isEmpty(vo.getMessage().getContent())) {
@@ -133,7 +137,6 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
     public static String TAG = "chat";
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        this.menu = menu;
         getMenuInflater().inflate(R.menu.chat_actions_menu, menu);
         boolean needTts = PreferenceUtils.getPrefBoolean(MyApplication.getInstance(), AsrConstants.TTS_OPEN, false);
         menu.findItem(R.id.sound_switch).setIcon(needTts?R.drawable.song_play_icon:R.drawable.song_not_play_icon);
@@ -232,7 +235,9 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_custom_layout_messages);
         EventBusUtil.getEventBus().register(this);
-        AdsContext.showNext(this);
+        if(MyApplication.isDebug){
+            AdsContext.showRand(this, AdsContext.AdsFrom.FACEBOOK);
+        }
         initBanner();
     }
 

@@ -10,21 +10,6 @@ import java.util.Map;
 public class Constants {
 
 
-    public static final String APPID = "1108006908";
-    public static final String NativeExpressPosID = "6010441996206888";
-    public static final String NativeExpressPosID_2 = "1090544966701912";
-    public static final int AD_COUNT = 8;    // 加载广告的条数，取值范围为[1, 10]
-    public static int FIRST_AD_POSITION = 1; // 第一条广告的位置
-    public static int ITEMS_PER_AD_SIX = 6;     // 每间隔10个条目插入一条广告
-    public static int ITEMS_PER_AD_THREE = 3;     // 每间隔10个条目插入一条广告
-    public static int ITEMS_PER_AD_BANNER = 1;     // 每间隔10个条目插入一条广告
-    public static final String OpenExpressPosID = "9060242730064757";
-    public static final String InterExpressPosID = "7040843730666709";
-    public static final String InterExpressPosID_1 = "9060947720962850";
-    public static final String InterExpressPosID_2 = "9000343720565852";
-    public static final String InterExpressPosID_3 = "1010745790065883";
-
-
     public static final String ADMOB_REWARD_ID_TEST = "ca-app-pub-3940256099942544/5224354917";
     public static final String ADMOB_REWARD_ID = "ca-app-pub-6599725010915516/5135784679";
 
@@ -44,48 +29,8 @@ public class Constants {
     public static final List<String> ADMOB_REWARD_UNIT_IDS = Arrays.asList(ADMOB_REWARD_UNIT_ID, ADMOB_REWARD_UNIT_ID, ADMOB_REWARD_UNIT_ID);
 
 
-    public static final String Mob_APPID_TEST = "144002";
-    public static final String Mob_APPKEY_TEST = "7c22942b749fe6a6e361b675e96b3ee9";
-    public static final String Mob_SPLASH_UNIT_TEST = "328916";
-    public static final String Mob_SPLASH_UNIT_PLACE_TEST = "1542060";
-    public static final String Mob_INTER_UNIT_TEST = "290653";
-    public static final String Mob_INTER_UNIT_PLACE_TEST = "462374";
-    public static final String Mob_REWARD_UNIT_TEST = "290651";
-    public static final String Mob_REWARD_UNIT_PLACE_TEST = "462372";
-
-    public static final String Mob_UNIT_BANNER_PLACE_TEST = "290655";
-    public static final String Mob_UNIT_BANNER1_TEST = "462376";
-    public static final String Mob_UNIT_BANNER2_TEST = "462376";
-    public static final String Mob_UNIT_BANNER3_TEST = "462376";
-    public static final String Mob_UNIT_BANNER_TEST = "462376";
-
-    public static final String Mob_APPID = "209825";
-    public static final String Mob_APPKEY = "f1f0a8637166a0459402b9de3c88a93f";
-    public static final String Mob_SPLASH_UNIT = "809686";
-    public static final String Mob_SPLASH_UNIT_PLACE = "2392263";
-    public static final String Mob_INTER_UNIT = "809698";
-    public static final String Mob_INTER_UNIT_PLACE = "2392276";
-    public static final String Mob_REWARD_UNIT = "809687";
-    public static final String Mob_REWARD_UNIT_PLACE = "2392264";
-
-    public static final String Mob_UNIT_BANNER_PLACE = "811116";
-    public static final String Mob_UNIT_BANNER1 = "2394073";
-    public static final String Mob_UNIT_BANNER2 = "2394071";
-    public static final String Mob_UNIT_BANNER3 = "2394069";
-    public static final String Mob_UNIT_BANNER = "2394067";
-
-    public static final String Mob_UNIT_WALL = "88840";
-
     public static final String FACEBOOK_BANNER_ID = "1326501941825966_1326517011824459";
     public static final String FACEBOOK_INTER_ID = "1326501941825966_1326559621820198";
-
-    public static Map<String, String> adviewToMobvBanner = new HashMap<>();
-
-    static {
-        adviewToMobvBanner.put(AdviewConstant.ADS_ADVIEW_KEY1, Mob_UNIT_BANNER1);
-        adviewToMobvBanner.put(AdviewConstant.ADS_ADVIEW_KEY2, Mob_UNIT_BANNER2);
-        adviewToMobvBanner.put(AdviewConstant.ADS_ADVIEW_KEY, Mob_UNIT_BANNER);
-    }
 
     public static Map<String, String> adviewToAdmobBanner = new HashMap<>();
 

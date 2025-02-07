@@ -88,6 +88,7 @@ public class BaseRequest<T> extends Request<T> {
         }
         headers.put("Accept-Encoding", "gzip");
         headers.put("Accept-Language", SystemUtils.getLang(context));
+        headers.put("userLang", SystemUtils.getUserLang(context));
         headers.put(CommonConstants.DEVID, DEVID);
         String token = PreferenceUtils.getPrefString(context, CommonConstants.HTTP_TOKEN_KEY, null);
         if (token != null)

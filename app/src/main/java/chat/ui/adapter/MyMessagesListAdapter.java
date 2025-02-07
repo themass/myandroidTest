@@ -15,6 +15,7 @@ import chat.ui.adapter.media.holders.MyOutComingMassageHandler;
 import chat.ui.adapter.media.holders.MyOutComingVoiceMessageViewHolder;
 import chat.ui.data.model.Message;
 import tz.co.hosannahighertech.messagekit.commons.ImageLoader;
+import tz.co.hosannahighertech.messagekit.commons.ViewHolder;
 import tz.co.hosannahighertech.messagekit.commons.models.IMessage;
 import tz.co.hosannahighertech.messagekit.messages.MessageHolders;
 import tz.co.hosannahighertech.messagekit.messages.MessagesListAdapter;
@@ -31,7 +32,6 @@ public class MyMessagesListAdapter extends MessagesListAdapter<Message> implemen
         Uri uri = Uri.fromFile(file);
 
         ImagePhotoLoad.loadCommonImg(MyApplication.getInstance(),uri ,imageView);
-//        imageView.setImageResource(R.drawable.ai_chat);
     };
 
     public MyMessagesListAdapter(String senderId) {
@@ -43,8 +43,6 @@ public class MyMessagesListAdapter extends MessagesListAdapter<Message> implemen
                 MyOutComingVoiceMessageViewHolder.class,
                 R.layout.item_custom_outcoming_voice_message_new,
                 this);
-//        setOnMessageViewClickListener(this);
-//        setOnMessageViewLongClickListener(this);
     }
 
     @Override
@@ -68,5 +66,10 @@ public class MyMessagesListAdapter extends MessagesListAdapter<Message> implemen
             }
         }
         return -1;
+    }
+
+    @Override
+    public void onBindViewHolder(ViewHolder holder, int position) {
+        super.onBindViewHolder(holder, position);
     }
 }

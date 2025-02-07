@@ -23,10 +23,6 @@ import com.openai.ads.yewu.ads.config.LaunchAdsNext;
 import com.openai.ads.yewu.ads.facebook.FacebookAdsManager;
 import com.openai.ads.yewu.ads.facebook.FacebookBannerAds;
 import com.openai.ads.yewu.ads.facebook.FacebookInterstitialAds;
-import com.openai.ads.yewu.ads.mobvista.MobivistaBannerAds;
-import com.openai.ads.yewu.ads.mobvista.MobvistaAdsManager;
-import com.openai.ads.yewu.ads.mobvista.MobvistaInterstitialAds;
-import com.openai.ads.yewu.ads.mobvista.MobvistaSplashAds;
 import com.openai.commonutil.EventBusUtil;
 import com.openai.commonutil.LogUtil;
 
@@ -59,31 +55,18 @@ public class AdsManager {
         LogUtil.i("AdsManager initok");
         AdviewAdsManager.init(context);
         AdmobAdsManager.init(context);
-        MobvistaAdsManager.init(context);
         FacebookAdsManager.init(context);
         bannerDescMap.put(AdsContext.AdsFrom.ADVIEW, new BannerAdviewAds());
-        bannerDescMap.put(AdsContext.AdsFrom.MOBVISTA, new MobivistaBannerAds());
         bannerDescMap.put(AdsContext.AdsFrom.ADMOB, new AdmobBannerAds());
         bannerDescMap.put(AdsContext.AdsFrom.FACEBOOK, new FacebookBannerAds());
         interstitialMap.put(AdsContext.AdsFrom.ADVIEW, new InterstitialAdviewAds());
-        interstitialMap.put(AdsContext.AdsFrom.MOBVISTA, new MobvistaInterstitialAds());
         interstitialMap.put(AdsContext.AdsFrom.ADMOB, new AdmobInterstitialAds());
         interstitialMap.put(AdsContext.AdsFrom.FACEBOOK, new FacebookInterstitialAds());
 
         splashMap.put(AdsContext.AdsFrom.ADVIEW, new SplashAdviewAds());
-        splashMap.put(AdsContext.AdsFrom.MOBVISTA, new MobvistaSplashAds());
         splashMap.put(AdsContext.AdsFrom.ADMOB, new AdmobSplashAds());
         nativeMap.put(AdsContext.AdsFrom.ADVIEW, new NativeAdviewAds());
         videoMap.put(AdsContext.AdsFrom.ADVIEW, new VideoAdviewAds());
-        JSONObject consentObject = new JSONObject();
-//        final MIntegralSDK sdk = MIntegralSDKFactory.getMIntegralSDK();
-//        Map<String, String> map = sdk.getMTGConfigurationMap(Constants.Mob_APPID, Constants.Mob_APPKEY);
-//        // if you modify applicationId, please add the following attributes,
-//        // otherwise it will crash
-//        // map.put(MIntegralConstans.PACKAGE_NAME_MANIFEST, "your AndroidManifest
-//        // package value");
-//
-//        sdk.init(map, context);
     }
 
     private Handler mHandle = new Handler() {
@@ -100,14 +83,9 @@ public class AdsManager {
             }
             if (obj.type == AdsContext.AdsType.ADS_TYPE_INTERSTITIAL && obj.status == AdsContext.AdsShowStatus.ADS_NO_MSG && obj.from == AdsContext.AdsFrom.ADVIEW && obj.addCount()) {
                 showInterstitialAds(obj.context, AdsContext.Categrey.CATEGREY_VPN, false, AdsContext.AdsFrom.ADMOB, obj.count);
-            } else if (obj.type == AdsContext.AdsType.ADS_TYPE_INTERSTITIAL && obj.status == AdsContext.AdsShowStatus.ADS_NO_MSG && obj.from == AdsContext.AdsFrom.MOBVISTA && obj.addCount()) {
-                showInterstitialAds(obj.context, AdsContext.Categrey.CATEGREY_VPN, false, AdsContext.AdsFrom.ADMOB, obj.count);
-            }else if (obj.type == AdsContext.AdsType.ADS_TYPE_INTERSTITIAL && obj.status == AdsContext.AdsShowStatus.ADS_NO_MSG && obj.from == AdsContext.AdsFrom.ADMOB && obj.addCount()) {
+            } else if (obj.type == AdsContext.AdsType.ADS_TYPE_INTERSTITIAL && obj.status == AdsContext.AdsShowStatus.ADS_NO_MSG && obj.from == AdsContext.AdsFrom.ADMOB && obj.addCount()) {
                 showInterstitialAds(obj.context, AdsContext.Categrey.CATEGREY_VPN, false, AdsContext.AdsFrom.FACEBOOK, obj.count);
             }
-//            else if(obj.type== AdsContext.AdsType.ADS_TYPE_INTERSTITIAL && obj.status== AdsContext.AdsShowStatus.ADS_NO_MSG && obj.from== AdsContext.AdsFrom.ADMOB && obj.addCount()){
-//                showInterstitialAds(obj.context,AdsContext.Categrey.CATEGREY_VPN,false,AdsContext.AdsFrom.MOBVISTA,obj.count);
-//            }
             super.handleMessage(msg);
         }
     };
@@ -116,7 +94,7 @@ public class AdsManager {
     }
 
     public void showBannerAds(FragmentActivity context, ViewGroup group, AdsContext.Categrey categrey) {
-        bannerDescMap.get(AdsContext.AdsFrom.ADVIEW).bannerAds(context, group, categrey.key, mHandle);
+        bannerDescMap.get(AdsContext.AdsFrom.ADMOB).bannerAds(context, group, categrey.key, mHandle);
     }
 
     public void showBannerAds(FragmentActivity context, ViewGroup group, AdsContext.Categrey categrey, AdsContext.AdsFrom from) {
@@ -135,13 +113,6 @@ public class AdsManager {
         splashMap.get(AdsContext.AdsFrom.ADMOB).lanchExit(context, group);
     }
 
-    public void showInterstitialAds(Context context, AdsContext.Categrey categrey, boolean score) {
-        interstitialMap.get(AdsContext.AdsFrom.ADVIEW).interstitialAds(context, mHandle, categrey.key, score, 0);
-    }
-
-    public void showInterstitialAds(Context context, AdsContext.Categrey categrey, boolean score, AdsContext.AdsFrom from) {
-        interstitialMap.get(from).interstitialAds(context, mHandle, categrey.key, score, 0);
-    }
 
     public void showInterstitialAds(Context context, AdsContext.Categrey categrey, boolean score, AdsContext.AdsFrom from, int count) {
         interstitialMap.get(from).interstitialAds(context, mHandle, categrey.key, score, count);

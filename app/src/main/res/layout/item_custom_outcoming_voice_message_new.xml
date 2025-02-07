@@ -38,14 +38,20 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@color/black" />
-
+            <RelativeLayout
+                android:id="@+id/rv_ads"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/banner_h"
+                android:gravity="center"
+                android:visibility="gone"
+                />
         </LinearLayout>
 
         <RelativeLayout
             android:id="@+id/ll_sound"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="10dp"
+            android:paddingTop="@dimen/message_time_padding_top"
             android:layout_below="@+id/bubble">
             <TextView
                 android:id="@+id/messageTime"

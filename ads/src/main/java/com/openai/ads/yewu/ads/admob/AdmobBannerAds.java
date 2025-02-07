@@ -26,8 +26,6 @@ import com.openai.ads.yewu.ads.base.BannerInter;
  */
 
 public class AdmobBannerAds extends BannerInter {
-    private MobivistaBannerAds mobvBanner = new MobivistaBannerAds();
-
     @Override
     protected AdsContext.AdsType getAdsType() {
         return AdsContext.AdsType.ADS_TYPE_BANNER;
@@ -79,7 +77,6 @@ public class AdmobBannerAds extends BannerInter {
                     LogUtil.i("admob banner onAdFailedToLoad " + loadAdError.toString());
                     noAds(context, handler, AdsContext.AdsFrom.ADMOB, 0);
                     //                   group.setVisibility(View.GONE);
-                    mobvBanner.bannerAds(context, group, key, handler);
                 }
 
                 @Override
@@ -102,7 +99,6 @@ public class AdmobBannerAds extends BannerInter {
             });
         } catch (Throwable e) {
             noAds(context, handler, AdsContext.AdsFrom.ADVIEW, 0);
-            mobvBanner.bannerAds(context, group, key, handler);
             LogUtil.e(e);
         }
     }

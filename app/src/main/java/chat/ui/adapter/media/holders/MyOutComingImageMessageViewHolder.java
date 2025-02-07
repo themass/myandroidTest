@@ -4,6 +4,11 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
+
+import androidx.fragment.app.FragmentActivity;
+
+import com.openai.ads.yewu.ads.base.AdsContext;
+import com.openai.ads.yewu.ads.base.AdsManager;
 import com.openai.commonutil.LogUtil;
 import com.openapi.ks.myapp.ui.sound.MyFullScreenImageGalleryActivity;
 
@@ -18,9 +23,7 @@ import tz.co.hosannahighertech.messagekit.utils.RoundedImageView;
 public class MyOutComingImageMessageViewHolder
         extends MyOutComingMassageHandler {
 
-    private Message message;
     protected ImageView image;
-//    protected View imageOverlay;
 
     public MyOutComingImageMessageViewHolder(View itemView, Object payload) {
         super(itemView, payload);
@@ -39,7 +42,6 @@ public class MyOutComingImageMessageViewHolder
     @Override
     public void onBind(Message message) {
         super.onBind(message);
-        this.message = message;
         LogUtil.i("img url:"+message.getImageUrl());
         if (image != null && imageLoader != null) {
             imageLoader.loadImage(image, message.getImageUrl(), null);
@@ -60,6 +62,17 @@ public class MyOutComingImageMessageViewHolder
                 image.getContext().startActivity(intent);
             }
         });
+        try {
+            if (rvAds != null) {
+                    rvAds.setVisibility(View.VISIBLE);
+                    AdsManager.getInstans().showBannerAds((FragmentActivity) messageUserAvatar.getContext(), rvAds, AdsContext.Categrey.CATEGREY_VPN2);
+                } else {
+                    rvAds.removeAllViews();
+                    rvAds.setVisibility(View.GONE);
+                }
+        }catch (Exception e){
+            LogUtil.e("",e);
+        }
     }
 
 }

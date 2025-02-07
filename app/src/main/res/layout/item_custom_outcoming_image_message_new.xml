@@ -37,6 +37,13 @@
                 android:layout_height="@dimen/message_image_size"
                 android:scaleType="fitCenter"
                 android:adjustViewBounds="true"/>
+            <RelativeLayout
+                android:id="@+id/rv_ads"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/banner_h"
+                android:gravity="center"
+                android:visibility="gone"
+                />
         </LinearLayout>
 
         <RelativeLayout
@@ -44,7 +51,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@+id/bubble"
-            android:paddingTop="10dp">
+            android:paddingTop="@dimen/message_time_padding_top"
+            >
 
             <TextView
                 android:id="@+id/messageTime"

@@ -571,7 +571,7 @@ public class MessageHolders {
                         final View.OnClickListener onMessageClickListener,
                         final View.OnLongClickListener onMessageLongClickListener,
                         final DateFormatter.Formatter dateHeadersFormatter,
-                        final SparseArray<MessagesListAdapter.OnMessageViewClickListener> clickListenersArray) {
+                        final SparseArray<MessagesListAdapter.OnMessageViewClickListener> clickListenersArray, int position) {
 
         if (item instanceof IMessage) {
             ((MessageHolders.BaseMessageViewHolder) holder).isSelected = isSelected;

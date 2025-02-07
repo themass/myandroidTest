@@ -133,8 +133,8 @@ public class LaunchActivity extends LogActivity {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onBannerShow(LaunchAdsNext next) {
         LogUtil.i("LaunchAdsNext " + next.from);
-        if (next.from == AdsContext.AdsFrom.MOBVISTA) {
-            AdsManager.getInstans().showSplashAds(AdsContext.AdsFrom.ADMOB, this, ivAds, skipView);
+        if (next.from == AdsContext.AdsFrom.ADMOB) {
+            AdsManager.getInstans().showSplashAds(AdsContext.AdsFrom.FACEBOOK, this, ivAds, skipView);
         }
     }
 
