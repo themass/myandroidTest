@@ -13,7 +13,7 @@ public class Constants {
     public static final String IMAGE_RES_PRE = "timeline://img";
     public static final String URL = "url";
     public static final String DEFULT_LOCATION_NAME = "随机";
-    public static final int STARTUP_SHOW_TIME_6000 = 3000; //启动页广告时长
+    public static final int STARTUP_SHOW_TIME_6000 = 4000; //启动页广告时长
     public static final int STARTUP_SHOW_TIME_7000 = 4000; //启动页广告时长
     public static final int BANNER_ADS_GONE_LONG = 13000; //广告显示时长
     public static final int BANNER_ADS_GONE_LONG_LONG = 240000; //广告显示时长

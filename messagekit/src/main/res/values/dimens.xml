@@ -32,7 +32,7 @@
     <dimen name="message_bubble_padding">3dp</dimen>
     <dimen name="message_bubble_padding_start">15dp</dimen>
     <dimen name="message_image_size">120dp</dimen>
-    <dimen name="message_time_padding_top">80dp</dimen>
+    <dimen name="message_time_padding_top">5dp</dimen>
 
     <dimen name="message_text_size">17sp</dimen>
     <dimen name="message_time_text_size">14sp</dimen>

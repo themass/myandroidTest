@@ -17,7 +17,6 @@ import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.LoadAdError;
 import com.openai.ads.yewu.ads.Constants;
 import com.openai.commonutil.LogUtil;
-import com.openai.ads.yewu.ads.mobvista.MobivistaBannerAds;
 import com.openai.ads.yewu.ads.base.AdsContext;
 import com.openai.ads.yewu.ads.base.BannerInter;
 

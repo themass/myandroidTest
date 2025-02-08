@@ -23,6 +23,7 @@ import com.android.volley.Response;
 import com.google.common.collect.Lists;
 import com.luck.picture.lib.basic.PictureSelector;
 import com.luck.picture.lib.entity.LocalMedia;
+import com.openai.ads.yewu.ads.base.AdsManager;
 import com.openai.asr.AsrConstants;
 import com.openai.commonutil.ImageUtils;
 import com.openai.commonutil.PreferenceUtils;
@@ -235,8 +236,10 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_custom_layout_messages);
         EventBusUtil.getEventBus().register(this);
+        LogUtil.i("isDebug=" + MyApplication.isDebug);
+
         if(MyApplication.isDebug){
-            AdsContext.showRand(this, AdsContext.AdsFrom.FACEBOOK);
+            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false, AdsContext.AdsFrom.FACEBOOK, 1);
         }
         initBanner();
     }

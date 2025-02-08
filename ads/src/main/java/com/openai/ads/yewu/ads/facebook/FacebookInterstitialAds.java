@@ -48,7 +48,7 @@ public class FacebookInterstitialAds extends InterstitialAdsInter {
 
             @Override
             public void onError(Ad ad, AdError adError) {
-                LogUtil.i("facebook interstitialAd Ad failed to show fullscreen content.");
+                LogUtil.i("facebook interstitialAd Ad failed to show fullscreen content."+adError.getErrorMessage());
                 mInterstitialAd = null;
                 noAds(context, handler, AdsContext.AdsFrom.FACEBOOK, count);
             }

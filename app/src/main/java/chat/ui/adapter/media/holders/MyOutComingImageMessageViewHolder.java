@@ -13,6 +13,7 @@ import com.openai.commonutil.LogUtil;
 import com.openapi.ks.myapp.ui.sound.MyFullScreenImageGalleryActivity;
 
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import chat.ui.data.model.Message;
 import tz.co.hosannahighertech.messagekit.utils.RoundedImageView;
@@ -24,6 +25,7 @@ public class MyOutComingImageMessageViewHolder
         extends MyOutComingMassageHandler {
 
     protected ImageView image;
+    public static AtomicInteger counter= new AtomicInteger(0);
 
     public MyOutComingImageMessageViewHolder(View itemView, Object payload) {
         super(itemView, payload);
@@ -62,17 +64,18 @@ public class MyOutComingImageMessageViewHolder
                 image.getContext().startActivity(intent);
             }
         });
-        try {
-            if (rvAds != null) {
-                    rvAds.setVisibility(View.VISIBLE);
-                    AdsManager.getInstans().showBannerAds((FragmentActivity) messageUserAvatar.getContext(), rvAds, AdsContext.Categrey.CATEGREY_VPN2);
-                } else {
-                    rvAds.removeAllViews();
-                    rvAds.setVisibility(View.GONE);
-                }
-        }catch (Exception e){
-            LogUtil.e("",e);
-        }
+//        try {
+//            if (rvAds != null && counter.get()<2) {
+//                counter.addAndGet(1);
+//                rvAds.setVisibility(View.VISIBLE);
+//                AdsManager.getInstans().showBannerAds((FragmentActivity) messageUserAvatar.getContext(), rvAds, AdsContext.Categrey.CATEGREY_VPN2);
+//            } else {
+//                rvAds.removeAllViews();
+//                rvAds.setVisibility(View.GONE);
+//            }
+//        }catch (Exception e){
+//            LogUtil.e("",e);
+//        }
     }
 
 }

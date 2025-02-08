@@ -1,6 +1,8 @@
 package com.openapi.ks.chatfree.ui.main;
 
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.icu.text.IDNA;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -9,7 +11,6 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-
 import com.openapi.ks.myapp.bean.form.ChatSessionLog;
 import com.openapi.ks.myapp.data.DBManager;
 import com.openapi.ks.myapp.ui.base.app.LogActivity;
@@ -27,6 +28,8 @@ import com.openai.ads.yewu.um.MobAgent;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+
+import java.io.IOException;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -154,9 +157,11 @@ public class LaunchActivity extends LogActivity {
         EventBusUtil.getEventBus().unregister(this);
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onADDismissed(SplashAdDissmisEvent event) {
-        mHandler.removeCallbacks(mStartMainRunnable);
-        launch();
-    }
+//    @Subscribe(threadMode = ThreadMode.MAIN)
+//    public void onADDismissed(SplashAdDissmisEvent event) {
+//        mHandler.removeCallbacks(mStartMainRunnable);
+//        launch();
+//    }
+    private static final int REQUEST_AD_ID_PERMISSION = 1;
+
 }

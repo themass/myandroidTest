@@ -8,14 +8,12 @@ import androidx.fragment.app.FragmentActivity;
 import com.openai.commonutil.LogUtil;
 import com.openai.ads.yewu.ads.base.AdsContext;
 import com.openai.ads.yewu.ads.base.BannerInter;
-import com.openai.ads.yewu.ads.mobvista.MobivistaBannerAds;
 
 /**
  * Created by dengt on 2017/9/20.
  */
 
 public class BannerAdviewAds extends BannerInter {
-    private MobivistaBannerAds mobvBanner = new MobivistaBannerAds();
 
     @Override
     protected AdsContext.AdsType getAdsType() {
