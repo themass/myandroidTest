@@ -20,11 +20,14 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.android.volley.Response;
+import com.google.android.gms.common.util.Base64Utils;
 import com.google.common.collect.Lists;
 import com.luck.picture.lib.basic.PictureSelector;
 import com.luck.picture.lib.entity.LocalMedia;
 import com.openai.ads.yewu.ads.base.AdsManager;
 import com.openai.asr.AsrConstants;
+import com.openai.commonutil.Base64Util;
+import com.openai.commonutil.FileUtils;
 import com.openai.commonutil.ImageUtils;
 import com.openai.commonutil.PreferenceUtils;
 import com.openai.commonutil.StringUtils;
@@ -43,8 +46,10 @@ import com.openai.net.request.GsonInfoListRequest;
 import com.openai.net.request.InfoListVo;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.base.MyApplication;
+import com.openapi.ks.myapp.bean.form.AsrContentForm;
 import com.openapi.ks.myapp.bean.form.ChatLog;
 import com.openapi.ks.myapp.bean.form.ChatSessionLog;
+import com.openapi.ks.myapp.bean.vo.AsrResponseVo;
 import com.openapi.ks.myapp.bean.vo.Choice;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.DBManager;
@@ -58,13 +63,16 @@ import com.openapi.ks.myapp.ui.user.LoginActivity;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -103,8 +111,9 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
 
     public String sessionName = "Default";
     public int selectionCount;
+    private static String ASRTAG = "ASRTAG";
 
-    public List<MsgContent> msgContents = new ArrayList<>();
+    public Map<String,MsgContent> msgContents = new HashMap<>();
     private static AtomicInteger counter = new AtomicInteger(0);
 
     CommonResponse.ResponseOkListener listener = new CommonResponse.ResponseOkListener<Choice>() {
@@ -132,7 +141,48 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
                 relogLlm = null;
             }
             messagesAdapter.update(holdMsg);
-            llmCallBack(vo.getMessage().getContent());
+            llmCallBack(vo);
+        }
+    };
+    CommonResponse.ResponseOkListener asrListener = new CommonResponse.ResponseOkListener<AsrResponseVo>() {
+        @Override
+        public void onResponse(AsrResponseVo vo) {
+            if(StringUtils.isEmpty(vo.getText())){
+                vo.setText("......");
+            }
+            LogUtil.i("asr data="+vo);
+            LogUtil.i("发送消息： " + vo.getText());
+            LogUtil.i("msgContents:"+msgContents);
+            MsgContent msgContent = msgContents.remove(vo.getId());
+            if(msgContent == null){
+                return;
+            }
+            msgContent.setOrg(vo.getText());
+            Message sendMsg = messagesAdapter.getMessageByIndex(messagesAdapter.getMessagePositionById(msgContent.getMsgId()));
+            sendMsg.setText(vo.getText());
+            LogUtil.i("find msg id="+msgContent.getMsgId()+"; sendMsg="+sendMsg+"; msgContent="+msgContent);
+            messagesAdapter.update(sendMsg);
+            String content = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.MY_SETTING, "");
+            ChatLog relog = new ChatLog();
+            relog.content = GsonUtils.getInstance().toJson(msgContent);
+            relog.msgType = MessageType.AUDIO_TYPE;
+            relog.who = ChatMessageBean.TYPE_SEND;
+            relog.setChatId(msgContent.getMsgId());
+            relog.createTime = new Date();
+            relog.sessionId = sessionId;
+            DBManager.getInstance().saveChatLog(relog);
+
+            ChatHistory chatHistory = new ChatHistory();
+            chatHistory.setText(vo.getText());
+            chatHistory.setSessinId(sessionId);
+            chatHistory.setId(msgContent.getHoldId());
+            chatHistory.setCharater(content);
+            baseService.postData(String.format(Constants.getUrl(Constants.CHAT_URL)), chatHistory, listener, new CommonResponse.ResponseErrorListener() {
+                @Override
+                protected void onError() {
+                    super.onError();
+                }
+            }, TAG, Choice.class);
         }
     };
     public static String TAG = "chat";
@@ -261,7 +311,7 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
         showToolbar(true);
         initAdapter();
         input.setAudioFinishListener((audioPath, time) -> {
-            LogUtil.i("录音结束回调");
+            LogUtil.i("录音结束回调 ；"+audioPath);
             File file = new File(audioPath);
             if (file.exists()) {
                 sendAudioMessage(audioPath, time);
@@ -540,17 +590,21 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
             msgContent.setTime(time);
             msgContent.setMsgId(myMsg.getId());
             msgContent.setHoldId(holdMsgTmp.getId());
-            msgContents.add(msgContent);
+            msgContents.put(msgContent.getMsgId(), msgContent);
+            AsrContentForm asrContentForm = new AsrContentForm();
+            byte[] voice = FileUtils.readFile(wavPath);
+            LogUtil.i("voice size:"+voice.length);
+            asrContentForm.setContent(Base64Util.encodeBase64(voice));
+            asrContentForm.setId(msgContent.getMsgId());
+            baseService.postData(Constants.getUrl(Constants.CHAT_ASR_URL),asrContentForm,asrListener, new CommonResponse.ResponseErrorListener(), ASRTAG, AsrResponseVo.class);
 
-            recognizeFile(wavPath, msgContent);
+//            recognizeFile(wavPath, msgContent);
         }
     }
 
     public void initHoldMsg(Message msg){
     }
-    public void recognizeFile(String filePath, MsgContent msgContent) {
-    }
-    public void llmCallBack(String text){}
+    public void llmCallBack(Choice choice){}
 
     @Override
     public void onLoadMore(int page, int totalItemsCount) {

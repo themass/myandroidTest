@@ -153,6 +153,8 @@ public class Constants {
     public static final String TRANSWORD_URL = "/chat/transword.json";
     public static final String CHAT_SESSION_URL = "/chat/sessions.json";
     public static final String CHAT_IMAGE_URL = "/chat/ai/recognize.json";
+    public static final String CHAT_ASR_URL = "/chat/ai/asr.json";
+    public static final String CHAT_TTS_URL = "/chat/ai/tts.json";
 
     public static final String VIDEO_USER_CHANNEL = "qvod_user";
     public static final String VIDEO_TV_CHANNEL = "teleplay_";

@@ -9,6 +9,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,6 +17,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.text.DecimalFormat;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -109,7 +111,16 @@ public class FileUtils {
         ret = new File(ret, dirs[dirs.length - 1]);
         return ret;
     }
-
+    public static byte[] readFile(String file){
+        byte[] data = new byte[0];
+        try (FileInputStream fis = new FileInputStream(file)) {
+            data = new byte[fis.available()]; // 创建一个足够大的字节数组
+            fis.read(data); // 读取文件内容到字节数组
+        } catch (IOException e) {
+           LogUtil.e(e); // 打印异常信息
+        }
+        return data;
+    }
     /**
      * 递归删除文件
      *
@@ -171,15 +182,16 @@ public class FileUtils {
     }
 
     public static String getWriteFilePath(Context context) {
-        return context.getFilesDir().getAbsolutePath()+File.separator +"Akimichat";
-//        String sdStatus = Environment.getExternalStorageState();
-//        File rootFile = Environment.getExternalStorageDirectory();
-//        LogUtil.i("sdStatus:"+sdStatus+"; filepath:"+rootFile.getAbsolutePath()+"; path:"+rootFile.getPath());
+//        return context.getFilesDir().getAbsolutePath()+File.separator +"ADeepseek";
+        String sdStatus = Environment.getExternalStorageState();
+        File rootFile = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        LogUtil.i("sdStatus:"+sdStatus+"; filepath:"+rootFile.getAbsolutePath()+"; path:"+rootFile.getPath());
 //        if (!sdStatus.equals(Environment.MEDIA_MOUNTED)) {
-//            return context.getFilesDir().getAbsolutePath() + File.separator + "Akimichat";
+//            return context.getFilesDir().getAbsolutePath() + File.separator + "ADeepseek";
 //        } else {
-//            return rootFile.getPath() + File.separator + "Akimichat";
+//            return rootFile.getPath() + File.separator + "ADeepseek";
 //        }
+        return rootFile.getPath() + File.separator + "ADeepseek";
     }
 
     public static boolean ensureFile(Context context, String filePath) {
@@ -189,5 +201,23 @@ public class FileUtils {
             path.mkdirs();
         }
         return true;
+    }
+    public static void createPublicFolderAndFile(Context context) {
+        // 检查外部存储是否可用
+        if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+            LogUtil.e("External storage is not mounted.");
+            return;
+        }
+
+        // 获取外部存储的公共目录
+        File publicDir = Environment.getExternalStoragePublicDirectory("ADeepseek");
+        if (!publicDir.exists()) {
+            // 如果文件夹不存在，则创建
+            if (!publicDir.mkdirs()) {
+                LogUtil.e( "Failed to create folder: " + publicDir.getAbsolutePath());
+                return;
+            }
+        }
+
     }
 }

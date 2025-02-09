@@ -1,9 +1,11 @@
 package chat.ui;
 
+import android.content.AttributionSource;
 import android.content.Context;
 import android.content.Intent;
 import android.media.MediaMetadataRetriever;
 
+import com.openai.commonutil.Base64Util;
 import com.openai.commonutil.PermissionHelper;
 import com.openai.commonview.view.widget.MediaManager;
 import com.openai.asr.AsrByteDance;
@@ -17,8 +19,11 @@ import com.openai.commonutil.ToastUtil;
 import com.openai.net.request.CommonResponse;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.base.MyApplication;
+import com.openapi.ks.myapp.bean.form.AsrContentForm;
 import com.openapi.ks.myapp.bean.form.ChatLog;
+import com.openapi.ks.myapp.bean.vo.AsrResponseVo;
 import com.openapi.ks.myapp.bean.vo.Choice;
+import com.openapi.ks.myapp.bean.vo.TtsResponseVo;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.DBManager;
 
@@ -26,6 +31,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Date;
 
 import chat.ui.data.model.ChatHistory;
@@ -35,125 +42,20 @@ import chat.ui.data.model.MessageType;
 import chat.ui.data.model.MsgContent;
 import chat.ui.data.model.SimpleMessage;
 
-public class CustomChatMessagesWithAsrActivity extends CustomChatMessagesActivity
-        implements AsrByteDance.AsrCallBackListener {
+public class CustomChatMessagesWithAsrActivity extends CustomChatMessagesActivity {
 
-    public static void open(Context context) {
-        context.startActivity(new Intent(context, CustomChatMessagesWithAsrActivity.class));
-    }
-    private AsrByteDance asrByteDance;
-
-    @Override
-    public void onDestroy() {
-        stopSpeed();
-        super.onDestroy();
-    }
-//----------------------------------------------------------
-    //----------------------------------------------------------------------
-    @Override
-    public void initVosk() {
-        super.initVosk();
-        if(mPermissionHelper.checkPermissions(PermissionHelper.requestPermissions) && asrByteDance ==null) {
-            asrByteDance = new AsrByteDance(MyApplication.getInstance());
-            asrByteDance.initEngine(this, this);
-            asrByteDance.initAsrEngine(this);
-            asrByteDance.initTtsEngine(this);
-        }
-    }
-
-    private void stopSpeed() {
-        if(asrByteDance != null) {
-            asrByteDance.stopEngine();
-        }
-    }
-
-    public void recognizeFile(String filePath, MsgContent msgContent) {
-        if (asrByteDance == null) {
-            ToastUtil.showLong(R.string.hold_please);
-        }
-        asrByteDance.sendEngine(filePath, msgContent.getMsgId());
-    }
-    @Override
-    public void speechAsrResult(String data, boolean isFinish) {
-
-        if (isFinish) {
-            this.runOnUiThread(() -> {
-                try {
-                    // 从回调的 json 数据中解析 ASR 结果
-                    LogUtil.i("data="+data);
-                    JSONObject reader = new JSONObject(data);
-                    String  text = "......";
-                    if (reader.has("result")) {
-                         text = reader.getJSONArray("result").getJSONObject(0).getString("text");
-                    }
-
-                    if (text.isEmpty()) {
-                        text = "......";
-                    }
-                    LogUtil.i("发送消息： " + text);
-                    LogUtil.i("msgContents:"+msgContents);
-                    if(msgContents.size()<1){
-                        return;
-                    }
-                    MsgContent msgContent = msgContents.remove(0);
-                    msgContent.setOrg(text);
-                    Message sendMsg = messagesAdapter.getMessageByIndex(messagesAdapter.getMessagePositionById(msgContent.getMsgId()));
-                    sendMsg.setText(text);
-                    LogUtil.i("find msg id="+msgContent.getMsgId()+"; sendMsg="+sendMsg+"; msgContent="+msgContent);
-                    messagesAdapter.update(sendMsg);
-                    String content = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.MY_SETTING, "");
-                    ChatLog relog = new ChatLog();
-                    relog.content = GsonUtils.getInstance().toJson(msgContent);
-                    relog.msgType = MessageType.AUDIO_TYPE;
-                    relog.who = ChatMessageBean.TYPE_SEND;
-                    relog.setChatId(msgContent.getMsgId());
-                    relog.createTime = new Date();
-                    relog.sessionId = sessionId;
-                    DBManager.getInstance().saveChatLog(relog);
-
-                    ChatHistory chatHistory = new ChatHistory();
-                    chatHistory.setText(text);
-                    chatHistory.setSessinId(sessionId);
-                    chatHistory.setId(msgContent.getHoldId());
-                    chatHistory.setCharater(content);
-                    baseService.postData(String.format(Constants.getUrl(Constants.CHAT_URL)), chatHistory, listener, new CommonResponse.ResponseErrorListener() {
-                        @Override
-                        protected void onError() {
-                            super.onError();
-                        }
-                    }, TAG, Choice.class);
-                } catch (JSONException e) {
-                    LogUtil.e(e);
-                }
-            });
-
-        }
-    }
-
-    @Override
-    public void speechStart(String id) {
-
-    }
-
-    @Override
-    public void speechStop() {
-
-    }
-
-    @Override
-    public void callBackTtsData(String name) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    // 让当前线程睡眠 2 秒
-                    Thread.sleep(600);
-                } catch (InterruptedException e) {
-                    LogUtil.e(e);
-                }
-
-                String fileName = "tts_"+name+".wav";
+    private static String TTSTAG = "TTSTAG";
+    CommonResponse.ResponseOkListener ttsListener = new CommonResponse.ResponseOkListener<TtsResponseVo>() {
+        @Override
+        public void onResponse(TtsResponseVo vo) {
+                String fileName = vo.getFileName();
                 String abFileName = FileUtils.getWriteFilePath(MyApplication.getInstance())+"/"+fileName;
+                try {
+                    Files.write(Paths.get(abFileName), Base64Util.decodeBase64(vo.getData())); // 写入数据
+                } catch (IOException e) {
+                   LogUtil.e(e);
+                }
+
                 String abUrlFileName = "file://"+abFileName;
                 MediaMetadataRetriever retriever = new MediaMetadataRetriever();
                 long time = 0;
@@ -188,22 +90,21 @@ public class CustomChatMessagesWithAsrActivity extends CustomChatMessagesActivit
                     relogLlm.content = GsonUtils.getInstance().toJson(msgContent);
                     DBManager.getInstance().saveChatLog(relogLlm);
                 }
-
-                runOnUiThread(() -> messagesAdapter.update(holdMsg));
+                messagesAdapter.update(holdMsg);
             }
-        }).start();
-
-
-    }
+        };
 
     @Override
-    public void llmCallBack(String text) {
-        super.llmCallBack(text);
-        LogUtil.i("开始tts   "+text);
+    public void llmCallBack(Choice choice) {
+        super.llmCallBack(choice);
+        LogUtil.i("开始tts   "+choice.getMessage());
         boolean needTts = PreferenceUtils.getPrefBoolean(MyApplication.getInstance(), AsrConstants.TTS_OPEN, false);
         try {
             if (needTts) {
-                asrByteDance.sendTtsEngine(text);
+                AsrContentForm asrContentForm = new AsrContentForm();
+                asrContentForm.setId(choice.getId());
+                asrContentForm.setContent(choice.getMessage().getContent());
+                baseService.postData(Constants.getUrl(Constants.CHAT_TTS_URL),asrContentForm,ttsListener, new CommonResponse.ResponseErrorListener(), TTSTAG, TtsResponseVo.class);
             }
         }catch (Exception e){
             LogUtil.e(e);
