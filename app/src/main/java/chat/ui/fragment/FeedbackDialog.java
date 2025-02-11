@@ -69,6 +69,9 @@ public class FeedbackDialog extends AppCompatDialog {
             @Override
             public void onClick(View v) {
                 // 获取输入内容
+                if(labelsView.getSelectLabelDatas().size()==0){
+                    dismiss();
+                }
                 String feedback = feedbackEditText.getText().toString();
                 FeedbackContentForm feedbackContentForm = new FeedbackContentForm();
                 feedbackContentForm.setContent(message.getText());
