@@ -576,19 +576,19 @@ public class MessageHolders {
         if (item instanceof IMessage) {
             ((MessageHolders.BaseMessageViewHolder) holder).isSelected = isSelected;
             ((MessageHolders.BaseMessageViewHolder) holder).imageLoader = imageLoader;
-            holder.itemView.setOnLongClickListener(onMessageLongClickListener);
-            holder.itemView.setOnClickListener(onMessageClickListener);
-
+//            holder.itemView.setOnLongClickListener(onMessageLongClickListener);
+//            holder.itemView.setOnClickListener(onMessageClickListener);
+            holder.itemView.setClickable(false);
             for (int i = 0; i < clickListenersArray.size(); i++) {
                 final int key = clickListenersArray.keyAt(i);
                 final View view = holder.itemView.findViewById(key);
                 if (view != null) {
-                    view.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            clickListenersArray.get(key).onMessageViewClick(view, (IMessage) item);
-                        }
-                    });
+//                    view.setOnClickListener(new View.OnClickListener() {
+//                        @Override
+//                        public void onClick(View v) {
+//                            clickListenersArray.get(key).onMessageViewClick(view, (IMessage) item);
+//                        }
+//                    });
                 }
             }
         } else if (item instanceof Date) {

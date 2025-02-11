@@ -132,7 +132,7 @@ public class FavoriteFragment extends BasePullLoadbleFragment<FavoriteVo> implem
         return true;
     }
 
-    public void modFavorite(boolean ret) {
+    public void modFavorite(FavoriteVo vo) {
         pullView.setRefresh(true);
     }
 

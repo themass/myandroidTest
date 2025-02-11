@@ -12,6 +12,8 @@ import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.bean.vo.UserInfoVo;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.UserLoginUtil;
+import com.openapi.ks.myapp.view.MyIncomingAudioFooterView;
+import com.openapi.ks.myapp.view.MyOutcomingAudioFooterView;
 
 import chat.ui.data.model.Message;
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -22,10 +24,11 @@ public class MyOutComingMassageHandler extends MessageHolders.OutcomingTextMessa
     public CircleImageView messageUserAvatar;
     public Message message;
     public RelativeLayout rvAds;
-
+    public MyOutcomingAudioFooterView myOutcomingAudioFooterView;
     public MyOutComingMassageHandler(View itemView, Object payload) {
         super(itemView, payload);
         messageUserAvatar = (CircleImageView) itemView.findViewById(R.id.messageUserAvatar);
+        myOutcomingAudioFooterView = itemView.findViewById(R.id.ll_sound);
         rvAds = itemView.findViewById(R.id.rv_ads);
     }
 
@@ -43,6 +46,7 @@ public class MyOutComingMassageHandler extends MessageHolders.OutcomingTextMessa
         } else {
             messageUserAvatar.setImageResource(R.drawable.ic_default_nan);
         }
+        myOutcomingAudioFooterView.setMessage(message);
 //        try {
 //            if (rvAds != null) {
 //                if (Boolean.TRUE.equals(message.showAds)) {

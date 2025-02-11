@@ -73,12 +73,6 @@
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
 
-    <!-- Theme - Dark Blue -->
-
-    <!-- Segmented Control -->
-
-    <!-- CharacterView -->
-
     <color name="colorPrimary">#c62828</color>
     <color name="colorAccent">#f44336</color>
     <color name="colorPrimaryDark">#0f4574</color>

@@ -33,13 +33,13 @@ public class FavoriteImageView extends AppCompatImageView implements FavoriteUti
     }
 
     @Override
-    public void modFavorite(boolean ret) {
-        modFavoriteBg(ret);
+    public void modFavorite(FavoriteVo vo) {
+        modFavoriteBg(vo!=null);
     }
 
     @Override
-    public void isFavorite(String itemUrl, boolean ret) {
-        modFavoriteBg(ret);
+    public void isFavorite(String itemUrl, FavoriteVo vo) {
+        modFavoriteBg(vo!=null);
     }
 
     public void modFavoriteBg(boolean ret) {

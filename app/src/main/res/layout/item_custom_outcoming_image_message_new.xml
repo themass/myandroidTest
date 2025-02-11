@@ -46,21 +46,12 @@
                 />
         </LinearLayout>
 
-        <RelativeLayout
+        <com.openapi.ks.myapp.view.MyOutcomingAudioFooterView
             android:id="@+id/ll_sound"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/bubble"
             android:paddingTop="@dimen/message_time_padding_top"
-            >
-
-            <TextView
-                android:id="@+id/messageTime"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
-                android:layout_marginRight="10dp" />
-        </RelativeLayout>
+            android:layout_below="@+id/bubble"/>
 
     </RelativeLayout>
 

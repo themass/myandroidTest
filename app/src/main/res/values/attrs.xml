@@ -13,4 +13,7 @@
     for more details.
 -->
 <resources>
+    <declare-styleable name="ChatMessageFooter">
+        <attr name="needUp" format="boolean" />
+    </declare-styleable>
 </resources>

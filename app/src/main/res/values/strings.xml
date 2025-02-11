@@ -198,6 +198,12 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="on_log_selected_messages"> %1$d Messages are selected</string>
     <string name="action_copy">Copy</string>
     <string name="copied_message">Message copied!</string>
-
-
+    <string name="chat_feedback_ok">I have received your feedback.</string>
+    <string name="chat_feedback_hint">Enter your feedback</string>
+    <string-array name="chat_feed_reson">
+        <item>Harmful</item>
+        <item>False</item>
+        <item>Unhelpful</item>
+        <item>Other</item>
+    </string-array>
 </resources>

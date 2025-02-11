@@ -23,7 +23,7 @@ public class FavoriteUtil {
      */
 
     public static List<FavoriteVo> getLocalFavorites(Context context) {
-        return DBManager.getInstance().getDaoSession().getFavoriteVoDao().loadAll();
+        return DBManager.getInstance().getDaoSession().getFavoriteVoDao().queryRaw("where T.TYPE < 4");
     }
 
     public static FavoriteVo getFavorite(Context context, String url) {
@@ -74,11 +74,11 @@ public class FavoriteUtil {
     }
 
     public interface GetFavoriteListener {
-        void isFavorite(String itemUrl, boolean ret);
+        void isFavorite(String itemUrl, FavoriteVo vo);
     }
 
     public interface ModFavoriteListener {
-        void modFavorite(boolean ret);
+        void modFavorite(FavoriteVo vo);
     }
 
     public static class AddInfoTask extends AsyncTask<String, Integer, Boolean> {
@@ -92,7 +92,7 @@ public class FavoriteUtil {
 
         @Override
         protected Boolean doInBackground(String... params) {
-            DBManager.getInstance().getDaoSession().getFavoriteVoDao().insert(vo);
+            DBManager.getInstance().getDaoSession().getFavoriteVoDao().insertOrReplace(vo);
             return Boolean.TRUE;
         }
     }
@@ -113,7 +113,7 @@ public class FavoriteUtil {
         }
     }
 
-    public static class GetInfoTask extends AsyncTask<String, Integer, Boolean> {
+    public static class GetInfoTask extends AsyncTask<String, Integer, FavoriteVo> {
         private Context context;
         private String itemUrl;
         private GetFavoriteListener listener;
@@ -125,19 +125,18 @@ public class FavoriteUtil {
         }
 
         @Override
-        protected Boolean doInBackground(String... params) {
-            FavoriteVo vo = getFavorite(context, itemUrl);
-            return vo != null ? Boolean.TRUE : Boolean.FALSE;
+        protected FavoriteVo doInBackground(String... params) {
+            return getFavorite(context, itemUrl);
         }
 
         @Override
-        protected void onPostExecute(Boolean ret) {
+        protected void onPostExecute(FavoriteVo vo) {
             if (listener != null)
-                listener.isFavorite(itemUrl, ret);
+                listener.isFavorite(itemUrl, vo);
         }
     }
 
-    public static class ModInfoTask extends AsyncTask<String, Integer, Boolean> {
+    public static class ModInfoTask extends AsyncTask<String, Integer, FavoriteVo> {
         private Context context;
         private FavoriteVo vo;
         private ModFavoriteListener listener;
@@ -149,56 +148,25 @@ public class FavoriteUtil {
         }
 
         @Override
-        protected Boolean doInBackground(String... params) {
+        protected FavoriteVo doInBackground(String... params) {
             FavoriteVo ret = getFavorite(context, vo.itemUrl);
             if (ret == null) {
                 vo.setExtra(ModelUtils.entry2Json(vo.getO()));
                 vo.setUpdateTime(DateUtils.format(new Date(), DateUtils.DATE_FORMAT));
                 addFavorite(context, vo);
                 EventBusUtil.getEventBus().post(new FavoriteChangeEvent());
-                return true;
+                return vo;
             } else {
                 EventBusUtil.getEventBus().post(new FavoriteChangeEvent());
                 delFavorite(context, ret.id);
-                return false;
+                return null;
             }
         }
 
         @Override
-        protected void onPostExecute(Boolean ret) {
+        protected void onPostExecute(FavoriteVo vo) {
             if (listener != null)
-                listener.modFavorite(ret);
+                listener.modFavorite(vo);
         }
     }
-//
-//	public static void initFavoriteIds(Context context) {
-//		FAVORITE_URLS_SET.clear();
-//		if (!AccountModel.isLogged(context)) {
-//			List<Map<String, Object>> list = getLocalFavorites(context,
-//					new String[] { FAVORITE_URL }, null, null);
-//			for (Map<String, Object> map : list) {
-//				FAVORITE_URLS_SET.add((String) map.get(FAVORITE_URL));
-//			}
-//		} else {
-//			FavoriteResponse.Urls response = new FavoriteResponse.Urls(
-//					context);
-//			Gson4MapMultipartRequest request = new Gson4MapMultipartRequest(
-//					context, null, Constants.FAVORITE_URL_LIST, AccountModel.getCookieHeader(context),
-//					response, response);
-//			VolleyUtils.addRequest(request);
-//		}
-//	}
-//
-//	public static void syncFavorite(Context context) {
-//		List<Map<String, Object>> list = FavoriteModel.getLocalFavorites(
-//				context, null, null, null);
-//			Map<String, String> param = new HashMap<String, String>();
-//			param.put(FavoriteModel.FAVORITE_SYNC_PARAM,
-//					ModelUtils.entry2Json(list));
-//			FavoriteResponse.Sync response = new FavoriteResponse.Sync(context);
-//			Gson4MapMultipartRequest request = new Gson4MapMultipartRequest(
-//					context, param, Constants.FAVORITE_SYNC, AccountModel.getCookieHeader(context), response,
-//					response);
-//			VolleyUtils.addRequest(request);
-//	}
 }

@@ -155,6 +155,8 @@ public class Constants {
     public static final String CHAT_IMAGE_URL = "/chat/ai/recognize.json";
     public static final String CHAT_ASR_URL = "/chat/ai/asr.json";
     public static final String CHAT_TTS_URL = "/chat/ai/tts.json";
+    public static final String CHAT_FEEDBACK_URL = "/chat/ai/feedback.json";
+
 
     public static final String VIDEO_USER_CHANNEL = "qvod_user";
     public static final String VIDEO_TV_CHANNEL = "teleplay_";
@@ -215,6 +217,8 @@ public class Constants {
         public static final int SOUND = 1;
         public static final int IMG = 2;
         public static final int VIDEO = 3;
+        public static final int CHAT_OK = 4;
+        public static final int CHAT_FAIL = 5;
     }
 
     public static class UserLevel {
