@@ -101,7 +101,6 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
     @BindView(R.id.fl_banner)
     FrameLayout banner;
     private Set<OnBackKeyDownListener> keyListeners = new HashSet<>();
-    public Message holdMsg = null;
     public ChatLog relogLlm = null;
 
     protected final String senderId = "0";
@@ -124,18 +123,19 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
             if(count == 2){
                 AdsContext.showNext(MyApplication.getInstance());
             }
-            holdMsg = new Message(vo.getId(), User.gpt, vo.getMessage().getContent());
+            Message holdMsg = new Message(vo.getId(), User.gpt, vo.getMessage().getContent());
             initHoldMsg(holdMsg);
             if (!StringUtils.isEmpty(vo.getMessage().getContent())) {
                 MsgContent msgContent = new MsgContent();
                 msgContent.setContent(vo.getMessage().getContent());
                 ChatLog relog = new ChatLog();
+                initLLMMsg(relog,msgContent );
                 relog.content = GsonUtils.getInstance().toJson(msgContent);
+                LogUtil.i("msgContent:"+ relog.content);
                 relog.who = ChatMessageBean.TYPE_RECEIVED;
                 relog.setChatId(vo.getId());
                 relog.createTime = new Date();
                 relog.sessionId = sessionId;
-                initLLMMsg(relog,msgContent );
                 DBManager.getInstance().saveChatLog(relog);
                 relogLlm = relog;
             }else {

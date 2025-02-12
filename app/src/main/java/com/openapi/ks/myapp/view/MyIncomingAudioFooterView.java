@@ -17,6 +17,7 @@ import androidx.annotation.Nullable;
 
 import com.bumptech.glide.Glide;
 import com.openai.commonevent.FavoriteVo;
+import com.openai.commonutil.EventBusUtil;
 import com.openai.commonutil.FavoriteUtil;
 import com.openai.commonutil.LogUtil;
 import com.openai.commonutil.StringUtils;
@@ -26,6 +27,7 @@ import com.openai.commonview.view.widget.MediaManager;
 import com.openapi.ks.deepseek.R;
 import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.constant.Constants;
+import com.openapi.ks.myapp.data.config.TtsLoadEvent;
 
 import java.util.function.Function;
 
@@ -40,7 +42,6 @@ public class MyIncomingAudioFooterView extends LinearLayout implements FavoriteU
     public Message message;
     public ImageView copy;
     private Context context;
-    private TtsLoadlistener ttsLoadlistener;
     public ImageView ivAudioImg;
     public static ImageView ivAudio;
     public MyIncomingAudioFooterView(@NonNull Context context) {
@@ -117,20 +118,30 @@ public class MyIncomingAudioFooterView extends LinearLayout implements FavoriteU
     }
 
     public void click(View view) {
-        LogUtil.i("msg clicked " + message.getId());
+        LogUtil.i("msg clicked " + message.getId()+"; url:"+message.getVoice().getUrl());
         try {
             if(StringUtils.isEmpty(message.getVoice().getUrl())){
+                ivAudioImg.setBackground(null);
                 Glide.with(this)
                         .asGif()
                         .load(R.drawable.loading) // 替换为你的GIF文件资源ID
                         .into(ivAudioImg);
-                ttsLoadlistener.ttsLoad(message, new Function<Message, Void>() {
+                TtsLoadEvent ttsLoadEvent = new TtsLoadEvent();
+                ttsLoadEvent.message = message;
+                ttsLoadEvent.function = new Function<Message, Void>() {
                     @Override
                     public Void apply(Message message) {
+                        LogUtil.i("tts 回调");
+                        ivAudioImg.setBackgroundResource(R.drawable.audio_animation_list_left_3);
+                        ivAudioImg.setImageResource(0);
+                        llVoice.setClickable(true);
                         play();
                         return null;
                     }
-                });
+                };
+                EventBusUtil.getEventBus().post(ttsLoadEvent);
+                LogUtil.i("post event:"+ttsLoadEvent.message.getText());
+                llVoice.setClickable(false);
                 return;
             }
             play();
@@ -140,6 +151,7 @@ public class MyIncomingAudioFooterView extends LinearLayout implements FavoriteU
     }
     public void play(){
         try{
+
             if (MediaManager.isStart()) {
                 if (MyOutcomingAudioFooterView.ivAudio != null) {
                     MyOutcomingAudioFooterView.ivAudio.setBackgroundResource(R.drawable.audio_animation_list_right_3);
@@ -210,8 +222,5 @@ public class MyIncomingAudioFooterView extends LinearLayout implements FavoriteU
         vo.setName("chatFail");
         FavoriteUtil.addFavorite(context, vo);
         modFavoriteBg(vo);
-    }
-    public static interface TtsLoadlistener{
-        public void ttsLoad(Message message, Function<Message,Void> function);
     }
 }

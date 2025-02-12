@@ -59,7 +59,7 @@
             android:id="@+id/ib_audio"
             android:layout_width="16dp"
             android:layout_height="16dp"
-            android:background="@drawable/loading" />
+            android:background="@drawable/audio_animation_list_left_3" />
 
         <TextView
             android:id="@+id/duration"

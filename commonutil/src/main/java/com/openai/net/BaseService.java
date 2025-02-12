@@ -72,7 +72,6 @@ public class BaseService {
         Map<String, String> map = null;
         if (param != null) {
             map = BeanUtil.transBean2Map(param);
-            LogUtil.i("请求参数"+param);
         }
         MultipartRequest request = new MultipartRequest(context, map, url, null, listener, errorListener, t);
         request.setTag(tag);
@@ -88,7 +87,6 @@ public class BaseService {
         Map<String, String> map = null;
         if (param != null) {
             map = BeanUtil.transBean2Map(param);
-            LogUtil.i("请求参数"+param);
         }
         MultipartRequest request = new MultipartRequest(context, url, null, file, map, name, listener, errorListener, t);
         request.setTag(tag);

@@ -5,7 +5,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.MediaMetadataRetriever;
 
+import com.android.volley.VolleyError;
 import com.openai.commonutil.Base64Util;
+import com.openai.commonutil.EventBusUtil;
 import com.openai.commonutil.PermissionHelper;
 import com.openai.commonview.view.widget.MediaManager;
 import com.openai.asr.AsrByteDance;
@@ -26,8 +28,11 @@ import com.openapi.ks.myapp.bean.vo.Choice;
 import com.openapi.ks.myapp.bean.vo.TtsResponseVo;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.DBManager;
+import com.openapi.ks.myapp.data.config.TtsLoadEvent;
 import com.openapi.ks.myapp.view.MyIncomingAudioFooterView;
 
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -35,6 +40,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
 
 import chat.ui.data.model.ChatHistory;
@@ -44,10 +51,11 @@ import chat.ui.data.model.MessageType;
 import chat.ui.data.model.MsgContent;
 import chat.ui.data.model.SimpleMessage;
 
-public class CustomChatMessagesWithAsrActivity extends CustomChatMessagesActivity implements MyIncomingAudioFooterView.TtsLoadlistener {
+public class CustomChatMessagesWithAsrActivity extends CustomChatMessagesActivity {
 
     private static String TTSTAG = "TTSTAG";
-    private  Function callback;
+    public Map<String,Message> holdMsgs = new HashMap<>();
+    private  Map<String,Function> callbacks = new HashMap<>();
     CommonResponse.ResponseOkListener ttsListener = new CommonResponse.ResponseOkListener<TtsResponseVo>() {
         @Override
         public void onResponse(TtsResponseVo vo) {
@@ -78,6 +86,11 @@ public class CustomChatMessagesWithAsrActivity extends CustomChatMessagesActivit
                     }
                 }
                 Message.Voice voice = new Message.Voice(abUrlFileName, (int) (time/1000));
+                Message holdMsg = holdMsgs.get(vo.getId());
+                if(holdMsg == null){
+                    LogUtil.i("holdMsg is null"+vo.getId());
+                    return;
+                }
                 holdMsg.setVoice(voice);
                 holdMsg.setMsgType(MessageType.AUDIO_TYPE);
                 LogUtil.i("update msg to audio="+holdMsg.getId());
@@ -94,10 +107,12 @@ public class CustomChatMessagesWithAsrActivity extends CustomChatMessagesActivit
                     DBManager.getInstance().saveChatLog(relogLlm);
                 }
                 messagesAdapter.update(holdMsg);
-                if(callback != null) {
-                    callback.apply(holdMsg);
+                if(callbacks.get(vo.getId())!=null){
+                    callbacks.get(vo.getId()).apply(holdMsg);
+                }else{
+                        LogUtil.i("callback is null");
+                    }
                 }
-            }
         };
 
     @Override
@@ -139,14 +154,31 @@ public class CustomChatMessagesWithAsrActivity extends CustomChatMessagesActivit
         }
     }
 
-    @Override
-    public void ttsLoad(Message message, Function function) {
-        this.callback = function;
-        if(!StringUtils.isEmpty(message.getText())) {
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void ttsLoad(TtsLoadEvent ttsLoadEvent) {
+        callbacks.put(ttsLoadEvent.message.getId(),ttsLoadEvent.function);
+        LogUtil.i("ttsLoad:"+ttsLoadEvent.message.getText());
+        if(!StringUtils.isEmpty(ttsLoadEvent.message.getText())) {
             AsrContentForm asrContentForm = new AsrContentForm();
-            asrContentForm.setId(message.getId());
-            asrContentForm.setContent(message.getText());
-            baseService.postData(Constants.getUrl(Constants.CHAT_TTS_URL), asrContentForm, ttsListener, new CommonResponse.ResponseErrorListener(), TTSTAG, TtsResponseVo.class);
+            asrContentForm.setId(ttsLoadEvent.message.getId());
+            asrContentForm.setContent(ttsLoadEvent.message.getText());
+            holdMsgs.put(ttsLoadEvent.message.getId(), ttsLoadEvent.message);
+            baseService.postData(Constants.getUrl(Constants.CHAT_TTS_URL), asrContentForm, ttsListener, new CommonResponse.ResponseErrorListener(){
+                @Override
+                public void onErrorResponse(VolleyError volleyError) {
+                    super.onErrorResponse(volleyError);
+                    if(callbacks.get(asrContentForm.id)!=null){
+                        callbacks.get(asrContentForm.id).apply(null);
+                    };
+                }
+
+                @Override
+                protected void onError() {
+                    super.onError();
+                    if(callbacks.get(asrContentForm.id)!=null){
+                        callbacks.get(asrContentForm.id).apply(null);
+                    };                }
+            }, TTSTAG, TtsResponseVo.class);
         }
     }
 }
