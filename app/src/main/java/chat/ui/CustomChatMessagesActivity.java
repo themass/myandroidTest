@@ -113,16 +113,11 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
     private static String ASRTAG = "ASRTAG";
 
     public Map<String,MsgContent> msgContents = new HashMap<>();
-    private static AtomicInteger counter = new AtomicInteger(0);
 
     CommonResponse.ResponseOkListener listener = new CommonResponse.ResponseOkListener<Choice>() {
         @Override
         public void onResponse(Choice vo) {
             LogUtil.i("llm 返回"+ GsonUtils.getInstance().toJson(vo));
-            int count = counter.addAndGet(1);
-            if(count == 2){
-                AdsContext.showNext(MyApplication.getInstance());
-            }
             Message holdMsg = new Message(vo.getId(), User.gpt, vo.getMessage().getContent());
             initHoldMsg(holdMsg);
             if (!StringUtils.isEmpty(vo.getMessage().getContent())) {
@@ -336,6 +331,7 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
             }
         });
         initChatSession();
+        AdsContext.showNext(MyApplication.getInstance());
     }
     public void initChatSession(){
         GsonInfoListRequest request = new GsonInfoListRequest(this, Constants.getUrl(Constants.CHAT_SESSION_URL), ChatSessionLog.class, null, new Response.Listener<InfoListVo<ChatSessionLog>>(){

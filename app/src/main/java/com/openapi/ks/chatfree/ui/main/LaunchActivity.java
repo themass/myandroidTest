@@ -157,11 +157,10 @@ public class LaunchActivity extends LogActivity {
         EventBusUtil.getEventBus().unregister(this);
     }
 
-//    @Subscribe(threadMode = ThreadMode.MAIN)
-//    public void onADDismissed(SplashAdDissmisEvent event) {
-//        mHandler.removeCallbacks(mStartMainRunnable);
-//        launch();
-//    }
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onADDismissed(SplashAdDissmisEvent event) {
+        AdsManager.getInstans().showSplashAds(AdsContext.AdsFrom.FACEBOOK, this, ivAds, skipView);
+    }
     private static final int REQUEST_AD_ID_PERMISSION = 1;
 
 }

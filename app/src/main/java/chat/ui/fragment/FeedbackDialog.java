@@ -9,6 +9,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import com.openapi.ks.chat.R;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatDialog;
@@ -17,7 +18,6 @@ import com.donkingliang.labels.LabelsView;
 import com.openai.commonutil.ToastUtil;
 import com.openai.net.BaseService;
 import com.openai.net.request.CommonResponse;
-import com.openapi.ks.deepseek.R;
 import com.openapi.ks.myapp.bean.form.FeedbackContentForm;
 import com.openapi.ks.myapp.bean.vo.AsrResponseVo;
 import com.openapi.ks.myapp.bean.vo.NullReturnVo;

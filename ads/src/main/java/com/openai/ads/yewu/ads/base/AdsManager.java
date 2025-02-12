@@ -83,7 +83,7 @@ public class AdsManager {
             }
             if (obj.type == AdsContext.AdsType.ADS_TYPE_INTERSTITIAL && obj.status == AdsContext.AdsShowStatus.ADS_NO_MSG && obj.from == AdsContext.AdsFrom.ADVIEW && obj.addCount()) {
                 showInterstitialAds(obj.context, AdsContext.Categrey.CATEGREY_VPN, false, AdsContext.AdsFrom.ADMOB, obj.count);
-            } else if (obj.type == AdsContext.AdsType.ADS_TYPE_INTERSTITIAL && obj.status == AdsContext.AdsShowStatus.ADS_NO_MSG && obj.from == AdsContext.AdsFrom.ADMOB && obj.addCount()) {
+            } else if (obj.type == AdsContext.AdsType.ADS_TYPE_INTERSTITIAL && obj.status == AdsContext.AdsShowStatus.ADS_NO_MSG && obj.from == AdsContext.AdsFrom.ADMOB) {
                 showInterstitialAds(obj.context, AdsContext.Categrey.CATEGREY_VPN, false, AdsContext.AdsFrom.FACEBOOK, obj.count);
             }
             super.handleMessage(msg);

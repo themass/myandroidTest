@@ -24,7 +24,7 @@ import com.openai.commonutil.StringUtils;
 import com.openai.commonutil.SystemUtils;
 import com.openai.commonutil.ToastUtil;
 import com.openai.commonview.view.widget.MediaManager;
-import com.openapi.ks.deepseek.R;
+import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.config.TtsLoadEvent;

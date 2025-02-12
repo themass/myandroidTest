@@ -23,13 +23,9 @@ import com.openai.commonutil.StringUtils;
 import com.openai.commonutil.SystemUtils;
 import com.openai.commonutil.ToastUtil;
 import com.openai.commonview.view.widget.MediaManager;
-import com.openapi.ks.deepseek.R;
+import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.base.MyApplication;
-import com.openapi.ks.myapp.constant.Constants;
-
-import chat.ui.adapter.media.holders.MyOutComingVoiceMessageViewHolder;
 import chat.ui.data.model.Message;
-import chat.ui.fragment.FeedbackDialog;
 
 public class MyOutcomingAudioFooterView extends LinearLayout {
     public RelativeLayout llVoice;
