@@ -86,7 +86,7 @@ public class MyOutcomingAudioFooterView extends LinearLayout {
             llVoice.setVisibility(GONE);
         }
     }
-    public static ImageButton ivAudio;
+    public static ImageView ivAudio;
     public void click(View view) {
         LogUtil.i("msg clicked " + message.getId());
         try {

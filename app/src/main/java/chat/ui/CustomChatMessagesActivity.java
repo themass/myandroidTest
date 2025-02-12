@@ -135,6 +135,7 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
                 relog.setChatId(vo.getId());
                 relog.createTime = new Date();
                 relog.sessionId = sessionId;
+                initLLMMsg(relog,msgContent );
                 DBManager.getInstance().saveChatLog(relog);
                 relogLlm = relog;
             }else {
@@ -603,6 +604,8 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
     }
 
     public void initHoldMsg(Message msg){
+    }
+    public void initLLMMsg(ChatLog msg, MsgContent msgContent){
     }
     public void llmCallBack(Choice choice){}
 

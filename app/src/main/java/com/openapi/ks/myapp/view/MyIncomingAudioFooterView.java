@@ -15,6 +15,7 @@ import android.widget.LinearLayout;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.bumptech.glide.Glide;
 import com.openai.commonevent.FavoriteVo;
 import com.openai.commonutil.FavoriteUtil;
 import com.openai.commonutil.LogUtil;
@@ -25,6 +26,8 @@ import com.openai.commonview.view.widget.MediaManager;
 import com.openapi.ks.deepseek.R;
 import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.constant.Constants;
+
+import java.util.function.Function;
 
 import chat.ui.adapter.media.holders.MyOutComingVoiceMessageViewHolder;
 import chat.ui.data.model.Message;
@@ -37,6 +40,9 @@ public class MyIncomingAudioFooterView extends LinearLayout implements FavoriteU
     public Message message;
     public ImageView copy;
     private Context context;
+    private TtsLoadlistener ttsLoadlistener;
+    public ImageView ivAudioImg;
+    public static ImageView ivAudio;
     public MyIncomingAudioFooterView(@NonNull Context context) {
         super(context);
         setupView(context);
@@ -66,6 +72,7 @@ public class MyIncomingAudioFooterView extends LinearLayout implements FavoriteU
         View myView = mInflater.inflate(R.layout.item_custom_incoming_footer, null);
         addView(myView);
         llVoice = findViewById(R.id.ll_voice);
+        ivAudioImg = findViewById(R.id.ib_audio);
         ibUp = findViewById(R.id.ib_up);
         ibDown = findViewById(R.id.ib_down);
         copy = findViewById(R.id.iv_copy);
@@ -108,13 +115,31 @@ public class MyIncomingAudioFooterView extends LinearLayout implements FavoriteU
             llVoice.setVisibility(GONE);
         }
     }
-    public static ImageButton ivAudio;
+
     public void click(View view) {
         LogUtil.i("msg clicked " + message.getId());
         try {
-            if (StringUtils.isEmpty(message.getVoice().getUrl())) {
+            if(StringUtils.isEmpty(message.getVoice().getUrl())){
+                Glide.with(this)
+                        .asGif()
+                        .load(R.drawable.loading) // 替换为你的GIF文件资源ID
+                        .into(ivAudioImg);
+                ttsLoadlistener.ttsLoad(message, new Function<Message, Void>() {
+                    @Override
+                    public Void apply(Message message) {
+                        play();
+                        return null;
+                    }
+                });
                 return;
             }
+            play();
+        }catch (Exception e){
+            LogUtil.e(e);
+        }
+    }
+    public void play(){
+        try{
             if (MediaManager.isStart()) {
                 if (MyOutcomingAudioFooterView.ivAudio != null) {
                     MyOutcomingAudioFooterView.ivAudio.setBackgroundResource(R.drawable.audio_animation_list_right_3);
@@ -122,7 +147,7 @@ public class MyIncomingAudioFooterView extends LinearLayout implements FavoriteU
                     MediaManager.reset();
                 }
             }
-            if (ivAudio != null && ivAudio == view.findViewById(R.id.ib_audio)) {
+            if (ivAudio != null && ivAudio == llVoice.findViewById(R.id.ib_audio)) {
                 MediaManager.reset();
                 ivAudio.setBackgroundResource(R.drawable.audio_animation_list_left_3);
                 ivAudio = null;
@@ -134,7 +159,7 @@ public class MyIncomingAudioFooterView extends LinearLayout implements FavoriteU
                 ivAudio = null;
                 MediaManager.reset();
             }
-            ivAudio = view.findViewById(R.id.ib_audio);
+            ivAudio = llVoice.findViewById(R.id.ib_audio);
             MediaManager.reset();
             ivAudio.setBackgroundResource(R.drawable.audio_animation_left_list);
             AnimationDrawable drawable = (AnimationDrawable) ivAudio.getBackground();
@@ -152,7 +177,6 @@ public class MyIncomingAudioFooterView extends LinearLayout implements FavoriteU
             LogUtil.e(e);
         }
     }
-
     @Override
     public void modFavorite(FavoriteVo vo) {
         LogUtil.i("click "+ message.getId());
@@ -186,5 +210,8 @@ public class MyIncomingAudioFooterView extends LinearLayout implements FavoriteU
         vo.setName("chatFail");
         FavoriteUtil.addFavorite(context, vo);
         modFavoriteBg(vo);
+    }
+    public static interface TtsLoadlistener{
+        public void ttsLoad(Message message, Function<Message,Void> function);
     }
 }

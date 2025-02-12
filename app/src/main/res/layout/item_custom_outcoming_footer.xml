@@ -38,7 +38,7 @@
             android:layout_alignParentRight="true"
             android:textColor="@color/black"
             android:textSize="15sp" />
-        <ImageButton
+        <ImageView
             android:id="@+id/ib_audio"
             android:layout_width="16dp"
             android:layout_height="16dp"

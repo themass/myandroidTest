@@ -26,6 +26,7 @@ import com.openapi.ks.myapp.bean.vo.Choice;
 import com.openapi.ks.myapp.bean.vo.TtsResponseVo;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.DBManager;
+import com.openapi.ks.myapp.view.MyIncomingAudioFooterView;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -34,6 +35,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Date;
+import java.util.function.Function;
 
 import chat.ui.data.model.ChatHistory;
 import chat.ui.data.model.ChatMessageBean;
@@ -42,9 +44,10 @@ import chat.ui.data.model.MessageType;
 import chat.ui.data.model.MsgContent;
 import chat.ui.data.model.SimpleMessage;
 
-public class CustomChatMessagesWithAsrActivity extends CustomChatMessagesActivity {
+public class CustomChatMessagesWithAsrActivity extends CustomChatMessagesActivity implements MyIncomingAudioFooterView.TtsLoadlistener {
 
     private static String TTSTAG = "TTSTAG";
+    private  Function callback;
     CommonResponse.ResponseOkListener ttsListener = new CommonResponse.ResponseOkListener<TtsResponseVo>() {
         @Override
         public void onResponse(TtsResponseVo vo) {
@@ -91,6 +94,9 @@ public class CustomChatMessagesWithAsrActivity extends CustomChatMessagesActivit
                     DBManager.getInstance().saveChatLog(relogLlm);
                 }
                 messagesAdapter.update(holdMsg);
+                if(callback != null) {
+                    callback.apply(holdMsg);
+                }
             }
         };
 
@@ -98,17 +104,6 @@ public class CustomChatMessagesWithAsrActivity extends CustomChatMessagesActivit
     public void llmCallBack(Choice choice) {
         super.llmCallBack(choice);
         LogUtil.i("开始tts   "+choice.getMessage());
-        boolean needTts = PreferenceUtils.getPrefBoolean(MyApplication.getInstance(), AsrConstants.TTS_OPEN, false);
-        try {
-            if (needTts) {
-                AsrContentForm asrContentForm = new AsrContentForm();
-                asrContentForm.setId(choice.getId());
-                asrContentForm.setContent(choice.getMessage().getContent());
-                baseService.postData(Constants.getUrl(Constants.CHAT_TTS_URL),asrContentForm,ttsListener, new CommonResponse.ResponseErrorListener(), TTSTAG, TtsResponseVo.class);
-            }
-        }catch (Exception e){
-            LogUtil.e(e);
-        }
     }
 
     @Override
@@ -129,6 +124,29 @@ public class CustomChatMessagesWithAsrActivity extends CustomChatMessagesActivit
         if(needTts) {
             msg.setMsgType(MessageType.AUDIO_TYPE);
             msg.setVoice(new Message.Voice(null, 0));
+        }
+    }
+
+    @Override
+    public void initLLMMsg(ChatLog msg, MsgContent msgContent) {
+        super.initLLMMsg(msg, msgContent);
+        boolean needTts = PreferenceUtils.getPrefBoolean(MyApplication.getInstance(), AsrConstants.TTS_OPEN, false);
+        if(needTts) {
+            msg.setMsgType(MessageType.AUDIO_TYPE);
+            msgContent.setOrg(msgContent.getContent());
+            msgContent.setContent("");
+            msgContent.setTime(0);
+        }
+    }
+
+    @Override
+    public void ttsLoad(Message message, Function function) {
+        this.callback = function;
+        if(!StringUtils.isEmpty(message.getText())) {
+            AsrContentForm asrContentForm = new AsrContentForm();
+            asrContentForm.setId(message.getId());
+            asrContentForm.setContent(message.getText());
+            baseService.postData(Constants.getUrl(Constants.CHAT_TTS_URL), asrContentForm, ttsListener, new CommonResponse.ResponseErrorListener(), TTSTAG, TtsResponseVo.class);
         }
     }
 }

@@ -150,6 +150,8 @@ dependencies {
     implementation 'org.greenrobot:greendao:3.3.0'
 
     implementation 'org.commonjava.googlecode.markdown4j:markdown4j:2.2-cj-1.1'
+    implementation 'com.github.GrenderG:MarkdownView:0.1.2'
+
     implementation 'com.skyfishjy.ripplebackground:library:1.0.1'
     implementation 'com.github.donkingliang:LabelsView:1.6.5'
 

@@ -55,11 +55,11 @@
         android:padding="@dimen/message_time_padding_top"
         android:visibility="gone">
 
-        <ImageButton
+        <ImageView
             android:id="@+id/ib_audio"
             android:layout_width="16dp"
             android:layout_height="16dp"
-            android:background="@drawable/audio_animation_list_left_3" />
+            android:background="@drawable/loading" />
 
         <TextView
             android:id="@+id/duration"
