@@ -28,4 +28,6 @@ public class CommonConstants {
     public static final String ADS_POP_SHOW_CONFIG = "ADS_POP_SHOW_CONFIG";
     public static final String APPLICATION = "APPLICATION";
 
+    public static final String TTS_OPEN = "TTS_OPEN";
+
 }

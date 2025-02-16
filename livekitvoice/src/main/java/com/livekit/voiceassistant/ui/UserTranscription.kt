@@ -16,6 +16,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import io.livekit.android.room.types.TranscriptionSegment
 
 /**
@@ -45,7 +46,8 @@ fun UserTranscription(
             Text(
                 text = segment.text,
                 fontWeight = FontWeight.Medium,
-                modifier = Modifier.padding(8.dp)
+                modifier = Modifier.padding(8.dp),
+                fontSize = 15.sp,
             )
         }
     }

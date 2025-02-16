@@ -65,8 +65,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.openapi.ks.chatfree.ui.maintab.TabChatMessagesFragment;
-
 import tv.danmaku.ijk.media.exo2.Exo2PlayerManager;
 
 /**

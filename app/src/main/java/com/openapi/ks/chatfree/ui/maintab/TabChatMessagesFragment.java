@@ -9,11 +9,7 @@ import com.openai.ads.yewu.ads.base.AdsContext;
 import com.openapi.ks.myapp.ui.base.BannerHeaderFragment;
 import com.openapi.ks.myapp.ui.base.features.TabBaseAdsFragment;
 
-import chat.ui.fragment.AsrChatMessagesFragment;
-
 public class TabChatMessagesFragment extends TabBaseAdsFragment {
-
-    AsrChatMessagesFragment f = new AsrChatMessagesFragment();
 
     @Override
     protected Fragment getTabHeaderView() {
@@ -22,7 +18,7 @@ public class TabChatMessagesFragment extends TabBaseAdsFragment {
 
     @Override
     protected Fragment getTabBodyView() {
-        return f;
+        return null;
     }
 
     @Override

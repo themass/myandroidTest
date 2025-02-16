@@ -8,7 +8,6 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import com.openai.CommonConstants;
-import com.openai.asr.AsrConstants;
 import com.openai.commonutil.EventBusUtil;
 import com.openai.commonutil.LogUtil;
 import com.openai.commonutil.PreferenceUtils;
@@ -123,10 +122,10 @@ public class SettingActivity extends BaseSingleActivity {
                 LogUtil.i("AREA_MI_SWITCH: " + isChecked);
             }
         });
-        sw_tts.setChecked(PreferenceUtils.getPrefBoolean(MyApplication.getInstance(), AsrConstants.TTS_OPEN, false));
+        sw_tts.setChecked(PreferenceUtils.getPrefBoolean(MyApplication.getInstance(), CommonConstants.TTS_OPEN, false));
         sw_tts.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                PreferenceUtils.setPrefBoolean(SettingActivity.this, AsrConstants.TTS_OPEN, isChecked);
+                PreferenceUtils.setPrefBoolean(SettingActivity.this, CommonConstants.TTS_OPEN, isChecked);
                 LogUtil.i("TTS_OPEN: " + isChecked);
             }
         });

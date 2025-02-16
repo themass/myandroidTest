@@ -40,6 +40,21 @@
         <activity android:name="test.AudioWavesMainActivity" android:exported="true"/>
         <activity android:name="test.narayanacharya.waveviewexample.BuilderExampleActivity" android:exported="true"/>
         <activity android:name="test.narayanacharya.waveviewexample.FireZenkMainActivity" android:exported="true"/>
-
+        <activity
+            android:name="test.wave.MainActivity2"
+            android:exported="true">
+        </activity>
+        <activity
+            android:name="test.wave.MainActivity"
+            android:exported="true">
+        </activity>
+        <activity
+            android:name="test.wave.RippleActivity"
+            android:exported="true">
+        </activity>
+        <activity
+            android:name="test.livejava.LiveMainActivity"
+            android:exported="true">
+        </activity>
     </application>
 </manifest>

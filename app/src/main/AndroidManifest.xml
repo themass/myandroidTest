@@ -244,6 +244,11 @@
             android:exported="true">
         </activity>
         <service android:name="com.openapi.ks.myapp.service.PlayService" />
+        <activity
+            android:name="test.WaveActivity"
+            android:theme="@style/AppTheme"
+            android:exported="true">
+        </activity>
 
     </application>
 

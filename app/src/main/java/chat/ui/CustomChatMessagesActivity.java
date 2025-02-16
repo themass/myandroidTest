@@ -24,8 +24,8 @@ import com.google.android.gms.common.util.Base64Utils;
 import com.google.common.collect.Lists;
 import com.luck.picture.lib.basic.PictureSelector;
 import com.luck.picture.lib.entity.LocalMedia;
+import com.openai.CommonConstants;
 import com.openai.ads.yewu.ads.base.AdsManager;
-import com.openai.asr.AsrConstants;
 import com.openai.commonutil.Base64Util;
 import com.openai.commonutil.FileUtils;
 import com.openai.commonutil.ImageUtils;
@@ -185,7 +185,7 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.chat_actions_menu, menu);
-        boolean needTts = PreferenceUtils.getPrefBoolean(MyApplication.getInstance(), AsrConstants.TTS_OPEN, false);
+        boolean needTts = PreferenceUtils.getPrefBoolean(MyApplication.getInstance(), CommonConstants.TTS_OPEN, false);
         menu.findItem(R.id.sound_switch).setIcon(needTts?R.drawable.song_play_icon:R.drawable.song_not_play_icon);
         return true;
     }
@@ -207,13 +207,13 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
                 ChatSessionFragment.startFragment(this);
                 break;
             case R.id.sound_switch:
-                boolean needTts = PreferenceUtils.getPrefBoolean(MyApplication.getInstance(), AsrConstants.TTS_OPEN, false);
+                boolean needTts = PreferenceUtils.getPrefBoolean(MyApplication.getInstance(), CommonConstants.TTS_OPEN, false);
                 if(needTts){
                     item.setIcon(R.drawable.song_not_play_icon);
-                    PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), AsrConstants.TTS_OPEN, false);
+                    PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), CommonConstants.TTS_OPEN, false);
                 }else{
                     item.setIcon(R.drawable.song_play_icon);
-                    PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), AsrConstants.TTS_OPEN, true);
+                    PreferenceUtils.setPrefBoolean(MyApplication.getInstance(), CommonConstants.TTS_OPEN, true);
                 }
                 break;
         }

@@ -7,12 +7,16 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -22,6 +26,7 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
@@ -76,17 +81,16 @@ class LivekitVoiceAgentFragment : Fragment() {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .blur(10.dp) // 设置虚化效果
-                    .background(Color.White.copy(alpha = 0.5f)) // 设置半透明背景
-            ) {
-//                val voiceAssistant = rememberVoiceAssistant() // 初始化 voiceAssistant
-                AndroidView(factory = { context ->
-                    MyWaveView(context)
-                })
-            }
+                    .blur(10.dp)
+                    .background(Color.White.copy(alpha = 0.5f))
+            ){
+                    AndroidView(factory = { context ->
+                        MyWaveView(context)
+                    })
+                    }
 
-            RoomScope(
-                url,
+                        RoomScope(
+                        url,
                 token,
                 audio = true,
                 connect = true
@@ -94,15 +98,12 @@ class LivekitVoiceAgentFragment : Fragment() {
                 Timber.i { "Token: $token" }
 
                 val voiceAssistant = rememberVoiceAssistant()
-
                 val agentState = voiceAssistant.state
-                // Optionally do something with the agent state.
                 LaunchedEffect(key1 = agentState) {
                     Timber.i { "agent state: $agentState" }
                 }
 
-
-                // Get and display the transcriptions.
+                // 获取转录内容
                 val segments = rememberTranscriptions()
                 val localSegments = rememberParticipantTranscriptions(room.localParticipant)
                 val lazyListState = rememberLazyListState()
@@ -123,48 +124,81 @@ class LivekitVoiceAgentFragment : Fragment() {
                         items = segments,
                         key = { segment -> segment.id },
                     ) { segment ->
+                        val isLocal = localSegments.contains(segment)
+
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(8.dp)
                         ) {
-                            if (localSegments.contains(segment)) {
-                                UserTranscription(
-                                    segment = segment,
-                                    modifier = Modifier.align(Alignment.CenterEnd)
-                                )
-                            } else {
-                                Text(
-                                    text = segment.text,
-                                    modifier = Modifier.align(Alignment.CenterStart)
-                                )
+                            // 消息气泡
+                            Surface(
+                                modifier = Modifier
+                                    .align(if (isLocal) Alignment.CenterEnd else Alignment.CenterStart)
+                                    .widthIn(max = 280.dp),
+                                color = if (isLocal) Color.Blue.copy(alpha = 0.2f)
+                                else Color.Gray.copy(alpha = 0.2f),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Column(modifier = Modifier.padding(4.dp)) {
+                                    // 角标
+                                    Text(
+                                        text = if (isLocal) "YOU" else "AI",
+                                        color = if (isLocal) Color.Blue else Color.Gray,
+                                        fontSize = 10.sp,
+                                        modifier = Modifier
+                                            .align(Alignment.End)
+                                            .padding(top = 4.dp, end = 8.dp)
+                                    )
+
+                                    // 消息内容
+                                    Box(
+                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                                    ) {
+                                        if (isLocal) {
+                                            UserTranscription(
+                                                segment = segment,
+                                                modifier = Modifier.fillMaxWidth()
+                                            )
+                                        } else {
+                                            Text(
+                                                text = segment.text,
+                                                fontSize = 15.sp,
+                                                color = Color.Black,
+                                                modifier = Modifier.fillMaxWidth()
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
                 }
 
-                // Scroll to bottom as new transcriptions come in.
+                // 自动滚动到底部
                 LaunchedEffect(segments) {
-                    lazyListState.scrollToItem((segments.size - 1).coerceAtLeast(0))
+                    if (segments.isNotEmpty()) {
+                        lazyListState.animateScrollToItem(segments.size - 1)
+                    }
                 }
-                // Amplitude visualization of the Assistant's voice track.
-                VoiceAssistantBarVisualizer(
-                    voiceAssistant = voiceAssistant,
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .fillMaxWidth()
-                        .constrainAs(audioVisualizer) {
-                            height = Dimension.percent(0.1f)
-                            width = Dimension.percent(0.8f)
-                            bottom.linkTo(parent.bottom) // 将视图底部与父视图底部对齐
-//                            top.linkTo(parent.top)
-                            start.linkTo(parent.start)
-                            end.linkTo(parent.end)
-                        }
-                )
             }
         }
-    }
+                // Amplitude visualization of the Assistant's voice track.
+//                VoiceAssistantBarVisualizer(
+//                    voiceAssistant = voiceAssistant,
+//                    modifier = Modifier
+//                        .padding(8.dp)
+//                        .fillMaxWidth()
+//                        .constrainAs(audioVisualizer) {
+//                            height = Dimension.percent(0.1f)
+//                            width = Dimension.percent(0.8f)
+//                            bottom.linkTo(parent.bottom) // 将视图底部与父视图底部对齐
+////                            top.linkTo(parent.top)
+//                            start.linkTo(parent.start)
+//                            end.linkTo(parent.end)
+//                        }
+//                )
+            }
 
     companion object {
         fun newInstance(url: String, token: String): LivekitVoiceAgentFragment {

@@ -116,7 +116,6 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.aar'])
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    implementation project(":asr")
     implementation project(":commonutil")
     implementation project(":ads")
     implementation project(":messagekit")

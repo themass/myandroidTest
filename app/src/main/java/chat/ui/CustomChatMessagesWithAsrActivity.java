@@ -6,12 +6,11 @@ import android.content.Intent;
 import android.media.MediaMetadataRetriever;
 
 import com.android.volley.VolleyError;
+import com.openai.CommonConstants;
 import com.openai.commonutil.Base64Util;
 import com.openai.commonutil.EventBusUtil;
 import com.openai.commonutil.PermissionHelper;
 import com.openai.commonview.view.widget.MediaManager;
-import com.openai.asr.AsrByteDance;
-import com.openai.asr.AsrConstants;
 import com.openai.commonutil.FileUtils;
 import com.openai.commonutil.GsonUtils;
 import com.openai.commonutil.PreferenceUtils;
@@ -135,7 +134,7 @@ public class CustomChatMessagesWithAsrActivity extends CustomChatMessagesActivit
     }
     @Override
     public void initHoldMsg(Message msg){
-        boolean needTts = PreferenceUtils.getPrefBoolean(MyApplication.getInstance(), AsrConstants.TTS_OPEN, false);
+        boolean needTts = PreferenceUtils.getPrefBoolean(MyApplication.getInstance(), CommonConstants.TTS_OPEN, false);
         if(needTts) {
             msg.setMsgType(MessageType.AUDIO_TYPE);
             msg.setVoice(new Message.Voice(null, 0));
@@ -145,7 +144,7 @@ public class CustomChatMessagesWithAsrActivity extends CustomChatMessagesActivit
     @Override
     public void initLLMMsg(ChatLog msg, MsgContent msgContent) {
         super.initLLMMsg(msg, msgContent);
-        boolean needTts = PreferenceUtils.getPrefBoolean(MyApplication.getInstance(), AsrConstants.TTS_OPEN, false);
+        boolean needTts = PreferenceUtils.getPrefBoolean(MyApplication.getInstance(), CommonConstants.TTS_OPEN, false);
         if(needTts) {
             msg.setMsgType(MessageType.AUDIO_TYPE);
             msgContent.setOrg(msgContent.getContent());
