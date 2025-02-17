@@ -95,8 +95,6 @@
     <string name="re_bt_code">获取校验码</string>
     <string name="empty_name_pwd">请把信息填完整</string>
     <string name="error_repwd">2次密码不一致</string>
-    <string name="error_pattern_pass">密码必须是6-10位的数字或字母</string>
-    <string name="error_pattern_name">用户名必须是3-20位的数字或字母</string>
     <string name="reg_success">注册成功，现在登录？</string>
     <string name="remark">Timeline RIGHTS RESERVED.</string>
     <string name="need_login">请登录</string>

@@ -92,8 +92,6 @@
     <string name="female">Female</string>
     <string name="male">Male</string>
     <string name="error_repwd">Password error</string>
-    <string name="error_pattern_pass">Password must 6 to 10 letters or numbers</string>
-    <string name="error_pattern_name">Name must 3 to 20 letters or numbers</string>
     <string name="reg_success">Register success，login now？</string>
     <string name="remark">Timeline RIGHTS RESERVED.</string>
     <string name="need_login">Login please</string>

@@ -27,8 +27,6 @@ import butterknife.OnClick;
  */
 public class RegActivity extends BaseSingleActivity {
     private static final String TAG = "login_tag";
-    private final Pattern passPattern = Pattern.compile("[0-9A-Za-z]{6,10}");
-    private final Pattern namePattern = Pattern.compile("[a-zA-Z0-9]{3,20}");
     @BindView(R.id.ll_loading)
     LinearLayout loading;
     @BindView(R.id.et_username)
@@ -93,18 +91,6 @@ public class RegActivity extends BaseSingleActivity {
             ToastUtil.showShort(R.string.empty_name_pwd);
             return;
         }
-        if (!passPattern.matcher(pwd).matches()) {
-            ToastUtil.showShort(R.string.error_pattern_pass);
-            return;
-        }
-        if (!namePattern.matcher(name).matches()) {
-            ToastUtil.showShort(R.string.error_pattern_name);
-            return;
-        }
-//        if (!email.contains("@")) {
-//            ToastUtil.showShort(R.string.empty_name_pwd);
-//            return;
-//        }
         if (!pwd.equals(repwd)) {
             ToastUtil.showShort(R.string.error_repwd);
             return;
