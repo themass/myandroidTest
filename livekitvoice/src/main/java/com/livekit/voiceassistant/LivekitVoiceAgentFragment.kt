@@ -83,14 +83,14 @@ class LivekitVoiceAgentFragment : Fragment() {
                     .fillMaxSize()
                     .blur(10.dp)
                     .background(Color.White.copy(alpha = 0.5f))
-            ){
-                    AndroidView(factory = { context ->
-                        MyWaveView(context)
-                    })
-                    }
+            ) {
+                AndroidView(factory = { context ->
+                    MyWaveView(context)
+                })
+            }
 
-                        RoomScope(
-                        url,
+            RoomScope(
+                url,
                 token,
                 audio = true,
                 connect = true
@@ -153,7 +153,10 @@ class LivekitVoiceAgentFragment : Fragment() {
 
                                     // 消息内容
                                     Box(
-                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                                        modifier = Modifier.padding(
+                                            horizontal = 12.dp,
+                                            vertical = 8.dp
+                                        )
                                     ) {
                                         if (isLocal) {
                                             UserTranscription(
@@ -183,22 +186,7 @@ class LivekitVoiceAgentFragment : Fragment() {
                 }
             }
         }
-                // Amplitude visualization of the Assistant's voice track.
-//                VoiceAssistantBarVisualizer(
-//                    voiceAssistant = voiceAssistant,
-//                    modifier = Modifier
-//                        .padding(8.dp)
-//                        .fillMaxWidth()
-//                        .constrainAs(audioVisualizer) {
-//                            height = Dimension.percent(0.1f)
-//                            width = Dimension.percent(0.8f)
-//                            bottom.linkTo(parent.bottom) // 将视图底部与父视图底部对齐
-////                            top.linkTo(parent.top)
-//                            start.linkTo(parent.start)
-//                            end.linkTo(parent.end)
-//                        }
-//                )
-            }
+    }
 
     companion object {
         fun newInstance(url: String, token: String): LivekitVoiceAgentFragment {

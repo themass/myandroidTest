@@ -6,6 +6,10 @@ import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.view.View;
 
+import io.livekit.android.LiveKit;
+import io.livekit.android.room.Room;
+import livekit.LivekitModels;
+
 public class AudioWaveformView extends View {
     private Paint paint;
     private float[] waveform;
