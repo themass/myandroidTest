@@ -58,7 +58,6 @@ import test.AudioWavesMainActivity;
 import test.HorizonActivity;
 import test.WaveTest2;
 import test.audiovisualizeview.AudioVisualizeViewMainActivity;
-import test.livejava.LiveMainActivity;
 import test.narayanacharya.waveviewexample.BuilderExampleActivity;
 import test.narayanacharya.waveviewexample.FireZenkMainActivity;
 import test.soundwave.AudioRecordingFragment;
@@ -351,16 +350,15 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
 //                    showShare();
                     name = "分享";
                 }  else if (item.getItemId() == R.id.menu_test) {
-//                    startActivity(WaveTest2.class);
-//                    startActivity(MainActivity.class);
-//                    startActivity(RippleActivity.class);
-//                    startFragment();
-//                    startActivity(HorizonActivity.class);
-//                    startActivity(AudioWavesMainActivity.class);
-//                    startActivity(AudioVisualizeViewMainActivity.class);
-//                    startActivity(FireZenkMainActivity.class);
-//                    startActivity(BuilderExampleActivity.class);
-                    startActivity(LiveMainActivity.class);
+                    startActivity(WaveTest2.class);
+                    startActivity(MainActivity.class);
+                    startActivity(RippleActivity.class);
+                    startFragment();
+                    startActivity(HorizonActivity.class);
+                    startActivity(AudioWavesMainActivity.class);
+                    startActivity(AudioVisualizeViewMainActivity.class);
+                    startActivity(FireZenkMainActivity.class);
+                    startActivity(BuilderExampleActivity.class);
                     name = "测试";
                 } else if (item.getItemId() == R.id.menu_chat_session) {
                     name = "新建对话";

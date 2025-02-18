@@ -123,59 +123,25 @@ class LivekitVoiceAgentFragment : Fragment() {
                     items(
                         items = segments,
                         key = { segment -> segment.id },
-                    ) { segment ->
-                        val isLocal = localSegments.contains(segment)
-
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(8.dp)
-                        ) {
-                            // 消息气泡
-                            Surface(
+                    )  { segment ->
+                            Box(
                                 modifier = Modifier
-                                    .align(if (isLocal) Alignment.CenterEnd else Alignment.CenterStart)
-                                    .widthIn(max = 280.dp),
-                                color = if (isLocal) Color.Blue.copy(alpha = 0.2f)
-                                else Color.Gray.copy(alpha = 0.2f),
-                                shape = RoundedCornerShape(12.dp)
+                                    .fillMaxWidth()
+                                    .padding(8.dp)
                             ) {
-                                Column(modifier = Modifier.padding(4.dp)) {
-                                    // 角标
-                                    Text(
-                                        text = if (isLocal) "YOU" else "AI",
-                                        color = if (isLocal) Color.Blue else Color.Gray,
-                                        fontSize = 10.sp,
-                                        modifier = Modifier
-                                            .align(Alignment.End)
-                                            .padding(top = 4.dp, end = 8.dp)
+                                if (localSegments.contains(segment)) {
+                                    UserTranscription(
+                                        segment = segment,
+                                        modifier = Modifier.align(Alignment.CenterEnd)
                                     )
-
-                                    // 消息内容
-                                    Box(
-                                        modifier = Modifier.padding(
-                                            horizontal = 12.dp,
-                                            vertical = 8.dp
-                                        )
-                                    ) {
-                                        if (isLocal) {
-                                            UserTranscription(
-                                                segment = segment,
-                                                modifier = Modifier.fillMaxWidth()
-                                            )
-                                        } else {
-                                            Text(
-                                                text = segment.text,
-                                                fontSize = 15.sp,
-                                                color = Color.Black,
-                                                modifier = Modifier.fillMaxWidth()
-                                            )
-                                        }
-                                    }
+                                } else {
+                                    Text(
+                                        text = segment.text,
+                                        modifier = Modifier.align(Alignment.CenterStart)
+                                    )
                                 }
                             }
                         }
-                    }
                 }
 
                 // 自动滚动到底部

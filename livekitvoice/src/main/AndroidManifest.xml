@@ -10,11 +10,6 @@
             android:name="com.livekit.voiceassistant.LivekitVoiceAgentActivity"
             android:exported="true">
         </activity>
-        <activity
-            android:theme="@style/Theme.LiveKitVoiceAssistant"
-            android:name="com.livekit.voiceassistant.MainActivity"
-            android:exported="true">
-        </activity>
 
         <activity
             android:name="test.WaveActivity"
