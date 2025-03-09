@@ -1,6 +1,7 @@
 package chat.ui;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -16,12 +17,14 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.PopupWindow;
 
+import androidx.annotation.OptIn;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.android.volley.Response;
 import com.google.android.gms.common.util.Base64Utils;
 import com.google.common.collect.Lists;
+import com.livekit.voiceassistant.LivekitVoiceAgentFragment;
 import com.luck.picture.lib.basic.PictureSelector;
 import com.luck.picture.lib.entity.LocalMedia;
 import com.openai.CommonConstants;
@@ -51,12 +54,16 @@ import com.openapi.ks.myapp.bean.form.ChatLog;
 import com.openapi.ks.myapp.bean.form.ChatSessionLog;
 import com.openapi.ks.myapp.bean.vo.AsrResponseVo;
 import com.openapi.ks.myapp.bean.vo.Choice;
+import com.openapi.ks.myapp.bean.vo.Token;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.DBManager;
 import com.openapi.ks.myapp.data.UserLoginUtil;
+import com.openapi.ks.myapp.data.config.ChatItemDelEvent;
 import com.openapi.ks.myapp.data.config.ChatSessionEvent;
 import com.openapi.ks.myapp.ui.base.BannerHeaderFragment;
+import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
 import com.openapi.ks.myapp.ui.base.app.BaseDrawerActivity;
+import com.openapi.ks.myapp.ui.fragment.AppListFragment;
 import com.openapi.ks.myapp.ui.fragment.ChatSessionFragment;
 import com.openapi.ks.myapp.ui.inte.OnBackKeyDownListener;
 import com.openapi.ks.myapp.ui.user.LoginActivity;
@@ -85,6 +92,7 @@ import chat.ui.data.model.Message;
 import chat.ui.data.model.MessageType;
 import chat.ui.data.model.MsgContent;
 import chat.ui.data.model.User;
+import io.livekit.android.annotations.Beta;
 import okhttp3.MultipartBody;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -111,6 +119,7 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
     public String sessionName = "Default";
     public int selectionCount;
     private static String ASRTAG = "ASRTAG";
+    private static String TOEKNTAG = "TOEKNTAG";
 
     public Map<String,MsgContent> msgContents = new HashMap<>();
 
@@ -181,6 +190,18 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
             }, TAG, Choice.class);
         }
     };
+    CommonResponse.ResponseOkListener tokenListener = new CommonResponse.ResponseOkListener<Token>() {
+        @Override
+        public void onResponse(Token vo) {
+            Intent intent = new Intent(CustomChatMessagesActivity.this, PhoneChatFragmentActivity.class);
+            intent.putExtra(PhoneChatFragmentActivity.TITLE, R.string.talktome);
+            intent.putExtra(PhoneChatFragmentActivity.URL, vo.getUrl());
+            intent.putExtra(PhoneChatFragmentActivity.TOKEN, vo.getToken());
+            LogUtil.i("token:"+vo.getToken());
+            startActivity(intent);
+            LogUtil.i("click phone");
+        }
+    };
     public static String TAG = "chat";
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -230,7 +251,14 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
         loadMessages();
         LogUtil.i("onEvent sessionChange loadMessages settingName="+setting);
     }
-
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(ChatItemDelEvent event) {
+        messagesAdapter.delete(event.message);
+        ToastUtil.showShort(R.string.del_message);
+        List<ChatLog> chatLogs = DBManager.getInstance().getDaoSession().getChatLogDao().queryRaw("where CHAT_ID=?",event.message.getId());
+        DBManager.getInstance().getDaoSession().getChatLogDao().deleteInTx(chatLogs);
+        LogUtil.i("onEvent delete ="+setting);
+    }
     private void createNewChatSession() {
         // 一个自定义的布局，作为显示的内容
         View contentView = LayoutInflater.from(this).inflate(
@@ -325,9 +353,15 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
             }
         });
         input.setPhoneClickListener(new InputRecordView.PhoneClickListener() {
+            @OptIn(markerClass = Beta.class)
             @Override
             public void click() {
-                LogUtil.i("click phone");
+                if (UserLoginUtil.getUserCache() == null) {
+                    ToastUtil.showShort(R.string.need_login);
+                    startActivity(new Intent(CustomChatMessagesActivity.this, LoginActivity.class));
+                    return;
+                }
+                baseService.postData(Constants.getUrl(Constants.CHAT_LIVE_TOKEN),null,tokenListener, new CommonResponse.ResponseErrorListener(), TOEKNTAG, Token.class);
             }
         });
         initChatSession();

@@ -212,6 +212,10 @@
             android:name="com.openapi.ks.myapp.ui.base.CommonFragmentActivity"
              />
         <activity
+            android:name="chat.ui.PhoneChatFragmentActivity"
+            android:launchMode="singleTask"
+            />
+        <activity
             android:name="com.openapi.ks.myapp.ui.feedback.FeedbackFragmentActivity"
 
             android:theme="@style/StyledIndicators" />

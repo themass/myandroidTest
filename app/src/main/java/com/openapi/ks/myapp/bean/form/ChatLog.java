@@ -6,6 +6,7 @@ import org.greenrobot.greendao.annotation.Generated;
 import org.greenrobot.greendao.annotation.Id;
 import org.greenrobot.greendao.annotation.Index;
 import org.greenrobot.greendao.annotation.Keep;
+import org.greenrobot.greendao.annotation.Unique;
 
 import java.util.Date;
 
@@ -20,6 +21,7 @@ public class ChatLog {
     public String content;
     public int who;
     public int msgType = MessageType.TXT_TYPE;
+    @Unique
     public String chatId;
     public Date createTime;
 

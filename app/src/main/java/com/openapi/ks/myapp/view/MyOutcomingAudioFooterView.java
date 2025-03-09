@@ -17,6 +17,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.openai.commonevent.FavoriteVo;
+import com.openai.commonutil.EventBusUtil;
 import com.openai.commonutil.FavoriteUtil;
 import com.openai.commonutil.LogUtil;
 import com.openai.commonutil.StringUtils;
@@ -25,12 +26,15 @@ import com.openai.commonutil.ToastUtil;
 import com.openai.commonview.view.widget.MediaManager;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.base.MyApplication;
+import com.openapi.ks.myapp.data.config.ChatItemDelEvent;
+
 import chat.ui.data.model.Message;
 
 public class MyOutcomingAudioFooterView extends LinearLayout {
     public RelativeLayout llVoice;
     public Message message;
     public ImageView copy;
+    public ImageView del;
     private Context context;
     public MyOutcomingAudioFooterView(@NonNull Context context) {
         super(context);
@@ -60,6 +64,15 @@ public class MyOutcomingAudioFooterView extends LinearLayout {
         View myView = mInflater.inflate(R.layout.item_custom_outcoming_footer, null);
         addView(myView);
         llVoice = findViewById(R.id.ll_voice);
+        del = findViewById(R.id.iv_del);
+        del.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ChatItemDelEvent chatItemDelEvent = new ChatItemDelEvent();
+                chatItemDelEvent.message = message;
+                EventBusUtil.getEventBus().post(chatItemDelEvent);
+            }
+        });
         copy = findViewById(R.id.iv_copy);
         copy.setOnClickListener(new OnClickListener() {
             @Override

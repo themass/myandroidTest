@@ -22,7 +22,15 @@
         android:clickable="true"
         android:scaleType="fitCenter"
         android:src="@drawable/copy" />
-
+    <ImageView
+        android:id="@+id/iv_del"
+        android:layout_width="@dimen/message_footer_image_size"
+        android:layout_height="@dimen/message_footer_image_size"
+        android:layout_marginLeft="@dimen/message_footer_padding_left"
+        android:background="?android:attr/selectableItemBackground"
+        android:clickable="true"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_del" />
     <ImageView
         android:id="@+id/ib_up"
         android:layout_width="@dimen/message_footer_image_size"

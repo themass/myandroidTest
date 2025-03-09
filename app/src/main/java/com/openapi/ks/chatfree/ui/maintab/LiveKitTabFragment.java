@@ -26,7 +26,7 @@ public class LiveKitTabFragment extends TabBaseAdsFragment {
     @Override
     protected Fragment getTabBodyView() {
         String url = "wss://testvoice-b8y35yvd.livekit.cloud";
-        String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Mzk3NDc5ODEsImlzcyI6IkFQSVNBTk5tRUdCUXhmWSIsIm5iZiI6MTczOTcxMTk4MSwic3ViIjoiZ3FsaSIsInZpZGVvIjp7ImNhblB1Ymxpc2giOnRydWUsImNhblB1Ymxpc2hEYXRhIjp0cnVlLCJjYW5TdWJzY3JpYmUiOnRydWUsInJvb20iOiJ0ZXN0cm9vbSIsInJvb21Kb2luIjp0cnVlfX0.yhbyzeUrCLhvwbY9cmF-XMS6SqR5fLM8LjKryMLT7-0";
+        String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJBUElTQU5ObUVHQlF4ZlkiLCJleHAiOjE3NDEyMDkyNzAsInN1YiI6InFxcXExMTExIiwianRpIjoicXFxcTExMTEiLCJuYW1lIjoicXFxcTExMTEiLCJtZXRhZGF0YSI6Im1ldGFkYXRhIiwidmlkZW8iOnsicm9vbUpvaW4iOnRydWUsInJvb20iOiJxcXFxMTExMV9yb29tIn0sInNpcCI6e319.KlktqnktjO91l1bfFvIdWVgEyeYaIS2elxbyvFuwl6U";
         return LivekitVoiceAgentFragment.Companion.newInstance(url, token);
     }
 }

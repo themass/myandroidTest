@@ -56,6 +56,7 @@
     <string name="menu_btn_logout">Logout</string>
     <string name="menu_btn_setting">Setting</string>
     <string name="menu_btn_app">App recommend</string>
+    <string name="talktome">Talk To me</string>
     <string name="menu_btn_donation">Support</string>
     <string name="menu_btn_support">slave explorer</string>
     <string name="feed_back">Feedback</string>
@@ -196,6 +197,7 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="on_log_selected_messages"> %1$d Messages are selected</string>
     <string name="action_copy">Copy</string>
     <string name="copied_message">Message copied!</string>
+    <string name="del_message">Message deleted!</string>
     <string name="chat_feedback_ok">I have received your feedback.</string>
     <string name="chat_feedback_hint">Enter your feedback</string>
     <string-array name="chat_feed_reson">

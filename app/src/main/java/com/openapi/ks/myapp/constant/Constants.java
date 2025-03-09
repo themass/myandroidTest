@@ -156,6 +156,7 @@ public class Constants {
     public static final String CHAT_ASR_URL = "/chat/ai/asr.json";
     public static final String CHAT_TTS_URL = "/chat/ai/tts.json";
     public static final String CHAT_FEEDBACK_URL = "/chat/ai/feedback.json";
+    public static final String CHAT_LIVE_TOKEN = "/live/room/token_new.json";
 
 
     public static final String VIDEO_USER_CHANNEL = "qvod_user";

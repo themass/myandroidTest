@@ -85,6 +85,7 @@ public class InputRecordView extends LinearLayout {
         findViewById(R.id.rlVideo).setOnClickListener(v -> onViewClicked(v));
         findViewById(R.id.rlPhoto).setOnClickListener(v -> onViewClicked(v));
         findViewById(R.id.rlLocation).setOnClickListener(v -> onViewClicked(v));
+        findViewById(R.id.rlPhone).setOnClickListener(v -> onViewClicked(v));
 
     }
     public void setPhoneClickListener(PhoneClickListener phoneClickListener){
@@ -113,6 +114,8 @@ public class InputRecordView extends LinearLayout {
 //                PictureFileUtil.openFile(ChatActivity.this,REQUEST_CODE_FILE);
         } else if (id == R.id.rlLocation) {
             ToastUtil.showShort(R.string.coming_soon_please);
+        }else if (id == R.id.rlPhone) {
+            phoneClickListener.click();
         }
     }
 

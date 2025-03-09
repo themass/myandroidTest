@@ -27,6 +27,7 @@ import com.openai.commonview.view.widget.MediaManager;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.constant.Constants;
+import com.openapi.ks.myapp.data.config.ChatItemDelEvent;
 import com.openapi.ks.myapp.data.config.TtsLoadEvent;
 
 import java.util.function.Function;
@@ -41,6 +42,7 @@ public class MyIncomingAudioFooterView extends LinearLayout implements FavoriteU
     public ImageView ibDown;
     public Message message;
     public ImageView copy;
+    public ImageView del;
     private Context context;
     public ImageView ivAudioImg;
     public static ImageView ivAudio;
@@ -77,6 +79,15 @@ public class MyIncomingAudioFooterView extends LinearLayout implements FavoriteU
         ibUp = findViewById(R.id.ib_up);
         ibDown = findViewById(R.id.ib_down);
         copy = findViewById(R.id.iv_copy);
+        del = findViewById(R.id.iv_del);
+        del.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ChatItemDelEvent chatItemDelEvent = new ChatItemDelEvent();
+                chatItemDelEvent.message = message;
+                EventBusUtil.getEventBus().post(chatItemDelEvent);
+            }
+        });
         copy.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
