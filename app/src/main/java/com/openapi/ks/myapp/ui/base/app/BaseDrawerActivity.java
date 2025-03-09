@@ -54,15 +54,6 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.util.Date;
 
 import butterknife.BindView;
-import test.AudioWavesMainActivity;
-import test.HorizonActivity;
-import test.WaveTest2;
-import test.audiovisualizeview.AudioVisualizeViewMainActivity;
-import test.narayanacharya.waveviewexample.BuilderExampleActivity;
-import test.narayanacharya.waveviewexample.FireZenkMainActivity;
-import test.soundwave.AudioRecordingFragment;
-import test.wave.MainActivity;
-import test.wave.RippleActivity;
 
 /**
  * Created by Miroslaw Stanek on 15.07.15.
@@ -350,15 +341,15 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
 //                    showShare();
                     name = "分享";
                 }  else if (item.getItemId() == R.id.menu_test) {
-                    startActivity(WaveTest2.class);
-                    startActivity(MainActivity.class);
-                    startActivity(RippleActivity.class);
-                    startFragment();
-                    startActivity(HorizonActivity.class);
-                    startActivity(AudioWavesMainActivity.class);
-                    startActivity(AudioVisualizeViewMainActivity.class);
-                    startActivity(FireZenkMainActivity.class);
-                    startActivity(BuilderExampleActivity.class);
+//                    startActivity(WaveTest2.class);
+//                    startActivity(MainActivity.class);
+//                    startActivity(RippleActivity.class);
+//                    startFragment();
+//                    startActivity(HorizonActivity.class);
+//                    startActivity(AudioWavesMainActivity.class);
+//                    startActivity(AudioVisualizeViewMainActivity.class);
+//                    startActivity(FireZenkMainActivity.class);
+//                    startActivity(BuilderExampleActivity.class);
                     name = "测试";
                 } else if (item.getItemId() == R.id.menu_chat_session) {
                     name = "新建对话";
@@ -369,14 +360,14 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
             }
         });
     }
-    public void startFragment() {
-        Intent intent = new Intent(BaseDrawerActivity.this, CommonFragmentActivity.class);
-        intent.putExtra(CommonFragmentActivity.FRAGMENT, AudioRecordingFragment.class);
-        intent.putExtra(CommonFragmentActivity.TITLE, R.string.menu_btn_donation);
-        intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, false);
-        intent.putExtra(CommonFragmentActivity.ADSSCROLL, false);
-        startActivity(intent);
-    }
+//    public void startFragment() {
+//        Intent intent = new Intent(BaseDrawerActivity.this, CommonFragmentActivity.class);
+//        intent.putExtra(CommonFragmentActivity.FRAGMENT, AudioRecordingFragment.class);
+//        intent.putExtra(CommonFragmentActivity.TITLE, R.string.menu_btn_donation);
+//        intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, false);
+//        intent.putExtra(CommonFragmentActivity.ADSSCROLL, false);
+//        startActivity(intent);
+//    }
     public void showShare() {
         String url = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.D_URL, null);
         if (!StringUtils.hasText(url)) {

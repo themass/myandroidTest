@@ -46,6 +46,7 @@ dependencies {
 
     api("io.livekit:livekit-android:2.9.0")
     api("io.livekit:livekit-android-compose-components:1.3.0")
+    implementation ("androidx.lifecycle:lifecycle-livedata-ktx:${rootProject.ext.get("lifecycle_livedata_ktx")}")
     implementation("androidx.core:core-ktx:${rootProject.ext.get("kotlin_ktx")}")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:${rootProject.ext.get("lifecycle_livedata_ktx")}")
     implementation("androidx.activity:activity-compose:1.9.3")
@@ -61,19 +62,18 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("androidx.constraintlayout:constraintlayout:2.2.0")
     debugImplementation("androidx.compose.ui:ui-tooling")
-    implementation("com.aghajari.waveanimation:AXWaveAnimation:1.0.0")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
 
 
-    implementation("com.github.xfans:VoiceWaveView:1.0.2")
-    implementation( "com.github.Jay-Goo:WaveLineView:v1.0.4")
-    implementation( "com.github.Jay-Goo:AndroidMP3Recorder:v1.0.7")
+//    implementation("com.github.xfans:VoiceWaveView:1.0.2")
+//    implementation( "com.github.Jay-Goo:WaveLineView:v1.0.4")
+//    implementation( "com.github.Jay-Goo:AndroidMP3Recorder:v1.0.7")
     implementation( "com.aghajari.waveanimation:AXWaveAnimation:1.0.0")
-    implementation( "com.skyfishjy.ripplebackground:library:1.0.1")
-    implementation( "com.cleveroad:audiovisualization:1.0.1")
-    implementation( "com.yalantis:eqwaves:1.0.1")
-    implementation( "com.github.GitHubZJY:AudioVisualizeView:v1.0.2")
-    implementation( "org.firezenk:audiowaves:1.1@aar")
-    implementation( "com.narayanacharya:WaveView:0.9.4")
+//    implementation( "com.skyfishjy.ripplebackground:library:1.0.1")
+//    implementation( "com.cleveroad:audiovisualization:1.0.1")
+//    implementation( "com.yalantis:eqwaves:1.0.1")
+//    implementation( "com.github.GitHubZJY:AudioVisualizeView:v1.0.2")
+//    implementation( "org.firezenk:audiowaves:1.1@aar")
+//    implementation( "com.narayanacharya:WaveView:0.9.4")
 
 }

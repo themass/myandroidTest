@@ -7,18 +7,18 @@
             android:layout_height="match_parent"
             >
         <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_width="400dp"
+            android:layout_height="400dp"
             android:layout_gravity="center"
             android:layout_centerInParent="true"
             >
 
             <com.aghajari.waveanimation.AXWaveView
                 android:id="@+id/circle_wave"
-                android:layout_width="250dp"
-                android:layout_height="250dp"
-                app:shader_color_1="#C7EAF4"
-                app:shader_color_2="#99C7F4"
+                android:layout_width="200dp"
+                android:layout_height="200dp"
+                app:shader_color_1="#91C2F3"
+                app:shader_color_2="#2D92F6"
                 android:layout_gravity="center"
                 app:circle="true"
                 app:max_alpha="120"
@@ -32,4 +32,14 @@
                 app:tint="@android:color/white"/>
 
         </FrameLayout>
+    <com.aghajari.waveanimation.AXLineWaveView
+        android:id="@+id/line_wave"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        app:shader_color_1="#91C2F3"
+        app:shader_color_2="#0976E3"
+        android:layout_alignParentBottom="true"
+        app:main_wave="false"
+        app:max_alpha="120"
+        app:amplitude="-1"/>
     </RelativeLayout>
