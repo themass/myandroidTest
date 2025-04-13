@@ -7,6 +7,7 @@ import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.openai.commonutil.GsonUtils;
 import com.openai.commonview.view.widget.MediaManager;
 import com.openai.commonutil.LogUtil;
 import com.openapi.ks.chat.R;
@@ -34,6 +35,7 @@ public class MyOutComingVoiceMessageViewHolder
     @Override
     public void onBind(Message message) {
         super.onBind(message);
+        LogUtil.i("voice bind"+GsonUtils.getInstance().toJson(message));
         tvDuration.setText(
                 FormatUtils.getDurationString(
                         message.getVoice().getDuration()));

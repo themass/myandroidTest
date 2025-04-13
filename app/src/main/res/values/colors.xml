@@ -72,12 +72,8 @@
     <!-- Common -->
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
-
-    <color name="colorPrimary">#c62828</color>
-    <color name="colorAccent">#f44336</color>
-    <color name="colorPrimaryDark">#0f4574</color>
-
-
+    <color name="block_text">#403F3F</color>
+    <color name="block_groud">#79E4E3E3</color>
     <color name="gray_light">#e8e8e8</color>
     <color name="gray_dark_transparent">#ae858585</color>
     <color name="ivory_dark">#f7e8d9</color>

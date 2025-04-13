@@ -1,14 +1,11 @@
 package com.openapi.ks.myapp.view;
 
-import android.content.ClipData;
-import android.content.ClipboardManager;
 import android.content.Context;
 import android.graphics.drawable.AnimationDrawable;
 import android.media.MediaPlayer;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
@@ -32,9 +29,8 @@ import com.openapi.ks.myapp.data.config.TtsLoadEvent;
 
 import java.util.function.Function;
 
-import chat.ui.adapter.media.holders.MyOutComingVoiceMessageViewHolder;
 import chat.ui.data.model.Message;
-import chat.ui.fragment.FeedbackDialog;
+import chat.ui.view.FeedbackDialog;
 
 public class MyIncomingAudioFooterView extends LinearLayout implements FavoriteUtil.ModFavoriteListener, FavoriteUtil.GetFavoriteListener, FeedbackDialog.OnFeedbackSubmitListener {
     public LinearLayout llVoice;
@@ -191,9 +187,13 @@ public class MyIncomingAudioFooterView extends LinearLayout implements FavoriteU
                 @Override
                 public void onCompletion(MediaPlayer mp) {
                     LogUtil.i("play over");
-                    ivAudio.setBackgroundResource(R.drawable.audio_animation_list_left_3);
-                    ivAudio = null;
-                    MediaManager.release();
+                    try {
+                        ivAudio.setBackgroundResource(R.drawable.audio_animation_list_left_3);
+                        ivAudio = null;
+                        MediaManager.release();
+                    }catch (Exception e){
+                        LogUtil.e(e);
+                    }
                 }
             });
         }catch (Exception e){
@@ -212,15 +212,15 @@ public class MyIncomingAudioFooterView extends LinearLayout implements FavoriteU
     }
     public void modFavoriteBg(FavoriteVo vo) {
         if (vo == null) {
-            ibUp.setBackgroundResource(R.drawable.ic_up);
-            ibDown.setBackgroundResource(R.drawable.ic_down);
+            ibUp.setImageResource(R.drawable.src_assets_images_like);
+            ibDown.setImageResource(R.drawable.src_assets_images_dislike);
         } else {
             if(vo.getType() == Constants.FavoriteType.CHAT_OK){
-                ibUp.setBackgroundResource(R.drawable.ic_up_ok);
-                ibDown.setBackgroundResource(R.drawable.ic_down);
+                ibUp.setImageResource(R.drawable.src_assets_images_liked);
+                ibDown.setImageResource(R.drawable.src_assets_images_dislike);
             }else{
-                ibUp.setBackgroundResource(R.drawable.ic_up);
-                ibDown.setBackgroundResource(R.drawable.ic_down_ok);
+                ibUp.setImageResource(R.drawable.src_assets_images_like);
+                ibDown.setImageResource(R.drawable.src_assets_images_disliked);
             }
         }
     }

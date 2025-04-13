@@ -33,21 +33,25 @@ public class Mp3ToWav {
 
             outputStream = new FileOutputStream(pcmFilePath);
             decodeToPCM(extractor, codec, outputStream);
-        } catch (IOException e) {
+        } catch (Exception e) {
             LogUtil.e(e);
         } finally {
-            if (codec != null) {
-                codec.stop();
-                codec.release();
-            }
-            if (outputStream != null) {
-                try {
-                    outputStream.close();
-                } catch (IOException e) {
-                    LogUtil.e(e);
+            try {
+                if (codec != null) {
+                    codec.stop();
+                    codec.release();
                 }
+                if (outputStream != null) {
+                    try {
+                        outputStream.close();
+                    } catch (IOException e) {
+                        LogUtil.e(e);
+                    }
+                }
+                extractor.release();
+            }catch (Exception e){
+                LogUtil.e(e);
             }
-            extractor.release();
         }
     }
 

@@ -5,9 +5,9 @@ import android.view.View;
 
 import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.request.target.DrawableImageViewTarget;
+import com.openai.net.netglide.MyGlideModule;
 import com.romainpiel.shimmer.Shimmer;
 import com.openai.commonutil.LogUtil;
-import com.openai.net.netglide.MyGlideLibModule;
 import com.openapi.ks.myapp.adapter.IndexRecommendAdapter;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.data.ImagePhotoLoad;
@@ -22,7 +22,7 @@ public class TextBelowShowTypeHandle implements ShowTypeHandle {
     public void loadPhoto(final IndexRecommendAdapter.NaviItemViewHolder holder, RecommendVo vo, final Shimmer shimmer, boolean needShimmer, Context context) {
         RequestManager build = ImagePhotoLoad.getBuilder(context, vo.img);
         LogUtil.d("GLIDE request " + vo.img);
-        build.load(vo.img).apply(ImagePhotoLoad.options).transition(withCrossFade(500)).listener(new MyGlideLibModule.LoggingListener()).into(new DrawableImageViewTarget(holder.ivPhoto));
+        build.load(vo.img).apply(ImagePhotoLoad.options).transition(withCrossFade(500)).listener(new MyGlideModule.LoggingListener()).into(new DrawableImageViewTarget(holder.ivPhoto));
     }
 
     public void showTitle(final IndexRecommendAdapter.NaviItemViewHolder holder, RecommendVo vo, final Shimmer shimmer, boolean needShimmer, Context context) {

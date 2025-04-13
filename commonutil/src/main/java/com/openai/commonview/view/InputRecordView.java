@@ -2,6 +2,7 @@ package com.openai.commonview.view;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,6 +11,9 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
+import androidx.activity.result.ActivityResultLauncher;
+
+import com.openai.commonutil.PermissionHelper;
 import com.openai.commonutil.R;
 import com.openai.commonutil.ToastUtil;
 import com.openai.commonview.view.widget.RecordButton;
@@ -25,6 +29,7 @@ public class InputRecordView extends LinearLayout {
     public static final int REQUEST_CODE_IMAGE = 0000;
     public static final int REQUEST_CODE_VEDIO = 1111;
     public static final int REQUEST_CODE_FILE = 2222;
+    public static final int REQUEST_CODE_QUSTION = 333;
     EditText mEtContent;
     RelativeLayout mRlBottomLayout;//表情,添加底部布局
     ImageView mIvAdd;
@@ -86,6 +91,8 @@ public class InputRecordView extends LinearLayout {
         findViewById(R.id.rlPhoto).setOnClickListener(v -> onViewClicked(v));
         findViewById(R.id.rlLocation).setOnClickListener(v -> onViewClicked(v));
         findViewById(R.id.rlPhone).setOnClickListener(v -> onViewClicked(v));
+        findViewById(R.id.rlHelp).setOnClickListener(v -> onViewClicked(v));
+        findViewById(R.id.rlQuestion).setOnClickListener(v -> onViewClicked(v));
 
     }
     public void setPhoneClickListener(PhoneClickListener phoneClickListener){
@@ -110,12 +117,16 @@ public class InputRecordView extends LinearLayout {
             ToastUtil.showShort(R.string.coming_soon_please);
 //                PictureFileUtil.openGalleryAudio(picSelectListener.picSelect(), REQUEST_CODE_VEDIO);
         } else if (id == R.id.rlFile) {
-            ToastUtil.showShort(R.string.coming_soon_please);
-//                PictureFileUtil.openFile(ChatActivity.this,REQUEST_CODE_FILE);
+//            ToastUtil.showShort(R.string.coming_soon_please);
+                PictureFileUtil.openFile(picSelectListener.picSelect(),REQUEST_CODE_FILE);
         } else if (id == R.id.rlLocation) {
             ToastUtil.showShort(R.string.coming_soon_please);
         }else if (id == R.id.rlPhone) {
             phoneClickListener.click();
+        } else if (id == R.id.rlHelp) {
+            phoneClickListener.help();
+        }else if (id == R.id.rlQuestion) {
+            PictureFileUtil.openGalleryPic(picSelectListener.picSelect(), REQUEST_CODE_QUSTION);
         }
     }
 
@@ -141,5 +152,6 @@ public class InputRecordView extends LinearLayout {
     }
     public static interface PhoneClickListener {
         public void click();
+        public void help();
     }
 }

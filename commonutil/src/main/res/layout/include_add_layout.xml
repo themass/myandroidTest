@@ -130,18 +130,50 @@
                 android:layout_below="@id/ivPhone"
                 android:layout_centerHorizontal="true"
                 android:layout_marginTop="15px"
-                android:text="@string/input_picture"
+                android:text="@string/input_talk"
                 android:textSize="12sp" />
         </RelativeLayout>
         <RelativeLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
+            android:id="@+id/rlQuestion"
             android:layout_weight="1">
+            <ImageView
+                android:id="@+id/ivQuestion"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginTop="30dp"
+                android:layout_centerHorizontal="true"
+                android:background="@drawable/selector_ctype_question" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/ivQuestion"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="15px"
+                android:text="@string/input_question"
+                android:textSize="12sp" />
         </RelativeLayout>
         <RelativeLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
+            android:id="@+id/rlHelp"
             android:layout_weight="1">
+            <ImageView
+                android:id="@+id/ivhelp"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginTop="30dp"
+                android:layout_centerHorizontal="true"
+                android:background="@drawable/selector_ctype_help" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/ivhelp"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="15px"
+                android:text="@string/input_help"
+                android:textSize="12sp" />
         </RelativeLayout>
         <RelativeLayout
             android:layout_width="0dp"

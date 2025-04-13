@@ -1,7 +1,20 @@
 package com.openai.commonutil;
 
+import android.app.Activity;
+import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Context;
+import android.content.Intent;
+import android.database.Cursor;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
+import android.provider.DocumentsContract;
+import android.provider.MediaStore;
+import android.provider.OpenableColumns;
+import android.webkit.MimeTypeMap;
+
+import androidx.documentfile.provider.DocumentFile;
 
 import com.openai.CommonConstants;
 
@@ -16,16 +29,19 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 public class FileUtils {
     private final static int BUFFER_SIZE = 1024;
     public static String VOLLEY_PATH = "volley";
-
+    public static String CACHDIR = "ADeepseek";
     /**
      * 解压文件
      *
@@ -182,16 +198,63 @@ public class FileUtils {
     }
 
     public static String getWriteFilePath(Context context) {
-//        return context.getFilesDir().getAbsolutePath()+File.separator +"ADeepseek";
-        String sdStatus = Environment.getExternalStorageState();
-        File rootFile = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-        LogUtil.i("sdStatus:"+sdStatus+"; filepath:"+rootFile.getAbsolutePath()+"; path:"+rootFile.getPath());
-//        if (!sdStatus.equals(Environment.MEDIA_MOUNTED)) {
-//            return context.getFilesDir().getAbsolutePath() + File.separator + "ADeepseek";
-//        } else {
-//            return rootFile.getPath() + File.separator + "ADeepseek";
-//        }
-        return rootFile.getPath() + File.separator + "ADeepseek";
+        if (context == null) {
+            LogUtil.e("传入的 Context 为 null，无法获取写入路径");
+            return null;
+        }
+
+        // 尝试获取 Android 10 及以上版本的外部存储路径
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            File externalFilesDir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+            if (externalFilesDir != null) {
+                if (externalFilesDir.canWrite()) {
+                    LogUtil.i("使用 Context.getExternalFilesDir 获取路径，路径为: " + externalFilesDir.getAbsolutePath());
+                    return externalFilesDir.getPath() + File.separator + CACHDIR;
+                } else {
+                    LogUtil.w("Context.getExternalFilesDir 获取的路径不可写，路径为: " + externalFilesDir.getAbsolutePath());
+                }
+            }
+        }
+        // 尝试获取 Android 10 以下版本的外部存储路径
+        else {
+            String sdStatus = Environment.getExternalStorageState();
+            if (Environment.MEDIA_MOUNTED.equals(sdStatus)) {
+                File rootFile = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                if (rootFile != null) {
+                    if (rootFile.canWrite()) {
+                        LogUtil.i("sdStatus:" + sdStatus + "; filepath:" + rootFile.getAbsolutePath() + "; path:" + rootFile.getPath());
+                        return rootFile.getPath() + File.separator + CACHDIR;
+                    } else {
+                        LogUtil.w("外部存储公共下载目录不可写，路径为: " + rootFile.getAbsolutePath());
+                    }
+                }
+            }
+        }
+
+        // 尝试获取外部缓存目录
+        File externalCacheDir = context.getExternalCacheDir();
+        if (externalCacheDir != null) {
+            if (externalCacheDir.canWrite()) {
+                LogUtil.i("使用 getExternalCacheDir 获取路径，路径为: " + externalCacheDir.getAbsolutePath());
+                return externalCacheDir.getPath() + File.separator + CACHDIR;
+            } else {
+                LogUtil.w("外部缓存目录不可写，路径为: " + externalCacheDir.getAbsolutePath());
+            }
+        }
+
+        // 尝试获取内部缓存目录
+        File internalCacheDir = context.getCacheDir();
+        if (internalCacheDir != null) {
+            if (internalCacheDir.canWrite()) {
+                LogUtil.i("使用 getCacheDir 获取路径，路径为: " + internalCacheDir.getAbsolutePath());
+                return internalCacheDir.getPath() + File.separator + CACHDIR;
+            } else {
+                LogUtil.w("内部缓存目录不可写，路径为: " + internalCacheDir.getAbsolutePath());
+            }
+        }
+
+        LogUtil.e("无法获取合适的存储路径");
+        return null;
     }
 
     public static boolean ensureFile(Context context, String filePath) {
@@ -202,22 +265,205 @@ public class FileUtils {
         }
         return true;
     }
-    public static void createPublicFolderAndFile(Context context) {
-        // 检查外部存储是否可用
-        if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-            LogUtil.e("External storage is not mounted.");
-            return;
-        }
 
-        // 获取外部存储的公共目录
-        File publicDir = Environment.getExternalStoragePublicDirectory("ADeepseek");
-        if (!publicDir.exists()) {
-            // 如果文件夹不存在，则创建
-            if (!publicDir.mkdirs()) {
-                LogUtil.e( "Failed to create folder: " + publicDir.getAbsolutePath());
-                return;
+    public static String readFileContent(Uri uri, Context context) {
+        try (InputStream inputStream = context.getContentResolver().openInputStream(uri)) {
+            if (inputStream != null) {
+                // 使用 InputStreamReader 和 StringWriter 读取字符串
+                InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+                StringWriter writer = new StringWriter();
+                char[] buffer = new char[1024];
+                int length;
+                while ((length = reader.read(buffer)) != -1) {
+                    writer.write(buffer, 0, length);
+                }
+                return  writer.toString();
+
+            }
+        } catch (IOException e) {
+            LogUtil.e(e);
+        }
+        return null;
+    }
+    public static String getFileNameFromUri(Context context, Uri uri) {
+        String result = null;
+        if (uri.getScheme().equals("content")) {
+            ContentResolver contentResolver = context.getContentResolver();
+            Cursor cursor = contentResolver.query(uri, null, null, null, null);
+            try {
+                if (cursor != null && cursor.moveToFirst()) {
+                    int nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                    if (nameIndex != -1) {
+                        result = cursor.getString(nameIndex);
+                    }
+                }
+            } finally {
+                if (cursor != null) {
+                    cursor.close();
+                }
             }
         }
+        if (result == null) {
+            result = uri.getPath();
+            int cut = result.lastIndexOf('/');
+            if (cut != -1) {
+                result = result.substring(cut + 1);
+            }
+        }
+        return result;
+    }
+    public static FileInfo getFileFromUri(Uri uri, Context context) throws IOException {
+        ContentResolver resolver = context.getContentResolver();
+        // 创建临时文件
+        String timeStamp = System.currentTimeMillis()+"";
+        String orgName = getFileNameFromUri(context, uri);
+        String name = "UPLOAD_" +timeStamp+"_"+ orgName;
+        LogUtil.i("fileName="+name);
+        long size = 0;
+        File tempFile = new File(FileUtils.getWriteFilePath(context), name);
+        try (InputStream is = resolver.openInputStream(uri);
+             OutputStream os = new FileOutputStream(tempFile)) {
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = is.read(buffer)) != -1) {
+                os.write(buffer, 0, bytesRead);
+                size+=bytesRead;
+            }
+        }
+        FileInfo info = new FileInfo();
+        info.file = tempFile;
+        info.fileName = orgName;
+        info.fileSize = formatFileSize(size);
+        return info;
+    }
+    public static String getMimeTypeFromExtension(Uri uri) {
+        String extension = MimeTypeMap.getFileExtensionFromUrl(uri.toString());
+        if (extension != null) {
+            return MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension.toLowerCase());
+        }
+        return null;
+    }
+    public static String getMimeType(Context context, Uri uri) {
+        String mimeType = null;
+        if (ContentResolver.SCHEME_CONTENT.equals(uri.getScheme())) {
+            mimeType = context.getContentResolver().getType(uri);
+        }
+        if (mimeType == null) {
+            mimeType = getMimeTypeFromExtension(uri);
+        }
+        LogUtil.i("mimeType="+mimeType);
+        return mimeType;
+    }
+    public static String getExtensionFromFileName(String fileName) {
+        if (fileName == null || fileName.isEmpty()) {
+            return "";
+        }
+        int dotIndex = fileName.lastIndexOf('.');
+        if (dotIndex > 0 && dotIndex < fileName.length() - 1) {
+            return fileName.substring(dotIndex + 1);
+        }
+        return "";
+    }
+    public static class FileInfo{
+        public File file;
+        public String fileName;
+        public String fileSize;
+    }
+
+    // 使用系统工具打开 uri
+
+    public static void openUriWithSystem(Activity activity, Uri uri) {
+        String mimeType = null;
+        try {
+            mimeType = activity.getContentResolver().getType(uri); //尝试使用 contentResolver
+        } catch (Exception e){
+            // contentResolver 获取meteType失败
+            LogUtil.e("getContentResolver().getType failure ",e);
+        }
+        if (mimeType == null) {
+            mimeType = getMimeTypeFromUri(activity,uri); //尝试 通过后缀名称来获取 mimetype.
+        }
+
+        if (mimeType == null || mimeType.isEmpty()) {
+            LogUtil.e( "Could not determine MIME type for URI: " + uri.toString());
+            return; // 无法得到 mimeType ,放弃open操作. 打印Log。
+        }
+
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setDataAndType(uri, mimeType);
+            intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK); //  必须授权权限！
+
+            if (intent.resolveActivity(activity.getPackageManager()) != null) {
+                activity.startActivity(intent); //尝试打开
+            } else {
+                LogUtil.e( "No activity found to handle MIME type: " + mimeType);
+            }
+
+        } catch (Exception e) {
+            LogUtil.e( "Error opening file: " + e.getMessage(), e);
+        }
+    }
+
+    private static String getMimeTypeFromUri(Activity activity,Uri uri) {
+        String extension;
+
+        //Check uri format to avoid crash
+        if (uri.getScheme().equals(android.content.ContentResolver.SCHEME_CONTENT)) {
+            //If scheme is a content
+            final MimeTypeMap mime = MimeTypeMap.getSingleton();
+            extension = mime.getExtensionFromMimeType(activity.getContentResolver().getType(uri));
+        } else {
+            //If scheme is a file
+            //This will replace white spaces with %20 and also other special characters. This will avoid returning null values on Content resolver
+            //scheme can not be File , since here, should be Content.
+            try {
+                String filename =getFileByUri(uri,activity);
+
+                extension = MimeTypeMap.getFileExtensionFromUrl(filename);
+
+            }catch (Exception ex){
+                return  null ;
+            }
+        }
+        return extension;
+
+    }
+    private static  String getFileByUri(Uri uri,Activity activity){
+
+        String img_path;
+        String[] proj = {MediaStore.Images.Media.DATA};
+        Cursor cursor = activity.getContentResolver().query(uri, proj, null, null, null);
+        if (cursor != null){
+            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            cursor.moveToFirst();
+            img_path = cursor.getString(column_index);//This get error if not media.
+            cursor.close();
+            return img_path;
+        }
+
+        //for  images content type is: images/images
+        else if (String.valueOf(uri).contains("images")){
+            String mCurrentPhotoPath ="";
+            String wholeID = DocumentsContract.getDocumentId(uri);
+
+            // Split at colon, use second item in the array
+            String id = wholeID.split(":")[1];
+            String[] column = {MediaStore.Images.Media.DATA};
+            // where id is equal to
+            String sel = MediaStore.Images.Media._ID + "=?";
+
+            Cursor cursorImage = activity.getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    column, sel, new String[]{id}, null);
+            int columnIndex = cursorImage.getColumnIndex(column[0]);
+
+            if (cursorImage.moveToFirst()) {
+                mCurrentPhotoPath = cursorImage.getString(columnIndex);
+            }
+            cursorImage.close();
+            return  mCurrentPhotoPath ;
+        }
+        return "Unknow uri";
 
     }
 }

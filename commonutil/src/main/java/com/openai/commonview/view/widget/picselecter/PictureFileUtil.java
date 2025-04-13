@@ -6,23 +6,30 @@ import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Build;
+import android.os.Environment;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
 import android.text.style.AbsoluteSizeSpan;
 import android.text.style.ForegroundColorSpan;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -67,6 +74,7 @@ import com.luck.picture.lib.widget.MediumBoldTextView;
 import com.luck.picture.lib.basic.PictureSelector;
 import com.luck.picture.lib.config.SelectMimeType;
 import com.luck.picture.lib.entity.LocalMedia;
+import com.openai.commonutil.ToastUtil;
 import com.openai.commonview.view.widget.util.GlideEngine;
 import com.yalantis.ucrop.UCrop;
 import com.yalantis.ucrop.UCropImageEngine;
@@ -76,6 +84,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import pub.devrel.easypermissions.EasyPermissions;
 import top.zibin.luban.CompressionPredicate;
 import top.zibin.luban.Luban;
 import top.zibin.luban.OnCompressListener;
@@ -83,8 +92,9 @@ import top.zibin.luban.OnNewCompressListener;
 import top.zibin.luban.OnRenameListener;
 import com.openai.commonutil.R;
 
-public class PictureFileUtil {
+    public class PictureFileUtil {
     public static PictureSelectorStyle selectorStyle = new PictureSelectorStyle();
+    public static final int RC_FILE_PICKER_PERM = 321;
 
     static {
         PictureWindowAnimationStyle defaultAnimationStyle = new PictureWindowAnimationStyle();
@@ -148,7 +158,29 @@ public class PictureFileUtil {
                 .isGif(true)
                 .forResult(requestCode);
     }
-
+        public static void openFile(Activity mContext, int requestCode) {
+                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                String[] mimeTypes = {
+                        "application/pdf",       // PDF 文件
+                        "text/plain",            // 文本文件
+                        "application/msword",    // Word 文档
+                        "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // DOCX
+                        "application/vnd.ms-excel", // Excel 文件
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // XLSX
+                        "application/vnd.ms-powerpoint", // PPT
+                        "application/vnd.openxmlformats-officedocument.presentationml.presentation" // PPTX
+                };
+                intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
+                intent.setType("*/*");
+//                intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
+            if (intent.resolveActivity(mContext.getPackageManager()) != null) {
+                // 如果有 Activity 可以处理该 Intent，则启动文件选择器
+                mContext.startActivityForResult(intent, requestCode);
+            } else {
+                ToastUtil.showShort(R.string.open_error);
+            }
+    }
     public static void openGalleryAudio(Activity mContext, int requestCode) {
         PictureSelector.create(mContext)
                 .openGallery(SelectMimeType.ofAll())

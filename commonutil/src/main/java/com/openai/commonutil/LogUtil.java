@@ -20,11 +20,7 @@ public class LogUtil {
     }
 
     public static void e(String msg, Throwable t) {
-        if (!CommonConstants.DEBUG) {
-            EventBusUtil.getEventBus().post(new LogUtil.LogAddEvent(msg, t));
-        } else {
-            Log.e(TAG, msg, t);
-        }
+        Log.e(TAG, msg, t);
     }
 
     public static void error(String msg, Throwable t) {
@@ -52,32 +48,11 @@ public class LogUtil {
     }
 
     public static void e(Throwable t) {
-        if (!CommonConstants.DEBUG) {
-            EventBusUtil.getEventBus().post(new LogUtil.LogAddEvent(t));
-        } else {
-            Log.e(TAG, "", t);
-        }
+        Log.e(TAG, "", t);
     }
 
     public static void e(String t) {
-        if (!CommonConstants.DEBUG) {
-            EventBusUtil.getEventBus().post(new LogUtil.LogAddEvent(t));
-        } else {
             Log.e(TAG, t);
-        }
     }
 
-    public static class LogAddEvent {
-        public Object data;
-        public Object msg;
-
-        public LogAddEvent(Object content) {
-            this.data = content;
-        }
-
-        public LogAddEvent(String msg, Object content) {
-            this.data = content;
-            this.msg = msg;
-        }
-    }
 }

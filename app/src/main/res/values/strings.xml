@@ -56,7 +56,7 @@
     <string name="menu_btn_logout">Logout</string>
     <string name="menu_btn_setting">Setting</string>
     <string name="menu_btn_app">App recommend</string>
-    <string name="talktome">Talk To me</string>
+    <string name="talktome">Talk To Her</string>
     <string name="menu_btn_donation">Support</string>
     <string name="menu_btn_support">slave explorer</string>
     <string name="feed_back">Feedback</string>
@@ -164,6 +164,7 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="schema_http">http://</string>
     <string name="schema_https">https://</string>
     <string name="del_hint">Confirm delete？</string>
+    <string name="del_send_messag">Are you sure you want to delete the selected messages?</string>
     <string name="del_cancel">Cancel</string>
     <string name="custome_del_fail">delete fail</string>
     <string name="my_charater">setting my Ai charater</string>
@@ -206,4 +207,6 @@ You are now using a non WIFI network, continue to download may consume more netw
         <item>Unhelpful</item>
         <item>Other</item>
     </string-array>
+
+
 </resources>

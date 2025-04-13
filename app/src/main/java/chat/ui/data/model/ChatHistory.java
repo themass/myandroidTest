@@ -8,6 +8,7 @@ public class ChatHistory {
     public String text;
     public String settingName;
     public String charater;
+    public String query;
 
     public String getId() {
         return id;
@@ -47,6 +48,14 @@ public class ChatHistory {
 
     public void setSettingName(String settingName) {
         this.settingName = settingName;
+    }
+
+    public String getQuery() {
+        return query;
+    }
+
+    public void setQuery(String query) {
+        this.query = query;
     }
 
     @Override

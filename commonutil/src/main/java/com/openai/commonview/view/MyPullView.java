@@ -15,6 +15,7 @@ import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
 import android.widget.LinearLayout;
 
+import com.openai.commonutil.LogUtil;
 import com.openai.commonutil.R;
 
 /**
@@ -69,21 +70,25 @@ public class MyPullView extends LinearLayout {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
-                if (dy > 0 && !isLoadMore() && !refreshLayout.isRefreshing()) {
-                    int count = rvContent.getAdapter().getItemCount();
-                    if (rvContent.getLayoutManager() instanceof StaggeredGridLayoutManager) {
-                        int[] visibleItems = ((StaggeredGridLayoutManager) rvContent.getLayoutManager()).findLastVisibleItemPositions(null);
-                        int lastitem = Math.max(visibleItems[0], visibleItems[1]);
-                        if ((lastitem > count - 5) && listener.needLoad()) {
-                            loadData(OnRefreshListener.LOADMORE);
-                            showLoadingLabel();
-                        }
-                    } else if (rvContent.getLayoutManager() instanceof LinearLayoutManager) {
-                        if ((((LinearLayoutManager) rvContent.getLayoutManager()).findLastVisibleItemPosition() > count - 3) && listener.needLoad()) {
-                            loadData(OnRefreshListener.LOADMORE);
-                            showLoadingLabel();
+                try {
+                    if (dy > 0 && !isLoadMore() && !refreshLayout.isRefreshing()) {
+                        int count = rvContent.getAdapter().getItemCount();
+                        if (rvContent.getLayoutManager() instanceof StaggeredGridLayoutManager) {
+                            int[] visibleItems = ((StaggeredGridLayoutManager) rvContent.getLayoutManager()).findLastVisibleItemPositions(null);
+                            int lastitem = Math.max(visibleItems[0], visibleItems[1]);
+                            if ((lastitem > count - 5) && listener.needLoad()) {
+                                loadData(OnRefreshListener.LOADMORE);
+                                showLoadingLabel();
+                            }
+                        } else if (rvContent.getLayoutManager() instanceof LinearLayoutManager) {
+                            if ((((LinearLayoutManager) rvContent.getLayoutManager()).findLastVisibleItemPosition() > count - 3) && listener.needLoad()) {
+                                loadData(OnRefreshListener.LOADMORE);
+                                showLoadingLabel();
+                            }
                         }
                     }
+                }catch (Exception e){
+                    LogUtil.e("",e);
                 }
             }
         });

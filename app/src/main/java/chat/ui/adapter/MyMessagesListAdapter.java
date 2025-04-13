@@ -2,6 +2,8 @@ package chat.ui.adapter;
 
 import android.net.Uri;
 
+import com.openai.commonutil.GsonUtils;
+import com.openai.commonutil.LogUtil;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.data.ImagePhotoLoad;
@@ -10,6 +12,7 @@ import java.io.File;
 
 import chat.ui.adapter.media.holders.MyIncomingVoiceMessageViewHolder;
 import chat.ui.adapter.media.holders.MyInComingMassageHandler;
+import chat.ui.adapter.media.holders.MyOutComingFileViewHolder;
 import chat.ui.adapter.media.holders.MyOutComingImageMessageViewHolder;
 import chat.ui.adapter.media.holders.MyOutComingMassageHandler;
 import chat.ui.adapter.media.holders.MyOutComingVoiceMessageViewHolder;
@@ -22,6 +25,7 @@ import tz.co.hosannahighertech.messagekit.messages.MessagesListAdapter;
 
 public class MyMessagesListAdapter extends MessagesListAdapter<Message> implements MessageHolders.ContentChecker<Message> {
     public static final byte CONTENT_TYPE_VOICE = 1;
+    public static final byte CONTENT_TYPE_FILE = 2;
     private static MessageHolders holdersConfig = new MessageHolders()
             .setIncomingTextConfig(MyInComingMassageHandler.class, R.layout.item_custom_incoming_text_message_new)
             .setIncomingImageLayout(R.layout.item_custom_incoming_image_message)
@@ -43,12 +47,25 @@ public class MyMessagesListAdapter extends MessagesListAdapter<Message> implemen
                 MyOutComingVoiceMessageViewHolder.class,
                 R.layout.item_custom_outcoming_voice_message_new,
                 this);
+        holdersConfig.registerContentType(
+                CONTENT_TYPE_FILE,
+                MyIncomingVoiceMessageViewHolder.class,
+                R.layout.item_custom_incoming_voice_message_new,
+                MyOutComingFileViewHolder.class,
+                R.layout.item_custom_outcoming_file_message_new,
+                this);
     }
 
     @Override
     public boolean hasContentFor(Message message, byte type) {
         if (type == CONTENT_TYPE_VOICE) {
             return message.getVoice() != null;
+//            return message.getVoice() != null
+//                    && message.getVoice().getUrl() != null
+//                    && !message.getVoice().getUrl().isEmpty();
+        }
+        if (type == CONTENT_TYPE_FILE) {
+            return message.getLocalFile() != null;
 //            return message.getVoice() != null
 //                    && message.getVoice().getUrl() != null
 //                    && !message.getVoice().getUrl().isEmpty();

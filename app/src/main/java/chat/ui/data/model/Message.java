@@ -18,6 +18,7 @@ public class Message implements IMessage,
     private final User user;
     private Image image;
     private Voice voice;
+    private LocalFile localFile;
     private int msgType = MessageType.TXT_TYPE;
     public Message() {
         this.id = "0";
@@ -88,6 +89,14 @@ public class Message implements IMessage,
         this.voice = voice;
     }
 
+    public LocalFile getLocalFile() {
+        return localFile;
+    }
+
+    public void setLocalFile(LocalFile localFile) {
+        this.localFile = localFile;
+    }
+
     public static class Image {
 
         private final String url;
@@ -96,7 +105,29 @@ public class Message implements IMessage,
             this.url = url;
         }
     }
+    public static class LocalFile {
+        private final String path;
+        private final String fileName;
+        private final String fileSize;
 
+        public LocalFile(String path, String fileName, String fileSize) {
+            this.path = path;
+            this.fileName = fileName;
+            this.fileSize = fileSize;
+        }
+
+        public String getPath() {
+            return path;
+        }
+
+        public String getFileName() {
+            return fileName;
+        }
+
+        public String getFileSize() {
+            return fileSize;
+        }
+    }
     public static class Voice {
 
         private final String url;

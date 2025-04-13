@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="error_network_unknown">Error de conexión con el servidor, por favor verifique su conexión de red o intente más tarde.</string>
+    <string name="error_network_no_connection">La conexión de red no está disponible, por favor intente más tarde</string>
+    <string name="error_network_timeout">Tiempo de espera de conexión de red agotado, por favor intente más tarde</string>
+    <string name="error_network_retry">Error de carga, por favor haga clic en Reintentar.</string>
+    <string name="error_network_nodata_retry">Sin datos, por favor haga clic en Reintentar.</string>
+    <string name="del_cancel">Cancelar</string>
+    <string name="menu_btn_setting">Configuración</string>
+    <string name="permission_need">Faltan permisos necesarios.\n\nHaga clic en "Configuración"-"Permisos"-abra todos los permisos.</string>
+    <string name="permission_need_toast">Se necesitan permisos necesarios</string>
+    <string name="menu_haha">¡Ey! Lo has encontrado.</string>
+    <string name="input_cancel_send">Suelte para cancelar</string>
+    <string name="input_cancel">Deslice para cancelar</string>
+    <string name="input_send">Suelte para enviar</string>
+    <string name="input_pass">Mantenga presionado para hablar</string>
+    <string name="coming_soon_please">Próximamente...</string>
+    <string name="click_say">Haga clic para hablar</string>
+    <string name="input_picture">Foto</string>
+    <string name="input_video">Video</string>
+    <string name="input_file">Archivos</string>
+    <string name="input_talk">Hablar</string>
+    <string name="input_help">Ayuda</string>
+    <string name="input_question">Resolver</string>
+    <string name="input_position">Posición</string>
+    <string name="menu_share_copy_ok">Copiado correctamente</string>
+    <string name="no_browser">No se encontró navegador</string>
+    <string name="load">Cargando más datos</string>
+    <string name="send">Enviar</string>
+    <string name="open_error">No se encontró aplicación para el archivo</string>
+
+</resources>

@@ -15,8 +15,8 @@ android {
         applicationId "com.openapi.ks.chat"
         minSdk rootProject.ext.minSdkVersion
         targetSdk rootProject.ext.targetSdkVersion
-        versionCode 1001000048
-        versionName "1.1.0.48"
+        versionCode 1001000052
+        versionName "1.1.0.52"
         // Enabling multidex support.
         multiDexEnabled true
         flavorDimensions "versionCode"
@@ -45,8 +45,13 @@ android {
 //        compose true
 //    }
     packagingOptions {
-        resources {
-            excludes += '/META-INF/{AL2.0,LGPL2.1}'
+        packagingOptions {
+            exclude 'META-INF/LICENSE-LGPL-3.txt'
+            exclude 'META-INF/LICENSE-LGPL-2.1.txt'
+            exclude 'META-INF/LICENSE-W3C-TEST'
+            exclude 'META-INF/NOTICE'
+            exclude 'META-INF/LICENSE'
+            exclude 'META-INF/DEPENDENCIES'
         }
     }
 //    composeOptions {
@@ -122,7 +127,6 @@ dependencies {
     implementation project(':livekitvoice')
 
 
-
     implementation 'com.google.android.material:material:1.12.0'
     implementation 'androidx.navigation:navigation-fragment-ktx:2.7.7'
     implementation 'androidx.navigation:navigation-ui-ktx:2.7.7'
@@ -145,14 +149,25 @@ dependencies {
     implementation 'io.reactivex:rxjava:1.1.9'
     implementation 'io.reactivex:rxandroid:1.2.1'
 
-    implementation 'pub.devrel:easypermissions:3.0.0'
     implementation 'org.greenrobot:greendao:3.3.0'
 
-//    implementation 'org.commonjava.googlecode.markdown4j:markdown4j:2.2-cj-1.1'
-//    implementation 'com.github.GrenderG:MarkdownView:0.1.2'
-//    implementation 'com.github.mukeshsolanki:MarkdownView-Android:2.0.0'
     implementation "io.noties.markwon:core:4.6.2"
+    implementation 'io.noties.markwon:image-glide:4.6.2'
+    implementation 'io.noties.markwon:ext-latex:4.6.2'
+    // Markwon 库，用于解析 Markdown
+    implementation 'io.noties.markwon:image:4.6.2'
+    implementation 'io.noties.markwon:html:4.6.2'
+    implementation 'io.noties.markwon:ext-strikethrough:4.6.2'
+    implementation 'io.noties.markwon:ext-tables:4.6.2'
 
+    implementation("com.caverock:androidsvg:1.4")
+    implementation("pl.droidsonroids.gif:android-gif-drawable:1.2.25")
+    implementation 'androidx.webkit:webkit:1.13.0'
+    implementation 'com.vladsch.flexmark:flexmark:0.64.8'
+    implementation 'com.vladsch.flexmark:flexmark-ext-gfm-strikethrough:0.64.8'
+    implementation 'com.vladsch.flexmark:flexmark-ext-tables:0.64.8'
+    implementation 'com.vladsch.flexmark:flexmark-ext-autolink:0.64.8'
+//    implementation 'com.vladsch.flexmark:flexmark-all:0.64.8'
 
     implementation 'com.skyfishjy.ripplebackground:library:1.0.1'
     implementation 'com.github.donkingliang:LabelsView:1.6.5'

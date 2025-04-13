@@ -90,7 +90,7 @@ public class Constants {
     public static final String SEX_F = "F";
 
     public static final String USERIP = "USERIP";
-
+    public static final String helpUrl = "http://file.ok123find.top/vip.html";
     // 有新版本时，是否打开app就提醒升级
     //用户反馈
     public static final String DEFAULT_FEEDBACK_APPKEY = "23575056";
@@ -153,6 +153,9 @@ public class Constants {
     public static final String TRANSWORD_URL = "/chat/transword.json";
     public static final String CHAT_SESSION_URL = "/chat/sessions.json";
     public static final String CHAT_IMAGE_URL = "/chat/ai/recognize.json";
+    public static final String CHAT_QUESTION_URL = "/chat/ai/local/ocr.json";
+    public static final String CHAT_FILE_URL = "/chat/ai/local/file.json";
+
     public static final String CHAT_ASR_URL = "/chat/ai/asr.json";
     public static final String CHAT_TTS_URL = "/chat/ai/tts.json";
     public static final String CHAT_FEEDBACK_URL = "/chat/ai/feedback.json";

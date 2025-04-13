@@ -24,11 +24,15 @@
     <string name="input_picture">photo</string>
     <string name="input_video">video</string>
     <string name="input_file">files</string>
+    <string name="input_talk">talk</string>
+    <string name="input_question">Solve</string>
+    <string name="input_help">Help</string>
+
     <string name="input_position">position</string>
     <string name="menu_share_copy_ok">Copied OK</string>
     <string name="no_browser">no brower find</string>ƒ
     <string name="load">loading more data</string>
     <string name="send">send</string>
-
+    <string name="open_error">Not find app for file</string>
 
 </resources>

@@ -40,9 +40,9 @@ import okhttp3.logging.HttpLoggingInterceptor;
  * use okhttp-urlconnection
  */
 public class OkHttpStack implements HttpStack {
-    public static final int DEFUAT_TIMEOUT = 20;
-    public static final int CONNECT_TIMEOUT = 20;
-    public static final int WRITE_TIMEOUT = 30;
+    public static final int DEFUAT_TIMEOUT = 40;
+    public static final int CONNECT_TIMEOUT = 40;
+    public static final int WRITE_TIMEOUT = 40;
     private static OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
     private static OkHttpClient mClient;
 

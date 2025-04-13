@@ -27,8 +27,10 @@ import com.openai.net.request.JsonResult;
 import com.openai.CommonConstants;
 
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class BaseRequest<T> extends Request<T> {
@@ -88,7 +90,12 @@ public class BaseRequest<T> extends Request<T> {
         }
         headers.put("Accept-Encoding", "gzip");
         headers.put("Accept-Language", SystemUtils.getLang(context));
-        headers.put("userLang", SystemUtils.getUserLang(context));
+        Locale currentLocale = Locale.getDefault();
+        try {
+            headers.put("userLang", URLEncoder.encode(currentLocale.getCountry() + ";" + currentLocale.getLanguage()+";" +currentLocale.getDisplayName(), "UTF-8"));
+        }catch (Exception e){
+            headers.put("userLang", currentLocale.getCountry() + ";" + currentLocale.getLanguage());
+        }
         headers.put(CommonConstants.DEVID, DEVID);
         String token = PreferenceUtils.getPrefString(context, CommonConstants.HTTP_TOKEN_KEY, null);
         if (token != null)
@@ -105,8 +112,13 @@ public class BaseRequest<T> extends Request<T> {
 
     @Override
     protected void deliverResponse(T response) {
-        if (listener != null)
-            listener.onResponse(response);
+        try {
+            if (listener != null) {
+                listener.onResponse(response);
+            }
+        }catch (Exception e){
+            LogUtil.e("", e);
+        }
     }
 
     public Context getContext() {

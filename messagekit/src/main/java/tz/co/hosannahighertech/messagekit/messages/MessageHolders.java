@@ -5,6 +5,7 @@ import androidx.annotation.NonNull;
 import androidx.core.view.ViewCompat;
 import android.text.Spannable;
 import android.text.method.LinkMovementMethod;
+import android.util.Log;
 import android.util.SparseArray;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -482,6 +483,7 @@ public class MessageHolders {
                         new HolderConfig<>(incomingHolder, incomingLayout),
                         new HolderConfig<>(outcomingHolder, outcomingLayout)));
         this.contentChecker = contentChecker;
+        Log.i("mytag", customContentTypes.stream().toString());
         return this;
     }
 

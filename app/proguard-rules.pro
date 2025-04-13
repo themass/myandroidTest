@@ -486,3 +486,5 @@ public static java.lang.String TABLENAME;
 }
 -keep class com.facebook.infer.annotation.Nullsafe$Mode { *; }
 -keep class com.facebook.ads.** { *; }
+
+-keep class io.noties.markwon.** { *; }
