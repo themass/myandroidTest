@@ -343,7 +343,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     }
     public void showShare(String url) {
         ShareUtil util = new ShareUtil(this);
-        util.shareText(null,null,url, "GlobalVPN","GlobalVPN");
+        util.shareText(null,null,url, "ShieldWing","ShieldWing");
     }
     private void adsOffers(){
         AdsManager.getInstans().offerAds(this);

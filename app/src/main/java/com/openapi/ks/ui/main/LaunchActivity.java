@@ -10,6 +10,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.king.view.radarview.RadarView;
 import com.openapi.common.ui.base.LogActivity;
 import com.openapi.common.util.EventBusUtil;
 import com.openapi.common.util.LogUtil;
@@ -40,14 +41,8 @@ public class LaunchActivity extends LogActivity {
     RelativeLayout skipView;
     @BindView(R.id.tv_shu)
     TextView tvJishi;
-    @BindView(R.id.rl_banner1)
-    RelativeLayout banner1;
-    @BindView(R.id.rl_banner2)
-    RelativeLayout banner2;
-    @BindView(R.id.rl_banner3)
-    RelativeLayout banner3;
-    @BindView(R.id.ll_banner)
-    LinearLayout llBanner;
+    @BindView(R.id.radar)
+    RadarView radarView;
     private int max = Constants.STARTUP_SHOW_TIME_6000+1000;
     private int now = 0;
     private Unbinder unbinder;
@@ -81,7 +76,7 @@ public class LaunchActivity extends LogActivity {
         mHandler.postDelayed(mStartMainRunnable, max);
         EventBusUtil.getEventBus().register(this);
         showAdview();
-
+        radarView.start();
     }
 
     @OnClick(R.id.skip_view)
@@ -91,6 +86,7 @@ public class LaunchActivity extends LogActivity {
     }
 
     private void launch() {
+        radarView.stop();
         Intent intent = new Intent(this, MainFragmentViewPage.class);
         startActivity(intent);
         finish();

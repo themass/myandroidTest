@@ -13,8 +13,8 @@ android {
         applicationId "com.openapi.ks.free1"
         minSdk 28
         targetSdk 34
-        versionCode 1001001014
-        versionName "1.1.1.14"
+        versionCode 1001001015
+        versionName "1.1.1.15"
         // Enabling multidex support.
         multiDexEnabled true
         flavorDimensions "versionCode"
@@ -149,7 +149,7 @@ dependencies {
     implementation 'com.github.lawloretienne:imagegallery:0.1.0'
     implementation 'com.sothree.slidinguppanel:library:3.3.1'
 
-    implementation 'com.google.android.gms:play-services-ads:22.0.0'
+    implementation 'com.google.android.gms:play-services-ads:24.2.0'
 //    implementation 'com.google.android.gms:play-services-base:18.2.0'
 //    implementation 'com.google.android.gms:play-services-location:21.0.1'
 //    implementation 'com.google.android.gms:play-services-wallet:19.1.0'
