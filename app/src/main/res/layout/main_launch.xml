@@ -48,6 +48,12 @@
             <com.openapi.ks.myapp.view.MyRadarScanView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:visibility="gone"
+            />
+        <com.openai.commonview.view.FireworkShow
+            android:id="@+id/fireView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             />
     </RelativeLayout>
 

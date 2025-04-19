@@ -11,6 +11,8 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import com.openai.commonview.view.FireworkShow;
 import com.openapi.ks.myapp.bean.form.ChatSessionLog;
 import com.openapi.ks.myapp.data.DBManager;
 import com.openapi.ks.myapp.ui.base.app.LogActivity;
@@ -55,6 +57,8 @@ public class LaunchActivity extends LogActivity {
     RelativeLayout banner3;
     @BindView(R.id.ll_banner)
     LinearLayout llBanner;
+    @BindView(R.id.fireView)
+    FireworkShow fireworkShow;
     private int max = Constants.STARTUP_SHOW_TIME_6000 + 1000;
     private int now = 0;
     private Unbinder unbinder;
@@ -89,6 +93,7 @@ public class LaunchActivity extends LogActivity {
         EventBusUtil.getEventBus().register(this);
         showAdview();
         initChatSession();
+        fireworkShow.startFireworkShow();
     }
     private void initChatSession(){
         ChatSessionLog logDef = new ChatSessionLog();
@@ -106,9 +111,11 @@ public class LaunchActivity extends LogActivity {
     }
 
     private void launch() {
+        fireworkShow.stopFireworkShow();
         Intent intent = new Intent(this, CustomChatMessagesWithAsrActivity.class);
         startActivity(intent);
         finish();
+
     }
 
     public boolean onKeyDown(int keyCode, KeyEvent event) {
