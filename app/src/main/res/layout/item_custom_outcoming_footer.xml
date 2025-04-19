@@ -26,14 +26,14 @@
         android:id="@+id/iv_del"
         android:layout_width="@dimen/message_footer_image_size"
         android:layout_height="@dimen/message_footer_image_size"
-        android:padding="@dimen/margin_4"
+        android:padding="@dimen/margin_5"
         android:layout_centerVertical="true"
         android:layout_marginEnd="@dimen/message_footer_padding_left"
         android:layout_toStartOf="@+id/iv_copy"
         android:background="?android:attr/selectableItemBackground"
         android:clickable="true"
         android:scaleType="fitCenter"
-        android:src="@drawable/src_assets_images_delete" />
+        android:src="@drawable/ic_del" />
     <RelativeLayout
         android:id="@+id/ll_voice"
         android:layout_width="wrap_content"
@@ -44,12 +44,12 @@
         android:background="?android:attr/selectableItemBackground"
         android:layout_toStartOf="@+id/iv_del"
         android:gravity="center_vertical"
+        android:visibility="gone"
     >
         <ImageView
             android:id="@+id/ib_audio"
             android:layout_width="16dp"
             android:layout_height="16dp"
-            android:layout_marginEnd="5dp"
             android:layout_centerVertical="true"
             android:background="@drawable/audio_animation_list_right_3"
            />

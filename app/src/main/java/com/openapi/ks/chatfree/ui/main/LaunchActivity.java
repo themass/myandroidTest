@@ -57,8 +57,8 @@ public class LaunchActivity extends LogActivity {
     RelativeLayout banner3;
     @BindView(R.id.ll_banner)
     LinearLayout llBanner;
-    @BindView(R.id.fireView)
-    FireworkShow fireworkShow;
+//    @BindView(R.id.fireView)
+//    FireworkShow fireworkShow;
     private int max = Constants.STARTUP_SHOW_TIME_6000 + 1000;
     private int now = 0;
     private Unbinder unbinder;
@@ -93,7 +93,7 @@ public class LaunchActivity extends LogActivity {
         EventBusUtil.getEventBus().register(this);
         showAdview();
         initChatSession();
-        fireworkShow.startFireworkShow();
+//        fireworkShow.startFireworkShow();
     }
     private void initChatSession(){
         ChatSessionLog logDef = new ChatSessionLog();
@@ -111,7 +111,7 @@ public class LaunchActivity extends LogActivity {
     }
 
     private void launch() {
-        fireworkShow.stopFireworkShow();
+//        fireworkShow.stopFireworkShow();
         Intent intent = new Intent(this, CustomChatMessagesWithAsrActivity.class);
         startActivity(intent);
         finish();
