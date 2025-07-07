@@ -17,43 +17,31 @@
         android:id="@+id/iv_copy"
         android:layout_width="@dimen/message_footer_image_size"
         android:layout_height="@dimen/message_footer_image_size"
-        android:padding="@dimen/margin_3"
         android:layout_marginLeft="@dimen/message_footer_padding_left"
         android:background="?android:attr/selectableItemBackground"
         android:clickable="true"
         android:scaleType="fitCenter"
-        android:src="@drawable/src_assets_images_copy" />
-    <ImageView
-        android:id="@+id/iv_del"
-        android:layout_width="@dimen/message_footer_image_size"
-        android:layout_height="@dimen/message_footer_image_size"
-        android:layout_marginLeft="@dimen/message_footer_padding_left"
-        android:padding="@dimen/margin_5"
-        android:background="?android:attr/selectableItemBackground"
-        android:clickable="true"
-        android:scaleType="fitCenter"
-        android:src="@drawable/ic_del" />
+        android:src="@drawable/copy" />
+
     <ImageView
         android:id="@+id/ib_up"
         android:layout_width="@dimen/message_footer_image_size"
         android:layout_height="@dimen/message_footer_image_size"
         android:layout_marginLeft="@dimen/message_footer_padding_left"
-        android:padding="@dimen/margin_4"
         android:background="?android:attr/selectableItemBackground"
         android:clickable="true"
         android:scaleType="fitCenter"
-        android:src="@drawable/src_assets_images_like" />
+        android:src="@drawable/ic_up" />
 
     <ImageView
         android:id="@+id/ib_down"
         android:layout_width="@dimen/message_footer_image_size"
         android:layout_height="@dimen/message_footer_image_size"
-        android:padding="@dimen/margin_4"
         android:layout_marginLeft="@dimen/message_footer_padding_left"
         android:background="?android:attr/selectableItemBackground"
         android:clickable="true"
         android:scaleType="fitCenter"
-        android:src="@drawable/src_assets_images_dislike" />
+        android:src="@drawable/ic_down" />
 
     <LinearLayout
         android:id="@+id/ll_voice"
@@ -64,8 +52,7 @@
         android:clickable="true"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingTop="@dimen/message_time_padding_top"
-        android:paddingBottom="@dimen/message_time_padding_top"
+        android:padding="@dimen/message_time_padding_top"
         android:visibility="gone">
 
         <ImageView
