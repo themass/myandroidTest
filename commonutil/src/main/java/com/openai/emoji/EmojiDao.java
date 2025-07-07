@@ -2,6 +2,9 @@ package com.openai.emoji;
 
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
+
+import com.openai.commonutil.LogUtil;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -87,7 +90,7 @@ public class EmojiDao {
                     outputStream.write(buffer, 0, len);
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                LogUtil.e("CopySqliteFileFromRawToDatabases: " + e.getMessage(),e);
             } finally {
                 if (outputStream != null) {
                     outputStream.flush();
@@ -96,8 +99,12 @@ public class EmojiDao {
                 if (inputStream != null) {
                     inputStream.close();
                 }
+                LogUtil.i("emoj 数据库写完毕");
             }
+        }else{
+            LogUtil.i("emoj 数据库已经存在");
         }
+        LogUtil.i("emoj 数据库地址"+file.getPath());
         return file.getPath();
     }
 }

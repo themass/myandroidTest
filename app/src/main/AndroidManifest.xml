@@ -201,11 +201,11 @@
             android:configChanges="orientation|screenSize|keyboardHidden"
 
             android:theme="@style/AppTheme" />
-        <activity
-            android:name="com.openapi.ks.myapp.ui.gsy.ad.GSYADVideoListShowActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden"
+<!--        <activity-->
+<!--            android:name="com.openapi.ks.myapp.ui.gsy.ad.GSYADVideoListShowActivity"-->
+<!--            android:configChanges="orientation|screenSize|keyboardHidden"-->
 
-            android:theme="@style/AppTheme" />
+<!--            android:theme="@style/AppTheme" />-->
         <activity
             android:name="com.openapi.ks.myapp.ui.sound.MyFullScreenImageGalleryActivity"
              />
