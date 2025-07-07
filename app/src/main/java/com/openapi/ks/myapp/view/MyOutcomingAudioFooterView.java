@@ -1,14 +1,11 @@
 package com.openapi.ks.myapp.view;
 
-import android.content.ClipData;
-import android.content.ClipboardManager;
 import android.content.Context;
 import android.graphics.drawable.AnimationDrawable;
 import android.media.MediaPlayer;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -16,9 +13,6 @@ import android.widget.RelativeLayout;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.openai.commonevent.FavoriteVo;
-import com.openai.commonutil.EventBusUtil;
-import com.openai.commonutil.FavoriteUtil;
 import com.openai.commonutil.LogUtil;
 import com.openai.commonutil.StringUtils;
 import com.openai.commonutil.SystemUtils;
@@ -26,7 +20,6 @@ import com.openai.commonutil.ToastUtil;
 import com.openai.commonview.view.widget.MediaManager;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.base.MyApplication;
-import com.openapi.ks.myapp.data.config.ChatItemDelEvent;
 
 import chat.ui.data.model.Message;
 
@@ -34,7 +27,6 @@ public class MyOutcomingAudioFooterView extends LinearLayout {
     public RelativeLayout llVoice;
     public Message message;
     public ImageView copy;
-    public ImageView del;
     private Context context;
     public MyOutcomingAudioFooterView(@NonNull Context context) {
         super(context);
@@ -64,15 +56,6 @@ public class MyOutcomingAudioFooterView extends LinearLayout {
         View myView = mInflater.inflate(R.layout.item_custom_outcoming_footer, null);
         addView(myView);
         llVoice = findViewById(R.id.ll_voice);
-        del = findViewById(R.id.iv_del);
-        del.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ChatItemDelEvent chatItemDelEvent = new ChatItemDelEvent();
-                chatItemDelEvent.message = message;
-                EventBusUtil.getEventBus().post(chatItemDelEvent);
-            }
-        });
         copy = findViewById(R.id.iv_copy);
         copy.setOnClickListener(new OnClickListener() {
             @Override

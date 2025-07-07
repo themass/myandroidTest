@@ -30,7 +30,7 @@ public class MyApplication extends MultiDexApplication {
     public static volatile boolean isDebug = true;
     private static MyApplication instance = null;
     private ImagePhotoLoad photoLoad;
-    public static final String UPDATE_STATUS_ACTION = "com.openapi.ks.chat.action.UPDATE_STATUS";
+    public static final String UPDATE_STATUS_ACTION = "com.openapi.ks.moviefree1.action.UPDATE_STATUS";
     public static boolean isTemp = false;
 
 
@@ -101,7 +101,6 @@ public class MyApplication extends MultiDexApplication {
         String tmpFilePath = FileUtils.getWriteFilePath(this) + File.separator + "log";
         LogUtil.i("tmpFilePath=" + tmpFilePath);
         FileUtils.ensureFile(this, tmpFilePath);
-
     }
 
     @Override

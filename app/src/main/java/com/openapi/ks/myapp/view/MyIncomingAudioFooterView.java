@@ -24,13 +24,12 @@ import com.openai.commonview.view.widget.MediaManager;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.constant.Constants;
-import com.openapi.ks.myapp.data.config.ChatItemDelEvent;
 import com.openapi.ks.myapp.data.config.TtsLoadEvent;
 
 import java.util.function.Function;
 
 import chat.ui.data.model.Message;
-import chat.ui.view.FeedbackDialog;
+import chat.ui.FeedbackDialog;
 
 public class MyIncomingAudioFooterView extends LinearLayout implements FavoriteUtil.ModFavoriteListener, FavoriteUtil.GetFavoriteListener, FeedbackDialog.OnFeedbackSubmitListener {
     public LinearLayout llVoice;
@@ -38,7 +37,6 @@ public class MyIncomingAudioFooterView extends LinearLayout implements FavoriteU
     public ImageView ibDown;
     public Message message;
     public ImageView copy;
-    public ImageView del;
     private Context context;
     public ImageView ivAudioImg;
     public static ImageView ivAudio;
@@ -75,15 +73,6 @@ public class MyIncomingAudioFooterView extends LinearLayout implements FavoriteU
         ibUp = findViewById(R.id.ib_up);
         ibDown = findViewById(R.id.ib_down);
         copy = findViewById(R.id.iv_copy);
-        del = findViewById(R.id.iv_del);
-        del.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ChatItemDelEvent chatItemDelEvent = new ChatItemDelEvent();
-                chatItemDelEvent.message = message;
-                EventBusUtil.getEventBus().post(chatItemDelEvent);
-            }
-        });
         copy.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -91,7 +80,7 @@ public class MyIncomingAudioFooterView extends LinearLayout implements FavoriteU
                 SystemUtils.copy(context, message.getText());
             }
         });
-        ibUp.setOnClickListener(new View.OnClickListener() {
+        ibUp.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
                 FavoriteVo vo = new FavoriteVo();
@@ -101,7 +90,7 @@ public class MyIncomingAudioFooterView extends LinearLayout implements FavoriteU
                 FavoriteUtil.modLocalFavoritesAsync(getContext(), vo, MyIncomingAudioFooterView.this);
             }
         });
-        ibDown.setOnClickListener(new View.OnClickListener() {
+        ibDown.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
                 FeedbackDialog feebackDialog = new FeedbackDialog(context, message);
@@ -187,13 +176,9 @@ public class MyIncomingAudioFooterView extends LinearLayout implements FavoriteU
                 @Override
                 public void onCompletion(MediaPlayer mp) {
                     LogUtil.i("play over");
-                    try {
-                        ivAudio.setBackgroundResource(R.drawable.audio_animation_list_left_3);
-                        ivAudio = null;
-                        MediaManager.release();
-                    }catch (Exception e){
-                        LogUtil.e(e);
-                    }
+                    ivAudio.setBackgroundResource(R.drawable.audio_animation_list_left_3);
+                    ivAudio = null;
+                    MediaManager.release();
                 }
             });
         }catch (Exception e){
@@ -212,15 +197,15 @@ public class MyIncomingAudioFooterView extends LinearLayout implements FavoriteU
     }
     public void modFavoriteBg(FavoriteVo vo) {
         if (vo == null) {
-            ibUp.setImageResource(R.drawable.src_assets_images_like);
-            ibDown.setImageResource(R.drawable.src_assets_images_dislike);
+            ibUp.setBackgroundResource(R.drawable.ic_up);
+            ibDown.setBackgroundResource(R.drawable.ic_down);
         } else {
             if(vo.getType() == Constants.FavoriteType.CHAT_OK){
-                ibUp.setImageResource(R.drawable.src_assets_images_liked);
-                ibDown.setImageResource(R.drawable.src_assets_images_dislike);
+                ibUp.setBackgroundResource(R.drawable.ic_up_ok);
+                ibDown.setBackgroundResource(R.drawable.ic_down);
             }else{
-                ibUp.setImageResource(R.drawable.src_assets_images_like);
-                ibDown.setImageResource(R.drawable.src_assets_images_disliked);
+                ibUp.setBackgroundResource(R.drawable.ic_up);
+                ibDown.setBackgroundResource(R.drawable.ic_down_ok);
             }
         }
     }

@@ -17,7 +17,6 @@ import com.openai.commonutil.ToastUtil;
 import com.openai.net.VolleyUtils;
 import com.openai.net.request.CommonResponse;
 import com.openapi.ks.chat.R;
-import com.openapi.ks.chat.R2;
 import com.openapi.ks.myapp.bean.form.CustomeAddForm;
 import com.openapi.ks.myapp.bean.vo.NullReturnVo;
 import com.openapi.ks.myapp.constant.Constants;

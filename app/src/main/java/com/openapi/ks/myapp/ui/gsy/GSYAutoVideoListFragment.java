@@ -1,4 +1,4 @@
-//package com.openapi.ks.myapp.ui.gsy;//package com.openapi.ks.myapp.ui.gsy;
+package com.openapi.ks.myapp.ui.gsy;//package com.openapi.ks.myapp.ui.gsy;
 //
 //import android.content.Context;
 //import android.content.res.Configuration;

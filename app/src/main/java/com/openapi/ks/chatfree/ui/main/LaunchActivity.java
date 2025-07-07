@@ -11,8 +11,6 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-
-import com.openai.commonview.view.FireworkShow;
 import com.openapi.ks.myapp.bean.form.ChatSessionLog;
 import com.openapi.ks.myapp.data.DBManager;
 import com.openapi.ks.myapp.ui.base.app.LogActivity;
@@ -57,8 +55,6 @@ public class LaunchActivity extends LogActivity {
     RelativeLayout banner3;
     @BindView(R.id.ll_banner)
     LinearLayout llBanner;
-//    @BindView(R.id.fireView)
-//    FireworkShow fireworkShow;
     private int max = Constants.STARTUP_SHOW_TIME_6000 + 1000;
     private int now = 0;
     private Unbinder unbinder;
@@ -93,7 +89,6 @@ public class LaunchActivity extends LogActivity {
         EventBusUtil.getEventBus().register(this);
         showAdview();
         initChatSession();
-//        fireworkShow.startFireworkShow();
     }
     private void initChatSession(){
         ChatSessionLog logDef = new ChatSessionLog();
@@ -111,11 +106,9 @@ public class LaunchActivity extends LogActivity {
     }
 
     private void launch() {
-//        fireworkShow.stopFireworkShow();
         Intent intent = new Intent(this, CustomChatMessagesWithAsrActivity.class);
         startActivity(intent);
         finish();
-
     }
 
     public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -132,7 +125,7 @@ public class LaunchActivity extends LogActivity {
     }
 
     private void showAdview() {
-        AdsManager.getInstans().showSplashAds(AdsContext.AdsFrom.ADMOB, this, ivAds, skipView);
+//        AdsManager.getInstans().showSplashAds(AdsContext.AdsFrom.ADMOB, this, ivAds, skipView);
         delay1s();
     }
 
@@ -143,9 +136,9 @@ public class LaunchActivity extends LogActivity {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onBannerShow(LaunchAdsNext next) {
         LogUtil.i("LaunchAdsNext " + next.from);
-//        if (next.from == AdsContext.AdsFrom.ADMOB) {
-//            AdsManager.getInstans().showSplashAds(AdsContext.AdsFrom.FACEBOOK, this, ivAds, skipView);
-//        }
+        if (next.from == AdsContext.AdsFrom.ADMOB) {
+            AdsManager.getInstans().showSplashAds(AdsContext.AdsFrom.FACEBOOK, this, ivAds, skipView);
+        }
     }
 
     @Override
@@ -164,10 +157,11 @@ public class LaunchActivity extends LogActivity {
         EventBusUtil.getEventBus().unregister(this);
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onADDismissed(SplashAdDissmisEvent event) {
-        AdsManager.getInstans().showSplashAds(AdsContext.AdsFrom.FACEBOOK, this, ivAds, skipView);
-    }
+//    @Subscribe(threadMode = ThreadMode.MAIN)
+//    public void onADDismissed(SplashAdDissmisEvent event) {
+//        mHandler.removeCallbacks(mStartMainRunnable);
+//        launch();
+//    }
     private static final int REQUEST_AD_ID_PERMISSION = 1;
 
 }
