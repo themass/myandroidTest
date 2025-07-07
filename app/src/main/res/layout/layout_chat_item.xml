@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?android:attr/selectableItemBackground"
+    android:clickable="true"
+    >
+    <TextView
+        android:id="@+id/session_name"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:textSize="@dimen/textsize_16"
+        android:textColor="@color/black"
+        android:padding="@dimen/margin_10"
+        android:paddingLeft="@dimen/margin_10"
+        android:background="@color/base_bg"
+        />
+
+</FrameLayout>

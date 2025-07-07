@@ -75,7 +75,7 @@ public class FavoriteViewAdapter extends BaseRecyclerViewAdapter<FavoriteViewAda
         }
     }
 
-    public static class ItemtView extends BaseRecyclerViewAdapter.BaseRecyclerViewHolder<FavoriteVo> {
+    public static class ItemtView extends BaseRecyclerViewHolder<FavoriteVo> {
         @Nullable
         @BindView(R.id.tv_index)
         TextView tvIndex;

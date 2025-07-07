@@ -16,7 +16,7 @@ import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.ui.base.features.BasePullLoadbleFragment;
 import com.openapi.ks.myapp.ui.fragment.AutoVideoListFragment;
-import com.openapi.ks.myapp.ui.gsy.GSYAutoVideoListFragment;
+//import com.openapi.ks.myapp.ui.gsy.GSYAutoVideoListFragment;
 
 import java.util.HashMap;
 
@@ -39,12 +39,12 @@ public class VideoListShowActivity extends AppCompatActivity {
         try {
             BasePullLoadbleFragment fragment;
             boolean needTiny = PreferenceUtils.getPrefBoolean(this, Constants.LISTVIDEO_TINY_SWITCH, true);
-            if (!needTiny) {
+//            if (!needTiny) {
                 fragment = AutoVideoListFragment.class.newInstance();
-            } else {
-
-                fragment = GSYAutoVideoListFragment.class.newInstance();
-            }
+//            } else {
+//
+//                fragment = GSYAutoVideoListFragment.class.newInstance();
+//            }
             fragment.putSerializable(vo.get(Constants.CHANNEL));
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.fragment, fragment)

@@ -360,7 +360,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
             }
         });
     }
-//    public void startFragment() {
+    //    public void startFragment() {
 //        Intent intent = new Intent(BaseDrawerActivity.this, CommonFragmentActivity.class);
 //        intent.putExtra(CommonFragmentActivity.FRAGMENT, AudioRecordingFragment.class);
 //        intent.putExtra(CommonFragmentActivity.TITLE, R.string.menu_btn_donation);
