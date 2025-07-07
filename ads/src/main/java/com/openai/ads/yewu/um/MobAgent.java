@@ -3,6 +3,7 @@ package com.openai.ads.yewu.um;
 import android.content.Context;
 
 import com.openai.ads.yewu.ads.base.AdsContext;
+import com.openai.commonutil.LogUtil;
 
 /**
  * Created by dengt on 2016/8/18.
@@ -41,6 +42,7 @@ public class MobAgent {
     }
 
     public static void onEventMenu(Context context, String name) {
+        LogUtil.i("点击:"+name);
     }
 
     public static void onEventRecommond(Context context, String title) {
