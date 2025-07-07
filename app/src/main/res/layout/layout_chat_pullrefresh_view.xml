@@ -23,7 +23,7 @@
             app:outcomingDefaultBubbleSelectedColor="@color/ivory_dark"
             app:outcomingBubbleDrawable="@drawable/chat_tv_send"
             app:outcomingTimeTextColor="@color/gray_dark_transparent"
-            app:outcomingDefaultBubbleColor="@color/new_light_green"
+            app:outcomingDefaultBubbleColor="@color/green"
             app:outcomingTextSize="15sp"
             app:outcomingTextColor="@color/black"
             />

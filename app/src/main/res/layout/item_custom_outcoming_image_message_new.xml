@@ -50,7 +50,7 @@
             android:id="@+id/ll_sound"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="@dimen/message_time_padding_top"
+            android:paddingTop="@dimen/message_footer_padding_top"
             android:layout_below="@+id/bubble"/>
 
     </RelativeLayout>
