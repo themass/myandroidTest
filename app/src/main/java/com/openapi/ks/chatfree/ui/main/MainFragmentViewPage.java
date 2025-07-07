@@ -7,10 +7,12 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.OptIn;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.media3.common.util.UnstableApi;
 import androidx.viewpager.widget.ViewPager;
 
 import android.view.KeyEvent;
@@ -23,6 +25,7 @@ import android.widget.TextView;
 
 import com.google.android.material.tabs.TabLayout;
 import com.openapi.ks.chatfree.ui.maintab.LiveKitTabFragment;
+import com.openapi.ks.chatfree.ui.maintab.TabLocalFragment;
 import com.openai.commonutil.DoubleClickExit;
 import com.openai.commonutil.EventBusUtil;
 import com.openai.commonutil.LogUtil;
@@ -34,6 +37,7 @@ import com.openai.ads.yewu.um.MobAgent;
 import com.openapi.ks.chatfree.ui.maintab.teach.TabChineseFragment;
 import com.openapi.ks.chatfree.ui.maintab.teach.TabEnglishFragment;
 import com.openapi.ks.chatfree.ui.maintab.teach.TabMathFragment;
+import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.ConnLogUtil;
 import com.openapi.ks.myapp.data.UserLoginUtil;
@@ -45,7 +49,13 @@ import com.openapi.ks.myapp.ui.inte.OnBackKeyDownListener;
 import com.openapi.ks.chat.R;
 
 import com.openapi.ks.chatfree.ui.maintab.TabCustomeFragment;
+import com.openapi.ks.chatfree.ui.maintab.TabMovieFragment;
 import com.openapi.ks.chatfree.ui.maintab.TabNightFragment;
+import com.openapi.ks.myapp.ui.sound.JzvdPlayerFactory;
+import com.openapi.ks.myapp.ui.sound.media.JZMediaExo;
+import com.openapi.ks.myapp.ui.sound.media.JZMediaIjk;
+import com.shuyu.gsyvideoplayer.player.IjkPlayerManager;
+import com.shuyu.gsyvideoplayer.player.PlayerFactory;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -54,6 +64,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import tv.danmaku.ijk.media.exo2.Exo2PlayerManager;
 
 /**
  * Created by openapi on 2016/3/1.
@@ -86,20 +98,20 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         initTabs();
         LogUtil.i("onEvent:initTabs");
     }
-//    @OptIn(markerClass = UnstableApi.class) @Subscribe(threadMode = ThreadMode.MAIN)
-//    public void onEvent(PlayCoreEvent event) {
-//        boolean playCore = PreferenceUtils.getPrefBoolean(this, Constants.PLAYCORE_SWITCH, true);
-////        if (!playCore) {
-////            PlayerFactory.setPlayManager(Exo2PlayerManager.class);
-////            JzvdPlayerFactory.setPlayManager(JZMediaExo.class);
-////        } else {
-//            PlayerFactory.setPlayManager(IjkPlayerManager.class);
-//            JzvdPlayerFactory.setPlayManager(JZMediaIjk.class);
-////        }
-//    }
-//    /**
-//     * Callback received when a permissions request has been completed.
-//     */
+    @OptIn(markerClass = UnstableApi.class) @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(PlayCoreEvent event) {
+        boolean playCore = PreferenceUtils.getPrefBoolean(this, Constants.PLAYCORE_SWITCH, true);
+        if (!playCore) {
+            PlayerFactory.setPlayManager(Exo2PlayerManager.class);
+            JzvdPlayerFactory.setPlayManager(JZMediaExo.class);
+        } else {
+            PlayerFactory.setPlayManager(IjkPlayerManager.class);
+            JzvdPlayerFactory.setPlayManager(JZMediaIjk.class);
+        }
+    }
+    /**
+     * Callback received when a permissions request has been completed.
+     */
     @Override
     public void onRequestPermissionsResult(final int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
@@ -136,11 +148,11 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         ConnLogUtil.sendAllLog(this);
     }
 
-//    @OptIn(markerClass = UnstableApi.class)
+    @OptIn(markerClass = UnstableApi.class)
     private void initTabs() {
         list.clear();
         LayoutInflater inflater = LayoutInflater.from(this);
-            addData(inflater, R.string.tab_tag_movie, LiveKitTabFragment.class,
+            addData(inflater, R.string.tab_tag_movie, TabMovieFragment.class,
                     R.drawable.ac_bg_tab_index, R.string.tab_movie, null, 1);
         if (PreferenceUtils.getPrefBoolean(this, Constants.AREA_SWITCH, true)) {
             addData(inflater, R.string.tab_tag_ng, TabNightFragment.class,
@@ -180,7 +192,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
 
         );
         // 设置播放器内核
-//        onEvent(new PlayCoreEvent());
+        onEvent(new PlayCoreEvent());
 
     }
 
