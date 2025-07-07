@@ -175,7 +175,7 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
         void onEditClick(View view, int postion);
     }
 
-    public static class NaviItemViewHolder extends BasePhotoFlowRecycleViewAdapter.BaseViewHolder {
+    public static class NaviItemViewHolder extends BaseViewHolder {
         @BindView(R.id.card_view)
         public CardView cardView;
         @BindView(R.id.tv_title)

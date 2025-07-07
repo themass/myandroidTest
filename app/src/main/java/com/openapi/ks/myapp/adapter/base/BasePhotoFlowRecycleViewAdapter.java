@@ -45,7 +45,7 @@ public abstract class BasePhotoFlowRecycleViewAdapter<M, T extends BasePhotoFlow
     }
 
     @Override
-    public void onBindViewHolder(final BasePhotoFlowRecycleViewAdapter.BaseViewHolder holder, int position) {
+    public void onBindViewHolder(final BaseViewHolder holder, int position) {
         bindPhoto(holder, position);
         if (mDragStartListener != null) {
             holder.itemView.setOnDragListener(new View.OnDragListener() {
@@ -77,14 +77,14 @@ public abstract class BasePhotoFlowRecycleViewAdapter<M, T extends BasePhotoFlow
         onCustomeBindViewHolder(holder, position);
     }
 
-    private void bindPhoto(final BasePhotoFlowRecycleViewAdapter.BaseViewHolder holder, int position) {
+    private void bindPhoto(final BaseViewHolder holder, int position) {
         long animationDelay = PHOTO_ANIMATION_DELAY + holder.getAdapterPosition() * 30;
         animatePhoto(holder, animationDelay, position);
     }
 
     abstract protected void animatePhoto(BaseViewHolder viewHolder, long animationDelay, int position);
 
-    abstract protected void onCustomeBindViewHolder(final BasePhotoFlowRecycleViewAdapter.BaseViewHolder holder, int position);
+    abstract protected void onCustomeBindViewHolder(final BaseViewHolder holder, int position);
 
     protected boolean onLongFlag(final BaseViewHolder holder, boolean flag) {
         return false;

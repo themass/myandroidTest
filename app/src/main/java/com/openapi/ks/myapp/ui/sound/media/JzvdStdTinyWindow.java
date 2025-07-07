@@ -47,7 +47,7 @@ public class JzvdStdTinyWindow extends JzvdStd {
         CONTAINER_LIST.add(vg);
 
         ViewGroup vgg = (ViewGroup) (JZUtils.scanForActivity(getContext())).getWindow().getDecorView();//和他也没有关系
-        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(400, 400);
+        LayoutParams lp = new LayoutParams(400, 400);
         lp.gravity = Gravity.RIGHT | Gravity.BOTTOM;
         lp.bottomMargin = DisplayUtil.dp2px(getContext(), R.dimen.margin_40);
         //添加滑动事件等

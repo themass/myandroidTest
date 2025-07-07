@@ -14,7 +14,7 @@ package com.openapi.ks.myapp.ui.gsy;//package com.openapi.ks.myapp.ui.gsy;
 //import androidx.recyclerview.widget.RecyclerView;
 //
 //import com.bumptech.glide.Glide;
-//import com.openapi.ks.deepseeai.R;
+//import com.openapi.ks.chat.R;
 //import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
 //import com.openapi.ks.myapp.bean.vo.RecommendVo;
 //import com.shuyu.gsyvideoplayer.utils.GSYVideoHelper;

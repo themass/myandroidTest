@@ -8,11 +8,14 @@ import com.openai.commonutil.EventBusUtil;
 import com.openai.commonutil.PreferenceUtils;
 import com.openai.ads.yewu.um.MobAgent;
 import com.openai.commonutil.StaticDataUtil;
+import com.openai.commonutil.StringUtils;
 import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.bean.vo.UserInfoVo;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.config.StateUseEvent;
 import com.openapi.ks.myapp.data.config.UserLoginEvent;
+
+import java.util.UUID;
 
 /**
  * Created by openapi on 2016/8/15.
@@ -52,7 +55,16 @@ public class UserLoginUtil {
     }
 
     public static UserInfoVo getUserCache() {
-        return StaticDataUtil.get(Constants.LOGIN_USER, UserInfoVo.class);
+        String token = PreferenceUtils.getPrefString(MyApplication.getInstance(), CommonConstants.HTTP_TOKEN_KEY,"");
+        if(StringUtils.isEmpty(token)){
+            token = UUID.randomUUID().toString();
+            PreferenceUtils.setPrefString(MyApplication.getInstance(), CommonConstants.HTTP_TOKEN_KEY, token);
+
+        }
+        UserInfoVo vo =  new UserInfoVo();
+        vo.token = token;
+        return vo;
+//        return StaticDataUtil.get(Constants.LOGIN_USER, UserInfoVo.class);
     }
 
     public static boolean isVIP() {
