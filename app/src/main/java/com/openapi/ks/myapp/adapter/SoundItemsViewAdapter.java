@@ -33,13 +33,13 @@ public class SoundItemsViewAdapter extends BaseRecyclerViewAdapter<SoundItemsVie
     }
 
     @Override
-    public SoundItemView onCreateViewHolderData(ViewGroup parent, int viewType) {
+    public SoundItemsViewAdapter.SoundItemView onCreateViewHolderData(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(context).inflate(R.layout.layout_channel_items_item, parent, false);
-        return new SoundItemView(view, this, this);
+        return new SoundItemsViewAdapter.SoundItemView(view, this, this);
     }
 
     public void onBindViewHolderData(RecyclerView.ViewHolder h, int position) {
-        SoundItemView holder = (SoundItemView) h;
+        SoundItemsViewAdapter.SoundItemView holder = (SoundItemsViewAdapter.SoundItemView) h;
         SoundItemsVo vo = data.get(position);
         holder.tvIndex.setText("#" + (position + 1));
         holder.tvName.setText(vo.name);
@@ -63,7 +63,7 @@ public class SoundItemsViewAdapter extends BaseRecyclerViewAdapter<SoundItemsVie
         }
     }
 
-    static class SoundItemView extends BaseRecyclerViewHolder<SoundItemsVo> {
+    static class SoundItemView extends BaseRecyclerViewAdapter.BaseRecyclerViewHolder<SoundItemsVo> {
         @Nullable
         @BindView(R.id.tv_index)
         TextView tvIndex;

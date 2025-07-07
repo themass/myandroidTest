@@ -23,6 +23,7 @@ import android.widget.ProgressBar;
 import com.openapi.ks.myapp.ui.base.app.BaseFragment;
 import com.openai.commonview.view.MyWebView;
 import com.openai.commonutil.FileUtils;
+import com.openai.commonutil.IpUtil;
 import com.openai.commonutil.LogUtil;
 import com.openai.net.HttpUtils;
 import com.openapi.ks.chat.R;
@@ -135,7 +136,7 @@ public class BaseWebViewFragment extends BaseFragment {
      */
     public void setCookies(String cookiesPath) {
         Map<String, String> cookieMap = new HashMap<>();
-        String domain = "";
+        String domain = IpUtil.getDomain(cookiesPath);
         String cookie = MyApplication.getInstance().getSharedPreferences("cookie", Context.MODE_PRIVATE).getString(domain, "");// 从SharedPreferences中获取整个Cookie串
         if (!TextUtils.isEmpty(cookie)) {
             String[] cookieArray = cookie.split(";");// 多个Cookie是使用分号分隔的
@@ -155,7 +156,7 @@ public class BaseWebViewFragment extends BaseFragment {
      * 保存 Cookie
      */
     private void saveCookie(String path) {
-        String domain = "";
+        String domain = IpUtil.getDomain(path);
         CookieManager cookieManager = CookieManager.getInstance();
         String cookieStr = cookieManager.getCookie(domain);
         LogUtil.i(cookieStr);

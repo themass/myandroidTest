@@ -1,5 +1,10 @@
 package com.openapi.ks.myapp.ui.base.app;
 
+import static com.openai.commonutil.PermissionHelper.CAMERA;
+import static com.openai.commonutil.PermissionHelper.READ_EXTERNAL_STORAGE;
+import static com.openai.commonutil.PermissionHelper.RECORD_AUDIO;
+import static com.openai.commonutil.PermissionHelper.WRITE_EXTERNAL_STORAGE;
+
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;

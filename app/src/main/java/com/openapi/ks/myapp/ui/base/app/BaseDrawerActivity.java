@@ -2,12 +2,9 @@ package com.openapi.ks.myapp.ui.base.app;
 
 import androidx.annotation.Nullable;
 import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Context;
 import android.content.Intent;
-import android.provider.MediaStore;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -20,7 +17,6 @@ import android.widget.TextView;
 import com.google.android.material.navigation.NavigationView;
 import com.openai.CommonConstants;
 import com.openai.commonevent.UserNeedLogin;
-import com.openai.commonutil.EventBusUtil;
 import com.openai.commonutil.PreferenceUtils;
 import com.openai.commonutil.StringUtils;
 import com.openai.commonutil.DateUtils;
@@ -30,24 +26,14 @@ import com.openai.commonutil.SystemUtils;
 import com.openai.commonutil.ToastUtil;
 import com.openai.ads.yewu.ads.base.AdsManager;
 import com.openai.ads.yewu.um.MobAgent;
-import com.openai.commonview.view.DividerItemDecoration;
-import com.openai.commonview.view.MyPullView;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.chatfree.ui.main.MainFragmentViewPage;
-import com.openapi.ks.myapp.adapter.AppRecommendViewAdapter;
-import com.openapi.ks.myapp.adapter.ChatListViewAdapter;
-import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.openapi.ks.myapp.base.MyApplication;
-import com.openapi.ks.myapp.bean.form.ChatSessionLog;
-import com.openapi.ks.myapp.bean.vo.AppInfo;
-import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.bean.vo.UserInfoVo;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openai.net.BaseService;
-import com.openapi.ks.myapp.data.DBManager;
 import com.openapi.ks.myapp.data.UserLoginUtil;
 import com.openapi.ks.myapp.data.VersionUpdater;
-import com.openapi.ks.myapp.data.config.ChatSessionEvent;
 import com.openapi.ks.myapp.data.config.LocationChooseEvent;
 import com.openapi.ks.myapp.data.config.StateUseEvent;
 import com.openapi.ks.myapp.data.config.UserLoginEvent;
@@ -65,16 +51,14 @@ import com.openapi.ks.myapp.ui.user.SettingActivity;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 import butterknife.BindView;
 
 /**
  * Created by Miroslaw Stanek on 15.07.15.
  */
-public class BaseDrawerActivity extends BaseToolBarActivity implements BaseRecyclerViewAdapter.OnRecyclerViewItemClickListener<ChatSessionLog>, MyPullView.OnRefreshListener {
+public class BaseDrawerActivity extends BaseToolBarActivity {
     @Nullable
     @BindView(R.id.drawerLayout)
     public DrawerLayout drawerLayout;
@@ -82,12 +66,27 @@ public class BaseDrawerActivity extends BaseToolBarActivity implements BaseRecyc
     @BindView(R.id.nv_drawer)
     NavigationView nvDrawer;
     View headerView;
+    LinearLayout llLoginMenuHeader;
+    LinearLayout llDesc;
+    TextView tvMenuUserName;
+    TextView tvMenuUserLogin;
+    TextView tvScore;
+    TextView tvDesc;
+    TextView tvDesc1;
+    TextView tvDesc2;
+    ImageView ivAvatar;
+    ImageView ivLevel;
+    MenuItem miLogout;
+    MenuItem miLocation;
+    MenuItem miApprecommond;
+    MenuItem miSetting;
+    MenuItem miFavorite;
+    MenuItem miApp;
+    MenuItem miDona;
+    MenuItem miTest;
+    MenuItem chatSessions;
     public BaseService baseService;
-    @Nullable
-    @BindView(R.id.my_pullview)
-    MyPullView myPullView;
-    private ChatListViewAdapter adapter;
-    List<ChatSessionLog> dataList = new ArrayList<>();
+
     public void login(View view) {
         startActivity(LoginActivity.class);
     }
@@ -100,22 +99,166 @@ public class BaseDrawerActivity extends BaseToolBarActivity implements BaseRecyc
         LayoutInflater.from(this).inflate(layoutResID, viewGroup, true);
         bindViews();
         setupToolbar();
+        miLogout = nvDrawer.getMenu().findItem(R.id.menu_louout);
+        miLocation = nvDrawer.getMenu().findItem(R.id.menu_location);
+        miSetting = nvDrawer.getMenu().findItem(R.id.menu_setting);
+        miFavorite = nvDrawer.getMenu().findItem(R.id.menu_favorite);
+        miDona = nvDrawer.getMenu().findItem(R.id.menu_donation);
+        miTest = nvDrawer.getMenu().findItem(R.id.menu_test);
+        miApprecommond = nvDrawer.getMenu().findItem(R.id.menu_app);
+        miApp = nvDrawer.getMenu().findItem(R.id.menu_app);
+        chatSessions = nvDrawer.getMenu().findItem(R.id.menu_chat_session);
         headerView = nvDrawer.getHeaderView(0);
-//        myPullView = headerView.findViewById(R.id.my_pullview);
+        llLoginMenuHeader = (LinearLayout) headerView.findViewById(R.id.ll_menu_headview);
+        tvMenuUserName = (TextView) headerView.findViewById(R.id.tv_menu_username);
+        tvMenuUserLogin = (TextView) headerView.findViewById(R.id.tv_menu_login);
+        tvScore = (TextView) headerView.findViewById(R.id.tv_score);
+        tvDesc = (TextView) headerView.findViewById(R.id.tv_desc);
+        tvDesc1 = (TextView) headerView.findViewById(R.id.tv_desc1);
+        tvDesc2 = (TextView) headerView.findViewById(R.id.tv_desc2);
+        ivAvatar = (ImageView) headerView.findViewById(R.id.iv_avatar);
+        ivLevel = (ImageView) headerView.findViewById(R.id.iv_level);
+
         nvDrawer.setItemIconTintList(null);
+        setUpVersion();
+        setUpUserMenu();
+        setUpLocation();
         baseService = new BaseService();
         baseService.setup(this);
-        initPullView();
+//        showmiDona();
+//        if(MyApplication.isTemp){
+////            tvDesc1.setVisibility(View.GONE);
+////            tvDesc.setVisibility(View.GONE);
+//            miDona.setVisible(false);
+//            miApprecommond.setVisible(false);
+//        }
     }
-    protected void initPullView() {
-        adapter = new ChatListViewAdapter(this, myPullView.getRecyclerView(), dataList, this);
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
-        myPullView.setLayoutManager(layoutManager);
-        DividerItemDecoration itemDecoration = new DividerItemDecoration(this, LinearLayoutManager.VERTICAL, com.openai.commonutil.R.drawable.divider_item);
-        myPullView.setAdapter(adapter);
-        myPullView.getRecyclerView().addItemDecoration(itemDecoration);
-        myPullView.setListener(this);
+
+    private void showmiDona() {
+        UserInfoVo vo = UserLoginUtil.getUserCache();
+        boolean canScore = vo == null ? false : vo.score > 300;
+        if (MyApplication.isTemp) {
+//            miDona.setVisible(canScore);
+            miApprecommond.setVisible(false);
+        }
     }
+
+    private void setUpLocation() {
+        boolean flag = PreferenceUtils.getPrefBoolean(this, Constants.LOCATION_FLAG, false);
+        if (!flag) {
+            miLocation.setIcon(R.drawable.ic_menu_location_flag);
+        } else {
+            miLocation.setIcon(R.drawable.ic_menu_location);
+        }
+    }
+
+    private void setUpVersion() {
+        VersionUpdater.checkUpdate(BaseDrawerActivity.this, false);
+    }
+
+    private void setUpUserMenu() {
+        UserInfoVo vo = UserLoginUtil.getUserCache();
+        if (vo != null) {
+            miLogout.setVisible(true);
+            llLoginMenuHeader.setEnabled(false);
+            tvMenuUserName.setText(vo.name);
+            tvMenuUserLogin.setText(R.string.menu_btn_login_ready);
+            if (Constants.SEX_M.equals(vo.sex)) {
+                ivAvatar.setImageResource(R.drawable.ic_default_nan);
+            } else {
+                ivAvatar.setImageResource(R.drawable.ic_default_nv);
+            }
+            ivLevel.setVisibility(View.VISIBLE);
+            miTest.setVisible(true);
+            if (Constants.UserLevel.LEVEL_FREE == vo.level) {
+                ivLevel.setImageResource(R.drawable.ic_level_free);
+                miTest.setVisible(false);
+            } else if (Constants.UserLevel.LEVEL_VIP == vo.level) {
+                ivLevel.setImageResource(R.drawable.ic_level_vip);
+            } else if (Constants.UserLevel.LEVEL_VIP2 == vo.level) {
+                ivLevel.setImageResource(R.drawable.ic_level_vip2);
+            } else if (Constants.UserLevel.LEVEL_VIP3 == vo.level) {
+                ivLevel.setImageResource(R.drawable.ic_level_vip3);
+            } else if (Constants.UserLevel.LEVEL_VIP4 == vo.level) {
+                ivLevel.setImageResource(R.drawable.ic_level_vip4);
+            }
+        } else {
+            miLogout.setVisible(false);
+            llLoginMenuHeader.setEnabled(true);
+            tvMenuUserName.setText(R.string.menu_btn_name_default);
+            tvMenuUserLogin.setText(R.string.menu_btn_login);
+            ivLevel.setVisibility(View.GONE);
+            miTest.setVisible(false);
+        }
+        setScore(null);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(UserLoginEvent event) {
+        setUpUserMenu();
+        showmiDona();
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(LocationChooseEvent event) {
+        setUpLocation();
+    }
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(UserNeedLogin event) {
+        UserLoginUtil.logout(this);
+        startActivity(LoginActivity.class);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(StateUseEvent event) {
+        PreferenceUtils.setPrefObj(this, Constants.USER_STATUS, event.stateUse);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(VipDescEvent event) {
+        tvDesc.setText(event.stateUse.desc);
+        tvDesc1.setText(event.stateUse.desc1);
+        tvDesc2.setText(event.stateUse.desc2);
+        LogUtil.i(event.stateUse.desc);
+//        tvDesc.setText("每周减50积分，VIP状态随积分变动");
+//        tvDesc1.setText("VIP1=400积分； VIP2=600积分");
+        setScore(event.stateUse.score);
+    }
+
+    private void setScore(Long inScore) {
+        if (inScore != null) {
+            tvScore.setText(inScore + "积分");
+        } else {
+            UserInfoVo vo = UserLoginUtil.getUserCache();
+            if (vo != null) {
+                String score = vo.score + "积分";
+                if (vo.paidTime != null) {
+                    score = score + "(有效期" + vo.paidTime + ")";
+                }
+                tvScore.setText(score);
+            } else {
+                int score = PreferenceUtils.getPrefInt(this, Constants.SCORE_TMP, 0);
+                tvScore.setText(score + "积分");
+            }
+        }
+    }
+
+    public void onAbout(View view) {
+        String url = Constants.ABOUT;
+        if (SystemUtils.isZH(this)) {
+            url = Constants.ABOUT_ZH;
+        }
+        url = url + "?" + DateUtils.format(new Date(), DateUtils.DATE_FORMAT_MM);
+        WebViewActivity.startWebViewActivity(this, url, getString(R.string.menu_btn_about), false, false, null);
+        PreferenceUtils.setPrefBoolean(this, Constants.ABOUT_FIRST, true);
+        MobAgent.onEventMenu(this, "关于");
+    }
+
+    public void logout(MenuItem item) {
+        baseService.postData(Constants.getUrl(Constants.API_LOGOUT_URL), null, null, null, null, null);
+        UserLoginUtil.logout(this);
+    }
+
     public boolean closeDrawer() {
         if (drawerLayout.isDrawerOpen(Gravity.LEFT)) {
             drawerLayout.closeDrawer(Gravity.LEFT);
@@ -150,8 +293,6 @@ public class BaseDrawerActivity extends BaseToolBarActivity implements BaseRecyc
 
             @Override
             public void onDrawerOpened(View drawerView) {
-                myPullView.setRefresh(true);
-                LogUtil.i("load data");
             }
 
             @Override
@@ -167,9 +308,39 @@ public class BaseDrawerActivity extends BaseToolBarActivity implements BaseRecyc
         nvDrawer.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(MenuItem item) {
-                if (item.getItemId() == R.id.menu_test) {
-                    Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                    startActivityForResult(intent, 11);
+                String name = "未知";
+                if (item.getItemId() == R.id.menu_louout) {
+                    name = "登出";
+                    logout(item);
+                } else if (item.getItemId() == R.id.menu_feedback) {
+                    name = "反馈";
+                    IWannaFragment.startFragment(BaseDrawerActivity.this);
+                } else if (item.getItemId() == R.id.menu_setting) {
+                    name = "设置";
+                    startActivity(SettingActivity.class);
+                } else if (item.getItemId() == R.id.menu_favorite) {
+                    name = "收藏夹";
+                    FavoriteFragment.startFragment(BaseDrawerActivity.this);
+//                    Playing1Fragment.startFragment(BaseDrawerActivity.this);
+                } else if (item.getItemId() == R.id.menu_support) {
+                    name = "支持作者";
+                    adsOffers();
+                    ToastUtil.showShort(R.string.support_info);
+                } else if (item.getItemId() == R.id.menu_app) {
+                    name = "应用推荐";
+                    if(UserLoginUtil.isVIP2()) {
+                        Intent intent = new Intent(BaseDrawerActivity.this, MainFragmentViewPage.class);
+                        startActivity(intent);
+                    }else {
+                        AppListFragment.startFragment(BaseDrawerActivity.this);
+                    }
+                } else if (item.getItemId() == R.id.menu_donation) {
+                    name = "捐赠";
+                    DonationListFragment.startFragment(BaseDrawerActivity.this);
+                } else if (item.getItemId() == R.id.menu_share) {
+//                    showShare();
+                    name = "分享";
+                }  else if (item.getItemId() == R.id.menu_test) {
 //                    startActivity(WaveTest2.class);
 //                    startActivity(MainActivity.class);
 //                    startActivity(RippleActivity.class);
@@ -179,12 +350,36 @@ public class BaseDrawerActivity extends BaseToolBarActivity implements BaseRecyc
 //                    startActivity(AudioVisualizeViewMainActivity.class);
 //                    startActivity(FireZenkMainActivity.class);
 //                    startActivity(BuilderExampleActivity.class);
+                    name = "测试";
+                } else if (item.getItemId() == R.id.menu_chat_session) {
+                    name = "新建对话";
+                    ChatSessionFragment.startFragment(BaseDrawerActivity.this);
                 }
+                MobAgent.onEventMenu(BaseDrawerActivity.this, name);
                 return false;
             }
         });
     }
+//    public void startFragment() {
+//        Intent intent = new Intent(BaseDrawerActivity.this, CommonFragmentActivity.class);
+//        intent.putExtra(CommonFragmentActivity.FRAGMENT, AudioRecordingFragment.class);
+//        intent.putExtra(CommonFragmentActivity.TITLE, R.string.menu_btn_donation);
+//        intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, false);
+//        intent.putExtra(CommonFragmentActivity.ADSSCROLL, false);
+//        startActivity(intent);
+//    }
+    public void showShare() {
+        String url = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.D_URL, null);
+        if (!StringUtils.hasText(url)) {
+            url = CommonConstants.DEFAULT_REFERER;
+        }
+        ShareUtil util = new ShareUtil(this);
+        util.shareText(null, null, url + " 爱Freedom，精彩你的生活", "爱Freedom", "精彩你的生活");
+    }
 
+    private void adsOffers() {
+        AdsManager.getInstans().offerAds(this);
+    }
 
     @Override
     protected void onPause() {
@@ -196,28 +391,5 @@ public class BaseDrawerActivity extends BaseToolBarActivity implements BaseRecyc
     protected void onResume() {
         super.onResume();
         MobAgent.onResumeForFragmentActiviy(this);
-    }
-
-    @Override
-    public void onItemClick(View view, ChatSessionLog data, int position) {
-        closeDrawer();
-        clickMenuItem(data);
-        LogUtil.i("click "+data.id);
-    }
-    public void clickMenuItem(ChatSessionLog data){
-        ChatSessionEvent event = new ChatSessionEvent(data.getId(), data.getName());
-        EventBusUtil.getEventBus().post(event);
-    }
-    @Override
-    public void onRefresh(int type) {
-        dataList.clear();
-        dataList.addAll(DBManager.getInstance().getDaoSession().getChatSessionLogDao().loadAll());
-        adapter.notifyDataSetChanged();
-        myPullView.setRefresh(false);
-    }
-
-    @Override
-    public boolean needLoad() {
-        return true;
     }
 }

@@ -79,7 +79,7 @@ public class VideoListAdapter extends BaseRecyclerViewAdapter<VideoListAdapter.V
         }
     }
 
-    public static class VideoHolder extends BaseRecyclerViewHolder<RecommendVo> {
+    public static class VideoHolder extends BaseRecyclerViewAdapter.BaseRecyclerViewHolder<RecommendVo> {
         @Nullable
         @BindView(R.id.videoplayer)
         JzvdStd jcVideoPlayer;

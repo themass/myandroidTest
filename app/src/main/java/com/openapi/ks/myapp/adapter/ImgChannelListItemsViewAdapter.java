@@ -67,7 +67,7 @@ public class ImgChannelListItemsViewAdapter extends BaseRecyclerViewAdapter<ImgC
         }
     }
 
-    public static class ImgChannleListView extends BaseRecyclerViewHolder<TextItemsVo> {
+    public static class ImgChannleListView extends BaseRecyclerViewAdapter.BaseRecyclerViewHolder<TextItemsVo> {
         @Nullable
         @BindView(R.id.tv_index)
         TextView tvIndex;

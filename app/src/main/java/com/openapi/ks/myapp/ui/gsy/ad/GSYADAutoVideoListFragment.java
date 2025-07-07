@@ -12,7 +12,7 @@ package com.openapi.ks.myapp.ui.gsy.ad;//package com.openapi.ks.myapp.ui.gsy.ad;
 //import androidx.recyclerview.widget.RecyclerView;
 //
 //import com.openai.commonutil.LogUtil;
-//import com.openapi.ks.chat.R;
+//import com.openapi.ks.deepseeai.R;
 //import com.openai.net.request.InfoListVo;
 //import com.openapi.ks.myapp.bean.vo.RecommendVo;
 //import com.openapi.ks.myapp.constant.Constants;

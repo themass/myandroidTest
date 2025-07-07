@@ -13,7 +13,7 @@ package com.openapi.ks.myapp.ui.gsy;//package com.openapi.ks.myapp.ui.gsy;
 //
 //import com.bumptech.glide.Glide;
 //import com.bumptech.glide.request.RequestOptions;
-//import com.openapi.ks.chat.R;
+//import com.openapi.ks.deepseeai.R;
 //import com.shuyu.gsyvideoplayer.utils.CommonUtil;
 //import com.shuyu.gsyvideoplayer.utils.Debuger;
 //import com.shuyu.gsyvideoplayer.utils.GSYVideoType;

@@ -1,4 +1,4 @@
-package com.openapi.ks.myapp.ui.sound;//package com.openapi.ks.myapp.ui.sound;
+//package com.openapi.ks.myapp.ui.sound;
 //
 //import android.content.Context;
 //import android.content.pm.ActivityInfo;

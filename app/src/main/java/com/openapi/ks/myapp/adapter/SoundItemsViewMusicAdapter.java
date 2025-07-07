@@ -39,13 +39,13 @@ public class SoundItemsViewMusicAdapter extends BaseRecyclerViewAdapter<SoundIte
     }
 
     @Override
-    public SoundItemView onCreateViewHolderData(ViewGroup parent, int viewType) {
+    public SoundItemsViewMusicAdapter.SoundItemView onCreateViewHolderData(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(context).inflate(R.layout.item_song, parent, false);
-        return new SoundItemView(view, this, this);
+        return new SoundItemsViewMusicAdapter.SoundItemView(view, this, this);
     }
 
     public void onBindViewHolderData(RecyclerView.ViewHolder h, int position) {
-        SoundItemView holder = (SoundItemView) h;
+        SoundItemsViewMusicAdapter.SoundItemView holder = (SoundItemsViewMusicAdapter.SoundItemView) h;
         SoundItemsVo vo = data.get(position);
         holder.title.setText(vo.name);
         holder.artist.setText(vo.fileDate);
@@ -77,7 +77,7 @@ public class SoundItemsViewMusicAdapter extends BaseRecyclerViewAdapter<SoundIte
     }
 
 
-    static class SoundItemView extends BaseRecyclerViewHolder<SoundItemsVo> {
+    static class SoundItemView extends BaseRecyclerViewAdapter.BaseRecyclerViewHolder<SoundItemsVo> {
         @Nullable
         @BindView(R.id.song_title)
         protected TextView title;

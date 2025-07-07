@@ -78,7 +78,7 @@ public class TextChannelListItemsViewAdapter extends BaseRecyclerViewAdapter<Tex
         return (int) SystemClock.currentThreadTimeMillis();
     }
 
-    public static class TextChannleListView extends BaseRecyclerViewHolder<TextItemsVo> {
+    public static class TextChannleListView extends BaseRecyclerViewAdapter.BaseRecyclerViewHolder<TextItemsVo> {
         @Nullable
         @BindView(R.id.tv_index)
         TextView tvIndex;
