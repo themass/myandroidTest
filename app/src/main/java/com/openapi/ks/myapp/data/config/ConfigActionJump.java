@@ -9,7 +9,7 @@ import com.openai.CommonConstants;
 import com.openai.commonevent.ConfigActionEvent;
 import com.openai.commonutil.LogUtil;
 import com.openai.commonutil.ToastUtil;
-import com.openapi.ks.chat.R;
+import com.openapi.ks.deepseeai.R;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.ui.base.WebViewActivity;
 import com.openapi.ks.myapp.ui.config.QuickBrowserConfigActivity;
