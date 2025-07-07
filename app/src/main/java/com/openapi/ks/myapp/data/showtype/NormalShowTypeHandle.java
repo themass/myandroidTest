@@ -10,8 +10,8 @@ import android.view.View;
 import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.request.target.DrawableImageViewTarget;
 import com.bumptech.glide.request.transition.Transition;
+import com.openai.net.netglide.MyGlideModule;
 import com.romainpiel.shimmer.Shimmer;
-import com.openai.net.netglide.MyGlideLibModule;
 import com.openapi.ks.myapp.adapter.IndexRecommendAdapter;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.data.ImagePhotoLoad;
@@ -25,7 +25,7 @@ import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOption
 public class NormalShowTypeHandle implements ShowTypeHandle {
     public void loadPhoto(final IndexRecommendAdapter.NaviItemViewHolder holder, RecommendVo vo, final Shimmer shimmer, boolean needShimmer, Context context) {
         RequestManager build = ImagePhotoLoad.getBuilder(context, vo.img);
-        build.load(vo.img).apply(ImagePhotoLoad.options).transition(withCrossFade(500)).listener(new MyGlideLibModule.LoggingListener()).into(new DrawableImageViewTarget(holder.ivPhoto) {
+        build.load(vo.img).apply(ImagePhotoLoad.options).transition(withCrossFade(500)).listener(new MyGlideModule.LoggingListener()).into(new DrawableImageViewTarget(holder.ivPhoto) {
             @Override
             public void onResourceReady(Drawable resource, @Nullable Transition<? super Drawable> transition) {
                 super.onResourceReady(resource, transition);

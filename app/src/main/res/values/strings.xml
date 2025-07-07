@@ -123,7 +123,7 @@
     <string name="tv">TV</string>
     <string name="version_low">version is to low！</string>
 
-     <!-- vpn状态改变 -->
+    <!-- vpn状态改变 -->
     <!--版本更新下载-->
 
     <string name="about_version_update_to_date">Is the latest version</string>
@@ -177,7 +177,7 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="save_start">save start...</string>
     <!-- vpn error text -->
     <!-- activity title-->
-      <string name="ads_logo">AD</string>
+    <string name="ads_logo">AD</string>
     <string name="skip">skip</string>
     <string name="search">enter search content</string>
     <!--slidingclose-->

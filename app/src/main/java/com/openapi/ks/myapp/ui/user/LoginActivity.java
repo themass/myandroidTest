@@ -89,10 +89,10 @@ public class LoginActivity extends BaseSingleActivity {
             ToastUtil.showShort(R.string.empty_name_pwd);
             return;
         }
-        if (!namePattern.matcher(name).matches()) {
-            ToastUtil.showShort(R.string.error_pattern_name);
-            return;
-        }
+//        if (!namePattern.matcher(name).matches()) {
+//            ToastUtil.showShort(R.string.error_pattern_name);
+//            return;
+//        }
         setEnabled(false);
         PreferenceUtils.setPrefString(this, Constants.LOGIN_USER_LAST, name);
         PreferenceUtils.setPrefString(this, Constants.LOGIN_USER_PW_LAST, pwd);

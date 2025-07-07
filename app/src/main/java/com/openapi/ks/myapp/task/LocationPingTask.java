@@ -47,7 +47,7 @@ public class LocationPingTask extends AsyncTask<Void, Void, Void> {
         } else if (0 == ping) {
             tvPing.setTextColor(context.getResources().getColor(R.color.base_red));
         } else if (ping <= 200) {
-            tvPing.setTextColor(context.getResources().getColor(R.color.base_green));
+            tvPing.setTextColor(context.getResources().getColor(R.color.base_green1));
         } else if (ping > 200 && ping <= 400) {
             tvPing.setTextColor(context.getResources().getColor(R.color.warning_text));
         } else {

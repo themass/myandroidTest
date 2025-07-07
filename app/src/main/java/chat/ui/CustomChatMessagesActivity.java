@@ -420,7 +420,7 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
             public void onResponse(InfoListVo<ChatSessionLog> chatSessionLogInfoListVo) {
                 LogUtil.i("session list = "+GsonUtils.getInstance().toJson(chatSessionLogInfoListVo));
                 if(chatSessionLogInfoListVo!=null && chatSessionLogInfoListVo.voList!=null){
-                        DBManager.getInstance().getDaoSession().getChatSessionLogDao().insertOrReplaceInTx(chatSessionLogInfoListVo.voList);
+                    DBManager.getInstance().getDaoSession().getChatSessionLogDao().insertOrReplaceInTx(chatSessionLogInfoListVo.voList);
                 }
             }
         }, new CommonResponse.ResponseErrorListener());
