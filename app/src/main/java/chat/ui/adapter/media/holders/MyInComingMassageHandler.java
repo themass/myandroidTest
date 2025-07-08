@@ -121,7 +121,7 @@ public class MyInComingMassageHandler extends MessageHolders.IncomingTextMessage
             //        LogUtil.i("替换后的字符串::\n"+msg);
             markwon.setMarkdown(messageTextView, message.getText());
             //        katexView.showMarkdown(t);
-            messageUserAvatar.setImageResource(R.drawable.ai_chat);
+            messageUserAvatar.setImageResource(R.drawable.ai_chat_1);
             myIncomingAudioFooterView.setMessage(message);
         }catch (Exception e){
             LogUtil.e(e);

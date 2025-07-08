@@ -26,10 +26,10 @@
             app:itemTextColor="#666666"
             app:headerLayout="@layout/drawer_header"
             app:menu="@menu/drawer_menu">
-            <include
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                layout="@layout/common_mypage_view"/>
+<!--            <include-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                layout="@layout/common_mypage_view"/>-->
         </com.google.android.material.navigation.NavigationView>
 
 

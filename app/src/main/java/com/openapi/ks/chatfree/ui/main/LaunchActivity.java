@@ -112,8 +112,8 @@ public class LaunchActivity extends LogActivity {
 
     private void launch() {
 //        fireworkShow.stopFireworkShow();
-//        Intent intent = new Intent(this, CustomChatMessagesWithAsrActivity.class);
-        Intent intent = new Intent(this, MainFragmentViewPage.class);
+        Intent intent = new Intent(this, CustomChatMessagesWithAsrActivity.class);
+//        Intent intent = new Intent(this, MainFragmentViewPage.class);
         startActivity(intent);
         finish();
 
