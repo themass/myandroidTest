@@ -154,12 +154,14 @@ public class SystemUtils {
     }
 
     public static String getLang(Context context) {
-        Locale locale = context.getResources().getConfiguration().locale;
-        String language = locale.getLanguage();
-        if (language.contains("zh"))
-            return CommonConstants.LANG_ZH;
-        else
-            return CommonConstants.LANG_US;
+        Locale locale;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            locale = context.getResources().getConfiguration().getLocales().get(0);
+        } else {
+            locale = context.getResources().getConfiguration().locale;
+        }
+        LogUtil.i("getLang", locale.getLanguage());
+        return locale.getLanguage();
     }
     public static String getUserLang(Context context) {
         Locale locale = context.getResources().getConfiguration().locale;
