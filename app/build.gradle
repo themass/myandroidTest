@@ -7,14 +7,14 @@ apply plugin: 'com.jakewharton.butterknife'
 //Build Variants = Product Flavor + Build Type
 android {
     namespace "com.openapi.ks.free1"
-    compileSdk 34
+    compileSdk 35
     ndkVersion "23.1.7779620"
     defaultConfig {
         applicationId "com.openapi.ks.free1"
         minSdk 28
-        targetSdk 34
-        versionCode 1001001015
-        versionName "1.1.1.15"
+        targetSdk 35
+        versionCode 1001001016
+        versionName "1.1.1.16"
         // Enabling multidex support.
         multiDexEnabled true
         flavorDimensions "versionCode"
