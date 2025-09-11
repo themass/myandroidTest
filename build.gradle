@@ -1,55 +1,39 @@
 buildscript {
-
     repositories {
-        // maven { url 'https://maven.fabric.io/public' }
-        maven { url "https://jitpack.io" }
-//        maven { url 'https://raw.github.com/Raizlabs/maven-releases/master/releases' }
-        maven { url "https://plugins.gradle.org/m2" }
-        maven { url 'https://maven.google.com' }
-        maven { url 'https://repo1.maven.org/maven2' }
         google()
+        mavenCentral()
+        maven { url "https://jitpack.io" }
+        maven { url "https://plugins.gradle.org/m2" }
         maven { url "https://maven.aliyun.com/repository/public" }
         maven { url "https://maven.aliyun.com/repository/jcenter" }
-
-        maven {
-            url "https://artifact.bytedance.com/repository/Volcengine/"
-        }
-        maven { url = "https://s01.oss.sonatype.org/content/repositories/snapshots/"}
-        maven { url 'https://github.com/FireZenk/maven-repo/raw/master/'}
-
+        maven { url "https://artifact.bytedance.com/repository/Volcengine/" }
+        maven { url "https://s01.oss.sonatype.org/content/repositories/snapshots/" }
+        maven { url 'https://github.com/FireZenk/maven-repo/raw/master/' }
     }
+    
     dependencies {
         classpath 'com.android.tools.build:gradle:8.6.0'
-//        classpath 'org.greenrobot:greendao-gradle-plugin:3.3.0'
-        classpath 'org.greenrobot:greendao-gradle-plugin:3.3.1' // add plugin
+        classpath 'org.greenrobot:greendao-gradle-plugin:3.3.1'
         classpath 'com.jakewharton:butterknife-gradle-plugin:10.2.3'
         classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.22"
-//        classpath "org.jetbrains.kotlin:kotlin-android-extensions:$kotlin_version"
-
     }
 }
+
 apply from: 'version.gradle'
+apply from: 'dependencies.gradle'
+
 allprojects {
     repositories {
-        flatDir {
-            dirs 'libs'
-        }
-        // maven { url 'https://maven.fabric.io/public' }
-        maven { url "https://jitpack.io" }
-//        maven { url 'https://raw.github.com/Raizlabs/maven-releases/master/releases' }
-        maven { url "https://plugins.gradle.org/m2" }
-        maven { url 'https://maven.google.com' }
-        maven { url 'https://repo1.maven.org/maven2' }
+        flatDir { dirs 'libs' }
         google()
+        mavenCentral()
+        maven { url "https://jitpack.io" }
+        maven { url "https://plugins.gradle.org/m2" }
         maven { url "https://maven.aliyun.com/repository/public" }
         maven { url "https://maven.aliyun.com/repository/jcenter" }
-
-        maven {
-            url "https://artifact.bytedance.com/repository/Volcengine/"
-        }
-        maven { url = "https://s01.oss.sonatype.org/content/repositories/snapshots/" }
-        maven { url 'https://github.com/FireZenk/maven-repo/raw/master/'}
-
+        maven { url "https://artifact.bytedance.com/repository/Volcengine/" }
+        maven { url "https://s01.oss.sonatype.org/content/repositories/snapshots/" }
+        maven { url 'https://github.com/FireZenk/maven-repo/raw/master/' }
     }
 }
