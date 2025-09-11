@@ -42,17 +42,17 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(":messagekit")
 
-    api 'com.google.code.gson:gson:2.11.0'
+    api 'com.google.code.gson:gson:2.13.1'
     api 'org.greenrobot:eventbus:3.0.0'
 //    api 'jp.wasabeef:glide-transformations:4.3.0'
 
-    api 'com.github.bumptech.glide:glide:4.15.1'
-    annotationProcessor 'com.github.bumptech.glide:compiler:4.15.1'
-    api 'com.github.bumptech.glide:okhttp3-integration:4.15.1'
+    api 'com.github.bumptech.glide:glide:5.0.4'
+    annotationProcessor 'com.github.bumptech.glide:compiler:5.0.4'
+    api 'com.github.bumptech.glide:okhttp3-integration:5.0.4'
 //    implementation 'jp.wasabeef:glide-transformations:4.3.0'
 
-    api 'com.squareup.okhttp3:logging-interceptor:4.9.3'
-    api 'com.squareup.okhttp3:okhttp:4.9.3'
+    api 'com.squareup.okhttp3:logging-interceptor:5.1.0'
+    api 'com.squareup.okhttp3:okhttp:5.1.0'
     api 'com.jakewharton:disklrucache:2.0.2'
 
     api 'com.github.chrisbanes:PhotoView:2.3.0'
@@ -67,9 +67,9 @@ dependencies {
     //是否需要AliPlayer模式
     api 'io.github.carguo:gsyvideoplayer-aliplay:11.1.0'
     //根据你的需求ijk模式的so
-//    api 'io.github.carguo:gsyvideoplayer-arm64:11.1.0'
-//    api 'io.github.carguo:gsyvideoplayer-armv7a:11.1.0'
-    api 'io.github.carguo:gsyvideoplayer-ex_so:11.1.0'
+    api 'io.github.carguo:gsyvideoplayer-arm64:11.1.0'
+    api 'io.github.carguo:gsyvideoplayer-armv7a:11.1.0'
+//    api 'io.github.carguo:gsyvideoplayer-ex_so:11.1.0'
 
 //    implementation 'io.github.carguo:gsyvideoplayer-armv5:11.1.0'
 //    implementation 'io.github.carguo:gsyvideoplayer-x86:11.1.0'
@@ -92,7 +92,7 @@ dependencies {
     api 'com.android.volley:volley:1.2.1'
     api 'pub.devrel:easypermissions:3.0.0'
 
-    implementation "androidx.appcompat:appcompat:1.7.0"
+    implementation "androidx.appcompat:appcompat:1.7.1"
     implementation "androidx.legacy:legacy-support-v13:1.0.0"
     implementation "androidx.legacy:legacy-support-v4:1.0.0"
     implementation "androidx.palette:palette:1.0.0"
@@ -103,5 +103,9 @@ dependencies {
 //    implementation 'com.nbsp:materialfilepicker:1.9.1'
 //    api "com.facebook.fresco:animated-webp:2.5.0" // WebP 动图支持
 //    api "com.facebook.fresco:webpsupport:2.5.0" // WebP 静图支持
+
+    implementation 'org.apache.httpcomponents:httpcore:4.4.16'
+    implementation 'commons-io:commons-io:2.20.0'
+    implementation 'commons-codec:commons-codec:1.19.0'
 
 }
