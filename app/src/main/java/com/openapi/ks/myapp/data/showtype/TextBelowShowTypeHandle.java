@@ -18,8 +18,12 @@ import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOption
  * Created by openapi on 2017/11/30.
  */
 
-public class TextBelowShowTypeHandle implements ShowTypeHandle {
+public class TextBelowShowTypeHandle extends ShowTypeHandle {
     public void loadPhoto(final IndexRecommendAdapter.NaviItemViewHolder holder, RecommendVo vo, final Shimmer shimmer, boolean needShimmer, Context context) {
+        if(vo.img!=null && vo.img.endsWith(".txt")){
+            fetchBase64ImageFromUrl(vo.img, holder, context);
+            return;
+        }
         RequestManager build = ImagePhotoLoad.getBuilder(context, vo.img);
         LogUtil.d("GLIDE request " + vo.img);
         build.load(vo.img).apply(ImagePhotoLoad.options).transition(withCrossFade(500)).listener(new MyGlideModule.LoggingListener()).into(new DrawableImageViewTarget(holder.ivPhoto));

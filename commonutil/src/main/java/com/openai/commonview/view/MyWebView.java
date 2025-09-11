@@ -85,7 +85,25 @@ public class MyWebView extends WebView {
         }
         return super.onTouchEvent(event);
     }
+    public void loadHtmlBody(String htmlBody){
+        // 1. 构造一段自适应的 CSS
+        String css = "<style>\n" +
+                "  body{word-wrap:break-word;margin:0;padding:0;}\n" +
+                "  img,video{max-width:100%;height:auto;}\n" +
+                "</style>";
 
+        // 2. 拼成完整 HTML
+        String html = "<html><head>"
+                + "<meta name=\"viewport\" "
+                + "content=\"width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no\" />"
+                + css
+                + "</head><body>"
+                + htmlBody
+                + "</body></html>";
+
+        // 3. 加载
+        loadDataWithBaseURL(null, html, "text/html", "utf-8", null);
+    }
     /**
      * 创建VelocityTracker对象，并将触摸content界面的滑动事件加入到VelocityTracker当中。
      *

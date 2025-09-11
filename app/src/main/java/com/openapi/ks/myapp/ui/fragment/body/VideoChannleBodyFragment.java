@@ -4,6 +4,7 @@ package com.openapi.ks.myapp.ui.fragment.body;
 import android.os.Bundle;
 import android.view.View;
 
+import com.openai.commonutil.LogUtil;
 import com.openai.net.request.InfoListVo;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.constant.Constants;

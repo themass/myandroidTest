@@ -11,7 +11,7 @@ import com.openapi.ks.myapp.bean.vo.RecommendVo;
  * Created by openapi on 2017/11/30.
  */
 
-public class TextShowTypeHandle implements ShowTypeHandle {
+public class TextShowTypeHandle extends ShowTypeHandle {
     public void loadPhoto(final IndexRecommendAdapter.NaviItemViewHolder holder, RecommendVo vo, final Shimmer shimmer, boolean needShimmer, Context context) {
         holder.ivPhoto.setVisibility(View.GONE);
     }

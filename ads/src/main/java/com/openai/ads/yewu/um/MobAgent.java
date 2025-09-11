@@ -49,6 +49,7 @@ public class MobAgent {
     }
 
     public static void onEventRecommondChannel(Context context, String title) {
+        LogUtil.i("点击:"+title);
     }
 
     public static void onEventAds(Context context, AdsContext.AdsType type, AdsContext.AdsShowStatus event) {

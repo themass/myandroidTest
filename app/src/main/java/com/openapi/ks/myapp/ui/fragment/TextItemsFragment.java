@@ -103,7 +103,8 @@ public class TextItemsFragment extends LoadableFragment<TextItemVo> implements M
     @Override
     protected void onDataLoaded(TextItemVo data) {
         infoVo = data.file;
-        webView.loadDataWithBaseURL(null,infoVo,"text/html","utf-8",null);
+        webView.loadHtmlBody(infoVo);
+//        webView.loadDataWithBaseURL(null,infoVo,"text/html","utf-8",null);
 //        tvView.setText(Html.fromHtml(infoVo).toString().trim());
     }
 

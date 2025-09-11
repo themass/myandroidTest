@@ -1,5 +1,7 @@
 package com.openapi.ks.myapp.adapter;
 
+import static com.luck.picture.lib.thread.PictureThreadUtils.runOnUiThread;
+
 import android.content.Context;
 import android.graphics.Color;
 
@@ -13,6 +15,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.openai.commonutil.LogUtil;
 import com.romainpiel.shimmer.Shimmer;
 import com.romainpiel.shimmer.ShimmerTextView;
@@ -28,9 +31,15 @@ import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.ImagePhotoLoad;
 import com.openapi.ks.myapp.data.VersionUpdater;
 
+import java.io.IOException;
 import java.util.List;
 
 import butterknife.BindView;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 /**
  * Created by Miroslaw Stanek on 20.01.15.
@@ -174,7 +183,6 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
     public interface OnEditClickListener {
         void onEditClick(View view, int postion);
     }
-
     public static class NaviItemViewHolder extends BaseViewHolder {
         @BindView(R.id.card_view)
         public CardView cardView;

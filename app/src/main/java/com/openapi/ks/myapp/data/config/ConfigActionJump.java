@@ -75,6 +75,7 @@ public class ConfigActionJump {
             intent.putExtra(CommonConstants.ADS_POP_SHOW_CONFIG, adsPopShow);
             intent.putExtra(Constants.CONFIG_PARAM, param);
             intent.putExtra(Constants.TITLE, event.title);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
             event.context.startActivity(intent);
         } else {
             ToastUtil.showShort(R.string.version_low);
