@@ -100,7 +100,6 @@ import chat.ui.data.model.Message;
 import chat.ui.data.model.MessageType;
 import chat.ui.data.model.MsgContent;
 import chat.ui.data.model.User;
-import io.livekit.android.annotations.Beta;
 import okhttp3.MultipartBody;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -386,7 +385,6 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
             }
         });
         input.setPhoneClickListener(new InputRecordView.PhoneClickListener() {
-            @OptIn(markerClass = Beta.class)
             @Override
             public void click() {
                 if (UserLoginUtil.getUserCache() == null) {

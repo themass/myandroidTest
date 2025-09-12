@@ -14,7 +14,6 @@ import android.view.View;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.livekit.android.LiveKit;
 import io.livekit.android.example.voiceassistant.R;
 
 /**

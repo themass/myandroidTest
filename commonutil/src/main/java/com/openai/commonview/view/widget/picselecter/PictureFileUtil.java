@@ -40,8 +40,8 @@ import androidx.fragment.app.Fragment;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
-import com.luck.lib.camerax.CameraImageEngine;
-import com.luck.lib.camerax.SimpleCameraX;
+//import com.luck.lib.camerax.CameraImageEngine;
+//import com.luck.lib.camerax.SimpleCameraX;
 import com.luck.picture.lib.animators.AnimationType;
 import com.luck.picture.lib.basic.PictureSelectionModel;
 import com.luck.picture.lib.config.PictureMimeType;
@@ -275,33 +275,33 @@ import com.openai.commonutil.R;
         }
     }
 
-    /**
-     * 自定义拍照
-     */
-    private class MeOnCameraInterceptListener implements OnCameraInterceptListener {
-
-        @Override
-        public void openCamera(Fragment fragment, int cameraMode, int requestCode) {
-            SimpleCameraX camera = SimpleCameraX.of();
-            camera.isAutoRotation(true);
-            camera.setCameraMode(cameraMode);
-            camera.setVideoFrameRate(25);
-            camera.setVideoBitRate(3 * 1024 * 1024);
-            camera.isDisplayRecordChangeTime(true);
-            camera.isManualFocusCameraPreview(true);
-            camera.isZoomCameraPreview(true);
-//            camera.setOutputPathDir(getSandboxCameraOutputPath());
-//            camera.setPermissionDeniedListener(getSimpleXPermissionDeniedListener());
-//            camera.setPermissionDescriptionListener(getSimpleXPermissionDescriptionListener());
-            camera.setImageEngine(new CameraImageEngine() {
-                @Override
-                public void loadImage(Context context, String url, ImageView imageView) {
-                    Glide.with(context).load(url).into(imageView);
-                }
-            });
-            camera.start(fragment.requireActivity(), fragment, requestCode);
-        }
-    }
+//    /**
+//     * 自定义拍照
+//     */
+//    private class MeOnCameraInterceptListener implements OnCameraInterceptListener {
+//
+//        @Override
+//        public void openCamera(Fragment fragment, int cameraMode, int requestCode) {
+//            SimpleCameraX camera = SimpleCameraX.of();
+//            camera.isAutoRotation(true);
+//            camera.setCameraMode(cameraMode);
+//            camera.setVideoFrameRate(25);
+//            camera.setVideoBitRate(3 * 1024 * 1024);
+//            camera.isDisplayRecordChangeTime(true);
+//            camera.isManualFocusCameraPreview(true);
+//            camera.isZoomCameraPreview(true);
+////            camera.setOutputPathDir(getSandboxCameraOutputPath());
+////            camera.setPermissionDeniedListener(getSimpleXPermissionDeniedListener());
+////            camera.setPermissionDescriptionListener(getSimpleXPermissionDescriptionListener());
+//            camera.setImageEngine(new CameraImageEngine() {
+//                @Override
+//                public void loadImage(Context context, String url, ImageView imageView) {
+//                    Glide.with(context).load(url).into(imageView);
+//                }
+//            });
+//            camera.start(fragment.requireActivity(), fragment, requestCode);
+//        }
+//    }
 
     /**
      * 自定义沙盒文件处理
