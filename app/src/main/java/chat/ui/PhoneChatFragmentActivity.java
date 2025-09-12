@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.OptIn;
 import androidx.fragment.app.Fragment;
 
+import com.livekit.voiceassistant.LivekitVoiceAgentFragment;
 import com.openai.ads.yewu.ads.base.AdsContext;
 import com.openai.commonutil.EventBusUtil;
 import com.openai.commonutil.LogUtil;
@@ -19,6 +20,8 @@ import com.openapi.ks.myapp.ui.inte.FabOpListener;
 import com.openapi.ks.myapp.ui.inte.OnBackKeyDownListener;
 
 import java.io.Serializable;
+
+import io.livekit.android.annotations.Beta;
 
 /**
  * Created by openapi on 2016/9/5.
@@ -47,7 +50,7 @@ public class PhoneChatFragmentActivity extends BaseFragmentActivity implements F
     private boolean needGonebanner = true;
     private Fragment fragment = null;
     private PermissionHelper mPermissionHelper;
-//    @OptIn(markerClass = Beta.class)
+    @OptIn(markerClass = Beta.class)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         slidingClose = getIntent().getBooleanExtra(SLIDINGCLOSE, true);
@@ -81,7 +84,7 @@ public class PhoneChatFragmentActivity extends BaseFragmentActivity implements F
         mPermissionHelper = new PermissionHelper(this);
         mPermissionHelper.checkNeedPermissions();
         try {
-//            fragment =  LivekitVoiceAgentFragment.Companion.newInstance( getIntent().getStringExtra(URL), getIntent().getStringExtra(TOKEN));
+            fragment =  LivekitVoiceAgentFragment.Companion.newInstance( getIntent().getStringExtra(URL), getIntent().getStringExtra(TOKEN));
             if (getIntent().getSerializableExtra(PARAM) != null) {
                 Bundle bundle = new Bundle();
                 bundle.putSerializable(PARAM, getIntent().getSerializableExtra(PARAM));

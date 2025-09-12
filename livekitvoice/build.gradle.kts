@@ -46,10 +46,10 @@ android {
 }
 dependencies {
     // LiveKit 核心库
-//    api("io.livekit:livekit-android:2.9.0")
-//    api("io.livekit:livekit-android-compose-components:1.3.0")
+    api("io.livekit:livekit-android:2.9.0")
+    api("io.livekit:livekit-android-compose-components:1.3.0")
 
-//     AndroidX 核心库
+    // AndroidX 核心库
     implementation("androidx.core:core-ktx:${rootProject.ext.get("kotlin_ktx")}")
     implementation("androidx.appcompat:appcompat:1.7.1")
     implementation("androidx.constraintlayout:constraintlayout:2.2.1")

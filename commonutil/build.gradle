@@ -67,14 +67,10 @@ dependencies {
     // 视频播放
     api 'com.google.android.exoplayer:exoplayer:2.19.1'
     api 'io.github.carguo:gsyvideoplayer-java:11.1.0'
-//    api 'io.github.carguo:gsyvideoplayer-exo2:11.1.0'
-//    api 'io.github.carguo:gsyvideoplayer-aliplay:11.1.0'
-//    api 'io.github.carguo:gsyvideoplayer-arm64:11.1.0'
-//    api 'io.github.carguo:gsyvideoplayer-armv7a:11.1.0'
-//    implementation("androidx.media3:media3-datasource-rtmp:1.6.1") {
-//        exclude("io.antmedia", "rtmp-client")
-//    }
-//    implementation("com.github.mcxinyu:LibRtmp-Client-for-Android:v3.2.0.m2")
+    api 'io.github.carguo:gsyvideoplayer-exo2:11.1.0'
+    api 'io.github.carguo:gsyvideoplayer-aliplay:11.1.0'
+    api 'io.github.carguo:gsyvideoplayer-arm64:11.1.0'
+    api 'io.github.carguo:gsyvideoplayer-armv7a:11.1.0'
 
     // UI组件
     api 'de.hdodenhof:circleimageview:3.1.0'
@@ -82,10 +78,10 @@ dependencies {
     api 'com.github.CymChad:BaseRecyclerViewAdapterHelper:2.9.30'
 
     // 图片选择器
-    api 'io.github.lucksiege:pictureselector:v3.11.3'
-    api 'io.github.lucksiege:compress:v3.11.3'
-    api 'io.github.lucksiege:ucrop:v3.11.3'
-//    api 'io.github.lucksiege:camerax:v3.11.3'
+    api 'io.github.lucksiege:pictureselector:v3.11.2'
+    api 'io.github.lucksiege:compress:v3.11.2'
+    api 'io.github.lucksiege:ucrop:v3.11.2'
+    api 'io.github.lucksiege:camerax:v3.11.2'
 
     // 权限管理
     api 'pub.devrel:easypermissions:3.0.0'

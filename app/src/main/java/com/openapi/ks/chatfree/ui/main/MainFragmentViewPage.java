@@ -12,7 +12,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
-//import androidx.media3.common.util.UnstableApi;
+import androidx.media3.common.util.UnstableApi;
 import androidx.viewpager.widget.ViewPager;
 
 import android.view.KeyEvent;
@@ -52,7 +52,7 @@ import com.openapi.ks.chatfree.ui.maintab.TabCustomeFragment;
 import com.openapi.ks.chatfree.ui.maintab.TabMovieFragment;
 import com.openapi.ks.chatfree.ui.maintab.TabNightFragment;
 import com.openapi.ks.myapp.ui.sound.JzvdPlayerFactory;
-//import com.openapi.ks.myapp.ui.sound.media.JZMediaExo;
+import com.openapi.ks.myapp.ui.sound.media.JZMediaExo;
 import com.openapi.ks.myapp.ui.sound.media.JZMediaIjk;
 import com.shuyu.gsyvideoplayer.player.IjkPlayerManager;
 import com.shuyu.gsyvideoplayer.player.PlayerFactory;
@@ -65,7 +65,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-//import tv.danmaku.ijk.media.exo2.Exo2PlayerManager;
+import tv.danmaku.ijk.media.exo2.Exo2PlayerManager;
 
 /**
  * Created by openapi on 2016/3/1.
@@ -98,13 +98,12 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         initTabs();
         LogUtil.i("onEvent:initTabs");
     }
-//    @OptIn(markerClass = UnstableApi.class)
-    @Subscribe(threadMode = ThreadMode.MAIN)
+    @OptIn(markerClass = UnstableApi.class) @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(PlayCoreEvent event) {
         boolean playCore = PreferenceUtils.getPrefBoolean(this, Constants.PLAYCORE_SWITCH, true);
         if (!playCore) {
-//            PlayerFactory.setPlayManager(Exo2PlayerManager.class);
-//            JzvdPlayerFactory.setPlayManager(JZMediaExo.class);
+            PlayerFactory.setPlayManager(Exo2PlayerManager.class);
+            JzvdPlayerFactory.setPlayManager(JZMediaExo.class);
         } else {
             PlayerFactory.setPlayManager(IjkPlayerManager.class);
             JzvdPlayerFactory.setPlayManager(JZMediaIjk.class);
@@ -149,7 +148,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         ConnLogUtil.sendAllLog(this);
     }
 
-//    @OptIn(markerClass = UnstableApi.class)
+    @OptIn(markerClass = UnstableApi.class)
     private void initTabs() {
         list.clear();
         LayoutInflater inflater = LayoutInflater.from(this);

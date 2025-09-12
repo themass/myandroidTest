@@ -204,11 +204,7 @@
 -keep class com.facebook.ads.** { *; }
 -dontwarn com.facebook.**
 
-# 解决 XmlPullParser 冲突
--dontwarn org.xmlpull.v1.XmlPullParser
--dontwarn android.content.res.XmlResourceParser
--keep class org.xmlpull.v1.** { *; }
--keep interface org.xmlpull.v1.** { *; }
+
 # ==============================================
 # 4. 项目业务类（精准保留，避免业务逻辑崩溃）
 # ==============================================
