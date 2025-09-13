@@ -9,7 +9,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.OptIn;
 import androidx.fragment.app.Fragment;
 
-import com.livekit.voiceassistant.LivekitVoiceAgentFragment;
 import com.openai.ads.yewu.ads.base.AdsContext;
 import com.openai.commonutil.EventBusUtil;
 import com.openai.commonutil.LogUtil;
@@ -84,7 +83,7 @@ public class PhoneChatFragmentActivity extends BaseFragmentActivity implements F
         mPermissionHelper = new PermissionHelper(this);
         mPermissionHelper.checkNeedPermissions();
         try {
-            fragment =  LivekitVoiceAgentFragment.Companion.newInstance( getIntent().getStringExtra(URL), getIntent().getStringExtra(TOKEN));
+//            fragment =  LivekitVoiceAgentFragment.Companion.newInstance( getIntent().getStringExtra(URL), getIntent().getStringExtra(TOKEN));
             if (getIntent().getSerializableExtra(PARAM) != null) {
                 Bundle bundle = new Bundle();
                 bundle.putSerializable(PARAM, getIntent().getSerializableExtra(PARAM));

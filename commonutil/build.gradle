@@ -92,7 +92,7 @@ dependencies {
     implementation "androidx.legacy:legacy-support-v4:1.0.0"
     implementation "androidx.palette:palette:1.0.0"
     implementation "androidx.recyclerview:recyclerview:1.4.0"
-    implementation "androidx.cardview:cardview"
+    implementation "androidx.cardview:cardview:1.0.0"
 
     // Apache 工具库
     implementation 'org.apache.httpcomponents:httpcore:4.4.16'

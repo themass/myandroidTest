@@ -1,8 +1,5 @@
-ext{
+ext {
     minSdkVersion = 28
     targetSdkVersion = 35
     compileSdkVersion = 35
-
-    kotlin_ktx = '1.13.1'
-    lifecycle_livedata_ktx = '2.8.7'
 }

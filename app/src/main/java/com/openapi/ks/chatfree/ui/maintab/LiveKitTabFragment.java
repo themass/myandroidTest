@@ -8,7 +8,7 @@ import com.openai.ads.yewu.ads.base.AdsContext;
 import com.openapi.ks.myapp.ui.base.BannerHeaderFragment;
 import com.openapi.ks.myapp.ui.base.features.TabBaseAdsFragment;
 
-import com.livekit.voiceassistant.LivekitVoiceAgentFragment;
+//import com.livekit.voiceassistant.LivekitVoiceAgentFragment;
 
 import io.livekit.android.annotations.Beta;
 
@@ -27,6 +27,7 @@ public class LiveKitTabFragment extends TabBaseAdsFragment {
     protected Fragment getTabBodyView() {
         String url = "wss://testvoice-b8y35yvd.livekit.cloud";
         String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJBUElTQU5ObUVHQlF4ZlkiLCJleHAiOjE3NDEyMDkyNzAsInN1YiI6InFxcXExMTExIiwianRpIjoicXFxcTExMTEiLCJuYW1lIjoicXFxcTExMTEiLCJtZXRhZGF0YSI6Im1ldGFkYXRhIiwidmlkZW8iOnsicm9vbUpvaW4iOnRydWUsInJvb20iOiJxcXFxMTExMV9yb29tIn0sInNpcCI6e319.KlktqnktjO91l1bfFvIdWVgEyeYaIS2elxbyvFuwl6U";
-        return LivekitVoiceAgentFragment.Companion.newInstance(url, token);
+//        return LivekitVoiceAgentFragment.Companion.newInstance(url, token);
+        return null;
     }
 }
