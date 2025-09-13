@@ -15,7 +15,6 @@ import com.openai.commonutil.LogUtil;
 import com.openai.ads.yewu.ads.base.AdsContext;
 import com.openai.ads.yewu.ads.base.AdsManager;
 import com.openapi.ks.chat.R;
-import com.openapi.ks.chat.R2;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openai.ads.yewu.ads.AdsPopStrategy;
 import com.openapi.ks.myapp.data.config.HindBannerEvent;
