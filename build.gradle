@@ -16,6 +16,7 @@ buildscript {
 }
 
 apply from: 'version.gradle'
+apply from: 'dependencies.gradle'
 
 allprojects {
     repositories {
@@ -24,5 +25,24 @@ allprojects {
         mavenCentral()
         maven { url "https://jitpack.io" }
         maven { url "https://maven.aliyun.com/repository/public" }
+    }
+    
+    // 优化构建配置
+    tasks.withType(JavaCompile).configureEach {
+        options.compilerArgs += [
+            '-Xlint:unchecked',
+            '-Xlint:deprecation'
+        ]
+    }
+    
+    // 配置 Kotlin 编译选项
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+        kotlinOptions {
+            jvmTarget = "17"
+            freeCompilerArgs += [
+                "-Xjvm-default=all",
+                "-opt-in=kotlin.RequiresOptIn"
+            ]
+        }
     }
 }

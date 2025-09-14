@@ -40,8 +40,9 @@ public class BigImagePreview extends RelativeLayout {
     private Context mContext;
     private GalleryView galleryView;
     private PhotoViewPager pager;
-    private TransSmallImageView mTransSmallImageView;
-    private TransBigImageView transBigImageView;
+    // 已移除 TransSmallImageView 和 TransBigImageView 类
+    // private TransSmallImageView mTransSmallImageView;
+    // private TransBigImageView transBigImageView;
     private FrameLayout previewParent;
     private List urlList = new ArrayList();
     private int lineWidth, lineHeight, loadMoreHeight;
@@ -74,10 +75,10 @@ public class BigImagePreview extends RelativeLayout {
         View preview = LayoutInflater.from(mContext).inflate(R.layout.gallery_preview, this);
         galleryView = (GalleryView) preview.findViewById(R.id.gallery);
         pager = (PhotoViewPager) preview.findViewById(R.id.preview_viewPager);
-        mTransSmallImageView = (TransSmallImageView) preview.findViewById(R.id.transImage);
+        // mTransSmallImageView = (TransSmallImageView) preview.findViewById(R.id.transImage);
         previewParent = (FrameLayout) preview.findViewById(R.id.previewParent);
         galleryScroll = (ScrollView) preview.findViewById(R.id.gallery_scroll);
-        transBigImageView = (TransBigImageView) preview.findViewById(R.id.transBigImage);
+        // transBigImageView = (TransBigImageView) preview.findViewById(R.id.transBigImage);
     }
 
     public void init(final List<?> list, List<Integer> widthList, List<Integer> heightList,
@@ -87,13 +88,14 @@ public class BigImagePreview extends RelativeLayout {
         this.loadMoreHeight = loadMoreHeight;
         //设置Gallery数据
         setGalleryLoadMoreData(list, widthList, heightList);
-        mTransSmallImageView.setExitEnd(new TransSmallImageView.ExitEnd() {
-            @Override
-            public void end() {
-                galleryView.getChildAt(gridPosition).setVisibility(VISIBLE);
-                previewParent.setVisibility(GONE);
-            }
-        });
+        // 已移除 TransSmallImageView 相关代码
+        // mTransSmallImageView.setExitEnd(new TransSmallImageView.ExitEnd() {
+        //     @Override
+        //     public void end() {
+        //         galleryView.getChildAt(gridPosition).setVisibility(VISIBLE);
+        //         previewParent.setVisibility(GONE);
+        //     }
+        // });
         galleryView.setItemClickListener(new GalleryView.ItemClickListener() {
             @Override
             public void click(int x, int y, float width, float height, final int position) {
@@ -117,8 +119,9 @@ public class BigImagePreview extends RelativeLayout {
                 BigImagePreview.this.position = position;
                 int w = galleryView.getChildAt(position).getWidth();
                 int h = galleryView.getChildAt(position).getHeight();
-                RequestOptions options = new RequestOptions().skipMemoryCache(true).override(w, h).dontAnimate();
-                Glide.with(mContext).load(urlList.get(position)).apply(options).into(mTransSmallImageView);
+                // 已移除 TransSmallImageView 相关代码
+                // RequestOptions options = new RequestOptions().skipMemoryCache(true).override(w, h).dontAnimate();
+                // Glide.with(mContext).load(urlList.get(position)).apply(options).into(mTransSmallImageView);
             }
 
             @Override
@@ -175,20 +178,9 @@ public class BigImagePreview extends RelativeLayout {
 
     private void galleryItemClick(final int x, final int y, final float width, final float height, final int position) {
         previewParent.setVisibility(VISIBLE);
-        PointF pointF = CommonUtil.getNeedSize(mContext, width, height);
-        float imgHeight = pointF.y;
-        float imgWidth = pointF.x;
-        RequestOptions options = new RequestOptions().skipMemoryCache(true).override((int) imgWidth, (int) imgHeight).dontAnimate();
-        Glide.with(mContext).load(urlList.get(position)).apply(options).into(transBigImageView);
-        transBigImageView.init(x, y, width, height);
-        transBigImageView.startTrans();
-        transBigImageView.setTransEnd(new TransBigImageView.TransEnd() {
-            @Override
-            public void end() {
-                pager.setCurrentItem(position, false);
-                pager.setVisibility(View.VISIBLE);
-            }
-        });
+        // 已移除 TransBigImageView 相关代码，直接显示 ViewPager
+        pager.setCurrentItem(position, false);
+        pager.setVisibility(View.VISIBLE);
     }
 
     public void setGalleryLoadMore(GalleryLoadMore loadMore) {
@@ -210,9 +202,11 @@ public class BigImagePreview extends RelativeLayout {
             gridPosition = position;
         }
         pager.setVisibility(View.GONE);
-        List<Float> info = galleryView.getChildInfo(position);
-        mTransSmallImageView.exit((int) (info.get(0) / 1),
-                (int) (info.get(1) / 1), info.get(2), info.get(3));
+        previewParent.setVisibility(GONE);
+        // 已移除 TransSmallImageView 相关代码
+        // List<Float> info = galleryView.getChildInfo(position);
+        // mTransSmallImageView.exit((int) (info.get(0) / 1),
+        //         (int) (info.get(1) / 1), info.get(2), info.get(3));
     }
 
     public interface GalleryLoadMore {

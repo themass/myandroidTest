@@ -12,7 +12,8 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.openai.commonview.view.FireworkShow;
+// 已移除 FireworkShow 类
+// import com.openai.commonview.view.FireworkShow;
 import com.openapi.ks.myapp.bean.form.ChatSessionLog;
 import com.openapi.ks.myapp.data.DBManager;
 import com.openapi.ks.myapp.ui.base.app.LogActivity;

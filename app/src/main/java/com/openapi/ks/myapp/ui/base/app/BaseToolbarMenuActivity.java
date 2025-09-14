@@ -7,7 +7,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.SearchView;
+
+import androidx.appcompat.widget.SearchView;
 
 import com.openai.commonutil.StringUtils;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;

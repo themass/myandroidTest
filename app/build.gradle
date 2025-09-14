@@ -12,7 +12,7 @@ android {
         applicationId "com.openapi.ks.chat"
         minSdk rootProject.ext.minSdkVersion
         targetSdk rootProject.ext.targetSdkVersion
-        versionCode 1001000055
+        versionCode 1001000056
         versionName "1.1.0.55"
         multiDexEnabled true
         flavorDimensions "versionCode"
@@ -20,6 +20,7 @@ android {
     
     tasks.withType(JavaCompile).configureEach {
         options.fork = true
+        options.incremental = true
         options.forkOptions.jvmArgs += [
             '--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED',
             '--add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED',
@@ -38,6 +39,7 @@ android {
     
     buildFeatures {
         viewBinding true
+        buildConfig true
     }
     
     packagingOptions {
@@ -58,6 +60,9 @@ android {
         disable 'InvalidPackage'
         checkReleaseBuilds false
         abortOnError false
+        checkDependencies true
+        ignoreWarnings true
+        quiet true
     }
 
     sourceSets.main {
@@ -80,13 +85,13 @@ android {
             debuggable true
             zipAlignEnabled false
             shrinkResources false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro', '../proguard-common.pro'
             signingConfig signingConfigs.config
         }
         release {
             minifyEnabled true
             shrinkResources true
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro', '../proguard-common.pro'
             signingConfig signingConfigs.config
         }
     }
