@@ -1,0 +1,169 @@
+// 统一依赖版本管理
+ext.deps = [
+    // AndroidX 核心库
+    androidx: [
+        core: "androidx.core:core-ktx:1.13.1",
+        appcompat: "androidx.appcompat:appcompat:1.7.1",
+        material: "com.google.android.material:material:1.13.0",
+        multidex: "androidx.multidex:multidex:2.0.1",
+        navigation: [
+            fragment: "androidx.navigation:navigation-fragment-ktx:2.7.7",
+            ui: "androidx.navigation:navigation-ui-ktx:2.7.7"
+        ],
+        recyclerview: "androidx.recyclerview:recyclerview:1.4.0",
+        cardview: "androidx.cardview:cardview:1.0.0",
+        constraintlayout: "androidx.constraintlayout:constraintlayout:2.2.1",
+        webkit: "androidx.webkit:webkit:1.14.0",
+        percentlayout: "androidx.percentlayout:percentlayout:1.0.0",
+        palette: "androidx.palette:palette:1.0.0",
+        // 现代替代方案
+        fragment: "androidx.fragment:fragment:1.8.5",
+        activity: "androidx.activity:activity:1.9.2"
+    ],
+    
+    // 网络和JSON
+    network: [
+        gson: "com.google.code.gson:gson:2.13.1",
+        okhttp: "com.squareup.okhttp3:okhttp:5.0.0-alpha.14",
+        okhttpLogging: "com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.14",
+        okhttpAndroid: "com.squareup.okhttp3:okhttp-android:5.0.0-alpha.14",
+        volley: "com.android.volley:volley:1.2.1"
+    ],
+    
+    // 图片加载
+    image: [
+        glide: "com.github.bumptech.glide:glide:4.16.0",
+        glideCompiler: "com.github.bumptech.glide:compiler:4.16.0",
+        glideOkhttp: "com.github.bumptech.glide:okhttp3-integration:4.16.0",
+        photoview: "com.github.chrisbanes:PhotoView:2.3.0"
+    ],
+    
+    // 数据库
+    database: [
+        greendao: "org.greenrobot:greendao:3.3.0"
+    ],
+    
+    // 视频播放
+    video: [
+        exoplayer: "androidx.media3:media3-exoplayer:1.2.1",
+        exoplayerHls: "androidx.media3:media3-datasource:1.2.1",
+        exoplayerUi: "androidx.media3:media3-ui:1.2.1",
+        jiaozivideoplayer: "cn.jzvd:jiaozivideoplayer:7.7.2.3300"
+    ],
+    
+    // 响应式编程
+    rxjava: [
+        rxjava: "io.reactivex.rxjava3:rxjava:3.1.8",
+        rxandroid: "io.reactivex.rxjava3:rxandroid:3.0.2"
+    ],
+    
+    // 依赖注入
+    butterknife: [
+        butterknife: "com.jakewharton:butterknife:10.2.3",
+        compiler: "com.jakewharton:butterknife-compiler:10.2.3"
+    ],
+    
+    // 事件总线
+    eventbus: "org.greenrobot:eventbus:3.3.1",
+    
+    // 工具库
+    utils: [
+        // 移除DiskLruCache，使用Glide内置缓存替代
+        // disklrucache: "com.jakewharton:disklrucache:2.0.2",
+        circleimageview: "de.hdodenhof:circleimageview:3.1.0",
+        shapeimageview: "com.github.siyamed:android-shape-imageview:0.9.3",
+        baseadapter: "com.github.CymChad:BaseRecyclerViewAdapterHelper:2.9.30",
+        // easypermissions已弃用，使用官方Activity Result API
+        // easypermissions: "pub.devrel:easypermissions:3.0.0",
+        // 移除Commons库，使用Android内置API替代
+        // commons: [
+        //     io: "commons-io:commons-io:2.16.1",
+        //     codec: "commons-codec:commons-codec:1.17.1"
+        // ]
+        // httpcore已弃用，Android 6.0+不支持，使用OkHttp替代
+        // httpcore: "org.apache.httpcomponents:httpcore:4.4.16"
+    ],
+    
+    // Markdown 和富文本
+    markdown: [
+        markwon: [
+            core: "io.noties.markwon:core:4.6.2",
+            imageGlide: "io.noties.markwon:image-glide:4.6.2",
+            extLatex: "io.noties.markwon:ext-latex:4.6.2",
+            image: "io.noties.markwon:image:4.6.2",
+            html: "io.noties.markwon:html:4.6.2",
+            extStrikethrough: "io.noties.markwon:ext-strikethrough:4.6.2",
+            extTables: "io.noties.markwon:ext-tables:4.6.2"
+        ],
+        flexmark: [
+            core: "com.vladsch.flexmark:flexmark:0.64.8",
+            extGfmStrikethrough: "com.vladsch.flexmark:flexmark-ext-gfm-strikethrough:0.64.8",
+            extTables: "com.vladsch.flexmark:flexmark-ext-tables:0.64.8",
+            extAutolink: "com.vladsch.flexmark:flexmark-ext-autolink:0.64.8"
+        ]
+    ],
+    
+    // UI 组件
+    ui: [
+        // 现代替代方案
+        shimmer: "com.facebook.shimmer:shimmer:0.5.0",
+        labelsview: "com.github.donkingliang:LabelsView:1.6.5",
+        flexbox: "com.google.android.flexbox:flexbox:3.0.0",
+        rippleBackground: "com.skyfishjy.ripplebackground:library:1.0.1"
+    ],
+    
+    // 图片选择器
+    picture: [
+        selector: "io.github.lucksiege:pictureselector:v3.11.2",
+        compress: "io.github.lucksiege:compress:v3.11.2",
+        ucrop: "io.github.lucksiege:ucrop:v3.11.2",
+        camerax: "io.github.lucksiege:camerax:v3.11.2"
+    ],
+    
+    // 富文本和图像处理
+    richText: [
+        androidsvg: "com.caverock:androidsvg:1.4",
+        gifdrawable: "pl.droidsonroids.gif:android-gif-drawable:1.2.29"
+    ],
+    
+    // Google 服务
+    google: [
+        ads: "com.google.android.gms:play-services-ads:24.6.0",
+        wallet: "com.google.android.gms:play-services-wallet:19.4.0"
+    ],
+    
+    // Facebook
+    facebook: [
+        audience: "com.facebook.android:audience-network-sdk:6.20.0",
+        infer: "com.facebook.infer.annotation:infer-annotation:0.18.0"
+    ],
+    
+    // LiveKit
+    livekit: [
+        android: "io.livekit:livekit-android:2.9.0",
+        compose: "io.livekit:livekit-android-compose-components:1.3.0"
+    ],
+    
+    // Compose
+    compose: [
+        bom: "androidx.compose:compose-bom:2025.09.00",
+        ui: "androidx.compose.ui:ui",
+        uiGraphics: "androidx.compose.ui:ui-graphics",
+        uiTooling: "androidx.compose.ui:ui-tooling-preview",
+        material3: "androidx.compose.material3:material3",
+        activity: "androidx.activity:activity-compose:1.9.3",
+        constraintlayout: "androidx.constraintlayout:constraintlayout-compose:1.1.1"
+    ],
+    
+    // Lifecycle
+    lifecycle: [
+        livedata: "androidx.lifecycle:lifecycle-livedata-ktx:2.8.7",
+        runtime: "androidx.lifecycle:lifecycle-runtime-ktx:2.8.7"
+    ],
+    
+    // 其他
+    other: [
+        timber: "com.github.ajalt:timberkt:1.5.1",
+        waveanimation: "com.aghajari.waveanimation:AXWaveAnimation:1.0.0"
+    ]
+]
