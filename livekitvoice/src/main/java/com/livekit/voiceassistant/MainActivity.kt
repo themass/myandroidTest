@@ -2,62 +2,63 @@ package com.livekit.voiceassistant
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
+import androidx.fragment.app.FragmentActivity
 import io.livekit.android.LiveKit
-import com.livekit.voiceassistant.screen.ConnectRoute
-import com.livekit.voiceassistant.screen.ConnectScreen
-import com.livekit.voiceassistant.screen.VoiceAssistantRoute
-import com.livekit.voiceassistant.screen.VoiceAssistantScreen
-import com.livekit.voiceassistant.ui.theme.LiveKitVoiceAssistantExampleTheme
-import com.livekit.voiceassistant.viewmodel.VoiceAssistantViewModel
 import io.livekit.android.util.LoggingLevel
 
-class MainActivity : ComponentActivity() {
+/**
+ * 主 Activity，作为 Fragment 的容器
+ * 现在使用 Fragment 来承载 UI 逻辑，Activity 只负责管理 Fragment
+ */
+class MainActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         LiveKit.loggingLevel = LoggingLevel.DEBUG
 
-        setContent {
-            val navController = rememberNavController()
-            LiveKitVoiceAssistantExampleTheme(dynamicColor = false) {
-                Scaffold { innerPadding ->
-                    Box(modifier = Modifier.padding(innerPadding)) {
-
-                        // Set up NavHost for the app
-                        NavHost(navController, startDestination = ConnectRoute) {
-                            composable<ConnectRoute> {
-                                ConnectScreen(
-                                    navigateToVoiceAssistant = { url, token ->
-                                        runOnUiThread {
-                                            navController.navigate(VoiceAssistantRoute(url, token))
-                                        }
-                                    },
-                                    activity = this@MainActivity
-                                )
-                            }
-
-                            composable<VoiceAssistantRoute> {
-                                val viewModel = viewModel<VoiceAssistantViewModel>()
-                                VoiceAssistantScreen(
-                                    viewModel = viewModel,
-                                    onEndCall = {
-                                        runOnUiThread { navController.navigateUp() }
-                                    }
-                                )
-                            }
-                        }
-                    }
-                }
-            }
+        // 设置布局文件，包含一个 Fragment 容器
+        setContentView(R.layout.activity_main)
+        
+        // 如果 savedInstanceState 为 null，说明是第一次创建，添加主 Fragment
+        if (savedInstanceState == null) {
+            // 默认显示新的 Compose 样式的 Fragment
+            LiveKitFragmentManager.showMainFragment(
+                activity = this,
+                containerId = R.id.fragment_container,
+                addToBackStack = false
+            )
         }
+    }
+    
+    /**
+     * 切换 Fragment 样式的方法
+     * 可以在运行时切换新旧样式
+     */
+    fun switchToNewStyle() {
+        LiveKitFragmentManager.showMainFragment(
+            activity = this,
+            containerId = R.id.fragment_container,
+            addToBackStack = true
+        )
+    }
+    
+    /**
+     * 切换到旧样式的方法
+     */
+    fun switchToOldStyle(url: String, token: String) {
+        LiveKitFragmentManager.showOldFragment(
+            activity = this,
+            containerId = R.id.fragment_container,
+            url = url,
+            token = token,
+            addToBackStack = true
+        )
+    }
+    
+    /**
+     * 获取当前 Fragment 管理器
+     */
+    fun getLiveKitFragmentManager(): LiveKitFragmentManager.Companion {
+        return LiveKitFragmentManager
     }
 }

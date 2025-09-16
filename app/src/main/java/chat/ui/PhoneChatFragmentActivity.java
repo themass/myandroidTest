@@ -10,6 +10,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.OptIn;
 import androidx.fragment.app.Fragment;
 
+import com.livekit.voiceassistant.LivekitVoiceAgentFragment;
+import com.livekit.voiceassistant.MainFragment;
 import com.openai.ads.yewu.ads.base.AdsContext;
 import com.openai.commonutil.EventBusUtil;
 import com.openai.commonutil.LogUtil;
@@ -102,7 +104,7 @@ public class PhoneChatFragmentActivity extends BaseFragmentActivity implements F
         mPermissionHelper = new PermissionHelper(this);
         mPermissionHelper.checkNeedPermissions();
         try {
-//            fragment =  LivekitVoiceAgentFragment.Companion.newInstance( getIntent().getStringExtra(URL), getIntent().getStringExtra(TOKEN));
+            fragment =  MainFragment.Companion.newInstance( getIntent().getStringExtra(URL), getIntent().getStringExtra(TOKEN));
             Serializable param;
             // 兼容性处理：API 33+ 使用新方法，否则使用旧方法
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
