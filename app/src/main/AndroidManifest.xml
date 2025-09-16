@@ -73,7 +73,8 @@
         android:largeScreens="true"
         android:normalScreens="true"
         android:resizeable="true"
-        android:smallScreens="true" />
+        android:smallScreens="true"
+        android:xlargeScreens="true" />
     <!--适配Android R包可见性 开始-->
     <queries package="${applicationId}">
         <intent>
@@ -99,6 +100,8 @@
         android:usesCleartextTraffic="true"
         android:requestLegacyExternalStorage="true"
         android:supportsRtl="true"
+        android:resizeableActivity="true"
+        android:supportsPictureInPicture="true"
         tools:replace="android:allowBackup">
         <uses-library
             android:name="org.apache.http.legacy"
@@ -111,6 +114,14 @@
         <meta-data
             android:name="com.bumptech.glide.integration.okhttp.OkHttpGlideModule"
             tools:node="remove" />
+        
+        <!-- 大屏设备适配 -->
+        <meta-data
+            android:name="android.max_aspect"
+            android:value="3.0" />
+        <meta-data
+            android:name="android.allow_multiple_resumed_activities"
+            android:value="true" />
         <meta-data
             android:name="com.openai.net.netglide.UnsafeOkHttpClient"
             android:value="MyGlideModule" />
@@ -142,7 +153,7 @@
 
         <activity
             android:name="com.openapi.ks.myapp.ui.base.WebViewActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize" />
+            android:configChanges="orientation|keyboardHidden|screenSize|screenLayout|uiMode" />
         <activity
             android:name="com.openapi.ks.myapp.ui.user.LoginActivity"
              />
@@ -177,34 +188,34 @@
              />
         <activity
             android:name="com.openapi.ks.myapp.ui.base.VideoWebViewActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:configChanges="orientation|keyboardHidden|screenSize|screenLayout|uiMode"
             android:hardwareAccelerated="true"
-            android:screenOrientation="nosensor"
+            android:screenOrientation="unspecified"
             android:theme="@style/AppTheme" />
         <activity
             android:name="com.openapi.ks.myapp.ui.sound.VideoShowActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|uiMode"
 
             android:theme="@style/AppTheme" />
         <activity
             android:name="com.openapi.ks.myapp.ui.sound.VideoListShowActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|uiMode"
 
             android:theme="@style/AppTheme" />
 
         <activity
             android:name="com.openapi.ks.myapp.ui.sound.VideoShowActivityj"
-            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|uiMode"
 
             android:theme="@style/AppTheme" />
         <activity
             android:name="com.openapi.ks.myapp.ui.sound.VideoShowActivityLazyUrl"
-            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|uiMode"
 
             android:theme="@style/AppTheme" />
 <!--        <activity-->
 <!--            android:name="com.openapi.ks.myapp.ui.gsy.ad.GSYADVideoListShowActivity"-->
-<!--            android:configChanges="orientation|screenSize|keyboardHidden"-->
+<!--            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|uiMode"-->
 
 <!--            android:theme="@style/AppTheme" />-->
         <activity
