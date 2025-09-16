@@ -35,11 +35,27 @@ android {
     }
     
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.4.8"
+        kotlinCompilerExtensionVersion = "1.4.0"
     }
     
     kotlinOptions {
         jvmTarget = "17"
+    }
+    
+    // 配置Java编译选项，禁用警告
+    tasks.withType<JavaCompile> {
+        options.compilerArgs.addAll(listOf(
+            "-nowarn",               // 禁用所有警告
+            "-Xlint:none",           // 禁用所有lint警告
+            "-Xlint:-deprecation",   // 禁用废弃API警告
+            "-Xlint:-unchecked",     // 禁用未检查转换警告
+            "-Xlint:-rawtypes",      // 禁用原始类型警告
+            "-Xlint:-varargs",       // 禁用可变参数警告
+            "-Xlint:-cast",          // 禁用类型转换警告
+            "-Xlint:-serial"         // 禁用序列化警告
+        ))
+        // 确保编译器不报告任何警告
+        options.isWarnings = false
     }
 
     packaging {

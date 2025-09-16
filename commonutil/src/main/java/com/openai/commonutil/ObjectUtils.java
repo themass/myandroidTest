@@ -188,6 +188,7 @@ public abstract class ObjectUtils {
             compType = obj.getClass();
         }
         int newArrLength = (array != null ? array.length + 1 : 1);
+        // 安全的数组创建，使用泛型类型
         @SuppressWarnings("unchecked")
         A[] newArr = (A[]) Array.newInstance(compType, newArrLength);
         if (array != null) {

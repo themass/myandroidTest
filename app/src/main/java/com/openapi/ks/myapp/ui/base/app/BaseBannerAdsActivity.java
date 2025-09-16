@@ -1,6 +1,7 @@
 package com.openapi.ks.myapp.ui.base.app;
 
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 
 import com.google.android.material.appbar.AppBarLayout;
@@ -41,7 +42,7 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity {
     public CollapsingToolbarLayout ctBar;
     private AdsGoneTask task = new AdsGoneTask();
 
-    protected Handler mHandler = new Handler() {
+    protected Handler mHandler = new Handler(Looper.getMainLooper()) {
         @Override
         public void handleMessage(Message msg) {
         }

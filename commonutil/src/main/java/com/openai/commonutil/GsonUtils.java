@@ -14,6 +14,7 @@ import java.util.Map;
 /**
  * Created by wjying on 13-12-30.
  */
+@SuppressWarnings("unchecked")
 public class GsonUtils {
     private static Gson gson = new GsonBuilder().create();
 

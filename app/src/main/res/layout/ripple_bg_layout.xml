@@ -9,40 +9,47 @@
         android:id="@+id/content"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:rb_color="#0099CC"
-        app:rb_duration="3000"
+        android:background="@color/style_color_primary_dark"
+        app:rb_color="#FFFFFF"
         app:rb_radius="32dp"
         app:rb_rippleAmount="6"
+        app:rb_duration="3000"
         app:rb_scale="6">
-        <com.openai.commonview.view.widget.CircleImageView
-            android:id="@+id/centerImage"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:layout_centerInParent="true"
-            android:src="@drawable/ai_chat_1" />
+        
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            
+            <com.openai.commonview.view.widget.CircleImageView
+                android:id="@+id/centerImage"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:layout_centerInParent="true"
+                android:src="@drawable/ai_chat_1" />
 
-        <ImageView
-            android:id="@+id/foundDevice1"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_above="@id/centerImage"
-            android:layout_marginRight="6dp"
-            android:layout_marginBottom="32dp"
-            android:layout_toLeftOf="@id/centerImage"
-            android:src="@drawable/ic_heart_small_red"
-            android:scaleType="fitCenter"
-            android:visibility="gone" />
-        <ImageView
-            android:id="@+id/foundDevice2"
-            android:layout_width="15dp"
-            android:layout_height="15dp"
-            android:layout_above="@id/centerImage"
-            android:layout_marginRight="10dp"
-            android:layout_marginBottom="15dp"
-            android:layout_toRightOf="@id/centerImage"
-            android:src="@drawable/ic_heart_small_blue"
-            android:visibility="gone"
-            android:scaleType="fitCenter"
-             />
+            <ImageView
+                android:id="@+id/foundDevice1"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_above="@id/centerImage"
+                android:layout_marginRight="6dp"
+                android:layout_marginBottom="32dp"
+                android:layout_toLeftOf="@id/centerImage"
+                android:src="@drawable/ic_heart_small_red"
+                android:scaleType="fitCenter"
+                android:visibility="gone" />
+            <ImageView
+                android:id="@+id/foundDevice2"
+                android:layout_width="15dp"
+                android:layout_height="15dp"
+                android:layout_above="@id/centerImage"
+                android:layout_marginRight="10dp"
+                android:layout_marginBottom="15dp"
+                android:layout_toRightOf="@id/centerImage"
+                android:src="@drawable/ic_heart_small_blue"
+                android:visibility="gone"
+                android:scaleType="fitCenter" />
+                
+        </RelativeLayout>
     </com.skyfishjy.library.RippleBackground>
 </FrameLayout>

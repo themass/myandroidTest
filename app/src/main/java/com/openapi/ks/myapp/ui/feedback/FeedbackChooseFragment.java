@@ -6,6 +6,7 @@ import android.os.Bundle;
 
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
@@ -104,9 +105,10 @@ public class FeedbackChooseFragment extends LoadableFragment<InfoListVo<Feedback
     /**
      * 定义ViewPager的适配器
      */
+    @Deprecated
     class TabPageIndicatorAdapter extends FragmentPagerAdapter {
         public TabPageIndicatorAdapter(FragmentManager fm) {
-            super(fm);
+            super(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
         }
 
         @Override
@@ -115,7 +117,7 @@ public class FeedbackChooseFragment extends LoadableFragment<InfoListVo<Feedback
             Class<? extends BaseFragment> clasz = vo.voList.get(position).clasz;
             BaseFragment fragment = null;
             try {
-                fragment = clasz.newInstance();
+                fragment = clasz.getDeclaredConstructor().newInstance();
             } catch (Exception e) {
                 LogUtil.e(e);
             }
@@ -123,13 +125,13 @@ public class FeedbackChooseFragment extends LoadableFragment<InfoListVo<Feedback
         }
 
         @Override
-        public CharSequence getPageTitle(int position) {
-            return vo.voList.get(position).name;
+        public int getCount() {
+            return vo.voList.size();
         }
 
         @Override
-        public int getCount() {
-            return vo.voList.size();
+        public CharSequence getPageTitle(int position) {
+            return vo.voList.get(position).name;
         }
     }
 }

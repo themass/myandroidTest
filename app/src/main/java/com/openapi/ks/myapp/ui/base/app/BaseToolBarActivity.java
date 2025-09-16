@@ -1,9 +1,11 @@
 package com.openapi.ks.myapp.ui.base.app;
 
 import android.app.Activity;
+import android.app.ActivityOptions;
 import android.app.Service;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.os.Build;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
@@ -96,8 +98,16 @@ public abstract class BaseToolBarActivity extends BaseToolbarMenuActivity {
 
     public void startActivity(Class<? extends Activity> c) {
         Intent intent = new Intent(BaseToolBarActivity.this, c);
-        startActivity(intent);
-        overridePendingTransition(R.anim.slide_in_from_right, R.anim.slide_out_to_left);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            // 使用现代Activity过渡动画
+            ActivityOptions options = ActivityOptions.makeCustomAnimation(this, 
+                R.anim.slide_in_from_right, R.anim.slide_out_to_left);
+            startActivity(intent, options.toBundle());
+        } else {
+            // 兼容旧版本
+            startActivity(intent);
+            overrideActivityTransition(OVERRIDE_TRANSITION_OPEN, R.anim.slide_in_from_right, R.anim.slide_out_to_left);
+        }
     }
 
     public void startService(Class<? extends Service> c) {

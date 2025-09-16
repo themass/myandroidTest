@@ -3,6 +3,7 @@ package tz.co.hosannahighertech.messagekit.messages;
 import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
 import androidx.core.view.ViewCompat;
+import android.os.Build;
 import android.text.Spannable;
 import android.text.method.LinkMovementMethod;
 import android.util.Log;
@@ -617,7 +618,13 @@ public class MessageHolders {
 
     private ViewHolder getHolder(ViewGroup parent, HolderConfig holderConfig,
                                  MessagesListStyle style) {
-        return getHolder(parent, holderConfig.layout, holderConfig.holder, style, holderConfig.payload);
+        // 使用安全的类型转换，确保类型安全
+        if (!(holderConfig.holder instanceof Class)) {
+            throw new IllegalArgumentException("holderConfig.holder must be a Class");
+        }
+        @SuppressWarnings("unchecked")
+        Class<ViewHolder> holderClass = (Class<ViewHolder>) holderConfig.holder;
+        return getHolder(parent, holderConfig.layout, holderClass, style, holderConfig.payload);
     }
 
     private <HOLDER extends ViewHolder>
@@ -784,7 +791,7 @@ public class MessageHolders {
                         style.getIncomingDefaultBubblePaddingTop(),
                         style.getIncomingDefaultBubblePaddingRight(),
                         style.getIncomingDefaultBubblePaddingBottom());
-                ViewCompat.setBackground(bubble, style.getIncomingBubbleDrawable());
+                bubble.setBackground(style.getIncomingBubbleDrawable());
             }
 
             if (text != null) {
@@ -843,7 +850,7 @@ public class MessageHolders {
                         style.getOutcomingDefaultBubblePaddingTop(),
                         style.getOutcomingDefaultBubblePaddingRight(),
                         style.getOutcomingDefaultBubblePaddingBottom());
-                ViewCompat.setBackground(bubble, style.getOutcomingBubbleDrawable());
+                bubble.setBackground(style.getOutcomingBubbleDrawable());
             }
 
             if (text != null) {
@@ -904,7 +911,7 @@ public class MessageHolders {
             }
 
             if (imageOverlay != null) {
-                ViewCompat.setBackground(imageOverlay, style.getIncomingImageOverlayDrawable());
+                imageOverlay.setBackground(style.getIncomingImageOverlayDrawable());
             }
         }
 
@@ -974,7 +981,7 @@ public class MessageHolders {
             }
 
             if (imageOverlay != null) {
-                ViewCompat.setBackground(imageOverlay, style.getOutcomingImageOverlayDrawable());
+                imageOverlay.setBackground(style.getOutcomingImageOverlayDrawable());
             }
         }
 

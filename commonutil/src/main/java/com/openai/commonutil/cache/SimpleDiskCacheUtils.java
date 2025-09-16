@@ -13,6 +13,7 @@ import java.util.Map;
 /**
  * Created by wjying on 13-12-22.
  */
+@SuppressWarnings("deprecation")
 public class SimpleDiskCacheUtils {
     private static final int DISK_CACHE_SIZE = 1024 * 1024 * 50; // 10MB
     private static final String DISK_CACHE_DIR = "sex_cache";
@@ -41,10 +42,10 @@ public class SimpleDiskCacheUtils {
         }
         CacheTask old = sCacheTasks.get(key);
         if (old != null) {
-            old.cancel(true);
+            old.cancel();
         }
         sCacheTasks.put(key, task);
-        task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Object[]) null);
+        task.execute();
     }
 
     public static void removeCacheTask(String key) {
@@ -53,7 +54,7 @@ public class SimpleDiskCacheUtils {
         }
         CacheTask old = sCacheTasks.remove(key);
         if (old != null) {
-            old.cancel(true);
+            old.cancel();
         }
     }
 
@@ -66,7 +67,7 @@ public class SimpleDiskCacheUtils {
             return false;
         }
 
-        return old.getStatus() != AsyncTask.Status.FINISHED;
+        return !old.isCancelled();
     }
 
 }

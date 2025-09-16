@@ -164,14 +164,13 @@ public abstract class CollectionUtils {
      * @param candidates the candidates to search for
      * @return the first present object, or {@code null} if not found
      */
-    @SuppressWarnings("unchecked")
     public static <E> E findFirstMatch(Collection<?> source, Collection<E> candidates) {
         if (isEmpty(source) || isEmpty(candidates)) {
             return null;
         }
-        for (Object candidate : candidates) {
+        for (E candidate : candidates) {
             if (source.contains(candidate)) {
-                return (E) candidate;
+                return candidate;
             }
         }
         return null;
@@ -185,7 +184,6 @@ public abstract class CollectionUtils {
      * @return a value of the given type found if there is a clear match,
      * or {@code null} if none or more than one such value found
      */
-    @SuppressWarnings("unchecked")
     public static <T> T findValueOfType(Collection<?> collection, Class<T> type) {
         if (isEmpty(collection)) {
             return null;
@@ -197,7 +195,8 @@ public abstract class CollectionUtils {
                     // More than one value found... no clear single value.
                     return null;
                 }
-                value = (T) element;
+                // 安全的类型转换，已经通过isInstance检查
+                value = type.cast(element);
             }
         }
         return value;

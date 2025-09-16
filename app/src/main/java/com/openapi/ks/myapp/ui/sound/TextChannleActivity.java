@@ -24,7 +24,7 @@ public class TextChannleActivity extends BaseFragmentActivity {
         setFabUpVisibility(View.VISIBLE);
         Fragment fragment = null;
         try {
-            fragment = TextChannleBodyFragment.class.newInstance();
+            fragment = TextChannleBodyFragment.class.getDeclaredConstructor().newInstance();
             fragment.setArguments(getIntent().getExtras());
         } catch (Exception e) {
             LogUtil.e(e);

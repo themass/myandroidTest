@@ -2,6 +2,7 @@ package com.openapi.ks.myapp.ui.user;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -34,6 +35,7 @@ import butterknife.OnClick;
 /**
  * Created by openapi on 2016/3/17.
  */
+@SuppressWarnings("unused")
 public class AddCustomeInfoActivity extends BaseSingleActivity {
     public static final String PARAM = "CUSTOMEPARA";
     private static final String TAG = "customeadd_tag";
@@ -86,7 +88,14 @@ public class AddCustomeInfoActivity extends BaseSingleActivity {
         setToolbarTitle(R.string.custome_title, true);
         baseService = new BaseService();
         baseService.setup(this);
-        form = (CustomeAddForm) getIntent().getSerializableExtra(PARAM);
+        CustomeAddForm tempForm;
+        // 兼容性处理：API 33+ 使用新方法，否则使用旧方法
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            tempForm = getIntent().getSerializableExtra(PARAM, CustomeAddForm.class);
+        } else {
+            tempForm = (CustomeAddForm) getIntent().getSerializableExtra(PARAM);
+        }
+        form = tempForm;
         if (form == null) {
             form = new CustomeAddForm();
         } else {
@@ -151,6 +160,7 @@ public class AddCustomeInfoActivity extends BaseSingleActivity {
     }
 
     @Override
+    @Deprecated
     public void onBackPressed() {
         if (loading.getVisibility() == View.VISIBLE) {
             setEnabled(true);

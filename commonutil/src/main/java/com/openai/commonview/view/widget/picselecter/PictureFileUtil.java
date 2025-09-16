@@ -84,15 +84,14 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import pub.devrel.easypermissions.EasyPermissions;
 import top.zibin.luban.CompressionPredicate;
 import top.zibin.luban.Luban;
 import top.zibin.luban.OnCompressListener;
 import top.zibin.luban.OnNewCompressListener;
 import top.zibin.luban.OnRenameListener;
 import com.openai.commonutil.R;
-
-    public class PictureFileUtil {
+@SuppressWarnings("deprecation")
+public class PictureFileUtil {
     public static PictureSelectorStyle selectorStyle = new PictureSelectorStyle();
     public static final int RC_FILE_PICKER_PERM = 321;
 
@@ -176,6 +175,7 @@ import com.openai.commonutil.R;
 //                intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
             if (intent.resolveActivity(mContext.getPackageManager()) != null) {
                 // 如果有 Activity 可以处理该 Intent，则启动文件选择器
+                // 保持原有逻辑，使用startActivityForResult接收结果
                 mContext.startActivityForResult(intent, requestCode);
             } else {
                 ToastUtil.showShort(R.string.open_error);
@@ -269,6 +269,7 @@ import com.openai.commonutil.R;
     private static void startRecordSoundAction(Fragment fragment, int requestCode) {
         Intent recordAudioIntent = new Intent(MediaStore.Audio.Media.RECORD_SOUND_ACTION);
         if (recordAudioIntent.resolveActivity(fragment.requireActivity().getPackageManager()) != null) {
+            // 保持原有逻辑，使用startActivityForResult接收结果
             fragment.startActivityForResult(recordAudioIntent, requestCode);
         } else {
             ToastUtils.showToast(fragment.getContext(), "The system is missing a recording component");

@@ -7,7 +7,7 @@
 //import android.media.MediaRecorder;
 //import android.os.Bundle;
 //import android.os.Handler;
-//import android.os.Message;
+import android.os.Looper;//import android.os.Message;
 //import android.util.Log;
 //import android.view.Gravity;
 //import android.view.View;
@@ -43,7 +43,7 @@
 //    private boolean isAlive = true;
 //    private VoiceLineView voiceLineView;
 //    private Button stopVoice;
-//    private Handler handler = new Handler() {
+//    private Handler handler = new Handler(Looper.getMainLooper()) {
 //        @Override
 //        public void handleMessage(Message msg) {
 //            super.handleMessage(msg);

@@ -2,6 +2,7 @@ package com.openapi.ks.myapp.ui.sound;
 
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -43,7 +44,12 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
         setContentView(R.layout.layout_video_show);
         unbinder = ButterKnife.bind(this);
 
-        vo = (RecommendVo) getIntent().getSerializableExtra(Constants.CONFIG_PARAM);
+        // 兼容性处理：API 33+ 使用新方法，否则使用旧方法
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            vo = getIntent().getSerializableExtra(Constants.CONFIG_PARAM, RecommendVo.class);
+        } else {
+            vo = (RecommendVo) getIntent().getSerializableExtra(Constants.CONFIG_PARAM);
+        }
         String url = vo.actionUrl;
         if (StringUtils.hasText(vo.urlToken)) {
             url = url + vo.urlToken;
@@ -76,7 +82,12 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
         if (Jzvd.backPress()) {
             return;
         }
-        super.onBackPressed();
+        // 使用现代API
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            getOnBackPressedDispatcher().onBackPressed();
+        } else {
+            super.onBackPressed();
+        }
     }
 
     @Override

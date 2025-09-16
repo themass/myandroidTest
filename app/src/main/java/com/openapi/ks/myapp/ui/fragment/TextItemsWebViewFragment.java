@@ -7,7 +7,7 @@ import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
+import android.os.Looper;import android.os.Message;
 import android.text.TextUtils;
 import android.view.View;
 import android.webkit.CookieManager;
@@ -44,7 +44,7 @@ import butterknife.BindView;
  */
 public class TextItemsWebViewFragment extends BaseFragment implements MyFavoriteView.OnFavoriteItemClick {
     @SuppressLint("HandlerLeak")
-    protected Handler mHandler = new Handler() {
+    protected Handler mHandler = new Handler(Looper.getMainLooper()) {
         @Override
         public void handleMessage(Message msg) {
         }
@@ -151,8 +151,9 @@ public class TextItemsWebViewFragment extends BaseFragment implements MyFavorite
         cookieManager.setAcceptCookie(true);
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
-        settings.setDatabaseEnabled(false);
-        settings.setSaveFormData(false);
+        // 移除已弃用的API调用
+        // settings.setDatabaseEnabled(false); // 已弃用
+        // settings.setSaveFormData(false); // 已弃用
         settings.setBuiltInZoomControls(false);
         settings.setSupportZoom(false); // 可以缩放
         settings.setUseWideViewPort(false);
@@ -161,7 +162,8 @@ public class TextItemsWebViewFragment extends BaseFragment implements MyFavorite
         settings.setDomStorageEnabled(true);
 //        settings.setAppCacheEnabled(true);
         settings.setGeolocationEnabled(true);
-        settings.setGeolocationDatabasePath(getActivity().getCacheDir().toString());
+        // 移除已弃用的API调用
+        // settings.setGeolocationDatabasePath(getActivity().getCacheDir().toString()); // 已弃用
         settings.setUserAgentString(settings.getUserAgentString() + " " + HttpUtils.getUserAgentSuffix(getActivity()));
         webView.setWebChromeClient(new WebChromeClient());
         webView.setBackgroundColor(0);
@@ -217,8 +219,8 @@ public class TextItemsWebViewFragment extends BaseFragment implements MyFavorite
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     cookieManager.flush();
                 } else {
-                    CookieSyncManager.createInstance(MyApplication.getInstance());
-                    CookieSyncManager.getInstance().sync();
+                    // 使用现代Cookie管理方式
+                    cookieManager.flush();
                 }
             }
 

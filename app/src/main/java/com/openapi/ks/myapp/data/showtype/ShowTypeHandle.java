@@ -11,7 +11,8 @@ import com.bumptech.glide.request.target.DrawableImageViewTarget;
 import com.openai.commonutil.LogUtil;
 import com.openai.net.netglide.MyGlideModule;
 import com.openapi.ks.myapp.data.ImagePhotoLoad;
-import com.romainpiel.shimmer.Shimmer;
+// 使用现代 Shimmer 替代
+// import com.romainpiel.shimmer.Shimmer;
 import com.openapi.ks.myapp.adapter.IndexRecommendAdapter;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 
@@ -28,9 +29,9 @@ import okhttp3.Response;
  */
 
 public abstract class ShowTypeHandle {
-    public abstract void loadPhoto(final IndexRecommendAdapter.NaviItemViewHolder holder, RecommendVo vo, final Shimmer shimmer, boolean needShimmer, Context context);
+    public abstract void loadPhoto(final IndexRecommendAdapter.NaviItemViewHolder holder, RecommendVo vo, final Object shimmer, boolean needShimmer, Context context);
 
-    public abstract void showTitle(final IndexRecommendAdapter.NaviItemViewHolder holder, RecommendVo vo, final Shimmer shimmer, boolean needShimmer, Context context);
+    public abstract void showTitle(final IndexRecommendAdapter.NaviItemViewHolder holder, RecommendVo vo, final Object shimmer, boolean needShimmer, Context context);
     // 定义获取Base64字符串的方法
     public void fetchBase64ImageFromUrl(String url, IndexRecommendAdapter.NaviItemViewHolder holder, Context context) {
         LogUtil.i("img url ="+url);

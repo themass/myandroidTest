@@ -10,6 +10,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
+import android.os.Build;
 import android.text.TextUtils;
 
 import com.openai.commonutil.CollectionUtils;
@@ -18,7 +19,7 @@ import com.openai.commonutil.StringUtils;
 import java.io.File;
 import java.util.List;
 
-
+@SuppressWarnings("deprecation")
 public class PackageUtils {
 
     /**
@@ -98,7 +99,13 @@ public class PackageUtils {
     public static int getAppVersionCode(Context context, String packageName) {
         PackageInfo info = getAppInfo(context, packageName);
         if (info != null) {
-            return info.versionCode;
+            // 兼容性处理：API 28+ 使用新方法，否则使用旧方法
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                return (int) info.getLongVersionCode();
+            } else {
+                int versionCode = info.versionCode;
+                return versionCode;
+            }
         }
         return 0;
     }

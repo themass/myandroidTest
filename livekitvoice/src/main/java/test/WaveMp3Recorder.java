@@ -3,7 +3,7 @@
 //import android.content.Context;
 //import android.os.Environment;
 //import android.os.Handler;
-//import android.util.AttributeSet;
+import android.os.Looper;//import android.util.AttributeSet;
 //import android.util.Log;
 //
 //import com.czt.mp3recorder.MP3Recorder;
@@ -28,7 +28,7 @@
 //    private long recordTime = 0;
 //    private int UPDATE_TIME = 200;
 //    private OnRecordStateChangeListener mOnRecordStateChangeListener;
-//    private Handler mHandler = new Handler();
+//    private Handler mHandler = new Handler(Looper.getMainLooper());
 //
 //    public WaveMp3Recorder(Context context) {
 //        this(context,null);

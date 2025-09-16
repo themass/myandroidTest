@@ -143,8 +143,9 @@ public class TextItemsFragment extends LoadableFragment<TextItemVo> implements M
         cookieManager.setAcceptCookie(true);
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
-        settings.setDatabaseEnabled(false);
-        settings.setSaveFormData(false);
+        // 移除已弃用的API调用
+        // settings.setDatabaseEnabled(false); // 已弃用
+        // settings.setSaveFormData(false); // 已弃用
         settings.setBuiltInZoomControls(false);
         settings.setSupportZoom(false); // 可以缩放
         settings.setUseWideViewPort(false);
@@ -153,7 +154,8 @@ public class TextItemsFragment extends LoadableFragment<TextItemVo> implements M
         settings.setDomStorageEnabled(true);
 //        settings.setAppCacheEnabled(true);
         settings.setGeolocationEnabled(true);
-        settings.setGeolocationDatabasePath(getActivity().getCacheDir().toString());
+        // 移除已弃用的API调用
+        // settings.setGeolocationDatabasePath(getActivity().getCacheDir().toString()); // 已弃用
         settings.setUserAgentString(settings.getUserAgentString() + " " + HttpUtils.getUserAgentSuffix(getActivity()));
         webView.setWebChromeClient(new WebChromeClient());
         webView.setBackgroundColor(0);
@@ -202,11 +204,12 @@ public class TextItemsFragment extends LoadableFragment<TextItemVo> implements M
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
                 LogUtil.i("onPageFinished->" + url);
+                // 使用现代Cookie管理方式
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     cookieManager.flush();
                 } else {
-                    CookieSyncManager.createInstance(MyApplication.getInstance());
-                    CookieSyncManager.getInstance().sync();
+                    // 对于旧版本，直接使用CookieManager.flush()
+                    cookieManager.flush();
                 }
             }
 

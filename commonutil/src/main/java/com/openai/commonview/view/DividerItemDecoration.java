@@ -6,6 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 
+import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -29,7 +30,7 @@ public class DividerItemDecoration extends RecyclerView.ItemDecoration {
     }
 
     public DividerItemDecoration(Context context, int orientation, int resId) {
-        mDivider = context.getResources().getDrawable(resId);
+        mDivider = ContextCompat.getDrawable(context, resId);
         setOrientation(orientation);
     }
 
@@ -75,7 +76,7 @@ public class DividerItemDecoration extends RecyclerView.ItemDecoration {
         for (int i = 0; i < childCount; i++) {
             View child = parent.getChildAt(i);
             RecyclerView.LayoutParams params = (RecyclerView.LayoutParams) child.getLayoutParams();
-            int top = child.getBottom() + params.bottomMargin + (int) ViewCompat.getTranslationY(child);//可能有外边距 或 者有偏移的动画
+            int top = child.getBottom() + params.bottomMargin + (int) child.getTranslationY();//可能有外边距 或 者有偏移的动画
             int bottom = top + mDivider.getIntrinsicHeight();
             mDivider.setBounds(left, top, right, bottom);
             mDivider.draw(c);
@@ -96,7 +97,7 @@ public class DividerItemDecoration extends RecyclerView.ItemDecoration {
         for (int i = 0; i < childCount; i++) {
             View child = parent.getChildAt(i);
             RecyclerView.LayoutParams params = (RecyclerView.LayoutParams) child.getLayoutParams();
-            int left = child.getRight() + params.rightMargin + (int) ViewCompat.getTranslationX(child);//可能有外边距 或 者有偏移的动画
+            int left = child.getRight() + params.rightMargin + (int) child.getTranslationX();//可能有外边距 或 者有偏移的动画
             int right = left + mDivider.getIntrinsicWidth();
             mDivider.setBounds(left, top, right, bottom);
             mDivider.draw(c);

@@ -15,7 +15,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
-
+import android.os.Looper;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.NotificationCompat;
 
@@ -42,7 +42,7 @@ import com.openapi.ks.chat.R;
 import com.openapi.ks.chatfree.ui.main.MainFragmentViewPage;
 
 import java.io.File;
-
+@SuppressWarnings({"deprecation","unchecked"})
 public class VersionUpdater {
     private static final String VERSION_TAG = "REQUEST_VERSION_CHECK";
     private static int NOTIFICATION_ID = 10021;
@@ -94,7 +94,13 @@ public class VersionUpdater {
         try {
             PackageInfo info = manager.getPackageInfo(context.getPackageName(), 0);
             version = info.versionName;
-            build = info.versionCode;
+            // 兼容性处理：API 28+ 使用新方法，否则使用旧方法
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                build = (int) info.getLongVersionCode();
+            } else {
+                int versionCode = info.versionCode;
+                build = versionCode;
+            }
             isInitVersionSuccess = true;
         } catch (Exception e) {
             LogUtil.e(e);
@@ -258,7 +264,7 @@ public class VersionUpdater {
             this.context = context;
             this.url = url;
             this.apkFile = apkFile;
-            this.handler = new Handler();
+            this.handler = new Handler(Looper.getMainLooper());
             this.notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
             if (Build.VERSION.SDK_INT >= 26) {
                 NotificationChannel channel = new NotificationChannel(D_CHANNEL, "FreeVPN", NotificationManager.IMPORTANCE_HIGH);

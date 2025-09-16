@@ -42,12 +42,14 @@ public class LogFramgment extends Fragment {
         super.onCreate(savedInstanceState);
     }
 
+    @Deprecated
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
         LogUtil.i(getClass().getSimpleName() + "-setUserVisibleHint==" + isVisibleToUser);
     }
 
     @Override
+    @Deprecated
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         LogUtil.i(getClass().getSimpleName() + "-onActivityCreated");

@@ -508,22 +508,6 @@ public class ChatUiHelper {
         }, 200L);
     }
 
-
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
-    private int getSoftButtonsBarHeight() {
-        DisplayMetrics metrics = new DisplayMetrics();
-        ((Activity) mContext).getWindowManager().getDefaultDisplay().getMetrics(metrics);
-        int usableHeight = metrics.heightPixels;
-        ((Activity) mContext).getWindowManager().getDefaultDisplay().getRealMetrics(metrics);
-        int realHeight = metrics.heightPixels;
-        if (realHeight > usableHeight) {
-            return realHeight - usableHeight;
-        } else {
-            return 0;
-        }
-    }
-
-
     private static final String NAVIGATION = "navigationBarBackground";
 
     // 该方法需要在View完全被绘制出来之后调用，否则判断不了

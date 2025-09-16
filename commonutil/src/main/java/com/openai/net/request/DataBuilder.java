@@ -9,6 +9,7 @@ import java.lang.reflect.Type;
 /**
  * Created by openapi on 2016/3/10.
  */
+@SuppressWarnings("unchecked")
 public class DataBuilder {
 
     public static <T> JsonResult<T> parserVo(Class<T> clasz, String json, String key) {

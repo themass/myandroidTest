@@ -1,21 +1,23 @@
 package com.openapi.ks.myapp.task;
 
 import android.content.Context;
-import android.os.AsyncTask;
 
 import com.openai.commonutil.LogUtil;
 
 import java.io.File;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * 图片删除任务
  */
-public class DelImageTask extends AsyncTask<String, Void, Void> {
+public class DelImageTask {
     private final String path;
     private final Context context;
+    private static final ExecutorService executor = Executors.newCachedThreadPool();
 
     public static void startDel(Context context, String path) {
-        new DelImageTask(context, path).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        new DelImageTask(context, path).execute();
     }
     
     public DelImageTask(Context context, String path) {
@@ -23,17 +25,17 @@ public class DelImageTask extends AsyncTask<String, Void, Void> {
         this.context = context;
     }
     
-    @Override
-    protected Void doInBackground(String... params) {
-        try {
-            File file = new File(path);
-            if (file.exists()) {
-                boolean deleted = file.delete();
-                LogUtil.i("删除图片：" + path + ", 结果：" + deleted);
+    public void execute() {
+        executor.execute(() -> {
+            try {
+                File file = new File(path);
+                if (file.exists()) {
+                    boolean deleted = file.delete();
+                    LogUtil.i("删除图片：" + path + ", 结果：" + deleted);
+                }
+            } catch (Exception e) {
+                LogUtil.e(e);
             }
-        } catch (Exception e) {
-            LogUtil.e(e);
-        }
-        return null;
+        });
     }
 }

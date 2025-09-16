@@ -24,7 +24,7 @@ public class ImgChannleActivity extends BaseFragmentActivity {
         setFabUpVisibility(View.VISIBLE);
         Fragment fragment = null;
         try {
-            fragment = ImgChannleBodyFragment.class.newInstance();
+            fragment = ImgChannleBodyFragment.class.getDeclaredConstructor().newInstance();
             fragment.setArguments(getIntent().getExtras());
         } catch (Exception e) {
             LogUtil.e(e);

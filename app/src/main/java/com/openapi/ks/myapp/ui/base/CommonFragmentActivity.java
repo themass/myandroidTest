@@ -1,6 +1,7 @@
 package com.openapi.ks.myapp.ui.base;
 
 import android.os.Bundle;
+import android.os.Build;
 
 import androidx.fragment.app.Fragment;
 
@@ -53,10 +54,21 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
             disableScrollBanner();
         }
         showToolbar(toolbarShow);
-        Class f = (Class) getIntent().getSerializableExtra(FRAGMENT);
+        // 兼容性处理：API 33+ 使用新方法，否则使用旧方法
+        Class f;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            f = getIntent().getSerializableExtra(FRAGMENT, Class.class);
+        } else {
+            f = (Class) getIntent().getSerializableExtra(FRAGMENT);
+        }
         showAds = getIntent().getBooleanExtra(BANNER_ADS_SHOW, false);
         needFabup = getIntent().getBooleanExtra(FABUP_SHOW, true);
-        Object o = getIntent().getSerializableExtra(BANNER_ADS_CATEGRY);
+        Object o;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            o = getIntent().getSerializableExtra(BANNER_ADS_CATEGRY, Serializable.class);
+        } else {
+            o = getIntent().getSerializableExtra(BANNER_ADS_CATEGRY);
+        }
         if (o != null) {
             bannerCategrey = (AdsContext.Categrey) o;
         }
@@ -64,17 +76,28 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
             setFabUpVisibility(View.VISIBLE);
         }
         String title = null;
-        Serializable name = getIntent().getSerializableExtra(TITLE);
+        Serializable name;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            name = getIntent().getSerializableExtra(TITLE, Serializable.class);
+        } else {
+            name = getIntent().getSerializableExtra(TITLE);
+        }
         if (name instanceof String) {
             title = (String) name;
         } else if (name instanceof Integer) {
             title = getString((Integer) name);
         }
         try {
-            fragment = (Fragment) f.newInstance();
-            if (getIntent().getSerializableExtra(PARAM) != null) {
+            fragment = (Fragment) f.getDeclaredConstructor().newInstance();
+            Serializable param;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                param = getIntent().getSerializableExtra(PARAM, Serializable.class);
+            } else {
+                param = getIntent().getSerializableExtra(PARAM);
+            }
+            if (param != null) {
                 Bundle bundle = new Bundle();
-                bundle.putSerializable(PARAM, getIntent().getSerializableExtra(PARAM));
+                bundle.putSerializable(PARAM, param);
                 fragment.setArguments(bundle);
             }
             if (fragment instanceof FabOpListener.SetFabListener) {

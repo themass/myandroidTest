@@ -2,7 +2,8 @@ package com.openapi.ks.myapp.task;
 
 import android.content.Context;
 import android.net.Uri;
-import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Looper;
 
 import com.openai.commonutil.FileUtils;
 import com.openai.commonutil.LogUtil;
@@ -10,17 +11,22 @@ import com.openai.commonutil.PathUtil;
 import com.openai.net.HttpUtils;
 
 import java.io.File;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * 图片下载
  */
-public class SaveTextTask extends AsyncTask<String, Void, Void> {
+public class SaveTextTask {
+    private static final ExecutorService executor = Executors.newCachedThreadPool();
+    private static final Handler mainHandler = new Handler(Looper.getMainLooper());
+    
     private String url;
     private Context context;
     private File currentFile;
 
     public static void startSave(Context context, String url) {
-        new SaveTextTask(context, url).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        new SaveTextTask(context, url).execute();
     }
 
     public SaveTextTask(Context context, String url) {
@@ -28,17 +34,17 @@ public class SaveTextTask extends AsyncTask<String, Void, Void> {
         this.context = context;
     }
 
-    @Override
-    protected Void doInBackground(String... params) {
-        try {
-            Uri uri = Uri.parse(url);
-            String filename = PathUtil.getFileExtensionFromUrl(url);
-            File file = new File(FileUtils.getWriteFilePath(context), filename);
-            FileUtils.deleteFile(file);
-            HttpUtils.download(context, url, file, null);
-        } catch (Exception e) {
-            LogUtil.e(e);
-        }
-        return null;
+    public void execute() {
+        executor.execute(() -> {
+            try {
+                Uri uri = Uri.parse(url);
+                String filename = PathUtil.getFileExtensionFromUrl(url);
+                File file = new File(FileUtils.getWriteFilePath(context), filename);
+                FileUtils.deleteFile(file);
+                HttpUtils.download(context, url, file, null);
+            } catch (Exception e) {
+                LogUtil.e(e);
+            }
+        });
     }
 }

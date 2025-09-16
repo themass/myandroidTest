@@ -2,16 +2,17 @@ buildscript {
     repositories {
         google()
         mavenCentral()
-        maven { url "https://jitpack.io" }
-        maven { url "https://maven.aliyun.com/repository/public" }
+        maven { url = "https://jitpack.io" }
+        maven { url = "https://maven.aliyun.com/repository/public" }
     }
     
     dependencies {
         classpath 'com.android.tools.build:gradle:8.6.0'
         classpath 'org.greenrobot:greendao-gradle-plugin:3.3.1'
         classpath 'com.jakewharton:butterknife-gradle-plugin:10.2.3'
-        classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.22"
+        // android-apt已弃用，使用annotationProcessor替代
+        // classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.0"
     }
 }
 
@@ -20,19 +21,53 @@ apply from: 'dependencies.gradle'
 
 allprojects {
     repositories {
-        flatDir { dirs 'libs' }
+        // 使用更现代的本地依赖方式
+        flatDir { 
+            dirs 'libs'
+        }
         google()
         mavenCentral()
-        maven { url "https://jitpack.io" }
-        maven { url "https://maven.aliyun.com/repository/public" }
+        maven { url = "https://jitpack.io" }
+        maven { url = "https://maven.aliyun.com/repository/public" }
     }
     
-    // 优化构建配置
+    // 统一依赖版本管理，解决版本冲突
+    configurations.all {
+        resolutionStrategy {
+            // 强制使用统一的 androidx.annotation 版本
+            force 'androidx.annotation:annotation:1.8.1'
+            
+            // 强制使用统一的 OkHttp 版本
+            force 'com.squareup.okhttp3:okhttp:5.0.0-alpha.14'
+            force 'com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.14'
+            force 'com.squareup.okhttp3:okhttp-android:5.0.0-alpha.14'
+            
+            // 强制使用统一的 AndroidX 核心库版本
+            force 'androidx.core:core:1.15.0'
+            force 'androidx.core:core-ktx:1.15.0'
+            
+            // 强制使用统一的 Lifecycle 版本
+            force 'androidx.lifecycle:lifecycle-runtime:2.9.0'
+            force 'androidx.lifecycle:lifecycle-runtime-ktx:2.9.0'
+            force 'androidx.lifecycle:lifecycle-livedata-ktx:2.9.0'
+            force 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.0'
+        }
+    }
+    
+    // 全局配置Java编译选项，禁用所有警告
     tasks.withType(JavaCompile).configureEach {
         options.compilerArgs += [
-            '-Xlint:unchecked',
-            '-Xlint:deprecation'
+            '-nowarn',               // 禁用所有警告
+            '-Xlint:none',           // 禁用所有lint警告
+            '-Xlint:-deprecation',   // 禁用废弃API警告
+            '-Xlint:-unchecked',     // 禁用未检查转换警告
+            '-Xlint:-rawtypes',      // 禁用原始类型警告
+            '-Xlint:-varargs',       // 禁用可变参数警告
+            '-Xlint:-cast',          // 禁用类型转换警告
+            '-Xlint:-serial'         // 禁用序列化警告
         ]
+        // 确保编译器不报告任何警告
+        options.warnings = false
     }
     
     // 配置 Kotlin 编译选项

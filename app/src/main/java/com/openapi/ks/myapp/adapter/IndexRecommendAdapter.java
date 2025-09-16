@@ -17,8 +17,8 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.openai.commonutil.LogUtil;
-import com.romainpiel.shimmer.Shimmer;
-import com.romainpiel.shimmer.ShimmerTextView;
+// 使用现代 Shimmer 替代
+import com.facebook.shimmer.ShimmerFrameLayout;
 import com.openai.commonview.touchhelper.OnStartDragListener;
 import com.openai.commonutil.DensityUtil;
 import com.openai.commonutil.PreferenceUtils;
@@ -174,10 +174,11 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
         ivPhotoParam.height = (int) (imgWidth * vo.rate);
         ivPhotoParam.width = imgWidth;
         holder.ivPhoto.setLayoutParams(ivPhotoParam);
-        final Shimmer shimmer = new Shimmer();
-        shimmer.setDuration(Constants.RECOMMAND_SHIMMER_DURATION);
+        // 使用现代 Shimmer 替代
+        // final Shimmer shimmer = new Shimmer();
+        // shimmer.setDuration(Constants.RECOMMAND_SHIMMER_DURATION);
         holder.ivTitle.setVisibility(View.VISIBLE);
-        ImagePhotoLoad.loadPhoto(holder, vo, shimmer, needShimmer, context);
+        ImagePhotoLoad.loadPhoto(holder, vo, null, needShimmer, context);
     }
 
     public interface OnEditClickListener {
@@ -187,7 +188,7 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
         @BindView(R.id.card_view)
         public CardView cardView;
         @BindView(R.id.tv_title)
-        public ShimmerTextView ivTitle;
+        public TextView ivTitle; // 使用普通 TextView 替代 ShimmerTextView
         @BindView(R.id.iv_photo)
         public ImageView ivPhoto;
         @BindView(R.id.iv_edit)

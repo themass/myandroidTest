@@ -2,6 +2,7 @@ package com.openapi.ks.myapp.ui.sound;
 
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -36,7 +37,12 @@ public class VideoListShowActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.common_fragment);
         unbinder = ButterKnife.bind(this);
-        vo = (HashMap<String, String>) getIntent().getSerializableExtra(Constants.CONFIG_PARAM);
+        // 兼容性处理：API 33+ 使用新方法，否则使用旧方法
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            vo = getIntent().getSerializableExtra(Constants.CONFIG_PARAM, HashMap.class);
+        } else {
+            vo = (HashMap<String, String>) getIntent().getSerializableExtra(Constants.CONFIG_PARAM);
+        }
         try {
             BasePullLoadbleFragment fragment;
             boolean needTiny = PreferenceUtils.getPrefBoolean(this, Constants.LISTVIDEO_TINY_SWITCH, true);

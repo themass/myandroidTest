@@ -1,10 +1,14 @@
 package com.openapi.ks.myapp.ui.base.app;
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.openai.commonutil.LogUtil;
 import com.openai.commonutil.ViewUtils;
@@ -43,7 +47,12 @@ public abstract class BaseFragment extends LogFramgment {
     public Serializable getSerializable() {
         Bundle bundle = getArguments();
         if (bundle != null) {
-            return bundle.getSerializable(FRAGMENT_ARG);
+            // 兼容性处理：API 33+ 使用新方法，否则使用旧方法
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                return bundle.getSerializable(FRAGMENT_ARG, Serializable.class);
+            } else {
+                return (Serializable) bundle.getSerializable(FRAGMENT_ARG);
+            }
         }
         return null;
     }
@@ -97,8 +106,9 @@ public abstract class BaseFragment extends LogFramgment {
     }
 
     @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        // 使用现代生命周期方法替代onActivityCreated
         // Restore State Here
         if (!restoreStateFromArguments()) {
             // First Time, Initialize something here

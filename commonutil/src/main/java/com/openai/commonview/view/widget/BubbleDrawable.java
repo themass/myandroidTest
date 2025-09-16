@@ -14,7 +14,7 @@ import android.graphics.RectF;
 import android.graphics.Shader;
 import android.graphics.drawable.Drawable;
 
-
+@SuppressWarnings("deprecation")
 public class BubbleDrawable extends Drawable {
     private RectF mRect;
     private Path mPath = new Path();

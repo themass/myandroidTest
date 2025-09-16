@@ -8,6 +8,7 @@ import java.util.Map;
 /**
  * Created by openapi on 2016/4/6.
  */
+@SuppressWarnings("unchecked")
 public class StaticDataUtil {
     private static Map<String, Object> data = new HashMap<>();
 
@@ -21,7 +22,11 @@ public class StaticDataUtil {
 
     public static <T> T get(String key, Class<T> clasz) {
         try {
-            return (T) data.get(key);
+            Object value = data.get(key);
+            if (value != null && clasz.isAssignableFrom(value.getClass())) {
+                return clasz.cast(value);
+            }
+            return null;
         } catch (Exception e) {
             data.remove(key);
             return null;
@@ -30,11 +35,14 @@ public class StaticDataUtil {
 
     public static <T> T get(String key, Class<T> clasz, T defaultVal) {
         try {
-            T ret = (T) data.get(key);
-            return ret == null ? defaultVal : ret;
+            Object value = data.get(key);
+            if (value != null && clasz.isAssignableFrom(value.getClass())) {
+                return clasz.cast(value);
+            }
+            return defaultVal;
         } catch (Exception e) {
             data.remove(key);
-            return null;
+            return defaultVal;
         }
     }
 

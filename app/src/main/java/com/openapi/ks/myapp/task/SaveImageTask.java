@@ -4,7 +4,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
-import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.MediaStore;
 
 import com.bumptech.glide.Glide;
@@ -17,18 +18,23 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * 图片下载
  */
-public class SaveImageTask extends AsyncTask<String, Void, Void> {
+public class SaveImageTask {
+    private static final ExecutorService executor = Executors.newCachedThreadPool();
+    private static final Handler mainHandler = new Handler(Looper.getMainLooper());
+    
     private String url;
     private Context context;
     private SaveImageCallBack callBack;
     private File currentFile;
 
     public static void startSave(Context context, String url, SaveImageCallBack callBack) {
-        new SaveImageTask(context, url, callBack).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        new SaveImageTask(context, url, callBack).execute();
     }
 
     public SaveImageTask(Context context, String url, SaveImageCallBack callBack) {
@@ -37,32 +43,39 @@ public class SaveImageTask extends AsyncTask<String, Void, Void> {
         this.context = context;
     }
 
-    @Override
-    protected Void doInBackground(String... params) {
-        Bitmap bitmap = null;
-        try {
-            bitmap = Glide.with(context)
-                    .asBitmap()
-                    .load(url)
-                    .into(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
-                    .get();
-            if (bitmap != null) {
-                // 在这里执行图片保存方法
-                saveImageToGallery(context, url, bitmap);
+    public void execute() {
+        executor.execute(() -> {
+            try {
+                Bitmap bitmap = null;
+                try {
+                    bitmap = Glide.with(context)
+                            .asBitmap()
+                            .load(url)
+                            .into(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
+                            .get();
+                    if (bitmap != null) {
+                        // 在这里执行图片保存方法
+                        saveImageToGallery(context, url, bitmap);
+                    }
+                } catch (Exception e) {
+                    LogUtil.e(e);
+                }
+                
+                // 在主线程中执行回调
+                mainHandler.post(() -> {
+                    if (currentFile != null && currentFile.exists()) {
+                        callBack.onSuccess();
+                    } else {
+                        callBack.onFailed();
+                    }
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+                mainHandler.post(() -> {
+                    callBack.onFailed();
+                });
             }
-        } catch (Exception e) {
-            LogUtil.e(e);
-        }
-        return null;
-    }
-
-    @Override
-    protected void onPostExecute(Void aVoid) {
-        if (currentFile != null && currentFile.exists()) {
-            callBack.onSuccess();
-        } else {
-            callBack.onFailed();
-        }
+        });
     }
 
     public void saveImageToGallery(Context context, String url, Bitmap bmp) {

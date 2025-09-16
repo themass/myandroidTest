@@ -1,20 +1,29 @@
 package com.openai.commonutil.cache;
 
 import android.content.Context;
-import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 
 import com.google.gson.Gson;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
 /**
  * Created by wjying on 13-12-22.
  */
-public class CacheTask<T> extends AsyncTask<Void, Void, T> {
+@SuppressWarnings({"deprecation","unchecked"})
+public class CacheTask<T> {
+    private static final ExecutorService executor = Executors.newCachedThreadPool();
+    private static final Handler mainHandler = new Handler(Looper.getMainLooper());
+    
     private final Gson gson = new Gson();
     private Context mContext;
     private String mUrl;
     private CacheTaskResponse mCacheTaskResponse;
+    private boolean isCancelled = false;
 
     public CacheTask(Context context, String url, CacheTaskResponse cacheTaskResponse) {
         mContext = context.getApplicationContext();
@@ -22,31 +31,58 @@ public class CacheTask<T> extends AsyncTask<Void, Void, T> {
         mCacheTaskResponse = cacheTaskResponse;
     }
 
-    @Override
-    protected final T doInBackground(Void... params) {
-        if (TextUtils.isEmpty(mUrl)) {
-            return null;
-        }
-        SimpleDiskCache.StringEntry entry = null;
-        try {
-            entry = SimpleDiskCacheUtils.getSimpleDiskCache(mContext).getString(mUrl);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return parse(entry != null ? entry.getString() : null);
+    public void execute() {
+        executor.execute(() -> {
+            if (isCancelled) {
+                return;
+            }
+            
+            try {
+                if (TextUtils.isEmpty(mUrl)) {
+                    mainHandler.post(() -> {
+                        if (mCacheTaskResponse != null) {
+                            mCacheTaskResponse.onResponse(null);
+                        }
+                    });
+                    return;
+                }
+                
+                SimpleDiskCache.StringEntry entry = null;
+                try {
+                    entry = SimpleDiskCacheUtils.getSimpleDiskCache(mContext).getString(mUrl);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                
+                T result = parse(entry != null ? entry.getString() : null);
+                
+                if (!isCancelled) {
+                    mainHandler.post(() -> {
+                        if (mCacheTaskResponse != null) {
+                            mCacheTaskResponse.onResponse(result);
+                        }
+                    });
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                if (!isCancelled) {
+                    mainHandler.post(() -> {
+                        if (mCacheTaskResponse != null) {
+                            mCacheTaskResponse.onResponse(null);
+                        }
+                    });
+                }
+            }
+        });
     }
 
-    @Override
-    protected void onCancelled() {
-        super.onCancelled();
+    public void cancel() {
+        isCancelled = true;
         mCacheTaskResponse = null;
     }
-
-    @Override
-    protected final void onPostExecute(T t) {
-        if (mCacheTaskResponse != null) {
-            mCacheTaskResponse.onResponse(t);
-        }
+    
+    public boolean isCancelled() {
+        return isCancelled;
     }
 
     protected T parse(String cache) {

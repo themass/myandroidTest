@@ -47,9 +47,12 @@ public class AudioMngHelper {
      */
     public final static int FLAG_SHOW_UI = AudioManager.FLAG_SHOW_UI;
     public final static int FLAG_PLAY_SOUND = AudioManager.FLAG_PLAY_SOUND;
-    public final static int FLAG_NOTHING = 0;
+    public final static int FLAG_ALLOW_RINGER_MODES = AudioManager.FLAG_ALLOW_RINGER_MODES;
+    public final static int FLAG_REMOVE_SOUND_AND_VIBRATE = AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE;
+    public final static int FLAG_VIBRATE = AudioManager.FLAG_VIBRATE;
+    public final static int FLAG_NOTHING = 0; // 自定义常量，用于表示无标志
 
-    @IntDef({FLAG_SHOW_UI, FLAG_PLAY_SOUND, FLAG_NOTHING})
+    @IntDef({FLAG_SHOW_UI, FLAG_PLAY_SOUND, FLAG_ALLOW_RINGER_MODES, FLAG_REMOVE_SOUND_AND_VIBRATE, FLAG_VIBRATE, FLAG_NOTHING})
     @Retention(RetentionPolicy.SOURCE)
     public @interface FLAG {
     }

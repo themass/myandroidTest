@@ -2,12 +2,15 @@ package com.openai.commonview.view.gallery;
 
 import android.content.Context;
 import android.graphics.PointF;
+import android.os.Build;
+import android.util.DisplayMetrics;
+import android.view.Display;
 import android.view.WindowManager;
 
 /**
  * Created by shuyu on 2016/11/9.
  */
-
+@SuppressWarnings("deprecation")
 public class CommonUtil {
 
     public static PointF getNeedSize(Context context, final float width, final float height) {
@@ -32,12 +35,34 @@ public class CommonUtil {
 
     public static int getScreenWidth(Context context) {
         WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-        return wm.getDefaultDisplay().getWidth();
+        
+        // 使用现代API (API 30+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            return wm.getCurrentWindowMetrics().getBounds().width();
+        } else {
+            // 兼容旧版本，使用DisplayMetrics
+            DisplayMetrics dm = new DisplayMetrics();
+            @SuppressWarnings("deprecation")
+            Display display = wm.getDefaultDisplay();
+            display.getMetrics(dm);
+            return dm.widthPixels;
+        }
     }
 
     public static int getScreenHeight(Context context) {
         WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-        return wm.getDefaultDisplay().getHeight();
+        
+        // 使用现代API (API 30+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            return wm.getCurrentWindowMetrics().getBounds().height();
+        } else {
+            // 兼容旧版本，使用DisplayMetrics
+            DisplayMetrics dm = new DisplayMetrics();
+            @SuppressWarnings("deprecation")
+            Display display = wm.getDefaultDisplay();
+            display.getMetrics(dm);
+            return dm.heightPixels;
+        }
     }
 
 
@@ -47,8 +72,8 @@ public class CommonUtil {
     }
 
     public static int sp2px(Context context, float spValue) {
-        float fontScale = context.getResources().getDisplayMetrics().scaledDensity;
-        return (int) (spValue * fontScale + 0.5f);
+        // 使用现代方式计算sp到px的转换
+        return (int) (spValue * context.getResources().getDisplayMetrics().density + 0.5f);
     }
 
 

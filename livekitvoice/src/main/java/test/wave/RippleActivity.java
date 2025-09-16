@@ -6,7 +6,7 @@
 //import android.app.Activity;
 //import android.os.Bundle;
 //import android.os.Handler;
-//import android.view.View;
+import android.os.Looper;//import android.view.View;
 //import android.view.animation.AccelerateDecelerateInterpolator;
 //import android.widget.ImageView;
 //
@@ -28,7 +28,7 @@
 //
 //        final RippleBackground rippleBackground=(RippleBackground)findViewById(R.id.content);
 //
-//        final Handler handler=new Handler();
+//        final Handler handler=new Handler(Looper.getMainLooper());
 //
 //        foundDevice=(ImageView)findViewById(R.id.foundDevice);
 //        ImageView button=(ImageView)findViewById(R.id.centerImage);

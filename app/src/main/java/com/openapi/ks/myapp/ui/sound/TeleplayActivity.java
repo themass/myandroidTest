@@ -23,7 +23,7 @@ public class TeleplayActivity extends BaseFragmentActivity {
         setFabUpVisibility(View.VISIBLE);
         Fragment fragment = null;
         try {
-            fragment = ImgChannleBodyFragment.class.newInstance();
+            fragment = ImgChannleBodyFragment.class.getDeclaredConstructor().newInstance();
             Bundle bundle = new Bundle();
             fragment.setArguments(getIntent().getExtras());
         } catch (Exception e) {

@@ -3,6 +3,7 @@ package com.openapi.ks.myapp.ui.fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Build;
 import android.view.View;
 
 import com.openai.commonutil.LogUtil;
@@ -37,7 +38,12 @@ public class VideoChannelUserListFragment extends RecommendFragment {
     @Override
     public void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
-        vo = (RecommendVo) getArguments().getSerializable(CommonFragmentActivity.PARAM);
+        // 兼容性处理：API 33+ 使用新方法，否则使用旧方法
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            vo = getArguments().getSerializable(CommonFragmentActivity.PARAM, RecommendVo.class);
+        } else {
+            vo = (RecommendVo) getArguments().getSerializable(CommonFragmentActivity.PARAM);
+        }
         LogUtil.i(vo.title);
     }
 

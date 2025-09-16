@@ -1,5 +1,6 @@
 package com.openapi.ks.myapp.ui.base.app;
 
+import android.os.Build;
 import com.openai.commonutil.LogUtil;
 import com.openai.ads.yewu.um.MobAgent;
 
@@ -23,6 +24,11 @@ public class BaseFragmentActivity extends BaseBannerAdsActivity {
     public void onBackPressed() {
         // 点击后退关闭轮播插屏广告
         LogUtil.i("onBackPressed");
-        super.onBackPressed();
+        // 使用现代API
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            getOnBackPressedDispatcher().onBackPressed();
+        } else {
+            super.onBackPressed();
+        }
     }
 }

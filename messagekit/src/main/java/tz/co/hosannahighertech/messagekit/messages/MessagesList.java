@@ -91,7 +91,11 @@ public class MessagesList extends RecyclerView {
 
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-                MESSAGE message = adapter.getMessageByIndex(viewHolder.getAdapterPosition());
+                int position = viewHolder.getBindingAdapterPosition();
+                if (position == RecyclerView.NO_POSITION) {
+                    return;
+                }
+                MESSAGE message = adapter.getMessageByIndex(position);
                 if (direction == ItemTouchHelper.LEFT) {
                     listener.onSwipeLeft(message);
                 } else if (direction == ItemTouchHelper.RIGHT) {

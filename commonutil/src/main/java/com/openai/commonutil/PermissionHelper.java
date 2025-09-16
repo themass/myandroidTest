@@ -7,16 +7,26 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.provider.Settings;
 
+import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+
+import com.openai.commonutil.permission.CompatiblePermissionManager;
+import com.openai.commonutil.permission.PermissionUtils;
+
 import java.util.Arrays;
 import java.util.List;
 
-
+/**
+ * 权限助手类（兼容所有版本）
+ * 提供向后兼容的权限管理API
+ */
 public class PermissionHelper {
     public static final int CODE_GET_ACCOUNTS = 0;
+    private static final int REQUEST_CODE_SETTINGS = 1001;
     public static final int CODE_READ_PHONE_STATE = 1;
     public static final int CODE_ACCESS_COARSE_LOCATION = 2;
     public static final int CODE_WRITE_EXTERNAL_STORAGE = 3;
@@ -38,17 +48,23 @@ public class PermissionHelper {
 //    }
     public static final String PACKAGE = "package:";
     private Activity mContext;
+    private CompatiblePermissionManager mPermissionManager;
 
     public PermissionHelper(Activity context) {
         this.mContext = context;
+        this.mPermissionManager = new CompatiblePermissionManager(context);
     }
 
     /**
-     * 判断权限集合
+     * 判断权限集合（兼容所有版本）
      *
      * @return 权限已全部获取返回true，未全部获取返回false
      */
     public boolean checkPermissions(List<String> permissions) {
+        if (mPermissionManager != null) {
+            return mPermissionManager.hasPermissions(permissions);
+        }
+        // 降级到传统方式
         for (String permission : permissions) {
             if (!checkPermission(permission)) {
                 return false;
@@ -84,29 +100,58 @@ public class PermissionHelper {
     }
 
     /**
-     * 判断权限是否获取
+     * 判断权限是否获取（兼容所有版本）
      *
      * @param permission 权限名称
      * @return 已授权返回true，未授权返回false
      */
     public boolean checkPermission(String permission) {
-        return ContextCompat.checkSelfPermission(mContext, permission) == PackageManager.PERMISSION_GRANTED;
+        if (mPermissionManager != null) {
+            return mPermissionManager.hasPermission(permission);
+        }
+        // 降级到传统方式
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            return ContextCompat.checkSelfPermission(mContext, permission) == PackageManager.PERMISSION_GRANTED;
+        } else {
+            // Android 6.0以下，权限在安装时授予
+            return true;
+        }
     }
 
 
     /**
-     * 获取权限
+     * 获取权限（兼容所有版本）
      *
-     * @param resultCode
-     * @return
+     * @param permission 权限名称
+     * @param resultCode 结果代码
      */
     public void permissionsCheck(String permission, int resultCode) {
-        // 注意这里要使用shouldShowRequestPermissionRationale而不要使用requestPermission方法
-        if (ActivityCompat.shouldShowRequestPermissionRationale(mContext, permission)) {
-            //如果用户以前拒绝过改权限申请，则给用户提示
-            showMissingPermissionDialog();
+        if (mPermissionManager != null) {
+            mPermissionManager.requestPermissions(Arrays.asList(permission), new CompatiblePermissionManager.SimplePermissionCallback() {
+                @Override
+                public void onPermissionsGranted(@NonNull List<String> permissions) {
+                    LogUtil.i("权限已授予: " + permissions);
+                }
+
+                @Override
+                public void onPermissionsDenied(@NonNull List<String> permissions) {
+                    LogUtil.i("权限被拒绝: " + permissions);
+                    showMissingPermissionDialog();
+                }
+            });
         } else {
-            ActivityCompat.requestPermissions(mContext, new String[]{permission}, resultCode);
+            // 降级到传统方式
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (ActivityCompat.shouldShowRequestPermissionRationale(mContext, permission)) {
+                    //如果用户以前拒绝过改权限申请，则给用户提示
+                    showMissingPermissionDialog();
+                } else {
+                    ActivityCompat.requestPermissions(mContext, new String[]{permission}, resultCode);
+                }
+            } else {
+                // Android 6.0以下，权限在安装时授予
+                LogUtil.i("传统权限系统：权限已在安装时授予");
+            }
         }
     }
 
@@ -135,11 +180,37 @@ public class PermissionHelper {
         builder.show();
     }
 
-    // 启动应用的设置
+    // 启动应用的设置（兼容所有版本）
     public void startAppSettings() {
-        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-        intent.setData(Uri.parse(PACKAGE + mContext.getPackageName()));
-        mContext.startActivityForResult(intent, 1);
+        if (mPermissionManager != null) {
+            mPermissionManager.openAppSettings();
+        } else {
+            // 降级到传统方式
+            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+            intent.setData(Uri.parse(PACKAGE + mContext.getPackageName()));
+            // 保持原有逻辑，使用startActivityForResult检查权限状态变化
+            if (mContext instanceof Activity) {
+                ((Activity) mContext).startActivityForResult(intent, REQUEST_CODE_SETTINGS);
+            } else {
+                mContext.startActivity(intent);
+            }
+        }
+    }
+    
+    /**
+     * 获取权限管理器
+     */
+    public CompatiblePermissionManager getPermissionManager() {
+        return mPermissionManager;
+    }
+    
+    /**
+     * 处理权限请求结果（用于传统方式）
+     */
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (mPermissionManager != null) {
+            mPermissionManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
     }
 
 }

@@ -10,7 +10,7 @@ import android.media.MediaPlayer.OnCompletionListener;
 import android.media.MediaPlayer.OnPreparedListener;
 import android.os.Binder;
 import android.os.Handler;
-import android.os.IBinder;
+import android.os.Looper;import android.os.IBinder;
 
 
 import com.openai.commonutil.LogUtil;
@@ -48,7 +48,7 @@ public class PlayService extends Service {
     /**
      * handler用来接收消息，来发送广播更新播放时间
      */
-    private Handler handler = new Handler() {
+    private Handler handler = new Handler(Looper.getMainLooper()) {
         public void handleMessage(android.os.Message msg) {
             if (msg.what == 1) {
                 if (mediaPlayer != null) {

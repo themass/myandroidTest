@@ -3,6 +3,7 @@ package com.openapi.ks.myapp.adapter;
 import android.os.SystemClock;
 
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -50,11 +51,11 @@ public class TextChannelListItemsViewAdapter extends BaseRecyclerViewAdapter<Tex
         holder.tvName.setText(vo.name);
         holder.tvDate.setText(vo.fileDate);
         if (position == getSelected()) {
-            holder.tvName.setTextColor(context.getResources().getColor(R.color.click));
+            holder.tvName.setTextColor(ContextCompat.getColor(context, R.color.click));
         } else if (HistoryUtil.getHistory(context, vo.fileUrl) != null) {
-            holder.tvName.setTextColor(context.getResources().getColor(R.color.base_gray));
+            holder.tvName.setTextColor(ContextCompat.getColor(context, R.color.base_gray));
         } else {
-            holder.tvName.setTextColor(context.getResources().getColor(R.color.base_black));
+            holder.tvName.setTextColor(ContextCompat.getColor(context, R.color.base_black));
         }
         if (Constants.BANNER_ADS_POS.contains(position)) {
             if (position % 3 == 0) {

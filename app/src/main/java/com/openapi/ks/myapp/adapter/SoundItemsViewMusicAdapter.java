@@ -3,6 +3,7 @@ package com.openapi.ks.myapp.adapter;
 import android.content.Context;
 
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.view.LayoutInflater;
@@ -51,8 +52,8 @@ public class SoundItemsViewMusicAdapter extends BaseRecyclerViewAdapter<SoundIte
         holder.artist.setText(vo.fileDate);
 //        holder.albumArt.setImageResource(R.drawable.ic_empty_music2);
         if (position == getSelected()) {
-            holder.title.setTextColor(context.getResources().getColor(R.color.song_select_title));
-            holder.visualizer.setColor(context.getResources().getColor(R.color.song_red));
+            holder.title.setTextColor(ContextCompat.getColor(context, R.color.song_select_title));
+            holder.visualizer.setColor(ContextCompat.getColor(context, R.color.song_red));
             holder.visualizer.setVisibility(View.VISIBLE);
             holder.visualizer.startAnima();
 //            if(mService!=null && mService.isPlaying()){
@@ -62,7 +63,7 @@ public class SoundItemsViewMusicAdapter extends BaseRecyclerViewAdapter<SoundIte
 //            }
             setAnimation(holder.itemView, position);
         } else {
-            holder.title.setTextColor(context.getResources().getColor(R.color.main_dark));
+            holder.title.setTextColor(ContextCompat.getColor(context, R.color.main_dark));
             holder.visualizer.setVisibility(View.GONE);
         }
     }

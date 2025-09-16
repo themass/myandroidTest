@@ -95,8 +95,9 @@ public class FeedbackFragment extends LoadableFragment<InfoListVo<IWannaVo>> imp
         indexService.setup(getActivity());
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity()) {
             @Override
+            @Deprecated
             protected int getExtraLayoutSpace(RecyclerView.State state) {
-                return 300;
+                return 300; // TODO: 使用RecyclerView的预取机制替代
             }
         };
         infoVo.voList = new ArrayList<>();

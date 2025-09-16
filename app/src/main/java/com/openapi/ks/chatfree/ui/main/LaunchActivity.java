@@ -5,6 +5,7 @@ import android.content.pm.PackageManager;
 import android.icu.text.IDNA;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.view.KeyEvent;
 import android.view.View;
@@ -70,7 +71,7 @@ public class LaunchActivity extends LogActivity {
             launch();
         }
     };
-    private Handler mHandler = new Handler() {
+    private Handler mHandler = new Handler(Looper.getMainLooper()) {
         @Override
         public void handleMessage(Message msg) {
             now = now + 1000;

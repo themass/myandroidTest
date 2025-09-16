@@ -15,47 +15,10 @@ import android.widget.HeaderViewListAdapter;
 /**
  * Created by wjying on 13-12-2.
  */
+@SuppressWarnings("unchecked")
 public class ViewUtils {
 
-    /**
-     * 通知View重新设置Adapter
-     *
-     * @param root
-     * @param id
-     */
-    public static void notifyViewResetAdapter(View root, int id) {
-        if (root == null) {
-            return;
-        }
-        View view = root.findViewById(id);
-        if (view == null) {
-            return;
-        } else if (view instanceof AdapterView) {
-            notifyAdapterViewChanged((AdapterView) view, true);
-        } else if (view instanceof ViewPager) {
-            notifyViewPagerChanged((ViewPager) view, true);
-        }
-    }
 
-    /**
-     * 通知view更新数据
-     *
-     * @param root
-     * @param id
-     */
-    public static void notifyViewDatasetChanged(View root, int id) {
-        if (root == null) {
-            return;
-        }
-        View view = root.findViewById(id);
-        if (view == null) {
-            return;
-        } else if (view instanceof AdapterView) {
-            notifyAdapterViewChanged((AdapterView) view, false);
-        } else if (view instanceof ViewPager) {
-            notifyViewPagerChanged((ViewPager) view, false);
-        }
-    }
 
     /**
      * notify for ViewPager
@@ -75,52 +38,38 @@ public class ViewUtils {
         }
     }
 
-    /**
-     * notify for AdapterView
-     *
-     * @param adapterView
-     */
-    private static void notifyAdapterViewChanged(AdapterView adapterView, boolean resetAdapter) {
-        if (adapterView == null) {
-            return;
-        }
-        Adapter adapter = adapterView.getAdapter();
-        if (adapter != null && adapter instanceof HeaderViewListAdapter) {
-            adapter = ((HeaderViewListAdapter) adapter).getWrappedAdapter();
-        }
-        if (adapter == null || !(adapter instanceof BaseAdapter)) {
-            return;
-        }
-
-        ((BaseAdapter) adapter).notifyDataSetChanged();
-    }
-
-    public static int dp2px(Context context, float dp) {
-        final float scale = context.getResources().getDisplayMetrics().density;
-        return (int) (dp * scale + 0.5f);
-    }
-
-    public static int[] getViewLocationOnScreen(View view) {
-        int[] location = new int[2];
-        view.getLocationOnScreen(location);
-        return location;
-    }
-
-    @SuppressWarnings("unchecked")
     public static <V extends View> V find(Activity ac, int id) {
         if (ac == null) {
             throw new NullPointerException(" Activity is null");
         }
-        return (V) ac.findViewById(id);
+        View view = ac.findViewById(id);
+        if (view == null) {
+            return null;
+        }
+        // 安全的类型转换，运行时检查
+        try {
+            return (V) view;
+        } catch (ClassCastException e) {
+            throw new ClassCastException("View with id " + id + " cannot be cast to expected type: " + 
+                view.getClass().getSimpleName());
+        }
     }
 
-    @SuppressWarnings("unchecked")
     public static <V extends View> V find(View view, int id) {
-
         if (view == null) {
             throw new NullPointerException(" view is null");
         }
-        return (V) view.findViewById(id);
+        View foundView = view.findViewById(id);
+        if (foundView == null) {
+            return null;
+        }
+        // 安全的类型转换，运行时检查
+        try {
+            return (V) foundView;
+        } catch (ClassCastException e) {
+            throw new ClassCastException("View with id " + id + " cannot be cast to expected type: " + 
+                foundView.getClass().getSimpleName());
+        }
     }
 
     public static void goneView(View _view) {

@@ -2,19 +2,11 @@ package com.openai.net;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
-import com.android.volley.toolbox.HttpStack;
+import com.android.volley.toolbox.BaseHttpStack;
+import com.android.volley.toolbox.HttpResponse;
 import com.openai.commonutil.LogUtil;
 import com.openai.net.interceptor.DnsRequestInterceptor;
 import com.openai.net.request.MultipartRequest;
-
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.ProtocolVersion;
-import org.apache.http.StatusLine;
-import org.apache.http.entity.BasicHttpEntity;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.message.BasicHttpResponse;
-import org.apache.http.message.BasicStatusLine;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,10 +28,10 @@ import okhttp3.ResponseBody;
 import okhttp3.logging.HttpLoggingInterceptor;
 
 /**
- * OkHttp backed {@link HttpStack HttpStack} that does not
+ * OkHttp backed {@link BaseHttpStack BaseHttpStack} that does not
  * use okhttp-urlconnection
  */
-public class OkHttpStack implements HttpStack {
+public class OkHttpStack extends BaseHttpStack {
     public static final int DEFUAT_TIMEOUT = 40;
     public static final int CONNECT_TIMEOUT = 40;
     public static final int WRITE_TIMEOUT = 40;
@@ -55,21 +47,36 @@ public class OkHttpStack implements HttpStack {
         mClient = clientBuilder.build();
     }
 
-    private static HttpEntity entityFromOkHttpResponse(Response r) throws IOException {
-        BasicHttpEntity entity = new BasicHttpEntity();
-        ResponseBody body = r.body();
-        entity.setContentLength(body.contentLength());
-        entity.setContentEncoding(r.header("Content-Encoding"));
-        boolean isGzipResponse = HttpUtils.isGzip(r.header("Content-Encoding"));
-        if (body.contentType() != null) {
-            entity.setContentType(body.contentType().type());
+    private static HttpResponse createVolleyResponse(Response okHttpResponse) throws IOException {
+        ResponseBody body = okHttpResponse.body();
+        int statusCode = okHttpResponse.code();
+        String reasonPhrase = okHttpResponse.message();
+        
+        // 处理响应头 - 转换为List<Header>
+        Headers responseHeaders = okHttpResponse.headers();
+        List<com.android.volley.Header> headers = new java.util.ArrayList<>();
+        for (int i = 0, len = responseHeaders.size(); i < len; i++) {
+            final String name = responseHeaders.name(i), value = responseHeaders.value(i);
+            if (name != null) {
+                headers.add(new com.android.volley.Header(name, value));
+            }
         }
-        InputStream inputStream = body.byteStream();
-        if (isGzipResponse) {
-            inputStream = new GZIPInputStream(inputStream);
+        
+        // 处理响应体
+        InputStream inputStream = null;
+        int contentLength = 0;
+        if (body != null) {
+            contentLength = (int) body.contentLength();
+            inputStream = body.byteStream();
+            
+            // 处理GZIP压缩
+            boolean isGzipResponse = HttpUtils.isGzip(okHttpResponse.header("Content-Encoding"));
+            if (isGzipResponse) {
+                inputStream = new GZIPInputStream(inputStream);
+            }
         }
-        entity.setContent(inputStream);
-        return entity;
+        
+        return new HttpResponse(statusCode, headers, contentLength, inputStream);
     }
 
     private static void setConnectionParametersForRequest(okhttp3.Request.Builder builder, Request<?> request)
@@ -79,7 +86,8 @@ public class OkHttpStack implements HttpStack {
                 // Ensure backwards compatibility.  Volley assumes a request with a null body is a GET.
                 byte[] postBody = request.getBody();
                 if (postBody != null) {
-                    builder.post(RequestBody.create(MediaType.parse(request.getPostBodyContentType()), postBody));
+                    MediaType mediaType = MediaType.parse(request.getBodyContentType());
+                    builder.post(RequestBody.create(mediaType, postBody));
                 }
                 break;
             case Request.Method.GET:
@@ -109,20 +117,6 @@ public class OkHttpStack implements HttpStack {
         }
     }
 
-    private static ProtocolVersion parseProtocol(final Protocol p) {
-        switch (p) {
-            case HTTP_1_0:
-                return new ProtocolVersion("HTTP", 1, 0);
-            case HTTP_1_1:
-                return new ProtocolVersion("HTTP", 1, 1);
-            case SPDY_3:
-                return new ProtocolVersion("SPDY", 3, 1);
-            case HTTP_2:
-                return new ProtocolVersion("HTTP", 2, 0);
-        }
-
-        throw new IllegalAccessError("Unkwown protocol");
-    }
 
     private static RequestBody createRequestBody(Request r) throws AuthFailureError {
         if (r instanceof MultipartRequest && ((MultipartRequest) r).getFile() != null) {
@@ -130,7 +124,8 @@ public class OkHttpStack implements HttpStack {
             List<File> fileList = ((MultipartRequest) r).getFile();
             for (File file : fileList) {
                 LogUtil.i("add file:" + file.getName());
-                RequestBody fileBody = RequestBody.create(MediaType.parse("application/octet-stream"), file);
+                MediaType fileMediaType = MediaType.parse("application/octet-stream");
+                RequestBody fileBody = RequestBody.create(file, fileMediaType);
                 builder.addFormDataPart(((MultipartRequest) r).getName(), file.getName(), fileBody);
             }
             Map<String, String> param = ((MultipartRequest) r).getParams();
@@ -143,14 +138,15 @@ public class OkHttpStack implements HttpStack {
             return builder.build();
         }
         final byte[] body = r.getBody();
+        MediaType bodyMediaType = MediaType.parse(r.getBodyContentType());
         if (body == null) {
-            return RequestBody.create(MediaType.parse(r.getBodyContentType()), new byte[0]);
+            return RequestBody.create(new byte[0], bodyMediaType);
         }
-        return RequestBody.create(MediaType.parse(r.getBodyContentType()), body);
+        return RequestBody.create(body, bodyMediaType);
     }
 
     @Override
-    public HttpResponse performRequest(Request<?> request, Map<String, String> additionalHeaders)
+    public HttpResponse executeRequest(Request<?> request, Map<String, String> additionalHeaders)
             throws IOException, AuthFailureError {
         okhttp3.Request.Builder okHttpRequestBuilder = new okhttp3.Request.Builder();
         setConnectionParametersForRequest(okHttpRequestBuilder, request);
@@ -159,16 +155,8 @@ public class OkHttpStack implements HttpStack {
         okhttp3.Request okHttpRequest = okHttpRequestBuilder.build();
         Call okHttpCall = mClient.newCall(okHttpRequest);
         Response okHttpResponse = okHttpCall.execute();
-        StatusLine responseStatus = new BasicStatusLine(parseProtocol(okHttpResponse.protocol()), okHttpResponse.code(), okHttpResponse.message());
-        BasicHttpResponse response = new BasicHttpResponse(responseStatus);
-        response.setEntity(entityFromOkHttpResponse(okHttpResponse));
-        Headers responseHeaders = okHttpResponse.headers();
-        for (int i = 0, len = responseHeaders.size(); i < len; i++) {
-            final String name = responseHeaders.name(i), value = responseHeaders.value(i);
-            if (name != null) {
-                response.addHeader(new BasicHeader(name, value));
-            }
-        }
-        return response;
+        
+        // 创建Volley的HttpResponse
+        return createVolleyResponse(okHttpResponse);
     }
 }

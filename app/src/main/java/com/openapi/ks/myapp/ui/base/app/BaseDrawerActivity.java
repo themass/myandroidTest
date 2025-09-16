@@ -1,10 +1,13 @@
 package com.openapi.ks.myapp.ui.base.app;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.provider.MediaStore;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -63,6 +66,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     @Nullable
     @BindView(R.id.drawerLayout)
     public DrawerLayout drawerLayout;
+    
     @Nullable
     @BindView(R.id.nv_drawer)
     NavigationView nvDrawer;
@@ -344,7 +348,9 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                 }  else if (item.getItemId() == R.id.menu_test) {
 
                     Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                    startActivityForResult(intent, 11);
+                    // 使用现代Activity Result API
+                    // 现代方式：直接启动Activity，不处理结果
+                    startActivity(intent);
 //                    startActivity(WaveTest2.class);
 //                    startActivity(MainActivity.class);
 //                    startActivity(RippleActivity.class);

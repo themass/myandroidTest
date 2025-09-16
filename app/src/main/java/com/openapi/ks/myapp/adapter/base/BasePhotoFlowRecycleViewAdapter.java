@@ -78,7 +78,7 @@ public abstract class BasePhotoFlowRecycleViewAdapter<M, T extends BasePhotoFlow
     }
 
     private void bindPhoto(final BasePhotoFlowRecycleViewAdapter.BaseViewHolder holder, int position) {
-        long animationDelay = PHOTO_ANIMATION_DELAY + holder.getAdapterPosition() * 30;
+        long animationDelay = PHOTO_ANIMATION_DELAY + holder.getBindingAdapterPosition() * 30;
         animatePhoto(holder, animationDelay, position);
     }
 

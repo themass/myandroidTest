@@ -11,7 +11,6 @@ public class Tools {
                                             final float mult) {
         ViewTreeObserver vto = textView.getViewTreeObserver();
         vto.addOnGlobalLayoutListener(new OnGlobalLayoutListener() {
-            @SuppressWarnings("deprecation")
             @SuppressLint("NewApi")
             public void onGlobalLayout() {
                 int textLine = textView.getLineCount();
@@ -20,7 +19,7 @@ public class Tools {
                             android.os.Build.VERSION_CODES.JELLY_BEAN) {
                         textView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                     } else {
-                        textView.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                        textView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                     }
                     if (textLine > 1) {
                         textView.setLineSpacing(add, mult);

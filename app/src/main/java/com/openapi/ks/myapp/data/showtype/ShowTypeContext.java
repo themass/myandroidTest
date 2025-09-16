@@ -2,7 +2,8 @@ package com.openapi.ks.myapp.data.showtype;
 
 import android.content.Context;
 
-import com.romainpiel.shimmer.Shimmer;
+// 使用现代 Shimmer 替代
+// import com.romainpiel.shimmer.Shimmer;
 import com.openai.commonutil.LogUtil;
 import com.openai.commonutil.StringUtils;
 import com.openapi.ks.myapp.adapter.IndexRecommendAdapter;
@@ -26,7 +27,7 @@ public class ShowTypeContext {
         map.put(Constants.ShowType.Text_Below, new TextBelowShowTypeHandle());
     }
 
-    public static void loadPhoto(final IndexRecommendAdapter.NaviItemViewHolder holder, RecommendVo vo, final Shimmer shimmer, boolean needShimmer, Context context) {
+    public static void loadPhoto(final IndexRecommendAdapter.NaviItemViewHolder holder, RecommendVo vo, final Object shimmer, boolean needShimmer, Context context) {
         ShowTypeHandle handle = map.get(vo.showType);
         LogUtil.i(handle);
         if (handle != null) {

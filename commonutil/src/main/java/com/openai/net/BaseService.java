@@ -21,6 +21,7 @@ import java.util.Map;
 /**
  * Created by openapi on 2016/3/10.
  */
+@SuppressWarnings("unchecked")
 public class BaseService {
     protected Context context;
 

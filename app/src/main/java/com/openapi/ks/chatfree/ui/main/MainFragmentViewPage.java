@@ -327,7 +327,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         @Override
         public Fragment getItem(int position) {
             try {
-                return list.get(position).clss.newInstance();
+                return list.get(position).clss.getDeclaredConstructor().newInstance();
             } catch (Exception e) {
                 LogUtil.e(e);
                 return null;

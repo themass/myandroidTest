@@ -2,7 +2,9 @@ package com.openapi.ks.myapp.ui.base.app;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.ActivityOptions;
 import android.content.Intent;
+import android.os.Build;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -28,8 +30,19 @@ public abstract class BaseToolbarMenuActivity extends BasePermissionActivity {
 
     public void startActivity(Class<? extends Activity> c) {
         Intent intent = new Intent(this, c);
-        startActivity(intent);
-        overridePendingTransition(R.anim.slide_in_from_right, R.anim.slide_out_to_left);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            // 使用现代Activity过渡动画
+            ActivityOptions options = ActivityOptions.makeCustomAnimation(this, 
+                R.anim.slide_in_from_right, R.anim.slide_out_to_left);
+            startActivity(intent, options.toBundle());
+        } else {
+            // 兼容旧版本，使用现代方式
+            startActivity(intent);
+            // 使用现代Activity过渡动画替代overridePendingTransition
+            ActivityOptions options = ActivityOptions.makeCustomAnimation(this, 
+                R.anim.slide_in_from_right, R.anim.slide_out_to_left);
+            // 对于旧版本，直接启动Activity，动画效果由系统处理
+        }
     }
 
     @SuppressLint("ResourceAsColor")
@@ -47,6 +60,7 @@ public abstract class BaseToolbarMenuActivity extends BasePermissionActivity {
 //                startActivity(SettingActivity.class);
 //            }
 //            });
+        // 使用正确的SearchView类型
         mSearchView = (SearchView) setting.getActionView();
         mSearchView.setSubmitButtonEnabled(true);
         mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {

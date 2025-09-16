@@ -49,7 +49,7 @@ import chat.ui.data.model.Message;
 import chat.ui.data.model.MessageType;
 import chat.ui.data.model.MsgContent;
 import chat.ui.data.model.SimpleMessage;
-
+@SuppressWarnings("unchecked")
 public class CustomChatMessagesWithAsrActivity extends CustomChatMessagesActivity {
 
     private static String TTSTAG = "TTSTAG";

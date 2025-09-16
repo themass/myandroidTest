@@ -12,7 +12,7 @@ import com.android.volley.TimeoutError;
 import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.BasicNetwork;
-import com.android.volley.toolbox.HttpStack;
+import com.android.volley.toolbox.BaseHttpStack;
 import com.android.volley.toolbox.ImageLoader;
 import com.openai.commonutil.FileUtils;
 import com.openai.commonutil.LogUtil;
@@ -44,7 +44,7 @@ public class VolleyUtils {
         mRequestQueue.start();
     }
 
-    private static RequestQueue newRequestQueue(Context context, HttpStack stack) {
+    private static RequestQueue newRequestQueue(Context context, BaseHttpStack stack) {
         if (stack == null) {
             stack = new OkHttpStack();
         }

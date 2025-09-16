@@ -167,7 +167,7 @@ class DialogListStyle extends Style {
     }
 
     protected int getDialogTitleTextStyle() {
-        return dialogTitleTextStyle;
+        return convertToTypefaceStyle(dialogTitleTextStyle);
     }
 
     protected int getDialogUnreadTitleTextColor() {
@@ -175,7 +175,7 @@ class DialogListStyle extends Style {
     }
 
     protected int getDialogUnreadTitleTextStyle() {
-        return dialogUnreadTitleTextStyle;
+        return convertToTypefaceStyle(dialogUnreadTitleTextStyle);
     }
 
     protected int getDialogMessageTextColor() {
@@ -187,7 +187,7 @@ class DialogListStyle extends Style {
     }
 
     protected int getDialogMessageTextStyle() {
-        return dialogMessageTextStyle;
+        return convertToTypefaceStyle(dialogMessageTextStyle);
     }
 
     protected int getDialogUnreadMessageTextColor() {
@@ -195,7 +195,7 @@ class DialogListStyle extends Style {
     }
 
     protected int getDialogUnreadMessageTextStyle() {
-        return dialogUnreadMessageTextStyle;
+        return convertToTypefaceStyle(dialogUnreadMessageTextStyle);
     }
 
     protected int getDialogDateColor() {
@@ -207,7 +207,7 @@ class DialogListStyle extends Style {
     }
 
     protected int getDialogDateStyle() {
-        return dialogDateStyle;
+        return convertToTypefaceStyle(dialogDateStyle);
     }
 
     protected int getDialogUnreadDateColor() {
@@ -215,7 +215,7 @@ class DialogListStyle extends Style {
     }
 
     protected int getDialogUnreadDateStyle() {
-        return dialogUnreadDateStyle;
+        return convertToTypefaceStyle(dialogUnreadDateStyle);
     }
 
     protected boolean isDialogUnreadBubbleEnabled() {
@@ -280,5 +280,23 @@ class DialogListStyle extends Style {
 
     protected int getDialogMessageAvatarHeight() {
         return dialogMessageAvatarHeight;
+    }
+
+    /**
+     * 将XML属性值转换为正确的Typeface常量
+     * XML中定义: normal=0, bold=1, italic=2
+     * Typeface常量: NORMAL=0, BOLD=1, ITALIC=2
+     */
+    private int convertToTypefaceStyle(int xmlStyle) {
+        switch (xmlStyle) {
+            case 0: // normal
+                return Typeface.NORMAL;
+            case 1: // bold
+                return Typeface.BOLD;
+            case 2: // italic
+                return Typeface.ITALIC;
+            default:
+                return Typeface.NORMAL;
+        }
     }
 }

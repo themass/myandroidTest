@@ -2,6 +2,7 @@ package com.openapi.ks.myapp.ui.fragment.body;
 
 
 import android.os.Bundle;
+import android.os.Build;
 import android.view.View;
 
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
@@ -22,7 +23,14 @@ public class SoundChannleBodyFragment extends RecommendFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Bundle b = getArguments();
-        channel = ((HashMap<String, String>) b.getSerializable(Constants.CONFIG_PARAM)).get(Constants.CHANNEL);
+        // 兼容性处理：API 33+ 使用新方法，否则使用旧方法
+        HashMap<String, String> configParam;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            configParam = b.getSerializable(Constants.CONFIG_PARAM, HashMap.class);
+        } else {
+            configParam = (HashMap<String, String>) b.getSerializable(Constants.CONFIG_PARAM);
+        }
+        channel = configParam.get(Constants.CHANNEL);
     }
 
     @Override

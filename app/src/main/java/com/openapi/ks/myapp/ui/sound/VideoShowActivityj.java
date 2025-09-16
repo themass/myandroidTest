@@ -4,6 +4,7 @@ package com.openapi.ks.myapp.ui.sound;
 import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
+import android.os.Build;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -40,7 +41,12 @@ public class VideoShowActivityj extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_video_show);
         unbinder = ButterKnife.bind(this);
-        vo = (RecommendVo) getIntent().getSerializableExtra(Constants.CONFIG_PARAM);
+        // 兼容性处理：API 33+ 使用新方法，否则使用旧方法
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            vo = getIntent().getSerializableExtra(Constants.CONFIG_PARAM, RecommendVo.class);
+        } else {
+            vo = (RecommendVo) getIntent().getSerializableExtra(Constants.CONFIG_PARAM);
+        }
         jzVideo.setUp(vo.actionUrl, vo.title, JzvdStd.SCREEN_NORMAL, JzvdPlayerFactory.getPlayManager());
         jzVideo.jzDataSource.headerMap = VideoUtil.getVideoSourceHeader(vo.actionUrl, StringUtils.hasText(vo.baseurl) ? vo.baseurl : vo.actionUrl);
 //
@@ -73,7 +79,12 @@ public class VideoShowActivityj extends AppCompatActivity {
         if (Jzvd.backPress()) {
             return;
         }
-        super.onBackPressed();
+        // 使用现代API
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            getOnBackPressedDispatcher().onBackPressed();
+        } else {
+            super.onBackPressed();
+        }
     }
 
     @Override

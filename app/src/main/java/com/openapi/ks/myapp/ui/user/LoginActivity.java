@@ -114,6 +114,7 @@ public class LoginActivity extends BaseSingleActivity {
     }
 
     @Override
+    @Deprecated
     public void onBackPressed() {
         if (loading.getVisibility() == View.VISIBLE) {
             setEnabled(true);

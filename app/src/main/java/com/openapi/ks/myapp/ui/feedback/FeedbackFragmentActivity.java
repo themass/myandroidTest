@@ -1,5 +1,6 @@
 package com.openapi.ks.myapp.ui.feedback;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 
@@ -51,28 +52,63 @@ public class FeedbackFragmentActivity extends BaseFragmentActivity implements Fa
             disableScrollBanner();
         }
         showToolbar(toolbarShow);
-        Class f = (Class) getIntent().getSerializableExtra(FRAGMENT);
+        // 使用现代Bundle API替代getSerializableExtra
+        Bundle extras = getIntent().getExtras();
+        Class<?> f = null;
+        if (extras != null) {
+            // 兼容性处理：API 33+ 使用新方法，否则使用旧方法
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                f = (Class<?>) extras.getSerializable(FRAGMENT, Serializable.class);
+                Object o = extras.getSerializable(BANNER_ADS_CATEGRY, Serializable.class);
+                if (o != null) {
+                    bannerCategrey = (AdsContext.Categrey) o;
+                }
+                Object o2 = extras.getSerializable(INTERSTITIAL_ADS_CATEGRY, Serializable.class);
+                if (o2 != null) {
+                    interCategrey = (AdsContext.Categrey) o2;
+                }
+            } else {
+                f = (Class<?>) extras.getSerializable(FRAGMENT);
+                Object o = extras.getSerializable(BANNER_ADS_CATEGRY);
+                if (o != null) {
+                    bannerCategrey = (AdsContext.Categrey) o;
+                }
+                Object o2 = extras.getSerializable(INTERSTITIAL_ADS_CATEGRY);
+                if (o2 != null) {
+                    interCategrey = (AdsContext.Categrey) o2;
+                }
+            }
+        }
         showAds = getIntent().getBooleanExtra(BANNER_ADS_SHOW, false);
-        Object o = getIntent().getSerializableExtra(BANNER_ADS_CATEGRY);
-        if (o != null) {
-            bannerCategrey = (AdsContext.Categrey) o;
-        }
-        o = getIntent().getSerializableExtra(INTERSTITIAL_ADS_CATEGRY);
-        if (o != null) {
-            interCategrey = (AdsContext.Categrey) o;
-        }
         String title = null;
-        Serializable name = getIntent().getSerializableExtra(TITLE);
+        Serializable name = null;
+        if (extras != null) {
+            // 兼容性处理：API 33+ 使用新方法，否则使用旧方法
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                name = extras.getSerializable(TITLE, Serializable.class);
+            } else {
+                name = (Serializable) extras.getSerializable(TITLE);
+            }
+        }
         if (name instanceof String) {
             title = (String) name;
         } else if (name instanceof Integer) {
             title = getString((Integer) name);
         }
         try {
-            fragment = (Fragment) f.newInstance();
-            if (getIntent().getSerializableExtra(PARAM) != null) {
+            fragment = (Fragment) f.getDeclaredConstructor().newInstance();
+            Serializable param = null;
+            if (extras != null) {
+                // 兼容性处理：API 33+ 使用新方法，否则使用旧方法
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    param = extras.getSerializable(PARAM, Serializable.class);
+                } else {
+                    param = (Serializable) extras.getSerializable(PARAM);
+                }
+            }
+            if (param != null) {
                 Bundle bundle = new Bundle();
-                bundle.putSerializable(PARAM, getIntent().getSerializableExtra(PARAM));
+                bundle.putSerializable(PARAM, param);
                 fragment.setArguments(bundle);
             }
             if (fragment instanceof FabOpListener.SetFabListener) {
@@ -117,11 +153,20 @@ public class FeedbackFragmentActivity extends BaseFragmentActivity implements Fa
         if (fragment instanceof OnBackKeyDownListener) {
             boolean ret = ((OnBackKeyDownListener) fragment).onkeyBackDown();
             if (!ret) {
-                super.onBackPressed();
+                // 使用现代方式处理返回键
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    getOnBackPressedDispatcher().onBackPressed();
+                } else {
+                    super.onBackPressed();
+                }
             }
         } else {
-            super.onBackPressed();
+            // 使用现代方式处理返回键
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                getOnBackPressedDispatcher().onBackPressed();
+            } else {
+                super.onBackPressed();
+            }
         }
-
     }
 }

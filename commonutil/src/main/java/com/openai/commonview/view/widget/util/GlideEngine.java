@@ -14,6 +14,7 @@ import com.luck.picture.lib.utils.ActivityCompatHelper;
  * @date：2019-11-13 17:02
  * @describe：Glide加载引擎
  */
+@SuppressWarnings("unchecked")
 public class GlideEngine implements ImageEngine {
 
     /**

@@ -7,6 +7,8 @@ import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.graphics.drawable.ColorDrawable;
+import android.os.Build;
+import androidx.core.content.ContextCompat;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -83,7 +85,12 @@ public class HeartAnimView {
         View vBg = view.findViewById(R.id.v_bglike);
         View vAction = view.findViewById(R.id.iv_like);
         final PopupWindow pop = new PopupWindow(view, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        pop.setBackgroundDrawable(new ColorDrawable(context.getResources().getColor(R.color.transparent)));
+        // 使用现代API
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            pop.setBackgroundDrawable(new ColorDrawable(ContextCompat.getColor(context, R.color.transparent)));
+        } else {
+            pop.setBackgroundDrawable(new ColorDrawable(ContextCompat.getColor(context, R.color.transparent)));
+        }
         pop.setFocusable(true);
         pop.setOutsideTouchable(true);
 //        if(baseView==null) {

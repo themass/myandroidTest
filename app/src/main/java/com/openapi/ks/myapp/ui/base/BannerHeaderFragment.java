@@ -2,7 +2,7 @@ package com.openapi.ks.myapp.ui.base;
 
 import android.os.Bundle;
 import android.os.Handler;
-import android.view.View;
+import android.os.Looper;import android.view.View;
 import android.view.ViewGroup;
 
 import com.openapi.ks.myapp.ui.base.app.BaseFragment;
@@ -26,7 +26,7 @@ public class BannerHeaderFragment extends BaseFragment {
     @BindView(R.id.fl_banner)
     public ViewGroup flBanner;
     private AdsGoneTask task = new AdsGoneTask();
-    protected Handler mHandler = new Handler();
+    protected Handler mHandler = new Handler(Looper.getMainLooper());
     private AdsContext.Categrey ca;
 
     public static BannerHeaderFragment getNewInstans(AdsContext.Categrey ca) {

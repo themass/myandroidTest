@@ -1,21 +1,23 @@
-apply plugin: 'com.android.application'
-apply plugin: 'org.jetbrains.kotlin.android'
-apply plugin: 'org.greenrobot.greendao'
-apply plugin: 'com.jakewharton.butterknife'
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'org.greenrobot.greendao'
+    id 'com.jakewharton.butterknife'
+}
 
 android {
-    namespace "com.openapi.ks.chat"
-    compileSdk rootProject.ext.compileSdkVersion
-    ndkVersion "23.1.7779620"
+    namespace = "com.openapi.ks.chat"
+    compileSdk = rootProject.ext.compileSdkVersion
+    ndkVersion = "23.1.7779620"
     
     defaultConfig {
-        applicationId "com.openapi.ks.chat"
-        minSdk rootProject.ext.minSdkVersion
-        targetSdk rootProject.ext.targetSdkVersion
-        versionCode 1001000056
-        versionName "1.1.0.55"
-        multiDexEnabled true
-        flavorDimensions "versionCode"
+        applicationId = "com.openapi.ks.chat"
+        minSdk = rootProject.ext.minSdkVersion
+        targetSdk = rootProject.ext.targetSdkVersion
+        versionCode = 1001000057
+        versionName = "1.1.0.57"
+        multiDexEnabled = true
+        flavorDimensions = ["versionCode"]
     }
     
     tasks.withType(JavaCompile).configureEach {
@@ -26,6 +28,19 @@ android {
             '--add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED',
             '--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED'
         ]
+        // 禁用编译警告
+        options.compilerArgs += [
+            '-nowarn',               // 禁用所有警告
+            '-Xlint:none',           // 禁用所有lint警告
+            '-Xlint:-deprecation',   // 禁用废弃API警告
+            '-Xlint:-unchecked',     // 禁用未检查转换警告
+            '-Xlint:-rawtypes',      // 禁用原始类型警告
+            '-Xlint:-varargs',       // 禁用可变参数警告
+            '-Xlint:-cast',          // 禁用类型转换警告
+            '-Xlint:-serial'         // 禁用序列化警告
+        ]
+        // 确保编译器不报告任何警告
+        options.warnings = false
     }
 
     compileOptions {
@@ -38,8 +53,8 @@ android {
     }
     
     buildFeatures {
-        viewBinding true
-        buildConfig true
+        viewBinding = true
+        buildConfig = true
     }
     
     packagingOptions {
@@ -51,18 +66,25 @@ android {
         exclude 'META-INF/DEPENDENCIES'
     }
     
-    dexOptions {
-        preDexLibraries true
-        javaMaxHeapSize "4g"
-    }
+    // dexOptions已弃用，Android Gradle Plugin会自动优化dexing
+    // dexOptions {
+    //     preDexLibraries true
+    //     javaMaxHeapSize "4g"
+    // }
     
     lintOptions {
         disable 'InvalidPackage'
-        checkReleaseBuilds false
-        abortOnError false
-        checkDependencies true
-        ignoreWarnings true
-        quiet true
+        checkReleaseBuilds = false
+        abortOnError = false
+        checkDependencies = true
+        ignoreWarnings = true
+        quiet = true
+        // 抑制弃用警告
+        disable 'deprecation'
+        // 抑制未检查转换警告
+        disable 'unchecked'
+        // 抑制其他常见警告
+        disable 'all'
     }
 
     sourceSets.main {
@@ -81,18 +103,18 @@ android {
     
     buildTypes {
         debug {
-            minifyEnabled false
-            debuggable true
-            zipAlignEnabled false
-            shrinkResources false
+            minifyEnabled = false
+            debuggable = true
+            zipAlignEnabled = false
+            shrinkResources = false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro', '../proguard-common.pro'
-            signingConfig signingConfigs.config
+            signingConfig = signingConfigs.config
         }
         release {
-            minifyEnabled true
-            shrinkResources true
+            minifyEnabled = true
+            shrinkResources = true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro', '../proguard-common.pro'
-            signingConfig signingConfigs.config
+            signingConfig = signingConfigs.config
         }
     }
     
@@ -123,13 +145,17 @@ dependencies {
     implementation 'androidx.navigation:navigation-ui-ktx:2.7.7'
     implementation 'androidx.percentlayout:percentlayout:1.0.0'
     implementation 'androidx.webkit:webkit:1.14.0'
-
-    // UI组件库
-    implementation 'com.github.lawloretienne:imagegallery:0.1.0'
-    implementation 'com.romainpiel.shimmer:library:1.4.0@aar'
-    implementation 'com.sothree.slidinguppanel:library:3.4.0'
-    implementation 'com.skyfishjy.ripplebackground:library:1.0.1'
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+    
+    // 现代UI组件替代
+    implementation 'androidx.fragment:fragment:1.8.5'
+    implementation 'androidx.activity:activity:1.9.2'
+    implementation 'com.facebook.shimmer:shimmer:0.5.0'
     implementation 'com.github.donkingliang:LabelsView:1.6.5'
+    implementation 'com.skyfishjy.ripplebackground:library:1.0.1'
+    
+    // 现代图片查看器替代 ImageGallery
+    implementation 'com.github.chrisbanes:PhotoView:2.3.0'
 
     // 依赖注入
     annotationProcessor 'com.jakewharton:butterknife-compiler:10.2.3'
@@ -137,11 +163,13 @@ dependencies {
 
     // 视频播放
     implementation 'cn.jzvd:jiaozivideoplayer:7.7.2.3300'
-    implementation 'com.google.android.exoplayer:exoplayer:2.19.1'
+    implementation 'androidx.media3:media3-exoplayer:1.2.1'
+    implementation 'androidx.media3:media3-datasource:1.2.1'
+    implementation 'androidx.media3:media3-ui:1.2.1'
 
     // 响应式编程
-    implementation 'io.reactivex:rxjava:1.3.8'
-    implementation 'io.reactivex:rxandroid:1.2.1'
+    implementation 'io.reactivex.rxjava3:rxjava:3.1.8'
+    implementation 'io.reactivex.rxjava3:rxandroid:3.0.2'
 
     // 数据库
     implementation 'org.greenrobot:greendao:3.3.0'

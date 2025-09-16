@@ -1,10 +1,14 @@
 package com.openai.commonutil;
 
 import android.content.Context;
-import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Looper;
 
 import com.openai.commonevent.FavoriteChangeEvent;
 import com.openai.commonevent.FavoriteVo;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import com.openai.commonutil.CollectionUtils;
 import com.openai.commonutil.DateUtils;
 import com.openai.commonutil.EventBusUtil;
@@ -81,7 +85,10 @@ public class FavoriteUtil {
         void modFavorite(FavoriteVo vo);
     }
 
-    public static class AddInfoTask extends AsyncTask<String, Integer, Boolean> {
+    public static class AddInfoTask {
+        private static final ExecutorService executor = Executors.newCachedThreadPool();
+        private static final Handler mainHandler = new Handler(Looper.getMainLooper());
+        
         private Context context;
         private FavoriteVo vo;
 
@@ -90,14 +97,24 @@ public class FavoriteUtil {
             this.vo = vo;
         }
 
-        @Override
-        protected Boolean doInBackground(String... params) {
-            DBManager.getInstance().getDaoSession().getFavoriteVoDao().insertOrReplace(vo);
-            return Boolean.TRUE;
+        public void execute() {
+            executor.execute(() -> {
+                try {
+                    DBManager.getInstance().getDaoSession().getFavoriteVoDao().insertOrReplace(vo);
+                    mainHandler.post(() -> {
+                        // 任务完成后的UI更新（如果需要）
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
         }
     }
 
-    public static class DelInfoTask extends AsyncTask<String, Integer, Boolean> {
+    public static class DelInfoTask {
+        private static final ExecutorService executor = Executors.newCachedThreadPool();
+        private static final Handler mainHandler = new Handler(Looper.getMainLooper());
+        
         private Context context;
         private long id;
 
@@ -106,14 +123,24 @@ public class FavoriteUtil {
             this.id = id;
         }
 
-        @Override
-        protected Boolean doInBackground(String... params) {
-            DBManager.getInstance().getDaoSession().getFavoriteVoDao().deleteByKey(id);
-            return Boolean.TRUE;
+        public void execute() {
+            executor.execute(() -> {
+                try {
+                    DBManager.getInstance().getDaoSession().getFavoriteVoDao().deleteByKey(id);
+                    mainHandler.post(() -> {
+                        // 任务完成后的UI更新（如果需要）
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
         }
     }
 
-    public static class GetInfoTask extends AsyncTask<String, Integer, FavoriteVo> {
+    public static class GetInfoTask {
+        private static final ExecutorService executor = Executors.newCachedThreadPool();
+        private static final Handler mainHandler = new Handler(Looper.getMainLooper());
+        
         private Context context;
         private String itemUrl;
         private GetFavoriteListener listener;
@@ -124,19 +151,31 @@ public class FavoriteUtil {
             this.listener = listener;
         }
 
-        @Override
-        protected FavoriteVo doInBackground(String... params) {
-            return getFavorite(context, itemUrl);
-        }
-
-        @Override
-        protected void onPostExecute(FavoriteVo vo) {
-            if (listener != null)
-                listener.isFavorite(itemUrl, vo);
+        public void execute() {
+            executor.execute(() -> {
+                try {
+                    FavoriteVo result = getFavorite(context, itemUrl);
+                    mainHandler.post(() -> {
+                        if (listener != null) {
+                            listener.isFavorite(itemUrl, result);
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    mainHandler.post(() -> {
+                        if (listener != null) {
+                            listener.isFavorite(itemUrl, null);
+                        }
+                    });
+                }
+            });
         }
     }
 
-    public static class ModInfoTask extends AsyncTask<String, Integer, FavoriteVo> {
+    public static class ModInfoTask {
+        private static final ExecutorService executor = Executors.newCachedThreadPool();
+        private static final Handler mainHandler = new Handler(Looper.getMainLooper());
+        
         private Context context;
         private FavoriteVo vo;
         private ModFavoriteListener listener;
@@ -147,26 +186,38 @@ public class FavoriteUtil {
             this.listener = listener;
         }
 
-        @Override
-        protected FavoriteVo doInBackground(String... params) {
-            FavoriteVo ret = getFavorite(context, vo.itemUrl);
-            if (ret == null) {
-                vo.setExtra(ModelUtils.entry2Json(vo.getO()));
-                vo.setUpdateTime(DateUtils.format(new Date(), DateUtils.DATE_FORMAT));
-                addFavorite(context, vo);
-                EventBusUtil.getEventBus().post(new FavoriteChangeEvent());
-                return vo;
-            } else {
-                EventBusUtil.getEventBus().post(new FavoriteChangeEvent());
-                delFavorite(context, ret.id);
-                return null;
-            }
-        }
-
-        @Override
-        protected void onPostExecute(FavoriteVo vo) {
-            if (listener != null)
-                listener.modFavorite(vo);
+        public void execute() {
+            executor.execute(() -> {
+                try {
+                    FavoriteVo ret = getFavorite(context, vo.itemUrl);
+                    FavoriteVo result;
+                    if (ret == null) {
+                        vo.setExtra(ModelUtils.entry2Json(vo.getO()));
+                        vo.setUpdateTime(DateUtils.format(new Date(), DateUtils.DATE_FORMAT));
+                        addFavorite(context, vo);
+                        EventBusUtil.getEventBus().post(new FavoriteChangeEvent());
+                        result = vo;
+                    } else {
+                        EventBusUtil.getEventBus().post(new FavoriteChangeEvent());
+                        delFavorite(context, ret.id);
+                        result = null;
+                    }
+                    
+                    final FavoriteVo finalResult = result;
+                    mainHandler.post(() -> {
+                        if (listener != null) {
+                            listener.modFavorite(finalResult);
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    mainHandler.post(() -> {
+                        if (listener != null) {
+                            listener.modFavorite(null);
+                        }
+                    });
+                }
+            });
         }
     }
 }

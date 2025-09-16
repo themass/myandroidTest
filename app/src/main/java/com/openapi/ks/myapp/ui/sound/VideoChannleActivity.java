@@ -24,7 +24,7 @@ public class VideoChannleActivity extends BaseFragmentActivity {
         setFabUpVisibility(View.VISIBLE);
         Fragment fragment = null;
         try {
-            fragment = VideoChannleBodyFragment.class.newInstance();
+            fragment = VideoChannleBodyFragment.class.getDeclaredConstructor().newInstance();
             fragment.setArguments(getIntent().getExtras());
         } catch (Exception e) {
             LogUtil.e(e);

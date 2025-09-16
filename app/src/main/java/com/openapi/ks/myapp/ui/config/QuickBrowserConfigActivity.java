@@ -34,7 +34,7 @@ public class QuickBrowserConfigActivity extends LogActivity {
             Intent intent = new Intent(Intent.ACTION_VIEW, uri);
 //            intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivityForResult(intent, 0);
+            startActivity(intent);
         }
         if (UserLoginUtil.isVIP() || !adsPopNeed) {
             finishActivity();

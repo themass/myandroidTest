@@ -4,6 +4,7 @@ import android.graphics.SurfaceTexture;
 import android.media.AudioManager;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.Looper;
 import android.view.Surface;
 
 import java.io.IOException;
@@ -39,7 +40,7 @@ public class JZMediaIjk extends JZMediaInterface implements IMediaPlayer.OnPrepa
         mMediaHandlerThread = new HandlerThread("JZVD");
         mMediaHandlerThread.start();
         mMediaHandler = new Handler(mMediaHandlerThread.getLooper());//主线程还是非主线程，就在这里
-        handler = new Handler();
+        handler = new Handler(Looper.getMainLooper());
 
         mMediaHandler.post(() -> {
 

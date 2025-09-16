@@ -14,6 +14,7 @@ import com.android.volley.toolbox.HttpHeaderParser;
 import com.openai.commonevent.UserNeedLogin;
 import com.openai.commonutil.DeviceInfoUtils;
 import com.openai.commonutil.EventBusUtil;
+import com.openai.commonutil.GsonUtils;
 import com.openai.commonutil.Md5;
 import com.openai.commonutil.StaticDataUtil;
 import com.openai.commonutil.SystemUtils;
@@ -187,7 +188,7 @@ public class BaseRequest<T> extends Request<T> {
     }
 
     protected Response parserData(JsonResult data, NetworkResponse response) {
-
+        LogUtil.i( "收到服务器响应: " + GsonUtils.getInstance().toJson( data));
         try {
             URL url = new URL(getUrl());
             if (data.ip != null && StaticDataUtil.get(url.getHost(), String.class) == null) {

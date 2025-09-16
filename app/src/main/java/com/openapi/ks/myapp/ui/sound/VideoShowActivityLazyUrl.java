@@ -2,6 +2,7 @@ package com.openapi.ks.myapp.ui.sound;
 
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.widget.ImageView;
 
@@ -49,7 +50,12 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
         unbinder = ButterKnife.bind(this);
         indexService = new BaseService();
         indexService.setup(this);
-        vo = (RecommendVo) getIntent().getSerializableExtra(Constants.CONFIG_PARAM);
+        // 兼容性处理：API 33+ 使用新方法，否则使用旧方法
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            vo = getIntent().getSerializableExtra(Constants.CONFIG_PARAM, RecommendVo.class);
+        } else {
+            vo = (RecommendVo) getIntent().getSerializableExtra(Constants.CONFIG_PARAM);
+        }
         url = vo.actionUrl;
         LogUtil.i("data="+vo);
         //需要单独发起解析url 的请求
@@ -114,7 +120,12 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
         if (Jzvd.backPress()) {
             return;
         }
-        super.onBackPressed();
+        // 使用现代API
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            getOnBackPressedDispatcher().onBackPressed();
+        } else {
+            super.onBackPressed();
+        }
     }
 
     @Override

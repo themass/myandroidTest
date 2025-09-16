@@ -28,7 +28,7 @@ public class VideoActivity extends BaseFragmentActivity {
         setContentView(R.layout.common_fragment);
         setFabUpVisibility(View.GONE);
         try {
-            fragment = AutoVideoListFragment.class.newInstance();
+            fragment = AutoVideoListFragment.class.getDeclaredConstructor().newInstance();
 
         } catch (Exception e) {
             LogUtil.e(e);

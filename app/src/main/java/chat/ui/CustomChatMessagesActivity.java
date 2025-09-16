@@ -106,7 +106,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import tz.co.hosannahighertech.messagekit.messages.MessagesList;
 import tz.co.hosannahighertech.messagekit.messages.MessagesListAdapter;
-
+@SuppressWarnings("unchecked")
 public class CustomChatMessagesActivity extends BaseDrawerActivity implements
         MessagesListAdapter.OnLoadMoreListener{
 

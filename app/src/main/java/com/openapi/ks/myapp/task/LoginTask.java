@@ -1,8 +1,9 @@
 package com.openapi.ks.myapp.task;
 
 import android.content.Context;
-import android.os.AsyncTask;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import com.android.volley.toolbox.RequestFuture;
 import com.openai.CommonConstants;
 import com.openai.commonutil.BeanUtil;
@@ -23,38 +24,41 @@ import java.util.Map;
 /**
  * Created by openapi on 2016/3/8.
  */
-public class LoginTask extends AsyncTask<Void, Void, Void> {
+@SuppressWarnings("unchecked")
+public class LoginTask {
+    private static final ExecutorService executor = Executors.newCachedThreadPool();
+    
     public static void start(Context context) {
-        new LoginTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        new LoginTask().execute();
     }
 
-    @Override
-    protected Void doInBackground(Void... params) {
-        try {
-            RequestFuture<UserInfoVo> future = RequestFuture.newFuture();
-            String name = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.LOGIN_USER_LAST, null);
-            if (StringUtils.isEmpty(name)) {
-                return null;
+    public void execute() {
+        executor.execute(() -> {
+            try {
+                RequestFuture<UserInfoVo> future = RequestFuture.newFuture();
+                String name = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.LOGIN_USER_LAST, null);
+                if (StringUtils.isEmpty(name)) {
+                    return;
+                }
+                String pwd = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.LOGIN_USER_PW_LAST, null);
+                if (StringUtils.isEmpty(pwd)) {
+                    return;
+                }
+                int score = PreferenceUtils.getPrefInt(MyApplication.getInstance(), Constants.SCORE_TMP, 0);
+                LoginForm form = new LoginForm(name, pwd, score);
+                Map<String, String> map = BeanUtil.transBean2Map(form);
+                MultipartRequest request = new MultipartRequest(MyApplication.getInstance(), map, Constants.getUrl(Constants.API_LOGIN_URL), null, future, future, UserInfoVo.class);
+                request.setTag("login");
+                VolleyUtils.addRequest(request);
+                UserInfoVo user = future.get();
+                if (user != null) {
+                    UserLoginUtil.login(MyApplication.getInstance(), user);
+                } else {
+                    PreferenceUtils.remove(MyApplication.getInstance(), CommonConstants.HTTP_TOKEN_KEY);
+                }
+            } catch (Exception e) {
+                LogUtil.e(e);
             }
-            String pwd = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.LOGIN_USER_PW_LAST, null);
-            if (StringUtils.isEmpty(pwd)) {
-                return null;
-            }
-            int score = PreferenceUtils.getPrefInt(MyApplication.getInstance(), Constants.SCORE_TMP, 0);
-            LoginForm form = new LoginForm(name, pwd, score);
-            Map<String, String> map = BeanUtil.transBean2Map(form);
-            MultipartRequest request = new MultipartRequest(MyApplication.getInstance(), map, Constants.getUrl(Constants.API_LOGIN_URL), null, future, future, UserInfoVo.class);
-            request.setTag("login");
-            VolleyUtils.addRequest(request);
-            UserInfoVo user = future.get();
-            if (user != null) {
-                UserLoginUtil.login(MyApplication.getInstance(), user);
-            } else {
-                PreferenceUtils.remove(MyApplication.getInstance(), CommonConstants.HTTP_TOKEN_KEY);
-            }
-        } catch (Exception e) {
-            LogUtil.e(e);
-        }
-        return null;
+        });
     }
 }

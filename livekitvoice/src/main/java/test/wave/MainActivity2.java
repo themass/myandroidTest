@@ -2,6 +2,7 @@ package test.wave;
 
 import android.app.Activity;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -44,7 +45,12 @@ public class MainActivity2 extends Activity implements AdapterView.OnItemSelecte
 
 
         waveDrawable = new WaveDrawable(Color.parseColor("#8e44ad"), 500);
-        imageView.setBackgroundDrawable(waveDrawable);
+        // 使用现代API
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            imageView.setBackground(waveDrawable);
+        } else {
+            imageView.setBackgroundDrawable(waveDrawable);
+        }
 
 
     }

@@ -1,11 +1,14 @@
 package com.openai.ads.yewu.ads.admob;
 
 import android.app.Activity;
+import android.graphics.Rect;
+import android.os.Build;
 import android.os.Handler;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowMetrics;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentActivity;
@@ -73,7 +76,7 @@ public class AdmobBannerAds extends BannerInter {
 
                 @Override
                 public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
-                    LogUtil.i("admob banner onAdFailedToLoad " + loadAdError.toString());
+                    LogUtil.i("admob banner onAdFailedToLoad " + loadAdError);
                     noAds(context, handler, AdsContext.AdsFrom.ADMOB, 0);
                     //                   group.setVisibility(View.GONE);
                 }
@@ -104,9 +107,18 @@ public class AdmobBannerAds extends BannerInter {
 
     private AdSize getAdSize(Activity context) {
         // Step 2 - Determine the screen width (less decorations) to use for the ad width.
-        Display display = context.getWindowManager().getDefaultDisplay();
         DisplayMetrics outMetrics = new DisplayMetrics();
-        display.getMetrics(outMetrics);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // 使用现代API获取屏幕尺寸
+            WindowMetrics windowMetrics = context.getWindowManager().getCurrentWindowMetrics();
+            Rect bounds = windowMetrics.getBounds();
+            outMetrics.widthPixels = bounds.width();
+            outMetrics.density = context.getResources().getDisplayMetrics().density;
+        } else {
+            // 兼容旧版本
+            Display display = context.getWindowManager().getDefaultDisplay();
+            display.getMetrics(outMetrics);
+        }
 
         float widthPixels = outMetrics.widthPixels;
         float density = outMetrics.density;

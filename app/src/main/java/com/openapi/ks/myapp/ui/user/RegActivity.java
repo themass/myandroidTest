@@ -25,6 +25,7 @@ import butterknife.OnClick;
 /**
  * Created by openapi on 2016/8/13.
  */
+@SuppressWarnings("unchecked")
 public class RegActivity extends BaseSingleActivity {
     private static final String TAG = "login_tag";
     @BindView(R.id.ll_loading)
@@ -128,6 +129,7 @@ public class RegActivity extends BaseSingleActivity {
     }
 
     @Override
+    @Deprecated
     public void onBackPressed() {
         if (loading.getVisibility() == View.VISIBLE) {
             setEnabled(true);

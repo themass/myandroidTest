@@ -5,7 +5,7 @@ import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.os.Handler;
-import android.util.AttributeSet;
+import android.os.Looper;import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
@@ -48,13 +48,16 @@ public class MyRadarScanView extends FrameLayout {
         LayoutInflater mInflater = LayoutInflater.from(getContext());
         View myView = mInflater.inflate(R.layout.ripple_bg_layout, null);
         addView(myView);
-        final RippleBackground rippleBackground=(RippleBackground)findViewById(R.id.content);
+        // 使用 RippleBackground 波纹效果
+        RippleBackground rippleView = findViewById(R.id.content);
+        if (rippleView != null) {
+            rippleView.startRippleAnimation();
+        }
         LogUtil.i("start ripple");
-        final Handler handler=new Handler();
+        final Handler handler=new Handler(Looper.getMainLooper());
         foundDevice1=(ImageView)findViewById(R.id.foundDevice1);
         foundDevice2=(ImageView)findViewById(R.id.foundDevice2);
         ImageView button=(ImageView)findViewById(R.id.centerImage);
-        rippleBackground.startRippleAnimation();
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {

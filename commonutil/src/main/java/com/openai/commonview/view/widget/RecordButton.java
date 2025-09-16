@@ -8,7 +8,9 @@ import android.content.DialogInterface;
 import android.graphics.drawable.AnimationDrawable;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
+import android.os.Build;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.util.AttributeSet;
 import android.view.Gravity;
@@ -23,8 +25,10 @@ import android.widget.TextView;
 import com.openai.commonutil.FileUtils;
 import com.openai.commonutil.LogUtil;
 import com.openai.commonutil.R;
+import androidx.core.content.ContextCompat;
 
 import java.io.File;
+@SuppressWarnings("deprecation")
 public class RecordButton extends androidx.appcompat.widget.AppCompatButton {
 
     public RecordButton(Context context) {
@@ -84,7 +88,7 @@ public class RecordButton extends androidx.appcompat.widget.AppCompatButton {
 
     @SuppressLint("HandlerLeak")
     private void init() {
-        volumeHandler = new Handler() {
+        volumeHandler = new Handler(Looper.getMainLooper()) {
             @Override
             public void handleMessage(Message msg) {
                 if (msg.what == -100) {
@@ -105,7 +109,7 @@ public class RecordButton extends androidx.appcompat.widget.AppCompatButton {
         y = event.getY();
         if (mStateTV != null && mStateIV != null && y < 0) {
             mStateTV.setText(R.string.input_cancel_send);
-            mStateIV.setImageDrawable(getResources().getDrawable(R.drawable.ic_volume_cancel));
+            mStateIV.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_volume_cancel));
         } else if (mStateTV != null) {
             mStateTV.setText(R.string.input_cancel);
         }
@@ -141,7 +145,7 @@ public class RecordButton extends androidx.appcompat.widget.AppCompatButton {
         view = View.inflate(getContext(), R.layout.dialog_record, null);
         mStateIV = (ImageView) view.findViewById(R.id.rc_audio_state_image);
         mStateTV = (TextView) view.findViewById(R.id.rc_audio_state_text);
-        mStateIV.setImageDrawable(getResources().getDrawable(R.drawable.anim_mic));
+        mStateIV.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.anim_mic));
         anim = (AnimationDrawable) mStateIV.getDrawable();
         anim.start();
         mStateIV.setVisibility(View.VISIBLE);
@@ -167,7 +171,7 @@ public class RecordButton extends androidx.appcompat.widget.AppCompatButton {
             LogUtil.d("录音时间太短");
             volumeHandler.sendEmptyMessageDelayed(-100, 500);
             //view.setBackgroundResource(R.drawable.ic_voice_cancel);
-            mStateIV.setImageDrawable(getResources().getDrawable(R.drawable.ic_volume_wraning));
+            mStateIV.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_volume_wraning));
             mStateTV.setText("录音时间太短");
             anim.stop();
             File file = new File(mFile);
@@ -216,7 +220,12 @@ public class RecordButton extends androidx.appcompat.widget.AppCompatButton {
         if (mRecorder != null) {
             mRecorder.reset();
         } else {
-            mRecorder = new MediaRecorder();
+            // 使用现代MediaRecorder创建方式
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                mRecorder = new MediaRecorder(getContext());
+            } else {
+                mRecorder = new MediaRecorder();
+            }
         }
         mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);

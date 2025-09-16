@@ -80,64 +80,6 @@ public class DeviceInfoUtils {
 //    }
 
     /**
-     * 获取序列号
-     *
-     * @param context
-     * @return
-     */
-    public static String getSimSerialNumber(Context context) {
-        return Build.SERIAL;
-    }
-
-    /**
-     * 获取手机mac地址
-     *
-     * @param context
-     * @return
-     */
-    public static String getMac(Context context) {
-        WifiManager wifi = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        WifiInfo info = wifi.getConnectionInfo();
-        String addr = info.getMacAddress();
-        if (StringUtils.hasText(addr) && addr.equals("02:00:00:00:00:00")) {
-            addr = getNewMacAddr();
-        }
-        return addr;
-    }
-
-    public static String getNewMacAddr() {
-        try {
-            List<NetworkInterface> all = Collections.list(NetworkInterface.getNetworkInterfaces());
-            for (NetworkInterface nif : all) {
-                if (!nif.getName().equalsIgnoreCase("wlan0")) continue;
-                byte[] macBytes = nif.getHardwareAddress();
-                if (macBytes == null) {
-                    return "";
-                }
-                StringBuilder res1 = new StringBuilder();
-                for (byte b : macBytes) {
-                    res1.append(String.format("%02X:", b));
-                }
-                if (res1.length() > 0) {
-                    res1.deleteCharAt(res1.length() - 1);
-                }
-                return res1.toString();
-            }
-        } catch (Exception ex) {
-        }
-        return null;
-    }
-
-    /**
-     * 获取设备名称.
-     *
-     * @return
-     */
-    public static String getBuildModel() {
-        return Build.MODEL;
-    }
-
-    /**
      * 得到全局唯一UUID
      */
     public static String getUUID(Context context) {

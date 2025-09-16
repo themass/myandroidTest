@@ -2,11 +2,14 @@ package com.openai.commonview.view.widget;
 
 
 import android.content.Context;
+import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.media.MediaPlayer.OnErrorListener;
+import android.os.Build;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import com.openai.commonutil.LogUtil;
@@ -15,7 +18,7 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-
+@SuppressWarnings("deprecation")
 public class MediaManager {
 
 
@@ -43,7 +46,15 @@ public class MediaManager {
         }
         try {
             filepathstrings = filePathString;
-            mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            // 使用现代音频流设置方式
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                mPlayer.setAudioAttributes(new AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_MEDIA)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                        .build());
+            } else {
+                mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            }
             mPlayer.setOnCompletionListener(onCompletionListener);
             mPlayer.setDataSource(filePathString);
             mPlayer.setVolume(90, 90);
@@ -119,7 +130,7 @@ public class MediaManager {
             Field f = cSubtitleController.getDeclaredField("mHandler");
             f.setAccessible(true);
             try {
-                f.set(subtitleInstance, new Handler());
+                f.set(subtitleInstance, new Handler(Looper.getMainLooper()));
             } catch (IllegalAccessException e) {
                 return mediaplayer;
             } finally {

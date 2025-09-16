@@ -1,7 +1,7 @@
 package com.openapi.ks.myapp.adapter;
 
 import android.content.Context;
-
+import androidx.core.content.ContextCompat;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;

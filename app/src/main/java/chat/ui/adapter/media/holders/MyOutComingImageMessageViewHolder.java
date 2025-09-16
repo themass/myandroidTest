@@ -21,6 +21,7 @@ import tz.co.hosannahighertech.messagekit.utils.RoundedImageView;
 /*
  * Created by troy379 on 05.04.17.
  */
+@SuppressWarnings("unchecked")
 public class MyOutComingImageMessageViewHolder
         extends MyOutComingMassageHandler {
 

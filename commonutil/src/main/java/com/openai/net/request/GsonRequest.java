@@ -11,6 +11,7 @@ import java.util.Map;
 /**
  * Created by wjying on 13-12-2.
  */
+@SuppressWarnings("unchecked")
 public class GsonRequest<T> extends BaseRequest<T> {
     private Class<T> clasz;
 

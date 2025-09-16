@@ -2,6 +2,7 @@ package chat.ui;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 
@@ -63,10 +64,22 @@ public class PhoneChatFragmentActivity extends BaseFragmentActivity implements F
             disableScrollBanner();
         }
         showToolbar(toolbarShow);
-        Class f = (Class) getIntent().getSerializableExtra(FRAGMENT);
+        // 使用现代Bundle API替代getSerializableExtra
+        Bundle extras = getIntent().getExtras();
+        Class<?> f = null;
+        Object o = null;
+        if (extras != null) {
+            // 兼容性处理：API 33+ 使用新方法，否则使用旧方法
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                f = (Class<?>) extras.getSerializable(FRAGMENT, Serializable.class);
+                o = extras.getSerializable(BANNER_ADS_CATEGRY, Serializable.class);
+            } else {
+                f = (Class<?>) extras.getSerializable(FRAGMENT);
+                o = extras.getSerializable(BANNER_ADS_CATEGRY);
+            }
+        }
         showAds = getIntent().getBooleanExtra(BANNER_ADS_SHOW, false);
         needFabup = getIntent().getBooleanExtra(FABUP_SHOW, true);
-        Object o = getIntent().getSerializableExtra(BANNER_ADS_CATEGRY);
         if (o != null) {
             bannerCategrey = (AdsContext.Categrey) o;
         }
@@ -74,7 +87,13 @@ public class PhoneChatFragmentActivity extends BaseFragmentActivity implements F
             setFabUpVisibility(View.VISIBLE);
         }
         String title = null;
-        Serializable name = getIntent().getSerializableExtra(TITLE);
+        Serializable name;
+        // 兼容性处理：API 33+ 使用新方法，否则使用旧方法
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            name = getIntent().getSerializableExtra(TITLE, Serializable.class);
+        } else {
+            name = (Serializable) getIntent().getSerializableExtra(TITLE);
+        }
         if (name instanceof String) {
             title = (String) name;
         } else if (name instanceof Integer) {
@@ -84,9 +103,16 @@ public class PhoneChatFragmentActivity extends BaseFragmentActivity implements F
         mPermissionHelper.checkNeedPermissions();
         try {
 //            fragment =  LivekitVoiceAgentFragment.Companion.newInstance( getIntent().getStringExtra(URL), getIntent().getStringExtra(TOKEN));
-            if (getIntent().getSerializableExtra(PARAM) != null) {
+            Serializable param;
+            // 兼容性处理：API 33+ 使用新方法，否则使用旧方法
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                param = getIntent().getSerializableExtra(PARAM, Serializable.class);
+            } else {
+                param = (Serializable) getIntent().getSerializableExtra(PARAM);
+            }
+            if (param != null) {
                 Bundle bundle = new Bundle();
-                bundle.putSerializable(PARAM, getIntent().getSerializableExtra(PARAM));
+                bundle.putSerializable(PARAM, param);
                 fragment.setArguments(bundle);
             }
             if (fragment instanceof FabOpListener.SetFabListener) {
@@ -131,6 +157,7 @@ public class PhoneChatFragmentActivity extends BaseFragmentActivity implements F
     }
 
     @Override
+    @Deprecated
     public void onBackPressed() {
         if (fragment instanceof OnBackKeyDownListener) {
             boolean ret = ((OnBackKeyDownListener) fragment).onkeyBackDown();

@@ -4,7 +4,9 @@ import android.content.Context;
 import android.graphics.PointF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Handler;
+import android.os.Looper;
 
 import androidx.annotation.Nullable;
 import androidx.viewpager.widget.PagerAdapter;
@@ -35,6 +37,7 @@ import java.util.List;
  * 大图预览界面
  * Created by 何志伟 on 2016/4/19.
  */
+@SuppressWarnings("deprecation")
 public class BigImagePreview extends RelativeLayout {
 
     private Context mContext;
@@ -44,7 +47,7 @@ public class BigImagePreview extends RelativeLayout {
     // private TransSmallImageView mTransSmallImageView;
     // private TransBigImageView transBigImageView;
     private FrameLayout previewParent;
-    private List urlList = new ArrayList();
+    private List<String> urlList = new ArrayList<>();
     private int lineWidth, lineHeight, loadMoreHeight;
     private ViewPagerAdapter mAdapter;
     private ScrollView galleryScroll;
@@ -100,7 +103,7 @@ public class BigImagePreview extends RelativeLayout {
             @Override
             public void click(int x, int y, float width, float height, final int position) {
                 gridPosition = position;
-                new Handler().postDelayed(new Runnable() {
+                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         galleryView.getChildAt(position).setVisibility(INVISIBLE);
@@ -156,7 +159,9 @@ public class BigImagePreview extends RelativeLayout {
         galleryView.getChildAt(urlList.size() + list.size() - 1).post(new Runnable() {
             @Override
             public void run() {
-                urlList.addAll(list);
+                @SuppressWarnings("unchecked")
+                List<String> typedList = (List<String>) list;
+                urlList.addAll(typedList);
                 for (int i = urlList.size() - list.size(); i < urlList.size(); i++) {
                     //指定Gallery中的加载的图片大小，防止OOM
                     int w = galleryView.getChildAt(i).getWidth();
@@ -251,8 +256,25 @@ public class BigImagePreview extends RelativeLayout {
             final PhotoViewAttacher attacher = new PhotoViewAttacher(imageView);
 
             //使用GalleryView子View上的图片作为占位图，不然会出现加载闪白
-            galleryView.getChildAt(i).setDrawingCacheEnabled(true);
-            Drawable drawable = new BitmapDrawable(galleryView.getChildAt(i).getDrawingCache());
+            // 使用现代方式替代废弃的setDrawingCacheEnabled和getDrawingCache
+            Drawable drawable = null;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                // 现代方式：使用View.draw(Canvas)
+                View childView = galleryView.getChildAt(i);
+                if (childView != null) {
+                    android.graphics.Bitmap bitmap = android.graphics.Bitmap.createBitmap(
+                        childView.getWidth(), childView.getHeight(), android.graphics.Bitmap.Config.ARGB_8888);
+                    android.graphics.Canvas canvas = new android.graphics.Canvas(bitmap);
+                    childView.draw(canvas);
+                    drawable = new BitmapDrawable(getResources(), bitmap);
+                }
+            } else {
+                // 兼容旧版本
+                android.graphics.Bitmap cache = galleryView.getChildAt(i).getDrawingCache();
+                if (cache != null) {
+                    drawable = new BitmapDrawable(getResources(), cache);
+                }
+            }
             RequestOptions options = new RequestOptions().skipMemoryCache(true).override((int) imgWidth, (int) imgHeight).dontAnimate().placeholder(drawable);
             Glide.with(mContext).load(list.get(i)).apply(options).into(new DrawableImageViewTarget(imageView) {
                 @Override

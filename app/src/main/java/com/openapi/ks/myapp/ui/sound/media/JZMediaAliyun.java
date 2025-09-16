@@ -4,7 +4,7 @@ package com.openapi.ks.myapp.ui.sound.media;//package com.ks.myapp.ui.sound.medi
 //import android.content.SharedPreferences;
 //import android.graphics.SurfaceTexture;
 //import android.os.Handler;
-//import android.text.TextUtils;
+import android.os.Looper;//import android.text.TextUtils;
 //import android.util.Log;
 //import android.view.Surface;
 //
@@ -84,8 +84,8 @@ package com.openapi.ks.myapp.ui.sound.media;//package com.ks.myapp.ui.sound.medi
 //    @Override
 //    public void prepare() {
 //        release();
-//        mMediaHandler = new Handler();
-//        handler = new Handler();
+//        mMediaHandler = new Handler(Looper.getMainLooper());
+//        handler = new Handler(Looper.getMainLooper());
 //        mMediaHandler.post(() -> {
 //            aliyunMediaPlayer = AliPlayerFactory.createAliPlayer(jzvd.getContext());
 //

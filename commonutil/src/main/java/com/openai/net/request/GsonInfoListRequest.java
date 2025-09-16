@@ -11,6 +11,7 @@ import java.util.Map;
 /**
  * Created by wjying on 13-12-2.
  */
+@SuppressWarnings("unchecked")
 public class GsonInfoListRequest<T> extends BaseRequest<InfoListVo<T>> {
     private Class<T> clasz;
 

@@ -203,7 +203,9 @@ public class RoundedImageView extends AppCompatImageView {
         }
 
         private void configureBounds(Canvas canvas) {
-            Matrix canvasMatrix = canvas.getMatrix();
+            // 使用现代方式获取Canvas矩阵
+            Matrix canvasMatrix = new Matrix();
+            canvas.getMatrix(canvasMatrix);
 
             applyScaleToRadii(canvasMatrix);
             mBounds.set(mBitmapRect);
@@ -239,9 +241,11 @@ public class RoundedImageView extends AppCompatImageView {
 
         @Override
         public int getOpacity() {
-            return (mBitmap == null || mBitmap.hasAlpha() || mBitmapPaint.getAlpha() < 255)
-                    ? PixelFormat.TRANSLUCENT
-                    : PixelFormat.OPAQUE;
+            // 使用现代方式计算透明度
+            if (mBitmap == null || mBitmap.hasAlpha() || mBitmapPaint.getAlpha() < 255) {
+                return PixelFormat.TRANSLUCENT;
+            }
+            return PixelFormat.OPAQUE;
         }
 
         @Override
@@ -258,6 +262,7 @@ public class RoundedImageView extends AppCompatImageView {
 
         @Override
         public void setDither(boolean dither) {
+            // 使用现代方式设置抖动
             mBitmapPaint.setDither(dither);
             invalidateSelf();
         }

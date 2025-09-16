@@ -12,6 +12,7 @@ import android.util.Log;
 import android.util.TypedValue;
 
 import androidx.appcompat.widget.AppCompatImageView;
+import androidx.core.content.ContextCompat;
 
 import com.openai.commonutil.R;
 
@@ -175,7 +176,7 @@ public class BubbleImageView extends AppCompatImageView {
         if (res == 0) {
             throw new IllegalArgumentException("getDrawable res can not be zero");
         }
-        return getContext().getResources().getDrawable(res);
+        return ContextCompat.getDrawable(getContext(), res);
     }
 
     private Bitmap getBitmapFromDrawable(Drawable drawable) {

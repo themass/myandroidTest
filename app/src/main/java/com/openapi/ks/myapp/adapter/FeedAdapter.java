@@ -5,6 +5,7 @@ import android.content.Context;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.text.Html;
+import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -64,7 +65,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                int adapterPosition = cellFeedViewHolder.getAdapterPosition();
+                int adapterPosition = cellFeedViewHolder.getBindingAdapterPosition();
 //                if(!feedItems.get(adapterPosition).isLike){
                 feedItems.get(adapterPosition).like = true;
                 feedItems.get(adapterPosition).likes++;
@@ -122,7 +123,8 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             tsLikesCounter.setCurrentText(tvContent.getResources().getQuantityString(
                     R.plurals.likes_count, feedItem.likes, feedItem.likes
             ));
-            tvContent.setText(Html.fromHtml(handleContent(feedItem.content)));
+            // 使用现代Html.fromHtml方法
+            tvContent.setText(Html.fromHtml(handleContent(feedItem.content), Html.FROM_HTML_MODE_LEGACY));
 //            tvContent.setText(feedItem.content);
             name.setText(feedItem.name);
             if (feedItem.like) {

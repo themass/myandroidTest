@@ -2,14 +2,16 @@ package com.openapi.ks.myapp.ui.base.features;
 
 import android.app.Activity;
 import android.content.Context;
-import android.os.AsyncTask;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
-import android.widget.SearchView;
+import androidx.appcompat.widget.SearchView;
 import android.widget.TextView;
 
 import com.android.volley.Request;
@@ -39,10 +41,10 @@ public abstract class LoadableFragment<T> extends BaseFragment {
     protected View mLoadRetryView;
     protected ViewGroup mContentView;
     protected T mData; // 异步加载的数据
-    protected Handler handler = new Handler();
+    protected Handler handler = new Handler(Looper.getMainLooper());
     // protected boolean mPullToRefreshEnable = true;
     protected Context mContext;
-    private QueryTask<T> mQueryTask;
+    private ExecutorService mExecutorService;
 
     View.OnClickListener mRefreshClickListener = new View.OnClickListener() {
         @Override
@@ -59,6 +61,7 @@ public abstract class LoadableFragment<T> extends BaseFragment {
     public String keyword = "";
 
     @Override
+    @Deprecated
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         mContext = activity;
@@ -134,14 +137,45 @@ public abstract class LoadableFragment<T> extends BaseFragment {
 
     protected void startQuery(boolean showLoading) {
         cancelQuery();
-        mQueryTask = new QueryTask<>(this, showLoading, handler);
-        mQueryTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        mExecutorService = Executors.newSingleThreadExecutor();
+        
+        if (showLoading) {
+            showLoading();
+        }
+        
+        mExecutorService.execute(() -> {
+            try {
+                T data = loadData(mContext);
+                handler.post(() -> {
+                    hideLoading();
+                    if (data != null) {
+                        setData(data);
+                        onDataLoaded(data);
+                        mDataLoaded = true;
+                    } else {
+                        if (!mDataLoaded) {
+                            showRetry();
+                        } else {
+                            hideLoading();
+                        }
+                    }
+                });
+            } catch (Exception e) {
+                LogUtil.e(e);
+                handler.post(() -> {
+                    hideLoading();
+                    if (!mDataLoaded) {
+                        showRetry();
+                    }
+                });
+            }
+        });
     }
 
     private void cancelQuery() {
-        if (mQueryTask != null) {
-            mQueryTask.cancel(true);
-            mQueryTask = null;
+        if (mExecutorService != null) {
+            mExecutorService.shutdownNow();
+            mExecutorService = null;
         }
     }
 
@@ -199,71 +233,4 @@ public abstract class LoadableFragment<T> extends BaseFragment {
      */
     protected abstract T loadData(Context context) throws Exception;
 
-    private static class QueryTask<T> extends AsyncTask<Void, Void, T> {
-
-        private Handler handler;
-        private Context mContext;
-        private WeakReference<LoadableFragment<T>> mFragment;
-        private boolean mShowLoading; // 下拉刷新时，不需要再展示loading
-
-        QueryTask(LoadableFragment<T> fragment, boolean showLoading, Handler handler) {
-            this.mContext = fragment.getActivity();
-            mFragment = new WeakReference<>(fragment);
-            this.mShowLoading = showLoading;
-            this.handler = handler;
-        }
-
-        protected void onPreExecute() {
-            LoadableFragment<T> fragment = mFragment != null ? mFragment.get() : null;
-            if (fragment != null && mShowLoading) {
-                fragment.showLoading();
-            }
-        }
-
-        @Override
-        protected T doInBackground(Void... params) {
-            LoadableFragment<T> fragment = mFragment != null ? mFragment.get() : null;
-            if (fragment != null) {
-                try {
-                    return fragment.loadData(mContext);
-                } catch (Exception e) {
-                    LogUtil.e(e);
-                    showError(e);
-                }
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(T data) {
-            LoadableFragment<T> fragment = mFragment != null ? mFragment.get() : null;
-            if (fragment != null && !fragment.getActivity().isFinishing() && !fragment.isDestory) {
-                fragment.hideLoading();
-                if (data != null) {
-                    fragment.setData(data);
-                    fragment.onDataLoaded(data);
-                    fragment.mDataLoaded = true;
-                } else {
-                    if (!fragment.mDataLoaded)
-                        fragment.showRetry();
-                    else {
-                        fragment.onDataLoaded(null);
-                    }
-                }
-            }
-        }
-
-        private void showError(final Exception e) {
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    if (e instanceof VolleyError) {
-                        VolleyUtils.showVolleyError((VolleyError) e);
-                    } else if (e.getCause() instanceof VolleyError) {
-                        VolleyUtils.showVolleyError((VolleyError) e.getCause());
-                    }
-                }
-            });
-        }
-    }
 }

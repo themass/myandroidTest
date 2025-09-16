@@ -4,6 +4,18 @@
     android:background="@drawable/ic_lauch_bg"
     android:orientation="vertical">
 
+    <RelativeLayout
+        android:id="@+id/rl_spread"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true" >
+
+        <com.openapi.ks.myapp.view.MyRadarScanView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </RelativeLayout>
+
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -38,18 +50,6 @@
             android:layout_height="@dimen/margin_70"
             android:layout_marginBottom="@dimen/margin_40" />
     </LinearLayout>
-
-    <RelativeLayout
-        android:id="@+id/rl_spread"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true" >
-            <com.openapi.ks.myapp.view.MyRadarScanView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-            />
-    </RelativeLayout>
 
     <RelativeLayout
         android:id="@+id/skip_view"

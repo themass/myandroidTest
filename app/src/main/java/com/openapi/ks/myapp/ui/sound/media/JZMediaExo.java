@@ -3,8 +3,8 @@ package com.openapi.ks.myapp.ui.sound.media;
 import android.content.Context;
 import android.graphics.SurfaceTexture;
 import android.os.Handler;
-import android.os.HandlerThread;
-import android.util.Log;
+import android.os.Looper;import android.os.HandlerThread;
+import android.os.Looper;import android.util.Log;
 import android.view.Surface;
 
 import com.openai.CommonConstants;
@@ -76,7 +76,7 @@ import cn.jzvd.Jzvd;
         mMediaHandler = new Handler(context.getMainLooper());//主线程还是非主线程，就在这里
 
 
-        handler = new Handler();
+        handler = new Handler(Looper.getMainLooper());
         mMediaHandler.post(() -> {
 
 

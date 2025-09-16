@@ -6,6 +6,7 @@ import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.StateListDrawable;
+import android.os.Build;
 import android.util.AttributeSet;
 
 import androidx.annotation.ColorInt;
@@ -137,7 +138,12 @@ public class StateButton extends AppCompatButton {
         mStateBackground.addState(states[1], mPressedBackground);
         mStateBackground.addState(states[3], mUnableBackground);
         mStateBackground.addState(states[2], mNormalBackground);
-        setBackgroundDrawable(mStateBackground);
+        // 使用现代API
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            setBackground(mStateBackground);
+        } else {
+            setBackgroundDrawable(mStateBackground);
+        }
         a.recycle();
     }
 

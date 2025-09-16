@@ -5,6 +5,7 @@ import android.os.AsyncTask;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import androidx.core.content.ContextCompat;
 
 import com.openai.commonutil.LogUtil;
 import com.openai.commonutil.StringUtils;
@@ -41,17 +42,17 @@ public class LocationPingTask extends AsyncTask<Void, Void, Void> {
         bar.setVisibility(View.GONE);
         tvPing.setVisibility(View.VISIBLE);
         if (-1 == ping) {
-            tvPing.setTextColor(context.getResources().getColor(R.color.base_black));
+            tvPing.setTextColor(ContextCompat.getColor(context, R.color.base_black));
             tvPing.setText(" no ping");
             return;
         } else if (0 == ping) {
-            tvPing.setTextColor(context.getResources().getColor(R.color.base_red));
+            tvPing.setTextColor(ContextCompat.getColor(context, R.color.base_red));
         } else if (ping <= 200) {
-            tvPing.setTextColor(context.getResources().getColor(R.color.base_green1));
+            tvPing.setTextColor(ContextCompat.getColor(context, R.color.base_green1));
         } else if (ping > 200 && ping <= 400) {
-            tvPing.setTextColor(context.getResources().getColor(R.color.warning_text));
+            tvPing.setTextColor(ContextCompat.getColor(context, R.color.warning_text));
         } else {
-            tvPing.setTextColor(context.getResources().getColor(R.color.base_gray));
+            tvPing.setTextColor(ContextCompat.getColor(context, R.color.base_gray));
         }
         tvPing.setText(ping + " ms");
     }

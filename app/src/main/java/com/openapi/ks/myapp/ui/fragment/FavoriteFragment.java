@@ -14,7 +14,6 @@ import com.openai.commonutil.PathUtil;
 import com.openai.commonutil.SystemUtils;
 import com.openai.commonutil.ToastUtil;
 import com.openai.ads.yewu.ads.base.AdsContext;
-import com.openai.net.NetUtils;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.adapter.FavoriteViewAdapter;
 import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
@@ -87,13 +86,13 @@ public class FavoriteFragment extends BasePullLoadbleFragment<FavoriteVo> implem
         if (data.type == Constants.FavoriteType.TEXT) {
             TextItemsVo vo = ModelUtils.json2Entry(data.extra, TextItemsVo.class);
             if (vo != null) {
-                if (!NetUtils.checkNetwork(getActivity())) {
+//                if (!NetUtils.checkNetwork(getActivity())) {
                     String fileName = PathUtil.getFileExtensionFromUrl(vo.fileUrl);
                     String path = FileUtils.getWriteFilePath(getContext());
                     File file = new File(path, fileName);
                     if (file.exists())
                         vo.fileUrl = "file:///" + path + File.separator + fileName;
-                }
+//                }
                 TextItemsWebViewFragment.startFragment(getContext(), vo);
             }
         } else if (data.type == Constants.FavoriteType.SOUND) {

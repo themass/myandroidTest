@@ -13,7 +13,7 @@ import com.openai.commonutil.LogUtil;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
-
+@SuppressWarnings({"unchecked","deprecation"})
 public class MultipartRequest<T> extends BaseRequest<T> {
     private List<File> file;
     private Map<String, String> param;

@@ -16,14 +16,16 @@ import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.DrawableImageViewTarget;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
-import com.etiennelawlor.imagegallery.library.adapters.FullScreenImageGalleryAdapter;
-import com.etiennelawlor.imagegallery.library.adapters.ImageGalleryAdapter;
+// 使用现代图片查看器替代
+// import com.etiennelawlor.imagegallery.library.adapters.FullScreenImageGalleryAdapter;
+// import com.etiennelawlor.imagegallery.library.adapters.ImageGalleryAdapter;
 import com.openai.commonutil.FileUtils;
 import com.openai.commonutil.LogUtil;
 import com.openai.commonutil.StringUtils;
 import com.openai.net.netglide.MyGlideModule;
 import com.openapi.ks.myapp.task.DelImageTask;
-import com.romainpiel.shimmer.Shimmer;
+// 使用现代 Shimmer 替代
+// import com.romainpiel.shimmer.Shimmer;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.adapter.IndexRecommendAdapter;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
@@ -42,7 +44,8 @@ import java.io.FileOutputStream;
 /**
  * Created by gqli on 2017/2/6.
  */
-public class ImagePhotoLoad implements ImageGalleryAdapter.ImageThumbnailLoader, FullScreenImageGalleryAdapter.FullScreenImageLoader {
+// 使用现代图片查看器替代
+public class ImagePhotoLoad {
     public static RequestOptions options = new RequestOptions().fitCenter().skipMemoryCache(true).placeholder(R.drawable.img_bg)
             .priority(Priority.NORMAL).format(DecodeFormat.PREFER_RGB_565);
     public static RequestOptions optionsHigh = new RequestOptions().fitCenter().skipMemoryCache(true).placeholder(R.drawable.img_bg)
@@ -61,7 +64,7 @@ public class ImagePhotoLoad implements ImageGalleryAdapter.ImageThumbnailLoader,
         return build;
     }
 
-    public static void loadPhoto(final IndexRecommendAdapter.NaviItemViewHolder holder, RecommendVo vo, final Shimmer shimmer, boolean needShimmer, Context context) {
+    public static void loadPhoto(final IndexRecommendAdapter.NaviItemViewHolder holder, RecommendVo vo, final Object shimmer, boolean needShimmer, Context context) {
         ShowTypeContext.loadPhoto(holder, vo, shimmer, needShimmer, context);
     }
 
@@ -82,20 +85,20 @@ public class ImagePhotoLoad implements ImageGalleryAdapter.ImageThumbnailLoader,
         }
     }
 
-    @Override
-    public void loadImageThumbnail(ImageView iv, String imageUrl, int dimension) {
-//        imageThumbnailLoader.loadImageThumbnail(iv, imageUrl, dimension);
-        RequestManager build = getBuilder(iv.getContext(), imageUrl);
-        build.load(imageUrl).apply(options).transition(withCrossFade(400))
-                .listener(new MyGlideModule.LoggingListener()).into(new DrawableImageViewTarget(iv));
-    }
+    // 使用现代图片查看器替代
+    // @Override
+    // public void loadImageThumbnail(ImageView iv, String imageUrl, int dimension) {
+    //     RequestManager build = getBuilder(iv.getContext(), imageUrl);
+    //     build.load(imageUrl).apply(options).transition(withCrossFade(400))
+    //             .listener(new MyGlideModule.LoggingListener()).into(new DrawableImageViewTarget(iv));
+    // }
 
-    @Override
-    public void loadFullScreenImage(final ImageView iv, String imageUrl, int width, final LinearLayout bgLinearLayout) {
-        RequestManager build = getBuilder(iv.getContext(), imageUrl);
-        build.load(imageUrl).apply(optionsHigh).transition(withCrossFade(400))
-                .listener(new MyGlideModule.LoggingListener()).into(new DrawableImageViewTarget(iv));
-    }
+    // @Override
+    // public void loadFullScreenImage(final ImageView iv, String imageUrl, int width, final LinearLayout bgLinearLayout) {
+    //     RequestManager build = getBuilder(iv.getContext(), imageUrl);
+    //     build.load(imageUrl).apply(optionsHigh).transition(withCrossFade(400))
+    //             .listener(new MyGlideModule.LoggingListener()).into(new DrawableImageViewTarget(iv));
+    // }
 
     public static void loadCommonImg(Context context, String url, ImageView iv) {
         RequestOptions options = new RequestOptions()

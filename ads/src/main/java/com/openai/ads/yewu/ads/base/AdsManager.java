@@ -2,6 +2,7 @@ package com.openai.ads.yewu.ads.base;
 
 import android.content.Context;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
@@ -69,7 +70,7 @@ public class AdsManager {
         videoMap.put(AdsContext.AdsFrom.ADVIEW, new VideoAdviewAds());
     }
 
-    private Handler mHandle = new Handler() {
+    private Handler mHandle = new Handler(Looper.getMainLooper()) {
         @Override
         public void handleMessage(Message msg) {
             AdsContext.AdsMsgObj obj = (AdsContext.AdsMsgObj) msg.obj;

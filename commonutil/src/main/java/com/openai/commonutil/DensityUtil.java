@@ -3,8 +3,11 @@ package com.openai.commonutil;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.os.Build;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
+import android.view.Display;
+import android.view.WindowManager;
 
 import com.openai.commonutil.DisplayUtil;
 import com.openai.commonutil.LogUtil;
@@ -27,26 +30,9 @@ public class DensityUtil {
         return (int) (dpValue * scale + 0.5f);
     }
 
-    public static int getScreenWidth(Context context) {
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        ((Activity) context).getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-        return displayMetrics.widthPixels;
-    }
-
-    /**
-     * px转换dip
-     *
-     * @param context 上下文
-     * @param pxValue px值
-     * @return dip值
-     */
     public static int px2dip(Context context, float pxValue) {
         final float scale = DisplayUtil.getDensity(context);
         return (int) (pxValue / scale + 0.5f);
-    }
-
-    public static float getDensity(Context context) {
-        return context.getResources().getDisplayMetrics().density;
     }
 
     public static DisplayMetrics getDensityDisplayMetrics(Context context) {
@@ -59,23 +45,4 @@ public class DensityUtil {
         LogUtil.w("Metrics=" + getDensityDisplayMetrics(context));
     }
 
-    public static int dip2sp(Context context, float sp) {
-        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, sp, context.getResources().getDisplayMetrics());
-    }
-
-    /**
-     * 获取ActionBarSize
-     */
-    public static int getActionBarSize(Context context) {
-        int actionBarSize = 0;
-        TypedArray actionbarSizeTypedArray = null;
-        try {
-            actionbarSizeTypedArray = context.obtainStyledAttributes(new int[]{android.R.attr.actionBarSize});
-            actionBarSize = (int) actionbarSizeTypedArray.getDimension(0, 0);
-        } finally {
-            if (actionbarSizeTypedArray != null)
-                actionbarSizeTypedArray.recycle();
-        }
-        return actionBarSize;
-    }
 }

@@ -3,6 +3,7 @@ package com.openai.commonutil;
 import android.content.Context;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.util.Log;
 
 import com.openai.commonutil.LogUtil;
@@ -77,11 +78,40 @@ public class IpUtil {
         //获取wifi服务
         WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
         //判断wifi是否开启
+        // 现代方式获取WiFi IP地址
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // Android 6.0+ 使用现代方式
+            try {
+                // 使用ConnectivityManager获取网络信息
+                android.net.ConnectivityManager cm = (android.net.ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+                if (cm != null) {
+                    android.net.Network activeNetwork = cm.getActiveNetwork();
+                    if (activeNetwork != null) {
+                        android.net.LinkProperties linkProperties = cm.getLinkProperties(activeNetwork);
+                        if (linkProperties != null) {
+                            for (android.net.LinkAddress linkAddress : linkProperties.getLinkAddresses()) {
+                                java.net.InetAddress address = linkAddress.getAddress();
+                                if (address instanceof java.net.Inet4Address && !address.isLoopbackAddress()) {
+                                    return address.getHostAddress();
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                // 如果现代方式失败，回退到旧方式
+            }
+        }
+        
+        // 回退到旧方式（已废弃但兼容）
         if (!wifiManager.isWifiEnabled()) {
-            wifiManager.setWifiEnabled(true);
+            @SuppressWarnings("deprecation")
+            boolean enabled = wifiManager.setWifiEnabled(true);
         }
 
+        @SuppressWarnings("deprecation")
         WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+        @SuppressWarnings("deprecation")
         int ipAddress = wifiInfo.getIpAddress();
         String ip = intToIp(ipAddress);
 

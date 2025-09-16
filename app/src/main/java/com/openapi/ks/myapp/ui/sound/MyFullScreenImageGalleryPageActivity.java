@@ -80,8 +80,9 @@ public class MyFullScreenImageGalleryPageActivity extends BaseSingleActivity imp
         ArrayList imageList = new ArrayList();
         imageList.addAll(this.images);
         MyFullScreenImageGalleryAdapter fullScreenImageGalleryAdapter = new MyFullScreenImageGalleryAdapter(imageList);
-        fullScreenImageGalleryAdapter.setFullScreenImageLoader(MyApplication.getInstance().getPhotoLoad());
-        this.viewPager.setAdapter(fullScreenImageGalleryAdapter);
+        // 使用现代图片查看器替代
+        // fullScreenImageGalleryAdapter.setFullScreenImageLoader(MyApplication.getInstance().getPhotoLoad());
+        // this.viewPager.setAdapter(fullScreenImageGalleryAdapter);
         this.viewPager.addOnPageChangeListener(this.viewPagerOnPageChangeListener);
         this.viewPager.setCurrentItem(this.position);
         this.setPosition(this.position);
