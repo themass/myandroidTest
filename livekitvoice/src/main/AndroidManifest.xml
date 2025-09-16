@@ -7,7 +7,7 @@
         android:supportsRtl="true">
         <activity
             android:theme="@style/Theme.LiveKitVoiceAssistantExample"
-            android:name="com.livekit.voiceassistant.LivekitVoiceAgentActivity"
+            android:name="com.livekit.voiceassistant_old.LivekitVoiceAgentActivity"
             android:exported="true">
         </activity>
 

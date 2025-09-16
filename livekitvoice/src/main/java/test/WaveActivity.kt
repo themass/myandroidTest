@@ -4,7 +4,7 @@
 //import android.os.Bundle
 //import android.view.Gravity
 //import androidx.appcompat.app.AppCompatActivity
-//import io.livekit.android.example.voiceassistant.R
+//import com.livekit.voiceassistant.R
 //import me.xfans.lib.voicewaveview.LineType
 //import me.xfans.lib.voicewaveview.VoiceWaveView
 //import me.xfans.lib.voicewaveview.WaveMode

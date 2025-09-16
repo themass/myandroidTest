@@ -6,7 +6,7 @@
 //
 //import org.firezenk.audiowaves.Visualizer;
 //
-//import io.livekit.android.example.voiceassistant.R;
+//import com.livekit.voiceassistant.R;
 //
 //public class AudioWavesMainActivity extends AppCompatActivity {
 //

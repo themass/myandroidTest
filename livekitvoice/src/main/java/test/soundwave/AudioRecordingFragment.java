@@ -14,7 +14,7 @@
 //import com.cleveroad.audiovisualization.AudioVisualization;
 //import com.cleveroad.audiovisualization.DbmHandler;
 //
-//import io.livekit.android.example.voiceassistant.R;
+//import com.livekit.voiceassistant.R;
 //
 ///**
 // * Fragment with visualization of audio recording.

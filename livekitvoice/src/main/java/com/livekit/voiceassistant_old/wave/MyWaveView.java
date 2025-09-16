@@ -1,19 +1,16 @@
-package com.livekit.voiceassistant.wave;
+package com.livekit.voiceassistant_old.wave;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
-
-import androidx.annotation.NonNull;
 
 import com.aghajari.waveanimation.AXLineWaveView;
 import com.aghajari.waveanimation.AXWaveView;
 
 import io.livekit.android.compose.state.VoiceAssistant;
-import io.livekit.android.example.voiceassistant.R;
+import com.livekit.voiceassistant.R;
 
 /**
  * Created by openapi on 2016/9/6.

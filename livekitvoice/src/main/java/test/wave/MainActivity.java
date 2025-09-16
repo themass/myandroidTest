@@ -15,7 +15,7 @@ import com.aghajari.waveanimation.AXLineWeavingState;
 import com.aghajari.waveanimation.AXWaveView;
 import com.aghajari.waveanimation.AXWeavingState;
 
-import io.livekit.android.example.voiceassistant.R;
+import com.livekit.voiceassistant.R;
 
 public class MainActivity extends AppCompatActivity {
 

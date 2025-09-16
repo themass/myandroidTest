@@ -6,7 +6,7 @@
 //
 //import com.zjy.audiovisualize.view.AudioVisualizeView;
 //
-//import io.livekit.android.example.voiceassistant.R;
+//import com.livekit.voiceassistant.R;
 //
 //public class NetVisualizeActivity extends AppCompatActivity {
 //

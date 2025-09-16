@@ -11,7 +11,7 @@
 //
 //import com.narayanacharya.waveview.WaveView;
 //
-//import io.livekit.android.example.voiceassistant.R;
+//import com.livekit.voiceassistant.R;
 //
 //public class BuilderExampleActivity extends AppCompatActivity {
 //    @Override

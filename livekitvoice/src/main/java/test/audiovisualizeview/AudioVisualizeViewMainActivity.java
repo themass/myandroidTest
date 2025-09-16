@@ -10,7 +10,7 @@
 //import androidx.annotation.NonNull;
 //import androidx.appcompat.app.AppCompatActivity;
 //
-//import io.livekit.android.example.voiceassistant.R;
+//import com.livekit.voiceassistant.R;
 //
 //public class AudioVisualizeViewMainActivity extends AppCompatActivity implements View.OnClickListener {
 //

@@ -14,7 +14,7 @@ import android.os.Looper;//import android.view.View;
 //
 //import java.util.ArrayList;
 //
-//import io.livekit.android.example.voiceassistant.R;
+//import com.livekit.voiceassistant.R;
 //
 //
 //public class RippleActivity extends Activity {

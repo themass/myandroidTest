@@ -22,7 +22,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.Spinner;
 
-import io.livekit.android.example.voiceassistant.R;
+import com.livekit.voiceassistant.R;
 
 
 public class MainActivity2 extends Activity implements AdapterView.OnItemSelectedListener {

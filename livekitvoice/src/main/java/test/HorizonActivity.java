@@ -18,7 +18,7 @@
 //import com.yalantis.audio.lib.AudioUtil;
 //import com.yalantis.waves.util.Horizon;
 //
-//import io.livekit.android.example.voiceassistant.R;
+//import com.livekit.voiceassistant.R;
 //
 //public class HorizonActivity extends AppCompatActivity {
 //

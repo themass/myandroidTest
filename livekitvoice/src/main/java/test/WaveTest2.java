@@ -21,7 +21,7 @@ import android.os.Looper;//import android.os.Message;
 //import java.io.File;
 //import java.io.IOException;
 //
-//import io.livekit.android.example.voiceassistant.R;
+//import com.livekit.voiceassistant.R;
 //import jaygoo.widget.wlv.WaveLineView;
 //import me.xfans.lib.voicewaveview.LineType;
 //import me.xfans.lib.voicewaveview.VoiceWaveView;
