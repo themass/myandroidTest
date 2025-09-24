@@ -15,7 +15,7 @@ android {
         minSdk = rootProject.ext.minSdkVersion
         targetSdk = rootProject.ext.targetSdkVersion
         versionCode = 1001000057
-        versionName = "1.1.0.57"
+        versionName = "1.1.0.51"
         multiDexEnabled = true
         flavorDimensions = ["versionCode"]
     }

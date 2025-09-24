@@ -22,7 +22,8 @@ private const val sandboxID = ""
 // tokens manually by visiting https://cloud.livekit.io/projects/p_/settings/keys
 // and using one of your API Keys to generate a token with custom TTL and permissions.
 private const val hardcodedUrl = "wss://testvoice-b8y35yvd.livekit.cloud"
-private const val hardcodedToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJBUElTQU5ObUVHQlF4ZlkiLCJleHAiOjE3NTc3MTY2OTMsInN1YiI6InRoZW1hc3MiLCJqdGkiOiJ0aGVtYXNzIiwibmFtZSI6InRoZW1hc3MiLCJtZXRhZGF0YSI6Im1ldGFkYXRhIiwidmlkZW8iOnsicm9vbUpvaW4iOnRydWUsInJvb20iOiJ0aGVtYXNzX3Jvb20ifSwic2lwIjp7fX0.8cuvwjvfoeh69h3X2XFiI0Q_IQoOs3JNedfI2FkNGPE"
+// 使用本地测试 Token，避免网络连接问题
+private const val hardcodedToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJBUElTQU5ObUVHQlF4ZlkiLCJleHAiOjE3NzM0ODQ2OTMsInN1YiI6InRoZW1hc3MiLCJqdGkiOiJ0aGVtYXNzIiwibmFtZSI6InRoZW1hc3MiLCJtZXRhZGF0YSI6Im1ldGFkYXRhIiwidmlkZW8iOnsicm9vbUpvaW4iOnRydWUsInJvb20iOiJ0aGVtYXNzX3Jvb20ifSwic2lwIjp7fX0.8cuvwjvfoeh69h3X2XFiI0Q_IQoOs3JNedfI2FkNGPE"
 
 private val okHttpClient by lazy { OkHttpClient() }
 

@@ -1,5 +1,7 @@
 package com.livekit.voiceassistant.screen
 
+import android.widget.Toast
+import com.github.ajalt.timberkt.Timber
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -112,25 +114,58 @@ fun ConnectScreen(
                     isConnecting = true
                     hasError = false
                     coroutineScope.launch {
-                        var connected = false
                         try {
                             delay(1000)
+                            
+                            val serverUrl: String
+                            val participantToken: String
+                            
                             if (activity != null) {
-                                val (serverUrl, participantToken) = activity.retrieveToken()
-                                navigateToVoiceAssistant(serverUrl, participantToken)
-                                connected = true
+                                val (url, token) = activity.retrieveToken()
+                                serverUrl = url
+                                participantToken = token
                             } else {
                                 // Fallback to hardcoded values if no activity provided
-                                navigateToVoiceAssistant("wss://testvoice-b8y35yvd.livekit.cloud", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJBUElTQU5ObUVHQlF4ZlkiLCJleHAiOjE3NTc3MTY2OTMsInN1YiI6InRoZW1hc3MiLCJqdGkiOiJ0aGVtYXNzIiwibmFtZSI6InRoZW1hc3MiLCJtZXRhZGF0YSI6Im1ldGFkYXRhIiwidmlkZW8iOnsicm9vbUpvaW4iOnRydWUsInJvb20iOiJ0aGVtYXNzX3Jvb20ifSwic2lwIjp7fX0.8cuvwjvfoeh69h3X2XFiI0Q_IQoOs3JNedfI2FkNGPE")
-                                connected = true
+                                serverUrl = "wss://testvoice-b8y35yvd.livekit.cloud"
+                                participantToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJBUElTQU5ObUVHQlF4ZlkiLCJleHAiOjE3NzM0ODQ2OTMsInN1YiI6InRoZW1hc3MiLCJqdGkiOiJ0aGVtYXNzIiwibmFtZSI6InRoZW1hc3MiLCJtZXRhZGF0YSI6Im1ldGFkYXRhIiwidmlkZW8iOnsicm9vbUpvaW4iOnRydWUsInJvb20iOiJ0aGVtYXNzX3Jvb20ifSwic2lwIjp7fX0.8cuvwjvfoeh69h3X2XFiI0Q_IQoOs3JNedfI2FkNGPE"
                             }
+                            
+                            // 验证参数
+                            if (!com.livekit.voiceassistant.SafeConnectionManager.isValidUrl(serverUrl)) {
+                                hasError = true
+                                if (activity != null) {
+                                    Toast.makeText(activity, "无效的服务器 URL", Toast.LENGTH_SHORT).show()
+                                }
+                                return@launch
+                            }
+                            
+                            if (!com.livekit.voiceassistant.SafeConnectionManager.isValidToken(participantToken)) {
+                                hasError = true
+                                if (activity != null) {
+                                    Toast.makeText(activity, "无效的 Token", Toast.LENGTH_SHORT).show()
+                                }
+                                return@launch
+                            }
+                            
+                            // 检查网络连接
+                            if (activity != null && !com.livekit.voiceassistant.SafeConnectionManager.isNetworkAvailable(activity)) {
+                                hasError = true
+                                Toast.makeText(activity, "网络连接不可用", Toast.LENGTH_SHORT).show()
+                                return@launch
+                            }
+                            
+                            // 导航到 VoiceAssistant 屏幕
+                            navigateToVoiceAssistant(serverUrl, participantToken)
+                            
                         } catch (exception: Exception) {
                             hasError = true
-                        } finally {
-                            if (connected) {
-                                // Add a delay so it updates after navigation
-                                delay(1000)
+                            // 使用错误处理器显示具体错误信息
+                            if (activity != null) {
+                                com.livekit.voiceassistant.ErrorHandler.handleConnectionError(activity, exception)
                             }
+                            // 记录详细错误信息
+                            Timber.e(exception) { "LiveKit 连接失败: ${exception.message}" }
+                        } finally {
                             isConnecting = false
                         }
                     }

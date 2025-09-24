@@ -17,6 +17,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.material.navigation.NavigationView;
 import com.openai.CommonConstants;
@@ -346,21 +347,17 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                     showShare();
                     name = "分享";
                 }  else if (item.getItemId() == R.id.menu_test) {
-
-                    Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                    // 使用现代Activity Result API
-                    // 现代方式：直接启动Activity，不处理结果
-                    startActivity(intent);
-//                    startActivity(WaveTest2.class);
-//                    startActivity(MainActivity.class);
-//                    startActivity(RippleActivity.class);
-//                    startFragment();
-//                    startActivity(HorizonActivity.class);
-//                    startActivity(AudioWavesMainActivity.class);
-//                    startActivity(AudioVisualizeViewMainActivity.class);
-//                    startActivity(FireZenkMainActivity.class);
-//                    startActivity(BuilderExampleActivity.class);
-                    name = "测试";
+                    // 跳转到 Duix Android 模块的主 Activity
+                    try {
+                        Intent intent = new Intent();
+                        intent.setClassName("com.duix.android", "com.duix.android.MainActivity");
+                        startActivity(intent);
+                        name = "Duix Android 测试";
+                    } catch (Exception e) {
+                        // 如果无法启动 Duix Android Activity，显示错误信息
+                        Toast.makeText(BaseDrawerActivity.this, "无法启动 Duix Android 模块", Toast.LENGTH_SHORT).show();
+                        name = "测试失败";
+                    }
                 } else if (item.getItemId() == R.id.menu_chat_session) {
                     name = "新建对话";
                     ChatSessionFragment.startFragment(BaseDrawerActivity.this);

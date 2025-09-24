@@ -104,15 +104,69 @@ fun ChatBar(
 
 }
 
-@Preview
+@Preview(showBackground = true, backgroundColor = 0xFFF5F5F5, name = "空输入状态")
 @Composable
-fun ChatWidgetPreview() {
-    Column {
-        var message by rememberSaveable { mutableStateOf("") }
+fun ChatBarEmptyPreview() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
         ChatBar(
-            value = message,
-            onValueChange = { message = it },
-            onChatSend = {},
+            value = "",
+            onValueChange = { },
+            onChatSend = { },
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFF5F5F5, name = "有内容状态")
+@Composable
+fun ChatBarWithContentPreview() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        ChatBar(
+            value = "这是一条测试消息",
+            onValueChange = { },
+            onChatSend = { },
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFF5F5F5, name = "长文本状态")
+@Composable
+fun ChatBarLongTextPreview() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        ChatBar(
+            value = "这是一条很长的测试消息，用来测试多行文本的显示效果，看看输入框如何处理换行和高度调整。",
+            onValueChange = { },
+            onChatSend = { },
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF1A0B2E, name = "深色主题")
+@Composable
+fun ChatBarDarkThemePreview() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        ChatBar(
+            value = "深色主题测试",
+            onValueChange = { },
+            onChatSend = { },
             modifier = Modifier.fillMaxWidth()
         )
     }

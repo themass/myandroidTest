@@ -17,14 +17,15 @@
                 android:id="@+id/circle_wave"
                 android:layout_width="200dp"
                 android:layout_height="200dp"
-                app:shader_color_1="#91C2F3"
-                app:shader_color_2="#2D92F6"
+                app:shader_color_1="#2BCEFF"
+                app:shader_color_2="#0976E3"
                 android:layout_gravity="center"
                 app:circle="true"
-                app:max_alpha="120"
-                app:amplitude="-1"/>
+                app:amplitude="0"
+                app:max_alpha="255"/>
 
             <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/center_image"
                 android:layout_gravity="center"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
@@ -35,11 +36,11 @@
     <com.aghajari.waveanimation.AXLineWaveView
         android:id="@+id/line_wave"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
-        app:shader_color_1="#91C2F3"
+        android:layout_height="100dp"
+        app:shader_color_1="#2BCEFF"
         app:shader_color_2="#0976E3"
         android:layout_alignParentBottom="true"
         app:main_wave="false"
-        app:max_alpha="120"
-        app:amplitude="-1"/>
+        app:amplitude="0"
+        app:max_alpha="255"/>
     </RelativeLayout>

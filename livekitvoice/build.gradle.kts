@@ -92,6 +92,10 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.navigation:navigation-compose:2.9.4")
+    implementation("androidx.compose.runtime:runtime")
+    
+    // Material Design 组件
+    implementation("com.google.android.material:material:1.12.0")
 
     // 权限管理 - 使用最新版本
     implementation("com.google.accompanist:accompanist-permissions:0.37.3")
@@ -104,14 +108,7 @@ dependencies {
     // 音频动画
     implementation("com.aghajari.waveanimation:AXWaveAnimation:1.0.0")
 
-    // 测试依赖
-//    testImplementation("junit:junit:4.13.2")
-//    androidTestImplementation("androidx.test.ext:junit:1.2.1")
-//    androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
-//    androidTestImplementation(platform("androidx.compose:compose-bom:2025.05.00"))
-//    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
-//
-    // Debug 工具
-//    debugImplementation("androidx.compose.ui:ui-tooling")
-//    debugImplementation("androidx.compose.ui:ui-test-manifest")
+    // Debug 工具 - Preview 功能必需
+    debugImplementation("androidx.compose.ui:ui-tooling")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
 }

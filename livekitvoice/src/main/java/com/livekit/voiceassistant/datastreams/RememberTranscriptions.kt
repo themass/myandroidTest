@@ -18,6 +18,7 @@ import java.util.Date
 import java.util.UUID
 
 private const val TRANSCRIPTION_TOPIC = "lk.transcription"
+private const val CHAT_TOPIC = "lk.chat" // 聊天消息话题
 
 data class Transcription(
     val identity: Participant.Identity,
@@ -68,6 +69,8 @@ fun rememberTranscriptions(room: Room): TranscriptionsState {
     }
 
     DisposableEffect(room) {
+        
+        // 注册转录消息处理器
         room.registerTextStreamHandler(TRANSCRIPTION_TOPIC) { receiver, identity ->
             coroutineScope.launch(Dispatchers.IO) {
                 // Prepare for incoming transcription
@@ -92,10 +95,44 @@ fun rememberTranscriptions(room: Room): TranscriptionsState {
                 }
             }
         }
+        
+        // 注册聊天消息处理器
+        room.registerTextStreamHandler(CHAT_TOPIC) { receiver, identity ->
+            coroutineScope.launch(Dispatchers.IO) {
+                val stringBuilder = StringBuilder()
+
+                // 收集聊天消息流
+                receiver.flow.collect { chatMessage ->
+                    stringBuilder.append(chatMessage)
+                    
+                    // 创建聊天消息的转录段
+                    val chatSegment = TranscriptionSegment(
+                        id = UUID.randomUUID().toString(),
+                        text = stringBuilder.toString(),
+                        language = "zh-CN", // 默认中文
+                        final = true, // 聊天消息都是完整的
+                        firstReceivedTime = Date().time,
+                        lastReceivedTime = Date().time
+                    )
+                    
+                    transcriptions.mergeNewSegments(
+                        listOf(
+                            Transcription(
+                                identity = identity,
+                                transcriptionSegment = chatSegment
+                            )
+                        )
+                    )
+                    
+                    println("收到聊天消息: $chatMessage from $identity")
+                }
+            }
+        }
 
         onDispose {
-            // Clean up the handler when done with it.
+            // 清理处理器
             room.unregisterTextStreamHandler(TRANSCRIPTION_TOPIC)
+            room.unregisterTextStreamHandler(CHAT_TOPIC)
         }
     }
 

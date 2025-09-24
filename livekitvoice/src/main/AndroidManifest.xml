@@ -2,16 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <application
-        android:allowBackup="true"
-        android:supportsRtl="true">
-        <!-- 主 Activity，使用 Fragment 架构 -->
-        <activity
-            android:theme="@style/Theme.LiveKitVoiceAssistantExample"
-            android:name="com.livekit.voiceassistant.MainActivity"
-            android:exported="true">
-        </activity>
-        
+    
+    <!-- LiveKit Voice 库模块 - 只提供 Fragment，不包含 Activity -->
+    <application>
+        <!-- 库模块不应该包含启动 Activity -->
+        <!-- Fragment 由宿主应用的 Activity 来管理 -->
         <!-- 注释掉旧的 Activity，使用新的 MainActivity -->
         <!--
         <activity
