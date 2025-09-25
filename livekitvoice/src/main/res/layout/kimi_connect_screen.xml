@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/kimi_gradient_background"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/kimi_padding_lg">
+
+        <!-- 顶部状态栏 -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="@dimen/kimi_padding_lg"
+            android:paddingHorizontal="@dimen/kimi_padding_lg">
+
+            <!-- 返回按钮 -->
+            <ImageButton
+                android:id="@+id/btn_back"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:background="@drawable/kimi_button_control_bg"
+                android:contentDescription="@string/back"
+                android:src="@drawable/ic_arrow_back"
+                app:tint="@color/kimi_text_primary" />
+
+            <!-- 连接状态指示器 -->
+            <LinearLayout
+                android:id="@+id/layout_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:background="@drawable/kimi_status_bg"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:paddingHorizontal="@dimen/kimi_padding_lg"
+                android:paddingVertical="@dimen/kimi_padding_sm">
+
+                <View
+                    android:id="@+id/status_indicator"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:layout_marginEnd="@dimen/kimi_padding_sm"
+                    android:background="@drawable/kimi_status_indicator_bg" />
+
+                <TextView
+                    android:id="@+id/tv_status"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/status_disconnected"
+                    android:textColor="@color/kimi_text_primary"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+        </RelativeLayout>
+
+        <!-- 中央内容区域 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingTop="@dimen/kimi_padding_xl">
+
+            <!-- AI 头像 -->
+            <FrameLayout
+                android:layout_width="@dimen/kimi_avatar_size_md"
+                android:layout_height="@dimen/kimi_avatar_size_md"
+                android:background="@drawable/kimi_avatar_gradient">
+
+                <ImageView
+                    android:id="@+id/iv_ai_icon"
+                    android:layout_width="@dimen/kimi_icon_size_xxl"
+                    android:layout_height="@dimen/kimi_icon_size_xxl"
+                    android:layout_gravity="center"
+                    android:contentDescription="@string/ai_assistant"
+                    android:src="@drawable/ic_mic"
+                    app:tint="@color/kimi_text_primary" />
+
+            </FrameLayout>
+
+            <!-- 应用标题 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/kimi_padding_lg"
+                android:text="@string/app_name_kimi"
+                android:textColor="@color/kimi_text_primary"
+                android:textSize="@dimen/kimi_text_size_title"
+                android:textStyle="bold" />
+
+            <!-- 状态提示 -->
+            <TextView
+                android:id="@+id/tv_status_hint"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/kimi_padding_sm"
+                android:text="@string/ai_generated_content"
+                android:textColor="@color/kimi_text_hint"
+                android:textSize="@dimen/kimi_text_size_md" />
+
+            <!-- 对话卡片 -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/kimi_padding_xl"
+                android:layout_marginBottom="@dimen/kimi_message_card_margin_bottom"
+                app:cardBackgroundColor="@color/kimi_white_alpha_10"
+                app:cardCornerRadius="@dimen/kimi_radius_lg"
+                app:cardElevation="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="@dimen/kimi_message_card_padding_horizontal"
+                    android:paddingVertical="@dimen/kimi_message_card_padding_vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:lineSpacingExtra="@dimen/kimi_padding_sm"
+                        android:text="@string/kimi_greeting_1"
+                        android:textColor="@color/kimi_text_primary"
+                        android:textSize="@dimen/kimi_text_size_lg" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/kimi_padding_md"
+                        android:lineSpacingExtra="@dimen/kimi_padding_sm"
+                        android:text="@string/kimi_greeting_2"
+                        android:textColor="@color/kimi_text_secondary"
+                        android:textSize="@dimen/kimi_text_size_lg" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/kimi_padding_sm"
+                        android:lineSpacingExtra="@dimen/kimi_padding_sm"
+                        android:text="@string/kimi_greeting_3"
+                        android:textColor="@color/kimi_text_secondary"
+                        android:textSize="@dimen/kimi_text_size_lg" />
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
+            <!-- 视频组件占位 -->
+            <include
+                layout="@layout/kimi_video_component"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="@dimen/kimi_padding_md" />
+
+            <!-- 语音可视化组件 -->
+            <include
+                layout="@layout/kimi_voice_visualizer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="@dimen/kimi_padding_md" />
+
+        </LinearLayout>
+
+        <!-- 底部控制区域 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:paddingBottom="@dimen/kimi_padding_xxl">
+
+            <!-- 视频控制按钮 -->
+            <include
+                layout="@layout/kimi_video_controls"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/kimi_padding_md" />
+
+            <!-- 控制按钮组 -->
+            <LinearLayout
+                android:id="@+id/layout_control_buttons"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/kimi_padding_md"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <!-- 暂停按钮 -->
+                <include
+                    android:id="@+id/btn_pause_container"
+                    layout="@layout/kimi_control_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/kimi_control_button_spacing"
+                    android:visibility="gone" />
+
+                <!-- 聊天按钮 -->
+                <include
+                    android:id="@+id/btn_chat_container"
+                    layout="@layout/kimi_control_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+            </LinearLayout>
+
+            <!-- 主按钮 -->
+            <Button
+                android:id="@+id/btn_main_action"
+                android:layout_width="0dp"
+                android:layout_height="@dimen/kimi_button_height_lg"
+                android:layout_marginHorizontal="@dimen/kimi_padding_xl"
+                android:layout_weight="0.8"
+                android:background="@drawable/kimi_button_primary_bg"
+                android:text="@string/start_conversation"
+                android:textColor="@color/kimi_text_primary"
+                android:textSize="@dimen/kimi_text_size_lg"
+                android:textStyle="bold" />
+
+            <!-- 统一输入框 -->
+            <include
+                layout="@layout/kimi_unified_input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/kimi_padding_md"
+                android:layout_marginHorizontal="@dimen/kimi_padding_md" />
+
+            <!-- 错误信息 -->
+            <TextView
+                android:id="@+id/tv_error"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/kimi_padding_sm"
+                android:text="@string/connection_failed"
+                android:textColor="@color/kimi_error"
+                android:textSize="@dimen/kimi_text_size_sm"
+                android:visibility="gone" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</ScrollView>

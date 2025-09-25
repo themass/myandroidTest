@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/kimi_input_combined_height"
+    android:background="@drawable/kimi_unified_input_bg">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="8dp">
+
+        <!-- 模式切换按钮 -->
+        <ImageButton
+            android:id="@+id/btn_input_mode"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/kimi_input_mode_selector"
+            android:contentDescription="@string/input_mode_switch"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_keyboard_voice"
+            android:tint="@color/kimi_text_primary" />
+
+        <!-- 输入区域 -->
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginHorizontal="12dp"
+            android:layout_weight="1">
+
+            <!-- 文字输入框 -->
+            <EditText
+                android:id="@+id/et_text_input"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@android:color/transparent"
+                android:hint="@string/type_message_hint"
+                android:inputType="textMultiLine"
+                android:maxLines="3"
+                android:textColor="@color/kimi_text_primary"
+                android:textColorHint="@color/kimi_text_hint"
+                android:textSize="@dimen/kimi_text_size_md" />
+
+            <!-- 语音输入提示 -->
+            <TextView
+                android:id="@+id/tv_voice_hint"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:text="@string/voice_input_hint"
+                android:textColor="@color/kimi_text_hint"
+                android:textSize="@dimen/kimi_text_size_md"
+                android:visibility="gone" />
+
+        </FrameLayout>
+
+        <!-- 发送/录音按钮 -->
+        <ImageButton
+            android:id="@+id/btn_send_record"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/kimi_send_button_selector"
+            android:contentDescription="@string/send_or_record"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_send"
+            android:tint="@color/kimi_text_primary" />
+
+    </LinearLayout>
+
+</FrameLayout>

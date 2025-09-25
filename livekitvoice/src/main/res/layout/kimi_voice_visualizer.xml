@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="@dimen/kimi_padding_md">
+
+    <!-- AI 语音可视化 -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:paddingTop="@dimen/kimi_padding_md">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/kimi_padding_sm"
+            android:text="@string/ai_assistant"
+            android:textColor="@color/kimi_text_hint"
+            android:textSize="@dimen/kimi_text_size_sm" />
+
+        <!-- AI 语音条 -->
+        <LinearLayout
+            android:id="@+id/layout_ai_voice_bars"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <!-- 语音条将通过代码动态添加 -->
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- 语音波形显示 -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_marginVertical="@dimen/kimi_padding_sm"
+        android:background="@color/kimi_white_alpha_10"
+        android:elevation="0dp">
+
+        <LinearLayout
+            android:id="@+id/layout_waveform"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="@dimen/kimi_padding_md">
+
+            <!-- 波形条将通过代码动态添加 -->
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+    <!-- 用户语音可视化 -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:paddingBottom="@dimen/kimi_padding_md">
+
+        <TextView
+            android:id="@+id/tv_user_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/kimi_padding_sm"
+            android:text="@string/user"
+            android:textColor="@color/kimi_text_hint"
+            android:textSize="@dimen/kimi_text_size_sm" />
+
+        <!-- 用户语音条 -->
+        <LinearLayout
+            android:id="@+id/layout_user_voice_bars"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <!-- 语音条将通过代码动态添加 -->
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

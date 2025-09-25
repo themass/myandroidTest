@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <ImageButton
+        android:id="@+id/btn_control"
+        android:layout_width="@dimen/kimi_control_button_size"
+        android:layout_height="@dimen/kimi_control_button_size"
+        android:background="@drawable/kimi_button_control_bg"
+        android:contentDescription="@string/control_button"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_play_arrow"
+        android:tint="@color/kimi_text_primary" />
+
+    <TextView
+        android:id="@+id/tv_control_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/kimi_padding_sm"
+        android:text="@string/pause"
+        android:textColor="@color/kimi_text_secondary"
+        android:textSize="@dimen/kimi_text_size_sm" />
+
+</LinearLayout>
