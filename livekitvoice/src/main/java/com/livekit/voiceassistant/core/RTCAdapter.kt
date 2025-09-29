@@ -13,7 +13,7 @@ interface RTCAdapter {
     /**
      * 连接到RTC服务
      */
-    suspend fun connect(config: RTCConfig): Result<Unit>
+    suspend fun connect(url: String, token: String): Result<Unit>
     
     /**
      * 断开连接

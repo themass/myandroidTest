@@ -45,8 +45,8 @@ class RTCProxy : RTCAdapter {
     
     // ============ 代理所有RTCAdapter方法 ============
     
-    override suspend fun connect(config: RTCConfig): Result<Unit> {
-        return adapter.connect(config)
+    override suspend fun connect(url: String, token: String): Result<Unit> {
+        return adapter.connect(url, token)
     }
     
     override suspend fun disconnect(): Result<Unit> {

@@ -3,11 +3,10 @@ package com.livekit.voiceassistant
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import com.livekit.voiceassistant.fragment.SimpleKimiFragment
-import com.livekit.voiceassistant.fragment.KimiCompleteFragment
-import com.livekit.voiceassistant.fragment.OriginalWaveFragment
-import com.livekit.voiceassistant_old.LivekitVoiceAgentFragment
-import com.livekit.voiceassistant_old.MainFragment
+import com.livekit.voiceassistant.fragment.SimpleFragment
+import com.livekit.voiceassistant.fragment.CompleteFragment
+import com.livekit.voiceassistant.fragment.WaveFragment
+import com.livekit.voiceassistant.fragment.VoiceFragment
 
 /**
  * LiveKit Fragment管理器 - 入口切换类
@@ -17,57 +16,57 @@ class LiveKitFragmentManager {
     
     companion object {
         /**
-         * 创建SimpleKimiFragment实例
+         * 创建SimpleFragment实例
          */
         fun newInstance(url: String?, token: String?): Fragment {
-            return SimpleKimiFragment.newInstance(
+            return SimpleFragment.newInstance(
                 url ?: "wss://your-server.livekit.cloud",
                 token ?: "your-jwt-token"
             )
         }
         
         /**
-         * 创建KimiCompleteFragment实例
+         * 创建CompleteFragment实例
          */
         fun newCompleteInstance(url: String?, token: String?): Fragment {
-            return KimiCompleteFragment.newInstance(
+            return CompleteFragment.newInstance(
                 url ?: "wss://your-server.livekit.cloud", 
                 token ?: "your-jwt-token"
             )
         }
         
         /**
-         * 创建OriginalWaveFragment实例
+         * 创建WaveFragment实例
          */
         fun newOriginalWaveInstance(url: String?, token: String?): Fragment {
-            return OriginalWaveFragment.newInstance(
+            return WaveFragment.newInstance(
                 url ?: "wss://your-server.livekit.cloud",
                 token ?: "your-jwt-token"
             )
         }
         
         /**
-         * 创建旧版LivekitVoiceAgentFragment实例
+         * 创建旧版VoiceFragment实例
          */
         fun newOldVoiceAgentInstance(url: String?, token: String?): Fragment {
-            return LivekitVoiceAgentFragment.newInstance(
+            return VoiceFragment.newInstance(
                 url ?: "wss://your-server.livekit.cloud",
                 token ?: "your-jwt-token"
             )
         }
         
         /**
-         * 创建旧版MainFragment实例
+         * 创建旧版MainFragment实例 - 已删除，使用SimpleFragment替代
          */
         fun newOldMainInstance(url: String?, token: String?): Fragment {
-            return MainFragment.newInstance(
+            return SimpleFragment.newInstance(
                 url ?: "wss://your-server.livekit.cloud",
                 token ?: "your-jwt-token"
             )
         }
         
         /**
-         * 显示主Fragment（SimpleKimiFragment）
+         * 显示主Fragment（SimpleFragment）
          */
         fun showMainFragment(
             activity: FragmentActivity,
@@ -88,7 +87,7 @@ class LiveKitFragmentManager {
         }
         
         /**
-         * 显示Kimi Fragment（KimiCompleteFragment）
+         * 显示Kimi Fragment（CompleteFragment）
          */
         fun showKimiFragment(
             activity: FragmentActivity,
@@ -109,7 +108,7 @@ class LiveKitFragmentManager {
         }
         
         /**
-         * 显示连接页面（使用SimpleKimiFragment作为连接页面）
+         * 显示连接页面（使用SimpleFragment作为连接页面）
          */
         fun showConnectScreen(
             activity: FragmentActivity,
@@ -132,7 +131,7 @@ class LiveKitFragmentManager {
         /**
          * 显示原始波纹Fragment
          */
-        fun showOriginalWaveFragment(
+        fun showWaveFragment(
             activity: FragmentActivity,
             containerId: Int,
             url: String? = null,
@@ -151,35 +150,35 @@ class LiveKitFragmentManager {
         }
         
         /**
-         * 检查当前是否显示SimpleKimiFragment
+         * 检查当前是否显示SimpleFragment
          */
         fun isShowingMainFragment(activity: FragmentActivity): Boolean {
             val currentFragment = activity.supportFragmentManager.findFragmentById(android.R.id.content)
-            return currentFragment is SimpleKimiFragment
+            return currentFragment is SimpleFragment
         }
         
         /**
-         * 检查当前是否显示KimiCompleteFragment
+         * 检查当前是否显示CompleteFragment
          */
         fun isShowingKimiFragment(activity: FragmentActivity): Boolean {
             val currentFragment = activity.supportFragmentManager.findFragmentById(android.R.id.content)
-            return currentFragment is KimiCompleteFragment
+            return currentFragment is CompleteFragment
         }
         
         /**
-         * 检查当前是否显示ConnectScreen（使用SimpleKimiFragment）
+         * 检查当前是否显示ConnectScreen（使用SimpleFragment）
          */
         fun isShowingConnectScreen(activity: FragmentActivity): Boolean {
             val currentFragment = activity.supportFragmentManager.findFragmentById(android.R.id.content)
-            return currentFragment is SimpleKimiFragment
+            return currentFragment is SimpleFragment
         }
         
         /**
-         * 检查当前是否显示OriginalWaveFragment
+         * 检查当前是否显示WaveFragment
          */
-        fun isShowingOriginalWaveFragment(activity: FragmentActivity): Boolean {
+        fun isShowingWaveFragment(activity: FragmentActivity): Boolean {
             val currentFragment = activity.supportFragmentManager.findFragmentById(android.R.id.content)
-            return currentFragment is OriginalWaveFragment
+            return currentFragment is WaveFragment
         }
         
         /**
@@ -202,7 +201,7 @@ class LiveKitFragmentManager {
          */
         fun isShowingOldVoiceAgentFragment(activity: FragmentActivity): Boolean {
             val currentFragment = activity.supportFragmentManager.findFragmentById(android.R.id.content)
-            return currentFragment is LivekitVoiceAgentFragment
+            return currentFragment is VoiceFragment
         }
         
         /**
@@ -225,7 +224,7 @@ class LiveKitFragmentManager {
          */
         fun isShowingOldMainFragment(activity: FragmentActivity): Boolean {
             val currentFragment = activity.supportFragmentManager.findFragmentById(android.R.id.content)
-            return currentFragment is MainFragment
+            return currentFragment is SimpleFragment
         }
         
         /**
@@ -233,10 +232,10 @@ class LiveKitFragmentManager {
          */
         fun getCurrentFragmentType(activity: FragmentActivity): String {
             return when {
-                isShowingMainFragment(activity) -> "SimpleKimiFragment"
-                isShowingKimiFragment(activity) -> "KimiCompleteFragment"
+                isShowingMainFragment(activity) -> "SimpleFragment"
+                isShowingKimiFragment(activity) -> "CompleteFragment"
                 isShowingConnectScreen(activity) -> "ConnectScreen"
-                isShowingOriginalWaveFragment(activity) -> "OriginalWaveFragment"
+                isShowingWaveFragment(activity) -> "WaveFragment"
                 isShowingOldVoiceAgentFragment(activity) -> "OldVoiceAgentFragment"
                 isShowingOldMainFragment(activity) -> "OldMainFragment"
                 else -> "Unknown"

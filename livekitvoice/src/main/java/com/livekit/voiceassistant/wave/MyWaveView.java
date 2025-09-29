@@ -129,8 +129,8 @@ public class MyWaveView extends FrameLayout {
         this.agentAmplitude = Math.max(0f, Math.min(1f, agentAmplitude));
         
         // 将振幅转换为AXWaveAnimation的振幅值，并大幅放大
-        // AXWaveAnimation使用0-100的振幅值，这里放大到1000%让效果极其明显
-        int axAmplitude = (int) (this.agentAmplitude * 1000);
+        // AXWaveAnimation使用0-100的振幅值，这里放大到3000%让效果极其震撼
+        int axAmplitude = (int) (this.agentAmplitude * 3000);
         
         // 设置圆形波纹振幅
         if (circleWave != null) {
@@ -148,8 +148,8 @@ public class MyWaveView extends FrameLayout {
         this.userAmplitude = Math.max(0f, Math.min(1f, userAmplitude));
         
         // 将振幅转换为AXWaveAnimation的振幅值，并大幅放大
-        // AXWaveAnimation使用0-100的振幅值，这里放大到1500%让用户波形效果极其明显
-        int axAmplitude = (int) (this.userAmplitude * 1500);
+        // AXWaveAnimation使用0-100的振幅值，这里放大到3500%让用户波形效果极其震撼
+        int axAmplitude = (int) (this.userAmplitude * 3500);
         
         // 设置线性波纹振幅
         if (lineWave != null) {

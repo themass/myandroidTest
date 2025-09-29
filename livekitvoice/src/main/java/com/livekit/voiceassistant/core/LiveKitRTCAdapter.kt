@@ -52,21 +52,19 @@ class LiveKitRTCAdapter(
     
     // ============ 连接管理 ============
     
-    override suspend fun connect(config: RTCConfig): Result<Unit> {
+    override suspend fun connect(url: String, token: String): Result<Unit> {
         return try {
             _connectionState.value = RTCConnectionState.CONNECTING
             
             // LiveKit连接逻辑
-            room.connect(config.serverUrl, config.token)
+            room.connect(url, token)
             
             // 更新状态
             _connectionState.value = RTCConnectionState.CONNECTED
-            _localUserId.value = config.userId
+            _localUserId.value = room.localParticipant.identity?.toString()
             
             // 启用音频
-            if (config.enableAudio) {
-                setMicrophoneEnabled(true)
-            }
+            setMicrophoneEnabled(true)
             
             Result.success(Unit)
         } catch (e: Exception) {
