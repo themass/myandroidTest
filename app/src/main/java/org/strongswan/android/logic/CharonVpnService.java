@@ -66,6 +66,7 @@ import org.strongswan.android.logic.imc.ImcState;
 import org.strongswan.android.logic.imc.RemediationInstruction;
 import org.strongswan.android.logic.utils.SettingsWriter;
 
+import java.io.File;
 import java.io.InputStream;
 import java.io.StringBufferInputStream;
 import java.lang.reflect.Method;
@@ -116,32 +117,43 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
      * during installation.  On newer releases most are loaded in JNI_OnLoad.
      */
     static {
-        // 确保SimpleFetcher类在加载native库之前被加载
         try {
-            Class.forName("org.strongswan.android.logic.SimpleFetcher");
-        } catch (ClassNotFoundException e) {
-            LogUtil.e("Failed to load SimpleFetcher class", e);
-        }
-        
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            System.loadLibrary("strongswan");
-            System.loadLibrary("tpmtss");
-            System.loadLibrary("tncif");
-            System.loadLibrary("tnccs");
-            System.loadLibrary("imcv");
-            System.loadLibrary("charon");
-            System.loadLibrary("ipsec");
-        }
-        try {
+            // 确保SimpleFetcher类在加载native库之前被加载
+            try {
+                Class.forName("org.strongswan.android.logic.SimpleFetcher");
+                android.util.Log.i("CharonVpnService", "SimpleFetcher class loaded successfully");
+            } catch (ClassNotFoundException e) {
+                android.util.Log.e("CharonVpnService", "Failed to load SimpleFetcher class", e);
+            }
+            
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                android.util.Log.i("CharonVpnService", "Loading legacy libraries for API < 18");
+                System.loadLibrary("strongswan");
+                System.loadLibrary("tpmtss");
+                System.loadLibrary("tncif");
+                System.loadLibrary("tnccs");
+                System.loadLibrary("imcv");
+                System.loadLibrary("charon");
+                System.loadLibrary("ipsec");
+            }
+            
+            android.util.Log.i("CharonVpnService", "Loading androidbridge library...");
             System.loadLibrary("androidbridge");
-        }catch (Exception e){
-            LogUtil.e("Failed to load androidbridge library", e);
+            android.util.Log.i("CharonVpnService", "All native libraries loaded successfully");
+            
+        } catch (UnsatisfiedLinkError e) {
+            android.util.Log.e("CharonVpnService", "Failed to load native library", e);
+            throw new RuntimeException("Failed to load native libraries", e);
+        } catch (Exception e) {
+            android.util.Log.e("CharonVpnService", "Unexpected error during native library loading", e);
+            throw new RuntimeException("Unexpected error during native library loading", e);
         }
     }
 
     private final Object mServiceLock = new Object();
     public ButtonBroadcastReceiver bReceiver;
     private volatile boolean needStop = false;
+    private volatile boolean isInitialized = false;
     private String mLogFile;
     private VpnProfile mCurrentProfile;
     private volatile boolean mIsDisconnecting;
@@ -205,6 +217,21 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
     @Override
     public void onCreate() {
         mLogFile = FileUtils.getCharonFilePath();
+        
+        // 确保日志目录存在
+        try {
+            File logDir = new File(mLogFile).getParentFile();
+            if (logDir != null && !logDir.exists()) {
+                boolean created = logDir.mkdirs();
+                LogUtil.i("Log directory created: " + created);
+            }
+            
+            LogUtil.i("StrongSwan log file path: " + mLogFile);
+            LogUtil.i("Log directory exists: " + (logDir != null && logDir.exists()));
+        } catch (Exception e) {
+            LogUtil.e("Error setting up log directory: " + e.getMessage());
+        }
+        
         /* use a separate thread as main thread for charon */
         /* the thread is started when the service is bound */
         bindService(new Intent(this, VpnStateService.class),
@@ -353,9 +380,14 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
     }
     private void logStatus(int status){
         try {
-            ConnLogUtil.addLog(this,mCurrentProfile.getUsername(),mCurrentProfile.getGateway(),status);
-            LogUtil.e("name=" + mCurrentProfile.getUsername() + ";ip=" + mCurrentProfile.getGateway() + "; userIp=" + NetUtils.getIP(this));
+            if (mCurrentProfile != null) {
+                ConnLogUtil.addLog(this,mCurrentProfile.getUsername(),mCurrentProfile.getGateway(),status);
+                LogUtil.e("name=" + mCurrentProfile.getUsername() + ";ip=" + mCurrentProfile.getGateway() + "; userIp=" + NetUtils.getIP(this));
+            } else {
+                LogUtil.e("logStatus: mCurrentProfile is null, status=" + status);
+            }
         }catch (Throwable e){
+            LogUtil.e("logStatus error: " + e.getMessage());
         }
     }
 
@@ -453,10 +485,12 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
      *
      * @param builder BuilderAdapter for this connection
      * @param logfile absolute path to the logfile
-     * @param byod    enable BYOD features
+     * @param appdir absolute path to the data directory of the app
+     * @param byod enable BYOD features
+     * @param ipv6 enable IPv6 transport
      * @return TRUE if initialization was successful
      */
-    public native boolean initializeCharon(BuilderAdapter builder, String logfile, boolean byod);
+    public native boolean initializeCharon(BuilderAdapter builder, String logfile, String appdir, boolean byod, boolean ipv6);
 
     /**
      * Deinitialize charon, provided by libandroidbridge.so
@@ -467,6 +501,33 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
      * Initiate VPN, provided by libandroidbridge.so
      */
     public native void initiate(String config);
+    
+    /**
+     * 安全的native方法调用包装器
+     */
+    private boolean safeNativeCall(Runnable nativeCall, String operationName) {
+        try {
+            LogUtil.i("Executing native operation: " + operationName);
+            nativeCall.run();
+            LogUtil.i("Native operation completed: " + operationName);
+            return true;
+        } catch (UnsatisfiedLinkError e) {
+            LogUtil.e("Native library not available for " + operationName + ": " + e.getMessage());
+            return false;
+        } catch (NoSuchMethodError e) {
+            LogUtil.e("Native method not found for " + operationName + ": " + e.getMessage());
+            return false;
+        } catch (Exception e) {
+            LogUtil.e("Error in native operation " + operationName + ": " + e.getMessage());
+            LogUtil.e("Stack trace: " + android.util.Log.getStackTraceString(e));
+            return false;
+        } catch (Throwable e) {
+            LogUtil.e("Critical error in native operation " + operationName + ": " + e.getMessage());
+            LogUtil.e("Stack trace: " + android.util.Log.getStackTraceString(e));
+            return false;
+        }
+    }
+    
     /**
      * Function called via JNI to determine information about the Android version.
      */
@@ -491,17 +552,55 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
      * Adapter for VpnService.Builder which is used to access it safely via JNI.
      * There is a corresponding C object to access it from native code.
      */
+    /**
+     * Stop any existing connection by deinitializing charon.
+     */
+    private void stopCurrentConnection() {
+        if (mCurrentProfile != null) {
+            setState(VpnStateService.State.DISCONNECTING);
+            mIsDisconnecting = true;
+            needStop = false;
+            
+            // 添加延迟，确保所有native操作完成
+            try {
+                Thread.sleep(100); // 给native线程一些时间完成操作
+            } catch (InterruptedException e) {
+                LogUtil.e("Interrupted while waiting for native operations to complete");
+            }
+            
+            // 只有在已经初始化的情况下才调用deinitializeCharon
+            if (isInitialized) {
+                LogUtil.i("Deinitializing charon...");
+                // 使用安全包装器调用native方法
+                boolean success = safeNativeCall(() -> {
+                    deinitializeCharon();
+                    // 再次延迟，确保清理完成
+                    try {
+                        Thread.sleep(50);
+                    } catch (InterruptedException e) {
+                        LogUtil.e("Interrupted while waiting for cleanup");
+                    }
+                }, "deinitializeCharon");
+                
+                if (success) {
+                    LogUtil.i("Charon deinitialized successfully");
+                } else {
+                    LogUtil.e("Failed to deinitialize charon");
+                }
+                isInitialized = false;
+            } else {
+                LogUtil.i("Charon not initialized, skipping deinitialization");
+            }
+            
+            Log.i(TAG, "charon stopped");
+            mCurrentProfile = null;
+        }
+        setState(VpnStateService.State.DISABLED);
+    }
+
     public void disconn() {
         LogUtil.i("charon stopped  mCurrentState=" + (mService != null ? mService.getState() : "null") + "  thread=" + Thread.currentThread().getName());
-        if (needStop) {
-            mIsDisconnecting = true;
-            setState(VpnStateService.State.DISCONNECTING);
-            needStop = false;
-            deinitializeCharon();
-//            stopForeground(true);
-        }
-        Log.i(TAG, "charon stopped");
-        setState(VpnStateService.State.DISABLED);
+        stopCurrentConnection();
     }
 
     public void conn() {
@@ -510,28 +609,85 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
         }
         Log.i(TAG, "charon started mCurrentState=" + mService.getState() + "  thread=" + Thread.currentThread().getName());
         if (mCurrentProfile != null) {
-            disconn();
+            // 先停止现有连接，但不调用deinitializeCharon
+            setState(VpnStateService.State.DISCONNECTING);
+            mIsDisconnecting = true;
+            needStop = false;
+            isInitialized = false; // 重置初始化状态
+            setState(VpnStateService.State.DISABLED);
+            
             startConnection(mCurrentProfile);
             mIsDisconnecting = false;
             BuilderAdapter builder = new BuilderAdapter(mCurrentProfile.getName(), mCurrentProfile.getSplitTunneling());
-            if (initializeCharon(builder, mLogFile, mCurrentProfile.getVpnType().has(VpnType.VpnTypeFeature.BYOD))) {
-                Log.i(TAG, "charon started");
-                SettingsWriter writer = new SettingsWriter();
-                writer.setValue("global.language", Locale.getDefault().getLanguage());
-                writer.setValue("global.mtu", mCurrentProfile.getMTU());
-                writer.setValue("connection.type", mCurrentProfile.getVpnType().getIdentifier());
-                writer.setValue("connection.server", mCurrentProfile.getGateway());
-                writer.setValue("connection.port", mCurrentProfile.getPort());
-                writer.setValue("connection.username", mCurrentProfile.getUsername());
-                writer.setValue("connection.password", mCurrentProfile.getPassword());
-                writer.setValue("connection.local_id", mCurrentProfile.getLocalId());
-                writer.setValue("connection.remote_id", mCurrentProfile.getRemoteId());
-                needStop = true;
-                initiate(writer.serialize());
+            
+            // 添加详细的连接信息日志
+            LogUtil.i("StrongSwan Client Version: 6.0.3dr1");
+            if (mCurrentProfile != null) {
+                LogUtil.i("Server Gateway: " + mCurrentProfile.getGateway());
+                LogUtil.i("BYOD Feature: " + mCurrentProfile.getVpnType().has(VpnType.VpnTypeFeature.BYOD));
+                LogUtil.i("Connection Type: " + mCurrentProfile.getVpnType().getIdentifier());
             } else {
-                Log.e(TAG, "failed to start charon");
+                LogUtil.e("mCurrentProfile is null!");
+            }
+            LogUtil.i("Log File: " + mLogFile);
+            
+            if (mCurrentProfile != null) {
+                try {
+                    LogUtil.i("Attempting to initialize StrongSwan...");
+                    String appDir = getFilesDir().getAbsolutePath();
+                    boolean initResult = initializeCharon(builder, mLogFile, appDir, mCurrentProfile.getVpnType().has(VpnType.VpnTypeFeature.BYOD), false);
+                    
+                    if (initResult) {
+                        Log.i(TAG, "charon started");
+                        isInitialized = true; // 标记为已初始化
+                        SettingsWriter writer = new SettingsWriter();
+                        writer.setValue("global.language", Locale.getDefault().getLanguage());
+                        writer.setValue("global.mtu", mCurrentProfile.getMTU());
+                        writer.setValue("connection.type", mCurrentProfile.getVpnType().getIdentifier());
+                        writer.setValue("connection.server", mCurrentProfile.getGateway());
+                        writer.setValue("connection.port", mCurrentProfile.getPort());
+                        writer.setValue("connection.username", mCurrentProfile.getUsername());
+                        writer.setValue("connection.password", mCurrentProfile.getPassword());
+                        writer.setValue("connection.local_id", mCurrentProfile.getLocalId());
+                        writer.setValue("connection.remote_id", mCurrentProfile.getRemoteId());
+                        
+                        // 添加版本兼容性配置 - 针对服务器版本5.6.3
+                        writer.setValue("charon.plugins.ikev2.version", "1");
+                        writer.setValue("charon.plugins.ikev2.send_vendor_id", "yes");
+                        writer.setValue("charon.plugins.ikev2.send_certreq", "yes");
+                        writer.setValue("charon.plugins.ikev2.send_cert", "yes");
+                        writer.setValue("charon.plugins.ikev2.send_certreq", "yes");
+                        
+                        LogUtil.i("Initializing StrongSwan with compatibility settings for server version 5.6.3");
+                        needStop = true;
+                        
+                        // 使用安全包装器调用native方法
+                        boolean success = safeNativeCall(() -> {
+                            initiate(writer.serialize());
+                            // 给连接一些时间建立
+                            try {
+                                Thread.sleep(200);
+                            } catch (InterruptedException e) {
+                                LogUtil.e("Interrupted while waiting for connection");
+                            }
+                        }, "initiate");
+                        
+                        if (!success) {
+                            setError(VpnStateService.ErrorState.GENERIC_ERROR);
+                        }
+                    } else {
+                        Log.e(TAG, "failed to start charon");
+                        LogUtil.e("Failed to initialize StrongSwan - initializeCharon returned false");
+                        setError(VpnStateService.ErrorState.GENERIC_ERROR);
+                    }
+                } catch (Exception e) {
+                    LogUtil.e("Exception during StrongSwan initialization: " + e.getMessage());
+                    LogUtil.e("Stack trace: " + android.util.Log.getStackTraceString(e));
+                    setError(VpnStateService.ErrorState.GENERIC_ERROR);
+                }
+            } else {
+                LogUtil.e("Cannot initialize StrongSwan: mCurrentProfile is null");
                 setError(VpnStateService.ErrorState.GENERIC_ERROR);
-                //setState(VpnStateService.State.DISABLED);
             }
         }
     }
