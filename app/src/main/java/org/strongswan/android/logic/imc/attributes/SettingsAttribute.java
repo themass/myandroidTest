@@ -2,7 +2,8 @@
  * Copyright (C) 2013 Tobias Brunner
  * Copyright (C) 2012 Christoph Buehler
  * Copyright (C) 2012 Patrick Loetscher
- * Hochschule fuer Technik Rapperswil
+ *
+ * Copyright (C) secunet Security Networks AG
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -25,48 +26,51 @@ import java.util.LinkedList;
 
 /**
  * ITA Settings attribute
- * <p>
- * 1				   2				   3
- * 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
- * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * |                         Settings Count                        |
- * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * |        Name Length            |  Name (Variable Length)       ~
- * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * ~                      Name (Variable Length)                   ~
- * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * |        Value Length           |  Value (Variable Length)      ~
- * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * ~                      Value (Variable Length)                  ~
- * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * |        Name Length            |  Name (Variable Length)       ~
- * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * ~                      Name (Variable Length)                   ~
- * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * |        Value Length           |  Value (Variable Length)      ~
- * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * ~                      Value (Variable Length)                  ~
- * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * ...........................
+ *
+ *					   1				   2				   3
+ *   0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+ *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *  |                         Settings Count                        |
+ *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *  |        Name Length            |  Name (Variable Length)       ~
+ *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *  ~                      Name (Variable Length)                   ~
+ *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *  |        Value Length           |  Value (Variable Length)      ~
+ *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *  ~                      Value (Variable Length)                  ~
+ *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *  |        Name Length            |  Name (Variable Length)       ~
+ *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *  ~                      Name (Variable Length)                   ~
+ *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *  |        Value Length           |  Value (Variable Length)      ~
+ *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *  ~                      Value (Variable Length)                  ~
+ *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *					 ...........................
  */
-public class SettingsAttribute implements Attribute {
-    private final LinkedList<Pair<String, String>> mSettings = new LinkedList<>();
+public class SettingsAttribute implements Attribute
+{
+    private final LinkedList<Pair<String, String>> mSettings = new LinkedList<Pair<String, String>>();
 
     /**
      * Add a setting to this attribute.
-     *
-     * @param name  name of the setting
+     * @param name name of the setting
      * @param value value of the setting
      */
-    public void addSetting(String name, String value) {
-        mSettings.add(new Pair<>(name, value));
+    public void addSetting(String name, String value)
+    {
+        mSettings.add(new Pair<String, String>(name, value));
     }
 
     @Override
-    public byte[] getEncoding() {
+    public byte[] getEncoding()
+    {
         BufferedByteWriter writer = new BufferedByteWriter();
         writer.put32(mSettings.size());
-        for (Pair<String, String> pair : mSettings) {
+        for (Pair<String, String> pair : mSettings)
+        {
             writer.putLen16(pair.first.getBytes());
             writer.putLen16(pair.second.getBytes());
         }

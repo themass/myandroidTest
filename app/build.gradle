@@ -1,20 +1,20 @@
 apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
+//apply plugin: 'kotlin-android'
 apply plugin: 'org.greenrobot.greendao'
-apply plugin: 'kotlin-android-extensions'
+//apply plugin: 'kotlin-android-extensions'
 apply plugin: 'com.jakewharton.butterknife'
 // gradle BuildVariants
 //Build Variants = Product Flavor + Build Type
 android {
     namespace "com.openapi.ks.free1"
-    compileSdk 35
-    ndkVersion "23.1.7779620"
+    ndkVersion "29.0.14033849"
     defaultConfig {
         applicationId "com.openapi.ks.free1"
-        minSdk 28
-        targetSdk 35
-        versionCode 1001001016
-        versionName "1.1.1.16"
+        compileSdkVersion 36  // 极低版本 AGP 仅支持 compileSdkVersion（无 = 号）
+        minSdkVersion 28
+        targetSdkVersion 36
+        versionCode 1001001017
+        versionName "1.1.1.23"
         // Enabling multidex support.
         multiDexEnabled true
         flavorDimensions "versionCode"
@@ -32,9 +32,9 @@ android {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
-    kotlinOptions {
-        jvmTarget = "17"
-    }
+//    kotlinOptions {
+//        jvmTarget = "17"
+//    }
     buildFeatures {
         viewBinding true
     }
@@ -113,24 +113,29 @@ dependencies {
 
 //    implementation 'cn.jzvd:jiaozivideoplayer:6.2.12'
 //    implementation(name: 'glide-transformations-2.0.1', ext: 'aar',)
-    implementation "androidx.appcompat:appcompat:1.6.1"
+    implementation "androidx.appcompat:appcompat:1.7.1"
     implementation "androidx.legacy:legacy-support-v13:1.0.0"
     implementation "androidx.legacy:legacy-support-v4:1.0.0"
     implementation "androidx.palette:palette:1.0.0"
     implementation "androidx.recyclerview:recyclerview"
     implementation "androidx.cardview:cardview"
 //material 版本不能动，会影响kotlin版本
-    implementation 'com.google.android.material:material:1.4.0'
-    annotationProcessor 'androidx.annotation:annotation:1.8.0'
+    implementation 'com.google.android.material:material:1.13.0'
+    annotationProcessor 'androidx.annotation:annotation:1.9.1'
     implementation "androidx.percentlayout:percentlayout:1.0.0"
     implementation 'androidx.multidex:multidex:2.0.1'
-    implementation 'com.github.bumptech.glide:glide:4.15.1'
-    annotationProcessor 'com.github.bumptech.glide:compiler:4.15.1'
-    implementation 'com.github.bumptech.glide:okhttp3-integration:4.15.1'
+    implementation 'com.github.bumptech.glide:glide:5.0.5'
+    annotationProcessor 'com.github.bumptech.glide:compiler:5.0.5'
+    implementation 'com.github.bumptech.glide:okhttp3-integration:5.0.5'
     implementation 'jp.wasabeef:glide-transformations:4.3.0'
 
-    implementation 'com.squareup.okhttp3:logging-interceptor:4.9.3'
-    implementation 'com.squareup.okhttp3:okhttp:4.9.3'
+    implementation 'com.squareup.okhttp3:logging-interceptor:5.1.0'
+    implementation 'com.squareup.okhttp3:okhttp:5.1.0'
+
+    implementation 'com.android.volley:volley:1.2.1'
+    implementation 'com.google.code.gson:gson:2.13.2'
+    implementation 'com.github.jenly1314:RadarView:1.0.2'
+    implementation 'me.weyye.hipermission:library:1.0.7'
 
 
     annotationProcessor 'com.jakewharton:butterknife-compiler:10.2.3'
@@ -141,15 +146,15 @@ dependencies {
     // If you want to use the GPU Filters
 //    implementation 'jp.co.cyberagent.android.gpuimage:gpuimage-library:1.4.1'
     implementation 'com.github.chrisbanes:PhotoView:2.3.0'
-    implementation 'org.greenrobot:eventbus:3.0.0'
+    implementation 'org.greenrobot:eventbus:3.3.1'
     implementation 'org.greenrobot:greendao:3.3.0'
 
     implementation 'com.romainpiel.shimmer:library:1.4.0@aar'
 
     implementation 'com.github.lawloretienne:imagegallery:0.1.0'
-    implementation 'com.sothree.slidinguppanel:library:3.3.1'
+    implementation 'com.sothree.slidinguppanel:library:3.4.0'
 
-    implementation 'com.google.android.gms:play-services-ads:24.2.0'
+    implementation 'com.google.android.gms:play-services-ads:24.6.0'
 //    implementation 'com.google.android.gms:play-services-base:18.2.0'
 //    implementation 'com.google.android.gms:play-services-location:21.0.1'
 //    implementation 'com.google.android.gms:play-services-wallet:19.1.0'
@@ -160,7 +165,7 @@ dependencies {
 //    implementation 'com.mbridge.msdk.oversea:mbsplash:16.4.31'
 //    implementation 'com.mbridge.msdk.oversea:mbbanner:16.4.31'
 //    implementation 'com.mbridge.msdk.oversea:newinterstitial:16.4.31'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation 'androidx.core:core-ktx:1.0.2'
+//    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+//    implementation 'androidx.core:core-ktx:1.0.2'
 
 }

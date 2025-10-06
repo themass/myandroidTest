@@ -116,6 +116,13 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
      * during installation.  On newer releases most are loaded in JNI_OnLoad.
      */
     static {
+        // 确保SimpleFetcher类在加载native库之前被加载
+        try {
+            Class.forName("org.strongswan.android.logic.SimpleFetcher");
+        } catch (ClassNotFoundException e) {
+            LogUtil.e("Failed to load SimpleFetcher class", e);
+        }
+        
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
             System.loadLibrary("strongswan");
             System.loadLibrary("tpmtss");
@@ -128,7 +135,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
         try {
             System.loadLibrary("androidbridge");
         }catch (Exception e){
-            LogUtil.e("", e);
+            LogUtil.e("Failed to load androidbridge library", e);
         }
     }
 
@@ -460,7 +467,26 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
      * Initiate VPN, provided by libandroidbridge.so
      */
     public native void initiate(String config);
+    /**
+     * Function called via JNI to determine information about the Android version.
+     */
+    private static String getAndroidVersion()
+    {
+        String version = "Android " + Build.VERSION.RELEASE + " - " + Build.DISPLAY;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+        {
+            version += "/" + Build.VERSION.SECURITY_PATCH;
+        }
+        return version;
+    }
 
+    /**
+     * Function called via JNI to determine information about the device.
+     */
+    private static String getDeviceString()
+    {
+        return Build.MODEL + " - " + Build.BRAND + "/" + Build.PRODUCT + "/" + Build.MANUFACTURER;
+    }
     /**
      * Adapter for VpnService.Builder which is used to access it safely via JNI.
      * There is a corresponding C object to access it from native code.
@@ -534,7 +560,6 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
             Toast.makeText(CharonVpnService.this, R.string.error_lookup_failed,Toast.LENGTH_SHORT).show();
         }
     };
-    private void test(){}
     private void createForegroundService(boolean needConnecting) {
         LogUtil.i("start ForegroundService:" + mService.getState());
         if (Build.VERSION.SDK_INT >= 26) {

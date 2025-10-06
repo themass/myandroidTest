@@ -15,13 +15,14 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.2.1'
+//        classpath 'com.android.tools.build:gradle:8.2.1'
+        classpath 'com.android.tools.build:gradle:8.13.0'
 //        classpath 'org.greenrobot:greendao-gradle-plugin:3.3.0'
         classpath 'org.greenrobot:greendao-gradle-plugin:3.3.1' // add plugin
         classpath 'com.jakewharton:butterknife-gradle-plugin:10.2.3'
         classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath "org.jetbrains.kotlin:kotlin-android-extensions:$kotlin_version"
+//        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+//        classpath "org.jetbrains.kotlin:kotlin-android-extensions:$kotlin_version"
 
     }
 }

@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2013 Tobias Brunner
- * Hochschule fuer Technik Rapperswil
+ *
+ * Copyright (C) secunet Security Networks AG
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -20,11 +21,11 @@ import org.strongswan.android.logic.imc.attributes.Attribute;
 /**
  * Interface for measurement collectors
  */
-public interface Collector {
-    /**
-     * This method shall return the result of a measurement, if available
-     *
-     * @return attribute or null
-     */
-    Attribute getMeasurement();
+public interface Collector
+{
+	/**
+	 * This method shall return the result of a measurement, if available
+	 * @return attribute or null
+	 */
+	public abstract Attribute getMeasurement();
 }

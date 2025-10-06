@@ -2,7 +2,8 @@
  * Copyright (C) 2013 Tobias Brunner
  * Copyright (C) 2012 Christoph Buehler
  * Copyright (C) 2012 Patrick Loetscher
- * Hochschule fuer Technik Rapperswil
+ *
+ * Copyright (C) secunet Security Networks AG
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -26,42 +27,54 @@ import java.io.InputStreamReader;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class PortFilterCollector implements Collector {
-    private static Pattern LISTEN = Pattern.compile("\\bLISTEN\\b");
-    private static Pattern PROTOCOL = Pattern.compile("\\b(tcp|udp)6?\\b");
-    private static Pattern PORT = Pattern.compile("[:]{1,3}(\\d{1,5})\\b(?!\\.)");
+public class PortFilterCollector implements Collector
+{
+	private static Pattern LISTEN = Pattern.compile("\\bLISTEN\\b");
+	private static Pattern PROTOCOL = Pattern.compile("\\b(tcp|udp)6?\\b");
+	private static Pattern PORT = Pattern.compile("[:]{1,3}(\\d{1,5})\\b(?!\\.)");
 
-    @Override
-    public Attribute getMeasurement() {
-        PortFilterAttribute attribute = null;
-        try {
-            Process netstat = Runtime.getRuntime().exec("netstat -n");
-            try {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(netstat.getInputStream()));
-                String line;
-                attribute = new PortFilterAttribute();
-                while ((line = reader.readLine()) != null) {
-                    if (!LISTEN.matcher(line).find()) {
-                        continue;
-                    }
-                    Matcher protocolMatcher = PROTOCOL.matcher(line);
-                    Matcher portMatcher = PORT.matcher(line);
-                    if (protocolMatcher.find() && portMatcher.find()) {
-                        Protocol protocol = Protocol.fromName(protocolMatcher.group());
-                        if (protocol == null) {
-                            continue;
-                        }
-                        int port = Integer.parseInt(portMatcher.group(1));
-                        attribute.addPort(protocol, (short) port);
-                    }
-                }
-            } finally {
-                netstat.destroy();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return attribute;
-    }
+	@Override
+	public Attribute getMeasurement()
+	{
+		PortFilterAttribute attribute = null;
+		try
+		{
+			Process netstat = Runtime.getRuntime().exec("netstat -n");
+			try
+			{
+				BufferedReader reader = new BufferedReader(new InputStreamReader(netstat.getInputStream()));
+				String line;
+				attribute = new PortFilterAttribute();
+				while ((line = reader.readLine()) != null)
+				{
+					if (!LISTEN.matcher(line).find())
+					{
+						continue;
+					}
+					Matcher protocolMatcher = PROTOCOL.matcher(line);
+					Matcher portMatcher = PORT.matcher(line);
+					if (protocolMatcher.find() && portMatcher.find())
+					{
+						Protocol protocol = Protocol.fromName(protocolMatcher.group());
+						if (protocol == null)
+						{
+							continue;
+						}
+						int port = Integer.parseInt(portMatcher.group(1));
+						attribute.addPort(protocol, (short)port);
+					}
+				}
+			}
+			finally
+			{
+				netstat.destroy();
+			}
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+		return attribute;
+	}
 
 }

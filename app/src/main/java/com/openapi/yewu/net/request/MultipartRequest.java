@@ -40,7 +40,7 @@ public class MultipartRequest<T> extends BaseRequest<T> {
     }
 
     @Override
-    protected Map<String, String> getParams() throws AuthFailureError {
+    public Map<String, String> getParams() throws AuthFailureError {
         return param;
     }
 

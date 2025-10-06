@@ -29,7 +29,6 @@ import com.openapi.yewu.um.MobAgent;
 import com.openapi.myapp.constant.Constants;
 import com.openapi.myapp.data.ConnLogUtil;
 import com.openapi.myapp.data.config.ConfigActionJump;
-import com.openapi.myapp.data.config.LogAddTofile;
 import com.openapi.myapp.data.config.TabChangeEvent;
 import com.openapi.myapp.ui.base.app.BaseDrawerActivity;
 import com.openapi.myapp.ui.inte.OnBackKeyDownListener;
@@ -56,7 +55,6 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
     public boolean init = false;
     private Set<OnBackKeyDownListener> keyListeners = new HashSet<>();
     private ConfigActionJump jump = new ConfigActionJump();
-    private LogAddTofile logAdd = new LogAddTofile();
     private TabLayout mTabLayout;
     private ViewPager mViewPager;
     private MyPagerAdapter myPagerAdapter;
@@ -69,7 +67,6 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         startService(CharonVpnService.class);
         startService(CharonVpnService.class);
         EventBusUtil.getEventBus().register(jump);
-        EventBusUtil.getEventBus().register(logAdd);
         admobRewardManger = new BaseRewardManger(this,this);
     }
     @Override
@@ -167,7 +164,6 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         stopService(CharonVpnService.class);
 //        stopService(LogUploadService.class);
         EventBusUtil.getEventBus().unregister(jump);
-        EventBusUtil.getEventBus().unregister(logAdd);
         admobRewardManger.onAdDestroy();
         super.onDestroy();
         MobAgent.killProcess(this);

@@ -2,7 +2,8 @@
  * Copyright (C) 2013 Tobias Brunner
  * Copyright (C) 2012 Christoph Buehler
  * Copyright (C) 2012 Patrick Loetscher
- * Hochschule fuer Technik Rapperswil
+ *
+ * Copyright (C) secunet Security Networks AG
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -27,24 +28,29 @@ import org.strongswan.android.logic.imc.attributes.InstalledPackagesAttribute;
 
 import java.util.List;
 
-public class InstalledPackagesCollector implements Collector {
-    private final PackageManager mPackageManager;
+public class InstalledPackagesCollector implements Collector
+{
+	private final PackageManager mPackageManager;
 
-    public InstalledPackagesCollector(Context context) {
-        mPackageManager = context.getPackageManager();
-    }
+	public InstalledPackagesCollector(Context context)
+	{
+		mPackageManager = context.getPackageManager();
+	}
 
-    @Override
-    public Attribute getMeasurement() {
-        InstalledPackagesAttribute attribute = new InstalledPackagesAttribute();
-        List<PackageInfo> packages = mPackageManager.getInstalledPackages(0);
-        for (PackageInfo info : packages) {
-            if ((info.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0 ||
-                    info.packageName == null || info.versionName == null) {	/* ignore packages installed in the system image */
-                continue;
-            }
-            attribute.addPackage(info.packageName, info.versionName);
-        }
-        return attribute;
-    }
+	@Override
+	public Attribute getMeasurement()
+	{
+		InstalledPackagesAttribute attribute = new InstalledPackagesAttribute();
+		List<PackageInfo> packages = mPackageManager.getInstalledPackages(0);
+		for (PackageInfo info : packages)
+		{
+			if ((info.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0 ||
+				info.packageName == null || info.versionName == null)
+			{	/* ignore packages installed in the system image */
+				continue;
+			}
+			attribute.addPackage(info.packageName, info.versionName);
+		}
+		return attribute;
+	}
 }
