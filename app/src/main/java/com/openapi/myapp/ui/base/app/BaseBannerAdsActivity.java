@@ -52,7 +52,7 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
     };
     @OnClick(R.id.fab_up)
     public void onClickFab(View view) {
-        admobRewardManger.showAd();
+//        admobRewardManger.showAd();
     }
     @Override
     public void onNoRewardAD(){

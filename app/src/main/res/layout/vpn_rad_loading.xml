@@ -95,7 +95,7 @@
         android:layout_width="@dimen/margin_40"
         android:layout_height="@dimen/margin_40"
         android:id="@+id/rl_points"
-        android:visibility="visible"
+        android:visibility="gone"
         android:layout_marginRight="@dimen/margin_25"
         android:layout_alignParentRight="true"
         android:layout_alignBottom="@+id/fl_bg"
@@ -103,6 +103,7 @@
         android:src="@drawable/gift"
         android:scaleType="fitCenter"
         android:background="?android:attr/selectableItemBackground"
+
         >
     </ImageButton>
 </RelativeLayout>

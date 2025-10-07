@@ -13,8 +13,8 @@ android {
         compileSdkVersion 36  // 极低版本 AGP 仅支持 compileSdkVersion（无 = 号）
         minSdkVersion 28
         targetSdkVersion 36
-        versionCode 1001001017
-        versionName "1.1.1.21"
+        versionCode 1001001018
+        versionName "1.1.1.18"
         // Enabling multidex support.
         multiDexEnabled true
         flavorDimensions "versionCode"

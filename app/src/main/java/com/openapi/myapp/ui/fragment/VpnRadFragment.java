@@ -190,9 +190,9 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
     }
     @OnClick(R.id.rl_points)
     public void onPoints(View v) {
-        if(getActivity() instanceof MainFragmentViewPage){
-            ((MainFragmentViewPage)getActivity()).showReward();
-        }
+//        if(getActivity() instanceof MainFragmentViewPage){
+//            ((MainFragmentViewPage)getActivity()).showReward();
+//        }
     }
 
     @Override

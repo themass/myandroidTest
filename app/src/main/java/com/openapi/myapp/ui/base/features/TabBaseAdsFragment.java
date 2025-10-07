@@ -31,9 +31,9 @@ public abstract class TabBaseAdsFragment extends TabBaseFragment implements OnBa
         LogUtil.i("onClickFab -- tabbase" + getClass().getName());
         LogUtil.i(getActivity().getClass().getName());
         if(getActivity() instanceof MainFragmentViewPage){
-            ((MainFragmentViewPage)getActivity()).showReward();
+//            ((MainFragmentViewPage)getActivity()).showReward();
         }else {
-            admobRewardAds.showAd();
+//            admobRewardAds.showAd();
         }
     }
 
