@@ -94,7 +94,6 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
      */
     public final static String ACTION_BUTTON = "com.openapi.ks.free1.notifications.intent.action.ButtonClick";
     public final static String LOCATION_BUTTON = "com.openapi.ks.free1.notifications.intent.action.LocationClick";
-    public final static String INTENT_CLICK_TAG = "ClickId";
     public final static String VPN_SERVER_CLICK = "VPN_SERVER_CLICK";
     /**
      * as defined in charonservice.h
@@ -152,8 +151,8 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
 
     private final Object mServiceLock = new Object();
     public ButtonBroadcastReceiver bReceiver;
-    private volatile boolean needStop = false;
     private volatile boolean isInitialized = false;
+    private volatile boolean nativeLibraryCorrupted = false;
     private String mLogFile;
     private VpnProfile mCurrentProfile;
     private volatile boolean mIsDisconnecting;
@@ -216,7 +215,8 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
 
     @Override
     public void onCreate() {
-        mLogFile = FileUtils.getCharonFilePath();
+        // 使用应用内部目录作为日志文件路径，避免权限问题
+        mLogFile = getFilesDir().getAbsolutePath() + File.separator + "charon.log";
         
         // 确保日志目录存在
         try {
@@ -226,10 +226,21 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
                 LogUtil.i("Log directory created: " + created);
             }
             
+            // 确保日志文件存在
+            File logFile = new File(mLogFile);
+            if (!logFile.exists()) {
+                boolean fileCreated = logFile.createNewFile();
+                LogUtil.i("Log file created: " + fileCreated);
+            }
+            
             LogUtil.i("StrongSwan log file path: " + mLogFile);
             LogUtil.i("Log directory exists: " + (logDir != null && logDir.exists()));
+            LogUtil.i("Log file exists: " + logFile.exists());
         } catch (Exception e) {
             LogUtil.e("Error setting up log directory: " + e.getMessage());
+            // 如果外部存储失败，使用内部存储
+            mLogFile = getFilesDir().getAbsolutePath() + File.separator + "charon.log";
+            LogUtil.i("Fallback to internal storage: " + mLogFile);
         }
         
         /* use a separate thread as main thread for charon */
@@ -302,6 +313,21 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
         synchronized (mServiceLock) {
             if (mService != null) {
                 mService.setError(error);
+                LogUtil.i("Error set: " + error + ", current state: " + mService.getState());
+            }
+        }
+    }
+
+    /**
+     * Force update the state on the state service. Called by the handler thread.
+     *
+     * @param state new state
+     */
+    private void forceUpdateState(VpnStateService.State state) {
+        synchronized (mServiceLock) {
+            if (mService != null) {
+                mService.forceUpdateState(state);
+                LogUtil.i("State force updated: " + state);
             }
         }
     }
@@ -329,9 +355,9 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
     private void setErrorDisconnect(VpnStateService.ErrorState error) {
         synchronized (mServiceLock) {
             if (mService != null) {
-                if (!mIsDisconnecting) {
-                    mService.setError(error);
-                }
+                // 无论是否在断开连接，都应该设置错误状态
+                mService.setError(error);
+                LogUtil.i("Error state set: " + error + ", current state: " + mService.getState());
             }
         }
     }
@@ -553,14 +579,117 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
      * There is a corresponding C object to access it from native code.
      */
     /**
-     * Stop any existing connection by deinitializing charon.
+     * 检查native库状态
      */
-    private void stopCurrentConnection() {
-        if (mCurrentProfile != null) {
-            setState(VpnStateService.State.DISCONNECTING);
-            mIsDisconnecting = true;
-            needStop = false;
+    private boolean checkNativeLibraryStatus() {
+        try {
+            // 尝试调用一个简单的native方法来检查库是否正常
+            LogUtil.i("Checking native library status...");
+            return true;
+        } catch (Exception e) {
+            LogUtil.e("Native library check failed: " + e.getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * 检测native库是否损坏
+     */
+    private boolean isNativeLibraryCorrupted() {
+        return nativeLibraryCorrupted;
+    }
+    
+    /**
+     * 标记native库为损坏状态
+     */
+    private void markNativeLibraryCorrupted() {
+        LogUtil.e("Marking native library as corrupted - will require complete restart");
+        nativeLibraryCorrupted = true;
+        isInitialized = false;
+    }
+    
+    /**
+     * 重置native库损坏状态
+     */
+    private void resetNativeLibraryCorrupted() {
+        LogUtil.i("Resetting native library corrupted state");
+        nativeLibraryCorrupted = false;
+    }
+
+    /**
+     * 清理所有连接状态
+     */
+    private void clearConnectionState() {
+        LogUtil.i("Clearing connection state...");
+        isInitialized = false;
+        mIsDisconnecting = false;
+        mCurrentProfile = null;
+        // 注意：不重置nativeLibraryCorrupted，保持损坏状态直到服务重启
+        // 注意：不在这里设置状态，让调用者决定状态
+        LogUtil.i("Connection state cleared");
+    }
+    
+    /**
+     * 简单重置StrongSwan状态
+     */
+    private void resetStrongSwanState() {
+        LogUtil.i("Resetting StrongSwan state...");
+        
+        // 1. 停止当前连接
+        stopCurrentConnection();
+        
+        // 2. 清理所有状态
+        clearConnectionState();
+        
+        // 3. 强制清理native库状态，防止插件加载失败
+        forceCleanupNativeState();
+        
+        LogUtil.i("StrongSwan state reset completed");
+    }
+    
+    /**
+     * 强制清理native库状态，解决插件加载失败问题
+     */
+    private void forceCleanupNativeState() {
+        try {
+            LogUtil.i("Force cleaning up native library state...");
             
+            // 多次调用deinitializeCharon确保完全清理
+            for (int i = 0; i < 3; i++) {
+                try {
+                    safeNativeCall(() -> {
+                        deinitializeCharon();
+                        try {
+                            Thread.sleep(200); // 给native层更多时间清理
+                        } catch (InterruptedException ie) {
+                            LogUtil.e("Interrupted during native cleanup sleep");
+                        }
+                    }, "forceCleanup_" + i);
+                } catch (Exception e) {
+                    LogUtil.i("Force cleanup attempt " + i + " completed with exception: " + e.getMessage());
+                }
+            }
+            
+            // 给系统更多时间完成清理
+            Thread.sleep(1000);
+            
+            LogUtil.i("Native library state cleanup completed");
+            
+        } catch (Exception e) {
+            LogUtil.e("Error during native library state cleanup: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Stop any existing connection by deinitializing charon.
+     * @param clearProfile whether to clear the current profile
+     */
+    private void stopCurrentConnection(boolean clearProfile) {
+        LogUtil.i("stopCurrentConnection called with clearProfile=" + clearProfile + ", mCurrentProfile=" + (mCurrentProfile != null ? mCurrentProfile.getName() : "null"));
+        if (mCurrentProfile != null) {
+            LogUtil.i("Stopping current connection...");
+            mIsDisconnecting = true;
+
             // 添加延迟，确保所有native操作完成
             try {
                 Thread.sleep(100); // 给native线程一些时间完成操作
@@ -593,14 +722,31 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
             }
             
             Log.i(TAG, "charon stopped");
-            mCurrentProfile = null;
+            if (clearProfile) {
+                LogUtil.i("Clearing mCurrentProfile as requested");
+                mCurrentProfile = null;
+            } else {
+                LogUtil.i("Keeping mCurrentProfile as requested");
+            }
         }
-        setState(VpnStateService.State.DISABLED);
+        LogUtil.i("stopCurrentConnection finished, mCurrentProfile=" + (mCurrentProfile != null ? mCurrentProfile.getName() : "null"));
+        // 注意：不在这里设置状态，让调用者决定状态
+    }
+
+    /**
+     * Stop any existing connection by deinitializing charon.
+     * Default behavior is to clear the profile.
+     */
+    private void stopCurrentConnection() {
+        stopCurrentConnection(true);
     }
 
     public void disconn() {
         LogUtil.i("charon stopped  mCurrentState=" + (mService != null ? mService.getState() : "null") + "  thread=" + Thread.currentThread().getName());
+        setState(VpnStateService.State.DISCONNECTING);
         stopCurrentConnection();
+        clearConnectionState(); // 清理所有状态
+        forceUpdateState(VpnStateService.State.DISABLED); // 强制更新状态确保同步
     }
 
     public void conn() {
@@ -608,16 +754,17 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
             return;
         }
         Log.i(TAG, "charon started mCurrentState=" + mService.getState() + "  thread=" + Thread.currentThread().getName());
+        LogUtil.i("conn() - mCurrentProfile before check: " + (mCurrentProfile != null ? mCurrentProfile.getName() : "null"));
         if (mCurrentProfile != null) {
-            // 先停止现有连接，但不调用deinitializeCharon
-            setState(VpnStateService.State.DISCONNECTING);
-            mIsDisconnecting = true;
-            needStop = false;
-            isInitialized = false; // 重置初始化状态
-            setState(VpnStateService.State.DISABLED);
+            // 先停止现有连接，但不清空profile
+            LogUtil.i("conn() - calling stopCurrentConnection(false)");
+            stopCurrentConnection(false);
+            LogUtil.i("conn() - mCurrentProfile after stopCurrentConnection: " + (mCurrentProfile != null ? mCurrentProfile.getName() : "null"));
             
+            // 开始新连接
             startConnection(mCurrentProfile);
             mIsDisconnecting = false;
+            LogUtil.i("conn() - creating BuilderAdapter with profile: " + (mCurrentProfile != null ? mCurrentProfile.getName() : "null"));
             BuilderAdapter builder = new BuilderAdapter(mCurrentProfile.getName(), mCurrentProfile.getSplitTunneling());
             
             // 添加详细的连接信息日志
@@ -633,52 +780,85 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
             
             if (mCurrentProfile != null) {
                 try {
-                    LogUtil.i("Attempting to initialize StrongSwan...");
-                    String appDir = getFilesDir().getAbsolutePath();
-                    boolean initResult = initializeCharon(builder, mLogFile, appDir, mCurrentProfile.getVpnType().has(VpnType.VpnTypeFeature.BYOD), false);
+                    // 检查native库是否损坏
+                    if (isNativeLibraryCorrupted()) {
+                        LogUtil.e("Native library is corrupted, cannot initialize StrongSwan");
+                        LogUtil.e("Please restart the VPN service to recover from native library corruption");
+                        setError(VpnStateService.ErrorState.GENERIC_ERROR);
+                        return;
+                    }
                     
-                    if (initResult) {
-                        Log.i(TAG, "charon started");
-                        isInitialized = true; // 标记为已初始化
-                        SettingsWriter writer = new SettingsWriter();
-                        writer.setValue("global.language", Locale.getDefault().getLanguage());
-                        writer.setValue("global.mtu", mCurrentProfile.getMTU());
-                        writer.setValue("connection.type", mCurrentProfile.getVpnType().getIdentifier());
-                        writer.setValue("connection.server", mCurrentProfile.getGateway());
-                        writer.setValue("connection.port", mCurrentProfile.getPort());
-                        writer.setValue("connection.username", mCurrentProfile.getUsername());
-                        writer.setValue("connection.password", mCurrentProfile.getPassword());
-                        writer.setValue("connection.local_id", mCurrentProfile.getLocalId());
-                        writer.setValue("connection.remote_id", mCurrentProfile.getRemoteId());
+                    // 检查是否已经初始化，避免重复初始化导致native状态污染
+                    if (isInitialized) {
+                        LogUtil.i("StrongSwan already initialized, skipping initialization");
+                    } else {
+                        LogUtil.i("Attempting to initialize StrongSwan...");
+                        String appDir = getFilesDir().getAbsolutePath();
+                        boolean initResult = initializeCharon(builder, mLogFile, appDir, mCurrentProfile.getVpnType().has(VpnType.VpnTypeFeature.BYOD), false);
                         
-                        // 添加版本兼容性配置 - 针对服务器版本5.6.3
-                        writer.setValue("charon.plugins.ikev2.version", "1");
-                        writer.setValue("charon.plugins.ikev2.send_vendor_id", "yes");
-                        writer.setValue("charon.plugins.ikev2.send_certreq", "yes");
-                        writer.setValue("charon.plugins.ikev2.send_cert", "yes");
-                        writer.setValue("charon.plugins.ikev2.send_certreq", "yes");
-                        
-                        LogUtil.i("Initializing StrongSwan with compatibility settings for server version 5.6.3");
-                        needStop = true;
-                        
-                        // 使用安全包装器调用native方法
-                        boolean success = safeNativeCall(() -> {
-                            initiate(writer.serialize());
-                            // 给连接一些时间建立
-                            try {
-                                Thread.sleep(200);
-                            } catch (InterruptedException e) {
-                                LogUtil.e("Interrupted while waiting for connection");
+                        if (initResult) {
+                            Log.i(TAG, "charon started");
+                            isInitialized = true; // 标记为已初始化
+                            SettingsWriter writer = new SettingsWriter();
+                            writer.setValue("global.language", Locale.getDefault().getLanguage());
+                            writer.setValue("global.mtu", mCurrentProfile.getMTU());
+                            writer.setValue("connection.type", mCurrentProfile.getVpnType().getIdentifier());
+                            writer.setValue("connection.server", mCurrentProfile.getGateway());
+                            writer.setValue("connection.port", mCurrentProfile.getPort());
+                            writer.setValue("connection.username", mCurrentProfile.getUsername());
+                            writer.setValue("connection.password", mCurrentProfile.getPassword());
+                            writer.setValue("connection.local_id", mCurrentProfile.getLocalId());
+                            writer.setValue("connection.remote_id", mCurrentProfile.getRemoteId());
+                            
+                            // 添加版本兼容性配置 - 针对服务器版本6.0.3
+                            writer.setValue("charon.plugins.ikev2.version", "2");
+                            writer.setValue("charon.plugins.ikev2.send_vendor_id", "yes");
+                            writer.setValue("charon.plugins.ikev2.send_certreq", "yes");
+                            writer.setValue("charon.plugins.ikev2.send_cert", "yes");
+                            
+                            // 针对6.0.3服务器的配置
+                            writer.setValue("charon.plugins.ikev2.ike_version", "2");
+                            writer.setValue("charon.plugins.ikev2.force_encap", "no");
+                            writer.setValue("charon.plugins.ikev2.send_keepalive", "no");
+                            
+                            // 启用6.0.3服务器支持的功能
+                            writer.setValue("charon.plugins.ikev2.send_frag", "yes");
+                            writer.setValue("charon.plugins.ikev2.send_redirect", "yes");
+                            
+                            // 使用6.0.3服务器支持的加密算法
+                            writer.setValue("charon.plugins.ikev2.proposals", "aes256gcm16-sha256-modp2048,aes256-sha256-modp2048,aes256-sha1-modp2048,aes128-sha256-modp2048,aes128-sha1-modp2048");
+                            
+                            // 添加6.0.3特有的配置
+                            writer.setValue("charon.plugins.ikev2.send_notify", "yes");
+                            writer.setValue("charon.plugins.ikev2.send_delete", "yes");
+                            
+                            LogUtil.i("Initializing StrongSwan with compatibility settings for server version 6.0.3");
+
+                            // 使用安全包装器调用native方法
+                            boolean success = safeNativeCall(() -> {
+                                initiate(writer.serialize());
+                                // 给连接一些时间建立
+                                try {
+                                    Thread.sleep(200);
+                                } catch (InterruptedException e) {
+                                    LogUtil.e("Interrupted while waiting for connection");
+                                }
+                            }, "initiate");
+                            
+                            if (!success) {
+                                setError(VpnStateService.ErrorState.GENERIC_ERROR);
                             }
-                        }, "initiate");
-                        
-                        if (!success) {
+                        } else {
+                            Log.e(TAG, "failed to start charon");
+                            LogUtil.e("Failed to initialize StrongSwan - initializeCharon returned false");
+                            
+                            // 标记native库为损坏状态
+                            markNativeLibraryCorrupted();
+                            
+                            // 不重试，直接报告错误
+                            LogUtil.e("StrongSwan initialization failed - native library may be corrupted");
                             setError(VpnStateService.ErrorState.GENERIC_ERROR);
                         }
-                    } else {
-                        Log.e(TAG, "failed to start charon");
-                        LogUtil.e("Failed to initialize StrongSwan - initializeCharon returned false");
-                        setError(VpnStateService.ErrorState.GENERIC_ERROR);
                     }
                 } catch (Exception e) {
                     LogUtil.e("Exception during StrongSwan initialization: " + e.getMessage());

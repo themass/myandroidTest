@@ -74,7 +74,7 @@ public class AdmobBannerAds extends BannerInter {
 
                 @Override
                 public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
-                    LogUtil.i("admob banner onAdFailedToLoad "+loadAdError.toString());
+//                    LogUtil.i("admob banner onAdFailedToLoad "+loadAdError.toString());
                     noAds(context,handler, AdsContext.AdsFrom.ADMOB,0);
     //                   group.setVisibility(View.GONE);
                     mobvBanner.bannerAds(context,group,key,handler);

@@ -14,7 +14,7 @@ android {
         minSdkVersion 28
         targetSdkVersion 36
         versionCode 1001001018
-        versionName "1.1.1.18"
+        versionName "1.1.1.23"
         // Enabling multidex support.
         multiDexEnabled true
         flavorDimensions "versionCode"

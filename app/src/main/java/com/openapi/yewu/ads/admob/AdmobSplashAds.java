@@ -87,7 +87,7 @@ public class AdmobSplashAds extends SplashAdsInter {
                          */
                         @Override
                         public void onAdFailedToLoad(LoadAdError loadAdError) {
-                            LogUtil.i("admob splash onAdFailedToLoad "+loadAdError.toString());
+//                            LogUtil.i("admob splash onAdFailedToLoad "+loadAdError.toString());
                             EventBusUtil.getEventBus().post(new LaunchAdsNext(AdsContext.AdsFrom.ADMOB));
                         }
                     });

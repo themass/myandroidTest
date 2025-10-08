@@ -57,7 +57,7 @@ public class AdmobInterstitialAds extends InterstitialAdsInter {
                             @Override
                             public void onAdFailedToShowFullScreenContent(AdError adError) {
                                 // Called when ad fails to show.
-                                LogUtil.i( "admob interstitialAd Ad failed to show fullscreen content.");
+//                                LogUtil.i( "admob interstitialAd Ad failed to show fullscreen content.");
                                 mInterstitialAd = null;
                                 noAds(context,handler, AdsContext.AdsFrom.ADMOB,count);
                             }
@@ -82,7 +82,7 @@ public class AdmobInterstitialAds extends InterstitialAdsInter {
                     @Override
                     public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
                         // Handle the error
-                        LogUtil.i("admob interstitialAd  onAdFailedToLoad "+loadAdError.toString());
+//                        LogUtil.i("admob interstitialAd  onAdFailedToLoad "+loadAdError.toString());
                         mInterstitialAd = null;
                         noAds(context,handler, AdsContext.AdsFrom.ADMOB,count);
                     }

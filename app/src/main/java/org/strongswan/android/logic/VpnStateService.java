@@ -278,14 +278,17 @@ public class VpnStateService extends Service {
         notifyListeners(new Callable<Boolean>() {
             @Override
             public Boolean call() throws Exception {
+                boolean stateChanged = false;
                 if (VpnStateService.this.mError != error) {
                     VpnStateService.this.mError = error;
-                    if (!ErrorState.NO_ERROR.equals(error)) {
-                        VpnStateService.this.mState = State.DISABLED;
-                    }
-                    return true;
+                    stateChanged = true;
                 }
-                return false;
+                // 如果有错误，确保状态设置为DISABLED
+                if (!ErrorState.NO_ERROR.equals(error) && VpnStateService.this.mState != State.DISABLED) {
+                    VpnStateService.this.mState = State.DISABLED;
+                    stateChanged = true;
+                }
+                return stateChanged;
             }
         });
     }
@@ -305,6 +308,26 @@ public class VpnStateService extends Service {
             @Override
             public void run() {
                 VpnStateService.this.mRemediationInstructions.add(instruction);
+            }
+        });
+    }
+
+    /**
+     * Force update the state and notify all listeners.
+     * This method ensures state synchronization even if the state hasn't changed.
+     * <p>
+     * May be called from threads other than the main thread.
+     *
+     * @param state new state
+     */
+    public void forceUpdateState(final State state) {
+        notifyListeners(new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                VpnStateService.this.mState = state;
+                VpnStateService.this.mError = ErrorState.NO_ERROR;
+                VpnStateService.this.mImcState = ImcState.UNKNOWN;
+                return true; // Always notify listeners
             }
         });
     }

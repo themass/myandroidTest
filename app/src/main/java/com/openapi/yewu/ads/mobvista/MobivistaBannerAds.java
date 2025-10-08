@@ -24,7 +24,7 @@ public class MobivistaBannerAds extends BannerInter {
     @Override
     public void bannerAds(final FragmentActivity context, final ViewGroup group, final String key, final Handler handler){
         try{
-            LogUtil.i("mobvi banner"+Constants.Mob_UNIT_BANNER_PLACE+"---"+Constants.adviewToMobvBanner.get(key));
+//            LogUtil.i("mobvi banner"+Constants.Mob_UNIT_BANNER_PLACE+"---"+Constants.adviewToMobvBanner.get(key));
 //            MBBannerView mbBannerView = new MBBannerView(context);
 //            mbBannerView.setLayoutParams(new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
 //            mbBannerView.init(new BannerSize(BannerSize.LARGE_TYPE,1294,720), Constants.Mob_UNIT_BANNER_PLACE,Constants.adviewToMobvBanner.get(key));

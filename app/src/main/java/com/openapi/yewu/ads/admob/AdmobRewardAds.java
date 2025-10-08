@@ -39,7 +39,7 @@ public class AdmobRewardAds implements RewardInterface {
                     @Override
                     public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
                         // Handle the error.
-                        LogUtil.i(" reward ad loadAdError = " + loadAdError);
+//                        LogUtil.i(" reward ad loadAdError = " + loadAdError);
                         mRewardedVideoAd = null;
                     }
 
