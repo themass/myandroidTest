@@ -210,7 +210,7 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
         lir = new LinearInterpolator();
         getActivity().bindService(new Intent(getActivity(), VpnStateService.class),
                 mServiceConnection, Service.BIND_AUTO_CREATE);
-        showBanner();
+//        showBanner();
         if(DeviceInfoUtils.isEmulator(getActivity())){
             ToastUtil.showShort(R.string.is_emulator);
 //            ibVpnStatus.setClickable(false);
@@ -314,8 +314,8 @@ public class VpnRadFragment extends BaseFragment implements VpnStateService.VpnS
                 mHandler.postDelayed(vpnCheck,Constants.VPN_CHECK_TIME);
                 imgAnim();
 //                AdsContext.showRand(getActivity(),AdsContext.getNext());
-                if(!UserLoginUtil.isVIP())
-                    ToastUtil.showShort(R.string.chose_first);
+//                if(!UserLoginUtil.isVIP())
+//                    ToastUtil.showShort(R.string.chose_first);
                 int id = LocationUtil.getSelectLocationId(getActivity());
                 indexService.getData(String.format(Constants.getUrl(Constants.API_SERVERLIST_URL), id), serverListener, serverListenerError, INDEX_TAG, ServerVo.class);
 

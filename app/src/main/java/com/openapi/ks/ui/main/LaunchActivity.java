@@ -104,7 +104,7 @@ public class LaunchActivity extends LogActivity {
         MobAgent.onResume(this);
     }
     private void showAdview(){
-        AdsManager.getInstans().showSplashAds(AdsContext.AdsFrom.ADMOB,this,ivAds,skipView);
+//        AdsManager.getInstans().showSplashAds(AdsContext.AdsFrom.ADMOB,this,ivAds,skipView);
         delay1s();
     }
     private void delay1s() {
@@ -114,7 +114,7 @@ public class LaunchActivity extends LogActivity {
     public void onBannerShow(LaunchAdsNext next){
         LogUtil.i("LaunchAdsNext "+next.from);
         if(next.from== AdsContext.AdsFrom.MOBVISTA){
-            AdsManager.getInstans().showSplashAds(AdsContext.AdsFrom.ADMOB,this,ivAds,skipView);
+//            AdsManager.getInstans().showSplashAds(AdsContext.AdsFrom.ADMOB,this,ivAds,skipView);
         }
     }
     @Override
@@ -128,7 +128,7 @@ public class LaunchActivity extends LogActivity {
         unbinder.unbind();
         mHandler.removeMessages(Constants.ADS_JISHI);
         mHandler.removeCallbacks(mStartMainRunnable);
-        AdsManager.getInstans().exitSplashAds(this,ivAds);
+//        AdsManager.getInstans().exitSplashAds(this,ivAds);
         super.onDestroy();
         EventBusUtil.getEventBus().unregister(this);
     }

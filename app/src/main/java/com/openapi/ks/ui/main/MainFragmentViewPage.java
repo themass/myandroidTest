@@ -119,12 +119,13 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
     private void initTabs() {
         list.clear();
         LayoutInflater inflater = LayoutInflater.from(this);
-        addData(inflater, R.string.tab_tag_index, VpnFragment.class,
-                R.drawable.ac_bg_tab_index, R.string.tab_index, null, 1);
         addData(inflater, R.string.tab_tag_local, TabLocalFragment.class,
-                    R.drawable.ac_bg_tab_index, R.string.tab_local, null, 2);
+                R.drawable.ac_bg_tab_index, R.string.tab_index, null, 1);
+//        addData(inflater, R.string.tab_tag_index, VpnFragment.class,
+//                R.drawable.ac_bg_tab_index, R.string.tab_index, null, 2);
+
         addData(inflater, R.string.tab_tag_customer, TabCustomeFragment.class,
-                R.drawable.ac_bg_tab_index, R.string.tab_customer, null, 3);
+                R.drawable.ac_bg_tab_index, R.string.tab_customer, null, 2);
 
         myPagerAdapter = new MyPagerAdapter(getSupportFragmentManager());
         mViewPager.setAdapter(myPagerAdapter);

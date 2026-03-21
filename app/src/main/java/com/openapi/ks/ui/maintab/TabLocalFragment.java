@@ -12,6 +12,7 @@ import com.openapi.myapp.data.config.PingEvent;
 import com.openapi.myapp.ui.base.BannerHeaderFragment;
 import com.openapi.myapp.ui.base.features.TabBaseAdsFragment;
 import com.openapi.myapp.ui.fragment.LocationPageViewFragment;
+import com.openapi.myapp.ui.fragment.VpnRadFragment;
 import com.openapi.yewu.ads.base.AdsContext;
 
 
@@ -22,7 +23,8 @@ public class TabLocalFragment extends TabBaseAdsFragment {
 
     @Override
     protected Fragment getTabHeaderView() {
-        return BannerHeaderFragment.getNewInstans(AdsContext.Categrey.CATEGREY_VPN1);
+        return new VpnRadFragment();
+//        return BannerHeaderFragment.getNewInstans(AdsContext.Categrey.CATEGREY_VPN1);
     }
 
     @Override

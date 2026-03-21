@@ -22,7 +22,7 @@ public class Constants {
     public static final String DEFAULT_REFERER = "http://www.ok123find.top/";
     public static final String URL = "url";
     public static final String DEFULT_LOCATION_NAME="Random";
-    public static final int STARTUP_SHOW_TIME_6000 = 6000; //启动页广告时长
+    public static final int STARTUP_SHOW_TIME_6000 = 2000; //启动页广告时长
     public static final int STARTUP_SHOW_TIME_7000 = 7000; //启动页广告时长
     public static final int BANNER_ADS_GONE_LONG = 7000; //广告显示时长
     public static final int BANNER_ADS_GONE_LONG_LONG = 240000; //广告显示时长
