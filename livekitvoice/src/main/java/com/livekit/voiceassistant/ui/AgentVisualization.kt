@@ -28,6 +28,7 @@ import io.livekit.android.compose.ui.ScaleType
 import io.livekit.android.compose.ui.VideoTrackView
 import io.livekit.android.compose.ui.audio.VoiceAssistantBarVisualizer
 import com.livekit.voiceassistant.ui.anim.CircleReveal
+import io.livekit.android.room.participant.Participant
 import io.livekit.android.room.track.Track
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -61,16 +62,13 @@ fun AgentVisualization(
 //    } else {
 //        videoTrack = null
 //    }
-    val agentIdentity = voiceAssistant.agent?.identity
-
-    val videoTrack = if (agentIdentity != null) {
-        rememberParticipantTrackReferences(
-            sources = listOf(Track.Source.CAMERA),
-            participantIdentity = agentIdentity,
-        ).firstOrNull()
-    } else {
-        null
-    }
+    val agentIdentity = voiceAssistant.agent?.identity as? Participant.Identity
+    // LiveKit 2.2+：rememberParticipantTrackReferences 返回 State<List<TrackReference>>
+    val cameraTrackRefs by rememberParticipantTrackReferences(
+        sources = listOf(Track.Source.CAMERA),
+        participantIdentity = agentIdentity,
+    )
+    val videoTrack = cameraTrackRefs.firstOrNull()
 
     var hasFirstFrameRendered by remember(videoTrack) { mutableStateOf(false) }
     val revealed = videoTrack != null && hasFirstFrameRendered

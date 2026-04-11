@@ -3,6 +3,7 @@ package com.openapi.ks.myapp.adapter;
 import android.content.Context;
 
 import androidx.annotation.Nullable;
+import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -51,20 +52,24 @@ public class SoundItemsViewMusicAdapter extends BaseRecyclerViewAdapter<SoundIte
         holder.title.setText(vo.name);
         holder.artist.setText(vo.fileDate);
 //        holder.albumArt.setImageResource(R.drawable.ic_empty_music2);
+        float density = context.getResources().getDisplayMetrics().density;
+        if (holder.itemView instanceof CardView) {
+            ((CardView) holder.itemView).setCardElevation(
+                    (position == getSelected() ? 8f : 3f) * density);
+        }
+        if (holder.playingBar != null) {
+            holder.playingBar.setVisibility(position == getSelected() ? View.VISIBLE : View.GONE);
+        }
         if (position == getSelected()) {
             holder.title.setTextColor(ContextCompat.getColor(context, R.color.song_select_title));
             holder.visualizer.setColor(ContextCompat.getColor(context, R.color.song_red));
             holder.visualizer.setVisibility(View.VISIBLE);
             holder.visualizer.startAnima();
-//            if(mService!=null && mService.isPlaying()){
-//                holder.visualizer.startAnima();
-//            }else{
-//                holder.visualizer.stopAnima();
-//            }
             setAnimation(holder.itemView, position);
         } else {
             holder.title.setTextColor(ContextCompat.getColor(context, R.color.main_dark));
             holder.visualizer.setVisibility(View.GONE);
+            holder.visualizer.stopAnima();
         }
     }
 
@@ -91,6 +96,9 @@ public class SoundItemsViewMusicAdapter extends BaseRecyclerViewAdapter<SoundIte
         @Nullable
         @BindView(R.id.visualizer)
         protected MusicVisualizer visualizer;
+        @Nullable
+        @BindView(R.id.view_now_playing_bar)
+        protected View playingBar;
 
         public SoundItemView(View itemView, View.OnClickListener l, View.OnLongClickListener longListener) {
             super(itemView, l, longListener);

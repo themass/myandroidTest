@@ -19,7 +19,8 @@
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
         android:layout_gravity="center_vertical"
-        android:src="@drawable/jz_click_play_selector" />
+        android:src="@android:drawable/ic_media_play"
+        android:contentDescription="@string/video" />
 
     <TextView
         android:layout_width="match_parent"

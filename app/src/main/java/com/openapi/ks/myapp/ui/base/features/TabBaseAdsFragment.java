@@ -8,6 +8,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.openai.commonutil.LogUtil;
 import com.openapi.ks.chat.R;
 import com.openai.ads.yewu.ads.AdsPopStrategy;
+import com.openapi.ks.myapp.ui.user.SettingActivity;
 
 import butterknife.BindView;
 import butterknife.OnClick;
@@ -24,8 +25,8 @@ public abstract class TabBaseAdsFragment extends TabBaseFragment {
 
     @OnClick(R.id.fab_up)
     public void onClickFab(View view) {
-//        startActivity(SettingActivity.class);
-        AdsPopStrategy.clickAdsShowBtn(getActivity());
+        startActivity(SettingActivity.class);
+//        AdsPopStrategy.clickAdsShowBtn(getActivity());
     }
 
     public void next() {

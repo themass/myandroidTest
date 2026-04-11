@@ -52,8 +52,8 @@ dependencies {
     implementation project(":commonutil")
 
     // Google 广告
-    api 'com.google.android.gms:play-services-ads:24.6.0'
-    implementation 'com.google.android.gms:play-services-wallet:19.4.0'
+    api 'com.google.android.gms:play-services-ads:24.9.0'
+    implementation 'com.google.android.gms:play-services-wallet:19.5.0'
 
     // Facebook 广告
     api 'com.facebook.android:audience-network-sdk:6.20.0'

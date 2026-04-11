@@ -6,6 +6,7 @@ import android.content.Context;
 import android.graphics.Color;
 
 import androidx.cardview.widget.CardView;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
@@ -46,7 +47,8 @@ import okhttp3.Response;
  */
 public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecycleViewAdapter {
     public boolean showEdit;
-    StaggeredGridLayoutManager layoutManager;
+    private final RecyclerView recyclerView;
+    RecyclerView.LayoutManager layoutManager;
     private int itemWidth;
     private int imgWidth;
     private int marginPix;
@@ -55,15 +57,47 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
     private OnEditClickListener mOnEditClickListener;
     public boolean showParam = false;
 
-    public IndexRecommendAdapter(Context context, RecyclerView recyclerView, List<RecommendVo> data, StaggeredGridLayoutManager layoutManager, OnRecyclerViewItemClickListener listener, OnStartDragListener dragStartListener, OnEditClickListener onEditClickListener, boolean showEdit) {
+    public IndexRecommendAdapter(Context context, RecyclerView recyclerView, List<RecommendVo> data, RecyclerView.LayoutManager layoutManager, OnRecyclerViewItemClickListener listener, OnStartDragListener dragStartListener, OnEditClickListener onEditClickListener, boolean showEdit) {
         super(context, recyclerView, data, listener, dragStartListener);
+        this.recyclerView = recyclerView;
         this.showEdit = showEdit;
         this.layoutManager = layoutManager;
         this.mOnEditClickListener = onEditClickListener;
-        itemWidth = DensityUtil.getDensityDisplayMetrics(context).widthPixels / layoutManager.getSpanCount();
-        marginPix = context.getResources().getDimensionPixelSize(R.dimen.margin_2) * 2 + context.getResources().getDimensionPixelSize(R.dimen.margin_3) * 2;
+        int screenW = DensityUtil.getDensityDisplayMetrics(context).widthPixels;
+        if (layoutManager instanceof StaggeredGridLayoutManager) {
+            itemWidth = screenW / ((StaggeredGridLayoutManager) layoutManager).getSpanCount();
+        } else if (layoutManager instanceof GridLayoutManager) {
+            itemWidth = screenW / ((GridLayoutManager) layoutManager).getSpanCount();
+        } else {
+            itemWidth = screenW / 3;
+        }
+        // 与 tab_index_item_recommend 一致：卡片左右各 margin_2，无 compat padding、无水平内边距
+        int insetH = context.getResources().getDimensionPixelSize(R.dimen.margin_2) * 2;
+        marginPix = insetH;
         imgWidth = itemWidth - marginPix;
         hExtra = context.getResources().getDimensionPixelSize(R.dimen.margin_3);
+    }
+
+    private int computeImageWidth(int position) {
+        int rw = recyclerView.getWidth();
+        if (rw <= 0) {
+            rw = DensityUtil.getDensityDisplayMetrics(context).widthPixels;
+        }
+        rw -= recyclerView.getPaddingLeft() + recyclerView.getPaddingRight();
+        if (rw <= 0) {
+            rw = DensityUtil.getDensityDisplayMetrics(context).widthPixels;
+        }
+        if (layoutManager instanceof GridLayoutManager) {
+            GridLayoutManager glm = (GridLayoutManager) layoutManager;
+            int span = glm.getSpanSizeLookup().getSpanSize(position);
+            int total = glm.getSpanCount();
+            return Math.max(1, rw * span / total - marginPix);
+        }
+        if (layoutManager instanceof StaggeredGridLayoutManager) {
+            int cols = ((StaggeredGridLayoutManager) layoutManager).getSpanCount();
+            return Math.max(1, rw / cols - marginPix);
+        }
+        return Math.max(1, imgWidth);
     }
 
     public void setShowParam(boolean show) {
@@ -170,9 +204,15 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
             }
         }
         holder.ivPhoto.setBackgroundColor(Color.parseColor(vo.color));
+        ViewGroup.LayoutParams itemLp = holder.itemView.getLayoutParams();
+        if (itemLp instanceof StaggeredGridLayoutManager.LayoutParams) {
+            ((StaggeredGridLayoutManager.LayoutParams) itemLp).setFullSpan(false);
+            holder.itemView.setLayoutParams(itemLp);
+        }
+        int w = computeImageWidth(position);
         ViewGroup.LayoutParams ivPhotoParam = holder.ivPhoto.getLayoutParams();
-        ivPhotoParam.height = (int) (imgWidth * vo.rate);
-        ivPhotoParam.width = imgWidth;
+        ivPhotoParam.height = (int) (w * vo.rate);
+        ivPhotoParam.width = w;
         holder.ivPhoto.setLayoutParams(ivPhotoParam);
         // 使用现代 Shimmer 替代
         // final Shimmer shimmer = new Shimmer();

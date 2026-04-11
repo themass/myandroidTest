@@ -49,5 +49,13 @@
     <string name="no_browser">没有安装浏览器</string>
     <string name="load">加载更多..</string>
     <string name="open_error">没有找到支持该操作的应用</string>
+    <string name="favorite_m3u8_line1">外网播放 线路一</string>
+    <string name="favorite_m3u8_line2">外网播放 线路二</string>
+    <string name="favorite_external_sheet_title">在外部浏览器打开</string>
+    <string name="favorite_external_sheet_cancel">取消</string>
+    <string name="favorite_listener_missing">页面未就绪，请稍后再试</string>
+    <string name="favorite_translate">译</string>
+    <string name="favorite_translation_title">翻译字幕 · 按住标题拖动</string>
+    <string name="favorite_translation_no_session">当前页面未接入翻译</string>
 
 </resources>

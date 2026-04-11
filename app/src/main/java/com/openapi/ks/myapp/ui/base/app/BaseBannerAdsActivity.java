@@ -19,6 +19,7 @@ import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openai.ads.yewu.ads.AdsPopStrategy;
 import com.openapi.ks.myapp.data.config.HindBannerEvent;
+import com.openapi.ks.myapp.ui.user.SettingActivity;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -51,8 +52,8 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity {
     @OnClick(R.id.fab_up)
     public void onClickFab(View view) {
 
-//        startActivity(SettingActivity.class);
-        AdsPopStrategy.clickAdsShowBtn(this);
+        startActivity(SettingActivity.class);
+//        AdsPopStrategy.clickAdsShowBtn(this);
     }
 
     @Override

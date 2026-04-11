@@ -37,15 +37,12 @@
                     {left: '$', right: '$', display: false},
                     {left: '\\(', right: '\\)', display: false}
                 ],
+                /* 勿覆盖 KaTeX 内置 \\frac / \\textcolor 等，易破坏嵌套与化学式 */
                 macros: {
-                    "\\text": "\\textrm{#1}",         // 中文直立文本
-                    "\\frac": "\\dfrac{#1}{#2}",      // 增强分式显示
-                    "\\abs": "\\left|#1\\right|",     // 绝对值宏
-                    "\\R": "\\mathbb{R}",              // 实数集宏
-                    "\\textcolor": "\\text{#1}{#2}",
-                    "\\red": "\\textcolor{red}{#1}",
-                    "\\blue": "\\textcolor{blue}{#1}"
+                    "\\abs": "\\left|#1\\right|",
+                    "\\R": "\\mathbb{R}"
                 },
+                ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
                 output: 'html',
                 throwOnError: false
             });

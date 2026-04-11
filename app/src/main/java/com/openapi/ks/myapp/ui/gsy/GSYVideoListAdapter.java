@@ -17,13 +17,12 @@ import com.bumptech.glide.Glide;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
+import com.openapi.ks.myapp.data.VideoUtil;
 import com.shuyu.gsyvideoplayer.utils.GSYVideoHelper;
 
 import java.util.List;
 
 import butterknife.BindView;
-import cn.jzvd.JzvdStd;
-
 
 public class GSYVideoListAdapter extends BaseRecyclerViewAdapter<GSYVideoListAdapter.GSYRecyclerItemViewHolder, RecommendVo> {
     public final static String TAG = "RecyclerView2List";
@@ -92,7 +91,10 @@ public class GSYVideoListAdapter extends BaseRecyclerViewAdapter<GSYVideoListAda
                 public void onClick(View v) {
                     smallVideoHelper.setPlayPositionAndTag(position, TAG);
                     adapter.notifyDataSetChanged();
-                    gsySmallVideoHelperBuilder.setVideoTitle(videoModel.title).setUrl(videoModel.actionUrl);
+                    gsySmallVideoHelperBuilder
+                            .setVideoTitle(videoModel.title)
+                            .setUrl(VideoUtil.buildPlayUrl(videoModel))
+                            .setMapHeadData(VideoUtil.headersForRecommend(videoModel));
                     smallVideoHelper.startPlay();
                     //必须在startPlay之后设置才能生效
                     //                listVideoUtil.getGsyVideoPlayer().getTitleTextView().setVisibility(View.VISIBLE);

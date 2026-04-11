@@ -9,6 +9,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 import com.openai.commonutil.LogUtil;
+import chat.ui.markdown.FormulaInputNormalizer;
 import com.vladsch.flexmark.ext.autolink.AutolinkExtension;
 import com.vladsch.flexmark.ext.gfm.strikethrough.StrikethroughExtension;
 import com.vladsch.flexmark.ext.tables.TablesExtension;
@@ -46,6 +47,7 @@ public class InputMsgWebView extends WebView {
         configureWebViewLikeTextView();
     }
     public void showMarkdown(String markdown) {
+        markdown = FormulaInputNormalizer.forRender(markdown);
         String processedMarkdown = markdown
                 .replace("\\(", "&#92;(")
                 .replace("\\)", "&#92;)")
@@ -145,13 +147,21 @@ public class InputMsgWebView extends WebView {
     private static class SafeWebViewClient extends WebViewClient {
         @Override
         public void onPageFinished(WebView view, String url) {
-            // 二次检查 KaTeX 渲染
+            // 与 incoomingmsg.html 中配置保持一致，避免第二次调用使用默认 delimiters 导致错解析
             view.evaluateJavascript(
-                    "if (typeof renderMathInElement === 'function') { " +
-                            "   renderMathInElement(document.body); " +
-                            "} else { " +
-                            "   console.error('KaTeX not initialized!'); " +
-                            "}", null);
+                    "(function(){"
+                            + "if (typeof renderMathInElement !== 'function') return;"
+                            + "renderMathInElement(document.body,{"
+                            + "delimiters:["
+                            + "{left:'$$',right:'$$',display:true},"
+                            + "{left:'\\[',right:'\\]',display:true},"
+                            + "{left:'$',right:'$',display:false},"
+                            + "{left:'\\(',right:'\\)',display:false}"
+                            + "],"
+                            + "output:'html',throwOnError:false,"
+                            + "ignoredTags:['script','noscript','style','textarea','pre','code']"
+                            + "});"
+                            + "})();", null);
         }
     }
 }

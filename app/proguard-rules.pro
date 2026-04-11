@@ -112,7 +112,9 @@
 # 保留 GSYVideoPlayer 的 utils 子包（工具类，如格式转换、屏幕适配）
 -keep class com.shuyu.gsyvideoplayer.utils.** { *; }
 # 保留 GSYVideoPlayer 的 player 子包（播放器核心，如 IJKPlayer 封装）
--keep class com.shuyu.gsyvideoplayer.player.** { *; }-dontwarn com.shuyu.gsyvideoplayer.**
+-keep class com.shuyu.gsyvideoplayer.player.** { *; }
+-keep class com.shuyu.aliplay.** { *; }
+-dontwarn com.shuyu.gsyvideoplayer.**
 -keep class tv.danmaku.ijk.media.player.** { *; }
 -dontwarn tv.danmaku.ijk.**
 -keep class com.alivc.**{*;}
@@ -121,9 +123,6 @@
 -dontwarn com.alivc.**
 -dontwarn com.aliyun.**
 -dontwarn com.cicada.**
-# JZVideoPlayer（视频播放控件）
--keep class cn.jzvd.** { *; }
-
 # Glide（图片加载库，保留模块配置类）
 -keep public class * implements com.bumptech.glide.module.GlideModule
 -keep public class * extends com.bumptech.glide.module.AppGlideModule

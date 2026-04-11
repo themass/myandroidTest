@@ -71,6 +71,10 @@
     <string name="menu_share_title">分享</string>
     <string name="menu_share_copy_ok">已复制到剪切板</string>
     <string name="menu_share_text_only">FAIL!! 只能分享text</string>
+    <string name="video_playback_failed">播放失败</string>
+    <string name="video_playback_failed_retry">播放失败，可点击重试</string>
+    <string name="video_playback_retry_action">重试</string>
+    <string name="video_playback_retry_other_engine">已切换解码内核并重试一次</string>
     <!--登录，注册-->
     <string name="close_over">再按一次退出程序!!</string>
     <string name="login">登录</string>
@@ -106,7 +110,15 @@
     <string name="iwanna_content_error">请告诉我你的需求!</string>
     <string name="area_setting">是否显示专区</string>
     <string name="playvideo_setting">使用饺子播放器-vitamio</string>
-    <string name="playcore_setting">内核-ijk/exo</string>
+    <string name="playcore_setting">视频播放内核</string>
+    <string name="playback_engine_exo">Exo（Media3）</string>
+    <string name="playback_engine_ijk_ffmpeg">IJK + FFmpeg（ex_so 扩展）</string>
+    <string name="playback_engine_ali">阿里 AliPlayer</string>
+    <string name="playback_engine_system">系统 MediaPlayer</string>
+
+    <string name="cast_need_http_url">投屏仅支持 http/https 网络地址</string>
+    <string name="cast_url_not_ready">视频地址未就绪，请稍后再试</string>
+    <string name="cast_load_failed">投屏加载失败</string>
     <string name="use_tts">启用语音播报</string>
 
     <string name="sound_setting">音频非wifi网络下提示</string>
@@ -122,6 +134,9 @@
     <string name="video">视频体验</string>
     <string name="version_low">版本太低，请升级！</string>
     <string name="no_select">未选择</string>
+    <string name="sound_prev">上一首</string>
+    <string name="sound_next">下一首</string>
+    <string name="sound_play_pause">播放或暂停</string>
     <string name="save_ok">保存成功</string>
     <string name="save_fail">保存失败</string>
     <string name="save_start">开始保存...</string>

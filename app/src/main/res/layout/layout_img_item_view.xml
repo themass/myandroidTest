@@ -3,5 +3,4 @@
     android:id="@+id/photoView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#333333"
-    android:layout_marginLeft="20dp" />
+    android:background="@android:color/black" />

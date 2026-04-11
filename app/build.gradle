@@ -14,8 +14,8 @@ android {
         applicationId = "com.openapi.ks.chat"
         minSdk = rootProject.ext.minSdkVersion
         targetSdk = rootProject.ext.targetSdkVersion
-        versionCode = 1001000057
-        versionName = "1.1.0.55"
+        versionCode = 1001000060
+        versionName = "1.1.0.60"
         multiDexEnabled = true
         flavorDimensions = ["versionCode"]
     }
@@ -141,15 +141,15 @@ dependencies {
     // AndroidX 核心库
     implementation 'androidx.multidex:multidex:2.0.1'
     implementation 'com.google.android.material:material:1.13.0'
-    implementation 'androidx.navigation:navigation-fragment-ktx:2.7.7'
-    implementation 'androidx.navigation:navigation-ui-ktx:2.7.7'
+    implementation 'androidx.navigation:navigation-fragment-ktx:2.9.6'
+    implementation 'androidx.navigation:navigation-ui-ktx:2.9.6'
     implementation 'androidx.percentlayout:percentlayout:1.0.0'
-    implementation 'androidx.webkit:webkit:1.14.0'
+    implementation 'androidx.webkit:webkit:1.15.0'
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
     
     // 现代UI组件替代
-    implementation 'androidx.fragment:fragment:1.8.5'
-    implementation 'androidx.activity:activity:1.9.2'
+    implementation 'androidx.fragment:fragment:1.8.9'
+    implementation 'androidx.activity:activity:1.11.0'
     implementation 'com.facebook.shimmer:shimmer:0.5.0'
     implementation 'com.github.donkingliang:LabelsView:1.6.5'
     implementation 'com.skyfishjy.ripplebackground:library:1.0.1'
@@ -161,14 +161,17 @@ dependencies {
     annotationProcessor 'com.jakewharton:butterknife-compiler:10.2.3'
     implementation 'com.jakewharton:butterknife:10.2.3'
 
-    // 视频播放
-    implementation 'cn.jzvd:jiaozivideoplayer:7.7.2.3300'
-    implementation 'androidx.media3:media3-exoplayer:1.2.1'
-    implementation 'androidx.media3:media3-datasource:1.2.1'
-    implementation 'androidx.media3:media3-ui:1.2.1'
+    // 视频播放（GSY 已含 Exo；Media3 供其他模块或后续扩展）
+    implementation 'androidx.media3:media3-exoplayer:1.10.0'
+    implementation 'androidx.media3:media3-datasource:1.10.0'
+    implementation 'androidx.media3:media3-ui:1.10.0'
+
+    // 投屏：Google Cast（小米电视 Android TV / Chromecast 等；需设备与手机同局域网且支持 Cast）
+    implementation 'com.google.android.gms:play-services-cast-framework:21.5.0'
+    implementation 'androidx.mediarouter:mediarouter:1.7.0'
 
     // 响应式编程
-    implementation 'io.reactivex.rxjava3:rxjava:3.1.8'
+    implementation 'io.reactivex.rxjava3:rxjava:3.1.11'
     implementation 'io.reactivex.rxjava3:rxandroid:3.0.2'
 
     // 数据库
@@ -186,8 +189,8 @@ dependencies {
     // 富文本和图像处理
     implementation 'com.caverock:androidsvg:1.4'
     implementation 'pl.droidsonroids.gif:android-gif-drawable:1.2.29'
-    
-    // FlexMark库
+
+    // FlexMark：InputMsgWebView + KaTeX 模板中 Markdown → HTML（与 Markwon 并行，公式密集消息走 WebView）
     implementation 'com.vladsch.flexmark:flexmark:0.64.8'
     implementation 'com.vladsch.flexmark:flexmark-ext-gfm-strikethrough:0.64.8'
     implementation 'com.vladsch.flexmark:flexmark-ext-tables:0.64.8'

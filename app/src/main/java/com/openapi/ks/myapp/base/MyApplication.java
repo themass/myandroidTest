@@ -17,6 +17,8 @@ import com.openai.ads.yewu.ads.base.AdsManager;
 import com.openai.net.VolleyUtils;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.DBManager;
+import com.openapi.ks.myapp.translation.VideoTranslationInstaller;
+import com.openapi.ks.myapp.video.PlaybackEngineHelper;
 import com.openapi.ks.myapp.data.ImagePhotoLoad;
 import com.openapi.ks.myapp.data.VersionUpdater;
 import java.io.File;
@@ -57,6 +59,7 @@ public class MyApplication extends MultiDexApplication {
         ButterKnife.setDebug(isDebug);
         VersionUpdater.init(this);
         VolleyUtils.init(isDebug, this);
+        VideoTranslationInstaller.install(this);
         initFilePath();
         DBManager.getInstance().init(this);
         com.openai.manage.DBManager.getInstance().init(this);
@@ -82,6 +85,7 @@ public class MyApplication extends MultiDexApplication {
         LogUtil.e("app start cost:" + cost);
         photoLoad = new ImagePhotoLoad(this);
         AdsManager.getInstans().init(this);
+        initVideoPlaybackDefaults();
 
 //        CalligraphyConfig.initDefault(
 //                new CalligraphyConfig.Builder()
@@ -127,6 +131,19 @@ public class MyApplication extends MultiDexApplication {
 
     public static SharedPreferences getEqPref() {
         return eqPref;
+    }
+
+    /**
+     * 与列表 GSY（Exo2 + Exo 缓存）及详情 JZ（默认 Exo）对齐的启动配置；
+     * {@link com.openapi.ks.chatfree.ui.main.MainFragmentViewPage} 会在进入主页后按设置再次应用。
+     */
+    private void initVideoPlaybackDefaults() {
+        try {
+            PlaybackEngineHelper.migrateLegacyIfNeeded(this);
+            PlaybackEngineHelper.applyEngine(this);
+        } catch (Throwable t) {
+            LogUtil.e(t);
+        }
     }
 
     private void ijkInit() {

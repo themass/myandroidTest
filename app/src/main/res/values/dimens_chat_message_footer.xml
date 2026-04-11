@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 仅用于消息气泡下方操作条，不覆盖 messagekit 全局 dimen -->
+    <dimen name="chat_msg_footer_row_padding_top">8dp</dimen>
+    <dimen name="chat_msg_footer_row_padding_bottom">6dp</dimen>
+    <dimen name="chat_msg_footer_icon_hit">40dp</dimen>
+    <dimen name="chat_msg_footer_icon_inset">9dp</dimen>
+    <dimen name="chat_msg_footer_gap">4dp</dimen>
+    <dimen name="chat_msg_footer_section_gap">10dp</dimen>
+    <dimen name="chat_msg_footer_time_size">11sp</dimen>
+    <dimen name="chat_msg_footer_voice_icon">18dp</dimen>
+    <dimen name="chat_msg_footer_voice_text">12sp</dimen>
+    <dimen name="chat_msg_footer_divider_h">14dp</dimen>
+</resources>

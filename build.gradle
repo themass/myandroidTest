@@ -7,14 +7,14 @@ buildscript {
     }
     
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.6.0'
+        classpath 'com.android.tools.build:gradle:8.11.1'
         classpath 'org.greenrobot:greendao-gradle-plugin:3.3.1'
         classpath 'com.jakewharton:butterknife-gradle-plugin:10.2.3'
         // android-apt已弃用，使用annotationProcessor替代
         // classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.21"
-        classpath "org.jetbrains.kotlin:kotlin-serialization:2.0.21"
-        classpath "org.jetbrains.kotlin:compose-compiler-gradle-plugin:2.0.21"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.10"
+        classpath "org.jetbrains.kotlin:kotlin-serialization:2.1.10"
+        classpath "org.jetbrains.kotlin:compose-compiler-gradle-plugin:2.1.10"
     }
 }
 
@@ -37,48 +37,49 @@ allprojects {
     configurations.all {
         resolutionStrategy {
             // 强制使用统一的 androidx.annotation 版本
-            force 'androidx.annotation:annotation:1.8.1'
+            force 'androidx.annotation:annotation:1.9.1'
             
             // 强制使用统一的 OkHttp 版本
             force 'com.squareup.okhttp3:okhttp:5.0.0-alpha.14'
             force 'com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.14'
             force 'com.squareup.okhttp3:okhttp-android:5.0.0-alpha.14'
             
-            // 强制使用统一的 AndroidX 核心库版本 - 升级以兼容 Kotlin 2.0.21
-            force 'androidx.core:core:1.16.0'
-            force 'androidx.core:core-ktx:1.16.0'
+            // 强制使用统一的 AndroidX 核心库版本
+            force 'androidx.core:core:1.17.0'
+            force 'androidx.core:core-ktx:1.17.0'
             force 'androidx.appcompat:appcompat:1.7.1'
-            force 'androidx.fragment:fragment:1.8.5'
-            force 'androidx.activity:activity:1.10.1'
-            force 'androidx.navigation:navigation-fragment-ktx:2.9.0'
-            force 'androidx.navigation:navigation-ui-ktx:2.9.0'
+            force 'androidx.fragment:fragment:1.8.9'
+            force 'androidx.activity:activity:1.11.0'
+            force 'androidx.navigation:navigation-fragment-ktx:2.9.6'
+            force 'androidx.navigation:navigation-ui-ktx:2.9.6'
+            force 'androidx.navigation:navigation-compose:2.9.6'
             force 'androidx.recyclerview:recyclerview:1.4.0'
             force 'androidx.constraintlayout:constraintlayout:2.2.1'
             
-            // 强制使用统一的 Lifecycle 版本 - 升级以兼容 Kotlin 2.0.21
-            force 'androidx.lifecycle:lifecycle-runtime:2.8.7'
-            force 'androidx.lifecycle:lifecycle-runtime-ktx:2.8.7'
-            force 'androidx.lifecycle:lifecycle-livedata-ktx:2.8.7'
-            force 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7'
-            force 'androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7'
+            // 强制使用统一的 Lifecycle 版本
+            force 'androidx.lifecycle:lifecycle-runtime:2.9.4'
+            force 'androidx.lifecycle:lifecycle-runtime-ktx:2.9.4'
+            force 'androidx.lifecycle:lifecycle-livedata-ktx:2.9.4'
+            force 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.4'
+            force 'androidx.lifecycle:lifecycle-viewmodel-compose:2.9.4'
             
-            // 强制使用统一的 Kotlin 版本 - 解决版本分散问题
-            force 'org.jetbrains.kotlin:kotlin-stdlib:2.0.21'
-            force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.0.21'
-            force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.0.21'
-            force 'org.jetbrains.kotlin:kotlin-stdlib-common:2.0.21'
-            force 'org.jetbrains.kotlin:kotlin-reflect:2.0.21'
+            // 强制使用统一的 Kotlin 版本
+            force 'org.jetbrains.kotlin:kotlin-stdlib:2.1.10'
+            force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.1.10'
+            force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.1.10'
+            force 'org.jetbrains.kotlin:kotlin-stdlib-common:2.1.10'
+            force 'org.jetbrains.kotlin:kotlin-reflect:2.1.10'
             
             // 强制使用统一的 Kotlinx 协程版本
-            force 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1'
-            force 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1'
-            force 'org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.8.1'
+            force 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2'
+            force 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2'
+            force 'org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.2'
             
-            // 强制使用统一的 Kotlinx 序列化版本
-            force 'org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.3'
-            force 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3'
-            force 'org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.7.3'
-            force 'org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.7.3'
+            // 强制使用统一的 Kotlinx 序列化版本（与 Kotlin 2.1 配套）
+            force 'org.jetbrains.kotlinx:kotlinx-serialization-core:1.8.1'
+            force 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1'
+            force 'org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.8.1'
+            force 'org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.8.1'
         }
     }
     

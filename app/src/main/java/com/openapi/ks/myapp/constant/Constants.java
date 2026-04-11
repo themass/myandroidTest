@@ -70,7 +70,15 @@ public class Constants {
     public static final String AREA_SWITCH = "AREA_SWITCH";
     public static final String PLAYVIDEO_SWITCH = "PLAYVIDEO_SWITCH";
     public static final String LISTVIDEO_TINY_SWITCH = "LISTVIDEO_TINY_SWITCH";
+    /** 兼容旧版：true 表示曾选择 IJK；新逻辑请用 {@link #PLAYBACK_ENGINE} */
     public static final String PLAYCORE_SWITCH = "PLAYCORE_SWITCH";
+    /**
+     * 视频播放内核：0 Exo(Media3)、1 IJK+FFmpeg(ex_so)、2 阿里 AliPlayer、3 系统 MediaPlayer。
+     * 与 {@link com.openapi.ks.myapp.video.PlaybackEngineHelper} 一致。
+     */
+    public static final String PLAYBACK_ENGINE = "PLAYBACK_ENGINE";
+    /** SharedPreferences：当前视频翻译引擎 id，如 demo / baidu / volcano */
+    public static final String TRANSLATION_PROVIDER_ID = "TRANSLATION_PROVIDER_ID";
     public static final String VIDEO_PIC_SWITCH = "VIDEO_PIC_SWITCH";
     public static final String SOUND_SWITCH = "SOUND_SWITCH";
     public static final String AREA_MI_SWITCH = "AREA_MI_SWITCH";

@@ -2,8 +2,10 @@ package com.openapi.ks.myapp.ui.user;
 
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 
@@ -23,6 +25,7 @@ import com.openapi.ks.myapp.data.VersionUpdater;
 import com.openapi.ks.myapp.data.config.PlayCoreEvent;
 import com.openapi.ks.myapp.data.config.TabChangeEvent;
 import com.openapi.ks.myapp.ui.base.app.BaseSingleActivity;
+import com.openapi.ks.myapp.video.PlaybackEngineHelper;
 import com.openapi.ks.myapp.ui.fragment.SettingCharacterFragment;
 
 import butterknife.BindView;
@@ -41,8 +44,8 @@ public class SettingActivity extends BaseSingleActivity {
     Switch swArea;
     @BindView(R.id.sw_sound)
     Switch swSound;
-    @BindView(R.id.sw_playcore)
-    Switch swPlayCore;
+    @BindView(R.id.sp_playback_engine)
+    Spinner spPlaybackEngine;
     @BindView(R.id.sw_playVideo)
     Switch sw_playVideo;
 
@@ -50,8 +53,6 @@ public class SettingActivity extends BaseSingleActivity {
     Switch sw_listVideo;
     @BindView(R.id.sw_tts)
     Switch sw_tts;
-    @BindView(R.id.sw_videoplay)
-    Switch sw_videoplay;
     @BindView(R.id.tv_version)
     TextView tvVersion;
     @BindView(R.id.tv_setting_character)
@@ -85,12 +86,25 @@ public class SettingActivity extends BaseSingleActivity {
             }
         });
 
-        swPlayCore.setChecked(PreferenceUtils.getPrefBoolean(this, Constants.PLAYCORE_SWITCH, false));
-        swPlayCore.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                PreferenceUtils.setPrefBoolean(SettingActivity.this, Constants.PLAYCORE_SWITCH, isChecked);
-                LogUtil.i("swPlayCore: " + isChecked);
-                EventBusUtil.getEventBus().post(new TabChangeEvent());
+        final boolean[] suppressPlaybackSpinner = {true};
+        int engine = PlaybackEngineHelper.getEngine(this);
+        if (engine >= 0 && engine < spPlaybackEngine.getCount()) {
+            spPlaybackEngine.setSelection(engine, false);
+        }
+        spPlaybackEngine.post(() -> suppressPlaybackSpinner[0] = false);
+        spPlaybackEngine.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (suppressPlaybackSpinner[0]) {
+                    return;
+                }
+                PlaybackEngineHelper.setEngine(SettingActivity.this, position);
+                LogUtil.i("PLAYBACK_ENGINE: " + position);
+                EventBusUtil.getEventBus().post(new PlayCoreEvent());
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
             }
         });
         swArea.setChecked(PreferenceUtils.getPrefBoolean(this, Constants.AREA_SWITCH, true));
@@ -127,14 +141,6 @@ public class SettingActivity extends BaseSingleActivity {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 PreferenceUtils.setPrefBoolean(SettingActivity.this, CommonConstants.TTS_OPEN, isChecked);
                 LogUtil.i("TTS_OPEN: " + isChecked);
-            }
-        });
-        sw_videoplay.setChecked(PreferenceUtils.getPrefBoolean(MyApplication.getInstance(), Constants.PLAYCORE_SWITCH, true));
-        sw_videoplay.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                PreferenceUtils.setPrefBoolean(SettingActivity.this, Constants.PLAYCORE_SWITCH, isChecked);
-                LogUtil.i("PLAYCORE_SWITCH: " + isChecked);
-                EventBusUtil.getEventBus().post(new PlayCoreEvent());
             }
         });
         String content = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.MY_SETTING, "");

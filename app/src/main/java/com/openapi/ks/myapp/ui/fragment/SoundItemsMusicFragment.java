@@ -198,7 +198,7 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
             return -1;
         mService.resume();
         ivPlay
-                .setImageResource(android.R.drawable.ic_media_pause);
+                .setImageResource(R.drawable.ic_music_pause_filled);
         return mService.getPosition();
     }
 
@@ -212,7 +212,7 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
             return -1;
         mService.pause(); // 暂停
         ivPlay
-                .setImageResource(android.R.drawable.ic_media_play);
+                .setImageResource(R.drawable.ic_music_play_filled);
         return mService.getPosition();
     }
 
@@ -259,7 +259,7 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
         }
         if (position >= adapter.getItemCount())
             position = adapter.getItemCount() - 1;
-        ivPlay.setImageResource(android.R.drawable.ic_media_play);
+        ivPlay.setImageResource(R.drawable.ic_music_play_filled);
         mService.playPosi(position);
     }
 
@@ -338,7 +338,7 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
     public void onStopTrackingTouch(SeekBar seekBar) {
         LogUtil.i("停止拖动");
         mService.play(seekBar.getProgress());
-        ivPlay.setImageResource(android.R.drawable.ic_media_pause);
+        ivPlay.setImageResource(R.drawable.ic_music_pause_filled);
     }
 
     public boolean checkCanPlay() {

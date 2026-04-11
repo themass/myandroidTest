@@ -2,23 +2,23 @@
 ext.deps = [
     // AndroidX 核心库 - 统一升级到最新版本
     androidx: [
-        core: "androidx.core:core-ktx:1.16.0",
+        core: "androidx.core:core-ktx:1.17.0",
         appcompat: "androidx.appcompat:appcompat:1.7.1",
         material: "com.google.android.material:material:1.13.0",
         multidex: "androidx.multidex:multidex:2.0.1",
         navigation: [
-            fragment: "androidx.navigation:navigation-fragment-ktx:2.9.0",
-            ui: "androidx.navigation:navigation-ui-ktx:2.9.0"
+            fragment: "androidx.navigation:navigation-fragment-ktx:2.9.6",
+            ui: "androidx.navigation:navigation-ui-ktx:2.9.6"
         ],
         recyclerview: "androidx.recyclerview:recyclerview:1.4.0",
         cardview: "androidx.cardview:cardview:1.0.0",
         constraintlayout: "androidx.constraintlayout:constraintlayout:2.2.1",
-        webkit: "androidx.webkit:webkit:1.14.0",
+        webkit: "androidx.webkit:webkit:1.15.0",
         percentlayout: "androidx.percentlayout:percentlayout:1.0.0",
         palette: "androidx.palette:palette:1.0.0",
         // 现代替代方案 - 升级到最新版本
-        fragment: "androidx.fragment:fragment:1.8.5",
-        activity: "androidx.activity:activity:1.10.1"
+        fragment: "androidx.fragment:fragment:1.8.9",
+        activity: "androidx.activity:activity:1.11.0"
     ],
     
     // 网络和JSON
@@ -45,15 +45,14 @@ ext.deps = [
     
     // 视频播放
     video: [
-        exoplayer: "androidx.media3:media3-exoplayer:1.2.1",
-        exoplayerHls: "androidx.media3:media3-datasource:1.2.1",
-        exoplayerUi: "androidx.media3:media3-ui:1.2.1",
-        jiaozivideoplayer: "cn.jzvd:jiaozivideoplayer:7.7.2.3300"
+        exoplayer: "androidx.media3:media3-exoplayer:1.10.0",
+        exoplayerHls: "androidx.media3:media3-datasource:1.10.0",
+        exoplayerUi: "androidx.media3:media3-ui:1.10.0"
     ],
     
     // 响应式编程
     rxjava: [
-        rxjava: "io.reactivex.rxjava3:rxjava:3.1.8",
+        rxjava: "io.reactivex.rxjava3:rxjava:3.1.11",
         rxandroid: "io.reactivex.rxjava3:rxandroid:3.0.2"
     ],
     
@@ -128,8 +127,8 @@ ext.deps = [
     
     // Google 服务
     google: [
-        ads: "com.google.android.gms:play-services-ads:24.6.0",
-        wallet: "com.google.android.gms:play-services-wallet:19.4.0"
+        ads: "com.google.android.gms:play-services-ads:24.9.0",
+        wallet: "com.google.android.gms:play-services-wallet:19.5.0"
     ],
     
     // Facebook
@@ -138,29 +137,29 @@ ext.deps = [
         infer: "com.facebook.infer.annotation:infer-annotation:0.18.0"
     ],
     
-    // LiveKit - 升级到最新版本
+    // LiveKit - 与 client-sdk-android 发行版一致
     livekit: [
-        android: "io.livekit:livekit-android:2.18.3",
-        compose: "io.livekit:livekit-android-compose-components:1.4.0"
+        android: "io.livekit:livekit-android:2.24.1",
+        compose: "io.livekit:livekit-android-compose-components:2.2.1"
     ],
     
     // Compose - 统一升级到最新版本
     compose: [
-        bom: "androidx.compose:compose-bom:2025.05.00",
+        bom: "androidx.compose:compose-bom:2025.09.00",
         ui: "androidx.compose.ui:ui",
         uiGraphics: "androidx.compose.ui:ui-graphics",
         uiTooling: "androidx.compose.ui:ui-tooling-preview",
         material3: "androidx.compose.material3:material3",
-        activity: "androidx.activity:activity-compose:1.10.1",
+        activity: "androidx.activity:activity-compose:1.11.0",
         constraintlayout: "androidx.constraintlayout:constraintlayout-compose:1.1.1"
     ],
     
     // Lifecycle - 统一升级到最新版本
     lifecycle: [
-        livedata: "androidx.lifecycle:lifecycle-livedata-ktx:2.8.7",
-        runtime: "androidx.lifecycle:lifecycle-runtime-ktx:2.8.7",
-        viewmodel: "androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7",
-        viewmodelCompose: "androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7"
+        livedata: "androidx.lifecycle:lifecycle-livedata-ktx:2.9.4",
+        runtime: "androidx.lifecycle:lifecycle-runtime-ktx:2.9.4",
+        viewmodel: "androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.4",
+        viewmodelCompose: "androidx.lifecycle:lifecycle-viewmodel-compose:2.9.4"
     ],
     
     // 其他

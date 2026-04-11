@@ -235,4 +235,13 @@
         <item name="android:windowEnterAnimation">@anim/ps_anim_up_in</item>
         <item name="android:windowExitAnimation">@anim/ps_anim_down_out</item>
     </style>
+
+    <!-- 图片频道网格缩略图：仅顶部圆角，与卡片圆角衔接 -->
+    <style name="ShapeAppearance.App.ImageGrid.Top" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">10dp</item>
+        <item name="cornerSizeTopRight">10dp</item>
+        <item name="cornerSizeBottomLeft">0dp</item>
+        <item name="cornerSizeBottomRight">0dp</item>
+    </style>
 </resources>

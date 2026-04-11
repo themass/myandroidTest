@@ -3,6 +3,7 @@ package com.openapi.ks.myapp.data;
 import com.openai.CommonConstants;
 import com.openai.commonutil.LogUtil;
 import com.openai.commonutil.StringUtils;
+import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.constant.Constants;
 
 import java.net.URI;
@@ -58,5 +59,24 @@ public class VideoUtil {
         header.put(CommonConstants.REFERER, reffer);
         header.put(CommonConstants.USER_AGENT, CommonConstants.USER_AGENT_DEF);
         return header;
+    }
+
+    /** 与列表/详情播放器统一的最终播放地址（含 urlToken）。 */
+    public static String buildPlayUrl(RecommendVo vo) {
+        if (vo == null || !StringUtils.hasText(vo.actionUrl)) {
+            return "";
+        }
+        String url = vo.actionUrl;
+        if (StringUtils.hasText(vo.urlToken)) {
+            url = url + vo.urlToken;
+        }
+        return url;
+    }
+
+    /** 与 {@link #buildPlayUrl(RecommendVo)} 配套的 Referer / User-Agent。 */
+    public static HashMap<String, String> headersForRecommend(RecommendVo vo) {
+        String url = buildPlayUrl(vo);
+        String ref = vo != null && StringUtils.hasText(vo.baseurl) ? vo.baseurl : (vo != null ? vo.actionUrl : "");
+        return getVideoSourceHeader(url, ref);
     }
 }

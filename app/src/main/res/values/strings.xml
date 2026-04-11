@@ -73,6 +73,10 @@
     <string name="menu_share_title">Share friend</string>
     <string name="menu_share_copy_ok">Copied OK</string>
     <string name="menu_share_text_only">FAIL!! Just can share text</string>
+    <string name="video_playback_failed">Playback failed</string>
+    <string name="video_playback_failed_retry">Playback failed. Tap Retry to try again.</string>
+    <string name="video_playback_retry_action">Retry</string>
+    <string name="video_playback_retry_other_engine">Switched decoder and retrying once…</string>
     <!--登录，注册-->
     <string name="close_over">One more again!!</string>
     <string name="login">Sign in</string>
@@ -106,7 +110,16 @@
     <string name="send">send</string>
     <string name="iwanna_content_error">Tell me something!</string>
     <string name="area_setting">Show Area</string>
-    <string name="playcore_setting">core-ijk/exo</string>
+    <string name="playcore_setting">Video player engine</string>
+    <string name="playback_engine_exo">Exo (Media3)</string>
+    <string name="playback_engine_ijk_ffmpeg">IJK + FFmpeg (ex_so)</string>
+    <string name="playback_engine_ali">AliPlayer (Alibaba)</string>
+    <string name="playback_engine_system">System MediaPlayer</string>
+
+    <!-- Google Cast -->
+    <string name="cast_need_http_url">Cast requires http/https URL</string>
+    <string name="cast_url_not_ready">Video URL not ready yet</string>
+    <string name="cast_load_failed">Cast failed to load media</string>
     <string name="use_tts">Enable Speech</string>
     <string name="playvideo_setting">play video-jiaozi</string>
     <string name="sound_setting">Play audio in not wifi</string>
@@ -172,6 +185,9 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="edit">edit</string>
     <string name="delete">delete</string>
     <string name="no_select">no selected</string>
+    <string name="sound_prev">Previous track</string>
+    <string name="sound_next">Next track</string>
+    <string name="sound_play_pause">Play or pause</string>
     <string name="save_ok">save ok</string>
     <string name="save_fail">save fail</string>
     <string name="save_start">save start...</string>
@@ -197,6 +213,11 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="hold_please">hold on please...</string>
     <string name="on_log_selected_messages"> %1$d Messages are selected</string>
     <string name="action_copy">Copy</string>
+    <string name="chat_msg_footer_a11y_copy">复制</string>
+    <string name="chat_msg_footer_a11y_delete">删除</string>
+    <string name="chat_msg_footer_a11y_like">点赞</string>
+    <string name="chat_msg_footer_a11y_dislike">点踩</string>
+    <string name="chat_msg_footer_a11y_voice">播放语音</string>
     <string name="copied_message">Message copied!</string>
     <string name="del_message">Message deleted!</string>
     <string name="chat_feedback_ok">I have received your feedback.</string>

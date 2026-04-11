@@ -92,9 +92,12 @@ public class MyFullScreenImageGalleryActivity extends BaseSingleActivity impleme
     }
 
     private void setPosition(int position) {
-        if (this.viewPager != null && this.images.size() > 1) {
+        if (this.viewPager != null && this.images != null && this.images.size() > 1) {
             int totalPages = this.viewPager.getAdapter().getCount();
-            tvPage.setText(String.format("%s/%s", String.valueOf(position + 1), String.valueOf(totalPages)));
+            tvPage.setVisibility(android.view.View.VISIBLE);
+            tvPage.setText(String.format("%s / %s", String.valueOf(position + 1), String.valueOf(totalPages)));
+        } else if (tvPage != null) {
+            tvPage.setVisibility(android.view.View.GONE);
         }
 
     }

@@ -87,6 +87,7 @@
 
             </action>
         </intent>
+        <package android:name="com.google.android.gms" />
     </queries>
     <!--适配Android R包可见性 结束-->
 
@@ -110,6 +111,10 @@
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-6599725010915516~2513490769" />
+
+        <meta-data
+            android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
+            android:value="com.openapi.ks.myapp.cast.AppCastOptionsProvider" />
 
         <meta-data
             android:name="com.bumptech.glide.integration.okhttp.OkHttpGlideModule"

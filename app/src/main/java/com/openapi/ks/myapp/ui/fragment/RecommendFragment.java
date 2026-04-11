@@ -4,8 +4,8 @@ package com.openapi.ks.myapp.ui.fragment;
 import android.content.Context;
 
 import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.ItemTouchHelper;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
@@ -14,7 +14,6 @@ import android.view.View;
 import com.openai.CommonConstants;
 import com.openai.commonview.touchhelper.OnStartDragListener;
 import com.openai.commonview.touchhelper.SimpleItemTouchHelperCallback;
-import com.openai.commonview.view.RecycleViewDivider;
 import com.openai.commonutil.EventBusUtil;
 import com.openai.commonutil.ToastUtil;
 import com.openai.ads.yewu.um.MobAgent;
@@ -65,9 +64,33 @@ public abstract class RecommendFragment extends BasePullLoadbleFragment<Recommen
         return true;
     }
 
+    /**
+     * 默认：纵向瀑布流（列宽一致、行高随比例变化）。子类可改为不规则宫格等。
+     */
+    protected RecyclerView.LayoutManager createRecommendLayoutManager() {
+        StaggeredGridLayoutManager lm = new StaggeredGridLayoutManager(getSpanCount(), StaggeredGridLayoutManager.VERTICAL);
+        lm.setGapStrategy(StaggeredGridLayoutManager.GAP_HANDLING_MOVE_ITEMS_BETWEEN_SPANS);
+        return lm;
+    }
+
+    /**
+     * 图片频道：6 等分，按 2+2+2 / 3+3 交替占格，实现同一行内宽度不一致。
+     */
+    protected GridLayoutManager createIrregularWidthImageGridLayout() {
+        GridLayoutManager glm = new GridLayoutManager(getActivity(), 6);
+        glm.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+            @Override
+            public int getSpanSize(int position) {
+                int mod = position % 5;
+                return mod < 3 ? 2 : 3;
+            }
+        });
+        return glm;
+    }
+
     @Override
     protected void initPullView() {
-        final StaggeredGridLayoutManager layoutManager = new StaggeredGridLayoutManager(getSpanCount(), StaggeredGridLayoutManager.VERTICAL);
+        RecyclerView.LayoutManager layoutManager = createRecommendLayoutManager();
         pullView.setLayoutManager(layoutManager);
         pullView.setItemAnimator(new DefaultItemAnimator());
         adapter = new IndexRecommendAdapter(this.getActivity(), pullView.getRecyclerView(), infoListVo.voList, layoutManager, this, this, this, getShowEdit());
@@ -75,7 +98,6 @@ public abstract class RecommendFragment extends BasePullLoadbleFragment<Recommen
         adapter.setNeedShimmer(getNeedShimmer());
         pullView.setListener(this);
         pullView.setAdapter(adapter);
-        pullView.getRecyclerView().addItemDecoration(new RecycleViewDivider(mContext, LinearLayoutManager.VERTICAL));
 
         switchFlag(false);
         ItemTouchHelper.Callback callback = new SimpleItemTouchHelperCallback(adapter, getCanMove(), false);

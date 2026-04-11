@@ -19,6 +19,7 @@ import com.openai.net.request.InfoListVo;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.ui.base.features.BasePullLoadbleFragment;
+import com.openapi.ks.myapp.ui.sound.VideoPlaybackUiHelper;
 import com.shuyu.gsyvideoplayer.GSYVideoManager;
 import com.shuyu.gsyvideoplayer.listener.GSYSampleCallBack;
 import com.shuyu.gsyvideoplayer.utils.CommonUtil;
@@ -100,6 +101,14 @@ public class GSYAutoVideoListFragment extends BasePullLoadbleFragment<RecommendV
                     public void onQuitFullscreen(String url, Object... objects) {
                         if (showSearchView())
                             mSearchView.setVisibility(View.VISIBLE);
+                    }
+
+                    @Override
+                    public void onPlayError(String url, Object... objects) {
+                        super.onPlayError(url, objects);
+                        if (getContext() != null) {
+                            VideoPlaybackUiHelper.onGsyPlaybackError(getContext(), url);
+                        }
                     }
                 });
 

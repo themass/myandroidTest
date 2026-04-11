@@ -1,5 +1,6 @@
 ext {
     minSdkVersion = 28
     targetSdkVersion = 35
-    compileSdkVersion = 35
+    // Media3 1.10+（GSY 12.1.0 传递依赖）要求 compileSdk ≥ 36；需配合 AGP 8.10+
+    compileSdkVersion = 36
 }

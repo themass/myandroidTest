@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.openai.ads.yewu.ads.base.AdsContext;
 import com.openapi.ks.myapp.bean.vo.ImgItemsVo;
 import com.openai.net.request.InfoListVo;
@@ -47,6 +49,11 @@ public class ImgChannelImgListFragment extends RecommendFragment {
     @Override
     public int getSpanCount() {
         return 3;
+    }
+
+    @Override
+    protected RecyclerView.LayoutManager createRecommendLayoutManager() {
+        return createIrregularWidthImageGridLayout();
     }
 
     @Override

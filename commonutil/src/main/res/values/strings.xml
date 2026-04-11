@@ -34,5 +34,13 @@
     <string name="load">loading more data</string>
     <string name="send">send</string>
     <string name="open_error">Not find app for file</string>
+    <string name="favorite_m3u8_line1">External line 1 (m3u8)</string>
+    <string name="favorite_m3u8_line2">External line 2 (m3u8)</string>
+    <string name="favorite_external_sheet_title">Open in external player</string>
+    <string name="favorite_external_sheet_cancel">Cancel</string>
+    <string name="favorite_listener_missing">This action is not available yet.</string>
+    <string name="favorite_translate">译</string>
+    <string name="favorite_translation_title">翻译字幕 · 按住标题拖动</string>
+    <string name="favorite_translation_no_session">Translation is not available on this page.</string>
 
 </resources>

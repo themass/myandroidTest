@@ -35,10 +35,6 @@ android {
         compose = true
     }
     
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.15"
-    }
-    
     kotlinOptions {
         jvmTarget = "17"
     }
@@ -66,9 +62,10 @@ android {
     }
 }
 dependencies {
-    // LiveKit 核心库
-    api("io.livekit:livekit-android:2.20.2")
-    api("io.livekit:livekit-android-compose-components:1.4.0")
+    // LiveKit 核心库（与 https://github.com/livekit/client-sdk-android README 对齐）
+    api("io.livekit:livekit-android:2.24.1")
+    // Compose 组件独立发版，见 Maven io.livekit:livekit-android-compose-components
+    api("io.livekit:livekit-android-compose-components:2.2.1")
 
     // AndroidX 核心库 - 升级到最新版本以兼容 Kotlin 2.0.21
     implementation("androidx.core:core-ktx:1.17.0")
@@ -77,25 +74,25 @@ dependencies {
     implementation("androidx.recyclerview:recyclerview:1.4.0")
 
     // Lifecycle 库 - 升级到最新版本
-    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.8.7")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.9.4")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.4")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.4")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.4")
 
     // Compose 库 - 使用最新的 BOM 版本以兼容 Kotlin 2.0.21
     implementation(platform("androidx.compose:compose-bom:2025.09.00"))
-    implementation("androidx.activity:activity-compose:1.10.1")
+    implementation("androidx.activity:activity-compose:1.11.0")
     implementation("androidx.constraintlayout:constraintlayout-compose:1.1.1")
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
-    implementation("androidx.navigation:navigation-compose:2.9.4")
+    implementation("androidx.navigation:navigation-compose:2.9.6")
     implementation("androidx.compose.runtime:runtime")
     
     // Material Design 组件
-    implementation("com.google.android.material:material:1.12.0")
+    implementation("com.google.android.material:material:1.13.0")
 
     // 权限管理 - 使用最新版本
     implementation("com.google.accompanist:accompanist-permissions:0.37.3")

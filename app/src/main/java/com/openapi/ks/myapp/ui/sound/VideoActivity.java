@@ -11,9 +11,7 @@ import com.openai.commonutil.LogUtil;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.ui.base.app.BaseFragmentActivity;
 import com.openapi.ks.myapp.ui.fragment.AutoVideoListFragment;
-
-import cn.jzvd.Jzvd;
-import cn.jzvd.JzvdStd;
+import com.shuyu.gsyvideoplayer.GSYVideoManager;
 
 /**
  * Created by openapi on 2015/9/1.
@@ -24,7 +22,6 @@ public class VideoActivity extends BaseFragmentActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        JzvdStd.FULLSCREEN_ORIENTATION = 1;
         setContentView(R.layout.common_fragment);
         setFabUpVisibility(View.GONE);
         try {
@@ -41,7 +38,7 @@ public class VideoActivity extends BaseFragmentActivity {
 
     @Override
     public void onBackPressed() {
-        if (Jzvd.backPress()) {
+        if (GSYVideoManager.backFromWindowFull(this)) {
             return;
         }
         super.onBackPressed();
@@ -55,11 +52,4 @@ public class VideoActivity extends BaseFragmentActivity {
     protected boolean enableSliding() {
         return true;
     }
-//    @Override
-//    public void setupView() {
-//        super.setupView();
-//        if(AdsContext.rateShow()){
-//            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN1,false);
-//        }
-//    }
 }
