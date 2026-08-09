@@ -26,7 +26,7 @@ public class TextBelowShowTypeHandle extends ShowTypeHandle {
             return;
         }
         RequestManager build = ImagePhotoLoad.getBuilder(context, vo.img);
-        LogUtil.d("GLIDE request " + vo.img);
+//        LogUtil.d("GLIDE request " + vo.img);
         build.load(vo.img).apply(ImagePhotoLoad.options).transition(withCrossFade(500)).listener(new MyGlideModule.LoggingListener()).into(new DrawableImageViewTarget(holder.ivPhoto));
     }
 

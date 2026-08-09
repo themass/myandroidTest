@@ -117,6 +117,9 @@
 -dontwarn com.shuyu.gsyvideoplayer.**
 -keep class tv.danmaku.ijk.media.player.** { *; }
 -dontwarn tv.danmaku.ijk.**
+# LibVLC（JNI）
+-keep class org.videolan.libvlc.** { *; }
+-dontwarn org.videolan.libvlc.**
 -keep class com.alivc.**{*;}
 -keep class com.aliyun.**{*;}
 -keep class com.cicada.**{*;}

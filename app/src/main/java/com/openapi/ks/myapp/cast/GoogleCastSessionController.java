@@ -7,7 +7,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.cast.MediaInfo;
 import com.google.android.gms.cast.MediaMetadata;
-import com.google.android.gms.cast.framework.CastContext;
 import com.google.android.gms.cast.framework.CastSession;
 import com.google.android.gms.cast.framework.SessionManager;
 import com.google.android.gms.cast.framework.SessionManagerListener;
@@ -82,11 +81,22 @@ public final class GoogleCastSessionController {
 
     public void onResume() {
         try {
-            CastContext.getSharedInstance(activity);
-            sessionManager = CastContext.getSharedInstance(activity).getSessionManager();
+            if (sessionManager != null) {
+                try {
+                    sessionManager.removeSessionManagerListener(sessionListener, CastSession.class);
+                } catch (Throwable ignored) {
+                }
+                sessionManager = null;
+            }
+            SessionManager sm = CastFrameworkUtil.tryGetSessionManager(activity);
+            if (sm == null) {
+                return;
+            }
+            sessionManager = sm;
             sessionManager.addSessionManagerListener(sessionListener, CastSession.class);
         } catch (Throwable t) {
-            LogUtil.e(t);
+            LogUtil.i("Google Cast unavailable, session not bound: " + t.getClass().getSimpleName());
+            sessionManager = null;
         }
     }
 

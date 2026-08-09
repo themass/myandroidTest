@@ -2,8 +2,17 @@ package com.openapi.ks.myapp.ui.gsy;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.os.Build;
+import android.view.LayoutInflater;
+import android.widget.LinearLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import androidx.mediarouter.app.MediaRouteButton;
 import android.util.AttributeSet;
 import android.util.TypedValue;
@@ -15,19 +24,22 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
+import android.widget.TextView;
 
 import com.openai.commonutil.LogUtil;
 import com.openai.commonutil.ToastUtil;
 import com.openai.commonview.view.MyFavoriteView;
 
 import com.openapi.ks.chat.R;
+import com.openapi.ks.myapp.cast.CastFrameworkUtil;
 import com.openapi.ks.myapp.data.ImagePhotoLoad;
 import com.openapi.ks.myapp.ui.sound.VideoPlaybackUiHelper;
+import com.openapi.ks.myapp.ui.user.SettingActivity;
 import com.openapi.ks.myapp.video.PlaybackEngineHelper;
+import com.shuyu.gsyvideoplayer.GSYVideoManager;
 import com.shuyu.gsyvideoplayer.utils.CommonUtil;
 import com.shuyu.gsyvideoplayer.utils.OrientationUtils;
 import com.google.android.gms.cast.framework.CastButtonFactory;
-import com.google.android.gms.cast.framework.CastContext;
 import com.shuyu.gsyvideoplayer.video.StandardGSYVideoPlayer;
 import com.shuyu.gsyvideoplayer.video.base.GSYVideoView;
 
@@ -46,6 +58,8 @@ public class DetailGSYVideoPlayer extends StandardGSYVideoPlayer {
     /** Google Cast 设备选择按钮，由 {@link #installGoogleCastRouteButton(AppCompatActivity)} 注入 */
     private MediaRouteButton mCastRouteButton;
     private FrameLayout loadingOverlay;
+    /** 当前为 LibVLC 内核时在画面上角显示，便于与 Exo/IJK 区分 */
+    private TextView mEngineBadge;
     private String mLastSetupUrl;
     private boolean mEngineFallbackTried;
     /** 自动切换内核重试前保存的用户偏好，detach 时恢复 */
@@ -96,14 +110,18 @@ public class DetailGSYVideoPlayer extends StandardGSYVideoPlayer {
         if (mCastRouteButton != null || activity == null) {
             return;
         }
-        try {
-            CastContext.getSharedInstance(activity.getApplicationContext());
-        } catch (Throwable t) {
-            LogUtil.i("Google Cast unavailable: " + t.getMessage());
+        if (CastFrameworkUtil.tryGetCastContext(activity) == null) {
+            LogUtil.i("Google Cast unavailable (no Cast dynamite / GMS)");
             return;
         }
         mCastRouteButton = new MediaRouteButton(activity);
-        CastButtonFactory.setUpMediaRouteButton(activity, mCastRouteButton);
+        try {
+            CastButtonFactory.setUpMediaRouteButton(activity, mCastRouteButton);
+        } catch (Throwable t) {
+            LogUtil.i("CastButtonFactory.setUpMediaRouteButton failed: " + t.getMessage());
+            mCastRouteButton = null;
+            return;
+        }
         FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
                 LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
         lp.gravity = Gravity.TOP | Gravity.END;
@@ -143,19 +161,231 @@ public class DetailGSYVideoPlayer extends StandardGSYVideoPlayer {
         loadingOverlay.addView(pb, pbLp);
         loadingOverlay.setVisibility(View.GONE);
         addView(loadingOverlay, loadLp);
+
+        mEngineBadge = new TextView(context);
+        mEngineBadge.setText(R.string.playback_engine_badge_vlc);
+        mEngineBadge.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
+        int pad = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 6,
+                getResources().getDisplayMetrics());
+        mEngineBadge.setPadding(pad, pad, pad, pad);
+        mEngineBadge.setBackgroundColor(0x99000000);
+        mEngineBadge.setTextColor(0xFFFFFFFF);
+        FrameLayout.LayoutParams badgeLp = new FrameLayout.LayoutParams(
+                LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+        badgeLp.gravity = Gravity.TOP | Gravity.START;
+        int m8 = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8,
+                getResources().getDisplayMetrics());
+        badgeLp.setMargins(m8, m8, 0, 0);
+        addView(mEngineBadge, badgeLp);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            mEngineBadge.setElevation(
+                    TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 6, getResources().getDisplayMetrics()));
+        }
+        updatePlaybackEngineBadgeVisibility();
+        wireMoreButton();
+        applyPlayerChromeInsets();
+    }
+
+    @Override
+    public int getLayoutId() {
+        return R.layout.video_layout_detail_modern;
+    }
+
+    private void wireMoreButton() {
+        View more = findViewById(R.id.detail_player_more);
+        if (more != null) {
+            more.setOnClickListener(this);
+        }
+    }
+
+    private void applyPlayerChromeInsets() {
+        View top = findViewById(R.id.layout_top);
+        if (top != null) {
+            ViewCompat.setOnApplyWindowInsetsListener(top, (v, insets) -> {
+                Insets sys = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                v.setPadding(v.getPaddingLeft(), sys.top, v.getPaddingRight(), v.getPaddingBottom());
+                return insets;
+            });
+        }
+        View bottom = findViewById(R.id.layout_bottom);
+        if (bottom != null) {
+            final int baseNavPad = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4,
+                    getResources().getDisplayMetrics());
+            ViewCompat.setOnApplyWindowInsetsListener(bottom, (v, insets) -> {
+                Insets nav = insets.getInsets(WindowInsetsCompat.Type.navigationBars());
+                v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(),
+                        baseNavPad + nav.bottom);
+                return insets;
+            });
+        }
+        ViewCompat.requestApplyInsets(this);
+    }
+
+    private void updatePlaybackEngineBadgeVisibility() {
+        if (mEngineBadge == null) {
+            return;
+        }
+        int e = PlaybackEngineHelper.getEngine(getContext().getApplicationContext());
+        mEngineBadge.setVisibility(e == PlaybackEngineHelper.ENGINE_VLC ? View.VISIBLE : View.GONE);
     }
 
     /**
      * GSY 12.x 的 {@link com.shuyu.gsyvideoplayer.video.base.GSYVideoControlView#onClick} 未处理 {@code R.id.fullscreen}，
      * 官方详情页是通过 {@code GSYBaseActivityDetail#initVideo} 给全屏按钮单独绑监听。普通 Activity + 布局内播放器时必须自行处理。
+     * <p>
+     * 同理补充 {@code R.id.back}：非 GSYBaseActivityDetail 场景下顶部返回键需自行退出全屏 / 交给 Activity 处理，
+     * 否则点击无响应（与解码内核无关）。
      */
     @Override
     public void onClick(View v) {
-        if (v.getId() == com.shuyu.gsyvideoplayer.R.id.fullscreen) {
+        int id = v.getId();
+        if (id == R.id.detail_player_more) {
+            showPlayerMoreMenu();
+            return;
+        }
+        if (id == R.id.back || id == com.shuyu.gsyvideoplayer.R.id.back) {
+            onBackButtonClicked();
+            return;
+        }
+        if (id == com.shuyu.gsyvideoplayer.R.id.fullscreen) {
             onFullscreenButtonClicked();
             return;
         }
         super.onClick(v);
+    }
+
+    /**
+     * 顶部返回：先退出 GSY 窗口全屏，再与系统返回键一致（{@link GSYVideoManager#backFromWindowFull}）。
+     */
+    private void onBackButtonClicked() {
+        Activity act = CommonUtil.scanForActivity(getContext());
+        if (act == null) {
+            return;
+        }
+        if (mIfCurrentIsFullscreen) {
+            mFullAnimEnd = true;
+            clearFullscreenLayout();
+            return;
+        }
+        if (act instanceof AppCompatActivity) {
+            AppCompatActivity app = (AppCompatActivity) act;
+            if (GSYVideoManager.backFromWindowFull(app)) {
+                return;
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                app.getOnBackPressedDispatcher().onBackPressed();
+            } else {
+                app.onBackPressed();
+            }
+            return;
+        }
+        act.finish();
+    }
+
+    /**
+     * GSY {@link com.shuyu.gsyvideoplayer.video.base.GSYBaseVideoPlayer#clearFullscreenLayout} 在
+     * {@code mFullAnimEnd == false} 时直接 return，全屏进入动画未完成或异常时会导致「退出全屏」永久失效。
+     */
+    @Override
+    protected void clearFullscreenLayout() {
+        mFullAnimEnd = true;
+        super.clearFullscreenLayout();
+    }
+
+    private void showPlayerMoreMenu() {
+        Activity act = CommonUtil.scanForActivity(getContext());
+        if (!(act instanceof AppCompatActivity)) {
+            return;
+        }
+        AppCompatActivity appAct = (AppCompatActivity) act;
+        BottomSheetDialog dlg = new BottomSheetDialog(appAct);
+        View sheet = LayoutInflater.from(appAct).inflate(R.layout.sheet_player_more, null);
+        dlg.setContentView(sheet);
+        LinearLayout speedBox = sheet.findViewById(R.id.player_speed_container);
+        if (speedBox == null) {
+            dlg.dismiss();
+            return;
+        }
+        int padV = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8,
+                getResources().getDisplayMetrics());
+        int padH = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16,
+                getResources().getDisplayMetrics());
+        TypedValue selectable = new TypedValue();
+        appAct.getTheme().resolveAttribute(android.R.attr.selectableItemBackground, selectable, true);
+        final float[] speeds = {0.5f, 0.75f, 1f, 1.25f, 1.5f, 2f};
+        for (float sp : speeds) {
+            TextView row = new TextView(appAct);
+            row.setText(formatSpeedLabel(sp));
+            row.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+            row.setTextColor(0xFF1A1A1A);
+            row.setPadding(padH, padV, padH, padV);
+            if (selectable.resourceId != 0) {
+                row.setBackgroundResource(selectable.resourceId);
+            }
+            row.setOnClickListener(v -> {
+                try {
+                    DetailGSYVideoPlayer.this.setSpeed(sp, true);
+                } catch (Throwable t) {
+                    LogUtil.e(t);
+                }
+                dlg.dismiss();
+                ToastUtil.showShort(getContext().getString(R.string.player_speed_applied, formatSpeedLabel(sp)));
+            });
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            lp.bottomMargin = padV / 2;
+            speedBox.addView(row, lp);
+        }
+        TextView decoderRow = new TextView(appAct);
+        decoderRow.setText(R.string.player_more_decoder_settings);
+        decoderRow.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+        decoderRow.setTextColor(0xFF1A1A1A);
+        decoderRow.setPadding(padH, padV, padH, padV);
+        if (selectable.resourceId != 0) {
+            decoderRow.setBackgroundResource(selectable.resourceId);
+        }
+        decoderRow.setOnClickListener(v -> {
+            dlg.dismiss();
+            getContext().startActivity(new Intent(getContext(), SettingActivity.class));
+        });
+        speedBox.addView(decoderRow, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        dlg.show();
+    }
+
+    /** 供流式字幕解音频：与 GSY 当前播放地址一致（含 urlToken 等）。 */
+    public String getPlaybackUrl() {
+        if (mOriginUrl != null && !mOriginUrl.isEmpty()) {
+            return mOriginUrl;
+        }
+        return mUrl;
+    }
+
+    /** 与 {@link #setUp} 传入的 Referer / User-Agent 等一致。 */
+    public Map<String, String> getPlaybackHeaders() {
+        return mMapHeadData;
+    }
+
+    private static String formatSpeedLabel(float s) {
+        if (Math.abs(s - 0.5f) < 0.01f) {
+            return "0.5×";
+        }
+        if (Math.abs(s - 0.75f) < 0.01f) {
+            return "0.75×";
+        }
+        if (Math.abs(s - 1f) < 0.01f) {
+            return "1×";
+        }
+        if (Math.abs(s - 1.25f) < 0.01f) {
+            return "1.25×";
+        }
+        if (Math.abs(s - 1.5f) < 0.01f) {
+            return "1.5×";
+        }
+        if (Math.abs(s - 2f) < 0.01f) {
+            return "2×";
+        }
+        return s + "×";
     }
 
     @Override
@@ -168,6 +398,10 @@ public class DetailGSYVideoPlayer extends StandardGSYVideoPlayer {
                 mSeekAnchorProgress = mProgressBar.getProgress();
                 mSeekAnchorPositionMs = getCurrentPositionWhenPlaying();
                 refreshCachedDurationForSeek();
+            } else if (action == MotionEvent.ACTION_MOVE) {
+                // 竖屏部分机型 SeekBar 拖动时 onProgressChanged 的 fromUser 恒为 false，
+                // 仅靠 post 一帧可能错过与父布局的拦截顺序；MOVE 上直接按当前 thumb 刷新时间。
+                applySeekBarProgressToTimeViews(mProgressBar.getProgress());
             } else if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
                 mDraggingStandardSeekBar = false;
             }
@@ -212,7 +446,9 @@ public class DetailGSYVideoPlayer extends StandardGSYVideoPlayer {
             mLastSetupUrl = url;
             mCachedDurationMs = 0;
         }
-        return super.setUp(url, cacheWithPlay, cachePath, mapHeadData, title);
+        boolean ok = super.setUp(url, cacheWithPlay, cachePath, mapHeadData, title);
+        updatePlaybackEngineBadgeVisibility();
+        return ok;
     }
 
     @Override
@@ -247,7 +483,7 @@ public class DetailGSYVideoPlayer extends StandardGSYVideoPlayer {
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
         super.onProgressChanged(seekBar, progress, fromUser);
         if (seekBar == mProgressBar && isShowDragProgressTextOnSeekBar()
-                && (mHadSeekTouch || mDraggingStandardSeekBar)) {
+                && (mHadSeekTouch || mDraggingStandardSeekBar || seekBar.isPressed())) {
             applySeekBarProgressToTimeViews(progress);
         }
     }
@@ -257,7 +493,9 @@ public class DetailGSYVideoPlayer extends StandardGSYVideoPlayer {
         if (!isShowDragProgressTextOnSeekBar()) {
             return;
         }
-        if (!fromUser && !mHadSeekTouch && !mDraggingStandardSeekBar) {
+        boolean dragging = mDraggingStandardSeekBar || mHadSeekTouch
+                || (mProgressBar != null && mProgressBar.isPressed());
+        if (!fromUser && !dragging) {
             return;
         }
         applySeekBarProgressToTimeViews(progress);
@@ -475,14 +713,13 @@ public class DetailGSYVideoPlayer extends StandardGSYVideoPlayer {
             return;
         }
         if (tryFallbackAlternateEngine()) {
-            ToastUtil.showShort(R.string.video_playback_retry_other_engine);
             return;
         }
         VideoPlaybackUiHelper.onGsyDetailPlaybackError(this, what, extra);
     }
 
     /**
-     * 当前片源用设置里的内核失败时，在 Exo / IJK 之间自动切换一次并重试（不写设置项）。
+     * 当前片源失败时自动换内核重试一次（不写设置项）：Exo ↔ IJK；LibVLC / 阿里 / 系统 失败时先临时换 Exo。
      */
     private boolean tryFallbackAlternateEngine() {
         if (mEngineFallbackTried || mOriginUrl == null || mOriginUrl.isEmpty()) {
@@ -496,6 +733,10 @@ public class DetailGSYVideoPlayer extends StandardGSYVideoPlayer {
         }
         mEngineFallbackTried = true;
         mRestoreEngineAfterDetach = cur;
+        String from = PlaybackEngineHelper.engineLabel(app, cur);
+        String to = PlaybackEngineHelper.engineLabel(app, alt);
+        LogUtil.i("GSY playback engine fallback: " + from + " -> " + to + " url=" + mOriginUrl);
+        ToastUtil.showShort(getContext().getString(R.string.video_playback_retry_other_engine, from, to));
         PlaybackEngineHelper.applyEngineByIndex(app, alt);
         post(() -> {
             try {

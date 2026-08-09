@@ -15,6 +15,7 @@ import com.openai.commonutil.LogUtil;
 import com.openai.commonutil.PreferenceUtils;
 import com.openai.commonutil.ShareUtil;
 import com.openai.commonutil.StringUtils;
+import com.openai.commonutil.ToastUtil;
 import com.openai.ads.yewu.ads.base.AdsContext;
 import com.openai.ads.yewu.um.MobAgent;
 import com.openapi.ks.chat.R;
@@ -44,6 +45,8 @@ public class SettingActivity extends BaseSingleActivity {
     Switch swArea;
     @BindView(R.id.sw_sound)
     Switch swSound;
+    @BindView(R.id.sw_music_ui_auxio)
+    Switch swMusicUiAuxio;
     @BindView(R.id.sp_playback_engine)
     Spinner spPlaybackEngine;
     @BindView(R.id.sw_playVideo)
@@ -59,6 +62,16 @@ public class SettingActivity extends BaseSingleActivity {
     TextView tvCharacter;
     @BindView(R.id.et_setting_content)
     EditText etCharacter;
+    @BindView(R.id.et_volcano_asr_app_key)
+    EditText etVolcanoAppKey;
+    @BindView(R.id.et_volcano_asr_access_key)
+    EditText etVolcanoAccessKey;
+    @BindView(R.id.et_volcano_asr_resource_id)
+    EditText etVolcanoResourceId;
+    @BindView(R.id.et_volcano_asr_cluster)
+    EditText etVolcanoCluster;
+    @BindView(R.id.sw_volcano_asr_v3)
+    Switch swVolcanoAsrV3;
     BaseService baseService;
     String mEmail;
 
@@ -100,6 +113,8 @@ public class SettingActivity extends BaseSingleActivity {
                 }
                 PlaybackEngineHelper.setEngine(SettingActivity.this, position);
                 LogUtil.i("PLAYBACK_ENGINE: " + position);
+                ToastUtil.showShort(getString(R.string.playback_engine_toast_fmt,
+                        PlaybackEngineHelper.engineLabel(SettingActivity.this, position)));
                 EventBusUtil.getEventBus().post(new PlayCoreEvent());
             }
 
@@ -129,6 +144,15 @@ public class SettingActivity extends BaseSingleActivity {
                 LogUtil.i("SOUND_SWITCH: " + isChecked);
             }
         });
+        swMusicUiAuxio.setChecked(PreferenceUtils.getPrefBoolean(this, Constants.MUSIC_UI_AUXIO_STYLE, false));
+        swMusicUiAuxio.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                PreferenceUtils.setPrefBoolean(SettingActivity.this, Constants.MUSIC_UI_AUXIO_STYLE, isChecked);
+                LogUtil.i("MUSIC_UI_AUXIO_STYLE: " + isChecked);
+                ToastUtil.showShort(isChecked ? R.string.music_ui_auxio_enabled_toast : R.string.music_ui_auxio_disabled_toast);
+            }
+        });
         swAreaMi.setChecked(PreferenceUtils.getPrefBoolean(this, Constants.AREA_MI_SWITCH, false));
         swAreaMi.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -147,6 +171,15 @@ public class SettingActivity extends BaseSingleActivity {
         if (!StringUtils.isEmpty(content)) {
             etCharacter.setText(content);
         }
+        etVolcanoAppKey.setText(PreferenceUtils.getPrefString(this, Constants.VOLCANO_ASR_APP_KEY, ""));
+        etVolcanoAccessKey.setText(PreferenceUtils.getPrefString(this, Constants.VOLCANO_ASR_ACCESS_KEY, ""));
+        etVolcanoResourceId.setText(PreferenceUtils.getPrefString(this, Constants.VOLCANO_ASR_RESOURCE_ID,
+                "volc.bigasr.sauc.duration"));
+        etVolcanoCluster.setText(PreferenceUtils.getPrefString(this, Constants.VOLCANO_ASR_CLUSTER,
+                "volcengine_input_common"));
+        swVolcanoAsrV3.setChecked(PreferenceUtils.getPrefBoolean(this, Constants.VOLCANO_ASR_USE_V3, false));
+        swVolcanoAsrV3.setOnCheckedChangeListener((buttonView, isChecked) ->
+                PreferenceUtils.setPrefBoolean(SettingActivity.this, Constants.VOLCANO_ASR_USE_V3, isChecked));
         baseService = new BaseService();
         baseService.setup(this);
         hidenAds();
@@ -179,8 +212,30 @@ public class SettingActivity extends BaseSingleActivity {
     @OnClick(R.id.bt_setting_save)
     public void onCharacterSave(View view) {
         PreferenceUtils.setPrefString(MyApplication.getInstance(), Constants.MY_SETTING, etCharacter.getText().toString());
+        saveVolcanoAsrPrefs();
         MobAgent.onEventMenu(this, "设置人设");
 
+    }
+
+    @Override
+    public void onPause() {
+        saveVolcanoAsrPrefs();
+        super.onPause();
+    }
+
+    private void saveVolcanoAsrPrefs() {
+        if (etVolcanoAppKey == null) {
+            return;
+        }
+        PreferenceUtils.setPrefString(this, Constants.VOLCANO_ASR_APP_KEY,
+                etVolcanoAppKey.getText().toString().trim());
+        PreferenceUtils.setPrefString(this, Constants.VOLCANO_ASR_ACCESS_KEY,
+                etVolcanoAccessKey.getText().toString().trim());
+        PreferenceUtils.setPrefString(this, Constants.VOLCANO_ASR_RESOURCE_ID,
+                etVolcanoResourceId.getText().toString().trim());
+        PreferenceUtils.setPrefString(this, Constants.VOLCANO_ASR_CLUSTER,
+                etVolcanoCluster.getText().toString().trim());
+        PreferenceUtils.setPrefBoolean(this, Constants.VOLCANO_ASR_USE_V3, swVolcanoAsrV3.isChecked());
     }
 
     @Override

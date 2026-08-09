@@ -52,6 +52,12 @@
                 android:src="@drawable/ic_notification_app_logo" />
         </FrameLayout>
 
+        <ImageView
+            android:id="@+id/iv_row_overflow"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility="gone" />
+
         <com.openai.commonview.view.widgets.MusicVisualizer
             android:id="@+id/visualizer"
             android:layout_width="36dp"

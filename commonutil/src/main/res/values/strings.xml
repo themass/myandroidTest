@@ -42,5 +42,6 @@
     <string name="favorite_translate">译</string>
     <string name="favorite_translation_title">翻译字幕 · 按住标题拖动</string>
     <string name="favorite_translation_no_session">Translation is not available on this page.</string>
+    <string name="volcano_asr_not_configured">Configure Volcano ASR keys in Settings first.</string>
 
 </resources>

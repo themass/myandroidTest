@@ -73,12 +73,24 @@ public class Constants {
     /** 兼容旧版：true 表示曾选择 IJK；新逻辑请用 {@link #PLAYBACK_ENGINE} */
     public static final String PLAYCORE_SWITCH = "PLAYCORE_SWITCH";
     /**
-     * 视频播放内核：0 Exo(Media3)、1 IJK+FFmpeg(ex_so)、2 阿里 AliPlayer、3 系统 MediaPlayer。
+     * 视频播放内核：0 Exo(Media3)、1 IJK+FFmpeg(ex_so)、2 阿里 AliPlayer、3 系统 MediaPlayer、4 LibVLC。
      * 与 {@link com.openapi.ks.myapp.video.PlaybackEngineHelper} 一致。
      */
     public static final String PLAYBACK_ENGINE = "PLAYBACK_ENGINE";
+    /** 全屏播放页首次进入时是否已展示过手势提示（Snackbar） */
+    public static final String PLAYER_GESTURE_HINT_SHOWN = "PLAYER_GESTURE_HINT_SHOWN";
     /** SharedPreferences：当前视频翻译引擎 id，如 demo / baidu / volcano */
     public static final String TRANSLATION_PROVIDER_ID = "TRANSLATION_PROVIDER_ID";
+    /** 火山豆包流式 ASR：App Key / AppId */
+    public static final String VOLCANO_ASR_APP_KEY = "VOLCANO_ASR_APP_KEY";
+    /** 火山豆包流式 ASR：Access Token */
+    public static final String VOLCANO_ASR_ACCESS_KEY = "VOLCANO_ASR_ACCESS_KEY";
+    /** 火山 v3 Resource-Id，默认 volc.bigasr.sauc.duration */
+    public static final String VOLCANO_ASR_RESOURCE_ID = "VOLCANO_ASR_RESOURCE_ID";
+    /** 火山 v2 cluster */
+    public static final String VOLCANO_ASR_CLUSTER = "VOLCANO_ASR_CLUSTER";
+    /** true 使用 v3 bigmodel_async；false 使用 v2 /asr */
+    public static final String VOLCANO_ASR_USE_V3 = "VOLCANO_ASR_USE_V3";
     public static final String VIDEO_PIC_SWITCH = "VIDEO_PIC_SWITCH";
     public static final String SOUND_SWITCH = "SOUND_SWITCH";
     public static final String AREA_MI_SWITCH = "AREA_MI_SWITCH";
@@ -192,6 +204,17 @@ public class Constants {
     public static final String ADSSHOW = "ADSSHOW";
     public static final String FILE_UPLOAD = "fileList";
     public static final String SOUND_CHANNEL = "SOUND_CHANNEL";
+    /**
+     * 音乐频道列表是否使用 Auxio 风格布局（深色 + 底部卡片条），与 {@link #SOUND_CHANNEL} 列表数据无关。
+     * 视觉参考开源项目 Auxio（https://github.com/OxygenCobalt/Auxio），非拷贝其 GPL 源码。
+     */
+    public static final String MUSIC_UI_AUXIO_STYLE = "MUSIC_UI_AUXIO_STYLE";
+    /**
+     * 音乐播放模式持久化（与 {@link com.openapi.ks.myapp.service.PlayService} 中 status 1～4 对应）。
+     */
+    public static final String MUSIC_PLAY_MODE_PREF = "MUSIC_PLAY_MODE_PREF";
+    /** {@link com.openapi.ks.myapp.bean.vo.RecommendVo}，音乐详情页与列表共用收藏上下文 */
+    public static final String SOUND_DETAIL_VO = "SOUND_DETAIL_VO";
     public static final String TEXT_FILE = "TEXT_FILE";
     public static final String TEXT_CHANNEL = "TEXT_CHANNEL";
     public static final String IMG_CHANNEL = "IMG_CHANNEL";

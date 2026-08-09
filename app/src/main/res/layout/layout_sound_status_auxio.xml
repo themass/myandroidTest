@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Auxio 式底部播放条：浅色顶圆角容器 + 左封面 + 曲名/副标题 + 控制钮 + 底沿细进度条。
+  控件 id 须与 layout_sound_status.xml 一致，供 SoundItemsMusicFragment 绑定。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/music_status"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_auxio_footer_sheet"
+    android:elevation="6dp"
+    android:orientation="vertical"
+    android:paddingStart="14dp"
+    android:paddingTop="12dp"
+    android:paddingEnd="14dp"
+    android:paddingBottom="10dp">
+
+    <RelativeLayout
+        android:id="@+id/rl_content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="48dp">
+
+        <FrameLayout
+            android:id="@+id/fl_footer_album"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:background="@drawable/bg_auxio_list_thumb_idle">
+
+            <ImageView
+                android:id="@+id/iv_footer_album"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="@null"
+                android:padding="4dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_auxio_album_placeholder"
+                android:tint="@color/music_auxio_footer_muted" />
+        </FrameLayout>
+
+        <LinearLayout
+            android:id="@+id/ll_titles"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="8dp"
+            android:layout_toStartOf="@+id/ll_play_status"
+            android:layout_toEndOf="@+id/fl_footer_album"
+            android:orientation="vertical">
+
+            <com.openai.commonview.view.MarqueeTextView
+                android:id="@+id/tv_play_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:contentDescription="@string/sound_open_player_detail"
+                android:ellipsize="marquee"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:scrollHorizontally="true"
+                android:singleLine="true"
+                android:text="@string/no_select"
+                android:textColor="@color/music_auxio_footer_text"
+                android:textSize="15sp"
+                tools:text="Title" />
+
+            <TextView
+                android:id="@+id/tv_play_subtitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/music_auxio_footer_muted"
+                android:textSize="12sp"
+                tools:text="Subtitle" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/ll_play_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/iv_play_mode"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginEnd="2dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/sound_play_mode_cycle"
+                android:padding="8dp"
+                android:src="@drawable/ic_play_mode_order"
+                android:tint="@color/music_auxio_footer_text" />
+
+            <ImageView
+                android:id="@+id/iv_pre"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/sound_prev"
+                android:padding="8dp"
+                android:src="@drawable/ic_music_skip_previous"
+                android:tint="@color/music_auxio_footer_text" />
+
+            <ImageView
+                android:id="@+id/iv_play"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_marginStart="2dp"
+                android:layout_marginEnd="2dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/sound_play_pause"
+                android:padding="10dp"
+                android:src="@drawable/ic_music_play_filled"
+                android:tint="@color/music_auxio_footer_text" />
+
+            <ImageView
+                android:id="@+id/iv_next"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/sound_next"
+                android:padding="8dp"
+                android:src="@drawable/ic_music_skip_next"
+                android:tint="@color/music_auxio_footer_text" />
+        </LinearLayout>
+    </RelativeLayout>
+
+    <SeekBar
+        android:id="@+id/progress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:maxHeight="3dp"
+        android:minHeight="3dp"
+        android:paddingStart="0dp"
+        android:paddingEnd="0dp"
+        android:progressDrawable="@drawable/auxio_seekbar_progress"
+        android:splitTrack="false"
+        android:thumb="@android:color/transparent"
+        android:thumbOffset="0dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:minWidth="40dp">
+
+            <TextView
+                android:id="@+id/time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/TextAppearance.AppCompat.Caption"
+                android:textColor="@color/music_auxio_footer_muted"
+                android:textSize="11sp"
+                tools:text="00:00" />
+
+            <ProgressBar
+                android:id="@+id/pb_loading"
+                android:layout_width="@dimen/margin_40"
+                android:layout_height="@dimen/margin_15"
+                android:visibility="gone" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/duration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:minWidth="40dp"
+            android:textAppearance="@style/TextAppearance.AppCompat.Caption"
+            android:textColor="@color/music_auxio_footer_muted"
+            android:textSize="11sp"
+            tools:text="04:30" />
+    </LinearLayout>
+</LinearLayout>

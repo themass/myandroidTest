@@ -2,10 +2,14 @@ package com.openapi.ks.myapp.ui.sound;
 
 import android.view.View;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.android.material.snackbar.Snackbar;
 import com.openai.commonutil.LogUtil;
+import com.openai.commonutil.PreferenceUtils;
 import com.openai.commonutil.ToastUtil;
 import com.openapi.ks.chat.R;
+import com.openapi.ks.myapp.constant.Constants;
 import com.shuyu.gsyvideoplayer.video.base.GSYBaseVideoPlayer;
 
 /**
@@ -19,6 +23,29 @@ public final class VideoPlaybackUiHelper {
     public static void onGsyPlaybackError(android.content.Context context, String url) {
         LogUtil.i("GSY onPlayError url=" + url);
         ToastUtil.showShort(R.string.video_playback_failed);
+    }
+
+    /**
+     * 首次进入全屏播放页时提示常见手势（仅展示一次）。
+     */
+    public static void maybeShowFirstPlaybackGestureHint(AppCompatActivity activity, View anchor) {
+        if (activity == null || anchor == null) {
+            return;
+        }
+        if (PreferenceUtils.getPrefBoolean(activity, Constants.PLAYER_GESTURE_HINT_SHOWN, false)) {
+            return;
+        }
+        anchor.post(() -> {
+            if (activity.isFinishing()) {
+                return;
+            }
+            try {
+                Snackbar.make(anchor, R.string.player_gesture_hint, Snackbar.LENGTH_LONG).show();
+            } catch (Throwable t) {
+                LogUtil.e(t);
+            }
+            PreferenceUtils.setPrefBoolean(activity, Constants.PLAYER_GESTURE_HINT_SHOWN, true);
+        });
     }
 
     public static void onGsyDetailPlaybackError(GSYBaseVideoPlayer player, int what, int extra) {

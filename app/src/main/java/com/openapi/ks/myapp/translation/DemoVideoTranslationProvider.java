@@ -20,9 +20,12 @@ public class DemoVideoTranslationProvider implements VideoTranslationProvider {
     @Override
     public void translate(VideoTranslationRequest request, VideoTranslationCallback callback) {
         String url = request.getVideoUrl();
+        String kind = request.getExtras().get(VideoTranslationRequest.EXTRA_MEDIA_KIND);
+        boolean audio = VideoTranslationRequest.MEDIA_KIND_AUDIO.equals(kind);
         String text = "【演示模式】此处为占位译文。\n\n"
                 + "接入说明：实现 VideoTranslationProvider，在 VideoTranslationInstaller 中 register 并 setActiveProviderId。\n\n"
-                + "当前视频地址：\n" + url;
+                + (audio ? "当前为音频流（ASR/翻译）：\n" : "当前媒体地址：\n")
+                + url;
         callback.onSuccess(new VideoTranslationResult.Builder()
                 .setTranslatedText(text)
                 .setProviderId(ID)

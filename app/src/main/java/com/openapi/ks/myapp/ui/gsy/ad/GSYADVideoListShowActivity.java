@@ -47,7 +47,7 @@ package com.openapi.ks.myapp.ui.gsy.ad;//package com.openapi.ks.myapp.ui.gsy.ad;
 //
 //    @Override
 //    protected void onNewIntent(Intent intent) {
-//        LogUtil.i(getClass().getSimpleName() + "-onNewIntent");
+//        //LogUtil.i(getClass().getSimpleName() + "-onNewIntent");
 //        super.onNewIntent(intent);
 //    }
 //

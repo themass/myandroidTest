@@ -64,7 +64,7 @@ public class VideoListShowActivity extends AppCompatActivity {
 
     @Override
     protected void onNewIntent(Intent intent) {
-        LogUtil.i(getClass().getSimpleName() + "-onNewIntent");
+        //LogUtil.i(getClass().getSimpleName() + "-onNewIntent");
         super.onNewIntent(intent);
     }
 }

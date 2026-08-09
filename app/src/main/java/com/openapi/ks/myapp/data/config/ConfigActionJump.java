@@ -85,13 +85,17 @@ public class ConfigActionJump {
     private String parserUrl(String schema, String url, Map<String, String> param) {
         if (HTTP_URL.equals(schema) || HTTPS_URL.equals(schema)) {
             return url;
-        } else {
-            try {
-                return URLDecoder.decode(param.get(Constants.URL), "utf-8");
-            } catch (Exception e) {
-                LogUtil.e(e);
-                return url;
-            }
+        }
+        String encoded = param != null ? param.get(Constants.URL) : null;
+        if (encoded == null || encoded.isEmpty()) {
+            // 例如 sound://config?channel=nvyou-main 无 url 参数，decode 不可对 null 调用
+            return url;
+        }
+        try {
+            return URLDecoder.decode(encoded, "UTF-8");
+        } catch (Exception e) {
+            LogUtil.e(e);
+            return url;
         }
     }
 }

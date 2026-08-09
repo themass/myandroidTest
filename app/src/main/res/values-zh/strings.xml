@@ -74,7 +74,8 @@
     <string name="video_playback_failed">播放失败</string>
     <string name="video_playback_failed_retry">播放失败，可点击重试</string>
     <string name="video_playback_retry_action">重试</string>
-    <string name="video_playback_retry_other_engine">已切换解码内核并重试一次</string>
+    <!-- %1$s / %2$s：失败的内核名、临时切换到的内核名（见 PlaybackEngineHelper.engineLabel） -->
+    <string name="video_playback_retry_other_engine">「%1$s」无法播放，已临时改用「%2$s」自动重试（未改设置里的内核）</string>
     <!--登录，注册-->
     <string name="close_over">再按一次退出程序!!</string>
     <string name="login">登录</string>
@@ -115,6 +116,14 @@
     <string name="playback_engine_ijk_ffmpeg">IJK + FFmpeg（ex_so 扩展）</string>
     <string name="playback_engine_ali">阿里 AliPlayer</string>
     <string name="playback_engine_system">系统 MediaPlayer</string>
+    <string name="playback_engine_vlc">LibVLC（VideoLAN）</string>
+    <string name="playback_engine_badge_vlc">LibVLC</string>
+    <string name="playback_engine_toast_fmt">播放内核：%1$s</string>
+    <string name="player_more_menu">更多选项</string>
+    <string name="player_more_speed_title">播放速度</string>
+    <string name="player_more_decoder_settings">解码与内核设置</string>
+    <string name="player_speed_applied">已设为 %1$s</string>
+    <string name="player_gesture_hint">横向滑动可快进/快退；左侧上下调亮度，右侧调音量；双击可暂停。</string>
 
     <string name="cast_need_http_url">投屏仅支持 http/https 网络地址</string>
     <string name="cast_url_not_ready">视频地址未就绪，请稍后再试</string>
@@ -137,6 +146,31 @@
     <string name="sound_prev">上一首</string>
     <string name="sound_next">下一首</string>
     <string name="sound_play_pause">播放或暂停</string>
+    <string name="sound_open_player_detail">打开全屏播放页</string>
+    <string name="sound_item_overflow">更多</string>
+    <string name="sound_play_mode_cycle">播放模式</string>
+    <string name="sound_play_mode_list">顺序播放</string>
+    <string name="sound_play_mode_all">列表循环</string>
+    <string name="sound_play_mode_one">单曲循环</string>
+    <string name="sound_play_mode_shuffle">随机播放</string>
+    <string name="sound_play_mode_toast">播放模式：%s</string>
+    <string name="sound_detail_title">正在播放</string>
+    <string name="sound_detail_back">返回</string>
+    <string name="sound_detail_back_symbol">←</string>
+    <string name="sound_detail_art_desc">封面</string>
+    <string name="music_lyrics_translation_hint">接口未提供逐字歌词。点击右侧浮条「译」可拉取与视频页相同的实时翻译字幕（需在 VideoTranslationInstaller 中配置翻译提供方）。</string>
+    <string name="music_ui_use_auxio_title">音乐列表：Auxio 风格界面</string>
+    <string name="music_ui_use_auxio_hint">深色 Material 观感，视觉参考开源 Auxio（GPL），本应用未嵌入其源码。开启后请重新进入音乐频道。</string>
+    <string name="music_ui_auxio_banner">风格参考 Auxio · 非嵌入其工程代码</string>
+    <string name="music_ui_auxio_enabled_toast">已开启 Auxio 风格，请重新进入音乐列表</string>
+    <string name="music_ui_auxio_disabled_toast">已恢复经典音乐列表界面，请重新进入</string>
+    <string name="volcano_asr_setting_title">火山流式语音识别（在线字幕）</string>
+    <string name="volcano_asr_app_key_hint">App Key / AppId</string>
+    <string name="volcano_asr_access_key_hint">Access Token</string>
+    <string name="volcano_asr_resource_id_hint">Resource-Id（仅 v3，如 volc.bigasr.sauc.duration）</string>
+    <string name="volcano_asr_cluster_hint">Cluster（仅 v2，如 volcengine_input_common）</string>
+    <string name="volcano_asr_use_v3">使用 v3 大模型 WebSocket</string>
+    <string name="music_auxio_gpl_open">GPL 界面</string>
     <string name="save_ok">保存成功</string>
     <string name="save_fail">保存失败</string>
     <string name="save_start">开始保存...</string>

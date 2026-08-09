@@ -52,6 +52,8 @@ public class VideoShowActivityj extends AppCompatActivity {
         VideoShowPlaybackStateHelper.schedulePauseIfWasPaused(videoPlayer, savedInstanceState);
 
         videoPlayer.installGoogleCastRouteButton(this);
+        VideoPlaybackUiHelper.maybeShowFirstPlaybackGestureHint(this, videoPlayer);
+
         castSessionController = new GoogleCastSessionController(this, videoPlayer, new CastPlaySource() {
             @Override
             public String getPlayUrl() {
@@ -129,7 +131,7 @@ public class VideoShowActivityj extends AppCompatActivity {
 
     @Override
     protected void onNewIntent(Intent intent) {
-        LogUtil.i(getClass().getSimpleName() + "-onNewIntent");
+        //LogUtil.i(getClass().getSimpleName() + "-onNewIntent");
         super.onNewIntent(intent);
     }
 

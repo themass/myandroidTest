@@ -60,7 +60,7 @@ public static class LoggingListener<T> implements RequestListener<T> {
 
     @Override
     public boolean onResourceReady(T t, Object o, Target<T> target, DataSource dataSource, boolean b) {
-        LogUtil.i(String.format("GLIDE-onResourceReady(%s, %s, %s, %s, %s)", resource, o, target, dataSource.toString(), b));
+//        LogUtil.i(String.format("GLIDE-onResourceReady(%s, %s, %s, %s, %s)", resource, o, target, dataSource.toString(), b));
         return false;
     }
 }

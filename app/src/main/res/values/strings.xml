@@ -76,7 +76,7 @@
     <string name="video_playback_failed">Playback failed</string>
     <string name="video_playback_failed_retry">Playback failed. Tap Retry to try again.</string>
     <string name="video_playback_retry_action">Retry</string>
-    <string name="video_playback_retry_other_engine">Switched decoder and retrying once…</string>
+    <string name="video_playback_retry_other_engine">%1$s failed; temporarily using %2$s and retrying (your setting is unchanged).</string>
     <!--登录，注册-->
     <string name="close_over">One more again!!</string>
     <string name="login">Sign in</string>
@@ -115,6 +115,14 @@
     <string name="playback_engine_ijk_ffmpeg">IJK + FFmpeg (ex_so)</string>
     <string name="playback_engine_ali">AliPlayer (Alibaba)</string>
     <string name="playback_engine_system">System MediaPlayer</string>
+    <string name="playback_engine_vlc">LibVLC (VideoLAN)</string>
+    <string name="playback_engine_badge_vlc">LibVLC</string>
+    <string name="playback_engine_toast_fmt">Playback: %1$s</string>
+    <string name="player_more_menu">More options</string>
+    <string name="player_more_speed_title">Playback speed</string>
+    <string name="player_more_decoder_settings">Decoder settings</string>
+    <string name="player_speed_applied">Speed: %1$s</string>
+    <string name="player_gesture_hint">Swipe horizontally to seek; vertical on the left for brightness, right for volume; double-tap to pause.</string>
 
     <!-- Google Cast -->
     <string name="cast_need_http_url">Cast requires http/https URL</string>
@@ -188,6 +196,31 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="sound_prev">Previous track</string>
     <string name="sound_next">Next track</string>
     <string name="sound_play_pause">Play or pause</string>
+    <string name="sound_open_player_detail">Open full player</string>
+    <string name="sound_item_overflow">More</string>
+    <string name="sound_play_mode_cycle">Play mode</string>
+    <string name="sound_play_mode_list">Sequential</string>
+    <string name="sound_play_mode_all">Repeat playlist</string>
+    <string name="sound_play_mode_one">Repeat one</string>
+    <string name="sound_play_mode_shuffle">Shuffle</string>
+    <string name="sound_play_mode_toast">Play mode: %s</string>
+    <string name="sound_detail_title">Now playing</string>
+    <string name="sound_detail_back">Back</string>
+    <string name="sound_detail_back_symbol">←</string>
+    <string name="sound_detail_art_desc">Cover art</string>
+    <string name="music_lyrics_translation_hint">No synced lyrics from the server. Tap 「译」 on the shortcut bar for real-time translated subtitles (same pipeline as the video page; configure a provider in VideoTranslationInstaller).</string>
+    <string name="music_ui_use_auxio_title">Music list: Auxio-style UI</string>
+    <string name="music_ui_use_auxio_hint">Dark Material look inspired by the open-source app Auxio (GPL). This app does not bundle Auxio code. Re-open the music channel to apply.</string>
+    <string name="music_ui_auxio_banner">Inspired-by layout · not bundled Auxio source</string>
+    <string name="music_ui_auxio_enabled_toast">Auxio-style music UI on. Re-open the music list.</string>
+    <string name="music_ui_auxio_disabled_toast">Classic music UI on. Re-open the music list.</string>
+    <string name="volcano_asr_setting_title">Volcano streaming ASR (live subtitles)</string>
+    <string name="volcano_asr_app_key_hint">App Key / AppId</string>
+    <string name="volcano_asr_access_key_hint">Access Token</string>
+    <string name="volcano_asr_resource_id_hint">Resource-Id (v3 only, e.g. volc.bigasr.sauc.duration)</string>
+    <string name="volcano_asr_cluster_hint">Cluster (v2 only, e.g. volcengine_input_common)</string>
+    <string name="volcano_asr_use_v3">Use v3 bigmodel WebSocket</string>
+    <string name="music_auxio_gpl_open">GPL UI</string>
     <string name="save_ok">save ok</string>
     <string name="save_fail">save fail</string>
     <string name="save_start">save start...</string>

@@ -6,6 +6,7 @@ import com.openai.commonutil.LogUtil;
 import com.openai.commonutil.PreferenceUtils;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.constant.Constants;
+import com.openapi.ks.myapp.video.vlc.VlcPlayerManager;
 import com.shuyu.gsyvideoplayer.cache.CacheFactory;
 import com.shuyu.gsyvideoplayer.cache.ProxyCacheManager;
 import com.shuyu.aliplay.AliPlayerManager;
@@ -19,7 +20,7 @@ import tv.danmaku.ijk.media.exo2.ExoPlayerCacheManager;
 /**
  * GSY 全局播放内核与缓存策略，对齐
  * <a href="https://github.com/CarGuo/GSYVideoPlayer">GSYVideoPlayer</a>：
- * Exo2、IJK（含 ex_so 扩展 FFmpeg）、AliPlayer、系统 MediaPlayer。
+ * Exo2、IJK（含 ex_so 扩展 FFmpeg）、AliPlayer、系统 MediaPlayer、LibVLC。
  */
 public final class PlaybackEngineHelper {
 
@@ -29,6 +30,8 @@ public final class PlaybackEngineHelper {
     public static final int ENGINE_ALI = 2;
     /** 系统 {@link android.media.MediaPlayer}，格式支持最少、依赖最小 */
     public static final int ENGINE_SYSTEM = 3;
+    /** VideoLAN LibVLC（{@code libvlc-all}），解码面广、包体较大 */
+    public static final int ENGINE_VLC = 4;
 
     private static volatile boolean legacyMigrated;
 
@@ -54,14 +57,14 @@ public final class PlaybackEngineHelper {
     public static int getEngine(Context context) {
         migrateLegacyIfNeeded(context);
         int v = PreferenceUtils.getPrefInt(context, Constants.PLAYBACK_ENGINE, ENGINE_EXO);
-        if (v < ENGINE_EXO || v > ENGINE_SYSTEM) {
+        if (v < ENGINE_EXO || v > ENGINE_VLC) {
             return ENGINE_EXO;
         }
         return v;
     }
 
     /**
-     * 播放失败时尝试的另一内核：Exo ↔ IJK；Ali/System 先换 Exo（不写入用户设置，仅本次进程内
+     * 播放失败时尝试的另一内核：Exo ↔ IJK；VLC / Ali / System 先换 Exo（不写入用户设置，仅本次进程内
      * {@link #applyEngineByIndex} 生效）。
      */
     public static int alternateEngineForPlaybackRetry(int currentEngine) {
@@ -70,6 +73,7 @@ public final class PlaybackEngineHelper {
                 return ENGINE_IJK_FFMPEG;
             case ENGINE_IJK_FFMPEG:
                 return ENGINE_EXO;
+            case ENGINE_VLC:
             case ENGINE_ALI:
             case ENGINE_SYSTEM:
             default:
@@ -82,7 +86,7 @@ public final class PlaybackEngineHelper {
      */
     public static void applyEngineByIndex(Context context, int engine) {
         int e = engine;
-        if (e < ENGINE_EXO || e > ENGINE_SYSTEM) {
+        if (e < ENGINE_EXO || e > ENGINE_VLC) {
             e = ENGINE_EXO;
         }
         try {
@@ -97,6 +101,10 @@ public final class PlaybackEngineHelper {
                     break;
                 case ENGINE_SYSTEM:
                     PlayerFactory.setPlayManager(SystemPlayerManager.class);
+                    CacheFactory.setCacheManager(ProxyCacheManager.class);
+                    break;
+                case ENGINE_VLC:
+                    PlayerFactory.setPlayManager(VlcPlayerManager.class);
                     CacheFactory.setCacheManager(ProxyCacheManager.class);
                     break;
                 case ENGINE_EXO:
@@ -118,7 +126,7 @@ public final class PlaybackEngineHelper {
 
     public static void setEngine(Context context, int engine) {
         int e = engine;
-        if (e < ENGINE_EXO || e > ENGINE_SYSTEM) {
+        if (e < ENGINE_EXO || e > ENGINE_VLC) {
             e = ENGINE_EXO;
         }
         PreferenceUtils.setPrefInt(context, Constants.PLAYBACK_ENGINE, e);

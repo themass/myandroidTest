@@ -25,6 +25,8 @@ import com.openapi.ks.myapp.cast.CastPlaySource;
 import com.openapi.ks.myapp.cast.GoogleCastSessionController;
 import com.openapi.ks.myapp.data.VideoUtil;
 import com.openapi.ks.myapp.ui.gsy.DetailGSYVideoPlayer;
+import com.openapi.ks.myapp.translation.realtime.RealtimeSubtitleBindings;
+import com.openapi.ks.myapp.translation.realtime.VideoRealtimeSubtitleSession;
 import com.shuyu.gsyvideoplayer.GSYVideoManager;
 import com.shuyu.gsyvideoplayer.utils.OrientationUtils;
 
@@ -78,6 +80,8 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
         myFavoriteView.setListener(this);
         myFavoriteView.initFavoriteBackGroud(vo.actionUrl);
         myFavoriteView.showVideoLocal();
+        VideoPlaybackUiHelper.maybeShowFirstPlaybackGestureHint(this, videoPlayer);
+
         myFavoriteView.setTranslationSession(new TranslationOverlaySession() {
             @Override
             public ViewGroup getOverlayParent() {
@@ -95,6 +99,14 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
                 return VideoTranslationRegistry.getInstance();
             }
         });
+
+        VideoRealtimeSubtitleSession realtimeSession = RealtimeSubtitleBindings.forGsyPlayer(
+                this,
+                videoPlayer,
+                videoPlayer,
+                () -> VideoUtil.buildPlayUrl(vo),
+                () -> VideoUtil.headersForRecommend(vo));
+        RealtimeSubtitleBindings.attachVideo(myFavoriteView, realtimeSession, videoPlayer);
     }
 
     @Override
@@ -154,6 +166,9 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
 
     @Override
     public void onDestroy() {
+        if (myFavoriteView != null) {
+            myFavoriteView.releaseTranslationOverlay();
+        }
         GSYVideoManager.releaseAllVideos();
         super.onDestroy();
         unbinder.unbind();
@@ -161,7 +176,7 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
 
     @Override
     protected void onNewIntent(Intent intent) {
-        LogUtil.i(getClass().getSimpleName() + "-onNewIntent");
+        //LogUtil.i(getClass().getSimpleName() + "-onNewIntent");
         super.onNewIntent(intent);
     }
 

@@ -5,10 +5,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 视频翻译请求：通常将 {@link #videoUrl} 交给云端 ASR+翻译（或先抽音频再识别）。
+ * 媒体翻译请求：将 {@link #videoUrl} 交给云端 ASR+翻译（或先抽音频再识别）。
+ * 纯音频场景可把流媒体地址写入 {@link #videoUrl}，并在 extras 中附带 {@link #EXTRA_MEDIA_KIND}={@link #MEDIA_KIND_AUDIO}。
  * 具体字段如何用由 {@link VideoTranslationProvider} 决定。
  */
 public final class VideoTranslationRequest {
+
+    /** extras 键：取值 {@link #MEDIA_KIND_AUDIO} 或 {@link #MEDIA_KIND_VIDEO}，便于提供方区分处理。 */
+    public static final String EXTRA_MEDIA_KIND = "mediaKind";
+    public static final String MEDIA_KIND_AUDIO = "audio";
+    public static final String MEDIA_KIND_VIDEO = "video";
 
     private final String videoUrl;
     private final Map<String, String> httpHeaders;

@@ -25,6 +25,9 @@
             android:layout_centerVertical="true"
             android:layout_toStartOf="@+id/ll_play_status"
             android:layout_marginEnd="12dp"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:contentDescription="@string/sound_open_player_detail"
             android:ellipsize="marquee"
             android:focusable="true"
             android:focusableInTouchMode="true"
@@ -44,6 +47,16 @@
             android:layout_centerVertical="true"
             android:gravity="center_vertical"
             android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/iv_play_mode"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginEnd="2dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/sound_play_mode_cycle"
+                android:padding="8dp"
+                android:src="@drawable/ic_play_mode_order" />
 
             <ImageView
                 android:id="@+id/iv_pre"

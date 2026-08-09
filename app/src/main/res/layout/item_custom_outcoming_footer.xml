@@ -1,85 +1,66 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- 用户消息下操作条：整体靠右，顺序贴近微信「时间在最外侧」 -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/ll_sound"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:gravity="end|center_vertical"
-    android:orientation="horizontal"
-    android:paddingTop="@dimen/chat_msg_footer_row_padding_top"
-    android:paddingBottom="@dimen/chat_msg_footer_row_padding_bottom">
-
-    <LinearLayout
-        android:id="@+id/ll_voice"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="@dimen/chat_msg_footer_section_gap"
-        android:layout_marginRight="@dimen/chat_msg_footer_section_gap"
-        android:background="@drawable/bg_chat_msg_footer_voice_pill"
-        android:clickable="true"
-        android:focusable="true"
-        android:foreground="?android:attr/selectableItemBackground"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingStart="10dp"
-        android:paddingLeft="10dp"
-        android:paddingTop="5dp"
-        android:paddingEnd="10dp"
-        android:paddingRight="10dp"
-        android:paddingBottom="5dp"
-        android:visibility="gone">
-
-        <ImageView
-            android:id="@+id/ib_audio"
-            android:layout_width="@dimen/chat_msg_footer_voice_icon"
-            android:layout_height="@dimen/chat_msg_footer_voice_icon"
-            android:background="@drawable/audio_animation_list_right_3"
-            android:contentDescription="@string/chat_msg_footer_a11y_voice" />
-
-        <TextView
-            android:id="@+id/duration"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="6dp"
-            android:layout_marginLeft="6dp"
-            android:textColor="@color/chat_msg_footer_voice_text"
-            android:textSize="@dimen/chat_msg_footer_voice_text" />
-    </LinearLayout>
-
-    <ImageView
-        android:id="@+id/iv_del"
-        android:layout_width="@dimen/chat_msg_footer_icon_hit"
-        android:layout_height="@dimen/chat_msg_footer_icon_hit"
-        android:layout_marginEnd="@dimen/chat_msg_footer_gap"
-        android:layout_marginRight="@dimen/chat_msg_footer_gap"
-        android:background="?android:attr/selectableItemBackgroundBorderless"
-        android:clickable="true"
-        android:contentDescription="@string/chat_msg_footer_a11y_delete"
-        android:focusable="true"
-        android:padding="@dimen/chat_msg_footer_icon_inset"
-        android:scaleType="fitCenter"
-        android:src="@drawable/ic_chat_msg_action_delete"
-        android:tint="@color/chat_msg_footer_icon_muted" />
-
-    <ImageView
-        android:id="@+id/iv_copy"
-        android:layout_width="@dimen/chat_msg_footer_icon_hit"
-        android:layout_height="@dimen/chat_msg_footer_icon_hit"
-        android:layout_marginEnd="@dimen/chat_msg_footer_gap"
-        android:layout_marginRight="@dimen/chat_msg_footer_gap"
-        android:background="?android:attr/selectableItemBackgroundBorderless"
-        android:clickable="true"
-        android:contentDescription="@string/chat_msg_footer_a11y_copy"
-        android:focusable="true"
-        android:padding="@dimen/chat_msg_footer_icon_inset"
-        android:scaleType="fitCenter"
-        android:src="@drawable/ic_chat_msg_action_copy"
-        android:tint="@color/chat_msg_footer_icon" />
-
+    android:layout_marginTop="@dimen/message_time_padding_top">
     <TextView
         android:id="@+id/messageTime"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="@color/chat_msg_footer_time"
-        android:textSize="@dimen/chat_msg_footer_time_size" />
-</LinearLayout>
+        android:layout_centerVertical="true"
+        android:layout_alignParentEnd="true"/>
+    <ImageView
+        android:id="@+id/iv_copy"
+        android:layout_width="@dimen/message_footer_image_size"
+        android:layout_height="@dimen/message_footer_image_size"
+        android:padding="@dimen/margin_3"
+        android:layout_marginEnd="@dimen/message_footer_padding_left"
+        android:layout_toStartOf="@+id/messageTime"
+        android:background="?android:attr/selectableItemBackground"
+        android:clickable="true"
+        android:layout_centerVertical="true"
+        android:scaleType="fitCenter"
+        android:src="@drawable/src_assets_images_copy" />
+    <ImageView
+        android:id="@+id/iv_del"
+        android:layout_width="@dimen/message_footer_image_size"
+        android:layout_height="@dimen/message_footer_image_size"
+        android:padding="@dimen/margin_5"
+        android:layout_centerVertical="true"
+        android:layout_marginEnd="@dimen/message_footer_padding_left"
+        android:layout_toStartOf="@+id/iv_copy"
+        android:background="?android:attr/selectableItemBackground"
+        android:clickable="true"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_chat_msg_action_delete" />
+    <RelativeLayout
+        android:id="@+id/ll_voice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        android:padding="@dimen/message_time_padding_top"
+        android:layout_centerVertical="true"
+        android:background="?android:attr/selectableItemBackground"
+        android:layout_toStartOf="@+id/iv_del"
+        android:gravity="center_vertical"
+        android:visibility="gone"
+        >
+        <ImageView
+            android:id="@+id/ib_audio"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_centerVertical="true"
+            android:background="@drawable/audio_animation_list_right_3"
+            />
+        <TextView
+            android:id="@+id/duration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/black"
+            android:textSize="15sp"
+            android:layout_centerVertical="true"
+            android:layout_toEndOf="@+id/ib_audio"/>
+
+    </RelativeLayout>
+</RelativeLayout>

@@ -23,14 +23,18 @@ public class SoundChannleBodyFragment extends RecommendFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Bundle b = getArguments();
-        // 兼容性处理：API 33+ 使用新方法，否则使用旧方法
-        HashMap<String, String> configParam;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            configParam = b.getSerializable(Constants.CONFIG_PARAM, HashMap.class);
-        } else {
-            configParam = (HashMap<String, String>) b.getSerializable(Constants.CONFIG_PARAM);
+        HashMap<String, String> configParam = null;
+        if (b != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                configParam = b.getSerializable(Constants.CONFIG_PARAM, HashMap.class);
+            } else {
+                configParam = (HashMap<String, String>) b.getSerializable(Constants.CONFIG_PARAM);
+            }
         }
-        channel = configParam.get(Constants.CHANNEL);
+        if (configParam != null) {
+            String c = configParam.get(Constants.CHANNEL);
+            channel = c != null ? c : "";
+        }
     }
 
     @Override

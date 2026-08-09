@@ -144,6 +144,46 @@
                         android:layout_height="wrap_content"
                         android:padding="@dimen/margin_10">
 
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentStart="true"
+                            android:layout_centerVertical="true"
+                            android:layout_toStartOf="@+id/sw_music_ui_auxio"
+                            android:layout_marginEnd="8dp"
+                            android:orientation="vertical">
+
+                            <TextView
+                                style="@style/tv_setting"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/music_ui_use_auxio_title" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="@string/music_ui_use_auxio_hint"
+                                android:textColor="@color/hint"
+                                android:textSize="11sp" />
+                        </LinearLayout>
+
+                        <Switch
+                            android:id="@+id/sw_music_ui_auxio"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:layout_alignParentRight="true"
+                            android:layout_centerVertical="true" />
+                    </RelativeLayout>
+
+                    <ImageView style="@style/divider_login" />
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="@dimen/margin_10">
+
                         <TextView
                             style="@style/tv_setting"
                             android:layout_width="wrap_content"
@@ -301,6 +341,71 @@
                             android:layout_alignParentRight="true"
                             android:layout_centerVertical="true" />
                     </RelativeLayout>
+                    <ImageView style="@style/divider_login" />
+                    <TextView
+                        style="@style/tv_setting"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="@dimen/margin_10"
+                        android:text="@string/volcano_asr_setting_title" />
+
+                    <EditText
+                        android:id="@+id/et_volcano_asr_app_key"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/transparent"
+                        android:hint="@string/volcano_asr_app_key_hint"
+                        android:inputType="text"
+                        android:padding="@dimen/margin_10" />
+
+                    <EditText
+                        android:id="@+id/et_volcano_asr_access_key"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/transparent"
+                        android:hint="@string/volcano_asr_access_key_hint"
+                        android:inputType="textPassword"
+                        android:padding="@dimen/margin_10" />
+
+                    <EditText
+                        android:id="@+id/et_volcano_asr_resource_id"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/transparent"
+                        android:hint="@string/volcano_asr_resource_id_hint"
+                        android:inputType="text"
+                        android:padding="@dimen/margin_10" />
+
+                    <EditText
+                        android:id="@+id/et_volcano_asr_cluster"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/transparent"
+                        android:hint="@string/volcano_asr_cluster_hint"
+                        android:inputType="text"
+                        android:padding="@dimen/margin_10" />
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="@dimen/margin_10">
+
+                        <TextView
+                            style="@style/tv_setting"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:text="@string/volcano_asr_use_v3" />
+
+                        <Switch
+                            android:id="@+id/sw_volcano_asr_v3"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:layout_alignParentRight="true"
+                            android:layout_centerVertical="true" />
+                    </RelativeLayout>
+
                     <ImageView style="@style/divider_login" />
                     <EditText
                         android:id="@+id/et_setting_content"

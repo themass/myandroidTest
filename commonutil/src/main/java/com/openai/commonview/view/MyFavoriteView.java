@@ -6,20 +6,19 @@ import android.net.Uri;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
 
+import androidx.annotation.Nullable;
+
 import com.openai.commonevent.FavoriteVo;
+import com.openai.commonview.translation.RealtimeSubtitleSession;
+import com.openai.commonview.translation.StreamingSubtitleOverlayPresenter;
+import com.openai.commonview.translation.TranslationOverlayPresenter;
 import com.openai.commonview.translation.TranslationOverlaySession;
-import com.openai.commonview.translation.VideoTranslationCallback;
-import com.openai.commonview.translation.VideoTranslationRegistry;
-import com.openai.commonview.translation.VideoTranslationRequest;
-import com.openai.commonview.translation.VideoTranslationResult;
-import com.openai.commonview.view.widget.DraggableTranslationOverlay;
 import com.openai.commonutil.PackageUtils;
 import com.openai.commonutil.R;
 import com.openai.commonutil.SystemUtils;
@@ -43,10 +42,20 @@ public class MyFavoriteView extends LinearLayout {
     TextView tvTranslate;
     TextView speed;
     private OnFavoriteItemClick onFavoriteItemClick;
-    private TranslationOverlaySession translationSession;
-    private DraggableTranslationOverlay translationOverlay;
-    private boolean translationVisible;
-    private int translateEpoch;
+    private TranslationOverlayPresenter translationPresenter;
+    private StreamingSubtitleOverlayPresenter streamingPresenter;
+    private RealtimeSubtitleSession realtimeSubtitleSession;
+    @Nullable
+    private StreamingPositionProvider streamingPositionProvider;
+
+    /** 点「译」开流式字幕前读取当前播放进度。 */
+    public interface StreamingPositionProvider {
+        long getPlaybackPositionMs();
+    }
+
+    public void setStreamingPositionProvider(@Nullable StreamingPositionProvider provider) {
+        this.streamingPositionProvider = provider;
+    }
 
     public MyFavoriteView(Context context) {
         super(context);
@@ -71,7 +80,39 @@ public class MyFavoriteView extends LinearLayout {
      * 播放页设置后，「译」按钮可显示翻译字幕浮层并走 {@link VideoTranslationRegistry}。
      */
     public void setTranslationSession(TranslationOverlaySession session) {
-        this.translationSession = session;
+        if (translationPresenter == null) {
+            translationPresenter = new TranslationOverlayPresenter();
+        }
+        translationPresenter.setSession(session);
+    }
+
+    /**
+     * 在线流式字幕（火山 ASR）。已配置且 {@link #isConfigured()} 时，「译」优先走此路径。
+     */
+    public void setRealtimeSubtitleSession(RealtimeSubtitleSession session) {
+        this.realtimeSubtitleSession = session;
+        if (streamingPresenter == null) {
+            streamingPresenter = new StreamingSubtitleOverlayPresenter();
+        }
+        streamingPresenter.setSession(session);
+    }
+
+    /** 点「译」前更新当前播放进度（毫秒）。 */
+    public void setStreamingPlaybackPositionMs(long positionMs) {
+        if (streamingPresenter == null) {
+            streamingPresenter = new StreamingSubtitleOverlayPresenter();
+        }
+        streamingPresenter.setPlaybackPositionMs(positionMs);
+    }
+
+    /** 页面销毁时收起字幕浮层，避免持有旧 View 树。 */
+    public void releaseTranslationOverlay() {
+        if (translationPresenter != null) {
+            translationPresenter.detach();
+        }
+        if (streamingPresenter != null) {
+            streamingPresenter.detach();
+        }
     }
 
     private void setupView() {
@@ -102,79 +143,29 @@ public class MyFavoriteView extends LinearLayout {
     }
 
     private void translateClick() {
-        if (translationSession == null) {
+        if (realtimeSubtitleSession != null) {
+            if (!realtimeSubtitleSession.isConfigured()) {
+                ToastUtil.showShort(R.string.volcano_asr_not_configured);
+                return;
+            }
+            if (streamingPresenter == null) {
+                streamingPresenter = new StreamingSubtitleOverlayPresenter();
+            }
+            streamingPresenter.setSession(realtimeSubtitleSession);
+            if (streamingPositionProvider != null) {
+                streamingPresenter.setPlaybackPositionMs(streamingPositionProvider.getPlaybackPositionMs());
+            }
+            streamingPresenter.toggle();
+            return;
+        }
+        if (translationPresenter == null) {
+            translationPresenter = new TranslationOverlayPresenter();
+        }
+        if (translationPresenter.getSession() == null) {
             ToastUtil.showShort(R.string.favorite_translation_no_session);
             return;
         }
-        ViewGroup parent = translationSession.getOverlayParent();
-        if (parent == null) {
-            ToastUtil.showShort(R.string.favorite_translation_no_session);
-            return;
-        }
-        if (translationVisible) {
-            translateEpoch++;
-            translationVisible = false;
-            if (translationOverlay != null) {
-                translationOverlay.detachFromParent();
-            }
-            return;
-        }
-        translationVisible = true;
-        final int epoch = ++translateEpoch;
-        if (translationOverlay == null) {
-            translationOverlay = new DraggableTranslationOverlay(getContext());
-        }
-        translationOverlay.attachTo(parent);
-        translationOverlay.setLoading(true);
-        translationOverlay.setBodyText("");
-
-        VideoTranslationRequest.Builder builder = new VideoTranslationRequest.Builder();
-        try {
-            translationSession.fillRequest(builder);
-        } catch (Throwable t) {
-            if (epoch != translateEpoch) {
-                return;
-            }
-            translationOverlay.setLoading(false);
-            translationOverlay.setBodyText(t.getMessage() != null ? t.getMessage() : "request build error");
-            return;
-        }
-        final VideoTranslationRequest request;
-        try {
-            request = builder.build();
-        } catch (IllegalStateException e) {
-            if (epoch != translateEpoch) {
-                return;
-            }
-            translationOverlay.setLoading(false);
-            translationOverlay.setBodyText(e.getMessage());
-            return;
-        }
-
-        VideoTranslationRegistry reg = translationSession.registry();
-        if (reg == null) {
-            reg = VideoTranslationRegistry.getInstance();
-        }
-        reg.translate(request, new VideoTranslationCallback() {
-            @Override
-            public void onSuccess(VideoTranslationResult result) {
-                if (epoch != translateEpoch || !translationVisible || translationOverlay == null) {
-                    return;
-                }
-                translationOverlay.setLoading(false);
-                String t = result.getTranslatedText();
-                translationOverlay.setBodyText(t != null ? t : "");
-            }
-
-            @Override
-            public void onError(String message) {
-                if (epoch != translateEpoch || !translationVisible || translationOverlay == null) {
-                    return;
-                }
-                translationOverlay.setLoading(false);
-                translationOverlay.setBodyText(message != null ? message : "");
-            }
-        });
+        translationPresenter.toggle();
     }
 
     public void favoriteClick(View view) {

@@ -1,6 +1,8 @@
 package com.openai.commonview.view.widget;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -9,18 +11,41 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.openai.commonutil.R;
 
 /**
- * 盖在视频上的中文字幕条；按住顶部标题区域可拖动整体位置。
+ * 盖在视频或音乐播放区域上的字幕条；按住顶部标题区域可拖动整体位置。
+ * 由 {@link com.openai.commonview.translation.TranslationOverlayPresenter} 或收藏条触发显示。
  */
 public class DraggableTranslationOverlay extends FrameLayout {
 
     private final TextView tvBody;
     private final ProgressBar progress;
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private final Runnable typewriterTick = new Runnable() {
+        @Override
+        public void run() {
+            if (typewriterFullText == null) {
+                return;
+            }
+            if (typewriterIndex > typewriterFullText.length()) {
+                return;
+            }
+            tvBody.setText(typewriterFullText.subSequence(0, typewriterIndex));
+            typewriterIndex++;
+            if (typewriterIndex <= typewriterFullText.length()) {
+                char ch = typewriterFullText.charAt(typewriterIndex - 1);
+                int delay = isCjk(ch) ? 32 : 20;
+                mainHandler.postDelayed(this, delay);
+            }
+        }
+    };
+    private CharSequence typewriterFullText;
+    private int typewriterIndex;
     private float lastRawX;
     private float lastRawY;
     private float startTransX;
@@ -98,7 +123,34 @@ public class DraggableTranslationOverlay extends FrameLayout {
     }
 
     public void setBodyText(CharSequence text) {
+        cancelTypewriter();
         tvBody.setText(text);
+    }
+
+    /**
+     * 逐字显示译文（字母 / 汉字逐个出现），便于用户感知翻译已返回。
+     */
+    public void setBodyTextTypewriter(CharSequence text) {
+        cancelTypewriter();
+        if (text == null || text.length() == 0) {
+            tvBody.setText("");
+            return;
+        }
+        typewriterFullText = text;
+        typewriterIndex = 0;
+        mainHandler.post(typewriterTick);
+    }
+
+    public void cancelTypewriter() {
+        mainHandler.removeCallbacks(typewriterTick);
+        typewriterFullText = null;
+        typewriterIndex = 0;
+    }
+
+    private static boolean isCjk(char ch) {
+        return (ch >= 0x4E00 && ch <= 0x9FFF)
+                || (ch >= 0x3400 && ch <= 0x4DBF)
+                || (ch >= 0x3000 && ch <= 0x303F);
     }
 
     public void attachTo(ViewGroup parent) {
@@ -113,6 +165,15 @@ public class DraggableTranslationOverlay extends FrameLayout {
             lp.leftMargin = dp(8);
             lp.rightMargin = dp(8);
             parent.addView(this, lp);
+        } else if (parent instanceof RelativeLayout) {
+            RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            lp.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+            lp.addRule(RelativeLayout.CENTER_HORIZONTAL);
+            lp.topMargin = dp(48);
+            lp.leftMargin = dp(8);
+            lp.rightMargin = dp(8);
+            parent.addView(this, lp);
         } else {
             ViewGroup.MarginLayoutParams lp = new ViewGroup.MarginLayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -121,10 +182,12 @@ public class DraggableTranslationOverlay extends FrameLayout {
             lp.rightMargin = dp(8);
             parent.addView(this, lp);
         }
+        parent.bringChildToFront(this);
         bringToFront();
     }
 
     public void detachFromParent() {
+        cancelTypewriter();
         if (getParent() != null) {
             ((ViewGroup) getParent()).removeView(this);
         }

@@ -57,5 +57,6 @@
     <string name="favorite_translate">译</string>
     <string name="favorite_translation_title">翻译字幕 · 按住标题拖动</string>
     <string name="favorite_translation_no_session">当前页面未接入翻译</string>
+    <string name="volcano_asr_not_configured">请先在设置中填写火山 ASR 密钥</string>
 
 </resources>

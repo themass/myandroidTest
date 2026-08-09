@@ -14,8 +14,8 @@ android {
         applicationId = "com.openapi.ks.chat"
         minSdk = rootProject.ext.minSdkVersion
         targetSdk = rootProject.ext.targetSdkVersion
-        versionCode = 1001000060
-        versionName = "1.1.0.60"
+        versionCode = 1001000063
+        versionName = "1.1.0.63"
         multiDexEnabled = true
         flavorDimensions = ["versionCode"]
     }
@@ -134,6 +134,7 @@ dependencies {
     implementation project(":ads")
     implementation project(":messagekit")
     implementation project(':livekitvoice')
+    implementation project(':auxio_music_ui')
     
     // 本地库文件
     implementation fileTree(dir: 'libs', include: ['*.aar', '*.jar'])
@@ -161,8 +162,12 @@ dependencies {
     annotationProcessor 'com.jakewharton:butterknife-compiler:10.2.3'
     implementation 'com.jakewharton:butterknife:10.2.3'
 
+    // LibVLC（LGPL）：与 GSY 内核切换中的「LibVLC」选项对应
+    implementation 'org.videolan.android:libvlc-all:3.6.5'
+
     // 视频播放（GSY 已含 Exo；Media3 供其他模块或后续扩展）
     implementation 'androidx.media3:media3-exoplayer:1.10.0'
+    implementation 'androidx.media3:media3-exoplayer-hls:1.10.0'
     implementation 'androidx.media3:media3-datasource:1.10.0'
     implementation 'androidx.media3:media3-ui:1.10.0'
 

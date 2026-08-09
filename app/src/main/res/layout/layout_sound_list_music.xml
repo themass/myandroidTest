@@ -4,6 +4,20 @@
     android:layout_height="match_parent"
     android:background="@drawable/bg_music_list_page">
 
+    <TextView
+        android:id="@+id/tv_open_auxio_gpl_module"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:padding="8dp"
+        android:text="@string/music_auxio_gpl_open"
+        android:textColor="#CCFFFFFF"
+        android:textSize="11sp" />
+
     <com.openai.commonview.view.MyPullView
         android:id="@+id/my_pullview"
         android:layout_width="match_parent"

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="auxio_bg">#FF101418</color>
+    <color name="auxio_surface">#FF181C22</color>
+    <color name="auxio_primary">#FF7C9EFF</color>
+</resources>

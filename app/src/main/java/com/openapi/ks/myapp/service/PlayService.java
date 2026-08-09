@@ -8,13 +8,17 @@ import android.content.IntentFilter;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.media.MediaPlayer.OnPreparedListener;
+import android.media.PlaybackParams;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;import android.os.IBinder;
 
 
 import com.openai.commonutil.LogUtil;
+import com.openai.commonutil.PreferenceUtils;
 import com.openapi.ks.myapp.bean.vo.SoundItemsVo;
+import com.openapi.ks.myapp.constant.Constants;
 
 import java.util.List;
 
@@ -27,6 +31,9 @@ public class PlayService extends Service {
     //服务要发送的一些Action
     public static final String UPDATE_ACTION = "com.ok123find.top.action.UPDATE_ACTION";    //更新动作
     public static final String CTL_ACTION = "com.ok123find.top.action.CTL_ACTION";        //控制动作
+    /** 播放模式变更（单曲 / 列表循环 / 顺序 / 随机），与 {@link #EXTRA_PLAY_MODE} 搭配 */
+    public static final String ACTION_PLAY_MODE_CHANGED = "com.ok123find.top.action.PLAY_MODE_CHANGED";
+    public static final String EXTRA_PLAY_MODE = "playMode";
     public static final String MUSIC_CURRENT = "com.ok123find.top.action.MUSIC_CURRENT";    //当前音乐播放时间更新动作
     public static final String MUSIC_DURATION = "com.ok123find.top.action.MUSIC_DURATION";//新音乐长度更新动作
     public static final String MUSIC_PREPAREING = "com.ok123find.top.action.MUSIC_PREPAREING";//正在准备
@@ -42,9 +49,12 @@ public class PlayService extends Service {
     private List<SoundItemsVo> mp3Infos;    //存放Mp3Info对象的集合
     private int status = 3;            //播放状态，默认为顺序播放
     private MyReceiver myReceiver;    //自定义广播接收器
+    /** 与 GPL 模块等共用偏好时，同步内存中的 {@link #status}（避免仅写 prefs 而服务未重启） */
+    private BroadcastReceiver playModeBroadcastBridge;
     private int currentTime;        //当前播放进度
     private int duration;            //播放长度
     private boolean prepared = false;
+    private float playbackSpeed = 1f;
     /**
      * handler用来接收消息，来发送广播更新播放时间
      */
@@ -71,6 +81,7 @@ public class PlayService extends Service {
     public void onCreate() {
         super.onCreate();
         LogUtil.i("service created");
+        status = clampPlayMode(PreferenceUtils.getPrefInt(getApplicationContext(), Constants.MUSIC_PLAY_MODE_PREF, 3));
         mediaPlayer = new MediaPlayer();
         /**
          * 设置音乐播放完成时的监听器
@@ -79,6 +90,9 @@ public class PlayService extends Service {
 
             @Override
             public void onCompletion(MediaPlayer mp) {
+                if (mp3Infos == null || mp3Infos.isEmpty()) {
+                    return;
+                }
                 if (status == 1) { // 单曲循环
                     mediaPlayer.start();
                 } else if (status == 2) { // 全部循环
@@ -110,7 +124,7 @@ public class PlayService extends Service {
                         sendBroadcast(sendIntent);
                     }
                 } else if (status == 4) {    //随机播放
-                    current = getRandomIndex(mp3Infos.size() - 1);
+                    current = pickRandomDistinct(current, mp3Infos.size());
                     System.out.println("currentIndex ->" + current);
                     Intent sendIntent = new Intent(UPDATE_ACTION);
                     sendIntent.putExtra(CURRENT, current);
@@ -126,17 +140,101 @@ public class PlayService extends Service {
         IntentFilter filter = new IntentFilter();
         filter.addAction(CTL_ACTION);
         registerReceiver(myReceiver, filter);
+
+        playModeBroadcastBridge = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if (!ACTION_PLAY_MODE_CHANGED.equals(intent.getAction())) {
+                    return;
+                }
+                int m = intent.getIntExtra(EXTRA_PLAY_MODE, -1);
+                if (m >= 1 && m <= 4) {
+                    status = m;
+                }
+            }
+        };
+        IntentFilter modeFilter = new IntentFilter(ACTION_PLAY_MODE_CHANGED);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(playModeBroadcastBridge, modeFilter, Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            registerReceiver(playModeBroadcastBridge, modeFilter);
+        }
+    }
+
+    private static int clampPlayMode(int mode) {
+        if (mode < 1 || mode > 4) {
+            return 3;
+        }
+        return mode;
     }
 
     /**
-     * 获取随机位置
-     *
-     * @param end
-     * @return
+     * 随机下一首，尽量避免与当前首相同（列表大于 1 时）。
      */
-    protected int getRandomIndex(int end) {
-        int index = (int) (Math.random() * end);
-        return index;
+    private static int pickRandomDistinct(int cur, int size) {
+        if (size <= 1) {
+            return 0;
+        }
+        int r;
+        int guard = 0;
+        do {
+            r = (int) (Math.random() * size);
+            guard++;
+        } while (r == cur && guard < 64);
+        return r;
+    }
+
+    public int getPlayMode() {
+        return status;
+    }
+
+    /**
+     * 1 单曲循环、2 列表循环、3 顺序（列表结束停）、4 随机。
+     */
+    public void setPlayMode(int mode) {
+        status = clampPlayMode(mode);
+        PreferenceUtils.setPrefInt(getApplicationContext(), Constants.MUSIC_PLAY_MODE_PREF, status);
+        Intent i = new Intent(ACTION_PLAY_MODE_CHANGED);
+        i.putExtra(EXTRA_PLAY_MODE, status);
+        sendBroadcast(i);
+    }
+
+    /**
+     * 用户按「下一首」：顺序 / 列表循环 / 随机 下标计算。
+     */
+    public int computeNextIndex(int cur, int count) {
+        if (count <= 0) {
+            return 0;
+        }
+        if (status == 4) {
+            return pickRandomDistinct(cur, count);
+        }
+        if (cur + 1 < count) {
+            return cur + 1;
+        }
+        if (status == 2) {
+            return 0;
+        }
+        return count - 1;
+    }
+
+    /**
+     * 用户按「上一首」。
+     */
+    public int computePreviousIndex(int cur, int count) {
+        if (count <= 0) {
+            return 0;
+        }
+        if (status == 4) {
+            return pickRandomDistinct(cur, count);
+        }
+        if (cur - 1 >= 0) {
+            return cur - 1;
+        }
+        if (status == 2) {
+            return count - 1;
+        }
+        return 0;
     }
 
     @Override
@@ -199,6 +297,57 @@ public class PlayService extends Service {
 
     public void setData(List<SoundItemsVo> mp3Infos) {
         this.mp3Infos = mp3Infos;
+    }
+
+    public List<SoundItemsVo> getPlaylist() {
+        return mp3Infos;
+    }
+
+    public int getCurrentSongIndex() {
+        return current;
+    }
+
+    public SoundItemsVo getCurrentTrack() {
+        if (mp3Infos == null || mp3Infos.isEmpty() || current < 0 || current >= mp3Infos.size()) {
+            return null;
+        }
+        return mp3Infos.get(current);
+    }
+
+    /**
+     * 倍速（约 0.25～3），依赖 API 23+ {@link PlaybackParams}；低版本仅记录数值。
+     */
+    public void setPlaybackSpeed(float speed) {
+        if (speed < 0.25f) {
+            speed = 0.25f;
+        }
+        if (speed > 3f) {
+            speed = 3f;
+        }
+        playbackSpeed = speed;
+        applyPlaybackSpeedToPlayer();
+    }
+
+    public float getPlaybackSpeed() {
+        return playbackSpeed;
+    }
+
+    private void applyPlaybackSpeedToPlayer() {
+        if (mediaPlayer == null || !prepared) {
+            return;
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            try {
+                PlaybackParams pp = mediaPlayer.getPlaybackParams();
+                if (pp == null) {
+                    pp = new PlaybackParams();
+                }
+                pp.setSpeed(playbackSpeed);
+                mediaPlayer.setPlaybackParams(pp);
+            } catch (Throwable t) {
+                LogUtil.e(t);
+            }
+        }
     }
 
     /**
@@ -282,6 +431,10 @@ public class PlayService extends Service {
         if (myReceiver != null) {
             unregisterReceiver(myReceiver);
         }
+        if (playModeBroadcastBridge != null) {
+            unregisterReceiver(playModeBroadcastBridge);
+            playModeBroadcastBridge = null;
+        }
         if (mediaPlayer != null) {
             mediaPlayer.stop();
             mediaPlayer.reset();
@@ -317,6 +470,7 @@ public class PlayService extends Service {
             if (currentTime > 0) { // 如果音乐不是从头播放
                 mediaPlayer.seekTo(currentTime);
             }
+            applyPlaybackSpeedToPlayer();
             Intent intent1 = new Intent();
             intent1.setAction(MUSIC_PREPARED);
             sendBroadcast(intent1);
@@ -333,19 +487,8 @@ public class PlayService extends Service {
         @Override
         public void onReceive(Context context, Intent intent) {
             int control = intent.getIntExtra("control", -1);
-            switch (control) {
-                case 1:
-                    status = 1; // 将播放状态置为1表示：单曲循环
-                    break;
-                case 2:
-                    status = 2;    //将播放状态置为2表示：全部循环
-                    break;
-                case 3:
-                    status = 3;    //将播放状态置为3表示：顺序播放
-                    break;
-                case 4:
-                    status = 4;    //将播放状态置为4表示：随机播放
-                    break;
+            if (control >= 1 && control <= 4) {
+                setPlayMode(control);
             }
         }
     }

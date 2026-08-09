@@ -8,8 +8,10 @@ import android.media.MediaPlayer;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -29,7 +31,7 @@ import com.openapi.ks.myapp.data.config.ChatItemDelEvent;
 import chat.ui.data.model.Message;
 
 public class MyOutcomingAudioFooterView extends LinearLayout {
-    public LinearLayout llVoice;
+    public RelativeLayout llVoice;
     public Message message;
     public ImageView copy;
     public ImageView del;

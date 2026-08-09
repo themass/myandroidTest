@@ -84,6 +84,25 @@
     <color name="sound_bar_surface">#FF1E2329</color>
     <color name="music_row_bg">#FFF7F8FA</color>
     <color name="music_row_bg_alt">#FFFFFFFF</color>
+    <!-- Auxio 风格音乐列表页（自绘，非 Auxio 资源） -->
+    <color name="music_auxio_background">#FF101418</color>
+    <color name="music_auxio_toolbar_text">#FFE8EAED</color>
+    <color name="music_auxio_toolbar_muted">#FF8B9299</color>
+    <color name="music_auxio_card">#FF181C22</color>
+    <!-- Auxio 式列表行 / 底栏（浅色底栏 + 深色列表区） -->
+    <color name="music_auxio_list_title">#FFE8EAED</color>
+    <color name="music_auxio_list_subtitle">#FF8B9299</color>
+    <color name="music_auxio_list_divider">#FF2A3038</color>
+    <color name="music_auxio_thumb_idle">#FF343B44</color>
+    <color name="music_auxio_thumb_playing_fill">#FF2D3A48</color>
+    <color name="music_auxio_thumb_playing_stroke">#FF5EB8C4</color>
+    <!-- 深色「正在播」方框内频谱条，勿用纯黑否则与 #2D3A48 对比度极低 -->
+    <color name="music_auxio_list_eq_bar">#FFB8E8EF</color>
+    <color name="music_auxio_footer_surface">#FFE4EBF3</color>
+    <color name="music_auxio_footer_text">#FF12151A</color>
+    <color name="music_auxio_footer_muted">#FF5C6670</color>
+    <color name="music_auxio_seek_track">#FFC5CED8</color>
+    <color name="music_auxio_seek_progress">#FF2A6B9A</color>
 
     <!-- 消息气泡下方操作条（参考微信/IM 弱对比 + Kimi/豆包式清爽工具行） -->
     <color name="chat_msg_footer_time">#B3B3B3</color>
