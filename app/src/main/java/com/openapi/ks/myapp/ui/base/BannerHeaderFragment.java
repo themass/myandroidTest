@@ -77,7 +77,7 @@ public class BannerHeaderFragment extends BaseFragment {
         if (needShow()) {
             LogUtil.i("展示banner");
             flBanner.setVisibility(View.VISIBLE);
-            AdsManager.getInstans().showBannerAds(getActivity(), flBanner, ca, AdsContext.AdsFrom.FACEBOOK);
+            AdsManager.getInstans().showBannerAds(getActivity(), flBanner, ca, AdsContext.AdsFrom.ADMOB);
         } else {
             if (flBanner != null)
                 flBanner.setVisibility(View.GONE);

@@ -202,11 +202,6 @@
 -keep class com.k2fsa.sherpa.ncnn.** { *; }
 -keep class com.chatwaifu.lipsync.LipSyncJNI$* { *; }
 
-# Facebook 广告（若项目使用，保留广告核心类）
--keep class com.facebook.ads.** { *; }
--dontwarn com.facebook.**
-
-
 # ==============================================
 # 4. 项目业务类（精准保留，避免业务逻辑崩溃）
 # ==============================================

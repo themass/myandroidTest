@@ -169,7 +169,7 @@ public class LaunchActivity extends LogActivity {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onADDismissed(SplashAdDissmisEvent event) {
-        AdsManager.getInstans().showSplashAds(AdsContext.AdsFrom.FACEBOOK, this, ivAds, skipView);
+        AdsManager.getInstans().showSplashAds(AdsContext.AdsFrom.ADVIEW, this, ivAds, skipView);
     }
     private static final int REQUEST_AD_ID_PERMISSION = 1;
 

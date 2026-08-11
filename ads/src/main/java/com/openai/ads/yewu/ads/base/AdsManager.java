@@ -21,13 +21,8 @@ import com.openai.ads.yewu.ads.adview.SplashAdviewAds;
 import com.openai.ads.yewu.ads.adview.VideoAdviewAds;
 import com.openai.ads.yewu.ads.config.BannerAdsNext;
 import com.openai.ads.yewu.ads.config.LaunchAdsNext;
-import com.openai.ads.yewu.ads.facebook.FacebookAdsManager;
-import com.openai.ads.yewu.ads.facebook.FacebookBannerAds;
-import com.openai.ads.yewu.ads.facebook.FacebookInterstitialAds;
 import com.openai.commonutil.EventBusUtil;
 import com.openai.commonutil.LogUtil;
-
-import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -56,13 +51,10 @@ public class AdsManager {
         LogUtil.i("AdsManager initok");
         AdviewAdsManager.init(context);
         AdmobAdsManager.init(context);
-        FacebookAdsManager.init(context);
         bannerDescMap.put(AdsContext.AdsFrom.ADVIEW, new BannerAdviewAds());
         bannerDescMap.put(AdsContext.AdsFrom.ADMOB, new AdmobBannerAds());
-        bannerDescMap.put(AdsContext.AdsFrom.FACEBOOK, new FacebookBannerAds());
         interstitialMap.put(AdsContext.AdsFrom.ADVIEW, new InterstitialAdviewAds());
         interstitialMap.put(AdsContext.AdsFrom.ADMOB, new AdmobInterstitialAds());
-        interstitialMap.put(AdsContext.AdsFrom.FACEBOOK, new FacebookInterstitialAds());
 
         splashMap.put(AdsContext.AdsFrom.ADVIEW, new SplashAdviewAds());
         splashMap.put(AdsContext.AdsFrom.ADMOB, new AdmobSplashAds());
@@ -75,17 +67,17 @@ public class AdsManager {
         public void handleMessage(Message msg) {
             AdsContext.AdsMsgObj obj = (AdsContext.AdsMsgObj) msg.obj;
             LogUtil.i("Adstype = " + obj.type.name() + "; status=" + obj.status.name() + "; from=" + obj.from.name());
-//            AdsContext.adsNotify(MyApplication.getInstance(),obj.type,obj.status);
             if (obj.type == AdsContext.AdsType.ADS_TYPE_BANNER && obj.status == AdsContext.AdsShowStatus.ADS_NO_MSG) {
                 EventBusUtil.getEventBus().post(new BannerAdsNext(obj.from));
             }
             if (obj.type == AdsContext.AdsType.ADS_TYPE_SPREAD && obj.status == AdsContext.AdsShowStatus.ADS_NO_MSG) {
                 EventBusUtil.getEventBus().post(new LaunchAdsNext(obj.from));
             }
-            if (obj.type == AdsContext.AdsType.ADS_TYPE_INTERSTITIAL && obj.status == AdsContext.AdsShowStatus.ADS_NO_MSG && obj.from == AdsContext.AdsFrom.ADVIEW && obj.addCount()) {
+            if (obj.type == AdsContext.AdsType.ADS_TYPE_INTERSTITIAL
+                    && obj.status == AdsContext.AdsShowStatus.ADS_NO_MSG
+                    && obj.from == AdsContext.AdsFrom.ADVIEW
+                    && obj.addCount()) {
                 showInterstitialAds(obj.context, AdsContext.Categrey.CATEGREY_VPN, false, AdsContext.AdsFrom.ADMOB, obj.count);
-            } else if (obj.type == AdsContext.AdsType.ADS_TYPE_INTERSTITIAL && obj.status == AdsContext.AdsShowStatus.ADS_NO_MSG && obj.from == AdsContext.AdsFrom.ADMOB) {
-                showInterstitialAds(obj.context, AdsContext.Categrey.CATEGREY_VPN, false, AdsContext.AdsFrom.FACEBOOK, obj.count);
             }
             super.handleMessage(msg);
         }

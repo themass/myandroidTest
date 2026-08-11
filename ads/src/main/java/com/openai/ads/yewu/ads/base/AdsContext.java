@@ -78,8 +78,7 @@ public class AdsContext {
 
     public static enum AdsFrom {
         ADVIEW("adview"),
-        ADMOB("admob"),
-        FACEBOOK("facebook");
+        ADMOB("admob");
         public String desc;
 
         AdsFrom(String desc) {
