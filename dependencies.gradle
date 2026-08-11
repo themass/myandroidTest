@@ -131,18 +131,6 @@ ext.deps = [
         wallet: "com.google.android.gms:play-services-wallet:19.5.0"
     ],
     
-    // Facebook
-    facebook: [
-        audience: "com.facebook.android:audience-network-sdk:6.20.0",
-        infer: "com.facebook.infer.annotation:infer-annotation:0.18.0"
-    ],
-    
-    // LiveKit - 与 client-sdk-android 发行版一致
-    livekit: [
-        android: "io.livekit:livekit-android:2.24.1",
-        compose: "io.livekit:livekit-android-compose-components:2.2.1"
-    ],
-    
     // Compose - 统一升级到最新版本
     compose: [
         bom: "androidx.compose:compose-bom:2025.09.00",

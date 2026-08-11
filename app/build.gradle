@@ -152,7 +152,6 @@ dependencies {
     implementation project(":commonutil")
     implementation project(":ads")
     implementation project(":messagekit")
-    implementation project(':livekitvoice')
     implementation project(':auxio_music_ui')
     
     // 本地库文件

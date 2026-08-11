@@ -57,6 +57,7 @@
     <string name="menu_btn_setting">Setting</string>
     <string name="menu_btn_app">App recommend</string>
     <string name="talktome">Talk To Her</string>
+    <string name="talktome_unavailable">Voice call is currently unavailable</string>
     <string name="menu_btn_donation">Support</string>
     <string name="menu_btn_support">slave explorer</string>
     <string name="feed_back">Feedback</string>

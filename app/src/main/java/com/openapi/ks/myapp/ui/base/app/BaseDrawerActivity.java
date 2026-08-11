@@ -89,7 +89,6 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     MenuItem miFavorite;
     MenuItem miApp;
     MenuItem miDona;
-    MenuItem miTest;
     MenuItem chatSessions;
     public BaseService baseService;
 
@@ -110,7 +109,6 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         miSetting = nvDrawer.getMenu().findItem(R.id.menu_setting);
         miFavorite = nvDrawer.getMenu().findItem(R.id.menu_favorite);
         miDona = nvDrawer.getMenu().findItem(R.id.menu_donation);
-        miTest = nvDrawer.getMenu().findItem(R.id.menu_test);
         miApprecommond = nvDrawer.getMenu().findItem(R.id.menu_app);
         miApp = nvDrawer.getMenu().findItem(R.id.menu_app);
         chatSessions = nvDrawer.getMenu().findItem(R.id.menu_chat_session);
@@ -175,10 +173,8 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                 ivAvatar.setImageResource(R.drawable.ic_default_nv);
             }
             ivLevel.setVisibility(View.VISIBLE);
-            miTest.setVisible(true);
             if (Constants.UserLevel.LEVEL_FREE == vo.level) {
                 ivLevel.setImageResource(R.drawable.ic_level_free);
-                miTest.setVisible(false);
             } else if (Constants.UserLevel.LEVEL_VIP == vo.level) {
                 ivLevel.setImageResource(R.drawable.ic_level_vip);
             } else if (Constants.UserLevel.LEVEL_VIP2 == vo.level) {
@@ -194,7 +190,6 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
             tvMenuUserName.setText(R.string.menu_btn_name_default);
             tvMenuUserLogin.setText(R.string.menu_btn_login);
             ivLevel.setVisibility(View.GONE);
-            miTest.setVisible(false);
         }
         setScore(null);
     }
@@ -346,18 +341,6 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                 } else if (item.getItemId() == R.id.menu_share) {
                     showShare();
                     name = "分享";
-                }  else if (item.getItemId() == R.id.menu_test) {
-                    // 跳转到 Duix Android 模块的主 Activity
-                    try {
-                        Intent intent = new Intent();
-                        intent.setClassName("com.duix.android", "com.duix.android.MainActivity");
-                        startActivity(intent);
-                        name = "Duix Android 测试";
-                    } catch (Exception e) {
-                        // 如果无法启动 Duix Android Activity，显示错误信息
-                        Toast.makeText(BaseDrawerActivity.this, "无法启动 Duix Android 模块", Toast.LENGTH_SHORT).show();
-                        name = "测试失败";
-                    }
                 } else if (item.getItemId() == R.id.menu_chat_session) {
                     name = "新建对话";
                     ChatSessionFragment.startFragment(BaseDrawerActivity.this);

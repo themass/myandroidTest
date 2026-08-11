@@ -25,7 +25,6 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.PopupWindow;
 
-import androidx.annotation.OptIn;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
@@ -60,7 +59,6 @@ import com.openapi.ks.myapp.bean.form.ChatLog;
 import com.openapi.ks.myapp.bean.form.ChatSessionLog;
 import com.openapi.ks.myapp.bean.vo.AsrResponseVo;
 import com.openapi.ks.myapp.bean.vo.Choice;
-import com.openapi.ks.myapp.bean.vo.Token;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.DBManager;
 import com.openapi.ks.myapp.data.ImagePhotoLoad;
@@ -100,7 +98,6 @@ import chat.ui.data.model.Message;
 import chat.ui.data.model.MessageType;
 import chat.ui.data.model.MsgContent;
 import chat.ui.data.model.User;
-import io.livekit.android.annotations.Beta;
 import okhttp3.MultipartBody;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -127,7 +124,6 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
     public String sessionName = "Default";
     public int selectionCount;
     private static String ASRTAG = "ASRTAG";
-    private static String TOEKNTAG = "TOEKNTAG";
     private ConfigActionJump jump = new ConfigActionJump();
     public Map<String,MsgContent> msgContents = new HashMap<>();
     CommonResponse.ResponseOkListener listener = new CommonResponse.ResponseOkListener<Choice>() {
@@ -195,18 +191,6 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
                     super.onError();
                 }
             }, TAG, Choice.class);
-        }
-    };
-    CommonResponse.ResponseOkListener tokenListener = new CommonResponse.ResponseOkListener<Token>() {
-        @Override
-        public void onResponse(Token vo) {
-            Intent intent = new Intent(CustomChatMessagesActivity.this, PhoneChatFragmentActivity.class);
-            intent.putExtra(PhoneChatFragmentActivity.TITLE, R.string.talktome);
-            intent.putExtra(PhoneChatFragmentActivity.URL, vo.getUrl());
-            intent.putExtra(PhoneChatFragmentActivity.TOKEN, vo.getToken());
-            LogUtil.i("token:"+vo.getToken());
-            startActivity(intent);
-            LogUtil.i("click phone");
         }
     };
     public static String TAG = "chat";
@@ -346,7 +330,7 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
         LogUtil.i("isDebug=" + MyApplication.isDebug);
         EventBusUtil.getEventBus().register(jump);
         if(MyApplication.isDebug){
-            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false, AdsContext.AdsFrom.FACEBOOK, 1);
+            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false, AdsContext.AdsFrom.ADMOB, 1);
         }
         initBanner();
     }
@@ -386,19 +370,9 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
             }
         });
         input.setPhoneClickListener(new InputRecordView.PhoneClickListener() {
-            @OptIn(markerClass = Beta.class)
             @Override
             public void click() {
-                if (UserLoginUtil.getUserCache() == null) {
-                    ToastUtil.showShort(R.string.need_login);
-                    startActivity(new Intent(CustomChatMessagesActivity.this, LoginActivity.class));
-                    return;
-                }
-                if (!UserLoginUtil.isVIP()) {
-                    ToastUtil.showShort(R.string.vip_tips);
-                    return;
-                }
-                baseService.postData(Constants.getUrl(Constants.CHAT_LIVE_TOKEN),null,tokenListener, new CommonResponse.ResponseErrorListener(), TOEKNTAG, Token.class);
+                ToastUtil.showShort(R.string.talktome_unavailable);
             }
 
             @Override

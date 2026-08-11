@@ -1,6 +1,0 @@
-<resources>
-    <string name="hello_world">¡Hola mundo!</string>
-    <string name="action_settings">Configuración</string>
-    <string name="start_recording">Iniciar Grabación</string>
-    <string name="stop_recording">Detener Grabación</string>
-</resources>

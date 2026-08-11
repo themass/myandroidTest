@@ -114,11 +114,11 @@ dependencies {
 //    api 'io.github.carguo:gsyvideoplayer-armv7a:11.1.0'
 
 
-    api 'io.github.carguo:gsyvideoplayer:12.1.0'
+    api 'io.github.carguo:gsyvideoplayer:13.1.0'
     // 阿里云播放器内核（需 PlayerFactory.setPlayManager(AliPlayerManager.class)）
-    api 'io.github.carguo:gsyvideoplayer-aliplay:12.1.0'
+    api 'io.github.carguo:gsyvideoplayer-aliplay:13.1.0'
     // IJK 扩展 FFmpeg/so：mpeg、部分 rtsp/concat 等，见 GSY doc/DECODERS.md
-    api 'io.github.carguo:gsyvideoplayer-ex_so:12.1.0'
+    api 'io.github.carguo:gsyvideoplayer-ex_so:13.1.0'
 
     // UI组件
     api 'de.hdodenhof:circleimageview:3.1.0'

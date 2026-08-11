@@ -1,6 +1,5 @@
 include ':app'
 include ':ads'
 include ':commonutil'
-include ':livekitvoice'
 include ':messagekit'
 include ':auxio_music_ui'

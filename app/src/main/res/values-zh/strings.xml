@@ -260,5 +260,6 @@
         <item>其他</item>
     </string-array>
     <string name="talktome">Talk To Her</string>
+    <string name="talktome_unavailable">语音通话功能暂不可用</string>
 
 </resources>
