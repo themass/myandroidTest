@@ -1,8 +1,8 @@
 package com.openai.emoji;
 
+import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.util.Log;
 
 import com.openai.commonutil.LogUtil;
 
@@ -22,7 +22,7 @@ import java.util.List;
  */
 public class EmojiDao {
     private static final String TAG = "EmojiDao";
-    private String path;
+    private static final String DB_NAME = "emoji.db";
     private static EmojiDao dao;
 
     public static EmojiDao getInstance() {
@@ -37,74 +37,102 @@ public class EmojiDao {
     }
 
     private EmojiDao() {
-        try {
-            path = CopySqliteFileFromRawToDatabases("emoji.db");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
-    public List<EmojiBean> getEmojiBean() {
-        List<EmojiBean> emojiBeanList = new ArrayList<EmojiBean>();
-        SQLiteDatabase db = SQLiteDatabase.openDatabase(path, null, SQLiteDatabase.OPEN_READONLY);
-        Cursor cursor = db.query("emoji", new String[]{"unicodeInt", "_id"}, null, null, null, null, null);
-        while (cursor.moveToNext()) {
-            EmojiBean bean = new EmojiBean();
-            int unicodeInt = cursor.getInt(0);
-            int id = cursor.getInt(1);
-            bean.setUnicodeInt(unicodeInt);
-            bean.setId(id);
-            emojiBeanList.add(bean);
+    public List<EmojiBean> getEmojiBean(Context context) {
+        List<EmojiBean> emojiBeanList = new ArrayList<>();
+        if (context == null) {
+            return emojiBeanList;
+        }
+
+        SQLiteDatabase db = null;
+        Cursor cursor = null;
+        try {
+            String path = ensureDatabase(context.getApplicationContext());
+            db = SQLiteDatabase.openDatabase(path, null, SQLiteDatabase.OPEN_READONLY);
+            cursor = db.query("emoji", new String[]{"unicodeInt", "_id"}, null, null, null, null, null);
+            while (cursor.moveToNext()) {
+                EmojiBean bean = new EmojiBean();
+                bean.setUnicodeInt(cursor.getInt(0));
+                bean.setId(cursor.getInt(1));
+                emojiBeanList.add(bean);
+            }
+        } catch (Exception e) {
+            LogUtil.e(TAG + " getEmojiBean: " + e.getMessage(), e);
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+            if (db != null) {
+                db.close();
+            }
         }
         return emojiBeanList;
     }
 
+    private static String ensureDatabase(Context context) throws IOException {
+        File dbFile = context.getDatabasePath(DB_NAME);
+        if (!isValidEmojiDatabase(dbFile)) {
+            if (dbFile.exists() && !dbFile.delete()) {
+                LogUtil.w(TAG + " failed to delete invalid emoji db");
+            }
+            copyFromAssets(context, dbFile);
+        }
+        LogUtil.i(TAG + " emoji db path: " + dbFile.getPath());
+        return dbFile.getPath();
+    }
 
-    /**
-     * 将assets目录下的文件拷贝到database中
-     *
-     * @return 存储数据库的地址
-     */
-    public static String CopySqliteFileFromRawToDatabases(String SqliteFileName) throws IOException {
-        // 第一次运行应用程序时，加载数据库到data/data/当前包的名称/database/<db_name>
-        //复制的话这里需要换成自己项目的包名
-        File dir = new File("data/data/" + "com.openapi.ks.chat" + "/databases");
+    private static boolean isValidEmojiDatabase(File dbFile) {
+        if (dbFile == null || !dbFile.exists() || dbFile.length() == 0) {
+            return false;
+        }
+        SQLiteDatabase db = null;
+        Cursor cursor = null;
+        try {
+            db = SQLiteDatabase.openDatabase(dbFile.getPath(), null, SQLiteDatabase.OPEN_READONLY);
+            cursor = db.rawQuery(
+                    "SELECT name FROM sqlite_master WHERE type='table' AND name='emoji'",
+                    null
+            );
+            return cursor != null && cursor.moveToFirst();
+        } catch (Exception e) {
+            LogUtil.w(TAG + " invalid emoji db: " + e.getMessage());
+            return false;
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+            if (db != null) {
+                db.close();
+            }
+        }
+    }
 
-        if (!dir.exists() || !dir.isDirectory()) {
-            dir.mkdir();
+    private static void copyFromAssets(Context context, File dbFile) throws IOException {
+        File parent = dbFile.getParentFile();
+        if (parent != null && !parent.exists() && !parent.mkdirs()) {
+            throw new IOException("cannot create databases dir: " + parent.getPath());
         }
 
-        File file = new File(dir, SqliteFileName);
         InputStream inputStream = null;
         OutputStream outputStream = null;
-
-        //通过IO流的方式，将assets目录下的数据库文件，写入到SD卡中。
-        if (!file.exists()) {
-            try {
-                file.createNewFile();
-                inputStream = getInstance().getClass().getClassLoader().getResourceAsStream("assets/" + SqliteFileName);
-                outputStream = new FileOutputStream(file);
-                byte[] buffer = new byte[1024];
-                int len;
-                while ((len = inputStream.read(buffer)) != -1) {
-                    outputStream.write(buffer, 0, len);
-                }
-            } catch (IOException e) {
-                LogUtil.e("CopySqliteFileFromRawToDatabases: " + e.getMessage(),e);
-            } finally {
-                if (outputStream != null) {
-                    outputStream.flush();
-                    outputStream.close();
-                }
-                if (inputStream != null) {
-                    inputStream.close();
-                }
-                LogUtil.i("emoj 数据库写完毕");
+        try {
+            inputStream = context.getAssets().open(DB_NAME);
+            outputStream = new FileOutputStream(dbFile, false);
+            byte[] buffer = new byte[8192];
+            int len;
+            while ((len = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, len);
             }
-        }else{
-            LogUtil.i("emoj 数据库已经存在");
+            outputStream.flush();
+            LogUtil.i(TAG + " emoji db copied from assets");
+        } finally {
+            if (outputStream != null) {
+                outputStream.close();
+            }
+            if (inputStream != null) {
+                inputStream.close();
+            }
         }
-        LogUtil.i("emoj 数据库地址"+file.getPath());
-        return file.getPath();
     }
 }

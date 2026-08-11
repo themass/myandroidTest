@@ -157,3 +157,6 @@
 -dontwarn retrofit2.**
 -dontwarn org.greenrobot.**
 -dontwarn com.bumptech.**
+# SIP/VoIP (javax.sip / gov.nist) 可选 log4j 桥接，Android 无 log4j
+-dontwarn org.apache.log4j.**
+-dontwarn android.gov.nist.**

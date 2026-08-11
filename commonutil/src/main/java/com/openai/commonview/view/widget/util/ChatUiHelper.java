@@ -84,7 +84,7 @@ public class ChatUiHelper {
 
     public ChatUiHelper bindEmojiData(ViewGroup root) {
 
-        mListEmoji = EmojiDao.getInstance().getEmojiBean();
+        mListEmoji = EmojiDao.getInstance().getEmojiBean(mContext);
         //  LogUtil.d("获取到的表情集合"+Arrays.asList(mListEmoji));
         LinearLayout homeEmoji = root.findViewById(R.id.home_emoji);
         ViewPager vpEmoji = root.findViewById(R.id.vp_emoji);

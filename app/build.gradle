@@ -14,10 +14,14 @@ android {
         applicationId = "com.openapi.ks.chat"
         minSdk = rootProject.ext.minSdkVersion
         targetSdk = rootProject.ext.targetSdkVersion
-        versionCode = 1001000063
-        versionName = "1.1.0.63"
+        versionCode = 1001000064
+        versionName = "1.1.0.64"
         multiDexEnabled = true
         flavorDimensions = ["versionCode"]
+
+        ndk {
+            abiFilters(*rootProject.ext.playAbiFilters)
+        }
     }
     
     tasks.withType(JavaCompile).configureEach {
@@ -64,6 +68,21 @@ android {
         exclude 'META-INF/NOTICE'
         exclude 'META-INF/LICENSE'
         exclude 'META-INF/DEPENDENCIES'
+        // 依赖可能带入已废弃的 armeabi，打包时剔除
+        exclude 'lib/armeabi/**'
+    }
+
+    // Google Play 推荐 AAB：按 ABI/密度/语言拆分，用户只下载对应架构（含 64 位 arm64-v8a）
+    bundle {
+        abi {
+            enableSplit = true
+        }
+        density {
+            enableSplit = true
+        }
+        language {
+            enableSplit = true
+        }
     }
     
     // dexOptions已弃用，Android Gradle Plugin会自动优化dexing

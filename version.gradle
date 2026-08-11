@@ -1,6 +1,10 @@
 ext {
     minSdkVersion = 28
-    targetSdkVersion = 35
+    targetSdkVersion = 36
     // Media3 1.10+（GSY 12.1.0 传递依赖）要求 compileSdk ≥ 36；需配合 AGP 8.10+
     compileSdkVersion = 36
+
+    // Google Play 64 位：必须含 arm64-v8a；保留 armeabi-v7a 兼容极少数 32 位设备
+    // 排除 armeabi（已废弃）、x86/x86_64（模拟器专用，Play 下发由 AAB 按设备拆分）
+    playAbiFilters = ['arm64-v8a', 'armeabi-v7a']
 }
