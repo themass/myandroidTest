@@ -58,8 +58,6 @@ public class DetailGSYVideoPlayer extends StandardGSYVideoPlayer {
     /** Google Cast 设备选择按钮，由 {@link #installGoogleCastRouteButton(AppCompatActivity)} 注入 */
     private MediaRouteButton mCastRouteButton;
     private FrameLayout loadingOverlay;
-    /** 当前为 LibVLC 内核时在画面上角显示，便于与 Exo/IJK 区分 */
-    private TextView mEngineBadge;
     private String mLastSetupUrl;
     private boolean mEngineFallbackTried;
     /** 自动切换内核重试前保存的用户偏好，detach 时恢复 */
@@ -162,26 +160,6 @@ public class DetailGSYVideoPlayer extends StandardGSYVideoPlayer {
         loadingOverlay.setVisibility(View.GONE);
         addView(loadingOverlay, loadLp);
 
-        mEngineBadge = new TextView(context);
-        mEngineBadge.setText(R.string.playback_engine_badge_vlc);
-        mEngineBadge.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
-        int pad = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 6,
-                getResources().getDisplayMetrics());
-        mEngineBadge.setPadding(pad, pad, pad, pad);
-        mEngineBadge.setBackgroundColor(0x99000000);
-        mEngineBadge.setTextColor(0xFFFFFFFF);
-        FrameLayout.LayoutParams badgeLp = new FrameLayout.LayoutParams(
-                LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-        badgeLp.gravity = Gravity.TOP | Gravity.START;
-        int m8 = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8,
-                getResources().getDisplayMetrics());
-        badgeLp.setMargins(m8, m8, 0, 0);
-        addView(mEngineBadge, badgeLp);
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-            mEngineBadge.setElevation(
-                    TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 6, getResources().getDisplayMetrics()));
-        }
-        updatePlaybackEngineBadgeVisibility();
         wireMoreButton();
         applyPlayerChromeInsets();
     }
@@ -219,14 +197,6 @@ public class DetailGSYVideoPlayer extends StandardGSYVideoPlayer {
             });
         }
         ViewCompat.requestApplyInsets(this);
-    }
-
-    private void updatePlaybackEngineBadgeVisibility() {
-        if (mEngineBadge == null) {
-            return;
-        }
-        int e = PlaybackEngineHelper.getEngine(getContext().getApplicationContext());
-        mEngineBadge.setVisibility(e == PlaybackEngineHelper.ENGINE_VLC ? View.VISIBLE : View.GONE);
     }
 
     /**
@@ -447,7 +417,6 @@ public class DetailGSYVideoPlayer extends StandardGSYVideoPlayer {
             mCachedDurationMs = 0;
         }
         boolean ok = super.setUp(url, cacheWithPlay, cachePath, mapHeadData, title);
-        updatePlaybackEngineBadgeVisibility();
         return ok;
     }
 
@@ -719,7 +688,7 @@ public class DetailGSYVideoPlayer extends StandardGSYVideoPlayer {
     }
 
     /**
-     * 当前片源失败时自动换内核重试一次（不写设置项）：Exo ↔ IJK；LibVLC / 阿里 / 系统 失败时先临时换 Exo。
+     * 当前片源失败时自动换内核重试一次（不写设置项）：Exo ↔ IJK；阿里 / 系统 失败时先临时换 Exo。
      */
     private boolean tryFallbackAlternateEngine() {
         if (mEngineFallbackTried || mOriginUrl == null || mOriginUrl.isEmpty()) {

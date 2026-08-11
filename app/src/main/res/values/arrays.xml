@@ -5,6 +5,5 @@
         <item>@string/playback_engine_ijk_ffmpeg</item>
         <item>@string/playback_engine_ali</item>
         <item>@string/playback_engine_system</item>
-        <item>@string/playback_engine_vlc</item>
     </string-array>
 </resources>

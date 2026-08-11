@@ -73,7 +73,7 @@ public class Constants {
     /** 兼容旧版：true 表示曾选择 IJK；新逻辑请用 {@link #PLAYBACK_ENGINE} */
     public static final String PLAYCORE_SWITCH = "PLAYCORE_SWITCH";
     /**
-     * 视频播放内核：0 Exo(Media3)、1 IJK+FFmpeg(ex_so)、2 阿里 AliPlayer、3 系统 MediaPlayer、4 LibVLC。
+     * 视频播放内核：0 Exo(Media3)、1 IJK+FFmpeg(ex_so)、2 阿里 AliPlayer、3 系统 MediaPlayer。
      * 与 {@link com.openapi.ks.myapp.video.PlaybackEngineHelper} 一致。
      */
     public static final String PLAYBACK_ENGINE = "PLAYBACK_ENGINE";

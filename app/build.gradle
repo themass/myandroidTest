@@ -180,9 +180,6 @@ dependencies {
     annotationProcessor 'com.jakewharton:butterknife-compiler:10.2.3'
     implementation 'com.jakewharton:butterknife:10.2.3'
 
-    // LibVLC（LGPL）：与 GSY 内核切换中的「LibVLC」选项对应
-    implementation 'org.videolan.android:libvlc-all:3.6.5'
-
     // 视频播放（GSY 已含 Exo；Media3 供其他模块或后续扩展）
     implementation 'androidx.media3:media3-exoplayer:1.10.0'
     implementation 'androidx.media3:media3-exoplayer-hls:1.10.0'
