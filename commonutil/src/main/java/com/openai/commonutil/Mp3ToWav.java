@@ -4,23 +4,28 @@ import android.media.MediaCodec;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
 
-import com.openai.commonutil.LogUtil;
-
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public class Mp3ToWav {
-    public static void convertMP3ToPCM(String mp3FilePath, String pcmFilePath) {
+    public static boolean convertMP3ToPCM(String audioFilePath, String pcmFilePath) {
         MediaExtractor extractor = new MediaExtractor();
         MediaCodec codec = null;
         FileOutputStream outputStream = null;
 
         try {
-            extractor.setDataSource(mp3FilePath);
+            File input = new File(audioFilePath);
+            if (!input.exists() || input.length() == 0) {
+                LogUtil.w("convertMP3ToPCM: input missing or empty: " + audioFilePath);
+                return false;
+            }
+            extractor.setDataSource(audioFilePath);
             int trackIndex = selectTrack(extractor);
             if (trackIndex < 0) {
-                throw new RuntimeException("No track found in " + mp3FilePath);
+                LogUtil.w("convertMP3ToPCM: no audio track in " + audioFilePath);
+                return false;
             }
 
             extractor.selectTrack(trackIndex);
@@ -31,10 +36,19 @@ public class Mp3ToWav {
             codec.configure(format, null, null, 0);
             codec.start();
 
-            outputStream = new FileOutputStream(pcmFilePath);
+            File pcmFile = new File(pcmFilePath);
+            File parent = pcmFile.getParentFile();
+            if (parent != null && !parent.exists() && !parent.mkdirs()) {
+                LogUtil.w("convertMP3ToPCM: cannot create parent dir " + parent.getAbsolutePath());
+                return false;
+            }
+            outputStream = new FileOutputStream(pcmFile);
             decodeToPCM(extractor, codec, outputStream);
+            outputStream.flush();
+            return pcmFile.exists() && pcmFile.length() > 0;
         } catch (Exception e) {
-            LogUtil.e(e);
+            LogUtil.e("convertMP3ToPCM failed: " + audioFilePath, e);
+            return false;
         } finally {
             try {
                 if (codec != null) {
@@ -49,7 +63,7 @@ public class Mp3ToWav {
                     }
                 }
                 extractor.release();
-            }catch (Exception e){
+            } catch (Exception e) {
                 LogUtil.e(e);
             }
         }

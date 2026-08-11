@@ -25,6 +25,8 @@ import android.widget.TextView;
 import com.openai.commonutil.FileUtils;
 import com.openai.commonutil.LogUtil;
 import com.openai.commonutil.R;
+import com.openai.commonutil.ToastUtil;
+import com.openai.commonutil.permission.PermissionUtils;
 import androidx.core.content.ContextCompat;
 
 import java.io.File;
@@ -45,6 +47,8 @@ public class RecordButton extends androidx.appcompat.widget.AppCompatButton {
         super(context, attrs);
         init();
     }
+
+    private static final int SAMPLE_RATE = 16000;
 
     private String mFile;
 
@@ -115,7 +119,17 @@ public class RecordButton extends androidx.appcompat.widget.AppCompatButton {
         }
         switch (action) {
             case MotionEvent.ACTION_DOWN:
-                mFile = FileUtils.getWriteFilePath(getContext()) + "/" + "voice_" + System.currentTimeMillis() + ".mp3";
+                if (!PermissionUtils.hasRecordAudioPermission(getContext())) {
+                    ToastUtil.showShort(R.string.record_audio_permission_denied);
+                    return true;
+                }
+                String baseDir = FileUtils.getWriteFilePath(getContext());
+                if (baseDir == null) {
+                    ToastUtil.showShort(R.string.record_audio_storage_unavailable);
+                    return true;
+                }
+                FileUtils.ensureFile(getContext(), baseDir);
+                mFile = baseDir + "/" + "voice_" + System.currentTimeMillis() + ".m4a";
                 setText(R.string.input_send);
                 initDialogAndStartRecord();
                 break;
@@ -184,18 +198,28 @@ public class RecordButton extends androidx.appcompat.widget.AppCompatButton {
             recordDialog.dismiss();
         }
         LogUtil.d("录音完成的路径:" + mFile);
+        int durationSec = 1;
         MediaPlayer mediaPlayer = new MediaPlayer();
         try {
             mediaPlayer.setDataSource(mFile);
             mediaPlayer.prepare();
-            mediaPlayer.getDuration();
-            LogUtil.d("获取到的时长:" + mediaPlayer.getDuration() / 1000);
+            int durationMs = mediaPlayer.getDuration();
+            if (durationMs > 0) {
+                durationSec = Math.max(1, durationMs / 1000);
+            }
+            LogUtil.d("获取到的时长:" + durationSec);
         } catch (Exception e) {
-
+            LogUtil.e("读取录音时长失败: " + mFile, e);
+        } finally {
+            try {
+                mediaPlayer.release();
+            } catch (Exception ignored) {
+            }
         }
 
-        if (finishedListener != null)
-            finishedListener.onFinishedRecord(mFile, mediaPlayer.getDuration() / 1000);
+        if (finishedListener != null) {
+            finishedListener.onFinishedRecord(mFile, durationSec);
+        }
 
     }
 
@@ -229,22 +253,29 @@ public class RecordButton extends androidx.appcompat.widget.AppCompatButton {
         }
         mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-        mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-        mRecorder.setAudioSamplingRate(16000);
+        mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+        mRecorder.setAudioSamplingRate(SAMPLE_RATE);
+        mRecorder.setAudioChannels(1);
+        mRecorder.setAudioEncodingBitRate(64000);
         File file = new File(mFile);
+        File parent = file.getParentFile();
+        if (parent != null) {
+            FileUtils.ensureFile(getContext(), parent.getAbsolutePath());
+        }
         LogUtil.d("创建文件的路径:" + mFile);
         LogUtil.d("文件创建成功:" + file.exists());
         mRecorder.setOutputFile(mFile);
         try {
             mRecorder.prepare();
             mRecorder.start();
+            mThread = new ObtainDecibelThread();
+            mThread.start();
         } catch (Exception e) {
-            LogUtil.e("preparestart异常,重新开始录音:" + e.toString(),e);
+            LogUtil.e("preparestart异常,重新开始录音:" + e.toString(), e);
             mRecorder.release();
             mRecorder = null;
+            ToastUtil.showShort(R.string.record_audio_start_failed);
         }
-       /* mThread = new  ObtainDecibelThread();
-        mThread.start();*/
     }
 
 

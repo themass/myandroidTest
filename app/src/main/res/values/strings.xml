@@ -58,6 +58,9 @@
     <string name="menu_btn_app">App recommend</string>
     <string name="talktome">Talk To Her</string>
     <string name="talktome_unavailable">Voice call is currently unavailable</string>
+    <string name="chat_asr_record_failed">Recording failed. Please check microphone permission and try again.</string>
+    <string name="chat_asr_audio_convert_failed">Failed to process voice message for speech recognition.</string>
+    <string name="image_preview_failed">Unable to open image preview.</string>
     <string name="menu_btn_donation">Support</string>
     <string name="menu_btn_support">slave explorer</string>
     <string name="feed_back">Feedback</string>

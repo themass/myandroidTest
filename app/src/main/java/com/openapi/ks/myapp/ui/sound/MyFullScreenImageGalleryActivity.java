@@ -17,7 +17,6 @@ import android.widget.TextView;
 import com.openai.commonutil.ToastUtil;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.adapter.MyFullScreenImageGalleryAdapter;
-import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.task.SaveImageCallBack;
 import com.openapi.ks.myapp.task.SaveImageTask;
 import com.openapi.ks.myapp.ui.base.app.BaseSingleActivity;
@@ -68,21 +67,29 @@ public class MyFullScreenImageGalleryActivity extends BaseSingleActivity impleme
 
     @OnClick(R.id.iv_save)
     public void onSave(View view) {
+        if (images == null || images.isEmpty() || viewPager.getAdapter() == null) {
+            ToastUtil.showShort(R.string.save_fail);
+            return;
+        }
         ToastUtil.showShort(R.string.save_start);
-        SaveImageTask.startSave(MyFullScreenImageGalleryActivity.this, images.get(viewPager.getCurrentItem()), MyFullScreenImageGalleryActivity.this);
+        SaveImageTask.startSave(MyFullScreenImageGalleryActivity.this,
+                images.get(viewPager.getCurrentItem()), MyFullScreenImageGalleryActivity.this);
     }
 
     @Override
     public void setupView() {
-        ArrayList imageList = new ArrayList();
-        imageList.addAll(this.images);
-        MyFullScreenImageGalleryAdapter fullScreenImageGalleryAdapter = new MyFullScreenImageGalleryAdapter(imageList);
-        // 使用现代图片查看器替代
-        // fullScreenImageGalleryAdapter.setFullScreenImageLoader(MyApplication.getInstance().getPhotoLoad());
-        // this.viewPager.setAdapter(fullScreenImageGalleryAdapter);
-        this.viewPager.addOnPageChangeListener(this.viewPagerOnPageChangeListener);
-        this.viewPager.setCurrentItem(this.position);
-        this.setPosition(this.position);
+        if (images == null || images.isEmpty()) {
+            ToastUtil.showShort(R.string.image_preview_failed);
+            finish();
+            return;
+        }
+        if (position < 0 || position >= images.size()) {
+            position = 0;
+        }
+        viewPager.setAdapter(new MyFullScreenImageGalleryAdapter(this, images));
+        viewPager.addOnPageChangeListener(viewPagerOnPageChangeListener);
+        viewPager.setCurrentItem(position);
+        setPosition(position);
         showToolbar(false);
     }
 
@@ -92,14 +99,14 @@ public class MyFullScreenImageGalleryActivity extends BaseSingleActivity impleme
     }
 
     private void setPosition(int position) {
-        if (this.viewPager != null && this.images != null && this.images.size() > 1) {
-            int totalPages = this.viewPager.getAdapter().getCount();
-            tvPage.setVisibility(android.view.View.VISIBLE);
-            tvPage.setText(String.format("%s / %s", String.valueOf(position + 1), String.valueOf(totalPages)));
+        if (viewPager != null && viewPager.getAdapter() != null
+                && images != null && images.size() > 1) {
+            int totalPages = viewPager.getAdapter().getCount();
+            tvPage.setVisibility(View.VISIBLE);
+            tvPage.setText(String.format("%s / %s", position + 1, totalPages));
         } else if (tvPage != null) {
-            tvPage.setVisibility(android.view.View.GONE);
+            tvPage.setVisibility(View.GONE);
         }
-
     }
 
     private void removeListeners() {

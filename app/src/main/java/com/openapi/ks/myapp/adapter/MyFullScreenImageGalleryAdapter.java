@@ -4,61 +4,70 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager.widget.PagerAdapter;
 
 import com.bumptech.glide.Glide;
 import com.github.chrisbanes.photoview.PhotoView;
 import com.openapi.ks.chat.R;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 现代全屏图片查看器适配器 - 替代 ImageGallery
- * 使用 PhotoView 实现图片缩放和查看功能
+ * ViewPager 全屏图片查看适配器（PhotoView + Glide）。
  */
-public class MyFullScreenImageGalleryAdapter extends RecyclerView.Adapter<MyFullScreenImageGalleryAdapter.ImageViewHolder> {
-    
-    private List<String> mImages;
-    private Context mContext;
-    
-    public MyFullScreenImageGalleryAdapter(List<String> images) {
-        mImages = images;
+public class MyFullScreenImageGalleryAdapter extends PagerAdapter {
+
+    private final List<String> images;
+    private final LayoutInflater inflater;
+
+    public MyFullScreenImageGalleryAdapter(Context context, List<String> images) {
+        this.images = images != null ? new ArrayList<>(images) : new ArrayList<>();
+        this.inflater = LayoutInflater.from(context);
     }
-    
+
+    @Override
+    public int getCount() {
+        return images.size();
+    }
+
+    @Override
+    public boolean isViewFromObject(@NonNull View view, @NonNull Object object) {
+        return view == object;
+    }
+
     @NonNull
     @Override
-    public ImageViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        mContext = parent.getContext();
-        View view = LayoutInflater.from(mContext).inflate(R.layout.item_modern_image_gallery, parent, false);
-        return new ImageViewHolder(view);
-    }
-    
-    @Override
-    public void onBindViewHolder(@NonNull ImageViewHolder holder, int position) {
-        String imageUrl = mImages.get(position);
-        
-        // 使用 Glide 加载图片
-        Glide.with(mContext)
-                .load(imageUrl)
+    public Object instantiateItem(@NonNull ViewGroup container, int position) {
+        View view = inflater.inflate(R.layout.item_modern_image_gallery, container, false);
+        PhotoView photoView = view.findViewById(R.id.photo_view);
+        Glide.with(photoView.getContext())
+                .load(normalizeImageUrl(images.get(position)))
                 .placeholder(R.drawable.img_bg)
                 .error(R.drawable.img_bg)
-                .into(holder.photoView);
+                .into(photoView);
+        container.addView(view);
+        return view;
     }
-    
+
     @Override
-    public int getItemCount() {
-        return mImages != null ? mImages.size() : 0;
+    public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
+        container.removeView((View) object);
     }
-    
-    public static class ImageViewHolder extends RecyclerView.ViewHolder {
-        PhotoView photoView;
-        
-        public ImageViewHolder(@NonNull View itemView) {
-            super(itemView);
-            photoView = itemView.findViewById(R.id.photo_view);
+
+    public static String normalizeImageUrl(String url) {
+        if (url == null || url.isEmpty()) {
+            return url;
         }
+        if (url.startsWith("http://") || url.startsWith("https://")
+                || url.startsWith("file://") || url.startsWith("content://")) {
+            return url;
+        }
+        if (url.startsWith("/")) {
+            return "file://" + url;
+        }
+        return "file:///" + url;
     }
 }

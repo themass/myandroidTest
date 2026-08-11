@@ -18,6 +18,9 @@
     <string name="input_cancel">Slide to cancel</string>
     <string name="input_send">Release to send</string>
     <string name="input_pass">Hold to talk</string>
+    <string name="record_audio_permission_denied">Microphone permission is required to record voice messages.</string>
+    <string name="record_audio_storage_unavailable">Unable to access storage for recording.</string>
+    <string name="record_audio_start_failed">Failed to start recording. Please try again.</string>
     <string name="coming_soon_please">Stay tuned...</string>
     <string name="click_say">click  Say</string>
 

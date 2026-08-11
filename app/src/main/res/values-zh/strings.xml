@@ -261,5 +261,8 @@
     </string-array>
     <string name="talktome">Talk To Her</string>
     <string name="talktome_unavailable">语音通话功能暂不可用</string>
+    <string name="chat_asr_record_failed">录音失败，请检查麦克风权限后重试</string>
+    <string name="chat_asr_audio_convert_failed">语音处理失败，无法进行语音识别</string>
+    <string name="image_preview_failed">无法打开图片预览</string>
 
 </resources>

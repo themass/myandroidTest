@@ -10,6 +10,7 @@ import androidx.fragment.app.FragmentActivity;
 import com.openai.ads.yewu.ads.base.AdsContext;
 import com.openai.ads.yewu.ads.base.AdsManager;
 import com.openai.commonutil.LogUtil;
+import com.openapi.ks.myapp.adapter.MyFullScreenImageGalleryAdapter;
 import com.openapi.ks.myapp.ui.sound.MyFullScreenImageGalleryActivity;
 
 import java.util.ArrayList;
@@ -52,14 +53,14 @@ public class MyOutComingImageMessageViewHolder
         image.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String url = "file://"+message.getImageUrl();
-                LogUtil.i("打开图片"+url);
-                ArrayList list = new ArrayList();
+                String url = MyFullScreenImageGalleryAdapter.normalizeImageUrl(message.getImageUrl());
+                LogUtil.i("打开图片" + url);
+                ArrayList<String> list = new ArrayList<>();
                 list.add(url);
                 Intent intent = new Intent(view.getContext(), MyFullScreenImageGalleryActivity.class);
                 Bundle bundle = new Bundle();
                 bundle.putStringArrayList(MyFullScreenImageGalleryActivity.KEY_IMAGES, list);
-                bundle.putInt(MyFullScreenImageGalleryActivity.KEY_POSITION, 1);
+                bundle.putInt(MyFullScreenImageGalleryActivity.KEY_POSITION, 0);
                 intent.putExtras(bundle);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 image.getContext().startActivity(intent);

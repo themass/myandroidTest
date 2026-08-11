@@ -745,35 +745,51 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
             startActivity(new Intent(this, LoginActivity.class));
             return;
         }
-        String wavPath = path.replace("mp3", "wav");
-        Mp3ToWav.convertMP3ToPCM(path, wavPath);
-        String asr = path;
-        if (!StringUtils.isEmpty(path)) {
-            Message myMsg = new Message(MessagesFixtures.getRandomId(), User.my, null);
-            myMsg.setMsgType(MessageType.AUDIO_TYPE);
-            myMsg.setVoice(new Message.Voice(path, time));
-            messagesAdapter.addToStart(myMsg, true);
-
-            Message holdMsgTmp = new Message(MessagesFixtures.getRandomId(), User.gpt, getString(R.string.hold_please));
-            initHoldMsg(holdMsgTmp);
-            messagesAdapter.addToStart(holdMsgTmp, true);
-
-            MsgContent msgContent = new MsgContent();
-            msgContent.setContent(path);
-            msgContent.setOrg(asr);
-            msgContent.setTime(time);
-            msgContent.setMsgId(myMsg.getId());
-            msgContent.setHoldId(holdMsgTmp.getId());
-            msgContents.put(msgContent.getMsgId(), msgContent);
-            AsrContentForm asrContentForm = new AsrContentForm();
-            byte[] voice = FileUtils.readFile(wavPath);
-            LogUtil.i("voice size:"+voice.length);
-            asrContentForm.setContent(Base64Util.encodeBase64(voice));
-            asrContentForm.setId(msgContent.getMsgId());
-            baseService.postData(Constants.getUrl(Constants.CHAT_ASR_URL),asrContentForm,asrListener, new CommonResponse.ResponseErrorListener(), ASRTAG, AsrResponseVo.class);
-
-//            recognizeFile(wavPath, msgContent);
+        if (StringUtils.isEmpty(path)) {
+            return;
         }
+        File audioFile = new File(path);
+        if (!audioFile.exists() || audioFile.length() == 0) {
+            ToastUtil.showShort(R.string.chat_asr_record_failed);
+            return;
+        }
+        String pcmPath = path.replaceAll("\\.[^.]+$", "") + ".pcm";
+        if (!Mp3ToWav.convertMP3ToPCM(path, pcmPath)) {
+            ToastUtil.showShort(R.string.chat_asr_audio_convert_failed);
+            return;
+        }
+        byte[] voice = FileUtils.readFile(pcmPath);
+        if (voice == null || voice.length == 0) {
+            ToastUtil.showShort(R.string.chat_asr_audio_convert_failed);
+            return;
+        }
+        Message myMsg = new Message(MessagesFixtures.getRandomId(), User.my, null);
+        myMsg.setMsgType(MessageType.AUDIO_TYPE);
+        myMsg.setVoice(new Message.Voice(path, time));
+        messagesAdapter.addToStart(myMsg, true);
+
+        Message holdMsgTmp = new Message(MessagesFixtures.getRandomId(), User.gpt, getString(R.string.hold_please));
+        initHoldMsg(holdMsgTmp);
+        messagesAdapter.addToStart(holdMsgTmp, true);
+
+        MsgContent msgContent = new MsgContent();
+        msgContent.setContent(path);
+        msgContent.setOrg(path);
+        msgContent.setTime(time);
+        msgContent.setMsgId(myMsg.getId());
+        msgContent.setHoldId(holdMsgTmp.getId());
+        msgContents.put(msgContent.getMsgId(), msgContent);
+        AsrContentForm asrContentForm = new AsrContentForm();
+        LogUtil.i("voice size:" + voice.length);
+        asrContentForm.setContent(Base64Util.encodeBase64(voice));
+        asrContentForm.setId(msgContent.getMsgId());
+        baseService.postData(Constants.getUrl(Constants.CHAT_ASR_URL), asrContentForm, asrListener,
+                new CommonResponse.ResponseErrorListener() {
+                    @Override
+                    protected void onError() {
+                        msgContents.remove(msgContent.getMsgId());
+                    }
+                }, ASRTAG, AsrResponseVo.class);
     }
 
     public void initHoldMsg(Message msg){
