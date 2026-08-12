@@ -36,9 +36,9 @@
     <string name="tab_tag_chat">Chat</string>
 
     <!-- Anwendung -->
-    <string name="app_name">Kimi Chat</string>
-    <string name="main_activity_name">Kimi Chat</string>
-    <string name="toobar_title">Kimi Chat</string>
+    <string name="app_name">kimi</string>
+    <string name="main_activity_name">kimi</string>
+    <string name="toobar_title">kimi</string>
     <string name="load">Wird geladen, bitte warten.</string>
     <string name="off">Schließen</string>
     <string name="on">Öffnen</string>

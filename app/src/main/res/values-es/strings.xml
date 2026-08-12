@@ -35,9 +35,9 @@
 
 
     <!-- Application -->
-    <string name="app_name">Kimi Chat</string>
-    <string name="main_activity_name">Kimi Chat</string>
-    <string name="toobar_title">Kimi Chat</string>
+    <string name="app_name">kimi</string>
+    <string name="main_activity_name">kimi</string>
+    <string name="toobar_title">kimi</string>
     <string name="load">cargando más datos</string>
     <string name="off">apagado</string>
     <string name="on">encendido</string>
