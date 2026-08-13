@@ -7,14 +7,14 @@ apply plugin: 'com.jakewharton.butterknife'
 //Build Variants = Product Flavor + Build Type
 android {
     namespace "com.openapi.ks.free1"
+    compileSdk 36
     ndkVersion "29.0.14033849"
     defaultConfig {
         applicationId "com.openapi.ks.free1"
-        compileSdkVersion 36  // 极低版本 AGP 仅支持 compileSdkVersion（无 = 号）
-        minSdkVersion 28
-        targetSdkVersion 36
-        versionCode 1001001025
-        versionName "1.1.1.25"
+        minSdk 28
+        targetSdk 36
+        versionCode 1001001026
+        versionName "1.1.1.26"
         // Enabling multidex support.
         multiDexEnabled true
         flavorDimensions "versionCode"
@@ -103,8 +103,7 @@ android {
 }
 greendao {
     schemaVersion 6
-//    daoPackage 'com.ping.greendao.gen'
-//    targetGenDir 'src/main/java'
+    daoPackage 'com.openapi.myapp.bean.form'
 }
 dependencies {
 
