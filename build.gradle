@@ -80,6 +80,13 @@ allprojects {
             force 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1'
             force 'org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.8.1'
             force 'org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.8.1'
+
+            // CameraX 1.4.2+：16KB 页对齐的 libimage_processing_util_jni.so
+            def cam = rootProject.ext.cameraXVersion
+            force "androidx.camera:camera-core:${cam}"
+            force "androidx.camera:camera-camera2:${cam}"
+            force "androidx.camera:camera-lifecycle:${cam}"
+            force "androidx.camera:camera-view:${cam}"
         }
     }
     

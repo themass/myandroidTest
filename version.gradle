@@ -7,4 +7,7 @@ ext {
     // Google Play 64 位：必须含 arm64-v8a；保留 armeabi-v7a 兼容极少数 32 位设备
     // 排除 armeabi（已废弃）、x86/x86_64（模拟器专用，Play 下发由 AAB 按设备拆分）
     playAbiFilters = ['arm64-v8a', 'armeabi-v7a']
+
+    // CameraX ≥1.4.2：libimage_processing_util_jni.so 支持 16KB 页大小（Play 要求）
+    cameraXVersion = '1.4.2'
 }
