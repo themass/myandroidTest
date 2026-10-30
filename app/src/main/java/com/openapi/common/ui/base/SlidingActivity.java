@@ -10,6 +10,7 @@ public abstract class SlidingActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        EdgeToEdgeHelper.enable(this);
         if (enableSliding()) {
             SlidingLayout rootView = new SlidingLayout(this);
             rootView.setmTouchDownInterceptX(getMinTouchX());

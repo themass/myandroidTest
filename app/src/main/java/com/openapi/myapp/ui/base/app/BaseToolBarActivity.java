@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.openapi.common.util.LogUtil;
+import com.openapi.common.ui.base.EdgeToEdgeHelper;
 import com.openapi.ks.free1.R;
 
 import java.lang.reflect.Field;
@@ -41,6 +42,7 @@ public abstract class BaseToolBarActivity extends BaseWeatherMenuActivity {
         getLayoutInflater().inflate(layoutResID, (ViewGroup) findViewById(R.id.fl_body), true);
         bindViews();
         setupToolbar();
+        EdgeToEdgeHelper.applyToolbarLayout(findViewById(R.id.toolbar), flBody);
     }
 
     public void setupView() {

@@ -2,7 +2,9 @@ package com.openapi.common.ui.base;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 
+import com.openapi.common.ui.base.EdgeToEdgeHelper;
 import com.openapi.common.util.LogUtil;
 
 /**
@@ -13,6 +15,15 @@ public class LogActivity extends com.openapi.common.ui.base.SlidingActivity {
     protected void onCreate(Bundle savedInstanceState) {
 //        LogUtil.i(getClass().getSimpleName() + "-onCreate");
         super.onCreate(savedInstanceState);
+    }
+
+    @Override
+    public void setContentView(int layoutResID) {
+        super.setContentView(layoutResID);
+        View content = findViewById(android.R.id.content);
+        if (content instanceof android.view.ViewGroup && ((android.view.ViewGroup) content).getChildCount() > 0) {
+            EdgeToEdgeHelper.applyRootPadding(((android.view.ViewGroup) content).getChildAt(0));
+        }
     }
 
     @Override

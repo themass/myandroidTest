@@ -13,13 +13,18 @@ android {
         applicationId "com.openapi.ks.free1"
         minSdk 28
         targetSdk 36
-        versionCode 1001001026
-        versionName "1.1.1.26"
+        versionCode 1001001031
+        versionName "1.1.1.31"
         // Enabling multidex support.
         multiDexEnabled true
         flavorDimensions "versionCode"
         renderscriptTargetApi 18
         renderscriptSupportModeEnabled true
+
+        // Play 64 位：仅保留 arm64-v8a，减小包体与内存占用
+        ndk {
+            abiFilters 'arm64-v8a'
+        }
     }
     tasks.withType(JavaCompile).configureEach {
         options.fork = true
@@ -38,17 +43,25 @@ android {
     buildFeatures {
         viewBinding true
     }
-    dexOptions {
-//        incremental true
-        preDexLibraries true
-        javaMaxHeapSize "4g"
+
+    // AAB 按 ABI 拆分，用户只下载 arm64 包
+    bundle {
+        abi {
+            enableSplit = true
+        }
+        density {
+            enableSplit = true
+        }
+        language {
+            enableSplit = true
+        }
     }
+
     lintOptions {
         disable 'InvalidPackage'
         checkReleaseBuilds false
         abortOnError false
     }
-
 
     packagingOptions {
         exclude 'META-INF/LICENSE.txt'
@@ -93,6 +106,10 @@ android {
             debuggable false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.config
+            // 不上传完整 native 调试符号到 AAB（约省 15MB，提升 Play 优化评分）
+            ndk {
+                debugSymbolLevel 'SYMBOL_TABLE'
+            }
         }
     }
     productFlavors {
@@ -113,6 +130,7 @@ dependencies {
 //    implementation 'cn.jzvd:jiaozivideoplayer:6.2.12'
 //    implementation(name: 'glide-transformations-2.0.1', ext: 'aar',)
     implementation "androidx.appcompat:appcompat:1.7.1"
+    implementation "androidx.activity:activity:1.9.3"
     implementation "androidx.legacy:legacy-support-v13:1.0.0"
     implementation "androidx.legacy:legacy-support-v4:1.0.0"
     implementation "androidx.palette:palette:1.0.0"
