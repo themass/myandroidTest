@@ -1,9 +1,7 @@
 buildscript {
-    ext.kotlin_version = '1.6.21'
+    ext.kotlin_version = '2.1.10'
     repositories {
-        // maven { url 'https://maven.fabric.io/public' }
         maven { url "https://jitpack.io" }
-//        maven { url 'https://raw.github.com/Raizlabs/maven-releases/master/releases' }
         maven { url "https://plugins.gradle.org/m2" }
         maven { url 'https://maven.google.com' }
         maven { url 'https://repo1.maven.org/maven2' }
@@ -14,14 +12,11 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.2.1'
-//        classpath 'org.greenrobot:greendao-gradle-plugin:3.3.0'
-        classpath 'org.greenrobot:greendao-gradle-plugin:3.3.1' // add plugin
+        classpath 'com.android.tools.build:gradle:8.9.1'
+        classpath 'org.greenrobot:greendao-gradle-plugin:3.3.1'
         classpath 'com.jakewharton:butterknife-gradle-plugin:10.2.3'
-        classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath "org.jetbrains.kotlin:kotlin-android-extensions:$kotlin_version"
-
+        classpath "org.jetbrains.kotlin:compose-compiler-gradle-plugin:$kotlin_version"
     }
 }
 
@@ -30,9 +25,7 @@ allprojects {
         flatDir {
             dirs 'libs'
         }
-        // maven { url 'https://maven.fabric.io/public' }
         maven { url "https://jitpack.io" }
-//        maven { url 'https://raw.github.com/Raizlabs/maven-releases/master/releases' }
         maven { url "https://plugins.gradle.org/m2" }
         maven { url 'https://maven.google.com' }
         maven { url 'https://repo1.maven.org/maven2' }

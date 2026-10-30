@@ -104,6 +104,13 @@
             android:label="@string/main_activity_name"
             android:launchMode="singleTask"
             android:screenOrientation="portrait" />
+        <!-- 拍照解题（移植自 ai-math/paizhao） -->
+        <activity
+            android:name="com.aimath.paizhao.PhotoSolveActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name="com.openapi.ks.myapp.ui.base.WebViewActivity"
             android:configChanges="orientation|keyboardHidden|screenSize" />

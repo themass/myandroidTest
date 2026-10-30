@@ -4,6 +4,10 @@
             android:id="@+id/menu_chat_session"
             android:icon="@drawable/ic_menu_chathistory"
             android:title="@string/menu_btn_chat_session" />
+        <item
+            android:id="@+id/menu_photo_solve"
+            android:icon="@drawable/ic_menu_photo_solve"
+            android:title="@string/menu_btn_photo_solve" />
     </group>
     <group android:id="@+id/menu_group_1">
         <item

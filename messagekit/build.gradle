@@ -1,0 +1,30 @@
+// Vendored copy of https://github.com/hosannahighertech/MessageKit
+// The published artifact (tz.co.hosannahighertech:messagekit:1.0.0apha4) is no longer
+// present in any public repository (Maven Central 404, JitPack 401), so the library source
+// is kept in-tree instead of being resolved from a remote.
+apply plugin: 'com.android.library'
+
+android {
+    namespace "tz.co.hosannahighertech.messagekit"
+    compileSdk 34
+
+    defaultConfig {
+        minSdk 21
+        consumerProguardFiles 'proguard.txt'
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    lint {
+        abortOnError false
+    }
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.4.0'
+    implementation 'com.google.android:flexbox:2.0.1'
+}
