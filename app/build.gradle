@@ -220,6 +220,7 @@ dependencies {
     implementation 'io.noties.markwon:html:4.6.2'
     implementation 'io.noties.markwon:ext-strikethrough:4.6.2'
     implementation 'io.noties.markwon:ext-tables:4.6.2'
+    implementation 'io.noties.markwon:linkify:4.6.2'
 
     // 富文本和图像处理
     implementation 'com.caverock:androidsvg:1.4'

@@ -15,6 +15,16 @@ public class CharacterVo {
     public String content;
     public String url;
     public String extra;
+    /** 是否为当前用户自己创建的角色（服务端按 ownerUserId 计算），决定能否编辑/删除。 */
+    public boolean mine;
+
+    public boolean isMine() {
+        return mine;
+    }
+
+    public void setMine(boolean mine) {
+        this.mine = mine;
+    }
 
     public Long getId() {
         return id;

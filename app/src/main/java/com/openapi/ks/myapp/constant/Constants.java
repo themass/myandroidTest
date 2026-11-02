@@ -132,6 +132,9 @@ public class Constants {
 
     public static final String API_FEEDBACK_URL = "/data/feed/score.json?start=%s&limit=40";
     public static final String API_CHARACTER_URL = "/user/setting/character.json";
+    public static final String API_CHARACTER_CREATE_URL = "/user/setting/character/create.json";
+    public static final String API_CHARACTER_UPDATE_URL = "/user/setting/character/update.json";
+    public static final String API_CHARACTER_DELETE_URL = "/user/setting/character/delete.json";
     public static final String API_FEEDBACK_LIKE_URL = "/data/feed/score/%s.json";
     public static final String API_VERSION_URL = "/data/version.json";
 
@@ -176,6 +179,7 @@ public class Constants {
     public static final String CHAT_QUESTION_URL = "/chat/ai/local/ocr.json";
     public static final String CHAT_FILE_URL = "/chat/ai/local/file.json";
 
+    public static final String CHAT_STREAM_URL = "/chat/stream.json";
     public static final String CHAT_ASR_URL = "/chat/ai/asr.json";
     public static final String CHAT_TTS_URL = "/chat/ai/tts.json";
     public static final String CHAT_FEEDBACK_URL = "/chat/ai/feedback.json";
