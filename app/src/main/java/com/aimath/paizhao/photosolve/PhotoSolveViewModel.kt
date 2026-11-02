@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.aimath.paizhao.photosolve.ImageUtils.resizeSmart
 import com.aimath.paizhao.photosolve.cropassist.CropAssistRegistry
 import com.aimath.paizhao.photosolve.cropassist.CropAssistSettingsRepository
+import com.aimath.paizhao.photosolve.image.ImagePipeline.enhanceForDocument
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -54,7 +55,9 @@ class PhotoSolveViewModel(application: Application) : AndroidViewModel(applicati
     /** The user finished cropping (via easycrop, or ML Kit's own scan flow) — kick off the mock solve. */
     fun onCropConfirmed(croppedByUser: Bitmap) {
         viewModelScope.launch {
-            val cropped = withContext(Dispatchers.Default) { croppedByUser.resizeSmart() }
+            val cropped = withContext(Dispatchers.Default) {
+                croppedByUser.resizeSmart().enhanceForDocument()
+            }
 
             _uiState.update {
                 it.copy(step = PhotoSolveStep.Recognizing, croppedBitmap = cropped, recognizingStatusIndex = 0)

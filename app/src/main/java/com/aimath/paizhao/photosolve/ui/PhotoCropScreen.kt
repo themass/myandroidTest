@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.RotateLeft
+import androidx.compose.material.icons.automirrored.filled.RotateRight
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Compare
 import androidx.compose.material.icons.filled.RestartAlt
@@ -30,6 +32,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import com.aimath.paizhao.photosolve.CropNorm
 import com.aimath.paizhao.photosolve.cropassist.CropAssistRegistry
 import com.aimath.paizhao.photosolve.cropassist.CropAssistResult
+import com.aimath.paizhao.photosolve.image.ImagePipeline.rotated
 import com.mr0xf00.easycrop.CropError
 import com.mr0xf00.easycrop.CropResult
 import com.mr0xf00.easycrop.CropState
@@ -56,10 +59,12 @@ fun PhotoCropScreen(
 ) {
     val imageCropper = rememberImageCropper()
     var showComparison by remember { mutableStateOf(false) }
-    var suggestionApplied by remember(bitmap) { mutableStateOf(false) }
+    // 旋转后用新图重新裁剪：easycrop 没有旋转能力，只能换图重开
+    var working by remember(bitmap) { mutableStateOf(bitmap) }
+    var suggestionApplied by remember(working) { mutableStateOf(false) }
 
-    LaunchedEffect(bitmap) {
-        when (val result = imageCropper.crop(bmp = bitmap.asImageBitmap())) {
+    LaunchedEffect(working) {
+        when (val result = imageCropper.crop(bmp = working.asImageBitmap())) {
             is CropResult.Success -> onConfirm(result.bitmap.asAndroidBitmap())
             CropResult.Cancelled -> onCancel()
             is CropError -> onCancel()
@@ -74,9 +79,9 @@ fun PhotoCropScreen(
         suggestionApplied = true
         val provider = cropAssistRegistry.byId(activeCropAssistId)
         if (provider.id == cropAssistRegistry.manual.id) return@LaunchedEffect
-        val suggestion = provider.suggest(bitmap)
+        val suggestion = provider.suggest(working)
         if (suggestion is CropAssistResult.SuggestedBox) {
-            applySuggestion(state, bitmap, suggestion.norm)
+            applySuggestion(state, working, suggestion.norm)
         }
     }
 
@@ -88,6 +93,8 @@ fun PhotoCropScreen(
                     CropTopBar(
                         state = state,
                         onCompareClick = { showComparison = true },
+                        onRotateLeft = { working = working.rotated(-90f) },
+                        onRotateRight = { working = working.rotated(90f) },
                     )
                 },
             )
@@ -99,10 +106,10 @@ fun PhotoCropScreen(
 
         if (showComparison) {
             CropAssistComparisonScreen(
-                bitmap = bitmap,
+                bitmap = working,
                 registry = cropAssistRegistry,
                 onApply = { norm ->
-                    cropState?.let { applySuggestion(it, bitmap, norm) }
+                    cropState?.let { applySuggestion(it, working, norm) }
                     showComparison = false
                 },
                 onDismiss = { showComparison = false },
@@ -124,7 +131,12 @@ private fun applySuggestion(state: CropState, bitmap: Bitmap, norm: CropNorm) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun CropTopBar(state: CropState, onCompareClick: () -> Unit) {
+private fun CropTopBar(
+    state: CropState,
+    onCompareClick: () -> Unit,
+    onRotateLeft: () -> Unit,
+    onRotateRight: () -> Unit,
+) {
     Surface {
         TopAppBar(
             title = { Text("裁剪题目") },
@@ -134,6 +146,12 @@ private fun CropTopBar(state: CropState, onCompareClick: () -> Unit) {
                 }
             },
             actions = {
+                IconButton(onClick = onRotateLeft) {
+                    Icon(Icons.AutoMirrored.Filled.RotateLeft, contentDescription = "左转 90°")
+                }
+                IconButton(onClick = onRotateRight) {
+                    Icon(Icons.AutoMirrored.Filled.RotateRight, contentDescription = "右转 90°")
+                }
                 IconButton(onClick = onCompareClick) {
                     Icon(Icons.Filled.Compare, contentDescription = "对比检测方案")
                 }
