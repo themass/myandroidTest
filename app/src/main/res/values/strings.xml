@@ -267,4 +267,27 @@ You are now using a non WIFI network, continue to download may consume more netw
     </string-array>
 
 
+
+    <!-- 拍照解题（移植自 ai-math/paizhao） -->
+    <string name="menu_btn_photo_solve">拍照解题</string>
+    <string name="home_title">拍照解题</string>
+    <string name="home_subtitle">拍下题目,自动识别并给出解题步骤</string>
+    <string name="home_take_photo">拍照解题</string>
+    <string name="home_pick_gallery">从相册选择</string>
+    <string name="home_permission_rationale">需要相机权限才能拍照,请允许访问相机</string>
+    <string name="home_permission_denied">相机权限被拒绝,请前往设置开启</string>
+    <string name="home_open_settings">去设置</string>
+    <string name="capture_hint">将题目对准取景框,保持画面清晰</string>
+    <string name="capture_shutter_cd">拍照</string>
+    <string name="capture_flash_cd">闪光灯</string>
+    <string name="capture_gallery_cd">从相册选择</string>
+    <string name="capture_back_cd">返回</string>
+    <string name="recognizing_step_1">识别图片中…</string>
+    <string name="recognizing_step_2">分析题目中…</string>
+    <string name="recognizing_step_3">生成解答中…</string>
+    <string name="recognizing_cancel">取消</string>
+    <string name="result_question_label">识别题目</string>
+    <string name="result_steps_label">解题步骤</string>
+    <string name="result_answer_label">最终答案</string>
+    <string name="result_retake">再拍一题</string>
 </resources>

@@ -53,6 +53,8 @@ import com.openapi.ks.myapp.ui.fragment.FavoriteFragment;
 import com.openapi.ks.myapp.ui.user.LoginActivity;
 import com.openapi.ks.myapp.ui.user.SettingActivity;
 
+import com.aimath.paizhao.PhotoSolveActivity;
+
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
@@ -344,6 +346,9 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                 } else if (item.getItemId() == R.id.menu_chat_session) {
                     name = "新建对话";
                     ChatSessionFragment.startFragment(BaseDrawerActivity.this);
+                } else if (item.getItemId() == R.id.menu_photo_solve) {
+                    name = "拍照解题";
+                    PhotoSolveActivity.Companion.start(BaseDrawerActivity.this);
                 }
                 MobAgent.onEventMenu(BaseDrawerActivity.this, name);
                 return false;

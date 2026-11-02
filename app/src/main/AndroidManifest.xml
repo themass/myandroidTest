@@ -268,6 +268,13 @@
 <!--            android:theme="@style/AppTheme"-->
 <!--            android:exported="true">-->
 <!--        </activity>-->
+        <!-- 拍照解题（移植自 ai-math/paizhao） -->
+        <activity
+            android:name="com.aimath.paizhao.PhotoSolveActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme"
+            android:windowSoftInputMode="adjustResize" />
     </application>
 
 </manifest>

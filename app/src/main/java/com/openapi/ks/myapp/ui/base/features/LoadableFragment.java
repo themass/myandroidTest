@@ -183,19 +183,36 @@ public abstract class LoadableFragment<T> extends BaseFragment {
         startQuery(false);
     }
 
+    /**
+     * onDestroyView() 会把 mLoadingView 等视图置空，但 QueryTask 的结果仍可能回到主线程调用这里，
+     * 此时直接解引用就会 NPE 把进程带崩。所有视图切换都必须先做空判断。
+     */
+    private boolean isViewDetached() {
+        return mLoadingView == null || mLoadRetryView == null || mContentView == null;
+    }
+
     protected void showLoading() {
+        if (isViewDetached()) {
+            return;
+        }
         mLoadingView.setVisibility(View.VISIBLE);
         mLoadRetryView.setVisibility(View.GONE);
         mContentView.setVisibility(View.GONE);
     }
 
     protected void hideLoading() {
+        if (isViewDetached()) {
+            return;
+        }
         mLoadingView.setVisibility(View.GONE);
         mLoadRetryView.setVisibility(View.GONE);
         mContentView.setVisibility(View.VISIBLE);
     }
 
     private void showRetry() {
+        if (isViewDetached()) {
+            return;
+        }
         mLoadingView.setVisibility(View.GONE);
         mLoadRetryView.setVisibility(View.VISIBLE);
         mContentView.setVisibility(View.GONE);
@@ -203,6 +220,9 @@ public abstract class LoadableFragment<T> extends BaseFragment {
     }
 
     private void showNodataRetry() {
+        if (isViewDetached()) {
+            return;
+        }
         mLoadingView.setVisibility(View.GONE);
         mLoadRetryView.setVisibility(View.VISIBLE);
         mContentView.setVisibility(View.GONE);
