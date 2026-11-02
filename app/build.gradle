@@ -111,15 +111,17 @@ android {
         jniLibs.srcDirs = ['libs']
     }
 
+    def appKeystore = file('/Users/liguoqing/soft/myapp/key')
+
     signingConfigs {
         config {
             keyAlias 'themass'
             keyPassword 'themass'
-            storeFile file('/Users/liguoqing/soft/myapp/key')
+            storeFile appKeystore
             storePassword 'themass'
         }
     }
-    
+
     buildTypes {
         debug {
             minifyEnabled = false
@@ -127,7 +129,10 @@ android {
             zipAlignEnabled = false
             shrinkResources = false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro', '../proguard-common.pro'
-            signingConfig = signingConfigs.config
+            // 本机没有正式 key 时回退到 Android 默认 debug key；用哪把 key 签名会影响覆盖安装
+            if (appKeystore.exists()) {
+                signingConfig = signingConfigs.config
+            }
         }
         release {
             minifyEnabled = true
