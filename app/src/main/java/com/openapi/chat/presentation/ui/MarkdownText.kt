@@ -7,8 +7,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.widget.TextViewCompat
-import io.noties.markwon.Markwon
-import io.noties.markwon.linkify.LinkifyPlugin
+import chat.ui.markdown.ChatMarkwon
+import chat.ui.markdown.FormulaInputNormalizer
 
 /**
  * Markdown 渲染。
@@ -38,10 +38,7 @@ fun MarkdownText(
             }
         },
         update = { view ->
-            val markwon = Markwon.builder(view.context)
-                .usePlugin(LinkifyPlugin.create())
-                .build()
-            markwon.setMarkdown(view, markdown)
+            ChatMarkwon.get(view.context).setMarkdown(view, FormulaInputNormalizer.forRender(markdown))
         },
     )
 }

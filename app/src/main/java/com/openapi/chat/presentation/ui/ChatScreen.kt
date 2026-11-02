@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -84,6 +85,8 @@ fun ChatScreen(
     onVoiceRecordStart: () -> Unit,
     onVoiceRecordStop: () -> Unit,
     onVoiceRecordCancel: () -> Unit,
+    /** 电话按钮：以后接 LiveKit agent 语音通话，目前由调用方决定展示什么。 */
+    onCallClick: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
@@ -134,6 +137,7 @@ fun ChatScreen(
             onVoicePressStart = onVoiceRecordStart,
             onVoicePressStop = onVoiceRecordStop,
             onVoicePressCancel = onVoiceRecordCancel,
+            onCallClick = onCallClick,
         )
     }
 }
@@ -407,6 +411,7 @@ private fun ChatInputBar(
     onVoicePressStart: () -> Unit,
     onVoicePressStop: () -> Unit,
     onVoicePressCancel: () -> Unit,
+    onCallClick: () -> Unit,
 ) {
     var showEmoji by remember { mutableStateOf(false) }
 
@@ -473,6 +478,9 @@ private fun ChatInputBar(
                     shape = RoundedCornerShape(20.dp),
                 )
 
+                IconButton(onClick = onCallClick) {
+                    Icon(Icons.Filled.Call, contentDescription = "语音通话", tint = IconTint)
+                }
                 IconButton(onClick = { showEmoji = !showEmoji }) {
                     Icon(
                         Icons.Filled.EmojiEmotions,
