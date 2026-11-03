@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: transparent; }
+  #globe { width: 100%; height: 100%; }
+  /* 允许 WebView 直接接收拖动/捏合，不被浏览器当成滚动手势处理 */
+  #globe, #globe canvas { touch-action: none; }
+  .node-x {
+    color: #FF3B30; font: 700 18px/1 sans-serif;
+    text-shadow: 0 0 6px rgba(0,0,0,0.9);
+    transform: translate(-50%, -50%); pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<div id="globe"></div>
+<script src="globe.gl.min.js"></script>
+<script>
+// 与 Android 端的协议约定：
+//   Globe3D.setNodes(nodes, selectedId)  nodes: [{id, name, lat, lng, ping}]
+//                                        ping: 毫秒；null=未测；负数=超时
+//   Globe3D.setUser(lat, lng)            用户位置（近似）
+//   Globe3D.setExit(lat, lng, label)     出口 IP 位置（网络体检结果）；传 null 清除
+//   Globe3D.setConnection(state, id)     state: 'idle' | 'connecting' | 'connected' | 'failed'
+// 节点点击回调：AndroidGlobe.onNodeClick(id)
+(function () {
+  var COLOR_CONNECTED = '#34C759';   // 绿：已连接；也用于延迟 ≤150ms
+  var COLOR_FAILED = '#FF3B30';      // 红：连接失败 / 断开；也用于超时
+  var COLOR_CONNECTING = '#FFCC00';  // 黄：连接中；也用于延迟 ≤300ms
+  var COLOR_SLOW = '#FF9F0A';        // 橙：延迟 >300ms
+  var COLOR_NODE = '#FFFFFF';        // 白：未测速
+  var COLOR_USER = '#0A84FF';        // 蓝：用户位置
+  var COLOR_EXIT = '#BF5AF2';        // 紫：出口 IP 位置（与蓝色的用户位置区分）
+
+  var state = { nodes: [], selectedId: null, user: null, exit: null, connState: 'idle', connNodeId: null };
+
+  var world = Globe()
+    (document.getElementById('globe'))
+    .globeImageUrl('earth-nasa-blue-marble-2048.jpg')
+    .backgroundColor('rgba(0,0,0,0)')
+    .showAtmosphere(true)
+    .atmosphereColor('#7cc4ff')
+    .atmosphereAltitude(0.18)
+    .pointAltitude(0.01)
+    .pointRadius(function (d) { return d.selected ? 0.9 : 0.5; })
+    .pointColor(function (d) { return d.color; })
+    .pointLabel(function (d) { return d.name; })
+    .onPointClick(function (d) {
+      if (d.id !== null && window.AndroidGlobe) { AndroidGlobe.onNodeClick(String(d.id)); }
+    })
+    .ringColor(function (d) {
+      return function (t) { return fadeRgba(d.color, 1 - t); };
+    })
+    .ringMaxRadius(function (d) { return d.maxR; })
+    .ringPropagationSpeed(function (d) { return d.speed; })
+    .ringRepeatPeriod(1300)
+    .labelText(function (d) { return d.text; })
+    .labelColor(function (d) { return d.color; })
+    .labelSize(0.7)
+    .labelDotRadius(0.35)
+    .labelAltitude(0.02)
+    .arcColor('color')
+    .arcStroke(1.1)
+    .arcDashLength(0.35)
+    .arcDashGap(0.15)
+    .arcDashAnimateTime(1600)
+    .arcAltitudeAutoScale(0.45)
+    .htmlLat('lat')
+    .htmlLng('lng')
+    .htmlAltitude(0.02)
+    .htmlElement(function () {
+      var el = document.createElement('div');
+      el.className = 'node-x';
+      el.textContent = '✗';
+      return el;
+    });
+
+  world.controls().autoRotate = true;
+  world.controls().autoRotateSpeed = 0.35;
+  // 缩放范围：不能缩到贴住地表，也不能缩得太远看不清。半径按 100 计，altitude = 距离/100 - 1。
+  world.controls().minDistance = 130;
+  world.controls().maxDistance = 450;
+  // 用户拖动时暂停自转，松手 4 秒后恢复
+  var resumeTimer = null;
+  world.controls().addEventListener('start', function () {
+    clearTimeout(resumeTimer);
+    world.controls().autoRotate = false;
+  });
+  world.controls().addEventListener('end', function () {
+    clearTimeout(resumeTimer);
+    resumeTimer = setTimeout(function () { world.controls().autoRotate = true; }, 4000);
+  });
+
+  // 初始化时容器可能还没布局（WebView 先加载后显示），尺寸为 0；这里在尺寸变化时重新适配。
+  // 镜头距离：按容器宽高比算出让地球刚好装进屏幕（留 10% 边距）的 altitude。
+  // globe.gl 默认竖向视场角 50°，窄屏时横向先放不下，所以要取两个方向较小的半视角。
+  var viewAlt = 2.5;
+  function computeViewAlt(w, h) {
+    var halfV = 25 * Math.PI / 180;
+    var halfH = Math.atan(Math.tan(halfV) * (w / h));
+    var half = Math.min(halfV, halfH) * 0.75;
+    viewAlt = Math.max(1.2, 1 / Math.sin(half) - 1);
+  }
+
+  function fit() {
+    var el = document.getElementById('globe');
+    if (el.clientWidth > 0 && el.clientHeight > 0) {
+      world.width(el.clientWidth).height(el.clientHeight);
+      computeViewAlt(el.clientWidth, el.clientHeight);
+    }
+  }
+  window.addEventListener('resize', fit);
+  fit();
+
+  world.pointOfView({ lat: 20, lng: 110, altitude: viewAlt }, 0);
+
+  // 延迟分级：未测速白色，≤150 绿，≤300 黄，更慢橙，超时红
+  function pingColor(ping) {
+    if (ping === null || ping === undefined) return COLOR_NODE;
+    if (ping < 0) return COLOR_FAILED;
+    if (ping <= 150) return COLOR_CONNECTED;
+    if (ping <= 300) return COLOR_CONNECTING;
+    return COLOR_SLOW;
+  }
+
+  function nodeColor(node) {
+    if (state.connNodeId === node.id) {
+      if (state.connState === 'connected') return COLOR_CONNECTED;
+      if (state.connState === 'connecting') return COLOR_CONNECTING;
+      if (state.connState === 'failed') return COLOR_FAILED;
+    }
+    return pingColor(node.ping);
+  }
+
+  function toRgba(hex, a) {
+    var n = parseInt(hex.slice(1), 16);
+    return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')';
+  }
+
+  function fadeRgba(color, alpha) {
+    // color 可能是 #hex 或 rgba(...)；统一输出 rgba 并替换透明度
+    if (color.charAt(0) === '#') return toRgba(color, alpha.toFixed(2));
+    return color.replace(/[\d.]+\)$/, alpha.toFixed(2) + ')');
+  }
+
+  function refresh() {
+    var points = [];
+    var rings = [];
+    var labels = [];
+    var htmlMarkers = [];
+
+    state.nodes.forEach(function (n) {
+      var c = nodeColor(n);
+      var selected = state.selectedId === n.id;
+      points.push({ id: n.id, name: n.name, lat: n.lat, lng: n.lng, color: c, selected: selected });
+      // 选中节点的波纹明显更大、更快，便于一眼找到当前节点
+      rings.push({ lat: n.lat, lng: n.lng, color: toRgba(c, 1), maxR: selected ? 5.5 : 2.4, speed: selected ? 2.2 : 1.4 });
+      if (selected) {
+        labels.push({ lat: n.lat, lng: n.lng, text: n.name, color: '#FFFFFF' });
+      }
+      if (state.connNodeId === n.id && state.connState === 'failed') {
+        htmlMarkers.push({ lat: n.lat, lng: n.lng });
+      }
+    });
+
+    if (state.user) {
+      points.push({ id: null, name: state.user.label, lat: state.user.lat, lng: state.user.lng, color: COLOR_USER, selected: false });
+      rings.push({ lat: state.user.lat, lng: state.user.lng, color: toRgba(COLOR_USER, 1), maxR: 3, speed: 1.0 });
+      labels.push({ lat: state.user.lat, lng: state.user.lng, text: state.user.label, color: COLOR_USER });
+    }
+
+    // 出口 IP：紫色点 + 波纹 + 标签 "出口 · 城市"，让人一眼看到流量从哪里出去
+    if (state.exit) {
+      var exitLabel = '出口 · ' + (state.exit.label || '');
+      points.push({ id: null, name: exitLabel, lat: state.exit.lat, lng: state.exit.lng, color: COLOR_EXIT, selected: false });
+      rings.push({ lat: state.exit.lat, lng: state.exit.lng, color: toRgba(COLOR_EXIT, 1), maxR: 3, speed: 1.0 });
+      labels.push({ lat: state.exit.lat, lng: state.exit.lng, text: exitLabel, color: COLOR_EXIT });
+    }
+
+    var arcs = [];
+    if (state.user && state.connNodeId) {
+      var target = state.nodes.filter(function (n) { return n.id === state.connNodeId; })[0];
+      if (target) {
+        var c = state.connState === 'connected' ? COLOR_CONNECTED
+          : state.connState === 'connecting' ? COLOR_CONNECTING
+          : state.connState === 'failed' ? COLOR_FAILED : null;
+        if (c) {
+          arcs.push({
+            startLat: state.user.lat, startLng: state.user.lng,
+            endLat: target.lat, endLng: target.lng,
+            color: [c, c]
+          });
+        }
+      }
+    }
+
+    world.pointsData(points)
+      .ringsData(rings)
+      .labelsData(labels)
+      .arcsData(arcs)
+      .htmlElementsData(htmlMarkers);
+  }
+
+  window.Globe3D = {
+    setNodes: function (nodes, selectedId) {
+      state.nodes = nodes || [];
+      state.selectedId = selectedId === undefined ? null : selectedId;
+      refresh();
+    },
+    setUser: function (lat, lng, label) {
+      state.user = { lat: lat, lng: lng, label: label || 'My location' };
+      refresh();
+      world.pointOfView({ lat: lat, lng: lng, altitude: viewAlt }, 1200);
+    },
+    setExit: function (lat, lng, label) {
+      state.exit = (lat === null || lng === null) ? null : { lat: lat, lng: lng, label: label || '' };
+      refresh();
+    },
+    setConnection: function (connState, nodeId) {
+      state.connState = connState;
+      state.connNodeId = nodeId;
+      refresh();
+      // 连接中也要把镜头转到两端之间，否则连线可能落在地球背面看不见
+      if (state.connState === 'connecting' || state.connState === 'connected' || state.connState === 'failed') {
+        var n = state.nodes.filter(function (x) { return x.id === nodeId; })[0];
+        if (n && state.user) {
+          world.pointOfView({
+            lat: (n.lat + state.user.lat) / 2,
+            lng: (n.lng + state.user.lng) / 2,
+            altitude: viewAlt
+          }, 1200);
+        }
+      }
+    }
+  };
+})();
+</script>
+</body>
+</html>

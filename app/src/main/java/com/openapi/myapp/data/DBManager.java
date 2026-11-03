@@ -6,6 +6,7 @@ import android.content.Context;
 import com.openapi.myapp.bean.form.DaoMaster;
 import com.openapi.myapp.bean.form.DaoSession;
 
+import org.greenrobot.greendao.database.Database;
 import org.greenrobot.greendao.query.QueryBuilder;
 
 /**
@@ -43,10 +44,25 @@ public class DBManager {
      */
     public DaoMaster getDaoMaster() {
         if (sDaoMaster == null) {
-            DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(context, DB_NAME, null);
+            DaoMaster.OpenHelper helper = new KeepDataOpenHelper(context);
             sDaoMaster = new DaoMaster(helper.getWritableDatabase());
         }
         return sDaoMaster;
+    }
+
+    /**
+     * 升级时只补建新增的表，不删除已有数据。
+     * 默认的 DevOpenHelper 会删掉全部表，那样每次升级都会丢掉未上传的 ConnLog。
+     */
+    private static final class KeepDataOpenHelper extends DaoMaster.OpenHelper {
+        KeepDataOpenHelper(Context context) {
+            super(context, DB_NAME);
+        }
+
+        @Override
+        public void onUpgrade(Database db, int oldVersion, int newVersion) {
+            DaoMaster.createAllTables(db, true);
+        }
     }
 
     /**

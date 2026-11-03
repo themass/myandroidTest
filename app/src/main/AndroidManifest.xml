@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="com.openapi.ks.free1">
+    xmlns:tools="http://schemas.android.com/tools">
     <!-- 隐私权-->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -88,6 +87,30 @@
             android:name="com.openapi.myapp.ui.user.LoginActivity"
             android:screenOrientation="portrait" />
         <activity
+            android:name="com.openapi.myapp.ui.proton.ProtonServerListActivity"
+            android:theme="@style/AppTheme"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name="com.openapi.myapp.ui.check.NetworkCheckActivity"
+            android:theme="@style/AppTheme"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name="com.openapi.myapp.ui.user.SplitTunnelingActivity"
+            android:theme="@style/AppTheme"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name="com.openapi.myapp.ui.user.SupportActivity"
+            android:theme="@style/AppTheme"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name="com.openapi.myapp.ui.reward.RewardActivity"
+            android:theme="@style/AppTheme"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name="com.openapi.myapp.ui.account.PasswordActivity"
+            android:theme="@style/AppTheme"
+            android:screenOrientation="portrait" />
+        <activity
             android:name="com.openapi.myapp.ui.user.RegActivity"
             android:screenOrientation="portrait" />
         <activity
@@ -125,11 +148,35 @@
         <service
             android:name="org.strongswan.android.logic.VpnStateService"
             android:exported="false" />
+        <!--
+            WireGuard 官方库自带的 VpnService 组件。保留，不要移除。
+            早前这里曾用 tools:node="remove" 把它删掉，理由是"同一个 App 不能有
+            两个 VpnService"——这个理由是错的：Android 的限制是运行时同一时刻只能有
+            一个 TUN 处于建立（established）状态，不是 manifest 里只能声明一个
+            VpnService 组件。GoBackend.setState() 内部用
+            startService(new Intent(context, GoBackend$VpnService.class)) 来真正
+            建立 TUN（反编译确认），移除这个声明会让 WireGuard 在运行时直接抛
+            ComponentNotFoundException，表现为"编译通过但协议完全不能用"。
+            真正的互斥已经在 CharonVpnSessionRepository.connect() 里做了：
+            切换协议前会先 disconnect() 旧引擎，两个 VpnService 组件不会同时持有 TUN。
+        -->
+        <service
+            android:name="com.wireguard.android.backend.GoBackend$VpnService"
+            android:exported="false"
+            android:permission="android.permission.BIND_VPN_SERVICE" />
         <service
             android:name="org.strongswan.android.logic.CharonVpnService"
             android:exported="false"
             android:permission="android.permission.BIND_VPN_SERVICE">
             <!--android:process="com.timeline.vpn.service.vpnservice">-->
+            <intent-filter>
+                <action android:name="android.net.VpnService" />
+            </intent-filter>
+        </service>
+        <service
+            android:name="com.openapi.data.vpn.engine.XrayVpnService"
+            android:exported="false"
+            android:permission="android.permission.BIND_VPN_SERVICE">
             <intent-filter>
                 <action android:name="android.net.VpnService" />
             </intent-filter>
@@ -148,6 +195,15 @@
 <!--            android:name="com.google.android.gms.version"-->
 <!--            android:value="@integer/google_play_services_version" />-->
 
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.share"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/share_paths" />
+        </provider>
     </application>
 
 </manifest>

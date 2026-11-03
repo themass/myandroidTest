@@ -30,6 +30,12 @@ public class Constants {
     public static final int VIP_SHIMMER_DURATION = 2300;
     public static final int RECOMMAND_SHIMMER_DURATION = 1500;
     public static final int VPN_CHECK_TIME = 6000; //启动页广告时长
+    /**
+     * 单次连接尝试的总超时上限（毫秒）。
+     * 覆盖 ReconnectPolicy 的全部退避窗口（2+4+8+16+30=60s）再加余量，
+     * 避免 UI watchdog 在仓库层还在自动重试时就误判"卡死"而强行打断。
+     */
+    public static final long VPN_CONNECT_TIMEOUT = 75_000L;
     public static int PROBABILITY =4;
     public static final int ADS_JISHI = -1;
     public static final String HTTP_URL = "http";
@@ -51,6 +57,16 @@ public class Constants {
     public static final String LOGIN_USER_LAST = "LOGIN_USER_LAST";
     public static final String SOUND_SWITCH = "SOUND_SWITCH";
     public static final String NOTIFY_SWITCH = "NOTIFY_SWITCH";
+    /** 连接动画样式：false=原雷达扫描（默认），true=波纹扩散。 */
+    public static final String PULSE_STYLE = "PULSE_STYLE";
+    /** 节点列表样式：true=卡片式（默认），false=原行式。 */
+    public static final String LIST_CARD_STYLE = "LIST_CARD_STYLE";
+    /** 首页是否显示 3D 地球（默认开）。 */
+    public static final String GLOBE_VIEW = "GLOBE_VIEW";
+    /** 新版深色首页：地球 + 连接按钮 + 当前节点卡片；节点列表独立成页。默认开。 */
+    public static final String NEW_HOME_LAYOUT = "NEW_HOME_LAYOUT";
+    /** 首页改用 ProtonVPN 风格（Compose）；默认关，保留地球版。 */
+    public static final String PROTON_HOME = "PROTON_HOME";
     public static final String LOGIN_USER_PW_LAST = "LOGIN_USER_PW_LAST";
     public static final String DEVID = "Devid";
     public static final String HTTP_TOKEN_KEY = "Vpn-Token";
@@ -79,6 +95,17 @@ public class Constants {
     public static final String API_LOCATION_VIP_URL = "/host/server/location/vip/cache.json";
     public static final String API_LOGIN_URL = "/user/login.json";
     public static final String API_REG_URL = "/user/reg.json";
+    /** 当前用户的邀请码（没有则服务端生成）。 */
+    public static final String API_INVITE_URL = "/user/invite.json";
+    public static final String API_REWARD_STATUS_URL = "/reward/status.json";
+    public static final String API_REWARD_REDEEM_URL = "/reward/redeem.json";
+    /** 隐私政策页面。 */
+    /** 联系邮箱（关于 / 联系页）。 */
+    public static final String SUPPORT_EMAIL = "justbegin010@gmail.com";
+    public static final String PRIVACY_URL = "http://file.ok123find.top/file/privacy-policy-kimi.html";
+    public static final String API_FINDPASS_URL = "/user/findpass.json";
+    public static final String API_RESETPASS_URL = "/user/resetpass.json";
+    public static final String API_CHANGEPASS_URL = "/user/changepass.json";
     public static final String API_USER_INFO_URL = "/user/info.json";
 
     public static final String API_IWANNA_URL = "/data/feed/wanna.json?start=%s&limit=30";
@@ -99,6 +126,15 @@ public class Constants {
     public static final String API_DEL_CUSTOME = "/user/custome/del.json";
     public static final String API_EMU = "/monitor/emulator.json";
     public static final String API_DONATION_URL = "/data/donation.json";
+
+    /*
+     * WireGuard 身份注册。
+     * 设计说明（后端尚未实现，这是客户端侧的契约草案，见 WireGuardRegistrationUtil）：
+     * - 请求体：{ deviceId, publicKey }，publicKey 为本机长期公钥（Base64）。
+     * - 响应：{ code, msg }，code==0 表示注册/更新成功。
+     * - 幂等：同一 deviceId 重复提交应覆盖旧公钥（设备更换密钥、重装 App 场景）。
+     */
+    public static final String API_WG_REGISTER_URL = "/host/wg/register.json";
 
 
     public static final VpnType mVpnType = VpnType.IKEV2_CERT;
@@ -139,6 +175,8 @@ public class Constants {
     public static String ABOUT = "http://file.ok123find.top/about.html";
 
     public static String IP_ADDRESS = "http://www.geoplugin.net/json.gp?ip=";
+    /** 不带参数时 geoplugin 返回发起请求端的 IP 与归属地，用于网络体检查询出口 IP。 */
+    public static final String IP_GEO_SELF = "http://www.geoplugin.net/json.gp";
     public static String USER_STATUS = "USER_STATUS";
     //        public static String BASE_IP = "192.168.1.12:8080";
 //    public static String BASE_IP = "10.33.65.180:8080";
@@ -146,9 +184,11 @@ public class Constants {
     public static int NULL_VIEW = -1;
     public static List<String> colorBg = Arrays.asList("#552d5d82", "#55135689", "#552292e9", "#5583878b", "#7f8d8f45", "#ffc49924", "#ff83713f", "#ff569b2b", "#ff882b9b");
 
+    /** API 主地址走 HTTPS（AdMob 服务端验证要求，且登录口令不能明文传输）。 */
     public static String getUrl(String uri) {
-        return "http://" + BASE_IP + "/vvv/api" + uri;
+        return "https://" + BASE_IP + "/vvv/api" + uri;
     }
+    /** 备用地址 api.faceopen.top 尚未配置 HTTPS，暂时保持 http，配好证书后再切。 */
     public static String getUrlHost(String uri) {
         return "http://" + BASE_IP_BAK + "/vvv/api" + uri;
     }
@@ -190,7 +230,8 @@ public class Constants {
 
 
     public static final String ADMOB_REWARD_ID_TEST="ca-app-pub-3940256099942544/5224354917";
-    public static final String ADMOB_REWARD_ID="ca-app-pub-6599725010915516/3828026144";
+    /** 激励视频广告单元（AdMob 后台新建，用于服务端验证回调）。 */
+    public static final String ADMOB_REWARD_ID="ca-app-pub-6599725010915516/3228875437";
 
     public static final String ADMOB_BANNER_ID="ca-app-pub-6599725010915516/9607553162";
     public static final String ADMOB_BANNER_ID_TEST="ca-app-pub-3940256099942544/6300978111";

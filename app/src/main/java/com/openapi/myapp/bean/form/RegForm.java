@@ -12,6 +12,8 @@ public class RegForm {
     public String code;
     public String email;
     public String ref;
+    /** 邀请码（可选），由服务端发放双方各 1 张观看券。 */
+    public String inviteCode;
 
     public RegForm(String name, String pwd, String rePwd, String sex, String email, String ref) {
         this.name = name;

@@ -19,9 +19,6 @@ import com.openapi.ks.free1.R;
 
 import java.util.regex.Pattern;
 
-import butterknife.BindView;
-import butterknife.OnClick;
-
 /**
  * Created by dengt on 2016/8/13.
  */
@@ -29,21 +26,14 @@ public class RegActivity extends BaseSingleActivity {
     private static final String TAG = "login_tag";
     private final Pattern passPattern = Pattern.compile("[0-9A-Za-z]{6,10}");
     private final Pattern namePattern = Pattern.compile("[a-zA-Z0-9]{3,20}");
-    @BindView(R.id.ll_loading)
     LinearLayout loading;
-    @BindView(R.id.et_username)
     EditText etUserName;
-    @BindView(R.id.et_password)
     EditText etPassword;
-    @BindView(R.id.et_repassword)
     EditText etRePassword;
-    @BindView(R.id.et_ref)
     EditText etRef;
-    @BindView(R.id.btn_reg)
+    EditText etInvite;
     Button btnReg;
-    @BindView(R.id.btn_login)
     Button btnLogin;
-    @BindView(R.id.sex)
     RadioGroup radioGroup;
     BaseService baseService;
     CommonResponse.ResponseOkListener loginListener = new CommonResponse.ResponseOkListener<NullReturnVo>() {
@@ -59,18 +49,27 @@ public class RegActivity extends BaseSingleActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_reg);
         setToolbarTitle(R.string.reg, true);
+        loading = findViewById(R.id.ll_loading);
+        etUserName = findViewById(R.id.et_username);
+        etPassword = findViewById(R.id.et_password);
+        etRePassword = findViewById(R.id.et_repassword);
+        etRef = findViewById(R.id.et_ref);
+        etInvite = findViewById(R.id.et_invite);
+        btnReg = findViewById(R.id.btn_reg);
+        btnLogin = findViewById(R.id.btn_login);
+        radioGroup = findViewById(R.id.sex);
+        findViewById(R.id.btn_login).setOnClickListener(this::login);
+        findViewById(R.id.btn_reg).setOnClickListener(this::reg);
         baseService = new BaseService();
         baseService.setup(this);
     }
 
 
-    @OnClick(R.id.btn_login)
     public void login(View view) {
         finish();
         startActivity(LoginActivity.class);
     }
 
-    @OnClick(R.id.btn_reg)
     public void reg(View view) {
         String name = etUserName.getText().toString();
         String pwd = etPassword.getText().toString();
@@ -99,6 +98,7 @@ public class RegActivity extends BaseSingleActivity {
         setEnabled(false);
         String refName = etRef.getText().toString();
         RegForm form = new RegForm(name, pwd, repwd, sex,"test@gmail.com",StringUtils.isEmpty(refName)?Constants.ADMIN:refName);
+        form.inviteCode = etInvite.getText().toString().trim();
         baseService.postData(Constants.getUrl(Constants.API_REG_URL), form, loginListener, new CommonResponse.ResponseErrorListener() {
             @Override
             protected void onError() {
