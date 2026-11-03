@@ -37,3 +37,10 @@ app/src/main/jni/openssl/
 app/src/main/jni/strongswan/
 .idea/
 app/src/main/obj/
+
+# Signing secrets
+keystore.properties
+
+# NDK/CMake 中间产物（本地编译生成，不提交）
+app/.cxx/
+.cxx/
