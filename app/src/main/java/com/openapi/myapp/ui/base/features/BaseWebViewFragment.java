@@ -26,8 +26,6 @@ import com.openapi.ks.free1.R;
 import com.openapi.myapp.base.MyApplication;
 import com.openapi.myapp.constant.Constants;
 
-import butterknife.BindView;
-
 /**
  * Created by dengt on 2016/3/21.
  */
@@ -35,9 +33,7 @@ public class BaseWebViewFragment extends BaseFragment {
     public static final String PARAM_WEB_VIEW_CAN_GO_BACK = "PARAM_WEB_VIEW_CAN_GO_BACK";
     public static final String TAG_FROM = "BaseWebViewFragment_TAG_FROM";
     public static final int TAG_FROM_DEFAULT = 0x0000;
-    @BindView(R.id.wv_content)
     MyWebView webView;
-    @BindView(R.id.progressbar)
     ProgressBar progressbar;
     CookieManager cookieManager = null;
     private boolean mFirstPageLoad = true;
@@ -48,6 +44,13 @@ public class BaseWebViewFragment extends BaseFragment {
     @Override
     protected int getRootViewId() {
         return R.layout.base_webview_layout;
+    }
+
+    @Override
+    protected void bindViews(View view) {
+        super.bindViews(view);
+        webView = view.findViewById(R.id.wv_content);
+        progressbar = view.findViewById(R.id.progressbar);
     }
 
     @Override

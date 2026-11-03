@@ -25,7 +25,6 @@ import com.openapi.yewu.ads.base.AdsContext;
 import com.openapi.yewu.ads.base.AdsManager;
 import com.openapi.yewu.ads.base.BaseRewardManger;
 import com.openapi.yewu.ads.base.RewardInterface;
-import com.openapi.yewu.um.MobAgent;
 import com.openapi.myapp.constant.Constants;
 import com.openapi.myapp.data.ConnLogUtil;
 import com.openapi.myapp.data.config.ConfigActionJump;
@@ -64,8 +63,8 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_main_viewpage);
-        startService(CharonVpnService.class);
-        startService(CharonVpnService.class);
+        // 不在 onCreate 里启动 CharonVpnService：App 从后台拉起时 Android 12+ 会禁止后台启动服务并崩溃。
+        // 连接时由 VpnStateService 在用户操作的前台路径里启动它。
         EventBusUtil.getEventBus().register(jump);
         admobRewardManger = new BaseRewardManger(this,this);
     }
@@ -167,7 +166,6 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         EventBusUtil.getEventBus().unregister(jump);
         admobRewardManger.onAdDestroy();
         super.onDestroy();
-        MobAgent.killProcess(this);
         System.exit(0);
     }
 

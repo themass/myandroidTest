@@ -4,8 +4,8 @@
 
     <size
         android:width="2dp"
-        android:height="2dp" />
+        android:height="8dp" />
 
-    <solid android:color="@color/base_white" />
+    <solid android:color="@color/pv_bg" />
 
 </shape>

@@ -21,9 +21,6 @@ import com.openapi.ks.free1.R;
 import java.util.Date;
 import java.util.List;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-
 /**
  * Created by froger_mcs on 05.11.14.
  */
@@ -91,26 +88,25 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
     public static class CellFeedViewHolder extends RecyclerView.ViewHolder {
-        @BindView(R.id.iv_heart)
         public ImageView imageView;
-        @BindView(R.id.tv_content)
         public TextView tvContent;
-        @BindView(R.id.tsLikesCounter)
         public TextSwitcher tsLikesCounter;
         public IWannaVo feedItem;
-        @BindView(R.id.iv_ok)
         ImageView ivOk;
-        @BindView(R.id.tv_app_name)
         public TextView appName;
-        @BindView(R.id.tv_where)
         public TextView tvWhere;
-        @BindView(R.id.tv_name)
         public TextView name;
-        @BindView(R.id.tv_time)
         public TextView time;
         public CellFeedViewHolder(View view) {
             super(view);
-            ButterKnife.bind(this, view);
+            imageView = view.findViewById(R.id.iv_heart);
+            tvContent = view.findViewById(R.id.tv_content);
+            tsLikesCounter = view.findViewById(R.id.tsLikesCounter);
+            ivOk = view.findViewById(R.id.iv_ok);
+            appName = view.findViewById(R.id.tv_app_name);
+            tvWhere = view.findViewById(R.id.tv_where);
+            name = view.findViewById(R.id.tv_name);
+            time = view.findViewById(R.id.tv_time);
         }
 
         public void bindView(IWannaVo feedItem) {

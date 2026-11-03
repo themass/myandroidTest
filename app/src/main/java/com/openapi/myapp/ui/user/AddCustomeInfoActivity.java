@@ -25,33 +25,20 @@ import com.openapi.myapp.data.config.CustomeAddEvent;
 import com.openapi.myapp.data.urlparser.CustomeAddFormParser;
 import com.openapi.myapp.ui.base.app.BaseSingleActivity;
 
-import butterknife.BindView;
-import butterknife.OnClick;
-
-
 /**
  * Created by dengt on 2016/3/17.
  */
 public class AddCustomeInfoActivity extends BaseSingleActivity {
     public static final String PARAM = "CUSTOMEPARA";
     private static final String TAG = "customeadd_tag";
-    @BindView(R.id.ll_loading)
     LinearLayout loading;
-    @BindView(R.id.et_title)
     MyEditText etTitle;
-    @BindView(R.id.et_url)
     SiteAutoCompleteTextView etUrl;
-    @BindView(R.id.open_mode)
     RadioGroup radioGroup;
-    @BindView(R.id.open_schema)
     RadioGroup radioSchemaGroup;
-    @BindView(R.id.http)
     RadioButton radioSchemaHttp;
-    @BindView(R.id.https)
     RadioButton radioSchemaHttps;
-    @BindView(R.id.open_local)
     RadioButton radioOpenLocal;
-    @BindView(R.id.open_browser)
     RadioButton radioOpenBrowser;
     BaseService baseService;
     private CustomeAddForm form;
@@ -82,6 +69,16 @@ public class AddCustomeInfoActivity extends BaseSingleActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_add_custome);
         setToolbarTitle(R.string.custome_title, true);
+        loading = findViewById(R.id.ll_loading);
+        etTitle = findViewById(R.id.et_title);
+        etUrl = findViewById(R.id.et_url);
+        radioGroup = findViewById(R.id.open_mode);
+        radioSchemaGroup = findViewById(R.id.open_schema);
+        radioSchemaHttp = findViewById(R.id.http);
+        radioSchemaHttps = findViewById(R.id.https);
+        radioOpenLocal = findViewById(R.id.open_local);
+        radioOpenBrowser = findViewById(R.id.open_browser);
+        findViewById(R.id.btn_save).setOnClickListener(this::save);
         baseService = new BaseService();
         baseService.setup(this);
         form = (CustomeAddForm) getIntent().getSerializableExtra(PARAM);
@@ -107,7 +104,6 @@ public class AddCustomeInfoActivity extends BaseSingleActivity {
 
     }
 
-    @OnClick(R.id.btn_save)
     public void save(View view) {
         form.title = etTitle.getText().toString();
         form.uri = etUrl.getText().toString();

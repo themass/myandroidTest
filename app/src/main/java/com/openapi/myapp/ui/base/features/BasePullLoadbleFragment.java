@@ -19,15 +19,12 @@ import com.openapi.myapp.bean.vo.InfoListVo;
 import com.openapi.myapp.data.BaseService;
 import com.openapi.ks.free1.R;
 
-import butterknife.BindView;
-
 
 /**
  * Created by dengt on 2016/8/12.
  */
 public abstract class BasePullLoadbleFragment<T> extends LoadableFragment<InfoListVo<T>> implements MyPullView.OnRefreshListener, BaseRecyclerViewAdapter.OnRecyclerViewItemClickListener<T> {
     @Nullable
-    @BindView(R.id.my_pullview)
     public MyPullView pullView;
     public InfoListVo<T> infoListVo = new InfoListVo<T>();
     @Override
@@ -38,6 +35,7 @@ public abstract class BasePullLoadbleFragment<T> extends LoadableFragment<InfoLi
     @Override
     public void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
+        pullView = view.findViewById(R.id.my_pullview);
         indexService = new BaseService();
         indexService.setup(getActivity());
         initPullView();

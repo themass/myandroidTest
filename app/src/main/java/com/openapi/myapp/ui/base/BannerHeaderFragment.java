@@ -17,13 +17,10 @@ import com.openapi.ks.free1.R;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import butterknife.BindView;
-
 /**
  * Created by dengt on 2016/8/21.
  */
 public class BannerHeaderFragment extends BaseFragment {
-    @BindView(R.id.fl_banner)
     public ViewGroup flBanner;
     private AdsGoneTask task = new AdsGoneTask();
     protected Handler mHandler = new Handler();
@@ -37,6 +34,12 @@ public class BannerHeaderFragment extends BaseFragment {
     @Override
     protected int getRootViewId() {
         return R.layout.common_banner;
+    }
+
+    @Override
+    protected void bindViews(View view) {
+        super.bindViews(view);
+        flBanner = view.findViewById(R.id.fl_banner);
     }
 
     @Override

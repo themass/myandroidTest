@@ -1,7 +1,6 @@
 package com.openapi.myapp.adapter;
 
 import android.content.Context;
-import android.graphics.Color;
 import androidx.annotation.Nullable;
 import androidx.cardview.widget.CardView;
 
@@ -30,8 +29,6 @@ import com.openapi.myapp.data.VersionUpdater;
 import com.openapi.ks.free1.R;
 
 import java.util.List;
-
-import butterknife.BindView;
 
 /**
  * Created by Miroslaw Stanek on 20.01.15.
@@ -117,6 +114,11 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
         holder.ivPhoto.setImageResource(0);
         holder.ivTitle.setText(vo.title);
         holder.tvTitleBelow.setText(vo.title);
+        if (holder.tvUrl != null) {
+            boolean show = StringUtils.hasText(vo.actionUrl) && !vo.adsShow;
+            holder.tvUrl.setText(hostOf(vo.actionUrl));
+            holder.tvUrl.setVisibility(show ? View.VISIBLE : View.GONE);
+        }
         if (!StringUtils.hasText(vo.color)) {
             vo.color = Constants.colorBg.get(position % Constants.colorBg.size());
         }
@@ -148,7 +150,8 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
                 holder.ivNew.setBackgroundResource(R.drawable.ic_vip4);
             }
         }
-        holder.ivPhoto.setBackgroundColor(Color.parseColor(vo.color));
+        // 不再使用后端下发的 vo.color（会出现刺眼的粉色块），统一用深色卡片底。
+        holder.ivPhoto.setBackgroundResource(R.drawable.pv_bg_card);
         if(vo.rate==0){
             ViewGroup.LayoutParams ivPhotoParam = holder.ivPhoto.getLayoutParams();
             ivPhotoParam.width = imgWidth;
@@ -172,28 +175,40 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
     }
 
     public static class NaviItemViewHolder extends BasePhotoFlowRecycleViewAdapter.BaseViewHolder {
-        @BindView(R.id.card_view)
         public CardView cardView;
-        @BindView(R.id.fl_img)
         public FrameLayout flImg;
-        @BindView(R.id.tv_title)
         public ShimmerTextView ivTitle;
-        @BindView(R.id.iv_photo)
         public ImageView ivPhoto;
-        @BindView(R.id.iv_edit)
         public ImageView ivEdit;
-        @BindView(R.id.ads_logo)
         public TextView ivADS;
-        @BindView(R.id.iv_new)
         public View ivNew;
-        @BindView(R.id.tv_title_below)
         public TextView tvTitleBelow;
+        public TextView tvUrl;
         @Nullable
-        @BindView(R.id.natvieView)
         RelativeLayout natvieView;
         public NaviItemViewHolder(View view) {
             super(view);
+            cardView = view.findViewById(R.id.card_view);
+            flImg = view.findViewById(R.id.fl_img);
+            ivTitle = view.findViewById(R.id.tv_title);
+            ivPhoto = view.findViewById(R.id.iv_photo);
+            ivEdit = view.findViewById(R.id.iv_edit);
+            ivADS = view.findViewById(R.id.ads_logo);
+            ivNew = view.findViewById(R.id.iv_new);
+            tvTitleBelow = view.findViewById(R.id.tv_title_below);
+            tvUrl = view.findViewById(R.id.tv_url);
+            natvieView = view.findViewById(R.id.natvieView);
         }
     }
 
+
+    /** 只显示网址的域名部分，列表里更干净；解析失败时原样显示。 */
+    private static String hostOf(String url) {
+        try {
+            String host = android.net.Uri.parse(url).getHost();
+            return host != null && !host.isEmpty() ? host : url;
+        } catch (Exception e) {
+            return url;
+        }
+    }
 }

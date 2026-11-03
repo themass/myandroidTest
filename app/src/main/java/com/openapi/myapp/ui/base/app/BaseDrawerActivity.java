@@ -27,7 +27,6 @@ import com.openapi.myapp.bean.vo.DomainVo;
 import com.openapi.myapp.ui.fragment.DonationListFragment;
 import com.openapi.yewu.ads.base.AdsManager;
 import com.openapi.yewu.net.request.CommonResponse;
-import com.openapi.yewu.um.MobAgent;
 import com.openapi.myapp.base.MyApplication;
 import com.openapi.myapp.bean.vo.UserInfoVo;
 import com.openapi.myapp.constant.Constants;
@@ -50,17 +49,13 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.Date;
 
-import butterknife.BindView;
-
 /**
  * Created by Miroslaw Stanek on 15.07.15.
  */
 public class BaseDrawerActivity extends BaseToolBarActivity {
     @Nullable
-    @BindView(R.id.drawerLayout)
     public DrawerLayout drawerLayout;
     @Nullable
-    @BindView(R.id.nv_drawer)
     NavigationView nvDrawer;
     View headerView;
     LinearLayout llLoginMenuHeader;
@@ -92,6 +87,8 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         ViewGroup viewGroup = (ViewGroup) findViewById(R.id.fl_content_root);
         LayoutInflater.from(this).inflate(layoutResID, viewGroup, true);
         bindViews();
+        drawerLayout = findViewById(R.id.drawerLayout);
+        nvDrawer = findViewById(R.id.nv_drawer);
         setupToolbar();
         miLogout = nvDrawer.getMenu().findItem(R.id.menu_louout);
         miLocation = nvDrawer.getMenu().findItem(R.id.menu_location);
@@ -333,7 +330,6 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                     name = "付款";
                     DonationListFragment.startFragment(BaseDrawerActivity.this);
                 }
-                MobAgent.onEventMenu(BaseDrawerActivity.this, name);
                 return false;
             }
         });
@@ -351,12 +347,10 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        MobAgent.onPauseForFragmentActiviy(this);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        MobAgent.onResumeForFragmentActiviy(this);
     }
 }

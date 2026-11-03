@@ -17,24 +17,16 @@ import com.openapi.ks.free1.R;
 
 import java.lang.reflect.Field;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.Unbinder;
-
 /**
  * Created by Miroslaw Stanek on 19.01.15.
  */
 public abstract class BaseToolBarActivity extends BaseWeatherMenuActivity {
 
     @Nullable
-    @BindView(R.id.toolbar)
     Toolbar toolbar;
-    @BindView(R.id.tv_title)
     TextView tvTitle;
     @Nullable
-    @BindView(R.id.fl_body)
     ViewGroup flBody;
-    private Unbinder unbinder;
 
     @Override
     public void setContentView(int layoutResID) {
@@ -50,7 +42,9 @@ public abstract class BaseToolBarActivity extends BaseWeatherMenuActivity {
     }
 
     protected void bindViews() {
-        unbinder = ButterKnife.bind(this);
+        toolbar = findViewById(R.id.toolbar);
+        tvTitle = findViewById(R.id.tv_title);
+        flBody = findViewById(R.id.fl_body);
         setupView();
     }
 
@@ -89,7 +83,6 @@ public abstract class BaseToolBarActivity extends BaseWeatherMenuActivity {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        unbinder.unbind();
     }
 
     public void startActivity(Class<? extends Activity> c) {

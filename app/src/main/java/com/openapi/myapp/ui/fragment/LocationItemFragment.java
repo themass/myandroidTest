@@ -15,6 +15,7 @@ import com.openapi.common.util.ToastUtil;
 import com.openapi.myapp.adapter.LocationItemAdapter;
 import com.openapi.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.openapi.myapp.bean.vo.InfoListVo;
+import com.openapi.myapp.data.LocationFilter;
 import com.openapi.myapp.bean.vo.LocationVo;
 import com.openapi.myapp.bean.vo.VipLocationVo;
 import com.openapi.myapp.constant.Constants;
@@ -75,15 +76,35 @@ public class LocationItemFragment extends BasePullLoadbleFragment<LocationVo> {
     @Override
     protected InfoListVo<LocationVo> loadData(Context context) throws Exception {
         if(!pullView.isRefreshing() && !CollectionUtils.isEmpty(vipLocationVo.list) ) {
-            InfoListVo<LocationVo> data = new InfoListVo();
-            data.hasMore = false;
-            data.pageNum = 1;
-            data.total = vipLocationVo.list.size();
-            data.voList = vipLocationVo.list;
-            return data;
+            return rebuildFromLocal();
         }
         return indexService.getInfoListData(Constants.getUrlWithParam(Constants.API_LOCATION_URL,vipLocationVo.type), LocationVo.class, LOCATION_TAG);
     }
+
+    /** “Best / Auto” 占位节点的 id，不会与真实节点冲突。 */
+    public static final int BEST_ID = -1;
+
+    private InfoListVo<LocationVo> rebuildFromLocal() {
+        InfoListVo<LocationVo> data = new InfoListVo<>();
+        data.hasMore = false;
+        data.pageNum = 1;
+        List<LocationVo> sorted = LocationFilter.sortByPing(vipLocationVo.list);
+        sorted.add(0, bestPlaceholder());
+        data.total = sorted.size();
+        data.voList = sorted;
+        return data;
+    }
+
+    private LocationVo bestPlaceholder() {
+        LocationVo best = new LocationVo();
+        best.id = BEST_ID;
+        best.ename = "Best / Auto";
+        best.name = "Best route";
+        best.type = vipLocationVo.type;
+        best.category = "auto";
+        return best;
+    }
+
 
     @Override
     public void onResume() {
@@ -117,6 +138,16 @@ public class LocationItemFragment extends BasePullLoadbleFragment<LocationVo> {
     }
     @Override
     public void onItemClick(View view, LocationVo data, int postion) {
+        if (data.id == BEST_ID) {
+            LocationVo best = LocationFilter.bestOf(vipLocationVo.list);
+            if (best == null) {
+                ToastUtil.showShort(R.string.ping_wait);
+                EventBusUtil.getEventBus().post(new PingEvent());
+                return;
+            }
+            // Best 只是挑选器，选出的仍是真实节点，后面的 VIP 检查与保存流程完全不变。
+            data = best;
+        }
         if(UserLoginUtil.getUserCache()==null){
             if(vipLocationVo.type!=0){
                 ToastUtil.showRedLong(vipLocationVo.desc);

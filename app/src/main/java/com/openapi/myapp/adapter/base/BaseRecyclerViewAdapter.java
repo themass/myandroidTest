@@ -10,8 +10,6 @@ import com.openapi.ks.free1.R;
 import java.util.ArrayList;
 import java.util.List;
 
-import butterknife.ButterKnife;
-
 /**
  * Created by dengt on 2016/8/13.
  */
@@ -155,7 +153,6 @@ public abstract class BaseRecyclerViewAdapter<T extends BaseRecyclerViewAdapter.
 
         public BaseRecyclerViewHolder(View itemView, View.OnClickListener l, View.OnLongClickListener longListener) {
             super(itemView);
-            ButterKnife.bind(this, itemView);
             v = itemView;
             if(l!=null)
                 v.setOnClickListener(l);

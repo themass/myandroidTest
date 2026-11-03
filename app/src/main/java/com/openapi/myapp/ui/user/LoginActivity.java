@@ -1,5 +1,6 @@
 package com.openapi.myapp.ui.user;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -20,24 +21,16 @@ import com.openapi.myapp.ui.base.app.BaseSingleActivity;
 
 import java.util.regex.Pattern;
 
-import butterknife.BindView;
-import butterknife.OnClick;
-
 /**
  * Created by dengt on 2016/8/13.
  */
 public class LoginActivity extends BaseSingleActivity {
     private static final String TAG = "login_tag";
     private final Pattern namePattern = Pattern.compile("[a-zA-Z0-9]{3,20}");
-    @BindView(R.id.ll_loading)
     LinearLayout loading;
-    @BindView(R.id.et_username)
     EditText etUserName;
-    @BindView(R.id.et_password)
     EditText etPassword;
-    @BindView(R.id.btn_login)
     Button btnLogin;
-    @BindView(R.id.btn_reg)
     Button btnReg;
     BaseService baseService;
     CommonResponse.ResponseOkListener loginListener = new CommonResponse.ResponseOkListener<UserInfoVo>() {
@@ -54,6 +47,13 @@ public class LoginActivity extends BaseSingleActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_login);
         setToolbarTitle(R.string.login, true);
+        loading = findViewById(R.id.ll_loading);
+        etUserName = findViewById(R.id.et_username);
+        etPassword = findViewById(R.id.et_password);
+        btnLogin = findViewById(R.id.btn_login);
+        btnReg = findViewById(R.id.btn_reg);
+        findViewById(R.id.btn_reg).setOnClickListener(this::reg);
+        findViewById(R.id.btn_login).setOnClickListener(this::login);
         baseService = new BaseService();
         baseService.setup(this);
         String name = PreferenceUtils.getPrefString(this, Constants.LOGIN_USER_LAST, null);
@@ -67,12 +67,10 @@ public class LoginActivity extends BaseSingleActivity {
 
     }
 
-    @OnClick(R.id.btn_reg)
     public void reg(View view) {
         finish();
         startActivity(RegActivity.class);
     }
-    @OnClick(R.id.btn_login)
     public void login(View view) {
         String name = etUserName.getText().toString();
         String pwd = etPassword.getText().toString();
@@ -135,5 +133,12 @@ public class LoginActivity extends BaseSingleActivity {
     @Override
     public boolean needShow() {
         return false;
+    }
+
+    /** 忘记密码：进入找回密码页面。 */
+    public void onForgotPassword(View view) {
+        startActivity(new Intent(this, com.openapi.myapp.ui.account.PasswordActivity.class)
+                .putExtra(com.openapi.myapp.ui.account.PasswordActivity.EXTRA_MODE,
+                        com.openapi.myapp.ui.account.PasswordActivity.MODE_FORGOT));
     }
 }

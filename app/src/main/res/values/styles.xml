@@ -17,9 +17,9 @@
     <style name="ApplicationTheme" parent="@android:style/Theme.Holo" />
 
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <item name="colorPrimary">@color/style_color_primary</item>
-        <item name="colorPrimaryDark">@color/style_color_primary_dark</item>
-        <item name="colorAccent">@color/style_color_accent</item>
+        <item name="colorPrimary">@color/pv_bg</item>
+        <item name="colorPrimaryDark">@color/pv_bg</item>
+        <item name="colorAccent">@color/pv_green</item>
         <item name="colorControlHighlight">@color/fab_color_pressed</item>
         <item name="android:windowAnimationStyle">@style/AnimationActivity</item>
         <item name="actionOverflowMenuStyle">@style/OverflowMenuStyle</item>

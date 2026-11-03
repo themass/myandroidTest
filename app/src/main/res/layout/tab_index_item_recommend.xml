@@ -21,6 +21,7 @@
             android:foreground="?android:attr/selectableItemBackground"
             android:gravity="center"
             card_view:cardCornerRadius="8dp"
+            card_view:cardBackgroundColor="@color/pv_card"
             card_view:cardUseCompatPadding="false">
 
             <LinearLayout
@@ -55,7 +56,7 @@
                         android:ellipsize="end"
                         android:gravity="center_horizontal"
                         android:singleLine="true"
-                        android:textColor="@color/base_black"
+                        android:textColor="@color/pv_text_primary"
                         android:textSize="@dimen/recommend_hit_size" />
                     <TextView
                         android:id="@+id/ads_logo"
@@ -75,12 +76,23 @@
                     android:id="@+id/tv_title_below"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/base_black"
+                    android:textColor="@color/pv_text_primary"
                     android:paddingBottom="@dimen/margin_3"
                     android:paddingTop="@dimen/margin_3"
                     android:gravity="center"
                     android:maxLines="2"
                     android:textSize="@dimen/textsize_14"/>
+                <TextView
+                    android:id="@+id/tv_url"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="middle"
+                    android:gravity="center"
+                    android:maxLines="1"
+                    android:paddingBottom="@dimen/margin_5"
+                    android:textColor="@color/pv_text_secondary"
+                    android:textSize="@dimen/textsize_12"
+                    android:visibility="gone"/>
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 

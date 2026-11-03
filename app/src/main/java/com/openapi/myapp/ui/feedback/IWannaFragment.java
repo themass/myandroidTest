@@ -35,19 +35,13 @@ import com.openapi.ks.free1.R;
 
 import java.util.ArrayList;
 
-import butterknife.BindView;
-import butterknife.OnClick;
-
 /**
  * Created by dengt on 2016/9/5.
  */
 public class IWannaFragment extends LoadableFragment<InfoListVo<IWannaVo>> implements FeedAdapter.OnFeedItemClickListener, MyPullView.OnRefreshListener, FabOpListener.SetFabListener {
     private static String TAG = "IWANNA";
-    @BindView(R.id.my_pullview)
     MyPullView pullView;
-    @BindView(R.id.ll_comment)
     RelativeLayout rlComment;
-    @BindView(R.id.et_comment)
     EditText etComment;
     FeedAdapter feedAdapter;
     private BaseService indexService;
@@ -86,6 +80,10 @@ public class IWannaFragment extends LoadableFragment<InfoListVo<IWannaVo>> imple
     @Override
     protected void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
+        pullView = view.findViewById(R.id.my_pullview);
+        rlComment = view.findViewById(R.id.ll_comment);
+        etComment = view.findViewById(R.id.et_comment);
+        view.findViewById(R.id.send).setOnClickListener(this::send);
         indexService = new BaseService();
         indexService.setup(getActivity());
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity()) {
@@ -103,7 +101,6 @@ public class IWannaFragment extends LoadableFragment<InfoListVo<IWannaVo>> imple
         myProgressDialog = new MyProgressDialog(getActivity());
     }
 
-    @OnClick(R.id.send)
     public void send(View view) {
         if (UserLoginUtil.getUserCache() == null) {
             startActivity(LoginActivity.class);

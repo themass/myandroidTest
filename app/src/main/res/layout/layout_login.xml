@@ -6,6 +6,7 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@color/pv_bg"
         android:paddingLeft="25dp"
         android:paddingRight="25dp">
 
@@ -19,22 +20,32 @@
             <com.openapi.common.ui.view.MyEditText
                 android:id="@+id/et_username"
                 style="@style/edit_login"
+            android:textColor="@color/pv_text_primary"
+            android:textColorHint="@color/pv_text_secondary"
                 android:drawableLeft="@drawable/ic_login_user"
                 android:hint="@string/username_hint"
                 android:maxLines="1"
                 android:singleLine="true" />
 
-            <ImageView style="@style/divider_login" />
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/pv_divider" />
 
             <com.openapi.common.ui.view.MyEditText
                 android:id="@+id/et_password"
                 style="@style/edit_login"
+            android:textColor="@color/pv_text_primary"
+            android:textColorHint="@color/pv_text_secondary"
                 android:drawableLeft="@drawable/ic_login_pass"
                 android:hint="@string/password_hint"
                 android:inputType="textPassword"
                 android:maxLines="1" />
 
-            <ImageView style="@style/divider_login" />
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/pv_divider" />
 
             <Button
                 android:id="@+id/btn_login"
@@ -42,7 +53,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="30dp"
-                android:background="@drawable/btn_green_selector"
+                android:background="@drawable/pv_btn_primary"
                 android:text="@string/login" />
 
             <Button
@@ -53,7 +64,17 @@
                 android:layout_marginTop="10dp"
                 android:background="?android:attr/selectableItemBackground"
                 android:text="@string/reg"
-                android:textColor="@color/gray" />
+                android:textColor="@color/pv_text_secondary" />
+
+            <Button
+                android:id="@+id/btn_forgot"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right"
+                android:background="?android:attr/selectableItemBackground"
+                android:onClick="onForgotPassword"
+                android:text="@string/login_forgot_password"
+                android:textColor="@color/pv_text_secondary" />
 
             <TextView
                 style="@style/tv_white_small"
@@ -61,7 +82,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="@dimen/margin_10"
-                android:textColor="@color/hint" />
+                android:textColor="@color/pv_text_secondary" />
         </LinearLayout>
 
         <TextView
@@ -72,7 +93,7 @@
             android:layout_marginBottom="@dimen/margin_15"
             android:gravity="center_horizontal|bottom"
             android:text="@string/remark"
-            android:textColor="@color/hint"
+            android:textColor="@color/pv_text_secondary"
             android:textSize="@dimen/textsize_12" />
     </RelativeLayout>
 

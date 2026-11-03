@@ -36,16 +36,12 @@ import com.openapi.ks.ui.main.MainFragmentViewPage;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import butterknife.BindView;
-import butterknife.OnClick;
-
 
 /**
  * Created by dengt on 2015/9/1.
  */
 public class RecommendCustomeFragment extends RecommendFragment implements OnBackKeyDownListener{
     private static final String INDEX_TAG = "Recommend_custome_tag";
-    @BindView(R.id.lb_add)
     ImageButton llAdd;
 
     @Override
@@ -101,7 +97,6 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
         }
     }
 
-    @OnClick(R.id.lb_add)
     public void onAdd() {
         AddCustomeInfoActivity.startActivity(getActivity(), null);
     }
@@ -124,6 +119,8 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
     @Override
     public void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view,savedInstanceState);
+        llAdd = view.findViewById(R.id.lb_add);
+        llAdd.setOnClickListener(v -> onAdd());
         EventBusUtil.getEventBus().register(this);
         ((MainFragmentViewPage) getActivity()).addListener(this);
     }

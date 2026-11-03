@@ -16,20 +16,14 @@ import android.widget.LinearLayout;
 
 import com.openapi.ks.free1.R;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-
 /**
  * Created by dengt on 2016/9/6.
  */
 public class MyPullView extends LinearLayout {
     @Nullable
-    @BindView(R.id.footer_view)
     View footerView;
     @Nullable
-    @BindView(R.id.rv_content)
     RecyclerView rvContent;
-    @BindView(R.id.srl_layout)
     SwipeRefreshLayout refreshLayout;
     //    Snackbar bar = null;
     TranslateAnimation mShowAction;
@@ -58,7 +52,9 @@ public class MyPullView extends LinearLayout {
         LayoutInflater mInflater = LayoutInflater.from(getContext());
         View myView = mInflater.inflate(R.layout.layout_pullrefresh_view, null);
         addView(myView);
-        ButterKnife.bind(this);
+        footerView = myView.findViewById(R.id.footer_view);
+        rvContent = myView.findViewById(R.id.rv_content);
+        refreshLayout = myView.findViewById(R.id.srl_layout);
         refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {

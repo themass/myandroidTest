@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  新版深色首页：地球占剩余高度，下方是复用的连接中枢（雷达 + 按钮 + 当前节点），再是广告区。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/pv_bg"
+    android:orientation="vertical">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <com.openapi.myapp.ui.globe.GlobeWebView
+            android:id="@+id/globe"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <ImageButton
+            android:id="@+id/btn_gift"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:layout_gravity="top|end"
+            android:layout_margin="12dp"
+            android:background="@drawable/pv_bg_pill"
+            android:contentDescription="@string/gift_watch_ad"
+            android:padding="10dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/pv_gift" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/rl_content_em"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/warning_text"
+        android:gravity="center"
+        android:padding="@dimen/margin_8"
+        android:text="@string/is_emulator"
+        android:textSize="@dimen/textsize_14"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/tv_not_chain"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:padding="@dimen/margin_8"
+        android:textColor="@color/pv_text_primary"
+        android:textSize="@dimen/textsize_14"
+        android:visibility="gone" />
+
+    <include
+        layout="@layout/connect_hub"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <LinearLayout
+        android:id="@+id/rl_content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical" />
+
+    <LinearLayout
+        android:id="@+id/rl_content_native"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone" />
+
+    <RelativeLayout
+        android:id="@+id/rl_gift"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
+
+    <ImageButton
+        android:id="@+id/rl_points"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@null"
+        android:visibility="gone" />
+</LinearLayout>

@@ -6,7 +6,6 @@ import android.content.Intent;
 import com.openapi.common.util.EventBusUtil;
 import com.openapi.common.util.PreferenceUtils;
 import com.openapi.myapp.data.config.IsChainEvent;
-import com.openapi.yewu.um.MobAgent;
 import com.openapi.myapp.base.MyApplication;
 import com.openapi.myapp.bean.vo.UserInfoVo;
 import com.openapi.myapp.constant.Constants;
@@ -39,7 +38,6 @@ public class UserLoginUtil {
         context.sendBroadcast(new Intent(MyApplication.UPDATE_STATUS_ACTION));
         if (vo.stateUse != null)
             EventBusUtil.getEventBus().post(new StateUseEvent(vo.stateUse));
-        MobAgent.onProfileSignIn(vo.name);
     }
 
     public static void logout(Context context) {
@@ -48,7 +46,6 @@ public class UserLoginUtil {
         StaticDataUtil.del(Constants.LOGIN_USER);
         EventBusUtil.getEventBus().post(new UserLoginEvent());
         context.sendBroadcast(new Intent(MyApplication.UPDATE_STATUS_ACTION));
-        MobAgent.onProfileSignOff();
     }
 
     public static UserInfoVo getUserCache() {

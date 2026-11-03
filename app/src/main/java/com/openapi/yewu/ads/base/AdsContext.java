@@ -14,7 +14,6 @@ import com.openapi.myapp.data.AdsPopStrategy;
 import com.openapi.myapp.data.UserLoginUtil;
 import com.openapi.myapp.task.ScoreTask;
 import com.openapi.yewu.ads.adview.AdviewConstant;
-import com.openapi.yewu.um.MobAgent;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -146,7 +145,6 @@ public class AdsContext {
 
     }
     public static void adsNotify(Context context, AdsType type, AdsShowStatus event) {
-        MobAgent.onEventAds(context, type, event);
         if (event == ADS_CLICK_MSG) {
             if(!AdsPopStrategy.clickAdsClickBtn(context)){
                 return;

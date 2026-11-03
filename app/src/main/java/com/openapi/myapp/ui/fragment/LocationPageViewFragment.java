@@ -29,18 +29,14 @@ import com.openapi.yewu.ads.base.NativeAdsReadyListener;
 import java.util.ArrayList;
 import java.util.List;
 
-import butterknife.BindView;
-
 /**
  * Created by dengt on 2016/8/12.
  */
 public class LocationPageViewFragment extends LoadableFragment<InfoListVo<VipLocationVo>> implements NativeAdsReadyListener {
     private static final String LOCATION_TAG = "location_tag";
     @Nullable
-    @BindView(R.id.indicator)
     TabPageIndicator indicator;
     @Nullable
-    @BindView(R.id.pager)
     ViewPager viewPager;
     InfoListVo<VipLocationVo> vo = new InfoListVo<VipLocationVo>();
     FragmentPagerAdapter adapter;
@@ -85,6 +81,8 @@ public class LocationPageViewFragment extends LoadableFragment<InfoListVo<VipLoc
     @Override
     public void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
+        indicator = view.findViewById(R.id.indicator);
+        viewPager = view.findViewById(R.id.pager);
         adapter = new TabPageIndicatorAdapter(getChildFragmentManager());
         viewPager.setAdapter(adapter);
         indicator.setViewPager(viewPager);

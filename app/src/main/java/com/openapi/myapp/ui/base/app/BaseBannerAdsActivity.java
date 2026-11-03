@@ -26,22 +26,15 @@ import com.openapi.yewu.ads.base.BaseRewardManger;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import butterknife.BindView;
-import butterknife.OnClick;
-
 
 /**
  * Created by dengt on 2016/8/21.
  */
 public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implements AdmobRewardAds.OnAdmobRewardListener {
     private static final int ANIM_DURATION_FAB = 400;
-    @BindView(R.id.fl_content)
     public ViewGroup flContent;
-    @BindView(R.id.fl_header)
     public ViewGroup flBanner;
-    @BindView(R.id.fab_up)
     public FloatingActionButton fabUp;
-    @BindView(R.id.ct_bar)
     public CollapsingToolbarLayout ctBar;
     public BaseRewardManger admobRewardManger;
     private AdsGoneTask task = new AdsGoneTask();
@@ -50,7 +43,6 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
         public void handleMessage(Message msg) {
         }
     };
-    @OnClick(R.id.fab_up)
     public void onClickFab(View view) {
 //        admobRewardManger.showAd();
     }
@@ -69,6 +61,11 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity implemen
         super.setContentViewWithoutInject(R.layout.base_fragment);
         getLayoutInflater().inflate(layoutResID, (ViewGroup) findViewById(R.id.fl_content), true);
         bindViews();
+        flContent = findViewById(R.id.fl_content);
+        flBanner = findViewById(R.id.fl_header);
+        fabUp = findViewById(R.id.fab_up);
+        ctBar = findViewById(R.id.ct_bar);
+        fabUp.setOnClickListener(this::onClickFab);
         setupToolbar();
         fabUp.setVisibility(View.GONE);
         if(needGoneBanner())

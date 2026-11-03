@@ -20,9 +20,9 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_gravity="start"
-            android:background="#ffffff"
+            android:background="@color/pv_bg"
             app:headerLayout="@layout/drawer_header"
-            app:itemTextColor="#666666"
+            app:itemTextColor="@color/pv_text_primary"
             app:menu="@menu/drawer_menu" />
 
     </androidx.drawerlayout.widget.DrawerLayout>

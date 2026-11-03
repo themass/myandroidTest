@@ -17,7 +17,6 @@ import com.openapi.common.util.EventBusUtil;
 import com.openapi.common.util.ToastUtil;
 import com.openapi.myapp.bean.vo.NativeAdInfo;
 import com.openapi.yewu.ads.base.NativeAdsReadyListener;
-import com.openapi.yewu.um.MobAgent;
 import com.openapi.myapp.adapter.IndexRecommendAdapter;
 import com.openapi.myapp.adapter.base.BasePhotoFlowRecycleViewAdapter;
 import com.openapi.myapp.adapter.base.BaseRecyclerViewAdapter;
@@ -109,7 +108,6 @@ public abstract class RecommendFragment extends BasePullLoadbleFragment<Recommen
         param.put(Constants.ADS_SHOW_CONFIG, vo.adsShow);
         param.put(Constants.ADS_POP_SHOW_CONFIG, vo.adsPopShow);
         EventBusUtil.getEventBus().post(new ConfigActionEvent(getActivity(), vo.actionUrl, vo.title, param));
-        MobAgent.onEventRecommondChannel(getActivity(), vo.title);
     }
     @Override
     public void onItemClick(View v, int position) {

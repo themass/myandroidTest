@@ -15,7 +15,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.openapi.yewu.um.MobAgent;
 import com.openapi.common.util.LogUtil;
 
 
@@ -57,14 +56,12 @@ public class LogFramgment extends Fragment {
     public void onResume() {
         super.onResume();
 //        LogUtil.i(getClass().getSimpleName() + "-onResume");
-        MobAgent.onResumeForFragment(this.getActivity(), getClass().getSimpleName());
     }
 
     @Override
     public void onPause() {
         super.onPause();
 //        LogUtil.i(getClass().getSimpleName() + "-onPause");
-        MobAgent.onPauseForFragment(this.getActivity(), getClass().getSimpleName());
     }
 
     @Override

@@ -2,17 +2,20 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?android:attr/selectableItemBackground"
+    android:layout_marginLeft="12dp"
+    android:layout_marginRight="12dp"
+    android:layout_marginTop="6dp"
+    android:background="@drawable/pv_bg_card"
     android:orientation="vertical"
-    android:paddingBottom="@dimen/margin_2"
-    android:paddingTop="@dimen/margin_5">
+    android:paddingBottom="12dp"
+    android:paddingTop="12dp">
     <TextView
         android:id="@+id/tv_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:paddingLeft="@dimen/margin_15"
         android:text="11111"
-        android:textColor="@color/location_index"
+        android:textColor="@color/pv_green"
         android:textSize="@dimen/textsize_12"
         />
 
@@ -31,7 +34,7 @@
         android:paddingRight="@dimen/margin_22"
         android:layout_alignParentRight="true"
         android:text="11111"
-        android:textColor="@color/new_light_black"
+        android:textColor="@color/pv_text_secondary"
         android:textSize="@dimen/textsize_11"
         />
 
@@ -42,7 +45,7 @@
         android:layout_below="@+id/tv_name"
         android:paddingLeft="@dimen/margin_15"
         android:text="@string/iwanna_tips"
-        android:textColor="@color/new_globle_black"
+        android:textColor="@color/pv_text_primary"
         android:textSize="@dimen/textsize_16" />
 
     <RelativeLayout
@@ -91,7 +94,7 @@
             android:layout_height="wrap_content"
             android:layout_toLeftOf="@+id/rl_live"
             android:paddingRight="@dimen/margin_3"
-            android:textColor="@color/base_gray"
+            android:textColor="@color/pv_text_secondary"
             android:text="111111"
             android:textSize="@dimen/textsize_10"/>
         <TextView
@@ -100,7 +103,7 @@
             android:layout_height="wrap_content"
             android:paddingRight="@dimen/margin_5"
             android:layout_toLeftOf="@+id/tv_time"
-            android:textColor="@color/base_red_small"
+            android:textColor="@color/pv_alert"
             android:textSize="@dimen/textsize_10"
             />
     </RelativeLayout>

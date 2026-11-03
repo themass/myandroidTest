@@ -23,15 +23,10 @@ import com.openapi.myapp.ui.base.app.BaseSingleActivity;
 import java.util.ArrayList;
 import java.util.List;
 
-import butterknife.BindView;
-import butterknife.OnClick;
-
 public class MyFullScreenImageGalleryActivity extends BaseSingleActivity implements SaveImageCallBack {
     public static final String KEY_IMAGES = "KEY_IMAGES";
     public static final String KEY_POSITION = "KEY_POSITION";
-    @BindView(R.id.vp_big_container)
     ViewPager viewPager;
-    @BindView(R.id.tv_page)
     TextView tvPage;
     private List<String> images;
     private int position;
@@ -61,8 +56,10 @@ public class MyFullScreenImageGalleryActivity extends BaseSingleActivity impleme
             }
         }
         this.setContentView(R.layout.layout_img_big_page_view);
+        viewPager = findViewById(R.id.vp_big_container);
+        tvPage = findViewById(R.id.tv_page);
+        findViewById(R.id.iv_save).setOnClickListener(this::onSave);
     }
-    @OnClick(R.id.iv_save)
     public void onSave(View view){
         ToastUtil.showShort(R.string.save_start);
         SaveImageTask.startSave(MyFullScreenImageGalleryActivity.this,images.get(viewPager.getCurrentItem()),MyFullScreenImageGalleryActivity.this);

@@ -18,8 +18,6 @@ import com.openapi.myapp.data.ImagePhotoLoad;
 
 import java.util.List;
 
-import butterknife.BindView;
-
 /**
  * Created by dengt on 2016/8/12.
  */
@@ -47,20 +45,20 @@ public class AppRecommendViewAdapter extends BaseRecyclerViewAdapter<AppRecommen
     }
     public static class AppRecommendListView extends BaseRecyclerViewAdapter.BaseRecyclerViewHolder<AppInfo> {
         @Nullable
-        @BindView(R.id.iv_app)
         ImageView ivApp;
         @Nullable
-        @BindView(R.id.tv_name)
         TextView tvName;
         @Nullable
-        @BindView(R.id.tv_date)
         TextView tvDate;
         @Nullable
-        @BindView(R.id.tv_desc)
         TextView tvDesc;
 
         public AppRecommendListView(View itemView, View.OnClickListener l, View.OnLongClickListener longListener) {
             super(itemView, l, longListener);
+            ivApp = itemView.findViewById(R.id.iv_app);
+            tvName = itemView.findViewById(R.id.tv_name);
+            tvDate = itemView.findViewById(R.id.tv_date);
+            tvDesc = itemView.findViewById(R.id.tv_desc);
         }
     }
 }

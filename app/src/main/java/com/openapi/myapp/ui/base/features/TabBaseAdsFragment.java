@@ -14,19 +14,14 @@ import com.openapi.yewu.ads.base.AdsContext;
 import com.openapi.yewu.ads.base.AdsManager;
 import com.openapi.yewu.ads.admob.AdmobRewardAds;
 
-import butterknife.BindView;
-import butterknife.OnClick;
-
 /**
  * Created by dengt on 2016/3/31.
  */
 public abstract class TabBaseAdsFragment extends TabBaseFragment implements OnBackKeyDownListener , AdmobRewardAds.OnAdmobRewardListener{
     private static final int ANIM_DURATION_FAB = 400;
-    @BindView(R.id.fab_up)
     public FloatingActionButton fabUp;
     private boolean pendingIntroAnimation;
     public AdmobRewardAds admobRewardAds;
-    @OnClick(R.id.fab_up)
     public void onClickFab(View view) {
         LogUtil.i("onClickFab -- tabbase" + getClass().getName());
         LogUtil.i(getActivity().getClass().getName());
@@ -69,6 +64,8 @@ public abstract class TabBaseAdsFragment extends TabBaseFragment implements OnBa
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        fabUp = view.findViewById(R.id.fab_up);
+        fabUp.setOnClickListener(this::onClickFab);
         if (savedInstanceState == null) {
             pendingIntroAnimation = true;
         }

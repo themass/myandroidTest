@@ -15,8 +15,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import butterknife.ButterKnife;
-
 /**
  * Created by Miroslaw Stanek on 20.01.15.
  */
@@ -117,7 +115,6 @@ public abstract class BasePhotoFlowRecycleViewAdapter<M, T extends BasePhotoFlow
     public static class BaseViewHolder extends RecyclerView.ViewHolder {
         public BaseViewHolder(View view) {
             super(view);
-            ButterKnife.bind(this, view);
         }
     }
 

@@ -27,17 +27,13 @@ import com.openapi.ks.free1.R;
 import java.util.ArrayList;
 import java.util.List;
 
-import butterknife.BindView;
-
 /**
  * Created by dengt on 2016/8/12.
  */
 public class FeedbackChooseFragment extends LoadableFragment<InfoListVo<FeedbackCateVo>> {
     @Nullable
-    @BindView(R.id.indicator)
     TabPageIndicator indicator;
     @Nullable
-    @BindView(R.id.pager)
     ViewPager viewPager;
     InfoListVo<FeedbackCateVo> vo = new InfoListVo<FeedbackCateVo>();
     FragmentPagerAdapter adapter;
@@ -64,6 +60,8 @@ public class FeedbackChooseFragment extends LoadableFragment<InfoListVo<Feedback
     @Override
     public void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
+        indicator = view.findViewById(R.id.indicator);
+        viewPager = view.findViewById(R.id.pager);
         indexService = new BaseService();
         indexService.setup(getActivity());
         adapter = new TabPageIndicatorAdapter(getChildFragmentManager());

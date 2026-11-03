@@ -211,3 +211,6 @@ public static java.lang.String TABLENAME;
 -keep public class androidx.recyclerview.*{*;}
 -keep class com.mbridge.msdk.foundation.tools.FastKV{*;}
 -keep class com.mbridge.msdk.foundation.tools.FastKV$Builder{*;}
+-keepclassmembers class com.openapi.myapp.ui.globe.GlobeWebView$Bridge {
+    @android.webkit.JavascriptInterface <methods>;
+}

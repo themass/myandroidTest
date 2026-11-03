@@ -12,9 +12,6 @@ import com.openapi.myapp.constant.Constants;
 
 import java.io.Serializable;
 
-import butterknife.ButterKnife;
-import butterknife.Unbinder;
-
 /**
  * 所有的Fragment基类
  */
@@ -22,7 +19,6 @@ public abstract class BaseFragment extends com.openapi.common.ui.base.LogFramgme
     public static final String FRAGMENT_ARG = "ARG";
     protected View rootView;
     Bundle savedState;
-    private Unbinder unbinder;
 
     /**
      * 传递参数时，   需要传的序列化数据
@@ -93,7 +89,8 @@ public abstract class BaseFragment extends com.openapi.common.ui.base.LogFramgme
     }
 
     protected void bindViews(View view) {
-        unbinder = ButterKnife.bind(this, view);
+        // ButterKnife removed: subclasses bind their views directly via findViewById
+        // in their own setupViews()/bindViews() override.
     }
 
     @Override
@@ -127,7 +124,6 @@ public abstract class BaseFragment extends com.openapi.common.ui.base.LogFramgme
         super.onDestroyView();
         // Save State Here
         saveStateToArguments();
-        unbinder.unbind();
 //        RefWatcher refWatcher = MyApplication.getRefWatcher(getActivity());
 //        refWatcher.watch(this);
     }

@@ -20,8 +20,6 @@ import com.openapi.yewu.ads.base.NativeAdsReadyListener;
 
 import java.util.List;
 
-import butterknife.BindView;
-
 /**
  * Created by dengt on 2016/8/21.
  */
@@ -29,13 +27,10 @@ public class NativeHeaderFragment extends BaseFragment implements NativeAdsReady
     private AdsContext.Categrey ca;
     private static String CATEGREY = "Categrey";
     @Nullable
-    @BindView(R.id.natvieView)
     RelativeLayout natvieView;
     @Nullable
-    @BindView(R.id.desc)
     TextView desc;
     @Nullable
-    @BindView(R.id.icon)
     ImageView icon;
     public static NativeHeaderFragment getNewInstans(AdsContext.Categrey ca){
         NativeHeaderFragment fragment = new NativeHeaderFragment();
@@ -46,6 +41,14 @@ public class NativeHeaderFragment extends BaseFragment implements NativeAdsReady
     protected int getRootViewId() {
         return R.layout.native_ad_item2;
     }
+    @Override
+    protected void bindViews(View view) {
+        super.bindViews(view);
+        natvieView = view.findViewById(R.id.natvieView);
+        desc = view.findViewById(R.id.desc);
+        icon = view.findViewById(R.id.icon);
+    }
+
     public boolean onAdRecieved(final List<NativeAdInfo> data){
         if(!CollectionUtils.isEmpty(data)){
 //            ImagePhotoLoad.loadCommonImg(getActivity(), data.get(0).getIconUrl(),icon);

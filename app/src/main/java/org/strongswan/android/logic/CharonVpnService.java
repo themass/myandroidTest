@@ -89,6 +89,54 @@ import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 public class CharonVpnService extends VpnService implements VpnStateService.VpnStateListener {
     public static final String PROFILE = "PROFILE";
     public static final int FOREGROUND_NOTIFY_ID = 100;
+
+    /**
+     * 当前是否正在用 IKEv2 以外的协议（WireGuard / VLESS+Reality）连接。
+     * <p>
+     * {@code CharonVpnSessionRepository.start()} 启动时会无条件绑定本服务
+     * （legacy 单协议 connect(VpnProfile) 路径和查询 IKEv2 状态都依赖这个绑定），
+     * 绑定一旦建立，{@link #onServiceConnected} / {@link #stateChanged()} 就会
+     * 调用 {@link #createForegroundService}刷自己的通知——完全不知道这次连接
+     * 实际用的是别的协议。不加这个标志的后果：真正连接的是 VLESS/WireGuard 时，
+     * 通知栏会同时冒出两条通知，IKEv2 这条还卡在陈旧的 "Connecting..." 状态，
+     * 因为 VpnStateService 的内部状态从来没被这次连接更新过。
+     * 由 {@code CharonVpnSessionRepository} 在切换协议时设置。
+     */
+    public static volatile boolean nonIkev2ProtocolActive = false;
+
+    /**
+     * 由 {@code CharonVpnSessionRepository} 注入：断开"当前实际活跃的协议引擎"。
+     * <p>
+     * 通知栏那条"click to disconn"是 IKEv2 服务画的，点它只会走 IKEv2 的
+     * {@code vpnClick()}（重新拉线路列表再连一次 IKEv2）。当真正在跑的是 VLESS 时，
+     * 这个动作既断不开 VLESS 隧道，又会平白再起一个 IKEv2 连接，形成"两个连接
+     * 抢一个 TUN"的局面。所以非 IKEv2 协议激活时，按钮必须转交给仓库去断真正
+     * 在跑的那个引擎。
+     */
+    public static volatile Runnable activeEngineDisconnect;
+
+    /** 关掉本服务的前台通知（不 stopSelf）；别的协议在用时必须让出通知权。 */
+    public void cancelForegroundNotification() {
+        stopForeground(true);
+    }
+
+    /**
+     * 当前存活的实例（弱引用，避免 Service 被静态字段钉住泄漏）。
+     * {@link #createForegroundService} 只在服务内部触发，外部无法主动让它收手，
+     * 所以需要这个方法给多协议仓库用：切到 VLESS/WireGuard 时立刻把 IKEv2 那条
+     * 陈旧通知撤掉，而不是等下一次 stateChanged 才发现。
+     */
+    private static volatile java.lang.ref.WeakReference<CharonVpnService> instanceRef;
+
+    public static void suppressIkev2Notification() {
+        java.lang.ref.WeakReference<CharonVpnService> ref = instanceRef;
+        CharonVpnService svc = ref == null ? null : ref.get();
+        if (svc != null) {
+            LogUtil.i("suppressIkev2Notification: 撤下 IKEv2 通知");
+            svc.cancelForegroundNotification();
+        }
+    }
+
     /**
      * 通知栏按钮点击事件对应的ACTION
      */
@@ -153,6 +201,13 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
     public ButtonBroadcastReceiver bReceiver;
     private volatile boolean isInitialized = false;
     private volatile boolean nativeLibraryCorrupted = false;
+    /**
+     * 当前使用的提案档位。0 = 现代（AEAD + ECP），1 = 旧版（CBC + MODP）。
+     * 协商失败时自动降一档重试，每次连接最多降一次。
+     */
+    private volatile int mProposalTier = 0;
+    /** 0 现代 → 1 兼容 → 2 原生默认（不写提案键）。 */
+    private static final int MAX_PROPOSAL_TIER = 2;
     private String mLogFile;
     private VpnProfile mCurrentProfile;
     private volatile boolean mIsDisconnecting;
@@ -193,8 +248,15 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
             if (bundle != null) {
                 profile = (VpnProfile) bundle.getSerializable(PROFILE);
             }
-            if (profile != null)
+            if (profile != null) {
                 mCurrentProfile = profile;
+                /*
+                 * 用户主动发起的新连接一律从现代档重试。降档只应作用于
+                 * 同一次连接过程；否则一次协商失败会让进程永久停留在兼容档，
+                 * 服务端升级后也不会自动恢复。
+                 */
+                mProposalTier = 0;
+            }
             setNextProfile(profile);
         }
         LogUtil.i("charon service onStartCommand");
@@ -215,6 +277,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
 
     @Override
     public void onCreate() {
+        instanceRef = new java.lang.ref.WeakReference<>(this);
         // 使用应用内部目录作为日志文件路径，避免权限问题
         mLogFile = getFilesDir().getAbsolutePath() + File.separator + "charon.log";
         
@@ -379,8 +442,16 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
                 setState(VpnStateService.State.CONNECTED);
                 break;
             case STATE_AUTH_ERROR:
-                setErrorDisconnect(VpnStateService.ErrorState.AUTH_FAILED);
                 logStatus(status);
+                /*
+                 * native 侧把 NO_PROPOSAL_CHOSEN 等握手期的 notify 错误也报成 AUTH_ERROR，
+                 * 所以同样先降档重试一次；已是最后一档时才向 UI 报认证失败。
+                 */
+                if (!mIsDisconnecting && retryWithFallbackProposal()) {
+                    LogUtil.i("Auth error during handshake, retrying with fallback proposals");
+                    break;
+                }
+                setErrorDisconnect(VpnStateService.ErrorState.AUTH_FAILED);
                 break;
             case STATE_PEER_AUTH_ERROR:
                 setErrorDisconnect(VpnStateService.ErrorState.PEER_AUTH_FAILED);
@@ -394,8 +465,17 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
                 logStatus(status);
                 break;
             case STATE_GENERIC_ERROR:
-                setErrorDisconnect(VpnStateService.ErrorState.GENERIC_ERROR);
                 logStatus(status);
+                /*
+                 * NO_PROPOSAL_CHOSEN 等协商失败在此归为 GENERIC_ERROR（native 侧没有
+                 * 单独的提案错误码）。此时先用旧提案重试一次，成功则不向 UI 报错——
+                 * 否则用户会看到一次假失败。
+                 */
+                if (!mIsDisconnecting && retryWithFallbackProposal()) {
+                    LogUtil.i("Generic error during handshake, retrying with fallback proposals");
+                    break;
+                }
+                setErrorDisconnect(VpnStateService.ErrorState.GENERIC_ERROR);
                 break;
             default:
                 Log.e(TAG, "Unknown status code received");
@@ -593,6 +673,69 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
     }
     
     /**
+     * 写入 IKE / ESP 提案。
+     * <p>
+     * 两个档位都必须是**单条提案**：'-' 是该提案内部所有算法的分隔符，
+     * 同类算法的多个候选也用它串联（按优先顺序），逗号与 '/' 在这里都没有语义。
+     * '/' 只是 strongSwan 的**输出**格式，用它书写会导致整条提案解析失败、
+     * 静默回退到默认算法（见 proposal.c 的 print_alg 与
+     * enumerator_create_token(algs, "-", " ")）。
+     * <p>
+     * 约束（来自 libstrongswan 的 check_proposal 及其测试用例）：
+     * <ul>
+     *   <li>AEAD 与传统 CBC 加密不能出现在同一条提案中
+     *       （测试用例 aes128gcm16-aes128-sha256-modp3072 期望解析失败）；</li>
+     *   <li>全 AEAD 的提案不能带完整性算法；</li>
+     *   <li>IKE 提案必须同时含 PRF 和 DH 组，ESP 提案可省略 PRF 与 DH。</li>
+     * </ul>
+     */
+    private void applyProposals(SettingsWriter writer) {
+        if (mProposalTier >= MAX_PROPOSAL_TIER) {
+            // 第 3 档：什么都不写，交给 androidbridge 的内置默认提案
+            // （android_service.c：IKE 用 proposal_create_default / _default_aead，
+            // ESP 用四组宽松提案，含 SHA-1，且 DH 带与不带两种都提供，由对端决定是否 PFS）。
+            // 这就是改加密提案之前一直在用的行为，老服务端（如 strongSwan 5.6.3、
+            // esp= 未配 DH）只能靠它协商成功。
+            return;
+        }
+        if (mProposalTier == 0) {
+            // 现代档：AEAD + ECP/Curve25519，无 SHA-1，无 MODP。
+            // PRF 与 DH 按优先级并列，协商时取双方都支持的最靠前一项。
+            // 与服务端 ike= 列表中的条目逐字一致（AEAD + SHA256 PRF + ECP256），保证能被服务端选中。
+            writer.setValue("connection.ike_proposal",
+                    "aes256gcm16-prfsha256-ecp256");
+            writer.setValue("connection.esp_proposal",
+                    "aes256gcm16-ecp384-ecp256-chacha20poly1305-curve25519");
+        } else {
+            // 兼容档：服务端较老、不认识 AEAD/ECP 时使用。
+            // 与服务端 ike= 列表中的条目逐字一致（CBC + SHA384 + MODP2048），单条提案。
+            writer.setValue("connection.ike_proposal",
+                    "aes256-sha384-modp2048");
+            writer.setValue("connection.esp_proposal",
+                    "aes256-sha256-aes128-sha256");
+        }
+    }
+
+    /**
+     * 协商失败时降档重试一次。
+     *
+     * @return true 表示已安排重试；false 表示已是最后一档
+     */
+    private boolean retryWithFallbackProposal() {
+        if (mProposalTier >= MAX_PROPOSAL_TIER) {
+            return false;
+        }
+        mProposalTier++;
+        LogUtil.i("Proposal negotiation failed, falling back to proposal tier " + mProposalTier
+                + (mProposalTier >= MAX_PROPOSAL_TIER ? " (native defaults)" : ""));
+        // 重新走一遍 conn()，它会用新的 tier 重新初始化 charon。
+        if (mWorkHandler != null) {
+            mWorkHandler.post(new ConnectJob());
+        }
+        return true;
+    }
+
+    /**
      * 检测native库是否损坏
      */
     private boolean isNativeLibraryCorrupted() {
@@ -768,7 +911,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
             BuilderAdapter builder = new BuilderAdapter(mCurrentProfile.getName(), mCurrentProfile.getSplitTunneling());
             
             // 添加详细的连接信息日志
-            LogUtil.i("StrongSwan Client Version: 6.0.3dr1");
+            LogUtil.i("StrongSwan Client Version: 6.1.0");
             if (mCurrentProfile != null) {
                 LogUtil.i("Server Gateway: " + mCurrentProfile.getGateway());
                 LogUtil.i("BYOD Feature: " + mCurrentProfile.getVpnType().has(VpnType.VpnTypeFeature.BYOD));
@@ -810,29 +953,26 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
                             writer.setValue("connection.local_id", mCurrentProfile.getLocalId());
                             writer.setValue("connection.remote_id", mCurrentProfile.getRemoteId());
                             
-                            // 添加版本兼容性配置 - 针对服务器版本6.0.3
-                            writer.setValue("charon.plugins.ikev2.version", "2");
-                            writer.setValue("charon.plugins.ikev2.send_vendor_id", "yes");
-                            writer.setValue("charon.plugins.ikev2.send_certreq", "yes");
-                            writer.setValue("charon.plugins.ikev2.send_cert", "yes");
+                            /*
+                             * 提案配置。
+                             *
+                             * androidbridge 只读取 connection.ike_proposal / connection.esp_proposal
+                             * 两个键（见 libandroidbridge/backend/android_service.c 的 parse_proposal），
+                             * 且每个键的值必须是一条**单一**提案：'-' 分隔该提案内部的算法，
+                             * 不能出现逗号分隔的多提案列表（proposal_create_from_string 不认逗号）。
+                             * charon.plugins.ikev2.* 这些键在上游并不存在（没有 ikev2 插件），
+                             * 写了会被静默忽略。
+                             *
+                             * 所以在单条提案内用 '/' 表达同类算法的优先顺序（strongSwan 的
+                             * print_alg 即用 '/' 连接同一 transform 的多个候选），
+                             * 并把 DH 组按 ECP → Curve25519 → MODP 由强到弱排列。
+                             *
+                             * 同时注意 check_proposal 的约束：AEAD 与传统 CBC 加密不能混在同一条提案里，
+                             * 因此现代档只用 AEAD，回退档只用 CBC。
+                             */
+                            applyProposals(writer);
                             
-                            // 针对6.0.3服务器的配置
-                            writer.setValue("charon.plugins.ikev2.ike_version", "2");
-                            writer.setValue("charon.plugins.ikev2.force_encap", "no");
-                            writer.setValue("charon.plugins.ikev2.send_keepalive", "no");
-                            
-                            // 启用6.0.3服务器支持的功能
-                            writer.setValue("charon.plugins.ikev2.send_frag", "yes");
-                            writer.setValue("charon.plugins.ikev2.send_redirect", "yes");
-                            
-                            // 使用6.0.3服务器支持的加密算法
-                            writer.setValue("charon.plugins.ikev2.proposals", "aes256gcm16-sha256-modp2048,aes256-sha256-modp2048,aes256-sha1-modp2048,aes128-sha256-modp2048,aes128-sha1-modp2048");
-                            
-                            // 添加6.0.3特有的配置
-                            writer.setValue("charon.plugins.ikev2.send_notify", "yes");
-                            writer.setValue("charon.plugins.ikev2.send_delete", "yes");
-                            
-                            LogUtil.i("Initializing StrongSwan with compatibility settings for server version 6.0.3");
+                            LogUtil.i("Initializing StrongSwan, proposal tier=" + mProposalTier);
 
                             // 使用安全包装器调用native方法
                             boolean success = safeNativeCall(() -> {
@@ -897,6 +1037,13 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
         }
     };
     private void createForegroundService(boolean needConnecting) {
+        if (nonIkev2ProtocolActive) {
+            // 真正在连的是 WireGuard/VLESS：让出通知权，避免跟那条协议自己的
+            // 前台通知同时出现、又显示着跟实际连接状态对不上的陈旧信息。
+            LogUtil.i("createForegroundService: 非 IKEv2 协议激活中，跳过 IKEv2 通知");
+            stopForeground(true);
+            return;
+        }
         LogUtil.i("start ForegroundService:" + mService.getState());
         if (Build.VERSION.SDK_INT >= 26) {
             NotificationChannel channel = new NotificationChannel(N_CHANNEL, "AFreedom", NotificationManager.IMPORTANCE_HIGH);
@@ -1015,6 +1162,16 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
             if (action.equals(ACTION_BUTTON) && mService!=null) {
 //                EventBusUtil.getEventBus().post(new VpnClickEvent());
                 LogUtil.i("recive vpn Broadcast: " + mService.getState() + "; mCurrentProfile=" + mCurrentProfile);
+                if (nonIkev2ProtocolActive) {
+                    // 实际在跑的是 WireGuard/VLESS：这条通知上的按钮必须断那个隧道，
+                    // 不能走下面的 IKEv2 逻辑（见 activeEngineDisconnect 的注释）。
+                    Runnable disconnect = activeEngineDisconnect;
+                    LogUtil.i("通知按钮：转交当前活跃引擎断开");
+                    if (disconnect != null) {
+                        disconnect.run();
+                    }
+                    return;
+                }
                 if (VpnStateService.State.CONNECTED.equals(mService.getState())) {
                     setNextProfile(null);
                 } else {
@@ -1061,6 +1218,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
         private Builder createBuilder(String name) {
             Builder builder = new Builder();
             builder.setSession(mName);
+            applySplitTunneling(builder);
 
 			/* even though the option displayed in the system dialog says "Configure"
 			 * we just use our main Activity */
@@ -1070,6 +1228,36 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
                     PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
             builder.setConfigureIntent(pending);
             return builder;
+        }
+
+        /**
+         * 按 VpnProfile 上的分流策略设置 include/exclude 应用。
+         * <p>
+         * 系统限制：同一个 Builder 上 include 与 exclude 互斥；
+         * 且 include/exclude 必须在 address/route 之前设置才不会互相影响。
+         */
+        private void applySplitTunneling(Builder builder) {
+            VpnProfile profile = mCurrentProfile;
+            if (profile == null) {
+                return;
+            }
+            java.util.LinkedHashSet<String> pkgs = profile.getSplitPackages();
+            if (pkgs == null || pkgs.isEmpty()) {
+                return;
+            }
+            boolean include = "include".equalsIgnoreCase(profile.getSplitMode());
+            for (String pkg : pkgs) {
+                try {
+                    if (include) {
+                        builder.addAllowedApplication(pkg);
+                    } else {
+                        builder.addDisallowedApplication(pkg);
+                    }
+                } catch (android.content.pm.PackageManager.NameNotFoundException e) {
+                    // 应用已卸载：跳过而不是让整次连接失败。
+                    LogUtil.w("split tunneling: 包不存在 " + pkg);
+                }
+            }
         }
 
         public synchronized boolean addAddress(String address, int prefixLength) {

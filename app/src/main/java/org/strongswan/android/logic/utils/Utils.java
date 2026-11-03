@@ -20,6 +20,19 @@ public class Utils {
     static final char[] HEXDIGITS = "0123456789abcdef".toCharArray();
 
     /**
+     * 由 native 侧校验一条 IKE/ESP 提案串是否可被解析。
+     * <p>
+     * 对应 libandroidbridge 中的 Java_org_strongswan_android_utils_Utils_isProposalValid，
+     * 内部走 proposal_create_from_string()，因此与真正的协商路径使用同一套语法规则。
+     * 用它可以在运行时拦住"写了但解析失败、静默回退默认算法"这类问题。
+     *
+     * @param ike    是否为 IKE 提案（否则按 ESP 校验）
+     * @param proposal 单条提案串，'-' 分隔算法
+     * @return true 表示可解析
+     */
+    public static native boolean isProposalValid(boolean ike, String proposal);
+
+    /**
      * Converts the given byte array to a hexadecimal string encoding.
      *
      * @param bytes byte array to convert

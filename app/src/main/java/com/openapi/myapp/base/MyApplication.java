@@ -1,8 +1,9 @@
 package com.openapi.myapp.base;
 
+import android.app.Application;
 import android.graphics.Typeface;
 
-import androidx.multidex.MultiDexApplication;
+
 
 import com.openapi.myapp.data.ImagePhotoLoad;
 import com.openapi.yewu.ads.base.AdsManager;
@@ -17,8 +18,6 @@ import com.openapi.myapp.data.VersionUpdater;
 
 import java.io.File;
 
-import butterknife.ButterKnife;
-
 import static com.openapi.common.util.FileUtils.GLIDE_PATH;
 import static com.openapi.common.util.FileUtils.LOG_PATH;
 import static com.openapi.common.util.FileUtils.VOLLEY_PATH;
@@ -26,7 +25,7 @@ import static com.openapi.common.util.FileUtils.VOLLEY_PATH;
 /**
  * Created by dengt on 2016/3/1.
  */
-public class MyApplication extends MultiDexApplication {
+public class MyApplication extends Application {
     //    private RefWatcher refWatcher;
     public static final String UPDATE_STATUS_ACTION = "com.openapi.free.action.UPDATE_STATUS";
     public static volatile boolean isDebug = true;
@@ -52,7 +51,6 @@ public class MyApplication extends MultiDexApplication {
         instance = this;
         long start = System.currentTimeMillis();
 //        refWatcher = LeakCanary.install(this);
-        ButterKnife.setDebug(isDebug);
         VersionUpdater.init(this);
         VolleyUtils.init();
         initFilePath();
@@ -67,6 +65,7 @@ public class MyApplication extends MultiDexApplication {
         long cost = System.currentTimeMillis() - start;
         LogUtil.i("cpu=" + SystemUtils.getCpuType());
         LogUtil.e("app start cost:" + cost);
+        AppContainer.init(this);
         photoLoad = new ImagePhotoLoad(this);
         AdsManager.getInstans().init(this);
     }

@@ -18,7 +18,6 @@ import com.openapi.myapp.data.config.SplashAdDissmisEvent;
 import com.openapi.yewu.ads.base.AdsContext;
 import com.openapi.yewu.ads.base.AdsManager;
 import com.openapi.yewu.ads.config.LaunchAdsNext;
-import com.openapi.yewu.um.MobAgent;
 import com.openapi.ks.free1.R;
 import com.openapi.myapp.constant.Constants;
 import com.openapi.myapp.task.LoginTask;
@@ -26,26 +25,16 @@ import com.openapi.myapp.task.LoginTask;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-import butterknife.Unbinder;
-
 /**
  * Created by dengt on 2016/3/22.
  */
 public class LaunchActivity extends LogActivity {
-    @BindView(R.id.rl_spread)
     RelativeLayout ivAds;
-    @BindView(R.id.skip_view)
     RelativeLayout skipView;
-    @BindView(R.id.tv_shu)
     TextView tvJishi;
-    @BindView(R.id.radar)
     RadarView radarView;
     private int max = Constants.STARTUP_SHOW_TIME_6000+1000;
     private int now = 0;
-    private Unbinder unbinder;
     boolean perm = true;
     private Runnable mStartMainRunnable = new Runnable() {
         @Override
@@ -70,8 +59,11 @@ public class LaunchActivity extends LogActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_launch);
-        MobAgent.init(this);
-        unbinder = ButterKnife.bind(this);
+        ivAds = findViewById(R.id.rl_spread);
+        skipView = findViewById(R.id.skip_view);
+        tvJishi = findViewById(R.id.tv_shu);
+        radarView = findViewById(R.id.radar);
+        skipView.setOnClickListener(this::skip);
         LoginTask.start(this);
         mHandler.postDelayed(mStartMainRunnable, max);
         EventBusUtil.getEventBus().register(this);
@@ -79,7 +71,6 @@ public class LaunchActivity extends LogActivity {
         radarView.start();
     }
 
-    @OnClick(R.id.skip_view)
     public void skip(View view) {
         if(getResources().getText(R.string.skip).equals(tvJishi.getText()))
             launch();
@@ -101,7 +92,6 @@ public class LaunchActivity extends LogActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        MobAgent.onResume(this);
     }
     private void showAdview(){
 //        AdsManager.getInstans().showSplashAds(AdsContext.AdsFrom.ADMOB,this,ivAds,skipView);
@@ -120,12 +110,10 @@ public class LaunchActivity extends LogActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        MobAgent.onPause(this);
     }
 
     @Override
     public void onDestroy() {
-        unbinder.unbind();
         mHandler.removeMessages(Constants.ADS_JISHI);
         mHandler.removeCallbacks(mStartMainRunnable);
 //        AdsManager.getInstans().exitSplashAds(this,ivAds);

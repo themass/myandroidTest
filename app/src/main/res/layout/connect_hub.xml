@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  连接区：左边节点卡片、右边连接按钮，两者同高（96dp），左右对称，占用高度最小，让地球尽量大。
+  雷达在按钮后面扫描。VpnRadFragment 通过固定 id 绑定这里的视图。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingLeft="16dp"
+    android:paddingTop="0dp"
+    android:paddingRight="12dp"
+    android:paddingBottom="0dp">
+
+    <LinearLayout
+        android:id="@+id/card_current_node"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:background="@drawable/pv_bg_card"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center_vertical"
+        android:orientation="vertical"
+        android:paddingLeft="14dp"
+        android:paddingRight="14dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/current_node_label"
+            android:textColor="@color/pv_text_secondary"
+            android:textSize="12sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/iv_current_flag"
+                android:layout_width="28dp"
+                android:layout_height="20dp"
+                android:layout_marginEnd="8dp"
+                android:scaleType="centerCrop"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/tv_current_name"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="@string/current_node_none"
+                android:textColor="@color/pv_text_primary"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tv_current_ping"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/pv_bg_pill"
+            android:paddingLeft="10dp"
+            android:paddingTop="3dp"
+            android:paddingRight="10dp"
+            android:paddingBottom="3dp"
+            android:textColor="@color/pv_text_secondary"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_marginLeft="8dp">
+
+        <com.king.view.radarview.RadarView
+            android:id="@+id/vpn"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clickable="false"
+            android:visibility="gone" />
+
+        <pl.bclogic.pulsator4droid.library.PulsatorLayout
+            android:id="@+id/vpn_pulse"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clickable="false"
+            android:visibility="gone"
+            app:pulse_count="4"
+            app:pulse_duration="3000"
+            app:pulse_repeat="0"
+            app:pulse_color="@color/pv_load_medium"
+            app:pulse_startFromScratch="false"
+            app:pulse_interpolator="Decelerate" />
+
+        <RelativeLayout
+            android:id="@+id/vpn_but"
+            android:layout_width="108dp"
+            android:layout_height="108dp"
+            android:layout_gravity="center">
+
+            <ImageButton
+                android:id="@+id/iv_vpn_state"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_centerInParent="true"
+                android:background="@drawable/pv_connect_button"
+                android:scaleType="fitCenter" />
+
+            <TextView
+                android:id="@+id/tv_vpn_state_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:text="@string/vpn_bg_click"
+                android:textColor="@color/pv_text_primary"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </RelativeLayout>
+    </FrameLayout>
+</LinearLayout>

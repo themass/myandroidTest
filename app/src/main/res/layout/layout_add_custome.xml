@@ -6,6 +6,7 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@color/pv_bg"
         android:focusable="true"
         android:paddingLeft="25dp"
         android:paddingRight="25dp">
@@ -14,7 +15,7 @@
             android:id="@+id/ll_content"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/margin_80"
+            android:layout_marginTop="24dp"
             android:orientation="vertical">
 
             <LinearLayout
@@ -23,19 +24,26 @@
                 android:orientation="horizontal">
 
                 <TextView
-                    style="@style/tv_add_custome_title"
+                    android:layout_width="96dp"
+                    android:textColor="@color/pv_text_secondary"
+                    android:textSize="14sp"
                     android:layout_height="wrap_content"
                     android:text="@string/title_hint" />
 
                 <com.openapi.common.ui.view.MyEditText
                     android:id="@+id/et_title"
                     style="@style/edit_login"
+                    android:textColor="@color/pv_text_primary"
+                    android:textColorHint="@color/pv_text_secondary"
                     android:hint="@string/title_hint"
                     android:maxLines="1"
                     android:singleLine="true" />
             </LinearLayout>
 
-            <ImageView style="@style/divider_login" />
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/pv_divider" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -45,7 +53,9 @@
                 android:orientation="horizontal">
 
                 <TextView
-                    style="@style/tv_add_custome_title"
+                    android:layout_width="96dp"
+                    android:textColor="@color/pv_text_secondary"
+                    android:textSize="14sp"
                     android:layout_height="match_parent"
                     android:text="@string/schema_hint" />
 
@@ -61,19 +71,24 @@
                         android:layout_height="wrap_content"
                         android:layout_marginRight="40dp"
                         android:text="@string/schema_http"
-                        android:textColor="@color/new_deep_black" />
+                        android:buttonTint="@color/pv_accent"
+                        android:textColor="@color/pv_text_primary" />
 
                     <RadioButton
                         android:id="@+id/https"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/schema_https"
-                        android:textColor="@color/new_deep_black" />
+                        android:buttonTint="@color/pv_accent"
+                        android:textColor="@color/pv_text_primary" />
 
                 </RadioGroup>
             </LinearLayout>
 
-            <ImageView style="@style/divider_login" />
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/pv_divider" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -81,19 +96,26 @@
                 android:orientation="horizontal">
 
                 <TextView
-                    style="@style/tv_add_custome_title"
+                    android:layout_width="96dp"
+                    android:textColor="@color/pv_text_secondary"
+                    android:textSize="14sp"
                     android:layout_height="wrap_content"
                     android:text="@string/url_hint" />
 
                 <com.openapi.common.ui.view.SiteAutoCompleteTextView
                     android:id="@+id/et_url"
                     style="@style/edit_login"
+                    android:textColor="@color/pv_text_primary"
+                    android:textColorHint="@color/pv_text_secondary"
                     android:hint="@string/url_hint"
                     android:maxLines="1"
                     android:singleLine="true" />
             </LinearLayout>
 
-            <ImageView style="@style/divider_login" />
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/pv_divider" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -102,7 +124,9 @@
                 android:orientation="horizontal">
 
                 <TextView
-                    style="@style/tv_add_custome_title"
+                    android:layout_width="96dp"
+                    android:textColor="@color/pv_text_secondary"
+                    android:textSize="14sp"
                     android:layout_height="match_parent"
                     android:text="@string/open_hint" />
 
@@ -118,28 +142,30 @@
                         android:layout_height="wrap_content"
                         android:layout_marginRight="40dp"
                         android:text="@string/open_local"
-                        android:textColor="@color/new_deep_black" />
+                        android:buttonTint="@color/pv_accent"
+                        android:textColor="@color/pv_text_primary" />
 
                     <RadioButton
                         android:id="@+id/open_browser"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/open_browser"
-                        android:textColor="@color/new_deep_black" />
+                        android:buttonTint="@color/pv_accent"
+                        android:textColor="@color/pv_text_primary" />
                 </RadioGroup>
             </LinearLayout>
 
             <Button
                 android:id="@+id/btn_save"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="right"
-                android:layout_marginTop="10dp"
-                android:background="?android:attr/selectableItemBackground"
-                android:padding="@dimen/margin_15"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="28dp"
+                android:background="@drawable/pv_btn_primary"
                 android:text="@string/save"
-                android:textColor="@color/base_black"
-                android:textSize="@dimen/textsize_25" />
+                android:textAllCaps="false"
+                android:textColor="@color/pv_text_primary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
             <TextView
                 style="@style/tv_white_small"

@@ -22,9 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-
 /**
  * Created by Miroslaw Stanek on 20.01.15.
  */
@@ -124,16 +121,15 @@ public class IndexNaviAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     }
 
     static class NaviItemViewHolder extends RecyclerView.ViewHolder {
-        @BindView(R.id.card_view)
         CardView cardView;
-        @BindView(R.id.tv_title)
         TextView ivTitle;
-        @BindView(R.id.iv_photo)
         ImageView ivPhoto;
 
         public NaviItemViewHolder(View view) {
             super(view);
-            ButterKnife.bind(this, view);
+            cardView = view.findViewById(R.id.card_view);
+            ivTitle = view.findViewById(R.id.tv_title);
+            ivPhoto = view.findViewById(R.id.iv_photo);
         }
     }
 }

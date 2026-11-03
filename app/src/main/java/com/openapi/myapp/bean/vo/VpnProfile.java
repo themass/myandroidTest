@@ -50,6 +50,10 @@ public class VpnProfile implements Cloneable, Serializable {
     private Long expire;
     private String cert;
 
+    /** 分应用代理：模式与包名。null 表示全流量走代理。 */
+    private String splitMode;
+    private java.util.LinkedHashSet<String> splitPackages;
+
     public long getId() {
         return mId;
     }
@@ -168,6 +172,22 @@ public class VpnProfile implements Cloneable, Serializable {
 
     public void setCert(String cert) {
         this.cert = cert;
+    }
+
+    public String getSplitMode() {
+        return splitMode;
+    }
+
+    public void setSplitMode(String splitMode) {
+        this.splitMode = splitMode;
+    }
+
+    public java.util.LinkedHashSet<String> getSplitPackages() {
+        return splitPackages;
+    }
+
+    public void setSplitPackages(java.util.LinkedHashSet<String> splitPackages) {
+        this.splitPackages = splitPackages;
     }
 
     @Override
