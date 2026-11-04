@@ -1,5 +1,6 @@
 package com.openapi.myapp.ui.reward
 
+import com.openapi.myapp.ui.base.ComposeTheme
 import com.openapi.myapp.ui.base.ComposeBackButton
 
 import android.content.Context
@@ -177,10 +178,10 @@ class RewardActivity : AppCompatActivity() {
     }
 }
 
-private val RwBg = Color(0xFF1C1B24)
-private val RwCard = Color(0xFF292733)
-private val RwText = Color(0xFFE8E8EE)
-private val RwTextSecondary = Color(0xFFA7A4B5)
+private val RwBg = ComposeTheme.Background
+private val RwCard = ComposeTheme.Card
+private val RwText = ComposeTheme.TextPrimary
+private val RwTextSecondary = ComposeTheme.TextSecondary
 private val RwAccent = Color(0xFF6D4AFF)
 private val RwGreen = Color(0xFF1C9C7C)
 

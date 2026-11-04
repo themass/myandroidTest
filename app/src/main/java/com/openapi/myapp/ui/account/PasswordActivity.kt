@@ -1,5 +1,6 @@
 package com.openapi.myapp.ui.account
 
+import com.openapi.myapp.ui.base.ComposeTheme
 import com.openapi.myapp.ui.base.ComposeBackButton
 
 import android.os.Bundle
@@ -164,10 +165,10 @@ class ChangeForm(
     @JvmField val rePwd: String,
 )
 
-private val PvBg = Color(0xFF1C1B24)
-private val PvCard = Color(0xFF292733)
-private val PvText = Color(0xFFE8E8EE)
-private val PvTextSecondary = Color(0xFFA7A4B5)
+private val PvBg = ComposeTheme.Background
+private val PvCard = ComposeTheme.Card
+private val PvText = ComposeTheme.TextPrimary
+private val PvTextSecondary = ComposeTheme.TextSecondary
 private val PvAccent = Color(0xFF6D4AFF)
 
 @Composable

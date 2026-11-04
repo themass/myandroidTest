@@ -1,5 +1,6 @@
 package com.openapi.myapp.ui.proton
 
+import com.openapi.myapp.ui.base.ComposeTheme
 import com.openapi.myapp.ui.base.ComposeBackButton
 
 import android.content.Context
@@ -242,11 +243,11 @@ internal fun flagResId(img: String?): Int? {
     return BaseRes.img[img.substringAfterLast('/').substringBeforeLast('.')]
 }
 
-internal val PvBg = Color(0xFF1C1B24)
-internal val PvCard = Color(0xFF292733)
+internal val PvBg = ComposeTheme.Background
+internal val PvCard = ComposeTheme.Card
 internal val PvSelected = Color(0xFF6D697D)
-internal val PvText = Color(0xFFE8E8EE)
-internal val PvTextSecondary = Color(0xFFA7A4B5)
+internal val PvText = ComposeTheme.TextPrimary
+internal val PvTextSecondary = ComposeTheme.TextSecondary
 private val PvGreen = Color(0xFF1C9C7C)
 private val PvAmber = Color(0xFFFF9900)
 private val PvOrange = Color(0xFFFF7A00)

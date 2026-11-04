@@ -1,5 +1,6 @@
 package com.openapi.myapp.ui.user
 
+import com.openapi.myapp.ui.base.ComposeTheme
 import androidx.compose.foundation.background
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
@@ -62,11 +63,11 @@ interface SettingsActions {
     fun onRow(key: String)
 }
 
-private val SetBg = Color(0xFF1C1B24)
-private val SetCard = Color(0xFF292733)
+private val SetBg = ComposeTheme.Background
+private val SetCard = ComposeTheme.Card
 private val SetDivider = Color(0xFF3F3B4C)
-private val SetText = Color(0xFFE8E8EE)
-private val SetTextSecondary = Color(0xFFA7A4B5)
+private val SetText = ComposeTheme.TextPrimary
+private val SetTextSecondary = ComposeTheme.TextSecondary
 private val SetAccent = Color(0xFF6D4AFF)
 
 @Composable

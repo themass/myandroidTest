@@ -1,5 +1,6 @@
 package com.openapi.myapp.ui.user
 
+import com.openapi.myapp.ui.base.ComposeTheme
 import com.openapi.myapp.ui.base.ComposeBackButton
 
 import android.content.Context
@@ -89,10 +90,10 @@ class SupportActivity : AppCompatActivity() {
     }
 }
 
-private val SupBg = Color(0xFF1C1B24)
-private val SupCard = Color(0xFF292733)
-private val SupText = Color(0xFFE8E8EE)
-private val SupTextSecondary = Color(0xFFA7A4B5)
+private val SupBg = ComposeTheme.Background
+private val SupCard = ComposeTheme.Card
+private val SupText = ComposeTheme.TextPrimary
+private val SupTextSecondary = ComposeTheme.TextSecondary
 private val SupAccent = Color(0xFF6D4AFF)
 
 @Composable

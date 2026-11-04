@@ -1,5 +1,6 @@
 package com.openapi.myapp.ui.user
 
+import com.openapi.myapp.ui.base.ComposeTheme
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -128,10 +129,10 @@ private fun Drawable.toImageBitmap(size: Int = 96): ImageBitmap {
     return bitmap.asImageBitmap()
 }
 
-private val Bg = Color(0xFF1C1B24)
-private val Card = Color(0xFF292733)
-private val TextMain = Color(0xFFE8E8EE)
-private val TextSub = Color(0xFFA7A4B5)
+private val Bg = ComposeTheme.Background
+private val Card = ComposeTheme.Card
+private val TextMain = ComposeTheme.TextPrimary
+private val TextSub = ComposeTheme.TextSecondary
 private val Accent = Color(0xFF6D4AFF)
 
 @Composable

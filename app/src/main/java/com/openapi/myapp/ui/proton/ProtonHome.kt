@@ -1,5 +1,6 @@
 package com.openapi.myapp.ui.proton
 
+import com.openapi.myapp.ui.base.ComposeTheme
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -48,10 +49,10 @@ class ProtonHomeState {
     var flagRes by mutableStateOf<Int?>(null)
 }
 
-private val ProtonBg = Color(0xFF1C1B24)
-private val ProtonCard = Color(0xFF292733)
-private val ProtonTextPrimary = Color(0xFFE8E8EE)
-private val ProtonTextSecondary = Color(0xFFA7A4B5)
+private val ProtonBg = ComposeTheme.Background
+private val ProtonCard = ComposeTheme.Card
+private val ProtonTextPrimary = ComposeTheme.TextPrimary
+private val ProtonTextSecondary = ComposeTheme.TextSecondary
 private val ProtonGreen = Color(0xFF1C9C7C)
 private val ProtonAlert = Color(0xFFDC3251)
 private val ProtonAccent = Color(0xFF6D4AFF)

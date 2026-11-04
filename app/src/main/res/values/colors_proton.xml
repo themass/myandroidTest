@@ -4,12 +4,12 @@
   仅取色值，不引入其代码。新首页与节点列表使用 pv_ 前缀的颜色。
 -->
 <resources>
-    <color name="pv_bg">#FF1C1B24</color>
-    <color name="pv_card">#FF292733</color>
-    <color name="pv_divider">#FF3F3B4C</color>
+    <color name="pv_bg">#FF23222C</color>
+    <color name="pv_card">#FF302F3B</color>
+    <color name="pv_divider">#FF4A4758</color>
     <color name="pv_selected">#FF6D697D</color>
-    <color name="pv_text_primary">#FFE8E8EE</color>
-    <color name="pv_text_secondary">#FFA7A4B5</color>
+    <color name="pv_text_primary">#FFFFFFFF</color>
+    <color name="pv_text_secondary">#FFD6D5E0</color>
     <color name="pv_green">#FF1C9C7C</color>
     <color name="pv_accent">#FF6D4AFF</color>
     <color name="pv_alert">#FFDC3251</color>
