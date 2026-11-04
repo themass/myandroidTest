@@ -35,6 +35,7 @@ import java.util.List;
  */
 public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecycleViewAdapter {
     public boolean showEdit;
+    private final boolean compactRow;
     StaggeredGridLayoutManager layoutManager;
     private int itemWidth;
     private int imgWidth;
@@ -47,6 +48,8 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
     public IndexRecommendAdapter(Context context, RecyclerView recyclerView, List<RecommendVo> data, StaggeredGridLayoutManager layoutManager, OnRecyclerViewItemClickListener listener, OnStartDragListener dragStartListener, OnEditClickListener onEditClickListener, boolean showEdit) {
         super(context, recyclerView, data, listener, dragStartListener);
         this.showEdit = showEdit;
+        // 行布局只看构造时的类型（Sites 为 true）；showEdit 会被 initPullView 与长按切换，不能用来选布局
+        this.compactRow = showEdit;
         this.layoutManager = layoutManager;
         this.mOnEditClickListener = onEditClickListener;
         itemWidth = DensityUtil.getDensityDisplayMetrics(context).widthPixels / layoutManager.getSpanCount();
@@ -71,7 +74,7 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         // 可编辑的自定义列表（Sites）用横向的紧凑行；推荐列表保持原卡片
-        final int layout = showEdit ? R.layout.tab_index_item_site : R.layout.tab_index_item_recommend;
+        final int layout = compactRow ? R.layout.tab_index_item_site : R.layout.tab_index_item_recommend;
         final View view = LayoutInflater.from(context).inflate(layout, parent, false);
         return new IndexRecommendAdapter.NaviItemViewHolder(view);
     }
