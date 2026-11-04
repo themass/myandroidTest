@@ -35,6 +35,7 @@ import com.openapi.common.util.StringUtils;
 import com.openapi.common.util.ToastUtil;
 import com.openapi.data.local.ProtocolPreferences;
 import com.openapi.data.vpn.CharonVpnSessionRepository;
+import com.openapi.data.local.UserNodeStore;
 import com.openapi.domain.model.SplitTunnelingPolicy;
 import com.openapi.domain.model.TunnelProtocol;
 import com.openapi.domain.model.VpnSessionState;
@@ -136,6 +137,7 @@ public class VpnRadFragment extends BaseFragment {
     private final WallMobvAds wallMobvAds = new WallMobvAds();
     private VpnProfile vpnProfile;
     private ServerVo pendingServer;
+    private UserNodeStore.UserNode pendingUserNode;
     private HostVo pendingHost;
 
     private final CommonResponse.ResponseOkListener<String> ipAddressOk = new CommonResponse.ResponseOkListener<String>() {
@@ -430,6 +432,12 @@ public class VpnRadFragment extends BaseFragment {
 
     private void refreshCurrentNodeTexts() {
         if (cardCurrentNode == null || cardCurrentNode.getVisibility() != View.VISIBLE || getActivity() == null) {
+            return;
+        }
+        UserNodeStore.UserNode userNode = UserNodeStore.selected(getActivity());
+        if (userNode != null) {
+            tvCurrentName.setText(userNode.name);
+            tvCurrentPing.setText("");
             return;
         }
         LocationVo chosen = PreferenceUtils.getPrefObj(getActivity(), Constants.LOCATION_CHOOSE, LocationVo.class);
@@ -765,6 +773,13 @@ public class VpnRadFragment extends BaseFragment {
         if (globe != null && globe.getVisibility() == View.VISIBLE) {
             globe.setConnection("connecting", globeTargetId());
         }
+        // 用户自己添加的节点：不需要服务器节点列表，直接用本地 outbound 连接
+        UserNodeStore.UserNode userNode = UserNodeStore.selected(getActivity());
+        if (userNode != null) {
+            pendingUserNode = userNode;
+            prepareVpnService();
+            return;
+        }
         int id = LocationUtil.getSelectLocationId(getActivity());
         indexService.getData(String.format(Constants.getUrl(Constants.API_SERVERLIST_URL), id),
                 serverListener, serverListenerError, INDEX_TAG, ServerVo.class);
@@ -928,6 +943,19 @@ public class VpnRadFragment extends BaseFragment {
         prepareVpnService();
     }
 
+    /** 用户节点：outbound 已是完整的 Xray 配置，走 Xray 通道。 */
+    private void connectUserNode(UserNodeStore.UserNode node) {
+        CharonVpnSessionRepository repo = (CharonVpnSessionRepository) this.repo;
+        TunnelRequest request = new TunnelRequest.Builder()
+                .server(node.server)
+                .port(node.port)
+                .splitTunneling(com.openapi.data.local.SplitTunnelingPreferences.getPolicy(getContext()))
+                .xrayOutboundJson(node.outboundJson)
+                .build();
+        LogUtil.i("connectUserNode: " + node.protocol + " " + node.server + ":" + node.port);
+        repo.connect(TunnelProtocol.VLESS_REALITY, request);
+    }
+
     /**
      * 权限拿到后真正发起连接。
      * <p>
@@ -938,6 +966,12 @@ public class VpnRadFragment extends BaseFragment {
      * 而不是反过来先看偏好、偏好不对就无脑走经典 IKEv2 路径。
      */
     private void connectWithBestProtocol() {
+        if (pendingUserNode != null) {
+            UserNodeStore.UserNode node = pendingUserNode;
+            pendingUserNode = null;
+            connectUserNode(node);
+            return;
+        }
         ServerVo server = pendingServer;
         HostVo host = pendingHost;
         if (server == null || host == null) {

@@ -400,4 +400,18 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="setting_reward">Free VIP time</string>
     <string name="split_mode_exclude_desc">Selected apps go direct. All other apps use the VPN.</string>
     <string name="split_mode_include_desc">Only selected apps use the VPN. All other apps go direct.</string>
+    <!-- 我的节点 -->
+    <string name="user_node_title">My nodes</string>
+    <string name="user_node_hint">Paste a vmess:// or trojan:// link. Nodes are stored only on this device.</string>
+    <string name="user_node_paste_hint">Paste share link</string>
+    <string name="user_node_add">Add node</string>
+    <string name="user_node_added">Added: %1$s</string>
+    <string name="user_node_invalid">Invalid link: %1$s</string>
+    <string name="user_node_selected">Selected. Tap Conn VPN on the home page.</string>
+    <string name="user_node_switched">Switched to server nodes.</string>
+    <string name="user_node_use_server">Use server nodes</string>
+    <string name="user_node_using_server">Using server nodes</string>
+    <string name="user_node_delete">Delete</string>
+    <string name="tools_nodes">My nodes</string>
+    <string name="tools_nodes_desc">Add your own VMess or Trojan node from a share link</string>
 </resources>
