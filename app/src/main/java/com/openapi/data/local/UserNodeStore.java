@@ -41,6 +41,8 @@ public final class UserNodeStore {
         public String server;
         public int port;
         public String outboundJson;
+        /** 用户粘贴的原始分享链接，编辑时回显。 */
+        public String link;
     }
 
     /** 只接受 Xray 已支持、且本次范围内的协议：vmess、trojan。 */
@@ -54,26 +56,52 @@ public final class UserNodeStore {
     @NonNull
     public static UserNode addFromLink(@NonNull Context context, @NonNull String link)
             throws ShareLinkParser.ParseException {
-        ShareLinkParser.Result result = ShareLinkParser.parse(link);
-        if (!ACCEPTED.contains(result.protocol)) {
-            throw new ShareLinkParser.ParseException("暂不支持该协议: " + result.protocol);
-        }
         UserNode node = new UserNode();
         node.id = UUID.randomUUID().toString();
-        node.name = result.remark.isEmpty() ? result.protocol + " node" : result.remark;
-        node.protocol = result.protocol;
-        node.outboundJson = result.outbound.toString();
-        JsonObject address = firstServer(result.outbound);
-        if (address == null) {
-            throw new ShareLinkParser.ParseException("链接里没有服务器地址");
-        }
-        node.server = address.get("address").getAsString();
-        node.port = address.get("port").getAsInt();
-
+        fill(node, link, null);
         List<UserNode> nodes = list(context);
         nodes.add(node);
         save(context, nodes);
         return node;
+    }
+
+    /**
+     * 编辑已有节点：名称可改，链接重新解析（协议、地址、端口都跟着链接变）。
+     *
+     * @throws ShareLinkParser.ParseException 链接格式不对或协议不支持，原节点保持不变
+     */
+    public static void update(@NonNull Context context, @NonNull String id, @Nullable String name,
+                              @NonNull String link) throws ShareLinkParser.ParseException {
+        List<UserNode> nodes = list(context);
+        for (UserNode node : nodes) {
+            if (id.equals(node.id)) {
+                fill(node, link, name);
+                save(context, nodes);
+                return;
+            }
+        }
+        throw new ShareLinkParser.ParseException("节点不存在");
+    }
+
+    /** 用链接填充节点字段；name 为空时用链接里的备注名。 */
+    private static void fill(@NonNull UserNode node, @NonNull String link, @Nullable String name)
+            throws ShareLinkParser.ParseException {
+        ShareLinkParser.Result result = ShareLinkParser.parse(link.trim());
+        if (!ACCEPTED.contains(result.protocol)) {
+            throw new ShareLinkParser.ParseException("暂不支持该协议: " + result.protocol);
+        }
+        JsonObject address = firstServer(result.outbound);
+        if (address == null) {
+            throw new ShareLinkParser.ParseException("链接里没有服务器地址");
+        }
+        String remark = name != null && !name.trim().isEmpty() ? name.trim()
+                : (result.remark.isEmpty() ? result.protocol + " node" : result.remark);
+        node.name = remark;
+        node.protocol = result.protocol;
+        node.outboundJson = result.outbound.toString();
+        node.server = address.get("address").getAsString();
+        node.port = address.get("port").getAsInt();
+        node.link = link.trim();
     }
 
     @NonNull

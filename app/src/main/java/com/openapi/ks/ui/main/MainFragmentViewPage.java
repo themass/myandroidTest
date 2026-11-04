@@ -126,11 +126,8 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         // 工具：网络体检、分应用代理等，从设置里移出，方便发现
         addData(inflater, R.string.tab_tag_tools, com.openapi.ks.ui.maintab.ToolsFragment.class,
                 R.drawable.ac_bg_tab_index, R.string.tab_tools, null, 2);
-        // 我的节点：自己粘贴的 VMess / Trojan 节点，独立一个 tab
-        addData(inflater, R.string.tab_tag_nodes, com.openapi.myapp.ui.user.UserNodesFragment.class,
-                R.drawable.ac_bg_tab_index, R.string.tab_nodes, null, 3);
         addData(inflater, R.string.tab_tag_sites, TabCustomeFragment.class,
-                R.drawable.ac_bg_tab_index, R.string.tab_sites, null, 4);
+                R.drawable.ac_bg_tab_index, R.string.tab_sites, null, 3);
 
         myPagerAdapter = new MyPagerAdapter(getSupportFragmentManager());
         mViewPager.setAdapter(myPagerAdapter);

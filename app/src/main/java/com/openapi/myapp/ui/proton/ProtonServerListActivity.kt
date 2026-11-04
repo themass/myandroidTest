@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.Image
 import androidx.compose.ui.layout.ContentScale
@@ -29,6 +30,8 @@ import com.openapi.myapp.constant.BaseRes
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -59,6 +62,8 @@ import com.openapi.myapp.data.LocationFilter
 import com.openapi.myapp.data.LocationUtil
 import com.openapi.myapp.data.UserLoginUtil
 import com.openapi.myapp.data.config.LocationChooseEvent
+import com.openapi.data.local.UserNodeStore
+import com.openapi.data.remote.ShareLinkParser
 import com.openapi.myapp.ui.user.LoginActivity
 import com.openapi.yewu.net.HttpUtils
 import java.util.concurrent.ConcurrentHashMap
@@ -85,6 +90,8 @@ class ProtonServerListActivity : AppCompatActivity() {
     private val pings = mutableStateOf<Map<Int, Int>>(emptyMap())
     private val pinging = mutableStateOf(false)
     private val selectedId = mutableStateOf(0)
+    private val userNodes = mutableStateOf<List<UserNodeStore.UserNode>>(emptyList())
+    private val selectedUserId = mutableStateOf<String?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -96,13 +103,53 @@ class ProtonServerListActivity : AppCompatActivity() {
                 pings = pings.value,
                 pinging = pinging.value,
                 selectedId = selectedId.value,
+                userNodes = userNodes.value,
+                selectedUserId = selectedUserId.value,
                 onBack = { finish() },
                 onPing = { pingAll() },
                 onSelect = { choose(it) },
                 onBest = { chooseBest() },
+                onSaveUserNode = { id, name, link -> saveUserNode(id, name, link) },
+                onDeleteUserNode = { id -> UserNodeStore.remove(this, id); reloadUserNodes() },
+                onSelectUserNode = { id -> chooseUserNode(id) },
             )
         }
+        reloadUserNodes()
         loadGroups()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        reloadUserNodes()
+    }
+
+    private fun reloadUserNodes() {
+        userNodes.value = UserNodeStore.list(this)
+        selectedUserId.value = UserNodeStore.selected(this)?.id
+    }
+
+    /** 保存用户节点：返回 null 表示成功，否则返回错误文字。 */
+    private fun saveUserNode(id: String?, name: String, link: String): String? {
+        if (link.isBlank()) return getString(R.string.user_node_link_empty)
+        return try {
+            if (id == null) {
+                UserNodeStore.addFromLink(this, link)
+            } else {
+                UserNodeStore.update(this, id, name, link)
+            }
+            reloadUserNodes()
+            null
+        } catch (e: ShareLinkParser.ParseException) {
+            getString(R.string.user_node_invalid, e.message ?: "")
+        }
+    }
+
+    /** 选中用户节点：首页连接时优先使用它；服务器节点会被清掉选择。 */
+    private fun chooseUserNode(id: String) {
+        UserNodeStore.select(this, id)
+        PreferenceUtils.setPrefBoolean(this, Constants.LOCATION_FLAG, true)
+        EventBusUtil.getEventBus().postSticky(LocationChooseEvent())
+        finish()
     }
 
     private fun loadGroups() {
@@ -167,6 +214,8 @@ class ProtonServerListActivity : AppCompatActivity() {
             Toast.makeText(this, group?.desc ?: "", Toast.LENGTH_LONG).show()
             return
         }
+        // 选了服务器节点：清掉用户节点的选择，首页改用服务器节点
+        UserNodeStore.select(this, null)
         PreferenceUtils.setPrefBoolean(this, Constants.LOCATION_FLAG, true)
         LocationUtil.setLocation(this, vo)
         EventBusUtil.getEventBus().postSticky(LocationChooseEvent())
@@ -186,6 +235,120 @@ class ProtonServerListActivity : AppCompatActivity() {
 }
 
 /** 服务端 img 形如 "timeline://img/flag_us.png"，取文件名去映射表找本地国旗；找不到返回 null。 */
+/** "我的" tab：用户自己添加的节点。增、删、改都在这里做，选中后回首页连接。 */
+@Composable
+private fun UserNodesTab(
+    nodes: List<UserNodeStore.UserNode>,
+    selectedUserId: String?,
+    onSelect: (String) -> Unit,
+    onSave: (String?, String, String) -> String?,
+    onDelete: (String) -> Unit,
+) {
+    // editing: null = 关闭；EDIT_NEW = 新增；其它 = 编辑该 id
+    var editing by remember { mutableStateOf<String?>(null) }
+    var name by remember { mutableStateOf("") }
+    var link by remember { mutableStateOf("") }
+    var error by remember { mutableStateOf<String?>(null) }
+
+    fun open(node: UserNodeStore.UserNode?) {
+        editing = node?.id ?: EDIT_NEW
+        name = node?.name ?: ""
+        link = node?.link ?: ""
+        error = null
+    }
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        Button(onClick = { open(null) }, modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(R.string.user_node_add))
+        }
+        Spacer(Modifier.height(8.dp))
+        if (nodes.isEmpty()) {
+            Text(text = stringResource(R.string.user_node_empty), color = PvTextSecondary, fontSize = 13.sp)
+        }
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(bottom = 24.dp)) {
+            items(nodes, key = { it.id }) { node ->
+                val selected = node.id == selectedUserId
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(PvCard)
+                        .clickable { onSelect(node.id) }
+                        .padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = (if (selected) "● " else "") + node.name,
+                            color = PvText,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Text(
+                            text = "${node.protocol.uppercase()} · ${node.server}:${node.port}",
+                            color = PvTextSecondary,
+                            fontSize = 12.sp,
+                        )
+                    }
+                    TextButton(onClick = { open(node) }) {
+                        Text(stringResource(R.string.user_node_edit), color = PvAccent)
+                    }
+                    TextButton(onClick = { onDelete(node.id) }) {
+                        Text(stringResource(R.string.user_node_delete), color = PvAccent)
+                    }
+                }
+            }
+        }
+    }
+
+    val current = editing
+    if (current != null) {
+        AlertDialog(
+            onDismissRequest = { editing = null },
+            containerColor = PvCard,
+            title = {
+                Text(
+                    stringResource(if (current == EDIT_NEW) R.string.user_node_add_title else R.string.user_node_edit_title),
+                    color = PvText,
+                )
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = name,
+                        onValueChange = { name = it },
+                        singleLine = true,
+                        label = { Text(stringResource(R.string.user_node_name)) },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    OutlinedTextField(
+                        value = link,
+                        onValueChange = { link = it },
+                        label = { Text(stringResource(R.string.user_node_link)) },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    error?.let { Text(text = it, color = PvAccent, fontSize = 13.sp) }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    val result = onSave(if (current == EDIT_NEW) null else current, name, link)
+                    if (result == null) editing = null else error = result
+                }) {
+                    Text(stringResource(R.string.user_node_save), color = PvAccent)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { editing = null }) {
+                    Text(stringResource(R.string.user_node_cancel), color = PvTextSecondary)
+                }
+            },
+        )
+    }
+}
+
+private const val EDIT_NEW = "__new__"
+
 internal fun flagResId(img: String?): Int? {
     if (img.isNullOrBlank()) return null
     return BaseRes.img[img.substringAfterLast('/').substringBeforeLast('.')]
@@ -209,13 +372,21 @@ fun ProtonServerListScreen(
     pings: Map<Int, Int>,
     pinging: Boolean,
     selectedId: Int,
+    userNodes: List<UserNodeStore.UserNode>,
+    selectedUserId: String?,
     onBack: () -> Unit,
     onPing: () -> Unit,
     onSelect: (LocationVo) -> Unit,
     onBest: () -> Unit,
+    onSaveUserNode: (String?, String, String) -> String?,
+    onDeleteUserNode: (String) -> Unit,
+    onSelectUserNode: (String) -> Unit,
 ) {
     var tab by remember { mutableStateOf(0) }
     var query by remember { mutableStateOf("") }
+    // 最后一个 tab 是"我的"：用户自己添加的节点，和服务器节点分开管理
+    val mineIndex = groups.size
+    val isMine = tab == mineIndex
     val current = groups.getOrNull(tab)
     val nodes = (current?.list ?: emptyList()).filter { vo ->
         query.isBlank() || listOf(vo.ename, vo.name, vo.cityName, vo.category)
@@ -257,7 +428,8 @@ fun ProtonServerListScreen(
 
             if (groups.isNotEmpty()) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    groups.forEachIndexed { index, group ->
+                    val labels = groups.map { it.name ?: it.ename ?: "" } + stringResource(R.string.proton_tab_mine)
+                    labels.forEachIndexed { index, label ->
                         val active = index == tab
                         Box(
                             modifier = Modifier
@@ -269,7 +441,7 @@ fun ProtonServerListScreen(
                             contentAlignment = Alignment.Center,
                         ) {
                             Text(
-                                text = group.name ?: group.ename ?: "",
+                                text = label,
                                 color = if (active) PvText else PvTextSecondary,
                                 fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
                             )
@@ -277,6 +449,17 @@ fun ProtonServerListScreen(
                     }
                 }
                 Spacer(Modifier.height(12.dp))
+            }
+
+            if (isMine) {
+                UserNodesTab(
+                    nodes = userNodes,
+                    selectedUserId = selectedUserId,
+                    onSelect = onSelectUserNode,
+                    onSave = onSaveUserNode,
+                    onDelete = onDeleteUserNode,
+                )
+                return@Column
             }
 
             if (loading) {
