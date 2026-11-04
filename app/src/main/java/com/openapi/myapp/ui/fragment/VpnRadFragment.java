@@ -974,22 +974,12 @@ public class VpnRadFragment extends BaseFragment {
 
             // 用户显式选了 VLESS，或者这个节点压根不支持 IKEv2（没有退路可言）：
             // 两种情况都应该直接连 VLESS，不能把决定权交给"经典协议"那条分支。
-            if (preferred == TunnelProtocol.VLESS_REALITY || !ikev2Supported) {
+            if (!ikev2Supported) {
                 LogUtil.i("connectWithBestProtocol: 使用后端下发的 VLESS+Reality 节点 "
                         + host.gateway + ":" + host.port);
                 repo.connect(TunnelProtocol.VLESS_REALITY, vlessRequest);
                 return;
             }
-        } else if (preferred == TunnelProtocol.VLESS_REALITY) {
-            com.openapi.domain.repository.TunnelRequest.Builder vlessBuilder =
-                    com.openapi.data.local.VlessProfileStore.buildRequest(getContext());
-            if (vlessBuilder != null) {
-                TunnelRequest vlessRequest = vlessBuilder.splitTunneling(splitPolicy).build();
-                LogUtil.i("connectWithBestProtocol: 节点未下发 VLESS 参数，使用本地保存的链接");
-                repo.connect(TunnelProtocol.VLESS_REALITY, vlessRequest);
-                return;
-            }
-            LogUtil.i("connectWithBestProtocol: 偏好 VLESS+Reality 但无可用节点，回退自动选择");
         }
 
         if (!ikev2Supported) {
@@ -1020,10 +1010,6 @@ public class VpnRadFragment extends BaseFragment {
         // WireGuard 需要服务端公钥与客户端地址；缺失时不能选它。
         boolean wgReady = host.peerPublicKey != null && host.clientAddress != null;
         if (preferred == TunnelProtocol.WIREGUARD && !wgReady) {
-            preferred = TunnelProtocol.IKEV2;
-        } else if (preferred == TunnelProtocol.VLESS_REALITY) {
-            // 上面已处理未配置的情况；走到这里说明用户偏好 Reality 但没配置节点，
-            // 不应该再把这个值传给基于节点列表的 connectAuto（它的候选协议不含 Reality 语义的参数）。
             preferred = TunnelProtocol.IKEV2;
         }
         TunnelProtocol chosen = wgReady ? repo.connectAuto(request, preferred) : null;

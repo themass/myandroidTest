@@ -18,8 +18,6 @@ import com.openapi.ks.free1.R;
 import com.openapi.yewu.ads.base.AdsContext;
 import com.openapi.data.local.ProtocolPreferences;
 import com.openapi.data.local.SplitTunnelingPreferences;
-import com.openapi.data.local.VlessProfileStore;
-import com.openapi.data.remote.ShareLinkParser;
 import com.openapi.domain.model.SplitTunnelingPolicy;
 import com.openapi.domain.model.TunnelProtocol;
 import com.openapi.myapp.base.AppContainer;
