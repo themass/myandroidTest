@@ -1,5 +1,7 @@
 package com.openapi.myapp.ui.account
 
+import com.openapi.myapp.ui.base.ComposeBackButton
+
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.compose.setContent
@@ -194,9 +196,7 @@ fun PasswordScreen(
                 .background(PvBg)
                 .padding(horizontal = 24.dp, vertical = 16.dp),
         ) {
-            TextButton(onClick = onBack) {
-                Text(text = "←  " + stringResource(R.string.password_back), color = PvTextSecondary)
-            }
+            ComposeBackButton(onBack = onBack, color = PvTextSecondary)
             Spacer(Modifier.height(8.dp))
             Text(
                 text = stringResource(if (isChange) R.string.password_title_change else R.string.password_title_forgot),

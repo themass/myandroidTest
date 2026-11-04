@@ -1,5 +1,7 @@
 package com.openapi.myapp.ui.user
 
+import com.openapi.myapp.ui.base.ComposeBackButton
+
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -112,9 +114,7 @@ private fun SupportScreen(
     }
     MaterialTheme(colorScheme = darkColorScheme(background = SupBg, surface = SupCard, primary = SupAccent)) {
         Column(modifier = Modifier.fillMaxSize().background(SupBg).padding(horizontal = 20.dp, vertical = 12.dp)) {
-            TextButton(onClick = onBack) {
-                Text(text = "←  " + stringResource(R.string.password_back), color = SupTextSecondary)
-            }
+            ComposeBackButton(onBack = onBack, color = SupTextSecondary)
             Text(text = title, color = SupText, fontSize = 28.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(20.dp))
 

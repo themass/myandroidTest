@@ -1,5 +1,7 @@
 package com.openapi.myapp.ui.proton
 
+import com.openapi.myapp.ui.base.ComposeBackButton
+
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -235,135 +237,21 @@ class ProtonServerListActivity : AppCompatActivity() {
 }
 
 /** 服务端 img 形如 "timeline://img/flag_us.png"，取文件名去映射表找本地国旗；找不到返回 null。 */
-/** "我的" tab：用户自己添加的节点。增、删、改都在这里做，选中后回首页连接。 */
-@Composable
-private fun UserNodesTab(
-    nodes: List<UserNodeStore.UserNode>,
-    selectedUserId: String?,
-    onSelect: (String) -> Unit,
-    onSave: (String?, String, String) -> String?,
-    onDelete: (String) -> Unit,
-) {
-    // editing: null = 关闭；EDIT_NEW = 新增；其它 = 编辑该 id
-    var editing by remember { mutableStateOf<String?>(null) }
-    var name by remember { mutableStateOf("") }
-    var link by remember { mutableStateOf("") }
-    var error by remember { mutableStateOf<String?>(null) }
-
-    fun open(node: UserNodeStore.UserNode?) {
-        editing = node?.id ?: EDIT_NEW
-        name = node?.name ?: ""
-        link = node?.link ?: ""
-        error = null
-    }
-
-    Column(modifier = Modifier.fillMaxSize()) {
-        Button(onClick = { open(null) }, modifier = Modifier.fillMaxWidth()) {
-            Text(stringResource(R.string.user_node_add))
-        }
-        Spacer(Modifier.height(8.dp))
-        if (nodes.isEmpty()) {
-            Text(text = stringResource(R.string.user_node_empty), color = PvTextSecondary, fontSize = 13.sp)
-        }
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(bottom = 24.dp)) {
-            items(nodes, key = { it.id }) { node ->
-                val selected = node.id == selectedUserId
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(PvCard)
-                        .clickable { onSelect(node.id) }
-                        .padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = (if (selected) "● " else "") + node.name,
-                            color = PvText,
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                        Text(
-                            text = "${node.protocol.uppercase()} · ${node.server}:${node.port}",
-                            color = PvTextSecondary,
-                            fontSize = 12.sp,
-                        )
-                    }
-                    TextButton(onClick = { open(node) }) {
-                        Text(stringResource(R.string.user_node_edit), color = PvAccent)
-                    }
-                    TextButton(onClick = { onDelete(node.id) }) {
-                        Text(stringResource(R.string.user_node_delete), color = PvAccent)
-                    }
-                }
-            }
-        }
-    }
-
-    val current = editing
-    if (current != null) {
-        AlertDialog(
-            onDismissRequest = { editing = null },
-            containerColor = PvCard,
-            title = {
-                Text(
-                    stringResource(if (current == EDIT_NEW) R.string.user_node_add_title else R.string.user_node_edit_title),
-                    color = PvText,
-                )
-            },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(
-                        value = name,
-                        onValueChange = { name = it },
-                        singleLine = true,
-                        label = { Text(stringResource(R.string.user_node_name)) },
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    OutlinedTextField(
-                        value = link,
-                        onValueChange = { link = it },
-                        label = { Text(stringResource(R.string.user_node_link)) },
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    error?.let { Text(text = it, color = PvAccent, fontSize = 13.sp) }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    val result = onSave(if (current == EDIT_NEW) null else current, name, link)
-                    if (result == null) editing = null else error = result
-                }) {
-                    Text(stringResource(R.string.user_node_save), color = PvAccent)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { editing = null }) {
-                    Text(stringResource(R.string.user_node_cancel), color = PvTextSecondary)
-                }
-            },
-        )
-    }
-}
-
-private const val EDIT_NEW = "__new__"
-
 internal fun flagResId(img: String?): Int? {
     if (img.isNullOrBlank()) return null
     return BaseRes.img[img.substringAfterLast('/').substringBeforeLast('.')]
 }
 
-private val PvBg = Color(0xFF1C1B24)
-private val PvCard = Color(0xFF292733)
-private val PvSelected = Color(0xFF6D697D)
-private val PvText = Color(0xFFE8E8EE)
-private val PvTextSecondary = Color(0xFFA7A4B5)
+internal val PvBg = Color(0xFF1C1B24)
+internal val PvCard = Color(0xFF292733)
+internal val PvSelected = Color(0xFF6D697D)
+internal val PvText = Color(0xFFE8E8EE)
+internal val PvTextSecondary = Color(0xFFA7A4B5)
 private val PvGreen = Color(0xFF1C9C7C)
 private val PvAmber = Color(0xFFFF9900)
 private val PvOrange = Color(0xFFFF7A00)
 private val PvAlert = Color(0xFFDC3251)
-private val PvAccent = Color(0xFF6D4AFF)
+internal val PvAccent = Color(0xFF6D4AFF)
 
 @Composable
 fun ProtonServerListScreen(
@@ -396,9 +284,7 @@ fun ProtonServerListScreen(
     MaterialTheme(colorScheme = darkColorScheme(background = PvBg, surface = PvCard, primary = PvAccent)) {
         Column(modifier = Modifier.fillMaxSize().background(PvBg).padding(horizontal = 16.dp, vertical = 12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                TextButton(onClick = onBack) {
-                    Text(text = "←", color = PvText, fontSize = 20.sp)
-                }
+                ComposeBackButton(onBack = onBack, color = PvText)
                 Text(
                     text = stringResource(R.string.proton_servers_title),
                     color = PvText,
@@ -452,7 +338,7 @@ fun ProtonServerListScreen(
             }
 
             if (isMine) {
-                UserNodesTab(
+                UserNodesPanel(
                     nodes = userNodes,
                     selectedUserId = selectedUserId,
                     onSelect = onSelectUserNode,

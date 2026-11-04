@@ -1,5 +1,7 @@
 package com.openapi.myapp.ui.reward
 
+import com.openapi.myapp.ui.base.ComposeBackButton
+
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -202,9 +204,7 @@ private fun RewardScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Row(modifier = Modifier.fillMaxWidth()) {
-                TextButton(onClick = onBack) {
-                    Text(text = "←  " + stringResource(R.string.password_back), color = RwTextSecondary)
-                }
+                ComposeBackButton(onBack = onBack, color = RwTextSecondary)
             }
             Spacer(Modifier.height(8.dp))
             Text(

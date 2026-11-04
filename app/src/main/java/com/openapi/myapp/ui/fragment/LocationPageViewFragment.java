@@ -116,6 +116,10 @@ public class LocationPageViewFragment extends LoadableFragment<InfoListVo<VipLoc
 
         @Override
         public Fragment getItem(int position) {
+            // 最后一页是用户自定义节点（Private），其余为服务器分组
+            if (position == vo.voList.size()) {
+                return new com.openapi.myapp.ui.proton.PrivateNodesFragment();
+            }
             //新建一个Fragment来展示ViewPager item的内容，并传递参数
             LocationItemFragment fragment = new LocationItemFragment();
             fragment.putSerializable(vo.voList.get(position));
@@ -124,12 +128,16 @@ public class LocationPageViewFragment extends LoadableFragment<InfoListVo<VipLoc
 
         @Override
         public CharSequence getPageTitle(int position) {
+            if (position == vo.voList.size()) {
+                return getString(R.string.proton_tab_mine);
+            }
             return vo.voList.get(position).ename;
         }
 
         @Override
         public int getCount() {
-            return vo.voList.size();
+            // 服务器分组 + 1 个 Private 页
+            return vo.voList.size() + 1;
         }
     }
 }
