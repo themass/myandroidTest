@@ -33,7 +33,6 @@ import androidx.fragment.app.Fragment
 import com.openapi.ks.free1.R
 import com.openapi.myapp.ui.check.NetworkCheckActivity
 import com.openapi.myapp.ui.user.SplitTunnelingActivity
-import com.openapi.myapp.ui.user.UserNodesActivity
 
 /** 底部"工具" tab：网络体检、分应用代理等常用工具，首页就能找到。 */
 class ToolsFragment : Fragment() {
@@ -44,7 +43,6 @@ class ToolsFragment : Fragment() {
                 ToolsScreen(
                     onNetworkCheck = { NetworkCheckActivity.start(requireContext()) },
                     onSplitTunneling = { SplitTunnelingActivity.start(requireContext()) },
-                    onMyNodes = { UserNodesActivity.start(requireContext()) },
                 )
             }
         }
@@ -58,7 +56,7 @@ private val ToolsSub = Color(0xFFA7A4B5)
 private val ToolsAccent = Color(0xFF6D4AFF)
 
 @Composable
-private fun ToolsScreen(onNetworkCheck: () -> Unit, onSplitTunneling: () -> Unit, onMyNodes: () -> Unit) {
+private fun ToolsScreen(onNetworkCheck: () -> Unit, onSplitTunneling: () -> Unit) {
     MaterialTheme(colorScheme = darkColorScheme(background = ToolsBg, surface = ToolsCard, primary = ToolsAccent)) {
         Column(
             modifier = Modifier
@@ -84,12 +82,6 @@ private fun ToolsScreen(onNetworkCheck: () -> Unit, onSplitTunneling: () -> Unit
                 title = stringResource(R.string.tools_split),
                 desc = stringResource(R.string.tools_split_desc),
                 onClick = onSplitTunneling,
-            )
-            Spacer(Modifier.height(12.dp))
-            ToolCard(
-                title = stringResource(R.string.tools_nodes),
-                desc = stringResource(R.string.tools_nodes_desc),
-                onClick = onMyNodes,
             )
         }
     }

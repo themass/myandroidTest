@@ -414,4 +414,6 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="user_node_delete">Delete</string>
     <string name="tools_nodes">My nodes</string>
     <string name="tools_nodes_desc">Add your own VMess or Trojan node from a share link</string>
+    <string name="tab_tag_nodes">nodes</string>
+    <string name="tab_nodes">Nodes</string>
 </resources>
