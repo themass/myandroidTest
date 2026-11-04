@@ -1,5 +1,7 @@
 package com.openapi.myapp.adapter;
 
+import com.openapi.common.util.LogUtil;
+
 import android.content.Context;
 import androidx.annotation.Nullable;
 import androidx.cardview.widget.CardView;
@@ -119,6 +121,10 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
         holder.ivPhoto.setImageResource(0);
         holder.ivTitle.setText(vo.title);
         holder.tvTitleBelow.setText(vo.title);
+        // 调试：确认 Sites 的 title 是否真的到达客户端（排查标题不显示）
+        if (showEdit) {
+            LogUtil.i("sites row title=" + vo.title + " url=" + vo.actionUrl);
+        }
         if (holder.tvUrl != null) {
             boolean show = StringUtils.hasText(vo.actionUrl) && !vo.adsShow;
             holder.tvUrl.setText(hostOf(vo.actionUrl));

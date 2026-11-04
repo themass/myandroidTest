@@ -38,9 +38,11 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:ellipsize="end"
+                    android:gravity="start|center_vertical"
                     android:maxLines="1"
+                    android:minWidth="80dp"
                     android:textColor="@color/pv_text_primary"
-                    android:textSize="15sp" />
+                    android:textSize="17sp" />
 
                 <TextView
                     android:id="@+id/tv_url"
@@ -52,7 +54,7 @@
                     android:maxLines="1"
                     android:paddingLeft="8dp"
                     android:textColor="@color/pv_text_secondary"
-                    android:textSize="14sp" />
+                    android:textSize="16sp" />
 
                 <ImageView
                     android:id="@+id/iv_edit"
