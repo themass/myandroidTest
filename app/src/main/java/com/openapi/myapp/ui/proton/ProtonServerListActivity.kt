@@ -9,6 +9,10 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -66,7 +70,7 @@ import com.openapi.myapp.data.LocationUtil
 import com.openapi.myapp.data.UserLoginUtil
 import com.openapi.myapp.data.config.LocationChooseEvent
 import com.openapi.data.local.UserNodeStore
-import com.openapi.data.remote.ShareLinkParser
+import com.openapi.data.local.UserNodeRepository
 import com.openapi.myapp.ui.user.LoginActivity
 import com.openapi.yewu.net.HttpUtils
 import java.util.concurrent.ConcurrentHashMap
@@ -112,12 +116,22 @@ class ProtonServerListActivity : AppCompatActivity() {
                 onPing = { pingAll() },
                 onSelect = { choose(it) },
                 onBest = { chooseBest() },
-                onSaveUserNode = { id, name, link -> saveUserNode(id, name, link) },
-                onDeleteUserNode = { id -> UserNodeStore.remove(this, id); reloadUserNodes() },
+                onSaveUserNode = { id, name, link, done -> saveUserNode(id, name, link, done) },
+                onDeleteUserNode = { id ->
+                    lifecycleScope.launch {
+                        withContext(Dispatchers.IO) { UserNodeRepository.delete(this@ProtonServerListActivity, id) }
+                        reloadUserNodes()
+                    }
+                },
                 onSelectUserNode = { id -> chooseUserNode(id) },
             )
         }
         reloadUserNodes()
+        // 登录状态下从服务端拉取，换设备也能看到同样的节点
+        lifecycleScope.launch {
+            withContext(Dispatchers.IO) { UserNodeRepository.pull(this@ProtonServerListActivity) }
+            reloadUserNodes()
+        }
         loadGroups()
     }
 
@@ -132,21 +146,21 @@ class ProtonServerListActivity : AppCompatActivity() {
     }
 
     /** 保存用户节点：返回 null 表示成功，否则返回错误文字。 */
-    private fun saveUserNode(id: String?, name: String, link: String): String? {
-        if (link.isBlank()) return getString(R.string.user_node_link_empty)
-        return try {
-            if (id == null) {
-                UserNodeStore.addFromLink(this, link)
-            } else {
-                UserNodeStore.update(this, id, name, link)
+    /** 保存用户节点：服务端成功后才更新本地，结果通过 done 回传到主线程。 */
+    private fun saveUserNode(id: String?, name: String, link: String, done: (String?) -> Unit) {
+        lifecycleScope.launch {
+            val error = withContext(Dispatchers.IO) {
+                when {
+                    link.isBlank() -> getString(R.string.user_node_link_empty)
+                    !UserNodeRepository.isLoggedIn() -> getString(R.string.user_node_need_login)
+                    UserNodeRepository.save(this@ProtonServerListActivity, id, name, link) != null -> null
+                    else -> getString(R.string.user_node_save_failed)
+                }
             }
             reloadUserNodes()
-            null
-        } catch (e: ShareLinkParser.ParseException) {
-            getString(R.string.user_node_invalid, e.message ?: "")
+            done(error)
         }
     }
-
     /** 选中用户节点：首页连接时优先使用它；服务器节点会被清掉选择。 */
     private fun chooseUserNode(id: String) {
         UserNodeStore.select(this, id)
@@ -267,7 +281,7 @@ fun ProtonServerListScreen(
     onPing: () -> Unit,
     onSelect: (LocationVo) -> Unit,
     onBest: () -> Unit,
-    onSaveUserNode: (String?, String, String) -> String?,
+    onSaveUserNode: (String?, String, String, (String?) -> Unit) -> Unit,
     onDeleteUserNode: (String) -> Unit,
     onSelectUserNode: (String) -> Unit,
 ) {

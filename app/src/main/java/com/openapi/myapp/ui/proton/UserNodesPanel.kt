@@ -45,7 +45,7 @@ internal fun UserNodesPanel(
     nodes: List<UserNodeStore.UserNode>,
     selectedUserId: String?,
     onSelect: (String) -> Unit,
-    onSave: (String?, String, String) -> String?,
+    onSave: (String?, String, String, (String?) -> Unit) -> Unit,
     onDelete: (String) -> Unit,
 ) {
     // editing: null = 关闭；EDIT_NEW = 新增；其它 = 编辑该 id
@@ -53,6 +53,7 @@ internal fun UserNodesPanel(
     var name by remember { mutableStateOf("") }
     var link by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
+    var saving by remember { mutableStateOf(false) }
 
     fun open(node: UserNodeStore.UserNode?) {
         editing = node?.id ?: EDIT_NEW
@@ -136,8 +137,13 @@ internal fun UserNodesPanel(
             },
             confirmButton = {
                 TextButton(onClick = {
-                    val result = onSave(if (current == EDIT_NEW) null else current, name, link)
-                    if (result == null) editing = null else error = result
+                    if (saving) return@TextButton
+                    saving = true
+                    error = null
+                    onSave(if (current == EDIT_NEW) null else current, name, link) { result ->
+                        saving = false
+                        if (result == null) editing = null else error = result
+                    }
                 }) {
                     Text(stringResource(R.string.user_node_save), color = PvAccent)
                 }

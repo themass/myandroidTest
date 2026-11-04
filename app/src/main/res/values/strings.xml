@@ -425,4 +425,6 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="user_node_save">Save</string>
     <string name="user_node_cancel">Cancel</string>
     <string name="user_node_link_empty">Please paste a share link.</string>
+    <string name="user_node_need_login">Sign in to save nodes to your account.</string>
+    <string name="user_node_save_failed">Could not save. Check your network and try again.</string>
 </resources>

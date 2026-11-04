@@ -100,6 +100,10 @@ public class Constants {
     public static final String API_REWARD_STATUS_URL = "/reward/status.json";
     /** 网络体检：服务端看到的请求方 IP（即经 VPN 后的出口 IP）。 */
     public static final String API_MY_IP_URL = "/net/ip.json";
+    /** 用户自定义节点（服务端为准，按用户隔离）。 */
+    public static final String API_NODE_LIST_URL = "/node/list.json";
+    public static final String API_NODE_SAVE_URL = "/node/save.json";
+    public static final String API_NODE_DEL_URL = "/node/del.json";
     public static final String API_REWARD_REDEEM_URL = "/reward/redeem.json";
     /** 隐私政策页面。 */
     /** 联系邮箱（关于 / 联系页）。 */

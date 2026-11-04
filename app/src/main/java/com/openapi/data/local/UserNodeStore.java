@@ -104,6 +104,54 @@ public final class UserNodeStore {
         node.link = link.trim();
     }
 
+    /** 用服务端列表整体覆盖本地缓存（登录后拉取）。 */
+    public static void replaceAll(@NonNull Context context, @NonNull List<UserNode> nodes) {
+        save(context, new ArrayList<>(nodes));
+        String selected = selectedId(context);
+        if (selected != null && !containsId(nodes, selected)) {
+            select(context, null);
+        }
+    }
+
+    /** 新增或更新一条缓存（以服务端返回为准）。 */
+    public static void upsert(@NonNull Context context, @NonNull UserNode node) {
+        List<UserNode> nodes = list(context);
+        boolean replaced = false;
+        for (int i = 0; i < nodes.size(); i++) {
+            if (node.id.equals(nodes.get(i).id)) {
+                nodes.set(i, node);
+                replaced = true;
+                break;
+            }
+        }
+        if (!replaced) {
+            nodes.add(node);
+        }
+        save(context, nodes);
+    }
+
+    /** 链接对应的 Xray outbound JSON；解析失败返回 null（连接时会报错）。 */
+    @Nullable
+    public static String outboundFromLink(@Nullable String link) {
+        if (link == null || link.isEmpty()) {
+            return null;
+        }
+        try {
+            return ShareLinkParser.parse(link).outbound.toString();
+        } catch (ShareLinkParser.ParseException e) {
+            return null;
+        }
+    }
+
+    private static boolean containsId(@NonNull List<UserNode> nodes, @NonNull String id) {
+        for (UserNode node : nodes) {
+            if (id.equals(node.id)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @NonNull
     public static List<UserNode> list(@NonNull Context context) {
         String raw = PreferenceUtils.getPrefString(context, KEY_NODES, "");

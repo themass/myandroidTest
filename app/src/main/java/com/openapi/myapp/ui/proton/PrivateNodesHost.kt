@@ -8,7 +8,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.openapi.common.util.EventBusUtil
+import com.openapi.data.local.UserNodeRepository
 import com.openapi.data.local.UserNodeStore
 import com.openapi.data.remote.ShareLinkParser
 import com.openapi.myapp.data.config.LocationChooseEvent
@@ -29,6 +34,14 @@ internal fun PrivateNodesHost(onChosen: () -> Unit) {
         selectedId = UserNodeStore.selected(context)?.id
     }
 
+    val scope = rememberCoroutineScope()
+
+    // 进入页面时从服务端同步一次（登录状态下），之后以服务端为准
+    LaunchedEffect(Unit) {
+        withContext(Dispatchers.IO) { UserNodeRepository.pull(context) }
+        reload()
+    }
+
     UserNodesPanel(
         nodes = nodes,
         selectedUserId = selectedId,
@@ -39,25 +52,27 @@ internal fun PrivateNodesHost(onChosen: () -> Unit) {
             onChosen()
             reload()
         },
-        onSave = { id, name, link -> save(context, id, name, link).also { reload() } },
+        // 写操作先调服务端，成功后才改本地；失败时把错误回传给对话框，列表保持不变
+        onSave = { id, name, link, done ->
+            scope.launch {
+                val error = withContext(Dispatchers.IO) { saveRemote(context, id, name, link) }
+                reload()
+                done(error)
+            }
+        },
         onDelete = { id ->
-            UserNodeStore.remove(context, id)
-            reload()
+            scope.launch {
+                withContext(Dispatchers.IO) { UserNodeRepository.delete(context, id) }
+                reload()
+            }
         },
     )
 }
 
-/** 保存用户节点：null 表示成功，否则返回错误文字。 */
-private fun save(context: Context, id: String?, name: String, link: String): String? {
+/** 服务端保存：成功返回 null，失败返回错误文字。 */
+private fun saveRemote(context: Context, id: String?, name: String, link: String): String? {
     if (link.isBlank()) return context.getString(R.string.user_node_link_empty)
-    return try {
-        if (id == null) {
-            UserNodeStore.addFromLink(context, link)
-        } else {
-            UserNodeStore.update(context, id, name, link)
-        }
-        null
-    } catch (e: ShareLinkParser.ParseException) {
-        context.getString(R.string.user_node_invalid, e.message ?: "")
-    }
+    if (!UserNodeRepository.isLoggedIn()) return context.getString(R.string.user_node_need_login)
+    return if (UserNodeRepository.save(context, id, name, link) != null) null
+    else context.getString(R.string.user_node_save_failed)
 }
