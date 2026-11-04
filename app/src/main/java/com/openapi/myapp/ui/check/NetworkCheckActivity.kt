@@ -40,12 +40,13 @@ class NetworkCheckActivity : AppCompatActivity() {
     private var running by mutableStateOf(false)
     private var result by mutableStateOf<NetworkCheck.Result?>(null)
     private var failed by mutableStateOf(false)
+    private var failReason by mutableStateOf("")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val compose = ComposeView(this)
         compose.setContent {
-            NetworkCheckScreen(running, result, failed, onRun = ::runCheck)
+            NetworkCheckScreen(running, result, failed, failReason, onRun = ::runCheck)
         }
         setContentView(compose)
         runCheck()
@@ -57,15 +58,16 @@ class NetworkCheckActivity : AppCompatActivity() {
         failed = false
         Thread {
             var checked: NetworkCheck.Result? = null
-            var error = false
+            var reason: String? = null
             try {
                 checked = NetworkCheck.run(applicationContext)
             } catch (e: IOException) {
-                error = true
+                reason = e.message ?: e.javaClass.simpleName
             }
             runOnUiThread {
                 result = checked
-                failed = error
+                failed = reason != null
+                failReason = reason.orEmpty()
                 running = false
             }
         }.start()
@@ -92,6 +94,7 @@ private fun NetworkCheckScreen(
     running: Boolean,
     result: NetworkCheck.Result?,
     failed: Boolean,
+    failReason: String,
     onRun: () -> Unit,
 ) {
     MaterialTheme(colorScheme = darkColorScheme(background = Bg, surface = Card, primary = Accent)) {
@@ -115,6 +118,7 @@ private fun NetworkCheckScreen(
             Spacer(Modifier.height(16.dp))
             if (failed) {
                 Text(stringResource(R.string.netcheck_error), color = Bad)
+                Text(failReason, color = TextSub, fontSize = 12.sp)
             }
             if (result != null) {
                 ResultRows(result)

@@ -529,6 +529,15 @@ public class VpnRadFragment extends BaseFragment {
         }, "globe-nodes").start();
     }
 
+    private static boolean isAscii(String value) {
+        for (int i = 0; i < value.length(); i++) {
+            if (value.charAt(i) > 0x7E) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     /** 把节点推给地球：有坐标的才能画；测过速的带上延迟用于分级上色；选中的节点单独放大波纹。 */
     private void pushGlobeNodes() {
         if (globe == null || getActivity() == null) {
@@ -539,8 +548,12 @@ public class VpnRadFragment extends BaseFragment {
             double[] ll = GeoCatalog.lookup(vo.cityName, vo.ename, vo.name);
             if (ll != null) {
                 String id = String.valueOf(vo.id);
-                nodes.add(new GlobeWebView.GeoNode(id, vo.name != null ? vo.name : "",
-                        ll[0], ll[1], globePings.get(id)));
+                // 地球标签只能显示 ASCII：中文节点名改用英文名（ename）
+                // 显示 "城市, 国家"（英文）；识别不了时退回 ASCII 名或编号
+                String display = GeoCatalog.displayName(vo.cityName, vo.ename, vo.name);
+                String label = display != null ? display
+                        : (vo.name != null && isAscii(vo.name) ? vo.name : "Node " + vo.id);
+                nodes.add(new GlobeWebView.GeoNode(id, label, ll[0], ll[1], globePings.get(id)));
             }
         }
         LogUtil.i("3D 地球：节点 " + globeLocations.size() + " 个，有坐标 " + nodes.size() + " 个");

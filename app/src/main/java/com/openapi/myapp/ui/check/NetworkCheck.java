@@ -6,7 +6,13 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.openapi.common.util.GsonUtils;
+import com.openapi.common.util.LogUtil;
 import com.openapi.myapp.bean.vo.IpAdress;
+import com.openapi.myapp.bean.vo.MyIpVo;
+import com.openapi.myapp.ui.globe.GeoCatalog;
+import com.openapi.myapp.data.BaseService;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.openapi.myapp.constant.Constants;
 
 import java.io.BufferedReader;
@@ -75,11 +81,26 @@ public final class NetworkCheck {
      */
     @NonNull
     public static Result run(@NonNull Context context) throws IOException {
-        IpAdress geo = fetchGeo();
-        double lat = parseCoord(geo.geoplugin_latitude);
-        double lng = parseCoord(geo.geoplugin_longitude);
-        String city = emptyToNull(geo.geoplugin_city);
-        String country = emptyToNull(geo.geoplugin_countryName);
+        // 出口 IP 和城市都从我们的服务器拿：App 的请求经过 VPN，服务端看到的就是节点出口。
+        MyIpVo myIp = fetchMyIp(context);
+        String exitIp = myIp.ip;
+        String city = emptyToNull(myIp.city);
+        String country = null;
+        double[] ll = city == null ? null : GeoCatalog.lookup(city, myIp.province);
+
+        // 服务端没查到城市时，再试一次第三方（可选，失败不影响结果）
+        if (ll == null) {
+            try {
+                IpAdress geo = fetchGeo();
+                ll = GeoCatalog.lookup(geo.geoplugin_city, geo.geoplugin_countryName);
+                city = city != null ? city : emptyToNull(geo.geoplugin_city);
+                country = emptyToNull(geo.geoplugin_countryName);
+            } catch (IOException e) {
+                LogUtil.w("网络体检：位置查询失败，只显示出口 IP: " + e.getMessage());
+            }
+        }
+        double lat = ll == null ? NO_VALUE : ll[0];
+        double lng = ll == null ? NO_VALUE : ll[1];
 
         String nodeHost = ExitIpStore.getNodeGateway(context);
         if (nodeHost.isEmpty()) {
@@ -87,17 +108,93 @@ public final class NetworkCheck {
         }
         List<String> nodeIps = resolve(nodeHost);
 
-        Result result = new Result(emptyToNull(geo.geoplugin_request), city, country, lat, lng, nodeHost, nodeIps);
+        Result result = new Result(exitIp, city, country, lat, lng, nodeHost, nodeIps);
         if (result.hasLocation) {
-            String label = city != null ? city : (country != null ? country : "");
-            ExitIpStore.saveExit(context, lat, lng, label);
+            String english = GeoCatalog.displayName(city, country);
+            ExitIpStore.saveExit(context, lat, lng, english != null ? english : "Exit");
         }
         return result;
     }
 
+    /** 从服务端取请求方 IP 与城市（经 BaseService，带 App 的鉴权 header）。 */
+    @NonNull
+    private static MyIpVo fetchMyIp(@NonNull Context context) throws IOException {
+        BaseService service = new BaseService();
+        service.setup(context);
+        try {
+            MyIpVo vo = service.getData(Constants.getUrl(Constants.API_MY_IP_URL), MyIpVo.class, "NET_CHECK_IP_TAG");
+            if (vo == null || vo.ip == null || vo.ip.isEmpty()) {
+                throw new IOException("服务端未返回出口 IP");
+            }
+            return vo;
+        } catch (IOException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IOException("出口 IP 查询失败: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 查询出口 IP 的归属地。先用 geoplugin（http），失败再用 ipapi.co（https）。
+     * 两个都失败时，错误信息里带上两边的原因，方便排查。
+     */
     @NonNull
     private static IpAdress fetchGeo() throws IOException {
-        HttpURLConnection conn = (HttpURLConnection) new URL(Constants.IP_GEO_SELF).openConnection();
+        IOException first;
+        try {
+            return fetchGeoPlugin();
+        } catch (IOException e) {
+            first = e;
+        }
+        try {
+            return fetchIpApiCo();
+        } catch (IOException e) {
+            throw new IOException("geoplugin: " + first.getMessage() + "; ipapi.co: " + e.getMessage(), e);
+        }
+    }
+
+    @NonNull
+    private static IpAdress fetchGeoPlugin() throws IOException {
+        String body = get(Constants.IP_GEO_SELF);
+        IpAdress geo = GsonUtils.getInstance().fromJson(body, IpAdress.class);
+        if (geo == null || geo.geoplugin_request == null) {
+            throw new IOException("geoplugin 返回格式不对");
+        }
+        return geo;
+    }
+
+    /** ipapi.co 的字段与 IpAdress 不同，这里手动映射。 */
+    @NonNull
+    private static IpAdress fetchIpApiCo() throws IOException {
+        String body = get("https://ipapi.co/json/");
+        JsonObject json;
+        try {
+            json = JsonParser.parseString(body).getAsJsonObject();
+        } catch (RuntimeException e) {
+            throw new IOException("ipapi.co 返回格式不对");
+        }
+        if (json.has("error")) {
+            throw new IOException("ipapi.co: " + json.get("reason"));
+        }
+        IpAdress geo = new IpAdress();
+        geo.geoplugin_request = str(json, "ip");
+        geo.geoplugin_city = str(json, "city");
+        geo.geoplugin_region = str(json, "region");
+        geo.geoplugin_countryCode = str(json, "country_code");
+        geo.geoplugin_countryName = str(json, "country_name");
+        geo.geoplugin_latitude = str(json, "latitude");
+        geo.geoplugin_longitude = str(json, "longitude");
+        return geo;
+    }
+
+    @Nullable
+    private static String str(JsonObject json, String key) {
+        return json.has(key) && !json.get(key).isJsonNull() ? json.get(key).getAsString() : null;
+    }
+
+    @NonNull
+    private static String get(String url) throws IOException {
+        HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
         conn.setConnectTimeout(TIMEOUT_MS);
         conn.setReadTimeout(TIMEOUT_MS);
         try (BufferedReader reader = new BufferedReader(
@@ -107,11 +204,7 @@ public final class NetworkCheck {
             while ((line = reader.readLine()) != null) {
                 sb.append(line);
             }
-            IpAdress geo = GsonUtils.getInstance().fromJson(sb.toString(), IpAdress.class);
-            if (geo == null) {
-                throw new IOException("geoplugin 返回为空");
-            }
-            return geo;
+            return sb.toString();
         } finally {
             conn.disconnect();
         }

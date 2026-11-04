@@ -79,10 +79,8 @@ public class SettingActivity extends BaseSingleActivity {
         setScore();
         setVersion();
         setCache();
-        setProtocol();
         setSplitTunnel();
         setKillSwitch();
-        setVlessReality();
         ui.setNotify(PreferenceUtils.getPrefBoolean(this, Constants.NOTIFY_SWITCH, true));
         ui.setListCard(PreferenceUtils.getPrefBoolean(this, Constants.LIST_CARD_STYLE, true));
         ui.setPulse(PreferenceUtils.getPrefBoolean(this, Constants.PULSE_STYLE, true));
@@ -127,14 +125,8 @@ public class SettingActivity extends BaseSingleActivity {
             case "net_check":
                 com.openapi.myapp.ui.check.NetworkCheckActivity.start(this);
                 break;
-            case "protocol":
-                onProtocol();
-                break;
-            case "vless":
-                onVlessReality();
-                break;
-            case "score":
-                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Constants.ABOUT)));
+            case "reward":
+                com.openapi.myapp.ui.reward.RewardActivity.start(this);
                 break;
             case "cache":
                 onCache();
@@ -201,41 +193,8 @@ public class SettingActivity extends BaseSingleActivity {
     }
 
     /** 显示当前协议偏好：自动或某个具体协议名。 */
-    private void setProtocol() {
-        TunnelProtocol preferred = ProtocolPreferences.getPreferred(this);
-        ui.setProtocol(preferred == null ? getString(R.string.protocol_auto) : preferred.getDisplayName());
-    }
 
     /** 弹出协议选择：自动 + 当前设备真正可用的协议。 */
-    private void onProtocol() {
-        final List<TunnelProtocol> available = AppContainer.vpnSession().availableProtocols();
-        final List<String> labels = new ArrayList<>();
-        labels.add(getString(R.string.protocol_auto));
-        for (TunnelProtocol p : available) {
-            labels.add(p.getDisplayName());
-        }
-        TunnelProtocol preferred = ProtocolPreferences.getPreferred(this);
-        int checkedIndex = 0;
-        if (preferred != null) {
-            int idx = available.indexOf(preferred);
-            if (idx >= 0) {
-                checkedIndex = idx + 1;
-            }
-        }
-        new android.app.AlertDialog.Builder(this)
-                .setTitle(R.string.protocol_dialog_title)
-                .setSingleChoiceItems(labels.toArray(new String[0]), checkedIndex, (dialog, which) -> {
-                    if (which == 0) {
-                        ProtocolPreferences.setPreferred(this, null);
-                    } else {
-                        ProtocolPreferences.setPreferred(this, available.get(which - 1));
-                    }
-                    setProtocol();
-                    dialog.dismiss();
-                })
-                .setNegativeButton(android.R.string.cancel, null)
-                .show();
-    }
 
     private void setSplitTunnel() {
         SplitTunnelingPolicy policy = SplitTunnelingPreferences.getPolicy(this);
@@ -274,45 +233,8 @@ public class SettingActivity extends BaseSingleActivity {
     }
 
     /** 显示当前已保存的 VLESS+Reality 节点备注名；未配置时提示去添加。 */
-    private void setVlessReality() {
-        if (!VlessProfileStore.hasProfile(this)) {
-            ui.setVless(getString(R.string.vless_reality_not_set));
-            return;
-        }
-        String remark = VlessProfileStore.getRemark(this);
-        ui.setVless(getString(R.string.vless_reality_saved, remark != null ? remark : ""));
-    }
 
     /** 粘贴分享链接（vless / vmess / ss / trojan / hy2）。 */
-    private void onVlessReality() {
-        boolean has = VlessProfileStore.hasProfile(this);
-        android.widget.EditText input = new android.widget.EditText(this);
-        input.setHint(R.string.vless_reality_dialog_hint);
-        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this)
-                .setTitle(R.string.vless_reality_dialog_title)
-                .setView(input)
-                .setPositiveButton(android.R.string.ok, (d, w) -> {
-                    String link = input.getText().toString().trim();
-                    if (link.isEmpty()) {
-                        return;
-                    }
-                    try {
-                        String remark = VlessProfileStore.save(this, link);
-                        ToastUtil.showShort(getString(R.string.vless_reality_saved, remark != null ? remark : link));
-                        setVlessReality();
-                    } catch (ShareLinkParser.ParseException e) {
-                        ToastUtil.showShort(getString(R.string.vless_reality_parse_failed, e.getMessage()));
-                    }
-                })
-                .setNegativeButton(android.R.string.cancel, null);
-        if (has) {
-            builder.setNeutralButton(R.string.vless_reality_clear, (d, w) -> {
-                VlessProfileStore.clear(this);
-                setVlessReality();
-            });
-        }
-        builder.show();
-    }
 
     private void onContract() {
         SystemUtils.copy(SettingActivity.this, Constants.SUPPORT_EMAIL);

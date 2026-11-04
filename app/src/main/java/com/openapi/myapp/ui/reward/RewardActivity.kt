@@ -38,6 +38,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.openapi.ks.free1.R
@@ -295,6 +296,16 @@ private fun RewardScreen(
                 enabled = !busy && tickets >= needed,
                 onClick = onRedeem,
             )
+            if (tickets < needed) {
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    text = stringResource(R.string.reward_need_more, needed - tickets),
+                    color = RwTextSecondary,
+                    fontSize = 13.sp,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                )
+            }
             Spacer(Modifier.height(10.dp))
             OutlinedButton(
                 onClick = onWatch,

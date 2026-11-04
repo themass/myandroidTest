@@ -9,39 +9,19 @@ import com.openapi.common.util.PreferenceUtils;
 import com.openapi.domain.model.TunnelProtocol;
 
 /**
- * 用户的协议偏好。
- * <p>
- * 存储的是协议 id 而不是枚举序号——枚举顺序将来若调整，历史值仍然有效。
- * {@code null} 表示"自动"，由 {@code ProtocolSelector} 决定。
+ * 协议偏好（已停用）。协议由 {@code ProtocolSelector} 按节点能力自动决定，用户不可选。
  */
 public final class ProtocolPreferences {
-
-    private static final String KEY_PREFERRED_PROTOCOL = "PREFERRED_TUNNEL_PROTOCOL";
 
     private ProtocolPreferences() {
     }
 
+    /**
+     * 协议始终自动选择，不读取用户偏好（产品设计：用户不选协议）。
+     * 之前版本保存过的偏好也会被忽略。
+     */
     @Nullable
     public static TunnelProtocol getPreferred(@NonNull Context context) {
-        String id = PreferenceUtils.getPrefString(context, KEY_PREFERRED_PROTOCOL, null);
-        if (id == null || id.isEmpty()) {
-            return null;
-        }
-        for (TunnelProtocol p : TunnelProtocol.values()) {
-            if (p.getId().equals(id)) {
-                return p;
-            }
-        }
         return null;
-    }
-
-    public static void setPreferred(@NonNull Context context, @Nullable TunnelProtocol protocol) {
-        PreferenceUtils.setPrefString(context, KEY_PREFERRED_PROTOCOL,
-                protocol == null ? "" : protocol.getId());
-    }
-
-    /** 是否处于自动选择模式。 */
-    public static boolean isAuto(@NonNull Context context) {
-        return getPreferred(context) == null;
     }
 }

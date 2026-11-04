@@ -70,7 +70,9 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
 
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        final View view = LayoutInflater.from(context).inflate(R.layout.tab_index_item_recommend, parent, false);
+        // 可编辑的自定义列表（Sites）用横向的紧凑行；推荐列表保持原卡片
+        final int layout = showEdit ? R.layout.tab_index_item_site : R.layout.tab_index_item_recommend;
+        final View view = LayoutInflater.from(context).inflate(layout, parent, false);
         return new IndexRecommendAdapter.NaviItemViewHolder(view);
     }
 

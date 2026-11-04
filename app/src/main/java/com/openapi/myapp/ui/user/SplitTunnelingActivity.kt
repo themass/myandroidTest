@@ -170,9 +170,16 @@ private fun SplitTunnelingScreen(
             Spacer(Modifier.height(8.dp))
             Text(
                 text = stringResource(
-                    if (selected.isEmpty()) R.string.split_tunnel_empty_hint else R.string.split_tunnel_selected_count,
-                    selected.size,
+                    if (mode == SplitTunnelingPolicy.Mode.EXCLUDE) R.string.split_mode_exclude_desc
+                    else R.string.split_mode_include_desc,
                 ),
+                color = TextSub,
+                fontSize = 13.sp,
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = if (selected.isEmpty()) stringResource(R.string.split_tunnel_empty_hint)
+                else stringResource(R.string.split_tunnel_selected_count, selected.size),
                 color = TextSub,
                 fontSize = 13.sp,
             )

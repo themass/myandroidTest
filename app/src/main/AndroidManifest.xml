@@ -6,7 +6,14 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 <!--    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />-->
 <!--    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>-->
-<!--    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" tools:node="remove"/>-->
+<!-- 分应用代理只列出有桌面图标的应用（不使用 QUERY_ALL_PACKAGES）。
+         声明后，Android 11+ 才能看到这些启动器应用。 -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+    </queries>
 <!--    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" tools:node="remove" />-->
 
     <!--<uses-permission android:name="android.permission.REAL_GET_TASKS" />-->

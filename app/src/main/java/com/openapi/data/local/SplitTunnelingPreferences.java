@@ -83,7 +83,7 @@ public final class SplitTunnelingPreferences {
      * 列出可参与分流的用户可见应用。
      * <p>
      * 排除本应用自身（总是需要走代理）以及未更新的系统组件。
-     * 不再要求有桌面图标：很多需要分流的应用（后台服务类、部分游戏组件）没有启动入口。
+     * 只列出有桌面图标的应用，配合 <queries> 声明，不需要 QUERY_ALL_PACKAGES。
      */
     @NonNull
     public static List<AppEntry> listInstalledApps(@NonNull Context context) {
@@ -104,6 +104,10 @@ public final class SplitTunnelingPreferences {
             boolean system = (info.flags & ApplicationInfo.FLAG_SYSTEM) != 0;
             boolean updatedSystem = (info.flags & ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0;
             if (system && !updatedSystem) {
+                continue;
+            }
+            // 只列出有桌面图标的应用：没有启动入口的后台组件不展示（不依赖 QUERY_ALL_PACKAGES）
+            if (pm.getLaunchIntentForPackage(info.packageName) == null) {
                 continue;
             }
             CharSequence label = pm.getApplicationLabel(info);

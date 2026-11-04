@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 import com.openapi.ks.free1.R
 
@@ -81,13 +82,6 @@ fun SettingsScreen(ui: SettingsUi, actions: SettingsActions) {
             SettingsGroup(R.string.group_features) {
                 ValueRow(R.string.setting_kill_switch, ui.killSwitch) { actions.onRow("kill_switch") }
                 Divider()
-                ValueRow(R.string.setting_split_tunnel, ui.splitTunnel) { actions.onRow("split_tunnel") }
-                Divider()
-                ValueRow(R.string.setting_net_check, "") { actions.onRow("net_check") }
-                Divider()
-                ValueRow(R.string.setting_protocol, ui.protocol) { actions.onRow("protocol") }
-                Divider()
-                ValueRow(R.string.setting_vless_reality, ui.vless) { actions.onRow("vless") }
             }
 
             SettingsGroup(R.string.group_general) {
@@ -129,7 +123,7 @@ fun SettingsScreen(ui: SettingsUi, actions: SettingsActions) {
             }
 
             SettingsGroup(R.string.group_account) {
-                ValueRow(R.string.menu_btn_score, ui.score) { actions.onRow("score") }
+                ValueRow(R.string.setting_reward, "") { actions.onRow("reward") }
                 Divider()
                 ValueRow(R.string.menu_btn_timeuse, ui.timeUse) { actions.onRow("timeuse") }
                 Divider()
@@ -182,7 +176,14 @@ private fun ValueRow(labelRes: Int, value: String, onClick: () -> Unit) {
             .padding(horizontal = 16.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(text = stringResource(labelRes), color = SetText, fontSize = 16.sp, modifier = Modifier.weight(1f))
+        Text(
+            text = stringResource(labelRes),
+            color = SetText,
+            fontSize = 14.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f),
+        )
         if (value.isNotEmpty()) {
             Text(text = value, color = SetTextSecondary, fontSize = 14.sp)
             Spacer(Modifier.size(8.dp))
@@ -199,7 +200,14 @@ private fun SwitchRow(labelRes: Int, checked: Boolean, onChange: (Boolean) -> Un
             .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(text = stringResource(labelRes), color = SetText, fontSize = 16.sp, modifier = Modifier.weight(1f))
+        Text(
+            text = stringResource(labelRes),
+            color = SetText,
+            fontSize = 14.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f),
+        )
         Switch(
             checked = checked,
             onCheckedChange = onChange,

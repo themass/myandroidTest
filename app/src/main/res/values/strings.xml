@@ -18,10 +18,10 @@
     <!--  tab main -->
     <string name="tab_index">Home</string>
     <string name="tab_local">Loc</string>
-    <string name="tab_customer">Customer</string>
+    <string name="tab_sites">Sites</string>
     <string name="tab_tag_index">index</string>
     <string name="tab_tag_local">local</string>
-    <string name="tab_tag_customer">customer</string>
+    <string name="tab_tag_sites">sites</string>
     <string name="tab_fb_click">Points ads to earn points +</string>
     <string name="tab_fb_click_no">No ads,please try later</string>
     <string name="tab_fb_click_fast">Too fast,please wait 3 seconds</string>
@@ -335,17 +335,17 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="share_text">Try ShieldWing, a private and fast VPN: %1$s</string>
     <string name="share_chooser">Share ShieldWing</string>
     <string name="gift_watch_ad">Watch an ad to earn rewards</string>
-    <string name="reward_title">Earn VIP time</string>
-    <string name="reward_subtitle">Watch ads to collect tickets</string>
+    <string name="reward_title">Get free VIP</string>
+    <string name="reward_subtitle">Watch an ad to get 1 ticket</string>
     <string name="reward_progress">%1$d/%2$d</string>
     <string name="reward_tickets_label">tickets</string>
     <string name="reward_rule_exchange">%1$d tickets = %2$d hours of VIP</string>
     <string name="reward_rule_daily">Up to %1$d ads a day</string>
     <string name="reward_rule_expire">Tickets expire after 7 days</string>
-    <string name="reward_today">Watched today: %1$d/%2$d</string>
+    <string name="reward_today">Ads watched today: %1$d of %2$d</string>
     <string name="reward_vip_until">VIP until %1$s</string>
     <string name="reward_redeem_btn">Redeem %1$d hours VIP</string>
-    <string name="reward_watch_btn">Watch an ad</string>
+    <string name="reward_watch_btn">Watch an ad (+1 ticket)</string>
     <string name="reward_sign_in_hint">Sign in to earn VIP time by watching ads.</string>
     <string name="reward_sign_in">Sign in</string>
     <string name="reward_pending">Ad watched. Your ticket will appear shortly.</string>
@@ -370,9 +370,9 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="netcheck_unknown">Unknown</string>
     <!-- 分应用代理 -->
     <string name="split_tunnel_empty_hint">No apps selected: all apps use the VPN.</string>
-    <string name="split_tunnel_selected_count">%1$d apps selected</string>
+    <string name="split_tunnel_selected_count">Selected: %1$d</string>
     <string name="split_tunnel_search">Search apps</string>
-    <string name="split_tunnel_hint">Changes take effect on the next connection.</string>
+    <string name="split_tunnel_hint">Saved automatically. Applies on your next connection.</string>
     <string name="split_tunnel_loading">Loading apps…</string>
     <string name="split_reconnect_title">Reconnect to apply</string>
     <string name="split_reconnect_message">Split tunneling changed. Reconnect now to apply it?</string>
@@ -388,4 +388,16 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="expiry_vip">Your VIP ends at %1$s.</string>
     <string name="expiry_use">Use now</string>
     <string name="expiry_ok">OK</string>
+    <!-- 工具 tab -->
+    <string name="tab_tag_tools">tools</string>
+    <string name="tab_tools">Tools</string>
+    <string name="tools_title">Tools</string>
+    <string name="tools_netcheck">Network check</string>
+    <string name="tools_netcheck_desc">Exit IP, location, and whether traffic goes through your node</string>
+    <string name="tools_split">Split tunneling</string>
+    <string name="tools_split_desc">Choose which apps go through the VPN</string>
+    <string name="reward_need_more">Collect %1$d more tickets to redeem</string>
+    <string name="setting_reward">Free VIP time</string>
+    <string name="split_mode_exclude_desc">Selected apps go direct. All other apps use the VPN.</string>
+    <string name="split_mode_include_desc">Only selected apps use the VPN. All other apps go direct.</string>
 </resources>

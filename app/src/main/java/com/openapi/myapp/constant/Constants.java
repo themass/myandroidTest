@@ -98,6 +98,8 @@ public class Constants {
     /** 当前用户的邀请码（没有则服务端生成）。 */
     public static final String API_INVITE_URL = "/user/invite.json";
     public static final String API_REWARD_STATUS_URL = "/reward/status.json";
+    /** 网络体检：服务端看到的请求方 IP（即经 VPN 后的出口 IP）。 */
+    public static final String API_MY_IP_URL = "/net/ip.json";
     public static final String API_REWARD_REDEEM_URL = "/reward/redeem.json";
     /** 隐私政策页面。 */
     /** 联系邮箱（关于 / 联系页）。 */
@@ -231,7 +233,7 @@ public class Constants {
 
     public static final String ADMOB_REWARD_ID_TEST="ca-app-pub-3940256099942544/5224354917";
     /** 激励视频广告单元（AdMob 后台新建，用于服务端验证回调）。 */
-    public static final String ADMOB_REWARD_ID="ca-app-pub-6599725010915516/3228875437";
+    public static final String ADMOB_REWARD_ID="ca-app-pub-6599725010915516/4407271916";
 
     public static final String ADMOB_BANNER_ID="ca-app-pub-6599725010915516/9607553162";
     public static final String ADMOB_BANNER_ID_TEST="ca-app-pub-3940256099942544/6300978111";
