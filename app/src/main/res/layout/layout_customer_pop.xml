@@ -1,25 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Sites 长按弹窗：暗色卡片 + 与页面一致的文字颜色与按钮样式 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
+    android:layout_width="160dp"
     android:layout_height="wrap_content"
-    android:background="@color/base_white"
-    android:orientation="vertical">
+    android:background="@drawable/pv_popup_bg"
+    android:orientation="vertical"
+    android:paddingTop="6dp"
+    android:paddingBottom="6dp">
 
-    <Button
+    <TextView
         android:id="@+id/btn_edit"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="?android:attr/selectableItemBackground"
+        android:gravity="center_vertical"
+        android:paddingLeft="18dp"
+        android:paddingRight="18dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
         android:text="@string/edit"
-        android:textSize="@dimen/textsize_14" />
+        android:textColor="@color/pv_text_primary"
+        android:textSize="16sp" />
 
-    <ImageView style="@style/divider_login" />
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/pv_divider" />
 
-    <Button
+    <TextView
         android:id="@+id/btn_del"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="?android:attr/selectableItemBackground"
+        android:gravity="center_vertical"
+        android:paddingLeft="18dp"
+        android:paddingRight="18dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
         android:text="@string/delete"
-        android:textSize="@dimen/textsize_14" />
+        android:textColor="@color/pv_alert"
+        android:textSize="16sp" />
 </LinearLayout>

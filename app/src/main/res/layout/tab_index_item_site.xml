@@ -34,13 +34,13 @@
 
                 <TextView
                     android:id="@+id/tv_title_below"
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
+                    android:layout_marginRight="10dp"
                     android:ellipsize="end"
                     android:gravity="start|center_vertical"
+                    android:maxWidth="160dp"
                     android:maxLines="1"
-                    android:minWidth="80dp"
                     android:textColor="@color/pv_text_primary"
                     android:textSize="17sp" />
 
