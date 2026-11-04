@@ -30,7 +30,7 @@
             android:padding="@dimen/margin_10"
             android:paddingLeft="@dimen/margin_25"
             android:text="@string/send"
-            android:textColor="@color/gray"
+            android:textColor="@color/pv_text_secondary"
             android:textSize="@dimen/textsize_14" />
 
         <TextView

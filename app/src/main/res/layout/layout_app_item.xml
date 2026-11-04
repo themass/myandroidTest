@@ -36,6 +36,6 @@
             android:id="@+id/tv_date"
             android:gravity="right"
             android:paddingTop="@dimen/margin_3"
-            android:textColor="@color/base_black" />
+            android:textColor="@color/pv_text_primary" />
     </LinearLayout>
 </LinearLayout>

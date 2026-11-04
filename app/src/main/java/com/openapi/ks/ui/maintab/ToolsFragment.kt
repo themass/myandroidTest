@@ -29,6 +29,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.openapi.myapp.ui.base.ComposeTheme
 import androidx.fragment.app.Fragment
 import com.openapi.ks.free1.R
 import com.openapi.myapp.ui.check.NetworkCheckActivity
@@ -49,10 +50,10 @@ class ToolsFragment : Fragment() {
     }
 }
 
-private val ToolsBg = Color(0xFF1C1B24)
-private val ToolsCard = Color(0xFF292733)
-private val ToolsText = Color(0xFFE8E8EE)
-private val ToolsSub = Color(0xFFA7A4B5)
+private val ToolsBg = ComposeTheme.Background
+private val ToolsCard = ComposeTheme.Card
+private val ToolsText = ComposeTheme.TextPrimary
+private val ToolsSub = ComposeTheme.TextSecondary
 private val ToolsAccent = Color(0xFF6D4AFF)
 
 @Composable

@@ -42,7 +42,7 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:gravity="center_vertical"
-            android:textColor="@color/base_black"
+            android:textColor="@color/pv_text_primary"
             android:textSize="@dimen/textsize_12" />
         <TextView
             android:layout_toLeftOf="@id/ll_ping"
@@ -52,7 +52,7 @@
             android:layout_height="match_parent"
             android:layout_marginRight="@dimen/margin_15"
             android:gravity="center_vertical"
-            android:textColor="@color/base_black"
+            android:textColor="@color/pv_text_primary"
             android:textStyle="bold|italic"
             android:textSize="@dimen/textsize_12" />
         <LinearLayout
@@ -68,7 +68,7 @@
                 android:layout_height="match_parent"
                 android:gravity="left"
                 android:text="@string/location_ping"
-                android:textColor="@color/base_black"
+                android:textColor="@color/pv_text_primary"
                 android:textSize="@dimen/textsize_10" />
 
             <FrameLayout
@@ -87,7 +87,7 @@
                     android:gravity="center_vertical"
                     android:maxLines="1"
                     android:text="no ping"
-                    android:textColor="@color/base_black"
+                    android:textColor="@color/pv_text_primary"
                     android:textSize="@dimen/textsize_10" />
             </FrameLayout>
         </LinearLayout>
