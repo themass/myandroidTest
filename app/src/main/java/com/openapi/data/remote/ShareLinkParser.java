@@ -48,6 +48,36 @@ public final class ShareLinkParser {
             this.remark = remark;
             this.outbound = outbound;
         }
+
+        /** 链接里的服务器地址；vless/vmess 在 settings.vnext，其余在 settings.servers。取不到返回 null。 */
+        @Nullable
+        public String server() {
+            JsonObject first = firstEndpoint();
+            return first != null && first.has("address") ? first.get("address").getAsString() : null;
+        }
+
+        /** 链接里的端口；取不到返回 0。 */
+        public int port() {
+            JsonObject first = firstEndpoint();
+            return first != null && first.has("port") ? first.get("port").getAsInt() : 0;
+        }
+
+        @Nullable
+        private JsonObject firstEndpoint() {
+            if (!outbound.has("settings") || !outbound.get("settings").isJsonObject()) {
+                return null;
+            }
+            JsonObject settings = outbound.getAsJsonObject("settings");
+            for (String key : new String[]{"vnext", "servers"}) {
+                if (settings.has(key) && settings.get(key).isJsonArray()) {
+                    JsonArray list = settings.getAsJsonArray(key);
+                    if (list.size() > 0 && list.get(0).isJsonObject()) {
+                        return list.get(0).getAsJsonObject();
+                    }
+                }
+            }
+            return null;
+        }
     }
 
     @NonNull

@@ -956,6 +956,25 @@ public class VpnRadFragment extends BaseFragment {
         repo.connect(TunnelProtocol.VLESS_REALITY, request);
     }
 
+    /** 官方节点的代理链接：与用户节点同一条路径（sing-box），地址和端口取自链接本身。 */
+    private void connectProxyCandidate(com.openapi.data.remote.ProxyLinkSelector.Candidate candidate,
+                                       HostVo host, SplitTunnelingPolicy splitPolicy) {
+        CharonVpnSessionRepository repo = (CharonVpnSessionRepository) this.repo;
+        String server = candidate.result.server();
+        // 网络体检拿这个地址和出口 IP 对比，必须是真正连接的地址，不是节点的 gateway。
+        com.openapi.myapp.ui.check.ExitIpStore.rememberNode(getContext(), server);
+        TunnelRequest request = new TunnelRequest.Builder()
+                .server(server)
+                .port(candidate.result.port())
+                .mtu(host.mtu)
+                .dnsServer(host.dns)
+                .splitTunneling(splitPolicy)
+                .xrayOutboundJson(candidate.result.outbound.toString())
+                .build();
+        LogUtil.i("connectProxyCandidate: " + candidate.protocol + " " + server + ":" + candidate.result.port());
+        repo.connect(TunnelProtocol.VLESS_REALITY, request);
+    }
+
     /**
      * 权限拿到后真正发起连接。
      * <p>
@@ -1017,12 +1036,20 @@ public class VpnRadFragment extends BaseFragment {
         }
 
         if (!ikev2Supported) {
-            // 走到这里说明：节点不支持 IKEv2，VLESS 也没配全（否则上面已经 return）。
-            // 没有协议可用，绝不能像以前那样默默尝试 IKEv2——会表现成"连接中"卡住，
-            // 用户完全看不出原因。这里从未建立过连接，调用 disconnect() 语义不对，
-            // 直接提示用户比假装能连、或静默挂起更负责。
+            // 节点不支持 IKEv2，原生 VLESS 也没配全：看后端是否下发了其他代理协议的分享链接
+            // （trojan / vmess / shadowsocks / hysteria2），有就按优先级取第一个连接。
+            // 注意：只取第一个，连接失败不会自动换下一个协议。
+            java.util.List<com.openapi.data.remote.ProxyLinkSelector.Candidate> proxies =
+                    com.openapi.data.remote.ProxyLinkSelector.candidates(host.protocols, host.proxyLinks);
+            if (!proxies.isEmpty()) {
+                connectProxyCandidate(proxies.get(0), host, splitPolicy);
+                return;
+            }
+            // 走到这里说明：没有任何协议可用，绝不能像以前那样默默尝试 IKEv2——
+            // 会表现成"连接中"卡住，用户完全看不出原因。这里从未建立过连接，
+            // 调用 disconnect() 语义不对，直接提示用户比假装能连、或静默挂起更负责。
             LogUtil.e("connectWithBestProtocol: 节点 " + host.gateway
-                    + " 不支持 IKEv2 且 VLESS 参数不全，没有可用协议");
+                    + " 不支持 IKEv2，VLESS 参数不全，也没有可用的代理链接");
             ToastUtil.showShort(R.string.error_unreachable);
             return;
         }

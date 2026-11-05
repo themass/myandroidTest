@@ -47,6 +47,13 @@ public class HostVo {
     /** Reality：TLS 指纹伪装，如 "chrome"。 */
     public String realityFingerprint;
 
+    /**
+     * 通用代理节点（sing-box 承载）：协议名 -> 分享链接 的 JSON，
+     * 如 {"trojan":"trojan://...","hysteria2":"hysteria2://..."}。
+     * 解析与连接路径和用户自己的节点相同，见 {@link com.openapi.data.remote.ProxyLinkSelector}。
+     */
+    public String proxyLinks;
+
     /** 建议 MTU；<=0 表示由协议默认值决定。 */
     public int mtu;
 
