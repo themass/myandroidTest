@@ -45,8 +45,12 @@ public final class UserNodeStore {
         public String link;
     }
 
-    /** 只接受 Xray 已支持、且本次范围内的协议：vmess、trojan。 */
-    private static final List<String> ACCEPTED = java.util.Arrays.asList("vmess", "trojan");
+    /**
+     * 允许的协议。与服务端 ShareLinkInfo 保持一致；SingBoxConfigBuilder 能翻译的全部协议。
+     * 新增协议两边要同时改，否则服务端保存会被拒。
+     */
+    private static final List<String> ACCEPTED = java.util.Arrays.asList(
+            "vless", "vmess", "trojan", "shadowsocks", "hysteria2");
 
     /**
      * 解析并保存一条分享链接。
