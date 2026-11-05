@@ -107,7 +107,7 @@
     <string name="menu_share_confirm">CopyURL</string>
     <string name="menu_share_cancel">Cancel</string>
     <string name="menu_share_copy_ok">Copied OK</string>
-    <string name="close_over">One more again!!</string>
+    <string name="close_over">Press back again to exit</string>
     <string name="login">Sign in</string>
     <string name="setting">Setting</string>
     <string name="reg">Sign up</string>
@@ -427,4 +427,7 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="user_node_link_empty">Please paste a share link.</string>
     <string name="user_node_need_login">Sign in to save nodes to your account.</string>
     <string name="user_node_save_failed">Could not save. Check your network and try again.</string>
+    <!-- 开屏文字（设计稿提供后可调整） -->
+    <string name="launch_title">A new world</string>
+    <string name="launch_subtitle">A new life</string>
 </resources>

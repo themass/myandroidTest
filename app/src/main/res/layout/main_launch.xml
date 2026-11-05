@@ -28,6 +28,61 @@
             app:labelText="see" />
     </LinearLayout>
 
+    <!-- 开屏文字走马灯：大字与小字轮播，淡入淡出。字体与底图待设计稿确认后替换。 -->
+    <ViewFlipper
+        android:id="@+id/launch_slogan"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:inAnimation="@anim/launch_fade_in"
+        android:outAnimation="@anim/launch_fade_out"
+        android:flipInterval="3200"
+        android:autoStart="false"
+        android:clickable="false">
+
+        <!-- 第 1 屏：大字 -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <TextView
+                android:id="@+id/launch_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:text="@string/launch_title"
+                android:textColor="@color/base_white"
+                android:textSize="44sp"
+                android:fontFamily="serif"
+                android:letterSpacing="0.04"
+                android:shadowColor="#66000000"
+                android:shadowDx="0"
+                android:shadowDy="2"
+                android:shadowRadius="8" />
+        </RelativeLayout>
+
+        <!-- 第 2 屏：小字，靠右下角 -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <TextView
+                android:id="@+id/launch_subtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentBottom="true"
+                android:layout_marginRight="28dp"
+                android:layout_marginBottom="120dp"
+                android:text="@string/launch_subtitle"
+                android:textColor="@color/base_white"
+                android:textSize="22sp"
+                android:fontFamily="serif-monospace"
+                android:letterSpacing="0.08"
+                android:shadowColor="#66000000"
+                android:shadowDx="0"
+                android:shadowDy="2"
+                android:shadowRadius="6" />
+        </RelativeLayout>
+    </ViewFlipper>
+
     <RelativeLayout
         android:id="@+id/rl_spread"
         android:layout_width="match_parent"

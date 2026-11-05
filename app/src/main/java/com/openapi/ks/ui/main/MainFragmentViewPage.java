@@ -15,7 +15,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.openapi.ks.ui.maintab.TabLocalFragment;
-import com.openapi.common.util.DoubleClickExit;
 import com.openapi.common.util.EventBusUtil;
 import com.openapi.common.util.LogUtil;
 import com.openapi.common.util.PermissionHelper;
@@ -169,7 +168,6 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         EventBusUtil.getEventBus().unregister(jump);
         admobRewardManger.onAdDestroy();
         super.onDestroy();
-        System.exit(0);
     }
 
     @Override
@@ -183,6 +181,10 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         admobRewardManger.onAdResume();
         super.onResume();
     }
+
+    /** 双击退出的时间窗口（毫秒）。实例字段，不跨页面、不跨进程。 */
+    private static final long BACK_EXIT_WINDOW_MS = 2000L;
+    private long lastBackPressedAt = 0L;
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -203,12 +205,15 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
                 return true;
             }
 
-            if (!DoubleClickExit.check()) {
+            // 两次返回间隔 2 秒内才退出；超时后第一次的提示失效，重新计时
+            long now = System.currentTimeMillis();
+            if (now - lastBackPressedAt > BACK_EXIT_WINDOW_MS) {
+                lastBackPressedAt = now;
                 ToastUtil.showShort(getString(R.string.close_over));
                 return true;
-            } else {
-                finish();
             }
+            finish();
+            return true;
         }
         return super.onKeyDown(keyCode, event);
     }

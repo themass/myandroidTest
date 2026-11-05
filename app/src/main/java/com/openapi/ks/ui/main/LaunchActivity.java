@@ -3,6 +3,7 @@ package com.openapi.ks.ui.main;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.widget.ViewFlipper;
 import android.os.Message;
 import android.view.KeyEvent;
 import android.view.View;
@@ -69,6 +70,11 @@ public class LaunchActivity extends LogActivity {
         EventBusUtil.getEventBus().register(this);
         showAdview();
         radarView.start();
+        // 开屏文字走马灯：大字、小字轮播
+        ViewFlipper slogan = findViewById(R.id.launch_slogan);
+        if (slogan != null) {
+            slogan.startFlipping();
+        }
     }
 
     public void skip(View view) {
@@ -77,6 +83,10 @@ public class LaunchActivity extends LogActivity {
     }
 
     private void launch() {
+        ViewFlipper slogan = findViewById(R.id.launch_slogan);
+        if (slogan != null) {
+            slogan.stopFlipping();
+        }
         radarView.stop();
         Intent intent = new Intent(this, MainFragmentViewPage.class);
         startActivity(intent);
