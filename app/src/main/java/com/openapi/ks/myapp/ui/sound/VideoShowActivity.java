@@ -1,6 +1,12 @@
 package com.openapi.ks.myapp.ui.sound;
 
 
+import android.widget.Toast;
+import com.openapi.core.cast.JavaCaster;
+import com.openapi.core.cast.DlnaDiscoveryCallback;
+import com.openapi.core.cast.DlnaDevice;
+import android.widget.ImageButton;
+import android.app.AlertDialog;
 import com.shuyu.gsyvideoplayer.video.base.GSYVideoView;
 import android.util.Rational;
 import android.app.PictureInPictureParams;
@@ -44,6 +50,8 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
     private Unbinder unbinder;
     @BindView(R.id.jz_video)
     public DetailGSYVideoPlayer videoPlayer;
+    private DlnaDiscoveryCallback dlnaDiscovery;
+    private JavaCaster dlnaCaster;
     private boolean enteringPip;
     private GoogleCastSessionController castSessionController;
     RecommendVo vo;
@@ -81,6 +89,7 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
             }
         });
 
+        findViewById(R.id.btn_dlna_cast).setOnClickListener(v -> showDlnaDevices());
         myFavoriteView.setListener(this);
         myFavoriteView.initFavoriteBackGroud(vo.actionUrl);
         myFavoriteView.showVideoLocal();
@@ -146,6 +155,41 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
         }
     }
 
+    private void showDlnaDevices() {
+        if (dlnaDiscovery == null) {
+            dlnaDiscovery = new DlnaDiscoveryCallback();
+        }
+        Toast.makeText(this, "正在搜索电视…", Toast.LENGTH_SHORT).show();
+        dlnaDiscovery.discover(devices -> runOnUiThread(() -> {
+            if (devices.isEmpty()) {
+                Toast.makeText(this, "未发现可投屏的设备", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            String[] names = new String[devices.size()];
+            for (int i = 0; i < names.length; i++) {
+                names[i] = devices.get(i).getFriendlyName();
+            }
+            new AlertDialog.Builder(this)
+                    .setTitle("投屏到")
+                    .setItems(names, (dialog, which) -> castToDlna(devices.get(which)))
+                    .show();
+        }));
+    }
+
+    private void castToDlna(DlnaDevice device) {
+        if (dlnaCaster == null) {
+            dlnaCaster = new JavaCaster(this);
+        }
+        String url = VideoUtil.buildPlayUrl(vo);
+        dlnaCaster.castRemote(device, url, vo.title, error -> runOnUiThread(() -> {
+            if (error != null) {
+                Toast.makeText(this, "投屏失败：" + error, Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "已投屏到 " + device.getFriendlyName(), Toast.LENGTH_SHORT).show();
+            }
+        }));
+    }
+
     /** 正在播放时离开页面，进入系统画中画小窗；视频不暂停。 */
     @Override
     protected void onUserLeaveHint() {
@@ -194,6 +238,12 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
     public void onDestroy() {
         if (myFavoriteView != null) {
             myFavoriteView.releaseTranslationOverlay();
+        }
+        if (dlnaCaster != null) {
+            dlnaCaster.close();
+        }
+        if (dlnaDiscovery != null) {
+            dlnaDiscovery.close();
         }
         GSYVideoManager.releaseAllVideos();
         super.onDestroy();

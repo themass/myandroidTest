@@ -290,4 +290,5 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="result_steps_label">解题步骤</string>
     <string name="result_answer_label">最终答案</string>
     <string name="result_retake">再拍一题</string>
+    <string name="cast_title">投屏到电视</string>
 </resources>

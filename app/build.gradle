@@ -258,6 +258,9 @@ dependencies {
     implementation 'org.opencv:opencv:4.10.0'
     implementation 'com.anggrayudi:storage:1.5.6'
 
+    // DLNA 投屏：本地文件的 HTTP 分发（LocalMediaServer）
+    implementation 'org.nanohttpd:nanohttpd:2.3.1'
+
     // Google 智能文档扫描
     implementation 'com.google.android.gms:play-services-mlkit-document-scanner:16.0.0'
 
