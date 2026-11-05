@@ -2,6 +2,7 @@ package com.openapi.roles.data
 
 import com.openapi.roles.domain.RoleDivision
 import com.openapi.roles.domain.RolePage
+import com.openapi.roles.domain.RoleSummary
 import com.openapi.roles.domain.SelectedRole
 
 /**
@@ -27,10 +28,29 @@ interface RolesRepository {
         offset: Int = 0,
     ): RolePage?
 
-    /** 当前选中的目录角色，没选返回 null。 */
+    /** 上一次选中的目录角色（新会话默认用它），没选返回 null。 */
     fun selected(): SelectedRole?
 
     fun setSelected(role: SelectedRole?)
+
+    /** 某个会话自己记住的角色；没有则返回 null，调用方回退到 [selected]。 */
+    fun selectedFor(sessionId: Long): SelectedRole?
+
+    fun setSelectedFor(sessionId: Long, role: SelectedRole?)
+
+    /** 收藏的角色，按收藏时间倒序。保存的是摘要，离线也能显示。 */
+    fun favorites(): List<RoleSummary>
+
+    fun isFavorite(roleId: String): Boolean
+
+    /** 切换收藏，返回切换后的状态。 */
+    fun toggleFavorite(role: RoleSummary): Boolean
+
+    /** 最近使用过的角色，最近的在前。 */
+    fun recents(): List<RoleSummary>
+
+    /** 记录一次使用（选中并开始对话）。 */
+    fun recordUse(role: RoleSummary)
 }
 
 object RolesDependencies {

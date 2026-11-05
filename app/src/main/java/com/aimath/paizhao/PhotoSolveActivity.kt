@@ -37,6 +37,7 @@ import com.aimath.paizhao.photosolve.PhotoSolveViewModel
 import com.aimath.paizhao.photosolve.ui.CropAssistSettingsSheet
 import com.aimath.paizhao.photosolve.ui.PhotoCaptureScreen
 import com.aimath.paizhao.photosolve.ui.PhotoCropScreen
+import com.aimath.paizhao.photosolve.ui.PhotoQualityDialog
 import com.aimath.paizhao.photosolve.ui.PhotoRecognizingScreen
 import com.aimath.paizhao.photosolve.ui.PhotoResultScreen
 import com.aimath.paizhao.photosolve.ui.PhotoSolveHomeScreen
@@ -227,6 +228,15 @@ private fun PhotoSolveApp(
                 )
             }
         }
+    }
+
+    uiState.qualityWarning?.let { warning ->
+        PhotoQualityDialog(
+            issues = warning.issues,
+            onRetake = viewModel::onRetakeAfterQualityWarning,
+            onSolveAnyway = viewModel::onSolveAnyway,
+            onDismiss = viewModel::onDismissQualityWarning,
+        )
     }
 
     if (showCropAssistSettings) {

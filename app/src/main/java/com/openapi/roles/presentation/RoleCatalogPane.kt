@@ -99,6 +99,20 @@ fun RoleCatalogPane(
                     label = { Text("全部") },
                 )
             }
+            item {
+                FilterChip(
+                    selected = state.filter == RoleFilter.Favorites,
+                    onClick = { viewModel.onFilterChange(RoleFilter.Favorites) },
+                    label = { Text("收藏") },
+                )
+            }
+            item {
+                FilterChip(
+                    selected = state.filter == RoleFilter.Recent,
+                    onClick = { viewModel.onFilterChange(RoleFilter.Recent) },
+                    label = { Text("最近") },
+                )
+            }
             items(state.divisions, key = { it.id }) { division ->
                 FilterChip(
                     selected = (state.filter as? RoleFilter.Division)?.id == division.id,
@@ -122,7 +136,7 @@ fun RoleCatalogPane(
                 }
 
                 state.items.isEmpty() -> Text(
-                    "没有找到相关角色",
+                    emptyText(state),
                     color = AppColors.TextSecondary,
                     fontSize = AppTypography.body,
                     modifier = Modifier.align(Alignment.Center),
@@ -133,9 +147,12 @@ fun RoleCatalogPane(
                         RoleRow(
                             role = role,
                             selected = role.id == selectedId,
+                            favorite = role.id in state.favoriteIds,
                             onClick = {
+                                viewModel.onRolePicked(role)
                                 onSelect(SelectedRole(role.id, role.name, role.emoji, role.colorArgb))
                             },
+                            onToggleFavorite = { viewModel.onToggleFavorite(role) },
                         )
                     }
                     if (state.loadingMore) {
@@ -151,8 +168,20 @@ fun RoleCatalogPane(
     }
 }
 
+private fun emptyText(state: RolePickerState): String = when (state.filter) {
+    RoleFilter.Favorites -> "还没有收藏的角色，点击角色右侧的星标即可收藏"
+    RoleFilter.Recent -> "最近还没有使用过角色"
+    else -> "没有找到相关角色"
+}
+
 @Composable
-private fun RoleRow(role: RoleSummary, selected: Boolean, onClick: () -> Unit) {
+private fun RoleRow(
+    role: RoleSummary,
+    selected: Boolean,
+    favorite: Boolean,
+    onClick: () -> Unit,
+    onToggleFavorite: () -> Unit,
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -184,6 +213,15 @@ private fun RoleRow(role: RoleSummary, selected: Boolean, onClick: () -> Unit) {
         if (selected) {
             Icon(Icons.Filled.Check, contentDescription = "当前角色", tint = AppColors.Primary)
         }
+        Text(
+            text = if (favorite) "★" else "☆",
+            fontSize = AppTypography.bodyLarge,
+            color = if (favorite) AppColors.Primary else AppColors.TextSecondary,
+            modifier = Modifier
+                .padding(start = AppSpacing.sm)
+                .clickable(onClick = onToggleFavorite)
+                .padding(AppSpacing.xs),
+        )
     }
 }
 

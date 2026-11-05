@@ -93,6 +93,8 @@ fun ChatRoute(
             onPickFile = {
                 if (requireLogin(context)) filePicker.launch(arrayOf("*/*"))
             },
+            onSendPendingImage = viewModel::onSendPendingImage,
+            onDismissPendingImage = viewModel::onDismissPendingImage,
             modifier = modifier.safeDrawingPadding(),
         )
     }

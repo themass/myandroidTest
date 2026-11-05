@@ -20,8 +20,10 @@ data class ChatUiState(
     val recording: Boolean = false,
     /** 语音已录完、正在等 ASR 结果。 */
     val transcribing: Boolean = false,
-    /** 正在合成朗读的那条助手消息 id。 */
+    /** 正在播放朗读的那条助手消息 id。 */
     val speakingMessageId: String? = null,
+    /** 选中的图片已完成题目识别与质量判断，等待用户在审阅面板里确认。 */
+    val pendingImage: ImageReview? = null,
 ) {
     val canSend: Boolean get() = input.isNotBlank() && !sending
 

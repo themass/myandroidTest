@@ -1,5 +1,7 @@
 package com.openapi.chat.presentation
 
+import com.aimath.paizhao.photosolve.cropassist.CropAssistRegistry
+import com.aimath.paizhao.photosolve.quality.QuestionImagePreparer
 import com.openapi.core.media.AudioPlayer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -45,11 +47,14 @@ class ChatViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.update { it.copy(loading = true, error = null) }
             val history = runCatching { loadHistory() }.getOrElse { emptyList() }
+            val sessionId = repository.currentSessionId()
             _uiState.update {
                 it.copy(
                     messages = history,
                     loading = false,
-                    sessionId = repository.currentSessionId(),
+                    sessionId = sessionId,
+                    // 每个会话记住自己的角色；没选过的会话沿用最近一次选的角色
+                    selectedRole = roles.selectedFor(sessionId) ?: roles.selected(),
                 )
             }
         }
@@ -69,13 +74,17 @@ class ChatViewModel : ViewModel() {
 
     /** 选了旧的人设（或默认助手）就把目录角色清掉：两套选择互斥，避免界面显示的和实际发出去的不一致。 */
     fun onCharacterSelected(characterId: Int?) {
+        val sessionId = repository.currentSessionId()
         repository.setSelectedCharacterId(characterId)
         roles.setSelected(null)
+        roles.setSelectedFor(sessionId, null)
         _uiState.update { it.copy(selectedCharacterId = characterId, selectedRole = null, rolePickerVisible = false) }
     }
 
     fun onRoleSelected(role: SelectedRole) {
+        val sessionId = repository.currentSessionId()
         roles.setSelected(role)
+        roles.setSelectedFor(sessionId, role)
         repository.setSelectedCharacterId(null)
         _uiState.update { it.copy(selectedRole = role, selectedCharacterId = null, rolePickerVisible = false) }
     }
@@ -97,6 +106,7 @@ class ChatViewModel : ViewModel() {
             }
             repository.setSelectedCharacterId(created.id)
             roles.setSelected(null)
+            roles.setSelectedFor(repository.currentSessionId(), null)
             _uiState.update {
                 it.copy(
                     characters = it.characters + created,
@@ -244,18 +254,59 @@ class ChatViewModel : ViewModel() {
     }
 
     /**
-     * 发送一个图片或文件附件。流程与语音一致：先把附件存成消息并显示占位，
-     * 上传完成后用回复替换占位；失败则撤回占位并提示。
+     * 选中附件后的入口。图片先经过端上题目识别与质量判断，由用户在审阅面板里确认后再发送；
+     * 文件类附件直接发送。
      */
     fun onAttachmentPicked(context: android.content.Context, kind: MessageKind, uri: android.net.Uri) {
         if (_uiState.value.sending) return
         viewModelScope.launch {
+            if (kind == MessageKind.IMAGE) {
+                val review = withContext(Dispatchers.IO) {
+                    AttachmentStager.stageImageForReview(context, uri, questionPreparer(context))
+                }
+                if (review == null) {
+                    _uiState.update { it.copy(error = "读取图片失败，请重试") }
+                } else {
+                    _uiState.update { it.copy(pendingImage = review) }
+                }
+                return@launch
+            }
             val staged = withContext(Dispatchers.IO) { AttachmentStager.stage(context, kind, uri) }
             if (staged == null) {
                 _uiState.update { it.copy(error = "读取附件失败，请重试") }
                 return@launch
             }
+            sendStagedAttachment(kind, staged)
+        }
+    }
 
+    /** 审阅面板里确认发送：[useCrop] 为 true 时发裁剪图（没有裁剪图时发原图）。 */
+    fun onSendPendingImage(useCrop: Boolean) {
+        val review = _uiState.value.pendingImage ?: return
+        val chosen = if (useCrop && review.cropped != null) review.cropped else review.original
+        AttachmentStager.discardReview(review, keep = chosen)
+        _uiState.update { it.copy(pendingImage = null) }
+        viewModelScope.launch {
+            sendStagedAttachment(
+                MessageKind.IMAGE,
+                StagedAttachment(file = chosen, displayName = chosen.name, sizeBytes = chosen.length()),
+            )
+        }
+    }
+
+    /** 审阅面板取消或重选：删掉两张临时图。 */
+    fun onDismissPendingImage() {
+        val review = _uiState.value.pendingImage ?: return
+        AttachmentStager.discardReview(review, keep = null)
+        _uiState.update { it.copy(pendingImage = null) }
+    }
+
+    private var preparer: QuestionImagePreparer? = null
+
+    private fun questionPreparer(context: android.content.Context): QuestionImagePreparer =
+        preparer ?: QuestionImagePreparer(CropAssistRegistry(context.applicationContext)).also { preparer = it }
+
+    private suspend fun sendStagedAttachment(kind: MessageKind, staged: StagedAttachment) {
             val now = System.currentTimeMillis()
             val userMessage = ChatMessage(
                 id = "local-att-$now",
@@ -296,7 +347,7 @@ class ChatViewModel : ViewModel() {
                         error = "发送失败，请稍后重试",
                     )
                 }
-                return@launch
+                return
             }
 
             val assistant = ChatMessage(
@@ -318,7 +369,6 @@ class ChatViewModel : ViewModel() {
                     sending = false,
                 )
             }
-        }
     }
 
     /** 朗读助手回复：服务端合成语音后播放；同一时间只合成一条。 */

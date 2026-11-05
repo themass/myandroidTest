@@ -112,6 +112,8 @@ fun ChatScreen(
     onCallClick: () -> Unit = {},
     onPickImage: () -> Unit = {},
     onPickFile: () -> Unit = {},
+    onSendPendingImage: (useCrop: Boolean) -> Unit = {},
+    onDismissPendingImage: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
@@ -170,6 +172,18 @@ fun ChatScreen(
             onVoicePressCancel = onVoiceRecordCancel,
             onPickImage = onPickImage,
             onPickFile = onPickFile,
+        )
+    }
+
+    if (state.pendingImage != null) {
+        ImageReviewSheet(
+            review = state.pendingImage,
+            onSend = onSendPendingImage,
+            onRePick = {
+                onDismissPendingImage()
+                onPickImage()
+            },
+            onDismiss = onDismissPendingImage,
         )
     }
 

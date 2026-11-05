@@ -42,4 +42,11 @@ data class PhotoSolveUiState(
     val recognizingStatusIndex: Int = 0,
     val result: PhotoSolveResult? = null,
     val errorMessage: String? = null,
+    /** 裁剪后清晰度或曝光不合格，等待用户选择重拍或仍然识别。 */
+    val qualityWarning: QualityWarning? = null,
+)
+
+data class QualityWarning(
+    val bitmap: Bitmap,
+    val issues: List<com.aimath.paizhao.photosolve.quality.QualityIssue>,
 )

@@ -2,12 +2,14 @@ package com.openapi.ks.myapp.data.roles
 
 import android.content.Context
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.openapi.core.util.PreferenceUtils
 import com.openapi.ks.myapp.constant.Constants
 import com.openapi.roles.data.RolesParser
 import com.openapi.roles.data.RolesRepository
 import com.openapi.roles.domain.RoleDivision
 import com.openapi.roles.domain.RolePage
+import com.openapi.roles.domain.RoleSummary
 import com.openapi.roles.domain.SelectedRole
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -19,7 +21,9 @@ import java.util.concurrent.TimeUnit
 
 /**
  * 角色目录的 OkHttp 实现。目录是公开只读内容（路径不带 .json，不走旧的加密/登录链路），
- * 所以这里不用 Volley 那一套，直接取明文 JSON。
+ * 直接取明文 JSON。
+ *
+ * 收藏、最近使用、会话级角色都存在本地，并保存角色摘要，所以离线也能列出来。
  */
 class RolesRepositoryImpl(private val context: Context) : RolesRepository {
 
@@ -28,6 +32,7 @@ class RolesRepositoryImpl(private val context: Context) : RolesRepository {
         .readTimeout(15, TimeUnit.SECONDS)
         .build()
     private val gson = Gson()
+    private val store = context.applicationContext.getSharedPreferences(STORE, Context.MODE_PRIVATE)
 
     /** 目录有中文名称/简介时按系统语言取中文，缺失的条目服务端自动回退英文。 */
     private fun lang(): String =
@@ -68,18 +73,65 @@ class RolesRepositoryImpl(private val context: Context) : RolesRepository {
         }.getOrNull()
     }
 
-    override fun selected(): SelectedRole? {
-        val json = PreferenceUtils.getPrefString(context, PREF_SELECTED_ROLE, "")
-        if (json.isNullOrEmpty()) return null
-        return runCatching { gson.fromJson(json, SelectedRole::class.java) }.getOrNull()
-            ?.takeIf { it.id.isNotEmpty() }
-    }
+    override fun selected(): SelectedRole? =
+        readSelected(PreferenceUtils.getPrefString(context, PREF_SELECTED_ROLE, ""))
 
     override fun setSelected(role: SelectedRole?) {
         PreferenceUtils.setPrefString(context, PREF_SELECTED_ROLE, role?.let { gson.toJson(it) } ?: "")
     }
 
+    override fun selectedFor(sessionId: Long): SelectedRole? =
+        readSelected(store.getString(sessionKey(sessionId), null))
+
+    override fun setSelectedFor(sessionId: Long, role: SelectedRole?) {
+        store.edit().putString(sessionKey(sessionId), role?.let { gson.toJson(it) }).apply()
+    }
+
+    override fun favorites(): List<RoleSummary> = readList(KEY_FAVORITES)
+
+    override fun isFavorite(roleId: String): Boolean = favorites().any { it.id == roleId }
+
+    override fun toggleFavorite(role: RoleSummary): Boolean {
+        val current = favorites()
+        val exists = current.any { it.id == role.id }
+        val next = if (exists) current.filterNot { it.id == role.id } else listOf(role) + current
+        writeList(KEY_FAVORITES, next)
+        return !exists
+    }
+
+    override fun recents(): List<RoleSummary> = readList(KEY_RECENTS)
+
+    override fun recordUse(role: RoleSummary) {
+        val next = (listOf(role) + recents().filterNot { it.id == role.id }).take(MAX_RECENTS)
+        writeList(KEY_RECENTS, next)
+    }
+
+    private fun readSelected(json: String?): SelectedRole? {
+        if (json.isNullOrEmpty()) return null
+        return runCatching { gson.fromJson(json, SelectedRole::class.java) }.getOrNull()
+            ?.takeIf { it.id.isNotEmpty() }
+    }
+
+    private fun readList(key: String): List<RoleSummary> {
+        val json = store.getString(key, null) ?: return emptyList()
+        return runCatching {
+            gson.fromJson<List<RoleSummary>>(json, object : TypeToken<List<RoleSummary>>() {}.type)
+        }.getOrNull().orEmpty()
+    }
+
+    private fun writeList(key: String, roles: List<RoleSummary>) {
+        store.edit().putString(key, gson.toJson(roles)).apply()
+    }
+
+    private fun sessionKey(sessionId: Long) = "$KEY_SESSION_PREFIX$sessionId"
+
     private companion object {
+        const val STORE = "roles_store"
+        /** 与旧实现保持同一个 key，升级后已选的角色不丢。 */
         const val PREF_SELECTED_ROLE = "chat_selected_catalog_role"
+        const val KEY_FAVORITES = "favorites"
+        const val KEY_RECENTS = "recents"
+        const val KEY_SESSION_PREFIX = "session_role_"
+        const val MAX_RECENTS = 12
     }
 }
