@@ -2,9 +2,47 @@
 
 更新于 2026-11-05。代码侧能做的都已经做完并提交到本地（未推送）；下面是需要真机、你的素材、你的账号权限或你的决定的部分。
 
+## 0. 服务器实测结果（2026-11-05，Ubuntu 18.04 / 内核 4.15 / 1 核 1G，公网 38.244.10.172）
+
+已在该服务器上实际安装并验证（不是只看语法）：
+
+| 项目 | 结果 |
+|---|---|
+| sing-box 1.13.5 安装 | 通过 |
+| sing-box vmess-ws / trojan / shadowsocks / hysteria2 | 通过：本机 sing-box 客户端分别经这四个服务端端口访问外网，均 HTTP 204 |
+| sing-box 的 VLESS+Reality 服务端 | **不可用**：1.13.5 的 Reality 服务端拒绝所有客户端（用全新密钥也一样，Xray 客户端也连不上它）。已从服务器删除，脚本改为 `add all` 不再包含它，单独添加会提示用 Xray |
+| sing-box 客户端 -> 现有 Xray Reality 服务端（443） | 通过：HTTP 204。**App 里 sing-box 客户端连 VLESS+Reality 是通的**，服务端 Reality 用 Xray |
+| `xray check`（现有 Xray，只读） | 通过（配置、服务、443 监听、Reality 握手、经代理访问外网） |
+| `xray links`（读取现有配置） | 通过，链接里的公钥由私钥推导，与服务端一致 |
+| WireGuard 安装 + 内核模块 | 通过（内核 4.15 自带 wireguard 模块） |
+| WireGuard 同步（模拟后端，严格校验） | 通过：写入 1 台设备，热更新接口 |
+| WireGuard 真实握手（模拟客户端，内核 wg 命名空间） | 通过：双方 latest handshake 正常，双向有流量 |
+| 手工 peer（保留段 10.66.255.x） | 通过 |
+| `system net` / `system bbr`（重复运行） | 通过，不会重复追加 |
+
+**没有验证、原因**：
+- `xray install`：这台机器已经有在跑的 Xray（443，你的服务），install 的最后一步会重启 `xray.service`，会断开现有连接。没有在这台机器上执行。新机器上的全新安装路径没有测过。
+- `strongswan`：机器上已有 `swanctl`，并且有 500/4500 的防火墙规则，很可能正在用 IKEv2。编译安装会替换它，有风险，没有执行；1 核 1G 编译也很慢。
+- `ssr`、`system init`（大量 apt 包）、`system iptables-ipsec`：未执行。
+
+**脚本修正（已在 myconf 本地提交）**：`singbox add all` 去掉了 sing-box 的 vless-reality；单独添加会报错并指向 `xray install`。`singbox remove` 仍可删除老的 vless-reality 安装。
+
+**小问题**：`wireguard sync-install` 在首次同步失败时，仍会启用每分钟定时器（只打印错误，不影响后续）。
+
+## 服务器要求（实测）
+
+- 系统：**Debian/Ubuntu（apt）+ systemd**。不支持 CentOS/RHEL（脚本依赖 apt 和 systemctl）。已在 Ubuntu 18.04 上验证；bash 4.4 和 python 3.6 都够用。
+- 内核：
+  - WireGuard 需要内核模块（4.15 的 Ubuntu 内核自带；5.6+ 主线内核也自带）。没有模块的内核会失败，脚本目前没有 wireguard-go 的回退。
+  - BBR 需要 4.9 以上。
+  - sing-box 和 Xray 是 Go 静态二进制，对 glibc 版本不敏感。
+- 资源：只跑协议，1 核 1G 够用；编译 strongSwan 需要更多时间和内存。
+- 架构：脚本支持 amd64、arm64、armv7，实测只有 amd64。
+- 网络：需要能访问 GitHub（下载 sing-box、Xray）、download.strongswan.org（strongSwan 源码）、apt 源。
+
 ## 1. 真机验证 sing-box（最优先）
 
-sing-box 替换了 Xray，TUN、路由、DNS、默认网络回调目前只在编译层面验证过，没有跑过。
+sing-box 替换了 Xray，TUN、路由、DNS、默认网络回调还没在 App 里跑过（服务器侧的协议链路已在第 0 节验证）。
 
 - [ ] 装 debug 包，连一个 **VLESS 服务器节点**，确认状态栏有 VPN 钥匙、网页能打开
 - [ ] 连一个 **用户节点**（Private 标签里粘贴链接），同样确认能上网
