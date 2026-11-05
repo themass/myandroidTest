@@ -1,8 +1,10 @@
 package com.openapi.chat.presentation.ui
 
 import android.Manifest
-import android.content.pm.PackageManager
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawingPadding
@@ -13,14 +15,15 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.openapi.chat.domain.model.MessageKind
+import com.openapi.chat.presentation.ChatViewModel
+import com.openapi.core.media.AudioPlayer
+import com.openapi.core.permission.PermissionRequester
+import com.openapi.core.permission.PermissionStates
+import com.openapi.core.permission.Permissions
 import com.openapi.ks.myapp.data.UserLoginUtil
 import com.openapi.ks.myapp.ui.user.LoginActivity
-import com.openapi.chat.presentation.ChatViewModel
-import androidx.activity.result.PickVisualMediaRequest
-import com.openapi.core.media.AudioPlayer
 
 /**
  * 对话界面的完整装配：ViewModel + 语音播放 + 麦克风权限。
@@ -35,8 +38,7 @@ fun ChatRoute(
 ) {
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
-    // 首次授权的这一次按压不录音：和老 RecordButton 的行为一致，下次按下才开始录
-    val micPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
+    val activity = LocalActivity.current
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         uri?.let { viewModel.onAttachmentPicked(context, MessageKind.IMAGE, it) }
     }
@@ -60,12 +62,19 @@ fun ChatRoute(
                 message.voice?.let { voice -> AudioPlayer.toggle(message.id, voice.uri) }
             },
             onVoiceRecordStart = {
-                val granted = ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) ==
-                    PackageManager.PERMISSION_GRANTED
-                if (granted) {
+                if (PermissionStates.isGranted(context, Manifest.permission.RECORD_AUDIO)) {
                     viewModel.onVoiceRecordStart(context)
                 } else {
-                    micPermission.launch(Manifest.permission.RECORD_AUDIO)
+                    // 首次授权的这一次按压不录音：和老 RecordButton 的行为一致，下次按下才开始录。
+                    // 永久拒绝后由 PermissionRequester 引导去系统设置，而不是静默失败。
+                    (activity as? ComponentActivity)?.let { host ->
+                        PermissionRequester.with(host)
+                            .permissions(*Permissions.RECORD_AUDIO)
+                            .rationale("发送语音消息需要使用麦克风")
+                            .request(object : PermissionRequester.Callback() {
+                                override fun onGranted() = Unit
+                            })
+                    }
                 }
             },
             onVoiceRecordStop = viewModel::onVoiceRecordStop,

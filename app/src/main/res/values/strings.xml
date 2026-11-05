@@ -292,4 +292,11 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="result_answer_label">最终答案</string>
     <string name="result_retake">再拍一题</string>
     <string name="cast_title">投屏到电视</string>
+    <!-- 权限模块（移植自 core-permission） -->
+    <string name="core_permission_rationale_title">需要权限</string>
+    <string name="core_permission_go_settings_title">权限未开启</string>
+    <string name="core_permission_go_settings_message">%1$s\n\n你之前选择了“不再询问”，需要到 设置 → 权限 中手动开启。</string>
+    <string name="core_permission_continue">继续</string>
+    <string name="core_permission_go_settings">去设置</string>
+    <string name="core_permission_cancel">暂不</string>
 </resources>
