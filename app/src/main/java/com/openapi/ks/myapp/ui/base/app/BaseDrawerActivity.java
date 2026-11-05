@@ -349,6 +349,10 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                 } else if (item.getItemId() == R.id.menu_photo_solve) {
                     name = "拍照解题";
                     PhotoSolveActivity.Companion.start(BaseDrawerActivity.this);
+                } else if (item.getItemId() == R.id.menu_local_music) {
+                    name = "本地音乐";
+                    startActivity(new android.content.Intent(BaseDrawerActivity.this,
+                            com.openapi.retromusic.activities.MainActivity.class));
                 }
                 MobAgent.onEventMenu(BaseDrawerActivity.this, name);
                 return false;

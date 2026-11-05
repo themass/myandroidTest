@@ -270,6 +270,7 @@ You are now using a non WIFI network, continue to download may consume more netw
 
     <!-- 拍照解题（移植自 ai-math/paizhao） -->
     <string name="menu_btn_photo_solve">拍照解题</string>
+    <string name="menu_btn_local_music">本地音乐</string>
     <string name="home_title">拍照解题</string>
     <string name="home_subtitle">拍下题目,自动识别并给出解题步骤</string>
     <string name="home_take_photo">拍照解题</string>

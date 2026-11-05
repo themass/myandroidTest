@@ -168,6 +168,7 @@ dependencies {
     implementation project(":ads")
     implementation project(":messagekit")
     implementation project(':auxio_music_ui')
+    implementation project(':retromusic')
     
     // 本地库文件
     implementation fileTree(dir: 'libs', include: ['*.aar', '*.jar'])

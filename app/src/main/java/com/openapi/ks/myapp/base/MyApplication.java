@@ -66,6 +66,7 @@ public class MyApplication extends MultiDexApplication {
         VideoTranslationInstaller.install(this);
         initFilePath();
         DBManager.getInstance().init(this);
+        com.openapi.retromusic.App.init(this);
         ChatDependencies.INSTANCE.install(new ChatRepositoryImpl(this));
         BaseService speechService = new BaseService();
         speechService.setup(this);

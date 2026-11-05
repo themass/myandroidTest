@@ -5,6 +5,10 @@
             android:icon="@drawable/ic_menu_chathistory"
             android:title="@string/menu_btn_chat_session" />
         <item
+            android:id="@+id/menu_local_music"
+            android:icon="@drawable/ic_menu_fav"
+            android:title="@string/menu_btn_local_music" />
+        <item
             android:id="@+id/menu_photo_solve"
             android:icon="@drawable/ic_menu_photo_solve"
             android:title="@string/menu_btn_photo_solve" />

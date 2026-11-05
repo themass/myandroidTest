@@ -15,6 +15,9 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.10"
         classpath "org.jetbrains.kotlin:kotlin-serialization:2.1.10"
         classpath "org.jetbrains.kotlin:compose-compiler-gradle-plugin:2.1.10"
+        // 本地音乐模块（retromusic）：Room 的 KSP 代码生成 + Navigation safe-args
+        classpath "com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin:2.1.10-1.0.31"
+        classpath "androidx.navigation:navigation-safe-args-gradle-plugin:2.9.0"
     }
 }
 
