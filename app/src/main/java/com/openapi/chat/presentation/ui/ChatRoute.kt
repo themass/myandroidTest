@@ -70,6 +70,7 @@ fun ChatRoute(
             },
             onVoiceRecordStop = viewModel::onVoiceRecordStop,
             onVoiceRecordCancel = viewModel::onVoiceRecordCancel,
+            onSpeakMessage = viewModel::onSpeakMessage,
             onCallClick = {
                 android.widget.Toast.makeText(context, "语音通话即将上线", android.widget.Toast.LENGTH_SHORT).show()
             },

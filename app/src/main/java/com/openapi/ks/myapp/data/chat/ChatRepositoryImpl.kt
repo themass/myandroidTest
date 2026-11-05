@@ -18,6 +18,7 @@ import com.openai.net.request.BaseRequest
 import com.openapi.ks.myapp.base.MyApplication
 import com.openapi.ks.myapp.bean.form.ChatLog
 import com.openapi.ks.myapp.bean.vo.CharacterVo
+import com.openapi.ks.myapp.bean.vo.TtsResponseVo
 import com.openapi.ks.myapp.constant.Constants
 import com.openai.net.BaseService
 import com.openapi.ks.myapp.data.DBManager
@@ -76,6 +77,11 @@ private class CharacterUpdateParam(
 
 private class CharacterDeleteParam(
     @JvmField val id: Int,
+)
+
+private class SpeechParam(
+    @JvmField val id: String,
+    @JvmField val content: String,
 )
 
 private class AttachmentParam(
@@ -249,6 +255,22 @@ class ChatRepositoryImpl(
 
         awaitClose { call.cancel() }
     }.flowOn(Dispatchers.IO)
+
+    override suspend fun synthesizeSpeech(messageId: String, text: String): String? {
+        val vo = postForResult(
+            Constants.getUrl(Constants.CHAT_TTS_URL),
+            SpeechParam(id = messageId, content = text),
+            TtsResponseVo::class.java,
+        ) ?: return null
+        val data = vo.data?.takeIf { it.isNotEmpty() } ?: return null
+        val dir = File(context.filesDir, "tts").apply { mkdirs() }
+        val file = File(dir, vo.fileName?.takeIf { it.isNotBlank() } ?: "tts_$messageId.mp3")
+        return withContext(Dispatchers.IO) {
+            runCatching { file.writeBytes(android.util.Base64.decode(data, android.util.Base64.DEFAULT)) }
+                .getOrNull()
+                ?.let { "file://" + file.absolutePath }
+        }
+    }
 
     override suspend fun saveMessage(sessionId: Long, message: ChatMessage) {
         persist(sessionId, message)

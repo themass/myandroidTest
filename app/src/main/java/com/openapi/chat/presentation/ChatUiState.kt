@@ -16,6 +16,8 @@ data class ChatUiState(
     val recording: Boolean = false,
     /** 语音已录完、正在等 ASR 结果。 */
     val transcribing: Boolean = false,
+    /** 正在合成朗读的那条助手消息 id。 */
+    val speakingMessageId: String? = null,
 ) {
     val canSend: Boolean get() = input.isNotBlank() && !sending
 

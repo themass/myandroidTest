@@ -73,6 +73,11 @@ interface ChatRepository {
     ): ChatReply?
 
     /**
+     * 把一段助手回复合成语音（`/chat/ai/tts.json`），返回可播放的本地 `file://` 地址；失败返回 null。
+     */
+    suspend fun synthesizeSpeech(messageId: String, text: String): String?
+
+    /**
      * 创建一个自定义角色，归属当前用户。
      *
      * @return 创建成功的角色；失败（比如未登录）返回 null，调用方据此提示错误，不静默吞掉

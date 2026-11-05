@@ -1,5 +1,6 @@
 package com.openapi.chat.presentation.ui
 
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.compose.material.icons.filled.Image
@@ -94,6 +95,7 @@ fun ChatScreen(
     onUpdateCharacter: (id: Int, title: String, content: String) -> Unit,
     onDeleteCharacter: (id: Int) -> Unit,
     onVoiceClick: (ChatMessage) -> Unit,
+    onSpeakMessage: (ChatMessage) -> Unit = {},
     onVoiceRecordStart: () -> Unit,
     onVoiceRecordStop: () -> Unit,
     onVoiceRecordCancel: () -> Unit,
@@ -136,7 +138,9 @@ fun ChatScreen(
             items(state.messages, key = { it.id }) { message ->
                 MessageBubble(
                     message = message,
+                    speaking = message.id == state.speakingMessageId,
                     onVoiceClick = { onVoiceClick(message) },
+                    onSpeakClick = { onSpeakMessage(message) },
                 )
             }
         }
@@ -338,7 +342,9 @@ private fun CharacterEditDialog(
 @Composable
 private fun MessageBubble(
     message: ChatMessage,
+    speaking: Boolean,
     onVoiceClick: () -> Unit,
+    onSpeakClick: () -> Unit,
 ) {
     val fromUser = message.role == ChatRole.USER
     Row(
@@ -368,6 +374,17 @@ private fun MessageBubble(
                         onClick = onVoiceClick,
                     )
                     else -> MessageText(message)
+                }
+                if (!fromUser && !message.pending && message.text.isNotBlank() &&
+                    message.voice == null && message.image == null && message.file == null
+                ) {
+                    IconButton(onClick = onSpeakClick, modifier = Modifier.size(28.dp)) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.VolumeUp,
+                            contentDescription = if (speaking) "合成中" else "朗读",
+                            tint = if (speaking) AppColors.Primary else IconTint,
+                        )
+                    }
                 }
             }
         }

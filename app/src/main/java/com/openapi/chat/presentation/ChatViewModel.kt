@@ -1,5 +1,6 @@
 package com.openapi.chat.presentation
 
+import com.openapi.core.media.AudioPlayer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.openapi.chat.ChatDependencies
@@ -299,6 +300,21 @@ class ChatViewModel : ViewModel() {
                     },
                     sending = false,
                 )
+            }
+        }
+    }
+
+    /** 朗读助手回复：服务端合成语音后播放；同一时间只合成一条。 */
+    fun onSpeakMessage(message: ChatMessage) {
+        if (message.text.isBlank() || _uiState.value.speakingMessageId != null) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(speakingMessageId = message.id) }
+            val uri = runCatching { repository.synthesizeSpeech(message.id, message.text) }.getOrNull()
+            _uiState.update { it.copy(speakingMessageId = null) }
+            if (uri == null) {
+                _uiState.update { it.copy(error = "朗读失败，请稍后重试") }
+            } else {
+                AudioPlayer.play(message.id, uri)
             }
         }
     }
