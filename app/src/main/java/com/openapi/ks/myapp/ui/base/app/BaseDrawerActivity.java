@@ -345,7 +345,7 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                     name = "分享";
                 } else if (item.getItemId() == R.id.menu_chat_session) {
                     name = "新建对话";
-                    ChatSessionFragment.startFragment(BaseDrawerActivity.this);
+                    startActivity(new android.content.Intent(BaseDrawerActivity.this, com.openapi.chat.ChatActivity.class));
                 } else if (item.getItemId() == R.id.menu_photo_solve) {
                     name = "拍照解题";
                     PhotoSolveActivity.Companion.start(BaseDrawerActivity.this);
