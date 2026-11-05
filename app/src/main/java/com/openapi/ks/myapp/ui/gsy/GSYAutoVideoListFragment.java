@@ -26,6 +26,7 @@ import com.shuyu.gsyvideoplayer.utils.CommonUtil;
 import com.shuyu.gsyvideoplayer.utils.Debuger;
 import com.shuyu.gsyvideoplayer.utils.GSYVideoHelper;
 import com.shuyu.gsyvideoplayer.video.NormalGSYVideoPlayer;
+import com.shuyu.gsyvideoplayer.video.base.GSYVideoPlayer;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -134,12 +135,14 @@ public class GSYAutoVideoListFragment extends BasePullLoadbleFragment<RecommendV
                     int position = smallVideoHelper.getPlayPosition();
                     //不可视的是时候
                     if ((position < firstVisibleItem || position > lastVisibleItem)) {
-                        //如果是小窗口就不需要处理
-                        if (!smallVideoHelper.isSmall() && !smallVideoHelper.isFull()) {
-                            //小窗口
-                            int size = CommonUtil.dip2px(getActivity(), 170);
+                        //如果是小窗口就不需要处理；只有正在播放的才弹小窗，暂停或播完的不打扰用户
+                        if (!smallVideoHelper.isSmall() && !smallVideoHelper.isFull()
+                                && smallVideoHelper.getGsyVideoPlayer().getCurrentState() == GSYVideoPlayer.CURRENT_STATE_PLAYING) {
+                            //小窗口，按 16:9 比例，避免视频被拉成正方形
+                            int width = CommonUtil.dip2px(getActivity(), 200);
+                            int height = width * 9 / 16;
                             //actionbar为true才不会掉下面去
-                            smallVideoHelper.showSmallVideo(new Point(size, size), true, true);
+                            smallVideoHelper.showSmallVideo(new Point(width, height), true, true);
                         }
                     } else {
                         if (smallVideoHelper.isSmall()) {
@@ -165,7 +168,18 @@ public class GSYAutoVideoListFragment extends BasePullLoadbleFragment<RecommendV
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        // 小窗挂在 Activity 的 DecorView 上，不随列表视图销毁，必须显式释放
+        smallVideoHelper.releaseVideoPlayer();
         GSYVideoManager.releaseAllVideos();
+    }
+
+    @Override
+    protected void freshData(InfoListVo<RecommendVo> data) {
+        // 下拉刷新会整体替换列表，小窗记录的是位置索引，旧位置现在可能是另一个视频，直接停掉
+        if (smallVideoHelper.getPlayPosition() >= 0) {
+            smallVideoHelper.releaseVideoPlayer();
+        }
+        super.freshData(data);
     }
 
     @Override
