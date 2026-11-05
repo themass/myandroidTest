@@ -351,6 +351,7 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="reward_pending">Ad watched. Your ticket will appear shortly.</string>
     <string name="reward_redeemed">VIP time added</string>
     <string name="reward_ad_unavailable">No ad available right now. Try again later.</string>
+    <string name="reward_no_gms">Ads need Google Play services, which this device does not have or has disabled.</string>
     <string name="reward_daily_limit">You have reached today\'s limit. Come back tomorrow.</string>
     <!-- 网络体检 -->
     <string name="setting_net_check">Network check</string>

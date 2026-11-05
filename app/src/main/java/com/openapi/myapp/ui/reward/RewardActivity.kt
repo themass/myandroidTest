@@ -50,6 +50,8 @@ import com.openapi.myapp.constant.Constants
 import com.openapi.myapp.data.BaseService
 import com.openapi.myapp.data.UserLoginUtil
 import com.openapi.myapp.ui.user.LoginActivity
+import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.GoogleApiAvailability
 import com.openapi.yewu.ads.admob.AdmobRewardAds
 import com.openapi.yewu.ads.base.RewardInterface
 import com.openapi.yewu.net.request.CommonResponse
@@ -130,6 +132,11 @@ class RewardActivity : AppCompatActivity() {
         val s = status.value
         if (s != null && s.todayCount >= s.dailyLimit) {
             message.value = getString(R.string.reward_daily_limit)
+            return
+        }
+        // 华为等没有 Google 服务的机型加载不到 AdMob 广告，直接告诉用户原因，而不是笼统的"暂无广告"。
+        if (GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(this) != ConnectionResult.SUCCESS) {
+            message.value = getString(R.string.reward_no_gms)
             return
         }
         if (rewardAds == null) {
