@@ -152,20 +152,26 @@ public final class SingBoxVpnService extends VpnService {
         }
 
         running = true;
+        // startOrReloadService 会同步回调 openTun 并等待内核就绪，不能放在主线程上，否则 ANR。
+        new Thread(() -> startService(configJson), "singbox-start").start();
+    }
+
+    private void startService(String configJson) {
         try {
             ensureLibboxSetup();
             commandServer = Libbox.newCommandServer(commandHandler, platform);
             commandServer.start();
-            // openTun 在这里同步回调：TUN 建好、路由生效后 startOrReloadService 才返回。
             commandServer.startOrReloadService(configJson, new OverrideOptions());
             LogUtil.i(TAG + ": sing-box 已启动，开始连通性探测");
             new Thread(this::probeThenNotify, "singbox-probe").start();
         } catch (Exception e) {
             String reason = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
             LogUtil.e(TAG + ": sing-box 启动失败: " + reason);
-            notifyFailed(reason);
-            teardown();
-            stopSelf();
+            mainHandler.post(() -> {
+                notifyFailed(reason);
+                teardown();
+                stopSelf();
+            });
         }
     }
 
