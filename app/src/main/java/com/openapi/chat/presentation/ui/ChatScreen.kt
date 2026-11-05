@@ -1,5 +1,17 @@
 package com.openapi.chat.presentation.ui
 
+import android.widget.ImageView
+import android.widget.Toast
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.InsertDriveFile
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Videocam
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.viewinterop.AndroidView
+import com.bumptech.glide.Glide
+import com.openapi.chat.domain.model.FileAttachment
+import java.io.File
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -87,6 +99,8 @@ fun ChatScreen(
     onVoiceRecordCancel: () -> Unit,
     /** 电话按钮：以后接 LiveKit agent 语音通话，目前由调用方决定展示什么。 */
     onCallClick: () -> Unit = {},
+    onPickImage: () -> Unit = {},
+    onPickFile: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
@@ -138,6 +152,8 @@ fun ChatScreen(
             onVoicePressStop = onVoiceRecordStop,
             onVoicePressCancel = onVoiceRecordCancel,
             onCallClick = onCallClick,
+            onPickImage = onPickImage,
+            onPickFile = onPickFile,
         )
     }
 }
@@ -344,6 +360,8 @@ private fun MessageBubble(
                     // pending 且还没收到任何增量文本时显示"正在思考"；一旦开始吐字，
                     // 哪怕还没 done，也直接展示已收到的文字（打字机效果的关键）
                     message.pending && message.text.isEmpty() -> PendingRow()
+                    message.image != null -> ImageRow(path = message.image.path)
+                    message.file != null -> FileRow(file = message.file)
                     message.voice != null -> VoiceRow(
                         text = message.text,
                         playing = false,
@@ -412,8 +430,11 @@ private fun ChatInputBar(
     onVoicePressStop: () -> Unit,
     onVoicePressCancel: () -> Unit,
     onCallClick: () -> Unit,
+    onPickImage: () -> Unit,
+    onPickFile: () -> Unit,
 ) {
     var showEmoji by remember { mutableStateOf(false) }
+    var showAttach by remember { mutableStateOf(false) }
 
     Column {
         if (recording) {
@@ -481,7 +502,14 @@ private fun ChatInputBar(
                 IconButton(onClick = onCallClick) {
                     Icon(Icons.Filled.Call, contentDescription = "语音通话", tint = IconTint)
                 }
-                IconButton(onClick = { showEmoji = !showEmoji }) {
+                IconButton(onClick = { showAttach = !showAttach; showEmoji = false }) {
+                    Icon(
+                        Icons.Filled.Add,
+                        contentDescription = "更多",
+                        tint = if (showAttach) MaterialTheme.colorScheme.primary else IconTint,
+                    )
+                }
+                IconButton(onClick = { showEmoji = !showEmoji; showAttach = false }) {
                     Icon(
                         Icons.Filled.EmojiEmotions,
                         contentDescription = "表情",
@@ -498,6 +526,12 @@ private fun ChatInputBar(
             }
         }
 
+        if (showAttach) {
+            AttachmentPanel(
+                onImage = { showAttach = false; onPickImage() },
+                onFile = { showAttach = false; onPickFile() },
+            )
+        }
         if (showEmoji) {
             EmojiPanel(onEmojiSelected = { onTextChange(text + it) })
         }
@@ -511,6 +545,66 @@ private fun ChatInputBar(
  * EmojiDao/素材包随老对话栈一起退役。这里换成一份自包含的常用 emoji 列表，
  * 覆盖日常聊天场景，不依赖任何资源文件或数据库。
  */
+@Composable
+private fun AttachmentPanel(onImage: () -> Unit, onFile: () -> Unit) {
+    val context = LocalContext.current
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0xFFF3F3F3))
+            .padding(vertical = 16.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+    ) {
+        AttachItem(label = "相册", icon = Icons.Filled.Image, onClick = onImage)
+        AttachItem(label = "文件", icon = Icons.Filled.InsertDriveFile, onClick = onFile)
+        AttachItem(label = "视频", icon = Icons.Filled.Videocam) {
+            Toast.makeText(context, "视频消息即将上线", Toast.LENGTH_SHORT).show()
+        }
+        AttachItem(label = "位置", icon = Icons.Filled.LocationOn) {
+            Toast.makeText(context, "位置消息即将上线", Toast.LENGTH_SHORT).show()
+        }
+    }
+}
+
+@Composable
+private fun AttachItem(label: String, icon: ImageVector, onClick: () -> Unit) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        IconButton(onClick = onClick, modifier = Modifier.size(56.dp)) {
+            Icon(icon, contentDescription = label, tint = IconTint, modifier = Modifier.size(28.dp))
+        }
+        Text(label, fontSize = 12.sp, color = IconTint)
+    }
+}
+
+@Composable
+private fun ImageRow(path: String) {
+    AndroidView(
+        modifier = Modifier.size(200.dp),
+        factory = { context ->
+            ImageView(context).apply { scaleType = ImageView.ScaleType.CENTER_CROP }
+        },
+        update = { view -> Glide.with(view.context).load(File(path)).into(view) },
+    )
+}
+
+@Composable
+private fun FileRow(file: FileAttachment) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(Icons.Filled.InsertDriveFile, contentDescription = null, tint = AppColors.Primary)
+        Spacer(Modifier.width(8.dp))
+        Column {
+            Text(file.name, fontSize = 15.sp, color = Color.Black, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Text(formatFileSize(file.sizeBytes), fontSize = 12.sp, color = IconTint)
+        }
+    }
+}
+
+private fun formatFileSize(bytes: Long): String = when {
+    bytes < 1024 -> "$bytes B"
+    bytes < 1024 * 1024 -> String.format(java.util.Locale.US, "%.1f KB", bytes / 1024.0)
+    else -> String.format(java.util.Locale.US, "%.1f MB", bytes / (1024.0 * 1024.0))
+}
+
 @Composable
 private fun EmojiPanel(onEmojiSelected: (String) -> Unit) {
     val emojis = remember {

@@ -15,7 +15,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.openapi.chat.domain.model.MessageKind
 import com.openapi.chat.presentation.ChatViewModel
+import androidx.activity.result.PickVisualMediaRequest
 import com.openapi.core.media.AudioPlayer
 
 /**
@@ -33,6 +35,12 @@ fun ChatRoute(
     val context = LocalContext.current
     // 首次授权的这一次按压不录音：和老 RecordButton 的行为一致，下次按下才开始录
     val micPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
+    val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        uri?.let { viewModel.onAttachmentPicked(context, MessageKind.IMAGE, it) }
+    }
+    val filePicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri?.let { viewModel.onAttachmentPicked(context, MessageKind.FILE, it) }
+    }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -63,6 +71,10 @@ fun ChatRoute(
             onCallClick = {
                 android.widget.Toast.makeText(context, "语音通话即将上线", android.widget.Toast.LENGTH_SHORT).show()
             },
+            onPickImage = {
+                imagePicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+            },
+            onPickFile = { filePicker.launch(arrayOf("*/*")) },
             modifier = modifier.safeDrawingPadding(),
         )
     }

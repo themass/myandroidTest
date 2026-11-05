@@ -2,7 +2,9 @@ package com.openapi.chat.domain.repository
 
 import com.openapi.chat.domain.model.ChatCharacterOption
 import com.openapi.chat.domain.model.ChatMessage
+import com.openapi.chat.domain.model.ChatReply
 import com.openapi.chat.domain.model.ChatStreamEvent
+import com.openapi.chat.domain.model.MessageKind
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -47,11 +49,28 @@ interface ChatRepository {
 
     fun setSelectedCharacterId(characterId: Int?)
 
-    /** 持久化一条语音消息（ASR 转写结果或 TTS 产物）。 */
-    suspend fun saveVoiceMessage(
+    /** 持久化一条本地消息（语音、图片、文件等）。 */
+    suspend fun saveMessage(
         sessionId: Long,
         message: ChatMessage,
     )
+
+    /**
+     * 上传一个图片或文件附件，等待大模型的回复。
+     *
+     * 上传走旧版已有的接口（图片 `/chat/ai/recognize.json`，文件 `/chat/ai/local/file.json`），
+     * [localFile] 必须已经是要上传的最终文件（图片已压缩）。
+     *
+     * @param placeholderId 本地占位气泡的 id，服务端用它关联这次请求
+     * @return 回复；失败（网络、未登录等）返回 null
+     */
+    suspend fun sendAttachment(
+        sessionId: Long,
+        kind: MessageKind,
+        localFile: java.io.File,
+        fileName: String,
+        placeholderId: String,
+    ): ChatReply?
 
     /**
      * 创建一个自定义角色，归属当前用户。

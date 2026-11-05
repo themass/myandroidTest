@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.openapi.chat.ChatDependencies
 import com.openapi.chat.domain.model.ChatMessage
+import com.openapi.chat.domain.model.FileAttachment
+import com.openapi.chat.domain.model.ImageAttachment
 import com.openapi.chat.domain.model.ChatRole
 import com.openapi.chat.domain.model.ChatStreamEvent
 import com.openapi.chat.domain.model.MessageKind
@@ -223,6 +225,84 @@ class ChatViewModel : ViewModel() {
         }
     }
 
+    /**
+     * 发送一个图片或文件附件。流程与语音一致：先把附件存成消息并显示占位，
+     * 上传完成后用回复替换占位；失败则撤回占位并提示。
+     */
+    fun onAttachmentPicked(context: android.content.Context, kind: MessageKind, uri: android.net.Uri) {
+        if (_uiState.value.sending) return
+        viewModelScope.launch {
+            val staged = withContext(Dispatchers.IO) { AttachmentStager.stage(context, kind, uri) }
+            if (staged == null) {
+                _uiState.update { it.copy(error = "读取附件失败，请重试") }
+                return@launch
+            }
+
+            val now = System.currentTimeMillis()
+            val userMessage = ChatMessage(
+                id = "local-att-$now",
+                role = ChatRole.USER,
+                text = "",
+                createdAtMillis = now,
+                kind = kind,
+                image = if (kind == MessageKind.IMAGE) ImageAttachment(path = staged.file.absolutePath) else null,
+                file = if (kind == MessageKind.FILE) {
+                    FileAttachment(path = staged.file.absolutePath, name = staged.displayName, sizeBytes = staged.sizeBytes)
+                } else {
+                    null
+                },
+            )
+            val placeholder = ChatMessage(
+                id = "local-pending-$now",
+                role = ChatRole.ASSISTANT,
+                text = "",
+                createdAtMillis = now,
+                pending = true,
+            )
+
+            _uiState.update {
+                it.copy(messages = it.messages + userMessage + placeholder, sending = true, error = null)
+            }
+            val sessionId = repository.currentSessionId()
+            repository.saveMessage(sessionId, userMessage)
+
+            val reply = runCatching {
+                repository.sendAttachment(sessionId, kind, staged.file, staged.displayName, placeholder.id)
+            }.getOrNull()
+
+            if (reply == null) {
+                _uiState.update {
+                    it.copy(
+                        messages = it.messages.filterNot { m -> m.id == placeholder.id },
+                        sending = false,
+                        error = "发送失败，请稍后重试",
+                    )
+                }
+                return@launch
+            }
+
+            val assistant = ChatMessage(
+                id = reply.id,
+                role = ChatRole.ASSISTANT,
+                text = reply.text,
+                createdAtMillis = System.currentTimeMillis(),
+            )
+            if (reply.text.isNotBlank()) repository.saveMessage(sessionId, assistant)
+            _uiState.update { current ->
+                current.copy(
+                    messages = current.messages.mapNotNull { m ->
+                        when {
+                            m.id != placeholder.id -> m
+                            reply.text.isBlank() -> null
+                            else -> assistant
+                        }
+                    },
+                    sending = false,
+                )
+            }
+        }
+    }
+
     fun dismissError() {
         _uiState.update { it.copy(error = null) }
     }
@@ -258,7 +338,7 @@ class ChatViewModel : ViewModel() {
                 kind = MessageKind.VOICE,
                 voice = VoiceAttachment(uri = "file://${result.filePath}", durationSeconds = result.durationSeconds),
             )
-            repository.saveVoiceMessage(repository.currentSessionId(), message)
+            repository.saveMessage(repository.currentSessionId(), message)
             _uiState.update { it.copy(messages = it.messages + message) }
 
             val speech = ChatDependencies.speechToText() ?: return@launch

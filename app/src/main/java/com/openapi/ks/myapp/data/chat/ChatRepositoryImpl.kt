@@ -4,6 +4,9 @@ import com.android.volley.Request as VolleyRequest
 import com.openapi.chat.data.mapper.ChatLogMapper
 import com.openapi.chat.domain.model.ChatCharacterOption
 import com.openapi.chat.domain.model.ChatMessage
+import com.openapi.chat.domain.model.ChatReply
+import com.openapi.chat.domain.model.MessageKind
+import com.openapi.ks.myapp.bean.vo.Choice
 import com.openapi.chat.domain.model.ChatRole
 import com.openapi.chat.domain.model.ChatStreamEvent
 import com.openapi.chat.domain.repository.ChatRepository
@@ -29,6 +32,7 @@ import okhttp3.FormBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
+import java.io.File
 import java.util.Date
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.resume
@@ -72,6 +76,11 @@ private class CharacterUpdateParam(
 
 private class CharacterDeleteParam(
     @JvmField val id: Int,
+)
+
+private class AttachmentParam(
+    @JvmField val id: String,
+    @JvmField val sessionId: Long,
 )
 
 class ChatRepositoryImpl(
@@ -241,8 +250,48 @@ class ChatRepositoryImpl(
         awaitClose { call.cancel() }
     }.flowOn(Dispatchers.IO)
 
-    override suspend fun saveVoiceMessage(sessionId: Long, message: ChatMessage) {
+    override suspend fun saveMessage(sessionId: Long, message: ChatMessage) {
         persist(sessionId, message)
+    }
+
+    override suspend fun sendAttachment(
+        sessionId: Long,
+        kind: MessageKind,
+        localFile: File,
+        fileName: String,
+        placeholderId: String,
+    ): ChatReply? {
+        val isImage = kind == MessageKind.IMAGE
+        val url = Constants.getUrl(if (isImage) Constants.CHAT_IMAGE_URL else Constants.CHAT_FILE_URL)
+        // 服务端用这两个表单名区分图片与文件（recognize.json 读 image，file.json 读 file）
+        val partName = if (isImage) "image" else "file"
+        val param = AttachmentParam(id = placeholderId, sessionId = sessionId)
+        return withContext(Dispatchers.IO) {
+            suspendCancellableCoroutine { cont ->
+                baseService.postData(
+                    url,
+                    param,
+                    listOf(localFile),
+                    object : CommonResponse.ResponseOkListener<Choice>() {
+                        override fun onResponse(response: Choice) {
+                            val reply = ChatReply(
+                                id = response.id ?: placeholderId,
+                                text = response.message?.content.orEmpty(),
+                            )
+                            if (cont.isActive) cont.resume(reply)
+                        }
+                    },
+                    object : CommonResponse.ResponseErrorListener() {
+                        override fun onError() {
+                            if (cont.isActive) cont.resume(null)
+                        }
+                    },
+                    partName,
+                    TAG,
+                    Choice::class.java,
+                )
+            }
+        }
     }
 
     override suspend fun createCharacter(title: String, content: String, avatarUrl: String?): ChatCharacterOption? {

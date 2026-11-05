@@ -10,12 +10,26 @@ enum class ChatRole {
 enum class MessageKind {
     TEXT,
     VOICE,
+    IMAGE,
+    FILE,
 }
 
 /** 语音附件：本地文件或远端 URL。TTS 产物以 `file://` 形式给出。 */
 data class VoiceAttachment(
     val uri: String,
     val durationSeconds: Int,
+)
+
+/** 图片附件：已压缩并落在应用私有目录下的本地文件路径。 */
+data class ImageAttachment(
+    val path: String,
+)
+
+/** 文件附件：应用私有目录下的本地路径，连同原始文件名与大小。 */
+data class FileAttachment(
+    val path: String,
+    val name: String,
+    val sizeBytes: Long,
 )
 
 /**
@@ -31,6 +45,8 @@ data class ChatMessage(
     val createdAtMillis: Long,
     val kind: MessageKind = MessageKind.TEXT,
     val voice: VoiceAttachment? = null,
+    val image: ImageAttachment? = null,
+    val file: FileAttachment? = null,
     val pending: Boolean = false,
 )
 
@@ -55,4 +71,10 @@ data class ChatCharacterOption(
      * 再把用户点保存，会把人设静默截短到几十个字。
      */
     val content: String = "",
+)
+
+/** 附件上传后的一次性回复（非流式接口返回整段文字）。 */
+data class ChatReply(
+    val id: String,
+    val text: String,
 )
