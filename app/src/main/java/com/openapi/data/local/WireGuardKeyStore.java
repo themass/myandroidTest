@@ -31,6 +31,8 @@ public final class WireGuardKeyStore {
     private static final String KEY_PRIVATE = "private_key_b64";
     private static final String KEY_REGISTERED = "public_key_registered";
     private static final String KEY_ADDRESS = "client_address";
+    /** 注册时使用的登录用户名：服务端按用户等级决定设备进哪条线路，换账号必须重新注册。 */
+    private static final String KEY_REGISTERED_USER = "registered_user";
 
     private WireGuardKeyStore() {
     }
@@ -72,18 +74,22 @@ public final class WireGuardKeyStore {
      * 只有"已标记注册"不够：服务端现在为每台设备分配唯一地址，旧版本注册过但本地没存地址的设备
      * 必须重新注册一次（服务端对重复注册是覆盖公钥、地址不变，所以是安全的）。
      */
-    public static boolean isRegistered(@NonNull Context context) {
+    public static boolean isRegistered(@NonNull Context context, @NonNull String userName) {
         SharedPreferences sp = context.getApplicationContext()
                 .getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         String address = sp.getString(KEY_ADDRESS, null);
-        return sp.getBoolean(KEY_REGISTERED, false) && address != null && !address.isEmpty();
+        // 旧版本注册时没有记录用户名，这里视为未注册，会重新注册一次。
+        return sp.getBoolean(KEY_REGISTERED, false) && address != null && !address.isEmpty()
+                && userName.equals(sp.getString(KEY_REGISTERED_USER, null));
     }
 
     /** 注册成功：保存服务端分配给本设备的隧道内地址（CIDR，如 10.66.1.5/32）。 */
-    public static void saveRegistration(@NonNull Context context, @NonNull String clientAddress) {
+    public static void saveRegistration(@NonNull Context context, @NonNull String clientAddress,
+                                        @NonNull String userName) {
         context.getApplicationContext()
                 .getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-                .edit().putBoolean(KEY_REGISTERED, true).putString(KEY_ADDRESS, clientAddress).apply();
+                .edit().putBoolean(KEY_REGISTERED, true).putString(KEY_ADDRESS, clientAddress)
+                .putString(KEY_REGISTERED_USER, userName).apply();
     }
 
     /** 服务端分配给本设备的隧道内地址；尚未注册返回 null。 */

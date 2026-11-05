@@ -63,7 +63,13 @@ public final class WireGuardRegistrationUtil {
     }
 
     public static void ensureRegistered(@NonNull Context context, @NonNull Callback callback) {
-        if (WireGuardKeyStore.isRegistered(context)) {
+        com.openapi.myapp.bean.vo.UserInfoVo user = com.openapi.myapp.data.UserLoginUtil.getUserCache();
+        if (user == null || user.name == null || user.name.isEmpty()) {
+            // 注册需要登录；未登录的设备没有所属用户，服务端无法决定它能进哪条线路。
+            callback.onFailed("not logged in");
+            return;
+        }
+        if (WireGuardKeyStore.isRegistered(context, user.name)) {
             callback.onReady();
             return;
         }
@@ -89,7 +95,7 @@ public final class WireGuardRegistrationUtil {
                             callback.onFailed("no client address");
                             return;
                         }
-                        WireGuardKeyStore.saveRegistration(context, address);
+                        WireGuardKeyStore.saveRegistration(context, address, user.name);
                         LogUtil.i(TAG + ": 公钥注册成功，隧道地址 " + address);
                         callback.onReady();
                     }
