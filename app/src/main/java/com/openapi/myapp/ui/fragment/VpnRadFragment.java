@@ -956,23 +956,37 @@ public class VpnRadFragment extends BaseFragment {
         repo.connect(TunnelProtocol.VLESS_REALITY, request);
     }
 
-    /** 官方节点的代理链接：与用户节点同一条路径（sing-box），地址和端口取自链接本身。 */
-    private void connectProxyCandidate(com.openapi.data.remote.ProxyLinkSelector.Candidate candidate,
-                                       HostVo host, SplitTunnelingPolicy splitPolicy) {
+    /**
+     * 官方节点的代理链接：按优先级依次尝试，连不上就换下一个（见 ProxyFallbackChain）。
+     * 地址和端口取自各自的链接。
+     */
+    private void connectProxyCandidates(java.util.List<com.openapi.data.remote.ProxyLinkSelector.Candidate> candidates,
+                                        SplitTunnelingPolicy splitPolicy, HostVo host) {
         CharonVpnSessionRepository repo = (CharonVpnSessionRepository) this.repo;
-        String server = candidate.result.server();
-        // 网络体检拿这个地址和出口 IP 对比，必须是真正连接的地址，不是节点的 gateway。
-        com.openapi.myapp.ui.check.ExitIpStore.rememberNode(getContext(), server);
-        TunnelRequest request = new TunnelRequest.Builder()
-                .server(server)
-                .port(candidate.result.port())
-                .mtu(host.mtu)
-                .dnsServer(host.dns)
-                .splitTunneling(splitPolicy)
-                .xrayOutboundJson(candidate.result.outbound.toString())
-                .build();
-        LogUtil.i("connectProxyCandidate: " + candidate.protocol + " " + server + ":" + candidate.result.port());
-        repo.connect(TunnelProtocol.VLESS_REALITY, request);
+        com.openapi.data.vpn.ProxyFallbackChain chain = new com.openapi.data.vpn.ProxyFallbackChain(candidates,
+                candidate -> {
+                    String server = candidate.result.server();
+                    // 网络体检拿这个地址和出口 IP 对比，必须是真正连接的地址，不是节点的 gateway。
+                    com.openapi.myapp.ui.check.ExitIpStore.rememberNode(getContext(), server);
+                    TunnelRequest request = new TunnelRequest.Builder()
+                            .server(server)
+                            .port(candidate.result.port())
+                            .mtu(host.mtu)
+                            .dnsServer(host.dns)
+                            .splitTunneling(splitPolicy)
+                            .xrayOutboundJson(candidate.result.outbound.toString())
+                            .build();
+                    LogUtil.i("connectProxyCandidates: 尝试 " + candidate.protocol + " " + server
+                            + ":" + candidate.result.port());
+                    if (getContext() != null) {
+                        android.widget.Toast.makeText(getContext(),
+                                getString(R.string.proxy_trying, candidate.protocol),
+                                android.widget.Toast.LENGTH_SHORT).show();
+                    }
+                    repo.connect(TunnelProtocol.VLESS_REALITY, request);
+                });
+        repo.setProxyFallback(chain);
+        chain.connectNext();
     }
 
     /**
@@ -1042,7 +1056,7 @@ public class VpnRadFragment extends BaseFragment {
             java.util.List<com.openapi.data.remote.ProxyLinkSelector.Candidate> proxies =
                     com.openapi.data.remote.ProxyLinkSelector.candidates(host.protocols, host.proxyLinks);
             if (!proxies.isEmpty()) {
-                connectProxyCandidate(proxies.get(0), host, splitPolicy);
+                connectProxyCandidates(proxies, splitPolicy, host);
                 return;
             }
             // 走到这里说明：没有任何协议可用，绝不能像以前那样默默尝试 IKEv2——

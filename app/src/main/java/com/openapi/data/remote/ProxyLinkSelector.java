@@ -39,7 +39,7 @@ public final class ProxyLinkSelector {
         @NonNull
         public final ShareLinkParser.Result result;
 
-        Candidate(@NonNull String protocol, @NonNull String link, @NonNull ShareLinkParser.Result result) {
+        public Candidate(@NonNull String protocol, @NonNull String link, @NonNull ShareLinkParser.Result result) {
             this.protocol = protocol;
             this.link = link;
             this.result = result;

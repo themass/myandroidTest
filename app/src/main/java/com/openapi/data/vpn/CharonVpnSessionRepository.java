@@ -150,6 +150,24 @@ public final class CharonVpnSessionRepository implements VpnSessionRepository {
         return registry.availableProtocols();
     }
 
+    /**
+     * 连接失败时依次尝试下一个代理候选。由 {@link com.openapi.data.vpn.ProxyFallbackChain} 实现。
+     */
+    public interface ProxyFallback {
+        boolean hasNext();
+
+        /** 在主线程调用：连接下一个候选。 */
+        void connectNext();
+    }
+
+    @Nullable
+    private volatile ProxyFallback proxyFallback;
+
+    /** 开始一组代理候选的连接尝试；传 null 取消。 */
+    public void setProxyFallback(@Nullable ProxyFallback fallback) {
+        proxyFallback = fallback;
+    }
+
     @Override
     public boolean connect(@NonNull TunnelProtocol protocol, @NonNull TunnelRequest request) {
         TunnelEngine engine = registry.find(protocol);
@@ -238,6 +256,7 @@ public final class CharonVpnSessionRepository implements VpnSessionRepository {
     @Override
     public boolean disconnect() {
         userInitiatedDisconnect = true;
+        proxyFallback = null;
         cancelPendingRetry();
         reconnectPolicy.reset();
         // 断开后把通知权还给 IKEv2（它一直是绑定状态，断开后应该显示"未连接"，
@@ -280,6 +299,8 @@ public final class CharonVpnSessionRepository implements VpnSessionRepository {
             if (p != null) {
                 selector.recordSuccess(p);
             }
+            // 已经连上：之后的掉线按普通重连处理，不再切换到别的节点。
+            proxyFallback = null;
             reconnectPolicy.reset();
             metrics.markConnected();
             mainHandler.post(() -> state.setValue(new VpnSessionState(
@@ -313,6 +334,14 @@ public final class CharonVpnSessionRepository implements VpnSessionRepository {
             TunnelProtocol p = activeProtocol.getValue();
             if (p != null && errorCode != TunnelEngine.ErrorCode.CONFIG_INVALID) {
                 selector.recordFailure(p);
+            }
+            // 官方代理节点：这一个协议连不上就直接换下一个候选，不在同一个地址上反复重试。
+            ProxyFallback fallback = proxyFallback;
+            if (fallback != null && p == TunnelProtocol.VLESS_REALITY && !userInitiatedDisconnect
+                    && fallback.hasNext()) {
+                LogUtil.i(TAG + ": 代理节点连接失败，切换到下一个候选");
+                mainHandler.post(fallback::connectNext);
+                return;
             }
 
             if (userInitiatedDisconnect || !isRecoverable(errorCode)) {
