@@ -40,6 +40,8 @@ public class AdmobRewardAds implements RewardInterface {
 
     private RewardedAd mRewardedVideoAd;
     private boolean loading;
+    /** 请求展示时广告还没加载完：加载完成后自动展示，而不是立即判定"无广告"。 */
+    private boolean pendingShow;
     private final Activity mActivity;
     private final RewardInterface.OnAdmobRewardListener mLlistener;
     private final String userId;
@@ -81,6 +83,10 @@ public class AdmobRewardAds implements RewardInterface {
                         loading = false;
                         mRewardedVideoAd = null;
                         LogUtil.i("admob reward load failed: " + loadAdError.getMessage());
+                        if (pendingShow) {
+                            pendingShow = false;
+                            mLlistener.onNoRewardAD();
+                        }
                     }
 
                     @Override
@@ -91,6 +97,10 @@ public class AdmobRewardAds implements RewardInterface {
                             ad.setServerSideVerificationOptions(new ServerSideVerificationOptions.Builder()
                                     .setUserId(userId)
                                     .build());
+                        }
+                        if (pendingShow) {
+                            pendingShow = false;
+                            present(ad);
                         }
                         ad.setFullScreenContentCallback(new FullScreenContentCallback() {
                             @Override
@@ -125,6 +135,7 @@ public class AdmobRewardAds implements RewardInterface {
     @Override
     public void onAdDestroy() {
         mRewardedVideoAd = null;
+        pendingShow = false;
     }
 
     @Override
@@ -135,13 +146,16 @@ public class AdmobRewardAds implements RewardInterface {
             mLlistener.onNoRewardAD();
             return;
         }
-        if (mRewardedVideoAd == null) {
-            load();
-            mLlistener.onNoRewardAD();
-            ToastUtil.showShort(R.string.tab_fb_click_no);
+        if (mRewardedVideoAd != null) {
+            present(mRewardedVideoAd);
             return;
         }
-        RewardedAd ad = mRewardedVideoAd;
+        // 还没加载好：记下来，加载完成后自动展示；加载失败时才通知界面
+        pendingShow = true;
+        load();
+    }
+
+    private void present(RewardedAd ad) {
         ad.show(mActivity, new OnUserEarnedRewardListener() {
             @Override
             public void onUserEarnedReward(@NonNull RewardItem rewardItem) {
