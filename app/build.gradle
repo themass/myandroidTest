@@ -163,6 +163,7 @@ greendao {
 }
 
 dependencies {
+    testImplementation 'junit:junit:4.13.2'
     // 项目模块依赖
     implementation project(":commonutil")
     implementation project(":ads")
