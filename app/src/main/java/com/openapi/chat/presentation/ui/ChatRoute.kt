@@ -16,6 +16,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.openapi.chat.domain.model.MessageKind
+import com.openapi.ks.myapp.data.UserLoginUtil
+import com.openapi.ks.myapp.ui.user.LoginActivity
 import com.openapi.chat.presentation.ChatViewModel
 import androidx.activity.result.PickVisualMediaRequest
 import com.openapi.core.media.AudioPlayer
@@ -72,10 +74,22 @@ fun ChatRoute(
                 android.widget.Toast.makeText(context, "语音通话即将上线", android.widget.Toast.LENGTH_SHORT).show()
             },
             onPickImage = {
-                imagePicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                if (requireLogin(context)) {
+                    imagePicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                }
             },
-            onPickFile = { filePicker.launch(arrayOf("*/*")) },
+            onPickFile = {
+                if (requireLogin(context)) filePicker.launch(arrayOf("*/*"))
+            },
             modifier = modifier.safeDrawingPadding(),
         )
     }
+}
+
+/** 附件上传需要登录（与旧版一致）：未登录时提示并跳到登录页，返回 false。 */
+private fun requireLogin(context: android.content.Context): Boolean {
+    if (UserLoginUtil.getUserCache() != null) return true
+    android.widget.Toast.makeText(context, com.openapi.ks.chat.R.string.need_login, android.widget.Toast.LENGTH_SHORT).show()
+    context.startActivity(android.content.Intent(context, LoginActivity::class.java))
+    return false
 }
