@@ -121,7 +121,7 @@ public final class CharonVpnSessionRepository implements VpnSessionRepository {
         appContext = context.getApplicationContext();
         registry.register(new Ikev2TunnelEngine(new Ikev2StateBinder()));
         registry.register(new WireGuardTunnelEngine(appContext));
-        registry.register(new com.openapi.data.vpn.engine.VlessRealityTunnelEngine(appContext));
+        registry.register(new com.openapi.data.vpn.engine.SingBoxTunnelEngine(appContext));
         requestBind();
     }
 

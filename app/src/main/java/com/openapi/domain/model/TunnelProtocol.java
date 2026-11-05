@@ -21,7 +21,7 @@ public enum TunnelProtocol {
     WIREGUARD("wireguard", "WireGuard", true),
 
     /**
-     * VLESS + Reality，XTLS/libXray（Xray-core 官方 gomobile 封装）承载。
+     * VLESS + Reality，由 sing-box（libbox）承载。
      * 走 TCP/443，伪装成真实网站的 TLS 1.3 握手，主动探测也查不出破绽，
      * 是目前抗封锁能力最强的方案；吞吐与延迟不如 WireGuard。
      */

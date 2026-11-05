@@ -181,7 +181,7 @@
             </intent-filter>
         </service>
         <service
-            android:name="com.openapi.data.vpn.engine.XrayVpnService"
+            android:name="com.openapi.data.vpn.engine.SingBoxVpnService"
             android:exported="false"
             android:permission="android.permission.BIND_VPN_SERVICE">
             <intent-filter>

@@ -146,8 +146,8 @@ greendao {
 }
 dependencies {
 
-    // VLESS+Reality：官方 Xray-core 的 gomobile 封装，MIT 许可。
-    // 本地从源码构建（XTLS/libXray，pin 到 Xray-core v26.10.29），
+    // sing-box（libbox）承载 VLESS+Reality 与用户自己的分享链接节点。
+    // 本地从源码构建（SagerNet/sing-box v1.13.5，build_libbox），
     // 没有 Maven 发布，走 fileTree 直接引入 .aar。
     implementation fileTree(dir: 'libs', include: ['*.aar'])
     implementation fileTree(dir: 'libs', include: ['*.jar'])

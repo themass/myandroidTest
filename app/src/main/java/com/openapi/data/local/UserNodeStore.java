@@ -20,7 +20,7 @@ import java.util.UUID;
 
 /**
  * 用户自己添加的节点（粘贴分享链接得到）。只存在本机，不上传服务器。
- * 连接时由 Xray 承载，outbound 直接用解析出来的 JSON。
+ * 连接时由 sing-box 承载，outbound 是解析出来的 Xray 格式 JSON，再经 SingBoxConfigBuilder 翻译。
  */
 public final class UserNodeStore {
 
@@ -33,7 +33,7 @@ public final class UserNodeStore {
     private UserNodeStore() {
     }
 
-    /** 一个用户节点。outboundJson 是 Xray 的完整 outbound。 */
+    /** 一个用户节点。outboundJson 是 Xray 格式的完整 outbound。 */
     public static final class UserNode {
         public String id;
         public String name;

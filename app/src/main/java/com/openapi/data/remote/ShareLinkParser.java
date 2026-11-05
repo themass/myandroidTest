@@ -20,7 +20,7 @@ import java.util.Map;
  * <p>
  * 移植自开源项目 ProxyBox（DaveBugg/ProxyBox，app/.../import_config/ConfigParser.kt）。
  * 支持：vless://、vmess://、ss://、trojan://、hy2:// / hysteria2://。
- * 输出的 outbound 由 libXray（Xray 内核）运行，因此不需要为每种协议单独写引擎。
+ * 输出的 Xray 格式 outbound 再由 SingBoxConfigBuilder 翻译成 sing-box，因此不需要为每种协议单独写引擎。
  * 仅依赖 java.* 与 Gson，可以直接在电脑上做单元测试。
  */
 public final class ShareLinkParser {
