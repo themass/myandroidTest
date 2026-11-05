@@ -1,6 +1,5 @@
 plugins {
     id 'com.android.library'
-    id 'org.greenrobot.greendao'
     id 'kotlin-parcelize'
 }
 
@@ -71,9 +70,6 @@ android {
     }
 }
 
-greendao {
-    schemaVersion 8
-}
 dependencies {
     // 项目模块依赖
     implementation project(":messagekit")
@@ -98,8 +94,9 @@ dependencies {
     api 'com.github.bumptech.glide:okhttp3-integration:4.16.0'
     api 'com.github.chrisbanes:PhotoView:2.3.0'
 
-    // 数据库
-    api 'org.greenrobot:greendao:3.3.0'
+    // 数据库（Room；实体和 DAO 是 Java，用 annotationProcessor 生成实现）
+    api 'androidx.room:room-runtime:2.7.1'
+    annotationProcessor 'androidx.room:room-compiler:2.7.1'
 
     // 视频播放
 //    api 'androidx.media3:media3-exoplayer:1.2.1'

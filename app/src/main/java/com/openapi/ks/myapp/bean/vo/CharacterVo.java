@@ -1,10 +1,5 @@
 package com.openapi.ks.myapp.bean.vo;
 
-import org.greenrobot.greendao.annotation.Entity;
-import org.greenrobot.greendao.annotation.Generated;
-import org.greenrobot.greendao.annotation.Id;
-import org.greenrobot.greendao.annotation.Transient;
-import org.greenrobot.greendao.annotation.Unique;
 
 /**
  * Created by openapi on 2017/9/3.

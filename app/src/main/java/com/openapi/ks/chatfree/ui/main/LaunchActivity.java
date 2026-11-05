@@ -98,12 +98,9 @@ public class LaunchActivity extends LogActivity {
 //        fireworkShow.startFireworkShow();
     }
     private void initChatSession(){
-        ChatSessionLog logDef = new ChatSessionLog();
-        logDef.id = 0l;
-        logDef.name = "Default";
-        logDef.setting = "";
-        logDef.type = ChatSessionLog.TYPE.DEF.type;
-        DBManager.getInstance().getDaoSession().getChatSessionLogDao().insertOrReplace(logDef);
+        // 默认会话的 id 约定为 0（见 ChatSessionLogDao.insertDefault 的说明）
+        DBManager.getInstance().chatSessionLogDao().insertDefault(
+                "Default", null, "", ChatSessionLog.TYPE.DEF.type);
     }
 
     @OnClick(R.id.skip_view)

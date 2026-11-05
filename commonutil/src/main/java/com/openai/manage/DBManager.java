@@ -2,93 +2,57 @@ package com.openai.manage;
 
 import android.content.Context;
 
-import com.openai.commonevent.DaoMaster;
-import com.openai.commonevent.DaoSession;
+import androidx.room.Room;
 
-import org.greenrobot.greendao.query.QueryBuilder;
 /**
- * 创建数据库、创建数据库表、包含增删改查的操作以及数据库的升级
- * Created by Mr.sorrow on 2017/5/5.
+ * 收藏库的入口（Room）。
+ *
+ * 库名换成了 favorites.db：旧的 greenDAO 库（favi）不再读取，也不迁移。
+ * 旧代码可能在主线程直接读写收藏（greenDAO 不限制），所以这里允许主线程查询，
+ * 保持原行为；新代码仍应放到后台线程。
  */
-
 public class DBManager {
 
-    public static final String DB_NAME = "favi";
+    public static final String DB_NAME = "favorites.db";
     //多线程中要被共享的使用volatile关键字修饰
     private volatile static DBManager manager = new DBManager();
-    private static DaoMaster sDaoMaster;
-    private static DaoMaster.DevOpenHelper sHelper;
-    private static DaoSession sDaoSession;
+    private volatile FavoriteDatabase database;
     private Context context;
 
-    /**
-     * 单例模式获得操作数据库对象
-     *
-     * @return
-     */
     public static DBManager getInstance() {
         return manager;
     }
 
     public void init(Context context) {
-        this.context = context;
+        this.context = context.getApplicationContext();
     }
 
-    /**
-     * 判断是否有存在数据库，如果没有则创建
-     *
-     * @return
-     */
-    public DaoMaster getDaoMaster() {
-        if (sDaoMaster == null) {
-            DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(context, DB_NAME, null);
-            sDaoMaster = new DaoMaster(helper.getWritableDatabase());
-        }
-        return sDaoMaster;
+    public FavoriteDao favoriteDao() {
+        return getDatabase().favoriteDao();
     }
 
-    /**
-     * 完成对数据库的添加、删除、修改、查询操作，仅仅是一个接口
-     *
-     * @return
-     */
-    public DaoSession getDaoSession() {
-        if (sDaoSession == null) {
-            if (sDaoMaster == null) {
-                sDaoMaster = getDaoMaster();
+    private FavoriteDatabase getDatabase() {
+        FavoriteDatabase db = database;
+        if (db == null) {
+            synchronized (this) {
+                db = database;
+                if (db == null) {
+                    db = Room.databaseBuilder(context, FavoriteDatabase.class, DB_NAME)
+                            .allowMainThreadQueries()
+                            .fallbackToDestructiveMigration()
+                            .build();
+                    database = db;
+                }
             }
-            sDaoSession = sDaoMaster.newSession();
         }
-        return sDaoSession;
+        return db;
     }
 
-    /**
-     * 打开输出日志，默认关闭
-     */
-    public void setDebug() {
-        QueryBuilder.LOG_SQL = true;
-        QueryBuilder.LOG_VALUES = true;
-    }
-
-    /**
-     * 关闭所有的操作，数据库开启后，使用完毕要关闭
-     */
-    public void closeConnection() {
-        closeHelper();
-        closeDaoSession();
-    }
-
-    public void closeHelper() {
-        if (sHelper != null) {
-            sHelper.close();
-            sHelper = null;
-        }
-    }
-
-    public void closeDaoSession() {
-        if (sDaoSession != null) {
-            sDaoSession.clear();
-            sDaoSession = null;
+    /** 关闭数据库，下次访问时重新打开。 */
+    public synchronized void closeConnection() {
+        if (database != null) {
+            database.close();
+            database = null;
         }
     }
 }

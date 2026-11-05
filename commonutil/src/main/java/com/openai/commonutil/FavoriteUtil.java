@@ -27,12 +27,12 @@ public class FavoriteUtil {
      */
 
     public static List<FavoriteVo> getLocalFavorites(Context context) {
-        return DBManager.getInstance().getDaoSession().getFavoriteVoDao().queryRaw("where T.TYPE < 4");
+        return DBManager.getInstance().favoriteDao().localFavorites();
     }
 
     public static FavoriteVo getFavorite(Context context, String url) {
         try {
-            List<FavoriteVo> list = DBManager.getInstance().getDaoSession().getFavoriteVoDao().queryRaw("where T.ITEM_URL=?", url);
+            List<FavoriteVo> list = DBManager.getInstance().favoriteDao().byUrl(url);
             if (CollectionUtils.isEmpty(list)) {
                 return null;
             }
@@ -74,7 +74,7 @@ public class FavoriteUtil {
      * @param context
      */
     public static void delAllLocalFavorite(Context context) {
-        DBManager.getInstance().getDaoSession().getFavoriteVoDao().deleteAll();
+        DBManager.getInstance().favoriteDao().deleteAll();
     }
 
     public interface GetFavoriteListener {
@@ -100,7 +100,7 @@ public class FavoriteUtil {
         public void execute() {
             executor.execute(() -> {
                 try {
-                    DBManager.getInstance().getDaoSession().getFavoriteVoDao().insertOrReplace(vo);
+                    DBManager.getInstance().favoriteDao().insertOrReplace(vo);
                     mainHandler.post(() -> {
                         // 任务完成后的UI更新（如果需要）
                     });
@@ -126,7 +126,7 @@ public class FavoriteUtil {
         public void execute() {
             executor.execute(() -> {
                 try {
-                    DBManager.getInstance().getDaoSession().getFavoriteVoDao().deleteByKey(id);
+                    DBManager.getInstance().favoriteDao().deleteById(id);
                     mainHandler.post(() -> {
                         // 任务完成后的UI更新（如果需要）
                     });

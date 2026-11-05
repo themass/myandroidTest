@@ -38,8 +38,8 @@ public class ConnLogUtil {
         @Override
         protected Boolean doInBackground(String... params) {
             try {
-                List<ConnLog> logs = DBManager.getInstance().getDaoSession().getConnLogDao().loadAll();
-                DBManager.getInstance().getDaoSession().getConnLogDao().deleteAll();
+                List<ConnLog> logs = DBManager.getInstance().connLogDao().loadAll();
+                DBManager.getInstance().connLogDao().deleteAll();
                 if (!CollectionUtils.isEmpty(logs)) {
                     ConnLogForm form = new ConnLogForm();
                     form.log = GsonUtils.getInstance().toJson(logs);

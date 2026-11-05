@@ -1,40 +1,27 @@
 package com.openai.commonevent;
 
-import org.greenrobot.greendao.annotation.Entity;
-import org.greenrobot.greendao.annotation.Generated;
-import org.greenrobot.greendao.annotation.Id;
-import org.greenrobot.greendao.annotation.Keep;
-import org.greenrobot.greendao.annotation.Transient;
-import org.greenrobot.greendao.annotation.Unique;
+import androidx.room.Entity;
+import androidx.room.Ignore;
+import androidx.room.Index;
+import androidx.room.PrimaryKey;
 
 /**
+ * 本地收藏。字段名不要改：它们同时是 Room 的列名和上传/展示用的 JSON 字段名。
  * Created by openapi on 2017/9/3.
  */
-@Entity
+@Entity(tableName = "FavoriteVo", indices = {@Index(value = "itemUrl", unique = true)})
 public class FavoriteVo {
-    @Id(autoincrement = true)
+    @PrimaryKey(autoGenerate = true)
     public Long id;
     public String name;
     public String updateTime;
     public int type;
-    @Unique
     public String itemUrl;
     public String extra;
-    @Transient
+    /** 运行时携带的原始对象，不入库。 */
+    @Ignore
     public Object o;
 
-    @Keep
-    public FavoriteVo(Long id, String name, String updateTime, int type,
-                      String itemUrl, String extra) {
-        this.id = id;
-        this.name = name;
-        this.updateTime = updateTime;
-        this.type = type;
-        this.itemUrl = itemUrl;
-        this.extra = extra;
-    }
-
-    @Keep
     public FavoriteVo() {
     }
 

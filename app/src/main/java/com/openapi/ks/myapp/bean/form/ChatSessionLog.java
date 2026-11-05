@@ -1,36 +1,22 @@
 package com.openapi.ks.myapp.bean.form;
 
 
-import org.greenrobot.greendao.annotation.Entity;
-import org.greenrobot.greendao.annotation.Generated;
-import org.greenrobot.greendao.annotation.Id;
-import org.greenrobot.greendao.annotation.Index;
-import org.greenrobot.greendao.annotation.Keep;
-import org.greenrobot.greendao.annotation.Unique;
+import androidx.room.Entity;
+import androidx.room.Index;
+import androidx.room.PrimaryKey;
 
 import java.util.Comparator;
 import java.util.Date;
 
-@Entity
+@Entity(tableName = "ChatSessionLog", indices = {@Index(value = "name", unique = true)})
 public class ChatSessionLog implements Comparator<ChatSessionLog> {
-    @Id(autoincrement = true)
+    @PrimaryKey(autoGenerate = true)
     public Long id;
-    @Unique
     public String name;
     public Date createTime;
     public String setting;
     public int type = TYPE.CUSTOMER.type;
 
-    @Keep
-    public ChatSessionLog(Long id, String name, Date createTime, String setting,int type) {
-        this.id = id;
-        this.name = name;
-        this.createTime = createTime;
-        this.setting = setting;
-        this.type = type;
-    }
-
-    @Keep
     public ChatSessionLog() {
     }
 

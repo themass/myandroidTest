@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.Flow
  * 实现放在 data 层，负责：
  * - 远端：`/chat/stream.json`（SSE 流式，见 docs/agent-and-media-roadmap.md 的对话契约；
  *   这是协议的第一个实现方，未来 Python agent-runtime 实现同一份契约时本接口不用改）
- * - 本地：greenDAO 的 ChatLog 表（复用 DBManager，保证升级后老会话可读）
+ * - 本地：Room 的 ChatLog 表（经 DBManager；旧 greenDAO 库不再读取，升级后聊天记录从空开始）
  *
  * domain 层只认 [ChatMessage]/[ChatStreamEvent]，看不到协议细节。
  */

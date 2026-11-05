@@ -40,7 +40,6 @@ ext.deps = [
     
     // 数据库
     database: [
-        greendao: "org.greenrobot:greendao:3.3.0"
     ],
     
     // 视频播放

@@ -2,7 +2,6 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
     id 'org.jetbrains.kotlin.plugin.compose'
-    id 'org.greenrobot.greendao'
     id 'com.jakewharton.butterknife'
 }
 
@@ -158,12 +157,11 @@ android {
         }
     }
 }
-greendao {
-    schemaVersion 8
-}
-
 dependencies {
     testImplementation 'junit:junit:4.13.2'
+    // Room DAO 的 JVM 测试：Robolectric 提供真实的 SQLite，不用设备
+    testImplementation 'org.robolectric:robolectric:4.17'
+    testImplementation 'androidx.test:core:1.7.0'
     // 项目模块依赖
     implementation project(":commonutil")
     implementation project(":ads")
@@ -211,8 +209,9 @@ dependencies {
     implementation 'io.reactivex.rxjava3:rxjava:3.1.11'
     implementation 'io.reactivex.rxjava3:rxandroid:3.0.2'
 
-    // 数据库
-    implementation 'org.greenrobot:greendao:3.3.0'
+    // 数据库（Room；实体和 DAO 是 Java，用 annotationProcessor 生成实现）
+    implementation 'androidx.room:room-runtime:2.7.1'
+    annotationProcessor 'androidx.room:room-compiler:2.7.1'
 
     // Markdown解析库
     implementation 'io.noties.markwon:core:4.6.2'

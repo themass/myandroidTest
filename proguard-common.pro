@@ -79,12 +79,6 @@
 -keep class com.openai.commonutil.permission.ModernPermissionManager { *; }
 -keep class com.openai.commonutil.permission.ModernPermissionManager$* { *; }
 
-# GreenDAO
--keep class org.greenrobot.greendao.** { *; }
--keep class * extends org.greenrobot.greendao.AbstractDao
--keep class * extends org.greenrobot.greendao.AbstractDaoSession
--keep class * extends org.greenrobot.greendao.DaoSession
-
 # EventBus
 -keepattributes *Annotation*
 -keepclassmembers class * {

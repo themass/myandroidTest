@@ -1,46 +1,34 @@
 package com.openapi.ks.myapp.bean.form;
 
 
-import org.greenrobot.greendao.annotation.Entity;
-import org.greenrobot.greendao.annotation.Generated;
-import org.greenrobot.greendao.annotation.Id;
-import org.greenrobot.greendao.annotation.Index;
-import org.greenrobot.greendao.annotation.Keep;
-import org.greenrobot.greendao.annotation.Unique;
+import androidx.room.Entity;
+import androidx.room.Index;
+import androidx.room.PrimaryKey;
 
 import java.util.Date;
 
 import chat.ui.data.model.MessageType;
 
-@Entity
+@Entity(
+        tableName = "ChatLog",
+        indices = {
+                @Index(value = "chatId", unique = true),
+                @Index(value = "sessionId")
+        }
+)
 public class ChatLog {
 
 
-    @Id(autoincrement = true)
+    @PrimaryKey(autoGenerate = true)
     public Long id;
     public String content;
     public int who;
     public int msgType = MessageType.TXT_TYPE;
-    @Unique
     public String chatId;
     public Date createTime;
 
-    @Index
     public Long sessionId;
 
-    @Keep
-    public ChatLog(Long id, String content, int who, int msgType, String chatId,
-                   Date createTime, Long sessionId) {
-        this.id = id;
-        this.content = content;
-        this.who = who;
-        this.msgType = msgType;
-        this.chatId = chatId;
-        this.createTime = createTime;
-        this.sessionId = sessionId;
-    }
-
-    @Keep
     public ChatLog() {
     }
 

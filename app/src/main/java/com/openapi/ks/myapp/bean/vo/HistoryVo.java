@@ -1,28 +1,18 @@
 package com.openapi.ks.myapp.bean.vo;
 
-import org.greenrobot.greendao.annotation.Entity;
-import org.greenrobot.greendao.annotation.Generated;
-import org.greenrobot.greendao.annotation.Id;
-import org.greenrobot.greendao.annotation.Keep;
-import org.greenrobot.greendao.annotation.Unique;
+import androidx.room.Entity;
+import androidx.room.Index;
+import androidx.room.PrimaryKey;
 
 /**
  * Created by openapi on 2017/9/3.
  */
-@Entity
+@Entity(tableName = "HistoryVo", indices = {@Index(value = "itemUrl", unique = true)})
 public class HistoryVo {
-    @Id(autoincrement = true)
+    @PrimaryKey(autoGenerate = true)
     public Long id;
-    @Unique
     public String itemUrl;
 
-    @Keep
-    public HistoryVo(Long id, String itemUrl) {
-        this.id = id;
-        this.itemUrl = itemUrl;
-    }
-
-    @Keep
     public HistoryVo() {
     }
 

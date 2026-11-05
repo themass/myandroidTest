@@ -140,13 +140,6 @@
 }
 -keep enum org.greenrobot.eventbus.ThreadMode { *; }
 
-# GreenDAO（数据库框架，保留表结构与 Dao 类）
--keep class org.greenrobot.greendao.** { *; }
--keepclassmembers class * extends org.greenrobot.greendao.AbstractDao {
-    public static java.lang.String TABLENAME;
-}
--keep class **$Properties
--dontwarn org.greenrobot.greendao.**
 # 不使用 SQLCipher 时抑制加密库警告
 -dontwarn net.sqlcipher.database.**
 

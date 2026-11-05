@@ -129,8 +129,7 @@ class ChatRepositoryImpl(
     }
 
     override suspend fun loadHistory(sessionId: Long): List<ChatMessage> {
-        val dao = DBManager.getInstance().daoSession.chatLogDao
-        val logs = dao.queryRaw(" where SESSION_ID=" + sessionId)
+        val logs = DBManager.getInstance().chatLogDao().bySession(sessionId)
         return logs.mapNotNull { log ->
             ChatLogMapper.toDomain(
                 chatId = log.chatId,

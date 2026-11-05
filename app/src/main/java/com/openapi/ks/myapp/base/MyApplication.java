@@ -86,8 +86,6 @@ public class MyApplication extends MultiDexApplication {
         if (MyApplication.isDebug) {
             Constants.initUserAgent(Constants.AGENT_APP_MYPOOL);
             DensityUtil.logDensity(this);
-            DBManager.getInstance().setDebug();
-            com.openai.manage.DBManager.getInstance().setDebug();
             isTemp = false;
         }
         long cost = System.currentTimeMillis() - start;

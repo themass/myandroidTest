@@ -1,128 +1,98 @@
 package com.openapi.ks.myapp.data;
 
 import android.content.Context;
-import android.os.AsyncTask;
+
+import androidx.room.Room;
 
 import com.openai.commonutil.LogUtil;
 import com.openapi.ks.myapp.bean.form.ChatLog;
-import com.openapi.ks.myapp.bean.form.ChatLogDao;
-import com.openapi.ks.myapp.bean.form.DaoMaster;
-import com.openapi.ks.myapp.bean.form.DaoSession;
+import com.openapi.ks.myapp.data.db.AppDatabase;
+import com.openapi.ks.myapp.data.db.ChatLogDao;
+import com.openapi.ks.myapp.data.db.ChatSessionLogDao;
+import com.openapi.ks.myapp.data.db.ConnLogDao;
+import com.openapi.ks.myapp.data.db.HistoryDao;
 
-import org.greenrobot.greendao.query.QueryBuilder;
-
-import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
- * 创建数据库、创建数据库表、包含增删改查的操作以及数据库的升级
- * Created by Mr.sorrow on 2017/5/5.
+ * 应用数据库入口（Room）：聊天记录、会话、连接日志、浏览历史。
+ *
+ * 库名换成了 app.db：旧的 greenDAO 库（freeSEX）不再读取，也不迁移。
+ * 旧代码（聊天页、会话列表、启动页）会在主线程直接读写，greenDAO 不限制这一点，
+ * 所以这里允许主线程查询以保持原行为；新代码应放到后台线程。
  */
-
 public class DBManager {
 
-    public static final String DB_NAME = "freeSEX";
+    public static final String DB_NAME = "app.db";
+    /** 聊天记录只保留最近这么多条，沿用旧逻辑。 */
+    private static final long CHAT_LOG_KEEP = 30;
+
     //多线程中要被共享的使用volatile关键字修饰
     private volatile static DBManager manager = new DBManager();
-    private static DaoMaster sDaoMaster;
-    private static DaoMaster.DevOpenHelper sHelper;
-    private static DaoSession sDaoSession;
+    private final ExecutorService trimExecutor = Executors.newSingleThreadExecutor();
+    private volatile AppDatabase database;
     private Context context;
 
-    /**
-     * 单例模式获得操作数据库对象
-     *
-     * @return
-     */
     public static DBManager getInstance() {
         return manager;
     }
 
     public void init(Context context) {
-        this.context = context;
-        long count = manager.getDaoSession().getChatLogDao().count();
-        LogUtil.i("count ====" + count);
+        this.context = context.getApplicationContext();
+        LogUtil.i("chat log count ====" + chatLogDao().count());
     }
 
-    /**
-     * 判断是否有存在数据库，如果没有则创建
-     *
-     * @return
-     */
-    public DaoMaster getDaoMaster() {
-        if (sDaoMaster == null) {
-
-            DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(context, DB_NAME, null);
-            sDaoMaster = new DaoMaster(helper.getWritableDatabase());
-        }
-        return sDaoMaster;
-    }
-
-    /**
-     * 完成对数据库的添加、删除、修改、查询操作，仅仅是一个接口
-     *
-     * @return
-     */
-    public DaoSession getDaoSession() {
-        if (sDaoSession == null) {
-            if (sDaoMaster == null) {
-                sDaoMaster = getDaoMaster();
+    private AppDatabase getDatabase() {
+        AppDatabase db = database;
+        if (db == null) {
+            synchronized (this) {
+                db = database;
+                if (db == null) {
+                    db = Room.databaseBuilder(context, AppDatabase.class, DB_NAME)
+                            .allowMainThreadQueries()
+                            .fallbackToDestructiveMigration()
+                            .build();
+                    database = db;
+                }
             }
-            sDaoSession = sDaoMaster.newSession();
         }
-        return sDaoSession;
+        return db;
     }
 
-    /**
-     * 打开输出日志，默认关闭
-     */
-    public void setDebug() {
-        QueryBuilder.LOG_SQL = true;
-        QueryBuilder.LOG_VALUES = true;
+    public ChatLogDao chatLogDao() {
+        return getDatabase().chatLogDao();
     }
 
-    /**
-     * 关闭所有的操作，数据库开启后，使用完毕要关闭
-     */
-    public void closeConnection() {
-        closeHelper();
-        closeDaoSession();
+    public ChatSessionLogDao chatSessionLogDao() {
+        return getDatabase().chatSessionLogDao();
     }
 
-    public void closeHelper() {
-        if (sHelper != null) {
-            sHelper.close();
-            sHelper = null;
-        }
+    public ConnLogDao connLogDao() {
+        return getDatabase().connLogDao();
     }
 
-    public void closeDaoSession() {
-        if (sDaoSession != null) {
-            sDaoSession.clear();
-            sDaoSession = null;
+    public HistoryDao historyDao() {
+        return getDatabase().historyDao();
+    }
+
+    /** 关闭数据库，下次访问时重新打开。 */
+    public synchronized void closeConnection() {
+        if (database != null) {
+            database.close();
+            database = null;
         }
     }
 
     public void saveChatLog(ChatLog log) {
-        manager.getDaoSession().getChatLogDao().save(log);
-        new DelChatLogTask().execute();
-
-    }
-
-    public static class DelChatLogTask extends AsyncTask<String, Integer, Boolean> {
-        private Context context;
-
-        public DelChatLogTask() {
-        }
-
-        @Override
-        protected Boolean doInBackground(String... params) {
-            List<ChatLog> logs = manager.getDaoSession().getChatLogDao().queryBuilder().limit(1).orderDesc(ChatLogDao.Properties.Id).list();
-            LogUtil.i(logs);
-            if (logs.size() == 1) {
-                ChatLog log = logs.get(0);
-                manager.getDaoSession().getChatLogDao().queryBuilder().where(ChatLogDao.Properties.Id.le(log.getId() - 30)).buildDelete().executeDeleteWithoutDetachingEntities();
+        chatLogDao().save(log);
+        // 清理放到后台：不拖慢发消息
+        trimExecutor.execute(() -> {
+            try {
+                chatLogDao().trimToLatest(CHAT_LOG_KEEP);
+            } catch (Throwable e) {
+                LogUtil.e(e);
             }
-            return Boolean.TRUE;
-        }
+        });
     }
 }

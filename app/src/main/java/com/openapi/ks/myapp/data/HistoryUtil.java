@@ -11,7 +11,7 @@ import java.util.List;
 
 public class HistoryUtil {
     public static HistoryVo getHistory(Context context, String url) {
-        List<HistoryVo> list = DBManager.getInstance().getDaoSession().getHistoryVoDao().queryRaw("where T.ITEM_URL=?", url);
+        List<HistoryVo> list = DBManager.getInstance().historyDao().byUrl(url);
         if (CollectionUtils.isEmpty(list)) {
             return null;
         }
@@ -37,7 +37,7 @@ public class HistoryUtil {
                 HistoryVo vo = new HistoryVo();
                 vo.setItemUrl(url);
                 try {
-                    DBManager.getInstance().getDaoSession().getHistoryVoDao().insert(vo);
+                    DBManager.getInstance().historyDao().insert(vo);
                 } catch (Throwable e) {
                     LogUtil.e(e);
                 }

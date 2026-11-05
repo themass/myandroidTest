@@ -1,13 +1,11 @@
 package com.openapi.ks.myapp.bean.form;
 
-import org.greenrobot.greendao.annotation.Entity;
-import org.greenrobot.greendao.annotation.Generated;
-import org.greenrobot.greendao.annotation.Id;
-import org.greenrobot.greendao.annotation.Keep;
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
 
-@Entity
+@Entity(tableName = "ConnLog")
 public class ConnLog {
-    @Id(autoincrement = true)
+    @PrimaryKey(autoGenerate = true)
     public Long id;
     public String name;
     public String host;
@@ -15,18 +13,6 @@ public class ConnLog {
     public int status;
     public String time;
 
-    @Keep
-    public ConnLog(Long id, String name, String host, String userIp, int status,
-                   String time) {
-        this.id = id;
-        this.name = name;
-        this.host = host;
-        this.userIp = userIp;
-        this.status = status;
-        this.time = time;
-    }
-
-    @Keep
     public ConnLog() {
     }
 

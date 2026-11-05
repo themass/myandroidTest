@@ -210,7 +210,7 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         // 用户点击OK，执行删除操作
-                        DBManager.getInstance().getDaoSession().getChatLogDao().deleteAll();
+                        DBManager.getInstance().chatLogDao().deleteAll();
                         messagesAdapter.clear();
                     }
                 })
@@ -268,8 +268,7 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
     public void onEvent(ChatItemDelEvent event) {
         messagesAdapter.delete(event.message);
         ToastUtil.showShort(R.string.del_message);
-        List<ChatLog> chatLogs = DBManager.getInstance().getDaoSession().getChatLogDao().queryRaw("where CHAT_ID=?",event.message.getId());
-        DBManager.getInstance().getDaoSession().getChatLogDao().deleteInTx(chatLogs);
+        DBManager.getInstance().chatLogDao().deleteByChatId(event.message.getId());
         LogUtil.i("onEvent delete ="+setting);
     }
     private void createNewChatSession() {
@@ -309,7 +308,8 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
                 log.setCreateTime(new Date());
                 log.setSetting("");
                 try {
-                    DBManager.getInstance().getDaoSession().getChatSessionLogDao().insert(log);
+                    // Room 不会把新行的 id 回填进实体（greenDAO 会），后面要用 log.id，所以自己赋值
+                    log.id = DBManager.getInstance().chatSessionLogDao().insertOrReplace(log);
                 } catch (Exception e) {
                     LogUtil.e(e);
                 }
@@ -394,7 +394,7 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
             public void onResponse(InfoListVo<ChatSessionLog> chatSessionLogInfoListVo) {
                 LogUtil.i("session list = "+GsonUtils.getInstance().toJson(chatSessionLogInfoListVo));
                 if(chatSessionLogInfoListVo!=null && chatSessionLogInfoListVo.voList!=null){
-                    DBManager.getInstance().getDaoSession().getChatSessionLogDao().insertOrReplaceInTx(chatSessionLogInfoListVo.voList);
+                    DBManager.getInstance().chatSessionLogDao().insertOrReplaceAll(chatSessionLogInfoListVo.voList);
                 }
             }
         }, new CommonResponse.ResponseErrorListener());
@@ -416,12 +416,12 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
 
     public void loadMessages() {
         sessionId = PreferenceUtils.getPrefLong(this, Constants.CHAT_SESSION, 0);
-        ChatSessionLog chatSessionLog = DBManager.getInstance().getDaoSession().getChatSessionLogDao().load(sessionId);
+        ChatSessionLog chatSessionLog = DBManager.getInstance().chatSessionLogDao().load(sessionId);
         LogUtil.i("chatSessionLog = "+GsonUtils.getInstance().toJson(chatSessionLog));
         if(chatSessionLog!=null){
             setting = chatSessionLog.getSetting();
         }
-        List<ChatLog> chatlogs = DBManager.getInstance().getDaoSession().getChatLogDao().queryRaw(" where SESSION_ID=" + sessionId);
+        List<ChatLog> chatlogs = DBManager.getInstance().chatLogDao().bySession(sessionId);
         LogUtil.i("loadMessages sessionId=" + sessionId+"; chatlogs size="+chatlogs.size());
 
 
@@ -447,7 +447,7 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
                 messagesAdapter.addToStart(holdMsg, true);
             }
         }
-        ChatSessionLog sessionLog = DBManager.getInstance().getDaoSession().getChatSessionLogDao().load(sessionId);
+        ChatSessionLog sessionLog = DBManager.getInstance().chatSessionLogDao().load(sessionId);
         if (sessionLog != null){
             sessionName = sessionLog.name;
             setToolbarTitle(sessionLog.getName(), false);
