@@ -76,6 +76,7 @@ import com.openapi.chat.domain.model.ChatMessage
 import com.openapi.chat.domain.model.ChatRole
 import com.openapi.chat.presentation.ChatUiState
 import com.openapi.core.design.theme.AppColors
+import com.openapi.core.design.theme.AppTypography
 
 // 颜色统一取自 :core:core-design 的 token，不再在页面里硬编码——
 // 之前每改一次配色都要全工程搜 0x 十六进制。
@@ -184,7 +185,7 @@ private fun CharacterSelectorBar(
     var showEditDialog by remember { mutableStateOf(false) }
     val selected = characters.firstOrNull { it.id == selectedCharacterId }
 
-    Surface(color = Color.White, shadowElevation = 2.dp) {
+    Surface(color = AppColors.Surface, shadowElevation = 2.dp) {
         Box {
             Row(
                 modifier = Modifier
@@ -196,9 +197,9 @@ private fun CharacterSelectorBar(
                 Spacer(Modifier.width(8.dp))
                 Text(
                     text = selected?.title ?: "默认助手",
-                    fontSize = 15.sp,
+                    fontSize = AppTypography.body,
                     fontWeight = FontWeight.Medium,
-                    color = Color.Black,
+                    color = AppColors.TextPrimary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f),
@@ -226,8 +227,8 @@ private fun CharacterSelectorBar(
                                     if (character.preview.isNotBlank()) {
                                         Text(
                                             character.preview,
-                                            fontSize = 12.sp,
-                                            color = Color.Gray,
+                                            fontSize = AppTypography.caption,
+                                            color = AppColors.TextSecondary,
                                             maxLines = 1,
                                             overflow = TextOverflow.Ellipsis,
                                         )
@@ -399,7 +400,7 @@ private fun PendingRow() {
             strokeWidth = 2.dp,
         )
         Spacer(Modifier.width(8.dp))
-        Text("正在思考…", fontSize = 15.sp, color = IconTint)
+        Text("正在思考…", fontSize = AppTypography.body, color = IconTint)
     }
 }
 
@@ -413,7 +414,7 @@ private fun VoiceRow(text: String, playing: Boolean, onClick: () -> Unit) {
                 tint = AppColors.Primary,
             )
         }
-        Text(text, fontSize = 15.sp, color = Color.Black)
+        Text(text, fontSize = AppTypography.body, color = AppColors.TextPrimary)
     }
 }
 
@@ -424,12 +425,12 @@ private fun MessageText(message: ChatMessage) {
     // 语法是容错的（按纯文本渲染未闭合部分），不会因为还没收完就崩或乱渲染。
     // 后端会把 LaTeX 转成 $...$，Markwon 不认，本轮不做公式渲染。
     if (message.role == ChatRole.ASSISTANT) {
-        MarkdownText(markdown = message.text, textColor = Color.Black)
+        MarkdownText(markdown = message.text, textColor = AppColors.TextPrimary)
     } else {
         Text(
             text = message.text,
-            fontSize = 15.sp,
-            color = Color.Black,
+            fontSize = AppTypography.body,
+            color = AppColors.TextPrimary,
             textAlign = TextAlign.Start,
         )
     }
@@ -477,7 +478,7 @@ private fun ChatInputBar(
             }
         }
 
-        Surface(color = Color.White, shadowElevation = 8.dp) {
+        Surface(color = AppColors.Surface, shadowElevation = 8.dp) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -537,7 +538,7 @@ private fun ChatInputBar(
                     Icon(
                         Icons.AutoMirrored.Filled.Send,
                         contentDescription = "发送",
-                        tint = if (canSend) MaterialTheme.colorScheme.primary else Color.Gray,
+                        tint = if (canSend) MaterialTheme.colorScheme.primary else AppColors.TextSecondary,
                     )
                 }
             }
@@ -568,7 +569,7 @@ private fun AttachmentPanel(onImage: () -> Unit, onFile: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFFF3F3F3))
+            .background(AppColors.SurfaceVariant)
             .padding(vertical = 16.dp),
         horizontalArrangement = Arrangement.SpaceEvenly,
     ) {
@@ -589,7 +590,7 @@ private fun AttachItem(label: String, icon: ImageVector, onClick: () -> Unit) {
         IconButton(onClick = onClick, modifier = Modifier.size(56.dp)) {
             Icon(icon, contentDescription = label, tint = IconTint, modifier = Modifier.size(28.dp))
         }
-        Text(label, fontSize = 12.sp, color = IconTint)
+        Text(label, fontSize = AppTypography.caption, color = IconTint)
     }
 }
 
@@ -610,8 +611,8 @@ private fun FileRow(file: FileAttachment) {
         Icon(Icons.Filled.InsertDriveFile, contentDescription = null, tint = AppColors.Primary)
         Spacer(Modifier.width(8.dp))
         Column {
-            Text(file.name, fontSize = 15.sp, color = Color.Black, maxLines = 2, overflow = TextOverflow.Ellipsis)
-            Text(formatFileSize(file.sizeBytes), fontSize = 12.sp, color = IconTint)
+            Text(file.name, fontSize = AppTypography.body, color = AppColors.TextPrimary, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Text(formatFileSize(file.sizeBytes), fontSize = AppTypography.caption, color = IconTint)
         }
     }
 }
