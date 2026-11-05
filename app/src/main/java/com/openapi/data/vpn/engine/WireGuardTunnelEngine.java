@@ -67,9 +67,9 @@ public final class WireGuardTunnelEngine implements TunnelEngine {
     public void connect(@NonNull TunnelRequest request, @NonNull Callback callback) {
         this.callback = callback;
         callback.onConnecting();
-        if (request.getPeerPublicKey() == null || request.getClientAddress() == null) {
-            callback.onError(ErrorCode.CONFIG_INVALID,
-                    "WireGuard 需要 peerPublicKey 与 clientAddress");
+        // clientAddress 不再由节点下发：每台设备的隧道地址由服务端在注册时分配，建隧道前从本地取。
+        if (request.getPeerPublicKey() == null) {
+            callback.onError(ErrorCode.CONFIG_INVALID, "WireGuard 需要 peerPublicKey");
             return;
         }
         /*
@@ -159,7 +159,14 @@ public final class WireGuardTunnelEngine implements TunnelEngine {
         com.wireguard.crypto.KeyPair identity =
                 com.openapi.data.local.WireGuardKeyStore.getOrCreate(appContext);
         ib.parsePrivateKey(identity.getPrivateKey().toBase64());
-        ib.parseAddresses(request.getClientAddress());
+        String address = com.openapi.data.local.WireGuardKeyStore.getClientAddress(appContext);
+        if (address == null) {
+            throw new BadConfigException(
+                    com.wireguard.config.BadConfigException.Section.INTERFACE,
+                    com.wireguard.config.BadConfigException.Location.ADDRESS,
+                    com.wireguard.config.BadConfigException.Reason.MISSING_ATTRIBUTE, null);
+        }
+        ib.parseAddresses(address);
         if (request.getDnsServer() != null && !request.getDnsServer().isEmpty()) {
             ib.parseDnsServers(request.getDnsServer());
         }

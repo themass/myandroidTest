@@ -134,11 +134,10 @@ public class Constants {
     public static final String API_DONATION_URL = "/data/donation.json";
 
     /*
-     * WireGuard 身份注册。
-     * 设计说明（后端尚未实现，这是客户端侧的契约草案，见 WireGuardRegistrationUtil）：
-     * - 请求体：{ deviceId, publicKey }，publicKey 为本机长期公钥（Base64）。
-     * - 响应：{ code, msg }，code==0 表示注册/更新成功。
-     * - 幂等：同一 deviceId 重复提交应覆盖旧公钥（设备更换密钥、重装 App 场景）。
+     * WireGuard 身份注册（后端已实现，契约见 docs/WIREGUARD-BACKEND.md）。
+     * - 需要登录。请求体：{ deviceId, publicKey }，publicKey 为本机长期公钥（Base64）。
+     * - 响应 data：{ clientAddress }，本设备在整个 WireGuard 网络里唯一的隧道内地址（CIDR）。
+     * - 幂等：同一 deviceId 重复提交覆盖旧公钥，地址不变（重装 App 场景）。
      */
     public static final String API_WG_REGISTER_URL = "/host/wg/register.json";
 

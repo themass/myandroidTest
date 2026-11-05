@@ -20,7 +20,7 @@ public class HostVo {
     /** WireGuard：服务端公钥（Base64）。 */
     public String peerPublicKey;
 
-    /** WireGuard：分配给客户端的地址，CIDR，可逗号分隔多个。 */
+    /** WireGuard：已弃用，客户端不再使用。每台设备的地址由注册接口返回。 */
     public String clientAddress;
 
     /** WireGuard：服务端 DNS。 */
@@ -79,11 +79,13 @@ public class HostVo {
         return false;
     }
 
-    /** WireGuard 参数是否齐全，可作为该协议的候选。 */
+    /**
+     * WireGuard 参数是否齐全，可作为该协议的候选。
+     * 只看服务端公钥：隧道内地址是每台设备注册时由服务端分配的，不再取节点上的 clientAddress。
+     */
     public boolean isWireGuardReady() {
         return supports("wireguard")
-                && peerPublicKey != null && !peerPublicKey.trim().isEmpty()
-                && clientAddress != null && !clientAddress.trim().isEmpty();
+                && peerPublicKey != null && !peerPublicKey.trim().isEmpty();
     }
 
     /** VLESS+Reality 参数是否齐全，可作为该协议的候选。 */

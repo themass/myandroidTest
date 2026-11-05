@@ -1068,8 +1068,8 @@ public class VpnRadFragment extends BaseFragment {
                 .splitTunneling(splitPolicy)
                 .build();
 
-        // WireGuard 需要服务端公钥与客户端地址；缺失时不能选它。
-        boolean wgReady = host.peerPublicKey != null && host.clientAddress != null;
+        // WireGuard 需要服务端公钥；客户端自己的隧道地址在注册时由服务端分配，不看节点上的 clientAddress。
+        boolean wgReady = host.peerPublicKey != null && !host.peerPublicKey.trim().isEmpty();
         if (preferred == TunnelProtocol.WIREGUARD && !wgReady) {
             preferred = TunnelProtocol.IKEV2;
         }

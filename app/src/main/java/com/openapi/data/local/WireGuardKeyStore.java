@@ -30,6 +30,7 @@ public final class WireGuardKeyStore {
     private static final String PREFS = "wg_identity";
     private static final String KEY_PRIVATE = "private_key_b64";
     private static final String KEY_REGISTERED = "public_key_registered";
+    private static final String KEY_ADDRESS = "client_address";
 
     private WireGuardKeyStore() {
     }
@@ -65,17 +66,32 @@ public final class WireGuardKeyStore {
         return getOrCreate(context).getPublicKey().toBase64();
     }
 
-    /** 该设备是否已把公钥注册到服务端。 */
+    /**
+     * 该设备是否已把公钥注册到服务端，并且拿到了自己的隧道内地址。
+     * <p>
+     * 只有"已标记注册"不够：服务端现在为每台设备分配唯一地址，旧版本注册过但本地没存地址的设备
+     * 必须重新注册一次（服务端对重复注册是覆盖公钥、地址不变，所以是安全的）。
+     */
     public static boolean isRegistered(@NonNull Context context) {
-        return context.getApplicationContext()
-                .getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-                .getBoolean(KEY_REGISTERED, false);
+        SharedPreferences sp = context.getApplicationContext()
+                .getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        String address = sp.getString(KEY_ADDRESS, null);
+        return sp.getBoolean(KEY_REGISTERED, false) && address != null && !address.isEmpty();
     }
 
-    public static void markRegistered(@NonNull Context context, boolean registered) {
+    /** 注册成功：保存服务端分配给本设备的隧道内地址（CIDR，如 10.66.1.5/32）。 */
+    public static void saveRegistration(@NonNull Context context, @NonNull String clientAddress) {
         context.getApplicationContext()
                 .getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-                .edit().putBoolean(KEY_REGISTERED, registered).apply();
+                .edit().putBoolean(KEY_REGISTERED, true).putString(KEY_ADDRESS, clientAddress).apply();
+    }
+
+    /** 服务端分配给本设备的隧道内地址；尚未注册返回 null。 */
+    @Nullable
+    public static String getClientAddress(@NonNull Context context) {
+        return context.getApplicationContext()
+                .getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .getString(KEY_ADDRESS, null);
     }
 
     /** 清空本设备身份（退出登录或重置时调用）。下次连接会生成新密钥。 */

@@ -7,7 +7,7 @@ import androidx.annotation.NonNull;
 import com.openapi.common.util.DeviceInfoUtils;
 import com.openapi.common.util.LogUtil;
 import com.openapi.data.local.WireGuardKeyStore;
-import com.openapi.myapp.bean.vo.RetInfoVo;
+import com.openapi.myapp.bean.vo.WgRegisterVo;
 import com.openapi.myapp.constant.Constants;
 import com.openapi.myapp.data.BaseService;
 import com.openapi.yewu.net.request.CommonResponse;
@@ -43,6 +43,25 @@ public final class WireGuardRegistrationUtil {
         void onFailed(@NonNull String reason);
     }
 
+    /** 形如 10.66.1.5/32 的 IPv4 CIDR。 */
+    static boolean isValidAddress(String address) {
+        if (address == null) {
+            return false;
+        }
+        java.util.regex.Matcher m = java.util.regex.Pattern
+                .compile("^(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})$")
+                .matcher(address.trim());
+        if (!m.matches()) {
+            return false;
+        }
+        for (int i = 1; i <= 4; i++) {
+            if (Integer.parseInt(m.group(i)) > 255) {
+                return false;
+            }
+        }
+        return Integer.parseInt(m.group(5)) <= 32;
+    }
+
     public static void ensureRegistered(@NonNull Context context, @NonNull Callback callback) {
         if (WireGuardKeyStore.isRegistered(context)) {
             callback.onReady();
@@ -58,13 +77,20 @@ public final class WireGuardRegistrationUtil {
         BaseService service = new BaseService();
         service.setup(context);
         service.postData(Constants.getUrl(Constants.API_WG_REGISTER_URL), body,
-                new CommonResponse.ResponseOkListener<RetInfoVo>() {
+                new CommonResponse.ResponseOkListener<WgRegisterVo>() {
                     @Override
-                    public void onResponse(RetInfoVo vo) {
-                        // 能走到这里说明 errno == 0；RetInfoVo 只是承接 data 字段，
-                        // 不承载成功与否的判断（那是 parserData 的职责）。
-                        WireGuardKeyStore.markRegistered(context, true);
-                        LogUtil.i(TAG + ": 公钥注册成功");
+                    public void onResponse(WgRegisterVo vo) {
+                        // 能走到这里说明 errno == 0。服务端返回本设备唯一的隧道内地址，必须是合法的 IPv4 CIDR：
+                        // 老版本服务端只返回 {"ret":true}，没有地址，这里按失败处理，让上层回退到 IKEv2，
+                        // 而不是带着空地址去建隧道。
+                        String address = vo == null ? null : vo.clientAddress;
+                        if (!isValidAddress(address)) {
+                            LogUtil.e(TAG + ": 服务端没有返回合法的隧道地址: " + address);
+                            callback.onFailed("no client address");
+                            return;
+                        }
+                        WireGuardKeyStore.saveRegistration(context, address);
+                        LogUtil.i(TAG + ": 公钥注册成功，隧道地址 " + address);
                         callback.onReady();
                     }
                 },
@@ -76,6 +102,6 @@ public final class WireGuardRegistrationUtil {
                         callback.onFailed("register failed");
                     }
                 },
-                "wg_register", RetInfoVo.class);
+                "wg_register", WgRegisterVo.class);
     }
 }

@@ -24,7 +24,7 @@ adb logcat | grep -E "SingBox|singbox|libbox"
 
 - [ ] `bash vpn.sh xray install`（443）
 - [ ] `bash vpn.sh singbox add all`（vless-reality 444 / vmess-ws 8880 / trojan 8443 / shadowsocks 8388 / hysteria2 8444）
-- [ ] `bash vpn.sh wireguard install`
+- [ ] `bash vpn.sh wireguard install`，然后按第 3.5 条配置设备同步（`sync-install`）
 - [ ] 云厂商控制台安全组放行上述端口（脚本结束时会列出）
 - [ ] 把生成的链接粘到 App 的 Private 标签里逐个试
 - 已决定：trojan / hysteria2 先用自签证书（链接带 `insecure=1`）。以后有域名再换：`SB_DOMAIN` + `SB_CERT_FILE` + `SB_KEY_FILE`
@@ -41,22 +41,33 @@ adb logcat | grep -E "SingBox|singbox|libbox"
 
 没有写 curl 冒烟脚本：服务端响应有 AES 加密、请求头有签名，用 curl 复刻容易出错，直接用 App 验证更可靠。
 
-## 3.5 WireGuard（需要你拍板，我之前说错了一点）
+## 3.5 WireGuard 地址分配与服务器同步（代码已写完，按顺序上线）
 
-**更正**：我之前说后端没有 `/host/wg/register.json`，这是错的——接口、`wg_device_key` 表、`unregister` 都已经实现（见 `docs/WIREGUARD-BACKEND.md`）。我当时信了客户端 `Constants.java` 里一条过时的注释，没去后端核实。
+方案已按你的确认实现：后端给每台设备分配唯一 /32 地址，服务器每分钟主动拉取设备公钥并热更新。
+契约和限制见 `docs/WIREGUARD-BACKEND.md`。上线顺序不能乱：
 
-**真正缺的是两件事**，所以现在 WireGuard 最多只能手工配通一台设备：
+1. [ ] 后端执行迁移 `2026111200_wg_addr_index.sql`（**先于部署新版后端**）。它给 `wg_device_key` 加 `addrIndex` 列并回填，
+       回填后看脚本里那条 `SELECT ... addrIndex > 65279` 应该返回空
+2. [ ] 后端 `secrets.properties` 加一行 `wg.syncToken=<至少 24 位的随机串>`（`openssl rand -hex 24` 生成）。不配或太短时同步接口一律 403
+3. [ ] 部署后端
+4. [ ] 每个 WireGuard 服务器上：
 
-1. **公钥只存进了数据库，没有同步到 WireGuard 服务器**。服务器不认识这个公钥就不会接受握手。目前只能手工 `bash vpn.sh wireguard add-peer <名字> <公钥>`。
-2. **`clientAddress` 是每个节点一个固定值**（`host_v2.clientAddress`），所有设备拿到同一个隧道地址。两台设备同时连同一个节点，地址冲突，流量会串。`2026110400_node_data_template.sql` 里写的"服务端用同网段 AllowedIPs 下发"对 WireGuard 不成立：WireGuard 靠 AllowedIPs 把包路由到对应的 peer，每个 peer 必须有自己的 /32。
+```bash
+bash vpn.sh wireguard install        # 网段改成了 10.66.0.0/16；从旧 /24 升级会重启接口，已有连接短暂中断
+WG_SYNC_URL=https://api.ok123find.top/vvv/api/noapp/wg/peers.txt \
+WG_SYNC_TOKEN=<与 wg.syncToken 相同> \
+bash vpn.sh wireguard sync-install
+bash vpn.sh wireguard info           # 服务端公钥，填到后端该节点的 peerPublicKey
+```
 
-**可行方案（需要你确认后我再做）**：
+5. [ ] 后端节点表：该节点 `protocols` 含 `wireguard`，填 `peerPublicKey` 和 `wireGuardPort`；`clientAddress` 现在不用填了
+6. [ ] App 登录后连 WireGuard 节点，确认能上网；换一台设备同时连同一个节点，确认两台互不影响
 
-- 后端：`register` 时给设备从节点网段里分配一个唯一 /32 地址，存进 `wg_device_key`；节点列表下发时把该设备自己的地址填进 `clientAddress`
-- 同步到服务器：服务器上定时（或登录后）从后端拉取"设备公钥 + 地址"列表，用 `wg syncconf` 热更新，不断开已有连接。后端不直接登录服务器，由服务器主动拉，避免后端持有各节点的 SSH 权限
-- 服务器脚本：新增 `vpn.sh wireguard sync`，与后端的一个受保护的只读接口对接（需要一个服务器专用的访问令牌）
-
-这块跨后端和服务器，改动不小，我没有在你确认前动手。
+注意：
+- 旧版 App 注册过的设备本地没存地址，新版 App 会自动重新注册一次，不需要用户操作
+- 刚注册的设备要等服务器下一次同步（最长约 1 分钟）才能握手，第一次连接可能失败
+- 之前用 `add-peer` 手工添加、地址在 `10.66.66.x` 的 peer 不在新网段里，`install` 会警告，需要 `del-peer` 后重新添加
+- 登录是注册的前提：未登录用户连不了 WireGuard，会自动回退 IKEv2
 
 ## 4. 推送与版本号
 
