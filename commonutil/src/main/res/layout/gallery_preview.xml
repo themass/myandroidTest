@@ -8,7 +8,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <com.openai.commonview.view.gallery.GalleryView
+        <com.openapi.core.view.view.gallery.GalleryView
             android:id="@+id/gallery"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
@@ -21,7 +21,7 @@
         android:clickable="true"
         android:visibility="gone">
 
-        <com.openai.commonview.view.gallery.PhotoViewPager
+        <com.openapi.core.view.view.gallery.PhotoViewPager
             android:id="@+id/preview_viewPager"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -29,13 +29,13 @@
             android:background="#000000"
             android:visibility="gone"/>
 
-        <com.openai.commonview.view.gallery.TransSmallImageView
+        <com.openapi.core.view.view.gallery.TransSmallImageView
             android:id="@+id/transImage"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@null"/>
 
-        <com.openai.commonview.view.gallery.TransBigImageView
+        <com.openapi.core.view.view.gallery.TransBigImageView
             android:id="@+id/transBigImage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

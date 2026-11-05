@@ -6,22 +6,23 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 
-import com.openai.commonutil.PreferenceUtils;
-import com.openai.commonutil.StringUtils;
-import com.openai.commonutil.ToastUtil;
-import com.openai.net.request.CommonResponse;
+import com.openapi.core.util.PreferenceUtils;
+import com.openapi.core.util.StringUtils;
+import com.openapi.core.util.ToastUtil;
+import com.openapi.core.net.request.CommonResponse;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.bean.form.LoginForm;
 import com.openapi.ks.myapp.bean.vo.UserInfoVo;
 import com.openapi.ks.myapp.constant.Constants;
-import com.openai.net.BaseService;
+import com.openapi.core.net.BaseService;
 import com.openapi.ks.myapp.data.UserLoginUtil;
 import com.openapi.ks.myapp.ui.base.app.BaseSingleActivity;
 
 import java.util.regex.Pattern;
 
-import butterknife.BindView;
-import butterknife.OnClick;
+import com.openapi.ks.chat.databinding.LayoutLoginBinding;
+
+import android.view.ViewGroup;
 
 /**
  * Created by openapi on 2016/8/13.
@@ -29,17 +30,11 @@ import butterknife.OnClick;
 public class LoginActivity extends BaseSingleActivity {
     private static final String TAG = "login_tag";
     private final Pattern namePattern = Pattern.compile("[a-zA-Z0-9]{3,20}");
-    @BindView(R.id.ll_loading)
     LinearLayout loading;
-    @BindView(R.id.et_username)
     EditText etUserName;
-    @BindView(R.id.et_password)
     EditText etPassword;
-    @BindView(R.id.btn_login)
     Button btnLogin;
-    @BindView(R.id.btn_reg)
     Button btnReg;
-    @BindView(R.id.btn_findpass)
     Button btnFindPass;
     BaseService baseService;
     CommonResponse.ResponseOkListener loginListener = new CommonResponse.ResponseOkListener<UserInfoVo>() {
@@ -69,19 +64,43 @@ public class LoginActivity extends BaseSingleActivity {
 
     }
 
-    @OnClick(R.id.btn_reg)
+    @Override
+    protected void onBindContent(ViewGroup container) {
+        super.onBindContent(container);
+        // layout_login 的根是 <merge>，直接绑定容器
+        LayoutLoginBinding b = LayoutLoginBinding.bind(container);
+        loading = b.llLoading;
+        etUserName = b.etUsername;
+        etPassword = b.etPassword;
+        btnLogin = b.btnLogin;
+        btnReg = b.btnReg;
+        btnFindPass = b.btnFindpass;
+        btnReg.setOnClickListener(this::reg);
+        btnFindPass.setOnClickListener(this::tnFindPass);
+        btnLogin.setOnClickListener(this::login);
+    }
+
+    @Override
+    protected void unbindViews() {
+        loading = null;
+        etUserName = null;
+        etPassword = null;
+        btnLogin = null;
+        btnReg = null;
+        btnFindPass = null;
+        super.unbindViews();
+    }
+
     public void reg(View view) {
         finish();
         startActivity(RegActivity.class);
     }
 
-    @OnClick(R.id.btn_findpass)
     public void tnFindPass(View view) {
         finish();
         startActivity(FindPassActivity.class);
     }
 
-    @OnClick(R.id.btn_login)
     public void login(View view) {
         String name = etUserName.getText().toString();
         String pwd = etPassword.getText().toString();

@@ -10,23 +10,24 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.openai.commonutil.LogUtil;
-import com.openai.commonutil.ViewUtils;
+import com.openapi.core.util.LogUtil;
+import com.openapi.core.util.ViewUtils;
 import com.openapi.ks.myapp.constant.Constants;
 
 import java.io.Serializable;
 
-import butterknife.ButterKnife;
-import butterknife.Unbinder;
-
 /**
  * 所有的Fragment基类
+ *
+ * 页面绑定约定（取代 butterknife）：[bindViews] 在内容布局填充完之后被调用，
+ * 叶子 Fragment 重写它，用自己布局的 ViewBinding 给字段赋值；
+ * [unbindViews] 在 onDestroyView 调用，叶子 Fragment 重写并把绑定字段置空
+ * （异步回调常用 `if (view != null)` 判断页面是否还活着）。
  */
 public abstract class BaseFragment extends LogFramgment {
     public static final String FRAGMENT_ARG = "ARG";
     protected View rootView;
     Bundle savedState;
-    private Unbinder unbinder;
 
     /**
      * 传递参数时，   需要传的序列化数据
@@ -101,8 +102,12 @@ public abstract class BaseFragment extends LogFramgment {
         //LogUtil.i(getClass().getSimpleName() + "-setupViews");
     }
 
+    /** 叶子 Fragment 重写：[view] 是整个 Fragment 的根视图。默认什么都不做。 */
     protected void bindViews(View view) {
-        unbinder = ButterKnife.bind(this, view);
+    }
+
+    /** onDestroyView 时调用：叶子 Fragment 重写并置空绑定字段。 */
+    protected void unbindViews() {
     }
 
     @Override
@@ -137,7 +142,7 @@ public abstract class BaseFragment extends LogFramgment {
         super.onDestroyView();
         // Save State Here
         saveStateToArguments();
-        unbinder.unbind();
+        unbindViews();
 //        RefWatcher refWatcher = MyApplication.getRefWatcher(getActivity());
 //        refWatcher.watch(this);
     }

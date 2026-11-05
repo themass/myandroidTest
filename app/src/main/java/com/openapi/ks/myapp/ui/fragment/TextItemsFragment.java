@@ -20,44 +20,59 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import com.openai.commonutil.FileUtils;
-import com.openai.commonutil.LogUtil;
-import com.openai.commonview.view.MyFavoriteView;
-import com.openai.commonview.view.MyScrollView;
-import com.openai.commonview.view.MyTextView;
-import com.openai.ads.yewu.ads.base.AdsContext;
-import com.openai.commonevent.FavoriteVo;
-import com.openai.commonview.view.MyWebView;
-import com.openai.net.HttpUtils;
+import com.openapi.core.util.FileUtils;
+import com.openapi.core.util.LogUtil;
+import com.openapi.core.view.view.MyFavoriteView;
+import com.openapi.core.view.view.MyScrollView;
+import com.openapi.core.view.view.MyTextView;
+import com.openapi.core.ads.yewu.ads.base.AdsContext;
+import com.openapi.core.event.FavoriteVo;
+import com.openapi.core.view.view.MyWebView;
+import com.openapi.core.net.HttpUtils;
 import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.bean.vo.TextItemVo;
 import com.openapi.ks.myapp.bean.vo.TextItemsVo;
 import com.openapi.ks.myapp.constant.Constants;
-import com.openai.net.BaseService;
-import com.openai.commonutil.StaticDataUtil;
+import com.openapi.core.net.BaseService;
+import com.openapi.core.util.StaticDataUtil;
 import com.openapi.ks.myapp.task.SaveTextTask;
 import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
 import com.openapi.ks.myapp.ui.base.features.LoadableFragment;
 import com.openapi.ks.chat.R;
+import com.openapi.ks.chat.databinding.LayoutTextitemsBinding;
 
-import butterknife.BindView;
 
 /**
  * Created by openapi on 2016/8/12.
  */
 public class TextItemsFragment extends LoadableFragment<TextItemVo> implements MyFavoriteView.OnFavoriteItemClick {
     private static final String TEXT_TAG = "TEXT_ITEM_TAG";
-    @BindView(R.id.tv_view)
     MyWebView webView;
-    @BindView(R.id.sv_text)
     MyScrollView svText;
-    @BindView(R.id.my_favoriteview)
     MyFavoriteView myFavoriteView;
     private BaseService indexService;
     private TextItemsVo vo;
     private String infoVo;
     private String url;
     CookieManager cookieManager = null;
+    @Override
+    protected void bindViews(View view) {
+        super.bindViews(view);
+        LayoutTextitemsBinding b = LayoutTextitemsBinding.bind(view);
+        webView = b.tvView;
+        svText = b.svText;
+        myFavoriteView = b.myFavoriteview;
+    }
+
+    @Override
+    protected void unbindViews() {
+        webView = null;
+        svText = null;
+        myFavoriteView = null;
+        super.unbindViews();
+    }
+
+
     public static void startFragment(Context context, TextItemsVo vo) {
         Intent intent = new Intent(context, CommonFragmentActivity.class);
         intent.putExtra(CommonFragmentActivity.FRAGMENT, TextItemsFragment.class);

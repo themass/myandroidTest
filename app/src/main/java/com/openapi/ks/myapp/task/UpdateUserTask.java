@@ -4,10 +4,10 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 
-import com.openai.net.request.CommonResponse;
+import com.openapi.core.net.request.CommonResponse;
 import com.openapi.ks.myapp.bean.vo.UserInfoVo;
 import com.openapi.ks.myapp.constant.Constants;
-import com.openai.net.BaseService;
+import com.openapi.core.net.BaseService;
 import com.openapi.ks.myapp.data.UserLoginUtil;
 
 import java.util.concurrent.ExecutorService;

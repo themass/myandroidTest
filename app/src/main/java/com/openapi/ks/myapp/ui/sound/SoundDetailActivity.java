@@ -18,30 +18,27 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
-import com.openai.commonevent.FavoriteVo;
-import com.openai.commonview.translation.TranslationOverlaySession;
-import com.openai.commonview.translation.VideoTranslationRegistry;
-import com.openai.commonview.translation.VideoTranslationRequest;
-import com.openai.commonview.view.MyFavoriteView;
-import com.openai.commonview.view.MarqueeTextView;
-import com.openai.commonutil.LogUtil;
-import com.openai.commonutil.MediaUtil;
-import com.openai.commonutil.PreferenceUtils;
-import com.openai.commonutil.StaticDataUtil;
-import com.openai.commonutil.ToastUtil;
-import com.openai.net.NetUtils;
+import com.openapi.core.event.FavoriteVo;
+import com.openapi.core.view.translation.TranslationOverlaySession;
+import com.openapi.core.view.translation.VideoTranslationRegistry;
+import com.openapi.core.view.translation.VideoTranslationRequest;
+import com.openapi.core.view.view.MyFavoriteView;
+import com.openapi.core.view.view.MarqueeTextView;
+import com.openapi.core.util.LogUtil;
+import com.openapi.core.util.MediaUtil;
+import com.openapi.core.util.PreferenceUtils;
+import com.openapi.core.util.StaticDataUtil;
+import com.openapi.core.util.ToastUtil;
+import com.openapi.core.net.NetUtils;
 import com.openapi.ks.chat.R;
+import com.openapi.ks.chat.databinding.LayoutSoundDetailBinding;
+import com.openapi.ks.chat.databinding.LayoutSoundStatusBinding;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.bean.vo.SoundItemsVo;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.service.PlayService;
 import com.openapi.ks.myapp.translation.realtime.RealtimeSubtitleBindings;
 import com.openapi.ks.myapp.translation.realtime.VideoRealtimeSubtitleSession;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-import butterknife.Unbinder;
 
 import static com.openapi.ks.myapp.service.PlayService.CURRENT;
 import static com.openapi.ks.myapp.service.PlayService.CURRENTTIME;
@@ -58,35 +55,23 @@ import static com.openapi.ks.myapp.service.PlayService.UPDATE_ACTION;
 public class SoundDetailActivity extends AppCompatActivity
         implements SeekBar.OnSeekBarChangeListener, MyFavoriteView.OnFavoriteItemClick {
 
-    private Unbinder unbinder;
-    @BindView(R.id.music_detail_root)
     android.view.ViewGroup detailRoot;
-    @BindView(R.id.music_detail_track_title)
     MarqueeTextView trackTitle;
-    @BindView(R.id.music_detail_art)
     ImageView artView;
     @Nullable
-    @BindView(R.id.progress)
     SeekBar progressView;
     @Nullable
-    @BindView(R.id.iv_pre)
     android.widget.ImageView ivPre;
     @Nullable
-    @BindView(R.id.iv_play)
     android.widget.ImageView ivPlay;
     @Nullable
-    @BindView(R.id.iv_next)
     android.widget.ImageView ivNext;
     @Nullable
-    @BindView(R.id.time)
     TextView tvTime;
     @Nullable
-    @BindView(R.id.duration)
     TextView tvDuration;
     @Nullable
-    @BindView(R.id.pb_loading)
     ProgressBar pbLoading;
-    @BindView(R.id.my_favoriteview)
     MyFavoriteView myFavoriteView;
 
     private RecommendVo vo;
@@ -120,8 +105,22 @@ public class SoundDetailActivity extends AppCompatActivity
             return;
         }
         StaticDataUtil.del(Constants.SOUND_DETAIL_VO);
-        setContentView(R.layout.layout_sound_detail);
-        unbinder = ButterKnife.bind(this);
+        LayoutSoundDetailBinding binding = LayoutSoundDetailBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+        // progress, iv_pre, ... live in the <include> layout_sound_status (id music_status)
+        LayoutSoundStatusBinding status = binding.musicStatus;
+        detailRoot = binding.musicDetailRoot;
+        trackTitle = binding.musicDetailTrackTitle;
+        artView = binding.musicDetailArt;
+        progressView = status.progress;
+        ivPre = status.ivPre;
+        ivPlay = status.ivPlay;
+        ivNext = status.ivNext;
+        tvTime = status.time;
+        tvDuration = status.duration;
+        pbLoading = status.pbLoading;
+        myFavoriteView = binding.myFavoriteview;
+        binding.musicDetailBack.setOnClickListener(v -> onBackClicked());
         if (PreferenceUtils.getPrefBoolean(this, Constants.MUSIC_UI_AUXIO_STYLE, false)) {
             detailRoot.setBackgroundColor(ContextCompat.getColor(this, R.color.music_auxio_background));
         }
@@ -276,7 +275,6 @@ public class SoundDetailActivity extends AppCompatActivity
         ivPlay.setImageResource(R.drawable.ic_music_pause_filled);
     }
 
-    @OnClick(R.id.music_detail_back)
     void onBackClicked() {
         finish();
     }
@@ -379,9 +377,17 @@ public class SoundDetailActivity extends AppCompatActivity
             unbindService(mConnection);
             mBound = false;
         }
-        if (unbinder != null) {
-            unbinder.unbind();
-        }
+        detailRoot = null;
+        trackTitle = null;
+        artView = null;
+        progressView = null;
+        ivPre = null;
+        ivPlay = null;
+        ivNext = null;
+        tvTime = null;
+        tvDuration = null;
+        pbLoading = null;
+        myFavoriteView = null;
         super.onDestroy();
     }
 }

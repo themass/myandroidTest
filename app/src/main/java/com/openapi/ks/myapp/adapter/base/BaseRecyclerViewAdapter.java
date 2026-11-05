@@ -12,8 +12,6 @@ import com.openapi.ks.chat.R;
 import java.util.ArrayList;
 import java.util.List;
 
-import butterknife.ButterKnife;
-
 /**
  * Created by openapi on 2016/8/13.
  */
@@ -170,7 +168,7 @@ public abstract class BaseRecyclerViewAdapter<T extends BaseRecyclerViewAdapter.
 
         public BaseRecyclerViewHolder(View itemView, View.OnClickListener l, View.OnLongClickListener longListener) {
             super(itemView);
-            ButterKnife.bind(this, itemView);
+            // 不再在这里绑定控件：子类在自己的构造函数里 super(...) 之后，用自己布局的 ViewBinding 赋值
             v = itemView;
             if (l != null)
                 v.setOnClickListener(l);

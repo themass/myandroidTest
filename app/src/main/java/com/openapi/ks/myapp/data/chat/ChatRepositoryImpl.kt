@@ -1,6 +1,6 @@
 package com.openapi.ks.myapp.data.chat
 
-import com.android.volley.Request as VolleyRequest
+import com.openapi.core.net.NetRequest
 import com.openapi.chat.data.mapper.ChatLogMapper
 import com.openapi.chat.domain.model.ChatCharacterOption
 import com.openapi.chat.domain.model.ChatMessage
@@ -10,17 +10,17 @@ import com.openapi.ks.myapp.bean.vo.Choice
 import com.openapi.chat.domain.model.ChatRole
 import com.openapi.chat.domain.model.ChatStreamEvent
 import com.openapi.chat.domain.repository.ChatRepository
-import com.openai.commonutil.GsonUtils
-import com.openai.net.request.CommonResponse
-import com.openai.commonutil.LogUtil
-import com.openai.commonutil.PreferenceUtils
-import com.openai.net.request.BaseRequest
+import com.openapi.core.util.GsonUtils
+import com.openapi.core.net.request.CommonResponse
+import com.openapi.core.util.LogUtil
+import com.openapi.core.util.PreferenceUtils
+import com.openapi.core.net.request.BaseRequest
 import com.openapi.ks.myapp.base.MyApplication
 import com.openapi.ks.myapp.bean.form.ChatLog
 import com.openapi.ks.myapp.bean.vo.CharacterVo
 import com.openapi.ks.myapp.bean.vo.TtsResponseVo
 import com.openapi.ks.myapp.constant.Constants
-import com.openai.net.BaseService
+import com.openapi.core.net.BaseService
 import com.openapi.ks.myapp.data.DBManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
@@ -390,7 +390,7 @@ class ChatRepositoryImpl(
      * 一致的 header——这里只是借它算 header，从不把这个 Request 交给 Volley 执行。
      */
     private fun authHeaders(): okhttp3.Headers {
-        val probe = BaseRequest<Any>(context, VolleyRequest.Method.POST, Constants.getUrl(Constants.CHAT_STREAM_URL), null, null, null)
+        val probe = BaseRequest<Any>(context, NetRequest.Method.POST, Constants.getUrl(Constants.CHAT_STREAM_URL), null, null, null)
         val builder = okhttp3.Headers.Builder()
         probe.headers.forEach { (k, v) -> builder.add(k, v) }
         return builder.build()

@@ -7,9 +7,9 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.openai.commonutil.FileUtils;
-import com.openai.commonutil.LogUtil;
-import com.openai.commonutil.ToastUtil;
+import com.openapi.core.util.FileUtils;
+import com.openapi.core.util.LogUtil;
+import com.openapi.core.util.ToastUtil;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.base.MyApplication;
 

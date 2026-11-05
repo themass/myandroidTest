@@ -1,9 +1,9 @@
 package com.openapi.ks.myapp.translation;
 
-import com.openai.commonview.translation.VideoTranslationCallback;
-import com.openai.commonview.translation.VideoTranslationProvider;
-import com.openai.commonview.translation.VideoTranslationRequest;
-import com.openai.commonview.translation.VideoTranslationResult;
+import com.openapi.core.view.translation.VideoTranslationCallback;
+import com.openapi.core.view.translation.VideoTranslationProvider;
+import com.openapi.core.view.translation.VideoTranslationRequest;
+import com.openapi.core.view.translation.VideoTranslationResult;
 
 /**
  * 本地演示：不请求网络，用于联调 UI。正式环境请换 {@link StubBaiduVideoTranslationProvider} 等实现。

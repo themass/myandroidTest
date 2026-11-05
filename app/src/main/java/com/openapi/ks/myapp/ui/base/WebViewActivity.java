@@ -10,20 +10,20 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.openai.CommonConstants;
-import com.openai.commonview.view.MyWebView;
-import com.openai.commonutil.AudioMngHelper;
-import com.openai.commonutil.LogUtil;
-import com.openai.commonutil.PackageUtils;
-import com.openai.commonutil.SystemUtils;
-import com.openai.commonutil.ToastUtil;
-import com.openai.ads.yewu.ads.base.AdsContext;
-import com.openai.net.request.CommonResponse;
+import com.openapi.core.CommonConstants;
+import com.openapi.core.view.view.MyWebView;
+import com.openapi.core.util.AudioMngHelper;
+import com.openapi.core.util.LogUtil;
+import com.openapi.core.util.PackageUtils;
+import com.openapi.core.util.SystemUtils;
+import com.openapi.core.util.ToastUtil;
+import com.openapi.core.ads.yewu.ads.base.AdsContext;
+import com.openapi.core.net.request.CommonResponse;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.bean.form.CustomeAddForm;
 import com.openapi.ks.myapp.bean.vo.NullReturnVo;
 import com.openapi.ks.myapp.constant.Constants;
-import com.openai.net.BaseService;
+import com.openapi.core.net.BaseService;
 import com.openapi.ks.myapp.ui.base.app.BaseFragmentActivity;
 import com.openapi.ks.myapp.ui.base.features.BaseWebViewFragment;
 
@@ -124,7 +124,7 @@ public class WebViewActivity extends BaseFragmentActivity implements MyWebView.O
                 startActivity(it);
                 finish();
             } else {
-                ToastUtil.showShort(com.openai.commonutil.R.string.no_browser);
+                ToastUtil.showShort(com.openapi.core.util.R.string.no_browser);
             }
             return true;
         } else if (id == R.id.menu_url) {

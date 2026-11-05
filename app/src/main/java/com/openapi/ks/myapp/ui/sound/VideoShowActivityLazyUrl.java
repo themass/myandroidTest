@@ -10,19 +10,19 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.android.volley.VolleyError;
-import com.openai.commonview.translation.TranslationOverlaySession;
-import com.openai.commonview.translation.VideoTranslationRegistry;
-import com.openai.commonview.translation.VideoTranslationRequest;
-import com.openai.commonview.view.MyFavoriteView;
-import com.openai.commonutil.LogUtil;
-import com.openai.commonutil.ToastUtil;
-import com.openai.net.request.CommonResponse;
+import com.openapi.core.net.NetError;
+import com.openapi.core.view.translation.TranslationOverlaySession;
+import com.openapi.core.view.translation.VideoTranslationRegistry;
+import com.openapi.core.view.translation.VideoTranslationRequest;
+import com.openapi.core.view.view.MyFavoriteView;
+import com.openapi.core.util.LogUtil;
+import com.openapi.core.util.ToastUtil;
+import com.openapi.core.net.request.CommonResponse;
 import com.openapi.ks.chat.R;
-import com.openai.commonevent.FavoriteVo;
+import com.openapi.core.event.FavoriteVo;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.constant.Constants;
-import com.openai.net.BaseService;
+import com.openapi.core.net.BaseService;
 import com.openapi.ks.myapp.cast.CastPlaySource;
 import com.openapi.ks.myapp.cast.GoogleCastSessionController;
 import com.openapi.ks.myapp.data.VideoUtil;
@@ -31,10 +31,8 @@ import com.openapi.ks.myapp.translation.realtime.RealtimeSubtitleBindings;
 import com.openapi.ks.myapp.translation.realtime.VideoRealtimeSubtitleSession;
 import com.shuyu.gsyvideoplayer.GSYVideoManager;
 import com.shuyu.gsyvideoplayer.utils.OrientationUtils;
+import com.openapi.ks.chat.databinding.LayoutVideoShowBinding;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.Unbinder;
 
 /**
  * Created by openapi on 2015/9/1.
@@ -42,24 +40,33 @@ import butterknife.Unbinder;
 public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFavoriteView.OnFavoriteItemClick {
 
     private static final String VIDEO_TAG = "video_url_tag";
-    private Unbinder unbinder;
-    @BindView(R.id.jz_video)
     public DetailGSYVideoPlayer videoPlayer;
     private GoogleCastSessionController castSessionController;
     RecommendVo vo;
-    @BindView(R.id.my_favoriteview)
     MyFavoriteView myFavoriteView;
     protected BaseService indexService;
     private String url;
     /** 懒加载 URL 时保留至首次 {@link #openVideoShow}，用于恢复进度 */
     private Bundle playbackSavedState;
 
+    private void bindButterViews() {
+        LayoutVideoShowBinding b = LayoutVideoShowBinding.bind(findViewById(android.R.id.content));
+        videoPlayer = b.jzVideo;
+        myFavoriteView = findViewById(R.id.my_favoriteview);
+    }
+
+    private void unbindButterViews() {
+        videoPlayer = null;
+        myFavoriteView = null;
+    }
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         playbackSavedState = savedInstanceState;
         setContentView(R.layout.layout_video_show);
-        unbinder = ButterKnife.bind(this);
+        bindButterViews();
         indexService = new BaseService();
         indexService.setup(this);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -82,7 +89,7 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
                     }
                 }, new CommonResponse.ResponseErrorListener() {
                     @Override
-                    public void onErrorResponse(VolleyError volleyError) {
+                    public void onErrorResponse(NetError volleyError) {
                         super.onErrorResponse(volleyError);
                         LogUtil.e(volleyError.getMessage(), volleyError);
                         videoPlayer.closeLoadingInit();
@@ -217,7 +224,6 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
         indexService.cancelRequest(VIDEO_TAG);
         GSYVideoManager.releaseAllVideos();
         super.onDestroy();
-        unbinder.unbind();
     }
 
     @Override

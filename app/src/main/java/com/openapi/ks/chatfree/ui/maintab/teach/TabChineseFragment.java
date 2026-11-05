@@ -3,7 +3,7 @@ package com.openapi.ks.chatfree.ui.maintab.teach;
 
 import androidx.fragment.app.Fragment;
 
-import com.openai.ads.yewu.ads.base.AdsContext;
+import com.openapi.core.ads.yewu.ads.base.AdsContext;
 import com.openapi.ks.chatfree.ui.maintab.body.RecommendMovieFragment;
 import com.openapi.ks.chatfree.ui.maintab.body.teach.RecommendChineseFragment;
 import com.openapi.ks.myapp.ui.base.BannerHeaderFragment;

@@ -3,13 +3,13 @@ package chat.ui.adapter.media.holders;
 import android.view.View;
 import android.widget.TextView;
 
-import com.openai.commonutil.LogUtil;
-import com.openai.commonutil.StringUtils;
+import com.openapi.core.util.LogUtil;
+import com.openapi.core.util.StringUtils;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.base.MyApplication;
 
 import chat.ui.data.model.Message;
-import com.openai.commonutil.FormatUtils;
+import com.openapi.core.util.FormatUtils;
 import tz.co.hosannahighertech.messagekit.utils.DateFormatter;
 
 

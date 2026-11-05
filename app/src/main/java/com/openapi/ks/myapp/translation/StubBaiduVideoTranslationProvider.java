@@ -1,8 +1,8 @@
 package com.openapi.ks.myapp.translation;
 
-import com.openai.commonview.translation.VideoTranslationCallback;
-import com.openai.commonview.translation.VideoTranslationProvider;
-import com.openai.commonview.translation.VideoTranslationRequest;
+import com.openapi.core.view.translation.VideoTranslationCallback;
+import com.openapi.core.view.translation.VideoTranslationProvider;
+import com.openapi.core.view.translation.VideoTranslationRequest;
 
 /**
  * 百度占位：请在此类内使用「短语音识别 + 机器翻译」等开放 API 实现 {@link #translate}。

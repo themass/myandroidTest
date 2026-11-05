@@ -18,7 +18,7 @@
         android:textColor="#CCFFFFFF"
         android:textSize="11sp" />
 
-    <com.openai.commonview.view.MyPullView
+    <com.openapi.core.view.view.MyPullView
         android:id="@+id/my_pullview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -33,7 +33,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true" />
 
-    <com.openai.commonview.view.MyFavoriteView
+    <com.openapi.core.view.view.MyFavoriteView
         android:id="@+id/my_favoriteview"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

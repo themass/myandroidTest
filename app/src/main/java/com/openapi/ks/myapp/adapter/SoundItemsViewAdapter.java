@@ -13,16 +13,15 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.openai.ads.yewu.ads.base.AdsContext;
-import com.openai.ads.yewu.ads.base.AdsManager;
+import com.openapi.core.ads.yewu.ads.base.AdsContext;
+import com.openapi.core.ads.yewu.ads.base.AdsManager;
 import com.openapi.ks.chat.R;
+import com.openapi.ks.chat.databinding.LayoutChannelItemsItemBinding;
 import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.openapi.ks.myapp.bean.vo.SoundItemsVo;
 import com.openapi.ks.myapp.constant.Constants;
 
 import java.util.List;
-
-import butterknife.BindView;
 
 /**
  * Created by openapi on 2016/8/12.
@@ -65,23 +64,24 @@ public class SoundItemsViewAdapter extends BaseRecyclerViewAdapter<SoundItemsVie
 
     static class SoundItemView extends BaseRecyclerViewAdapter.BaseRecyclerViewHolder<SoundItemsVo> {
         @Nullable
-        @BindView(R.id.tv_index)
         TextView tvIndex;
         @Nullable
-        @BindView(R.id.tv_name)
         TextView tvName;
         @Nullable
-        @BindView(R.id.tv_date)
         TextView tvDate;
         @Nullable
-        @BindView(R.id.iv_song)
         ImageView ivSong;
         @Nullable
-        @BindView(R.id.rv_ads)
         RelativeLayout rvAds;
 
         public SoundItemView(View itemView, View.OnClickListener l, View.OnLongClickListener longListener) {
             super(itemView, l, longListener);
+            LayoutChannelItemsItemBinding b = LayoutChannelItemsItemBinding.bind(itemView);
+            tvIndex = b.tvIndex;
+            tvName = b.tvName;
+            tvDate = b.tvDate;
+            ivSong = b.ivSong;
+            rvAds = b.rvAds;
         }
     }
 }

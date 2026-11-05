@@ -8,7 +8,7 @@ package com.openapi.ks.myapp.ui.gsy.ad;//package com.openapi.ks.myapp.ui.gsy.ad;
 //
 //import androidx.appcompat.app.AppCompatActivity;
 //
-//import com.openai.commonutil.LogUtil;
+//import com.openapi.core.util.LogUtil;
 //import com.openapi.ks.chat.R;
 //import com.openapi.ks.myapp.constant.Constants;
 //import com.shuyu.gsyvideoplayer.GSYVideoADManager;

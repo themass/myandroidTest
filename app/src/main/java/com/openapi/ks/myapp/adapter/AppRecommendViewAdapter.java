@@ -19,7 +19,7 @@ import com.openapi.ks.myapp.data.ImagePhotoLoad;
 
 import java.util.List;
 
-import butterknife.BindView;
+import com.openapi.ks.chat.databinding.LayoutAppItemBinding;
 
 /**
  * Created by openapi on 2016/8/12.
@@ -51,20 +51,21 @@ public class AppRecommendViewAdapter extends BaseRecyclerViewAdapter<AppRecommen
 
     public static class AppRecommendListView extends BaseRecyclerViewHolder<AppInfo> {
         @Nullable
-        @BindView(R.id.iv_app)
         ImageView ivApp;
         @Nullable
-        @BindView(R.id.tv_name)
         TextView tvName;
         @Nullable
-        @BindView(R.id.tv_date)
         TextView tvDate;
         @Nullable
-        @BindView(R.id.tv_desc)
         TextView tvDesc;
 
         public AppRecommendListView(View itemView, View.OnClickListener l, View.OnLongClickListener longListener) {
             super(itemView, l, longListener);
+            LayoutAppItemBinding b = LayoutAppItemBinding.bind(itemView);
+            ivApp = b.ivApp;
+            tvName = b.tvName;
+            tvDate = b.tvDate;
+            tvDesc = b.tvDesc;
         }
     }
 }

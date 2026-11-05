@@ -4,14 +4,14 @@ import android.content.Context;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import com.android.volley.toolbox.RequestFuture;
-import com.openai.CommonConstants;
-import com.openai.commonutil.BeanUtil;
-import com.openai.commonutil.LogUtil;
-import com.openai.commonutil.PreferenceUtils;
-import com.openai.commonutil.StringUtils;
-import com.openai.net.VolleyUtils;
-import com.openai.net.request.MultipartRequest;
+import com.openapi.core.net.SyncFuture;
+import com.openapi.core.CommonConstants;
+import com.openapi.core.util.BeanUtil;
+import com.openapi.core.util.LogUtil;
+import com.openapi.core.util.PreferenceUtils;
+import com.openapi.core.util.StringUtils;
+import com.openapi.core.net.NetQueue;
+import com.openapi.core.net.request.MultipartRequest;
 import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.bean.form.LoginForm;
 import com.openapi.ks.myapp.bean.vo.UserInfoVo;
@@ -35,7 +35,7 @@ public class LoginTask {
     public void execute() {
         executor.execute(() -> {
             try {
-                RequestFuture<UserInfoVo> future = RequestFuture.newFuture();
+                SyncFuture<UserInfoVo> future = SyncFuture.newFuture();
                 String name = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.LOGIN_USER_LAST, null);
                 if (StringUtils.isEmpty(name)) {
                     return;
@@ -49,7 +49,7 @@ public class LoginTask {
                 Map<String, String> map = BeanUtil.transBean2Map(form);
                 MultipartRequest request = new MultipartRequest(MyApplication.getInstance(), map, Constants.getUrl(Constants.API_LOGIN_URL), null, future, future, UserInfoVo.class);
                 request.setTag("login");
-                VolleyUtils.addRequest(request);
+                NetQueue.addRequest(request);
                 UserInfoVo user = future.get();
                 if (user != null) {
                     UserLoginUtil.login(MyApplication.getInstance(), user);

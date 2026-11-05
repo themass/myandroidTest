@@ -3,8 +3,8 @@ package com.openapi.ks.myapp.data;
 import android.content.Context;
 import android.os.AsyncTask;
 
-import com.openai.commonutil.CollectionUtils;
-import com.openai.commonutil.LogUtil;
+import com.openapi.core.util.CollectionUtils;
+import com.openapi.core.util.LogUtil;
 import com.openapi.ks.myapp.bean.vo.HistoryVo;
 
 import java.util.List;

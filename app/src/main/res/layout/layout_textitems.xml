@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:background="@drawable/boob_bg2">
 
-    <com.openai.commonview.view.MyScrollView
+    <com.openapi.core.view.view.MyScrollView
         android:id="@+id/sv_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -14,16 +14,16 @@
         android:scrollbarFadeDuration="300"
         android:scrollbarStyle="outsideOverlay">
 
-        <com.openai.commonview.view.MyWebView
+        <com.openapi.core.view.view.MyWebView
             android:id="@+id/tv_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:padding="@dimen/margin_3"
             android:textColor="@color/base_black"
             android:textSize="@dimen/textsize_22" />
-    </com.openai.commonview.view.MyScrollView>
+    </com.openapi.core.view.view.MyScrollView>
 
-    <com.openai.commonview.view.MyFavoriteView
+    <com.openapi.core.view.view.MyFavoriteView
         android:id="@+id/my_favoriteview"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

@@ -1,8 +1,8 @@
 package com.openapi.ks.myapp.data.chat
 
 import android.util.Base64
-import com.openai.net.BaseService
-import com.openai.net.request.CommonResponse
+import com.openapi.core.net.BaseService
+import com.openapi.core.net.request.CommonResponse
 import com.openapi.chat.domain.speech.SpeechToText
 import com.openapi.core.media.VoiceRecorder
 import com.openapi.ks.myapp.bean.form.AsrContentForm

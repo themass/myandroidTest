@@ -53,7 +53,7 @@
     <!--        app:inputButtonDefaultIconDisabledColor="@color/white60"-->
     <!--        app:inputHint="@string/hint_enter_a_message"-->
     <!--        app:showAttachmentButton="true"/>-->
-    <com.openai.commonview.view.InputRecordView
+    <com.openapi.core.view.view.InputRecordView
         android:id="@+id/input"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

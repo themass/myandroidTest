@@ -15,7 +15,7 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.openai.commonutil.LogUtil;
+import com.openapi.core.util.LogUtil;
 import com.openapi.ks.chat.R;
 import com.skyfishjy.library.RippleBackground;
 

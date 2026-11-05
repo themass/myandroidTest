@@ -22,25 +22,25 @@ import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import com.openai.commonevent.FavoriteVo;
-import com.openai.commonview.translation.TranslationOverlaySession;
-import com.openai.commonview.translation.VideoTranslationRegistry;
-import com.openai.commonview.translation.VideoTranslationRequest;
-import com.openai.commonview.view.MyFavoriteView;
-import com.openai.commonutil.CollectionUtils;
-import com.openai.commonutil.LogUtil;
-import com.openai.commonutil.MediaUtil;
-import com.openai.commonutil.PreferenceUtils;
-import com.openai.commonutil.ToastUtil;
-import com.openai.ads.yewu.ads.base.AdsContext;
-import com.openai.net.NetUtils;
+import com.openapi.core.event.FavoriteVo;
+import com.openapi.core.view.translation.TranslationOverlaySession;
+import com.openapi.core.view.translation.VideoTranslationRegistry;
+import com.openapi.core.view.translation.VideoTranslationRequest;
+import com.openapi.core.view.view.MyFavoriteView;
+import com.openapi.core.util.CollectionUtils;
+import com.openapi.core.util.LogUtil;
+import com.openapi.core.util.MediaUtil;
+import com.openapi.core.util.PreferenceUtils;
+import com.openapi.core.util.ToastUtil;
+import com.openapi.core.ads.yewu.ads.base.AdsContext;
+import com.openapi.core.net.NetUtils;
 import com.openapi.ks.myapp.adapter.SoundItemsViewMusicAdapter;
 import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
-import com.openai.net.request.InfoListVo;
+import com.openapi.core.net.request.InfoListVo;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.bean.vo.SoundItemsVo;
 import com.openapi.ks.myapp.constant.Constants;
-import com.openai.commonutil.StaticDataUtil;
+import com.openapi.core.util.StaticDataUtil;
 import com.openapi.ks.myapp.service.PlayService;
 import com.openapi.ks.myapp.translation.realtime.RealtimeSubtitleBindings;
 import com.openapi.ks.myapp.translation.realtime.VideoRealtimeSubtitleSession;
@@ -50,7 +50,6 @@ import com.openapi.ks.myapp.ui.base.features.BasePullLoadbleFragment;
 import com.openapi.ks.myapp.ui.inte.MusicStateListener;
 import com.openapi.ks.chat.R;
 
-import butterknife.BindView;
 
 import static com.openapi.ks.myapp.service.PlayService.CURRENT;
 import static com.openapi.ks.myapp.service.PlayService.CURRENTTIME;
@@ -68,34 +67,24 @@ import static com.openapi.ks.myapp.service.PlayService.UPDATE_ACTION;
 public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsVo> implements SeekBar.OnSeekBarChangeListener, View.OnClickListener, MusicStateListener, MyFavoriteView.OnFavoriteItemClick {
     private static final String SOUND_TAG = "SOUND_TAG";
     @Nullable
-    @BindView(R.id.progress)
     SeekBar progressView;
     @Nullable
-    @BindView(R.id.iv_pre)
     ImageView ivPre;
     @Nullable
-    @BindView(R.id.iv_play)
     ImageView ivPlay;
     @Nullable
-    @BindView(R.id.iv_next)
     ImageView ivNext;
     @Nullable
-    @BindView(R.id.iv_play_mode)
     ImageView ivPlayMode;
     @Nullable
-    @BindView(R.id.time)
     TextView tvTime;
     @Nullable
-    @BindView(R.id.tv_play_title)
     TextView tvTitle;
     @Nullable
-    @BindView(R.id.duration)
     TextView tvDuration;
     @Nullable
-    @BindView(R.id.pb_loading)
     ProgressBar pbLoading;
     @Nullable
-    @BindView(R.id.my_favoriteview)
     MyFavoriteView myFavoriteView;
 
     boolean ignorNet;
@@ -106,6 +95,37 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
     private RecommendVo vo;
     private PlayService mService;
     private boolean mBound = false;
+    @Override
+    protected void bindViews(View view) {
+        super.bindViews(view);
+        progressView = view.findViewById(R.id.progress);
+        ivPre = view.findViewById(R.id.iv_pre);
+        ivPlay = view.findViewById(R.id.iv_play);
+        ivNext = view.findViewById(R.id.iv_next);
+        ivPlayMode = view.findViewById(R.id.iv_play_mode);
+        tvTime = view.findViewById(R.id.time);
+        tvTitle = view.findViewById(R.id.tv_play_title);
+        tvDuration = view.findViewById(R.id.duration);
+        pbLoading = view.findViewById(R.id.pb_loading);
+        myFavoriteView = view.findViewById(R.id.my_favoriteview);
+    }
+
+    @Override
+    protected void unbindViews() {
+        progressView = null;
+        ivPre = null;
+        ivPlay = null;
+        ivNext = null;
+        ivPlayMode = null;
+        tvTime = null;
+        tvTitle = null;
+        tvDuration = null;
+        pbLoading = null;
+        myFavoriteView = null;
+        super.unbindViews();
+    }
+
+
     private final ServiceConnection mConnection = new ServiceConnection() {
 
         @Override

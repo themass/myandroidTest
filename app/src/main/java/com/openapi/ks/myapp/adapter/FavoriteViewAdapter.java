@@ -13,16 +13,16 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.openai.ads.yewu.ads.base.AdsContext;
-import com.openai.ads.yewu.ads.base.AdsManager;
+import com.openapi.core.ads.yewu.ads.base.AdsContext;
+import com.openapi.core.ads.yewu.ads.base.AdsManager;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
-import com.openai.commonevent.FavoriteVo;
+import com.openapi.core.event.FavoriteVo;
 import com.openapi.ks.myapp.constant.Constants;
 
 import java.util.List;
 
-import butterknife.BindView;
+import com.openapi.ks.chat.databinding.LayoutChannelItemsItemBinding;
 
 /**
  * Created by openapi on 2016/8/12.
@@ -77,23 +77,24 @@ public class FavoriteViewAdapter extends BaseRecyclerViewAdapter<FavoriteViewAda
 
     public static class ItemtView extends BaseRecyclerViewHolder<FavoriteVo> {
         @Nullable
-        @BindView(R.id.tv_index)
         TextView tvIndex;
         @Nullable
-        @BindView(R.id.tv_name)
         TextView tvName;
         @Nullable
-        @BindView(R.id.tv_date)
         TextView tvDate;
         @Nullable
-        @BindView(R.id.iv_song)
         ImageView ivType;
         @Nullable
-        @BindView(R.id.rv_ads)
         RelativeLayout rvAds;
 
         public ItemtView(View itemView, View.OnClickListener l, View.OnLongClickListener longListener) {
             super(itemView, l, longListener);
+            LayoutChannelItemsItemBinding b = LayoutChannelItemsItemBinding.bind(itemView);
+            tvIndex = b.tvIndex;
+            tvName = b.tvName;
+            tvDate = b.tvDate;
+            ivType = b.ivSong;
+            rvAds = b.rvAds;
         }
     }
 }

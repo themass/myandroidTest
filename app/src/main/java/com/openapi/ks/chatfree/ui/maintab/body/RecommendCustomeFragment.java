@@ -16,12 +16,12 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.PopupWindow;
 
-import com.openai.commonutil.CollectionUtils;
-import com.openai.commonutil.EventBusUtil;
-import com.openai.commonutil.ToastUtil;
-import com.openai.net.request.CommonResponse;
+import com.openapi.core.util.CollectionUtils;
+import com.openapi.core.util.EventBusUtil;
+import com.openapi.core.util.ToastUtil;
+import com.openapi.core.net.request.CommonResponse;
 import com.openapi.ks.myapp.bean.form.CustomeAddForm;
-import com.openai.net.request.InfoListVo;
+import com.openapi.core.net.request.InfoListVo;
 import com.openapi.ks.myapp.bean.vo.NullReturnVo;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.constant.Constants;
@@ -36,9 +36,8 @@ import com.openapi.ks.chatfree.ui.main.MainFragmentViewPage;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import com.openapi.ks.chat.databinding.LayoutRecommdCustomeBinding;
 
-import butterknife.BindView;
-import butterknife.OnClick;
 
 
 /**
@@ -46,7 +45,6 @@ import butterknife.OnClick;
  */
 public class RecommendCustomeFragment extends RecommendFragment implements OnBackKeyDownListener {
     private static final String INDEX_TAG = "Recommend_custome_tag";
-    @BindView(R.id.lb_add)
     ImageButton llAdd;
 
     @Override
@@ -105,10 +103,24 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
         }
     }
 
-    @OnClick(R.id.lb_add)
     public void onAdd() {
         AddCustomeInfoActivity.startActivity(getActivity(), null);
     }
+
+    @Override
+    protected void bindViews(View view) {
+        super.bindViews(view);
+        LayoutRecommdCustomeBinding b = LayoutRecommdCustomeBinding.bind(view);
+        llAdd = b.lbAdd;
+        b.lbAdd.setOnClickListener(v -> onAdd());
+    }
+
+    @Override
+    protected void unbindViews() {
+        llAdd = null;
+        super.unbindViews();
+    }
+
 
     @Override
     public String getUrl(int start) {

@@ -15,14 +15,13 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.openapi.ks.chat.R;
+import com.openapi.ks.chat.databinding.GsyListVideoItemBinding;
 import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.data.VideoUtil;
 import com.shuyu.gsyvideoplayer.utils.GSYVideoHelper;
 
 import java.util.List;
-
-import butterknife.BindView;
 
 public class GSYVideoListAdapter extends BaseRecyclerViewAdapter<GSYVideoListAdapter.GSYRecyclerItemViewHolder, RecommendVo> {
     public final static String TAG = "RecyclerView2List";
@@ -58,16 +57,12 @@ public class GSYVideoListAdapter extends BaseRecyclerViewAdapter<GSYVideoListAda
 
         protected Context context;
         @Nullable
-        @BindView(R.id.list_item_container)
         FrameLayout listItemContainer;
         @Nullable
-        @BindView(R.id.list_item_btn)
         ImageView listItemBtn;
         @Nullable
-        @BindView(R.id.list_item_title)
         TextView listItemTitle;
         @Nullable
-        @BindView(R.id.list_item_desc)
         TextView listItemDesc;
 
         ImageView imageView;
@@ -77,6 +72,11 @@ public class GSYVideoListAdapter extends BaseRecyclerViewAdapter<GSYVideoListAda
 
         public GSYRecyclerItemViewHolder(GSYVideoListAdapter adapter, View itemView, View.OnClickListener l, View.OnLongClickListener longListener) {
             super(itemView, l, longListener);
+            GsyListVideoItemBinding b = GsyListVideoItemBinding.bind(itemView);
+            listItemContainer = b.listItemContainer;
+            listItemBtn = b.listItemBtn;
+            listItemTitle = b.listItemTitle;
+            listItemDesc = b.listItemDesc;
             context = adapter.context;
             imageView = new ImageView(context);
             this.adapter = adapter;

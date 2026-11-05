@@ -2,8 +2,8 @@ package com.openapi.ks.myapp.translation.realtime;
 
 import android.content.Context;
 
-import com.openai.commonutil.PreferenceUtils;
-import com.openai.commonutil.StringUtils;
+import com.openapi.core.util.PreferenceUtils;
+import com.openapi.core.util.StringUtils;
 import com.openapi.ks.myapp.constant.Constants;
 
 /**

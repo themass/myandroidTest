@@ -5,9 +5,9 @@ import android.widget.RelativeLayout;
 
 import androidx.fragment.app.FragmentActivity;
 
-import com.openai.ads.yewu.ads.base.AdsContext;
-import com.openai.ads.yewu.ads.base.AdsManager;
-import com.openai.commonutil.LogUtil;
+import com.openapi.core.ads.yewu.ads.base.AdsContext;
+import com.openapi.core.ads.yewu.ads.base.AdsManager;
+import com.openapi.core.util.LogUtil;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.bean.vo.UserInfoVo;
 import com.openapi.ks.myapp.constant.Constants;

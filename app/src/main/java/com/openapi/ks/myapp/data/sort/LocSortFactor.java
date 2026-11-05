@@ -1,6 +1,6 @@
 package com.openapi.ks.myapp.data.sort;
 
-import com.openai.commonutil.StringUtils;
+import com.openapi.core.util.StringUtils;
 import com.openapi.ks.myapp.bean.vo.LocationVo;
 import com.openapi.ks.myapp.constant.Constants;
 

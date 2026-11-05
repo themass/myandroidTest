@@ -2,8 +2,8 @@ package chat.ui.adapter;
 
 import android.net.Uri;
 
-import com.openai.commonutil.GsonUtils;
-import com.openai.commonutil.LogUtil;
+import com.openapi.core.util.GsonUtils;
+import com.openapi.core.util.LogUtil;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.data.ImagePhotoLoad;

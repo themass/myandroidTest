@@ -12,8 +12,8 @@ import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.openai.ads.yewu.ads.base.AdsContext;
-import com.openai.ads.yewu.ads.base.AdsManager;
+import com.openapi.core.ads.yewu.ads.base.AdsContext;
+import com.openapi.core.ads.yewu.ads.base.AdsManager;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.openapi.ks.myapp.bean.vo.ImgItemsVo;
@@ -23,7 +23,7 @@ import com.openapi.ks.myapp.data.HistoryUtil;
 
 import java.util.List;
 
-import butterknife.BindView;
+import com.openapi.ks.chat.databinding.LayoutChannelItemsItemBinding;
 
 /**
  * Created by openapi on 2016/8/12.
@@ -69,20 +69,21 @@ public class ImgChannelListItemsViewAdapter extends BaseRecyclerViewAdapter<ImgC
 
     public static class ImgChannleListView extends BaseRecyclerViewHolder<TextItemsVo> {
         @Nullable
-        @BindView(R.id.tv_index)
         TextView tvIndex;
         @Nullable
-        @BindView(R.id.tv_name)
         TextView tvName;
         @Nullable
-        @BindView(R.id.tv_date)
         TextView tvDate;
         @Nullable
-        @BindView(R.id.rv_ads)
         RelativeLayout rvAds;
 
         public ImgChannleListView(View itemView, View.OnClickListener l, View.OnLongClickListener longListener) {
             super(itemView, l, longListener);
+            LayoutChannelItemsItemBinding b = LayoutChannelItemsItemBinding.bind(itemView);
+            tvIndex = b.tvIndex;
+            tvName = b.tvName;
+            tvDate = b.tvDate;
+            rvAds = b.rvAds;
         }
     }
 }

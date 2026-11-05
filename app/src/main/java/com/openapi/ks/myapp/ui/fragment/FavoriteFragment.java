@@ -6,25 +6,25 @@ import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.openai.commonutil.EventBusUtil;
-import com.openai.commonutil.FileUtils;
-import com.openai.commonutil.LogUtil;
-import com.openai.commonutil.ModelUtils;
-import com.openai.commonutil.PathUtil;
-import com.openai.commonutil.SystemUtils;
-import com.openai.commonutil.ToastUtil;
-import com.openai.ads.yewu.ads.base.AdsContext;
+import com.openapi.core.util.EventBusUtil;
+import com.openapi.core.util.FileUtils;
+import com.openapi.core.util.LogUtil;
+import com.openapi.core.util.ModelUtils;
+import com.openapi.core.util.PathUtil;
+import com.openapi.core.util.SystemUtils;
+import com.openapi.core.util.ToastUtil;
+import com.openapi.core.ads.yewu.ads.base.AdsContext;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.adapter.FavoriteViewAdapter;
 import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
-import com.openai.commonevent.FavoriteVo;
+import com.openapi.core.event.FavoriteVo;
 import com.openapi.ks.myapp.bean.vo.ImgItemsVo;
-import com.openai.net.request.InfoListVo;
+import com.openapi.core.net.request.InfoListVo;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.bean.vo.TextItemsVo;
 import com.openapi.ks.myapp.constant.Constants;
-import com.openai.commonutil.FavoriteUtil;
-import com.openai.commonevent.FavoriteChangeEvent;
+import com.openapi.core.util.FavoriteUtil;
+import com.openapi.core.event.FavoriteChangeEvent;
 import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
 import com.openapi.ks.myapp.ui.base.MenuOneContext;
 import com.openapi.ks.myapp.ui.base.features.BasePullLoadbleFragment;
@@ -112,7 +112,7 @@ public class FavoriteFragment extends BasePullLoadbleFragment<FavoriteVo> implem
 
     @Override
     public void onItemLongClick(View view, FavoriteVo data, int position) {
-        MenuOneContext.showOneMenu(getActivity(), view, R.string.menu_favorite_cancel, com.openai.commonutil.R.drawable.ic_menu_favorite_ed, FavoriteFragment.this, position);
+        MenuOneContext.showOneMenu(getActivity(), view, R.string.menu_favorite_cancel, com.openapi.core.util.R.drawable.ic_menu_favorite_ed, FavoriteFragment.this, position);
     }
 
     @Override

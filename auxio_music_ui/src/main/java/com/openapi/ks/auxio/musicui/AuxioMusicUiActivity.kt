@@ -12,7 +12,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.openai.net.VolleyUtils
+import com.openapi.core.net.NetQueue
 
 /**
  * GPL-3.0 独立音乐 UI：列表 + 详情（Compose + Media3）。
@@ -72,7 +72,7 @@ class AuxioMusicUiActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
-        volleyTag?.let { VolleyUtils.cancelRequest(it) }
+        volleyTag?.let { NetQueue.cancelRequest(it) }
         super.onDestroy()
     }
 

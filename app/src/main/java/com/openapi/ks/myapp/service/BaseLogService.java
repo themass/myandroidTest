@@ -6,7 +6,7 @@ import android.os.IBinder;
 
 import androidx.annotation.Nullable;
 
-import com.openai.commonutil.LogUtil;
+import com.openapi.core.util.LogUtil;
 
 /**
  * Created by openapi on 2016/12/27.

@@ -17,29 +17,26 @@ import android.view.ViewGroup;
 
 import com.google.android.material.tabs.TabLayout;
 import com.openapi.ks.myapp.ui.base.app.BaseFragment;
-import com.openai.commonutil.LogUtil;
+import com.openapi.core.util.LogUtil;
 import com.openapi.ks.myapp.bean.vo.FeedbackCateVo;
-import com.openai.net.request.InfoListVo;
-import com.openai.net.BaseService;
+import com.openapi.core.net.request.InfoListVo;
+import com.openapi.core.net.BaseService;
 import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
 import com.openapi.ks.myapp.ui.base.features.LoadableFragment;
 import com.openapi.ks.chat.R;
-import com.openai.ads.yewu.ads.base.AdsContext;
+import com.openapi.core.ads.yewu.ads.base.AdsContext;
+import com.openapi.ks.chat.databinding.LayoutFeedbackFragmentBinding;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import butterknife.BindView;
 
 /**
  * Created by openapi on 2016/8/12.
  */
 public class FeedbackChooseFragment extends LoadableFragment<InfoListVo<FeedbackCateVo>> {
     @Nullable
-    @BindView(R.id.indicator)
     TabLayout indicator;
     @Nullable
-    @BindView(R.id.pager)
     ViewPager viewPager;
     InfoListVo<FeedbackCateVo> vo = new InfoListVo<FeedbackCateVo>();
     FragmentPagerAdapter adapter;
@@ -62,6 +59,21 @@ public class FeedbackChooseFragment extends LoadableFragment<InfoListVo<Feedback
     @Override
     protected void onContentViewCreated(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
         inflater.inflate(R.layout.layout_feedback_fragment, parent);
+    }
+
+    @Override
+    protected void bindViews(View view) {
+        super.bindViews(view);
+        LayoutFeedbackFragmentBinding b = LayoutFeedbackFragmentBinding.bind(mContentView.getChildAt(mContentView.getChildCount() - 1));
+        indicator = b.indicator;
+        viewPager = b.pager;
+    }
+
+    @Override
+    protected void unbindViews() {
+        indicator = null;
+        viewPager = null;
+        super.unbindViews();
     }
 
     @Override

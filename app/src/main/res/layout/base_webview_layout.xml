@@ -7,7 +7,7 @@
     android:padding="@dimen/margin_3"
     tools:viewBindingIgnore="true">
 
-    <com.openai.commonview.view.MyWebView
+    <com.openapi.core.view.view.MyWebView
         android:id="@+id/wv_content"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />

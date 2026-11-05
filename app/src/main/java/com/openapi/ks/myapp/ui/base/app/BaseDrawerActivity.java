@@ -20,23 +20,23 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.navigation.NavigationView;
-import com.openai.CommonConstants;
-import com.openai.commonevent.UserNeedLogin;
-import com.openai.commonutil.PreferenceUtils;
-import com.openai.commonutil.StringUtils;
-import com.openai.commonutil.DateUtils;
-import com.openai.commonutil.LogUtil;
-import com.openai.commonutil.ShareUtil;
-import com.openai.commonutil.SystemUtils;
-import com.openai.commonutil.ToastUtil;
-import com.openai.ads.yewu.ads.base.AdsManager;
-import com.openai.ads.yewu.um.MobAgent;
+import com.openapi.core.CommonConstants;
+import com.openapi.core.event.UserNeedLogin;
+import com.openapi.core.util.PreferenceUtils;
+import com.openapi.core.util.StringUtils;
+import com.openapi.core.util.DateUtils;
+import com.openapi.core.util.LogUtil;
+import com.openapi.core.util.ShareUtil;
+import com.openapi.core.util.SystemUtils;
+import com.openapi.core.util.ToastUtil;
+import com.openapi.core.ads.yewu.ads.base.AdsManager;
+import com.openapi.core.ads.yewu.um.MobAgent;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.chatfree.ui.main.MainFragmentViewPage;
 import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.bean.vo.UserInfoVo;
 import com.openapi.ks.myapp.constant.Constants;
-import com.openai.net.BaseService;
+import com.openapi.core.net.BaseService;
 import com.openapi.ks.myapp.data.UserLoginUtil;
 import com.openapi.ks.myapp.data.VersionUpdater;
 import com.openapi.ks.myapp.data.config.LocationChooseEvent;
@@ -60,19 +60,29 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.Date;
 
-import butterknife.BindView;
-
 /**
  * Created by Miroslaw Stanek on 15.07.15.
  */
 public class BaseDrawerActivity extends BaseToolBarActivity {
     @Nullable
-    @BindView(R.id.drawerLayout)
     public DrawerLayout drawerLayout;
-    
+
     @Nullable
-    @BindView(R.id.nv_drawer)
     NavigationView nvDrawer;
+    private ViewGroup drawerContentRoot;
+
+    @Override
+    protected void bindBaseViews() {
+        super.bindBaseViews();
+        drawerLayout = findViewById(R.id.drawerLayout);
+        nvDrawer = findViewById(R.id.nv_drawer);
+        drawerContentRoot = findViewById(R.id.fl_content_root);
+    }
+
+    @Override
+    protected ViewGroup contentContainer() {
+        return drawerContentRoot;
+    }
     View headerView;
     LinearLayout llLoginMenuHeader;
     LinearLayout llDesc;

@@ -26,9 +26,9 @@ import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import com.openai.commonutil.LogUtil;
-import com.openai.commonutil.ToastUtil;
-import com.openai.commonview.view.MyFavoriteView;
+import com.openapi.core.util.LogUtil;
+import com.openapi.core.util.ToastUtil;
+import com.openapi.core.view.view.MyFavoriteView;
 
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.cast.CastFrameworkUtil;

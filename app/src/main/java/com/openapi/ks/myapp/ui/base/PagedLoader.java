@@ -1,6 +1,6 @@
 package com.openapi.ks.myapp.ui.base;
 
-import com.openai.net.request.InfoListVo;
+import com.openapi.core.net.request.InfoListVo;
 
 /**
  *

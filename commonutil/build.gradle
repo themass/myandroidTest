@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = 'com.openai.commonutil'
+    namespace = 'com.openapi.core.util'
     compileSdk = rootProject.ext.compileSdkVersion
 
     defaultConfig {
@@ -81,7 +81,6 @@ dependencies {
     api 'com.google.code.gson:gson:2.13.1'
     api 'com.squareup.okhttp3:okhttp:5.0.0-alpha.14'
     api 'com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.14'
-    api 'com.android.volley:volley:1.2.1'
     // 移除DiskLruCache，使用Glide内置缓存替代
     // api 'com.jakewharton:disklrucache:2.0.2'
 

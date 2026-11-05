@@ -4,7 +4,7 @@ import android.content.Context;
 
 import androidx.room.Room;
 
-import com.openai.commonutil.LogUtil;
+import com.openapi.core.util.LogUtil;
 import com.openapi.ks.myapp.bean.form.ChatLog;
 import com.openapi.ks.myapp.data.db.AppDatabase;
 import com.openapi.ks.myapp.data.db.ChatLogDao;

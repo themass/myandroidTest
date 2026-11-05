@@ -8,8 +8,8 @@ import android.content.Context;
 import androidx.room.Room;
 import androidx.test.core.app.ApplicationProvider;
 
-import com.openai.commonevent.FavoriteVo;
-import com.openai.manage.FavoriteDatabase;
+import com.openapi.core.event.FavoriteVo;
+import com.openapi.core.db.FavoriteDatabase;
 
 import org.junit.After;
 import org.junit.Before;

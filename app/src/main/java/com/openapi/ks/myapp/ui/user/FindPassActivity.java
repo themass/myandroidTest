@@ -6,19 +6,19 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 
-import com.openai.commonutil.ToastUtil;
-import com.openai.net.request.CommonResponse;
+import com.openapi.core.util.ToastUtil;
+import com.openapi.core.net.request.CommonResponse;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.bean.form.RegForm;
 import com.openapi.ks.myapp.bean.vo.NullReturnVo;
 import com.openapi.ks.myapp.constant.Constants;
-import com.openai.net.BaseService;
+import com.openapi.core.net.BaseService;
 import com.openapi.ks.myapp.ui.base.app.BaseSingleActivity;
 
 import java.util.regex.Pattern;
+import com.openapi.ks.chat.databinding.LayoutFindpassBinding;
+import android.view.ViewGroup;
 
-import butterknife.BindView;
-import butterknife.OnClick;
 
 /**
  * Created by openapi on 2016/8/13.
@@ -26,11 +26,8 @@ import butterknife.OnClick;
 public class FindPassActivity extends BaseSingleActivity {
     private static final String TAG = "findpass_tag";
     private final Pattern namePattern = Pattern.compile("[a-zA-Z0-9]{3,20}");
-    @BindView(R.id.ll_loading)
     LinearLayout loading;
-    @BindView(R.id.et_email)
     EditText etEmail;
-    @BindView(R.id.btn_findpass)
     Button btnFindPass;
     BaseService baseService;
     CommonResponse.ResponseOkListener loginListener = new CommonResponse.ResponseOkListener<NullReturnVo>() {
@@ -50,7 +47,6 @@ public class FindPassActivity extends BaseSingleActivity {
         baseService.setup(this);
     }
 
-    @OnClick(R.id.btn_findpass)
     public void tnFindPass(View view) {
         String email = etEmail.getText().toString();
         if (!email.contains("@")) {
@@ -68,6 +64,25 @@ public class FindPassActivity extends BaseSingleActivity {
         }, TAG, NullReturnVo.class);
 
     }
+
+    @Override
+    protected void onBindContent(ViewGroup container) {
+        super.onBindContent(container);
+        LayoutFindpassBinding b = LayoutFindpassBinding.bind(container);
+        loading = b.llLoading;
+        etEmail = b.etEmail;
+        btnFindPass = b.btnFindpass;
+        b.btnFindpass.setOnClickListener(this::tnFindPass);
+    }
+
+    @Override
+    protected void unbindViews() {
+        loading = null;
+        etEmail = null;
+        btnFindPass = null;
+        super.unbindViews();
+    }
+
 
     @Override
     public void onDestroy() {

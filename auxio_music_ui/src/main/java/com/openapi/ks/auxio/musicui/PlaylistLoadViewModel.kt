@@ -5,9 +5,9 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.openai.net.BaseService
-import com.openai.net.VolleyUtils
-import com.openai.net.request.InfoListVo
+import com.openapi.core.net.BaseService
+import com.openapi.core.net.NetQueue
+import com.openapi.core.net.request.InfoListVo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -50,7 +50,7 @@ internal class PlaylistLoadViewModel(
     private var hasMoreRemote = false
 
     fun cancelRequests() {
-        VolleyUtils.cancelRequest(volleyTag)
+        NetQueue.cancelRequest(volleyTag)
     }
 
     fun loadInitial() {

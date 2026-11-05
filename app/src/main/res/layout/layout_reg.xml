@@ -17,7 +17,7 @@
             android:layout_centerVertical="true"
             android:orientation="vertical">
 
-            <com.openai.commonview.view.MyEditText
+            <com.openapi.core.view.view.MyEditText
                 android:id="@+id/et_username"
                 style="@style/edit_login"
                 android:drawableLeft="@drawable/ic_login_user"
@@ -27,7 +27,7 @@
 
             <ImageView style="@style/divider_login" />
 
-            <com.openai.commonview.view.MyEditText
+            <com.openapi.core.view.view.MyEditText
                 android:id="@+id/et_password"
                 style="@style/edit_login"
                 android:drawableLeft="@drawable/ic_login_pass"
@@ -37,7 +37,7 @@
 
             <ImageView style="@style/divider_login" />
 
-            <com.openai.commonview.view.MyEditText
+            <com.openapi.core.view.view.MyEditText
                 android:id="@+id/et_repassword"
                 style="@style/edit_login"
                 android:drawableLeft="@drawable/ic_login_pass"
@@ -47,7 +47,7 @@
 
             <ImageView style="@style/divider_login" />
 
-            <com.openai.commonview.view.MyEditText
+            <com.openapi.core.view.view.MyEditText
                 android:id="@+id/et_email"
                 style="@style/edit_login"
                 android:drawableLeft="@drawable/ic_email"
@@ -58,7 +58,7 @@
 
             <ImageView style="@style/divider_login" />
 
-            <com.openai.commonview.view.MyEditText
+            <com.openapi.core.view.view.MyEditText
                 android:id="@+id/et_ref"
                 style="@style/edit_login"
                 android:drawableLeft="@drawable/ic_ref"
@@ -82,7 +82,7 @@
                     android:background="@color/reg_code"
                     android:text="@string/re_bt_code" />
 
-                <com.openai.commonview.view.MyEditText
+                <com.openapi.core.view.view.MyEditText
                     android:id="@+id/et_code"
                     style="@style/edit_login"
                     android:layout_toLeftOf="@+id/bt_code"

@@ -9,7 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.openapi.ks.myapp.ui.base.app.BaseFragment;
-import com.openai.commonutil.LogUtil;
+import com.openapi.core.util.LogUtil;
 import com.openapi.ks.chat.R;
 
 

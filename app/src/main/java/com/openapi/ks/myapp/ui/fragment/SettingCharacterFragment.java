@@ -5,19 +5,19 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
-import com.openai.commonutil.EventBusUtil;
-import com.openai.commonutil.PreferenceUtils;
-import com.openai.commonutil.SystemUtils;
-import com.openai.commonutil.ToastUtil;
-import com.openai.ads.yewu.ads.base.AdsContext;
+import com.openapi.core.util.EventBusUtil;
+import com.openapi.core.util.PreferenceUtils;
+import com.openapi.core.util.SystemUtils;
+import com.openapi.core.util.ToastUtil;
+import com.openapi.core.ads.yewu.ads.base.AdsContext;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.adapter.SettingCharacterAdapter;
 import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.bean.vo.CharacterVo;
-import com.openai.net.request.InfoListVo;
+import com.openapi.core.net.request.InfoListVo;
 import com.openapi.ks.myapp.constant.Constants;
-import com.openai.commonevent.FavoriteChangeEvent;
+import com.openapi.core.event.FavoriteChangeEvent;
 import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
 import com.openapi.ks.myapp.ui.base.features.BasePullLoadbleFragment;
 

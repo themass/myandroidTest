@@ -11,7 +11,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.openai.commonutil.LogUtil;
+import com.openapi.core.util.LogUtil;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.openapi.ks.myapp.bean.form.ChatSessionLog;
@@ -21,7 +21,7 @@ import com.openapi.ks.myapp.data.ImagePhotoLoad;
 
 import java.util.List;
 
-import butterknife.BindView;
+import com.openapi.ks.chat.databinding.LayoutChatItemBinding;
 
 /**
  * Created by openapi on 2016/8/12.
@@ -47,10 +47,11 @@ public class ChatListViewAdapter extends BaseRecyclerViewAdapter<ChatListViewAda
 
     public static class SessionItemView extends BaseRecyclerViewHolder<ChatSessionLog> {
         @Nullable
-        @BindView(R.id.session_name)
         TextView tvName;
         public SessionItemView(View itemView, View.OnClickListener l, View.OnLongClickListener longListener) {
             super(itemView, l, longListener);
+            LayoutChatItemBinding b = LayoutChatItemBinding.bind(itemView);
+            tvName = b.sessionName;
         }
     }
 }

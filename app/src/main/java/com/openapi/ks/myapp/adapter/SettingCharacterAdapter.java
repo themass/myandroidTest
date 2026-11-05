@@ -12,9 +12,9 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.openai.commonutil.StringUtils;
-import com.openai.ads.yewu.ads.base.AdsContext;
-import com.openai.ads.yewu.ads.base.AdsManager;
+import com.openapi.core.util.StringUtils;
+import com.openapi.core.ads.yewu.ads.base.AdsContext;
+import com.openapi.core.ads.yewu.ads.base.AdsManager;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.openapi.ks.myapp.bean.vo.CharacterVo;
@@ -23,7 +23,7 @@ import com.openapi.ks.myapp.data.ImagePhotoLoad;
 
 import java.util.List;
 
-import butterknife.BindView;
+import com.openapi.ks.chat.databinding.LayoutSettingCharacterItemBinding;
 
 /**
  * Created by openapi on 2016/8/12.
@@ -68,20 +68,21 @@ public class SettingCharacterAdapter extends BaseRecyclerViewAdapter<SettingChar
 
     public static class ItemtView extends BaseRecyclerViewHolder<CharacterVo> {
         @Nullable
-        @BindView(R.id.iv_bg)
         ImageView ivBg;
         @Nullable
-        @BindView(R.id.tv_name)
         TextView tvName;
         @Nullable
-        @BindView(R.id.tv_content)
         TextView tvContent;
         @Nullable
-        @BindView(R.id.rv_ads)
         RelativeLayout rvAds;
 
         public ItemtView(View itemView, View.OnClickListener l, View.OnLongClickListener longListener) {
             super(itemView, l, longListener);
+            LayoutSettingCharacterItemBinding b = LayoutSettingCharacterItemBinding.bind(itemView);
+            ivBg = b.ivBg;
+            tvName = b.tvName;
+            tvContent = b.tvContent;
+            rvAds = b.rvAds;
         }
     }
 }

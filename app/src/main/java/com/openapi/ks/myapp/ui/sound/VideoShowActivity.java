@@ -20,13 +20,13 @@ import androidx.annotation.NonNull;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.openai.commonevent.FavoriteVo;
+import com.openapi.core.event.FavoriteVo;
 
-import com.openai.commonview.translation.TranslationOverlaySession;
-import com.openai.commonview.translation.VideoTranslationRegistry;
-import com.openai.commonview.translation.VideoTranslationRequest;
-import com.openai.commonview.view.MyFavoriteView;
-import com.openai.commonutil.LogUtil;
+import com.openapi.core.view.translation.TranslationOverlaySession;
+import com.openapi.core.view.translation.VideoTranslationRegistry;
+import com.openapi.core.view.translation.VideoTranslationRequest;
+import com.openapi.core.view.view.MyFavoriteView;
+import com.openapi.core.util.LogUtil;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.constant.Constants;
@@ -38,31 +38,38 @@ import com.openapi.ks.myapp.translation.realtime.RealtimeSubtitleBindings;
 import com.openapi.ks.myapp.translation.realtime.VideoRealtimeSubtitleSession;
 import com.shuyu.gsyvideoplayer.GSYVideoManager;
 import com.shuyu.gsyvideoplayer.utils.OrientationUtils;
+import com.openapi.ks.chat.databinding.LayoutVideoShowBinding;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.Unbinder;
 
 /**
  * Created by openapi on 2015/9/1.
  */
 public class VideoShowActivity extends AppCompatActivity implements MyFavoriteView.OnFavoriteItemClick {
-    private Unbinder unbinder;
-    @BindView(R.id.jz_video)
     public DetailGSYVideoPlayer videoPlayer;
     private DlnaDiscoveryCallback dlnaDiscovery;
     private JavaCaster dlnaCaster;
     private boolean enteringPip;
     private GoogleCastSessionController castSessionController;
     RecommendVo vo;
-    @BindView(R.id.my_favoriteview)
     MyFavoriteView myFavoriteView;
+
+    private void bindButterViews() {
+        LayoutVideoShowBinding b = LayoutVideoShowBinding.bind(findViewById(android.R.id.content));
+        videoPlayer = b.jzVideo;
+        myFavoriteView = findViewById(R.id.my_favoriteview);
+    }
+
+    private void unbindButterViews() {
+        videoPlayer = null;
+        myFavoriteView = null;
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_video_show);
-        unbinder = ButterKnife.bind(this);
+        bindButterViews();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             vo = getIntent().getSerializableExtra(Constants.CONFIG_PARAM, RecommendVo.class);
@@ -247,7 +254,6 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
         }
         GSYVideoManager.releaseAllVideos();
         super.onDestroy();
-        unbinder.unbind();
     }
 
     @Override

@@ -9,27 +9,26 @@ import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
-import com.openai.commonview.view.MyEditText;
-import com.openai.commonview.view.SiteAutoCompleteTextView;
-import com.openai.commonutil.EventBusUtil;
-import com.openai.commonutil.PathUtil;
-import com.openai.commonutil.StringUtils;
-import com.openai.commonutil.ToastUtil;
-import com.openai.net.VolleyUtils;
-import com.openai.net.request.CommonResponse;
+import com.openapi.core.view.view.MyEditText;
+import com.openapi.core.view.view.SiteAutoCompleteTextView;
+import com.openapi.core.util.EventBusUtil;
+import com.openapi.core.util.PathUtil;
+import com.openapi.core.util.StringUtils;
+import com.openapi.core.util.ToastUtil;
+import com.openapi.core.net.NetQueue;
+import com.openapi.core.net.request.CommonResponse;
 import com.openapi.ks.chat.R;
-import com.openapi.ks.chat.R2;
 import com.openapi.ks.myapp.bean.form.CustomeAddForm;
 import com.openapi.ks.myapp.bean.vo.NullReturnVo;
 import com.openapi.ks.myapp.constant.Constants;
-import com.openai.net.BaseService;
+import com.openapi.core.net.BaseService;
 import com.openapi.ks.myapp.data.UserLoginUtil;
 import com.openapi.ks.myapp.data.config.CustomeAddEvent;
 import com.openapi.ks.myapp.data.urlparser.CustomeAddFormParser;
 import com.openapi.ks.myapp.ui.base.app.BaseSingleActivity;
+import com.openapi.ks.chat.databinding.LayoutAddCustomeBinding;
+import android.view.ViewGroup;
 
-import butterknife.BindView;
-import butterknife.OnClick;
 
 
 /**
@@ -39,23 +38,14 @@ import butterknife.OnClick;
 public class AddCustomeInfoActivity extends BaseSingleActivity {
     public static final String PARAM = "CUSTOMEPARA";
     private static final String TAG = "customeadd_tag";
-    @BindView(R.id.ll_loading)
     LinearLayout loading;
-    @BindView(R.id.et_title)
     MyEditText etTitle;
-    @BindView(R.id.et_url)
     SiteAutoCompleteTextView etUrl;
-    @BindView(R.id.open_mode)
     RadioGroup radioGroup;
-    @BindView(R.id.open_schema)
     RadioGroup radioSchemaGroup;
-    @BindView(R.id.http)
     RadioButton radioSchemaHttp;
-    @BindView(R.id.https)
     RadioButton radioSchemaHttps;
-    @BindView(R.id.open_local)
     RadioButton radioOpenLocal;
-    @BindView(R.id.open_browser)
     RadioButton radioOpenBrowser;
     BaseService baseService;
     private CustomeAddForm form;
@@ -118,7 +108,6 @@ public class AddCustomeInfoActivity extends BaseSingleActivity {
 
     }
 
-    @OnClick(R.id.btn_save)
     public void save(View view) {
         form.title = etTitle.getText().toString();
         form.uri = etUrl.getText().toString();
@@ -151,6 +140,37 @@ public class AddCustomeInfoActivity extends BaseSingleActivity {
         }, TAG, NullReturnVo.class);
     }
 
+    @Override
+    protected void onBindContent(ViewGroup container) {
+        super.onBindContent(container);
+        LayoutAddCustomeBinding b = LayoutAddCustomeBinding.bind(contentRoot(container));
+        loading = b.llLoading;
+        etTitle = b.etTitle;
+        etUrl = b.etUrl;
+        radioGroup = b.openMode;
+        radioSchemaGroup = b.openSchema;
+        radioSchemaHttp = b.http;
+        radioSchemaHttps = b.https;
+        radioOpenLocal = b.openLocal;
+        radioOpenBrowser = b.openBrowser;
+        b.btnSave.setOnClickListener(this::save);
+    }
+
+    @Override
+    protected void unbindViews() {
+        loading = null;
+        etTitle = null;
+        etUrl = null;
+        radioGroup = null;
+        radioSchemaGroup = null;
+        radioSchemaHttp = null;
+        radioSchemaHttps = null;
+        radioOpenLocal = null;
+        radioOpenBrowser = null;
+        super.unbindViews();
+    }
+
+
     private void setEnabled(boolean isEnable) {
         if (!isEnable) {
             loading.setVisibility(View.VISIBLE);
@@ -164,7 +184,7 @@ public class AddCustomeInfoActivity extends BaseSingleActivity {
     public void onBackPressed() {
         if (loading.getVisibility() == View.VISIBLE) {
             setEnabled(true);
-            VolleyUtils.cancelRequest(TAG);
+            NetQueue.cancelRequest(TAG);
         } else {
             super.onBackPressed();
         }

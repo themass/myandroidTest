@@ -19,10 +19,10 @@ import com.bumptech.glide.request.transition.Transition;
 // 使用现代图片查看器替代
 // import com.etiennelawlor.imagegallery.library.adapters.FullScreenImageGalleryAdapter;
 // import com.etiennelawlor.imagegallery.library.adapters.ImageGalleryAdapter;
-import com.openai.commonutil.FileUtils;
-import com.openai.commonutil.LogUtil;
-import com.openai.commonutil.StringUtils;
-import com.openai.net.netglide.MyGlideModule;
+import com.openapi.core.util.FileUtils;
+import com.openapi.core.util.LogUtil;
+import com.openapi.core.util.StringUtils;
+import com.openapi.core.net.netglide.MyGlideModule;
 import com.openapi.ks.myapp.task.DelImageTask;
 // 使用现代 Shimmer 替代
 // import com.romainpiel.shimmer.Shimmer;

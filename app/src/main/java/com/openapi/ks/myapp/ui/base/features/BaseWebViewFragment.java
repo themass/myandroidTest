@@ -21,19 +21,17 @@ import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 
 import com.openapi.ks.myapp.ui.base.app.BaseFragment;
-import com.openai.commonview.view.MyWebView;
-import com.openai.commonutil.FileUtils;
-import com.openai.commonutil.IpUtil;
-import com.openai.commonutil.LogUtil;
-import com.openai.net.HttpUtils;
+import com.openapi.core.view.view.MyWebView;
+import com.openapi.core.util.FileUtils;
+import com.openapi.core.util.IpUtil;
+import com.openapi.core.util.LogUtil;
+import com.openapi.core.net.HttpUtils;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.constant.Constants;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import butterknife.BindView;
 
 /**
  * Created by openapi on 2016/3/21.
@@ -42,9 +40,7 @@ public class BaseWebViewFragment extends BaseFragment {
     public static final String PARAM_WEB_VIEW_CAN_GO_BACK = "PARAM_WEB_VIEW_CAN_GO_BACK";
     public static final String TAG_FROM = "BaseWebViewFragment_TAG_FROM";
     public static final int TAG_FROM_DEFAULT = 0x0000;
-    @BindView(R.id.wv_content)
     MyWebView webView;
-    @BindView(R.id.progressbar)
     ProgressBar progressbar;
     CookieManager cookieManager = null;
     private boolean mFirstPageLoad = true;
@@ -55,6 +51,21 @@ public class BaseWebViewFragment extends BaseFragment {
     @Override
     protected int getRootViewId() {
         return R.layout.base_webview_layout;
+    }
+
+    @Override
+    protected void bindViews(View view) {
+        super.bindViews(view);
+        // base_webview_layout has no binding class (viewBindingIgnore)
+        webView = view.findViewById(R.id.wv_content);
+        progressbar = view.findViewById(R.id.progressbar);
+    }
+
+    @Override
+    protected void unbindViews() {
+        webView = null;
+        progressbar = null;
+        super.unbindViews();
     }
 
     @Override

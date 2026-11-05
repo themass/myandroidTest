@@ -6,8 +6,8 @@ import android.view.View;
 
 import androidx.fragment.app.Fragment;
 
-import com.openai.commonutil.LogUtil;
-import com.openai.ads.yewu.ads.base.AdsContext;
+import com.openapi.core.util.LogUtil;
+import com.openapi.core.ads.yewu.ads.base.AdsContext;
 import com.openapi.ks.myapp.ui.base.app.BaseFragmentActivity;
 import com.openapi.ks.myapp.ui.inte.FabOpListener;
 import com.openapi.ks.myapp.ui.inte.OnBackKeyDownListener;

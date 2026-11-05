@@ -4,7 +4,7 @@ import androidx.annotation.OptIn;
 import androidx.media3.common.util.UnstableApi;
 import androidx.media3.datasource.DefaultHttpDataSource;
 
-import com.openai.CommonConstants;
+import com.openapi.core.CommonConstants;
 
 import java.util.HashMap;
 import java.util.Map;

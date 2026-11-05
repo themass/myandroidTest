@@ -2,12 +2,12 @@ package com.openapi.ks.myapp.translation;
 
 import android.content.Context;
 
-import com.openai.commonview.translation.VideoTranslationRegistry;
-import com.openai.commonutil.PreferenceUtils;
+import com.openapi.core.view.translation.VideoTranslationRegistry;
+import com.openapi.core.util.PreferenceUtils;
 import com.openapi.ks.myapp.constant.Constants;
 
 /**
- * 注册所有 {@link com.openai.commonview.translation.VideoTranslationProvider}，并读取用户选择的当前实现。
+ * 注册所有 {@link com.openapi.core.view.translation.VideoTranslationProvider}，并读取用户选择的当前实现。
  */
 public final class VideoTranslationInstaller {
 

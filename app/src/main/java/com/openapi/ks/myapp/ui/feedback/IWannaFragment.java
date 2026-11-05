@@ -13,21 +13,22 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
 
-import com.openai.commonview.view.HeartAnimView;
-import com.openai.commonview.view.MyProgressDialog;
-import com.openai.commonview.view.MyPullView;
-import com.openai.commonutil.LogUtil;
-import com.openai.commonutil.StringUtils;
-import com.openai.commonutil.ToastUtil;
-import com.openai.net.request.CommonResponse;
-import com.openai.net.request.CommonResponse.ResponseOkListener;
+import com.openapi.core.view.view.HeartAnimView;
+import com.openapi.core.view.view.MyProgressDialog;
+import com.openapi.core.view.view.MyPullView;
+import com.openapi.core.util.LogUtil;
+import com.openapi.core.util.StringUtils;
+import com.openapi.core.util.ToastUtil;
+import com.openapi.core.net.request.CommonResponse;
+import com.openapi.core.net.request.CommonResponse.ResponseOkListener;
 import com.openapi.ks.chat.R;
+import com.openapi.ks.chat.databinding.LayoutIwannaFragmentBinding;
 import com.openapi.ks.myapp.adapter.FeedAdapter;
 import com.openapi.ks.myapp.bean.form.IwannaForm;
 import com.openapi.ks.myapp.bean.vo.IWannaVo;
-import com.openai.net.request.InfoListVo;
+import com.openapi.core.net.request.InfoListVo;
 import com.openapi.ks.myapp.constant.Constants;
-import com.openai.net.BaseService;
+import com.openapi.core.net.BaseService;
 import com.openapi.ks.myapp.data.UserLoginUtil;
 import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
 import com.openapi.ks.myapp.ui.base.features.LoadableFragment;
@@ -36,19 +37,13 @@ import com.openapi.ks.myapp.ui.user.LoginActivity;
 
 import java.util.ArrayList;
 
-import butterknife.BindView;
-import butterknife.OnClick;
-
 /**
  * Created by openapi on 2016/9/5.
  */
 public class IWannaFragment extends LoadableFragment<InfoListVo<IWannaVo>> implements FeedAdapter.OnFeedItemClickListener, MyPullView.OnRefreshListener, FabOpListener.SetFabListener {
     private static String TAG = "IWANNA";
-    @BindView(R.id.my_pullview)
     MyPullView pullView;
-    @BindView(R.id.ll_comment)
     RelativeLayout rlComment;
-    @BindView(R.id.et_comment)
     EditText etComment;
     FeedAdapter feedAdapter;
     private BaseService indexService;
@@ -86,6 +81,24 @@ public class IWannaFragment extends LoadableFragment<InfoListVo<IWannaVo>> imple
     }
 
     @Override
+    protected void bindViews(View view) {
+        super.bindViews(view);
+        LayoutIwannaFragmentBinding b = LayoutIwannaFragmentBinding.bind(mContentView.getChildAt(mContentView.getChildCount() - 1));
+        pullView = b.myPullview;
+        rlComment = b.llComment;
+        etComment = b.etComment;
+        b.send.setOnClickListener(this::send);
+    }
+
+    @Override
+    protected void unbindViews() {
+        pullView = null;
+        rlComment = null;
+        etComment = null;
+        super.unbindViews();
+    }
+
+    @Override
     protected void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
         indexService = new BaseService();
@@ -106,7 +119,6 @@ public class IWannaFragment extends LoadableFragment<InfoListVo<IWannaVo>> imple
         myProgressDialog = new MyProgressDialog(getActivity());
     }
 
-    @OnClick(R.id.send)
     public void send(View view) {
         if (UserLoginUtil.getUserCache() == null) {
             startActivity(LoginActivity.class);

@@ -4,9 +4,9 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.HandlerThread;
 
-import com.openai.commonutil.LogUtil;
-import com.openai.commonutil.StringUtils;
-import com.openai.commonview.translation.RealtimeSubtitleCallbacks;
+import com.openapi.core.util.LogUtil;
+import com.openapi.core.util.StringUtils;
+import com.openapi.core.view.translation.RealtimeSubtitleCallbacks;
 
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;

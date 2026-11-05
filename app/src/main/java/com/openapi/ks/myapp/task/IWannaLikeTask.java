@@ -5,7 +5,7 @@ import android.os.Handler;
 import android.os.Looper;
 
 import com.openapi.ks.myapp.constant.Constants;
-import com.openai.net.BaseService;
+import com.openapi.core.net.BaseService;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

@@ -9,68 +9,51 @@ import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 
-import com.openai.CommonConstants;
-import com.openai.commonutil.EventBusUtil;
-import com.openai.commonutil.LogUtil;
-import com.openai.commonutil.PreferenceUtils;
-import com.openai.commonutil.ShareUtil;
-import com.openai.commonutil.StringUtils;
-import com.openai.commonutil.ToastUtil;
-import com.openai.ads.yewu.ads.base.AdsContext;
-import com.openai.ads.yewu.um.MobAgent;
+import com.openapi.core.CommonConstants;
+import com.openapi.core.util.EventBusUtil;
+import com.openapi.core.util.LogUtil;
+import com.openapi.core.util.PreferenceUtils;
+import com.openapi.core.util.ShareUtil;
+import com.openapi.core.util.StringUtils;
+import com.openapi.core.util.ToastUtil;
+import com.openapi.core.ads.yewu.ads.base.AdsContext;
+import com.openapi.core.ads.yewu.um.MobAgent;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.constant.Constants;
-import com.openai.net.BaseService;
+import com.openapi.core.net.BaseService;
 import com.openapi.ks.myapp.data.VersionUpdater;
 import com.openapi.ks.myapp.data.config.PlayCoreEvent;
 import com.openapi.ks.myapp.data.config.TabChangeEvent;
 import com.openapi.ks.myapp.ui.base.app.BaseSingleActivity;
 import com.openapi.ks.myapp.video.PlaybackEngineHelper;
 import com.openapi.ks.myapp.ui.fragment.SettingCharacterFragment;
+import com.openapi.ks.chat.databinding.LayoutSettingBinding;
+import android.view.ViewGroup;
 
-import butterknife.BindView;
-import butterknife.OnClick;
 
 /**
  * Created by openapi on 2016/8/13.
  */
 public class SettingActivity extends BaseSingleActivity {
     private static final String TAG = "setpass_tag";
-    @BindView(R.id.sw_area_mi)
     Switch swAreaMi;
-    @BindView(R.id.sw_picshow)
     Switch swPicshow;
-    @BindView(R.id.sw_area)
     Switch swArea;
-    @BindView(R.id.sw_sound)
     Switch swSound;
-    @BindView(R.id.sw_music_ui_auxio)
     Switch swMusicUiAuxio;
-    @BindView(R.id.sp_playback_engine)
     Spinner spPlaybackEngine;
-    @BindView(R.id.sw_playVideo)
     Switch sw_playVideo;
 
-    @BindView(R.id.sw_list_video)
     Switch sw_listVideo;
-    @BindView(R.id.sw_tts)
     Switch sw_tts;
-    @BindView(R.id.tv_version)
     TextView tvVersion;
-    @BindView(R.id.tv_setting_character)
     TextView tvCharacter;
-    @BindView(R.id.et_setting_content)
     EditText etCharacter;
-    @BindView(R.id.et_volcano_asr_app_key)
     EditText etVolcanoAppKey;
-    @BindView(R.id.et_volcano_asr_access_key)
     EditText etVolcanoAccessKey;
-    @BindView(R.id.et_volcano_asr_resource_id)
     EditText etVolcanoResourceId;
-    @BindView(R.id.et_volcano_asr_cluster)
     EditText etVolcanoCluster;
-    @BindView(R.id.sw_volcano_asr_v3)
     Switch swVolcanoAsrV3;
     BaseService baseService;
     String mEmail;
@@ -191,31 +174,77 @@ public class SettingActivity extends BaseSingleActivity {
         tvVersion.setText(VersionUpdater.getVersion());
     }
 
-    @OnClick(R.id.rr_version)
     public void onVersion(View view) {
         VersionUpdater.checkUpdate(this, true);
         MobAgent.onEventMenu(this, "版本");
     }
 
-    @OnClick(R.id.tv_share)
     public void onShare(View view) {
         showShare();
         MobAgent.onEventMenu(this, "分享");
     }
 
-    @OnClick(R.id.tv_setting_character)
     public void onCharacter(View view) {
         SettingCharacterFragment.startFragment(this);
         MobAgent.onEventMenu(this, "设置人设");
     }
 
-    @OnClick(R.id.bt_setting_save)
     public void onCharacterSave(View view) {
         PreferenceUtils.setPrefString(MyApplication.getInstance(), Constants.MY_SETTING, etCharacter.getText().toString());
         saveVolcanoAsrPrefs();
         MobAgent.onEventMenu(this, "设置人设");
 
     }
+
+    @Override
+    protected void onBindContent(ViewGroup container) {
+        super.onBindContent(container);
+        LayoutSettingBinding b = LayoutSettingBinding.bind(container);
+        swAreaMi = b.swAreaMi;
+        swPicshow = b.swPicshow;
+        swArea = b.swArea;
+        swSound = b.swSound;
+        swMusicUiAuxio = b.swMusicUiAuxio;
+        spPlaybackEngine = b.spPlaybackEngine;
+        sw_playVideo = b.swPlayVideo;
+        sw_listVideo = b.swListVideo;
+        sw_tts = b.swTts;
+        tvVersion = b.tvVersion;
+        tvCharacter = b.tvSettingCharacter;
+        etCharacter = b.etSettingContent;
+        etVolcanoAppKey = b.etVolcanoAsrAppKey;
+        etVolcanoAccessKey = b.etVolcanoAsrAccessKey;
+        etVolcanoResourceId = b.etVolcanoAsrResourceId;
+        etVolcanoCluster = b.etVolcanoAsrCluster;
+        swVolcanoAsrV3 = b.swVolcanoAsrV3;
+        b.rrVersion.setOnClickListener(this::onVersion);
+        b.tvShare.setOnClickListener(this::onShare);
+        b.tvSettingCharacter.setOnClickListener(this::onCharacter);
+        b.btSettingSave.setOnClickListener(this::onCharacterSave);
+    }
+
+    @Override
+    protected void unbindViews() {
+        swAreaMi = null;
+        swPicshow = null;
+        swArea = null;
+        swSound = null;
+        swMusicUiAuxio = null;
+        spPlaybackEngine = null;
+        sw_playVideo = null;
+        sw_listVideo = null;
+        sw_tts = null;
+        tvVersion = null;
+        tvCharacter = null;
+        etCharacter = null;
+        etVolcanoAppKey = null;
+        etVolcanoAccessKey = null;
+        etVolcanoResourceId = null;
+        etVolcanoCluster = null;
+        swVolcanoAsrV3 = null;
+        super.unbindViews();
+    }
+
 
     @Override
     public void onPause() {

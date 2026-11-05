@@ -13,29 +13,40 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
-import com.openai.net.request.InfoListVo;
-import com.openai.net.BaseService;
+import com.openapi.core.net.request.InfoListVo;
+import com.openapi.core.net.BaseService;
 import com.openapi.ks.chat.R;
-import com.openai.commonview.view.DividerItemDecoration;
-import com.openai.commonview.view.MyPullView;
-import com.openai.commonutil.LogUtil;
-import com.openai.commonutil.StringUtils;
-
-import butterknife.BindView;
-
+import com.openapi.core.view.view.DividerItemDecoration;
+import com.openapi.core.view.view.MyPullView;
+import com.openapi.core.util.LogUtil;
+import com.openapi.core.util.StringUtils;
 
 /**
  * Created by openapi on 2016/8/12.
  */
 public abstract class BasePullLoadbleFragment<T> extends LoadableFragment<InfoListVo<T>> implements MyPullView.OnRefreshListener, BaseRecyclerViewAdapter.OnRecyclerViewItemClickListener<T> {
     @Nullable
-    @BindView(R.id.my_pullview)
     public MyPullView pullView;
+    /** 全屏视频容器：只有部分子页面的布局里有它，没有时为 null。 */
     @Nullable
-    @BindView(R.id.video_full_container)
     public FrameLayout fullContainer;
 
     public InfoListVo<T> infoListVo = new InfoListVo<T>();
+
+    /** 子类重写时必须先调用 super：下拉列表控件来自这里填充的 common_mypage_view。 */
+    @Override
+    protected void bindViews(View view) {
+        super.bindViews(view);
+        pullView = view.findViewById(R.id.my_pullview);
+        fullContainer = view.findViewById(R.id.video_full_container);
+    }
+
+    @Override
+    protected void unbindViews() {
+        pullView = null;
+        fullContainer = null;
+        super.unbindViews();
+    }
 
     @Override
     protected void onContentViewCreated(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
@@ -85,7 +96,7 @@ public abstract class BasePullLoadbleFragment<T> extends LoadableFragment<InfoLi
     protected void initPullView() {
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getActivity());
         pullView.setLayoutManager(layoutManager);
-        DividerItemDecoration itemDecoration = new DividerItemDecoration(getActivity(), LinearLayoutManager.VERTICAL, com.openai.commonutil.R.drawable.divider_item);
+        DividerItemDecoration itemDecoration = new DividerItemDecoration(getActivity(), LinearLayoutManager.VERTICAL, com.openapi.core.util.R.drawable.divider_item);
         pullView.setAdapter(getAdapter());
         pullView.getRecyclerView().addItemDecoration(itemDecoration);
         pullView.setListener(this);

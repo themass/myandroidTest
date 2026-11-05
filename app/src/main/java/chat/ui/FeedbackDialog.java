@@ -13,8 +13,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatDialog;
 
 import com.donkingliang.labels.LabelsView;
-import com.openai.commonutil.ToastUtil;
-import com.openai.net.BaseService;
+import com.openapi.core.util.ToastUtil;
+import com.openapi.core.net.BaseService;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.bean.form.FeedbackContentForm;
 import com.openapi.ks.myapp.bean.vo.NullReturnVo;

@@ -1,6 +1,6 @@
 package com.openapi.ks.myapp.bean.vo;
 
-import com.openai.commonevent.FavoriteVo;
+import com.openapi.core.event.FavoriteVo;
 import com.openapi.ks.myapp.constant.Constants;
 
 import java.io.Serializable;

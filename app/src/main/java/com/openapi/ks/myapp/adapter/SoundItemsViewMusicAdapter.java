@@ -15,15 +15,13 @@ import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.openai.commonview.view.widgets.MusicVisualizer;
+import com.openapi.core.view.view.widgets.MusicVisualizer;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.openapi.ks.myapp.bean.vo.SoundItemsVo;
 import com.openapi.ks.myapp.ui.inte.MusicStateListener;
 
 import java.util.List;
-
-import butterknife.BindView;
 
 /**
  * Created by openapi on 2016/8/12.
@@ -144,29 +142,30 @@ public class SoundItemsViewMusicAdapter extends BaseRecyclerViewAdapter<SoundIte
 
     static class SoundItemView extends BaseRecyclerViewAdapter.BaseRecyclerViewHolder<SoundItemsVo> {
         @Nullable
-        @BindView(R.id.song_title)
         protected TextView title;
         @Nullable
-        @BindView(R.id.song_artist)
         protected TextView artist;
         @Nullable
-        @BindView(R.id.albumArt)
         protected ImageView albumArt;
         @Nullable
-        @BindView(R.id.album_frame)
         protected FrameLayout albumFrame;
         @Nullable
-        @BindView(R.id.visualizer)
         protected MusicVisualizer visualizer;
         @Nullable
-        @BindView(R.id.view_now_playing_bar)
         protected View playingBar;
         @Nullable
-        @BindView(R.id.iv_row_overflow)
         protected ImageView ivRowOverflow;
 
         public SoundItemView(View itemView, View.OnClickListener l, View.OnLongClickListener longListener) {
             super(itemView, l, longListener);
+            // One holder serves item_song and item_song_auxio, so use findViewById instead of a layout-specific binding.
+            title = itemView.findViewById(R.id.song_title);
+            artist = itemView.findViewById(R.id.song_artist);
+            albumArt = itemView.findViewById(R.id.albumArt);
+            albumFrame = itemView.findViewById(R.id.album_frame);
+            visualizer = itemView.findViewById(R.id.visualizer);
+            playingBar = itemView.findViewById(R.id.view_now_playing_bar);
+            ivRowOverflow = itemView.findViewById(R.id.iv_row_overflow);
         }
     }
 }

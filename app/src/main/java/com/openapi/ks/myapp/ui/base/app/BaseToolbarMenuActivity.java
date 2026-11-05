@@ -12,13 +12,13 @@ import android.widget.ImageView;
 
 import androidx.appcompat.widget.SearchView;
 
-import com.openai.commonutil.StringUtils;
+import com.openapi.core.util.StringUtils;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.data.UserLoginUtil;
 import com.openapi.ks.myapp.ui.fragment.GlobalVideoChannelListFragment;
 
 import com.openapi.ks.chat.R;
-import com.openai.commonutil.LogUtil;
+import com.openapi.core.util.LogUtil;
 
 
 /**

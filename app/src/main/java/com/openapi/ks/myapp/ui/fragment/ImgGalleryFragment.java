@@ -15,8 +15,8 @@ package com.openapi.ks.myapp.ui.fragment;//package com.timeline.myapp.ui.fragmen
 //import com.etiennelawlor.imagegallery.library.utilities.DisplayUtility;
 //import com.openapi.commons.common.ui.view.FavoriteImageView;
 //import com.openapi.commons.common.ui.view.GridSpacingItemDecoration;
-//import com.openai.commonutil.CollectionUtils;
-//import com.openai.commonutil.StringUtils;
+//import com.openapi.core.util.CollectionUtils;
+//import com.openapi.core.util.StringUtils;
 //import com.openapi.yewu.ads.base.AdsContext;
 //import com.timeline.sexfree1.R;
 //import com.timeline.myapp.adapter.base.BaseRecyclerViewAdapter;

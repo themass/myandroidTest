@@ -21,11 +21,11 @@ package com.openapi.ks.myapp.ui.fragment;//package com.timeline.myapp.ui.fragmen
 //import android.widget.TextView;
 //
 //import com.openapi.commons.common.ui.view.FavoriteImageView;
-//import com.openai.commonutil.CollectionUtils;
-//import com.openai.commonutil.LogUtil;
-//import com.openai.commonutil.MediaUtil;
-//import com.openai.commonutil.PreferenceUtils;
-//import com.openai.commonutil.ToastUtil;
+//import com.openapi.core.util.CollectionUtils;
+//import com.openapi.core.util.LogUtil;
+//import com.openapi.core.util.MediaUtil;
+//import com.openapi.core.util.PreferenceUtils;
+//import com.openapi.core.util.ToastUtil;
 //import com.openapi.yewu.net.NetUtils;
 //import com.timeline.sexfree1.R;
 //import com.timeline.myapp.adapter.SoundItemsViewAdapter;

@@ -4,10 +4,10 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 
-import com.openai.CommonConstants;
+import com.openapi.core.CommonConstants;
 import com.openapi.ks.myapp.ui.base.app.LogActivity;
-import com.openai.commonutil.PackageUtils;
-import com.openai.ads.yewu.ads.base.AdsContext;
+import com.openapi.core.util.PackageUtils;
+import com.openapi.core.ads.yewu.ads.base.AdsContext;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.UserLoginUtil;

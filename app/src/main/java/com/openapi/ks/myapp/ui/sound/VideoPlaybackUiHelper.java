@@ -5,9 +5,9 @@ import android.view.View;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.snackbar.Snackbar;
-import com.openai.commonutil.LogUtil;
-import com.openai.commonutil.PreferenceUtils;
-import com.openai.commonutil.ToastUtil;
+import com.openapi.core.util.LogUtil;
+import com.openapi.core.util.PreferenceUtils;
+import com.openapi.core.util.ToastUtil;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.constant.Constants;
 import com.shuyu.gsyvideoplayer.video.base.GSYBaseVideoPlayer;

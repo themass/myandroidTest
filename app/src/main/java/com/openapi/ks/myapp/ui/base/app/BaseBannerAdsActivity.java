@@ -12,34 +12,26 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.OvershootInterpolator;
 
-import com.openai.commonutil.LogUtil;
-import com.openai.ads.yewu.ads.base.AdsContext;
-import com.openai.ads.yewu.ads.base.AdsManager;
+import com.openapi.core.util.LogUtil;
+import com.openapi.core.ads.yewu.ads.base.AdsContext;
+import com.openapi.core.ads.yewu.ads.base.AdsManager;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.constant.Constants;
-import com.openai.ads.yewu.ads.AdsPopStrategy;
+import com.openapi.core.ads.yewu.ads.AdsPopStrategy;
 import com.openapi.ks.myapp.data.config.HindBannerEvent;
 import com.openapi.ks.myapp.ui.user.SettingActivity;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import butterknife.BindView;
-import butterknife.OnClick;
-
-
 /**
  * Created by openapi on 2016/8/21.
  */
 public abstract class BaseBannerAdsActivity extends BaseToolBarActivity {
     private static final int ANIM_DURATION_FAB = 400;
-    @BindView(R.id.fl_content)
     public ViewGroup flContent;
-    @BindView(R.id.fl_header)
     public ViewGroup flBanner;
-    @BindView(R.id.fab_up)
     public FloatingActionButton fabUp;
-    @BindView(R.id.ct_bar)
     public CollapsingToolbarLayout ctBar;
     private AdsGoneTask task = new AdsGoneTask();
 
@@ -49,7 +41,21 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity {
         }
     };
 
-    @OnClick(R.id.fab_up)
+    @Override
+    protected void bindBaseViews() {
+        super.bindBaseViews();
+        flContent = findViewById(R.id.fl_content);
+        flBanner = findViewById(R.id.fl_header);
+        fabUp = findViewById(R.id.fab_up);
+        ctBar = findViewById(R.id.ct_bar);
+        fabUp.setOnClickListener(this::onClickFab);
+    }
+
+    @Override
+    protected ViewGroup contentContainer() {
+        return flContent;
+    }
+
     public void onClickFab(View view) {
 
         startActivity(SettingActivity.class);

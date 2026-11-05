@@ -2,7 +2,6 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
     id 'org.jetbrains.kotlin.plugin.compose'
-    id 'com.jakewharton.butterknife'
 }
 
 android {
@@ -69,7 +68,14 @@ android {
         buildConfig = true
         compose = true
     }
-    
+
+    testOptions {
+        unitTests {
+            // Robolectric 需要合并后的真实布局/清单，才能在 JVM 上启动页面做冒烟测试
+            includeAndroidResources = true
+        }
+    }
+
     packagingOptions {
         exclude 'META-INF/LICENSE-LGPL-3.txt'
         exclude 'META-INF/LICENSE-LGPL-2.1.txt'
@@ -191,9 +197,6 @@ dependencies {
     // 现代图片查看器替代 ImageGallery
     implementation 'com.github.chrisbanes:PhotoView:2.3.0'
 
-    // 依赖注入
-    annotationProcessor 'com.jakewharton:butterknife-compiler:10.2.3'
-    implementation 'com.jakewharton:butterknife:10.2.3'
 
     // 视频播放（GSY 已含 Exo；Media3 供其他模块或后续扩展）
     implementation 'androidx.media3:media3-exoplayer:1.10.0'

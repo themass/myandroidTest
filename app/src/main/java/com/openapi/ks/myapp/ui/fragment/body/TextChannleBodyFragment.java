@@ -5,7 +5,7 @@ import android.os.Bundle;
 import android.os.Build;
 import android.view.View;
 
-import com.openai.net.request.InfoListVo;
+import com.openapi.core.net.request.InfoListVo;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.ui.fragment.RecommendFragment;

@@ -6,16 +6,16 @@ import android.content.SharedPreferences;
 import androidx.multidex.MultiDex;
 import androidx.multidex.MultiDexApplication;
 
-import com.openai.CommonConstants;
-import com.openai.commonutil.StaticDataUtil;
-import com.openai.commonutil.ToastUtil;
-import com.openai.commonutil.DensityUtil;
-import com.openai.commonutil.FileUtils;
-import com.openai.commonutil.LogUtil;
-import com.openai.commonutil.SystemUtils;
-import com.openai.ads.yewu.ads.base.AdsManager;
-import com.openai.net.VolleyUtils;
-import com.openai.net.BaseService;
+import com.openapi.core.CommonConstants;
+import com.openapi.core.util.StaticDataUtil;
+import com.openapi.core.util.ToastUtil;
+import com.openapi.core.util.DensityUtil;
+import com.openapi.core.util.FileUtils;
+import com.openapi.core.util.LogUtil;
+import com.openapi.core.util.SystemUtils;
+import com.openapi.core.ads.yewu.ads.base.AdsManager;
+import com.openapi.core.net.NetQueue;
+import com.openapi.core.net.BaseService;
 import com.openapi.chat.ChatDependencies;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.chat.BackendSpeechToText;
@@ -26,7 +26,6 @@ import com.openapi.ks.myapp.video.PlaybackEngineHelper;
 import com.openapi.ks.myapp.data.ImagePhotoLoad;
 import com.openapi.ks.myapp.data.VersionUpdater;
 import java.io.File;
-import butterknife.ButterKnife;
 
 /**
  * Created by openapi on 2016/3/1.
@@ -60,9 +59,8 @@ public class MyApplication extends MultiDexApplication {
 
         long start = System.currentTimeMillis();
 //        refWatcher = LeakCanary.install(this);
-        ButterKnife.setDebug(isDebug);
         VersionUpdater.init(this);
-        VolleyUtils.init(isDebug, this);
+        NetQueue.init(isDebug, this);
         VideoTranslationInstaller.install(this);
         initFilePath();
         DBManager.getInstance().init(this);
@@ -72,7 +70,7 @@ public class MyApplication extends MultiDexApplication {
         BaseService speechService = new BaseService();
         speechService.setup(this);
         ChatDependencies.INSTANCE.installSpeechToText(new BackendSpeechToText(speechService));
-        com.openai.manage.DBManager.getInstance().init(this);
+        com.openapi.core.db.DBManager.getInstance().init(this);
         Constants.initUserAgent(Constants.AGENT_APP_MYPOOL);
         isTemp = false;
         //欺骗应用市场

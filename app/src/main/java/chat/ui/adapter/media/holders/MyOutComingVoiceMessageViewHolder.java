@@ -7,14 +7,14 @@ import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.openai.commonutil.GsonUtils;
-import com.openai.commonview.view.widget.MediaManager;
-import com.openai.commonutil.LogUtil;
+import com.openapi.core.util.GsonUtils;
+import com.openapi.core.view.view.widget.MediaManager;
+import com.openapi.core.util.LogUtil;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.base.MyApplication;
 
 import chat.ui.data.model.Message;
-import com.openai.commonutil.FormatUtils;
+import com.openapi.core.util.FormatUtils;
 import com.openapi.ks.myapp.view.MyIncomingAudioFooterView;
 
 /*

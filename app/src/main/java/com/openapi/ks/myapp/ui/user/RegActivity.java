@@ -7,20 +7,20 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioGroup;
 
-import com.openai.commonutil.StringUtils;
-import com.openai.commonutil.ToastUtil;
-import com.openai.net.request.CommonResponse;
+import com.openapi.core.util.StringUtils;
+import com.openapi.core.util.ToastUtil;
+import com.openapi.core.net.request.CommonResponse;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.bean.form.RegForm;
 import com.openapi.ks.myapp.bean.vo.NullReturnVo;
 import com.openapi.ks.myapp.constant.Constants;
-import com.openai.net.BaseService;
+import com.openapi.core.net.BaseService;
 import com.openapi.ks.myapp.ui.base.app.BaseSingleActivity;
 
 import java.util.regex.Pattern;
+import com.openapi.ks.chat.databinding.LayoutRegBinding;
+import android.view.ViewGroup;
 
-import butterknife.BindView;
-import butterknife.OnClick;
 
 /**
  * Created by openapi on 2016/8/13.
@@ -28,25 +28,16 @@ import butterknife.OnClick;
 @SuppressWarnings("unchecked")
 public class RegActivity extends BaseSingleActivity {
     private static final String TAG = "login_tag";
-    @BindView(R.id.ll_loading)
     LinearLayout loading;
-    @BindView(R.id.et_username)
     EditText etUserName;
-    @BindView(R.id.et_password)
     EditText etPassword;
-    @BindView(R.id.et_repassword)
     EditText etRePassword;
     //    @BindView(R.id.et_email)
 //    EditText etEmail;
-    @BindView(R.id.btn_reg)
     Button btnReg;
-    @BindView(R.id.btn_login)
     Button btnLogin;
-    @BindView(R.id.sex)
     RadioGroup radioGroup;
-    @BindView(R.id.bt_code)
     Button btCode;
-    @BindView(R.id.et_code)
     EditText etCode;
     //    @BindView(R.id.et_ref)
 //    EditText etRef;
@@ -70,18 +61,15 @@ public class RegActivity extends BaseSingleActivity {
         baseService.setup(this);
     }
 
-    @OnClick(R.id.bt_code)
     public void getCode(View view) {
         setEnabled(false);
     }
 
-    @OnClick(R.id.btn_login)
     public void login(View view) {
         finish();
         startActivity(LoginActivity.class);
     }
 
-    @OnClick(R.id.btn_reg)
     public void reg(View view) {
         String name = etUserName.getText().toString();
         String pwd = etPassword.getText().toString();
@@ -110,6 +98,39 @@ public class RegActivity extends BaseSingleActivity {
             }
         }, TAG, NullReturnVo.class);
     }
+
+    @Override
+    protected void onBindContent(ViewGroup container) {
+        super.onBindContent(container);
+        LayoutRegBinding b = LayoutRegBinding.bind(container);
+        loading = b.llLoading;
+        etUserName = b.etUsername;
+        etPassword = b.etPassword;
+        etRePassword = b.etRepassword;
+        btnReg = b.btnReg;
+        btnLogin = b.btnLogin;
+        radioGroup = b.sex;
+        btCode = b.btCode;
+        etCode = b.etCode;
+        b.btCode.setOnClickListener(this::getCode);
+        b.btnLogin.setOnClickListener(this::login);
+        b.btnReg.setOnClickListener(this::reg);
+    }
+
+    @Override
+    protected void unbindViews() {
+        loading = null;
+        etUserName = null;
+        etPassword = null;
+        etRePassword = null;
+        btnReg = null;
+        btnLogin = null;
+        radioGroup = null;
+        btCode = null;
+        etCode = null;
+        super.unbindViews();
+    }
+
 
     private void setEnabled(boolean isEnable) {
         if (loading != null) {

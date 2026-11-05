@@ -6,13 +6,13 @@
     android:padding="@dimen/margin_3"
     android:background="@drawable/boob_bg2">
 
-    <com.openai.commonview.view.MyWebView
+    <com.openapi.core.view.view.MyWebView
         android:id="@+id/wv_content"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:visibility="visible" />
 
-    <com.openai.commonview.view.MyFavoriteView
+    <com.openapi.core.view.view.MyFavoriteView
         android:id="@+id/my_favoriteview"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

@@ -6,21 +6,21 @@ import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.openai.commonutil.LogUtil;
-import com.openai.commonutil.StringUtils;
-import com.openai.commonutil.SystemUtils;
-import com.openai.commonutil.ToastUtil;
-import com.openai.ads.yewu.ads.base.AdsContext;
+import com.openapi.core.util.LogUtil;
+import com.openapi.core.util.StringUtils;
+import com.openapi.core.util.SystemUtils;
+import com.openapi.core.util.ToastUtil;
+import com.openapi.core.ads.yewu.ads.base.AdsContext;
 import com.openapi.ks.myapp.adapter.TextChannelListItemsViewAdapter;
 import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
-import com.openai.commonevent.FavoriteVo;
-import com.openai.net.request.InfoListVo;
+import com.openapi.core.event.FavoriteVo;
+import com.openapi.core.net.request.InfoListVo;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.bean.vo.TextItemsVo;
 import com.openapi.ks.myapp.constant.Constants;
-import com.openai.commonutil.FavoriteUtil;
+import com.openapi.core.util.FavoriteUtil;
 import com.openapi.ks.myapp.data.HistoryUtil;
-import com.openai.commonutil.StaticDataUtil;
+import com.openapi.core.util.StaticDataUtil;
 import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
 import com.openapi.ks.myapp.ui.base.MenuOneContext;
 import com.openapi.ks.myapp.ui.base.features.BasePullLoadbleFragment;
@@ -88,10 +88,10 @@ public class TextChannelListFragment extends BasePullLoadbleFragment<TextItemsVo
     public void onItemLongClick(View view, final TextItemsVo data, int position) {
         FavoriteVo favoriteVo = FavoriteUtil.getFavorite(getActivity(), data.fileUrl);
         int title;
-        int icon = com.openai.commonutil.R.drawable.ic_menu_favorite_ed;
+        int icon = com.openapi.core.util.R.drawable.ic_menu_favorite_ed;
         if (favoriteVo == null) {
             title = R.string.menu_favorite;
-            icon = com.openai.commonutil.R.drawable.ic_menu_favorite_no;
+            icon = com.openapi.core.util.R.drawable.ic_menu_favorite_no;
         } else {
             title = R.string.menu_favorite_cancel;
         }

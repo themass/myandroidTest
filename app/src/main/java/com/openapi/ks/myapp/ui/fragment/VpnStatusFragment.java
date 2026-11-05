@@ -25,8 +25,8 @@ package com.openapi.ks.myapp.ui.fragment;//package com.timeline.sex.ui.fragment;
 //import android.widget.TextView;
 //
 //import com.openapi.ks.myapp.ui.base.app.BaseFragment;
-//import com.openai.commonutil.LogUtil;
-//import com.openai.commonutil.ToastUtil;
+//import com.openapi.core.util.LogUtil;
+//import com.openapi.core.util.ToastUtil;
 //import com.openapi.yewu.ads.base.AdsContext;
 //import com.openapi.yewu.ads.base.AdsManager;
 //import com.openapi.yewu.net.HttpUtils;

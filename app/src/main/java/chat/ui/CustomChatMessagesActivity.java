@@ -28,30 +28,30 @@ import android.widget.PopupWindow;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
-import com.android.volley.Response;
+import com.openapi.core.net.Response;
 import com.luck.picture.lib.basic.PictureSelector;
 import com.luck.picture.lib.entity.LocalMedia;
-import com.openai.CommonConstants;
-import com.openai.ads.yewu.ads.base.AdsManager;
-import com.openai.commonevent.ConfigActionEvent;
-import com.openai.commonutil.Base64Util;
-import com.openai.commonutil.FileUtils;
-import com.openai.commonutil.ImageUtils;
-import com.openai.commonutil.PreferenceUtils;
-import com.openai.commonutil.StringUtils;
-import com.openai.commonview.view.InputRecordView;
-import com.openai.commonutil.Mp3ToWav;
-import com.openai.commonutil.DoubleClickExit;
-import com.openai.commonutil.EventBusUtil;
-import com.openai.commonutil.GsonUtils;
-import com.openai.commonutil.LogUtil;
-import com.openai.commonutil.ToastUtil;
-import com.openai.ads.yewu.ads.base.AdsContext;
-import com.openai.net.VolleyUtils;
-import com.openai.net.request.CommonResponse;
-import com.openai.ads.yewu.um.MobAgent;
-import com.openai.net.request.GsonInfoListRequest;
-import com.openai.net.request.InfoListVo;
+import com.openapi.core.CommonConstants;
+import com.openapi.core.ads.yewu.ads.base.AdsManager;
+import com.openapi.core.event.ConfigActionEvent;
+import com.openapi.core.util.Base64Util;
+import com.openapi.core.util.FileUtils;
+import com.openapi.core.util.ImageUtils;
+import com.openapi.core.util.PreferenceUtils;
+import com.openapi.core.util.StringUtils;
+import com.openapi.core.view.view.InputRecordView;
+import com.openapi.core.util.Mp3ToWav;
+import com.openapi.core.util.DoubleClickExit;
+import com.openapi.core.util.EventBusUtil;
+import com.openapi.core.util.GsonUtils;
+import com.openapi.core.util.LogUtil;
+import com.openapi.core.util.ToastUtil;
+import com.openapi.core.ads.yewu.ads.base.AdsContext;
+import com.openapi.core.net.NetQueue;
+import com.openapi.core.net.request.CommonResponse;
+import com.openapi.core.ads.yewu.um.MobAgent;
+import com.openapi.core.net.request.GsonInfoListRequest;
+import com.openapi.core.net.request.InfoListVo;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.bean.form.AsrContentForm;
@@ -89,7 +89,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import butterknife.BindView;
+import com.openapi.ks.chat.databinding.ActivityCustomLayoutMessagesBinding;
 import chat.ui.adapter.MyMessagesListAdapter;
 import chat.ui.data.model.ChatMessageBean;
 import chat.ui.data.model.ChatHistory;
@@ -107,11 +107,8 @@ import tz.co.hosannahighertech.messagekit.messages.MessagesListAdapter;
 public class CustomChatMessagesActivity extends BaseDrawerActivity implements
         MessagesListAdapter.OnLoadMoreListener{
 
-    @BindView(R.id.messagesList)
     MessagesList messagesList;
-    @BindView(R.id.input)
     InputRecordView input;
-    @BindView(R.id.fl_banner)
     FrameLayout banner;
     private Set<OnBackKeyDownListener> keyListeners = new HashSet<>();
     public ChatLog relogLlm = null;
@@ -323,6 +320,23 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
         });
     }
     @Override
+    protected void onBindContent(ViewGroup container) {
+        super.onBindContent(container);
+        ActivityCustomLayoutMessagesBinding b = ActivityCustomLayoutMessagesBinding.bind(contentRoot(container));
+        messagesList = b.messagesList;
+        input = b.input;
+        banner = b.flBanner.getRoot();
+    }
+
+    @Override
+    protected void unbindViews() {
+        messagesList = null;
+        input = null;
+        banner = null;
+        super.unbindViews();
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_custom_layout_messages);
@@ -399,7 +413,7 @@ public class CustomChatMessagesActivity extends BaseDrawerActivity implements
             }
         }, new CommonResponse.ResponseErrorListener());
         request.setTag("initChatSession");
-        VolleyUtils.addRequest(request);
+        NetQueue.addRequest(request);
     }
 
     private void initAdapter() {

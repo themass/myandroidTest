@@ -12,10 +12,12 @@ import androidx.viewpager.widget.ViewPager;
 import androidx.viewpager.widget.ViewPager.OnPageChangeListener;
 
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.openai.commonutil.ToastUtil;
+import com.openapi.core.util.ToastUtil;
 import com.openapi.ks.chat.R;
+import com.openapi.ks.chat.databinding.LayoutImgBigPageViewBinding;
 import com.openapi.ks.myapp.adapter.MyFullScreenImageGalleryAdapter;
 import com.openapi.ks.myapp.task.SaveImageCallBack;
 import com.openapi.ks.myapp.task.SaveImageTask;
@@ -24,15 +26,11 @@ import com.openapi.ks.myapp.ui.base.app.BaseSingleActivity;
 import java.util.ArrayList;
 import java.util.List;
 
-import butterknife.BindView;
-import butterknife.OnClick;
 
 public class MyFullScreenImageGalleryActivity extends BaseSingleActivity implements SaveImageCallBack {
     public static final String KEY_IMAGES = "KEY_IMAGES";
     public static final String KEY_POSITION = "KEY_POSITION";
-    @BindView(R.id.vp_big_container)
     ViewPager viewPager;
-    @BindView(R.id.tv_page)
     TextView tvPage;
     private List<String> images;
     private int position;
@@ -65,7 +63,22 @@ public class MyFullScreenImageGalleryActivity extends BaseSingleActivity impleme
         this.setContentView(R.layout.layout_img_big_page_view);
     }
 
-    @OnClick(R.id.iv_save)
+    @Override
+    protected void onBindContent(ViewGroup container) {
+        super.onBindContent(container);
+        LayoutImgBigPageViewBinding b = LayoutImgBigPageViewBinding.bind(contentRoot(container));
+        viewPager = b.vpBigContainer;
+        tvPage = b.tvPage;
+        b.ivSave.setOnClickListener(this::onSave);
+    }
+
+    @Override
+    protected void unbindViews() {
+        viewPager = null;
+        tvPage = null;
+        super.unbindViews();
+    }
+
     public void onSave(View view) {
         if (images == null || images.isEmpty() || viewPager.getAdapter() == null) {
             ToastUtil.showShort(R.string.save_fail);

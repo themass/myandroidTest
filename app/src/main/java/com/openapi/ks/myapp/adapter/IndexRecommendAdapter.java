@@ -17,14 +17,14 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.openai.commonutil.LogUtil;
+import com.openapi.core.util.LogUtil;
 // 使用现代 Shimmer 替代
 import com.facebook.shimmer.ShimmerFrameLayout;
-import com.openai.commonview.touchhelper.OnStartDragListener;
-import com.openai.commonutil.DensityUtil;
-import com.openai.commonutil.PreferenceUtils;
-import com.openai.commonutil.StringUtils;
-import com.openai.commonutil.ToastUtil;
+import com.openapi.core.view.touchhelper.OnStartDragListener;
+import com.openapi.core.util.DensityUtil;
+import com.openapi.core.util.PreferenceUtils;
+import com.openapi.core.util.StringUtils;
+import com.openapi.core.util.ToastUtil;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.adapter.base.BasePhotoFlowRecycleViewAdapter;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
@@ -35,7 +35,6 @@ import com.openapi.ks.myapp.data.VersionUpdater;
 import java.io.IOException;
 import java.util.List;
 
-import butterknife.BindView;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
@@ -225,23 +224,24 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
         void onEditClick(View view, int postion);
     }
     public static class NaviItemViewHolder extends BaseViewHolder {
-        @BindView(R.id.card_view)
         public CardView cardView;
-        @BindView(R.id.tv_title)
         public TextView ivTitle; // 使用普通 TextView 替代 ShimmerTextView
-        @BindView(R.id.iv_photo)
         public ImageView ivPhoto;
-        @BindView(R.id.iv_edit)
         public ImageView ivEdit;
-        @BindView(R.id.ads_logo)
         public TextView ivADS;
-        @BindView(R.id.iv_new)
         public View ivNew;
-        @BindView(R.id.tv_title_below)
         public TextView tvTitleBelow;
 
         public NaviItemViewHolder(View view) {
             super(view);
+            // tab_index_item_recommend is viewBindingIgnore: no binding class
+            cardView = view.findViewById(R.id.card_view);
+            ivTitle = view.findViewById(R.id.tv_title);
+            ivPhoto = view.findViewById(R.id.iv_photo);
+            ivEdit = view.findViewById(R.id.iv_edit);
+            ivADS = view.findViewById(R.id.ads_logo);
+            ivNew = view.findViewById(R.id.iv_new);
+            tvTitleBelow = view.findViewById(R.id.tv_title_below);
         }
     }
 

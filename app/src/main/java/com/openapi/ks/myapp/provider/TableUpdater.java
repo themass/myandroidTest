@@ -3,7 +3,7 @@ package com.openapi.ks.myapp.provider;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 
-import com.openai.commonutil.LogUtil;
+import com.openapi.core.util.LogUtil;
 
 /**
  * Created by wjying on 13-12-4.

@@ -14,20 +14,20 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 // 已移除 FireworkShow 类
-// import com.openai.commonview.view.FireworkShow;
+// import com.openapi.core.view.view.FireworkShow;
 import com.openapi.ks.myapp.bean.form.ChatSessionLog;
 import com.openapi.ks.myapp.data.DBManager;
 import com.openapi.ks.myapp.ui.base.app.LogActivity;
-import com.openai.commonutil.EventBusUtil;
-import com.openai.commonutil.LogUtil;
+import com.openapi.core.util.EventBusUtil;
+import com.openapi.core.util.LogUtil;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.constant.Constants;
-import com.openai.ads.yewu.ads.config.SplashAdDissmisEvent;
+import com.openapi.core.ads.yewu.ads.config.SplashAdDissmisEvent;
 import com.openapi.ks.myapp.task.LoginTask;
-import com.openai.ads.yewu.ads.base.AdsContext;
-import com.openai.ads.yewu.ads.base.AdsManager;
-import com.openai.ads.yewu.ads.config.LaunchAdsNext;
-import com.openai.ads.yewu.um.MobAgent;
+import com.openapi.core.ads.yewu.ads.base.AdsContext;
+import com.openapi.core.ads.yewu.ads.base.AdsManager;
+import com.openapi.core.ads.yewu.ads.config.LaunchAdsNext;
+import com.openapi.core.ads.yewu.um.MobAgent;
 
 
 import org.greenrobot.eventbus.Subscribe;
@@ -35,35 +35,24 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.IOException;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-import butterknife.Unbinder;
 import chat.ui.CustomChatMessagesWithAsrActivity;
+import com.openapi.ks.chat.databinding.MainLaunchBinding;
 
 /**
  * Created by openapi on 2016/3/22.
  */
 public class LaunchActivity extends LogActivity {
-    @BindView(R.id.rl_spread)
     RelativeLayout ivAds;
-    @BindView(R.id.skip_view)
     RelativeLayout skipView;
-    @BindView(R.id.tv_shu)
     TextView tvJishi;
-    @BindView(R.id.rl_banner1)
     RelativeLayout banner1;
-    @BindView(R.id.rl_banner2)
     RelativeLayout banner2;
-    @BindView(R.id.rl_banner3)
     RelativeLayout banner3;
-    @BindView(R.id.ll_banner)
     LinearLayout llBanner;
 //    @BindView(R.id.fireView)
 //    FireworkShow fireworkShow;
     private int max = Constants.STARTUP_SHOW_TIME_6000 + 1000;
     private int now = 0;
-    private Unbinder unbinder;
     boolean perm = true;
     private Runnable mStartMainRunnable = new Runnable() {
         @Override
@@ -88,8 +77,8 @@ public class LaunchActivity extends LogActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_launch);
+        bindButterViews();
         MobAgent.init(this);
-        unbinder = ButterKnife.bind(this);
         LoginTask.start(this);
         mHandler.postDelayed(mStartMainRunnable, max);
         EventBusUtil.getEventBus().register(this);
@@ -103,11 +92,33 @@ public class LaunchActivity extends LogActivity {
                 "Default", null, "", ChatSessionLog.TYPE.DEF.type);
     }
 
-    @OnClick(R.id.skip_view)
     public void skip(View view) {
         if (getResources().getText(R.string.skip).equals(tvJishi.getText()))
             launch();
     }
+
+    private void bindButterViews() {
+        MainLaunchBinding b = MainLaunchBinding.bind(findViewById(android.R.id.content));
+        ivAds = b.rlSpread;
+        skipView = b.skipView;
+        tvJishi = b.tvShu;
+        banner1 = b.rlBanner1;
+        banner2 = b.rlBanner2;
+        banner3 = b.rlBanner3;
+        llBanner = b.llBanner;
+        b.skipView.setOnClickListener(this::skip);
+    }
+
+    private void unbindButterViews() {
+        ivAds = null;
+        skipView = null;
+        tvJishi = null;
+        banner1 = null;
+        banner2 = null;
+        banner3 = null;
+        llBanner = null;
+    }
+
 
     private void launch() {
 //        fireworkShow.stopFireworkShow();
@@ -156,7 +167,6 @@ public class LaunchActivity extends LogActivity {
 
     @Override
     public void onDestroy() {
-        unbinder.unbind();
         mHandler.removeMessages(Constants.ADS_JISHI);
         mHandler.removeCallbacks(mStartMainRunnable);
         AdsManager.getInstans().exitSplashAds(this, ivAds);

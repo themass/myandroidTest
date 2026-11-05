@@ -70,7 +70,7 @@
                     android:src="@drawable/ic_music_play_filled"
                     tools:ignore="ImageContrastCheck" />
 
-                <com.openai.commonview.view.MarqueeTextView
+                <com.openapi.core.view.view.MarqueeTextView
                     android:id="@+id/music_detail_track_title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -104,7 +104,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true" />
 
-        <com.openai.commonview.view.MyFavoriteView
+        <com.openapi.core.view.view.MyFavoriteView
             android:id="@+id/my_favoriteview"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

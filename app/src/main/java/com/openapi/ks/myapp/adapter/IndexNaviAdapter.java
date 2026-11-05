@@ -15,17 +15,14 @@ import android.view.animation.Interpolator;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.openai.commonutil.DisplayUtil;
-import com.openai.commonutil.Utils;
+import com.openapi.core.util.DisplayUtil;
+import com.openapi.core.util.Utils;
 import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.chat.R;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
 
 /**
  * Created by Miroslaw Stanek on 20.01.15.
@@ -126,16 +123,16 @@ public class IndexNaviAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     }
 
     static class NaviItemViewHolder extends RecyclerView.ViewHolder {
-        @BindView(R.id.card_view)
         CardView cardView;
-        @BindView(R.id.tv_title)
         TextView ivTitle;
-        @BindView(R.id.iv_photo)
         ImageView ivPhoto;
 
         public NaviItemViewHolder(View view) {
             super(view);
-            ButterKnife.bind(this, view);
+            // tab_index_item_recommend is viewBindingIgnore: no binding class
+            cardView = view.findViewById(R.id.card_view);
+            ivTitle = view.findViewById(R.id.tv_title);
+            ivPhoto = view.findViewById(R.id.iv_photo);
         }
     }
 }

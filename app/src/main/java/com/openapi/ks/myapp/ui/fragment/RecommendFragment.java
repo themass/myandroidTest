@@ -11,21 +11,21 @@ import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
 import android.view.View;
 
-import com.openai.CommonConstants;
-import com.openai.commonview.touchhelper.OnStartDragListener;
-import com.openai.commonview.touchhelper.SimpleItemTouchHelperCallback;
-import com.openai.commonutil.EventBusUtil;
-import com.openai.commonutil.ToastUtil;
-import com.openai.ads.yewu.um.MobAgent;
+import com.openapi.core.CommonConstants;
+import com.openapi.core.view.touchhelper.OnStartDragListener;
+import com.openapi.core.view.touchhelper.SimpleItemTouchHelperCallback;
+import com.openapi.core.util.EventBusUtil;
+import com.openapi.core.util.ToastUtil;
+import com.openapi.core.ads.yewu.um.MobAgent;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.adapter.IndexRecommendAdapter;
 import com.openapi.ks.myapp.adapter.base.BasePhotoFlowRecycleViewAdapter;
 import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
-import com.openai.net.request.InfoListVo;
+import com.openapi.core.net.request.InfoListVo;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.UserLoginUtil;
-import com.openai.commonevent.ConfigActionEvent;
+import com.openapi.core.event.ConfigActionEvent;
 import com.openapi.ks.myapp.ui.base.features.BasePullLoadbleFragment;
 import com.openapi.ks.myapp.ui.user.LoginActivity;
 

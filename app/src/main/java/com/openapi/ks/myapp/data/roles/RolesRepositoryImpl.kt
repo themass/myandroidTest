@@ -2,7 +2,7 @@ package com.openapi.ks.myapp.data.roles
 
 import android.content.Context
 import com.google.gson.Gson
-import com.openai.commonutil.PreferenceUtils
+import com.openapi.core.util.PreferenceUtils
 import com.openapi.ks.myapp.constant.Constants
 import com.openapi.roles.data.RolesParser
 import com.openapi.roles.data.RolesRepository

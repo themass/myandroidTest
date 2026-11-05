@@ -10,8 +10,8 @@ package com.openapi.ks.myapp.ui.fragment;//package com.timeline.myapp.ui.fragmen
 //import android.view.ViewGroup;
 //
 //import com.openapi.commons.common.ui.view.gallery.BigImagePreview;
-//import com.openai.commonutil.CollectionUtils;
-//import com.openai.commonutil.DensityUtil;
+//import com.openapi.core.util.CollectionUtils;
+//import com.openapi.core.util.DensityUtil;
 //import com.timeline.sexfree1.R;
 //import com.timeline.myapp.bean.vo.ImgItemVo;
 //import com.timeline.myapp.bean.vo.ImgItemsVo;

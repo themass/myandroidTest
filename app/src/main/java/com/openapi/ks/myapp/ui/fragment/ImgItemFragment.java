@@ -18,39 +18,32 @@ import android.widget.TextView;
 // 使用现代图片查看器替代
 // import com.etiennelawlor.imagegallery.library.adapters.FullScreenImageGalleryAdapter;
 // import com.etiennelawlor.imagegallery.library.utilities.DisplayUtility;
-import com.openai.commonevent.FavoriteVo;
-import com.openai.commonview.view.MyFavoriteView;
-import com.openai.commonutil.ToastUtil;
+import com.openapi.core.event.FavoriteVo;
+import com.openapi.core.view.view.MyFavoriteView;
+import com.openapi.core.util.ToastUtil;
 import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.bean.vo.ImgItemsVo;
-import com.openai.net.request.InfoListVo;
+import com.openapi.core.net.request.InfoListVo;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.constant.Constants;
-import com.openai.commonutil.StaticDataUtil;
+import com.openapi.core.util.StaticDataUtil;
 import com.openapi.ks.myapp.task.SaveImageCallBack;
 import com.openapi.ks.myapp.task.SaveImageTask;
 import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
 import com.openapi.ks.myapp.ui.inte.OnBackKeyDownListener;
 import com.openapi.ks.chat.R;
 
-import butterknife.BindView;
-import butterknife.OnClick;
 
 /**
  * Created by openapi on 2016/8/12.
  */
 public class ImgItemFragment extends RecommendFragment implements SaveImageCallBack, OnBackKeyDownListener, MyFavoriteView.OnFavoriteItemClick {
     private static final String IMG_ITEM_TAG = "Img_ITEM_TAG";
-    @BindView(R.id.my_favoriteview)
     MyFavoriteView myFavoriteView;
-    @BindView(R.id.full_view)
     RelativeLayout fullView;
-    @BindView(R.id.rl_list)
     RelativeLayout listView;
-    @BindView(R.id.vp_big_container)
     ViewPager viewPager;
-    @BindView(R.id.tv_page)
     TextView tvPage;
     private ImgItemsVo vo;
     // region Member Variables
@@ -72,11 +65,32 @@ public class ImgItemFragment extends RecommendFragment implements SaveImageCallB
         context.startActivity(intent);
     }
 
-    @OnClick(R.id.iv_save)
     public void onSave(View view) {
         ToastUtil.showShort(R.string.save_start);
         SaveImageTask.startSave(getActivity(), infoListVo.voList.get(viewPager.getCurrentItem()).actionUrl, this);
     }
+
+    @Override
+    protected void bindViews(View view) {
+        super.bindViews(view);
+        myFavoriteView = view.findViewById(R.id.my_favoriteview);
+        fullView = view.findViewById(R.id.full_view);
+        listView = view.findViewById(R.id.rl_list);
+        viewPager = view.findViewById(R.id.vp_big_container);
+        tvPage = view.findViewById(R.id.tv_page);
+        view.findViewById(R.id.iv_save).setOnClickListener(this::onSave);
+    }
+
+    @Override
+    protected void unbindViews() {
+        myFavoriteView = null;
+        fullView = null;
+        listView = null;
+        viewPager = null;
+        tvPage = null;
+        super.unbindViews();
+    }
+
 
     public void onSuccess() {
         ToastUtil.showShort(R.string.save_ok);

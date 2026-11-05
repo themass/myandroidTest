@@ -23,13 +23,13 @@
 //import com.openapi.ks.myapp.ui.sound.media.MyJzvdStd; // 你的自定义 JzvdStd
 //// import com.openapi.ks.myapp.utils.JzvdPlayerFactory; //假设你有这个工厂类
 //
-//import com.openai.commonevent.FavoriteVo;
-//import com.openai.commonutil.LogUtil;
-//import com.openai.commonutil.StringUtils;
-//import com.openai.commonutil.ToastUtil; // 你项目中的 Toast 工具类
-//import com.openai.commonview.view.MyFavoriteView;
-//import com.openai.net.BaseService;
-//import com.openai.net.request.CommonResponse;
+//import com.openapi.core.event.FavoriteVo;
+//import com.openapi.core.util.LogUtil;
+//import com.openapi.core.util.StringUtils;
+//import com.openapi.core.util.ToastUtil; // 你项目中的 Toast 工具类
+//import com.openapi.core.view.view.MyFavoriteView;
+//import com.openapi.core.net.BaseService;
+//import com.openapi.core.net.request.CommonResponse;
 //
 //
 //// --- 火山 ASR SDK 相关导入 (请替换为实际的火山 SDK 包名和类名) ---

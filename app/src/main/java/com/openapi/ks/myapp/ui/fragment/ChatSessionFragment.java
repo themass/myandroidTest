@@ -16,16 +16,16 @@ import android.widget.PopupWindow;
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.openai.commonutil.CollectionUtils;
-import com.openai.commonutil.EventBusUtil;
-import com.openai.commonutil.GsonUtils;
-import com.openai.commonutil.LogUtil;
-import com.openai.commonutil.PreferenceUtils;
-import com.openai.commonutil.ToastUtil;
-import com.openai.ads.yewu.ads.base.AdsContext;
+import com.openapi.core.util.CollectionUtils;
+import com.openapi.core.util.EventBusUtil;
+import com.openapi.core.util.GsonUtils;
+import com.openapi.core.util.LogUtil;
+import com.openapi.core.util.PreferenceUtils;
+import com.openapi.core.util.ToastUtil;
+import com.openapi.core.ads.yewu.ads.base.AdsContext;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.bean.form.ChatSessionLog;
-import com.openai.net.request.InfoListVo;
+import com.openapi.core.net.request.InfoListVo;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.DBManager;
@@ -36,8 +36,8 @@ import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import com.openapi.ks.chat.databinding.LayoutRecommdCustomeBinding;
 
-import butterknife.BindView;
 
 
 /**
@@ -45,8 +45,21 @@ import butterknife.BindView;
  */
 public class ChatSessionFragment extends RecommendFragment {
     private static final String INDEX_TAG = "chat_session_tag";
-    @BindView(R.id.lb_add)
     ImageButton llAdd;
+
+    @Override
+    protected void bindViews(View view) {
+        super.bindViews(view);
+        LayoutRecommdCustomeBinding b = LayoutRecommdCustomeBinding.bind(view);
+        llAdd = b.lbAdd;
+    }
+
+    @Override
+    protected void unbindViews() {
+        llAdd = null;
+        super.unbindViews();
+    }
+
 
     public static void startFragment(Context context) {
         Intent intent = new Intent(context, CommonFragmentActivity.class);

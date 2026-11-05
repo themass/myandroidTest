@@ -19,20 +19,20 @@ import android.os.Looper;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.NotificationCompat;
 
-import com.openai.CommonConstants;
-import com.openai.commonutil.EventBusUtil;
-import com.openai.commonutil.FileUtils;
-import com.openai.commonutil.LogUtil;
-import com.openai.commonutil.PackageUtils;
-import com.openai.commonutil.PreferenceUtils;
-import com.openai.commonutil.StringUtils;
-import com.openai.commonutil.ToastUtil;
-import com.openai.net.HttpDNSUtil;
-import com.openai.net.HttpUtils;
-import com.openai.net.NetUtils;
-import com.openai.net.VolleyUtils;
-import com.openai.net.request.CommonResponse;
-import com.openai.net.request.GsonRequest;
+import com.openapi.core.CommonConstants;
+import com.openapi.core.util.EventBusUtil;
+import com.openapi.core.util.FileUtils;
+import com.openapi.core.util.LogUtil;
+import com.openapi.core.util.PackageUtils;
+import com.openapi.core.util.PreferenceUtils;
+import com.openapi.core.util.StringUtils;
+import com.openapi.core.util.ToastUtil;
+import com.openapi.core.net.HttpDNSUtil;
+import com.openapi.core.net.HttpUtils;
+import com.openapi.core.net.NetUtils;
+import com.openapi.core.net.NetQueue;
+import com.openapi.core.net.request.CommonResponse;
+import com.openapi.core.net.request.GsonRequest;
 import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.bean.vo.VersionVo;
 import com.openapi.ks.myapp.constant.Constants;
@@ -142,7 +142,7 @@ public class VersionUpdater {
     public static void checkNewVersion(Context context, CommonResponse.ResponseOkListener listener, CommonResponse.ResponseErrorListener errorListener, String tag) {
         GsonRequest request = new GsonRequest(context, Constants.getUrl(Constants.API_VERSION_URL), VersionVo.class, null, listener, errorListener);
         request.setTag(tag);
-        VolleyUtils.addRequest(request);
+        NetQueue.addRequest(request);
     }
 
     /**

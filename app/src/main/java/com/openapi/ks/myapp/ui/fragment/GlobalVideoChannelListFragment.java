@@ -5,14 +5,14 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
-import com.openai.net.request.InfoListVo;
+import com.openapi.core.net.request.InfoListVo;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.constant.Constants;
-import com.openai.commonutil.StaticDataUtil;
+import com.openapi.core.util.StaticDataUtil;
 import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
 import com.openapi.ks.myapp.ui.sound.VideoShowActivityLazyUrl;
-import com.openai.commonutil.PreferenceUtils;
-import com.openai.ads.yewu.ads.base.AdsContext;
+import com.openapi.core.util.PreferenceUtils;
+import com.openapi.core.ads.yewu.ads.base.AdsContext;
 
 /**
  * Created by openapi on 2016/8/12.

@@ -76,8 +76,8 @@
 -dontwarn io.reactivex.rxjava3.**
 
 # 现代权限管理
--keep class com.openai.commonutil.permission.ModernPermissionManager { *; }
--keep class com.openai.commonutil.permission.ModernPermissionManager$* { *; }
+-keep class com.openapi.core.util.permission.ModernPermissionManager { *; }
+-keep class com.openapi.core.util.permission.ModernPermissionManager$* { *; }
 
 # EventBus
 -keepattributes *Annotation*
@@ -86,23 +86,13 @@
 }
 -keep enum org.greenrobot.eventbus.ThreadMode { *; }
 
-# ButterKnife
--keep class butterknife.** { *; }
--dontwarn butterknife.**
--keep class **$$ViewBinder { *; }
--keepclasseswithmembernames class * {
-    @butterknife.* <fields>;
-}
--keepclasseswithmembernames class * {
-    @butterknife.* <methods>;
-}
 
 # ==============================================
 # 4. 项目业务类保留规则
 # ==============================================
 # 保留项目核心包
 -keep class com.openapi.ks.** { *; }
--keep class com.openai.** { *; }
+-keep class com.openapi.core.** { *; }
 -keep class chat.** { *; }
 
 # 保留数据模型

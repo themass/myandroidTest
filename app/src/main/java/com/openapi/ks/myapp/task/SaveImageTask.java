@@ -10,9 +10,9 @@ import android.provider.MediaStore;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.Target;
-import com.openai.commonutil.LogUtil;
-import com.openai.commonutil.PathUtil;
-import com.openai.commonutil.StringUtils;
+import com.openapi.core.util.LogUtil;
+import com.openapi.core.util.PathUtil;
+import com.openapi.core.util.StringUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;

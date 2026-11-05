@@ -2,7 +2,7 @@ package com.openapi.ks.myapp.task;
 
 import android.content.Context;
 
-import com.openai.commonutil.LogUtil;
+import com.openapi.core.util.LogUtil;
 
 import java.io.File;
 import java.util.concurrent.ExecutorService;

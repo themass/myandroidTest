@@ -144,14 +144,6 @@
 -dontwarn net.sqlcipher.database.**
 
 # ---------------------- UI/工具相关 ----------------------
-# ButterKnife（视图绑定，若项目仍使用则保留）
--keep class butterknife.** { *; }
--dontwarn butterknife.internal.**
--keep class **$$ViewBinder { *; }
--keepclasseswithmembernames class * {
-    @butterknife.* <fields>;
-    @butterknife.* <methods>;
-}
 
 # PictureSelector + UCrop（图片选择与裁剪，保留核心类）
 -keep class com.luck.picture.lib.** { *; }
@@ -203,11 +195,11 @@
 -keep class com.openapi.commons.common.weather.** { *; }
 
 # 保留 openai 模块下的工具、事件、网络、表情、广告子包
--keep class com.openai.commonutil.** { *; }
--keep class com.openai.commonevent.** { *; }
--keep class com.openai.net.** { *; }
--keep class com.openai.emoji.** { *; }
--keep class com.openai.ads.** { *; }
+-keep class com.openapi.core.util.** { *; }
+-keep class com.openapi.core.event.** { *; }
+-keep class com.openapi.core.net.** { *; }
+-keep class com.openapi.core.emoji.** { *; }
+-keep class com.openapi.core.ads.** { *; }
 
 # 保留 ping 相关业务类
 -keep class com.ping.** { *; }

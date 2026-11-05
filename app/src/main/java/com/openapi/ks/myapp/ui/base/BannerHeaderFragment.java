@@ -6,24 +6,22 @@ import android.os.Looper;import android.view.View;
 import android.view.ViewGroup;
 
 import com.openapi.ks.myapp.ui.base.app.BaseFragment;
-import com.openai.commonutil.EventBusUtil;
-import com.openai.commonutil.LogUtil;
-import com.openai.ads.yewu.ads.base.AdsContext;
-import com.openai.ads.yewu.ads.base.AdsManager;
+import com.openapi.core.util.EventBusUtil;
+import com.openapi.core.util.LogUtil;
+import com.openapi.core.ads.yewu.ads.base.AdsContext;
+import com.openapi.core.ads.yewu.ads.base.AdsManager;
 import com.openapi.ks.myapp.data.UserLoginUtil;
 import com.openapi.ks.chat.R;
+import com.openapi.ks.chat.databinding.CommonBannerBinding;
 import com.openapi.ks.myapp.data.config.HindBannerEvent;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import butterknife.BindView;
-
 /**
  * Created by openapi on 2016/8/21.
  */
 public class BannerHeaderFragment extends BaseFragment {
-    @BindView(R.id.fl_banner)
     public ViewGroup flBanner;
     private AdsGoneTask task = new AdsGoneTask();
     protected Handler mHandler = new Handler(Looper.getMainLooper());
@@ -38,6 +36,18 @@ public class BannerHeaderFragment extends BaseFragment {
     @Override
     protected int getRootViewId() {
         return R.layout.common_banner;
+    }
+
+    @Override
+    protected void bindViews(View view) {
+        super.bindViews(view);
+        flBanner = CommonBannerBinding.bind(view).flBanner;
+    }
+
+    @Override
+    protected void unbindViews() {
+        flBanner = null;
+        super.unbindViews();
     }
 
     @Override

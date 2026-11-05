@@ -16,8 +16,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.openai.commonutil.LogUtil;
-import com.openai.ads.yewu.um.MobAgent;
+import com.openapi.core.util.LogUtil;
+import com.openapi.core.ads.yewu.um.MobAgent;
 
 /**
  * Created by openapi on 2016/3/16.

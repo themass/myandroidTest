@@ -7,9 +7,9 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import androidx.core.content.ContextCompat;
 
-import com.openai.commonutil.LogUtil;
-import com.openai.commonutil.StringUtils;
-import com.openai.net.HttpUtils;
+import com.openapi.core.util.LogUtil;
+import com.openapi.core.util.StringUtils;
+import com.openapi.core.net.HttpUtils;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.bean.vo.LocationVo;
 

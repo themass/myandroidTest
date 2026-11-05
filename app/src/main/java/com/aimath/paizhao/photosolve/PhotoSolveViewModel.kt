@@ -8,6 +8,7 @@ import com.aimath.paizhao.photosolve.ImageUtils.resizeSmart
 import com.aimath.paizhao.photosolve.cropassist.CropAssistRegistry
 import com.aimath.paizhao.photosolve.cropassist.CropAssistSettingsRepository
 import com.aimath.paizhao.photosolve.image.ImagePipeline.enhanceForDocument
+import com.aimath.paizhao.photosolve.image.RealEsrganUpscaler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,6 +23,8 @@ class PhotoSolveViewModel(application: Application) : AndroidViewModel(applicati
 
     private val repository: PhotoSolveRepository = MockPhotoSolveRepository()
     private val cropAssistSettings = CropAssistSettingsRepository(application)
+    /** 模型未随包提供时 [RealEsrganUpscaler.upscaleSmall] 直接返回 null，流程不变。 */
+    private val upscaler = RealEsrganUpscaler(application)
 
     val cropAssistRegistry = CropAssistRegistry(application)
 
@@ -56,7 +59,8 @@ class PhotoSolveViewModel(application: Application) : AndroidViewModel(applicati
     fun onCropConfirmed(croppedByUser: Bitmap) {
         viewModelScope.launch {
             val cropped = withContext(Dispatchers.Default) {
-                croppedByUser.resizeSmart().enhanceForDocument()
+                val resized = croppedByUser.resizeSmart()
+                (upscaler.upscaleSmall(resized) ?: resized).enhanceForDocument()
             }
 
             _uiState.update {

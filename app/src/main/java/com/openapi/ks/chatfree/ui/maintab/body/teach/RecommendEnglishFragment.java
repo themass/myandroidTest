@@ -7,8 +7,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
-import com.openai.ads.yewu.um.MobAgent;
-import com.openai.commonutil.PackageUtils;
+import com.openapi.core.ads.yewu.um.MobAgent;
+import com.openapi.core.util.PackageUtils;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
@@ -17,16 +17,14 @@ import com.openapi.ks.myapp.ui.fragment.AppListFragment;
 import com.openapi.ks.myapp.ui.fragment.RecommendFragment;
 import com.openapi.ks.myapp.ui.fragment.TeleplayChannelFragment;
 import com.openapi.ks.myapp.ui.fragment.VideoChannelListFragment;
+import com.openapi.ks.chat.databinding.LayoutIndexFragmentBinding;
 
-import butterknife.BindView;
-import butterknife.OnClick;
 
 /**
  * Created by openapi on 2015/9/1.
  */
 public class RecommendEnglishFragment extends RecommendFragment {
     private static final String INDEX_TAG = "EnRecommend_tag";
-    @BindView(R.id.ll_vpn_status)
     RelativeLayout layout;
 
     @Override
@@ -43,10 +41,24 @@ public class RecommendEnglishFragment extends RecommendFragment {
         }
     }
 
-    @OnClick(R.id.ll_vpn_status)
     public void downLoad(View view) {
         AppListFragment.startFragment(getActivity());
     }
+
+    @Override
+    protected void bindViews(View view) {
+        super.bindViews(view);
+        LayoutIndexFragmentBinding b = LayoutIndexFragmentBinding.bind(view);
+        layout = (RelativeLayout) b.llVpnStatus.getRoot();
+        b.llVpnStatus.getRoot().setOnClickListener(this::downLoad);
+    }
+
+    @Override
+    protected void unbindViews() {
+        layout = null;
+        super.unbindViews();
+    }
+
 
     @Override
     public String getUrl(int start) {

@@ -1,6 +1,6 @@
 package com.openapi.ks.myapp.translation.realtime;
 
-import com.openai.commonutil.LogUtil;
+import com.openapi.core.util.LogUtil;
 
 import org.json.JSONObject;
 

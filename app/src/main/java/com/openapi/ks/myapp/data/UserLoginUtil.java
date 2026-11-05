@@ -3,11 +3,11 @@ package com.openapi.ks.myapp.data;
 import android.content.Context;
 import android.content.Intent;
 
-import com.openai.CommonConstants;
-import com.openai.commonutil.EventBusUtil;
-import com.openai.commonutil.PreferenceUtils;
-import com.openai.ads.yewu.um.MobAgent;
-import com.openai.commonutil.StaticDataUtil;
+import com.openapi.core.CommonConstants;
+import com.openapi.core.util.EventBusUtil;
+import com.openapi.core.util.PreferenceUtils;
+import com.openapi.core.ads.yewu.um.MobAgent;
+import com.openapi.core.util.StaticDataUtil;
 import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.bean.vo.UserInfoVo;
 import com.openapi.ks.myapp.constant.Constants;

@@ -12,8 +12,8 @@ import com.google.android.gms.cast.framework.SessionManager;
 import com.google.android.gms.cast.framework.SessionManagerListener;
 import com.google.android.gms.cast.framework.media.RemoteMediaClient;
 import com.google.android.gms.common.api.ResultCallback;
-import com.openai.commonutil.LogUtil;
-import com.openai.commonutil.ToastUtil;
+import com.openapi.core.util.LogUtil;
+import com.openapi.core.util.ToastUtil;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.ui.gsy.DetailGSYVideoPlayer;
 

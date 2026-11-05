@@ -13,8 +13,8 @@ import android.widget.ImageView;
 import android.widget.TextSwitcher;
 import android.widget.TextView;
 
-import com.openai.commonutil.DateUtils;
-import com.openai.commonutil.StringUtils;
+import com.openapi.core.util.DateUtils;
+import com.openapi.core.util.StringUtils;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.bean.vo.IWannaVo;
 import com.openapi.ks.myapp.constant.Constants;
@@ -24,8 +24,7 @@ import com.openapi.ks.myapp.task.IWannaLikeTask;
 import java.util.Date;
 import java.util.List;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
+import com.openapi.ks.chat.databinding.LayoutIwannaFeedItemBinding;
 
 /**
  * Created by froger_mcs on 05.11.14.
@@ -95,27 +94,27 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
     public static class CellFeedViewHolder extends RecyclerView.ViewHolder {
-        @BindView(R.id.iv_heart)
         public ImageView imageView;
-        @BindView(R.id.tv_content)
         public TextView tvContent;
-        @BindView(R.id.tsLikesCounter)
         public TextSwitcher tsLikesCounter;
         public IWannaVo feedItem;
-        @BindView(R.id.iv_ok)
         ImageView ivOk;
-        @BindView(R.id.tv_app_name)
         public TextView appName;
-        @BindView(R.id.tv_where)
         public TextView tvWhere;
-        @BindView(R.id.tv_name)
         public TextView name;
-        @BindView(R.id.tv_time)
         public TextView time;
 
         public CellFeedViewHolder(View view) {
             super(view);
-            ButterKnife.bind(this, view);
+            LayoutIwannaFeedItemBinding b = LayoutIwannaFeedItemBinding.bind(view);
+            imageView = b.ivHeart;
+            tvContent = b.tvContent;
+            tsLikesCounter = b.tsLikesCounter;
+            ivOk = b.ivOk;
+            appName = b.tvAppName;
+            tvWhere = b.tvWhere;
+            name = b.tvName;
+            time = b.tvTime;
         }
 
         public void bindView(IWannaVo feedItem) {

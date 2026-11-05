@@ -1,6 +1,6 @@
 package com.openapi.ks.myapp.ui.base.app;
 
-import com.openai.ads.yewu.um.MobAgent;
+import com.openapi.core.ads.yewu.um.MobAgent;
 
 /**
  * Created by openapi on 2016/8/18.

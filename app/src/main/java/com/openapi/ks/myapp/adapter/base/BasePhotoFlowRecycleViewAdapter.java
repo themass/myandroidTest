@@ -9,15 +9,14 @@ import android.view.View;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.Interpolator;
 
-import com.openai.commonview.touchhelper.ItemTouchHelperAdapter;
-import com.openai.commonview.touchhelper.OnStartDragListener;
-import com.openai.commonutil.Utils;
+import com.openapi.core.view.touchhelper.ItemTouchHelperAdapter;
+import com.openapi.core.view.touchhelper.OnStartDragListener;
+import com.openapi.core.util.Utils;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import butterknife.ButterKnife;
 
 /**
  * Created by Miroslaw Stanek on 20.01.15.
@@ -119,7 +118,6 @@ public abstract class BasePhotoFlowRecycleViewAdapter<M, T extends BasePhotoFlow
     public static class BaseViewHolder extends RecyclerView.ViewHolder {
         public BaseViewHolder(View view) {
             super(view);
-            ButterKnife.bind(this, view);
         }
     }
 

@@ -5,19 +5,19 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.MediaMetadataRetriever;
 
-import com.android.volley.VolleyError;
-import com.openai.CommonConstants;
-import com.openai.commonutil.Base64Util;
-import com.openai.commonutil.EventBusUtil;
-import com.openai.commonutil.PermissionHelper;
-import com.openai.commonview.view.widget.MediaManager;
-import com.openai.commonutil.FileUtils;
-import com.openai.commonutil.GsonUtils;
-import com.openai.commonutil.PreferenceUtils;
-import com.openai.commonutil.StringUtils;
-import com.openai.commonutil.LogUtil;
-import com.openai.commonutil.ToastUtil;
-import com.openai.net.request.CommonResponse;
+import com.openapi.core.net.NetError;
+import com.openapi.core.CommonConstants;
+import com.openapi.core.util.Base64Util;
+import com.openapi.core.util.EventBusUtil;
+import com.openapi.core.util.PermissionHelper;
+import com.openapi.core.view.view.widget.MediaManager;
+import com.openapi.core.util.FileUtils;
+import com.openapi.core.util.GsonUtils;
+import com.openapi.core.util.PreferenceUtils;
+import com.openapi.core.util.StringUtils;
+import com.openapi.core.util.LogUtil;
+import com.openapi.core.util.ToastUtil;
+import com.openapi.core.net.request.CommonResponse;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.bean.form.AsrContentForm;
@@ -164,7 +164,7 @@ public class CustomChatMessagesWithAsrActivity extends CustomChatMessagesActivit
             holdMsgs.put(ttsLoadEvent.message.getId(), ttsLoadEvent.message);
             baseService.postData(Constants.getUrl(Constants.CHAT_TTS_URL), asrContentForm, ttsListener, new CommonResponse.ResponseErrorListener(){
                 @Override
-                public void onErrorResponse(VolleyError volleyError) {
+                public void onErrorResponse(NetError volleyError) {
                     super.onErrorResponse(volleyError);
                     if(callbacks.get(asrContentForm.id)!=null){
                         callbacks.get(asrContentForm.id).apply(null);

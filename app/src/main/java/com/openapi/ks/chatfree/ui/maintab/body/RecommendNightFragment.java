@@ -7,15 +7,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
-import com.openai.commonutil.PackageUtils;
+import com.openapi.core.util.PackageUtils;
 import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.ui.fragment.AppListFragment;
 import com.openapi.ks.myapp.ui.fragment.RecommendFragment;
 import com.openapi.ks.chat.R;
+import com.openapi.ks.chat.databinding.LayoutIndexFragmentBinding;
 
-import butterknife.BindView;
-import butterknife.OnClick;
 
 
 /**
@@ -23,7 +22,6 @@ import butterknife.OnClick;
  */
 public class RecommendNightFragment extends RecommendFragment {
     private static final String INDEX_TAG = "NightRecommend_tag";
-    @BindView(R.id.ll_vpn_status)
     RelativeLayout layout;
 
     @Override
@@ -46,10 +44,24 @@ public class RecommendNightFragment extends RecommendFragment {
 
     }
 
-    @OnClick(R.id.ll_vpn_status)
     public void downLoad(View view) {
         AppListFragment.startFragment(getActivity());
     }
+
+    @Override
+    protected void bindViews(View view) {
+        super.bindViews(view);
+        LayoutIndexFragmentBinding b = LayoutIndexFragmentBinding.bind(view);
+        layout = (RelativeLayout) b.llVpnStatus.getRoot();
+        b.llVpnStatus.getRoot().setOnClickListener(this::downLoad);
+    }
+
+    @Override
+    protected void unbindViews() {
+        layout = null;
+        super.unbindViews();
+    }
+
 
     @Override
     public String getUrl(int start) {

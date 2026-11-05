@@ -2,8 +2,8 @@ package com.openapi.ks.myapp.video;
 
 import android.content.Context;
 
-import com.openai.commonutil.LogUtil;
-import com.openai.commonutil.PreferenceUtils;
+import com.openapi.core.util.LogUtil;
+import com.openapi.core.util.PreferenceUtils;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.constant.Constants;
 import com.shuyu.gsyvideoplayer.cache.CacheFactory;

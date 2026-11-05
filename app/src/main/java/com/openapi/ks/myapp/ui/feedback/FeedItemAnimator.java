@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.view.animation.DecelerateInterpolator;
 
-import com.openai.commonutil.SystemUtils;
+import com.openapi.core.util.SystemUtils;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.adapter.FeedAdapter;
 

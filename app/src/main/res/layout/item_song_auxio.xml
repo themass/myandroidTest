@@ -46,7 +46,7 @@
                 android:tint="@color/music_auxio_list_subtitle" />
 
             <!-- 与 Auxio 一致：正在播放时盖在封面上的三竖条频谱（黑色条 + 浅蓝底由 album_frame 提供） -->
-            <com.openai.commonview.view.widgets.MusicVisualizer
+            <com.openapi.core.view.view.widgets.MusicVisualizer
                 android:id="@+id/visualizer"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"

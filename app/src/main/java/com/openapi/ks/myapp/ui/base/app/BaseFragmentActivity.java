@@ -1,8 +1,8 @@
 package com.openapi.ks.myapp.ui.base.app;
 
 import android.os.Build;
-import com.openai.commonutil.LogUtil;
-import com.openai.ads.yewu.um.MobAgent;
+import com.openapi.core.util.LogUtil;
+import com.openapi.core.ads.yewu.um.MobAgent;
 
 /**
  * Created by openapi on 2016/8/18.

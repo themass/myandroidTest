@@ -59,7 +59,7 @@
                     android:paddingLeft="13dp"
                     android:textSize="16sp" />
 
-                <com.openai.commonview.view.widget.RecordButton
+                <com.openapi.core.view.view.widget.RecordButton
                     android:id="@+id/btnAudio"
                     style="?android:attr/borderlessButtonStyle"
                     android:layout_width="match_parent"
@@ -92,7 +92,7 @@
                 android:scaleType="fitXY"
                 android:src="@drawable/ic_add" />
 
-            <com.openai.commonview.view.widget.StateButton
+            <com.openapi.core.view.view.widget.StateButton
                 android:id="@+id/btn_send"
                 android:layout_width="50dp"
                 android:layout_height="30dp"

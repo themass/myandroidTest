@@ -2,7 +2,7 @@ package com.openapi.ks.myapp.data.urlparser;
 
 import android.net.Uri;
 
-import com.openai.commonutil.LogUtil;
+import com.openapi.core.util.LogUtil;
 import com.openapi.ks.myapp.bean.form.CustomeAddForm;
 import com.openapi.ks.myapp.constant.Constants;
 

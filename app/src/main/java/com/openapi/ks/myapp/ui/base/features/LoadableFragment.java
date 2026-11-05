@@ -14,17 +14,16 @@ import android.widget.ProgressBar;
 import androidx.appcompat.widget.SearchView;
 import android.widget.TextView;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.VolleyError;
+import com.openapi.core.net.NetRequest;
+import com.openapi.core.net.NetError;
 import com.openapi.ks.myapp.ui.base.app.BaseFragment;
-import com.openai.commonutil.CollectionUtils;
-import com.openai.commonutil.LogUtil;
-import com.openai.commonutil.ViewUtils;
-import com.openai.net.VolleyUtils;
+import com.openapi.core.util.CollectionUtils;
+import com.openapi.core.util.LogUtil;
+import com.openapi.core.util.ViewUtils;
+import com.openapi.core.net.NetQueue;
 import com.openapi.ks.chat.R;
-import com.openai.net.request.InfoListVo;
-import com.openai.net.BaseService;
+import com.openapi.core.net.request.InfoListVo;
+import com.openapi.core.net.BaseService;
 
 import java.lang.ref.WeakReference;
 import java.util.List;
@@ -122,9 +121,9 @@ public abstract class LoadableFragment<T> extends BaseFragment {
     }
 
     protected void cancelVolley(final String tag) {
-        VolleyUtils.cancelRequest(new RequestQueue.RequestFilter() {
+        NetQueue.cancelRequest(new NetQueue.RequestFilter() {
             @Override
-            public boolean apply(Request<?> request) {
+            public boolean apply(NetRequest<?> request) {
                 if (request.getTag() == null) {
                     return false;
                 } else {
@@ -216,7 +215,7 @@ public abstract class LoadableFragment<T> extends BaseFragment {
         mLoadingView.setVisibility(View.GONE);
         mLoadRetryView.setVisibility(View.VISIBLE);
         mContentView.setVisibility(View.GONE);
-        tvRetry.setText(com.openai.commonutil.R.string.error_network_retry);
+        tvRetry.setText(com.openapi.core.util.R.string.error_network_retry);
     }
 
     private void showNodataRetry() {
@@ -226,7 +225,7 @@ public abstract class LoadableFragment<T> extends BaseFragment {
         mLoadingView.setVisibility(View.GONE);
         mLoadRetryView.setVisibility(View.VISIBLE);
         mContentView.setVisibility(View.GONE);
-        tvRetry.setText(com.openai.commonutil.R.string.error_network_nodata_retry);
+        tvRetry.setText(com.openapi.core.util.R.string.error_network_nodata_retry);
     }
 
     protected void setData(T data) {

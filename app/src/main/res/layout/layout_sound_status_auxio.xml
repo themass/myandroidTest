@@ -52,7 +52,7 @@
             android:layout_toEndOf="@+id/fl_footer_album"
             android:orientation="vertical">
 
-            <com.openai.commonview.view.MarqueeTextView
+            <com.openapi.core.view.view.MarqueeTextView
                 android:id="@+id/tv_play_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

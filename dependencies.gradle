@@ -27,7 +27,6 @@ ext.deps = [
         okhttp: "com.squareup.okhttp3:okhttp:5.0.0-alpha.14",
         okhttpLogging: "com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.14",
         okhttpAndroid: "com.squareup.okhttp3:okhttp-android:5.0.0-alpha.14",
-        volley: "com.android.volley:volley:1.2.1"
     ],
     
     // 图片加载
@@ -53,12 +52,6 @@ ext.deps = [
     rxjava: [
         rxjava: "io.reactivex.rxjava3:rxjava:3.1.11",
         rxandroid: "io.reactivex.rxjava3:rxandroid:3.0.2"
-    ],
-    
-    // 依赖注入
-    butterknife: [
-        butterknife: "com.jakewharton:butterknife:10.2.3",
-        compiler: "com.jakewharton:butterknife-compiler:10.2.3"
     ],
     
     // 事件总线

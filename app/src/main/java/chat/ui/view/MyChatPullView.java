@@ -14,11 +14,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import com.openai.commonutil.LogUtil;
+import com.openapi.core.util.LogUtil;
 import com.openapi.ks.chat.R;
+import com.openapi.ks.chat.databinding.LayoutChatPullrefreshViewBinding;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
 import tz.co.hosannahighertech.messagekit.messages.MessagesList;
 
 /**
@@ -26,12 +25,9 @@ import tz.co.hosannahighertech.messagekit.messages.MessagesList;
  */
 public class MyChatPullView extends LinearLayout {
     @Nullable
-    @BindView(R.id.footer_view)
     View footerView;
     @Nullable
-    @BindView(R.id.messagesList)
     MessagesList messagesList;
-    @BindView(R.id.srl_layout)
     SwipeRefreshLayout refreshLayout;
     //    Snackbar bar = null;
     TranslateAnimation mShowAction;
@@ -61,7 +57,10 @@ public class MyChatPullView extends LinearLayout {
         LayoutInflater mInflater = LayoutInflater.from(getContext());
         View myView = mInflater.inflate(R.layout.layout_chat_pullrefresh_view, null);
         addView(myView);
-        ButterKnife.bind(this);
+        LayoutChatPullrefreshViewBinding binding = LayoutChatPullrefreshViewBinding.bind(myView);
+        footerView = binding.footerView;
+        messagesList = binding.messagesList;
+        refreshLayout = binding.srlLayout;
         refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {

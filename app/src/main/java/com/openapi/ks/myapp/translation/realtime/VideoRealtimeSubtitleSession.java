@@ -7,8 +7,8 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 
-import com.openai.commonview.translation.RealtimeSubtitleCallbacks;
-import com.openai.commonview.translation.RealtimeSubtitleSession;
+import com.openapi.core.view.translation.RealtimeSubtitleCallbacks;
+import com.openapi.core.view.translation.RealtimeSubtitleSession;
 
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;

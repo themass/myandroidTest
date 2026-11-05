@@ -21,23 +21,23 @@ import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 
-import com.openai.commonevent.FavoriteVo;
+import com.openapi.core.event.FavoriteVo;
 import com.openapi.ks.myapp.ui.base.app.BaseFragment;
-import com.openai.commonview.view.MyFavoriteView;
-import com.openai.commonview.view.MyWebView;
-import com.openai.commonutil.FileUtils;
-import com.openai.commonutil.LogUtil;
-import com.openai.ads.yewu.ads.base.AdsContext;
-import com.openai.net.HttpUtils;
+import com.openapi.core.view.view.MyFavoriteView;
+import com.openapi.core.view.view.MyWebView;
+import com.openapi.core.util.FileUtils;
+import com.openapi.core.util.LogUtil;
+import com.openapi.core.ads.yewu.ads.base.AdsContext;
+import com.openapi.core.net.HttpUtils;
 import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.bean.vo.TextItemsVo;
 import com.openapi.ks.myapp.constant.Constants;
-import com.openai.commonutil.StaticDataUtil;
+import com.openapi.core.util.StaticDataUtil;
 import com.openapi.ks.myapp.task.SaveTextTask;
 import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
 import com.openapi.ks.chat.R;
+import com.openapi.ks.chat.databinding.LayoutTextitemWebviewBinding;
 
-import butterknife.BindView;
 
 /**
  * Created by openapi on 2016/3/21.
@@ -49,18 +49,34 @@ public class TextItemsWebViewFragment extends BaseFragment implements MyFavorite
         public void handleMessage(Message msg) {
         }
     };
-    @BindView(R.id.wv_content)
     MyWebView webView;
-    @BindView(R.id.progressbar)
     ProgressBar progressbar;
-    @BindView(R.id.fl_bg)
     RelativeLayout flBg;
-    @BindView(R.id.my_favoriteview)
     MyFavoriteView myFavoriteView;
     CookieManager cookieManager = null;
     private boolean mFirstPageLoad = true;
     private String url;
     private TextItemsVo vo;
+    @Override
+    protected void bindViews(View view) {
+        super.bindViews(view);
+        LayoutTextitemWebviewBinding b = LayoutTextitemWebviewBinding.bind(view);
+        webView = b.wvContent;
+        progressbar = b.progressbar;
+        flBg = b.flBg;
+        myFavoriteView = b.myFavoriteview;
+    }
+
+    @Override
+    protected void unbindViews() {
+        webView = null;
+        progressbar = null;
+        flBg = null;
+        myFavoriteView = null;
+        super.unbindViews();
+    }
+
+
     private Runnable run = new Runnable() {
         @Override
         public void run() {
