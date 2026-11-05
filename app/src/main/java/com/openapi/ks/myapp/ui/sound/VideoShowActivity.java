@@ -1,6 +1,9 @@
 package com.openapi.ks.myapp.ui.sound;
 
 
+import com.shuyu.gsyvideoplayer.video.base.GSYVideoView;
+import android.util.Rational;
+import android.app.PictureInPictureParams;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Build;
@@ -41,6 +44,7 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
     private Unbinder unbinder;
     @BindView(R.id.jz_video)
     public DetailGSYVideoPlayer videoPlayer;
+    private boolean enteringPip;
     private GoogleCastSessionController castSessionController;
     RecommendVo vo;
     @BindView(R.id.my_favoriteview)
@@ -132,11 +136,33 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
             castSessionController.onPause();
         }
         super.onPause();
+        if (enteringPip) {
+            return;
+        }
         try {
             GSYVideoManager.onPause();
         } catch (Throwable e) {
             LogUtil.e(e);
         }
+    }
+
+    /** 正在播放时离开页面，进入系统画中画小窗；视频不暂停。 */
+    @Override
+    protected void onUserLeaveHint() {
+        super.onUserLeaveHint();
+        if (videoPlayer == null || videoPlayer.getCurrentState() != GSYVideoView.CURRENT_STATE_PLAYING) {
+            return;
+        }
+        enteringPip = true;
+        enterPictureInPictureMode(new PictureInPictureParams.Builder()
+                .setAspectRatio(new Rational(16, 9))
+                .build());
+    }
+
+    @Override
+    public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode, Configuration newConfig) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig);
+        enteringPip = isInPictureInPictureMode;
     }
 
     @Override
