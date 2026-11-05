@@ -68,6 +68,7 @@ public class MyApplication extends MultiDexApplication {
         DBManager.getInstance().init(this);
         com.openapi.retromusic.App.init(this);
         ChatDependencies.INSTANCE.install(new ChatRepositoryImpl(this));
+        com.openapi.roles.data.RolesDependencies.INSTANCE.install(new com.openapi.ks.myapp.data.roles.RolesRepositoryImpl(this));
         BaseService speechService = new BaseService();
         speechService.setup(this);
         ChatDependencies.INSTANCE.installSpeechToText(new BackendSpeechToText(speechService));

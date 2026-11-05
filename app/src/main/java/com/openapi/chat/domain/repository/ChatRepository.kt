@@ -31,11 +31,14 @@ interface ChatRepository {
      * 释放底层连接，不能让 SSE 连接悬挂。
      *
      * @param characterId 人设 id（setting_character 表），0 或 null 表示不指定，用后端默认人设
+     * @param roleId 角色目录（/api/roles/v1）里的角色 id；非空时服务端优先用它，
+     *   查不到再回退 [characterId]。老服务端不认识这个字段，会直接忽略。
      */
     fun sendMessageStream(
         sessionId: Long,
         userText: String,
         characterId: Int?,
+        roleId: String? = null,
     ): Flow<ChatStreamEvent>
 
     /** 当前会话 id，来自 SP（Constants.CHAT_SESSION）。 */

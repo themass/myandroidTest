@@ -1,0 +1,208 @@
+package com.openapi.roles.presentation
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.openapi.core.design.theme.AppColors
+import com.openapi.core.design.theme.AppSpacing
+import com.openapi.core.design.theme.AppTypography
+import com.openapi.roles.domain.RoleSummary
+import com.openapi.roles.domain.SelectedRole
+
+/**
+ * 角色目录的选择列表：搜索 + 分类筛选 + 分页。
+ *
+ * 一个角色一行：左边是 emoji 头像（底色取角色自己的颜色），中间是名称和简介，
+ * 当前选中的打勾。点击即选中，由调用方决定选中后做什么（关闭面板、写入对话）。
+ */
+@Composable
+fun RoleCatalogPane(
+    selectedId: String?,
+    onSelect: (SelectedRole) -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: RolePickerViewModel = viewModel(),
+) {
+    val state by viewModel.state.collectAsState()
+    val listState = rememberLazyListState()
+
+    // 滚到接近底部时加载下一页
+    LaunchedEffect(listState, state.items.size) {
+        snapshotFlow {
+            val last = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            last >= listState.layoutInfo.totalItemsCount - 4
+        }.collect { nearEnd -> if (nearEnd) viewModel.loadMore() }
+    }
+
+    Column(modifier = modifier.fillMaxSize()) {
+        OutlinedTextField(
+            value = state.query,
+            onValueChange = viewModel::onQueryChange,
+            placeholder = { Text("搜索角色，比如 翻译、前端、小红书") },
+            leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+            singleLine = true,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = AppSpacing.screenHorizontal, vertical = AppSpacing.sm),
+        )
+
+        LazyRow(
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = AppSpacing.screenHorizontal),
+            horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm),
+        ) {
+            item {
+                FilterChip(
+                    selected = state.filter == RoleFilter.Featured,
+                    onClick = { viewModel.onFilterChange(RoleFilter.Featured) },
+                    label = { Text("精选") },
+                )
+            }
+            item {
+                FilterChip(
+                    selected = state.filter == RoleFilter.All,
+                    onClick = { viewModel.onFilterChange(RoleFilter.All) },
+                    label = { Text("全部") },
+                )
+            }
+            items(state.divisions, key = { it.id }) { division ->
+                FilterChip(
+                    selected = (state.filter as? RoleFilter.Division)?.id == division.id,
+                    onClick = { viewModel.onFilterChange(RoleFilter.Division(division.id)) },
+                    label = { Text("${division.label} ${division.count}") },
+                )
+            }
+        }
+
+        Box(Modifier.weight(1f).fillMaxWidth()) {
+            when {
+                state.loading && state.items.isEmpty() ->
+                    CircularProgressIndicator(Modifier.align(Alignment.Center))
+
+                state.failed && state.items.isEmpty() -> Column(
+                    Modifier.align(Alignment.Center),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text("角色加载失败", color = AppColors.TextSecondary, fontSize = AppTypography.body)
+                    TextButton(onClick = viewModel::retry) { Text("重试") }
+                }
+
+                state.items.isEmpty() -> Text(
+                    "没有找到相关角色",
+                    color = AppColors.TextSecondary,
+                    fontSize = AppTypography.body,
+                    modifier = Modifier.align(Alignment.Center),
+                )
+
+                else -> LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
+                    items(state.items, key = { it.id }) { role ->
+                        RoleRow(
+                            role = role,
+                            selected = role.id == selectedId,
+                            onClick = {
+                                onSelect(SelectedRole(role.id, role.name, role.emoji, role.colorArgb))
+                            },
+                        )
+                    }
+                    if (state.loadingMore) {
+                        item {
+                            Box(Modifier.fillMaxWidth().padding(AppSpacing.lg), contentAlignment = Alignment.Center) {
+                                CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RoleRow(role: RoleSummary, selected: Boolean, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = AppSpacing.screenHorizontal, vertical = AppSpacing.md),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        RoleAvatar(emoji = role.emoji, colorArgb = role.colorArgb, size = 44)
+        Spacer(Modifier.width(AppSpacing.md))
+        Column(Modifier.weight(1f)) {
+            Text(
+                role.name,
+                fontSize = AppTypography.bodyLarge,
+                fontWeight = AppTypography.emphasisWeight,
+                color = AppColors.TextPrimary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            if (role.description.isNotBlank()) {
+                Text(
+                    role.description,
+                    fontSize = AppTypography.caption,
+                    color = AppColors.TextSecondary,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+        if (selected) {
+            Icon(Icons.Filled.Check, contentDescription = "当前角色", tint = AppColors.Primary)
+        }
+    }
+}
+
+/** emoji 头像：圆形，底色是角色颜色的淡化版，保证 emoji 在任何颜色上都看得清。 */
+@Composable
+fun RoleAvatar(emoji: String, colorArgb: Long, size: Int, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .size(size.dp)
+            .clip(CircleShape)
+            .background(Color(colorArgb).copy(alpha = 0.18f)),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = emoji.ifBlank { "🤖" },
+            fontSize = (size * 0.5f).sp,
+            fontWeight = FontWeight.Normal,
+        )
+    }
+}
+
+private val Float.sp get() = androidx.compose.ui.unit.TextUnit(this, androidx.compose.ui.unit.TextUnitType.Sp)

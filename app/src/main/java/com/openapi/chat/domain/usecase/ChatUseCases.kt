@@ -17,10 +17,11 @@ class LoadHistoryUseCase(private val repository: ChatRepository) {
  * 这里只做「会话 id」的补齐，协议细节（SSE 帧解析、历史组装）留在 repository 实现里。
  */
 class SendMessageUseCase(private val repository: ChatRepository) {
-    operator fun invoke(text: String, characterId: Int?): Flow<ChatStreamEvent> =
+    operator fun invoke(text: String, characterId: Int?, roleId: String? = null): Flow<ChatStreamEvent> =
         repository.sendMessageStream(
             sessionId = repository.currentSessionId(),
             userText = text,
             characterId = characterId,
+            roleId = roleId,
         )
 }

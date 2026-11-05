@@ -14,6 +14,8 @@ import com.openapi.chat.domain.model.VoiceAttachment
 import com.openapi.chat.domain.usecase.LoadHistoryUseCase
 import com.openapi.chat.domain.usecase.SendMessageUseCase
 import com.openapi.core.media.VoiceRecorder
+import com.openapi.roles.data.RolesDependencies
+import com.openapi.roles.domain.SelectedRole
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,8 +31,9 @@ class ChatViewModel : ViewModel() {
     private val repository = ChatDependencies.require()
     private val loadHistory = LoadHistoryUseCase(repository)
     private val sendMessage = SendMessageUseCase(repository)
+    private val roles = RolesDependencies.require()
 
-    private val _uiState = MutableStateFlow(ChatUiState())
+    private val _uiState = MutableStateFlow(ChatUiState(selectedRole = roles.selected()))
     val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
 
     init {
@@ -64,9 +67,21 @@ class ChatViewModel : ViewModel() {
         }
     }
 
+    /** 选了旧的人设（或默认助手）就把目录角色清掉：两套选择互斥，避免界面显示的和实际发出去的不一致。 */
     fun onCharacterSelected(characterId: Int?) {
         repository.setSelectedCharacterId(characterId)
-        _uiState.update { it.copy(selectedCharacterId = characterId) }
+        roles.setSelected(null)
+        _uiState.update { it.copy(selectedCharacterId = characterId, selectedRole = null, rolePickerVisible = false) }
+    }
+
+    fun onRoleSelected(role: SelectedRole) {
+        roles.setSelected(role)
+        repository.setSelectedCharacterId(null)
+        _uiState.update { it.copy(selectedRole = role, selectedCharacterId = null, rolePickerVisible = false) }
+    }
+
+    fun onRolePickerVisibleChange(visible: Boolean) {
+        _uiState.update { it.copy(rolePickerVisible = visible) }
     }
 
     /**
@@ -81,10 +96,12 @@ class ChatViewModel : ViewModel() {
                 return@launch
             }
             repository.setSelectedCharacterId(created.id)
+            roles.setSelected(null)
             _uiState.update {
                 it.copy(
                     characters = it.characters + created,
                     selectedCharacterId = created.id,
+                    selectedRole = null,
                 )
             }
         }
@@ -181,7 +198,7 @@ class ChatViewModel : ViewModel() {
         }
 
         viewModelScope.launch {
-            sendMessage(text, state.selectedCharacterId)
+            sendMessage(text, state.selectedCharacterId, state.selectedRole?.id)
                 .catch { error ->
                     _uiState.update { current ->
                         current.copy(

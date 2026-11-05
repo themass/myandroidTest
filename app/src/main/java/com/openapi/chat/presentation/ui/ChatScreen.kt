@@ -77,6 +77,7 @@ import com.openapi.chat.domain.model.ChatRole
 import com.openapi.chat.presentation.ChatUiState
 import com.openapi.core.design.theme.AppColors
 import com.openapi.core.design.theme.AppTypography
+import com.openapi.roles.domain.SelectedRole
 
 // 颜色统一取自 :core:core-design 的 token，不再在页面里硬编码——
 // 之前每改一次配色都要全工程搜 0x 十六进制。
@@ -95,6 +96,8 @@ fun ChatScreen(
     onCreateCharacter: (title: String, content: String) -> Unit,
     onUpdateCharacter: (id: Int, title: String, content: String) -> Unit,
     onDeleteCharacter: (id: Int) -> Unit,
+    onRoleSelected: (SelectedRole) -> Unit,
+    onRolePickerVisibleChange: (Boolean) -> Unit,
     onVoiceClick: (ChatMessage) -> Unit,
     onSpeakMessage: (ChatMessage) -> Unit = {},
     onVoiceRecordStart: () -> Unit,
@@ -121,14 +124,7 @@ fun ChatScreen(
             .background(ChatBackground)
             .imePadding(),
     ) {
-        CharacterSelectorBar(
-            characters = state.characters,
-            selectedCharacterId = state.selectedCharacterId,
-            onCharacterSelected = onCharacterSelected,
-            onCreateCharacter = onCreateCharacter,
-            onUpdateCharacter = onUpdateCharacter,
-            onDeleteCharacter = onDeleteCharacter,
-        )
+        RoleHeader(state = state, onClick = { onRolePickerVisibleChange(true) })
 
         LazyColumn(
             state = listState,
@@ -161,130 +157,16 @@ fun ChatScreen(
             onPickFile = onPickFile,
         )
     }
-}
 
-/**
- * 角色选择条：显示当前人设，点击展开列表切换。
- *
- * 对应后端 `/user/setting/character.json`；选中后持久化 characterId（见
- * ChatRepositoryImpl.setSelectedCharacterId），下次发消息就带着这个 id，
- * 不再是老版本那种"选了但后端从不读"的假选择（见 docs/agent-and-media-roadmap.md 第五节）。
- */
-@Composable
-private fun CharacterSelectorBar(
-    characters: List<ChatCharacterOption>,
-    selectedCharacterId: Int?,
-    onCharacterSelected: (Int?) -> Unit,
-    onCreateCharacter: (title: String, content: String) -> Unit,
-    onUpdateCharacter: (id: Int, title: String, content: String) -> Unit,
-    onDeleteCharacter: (id: Int) -> Unit,
-) {
-    var expanded by remember { mutableStateOf(false) }
-    // null 表示新建；非 null 表示在编辑这个角色
-    var editingCharacter by remember { mutableStateOf<ChatCharacterOption?>(null) }
-    var showEditDialog by remember { mutableStateOf(false) }
-    val selected = characters.firstOrNull { it.id == selectedCharacterId }
-
-    Surface(color = AppColors.Surface, shadowElevation = 2.dp) {
-        Box {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(Icons.Filled.Person, contentDescription = null, tint = IconTint)
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    text = selected?.title ?: "默认助手",
-                    fontSize = AppTypography.body,
-                    fontWeight = FontWeight.Medium,
-                    color = AppColors.TextPrimary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f),
-                )
-                TextButton(onClick = { expanded = true }) {
-                    Text("切换角色")
-                    Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
-                }
-            }
-
-            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                DropdownMenuItem(
-                    text = { Text("默认助手") },
-                    onClick = {
-                        onCharacterSelected(null)
-                        expanded = false
-                    },
-                )
-                characters.forEach { character ->
-                    DropdownMenuItem(
-                        text = {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Column(Modifier.weight(1f)) {
-                                    Text(character.title, fontWeight = FontWeight.Medium)
-                                    if (character.preview.isNotBlank()) {
-                                        Text(
-                                            character.preview,
-                                            fontSize = AppTypography.caption,
-                                            color = AppColors.TextSecondary,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
-                                        )
-                                    }
-                                }
-                                // 编辑/删除只对自己上传的角色开放；官方角色没有这两个按钮
-                                if (character.mine) {
-                                    IconButton(onClick = {
-                                        editingCharacter = character
-                                        showEditDialog = true
-                                        expanded = false
-                                    }) {
-                                        Icon(Icons.Filled.Edit, contentDescription = "编辑角色", tint = IconTint)
-                                    }
-                                    IconButton(onClick = {
-                                        onDeleteCharacter(character.id)
-                                        expanded = false
-                                    }) {
-                                        Icon(Icons.Filled.Delete, contentDescription = "删除角色", tint = AppColors.Error)
-                                    }
-                                }
-                            }
-                        },
-                        onClick = {
-                            onCharacterSelected(character.id)
-                            expanded = false
-                        },
-                    )
-                }
-                DropdownMenuItem(
-                    text = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Filled.Add, contentDescription = null, tint = AppColors.Primary)
-                            Spacer(Modifier.width(4.dp))
-                            Text("新建角色", color = AppColors.Primary)
-                        }
-                    },
-                    onClick = {
-                        editingCharacter = null
-                        showEditDialog = true
-                        expanded = false
-                    },
-                )
-            }
-        }
-    }
-
-    if (showEditDialog) {
-        CharacterEditDialog(
-            initial = editingCharacter,
-            onDismiss = { showEditDialog = false },
-            onConfirm = { title, content ->
-                val editing = editingCharacter
-                if (editing == null) onCreateCharacter(title, content) else onUpdateCharacter(editing.id, title, content)
-                showEditDialog = false
-            },
+    if (state.rolePickerVisible) {
+        RolePickerSheet(
+            state = state,
+            onDismiss = { onRolePickerVisibleChange(false) },
+            onRoleSelected = onRoleSelected,
+            onCharacterSelected = onCharacterSelected,
+            onCreateCharacter = onCreateCharacter,
+            onUpdateCharacter = onUpdateCharacter,
+            onDeleteCharacter = onDeleteCharacter,
         )
     }
 }
@@ -296,7 +178,7 @@ private fun CharacterSelectorBar(
  * 头像 url 本轮不做上传入口，留给后续接图片选择器时再补。
  */
 @Composable
-private fun CharacterEditDialog(
+internal fun CharacterEditDialog(
     initial: ChatCharacterOption?,
     onDismiss: () -> Unit,
     onConfirm: (title: String, content: String) -> Unit,

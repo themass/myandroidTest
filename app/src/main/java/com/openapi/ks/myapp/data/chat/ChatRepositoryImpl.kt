@@ -146,6 +146,7 @@ class ChatRepositoryImpl(
         sessionId: Long,
         userText: String,
         characterId: Int?,
+        roleId: String?,
     ): Flow<ChatStreamEvent> = callbackFlow {
         val userMessage = ChatMessage(
             id = "local-${System.currentTimeMillis()}",
@@ -168,6 +169,9 @@ class ChatRepositoryImpl(
             .add("sessionId", sessionId.toString())
         if (characterId != null && characterId > 0) {
             bodyBuilder.add("characterId", characterId.toString())
+        }
+        if (!roleId.isNullOrBlank()) {
+            bodyBuilder.add("roleId", roleId)
         }
 
         val httpRequest = Request.Builder()

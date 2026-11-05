@@ -58,6 +58,8 @@ fun ChatRoute(
             onCreateCharacter = viewModel::onCreateCharacter,
             onUpdateCharacter = viewModel::onUpdateCharacter,
             onDeleteCharacter = viewModel::onDeleteCharacter,
+            onRoleSelected = viewModel::onRoleSelected,
+            onRolePickerVisibleChange = viewModel::onRolePickerVisibleChange,
             onVoiceClick = { message ->
                 message.voice?.let { voice -> AudioPlayer.toggle(message.id, voice.uri) }
             },
