@@ -66,6 +66,9 @@ public class GSYVideoListAdapter extends BaseRecyclerViewAdapter<GSYVideoListAda
         @Nullable
         @BindView(R.id.list_item_title)
         TextView listItemTitle;
+        @Nullable
+        @BindView(R.id.list_item_desc)
+        TextView listItemDesc;
 
         ImageView imageView;
         private GSYVideoHelper smallVideoHelper;
@@ -86,6 +89,11 @@ public class GSYVideoListAdapter extends BaseRecyclerViewAdapter<GSYVideoListAda
             smallVideoHelper.addVideoPlayer(position, imageView, TAG, listItemContainer, listItemBtn);
             smallVideoHelper.getGsyVideoPlayer().getTitleTextView().setVisibility(View.VISIBLE);
             listItemTitle.setText(videoModel.title);
+            if (listItemDesc != null) {
+                boolean hasDesc = videoModel.desc != null && !videoModel.desc.trim().isEmpty();
+                listItemDesc.setText(hasDesc ? videoModel.desc.trim() : "");
+                listItemDesc.setVisibility(hasDesc ? View.VISIBLE : View.GONE);
+            }
             listItemBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {

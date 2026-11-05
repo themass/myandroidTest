@@ -1,36 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="@dimen/margin_5">
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/margin_8">
 
+    <!-- 封面按 16:9，不再固定高度，宽屏上不会被拉伸变形 -->
     <FrameLayout
         android:id="@+id/list_item_container"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/list_video_high"
-        android:scaleType="centerCrop"
-        android:src="@drawable/img_bg" />
+        android:layout_height="wrap_content"
+        android:background="@color/black">
 
 
-    <ImageView
-        android:id="@+id/list_item_btn"
-        android:layout_width="45dp"
-        android:layout_height="45dp"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:layout_gravity="center_vertical"
-        android:src="@android:drawable/ic_media_play"
-        android:contentDescription="@string/video" />
+        <!-- 播放按钮：半透明圆底，和详情页的视觉语言一致 -->
+        <ImageView
+            android:id="@+id/list_item_btn"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:layout_gravity="center"
+            android:background="@drawable/bg_video_play_circle"
+            android:padding="14dp"
+            android:src="@android:drawable/ic_media_play"
+            android:contentDescription="@string/video" />
+    </FrameLayout>
 
-    <TextView
+    <!-- 标题与简介放在封面下方，不再压在图片上 -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="@dimen/textsize_12"
-        android:textColor="@color/white"
-        android:maxLines="1"
-        android:layout_alignParentTop="true"
-        android:paddingLeft="@dimen/margin_8"
-        android:visibility="visible"
-        android:id="@+id/list_item_title" />
+        android:orientation="vertical"
+        android:paddingLeft="@dimen/margin_10"
+        android:paddingRight="@dimen/margin_10"
+        android:paddingTop="@dimen/margin_8">
 
-</RelativeLayout>
+        <TextView
+            android:id="@+id/list_item_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:textColor="@color/black"
+            android:textSize="@dimen/textsize_14" />
+
+        <TextView
+            android:id="@+id/list_item_desc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textColor="@color/gray"
+            android:textSize="@dimen/textsize_12"
+            android:visibility="gone" />
+    </LinearLayout>
+</LinearLayout>
