@@ -75,9 +75,14 @@ import com.openapi.chat.domain.model.ChatCharacterOption
 import com.openapi.chat.domain.model.ChatMessage
 import com.openapi.chat.domain.model.ChatRole
 import com.openapi.chat.presentation.ChatUiState
+import androidx.compose.material3.SuggestionChip
+import androidx.compose.ui.platform.LocalConfiguration
 import com.openapi.core.design.theme.AppColors
+import com.openapi.core.design.theme.AppShapes
+import com.openapi.core.design.theme.AppSpacing
 import com.openapi.core.design.theme.AppTypography
 import com.openapi.roles.domain.SelectedRole
+import com.openapi.roles.presentation.RoleAvatar
 
 // 颜色统一取自 :core:core-design 的 token，不再在页面里硬编码——
 // 之前每改一次配色都要全工程搜 0x 十六进制。
@@ -124,21 +129,32 @@ fun ChatScreen(
             .background(ChatBackground)
             .imePadding(),
     ) {
-        RoleHeader(state = state, onClick = { onRolePickerVisibleChange(true) })
+        RoleHeader(
+            state = state,
+            onClick = { onRolePickerVisibleChange(true) },
+            onCallClick = onCallClick,
+        )
 
-        LazyColumn(
-            state = listState,
-            modifier = Modifier.weight(1f).fillMaxWidth(),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            items(state.messages, key = { it.id }) { message ->
-                MessageBubble(
-                    message = message,
-                    speaking = message.id == state.speakingMessageId,
-                    onVoiceClick = { onVoiceClick(message) },
-                    onSpeakClick = { onSpeakMessage(message) },
-                )
+        val identity = state.assistantIdentity()
+        Box(Modifier.weight(1f).fillMaxWidth()) {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = AppSpacing.md),
+                verticalArrangement = Arrangement.spacedBy(AppSpacing.md),
+            ) {
+                items(state.messages, key = { it.id }) { message ->
+                    MessageBubble(
+                        message = message,
+                        identity = identity,
+                        speaking = message.id == state.speakingMessageId,
+                        onVoiceClick = { onVoiceClick(message) },
+                        onSpeakClick = { onSpeakMessage(message) },
+                    )
+                }
+            }
+            if (state.messages.isEmpty() && !state.loading) {
+                EmptyChat(identity = identity, onSuggestion = onInputChange)
             }
         }
 
@@ -152,7 +168,6 @@ fun ChatScreen(
             onVoicePressStart = onVoiceRecordStart,
             onVoicePressStop = onVoiceRecordStop,
             onVoicePressCancel = onVoiceRecordCancel,
-            onCallClick = onCallClick,
             onPickImage = onPickImage,
             onPickFile = onPickFile,
         )
@@ -222,29 +237,75 @@ internal fun CharacterEditDialog(
     )
 }
 
+/**
+ * 空对话：当前角色的头像、名字，和几句可以直接点的开场白。
+ * 点开场白只是填进输入框，不会自己发出去，用户可以先改。
+ */
+@Composable
+private fun EmptyChat(identity: AssistantIdentity, onSuggestion: (String) -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(AppSpacing.xl),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        RoleAvatar(emoji = identity.emoji, colorArgb = identity.colorArgb, size = 72)
+        Spacer(Modifier.height(AppSpacing.md))
+        Text(
+            identity.name,
+            fontSize = AppTypography.screenTitle,
+            fontWeight = AppTypography.titleWeight,
+            color = AppColors.TextPrimary,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(Modifier.height(AppSpacing.xs))
+        Text(
+            "有什么想聊的，直接说就行",
+            fontSize = AppTypography.body,
+            color = AppColors.TextSecondary,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(Modifier.height(AppSpacing.lg))
+        listOf("先介绍一下你自己", "你能帮我做些什么？", "给我一个上手的例子").forEach { text ->
+            SuggestionChip(
+                onClick = { onSuggestion(text) },
+                label = { Text(text) },
+                modifier = Modifier.padding(vertical = AppSpacing.xs),
+            )
+        }
+    }
+}
+
 @Composable
 private fun MessageBubble(
     message: ChatMessage,
+    identity: AssistantIdentity,
     speaking: Boolean,
     onVoiceClick: () -> Unit,
     onSpeakClick: () -> Unit,
 ) {
     val fromUser = message.role == ChatRole.USER
+    // 气泡最宽占屏幕的 75%（除去助手头像），而不是写死 280dp：大屏和折叠屏上不会显得窄
+    val maxBubbleWidth = (LocalConfiguration.current.screenWidthDp * AppShapes.BUBBLE_MAX_WIDTH_FRACTION).dp
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = AppSpacing.md),
         horizontalArrangement = if (fromUser) Arrangement.End else Arrangement.Start,
+        verticalAlignment = Alignment.Top,
     ) {
+        if (!fromUser) {
+            RoleAvatar(emoji = identity.emoji, colorArgb = identity.colorArgb, size = 32)
+            Spacer(Modifier.width(AppSpacing.sm))
+        }
         Surface(
             color = if (fromUser) OutgoingBubble else IncomingBubble,
             shape = RoundedCornerShape(
-                topStart = 12.dp,
-                topEnd = 12.dp,
-                bottomStart = if (fromUser) 12.dp else 4.dp,
-                bottomEnd = if (fromUser) 4.dp else 12.dp,
+                topStart = AppShapes.bubble,
+                topEnd = AppShapes.bubble,
+                bottomStart = if (fromUser) AppShapes.bubble else AppSpacing.xs,
+                bottomEnd = if (fromUser) AppSpacing.xs else AppShapes.bubble,
             ),
-            modifier = Modifier.widthIn(max = 280.dp),
+            modifier = Modifier.widthIn(max = maxBubbleWidth),
         ) {
-            Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+            Column(Modifier.padding(horizontal = AppShapes.bubblePaddingHorizontal, vertical = AppShapes.bubblePaddingVertical)) {
                 when {
                     // pending 且还没收到任何增量文本时显示"正在思考"；一旦开始吐字，
                     // 哪怕还没 done，也直接展示已收到的文字（打字机效果的关键）
@@ -329,7 +390,6 @@ private fun ChatInputBar(
     onVoicePressStart: () -> Unit,
     onVoicePressStop: () -> Unit,
     onVoicePressCancel: () -> Unit,
-    onCallClick: () -> Unit,
     onPickImage: () -> Unit,
     onPickFile: () -> Unit,
 ) {
@@ -397,23 +457,23 @@ private fun ChatInputBar(
                     placeholder = { Text("说点什么…") },
                     maxLines = 4,
                     shape = RoundedCornerShape(20.dp),
+                    // 表情入口收进输入框尾部：底栏从六个控件减到四个（语音、输入、更多、发送）
+                    trailingIcon = {
+                        IconButton(onClick = { showEmoji = !showEmoji; showAttach = false }) {
+                            Icon(
+                                Icons.Filled.EmojiEmotions,
+                                contentDescription = "表情",
+                                tint = if (showEmoji) MaterialTheme.colorScheme.primary else IconTint,
+                            )
+                        }
+                    },
                 )
 
-                IconButton(onClick = onCallClick) {
-                    Icon(Icons.Filled.Call, contentDescription = "语音通话", tint = IconTint)
-                }
                 IconButton(onClick = { showAttach = !showAttach; showEmoji = false }) {
                     Icon(
                         Icons.Filled.Add,
                         contentDescription = "更多",
                         tint = if (showAttach) MaterialTheme.colorScheme.primary else IconTint,
-                    )
-                }
-                IconButton(onClick = { showEmoji = !showEmoji; showAttach = false }) {
-                    Icon(
-                        Icons.Filled.EmojiEmotions,
-                        contentDescription = "表情",
-                        tint = if (showEmoji) MaterialTheme.colorScheme.primary else IconTint,
                     )
                 }
                 IconButton(onClick = onSend, enabled = canSend) {

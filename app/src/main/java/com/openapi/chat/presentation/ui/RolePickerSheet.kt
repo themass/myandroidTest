@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -35,6 +36,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -50,17 +52,35 @@ import com.openapi.roles.presentation.RoleCatalogPane
 private const val DEFAULT_EMOJI = "🤖"
 
 /**
+ * 0xAARRGGBB 的 Long，和 RoleColors 的输出是同一种表示。
+ * 不能用 Color.value：Compose 把颜色放在 ULong 的高 32 位，直接 toLong() 得到的不是 ARGB。
+ */
+private val PrimaryArgb: Long = AppColors.Primary.toArgb().toLong() and 0xFFFFFFFFL
+
+/** 当前对话的"助手"是谁：头部、空状态、助手气泡旁的头像都从这里取，保证三处一致。 */
+internal data class AssistantIdentity(val name: String, val emoji: String, val colorArgb: Long)
+
+internal fun ChatUiState.assistantIdentity(): AssistantIdentity {
+    val role = selectedRole
+    val character = selectedCharacter
+    return AssistantIdentity(
+        name = role?.name ?: character?.title ?: "默认助手",
+        emoji = role?.emoji ?: character?.title?.take(1) ?: DEFAULT_EMOJI,
+        colorArgb = role?.colorArgb ?: PrimaryArgb,
+    )
+}
+
+/**
  * 对话页顶部的当前角色：头像 + 名称 + 一句提示。整条可点，点开角色面板。
  *
  * 取代原来的"切换角色"下拉条：角色是对话的主体，不该藏在一个小按钮后面。
  */
 @Composable
-fun RoleHeader(state: ChatUiState, onClick: () -> Unit) {
-    val role = state.selectedRole
-    val character = state.selectedCharacter
-    val title = role?.name ?: character?.title ?: "默认助手"
-    val emoji = role?.emoji ?: character?.title?.take(1) ?: DEFAULT_EMOJI
-    val color = role?.colorArgb ?: AppColors.Primary.value.toLong()
+fun RoleHeader(state: ChatUiState, onClick: () -> Unit, onCallClick: () -> Unit) {
+    val identity = state.assistantIdentity()
+    val title = identity.name
+    val emoji = identity.emoji
+    val color = identity.colorArgb
 
     Surface(color = AppColors.Surface, shadowElevation = 2.dp) {
         Row(
@@ -88,6 +108,10 @@ fun RoleHeader(state: ChatUiState, onClick: () -> Unit) {
                 )
             }
             Icon(Icons.Filled.KeyboardArrowDown, contentDescription = "切换角色", tint = AppColors.TextSecondary)
+            // 通话入口放在头部：通话的对象就是当前角色，以后 LiveKit agent 直接读同一个角色
+            IconButton(onClick = onCallClick) {
+                Icon(Icons.Filled.Call, contentDescription = "语音通话", tint = AppColors.TextSecondary)
+            }
         }
     }
 }
@@ -228,7 +252,7 @@ private fun ClassicRow(
             .padding(horizontal = AppSpacing.screenHorizontal, vertical = AppSpacing.md),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        RoleAvatar(emoji = emoji, colorArgb = AppColors.Primary.value.toLong(), size = 44)
+        RoleAvatar(emoji = emoji, colorArgb = PrimaryArgb, size = 44)
         Spacer(Modifier.width(AppSpacing.md))
         Column(Modifier.weight(1f)) {
             Text(
