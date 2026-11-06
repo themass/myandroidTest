@@ -19,6 +19,7 @@
 | 11 | 官方角色由我们设计 2–3 个 |
 | 12 | 端上 2D 人物 + agent（LiveKit + 中间层 TTS + DeerFlow 内容 + memory）|
 | 13 | LiveKit 使用 **LiveKit Cloud**，不自建 |
+| 14 | 第一版形象做**简单动画**（静态立绘 + 表情图 + 嘴型两帧 + 眨眼），**不做跟随与拖动互动**；但上层通过 `AvatarCommand` 指令框架驱动，渲染器可替换（见第 5.1 节） |
 
 ## 2. 总体架构
 
@@ -26,9 +27,9 @@
 Android 客户端
   ├─ Compose：对话（文字为默认）、角色、我的
   ├─ AvatarRenderer（接口）
-  │    ├─ 阶段 A：自研轻量 2D 渲染器（分层图片，见第 5 节）
-  │    ├─ 阶段 B：Rive（待评估）
-  │    └─ 阶段 C：Live2D（待书面授权后）
+  │    ├─ 阶段 A：v1 简单动画渲染器（SimpleAvatarRenderer，见第 5.2 节）
+  │    ├─ 阶段 B：P3b 候选：Spine / Live2D（授权待定）/ Rive（见第 5.4 节）
+  │    └─ 全部通过 AvatarCommand 指令驱动（见第 5.1 节）
   ├─ LiveKit Android SDK：房间、麦克风发布、agent 音轨播放、数据通道
   └─ 本地：角色缓存、会话、「我记住的」
 
@@ -112,47 +113,69 @@ DeerFlow 生成的内容（如它替用户写的故事）是内容，**不自动
 
 ## 5. 2D 人物
 
-### 5.1 渲染器接口（不变）
+### 5.1 指令框架（决定 14：先设计框架，实现可替换）
+
+v1 的人物很简单，但**上层只通过「指令」驱动人物**。以后换 Spine / Live2D / Rive 时，只替换渲染器实现，agent 协议、事件映射、客户端状态机都不动。
 
 ```kotlin
+// 上层唯一的输入：指令（与渲染技术无关）
+sealed interface AvatarCommand {
+    data class SetState(val state: AvatarState) : AvatarCommand   // idle | listening | thinking | speaking
+    data class Emotion(val name: String) : AvatarCommand          // 如 "joy"，由 emotion_map 解析
+    data class Mouth(val openness: Float) : AvatarCommand         // 0..1，来自音频振幅
+    data class Gaze(val x: Float, val y: Float) : AvatarCommand   // v1 不实现
+    data class Gesture(val id: String) : AvatarCommand            // v1 不实现
+}
+
+// 渲染器声明自己支持哪些能力；不支持的指令直接忽略，不报错
+enum class AvatarCapability { STATE, EMOTION, MOUTH, GAZE, GESTURE, TOUCH_DRAG }
+
 interface AvatarRenderer {
+    val capabilities: Set<AvatarCapability>
     fun bind(view: AvatarView, spec: AvatarSpec)
-    fun onEvent(event: AvatarEvent)           // 情绪、状态
-    fun setMouthOpenness(value: Float)        // 音频振幅 0..1
-    fun onTouch(event: AvatarTouch): TouchResult   // 手指（拖动、点击）
+    fun dispatch(command: AvatarCommand)          // 所有指令入口
+    fun onTouch(event: AvatarTouch): TouchResult  // v1 一律返回 Ignored
     fun release()
 }
 ```
 
-### 5.2 实现路线（回应「Live2D 授权」问题）
+- **事件映射**：agent 发来的 JSON 事件（5.5）只在一个地方（`AvatarEventMapper`）转成 `AvatarCommand`。协议不因渲染器而变。
+- **能力协商**：`capabilities` 决定上层是否发 `Gaze`、`Gesture` 等指令。v1 只声明 `STATE`、`EMOTION`、`MOUTH`。
+- **未知指令**：渲染器忽略，记日志，不崩溃。
+- **资源规格**：`AvatarSpec` 只描述资源（图片或骨架文件、版本、情绪到资源的映射），不含业务逻辑。
 
-Live2D 的条款网页没有给出费用与具体门槛：个人与小型企业原则上免费，但**「可扩展应用」（Expandable Application）需要批准且签专门的发行许可**，而我们的应用是否属于这一类取决于扩展程度，网页无法判断。因此 Live2D 需要**书面确认**，不能靠推测。
+### 5.2 v1 形象：简单动画（决定 14）
 
-| 方案 | 授权 | 手指拖动 | 嘴型 | 工作量 | 结论 |
-|---|---|---|---|---|---|
-| **阶段 A：自研轻量 2D（推荐先做）** | 无第三方运行时，只需原创美术 | 分层图片做视差与倾斜，可实现 | 2–3 帧图片按振幅切换即可，不追求唇形精准 | 中：渲染部分约一到两周 | **第一版采用**，零授权风险，最快上线 |
-| 阶段 B：Rive | 运行时 MIT；编辑器免费版导出带水印，需付费计划（待核实）| 状态机可接收指针输入，适合拖动 | 状态机数值输入 | 低到中 | 追求更好动画时评估 |
-| 阶段 C：Live2D Cubism | 需要书面确认（见上）| 参数最完整 | 完整 | 中 | 有书面授权后再上 |
-| Spine | Editor 需付费；运行时条件见其许可 | 可 | 可 | 中 | 备选 |
+第一版目标是**把流程走通**，形象只做到能看、能表达状态，不做跟随互动。
 
-**阶段 A 的具体做法（不需要唇形精准）**：
+- **实现**：`SimpleAvatarRenderer`，不依赖任何第三方运行时（无授权风险）。
+- **素材**：每个角色一张静态立绘，加一组表情图（如 joy、calm、sad 各一张）和 2 张嘴型图（闭、开）。
+- **动画**：眨眼（随机间隔 3–6 秒，用两张眼睛图切换）；呼吸（整体缩放 ±1%）。
+- **指令处理**：`SetState` 切换呼吸快慢（speaking 时嘴巴动）；`Emotion` 切换表情图；`Mouth` 按振幅阈值在闭/开两张之间切换。
+- **不做**：拖动、点击反应、视线、手势。`onTouch` 返回 `Ignored`。
+- **后续替换**：P3b 再决定 Spine、Live2D（需书面授权）或 Rive。候选的对比见第 5.4 节。届时只新增一个渲染器实现，并把 `capabilities` 补齐。
 
-- **素材**：每个角色一套原创分层 PNG：身体、头、眼睛（睁/闭）、嘴（2–3 个形态）、头发前后层、表情差分若干。
-- **拖动**：手指位置映射为图层位移与旋转。头部层做小幅倾斜（±8°）和平移，身体层做更小的位移，眼睛层做视线偏移（移动瞳孔图层）。每层单独限幅，松手后阻尼回中。这实现了第 5.3 节的交互目标。
-- **动画**：眨眼（随机间隔 3–6 秒）、呼吸（缓慢的缩放或位移）、说话时嘴巴帧切换（振幅阈值分三档）。
-- **表情**：情绪标签切换到对应差分图，持续到下一个标签或回合结束。
-- 嘴型只需「张合」正确，不需要与音素对应。
+### 5.3 后续互动（P3b，不在 v1）
 
-### 5.3 手指拖动的交互（重点）
+以下能力在 P3b 通过新渲染器实现，不改 v1 的指令接口：
 
-- **拖动跟随**：手指相对人物中心的偏移归一化到 -1..1，映射到视线、头部、身体三层；三层权重分别为 1.0、0.6、0.3。
-- **阻尼**：每帧指数平滑；松手后约 0.4 秒回中。
-- **点击部位**：点头部或身体区域，本地立即播放一个短反应（换一张差分或抖动一下），同时把 `{type:"touch", area:"head"}` 发给 agent，agent 在下一句回复里自然回应。
-- **优先级**：说话时嘴巴优先；拖动时暂停 agent 下发的视线类动作。
-- **性能**：人物在屏幕上半部分，输入框与消息列表在下半部分，人物不遮挡输入区域。
-- 拖动手感（阻尼曲线、权重）需要在设备上调参。
+- **拖动跟随**：手指偏移映射到视线、头部、身体三层，权重 1.0 / 0.6 / 0.3，阻尼回中约 0.4 秒。对应 `Gaze` 与 `TOUCH_DRAG`。
+- **点击部位**：命中区域（BoundingBox 或 HitArea）触发本地反应，并发 `touch` 事件给 agent。
+- **手势与动作**：对应 `Gesture`。
+- 手感参数（阻尼、权重）需要在设备上调参。
 
-### 5.4 情绪事件
+### 5.4 候选渲染技术（P3b 决策用）
+
+| 方案 | 授权 | 互动能力 | 结论 |
+|---|---|---|---|
+| 简单图层动画（v1） | 无第三方运行时 | 仅状态、表情、嘴型 | 第一版采用 |
+| Spine | Editor：Essential 不含 IK 和 Mesh，Professional 含；运行时条款待书面确认 | 骨骼、IK、Mesh、Skin、Event 齐全 | P3b 候选，优先评估 |
+| Live2D Cubism | 需要书面确认是否属于「可扩展应用」 | 参数最完整 | 书面授权后再评估 |
+| Rive | 运行时 MIT；编辑器免费版的限制待核实 | 状态机，可接收指针输入 | 备选 |
+
+| Rive | 运行时 MIT；编辑器免费版的限制待核实 | 状态机，可接收指针输入 | 备选 |
+
+### 5.5 事件协议（agent → 客户端）
 
 ```json
 {"v":1,"type":"emotion","turn":"t1","t_ms":1200,"emotion":"joy"}
@@ -214,7 +237,7 @@ interface VoiceProvider {
 
 ## 10. 官方角色（决定 11）
 
-三个原创角色，美术与人设均由我们设计（沿用 v2 的晓雾、小遥、林澈）。第一版形象用阶段 A 的分层图片，需要委托原创美术，预计每角色一套分层素材。
+三个原创角色，美术与人设均由我们设计（沿用 v2 的晓雾、小遥、林澈）。第一版形象是简单动画所需的静态立绘与表情图，需要委托原创美术，预计每角色一套小型素材。
 
 ## 11. 扩展点（决定 9）
 
@@ -231,13 +254,14 @@ interface VoiceProvider {
 | P0 基础 | 角色模型与 V2 导入导出；3 个官方角色；LiveKit Cloud 房间与最小文字 agent；VoiceProvider 接口与火山 TTS 适配器 | 导入导出往返；接口单测（fake 供应商）；agent 回合测试 |
 | P1 文字 + 记忆 | 提示词组装；MemoryPort；mem0 与 Hindsight 对比；「我记住的」；跨角色读取与来源标注；删除账号的全量删除 | 50 段对话的抽取对比；删除后零残留测试；隔离测试 |
 | P2 语音 | 火山 ASR/TTS 接通；语音模式切换；打断 | 回合状态机单测；音频在设备上验证 |
-| P3 2D 人物（阶段 A） | 分层渲染器；拖动、眨眼、呼吸、嘴型帧、表情差分 | 限幅与映射单测；拖动手感需设备 |
+| P3 简易形象（v1） | `AvatarCommand` 指令框架；`SimpleAvatarRenderer`：立绘、表情图、嘴型两帧、眨眼、呼吸；事件映射 | 指令映射与未知指令忽略的单测；设备上看渲染与切换 |
+| P3b 形象互动（之后） | 新渲染器（Spine 优先评估）；拖动跟随、点击反应、手势；补齐 `capabilities` | 限幅与映射单测；拖动手感需设备 |
 | P4 DeerFlow 内容 | 异步工具；结果回到会话 | 超时与失败处理测试 |
 | P5 广场与扩展 | 用户角色、审核、举报、屏蔽；Graphiti 评估；Rive 评估 | 状态机与审核测试 |
 
 ### 12.2 仍需确认
 
-1. **Live2D**：是否要向 Live2D 发信确认「固定模型、不开放用户上传」的应用是否属于 Expandable Application，以及费用？（我的建议：先发信，同时按阶段 A 推进，不等待。）
+1. **Live2D**：是否要向 Live2D 发信确认「固定模型、不开放用户上传」的应用是否属于 Expandable Application，以及费用？（我的建议：P3b 之前再决定；v1 不依赖任何形象授权。）
 2. **记忆后端**：同意 P1 做 mem0 与 Hindsight 的对比，再定一个吗？
 3. **账号删除后的 30 天冷静期**：要不要？（Google Play 允许立即删除；冷静期是我的建议，给误操作留余地。）
 4. **官方角色美术**：委托原创美术的预算与周期，需要你定。
@@ -246,5 +270,5 @@ interface VoiceProvider {
 ## 13. 假设（可推翻）
 
 - LiveKit Agents 的自定义 TTS/STT 插件可以接入 VoiceProvider（P0 验证）。
-- 阶段 A 的分层图片渲染在中低端 Android 上性能足够（P3 验证）。
+- 简单动画的表现力在设备上足够支撑 v1 的流程验证（P3 验证）。
 - 用户维度记忆跨角色读取不违反我们的隐私政策与 Google Play 政策（上架前法务确认）。
