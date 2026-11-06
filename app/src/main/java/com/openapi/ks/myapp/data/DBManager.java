@@ -10,15 +10,17 @@ import com.openapi.ks.myapp.data.db.AppDatabase;
 import com.openapi.ks.myapp.data.db.ChatLogDao;
 import com.openapi.ks.myapp.data.db.ChatSessionLogDao;
 import com.openapi.ks.myapp.data.db.ConnLogDao;
+import com.openapi.ks.myapp.data.db.FavoriteDao;
 import com.openapi.ks.myapp.data.db.HistoryDao;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * 应用数据库入口（Room）：聊天记录、会话、连接日志、浏览历史。
+ * 应用数据库入口（Room）：聊天记录、会话、连接日志、浏览历史、收藏，全部在 app.db 里。
  *
  * 库名换成了 app.db：旧的 greenDAO 库（freeSEX）不再读取，也不迁移。
+ * 版本 1 → 2 只加了收藏表（见 [AppDatabase#MIGRATION_1_2]），已有数据保留。
  * 旧代码（聊天页、会话列表、启动页）会在主线程直接读写，greenDAO 不限制这一点，
  * 所以这里允许主线程查询以保持原行为；新代码应放到后台线程。
  */
@@ -50,6 +52,7 @@ public class DBManager {
                 db = database;
                 if (db == null) {
                     db = Room.databaseBuilder(context, AppDatabase.class, DB_NAME)
+                            .addMigrations(AppDatabase.MIGRATION_1_2)
                             .allowMainThreadQueries()
                             .fallbackToDestructiveMigration()
                             .build();
@@ -74,6 +77,10 @@ public class DBManager {
 
     public HistoryDao historyDao() {
         return getDatabase().historyDao();
+    }
+
+    public FavoriteDao favoriteDao() {
+        return getDatabase().favoriteDao();
     }
 
     /** 关闭数据库，下次访问时重新打开。 */

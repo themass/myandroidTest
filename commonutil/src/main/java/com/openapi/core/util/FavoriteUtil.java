@@ -13,12 +13,28 @@ import com.openapi.core.util.CollectionUtils;
 import com.openapi.core.util.DateUtils;
 import com.openapi.core.util.EventBusUtil;
 import com.openapi.core.util.ModelUtils;
-import com.openapi.core.db.DBManager;
+import com.openapi.core.favorite.FavoriteStore;
 
 import java.util.Date;
 import java.util.List;
 
 public class FavoriteUtil {
+
+    private static volatile FavoriteStore store;
+
+    /** 由 app 在 Application.onCreate 中注入实际的存储实现。 */
+    public static void install(FavoriteStore s) {
+        store = s;
+    }
+
+    private static FavoriteStore store() {
+        FavoriteStore s = store;
+        if (s == null) {
+            throw new IllegalStateException("FavoriteStore 未注入：请在 Application.onCreate 中调用 FavoriteUtil.install(...)");
+        }
+        return s;
+    }
+
     /**
      * 读取数据库 得到本地收藏
      *
@@ -27,12 +43,12 @@ public class FavoriteUtil {
      */
 
     public static List<FavoriteVo> getLocalFavorites(Context context) {
-        return DBManager.getInstance().favoriteDao().localFavorites();
+        return store().localFavorites();
     }
 
     public static FavoriteVo getFavorite(Context context, String url) {
         try {
-            List<FavoriteVo> list = DBManager.getInstance().favoriteDao().byUrl(url);
+            List<FavoriteVo> list = store().byUrl(url);
             if (CollectionUtils.isEmpty(list)) {
                 return null;
             }
@@ -74,7 +90,7 @@ public class FavoriteUtil {
      * @param context
      */
     public static void delAllLocalFavorite(Context context) {
-        DBManager.getInstance().favoriteDao().deleteAll();
+        store().deleteAll();
     }
 
     public interface GetFavoriteListener {
@@ -100,12 +116,12 @@ public class FavoriteUtil {
         public void execute() {
             executor.execute(() -> {
                 try {
-                    DBManager.getInstance().favoriteDao().insertOrReplace(vo);
+                    store().insertOrReplace(vo);
                     mainHandler.post(() -> {
                         // 任务完成后的UI更新（如果需要）
                     });
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LogUtil.e(e);
                 }
             });
         }
@@ -126,12 +142,12 @@ public class FavoriteUtil {
         public void execute() {
             executor.execute(() -> {
                 try {
-                    DBManager.getInstance().favoriteDao().deleteById(id);
+                    store().deleteById(id);
                     mainHandler.post(() -> {
                         // 任务完成后的UI更新（如果需要）
                     });
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LogUtil.e(e);
                 }
             });
         }
@@ -161,7 +177,7 @@ public class FavoriteUtil {
                         }
                     });
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LogUtil.e(e);
                     mainHandler.post(() -> {
                         if (listener != null) {
                             listener.isFavorite(itemUrl, null);
@@ -210,7 +226,7 @@ public class FavoriteUtil {
                         }
                     });
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LogUtil.e(e);
                     mainHandler.post(() -> {
                         if (listener != null) {
                             listener.modFavorite(null);
