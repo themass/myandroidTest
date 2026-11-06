@@ -1,0 +1,29 @@
+{
+  "buildFiles": [
+    "/Users/gqli/work/myandroidTest/app/src/main/cpp/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/Users/gqli/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+      "-C",
+      "/Users/gqli/work/myandroidTest/app/.cxx/Debug/63059234/arm64-v8a",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/Users/gqli/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+    "-C",
+    "/Users/gqli/work/myandroidTest/app/.cxx/Debug/63059234/arm64-v8a",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {
+    "dococr_jni::@6890427a1f51a3e7e1df": {
+      "artifactName": "dococr_jni",
+      "abi": "arm64-v8a",
+      "output": "/Users/gqli/work/myandroidTest/app/build/intermediates/cxx/Debug/63059234/obj/arm64-v8a/libdococr_jni.so",
+      "runtimeFiles": [
+        "/Users/gqli/work/myandroidTest/app/src/main/jniLibs/arm64-v8a/libdococr.so"
+      ]
+    }
+  }
+}

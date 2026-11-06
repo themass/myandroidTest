@@ -1,0 +1,28 @@
+{
+  "buildFiles": [
+    "/Users/gqli/work/myandroidTest/app/src/main/cpp/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/Users/gqli/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+      "-C",
+      "/Users/gqli/work/myandroidTest/app/.cxx/Debug/63059234/armeabi-v7a",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/Users/gqli/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+    "-C",
+    "/Users/gqli/work/myandroidTest/app/.cxx/Debug/63059234/armeabi-v7a",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {},
+  "toolchains": {
+    "toolchain": {
+      "cCompilerExecutable": "/Users/gqli/Library/Android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang.lld",
+      "cppCompilerExecutable": "/Users/gqli/Library/Android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++.lld"
+    }
+  },
+  "cFileExtensions": [],
+  "cppFileExtensions": []
+}

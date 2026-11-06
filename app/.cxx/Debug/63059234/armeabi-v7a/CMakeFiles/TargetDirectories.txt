@@ -1,0 +1,2 @@
+/Users/gqli/work/myandroidTest/app/.cxx/Debug/63059234/armeabi-v7a/CMakeFiles/edit_cache.dir
+/Users/gqli/work/myandroidTest/app/.cxx/Debug/63059234/armeabi-v7a/CMakeFiles/rebuild_cache.dir

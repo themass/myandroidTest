@@ -1,0 +1,3 @@
+/Users/gqli/work/myandroidTest/app/.cxx/Debug/63059234/arm64-v8a/CMakeFiles/dococr_jni.dir
+/Users/gqli/work/myandroidTest/app/.cxx/Debug/63059234/arm64-v8a/CMakeFiles/edit_cache.dir
+/Users/gqli/work/myandroidTest/app/.cxx/Debug/63059234/arm64-v8a/CMakeFiles/rebuild_cache.dir
