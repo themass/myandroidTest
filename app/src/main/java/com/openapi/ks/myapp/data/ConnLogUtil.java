@@ -15,6 +15,7 @@ import com.openapi.ks.myapp.bean.form.ConnLog;
 import com.openapi.ks.myapp.bean.form.ConnLogForm;
 import com.openapi.ks.myapp.bean.vo.NullReturnVo;
 import com.openapi.ks.myapp.constant.Constants;
+import com.openapi.ks.myapp.data.db.AppDatabase;
 
 import java.util.Date;
 import java.util.List;
@@ -27,8 +28,8 @@ public class ConnLogUtil {
         indexService.setup(context);
         Background.serial(() -> {
             try {
-                List<ConnLog> logs = DBManager.getInstance().connLogDao().loadAll();
-                DBManager.getInstance().connLogDao().deleteAll();
+                List<ConnLog> logs = AppDatabase.getInstance().connLogDao().loadAll();
+                AppDatabase.getInstance().connLogDao().deleteAll();
                 if (!CollectionUtils.isEmpty(logs)) {
                     ConnLogForm form = new ConnLogForm();
                     form.log = GsonUtils.getInstance().toJson(logs);

@@ -6,12 +6,13 @@ import com.openapi.core.util.Background;
 import com.openapi.core.util.CollectionUtils;
 import com.openapi.core.util.LogUtil;
 import com.openapi.ks.myapp.bean.vo.HistoryVo;
+import com.openapi.ks.myapp.data.db.AppDatabase;
 
 import java.util.List;
 
 public class HistoryUtil {
     public static HistoryVo getHistory(Context context, String url) {
-        List<HistoryVo> list = DBManager.getInstance().historyDao().byUrl(url);
+        List<HistoryVo> list = AppDatabase.getInstance().historyDao().byUrl(url);
         if (CollectionUtils.isEmpty(list)) {
             return null;
         }
@@ -25,7 +26,7 @@ public class HistoryUtil {
                 HistoryVo vo = new HistoryVo();
                 vo.setItemUrl(url);
                 try {
-                    DBManager.getInstance().historyDao().insert(vo);
+                    AppDatabase.getInstance().historyDao().insert(vo);
                 } catch (Throwable e) {
                     LogUtil.e(e);
                 }

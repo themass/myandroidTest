@@ -20,7 +20,7 @@ import com.openapi.chat.ChatDependencies;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.chat.BackendSpeechToText;
 import com.openapi.ks.myapp.data.chat.ChatRepositoryImpl;
-import com.openapi.ks.myapp.data.DBManager;
+import com.openapi.ks.myapp.data.db.AppDatabase;
 import com.openapi.ks.myapp.translation.VideoTranslationInstaller;
 import com.openapi.ks.myapp.video.PlaybackEngineHelper;
 import com.openapi.ks.myapp.data.ImagePhotoLoad;
@@ -63,7 +63,7 @@ public class MyApplication extends MultiDexApplication {
         NetQueue.init(isDebug, this);
         VideoTranslationInstaller.install(this);
         initFilePath();
-        DBManager.getInstance().init(this);
+        AppDatabase.init(this);
         com.openapi.retromusic.App.init(this);
         ChatDependencies.INSTANCE.install(new ChatRepositoryImpl(this));
         ChatDependencies.INSTANCE.installLoginGate(new com.openapi.ks.myapp.data.chat.LegacyLoginGate());
