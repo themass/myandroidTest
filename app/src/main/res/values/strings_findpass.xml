@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="findpass_hint">Enter the email you signed up with. We will send your password to it.</string>
+    <string name="findpass_email_invalid">Enter a valid email address</string>
+    <string name="findpass_send_failed">Couldn\'t send. Check your connection and try again.</string>
+    <string name="findpass_sent_title">Email sent</string>
+    <string name="findpass_sent_body">We sent your password to %1$s. Check your inbox, and your spam folder if you don\'t see it.</string>
+    <string name="findpass_back_login">Back to sign in</string>
+    <string name="findpass_resend">Resend</string>
+    <string name="findpass_resend_wait">Resend in %1$d s</string>
+</resources>

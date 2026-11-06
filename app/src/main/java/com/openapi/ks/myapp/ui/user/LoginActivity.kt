@@ -10,6 +10,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -74,6 +75,9 @@ class LoginActivity : ComponentActivity() {
                             finish()
                             startActivity(Intent(this, RegActivity::class.java))
                         },
+                        onForgotPassword = {
+                            startActivity(Intent(this, FindPassActivity::class.java))
+                        },
                     )
                 }
             }
@@ -132,6 +136,7 @@ private fun LoginScreen(
     initialPassword: String,
     onLogin: (name: String, pwd: String, onDone: () -> Unit) -> Unit,
     onRegister: () -> Unit,
+    onForgotPassword: () -> Unit,
 ) {
     var name by remember { mutableStateOf(initialName) }
     var password by remember { mutableStateOf(initialPassword) }
@@ -182,12 +187,16 @@ private fun LoginScreen(
             ) {
                 Text(stringResource(R.string.login))
             }
-            TextButton(
-                onClick = onRegister,
-                enabled = !loading,
+            Row(
                 modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                Text(stringResource(R.string.reg), color = AppColors.TextSecondary)
+                TextButton(onClick = onForgotPassword, enabled = !loading) {
+                    Text(stringResource(R.string.findpass), color = AppColors.TextSecondary)
+                }
+                TextButton(onClick = onRegister, enabled = !loading) {
+                    Text(stringResource(R.string.reg), color = AppColors.TextSecondary)
+                }
             }
             Text(
                 text = stringResource(R.string.remark),
