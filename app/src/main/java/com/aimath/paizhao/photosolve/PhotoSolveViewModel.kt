@@ -23,7 +23,6 @@ import kotlinx.coroutines.withContext
 
 class PhotoSolveViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val repository: PhotoSolveRepository = MockPhotoSolveRepository()
     private val cropAssistSettings = CropAssistSettingsRepository(application)
     /** 模型未随包提供时 [RealEsrganUpscaler.upscaleSmall] 直接返回 null，流程不变。 */
     private val upscaler = RealEsrganUpscaler(application)
@@ -106,7 +105,7 @@ class PhotoSolveViewModel(application: Application) : AndroidViewModel(applicati
             }
         }
 
-        val result = runCatching { repository.solve(cropped) }
+        val result = runCatching { PhotoSolveRepositories.current().solve(cropped) }
         statusCycler.cancel()
 
         result.onSuccess { solved ->

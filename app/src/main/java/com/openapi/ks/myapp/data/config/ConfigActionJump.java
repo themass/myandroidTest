@@ -1,10 +1,10 @@
 package com.openapi.ks.myapp.data.config;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 
-import androidx.appcompat.app.AppCompatActivity;
-
+import com.openapi.chat.ChatActivity;
 import com.openapi.core.CommonConstants;
 import com.openapi.core.event.ConfigActionEvent;
 import com.openapi.core.util.LogUtil;
@@ -31,14 +31,12 @@ import java.util.Set;
 import static com.openapi.ks.myapp.constant.Constants.HTTPS_URL;
 import static com.openapi.ks.myapp.constant.Constants.HTTP_URL;
 
-import chat.ui.CustomChatMessagesWithAsrActivity;
-
 /**
  * Created by openapi on 2016/3/17.
  */
 public class ConfigActionJump {
 
-    public static Map<String, Class<? extends AppCompatActivity>> configMap = new HashMap<>();
+    public static Map<String, Class<? extends Activity>> configMap = new HashMap<>();
 
     static {
         configMap.put(Constants.HTTP_URL, WebViewActivity.class);
@@ -50,8 +48,8 @@ public class ConfigActionJump {
         configMap.put(Constants.VIDEO_URL, VideoChannleActivity.class);
         configMap.put(Constants.VIDEOLIST_URL, VideoListShowActivity.class);
         configMap.put(Constants.TELEPLAY_URL, TeleplayActivity.class);
-        configMap.put(Constants.LOCAL_CHAT, CustomChatMessagesWithAsrActivity.class);
-        configMap.put(Constants.LOCAL_CHAT2, CustomChatMessagesWithAsrActivity.class);
+        configMap.put(Constants.LOCAL_CHAT, ChatActivity.class);
+        configMap.put(Constants.LOCAL_CHAT2, ChatActivity.class);
 
 //        configMap.put(Constants.VIDEO_CHANNEL_USER_URL, VideoChannleUserActivity.class);
     }
@@ -65,7 +63,7 @@ public class ConfigActionJump {
         for (String name : names) {
             param.put(name, uri.getQueryParameter(name));
         }
-        Class<? extends AppCompatActivity> activity = configMap.get(uri.getScheme());
+        Class<? extends Activity> activity = configMap.get(uri.getScheme());
         if (activity != null) {
             Boolean adsShow = event.param != null ? (Boolean) event.param.get(CommonConstants.ADS_SHOW_CONFIG) : null;
             Boolean adsPopShow = event.param != null ? (Boolean) event.param.get(CommonConstants.ADS_POP_SHOW_CONFIG) : null;

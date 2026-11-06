@@ -8,6 +8,7 @@ import com.openapi.chat.domain.model.ChatReply
 import com.openapi.chat.domain.model.MessageKind
 import com.openapi.ks.myapp.bean.vo.Choice
 import com.openapi.chat.domain.model.ChatRole
+import com.openapi.chat.domain.model.ChatSession
 import com.openapi.chat.domain.model.ChatStreamEvent
 import com.openapi.chat.domain.repository.ChatRepository
 import com.openapi.core.util.GsonUtils
@@ -17,6 +18,7 @@ import com.openapi.core.util.PreferenceUtils
 import com.openapi.core.net.request.BaseRequest
 import com.openapi.ks.myapp.base.MyApplication
 import com.openapi.ks.myapp.bean.form.ChatLog
+import com.openapi.ks.myapp.bean.form.ChatSessionLog
 import com.openapi.ks.myapp.bean.vo.CharacterVo
 import com.openapi.ks.myapp.bean.vo.TtsResponseVo
 import com.openapi.ks.myapp.constant.Constants
@@ -335,6 +337,66 @@ class ChatRepositoryImpl(
     override suspend fun deleteCharacter(characterId: Int): Boolean {
         val param = CharacterDeleteParam(id = characterId)
         return postForResult(Constants.API_CHARACTER_DELETE_URL, param, Any::class.java) != null
+    }
+
+    override fun sessions(): List<ChatSession> {
+        return DBManager.getInstance().chatSessionLogDao().loadAll()
+            .sortedWith(
+                compareBy<ChatSessionLog>(
+                    { it.type != ChatSessionLog.TYPE.DEF.type },
+                    { it.id ?: 0L },
+                ),
+            )
+            .map { log ->
+                ChatSession(
+                    id = log.id ?: 0L,
+                    name = log.name.orEmpty(),
+                    isDefault = log.type == ChatSessionLog.TYPE.DEF.type,
+                )
+            }
+    }
+
+    override fun setCurrentSessionId(sessionId: Long) {
+        PreferenceUtils.setSettingLong(context, Constants.CHAT_SESSION, sessionId)
+    }
+
+    override suspend fun createSession(name: String): ChatSession? = withContext(Dispatchers.IO) {
+        val trimmed = name.trim()
+        if (trimmed.isEmpty()) return@withContext null
+        val dao = DBManager.getInstance().chatSessionLogDao()
+        if (dao.loadAll().any { it.name == trimmed }) return@withContext null
+        val log = ChatSessionLog()
+        log.name = trimmed
+        log.createTime = Date()
+        log.setting = ""
+        log.type = ChatSessionLog.TYPE.CUSTOMER.type
+        // 插入会返回新行 id（Room 不回填实体）
+        val id = dao.insertOrReplace(log)
+        ChatSession(id = id, name = trimmed, isDefault = false)
+    }
+
+    override suspend fun deleteSession(sessionId: Long): Boolean = withContext(Dispatchers.IO) {
+        if (sessions().size < 2) return@withContext false
+        DBManager.getInstance().chatSessionLogDao().deleteById(sessionId)
+        if (currentSessionId() == sessionId) {
+            sessions().firstOrNull()?.let { setCurrentSessionId(it.id) }
+        }
+        true
+    }
+
+    override suspend fun syncSessionsFromServer() {
+        withContext(Dispatchers.IO) {
+            val list = runCatching {
+                baseService.getInfoListData(
+                    Constants.getUrl(Constants.CHAT_SESSION_URL),
+                    ChatSessionLog::class.java,
+                    TAG,
+                )
+            }.getOrNull()?.voList
+            if (!list.isNullOrEmpty()) {
+                DBManager.getInstance().chatSessionLogDao().insertOrReplaceAll(list)
+            }
+        }
     }
 
     private fun CharacterVo.toOption() = ChatCharacterOption(

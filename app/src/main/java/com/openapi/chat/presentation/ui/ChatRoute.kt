@@ -95,6 +95,10 @@ fun ChatRoute(
             },
             onSendPendingImage = viewModel::onSendPendingImage,
             onDismissPendingImage = viewModel::onDismissPendingImage,
+            onSessionsVisibleChange = viewModel::onSessionsVisibleChange,
+            onSessionSelected = viewModel::onSessionSelected,
+            onCreateSession = viewModel::onCreateSession,
+            onDeleteSession = viewModel::onDeleteSession,
             modifier = modifier.safeDrawingPadding(),
         )
     }

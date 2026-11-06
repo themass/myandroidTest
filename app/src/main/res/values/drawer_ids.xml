@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 抽屉菜单项 id（原定义在已移除的 drawer_menu.xml 中），由 DrawerMenuCompose.kt 使用 -->
+    <item name="menu_chat_session" type="id" />
+    <item name="menu_local_music" type="id" />
+    <item name="menu_photo_solve" type="id" />
+    <item name="menu_feedback" type="id" />
+    <item name="menu_share" type="id" />
+    <item name="menu_app" type="id" />
+    <item name="menu_setting" type="id" />
+    <item name="menu_louout" type="id" />
+</resources>

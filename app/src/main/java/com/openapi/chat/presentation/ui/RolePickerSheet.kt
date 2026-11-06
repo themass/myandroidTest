@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -76,7 +77,12 @@ internal fun ChatUiState.assistantIdentity(): AssistantIdentity {
  * 取代原来的"切换角色"下拉条：角色是对话的主体，不该藏在一个小按钮后面。
  */
 @Composable
-fun RoleHeader(state: ChatUiState, onClick: () -> Unit, onCallClick: () -> Unit) {
+fun RoleHeader(
+    state: ChatUiState,
+    onClick: () -> Unit,
+    onCallClick: () -> Unit,
+    onSessionsClick: () -> Unit,
+) {
     val identity = state.assistantIdentity()
     val title = identity.name
     val emoji = identity.emoji
@@ -108,6 +114,10 @@ fun RoleHeader(state: ChatUiState, onClick: () -> Unit, onCallClick: () -> Unit)
                 )
             }
             Icon(Icons.Filled.KeyboardArrowDown, contentDescription = "切换角色", tint = AppColors.TextSecondary)
+            // 会话入口：切换、新建、删除对话（替代旧的会话列表页）
+            IconButton(onClick = onSessionsClick) {
+                Icon(Icons.Filled.List, contentDescription = "对话列表", tint = AppColors.TextSecondary)
+            }
             // 通话入口放在头部：通话的对象就是当前角色，以后 LiveKit agent 直接读同一个角色
             IconButton(onClick = onCallClick) {
                 Icon(Icons.Filled.Call, contentDescription = "语音通话", tint = AppColors.TextSecondary)

@@ -114,6 +114,10 @@ fun ChatScreen(
     onPickFile: () -> Unit = {},
     onSendPendingImage: (useCrop: Boolean) -> Unit = {},
     onDismissPendingImage: () -> Unit = {},
+    onSessionsVisibleChange: (Boolean) -> Unit = {},
+    onSessionSelected: (Long) -> Unit = {},
+    onCreateSession: (String) -> Unit = {},
+    onDeleteSession: (Long) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
@@ -135,6 +139,7 @@ fun ChatScreen(
             state = state,
             onClick = { onRolePickerVisibleChange(true) },
             onCallClick = onCallClick,
+            onSessionsClick = { onSessionsVisibleChange(true) },
         )
 
         val identity = state.assistantIdentity()
@@ -196,6 +201,17 @@ fun ChatScreen(
             onCreateCharacter = onCreateCharacter,
             onUpdateCharacter = onUpdateCharacter,
             onDeleteCharacter = onDeleteCharacter,
+        )
+    }
+
+    if (state.sessionsVisible) {
+        ChatSessionsSheet(
+            sessions = state.sessions,
+            currentSessionId = state.sessionId,
+            onSelect = onSessionSelected,
+            onCreate = onCreateSession,
+            onDelete = onDeleteSession,
+            onDismiss = { onSessionsVisibleChange(false) },
         )
     }
 }

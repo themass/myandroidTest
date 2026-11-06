@@ -252,16 +252,6 @@
                 tools:replace="android:resource"
                 android:resource="@xml/file_provider_paths" />
         </provider>
-        <activity
-            android:name="chat.ui.CustomChatMessagesActivity"
-            android:theme="@style/AppTheme"
-            android:exported="true">
-        </activity>
-        <activity
-            android:name="chat.ui.CustomChatMessagesWithAsrActivity"
-            android:theme="@style/AppTheme"
-            android:exported="true">
-        </activity>
         <service android:name="com.openapi.ks.myapp.service.PlayService" />
 <!--        <activity-->
 <!--            android:name="test.WaveActivity"-->

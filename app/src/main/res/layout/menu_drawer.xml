@@ -17,20 +17,12 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
-        <com.google.android.material.navigation.NavigationView
-            android:id="@+id/nv_drawer"
-            android:layout_width="match_parent"
+        <!-- 抽屉菜单内容由 Compose 绘制，见 DrawerMenuCompose.kt -->
+        <androidx.compose.ui.platform.ComposeView
+            android:id="@+id/drawer_menu_compose"
+            android:layout_width="280dp"
             android:layout_height="match_parent"
-            android:layout_gravity="start"
-            android:background="#ffffff"
-            app:itemTextColor="#666666"
-            app:headerLayout="@layout/drawer_header"
-            app:menu="@menu/drawer_menu">
-<!--            <include-->
-<!--                android:layout_width="match_parent"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                layout="@layout/common_mypage_view"/>-->
-        </com.google.android.material.navigation.NavigationView>
+            android:layout_gravity="start" />
 
 
     </androidx.drawerlayout.widget.DrawerLayout>

@@ -3,6 +3,7 @@ package com.openapi.chat.domain.repository
 import com.openapi.chat.domain.model.ChatCharacterOption
 import com.openapi.chat.domain.model.ChatMessage
 import com.openapi.chat.domain.model.ChatReply
+import com.openapi.chat.domain.model.ChatSession
 import com.openapi.chat.domain.model.ChatStreamEvent
 import com.openapi.chat.domain.model.MessageKind
 import kotlinx.coroutines.flow.Flow
@@ -92,5 +93,22 @@ interface ChatRepository {
 
     /** 删除自己的自定义角色；失败返回 false。 */
     suspend fun deleteCharacter(characterId: Int): Boolean
+
+    /** 会话列表：默认会话在前，其余按创建顺序。 */
+    fun sessions(): List<ChatSession>
+
+    /** 切换当前会话（写入 SP，之后的历史和发送都以它为准）。 */
+    fun setCurrentSessionId(sessionId: Long)
+
+    /** 新建会话。名称为空或已存在返回 null，不静默覆盖同名会话。 */
+    suspend fun createSession(name: String): ChatSession?
+
+    /**
+     * 删除会话。至少保留一个会话，只剩一个时返回 false；删的是当前会话时，切到剩下的第一个。
+     */
+    suspend fun deleteSession(sessionId: Long): Boolean
+
+    /** 从服务端（`/chat/sessions.json`）同步会话列表到本地；失败静默，保留本地列表。 */
+    suspend fun syncSessionsFromServer()
 }
 

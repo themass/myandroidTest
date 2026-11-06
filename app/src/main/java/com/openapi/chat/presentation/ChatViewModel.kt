@@ -41,6 +41,10 @@ class ChatViewModel : ViewModel() {
     init {
         refresh()
         loadCharacters()
+        viewModelScope.launch {
+            repository.syncSessionsFromServer()
+            reloadSessions()
+        }
     }
 
     fun refresh() {
@@ -48,6 +52,7 @@ class ChatViewModel : ViewModel() {
             _uiState.update { it.copy(loading = true, error = null) }
             val history = runCatching { loadHistory() }.getOrElse { emptyList() }
             val sessionId = repository.currentSessionId()
+            val sessions = withContext(Dispatchers.IO) { repository.sessions() }
             _uiState.update {
                 it.copy(
                     messages = history,
@@ -55,8 +60,56 @@ class ChatViewModel : ViewModel() {
                     sessionId = sessionId,
                     // 每个会话记住自己的角色；没选过的会话沿用最近一次选的角色
                     selectedRole = roles.selectedFor(sessionId) ?: roles.selected(),
+                    sessions = sessions,
                 )
             }
+        }
+    }
+
+    private suspend fun reloadSessions() {
+        val sessions = withContext(Dispatchers.IO) { repository.sessions() }
+        _uiState.update { it.copy(sessions = sessions) }
+    }
+
+    fun onSessionsVisibleChange(visible: Boolean) {
+        _uiState.update { it.copy(sessionsVisible = visible) }
+        if (visible) viewModelScope.launch { reloadSessions() }
+    }
+
+    /** 切换会话：写入当前会话 id，然后重新加载这个会话的历史。 */
+    fun onSessionSelected(sessionId: Long) {
+        if (sessionId == _uiState.value.sessionId) {
+            _uiState.update { it.copy(sessionsVisible = false) }
+            return
+        }
+        repository.setCurrentSessionId(sessionId)
+        _uiState.update { it.copy(sessionsVisible = false) }
+        refresh()
+    }
+
+    /** 新建会话并立即切过去。 */
+    fun onCreateSession(name: String) {
+        viewModelScope.launch {
+            val created = withContext(Dispatchers.IO) { repository.createSession(name) }
+            if (created == null) {
+                _uiState.update { it.copy(error = "会话名称不能为空，也不能与已有会话重名") }
+                return@launch
+            }
+            repository.setCurrentSessionId(created.id)
+            _uiState.update { it.copy(sessionsVisible = false) }
+            refresh()
+        }
+    }
+
+    /** 删除会话（至少保留一个）。删的是当前会话时，refresh 会切到剩下的会话。 */
+    fun onDeleteSession(sessionId: Long) {
+        viewModelScope.launch {
+            val ok = withContext(Dispatchers.IO) { repository.deleteSession(sessionId) }
+            if (!ok) {
+                _uiState.update { it.copy(error = "至少保留一个对话") }
+                return@launch
+            }
+            refresh()
         }
     }
 

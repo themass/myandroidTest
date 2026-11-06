@@ -1,25 +1,17 @@
 package com.openapi.ks.myapp.ui.base.app;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.drawerlayout.widget.DrawerLayout;
 
-import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
-import android.provider.MediaStore;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.TextView;
-import android.widget.Toast;
 
-import com.google.android.material.navigation.NavigationView;
+import androidx.compose.ui.platform.ComposeView;
+
 import com.openapi.core.CommonConstants;
 import com.openapi.core.event.UserNeedLogin;
 import com.openapi.core.util.PreferenceUtils;
@@ -29,7 +21,6 @@ import com.openapi.core.util.LogUtil;
 import com.openapi.core.util.ShareUtil;
 import com.openapi.core.util.SystemUtils;
 import com.openapi.core.util.ToastUtil;
-import com.openapi.core.ads.yewu.ads.base.AdsManager;
 import com.openapi.core.ads.yewu.um.MobAgent;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.chatfree.ui.main.MainFragmentViewPage;
@@ -39,17 +30,12 @@ import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.core.net.BaseService;
 import com.openapi.ks.myapp.data.UserLoginUtil;
 import com.openapi.ks.myapp.data.VersionUpdater;
-import com.openapi.ks.myapp.data.config.LocationChooseEvent;
 import com.openapi.ks.myapp.data.config.StateUseEvent;
 import com.openapi.ks.myapp.data.config.UserLoginEvent;
 import com.openapi.ks.myapp.data.config.VipDescEvent;
-import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
 import com.openapi.ks.myapp.ui.base.WebViewActivity;
 import com.openapi.ks.myapp.ui.feedback.IWannaFragment;
 import com.openapi.ks.myapp.ui.fragment.AppListFragment;
-import com.openapi.ks.myapp.ui.fragment.ChatSessionFragment;
-import com.openapi.ks.myapp.ui.fragment.DonationListFragment;
-import com.openapi.ks.myapp.ui.fragment.FavoriteFragment;
 import com.openapi.ks.myapp.ui.user.LoginActivity;
 import com.openapi.ks.myapp.ui.user.SettingActivity;
 
@@ -61,48 +47,32 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.util.Date;
 
 /**
- * Created by Miroslaw Stanek on 15.07.15.
+ * 带抽屉菜单的页面基类。
+ *
+ * 菜单内容由 Compose 绘制（见 [DrawerMenuCompose]），这里只维护登录态并把它写入 [DrawerMenuState]，
+ * 菜单点击统一走 [onDrawerItemClick]。
  */
 public class BaseDrawerActivity extends BaseToolBarActivity {
     @Nullable
     public DrawerLayout drawerLayout;
 
-    @Nullable
-    NavigationView nvDrawer;
     private ViewGroup drawerContentRoot;
+    private ComposeView drawerMenu;
+    private final DrawerMenuState drawerState = new DrawerMenuState();
+    public BaseService baseService;
 
     @Override
     protected void bindBaseViews() {
         super.bindBaseViews();
         drawerLayout = findViewById(R.id.drawerLayout);
-        nvDrawer = findViewById(R.id.nv_drawer);
         drawerContentRoot = findViewById(R.id.fl_content_root);
+        drawerMenu = findViewById(R.id.drawer_menu_compose);
     }
 
     @Override
     protected ViewGroup contentContainer() {
         return drawerContentRoot;
     }
-    View headerView;
-    LinearLayout llLoginMenuHeader;
-    LinearLayout llDesc;
-    TextView tvMenuUserName;
-    TextView tvMenuUserLogin;
-    TextView tvScore;
-    TextView tvDesc;
-    TextView tvDesc1;
-    TextView tvDesc2;
-    ImageView ivAvatar;
-    ImageView ivLevel;
-    MenuItem miLogout;
-    MenuItem miLocation;
-    MenuItem miApprecommond;
-    MenuItem miSetting;
-    MenuItem miFavorite;
-    MenuItem miApp;
-    MenuItem miDona;
-    MenuItem chatSessions;
-    public BaseService baseService;
 
     public void login(View view) {
         startActivity(LoginActivity.class);
@@ -116,56 +86,21 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         LayoutInflater.from(this).inflate(layoutResID, viewGroup, true);
         bindViews();
         setupToolbar();
-        miLogout = nvDrawer.getMenu().findItem(R.id.menu_louout);
-        miLocation = nvDrawer.getMenu().findItem(R.id.menu_location);
-        miSetting = nvDrawer.getMenu().findItem(R.id.menu_setting);
-        miFavorite = nvDrawer.getMenu().findItem(R.id.menu_favorite);
-        miDona = nvDrawer.getMenu().findItem(R.id.menu_donation);
-        miApprecommond = nvDrawer.getMenu().findItem(R.id.menu_app);
-        miApp = nvDrawer.getMenu().findItem(R.id.menu_app);
-        chatSessions = nvDrawer.getMenu().findItem(R.id.menu_chat_session);
-        headerView = nvDrawer.getHeaderView(0);
-        llLoginMenuHeader = (LinearLayout) headerView.findViewById(R.id.ll_menu_headview);
-        tvMenuUserName = (TextView) headerView.findViewById(R.id.tv_menu_username);
-        tvMenuUserLogin = (TextView) headerView.findViewById(R.id.tv_menu_login);
-        tvScore = (TextView) headerView.findViewById(R.id.tv_score);
-        tvDesc = (TextView) headerView.findViewById(R.id.tv_desc);
-        tvDesc1 = (TextView) headerView.findViewById(R.id.tv_desc1);
-        tvDesc2 = (TextView) headerView.findViewById(R.id.tv_desc2);
-        ivAvatar = (ImageView) headerView.findViewById(R.id.iv_avatar);
-        ivLevel = (ImageView) headerView.findViewById(R.id.iv_level);
-
-        nvDrawer.setItemIconTintList(null);
+        DrawerMenuComposeKt.bindDrawerMenu(
+                drawerMenu,
+                drawerState,
+                this::onDrawerItemClick,
+                () -> login(null));
         setUpVersion();
         setUpUserMenu();
-        setUpLocation();
+        updateAppItemVisibility();
         baseService = new BaseService();
         baseService.setup(this);
-//        showmiDona();
-//        if(MyApplication.isTemp){
-////            tvDesc1.setVisibility(View.GONE);
-////            tvDesc.setVisibility(View.GONE);
-//            miDona.setVisible(false);
-//            miApprecommond.setVisible(false);
-//        }
     }
 
-    private void showmiDona() {
-        UserInfoVo vo = UserLoginUtil.getUserCache();
-        boolean canScore = vo == null ? false : vo.score > 300;
-        if (MyApplication.isTemp) {
-//            miDona.setVisible(canScore);
-            miApprecommond.setVisible(false);
-        }
-    }
-
-    private void setUpLocation() {
-        boolean flag = PreferenceUtils.getPrefBoolean(this, Constants.LOCATION_FLAG, false);
-        if (!flag) {
-            miLocation.setIcon(R.drawable.ic_menu_location_flag);
-        } else {
-            miLocation.setIcon(R.drawable.ic_menu_location);
-        }
+    /** 测试包下隐藏"应用推荐"（原来的 NavigationView 也是这样处理的）。 */
+    private void updateAppItemVisibility() {
+        drawerState.setShowAppItem(!MyApplication.isTemp);
     }
 
     private void setUpVersion() {
@@ -175,47 +110,35 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     private void setUpUserMenu() {
         UserInfoVo vo = UserLoginUtil.getUserCache();
         if (vo != null) {
-            miLogout.setVisible(true);
-            llLoginMenuHeader.setEnabled(false);
-            tvMenuUserName.setText(vo.name);
-            tvMenuUserLogin.setText(R.string.menu_btn_login_ready);
-            if (Constants.SEX_M.equals(vo.sex)) {
-                ivAvatar.setImageResource(R.drawable.ic_default_nan);
-            } else {
-                ivAvatar.setImageResource(R.drawable.ic_default_nv);
-            }
-            ivLevel.setVisibility(View.VISIBLE);
-            if (Constants.UserLevel.LEVEL_FREE == vo.level) {
-                ivLevel.setImageResource(R.drawable.ic_level_free);
-            } else if (Constants.UserLevel.LEVEL_VIP == vo.level) {
-                ivLevel.setImageResource(R.drawable.ic_level_vip);
-            } else if (Constants.UserLevel.LEVEL_VIP2 == vo.level) {
-                ivLevel.setImageResource(R.drawable.ic_level_vip2);
-            } else if (Constants.UserLevel.LEVEL_VIP3 == vo.level) {
-                ivLevel.setImageResource(R.drawable.ic_level_vip3);
-            } else if (Constants.UserLevel.LEVEL_VIP4 == vo.level) {
-                ivLevel.setImageResource(R.drawable.ic_level_vip4);
-            }
+            drawerState.setLoggedIn(true);
+            drawerState.setUserName(vo.name);
+            drawerState.setLoginHint(getString(R.string.menu_btn_login_ready));
+            drawerState.setAvatarRes(Constants.SEX_M.equals(vo.sex) ? R.drawable.ic_default_nan : R.drawable.ic_default_nv);
+            drawerState.setLevelRes(levelIconRes(vo.level));
         } else {
-            miLogout.setVisible(false);
-            llLoginMenuHeader.setEnabled(true);
-            tvMenuUserName.setText(R.string.menu_btn_name_default);
-            tvMenuUserLogin.setText(R.string.menu_btn_login);
-            ivLevel.setVisibility(View.GONE);
+            drawerState.setLoggedIn(false);
+            drawerState.setUserName(getString(R.string.menu_btn_name_default));
+            drawerState.setLoginHint(getString(R.string.menu_btn_login));
+            drawerState.setAvatarRes(R.drawable.ic_login_default_header);
+            drawerState.setLevelRes(0);
         }
-        setScore(null);
+    }
+
+    private int levelIconRes(int level) {
+        if (Constants.UserLevel.LEVEL_FREE == level) return R.drawable.ic_level_free;
+        if (Constants.UserLevel.LEVEL_VIP == level) return R.drawable.ic_level_vip;
+        if (Constants.UserLevel.LEVEL_VIP2 == level) return R.drawable.ic_level_vip2;
+        if (Constants.UserLevel.LEVEL_VIP3 == level) return R.drawable.ic_level_vip3;
+        if (Constants.UserLevel.LEVEL_VIP4 == level) return R.drawable.ic_level_vip4;
+        return 0;
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(UserLoginEvent event) {
         setUpUserMenu();
-        showmiDona();
+        updateAppItemVisibility();
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent(LocationChooseEvent event) {
-        setUpLocation();
-    }
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(UserNeedLogin event) {
         UserLoginUtil.logout(this);
@@ -229,31 +152,8 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(VipDescEvent event) {
-        tvDesc.setText(event.stateUse.desc);
-        tvDesc1.setText(event.stateUse.desc1);
-        tvDesc2.setText(event.stateUse.desc2);
+        // 积分/会员说明原先在抽屉里隐藏显示，这里只保留日志
         LogUtil.i(event.stateUse.desc);
-//        tvDesc.setText("每周减50积分，VIP状态随积分变动");
-//        tvDesc1.setText("VIP1=400积分； VIP2=600积分");
-        setScore(event.stateUse.score);
-    }
-
-    private void setScore(Long inScore) {
-        if (inScore != null) {
-            tvScore.setText(inScore + "积分");
-        } else {
-            UserInfoVo vo = UserLoginUtil.getUserCache();
-            if (vo != null) {
-                String score = vo.score + "积分";
-                if (vo.paidTime != null) {
-                    score = score + "(有效期" + vo.paidTime + ")";
-                }
-                tvScore.setText(score);
-            } else {
-                int score = PreferenceUtils.getPrefInt(this, Constants.SCORE_TMP, 0);
-                tvScore.setText(score + "积分");
-            }
-        }
     }
 
     public void onAbout(View view) {
@@ -298,85 +198,46 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
                 }
             });
         }
-        drawerLayout.addDrawerListener(new DrawerLayout.DrawerListener() {
-            @Override
-            public void onDrawerSlide(View drawerView, float slideOffset) {
-
-            }
-
-            @Override
-            public void onDrawerOpened(View drawerView) {
-            }
-
-            @Override
-            public void onDrawerClosed(View drawerView) {
-
-            }
-
-            @Override
-            public void onDrawerStateChanged(int newState) {
-
-            }
-        });
-        nvDrawer.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(MenuItem item) {
-                String name = "未知";
-                if (item.getItemId() == R.id.menu_louout) {
-                    name = "登出";
-                    logout(item);
-                } else if (item.getItemId() == R.id.menu_feedback) {
-                    name = "反馈";
-                    IWannaFragment.startFragment(BaseDrawerActivity.this);
-                } else if (item.getItemId() == R.id.menu_setting) {
-                    name = "设置";
-                    startActivity(SettingActivity.class);
-                } else if (item.getItemId() == R.id.menu_favorite) {
-                    name = "收藏夹";
-                    FavoriteFragment.startFragment(BaseDrawerActivity.this);
-//                    Playing1Fragment.startFragment(BaseDrawerActivity.this);
-                } else if (item.getItemId() == R.id.menu_support) {
-                    name = "支持作者";
-                    adsOffers();
-                    ToastUtil.showShort(R.string.support_info);
-                } else if (item.getItemId() == R.id.menu_app) {
-                    name = "应用推荐";
-                    if(UserLoginUtil.isVIP2()) {
-                        Intent intent = new Intent(BaseDrawerActivity.this, MainFragmentViewPage.class);
-                        startActivity(intent);
-                    }else {
-                        AppListFragment.startFragment(BaseDrawerActivity.this);
-                    }
-                } else if (item.getItemId() == R.id.menu_donation) {
-                    name = "捐赠";
-                    DonationListFragment.startFragment(BaseDrawerActivity.this);
-                } else if (item.getItemId() == R.id.menu_share) {
-                    showShare();
-                    name = "分享";
-                } else if (item.getItemId() == R.id.menu_chat_session) {
-                    name = "新建对话";
-                    startActivity(new android.content.Intent(BaseDrawerActivity.this, com.openapi.chat.ChatActivity.class));
-                } else if (item.getItemId() == R.id.menu_photo_solve) {
-                    name = "拍照解题";
-                    PhotoSolveActivity.Companion.start(BaseDrawerActivity.this);
-                } else if (item.getItemId() == R.id.menu_local_music) {
-                    name = "本地音乐";
-                    startActivity(new android.content.Intent(BaseDrawerActivity.this,
-                            com.openapi.retromusic.activities.MainActivity.class));
-                }
-                MobAgent.onEventMenu(BaseDrawerActivity.this, name);
-                return false;
-            }
-        });
     }
-    //    public void startFragment() {
-//        Intent intent = new Intent(BaseDrawerActivity.this, CommonFragmentActivity.class);
-//        intent.putExtra(CommonFragmentActivity.FRAGMENT, AudioRecordingFragment.class);
-//        intent.putExtra(CommonFragmentActivity.TITLE, R.string.menu_btn_donation);
-//        intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, false);
-//        intent.putExtra(CommonFragmentActivity.ADSSCROLL, false);
-//        startActivity(intent);
-//    }
+
+    /** 菜单项点击：先收起抽屉，再按 id 分发（与原 NavigationView 的行为一致）。 */
+    void onDrawerItemClick(int itemId) {
+        drawerLayout.closeDrawer(Gravity.LEFT);
+        String name = "未知";
+        if (itemId == R.id.menu_louout) {
+            name = "登出";
+            logout(null);
+        } else if (itemId == R.id.menu_feedback) {
+            name = "反馈";
+            IWannaFragment.startFragment(BaseDrawerActivity.this);
+        } else if (itemId == R.id.menu_setting) {
+            name = "设置";
+            startActivity(SettingActivity.class);
+        } else if (itemId == R.id.menu_app) {
+            name = "应用推荐";
+            if (UserLoginUtil.isVIP2()) {
+                Intent intent = new Intent(BaseDrawerActivity.this, MainFragmentViewPage.class);
+                startActivity(intent);
+            } else {
+                AppListFragment.startFragment(BaseDrawerActivity.this);
+            }
+        } else if (itemId == R.id.menu_share) {
+            showShare();
+            name = "分享";
+        } else if (itemId == R.id.menu_chat_session) {
+            name = "新建对话";
+            startActivity(new Intent(BaseDrawerActivity.this, com.openapi.chat.ChatActivity.class));
+        } else if (itemId == R.id.menu_photo_solve) {
+            name = "拍照解题";
+            PhotoSolveActivity.Companion.start(BaseDrawerActivity.this);
+        } else if (itemId == R.id.menu_local_music) {
+            name = "本地音乐";
+            startActivity(new Intent(BaseDrawerActivity.this,
+                    com.openapi.retromusic.activities.MainActivity.class));
+        }
+        MobAgent.onEventMenu(BaseDrawerActivity.this, name);
+    }
+
     public void showShare() {
         String url = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.D_URL, null);
         if (!StringUtils.hasText(url)) {
@@ -384,10 +245,6 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         }
         ShareUtil util = new ShareUtil(this);
         util.shareText(null, null, url + " 爱Freedom，精彩你的生活", "爱Freedom", "精彩你的生活");
-    }
-
-    private void adsOffers() {
-        AdsManager.getInstans().offerAds(this);
     }
 
     @Override

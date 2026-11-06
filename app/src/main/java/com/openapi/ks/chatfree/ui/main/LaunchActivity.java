@@ -35,7 +35,6 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.IOException;
 
-import chat.ui.CustomChatMessagesWithAsrActivity;
 import com.openapi.ks.chat.databinding.MainLaunchBinding;
 
 /**
