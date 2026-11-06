@@ -3,12 +3,10 @@ package com.openapi.ks.myapp.ui.fragment.body;
 
 import android.os.Bundle;
 import android.os.Build;
-import android.view.View;
 
-import com.openapi.core.net.request.InfoListVo;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.constant.Constants;
-import com.openapi.ks.myapp.ui.fragment.RecommendFragment;
+import com.openapi.ks.myapp.ui.channel.ChannelBodyFragment;
 import com.openapi.ks.myapp.ui.fragment.TextChannelListFragment;
 
 import java.util.HashMap;
@@ -16,7 +14,7 @@ import java.util.HashMap;
 /**
  * Created by openapi on 2015/9/1.
  */
-public class TextChannleBodyFragment extends RecommendFragment {
+public class TextChannleBodyFragment extends ChannelBodyFragment {
     private static final String INDEX_TAG = "text_tag";
     private String channel = "";
 
@@ -45,26 +43,12 @@ public class TextChannleBodyFragment extends RecommendFragment {
     }
 
     @Override
-    public void onCustomerItemClick(View v, int position) {
-        RecommendVo vo = infoListVo.voList.get(position);
-        if (!checkUserLevel(vo.type)) {
-            return;
-        }
+    public void onChannelItemClick(RecommendVo vo) {
         TextChannelListFragment.startFragment(getActivity(), vo);
     }
 
     @Override
     public int getSpanCount() {
         return 3;
-    }
-
-    @Override
-    public boolean getShowEdit() {
-        return false;
-    }
-
-    @Override
-    protected void onDataLoaded(InfoListVo<RecommendVo> data) {
-        super.onDataLoaded(data);
     }
 }

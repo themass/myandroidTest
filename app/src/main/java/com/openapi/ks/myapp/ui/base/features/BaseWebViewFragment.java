@@ -3,11 +3,11 @@ package com.openapi.ks.myapp.ui.base.features;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
@@ -18,7 +18,6 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.ProgressBar;
 
 import com.openapi.ks.myapp.ui.base.app.BaseFragment;
 import com.openapi.core.view.view.MyWebView;
@@ -29,65 +28,63 @@ import com.openapi.core.net.HttpUtils;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.constant.Constants;
+import com.openapi.ks.myapp.ui.channel.WebviewProgress;
+import com.openapi.ks.myapp.ui.channel.WebviewScreenKt;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Created by openapi on 2016/3/21.
+ * 内容由 Compose 承载（见 {@link WebviewScreenKt#createWebviewComposeView}）。
  */
 public class BaseWebViewFragment extends BaseFragment {
     public static final String PARAM_WEB_VIEW_CAN_GO_BACK = "PARAM_WEB_VIEW_CAN_GO_BACK";
     public static final String TAG_FROM = "BaseWebViewFragment_TAG_FROM";
     public static final int TAG_FROM_DEFAULT = 0x0000;
     MyWebView webView;
-    ProgressBar progressbar;
     CookieManager cookieManager = null;
     private boolean mFirstPageLoad = true;
     private WebViewListener webViewListener;
     private int from;
     private String url;
+    private final WebviewProgress progress = new WebviewProgress();
 
     @Override
     protected int getRootViewId() {
-        return R.layout.base_webview_layout;
+        // 内容由 setContentView 直接提供 ComposeView，此布局 id 不再使用
+        return 0;
     }
 
     @Override
-    protected void bindViews(View view) {
-        super.bindViews(view);
-        webView = view.findViewById(R.id.wv_content);
-        progressbar = view.findViewById(R.id.progressbar);
+    protected View setContentView(LayoutInflater inflater) {
+        Bundle args = getArguments();
+        if (args != null) {
+            from = args.getInt(TAG_FROM, TAG_FROM_DEFAULT);
+        }
+        url = getParamUrl();
+        return WebviewScreenKt.createWebviewComposeView(
+                requireContext(),
+                progress,
+                context -> createWebView(),
+                null,
+                null);
     }
 
     @Override
     protected void unbindViews() {
         webView = null;
-        progressbar = null;
         super.unbindViews();
     }
 
-    @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        mFirstPageLoad = true;
-        if (getArguments() != null) {
-            from = getArguments().getInt(TAG_FROM, TAG_FROM_DEFAULT);
+    private MyWebView createWebView() {
+        MyWebView wv = new MyWebView(requireContext());
+        webView = wv;
+        init(wv);
+        if (!TextUtils.isEmpty(url)) {
+            wv.loadUrl(url);
         }
-        WebView webView = getWebView();
-        if (webView != null) {
-            init(webView);
-            url = getParamUrl();
-            if (!TextUtils.isEmpty(url)) {
-                webView.loadUrl(url);
-            }
-        }
-    }
-
-    private void setBook() {
-        webView.getSettings().setDefaultTextEncodingName("utf-8");
-        webView.setBackgroundColor(0); // 设置背景色
-        webView.getBackground().setAlpha(0); // 设置填充透明度 范围：0-255
+        return wv;
     }
 
     public boolean goForward() {
@@ -134,10 +131,8 @@ public class BaseWebViewFragment extends BaseFragment {
     }
 
     private void setProgressShown(boolean shown) {
-        if (progressbar != null)
-            progressbar.setVisibility(shown ? View.VISIBLE : View.GONE);
+        progress.setShown(shown);
     }
-//初始化webView 时调用
 
     /**
      * 设置 cookies
@@ -159,21 +154,6 @@ public class BaseWebViewFragment extends BaseFragment {
                 CookieManager.getInstance().setCookie(domain, value);// 设置 Cookie
             }
         }
-    }
-//stop 生命周期调用
-
-    /**
-     * 保存 Cookie
-     */
-    private void saveCookie(String path) {
-        String domain = IpUtil.getDomain(path);
-        CookieManager cookieManager = CookieManager.getInstance();
-        String cookieStr = cookieManager.getCookie(domain);
-        LogUtil.i(cookieStr);
-        SharedPreferences preferences = MyApplication.getInstance().getSharedPreferences("cookie", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putString(domain, cookieStr);
-        editor.commit();
     }
 
     @SuppressLint({"JavascriptInterface", "SetJavaScriptEnabled"})

@@ -3,13 +3,10 @@ package com.openapi.ks.myapp.ui.fragment.body;
 
 import android.os.Bundle;
 import android.os.Build;
-import android.view.View;
 
-import com.openapi.core.util.LogUtil;
-import com.openapi.core.net.request.InfoListVo;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.constant.Constants;
-import com.openapi.ks.myapp.ui.fragment.RecommendFragment;
+import com.openapi.ks.myapp.ui.channel.ChannelBodyFragment;
 import com.openapi.ks.myapp.ui.fragment.VideoChannelListFragment;
 import com.openapi.ks.myapp.ui.fragment.VideoChannelUserListFragment;
 
@@ -18,7 +15,7 @@ import java.util.HashMap;
 /**
  * Created by openapi on 2015/9/1.
  */
-public class VideoChannleBodyFragment extends RecommendFragment {
+public class VideoChannleBodyFragment extends ChannelBodyFragment {
     private static final String INDEX_TAG = "video_tag";
     private String channel = "";
 
@@ -47,11 +44,7 @@ public class VideoChannleBodyFragment extends RecommendFragment {
     }
 
     @Override
-    public void onCustomerItemClick(View v, int position) {
-        RecommendVo vo = infoListVo.voList.get(position);
-        if (!checkUserLevel(vo.type)) {
-            return;
-        }
+    public void onChannelItemClick(RecommendVo vo) {
         if (Constants.VIDEO_USER_CHANNEL.equals(vo.actionUrl)) {
             VideoChannelUserListFragment.startFragment(getActivity(), vo);
         } else {
@@ -60,26 +53,7 @@ public class VideoChannleBodyFragment extends RecommendFragment {
     }
 
     @Override
-    protected boolean getShowParam() {
-        return true;
-    }
-
-    @Override
     public int getSpanCount() {
         return 3;
-    }
-
-    @Override
-    public boolean getShowEdit() {
-        return false;
-    }
-
-
-    @Override
-    protected void onDataLoaded(InfoListVo<RecommendVo> data) {
-        super.onDataLoaded(data);
-//        if(data.pageNum==3 || data.pageNum==8){
-//            AdsManager.getInstans().showNative(getActivity(),this);
-//        }
     }
 }

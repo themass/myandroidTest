@@ -3,22 +3,18 @@ package com.openapi.ks.myapp.ui.fragment.body;
 
 import android.os.Bundle;
 import android.os.Build;
-import android.view.View;
 
-import androidx.recyclerview.widget.RecyclerView;
-
-import com.openapi.core.net.request.InfoListVo;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.constant.Constants;
+import com.openapi.ks.myapp.ui.channel.ChannelBodyFragment;
 import com.openapi.ks.myapp.ui.fragment.ImgChannelImgListFragment;
-import com.openapi.ks.myapp.ui.fragment.RecommendFragment;
 
 import java.util.HashMap;
 
 /**
  * Created by openapi on 2015/9/1.
  */
-public class ImgChannleBodyFragment extends RecommendFragment {
+public class ImgChannleBodyFragment extends ChannelBodyFragment {
     private static final String INDEX_TAG = "img_tag";
     private String channel = "";
 
@@ -47,11 +43,7 @@ public class ImgChannleBodyFragment extends RecommendFragment {
     }
 
     @Override
-    public void onCustomerItemClick(View v, int position) {
-        RecommendVo vo = infoListVo.voList.get(position);
-        if (!checkUserLevel(vo.type)) {
-            return;
-        }
+    public void onChannelItemClick(RecommendVo vo) {
         ImgChannelImgListFragment.startFragment(getActivity(), vo);
     }
 
@@ -61,18 +53,7 @@ public class ImgChannleBodyFragment extends RecommendFragment {
     }
 
     @Override
-    protected RecyclerView.LayoutManager createRecommendLayoutManager() {
-        return createIrregularWidthImageGridLayout();
-    }
-
-    @Override
-    public boolean getShowEdit() {
-        return false;
-    }
-
-
-    @Override
-    protected void onDataLoaded(InfoListVo<RecommendVo> data) {
-        super.onDataLoaded(data);
+    public boolean isIrregularGrid() {
+        return true;
     }
 }
