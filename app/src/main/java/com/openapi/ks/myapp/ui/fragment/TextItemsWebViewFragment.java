@@ -5,21 +5,19 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Build;
-import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;import android.os.Message;
+import android.os.Looper;
+import android.os.Message;
 import android.text.TextUtils;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.webkit.CookieManager;
-import android.webkit.CookieSyncManager;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 
 import com.openapi.core.event.FavoriteVo;
 import com.openapi.ks.myapp.ui.base.app.BaseFragment;
@@ -29,18 +27,19 @@ import com.openapi.core.util.FileUtils;
 import com.openapi.core.util.LogUtil;
 import com.openapi.core.ads.yewu.ads.base.AdsContext;
 import com.openapi.core.net.HttpUtils;
-import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.myapp.bean.vo.TextItemsVo;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.core.util.StaticDataUtil;
 import com.openapi.ks.myapp.task.SaveTextTask;
 import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
 import com.openapi.ks.chat.R;
-import com.openapi.ks.chat.databinding.LayoutTextitemWebviewBinding;
+import com.openapi.ks.myapp.ui.channel.WebviewProgress;
+import com.openapi.ks.myapp.ui.channel.WebviewScreenKt;
 
 
 /**
  * Created by openapi on 2016/3/21.
+ * 内容由 Compose 承载（见 {@link WebviewScreenKt#createWebviewComposeView}）。
  */
 public class TextItemsWebViewFragment extends BaseFragment implements MyFavoriteView.OnFavoriteItemClick {
     @SuppressLint("HandlerLeak")
@@ -50,32 +49,12 @@ public class TextItemsWebViewFragment extends BaseFragment implements MyFavorite
         }
     };
     MyWebView webView;
-    ProgressBar progressbar;
-    RelativeLayout flBg;
     MyFavoriteView myFavoriteView;
     CookieManager cookieManager = null;
     private boolean mFirstPageLoad = true;
     private String url;
     private TextItemsVo vo;
-    @Override
-    protected void bindViews(View view) {
-        super.bindViews(view);
-        LayoutTextitemWebviewBinding b = LayoutTextitemWebviewBinding.bind(view);
-        webView = b.wvContent;
-        progressbar = b.progressbar;
-        flBg = b.flBg;
-        myFavoriteView = b.myFavoriteview;
-    }
-
-    @Override
-    protected void unbindViews() {
-        webView = null;
-        progressbar = null;
-        flBg = null;
-        myFavoriteView = null;
-        super.unbindViews();
-    }
-
+    private final WebviewProgress progress = new WebviewProgress();
 
     private Runnable run = new Runnable() {
         @Override
@@ -101,30 +80,52 @@ public class TextItemsWebViewFragment extends BaseFragment implements MyFavorite
 
     @Override
     protected int getRootViewId() {
-        return R.layout.layout_textitem_webview;
+        // 内容由 setContentView 直接提供 ComposeView，此布局 id 不再使用
+        return 0;
     }
 
     @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+    protected View setContentView(LayoutInflater inflater) {
         mFirstPageLoad = true;
-//        flBg.setBackgroundResource(R.drawable.boob_bg2);
-        WebView webView = getWebView();
-        if (webView != null) {
-            init(webView);
-            vo = StaticDataUtil.get(Constants.TEXT_FILE, TextItemsVo.class);
-            if (vo == null) {
-                getActivity().finish();
-            }
-            StaticDataUtil.del(Constants.TEXT_FILE);
-            url = vo.fileUrl;
-            if (!TextUtils.isEmpty(url)) {
-                webView.loadUrl(url);
-            }
-            myFavoriteView.setListener(this);
-            myFavoriteView.initFavoriteBackGroud(url);
-//            myFavoriteView.showVideoLocal();
+        vo = StaticDataUtil.get(Constants.TEXT_FILE, TextItemsVo.class);
+        StaticDataUtil.del(Constants.TEXT_FILE);
+        if (vo == null) {
+            // 原实现此处直接解引用 vo 会崩溃，这里改为关闭页面
+            getActivity().finish();
+            return null;
         }
+        url = vo.fileUrl;
+        return WebviewScreenKt.createWebviewComposeView(
+                requireContext(),
+                progress,
+                context -> createWebView(),
+                context -> createFavorite(),
+                R.drawable.boob_bg2);
+    }
+
+    @Override
+    protected void unbindViews() {
+        webView = null;
+        myFavoriteView = null;
+        super.unbindViews();
+    }
+
+    private MyWebView createWebView() {
+        MyWebView wv = new MyWebView(requireContext());
+        webView = wv;
+        init(wv);
+        if (!TextUtils.isEmpty(url)) {
+            wv.loadUrl(url);
+        }
+        return wv;
+    }
+
+    private View createFavorite() {
+        MyFavoriteView fav = new MyFavoriteView(requireContext());
+        myFavoriteView = fav;
+        fav.setListener(this);
+        fav.initFavoriteBackGroud(url);
+        return fav;
     }
 
     public void setListener(MyWebView.OnTouchRightSlide listener) {
@@ -137,29 +138,8 @@ public class TextItemsWebViewFragment extends BaseFragment implements MyFavorite
     }
 
     private void setProgressShown(boolean shown) {
-        if (progressbar != null)
-            progressbar.setVisibility(shown ? View.VISIBLE : View.GONE);
+        progress.setShown(shown);
     }
-//
-//    public void canCors() {
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-//            webView.getSettings().setAllowUniversalAccessFromFileURLs(true);
-//        } else {
-//            try {
-//                Class<?> clazz = webView.getSettings().getClass();
-//                Method method = clazz.getMethod("setAllowUniversalAccessFromFileURLs", boolean.class);
-//                if (method != null) {
-//                    method.invoke(webView.getSettings(), true);
-//                }
-//            } catch (NoSuchMethodException e) {
-//                LogUtil.e(e);
-//            } catch (InvocationTargetException e) {
-//                LogUtil.e(e);
-//            } catch (IllegalAccessException e) {
-//                LogUtil.e(e);
-//            }
-//        }
-//    }
 
     @SuppressLint({"JavascriptInterface", "SetJavaScriptEnabled"})
     private void init(final WebView webView) {
@@ -192,37 +172,6 @@ public class TextItemsWebViewFragment extends BaseFragment implements MyFavorite
                 setProgressShown(true);
                 LogUtil.i("onPageStarted->" + url);
             }
-//
-//            @Override
-//            public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
-//                WebResourceResponse response = super.shouldInterceptRequest(view, url);
-//                LogUtil.i("资源：" + url);
-//                if (url.contains("mybook.css")) {
-//                    try {
-//                        LogUtil.i("本地css");
-//                        response = new WebResourceResponse("text/css", "UTF-8", new StringBufferInputStream(Constants.BOOK_CSS));
-//                    } catch (Exception e) {
-//                        LogUtil.e(e);
-//                    }
-//                }
-//                return response;
-//            }
-//
-//            @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-//            @Override
-//            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
-//                WebResourceResponse response = super.shouldInterceptRequest(view, request);
-//                LogUtil.i("资源：" + request.getUrl().toString());
-//                if (request.getUrl().toString().contains("mybook.css")) {
-//                    try {
-//                        LogUtil.i("本地css");
-//                        response = new WebResourceResponse("text/css", "UTF-8", new StringBufferInputStream(Constants.BOOK_CSS));
-//                    } catch (Exception e) {
-//                        LogUtil.e(e);
-//                    }
-//                }
-//                return response;
-//            }
 
             @Override
             public void onPageFinished(WebView view, String url) {
