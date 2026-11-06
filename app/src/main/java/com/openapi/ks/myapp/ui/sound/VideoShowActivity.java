@@ -6,7 +6,7 @@ import com.openapi.core.cast.JavaCaster;
 import com.openapi.core.cast.DlnaDiscoveryCallback;
 import com.openapi.core.cast.DlnaDevice;
 import android.widget.ImageButton;
-import android.app.AlertDialog;
+import com.openapi.core.design.dialog.AppDialogHost;
 import com.shuyu.gsyvideoplayer.video.base.GSYVideoView;
 import android.util.Rational;
 import android.app.PictureInPictureParams;
@@ -179,10 +179,8 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
             for (int i = 0; i < names.length; i++) {
                 names[i] = devices.get(i).getFriendlyName();
             }
-            new AlertDialog.Builder(this)
-                    .setTitle("投屏到")
-                    .setItems(names, (dialog, which) -> castToDlna(devices.get(which)))
-                    .show();
+            AppDialogHost.showItems(this, "投屏到", names, true,
+                    which -> castToDlna(devices.get(which)));
         }));
     }
 

@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -12,7 +11,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
+import com.openapi.core.design.dialog.AppDialogHost;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -576,23 +575,14 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
     }
 
     public void showUpdateDialog(final Activity context) {
-        AlertDialog.Builder confirmDialog = new AlertDialog.Builder(context);
-        confirmDialog.setMessage(R.string.sound_play_not_wifi);
-        confirmDialog.setPositiveButton(R.string.del_cancel, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
-        confirmDialog.setNegativeButton(R.string.del_ok, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                ignorNet = true;
-                resume();
-                dialog.dismiss();
-            }
-        });
-        confirmDialog.show();
+        AppDialogHost.showMessage(context, null,
+                context.getString(R.string.sound_play_not_wifi), null,
+                context.getString(R.string.del_cancel), null,
+                context.getString(R.string.del_ok), () -> {
+                    ignorNet = true;
+                    resume();
+                },
+                true);
     }
 
     @Override
