@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="companion_title">Companion</string>
+    <string name="companion_tab">Companion</string>
+    <string name="companion_mode_text">Text</string>
+    <string name="companion_mode_voice">Voice</string>
+    <string name="companion_input_hint">Say something…</string>
+    <string name="companion_send">Send</string>
+    <string name="companion_connecting">Connecting…</string>
+    <string name="companion_error">Connection failed</string>
+    <string name="companion_voice_hint">Hold to talk</string>
+</resources>

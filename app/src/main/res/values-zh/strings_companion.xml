@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="companion_title">陪伴</string>
+    <string name="companion_tab">陪伴</string>
+    <string name="companion_mode_text">文字</string>
+    <string name="companion_mode_voice">语音</string>
+    <string name="companion_input_hint">说点什么…</string>
+    <string name="companion_send">发送</string>
+    <string name="companion_connecting">正在连接…</string>
+    <string name="companion_error">连接出错了</string>
+    <string name="companion_voice_hint">长按说话</string>
+</resources>

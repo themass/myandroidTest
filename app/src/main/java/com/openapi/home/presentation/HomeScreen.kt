@@ -13,6 +13,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChatBubble
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.material3.DrawerValue
@@ -46,12 +47,16 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.openapi.chat.presentation.ui.ChatRoute
 import com.openapi.core.design.theme.AppColors
 import com.openapi.home.HomeDependencies
+import com.openapi.ks.myapp.companion.CompanionRoute
 import com.openapi.home.domain.ProfileAction
 import com.openapi.ks.chat.R
 import kotlinx.coroutines.launch
 
 private enum class HomeTab(@StringRes val label: Int, val icon: ImageVector) {
     Chat(R.string.home_tab_chat, Icons.Filled.ChatBubble),
+    // 角色扮演与旧对话是两条独立链路：旧对话走 /chat/stream.json，陪伴走 LiveKit 房间，
+    // 所以它们是并列的标签而不是同一个页面里的模式切换。
+    Companion(R.string.companion_tab, Icons.Filled.Favorite),
     Channels(R.string.home_tab_channels, Icons.Filled.VideoLibrary),
     Profile(R.string.home_tab_profile, Icons.Filled.Person),
 }
@@ -150,6 +155,7 @@ fun HomeScreen() {
                 stateHolder.SaveableStateProvider(current.name) {
                     when (current) {
                         HomeTab.Chat -> ChatRoute(onMenuClick = openDrawer)
+                        HomeTab.Companion -> CompanionRoute()
                         HomeTab.Channels -> ChannelsScreen()
                         HomeTab.Profile -> ProfileScreen()
                     }
