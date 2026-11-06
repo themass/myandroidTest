@@ -151,24 +151,10 @@
 -keep class com.yalantis.ucrop** { *; }
 -dontwarn com.yalantis.ucrop**
 
-# MessageKit（消息列表控件，保留 ViewHolder 构造方法）
--keep class tz.co.hosannahighertech.messagekit.messages.** { *; }
--keep class * extends tz.co.hosannahighertech.messagekit.messages.MessageHolders$OutcomingTextMessageViewHolder {
-    public <init>(android.view.View);
-    public <init>(android.view.View, java.lang.Object);
-}
--keep class * extends tz.co.hosannahighertech.messagekit.messages.MessageHolders$IncomingTextMessageViewHolder {
-    public <init>(android.view.View);
-    public <init>(android.view.View, java.lang.Object);
-}
--keep class * extends tz.co.hosannahighertech.messagekit.messages.MessageHolders$IncomingImageMessageViewHolder {
-    public <init>(android.view.View);
-    public <init>(android.view.View, java.lang.Object);
-}
--keep class * extends tz.co.hosannahighertech.messagekit.messages.MessageHolders$OutcomingImageMessageViewHolder {
-    public <init>(android.view.View);
-    public <init>(android.view.View, java.lang.Object);
-}
+# jaudiotagger（本地音乐标签库）引用了桌面 JVM 才有的 API，Android 上不存在也不会被调用
+-dontwarn java.awt.image.BufferedImage
+-dontwarn javax.imageio.ImageIO
+-dontwarn javax.imageio.stream.ImageInputStream
 
 # ---------------------- 广告/SDK 相关 ----------------------
 # 广点通（GDT 广告，保留核心交互类）

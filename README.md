@@ -1,101 +1,49 @@
-# vits Android部署
+# myandroidTest
 
-# 介绍
+AI 对话与视频类 Android 应用。对话页、角色目录、拍照解题已经是 Kotlin + Jetpack Compose；
+视频、音乐、频道等页面仍是 Java + XML，正在逐屏迁移。
 
-1.本项目基于[vits](https://github.com/jaywalnut310/vits)训练的日语模型（采用游戏语音，在3221组数据从头训练了1000个epoch）
+## 模块
 
-2.日语及中文cleaners基于[MoeGoe](https://github.com/CjangCjengh/MoeGoe)项目二次开发
+| 模块 | 内容 |
+|---|---|
+| `app` | 应用本体：Compose 对话页（`com.openapi.chat`）、角色目录（`com.openapi.roles`）、拍照解题（`com.aimath.paizhao`）、通用能力（`com.openapi.core`），以及尚未迁移的旧页面（`com.openapi.ks.myapp`、`com.openapi.ks.chatfree`） |
+| `commonutil` | 公共工具、网络、Room 收藏库、图片选择等（Java） |
+| `ads` | 广告 SDK 封装 |
+| `retromusic` | 本地音乐播放器（由 Retro Music 引入），入口是抽屉里的「本地音乐」 |
+| `auxio_music_ui` | 另一套本地音乐界面（Compose），由偏好设置切换 |
 
-3.日语分词和声调基于[OpenJtalk](https://github.com/r9y9/open_jtalk)和[Mecab](https://github.com/taku910/mecab)日语分词库
+新代码放在 `com.openapi.chat`、`com.openapi.roles`、`com.openapi.core`、`com.aimath` 下；
+旧包不要再新增功能。Compose 代码需要旧模块里的能力时，在 `ChatDependencies` 这类接入点定义接口，
+由 `MyApplication` 注入实现（例如 `LoginGate`），不要直接 import 旧包。
 
-# 使用说明
-## 一、确保手机有足够的空间，运行内存不小于1GB
+## 构建与测试
 
-## 二、下载发布页的apk文件并安装
+应用只有一个 flavor：`chat`。
 
-## 三、功能介绍
-
-### 文字转语音（tts）
-- 将模型文件下载之后解压放在手机/sdcard/Download文件夹下。
-
-- 点击加载配置（批准权限后），选择/sdcard/Download/[你的模型目录]/config.json加载配置文件。（示例：/sdcard/Download/模型/莲华/config.json）
-
-- 点击加载模型（批准权限后），选择/sdcard/Download/[你的模型目录]/*.bin加载模型文件。（示例：/sdcard/Download/模型/莲华/dec.ncnn.bin）
-
-- 输入文本，点击生成
-
-- 点击播放即可播放音频，点击导出即可将生成- 的音频导出，音频文件会保存在模型目录的上一级目录中
-  
-### 声线转换（vc）
-- 配置加载和模型加载同上
-
-- 点击录制声音将开启手机麦克风录制待转换的声音（请确保录音权限批准）或者点击加载音频将加载您要转换的音频（目前仅支持.wav格式）
-
-- 分别选择原讲话人和目标讲话人
-
-- 点击转换按钮即可将声音从原讲话人转换到目标讲话人
-
-### 注意：
-  **1、推理速度慢的话请手动增加线程数（默认为1），gpu选项可以选择不开启，由于Vulkan部分代码没有写，所以开启后反而更慢**
-  
-  **2、本项目目前仅支持日语和中文，所以确保输入支持的文本**
-
-## 四、（可选）自行编译教程
-
-1.将代码下载到指定目录
-
-```git clone https://github.com/weirdseed/Vits-Android-ncnn.git```
-
-2.下载[Vulkan版本ncnn](https://github.com/Tencent/ncnn/releases/download/20221128/ncnn-20221128-android-vulkan.zip)库，或者自行到https://github.com/Tencent/ncnn/releases 下载，解压到项目的\app\src\main\cpp\目录下，（需更改目录名称为ncnn），目录结构如下
-
-```
-├─asset_manager_api
-├─audio_process
-├─fftpack
-├─jpcommon
-├─mecab
-├─mecab2njd
-├─mecab_api
-├─ncnn
-│  ├─arm64-v8a
-│  ├─armeabi-v7a
-│  ├─x86
-│  └─x86_64
-├─njd
-├─njd2jpcommon
-├─njd_set_accent_phrase
-├─njd_set_accent_type
-├─njd_set_digit
-├─njd_set_long_vowel
-├─njd_set_pronunciation
-├─njd_set_unvoiced_vowel
-├─text2mecab
-└─vits
+```bash
+./gradlew :app:assembleChatDebug
+./gradlew :app:testChatDebugUnitTest
+./gradlew :app:minifyChatReleaseWithR8   # 只验证 R8 和混淆规则，不需要签名
 ```
 
-2.1 自行编译ncnn，请注意，ncnn默认的编译选项中rtti为关闭状态，需要的话自己手动打开，编译教程见[链接](https://github.com/Tencent/ncnn/wiki/how-to-build)，推荐在linux环境下编译
+- 单元测试是 JVM 测试（Robolectric），不需要设备或模拟器。
+- `assembleChatRelease` 需要签名密钥库；`app/build.gradle` 里的路径指向开发者本机，换机器构建前先改成自己的。
+- 密钥和账号类配置不进仓库，保持 git 忽略。
 
-3、下载openjtalk[字典文件](https://sourceforge.net/projects/open-jtalk/files/Dictionary/open_jtalk_dic-1.11/open_jtalk_dic_utf_8-1.11.tar.gz/download)解压到\src\main\assets文件夹，目录结构为
+## 依赖版本
 
-```
-├─multi
-├─open_jtalk_dic_utf_8-1.11
-└─single
-```
+多个模块共用的库在 `gradle/libs.versions.toml` 里统一声明，模块里写 `libs.xxx`。
+根 `build.gradle` 的 `resolutionStrategy.force` 是运行时兜底，改版本时两处一起改。
+只在单个模块用到的第三方库直接写在该模块的 `build.gradle`。
 
-4、编译并运行项目
+## 文档
 
-# 使用自己训练的模型
+- [`docs/roles-and-chat-design.md`](docs/roles-and-chat-design.md)：角色目录与对话页的设计。
 
- https://github.com/weirdseed/vits-ncnn-convert-tool
+## 还没迁移的部分
 
-# 预览图
-![Screenshot_1674308191](https://user-images.githubusercontent.com/57377927/213869491-daef85ca-7ea6-4e1f-b075-a71f415e8fc6.png) ![Screenshot_1674308391](https://user-images.githubusercontent.com/57377927/213869498-61388e28-d52a-439a-b212-43ed3c98469a.png)
-
-# 免责声明
-  **1、模型禁止商用！**
-  
-  **2、不可将本软件用作任何非法用途，后果自负**
-
-# 鸣谢
-感谢CjangCjengh提供的模型还有Japanese cleaner，@nihui群主提供这么棒的框架，以及各位热心群友帮忙解决模型转换的各种问题
+- 视频、频道、音乐详情等页面仍是 Java + XML（约 260 个 Java 文件在 `app`，150 个在 `commonutil`）。
+- 两个 Room 库并存：`favorites.db`（`commonutil`）和 `app.db`（`app`），各有一个 `DBManager`。
+- 部分页面仍用 `startActivityForResult` / `onActivityResult`（权限页、启动页）。
+- 拍照解题的后端接口还没接，`PhotoSolveRepositories` 是注入点。
