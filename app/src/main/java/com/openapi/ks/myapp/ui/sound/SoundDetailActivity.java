@@ -8,14 +8,11 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.view.View;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
-import android.widget.SeekBar;
-import android.widget.TextView;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.compose.ui.platform.ComposeView;
 import androidx.core.content.ContextCompat;
 
 import com.openapi.core.event.FavoriteVo;
@@ -23,22 +20,21 @@ import com.openapi.core.view.translation.TranslationOverlaySession;
 import com.openapi.core.view.translation.VideoTranslationRegistry;
 import com.openapi.core.view.translation.VideoTranslationRequest;
 import com.openapi.core.view.view.MyFavoriteView;
-import com.openapi.core.view.view.MarqueeTextView;
 import com.openapi.core.util.LogUtil;
 import com.openapi.core.util.MediaUtil;
 import com.openapi.core.util.PreferenceUtils;
 import com.openapi.core.util.StaticDataUtil;
-import com.openapi.core.util.ToastUtil;
 import com.openapi.core.net.NetUtils;
 import com.openapi.ks.chat.R;
-import com.openapi.ks.chat.databinding.LayoutSoundDetailBinding;
-import com.openapi.ks.chat.databinding.LayoutSoundStatusBinding;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.bean.vo.SoundItemsVo;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.service.PlayService;
 import com.openapi.ks.myapp.translation.realtime.RealtimeSubtitleBindings;
 import com.openapi.ks.myapp.translation.realtime.VideoRealtimeSubtitleSession;
+import com.openapi.ks.myapp.ui.sound.compose.SoundDetailActions;
+import com.openapi.ks.myapp.ui.sound.compose.SoundDetailScreenKt;
+import com.openapi.ks.myapp.ui.sound.compose.SoundDetailUiState;
 
 import static com.openapi.ks.myapp.service.PlayService.CURRENT;
 import static com.openapi.ks.myapp.service.PlayService.CURRENTTIME;
@@ -51,27 +47,14 @@ import static com.openapi.ks.myapp.service.PlayService.UPDATE_ACTION;
 
 /**
  * 音乐「详情」全屏页：与列表共用 {@link PlayService}，支持倍速与翻译字幕（与视频页同一套组件）。
+ * UI 为 Compose（{@code ui/sound/compose}）；收藏/倍速/译 工具条仍为 {@link MyFavoriteView}，
+ * 因其翻译浮层需要挂载到 {@link #detailRoot}。
  */
-public class SoundDetailActivity extends AppCompatActivity
-        implements SeekBar.OnSeekBarChangeListener, MyFavoriteView.OnFavoriteItemClick {
+public class SoundDetailActivity extends AppCompatActivity implements SoundDetailActions, MyFavoriteView.OnFavoriteItemClick {
 
-    android.view.ViewGroup detailRoot;
-    MarqueeTextView trackTitle;
-    ImageView artView;
-    @Nullable
-    SeekBar progressView;
-    @Nullable
-    android.widget.ImageView ivPre;
-    @Nullable
-    android.widget.ImageView ivPlay;
-    @Nullable
-    android.widget.ImageView ivNext;
-    @Nullable
-    TextView tvTime;
-    @Nullable
-    TextView tvDuration;
-    @Nullable
-    ProgressBar pbLoading;
+    /** 根容器：翻译浮层挂载点；内部为 ComposeView。 */
+    FrameLayout detailRoot;
+    private final SoundDetailUiState uiState = new SoundDetailUiState();
     MyFavoriteView myFavoriteView;
 
     private RecommendVo vo;
@@ -105,40 +88,23 @@ public class SoundDetailActivity extends AppCompatActivity
             return;
         }
         StaticDataUtil.del(Constants.SOUND_DETAIL_VO);
-        LayoutSoundDetailBinding binding = LayoutSoundDetailBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
-        // progress, iv_pre, ... live in the <include> layout_sound_status (id music_status)
-        LayoutSoundStatusBinding status = binding.musicStatus;
-        detailRoot = binding.musicDetailRoot;
-        trackTitle = binding.musicDetailTrackTitle;
-        artView = binding.musicDetailArt;
-        progressView = status.progress;
-        ivPre = status.ivPre;
-        ivPlay = status.ivPlay;
-        ivNext = status.ivNext;
-        tvTime = status.time;
-        tvDuration = status.duration;
-        pbLoading = status.pbLoading;
-        myFavoriteView = binding.myFavoriteview;
-        binding.musicDetailBack.setOnClickListener(v -> onBackClicked());
+
+        detailRoot = new FrameLayout(this);
+        ComposeView composeView = new ComposeView(this);
+        detailRoot.addView(composeView, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+        detailRoot.setBackgroundResource(R.drawable.bg_music_list_page);
         if (PreferenceUtils.getPrefBoolean(this, Constants.MUSIC_UI_AUXIO_STYLE, false)) {
             detailRoot.setBackgroundColor(ContextCompat.getColor(this, R.color.music_auxio_background));
         }
 
-        Intent intent = new Intent(this, PlayService.class);
-        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-
-        ivPre.setOnClickListener(this::onTransportClick);
-        ivPlay.setOnClickListener(this::onTransportClick);
-        ivNext.setOnClickListener(this::onTransportClick);
-        progressView.setOnSeekBarChangeListener(this);
-
+        myFavoriteView = new MyFavoriteView(this);
         myFavoriteView.initFavoriteBackGroud(vo.param);
         myFavoriteView.setListener(this);
         myFavoriteView.showVideoLocal();
         myFavoriteView.setTranslationSession(new TranslationOverlaySession() {
             @Override
-            public android.view.ViewGroup getOverlayParent() {
+            public ViewGroup getOverlayParent() {
                 return detailRoot;
             }
 
@@ -190,6 +156,12 @@ public class SoundDetailActivity extends AppCompatActivity
                     }
                 });
 
+        SoundDetailScreenKt.setSoundDetailContent(composeView, uiState, myFavoriteView, this);
+        setContentView(detailRoot);
+
+        Intent intent = new Intent(this, PlayService.class);
+        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+
         homeReceiver = new PlayerReceiver();
         IntentFilter filter = new IntentFilter();
         filter.addAction(UPDATE_ACTION);
@@ -200,51 +172,43 @@ public class SoundDetailActivity extends AppCompatActivity
         registerReceiver(homeReceiver, filter);
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (trackTitle != null) {
-            trackTitle.setSelected(true);
-        }
-    }
-
     private void syncUiFromService() {
         if (mService == null) {
             return;
         }
         SoundItemsVo t = mService.getCurrentTrack();
         if (t != null) {
-            trackTitle.setText(t.name);
+            uiState.setTrackTitle(t.name);
         }
-        if (mService.isPlaying()) {
-            ivPlay.setImageResource(R.drawable.ic_music_pause_filled);
-        } else {
-            ivPlay.setImageResource(R.drawable.ic_music_play_filled);
-        }
+        uiState.setPlaying(mService.isPlaying());
     }
 
-    private void onTransportClick(View v) {
+    @Override
+    public void onPlayPauseClicked() {
         if (mService == null) {
             return;
         }
-        int id = v.getId();
-        if (id == R.id.iv_play) {
-            if (mService.isPlaying()) {
-                mService.pause();
-                ivPlay.setImageResource(R.drawable.ic_music_play_filled);
+        if (mService.isPlaying()) {
+            mService.pause();
+            uiState.setPlaying(false);
+        } else {
+            if (current == -1 && mService.getPlaylist() != null && !mService.getPlaylist().isEmpty()) {
+                mService.playPosi(0);
             } else {
-                if (current == -1 && mService.getPlaylist() != null && !mService.getPlaylist().isEmpty()) {
-                    mService.playPosi(0);
-                } else {
-                    mService.resume();
-                }
-                ivPlay.setImageResource(R.drawable.ic_music_pause_filled);
+                mService.resume();
             }
-        } else if (id == R.id.iv_next) {
-            nextTrack();
-        } else if (id == R.id.iv_pre) {
-            prevTrack();
+            uiState.setPlaying(true);
         }
+    }
+
+    @Override
+    public void onNextClicked() {
+        nextTrack();
+    }
+
+    @Override
+    public void onPreviousClicked() {
+        prevTrack();
     }
 
     private void nextTrack() {
@@ -258,7 +222,7 @@ public class SoundDetailActivity extends AppCompatActivity
             next = 0;
         }
         mService.playPosi(next);
-        ivPlay.setImageResource(R.drawable.ic_music_pause_filled);
+        uiState.setPlaying(true);
     }
 
     private void prevTrack() {
@@ -272,26 +236,19 @@ public class SoundDetailActivity extends AppCompatActivity
             prev = n - 1;
         }
         mService.playPosi(prev);
-        ivPlay.setImageResource(R.drawable.ic_music_pause_filled);
+        uiState.setPlaying(true);
     }
 
-    void onBackClicked() {
+    @Override
+    public void onBackClicked() {
         finish();
     }
 
     @Override
-    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-    }
-
-    @Override
-    public void onStartTrackingTouch(SeekBar seekBar) {
-    }
-
-    @Override
-    public void onStopTrackingTouch(SeekBar seekBar) {
+    public void onSeekFinished(int positionMs) {
         if (mService != null) {
-            mService.play(seekBar.getProgress());
-            ivPlay.setImageResource(R.drawable.ic_music_pause_filled);
+            mService.play(positionMs);
+            uiState.setPlaying(true);
         }
     }
 
@@ -333,30 +290,28 @@ public class SoundDetailActivity extends AppCompatActivity
                     return;
                 }
                 if (action.equals(MUSIC_PREPAREING)) {
-                    pbLoading.setVisibility(View.VISIBLE);
-                    tvTime.setVisibility(View.GONE);
+                    uiState.setPreparing(true);
                     return;
                 }
-                pbLoading.setVisibility(View.GONE);
-                tvTime.setVisibility(View.VISIBLE);
+                uiState.setPreparing(false);
                 if (action.equals(MUSIC_CURRENT)) {
                     int ct = intent.getIntExtra(CURRENTTIME, -1);
-                    tvTime.setText(MediaUtil.formatTime(ct));
-                    progressView.setProgress(ct);
+                    uiState.setTimeText(MediaUtil.formatTime(ct));
+                    uiState.setProgress(Math.max(0, Math.min(ct, uiState.getProgressMax())));
                 } else if (action.equals(MUSIC_DURATION)) {
                     int dur = intent.getIntExtra(DURATION, -1);
-                    progressView.setMax(dur);
-                    tvDuration.setText(MediaUtil.formatTime(dur));
+                    uiState.setProgressMax(Math.max(0, dur));
+                    uiState.setDurationText(MediaUtil.formatTime(dur));
                 } else if (action.equals(UPDATE_ACTION)) {
                     current = intent.getIntExtra(CURRENT, -1);
                     if (mService != null && mService.getPlaylist() != null
                             && current >= 0 && current < mService.getPlaylist().size()) {
-                        trackTitle.setText(mService.getPlaylist().get(current).name);
+                        uiState.setTrackTitle(mService.getPlaylist().get(current).name);
                     }
                 } else if (action.equals(MUSIC_PREPARED)) {
                     if (!checkCanPlay() && mService != null && mService.isPlaying()) {
                         mService.pause();
-                        ivPlay.setImageResource(R.drawable.ic_music_play_filled);
+                        uiState.setPlaying(false);
                     }
                 }
             } catch (Exception e) {
@@ -378,15 +333,6 @@ public class SoundDetailActivity extends AppCompatActivity
             mBound = false;
         }
         detailRoot = null;
-        trackTitle = null;
-        artView = null;
-        progressView = null;
-        ivPre = null;
-        ivPlay = null;
-        ivNext = null;
-        tvTime = null;
-        tvDuration = null;
-        pbLoading = null;
         myFavoriteView = null;
         super.onDestroy();
     }
