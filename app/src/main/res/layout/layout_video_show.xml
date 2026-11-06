@@ -20,4 +20,14 @@
         android:contentDescription="@string/cast_title"
         android:src="@android:drawable/ic_menu_share"
         android:tint="#FFFFFF" />
+
+    <!-- 收藏 / 翻译 / 实时字幕入口栏，与其它详情页保持一致 -->
+    <com.openapi.core.view.view.MyFavoriteView
+        android:id="@+id/my_favoriteview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|bottom"
+        android:layout_marginEnd="@dimen/margin_22"
+        android:layout_marginBottom="@dimen/margin_55"
+        android:visibility="gone" />
 </FrameLayout>

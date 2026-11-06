@@ -52,15 +52,18 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
     private GoogleCastSessionController castSessionController;
     RecommendVo vo;
     MyFavoriteView myFavoriteView;
+    private android.widget.ImageButton dlnaCastButton;
 
     private void bindButterViews() {
         LayoutVideoShowBinding b = LayoutVideoShowBinding.bind(findViewById(android.R.id.content));
         videoPlayer = b.jzVideo;
+        dlnaCastButton = b.btnDlnaCast;
         myFavoriteView = findViewById(R.id.my_favoriteview);
     }
 
     private void unbindButterViews() {
         videoPlayer = null;
+        dlnaCastButton = null;
         myFavoriteView = null;
     }
 
@@ -96,7 +99,7 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
             }
         });
 
-        findViewById(R.id.btn_dlna_cast).setOnClickListener(v -> showDlnaDevices());
+        dlnaCastButton.setOnClickListener(v -> showDlnaDevices());
         myFavoriteView.setListener(this);
         myFavoriteView.initFavoriteBackGroud(vo.actionUrl);
         myFavoriteView.showVideoLocal();
