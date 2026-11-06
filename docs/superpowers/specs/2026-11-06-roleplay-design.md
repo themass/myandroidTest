@@ -105,7 +105,11 @@ Companion Agent（Python，LiveKit Agents，Apache-2.0）
 | TencentDB Agent Memory | MIT | 用户/团队 ACL | ✅ 分层 L0–L3 | ✅ | 分层思想可借鉴，生态偏 IDE 与团队 |
 | Letta | Apache-2.0 | 每用户一个 agent | 文档未明确 | ✅ | 每用户一个长驻 agent，运维重，不推荐 |
 
-**推荐**：P1 用 `MemoryPort` 接入 **mem0 与 Hindsight 各做一版**，用同一套 50 段模拟对话做对比（事实抽取准确率、误提取、跨角色召回、删除是否彻底），再定一个。mem0 胜在资料多、接口简单；Hindsight 胜在 `reflect` 天然适合做用户画像，且 MIT。
+**决定（v1）：采用 mem0**，经 `MemoryPort` 接入。理由：`user_id` 隔离、`metadata` 可记录 `source_character_id`、`delete_all(user_id)` 可做账号级全量删除，Apache-2.0，社区与资料最多，运维成本最低。
+
+- 「关于用户」段由 agent 层自己生成（用 mem0 检索结果 + 便宜模型摘要），不依赖 Hindsight 的 `reflect`。
+- Hindsight（MIT）保留为备选：`MemoryPort` 之后替换实现即可，不改 agent 与客户端。
+- 上线前仍要跑一遍 50 段模拟对话，验证事实抽取、跨角色召回、删除零残留；这是验收，不再是两家的对比。
 
 ### 4.4 DeerFlow 与记忆
 
@@ -252,7 +256,7 @@ interface VoiceProvider {
 | 阶段 | 内容 | 不需要设备的验收 |
 |---|---|---|
 | P0 基础 | 角色模型与 V2 导入导出；3 个官方角色；LiveKit Cloud 房间与最小文字 agent；VoiceProvider 接口与火山 TTS 适配器 | 导入导出往返；接口单测（fake 供应商）；agent 回合测试 |
-| P1 文字 + 记忆 | 提示词组装；MemoryPort；mem0 与 Hindsight 对比；「我记住的」；跨角色读取与来源标注；删除账号的全量删除 | 50 段对话的抽取对比；删除后零残留测试；隔离测试 |
+| P1 文字 + 记忆 | 提示词组装；MemoryPort；mem0 接入；「我记住的」；跨角色读取与来源标注；删除账号的全量删除 | 50 段对话的抽取对比；删除后零残留测试；隔离测试 |
 | P2 语音 | 火山 ASR/TTS 接通；语音模式切换；打断 | 回合状态机单测；音频在设备上验证 |
 | P3 简易形象（v1） | `AvatarCommand` 指令框架；`SimpleAvatarRenderer`：立绘、表情图、嘴型两帧、眨眼、呼吸；事件映射 | 指令映射与未知指令忽略的单测；设备上看渲染与切换 |
 | P3b 形象互动（之后） | 新渲染器（Spine 优先评估）；拖动跟随、点击反应、手势；补齐 `capabilities` | 限幅与映射单测；拖动手感需设备 |
@@ -262,7 +266,7 @@ interface VoiceProvider {
 ### 12.2 仍需确认
 
 1. **Live2D**：是否要向 Live2D 发信确认「固定模型、不开放用户上传」的应用是否属于 Expandable Application，以及费用？（我的建议：P3b 之前再决定；v1 不依赖任何形象授权。）
-2. **记忆后端**：同意 P1 做 mem0 与 Hindsight 的对比，再定一个吗？
+2. **记忆后端**：已定 mem0（见 4.3），Hindsight 作为备选保留。
 3. **账号删除后的 30 天冷静期**：要不要？（Google Play 允许立即删除；冷静期是我的建议，给误操作留余地。）
 4. **官方角色美术**：委托原创美术的预算与周期，需要你定。
 5. **火山引擎**：具体产品（豆包语音的 TTS 与流式 ASR）与合同，需要你对接。
