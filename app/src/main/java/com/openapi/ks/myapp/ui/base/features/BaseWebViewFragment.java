@@ -56,7 +56,6 @@ public class BaseWebViewFragment extends BaseFragment {
     @Override
     protected void bindViews(View view) {
         super.bindViews(view);
-        // base_webview_layout has no binding class (viewBindingIgnore)
         webView = view.findViewById(R.id.wv_content);
         progressbar = view.findViewById(R.id.progressbar);
     }

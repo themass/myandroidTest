@@ -1,5 +1,7 @@
 package com.aimath.paizhao.photosolve.ui
 
+import androidx.compose.ui.res.stringResource
+import com.openapi.ks.chat.R
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -33,9 +35,9 @@ fun CropAssistSettingsSheet(
 ) {
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
-            Text("自动识别方案", style = MaterialTheme.typography.titleLarge)
+            Text(stringResource(R.string.photosolve_crop_settings_title), style = MaterialTheme.typography.titleLarge)
             Text(
-                "拍照后进入裁剪页时,自动用所选方案给出建议框;仍可手动调整",
+                stringResource(R.string.photosolve_crop_settings_hint),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 8.dp),
@@ -72,9 +74,9 @@ private fun ProviderRow(
             Text(provider.displayName, style = MaterialTheme.typography.bodyLarge)
             Text(
                 when (available) {
-                    true -> "可用"
-                    false -> "不可用"
-                    null -> "检测中…"
+                    true -> stringResource(R.string.photosolve_available)
+                    false -> stringResource(R.string.photosolve_unavailable)
+                    null -> stringResource(R.string.photosolve_detecting)
                 },
                 style = MaterialTheme.typography.bodySmall,
                 color = if (available == false) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,

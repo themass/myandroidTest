@@ -250,11 +250,6 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="hold_please">hold on please...</string>
     <string name="on_log_selected_messages"> %1$d Messages are selected</string>
     <string name="action_copy">Copy</string>
-    <string name="chat_msg_footer_a11y_copy">复制</string>
-    <string name="chat_msg_footer_a11y_delete">删除</string>
-    <string name="chat_msg_footer_a11y_like">点赞</string>
-    <string name="chat_msg_footer_a11y_dislike">点踩</string>
-    <string name="chat_msg_footer_a11y_voice">播放语音</string>
     <string name="copied_message">Message copied!</string>
     <string name="del_message">Message deleted!</string>
     <string name="chat_feedback_ok">I have received your feedback.</string>

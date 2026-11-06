@@ -1,5 +1,7 @@
 package com.openapi.core.view.view.widget.picselecter;
 
+import com.openapi.core.util.LogUtil;
+
 import android.content.Context;
 import android.graphics.SurfaceTexture;
 import android.net.Uri;
@@ -94,7 +96,7 @@ public class IjkPlayerView extends FrameLayout implements TextureView.SurfaceTex
             }
             mediaPlayer.prepareAsync();
         } catch (IOException e) {
-            e.printStackTrace();
+            LogUtil.e(e);
         }
     }
 

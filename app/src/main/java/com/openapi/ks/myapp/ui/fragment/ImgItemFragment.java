@@ -4,20 +4,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 
-import androidx.viewpager.widget.PagerAdapter;
-import androidx.viewpager.widget.ViewPager;
+import androidx.viewpager2.widget.ViewPager2;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
-import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-// 使用现代图片查看器替代
-// import com.etiennelawlor.imagegallery.library.adapters.FullScreenImageGalleryAdapter;
-// import com.etiennelawlor.imagegallery.library.utilities.DisplayUtility;
+import com.openapi.ks.myapp.adapter.FullScreenImagePagerAdapter;
+
 import com.openapi.core.event.FavoriteVo;
 import com.openapi.core.view.view.MyFavoriteView;
 import com.openapi.core.util.ToastUtil;
@@ -43,11 +40,11 @@ public class ImgItemFragment extends RecommendFragment implements SaveImageCallB
     MyFavoriteView myFavoriteView;
     RelativeLayout fullView;
     RelativeLayout listView;
-    ViewPager viewPager;
+    ViewPager2 viewPager;
     TextView tvPage;
     private ImgItemsVo vo;
     // region Member Variables
-    MyFullScreenImageGalleryAdapter fullScreenImageGalleryAdapter;
+    FullScreenImagePagerAdapter fullScreenImageGalleryAdapter;
     AlphaAnimation appearAnimation;
     AlphaAnimation disappearAnimation;
 
@@ -104,21 +101,15 @@ public class ImgItemFragment extends RecommendFragment implements SaveImageCallB
         tvPage.setText(String.format("%s/%s", String.valueOf(position + 1), infoListVo.total));
     }
 
-    private final ViewPager.OnPageChangeListener viewPagerOnPageChangeListener = new ViewPager.OnPageChangeListener() {
-        public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-        }
-
+    private final ViewPager2.OnPageChangeCallback viewPagerOnPageChangeListener = new ViewPager2.OnPageChangeCallback() {
+        @Override
         public void onPageSelected(int position) {
             if (ImgItemFragment.this.viewPager != null) {
-                ImgItemFragment.this.viewPager.setCurrentItem(position);
                 ImgItemFragment.this.setPosition(position);
                 if ((position == infoListVo.voList.size() - 1) && infoListVo.hasMore) {
                     ToastUtil.showShort(R.string.down_to_loadmore);
                 }
             }
-        }
-
-        public void onPageScrollStateChanged(int state) {
         }
     };
 
@@ -129,11 +120,19 @@ public class ImgItemFragment extends RecommendFragment implements SaveImageCallB
         StaticDataUtil.del(Constants.IMG_ITEMS);
         myFavoriteView.setListener(this);
         myFavoriteView.initFavoriteBackGroud(vo.url);
-        fullScreenImageGalleryAdapter = new MyFullScreenImageGalleryAdapter();
-        // 使用现代图片查看器替代
-        // fullScreenImageGalleryAdapter.setFullScreenImageLoader(MyApplication.getInstance().getPhotoLoad());
+        fullScreenImageGalleryAdapter = new FullScreenImagePagerAdapter(new FullScreenImagePagerAdapter.UrlSource() {
+            @Override
+            public int count() {
+                return infoListVo.voList.size();
+            }
+
+            @Override
+            public String urlAt(int position) {
+                return infoListVo.voList.get(position).actionUrl;
+            }
+        });
         this.viewPager.setAdapter(fullScreenImageGalleryAdapter);
-        this.viewPager.addOnPageChangeListener(this.viewPagerOnPageChangeListener);
+        this.viewPager.registerOnPageChangeCallback(this.viewPagerOnPageChangeListener);
         appearAnimation = new AlphaAnimation(0, 1);
         appearAnimation.setDuration(800);
 
@@ -224,37 +223,4 @@ public class ImgItemFragment extends RecommendFragment implements SaveImageCallB
         return infoListVo.voList.get(0).actionUrl;
     }
 
-    public class MyFullScreenImageGalleryAdapter extends PagerAdapter {
-        // 使用现代图片查看器替代
-        // private FullScreenImageGalleryAdapter.FullScreenImageLoader fullScreenImageLoader;
-
-        public Object instantiateItem(ViewGroup container, int position) {
-            View view = LayoutInflater.from(getActivity()).inflate(R.layout.layout_img_item_view, null, false);
-            ImageView imageView = (ImageView) view.findViewById(R.id.photoView);
-            String image = infoListVo.voList.get(viewPager.getCurrentItem()).actionUrl;
-            Context context = imageView.getContext();
-            // 使用现代图片查看器替代
-            // int width = DisplayUtility.getScreenWidth(context);
-            // this.fullScreenImageLoader.loadFullScreenImage(imageView, image, width, null);
-            container.addView(view, 0);
-            return view;
-        }
-
-        public int getCount() {
-            return infoListVo.voList.size();
-        }
-
-        public void destroyItem(ViewGroup container, int position, Object object) {
-            container.removeView((View) object);
-        }
-
-        public boolean isViewFromObject(View view, Object object) {
-            return view == object;
-        }
-
-        // 使用现代图片查看器替代
-        // public void setFullScreenImageLoader(FullScreenImageGalleryAdapter.FullScreenImageLoader loader) {
-        //     this.fullScreenImageLoader = loader;
-        // }
-    }
 }

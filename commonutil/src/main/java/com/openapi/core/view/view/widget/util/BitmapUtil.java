@@ -1,5 +1,7 @@
 package com.openapi.core.view.view.widget.util;
 
+import com.openapi.core.util.LogUtil;
+
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
@@ -25,7 +27,7 @@ public class BitmapUtil {
         try {
             baos.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            LogUtil.e(e);
         }
         BitmapFactory.Options bitmapOptions = new BitmapFactory.Options();
         bitmapOptions.inJustDecodeBounds = true;

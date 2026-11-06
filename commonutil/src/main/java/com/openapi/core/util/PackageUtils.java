@@ -49,7 +49,7 @@ public class PackageUtils {
                 i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(i);
             } catch (Exception e) {
-                e.printStackTrace();
+                LogUtil.e(e);
             }
         }
     }

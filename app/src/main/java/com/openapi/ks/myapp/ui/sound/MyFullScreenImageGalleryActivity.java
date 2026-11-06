@@ -8,8 +8,7 @@ package com.openapi.ks.myapp.ui.sound;
 import android.content.Intent;
 import android.os.Bundle;
 
-import androidx.viewpager.widget.ViewPager;
-import androidx.viewpager.widget.ViewPager.OnPageChangeListener;
+import androidx.viewpager2.widget.ViewPager2;
 
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,7 +17,7 @@ import android.widget.TextView;
 import com.openapi.core.util.ToastUtil;
 import com.openapi.ks.chat.R;
 import com.openapi.ks.chat.databinding.LayoutImgBigPageViewBinding;
-import com.openapi.ks.myapp.adapter.MyFullScreenImageGalleryAdapter;
+import com.openapi.ks.myapp.adapter.FullScreenImagePagerAdapter;
 import com.openapi.ks.myapp.task.SaveImageCallBack;
 import com.openapi.ks.myapp.task.SaveImageTask;
 import com.openapi.ks.myapp.ui.base.app.BaseSingleActivity;
@@ -30,23 +29,16 @@ import java.util.List;
 public class MyFullScreenImageGalleryActivity extends BaseSingleActivity implements SaveImageCallBack {
     public static final String KEY_IMAGES = "KEY_IMAGES";
     public static final String KEY_POSITION = "KEY_POSITION";
-    ViewPager viewPager;
+    ViewPager2 viewPager;
     TextView tvPage;
     private List<String> images;
     private int position;
-    private final OnPageChangeListener viewPagerOnPageChangeListener = new OnPageChangeListener() {
-        public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-        }
-
+    private final ViewPager2.OnPageChangeCallback viewPagerOnPageChangeListener = new ViewPager2.OnPageChangeCallback() {
+        @Override
         public void onPageSelected(int position) {
             if (MyFullScreenImageGalleryActivity.this.viewPager != null) {
-                MyFullScreenImageGalleryActivity.this.viewPager.setCurrentItem(position);
                 MyFullScreenImageGalleryActivity.this.setPosition(position);
             }
-
-        }
-
-        public void onPageScrollStateChanged(int state) {
         }
     };
 
@@ -99,9 +91,19 @@ public class MyFullScreenImageGalleryActivity extends BaseSingleActivity impleme
         if (position < 0 || position >= images.size()) {
             position = 0;
         }
-        viewPager.setAdapter(new MyFullScreenImageGalleryAdapter(this, images));
-        viewPager.addOnPageChangeListener(viewPagerOnPageChangeListener);
-        viewPager.setCurrentItem(position);
+        viewPager.setAdapter(new FullScreenImagePagerAdapter(new FullScreenImagePagerAdapter.UrlSource() {
+            @Override
+            public int count() {
+                return images.size();
+            }
+
+            @Override
+            public String urlAt(int position) {
+                return images.get(position);
+            }
+        }));
+        viewPager.registerOnPageChangeCallback(viewPagerOnPageChangeListener);
+        viewPager.setCurrentItem(position, false);
         setPosition(position);
         showToolbar(false);
     }
@@ -114,7 +116,7 @@ public class MyFullScreenImageGalleryActivity extends BaseSingleActivity impleme
     private void setPosition(int position) {
         if (viewPager != null && viewPager.getAdapter() != null
                 && images != null && images.size() > 1) {
-            int totalPages = viewPager.getAdapter().getCount();
+            int totalPages = viewPager.getAdapter().getItemCount();
             tvPage.setVisibility(View.VISIBLE);
             tvPage.setText(String.format("%s / %s", position + 1, totalPages));
         } else if (tvPage != null) {
@@ -123,7 +125,9 @@ public class MyFullScreenImageGalleryActivity extends BaseSingleActivity impleme
     }
 
     private void removeListeners() {
-        this.viewPager.removeOnPageChangeListener(this.viewPagerOnPageChangeListener);
+        if (this.viewPager != null) {
+            this.viewPager.unregisterOnPageChangeCallback(this.viewPagerOnPageChangeListener);
+        }
     }
 
     public void onSuccess() {

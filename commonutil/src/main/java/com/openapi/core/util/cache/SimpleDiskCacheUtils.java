@@ -1,7 +1,8 @@
 package com.openapi.core.util.cache;
 
+import com.openapi.core.util.LogUtil;
+
 import android.content.Context;
-import android.os.AsyncTask;
 import android.text.TextUtils;
 
 import com.openapi.core.util.PackageUtils;
@@ -29,7 +30,7 @@ public class SimpleDiskCacheUtils {
                 try {
                     sSimpleDiskCache = SimpleDiskCache.open(cacheDir, version, DISK_CACHE_SIZE);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LogUtil.e(e);
                 }
             }
         }

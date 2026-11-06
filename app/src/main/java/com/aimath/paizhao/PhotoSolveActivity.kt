@@ -1,5 +1,6 @@
 package com.aimath.paizhao
 
+import com.openapi.ks.chat.R
 import android.Manifest
 import android.content.Context
 import android.content.Intent
@@ -165,7 +166,7 @@ private fun PhotoSolveApp(
 
     LaunchedEffect(mlKitErrorMessage) {
         mlKitErrorMessage?.let { message ->
-            Toast.makeText(context, "Google 智能扫描不可用: $message", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, context.getString(R.string.photosolve_google_unavailable, message), Toast.LENGTH_LONG).show()
             mlKitErrorMessage = null
         }
     }

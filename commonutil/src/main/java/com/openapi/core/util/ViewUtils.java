@@ -3,9 +3,6 @@ package com.openapi.core.util;
 import android.app.Activity;
 import android.content.Context;
 
-import androidx.viewpager.widget.PagerAdapter;
-import androidx.viewpager.widget.ViewPager;
-
 import android.view.View;
 import android.widget.Adapter;
 import android.widget.AdapterView;
@@ -19,24 +16,6 @@ import android.widget.HeaderViewListAdapter;
 public class ViewUtils {
 
 
-
-    /**
-     * notify for ViewPager
-     *
-     * @param viewPager
-     */
-    private static void notifyViewPagerChanged(ViewPager viewPager, boolean resetAdapter) {
-        if (viewPager == null) {
-            return;
-        }
-        PagerAdapter adapter = viewPager.getAdapter();
-
-        if (resetAdapter) {
-            viewPager.setAdapter(adapter);
-        } else if (adapter != null) {
-            adapter.notifyDataSetChanged();
-        }
-    }
 
     public static <V extends View> V find(Activity ac, int id) {
         if (ac == null) {

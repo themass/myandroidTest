@@ -193,7 +193,7 @@ public class ShareUtil {
             context.getPackageManager().getPackageInfo(packageName, PackageManager.GET_ACTIVITIES);
             return true;
         } catch (NameNotFoundException e) {
-            e.printStackTrace();
+            LogUtil.e(e);
             return false;
         }
     }

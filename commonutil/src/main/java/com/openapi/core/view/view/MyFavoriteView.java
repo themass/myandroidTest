@@ -21,6 +21,8 @@ import com.openapi.core.view.translation.TranslationOverlayPresenter;
 import com.openapi.core.view.translation.TranslationOverlaySession;
 import com.openapi.core.util.PackageUtils;
 import com.openapi.core.util.R;
+import com.openapi.core.util.databinding.DialogFavoriteExternalLinesBinding;
+import com.openapi.core.util.databinding.LayoutFavoriteBarBinding;
 import com.openapi.core.util.SystemUtils;
 import com.openapi.core.util.ToastUtil;
 
@@ -117,13 +119,13 @@ public class MyFavoriteView extends LinearLayout {
 
     private void setupView() {
         LayoutInflater mInflater = LayoutInflater.from(getContext());
-        View myView = mInflater.inflate(R.layout.layout_favorite_bar, null);
-        addView(myView);
-        ivFavorite = findViewById(R.id.iv_favorite);
-        ivBrowser = findViewById(R.id.iv_open_browser);
-        ivM3u8Lines = findViewById(R.id.iv_m3u8_lines);
-        tvTranslate = findViewById(R.id.tv_translate);
-        speed = findViewById(R.id.speed);
+        LayoutFavoriteBarBinding b = LayoutFavoriteBarBinding.inflate(mInflater);
+        addView(b.getRoot());
+        ivFavorite = b.ivFavorite;
+        ivBrowser = b.ivOpenBrowser;
+        ivM3u8Lines = b.ivM3u8Lines;
+        tvTranslate = b.tvTranslate;
+        speed = b.speed;
         ivFavorite.setOnClickListener(v -> favoriteClick(v));
         ivBrowser.setOnClickListener(v -> browserClick(v));
         ivM3u8Lines.setOnClickListener(v -> showM3u8LineMenu(v));
@@ -205,10 +207,11 @@ public class MyFavoriteView extends LinearLayout {
             return;
         }
         Context ctx = getContext();
-        View sheet = LayoutInflater.from(ctx).inflate(R.layout.dialog_favorite_external_lines, null);
-        TextView line1 = sheet.findViewById(R.id.tv_external_line1);
-        TextView line2 = sheet.findViewById(R.id.tv_external_line2);
-        TextView cancel = sheet.findViewById(R.id.tv_sheet_cancel);
+        DialogFavoriteExternalLinesBinding sb = DialogFavoriteExternalLinesBinding.inflate(LayoutInflater.from(ctx));
+        View sheet = sb.getRoot();
+        TextView line1 = sb.tvExternalLine1;
+        TextView line2 = sb.tvExternalLine2;
+        TextView cancel = sb.tvSheetCancel;
         AlertDialog dialog = new AlertDialog.Builder(ctx)
                 .setView(sheet)
                 .create();

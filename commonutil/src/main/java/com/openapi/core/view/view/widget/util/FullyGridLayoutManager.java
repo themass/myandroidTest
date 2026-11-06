@@ -1,5 +1,7 @@
 package com.openapi.core.view.view.widget.util;
 
+import com.openapi.core.util.LogUtil;
+
 import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
@@ -96,7 +98,7 @@ public class FullyGridLayoutManager extends GridLayoutManager {
                     recycler.recycleView(view);
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                LogUtil.e(e);
             }
         }
     }

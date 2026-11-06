@@ -1,5 +1,7 @@
 package com.openapi.core.view.view;
 
+import com.openapi.core.util.LogUtil;
+
 import android.content.Context;
 import android.graphics.Canvas;
 
@@ -36,7 +38,7 @@ public class MyTextView extends AppCompatTextView {
         try {
             setTypeface(Typeface.SANS_SERIF);
         } catch (Exception e) {
-            e.printStackTrace();
+            LogUtil.e(e);
         }
     }
 

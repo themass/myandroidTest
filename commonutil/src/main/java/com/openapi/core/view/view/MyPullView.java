@@ -17,6 +17,7 @@ import android.widget.LinearLayout;
 
 import com.openapi.core.util.LogUtil;
 import com.openapi.core.util.R;
+import com.openapi.core.util.databinding.LayoutPullrefreshViewBinding;
 
 /**
  * Created by openapi on 2016/9/6.
@@ -51,11 +52,11 @@ public class MyPullView extends LinearLayout {
 
     private void setupView() {
         LayoutInflater mInflater = LayoutInflater.from(getContext());
-        View myView = mInflater.inflate(R.layout.layout_pullrefresh_view, null);
-        addView(myView);
-        footerView = findViewById(R.id.footer_view);
-        rvContent = findViewById(R.id.rv_content);
-        refreshLayout = findViewById(R.id.srl_layout);
+        LayoutPullrefreshViewBinding b = LayoutPullrefreshViewBinding.inflate(mInflater);
+        addView(b.getRoot());
+        footerView = b.footerView.getRoot();
+        rvContent = b.rvContent;
+        refreshLayout = b.srlLayout;
         refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {

@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:gravity="center"
     android:padding="@dimen/margin_3"
-    tools:viewBindingIgnore="true">
+    >
 
     <com.openapi.core.view.view.MyWebView
         android:id="@+id/wv_content"

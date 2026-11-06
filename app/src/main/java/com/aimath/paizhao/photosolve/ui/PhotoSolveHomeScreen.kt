@@ -51,13 +51,13 @@ fun PhotoSolveHomeScreen(
             onClick = onClose,
             modifier = Modifier.align(Alignment.TopStart).padding(8.dp),
         ) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.ui_back))
         }
         IconButton(
             onClick = onOpenCropAssistSettingsClick,
             modifier = Modifier.align(Alignment.TopEnd).padding(8.dp),
         ) {
-            Icon(Icons.Filled.Settings, contentDescription = "自动识别方案设置")
+            Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.photosolve_crop_settings_desc))
         }
 
         Column(
@@ -105,13 +105,13 @@ fun PhotoSolveHomeScreen(
             ) {
                 Icon(Icons.Filled.DocumentScanner, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
-                Text("Google 智能扫描")
+                Text(stringResource(R.string.photosolve_google_scan))
             }
             Spacer(Modifier.height(8.dp))
             TextButton(onClick = onPickFromFileManagerClick) {
                 Icon(Icons.Filled.Folder, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(6.dp))
-                Text("从文件管理器选择")
+                Text(stringResource(R.string.photosolve_pick_from_files))
             }
             if (permissionPermanentlyDenied) {
                 Spacer(Modifier.height(16.dp))

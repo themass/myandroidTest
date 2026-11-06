@@ -1,5 +1,7 @@
 package com.openapi.ks.myapp.task;
 
+import com.openapi.core.util.LogUtil;
+
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
@@ -40,7 +42,7 @@ public class IWannaLikeTask {
             try {
                 baseService.postData(String.format(Constants.getUrl(url), id), null, null, null, TAG, null);
             } catch (Exception e) {
-                e.printStackTrace();
+                LogUtil.e(e);
             }
         });
     }

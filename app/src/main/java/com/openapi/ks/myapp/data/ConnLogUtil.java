@@ -1,8 +1,8 @@
 package com.openapi.ks.myapp.data;
 
 import android.content.Context;
-import android.os.AsyncTask;
 
+import com.openapi.core.util.Background;
 import com.openapi.core.util.CollectionUtils;
 import com.openapi.core.util.StaticDataUtil;
 import com.openapi.core.net.BaseService;
@@ -21,22 +21,11 @@ import java.util.List;
 
 public class ConnLogUtil {
 
+    /** 把本地连接日志上报给服务端，上报前先清空本地表（与旧逻辑一致）。 */
     public static void sendAllLog(Context context) {
-        new SendInfoTask(context).execute();
-    }
-
-
-    public static class SendInfoTask extends AsyncTask<String, Integer, Boolean> {
-        private Context context;
-        protected BaseService indexService;
-
-        public SendInfoTask(Context context) {
-            indexService = new BaseService();
-            indexService.setup(context);
-            this.context = context;
-        }
-        @Override
-        protected Boolean doInBackground(String... params) {
+        BaseService indexService = new BaseService();
+        indexService.setup(context);
+        Background.serial(() -> {
             try {
                 List<ConnLog> logs = DBManager.getInstance().connLogDao().loadAll();
                 DBManager.getInstance().connLogDao().deleteAll();
@@ -48,7 +37,6 @@ public class ConnLogUtil {
             } catch (Throwable e) {
                 LogUtil.e(e);
             }
-            return Boolean.TRUE;
-        }
+        });
     }
 }

@@ -1,5 +1,7 @@
 package com.aimath.paizhao.photosolve.ui
 
+import androidx.compose.ui.res.stringResource
+import com.openapi.ks.chat.R
 import android.graphics.Bitmap
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -139,29 +141,29 @@ private fun CropTopBar(
 ) {
     Surface {
         TopAppBar(
-            title = { Text("裁剪题目") },
+            title = { Text(stringResource(R.string.photosolve_crop_title)) },
             navigationIcon = {
                 IconButton(onClick = { state.done(accept = false) }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "取消")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.ui_cancel))
                 }
             },
             actions = {
                 IconButton(onClick = onRotateLeft) {
-                    Icon(Icons.AutoMirrored.Filled.RotateLeft, contentDescription = "左转 90°")
+                    Icon(Icons.AutoMirrored.Filled.RotateLeft, contentDescription = stringResource(R.string.photosolve_rotate_left))
                 }
                 IconButton(onClick = onRotateRight) {
-                    Icon(Icons.AutoMirrored.Filled.RotateRight, contentDescription = "右转 90°")
+                    Icon(Icons.AutoMirrored.Filled.RotateRight, contentDescription = stringResource(R.string.photosolve_rotate_right))
                 }
                 IconButton(onClick = onCompareClick) {
-                    Icon(Icons.Filled.Compare, contentDescription = "对比检测方案")
+                    Icon(Icons.Filled.Compare, contentDescription = stringResource(R.string.photosolve_compare_title))
                 }
                 IconButton(onClick = { state.reset() }) {
-                    Icon(Icons.Filled.RestartAlt, contentDescription = "重置")
+                    Icon(Icons.Filled.RestartAlt, contentDescription = stringResource(R.string.photosolve_reset))
                 }
                 IconButton(onClick = { state.done(accept = true) }, enabled = !state.accepted) {
                     Icon(
                         Icons.Filled.Check,
-                        contentDescription = "确认",
+                        contentDescription = stringResource(R.string.ui_confirm),
                         tint = MaterialTheme.colorScheme.primary,
                     )
                 }

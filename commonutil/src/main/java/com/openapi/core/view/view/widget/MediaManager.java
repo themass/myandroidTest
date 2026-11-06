@@ -63,13 +63,13 @@ public class MediaManager {
             mPlayer.start();
             isStart = true;
         } catch (IllegalArgumentException e) {
-            e.printStackTrace();
+            LogUtil.e(e);
         } catch (SecurityException e) {
-            e.printStackTrace();
+            LogUtil.e(e);
         } catch (IllegalStateException e) {
-            e.printStackTrace();
+            LogUtil.e(e);
         } catch (IOException e) {
-            e.printStackTrace();
+            LogUtil.e(e);
         }
     }
 

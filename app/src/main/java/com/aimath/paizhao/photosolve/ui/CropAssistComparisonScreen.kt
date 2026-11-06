@@ -1,5 +1,7 @@
 package com.aimath.paizhao.photosolve.ui
 
+import androidx.compose.ui.res.stringResource
+import com.openapi.ks.chat.R
 import android.graphics.Bitmap
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -72,9 +74,9 @@ fun CropAssistComparisonScreen(
                     .verticalScroll(rememberScrollState())
                     .padding(16.dp),
             ) {
-                Text("对比检测方案", style = MaterialTheme.typography.titleLarge)
+                Text(stringResource(R.string.photosolve_compare_title), style = MaterialTheme.typography.titleLarge)
                 Text(
-                    "在同一张照片上对比各识别方案给出的裁剪框",
+                    stringResource(R.string.photosolve_compare_desc),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -96,7 +98,7 @@ fun CropAssistComparisonScreen(
                 }
 
                 TextButton(onClick = onDismiss, modifier = Modifier.align(Alignment.End)) {
-                    Text("关闭")
+                    Text(stringResource(R.string.ui_close))
                 }
             }
         }
@@ -151,12 +153,12 @@ private fun ComparisonCard(
                         style = MaterialTheme.typography.bodySmall,
                     )
                     Button(onClick = { onApply(result.norm) }, modifier = Modifier.padding(top = 8.dp)) {
-                        Text("使用此方案")
+                        Text(stringResource(R.string.photosolve_use_this))
                     }
                 }
 
                 is CropAssistResult.Unavailable -> Text(
-                    "不可用:${result.reason}",
+                    stringResource(R.string.photosolve_unavailable_reason, result.reason),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.error,
                 )

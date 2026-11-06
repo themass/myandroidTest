@@ -26,6 +26,7 @@ import com.openapi.core.util.PreferenceUtils;
 import com.openapi.core.util.StringUtils;
 import com.openapi.core.util.ToastUtil;
 import com.openapi.ks.chat.R;
+import com.openapi.ks.chat.databinding.TabIndexItemRecommendBinding;
 import com.openapi.ks.myapp.adapter.base.BasePhotoFlowRecycleViewAdapter;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.constant.Constants;
@@ -234,14 +235,14 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
 
         public NaviItemViewHolder(View view) {
             super(view);
-            // tab_index_item_recommend is viewBindingIgnore: no binding class
-            cardView = view.findViewById(R.id.card_view);
-            ivTitle = view.findViewById(R.id.tv_title);
-            ivPhoto = view.findViewById(R.id.iv_photo);
-            ivEdit = view.findViewById(R.id.iv_edit);
-            ivADS = view.findViewById(R.id.ads_logo);
-            ivNew = view.findViewById(R.id.iv_new);
-            tvTitleBelow = view.findViewById(R.id.tv_title_below);
+            TabIndexItemRecommendBinding b = TabIndexItemRecommendBinding.bind(view);
+            cardView = b.cardView;
+            ivTitle = b.tvTitle;
+            ivPhoto = b.ivPhoto;
+            ivEdit = b.ivEdit;
+            ivADS = b.adsLogo;
+            ivNew = b.ivNew;
+            tvTitleBelow = b.tvTitleBelow;
         }
     }
 

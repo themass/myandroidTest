@@ -10,6 +10,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import androidx.core.content.ContextCompat;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateInterpolator;
@@ -18,6 +19,7 @@ import android.widget.PopupWindow;
 
 import com.openapi.core.util.LogUtil;
 import com.openapi.core.util.R;
+import com.openapi.core.util.databinding.AnimHeartViewBinding;
 import com.openapi.core.util.SystemUtils;
 
 
@@ -81,9 +83,10 @@ public class HeartAnimView {
     }
 
     public static void show(final Activity context, View baseView) {
-        ViewGroup view = (ViewGroup) View.inflate(context, R.layout.anim_heart_view, null);
-        View vBg = view.findViewById(R.id.v_bglike);
-        View vAction = view.findViewById(R.id.iv_like);
+        AnimHeartViewBinding hb = AnimHeartViewBinding.inflate(LayoutInflater.from(context));
+        ViewGroup view = (ViewGroup) hb.getRoot();
+        View vBg = hb.vBglike;
+        View vAction = hb.ivLike;
         final PopupWindow pop = new PopupWindow(view, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         // 使用现代API
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {

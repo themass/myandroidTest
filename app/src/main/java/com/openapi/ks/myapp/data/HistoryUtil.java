@@ -1,8 +1,8 @@
 package com.openapi.ks.myapp.data;
 
 import android.content.Context;
-import android.os.AsyncTask;
 
+import com.openapi.core.util.Background;
 import com.openapi.core.util.CollectionUtils;
 import com.openapi.core.util.LogUtil;
 import com.openapi.ks.myapp.bean.vo.HistoryVo;
@@ -18,21 +18,9 @@ public class HistoryUtil {
         return list.get(0);
     }
 
+    /** 在后台记录一条浏览历史；同一个地址只记一次。 */
     public static void addHistory(Context context, String url) {
-        new AddReadedInfoTask(context, url).execute();
-    }
-
-    public static class AddReadedInfoTask extends AsyncTask<String, Integer, Boolean> {
-        private Context context;
-        private String url;
-
-        public AddReadedInfoTask(Context context, String url) {
-            this.context = context;
-            this.url = url;
-        }
-
-        @Override
-        protected Boolean doInBackground(String... params) {
+        Background.serial(() -> {
             if (HistoryUtil.getHistory(context, url) == null) {
                 HistoryVo vo = new HistoryVo();
                 vo.setItemUrl(url);
@@ -42,8 +30,7 @@ public class HistoryUtil {
                     LogUtil.e(e);
                 }
             }
-            return Boolean.TRUE;
-        }
+        });
     }
 
 }

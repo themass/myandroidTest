@@ -17,6 +17,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.openapi.core.view.view.widgets.MusicVisualizer;
 import com.openapi.ks.chat.R;
+import com.openapi.ks.chat.databinding.ItemSongBinding;
+import com.openapi.ks.chat.databinding.ItemSongAuxioBinding;
 import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.openapi.ks.myapp.bean.vo.SoundItemsVo;
 import com.openapi.ks.myapp.ui.inte.MusicStateListener;
@@ -45,7 +47,7 @@ public class SoundItemsViewMusicAdapter extends BaseRecyclerViewAdapter<SoundIte
     public SoundItemsViewMusicAdapter.SoundItemView onCreateViewHolderData(ViewGroup parent, int viewType) {
         int layout = useAuxioStyle ? R.layout.item_song_auxio : R.layout.item_song;
         View view = LayoutInflater.from(context).inflate(layout, parent, false);
-        return new SoundItemView(view, this, this);
+        return new SoundItemView(view, useAuxioStyle, this, this);
     }
 
     public void onBindViewHolderData(RecyclerView.ViewHolder h, int position) {
@@ -156,16 +158,28 @@ public class SoundItemsViewMusicAdapter extends BaseRecyclerViewAdapter<SoundIte
         @Nullable
         protected ImageView ivRowOverflow;
 
-        public SoundItemView(View itemView, View.OnClickListener l, View.OnLongClickListener longListener) {
+        public SoundItemView(View itemView, boolean auxio, View.OnClickListener l, View.OnLongClickListener longListener) {
             super(itemView, l, longListener);
-            // One holder serves item_song and item_song_auxio, so use findViewById instead of a layout-specific binding.
-            title = itemView.findViewById(R.id.song_title);
-            artist = itemView.findViewById(R.id.song_artist);
-            albumArt = itemView.findViewById(R.id.albumArt);
-            albumFrame = itemView.findViewById(R.id.album_frame);
-            visualizer = itemView.findViewById(R.id.visualizer);
-            playingBar = itemView.findViewById(R.id.view_now_playing_bar);
-            ivRowOverflow = itemView.findViewById(R.id.iv_row_overflow);
+            // 两个布局的 id 相同，但 Binding 类不同，按布局选择对应的一套
+            if (auxio) {
+                ItemSongAuxioBinding b = ItemSongAuxioBinding.bind(itemView);
+                title = b.songTitle;
+                artist = b.songArtist;
+                albumArt = b.albumArt;
+                albumFrame = b.albumFrame;
+                visualizer = b.visualizer;
+                playingBar = b.viewNowPlayingBar;
+                ivRowOverflow = b.ivRowOverflow;
+            } else {
+                ItemSongBinding b = ItemSongBinding.bind(itemView);
+                title = b.songTitle;
+                artist = b.songArtist;
+                albumArt = b.albumArt;
+                albumFrame = b.albumFrame;
+                visualizer = b.visualizer;
+                playingBar = b.viewNowPlayingBar;
+                ivRowOverflow = b.ivRowOverflow;
+            }
         }
     }
 }

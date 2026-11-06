@@ -66,7 +66,7 @@ public class IpUtil {
                     }
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                LogUtil.e(e);
             }
         } else {
             return getInNetIp(context);

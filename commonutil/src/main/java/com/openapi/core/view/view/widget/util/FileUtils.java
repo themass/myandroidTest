@@ -1,5 +1,7 @@
 package com.openapi.core.view.view.widget.util;
 
+import com.openapi.core.util.LogUtil;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -181,7 +183,7 @@ public final class FileUtils {
         try {
             return file.createNewFile();
         } catch (IOException e) {
-            e.printStackTrace();
+            LogUtil.e(e);
             return false;
         }
     }
@@ -210,7 +212,7 @@ public final class FileUtils {
         try {
             return file.createNewFile();
         } catch (IOException e) {
-            e.printStackTrace();
+            LogUtil.e(e);
             return false;
         }
     }
@@ -500,7 +502,7 @@ public final class FileUtils {
             return writeFileFromIS(destFile, new FileInputStream(srcFile))
                     && !(isMove && !deleteFile(srcFile));
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            LogUtil.e(e);
             return false;
         }
     }
@@ -812,14 +814,14 @@ public final class FileUtils {
             is = new BufferedInputStream(new FileInputStream(file));
             p = (is.read() << 8) + is.read();
         } catch (IOException e) {
-            e.printStackTrace();
+            LogUtil.e(e);
         } finally {
             try {
                 if (is != null) {
                     is.close();
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                LogUtil.e(e);
             }
         }
         switch (p) {
@@ -871,14 +873,14 @@ public final class FileUtils {
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            LogUtil.e(e);
         } finally {
             try {
                 if (is != null) {
                     is.close();
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                LogUtil.e(e);
             }
         }
         return count;
@@ -977,7 +979,7 @@ public final class FileUtils {
                 }
                 return -1;
             } catch (IOException e) {
-                e.printStackTrace();
+                LogUtil.e(e);
             }
         }
         return getFileLength(getFileByPath(filePath));
@@ -1045,14 +1047,14 @@ public final class FileUtils {
             md = dis.getMessageDigest();
             return md.digest();
         } catch (NoSuchAlgorithmException | IOException e) {
-            e.printStackTrace();
+            LogUtil.e(e);
         } finally {
             try {
                 if (dis != null) {
                     dis.close();
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                LogUtil.e(e);
             }
         }
         return null;
@@ -1222,20 +1224,20 @@ public final class FileUtils {
             }
             return true;
         } catch (IOException e) {
-            e.printStackTrace();
+            LogUtil.e(e);
             return false;
         } finally {
             try {
                 is.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                LogUtil.e(e);
             }
             try {
                 if (os != null) {
                     os.close();
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                LogUtil.e(e);
             }
         }
     }

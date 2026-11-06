@@ -26,7 +26,15 @@ import java.util.List;
  */
 public class PermissionHelper {
     public static final int CODE_GET_ACCOUNTS = 0;
-    private static final int REQUEST_CODE_SETTINGS = 1001;
+    /** 已跳转到系统设置页，等待用户返回。 */
+    private static volatile boolean awaitingSettingsReturn = false;
+
+    /** 返回 true 表示刚从系统设置页回来（只返回一次）。宿主在 onResume 中调用。 */
+    public static boolean consumeSettingsReturn() {
+        boolean was = awaitingSettingsReturn;
+        awaitingSettingsReturn = false;
+        return was;
+    }
     public static final int CODE_READ_PHONE_STATE = 1;
     public static final int CODE_ACCESS_COARSE_LOCATION = 2;
     public static final int CODE_WRITE_EXTERNAL_STORAGE = 3;
@@ -188,12 +196,9 @@ public class PermissionHelper {
             // 降级到传统方式
             Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
             intent.setData(Uri.parse(PACKAGE + mContext.getPackageName()));
-            // 保持原有逻辑，使用startActivityForResult检查权限状态变化
-            if (mContext instanceof Activity) {
-                ((Activity) mContext).startActivityForResult(intent, REQUEST_CODE_SETTINGS);
-            } else {
-                mContext.startActivity(intent);
-            }
+            // 从设置页返回时由宿主在 onResume 里调用 consumeSettingsReturn() 检查权限变化
+            awaitingSettingsReturn = true;
+            mContext.startActivity(intent);
         }
     }
     

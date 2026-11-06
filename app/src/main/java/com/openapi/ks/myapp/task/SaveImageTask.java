@@ -70,7 +70,7 @@ public class SaveImageTask {
                     }
                 });
             } catch (Exception e) {
-                e.printStackTrace();
+                LogUtil.e(e);
                 mainHandler.post(() -> {
                     callBack.onFailed();
                 });

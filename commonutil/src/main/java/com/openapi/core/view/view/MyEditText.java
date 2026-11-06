@@ -1,5 +1,7 @@
 package com.openapi.core.view.view;
 
+import com.openapi.core.util.LogUtil;
+
 import android.content.Context;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
@@ -32,7 +34,7 @@ public class MyEditText extends AppCompatEditText {
         try {
             setTypeface(Typeface.SANS_SERIF);
         } catch (Exception e) {
-            e.printStackTrace();
+            LogUtil.e(e);
         }
     }
 

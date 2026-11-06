@@ -78,7 +78,7 @@ public class FileUtils {
             }
             zfile.close();
         } catch (Exception e) {
-            e.printStackTrace();
+            LogUtil.e(e);
             return false;
 
         } finally {

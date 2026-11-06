@@ -28,7 +28,7 @@ public class DateUtils {
                 return "";
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LogUtil.e(e);
             return "";
         }
     }
@@ -54,7 +54,7 @@ public class DateUtils {
             SimpleDateFormat sf = new SimpleDateFormat(format);
             return sf.parse(date);
         } catch (Exception e) {
-            e.printStackTrace();
+            LogUtil.e(e);
         }
         return null;
     }

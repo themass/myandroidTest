@@ -11,6 +11,7 @@ import android.widget.TextView;
 import androidx.appcompat.widget.AppCompatAutoCompleteTextView;
 
 import com.openapi.core.util.R;
+import com.openapi.core.util.databinding.RegisterAutoCompleteItemBinding;
 import com.openapi.core.util.StringUtils;
 
 
@@ -98,11 +99,15 @@ public class SiteAutoCompleteTextView extends AppCompatAutoCompleteTextView {
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-            View v = convertView;
-            if (v == null)
-                v = LayoutInflater.from(getContext()).inflate(
-                        R.layout.register_auto_complete_item, null);
-            TextView tv = (TextView) v.findViewById(R.id.tv);
+            RegisterAutoCompleteItemBinding rb;
+            if (convertView == null) {
+                rb = RegisterAutoCompleteItemBinding.inflate(LayoutInflater.from(getContext()));
+                rb.getRoot().setTag(rb);
+            } else {
+                rb = (RegisterAutoCompleteItemBinding) convertView.getTag();
+            }
+            View v = rb.getRoot();
+            TextView tv = rb.tv;
             String t = SiteAutoCompleteTextView.this.getText().toString();
             int index = t.lastIndexOf(".");
             if (index != -1)

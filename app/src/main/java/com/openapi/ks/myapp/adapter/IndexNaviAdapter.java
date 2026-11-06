@@ -19,6 +19,7 @@ import com.openapi.core.util.DisplayUtil;
 import com.openapi.core.util.Utils;
 import com.openapi.ks.myapp.base.MyApplication;
 import com.openapi.ks.chat.R;
+import com.openapi.ks.chat.databinding.TabIndexItemRecommendBinding;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -129,10 +130,10 @@ public class IndexNaviAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
         public NaviItemViewHolder(View view) {
             super(view);
-            // tab_index_item_recommend is viewBindingIgnore: no binding class
-            cardView = view.findViewById(R.id.card_view);
-            ivTitle = view.findViewById(R.id.tv_title);
-            ivPhoto = view.findViewById(R.id.iv_photo);
+            TabIndexItemRecommendBinding b = TabIndexItemRecommendBinding.bind(view);
+            cardView = b.cardView;
+            ivTitle = b.tvTitle;
+            ivPhoto = b.ivPhoto;
         }
     }
 }

@@ -17,7 +17,6 @@ import com.openapi.ks.myapp.ui.base.WebViewActivity;
  * Created by openapi on 2016/3/17.
  */
 public class QuickBrowserConfigActivity extends LogActivity {
-    private volatile boolean adOk = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,15 +40,6 @@ public class QuickBrowserConfigActivity extends LogActivity {
         }
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (adOk) {
-            AdsContext.showRand(this);
-        } else {
-            finishActivity();
-        }
-    }
 
     private void finishActivity() {
         finish();

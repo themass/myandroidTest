@@ -167,7 +167,7 @@ public class ModelUtils {
                         }
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LogUtil.e(e);
                 }
 
             }
@@ -248,7 +248,7 @@ public class ModelUtils {
                         }
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LogUtil.e(e);
                 }
 
             }
@@ -298,7 +298,7 @@ public class ModelUtils {
                         }
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LogUtil.e(e);
                 }
             }
         }

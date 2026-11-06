@@ -255,7 +255,7 @@ public class PlayService extends Service {
             // 发送广播，将被Activity组件中的BroadcastReceiver接收到
             sendBroadcast(sendIntent);
         } catch (Exception e) {
-            e.printStackTrace();
+            LogUtil.e(e);
         }
     }
 
@@ -421,7 +421,7 @@ public class PlayService extends Service {
             try {
                 mediaPlayer.prepare(); // 在调用stop后如果需要再次通过start进行播放,需要之前调用prepare函数
             } catch (Exception e) {
-                e.printStackTrace();
+                LogUtil.e(e);
             }
         }
     }

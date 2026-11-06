@@ -1,5 +1,7 @@
 package com.openapi.core.util.cache;
 
+import com.openapi.core.util.LogUtil;
+
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
@@ -51,7 +53,7 @@ public class CacheTask<T> {
                 try {
                     entry = SimpleDiskCacheUtils.getSimpleDiskCache(mContext).getString(mUrl);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LogUtil.e(e);
                 }
                 
                 T result = parse(entry != null ? entry.getString() : null);
@@ -64,7 +66,7 @@ public class CacheTask<T> {
                     });
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                LogUtil.e(e);
                 if (!isCancelled) {
                     mainHandler.post(() -> {
                         if (mCacheTaskResponse != null) {

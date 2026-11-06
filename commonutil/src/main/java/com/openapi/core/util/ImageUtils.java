@@ -25,7 +25,7 @@ public class ImageUtils {
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
             return stream.toByteArray();
         } catch (IOException e) {
-            e.printStackTrace();
+            LogUtil.e(e);
             return null;
         }
     }

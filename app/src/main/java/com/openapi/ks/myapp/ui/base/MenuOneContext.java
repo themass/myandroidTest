@@ -1,5 +1,7 @@
 package com.openapi.ks.myapp.ui.base;
 
+import com.openapi.core.util.LogUtil;
+
 import android.content.Context;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -45,7 +47,7 @@ public class MenuOneContext {
             m.invoke(menu, enable);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            LogUtil.e(e);
         }
     }
 

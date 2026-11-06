@@ -24,7 +24,7 @@ public class GsonUtils {
             };
             return (Map<String, Object>) (gson.fromJson(json, typeToken.getType()));
         } catch (Exception e) {
-            e.printStackTrace();
+            LogUtil.e(e);
         }
         return null;
     }

@@ -52,7 +52,7 @@ public class BitmapUtil {
         try {
             in.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            LogUtil.e(e);
         }
         return b;
     }

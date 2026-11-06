@@ -18,7 +18,7 @@ public class AES2 {
             byte[] result = cipher.doFinal(byteContent);
             return result; //
         } catch (Exception e) {
-            e.printStackTrace();
+            LogUtil.e(e);
         }
         return null;
     }
@@ -32,7 +32,7 @@ public class AES2 {
             byte[] result = cipher.doFinal(content);
             return result; //
         } catch (Exception e) {
-            e.printStackTrace();
+            LogUtil.e(e);
         }
         return null;
     }

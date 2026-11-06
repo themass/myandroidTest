@@ -105,7 +105,7 @@ public class ScreenSmokeTest {
     public void commonFragmentHostWithFavorites() {
         Intent intent = new Intent(
                 org.robolectric.RuntimeEnvironment.getApplication(), CommonFragmentActivity.class);
-        intent.putExtra(CommonFragmentActivity.FRAGMENT, com.openapi.ks.myapp.ui.fragment.FavoriteFragment.class);
+        intent.putExtra(CommonFragmentActivity.FRAGMENT, com.openapi.ks.myapp.ui.fragment.SettingCharacterFragment.class);
         intent.putExtra(CommonFragmentActivity.TITLE, "fav");
         Activity a = Robolectric.buildActivity(CommonFragmentActivity.class, intent)
                 .create().start().resume().get();

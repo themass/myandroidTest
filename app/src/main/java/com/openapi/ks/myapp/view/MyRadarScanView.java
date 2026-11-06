@@ -17,6 +17,7 @@ import androidx.annotation.Nullable;
 
 import com.openapi.core.util.LogUtil;
 import com.openapi.ks.chat.R;
+import com.openapi.ks.chat.databinding.RippleBgLayoutBinding;
 import com.skyfishjy.library.RippleBackground;
 
 import java.util.ArrayList;
@@ -48,16 +49,17 @@ public class MyRadarScanView extends FrameLayout {
         LayoutInflater mInflater = LayoutInflater.from(getContext());
         View myView = mInflater.inflate(R.layout.ripple_bg_layout, null);
         addView(myView);
+        RippleBgLayoutBinding b = RippleBgLayoutBinding.bind(myView);
         // 使用 RippleBackground 波纹效果
-        RippleBackground rippleView = findViewById(R.id.content);
+        RippleBackground rippleView = b.content;
         if (rippleView != null) {
             rippleView.startRippleAnimation();
         }
         LogUtil.i("start ripple");
         final Handler handler=new Handler(Looper.getMainLooper());
-        foundDevice1=(ImageView)findViewById(R.id.foundDevice1);
-        foundDevice2=(ImageView)findViewById(R.id.foundDevice2);
-        ImageView button=(ImageView)findViewById(R.id.centerImage);
+        foundDevice1=b.foundDevice1;
+        foundDevice2=b.foundDevice2;
+        ImageView button=b.centerImage;
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {

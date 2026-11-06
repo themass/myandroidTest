@@ -1,5 +1,7 @@
 package com.openapi.core.cast.ui
 
+import androidx.compose.ui.res.stringResource
+import com.openapi.ks.chat.R
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -72,12 +74,12 @@ fun CastDevicePicker(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = "选择投屏设备",
+                    text = stringResource(R.string.cast_pick_device),
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.weight(1f),
                 )
                 IconButton(onClick = { searchRound += 1 }, enabled = !searching) {
-                    Icon(Icons.Filled.Refresh, contentDescription = "重新搜索")
+                    Icon(Icons.Filled.Refresh, contentDescription = stringResource(R.string.cast_research_desc))
                 }
             }
 
@@ -88,7 +90,7 @@ fun CastDevicePicker(
             )
 
             TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
-                Text("取消")
+                Text(stringResource(R.string.ui_cancel))
             }
         }
     }
@@ -108,7 +110,7 @@ private fun DeviceList(
             CircularProgressIndicator()
         } else if (devices.isEmpty()) {
             Text(
-                text = "没有找到可投屏设备，请确认电视与本机在同一 Wi-Fi",
+                text = stringResource(R.string.cast_no_device),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(16.dp),
             )
