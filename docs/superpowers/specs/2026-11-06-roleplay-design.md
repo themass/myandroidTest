@@ -1,6 +1,6 @@
 # 角色扮演（Her）架构设计 v3
 
-状态：**待确认项已大部分确认**，剩余事项见第 12 节。本版取代 v2。
+状态：**待确认项已大部分确认**，剩余事项见第 13 节。本版取代 v2。
 
 ## 1. 已确认的决定
 
@@ -9,7 +9,7 @@
 | 1 | 对话链路全新设计，不复用旧 `/chat/stream.json` 与 nage/chat 接口 |
 | 2 | 记忆建在 agent 层；agent 支持记忆与个人重要信息提取 |
 | 3 | 渲染器接口抽象；2D 人物支持手指拖动（重点）|
-| 4 | DeerFlow 只生成内容；语音（TTS + LiveKit）由外部中间层负责，**语音供应商走策略模式，可随时替换**，第一版接火山引擎 |
+| 4 | **DeerFlow 是对话主脑**（接管 LLM 节点），不再是旁路的内容工具；语音（TTS + LiveKit）由外部中间层负责，**语音供应商走策略模式，可随时替换**，第一版接火山引擎 |
 | 5 | 上架 Google Play |
 | 6 | 第一版文字与语音都有，**默认文字**，用户可切换到语音 |
 | 7 | 角色格式：SillyTavern V2，支持 V2/V3 导入导出 |
@@ -17,9 +17,14 @@
 | 9 | 用户创建角色的形象和音色：留扩展点，第一版不做 |
 | 10 | **账号删除时删除全部数据，包括全部记忆**（取代 v2 的「记忆不删」）。日常记忆不做自动过期 |
 | 11 | 官方角色由我们设计 2–3 个 |
-| 12 | 端上 2D 人物 + agent（LiveKit + 中间层 TTS + DeerFlow 内容 + memory）|
+| 12 | 端上 2D 人物 + agent（LiveKit + 中间层 TTS + DeerFlow 主脑 + memory）|
 | 13 | LiveKit 使用 **LiveKit Cloud**，不自建 |
 | 14 | 第一版形象做**简单动画**（静态立绘 + 表情图 + 嘴型两帧 + 眨眼），**不做跟随与拖动互动**；但上层通过 `AvatarCommand` 指令框架驱动，渲染器可替换（见第 5.1 节） |
+| 15 | 角色扮演后端是**独立的 companion 服务**（Python，LiveKit Agents），从 job-come 后端拷贝改造，不与 job-come 共用部署；登录与账号接口复用 App 现有体系 |
+| 16 | **文字走 LiveKit 房间**（文本流），与语音共用同一个房间；必须流式输出 |
+| 17 | 对话 LLM **可配置、可切换**：沿用 job-come 的 LiteLLM 路由机制，按场景配置模型链；密钥只放环境变量，不写入文档或配置文件 |
+| 18 | 不处理国内备案（部署地不一定在国内） |
+| 19 | DeerFlow 以**嵌入式 harness** 方式运行在 companion 服务内（沿用 job-come 的做法），不单独部署成 HTTP 服务 |
 
 ## 2. 总体架构
 
@@ -36,29 +41,30 @@ Android 客户端
 LiveKit Cloud（房间与实时传输）
         │
         ▼
-Companion Agent（Python，LiveKit Agents，Apache-2.0）
+companion 服务（独立部署，Python，LiveKit Agents，Apache-2.0；从 job-come 拷贝改造）
   ├─ 回合管理、打断、语音活动检测（框架自带）
-  ├─ 提示词组装（角色 + 用户记忆 + 历史）
-  ├─ 对话 LLM（流式）
-  ├─ 工具：DeerFlow 内容生成（异步）
-  ├─ 记忆：检索（回合前）、提取（回合后，异步）→ MemoryPort
+  ├─ 提示词组装（skill 包 + 角色 + 用户记忆 + 历史）
+  ├─ **LLM 节点 = DeerFlow**（嵌入式 harness，流式产出文本）
+  │    · 多步推理、工具、子 agent、上下文压缩由 DeerFlow 负责
+  │    · 记忆：检索（回合前）、提取（回合后，异步）→ MemoryPort
   └─ 语音：经 VoiceProvider 接口（STT / TTS）
         │
         ├──▶ Voice Gateway（中间层，策略模式）
         │       VoiceProvider 接口 → 火山引擎（第一版）/ 其它供应商（可替换）
         │       · 音色映射、流式、句级缓存、失败切换
         │
-        ├──▶ Memory Service（MemoryPort 接口 → 具体实现待选，见第 4 节）
+        ├──▶ Memory Service（MemoryPort 接口 → mem0，见第 4 节）
         │
-        └──▶ DeerFlow（内容服务，只生成内容，结果由 agent 角色化后回到会话）
+        └──▶ MCP 服务（记忆、角色查询等需要模型主动调用的动作）
 
-角色与账号 API（HTTPS）：角色 CRUD、导入导出、记忆查看与删除、账号删除
+角色、记忆、会话与 token 签发 API（HTTPS，companion 服务）：角色 CRUD、导入导出、记忆查看与删除、创建会话、账号删除。登录与账号基础接口复用 App 现有服务。
 ```
 
 要点：
 
 - **文字和语音共用同一个 agent 和同一个房间**，保证同一角色的人设、记忆、情绪在两种模式下一致。
-- 文字模式用 LiveKit 的文本流，不发音频，也不调用语音供应商。
+- 文字模式用 LiveKit 房间的文本流，不发音频，也不调用语音供应商。
+- companion 服务独立部署；登录与账号复用 App 现有接口，角色扮演与 job-come 不共用代码或部署。
 - 语音供应商、记忆后端都在接口后面，替换实现不改 agent 与客户端。
 
 ## 3. 角色
@@ -113,7 +119,9 @@ Companion Agent（Python，LiveKit Agents，Apache-2.0）
 
 ### 4.4 DeerFlow 与记忆
 
-DeerFlow 生成的内容（如它替用户写的故事）是内容，**不自动变成用户事实**。只有用户在对话中表达的信息进入记忆。
+- **检索**：回合前由 companion 查记忆，注入 DeerFlow 的上下文；DeerFlow 自己不必知道记忆存储。
+- **提取**：回合结束后异步触发，用 `memory_extract` 场景的便宜模型，与对话模型分开。
+- DeerFlow 生成的内容（如它替用户写的故事）是内容，**不自动变成用户事实**。只有用户在对话中表达的信息进入记忆。
 
 ## 5. 2D 人物
 
@@ -218,60 +226,141 @@ interface VoiceProvider {
 - 默认**文字**：打开角色即是文字对话。
 - 用户可在对话页切换到语音：麦克风发布音轨，agent 回复走 TTS。切换不断开房间。
 
-## 7. DeerFlow
+### 6.4 对话主脑：DeerFlow（决定 4、17、19）
 
-- 只作为异步工具：agent 判断需要生成内容时调用 DeerFlow，先回复「我去写一下」，结果回到会话后由 agent 用角色口吻转述。
-- DeerFlow 的输出不直接进入 TTS。
+LiveKit Agents 的 `Agent.llm_node` 是可重写的节点，接收对话上下文、返回文本流。**companion 在这里接入 DeerFlow**，DeerFlow 成为真正的对话主脑：
 
-## 8. 账号与数据
+```python
+class CompanionAgent(Agent):
+    async def llm_node(self, chat_ctx, tools, model_settings):
+        async for event in deerflow.stream_message(thread_id, chat_ctx, ...):
+            if event["type"] == "token":
+                yield event["content"]          # 流式下发，未断句
+```
 
-- **删除账号**：删除用户全部记忆（Hindsight/mem0 的存储、索引、原始记录）、会话、角色（用户创建的角色）、语音与对话日志。删除后 30 天内不可恢复，期间账号不可登录（待确认，见第 12 节）。
+- **运行方式**：嵌入式 harness（进程内 LangGraph 循环 + 中间件 + 子 agent + 上下文压缩），沿用 job-come 的 `deerflow_harness_client.py` 改造。
+- **模型选择在 DeerFlow 内部**：DeerFlow 通过 LiteLLM 路由决定用哪个模型（场景化模型链，见 6.4.1），companion 的 `Agent` 不再自带 LLM。
+- **工具与多步推理由 DeerFlow 负责**：记忆检索、角色查询、内容生成都是 DeerFlow 的工具，经 MCP 暴露（6.4.2）。
+- **取消**：用户打断时，companion 调 DeerFlow 的 session cancel，停止当前回合的生成，不再消费后续 token。
+- **线程安全**：DeerFlow harness 在独立线程中运行（同步 LangGraph 循环），companion 用队列把事件转回事件循环，模式同 job-come。
+
+代价：DeerFlow 每轮都有编排开销，首包延迟高于直连模型。这是有意的取舍：能力优先，延迟在 P2 之后再优化。
+
+#### 6.4.1 模型路由
+
+- 沿用 job-come 的 LiteLLM 场景路由：配置声明场景 → 模型链（主模型、备用、超时、推理开关）。
+- 对话场景 `companion_chat`、记忆提取 `memory_extract`、内容生成 `companion_rewrite` 互不共用。
+- 换模型只改路由配置，不改代码。角色级模型覆盖作为扩展点保留，第一版只用全局场景。
+- provider 只引用环境变量名，密钥不进入配置文件。
+
+#### 6.4.2 MCP
+
+- LiveKit Agents 自带 MCP 客户端（`MCPServerHTTP` / `MCPServerStdio` + `MCPToolset`），支持 SSE 与 streamable HTTP。
+- 需要模型主动调用的动作（记忆检索、角色查询）做成 MCP 服务；工具过多时用 `tool_search` 按需挂载。
+- 不给模型开放文件读写类工具。
+
+### 6.5 流式输出与断句（决定 16）
+
+- agent 输出同时支持流式和非流式。文字模式默认流式，经 LiveKit 文本流逐段下发。
+- 流式时按句断句（中英文标点、换行），每句立即送 TTS，不等整段回复结束。
+- TTS 支持流式合成；不支持流式的供应商退化为按句合成。
+- 断句与情绪标签剥离都在 agent 侧完成，客户端只收到已断好的文本段和事件。
+
+### 6.6 LiveKit 房间与 token（设计建议，待实现）
+
+- companion 服务创建房间，房间名由服务端生成，绑定 `user_id` 与 `character_id`。
+- 客户端调用 `POST /companion/sessions`（携带 App 现有登录凭证）→ 服务端校验用户、创建房间、签发 LiveKit JWT 并返回。
+- JWT 由服务端用 LiveKit API key/secret 签名；身份为用户 id；grant 只允许加入该房间并发布/订阅；有效期短（建议 10 分钟），过期前重新请求。
+- agent 使用服务端签发的独立 token 加入同一房间，不下发给客户端。
+- LiveKit 密钥只放环境变量。
+
+## 7. DeerFlow（决定 4、19）
+
+DeerFlow 是**对话主脑**，不是旁路工具。
+
+- **接入点**：LiveKit `Agent.llm_node`。DeerFlow 每轮产出流式 token，companion 透传给 `AgentSession`。
+- **能力**：多步推理、工具调用、子 agent、上下文压缩，均在 DeerFlow 内。
+- **运行**：嵌入式 harness（进程内 LangGraph），从 job-come 的 `deerflow_harness_client.py` 改造；不单独部署成 HTTP 服务。
+- **取消**：用户打断时取消 DeerFlow 当前回合，丢弃剩余 token。
+- **模型**：DeerFlow 经 LiteLLM 路由选择模型（6.4.1），companion 不另设 LLM。
+- **输出仍要断句**：DeerFlow 产出的是连续 token，断句、情绪标签剥离、送 TTS 都在 companion 侧完成（6.5）。
+
+风险与已知代价：
+
+- **首包延迟**：DeerFlow 每轮有编排开销。P2 之后用实测决定是否给简单回合走直连模型的分支。
+- **线程模型**：harness 是同步循环，需在线程与事件循环之间用队列转递，job-come 已有实现可参考。
+- **嵌入依赖**：DeerFlow 以 wheel 形式引入，升级需同步锁文件。
+
+## 8. Skill 与工具
+
+### 8.1 Skill 包
+
+LiveKit Agents 没有 skill 概念，skill 由**宿主组装**进提示词（job-come 已有实现）。
+
+- **格式沿用 job-come**：`skills/public/<id>/SKILL.md` + `references/*.md`，frontmatter 用同一套（`name`、`description`、`allowed-tools`、`metadata`）。
+- **组装在 companion 做**：建会话或换角色时，按角色与场景选出片段，拼进 `Agent` 的 instructions。`AgentSession.update_agent()` 支持中途更换，不用重开房间。
+- **不要依赖模型主动读文件**。job-come 踩过这个坑：skill 正文要等模型调 `read_file`，而工具白名单里没有它，正文成了死文本。语音场景更不该让模型为读 skill 多花一次工具调用。
+- skill 内容是**第一方编写、随仓库发布**，视为可信输入；用户资料、模型输出不可信。
+
+### 8.2 工具与 MCP
+
+- LiveKit Agents 自带 MCP 客户端：`MCPServerHTTP`（SSE / streamable HTTP）与 `MCPServerStdio`，经 `MCPToolset` 挂到 agent。
+- DeerFlow 是主脑，工具的实际调用发生在 DeerFlow 内；MCP 用于把外部能力（记忆检索、角色查询）暴露给它。
+- 工具过多时用 `tool_search` 按需挂载，避免提示词膨胀。
+- 可对单个工具设置取消、重复调用策略与进度上报。
+- 不开放文件读写类工具。
+
+## 9. 账号与数据
+
+- **账号体系**：复用 App 现有账号与登录接口，不与 job-come 共用。companion 服务只校验现有登录凭证。
+- **删除账号**：删除用户全部记忆（Hindsight/mem0 的存储、索引、原始记录）、会话、角色（用户创建的角色）、语音与对话日志。删除后 30 天内不可恢复，期间账号不可登录（待确认，见第 13 节）。
 - **导出**：用户可导出自己的记忆与会话（隐私要求，建议做）。
 - Google Play 数据安全表单：声明语音、个人信息、记忆等数据类别与用途。
 
-## 9. Google Play 与合规
+## 10. Google Play 与合规
 
 | 项目 | 处理 |
 |---|---|
-| 账号与数据删除 | 应用内删除入口，删除全部数据（第 8 节）|
+| 账号与数据删除 | 应用内删除入口，删除全部数据（第 9 节）|
 | UGC（用户角色）| 第一版不开放；上线前必须有举报、屏蔽、审核 |
 | AI 生成内容 | 角色标注「AI 角色」，不冒充真人 |
 | 未成年人 | 年龄门槛，未成年人模式限制角色与时长（需法务确认）|
 | 第三方许可 | Live2D 需书面确认；Honcho（AGPL）不采用；其它 Apache/MIT 可商用 |
 
-## 10. 官方角色（决定 11）
+## 11. 官方角色（决定 11）
 
 三个原创角色，美术与人设均由我们设计（沿用 v2 的晓雾、小遥、林澈）。第一版形象是简单动画所需的静态立绘与表情图，需要委托原创美术，预计每角色一套小型素材。
 
-## 11. 扩展点（决定 9）
+## 12. 扩展点（决定 9）
 
 - `voice_ref`、`model_ref` 字段已有，第一版只允许平台列表。
 - 用户创建角色时的选择器接入 `GET /voices`、`GET /models` 即可。
 - 不做：用户上传形象、语音克隆。
 
-## 12. 分期与待确认
+## 13. 分期与待确认
 
-### 12.1 分期
+### 13.1 分期
 
 | 阶段 | 内容 | 不需要设备的验收 |
 |---|---|---|
-| P0 基础 | 角色模型与 V2 导入导出；3 个官方角色；LiveKit Cloud 房间与最小文字 agent；VoiceProvider 接口与火山 TTS 适配器 | 导入导出往返；接口单测（fake 供应商）；agent 回合测试 |
-| P1 文字 + 记忆 | 提示词组装；MemoryPort；mem0 接入；「我记住的」；跨角色读取与来源标注；删除账号的全量删除 | 50 段对话的抽取对比；删除后零残留测试；隔离测试 |
-| P2 语音 | 火山 ASR/TTS 接通；语音模式切换；打断 | 回合状态机单测；音频在设备上验证 |
+| P0 基础 | 角色模型与 V2 导入导出；3 个官方角色；LiveKit Cloud 房间与 token 签发；**DeerFlow 嵌入 companion 并接管 `llm_node`**；最小文字回合；VoiceProvider 接口与火山 TTS 适配器 | 导入导出往返；token 签发单测；DeerFlow 回合测试（fake 模型）；接口单测（fake 供应商） |
+| P1 文字 + 记忆 | skill 组装进提示词；MemoryPort；mem0 接入；「我记住的」；跨角色读取与来源标注；删除账号的全量删除 | skill 组装的快照测试；50 段对话的抽取对比；删除后零残留测试；隔离测试 |
+| P2 语音 | 火山 ASR/TTS 接通；语音模式切换；打断（含取消 DeerFlow 回合）| 回合状态机单测；取消传播测试；音频在设备上验证 |
 | P3 简易形象（v1） | `AvatarCommand` 指令框架；`SimpleAvatarRenderer`：立绘、表情图、嘴型两帧、眨眼、呼吸；事件映射 | 指令映射与未知指令忽略的单测；设备上看渲染与切换 |
 | P3b 形象互动（之后） | 新渲染器（Spine 优先评估）；拖动跟随、点击反应、手势；补齐 `capabilities` | 限幅与映射单测；拖动手感需设备 |
-| P4 DeerFlow 内容 | 异步工具；结果回到会话 | 超时与失败处理测试 |
+| P4 长任务与内容生成 | DeerFlow 子 agent 与上下文压缩调优；需要长耗时的生成类任务（故事、计划） | 超时与失败处理测试 |
 | P5 广场与扩展 | 用户角色、审核、举报、屏蔽；Graphiti 评估；Rive 评估 | 状态机与审核测试 |
 
-### 12.2 仍需确认
+### 13.2 仍需确认
 
 1. **Live2D**：是否要向 Live2D 发信确认「固定模型、不开放用户上传」的应用是否属于 Expandable Application，以及费用？（我的建议：P3b 之前再决定；v1 不依赖任何形象授权。）
 2. **记忆后端**：已定 mem0（见 4.3），Hindsight 作为备选保留。
 3. **账号删除后的 30 天冷静期**：要不要？（Google Play 允许立即删除；冷静期是我的建议，给误操作留余地。）
 4. **官方角色美术**：委托原创美术的预算与周期，需要你定。
 5. **火山引擎**：具体产品（豆包语音的 TTS 与流式 ASR）与合同，需要你对接。
+6. **现有登录凭证**：companion 服务要校验 App 现有登录的凭证，需要知道它的格式（token 还是 cookie）与校验方式。需要现有服务端负责人给一份说明。
 
-## 13. 假设（可推翻）
+## 14. 假设（可推翻）
 
 - LiveKit Agents 的自定义 TTS/STT 插件可以接入 VoiceProvider（P0 验证）。
 - 简单动画的表现力在设备上足够支撑 v1 的流程验证（P3 验证）。
