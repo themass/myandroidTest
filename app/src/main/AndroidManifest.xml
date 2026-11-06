@@ -221,9 +221,10 @@
             android:name="com.openapi.ks.myapp.ui.base.CommonFragmentActivity"
              />
         <activity
-            android:name="com.openapi.ks.myapp.ui.feedback.FeedbackFragmentActivity"
-
-            android:theme="@style/StyledIndicators" />
+            android:name="com.openapi.ks.myapp.ui.feedback.FeedbackActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme" />
         <activity
             android:name="com.openapi.ks.myapp.ui.config.QuickBrowserConfigActivity"
 

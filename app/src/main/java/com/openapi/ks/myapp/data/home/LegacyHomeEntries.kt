@@ -30,7 +30,6 @@ import com.openapi.ks.myapp.constant.Constants
 import com.openapi.ks.myapp.data.ConnLogUtil
 import com.openapi.ks.myapp.data.UserLoginUtil
 import com.openapi.ks.myapp.data.VersionUpdater
-import com.openapi.ks.myapp.ui.feedback.IWannaFragment
 import com.openapi.ks.myapp.ui.fragment.AppListFragment
 import com.openapi.ks.myapp.ui.user.LoginActivity
 import com.openapi.ks.myapp.ui.user.SettingActivity
@@ -142,7 +141,7 @@ class LegacyHomeEntries(private val app: Context) : HomeEntries {
             ProfileAction.PhotoSolve -> PhotoSolveActivity.start(context)
             ProfileAction.LocalMusic ->
                 startActivity(context, com.openapi.retromusic.activities.MainActivity::class.java)
-            ProfileAction.Feedback -> IWannaFragment.startFragment(context)
+            ProfileAction.Feedback -> com.openapi.ks.myapp.ui.feedback.FeedbackActivity.start(context)
             ProfileAction.Share -> share(context)
             ProfileAction.AppRecommend -> AppListFragment.startFragment(context)
             ProfileAction.Settings -> startActivity(context, SettingActivity::class.java)
