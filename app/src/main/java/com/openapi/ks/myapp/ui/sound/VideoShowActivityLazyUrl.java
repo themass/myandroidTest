@@ -52,7 +52,7 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
     private void bindButterViews() {
         LayoutVideoShowBinding b = LayoutVideoShowBinding.bind(findViewById(android.R.id.content));
         videoPlayer = b.jzVideo;
-        myFavoriteView = findViewById(R.id.my_favoriteview);
+        myFavoriteView = b.myFavoriteview;
     }
 
     private void unbindButterViews() {
