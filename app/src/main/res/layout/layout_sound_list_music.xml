@@ -18,7 +18,7 @@
         android:textColor="#CCFFFFFF"
         android:textSize="11sp" />
 
-    <com.openapi.core.view.view.MyPullView
+    <com.openapi.ks.myapp.ui.gsy.compose.ListShellView
         android:id="@+id/my_pullview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

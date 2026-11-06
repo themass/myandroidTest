@@ -58,7 +58,7 @@
                 android:textSize="11sp" />
         </LinearLayout>
 
-        <com.openapi.core.view.view.MyPullView
+        <com.openapi.ks.myapp.ui.gsy.compose.ListShellView
             android:id="@+id/my_pullview"
             android:layout_width="match_parent"
             android:layout_height="0dp"

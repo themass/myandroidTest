@@ -208,7 +208,7 @@ public abstract class LoadableFragment<T> extends BaseFragment {
         mContentView.setVisibility(View.VISIBLE);
     }
 
-    private void showRetry() {
+    protected void showRetry() {
         if (isViewDetached()) {
             return;
         }
@@ -218,7 +218,7 @@ public abstract class LoadableFragment<T> extends BaseFragment {
         tvRetry.setText(com.openapi.core.util.R.string.error_network_retry);
     }
 
-    private void showNodataRetry() {
+    protected void showNodataRetry() {
         if (isViewDetached()) {
             return;
         }
