@@ -9,4 +9,17 @@
     <string name="companion_connecting">正在连接…</string>
     <string name="companion_error">连接出错了</string>
     <string name="companion_voice_hint">长按说话</string>
+
+    <!-- 主动消息：没人跟她说话，是她自己开口的，标签要让人一眼看出来 -->
+    <string name="companion_proactive_event">她记得</string>
+    <string name="companion_proactive_greeting">她来找你</string>
+    <string name="companion_proactive_generic">她主动说的</string>
+
+    <!-- 需要用户同意才会执行的动作 -->
+    <string name="companion_action_confirm">允许</string>
+    <string name="companion_action_cancel">先不用</string>
+
+    <string name="companion_incoming_call">她打来了</string>
+    <string name="companion_call_accept">接听</string>
+    <string name="companion_call_decline">挂断</string>
 </resources>

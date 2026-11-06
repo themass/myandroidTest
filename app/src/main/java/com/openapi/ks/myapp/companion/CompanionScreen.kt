@@ -24,7 +24,9 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -39,6 +41,7 @@ import com.openapi.ks.chat.R
 import com.openapi.ks.myapp.avatar.AvatarCommand
 import com.openapi.ks.myapp.avatar.AvatarEventMapper
 import com.openapi.ks.myapp.avatar.AvatarSpec
+import com.openapi.ks.myapp.avatar.ProactiveKind
 import com.openapi.ks.myapp.avatar.SimpleAvatar
 import com.openapi.ks.myapp.avatar.SimpleAvatarRenderer
 
@@ -105,7 +108,25 @@ fun CompanionScreen(
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            items(state.messages) { message -> MessageBubble(message) }
+            items(state.messages) { message ->
+                MessageBubble(
+                    message = message,
+                    onConfirm = viewModel::confirmAction,
+                    onCancel = viewModel::cancelAction,
+                )
+            }
+        }
+
+        // 主动来电不当作一条消息：它要接管整屏，否则用户会当成普通提示划过去。
+        state.incomingCall?.let { kind ->
+            IncomingCallBanner(
+                kind = kind,
+                onAccept = {
+                    viewModel.dismissIncomingCall()
+                    if (state.mode != CompanionMode.VOICE) viewModel.toggleMode()
+                },
+                onDecline = viewModel::dismissIncomingCall,
+            )
         }
 
         if (state.error != null) {
@@ -143,24 +164,95 @@ fun CompanionScreen(
 }
 
 @Composable
-private fun MessageBubble(message: CompanionMessage) {
+private fun MessageBubble(
+    message: CompanionMessage,
+    onConfirm: (String) -> Unit,
+    onCancel: (String) -> Unit,
+) {
     val mine = message.role == MessageRole.USER
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = if (mine) Arrangement.End else Arrangement.Start,
+    val proactive = message.proactive != ProactiveKind.REPLY
+    Column(modifier = Modifier.fillMaxWidth()) {
+        // 主动消息加一个前缀标签：用户得一眼看出没人跟她说话，是她自己开口的。
+        if (proactive) {
+            Text(
+                text = stringResource(
+                    when (message.proactive) {
+                        ProactiveKind.EVENT -> R.string.companion_proactive_event
+                        ProactiveKind.GREETING -> R.string.companion_proactive_greeting
+                        else -> R.string.companion_proactive_generic
+                    }
+                ),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(start = 4.dp, bottom = 2.dp),
+            )
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = if (mine) Arrangement.End else Arrangement.Start,
+        ) {
+            Text(
+                // 流式消息末尾加光标，让「还在生成」可见。
+                text = if (message.streaming) message.text + "▍" else message.text,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(
+                        when {
+                            mine -> MaterialTheme.colorScheme.primaryContainer
+                            proactive -> MaterialTheme.colorScheme.secondaryContainer
+                            else -> MaterialTheme.colorScheme.surfaceVariant
+                        }
+                    )
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+
+        // 待确认动作：必须给用户一个明确的出口，否则她会替用户做了不该做的事。
+        message.confirmationId?.let { id ->
+            Row(
+                modifier = Modifier.padding(top = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                TextButton(onClick = { onConfirm(id) }) {
+                    Text(stringResource(R.string.companion_action_confirm))
+                }
+                TextButton(onClick = { onCancel(id) }) {
+                    Text(stringResource(R.string.companion_action_cancel))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun IncomingCallBanner(
+    kind: ProactiveKind,
+    onAccept: () -> Unit,
+    onDecline: () -> Unit,
+) {
+    Surface(
+        color = MaterialTheme.colorScheme.secondaryContainer,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        shape = RoundedCornerShape(12.dp),
     ) {
-        Text(
-            // 流式消息末尾加光标，让「还在生成」可见。
-            text = if (message.streaming) message.text + "▍" else message.text,
-            modifier = Modifier
-                .clip(RoundedCornerShape(12.dp))
-                .background(
-                    if (mine) MaterialTheme.colorScheme.primaryContainer
-                    else MaterialTheme.colorScheme.surfaceVariant
-                )
-                .padding(horizontal = 12.dp, vertical = 8.dp),
-            style = MaterialTheme.typography.bodyMedium,
-        )
+        Column(modifier = Modifier.padding(12.dp)) {
+            Text(
+                text = stringResource(R.string.companion_incoming_call),
+                style = MaterialTheme.typography.titleSmall,
+            )
+            Spacer(Modifier.height(8.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextButton(onClick = onAccept) {
+                    Text(stringResource(R.string.companion_call_accept))
+                }
+                TextButton(onClick = onDecline) {
+                    Text(stringResource(R.string.companion_call_decline))
+                }
+            }
+        }
     }
 }
 

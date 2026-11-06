@@ -108,6 +108,32 @@ class CompanionViewModel(
                 when (event) {
                     is CompanionEvent.TextDelta -> appendToStreaming(event.text)
                     is CompanionEvent.AvatarJson -> onAvatarEvent(event.raw)
+                    is CompanionEvent.Proactive -> _state.update { st ->
+                        // 主动消息单独成条并打标：用户需要一眼看出是她自己开口的。
+                        st.copy(
+                            messages = st.messages + CompanionMessage(
+                                role = MessageRole.ASSISTANT,
+                                text = event.text,
+                                proactive = event.kind,
+                            ),
+                        )
+                    }
+
+                    is CompanionEvent.NeedsConfirmation -> _state.update { st ->
+                        // 待确认动作不当作普通消息：它在界面上要变成一对按钮。
+                        st.copy(
+                            messages = st.messages + CompanionMessage(
+                                role = MessageRole.ASSISTANT,
+                                text = event.prompt,
+                                confirmationId = event.confirmationId,
+                            ),
+                        )
+                    }
+
+                    is CompanionEvent.IncomingCall -> _state.update {
+                        it.copy(incomingCall = ProactiveKind.CALL)
+                    }
+
                     CompanionEvent.TurnDone -> _state.update { st ->
                         st.copy(messages = st.messages.map {
                             if (it.streaming) it.copy(streaming = false) else it
@@ -122,6 +148,27 @@ class CompanionViewModel(
                     }
                 }
             }
+        }
+    }
+
+    /** 用户确认一个待执行动作。 */
+    fun confirmAction(confirmationId: String) {
+        transport.confirm(confirmationId, accepted = true)
+        removeConfirmation(confirmationId)
+    }
+
+    fun cancelAction(confirmationId: String) {
+        transport.confirm(confirmationId, accepted = false)
+        removeConfirmation(confirmationId)
+    }
+
+    fun dismissIncomingCall() {
+        _state.update { it.copy(incomingCall = null) }
+    }
+
+    private fun removeConfirmation(confirmationId: String) {
+        _state.update { st ->
+            st.copy(messages = st.messages.filterNot { it.confirmationId == confirmationId })
         }
     }
 

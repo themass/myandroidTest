@@ -9,4 +9,17 @@
     <string name="companion_connecting">Connecting…</string>
     <string name="companion_error">Connection failed</string>
     <string name="companion_voice_hint">Hold to talk</string>
+
+    <!-- Proactive messages: she opened this, nobody asked. The label makes that clear. -->
+    <string name="companion_proactive_event">She remembered</string>
+    <string name="companion_proactive_greeting">Checking in</string>
+    <string name="companion_proactive_generic">From her</string>
+
+    <!-- Actions needing approval before she does them on the user's behalf. -->
+    <string name="companion_action_confirm">Allow</string>
+    <string name="companion_action_cancel">Not now</string>
+
+    <string name="companion_incoming_call">She is calling</string>
+    <string name="companion_call_accept">Answer</string>
+    <string name="companion_call_decline">Decline</string>
 </resources>
