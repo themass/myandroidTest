@@ -38,6 +38,6 @@ object ImageUploadEncoder {
             last = EncodedImage(bytes, format, quality)
             if (bytes.size <= maxBytes) return last
         }
-        return last!!
+        return checkNotNull(last) { "QUALITY_LADDER must not be empty" }
     }
 }

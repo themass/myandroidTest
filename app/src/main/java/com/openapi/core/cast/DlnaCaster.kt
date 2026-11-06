@@ -36,9 +36,10 @@ class DlnaCaster(private val context: Context) {
     /** 投一个在线视频。 */
     suspend fun castRemote(device: DlnaDevice, url: String, title: String? = null) {
         setState(CastState.Connecting)
-        transport = AvTransport(device)
-        val ok = transport!!.setUri(url, title).isSuccess &&
-            transport!!.play().isSuccess
+        val t = AvTransport(device)
+        transport = t
+        val ok = t.setUri(url, title).isSuccess &&
+            t.play().isSuccess
         _state.value = if (ok) CastState.Playing(device, 0, 0) else CastState.Error("投屏失败：设备无响应")
     }
 
