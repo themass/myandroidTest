@@ -72,7 +72,7 @@ public final class ToolbarContentTintHelper {
                     field = cls.getDeclaredField("mVoiceButton");
                     tintImageView(searchView, field, color);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    android.util.Log.e("Retro", "error", e);
                 }
             }
 
@@ -116,7 +116,7 @@ public final class ToolbarContentTintHelper {
                     MenuPopupHelper subMenuPopupHelper = (MenuPopupHelper) f4.get(presenter);
                     setTintForMenuPopupHelper(context, subMenuPopupHelper, color);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    android.util.Log.e("Retro", "error", e);
                 }
             });
         }
@@ -183,14 +183,14 @@ public final class ToolbarContentTintHelper {
                                             }
                                         }
                                     } catch (Exception e) {
-                                        e.printStackTrace();
+                                        android.util.Log.e("Retro", "error", e);
                                     }
                                     listView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                                 }
                             });
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                android.util.Log.e("Retro", "error", e);
             }
         }
 
@@ -204,7 +204,7 @@ public final class ToolbarContentTintHelper {
                     field.set(toolbar, TintHelper.createTintedDrawable(collapseIcon, color));
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                android.util.Log.e("Retro", "error", e);
             }
 
             if (menu != null && menu.size() > 0) {
@@ -463,7 +463,7 @@ public final class ToolbarContentTintHelper {
                 toolbar.setOnMenuItemClickListener(newClickListener);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            android.util.Log.e("Retro", "error", e);
         }
     }
 
@@ -598,9 +598,9 @@ public final class ToolbarContentTintHelper {
     private static void tintShareIconIfPresent(int color, MenuItem item) {
         if (item.getActionView() != null) {
             final View actionView = item.getActionView();
-            final View expandActivitiesButton = actionView.findViewById(com.google.android.material.R.id.expand_activities_button);
+            final View expandActivitiesButton = actionView.findViewById(androidx.appcompat.R.id.expand_activities_button);
             if (expandActivitiesButton != null) {
-                final ImageView image = expandActivitiesButton.findViewById(com.google.android.material.R.id.image);
+                final ImageView image = expandActivitiesButton.findViewById(androidx.appcompat.R.id.image);
                 if (image != null) {
                     final Drawable drawable = image.getDrawable();
                     final Drawable wrapped = DrawableCompat.wrap(drawable);

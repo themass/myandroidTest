@@ -162,7 +162,7 @@ object MusicPlayerRemote : KoinComponent {
                 return cursor.getString(columnIndex)
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            android.util.Log.e("Retro", "error", e)
         } finally {
             cursor?.close()
         }

@@ -64,7 +64,7 @@ class TagWriter {
                         )
                         artwork = AndroidArtwork.createArtworkFromFile(albumArtFile)
                     } catch (e: IOException) {
-                        e.printStackTrace()
+                        android.util.Log.e("Retro", "error", e)
                     }
                 }
                 var wroteArtwork = false
@@ -90,7 +90,7 @@ class TagWriter {
                                     }
                                     return@withContext listOf<File>()
                                 } catch (e: Exception) {
-                                    e.printStackTrace()
+                                    android.util.Log.e("Retro", "error", e)
                                 }
                             }
                         }
@@ -106,17 +106,17 @@ class TagWriter {
                         }
                         audioFile.commit()
                     } catch (e: CannotReadException) {
-                        e.printStackTrace()
+                        android.util.Log.e("Retro", "error", e)
                     } catch (e: IOException) {
-                        e.printStackTrace()
+                        android.util.Log.e("Retro", "error", e)
                     } catch (e: CannotWriteException) {
-                        e.printStackTrace()
+                        android.util.Log.e("Retro", "error", e)
                     } catch (e: TagException) {
-                        e.printStackTrace()
+                        android.util.Log.e("Retro", "error", e)
                     } catch (e: ReadOnlyFileException) {
-                        e.printStackTrace()
+                        android.util.Log.e("Retro", "error", e)
                     } catch (e: InvalidAudioFrameException) {
-                        e.printStackTrace()
+                        android.util.Log.e("Retro", "error", e)
                     }
                 }
                 if (wroteArtwork) {
@@ -145,7 +145,7 @@ class TagWriter {
                         )
                         artwork = AndroidArtwork.createArtworkFromFile(albumArtFile)
                     } catch (e: IOException) {
-                        e.printStackTrace()
+                        android.util.Log.e("Retro", "error", e)
                     }
                 }
 
@@ -184,7 +184,7 @@ class TagWriter {
                                     }
                                     return@withContext listOf<File>()
                                 } catch (e: Exception) {
-                                    e.printStackTrace()
+                                    android.util.Log.e("Retro", "error", e)
                                 }
                             }
                         }
@@ -200,17 +200,17 @@ class TagWriter {
                         }
                         audioFile.commit()
                     } catch (e: CannotReadException) {
-                        e.printStackTrace()
+                        android.util.Log.e("Retro", "error", e)
                     } catch (e: IOException) {
-                        e.printStackTrace()
+                        android.util.Log.e("Retro", "error", e)
                     } catch (e: CannotWriteException) {
-                        e.printStackTrace()
+                        android.util.Log.e("Retro", "error", e)
                     } catch (e: TagException) {
-                        e.printStackTrace()
+                        android.util.Log.e("Retro", "error", e)
                     } catch (e: ReadOnlyFileException) {
-                        e.printStackTrace()
+                        android.util.Log.e("Retro", "error", e)
                     } catch (e: InvalidAudioFrameException) {
-                        e.printStackTrace()
+                        android.util.Log.e("Retro", "error", e)
                     }
                 }
                 if (wroteArtwork) {

@@ -108,7 +108,7 @@ object MusicUtil : KoinComponent {
             try {
                 File(albumArtDir, ".nomedia").createNewFile()
             } catch (e: IOException) {
-                e.printStackTrace()
+                android.util.Log.e("Retro", "error", e)
             }
         }
         return albumArtDir
@@ -148,7 +148,7 @@ object MusicUtil : KoinComponent {
         try {
             lyrics = AudioFileIO.read(file).tagOrCreateDefault.getFirst(FieldKey.LYRICS)
         } catch (e: Exception) {
-            e.printStackTrace()
+            android.util.Log.e("Retro", "error", e)
         }
         if (lyrics == null || lyrics.trim().isEmpty() || AbsSynchronizedLyrics
                 .isSynchronized(lyrics)
@@ -195,7 +195,7 @@ object MusicUtil : KoinComponent {
                                 lyrics = newLyrics
                             }
                         } catch (e: Exception) {
-                            e.printStackTrace()
+                            android.util.Log.e("Retro", "error", e)
                         }
                     }
                 }

@@ -84,7 +84,7 @@ public final class FileUtil {
     try {
       return file.getCanonicalPath();
     } catch (IOException e) {
-      e.printStackTrace();
+      android.util.Log.e("Retro", "error", e);
       return file.getAbsolutePath();
     }
   }
@@ -274,7 +274,7 @@ public final class FileUtil {
     try {
       return file.getCanonicalFile();
     } catch (IOException e) {
-      e.printStackTrace();
+      android.util.Log.e("Retro", "error", e);
       return file.getAbsoluteFile();
     }
   }
@@ -331,20 +331,20 @@ public final class FileUtil {
                 item.file = new File(path);
                 storageItems.add(item);
               } catch (Exception e) {
-                e.printStackTrace();
+                android.util.Log.e("Retro", "error", e);
               }
             }
           }
         }
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      android.util.Log.e("Retro", "error", e);
     } finally {
       if (bufferedReader != null) {
         try {
           bufferedReader.close();
         } catch (Exception e) {
-          e.printStackTrace();
+          android.util.Log.e("Retro", "error", e);
         }
       }
     }

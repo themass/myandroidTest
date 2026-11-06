@@ -40,13 +40,13 @@ object LyricUtil {
             writer.write(lrcContext)
             file
         } catch (e: IOException) {
-            e.printStackTrace()
+            android.util.Log.e("Retro", "error", e)
             null
         } finally {
             try {
                 writer?.close()
             } catch (e: IOException) {
-                e.printStackTrace()
+                android.util.Log.e("Retro", "error", e)
             }
         }
     }
@@ -70,12 +70,12 @@ object LyricUtil {
             writer = FileWriter(location)
             writer.write(lrcContext)
         } catch (e: IOException) {
-            e.printStackTrace()
+            android.util.Log.e("Retro", "error", e)
         } finally {
             try {
                 writer?.close()
             } catch (e: IOException) {
-                e.printStackTrace()
+                android.util.Log.e("Retro", "error", e)
             }
         }
     }

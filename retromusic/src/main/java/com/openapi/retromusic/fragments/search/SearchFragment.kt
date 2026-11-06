@@ -220,7 +220,7 @@ class SearchFragment : AbsMainActivityFragment(R.layout.fragment_search),
         try {
             speechInputLauncher.launch(intent)
         } catch (e: ActivityNotFoundException) {
-            e.printStackTrace()
+            android.util.Log.e("Retro", "error", e)
             showToast(getString(R.string.speech_not_supported))
         }
     }

@@ -144,7 +144,7 @@ class WhatsNewFragment : BottomSheetDialogFragment() {
                 val currentVersion = PackageInfoCompat.getLongVersionCode(pInfo)
                 lastVersion = currentVersion
             } catch (e: PackageManager.NameNotFoundException) {
-                e.printStackTrace()
+                android.util.Log.e("Retro", "error", e)
             }
         }
 

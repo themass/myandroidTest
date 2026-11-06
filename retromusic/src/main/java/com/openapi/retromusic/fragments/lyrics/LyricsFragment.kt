@@ -201,7 +201,7 @@ class LyricsFragment : AbsMainActivityFragment(R.layout.fragment_lyrics),
         val content = lyrics ?: try {
             AudioFileIO.read(file).tagOrCreateDefault.getFirst(FieldKey.LYRICS)
         } catch (e: Exception) {
-            e.printStackTrace()
+            android.util.Log.e("Retro", "error", e)
             ""
         }
 
@@ -309,7 +309,7 @@ class LyricsFragment : AbsMainActivityFragment(R.layout.fragment_lyrics),
         val lyrics = try {
             AudioFileIO.read(file).tagOrCreateDefault.getFirst(FieldKey.LYRICS)
         } catch (e: Exception) {
-            e.printStackTrace()
+            android.util.Log.e("Retro", "error", e)
             ""
         }
         binding.normalLyrics.isVisible = !lyrics.isNullOrEmpty()

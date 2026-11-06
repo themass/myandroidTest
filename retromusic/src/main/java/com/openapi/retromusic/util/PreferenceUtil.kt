@@ -160,7 +160,7 @@ object PreferenceUtil {
             return try {
                 Gson().fromJson(data, collectionType)
             } catch (e: JsonSyntaxException) {
-                e.printStackTrace()
+                android.util.Log.e("Retro", "error", e)
                 return defaultCategories
             }
         }

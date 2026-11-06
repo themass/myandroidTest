@@ -68,7 +68,7 @@ class CrossFadePlayer(context: Context) : AudioManagerPlayback(context),
             }
             true
         } catch (e: IllegalStateException) {
-            e.printStackTrace()
+            android.util.Log.e("Retro", "error", e)
             false
         }
     }
@@ -113,7 +113,7 @@ class CrossFadePlayer(context: Context) : AudioManagerPlayback(context),
             getCurrentPlayer()?.seekTo(whereto)
             whereto
         } catch (e: java.lang.IllegalStateException) {
-            e.printStackTrace()
+            android.util.Log.e("Retro", "error", e)
             -1
         }
     }
@@ -124,7 +124,7 @@ class CrossFadePlayer(context: Context) : AudioManagerPlayback(context),
             getCurrentPlayer()?.setVolume(vol, vol)
             true
         } catch (e: IllegalStateException) {
-            e.printStackTrace()
+            android.util.Log.e("Retro", "error", e)
             false
         }
     }
@@ -169,10 +169,10 @@ class CrossFadePlayer(context: Context) : AudioManagerPlayback(context),
             getCurrentPlayer()?.audioSessionId = sessionId
             true
         } catch (e: IllegalArgumentException) {
-            e.printStackTrace()
+            android.util.Log.e("Retro", "error", e)
             false
         } catch (e: IllegalStateException) {
-            e.printStackTrace()
+            android.util.Log.e("Retro", "error", e)
             false
         }
     }
@@ -191,7 +191,7 @@ class CrossFadePlayer(context: Context) : AudioManagerPlayback(context),
         } else try {
             getCurrentPlayer()?.duration!!
         } catch (e: IllegalStateException) {
-            e.printStackTrace()
+            android.util.Log.e("Retro", "error", e)
             -1
         }
     }
@@ -206,7 +206,7 @@ class CrossFadePlayer(context: Context) : AudioManagerPlayback(context),
         } else try {
             getCurrentPlayer()?.currentPosition!!
         } catch (e: IllegalStateException) {
-            e.printStackTrace()
+            android.util.Log.e("Retro", "error", e)
             -1
         }
     }
@@ -392,7 +392,7 @@ class CrossFadePlayer(context: Context) : AudioManagerPlayback(context),
             player.prepare()
         } catch (e: Exception) {
             completion(false)
-            e.printStackTrace()
+            android.util.Log.e("Retro", "error", e)
         }
         player.setOnCompletionListener(this)
         player.setOnErrorListener(this)

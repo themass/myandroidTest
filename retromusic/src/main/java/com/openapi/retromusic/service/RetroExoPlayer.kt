@@ -75,7 +75,7 @@ class RetroExoPlayer(context: Context) : AudioManagerPlayback(context), Player.L
                 player.prepare()
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            android.util.Log.e("Retro", "error", e)
             completion(false)
         }
     }
@@ -96,7 +96,7 @@ class RetroExoPlayer(context: Context) : AudioManagerPlayback(context), Player.L
             player.play()
             true
         } catch (e: IllegalStateException) {
-            e.printStackTrace()
+            android.util.Log.e("Retro", "error", e)
             false
         }
     }

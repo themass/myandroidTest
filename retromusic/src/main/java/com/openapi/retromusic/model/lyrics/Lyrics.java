@@ -39,7 +39,7 @@ public class Lyrics {
           return true;
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        android.util.Log.e("Retro", "error", e);
       }
     }
     return false;
@@ -53,7 +53,7 @@ public class Lyrics {
           return lyrics.parse(false);
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        android.util.Log.e("Retro", "error", e);
       }
     }
     return new Lyrics().setData(song, data).parse(false);

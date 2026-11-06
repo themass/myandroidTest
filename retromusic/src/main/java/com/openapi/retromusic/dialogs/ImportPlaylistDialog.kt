@@ -33,7 +33,7 @@ class ImportPlaylistDialog : DialogFragment() {
                 try {
                     libraryViewModel.importPlaylists()
                 } catch (e: Exception) {
-                    e.printStackTrace()
+                    android.util.Log.e("Retro", "error", e)
                 }
             }
             .create()

@@ -24,7 +24,7 @@ public class DrawableGradient extends GradientDrawable {
       setGradientType(GradientDrawable.LINEAR_GRADIENT);
       setCornerRadius(0);
     } catch (Exception e) {
-      e.printStackTrace();
+      android.util.Log.e("Retro", "error", e);
     }
   }
 

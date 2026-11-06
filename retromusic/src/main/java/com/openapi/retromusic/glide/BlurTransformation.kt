@@ -112,7 +112,7 @@ class BlurTransformation private constructor(builder: Builder) : BitmapTransform
             return out
         } catch (e: RSRuntimeException) {
             // on some devices RenderScript.create() throws: android.support.v8.renderscript.RSRuntimeException: Error loading libRSSupport library
-            if (BuildConfig.DEBUG) e.printStackTrace()
+            if (BuildConfig.DEBUG) android.util.Log.e("Retro", "error", e)
         }
 
         return StackBlur.blur(out, blurRadius)

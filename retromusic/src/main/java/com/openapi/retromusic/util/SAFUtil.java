@@ -174,7 +174,7 @@ public class SAFUtil {
       try {
         writeFile(audio);
       } catch (CannotWriteException e) {
-        e.printStackTrace();
+        android.util.Log.e("Retro", "error", e);
       }
     }
   }
@@ -249,7 +249,7 @@ public class SAFUtil {
       } catch (NullPointerException e) {
         Log.e("MusicUtils", "Failed to find file " + path);
       } catch (Exception e) {
-        e.printStackTrace();
+        android.util.Log.e("Retro", "error", e);
       }
     }
   }

@@ -208,20 +208,20 @@ class UserInfoFragment : Fragment() {
             .diskCacheStrategy(DiskCacheStrategy.NONE)
             .listener(object : RequestListener<Bitmap> {
                 override fun onResourceReady(
-                    resource: Bitmap?,
-                    model: Any?,
+                    resource: Bitmap,
+                    model: Any,
                     target: Target<Bitmap>?,
-                    dataSource: DataSource?,
+                    dataSource: DataSource,
                     isFirstResource: Boolean,
                 ): Boolean {
-                    resource?.let { saveImage(it, USER_BANNER) }
+                    saveImage(resource, USER_BANNER)
                     return false
                 }
 
                 override fun onLoadFailed(
                     e: GlideException?,
                     model: Any?,
-                    target: Target<Bitmap>?,
+                    target: Target<Bitmap>,
                     isFirstResource: Boolean,
                 ): Boolean {
                     return false
@@ -254,20 +254,20 @@ class UserInfoFragment : Fragment() {
             .diskCacheStrategy(DiskCacheStrategy.NONE)
             .listener(object : RequestListener<Bitmap> {
                 override fun onResourceReady(
-                    resource: Bitmap?,
-                    model: Any?,
+                    resource: Bitmap,
+                    model: Any,
                     target: Target<Bitmap>?,
-                    dataSource: DataSource?,
+                    dataSource: DataSource,
                     isFirstResource: Boolean,
                 ): Boolean {
-                    resource?.let { saveImage(it, USER_PROFILE) }
+                    saveImage(resource, USER_PROFILE)
                     return false
                 }
 
                 override fun onLoadFailed(
                     e: GlideException?,
                     model: Any?,
-                    target: Target<Bitmap>?,
+                    target: Target<Bitmap>,
                     isFirstResource: Boolean,
                 ): Boolean {
                     return false

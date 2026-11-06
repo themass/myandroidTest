@@ -92,7 +92,7 @@ class AboutFragment : Fragment(R.layout.fragment_about), View.OnClickListener {
                 requireActivity().packageManager.getPackageInfo(requireActivity().packageName, 0)
             packageInfo.versionName ?: "0.0.0"
         } catch (e: PackageManager.NameNotFoundException) {
-            e.printStackTrace()
+            android.util.Log.e("Retro", "error", e)
             "0.0.0"
         }
     }

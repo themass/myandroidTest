@@ -103,7 +103,7 @@ public class BreadCrumbLayout extends HorizontalScrollView implements View.OnCli
       mCrumbs.clear();
       mChildFrame.removeAllViews();
     } catch (IllegalStateException e) {
-      e.printStackTrace();
+      android.util.Log.e("Retro", "error", e);
     }
   }
 

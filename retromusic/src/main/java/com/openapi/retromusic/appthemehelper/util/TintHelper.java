@@ -80,7 +80,7 @@ public final class TintHelper {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            android.util.Log.e("Retro", "error", e);
         }
     }
 

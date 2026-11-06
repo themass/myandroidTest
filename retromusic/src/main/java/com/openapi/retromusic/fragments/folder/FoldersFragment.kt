@@ -601,7 +601,7 @@ class FoldersFragment : AbsMainActivityFragment(R.layout.fragment_folder),
             Collections.sort(fileList, fileComparator)
             FileUtil.matchFilesWithMediaStore(context, fileList)
         } catch (e: Exception) {
-            e.printStackTrace()
+            android.util.Log.e("Retro", "error", e)
             emptyList()
         }
         withContext(Dispatchers.Main) {
@@ -694,7 +694,7 @@ class FoldersFragment : AbsMainActivityFragment(R.layout.fragment_folder),
             return try {
                 file.canonicalFile
             } catch (e: IOException) {
-                e.printStackTrace()
+                android.util.Log.e("Retro", "error", e)
                 file
             }
         }
