@@ -66,11 +66,16 @@ public class MyApplication extends MultiDexApplication {
         DBManager.getInstance().init(this);
         com.openapi.retromusic.App.init(this);
         ChatDependencies.INSTANCE.install(new ChatRepositoryImpl(this));
+        ChatDependencies.INSTANCE.installLoginGate(new com.openapi.ks.myapp.data.chat.LegacyLoginGate());
+        com.openapi.home.HomeDependencies.INSTANCE.install(new com.openapi.ks.myapp.data.home.LegacyHomeEntries(this));
+        // 以前由旧首页页面注册，页面不在前台就收不到；现在随进程注册一次
+        com.openapi.core.util.EventBusUtil.getEventBus().register(new com.openapi.ks.myapp.data.config.ConfigActionJump());
+        AppEventHandler.INSTANCE.register();
         com.openapi.roles.data.RolesDependencies.INSTANCE.install(new com.openapi.ks.myapp.data.roles.RolesRepositoryImpl(this));
         BaseService speechService = new BaseService();
         speechService.setup(this);
         ChatDependencies.INSTANCE.installSpeechToText(new BackendSpeechToText(speechService));
-        com.openapi.core.db.DBManager.getInstance().init(this);
+        com.openapi.core.util.FavoriteUtil.install(new com.openapi.ks.myapp.data.db.AppFavoriteStore());
         Constants.initUserAgent(Constants.AGENT_APP_MYPOOL);
         isTemp = false;
         //欺骗应用市场

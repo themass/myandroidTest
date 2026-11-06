@@ -4,7 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 
-import com.openapi.chat.ChatActivity;
+import com.openapi.home.HomeActivity;
 import com.openapi.core.CommonConstants;
 import com.openapi.core.event.ConfigActionEvent;
 import com.openapi.core.util.LogUtil;
@@ -48,8 +48,8 @@ public class ConfigActionJump {
         configMap.put(Constants.VIDEO_URL, VideoChannleActivity.class);
         configMap.put(Constants.VIDEOLIST_URL, VideoListShowActivity.class);
         configMap.put(Constants.TELEPLAY_URL, TeleplayActivity.class);
-        configMap.put(Constants.LOCAL_CHAT, ChatActivity.class);
-        configMap.put(Constants.LOCAL_CHAT2, ChatActivity.class);
+        configMap.put(Constants.LOCAL_CHAT, HomeActivity.class);
+        configMap.put(Constants.LOCAL_CHAT2, HomeActivity.class);
 
 //        configMap.put(Constants.VIDEO_CHANNEL_USER_URL, VideoChannleUserActivity.class);
     }

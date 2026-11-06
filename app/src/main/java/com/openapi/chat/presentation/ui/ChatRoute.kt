@@ -1,5 +1,6 @@
 package com.openapi.chat.presentation.ui
 
+import com.openapi.ks.chat.R
 import android.Manifest
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalActivity
@@ -22,8 +23,6 @@ import com.openapi.core.media.AudioPlayer
 import com.openapi.core.permission.PermissionRequester
 import com.openapi.core.permission.PermissionStates
 import com.openapi.core.permission.Permissions
-import com.openapi.ks.myapp.data.UserLoginUtil
-import com.openapi.ks.myapp.ui.user.LoginActivity
 
 /**
  * 对话界面的完整装配：ViewModel + 语音播放 + 麦克风权限。
@@ -34,6 +33,7 @@ import com.openapi.ks.myapp.ui.user.LoginActivity
 @Composable
 fun ChatRoute(
     modifier: Modifier = Modifier,
+    onMenuClick: (() -> Unit)? = null,
     viewModel: ChatViewModel = viewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -72,7 +72,7 @@ fun ChatRoute(
                     (activity as? ComponentActivity)?.let { host ->
                         PermissionRequester.with(host)
                             .permissions(*Permissions.RECORD_AUDIO)
-                            .rationale("发送语音消息需要使用麦克风")
+                            .rationale(context.getString(R.string.chat_voice_rationale))
                             .request(object : PermissionRequester.Callback() {
                                 override fun onGranted() = Unit
                             })
@@ -83,7 +83,7 @@ fun ChatRoute(
             onVoiceRecordCancel = viewModel::onVoiceRecordCancel,
             onSpeakMessage = viewModel::onSpeakMessage,
             onCallClick = {
-                android.widget.Toast.makeText(context, "语音通话即将上线", android.widget.Toast.LENGTH_SHORT).show()
+                android.widget.Toast.makeText(context, context.getString(R.string.chat_call_soon), android.widget.Toast.LENGTH_SHORT).show()
             },
             onPickImage = {
                 if (requireLogin(context)) {
@@ -99,15 +99,12 @@ fun ChatRoute(
             onSessionSelected = viewModel::onSessionSelected,
             onCreateSession = viewModel::onCreateSession,
             onDeleteSession = viewModel::onDeleteSession,
+            onMenuClick = onMenuClick,
             modifier = modifier.safeDrawingPadding(),
         )
     }
 }
 
-/** 附件上传需要登录（与旧版一致）：未登录时提示并跳到登录页，返回 false。 */
-private fun requireLogin(context: android.content.Context): Boolean {
-    if (UserLoginUtil.getUserCache() != null) return true
-    android.widget.Toast.makeText(context, com.openapi.ks.chat.R.string.need_login, android.widget.Toast.LENGTH_SHORT).show()
-    context.startActivity(android.content.Intent(context, LoginActivity::class.java))
-    return false
-}
+/** 附件上传需要登录（与旧版一致）：未登录时由 [com.openapi.chat.domain.auth.LoginGate] 提示并引导登录，返回 false。 */
+private fun requireLogin(context: android.content.Context): Boolean =
+    com.openapi.chat.ChatDependencies.loginGate().ensureLoggedIn(context)

@@ -149,15 +149,12 @@ public class BasePermissionActivity extends LogActivity
 //        }
     }
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+    protected void onResume() {
+        super.onResume();
         initVosk();
-        if (resultCode == RESULT_OK) {
-            switch (requestCode) {
-                case 1001: // AppSettingsDialog.DEFAULT_SETTINGS_REQ_CODE
-                    fromSetting();
-                    break;
-            }
+        // 从系统设置页返回（权限可能已被用户改动）
+        if (PermissionHelper.consumeSettingsReturn()) {
+            fromSetting();
         }
     }
     //----------------------------------------------------------------------

@@ -1,5 +1,7 @@
 package com.openapi.roles.presentation
 
+import androidx.compose.ui.res.stringResource
+import com.openapi.ks.chat.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -73,7 +75,7 @@ fun RoleCatalogPane(
         OutlinedTextField(
             value = state.query,
             onValueChange = viewModel::onQueryChange,
-            placeholder = { Text("搜索角色，比如 翻译、前端、小红书") },
+            placeholder = { Text(stringResource(R.string.roles_search_hint)) },
             leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
             singleLine = true,
             modifier = Modifier
@@ -89,28 +91,28 @@ fun RoleCatalogPane(
                 FilterChip(
                     selected = state.filter == RoleFilter.Featured,
                     onClick = { viewModel.onFilterChange(RoleFilter.Featured) },
-                    label = { Text("精选") },
+                    label = { Text(stringResource(R.string.roles_filter_featured)) },
                 )
             }
             item {
                 FilterChip(
                     selected = state.filter == RoleFilter.All,
                     onClick = { viewModel.onFilterChange(RoleFilter.All) },
-                    label = { Text("全部") },
+                    label = { Text(stringResource(R.string.ui_all)) },
                 )
             }
             item {
                 FilterChip(
                     selected = state.filter == RoleFilter.Favorites,
                     onClick = { viewModel.onFilterChange(RoleFilter.Favorites) },
-                    label = { Text("收藏") },
+                    label = { Text(stringResource(R.string.roles_filter_favorites)) },
                 )
             }
             item {
                 FilterChip(
                     selected = state.filter == RoleFilter.Recent,
                     onClick = { viewModel.onFilterChange(RoleFilter.Recent) },
-                    label = { Text("最近") },
+                    label = { Text(stringResource(R.string.roles_filter_recent)) },
                 )
             }
             items(state.divisions, key = { it.id }) { division ->
@@ -131,8 +133,8 @@ fun RoleCatalogPane(
                     Modifier.align(Alignment.Center),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    Text("角色加载失败", color = AppColors.TextSecondary, fontSize = AppTypography.body)
-                    TextButton(onClick = viewModel::retry) { Text("重试") }
+                    Text(stringResource(R.string.roles_load_failed), color = AppColors.TextSecondary, fontSize = AppTypography.body)
+                    TextButton(onClick = viewModel::retry) { Text(stringResource(R.string.ui_retry)) }
                 }
 
                 state.items.isEmpty() -> Text(
@@ -168,10 +170,11 @@ fun RoleCatalogPane(
     }
 }
 
+@Composable
 private fun emptyText(state: RolePickerState): String = when (state.filter) {
-    RoleFilter.Favorites -> "还没有收藏的角色，点击角色右侧的星标即可收藏"
-    RoleFilter.Recent -> "最近还没有使用过角色"
-    else -> "没有找到相关角色"
+    RoleFilter.Favorites -> stringResource(R.string.roles_empty_favorites)
+    RoleFilter.Recent -> stringResource(R.string.roles_empty_recent)
+    else -> stringResource(R.string.roles_empty_search)
 }
 
 @Composable
@@ -211,7 +214,7 @@ private fun RoleRow(
             }
         }
         if (selected) {
-            Icon(Icons.Filled.Check, contentDescription = "当前角色", tint = AppColors.Primary)
+            Icon(Icons.Filled.Check, contentDescription = stringResource(R.string.ui_current_role), tint = AppColors.Primary)
         }
         Text(
             text = if (favorite) "★" else "☆",

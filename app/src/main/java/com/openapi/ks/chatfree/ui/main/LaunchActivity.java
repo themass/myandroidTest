@@ -50,6 +50,7 @@ public class LaunchActivity extends LogActivity {
     LinearLayout llBanner;
 //    @BindView(R.id.fireView)
 //    FireworkShow fireworkShow;
+    private MainLaunchBinding launchBinding;
     private int max = Constants.STARTUP_SHOW_TIME_6000 + 1000;
     private int now = 0;
     boolean perm = true;
@@ -75,7 +76,8 @@ public class LaunchActivity extends LogActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main_launch);
+        launchBinding = MainLaunchBinding.inflate(getLayoutInflater());
+        setContentView(launchBinding.getRoot());
         bindButterViews();
         MobAgent.init(this);
         LoginTask.start(this);
@@ -97,7 +99,7 @@ public class LaunchActivity extends LogActivity {
     }
 
     private void bindButterViews() {
-        MainLaunchBinding b = MainLaunchBinding.bind(findViewById(android.R.id.content));
+        MainLaunchBinding b = launchBinding;
         ivAds = b.rlSpread;
         skipView = b.skipView;
         tvJishi = b.tvShu;
@@ -121,8 +123,7 @@ public class LaunchActivity extends LogActivity {
 
     private void launch() {
 //        fireworkShow.stopFireworkShow();
-        Intent intent = new Intent(this, com.openapi.chat.ChatActivity.class);
-//        Intent intent = new Intent(this, MainFragmentViewPage.class);
+        Intent intent = new Intent(this, com.openapi.home.HomeActivity.class);
         startActivity(intent);
         finish();
 

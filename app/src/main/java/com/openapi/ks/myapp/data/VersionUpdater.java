@@ -39,7 +39,7 @@ import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.config.StateUseEvent;
 import com.openapi.ks.myapp.data.config.VipDescEvent;
 import com.openapi.ks.chat.R;
-import com.openapi.ks.chatfree.ui.main.MainFragmentViewPage;
+import com.openapi.home.HomeActivity;
 
 import java.io.File;
 @SuppressWarnings({"deprecation","unchecked"})
@@ -284,7 +284,7 @@ public class VersionUpdater {
                 HttpUtils.download(context, url, apkFile, this);
                 installFile();
             } catch (Exception e) {
-                e.printStackTrace();
+                LogUtil.e(e);
                 showNotification(context.getString(R.string.about_download_title), context.getString(R.string.about_download_error));
                 handler.post(new Runnable() {
                     @Override
@@ -307,7 +307,7 @@ public class VersionUpdater {
         private void showNotification(String title, String message) {
             // 创建一个NotificationManager的引用
 
-            Intent notificationIntent = new Intent(context, MainFragmentViewPage.class); //点击该通知后要跳转的Activity
+            Intent notificationIntent = new Intent(context, HomeActivity.class); //点击该通知后要跳转的Activity
             Bundle bundle = new Bundle();
             notificationIntent.putExtras(bundle);
             notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);

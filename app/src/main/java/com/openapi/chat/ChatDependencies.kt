@@ -1,5 +1,6 @@
 package com.openapi.chat
 
+import com.openapi.chat.domain.auth.LoginGate
 import com.openapi.chat.domain.repository.ChatRepository
 import com.openapi.chat.domain.speech.SpeechToText
 
@@ -21,8 +22,19 @@ object ChatDependencies {
     @Volatile
     private var speechToText: SpeechToText? = null
 
+    @Volatile
+    private var loginGate: LoginGate? = null
+
     fun install(repository: ChatRepository) {
         this.repository = repository
+    }
+
+    fun installLoginGate(loginGate: LoginGate) {
+        this.loginGate = loginGate
+    }
+
+    fun loginGate(): LoginGate = checkNotNull(loginGate) {
+        "LoginGate 未注入：请在 Application.onCreate 中调用 ChatDependencies.installLoginGate(...)"
     }
 
     fun installSpeechToText(speechToText: SpeechToText) {

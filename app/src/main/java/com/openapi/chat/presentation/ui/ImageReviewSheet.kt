@@ -1,5 +1,7 @@
 package com.openapi.chat.presentation.ui
 
+import androidx.compose.ui.res.stringResource
+import com.openapi.ks.chat.R
 import android.widget.ImageView
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -65,7 +67,7 @@ fun ImageReviewSheet(
             verticalArrangement = Arrangement.spacedBy(AppSpacing.md),
         ) {
             Text(
-                "发送前确认",
+                stringResource(R.string.chat_review_title),
                 fontSize = AppTypography.sectionTitle,
                 fontWeight = AppTypography.titleWeight,
                 color = AppColors.TextPrimary,
@@ -78,16 +80,16 @@ fun ImageReviewSheet(
                     FilterChip(
                         selected = useCrop,
                         onClick = { useCrop = true },
-                        label = { Text("题目区域（推荐）") },
+                        label = { Text(stringResource(R.string.chat_review_crop)) },
                     )
                     FilterChip(
                         selected = !useCrop,
                         onClick = { useCrop = false },
-                        label = { Text("完整原图") },
+                        label = { Text(stringResource(R.string.chat_review_full)) },
                     )
                 }
                 Text(
-                    "已自动识别题目区域${review.detector?.let { "（$it）" }.orEmpty()}",
+                    stringResource(R.string.chat_review_auto_region, review.detector?.let { "（$it）" }.orEmpty()),
                     fontSize = AppTypography.caption,
                     color = AppColors.TextSecondary,
                 )
@@ -100,9 +102,9 @@ fun ImageReviewSheet(
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                TextButton(onClick = onRePick) { Text("重新选择") }
+                TextButton(onClick = onRePick) { Text(stringResource(R.string.ui_reselect)) }
                 Spacer(Modifier.width(AppSpacing.sm))
-                Button(onClick = { onSend(useCrop && review.cropped != null) }) { Text("发送") }
+                Button(onClick = { onSend(useCrop && review.cropped != null) }) { Text(stringResource(R.string.ui_send)) }
             }
         }
     }
@@ -125,7 +127,7 @@ private fun QualityNotes(issues: List<QualityIssue>) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = AppColors.Success)
             Spacer(Modifier.width(AppSpacing.sm))
-            Text("清晰度与光线正常", fontSize = AppTypography.body, color = AppColors.TextPrimary)
+            Text(stringResource(R.string.chat_review_ok), fontSize = AppTypography.body, color = AppColors.TextPrimary)
         }
         return
     }

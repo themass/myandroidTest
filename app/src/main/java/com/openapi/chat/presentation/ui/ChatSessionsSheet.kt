@@ -1,5 +1,7 @@
 package com.openapi.chat.presentation.ui
 
+import androidx.compose.ui.res.stringResource
+import com.openapi.ks.chat.R
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -67,14 +69,14 @@ fun ChatSessionsSheet(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    "对话",
+                    stringResource(R.string.chat_sessions_title),
                     modifier = Modifier.weight(1f),
                     fontSize = AppTypography.sectionTitle,
                     fontWeight = AppTypography.titleWeight,
                     color = AppColors.TextPrimary,
                 )
                 TextButton(onClick = { creating = true }) {
-                    Text("新建对话", color = AppColors.Primary)
+                    Text(stringResource(R.string.ui_new_session), color = AppColors.Primary)
                 }
             }
 
@@ -119,7 +121,7 @@ private fun SessionRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text = session.name.ifBlank { "未命名对话" },
+            text = session.name.ifBlank { stringResource(R.string.chat_session_untitled) },
             modifier = Modifier.weight(1f),
             fontSize = AppTypography.bodyLarge,
             fontWeight = if (current) AppTypography.emphasisWeight else FontWeight.Normal,
@@ -128,12 +130,12 @@ private fun SessionRow(
             overflow = TextOverflow.Ellipsis,
         )
         if (current) {
-            Icon(Icons.Filled.Check, contentDescription = "当前对话", tint = AppColors.Primary)
+            Icon(Icons.Filled.Check, contentDescription = stringResource(R.string.ui_current_session), tint = AppColors.Primary)
         }
         if (canDelete && !session.isDefault) {
             Spacer(Modifier.width(AppSpacing.sm))
             TextButton(onClick = onDelete) {
-                Text("删除", color = AppColors.Error)
+                Text(stringResource(R.string.ui_delete), color = AppColors.Error)
             }
         }
     }
@@ -147,22 +149,22 @@ private fun NewSessionDialog(
     var name by remember { mutableStateOf("") }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("新建对话") },
+        title = { Text(stringResource(R.string.ui_new_session)) },
         text = {
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
                 singleLine = true,
-                placeholder = { Text("给这个对话起个名字") },
+                placeholder = { Text(stringResource(R.string.chat_session_name_hint)) },
             )
         },
         confirmButton = {
             TextButton(onClick = { onConfirm(name) }, enabled = name.isNotBlank()) {
-                Text("创建")
+                Text(stringResource(R.string.ui_create))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("取消") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.ui_cancel)) }
         },
     )
 }

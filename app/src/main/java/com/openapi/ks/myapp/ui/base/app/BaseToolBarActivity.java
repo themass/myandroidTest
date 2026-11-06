@@ -16,6 +16,7 @@ import android.widget.TextView;
 
 import com.openapi.core.util.LogUtil;
 import com.openapi.ks.chat.R;
+import com.openapi.ks.chat.databinding.CommonToolbarViewBinding;
 
 import java.lang.reflect.Field;
 
@@ -59,8 +60,10 @@ public abstract class BaseToolBarActivity extends BaseToolbarMenuActivity {
 
     /** 绑定本层基类自己布局里的控件；子层基类重写时先调用 super。 */
     protected void bindBaseViews() {
-        toolbar = findViewById(R.id.toolbar);
-        tvTitle = findViewById(R.id.tv_title);
+        // common_toolbar_view 的根就是 Toolbar：先找到 include 进来的根，再用它的 Binding 取标题
+        CommonToolbarViewBinding b = CommonToolbarViewBinding.bind(findViewById(R.id.toolbar));
+        toolbar = b.toolbar;
+        tvTitle = b.tvTitle;
         flBody = findViewById(R.id.fl_body);
     }
 

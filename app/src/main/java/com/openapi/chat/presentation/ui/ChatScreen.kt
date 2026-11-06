@@ -1,5 +1,7 @@
 package com.openapi.chat.presentation.ui
 
+import androidx.compose.ui.res.stringResource
+import com.openapi.ks.chat.R
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import android.widget.ImageView
 import android.widget.Toast
@@ -118,6 +120,8 @@ fun ChatScreen(
     onSessionSelected: (Long) -> Unit = {},
     onCreateSession: (String) -> Unit = {},
     onDeleteSession: (Long) -> Unit = {},
+    /** 非空时头部显示菜单按钮，由主页接到侧边抽屉。 */
+    onMenuClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
@@ -140,6 +144,7 @@ fun ChatScreen(
             onClick = { onRolePickerVisibleChange(true) },
             onCallClick = onCallClick,
             onSessionsClick = { onSessionsVisibleChange(true) },
+            onMenuClick = onMenuClick,
         )
 
         val identity = state.assistantIdentity()
@@ -234,13 +239,13 @@ internal fun CharacterEditDialog(
 
     androidx.compose.material3.AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (initial == null) "新建角色" else "编辑角色") },
+        title = { Text(if (initial == null) stringResource(R.string.ui_new_role) else stringResource(R.string.ui_edit_role)) },
         text = {
             Column {
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
-                    label = { Text("角色名称") },
+                    label = { Text(stringResource(R.string.chat_role_name)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -248,7 +253,7 @@ internal fun CharacterEditDialog(
                 OutlinedTextField(
                     value = content,
                     onValueChange = { content = it },
-                    label = { Text("人设描述（会作为对话的提示词）") },
+                    label = { Text(stringResource(R.string.chat_role_persona)) },
                     minLines = 3,
                     maxLines = 6,
                     modifier = Modifier.fillMaxWidth(),
@@ -259,10 +264,10 @@ internal fun CharacterEditDialog(
             TextButton(
                 onClick = { onConfirm(title.trim(), content.trim()) },
                 enabled = title.isNotBlank() && content.isNotBlank(),
-            ) { Text("保存") }
+            ) { Text(stringResource(R.string.ui_save)) }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("取消") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.ui_cancel)) }
         },
     )
 }
@@ -289,13 +294,13 @@ private fun EmptyChat(identity: AssistantIdentity, onSuggestion: (String) -> Uni
         )
         Spacer(Modifier.height(AppSpacing.xs))
         Text(
-            "有什么想聊的，直接说就行",
+            stringResource(R.string.chat_empty_hint),
             fontSize = AppTypography.body,
             color = AppColors.TextSecondary,
             textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(AppSpacing.lg))
-        listOf("先介绍一下你自己", "你能帮我做些什么？", "给我一个上手的例子").forEach { text ->
+        listOf(stringResource(R.string.chat_suggest_intro), stringResource(R.string.chat_suggest_help), stringResource(R.string.chat_suggest_example)).forEach { text ->
             SuggestionChip(
                 onClick = { onSuggestion(text) },
                 label = { Text(text) },
@@ -355,7 +360,7 @@ private fun MessageBubble(
                     IconButton(onClick = onSpeakClick, modifier = Modifier.size(28.dp)) {
                         Icon(
                             Icons.AutoMirrored.Filled.VolumeUp,
-                            contentDescription = if (speaking) "合成中" else "朗读",
+                            contentDescription = if (speaking) stringResource(R.string.chat_speaking_desc) else stringResource(R.string.chat_read_aloud_desc),
                             tint = if (speaking) AppColors.Primary else IconTint,
                         )
                     }
@@ -373,7 +378,7 @@ private fun PendingRow() {
             strokeWidth = 2.dp,
         )
         Spacer(Modifier.width(8.dp))
-        Text("正在思考…", fontSize = AppTypography.body, color = IconTint)
+        Text(stringResource(R.string.chat_thinking), fontSize = AppTypography.body, color = IconTint)
     }
 }
 
@@ -383,7 +388,7 @@ private fun VoiceRow(text: String, playing: Boolean, onClick: () -> Unit) {
         IconButton(onClick = onClick, modifier = Modifier.size(28.dp)) {
             Icon(
                 Icons.AutoMirrored.Filled.Send,
-                contentDescription = if (playing) "停止播放" else "播放语音",
+                contentDescription = if (playing) stringResource(R.string.chat_stop_playing_desc) else stringResource(R.string.chat_play_voice_desc),
                 tint = AppColors.Primary,
             )
         }
@@ -430,7 +435,7 @@ private fun ChatInputBar(
         if (recording) {
             Surface(color = AppColors.Warning.copy(alpha = 0.12f)) {
                 Text(
-                    "正在录音…松开发送，上滑取消",
+                    stringResource(R.string.chat_recording_hint),
                     modifier = Modifier.fillMaxWidth().padding(8.dp),
                     textAlign = TextAlign.Center,
                     fontSize = 13.sp,
@@ -441,7 +446,7 @@ private fun ChatInputBar(
             // ASR 是远端服务，几秒内不一定回来；没有这行提示用户会以为按了没反应。
             Surface(color = AppColors.Primary.copy(alpha = 0.08f)) {
                 Text(
-                    "正在识别语音…",
+                    stringResource(R.string.chat_transcribing),
                     modifier = Modifier.fillMaxWidth().padding(8.dp),
                     textAlign = TextAlign.Center,
                     fontSize = 13.sp,
@@ -475,7 +480,7 @@ private fun ChatInputBar(
                 ) {
                     Icon(
                         Icons.Filled.Mic,
-                        contentDescription = "按住说话",
+                        contentDescription = stringResource(R.string.chat_hold_to_talk_desc),
                         tint = if (recording) AppColors.Error else IconTint,
                     )
                 }
@@ -484,7 +489,7 @@ private fun ChatInputBar(
                     value = text,
                     onValueChange = onTextChange,
                     modifier = Modifier.weight(1f).padding(horizontal = 4.dp),
-                    placeholder = { Text("说点什么…") },
+                    placeholder = { Text(stringResource(R.string.chat_input_hint)) },
                     maxLines = 4,
                     shape = RoundedCornerShape(20.dp),
                     // 表情入口收进输入框尾部：底栏从六个控件减到四个（语音、输入、更多、发送）
@@ -492,7 +497,7 @@ private fun ChatInputBar(
                         IconButton(onClick = { showEmoji = !showEmoji; showAttach = false }) {
                             Icon(
                                 Icons.Filled.EmojiEmotions,
-                                contentDescription = "表情",
+                                contentDescription = stringResource(R.string.chat_emoji_desc),
                                 tint = if (showEmoji) MaterialTheme.colorScheme.primary else IconTint,
                             )
                         }
@@ -502,14 +507,14 @@ private fun ChatInputBar(
                 IconButton(onClick = { showAttach = !showAttach; showEmoji = false }) {
                     Icon(
                         Icons.Filled.Add,
-                        contentDescription = "更多",
+                        contentDescription = stringResource(R.string.chat_more_desc),
                         tint = if (showAttach) MaterialTheme.colorScheme.primary else IconTint,
                     )
                 }
                 IconButton(onClick = onSend, enabled = canSend) {
                     Icon(
                         Icons.AutoMirrored.Filled.Send,
-                        contentDescription = "发送",
+                        contentDescription = stringResource(R.string.ui_send),
                         tint = if (canSend) MaterialTheme.colorScheme.primary else AppColors.TextSecondary,
                     )
                 }
@@ -545,13 +550,13 @@ private fun AttachmentPanel(onImage: () -> Unit, onFile: () -> Unit) {
             .padding(vertical = 16.dp),
         horizontalArrangement = Arrangement.SpaceEvenly,
     ) {
-        AttachItem(label = "相册", icon = Icons.Filled.Image, onClick = onImage)
-        AttachItem(label = "文件", icon = Icons.Filled.InsertDriveFile, onClick = onFile)
-        AttachItem(label = "视频", icon = Icons.Filled.Videocam) {
-            Toast.makeText(context, "视频消息即将上线", Toast.LENGTH_SHORT).show()
+        AttachItem(label = stringResource(R.string.chat_attach_album), icon = Icons.Filled.Image, onClick = onImage)
+        AttachItem(label = stringResource(R.string.chat_attach_file), icon = Icons.Filled.InsertDriveFile, onClick = onFile)
+        AttachItem(label = stringResource(R.string.chat_attach_video), icon = Icons.Filled.Videocam) {
+            Toast.makeText(context, context.getString(R.string.chat_video_soon), Toast.LENGTH_SHORT).show()
         }
-        AttachItem(label = "位置", icon = Icons.Filled.LocationOn) {
-            Toast.makeText(context, "位置消息即将上线", Toast.LENGTH_SHORT).show()
+        AttachItem(label = stringResource(R.string.chat_attach_location), icon = Icons.Filled.LocationOn) {
+            Toast.makeText(context, context.getString(R.string.chat_location_soon), Toast.LENGTH_SHORT).show()
         }
     }
 }
