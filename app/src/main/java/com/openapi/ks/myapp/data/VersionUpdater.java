@@ -6,7 +6,6 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -16,10 +15,11 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
-import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.NotificationCompat;
 
 import com.openapi.core.CommonConstants;
+import com.openapi.core.design.dialog.AppDialogHost;
+import com.openapi.core.design.dialog.DialogAction;
 import com.openapi.core.util.EventBusUtil;
 import com.openapi.core.util.FileUtils;
 import com.openapi.core.util.LogUtil;
@@ -151,86 +151,76 @@ public class VersionUpdater {
 
     public static void showGoogleUpdateDialog(final Activity context, final VersionVo vo, final boolean updatePrefIfCancel) {
         final String title = context.getString(R.string.about_version_download_title) + " V" + vo.version;
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle(title);
-        builder.setMessage(vo.content);
-        builder.setIcon(R.drawable.ic_launcher);
-        if (vo.minBuild != vo.maxBuild) {
-            builder.setNegativeButton(R.string.about_version_cancel, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    if (updatePrefIfCancel) {
-                        // 保存pref配置
-                        PreferenceUtils.setPrefBoolean(context, getPrefKey(vo.version, vo.maxBuild), false);
-                    }
-                }
-            });
-        }
-        builder.setPositiveButton(R.string.about_version_download, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-
-                if (NetUtils.isWifi(context) && PackageUtils.isApk(vo.url)) {
-                    startDownloadThread(context, vo.url);
-                } else {
-                    final Uri uri = Uri.parse(vo.url);
-                    Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+        final boolean hasCancel = vo.minBuild != vo.maxBuild;
+        AppDialogHost.showMessage(context, title, vo.content, R.drawable.ic_launcher,
+                context.getString(R.string.about_version_download),
+                new DialogAction() {
+                    @Override
+                    public void perform() {
+                        if (NetUtils.isWifi(context) && PackageUtils.isApk(vo.url)) {
+                            startDownloadThread(context, vo.url);
+                        } else {
+                            final Uri uri = Uri.parse(vo.url);
+                            Intent intent = new Intent(Intent.ACTION_VIEW, uri);
 //                intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    context.startActivity(intent);
-                }
-            }
-        });
-        builder.setCancelable(false);
-        builder.show();
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            context.startActivity(intent);
+                        }
+                    }
+                },
+                hasCancel ? context.getString(R.string.about_version_cancel) : null,
+                hasCancel ? new DialogAction() {
+                    @Override
+                    public void perform() {
+                        if (updatePrefIfCancel) {
+                            // 保存pref配置
+                            PreferenceUtils.setPrefBoolean(context, getPrefKey(vo.version, vo.maxBuild), false);
+                        }
+                    }
+                } : null,
+                false);
     }
 
     public static void showUpdateDialog(final Activity context, final VersionVo vo, final boolean updatePrefIfCancel) {
         final String title = context.getString(R.string.about_version_download_title) + " V" + vo.version;
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle(title);
-        builder.setMessage(vo.content);
-        builder.setIcon(R.drawable.ic_launcher);
-        if (vo.minBuild != vo.maxBuild) {
-            builder.setNegativeButton(R.string.about_version_cancel, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    if (updatePrefIfCancel) {
-                        // 保存pref配置
-                        PreferenceUtils.setPrefBoolean(context, getPrefKey(vo.version, vo.maxBuild), false);
-                    }
-                }
-            });
-        }
-        builder.setPositiveButton(R.string.about_version_download, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                if (NetUtils.isWifi(context)) {
-                    startDownloadThread(context, vo.url);
-                } else {
-                    // 非wifi情况下，提示用户是否下载
-                    AlertDialog.Builder confirmDialog = new AlertDialog.Builder(context);
-                    confirmDialog.setTitle(R.string.about_download_confirm_title);
-                    confirmDialog.setMessage(R.string.about_download_confirm_content);
-                    confirmDialog.setPositiveButton(R.string.about_version_confirm, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
+        final boolean hasCancel = vo.minBuild != vo.maxBuild;
+        AppDialogHost.showMessage(context, title, vo.content, R.drawable.ic_launcher,
+                context.getString(R.string.about_version_download),
+                new DialogAction() {
+                    @Override
+                    public void perform() {
+                        if (NetUtils.isWifi(context)) {
                             startDownloadThread(context, vo.url);
-                            dialog.dismiss();
+                        } else {
+                            // 非wifi情况下，提示用户是否下载
+                            AppDialogHost.showMessage(context,
+                                    context.getString(R.string.about_download_confirm_title),
+                                    context.getString(R.string.about_download_confirm_content),
+                                    null,
+                                    context.getString(R.string.about_version_confirm),
+                                    new DialogAction() {
+                                        @Override
+                                        public void perform() {
+                                            startDownloadThread(context, vo.url);
+                                        }
+                                    },
+                                    context.getString(R.string.about_version_cancel),
+                                    null,
+                                    true);
                         }
-                    });
-                    confirmDialog.setNegativeButton(R.string.about_version_cancel, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.dismiss();
+                    }
+                },
+                hasCancel ? context.getString(R.string.about_version_cancel) : null,
+                hasCancel ? new DialogAction() {
+                    @Override
+                    public void perform() {
+                        if (updatePrefIfCancel) {
+                            // 保存pref配置
+                            PreferenceUtils.setPrefBoolean(context, getPrefKey(vo.version, vo.maxBuild), false);
                         }
-                    });
-                    confirmDialog.show();
-                }
-            }
-        });
-        builder.setCancelable(false);
-        builder.show();
+                    }
+                } : null,
+                false);
     }
 
     private static String getPrefKey(String newVersion, int newVersionBuild) {

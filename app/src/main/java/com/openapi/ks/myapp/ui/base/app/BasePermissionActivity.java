@@ -6,9 +6,9 @@ import android.os.Build;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 
+import com.openapi.core.design.dialog.AppDialogHost;
 import com.openapi.core.util.LogUtil;
 import com.openapi.core.util.PermissionHelper;
 import com.openapi.core.util.ToastUtil;
@@ -185,14 +185,10 @@ public class BasePermissionActivity extends LogActivity
             
             if (hasPermanentlyDenied) {
                 // 显示设置对话框
-                new AlertDialog.Builder(this)
-                        .setTitle("需要权限")
-                        .setMessage("应用需要相关权限才能正常工作，请在设置中开启权限")
-                        .setPositiveButton("设置", (dialog, which) -> {
-                            mModernPermissionManager.openAppSettings();
-                        })
-                        .setNegativeButton("取消", null)
-                        .show();
+                AppDialogHost.showMessage(this, "需要权限",
+                        "应用需要相关权限才能正常工作，请在设置中开启权限", null,
+                        "设置", () -> mModernPermissionManager.openAppSettings(),
+                        "取消", null, true);
             }
         }
     }
