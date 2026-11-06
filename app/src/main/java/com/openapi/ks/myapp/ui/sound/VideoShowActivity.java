@@ -58,7 +58,7 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
         LayoutVideoShowBinding b = LayoutVideoShowBinding.bind(findViewById(android.R.id.content));
         videoPlayer = b.jzVideo;
         dlnaCastButton = b.btnDlnaCast;
-        myFavoriteView = findViewById(R.id.my_favoriteview);
+        myFavoriteView = b.myFavoriteview;
     }
 
     private void unbindButterViews() {
