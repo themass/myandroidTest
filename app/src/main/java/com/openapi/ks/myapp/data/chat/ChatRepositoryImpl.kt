@@ -23,7 +23,7 @@ import com.openapi.ks.myapp.bean.vo.CharacterVo
 import com.openapi.ks.myapp.bean.vo.TtsResponseVo
 import com.openapi.ks.myapp.constant.Constants
 import com.openapi.core.net.BaseService
-import com.openapi.ks.myapp.data.DBManager
+import com.openapi.ks.myapp.data.db.AppDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -38,6 +38,8 @@ import org.json.JSONObject
 import java.io.File
 import java.util.Date
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import kotlin.coroutines.resume
 
 /**
@@ -106,6 +108,10 @@ class ChatRepositoryImpl(
     private companion object {
         const val TAG = "chat"
         const val PREF_SELECTED_CHARACTER_ID = "chat_selected_character_id"
+        /** 聊天记录只保留最近这么多条，沿用旧逻辑。 */
+        const val CHAT_LOG_KEEP = 30L
+        /** 单线程清理队列：所有实例共享，保证清理串行执行。 */
+        val trimExecutor: ExecutorService = Executors.newSingleThreadExecutor()
     }
 
     override fun currentSessionId(): Long =
@@ -131,7 +137,7 @@ class ChatRepositoryImpl(
     }
 
     override suspend fun loadHistory(sessionId: Long): List<ChatMessage> {
-        val logs = DBManager.getInstance().chatLogDao().bySession(sessionId)
+        val logs = AppDatabase.getInstance().chatLogDao().bySession(sessionId)
         return logs.mapNotNull { log ->
             ChatLogMapper.toDomain(
                 chatId = log.chatId,
@@ -340,7 +346,7 @@ class ChatRepositoryImpl(
     }
 
     override fun sessions(): List<ChatSession> {
-        return DBManager.getInstance().chatSessionLogDao().loadAll()
+        return AppDatabase.getInstance().chatSessionLogDao().loadAll()
             .sortedWith(
                 compareBy<ChatSessionLog>(
                     { it.type != ChatSessionLog.TYPE.DEF.type },
@@ -363,7 +369,7 @@ class ChatRepositoryImpl(
     override suspend fun createSession(name: String): ChatSession? = withContext(Dispatchers.IO) {
         val trimmed = name.trim()
         if (trimmed.isEmpty()) return@withContext null
-        val dao = DBManager.getInstance().chatSessionLogDao()
+        val dao = AppDatabase.getInstance().chatSessionLogDao()
         if (dao.loadAll().any { it.name == trimmed }) return@withContext null
         val log = ChatSessionLog()
         log.name = trimmed
@@ -377,7 +383,7 @@ class ChatRepositoryImpl(
 
     override suspend fun deleteSession(sessionId: Long): Boolean = withContext(Dispatchers.IO) {
         if (sessions().size < 2) return@withContext false
-        DBManager.getInstance().chatSessionLogDao().deleteById(sessionId)
+        AppDatabase.getInstance().chatSessionLogDao().deleteById(sessionId)
         if (currentSessionId() == sessionId) {
             sessions().firstOrNull()?.let { setCurrentSessionId(it.id) }
         }
@@ -394,7 +400,7 @@ class ChatRepositoryImpl(
                 )
             }.getOrNull()?.voList
             if (!list.isNullOrEmpty()) {
-                DBManager.getInstance().chatSessionLogDao().insertOrReplaceAll(list)
+                AppDatabase.getInstance().chatSessionLogDao().insertOrReplaceAll(list)
             }
         }
     }
@@ -444,7 +450,15 @@ class ChatRepositoryImpl(
         log.chatId = message.id
         log.createTime = Date(message.createdAtMillis)
         log.sessionId = sessionId
-        DBManager.getInstance().saveChatLog(log)
+        AppDatabase.getInstance().chatLogDao().save(log)
+        // 清理放到后台：不拖慢发消息
+        trimExecutor.execute {
+            try {
+                AppDatabase.getInstance().chatLogDao().trimToLatest(CHAT_LOG_KEEP)
+            } catch (e: Throwable) {
+                LogUtil.e(e)
+            }
+        }
     }
 
     /**

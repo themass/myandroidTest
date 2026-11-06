@@ -2,7 +2,6 @@ package com.openapi.ks.myapp.data.db;
 
 import com.openapi.core.event.FavoriteVo;
 import com.openapi.core.favorite.FavoriteStore;
-import com.openapi.ks.myapp.data.DBManager;
 
 import java.util.List;
 
@@ -10,7 +9,7 @@ import java.util.List;
 public final class AppFavoriteStore implements FavoriteStore {
 
     private FavoriteDao dao() {
-        return DBManager.getInstance().favoriteDao();
+        return AppDatabase.getInstance().favoriteDao();
     }
 
     @Override

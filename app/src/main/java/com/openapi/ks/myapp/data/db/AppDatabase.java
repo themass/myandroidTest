@@ -1,7 +1,10 @@
 package com.openapi.ks.myapp.data.db;
 
+import android.content.Context;
+
 import androidx.annotation.NonNull;
 import androidx.room.Database;
+import androidx.room.Room;
 import androidx.room.RoomDatabase;
 import androidx.room.TypeConverters;
 import androidx.room.migration.Migration;
@@ -9,11 +12,23 @@ import androidx.sqlite.SQLite;
 import androidx.sqlite.SQLiteConnection;
 
 import com.openapi.core.event.FavoriteVo;
+import com.openapi.core.util.LogUtil;
 import com.openapi.ks.myapp.bean.form.ChatLog;
 import com.openapi.ks.myapp.bean.form.ChatSessionLog;
 import com.openapi.ks.myapp.bean.form.ConnLog;
 import com.openapi.ks.myapp.bean.vo.HistoryVo;
 
+/**
+ * 应用数据库入口（Room）：聊天记录、会话、连接日志、浏览历史、收藏，全部在 app.db 里。
+ *
+ * 库名换成了 app.db：旧的 greenDAO 库（freeSEX）不再读取，也不迁移。
+ * 版本 1 → 2 只加了收藏表（见 [#MIGRATION_1_2]），已有数据保留。
+ * 旧代码（聊天页、会话列表、启动页）会在主线程直接读写，greenDAO 不限制这一点，
+ * 所以这里允许主线程查询以保持原行为；新代码应放到后台线程。
+ *
+ * 生命周期：进程启动时由 MyApplication 调用一次 [#init(Context)]，之后用 [#getInstance()] 取库，
+ * 首次取库时才真正打开 app.db。
+ */
 @Database(
         entities = {ChatLog.class, ChatSessionLog.class, ConnLog.class, HistoryVo.class, FavoriteVo.class},
         version = 2,
@@ -21,6 +36,45 @@ import com.openapi.ks.myapp.bean.vo.HistoryVo;
 )
 @TypeConverters(Converters.class)
 public abstract class AppDatabase extends RoomDatabase {
+
+    public static final String DB_NAME = "app.db";
+
+    //多线程中要被共享的使用volatile关键字修饰
+    private static volatile AppDatabase instance;
+    private static volatile Context appContext;
+
+    /** 应用启动时调用一次，保存 Application Context 并打印聊天记录条数。 */
+    public static void init(Context context) {
+        appContext = context.getApplicationContext();
+        LogUtil.i("chat log count ====" + getInstance().chatLogDao().count());
+    }
+
+    /** 取得数据库，首次调用时用 [#init(Context)] 保存的 Context 创建。 */
+    public static AppDatabase getInstance() {
+        AppDatabase db = instance;
+        if (db == null) {
+            synchronized (AppDatabase.class) {
+                db = instance;
+                if (db == null) {
+                    db = Room.databaseBuilder(appContext, AppDatabase.class, DB_NAME)
+                            .addMigrations(MIGRATION_1_2)
+                            .allowMainThreadQueries()
+                            .fallbackToDestructiveMigration()
+                            .build();
+                    instance = db;
+                }
+            }
+        }
+        return db;
+    }
+
+    /** 关闭数据库，下次访问时重新打开。 */
+    public static synchronized void closeConnection() {
+        if (instance != null) {
+            instance.close();
+            instance = null;
+        }
+    }
 
     /**
      * 版本 1 → 2：加入收藏表（原来在 commonutil 的独立库 favorites.db 里）。
