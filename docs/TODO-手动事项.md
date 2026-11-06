@@ -27,13 +27,13 @@
 
 **脚本修正（已在 myconf 本地提交）**：`singbox add all` 去掉了 sing-box 的 vless-reality；单独添加会报错并指向 `xray install`。`singbox remove` 仍可删除老的 vless-reality 安装。
 
-**小问题**：`wireguard sync-install` 在首次同步失败时，仍会启用每分钟定时器（只打印错误，不影响后续）。
+**已修复**：`wireguard sync-install` 先做一次同步，成功后才启用每分钟定时器；首次同步失败会关闭定时器并退出。
 
 ## 服务器要求（实测）
 
 - 系统：**Debian/Ubuntu（apt）+ systemd**。不支持 CentOS/RHEL（脚本依赖 apt 和 systemctl）。已在 Ubuntu 18.04 上验证；bash 4.4 和 python 3.6 都够用。
 - 内核：
-  - WireGuard 需要内核模块（4.15 的 Ubuntu 内核自带；5.6+ 主线内核也自带）。没有模块的内核会失败，脚本目前没有 wireguard-go 的回退。
+  - WireGuard 需要内核模块（4.15 的 Ubuntu 内核自带；5.6+ 主线内核也自带）。没有模块的内核：`WG_BACKEND=auto`（默认）会改用 wireguard-go（drop-in `WG_QUICK_USERSPACE_IMPLEMENTATION`），需要系统 apt 源里有 `wireguard-go` 包，否则请装 wireguard-dkms 或升级内核。
   - BBR 需要 4.9 以上。
   - sing-box 和 Xray 是 Go 静态二进制，对 glibc 版本不敏感。
 - 资源：只跑协议，1 核 1G 够用；编译 strongSwan 需要更多时间和内存。
@@ -84,17 +84,17 @@ adb logcat | grep -E "SingBox|singbox|libbox"
 方案已按你的确认实现：后端给每台设备分配唯一 /32 地址，服务器每分钟主动拉取设备公钥并热更新。
 契约和限制见 `docs/WIREGUARD-BACKEND.md`。上线顺序不能乱：
 
-1. [ ] 后端执行迁移 `2026111200_wg_addr_index.sql`（**先于部署新版后端**）。它给 `wg_device_key` 加 `addrIndex` 列并回填，
+1. [ ] 后端执行迁移 `2026111200_wg_addr_index.sql` 和 `2026111300_wg_owner.sql`（**先于部署新版后端**）。它给 `wg_device_key` 加 `addrIndex` 列并回填，
        回填后看脚本里那条 `SELECT ... addrIndex > 65279` 应该返回空
 2. [ ] 后端 `secrets.properties` 加一行 `wg.syncToken=<至少 24 位的随机串>`（`openssl rand -hex 24` 生成）。不配或太短时同步接口一律 403
 3. [ ] 部署后端
-4. [ ] 每个 WireGuard 服务器上：
+4. [ ] 每个 WireGuard 服务器上（**每台都要设线路等级**，免费线路填 0，VIP 线路填对应等级）：
 
 ```bash
 bash vpn.sh wireguard install        # 网段改成了 10.66.0.0/16；从旧 /24 升级会重启接口，已有连接短暂中断
 WG_SYNC_URL=https://api.ok123find.top/vvv/api/noapp/wg/peers.txt \
 WG_SYNC_TOKEN=<与 wg.syncToken 相同> \
-bash vpn.sh wireguard sync-install
+WG_LEVEL=<本线路等级> bash vpn.sh wireguard sync-install
 bash vpn.sh wireguard info           # 服务端公钥，填到后端该节点的 peerPublicKey
 ```
 
@@ -102,7 +102,7 @@ bash vpn.sh wireguard info           # 服务端公钥，填到后端该节点�
 6. [ ] App 登录后连 WireGuard 节点，确认能上网；换一台设备同时连同一个节点，确认两台互不影响
 
 注意：
-- 旧版 App 注册过的设备本地没存地址，新版 App 会自动重新注册一次，不需要用户操作
+- 旧版 App 注册过的设备本地没存账号信息，新版 App 会自动重新注册一次（账号变化时也会），不需要用户操作。在那之前，这些设备只在免费线路的名单里
 - 刚注册的设备要等服务器下一次同步（最长约 1 分钟）才能握手，第一次连接可能失败
 - 之前用 `add-peer` 手工添加、地址在 `10.66.66.x` 的 peer 不在新网段里，`install` 会警告，需要 `del-peer` 后重新添加
 - 登录是注册的前提：未登录用户连不了 WireGuard，会自动回退 IKEv2
