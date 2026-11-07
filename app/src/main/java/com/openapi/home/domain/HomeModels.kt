@@ -23,7 +23,7 @@ data class Channel(
 /** 一页频道。[nextStart] 是请求下一页时要传的起点（由服务端决定，不是简单累加）。 */
 data class ChannelPage(val items: List<Channel>, val nextStart: Int, val hasMore: Boolean)
 
-enum class ProfileAction { Login, PhotoSolve, LocalMusic, Feedback, Share, AppRecommend, Settings, Logout }
+enum class ProfileAction { Login, PhotoSolve, LocalMusic, Favorites, Feedback, Share, AppRecommend, Donation, Settings, Logout }
 
 data class ProfileEntry(
     val action: ProfileAction,
