@@ -93,8 +93,8 @@ fun ChatMessageList(
             state.scrollBy(BOTTOM_SCROLL)
         }
     }
-    // 流式增长：跟随时无动画贴底。不用 animateScrollToItem——每个增量都会取消上一次动画。
-    LaunchedEffect(last?.plainText?.length, last?.thinking) {
+    // 流式增长、以及回复结束时 footer 出现：跟随时无动画贴底，保证最后一条完整显示
+    LaunchedEffect(last?.plainText?.length, last?.thinking, last?.streaming) {
         if (following && last != null) state.scrollBy(BOTTOM_SCROLL)
     }
 
