@@ -98,28 +98,10 @@ fun ChatComposer(
         label = "input-border",
     )
 
-    Column(modifier.fillMaxWidth()) {
-        if (state.recording && canceling) {
-            // 上滑取消：底部泛起红色渐变，提示「松手取消」
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .height(180.dp)
-                    .background(
-                        androidx.compose.ui.graphics.Brush.verticalGradient(
-                            listOf(Color.Transparent, colors.error.copy(alpha = 0.16f)),
-                        ),
-                    ),
-            )
-        }
+    Box(modifier.fillMaxWidth()) {
+    Column(Modifier.fillMaxWidth()) {
         // 输入栏上方的提示区
         when {
-            state.recording && voiceStyle == VoiceStyle.Ripple && state.liveTranscript.isNotBlank() ->
-                Hint(text = state.liveTranscript, emphasized = false)
-            state.recording && voiceStyle == VoiceStyle.Floating ->
-                Box(Modifier.fillMaxWidth().padding(bottom = 8.dp), contentAlignment = Alignment.Center) {
-                    VoiceFloatingPanel(canceling = canceling, history = history)
-                }
             state.transcribing -> Hint(text = stringResource(R.string.chatkit_transcribing), emphasized = true)
         }
 
@@ -160,7 +142,6 @@ fun ChatComposer(
                                 style = voiceStyle,
                                 recording = state.recording,
                                 canceling = canceling,
-                                level = state.voiceLevel,
                                 history = history,
                                 onCancelingChange = { canceling = it },
                                 onStart = onVoiceStart,
@@ -249,6 +230,17 @@ fun ChatComposer(
                 }
             }
         }
+    }
+    // 录音浮层：叠在输入栏上方，不占布局高度
+    if (state.recording) {
+        VoiceOverlay(
+            style = voiceStyle,
+            canceling = canceling,
+            history = history,
+            liveTranscript = state.liveTranscript,
+            modifier = Modifier.align(Alignment.TopStart),
+        )
+    }
     }
 }
 

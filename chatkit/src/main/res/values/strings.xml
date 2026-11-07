@@ -27,4 +27,9 @@
     <string name="chatkit_transcribing">Recognizing speech…</string>
     <string name="chatkit_remove_attachment">Remove attachment</string>
     <string name="chatkit_image_count">%1$d / %2$d</string>
+    <string name="chatkit_release_to_end">Release to finish</string>
+    <string name="chatkit_release_to_send_short">Release to send</string>
+    <string name="chatkit_release_to_cancel_short">Release to cancel</string>
+    <string name="chatkit_release_to_send_hint">Release to send, slide up to cancel</string>
+    <string name="chatkit_slide_up_cancel">Slide up to cancel</string>
 </resources>
