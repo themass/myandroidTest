@@ -187,10 +187,10 @@ fun ChatMessageItem(
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (isUser) SendStatusIndicator(item.status) { onAction(MessageAction.Retry) }
-                // 助手最新、已结束的回复：footer 放进气泡里面
+                // 每条助手回复（生成完成后）都有 footer；生成中的那条不显示
                 val assistantFooter: (@Composable () -> Unit)? =
-                    if (!isUser && isLatestAssistant && !item.streaming && !item.thinking && item.plainText.isNotBlank()) {
-                        { AssistantFooter(item = item, onAction = onAction) }
+                    if (!isUser && !item.streaming && !item.thinking) {
+                        { AssistantFooter(item = item, isLatest = isLatestAssistant, onAction = onAction) }
                     } else {
                         null
                     }
