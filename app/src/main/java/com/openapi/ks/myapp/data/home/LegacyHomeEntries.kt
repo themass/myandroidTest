@@ -38,8 +38,8 @@ import com.openapi.ks.myapp.video.PlaybackEngineHelper
 /**
  * 用现有的网络层、账号缓存和旧页面实现 [HomeEntries]。
  *
- * 旧首页的「英语 / 数学 / 语文」三个标签请求的其实都是电影接口，和「电影」标签是同一份数据，
- * 所以这里只保留三个真正不同的分类：电影、夜间（受设置开关控制）、客户。
+ * 旧首页的「英语 / 数学 / 语文」三个标签与旧实现一样，请求的是电影接口，内容与「电影」相同，
+ * 作为独立分类保留，顺序与旧首页一致：电影、夜间（受设置开关控制）、英语、数学、语文、客户。
  */
 class LegacyHomeEntries(private val app: Context) : HomeEntries {
 
@@ -50,12 +50,15 @@ class LegacyHomeEntries(private val app: Context) : HomeEntries {
         if (PreferenceUtils.getPrefBoolean(context, Constants.AREA_SWITCH, true)) {
             add(ChannelCategory(NIGHT, R.string.tab_ng))
         }
+        add(ChannelCategory(ENGLISH, R.string.tab_tag_english))
+        add(ChannelCategory(MATH, R.string.tab_tag_math))
+        add(ChannelCategory(CHINESE, R.string.tab_tag_chinese))
         add(ChannelCategory(CUSTOMER, R.string.tab_customer))
     }
 
     override fun loadChannels(categoryId: String, start: Int): ChannelPage {
         val api = when (categoryId) {
-            MOVIE -> Constants.API_RECOMMEND_MOVIE_URL
+            MOVIE, ENGLISH, MATH, CHINESE -> Constants.API_RECOMMEND_MOVIE_URL
             NIGHT -> Constants.API_RECOMMEND_NIGHT_URL
             CUSTOMER -> Constants.API_RECOMMEND_CUSTOME_URL
             else -> throw IllegalArgumentException("未知的频道分类：$categoryId")
@@ -198,6 +201,9 @@ class LegacyHomeEntries(private val app: Context) : HomeEntries {
     private companion object {
         const val MOVIE = "movie"
         const val NIGHT = "night"
+        const val ENGLISH = "english"
+        const val MATH = "math"
+        const val CHINESE = "chinese"
         const val CUSTOMER = "customer"
         const val NET_TAG = "home_channels"
     }
