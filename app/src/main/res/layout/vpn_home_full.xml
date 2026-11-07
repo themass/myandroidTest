@@ -14,11 +14,12 @@
         android:layout_height="0dp"
         android:layout_weight="1">
 
-        <com.openapi.myapp.ui.globe.GlobeWebView
-            android:id="@+id/globe"
+        <!-- 地球 WebView 延迟创建（首页画出来之后再 inflate），减少启动时的主线程耗时 -->
+        <ViewStub
+            android:id="@+id/globe_stub"
+            android:layout="@layout/globe_webview"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone" />
+            android:layout_height="match_parent" />
 
         <ImageButton
             android:id="@+id/btn_gift"

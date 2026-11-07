@@ -40,9 +40,16 @@ public class LaunchActivity extends LogActivity {
     private Runnable mStartMainRunnable = new Runnable() {
         @Override
         public void run() {
-            launch();
+            // 开屏广告正在展示时不能进首页，否则会把广告盖掉
+            if (!splashAdInFlight) {
+                launch();
+            }
         }
     };
+    /** 开屏广告的展示延迟（水波纹动效结束后）、最长等待时间。 */
+    private static final long SPLASH_AD_DELAY_MS = 3600;
+    private static final long SPLASH_AD_MAX_MS = 30000;
+    private boolean splashAdInFlight;
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -156,9 +163,20 @@ public class LaunchActivity extends LogActivity {
     protected void onResume() {
         super.onResume();
     }
+    /** 开屏广告（App Open）：水波纹动效结束后再请求，不盖在动效上；广告期间不自动进入首页。 */
     private void showAdview(){
-//        AdsManager.getInstans().showSplashAds(AdsContext.AdsFrom.ADMOB,this,ivAds,skipView);
+        mHandler.postDelayed(this::requestSplashAd, SPLASH_AD_DELAY_MS);
         delay1s();
+    }
+
+    private void requestSplashAd() {
+        if (isFinishing()) {
+            return;
+        }
+        splashAdInFlight = true;
+        // 兜底：广告一直没有结束也不能卡在启动页
+        mHandler.postDelayed(this::launch, SPLASH_AD_MAX_MS);
+        AdsManager.getInstans().showSplashAds(AdsContext.AdsFrom.ADMOB, this, ivAds, skipView);
     }
     private void delay1s() {
         mHandler.sendEmptyMessageDelayed(Constants.ADS_JISHI, 1000);
@@ -166,7 +184,11 @@ public class LaunchActivity extends LogActivity {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onBannerShow(LaunchAdsNext next){
         LogUtil.i("LaunchAdsNext "+next.from);
-        if(next.from== AdsContext.AdsFrom.MOBVISTA){
+        if (next.from == AdsContext.AdsFrom.ADMOB) {
+            // 开屏广告加载失败：直接进入首页
+            splashAdInFlight = false;
+            launch();
+        } else if(next.from== AdsContext.AdsFrom.MOBVISTA){
 //            AdsManager.getInstans().showSplashAds(AdsContext.AdsFrom.ADMOB,this,ivAds,skipView);
         }
     }

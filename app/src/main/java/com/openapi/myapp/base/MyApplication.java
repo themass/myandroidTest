@@ -67,7 +67,8 @@ public class MyApplication extends Application {
         LogUtil.e("app start cost:" + cost);
         AppContainer.init(this);
         photoLoad = new ImagePhotoLoad(this);
-        AdsManager.getInstans().init(this);
+        // 广告 SDK 初始化放到首帧之后，不占用启动的主线程时间（开屏广告在启动页结束后才请求，来得及）
+        new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> AdsManager.getInstans().init(this));
     }
 
     public ImagePhotoLoad getPhotoLoad() {

@@ -214,6 +214,17 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
     private HandlerThread mWorkThread;
     private Handler mWorkHandler;
     private VpnStateService mService;
+    /*
+     * onCreate() 里绑定 VpnStateService 是异步的，worker 线程要等 onServiceConnected
+     * 才会启动。而 startService() 之后 onStartCommand 往往在几毫秒内就到（冷启动实测
+     * 只差 4ms），那时 mWorkHandler 还是 null。旧代码在这种情况只打一句"启动没完成"
+     * 就把连接请求丢了：服务起来了、通知栏图标也有了，但从来没发起 IKEv2 握手，
+     * VpnStateService 一直停在 DISABLED，UI 于是永远停在"准备中"。
+     * 所以窗口期收到的指令必须暂存，等 worker 就绪后补发（后来的指令覆盖先前的）。
+     */
+    private final Object mPendingCommandLock = new Object();
+    private VpnProfile mPendingProfile;
+    private boolean mHasPendingCommand;
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceDisconnected(ComponentName name) {	/* since the service is local this is theoretically only called when the process is terminated */
@@ -232,6 +243,8 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
             mWorkHandler = new Handler(mWorkThread.getLooper());
             /* we are now ready to start the handler thread */
             createForegroundService(false);
+            // worker 就绪，补发 onCreate/onStartCommand 窗口期里暂存的指令。
+            flushPendingCommand();
         }
     };
 
@@ -264,15 +277,39 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
     }
 
     private void setNextProfile(VpnProfile profile) {
-        if (mWorkHandler != null) {
+        Handler handler = mWorkHandler;
+        if (handler != null) {
             if (profile == null) {
-                mWorkHandler.post(new DisConnectJob());
+                handler.post(new DisConnectJob());
             } else {
-                mWorkHandler.post(new ConnectJob());
+                handler.post(new ConnectJob());
             }
-        } else {
-            LogUtil.w("启动没完成");
+            return;
         }
+        // worker 还没起来（onCreate 里绑定 VpnStateService 是异步的）。暂存最后一条
+        // 指令，等 onServiceConnected 补发，不能丢——丢了就是"点了连接一直准备中"。
+        synchronized (mPendingCommandLock) {
+            mPendingProfile = profile;
+            mHasPendingCommand = true;
+        }
+        LogUtil.i("worker 未就绪，暂存指令: " + (profile == null ? "disconnect" : "connect"));
+    }
+
+    /** 把 onCreate/onStartCommand 窗口期暂存的指令补发给 worker。需在 worker 已就绪后调用。 */
+    private void flushPendingCommand() {
+        boolean has;
+        VpnProfile profile;
+        synchronized (mPendingCommandLock) {
+            has = mHasPendingCommand;
+            profile = mPendingProfile;
+            mHasPendingCommand = false;
+            mPendingProfile = null;
+        }
+        if (!has) {
+            return;
+        }
+        LogUtil.i("补发暂存指令: " + (profile == null ? "disconnect" : "connect"));
+        setNextProfile(profile);
     }
 
     @Override

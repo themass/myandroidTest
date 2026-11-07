@@ -119,6 +119,8 @@ public class VpnRadFragment extends BaseFragment {
     RelativeLayout vpnBut;
     RelativeLayout rlGift;
     GlobeWebView globe;
+    /** 地球 WebView 的占位，首页画出来之后再 inflate（见 setupGlobe）。 */
+    private android.view.ViewStub globeStub;
     /** 全部线路节点（用于地球标注与测速）。 */
     private List<LocationVo> globeLocations = new ArrayList<>();
     /** 节点 id → 最近一次测得的延迟（毫秒，负数=超时）。 */
@@ -269,6 +271,7 @@ public class VpnRadFragment extends BaseFragment {
         tvNotChain = view.findViewById(R.id.tv_not_chain);
         vpnBut = view.findViewById(R.id.vpn_but);
         rlGift = view.findViewById(R.id.rl_gift);
+        globeStub = view.findViewById(R.id.globe_stub);
         globe = view.findViewById(R.id.globe);
         cardCurrentNode = view.findViewById(R.id.card_current_node);
         tvCurrentName = view.findViewById(R.id.tv_current_name);
@@ -505,14 +508,31 @@ public class VpnRadFragment extends BaseFragment {
 
     /** 首页 3D 地球：按设置开关显示；用户位置用时区近似，节点取当前选中线路的类型。 */
     private void setupGlobe() {
-        if (globe == null) {
-            return;
-        }
         boolean enabled = PreferenceUtils.getPrefBoolean(getActivity(), Constants.GLOBE_VIEW, true);
-        globe.setVisibility(enabled ? View.VISIBLE : View.GONE);
         if (!enabled) {
+            if (globe != null) {
+                globe.setVisibility(View.GONE);
+            }
             return;
         }
+        if (globe == null) {
+            if (globeStub == null) {
+                return;
+            }
+            // 首页先绘制，下一帧再创建地球 WebView，避免拖慢启动
+            globeStub.post(() -> {
+                if (isAdded() && globe == null && globeStub != null) {
+                    globe = (GlobeWebView) globeStub.inflate();
+                    initGlobe();
+                }
+            });
+            return;
+        }
+        initGlobe();
+    }
+
+    private void initGlobe() {
+        globe.setVisibility(View.VISIBLE);
         double[] user = GeoCatalog.approximateUser();
         if (user != null) {
             globe.setUser(user[0], user[1], getString(R.string.globe_my_location));

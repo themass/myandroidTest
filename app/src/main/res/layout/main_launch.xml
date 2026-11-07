@@ -67,8 +67,8 @@
                 android:layout_height="wrap_content"
                 android:maxLines="1"
                 android:text="@string/launch_look_world"
-                android:textColor="@color/pv_text_secondary"
-                android:textSize="15sp"
+                android:textColor="#4DA3FF"
+                android:textSize="22sp"
                 android:fontFamily="sans-serif-medium"
                 android:letterSpacing="0.1" />
         </FrameLayout>

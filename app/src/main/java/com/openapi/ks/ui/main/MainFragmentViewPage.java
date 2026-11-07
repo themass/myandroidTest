@@ -106,7 +106,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         mViewPager = (ViewPager) findViewById(R.id.vp_view);
         initTabs();
         ConnLogUtil.sendAllLog(this);
-        AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN, false, AdsContext.AdsFrom.ADMOB);
+        // 冷启动时不弹插屏：开屏广告已经占了启动这一段，两个全屏广告连着出现会很糟。
 
         if(!PermissionHelper.checkPermissions(this)) {
             PermissionHelper.showPermit(this);
