@@ -42,6 +42,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
 import com.openapi.chatkit.R
 import com.openapi.chatkit.model.VoiceStyle
 import com.openapi.chatkit.theme.ChatKit
@@ -86,8 +88,8 @@ internal fun VoicePressBar(
     val horizontalCancel = style == VoiceStyle.Bar
     Box(
         modifier = modifier
-            .height(42.dp)
-            .clip(RoundedCornerShape(21.dp))
+            .height(56.dp)
+            .clip(RoundedCornerShape(28.dp))
             .background(
                 when {
                     recording && canceling -> colors.error.copy(alpha = 0.12f)
@@ -129,7 +131,8 @@ internal fun VoicePressBar(
             }
             else -> Text(
                 stringResource(R.string.chatkit_hold_to_talk),
-                fontSize = ChatKit.typography.body,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
                 color = colors.bubbleText,
             )
         }

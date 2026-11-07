@@ -53,6 +53,10 @@ import com.openapi.chatkit.model.ComposerAction
 import com.openapi.chatkit.model.ComposerState
 import com.openapi.chatkit.model.VoiceStyle
 import com.openapi.chatkit.theme.ChatKit
+import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.height
+import androidx.compose.ui.unit.sp
 
 /**
  * 对话输入栏（参照微信 / 豆包）。
@@ -94,6 +98,19 @@ fun ChatComposer(
     )
 
     Column(modifier.fillMaxWidth()) {
+        if (state.recording && canceling) {
+            // 上滑取消：底部泛起红色渐变，提示「松手取消」
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(180.dp)
+                    .background(
+                        androidx.compose.ui.graphics.Brush.verticalGradient(
+                            listOf(Color.Transparent, colors.error.copy(alpha = 0.16f)),
+                        ),
+                    ),
+            )
+        }
         // 输入栏上方的提示区
         when {
             state.recording && voiceStyle == VoiceStyle.Ripple && state.liveTranscript.isNotBlank() ->
@@ -230,9 +247,9 @@ private fun BarIcon(
     content: @Composable () -> Unit,
 ) {
     if (onClick != null) {
-        IconButton(onClick = onClick, modifier = modifier.size(42.dp)) { content() }
+        IconButton(onClick = onClick, modifier = modifier.size(width = 44.dp, height = 56.dp)) { content() }
     } else {
-        Box(modifier.size(42.dp).clip(CircleShape), contentAlignment = Alignment.Center) { content() }
+        Box(modifier.size(width = 44.dp, height = 56.dp), contentAlignment = Alignment.Center) { content() }
     }
 }
 
@@ -249,19 +266,19 @@ private fun InputField(
         shape = RoundedCornerShape(21.dp),
         color = colors.surfaceVariant,
         border = BorderStroke(1.dp, border),
-        modifier = Modifier.fillMaxWidth().heightIn(min = 42.dp),
+        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
     ) {
-        Box(Modifier.padding(horizontal = 14.dp, vertical = 10.dp), contentAlignment = Alignment.CenterStart) {
+        Box(Modifier.padding(horizontal = 14.dp, vertical = 14.dp), contentAlignment = Alignment.CenterStart) {
             BasicTextField(
                 value = text,
                 onValueChange = onTextChange,
                 modifier = Modifier.fillMaxWidth().onFocusChanged { onFocusChange(it.isFocused) },
-                textStyle = TextStyle(fontSize = typography.body, color = colors.bubbleText),
+                textStyle = TextStyle(fontSize = 17.sp, color = colors.bubbleText),
                 cursorBrush = SolidColor(colors.accent),
                 maxLines = 5,
                 decorationBox = { inner ->
                     if (text.isEmpty()) {
-                        Text(stringResource(R.string.chatkit_input_hint), fontSize = typography.body, color = colors.secondaryText)
+                        Text(stringResource(R.string.chatkit_input_hint), fontSize = 17.sp, color = colors.secondaryText)
                     }
                     inner()
                 },
