@@ -66,6 +66,8 @@ fun TextBubble(
     sender: Sender,
     onLongPress: () -> Unit,
     modifier: Modifier = Modifier,
+    /** 气泡卡片内部、正文下面的 footer（助手最新回复）。 */
+    footer: (@Composable () -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
     val colors = ChatKit.colors
@@ -78,7 +80,14 @@ fun TextBubble(
         modifier = modifier.combinedClickable(onClick = {}, onLongClick = onLongPress),
     ) {
         Box(Modifier.padding(horizontal = dimens.bubblePaddingHorizontal, vertical = dimens.bubblePaddingVertical)) {
-            content()
+            if (footer == null) {
+                content()
+            } else {
+                Column {
+                    content()
+                    footer()
+                }
+            }
         }
     }
 }

@@ -168,6 +168,8 @@ fun ChatMessageItem(
     val dimens = ChatKit.dimens
     val isUser = item.sender == Sender.User
     val maxWidth = (LocalConfiguration.current.screenWidthDp * dimens.maxContentFraction).dp
+    // 整行可用宽度：屏宽减去两侧留白和头像区
+    val footerMaxWidth = LocalConfiguration.current.screenWidthDp.dp - dimens.listHorizontalPadding * 2 - dimens.avatarSize - dimens.avatarGap
     val showFooter = if (isUser) item.status != SendStatus.Sending else !item.thinking
 
     Row(
@@ -185,10 +187,25 @@ fun ChatMessageItem(
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (isUser) SendStatusIndicator(item.status) { onAction(MessageAction.Retry) }
-                MessageContent(item = item, maxWidth = maxWidth, text = text, onAction = onAction, onLongPress = onLongPress)
+                // 助手最新、已结束的回复：footer 放进气泡里面
+                val assistantFooter: (@Composable () -> Unit)? =
+                    if (!isUser && isLatestAssistant && !item.streaming && !item.thinking && item.plainText.isNotBlank()) {
+                        { AssistantFooter(item = item, onAction = onAction) }
+                    } else {
+                        null
+                    }
+                MessageContent(
+                    item = item,
+                    // 带 footer 的助手气泡要放下 6 个芯片（约 256dp），按整行宽度而不是 72% 限宽
+                    maxWidth = if (assistantFooter != null) footerMaxWidth else maxWidth,
+                    text = text,
+                    onAction = onAction,
+                    onLongPress = onLongPress,
+                    footer = assistantFooter,
+                )
             }
-            if (showFooter) {
-                MessageFooter(item = item, isLatestAssistant = isLatestAssistant, onAction = onAction)
+            if (isUser && showFooter) {
+                MessageFooter(item = item, onAction = onAction)
             }
         }
         if (isUser) {
@@ -209,6 +226,8 @@ internal fun MessageContent(
     text: @Composable (ChatItem, String) -> Unit,
     onAction: (MessageAction) -> Unit,
     onLongPress: () -> Unit,
+    /** 助手最新回复的 footer：放进最后一个文字气泡里面。 */
+    footer: (@Composable () -> Unit)? = null,
 ) {
     val sender = item.sender
     val images = item.parts.filterIsInstance<MessagePart.Images>()
@@ -238,8 +257,13 @@ internal fun MessageContent(
                 modifier = Modifier.widthIn(max = maxWidth),
             )
         }
-        texts.forEach { part ->
-            TextBubble(sender = sender, onLongPress = onLongPress, modifier = Modifier.widthIn(max = maxWidth)) {
+        texts.forEachIndexed { index, part ->
+            TextBubble(
+                sender = sender,
+                onLongPress = onLongPress,
+                modifier = Modifier.widthIn(max = maxWidth),
+                footer = if (index == texts.lastIndex) footer else null,
+            ) {
                 text(item, part.text)
             }
         }
