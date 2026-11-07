@@ -270,7 +270,8 @@ dependencies {
 
     // 裁剪 UI / 文档边缘检测 / 存储访问
     implementation 'io.github.mr0xf00:easycrop:0.1.1'
-    implementation 'org.opencv:opencv:4.10.0'
+    // 4.12.0 起 libopencv_java4.so 为 16KB 对齐（Play 要求）；4.10.0 为 4KB 对齐
+    implementation 'org.opencv:opencv:4.12.0'
     implementation 'com.anggrayudi:storage:1.5.6'
 
     // DLNA 投屏：本地文件的 HTTP 分发（LocalMediaServer）

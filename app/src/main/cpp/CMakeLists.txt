@@ -35,4 +35,7 @@ if(ANDROID_ABI STREQUAL "arm64-v8a")
         ${log-lib}
         ${jnigraphics-lib}
     )
+
+    # Google Play 16KB 页大小要求：本项目自己编译的 .so 必须 16KB 对齐
+    target_link_options(dococr_jni PRIVATE "-Wl,-z,max-page-size=16384")
 endif()

@@ -1,8 +1,9 @@
 ext {
     minSdkVersion = 28
-    targetSdkVersion = 36
-    // Media3 1.10+（GSY 12.1.0 传递依赖）要求 compileSdk ≥ 36；需配合 AGP 8.10+
-    compileSdkVersion = 36
+    // Google Play 要求新应用/更新使用 Android 17（API 37）作为 targetSdk
+    targetSdkVersion = 37
+    // compileSdk 不低于 targetSdk；Media3 1.10+ 要求 ≥ 36，这里随 targetSdk 升到 37
+    compileSdkVersion = 37
 
     // Google Play 64 位：必须含 arm64-v8a；保留 armeabi-v7a 兼容极少数 32 位设备
     // 排除 armeabi（已废弃）、x86/x86_64（模拟器专用，Play 下发由 AAB 按设备拆分）
