@@ -22,4 +22,30 @@
     <string name="companion_incoming_call">她打来了</string>
     <string name="companion_call_accept">接听</string>
     <string name="companion_call_decline">挂断</string>
+    <!-- 管理页：角色、记忆、主动性偏好。 -->
+    <string name="companion_nav_back">返回</string>
+    <string name="companion_open_characters">角色</string>
+    <string name="companion_open_memory">她记得的</string>
+    <string name="companion_open_settings">她的主动性</string>
+    <string name="companion_characters_title">选择陪伴的角色</string>
+    <string name="companion_memory_title">她记得的</string>
+    <string name="companion_settings_title">她的主动性</string>
+    <string name="companion_tab_facts">记住的事</string>
+    <string name="companion_tab_events">重要日子</string>
+    <string name="companion_delete">忘掉</string>
+    <string name="companion_done">已完成</string>
+    <string name="companion_add_event">添加</string>
+    <string name="companion_event_title_hint">是什么日子</string>
+    <string name="companion_event_date_hint">日期，如 2026-12-01 10:00</string>
+    <string name="companion_retry">重试</string>
+    <string name="companion_empty">还没有内容</string>
+    <string name="companion_error_generic">出了点问题</string>
+    <string name="companion_saving">正在保存…</string>
+    <string name="companion_pref_events">重要日子提醒我</string>
+    <string name="companion_pref_greetings">偶尔主动跟我打个招呼</string>
+    <string name="companion_pref_call">允许她主动打电话给我</string>
+    <string name="companion_pref_quiet">安静时段：%1$s – %2$s</string>
+    <string name="companion_pref_pause_1h">暂停 1 小时</string>
+    <string name="companion_pref_resume">恢复</string>
+    <string name="companion_pref_paused_until">暂停至 %1$s</string>
 </resources>
