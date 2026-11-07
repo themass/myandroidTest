@@ -23,6 +23,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -30,12 +32,16 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -52,9 +58,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -79,7 +85,11 @@ import kotlinx.coroutines.withContext
 import java.util.Date
 
 /**
- * 反馈页（抽屉 "反馈"）。原来是 CommonFragmentActivity 里的 IWannaFragment（XML + RecyclerView），现在是 Compose。
+ * 反馈页（抽屉 "反馈"）。恢复了旧版 FeedbackChooseFragment 的两个分类，顺序与旧版一致：
+ * - 想要（旧版 IWannaFragment）：列表与发送都走 [Constants.API_IWANNA_URL]。
+ * - 积分充值反馈（旧版 FeedbackFragment）：列表与点赞走 [Constants.API_FEEDBACK_URL] /
+ *   [Constants.API_FEEDBACK_LIKE_URL]；发送也走 [Constants.API_FEEDBACK_URL]，正文为
+ *   "<输入内容>--<充值方式>"，充值方式取自 R.array.recharge_arry，与旧版一致。
  *
  * 行为保持：下拉刷新、上拉加载、点赞（每点一次加一，与旧版一致）、发送需要登录、
  * 已处理或管理员的条目显示勾。旧版点赞时的心形飘动动画是纯视觉效果，这里没有保留。
@@ -95,7 +105,7 @@ class FeedbackActivity : ComponentActivity() {
         setContent {
             MaterialTheme {
                 Surface(modifier = Modifier.fillMaxSize(), color = AppColors.Surface) {
-                    FeedbackScreen(
+                    FeedbackRoot(
                         service = baseService,
                         onBack = { finish() },
                         onNeedLogin = { startActivity(Intent(this, LoginActivity::class.java)) },
@@ -120,22 +130,88 @@ class FeedbackActivity : ComponentActivity() {
     }
 }
 
+/** 两个反馈分类，顺序与旧版 FeedbackChooseFragment 一致（先 想要，后 积分充值反馈）。 */
+private enum class FeedbackCategory(
+    val tabTitleRes: Int,
+    val listUrl: String,
+    val likeUrl: String,
+    val sendUrl: String,
+    val withRecharge: Boolean,
+) {
+    WANNA(
+        tabTitleRes = R.string.iwanna_title,
+        listUrl = Constants.API_IWANNA_URL,
+        likeUrl = Constants.API_IWANNA_LIKE_URL,
+        sendUrl = Constants.API_IWANNA_URL,
+        withRecharge = false,
+    ),
+    RECHARGE(
+        tabTitleRes = R.string.money_back_title,
+        listUrl = Constants.API_FEEDBACK_URL,
+        likeUrl = Constants.API_FEEDBACK_LIKE_URL,
+        sendUrl = Constants.API_FEEDBACK_URL,
+        withRecharge = true,
+    ),
+}
+
 /** 按页取数据（阻塞，调用方需在后台线程）。与旧版 loadData 的 URL 拼法一致。 */
-private fun fetchPage(service: BaseService, pageNum: Int): InfoListVo<IWannaVo> =
+private fun fetchPage(service: BaseService, listUrl: String, pageNum: Int): InfoListVo<IWannaVo> =
     service.getInfoListData(
-        String.format(Constants.getUrl(Constants.API_IWANNA_URL), pageNum),
+        String.format(Constants.getUrl(listUrl), pageNum),
         IWannaVo::class.java,
         FeedbackActivity.TAG,
     )
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun FeedbackScreen(
+private fun FeedbackRoot(
     service: BaseService,
     onBack: () -> Unit,
     onNeedLogin: () -> Unit,
 ) {
-    val context = LocalContext.current
+    val categories = FeedbackCategory.entries
+    val pagerState = rememberPagerState(pageCount = { categories.size })
+    val scope = rememberCoroutineScope()
+
+    Column(Modifier.fillMaxSize()) {
+        TopAppBar(
+            title = { Text(stringResource(R.string.feed_back)) },
+            navigationIcon = {
+                IconButton(onClick = onBack) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+                }
+            },
+        )
+        TabRow(selectedTabIndex = pagerState.currentPage) {
+            categories.forEachIndexed { index, category ->
+                Tab(
+                    selected = pagerState.currentPage == index,
+                    onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
+                    text = { Text(stringResource(category.tabTitleRes)) },
+                )
+            }
+        }
+        HorizontalPager(
+            state = pagerState,
+            beyondViewportPageCount = 1,
+            modifier = Modifier.weight(1f).fillMaxWidth(),
+        ) { page ->
+            FeedbackCategoryPage(
+                category = categories[page],
+                service = service,
+                onNeedLogin = onNeedLogin,
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun FeedbackCategoryPage(
+    category: FeedbackCategory,
+    service: BaseService,
+    onNeedLogin: () -> Unit,
+) {
     val scope = rememberCoroutineScope()
     val feed = remember { mutableStateListOf<IWannaVo>() }
     var nextPage by remember { mutableIntStateOf(0) }
@@ -146,8 +222,10 @@ private fun FeedbackScreen(
     var failed by remember { mutableStateOf(false) }
     var reloadTick by remember { mutableIntStateOf(0) }
     var comment by remember { mutableStateOf("") }
+    var rechargeIndex by remember { mutableIntStateOf(0) }
     var sending by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
+    val rechargeOptions = stringArrayResource(R.array.recharge_arry)
 
     fun applyFresh(data: InfoListVo<IWannaVo>) {
         feed.clear()
@@ -160,7 +238,7 @@ private fun FeedbackScreen(
     // 首次进入、以及发送成功后重新加载
     LaunchedEffect(reloadTick) {
         initialLoading = true
-        val result = runCatching { withContext(Dispatchers.IO) { fetchPage(service, 0) } }
+        val result = runCatching { withContext(Dispatchers.IO) { fetchPage(service, category.listUrl, 0) } }
         initialLoading = false
         result.onSuccess { applyFresh(it) }
             .onFailure { failed = feed.isEmpty() }
@@ -176,7 +254,7 @@ private fun FeedbackScreen(
     LaunchedEffect(nearEnd, hasMore) {
         if (nearEnd && hasMore && !loadingMore && !refreshing && !initialLoading) {
             loadingMore = true
-            runCatching { withContext(Dispatchers.IO) { fetchPage(service, nextPage) } }
+            runCatching { withContext(Dispatchers.IO) { fetchPage(service, category.listUrl, nextPage) } }
                 .onSuccess { data ->
                     feed.addAll(data.voList)
                     nextPage = data.pageNum
@@ -187,14 +265,6 @@ private fun FeedbackScreen(
     }
 
     Column(Modifier.fillMaxSize()) {
-        TopAppBar(
-            title = { Text(stringResource(R.string.iwanna_title)) },
-            navigationIcon = {
-                IconButton(onClick = onBack) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
-                }
-            },
-        )
         Box(Modifier.weight(1f).fillMaxWidth()) {
             when {
                 initialLoading && feed.isEmpty() ->
@@ -203,7 +273,7 @@ private fun FeedbackScreen(
                     Modifier.align(Alignment.Center),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    Text(stringResource(R.string.home_channels_error), color = AppColors.TextSecondary)
+                    Text(stringResource(R.string.feedback_load_error), color = AppColors.TextSecondary)
                     TextButton(onClick = { reloadTick++ }) { Text(stringResource(R.string.home_channels_retry)) }
                 }
                 else -> PullToRefreshBox(
@@ -211,7 +281,7 @@ private fun FeedbackScreen(
                     onRefresh = {
                         refreshing = true
                         scope.launch {
-                            val r = runCatching { withContext(Dispatchers.IO) { fetchPage(service, 0) } }
+                            val r = runCatching { withContext(Dispatchers.IO) { fetchPage(service, category.listUrl, 0) } }
                             refreshing = false
                             r.onSuccess { applyFresh(it) }
                         }
@@ -229,7 +299,7 @@ private fun FeedbackScreen(
                                 entry.like = true
                                 entry.likes++
                                 service.postData(
-                                    String.format(Constants.getUrl(Constants.API_IWANNA_LIKE_URL), entry.id),
+                                    String.format(Constants.getUrl(category.likeUrl), entry.id),
                                     null, null, null, FeedbackActivity.TAG, NullReturnVo::class.java,
                                 )
                             })
@@ -244,6 +314,10 @@ private fun FeedbackScreen(
         CommentBar(
             value = comment,
             enabled = !sending,
+            withRecharge = category.withRecharge,
+            rechargeOptions = rechargeOptions,
+            rechargeIndex = rechargeIndex,
+            onRechargeSelected = { rechargeIndex = it },
             onChange = { comment = it },
             onSend = {
                 when {
@@ -251,9 +325,15 @@ private fun FeedbackScreen(
                     !StringUtils.hasText(comment) -> ToastUtil.showShort(R.string.iwanna_content_error)
                     else -> {
                         sending = true
+                        // 充值分类：正文为 "<输入内容>--<充值方式>"，与旧版 FeedbackFragment 一致
+                        val content = if (category.withRecharge) {
+                            "$comment--${rechargeOptions[rechargeIndex]}"
+                        } else {
+                            comment
+                        }
                         service.postData(
-                            Constants.getUrl(Constants.API_IWANNA_URL),
-                            IwannaForm(comment),
+                            Constants.getUrl(category.sendUrl),
+                            IwannaForm(content),
                             object : CommonResponse.ResponseOkListener<IWannaVo>() {
                                 override fun onResponse(o: IWannaVo) {
                                     sending = false
@@ -334,6 +414,10 @@ private fun FeedCard(entry: IWannaVo, onLike: () -> Unit) {
 private fun CommentBar(
     value: String,
     enabled: Boolean,
+    withRecharge: Boolean,
+    rechargeOptions: Array<String>,
+    rechargeIndex: Int,
+    onRechargeSelected: (Int) -> Unit,
     onChange: (String) -> Unit,
     onSend: () -> Unit,
 ) {
@@ -342,16 +426,57 @@ private fun CommentBar(
             Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            if (withRecharge) {
+                Text(stringResource(R.string.recharge), color = AppColors.TextSecondary, fontSize = 14.sp)
+                Spacer(Modifier.width(4.dp))
+            }
             OutlinedTextField(
                 value = value,
                 onValueChange = onChange,
                 enabled = enabled,
-                placeholder = { Text(stringResource(R.string.iwanna_title)) },
+                placeholder = {
+                    Text(stringResource(if (withRecharge) R.string.feedback_hint else R.string.iwanna_title))
+                },
                 modifier = Modifier.weight(1f),
                 maxLines = 3,
             )
+            if (withRecharge) {
+                RechargePicker(
+                    options = rechargeOptions,
+                    selected = rechargeIndex,
+                    enabled = enabled,
+                    onSelected = onRechargeSelected,
+                )
+            }
             Spacer(Modifier.width(8.dp))
             TextButton(onClick = onSend, enabled = enabled) { Text(stringResource(R.string.send)) }
+        }
+    }
+}
+
+/** 旧版 sp_recharge 下拉框的等价实现：显示当前充值方式，点开选择。 */
+@Composable
+private fun RechargePicker(
+    options: Array<String>,
+    selected: Int,
+    enabled: Boolean,
+    onSelected: (Int) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Box {
+        TextButton(onClick = { expanded = true }, enabled = enabled) {
+            Text(options[selected], color = AppColors.TextPrimary, fontSize = 14.sp)
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            options.forEachIndexed { index, label ->
+                DropdownMenuItem(
+                    text = { Text(label) },
+                    onClick = {
+                        onSelected(index)
+                        expanded = false
+                    },
+                )
+            }
         }
     }
 }
