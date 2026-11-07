@@ -11,6 +11,11 @@ class LoadHistoryUseCase(private val repository: ChatRepository) {
         repository.loadHistory(repository.currentSessionId())
 }
 
+/** 从本地删除一条消息（只影响本机记录）。 */
+class DeleteMessageUseCase(private val repository: ChatRepository) {
+    suspend operator fun invoke(messageId: String) = repository.deleteMessage(messageId)
+}
+
 /**
  * 发送一条用户消息，流式接收回复。
  *

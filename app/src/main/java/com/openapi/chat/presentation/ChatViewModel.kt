@@ -13,6 +13,7 @@ import com.openapi.chat.domain.model.ChatRole
 import com.openapi.chat.domain.model.ChatStreamEvent
 import com.openapi.chat.domain.model.MessageKind
 import com.openapi.chat.domain.model.VoiceAttachment
+import com.openapi.chat.domain.usecase.DeleteMessageUseCase
 import com.openapi.chat.domain.usecase.LoadHistoryUseCase
 import com.openapi.chat.domain.usecase.SendMessageUseCase
 import com.openapi.core.media.VoiceRecorder
@@ -33,6 +34,7 @@ class ChatViewModel : ViewModel() {
     private val repository = ChatDependencies.require()
     private val loadHistory = LoadHistoryUseCase(repository)
     private val sendMessage = SendMessageUseCase(repository)
+    private val deleteMessage = DeleteMessageUseCase(repository)
     private val roles = RolesDependencies.require()
 
     private val _uiState = MutableStateFlow(ChatUiState(selectedRole = roles.selected()))
@@ -333,12 +335,43 @@ class ChatViewModel : ViewModel() {
         }
     }
 
+    /**
+     * 相册多选：按选择顺序逐张经过同一套题目识别与审阅。审阅面板一次只显示一张，
+     * 其余的排在 [imageReviewQueue] 里，确认或取消当前一张后再弹出下一张。
+     */
+    fun onImagesPicked(context: android.content.Context, uris: List<android.net.Uri>) {
+        if (uris.isEmpty() || _uiState.value.sending) return
+        viewModelScope.launch {
+            // 串行处理（不并发起多个 IO 任务），保证入队顺序与选择顺序一致
+            for (uri in uris) {
+                val review = withContext(Dispatchers.IO) {
+                    AttachmentStager.stageImageForReview(context, uri, questionPreparer(context))
+                }
+                if (review == null) {
+                    _uiState.update { it.copy(error = "读取图片失败，请重试") }
+                    continue
+                }
+                if (_uiState.value.pendingImage == null) {
+                    _uiState.update { it.copy(pendingImage = review) }
+                } else {
+                    imageReviewQueue.addLast(review)
+                }
+            }
+        }
+    }
+
+    /** 当前审阅结束后，把队列里的下一张弹出来（队列空则清空）。 */
+    private fun showNextPendingImage() {
+        val next = imageReviewQueue.removeFirstOrNull()
+        _uiState.update { it.copy(pendingImage = next) }
+    }
+
     /** 审阅面板里确认发送：[useCrop] 为 true 时发裁剪图（没有裁剪图时发原图）。 */
     fun onSendPendingImage(useCrop: Boolean) {
         val review = _uiState.value.pendingImage ?: return
         val chosen = if (useCrop && review.cropped != null) review.cropped else review.original
         AttachmentStager.discardReview(review, keep = chosen)
-        _uiState.update { it.copy(pendingImage = null) }
+        showNextPendingImage()
         viewModelScope.launch {
             sendStagedAttachment(
                 MessageKind.IMAGE,
@@ -347,12 +380,22 @@ class ChatViewModel : ViewModel() {
         }
     }
 
-    /** 审阅面板取消或重选：删掉两张临时图。 */
+    /** 审阅面板取消或重选：删掉两张临时图，并弹出队列里的下一张。 */
     fun onDismissPendingImage() {
         val review = _uiState.value.pendingImage ?: return
         AttachmentStager.discardReview(review, keep = null)
-        _uiState.update { it.copy(pendingImage = null) }
+        showNextPendingImage()
     }
+
+    /** 长按菜单删除一条消息：只从本机移除（服务端没有删除接口）。 */
+    fun onDeleteMessage(messageId: String) {
+        _uiState.update { it.copy(messages = it.messages.filterNot { m -> m.id == messageId }) }
+        viewModelScope.launch {
+            runCatching { deleteMessage(messageId) }
+        }
+    }
+
+    private val imageReviewQueue = ArrayDeque<ImageReview>()
 
     private var preparer: QuestionImagePreparer? = null
 

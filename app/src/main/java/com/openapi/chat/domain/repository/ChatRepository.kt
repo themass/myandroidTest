@@ -60,6 +60,12 @@ interface ChatRepository {
     )
 
     /**
+     * 从本地删除一条消息（按消息 id）。只删本机记录，服务端没有对应的删除接口，
+     * 所以服务器上的聊天记录不受影响。
+     */
+    suspend fun deleteMessage(messageId: String)
+
+    /**
      * 上传一个图片或文件附件，等待大模型的回复。
      *
      * 上传走旧版已有的接口（图片 `/chat/ai/recognize.json`，文件 `/chat/ai/local/file.json`），

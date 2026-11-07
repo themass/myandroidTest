@@ -287,6 +287,10 @@ class ChatRepositoryImpl(
         persist(sessionId, message)
     }
 
+    override suspend fun deleteMessage(messageId: String) = withContext(Dispatchers.IO) {
+        AppDatabase.getInstance().chatLogDao().deleteByChatId(messageId)
+    }
+
     override suspend fun sendAttachment(
         sessionId: Long,
         kind: MessageKind,
