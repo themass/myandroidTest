@@ -16,13 +16,16 @@ class LocalRoleCatalogParserTest {
     }
 
     @Test
-    fun bundledFileParsesToEightLocalRoles() {
+    fun bundledFileParsesToFourteenLocalRoles() {
         val catalog = requireNotNull(RolesParser.parseLocalCatalog(assetBody(), "zh"))
-        assertEquals(8, catalog.roles.size)
+        assertEquals(14, catalog.roles.size)
         assertTrue(catalog.roles.all { it.local })
         assertTrue(catalog.roles.all { it.id.startsWith("agency-") })
-        assertEquals(setOf("service", "care", "career", "study"), catalog.divisions.map { it.id }.toSet())
-        assertEquals(8, catalog.divisions.sumOf { it.count })
+        assertEquals(
+            setOf("service", "care", "career", "study", "create", "knowledge"),
+            catalog.divisions.map { it.id }.toSet(),
+        )
+        assertEquals(14, catalog.divisions.sumOf { it.count })
     }
 
     @Test
@@ -49,6 +52,19 @@ class LocalRoleCatalogParserTest {
         val paged = catalog.page(division = null, query = "", featuredOnly = false, limit = 3, offset = 0)
         assertEquals(3, paged.items.size)
         assertTrue(paged.hasMore)
+    }
+
+    @Test
+    fun adaptedPersonasAreFlaggedInTheSourceFile() {
+        val roles = com.google.gson.JsonParser.parseString(assetBody()).asJsonObject.getAsJsonArray("roles")
+        val adapted = roles.map { it.asJsonObject }.filter { it.get("adapted")?.asBoolean == true }.map { it.get("id").asString }
+        assertEquals(
+            setOf(
+                "agency-xiaohongshu-writer", "agency-short-video-scriptwriter", "agency-wechat-article-writer",
+                "agency-zhihu-answer-writer", "agency-history-explainer", "agency-story-coach",
+            ),
+            adapted.toSet(),
+        )
     }
 
     @Test
