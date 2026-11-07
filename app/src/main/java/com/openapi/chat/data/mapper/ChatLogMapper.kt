@@ -91,10 +91,14 @@ object ChatLogMapper {
             }
 
             else -> {
-                text = json?.optString(FIELD_CONTENT).orEmpty().ifEmpty { rawContent.orEmpty() }
+                // 只有 rawContent 不是 JSON 时才原样显示；是 JSON 但 content 为空，就是空文本
+                text = if (json != null) json.optString(FIELD_CONTENT).orEmpty() else rawContent.orEmpty()
                 kind = MessageKind.TEXT
             }
         }
+
+        // 助手的空文本回复（老数据里存下来的）不显示
+        if (who != WHO_SENT && kind == MessageKind.TEXT && text.isBlank()) return null
 
         return ChatMessage(
             id = chatId ?: "",

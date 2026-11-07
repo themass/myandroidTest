@@ -237,7 +237,8 @@ class ChatRepositoryImpl(
                                     text = fullText.toString(),
                                     createdAtMillis = System.currentTimeMillis(),
                                 )
-                                persist(sessionId, reply)
+                                // 空回复不保存：否则下次打开会显示成空气泡（或原始 JSON）
+                                if (fullText.isNotEmpty()) persist(sessionId, reply)
                                 trySend(ChatStreamEvent.Done(msgId, fullText.toString()))
                                 close()
                                 return

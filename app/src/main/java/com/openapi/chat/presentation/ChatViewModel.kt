@@ -344,21 +344,24 @@ class ChatViewModel : ViewModel() {
             ended = true
             reveal.join()
 
+            // 流正常结束但一个字都没有：撤掉占位气泡，给提示，用户消息标成可重试
+            val emptyReply = !failed && fullText.isNullOrEmpty() && buffer.isEmpty()
             _uiState.update { current ->
                 current.copy(
                     messages = current.messages.mapNotNull { m ->
                         when {
                             m.key != placeholder.key -> m
-                            // 出错且一个字都没收到：撤掉占位气泡；已经有内容就保留
-                            failed && m.text.isEmpty() -> null
+                            // 出错或空回复且一个字都没收到：撤掉占位气泡；已经有内容就保留
+                            (failed || emptyReply) && m.text.isEmpty() -> null
                             else -> m.copy(id = serverId ?: m.id, text = fullText ?: m.text, pending = false)
                         }
                     },
                     sending = false,
                     streaming = false,
+                    error = if (emptyReply) "没有收到回复，请重试" else current.error,
                 )
             }
-            userMessageId?.let { setDelivery(it, if (failed) DeliveryStatus.FAILED else DeliveryStatus.SENT) }
+            userMessageId?.let { setDelivery(it, if (failed || emptyReply) DeliveryStatus.FAILED else DeliveryStatus.SENT) }
         }
     }
 
