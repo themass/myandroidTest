@@ -217,6 +217,9 @@ fun ChatComposer(
                             }
                             showSend -> IconSlot(
                                 onClick = {
+                                    // 发送后收回键盘和「+」面板
+                                    focusManager.clearFocus()
+                                    keyboard?.hide()
                                     showActions = false
                                     if (state.canSend) onSend()
                                 },
@@ -273,7 +276,7 @@ private fun InputCard(modifier: Modifier, content: @Composable ColumnScope.() ->
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .shadow(elevation = 6.dp, shape = CardShape, ambientColor = Color(0x3D000000), spotColor = Color(0x3D000000))
+            .shadow(elevation = 8.dp, shape = CardShape, ambientColor = Color(0x80000000), spotColor = Color(0x80000000))
             .background(Color.White, CardShape),
         content = content,
     )
