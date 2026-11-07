@@ -7,6 +7,7 @@ import androidx.multidex.MultiDex;
 import androidx.multidex.MultiDexApplication;
 
 import com.openapi.core.CommonConstants;
+import com.openapi.core.media.AudioPlayer;
 import com.openapi.core.util.StaticDataUtil;
 import com.openapi.core.util.ToastUtil;
 import com.openapi.core.util.DensityUtil;
@@ -56,6 +57,8 @@ public class MyApplication extends MultiDexApplication {
 
         StaticDataUtil.add(CommonConstants.APPLICATION,instance);
         ToastUtil.mContext = instance;
+        // 语音消息播放器必须先 init，否则 obtain() 返回 null，点了没声音、波纹也不动
+        AudioPlayer.INSTANCE.init(this);
 
         long start = System.currentTimeMillis();
 //        refWatcher = LeakCanary.install(this);

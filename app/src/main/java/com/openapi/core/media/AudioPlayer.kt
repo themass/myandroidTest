@@ -2,6 +2,7 @@ package com.openapi.core.media
 
 import android.content.Context
 import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -54,6 +55,12 @@ object AudioPlayer {
                     ) {
                         _state.value = _state.value.copy(playing = false)
                     }
+                }
+
+                override fun onPlayerError(error: PlaybackException) {
+                    // 播放失败（文件损坏、地址不可达等）：记日志，把波纹停下来，不让界面一直显示播放中
+                    android.util.Log.e(TAG, "播放失败 mediaId=${_state.value.mediaId}", error)
+                    _state.value = AudioPlayback(mediaId = _state.value.mediaId, playing = false)
                 }
             })
         }
