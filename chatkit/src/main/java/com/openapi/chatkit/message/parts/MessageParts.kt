@@ -53,19 +53,14 @@ import com.openapi.chatkit.model.Sender
 import com.openapi.chatkit.theme.ChatKit
 import java.util.Locale
 
-/** 气泡形状：靠头像一侧的顶角是小圆角，形成「尾巴」。 */
+/** 气泡形状：四角同一圆角（豆包式，不做「尾巴」）。 */
 @Composable
 fun bubbleShape(sender: Sender): Shape {
-    val r = ChatKit.dimens.bubbleRadius
-    val tail = ChatKit.dimens.bubbleTailRadius
-    return if (sender == Sender.User) {
-        RoundedCornerShape(topStart = r, topEnd = tail, bottomEnd = r, bottomStart = r)
-    } else {
-        RoundedCornerShape(topStart = tail, topEnd = r, bottomEnd = r, bottomStart = r)
-    }
+    val r = if (sender == Sender.User) ChatKit.dimens.userBubbleRadius else ChatKit.dimens.assistantBubbleRadius
+    return RoundedCornerShape(r)
 }
 
-/** 文字气泡：用户绿色、助手灰色。具体文字由 [content] 渲染（助手可用 Markdown）。 */
+/** 文字气泡：用户蓝底白字，助手浅灰底深灰字。具体文字由 [content] 渲染（助手可用 Markdown）。 */
 @Composable
 fun TextBubble(
     sender: Sender,
@@ -75,8 +70,10 @@ fun TextBubble(
 ) {
     val colors = ChatKit.colors
     val dimens = ChatKit.dimens
+    val isUser = sender == Sender.User
     Surface(
-        color = if (sender == Sender.User) colors.userBubble else colors.assistantBubble,
+        color = if (isUser) colors.userBubble else colors.assistantBubble,
+        contentColor = if (isUser) colors.userBubbleText else colors.assistantBubbleText,
         shape = bubbleShape(sender),
         modifier = modifier.combinedClickable(onClick = {}, onLongClick = onLongPress),
     ) {
@@ -86,12 +83,12 @@ fun TextBubble(
     }
 }
 
-/** 默认的文字渲染：纯文本，组件库统一字号和行高。 */
+/** 默认的文字渲染：纯文本，颜色取自所在气泡（Surface 的 contentColor），字号和行高统一。 */
 @Composable
 fun DefaultMessageText(text: String) {
     Text(
         text = text,
-        color = ChatKit.colors.bubbleText,
+        color = Color.Unspecified,
         fontSize = ChatKit.typography.body,
         lineHeight = ChatKit.typography.bodyLineHeight,
     )
@@ -287,10 +284,12 @@ fun VoiceBubble(
 ) {
     val colors = ChatKit.colors
     val isUser = sender == Sender.User
+    val textColor = if (isUser) colors.userBubbleText else colors.assistantBubbleText
     val width = (72 + voice.durationSeconds.coerceAtLeast(1) * 5).coerceAtMost(220).dp
     Column(modifier, horizontalAlignment = if (isUser) Alignment.End else Alignment.Start) {
         Surface(
             color = if (isUser) colors.userBubble else colors.assistantBubble,
+            contentColor = textColor,
             shape = bubbleShape(sender),
             modifier = Modifier
                 .width(width)
@@ -303,13 +302,13 @@ fun VoiceBubble(
                 horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start,
             ) {
                 if (isUser) {
-                    Text("${voice.durationSeconds}″", color = colors.bubbleText, fontSize = ChatKit.typography.body)
+                    Text("${voice.durationSeconds}″", color = textColor, fontSize = ChatKit.typography.body)
                     Spacer(Modifier.width(8.dp))
-                    VoiceWaveBars(playing = voice.playing, tint = colors.bubbleText)
+                    VoiceWaveBars(playing = voice.playing, tint = textColor)
                 } else {
-                    VoiceWaveBars(playing = voice.playing, tint = colors.bubbleText)
+                    VoiceWaveBars(playing = voice.playing, tint = textColor)
                     Spacer(Modifier.width(8.dp))
-                    Text("${voice.durationSeconds}″", color = colors.bubbleText, fontSize = ChatKit.typography.body)
+                    Text("${voice.durationSeconds}″", color = textColor, fontSize = ChatKit.typography.body)
                 }
             }
         }

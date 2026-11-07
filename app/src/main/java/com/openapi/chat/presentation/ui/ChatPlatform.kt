@@ -8,6 +8,7 @@ import android.content.Intent
 import android.net.Uri
 import android.webkit.MimeTypeMap
 import android.widget.Toast
+import androidx.compose.ui.graphics.Color
 import androidx.core.content.FileProvider
 import com.openapi.chatkit.model.VoiceStyle
 import com.openapi.chatkit.theme.ChatKitColors
@@ -75,14 +76,16 @@ internal object ChatPlatform {
         Toast.makeText(context, context.getString(label), Toast.LENGTH_SHORT).show()
     }
 
-    /** 用 App 的品牌色构造组件库配色。 */
+    /** 用 App 的品牌色构造组件库配色（豆包式：白底、用户蓝底白字、助手浅灰底 #333 字）。 */
     fun chatKitColors(): ChatKitColors = ChatKitDefaults.colors(
         accent = AppColors.Primary,
-        background = AppColors.ChatBackground,
+        background = Color.White,
         surface = AppColors.Surface,
         surfaceVariant = AppColors.SurfaceVariant,
-        userBubble = AppColors.ChatOutgoing,
-        assistantBubble = AppColors.ChatIncoming,
+        userBubble = Color(0xFF0066FF),
+        assistantBubble = Color(0xFFF7F7F7),
+        userBubbleText = Color.White,
+        assistantBubbleText = Color(0xFF333333),
         secondaryText = AppColors.TextSecondary,
         divider = AppColors.Divider,
         error = AppColors.Error,

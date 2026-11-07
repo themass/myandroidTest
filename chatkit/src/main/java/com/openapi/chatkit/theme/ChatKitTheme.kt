@@ -21,6 +21,10 @@ data class ChatKitColors(
     val surfaceVariant: Color,
     val userBubble: Color,
     val assistantBubble: Color,
+    /** 用户气泡里的文字（豆包：白字）。 */
+    val userBubbleText: Color,
+    /** 助手气泡里的文字（豆包：#333333）。 */
+    val assistantBubbleText: Color,
     val bubbleText: Color,
     val secondaryText: Color,
     val icon: Color,
@@ -35,11 +39,12 @@ data class ChatKitDimens(
     val avatarGap: Dp = 8.dp,
     val listHorizontalPadding: Dp = 12.dp,
     val messageSpacing: Dp = 14.dp,
-    val bubbleRadius: Dp = 16.dp,
-    /** 靠头像一侧的顶角做成小圆角，形成气泡的「尾巴」。 */
-    val bubbleTailRadius: Dp = 4.dp,
-    val bubblePaddingHorizontal: Dp = 12.dp,
-    val bubblePaddingVertical: Dp = 9.dp,
+    /** 气泡四角圆角（第 0 步在豆包上实测：用户约 14dp，助手约 12dp）。 */
+    val userBubbleRadius: Dp = 14.dp,
+    val assistantBubbleRadius: Dp = 12.dp,
+    /** 气泡内边距（实测文字离气泡左边约 15–16dp，上下约 12dp）。 */
+    val bubblePaddingHorizontal: Dp = 16.dp,
+    val bubblePaddingVertical: Dp = 12.dp,
     /** 消息内容最大宽度占屏幕宽度的比例。 */
     val maxContentFraction: Float = 0.72f,
     val footerIconSize: Dp = 18.dp,
@@ -64,6 +69,8 @@ object ChatKitDefaults {
         surfaceVariant: Color = Color(0xFFF5F5F5),
         userBubble: Color = Color(0xFF81EE98),
         assistantBubble: Color = Color(0xFFEEEEEE),
+        userBubbleText: Color = Color.Black,
+        assistantBubbleText: Color = Color.Black,
         bubbleText: Color = Color.Black,
         secondaryText: Color = Color(0xFF757575),
         icon: Color = Color(0xFF8A8A8A),
@@ -77,6 +84,8 @@ object ChatKitDefaults {
         surfaceVariant = surfaceVariant,
         userBubble = userBubble,
         assistantBubble = assistantBubble,
+        userBubbleText = userBubbleText,
+        assistantBubbleText = assistantBubbleText,
         bubbleText = bubbleText,
         secondaryText = secondaryText,
         icon = icon,
