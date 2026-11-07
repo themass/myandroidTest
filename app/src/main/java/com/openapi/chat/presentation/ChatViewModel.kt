@@ -225,17 +225,39 @@ class ChatViewModel : ViewModel() {
      */
     fun onSend() {
         val state = _uiState.value
+        if (state.sending) return
         val text = state.input.trim()
-        if (text.isEmpty() || state.sending) return
-        _uiState.update { it.copy(input = "") }
-        sendText(text)
+        val drafts = state.drafts
+        if (drafts.isEmpty()) {
+            if (text.isEmpty()) return
+            _uiState.update { it.copy(input = "") }
+            sendText(text)
+            return
+        }
+        // 有附件：文字放进第一条附件气泡里一起显示。服务端附件接口不收文字，
+        // 所以附件发完后文字再单独发一次，但不再生成第二个用户气泡。
+        _uiState.update { it.copy(input = "", drafts = emptyList()) }
+        viewModelScope.launch {
+            var ok = true
+            drafts.forEachIndexed { index, draft ->
+                if (ok) {
+                    ok = sendStagedAttachment(draft.kind, draft.staged, caption = if (index == 0) text else "")
+                }
+            }
+            if (ok) {
+                if (text.isNotEmpty()) sendText(text, addUserBubble = false)
+            } else {
+                // 失败时把输入和附件还回去，避免用户白打一遍
+                _uiState.update { it.copy(input = text, drafts = drafts) }
+            }
+        }
     }
 
     /**
      * 把一段用户文本发出去并流式接收回复。文本来源可以是输入框，也可以是 ASR 转写结果，
      * 所以发送逻辑收在这里一份，避免两条路径行为不一致。
      */
-    private fun sendText(text: String) {
+    private fun sendText(text: String, addUserBubble: Boolean = true) {
         val state = _uiState.value
         if (text.isBlank() || state.sending) return
 
@@ -256,7 +278,7 @@ class ChatViewModel : ViewModel() {
 
         _uiState.update {
             it.copy(
-                messages = it.messages + userMessage + placeholder,
+                messages = it.messages + (if (addUserBubble) listOf(userMessage) else emptyList()) + placeholder,
                 sending = true,
                 error = null,
             )
@@ -315,24 +337,22 @@ class ChatViewModel : ViewModel() {
     fun onAttachmentPicked(context: android.content.Context, kind: MessageKind, uri: android.net.Uri) {
         if (_uiState.value.sending) return
         viewModelScope.launch {
-            if (kind == MessageKind.IMAGE) {
-                val review = withContext(Dispatchers.IO) {
-                    AttachmentStager.stageImageForReview(context, uri, questionPreparer(context))
-                }
-                if (review == null) {
-                    _uiState.update { it.copy(error = "读取图片失败，请重试") }
-                } else {
-                    _uiState.update { it.copy(pendingImage = review) }
-                }
-                return@launch
-            }
             val staged = withContext(Dispatchers.IO) { AttachmentStager.stage(context, kind, uri) }
             if (staged == null) {
                 _uiState.update { it.copy(error = "读取附件失败，请重试") }
                 return@launch
             }
-            sendStagedAttachment(kind, staged)
+            addDraft(kind, staged)
         }
+    }
+
+    private fun addDraft(kind: MessageKind, staged: StagedAttachment) {
+        val draft = DraftAttachment(id = "draft-${System.nanoTime()}", kind = kind, staged = staged)
+        _uiState.update { it.copy(drafts = it.drafts + draft) }
+    }
+
+    fun onRemoveDraft(id: String) {
+        _uiState.update { it.copy(drafts = it.drafts.filterNot { d -> d.id == id }) }
     }
 
     /**
@@ -342,20 +362,14 @@ class ChatViewModel : ViewModel() {
     fun onImagesPicked(context: android.content.Context, uris: List<android.net.Uri>) {
         if (uris.isEmpty() || _uiState.value.sending) return
         viewModelScope.launch {
-            // 串行处理（不并发起多个 IO 任务），保证入队顺序与选择顺序一致
+            // 串行处理，保证草稿顺序与选择顺序一致
             for (uri in uris) {
-                val review = withContext(Dispatchers.IO) {
-                    AttachmentStager.stageImageForReview(context, uri, questionPreparer(context))
-                }
-                if (review == null) {
+                val staged = withContext(Dispatchers.IO) { AttachmentStager.stage(context, MessageKind.IMAGE, uri) }
+                if (staged == null) {
                     _uiState.update { it.copy(error = "读取图片失败，请重试") }
                     continue
                 }
-                if (_uiState.value.pendingImage == null) {
-                    _uiState.update { it.copy(pendingImage = review) }
-                } else {
-                    imageReviewQueue.addLast(review)
-                }
+                addDraft(MessageKind.IMAGE, staged)
             }
         }
     }
@@ -402,12 +416,12 @@ class ChatViewModel : ViewModel() {
     private fun questionPreparer(context: android.content.Context): QuestionImagePreparer =
         preparer ?: QuestionImagePreparer(CropAssistRegistry(context.applicationContext)).also { preparer = it }
 
-    private suspend fun sendStagedAttachment(kind: MessageKind, staged: StagedAttachment) {
+    private suspend fun sendStagedAttachment(kind: MessageKind, staged: StagedAttachment, caption: String = ""): Boolean {
             val now = System.currentTimeMillis()
             val userMessage = ChatMessage(
                 id = "local-att-$now",
                 role = ChatRole.USER,
-                text = "",
+                text = caption,
                 createdAtMillis = now,
                 kind = kind,
                 image = if (kind == MessageKind.IMAGE) ImageAttachment(path = staged.file.absolutePath) else null,
@@ -443,7 +457,7 @@ class ChatViewModel : ViewModel() {
                         error = "发送失败，请稍后重试",
                     )
                 }
-                return
+                return false
             }
 
             val assistant = ChatMessage(
@@ -465,6 +479,7 @@ class ChatViewModel : ViewModel() {
                     sending = false,
                 )
             }
+            return true
     }
 
     /** 朗读助手回复：服务端合成语音后播放；同一时间只合成一条。 */

@@ -25,12 +25,21 @@ data class ChatUiState(
     val speakingMessageId: String? = null,
     /** 选中的图片已完成题目识别与质量判断，等待用户在审阅面板里确认。 */
     val pendingImage: ImageReview? = null,
+    /** 待发送的附件草稿（图片或文件），显示在输入栏上方，发送时和文字一起发出。 */
+    val drafts: List<DraftAttachment> = emptyList(),
     /** 会话列表，默认会话在前。 */
     val sessions: List<ChatSession> = emptyList(),
     val sessionsVisible: Boolean = false,
 ) {
-    val canSend: Boolean get() = input.isNotBlank() && !sending
+    val canSend: Boolean get() = (input.isNotBlank() || drafts.isNotEmpty()) && !sending
 
     val selectedCharacter: ChatCharacterOption?
         get() = characters.firstOrNull { it.id == selectedCharacterId }
 }
+
+/** 输入栏里待发送的一个附件。 */
+data class DraftAttachment(
+    val id: String,
+    val kind: com.openapi.chat.domain.model.MessageKind,
+    val staged: StagedAttachment,
+)

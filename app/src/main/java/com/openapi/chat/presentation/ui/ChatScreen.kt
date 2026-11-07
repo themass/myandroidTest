@@ -79,6 +79,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
+import androidx.compose.material.icons.automirrored.outlined.VolumeUp
+import androidx.compose.material.icons.outlined.EmojiEmotions
+import androidx.compose.material.icons.outlined.AddCircleOutline
+import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.ThumbUp
+import androidx.compose.material.icons.outlined.ThumbDown
+import androidx.compose.material.icons.filled.ThumbUp
+import androidx.compose.material.icons.filled.ThumbDown
+import androidx.compose.material.icons.filled.Keyboard
+import androidx.compose.material.icons.filled.Close
+import com.openapi.chat.presentation.DraftAttachment
+import com.openapi.chat.domain.model.MessageKind
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
@@ -114,6 +131,7 @@ private val IncomingBubble = AppColors.ChatIncoming
 private val OutgoingBubble = AppColors.ChatOutgoing
 private val TimeText = AppColors.ChatTimestamp
 private val IconTint = AppColors.TextSecondary
+private val BubbleText = Color.Black
 
 @Composable
 fun ChatScreen(
@@ -130,6 +148,7 @@ fun ChatScreen(
     onSpeakMessage: (ChatMessage) -> Unit = {},
     /** 长按菜单里的删除：参数是消息 id，只删本机记录。 */
     onDeleteMessage: (String) -> Unit = {},
+    onRemoveDraft: (String) -> Unit = {},
     /** 点赞（true）或取消点赞（false），由 ChatRoute 写入本地收藏。 */
     onLikeMessage: (ChatMessage, Boolean) -> Unit = { _, _ -> },
     /** 点踩后提交的反馈文字。 */
@@ -217,6 +236,8 @@ fun ChatScreen(
 
         ChatInputBar(
             text = state.input,
+            drafts = state.drafts,
+            onRemoveDraft = onRemoveDraft,
             canSend = state.canSend,
             recording = state.recording,
             transcribing = state.transcribing,
@@ -535,7 +556,6 @@ private fun MessageBubble(
                 speaking = speaking,
                 liked = liked,
                 disliked = disliked,
-                onVoiceClick = onVoiceClick,
                 onSpeakClick = onSpeakClick,
                 onLikeClick = onLikeClick,
                 onDislikeClick = onDislikeClick,
@@ -581,7 +601,6 @@ private fun MessageFooter(
     speaking: Boolean,
     liked: Boolean,
     disliked: Boolean,
-    onVoiceClick: () -> Unit,
     onSpeakClick: () -> Unit,
     onLikeClick: () -> Unit,
     onDislikeClick: () -> Unit,
@@ -590,64 +609,56 @@ private fun MessageFooter(
 ) {
     val canSpeak = !fromUser && message.text.isNotBlank() && message.voice == null
     Row(
-        // 助手消息的 footer 与气泡文字对齐（头像宽度 + 间距）；用户消息靠右
-        modifier = Modifier.padding(top = 2.dp, start = if (fromUser) 0.dp else 44.dp),
+        // 助手消息的 footer 从头像右侧开始；用户消息的 footer 靠右，与用户气泡右缘对齐
+        modifier = Modifier.padding(top = 2.dp, start = if (fromUser) 0.dp else 40.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (canSpeak) {
-            FooterButton(
-                icon = Icons.AutoMirrored.Filled.VolumeUp,
+            FooterIcon(
+                icon = Icons.AutoMirrored.Outlined.VolumeUp,
                 description = stringResource(if (speaking) R.string.chat_speaking_desc else R.string.chat_read_aloud_desc),
-                tint = if (speaking) AppColors.Primary else IconTint,
+                tint = if (speaking) AppColors.Primary else FooterTint,
                 onClick = onSpeakClick,
             )
         }
         if (!fromUser) {
-            FooterImageButton(
-                resId = if (liked) R.drawable.src_assets_images_liked else R.drawable.src_assets_images_like,
+            FooterIcon(
+                icon = if (liked) Icons.Filled.ThumbUp else Icons.Outlined.ThumbUp,
                 description = stringResource(R.string.chat_like_desc),
+                tint = if (liked) AppColors.Primary else FooterTint,
                 onClick = onLikeClick,
             )
-            FooterImageButton(
-                resId = if (disliked) R.drawable.src_assets_images_disliked else R.drawable.src_assets_images_dislike,
+            FooterIcon(
+                icon = if (disliked) Icons.Filled.ThumbDown else Icons.Outlined.ThumbDown,
                 description = stringResource(R.string.chat_dislike_desc),
+                tint = if (disliked) AppColors.Primary else FooterTint,
                 onClick = onDislikeClick,
             )
         }
         if (message.text.isNotBlank()) {
-            FooterButton(
-                icon = Icons.Filled.ContentCopy,
+            FooterIcon(
+                icon = Icons.Outlined.ContentCopy,
                 description = stringResource(R.string.ui_copy),
-                tint = IconTint,
+                tint = FooterTint,
                 onClick = onCopyClick,
             )
         }
-        FooterButton(
-            icon = Icons.Filled.Delete,
+        FooterIcon(
+            icon = Icons.Outlined.Delete,
             description = stringResource(R.string.ui_delete),
-            tint = IconTint,
+            tint = FooterTint,
             onClick = onDeleteClick,
         )
     }
 }
 
+/** footer 统一的图标颜色、尺寸和点击区域：所有图标都是同一套线性风格。 */
+private val FooterTint = AppColors.TextSecondary
+
 @Composable
-private fun FooterButton(icon: ImageVector, description: String, tint: Color, onClick: () -> Unit) {
+private fun FooterIcon(icon: ImageVector, description: String, tint: Color, onClick: () -> Unit) {
     IconButton(onClick = onClick, modifier = Modifier.size(32.dp)) {
         Icon(icon, contentDescription = description, tint = tint, modifier = Modifier.size(18.dp))
-    }
-}
-
-/** 点赞、点踩用的是旧版的彩色图标，保持原色不染成主题色。 */
-@Composable
-private fun FooterImageButton(resId: Int, description: String, onClick: () -> Unit) {
-    IconButton(onClick = onClick, modifier = Modifier.size(32.dp)) {
-        Icon(
-            painter = painterResource(resId),
-            contentDescription = description,
-            tint = Color.Unspecified,
-            modifier = Modifier.size(18.dp),
-        )
     }
 }
 
@@ -667,31 +678,33 @@ private fun PendingRow() {
 private fun MessageText(message: ChatMessage) {
     // 仅 assistant 消息走 Markdown；用户输入按纯文本显示。流式增量时 Markdown 对未闭合语法是容错的。
     if (message.role == ChatRole.ASSISTANT) {
-        MarkdownText(markdown = message.text, textColor = AppColors.TextPrimary)
+        MarkdownText(markdown = message.text, textColor = BubbleText)
     } else {
         Text(
             text = message.text,
             fontSize = AppTypography.bodyLarge,
-            color = AppColors.TextPrimary,
+            color = BubbleText,
             textAlign = TextAlign.Start,
         )
     }
 }
 
 /**
- * 输入栏：
- * - 没有文字：左侧按住说话（带扩散波纹），中间输入胶囊，右侧「+」。
- * - 有文字：左侧语音让位，右侧「+」换成发送按钮。
- * - 「+」展开附件面板时旋转成「×」；输入框获得焦点时收起表情和附件面板。
+ * 输入栏，参照微信的布局：
+ * - 左侧：语音 / 键盘切换。语音模式下中间是「按住说话」条，文字模式下是输入框。
+ * - 右侧：表情；有文字或有附件草稿时「+」变成发送按钮，否则是「+」（附件面板，展开后旋转成 ×）。
+ * - 上方：附件草稿托盘，图片显示缩略图，文件显示名称，点 × 可移除。
  */
 @Composable
 private fun ChatInputBar(
     text: String,
+    drafts: List<DraftAttachment>,
     canSend: Boolean,
     recording: Boolean,
     transcribing: Boolean,
     onTextChange: (String) -> Unit,
     onSend: () -> Unit,
+    onRemoveDraft: (String) -> Unit,
     onVoicePressStart: () -> Unit,
     onVoicePressStop: () -> Unit,
     onVoicePressCancel: () -> Unit,
@@ -700,16 +713,14 @@ private fun ChatInputBar(
 ) {
     var showEmoji by remember { mutableStateOf(false) }
     var showAttach by remember { mutableStateOf(false) }
+    var voiceMode by remember { mutableStateOf(false) }
     var inputFocused by remember { mutableStateOf(false) }
     var canceling by remember { mutableStateOf(false) }
     val hasText = text.isNotBlank()
+    val canSubmit = canSend || drafts.isNotEmpty()
     val plusRotation by animateFloatAsState(targetValue = if (showAttach) 45f else 0f, label = "plus-rotation")
-    val sendColor by animateColorAsState(
-        targetValue = if (canSend) AppColors.Primary else AppColors.Divider,
-        label = "send-color",
-    )
     val pillBorder by animateColorAsState(
-        targetValue = if (inputFocused) AppColors.Primary.copy(alpha = 0.45f) else Color.Transparent,
+        targetValue = if (inputFocused) AppColors.Primary.copy(alpha = 0.45f) else AppColors.Divider,
         label = "pill-border",
     )
 
@@ -729,103 +740,126 @@ private fun ChatInputBar(
             }
         }
 
-        Surface(color = AppColors.Surface, shadowElevation = 4.dp) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.Bottom,
-            ) {
-                if (!hasText) {
-                    VoiceHoldButton(
-                        recording = recording,
-                        onStart = onVoicePressStart,
-                        onStop = onVoicePressStop,
-                        onCancel = {
-                            canceling = false
-                            onVoicePressCancel()
-                        },
-                        onCancelingChange = { canceling = it },
-                    )
-                    Spacer(Modifier.width(4.dp))
+        Surface(color = AppColors.Surface) {
+            Column {
+                if (drafts.isNotEmpty()) {
+                    DraftTray(drafts = drafts, onRemove = onRemoveDraft)
                 }
-
-                Surface(
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(22.dp),
-                    color = AppColors.SurfaceVariant,
-                    border = BorderStroke(1.dp, pillBorder),
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Row(
-                        modifier = Modifier.padding(start = 16.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Box(
-                            modifier = Modifier.weight(1f).padding(vertical = 8.dp),
-                            contentAlignment = Alignment.CenterStart,
-                        ) {
-                            BasicTextField(
-                                value = text,
-                                onValueChange = onTextChange,
-                                modifier = Modifier.fillMaxWidth().onFocusChanged { state ->
-                                    inputFocused = state.isFocused
-                                    if (state.isFocused) {
-                                        showEmoji = false
-                                        showAttach = false
-                                    }
-                                },
-                                textStyle = TextStyle(fontSize = AppTypography.bodyLarge, color = AppColors.TextPrimary),
-                                cursorBrush = SolidColor(AppColors.Primary),
-                                maxLines = 5,
-                                decorationBox = { inner ->
-                                    if (text.isEmpty()) {
-                                        Text(
-                                            stringResource(R.string.chat_input_hint),
-                                            fontSize = AppTypography.bodyLarge,
-                                            color = AppColors.TextSecondary,
-                                        )
-                                    }
-                                    inner()
-                                },
-                            )
-                        }
-                        IconButton(
-                            onClick = { showEmoji = !showEmoji; showAttach = false },
-                            modifier = Modifier.size(36.dp),
-                        ) {
-                            Icon(
-                                Icons.Filled.EmojiEmotions,
-                                contentDescription = stringResource(R.string.chat_emoji_desc),
-                                tint = if (showEmoji) AppColors.Primary else IconTint,
-                            )
-                        }
-                    }
-                }
-
-                Spacer(Modifier.width(6.dp))
-
-                if (hasText) {
+                    // 语音 / 键盘切换：和微信一样放在最左边
                     IconButton(
-                        onClick = onSend,
-                        enabled = canSend,
-                        modifier = Modifier.size(40.dp).background(sendColor, CircleShape),
-                    ) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.Send,
-                            contentDescription = stringResource(R.string.ui_send),
-                            tint = Color.White,
-                            modifier = Modifier.size(20.dp),
-                        )
-                    }
-                } else {
-                    IconButton(
-                        onClick = { showAttach = !showAttach; showEmoji = false },
+                        onClick = {
+                            voiceMode = !voiceMode
+                            showAttach = false
+                            showEmoji = false
+                        },
                         modifier = Modifier.size(40.dp),
                     ) {
                         Icon(
-                            Icons.Filled.Add,
-                            contentDescription = stringResource(R.string.chat_more_desc),
-                            tint = if (showAttach) AppColors.Primary else IconTint,
-                            modifier = Modifier.rotate(plusRotation),
+                            if (voiceMode) Icons.Filled.Keyboard else Icons.Filled.Mic,
+                            contentDescription = stringResource(R.string.chat_toggle_voice_desc),
+                            tint = AppColors.TextPrimary,
+                            modifier = Modifier.size(26.dp),
                         )
+                    }
+
+                    if (voiceMode) {
+                        VoicePressBar(
+                            modifier = Modifier.weight(1f),
+                            recording = recording,
+                            onStart = onVoicePressStart,
+                            onStop = onVoicePressStop,
+                            onCancel = {
+                                canceling = false
+                                onVoicePressCancel()
+                            },
+                            onCancelingChange = { canceling = it },
+                        )
+                    } else {
+                        Surface(
+                            modifier = Modifier.weight(1f).heightIn(min = 40.dp),
+                            shape = RoundedCornerShape(20.dp),
+                            color = AppColors.Surface,
+                            border = BorderStroke(1.dp, pillBorder),
+                        ) {
+                            Box(
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 9.dp),
+                                contentAlignment = Alignment.CenterStart,
+                            ) {
+                                BasicTextField(
+                                    value = text,
+                                    onValueChange = onTextChange,
+                                    modifier = Modifier.fillMaxWidth().onFocusChanged { state ->
+                                        inputFocused = state.isFocused
+                                        if (state.isFocused) {
+                                            showEmoji = false
+                                            showAttach = false
+                                        }
+                                    },
+                                    textStyle = TextStyle(fontSize = AppTypography.bodyLarge, color = BubbleText),
+                                    cursorBrush = SolidColor(AppColors.Primary),
+                                    maxLines = 5,
+                                    decorationBox = { inner ->
+                                        if (text.isEmpty()) {
+                                            Text(
+                                                stringResource(R.string.chat_input_hint),
+                                                fontSize = AppTypography.bodyLarge,
+                                                color = AppColors.TextSecondary,
+                                            )
+                                        }
+                                        inner()
+                                    },
+                                )
+                            }
+                        }
+                    }
+
+                    if (!voiceMode) {
+                        IconButton(
+                            onClick = { showEmoji = !showEmoji; showAttach = false },
+                            modifier = Modifier.size(40.dp),
+                        ) {
+                            Icon(
+                                Icons.Outlined.EmojiEmotions,
+                                contentDescription = stringResource(R.string.chat_emoji_desc),
+                                tint = if (showEmoji) AppColors.Primary else AppColors.TextPrimary,
+                                modifier = Modifier.size(26.dp),
+                            )
+                        }
+                    }
+
+                    if (canSubmit && !voiceMode) {
+                        Surface(
+                            onClick = { if (canSend) onSend() },
+                            enabled = canSend,
+                            shape = RoundedCornerShape(18.dp),
+                            color = if (canSend) AppColors.Primary else AppColors.Divider,
+                            modifier = Modifier.height(36.dp),
+                        ) {
+                            Box(Modifier.padding(horizontal = 14.dp), contentAlignment = Alignment.Center) {
+                                Text(
+                                    stringResource(R.string.ui_send),
+                                    color = Color.White,
+                                    fontSize = AppTypography.body,
+                                    fontWeight = FontWeight.Medium,
+                                )
+                            }
+                        }
+                    } else if (!voiceMode) {
+                        IconButton(
+                            onClick = { showAttach = !showAttach; showEmoji = false },
+                            modifier = Modifier.size(40.dp),
+                        ) {
+                            Icon(
+                                Icons.Outlined.AddCircleOutline,
+                                contentDescription = stringResource(R.string.chat_more_desc),
+                                tint = if (showAttach) AppColors.Primary else AppColors.TextPrimary,
+                                modifier = Modifier.size(26.dp).rotate(plusRotation),
+                            )
+                        }
                     }
                 }
             }
@@ -839,6 +873,73 @@ private fun ChatInputBar(
         }
         if (showEmoji) {
             EmojiPanel(onEmojiSelected = { onTextChange(text + it) })
+        }
+    }
+}
+
+/** 附件草稿托盘：图片缩略图、文件名片，右上角 × 移除。 */
+@Composable
+private fun DraftTray(drafts: List<DraftAttachment>, onRemove: (String) -> Unit) {
+    LazyRow(
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        items(drafts, key = { it.id }) { draft ->
+            Box {
+                when (draft.kind) {
+                    MessageKind.IMAGE -> Box(
+                        modifier = Modifier
+                            .size(64.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(AppColors.SurfaceVariant),
+                    ) {
+                        AndroidView(
+                            modifier = Modifier.fillMaxSize(),
+                            factory = { context ->
+                                ImageView(context).apply { scaleType = ImageView.ScaleType.CENTER_CROP }
+                            },
+                            update = { view -> Glide.with(view.context).load(File(draft.staged.file.absolutePath)).into(view) },
+                        )
+                    }
+                    else -> Row(
+                        modifier = Modifier
+                            .height(64.dp)
+                            .widthIn(max = 200.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(AppColors.SurfaceVariant)
+                            .padding(horizontal = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Image(
+                            painter = painterResource(fileIconRes(draft.staged.displayName)),
+                            contentDescription = null,
+                            modifier = Modifier.size(28.dp),
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            draft.staged.displayName,
+                            fontSize = AppTypography.caption,
+                            color = BubbleText,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
+                // 右上角的移除按钮
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .size(20.dp)
+                        .offset(x = 6.dp, y = (-6).dp)
+                        .clip(CircleShape)
+                        .background(AppColors.TextSecondary)
+                        .clickable { onRemove(draft.id) },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.chat_remove_attachment_desc), tint = Color.White, modifier = Modifier.size(12.dp))
+                }
+            }
         }
     }
 }
@@ -990,7 +1091,7 @@ private fun FileRow(file: FileAttachment) {
         )
         Spacer(Modifier.width(8.dp))
         Column {
-            Text(file.name, fontSize = AppTypography.body, color = AppColors.TextPrimary, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Text(file.name, fontSize = AppTypography.body, color = BubbleText, maxLines = 2, overflow = TextOverflow.Ellipsis)
             Text(formatFileSize(file.sizeBytes), fontSize = AppTypography.caption, color = IconTint)
         }
     }

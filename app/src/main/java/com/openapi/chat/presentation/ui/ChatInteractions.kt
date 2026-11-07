@@ -196,12 +196,12 @@ internal fun VoiceBubbleRow(
                 .padding(horizontal = 4.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            VoiceWaveBars(playing = playing, tint = AppColors.TextPrimary)
+            VoiceWaveBars(playing = playing, tint = Color.Black)
             Spacer(Modifier.width(10.dp))
             androidx.compose.material3.Text(
                 "${durationSeconds}″",
                 fontSize = com.openapi.core.design.theme.AppTypography.bodyLarge,
-                color = AppColors.TextPrimary,
+                color = Color.Black,
             )
         }
         if (transcript != null) {
@@ -254,5 +254,51 @@ internal fun openAttachment(context: Context, path: String, name: String) {
         Toast.makeText(context, context.getString(R.string.chat_open_file_failed), Toast.LENGTH_SHORT).show()
     } catch (e: IllegalArgumentException) {
         Toast.makeText(context, context.getString(R.string.chat_open_file_failed), Toast.LENGTH_SHORT).show()
+    }
+}
+
+/** 语音模式下的「按住说话」条：全宽，按下时变色并向外扩散波纹，上滑超过 80dp 变为取消。 */
+@Composable
+internal fun VoicePressBar(
+    modifier: Modifier,
+    recording: Boolean,
+    onStart: () -> Unit,
+    onStop: () -> Unit,
+    onCancel: () -> Unit,
+    onCancelingChange: (Boolean) -> Unit,
+) {
+    val cancelThresholdPx = with(LocalDensity.current) { 80.dp.toPx() }
+    Box(
+        modifier = modifier
+            .height(40.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .background(if (recording) AppColors.Primary.copy(alpha = 0.12f) else AppColors.Surface)
+            .pointerInput(Unit) {
+                awaitEachGesture {
+                    val down = awaitFirstDown()
+                    onStart()
+                    var canceling = false
+                    while (true) {
+                        val event = awaitPointerEvent()
+                        val change = event.changes.first()
+                        val nowCanceling = change.position.y - down.position.y < -cancelThresholdPx
+                        if (nowCanceling != canceling) {
+                            canceling = nowCanceling
+                            onCancelingChange(canceling)
+                        }
+                        if (change.changedToUpIgnoreConsumed()) break
+                    }
+                    onCancelingChange(false)
+                    if (canceling) onCancel() else onStop()
+                }
+            },
+        contentAlignment = Alignment.Center,
+    ) {
+        if (recording) RippleWaves()
+        androidx.compose.material3.Text(
+            stringResource(if (recording) R.string.chat_release_to_send else R.string.chat_hold_to_talk),
+            fontSize = com.openapi.core.design.theme.AppTypography.bodyLarge,
+            color = if (recording) AppColors.Primary else Color.Black,
+        )
     }
 }

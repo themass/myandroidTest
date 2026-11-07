@@ -83,6 +83,7 @@ fun ChatRoute(
             onVoiceRecordCancel = viewModel::onVoiceRecordCancel,
             onSpeakMessage = viewModel::onSpeakMessage,
             onDeleteMessage = viewModel::onDeleteMessage,
+            onRemoveDraft = viewModel::onRemoveDraft,
             onLikeMessage = { message, _ -> com.openapi.chat.data.ChatMessageActions.toggleLike(context, message.id) },
             onFeedbackMessage = { message, text ->
                 com.openapi.chat.data.ChatMessageActions.sendFeedback(context, message.id, text)
