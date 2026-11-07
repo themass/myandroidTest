@@ -1,5 +1,6 @@
 package com.openapi.roles.data
 
+import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
@@ -44,6 +45,49 @@ object RolesParser {
     fun parseRole(body: String): RoleSummary? {
         val data = data(body) ?: return null
         return parseRole(data)
+    }
+
+    /**
+     * 解析端上打包的离线目录文件（无 {code,data} 外壳，顶层是 divisions / roles）。
+     * 名称和简介按 [lang] 取：zh 用 name/description，其它语言用 name_en/description_en，缺失时回退到 name/description。
+     * 分类的 count 按实际条目数重新计算，忽略文件里的值。文件结构不对返回 null。
+     */
+    fun parseLocalCatalog(body: String, lang: String): LocalRoleCatalog? {
+        val root = runCatching { JsonParser.parseString(body) }.getOrNull()?.asObjectOrNull() ?: return null
+        val rolesJson = root.get("roles")?.takeIf { it.isJsonArray }?.asJsonArray ?: return null
+        val zh = lang.equals("zh", ignoreCase = true)
+        val roles = rolesJson.mapNotNull { el ->
+            val o = el.asObjectOrNull() ?: return@mapNotNull null
+            val id = o.string("id") ?: return@mapNotNull null
+            val name = if (zh) o.string("name") ?: o.string("name_en") else o.string("name_en") ?: o.string("name")
+            if (name == null) return@mapNotNull null
+            val description = if (zh) o.string("description") ?: o.string("description_en").orEmpty()
+            else o.string("description_en") ?: o.string("description").orEmpty()
+            RoleSummary(
+                id = id,
+                divisionId = o.string("division").orEmpty(),
+                name = name,
+                description = description,
+                emoji = o.string("emoji").orEmpty(),
+                colorArgb = RoleColors.parse(o.string("color")),
+                vibe = o.string("vibe").orEmpty(),
+                featured = o.get("featured")?.let { !it.isJsonNull && it.asBoolean } ?: false,
+                local = true,
+            )
+        }
+        val divisionsJson = root.get("divisions")?.takeIf { it.isJsonArray }?.asJsonArray ?: JsonArray()
+        val divisions = divisionsJson.mapNotNull { el ->
+            val o = el.asObjectOrNull() ?: return@mapNotNull null
+            val id = o.string("id") ?: return@mapNotNull null
+            RoleDivision(
+                id = id,
+                label = o.string("label") ?: id,
+                icon = o.string("icon").orEmpty(),
+                colorArgb = RoleColors.parse(o.string("color")),
+                count = roles.count { it.divisionId == id },
+            )
+        }.filter { it.count > 0 }
+        return LocalRoleCatalog(divisions = divisions, roles = roles)
     }
 
     private fun parseRole(el: JsonElement): RoleSummary? {

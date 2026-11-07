@@ -38,11 +38,20 @@ class RolesRepositoryImpl(private val context: Context) : RolesRepository {
     private fun lang(): String =
         if (Locale.getDefault().language.equals("zh", ignoreCase = true)) "zh" else "en"
 
+    private val bundled by lazy { BundledRoleCatalog(context.applicationContext) }
+
+    /**
+     * 服务端优先。服务端失败或返回空时，用打包的离线目录兜底，保证选择器离线也不是空的。
+     * 两边都没有时，原样返回服务端结果（失败仍是 null，空仍是空列表）。
+     */
     override suspend fun divisions(): List<RoleDivision>? {
         val url = Constants.getUrl("/roles/v1/divisions").toHttpUrl().newBuilder()
             .addQueryParameter("lang", lang())
             .build()
-        return get(url.toString())?.let(RolesParser::parseDivisions)
+        val server = get(url.toString())?.let(RolesParser::parseDivisions)
+        if (!server.isNullOrEmpty()) return server
+        val local = bundled.catalog(lang())?.divisions
+        return if (!local.isNullOrEmpty()) local else server
     }
 
     override suspend fun roles(
@@ -62,7 +71,10 @@ class RolesRepositoryImpl(private val context: Context) : RolesRepository {
                 if (featuredOnly) addQueryParameter("featured", "true")
             }
             .build()
-        return get(url.toString())?.let(RolesParser::parseRolePage)
+        val server = get(url.toString())?.let(RolesParser::parseRolePage)
+        if (server != null && server.items.isNotEmpty()) return server
+        val local = bundled.catalog(lang())?.page(division, query, featuredOnly, limit, offset)
+        return if (local != null && local.items.isNotEmpty()) local else server
     }
 
     private suspend fun get(url: String): String? = withContext(Dispatchers.IO) {

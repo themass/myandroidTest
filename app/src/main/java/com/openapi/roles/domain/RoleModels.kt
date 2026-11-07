@@ -21,6 +21,8 @@ data class RoleSummary(
     val colorArgb: Long,
     val vibe: String,
     val featured: Boolean,
+    /** 来自端上打包的离线兜底目录（而不是服务端返回）。UI 可据此标注；选中后服务端需认得这个 id。 */
+    val local: Boolean = false,
 )
 
 data class RolePage(
