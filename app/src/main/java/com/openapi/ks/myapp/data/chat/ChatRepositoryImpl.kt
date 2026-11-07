@@ -210,6 +210,7 @@ class ChatRepositoryImpl(
         characterId: Int?,
         roleId: String?,
         persistUserMessage: Boolean,
+        clientMessageId: String?,
     ): Flow<ChatStreamEvent> = streamChat(
         requestSessionId = sessionId,
         text = userText,
@@ -217,6 +218,7 @@ class ChatRepositoryImpl(
         characterId = characterId,
         roleId = roleId,
         persistUserMessage = persistUserMessage,
+        clientMessageId = clientMessageId,
     )
 
     override fun regenerateStream(
@@ -230,6 +232,7 @@ class ChatRepositoryImpl(
         characterId = characterId,
         roleId = roleId,
         persistUserMessage = false,
+        clientMessageId = null,
     )
 
     /**
@@ -248,9 +251,10 @@ class ChatRepositoryImpl(
         characterId: Int?,
         roleId: String?,
         persistUserMessage: Boolean,
+        clientMessageId: String?,
     ): Flow<ChatStreamEvent> = callbackFlow {
         val now = System.currentTimeMillis()
-        val clientMsgId = "local-user-$now"
+        val clientMsgId = clientMessageId ?: "local-user-$now"
         val assistantId = "local-assistant-$now"
         // 服务端会把它回写到每一帧里；请求本身是新会话（<=0）时才采用这个 id
         var activeSessionId = requestSessionId
@@ -338,8 +342,24 @@ class ChatRepositoryImpl(
                                 trySend(ChatStreamEvent.Delta(assistantId, delta))
                             }
                             if (done) {
-                                finishReply(activeSessionId, assistantId, fullText)
-                                trySend(ChatStreamEvent.Done(assistantId, fullText.toString()))
+                                val serverUserId = chunk.optLong("userMessageId", 0L)
+                                val serverAssistantId = chunk.optLong("assistantMessageId", 0L)
+                                cacheTurn(
+                                    sessionId = activeSessionId,
+                                    clientUserId = clientMsgId,
+                                    userText = if (!regenerate && (persistUserMessage || clientMessageId != null)) text else null,
+                                    serverUserId = serverUserId,
+                                    reply = fullText.toString(),
+                                    serverAssistantId = serverAssistantId,
+                                    localAssistantId = assistantId,
+                                )
+                                trySend(
+                                    ChatStreamEvent.Done(
+                                        assistantId = serverAssistantId.takeIf { it > 0 }?.toString(),
+                                        userId = serverUserId.takeIf { it > 0 }?.toString(),
+                                        fullText = fullText.toString(),
+                                    ),
+                                )
                                 close()
                                 return
                             }
@@ -347,8 +367,17 @@ class ChatRepositoryImpl(
                         // 流结束但没收到 done=true 帧（比如连接被提前挂断），按已收到的内容收尾，
                         // 而不是整段丢弃——用户至少能看到已经生成的部分。
                         if (!call.isCanceled()) {
-                            finishReply(activeSessionId, assistantId, fullText)
-                            trySend(ChatStreamEvent.Done(assistantId, fullText.toString()))
+                            // 没有 done 帧，服务端 id 未知：本地按临时 id 缓存，ViewModel 会兜底拉取历史
+                            cacheTurn(
+                                sessionId = activeSessionId,
+                                clientUserId = clientMsgId,
+                                userText = null,
+                                serverUserId = 0L,
+                                reply = fullText.toString(),
+                                serverAssistantId = 0L,
+                                localAssistantId = assistantId,
+                            )
+                            trySend(ChatStreamEvent.Done(assistantId = null, userId = null, fullText = fullText.toString()))
                         }
                     } catch (e: Exception) {
                         LogUtil.e(e)
@@ -363,18 +392,39 @@ class ChatRepositoryImpl(
         awaitClose { call.cancel() }
     }.flowOn(Dispatchers.IO)
 
-    /** 把已收到的助手回复写进本地缓存；空回复不保存，服务端也不会存空回复。 */
-    private fun finishReply(sessionId: Long, assistantId: String, fullText: StringBuilder) {
-        if (fullText.isEmpty() || sessionId <= 0) return
-        persist(
-            sessionId,
-            ChatMessage(
-                id = assistantId,
-                role = ChatRole.ASSISTANT,
-                text = fullText.toString(),
-                createdAtMillis = System.currentTimeMillis(),
-            ),
-        )
+    /**
+     * 把一轮对话写进本地缓存（离线副本）。用服务端正式 id 作为 chatId；
+     * 用户消息若是本地先写入的（临时 id），这里换成正式 id。空回复不缓存。
+     */
+    private fun cacheTurn(
+        sessionId: Long,
+        clientUserId: String,
+        userText: String?,
+        serverUserId: Long,
+        reply: String,
+        serverAssistantId: Long,
+        localAssistantId: String,
+    ) {
+        if (sessionId <= 0) return
+        val now = System.currentTimeMillis()
+        if (userText != null && serverUserId > 0) {
+            AppDatabase.getInstance().chatLogDao().deleteByChatId(clientUserId)
+            persist(
+                sessionId,
+                ChatMessage(id = serverUserId.toString(), role = ChatRole.USER, text = userText, createdAtMillis = now),
+            )
+        }
+        if (reply.isNotEmpty()) {
+            persist(
+                sessionId,
+                ChatMessage(
+                    id = if (serverAssistantId > 0) serverAssistantId.toString() else localAssistantId,
+                    role = ChatRole.ASSISTANT,
+                    text = reply,
+                    createdAtMillis = now,
+                ),
+            )
+        }
     }
 
     override suspend fun editMessage(sessionId: Long, messageId: String, text: String): Boolean {
@@ -520,7 +570,6 @@ class ChatRepositoryImpl(
     }
 
     override suspend fun deleteSession(sessionId: Long): Boolean = withContext(Dispatchers.IO) {
-        if (sessions().size < 2) return@withContext false
         val ok = postForOk(
             Constants.getUrl(Constants.CHAT_SESSION_DELETE_URL),
             SessionIdParam(id = sessionId),

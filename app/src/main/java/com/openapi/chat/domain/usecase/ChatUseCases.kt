@@ -28,6 +28,7 @@ class SendMessageUseCase(private val repository: ChatRepository) {
         characterId: Int?,
         roleId: String? = null,
         persistUserMessage: Boolean = true,
+        clientMessageId: String? = null,
     ): Flow<ChatStreamEvent> =
         repository.sendMessageStream(
             sessionId = repository.currentSessionId(),
@@ -35,5 +36,6 @@ class SendMessageUseCase(private val repository: ChatRepository) {
             characterId = characterId,
             roleId = roleId,
             persistUserMessage = persistUserMessage,
+            clientMessageId = clientMessageId,
         )
 }

@@ -42,7 +42,7 @@ import com.openapi.core.design.theme.AppTypography
  * 会话列表（底部弹层）：切换、新建、重命名、删除。
  *
  * 替代旧的 ChatSessionFragment：数据来自 [ChatSession] 列表，操作交给调用方（ViewModel）。
- * 至少保留一个会话，只剩一个时不显示删除。
+ * 允许删到没有会话：服务端 /sessions.json 会自动新建一个。
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -87,7 +87,7 @@ fun ChatSessionsSheet(
                     SessionRow(
                         session = session,
                         current = session.id == currentSessionId,
-                        canDelete = sessions.size > 1,
+                        canDelete = true,
                         onSelect = { onSelect(session.id) },
                         onRename = { renaming = session },
                         onDelete = { onDelete(session.id) },

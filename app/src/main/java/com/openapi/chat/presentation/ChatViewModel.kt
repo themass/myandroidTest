@@ -84,7 +84,8 @@ class ChatViewModel : ViewModel() {
 
     fun onSessionsVisibleChange(visible: Boolean) {
         _uiState.update { it.copy(sessionsVisible = visible) }
-        if (visible) viewModelScope.launch { reloadSessions() }
+        // 打开会话列表时才向服务端要一次列表（updatedAt、别的设备上的新会话）
+        if (visible) viewModelScope.launch { runCatching { syncSessionsList() } }
     }
 
     /** 切换会话：写入当前会话 id，然后重新加载这个会话的历史。 */
@@ -112,12 +113,12 @@ class ChatViewModel : ViewModel() {
         }
     }
 
-    /** 删除会话（至少保留一个）。删的是当前会话时，refresh 会切到剩下的会话。 */
+    /** 删除会话（允许删空，服务端会在下次拉列表时自动新建一个）。删的是当前会话时，refresh 会切换。 */
     fun onDeleteSession(sessionId: Long) {
         viewModelScope.launch {
             val ok = withContext(Dispatchers.IO) { repository.deleteSession(sessionId) }
             if (!ok) {
-                _uiState.update { it.copy(error = "至少保留一个对话") }
+                _uiState.update { it.copy(error = "删除失败，请稍后重试") }
                 return@launch
             }
             refresh()
@@ -316,6 +317,8 @@ class ChatViewModel : ViewModel() {
         syncAfter: Boolean = true,
     ) {
         val state = _uiState.value
+        // 本轮是否会新建会话（请求时还没有当前会话）：结束后要同步会话列表
+        val startsNewSession = repository.currentSessionId() <= 0L
         val placeholder = newPlaceholder()
         _uiState.update { it.copy(messages = it.messages + placeholder, sending = true, streaming = true, error = null) }
         userMessageId?.let { setDelivery(it, DeliveryStatus.SENDING) }
@@ -325,6 +328,7 @@ class ChatViewModel : ViewModel() {
             var ended = false
             var failed = false
             var serverId: String? = null
+            var serverUserId: String? = null
             var fullText: String? = null
 
             val reveal = launch {
@@ -345,13 +349,20 @@ class ChatViewModel : ViewModel() {
                 val events = if (regenerate) {
                     repository.regenerateStream(repository.currentSessionId(), state.selectedCharacterId, state.selectedRole?.id)
                 } else {
-                    sendMessage(text.orEmpty(), state.selectedCharacterId, state.selectedRole?.id, persistUser)
+                    sendMessage(
+                        text.orEmpty(),
+                        state.selectedCharacterId,
+                        state.selectedRole?.id,
+                        persistUser,
+                        clientMessageId = userMessageId,
+                    )
                 }
                 events.collect { event ->
                         when (event) {
                             is ChatStreamEvent.Delta -> buffer.append(event.text)
                             is ChatStreamEvent.Done -> {
-                                serverId = event.messageId
+                                serverId = event.assistantId
+                                serverUserId = event.userId
                                 fullText = event.fullText
                             }
                             is ChatStreamEvent.Error -> {
@@ -368,8 +379,9 @@ class ChatViewModel : ViewModel() {
                 }
                 _uiState.update { it.copy(sending = false, streaming = false) }
                 userMessageId?.let { setDelivery(it, DeliveryStatus.SENT) }
-                // 服务端会保存已生成的部分，拉一次拿到正式的消息 id
-                if (syncAfter) viewModelScope.launch { syncWithServer() }
+                // 服务端会保存已生成的部分，但这里拿不到正式 id：兜底拉一页历史
+                if (syncAfter) viewModelScope.launch { fallbackReloadMessages() }
+                if (startsNewSession) viewModelScope.launch { syncSessionsList() }
                 throw e
             } catch (e: Exception) {
                 failed = true
@@ -385,6 +397,8 @@ class ChatViewModel : ViewModel() {
                 current.copy(
                     messages = current.messages.mapNotNull { m ->
                         when {
+                            // 用户气泡：拿到正式 id 就直接替换（编辑、删除用它）
+                            m.id == userMessageId && serverUserId != null -> m.copy(id = serverUserId!!)
                             m.key != placeholder.key -> m
                             // 出错或空回复且一个字都没收到：撤掉占位气泡；已经有内容就保留
                             (failed || emptyReply) && m.text.isEmpty() -> null
@@ -396,8 +410,10 @@ class ChatViewModel : ViewModel() {
                     error = if (emptyReply) "没有收到回复，请重试" else current.error,
                 )
             }
-            userMessageId?.let { setDelivery(it, if (failed || emptyReply) DeliveryStatus.FAILED else DeliveryStatus.SENT) }
-            if (syncAfter) syncWithServer()
+            userMessageId?.let { setDelivery(serverUserId ?: it, if (failed || emptyReply) DeliveryStatus.FAILED else DeliveryStatus.SENT) }
+            // 正常路径靠 done 帧里的正式 id，不再每轮拉历史；只有缺 id（失败、没有 done 帧、空回复）时兜底拉一页
+            if (syncAfter && (failed || serverId == null)) fallbackReloadMessages()
+            if (startsNewSession) syncSessionsList()
         }
     }
 
@@ -632,24 +648,29 @@ class ChatViewModel : ViewModel() {
         }
     }
 
-    /**
-     * 发送结束后与服务端对齐：拿到正式的消息 id（编辑、删除要用），并刷新会话列表（updatedAt、新会话）。
-     * 正在发送时不替换消息列表，避免盖掉还在流式输出的气泡；服务端不可达时保留现状。
-     */
-    private suspend fun syncWithServer() {
+    /** 从服务端同步会话列表（新会话、updatedAt、别的设备上的改动），并刷新界面里的列表。 */
+    private suspend fun syncSessionsList() {
         repository.syncSessionsFromServer()
         val sessionId = repository.currentSessionId()
-        val page = runCatching { loadHistory() }.getOrNull() ?: return
         val sessions = withContext(Dispatchers.IO) { repository.sessions() }
+        _uiState.update { it.copy(sessionId = sessionId, sessions = sessions) }
+    }
+
+    /**
+     * 兜底：只在拿不到正式消息 id 时（失败、没有 done 帧、空回复、停止）拉一页最新历史。
+     * 正在发送时不替换消息列表，避免盖掉还在流式输出的气泡；服务端不可达时保留现状。
+     */
+    private suspend fun fallbackReloadMessages() {
+        val page = runCatching { loadHistory() }.getOrNull() ?: return
+        val sessionId = repository.currentSessionId()
         _uiState.update { cur ->
             if (cur.sending) {
-                cur.copy(sessionId = sessionId, sessions = sessions)
+                cur.copy(sessionId = sessionId)
             } else {
                 cur.copy(
                     messages = page.messages,
                     hasMoreHistory = page.hasMore,
                     sessionId = sessionId,
-                    sessions = sessions,
                 )
             }
         }

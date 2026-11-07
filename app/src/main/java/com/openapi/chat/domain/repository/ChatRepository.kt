@@ -39,6 +39,8 @@ interface ChatRepository {
      * @param characterId 人设 id（setting_character 表），0 或 null 表示不指定
      * @param roleId 角色目录里的角色 id；非空时服务端优先用它
      * @param persistUserMessage 为 false 时不在本地缓存用户消息（已经缓存过的重发场景）
+     * @param clientMessageId 客户端消息 id。重发（失败后重试）时传原来的 id，服务端据此去重；
+     *   为 null 时由实现生成新的 id。
      */
     fun sendMessageStream(
         sessionId: Long,
@@ -46,6 +48,7 @@ interface ChatRepository {
         characterId: Int?,
         roleId: String? = null,
         persistUserMessage: Boolean = true,
+        clientMessageId: String? = null,
     ): Flow<ChatStreamEvent>
 
     /**
@@ -140,8 +143,8 @@ interface ChatRepository {
     suspend fun renameSession(sessionId: Long, name: String): ChatSession?
 
     /**
-     * 删除会话（服务端 + 本地缓存）。至少保留一个会话，只剩一个时返回 false；
-     * 删的是当前会话时，切到剩下的第一个。
+     * 删除会话（服务端 + 本地缓存）。允许删空；服务端 `/sessions.json` 会在没有会话时自动新建一个。
+     * 删的是当前会话时，切到剩下的第一个（没有则为 0）。
      */
     suspend fun deleteSession(sessionId: Long): Boolean
 
