@@ -35,4 +35,6 @@
     <string name="chatkit_release_to_text">松手转文字</string>
     <string name="chatkit_cancel_short">取消</string>
     <string name="chatkit_to_text">转文字</string>
+    <string name="chatkit_editing_banner">编辑消息</string>
+    <string name="chatkit_cancel_edit">取消编辑</string>
 </resources>

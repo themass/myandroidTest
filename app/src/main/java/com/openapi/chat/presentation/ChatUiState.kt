@@ -9,6 +9,8 @@ import com.openapi.roles.domain.SelectedRole
 data class ChatUiState(
     val messages: List<ChatMessage> = emptyList(),
     val input: String = "",
+    /** 正在编辑的用户消息 id；发送时替换它并删掉它之后的所有消息。 */
+    val editingMessageId: String? = null,
     val sending: Boolean = false,
     /** 助手回复正在流式输出（可以点停止）。 */
     val streaming: Boolean = false,

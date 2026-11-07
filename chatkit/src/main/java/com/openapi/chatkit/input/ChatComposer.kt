@@ -20,11 +20,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.outlined.AddCircleOutline
 import androidx.compose.material.icons.outlined.Mic
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -88,6 +90,7 @@ fun ChatComposer(
     onVoiceStop: () -> Unit,
     onVoiceCancel: () -> Unit,
     onVoiceToText: () -> Unit = {},
+    onCancelEdit: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val colors = ChatKit.colors
@@ -122,6 +125,28 @@ fun ChatComposer(
             // 输入栏上方的提示区
             if (state.transcribing) {
                 Hint(text = stringResource(R.string.chatkit_transcribing), emphasized = true)
+            }
+            // 编辑提示条：在输入卡片上方，× 退出编辑
+            if (state.editing) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        stringResource(R.string.chatkit_editing_banner),
+                        modifier = Modifier.weight(1f),
+                        fontSize = ChatKit.typography.secondary,
+                        color = colors.secondaryText,
+                    )
+                    IconButton(onClick = onCancelEdit, modifier = Modifier.size(32.dp)) {
+                        Icon(
+                            Icons.Filled.Close,
+                            contentDescription = stringResource(R.string.chatkit_cancel_edit),
+                            tint = colors.secondaryText,
+                            modifier = Modifier.size(16.dp),
+                        )
+                    }
+                }
             }
 
             Box(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 12.dp)) {

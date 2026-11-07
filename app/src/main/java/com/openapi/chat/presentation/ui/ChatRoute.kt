@@ -136,6 +136,7 @@ fun ChatRoute(
             onSend = viewModel::onSend,
             onStop = viewModel::onStopGenerating,
             onRemoveDraft = viewModel::onRemoveDraft,
+            onCancelEdit = viewModel::onCancelEdit,
             onVoiceRecordStart = {
                 if (PermissionStates.isGranted(context, Manifest.permission.RECORD_AUDIO)) {
                     viewModel.onVoiceRecordStart(context, liveTranscript = voiceStyle == VoiceStyle.Ripple)

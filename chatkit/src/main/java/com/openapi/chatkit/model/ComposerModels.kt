@@ -40,6 +40,8 @@ data class ComposerState(
     val sending: Boolean = false,
     /** 助手正在流式输出：右侧按钮变成「停止」。 */
     val generating: Boolean = false,
+    /** 当前正在编辑一条用户消息：输入栏上方显示「编辑消息」提示条。 */
+    val editing: Boolean = false,
     val recording: Boolean = false,
     /** 录音结束、等待识别结果。 */
     val transcribing: Boolean = false,

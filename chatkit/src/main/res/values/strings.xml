@@ -35,4 +35,6 @@
     <string name="chatkit_release_to_text">Release to convert to text</string>
     <string name="chatkit_cancel_short">Cancel</string>
     <string name="chatkit_to_text">To text</string>
+    <string name="chatkit_editing_banner">Editing message</string>
+    <string name="chatkit_cancel_edit">Cancel edit</string>
 </resources>

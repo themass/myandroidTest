@@ -233,6 +233,8 @@ class ChatViewModel : ViewModel() {
         val text = state.input.trim()
         val drafts = state.drafts
         _uiState.update { it.copy(input = "", drafts = emptyList()) }
+        // 编辑态发送：替换被编辑的那条，并删掉它之后的所有消息
+        state.editingMessageId?.let { truncateFromMessage(it) }
         if (drafts.isEmpty()) {
             sendText(text)
             return
@@ -505,10 +507,27 @@ class ChatViewModel : ViewModel() {
         }
     }
 
-    /** 编辑：把用户消息的文字放回输入框。 */
+    /** 编辑：把用户消息的文字放回输入框，输入栏上方出现「编辑消息」提示条。发送时替换这条并删掉之后的消息。 */
     fun onEditMessage(messageId: String) {
         val message = _uiState.value.messages.firstOrNull { it.id == messageId } ?: return
-        _uiState.update { it.copy(input = message.text) }
+        _uiState.update { it.copy(input = message.text, editingMessageId = messageId) }
+    }
+
+    /** 退出编辑：清空输入框，原消息不动。 */
+    fun onCancelEdit() {
+        _uiState.update { it.copy(input = "", editingMessageId = null) }
+    }
+
+    /** 编辑后发送：从 [messageId] 这条开始（含）删掉所有消息，本地和数据库都删。 */
+    private fun truncateFromMessage(messageId: String) {
+        val messages = _uiState.value.messages
+        val index = messages.indexOfFirst { it.id == messageId }
+        if (index < 0) return
+        val removedIds = messages.subList(index, messages.size).map { it.id }
+        _uiState.update { it.copy(messages = messages.take(index), editingMessageId = null) }
+        viewModelScope.launch {
+            removedIds.forEach { id -> runCatching { deleteMessage(id) } }
+        }
     }
 
     /** 点赞切换，返回切换后是否为「已赞」。点赞会取消点踩。 */
