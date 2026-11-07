@@ -5,67 +5,89 @@ import com.openapi.chat.domain.model.ChatMessage
 import com.openapi.chat.domain.model.ChatReply
 import com.openapi.chat.domain.model.ChatSession
 import com.openapi.chat.domain.model.ChatStreamEvent
+import com.openapi.chat.domain.model.HistoryPage
 import com.openapi.chat.domain.model.MessageKind
 import kotlinx.coroutines.flow.Flow
 
 /**
  * 对话数据入口。
  *
- * 实现放在 data 层，负责：
- * - 远端：`/chat/stream.json`（SSE 流式，见 docs/agent-and-media-roadmap.md 的对话契约；
- *   这是协议的第一个实现方，未来 Python agent-runtime 实现同一份契约时本接口不用改）
- * - 本地：Room 的 ChatLog 表（经 AppDatabase；旧 greenDAO 库不再读取，升级后聊天记录从空开始）
+ * 会话、消息的权威数据都在服务端（`/api/chat/...`，设计见服务端 docs/chat-history-server.md）：
+ * - 会话 id、消息 id 都是服务端分配的；本地不再生成会话 id；
+ * - 历史从服务端按页拉取（[loadHistoryPage]），本地 Room 只是离线缓存，服务端不可达时才读它；
+ * - 发送时不上传历史，只带 sessionId + 当轮 text。
  *
- * domain 层只认 [ChatMessage]/[ChatStreamEvent]，看不到协议细节。
+ * 实现放在 data 层。domain 层只认 [ChatMessage]/[ChatStreamEvent]，看不到协议细节。
  */
 interface ChatRepository {
 
-    /** 读取当前会话的历史消息，按时间正序。 */
-    suspend fun loadHistory(sessionId: Long): List<ChatMessage>
+    /**
+     * 拉取一页历史（按时间正序）。
+     *
+     * @param beforeId 为 null 时取最新一页；否则取 id 小于它的更早一页
+     * @return 服务端不可达时回退到本地缓存（只对最新一页有意义，此时 hasMore 为 false）
+     */
+    suspend fun loadHistoryPage(sessionId: Long, beforeId: Long? = null, limit: Int = 30): HistoryPage
 
     /**
      * 发送一条用户消息，流式接收助理回复。
      *
-     * 实现需要：持久化用户消息 → 组装历史 → 发起流式请求 → 逐段 emit [ChatStreamEvent.Delta]
-     * → 收到 [ChatStreamEvent.Done] 时把完整回复持久化。调用方（ViewModel）通过
-     * [kotlinx.coroutines.flow.Flow] 的取消机制控制生命周期：Flow 被取消时实现必须
-     * 释放底层连接，不能让 SSE 连接悬挂。
+     * 请求只带 sessionId（0 表示新建会话）、text、客户端消息 id，以及人设（characterId/roleId，有则带）。
+     * 流里每一帧都带 sessionId：会话是新建的话，这里会把新 id 写进本地“当前会话”。
+     * Flow 被取消时实现必须释放底层连接。
      *
-     * @param characterId 人设 id（setting_character 表），0 或 null 表示不指定，用后端默认人设
-     * @param roleId 角色目录（/api/roles/v1）里的角色 id；非空时服务端优先用它，
-     *   查不到再回退 [characterId]。老服务端不认识这个字段，会直接忽略。
+     * @param characterId 人设 id（setting_character 表），0 或 null 表示不指定
+     * @param roleId 角色目录里的角色 id；非空时服务端优先用它
+     * @param persistUserMessage 为 false 时不在本地缓存用户消息（已经缓存过的重发场景）
      */
     fun sendMessageStream(
         sessionId: Long,
         userText: String,
         characterId: Int?,
         roleId: String? = null,
-        /** 为 false 时不保存用户消息：组合消息、语音转写在发送前已经单独保存过。 */
         persistUserMessage: Boolean = true,
     ): Flow<ChatStreamEvent>
 
-    /** 当前会话 id，来自 SP（Constants.CHAT_SESSION）。 */
+    /**
+     * 重新生成：服务端删掉最后一条用户消息之后的助手回复，再重新回答。
+     * 请求不带 text，只带 sessionId、regenerate=true 和人设。
+     */
+    fun regenerateStream(
+        sessionId: Long,
+        characterId: Int?,
+        roleId: String?,
+    ): Flow<ChatStreamEvent>
+
+    /**
+     * 编辑一条用户消息。服务端会删掉这条之后的所有消息。
+     * [messageId] 必须是服务端消息 id（数字）；调用成功后，调用方应再调用 [regenerateStream] 重新回答。
+     *
+     * @return 成功返回 true；失败（网络、非用户消息、消息不存在等）返回 false
+     */
+    suspend fun editMessage(sessionId: Long, messageId: String, text: String): Boolean
+
+    /**
+     * 删除一条消息。成功后再删除本地缓存。
+     * [messageId] 必须是服务端消息 id；失败返回 false，本地保留该消息。
+     */
+    suspend fun deleteMessage(sessionId: Long, messageId: String): Boolean
+
+    /** 当前会话 id，来自 SP（Constants.CHAT_SESSION）。0 表示还没有会话。 */
     fun currentSessionId(): Long
 
     /** 可选人设列表（`/user/setting/character.json`）。 */
     suspend fun loadCharacters(): List<ChatCharacterOption>
 
-    /** 当前选中的人设 id，持久化在本地（替代老版本直接存 content 字符串的做法）。 */
+    /** 当前选中的人设 id，持久化在本地。 */
     fun selectedCharacterId(): Int?
 
     fun setSelectedCharacterId(characterId: Int?)
 
-    /** 持久化一条本地消息（语音、图片、文件等）。 */
+    /** 持久化一条本地消息到离线缓存（语音、图片、文件等，以及助手回复）。 */
     suspend fun saveMessage(
         sessionId: Long,
         message: ChatMessage,
     )
-
-    /**
-     * 从本地删除一条消息（按消息 id）。只删本机记录，服务端没有对应的删除接口，
-     * 所以服务器上的聊天记录不受影响。
-     */
-    suspend fun deleteMessage(messageId: String)
 
     /**
      * 上传一个图片或文件附件，等待大模型的回复。
@@ -102,21 +124,31 @@ interface ChatRepository {
     /** 删除自己的自定义角色；失败返回 false。 */
     suspend fun deleteCharacter(characterId: Int): Boolean
 
-    /** 会话列表：默认会话在前，其余按创建顺序。 */
+    /** 本地缓存的会话列表，按服务端 updatedAt 倒序。 */
     fun sessions(): List<ChatSession>
 
     /** 切换当前会话（写入 SP，之后的历史和发送都以它为准）。 */
     fun setCurrentSessionId(sessionId: Long)
 
-    /** 新建会话。名称为空或已存在返回 null，不静默覆盖同名会话。 */
+    /**
+     * 在服务端新建会话并写入本地缓存。名称为空或与已有会话重名返回 null（不调用服务端）。
+     * 服务端失败也返回 null。
+     */
     suspend fun createSession(name: String): ChatSession?
 
+    /** 服务端重命名会话；成功返回更新后的会话，失败返回 null。 */
+    suspend fun renameSession(sessionId: Long, name: String): ChatSession?
+
     /**
-     * 删除会话。至少保留一个会话，只剩一个时返回 false；删的是当前会话时，切到剩下的第一个。
+     * 删除会话（服务端 + 本地缓存）。至少保留一个会话，只剩一个时返回 false；
+     * 删的是当前会话时，切到剩下的第一个。
      */
     suspend fun deleteSession(sessionId: Long): Boolean
 
-    /** 从服务端（`/chat/sessions.json`）同步会话列表到本地；失败静默，保留本地列表。 */
+    /**
+     * 从服务端（`/chat/sessions.json`）同步会话列表到本地缓存，整表替换。
+     * 当前会话不在列表里（比如已被删除或来自旧版本）时，切到列表第一个。
+     * 服务端不可达时静默保留本地缓存。
+     */
     suspend fun syncSessionsFromServer()
 }
-

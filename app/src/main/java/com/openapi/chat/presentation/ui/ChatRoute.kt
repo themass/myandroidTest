@@ -191,6 +191,9 @@ fun ChatRoute(
             onSessionSelected = viewModel::onSessionSelected,
             onCreateSession = viewModel::onCreateSession,
             onDeleteSession = viewModel::onDeleteSession,
+            onRenameSession = viewModel::onRenameSession,
+            onCancelEdit = viewModel::onCancelEdit,
+            onLoadOlder = viewModel::onLoadOlderMessages,
             onMenuClick = onMenuClick,
             modifier = modifier.safeDrawingPadding(),
         )

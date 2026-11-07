@@ -15,8 +15,6 @@ import android.widget.TextView;
 
 // 已移除 FireworkShow 类
 // import com.openapi.core.view.view.FireworkShow;
-import com.openapi.ks.myapp.bean.form.ChatSessionLog;
-import com.openapi.ks.myapp.data.db.AppDatabase;
 import com.openapi.ks.myapp.ui.base.app.LogActivity;
 import com.openapi.core.util.EventBusUtil;
 import com.openapi.core.util.LogUtil;
@@ -84,15 +82,8 @@ public class LaunchActivity extends LogActivity {
         mHandler.postDelayed(mStartMainRunnable, max);
         EventBusUtil.getEventBus().register(this);
         showAdview();
-        initChatSession();
 //        fireworkShow.startFireworkShow();
     }
-    private void initChatSession(){
-        // 默认会话的 id 约定为 0（见 ChatSessionLogDao.insertDefault 的说明）
-        AppDatabase.getInstance().chatSessionLogDao().insertDefault(
-                "Default", null, "", ChatSessionLog.TYPE.DEF.type);
-    }
-
     public void skip(View view) {
         if (getResources().getText(R.string.skip).equals(tvJishi.getText()))
             launch();

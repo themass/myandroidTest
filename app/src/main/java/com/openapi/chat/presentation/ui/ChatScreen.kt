@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -91,6 +92,9 @@ fun ChatScreen(
     onSessionSelected: (Long) -> Unit,
     onCreateSession: (String) -> Unit,
     onDeleteSession: (Long) -> Unit,
+    onRenameSession: (Long, String) -> Unit,
+    onCancelEdit: () -> Unit,
+    onLoadOlder: () -> Unit,
     onMenuClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
@@ -137,6 +141,19 @@ fun ChatScreen(
                 onMenuClick = onMenuClick,
             )
 
+            if (state.hasMoreHistory) {
+                TextButton(
+                    onClick = onLoadOlder,
+                    enabled = !state.loadingOlder,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        stringResource(if (state.loadingOlder) R.string.chat_loading_older else R.string.chat_load_older),
+                        color = AppColors.Primary,
+                    )
+                }
+            }
+
             ChatMessageList(
                 items = items,
                 modifier = Modifier.weight(1f).fillMaxWidth(),
@@ -173,6 +190,24 @@ fun ChatScreen(
                 },
             )
 
+            if (state.editingMessageId != null) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = AppSpacing.screenHorizontal),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        stringResource(R.string.chat_editing_hint),
+                        modifier = Modifier.weight(1f),
+                        color = AppColors.TextPrimary,
+                    )
+                    TextButton(onClick = onCancelEdit) {
+                        Text(stringResource(R.string.ui_cancel))
+                    }
+                }
+            }
+
             ChatComposer(
                 state = composerState.copy(voiceLevel = voiceLevel),
                 actions = composerActions,
@@ -208,6 +243,7 @@ fun ChatScreen(
             currentSessionId = state.sessionId,
             onSelect = onSessionSelected,
             onCreate = onCreateSession,
+            onRename = onRenameSession,
             onDelete = onDeleteSession,
             onDismiss = { onSessionsVisibleChange(false) },
         )

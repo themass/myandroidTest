@@ -35,6 +35,12 @@ data class ChatUiState(
     /** 会话列表，默认会话在前。 */
     val sessions: List<ChatSession> = emptyList(),
     val sessionsVisible: Boolean = false,
+    /** 正在编辑的用户消息 id（服务端 id）；非 null 时发送输入框内容会提交编辑。 */
+    val editingMessageId: String? = null,
+    /** 服务端还有更早的历史可以加载。 */
+    val hasMoreHistory: Boolean = false,
+    /** 正在加载更早的一页历史。 */
+    val loadingOlder: Boolean = false,
 ) {
     val canSend: Boolean get() = (input.isNotBlank() || drafts.isNotEmpty()) && !sending
 

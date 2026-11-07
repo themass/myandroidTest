@@ -8,6 +8,7 @@ import com.openapi.chat.domain.model.ChatMessage
 import com.openapi.chat.domain.model.FileAttachment
 import com.openapi.chat.domain.model.ImageAttachment
 import com.openapi.chat.domain.model.ChatRole
+import com.openapi.chat.domain.model.HistoryPage
 import com.openapi.chat.domain.model.ChatStreamEvent
 import com.openapi.chat.domain.model.DeliveryStatus
 import com.openapi.chat.domain.model.MessageKind
@@ -45,23 +46,27 @@ class ChatViewModel : ViewModel() {
     val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
 
     init {
-        refresh()
         loadCharacters()
+        // 会话和历史都以服务端为准：先同步会话列表（会决定当前会话），再拉最新一页历史
         viewModelScope.launch {
             repository.syncSessionsFromServer()
-            reloadSessions()
+            refresh()
         }
     }
 
+    /** 重新加载当前会话：服务端最新一页历史 + 会话列表（服务端不可达时回退到本地缓存）。 */
     fun refresh() {
         viewModelScope.launch {
             _uiState.update { it.copy(loading = true, error = null) }
-            val history = runCatching { loadHistory() }.getOrElse { emptyList() }
+            val page = runCatching { loadHistory() }.getOrElse { HistoryPage(emptyList(), hasMore = false) }
             val sessionId = repository.currentSessionId()
             val sessions = withContext(Dispatchers.IO) { repository.sessions() }
             _uiState.update {
                 it.copy(
-                    messages = history,
+                    messages = page.messages,
+                    hasMoreHistory = page.hasMore,
+                    loadingOlder = false,
+                    editingMessageId = null,
                     loading = false,
                     sessionId = sessionId,
                     // 每个会话记住自己的角色；没选过的会话沿用最近一次选的角色
@@ -98,7 +103,7 @@ class ChatViewModel : ViewModel() {
         viewModelScope.launch {
             val created = withContext(Dispatchers.IO) { repository.createSession(name) }
             if (created == null) {
-                _uiState.update { it.copy(error = "会话名称不能为空，也不能与已有会话重名") }
+                _uiState.update { it.copy(error = "创建失败：名称不能为空、不能与已有会话重名，或网络异常") }
                 return@launch
             }
             repository.setCurrentSessionId(created.id)
@@ -116,6 +121,18 @@ class ChatViewModel : ViewModel() {
                 return@launch
             }
             refresh()
+        }
+    }
+
+    /** 重命名会话（服务端）；成功后刷新会话列表。 */
+    fun onRenameSession(sessionId: Long, name: String) {
+        viewModelScope.launch {
+            val renamed = repository.renameSession(sessionId, name)
+            if (renamed == null) {
+                _uiState.update { it.copy(error = "重命名失败：名称不能为空，或网络异常") }
+                return@launch
+            }
+            reloadSessions()
         }
     }
 
@@ -232,6 +249,12 @@ class ChatViewModel : ViewModel() {
         if (!state.canSend) return
         val text = state.input.trim()
         val drafts = state.drafts
+        // 正在编辑一条用户消息：提交的是编辑，而不是新消息（附件草稿不参与编辑）
+        val editingId = state.editingMessageId
+        if (editingId != null && drafts.isEmpty()) {
+            submitEdit(editingId, text)
+            return
+        }
         _uiState.update { it.copy(input = "", drafts = emptyList()) }
         if (drafts.isEmpty()) {
             sendText(text)
@@ -285,7 +308,13 @@ class ChatViewModel : ViewModel() {
      * 网络收到的文字先放进缓冲区，由一个固定节拍（[REVEAL_TICK_MS]）匀速释放到气泡里，
      * 积压越多释放越快，所以网络一次来一大块也不会整段突然出现。
      */
-    private fun streamReply(text: String, userMessageId: String?, persistUser: Boolean) {
+    private fun streamReply(
+        text: String?,
+        userMessageId: String?,
+        persistUser: Boolean,
+        regenerate: Boolean = false,
+        syncAfter: Boolean = true,
+    ) {
         val state = _uiState.value
         val placeholder = newPlaceholder()
         _uiState.update { it.copy(messages = it.messages + placeholder, sending = true, streaming = true, error = null) }
@@ -313,8 +342,12 @@ class ChatViewModel : ViewModel() {
             }
 
             try {
-                sendMessage(text, state.selectedCharacterId, state.selectedRole?.id, persistUser)
-                    .collect { event ->
+                val events = if (regenerate) {
+                    repository.regenerateStream(repository.currentSessionId(), state.selectedCharacterId, state.selectedRole?.id)
+                } else {
+                    sendMessage(text.orEmpty(), state.selectedCharacterId, state.selectedRole?.id, persistUser)
+                }
+                events.collect { event ->
                         when (event) {
                             is ChatStreamEvent.Delta -> buffer.append(event.text)
                             is ChatStreamEvent.Done -> {
@@ -335,6 +368,8 @@ class ChatViewModel : ViewModel() {
                 }
                 _uiState.update { it.copy(sending = false, streaming = false) }
                 userMessageId?.let { setDelivery(it, DeliveryStatus.SENT) }
+                // 服务端会保存已生成的部分，拉一次拿到正式的消息 id
+                if (syncAfter) viewModelScope.launch { syncWithServer() }
                 throw e
             } catch (e: Exception) {
                 failed = true
@@ -362,6 +397,7 @@ class ChatViewModel : ViewModel() {
                 )
             }
             userMessageId?.let { setDelivery(it, if (failed || emptyReply) DeliveryStatus.FAILED else DeliveryStatus.SENT) }
+            if (syncAfter) syncWithServer()
         }
     }
 
@@ -458,7 +494,8 @@ class ChatViewModel : ViewModel() {
                 )
             }
         }
-        if (message.text.isNotBlank()) streamReply(message.text, userMessageId = null, persistUser = false)
+        // 附件不在对话历史接口里，这里不再从服务端整页刷新，否则附件气泡会被冲掉
+        if (message.text.isNotBlank()) streamReply(message.text, userMessageId = null, persistUser = false, syncAfter = false)
     }
 
     private fun newPlaceholder(): ChatMessage {
@@ -490,25 +527,132 @@ class ChatViewModel : ViewModel() {
         }
     }
 
-    /** 重新生成：删掉这条助手回复，用它前面那条用户消息重新问一次。 */
+    /**
+     * 重新生成：与服务端一致，去掉最后一条用户消息之后的所有助手回复，然后重新回答最后一条用户消息。
+     * 只对最后一轮有意义；[assistantId] 仅用于定位，实际删除范围由最后一条用户消息决定。
+     */
     fun onRegenerate(assistantId: String) {
         val state = _uiState.value
         if (state.sending) return
-        val index = state.messages.indexOfFirst { it.id == assistantId }
-        if (index < 0) return
-        val user = state.messages.subList(0, index).lastOrNull { it.role == ChatRole.USER } ?: return
-        _uiState.update { it.copy(messages = it.messages.filterNot { m -> m.id == assistantId }) }
-        viewModelScope.launch { runCatching { deleteMessage(assistantId) } }
-        when {
-            user.text.isNotBlank() -> streamReply(user.text, userMessageId = null, persistUser = false)
-            user.images.isNotEmpty() || user.files.isNotEmpty() -> viewModelScope.launch { deliverAttachments(user) }
+        val lastUserIndex = state.messages.indexOfLast { it.role == ChatRole.USER }
+        if (lastUserIndex < 0) return
+        val lastUser = state.messages[lastUserIndex]
+        _uiState.update { it.copy(messages = state.messages.subList(0, lastUserIndex + 1).toList()) }
+        if (lastUser.images.isNotEmpty() || lastUser.files.isNotEmpty()) {
+            // 带附件的消息不走 regenerate（附件不在服务端历史里），按原样重新上传
+            viewModelScope.launch { deliverAttachments(lastUser) }
+        } else {
+            streamReply(text = null, userMessageId = null, persistUser = false, regenerate = true)
         }
     }
 
-    /** 编辑：把用户消息的文字放回输入框。 */
+    /** 进入编辑：把用户消息的文字放回输入框，发送时提交为编辑（而不是新消息）。 */
     fun onEditMessage(messageId: String) {
         val message = _uiState.value.messages.firstOrNull { it.id == messageId } ?: return
-        _uiState.update { it.copy(input = message.text) }
+        if (message.role != ChatRole.USER || message.images.isNotEmpty() || message.files.isNotEmpty()) return
+        _uiState.update { it.copy(input = message.text, editingMessageId = messageId) }
+    }
+
+    /** 取消编辑：清空输入框并退出编辑状态。 */
+    fun onCancelEdit() {
+        _uiState.update { it.copy(input = "", editingMessageId = null) }
+    }
+
+    /**
+     * 提交编辑：服务端改写这条用户消息，并删除它之后的所有消息；本地同步丢弃后续气泡，
+     * 然后用 regenerate 重新回答。
+     */
+    private fun submitEdit(messageId: String, text: String) {
+        val state = _uiState.value
+        val index = state.messages.indexOfFirst { it.id == messageId }
+        if (index < 0) {
+            _uiState.update { it.copy(editingMessageId = null) }
+            return
+        }
+        if (messageId.toLongOrNull() == null) {
+            _uiState.update { it.copy(error = "这条消息还没同步到服务端，稍后再编辑") }
+            return
+        }
+        val edited = state.messages[index].copy(text = text)
+        _uiState.update {
+            it.copy(
+                messages = state.messages.subList(0, index).toList() + edited,
+                input = "",
+                editingMessageId = null,
+                error = null,
+            )
+        }
+        viewModelScope.launch {
+            val ok = repository.editMessage(state.sessionId, messageId, text)
+            if (!ok) {
+                _uiState.update { it.copy(error = "编辑失败，请稍后重试") }
+                refresh()
+                return@launch
+            }
+            streamReply(text = null, userMessageId = null, persistUser = false, regenerate = true)
+        }
+    }
+
+    /** 删除一条消息：服务端删除成功后再从界面移除；只存在于本地的附件气泡直接移除。 */
+    fun onDeleteMessage(messageId: String) {
+        viewModelScope.launch {
+            if (messageId.toLongOrNull() == null) {
+                _uiState.update { it.copy(messages = it.messages.filterNot { m -> m.id == messageId }) }
+                return@launch
+            }
+            val ok = deleteMessage(messageId)
+            if (ok) {
+                _uiState.update { it.copy(messages = it.messages.filterNot { m -> m.id == messageId }) }
+            } else {
+                _uiState.update { it.copy(error = "删除失败，请稍后重试") }
+            }
+        }
+    }
+
+    /** 加载更早的一页历史（按最早一条的服务端 id 作为 beforeId）。 */
+    fun onLoadOlderMessages() {
+        val state = _uiState.value
+        if (!state.hasMoreHistory || state.loadingOlder || state.sending) return
+        val oldestId = state.messages.mapNotNull { it.id.toLongOrNull() }.minOrNull() ?: return
+        _uiState.update { it.copy(loadingOlder = true) }
+        viewModelScope.launch {
+            val page = runCatching { loadHistory(beforeId = oldestId) }.getOrNull()
+            _uiState.update { cur ->
+                if (page == null) {
+                    cur.copy(loadingOlder = false, error = "加载更早的消息失败，请稍后重试")
+                } else {
+                    val known = page.messages.map { it.id }.toSet()
+                    cur.copy(
+                        messages = page.messages + cur.messages.filterNot { it.id in known },
+                        hasMoreHistory = page.hasMore,
+                        loadingOlder = false,
+                    )
+                }
+            }
+        }
+    }
+
+    /**
+     * 发送结束后与服务端对齐：拿到正式的消息 id（编辑、删除要用），并刷新会话列表（updatedAt、新会话）。
+     * 正在发送时不替换消息列表，避免盖掉还在流式输出的气泡；服务端不可达时保留现状。
+     */
+    private suspend fun syncWithServer() {
+        repository.syncSessionsFromServer()
+        val sessionId = repository.currentSessionId()
+        val page = runCatching { loadHistory() }.getOrNull() ?: return
+        val sessions = withContext(Dispatchers.IO) { repository.sessions() }
+        _uiState.update { cur ->
+            if (cur.sending) {
+                cur.copy(sessionId = sessionId, sessions = sessions)
+            } else {
+                cur.copy(
+                    messages = page.messages,
+                    hasMoreHistory = page.hasMore,
+                    sessionId = sessionId,
+                    sessions = sessions,
+                )
+            }
+        }
     }
 
     /** 点赞切换，返回切换后是否为「已赞」。点赞会取消点踩。 */
@@ -564,14 +708,6 @@ class ChatViewModel : ViewModel() {
                 }
                 addDraft(MessageKind.IMAGE, staged)
             }
-        }
-    }
-
-    /** 删除一条消息：只从本机移除（服务端没有删除接口）。 */
-    fun onDeleteMessage(messageId: String) {
-        _uiState.update { it.copy(messages = it.messages.filterNot { m -> m.id == messageId }) }
-        viewModelScope.launch {
-            runCatching { deleteMessage(messageId) }
         }
     }
 

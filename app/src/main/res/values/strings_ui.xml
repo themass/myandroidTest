@@ -27,6 +27,9 @@
     <string name="chat_role_name">角色名称</string>
     <string name="chat_role_persona">人设描述（会作为对话的提示词）</string>
     <string name="chat_session_name_hint">给这个对话起个名字</string>
+    <string name="chat_load_older">加载更早的消息</string>
+    <string name="chat_loading_older">正在加载…</string>
+    <string name="chat_editing_hint">正在编辑这条消息，发送即可重新回答</string>
     <string name="chat_session_untitled">未命名对话</string>
     <string name="chat_sessions_desc">对话列表</string>
     <string name="chat_sessions_title">对话</string>
@@ -86,6 +89,7 @@
     <string name="ui_edit_role">编辑角色</string>
     <string name="ui_new_role">新建角色</string>
     <string name="ui_new_session">新建对话</string>
+    <string name="ui_rename">重命名</string>
     <string name="ui_reselect">重新选择</string>
     <string name="ui_retry">重试</string>
     <string name="ui_save">保存</string>

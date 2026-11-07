@@ -175,6 +175,13 @@ public class Constants {
     public static final String CHAT_URL = "/chat/nostream.json";
     public static final String TRANSWORD_URL = "/chat/transword.json";
     public static final String CHAT_SESSION_URL = "/chat/sessions.json";
+    /** 会话与消息由服务端持有（见服务端 docs/chat-history-server.md 第 5 节）。 */
+    public static final String CHAT_SESSION_CREATE_URL = "/chat/session/create.json";
+    public static final String CHAT_SESSION_RENAME_URL = "/chat/session/rename.json";
+    public static final String CHAT_SESSION_DELETE_URL = "/chat/session/delete.json";
+    public static final String CHAT_MESSAGES_URL = "/chat/messages.json";
+    public static final String CHAT_MESSAGE_DELETE_URL = "/chat/message/delete.json";
+    public static final String CHAT_MESSAGE_EDIT_URL = "/chat/message/edit.json";
     public static final String CHAT_IMAGE_URL = "/chat/ai/recognize.json";
     public static final String CHAT_QUESTION_URL = "/chat/ai/local/ocr.json";
     public static final String CHAT_FILE_URL = "/chat/ai/local/file.json";

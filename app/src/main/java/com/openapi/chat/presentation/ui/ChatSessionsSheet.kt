@@ -39,7 +39,7 @@ import com.openapi.core.design.theme.AppSpacing
 import com.openapi.core.design.theme.AppTypography
 
 /**
- * 会话列表（底部弹层）：切换、新建、删除。
+ * 会话列表（底部弹层）：切换、新建、重命名、删除。
  *
  * 替代旧的 ChatSessionFragment：数据来自 [ChatSession] 列表，操作交给调用方（ViewModel）。
  * 至少保留一个会话，只剩一个时不显示删除。
@@ -51,10 +51,12 @@ fun ChatSessionsSheet(
     currentSessionId: Long,
     onSelect: (Long) -> Unit,
     onCreate: (String) -> Unit,
+    onRename: (Long, String) -> Unit,
     onDelete: (Long) -> Unit,
     onDismiss: () -> Unit,
 ) {
     var creating by remember { mutableStateOf(false) }
+    var renaming by remember { mutableStateOf<ChatSession?>(null) }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -87,6 +89,7 @@ fun ChatSessionsSheet(
                         current = session.id == currentSessionId,
                         canDelete = sessions.size > 1,
                         onSelect = { onSelect(session.id) },
+                        onRename = { renaming = session },
                         onDelete = { onDelete(session.id) },
                     )
                 }
@@ -95,12 +98,26 @@ fun ChatSessionsSheet(
     }
 
     if (creating) {
-        NewSessionDialog(
+        SessionNameDialog(
+            title = stringResource(R.string.ui_new_session),
+            initialName = "",
             onConfirm = { name ->
                 creating = false
                 onCreate(name)
             },
             onDismiss = { creating = false },
+        )
+    }
+
+    renaming?.let { session ->
+        SessionNameDialog(
+            title = stringResource(R.string.ui_rename),
+            initialName = session.name,
+            onConfirm = { name ->
+                renaming = null
+                onRename(session.id, name)
+            },
+            onDismiss = { renaming = null },
         )
     }
 }
@@ -111,6 +128,7 @@ private fun SessionRow(
     current: Boolean,
     canDelete: Boolean,
     onSelect: () -> Unit,
+    onRename: () -> Unit,
     onDelete: () -> Unit,
 ) {
     Row(
@@ -132,6 +150,9 @@ private fun SessionRow(
         if (current) {
             Icon(Icons.Filled.Check, contentDescription = stringResource(R.string.ui_current_session), tint = AppColors.Primary)
         }
+        TextButton(onClick = onRename) {
+            Text(stringResource(R.string.ui_rename), color = AppColors.Primary)
+        }
         if (canDelete && !session.isDefault) {
             Spacer(Modifier.width(AppSpacing.sm))
             TextButton(onClick = onDelete) {
@@ -142,14 +163,16 @@ private fun SessionRow(
 }
 
 @Composable
-private fun NewSessionDialog(
+private fun SessionNameDialog(
+    title: String,
+    initialName: String,
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    var name by remember { mutableStateOf("") }
+    var name by remember { mutableStateOf(initialName) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.ui_new_session)) },
+        title = { Text(title) },
         text = {
             OutlinedTextField(
                 value = name,
