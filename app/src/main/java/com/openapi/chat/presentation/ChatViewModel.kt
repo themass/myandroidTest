@@ -507,21 +507,58 @@ class ChatViewModel : ViewModel() {
     // 只保留语音气泡不转写，和之前的降级行为一致。
     // ------------------------------------------------------------------
 
+    private var liveAsr: com.openapi.ks.myapp.translation.realtime.VolcengineStreamingAsrClient? = null
+
     fun onVoiceRecordStart(context: android.content.Context) {
         if (_uiState.value.recording) return
         val started = VoiceRecorder.start(context)
-        _uiState.update { it.copy(recording = started) }
+        _uiState.update { it.copy(recording = started, partialText = "") }
+        if (started && com.openapi.chat.presentation.ui.VoiceStyle.load(context) == com.openapi.chat.presentation.ui.VoiceStyle.RIPPLE) {
+            startLiveTranscript(context)
+        }
+    }
+
+    /**
+     * 样式 B：录音的同时把 PCM 送给火山流式识别，识别出的文字实时显示在输入栏上方。
+     * 最终发送的文字仍然以松手后的后端识别结果为准。
+     */
+    private fun startLiveTranscript(context: android.content.Context) {
+        val config = com.openapi.ks.myapp.translation.realtime.VolcengineAsrConfig.load(context)
+        val client = com.openapi.ks.myapp.translation.realtime.VolcengineStreamingAsrClient(config)
+        liveAsr = client
+        client.connect(object : com.openapi.ks.myapp.translation.realtime.VolcengineStreamingAsrClient.Listener {
+            override fun onReady() = Unit
+            override fun onPartialText(text: String) {
+                _uiState.update { it.copy(partialText = text) }
+            }
+            override fun onFailure(message: String) {
+                liveAsr = null
+            }
+            override fun onClosed() = Unit
+        })
+        VoiceRecorder.pcmListener = { buffer, length ->
+            // 录音线程会复用 buffer，发送前先拷贝一份
+            client.sendPcm(buffer.copyOf(length), 0, length, false)
+        }
+    }
+
+    private fun stopLiveTranscript() {
+        VoiceRecorder.pcmListener = null
+        liveAsr?.finish()
+        liveAsr = null
     }
 
     /** 上滑取消手势触发；丢弃本次录音，不生成消息。 */
     fun onVoiceRecordCancel() {
+        stopLiveTranscript()
         VoiceRecorder.cancel()
-        _uiState.update { it.copy(recording = false) }
+        _uiState.update { it.copy(recording = false, partialText = "") }
     }
 
     fun onVoiceRecordStop() {
         if (!_uiState.value.recording) return
-        _uiState.update { it.copy(recording = false) }
+        stopLiveTranscript()
+        _uiState.update { it.copy(recording = false, partialText = "") }
         viewModelScope.launch {
             val result = withContext(Dispatchers.IO) { VoiceRecorder.stop() } ?: return@launch
             val message = ChatMessage(

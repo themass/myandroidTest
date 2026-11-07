@@ -19,6 +19,8 @@ data class ChatUiState(
     val selectedRole: SelectedRole? = null,
     val rolePickerVisible: Boolean = false,
     val recording: Boolean = false,
+    /** 录音中实时识别出的文字（仅语音样式 B 使用）。 */
+    val partialText: String = "",
     /** 语音已录完、正在等 ASR 结果。 */
     val transcribing: Boolean = false,
     /** 正在播放朗读的那条助手消息 id。 */

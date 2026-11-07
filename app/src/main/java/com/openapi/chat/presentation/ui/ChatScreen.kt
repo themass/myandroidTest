@@ -79,6 +79,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.heightIn
@@ -237,6 +240,7 @@ fun ChatScreen(
         ChatInputBar(
             text = state.input,
             drafts = state.drafts,
+            partialText = state.partialText,
             onRemoveDraft = onRemoveDraft,
             canSend = state.canSend,
             recording = state.recording,
@@ -690,11 +694,12 @@ private fun MessageText(message: ChatMessage) {
 }
 
 /**
- * 输入栏，参照微信的布局：
+ * 输入栏，参照微信的布局。语音按钮的三种样式见 [VoiceStyle]，长按语音按钮可以切换。
  * - 左侧：语音 / 键盘切换。语音模式下中间是「按住说话」条，文字模式下是输入框。
- * - 右侧：表情；有文字或有附件草稿时「+」变成发送按钮，否则是「+」（附件面板，展开后旋转成 ×）。
- * - 上方：附件草稿托盘，图片显示缩略图，文件显示名称，点 × 可移除。
+ * - 右侧：表情；有文字或有附件草稿时「+」变成发送按钮，否则是「+」（展开后旋转成 ×）。
+ * - 上方：草稿托盘、样式 B 的实时识别文字、样式 A 的录音浮层。
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ChatInputBar(
     text: String,
@@ -702,6 +707,7 @@ private fun ChatInputBar(
     canSend: Boolean,
     recording: Boolean,
     transcribing: Boolean,
+    partialText: String,
     onTextChange: (String) -> Unit,
     onSend: () -> Unit,
     onRemoveDraft: (String) -> Unit,
@@ -711,11 +717,14 @@ private fun ChatInputBar(
     onPickImage: () -> Unit,
     onPickFile: () -> Unit,
 ) {
+    val context = LocalContext.current
     var showEmoji by remember { mutableStateOf(false) }
     var showAttach by remember { mutableStateOf(false) }
     var voiceMode by remember { mutableStateOf(false) }
     var inputFocused by remember { mutableStateOf(false) }
     var canceling by remember { mutableStateOf(false) }
+    var style by remember { mutableIntStateOf(VoiceStyle.load(context)) }
+    val history = rememberVoiceLevelHistory(recording)
     val hasText = text.isNotBlank()
     val canSubmit = canSend || drafts.isNotEmpty()
     val plusRotation by animateFloatAsState(targetValue = if (showAttach) 45f else 0f, label = "plus-rotation")
@@ -725,8 +734,18 @@ private fun ChatInputBar(
     )
 
     Column {
-        if (recording) {
-            RecordingBanner(canceling = canceling)
+        if (partialText.isNotBlank() && recording && style == VoiceStyle.RIPPLE) {
+            // 样式 B：录音时实时显示识别出的文字
+            Surface(color = AppColors.Surface) {
+                Text(
+                    partialText,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                    fontSize = AppTypography.bodyLarge,
+                    color = Color.Black,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
         } else if (transcribing) {
             // ASR 是远端服务，几秒内不一定回来；没有这行提示用户会以为按了没反应。
             Surface(color = AppColors.Primary.copy(alpha = 0.08f)) {
@@ -745,18 +764,39 @@ private fun ChatInputBar(
                 if (drafts.isNotEmpty()) {
                     DraftTray(drafts = drafts, onRemove = onRemoveDraft)
                 }
+                if (voiceMode && recording && style == VoiceStyle.FLOATING) {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        VoiceFloatingPanel(canceling = canceling, history = history)
+                    }
+                }
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 6.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    // 语音 / 键盘切换：和微信一样放在最左边
-                    IconButton(
-                        onClick = {
-                            voiceMode = !voiceMode
-                            showAttach = false
-                            showEmoji = false
-                        },
-                        modifier = Modifier.size(40.dp),
+                    // 语音 / 键盘切换：单击切换模式，长按切换语音样式（A / B / C）
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .combinedClickable(
+                                onClick = {
+                                    voiceMode = !voiceMode
+                                    showAttach = false
+                                    showEmoji = false
+                                },
+                                onLongClick = {
+                                    style = VoiceStyle.cycle(context)
+                                    Toast.makeText(
+                                        context,
+                                        context.getString(VoiceStyle.labelRes(style)),
+                                        Toast.LENGTH_SHORT,
+                                    ).show()
+                                },
+                            ),
+                        contentAlignment = Alignment.Center,
                     ) {
                         Icon(
                             if (voiceMode) Icons.Filled.Keyboard else Icons.Filled.Mic,
@@ -769,14 +809,17 @@ private fun ChatInputBar(
                     if (voiceMode) {
                         VoicePressBar(
                             modifier = Modifier.weight(1f),
+                            style = style,
                             recording = recording,
+                            canceling = canceling,
+                            onCancelingChange = { canceling = it },
                             onStart = onVoicePressStart,
                             onStop = onVoicePressStop,
                             onCancel = {
                                 canceling = false
                                 onVoicePressCancel()
                             },
-                            onCancelingChange = { canceling = it },
+                            history = history,
                         )
                     } else {
                         Surface(
@@ -941,21 +984,6 @@ private fun DraftTray(drafts: List<DraftAttachment>, onRemove: (String) -> Unit)
                 }
             }
         }
-    }
-}
-
-/** 录音中的提示条：上滑到取消区域时变成红色「取消」文案。 */
-@Composable
-private fun RecordingBanner(canceling: Boolean) {
-    val color = if (canceling) AppColors.Error else AppColors.Warning
-    Surface(color = color.copy(alpha = 0.12f)) {
-        Text(
-            stringResource(if (canceling) R.string.chat_release_to_cancel else R.string.chat_release_to_send),
-            modifier = Modifier.fillMaxWidth().padding(8.dp),
-            textAlign = TextAlign.Center,
-            fontSize = 13.sp,
-            color = color,
-        )
     }
 }
 

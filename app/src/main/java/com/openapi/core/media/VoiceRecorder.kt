@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.media.AudioFormat
 import android.media.AudioRecord
+import kotlinx.coroutines.flow.MutableStateFlow
 import android.media.MediaRecorder
 import java.io.File
 import java.io.FileOutputStream
@@ -28,6 +29,12 @@ object VoiceRecorder {
 
     private var recorder: AudioRecord? = null
     private var worker: Thread? = null
+
+    /** 当前录音音量 0..1，录音线程每读一块数据更新一次，给声波动画用。 */
+    val level = MutableStateFlow(0f)
+
+    /** 实时识别用：每读到一块 PCM 回调一次（在录音线程上），回调里不要阻塞。 */
+    @Volatile var pcmListener: ((ByteArray, Int) -> Unit)? = null
     @Volatile private var running = false
     private var outputFile: File? = null
     private var startedAtMillis: Long = 0L
@@ -66,7 +73,11 @@ object VoiceRecorder {
                         val buffer = ByteArray(minBuffer)
                         while (running) {
                             val read = audio.read(buffer, 0, buffer.size)
-                            if (read > 0) out.write(buffer, 0, read)
+                            if (read > 0) {
+                                out.write(buffer, 0, read)
+                                level.value = rmsLevel(buffer, read)
+                                pcmListener?.invoke(buffer, read)
+                            }
                         }
                     }
                 }.also { it.start() }
@@ -111,6 +122,8 @@ object VoiceRecorder {
     }
 
     private fun releaseCapture() {
+        level.value = 0f
+        pcmListener = null
         running = false
         worker?.let { runCatching { it.join(2000) } }
         worker = null
@@ -119,6 +132,22 @@ object VoiceRecorder {
             it.release()
         }
         recorder = null
+    }
+
+    /** 16-bit 小端 PCM 的 RMS，放大后归一化到 0..1；人声通常在 0.02~0.2 之间，所以乘 4。 */
+    private fun rmsLevel(buffer: ByteArray, length: Int): Float {
+        var sum = 0.0
+        var n = 0
+        var i = 0
+        while (i + 1 < length) {
+            val sample = ((buffer[i + 1].toInt() shl 8) or (buffer[i].toInt() and 0xFF)).toShort().toInt()
+            sum += sample.toDouble() * sample
+            n++
+            i += 2
+        }
+        if (n == 0) return 0f
+        val rms = Math.sqrt(sum / n) / 32768.0
+        return (rms * 4.0).coerceIn(0.0, 1.0).toFloat()
     }
 
     private fun writeHeader(file: File) {

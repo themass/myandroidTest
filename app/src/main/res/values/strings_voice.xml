@@ -3,4 +3,8 @@
     <string name="chat_release_to_send">Release to send, slide up to cancel</string>
     <string name="chat_release_to_cancel">Release to cancel</string>
     <string name="chat_open_file_failed">Can\'t open this file</string>
+    <string name="chat_slide_left_cancel">← Slide left to cancel</string>
+    <string name="chat_voice_style_floating">Voice style A: floating panel</string>
+    <string name="chat_voice_style_ripple">Voice style B: ripple and live text</string>
+    <string name="chat_voice_style_bar">Voice style C: recording bar</string>
 </resources>
