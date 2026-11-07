@@ -33,6 +33,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -50,11 +53,11 @@ import com.openapi.chatkit.model.Sender
 import com.openapi.chatkit.theme.ChatKit
 
 /**
- * 消息列表：新消息或流式增量到达时自动滚到底部。
+ * 消息列表：新消息或流式增量到达时自动滚到底部。长按消息弹出操作菜单（见 [MessageMenu]）。
  *
- * @param avatar 头像插槽，由调用方提供（组件库不知道角色和用户头像从哪来）
+ * @param avatar 头像插槽，可选；App 不再传（消息不显示头像）
  * @param text 文字渲染插槽，默认纯文本；助手消息可以传 Markdown 渲染
- * @param onAction 所有消息操作的唯一入口
+ * @param onAction 所有消息操作的唯一入口（长按菜单里的操作也走这里）
  * @param emptyContent 列表为空时显示的内容
  */
 @Composable
@@ -65,12 +68,13 @@ fun ChatMessageList(
     state: LazyListState = rememberLazyListState(),
     avatar: @Composable (ChatItem) -> Unit = {},
     text: @Composable (ChatItem, String) -> Unit = { _, value -> DefaultMessageText(value) },
-    onLongPress: (ChatItem) -> Unit = {},
     emptyContent: @Composable () -> Unit = {},
 ) {
     val latestAssistantId = items.lastOrNull { it.sender == Sender.Assistant && !it.thinking }?.id
     val last = items.lastOrNull()
     val scope = rememberCoroutineScope()
+    // 当前打开的长按菜单：哪条消息、锚在哪个位置
+    var menu by remember { mutableStateOf<MenuTarget?>(null) }
 
     // 是否跟随最新内容：只由用户的滑动决定。用户停下来时如果在底部就跟随，往上翻了就不再抢滚动。
     // 内容增长（流式）本身不会改变这个状态，所以不会出现「刚长高一点就被判定为不在底部」。
@@ -108,11 +112,22 @@ fun ChatMessageList(
                     avatar = avatar,
                     text = text,
                     onAction = { action -> onAction(item, action) },
-                    onLongPress = { onLongPress(item) },
+                    onLongPress = { anchor -> menu = MenuTarget(item, anchor) },
                 )
             }
         }
         if (items.isEmpty()) emptyContent()
+        menu?.let { target ->
+            MessageMenu(
+                anchor = target.anchor,
+                items = menuItemsFor(target.item),
+                onSelect = { action ->
+                    menu = null
+                    onAction(target.item, action)
+                },
+                onDismiss = { menu = null },
+            )
+        }
         if (!following && items.isNotEmpty()) {
             ScrollToBottomChip(
                 modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 12.dp),
@@ -125,6 +140,46 @@ fun ChatMessageList(
                 },
             )
         }
+    }
+}
+
+/** 长按菜单的目标：哪条消息，以及它在窗口里的位置（菜单锚在它上方或下方）。 */
+private data class MenuTarget(val item: ChatItem, val anchor: Rect)
+
+/**
+ * 长按菜单的菜单项（按消息类型）：
+ * - 语音：复制（有转写时）、朗读（播放原声）、删除
+ * - 用户：重试（发送失败时）、复制、编辑、删除
+ * - 助手：复制、朗读、删除
+ */
+@Composable
+private fun menuItemsFor(item: ChatItem): List<MenuItem> {
+    val hasText = item.plainText.isNotBlank()
+    val hasVoice = item.parts.any { it is MessagePart.Voice }
+    val isUser = item.sender == Sender.User
+    return buildList {
+        when {
+            hasVoice -> {
+                if (hasText) add(MenuItem(androidx.compose.ui.res.stringResource(com.openapi.chatkit.R.string.chatkit_copy), MessageAction.Copy))
+                add(MenuItem(androidx.compose.ui.res.stringResource(com.openapi.chatkit.R.string.chatkit_speak), MessageAction.PlayVoice))
+            }
+            isUser -> {
+                if (item.status == SendStatus.Failed) {
+                    add(MenuItem(androidx.compose.ui.res.stringResource(com.openapi.chatkit.R.string.chatkit_retry), MessageAction.Retry))
+                }
+                if (hasText) {
+                    add(MenuItem(androidx.compose.ui.res.stringResource(com.openapi.chatkit.R.string.chatkit_copy), MessageAction.Copy))
+                    add(MenuItem(androidx.compose.ui.res.stringResource(com.openapi.chatkit.R.string.chatkit_edit), MessageAction.Edit))
+                }
+            }
+            else -> {
+                if (hasText) {
+                    add(MenuItem(androidx.compose.ui.res.stringResource(com.openapi.chatkit.R.string.chatkit_copy), MessageAction.Copy))
+                    add(MenuItem(androidx.compose.ui.res.stringResource(com.openapi.chatkit.R.string.chatkit_speak), MessageAction.Speak))
+                }
+            }
+        }
+        add(MenuItem(androidx.compose.ui.res.stringResource(com.openapi.chatkit.R.string.chatkit_delete), MessageAction.Delete))
     }
 }
 
@@ -152,8 +207,8 @@ private fun ScrollToBottomChip(modifier: Modifier, onClick: () -> Unit) {
 }
 
 /**
- * 一条消息：头像 + 内容 + footer。用户消息靠右（头像在右），助手消息靠左（头像在左）。
- * footer 与内容同侧对齐：用户 footer 贴着气泡右缘，助手 footer 从头像右侧开始。
+ * 一条消息：内容 + footer（助手）。用户消息靠右，助手消息靠左；不显示头像。
+ * 长按时把这一行在窗口里的位置交给 [onLongPress]，由列表弹出菜单。
  */
 @Composable
 fun ChatMessageItem(
@@ -162,25 +217,24 @@ fun ChatMessageItem(
     avatar: @Composable (ChatItem) -> Unit,
     text: @Composable (ChatItem, String) -> Unit,
     onAction: (MessageAction) -> Unit,
-    onLongPress: () -> Unit,
+    onLongPress: (Rect) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val dimens = ChatKit.dimens
     val isUser = item.sender == Sender.User
     val maxWidth = (LocalConfiguration.current.screenWidthDp * dimens.maxContentFraction).dp
-    // 整行可用宽度：屏宽减去两侧留白和头像区
-    val footerMaxWidth = LocalConfiguration.current.screenWidthDp.dp - dimens.listHorizontalPadding * 2 - dimens.avatarSize - dimens.avatarGap
-    val showFooter = if (isUser) item.status != SendStatus.Sending else !item.thinking
+    // 整行可用宽度：屏宽减去两侧留白
+    val footerMaxWidth = LocalConfiguration.current.screenWidthDp.dp - dimens.listHorizontalPadding * 2
+    var anchor by remember { mutableStateOf(Rect.Zero) }
 
     Row(
-        modifier = modifier.fillMaxWidth().padding(horizontal = dimens.listHorizontalPadding),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = dimens.listHorizontalPadding)
+            .onGloballyPositioned { anchor = it.boundsInWindow() },
         horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start,
         verticalAlignment = Alignment.Top,
     ) {
-        if (!isUser) {
-            Box(Modifier.size(dimens.avatarSize)) { avatar(item) }
-            Spacer(Modifier.width(dimens.avatarGap))
-        }
         Column(
             modifier = Modifier.weight(1f, fill = false),
             horizontalAlignment = if (isUser) Alignment.End else Alignment.Start,
@@ -200,17 +254,10 @@ fun ChatMessageItem(
                     maxWidth = if (assistantFooter != null) footerMaxWidth else maxWidth,
                     text = text,
                     onAction = onAction,
-                    onLongPress = onLongPress,
+                    onLongPress = { onLongPress(anchor) },
                     footer = assistantFooter,
                 )
             }
-            if (isUser && showFooter) {
-                MessageFooter(item = item, onAction = onAction)
-            }
-        }
-        if (isUser) {
-            Spacer(Modifier.width(dimens.avatarGap))
-            Box(Modifier.size(dimens.avatarSize)) { avatar(item) }
         }
     }
 }
@@ -226,7 +273,7 @@ internal fun MessageContent(
     text: @Composable (ChatItem, String) -> Unit,
     onAction: (MessageAction) -> Unit,
     onLongPress: () -> Unit,
-    /** 助手最新回复的 footer：放进最后一个文字气泡里面。 */
+    /** 助手回复的 footer：放进最后一个文字气泡里面。 */
     footer: (@Composable () -> Unit)? = null,
 ) {
     val sender = item.sender

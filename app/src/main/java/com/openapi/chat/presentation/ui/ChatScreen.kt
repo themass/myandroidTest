@@ -169,7 +169,6 @@ fun ChatScreen(
                         else -> onMessageAction(message, action)
                     }
                 },
-                onLongPress = { item -> byId[item.id]?.let { onMessageAction(it, MessageAction.Copy) } },
                 emptyContent = {
                     if (!state.loading) EmptyChat(identity = identity, onSuggestion = onInputChange)
                 },

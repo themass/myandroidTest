@@ -50,25 +50,6 @@ private val AssistantChipGap = 8.dp
 private val AssistantDividerColor = Color(0xFFDEDEDE)
 
 /**
- * 用户消息的发送状态图标（发送失败时的红色感叹号）。用户消息没有 footer，操作走长按菜单。
- */
-@Composable
-fun MessageFooter(
-    item: ChatItem,
-    onAction: (MessageAction) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    if (item.status != SendStatus.Failed) return
-    Row(modifier, verticalAlignment = Alignment.CenterVertically) {
-        FooterIcon(
-            icon = Icons.Outlined.Refresh,
-            description = stringResource(R.string.chatkit_retry),
-            tint = ChatKit.colors.error,
-        ) { onAction(MessageAction.Retry) }
-    }
-}
-
-/**
  * 助手每条已完成回复的 footer：放在气泡卡片内部，正文下面一条分割线，分割线下一排浅蓝芯片。
  * 复制、朗读、分享只在有文字时显示；赞、踩总是显示；「重新生成」只在最新一条回复上，靠右。
  */
