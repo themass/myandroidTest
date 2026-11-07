@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="chat_release_to_send">Release to send, slide up to cancel</string>
+    <string name="chat_release_to_cancel">Release to cancel</string>
+    <string name="chat_open_file_failed">Can\'t open this file</string>
+</resources>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="chat_release_to_send">松开发送，上滑取消</string>
+    <string name="chat_release_to_cancel">松开手指，取消发送</string>
+    <string name="chat_open_file_failed">无法打开此文件</string>
+</resources>

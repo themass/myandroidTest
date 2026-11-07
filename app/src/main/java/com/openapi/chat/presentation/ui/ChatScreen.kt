@@ -79,6 +79,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.SolidColor
@@ -554,11 +559,11 @@ private fun BubbleContent(message: ChatMessage, onVoiceClick: () -> Unit) {
             message.image?.let { ImageRow(path = it.path) }
             message.file?.let { FileRow(file = it) }
             message.voice?.let { voice ->
-                VoiceRow(
+                VoiceBubbleRow(
+                    messageId = message.id,
                     durationSeconds = voice.durationSeconds,
                     // 语音消息的文字就是转写，放在语音条下面，不重复渲染
                     transcript = message.text.takeIf { it.isNotBlank() },
-                    playing = false,
                     onClick = onVoiceClick,
                 )
             }
@@ -589,14 +594,6 @@ private fun MessageFooter(
         modifier = Modifier.padding(top = 2.dp, start = if (fromUser) 0.dp else 44.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (message.voice != null) {
-            FooterButton(
-                icon = Icons.Filled.PlayArrow,
-                description = stringResource(R.string.chat_play_voice_desc),
-                tint = IconTint,
-                onClick = onVoiceClick,
-            )
-        }
         if (canSpeak) {
             FooterButton(
                 icon = Icons.AutoMirrored.Filled.VolumeUp,
@@ -666,26 +663,6 @@ private fun PendingRow() {
     }
 }
 
-/** 语音条：播放按钮 + 时长，转写文字（若有）显示在下面。 */
-@Composable
-private fun VoiceRow(durationSeconds: Int, transcript: String?, playing: Boolean, onClick: () -> Unit) {
-    Column {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onClick, modifier = Modifier.size(32.dp)) {
-                Icon(
-                    if (playing) Icons.Filled.Stop else Icons.Filled.PlayArrow,
-                    contentDescription = if (playing) stringResource(R.string.chat_stop_playing_desc) else stringResource(R.string.chat_play_voice_desc),
-                    tint = AppColors.Primary,
-                )
-            }
-            Text("${durationSeconds}″", fontSize = AppTypography.bodyLarge, color = AppColors.TextPrimary)
-        }
-        if (transcript != null) {
-            Text(transcript, fontSize = AppTypography.caption, color = AppColors.TextSecondary)
-        }
-    }
-}
-
 @Composable
 private fun MessageText(message: ChatMessage) {
     // 仅 assistant 消息走 Markdown；用户输入按纯文本显示。流式增量时 Markdown 对未闭合语法是容错的。
@@ -701,41 +678,11 @@ private fun MessageText(message: ChatMessage) {
     }
 }
 
-/** 按住说话：按下开始录音，松开发送，上滑取消。 */
-@Composable
-private fun HoldToTalkButton(
-    recording: Boolean,
-    onStart: () -> Unit,
-    onStop: () -> Unit,
-    onCancel: () -> Unit,
-) {
-    Box(
-        modifier = Modifier
-            .size(40.dp)
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onPress = {
-                        onStart()
-                        val released = tryAwaitRelease()
-                        if (released) onStop() else onCancel()
-                    },
-                )
-            },
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(
-            Icons.Filled.Mic,
-            contentDescription = stringResource(R.string.chat_hold_to_talk_desc),
-            tint = if (recording) AppColors.Error else IconTint,
-        )
-    }
-}
-
 /**
- * 输入栏，参照豆包的布局：
- * - 没有输入文字时：左侧按住说话，中间输入胶囊，右侧「+」（附件）。
- * - 有输入文字时：左侧语音让位，右侧「+」换成发送按钮。
- * 表情入口放在输入胶囊内部右侧。
+ * 输入栏：
+ * - 没有文字：左侧按住说话（带扩散波纹），中间输入胶囊，右侧「+」。
+ * - 有文字：左侧语音让位，右侧「+」换成发送按钮。
+ * - 「+」展开附件面板时旋转成「×」；输入框获得焦点时收起表情和附件面板。
  */
 @Composable
 private fun ChatInputBar(
@@ -753,19 +700,22 @@ private fun ChatInputBar(
 ) {
     var showEmoji by remember { mutableStateOf(false) }
     var showAttach by remember { mutableStateOf(false) }
+    var inputFocused by remember { mutableStateOf(false) }
+    var canceling by remember { mutableStateOf(false) }
     val hasText = text.isNotBlank()
+    val plusRotation by animateFloatAsState(targetValue = if (showAttach) 45f else 0f, label = "plus-rotation")
+    val sendColor by animateColorAsState(
+        targetValue = if (canSend) AppColors.Primary else AppColors.Divider,
+        label = "send-color",
+    )
+    val pillBorder by animateColorAsState(
+        targetValue = if (inputFocused) AppColors.Primary.copy(alpha = 0.45f) else Color.Transparent,
+        label = "pill-border",
+    )
 
     Column {
         if (recording) {
-            Surface(color = AppColors.Warning.copy(alpha = 0.12f)) {
-                Text(
-                    stringResource(R.string.chat_recording_hint),
-                    modifier = Modifier.fillMaxWidth().padding(8.dp),
-                    textAlign = TextAlign.Center,
-                    fontSize = 13.sp,
-                    color = AppColors.Warning,
-                )
-            }
+            RecordingBanner(canceling = canceling)
         } else if (transcribing) {
             // ASR 是远端服务，几秒内不一定回来；没有这行提示用户会以为按了没反应。
             Surface(color = AppColors.Primary.copy(alpha = 0.08f)) {
@@ -785,11 +735,15 @@ private fun ChatInputBar(
                 verticalAlignment = Alignment.Bottom,
             ) {
                 if (!hasText) {
-                    HoldToTalkButton(
+                    VoiceHoldButton(
                         recording = recording,
                         onStart = onVoicePressStart,
                         onStop = onVoicePressStop,
-                        onCancel = onVoicePressCancel,
+                        onCancel = {
+                            canceling = false
+                            onVoicePressCancel()
+                        },
+                        onCancelingChange = { canceling = it },
                     )
                     Spacer(Modifier.width(4.dp))
                 }
@@ -798,6 +752,7 @@ private fun ChatInputBar(
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(22.dp),
                     color = AppColors.SurfaceVariant,
+                    border = BorderStroke(1.dp, pillBorder),
                 ) {
                     Row(
                         modifier = Modifier.padding(start = 16.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
@@ -810,7 +765,13 @@ private fun ChatInputBar(
                             BasicTextField(
                                 value = text,
                                 onValueChange = onTextChange,
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier.fillMaxWidth().onFocusChanged { state ->
+                                    inputFocused = state.isFocused
+                                    if (state.isFocused) {
+                                        showEmoji = false
+                                        showAttach = false
+                                    }
+                                },
                                 textStyle = TextStyle(fontSize = AppTypography.bodyLarge, color = AppColors.TextPrimary),
                                 cursorBrush = SolidColor(AppColors.Primary),
                                 maxLines = 5,
@@ -845,9 +806,7 @@ private fun ChatInputBar(
                     IconButton(
                         onClick = onSend,
                         enabled = canSend,
-                        modifier = Modifier
-                            .size(40.dp)
-                            .background(if (canSend) AppColors.Primary else AppColors.Divider, CircleShape),
+                        modifier = Modifier.size(40.dp).background(sendColor, CircleShape),
                     ) {
                         Icon(
                             Icons.AutoMirrored.Filled.Send,
@@ -865,6 +824,7 @@ private fun ChatInputBar(
                             Icons.Filled.Add,
                             contentDescription = stringResource(R.string.chat_more_desc),
                             tint = if (showAttach) AppColors.Primary else IconTint,
+                            modifier = Modifier.rotate(plusRotation),
                         )
                     }
                 }
@@ -880,6 +840,21 @@ private fun ChatInputBar(
         if (showEmoji) {
             EmojiPanel(onEmojiSelected = { onTextChange(text + it) })
         }
+    }
+}
+
+/** 录音中的提示条：上滑到取消区域时变成红色「取消」文案。 */
+@Composable
+private fun RecordingBanner(canceling: Boolean) {
+    val color = if (canceling) AppColors.Error else AppColors.Warning
+    Surface(color = color.copy(alpha = 0.12f)) {
+        Text(
+            stringResource(if (canceling) R.string.chat_release_to_cancel else R.string.chat_release_to_send),
+            modifier = Modifier.fillMaxWidth().padding(8.dp),
+            textAlign = TextAlign.Center,
+            fontSize = 13.sp,
+            color = color,
+        )
     }
 }
 
@@ -978,18 +953,36 @@ private fun AttachItem(
 
 @Composable
 private fun ImageRow(path: String) {
-    AndroidView(
-        modifier = Modifier.size(200.dp),
-        factory = { context ->
-            ImageView(context).apply { scaleType = ImageView.ScaleType.CENTER_CROP }
-        },
-        update = { view -> Glide.with(view.context).load(File(path)).into(view) },
-    )
+    var fullScreen by remember { mutableStateOf(false) }
+    Box(
+        modifier = Modifier
+            .size(200.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .clickable { fullScreen = true },
+    ) {
+        AndroidView(
+            modifier = Modifier.fillMaxSize(),
+            factory = { context ->
+                ImageView(context).apply { scaleType = ImageView.ScaleType.CENTER_CROP }
+            },
+            update = { view -> Glide.with(view.context).load(File(path)).into(view) },
+        )
+    }
+    if (fullScreen) {
+        FullScreenImageDialog(path = path, onDismiss = { fullScreen = false })
+    }
 }
 
 @Composable
 private fun FileRow(file: FileAttachment) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    val context = LocalContext.current
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(12.dp))
+            .clickable { openAttachment(context, file.path, file.name) }
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
         Image(
             painter = painterResource(fileIconRes(file.name)),
             contentDescription = null,
