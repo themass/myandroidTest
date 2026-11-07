@@ -2,7 +2,6 @@ package com.openapi.roles.data
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -18,7 +17,7 @@ class LocalRoleCatalogParserTest {
 
     @Test
     fun bundledFileParsesToEightLocalRoles() {
-        val catalog = assertNotNull(RolesParser.parseLocalCatalog(assetBody(), "zh"))
+        val catalog = requireNotNull(RolesParser.parseLocalCatalog(assetBody(), "zh"))
         assertEquals(8, catalog.roles.size)
         assertTrue(catalog.roles.all { it.local })
         assertTrue(catalog.roles.all { it.id.startsWith("agency-") })
@@ -28,8 +27,8 @@ class LocalRoleCatalogParserTest {
 
     @Test
     fun zhUsesChineseNamesAndEnglishFallsBackToSourceNames() {
-        val zh = assertNotNull(RolesParser.parseLocalCatalog(assetBody(), "zh")).roles
-        val en = assertNotNull(RolesParser.parseLocalCatalog(assetBody(), "en")).roles
+        val zh = requireNotNull(RolesParser.parseLocalCatalog(assetBody(), "zh")).roles
+        val en = requireNotNull(RolesParser.parseLocalCatalog(assetBody(), "en")).roles
         val zhById = zh.associateBy { it.id }
         val enById = en.associateBy { it.id }
         assertEquals("老人照护助手", zhById["agency-healthcare-aging-parent-care-companion"]!!.name)
@@ -38,7 +37,7 @@ class LocalRoleCatalogParserTest {
 
     @Test
     fun pageFiltersByDivisionQueryAndPaginates() {
-        val catalog = assertNotNull(RolesParser.parseLocalCatalog(assetBody(), "zh"))
+        val catalog = requireNotNull(RolesParser.parseLocalCatalog(assetBody(), "zh"))
         val career = catalog.page(division = "career", query = "", featuredOnly = false, limit = 30, offset = 0)
         assertEquals(3, career.total)
         assertEquals(3, career.items.size)
