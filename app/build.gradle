@@ -73,6 +73,15 @@ android {
         unitTests {
             // Robolectric 需要合并后的真实布局/清单，才能在 JVM 上启动页面做冒烟测试
             includeAndroidResources = true
+            all {
+                // JDK 17+ 下 Robolectric 要反射进 java.base，否则 AndroidInterceptors 报 IllegalAccessException
+                it.jvmArgs(
+                    '--add-opens=java.base/java.lang=ALL-UNNAMED',
+                    '--add-opens=java.base/java.util=ALL-UNNAMED',
+                    '--add-exports=java.base/jdk.internal.access=ALL-UNNAMED',
+                    '--add-opens=java.base/java.io=ALL-UNNAMED',
+                )
+            }
         }
     }
 
@@ -247,6 +256,8 @@ dependencies {
     debugImplementation libs.androidx.compose.ui.tooling
     implementation libs.androidx.activity.compose
     implementation libs.androidx.lifecycle.viewmodel.compose
+    // LiveKit 房间连接：陪伴的文字与主动消息都走这条通道（见 companion/LiveKitCompanionTransport.kt）。
+    implementation 'io.livekit:livekit-android:2.29.0'
     implementation libs.androidx.lifecycle.runtime.compose
 
     // 相机预览与拍照
