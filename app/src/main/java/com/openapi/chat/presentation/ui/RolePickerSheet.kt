@@ -62,7 +62,13 @@ private const val DEFAULT_EMOJI = "🤖"
 private val PrimaryArgb: Long = AppColors.Primary.toArgb().toLong() and 0xFFFFFFFFL
 
 /** 当前对话的"助手"是谁：头部、空状态、助手气泡旁的头像都从这里取，保证三处一致。 */
-internal data class AssistantIdentity(val name: String, val emoji: String, val colorArgb: Long)
+internal data class AssistantIdentity(
+    val name: String,
+    val emoji: String,
+    val colorArgb: Long,
+    /** 默认助手使用旧版头像图；选了角色后为 null，显示角色自己的 emoji。 */
+    val avatarRes: Int? = null,
+)
 
 @Composable
 internal fun ChatUiState.assistantIdentity(): AssistantIdentity {
@@ -73,6 +79,7 @@ internal fun ChatUiState.assistantIdentity(): AssistantIdentity {
         name = role?.name ?: character?.title ?: defaultName,
         emoji = role?.emoji ?: character?.title?.take(1) ?: DEFAULT_EMOJI,
         colorArgb = role?.colorArgb ?: PrimaryArgb,
+        avatarRes = if (role == null && character == null) R.drawable.ai_chat_1 else null,
     )
 }
 
@@ -112,7 +119,7 @@ fun RoleHeader(
                     )
                 }
             }
-            RoleAvatar(emoji = emoji, colorArgb = color, size = 36)
+            RoleAvatar(emoji = emoji, colorArgb = color, size = 36, imageRes = identity.avatarRes)
             Spacer(Modifier.width(AppSpacing.md))
             Column(Modifier.weight(1f)) {
                 Text(

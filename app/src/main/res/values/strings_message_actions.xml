@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="chat_like_desc">Like</string>
+    <string name="chat_dislike_desc">Dislike</string>
+    <string name="chat_feedback_title">Feedback</string>
+</resources>

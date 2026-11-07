@@ -83,6 +83,10 @@ fun ChatRoute(
             onVoiceRecordCancel = viewModel::onVoiceRecordCancel,
             onSpeakMessage = viewModel::onSpeakMessage,
             onDeleteMessage = viewModel::onDeleteMessage,
+            onLikeMessage = { message, _ -> com.openapi.chat.data.ChatMessageActions.toggleLike(context, message.id) },
+            onFeedbackMessage = { message, text ->
+                com.openapi.chat.data.ChatMessageActions.sendFeedback(context, message.id, text)
+            },
             onCallClick = {
                 android.widget.Toast.makeText(context, context.getString(R.string.chat_call_soon), android.widget.Toast.LENGTH_SHORT).show()
             },

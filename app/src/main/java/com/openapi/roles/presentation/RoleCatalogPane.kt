@@ -230,7 +230,14 @@ private fun RoleRow(
 
 /** emoji 头像：圆形，底色是角色颜色的淡化版，保证 emoji 在任何颜色上都看得清。 */
 @Composable
-fun RoleAvatar(emoji: String, colorArgb: Long, size: Int, modifier: Modifier = Modifier) {
+fun RoleAvatar(
+    emoji: String,
+    colorArgb: Long,
+    size: Int,
+    modifier: Modifier = Modifier,
+    /** 非空时直接显示这张图（默认助手用旧版头像），否则显示 emoji。 */
+    imageRes: Int? = null,
+) {
     Box(
         modifier = modifier
             .size(size.dp)
@@ -238,11 +245,20 @@ fun RoleAvatar(emoji: String, colorArgb: Long, size: Int, modifier: Modifier = M
             .background(Color(colorArgb).copy(alpha = 0.18f)),
         contentAlignment = Alignment.Center,
     ) {
-        Text(
-            text = emoji.ifBlank { "🤖" },
-            fontSize = (size * 0.5f).sp,
-            fontWeight = FontWeight.Normal,
-        )
+        if (imageRes != null) {
+            androidx.compose.foundation.Image(
+                painter = androidx.compose.ui.res.painterResource(imageRes),
+                contentDescription = null,
+                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                modifier = Modifier.size(size.dp),
+            )
+        } else {
+            Text(
+                text = emoji.ifBlank { "🤖" },
+                fontSize = (size * 0.5f).sp,
+                fontWeight = FontWeight.Normal,
+            )
+        }
     }
 }
 

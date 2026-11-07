@@ -79,6 +79,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -120,6 +125,10 @@ fun ChatScreen(
     onSpeakMessage: (ChatMessage) -> Unit = {},
     /** 长按菜单里的删除：参数是消息 id，只删本机记录。 */
     onDeleteMessage: (String) -> Unit = {},
+    /** 点赞（true）或取消点赞（false），由 ChatRoute 写入本地收藏。 */
+    onLikeMessage: (ChatMessage, Boolean) -> Unit = { _, _ -> },
+    /** 点踩后提交的反馈文字。 */
+    onFeedbackMessage: (ChatMessage, String) -> Unit = { _, _ -> },
     onVoiceRecordStart: () -> Unit,
     onVoiceRecordStop: () -> Unit,
     onVoiceRecordCancel: () -> Unit,
@@ -138,6 +147,9 @@ fun ChatScreen(
     modifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
+    var likedIds by remember { mutableStateOf(setOf<String>()) }
+    var dislikedIds by remember { mutableStateOf(setOf<String>()) }
+    var feedbackTarget by remember { mutableStateOf<ChatMessage?>(null) }
     // 长按气泡弹出的操作菜单，以及等待确认的删除目标
     var actionMessage by remember { mutableStateOf<ChatMessage?>(null) }
     var deleteTarget by remember { mutableStateOf<ChatMessage?>(null) }
@@ -177,8 +189,18 @@ fun ChatScreen(
                         message = message,
                         identity = identity,
                         speaking = message.id == state.speakingMessageId,
+                        liked = message.id in likedIds,
+                        disliked = message.id in dislikedIds,
                         onVoiceClick = { onVoiceClick(message) },
                         onSpeakClick = { onSpeakMessage(message) },
+                        onLikeClick = {
+                            val now = message.id !in likedIds
+                            likedIds = if (now) likedIds + message.id else likedIds - message.id
+                            onLikeMessage(message, now)
+                        },
+                        onDislikeClick = { feedbackTarget = message },
+                        onCopyClick = { copyMessageText(context, message.text) },
+                        onDeleteClick = { deleteTarget = message },
                         onLongPress = { if (!message.pending) actionMessage = message },
                     )
                 }
@@ -250,6 +272,17 @@ fun ChatScreen(
                 actionMessage = null
             },
             onDismiss = { actionMessage = null },
+        )
+    }
+
+    feedbackTarget?.let { message ->
+        FeedbackDialog(
+            onDismiss = { feedbackTarget = null },
+            onSubmit = { text ->
+                onFeedbackMessage(message, text)
+                dislikedIds = dislikedIds + message.id
+                feedbackTarget = null
+            },
         )
     }
 
@@ -414,74 +447,210 @@ private fun EmptyChat(identity: AssistantIdentity, onSuggestion: (String) -> Uni
 }
 
 @Composable
+private fun AssistantAvatar(identity: AssistantIdentity) {
+    val res = identity.avatarRes
+    if (res != null) {
+        Image(
+            painter = painterResource(res),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.size(36.dp).clip(CircleShape),
+        )
+    } else {
+        RoleAvatar(emoji = identity.emoji, colorArgb = identity.colorArgb, size = 36)
+    }
+}
+
+@Composable
+private fun UserAvatar() {
+    Image(
+        painter = painterResource(R.drawable.ic_default_nan),
+        contentDescription = null,
+        contentScale = ContentScale.Crop,
+        modifier = Modifier.size(36.dp).clip(CircleShape),
+    )
+}
+
+/**
+ * 一条消息的气泡 + 底部操作栏（footer）。
+ *
+ * 气泡内容按顺序堆叠：图片、文件、语音、文字，一条消息可以是任意组合（如「图片 + 文字」「语音 + 文字」）。
+ * footer 与旧版 MyIncomingAudioFooterView 对齐：语音播放、朗读、点赞、点踩（弹反馈框）、复制、删除。
+ */
+@Composable
 private fun MessageBubble(
     message: ChatMessage,
     identity: AssistantIdentity,
     speaking: Boolean,
+    liked: Boolean,
+    disliked: Boolean,
     onVoiceClick: () -> Unit,
     onSpeakClick: () -> Unit,
+    onLikeClick: () -> Unit,
+    onDislikeClick: () -> Unit,
+    onCopyClick: () -> Unit,
+    onDeleteClick: () -> Unit,
     onLongPress: () -> Unit,
 ) {
     val fromUser = message.role == ChatRole.USER
-    // 气泡最宽占屏幕的 75%（除去助手头像），而不是写死 280dp：大屏和折叠屏上不会显得窄
+    // 气泡最宽占屏幕的 75%（除去头像），大屏和折叠屏上不会显得窄
     val maxBubbleWidth = (LocalConfiguration.current.screenWidthDp * AppShapes.BUBBLE_MAX_WIDTH_FRACTION).dp
-    Row(
+    Column(
         modifier = Modifier.fillMaxWidth().padding(horizontal = AppSpacing.md),
-        horizontalArrangement = if (fromUser) Arrangement.End else Arrangement.Start,
-        verticalAlignment = Alignment.Top,
+        horizontalAlignment = if (fromUser) Alignment.End else Alignment.Start,
     ) {
-        if (!fromUser) {
-            RoleAvatar(emoji = identity.emoji, colorArgb = identity.colorArgb, size = 32)
-            Spacer(Modifier.width(AppSpacing.sm))
-        }
-        Surface(
-            color = if (fromUser) OutgoingBubble else IncomingBubble,
-            shape = RoundedCornerShape(
-                topStart = AppShapes.bubble,
-                topEnd = AppShapes.bubble,
-                bottomStart = if (fromUser) AppShapes.bubble else AppSpacing.xs,
-                bottomEnd = if (fromUser) AppSpacing.xs else AppShapes.bubble,
-            ),
-            modifier = Modifier
-                .widthIn(max = maxBubbleWidth)
-                .pointerInput(message.id) { detectTapGestures(onLongPress = { onLongPress() }) },
-        ) {
-            Column(Modifier.padding(horizontal = AppShapes.bubblePaddingHorizontal, vertical = AppShapes.bubblePaddingVertical)) {
-                // 一条消息可以同时带图片、文件、语音和文字（例如「图片 + 文字」「语音 + 文字」），
-                // 所以按顺序堆叠各个部分，而不是只选一种。
-                val hasAttachment = message.image != null || message.file != null || message.voice != null
-                if (message.pending && message.text.isEmpty() && !hasAttachment) {
-                    // 还没收到任何增量文本时显示"正在思考"；一旦开始吐字就直接展示已收到的文字（打字机效果）
-                    PendingRow()
-                } else {
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        message.image?.let { ImageRow(path = it.path) }
-                        message.file?.let { FileRow(file = it) }
-                        message.voice?.let { voice ->
-                            VoiceRow(
-                                durationSeconds = voice.durationSeconds,
-                                transcript = message.text.takeIf { it.isNotBlank() },
-                                playing = false,
-                                onClick = onVoiceClick,
-                            )
-                        }
-                        // 语音消息的文字就是转写，已经在 VoiceRow 里显示，不再重复
-                        if (message.voice == null && message.text.isNotEmpty()) {
-                            MessageText(message)
-                        }
-                    }
-                }
-                if (!fromUser && !message.pending && message.text.isNotBlank() && message.voice == null) {
-                    IconButton(onClick = onSpeakClick, modifier = Modifier.size(28.dp)) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.VolumeUp,
-                            contentDescription = if (speaking) stringResource(R.string.chat_speaking_desc) else stringResource(R.string.chat_read_aloud_desc),
-                            tint = if (speaking) AppColors.Primary else IconTint,
-                        )
-                    }
-                }
+        Row(verticalAlignment = Alignment.Top) {
+            if (!fromUser) {
+                AssistantAvatar(identity)
+                Spacer(Modifier.width(AppSpacing.sm))
+            }
+            Surface(
+                color = if (fromUser) OutgoingBubble else IncomingBubble,
+                shape = RoundedCornerShape(
+                    topStart = AppShapes.bubble,
+                    topEnd = AppShapes.bubble,
+                    bottomStart = if (fromUser) AppShapes.bubble else AppSpacing.xs,
+                    bottomEnd = if (fromUser) AppSpacing.xs else AppShapes.bubble,
+                ),
+                modifier = Modifier
+                    .widthIn(max = maxBubbleWidth)
+                    .pointerInput(message.id) { detectTapGestures(onLongPress = { onLongPress() }) },
+            ) {
+                BubbleContent(message = message, onVoiceClick = onVoiceClick)
+            }
+            if (fromUser) {
+                Spacer(Modifier.width(AppSpacing.sm))
+                UserAvatar()
             }
         }
+        if (!message.pending) {
+            MessageFooter(
+                message = message,
+                fromUser = fromUser,
+                speaking = speaking,
+                liked = liked,
+                disliked = disliked,
+                onVoiceClick = onVoiceClick,
+                onSpeakClick = onSpeakClick,
+                onLikeClick = onLikeClick,
+                onDislikeClick = onDislikeClick,
+                onCopyClick = onCopyClick,
+                onDeleteClick = onDeleteClick,
+            )
+        }
+    }
+}
+
+@Composable
+private fun BubbleContent(message: ChatMessage, onVoiceClick: () -> Unit) {
+    val hasAttachment = message.image != null || message.file != null || message.voice != null
+    Column(Modifier.padding(horizontal = AppShapes.bubblePaddingHorizontal, vertical = AppShapes.bubblePaddingVertical)) {
+        // 还没收到任何内容时显示「正在思考」；一旦开始吐字就直接展示已收到的文字（打字机效果）
+        if (message.pending && message.text.isEmpty() && !hasAttachment) {
+            PendingRow()
+            return@Column
+        }
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            message.image?.let { ImageRow(path = it.path) }
+            message.file?.let { FileRow(file = it) }
+            message.voice?.let { voice ->
+                VoiceRow(
+                    durationSeconds = voice.durationSeconds,
+                    // 语音消息的文字就是转写，放在语音条下面，不重复渲染
+                    transcript = message.text.takeIf { it.isNotBlank() },
+                    playing = false,
+                    onClick = onVoiceClick,
+                )
+            }
+            if (message.voice == null && message.text.isNotEmpty()) {
+                MessageText(message)
+            }
+        }
+    }
+}
+
+@Composable
+private fun MessageFooter(
+    message: ChatMessage,
+    fromUser: Boolean,
+    speaking: Boolean,
+    liked: Boolean,
+    disliked: Boolean,
+    onVoiceClick: () -> Unit,
+    onSpeakClick: () -> Unit,
+    onLikeClick: () -> Unit,
+    onDislikeClick: () -> Unit,
+    onCopyClick: () -> Unit,
+    onDeleteClick: () -> Unit,
+) {
+    val canSpeak = !fromUser && message.text.isNotBlank() && message.voice == null
+    Row(
+        // 助手消息的 footer 与气泡文字对齐（头像宽度 + 间距）；用户消息靠右
+        modifier = Modifier.padding(top = 2.dp, start = if (fromUser) 0.dp else 44.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (message.voice != null) {
+            FooterButton(
+                icon = Icons.Filled.PlayArrow,
+                description = stringResource(R.string.chat_play_voice_desc),
+                tint = IconTint,
+                onClick = onVoiceClick,
+            )
+        }
+        if (canSpeak) {
+            FooterButton(
+                icon = Icons.AutoMirrored.Filled.VolumeUp,
+                description = stringResource(if (speaking) R.string.chat_speaking_desc else R.string.chat_read_aloud_desc),
+                tint = if (speaking) AppColors.Primary else IconTint,
+                onClick = onSpeakClick,
+            )
+        }
+        if (!fromUser) {
+            FooterImageButton(
+                resId = if (liked) R.drawable.src_assets_images_liked else R.drawable.src_assets_images_like,
+                description = stringResource(R.string.chat_like_desc),
+                onClick = onLikeClick,
+            )
+            FooterImageButton(
+                resId = if (disliked) R.drawable.src_assets_images_disliked else R.drawable.src_assets_images_dislike,
+                description = stringResource(R.string.chat_dislike_desc),
+                onClick = onDislikeClick,
+            )
+        }
+        if (message.text.isNotBlank()) {
+            FooterButton(
+                icon = Icons.Filled.ContentCopy,
+                description = stringResource(R.string.ui_copy),
+                tint = IconTint,
+                onClick = onCopyClick,
+            )
+        }
+        FooterButton(
+            icon = Icons.Filled.Delete,
+            description = stringResource(R.string.ui_delete),
+            tint = IconTint,
+            onClick = onDeleteClick,
+        )
+    }
+}
+
+@Composable
+private fun FooterButton(icon: ImageVector, description: String, tint: Color, onClick: () -> Unit) {
+    IconButton(onClick = onClick, modifier = Modifier.size(32.dp)) {
+        Icon(icon, contentDescription = description, tint = tint, modifier = Modifier.size(18.dp))
+    }
+}
+
+/** 点赞、点踩用的是旧版的彩色图标，保持原色不染成主题色。 */
+@Composable
+private fun FooterImageButton(resId: Int, description: String, onClick: () -> Unit) {
+    IconButton(onClick = onClick, modifier = Modifier.size(32.dp)) {
+        Icon(
+            painter = painterResource(resId),
+            contentDescription = description,
+            tint = Color.Unspecified,
+            modifier = Modifier.size(18.dp),
+        )
     }
 }
 
@@ -493,7 +662,7 @@ private fun PendingRow() {
             strokeWidth = 2.dp,
         )
         Spacer(Modifier.width(8.dp))
-        Text(stringResource(R.string.chat_thinking), fontSize = AppTypography.body, color = IconTint)
+        Text(stringResource(R.string.chat_thinking), fontSize = AppTypography.bodyLarge, color = IconTint)
     }
 }
 
@@ -509,7 +678,7 @@ private fun VoiceRow(durationSeconds: Int, transcript: String?, playing: Boolean
                     tint = AppColors.Primary,
                 )
             }
-            Text("${durationSeconds}″", fontSize = AppTypography.body, color = AppColors.TextPrimary)
+            Text("${durationSeconds}″", fontSize = AppTypography.bodyLarge, color = AppColors.TextPrimary)
         }
         if (transcript != null) {
             Text(transcript, fontSize = AppTypography.caption, color = AppColors.TextSecondary)
@@ -517,25 +686,57 @@ private fun VoiceRow(durationSeconds: Int, transcript: String?, playing: Boolean
     }
 }
 
-
 @Composable
 private fun MessageText(message: ChatMessage) {
-    // 仅 assistant 消息走 Markdown：用户自己输入的内容按纯文本显示更符合预期。
-    // 流式增量过程中文本不是完整 Markdown（比如代码块只打了一半），Markwon 对不完整
-    // 语法是容错的（按纯文本渲染未闭合部分），不会因为还没收完就崩或乱渲染。
-    // 后端会把 LaTeX 转成 $...$，Markwon 不认，本轮不做公式渲染。
+    // 仅 assistant 消息走 Markdown；用户输入按纯文本显示。流式增量时 Markdown 对未闭合语法是容错的。
     if (message.role == ChatRole.ASSISTANT) {
         MarkdownText(markdown = message.text, textColor = AppColors.TextPrimary)
     } else {
         Text(
             text = message.text,
-            fontSize = AppTypography.body,
+            fontSize = AppTypography.bodyLarge,
             color = AppColors.TextPrimary,
             textAlign = TextAlign.Start,
         )
     }
 }
 
+/** 按住说话：按下开始录音，松开发送，上滑取消。 */
+@Composable
+private fun HoldToTalkButton(
+    recording: Boolean,
+    onStart: () -> Unit,
+    onStop: () -> Unit,
+    onCancel: () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .size(40.dp)
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = {
+                        onStart()
+                        val released = tryAwaitRelease()
+                        if (released) onStop() else onCancel()
+                    },
+                )
+            },
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            Icons.Filled.Mic,
+            contentDescription = stringResource(R.string.chat_hold_to_talk_desc),
+            tint = if (recording) AppColors.Error else IconTint,
+        )
+    }
+}
+
+/**
+ * 输入栏，参照豆包的布局：
+ * - 没有输入文字时：左侧按住说话，中间输入胶囊，右侧「+」（附件）。
+ * - 有输入文字时：左侧语音让位，右侧「+」换成发送按钮。
+ * 表情入口放在输入胶囊内部右侧。
+ */
 @Composable
 private fun ChatInputBar(
     text: String,
@@ -552,6 +753,7 @@ private fun ChatInputBar(
 ) {
     var showEmoji by remember { mutableStateOf(false) }
     var showAttach by remember { mutableStateOf(false) }
+    val hasText = text.isNotBlank()
 
     Column {
         if (recording) {
@@ -577,68 +779,94 @@ private fun ChatInputBar(
             }
         }
 
-        Surface(color = AppColors.Surface, shadowElevation = 8.dp) {
+        Surface(color = AppColors.Surface, shadowElevation = 4.dp) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.Bottom,
             ) {
-                // 按住录音、松开发送、上滑取消——对应旧 RecordButton 的手势，只是现在落在
-                // 一个固定的按钮上而不是切换整个输入框（老版本点一下在"文字/语音"两个模式间切换）。
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .pointerInput(Unit) {
-                            detectTapGestures(
-                                onPress = {
-                                    onVoicePressStart()
-                                    val released = tryAwaitRelease()
-                                    if (released) onVoicePressStop() else onVoicePressCancel()
-                                },
-                            )
-                        },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        Icons.Filled.Mic,
-                        contentDescription = stringResource(R.string.chat_hold_to_talk_desc),
-                        tint = if (recording) AppColors.Error else IconTint,
+                if (!hasText) {
+                    HoldToTalkButton(
+                        recording = recording,
+                        onStart = onVoicePressStart,
+                        onStop = onVoicePressStop,
+                        onCancel = onVoicePressCancel,
                     )
+                    Spacer(Modifier.width(4.dp))
                 }
 
-                OutlinedTextField(
-                    value = text,
-                    onValueChange = onTextChange,
-                    modifier = Modifier.weight(1f).padding(horizontal = 4.dp),
-                    placeholder = { Text(stringResource(R.string.chat_input_hint)) },
-                    maxLines = 4,
-                    shape = RoundedCornerShape(20.dp),
-                    // 表情入口收进输入框尾部：底栏从六个控件减到四个（语音、输入、更多、发送）
-                    trailingIcon = {
-                        IconButton(onClick = { showEmoji = !showEmoji; showAttach = false }) {
+                Surface(
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(22.dp),
+                    color = AppColors.SurfaceVariant,
+                ) {
+                    Row(
+                        modifier = Modifier.padding(start = 16.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Box(
+                            modifier = Modifier.weight(1f).padding(vertical = 8.dp),
+                            contentAlignment = Alignment.CenterStart,
+                        ) {
+                            BasicTextField(
+                                value = text,
+                                onValueChange = onTextChange,
+                                modifier = Modifier.fillMaxWidth(),
+                                textStyle = TextStyle(fontSize = AppTypography.bodyLarge, color = AppColors.TextPrimary),
+                                cursorBrush = SolidColor(AppColors.Primary),
+                                maxLines = 5,
+                                decorationBox = { inner ->
+                                    if (text.isEmpty()) {
+                                        Text(
+                                            stringResource(R.string.chat_input_hint),
+                                            fontSize = AppTypography.bodyLarge,
+                                            color = AppColors.TextSecondary,
+                                        )
+                                    }
+                                    inner()
+                                },
+                            )
+                        }
+                        IconButton(
+                            onClick = { showEmoji = !showEmoji; showAttach = false },
+                            modifier = Modifier.size(36.dp),
+                        ) {
                             Icon(
                                 Icons.Filled.EmojiEmotions,
                                 contentDescription = stringResource(R.string.chat_emoji_desc),
-                                tint = if (showEmoji) MaterialTheme.colorScheme.primary else IconTint,
+                                tint = if (showEmoji) AppColors.Primary else IconTint,
                             )
                         }
-                    },
-                )
-
-                IconButton(onClick = { showAttach = !showAttach; showEmoji = false }) {
-                    Icon(
-                        Icons.Filled.Add,
-                        contentDescription = stringResource(R.string.chat_more_desc),
-                        tint = if (showAttach) MaterialTheme.colorScheme.primary else IconTint,
-                    )
+                    }
                 }
-                IconButton(onClick = onSend, enabled = canSend) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.Send,
-                        contentDescription = stringResource(R.string.ui_send),
-                        tint = if (canSend) MaterialTheme.colorScheme.primary else AppColors.TextSecondary,
-                    )
+
+                Spacer(Modifier.width(6.dp))
+
+                if (hasText) {
+                    IconButton(
+                        onClick = onSend,
+                        enabled = canSend,
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(if (canSend) AppColors.Primary else AppColors.Divider, CircleShape),
+                    ) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.Send,
+                            contentDescription = stringResource(R.string.ui_send),
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp),
+                        )
+                    }
+                } else {
+                    IconButton(
+                        onClick = { showAttach = !showAttach; showEmoji = false },
+                        modifier = Modifier.size(40.dp),
+                    ) {
+                        Icon(
+                            Icons.Filled.Add,
+                            contentDescription = stringResource(R.string.chat_more_desc),
+                            tint = if (showAttach) AppColors.Primary else IconTint,
+                        )
+                    }
                 }
             }
         }
@@ -653,6 +881,33 @@ private fun ChatInputBar(
             EmojiPanel(onEmojiSelected = { onTextChange(text + it) })
         }
     }
+}
+
+/** 点踩后的反馈框，与旧版 FeedbackDialog 一致：写一段原因后提交。 */
+@Composable
+private fun FeedbackDialog(onDismiss: () -> Unit, onSubmit: (String) -> Unit) {
+    var text by remember { mutableStateOf("") }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.chat_feedback_title)) },
+        text = {
+            OutlinedTextField(
+                value = text,
+                onValueChange = { text = it },
+                placeholder = { Text(stringResource(R.string.chat_feedback_hint)) },
+                minLines = 3,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = { onSubmit(text.trim()) }, enabled = text.isNotBlank()) {
+                Text(stringResource(R.string.ui_send))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.ui_cancel)) }
+        },
+    )
 }
 
 /**
