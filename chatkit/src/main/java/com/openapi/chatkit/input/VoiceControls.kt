@@ -1,10 +1,16 @@
 package com.openapi.chatkit.input
 
+import android.os.Build
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -38,13 +44,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.BlurredEdgeTreatment
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.clipRect
-import androidx.compose.ui.graphics.drawscope.withTransform
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.changedToUpIgnoreConsumed
 import androidx.compose.ui.input.pointer.pointerInput
@@ -54,6 +63,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.openapi.chatkit.R
@@ -62,6 +72,7 @@ import com.openapi.chatkit.theme.ChatKit
 import kotlinx.coroutines.delay
 import kotlin.math.PI
 import kotlin.math.sin
+import kotlin.math.sqrt
 
 private const val LEVEL_HISTORY_SIZE = 28
 private const val DOT_COUNT = 56
@@ -85,15 +96,15 @@ internal fun rememberLevelHistory(recording: Boolean, level: Float): SnapshotSta
 }
 
 /**
- * 「按住说话」条，就是输入栏的胶囊本身：背景、圆角、高度都在外层 Row 上；
- * 手势只挂在中间的 weight 区域，所以点右侧的 [trailing]（键盘按钮）不会触发录音。
+ * 「按住说话」区域。只负责中间的文字 / 录音条和手势；外层的卡片、左右图标由输入栏提供。
  *
+ * 手势只挂在这块区域上，所以点右侧的图标按钮不会触发录音。
  * 松手去向由 [intentFor] 决定：
  * - 豆包式（[VoiceStyle.Ripple]）：上滑超过 80dp 取消，否则发送。
- * - 微信式（[VoiceStyle.Floating]）：左滑超过 80dp 取消，右滑超过 80dp 转文字，居中松手发送。
+ * - 微信式（[VoiceStyle.Floating]）：左滑取消，右滑转文字，居中松手发送。
  * - 录音条（[VoiceStyle.Bar]）：左滑超过 80dp 取消。
  *
- * 按下时给一次长按触感，去向每次变化给一次轻震。浮层（光晕 / 卡片）由 [VoiceOverlay] 另外叠加。
+ * 按下给一次长按触感，去向每次变化给一次轻震。
  */
 @Composable
 internal fun VoicePressBar(
@@ -105,7 +116,6 @@ internal fun VoicePressBar(
     onStart: () -> Unit,
     onRelease: (VoiceIntent) -> Unit,
     modifier: Modifier = Modifier,
-    trailing: @Composable () -> Unit = {},
 ) {
     val colors = ChatKit.colors
     val haptic = LocalHapticFeedback.current
@@ -114,74 +124,57 @@ internal fun VoicePressBar(
     val currentStart by rememberUpdatedState(onStart)
     val currentRelease by rememberUpdatedState(onRelease)
     val currentIntentChange by rememberUpdatedState(onIntentChange)
-    val background = when {
-        !recording -> colors.surfaceVariant
-        intent == VoiceIntent.Cancel -> colors.error.copy(alpha = 0.10f)
-        style == VoiceStyle.Floating && intent == VoiceIntent.Send -> colors.surfaceVariant
-        else -> colors.accent.copy(alpha = 0.10f)
-    }
 
-    Row(
+    Box(
         modifier = modifier
-            .height(56.dp)
-            .clip(RoundedCornerShape(28.dp))
-            .background(background),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight()
-                .pointerInput(style) {
-                    awaitEachGesture {
-                        val down = awaitFirstDown()
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        currentStart()
-                        var current = VoiceIntent.Send
-                        while (true) {
-                            val change = awaitPointerEvent().changes.first()
-                            val dx = change.position.x - down.position.x
-                            val dy = change.position.y - down.position.y
-                            val next = intentFor(style, dx, dy, thresholdPx)
-                            if (next != current) {
-                                current = next
-                                // 进入、离开某个去向都轻震一下，不用看屏幕也知道状态变了
-                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                currentIntentChange(next)
-                            }
-                            if (change.changedToUpIgnoreConsumed()) break
+            .pointerInput(style) {
+                awaitEachGesture {
+                    val down = awaitFirstDown()
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    currentStart()
+                    var current = VoiceIntent.Send
+                    while (true) {
+                        val change = awaitPointerEvent().changes.first()
+                        val dx = change.position.x - down.position.x
+                        val dy = change.position.y - down.position.y
+                        val next = intentFor(style, dx, dy, thresholdPx)
+                        if (next != current) {
+                            current = next
+                            // 进入、离开某个去向都轻震一下，不用看屏幕也知道状态变了
+                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            currentIntentChange(next)
                         }
-                        currentRelease(current)
+                        if (change.changedToUpIgnoreConsumed()) break
                     }
-                },
-            contentAlignment = Alignment.Center,
-        ) {
-            when {
-                recording && style == VoiceStyle.Bar -> RecordingBar(canceling = intent == VoiceIntent.Cancel, history = history)
-                recording && style == VoiceStyle.Floating -> Text(
-                    stringResource(R.string.chatkit_release_to_end),
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = colors.bubbleText,
-                )
-                recording -> Text(
-                    stringResource(
-                        if (intent == VoiceIntent.Cancel) R.string.chatkit_release_to_cancel_short
-                        else R.string.chatkit_release_to_send_short,
-                    ),
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = if (intent == VoiceIntent.Cancel) colors.error else colors.accent,
-                )
-                else -> Text(
-                    stringResource(R.string.chatkit_hold_to_talk),
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = colors.bubbleText,
-                )
-            }
+                    currentRelease(current)
+                }
+            },
+        contentAlignment = Alignment.Center,
+    ) {
+        when {
+            recording && style == VoiceStyle.Bar -> RecordingBar(canceling = intent == VoiceIntent.Cancel, history = history)
+            recording && style == VoiceStyle.Floating -> Text(
+                stringResource(R.string.chatkit_release_to_end),
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = colors.bubbleText,
+            )
+            recording -> Text(
+                stringResource(
+                    if (intent == VoiceIntent.Cancel) R.string.chatkit_release_to_cancel_short
+                    else R.string.chatkit_release_to_send_short,
+                ),
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = if (intent == VoiceIntent.Cancel) colors.error else colors.accent,
+            )
+            else -> Text(
+                stringResource(R.string.chatkit_hold_to_talk),
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black,
+            )
         }
-        trailing()
     }
 }
 
@@ -229,10 +222,9 @@ private fun RecordingBar(canceling: Boolean, history: List<Float>) {
 /**
  * 录音浮层。叠在输入栏上方、不占布局高度（否则一按下列表就被顶起来抖动）。
  *
- * - 豆包式：底部一圈椭圆光晕（正常蓝、取消红），亮度和轻微缩放随音量变化；光晕上方是实时文字、提示，
- *   再上方是一排点状波形（离底部约 44dp）。
- * - 微信式：屏幕中央一张 192dp 的半透明黑卡片，顶部状态行，中间话筒加音量柱（取消时换成撤销图标），
- *   底部两个去向提示，当前去向加粗变白。
+ * - 豆包式（[VoiceStyle.Ripple]）：底部的蓝色光晕 + 白色提示 + 点阵波形；取消时切成粉色底 + 红色。
+ *   [modifier] 应当对齐到输入栏的底边。
+ * - 微信式（[VoiceStyle.Floating]）：屏幕中央一张半透明黑色圆角卡片（第二阶段再重做），[modifier] 对齐到输入栏顶边。
  * - 录音条样式不需要浮层。
  */
 @Composable
@@ -244,59 +236,75 @@ internal fun VoiceOverlay(
     modifier: Modifier = Modifier,
 ) {
     when (style) {
-        VoiceStyle.Ripple -> GlowOverlay(intent, history, liveTranscript, modifier)
+        VoiceStyle.Ripple -> RippleOverlay(intent, history, liveTranscript, modifier)
         VoiceStyle.Floating -> CardOverlay(intent, history, modifier)
         VoiceStyle.Bar -> Unit
     }
 }
 
-private val GlowBlue = Color(0xFF1E88FF)
-private val GlowRed = Color(0xFFFF3B30)
+/** 豆包式浮层的高度：光晕（160dp 矩形 + 拱顶圆）加上留给模糊的余量。 */
+private val RippleOverlayHeight = 340.dp
+private val RippleGlowRectHeight = 160.dp
+private val RippleGlowHighlightRadius = 120.dp
+private val RippleBlurRadius = 48.dp
+private val GlowCore = Color(0xFF1C5BDC)
+private val GlowMid = Color(0xFF3FA1DE)
+private val GlowHighlight = Color(0xFF9FE3FF)
+private val CancelWash = Color(0xFFF6C9D2)
+private val CancelRed = Color(0xFFE5484D)
 
-/** 豆包式光晕：高 340dp，向上画出父级边界，不影响布局。 */
+/**
+ * 豆包式浮层。
+ * - 光晕：底部 160dp 矩形 ∪ 圆心在矩形上沿、半径 0.8×半屏宽的圆，整体 48dp 模糊（API 31+），
+ *   中心一个 120dp 高光。音量越大整体越大；没声音时缓慢呼吸（1.00 ↔ 1.03，约 1.6 秒一个来回）。
+ * - 取消：蓝色光晕淡出、粉色底淡入（200ms），文字和点阵变红。
+ */
 @Composable
-private fun GlowOverlay(intent: VoiceIntent, history: List<Float>, liveTranscript: String, modifier: Modifier) {
-    val colors = ChatKit.colors
+private fun RippleOverlay(intent: VoiceIntent, history: List<Float>, liveTranscript: String, modifier: Modifier) {
     val canceling = intent == VoiceIntent.Cancel
-    val level = (history.lastOrNull() ?: 0f).coerceIn(0f, 1f)
-    val tint = if (canceling) GlowRed else GlowBlue
-    val centerAlpha = (if (canceling) 0.55f else 0.45f) + 0.40f * level
-    val pulse = 1f + 0.06f * level
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .overflowUpwards(340.dp)
-            .drawBehind {
-                // 椭圆：水平半径 0.75 屏宽（左右都超出屏幕），竖直半径约 0.9 个高度，圆心压在底边上，
-                // 只保留上半部分，所以顶边是拱形、底边贴着输入栏。
-                val w = size.width
-                val h = size.height
-                val radius = w * 0.75f
-                val squash = h * 0.9f / radius * pulse
-                clipRect(0f, 0f, w, h) {
-                    withTransform({
-                        translate(w / 2f, h)
-                        scale(1f, squash, pivot = Offset.Zero)
-                    }) {
-                        drawCircle(
-                            brush = Brush.radialGradient(
-                                colorStops = arrayOf(
-                                    0f to tint.copy(alpha = centerAlpha),
-                                    0.6f to tint.copy(alpha = centerAlpha * 0.35f),
-                                    1f to Color.Transparent,
-                                ),
-                                center = Offset.Zero,
-                                radius = radius,
-                            ),
-                            radius = radius,
-                            center = Offset.Zero,
-                        )
-                    }
+    val rawLevel = (history.lastOrNull() ?: 0f).coerceIn(0f, 1f)
+    val level by animateFloatAsState(rawLevel, animationSpec = tween(durationMillis = 120), label = "ripple-level")
+    val cancelMix by animateFloatAsState(if (canceling) 1f else 0f, animationSpec = tween(200), label = "ripple-cancel-mix")
+    val textColor by animateColorAsState(if (canceling) CancelRed else Color.White, animationSpec = tween(200), label = "ripple-text")
+    val breath = rememberBreath()
+    val scale = breath + 0.12f * level
+    val softFallback = Build.VERSION.SDK_INT < Build.VERSION_CODES.S
+
+    Box(modifier.fillMaxWidth().overflowUpwards(RippleOverlayHeight)) {
+        // 蓝色光晕（取消时淡出）
+        Canvas(
+            Modifier
+                .fillMaxSize()
+                .graphicsLayer {
+                    alpha = 1f - cancelMix
+                    scaleX = scale
+                    scaleY = scale
+                    transformOrigin = TransformOrigin(0.5f, 1f)
                 }
-            },
-    ) {
+                .then(
+                    if (softFallback) Modifier
+                    else Modifier.blur(radius = RippleBlurRadius, edgeTreatment = BlurredEdgeTreatment.Unbounded),
+                ),
+        ) {
+            if (softFallback) drawGlowSoft(level) else drawGlowSolid(level)
+        }
+        // 取消态：从下往上的浅粉渐变
+        Box(
+            Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .height(RippleOverlayHeight)
+                .graphicsLayer { alpha = cancelMix }
+                .background(
+                    Brush.verticalGradient(
+                        0f to Color.Transparent,
+                        0.5f to CancelWash.copy(alpha = 0.7f),
+                        1f to CancelWash,
+                    ),
+                ),
+        )
         Column(
-            modifier = Modifier.align(androidx.compose.ui.Alignment.BottomCenter).padding(bottom = 44.dp),
+            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 44.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             if (liveTranscript.isNotBlank() && !canceling) {
@@ -304,27 +312,110 @@ private fun GlowOverlay(intent: VoiceIntent, history: List<Float>, liveTranscrip
                     liveTranscript,
                     modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
                     fontSize = 16.sp,
-                    color = colors.bubbleText,
-                    maxLines = 2,
+                    color = Color.White,
+                    maxLines = 3,
                 )
             }
             Text(
                 stringResource(if (canceling) R.string.chatkit_release_to_cancel_short else R.string.chatkit_release_to_send_hint),
-                fontSize = 13.sp,
-                color = if (canceling) GlowRed else colors.secondaryText,
+                fontSize = 15.sp,
+                color = textColor,
             )
-            Spacer(Modifier.height(12.dp))
-            DotWave(history = history, level = level, tint = if (canceling) GlowRed else Color.White)
+            Spacer(Modifier.height(20.dp))
+            DotWave(history = history, level = level, color = textColor)
         }
     }
 }
 
+/** 呼吸系数：1.00 ↔ 1.03，约 1.6 秒一个来回。 */
+@Composable
+private fun rememberBreath(): Float {
+    val transition = rememberInfiniteTransition(label = "ripple-breath")
+    val breath by transition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.03f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 800, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "ripple-breath-value",
+    )
+    return breath
+}
+
+/** 光晕（API 31+，配合模糊）：实心的矩形和圆，颜色从深蓝到浅蓝，中间加高光。 */
+private fun DrawScope.drawGlowSolid(level: Float) {
+    val w = size.width
+    val h = size.height
+    val rectH = RippleGlowRectHeight.toPx()
+    val rectTop = h - rectH
+    val radius = 0.8f * (w / 2f)
+    val cx = w / 2f
+    drawRect(
+        brush = Brush.verticalGradient(listOf(GlowMid, GlowCore), startY = rectTop, endY = h),
+        topLeft = Offset(0f, rectTop),
+        size = Size(w, rectH),
+    )
+    drawCircle(
+        brush = Brush.radialGradient(listOf(GlowCore, GlowMid), center = Offset(cx, rectTop), radius = radius),
+        radius = radius,
+        center = Offset(cx, rectTop),
+    )
+    drawCircle(
+        color = GlowHighlight.copy(alpha = 0.35f + 0.4f * level),
+        radius = RippleGlowHighlightRadius.toPx(),
+        center = Offset(cx, rectTop),
+    )
+}
+
+/** 光晕（API 30 及以下，无模糊）：用径向渐变和纵向渐变把边缘淡出，近似同样的形状。 */
+private fun DrawScope.drawGlowSoft(level: Float) {
+    val w = size.width
+    val h = size.height
+    val rectH = RippleGlowRectHeight.toPx()
+    val rectTop = h - rectH
+    val radius = 0.8f * (w / 2f)
+    val cx = w / 2f
+    drawRect(
+        brush = Brush.verticalGradient(
+            0f to Color.Transparent,
+            0.45f to GlowMid.copy(alpha = 0.6f),
+            1f to GlowCore,
+            startY = rectTop - rectH * 0.2f,
+            endY = h,
+        ),
+        topLeft = Offset(0f, rectTop - rectH * 0.2f),
+        size = Size(w, h - (rectTop - rectH * 0.2f)),
+    )
+    drawCircle(
+        brush = Brush.radialGradient(
+            0f to GlowCore,
+            0.6f to GlowMid.copy(alpha = 0.6f),
+            1f to Color.Transparent,
+            center = Offset(cx, rectTop),
+            radius = radius,
+        ),
+        radius = radius,
+        center = Offset(cx, rectTop),
+    )
+    drawCircle(
+        brush = Brush.radialGradient(
+            0f to GlowHighlight.copy(alpha = 0.35f + 0.4f * level),
+            1f to Color.Transparent,
+            center = Offset(cx, rectTop),
+            radius = RippleGlowHighlightRadius.toPx(),
+        ),
+        radius = RippleGlowHighlightRadius.toPx(),
+        center = Offset(cx, rectTop),
+    )
+}
+
 /**
- * 点状波形：一排细圆点，中间高两边低，高度随音量变化。
- * 没声音时各点仍按相位轻轻起伏（[rememberInfiniteTransition]），不会是死的。
+ * 点阵波形：56 个细点，宽 2.5dp、间距 2.5dp。两端渐隐；高度随音量变化、中间高两边低；
+ * 没有声音时每个点相位错开地轻轻起伏，不会静止。
  */
 @Composable
-private fun DotWave(history: List<Float>, level: Float, tint: Color) {
+private fun DotWave(history: List<Float>, level: Float, color: Color) {
     val transition = rememberInfiniteTransition(label = "dot-sway")
     val phase by transition.animateFloat(
         initialValue = 0f,
@@ -340,23 +431,21 @@ private fun DotWave(history: List<Float>, level: Float, tint: Color) {
         horizontalArrangement = Arrangement.spacedBy(2.5.dp),
     ) {
         padded.forEachIndexed { index, value ->
-            // 两边收窄的包络，让整排看起来像一条中间鼓起的声波
-            val envelope = sin(PI * (index + 0.5) / DOT_COUNT).toFloat().coerceIn(0.15f, 1f)
-            // 每个点相位不同，安静时形成流动的起伏；有声音时起伏让位给音量
-            val wave = (sin((phase + index * 0.45f).toDouble()).toFloat() + 1f) / 2f
-            val height = 3f + 4f * wave * calm + 22f * value * envelope
+            val edge = sin(PI * (index + 0.5) / DOT_COUNT).toFloat().coerceIn(0f, 1f)
+            val wave = (sin((phase + index * 0.5f).toDouble()).toFloat() + 1f) / 2f
+            val heightDp = 3f + 2.5f * wave * calm + 20f * value * edge
             Box(
                 Modifier
                     .width(2.5.dp)
-                    .height(height.dp)
+                    .height(heightDp.dp)
                     .clip(CircleShape)
-                    .background(tint.copy(alpha = if (value > 0.02f) 1f else 0.55f)),
+                    .background(color.copy(alpha = sqrt(edge).coerceIn(0f, 1f))),
             )
         }
     }
 }
 
-/** 微信式卡片：192dp 见方，半透明黑，圆角 14dp。 */
+/** 微信式卡片（第二阶段再重做，这里只保证能编译）：192dp 见方，半透明黑，圆角 14dp。 */
 @Composable
 private fun CardOverlay(intent: VoiceIntent, history: List<Float>, modifier: Modifier) {
     val canceling = intent == VoiceIntent.Cancel
@@ -473,9 +562,9 @@ internal fun LevelBars(
  * 让这个元素向上画出 [height]，但自身测量高度为 0：不参与布局，所以浮层出现和消失时
  * 下面的输入栏、上面的消息列表都不会被挤动。
  *
- * 写在它之后的修饰符（drawBehind 等）作用在被放大的内容上，所以画的是完整的 [height] 区域。
+ * 写在它之后的修饰符作用在被放大的内容上，所以画的是完整的 [height] 区域。
  */
-private fun Modifier.overflowUpwards(height: androidx.compose.ui.unit.Dp): Modifier = layout { measurable, constraints ->
+private fun Modifier.overflowUpwards(height: Dp): Modifier = layout { measurable, constraints ->
     val h = height.roundToPx()
     val placeable = measurable.measure(Constraints.fixed(constraints.maxWidth, h))
     layout(placeable.width, 0) { placeable.place(0, -h) }

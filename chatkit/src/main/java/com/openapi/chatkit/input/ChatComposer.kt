@@ -2,17 +2,16 @@
 
 package com.openapi.chatkit.input
 
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -20,12 +19,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.outlined.AddCircleOutline
 import androidx.compose.material.icons.outlined.Mic
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,9 +35,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
@@ -54,14 +55,21 @@ import com.openapi.chatkit.model.ComposerState
 import com.openapi.chatkit.model.VoiceStyle
 import com.openapi.chatkit.theme.ChatKit
 
+private val CardShape = RoundedCornerShape(16.dp)
+private val IconInk = Color(0xFF1F1F1F)
+private val SendBlue = Color(0xFF0066FF)
+private val SendBlueDisabled = Color(0xFFB3CCFF)
+
 /**
- * 对话输入栏（参照微信 / 豆包）。
+ * 对话输入栏（豆包式）：一张白色圆角卡片，所有东西都在卡片里。
  *
- * - 中：输入胶囊。文字模式是输入框；语音模式胶囊变成「按住说话」条（样式见 [VoiceStyle]）。
- *   胶囊右端是语音 / 键盘切换按钮：单击切换模式，长按循环切换语音样式（通过 [onVoiceStyleChange] 交给调用方保存）。
- * - 右（胶囊外）：有文字或附件草稿时是「发送」，生成中是「停止」，否则是「+」（展开后旋转成 ×）。
- *   「+」会收起键盘并展开 [actions] 面板。
- * - 上：附件草稿托盘、识别中提示；录音时叠加 [VoiceOverlay]（不占布局高度）。
+ * - 语音模式：[相机] 按住说话（居中） [键盘] [+]
+ * - 文字模式、无文字：[相机] 输入框 [麦克风] [+]
+ * - 文字模式、有文字或草稿：输入框 [蓝色发送箭头]；生成中换成停止按钮
+ * - 草稿托盘在卡片内、输入行上方；「+」会收起键盘并展开 [actions] 面板。
+ *
+ * 豆包式按住录音时卡片隐藏（保留布局高度，不让列表跳动），由 [VoiceOverlay] 在底部画光晕。
+ * 微信式（第二阶段）仍保留旧的卡片浮层和左右滑手势。
  *
  * 松手去向：发送 → [onVoiceStop]，取消 → [onVoiceCancel]，转文字（仅微信式右滑）→ [onVoiceToText]。
  * 外部状态由 [state] 提供；模式、面板展开、焦点等交互状态由组件自己管理。
@@ -87,217 +95,227 @@ fun ChatComposer(
     val keyboard = LocalSoftwareKeyboardController.current
     var voiceMode by remember { mutableStateOf(false) }
     var showActions by remember { mutableStateOf(false) }
-    var focused by remember { mutableStateOf(false) }
     var intent by remember { mutableStateOf(VoiceIntent.Send) }
     val history = rememberLevelHistory(state.recording, state.voiceLevel)
     val showSend = !voiceMode && (state.text.isNotBlank() || state.drafts.isNotEmpty())
     val plusRotation by animateFloatAsState(if (showActions) 45f else 0f, label = "plus-rotation")
-    val border by animateColorAsState(
-        if (focused) colors.accent.copy(alpha = 0.5f) else colors.divider,
-        label = "input-border",
-    )
+    val camera = actions.firstOrNull { it.id == "camera" }
+    // 豆包式录音时卡片整体隐藏，光晕替代它；透明度不影响手势，所以按住的手势不会断
+    val hideCard = state.recording && voiceStyle == VoiceStyle.Ripple
 
-    val voiceToggle: @Composable () -> Unit = {
-        VoiceToggle(
-            voiceMode = voiceMode,
-            onClick = {
-                // 切进语音模式时收起键盘，避免键盘和按住条同时占位
-                if (!voiceMode) {
-                    focusManager.clearFocus()
-                    keyboard?.hide()
-                }
-                voiceMode = !voiceMode
-                showActions = false
-            },
-            onLongClick = {
-                val next = VoiceStyle.entries[(voiceStyle.ordinal + 1) % VoiceStyle.entries.size]
-                onVoiceStyleChange(next)
-            },
-        )
+    val toggleVoice = {
+        // 切进语音模式时收起键盘，避免键盘和按住区同时占位
+        if (!voiceMode) {
+            focusManager.clearFocus()
+            keyboard?.hide()
+        }
+        voiceMode = !voiceMode
+        showActions = false
+    }
+    val longPressStyle = {
+        val next = VoiceStyle.entries[(voiceStyle.ordinal + 1) % VoiceStyle.entries.size]
+        onVoiceStyleChange(next)
     }
 
     Box(modifier.fillMaxWidth()) {
         Column(Modifier.fillMaxWidth()) {
             // 输入栏上方的提示区
-            when {
-                state.transcribing -> Hint(text = stringResource(R.string.chatkit_transcribing), emphasized = true)
+            if (state.transcribing) {
+                Hint(text = stringResource(R.string.chatkit_transcribing), emphasized = true)
             }
 
-            Surface(color = colors.surface) {
-                Column {
-                    HorizontalDivider(color = colors.divider, thickness = 0.5.dp)
+            Box(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 12.dp)) {
+                InputCard(modifier = Modifier.graphicsLayer { alpha = if (hideCard) 0f else 1f }) {
                     if (state.drafts.isNotEmpty()) {
                         DraftTray(drafts = state.drafts, onRemove = onRemoveDraft)
                     }
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 8.dp),
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
                         verticalAlignment = Alignment.Bottom,
                     ) {
-                        Box(Modifier.weight(1f).padding(horizontal = 4.dp)) {
-                            if (voiceMode) {
-                                VoicePressBar(
-                                    style = voiceStyle,
-                                    recording = state.recording,
-                                    intent = intent,
-                                    history = history,
-                                    onIntentChange = { intent = it },
-                                    onStart = onVoiceStart,
-                                    onRelease = { released ->
-                                        intent = VoiceIntent.Send
-                                        when (released) {
-                                            VoiceIntent.Send -> onVoiceStop()
-                                            VoiceIntent.Cancel -> onVoiceCancel()
-                                            VoiceIntent.ToText -> onVoiceToText()
-                                        }
-                                    },
-                                    modifier = Modifier.fillMaxWidth(),
-                                    trailing = voiceToggle,
-                                )
-                            } else {
-                                InputField(
-                                    text = state.text,
-                                    border = border,
-                                    onTextChange = onTextChange,
-                                    onFocusChange = { isFocused ->
-                                        focused = isFocused
-                                        if (isFocused) showActions = false
-                                    },
-                                    trailing = voiceToggle,
-                                )
+                        // 左：相机（有文字时收起，给输入框让位）
+                        if (camera != null && !showSend) {
+                            IconSlot(onClick = camera.onClick) {
+                                Icon(camera.icon, contentDescription = camera.label, tint = IconInk, modifier = Modifier.size(24.dp))
                             }
                         }
 
-                        if (state.generating && !voiceMode) {
-                            // 生成中：圆形「停止」按钮，点一下中断，已生成的内容保留
-                            Surface(
-                                onClick = onStop,
-                                shape = CircleShape,
-                                color = colors.accent,
-                                modifier = Modifier.padding(start = 2.dp, end = 6.dp, bottom = 10.dp).size(36.dp),
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Box(Modifier.size(12.dp).background(colors.onAccent, RoundedCornerShape(2.dp)))
-                                }
-                            }
-                        } else if (showSend) {
-                            Surface(
-                                onClick = {
-                                    // 发送后收起「+」面板；键盘保留，方便继续输入
-                                    showActions = false
-                                    onSend()
+                        // 中：按住说话 / 输入框
+                        if (voiceMode) {
+                            VoicePressBar(
+                                style = voiceStyle,
+                                recording = state.recording,
+                                intent = intent,
+                                history = history,
+                                onIntentChange = { intent = it },
+                                onStart = onVoiceStart,
+                                onRelease = { released ->
+                                    intent = VoiceIntent.Send
+                                    when (released) {
+                                        VoiceIntent.Send -> onVoiceStop()
+                                        VoiceIntent.Cancel -> onVoiceCancel()
+                                        VoiceIntent.ToText -> onVoiceToText()
+                                    }
                                 },
-                                enabled = state.canSend,
-                                shape = RoundedCornerShape(18.dp),
-                                color = if (state.canSend) colors.accent else colors.divider,
-                                modifier = Modifier.padding(start = 2.dp, bottom = 3.dp).height(36.dp),
-                            ) {
-                                Box(Modifier.padding(horizontal = 16.dp), contentAlignment = Alignment.Center) {
-                                    Text(
-                                        stringResource(R.string.chatkit_send),
-                                        color = colors.onAccent,
-                                        fontSize = ChatKit.typography.secondary,
-                                        fontWeight = FontWeight.Medium,
-                                    )
+                                modifier = Modifier.weight(1f).heightIn(min = 56.dp),
+                            )
+                        } else {
+                            InputField(
+                                text = state.text,
+                                onTextChange = onTextChange,
+                                onFocusChange = { isFocused -> if (isFocused) showActions = false },
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+
+                        // 右：语音 / 键盘切换
+                        if (voiceMode) {
+                            IconSlot(onClick = toggleVoice, onLongClick = longPressStyle) {
+                                KeyboardGlyph()
+                            }
+                        } else if (!showSend) {
+                            IconSlot(onClick = toggleVoice, onLongClick = longPressStyle) {
+                                Icon(Icons.Outlined.Mic, contentDescription = stringResource(R.string.chatkit_voice_toggle), tint = IconInk, modifier = Modifier.size(24.dp))
+                            }
+                        }
+
+                        // 右：+ / 发送 / 停止
+                        when {
+                            state.generating && !voiceMode -> IconSlot(onClick = onStop) {
+                                // 生成中：蓝色圆形「停止」，点一下中断，已生成的内容保留
+                                Box(
+                                    Modifier.size(28.dp).background(SendBlue, CircleShape),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Box(Modifier.size(10.dp).background(Color.White, RoundedCornerShape(2.dp)))
                                 }
                             }
-                        } else {
-                            BarIcon(onClick = {
-                                // 展开「+」面板时收起键盘：面板和键盘不同时占位
-                                focusManager.clearFocus()
-                                keyboard?.hide()
-                                showActions = !showActions
-                            }) {
+                            showSend -> IconSlot(
+                                onClick = {
+                                    showActions = false
+                                    if (state.canSend) onSend()
+                                },
+                            ) {
+                                // 蓝色实心圆 + 白色向上箭头
+                                Box(
+                                    Modifier.size(28.dp).background(if (state.canSend) SendBlue else SendBlueDisabled, CircleShape),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Icon(Icons.Filled.ArrowUpward, contentDescription = stringResource(R.string.chatkit_send), tint = Color.White, modifier = Modifier.size(18.dp))
+                                }
+                            }
+                            else -> IconSlot(
+                                onClick = {
+                                    // 展开「+」面板时收起键盘：面板和键盘不同时占位
+                                    focusManager.clearFocus()
+                                    keyboard?.hide()
+                                    showActions = !showActions
+                                },
+                            ) {
                                 Icon(
                                     Icons.Outlined.AddCircleOutline,
                                     contentDescription = stringResource(R.string.chatkit_more),
-                                    tint = if (showActions) colors.accent else colors.bubbleText,
+                                    tint = IconInk,
                                     modifier = Modifier.size(26.dp).rotate(plusRotation),
                                 )
                             }
                         }
                     }
-                    if (showActions) ActionPanel(actions = actions)
+                }
+            }
+            if (showActions) {
+                Box(Modifier.fillMaxWidth().background(colors.surfaceVariant)) {
+                    ActionPanel(actions = actions)
                 }
             }
         }
-        // 录音浮层：叠在输入栏上方，不占布局高度
+        // 录音浮层：豆包式对齐到底边（光晕延伸到屏幕底部），微信式对齐到顶边
         if (state.recording) {
             VoiceOverlay(
                 style = voiceStyle,
                 intent = intent,
                 history = history,
                 liveTranscript = state.liveTranscript,
-                modifier = Modifier.align(Alignment.TopStart),
+                modifier = Modifier.align(if (voiceStyle == VoiceStyle.Ripple) Alignment.BottomStart else Alignment.TopStart),
             )
         }
     }
 }
 
-/** 胶囊右端的语音 / 键盘切换：44dp 点击区域。单击切换，长按循环切换语音样式。 */
+/** 白色圆角卡片：16dp 圆角、柔和阴影。 */
 @Composable
-private fun VoiceToggle(voiceMode: Boolean, onClick: () -> Unit, onLongClick: () -> Unit) {
-    val colors = ChatKit.colors
-    Box(
-        modifier = Modifier.size(44.dp).combinedClickable(onClick = onClick, onLongClick = onLongClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(
-            if (voiceMode) Icons.Filled.Keyboard else Icons.Outlined.Mic,
-            contentDescription = stringResource(if (voiceMode) R.string.chatkit_keyboard else R.string.chatkit_voice_toggle),
-            tint = colors.bubbleText,
-            modifier = Modifier.size(26.dp),
-        )
-    }
+private fun InputCard(modifier: Modifier, content: @Composable ColumnScope.() -> Unit) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .shadow(elevation = 8.dp, shape = CardShape, ambientColor = Color(0x14000000), spotColor = Color(0x1F000000))
+            .background(Color.White, CardShape),
+        content = content,
+    )
 }
 
-/** 输入栏右侧的图标按钮：统一 44×56 点击区域、底部对齐到输入框。 */
+/** 卡片里的图标位：44×56dp 点击区，图标居中。 */
 @Composable
-private fun BarIcon(onClick: () -> Unit, content: @Composable () -> Unit) {
-    IconButton(onClick = onClick, modifier = Modifier.size(width = 44.dp, height = 56.dp)) {
+private fun IconSlot(
+    onClick: () -> Unit,
+    onLongClick: (() -> Unit)? = null,
+    content: @Composable () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .size(width = 44.dp, height = 56.dp)
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick),
+        contentAlignment = Alignment.Center,
+    ) {
         content()
     }
 }
 
+/** 键盘图标：圆圈里一个键盘（对应豆包的圆形线框图标）。 */
+@Composable
+private fun KeyboardGlyph() {
+    Box(
+        Modifier
+            .size(26.dp)
+            .border(1.5.dp, IconInk, CircleShape),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            Icons.Filled.Keyboard,
+            contentDescription = stringResource(R.string.chatkit_keyboard),
+            tint = IconInk,
+            modifier = Modifier.size(14.dp),
+        )
+    }
+}
+
+/** 文字输入框：卡片内，17sp，最多 5 行，随内容向上长高。 */
 @Composable
 private fun InputField(
     text: String,
-    border: Color,
     onTextChange: (String) -> Unit,
     onFocusChange: (Boolean) -> Unit,
-    trailing: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val colors = ChatKit.colors
-    Surface(
-        shape = RoundedCornerShape(28.dp),
-        color = colors.surfaceVariant,
-        border = BorderStroke(1.dp, border),
-        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+    Box(
+        modifier.heightIn(min = 56.dp).padding(start = 12.dp, end = 4.dp, top = 16.dp, bottom = 16.dp),
+        contentAlignment = Alignment.CenterStart,
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(
-                Modifier.weight(1f).padding(start = 14.dp, end = 4.dp, top = 14.dp, bottom = 14.dp),
-                contentAlignment = Alignment.CenterStart,
-            ) {
-                BasicTextField(
-                    value = text,
-                    onValueChange = onTextChange,
-                    modifier = Modifier.fillMaxWidth().onFocusChanged { onFocusChange(it.isFocused) },
-                    textStyle = TextStyle(fontSize = 17.sp, color = colors.bubbleText),
-                    cursorBrush = SolidColor(colors.accent),
-                    maxLines = 5,
-                    decorationBox = { inner ->
-                        if (text.isEmpty()) {
-                            Text(stringResource(R.string.chatkit_input_hint), fontSize = 17.sp, color = colors.secondaryText)
-                        }
-                        inner()
-                    },
-                )
-            }
-            trailing()
-        }
+        BasicTextField(
+            value = text,
+            onValueChange = onTextChange,
+            modifier = Modifier.fillMaxWidth().onFocusChanged { onFocusChange(it.isFocused) },
+            textStyle = TextStyle(fontSize = 17.sp, color = Color.Black),
+            cursorBrush = SolidColor(colors.accent),
+            maxLines = 5,
+            decorationBox = { inner ->
+                if (text.isEmpty()) {
+                    Text(stringResource(R.string.chatkit_input_hint), fontSize = 17.sp, color = Color(0xFF9CA3AF))
+                }
+                inner()
+            },
+        )
     }
 }
 
