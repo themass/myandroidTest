@@ -48,6 +48,13 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.res.painterResource
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.EmojiEmotions
 import androidx.compose.material.icons.filled.Mic
@@ -111,6 +118,8 @@ fun ChatScreen(
     onRolePickerVisibleChange: (Boolean) -> Unit,
     onVoiceClick: (ChatMessage) -> Unit,
     onSpeakMessage: (ChatMessage) -> Unit = {},
+    /** 长按菜单里的删除：参数是消息 id，只删本机记录。 */
+    onDeleteMessage: (String) -> Unit = {},
     onVoiceRecordStart: () -> Unit,
     onVoiceRecordStop: () -> Unit,
     onVoiceRecordCancel: () -> Unit,
@@ -129,6 +138,10 @@ fun ChatScreen(
     modifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
+    // 长按气泡弹出的操作菜单，以及等待确认的删除目标
+    var actionMessage by remember { mutableStateOf<ChatMessage?>(null) }
+    var deleteTarget by remember { mutableStateOf<ChatMessage?>(null) }
+    val context = LocalContext.current
 
     // 新消息到达时滚到底部；流式增量也会触发（state.messages.lastOrNull()?.text 随打字机效果变化）
     LaunchedEffect(state.messages.size, state.messages.lastOrNull()?.text) {
@@ -166,6 +179,7 @@ fun ChatScreen(
                         speaking = message.id == state.speakingMessageId,
                         onVoiceClick = { onVoiceClick(message) },
                         onSpeakClick = { onSpeakMessage(message) },
+                        onLongPress = { if (!message.pending) actionMessage = message },
                     )
                 }
             }
@@ -223,6 +237,91 @@ fun ChatScreen(
             onDismiss = { onSessionsVisibleChange(false) },
         )
     }
+
+    actionMessage?.let { message ->
+        MessageActionSheet(
+            canCopy = message.text.isNotBlank(),
+            onCopy = {
+                copyMessageText(context, message.text)
+                actionMessage = null
+            },
+            onDelete = {
+                deleteTarget = message
+                actionMessage = null
+            },
+            onDismiss = { actionMessage = null },
+        )
+    }
+
+    deleteTarget?.let { message ->
+        AlertDialog(
+            onDismissRequest = { deleteTarget = null },
+            title = { Text(stringResource(R.string.chat_delete_message_title)) },
+            text = { Text(stringResource(R.string.chat_delete_message_body)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    onDeleteMessage(message.id)
+                    deleteTarget = null
+                }) { Text(stringResource(R.string.ui_delete), color = AppColors.Error) }
+            },
+            dismissButton = {
+                TextButton(onClick = { deleteTarget = null }) { Text(stringResource(R.string.ui_cancel)) }
+            },
+        )
+    }
+}
+
+/**
+ * 长按消息气泡弹出的操作面板：复制（有文字时才显示）和删除。
+ * 删除不直接执行，由调用方再弹一次确认。
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun MessageActionSheet(
+    canCopy: Boolean,
+    onCopy: () -> Unit,
+    onDelete: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        Column(Modifier.fillMaxWidth().padding(bottom = AppSpacing.lg)) {
+            if (canCopy) {
+                ActionRow(
+                    icon = Icons.Filled.ContentCopy,
+                    label = stringResource(R.string.ui_copy),
+                    tint = AppColors.TextPrimary,
+                    onClick = onCopy,
+                )
+            }
+            ActionRow(
+                icon = Icons.Filled.Delete,
+                label = stringResource(R.string.ui_delete),
+                tint = AppColors.Error,
+                onClick = onDelete,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ActionRow(icon: ImageVector, label: String, tint: Color, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.md),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(icon, contentDescription = null, tint = tint)
+        Spacer(Modifier.width(AppSpacing.md))
+        Text(label, fontSize = AppTypography.body, color = tint)
+    }
+}
+
+private fun copyMessageText(context: android.content.Context, text: String) {
+    val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+    clipboard.setPrimaryClip(android.content.ClipData.newPlainText("chat", text))
+    Toast.makeText(context, context.getString(R.string.ui_copied), Toast.LENGTH_SHORT).show()
 }
 
 /**
@@ -321,6 +420,7 @@ private fun MessageBubble(
     speaking: Boolean,
     onVoiceClick: () -> Unit,
     onSpeakClick: () -> Unit,
+    onLongPress: () -> Unit,
 ) {
     val fromUser = message.role == ChatRole.USER
     // 气泡最宽占屏幕的 75%（除去助手头像），而不是写死 280dp：大屏和折叠屏上不会显得窄
@@ -342,7 +442,9 @@ private fun MessageBubble(
                 bottomStart = if (fromUser) AppShapes.bubble else AppSpacing.xs,
                 bottomEnd = if (fromUser) AppSpacing.xs else AppShapes.bubble,
             ),
-            modifier = Modifier.widthIn(max = maxBubbleWidth),
+            modifier = Modifier
+                .widthIn(max = maxBubbleWidth)
+                .pointerInput(message.id) { detectTapGestures(onLongPress = { onLongPress() }) },
         ) {
             Column(Modifier.padding(horizontal = AppShapes.bubblePaddingHorizontal, vertical = AppShapes.bubblePaddingVertical)) {
                 // 一条消息可以同时带图片、文件、语音和文字（例如「图片 + 文字」「语音 + 文字」），
@@ -633,7 +735,11 @@ private fun ImageRow(path: String) {
 @Composable
 private fun FileRow(file: FileAttachment) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(Icons.Filled.InsertDriveFile, contentDescription = null, tint = AppColors.Primary)
+        Image(
+            painter = painterResource(fileIconRes(file.name)),
+            contentDescription = null,
+            modifier = Modifier.size(32.dp),
+        )
         Spacer(Modifier.width(8.dp))
         Column {
             Text(file.name, fontSize = AppTypography.body, color = AppColors.TextPrimary, maxLines = 2, overflow = TextOverflow.Ellipsis)

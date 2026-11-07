@@ -90,4 +90,8 @@
     <string name="ui_retry">重试</string>
     <string name="ui_save">保存</string>
     <string name="ui_send">发送</string>
+    <string name="ui_copy">复制</string>
+    <string name="ui_copied">已复制</string>
+    <string name="chat_delete_message_title">删除这条消息？</string>
+    <string name="chat_delete_message_body">只会从本机聊天记录中移除，服务器上的记录不受影响。</string>
 </resources>

@@ -39,8 +39,8 @@ fun ChatRoute(
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val activity = LocalActivity.current
-    val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        uri?.let { viewModel.onAttachmentPicked(context, MessageKind.IMAGE, it) }
+    val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia()) { uris ->
+        if (uris.isNotEmpty()) viewModel.onImagesPicked(context, uris)
     }
     val filePicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let { viewModel.onAttachmentPicked(context, MessageKind.FILE, it) }
@@ -82,6 +82,7 @@ fun ChatRoute(
             onVoiceRecordStop = viewModel::onVoiceRecordStop,
             onVoiceRecordCancel = viewModel::onVoiceRecordCancel,
             onSpeakMessage = viewModel::onSpeakMessage,
+            onDeleteMessage = viewModel::onDeleteMessage,
             onCallClick = {
                 android.widget.Toast.makeText(context, context.getString(R.string.chat_call_soon), android.widget.Toast.LENGTH_SHORT).show()
             },
