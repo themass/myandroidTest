@@ -31,6 +31,8 @@ import com.openapi.ks.myapp.data.ConnLogUtil
 import com.openapi.ks.myapp.data.UserLoginUtil
 import com.openapi.ks.myapp.data.VersionUpdater
 import com.openapi.ks.myapp.ui.fragment.AppListFragment
+import com.openapi.ks.myapp.ui.fragment.DonationListFragment
+import com.openapi.ks.myapp.ui.fragment.FavoriteFragment
 import com.openapi.ks.myapp.ui.user.LoginActivity
 import com.openapi.ks.myapp.ui.user.SettingActivity
 import com.openapi.ks.myapp.video.PlaybackEngineHelper
@@ -104,10 +106,12 @@ class LegacyHomeEntries(private val app: Context) : HomeEntries {
         val entries = buildList {
             add(ProfileEntry(ProfileAction.PhotoSolve, R.drawable.ic_menu_photo_solve, R.string.menu_btn_photo_solve))
             add(ProfileEntry(ProfileAction.LocalMusic, R.drawable.ic_menu_fav, R.string.menu_btn_local_music))
+            add(ProfileEntry(ProfileAction.Favorites, com.openapi.core.util.R.drawable.ic_menu_favorite_ed, R.string.menu_btn_favorite))
             add(ProfileEntry(ProfileAction.Feedback, R.drawable.ic_menu_help, R.string.menu_btn_feedback))
             add(ProfileEntry(ProfileAction.Share, com.openapi.core.util.R.drawable.ic_menu_share, R.string.menu_btn_share))
             if (!MyApplication.isTemp) {
                 add(ProfileEntry(ProfileAction.AppRecommend, R.drawable.ic_menu_recomm, R.string.menu_btn_app))
+                add(ProfileEntry(ProfileAction.Donation, R.drawable.ic_menu_app, R.string.menu_btn_donation))
             }
             add(ProfileEntry(ProfileAction.Settings, R.drawable.ic_menu_setting, R.string.menu_btn_setting))
             if (user != null) {
@@ -141,9 +145,11 @@ class LegacyHomeEntries(private val app: Context) : HomeEntries {
             ProfileAction.PhotoSolve -> PhotoSolveActivity.start(context)
             ProfileAction.LocalMusic ->
                 startActivity(context, com.openapi.retromusic.activities.MainActivity::class.java)
+            ProfileAction.Favorites -> FavoriteFragment.startFragment(context)
             ProfileAction.Feedback -> com.openapi.ks.myapp.ui.feedback.FeedbackActivity.start(context)
             ProfileAction.Share -> share(context)
             ProfileAction.AppRecommend -> AppListFragment.startFragment(context)
+            ProfileAction.Donation -> DonationListFragment.startFragment(context)
             ProfileAction.Settings -> startActivity(context, SettingActivity::class.java)
             ProfileAction.Logout -> logout(context)
         }
@@ -188,9 +194,11 @@ class LegacyHomeEntries(private val app: Context) : HomeEntries {
         ProfileAction.Login -> "登录"
         ProfileAction.PhotoSolve -> "拍照解题"
         ProfileAction.LocalMusic -> "本地音乐"
+        ProfileAction.Favorites -> "收藏夹"
         ProfileAction.Feedback -> "反馈"
         ProfileAction.Share -> "分享"
         ProfileAction.AppRecommend -> "应用推荐"
+        ProfileAction.Donation -> "捐赠"
         ProfileAction.Settings -> "设置"
         ProfileAction.Logout -> "登出"
     }
