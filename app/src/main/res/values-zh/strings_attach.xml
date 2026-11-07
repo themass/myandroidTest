@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="chat_attach_phone">电话</string>
+    <string name="chat_attach_help">帮助</string>
+    <string name="chat_attach_photo_solve">拍照解题</string>
+</resources>

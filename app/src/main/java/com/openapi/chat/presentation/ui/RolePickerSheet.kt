@@ -129,7 +129,7 @@ fun RoleHeader(
                     color = AppColors.TextSecondary,
                 )
             }
-            Icon(Icons.Filled.KeyboardArrowDown, contentDescription = stringResource(R.string.roles_switch_desc), tint = AppColors.TextSecondary)
+            // 副标题「点击切换角色」已经说明了操作，不再额外放一个下拉箭头
             // 会话入口：切换、新建、删除对话（替代旧的会话列表页）
             IconButton(onClick = onSessionsClick) {
                 Icon(Icons.Filled.List, contentDescription = stringResource(R.string.chat_sessions_desc), tint = AppColors.TextSecondary)

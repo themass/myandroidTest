@@ -3,6 +3,10 @@ package com.openapi.chat.presentation.ui
 import androidx.compose.ui.res.stringResource
 import com.openapi.ks.chat.R
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material.icons.automirrored.filled.Help
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Stop
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.compose.material.icons.filled.Image
@@ -341,22 +345,31 @@ private fun MessageBubble(
             modifier = Modifier.widthIn(max = maxBubbleWidth),
         ) {
             Column(Modifier.padding(horizontal = AppShapes.bubblePaddingHorizontal, vertical = AppShapes.bubblePaddingVertical)) {
-                when {
-                    // pending 且还没收到任何增量文本时显示"正在思考"；一旦开始吐字，
-                    // 哪怕还没 done，也直接展示已收到的文字（打字机效果的关键）
-                    message.pending && message.text.isEmpty() -> PendingRow()
-                    message.image != null -> ImageRow(path = message.image.path)
-                    message.file != null -> FileRow(file = message.file)
-                    message.voice != null -> VoiceRow(
-                        text = message.text,
-                        playing = false,
-                        onClick = onVoiceClick,
-                    )
-                    else -> MessageText(message)
+                // 一条消息可以同时带图片、文件、语音和文字（例如「图片 + 文字」「语音 + 文字」），
+                // 所以按顺序堆叠各个部分，而不是只选一种。
+                val hasAttachment = message.image != null || message.file != null || message.voice != null
+                if (message.pending && message.text.isEmpty() && !hasAttachment) {
+                    // 还没收到任何增量文本时显示"正在思考"；一旦开始吐字就直接展示已收到的文字（打字机效果）
+                    PendingRow()
+                } else {
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        message.image?.let { ImageRow(path = it.path) }
+                        message.file?.let { FileRow(file = it) }
+                        message.voice?.let { voice ->
+                            VoiceRow(
+                                durationSeconds = voice.durationSeconds,
+                                transcript = message.text.takeIf { it.isNotBlank() },
+                                playing = false,
+                                onClick = onVoiceClick,
+                            )
+                        }
+                        // 语音消息的文字就是转写，已经在 VoiceRow 里显示，不再重复
+                        if (message.voice == null && message.text.isNotEmpty()) {
+                            MessageText(message)
+                        }
+                    }
                 }
-                if (!fromUser && !message.pending && message.text.isNotBlank() &&
-                    message.voice == null && message.image == null && message.file == null
-                ) {
+                if (!fromUser && !message.pending && message.text.isNotBlank() && message.voice == null) {
                     IconButton(onClick = onSpeakClick, modifier = Modifier.size(28.dp)) {
                         Icon(
                             Icons.AutoMirrored.Filled.VolumeUp,
@@ -382,19 +395,26 @@ private fun PendingRow() {
     }
 }
 
+/** 语音条：播放按钮 + 时长，转写文字（若有）显示在下面。 */
 @Composable
-private fun VoiceRow(text: String, playing: Boolean, onClick: () -> Unit) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        IconButton(onClick = onClick, modifier = Modifier.size(28.dp)) {
-            Icon(
-                Icons.AutoMirrored.Filled.Send,
-                contentDescription = if (playing) stringResource(R.string.chat_stop_playing_desc) else stringResource(R.string.chat_play_voice_desc),
-                tint = AppColors.Primary,
-            )
+private fun VoiceRow(durationSeconds: Int, transcript: String?, playing: Boolean, onClick: () -> Unit) {
+    Column {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onClick, modifier = Modifier.size(32.dp)) {
+                Icon(
+                    if (playing) Icons.Filled.Stop else Icons.Filled.PlayArrow,
+                    contentDescription = if (playing) stringResource(R.string.chat_stop_playing_desc) else stringResource(R.string.chat_play_voice_desc),
+                    tint = AppColors.Primary,
+                )
+            }
+            Text("${durationSeconds}″", fontSize = AppTypography.body, color = AppColors.TextPrimary)
         }
-        Text(text, fontSize = AppTypography.body, color = AppColors.TextPrimary)
+        if (transcript != null) {
+            Text(transcript, fontSize = AppTypography.caption, color = AppColors.TextSecondary)
+        }
     }
 }
+
 
 @Composable
 private fun MessageText(message: ChatMessage) {
@@ -542,34 +562,62 @@ private fun ChatInputBar(
  */
 @Composable
 private fun AttachmentPanel(onImage: () -> Unit, onFile: () -> Unit) {
+    // 与旧版 InputRecordView 的「+」面板一致：相册、文件、视频、位置、电话、帮助、拍照解题（旧版叫「提问」）
     val context = LocalContext.current
-    Row(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(AppColors.SurfaceVariant)
-            .padding(vertical = 16.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly,
+            .padding(vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        AttachItem(label = stringResource(R.string.chat_attach_album), icon = Icons.Filled.Image, onClick = onImage)
-        AttachItem(label = stringResource(R.string.chat_attach_file), icon = Icons.Filled.InsertDriveFile, onClick = onFile)
-        AttachItem(label = stringResource(R.string.chat_attach_video), icon = Icons.Filled.Videocam) {
-            Toast.makeText(context, context.getString(R.string.chat_video_soon), Toast.LENGTH_SHORT).show()
+        Row(Modifier.fillMaxWidth()) {
+            AttachItem(Modifier.weight(1f), stringResource(R.string.chat_attach_album), Icons.Filled.Image, onClick = onImage)
+            AttachItem(Modifier.weight(1f), stringResource(R.string.chat_attach_file), Icons.Filled.InsertDriveFile, onClick = onFile)
+            AttachItem(Modifier.weight(1f), stringResource(R.string.chat_attach_video), Icons.Filled.Videocam) {
+                Toast.makeText(context, context.getString(R.string.chat_video_soon), Toast.LENGTH_SHORT).show()
+            }
+            AttachItem(Modifier.weight(1f), stringResource(R.string.chat_attach_location), Icons.Filled.LocationOn) {
+                Toast.makeText(context, context.getString(R.string.chat_location_soon), Toast.LENGTH_SHORT).show()
+            }
         }
-        AttachItem(label = stringResource(R.string.chat_attach_location), icon = Icons.Filled.LocationOn) {
-            Toast.makeText(context, context.getString(R.string.chat_location_soon), Toast.LENGTH_SHORT).show()
+        Row(Modifier.fillMaxWidth()) {
+            AttachItem(Modifier.weight(1f), stringResource(R.string.chat_attach_phone), Icons.Filled.Call) {
+                Toast.makeText(context, context.getString(R.string.talktome_unavailable), Toast.LENGTH_SHORT).show()
+            }
+            AttachItem(Modifier.weight(1f), stringResource(R.string.chat_attach_help), Icons.AutoMirrored.Filled.Help) {
+                // 旧版帮助页地址（Constants.helpUrl），用系统浏览器打开
+                context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(com.openapi.ks.myapp.constant.Constants.helpUrl)))
+            }
+            AttachItem(Modifier.weight(1f), stringResource(R.string.chat_attach_photo_solve), Icons.Filled.CameraAlt) {
+                // 旧版「提问」是选图后发给题目识别接口；现在由拍照解题模块统一承接
+                com.aimath.paizhao.PhotoSolveActivity.start(context)
+            }
+            // 占位，保证第二行与第一行等宽
+            Spacer(Modifier.weight(1f))
+            Spacer(Modifier.weight(1f))
         }
     }
 }
 
 @Composable
-private fun AttachItem(label: String, icon: ImageVector, onClick: () -> Unit) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        IconButton(onClick = onClick, modifier = Modifier.size(56.dp)) {
-            Icon(icon, contentDescription = label, tint = IconTint, modifier = Modifier.size(28.dp))
+private fun AttachItem(
+    modifier: Modifier,
+    label: String,
+    icon: ImageVector,
+    onClick: () -> Unit,
+) {
+    Column(
+        modifier = modifier.padding(vertical = 4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        IconButton(onClick = onClick, modifier = Modifier.size(52.dp)) {
+            Icon(icon, contentDescription = label, tint = IconTint, modifier = Modifier.size(26.dp))
         }
         Text(label, fontSize = AppTypography.caption, color = IconTint)
     }
 }
+
 
 @Composable
 private fun ImageRow(path: String) {

@@ -21,10 +21,10 @@ object AppColors {
     val PrimaryDark = Color(0xFF8E0000)
     val Secondary = Color(0xFF41BC6A)        // new_light_green
 
-    // 对话
-    val ChatBackground = Color(0xFFE8E8E8)   // gray_light
-    val ChatIncoming = Color(0xFFFFFFFF)
-    val ChatOutgoing = Color(0xFF81EE98)     // green
+    // 对话：与改版前的旧对话页一致——白底、灰色接收气泡、绿色发出气泡
+    val ChatBackground = Color(0xFFFFFFFF)   // white（旧版 activity_custom_layout_messages 根布局）
+    val ChatIncoming = Color(0xFFE8E8E8)     // gray_light（旧版 app:incomingDefaultBubbleColor）
+    val ChatOutgoing = Color(0xFF81EE98)     // green（旧版 app:outcomingDefaultBubbleColor）
     val ChatTimestamp = Color(0xAE858585)    // gray_dark_transparent
 
     // 中性

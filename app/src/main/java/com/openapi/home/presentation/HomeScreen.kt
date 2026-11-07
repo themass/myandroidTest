@@ -131,7 +131,9 @@ fun HomeScreen() {
     ) {
         Scaffold(
             bottomBar = {
-                if (!imeVisible) {
+                // 对话标签不显示底栏：输入框已经贴底，底栏叠在下面会形成两层操作区、白白占掉一截高度。
+                // 切换标签仍可通过顶部菜单打开的侧边栏完成。其它标签保留底栏。
+                if (!imeVisible && current != HomeTab.Chat) {
                     NavigationBar {
                         HomeTab.entries.forEach { tab ->
                             NavigationBarItem(
