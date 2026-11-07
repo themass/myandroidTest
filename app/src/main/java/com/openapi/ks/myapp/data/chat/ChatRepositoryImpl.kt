@@ -170,7 +170,10 @@ class ChatRepositoryImpl(
             .map { mapOf("role" to (if (it.role == ChatRole.USER) "user" else "assistant"), "content" to it.text) }
             .plus(mapOf("role" to "user", "content" to userText))
 
+        // 请求里的 id 仍是用户消息的 id（与服务端约定一致）；助手回复必须用自己的 id：
+        // 本地 ChatLog 的 chatId 是唯一索引，共用同一个 id 时保存回复会 REPLACE 掉用户消息。
         val msgId = userMessage.id
+        val replyId = "local-reply-${System.currentTimeMillis()}"
         val bodyBuilder = FormBody.Builder()
             .add("id", msgId)
             .add("content", GsonUtils.getInstance().toJson(history))
@@ -228,18 +231,18 @@ class ChatRepositoryImpl(
                             }
                             if (delta.isNotEmpty()) {
                                 fullText.append(delta)
-                                trySend(ChatStreamEvent.Delta(msgId, delta))
+                                trySend(ChatStreamEvent.Delta(replyId, delta))
                             }
                             if (done) {
                                 val reply = ChatMessage(
-                                    id = msgId,
+                                    id = replyId,
                                     role = ChatRole.ASSISTANT,
                                     text = fullText.toString(),
                                     createdAtMillis = System.currentTimeMillis(),
                                 )
                                 // 空回复不保存：否则下次打开会显示成空气泡（或原始 JSON）
                                 if (fullText.isNotEmpty()) persist(sessionId, reply)
-                                trySend(ChatStreamEvent.Done(msgId, fullText.toString()))
+                                trySend(ChatStreamEvent.Done(replyId, fullText.toString()))
                                 close()
                                 return
                             }
@@ -248,13 +251,13 @@ class ChatRepositoryImpl(
                         // 而不是整段丢弃——用户至少能看到已经生成的部分。
                         if (!call.isCanceled()) {
                             val reply = ChatMessage(
-                                id = msgId,
+                                id = replyId,
                                 role = ChatRole.ASSISTANT,
                                 text = fullText.toString(),
                                 createdAtMillis = System.currentTimeMillis(),
                             )
                             if (fullText.isNotEmpty()) persist(sessionId, reply)
-                            trySend(ChatStreamEvent.Done(msgId, fullText.toString()))
+                            trySend(ChatStreamEvent.Done(replyId, fullText.toString()))
                         }
                     } catch (e: Exception) {
                         LogUtil.e(e)
