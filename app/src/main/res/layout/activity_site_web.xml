@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sites 全屏网页：网页（WebView）铺满整屏，包括状态栏区域；
+     顶部横栏（返回键 + banner 广告位）浮在网页上方，自己用 fitsSystemWindows 避开状态栏。 -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <FrameLayout
+        android:id="@+id/fragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:fitsSystemWindows="true"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="56dp"
+            android:background="@color/pv_card"
+            android:orientation="horizontal">
+
+            <!-- 返回键区域固定 56dp 见方，不依赖父容器高度（否则 Compose 会撑满整屏）。 -->
+            <androidx.compose.ui.platform.ComposeView
+                android:id="@+id/site_back"
+                android:layout_width="56dp"
+                android:layout_height="56dp" />
+
+            <!-- 站点标题：紧挨返回键，过长省略 -->
+            <TextView
+                android:id="@+id/site_title"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_marginEnd="8dp"
+                android:ellipsize="end"
+                android:gravity="center_vertical"
+                android:maxLines="1"
+                android:maxWidth="180dp"
+                android:textColor="@color/pv_text_primary"
+                android:textSize="17sp" />
+
+            <FrameLayout
+                android:id="@+id/fl_banner"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:paddingVertical="6dp"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <!-- 横栏底边分割线，与 Sites 列表的分割线同色 -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/pv_divider" />
+    </LinearLayout>
+</FrameLayout>

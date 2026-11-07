@@ -197,7 +197,7 @@ fun PasswordScreen(
                 .background(PvBg)
                 .padding(horizontal = 24.dp, vertical = 16.dp),
         ) {
-            ComposeBackButton(onBack = onBack, color = PvTextSecondary)
+            ComposeBackButton(onBack = onBack, color = PvTextSecondary, pagePadding = 24.dp)
             Spacer(Modifier.height(8.dp))
             Text(
                 text = stringResource(if (isChange) R.string.password_title_change else R.string.password_title_forgot),

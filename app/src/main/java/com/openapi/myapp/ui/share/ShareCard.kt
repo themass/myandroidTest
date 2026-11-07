@@ -2,6 +2,8 @@ package com.openapi.myapp.ui.share
 
 import android.content.ClipData
 import android.content.Context
+import android.util.Log
+import android.widget.Toast
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -41,6 +43,7 @@ object ShareCard {
     private const val ACCENT = "#6D4AFF"
     private const val TEXT = "#E8E8EE"
     private const val TEXT_SECONDARY = "#A7A4B5"
+    private const val TAG = "ShareCard"
     private val executor = Executors.newSingleThreadExecutor()
     private val mainHandler = Handler(Looper.getMainLooper())
 
@@ -50,17 +53,24 @@ object ShareCard {
      */
     @JvmStatic
     @JvmOverloads
-    fun share(context: Context, inviteCode: String? = null) {
+    fun share(context: Context, inviteCode: String? = null, linkOverride: String? = null) {
         val appContext = context.applicationContext
-        val link = shareLink()
+        val link = linkOverride?.takeIf { it.isNotBlank() } ?: shareLink()
         executor.execute {
             val uri = try {
                 val file = writeImage(appContext, render(appContext, link, inviteCode))
                 FileProvider.getUriForFile(appContext, appContext.packageName + ".share", file)
             } catch (e: Exception) {
+                // 之前这里静默吞掉异常，图片没生成时用户只看到文字。现在记日志，并告诉用户图片没有生成。
+                Log.e(TAG, "share image failed", e)
                 null
             }
-            mainHandler.post { startChooser(context, link, uri) }
+            mainHandler.post {
+                if (uri == null) {
+                    Toast.makeText(appContext, R.string.share_image_failed, Toast.LENGTH_SHORT).show()
+                }
+                startChooser(context, link, uri, inviteCode)
+            }
         }
     }
 
@@ -70,9 +80,17 @@ object ShareCard {
         return if (url.isNullOrBlank()) Constants.DEFAULT_REFERER else url
     }
 
-    private fun startChooser(context: Context, link: String, uri: Uri?) {
+    private fun startChooser(context: Context, link: String, uri: Uri?, inviteCode: String?) {
+        // 邀请码也放进文字里：很多分享目标只收文字或忽略图片，图上的邀请码会丢。
+        val code = inviteCode?.takeIf { it.isNotBlank() }
+        val text = buildString {
+            append(context.getString(R.string.share_text, link))
+            if (code != null) {
+                append("\n").append(context.getString(R.string.share_invite_code, code))
+            }
+        }
         val intent = Intent(Intent.ACTION_SEND).apply {
-            putExtra(Intent.EXTRA_TEXT, context.getString(R.string.share_text, link))
+            putExtra(Intent.EXTRA_TEXT, text)
             putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.share_title))
             if (uri != null) {
                 type = "image/png"
@@ -120,11 +138,25 @@ object ShareCard {
         val code = inviteCode?.takeIf { it.isNotBlank() }
         if (code != null) {
             canvas.drawText(context.getString(R.string.share_invite_code, code), WIDTH / 2f, qrTop + QR_SIZE + 210f, accent)
-            canvas.drawText(context.getString(R.string.share_invite_hint), WIDTH / 2f, qrTop + QR_SIZE + 270f, small)
+            drawFit(canvas, context.getString(R.string.share_invite_hint), WIDTH / 2f, qrTop + QR_SIZE + 270f, small)
             linkY = qrTop + QR_SIZE + 330f
         }
-        canvas.drawText(link, WIDTH / 2f, linkY, small)
+        drawFit(canvas, link, WIDTH / 2f, linkY, small)
         return bitmap
+    }
+
+    /** 文字超过卡片宽度时等比缩小字号，保证完整显示在图里（不被左右裁掉）。 */
+    private fun drawFit(canvas: Canvas, value: String, x: Float, y: Float, paint: Paint) {
+        val maxWidth = WIDTH - 2 * 70f
+        val width = paint.measureText(value)
+        if (width > maxWidth) {
+            val original = paint.textSize
+            paint.textSize = original * maxWidth / width
+            canvas.drawText(value, x, y, paint)
+            paint.textSize = original
+        } else {
+            canvas.drawText(value, x, y, paint)
+        }
     }
 
     private fun text(color: String, size: Float, bold: Boolean = false): Paint =

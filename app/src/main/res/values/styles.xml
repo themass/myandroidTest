@@ -30,6 +30,13 @@
         <item name="android:windowIsTranslucent">true</item>
     </style>
 
+    <!-- 开屏专用：窗口底色与开屏布局一致（pv_bg），不透明，避免首帧露出后面的内容。 -->
+    <style name="AppTheme.Launch" parent="AppTheme">
+        <item name="android:windowBackground">@color/pv_bg</item>
+        <item name="android:windowIsTranslucent">false</item>
+        <item name="android:windowDisablePreview">true</item>
+    </style>
+
     <style name="AppTheme.TransparentActivity.FullScreen">
         <item name="android:windowFullscreen">true</item>
     </style>

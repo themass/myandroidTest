@@ -123,6 +123,10 @@ public class VpnRadFragment extends BaseFragment {
     private List<LocationVo> globeLocations = new ArrayList<>();
     /** 节点 id → 最近一次测得的延迟（毫秒，负数=超时）。 */
     private final Map<String, Integer> globePings = new ConcurrentHashMap<>();
+    /** 本次连接实际使用的节点 gateway（Random 时由服务器选出）；断开后仍保留，直到下次连接。 */
+    private String connectedGateway;
+    /** 进入首页后是否已经自动测过一次延迟（只自动测一次，之后由 Ping 按钮触发）。 */
+    private boolean globeAutoPinged;
     private boolean selectedPingRunning;
     LinearLayout cardCurrentNode;
     TextView tvCurrentName;
@@ -273,6 +277,17 @@ public class VpnRadFragment extends BaseFragment {
         btnGift = view.findViewById(R.id.btn_gift);
         if (btnGift != null) {
             btnGift.setOnClickListener(v -> showRewardAd());
+        }
+        if (globe != null) {
+            // 长按地球上的节点：跳到节点列表并定位到它
+            globe.setOnNodeLongPressListener(id -> {
+                try {
+                    com.openapi.myapp.ui.proton.ProtonServerListActivity.start(
+                            getActivity(), Integer.parseInt(id));
+                } catch (NumberFormatException ignored) {
+                    // 节点 id 不是数字：忽略
+                }
+            });
         }
         view.findViewById(R.id.rl_points).setOnClickListener(this::onPoints);
         ibVpnStatus.setOnClickListener(this::onVpnClick);
@@ -529,6 +544,11 @@ public class VpnRadFragment extends BaseFragment {
                     if (isAdded()) {
                         globeLocations = all;
                         pushGlobeNodes();
+                        // 进入首页自动测一次延迟，地球上的节点一开始就有延迟标签和颜色
+                        if (!globeAutoPinged) {
+                            globeAutoPinged = true;
+                            pingGlobeNodes();
+                        }
                     }
                 });
             } catch (Exception e) {
@@ -577,7 +597,6 @@ public class VpnRadFragment extends BaseFragment {
     /** 对所有节点并行测延迟（与列表页 Ping 按钮共用同一个 PingEvent），结束后重新上色。 */
     private void pingGlobeNodes() {
         final List<LocationVo> locs = new ArrayList<>(globeLocations);
-        ToastUtil.showShort(getString(R.string.ping_testing_count, locs.size()));
         new Thread(() -> {
             ExecutorService pool = Executors.newFixedThreadPool(8);
             try {
@@ -601,6 +620,8 @@ public class VpnRadFragment extends BaseFragment {
             mHandler.post(() -> {
                 if (isAdded()) {
                     pushGlobeNodes();
+                    // 测速结果变了，最佳线路对应的节点也可能变了，连接状态要重新画
+                    updateGlobeConnection(repo.current());
                     refreshCurrentNode();
                     showPingSummary(locs);
                 }
@@ -623,7 +644,6 @@ public class VpnRadFragment extends BaseFragment {
                 timeout++;
             }
         }
-        ToastUtil.showShort(getString(R.string.ping_summary, ok, timeout, locs.size()));
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -632,7 +652,6 @@ public class VpnRadFragment extends BaseFragment {
             return;
         }
         if (globeLocations.isEmpty()) {
-            ToastUtil.showShort(R.string.ping_servers_loading);
             loadGlobeNodes();
             return;
         }
@@ -641,8 +660,29 @@ public class VpnRadFragment extends BaseFragment {
 
     /** 当前选中节点在地球上的 id；"最佳线路"(id<=0) 返回 null。 */
     private String globeTargetId() {
+        // 实际连接的节点优先：连接时记下的 gateway 能对应到地球上的节点
+        if (connectedGateway != null) {
+            for (LocationVo vo : globeLocations) {
+                if (connectedGateway.equals(vo.gateway)) {
+                    return String.valueOf(vo.id);
+                }
+            }
+        }
         int selected = LocationUtil.getSelectLocationId(getActivity());
-        return selected > 0 ? String.valueOf(selected) : null;
+        if (selected > 0) {
+            return String.valueOf(selected);
+        }
+        // 最佳线路（Random）：连接时取的就是测速最快的节点，状态画在它上面
+        String best = null;
+        int bestMs = Integer.MAX_VALUE;
+        for (LocationVo vo : globeLocations) {
+            Integer ms = globePings.get(String.valueOf(vo.id));
+            if (ms != null && ms > 0 && ms < bestMs) {
+                bestMs = ms;
+                best = String.valueOf(vo.id);
+            }
+        }
+        return best;
     }
 
     /**
@@ -768,11 +808,9 @@ public class VpnRadFragment extends BaseFragment {
         }
         mHandler.removeCallbacks(vpnCheck);
         mHandler.postDelayed(vpnCheck, Constants.VPN_CONNECT_TIMEOUT);
-        imgAnim();
-        // 地球立即进入“连接中”，不等 VPN 状态回调（那时才出现的线会让人以为没有连接效果）。
-        if (globe != null && globe.getVisibility() == View.VISIBLE) {
-            globe.setConnection("connecting", globeTargetId());
-        }
+        // 点击后只显示"准备中"，不播放雷达、不画地球上的"连接中"：
+        // 那些必须等 VPN 服务真正开始连接（render 收到 CONNECTING）才出现，否则和状态栏不一致。
+        tvVpnText.setText(R.string.vpn_preparing);
         // 用户自己添加的节点：不需要服务器节点列表，直接用本地 outbound 连接
         UserNodeStore.UserNode userNode = UserNodeStore.selected(getActivity());
         if (userNode != null) {
@@ -936,6 +974,8 @@ public class VpnRadFragment extends BaseFragment {
     }
 
     public void startVpn(ServerVo server, HostVo vo) {
+        // 记下实际要连接的节点地址：地球上的连接状态据此找到节点（Random 时也能对上）
+        connectedGateway = vo != null ? vo.gateway : null;
         connectingStarted.set(true);
         vpnProfile = DataBuilder.builderVpnProfile(server.expire, server.name, server.pwd, vo);
         pendingServer = server;

@@ -67,6 +67,8 @@ public class Constants {
     public static final String NEW_HOME_LAYOUT = "NEW_HOME_LAYOUT";
     /** 首页改用 ProtonVPN 风格（Compose）；默认关，保留地球版。 */
     public static final String PROTON_HOME = "PROTON_HOME";
+    /** Sites 点击改用全屏 WebView 页（左上角返回键）；默认关，保留原有展示方式。 */
+    public static final String SITES_FULLSCREEN = "SITES_FULLSCREEN";
     public static final String LOGIN_USER_PW_LAST = "LOGIN_USER_PW_LAST";
     public static final String DEVID = "Devid";
     public static final String HTTP_TOKEN_KEY = "Vpn-Token";

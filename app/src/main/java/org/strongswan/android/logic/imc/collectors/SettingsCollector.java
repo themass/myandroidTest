@@ -47,10 +47,19 @@ public class SettingsCollector implements Collector
 		SettingsAttribute attribute = new SettingsAttribute();
 		for (String name : mSettings)
 		{
-			String value = android.provider.Settings.Secure.getString(mContentResolver, name.toLowerCase(Locale.US));
-			if (value == null)
+			String value;
+			try
 			{
-				value = android.provider.Settings.System.getString(mContentResolver, name.toLowerCase(Locale.US));
+				value = android.provider.Settings.Secure.getString(mContentResolver, name.toLowerCase(Locale.US));
+				if (value == null)
+				{
+					value = android.provider.Settings.System.getString(mContentResolver, name.toLowerCase(Locale.US));
+				}
+			}
+			catch (SecurityException e)
+			{
+				// Android 14+ 对隐藏设置键的读取会抛异常，跳过该项即可
+				value = null;
 			}
 			if (value != null)
 			{

@@ -19,7 +19,7 @@ import com.openapi.common.util.CollectionUtils;
 import com.openapi.common.util.DateUtils;
 import com.openapi.common.util.LogUtil;
 import com.openapi.common.util.PreferenceUtils;
-import com.openapi.common.util.ShareUtil;
+import com.openapi.myapp.bean.vo.InviteVo;
 import com.openapi.common.util.StringUtils;
 import com.openapi.common.util.SystemUtils;
 import com.openapi.common.util.ToastUtil;
@@ -337,9 +337,33 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     public void showReward(){
         return;
     }
+    /**
+     * 抽屉里的分享：与设置页相同，生成带二维码的分享图；登录后把邀请码印在图上并放进文字里。
+     * url 为推荐链接（可能带 ?ref=），作为分享图上的链接。
+     */
     public void showShare(String url) {
-        ShareUtil util = new ShareUtil(this);
-        util.shareText(null,null,url, "ShieldWing","ShieldWing");
+        if (UserLoginUtil.getUserCache() == null) {
+            com.openapi.myapp.ui.share.ShareCard.INSTANCE.share(this, null, url);
+            return;
+        }
+        BaseService service = new BaseService();
+        service.setup(this);
+        service.getData(Constants.getUrl(Constants.API_INVITE_URL),
+                new CommonResponse.ResponseOkListener<InviteVo>() {
+                    @Override
+                    public void onResponse(InviteVo vo) {
+                        super.onResponse(vo);
+                        com.openapi.myapp.ui.share.ShareCard.INSTANCE.share(BaseDrawerActivity.this,
+                                vo == null ? null : vo.code, url);
+                    }
+                },
+                new CommonResponse.ResponseErrorListener() {
+                    @Override
+                    protected void onError() {
+                        super.onError();
+                        com.openapi.myapp.ui.share.ShareCard.INSTANCE.share(BaseDrawerActivity.this, null, url);
+                    }
+                }, "SHARE_INVITE_TAG", InviteVo.class);
     }
     private void adsOffers(){
         AdsManager.getInstans().offerAds(this);

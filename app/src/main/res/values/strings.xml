@@ -269,6 +269,7 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="ping_timeout">Timeout</string>
     <string name="globe_my_location">My location</string>
     <string name="ping_wait">Pinging, please wait</string>
+    <string name="vpn_preparing">Preparing…</string>
     <string name="vpn_bg_connecting_short">Connecting</string>
     <string name="proton_status_unprotected">You are unprotected</string>
     <string name="proton_status_connecting">Connecting…</string>
@@ -280,6 +281,7 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="proton_btn_retry">Retry</string>
     <string name="proton_current_server">Current server</string>
     <string name="setting_proton_home">ProtonVPN-style home (compare)</string>
+    <string name="setting_sites_fullscreen">Sites full-screen web page (compare)</string>
     <string name="password_title_forgot">Forgot password</string>
     <string name="password_title_change">Change password</string>
     <string name="password_back">Back</string>
@@ -352,7 +354,6 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="reward_redeemed">VIP time added</string>
     <string name="reward_ad_unavailable">No ad available right now. Try again later.</string>
     <string name="proxy_trying">Trying %1$s…</string>
-    <string name="reward_no_gms">Ads need Google Play services, which this device does not have or has disabled.</string>
     <string name="reward_daily_limit">You have reached today\'s limit. Come back tomorrow.</string>
     <!-- 网络体检 -->
     <string name="setting_net_check">Network check</string>
@@ -383,6 +384,9 @@ You are now using a non WIFI network, continue to download may consume more netw
     <!-- 邀请码 -->
     <string name="reg_invite_hint">Invite code (optional)</string>
     <string name="share_invite_code">Invite code: %1$s</string>
+    <string name="launch_look_world">Look the world</string>
+    <string name="proton_located_hint">This is the node you pressed on the globe</string>
+    <string name="share_image_failed">Could not create the share image. Sharing the link only.</string>
     <string name="share_invite_hint">Enter this code when you sign up. You both get 1 reward ticket.</string>
     <!-- 到期提醒 -->
     <string name="expiry_title">Expiring soon</string>

@@ -11,9 +11,9 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.PopupWindow;
+import android.widget.TextView;
 
 import com.openapi.common.util.CollectionUtils;
 import com.openapi.common.util.EventBusUtil;
@@ -23,6 +23,7 @@ import com.openapi.myapp.bean.form.CustomeAddForm;
 import com.openapi.myapp.bean.vo.InfoListVo;
 import com.openapi.myapp.bean.vo.NullReturnVo;
 import com.openapi.myapp.bean.vo.RecommendVo;
+import com.openapi.common.util.PreferenceUtils;
 import com.openapi.myapp.constant.Constants;
 import com.openapi.myapp.data.UserLoginUtil;
 import com.openapi.myapp.data.config.CustomeAddEvent;
@@ -147,6 +148,26 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
         switchFlag(true);
     }
 
+    /**
+     * Sites 点击：开启“全屏网页”样式时，http(s) 地址直接在全屏 WebView 页打开（左上角返回键）；
+     * 否则沿用原有展示方式。
+     */
+    @Override
+    public void onCustomerItemClick(View v, int position) {
+        RecommendVo vo = infoListVo.voList.get(position);
+        boolean webUrl = vo.actionUrl != null
+                && (vo.actionUrl.startsWith("http://") || vo.actionUrl.startsWith("https://"));
+        if (webUrl && getActivity() != null
+                && PreferenceUtils.getPrefBoolean(getActivity(), Constants.SITES_FULLSCREEN, false)) {
+            if (!checkUserLevel(vo.type)) {
+                return;
+            }
+            com.openapi.myapp.ui.base.SiteWebActivity.start(getActivity(), vo.actionUrl, vo.title, vo.adsShow);
+            return;
+        }
+        super.onCustomerItemClick(v, position);
+    }
+
     @Override
     public void onEditClick(View view, int postion) {
         super.onEditClick(view, postion);
@@ -170,7 +191,7 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
         int h = 0 - view.getHeight() / 2;
         popupWindow.showAsDropDown(view, w, h);
         // 设置按钮的点击事件
-        Button btnDel = (Button) contentView.findViewById(R.id.btn_del);
+        TextView btnDel = (TextView) contentView.findViewById(R.id.btn_del);
         btnDel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -201,7 +222,7 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
                 builder.show();
             }
         });
-        Button btnEdit = (Button) contentView.findViewById(R.id.btn_edit);
+        TextView btnEdit = (TextView) contentView.findViewById(R.id.btn_edit);
         btnEdit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

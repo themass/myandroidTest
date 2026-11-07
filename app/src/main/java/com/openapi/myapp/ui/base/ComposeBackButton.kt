@@ -1,5 +1,6 @@
 package com.openapi.myapp.ui.base
 
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -10,17 +11,26 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.graphics.PathFillType
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import com.openapi.ks.free1.R
 
+/** 返回键图标距离屏幕左边的固定位置（图标本身 + 48dp 点击区内边距合计）。 */
+private val BackEdge = 8.dp
+
 /**
- * 所有页面统一的返回按钮：与 Toolbar 的 Up 箭头同形（Material ArrowBack），
- * 固定 24dp、主题文字色，位置由调用方放在顶部左侧。
+ * 所有页面统一的返回按钮：与 Toolbar 的 Up 箭头同形（Material ArrowBack），固定 24dp。
+ *
+ * 各页面的左边距不同（16 / 20 / 24dp），所以调用方传入自己的 [pagePadding]，
+ * 按钮会向左偏移到同一位置：图标最终总是落在 20dp 处，与页面边距无关。
  */
 @Composable
-fun ComposeBackButton(onBack: () -> Unit, color: Color) {
-    IconButton(onClick = onBack) {
+fun ComposeBackButton(onBack: () -> Unit, color: Color, pagePadding: Dp = 0.dp) {
+    IconButton(
+        onClick = onBack,
+        modifier = Modifier.offset(x = BackEdge - pagePadding),
+    ) {
         Icon(
             imageVector = ArrowBack,
             contentDescription = stringResource(R.string.password_back),

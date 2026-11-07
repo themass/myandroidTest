@@ -115,7 +115,7 @@ private fun SupportScreen(
     }
     MaterialTheme(colorScheme = darkColorScheme(background = SupBg, surface = SupCard, primary = SupAccent)) {
         Column(modifier = Modifier.fillMaxSize().background(SupBg).padding(horizontal = 20.dp, vertical = 12.dp)) {
-            ComposeBackButton(onBack = onBack, color = SupTextSecondary)
+            ComposeBackButton(onBack = onBack, color = SupTextSecondary, pagePadding = 20.dp)
             Text(text = title, color = SupText, fontSize = 28.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(20.dp))
 

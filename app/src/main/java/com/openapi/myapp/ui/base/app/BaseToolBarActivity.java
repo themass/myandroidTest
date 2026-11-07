@@ -131,7 +131,7 @@ public abstract class BaseToolBarActivity extends BaseWeatherMenuActivity {
     }
 
     public void setNavigationOut() {
-        toolbar.setNavigationIcon(R.drawable.ic_arrow_back_white);
+        toolbar.setNavigationIcon(R.drawable.ic_back_arrow); // 与 Compose 页面的 ComposeBackButton 同形
         getToolbar().setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

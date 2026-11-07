@@ -7,11 +7,33 @@
   html, body { margin: 0; height: 100%; overflow: hidden; background: transparent; }
   #globe { width: 100%; height: 100%; }
   /* 允许 WebView 直接接收拖动/捏合，不被浏览器当成滚动手势处理 */
-  #globe, #globe canvas { touch-action: none; }
+  #globe, #globe canvas { touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
   .node-x {
-    color: #FF3B30; font: 700 18px/1 sans-serif;
+    color: #FF3B30; font: 700 22px/1 sans-serif;
     text-shadow: 0 0 6px rgba(0,0,0,0.9);
     transform: translate(-50%, -50%); pointer-events: none;
+  }
+  /* 节点标签：深色底、彩色圆点、白字加粗。字号固定 14px，不随地球缩小。 */
+  .tag {
+    position: absolute; left: 0; top: 0; white-space: nowrap; pointer-events: none;
+    transform: translate(-50%, -140%);
+    display: flex; align-items: center; gap: 6px;
+    padding: 4px 9px 4px 7px; border-radius: 999px;
+    background: rgba(20, 20, 28, 0.82);
+    border: 1px solid rgba(255,255,255,0.22);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.45);
+    color: #FFFFFF; font: 700 14px/1.2 sans-serif;
+  }
+  .tag i { width: 10px; height: 10px; border-radius: 50%; flex: none; box-shadow: 0 0 0 2px rgba(255,255,255,0.35); }
+  .tag.selected { font-size: 16px; padding: 6px 12px 6px 9px; border-color: #FFFFFF; }
+  /* 路由线上的延迟标签：中性灰，与真实连接的颜色区分开。 */
+  .lat {
+    position: absolute; left: 0; top: 0; white-space: nowrap; pointer-events: none;
+    transform: translate(-50%, -50%);
+    padding: 3px 8px; border-radius: 999px;
+    background: rgba(40, 40, 48, 0.85);
+    border: 1px dashed rgba(255,255,255,0.6);
+    color: #E8E8EE; font: 700 13px/1.2 sans-serif;
   }
 </style>
 </head>
@@ -35,8 +57,11 @@
   var COLOR_USER = '#0A84FF';        // 蓝：用户位置
   var COLOR_EXIT = '#BF5AF2';        // 紫：出口 IP 位置（与蓝色的用户位置区分）
 
-  var state = { nodes: [], selectedId: null, user: null, exit: null, connState: 'idle', connNodeId: null };
+  var state = { nodes: [], selectedId: null, probeId: null, user: null, exit: null, connState: 'idle', connNodeId: null };
+  var LONG_PRESS_MS = 500;
+  var pointerDownAt = 0;
 
+  var COUNTRIES = [];
   var world = Globe()
     (document.getElementById('globe'))
     .globeImageUrl('earth-nasa-blue-marble-2048.jpg')
@@ -45,23 +70,21 @@
     .atmosphereColor('#7cc4ff')
     .atmosphereAltitude(0.18)
     .pointAltitude(0.01)
-    .pointRadius(function (d) { return d.selected ? 0.9 : 0.5; })
+    .pointRadius(function (d) { return d.selected ? 1.8 : 1.3; })
     .pointColor(function (d) { return d.color; })
     .pointLabel(function (d) { return d.name; })
-    .onPointClick(function (d) {
-      if (d.id !== null && window.AndroidGlobe) { AndroidGlobe.onNodeClick(String(d.id)); }
-    })
+    .onPointClick(function (d) { if (d.id !== null) nodeActivated(d.id); })
     .ringColor(function (d) {
       return function (t) { return fadeRgba(d.color, 1 - t); };
     })
     .ringMaxRadius(function (d) { return d.maxR; })
     .ringPropagationSpeed(function (d) { return d.speed; })
-    .ringRepeatPeriod(1300)
-    .labelText(function (d) { return d.text; })
-    .labelColor(function (d) { return d.color; })
-    .labelSize(0.7)
-    .labelDotRadius(0.35)
-    .labelAltitude(0.02)
+    .ringRepeatPeriod(1100)
+    .polygonsData([])
+    .polygonAltitude(0.004)
+    .polygonCapColor(function () { return 'rgba(120, 170, 255, 0.10)'; })
+    .polygonSideColor(function () { return 'rgba(0,0,0,0)'; })
+    .polygonStrokeColor(function () { return 'rgba(190, 225, 255, 0.85)'; })
     .arcColor('color')
     .arcStroke(1.1)
     .arcDashLength(0.35)
@@ -71,12 +94,72 @@
     .htmlLat('lat')
     .htmlLng('lng')
     .htmlAltitude(0.02)
-    .htmlElement(function () {
+    .htmlElement(function (d) {
+      if (d.kind === 'x') {
+        var x = document.createElement('div');
+        x.className = 'node-x';
+        x.textContent = 'X';
+        return x;
+      }
+      if (d.kind === 'lat') {
+        var chip = document.createElement('div');
+        chip.className = 'lat';
+        chip.textContent = d.text;
+        return chip;
+      }
       var el = document.createElement('div');
-      el.className = 'node-x';
-      el.textContent = 'X';
+      el.className = 'tag' + (d.selected ? ' selected' : '');
+      if (d.id !== undefined && d.id !== null) {
+        // 名称标签也可以点。长按不等 click（WebView 长按时会取消 click），按住满 500ms 直接触发。
+        el.style.pointerEvents = 'auto';
+        var longTimer = null;
+        var longFired = false;
+        el.addEventListener('pointerdown', function () {
+          pointerDownAt = Date.now();
+          longFired = false;
+          clearTimeout(longTimer);
+          longTimer = setTimeout(function () {
+            longFired = true;
+            if (window.AndroidGlobe) { AndroidGlobe.onNodeLongPress(String(d.id)); }
+          }, LONG_PRESS_MS);
+        });
+        var cancelLong = function () { clearTimeout(longTimer); };
+        el.addEventListener('pointerup', cancelLong);
+        el.addEventListener('pointercancel', cancelLong);
+        el.addEventListener('pointerleave', cancelLong);
+        el.addEventListener('click', function () {
+          if (longFired) { longFired = false; return; }
+          nodeActivated(d.id);
+        });
+      }
+      var dot = document.createElement('i');
+      dot.style.background = d.color;
+      var txt = document.createElement('span');
+      txt.textContent = d.text;
+      el.appendChild(dot);
+      el.appendChild(txt);
       return el;
     });
+
+  // 国家边界（Natural Earth 110m，公共领域）。加载失败时地球仍然可用，只是没有国界线。
+  fetch('countries.json').then(function (r) { return r.json(); }).then(function (geo) {
+    COUNTRIES = geo.features;
+    world.polygonsData(COUNTRIES);
+  }).catch(function () {});
+
+  // 长按时不弹系统菜单、不选中文字：否则 WebView 会吞掉 click，长按就收不到。
+  document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+  // 点击节点（圆点或名称标签都算）：按住 500ms 以上是长按，跳到节点列表；否则画出这个节点的路由虚线
+  function nodeActivated(id) {
+    if (!window.AndroidGlobe) return;
+    var held = Date.now() - pointerDownAt;
+    if (held >= LONG_PRESS_MS) { AndroidGlobe.onNodeLongPress(String(id)); return; }
+    state.probeId = id;
+    refresh();
+    AndroidGlobe.onNodeClick(String(id));
+  }
+  // 记录按下的时间，供 onPointClick 判断是否长按
+  document.getElementById('globe').addEventListener('pointerdown', function () { pointerDownAt = Date.now(); });
 
   // WebView 默认按 1 倍像素渲染，高分屏上地球会发虚：按设备像素比渲染（上限 3 倍，避免耗电）
   world.renderer().setPixelRatio(Math.min(window.devicePixelRatio || 1, 3));
@@ -148,10 +231,14 @@
     return color.replace(/[\d.]+\)$/, alpha.toFixed(2) + ')');
   }
 
+  // 两点的中点（球面上用经纬度平均即可，这里只用于标签位置，距离很近）。
+  function midpoint(lat1, lng1, lat2, lng2) {
+    return { lat: (lat1 + lat2) / 2, lng: (lng1 + lng2) / 2 };
+  }
+
   function refresh() {
     var points = [];
     var rings = [];
-    var labels = [];
     var htmlMarkers = [];
 
     state.nodes.forEach(function (n) {
@@ -159,12 +246,15 @@
       var selected = state.selectedId === n.id;
       points.push({ id: n.id, name: n.name, lat: n.lat, lng: n.lng, color: c, selected: selected });
       // 选中节点的波纹明显更大、更快，便于一眼找到当前节点
-      rings.push({ lat: n.lat, lng: n.lng, color: toRgba(c, 1), maxR: selected ? 5.5 : 2.4, speed: selected ? 2.2 : 1.4 });
-      if (selected) {
-        labels.push({ lat: n.lat, lng: n.lng, text: n.name, color: '#FFFFFF' });
-      }
-      if (state.connNodeId === n.id && state.connState === 'failed') {
-        htmlMarkers.push({ lat: n.lat, lng: n.lng });
+      rings.push({ lat: n.lat, lng: n.lng, color: toRgba(c, 1), maxR: selected ? 9 : 5, speed: selected ? 2.4 : 1.8 });
+      // 每个节点都有文字标签（城市名 + 延迟），不再只给选中项
+      var label = n.name + (typeof n.ping === 'number' && n.ping >= 0 ? '  ' + n.ping + 'ms' : '');
+      htmlMarkers.push({ kind: 'tag', id: n.id, lat: n.lat, lng: n.lng, text: label, color: c, selected: selected });
+      // ping 不通（负数=超时）或连接失败：红 ×
+      var failed = (state.connNodeId === n.id && state.connState === 'failed')
+        || (typeof n.ping === 'number' && n.ping < 0);
+      if (failed) {
+        htmlMarkers.push({ kind: 'x', lat: n.lat, lng: n.lng });
       }
     });
 
@@ -172,20 +262,38 @@
       var userLabel = (state.user.label || '').replace(/[^\x20-\x7E]/g, '').trim() || 'My location';
       points.push({ id: null, name: userLabel, lat: state.user.lat, lng: state.user.lng, color: COLOR_USER, selected: false });
       rings.push({ lat: state.user.lat, lng: state.user.lng, color: toRgba(COLOR_USER, 1), maxR: 3, speed: 1.0 });
-      labels.push({ lat: state.user.lat, lng: state.user.lng, text: userLabel, color: COLOR_USER });
+      htmlMarkers.push({ kind: 'tag', lat: state.user.lat, lng: state.user.lng, text: userLabel, color: COLOR_USER, selected: false });
     }
 
     // 出口 IP：紫色点 + 波纹 + 标签 "出口 · 城市"，让人一眼看到流量从哪里出去
     if (state.exit) {
       // WebView 字体没有中文字形：去掉非 ASCII 字符，旧的中文标签也不会显示成问号
       var asciiLabel = (state.exit.label || '').replace(/[^\x20-\x7E]/g, '').trim();
-      var exitLabel = 'Exit' + (asciiLabel ? ' - ' + asciiLabel : '');
+      // Java 端传来的标签可能已经以 Exit 开头，避免出现 "Exit - Exit"
+      var exitLabel = /^exit/i.test(asciiLabel) ? asciiLabel : 'Exit' + (asciiLabel ? ' - ' + asciiLabel : '');
       points.push({ id: null, name: exitLabel, lat: state.exit.lat, lng: state.exit.lng, color: COLOR_EXIT, selected: false });
       rings.push({ lat: state.exit.lat, lng: state.exit.lng, color: toRgba(COLOR_EXIT, 1), maxR: 3, speed: 1.0 });
-      labels.push({ lat: state.exit.lat, lng: state.exit.lng, text: exitLabel, color: COLOR_EXIT });
+      htmlMarkers.push({ kind: 'tag', lat: state.exit.lat, lng: state.exit.lng, text: exitLabel, color: COLOR_EXIT, selected: false });
     }
 
     var arcs = [];
+    // 路由线：选中节点时，从用户位置到节点画一条白/灰虚线，中间标 ping 延迟。
+    // 只在没有真实连接时画，颜色中性，不和连接状态颜色混淆。
+    var connecting = state.connNodeId && state.connState !== 'idle';
+    var probeId = state.probeId !== null ? state.probeId : state.selectedId;
+    if (state.user && probeId && !connecting) {
+      var sel = state.nodes.filter(function (n) { return n.id === probeId; })[0];
+      if (sel) {
+        arcs.push({
+          startLat: state.user.lat, startLng: state.user.lng,
+          endLat: sel.lat, endLng: sel.lng,
+          color: ['rgba(255,255,255,0.75)', 'rgba(255,255,255,0.75)']
+        });
+        var mid = midpoint(state.user.lat, state.user.lng, sel.lat, sel.lng);
+        var text = (typeof sel.ping === 'number' && sel.ping >= 0) ? sel.ping + ' ms' : (sel.ping === null ? '-- ms' : 'timeout');
+        htmlMarkers.push({ kind: 'lat', lat: mid.lat, lng: mid.lng, text: text });
+      }
+    }
     if (state.user && state.connNodeId) {
       var target = state.nodes.filter(function (n) { return n.id === state.connNodeId; })[0];
       if (target) {
@@ -204,7 +312,6 @@
 
     world.pointsData(points)
       .ringsData(rings)
-      .labelsData(labels)
       .arcsData(arcs)
       .htmlElementsData(htmlMarkers);
   }
@@ -212,9 +319,21 @@
   window.Globe3D = {
     setNodes: function (nodes, selectedId) {
       // 节点名可能是中文，WebView 字体渲染不了，只保留 ASCII；全是中文时用 Node + id
+      // 同一坐标的节点（比如同一个国家的多条线路）围绕该点排成一圈，避免互相叠住
+      var seen = {};
       state.nodes = (nodes || []).map(function (n) {
         var name = (n.name || '').replace(/[^\x20-\x7E]/g, '').trim();
-        return { id: n.id, name: name || ('Node ' + n.id), lat: n.lat, lng: n.lng, ping: n.ping };
+        var key = n.lat.toFixed(2) + ',' + n.lng.toFixed(2);
+        var k = seen[key] || 0;
+        seen[key] = k + 1;
+        var lat = n.lat, lng = n.lng;
+        if (k > 0) {
+          var angle = k * 2.399963;                    // 黄金角，分布均匀
+          var radius = 2.5 + 1.5 * Math.floor((k - 1) / 8);
+          lat = n.lat + radius * Math.sin(angle);
+          lng = n.lng + radius * Math.cos(angle) / Math.max(0.2, Math.cos(n.lat * Math.PI / 180));
+        }
+        return { id: n.id, name: name || ('Node ' + n.id), lat: lat, lng: lng, ping: n.ping };
       });
       state.selectedId = selectedId === undefined ? null : selectedId;
       refresh();

@@ -178,6 +178,12 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
         shimmer.setDuration(Constants.RECOMMAND_SHIMMER_DURATION);
         holder.ivTitle.setVisibility(View.VISIBLE);
         ImagePhotoLoad.loadPhoto(holder, vo, shimmer,needShimmer, context);
+        if (compactRow) {
+            // Sites 行的标题必须一直可见：showType（Normal/Blur/Text）会把 tv_title_below 隐藏，
+            // 这里在 showType 处理之后强制显示，并隐藏叠在图上的大标题，保证"名称在左、网址在右"。
+            holder.ivTitle.setVisibility(View.GONE);
+            holder.tvTitleBelow.setVisibility(View.VISIBLE);
+        }
         holder.natvieView.setVisibility(View.GONE);
     }
 

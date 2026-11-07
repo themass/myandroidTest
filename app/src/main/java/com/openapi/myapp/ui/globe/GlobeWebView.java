@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Color;
 import android.util.AttributeSet;
+import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebResourceRequest;
@@ -30,7 +31,14 @@ public final class GlobeWebView extends WebView {
 
     private static final String PAGE_URL = "https://appassets.androidplatform.net/assets/globe/globe.html";
 
+    /** 长按节点的回调（在主线程调用）。 */
+    public interface OnNodeLongPressListener {
+        void onNodeLongPress(@NonNull String nodeId);
+    }
+
     private final Gson gson = new Gson();
+    @Nullable
+    private OnNodeLongPressListener longPressListener;
     private boolean pageReady;
     @Nullable
     private String nodesJs;
@@ -92,6 +100,8 @@ public final class GlobeWebView extends WebView {
             }
         });
         addJavascriptInterface(new Bridge(), "AndroidGlobe");
+        // 长按由页面自己识别（见 globe.html 的 onPointClick），这里消费掉 WebView 的长按，避免弹出系统菜单。
+        setOnLongClickListener(v -> true);
         // 首页位于 ViewPager 内，横向拖动会被它抢走去切页；按下期间禁止父视图拦截，地球才能拖动旋转。
         setOnTouchListener((v, event) -> {
             int action = event.getActionMasked();
@@ -165,11 +175,26 @@ public final class GlobeWebView extends WebView {
         }
     }
 
-    /** JS 侧调用 AndroidGlobe.* 的入口。当前只保留接口，节点点击暂不产生动作。 */
+    public void setOnNodeLongPressListener(@Nullable OnNodeLongPressListener listener) {
+        this.longPressListener = listener;
+    }
+
+    /** JS 侧调用 AndroidGlobe.* 的入口。 */
     private final class Bridge {
         @JavascriptInterface
         public void onNodeClick(String id) {
             // 预留：点击节点后的选路逻辑由上层决定，这里不擅自切换节点。
+        }
+
+        @JavascriptInterface
+        public void onNodeLongPress(final String id) {
+            // JS 桥接在后台线程调用：切到主线程，震动并交给上层跳转。
+            post(() -> {
+                performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+                if (longPressListener != null) {
+                    longPressListener.onNodeLongPress(id);
+                }
+            });
         }
     }
 }

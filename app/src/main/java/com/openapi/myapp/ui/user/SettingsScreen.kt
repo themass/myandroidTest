@@ -46,6 +46,7 @@ class SettingsUi {
     var globe by mutableStateOf(true)
     var newHome by mutableStateOf(true)
     var protonHome by mutableStateOf(false)
+    var sitesFullscreen by mutableStateOf(false)
     var timeUse by mutableStateOf("")
     var traffic by mutableStateOf("")
     var score by mutableStateOf("")
@@ -120,6 +121,11 @@ fun SettingsScreen(ui: SettingsUi, actions: SettingsActions) {
                 SwitchRow(R.string.setting_proton_home, ui.protonHome) {
                     ui.protonHome = it
                     actions.onToggle("proton_home", it)
+                }
+                Divider()
+                SwitchRow(R.string.setting_sites_fullscreen, ui.sitesFullscreen) {
+                    ui.sitesFullscreen = it
+                    actions.onToggle("sites_fullscreen", it)
                 }
             }
 

@@ -72,6 +72,7 @@
 
         <activity
             android:name="com.openapi.ks.ui.main.LaunchActivity"
+            android:theme="@style/AppTheme.Launch"
             android:screenOrientation="portrait"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:exported="true">
@@ -107,6 +108,10 @@
             android:screenOrientation="portrait" />
         <activity
             android:name="com.openapi.myapp.ui.user.SupportActivity"
+            android:theme="@style/AppTheme"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name="com.openapi.myapp.ui.base.SiteWebActivity"
             android:theme="@style/AppTheme"
             android:screenOrientation="portrait" />
         <activity

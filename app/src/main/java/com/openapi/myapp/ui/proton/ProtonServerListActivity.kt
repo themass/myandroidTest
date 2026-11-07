@@ -27,6 +27,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.tween
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -85,9 +94,14 @@ class ProtonServerListActivity : AppCompatActivity() {
     companion object {
         private const val TAG = "ProtonServerList"
 
+        const val EXTRA_HIGHLIGHT_ID = "highlight_id"
+
+        /** 打开列表；highlightId > 0 时定位到该节点（长按地球上的节点时使用）。 */
         @JvmStatic
-        fun start(context: Context) {
-            context.startActivity(Intent(context, ProtonServerListActivity::class.java))
+        @JvmOverloads
+        fun start(context: Context, highlightId: Int = 0) {
+            context.startActivity(Intent(context, ProtonServerListActivity::class.java)
+                .putExtra(EXTRA_HIGHLIGHT_ID, highlightId))
         }
     }
 
@@ -105,6 +119,7 @@ class ProtonServerListActivity : AppCompatActivity() {
         selectedId.value = LocationUtil.getSelectLocationId(this)
         setContent {
             ProtonServerListScreen(
+                highlightId = intent.getIntExtra(EXTRA_HIGHLIGHT_ID, 0),
                 groups = groups.value,
                 loading = loading.value,
                 pings = pings.value,
@@ -270,6 +285,7 @@ internal val PvAccent = Color(0xFF6D4AFF)
 
 @Composable
 fun ProtonServerListScreen(
+    highlightId: Int = 0,
     groups: List<VipLocationVo>,
     loading: Boolean,
     pings: Map<Int, Int>,
@@ -287,6 +303,15 @@ fun ProtonServerListScreen(
 ) {
     var tab by remember { mutableStateOf(0) }
     var query by remember { mutableStateOf("") }
+    val context = LocalContext.current
+    val listState = rememberLazyListState()
+    // 长按地球上的节点进来：切到它所在的分组
+    LaunchedEffect(groups, highlightId) {
+        if (highlightId > 0) {
+            val group = groups.indexOfFirst { g -> g.list?.any { it.id == highlightId } == true }
+            if (group >= 0) tab = group
+        }
+    }
     // 最后一个 tab 是"我的"：用户自己添加的节点，和服务器节点分开管理
     val mineIndex = groups.size
     val isMine = tab == mineIndex
@@ -299,7 +324,7 @@ fun ProtonServerListScreen(
     MaterialTheme(colorScheme = darkColorScheme(background = PvBg, surface = PvCard, primary = PvAccent)) {
         Column(modifier = Modifier.fillMaxSize().background(PvBg).padding(horizontal = 16.dp, vertical = 12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                ComposeBackButton(onBack = onBack, color = PvText)
+                ComposeBackButton(onBack = onBack, color = PvText, pagePadding = 16.dp)
                 Text(
                     text = stringResource(R.string.proton_servers_title),
                     color = PvText,
@@ -367,7 +392,23 @@ fun ProtonServerListScreen(
                 Text(text = stringResource(R.string.proton_loading), color = PvTextSecondary, modifier = Modifier.padding(16.dp))
             }
 
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(bottom = 24.dp)) {
+            // 定位到高亮节点，并给一个提示
+            LaunchedEffect(tab, highlightId, nodes.size) {
+                if (highlightId > 0) {
+                    val index = nodes.indexOfFirst { it.id == highlightId }
+                    if (index >= 0) {
+                        val offset = if (tab == 0 && query.isBlank()) 1 else 0
+                        listState.animateScrollToItem(index + offset)
+                        Toast.makeText(context, R.string.proton_located_hint, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+
+            LazyColumn(
+                state = listState,
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(bottom = 24.dp),
+            ) {
                 if (tab == 0 && query.isBlank()) {
                     item(key = "best") {
                         ServerRow(
@@ -389,6 +430,7 @@ fun ProtonServerListScreen(
                         subtitle = vo.category ?: vo.cityName ?: "",
                         ping = pings[vo.id],
                         selected = vo.id == selectedId,
+                        highlight = vo.id == highlightId,
                         onClick = { onSelect(vo) },
                     )
                 }
@@ -405,6 +447,7 @@ private fun ServerRow(
     subtitle: String,
     ping: Int?,
     selected: Boolean,
+    highlight: Boolean = false,
     onClick: () -> Unit,
 ) {
     Row(
@@ -412,11 +455,22 @@ private fun ServerRow(
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
             .background(PvCard)
-            .border(1.5.dp, if (selected) PvGreen else Color.Transparent, RoundedCornerShape(14.dp))
+            .border(
+                1.5.dp,
+                when {
+                    highlight -> PvAccent
+                    selected -> PvGreen
+                    else -> Color.Transparent
+                },
+                RoundedCornerShape(14.dp),
+            )
             .clickable(onClick = onClick)
             .padding(horizontal = 14.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        if (highlight) {
+            FloatingFinger()
+        }
         if (flag != null) {
             Image(
                 painter = painterResource(flag),
@@ -444,6 +498,23 @@ private fun ServerRow(
         }
         PingPill(ping)
     }
+}
+
+/** 指向高亮节点的小手指：左右轻微浮动。 */
+@Composable
+private fun FloatingFinger() {
+    val transition = rememberInfiniteTransition(label = "finger")
+    val dx by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 8f,
+        animationSpec = infiniteRepeatable(animation = tween(600), repeatMode = RepeatMode.Reverse),
+        label = "fingerDx",
+    )
+    Text(
+        text = "\uD83D\uDC49",
+        fontSize = 22.sp,
+        modifier = Modifier.padding(end = 8.dp).offset(x = dx.dp),
+    )
 }
 
 @Composable

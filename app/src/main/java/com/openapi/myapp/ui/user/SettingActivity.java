@@ -85,6 +85,7 @@ public class SettingActivity extends BaseSingleActivity {
         ui.setGlobe(PreferenceUtils.getPrefBoolean(this, Constants.GLOBE_VIEW, true));
         ui.setNewHome(PreferenceUtils.getPrefBoolean(this, Constants.NEW_HOME_LAYOUT, true));
         ui.setProtonHome(PreferenceUtils.getPrefBoolean(this, Constants.PROTON_HOME, false));
+        ui.setSitesFullscreen(PreferenceUtils.getPrefBoolean(this, Constants.SITES_FULLSCREEN, false));
     }
 
     private void saveToggle(String key, boolean value) {
@@ -106,6 +107,9 @@ public class SettingActivity extends BaseSingleActivity {
                 break;
             case "proton_home":
                 PreferenceUtils.setPrefBoolean(this, Constants.PROTON_HOME, value);
+                break;
+            case "sites_fullscreen":
+                PreferenceUtils.setPrefBoolean(this, Constants.SITES_FULLSCREEN, value);
                 break;
             default:
                 break;
@@ -209,8 +213,14 @@ public class SettingActivity extends BaseSingleActivity {
 
     private boolean isAlwaysOnVpnLockedDown() {
         // 只能确认本应用是否被设为 always-on；lockdown 状态应用层读取不到，只能引导用户去确认。
-        String alwaysOnApp = android.provider.Settings.Secure.getString(getContentResolver(), "always_on_vpn_app");
-        return getPackageName().equals(alwaysOnApp);
+        // Android 14+（targetSdk 37）起，隐藏键 always_on_vpn_app 对普通应用不可读，会抛 SecurityException。
+        // 读不到就当作"未开启"，不能让设置页崩溃。
+        try {
+            String alwaysOnApp = android.provider.Settings.Secure.getString(getContentResolver(), "always_on_vpn_app");
+            return getPackageName().equals(alwaysOnApp);
+        } catch (SecurityException e) {
+            return false;
+        }
     }
 
     private void onKillSwitch() {

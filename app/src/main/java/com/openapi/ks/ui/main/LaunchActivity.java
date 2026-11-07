@@ -3,15 +3,15 @@ package com.openapi.ks.ui.main;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.widget.ViewFlipper;
+import android.provider.Settings;
 import android.os.Message;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.king.view.radarview.RadarView;
 import com.openapi.common.ui.base.LogActivity;
 import com.openapi.common.util.EventBusUtil;
 import com.openapi.common.util.LogUtil;
@@ -33,7 +33,7 @@ public class LaunchActivity extends LogActivity {
     RelativeLayout ivAds;
     RelativeLayout skipView;
     TextView tvJishi;
-    RadarView radarView;
+    RippleTextView titleView;
     private int max = Constants.STARTUP_SHOW_TIME_6000+1000;
     private int now = 0;
     boolean perm = true;
@@ -63,18 +63,74 @@ public class LaunchActivity extends LogActivity {
         ivAds = findViewById(R.id.rl_spread);
         skipView = findViewById(R.id.skip_view);
         tvJishi = findViewById(R.id.tv_shu);
-        radarView = findViewById(R.id.radar);
+        titleView = findViewById(R.id.launch_title);
+        titleView.setText(getString(R.string.launch_title));
         skipView.setOnClickListener(this::skip);
         LoginTask.start(this);
         mHandler.postDelayed(mStartMainRunnable, max);
         EventBusUtil.getEventBus().register(this);
         showAdview();
-        radarView.start();
-        // 开屏文字走马灯：大字、小字轮播
-        ViewFlipper slogan = findViewById(R.id.launch_slogan);
-        if (slogan != null) {
-            slogan.startFlipping();
+        playIntro();
+    }
+
+    /**
+     * 开屏动效（只播放一次）：标题文字做水波纹，波前扫完后副标题淡入。
+     * 系统开启"减少动画"时直接显示最终状态。
+     */
+    private void playIntro() {
+        titleView.play(2000);
+        revealText(findViewById(R.id.launch_subtitle), 1500);
+        View bottom = findViewById(R.id.launch_bottom);
+        if (bottom != null) {
+            revealText(bottom, 1800);
         }
+        startMarquee();
+    }
+
+    /**
+     * 右下角 "Look the world"：从右侧滑入，滚到完整显示的位置后停住（不循环）。
+     * 系统开启"减少动画"时直接显示。
+     */
+    private void startMarquee() {
+        final View box = findViewById(R.id.launch_marquee_box);
+        final TextView text = findViewById(R.id.launch_marquee);
+        if (box == null || text == null) {
+            return;
+        }
+        if (Settings.Global.getFloat(getContentResolver(), Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f) {
+            return;
+        }
+        final float offset = 60 * getResources().getDisplayMetrics().density;
+        text.setTranslationX(offset);
+        text.setAlpha(0f);
+        text.animate()
+                .translationX(0f)
+                .alpha(1f)
+                .setStartDelay(1800)
+                .setDuration(1600)
+                .setInterpolator(new DecelerateInterpolator())
+                .start();
+    }
+
+    private void revealText(View v, long delay) {
+        if (v == null) {
+            return;
+        }
+        if (Settings.Global.getFloat(getContentResolver(), Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f) {
+            v.setAlpha(1f);
+            v.setTranslationY(0f);
+            return;
+        }
+        float offset = 10 * getResources().getDisplayMetrics().density;
+        v.setAlpha(0f);
+        v.setTranslationY(offset);
+        v.animate()
+                .alpha(1f)
+                .translationY(0f)
+                .setStartDelay(delay)
+                .setDuration(900)
+                .setInterpolator(new DecelerateInterpolator())
+                .start();
     }
 
     public void skip(View view) {
@@ -83,11 +139,8 @@ public class LaunchActivity extends LogActivity {
     }
 
     private void launch() {
-        ViewFlipper slogan = findViewById(R.id.launch_slogan);
-        if (slogan != null) {
-            slogan.stopFlipping();
-        }
-        radarView.stop();
+        titleView.cancel();
+
         Intent intent = new Intent(this, MainFragmentViewPage.class);
         startActivity(intent);
         finish();

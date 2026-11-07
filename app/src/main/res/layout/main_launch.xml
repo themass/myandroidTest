@@ -1,87 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 开屏：纯色主题底；标题文字做水波纹，下方副标题。
+     颜色与 Compose 主题一致（pv_bg / pv_accent / pv_text_*）。 -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/ic_lauch_bg"
-    android:orientation="vertical">
+    android:background="@color/pv_bg">
 
-    <ImageView
-        android:id="@+id/lauch_ads_bottom"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:src="@drawable/ic_lauch_bottom"
-        />
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_alignParentTop="true"
-        android:orientation="vertical"
         android:gravity="center"
-        >
-        <com.king.view.radarview.RadarView
-            android:id="@+id/radar"
+        android:orientation="vertical">
+
+        <!-- 标题：文字本身做水波纹（见 RippleTextView） -->
+        <com.openapi.ks.ui.main.RippleTextView
+            android:id="@+id/launch_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/launch_subtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="vpn"
-            app:labelText="see" />
+            android:layout_marginTop="10dp"
+            android:fontFamily="sans-serif-medium"
+            android:letterSpacing="0.3"
+            android:text="@string/launch_subtitle"
+            android:textColor="@color/pv_text_secondary"
+            android:textSize="14sp" />
     </LinearLayout>
 
-    <!-- 开屏文字走马灯：大字与小字轮播，淡入淡出。字体与底图待设计稿确认后替换。 -->
-    <ViewFlipper
-        android:id="@+id/launch_slogan"
+    <!-- 底部一行：左下角 logo，右下角 "Look the world" 走马灯（由 LaunchActivity 驱动滚动） -->
+    <LinearLayout
+        android:id="@+id/launch_bottom"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:inAnimation="@anim/launch_fade_in"
-        android:outAnimation="@anim/launch_fade_out"
-        android:flipInterval="3200"
-        android:autoStart="false"
-        android:clickable="false">
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="36dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:alpha="0">
 
-        <!-- 第 1 屏：大字 -->
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+        <ImageView
+            android:id="@+id/launch_logo"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_launcher" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <FrameLayout
+            android:id="@+id/launch_marquee_box"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:clipChildren="true">
+
             <TextView
-                android:id="@+id/launch_title"
+                android:id="@+id/launch_marquee"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
-                android:text="@string/launch_title"
-                android:textColor="@color/base_white"
-                android:textSize="44sp"
-                android:fontFamily="serif"
-                android:letterSpacing="0.04"
-                android:shadowColor="#66000000"
-                android:shadowDx="0"
-                android:shadowDy="2"
-                android:shadowRadius="8" />
-        </RelativeLayout>
-
-        <!-- 第 2 屏：小字，靠右下角 -->
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-            <TextView
-                android:id="@+id/launch_subtitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
-                android:layout_alignParentBottom="true"
-                android:layout_marginRight="28dp"
-                android:layout_marginBottom="120dp"
-                android:text="@string/launch_subtitle"
-                android:textColor="@color/base_white"
-                android:textSize="22sp"
-                android:fontFamily="serif-monospace"
-                android:letterSpacing="0.08"
-                android:shadowColor="#66000000"
-                android:shadowDx="0"
-                android:shadowDy="2"
-                android:shadowRadius="6" />
-        </RelativeLayout>
-    </ViewFlipper>
+                android:maxLines="1"
+                android:text="@string/launch_look_world"
+                android:textColor="@color/pv_text_secondary"
+                android:textSize="15sp"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="0.1" />
+        </FrameLayout>
+    </LinearLayout>
 
     <RelativeLayout
         android:id="@+id/rl_spread"
@@ -94,19 +85,18 @@
         android:id="@+id/skip_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
         android:layout_alignParentTop="true"
         android:layout_margin="16dp"
-        android:clickable="true"
-        >
+        android:clickable="true">
 
         <TextView
             android:id="@+id/tv_shu"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:background="@drawable/skip_bg"
+            android:background="@drawable/launch_skip_bg"
             android:gravity="center"
-            android:text="@string/skip"
-            />
+            android:textColor="@color/pv_text_secondary"
+            android:text="@string/skip" />
     </RelativeLayout>
 </RelativeLayout>
