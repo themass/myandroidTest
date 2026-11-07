@@ -644,6 +644,32 @@ class ChatViewModel : ViewModel() {
         _uiState.update { it.copy(recording = false, partialText = "") }
     }
 
+    /**
+     * 「转文字」：松手后不发语音，只把识别结果追加到输入框，用户可以改了再发。
+     * 录音文件用完即删，不留在本地。
+     */
+    fun onVoiceRecordStopToText() {
+        if (!_uiState.value.recording) return
+        stopLiveTranscript()
+        _uiState.update { it.copy(recording = false, partialText = "", transcribing = true) }
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) { VoiceRecorder.stop() }
+            val speech = ChatDependencies.speechToText()
+            val text = if (result == null || speech == null) {
+                null
+            } else {
+                runCatching { speech.transcribe(result.filePath) }.getOrNull()
+            }
+            result?.filePath?.let { runCatching { java.io.File(it).delete() } }
+            _uiState.update { current ->
+                current.copy(
+                    transcribing = false,
+                    input = if (text.isNullOrBlank()) current.input else current.input + text,
+                )
+            }
+        }
+    }
+
     fun onVoiceRecordStop() {
         if (!_uiState.value.recording) return
         stopLiveTranscript()

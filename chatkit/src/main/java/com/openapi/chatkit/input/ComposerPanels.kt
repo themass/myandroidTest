@@ -143,34 +143,3 @@ fun ActionPanel(actions: List<ComposerAction>, modifier: Modifier = Modifier) {
     }
 }
 
-private val EMOJIS = listOf(
-    "😀", "😄", "😂", "🤣", "😊", "😍", "🤔", "😅",
-    "😭", "😡", "👍", "👎", "🙏", "👏", "🎉", "❤️",
-    "😘", "😎", "🥳", "😴", "🤯", "🙄", "😮", "😰",
-    "🔥", "✨", "💯", "👋", "🤝", "💪", "😏", "🤗",
-)
-
-/** 常用表情面板：点击把表情追加到输入框。 */
-@Composable
-fun EmojiPanel(onEmoji: (String) -> Unit, modifier: Modifier = Modifier) {
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(8),
-        modifier = modifier
-            .fillMaxWidth()
-            .heightIn(max = 240.dp)
-            .background(ChatKit.colors.surfaceVariant),
-        contentPadding = PaddingValues(8.dp),
-    ) {
-        items(EMOJIS) { emoji ->
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .clickable { onEmoji(emoji) },
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(emoji, fontSize = 26.sp)
-            }
-        }
-    }
-}

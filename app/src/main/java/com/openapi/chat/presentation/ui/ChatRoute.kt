@@ -153,6 +153,7 @@ fun ChatRoute(
             },
             onVoiceRecordStop = viewModel::onVoiceRecordStop,
             onVoiceRecordCancel = viewModel::onVoiceRecordCancel,
+            onVoiceRecordToText = viewModel::onVoiceRecordStopToText,
             onMessageAction = { message, action ->
                 when (action) {
                     MessageAction.Copy -> {

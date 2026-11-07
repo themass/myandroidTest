@@ -32,4 +32,7 @@
     <string name="chatkit_release_to_cancel_short">Release to cancel</string>
     <string name="chatkit_release_to_send_hint">Release to send, slide up to cancel</string>
     <string name="chatkit_slide_up_cancel">Slide up to cancel</string>
+    <string name="chatkit_release_to_text">Release to convert to text</string>
+    <string name="chatkit_cancel_short">Cancel</string>
+    <string name="chatkit_to_text">To text</string>
 </resources>

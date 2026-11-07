@@ -57,7 +57,8 @@ internal object ChatPlatform {
     }
 
     private const val PREFS = "chat_voice_style"
-    private const val KEY = "style"
+    /** v2：默认改为豆包式（Ripple）。换了键名，老的手动选择不再覆盖默认值。 */
+    private const val KEY = "style_v2"
 
     fun loadVoiceStyle(context: Context): VoiceStyle {
         val ordinal = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getInt(KEY, VoiceStyle.Ripple.ordinal)

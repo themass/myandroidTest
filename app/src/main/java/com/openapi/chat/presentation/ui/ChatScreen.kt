@@ -77,6 +77,7 @@ fun ChatScreen(
     onVoiceRecordStart: () -> Unit,
     onVoiceRecordStop: () -> Unit,
     onVoiceRecordCancel: () -> Unit,
+    onVoiceRecordToText: () -> Unit,
     onMessageAction: (ChatMessage, MessageAction) -> Unit,
     onFeedback: (ChatMessage, String) -> Unit,
     onCharacterSelected: (Int?) -> Unit,
@@ -184,6 +185,7 @@ fun ChatScreen(
                 onVoiceStart = onVoiceRecordStart,
                 onVoiceStop = onVoiceRecordStop,
                 onVoiceCancel = onVoiceRecordCancel,
+                onVoiceToText = onVoiceRecordToText,
             )
         }
     }

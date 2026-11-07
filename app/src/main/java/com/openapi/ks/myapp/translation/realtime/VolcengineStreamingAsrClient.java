@@ -4,6 +4,8 @@ import com.openapi.core.util.LogUtil;
 
 import org.json.JSONObject;
 
+import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -42,6 +44,17 @@ public final class VolcengineStreamingAsrClient {
     private Listener listener;
     private final AtomicBoolean ready = new AtomicBoolean(false);
     private final AtomicBoolean closed = new AtomicBoolean(false);
+    /**
+     * 音频发送门闩。WebSocket 握手完成、初始化帧发出之前录到的音频先排在这里，
+     * 初始化帧发出后按顺序冲刷。否则录音线程一开始就发音频，服务端收到的第一帧不是
+     * 初始化请求，会直接拒绝，界面上表现为「按住说话后没有任何文字」。
+     */
+    private final Object sendLock = new Object();
+    private final ArrayDeque<byte[]> pendingAudio = new ArrayDeque<>();
+    private boolean sendOpen = false;
+    /** 排队上限：约 10 秒 16kHz 16bit 单声道，超出从最旧的丢。 */
+    private static final int MAX_PENDING_BYTES = 16000 * 2 * 10;
+    private int pendingBytes = 0;
 
     public VolcengineStreamingAsrClient(VolcengineAsrConfig config) {
         this.config = config;
@@ -51,6 +64,11 @@ public final class VolcengineStreamingAsrClient {
         this.listener = listener;
         closed.set(false);
         ready.set(false);
+        synchronized (sendLock) {
+            sendOpen = false;
+            pendingAudio.clear();
+            pendingBytes = 0;
+        }
 
         Request.Builder rb = new Request.Builder().url(config.websocketUrl());
         if (config.useV3) {
@@ -74,6 +92,16 @@ public final class VolcengineStreamingAsrClient {
                     byte[] frame = VolcengineBinaryProtocol.buildFullClientRequest(
                             initJson.getBytes(), gzip);
                     webSocket.send(ByteString.of(frame));
+                    // 初始化帧已经排在队列最前，之后的音频帧保证在它之后发出
+                    synchronized (sendLock) {
+                        sendOpen = true;
+                        while (!pendingAudio.isEmpty()) {
+                            byte[] queued = pendingAudio.poll();
+                            webSocket.send(ByteString.of(VolcengineBinaryProtocol.buildAudioRequest(
+                                    queued, 0, queued.length, false, true)));
+                        }
+                        pendingBytes = 0;
+                    }
                 } catch (Exception e) {
                     LogUtil.e(e);
                     notifyFailure("ASR init failed: " + e.getMessage());
@@ -120,6 +148,21 @@ public final class VolcengineStreamingAsrClient {
             return;
         }
         try {
+            synchronized (sendLock) {
+                if (!sendOpen) {
+                    // 握手未完成：先排队，onOpen 里冲刷。结束帧不排队：未连上时 finish 之后
+                    // 连接马上关闭，没有可以补发结束帧的时机。
+                    if (!last && length > 0) {
+                        byte[] copy = Arrays.copyOfRange(buffer, offset, offset + length);
+                        pendingAudio.add(copy);
+                        pendingBytes += copy.length;
+                        while (pendingBytes > MAX_PENDING_BYTES && !pendingAudio.isEmpty()) {
+                            pendingBytes -= pendingAudio.poll().length;
+                        }
+                    }
+                    return;
+                }
+            }
             byte[] frame = VolcengineBinaryProtocol.buildAudioRequest(
                     buffer, offset, length, last, true);
             ws.send(ByteString.of(frame));
