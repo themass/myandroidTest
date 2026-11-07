@@ -38,6 +38,8 @@ data class ComposerState(
     val text: String = "",
     val drafts: List<DraftItem> = emptyList(),
     val sending: Boolean = false,
+    /** 助手正在流式输出：右侧按钮变成「停止」。 */
+    val generating: Boolean = false,
     val recording: Boolean = false,
     /** 录音结束、等待识别结果。 */
     val transcribing: Boolean = false,

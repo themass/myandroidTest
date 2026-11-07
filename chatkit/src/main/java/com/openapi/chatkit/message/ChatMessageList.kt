@@ -1,5 +1,6 @@
 package com.openapi.chatkit.message
 
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +18,18 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,10 +69,31 @@ fun ChatMessageList(
     emptyContent: @Composable () -> Unit = {},
 ) {
     val latestAssistantId = items.lastOrNull { it.sender == Sender.Assistant && !it.thinking }?.id
-    val lastText = items.lastOrNull()?.plainText
-    LaunchedEffect(items.size, lastText) {
-        if (items.isNotEmpty()) state.animateScrollToItem(items.lastIndex)
+    val last = items.lastOrNull()
+    val scope = rememberCoroutineScope()
+
+    // 是否跟随最新内容：只由用户的滑动决定。用户停下来时如果在底部就跟随，往上翻了就不再抢滚动。
+    // 内容增长（流式）本身不会改变这个状态，所以不会出现「刚长高一点就被判定为不在底部」。
+    var following by remember { mutableStateOf(true) }
+    LaunchedEffect(state) {
+        snapshotFlow { state.isScrollInProgress }.collect { scrolling ->
+            if (!scrolling) following = !state.canScrollForward
+        }
     }
+
+    // 新增一条消息：自己刚发的一定滚到底；别人的（助手回复开始）只在跟随时滚到底
+    LaunchedEffect(last?.key) {
+        if (last != null && (last.sender == Sender.User || following)) {
+            following = true
+            state.scrollToItem(items.lastIndex)
+            state.scrollBy(BOTTOM_SCROLL)
+        }
+    }
+    // 流式增长：跟随时无动画贴底。不用 animateScrollToItem——每个增量都会取消上一次动画。
+    LaunchedEffect(last?.plainText?.length, last?.thinking) {
+        if (following && last != null) state.scrollBy(BOTTOM_SCROLL)
+    }
+
     Box(modifier) {
         LazyColumn(
             state = state,
@@ -67,7 +101,7 @@ fun ChatMessageList(
             contentPadding = PaddingValues(vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(ChatKit.dimens.messageSpacing),
         ) {
-            items(items, key = { it.id }) { item ->
+            items(items, key = { it.key }) { item ->
                 ChatMessageItem(
                     item = item,
                     isLatestAssistant = item.id == latestAssistantId,
@@ -79,6 +113,41 @@ fun ChatMessageList(
             }
         }
         if (items.isEmpty()) emptyContent()
+        if (!following && items.isNotEmpty()) {
+            ScrollToBottomChip(
+                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 12.dp),
+                onClick = {
+                    following = true
+                    scope.launch {
+                        state.animateScrollToItem(items.lastIndex)
+                        state.scrollBy(BOTTOM_SCROLL)
+                    }
+                },
+            )
+        }
+    }
+}
+
+/** 一次滚动的距离取一个很大的值：列表会在到达底部时自己截断，所以等价于「滚到最底」。 */
+private const val BOTTOM_SCROLL = 100_000f
+
+/** 不在底部时出现的「回到底部」小按钮。 */
+@Composable
+private fun ScrollToBottomChip(modifier: Modifier, onClick: () -> Unit) {
+    val colors = ChatKit.colors
+    Surface(
+        onClick = onClick,
+        modifier = modifier,
+        shape = CircleShape,
+        color = colors.surface,
+        shadowElevation = 4.dp,
+    ) {
+        Icon(
+            Icons.Filled.KeyboardArrowDown,
+            contentDescription = null,
+            tint = colors.bubbleText,
+            modifier = Modifier.padding(8.dp).size(20.dp),
+        )
     }
 }
 

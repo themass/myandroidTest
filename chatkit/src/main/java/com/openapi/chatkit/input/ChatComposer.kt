@@ -77,6 +77,7 @@ fun ChatComposer(
     onVoiceStyleChange: (VoiceStyle) -> Unit,
     onTextChange: (String) -> Unit,
     onSend: () -> Unit,
+    onStop: () -> Unit = {},
     onRemoveDraft: (String) -> Unit,
     onVoiceStart: () -> Unit,
     onVoiceStop: () -> Unit,
@@ -197,7 +198,19 @@ fun ChatComposer(
                         }
                     }
 
-                    if (showSend) {
+                    if (state.generating && !voiceMode) {
+                        // 生成中：圆形「停止」按钮，点一下中断，已生成的内容保留
+                        Surface(
+                            onClick = onStop,
+                            shape = CircleShape,
+                            color = colors.accent,
+                            modifier = Modifier.padding(start = 2.dp, end = 6.dp, bottom = 10.dp).size(36.dp),
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Box(Modifier.size(12.dp).background(colors.onAccent, RoundedCornerShape(2.dp)))
+                            }
+                        }
+                    } else if (showSend) {
                         Surface(
                             onClick = {
                                 // 发送后收起表情和「+」面板；键盘保留，方便继续输入

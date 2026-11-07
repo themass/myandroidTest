@@ -25,6 +25,7 @@ internal object ChatItemMapper {
     ): List<ChatItem> = messages.map { message ->
         ChatItem(
             id = message.id,
+            key = message.key,
             sender = if (message.role == ChatRole.USER) Sender.User else Sender.Assistant,
             parts = parts(message, playback),
             status = when (message.delivery) {
@@ -33,6 +34,7 @@ internal object ChatItemMapper {
                 DeliveryStatus.FAILED -> SendStatus.Failed
             },
             thinking = message.pending && message.text.isEmpty(),
+            streaming = message.pending && message.text.isNotEmpty(),
             reaction = when (message.id) {
                 in likedIds -> Reaction.Like
                 in dislikedIds -> Reaction.Dislike

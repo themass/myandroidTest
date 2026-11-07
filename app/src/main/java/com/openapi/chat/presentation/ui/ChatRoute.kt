@@ -78,9 +78,24 @@ fun ChatRoute(
         },
         ComposerAction("camera", context.getString(R.string.chat_attach_camera), Icons.Outlined.CameraAlt) {
             if (requireLogin(context)) {
-                val uri = ChatPlatform.newCameraUri(context)
-                cameraUri = uri
-                camera.launch(uri)
+                // 清单里声明了相机权限，就必须先在运行时授予，否则系统拒绝拉起相机并让 App 崩溃
+                val launchCamera = {
+                    val uri = ChatPlatform.newCameraUri(context)
+                    cameraUri = uri
+                    camera.launch(uri)
+                }
+                if (PermissionStates.isGranted(context, Manifest.permission.CAMERA)) {
+                    launchCamera()
+                } else {
+                    (activity as? ComponentActivity)?.let { host ->
+                        PermissionRequester.with(host)
+                            .permissions(*Permissions.CAMERA)
+                            .rationale(context.getString(R.string.chat_camera_rationale))
+                            .request(object : PermissionRequester.Callback() {
+                                override fun onGranted() = launchCamera()
+                            })
+                    }
+                }
             }
         },
         ComposerAction("file", context.getString(R.string.chat_attach_file), Icons.Outlined.Folder) {
@@ -119,6 +134,7 @@ fun ChatRoute(
             },
             onInputChange = viewModel::onInputChange,
             onSend = viewModel::onSend,
+            onStop = viewModel::onStopGenerating,
             onRemoveDraft = viewModel::onRemoveDraft,
             onVoiceRecordStart = {
                 if (PermissionStates.isGranted(context, Manifest.permission.RECORD_AUDIO)) {

@@ -10,6 +10,8 @@ data class ChatUiState(
     val messages: List<ChatMessage> = emptyList(),
     val input: String = "",
     val sending: Boolean = false,
+    /** 助手回复正在流式输出（可以点停止）。 */
+    val streaming: Boolean = false,
     val loading: Boolean = false,
     val error: String? = null,
     val sessionId: Long = 0L,

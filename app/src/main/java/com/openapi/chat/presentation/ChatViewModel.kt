@@ -30,6 +30,11 @@ import kotlinx.coroutines.withContext
 
 class ChatViewModel : ViewModel() {
 
+    private companion object {
+        /** 流式文字的释放节拍：约 25 次/秒，既顺滑又不会让 Markdown 重解析太频繁。 */
+        const val REVEAL_TICK_MS = 40L
+    }
+
     private val repository = ChatDependencies.require()
     private val loadHistory = LoadHistoryUseCase(repository)
     private val sendMessage = SendMessageUseCase(repository)
@@ -274,63 +279,131 @@ class ChatViewModel : ViewModel() {
      * 把 [text] 发给大模型并流式接收回复。
      * [userMessageId] 是对应的用户气泡，失败时标成发送失败（可重试）；重新生成时为 null。
      * [persistUser] 为 false 时仓库不再保存用户消息（已经保存过的场景）。
+     *
+     * 助手气泡的生命周期（只有一条气泡，按 [ChatMessage.key] 定位，id 变化不影响它）：
+     * 思考中（pending、无文字）→ 流式（pending、有文字，逐字长出来）→ 完成（pending=false）。
+     * 网络收到的文字先放进缓冲区，由一个固定节拍（[REVEAL_TICK_MS]）匀速释放到气泡里，
+     * 积压越多释放越快，所以网络一次来一大块也不会整段突然出现。
      */
     private fun streamReply(text: String, userMessageId: String?, persistUser: Boolean) {
         val state = _uiState.value
         val placeholder = newPlaceholder()
-        _uiState.update { it.copy(messages = it.messages + placeholder, sending = true, error = null) }
+        _uiState.update { it.copy(messages = it.messages + placeholder, sending = true, streaming = true, error = null) }
         userMessageId?.let { setDelivery(it, DeliveryStatus.SENDING) }
-        viewModelScope.launch {
+
+        streamJob = viewModelScope.launch {
+            val buffer = StringBuilder()
+            var ended = false
             var failed = false
-            sendMessage(text, state.selectedCharacterId, state.selectedRole?.id, persistUser)
-                .catch { error ->
-                    failed = true
-                    _uiState.update { current ->
-                        current.copy(
-                            messages = current.messages.filterNot { it.id == placeholder.id },
-                            error = error.message,
-                        )
+            var serverId: String? = null
+            var fullText: String? = null
+
+            val reveal = launch {
+                while (true) {
+                    kotlinx.coroutines.delay(REVEAL_TICK_MS)
+                    if (buffer.isNotEmpty()) {
+                        val cut = safeCut(buffer, revealCount(buffer.length, ended))
+                        val piece = buffer.substring(0, cut)
+                        buffer.delete(0, cut)
+                        updateByKey(placeholder.key) { it.copy(text = it.text + piece) }
+                    } else if (ended) {
+                        break
                     }
                 }
-                .onCompletion {
-                    _uiState.update { it.copy(sending = false) }
-                    userMessageId?.let { id -> setDelivery(id, if (failed) DeliveryStatus.FAILED else DeliveryStatus.SENT) }
-                }
-                .collect { event ->
-                    when (event) {
-                        is ChatStreamEvent.Delta -> _uiState.update { current ->
-                            current.copy(
-                                messages = current.messages.map {
-                                    if (it.id == placeholder.id) it.copy(text = it.text + event.text) else it
-                                },
-                            )
-                        }
+            }
 
-                        is ChatStreamEvent.Done -> _uiState.update { current ->
-                            current.copy(
-                                messages = current.messages.map {
-                                    if (it.id == placeholder.id) {
-                                        it.copy(id = event.messageId, text = event.fullText, pending = false)
-                                    } else {
-                                        it
-                                    }
-                                },
-                            )
-                        }
-
-                        is ChatStreamEvent.Error -> {
-                            failed = true
-                            _uiState.update { current ->
-                                current.copy(
-                                    messages = current.messages.filterNot { it.id == placeholder.id },
-                                    error = event.message,
-                                )
+            try {
+                sendMessage(text, state.selectedCharacterId, state.selectedRole?.id, persistUser)
+                    .collect { event ->
+                        when (event) {
+                            is ChatStreamEvent.Delta -> buffer.append(event.text)
+                            is ChatStreamEvent.Done -> {
+                                serverId = event.messageId
+                                fullText = event.fullText
+                            }
+                            is ChatStreamEvent.Error -> {
+                                failed = true
+                                _uiState.update { it.copy(error = event.message) }
                             }
                         }
                     }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                // 用户点了停止：保留已经生成的内容，不当作失败
+                reveal.cancel()
+                kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
+                    finishStopped(placeholder.key, buffer.toString())
                 }
+                _uiState.update { it.copy(sending = false, streaming = false) }
+                userMessageId?.let { setDelivery(it, DeliveryStatus.SENT) }
+                throw e
+            } catch (e: Exception) {
+                failed = true
+                _uiState.update { it.copy(error = e.message) }
+            }
+
+            ended = true
+            reveal.join()
+
+            _uiState.update { current ->
+                current.copy(
+                    messages = current.messages.mapNotNull { m ->
+                        when {
+                            m.key != placeholder.key -> m
+                            // 出错且一个字都没收到：撤掉占位气泡；已经有内容就保留
+                            failed && m.text.isEmpty() -> null
+                            else -> m.copy(id = serverId ?: m.id, text = fullText ?: m.text, pending = false)
+                        }
+                    },
+                    sending = false,
+                    streaming = false,
+                )
+            }
+            userMessageId?.let { setDelivery(it, if (failed) DeliveryStatus.FAILED else DeliveryStatus.SENT) }
         }
     }
+
+    /** 停止生成：取消网络请求，已经显示和已收到的内容都保留。 */
+    fun onStopGenerating() {
+        streamJob?.cancel()
+    }
+
+    private suspend fun finishStopped(key: String, bufferedText: String) {
+        var kept: ChatMessage? = null
+        _uiState.update { current ->
+            current.copy(
+                messages = current.messages.mapNotNull { m ->
+                    if (m.key != key) {
+                        m
+                    } else {
+                        val merged = m.text + bufferedText
+                        if (merged.isEmpty()) null else m.copy(text = merged, pending = false).also { kept = it }
+                    }
+                },
+            )
+        }
+        kept?.let { repository.saveMessage(repository.currentSessionId(), it) }
+    }
+
+    private fun updateByKey(key: String, transform: (ChatMessage) -> ChatMessage) {
+        _uiState.update { current ->
+            current.copy(messages = current.messages.map { if (it.key == key) transform(it) else it })
+        }
+    }
+
+    /** 本拍释放多少字：积压越多越快（上限 48），流结束后加速排空。 */
+    private fun revealCount(pending: Int, ended: Boolean): Int {
+        val base = (pending / 8).coerceIn(1, 48)
+        return if (ended) maxOf(base, pending / 3) else base
+    }
+
+    /** 不要把一个 emoji 等代理对从中间切开。 */
+    private fun safeCut(text: CharSequence, wanted: Int): Int {
+        var cut = wanted.coerceAtMost(text.length)
+        if (cut in 1 until text.length && Character.isHighSurrogate(text[cut - 1])) cut += 1
+        return cut
+    }
+
+    private var streamJob: kotlinx.coroutines.Job? = null
 
     /**
      * 发送带附件的用户消息：逐个上传附件，各自的识别结果合并成一条助手回复；
@@ -377,7 +450,7 @@ class ChatViewModel : ViewModel() {
             repository.saveMessage(sessionId, assistant)
             _uiState.update { current ->
                 current.copy(
-                    messages = current.messages.map { m -> if (m.id == placeholder.id) assistant else m },
+                    messages = current.messages.map { m -> if (m.id == placeholder.id) assistant.copy(key = placeholder.key) else m },
                     sending = false,
                 )
             }

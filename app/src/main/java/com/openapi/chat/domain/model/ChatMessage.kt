@@ -43,6 +43,12 @@ data class FileAttachment(
  */
 data class ChatMessage(
     val id: String,
+    /**
+     * 列表里这条气泡的稳定标识。创建时确定，之后不再变化。
+     * [id] 会在回复完成时从本地临时 id 换成服务端 id，如果列表用 [id] 当 key，
+     * 完成的一瞬间整条气泡会被当成另一条消息删除再重建（表现为跳变、闪烁、流式效果丢失）。
+     */
+    val key: String = id,
     val role: ChatRole,
     val text: String,
     val createdAtMillis: Long,

@@ -4,4 +4,5 @@
     <string name="chat_attach_help">Help</string>
     <string name="chat_attach_photo_solve">Photo solve</string>
     <string name="chat_attach_camera">Camera</string>
+    <string name="chat_camera_rationale">Camera access is needed to take a photo and send it.</string>
 </resources>

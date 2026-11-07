@@ -34,6 +34,8 @@ sealed interface MessagePart {
 @Immutable
 data class ChatItem(
     val id: String,
+    /** 列表项的稳定标识（不随服务端 id 的替换而变化），LazyColumn 用它做 key。 */
+    val key: String = id,
     val sender: Sender,
     val parts: List<MessagePart>,
     val status: SendStatus = SendStatus.Sent,
@@ -42,6 +44,8 @@ data class ChatItem(
     val reaction: Reaction = Reaction.None,
     /** 正在朗读这条消息。 */
     val speaking: Boolean = false,
+    /** 助手正在流式输出这条消息（已有部分文字但还没结束）。 */
+    val streaming: Boolean = false,
 ) {
     /** 用于复制、分享、编辑的纯文本：文字部分，没有文字时退回语音转写。 */
     val plainText: String

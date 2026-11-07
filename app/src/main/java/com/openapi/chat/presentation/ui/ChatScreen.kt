@@ -72,6 +72,7 @@ fun ChatScreen(
     onVoiceStyleChange: (VoiceStyle) -> Unit,
     onInputChange: (String) -> Unit,
     onSend: () -> Unit,
+    onStop: () -> Unit,
     onRemoveDraft: (String) -> Unit,
     onVoiceRecordStart: () -> Unit,
     onVoiceRecordStop: () -> Unit,
@@ -98,7 +99,7 @@ fun ChatScreen(
         ChatItemMapper.map(state.messages, playback, state.speakingMessageId, state.likedIds, state.dislikedIds)
     }
     val byId = remember(state.messages) { state.messages.associateBy { it.id } }
-    val composerState = remember(state.input, state.drafts, state.sending, state.recording, state.transcribing, state.partialText) {
+    val composerState = remember(state.input, state.drafts, state.sending, state.streaming, state.recording, state.transcribing, state.partialText) {
         ComposerState(
             text = state.input,
             drafts = state.drafts.map { draft ->
@@ -110,6 +111,7 @@ fun ChatScreen(
                 )
             },
             sending = state.sending,
+            generating = state.streaming,
             recording = state.recording,
             transcribing = state.transcribing,
             liveTranscript = state.partialText,
@@ -177,6 +179,7 @@ fun ChatScreen(
                 onVoiceStyleChange = onVoiceStyleChange,
                 onTextChange = onInputChange,
                 onSend = onSend,
+                onStop = onStop,
                 onRemoveDraft = onRemoveDraft,
                 onVoiceStart = onVoiceRecordStart,
                 onVoiceStop = onVoiceRecordStop,
