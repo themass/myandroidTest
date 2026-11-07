@@ -182,7 +182,12 @@ fun ChatComposer(
 
                     if (showSend) {
                         Surface(
-                            onClick = onSend,
+                            onClick = {
+                                // 发送后收起表情和「+」面板；键盘保留，方便继续输入
+                                showEmoji = false
+                                showActions = false
+                                onSend()
+                            },
                             enabled = state.canSend,
                             shape = RoundedCornerShape(18.dp),
                             color = if (state.canSend) colors.accent else colors.divider,
