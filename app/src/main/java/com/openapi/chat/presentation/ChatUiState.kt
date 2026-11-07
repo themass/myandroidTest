@@ -25,8 +25,9 @@ data class ChatUiState(
     val transcribing: Boolean = false,
     /** 正在播放朗读的那条助手消息 id。 */
     val speakingMessageId: String? = null,
-    /** 选中的图片已完成题目识别与质量判断，等待用户在审阅面板里确认。 */
-    val pendingImage: ImageReview? = null,
+    /** 点过赞 / 踩的助手消息 id。 */
+    val likedIds: Set<String> = emptySet(),
+    val dislikedIds: Set<String> = emptySet(),
     /** 待发送的附件草稿（图片或文件），显示在输入栏上方，发送时和文字一起发出。 */
     val drafts: List<DraftAttachment> = emptyList(),
     /** 会话列表，默认会话在前。 */

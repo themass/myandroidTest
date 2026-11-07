@@ -6,6 +6,7 @@ import com.openapi.chat.domain.model.FileAttachment
 import com.openapi.chat.domain.model.ImageAttachment
 import com.openapi.chat.domain.model.MessageKind
 import com.openapi.chat.domain.model.VoiceAttachment
+import org.json.JSONArray
 import org.json.JSONObject
 
 /**
@@ -42,6 +43,11 @@ object ChatLogMapper {
     private const val FIELD_FILE_NAME = "fileName"
     private const val FIELD_FILE_SIZE = "fileSize"
 
+    /** 新增字段（旧数据没有，读取时回退到 content）：多图路径、多文件、组合消息的配文。 */
+    private const val FIELD_IMAGES = "images"
+    private const val FIELD_FILES = "files"
+    private const val FIELD_CAPTION = "caption"
+
     /** 把一条老 ChatLog 的字段映射成领域模型。 */
     fun toDomain(
         chatId: String?,
@@ -56,8 +62,8 @@ object ChatLogMapper {
         val json = parseOrNull(rawContent)
         var text = ""
         var voice: VoiceAttachment? = null
-        var image: ImageAttachment? = null
-        var file: FileAttachment? = null
+        var images: List<ImageAttachment> = emptyList()
+        var files: List<FileAttachment> = emptyList()
         val kind: MessageKind
 
         when (msgType) {
@@ -72,16 +78,15 @@ object ChatLogMapper {
             }
 
             TYPE_IMAGE -> {
-                image = ImageAttachment(path = json?.optString(FIELD_CONTENT).orEmpty())
+                images = readImages(json)
+                files = readFiles(json, fallbackToContent = false)
+                text = json?.optString(FIELD_CAPTION).orEmpty()
                 kind = MessageKind.IMAGE
             }
 
             TYPE_FILE -> {
-                file = FileAttachment(
-                    path = json?.optString(FIELD_CONTENT).orEmpty(),
-                    name = json?.optString(FIELD_FILE_NAME).orEmpty(),
-                    sizeBytes = json?.optString(FIELD_FILE_SIZE)?.toLongOrNull() ?: 0L,
-                )
+                files = readFiles(json, fallbackToContent = true)
+                text = json?.optString(FIELD_CAPTION).orEmpty()
                 kind = MessageKind.FILE
             }
 
@@ -98,8 +103,39 @@ object ChatLogMapper {
             createdAtMillis = createdAtMillis,
             kind = kind,
             voice = voice,
-            image = image,
-            file = file,
+            images = images,
+            files = files,
+        )
+    }
+
+    private fun readImages(json: JSONObject?): List<ImageAttachment> {
+        val array = json?.optJSONArray(FIELD_IMAGES)
+        if (array != null && array.length() > 0) {
+            return (0 until array.length()).map { ImageAttachment(path = array.optString(it)) }
+        }
+        val single = json?.optString(FIELD_CONTENT).orEmpty()
+        return if (single.isEmpty()) emptyList() else listOf(ImageAttachment(path = single))
+    }
+
+    private fun readFiles(json: JSONObject?, fallbackToContent: Boolean): List<FileAttachment> {
+        val array = json?.optJSONArray(FIELD_FILES)
+        if (array != null && array.length() > 0) {
+            return (0 until array.length()).mapNotNull { index ->
+                val item = array.optJSONObject(index) ?: return@mapNotNull null
+                FileAttachment(
+                    path = item.optString(FIELD_CONTENT),
+                    name = item.optString(FIELD_FILE_NAME),
+                    sizeBytes = item.optString(FIELD_FILE_SIZE).toLongOrNull() ?: 0L,
+                )
+            }
+        }
+        if (!fallbackToContent) return emptyList()
+        return listOf(
+            FileAttachment(
+                path = json?.optString(FIELD_CONTENT).orEmpty(),
+                name = json?.optString(FIELD_FILE_NAME).orEmpty(),
+                sizeBytes = json?.optString(FIELD_FILE_SIZE)?.toLongOrNull() ?: 0L,
+            ),
         )
     }
 
@@ -117,14 +153,27 @@ object ChatLogMapper {
                 json.put(FIELD_CONTENT, message.text)
             }
 
-            MessageKind.IMAGE -> {
-                json.put(FIELD_CONTENT, message.image?.path.orEmpty())
-            }
-
-            MessageKind.FILE -> {
-                json.put(FIELD_CONTENT, message.file?.path.orEmpty())
-                json.put(FIELD_FILE_NAME, message.file?.name.orEmpty())
-                json.put(FIELD_FILE_SIZE, (message.file?.sizeBytes ?: 0L).toString())
+            MessageKind.IMAGE, MessageKind.FILE -> {
+                // content / fileName / fileSize 仍写第一个附件，旧版本读得出来；完整内容放在新增字段里
+                val firstImage = message.images.firstOrNull()
+                val firstFile = message.files.firstOrNull()
+                json.put(FIELD_CONTENT, firstImage?.path ?: firstFile?.path.orEmpty())
+                if (firstImage == null && firstFile != null) {
+                    json.put(FIELD_FILE_NAME, firstFile.name)
+                    json.put(FIELD_FILE_SIZE, firstFile.sizeBytes.toString())
+                }
+                if (message.images.isNotEmpty()) {
+                    json.put(FIELD_IMAGES, JSONArray(message.images.map { it.path }))
+                }
+                if (message.files.isNotEmpty()) {
+                    json.put(FIELD_FILES, JSONArray(message.files.map { file ->
+                        JSONObject()
+                            .put(FIELD_CONTENT, file.path)
+                            .put(FIELD_FILE_NAME, file.name)
+                            .put(FIELD_FILE_SIZE, file.sizeBytes.toString())
+                    }))
+                }
+                if (message.text.isNotBlank()) json.put(FIELD_CAPTION, message.text)
             }
         }
         return json.toString()

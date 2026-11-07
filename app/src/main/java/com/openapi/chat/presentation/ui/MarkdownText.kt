@@ -25,19 +25,24 @@ fun MarkdownText(
     markdown: String,
     textColor: Color = Color.Black,
     modifier: Modifier = Modifier,
+    textSizeSp: Float = 16f,
 ) {
     AndroidView(
         modifier = modifier,
         factory = { context ->
             TextView(context).apply {
-                setTextColor(textColor.toArgb())
+                // 先套文字外观，再设颜色和字号：反过来的话外观会把颜色覆盖成主题灰色
                 TextViewCompat.setTextAppearance(
                     this,
                     androidx.appcompat.R.style.TextAppearance_AppCompat_Medium,
                 )
+                setTextColor(textColor.toArgb())
+                setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, textSizeSp)
+                setLineSpacing(0f, 1.2f)
             }
         },
         update = { view ->
+            view.setTextColor(textColor.toArgb())
             ChatMarkwon.get(view.context).setMarkdown(view, FormulaInputNormalizer.forRender(markdown))
         },
     )

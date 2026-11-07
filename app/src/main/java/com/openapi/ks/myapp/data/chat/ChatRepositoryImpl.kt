@@ -154,6 +154,7 @@ class ChatRepositoryImpl(
         userText: String,
         characterId: Int?,
         roleId: String?,
+        persistUserMessage: Boolean,
     ): Flow<ChatStreamEvent> = callbackFlow {
         val userMessage = ChatMessage(
             id = "local-${System.currentTimeMillis()}",
@@ -161,7 +162,7 @@ class ChatRepositoryImpl(
             text = userText,
             createdAtMillis = System.currentTimeMillis(),
         )
-        persist(sessionId, userMessage)
+        if (persistUserMessage) persist(sessionId, userMessage)
 
         // 历史以 {role, content} 数组提交，字段名与后端约定一致（role: user/assistant）
         val history = loadHistory(sessionId)

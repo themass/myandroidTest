@@ -3,4 +3,5 @@
     <string name="chat_attach_phone">电话</string>
     <string name="chat_attach_help">帮助</string>
     <string name="chat_attach_photo_solve">拍照解题</string>
+    <string name="chat_attach_camera">拍摄</string>
 </resources>

@@ -40,6 +40,8 @@ interface ChatRepository {
         userText: String,
         characterId: Int?,
         roleId: String? = null,
+        /** 为 false 时不保存用户消息：组合消息、语音转写在发送前已经单独保存过。 */
+        persistUserMessage: Boolean = true,
     ): Flow<ChatStreamEvent>
 
     /** 当前会话 id，来自 SP（Constants.CHAT_SESSION）。 */

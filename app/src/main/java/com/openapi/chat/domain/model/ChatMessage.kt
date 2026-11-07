@@ -25,6 +25,9 @@ data class ImageAttachment(
     val path: String,
 )
 
+/** 用户消息的投递状态。 */
+enum class DeliveryStatus { SENT, SENDING, FAILED }
+
 /** 文件附件：应用私有目录下的本地路径，连同原始文件名与大小。 */
 data class FileAttachment(
     val path: String,
@@ -45,9 +48,12 @@ data class ChatMessage(
     val createdAtMillis: Long,
     val kind: MessageKind = MessageKind.TEXT,
     val voice: VoiceAttachment? = null,
-    val image: ImageAttachment? = null,
-    val file: FileAttachment? = null,
+    /** 一条消息可以带多张图片（多选或「图片 + 文字」组合）。 */
+    val images: List<ImageAttachment> = emptyList(),
+    /** 一条消息可以带多个文件。 */
+    val files: List<FileAttachment> = emptyList(),
     val pending: Boolean = false,
+    val delivery: DeliveryStatus = DeliveryStatus.SENT,
 )
 
 /**
