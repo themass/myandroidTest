@@ -1,0 +1,173 @@
+package com.aimath.paizhao.photosolve.ui
+
+import androidx.compose.ui.res.stringResource
+import com.openapi.ks.chat.R
+import android.graphics.Bitmap
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.RotateLeft
+import androidx.compose.material.icons.automirrored.filled.RotateRight
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Compare
+import androidx.compose.material.icons.filled.RestartAlt
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import com.aimath.paizhao.photosolve.CropNorm
+import com.aimath.paizhao.photosolve.cropassist.CropAssistRegistry
+import com.aimath.paizhao.photosolve.cropassist.CropAssistResult
+import com.aimath.paizhao.photosolve.image.ImagePipeline.rotated
+import com.mr0xf00.easycrop.CropError
+import com.mr0xf00.easycrop.CropResult
+import com.mr0xf00.easycrop.CropState
+import com.mr0xf00.easycrop.crop
+import com.mr0xf00.easycrop.rememberImageCropper
+import com.mr0xf00.easycrop.ui.ImageCropperDialog
+
+/**
+ * Crop UI backed by the open-source `easycrop` library (replaces the hand-rolled drag-handle
+ * math Phase 1 shipped with). When the active [com.aimath.paizhao.photosolve.cropassist.CropAssistProvider]
+ * isn't the manual baseline, its suggested box is applied to the crop session once it starts —
+ * the user can still freely adjust it inside easycrop's own UI. A toolbar action opens
+ * [CropAssistComparisonScreen] to compare every available auto-detect backend on this photo.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PhotoCropScreen(
+    bitmap: Bitmap,
+    cropAssistRegistry: CropAssistRegistry,
+    activeCropAssistId: String,
+    onConfirm: (Bitmap) -> Unit,
+    onCancel: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val imageCropper = rememberImageCropper()
+    var showComparison by remember { mutableStateOf(false) }
+    // 旋转后用新图重新裁剪：easycrop 没有旋转能力，只能换图重开
+    var working by remember(bitmap) { mutableStateOf(bitmap) }
+    var suggestionApplied by remember(working) { mutableStateOf(false) }
+
+    LaunchedEffect(working) {
+        when (val result = imageCropper.crop(bmp = working.asImageBitmap())) {
+            is CropResult.Success -> onConfirm(result.bitmap.asAndroidBitmap())
+            CropResult.Cancelled -> onCancel()
+            is CropError -> onCancel()
+        }
+    }
+
+    val cropState = imageCropper.cropState
+
+    LaunchedEffect(cropState) {
+        val state = cropState ?: return@LaunchedEffect
+        if (suggestionApplied) return@LaunchedEffect
+        suggestionApplied = true
+        val provider = cropAssistRegistry.byId(activeCropAssistId)
+        if (provider.id == cropAssistRegistry.manual.id) return@LaunchedEffect
+        val suggestion = provider.suggest(working)
+        if (suggestion is CropAssistResult.SuggestedBox) {
+            applySuggestion(state, working, suggestion.norm)
+        }
+    }
+
+    Box(modifier.fillMaxSize()) {
+        if (cropState != null) {
+            ImageCropperDialog(
+                state = cropState,
+                topBar = { state ->
+                    CropTopBar(
+                        state = state,
+                        onCompareClick = { showComparison = true },
+                        onRotateLeft = { working = working.rotated(-90f) },
+                        onRotateRight = { working = working.rotated(90f) },
+                    )
+                },
+            )
+        } else {
+            Box(Modifier.fillMaxSize()) {
+                CircularProgressIndicator(Modifier.align(Alignment.Center))
+            }
+        }
+
+        if (showComparison) {
+            CropAssistComparisonScreen(
+                bitmap = working,
+                registry = cropAssistRegistry,
+                onApply = { norm ->
+                    cropState?.let { applySuggestion(it, working, norm) }
+                    showComparison = false
+                },
+                onDismiss = { showComparison = false },
+            )
+        }
+    }
+}
+
+private fun applySuggestion(state: CropState, bitmap: Bitmap, norm: CropNorm) {
+    val w = bitmap.width.toFloat()
+    val h = bitmap.height.toFloat()
+    state.region = Rect(
+        left = norm.left * w,
+        top = norm.top * h,
+        right = norm.right * w,
+        bottom = norm.bottom * h,
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CropTopBar(
+    state: CropState,
+    onCompareClick: () -> Unit,
+    onRotateLeft: () -> Unit,
+    onRotateRight: () -> Unit,
+) {
+    Surface {
+        TopAppBar(
+            title = { Text(stringResource(R.string.photosolve_crop_title)) },
+            navigationIcon = {
+                IconButton(onClick = { state.done(accept = false) }) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.ui_cancel))
+                }
+            },
+            actions = {
+                IconButton(onClick = onRotateLeft) {
+                    Icon(Icons.AutoMirrored.Filled.RotateLeft, contentDescription = stringResource(R.string.photosolve_rotate_left))
+                }
+                IconButton(onClick = onRotateRight) {
+                    Icon(Icons.AutoMirrored.Filled.RotateRight, contentDescription = stringResource(R.string.photosolve_rotate_right))
+                }
+                IconButton(onClick = onCompareClick) {
+                    Icon(Icons.Filled.Compare, contentDescription = stringResource(R.string.photosolve_compare_title))
+                }
+                IconButton(onClick = { state.reset() }) {
+                    Icon(Icons.Filled.RestartAlt, contentDescription = stringResource(R.string.photosolve_reset))
+                }
+                IconButton(onClick = { state.done(accept = true) }, enabled = !state.accepted) {
+                    Icon(
+                        Icons.Filled.Check,
+                        contentDescription = stringResource(R.string.ui_confirm),
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            },
+        )
+    }
+}

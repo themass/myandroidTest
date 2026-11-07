@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="chat_release_to_send">松开发送，上滑取消</string>
+    <string name="chat_release_to_cancel">松开手指，取消发送</string>
+    <string name="chat_open_file_failed">无法打开此文件</string>
+    <string name="chat_slide_left_cancel">← 左滑取消</string>
+    <string name="chat_voice_style_floating">语音样式 A：微信式浮层</string>
+    <string name="chat_voice_style_ripple">语音样式 B：豆包式波纹 + 实时文字</string>
+    <string name="chat_voice_style_bar">语音样式 C：录音条 + 声波</string>
+</resources>

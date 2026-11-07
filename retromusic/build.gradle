@@ -1,0 +1,99 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+    id 'com.google.devtools.ksp'
+    id 'kotlin-parcelize'
+    id 'androidx.navigation.safeargs.kotlin'
+}
+
+// 本地音乐：集成自 Retro Music Player（GPL-3.0），源码按原样保留，仅做命名空间与 App 入口适配。
+// 与 app 内已有的 auxio_music_ui（在线声音模块）互不影响：这里只负责抽屉里的"本地音乐"。
+// GPL-3.0 决定了这个模块只能自用，不能抽成通用 lib 复用。
+android {
+    namespace "com.openapi.retromusic"
+    compileSdk rootProject.ext.compileSdkVersion
+
+    defaultConfig {
+        minSdk rootProject.ext.minSdkVersion
+        consumerProguardFiles 'consumer-rules.pro'
+    }
+
+    buildFeatures {
+        viewBinding true
+        buildConfig true
+    }
+
+    sourceSets {
+        main {
+            // appthemehelper 并入后保留单独资源目录，靠资源名合并
+            res.srcDirs = ['src/main/res', 'src/main/res-appthemehelper']
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+}
+
+dependencies {
+    implementation libs.androidx.core.ktx
+    implementation libs.androidx.appcompat
+    implementation 'androidx.annotation:annotation:1.8.0'
+    implementation libs.androidx.constraintlayout
+    implementation libs.androidx.recyclerview
+    implementation 'androidx.preference:preference-ktx:1.2.1'
+    implementation 'androidx.palette:palette:1.0.0'
+    implementation 'androidx.gridlayout:gridlayout:1.1.0'
+    implementation 'androidx.mediarouter:mediarouter:1.7.0'
+    implementation libs.google.material
+
+    implementation libs.androidx.navigation.runtime.ktx
+    implementation libs.androidx.navigation.fragment.ktx
+    implementation libs.androidx.navigation.ui.ktx
+
+    implementation libs.androidx.room.runtime
+    implementation libs.androidx.room.ktx
+    ksp libs.androidx.room.compiler
+
+    implementation libs.androidx.lifecycle.viewmodel.ktx
+    implementation libs.androidx.lifecycle.livedata.ktx
+
+    implementation 'androidx.core:core-splashscreen:1.0.1'
+
+    implementation 'com.squareup.retrofit2:retrofit:3.0.0'
+    implementation 'com.squareup.retrofit2:converter-gson:3.0.0'
+    implementation libs.okhttp.logging
+
+    implementation 'com.afollestad.material-dialogs:core:3.3.0'
+    implementation 'com.afollestad.material-dialogs:input:3.3.0'
+    implementation 'com.afollestad.material-dialogs:color:3.3.0'
+    implementation 'com.afollestad:material-cab:2.0.1'
+
+    implementation libs.kotlinx.coroutines.android
+
+    implementation 'io.insert-koin:koin-core:3.5.6'
+    implementation 'io.insert-koin:koin-android:3.5.6'
+
+    implementation libs.glide
+    implementation libs.glide.okhttp3
+
+    implementation 'com.h6ah4i.android.widget.advrecyclerview:advrecyclerview:1.0.0'
+    implementation 'com.github.bosphere.android-fadingedgelayout:fadingedgelayout:1.0.0'
+    implementation 'net.yslibrary.keyboardvisibilityevent:keyboardvisibilityevent:3.0.0-RC3'
+    implementation 'dev.chrisbanes.insetter:insetter:0.6.1'
+
+    implementation 'com.github.Adonai:jaudiotagger:2.3.15'
+    implementation 'com.r0adkll:slidableactivity:2.1.0'
+    implementation 'me.zhanghai.android.fastscroll:library:1.2.0'
+    implementation 'cat.ereza:customactivityoncrash:2.4.0'
+    implementation 'me.tankery.lib:circularSeekBar:1.4.2'
+    implementation 'com.heinrichreimersoftware:material-intro:2.0.0'
+    implementation 'com.github.jetradarmobile:android-snowfall:1.2.1'
+
+    implementation libs.androidx.media3.exoplayer
+}

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="home_tab_chat">Chat</string>
+    <string name="home_tab_channels">Channels</string>
+    <string name="home_tab_profile">Me</string>
+    <string name="home_menu">Menu</string>
+    <string name="home_drawer_section_pages">Pages</string>
+    <string name="home_drawer_section_test">Test entries</string>
+    <string name="home_channels_empty">Nothing here yet</string>
+    <string name="home_channels_error">Couldn\'t load channels</string>
+    <string name="home_channels_retry">Retry</string>
+</resources>

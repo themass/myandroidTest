@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="chat_like_desc">赞</string>
+    <string name="chat_dislike_desc">踩</string>
+    <string name="chat_feedback_title">反馈</string>
+</resources>

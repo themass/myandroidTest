@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="auxio_music_ui_title">Music (GPL module)</string>
+    <string name="auxio_list_title">Library</string>
+    <string name="auxio_now_playing">Now playing</string>
+    <string name="auxio_back">Back</string>
+    <string name="auxio_play">Play</string>
+    <string name="auxio_pause">Pause</string>
+    <string name="auxio_prev">Previous</string>
+    <string name="auxio_next">Next</string>
+    <string name="auxio_play_mode_one">Repeat one</string>
+    <string name="auxio_play_mode_all">Repeat all</string>
+    <string name="auxio_play_mode_list">Play in order</string>
+    <string name="auxio_play_mode_shuffle">Shuffle</string>
+    <string name="auxio_play_mode_button_cd">Play mode: %1$s</string>
+    <string name="auxio_list_retry">Retry</string>
+    <string name="auxio_list_empty">No playable items in this list.</string>
+    <string name="auxio_list_network_error">Network error</string>
+    <string name="auxio_list_refresh_cd">Refresh list</string>
+    <string name="auxio_row_menu_cd">Song options</string>
+    <string name="auxio_row_play">Play</string>
+    <string name="auxio_row_now_playing">Open now playing</string>
+    <string name="auxio_fab_now_playing_cd">Expand now playing</string>
+    <string name="auxio_fab_next_cd">Next track</string>
+    <string name="auxio_gpl_notice">GPL-3.0 module · UI inspired by Auxio</string>
+</resources>

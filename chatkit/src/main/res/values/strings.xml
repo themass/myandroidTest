@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="chatkit_copy">Copy</string>
+    <string name="chatkit_delete">Delete</string>
+    <string name="chatkit_retry">Retry</string>
+    <string name="chatkit_edit">Edit</string>
+    <string name="chatkit_speak">Read aloud</string>
+    <string name="chatkit_speaking">Reading aloud</string>
+    <string name="chatkit_like">Like</string>
+    <string name="chatkit_dislike">Dislike</string>
+    <string name="chatkit_share">Share</string>
+    <string name="chatkit_regenerate">Regenerate</string>
+    <string name="chatkit_send_failed">Failed to send, tap to retry</string>
+    <string name="chatkit_play_voice">Play voice</string>
+    <string name="chatkit_transcript">Transcript</string>
+    <string name="chatkit_input_hint">Say something…</string>
+    <string name="chatkit_send">Send</string>
+    <string name="chatkit_emoji">Emoji</string>
+    <string name="chatkit_more">More</string>
+    <string name="chatkit_voice_toggle">Voice input</string>
+    <string name="chatkit_keyboard">Keyboard</string>
+    <string name="chatkit_hold_to_talk">Hold to talk</string>
+    <string name="chatkit_release_to_send">Release to send, slide up to cancel</string>
+    <string name="chatkit_release_to_send_bar">Release to send</string>
+    <string name="chatkit_release_to_cancel">Release to cancel</string>
+    <string name="chatkit_slide_left_cancel">← Slide left to cancel</string>
+    <string name="chatkit_transcribing">Recognizing speech…</string>
+    <string name="chatkit_remove_attachment">Remove attachment</string>
+    <string name="chatkit_image_count">%1$d / %2$d</string>
+    <string name="chatkit_release_to_end">Release to finish</string>
+    <string name="chatkit_release_to_send_short">Release to send</string>
+    <string name="chatkit_release_to_cancel_short">Release to cancel</string>
+    <string name="chatkit_release_to_send_hint">Release to send, slide up to cancel</string>
+    <string name="chatkit_slide_up_cancel">Slide up to cancel</string>
+    <string name="chatkit_release_to_text">Release to convert to text</string>
+    <string name="chatkit_cancel_short">Cancel</string>
+    <string name="chatkit_to_text">To text</string>
+</resources>

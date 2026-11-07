@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+    Copyright (C) 2012-2013 Tobias Brunner
+    Copyright (C) 2012 Giuliano Grassi
+    Copyright (C) 2012 Ralf Sager
+    Hochschule fuer Technik Rapperswil
+
+    This program is free software; you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by the
+    Free Software Foundation; either version 2 of the License, or (at your
+    option) any later version.  See <http://www.fsf.org/copyleft/gpl.txt>.
+
+    This program is distributed in the hope that it will be useful, but
+    WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+    or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+    for more details.
+-->
+<resources xmlns:tools="http://schemas.android.com/tools" xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <!--  tab main -->
+    <string name="tab_movie">电影</string>
+    <string name="tab_ng">夜色</string>
+    <string name="tab_area">本地</string>
+    <string name="tab_customer">自定义</string>
+    <string name="tab_chat">对话</string>
+
+    <string name="tab_tag_index">Index</string>
+    <string name="tab_index">首页</string>
+
+    <string name="tab_tag_movie">Movie</string>
+    <string name="tab_tag_ng">Night</string>
+    <string name="tab_tag_english">英语</string>
+    <string name="tab_tag_math">数学</string>
+    <string name="tab_tag_chinese">语文</string>
+    <string name="tab_tag_area">Area</string>
+    <string name="tab_tag_customer">customer</string>
+    <string name="tab_tag_chat">chat</string>
+
+    <!-- Application -->
+    <string name="app_name">kimi</string>
+    <string name="main_activity_name">kimi</string>
+    <string name="toobar_title">kimi</string>
+    <string name="load">正在加载,请等待。</string>
+    <string name="off">关闭</string>
+    <string name="on">打开</string>
+
+    <!-- menu -->
+    <string name="menu_btn_donation">付款</string>
+    <string name="menu_btn_login">立即登录</string>
+    <string name="menu_btn_login_ready">已登录</string>
+    <string name="menu_btn_name_default">猴子请来的</string>
+    <string name="menu_btn_feedback">帮助</string>
+    <string name="menu_btn_about">关于Afreedom: 积分获取</string>
+    <string name="menu_btn_share">分享</string>
+    <string name="menu_btn_test">测试</string>
+    <string name="menu_btn_character">助手性格设置</string>
+    <string name="menu_btn_version">版本:</string>
+    <string name="menu_btn_logout">退出</string>
+    <string name="menu_btn_setting">设置</string>
+    <string name="menu_btn_app">应用推荐</string>
+    <string name="menu_btn_support">女奴探索</string>
+    <string name="support_info">快乐起航。。。</string>
+    <string name="feed_back">信息反馈</string>
+    <string name="menu_btn_country">地区 ：</string>
+    <string name="menu_btn_open_browser">浏览器打开</string>
+    <string name="menu_btn_copy_url">复制URL</string>
+    <string name="menu_btn_favorite">收藏夹</string>
+    <string name="menu_btn_chat_session">会话记录</string>
+
+    <string name="menu_favorite">收藏</string>
+    <string name="menu_favorite_cancel">取消收藏</string>
+    <!-- share-->
+    <string name="menu_share_title">分享</string>
+    <string name="menu_share_copy_ok">已复制到剪切板</string>
+    <string name="menu_share_text_only">FAIL!! 只能分享text</string>
+    <string name="video_playback_failed">播放失败</string>
+    <string name="video_playback_failed_retry">播放失败，可点击重试</string>
+    <string name="video_playback_retry_action">重试</string>
+    <!-- %1$s / %2$s：失败的内核名、临时切换到的内核名（见 PlaybackEngineHelper.engineLabel） -->
+    <string name="video_playback_retry_other_engine">「%1$s」无法播放，已临时改用「%2$s」自动重试（未改设置里的内核）</string>
+    <!--登录，注册-->
+    <string name="close_over">再按一次退出程序!!</string>
+    <string name="login">登录</string>
+    <string name="reg">注册</string>
+    <string name="findpass">忘记密码?</string>
+    <string name="submit">提交</string>
+    <string name="vip_tips">请升级VIP</string>
+
+    <string name="email_see">密码已经发送</string>
+
+    <string name="setting">设置</string>
+    <string name="sex">性别:</string>
+    <string name="male">男</string>
+    <string name="female">女</string>
+    <string name="username_hint">用户名</string>
+    <string name="email_hint">邮箱</string>
+    <string name="ref_hint">邀请人</string>
+    <string name="password_hint">密码</string>
+    <string name="password_error">密码错误</string>
+    <string name="re_password_hint">再次输入密码</string>
+    <string name="re_code">校验码</string>
+    <string name="re_bt_code">获取校验码</string>
+    <string name="empty_name_pwd">请把信息填完整</string>
+    <string name="error_repwd">2次密码不一致</string>
+    <string name="reg_success">注册成功，现在登录？</string>
+    <string name="remark">Timeline RIGHTS RESERVED.</string>
+    <string name="need_login">请登录</string>
+    <string name="recharge">充值:</string>
+    <string name="iwanna_tips">告诉我你需要的内容，\n我会精心为您准备</string>
+    <string name="iwanna_title">反馈</string>
+    <string name="money_back_title">积分充值反馈</string>
+    <string name="send">发送</string>
+    <string name="iwanna_content_error">请告诉我你的需求!</string>
+    <string name="area_setting">是否显示专区</string>
+    <string name="playvideo_setting">使用饺子播放器-vitamio</string>
+    <string name="playcore_setting">视频播放内核</string>
+    <string name="playback_engine_exo">Exo（Media3）</string>
+    <string name="playback_engine_ijk_ffmpeg">IJK + FFmpeg（ex_so 扩展）</string>
+    <string name="playback_engine_ali">阿里 AliPlayer</string>
+    <string name="playback_engine_system">系统 MediaPlayer</string>
+    <string name="playback_engine_vlc">LibVLC（VideoLAN）</string>
+    <string name="playback_engine_badge_vlc">LibVLC</string>
+    <string name="playback_engine_toast_fmt">播放内核：%1$s</string>
+    <string name="player_more_menu">更多选项</string>
+    <string name="player_more_speed_title">播放速度</string>
+    <string name="player_more_decoder_settings">解码与内核设置</string>
+    <string name="player_speed_applied">已设为 %1$s</string>
+    <string name="player_gesture_hint">横向滑动可快进/快退；左侧上下调亮度，右侧调音量；双击可暂停。</string>
+
+    <string name="cast_need_http_url">投屏仅支持 http/https 网络地址</string>
+    <string name="cast_url_not_ready">视频地址未就绪，请稍后再试</string>
+    <string name="cast_load_failed">投屏加载失败</string>
+    <string name="use_tts">启用语音播报</string>
+
+    <string name="sound_setting">音频非wifi网络下提示</string>
+    <string name="sound_picshow">电影封面隐藏</string>
+    <string name="list_video_tiny_need">列表视频支持小窗</string>
+
+    <string name="area_mi">专区加密</string>
+    <string name="sound_play_not_wifi">非wifi下听音频？</string>
+    <string name="sound">淫声荡语</string>
+    <string name="text">情趣小说</string>
+    <string name="img">性感图片</string>
+    <string name="tv">TV</string>
+    <string name="video">视频体验</string>
+    <string name="version_low">版本太低，请升级！</string>
+    <string name="no_select">未选择</string>
+    <string name="sound_prev">上一首</string>
+    <string name="sound_next">下一首</string>
+    <string name="sound_play_pause">播放或暂停</string>
+    <string name="sound_open_player_detail">打开全屏播放页</string>
+    <string name="sound_item_overflow">更多</string>
+    <string name="sound_play_mode_cycle">播放模式</string>
+    <string name="sound_play_mode_list">顺序播放</string>
+    <string name="sound_play_mode_all">列表循环</string>
+    <string name="sound_play_mode_one">单曲循环</string>
+    <string name="sound_play_mode_shuffle">随机播放</string>
+    <string name="sound_play_mode_toast">播放模式：%s</string>
+    <string name="sound_detail_title">正在播放</string>
+    <string name="sound_detail_back">返回</string>
+    <string name="sound_detail_back_symbol">←</string>
+    <string name="sound_detail_art_desc">封面</string>
+    <string name="music_lyrics_translation_hint">接口未提供逐字歌词。点击右侧浮条「译」可拉取与视频页相同的实时翻译字幕（需在 VideoTranslationInstaller 中配置翻译提供方）。</string>
+    <string name="music_ui_use_auxio_title">音乐列表：Auxio 风格界面</string>
+    <string name="music_ui_use_auxio_hint">深色 Material 观感，视觉参考开源 Auxio（GPL），本应用未嵌入其源码。开启后请重新进入音乐频道。</string>
+    <string name="music_ui_auxio_banner">风格参考 Auxio · 非嵌入其工程代码</string>
+    <string name="music_ui_auxio_enabled_toast">已开启 Auxio 风格，请重新进入音乐列表</string>
+    <string name="music_ui_auxio_disabled_toast">已恢复经典音乐列表界面，请重新进入</string>
+    <string name="volcano_asr_setting_title">火山流式语音识别（在线字幕）</string>
+    <string name="volcano_asr_app_key_hint">App Key / AppId</string>
+    <string name="volcano_asr_access_key_hint">Access Token</string>
+    <string name="volcano_asr_resource_id_hint">Resource-Id（仅 v3，如 volc.bigasr.sauc.duration）</string>
+    <string name="volcano_asr_cluster_hint">Cluster（仅 v2，如 volcengine_input_common）</string>
+    <string name="volcano_asr_use_v3">使用 v3 大模型 WebSocket</string>
+    <string name="music_auxio_gpl_open">GPL 界面</string>
+    <string name="save_ok">保存成功</string>
+    <string name="save_fail">保存失败</string>
+    <string name="save_start">开始保存...</string>
+
+    <string name="feedback_hint">xxx积分 VIP3</string>
+    <!-- 通用错误提示 -->
+
+    <!-- vpn状态改变 -->
+    <!--版本更新下载-->
+
+    <string name="about_version_update_to_date">已是最新版本</string>
+    <string name="about_version_download_title">发现新版本</string>
+    <string name="about_version_download">立即下载</string>
+    <string name="about_version_confirm">确认</string>
+    <string name="about_version_cancel">取消</string>
+    <string name="about_download_confirm_title">确认下载</string>
+    <string name="about_download_confirm_content">您现在使用的是非WIFI网络，继续下载可能会消耗较多网络流量，是否继续下载？</string>
+    <string name="about_download_begin">开始下载</string>
+    <string name="about_download_finish">下载完成</string>
+    <string name="about_download_title">正在下Freedom</string>
+    <string name="about_download_prepare">正在准备下载</string>
+    <string name="about_download_error">文件下载错误</string>
+    <string name="about_download_percent">正在下载 %1$s/%2$s</string>
+
+    <!--其他-->
+    <item name="tag_pos" type="id" />
+    <item name="tag_val" type="id" />
+    <!--   like  -->
+    <plurals name="likes_count">
+        <item quantity="one">%d like</item>
+        <item quantity="other">%d likes</item>
+    </plurals>
+    <!-- 自定义-->
+    <string name="title_hint">标题</string>
+    <string name="url_hint">网站链接</string>
+    <string name="open_hint">打开方式</string>
+    <string name="open_local">本地打开</string>
+    <string name="open_browser">浏览器打开</string>
+    <string name="custome_title">添加自定义</string>
+    <string name="empty_info">请把信息填写完整</string>
+    <string name="custome_ok">添加成功</string>
+    <string name="custome_del_ok">删除成功</string>
+    <string name="custome_del_fail">删除失败</string>
+    <string name="save">保存</string>
+    <string name="my_charater">设置我的机器人性格</string>
+
+    <string name="schema_hint">Schema</string>
+    <string name="schema_http">http://</string>
+    <string name="schema_https">https://</string>
+    <string name="del_hint">确认清空？</string>
+    <string name="del_cancel">取消</string>
+    <string name="del_send_messag">你真的要清空对话历史吗？</string>
+    <string name="del_ok">确认</string>
+    <string name="edit">编辑</string>
+    <string name="delete">删除</string>
+    <string name="down_to_loadmore">下来刷新更精彩</string>
+    <!-- vpn error text -->
+    <string name="vpn_status_down">部分连接无法使用,点击安装FreeVPN</string>
+    <!-- activity title-->
+
+    <string name="ads_logo">推广</string>
+    <string name="skip">跳过</string>
+    <string name="search">请输入搜索内容</string>
+    <string-array name="recharge_arry">
+        <item>微信</item>
+        <item>支付宝</item>
+        <item>其他</item>
+    </string-array>
+
+    <!--广告-->
+    <string name="chat_new">新对话的名称</string>
+    <string name="action_delete">刪除</string>
+    <string name="action_sessiom">新对话</string>
+
+    <string name="cancel">取消</string>
+    <string name="hold_please">请等待...</string>
+    <string name="on_log_selected_messages"> %1$d 信息被选择</string>
+    <string name="action_copy">复制</string>
+    <string name="copied_message">信息已复制!</string>
+    <string name="del_message">信息已删除!</string>
+    <string name="chat_feedback_ok">反馈已收到</string>
+    <string name="chat_feedback_hint">输入反馈内容</string>
+    <string-array name="chat_feed_reson">
+        <item>有害</item>
+        <item>错误</item>
+        <item>无用</item>
+        <item>其他</item>
+    </string-array>
+    <string name="talktome">Talk To Her</string>
+    <string name="talktome_unavailable">语音通话功能暂不可用</string>
+    <string name="chat_asr_record_failed">录音失败，请检查麦克风权限后重试</string>
+    <string name="chat_asr_audio_convert_failed">语音处理失败，无法进行语音识别</string>
+    <string name="image_preview_failed">无法打开图片预览</string>
+
+</resources>

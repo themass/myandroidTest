@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?><!--
+<?xml version="1.0" encoding="utf-8"?>
+<!--
     Copyright (C) 2012-2013 Tobias Brunner
     Copyright (C) 2012 Giuliano Grassi
     Copyright (C) 2012 Ralf Sager
@@ -14,112 +15,202 @@
     or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
     for more details.
 -->
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <!--  Tab Hauptseite -->
+    <string name="tab_movie">Filme</string>
+    <string name="tab_ng">Nachtleben</string>
+    <string name="tab_area">Lokal</string>
+    <string name="tab_customer">Benutzerdefiniert</string>
+    <string name="tab_chat">Chat</string>
 
-    <!-- Application -->
-    <string name="app_name">strongSwan VPN Client</string>
-    <string name="main_activity_name">strongSwan</string>
-    <string name="show_log">Log anzeigen</string>
-    <string name="search">Suchen</string>
-    <string name="vpn_not_supported_title">VPN nicht unterstützt</string>
-    <string name="vpn_not_supported">Ihr Gerät unterstützt keine VPN Anwendungen.\nBitte kontaktieren Sie den Hersteller.</string>
-    <string name="vpn_not_supported_during_lockdown">VPN Verbindungen sind nicht möglich im abgeriegelten Modus.</string>
-    <string name="loading">Laden&#8230;</string>
-    <string name="profile_not_found">Profil nicht gefunden</string>
-    <string name="strongswan_shortcut">strongSwan-Verknüpfung</string>
+    <string name="tab_tag_index">Index</string>
+    <string name="tab_index">Startseite</string>
 
-    <!-- Log view -->
-    <string name="log_title">Log</string>
-    <string name="send_log">Logdatei senden</string>
-    <string name="empty_log">Logdatei ist leer</string>
-    <string name="log_mail_subject">strongSwan %1$s Logdatei</string>
+    <string name="tab_tag_movie">Film</string>
+    <string name="tab_tag_ng">Nacht</string>
+    <string name="tab_tag_english">Englisch</string>
+    <string name="tab_tag_math">Mathematik</string>
+    <string name="tab_tag_chinese">Chinesisch</string>
+    <string name="tab_tag_area">Bereich</string>
+    <string name="tab_tag_customer">Kunde</string>
+    <string name="tab_tag_chat">Chat</string>
 
-    <!-- VPN profile list -->
-    <string name="no_profiles">Keine VPN Profile vorhanden.</string>
-    <string name="add_profile">Profil hinzufügen</string>
-    <string name="edit_profile">Bearbeiten</string>
-    <string name="delete_profile">Löschen</string>
-    <string name="select_profiles">Profile auswählen</string>
-    <string name="profiles_deleted">Ausgewählte Profile gelöscht</string>
-    <string name="no_profile_selected">Kein Profil ausgewählt</string>
-    <string name="one_profile_selected">Ein Profil ausgewählt</string>
-    <string name="x_profiles_selected">%1$d Profile ausgewählt</string>
+    <!-- Anwendung -->
+    <string name="app_name">kimi</string>
+    <string name="main_activity_name">kimi</string>
+    <string name="toobar_title">kimi</string>
+    <string name="load">Wird geladen, bitte warten.</string>
+    <string name="off">Schließen</string>
+    <string name="on">Öffnen</string>
 
-    <!-- VPN profile details -->
-    <string name="profile_edit_save">Speichern</string>
-    <string name="profile_edit_cancel">Abbrechen</string>
-    <string name="profile_name_label">Profilname:</string>
-    <string name="profile_name_hint">(Gateway-Adresse verwenden)</string>
-    <string name="profile_gateway_label">Gateway:</string>
-    <string name="profile_vpn_type_label">Typ:</string>
-    <string name="profile_username_label">Benutzername:</string>
-    <string name="profile_password_label">Passwort:</string>
-    <string name="profile_password_hint">(anfordern wenn benötigt)</string>
-    <string name="profile_user_certificate_label">Benutzer-Zertifikat:</string>
-    <string name="profile_user_select_certificate_label">Benutzer-Zertifikat auswählen</string>
-    <string name="profile_user_select_certificate">Wählen Sie ein bestimmtes Benutzer-Zertifikat</string>
-    <string name="profile_ca_label">CA-Zertifikat:</string>
-    <string name="profile_ca_auto_label">Automatisch wählen</string>
-    <string name="profile_ca_select_certificate_label">CA-Zertifikat auswählen</string>
-    <string name="profile_ca_select_certificate">Wählen Sie ein bestimmtes CA-Zertifikat</string>
-    <!-- Warnings/Notifications in the details view -->
-    <string name="alert_text_no_input_gateway">Bitte geben Sie hier die Gateway-Adresse ein</string>
-    <string name="alert_text_no_input_username">Bitte geben Sie hier Ihren Benutzernamen ein</string>
-    <string name="alert_text_nocertfound_title">Kein CA-Zertifikat ausgewählt</string>
-    <string name="alert_text_nocertfound">Bitte wählen Sie eines aus oder aktivieren Sie <i>Automatisch wählen</i></string>
-    <string name="tnc_notice_title">EAP-TNC kann Ihre Privatsphäre beeinträchtigen</string>
-    <string name="tnc_notice_subtitle">Gerätedaten werden an den Gateway-Betreiber gesendet</string>
-    <string name="tnc_notice_details">&lt;p>Trusted Network Connect (TNC) erlaubt Gateway-Betreibern den Gesundheitszustand von Endgeräten zu prüfen.&lt;/p>&lt;p>Dazu kann der Betreiber Daten verlangen, wie etwa eine eindeutige Identifikationsnummer, eine Liste der installierten Pakete, Systemeinstellungen oder kryptografische Prüfsummen von Dateien.&lt;/p>&lt;b>Solche Daten werden nur übermittelt nachdem die Identität des Gateways geprüft wurde.&lt;/b></string>
+    <!-- Menü -->
+    <string name="menu_btn_donation">Bezahlen</string>
+    <string name="menu_btn_login">Jetzt anmelden</string>
+    <string name="menu_btn_login_ready">Eingeloggt</string>
+    <string name="menu_btn_name_default">Geschickt von einem Affen</string>
+    <string name="menu_btn_feedback">Hilfe</string>
+    <string name="menu_btn_about">Über Afreedom: Punktesammlung</string>
+    <string name="menu_btn_share">Teilen</string>
+    <string name="menu_btn_test">Testen</string>
+    <string name="menu_btn_character">Assistentenpersönlichkeit</string>
+    <string name="menu_btn_version">Version:</string>
+    <string name="menu_btn_logout">Abmelden</string>
+    <string name="menu_btn_setting">Einstellungen</string>
+    <string name="menu_btn_app">App-Empfehlungen</string>
+    <string name="menu_btn_support">Sklavinnen-Entdeckung</string>
+    <string name="support_info">Fröhliche Reise starten...</string>
+    <string name="feed_back">Information zurückgeben</string>
+    <string name="menu_btn_country">Region:</string>
+    <string name="menu_btn_open_browser">Im Browser öffnen</string>
+    <string name="menu_btn_copy_url">URL kopieren</string>
+    <string name="menu_btn_favorite">Lesezeichen</string>
+    <string name="menu_btn_chat_session">Chatverlauf</string>
 
-    <!-- Trusted certificate selection -->
-    <string name="trusted_certs_title">CA-Zertifikate</string>
-    <string name="no_certificates">Keine Zertifikate</string>
-    <string name="reload_trusted_certs">CA-Zertifikate neu laden</string>
-    <string name="system_tab">System</string>
-    <string name="user_tab">Benutzer</string>
-    <string name="local_tab">Importiert</string>
-    <string name="delete_certificate_question">Zertifikat löschen?</string>
-    <string name="delete_certificate">Das Zertifikat wird permanent entfernt!</string>
-    <string name="import_certificate">Zertifikat importieren</string>
-    <string name="cert_imported_successfully">Zertifikat erfolgreich importiert</string>
-    <string name="cert_import_failed">Zertifikat-Import fehlgeschlagen</string>
+    <string name="menu_favorite">Merken</string>
+    <string name="menu_favorite_cancel">Merken aufheben</string>
+    <!-- Teilen -->
+    <string name="menu_share_title">Teilen</string>
+    <string name="menu_share_copy_ok">In die Zwischenablage kopiert</string>
+    <string name="menu_share_text_only">FEHLER!! Nur Text kann geteilt werden</string>
+    <!-- Anmeldung, Registrierung -->
+    <string name="close_over">Drücke erneut, um die App zu verlassen!!</string>
+    <string name="login">Anmelden</string>
+    <string name="reg">Registrieren</string>
+    <string name="findpass">Passwort vergessen?</string>
+    <string name="submit">Absenden</string>
+    <string name="vip_tips">Bitte upgraden Sie auf VIP</string>
 
-    <!-- VPN state fragment -->
-    <string name="state_label">Status:</string>
-    <string name="profile_label">Profil:</string>
-    <string name="disconnect">Trennen</string>
-    <string name="state_connecting">Verbinden&#8230;</string>
-    <string name="state_connected">Verbunden</string>
-    <string name="state_disconnecting">Trennen&#8230;</string>
-    <string name="state_disabled">Kein aktives Profil</string>
-    <string name="state_error">Fehler</string>
+    <string name="email_see">Das Passwort wurde gesendet</string>
 
-    <!-- IMC state fragment -->
-    <string name="imc_state_label">Assessment:</string>
-    <string name="imc_state_isolate">Eingeschränkt</string>
-    <string name="imc_state_block">Fehlgeschlagen</string>
-    <string name="show_remediation_instructions">Korrekturanweisungen anzeigen</string>
+    <string name="setting">Einstellungen</string>
+    <string name="sex">Geschlecht:</string>
+    <string name="male">Mann</string>
+    <string name="female">Frau</string>
+    <string name="username_hint">Benutzername</string>
+    <string name="email_hint">E-Mail</string>
+    <string name="ref_hint">Einladender</string>
+    <string name="password_hint">Passwort</string>
+    <string name="password_error">Falsches Passwort</string>
+    <string name="re_password_hint">Passwort wiederholen</string>
+    <string name="re_code">Bestätigungscode</string>
+    <string name="re_bt_code">Bestätigungscode abrufen</string>
+    <string name="empty_name_pwd">Bitte füllen Sie alle Felder aus</string>
+    <string name="error_repwd">Die beiden Passwörter stimmen nicht überein</string>
+    <string name="reg_success">Registrierung erfolgreich, jetzt anmelden?</string>
+    <string name="remark">TIMELINE RECHTE VORBEHALTEN.</string>
+    <string name="need_login">Bitte anmelden</string>
+    <string name="recharge">Aufladen:</string>
+    <string name="iwanna_tips">Sagen Sie mir, was Sie brauchen,\nich werde es sorgfältig für Sie vorbereiten</string>
+    <string name="iwanna_title">Feedback</string>
+    <string name="money_back_title">Punkteaufladungsrückmeldung</string>
+    <string name="send">Senden</string>
+    <string name="iwanna_content_error">Bitte teilen Sie mir Ihre Anfrage mit!</string>
+    <string name="area_setting">Sonderbereiche anzeigen?</string>
+    <string name="playvideo_setting">Dumplings-Player verwenden - vitamio</string>
+    <string name="playcore_setting">Kernel - ijk/exo</string>
+    <string name="use_tts">Sprachausgabe aktivieren</string>
 
-    <!-- Remediation instructions -->
-    <string name="remediation_instructions_title">Korrekturanweisungen</string>
+    <string name="sound_setting">Hinweis bei Audioabspielen ohne WLAN</string>
+    <string name="sound_picshow">Filmbanner ausblenden</string>
+    <string name="list_video_tiny_need">Videos in der Liste unterstützen Kleinbild</string>
 
-    <!-- Dialogs -->
-    <string name="login_title">Passwort eingeben um zu verbinden</string>
-    <string name="login_confirm">Verbinden</string>
-    <string name="error_introduction">Fehler beim Aufsetzen des VPN:</string>
-    <string name="error_lookup_failed">Gateway-Adresse konnte nicht aufgelöst werden.</string>
-    <string name="error_unreachable">Gateway ist nicht erreichbar.</string>
-    <string name="error_peer_auth_failed">Authentifizierung des Gateway ist fehlgeschlagen.</string>
-    <string name="error_auth_failed">Benutzerauthentifizierung ist fehlgeschlagen.</string>
-    <string name="error_assessment_failed">Sicherheitsassessment ist fehlgeschlagen.</string>
-    <string name="error_generic">Unbekannter Fehler während des Verbindens.</string>
-    <string name="connecting_title">Verbinden: %1$s</string>
-    <string name="connecting_message">Verbinde mit \""%1$s\".</string>
-    <string name="vpn_connected">VPN verbunden</string>
-    <string name="vpn_profile_connected">Dieses VPN Profil ist momentan verbunden!</string>
-    <string name="reconnect">Neu verbinden</string>
-    <string name="connect_profile_question">Verbinde %1$s?</string>
-    <string name="replaces_active_connection">Dies ersetzt die aktuelle VPN Verbindung!</string>
-    <string name="connect">Verbinden</string>
+    <string name="area_mi">Sonderbereich verschlüsselt</string>
+    <string name="sound_play_not_wifi">Audio ohne WLAN abspielen?</string>
+    <string name="sound">Lasterhafte Worte</string>
+    <string name="text">Erotische Geschichten</string>
+    <string name="img">Sensible Bilder</string>
+    <string name="tv">TV</string>
+    <string name="video">Videoerfahrung</string>
+    <string name="version_low">Die Version ist zu alt, bitte aktualisieren!</string>
+    <string name="no_select">Nichts ausgewählt</string>
+    <string name="save_ok">Erfolgreich gespeichert</string>
+    <string name="save_fail">Fehler beim Speichern</string>
+    <string name="save_start">Speichern beginnt...</string>
+
+    <string name="feedback_hint">xxx Punkte VIP3</string>
+    <!-- Allgemeine Fehlermeldungen -->
+
+    <!-- VPN-Status geändert -->
+    <!-- Versionsupdate herunterladen -->
+
+    <string name="about_version_update_to_date">Sie haben die neueste Version</string>
+    <string name="about_version_download_title">Neue Version gefunden</string>
+    <string name="about_version_download">Jetzt herunterladen</string>
+    <string name="about_version_confirm">Bestätigen</string>
+    <string name="about_version_cancel">Abbrechen</string>
+    <string name="about_download_confirm_title">Download bestätigen</string>
+    <string name="about_download_confirm_content">Sie verwenden derzeit kein WLAN-Netzwerk. Der Download kann viel Datenvolumen verbrauchen. Möchten Sie den Download fortsetzen?</string>
+    <string name="about_download_begin">Download beginnt</string>
+    <string name="about_download_finish">Download abgeschlossen</string>
+    <string name="about_download_title">Freedom wird heruntergeladen</string>
+    <string name="about_download_prepare">Download wird vorbereitet</string>
+    <string name="about_download_error">Fehler beim Herunterladen der Datei</string>
+    <string name="about_download_percent">Wird heruntergeladen %1$s/%2$s</string>
+
+    <!-- Sonstiges -->
+    <item name="tag_pos" type="id" />
+    <item name="tag_val" type="id" />
+    <!--   Gefällt mir  -->
+    <plurals name="likes_count">
+        <item quantity="one">%d Gefällt mir</item>
+        <item quantity="other">%d Gefällt mir</item>
+    </plurals>
+    <!-- Benutzerdefiniert -->
+    <string name="title_hint">Titel</string>
+    <string name="url_hint">Weblink</string>
+    <string name="open_hint">Öffnungsart</string>
+    <string name="open_local">Lokal öffnen</string>
+    <string name="open_browser">Im Browser öffnen</string>
+    <string name="custome_title">Benutzerdefiniertes hinzufügen</string>
+    <string name="empty_info">Bitte füllen Sie alle Felder aus</string>
+    <string name="custome_ok">Erfolgreich hinzugefügt</string>
+    <string name="custome_del_ok">Erfolgreich gelöscht</string>
+    <string name="custome_del_fail">Fehler beim Löschen</string>
+    <string name="save">Speichern</string>
+    <string name="my_charater">Persönlichkeit meines Roboters festlegen</string>
+
+    <string name="schema_hint">Schema</string>
+    <string name="schema_http">http://</string>
+    <string name="schema_https">https://</string>
+    <string name="del_hint">Bestätigen Sie das Löschen?</string>
+    <string name="del_cancel">Abbrechen</string>
+    <string name="del_send_messag">Möchten Sie wirklich den gesamten Chatverlauf löschen?</string>
+    <string name="del_ok">Bestätigen</string>
+    <string name="edit">Bearbeiten</string>
+    <string name="delete">Löschen</string>
+    <string name="down_to_loadmore">Ziehen Sie nach unten, um spannenderen Inhalt zu laden</string>
+    <!-- VPN-Fehlermeldung -->
+    <string name="vpn_status_down">Einige Verbindungen sind nicht verfügbar. Klicken Sie hier, um FreeVPN zu installieren</string>
+    <!-- Aktivitätstitel -->
+
+    <string name="ads_logo">Werbung</string>
+    <string name="skip">Überspringen</string>
+    <string name="search">Geben Sie den Suchbegriff ein</string>
+    <string-array name="recharge_arry">
+        <item>WeChat</item>
+        <item>Alipay</item>
+        <item>Andere</item>
+    </string-array>
+
+    <!-- Anzeigen -->
+    <string name="chat_new">Name der neuen Unterhaltung</string>
+    <string name="action_delete">Löschen</string>
+    <string name="action_sessiom">Neue Unterhaltung</string>
+
+    <string name="cancel">Abbrechen</string>
+    <string name="hold_please">Bitte warten...</string>
+    <string name="on_log_selected_messages"> %1$d Nachrichten ausgewählt</string>
+    <string name="action_copy">Kopieren</string>
+    <string name="copied_message">Nachricht kopiert!</string>
+    <string name="del_message">Nachricht gelöscht!</string>
+    <string name="chat_feedback_ok">Feedback erhalten</string>
+    <string name="chat_feedback_hint">Geben Sie Ihr Feedback ein</string>
+    <string-array name="chat_feed_reson">
+        <item>Schädlich</item>
+        <item>Falsch</item>
+        <item>Nützlos</item>
+        <item>Andere</item>
+    </string-array>
+    <string name="talktome">Spreche mit ihr</string>
 
 </resources>

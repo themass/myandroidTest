@@ -36,5 +36,7 @@ gen-external-apklibs
 app/src/main/jni/openssl/
 app/src/main/jni/strongswan/
 .idea/
-app/src/main/libs/
 app/src/main/obj/
+
+# CMake/NDK 构建产物
+.cxx/

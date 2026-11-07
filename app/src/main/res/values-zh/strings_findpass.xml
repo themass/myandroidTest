@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="findpass_hint">输入注册时使用的邮箱，我们会把密码发送到这个邮箱。</string>
+    <string name="findpass_email_invalid">请输入有效的邮箱地址</string>
+    <string name="findpass_send_failed">发送失败，请检查网络后重试</string>
+    <string name="findpass_sent_title">邮件已发送</string>
+    <string name="findpass_sent_body">我们已把密码发送到 %1$s。请查收邮件；如果没有看到，请检查垃圾邮件箱。</string>
+    <string name="findpass_back_login">返回登录</string>
+    <string name="findpass_resend">重新发送</string>
+    <string name="findpass_resend_wait">%1$d 秒后可重新发送</string>
+</resources>

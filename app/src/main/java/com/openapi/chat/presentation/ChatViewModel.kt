@@ -1,0 +1,707 @@
+package com.openapi.chat.presentation
+
+import com.openapi.core.media.AudioPlayer
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.openapi.chat.ChatDependencies
+import com.openapi.chat.domain.model.ChatMessage
+import com.openapi.chat.domain.model.FileAttachment
+import com.openapi.chat.domain.model.ImageAttachment
+import com.openapi.chat.domain.model.ChatRole
+import com.openapi.chat.domain.model.ChatStreamEvent
+import com.openapi.chat.domain.model.DeliveryStatus
+import com.openapi.chat.domain.model.MessageKind
+import com.openapi.chat.domain.model.VoiceAttachment
+import com.openapi.chat.domain.usecase.DeleteMessageUseCase
+import com.openapi.chat.domain.usecase.LoadHistoryUseCase
+import com.openapi.chat.domain.usecase.SendMessageUseCase
+import com.openapi.core.media.VoiceRecorder
+import com.openapi.roles.data.RolesDependencies
+import com.openapi.roles.domain.SelectedRole
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
+class ChatViewModel : ViewModel() {
+
+    private companion object {
+        /** 流式文字的释放节拍：约 25 次/秒，既顺滑又不会让 Markdown 重解析太频繁。 */
+        const val REVEAL_TICK_MS = 40L
+    }
+
+    private val repository = ChatDependencies.require()
+    private val loadHistory = LoadHistoryUseCase(repository)
+    private val sendMessage = SendMessageUseCase(repository)
+    private val deleteMessage = DeleteMessageUseCase(repository)
+    private val roles = RolesDependencies.require()
+
+    private val _uiState = MutableStateFlow(ChatUiState(selectedRole = roles.selected()))
+    val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
+
+    init {
+        refresh()
+        loadCharacters()
+        viewModelScope.launch {
+            repository.syncSessionsFromServer()
+            reloadSessions()
+        }
+    }
+
+    fun refresh() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(loading = true, error = null) }
+            val history = runCatching { loadHistory() }.getOrElse { emptyList() }
+            val sessionId = repository.currentSessionId()
+            val sessions = withContext(Dispatchers.IO) { repository.sessions() }
+            _uiState.update {
+                it.copy(
+                    messages = history,
+                    loading = false,
+                    sessionId = sessionId,
+                    // 每个会话记住自己的角色；没选过的会话沿用最近一次选的角色
+                    selectedRole = roles.selectedFor(sessionId) ?: roles.selected(),
+                    sessions = sessions,
+                )
+            }
+        }
+    }
+
+    private suspend fun reloadSessions() {
+        val sessions = withContext(Dispatchers.IO) { repository.sessions() }
+        _uiState.update { it.copy(sessions = sessions) }
+    }
+
+    fun onSessionsVisibleChange(visible: Boolean) {
+        _uiState.update { it.copy(sessionsVisible = visible) }
+        if (visible) viewModelScope.launch { reloadSessions() }
+    }
+
+    /** 切换会话：写入当前会话 id，然后重新加载这个会话的历史。 */
+    fun onSessionSelected(sessionId: Long) {
+        if (sessionId == _uiState.value.sessionId) {
+            _uiState.update { it.copy(sessionsVisible = false) }
+            return
+        }
+        repository.setCurrentSessionId(sessionId)
+        _uiState.update { it.copy(sessionsVisible = false) }
+        refresh()
+    }
+
+    /** 新建会话并立即切过去。 */
+    fun onCreateSession(name: String) {
+        viewModelScope.launch {
+            val created = withContext(Dispatchers.IO) { repository.createSession(name) }
+            if (created == null) {
+                _uiState.update { it.copy(error = "会话名称不能为空，也不能与已有会话重名") }
+                return@launch
+            }
+            repository.setCurrentSessionId(created.id)
+            _uiState.update { it.copy(sessionsVisible = false) }
+            refresh()
+        }
+    }
+
+    /** 删除会话（至少保留一个）。删的是当前会话时，refresh 会切到剩下的会话。 */
+    fun onDeleteSession(sessionId: Long) {
+        viewModelScope.launch {
+            val ok = withContext(Dispatchers.IO) { repository.deleteSession(sessionId) }
+            if (!ok) {
+                _uiState.update { it.copy(error = "至少保留一个对话") }
+                return@launch
+            }
+            refresh()
+        }
+    }
+
+    private fun loadCharacters() {
+        viewModelScope.launch {
+            val characters = runCatching { repository.loadCharacters() }.getOrElse { emptyList() }
+            _uiState.update {
+                it.copy(
+                    characters = characters,
+                    selectedCharacterId = repository.selectedCharacterId(),
+                )
+            }
+        }
+    }
+
+    /** 选了旧的人设（或默认助手）就把目录角色清掉：两套选择互斥，避免界面显示的和实际发出去的不一致。 */
+    fun onCharacterSelected(characterId: Int?) {
+        val sessionId = repository.currentSessionId()
+        repository.setSelectedCharacterId(characterId)
+        roles.setSelected(null)
+        roles.setSelectedFor(sessionId, null)
+        _uiState.update { it.copy(selectedCharacterId = characterId, selectedRole = null, rolePickerVisible = false) }
+    }
+
+    fun onRoleSelected(role: SelectedRole) {
+        val sessionId = repository.currentSessionId()
+        roles.setSelected(role)
+        roles.setSelectedFor(sessionId, role)
+        repository.setSelectedCharacterId(null)
+        _uiState.update { it.copy(selectedRole = role, selectedCharacterId = null, rolePickerVisible = false) }
+    }
+
+    fun onRolePickerVisibleChange(visible: Boolean) {
+        _uiState.update { it.copy(rolePickerVisible = visible) }
+    }
+
+    /**
+     * 创建一个自定义角色并立即选中它——用户上传角色的目的就是马上用它聊天，
+     * 不需要创建完再去下拉菜单里找一遍。
+     */
+    fun onCreateCharacter(title: String, content: String) {
+        viewModelScope.launch {
+            val created = runCatching { repository.createCharacter(title, content, null) }.getOrNull()
+            if (created == null) {
+                _uiState.update { it.copy(error = "创建角色失败，请稍后重试") }
+                return@launch
+            }
+            repository.setSelectedCharacterId(created.id)
+            roles.setSelected(null)
+            roles.setSelectedFor(repository.currentSessionId(), null)
+            _uiState.update {
+                it.copy(
+                    characters = it.characters + created,
+                    selectedCharacterId = created.id,
+                    selectedRole = null,
+                )
+            }
+        }
+    }
+
+    fun onUpdateCharacter(characterId: Int, title: String, content: String) {
+        viewModelScope.launch {
+            val ok = runCatching { repository.updateCharacter(characterId, title, content, null) }.getOrDefault(false)
+            if (!ok) {
+                _uiState.update { it.copy(error = "更新角色失败，请稍后重试") }
+                return@launch
+            }
+            _uiState.update { state ->
+                state.copy(
+                    characters = state.characters.map {
+                        if (it.id == characterId) {
+                            it.copy(title = title, preview = content.take(40), content = content)
+                        } else {
+                            it
+                        }
+                    },
+                )
+            }
+        }
+    }
+
+    fun onDeleteCharacter(characterId: Int) {
+        viewModelScope.launch {
+            val ok = runCatching { repository.deleteCharacter(characterId) }.getOrDefault(false)
+            if (!ok) {
+                _uiState.update { it.copy(error = "删除角色失败，请稍后重试") }
+                return@launch
+            }
+            val wasSelected = _uiState.value.selectedCharacterId == characterId
+            _uiState.update { state ->
+                state.copy(
+                    characters = state.characters.filterNot { it.id == characterId },
+                    // 删的正好是当前选中的角色，回退到默认助手，不留一个指向空角色的选择
+                    selectedCharacterId = if (wasSelected) null else state.selectedCharacterId,
+                )
+            }
+            if (wasSelected) repository.setSelectedCharacterId(null)
+        }
+    }
+
+    fun onInputChange(text: String) {
+        _uiState.update { it.copy(input = text) }
+    }
+
+    /**
+     * 发送一条文本消息，流式接收回复（打字机效果）。
+     *
+     * 先插一条 pending 的占位气泡；每收到一段 [ChatStreamEvent.Delta] 就把文字追加到
+     * 这条气泡上；[ChatStreamEvent.Done] 到达后取消 pending 状态；出错则整条占位消息撤回，
+     * 和原来非流式版本的失败处理保持一致（不在界面上留一条"发送失败"的半成品）。
+     */
+    fun onSend() {
+        val state = _uiState.value
+        if (!state.canSend) return
+        val text = state.input.trim()
+        val drafts = state.drafts
+        _uiState.update { it.copy(input = "", drafts = emptyList()) }
+        if (drafts.isEmpty()) {
+            sendText(text)
+            return
+        }
+        // 附件和文字组成一条消息：界面上一个气泡，保存一条记录
+        val now = System.currentTimeMillis()
+        val images = drafts.filter { it.kind == MessageKind.IMAGE }
+            .map { ImageAttachment(path = it.staged.file.absolutePath) }
+        val files = drafts.filter { it.kind == MessageKind.FILE }
+            .map { FileAttachment(path = it.staged.file.absolutePath, name = it.staged.displayName, sizeBytes = it.staged.sizeBytes) }
+        val message = ChatMessage(
+            id = "local-user-$now",
+            role = ChatRole.USER,
+            text = text,
+            createdAtMillis = now,
+            kind = if (images.isNotEmpty()) MessageKind.IMAGE else MessageKind.FILE,
+            images = images,
+            files = files,
+            delivery = DeliveryStatus.SENDING,
+        )
+        _uiState.update { it.copy(messages = it.messages + message) }
+        viewModelScope.launch {
+            repository.saveMessage(repository.currentSessionId(), message)
+            deliverAttachments(message)
+        }
+    }
+
+    /** 纯文字消息：插入用户气泡，然后流式接收回复。 */
+    private fun sendText(text: String) {
+        if (text.isBlank() || _uiState.value.sending) return
+        val now = System.currentTimeMillis()
+        val user = ChatMessage(
+            id = "local-user-$now",
+            role = ChatRole.USER,
+            text = text,
+            createdAtMillis = now,
+            delivery = DeliveryStatus.SENDING,
+        )
+        _uiState.update { it.copy(messages = it.messages + user) }
+        streamReply(text, userMessageId = user.id, persistUser = true)
+    }
+
+    /**
+     * 把 [text] 发给大模型并流式接收回复。
+     * [userMessageId] 是对应的用户气泡，失败时标成发送失败（可重试）；重新生成时为 null。
+     * [persistUser] 为 false 时仓库不再保存用户消息（已经保存过的场景）。
+     *
+     * 助手气泡的生命周期（只有一条气泡，按 [ChatMessage.key] 定位，id 变化不影响它）：
+     * 思考中（pending、无文字）→ 流式（pending、有文字，逐字长出来）→ 完成（pending=false）。
+     * 网络收到的文字先放进缓冲区，由一个固定节拍（[REVEAL_TICK_MS]）匀速释放到气泡里，
+     * 积压越多释放越快，所以网络一次来一大块也不会整段突然出现。
+     */
+    private fun streamReply(text: String, userMessageId: String?, persistUser: Boolean) {
+        val state = _uiState.value
+        val placeholder = newPlaceholder()
+        _uiState.update { it.copy(messages = it.messages + placeholder, sending = true, streaming = true, error = null) }
+        userMessageId?.let { setDelivery(it, DeliveryStatus.SENDING) }
+
+        streamJob = viewModelScope.launch {
+            val buffer = StringBuilder()
+            var ended = false
+            var failed = false
+            var serverId: String? = null
+            var fullText: String? = null
+
+            val reveal = launch {
+                while (true) {
+                    kotlinx.coroutines.delay(REVEAL_TICK_MS)
+                    if (buffer.isNotEmpty()) {
+                        val cut = safeCut(buffer, revealCount(buffer.length, ended))
+                        val piece = buffer.substring(0, cut)
+                        buffer.delete(0, cut)
+                        updateByKey(placeholder.key) { it.copy(text = it.text + piece) }
+                    } else if (ended) {
+                        break
+                    }
+                }
+            }
+
+            try {
+                sendMessage(text, state.selectedCharacterId, state.selectedRole?.id, persistUser)
+                    .collect { event ->
+                        when (event) {
+                            is ChatStreamEvent.Delta -> buffer.append(event.text)
+                            is ChatStreamEvent.Done -> {
+                                serverId = event.messageId
+                                fullText = event.fullText
+                            }
+                            is ChatStreamEvent.Error -> {
+                                failed = true
+                                _uiState.update { it.copy(error = event.message) }
+                            }
+                        }
+                    }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                // 用户点了停止：保留已经生成的内容，不当作失败
+                reveal.cancel()
+                kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
+                    finishStopped(placeholder.key, buffer.toString())
+                }
+                _uiState.update { it.copy(sending = false, streaming = false) }
+                userMessageId?.let { setDelivery(it, DeliveryStatus.SENT) }
+                throw e
+            } catch (e: Exception) {
+                failed = true
+                _uiState.update { it.copy(error = e.message) }
+            }
+
+            ended = true
+            reveal.join()
+
+            // 流正常结束但一个字都没有：撤掉占位气泡，给提示，用户消息标成可重试
+            val emptyReply = !failed && fullText.isNullOrEmpty() && buffer.isEmpty()
+            _uiState.update { current ->
+                current.copy(
+                    messages = current.messages.mapNotNull { m ->
+                        when {
+                            m.key != placeholder.key -> m
+                            // 出错或空回复且一个字都没收到：撤掉占位气泡；已经有内容就保留
+                            (failed || emptyReply) && m.text.isEmpty() -> null
+                            else -> m.copy(id = serverId ?: m.id, text = fullText ?: m.text, pending = false)
+                        }
+                    },
+                    sending = false,
+                    streaming = false,
+                    error = if (emptyReply) "没有收到回复，请重试" else current.error,
+                )
+            }
+            userMessageId?.let { setDelivery(it, if (failed || emptyReply) DeliveryStatus.FAILED else DeliveryStatus.SENT) }
+        }
+    }
+
+    /** 停止生成：取消网络请求，已经显示和已收到的内容都保留。 */
+    fun onStopGenerating() {
+        streamJob?.cancel()
+    }
+
+    private suspend fun finishStopped(key: String, bufferedText: String) {
+        var kept: ChatMessage? = null
+        _uiState.update { current ->
+            current.copy(
+                messages = current.messages.mapNotNull { m ->
+                    if (m.key != key) {
+                        m
+                    } else {
+                        val merged = m.text + bufferedText
+                        if (merged.isEmpty()) null else m.copy(text = merged, pending = false).also { kept = it }
+                    }
+                },
+            )
+        }
+        kept?.let { repository.saveMessage(repository.currentSessionId(), it) }
+    }
+
+    private fun updateByKey(key: String, transform: (ChatMessage) -> ChatMessage) {
+        _uiState.update { current ->
+            current.copy(messages = current.messages.map { if (it.key == key) transform(it) else it })
+        }
+    }
+
+    /** 本拍释放多少字：积压越多越快（上限 48），流结束后加速排空。 */
+    private fun revealCount(pending: Int, ended: Boolean): Int {
+        val base = (pending / 8).coerceIn(1, 48)
+        return if (ended) maxOf(base, pending / 3) else base
+    }
+
+    /** 不要把一个 emoji 等代理对从中间切开。 */
+    private fun safeCut(text: CharSequence, wanted: Int): Int {
+        var cut = wanted.coerceAtMost(text.length)
+        if (cut in 1 until text.length && Character.isHighSurrogate(text[cut - 1])) cut += 1
+        return cut
+    }
+
+    private var streamJob: kotlinx.coroutines.Job? = null
+
+    /**
+     * 发送带附件的用户消息：逐个上传附件，各自的识别结果合并成一条助手回复；
+     * 有配文时再把配文走文字流（用户消息已保存过，不再重复保存）。
+     */
+    private suspend fun deliverAttachments(message: ChatMessage) {
+        setDelivery(message.id, DeliveryStatus.SENDING)
+        val placeholder = newPlaceholder()
+        _uiState.update { it.copy(messages = it.messages + placeholder, sending = true, error = null) }
+        val sessionId = repository.currentSessionId()
+        val uploads = message.images.map { Triple(MessageKind.IMAGE, java.io.File(it.path), java.io.File(it.path).name) } +
+            message.files.map { Triple(MessageKind.FILE, java.io.File(it.path), it.name) }
+
+        val replies = mutableListOf<String>()
+        var replyId: String? = null
+        for ((kind, file, name) in uploads) {
+            val reply = runCatching { repository.sendAttachment(sessionId, kind, file, name, placeholder.id) }.getOrNull()
+            if (reply == null) {
+                _uiState.update {
+                    it.copy(
+                        messages = it.messages.filterNot { m -> m.id == placeholder.id },
+                        sending = false,
+                        error = "发送失败，请稍后重试",
+                    )
+                }
+                setDelivery(message.id, DeliveryStatus.FAILED)
+                return
+            }
+            replyId = reply.id
+            if (reply.text.isNotBlank()) replies += reply.text
+        }
+        setDelivery(message.id, DeliveryStatus.SENT)
+
+        val combined = replies.joinToString("\n\n")
+        if (combined.isBlank()) {
+            _uiState.update { it.copy(messages = it.messages.filterNot { m -> m.id == placeholder.id }, sending = false) }
+        } else {
+            val assistant = ChatMessage(
+                id = replyId ?: "assistant-${System.currentTimeMillis()}",
+                role = ChatRole.ASSISTANT,
+                text = combined,
+                createdAtMillis = System.currentTimeMillis(),
+            )
+            repository.saveMessage(sessionId, assistant)
+            _uiState.update { current ->
+                current.copy(
+                    messages = current.messages.map { m -> if (m.id == placeholder.id) assistant.copy(key = placeholder.key) else m },
+                    sending = false,
+                )
+            }
+        }
+        if (message.text.isNotBlank()) streamReply(message.text, userMessageId = null, persistUser = false)
+    }
+
+    private fun newPlaceholder(): ChatMessage {
+        val now = System.currentTimeMillis()
+        return ChatMessage(
+            id = "local-pending-$now",
+            role = ChatRole.ASSISTANT,
+            text = "",
+            createdAtMillis = now,
+            pending = true,
+        )
+    }
+
+    private fun setDelivery(messageId: String, status: DeliveryStatus) {
+        _uiState.update { current ->
+            current.copy(messages = current.messages.map { if (it.id == messageId) it.copy(delivery = status) else it })
+        }
+    }
+
+    /** 重新发送一条失败的用户消息（不重新插入气泡，也不重复保存）。 */
+    fun onRetry(messageId: String) {
+        val state = _uiState.value
+        val message = state.messages.firstOrNull { it.id == messageId } ?: return
+        if (state.sending || message.role != ChatRole.USER) return
+        if (message.images.isNotEmpty() || message.files.isNotEmpty()) {
+            viewModelScope.launch { deliverAttachments(message) }
+        } else if (message.text.isNotBlank()) {
+            streamReply(message.text, userMessageId = message.id, persistUser = false)
+        }
+    }
+
+    /** 重新生成：删掉这条助手回复，用它前面那条用户消息重新问一次。 */
+    fun onRegenerate(assistantId: String) {
+        val state = _uiState.value
+        if (state.sending) return
+        val index = state.messages.indexOfFirst { it.id == assistantId }
+        if (index < 0) return
+        val user = state.messages.subList(0, index).lastOrNull { it.role == ChatRole.USER } ?: return
+        _uiState.update { it.copy(messages = it.messages.filterNot { m -> m.id == assistantId }) }
+        viewModelScope.launch { runCatching { deleteMessage(assistantId) } }
+        when {
+            user.text.isNotBlank() -> streamReply(user.text, userMessageId = null, persistUser = false)
+            user.images.isNotEmpty() || user.files.isNotEmpty() -> viewModelScope.launch { deliverAttachments(user) }
+        }
+    }
+
+    /** 编辑：把用户消息的文字放回输入框。 */
+    fun onEditMessage(messageId: String) {
+        val message = _uiState.value.messages.firstOrNull { it.id == messageId } ?: return
+        _uiState.update { it.copy(input = message.text) }
+    }
+
+    /** 点赞切换，返回切换后是否为「已赞」。点赞会取消点踩。 */
+    fun onToggleLike(messageId: String): Boolean {
+        val liked = messageId !in _uiState.value.likedIds
+        _uiState.update {
+            it.copy(
+                likedIds = if (liked) it.likedIds + messageId else it.likedIds - messageId,
+                dislikedIds = it.dislikedIds - messageId,
+            )
+        }
+        return liked
+    }
+
+    /** 点踩并提交反馈后调用。点踩会取消点赞。 */
+    fun onDisliked(messageId: String) {
+        _uiState.update { it.copy(dislikedIds = it.dislikedIds + messageId, likedIds = it.likedIds - messageId) }
+    }
+
+    /**
+     * 选中附件后的入口：图片和文件都先放进输入栏上方的草稿托盘，发送时和文字组成一条消息。
+     */
+    fun onAttachmentPicked(context: android.content.Context, kind: MessageKind, uri: android.net.Uri) {
+        if (_uiState.value.sending) return
+        viewModelScope.launch {
+            val staged = withContext(Dispatchers.IO) { AttachmentStager.stage(context, kind, uri) }
+            if (staged == null) {
+                _uiState.update { it.copy(error = "读取附件失败，请重试") }
+                return@launch
+            }
+            addDraft(kind, staged)
+        }
+    }
+
+    private fun addDraft(kind: MessageKind, staged: StagedAttachment) {
+        val draft = DraftAttachment(id = "draft-${System.nanoTime()}", kind = kind, staged = staged)
+        _uiState.update { it.copy(drafts = it.drafts + draft) }
+    }
+
+    fun onRemoveDraft(id: String) {
+        _uiState.update { it.copy(drafts = it.drafts.filterNot { d -> d.id == id }) }
+    }
+
+    /** 相册多选或拍照：按选择顺序逐个放进草稿托盘。 */
+    fun onImagesPicked(context: android.content.Context, uris: List<android.net.Uri>) {
+        if (uris.isEmpty() || _uiState.value.sending) return
+        viewModelScope.launch {
+            for (uri in uris) {
+                val staged = withContext(Dispatchers.IO) { AttachmentStager.stage(context, MessageKind.IMAGE, uri) }
+                if (staged == null) {
+                    _uiState.update { it.copy(error = "读取图片失败，请重试") }
+                    continue
+                }
+                addDraft(MessageKind.IMAGE, staged)
+            }
+        }
+    }
+
+    /** 删除一条消息：只从本机移除（服务端没有删除接口）。 */
+    fun onDeleteMessage(messageId: String) {
+        _uiState.update { it.copy(messages = it.messages.filterNot { m -> m.id == messageId }) }
+        viewModelScope.launch {
+            runCatching { deleteMessage(messageId) }
+        }
+    }
+
+    /** 朗读助手回复：服务端合成语音后播放；同一时间只合成一条。 */
+    fun onSpeakMessage(message: ChatMessage) {
+        if (message.text.isBlank() || _uiState.value.speakingMessageId != null) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(speakingMessageId = message.id) }
+            val uri = runCatching { repository.synthesizeSpeech(message.id, message.text) }.getOrNull()
+            _uiState.update { it.copy(speakingMessageId = null) }
+            if (uri == null) {
+                _uiState.update { it.copy(error = "朗读失败，请稍后重试") }
+            } else {
+                AudioPlayer.play(message.id, uri)
+            }
+        }
+    }
+
+    fun dismissError() {
+        _uiState.update { it.copy(error = null) }
+    }
+
+    // ------------------------------------------------------------------
+    // 语音消息：录音 → 存成消息 → 转写 → 当作文本发给大模型。
+    // ASR 通过 [SpeechToText] 注入（实现是 app 里的字节引擎封装），未注入时
+    // 只保留语音气泡不转写，和之前的降级行为一致。
+    // ------------------------------------------------------------------
+
+    private var liveAsr: com.openapi.ks.myapp.translation.realtime.VolcengineStreamingAsrClient? = null
+
+    /** 开始录音；[liveTranscript] 为 true 时同时开启实时识别（语音样式 B）。 */
+    fun onVoiceRecordStart(context: android.content.Context, liveTranscript: Boolean) {
+        if (_uiState.value.recording) return
+        val started = VoiceRecorder.start(context)
+        _uiState.update { it.copy(recording = started, partialText = "") }
+        if (started && liveTranscript) startLiveTranscript(context)
+    }
+
+    /**
+     * 样式 B：录音的同时把 PCM 送给火山流式识别，识别出的文字实时显示在输入栏上方。
+     * 最终发送的文字仍然以松手后的后端识别结果为准。
+     */
+    private fun startLiveTranscript(context: android.content.Context) {
+        val config = com.openapi.ks.myapp.translation.realtime.VolcengineAsrConfig.load(context)
+        val client = com.openapi.ks.myapp.translation.realtime.VolcengineStreamingAsrClient(config)
+        liveAsr = client
+        client.connect(object : com.openapi.ks.myapp.translation.realtime.VolcengineStreamingAsrClient.Listener {
+            override fun onReady() = Unit
+            override fun onPartialText(text: String) {
+                _uiState.update { it.copy(partialText = text) }
+            }
+            override fun onFailure(message: String) {
+                liveAsr = null
+            }
+            override fun onClosed() = Unit
+        })
+        VoiceRecorder.pcmListener = { buffer, length ->
+            // 录音线程会复用 buffer，发送前先拷贝一份
+            client.sendPcm(buffer.copyOf(length), 0, length, false)
+        }
+    }
+
+    private fun stopLiveTranscript() {
+        VoiceRecorder.pcmListener = null
+        liveAsr?.finish()
+        liveAsr = null
+    }
+
+    /** 上滑取消手势触发；丢弃本次录音，不生成消息。 */
+    fun onVoiceRecordCancel() {
+        stopLiveTranscript()
+        VoiceRecorder.cancel()
+        _uiState.update { it.copy(recording = false, partialText = "") }
+    }
+
+    /**
+     * 「转文字」：松手后不发语音，只把识别结果追加到输入框，用户可以改了再发。
+     * 录音文件用完即删，不留在本地。
+     */
+    fun onVoiceRecordStopToText() {
+        if (!_uiState.value.recording) return
+        stopLiveTranscript()
+        _uiState.update { it.copy(recording = false, partialText = "", transcribing = true) }
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) { VoiceRecorder.stop() }
+            val speech = ChatDependencies.speechToText()
+            val text = if (result == null || speech == null) {
+                null
+            } else {
+                runCatching { speech.transcribe(result.filePath) }.getOrNull()
+            }
+            result?.filePath?.let { runCatching { java.io.File(it).delete() } }
+            _uiState.update { current ->
+                current.copy(
+                    transcribing = false,
+                    input = if (text.isNullOrBlank()) current.input else current.input + text,
+                )
+            }
+        }
+    }
+
+    fun onVoiceRecordStop() {
+        if (!_uiState.value.recording) return
+        stopLiveTranscript()
+        _uiState.update { it.copy(recording = false, partialText = "") }
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) { VoiceRecorder.stop() } ?: return@launch
+            val message = ChatMessage(
+                id = "local-voice-${System.currentTimeMillis()}",
+                role = ChatRole.USER,
+                text = "",
+                createdAtMillis = System.currentTimeMillis(),
+                kind = MessageKind.VOICE,
+                voice = VoiceAttachment(uri = "file://${result.filePath}", durationSeconds = result.durationSeconds),
+            )
+            repository.saveMessage(repository.currentSessionId(), message)
+            _uiState.update { it.copy(messages = it.messages + message) }
+
+            val speech = ChatDependencies.speechToText() ?: return@launch
+            _uiState.update { it.copy(transcribing = true) }
+            val text = runCatching { speech.transcribe(result.filePath) }.getOrNull()
+            _uiState.update { it.copy(transcribing = false) }
+
+            // 转写失败就停在这里：语音气泡已经发出去了，不拿空串去问大模型。
+            if (text.isNullOrBlank()) return@launch
+            // 转写显示在语音气泡下方（同一条消息），再把文字发给大模型
+            _uiState.update { current ->
+                current.copy(messages = current.messages.map { if (it.id == message.id) it.copy(text = text) else it })
+            }
+            streamReply(text, userMessageId = message.id, persistUser = true)
+        }
+    }
+}

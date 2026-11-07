@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="chatkit_copy">复制</string>
+    <string name="chatkit_delete">删除</string>
+    <string name="chatkit_retry">重新发送</string>
+    <string name="chatkit_edit">编辑</string>
+    <string name="chatkit_speak">朗读</string>
+    <string name="chatkit_speaking">朗读中</string>
+    <string name="chatkit_like">赞</string>
+    <string name="chatkit_dislike">踩</string>
+    <string name="chatkit_share">分享</string>
+    <string name="chatkit_regenerate">重新生成</string>
+    <string name="chatkit_send_failed">发送失败，点击重试</string>
+    <string name="chatkit_play_voice">播放语音</string>
+    <string name="chatkit_transcript">转文字</string>
+    <string name="chatkit_input_hint">说点什么…</string>
+    <string name="chatkit_send">发送</string>
+    <string name="chatkit_emoji">表情</string>
+    <string name="chatkit_more">更多</string>
+    <string name="chatkit_voice_toggle">语音输入</string>
+    <string name="chatkit_keyboard">键盘</string>
+    <string name="chatkit_hold_to_talk">按住 说话</string>
+    <string name="chatkit_release_to_send">松开发送，上滑取消</string>
+    <string name="chatkit_release_to_send_bar">松开发送</string>
+    <string name="chatkit_release_to_cancel">松开手指，取消发送</string>
+    <string name="chatkit_slide_left_cancel">← 左滑取消</string>
+    <string name="chatkit_transcribing">正在识别语音…</string>
+    <string name="chatkit_remove_attachment">移除附件</string>
+    <string name="chatkit_image_count">%1$d / %2$d</string>
+    <string name="chatkit_release_to_end">松开 结束</string>
+    <string name="chatkit_release_to_send_short">松手发送</string>
+    <string name="chatkit_release_to_cancel_short">松手取消</string>
+    <string name="chatkit_release_to_send_hint">松手发送，上移取消</string>
+    <string name="chatkit_slide_up_cancel">手指上滑，取消发送</string>
+    <string name="chatkit_release_to_text">松手转文字</string>
+    <string name="chatkit_cancel_short">取消</string>
+    <string name="chatkit_to_text">转文字</string>
+</resources>

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Correct Answer Fireworks</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        #message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 36px;
+            font-family: Arial, sans-serif;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+        }
+    </style>
+</head>
+
+<body>
+<canvas id="fireworks"></canvas>
+<div id="message">回答正确！</div>
+<audio id="cheers" src="cheers.mp3" preload="auto"></audio>
+<script>
+    const canvas = document.getElementById('fireworks');
+    const ctx = canvas.getContext('2d');
+    const audio = document.getElementById('cheers');
+    const message = document.getElementById('message');
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let firework;
+    const particles = [];
+    let animationFinished = false;
+
+    function random(min, max) {
+        return Math.random() * (max - min) + min;
+    }
+
+    class Firework {
+        constructor(x, y, targetX, targetY) {
+            this.x = x;
+            this.y = y;
+            this.targetX = targetX;
+            this.targetY = targetY;
+            this.speed = random(6, 10);
+            this.distanceToTarget = Math.sqrt(Math.pow(targetX - x, 2) + Math.pow(targetY - y, 2));
+            this.distanceTraveled = 0;
+            this.color = `hsl(${random(0, 360)}, 100%, 50%)`;
+        }
+
+        update() {
+            const dx = this.targetX - this.x;
+            const dy = this.targetY - this.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const vx = (dx / distance) * this.speed;
+            const vy = (dy / distance) * this.speed;
+
+            this.distanceTraveled += this.speed;
+            this.x += vx;
+            this.y += vy;
+
+            if (this.distanceTraveled >= this.distanceToTarget) {
+                for (let i = 0; i < random(100, 150); i++) {
+                    particles.push(new Particle(this.targetX, this.targetY, this.color));
+                }
+                audio.play();
+                return true;
+            }
+            return false;
+        }
+
+        draw() {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+            ctx.fillStyle = this.color;
+            ctx.shadowColor = this.color;
+            ctx.shadowBlur = 10;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+    }
+
+    class Particle {
+        constructor(x, y, color) {
+            this.x = x;
+            this.y = y;
+            this.baseColor = color;
+            this.color = this.getGradientColor();
+            this.speed = random(2, 8);
+            this.angle = random(0, Math.PI * 2);
+            this.vx = Math.cos(this.angle) * this.speed;
+            this.vy = Math.sin(this.angle) * this.speed;
+            this.alpha = 1;
+            this.fadeSpeed = random(0.01, 0.03);
+            this.size = random(1, 4);
+            this.gravity = 0.02;
+            this.drag = 0.98;
+        }
+
+        getGradientColor() {
+            const baseHue = parseInt(this.baseColor.slice(4, this.baseColor.indexOf(',')));
+            const hueVariation = random(-20, 20);
+            const newHue = (baseHue + hueVariation + 360) % 360;
+            return `hsl(${newHue}, 100%, 50%)`;
+        }
+
+        update() {
+            this.vx *= this.drag;
+            this.vy *= this.drag;
+            this.vy += this.gravity;
+            this.x += this.vx;
+            this.y += this.vy;
+            this.alpha -= this.fadeSpeed;
+            this.size *= 0.98;
+
+            return this.alpha <= 0 || this.size < 0.1;
+        }
+
+        draw() {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${parseInt(this.color.slice(4, -1).split(',')[0])}, ${parseInt(this.color.slice(4, -1).split(',')[1])}, ${parseInt(this.color.slice(4, -1).split(',')[2])}, ${this.alpha})`;
+            ctx.shadowColor = this.color;
+            ctx.shadowBlur = 5;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+    }
+
+    function createFirework() {
+        const startX = canvas.width / 2;
+        const startY = canvas.height;
+        const targetX = random(0, canvas.width);
+        const targetY = random(0, canvas.height / 2);
+        firework = new Firework(startX, startY, targetX, targetY);
+    }
+
+    function update() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        if (firework) {
+            if (firework.update()) {
+                firework = null;
+            } else {
+                firework.draw();
+            }
+        }
+
+        for (let i = particles.length - 1; i >= 0; i--) {
+            if (particles[i].update()) {
+                particles.splice(i, 1);
+            } else {
+                particles[i].draw();
+            }
+        }
+
+        if (!firework && particles.length === 0 &&!animationFinished) {
+            animationFinished = true;
+            showMessage();
+        }
+
+        if (!firework) {
+            createFirework();
+        }
+
+        requestAnimationFrame(update);
+    }
+
+    function showMessage() {
+        message.style.opacity = 1;
+        setTimeout(() => {
+            message.style.opacity = 0;
+        }, 3000);
+    }
+
+    createFirework();
+    update();
+</script>
+</body>
+
+</html>

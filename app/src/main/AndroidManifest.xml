@@ -1,160 +1,254 @@
-<?xml version="1.0" encoding="utf-8"?><!--
-    Copyright (C) 2012-2014 Tobias Brunner
-    Copyright (C) 2012 Giuliano Grassi
-    Copyright (C) 2012 Ralf Sager
-    Hochschule fuer Technik Rapperswil
-
-    This program is free software; you can redistribute it and/or modify it
-    under the terms of the GNU General Public License as published by the
-    Free Software Foundation; either version 2 of the License, or (at your
-    option) any later version.  See <http://www.fsf.org/copyleft/gpl.txt>.
-
-    This program is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-    or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-    for more details.
--->
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.timeline.vpn"
-    android:versionCode="1000001000"
-    android:versionName="1.0.1.0">
+    package="com.openapi.ks.chat"
+    android:versionCode="1"
+    android:versionName="1.0">
+    <!-- 隐私权-->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+    <uses-permission android:name="android.permission.MEDIA_PROJECTION" tools:node="remove"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" tools:node="remove"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" tools:node="remove"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-    <meta-data
-        android:name="YOUMI_CHANNEL"
-        android:value="10000" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+<!--    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"/>-->
 
+<!--    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />-->
+<!--    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />-->
+<!--    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />-->
 
-    <uses-sdk
-        android:minSdkVersion="21"
-        android:targetSdkVersion="21" />
+    <!--uses-permission android:name="android.permission.GET_ACCOUNTS" /-->
+    <!--    <uses-permission android:name="android.permission.READ_PHONE_STATE" />-->
+    <!--<uses-permission android:name="android.permission.CALL_PHONE" />-->
+    <!--    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />-->
+    <!--    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />-->
 
-    <meta-data
-        android:name="com.timeline.vpn.common.util.MyGlideModule"
-        android:value="GlideModule" />
-    <meta-data
-        android:name="com.google.android.gms.version"
-        android:value="@integer/google_play_services_version" />
-
-    <uses-permission android:name="android.permission.INTERNET" />
+    <!--<uses-permission android:name="android.permission.GET_TASKS" />-->
+    <!--<uses-permission android:name="android.permission.REAL_GET_TASKS" />-->
+    <!--<uses-permission android:name="android.permission.USE_CREDENTIALS" />-->
+    <!--<uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />-->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_UPDATES" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-    <uses-permission android:name="android.permission.GET_TASKS" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.SET_DEBUG_APP" />
-    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
-    <uses-permission android:name="android.permission.USE_CREDENTIALS" />
-    <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!--<uses-permission android:name="android.permission.SET_DEBUG_APP" />-->
+    <!--<uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" />-->
+    <!--<uses-permission android:name="com.android.browser.permission.READ_HISTORY_BOOKMARKS" />-->
+    <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" />
+    <uses-permission android:name="android.permission.GET_TASKS" />
+    <!-- SD卡读取权限，用户写入离线定位数据 -->
+    <!--<uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS" />-->
+    <!-- 允许应用读取低级别的系统日志文件 -->
+    <!--<uses-permission android:name="android.permission.READ_LOGS" />-->
+
     <uses-permission
         android:name="android.permission.PACKAGE_USAGE_STATS"
         tools:ignore="ProtectedPermissions" />
-    <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-
-    <permission
+    <!--<uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS" />-->
+    <!--    <uses-permission android:name="android.permission.READ_CALENDAR" />-->
+    <!--    <uses-permission android:name="android.permission.WRITE_CALENDAR" />-->
+    <!--    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />-->
+    <!--    <uses-sdk tools:overrideLibrary="com.andremion.music.cover" />-->
+    <!--permission
         android:name="com.android.launcher.permission.READ_SETTINGS"
         android:permissionGroup="android.permission-group.SYSTEM_TOOLS"
-        android:protectionLevel="normal" />
-    <permission
+        android:protectionLevel="normal" /-->
+    <!--permission
         android:name="com.android.launcher.permission.WRITE_SETTINGS"
         android:permissionGroup="android.permission-group.SYSTEM_TOOLS"
-        android:protectionLevel="normal" />
+        android:protectionLevel="normal" /-->
+    <supports-screens
+        android:anyDensity="true"
+        android:largeScreens="true"
+        android:normalScreens="true"
+        android:resizeable="true"
+        android:smallScreens="true"
+        android:xlargeScreens="true" />
+    <!--适配Android R包可见性 开始-->
+    <queries package="${applicationId}">
+        <intent>
+            <action android:name="android.media.action.IMAGE_CAPTURE">
+
+            </action>
+        </intent>
+        <intent>
+            <action android:name="android.media.action.ACTION_VIDEO_CAPTURE">
+
+            </action>
+        </intent>
+        <package android:name="com.google.android.gms" />
+    </queries>
+    <!--适配Android R包可见性 结束-->
 
     <application
-        android:name=".base.MyApplication"
+        android:name="com.openapi.ks.myapp.base.MyApplication"
         android:allowBackup="false"
+        android:allowNativeHeapPointerTagging="false"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme"
+        android:theme="@style/AppTheme.Slide"
+        android:usesCleartextTraffic="true"
+        android:requestLegacyExternalStorage="true"
+        android:supportsRtl="true"
+        android:resizeableActivity="true"
+        android:supportsPictureInPicture="true"
         tools:replace="android:allowBackup">
-        <meta-data
-            android:name="com.baidu.lbsapi.API_KEY"
-            android:value="VFNwiTplUvpm7iLaV6FBLNOkxFYrEbp1" />
-        <meta-data
-            android:name="UMENG_APPKEY"
-            android:value="57b56211e0f55ab5da0002a3" />
-        <meta-data
-            android:name="UMENG_CHANNEL"
-            android:value="10000_wandoujia" />
+        <uses-library
+            android:name="org.apache.http.legacy"
+            android:required="false" />
 
-        <activity android:name=".ui.main.LaunchActivity"></activity>
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-6599725010915516~2513490769" />
+
+        <meta-data
+            android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
+            android:value="com.openapi.ks.myapp.cast.AppCastOptionsProvider" />
+
+        <meta-data
+            android:name="com.bumptech.glide.integration.okhttp.OkHttpGlideModule"
+            tools:node="remove" />
+        
+        <!-- 大屏设备适配 -->
+        <meta-data
+            android:name="android.max_aspect"
+            android:value="3.0" />
+        <meta-data
+            android:name="android.allow_multiple_resumed_activities"
+            android:value="true" />
+        <meta-data
+            android:name="com.openapi.core.net.netglide.UnsafeOkHttpClient"
+            android:value="MyGlideModule" />
         <activity
-            android:name=".ui.main.MainFragment"
-            android:label="@string/main_activity_name"
-            android:launchMode="singleTop">
-            <intent-filter>
+            android:name="com.openapi.ks.chatfree.ui.main.LaunchActivity"
+            android:exported="true"
+            >
+            <intent-filter tools:ignore="GoogleAppIndexingWarning">
+                <action android:name="android.intent.action.VIEW" />
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-        <activity android:name=".ui.vpn.VpnManagerActivity" />
-        <activity android:name=".ui.base.WebViewActivity" />
-        <activity android:name=".ui.vpn.LocationChooseaActivity"></activity>
-        <activity android:name=".ui.user.LoginActivity">
 
         </activity>
-        <activity android:name=".ui.user.RegActivity" />
         <activity
-            android:name=".ui.feedback.ConversationDetailActivity"/>
-
-        <service
-            android:name=".service.CharonVpnService"
+            android:name="com.openapi.home.HomeActivity"
             android:exported="false"
-            android:permission="android.permission.BIND_VPN_SERVICE">
-            <!--android:process="com.timeline.vpn.service.vpnservice">-->
-            <intent-filter>
-                <action android:name="android.net.VpnService" />
-            </intent-filter>
-        </service>
-        <provider
-            android:name="com.timeline.vpn.provider.CityProvider"
-            android:authorities="com.tencent.provider.Citys" />
-        <!--  ads  qq-->
-        <service
-            android:name="com.qq.e.comm.DownloadService"
-            android:exported="false"></service>
-        <activity
-            android:name="com.qq.e.ads.ADActivity"
-            android:configChanges="keyboard|keyboardHidden|orientation|screenSize"></activity>
-        <!--  youmi ads-->
-        <activity
-            android:name="net.youmi.android.AdBrowser"
-            android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
-            android:theme="@android:style/Theme.NoTitleBar"></activity>
-        <service
-            android:name="net.youmi.android.AdService"
-            android:exported="false"></service>
-        <receiver android:name="net.youmi.android.AdReceiver">
-            <intent-filter>
-                <action android:name="android.intent.action.PACKAGE_ADDED" />
-                <action android:name="android.intent.action.PACKAGE_INSTALL" />
+            android:label="@string/main_activity_name"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme"
+            android:windowSoftInputMode="adjustResize" />
 
-                <data android:scheme="package" />
-            </intent-filter>
-        </receiver>
-        <!--baidu ads-->
         <activity
-            android:name="com.baidu.mobads.AppActivity"
-            android:configChanges="keyboard|keyboardHidden|orientation"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
-        <service
-            android:name="com.baidu.location.f"
-            android:enabled="true"
-            android:process=":remote"></service>
-        <!--duomeng ads-->
+            android:name="com.openapi.ks.myapp.ui.base.WebViewActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize|screenLayout|uiMode" />
         <activity
-            android:name="cn.domob.android.ads.DmActivity"
-            android:theme="@android:style/Theme.Translucent"></activity>
+            android:name="com.openapi.ks.myapp.ui.user.LoginActivity"
+             />
         <activity
-            android:name="com.umeng.fb.ConversationActivity" />
+            android:name="com.openapi.ks.myapp.ui.user.RegActivity"
+             />
+        <activity
+            android:name="com.openapi.ks.myapp.ui.user.FindPassActivity"
+             />
+        <activity
+            android:name="com.openapi.ks.myapp.ui.user.SettingActivity"
+             />
+        <activity
+            android:name="com.openapi.ks.myapp.ui.user.AddCustomeInfoActivity"
+             />
+        <activity
+            android:name="com.openapi.ks.myapp.ui.sound.SoundChannleActivity"
+             />
+        <activity
+            android:name="com.openapi.ks.myapp.ui.sound.TextChannleActivity" />
+        <activity
+            android:name="com.openapi.ks.myapp.ui.sound.ImgChannleActivity"
+             />
+        <activity
+            android:name="com.openapi.ks.myapp.ui.sound.VideoActivity"
+             />
+        <activity
+            android:name="com.openapi.ks.myapp.ui.sound.VideoChannleActivity"
+             />
+        <activity
+            android:name="com.openapi.ks.myapp.ui.sound.MovieChannleActivity"
+             />
+        <activity
+            android:name="com.openapi.ks.myapp.ui.sound.TeleplayActivity"
+             />
+        <activity
+            android:name="com.openapi.ks.myapp.ui.base.VideoWebViewActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize|screenLayout|uiMode"
+            android:hardwareAccelerated="true"
+            android:screenOrientation="unspecified"
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name="com.openapi.ks.myapp.ui.sound.VideoShowActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|uiMode"
+
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name="com.openapi.ks.myapp.ui.sound.VideoListShowActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|uiMode"
+
+            android:theme="@style/AppTheme" />
+
+        <activity
+            android:name="com.openapi.ks.myapp.ui.sound.VideoShowActivityLazyUrl"
+            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|uiMode"
+
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name="com.openapi.ks.myapp.ui.sound.SoundDetailActivity"
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name="com.openapi.ks.myapp.ui.sound.MyFullScreenImageGalleryActivity"
+             />
+        <activity
+            android:name="com.openapi.ks.myapp.ui.base.CommonFragmentActivity"
+             />
+        <activity
+            android:name="com.openapi.ks.myapp.ui.feedback.FeedbackActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name="com.openapi.ks.myapp.ui.config.QuickBrowserConfigActivity"
+
+            android:theme="@style/myTransparent" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.openapi.ks.chat.fileprovider"
+            android:exported="false"
+            tools:replace="android:authorities"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                tools:replace="android:resource"
+                android:resource="@xml/file_provider_paths" />
+        </provider>
+        <service android:name="com.openapi.ks.myapp.service.PlayService" />
+        <!-- 拍照解题（移植自 ai-math/paizhao） -->
+        <activity
+            android:name="com.aimath.paizhao.PhotoSolveActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme"
+            android:windowSoftInputMode="adjustResize" />
     </application>
+
 </manifest>

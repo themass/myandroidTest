@@ -1,0 +1,57 @@
+plugins {
+    id 'com.android.library'
+}
+
+android {
+    namespace = 'com.openapi.core.ads'
+    compileSdk = rootProject.ext.compileSdkVersion
+
+    defaultConfig {
+        minSdk = rootProject.ext.minSdkVersion
+        targetSdk = rootProject.ext.targetSdkVersion
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles = ["consumer-rules.pro"]
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled = false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro', '../proguard-common.pro'
+            consumerProguardFiles = ["consumer-rules.pro"]
+        }
+        debug {
+            minifyEnabled = false
+            debuggable = true
+        }
+    }
+    
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    
+    // 配置Java编译选项，禁用警告
+    tasks.withType(JavaCompile) {
+        options.compilerArgs += [
+            '-nowarn',               // 禁用所有警告
+            '-Xlint:none',           // 禁用所有lint警告
+            '-Xlint:-deprecation',   // 禁用废弃API警告
+            '-Xlint:-unchecked',     // 禁用未检查转换警告
+            '-Xlint:-rawtypes',      // 禁用原始类型警告
+            '-Xlint:-varargs',       // 禁用可变参数警告
+            '-Xlint:-cast',          // 禁用类型转换警告
+            '-Xlint:-serial'         // 禁用序列化警告
+        ]
+        // 确保编译器不报告任何警告
+        options.warnings = false
+    }
+}
+
+dependencies {
+    // 项目模块依赖
+    implementation project(":commonutil")
+
+    // Google 广告
+    api 'com.google.android.gms:play-services-ads:24.9.0'
+    implementation 'com.google.android.gms:play-services-wallet:19.5.0'
+}
