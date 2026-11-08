@@ -39,6 +39,9 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.material3.Text
+import androidx.compose.ui.res.stringResource
+import com.openapi.chatkit.R
 import com.openapi.chatkit.message.parts.DefaultMessageText
 import com.openapi.chatkit.message.parts.FileCard
 import com.openapi.chatkit.message.parts.ImageGrid
@@ -71,6 +74,7 @@ fun ChatMessageList(
     emptyContent: @Composable () -> Unit = {},
 ) {
     val latestAssistantId = items.lastOrNull { it.sender == Sender.Assistant && !it.thinking }?.id
+    val latestUserId = items.lastOrNull { it.sender == Sender.User }?.id
     val last = items.lastOrNull()
     val scope = rememberCoroutineScope()
     // 当前打开的长按菜单：哪条消息、锚在哪个位置
@@ -109,6 +113,7 @@ fun ChatMessageList(
                 ChatMessageItem(
                     item = item,
                     isLatestAssistant = item.id == latestAssistantId,
+                    showSentLabel = item.id == latestUserId,
                     avatar = avatar,
                     text = text,
                     onAction = { action -> onAction(item, action) },
@@ -214,6 +219,8 @@ private fun ScrollToBottomChip(modifier: Modifier, onClick: () -> Unit) {
 fun ChatMessageItem(
     item: ChatItem,
     isLatestAssistant: Boolean,
+    /** 最新一条用户消息发送成功后，气泡下方显示「已发送」。 */
+    showSentLabel: Boolean,
     avatar: @Composable (ChatItem) -> Unit,
     text: @Composable (ChatItem, String) -> Unit,
     onAction: (MessageAction) -> Unit,
@@ -256,6 +263,14 @@ fun ChatMessageItem(
                     onAction = onAction,
                     onLongPress = { onLongPress(anchor) },
                     footer = assistantFooter,
+                )
+            }
+            if (isUser && showSentLabel && item.status == SendStatus.Sent) {
+                Text(
+                    stringResource(R.string.chatkit_sent),
+                    modifier = Modifier.padding(top = 2.dp),
+                    fontSize = ChatKit.typography.caption,
+                    color = ChatKit.colors.secondaryText,
                 )
             }
         }

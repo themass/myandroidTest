@@ -37,4 +37,5 @@
     <string name="chatkit_to_text">To text</string>
     <string name="chatkit_editing_banner">Editing message</string>
     <string name="chatkit_cancel_edit">Cancel edit</string>
+    <string name="chatkit_sent">Sent</string>
 </resources>
