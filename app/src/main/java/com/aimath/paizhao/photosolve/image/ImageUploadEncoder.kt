@@ -3,8 +3,8 @@ package com.aimath.paizhao.photosolve.image
 import android.graphics.Bitmap
 import com.aimath.paizhao.photosolve.image.ImagePipeline.encode
 
-/** 上传前的编码策略。默认 [JPEG] 保持现有行为；[WEBP_IF_SMALLER] 在体积明显更小时才换成 WebP。 */
-enum class FormatPolicy { JPEG, WEBP_IF_SMALLER }
+/** 上传前的编码策略。默认 [JPEG] 保持现有行为；[WEBP_IF_SMALLER] 在体积明显更小时才换成 WebP；[WEBP] 一律 WebP。 */
+enum class FormatPolicy { JPEG, WEBP_IF_SMALLER, WEBP }
 
 data class EncodedImage(val bytes: ByteArray, val format: OutputFormat, val quality: Int)
 
@@ -24,6 +24,7 @@ object ImageUploadEncoder {
         policy: FormatPolicy = FormatPolicy.JPEG,
         maxBytes: Int = DEFAULT_MAX_BYTES,
     ): EncodedImage {
+        if (policy == FormatPolicy.WEBP) return encodeWithinBudget(bitmap, OutputFormat.WEBP, maxBytes)
         val jpeg = encodeWithinBudget(bitmap, OutputFormat.JPEG, maxBytes)
         if (policy == FormatPolicy.JPEG) return jpeg
 

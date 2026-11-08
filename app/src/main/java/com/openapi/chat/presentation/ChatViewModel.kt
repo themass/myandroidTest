@@ -699,12 +699,12 @@ class ChatViewModel : ViewModel() {
     fun onAttachmentPicked(context: android.content.Context, kind: MessageKind, uri: android.net.Uri) {
         if (_uiState.value.sending) return
         viewModelScope.launch {
-            val staged = withContext(Dispatchers.IO) { AttachmentStager.stage(context, kind, uri) }
-            if (staged == null) {
-                _uiState.update { it.copy(error = "读取附件失败，请重试") }
-                return@launch
+            val outcome = withContext(Dispatchers.IO) { AttachmentStager.stage(context, kind, uri) }
+            when (outcome) {
+                is StageOutcome.Staged -> addDraft(kind, outcome.attachment)
+                is StageOutcome.Rejected -> _uiState.update { it.copy(error = outcome.reason) }
+                StageOutcome.Failed -> _uiState.update { it.copy(error = "读取附件失败，请重试") }
             }
-            addDraft(kind, staged)
         }
     }
 
@@ -722,12 +722,12 @@ class ChatViewModel : ViewModel() {
         if (uris.isEmpty() || _uiState.value.sending) return
         viewModelScope.launch {
             for (uri in uris) {
-                val staged = withContext(Dispatchers.IO) { AttachmentStager.stage(context, MessageKind.IMAGE, uri) }
-                if (staged == null) {
-                    _uiState.update { it.copy(error = "读取图片失败，请重试") }
-                    continue
+                val outcome = withContext(Dispatchers.IO) { AttachmentStager.stage(context, MessageKind.IMAGE, uri) }
+                when (outcome) {
+                    is StageOutcome.Staged -> addDraft(MessageKind.IMAGE, outcome.attachment)
+                    is StageOutcome.Rejected -> _uiState.update { it.copy(error = outcome.reason) }
+                    StageOutcome.Failed -> _uiState.update { it.copy(error = "读取图片失败，请重试") }
                 }
-                addDraft(MessageKind.IMAGE, staged)
             }
         }
     }
