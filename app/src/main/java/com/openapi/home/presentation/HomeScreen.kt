@@ -61,6 +61,10 @@ import com.openapi.ks.myapp.companion.CompanionRoute
 import com.openapi.home.domain.ProfileAction
 import com.openapi.ks.chat.R
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import com.openapi.home.domain.ProfileEntry
+import androidx.compose.foundation.layout.size
 
 private enum class HomeTab(@StringRes val label: Int, val icon: ImageVector) {
     Chat(R.string.home_tab_chat, Icons.Filled.ChatBubble),
@@ -135,14 +139,18 @@ fun HomeScreen() {
                     }
                     HorizontalDivider(color = AppColors.Divider, modifier = Modifier.padding(vertical = 8.dp))
 
-                    // 这一组把所有已转成 Compose 的页面入口集中放在侧边栏，方便逐个测试；
-                    // 正式版入口的形式（侧边栏还是只留「我的」页）等测完再定
-                    DrawerSectionTitle(R.string.home_drawer_section_test)
-                    profile.entries.forEach { entry ->
-                        ProfileRow(entry) {
-                            scope.launch { drawerState.close() }
-                            entries.perform(context, entry.action)
-                            profile = entries.profile(context)
+                    // 分组展示的真实入口（同「我的」页的入口，不再有单独的测试组）；未登录时没有「登出」
+                    DrawerGroups.forEach { group ->
+                        val items = group.actions.mapNotNull { action -> profile.entries.find { it.action == action } }
+                        if (items.isNotEmpty()) {
+                            DrawerSectionTitle(group.titleRes)
+                            items.forEach { entry ->
+                                DrawerEntryItem(entry) {
+                                    scope.launch { drawerState.close() }
+                                    entries.perform(context, entry.action)
+                                    profile = entries.profile(context)
+                                }
+                            }
                         }
                     }
                 }
@@ -195,6 +203,36 @@ fun HomeScreen() {
             }
         }
     }
+}
+
+/** 侧边栏的一组入口：标题 + 动作列表。 */
+private data class DrawerGroup(@StringRes val titleRes: Int, val actions: List<ProfileAction>)
+
+private val DrawerGroups = listOf(
+    DrawerGroup(R.string.drawer_group_content, listOf(ProfileAction.Favorites, ProfileAction.LocalMusic)),
+    DrawerGroup(R.string.drawer_group_tools, listOf(ProfileAction.PhotoSolve)),
+    DrawerGroup(R.string.drawer_group_help, listOf(ProfileAction.Feedback)),
+    DrawerGroup(R.string.drawer_group_more, listOf(ProfileAction.Share, ProfileAction.AppRecommend, ProfileAction.Donation)),
+    DrawerGroup(R.string.drawer_group_account, listOf(ProfileAction.Settings, ProfileAction.Logout)),
+)
+
+/** 侧边栏里的一项：与页面标签同一种行（同样的图标尺寸、间距和选中色）。 */
+@Composable
+private fun DrawerEntryItem(entry: ProfileEntry, onClick: () -> Unit) {
+    NavigationDrawerItem(
+        label = { Text(stringResource(entry.titleRes)) },
+        icon = {
+            Image(
+                painter = painterResource(entry.iconRes),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+            )
+        },
+        selected = false,
+        onClick = onClick,
+        colors = DrawerItemColors,
+        modifier = Modifier.padding(horizontal = 12.dp),
+    )
 }
 
 /** 侧边栏选中 = 品牌色，未选中 = 次要文字色。 */
