@@ -86,7 +86,7 @@ internal fun ChatUiState.assistantIdentity(): AssistantIdentity {
 }
 
 /**
- * 对话页顶部的当前角色：头像 + 名称 + 一句提示。整条可点，点开角色面板。
+ * 对话页顶部的当前角色：头像 + 名称。整条可点，点开角色面板。
  *
  * 取代原来的stringResource(R.string.roles_switch_desc)下拉条：角色是对话的主体，不该藏在一个小按钮后面。
  */
@@ -133,11 +133,6 @@ fun RoleHeader(
                     color = Color.White,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    text = stringResource(R.string.roles_tap_to_switch),
-                    fontSize = AppTypography.caption,
-                    color = Color.White.copy(alpha = 0.8f),
                 )
             }
             // 副标题「点击切换角色」已经说明了操作，不再额外放一个下拉箭头
