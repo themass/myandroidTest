@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -38,6 +39,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -102,10 +104,12 @@ fun RoleHeader(
     val emoji = identity.emoji
     val color = identity.colorArgb
 
-    Surface(color = AppColors.Surface, shadowElevation = 2.dp) {
+    // 顶栏用品牌色，状态栏顺着它延伸（statusBarsPadding 把内容推到状态栏下面，底色仍由 Surface 画）
+    Surface(color = AppColors.Primary, shadowElevation = 2.dp) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .statusBarsPadding()
                 .clickable(onClick = onClick)
                 .padding(horizontal = AppSpacing.screenHorizontal, vertical = AppSpacing.md),
             verticalAlignment = Alignment.CenterVertically,
@@ -115,7 +119,7 @@ fun RoleHeader(
                     Icon(
                         Icons.Filled.Menu,
                         contentDescription = stringResource(R.string.home_menu),
-                        tint = AppColors.TextSecondary,
+                        tint = Color.White,
                     )
                 }
             }
@@ -126,24 +130,24 @@ fun RoleHeader(
                     text = title,
                     fontSize = AppTypography.bodyLarge,
                     fontWeight = AppTypography.emphasisWeight,
-                    color = AppColors.TextPrimary,
+                    color = Color.White,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
                     text = stringResource(R.string.roles_tap_to_switch),
                     fontSize = AppTypography.caption,
-                    color = AppColors.TextSecondary,
+                    color = Color.White.copy(alpha = 0.8f),
                 )
             }
             // 副标题「点击切换角色」已经说明了操作，不再额外放一个下拉箭头
             // 会话入口：切换、新建、删除对话（替代旧的会话列表页）
             IconButton(onClick = onSessionsClick) {
-                Icon(Icons.Filled.List, contentDescription = stringResource(R.string.chat_sessions_desc), tint = AppColors.TextSecondary)
+                Icon(Icons.Filled.List, contentDescription = stringResource(R.string.chat_sessions_desc), tint = Color.White)
             }
             // 通话入口放在头部：通话的对象就是当前角色，以后 LiveKit agent 直接读同一个角色
             IconButton(onClick = onCallClick) {
-                Icon(Icons.Filled.Call, contentDescription = stringResource(R.string.chat_call_desc), tint = AppColors.TextSecondary)
+                Icon(Icons.Filled.Call, contentDescription = stringResource(R.string.chat_call_desc), tint = Color.White)
             }
         }
     }

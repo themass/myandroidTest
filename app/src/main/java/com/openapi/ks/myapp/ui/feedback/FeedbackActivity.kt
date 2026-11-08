@@ -37,7 +37,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
@@ -83,6 +82,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Date
+import com.openapi.core.design.theme.AppMaterialTheme
 
 /**
  * 反馈页（抽屉 "反馈"）。恢复了旧版 FeedbackChooseFragment 的两个分类，顺序与旧版一致：
@@ -103,7 +103,7 @@ class FeedbackActivity : ComponentActivity() {
         enableEdgeToEdge()
         baseService.setup(this)
         setContent {
-            MaterialTheme {
+            AppMaterialTheme {
                 Surface(modifier = Modifier.fillMaxSize(), color = AppColors.Surface) {
                     FeedbackRoot(
                         service = baseService,

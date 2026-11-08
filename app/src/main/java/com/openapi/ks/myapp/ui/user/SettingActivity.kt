@@ -22,7 +22,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -61,6 +60,7 @@ import com.openapi.ks.myapp.data.config.TabChangeEvent
 import com.openapi.ks.myapp.ui.base.app.BaseSingleActivity
 import com.openapi.ks.myapp.ui.fragment.SettingCharacterFragment
 import com.openapi.ks.myapp.video.PlaybackEngineHelper
+import com.openapi.core.design.theme.AppMaterialTheme
 
 /**
  * 设置页（Compose 内容区）。
@@ -84,7 +84,7 @@ class SettingActivity : BaseSingleActivity() {
     override fun onBindContent(container: ViewGroup) {
         super.onBindContent(container)
         container.findViewById<ComposeView>(R.id.compose_setting).setContent {
-            MaterialTheme {
+            AppMaterialTheme {
                 Surface(modifier = Modifier.fillMaxSize(), color = AppColors.Surface) {
                     SettingScreen(
                         form = form,

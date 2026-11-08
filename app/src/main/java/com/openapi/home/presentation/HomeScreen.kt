@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
@@ -23,7 +25,9 @@ import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
@@ -40,6 +44,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -110,6 +115,7 @@ fun HomeScreen() {
                                 selected = tab.ordinal
                                 scope.launch { drawerState.close() }
                             },
+                            colors = DrawerItemColors,
                             modifier = Modifier.padding(horizontal = 12.dp),
                         )
                     }
@@ -141,16 +147,24 @@ fun HomeScreen() {
                                 onClick = { selected = tab.ordinal },
                                 icon = { Icon(tab.icon, contentDescription = null) },
                                 label = { Text(stringResource(tab.label)) },
+                                colors = BarItemColors,
                             )
                         }
                     }
                 }
             },
         ) { innerPadding ->
+            // 对话标签的顶栏要画到状态栏底下（状态栏同色），所以这一标签不留顶部边距，由顶栏自己处理
+            val topInset = if (current == HomeTab.Chat) 0.dp else innerPadding.calculateTopPadding()
             Box(
                 Modifier
                     .fillMaxSize()
-                    .padding(innerPadding)
+                    .padding(
+                        start = innerPadding.calculateStartPadding(LocalLayoutDirection.current),
+                        end = innerPadding.calculateEndPadding(LocalLayoutDirection.current),
+                        bottom = innerPadding.calculateBottomPadding(),
+                        top = topInset,
+                    )
                     // 状态栏、导航栏的边距已经由 Scaffold 处理，子页面的 safeDrawingPadding 只需要再处理键盘
                     .consumeWindowInsets(innerPadding),
             ) {
@@ -166,6 +180,26 @@ fun HomeScreen() {
         }
     }
 }
+
+/** 侧边栏选中 = 品牌色，未选中 = 次要文字色。 */
+private val DrawerItemColors
+    @Composable get() = NavigationDrawerItemDefaults.colors(
+        selectedContainerColor = AppColors.Primary.copy(alpha = 0.12f),
+        selectedIconColor = AppColors.Primary,
+        selectedTextColor = AppColors.Primary,
+        unselectedIconColor = AppColors.TextSecondary,
+        unselectedTextColor = AppColors.TextSecondary,
+    )
+
+/** 底栏：选中 = 品牌色，未选中 = 次要文字色。 */
+private val BarItemColors
+    @Composable get() = NavigationBarItemDefaults.colors(
+        selectedIconColor = AppColors.Primary,
+        selectedTextColor = AppColors.Primary,
+        indicatorColor = AppColors.Primary.copy(alpha = 0.12f),
+        unselectedIconColor = AppColors.TextSecondary,
+        unselectedTextColor = AppColors.TextSecondary,
+    )
 
 @Composable
 private fun DrawerSectionTitle(@StringRes title: Int) {

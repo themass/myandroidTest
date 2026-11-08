@@ -8,6 +8,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.openapi.core.media.AudioPlayer
 import com.openapi.home.presentation.HomeScreen
+import com.openapi.core.design.theme.AppMaterialTheme
 
 /**
  * 主页：底部三个标签（对话、频道、我的）。启动页直接进入这里。
@@ -19,7 +20,9 @@ class HomeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContent { HomeScreen() }
+        setContent {
+            AppMaterialTheme { HomeScreen() }
+        }
         if (savedInstanceState == null) {
             HomeDependencies.require().onHomeStarted(this)
         }

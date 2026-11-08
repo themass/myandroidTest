@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -49,6 +48,7 @@ import com.openapi.ks.myapp.bean.form.LoginForm
 import com.openapi.ks.myapp.bean.vo.UserInfoVo
 import com.openapi.ks.myapp.constant.Constants
 import com.openapi.ks.myapp.data.UserLoginUtil
+import com.openapi.core.design.theme.AppMaterialTheme
 
 /**
  * 登录页（Compose）。网络和本地偏好与原 Java 实现保持一致：
@@ -65,7 +65,7 @@ class LoginActivity : ComponentActivity() {
         val lastName = PreferenceUtils.getPrefString(this, Constants.LOGIN_USER_LAST, null).orEmpty()
         val lastPassword = PreferenceUtils.getPrefString(this, Constants.LOGIN_USER_PW_LAST, null).orEmpty()
         setContent {
-            MaterialTheme {
+            AppMaterialTheme {
                 Surface(modifier = Modifier.fillMaxSize(), color = AppColors.Surface) {
                     LoginScreen(
                         initialName = lastName,

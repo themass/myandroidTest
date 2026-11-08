@@ -25,7 +25,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -54,6 +53,7 @@ import com.openapi.ks.chat.R
 import com.openapi.ks.myapp.bean.form.RegForm
 import com.openapi.ks.myapp.bean.vo.NullReturnVo
 import com.openapi.ks.myapp.constant.Constants
+import com.openapi.core.design.theme.AppMaterialTheme
 
 /**
  * 找回密码。接口沿用原来的 [Constants.API_FINDPASS_URL]（只提交邮箱），这里只改交互：
@@ -70,7 +70,7 @@ class FindPassActivity : ComponentActivity() {
         enableEdgeToEdge()
         baseService.setup(this)
         setContent {
-            MaterialTheme {
+            AppMaterialTheme {
                 Surface(modifier = Modifier.fillMaxSize(), color = AppColors.Surface) {
                     FindPassRoute(
                         onBack = { finish() },
