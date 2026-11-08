@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -176,7 +177,20 @@ fun RolePickerSheet(
         }
         Box(Modifier.fillMaxWidth().fillMaxHeight(0.8f)) {
             if (tab == 0) {
-                RoleCatalogPane(selectedId = state.selectedRole?.id, onSelect = onRoleSelected)
+                Column(Modifier.fillMaxSize()) {
+                    // 默认助手（通用角色）必须始终能选：固定在专业角色列表最上面，不依赖服务端目录
+                    ClassicRow(
+                        title = stringResource(R.string.roles_default_title),
+                        subtitle = stringResource(R.string.roles_default_subtitle),
+                        emoji = DEFAULT_EMOJI,
+                        selected = state.selectedRole == null && state.selectedCharacterId == null,
+                        onClick = { onCharacterSelected(null) },
+                    )
+                    HorizontalDivider(color = AppColors.Divider)
+                    Box(Modifier.weight(1f)) {
+                        RoleCatalogPane(selectedId = state.selectedRole?.id, onSelect = onRoleSelected)
+                    }
+                }
             } else {
                 ClassicRolesPane(
                     characters = state.characters,
