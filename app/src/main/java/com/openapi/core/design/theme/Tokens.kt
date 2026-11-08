@@ -26,6 +26,7 @@ object AppColors {
     val ChatIncoming = Color(0xFFF5F5F5)     // 助手气泡
     val ChatOutgoing = Color(0xFFFDE7D3)     // 用户气泡；助手 footer 芯片的底色也用它
     val ChatOutgoingText = Color(0xFF7C2D12) // 用户气泡文字，对比度 7.83
+    val MenuSurface = Color(0xFFFFF8F3)      // 长按菜单底部弹层的暖白底色
     val ChatTimestamp = Color(0xAE858585)    // gray_dark_transparent
 
     // 中性

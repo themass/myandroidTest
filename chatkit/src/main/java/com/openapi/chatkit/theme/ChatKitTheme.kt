@@ -28,6 +28,8 @@ data class ChatKitColors(
     /** 助手 footer 芯片的底色与图标色。 */
     val chipBackground: Color,
     val chipIcon: Color,
+    /** 长按菜单（底部弹层）的底色。 */
+    val menuBackground: Color,
     val bubbleText: Color,
     val secondaryText: Color,
     val icon: Color,
@@ -80,6 +82,7 @@ object ChatKitDefaults {
         assistantBubbleText: Color = Color.Black,
         chipBackground: Color = Color(0xFFFDE7D3),
         chipIcon: Color = Color(0xFFC2410C),
+        menuBackground: Color = Color(0xFFFFF8F3),
         bubbleText: Color = Color.Black,
         secondaryText: Color = Color(0xFF757575),
         icon: Color = Color(0xFF8A8A8A),
@@ -97,6 +100,7 @@ object ChatKitDefaults {
         assistantBubbleText = assistantBubbleText,
         chipBackground = chipBackground,
         chipIcon = chipIcon,
+        menuBackground = menuBackground,
         bubbleText = bubbleText,
         secondaryText = secondaryText,
         icon = icon,

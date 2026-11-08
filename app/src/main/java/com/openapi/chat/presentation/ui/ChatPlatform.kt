@@ -78,7 +78,7 @@ internal object ChatPlatform {
     }
 
     /** 长按菜单样式（原型对比）：Popup = 横排卡片（选项 2），Sheet = 底部弹层（选项 1）。 */
-    val messageMenuStyle: MessageMenuStyle = MessageMenuStyle.Popup
+    val messageMenuStyle: MessageMenuStyle = MessageMenuStyle.Sheet
 
     /** 用 App 自己的 token 构造组件库配色：用户气泡 ChatOutgoing（浅橙），助手气泡 ChatIncoming，页面 ChatBackground；footer 芯片 ChatOutgoing + Primary。 */
     fun chatKitColors(): ChatKitColors = ChatKitDefaults.colors(
@@ -92,6 +92,7 @@ internal object ChatPlatform {
         assistantBubbleText = AppColors.TextPrimary,
         chipBackground = AppColors.ChatOutgoing,
         chipIcon = AppColors.Primary,
+        menuBackground = AppColors.MenuSurface,
         secondaryText = AppColors.TextSecondary,
         divider = AppColors.Divider,
         error = AppColors.Error,

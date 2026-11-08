@@ -1,5 +1,12 @@
 package com.openapi.chatkit.message
 
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.background
+import com.openapi.chatkit.theme.ChatKit
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -108,7 +115,10 @@ private class MenuPosition(private val anchor: Rect) : PopupPositionProvider {
     }
 }
 
-/** 底部弹层样式：每个动作一行（图标 + 文字），用 Material3 的 ModalBottomSheet，不引入新依赖。 */
+/**
+ * 底部弹层样式（用户和助手消息共用）：暖白底、顶部 20dp 圆角、拖动条；每个动作一行，图标用主色，
+ * 按下时整行浮现主色水波；「删除」用错误色。内容在 :chatkit，颜色来自 [ChatKit.colors]。
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun MessageMenuSheet(
@@ -116,19 +126,32 @@ internal fun MessageMenuSheet(
     onSelect: (MessageAction) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = Color.White) {
+    val colors = ChatKit.colors
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        containerColor = colors.menuBackground,
+        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+        dragHandle = { BottomSheetDefaults.DragHandle() },
+    ) {
         Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(bottom = 12.dp)) {
             items.forEach { item ->
+                val destructive = item.action == MessageAction.Delete
+                val tint = if (destructive) colors.error else colors.accent
+                val textColor = if (destructive) colors.error else colors.bubbleText
+                // 按下时整行浮现同色（主色或错误色）的淡底，不用系统水波
+                val interaction = remember { MutableInteractionSource() }
+                val pressed by interaction.collectIsPressedAsState()
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onSelect(item.action) }
-                        .padding(horizontal = 20.dp, vertical = 14.dp),
+                        .background(if (pressed) tint.copy(alpha = 0.12f) else Color.Transparent)
+                        .clickable(interactionSource = interaction, indication = null) { onSelect(item.action) }
+                        .padding(horizontal = 24.dp, vertical = 14.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(item.icon, contentDescription = null, tint = MenuIconInk, modifier = Modifier.size(22.dp))
+                    Icon(item.icon, contentDescription = null, tint = tint, modifier = Modifier.size(22.dp))
                     Spacer(Modifier.width(16.dp))
-                    Text(item.label, fontSize = 16.sp, color = MenuTextInk)
+                    Text(item.label, fontSize = 16.sp, color = textColor)
                 }
             }
         }
