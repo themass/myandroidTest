@@ -42,6 +42,8 @@ data class ComposerState(
     val generating: Boolean = false,
     /** 当前正在编辑一条用户消息：输入栏上方显示「编辑消息」提示条。 */
     val editing: Boolean = false,
+    /** 转文字编辑态：识别出的文字（可编辑）。非空时输入栏上方显示编辑面板。 */
+    val voiceDraftText: String? = null,
     val recording: Boolean = false,
     /** 录音结束、等待识别结果。 */
     val transcribing: Boolean = false,

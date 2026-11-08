@@ -27,6 +27,8 @@ data class ChatUiState(
     val partialText: String = "",
     /** 语音已录完、正在等 ASR 结果。 */
     val transcribing: Boolean = false,
+    /** 微信式「转文字」松手后的编辑态：语音文件和识别文字，等用户选择发送原语音 / 发送文字 / 取消。 */
+    val voiceDraft: VoiceDraft? = null,
     /** 正在播放朗读的那条助手消息 id。 */
     val speakingMessageId: String? = null,
     /** 点过赞 / 踩的助手消息 id。 */
@@ -54,3 +56,7 @@ data class DraftAttachment(
     val kind: com.openapi.chat.domain.model.MessageKind,
     val staged: StagedAttachment,
 )
+
+
+/** 转文字编辑态里的一段语音：文件仍在本地，文字是识别结果（可编辑）。 */
+data class VoiceDraft(val filePath: String, val durationSeconds: Int, val text: String)

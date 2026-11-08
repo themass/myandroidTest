@@ -75,6 +75,9 @@ fun ChatScreen(
     onStop: () -> Unit,
     onRemoveDraft: (String) -> Unit,
     onCancelEdit: () -> Unit = {},
+    onVoiceDraftSendText: (String) -> Unit = {},
+    onVoiceDraftSendAudio: () -> Unit = {},
+    onVoiceDraftCancel: () -> Unit = {},
     onVoiceRecordStart: () -> Unit,
     onVoiceRecordStop: () -> Unit,
     onVoiceRecordCancel: () -> Unit,
@@ -103,10 +106,11 @@ fun ChatScreen(
         ChatItemMapper.map(state.messages, playback, state.speakingMessageId, state.likedIds, state.dislikedIds)
     }
     val byId = remember(state.messages) { state.messages.associateBy { it.id } }
-    val composerState = remember(state.input, state.drafts, state.sending, state.streaming, state.recording, state.transcribing, state.partialText, state.editingMessageId) {
+    val composerState = remember(state.input, state.drafts, state.sending, state.streaming, state.recording, state.transcribing, state.partialText, state.editingMessageId, state.voiceDraft) {
         ComposerState(
             text = state.input,
             editing = state.editingMessageId != null,
+            voiceDraftText = state.voiceDraft?.text,
             drafts = state.drafts.map { draft ->
                 DraftItem(
                     id = draft.id,
@@ -203,6 +207,9 @@ fun ChatScreen(
                 onVoiceCancel = onVoiceRecordCancel,
                 onVoiceToText = onVoiceRecordToText,
                 onCancelEdit = onCancelEdit,
+                onVoiceDraftSendText = onVoiceDraftSendText,
+                onVoiceDraftSendAudio = onVoiceDraftSendAudio,
+                onVoiceDraftCancel = onVoiceDraftCancel,
             )
         }
     }

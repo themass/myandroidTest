@@ -42,4 +42,5 @@
     <string name="chatkit_wechat_release_send">Release to send</string>
     <string name="chatkit_wechat_release_cancel">Release to cancel</string>
     <string name="chatkit_wechat_release_edit">Release to edit text</string>
+    <string name="chatkit_send_original_voice">Send original voice</string>
 </resources>

@@ -42,4 +42,5 @@
     <string name="chatkit_wechat_release_send">松开 发送</string>
     <string name="chatkit_wechat_release_cancel">松手 取消</string>
     <string name="chatkit_wechat_release_edit">松手 编辑文字</string>
+    <string name="chatkit_send_original_voice">发送原语音</string>
 </resources>

@@ -91,6 +91,9 @@ fun ChatComposer(
     onVoiceCancel: () -> Unit,
     onVoiceToText: () -> Unit = {},
     onCancelEdit: () -> Unit = {},
+    onVoiceDraftSendText: (String) -> Unit = {},
+    onVoiceDraftSendAudio: () -> Unit = {},
+    onVoiceDraftCancel: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val colors = ChatKit.colors
@@ -125,6 +128,15 @@ fun ChatComposer(
             // 输入栏上方的提示区
             if (state.transcribing) {
                 Hint(text = stringResource(R.string.chatkit_transcribing), emphasized = true)
+            }
+            // 转文字编辑态：识别文字 + 发送原语音 / 发送 / 取消
+            state.voiceDraftText?.let { draftText ->
+                VoiceDraftEditor(
+                    initialText = draftText,
+                    onSendText = onVoiceDraftSendText,
+                    onSendAudio = onVoiceDraftSendAudio,
+                    onCancel = onVoiceDraftCancel,
+                )
             }
             // 编辑提示条：在输入卡片上方，× 退出编辑
             if (state.editing) {

@@ -820,8 +820,8 @@ class ChatViewModel : ViewModel() {
     }
 
     /**
-     * 「转文字」：松手后不发语音，只把识别结果追加到输入框，用户可以改了再发。
-     * 录音文件用完即删，不留在本地。
+     * 「转文字」：松手后不直接发送。录音文件保留，识别出的文字进入编辑态（[ChatUiState.voiceDraft]），
+     * 用户可以改文字后发送文字、发送原语音，或取消（取消时删除录音文件）。
      */
     fun onVoiceRecordStopToText() {
         if (!_uiState.value.recording) return
@@ -835,14 +835,51 @@ class ChatViewModel : ViewModel() {
             } else {
                 runCatching { speech.transcribe(result.filePath) }.getOrNull()
             }
-            result?.filePath?.let { runCatching { java.io.File(it).delete() } }
             _uiState.update { current ->
                 current.copy(
                     transcribing = false,
-                    input = if (text.isNullOrBlank()) current.input else current.input + text,
+                    voiceDraft = result?.let { VoiceDraft(it.filePath, it.durationSeconds, text.orEmpty()) },
                 )
             }
         }
+    }
+
+    /** 编辑态：发送改好的文字（作为一条普通文字消息，并请求回复）。录音文件删除。 */
+    fun onVoiceDraftSendText(text: String) {
+        val draft = _uiState.value.voiceDraft ?: return
+        discardDraftFile(draft)
+        _uiState.update { it.copy(voiceDraft = null) }
+        val trimmed = text.trim()
+        if (trimmed.isNotEmpty()) sendText(trimmed)
+    }
+
+    /** 编辑态：只发送原语音（语音气泡，文字为识别结果，不请求回复）。 */
+    fun onVoiceDraftSendAudio() {
+        val draft = _uiState.value.voiceDraft ?: return
+        _uiState.update { it.copy(voiceDraft = null) }
+        viewModelScope.launch {
+            val message = ChatMessage(
+                id = "local-voice-${System.currentTimeMillis()}",
+                role = ChatRole.USER,
+                text = draft.text,
+                createdAtMillis = System.currentTimeMillis(),
+                kind = MessageKind.VOICE,
+                voice = VoiceAttachment(uri = "file://${draft.filePath}", durationSeconds = draft.durationSeconds),
+            )
+            repository.saveMessage(repository.currentSessionId(), message)
+            _uiState.update { it.copy(messages = it.messages + message) }
+        }
+    }
+
+    /** 编辑态：取消，删除录音文件，回到普通输入。 */
+    fun onVoiceDraftCancel() {
+        val draft = _uiState.value.voiceDraft ?: return
+        discardDraftFile(draft)
+        _uiState.update { it.copy(voiceDraft = null) }
+    }
+
+    private fun discardDraftFile(draft: VoiceDraft) {
+        runCatching { java.io.File(draft.filePath).delete() }
     }
 
     fun onVoiceRecordStop() {
