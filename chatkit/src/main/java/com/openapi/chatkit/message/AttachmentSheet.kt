@@ -1,5 +1,13 @@
 package com.openapi.chatkit.message
 
+import androidx.compose.ui.unit.Dp
+import androidx.compose.foundation.layout.height
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.material3.Surface
+import androidx.compose.material3.IconButton
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -36,6 +44,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.draw.clip
 import com.openapi.chatkit.R
 import com.openapi.chatkit.model.AttachmentActionKind
+import com.openapi.chatkit.model.AttachmentPathInfo
 import com.openapi.chatkit.theme.ChatKit
 
 /**
@@ -85,4 +94,55 @@ private fun attachmentLook(kind: AttachmentActionKind): Pair<Int, ImageVector> =
     AttachmentActionKind.Share -> R.string.chatkit_att_share to Icons.Outlined.Share
     AttachmentActionKind.ShowPath -> R.string.chatkit_att_show_path to Icons.Outlined.Info
     AttachmentActionKind.CopyPath -> R.string.chatkit_att_copy_path to Icons.Outlined.ContentCopy
+}
+
+/** 「查看路径」卡片：文件名、完整路径（带复制按钮）、大小；另存过的公共目录路径也显示（同样带复制）。 */
+@Composable
+internal fun AttachmentPathCard(
+    info: AttachmentPathInfo,
+    onDismiss: () -> Unit,
+) {
+    val colors = ChatKit.colors
+    val clipboard = LocalClipboardManager.current
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = colors.menuBackground,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
+        ) {
+            Column(Modifier.padding(20.dp)) {
+                Text(info.name, fontSize = 17.sp, fontWeight = FontWeight.Medium, color = colors.bubbleText, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                info.sizeBytes?.let {
+                    Spacer(Modifier.height(4.dp))
+                    Text(formatBytes(it), fontSize = 13.sp, color = colors.secondaryText)
+                }
+                Spacer(Modifier.height(14.dp))
+                PathRow(label = stringResource(R.string.chatkit_path_app), path = info.path) { clipboard.setText(AnnotatedString(info.path)) }
+                info.savedPath?.let { saved ->
+                    Spacer(Modifier.height(12.dp))
+                    PathRow(label = stringResource(R.string.chatkit_path_saved), path = saved) { clipboard.setText(AnnotatedString(saved)) }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PathRow(label: String, path: String, onCopy: () -> Unit) {
+    val colors = ChatKit.colors
+    Column {
+        Text(label, fontSize = 12.sp, color = colors.secondaryText)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(path, modifier = Modifier.weight(1f), fontSize = 13.sp, color = colors.bubbleText, maxLines = 3, overflow = TextOverflow.Ellipsis)
+            IconButton(onClick = onCopy, modifier = Modifier.size(36.dp)) {
+                Icon(Icons.Outlined.ContentCopy, contentDescription = stringResource(R.string.chatkit_att_copy_path), tint = colors.accent, modifier = Modifier.size(18.dp))
+            }
+        }
+    }
+}
+
+private fun formatBytes(bytes: Long): String = when {
+    bytes < 1024 -> "$bytes B"
+    bytes < 1024 * 1024 -> String.format(java.util.Locale.US, "%.1f KB", bytes / 1024.0)
+    else -> String.format(java.util.Locale.US, "%.1f MB", bytes / (1024.0 * 1024.0))
 }

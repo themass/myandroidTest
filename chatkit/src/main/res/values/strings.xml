@@ -51,4 +51,6 @@
     <string name="chatkit_att_share">Share</string>
     <string name="chatkit_att_show_path">Show path</string>
     <string name="chatkit_att_copy_path">Copy path</string>
+    <string name="chatkit_path_app">Path in app</string>
+    <string name="chatkit_path_saved">Saved to</string>
 </resources>

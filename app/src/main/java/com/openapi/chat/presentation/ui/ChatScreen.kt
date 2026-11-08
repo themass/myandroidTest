@@ -174,6 +174,7 @@ fun ChatScreen(
                 modifier = Modifier.weight(1f).fillMaxWidth(),
                 selection = selection,
                 attachmentActions = AttachmentActions::actionsFor,
+                attachmentInfo = { target -> AttachmentActions.infoFor(appContext, target) },
                 onAttachmentAction = { target, kind ->
                     attachScope.launch { AttachmentActions.perform(appContext, target, kind) }
                 },

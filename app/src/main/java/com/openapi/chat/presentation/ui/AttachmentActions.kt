@@ -14,6 +14,7 @@ import android.webkit.MimeTypeMap
 import android.widget.Toast
 import androidx.core.content.FileProvider
 import com.openapi.chatkit.model.AttachmentActionKind
+import com.openapi.chatkit.model.AttachmentPathInfo
 import com.openapi.chatkit.model.AttachmentTarget
 import java.io.File
 import java.net.URL
@@ -25,6 +26,35 @@ import kotlinx.coroutines.withContext
  * 「查看路径」由组件自己显示路径卡片，这里不处理。
  */
 object AttachmentActions {
+
+    /** 已另存到公共相册的图片：来源 -> 显示用的路径（如 Pictures/chat_xxx.jpg）。只在本次运行内记录。 */
+    private val savedPaths = java.util.concurrent.ConcurrentHashMap<String, String>()
+
+    /**
+     * 「查看路径」卡片的内容：应用内路径（本地文件，或已下载到缓存的图片）、大小、
+     * 以及已另存到相册的路径。远程图片还没下载时，应用内路径就是它的地址，没有大小。
+     */
+    fun infoFor(context: Context, target: AttachmentTarget): AttachmentPathInfo? = when (target) {
+        is AttachmentTarget.File -> AttachmentPathInfo(
+            name = target.file.name,
+            path = target.file.path,
+            sizeBytes = target.file.sizeBytes,
+        )
+        is AttachmentTarget.Image -> {
+            val file = if (target.source.startsWith("http")) {
+                File(context.cacheDir, "attachments/img_" + target.source.hashCode().toUInt().toString() + ".jpg")
+                    .takeIf { it.exists() }
+            } else {
+                File(target.source)
+            }
+            AttachmentPathInfo(
+                name = file?.name ?: target.source.substringAfterLast('/'),
+                path = file?.path ?: target.source,
+                sizeBytes = file?.length(),
+                savedPath = savedPaths[target.source],
+            )
+        }
+    }
 
     fun actionsFor(target: AttachmentTarget): List<AttachmentActionKind> = when (target) {
         is AttachmentTarget.Image -> listOf(
@@ -50,8 +80,9 @@ object AttachmentActions {
             }
             AttachmentActionKind.Download -> {
                 val image = target as? AttachmentTarget.Image ?: return
-                val ok = withContext(Dispatchers.IO) { saveToPictures(context, image.source) }
-                toast(context, if (ok) "已保存到相册" else "保存失败")
+                val saved = withContext(Dispatchers.IO) { saveToPictures(context, image.source) }
+                if (saved != null) savedPaths[image.source] = "Pictures/$saved"
+                toast(context, if (saved != null) "已保存到相册" else "保存失败")
             }
             AttachmentActionKind.CopyImage -> {
                 val image = target as? AttachmentTarget.Image ?: return
@@ -105,26 +136,30 @@ object AttachmentActions {
         return file.takeIf { it.exists() && BitmapFactory.decodeFile(it.path) != null }
     }
 
-    /** 保存到公共相册 Pictures 目录（Android 10 及以上用 MediaStore，不需要存储权限）。 */
-    private fun saveToPictures(context: Context, source: String): Boolean {
-        val file = localImageFile(context, source) ?: return false
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return false
+    /** 保存到公共相册 Pictures 目录（Android 10 及以上用 MediaStore，不需要存储权限）。成功返回文件名。 */
+    private fun saveToPictures(context: Context, source: String): String? {
+        val file = localImageFile(context, source) ?: return null
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return null
+        val name = "chat_${System.currentTimeMillis()}.jpg"
         val values = ContentValues().apply {
-            put(MediaStore.Images.Media.DISPLAY_NAME, "chat_${System.currentTimeMillis()}.jpg")
+            put(MediaStore.Images.Media.DISPLAY_NAME, name)
             put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
             put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
             put(MediaStore.Images.Media.IS_PENDING, 1)
         }
         val resolver = context.contentResolver
-        val target = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values) ?: return false
+        val target = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values) ?: return null
         val ok = runCatching {
             resolver.openOutputStream(target)?.use { out -> file.inputStream().use { it.copyTo(out) } }
         }.isSuccess
         values.clear()
         values.put(MediaStore.Images.Media.IS_PENDING, 0)
         resolver.update(target, values, null, null)
-        if (!ok) resolver.delete(target, null, null)
-        return ok
+        if (!ok) {
+            resolver.delete(target, null, null)
+            return null
+        }
+        return name
     }
 
     private fun mimeOf(name: String): String {

@@ -57,6 +57,7 @@ import com.openapi.chatkit.message.parts.TextBubble
 import com.openapi.chatkit.message.parts.ThinkingIndicator
 import com.openapi.chatkit.message.parts.VoiceBubble
 import com.openapi.chatkit.model.AttachmentActionKind
+import com.openapi.chatkit.model.AttachmentPathInfo
 import com.openapi.chatkit.model.AttachmentTarget
 import com.openapi.chatkit.model.ChatItem
 import com.openapi.chatkit.model.MessageAction
@@ -90,6 +91,8 @@ fun ChatMessageList(
     attachmentActions: (AttachmentTarget) -> List<AttachmentActionKind> = { emptyList() },
     /** 点了附件菜单里的某个动作。 */
     onAttachmentAction: (AttachmentTarget, AttachmentActionKind) -> Unit = { _, _ -> },
+    /** 「查看路径」卡片的内容（由调用方提供）；返回 null 时不显示卡片。 */
+    attachmentInfo: (AttachmentTarget) -> AttachmentPathInfo? = { null },
 ) {
     val latestAssistantId = items.lastOrNull { it.sender == Sender.Assistant && !it.thinking }?.id
     val latestUserId = items.lastOrNull { it.sender == Sender.User }?.id
@@ -99,6 +102,7 @@ fun ChatMessageList(
     var menu by remember { mutableStateOf<MenuTarget?>(null) }
     // 当前打开的附件长按菜单（图片或文件）
     var attachment by remember { mutableStateOf<AttachmentTarget?>(null) }
+    var pathCard by remember { mutableStateOf<AttachmentPathInfo?>(null) }
     // 「多选」不交给调用方：这里直接进入多选状态，其它动作照常交给调用方
     val handleAction: (ChatItem, MessageAction) -> Unit = { item, action ->
         if (action == MessageAction.Select) selection.start(item.id) else onAction(item, action)
@@ -181,11 +185,16 @@ fun ChatMessageList(
                 actions = attachmentActions(target),
                 onSelect = { kind ->
                     attachment = null
-                    onAttachmentAction(target, kind)
+                    if (kind == AttachmentActionKind.ShowPath) {
+                        pathCard = attachmentInfo(target)
+                    } else {
+                        onAttachmentAction(target, kind)
+                    }
                 },
                 onDismiss = { attachment = null },
             )
         }
+        pathCard?.let { info -> AttachmentPathCard(info = info, onDismiss = { pathCard = null }) }
         if (!following && items.isNotEmpty()) {
             ScrollToBottomChip(
                 modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 12.dp),

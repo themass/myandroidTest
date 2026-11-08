@@ -91,3 +91,14 @@ sealed interface AttachmentTarget {
  */
 enum class AttachmentActionKind { Download, CopyImage, Share, ShowPath, CopyPath }
 
+/**
+ * 「查看路径」卡片的内容，由调用方给出。[path] 是 app 内部存储里的完整路径；
+ * [savedPath] 是已经另存到公共目录（如 Pictures）时的路径，没有就为 null。
+ */
+data class AttachmentPathInfo(
+    val name: String,
+    val path: String,
+    val sizeBytes: Long?,
+    val savedPath: String? = null,
+)
+
