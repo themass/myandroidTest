@@ -31,6 +31,10 @@ fun MarkdownText(
         modifier = modifier,
         factory = { context ->
             TextView(context).apply {
+                // 不抢长按：原生 TextView 的长按会被当成「选字」吞掉事件，长按消息菜单就打不开。
+                // 关掉长按与点击，让按压交给外层的消息气泡（链接仍可点，见 ChatMarkwon 的链接设置）。
+                isLongClickable = false
+                isClickable = false
                 // 先套文字外观，再设颜色和字号：反过来的话外观会把颜色覆盖成主题灰色
                 TextViewCompat.setTextAppearance(
                     this,
@@ -44,6 +48,12 @@ fun MarkdownText(
         update = { view ->
             view.setTextColor(textColor.toArgb())
             ChatMarkwon.get(view.context).setMarkdown(view, FormulaInputNormalizer.forRender(markdown))
+            // Markwon 会给带链接的文字挂上 LinkMovementMethod，它会吞掉按压，导致外层长按菜单打不开。
+            // 只有真的有链接时才保留它；没有链接的文字不挂，让按压交给气泡。
+            val hasLinks = (view.text as? android.text.Spanned)
+                ?.getSpans(0, view.text.length, android.text.style.URLSpan::class.java)
+                ?.isNotEmpty() == true
+            view.movementMethod = if (hasLinks) android.text.method.LinkMovementMethod.getInstance() else null
         },
     )
 }
