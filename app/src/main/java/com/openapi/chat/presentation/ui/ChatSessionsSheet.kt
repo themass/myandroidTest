@@ -53,9 +53,12 @@ fun ChatSessionsSheet(
     onCreate: (String) -> Unit,
     onRename: (Long, String) -> Unit,
     onDelete: (Long) -> Unit,
+    /** 清空当前对话：删掉当前会话（服务端会自动新建一个空的）。 */
+    onClearCurrent: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     var creating by remember { mutableStateOf(false) }
+    var confirmClear by remember { mutableStateOf(false) }
     var renaming by remember { mutableStateOf<ChatSession?>(null) }
 
     ModalBottomSheet(
@@ -77,6 +80,9 @@ fun ChatSessionsSheet(
                     fontWeight = AppTypography.titleWeight,
                     color = AppColors.TextPrimary,
                 )
+                TextButton(onClick = { confirmClear = true }) {
+                    Text(stringResource(R.string.ui_clear_current), color = AppColors.Error)
+                }
                 TextButton(onClick = { creating = true }) {
                     Text(stringResource(R.string.ui_new_session), color = AppColors.Primary)
                 }
@@ -95,6 +101,25 @@ fun ChatSessionsSheet(
                 }
             }
         }
+    }
+
+    if (confirmClear) {
+        AlertDialog(
+            onDismissRequest = { confirmClear = false },
+            title = { Text(stringResource(R.string.chat_clear_title)) },
+            text = { Text(stringResource(R.string.chat_clear_message)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmClear = false
+                    onClearCurrent()
+                }) {
+                    Text(stringResource(R.string.ui_clear_current), color = AppColors.Error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmClear = false }) { Text(stringResource(R.string.ui_cancel)) }
+            },
+        )
     }
 
     if (creating) {

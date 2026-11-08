@@ -97,4 +97,7 @@
     <string name="ui_copied">已复制</string>
     <string name="chat_delete_message_title">删除这条消息？</string>
     <string name="chat_delete_message_body">只会从本机聊天记录中移除，服务器上的记录不受影响。</string>
+    <string name="ui_clear_current">清空</string>
+    <string name="chat_clear_title">清空当前对话？</string>
+    <string name="chat_clear_message">当前对话里的所有消息都会被删除，无法恢复。</string>
 </resources>

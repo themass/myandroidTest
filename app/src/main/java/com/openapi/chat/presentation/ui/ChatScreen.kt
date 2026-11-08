@@ -234,6 +234,7 @@ fun ChatScreen(
             onCreate = onCreateSession,
             onRename = onRenameSession,
             onDelete = onDeleteSession,
+            onClearCurrent = { onDeleteSession(state.sessionId) },
             onDismiss = { onSessionsVisibleChange(false) },
         )
     }
