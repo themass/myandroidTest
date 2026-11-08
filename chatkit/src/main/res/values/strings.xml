@@ -3,6 +3,7 @@
     <string name="chatkit_copy">Copy</string>
     <string name="chatkit_delete">Delete</string>
     <string name="chatkit_retry">Retry</string>
+    <string name="chatkit_retry_label">Retry</string>
     <string name="chatkit_edit">Edit</string>
     <string name="chatkit_speak">Read aloud</string>
     <string name="chatkit_speaking">Reading aloud</string>

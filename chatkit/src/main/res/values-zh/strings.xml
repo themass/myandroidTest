@@ -3,6 +3,7 @@
     <string name="chatkit_copy">复制</string>
     <string name="chatkit_delete">删除</string>
     <string name="chatkit_retry">重新发送</string>
+    <string name="chatkit_retry_label">重试</string>
     <string name="chatkit_edit">编辑</string>
     <string name="chatkit_speak">朗读</string>
     <string name="chatkit_speaking">朗读中</string>

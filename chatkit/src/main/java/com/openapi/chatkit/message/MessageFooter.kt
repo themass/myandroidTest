@@ -149,15 +149,29 @@ internal fun SendStatusIndicator(status: SendStatus, onRetry: () -> Unit) {
             Spacer(Modifier.width(8.dp))
         }
         SendStatus.Failed -> {
-            IconButton(onClick = onRetry, modifier = Modifier.size(28.dp)) {
+            // 失败：气泡左侧一个带文字的「重试」按钮（红色感叹号 + 文字），点它重新发送同一条消息
+            Row(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(ChatKit.colors.error.copy(alpha = 0.08f))
+                    .clickable(onClickLabel = stringResource(R.string.chatkit_send_failed), onClick = onRetry)
+                    .padding(horizontal = 10.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 Icon(
                     Icons.Filled.Error,
                     contentDescription = stringResource(R.string.chatkit_send_failed),
                     tint = ChatKit.colors.error,
-                    modifier = Modifier.size(20.dp),
+                    modifier = Modifier.size(16.dp),
+                )
+                Spacer(Modifier.width(4.dp))
+                androidx.compose.material3.Text(
+                    text = stringResource(R.string.chatkit_retry_label),
+                    color = ChatKit.colors.error,
+                    style = androidx.compose.material3.MaterialTheme.typography.labelLarge,
                 )
             }
-            Spacer(Modifier.width(4.dp))
+            Spacer(Modifier.width(8.dp))
         }
         SendStatus.Sent -> Unit
     }
