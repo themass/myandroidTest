@@ -1,5 +1,7 @@
 package com.openapi.chat.presentation.ui
 
+import com.openapi.chatkit.message.rememberMessageSelection
+import com.openapi.chatkit.message.MessageSelectionBar
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -95,6 +97,7 @@ fun ChatScreen(
     onSessionSelected: (Long) -> Unit,
     onCreateSession: (String) -> Unit,
     onDeleteSession: (Long) -> Unit,
+    onDeleteMessages: (List<String>) -> Unit,
     onRenameSession: (Long, String) -> Unit,
     onLoadOlder: () -> Unit,
     onMenuClick: (() -> Unit)?,
@@ -128,6 +131,8 @@ fun ChatScreen(
     }
     val voiceLevel by com.openapi.core.media.VoiceRecorder.level.collectAsState()
     var deleteTarget by remember { mutableStateOf<ChatMessage?>(null) }
+    val selection = rememberMessageSelection()
+    var confirmBatchDelete by remember { mutableStateOf(false) }
     var feedbackTarget by remember { mutableStateOf<ChatMessage?>(null) }
 
     ChatKitTheme(colors = ChatPlatform.chatKitColors()) {
@@ -161,6 +166,7 @@ fun ChatScreen(
             ChatMessageList(
                 items = items,
                 modifier = Modifier.weight(1f).fillMaxWidth(),
+                selection = selection,
                 avatar = { item ->
                     if (item.sender == Sender.User) {
                         Image(
@@ -193,6 +199,14 @@ fun ChatScreen(
                 },
             )
 
+            if (selection.active) {
+                MessageSelectionBar(
+                    count = selection.count,
+                    onDelete = { confirmBatchDelete = true },
+                    onCancel = selection::cancel,
+                )
+            }
+            if (!selection.active) {
             ChatComposer(
                 state = composerState.copy(voiceLevel = voiceLevel),
                 actions = composerActions,
@@ -211,6 +225,7 @@ fun ChatScreen(
                 onVoiceDraftSendAudio = onVoiceDraftSendAudio,
                 onVoiceDraftCancel = onVoiceDraftCancel,
             )
+            }
         }
     }
 
@@ -252,6 +267,25 @@ fun ChatScreen(
             },
             dismissButton = {
                 TextButton(onClick = { deleteTarget = null }) { Text(stringResource(R.string.ui_cancel)) }
+            },
+        )
+    }
+
+    if (confirmBatchDelete) {
+        AlertDialog(
+            onDismissRequest = { confirmBatchDelete = false },
+            title = { Text(stringResource(R.string.chat_batch_delete_title)) },
+            text = { Text(stringResource(R.string.chat_batch_delete_body)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmBatchDelete = false
+                    val ids = selection.selectedIds
+                    selection.cancel()
+                    onDeleteMessages(ids)
+                }) { Text(stringResource(R.string.ui_delete), color = AppColors.Error) }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmBatchDelete = false }) { Text(stringResource(R.string.ui_cancel)) }
             },
         )
     }

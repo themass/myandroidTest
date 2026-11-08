@@ -1,9 +1,11 @@
 package com.openapi.chatkit.message
 
+import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.automirrored.outlined.VolumeUp
 import androidx.compose.foundation.gestures.scrollBy
@@ -78,6 +80,8 @@ fun ChatMessageList(
     avatar: @Composable (ChatItem) -> Unit = {},
     text: @Composable (ChatItem, String) -> Unit = { _, value -> DefaultMessageText(value) },
     emptyContent: @Composable () -> Unit = {},
+    /** 多选状态：由调用方持有（底部操作条也要用），长按菜单的「多选」会进入它。 */
+    selection: MessageSelectionState = rememberMessageSelection(),
 ) {
     val latestAssistantId = items.lastOrNull { it.sender == Sender.Assistant && !it.thinking }?.id
     val latestUserId = items.lastOrNull { it.sender == Sender.User }?.id
@@ -85,6 +89,10 @@ fun ChatMessageList(
     val scope = rememberCoroutineScope()
     // 当前打开的长按菜单：哪条消息、锚在哪个位置
     var menu by remember { mutableStateOf<MenuTarget?>(null) }
+    // 「多选」不交给调用方：这里直接进入多选状态，其它动作照常交给调用方
+    val handleAction: (ChatItem, MessageAction) -> Unit = { item, action ->
+        if (action == MessageAction.Select) selection.start(item.id) else onAction(item, action)
+    }
 
     // 是否跟随最新内容：只由用户的滑动决定。用户停下来时如果在底部就跟随，往上翻了就不再抢滚动。
     // 内容增长（流式）本身不会改变这个状态，所以不会出现「刚长高一点就被判定为不在底部」。
@@ -116,15 +124,28 @@ fun ChatMessageList(
             verticalArrangement = Arrangement.spacedBy(ChatKit.dimens.messageSpacing),
         ) {
             items(items, key = { it.key }) { item ->
-                ChatMessageItem(
-                    item = item,
-                    isLatestAssistant = item.id == latestAssistantId,
-                    showSentLabel = item.id == latestUserId,
-                    avatar = avatar,
-                    text = text,
-                    onAction = { action -> onAction(item, action) },
-                    onLongPress = { anchor -> menu = MenuTarget(item, anchor) },
-                )
+                // 多选时：可选的消息左侧有勾选圆点，整行点击切换选中；生成中的消息不能选
+                val selectable = !item.thinking && !item.streaming && item.id.isNotBlank()
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .then(if (selection.active && selectable) Modifier.clickable { selection.toggle(item.id) } else Modifier),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    if (selection.active && selectable) {
+                        SelectionDot(selected = selection.isSelected(item.id), modifier = Modifier.padding(start = 12.dp))
+                    }
+                    ChatMessageItem(
+                        item = item,
+                        isLatestAssistant = item.id == latestAssistantId,
+                        showSentLabel = item.id == latestUserId,
+                        avatar = avatar,
+                        text = text,
+                        onAction = { action -> handleAction(item, action) },
+                        onLongPress = { anchor -> if (!selection.active) menu = MenuTarget(item, anchor) },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
             }
         }
         if (items.isEmpty()) emptyContent()
@@ -134,7 +155,7 @@ fun ChatMessageList(
                 items = menuItemsFor(target.item),
                 onSelect = { action ->
                     menu = null
-                    onAction(target.item, action)
+                    handleAction(target.item, action)
                 },
                 onDismiss = { menu = null },
             )
@@ -173,6 +194,7 @@ private fun menuItemsFor(item: ChatItem): List<MenuItem> {
     val edit = stringResource(R.string.chatkit_edit)
     val retry = stringResource(R.string.chatkit_retry)
     val delete = stringResource(R.string.chatkit_delete)
+    val multiSelect = stringResource(R.string.chatkit_multi_select)
     return buildList {
         when {
             hasVoice -> {
@@ -193,6 +215,7 @@ private fun menuItemsFor(item: ChatItem): List<MenuItem> {
                 }
             }
         }
+        add(MenuItem(multiSelect, MessageAction.Select, Icons.Outlined.CheckCircle))
         add(MenuItem(delete, MessageAction.Delete, Icons.Outlined.Delete))
     }
 }

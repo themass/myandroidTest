@@ -100,4 +100,6 @@
     <string name="ui_clear_current">清空</string>
     <string name="chat_clear_title">清空当前对话？</string>
     <string name="chat_clear_message">当前对话里的所有消息都会被删除，无法恢复。</string>
+    <string name="chat_batch_delete_title">删除所选消息？</string>
+    <string name="chat_batch_delete_body">所选消息会从对话中删除，无法恢复。</string>
 </resources>

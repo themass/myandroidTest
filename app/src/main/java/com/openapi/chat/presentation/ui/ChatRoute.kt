@@ -169,6 +169,8 @@ fun ChatRoute(
                         if (text.isNotBlank()) ChatPlatform.copy(context, text)
                     }
                     MessageAction.Delete -> viewModel.onDeleteMessage(message.id)
+                    // 多选由列表自己处理（见 ChatMessageList），不会到这里
+                    MessageAction.Select -> Unit
                     MessageAction.Retry -> viewModel.onRetry(message.id)
                     MessageAction.Edit -> viewModel.onEditMessage(message.id)
                     MessageAction.Speak -> viewModel.onSpeakMessage(message)
@@ -199,6 +201,7 @@ fun ChatRoute(
             onSessionSelected = viewModel::onSessionSelected,
             onCreateSession = viewModel::onCreateSession,
             onDeleteSession = viewModel::onDeleteSession,
+            onDeleteMessages = viewModel::onDeleteMessages,
             onRenameSession = viewModel::onRenameSession,
             onLoadOlder = viewModel::onLoadOlderMessages,
             onMenuClick = onMenuClick,

@@ -74,5 +74,7 @@ sealed interface MessageAction {
     data object Share : MessageAction
     data object Regenerate : MessageAction
     data object PlayVoice : MessageAction
+    /** 长按菜单「多选」：进入多选，并选中这条消息。 */
+    data object Select : MessageAction
     data class OpenFile(val file: MessagePart.File) : MessageAction
 }

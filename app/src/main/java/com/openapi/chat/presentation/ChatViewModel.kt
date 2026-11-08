@@ -640,6 +640,30 @@ class ChatViewModel : ViewModel() {
         }
     }
 
+    /**
+     * 批量删除（多选）：逐条调用单条删除（服务端 + 本地缓存），成功的从列表移除；
+     * 没有服务端 id 的本地消息只从列表移除。失败的保留，并提示数量。
+     */
+    fun onDeleteMessages(messageIds: List<String>) {
+        viewModelScope.launch {
+            val removed = mutableListOf<String>()
+            val failed = mutableListOf<String>()
+            for (id in messageIds) {
+                if (id.toLongOrNull() == null) {
+                    removed += id
+                } else if (deleteMessage(id)) {
+                    removed += id
+                } else {
+                    failed += id
+                }
+            }
+            _uiState.update { it.copy(messages = it.messages.filterNot { m -> m.id in removed }) }
+            if (failed.isNotEmpty()) {
+                _uiState.update { it.copy(error = "有 ${failed.size} 条消息删除失败，请稍后重试") }
+            }
+        }
+    }
+
     /** 加载更早的一页历史（按最早一条的服务端 id 作为 beforeId）。 */
     fun onLoadOlderMessages() {
         val state = _uiState.value

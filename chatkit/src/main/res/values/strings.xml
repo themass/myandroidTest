@@ -43,4 +43,7 @@
     <string name="chatkit_wechat_release_cancel">Release to cancel</string>
     <string name="chatkit_wechat_release_edit">Release to edit text</string>
     <string name="chatkit_send_original_voice">Send original voice</string>
+    <string name="chatkit_multi_select">Select</string>
+    <string name="chatkit_selected_count">%d selected</string>
+    <string name="chatkit_selection_cancel">Cancel</string>
 </resources>

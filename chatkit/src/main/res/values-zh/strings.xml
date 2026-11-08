@@ -43,4 +43,7 @@
     <string name="chatkit_wechat_release_cancel">松手 取消</string>
     <string name="chatkit_wechat_release_edit">松手 编辑文字</string>
     <string name="chatkit_send_original_voice">发送原语音</string>
+    <string name="chatkit_multi_select">多选</string>
+    <string name="chatkit_selected_count">已选 %d 条</string>
+    <string name="chatkit_selection_cancel">取消</string>
 </resources>
