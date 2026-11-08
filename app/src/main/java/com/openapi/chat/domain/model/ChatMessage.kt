@@ -90,3 +90,12 @@ data class ChatReply(
     val id: String,
     val text: String,
 )
+
+/**
+ * 一页历史消息（按时间正序）。[hasMore] 为 true 表示还有更早的消息，
+ * 用 [messages] 里最早一条的服务端 id 作为 beforeId 继续拉。
+ */
+data class HistoryPage(
+    val messages: List<ChatMessage>,
+    val hasMore: Boolean,
+)

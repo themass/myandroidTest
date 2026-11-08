@@ -31,7 +31,7 @@ import com.openapi.ks.myapp.bean.vo.HistoryVo;
  */
 @Database(
         entities = {ChatLog.class, ChatSessionLog.class, ConnLog.class, HistoryVo.class, FavoriteVo.class},
-        version = 2,
+        version = 3,
         exportSchema = false
 )
 @TypeConverters(Converters.class)
@@ -57,7 +57,7 @@ public abstract class AppDatabase extends RoomDatabase {
                 db = instance;
                 if (db == null) {
                     db = Room.databaseBuilder(appContext, AppDatabase.class, DB_NAME)
-                            .addMigrations(MIGRATION_1_2)
+                            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                             .allowMainThreadQueries()
                             .fallbackToDestructiveMigration()
                             .build();
@@ -86,6 +86,22 @@ public abstract class AppDatabase extends RoomDatabase {
         public void migrate(@NonNull SQLiteConnection connection) {
             SQLite.execSQL(connection, "CREATE TABLE IF NOT EXISTS `FavoriteVo` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` TEXT, `updateTime` TEXT, `type` INTEGER NOT NULL, `itemUrl` TEXT, `extra` TEXT)");
             SQLite.execSQL(connection, "CREATE UNIQUE INDEX IF NOT EXISTS `index_FavoriteVo_itemUrl` ON `FavoriteVo` (`itemUrl`)");
+        }
+    };
+
+    /**
+     * 版本 2 → 3：会话与消息改由服务端持有（见服务端 docs/chat-history-server.md）。
+     * - ChatSessionLog 去掉 name 唯一索引（服务端允许重名），新增 updatedAt 列；
+     * - 清空旧的本地聊天与会话缓存：旧记录的会话 id 是本地自增的，与服务端 id 对不上，
+     *   留着会在离线时把别的会话内容显示出来。之后以服务端拉取为准。
+     */
+    public static final Migration MIGRATION_2_3 = new Migration(2, 3) {
+        @Override
+        public void migrate(@NonNull SQLiteConnection connection) {
+            SQLite.execSQL(connection, "DROP INDEX IF EXISTS `index_ChatSessionLog_name`");
+            SQLite.execSQL(connection, "ALTER TABLE `ChatSessionLog` ADD COLUMN `updatedAt` INTEGER NOT NULL DEFAULT 0");
+            SQLite.execSQL(connection, "DELETE FROM `ChatLog`");
+            SQLite.execSQL(connection, "DELETE FROM `ChatSessionLog`");
         }
     };
 

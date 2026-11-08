@@ -22,6 +22,10 @@ public interface ChatLogDao {
     @Query("DELETE FROM ChatLog WHERE chatId = :chatId")
     void deleteByChatId(String chatId);
 
+    /** 删除某个会话的全部缓存（会话被删除，或整页刷新前清掉旧缓存）。 */
+    @Query("DELETE FROM ChatLog WHERE sessionId = :sessionId")
+    void deleteBySession(long sessionId);
+
     @Query("DELETE FROM ChatLog")
     void deleteAll();
 

@@ -5,13 +5,16 @@ import com.openapi.chat.data.mapper.ChatLogMapper
 import com.openapi.chat.domain.model.ChatCharacterOption
 import com.openapi.chat.domain.model.ChatMessage
 import com.openapi.chat.domain.model.ChatReply
+import com.openapi.chat.domain.model.HistoryPage
 import com.openapi.chat.domain.model.MessageKind
+import com.openapi.ks.myapp.bean.vo.ChatMessagePageVo
+import com.openapi.ks.myapp.bean.vo.ChatMessageVo
+import com.openapi.ks.myapp.bean.vo.ChatSessionVo
 import com.openapi.ks.myapp.bean.vo.Choice
 import com.openapi.chat.domain.model.ChatRole
 import com.openapi.chat.domain.model.ChatSession
 import com.openapi.chat.domain.model.ChatStreamEvent
 import com.openapi.chat.domain.repository.ChatRepository
-import com.openapi.core.util.GsonUtils
 import com.openapi.core.net.request.CommonResponse
 import com.openapi.core.util.LogUtil
 import com.openapi.core.util.PreferenceUtils
@@ -93,6 +96,42 @@ private class AttachmentParam(
     @JvmField val sessionId: Long,
 )
 
+/** 最新一页消息：不带 beforeId（[MessagesOlderPageParam] 才带），避免 null 被序列化成字面量 "null"。 */
+private class MessagesFirstPageParam(
+    @JvmField val sessionId: Long,
+    @JvmField val limit: Int,
+)
+
+private class MessagesOlderPageParam(
+    @JvmField val sessionId: Long,
+    @JvmField val beforeId: Long,
+    @JvmField val limit: Int,
+)
+
+private class SessionCreateParam(
+    @JvmField val name: String,
+)
+
+private class SessionRenameParam(
+    @JvmField val id: Long,
+    @JvmField val name: String,
+)
+
+private class SessionIdParam(
+    @JvmField val id: Long,
+)
+
+private class MessageDeleteParam(
+    @JvmField val sessionId: Long,
+    @JvmField val id: Long,
+)
+
+private class MessageEditParam(
+    @JvmField val sessionId: Long,
+    @JvmField val id: Long,
+    @JvmField val text: String,
+)
+
 class ChatRepositoryImpl(
     private val context: MyApplication,
 ) : ChatRepository {
@@ -136,17 +175,33 @@ class ChatRepositoryImpl(
         }.getOrNull()?.voList.orEmpty().map { it.toOption() }
     }
 
-    override suspend fun loadHistory(sessionId: Long): List<ChatMessage> {
-        val logs = AppDatabase.getInstance().chatLogDao().bySession(sessionId)
-        return logs.mapNotNull { log ->
-            ChatLogMapper.toDomain(
-                chatId = log.chatId,
-                who = log.who,
-                msgType = log.msgType,
-                rawContent = log.content,
-                createdAtMillis = log.createTime?.time ?: 0L,
-            )
+    override suspend fun loadHistoryPage(sessionId: Long, beforeId: Long?, limit: Int): HistoryPage {
+        if (sessionId <= 0) return HistoryPage(emptyList(), hasMore = false)
+        val safeLimit = limit.coerceIn(1, 200)
+        val url = Constants.getUrl(Constants.CHAT_MESSAGES_URL)
+        val remote = if (beforeId == null) {
+            postForResult(url, MessagesFirstPageParam(sessionId, safeLimit), ChatMessagePageVo::class.java)
+        } else {
+            postForResult(url, MessagesOlderPageParam(sessionId, beforeId, safeLimit), ChatMessagePageVo::class.java)
         }
+        if (remote != null) {
+            withContext(Dispatchers.IO) { cacheRemotePage(sessionId, remote.voList, replaceAll = beforeId == null) }
+            return HistoryPage(remote.voList.map { it.toDomainMessage() }, remote.hasMore)
+        }
+        // 服务端不可达：只能给出本地缓存的最新一页，更早的历史离线时拿不到
+        if (beforeId != null) return HistoryPage(emptyList(), hasMore = false)
+        val cached = withContext(Dispatchers.IO) {
+            AppDatabase.getInstance().chatLogDao().bySession(sessionId).mapNotNull { log ->
+                ChatLogMapper.toDomain(
+                    chatId = log.chatId,
+                    who = log.who,
+                    msgType = log.msgType,
+                    rawContent = log.content,
+                    createdAtMillis = log.createTime?.time ?: 0L,
+                )
+            }
+        }
+        return HistoryPage(cached, hasMore = false)
     }
 
     override fun sendMessageStream(
@@ -155,29 +210,75 @@ class ChatRepositoryImpl(
         characterId: Int?,
         roleId: String?,
         persistUserMessage: Boolean,
+        clientMessageId: String?,
+    ): Flow<ChatStreamEvent> = streamChat(
+        requestSessionId = sessionId,
+        text = userText,
+        regenerate = false,
+        characterId = characterId,
+        roleId = roleId,
+        persistUserMessage = persistUserMessage,
+        clientMessageId = clientMessageId,
+    )
+
+    override fun regenerateStream(
+        sessionId: Long,
+        characterId: Int?,
+        roleId: String?,
+    ): Flow<ChatStreamEvent> = streamChat(
+        requestSessionId = sessionId,
+        text = null,
+        regenerate = true,
+        characterId = characterId,
+        roleId = roleId,
+        persistUserMessage = false,
+        clientMessageId = null,
+    )
+
+    /**
+     * 对话流式请求的公共实现。
+     *
+     * 请求只带 sessionId、客户端消息 id、当轮 text（或 regenerate=true 时不带 text），
+     * 历史由服务端按 sessionId 读取，这里不再上传历史。
+     *
+     * 会话 id：请求里 sessionId<=0 表示新建会话，新 id 通过流里每一帧的 sessionId 返回，
+     * 收到后写进 SP 作为当前会话。
+     */
+    private fun streamChat(
+        requestSessionId: Long,
+        text: String?,
+        regenerate: Boolean,
+        characterId: Int?,
+        roleId: String?,
+        persistUserMessage: Boolean,
+        clientMessageId: String?,
     ): Flow<ChatStreamEvent> = callbackFlow {
-        val userMessage = ChatMessage(
-            id = "local-${System.currentTimeMillis()}",
-            role = ChatRole.USER,
-            text = userText,
-            createdAtMillis = System.currentTimeMillis(),
-        )
-        if (persistUserMessage) persist(sessionId, userMessage)
+        val now = System.currentTimeMillis()
+        val clientMsgId = clientMessageId ?: "local-user-$now"
+        val assistantId = "local-assistant-$now"
+        // 服务端会把它回写到每一帧里；请求本身是新会话（<=0）时才采用这个 id
+        var activeSessionId = requestSessionId
 
-        // 历史以 {role, content} 数组提交，字段名与后端约定一致（role: user/assistant）
-        val history = loadHistory(sessionId)
-            .filterNot { it.pending }
-            .map { mapOf("role" to (if (it.role == ChatRole.USER) "user" else "assistant"), "content" to it.text) }
-            .plus(mapOf("role" to "user", "content" to userText))
+        if (!regenerate && persistUserMessage && requestSessionId > 0 && text != null) {
+            persist(
+                requestSessionId,
+                ChatMessage(
+                    id = clientMsgId,
+                    role = ChatRole.USER,
+                    text = text,
+                    createdAtMillis = now,
+                ),
+            )
+        }
 
-        // 请求里的 id 仍是用户消息的 id（与服务端约定一致）；助手回复必须用自己的 id：
-        // 本地 ChatLog 的 chatId 是唯一索引，共用同一个 id 时保存回复会 REPLACE 掉用户消息。
-        val msgId = userMessage.id
-        val replyId = "local-reply-${System.currentTimeMillis()}"
         val bodyBuilder = FormBody.Builder()
-            .add("id", msgId)
-            .add("content", GsonUtils.getInstance().toJson(history))
-            .add("sessionId", sessionId.toString())
+            .add("sessionId", requestSessionId.toString())
+        if (regenerate) {
+            bodyBuilder.add("regenerate", "true")
+        } else {
+            bodyBuilder.add("id", clientMsgId)
+            bodyBuilder.add("text", text.orEmpty())
+        }
         if (characterId != null && characterId > 0) {
             bodyBuilder.add("characterId", characterId.toString())
         }
@@ -193,6 +294,12 @@ class ChatRepositoryImpl(
 
         val call = streamHttpClient.newCall(httpRequest)
         val fullText = StringBuilder()
+
+        fun adoptSessionId(id: Long) {
+            if (requestSessionId > 0 || id <= 0 || id == activeSessionId) return
+            activeSessionId = id
+            setCurrentSessionId(id)
+        }
 
         call.enqueue(object : okhttp3.Callback {
             override fun onFailure(call: okhttp3.Call, e: java.io.IOException) {
@@ -221,6 +328,7 @@ class ChatRepositoryImpl(
                             val payload = line.removePrefix("data:").trim()
                             if (payload.isEmpty()) continue
                             val chunk = runCatching { JSONObject(payload) }.getOrNull() ?: continue
+                            adoptSessionId(chunk.optLong("sessionId", 0L))
                             val delta = chunk.optString("delta", "")
                             val done = chunk.optBoolean("done", false)
                             val error = chunk.optString("error", null)
@@ -231,18 +339,27 @@ class ChatRepositoryImpl(
                             }
                             if (delta.isNotEmpty()) {
                                 fullText.append(delta)
-                                trySend(ChatStreamEvent.Delta(replyId, delta))
+                                trySend(ChatStreamEvent.Delta(assistantId, delta))
                             }
                             if (done) {
-                                val reply = ChatMessage(
-                                    id = replyId,
-                                    role = ChatRole.ASSISTANT,
-                                    text = fullText.toString(),
-                                    createdAtMillis = System.currentTimeMillis(),
+                                val serverUserId = chunk.optLong("userMessageId", 0L)
+                                val serverAssistantId = chunk.optLong("assistantMessageId", 0L)
+                                cacheTurn(
+                                    sessionId = activeSessionId,
+                                    clientUserId = clientMsgId,
+                                    userText = if (!regenerate && (persistUserMessage || clientMessageId != null)) text else null,
+                                    serverUserId = serverUserId,
+                                    reply = fullText.toString(),
+                                    serverAssistantId = serverAssistantId,
+                                    localAssistantId = assistantId,
                                 )
-                                // 空回复不保存：否则下次打开会显示成空气泡（或原始 JSON）
-                                if (fullText.isNotEmpty()) persist(sessionId, reply)
-                                trySend(ChatStreamEvent.Done(replyId, fullText.toString()))
+                                trySend(
+                                    ChatStreamEvent.Done(
+                                        assistantId = serverAssistantId.takeIf { it > 0 }?.toString(),
+                                        userId = serverUserId.takeIf { it > 0 }?.toString(),
+                                        fullText = fullText.toString(),
+                                    ),
+                                )
                                 close()
                                 return
                             }
@@ -250,14 +367,17 @@ class ChatRepositoryImpl(
                         // 流结束但没收到 done=true 帧（比如连接被提前挂断），按已收到的内容收尾，
                         // 而不是整段丢弃——用户至少能看到已经生成的部分。
                         if (!call.isCanceled()) {
-                            val reply = ChatMessage(
-                                id = replyId,
-                                role = ChatRole.ASSISTANT,
-                                text = fullText.toString(),
-                                createdAtMillis = System.currentTimeMillis(),
+                            // 没有 done 帧，服务端 id 未知：本地按临时 id 缓存，ViewModel 会兜底拉取历史
+                            cacheTurn(
+                                sessionId = activeSessionId,
+                                clientUserId = clientMsgId,
+                                userText = null,
+                                serverUserId = 0L,
+                                reply = fullText.toString(),
+                                serverAssistantId = 0L,
+                                localAssistantId = assistantId,
                             )
-                            if (fullText.isNotEmpty()) persist(sessionId, reply)
-                            trySend(ChatStreamEvent.Done(replyId, fullText.toString()))
+                            trySend(ChatStreamEvent.Done(assistantId = null, userId = null, fullText = fullText.toString()))
                         }
                     } catch (e: Exception) {
                         LogUtil.e(e)
@@ -271,6 +391,64 @@ class ChatRepositoryImpl(
 
         awaitClose { call.cancel() }
     }.flowOn(Dispatchers.IO)
+
+    /**
+     * 把一轮对话写进本地缓存（离线副本）。用服务端正式 id 作为 chatId；
+     * 用户消息若是本地先写入的（临时 id），这里换成正式 id。空回复不缓存。
+     */
+    private fun cacheTurn(
+        sessionId: Long,
+        clientUserId: String,
+        userText: String?,
+        serverUserId: Long,
+        reply: String,
+        serverAssistantId: Long,
+        localAssistantId: String,
+    ) {
+        if (sessionId <= 0) return
+        val now = System.currentTimeMillis()
+        if (userText != null && serverUserId > 0) {
+            AppDatabase.getInstance().chatLogDao().deleteByChatId(clientUserId)
+            persist(
+                sessionId,
+                ChatMessage(id = serverUserId.toString(), role = ChatRole.USER, text = userText, createdAtMillis = now),
+            )
+        }
+        if (reply.isNotEmpty()) {
+            persist(
+                sessionId,
+                ChatMessage(
+                    id = if (serverAssistantId > 0) serverAssistantId.toString() else localAssistantId,
+                    role = ChatRole.ASSISTANT,
+                    text = reply,
+                    createdAtMillis = now,
+                ),
+            )
+        }
+    }
+
+    override suspend fun editMessage(sessionId: Long, messageId: String, text: String): Boolean {
+        val id = messageId.toLongOrNull() ?: return false
+        if (sessionId <= 0) return false
+        return postForResult(
+            Constants.getUrl(Constants.CHAT_MESSAGE_EDIT_URL),
+            MessageEditParam(sessionId, id, text),
+            ChatMessageVo::class.java,
+        ) != null
+    }
+
+    override suspend fun deleteMessage(sessionId: Long, messageId: String): Boolean {
+        val id = messageId.toLongOrNull() ?: return false
+        if (sessionId <= 0) return false
+        val ok = postForOk(
+            Constants.getUrl(Constants.CHAT_MESSAGE_DELETE_URL),
+            MessageDeleteParam(sessionId, id),
+        )
+        if (ok) {
+            withContext(Dispatchers.IO) { AppDatabase.getInstance().chatLogDao().deleteByChatId(messageId) }
+        }
+        return ok
+    }
 
     override suspend fun synthesizeSpeech(messageId: String, text: String): String? {
         val vo = postForResult(
@@ -290,10 +468,6 @@ class ChatRepositoryImpl(
 
     override suspend fun saveMessage(sessionId: Long, message: ChatMessage) {
         persist(sessionId, message)
-    }
-
-    override suspend fun deleteMessage(messageId: String) = withContext(Dispatchers.IO) {
-        AppDatabase.getInstance().chatLogDao().deleteByChatId(messageId)
     }
 
     override suspend fun sendAttachment(
@@ -355,20 +529,14 @@ class ChatRepositoryImpl(
     }
 
     override fun sessions(): List<ChatSession> {
-        return AppDatabase.getInstance().chatSessionLogDao().loadAll()
-            .sortedWith(
-                compareBy<ChatSessionLog>(
-                    { it.type != ChatSessionLog.TYPE.DEF.type },
-                    { it.id ?: 0L },
-                ),
+        return AppDatabase.getInstance().chatSessionLogDao().loadAll().map { log ->
+            ChatSession(
+                id = log.id ?: 0L,
+                name = log.name.orEmpty(),
+                // 服务端没有“默认会话”的概念，列表里每个会话都可以删除
+                isDefault = false,
             )
-            .map { log ->
-                ChatSession(
-                    id = log.id ?: 0L,
-                    name = log.name.orEmpty(),
-                    isDefault = log.type == ChatSessionLog.TYPE.DEF.type,
-                )
-            }
+        }
     }
 
     override fun setCurrentSessionId(sessionId: Long) {
@@ -380,19 +548,36 @@ class ChatRepositoryImpl(
         if (trimmed.isEmpty()) return@withContext null
         val dao = AppDatabase.getInstance().chatSessionLogDao()
         if (dao.loadAll().any { it.name == trimmed }) return@withContext null
-        val log = ChatSessionLog()
-        log.name = trimmed
-        log.createTime = Date()
-        log.setting = ""
-        log.type = ChatSessionLog.TYPE.CUSTOMER.type
-        // 插入会返回新行 id（Room 不回填实体）
-        val id = dao.insertOrReplace(log)
-        ChatSession(id = id, name = trimmed, isDefault = false)
+        val vo = postForResult(
+            Constants.getUrl(Constants.CHAT_SESSION_CREATE_URL),
+            SessionCreateParam(name = trimmed),
+            ChatSessionVo::class.java,
+        ) ?: return@withContext null
+        dao.insertOrReplace(vo.toLog())
+        vo.toSession()
+    }
+
+    override suspend fun renameSession(sessionId: Long, name: String): ChatSession? = withContext(Dispatchers.IO) {
+        val trimmed = name.trim()
+        if (trimmed.isEmpty() || sessionId <= 0) return@withContext null
+        val vo = postForResult(
+            Constants.getUrl(Constants.CHAT_SESSION_RENAME_URL),
+            SessionRenameParam(id = sessionId, name = trimmed),
+            ChatSessionVo::class.java,
+        ) ?: return@withContext null
+        AppDatabase.getInstance().chatSessionLogDao().insertOrReplace(vo.toLog())
+        vo.toSession()
     }
 
     override suspend fun deleteSession(sessionId: Long): Boolean = withContext(Dispatchers.IO) {
-        if (sessions().size < 2) return@withContext false
-        AppDatabase.getInstance().chatSessionLogDao().deleteById(sessionId)
+        val ok = postForOk(
+            Constants.getUrl(Constants.CHAT_SESSION_DELETE_URL),
+            SessionIdParam(id = sessionId),
+        )
+        if (!ok) return@withContext false
+        val db = AppDatabase.getInstance()
+        db.chatLogDao().deleteBySession(sessionId)
+        db.chatSessionLogDao().deleteById(sessionId)
         if (currentSessionId() == sessionId) {
             sessions().firstOrNull()?.let { setCurrentSessionId(it.id) }
         }
@@ -404,13 +589,16 @@ class ChatRepositoryImpl(
             val list = runCatching {
                 baseService.getInfoListData(
                     Constants.getUrl(Constants.CHAT_SESSION_URL),
-                    ChatSessionLog::class.java,
+                    ChatSessionVo::class.java,
                     TAG,
                 )
-            }.getOrNull()?.voList
-            if (!list.isNullOrEmpty()) {
-                AppDatabase.getInstance().chatSessionLogDao().insertOrReplaceAll(list)
-            }
+            }.getOrNull()?.voList ?: return@withContext
+            val dao = AppDatabase.getInstance().chatSessionLogDao()
+            // 服务端是权威：整表替换，本地残留的旧会话（比如升级前的本地 id）一并清掉
+            dao.deleteAll()
+            if (list.isNotEmpty()) dao.insertOrReplaceAll(list.map { it.toLog() })
+            val ids = list.map { it.id }
+            if (currentSessionId() !in ids) setCurrentSessionId(ids.firstOrNull() ?: 0L)
         }
     }
 
@@ -450,6 +638,73 @@ class ChatRepositoryImpl(
                 )
             }
         }
+
+    /**
+     * 与 [postForResult] 相同，但只关心“是否成功”：服务端接口只返回 errno，没有业务数据时用它。
+     */
+    private suspend fun postForOk(url: String, param: Any): Boolean =
+        withContext(Dispatchers.IO) {
+            suspendCancellableCoroutine { cont ->
+                baseService.postData(
+                    url,
+                    param,
+                    object : CommonResponse.ResponseOkListener<Any>() {
+                        override fun onResponse(response: Any) {
+                            if (cont.isActive) cont.resume(true)
+                        }
+                    },
+                    object : CommonResponse.ResponseErrorListener() {
+                        override fun onError() {
+                            if (cont.isActive) cont.resume(false)
+                        }
+                    },
+                    TAG,
+                    Any::class.java,
+                )
+            }
+        }
+
+    /**
+     * 把服务端一页消息写进本地缓存（只是离线副本）。
+     * [replaceAll] 为 true 时（拉最新一页）先清掉这个会话的旧缓存，避免已删除/已重新生成的消息残留。
+     */
+    private fun cacheRemotePage(sessionId: Long, rows: List<ChatMessageVo>, replaceAll: Boolean) {
+        val dao = AppDatabase.getInstance().chatLogDao()
+        if (replaceAll) dao.deleteBySession(sessionId)
+        rows.forEach { row ->
+            val message = row.toDomainMessage()
+            val log = ChatLog()
+            log.content = ChatLogMapper.toRawContent(message)
+            log.who = ChatLogMapper.toWho(message.role)
+            log.msgType = ChatLogMapper.toMsgType(message.kind)
+            log.chatId = message.id
+            log.createTime = Date(message.createdAtMillis)
+            log.sessionId = sessionId
+            dao.save(log)
+        }
+    }
+
+    private fun ChatMessageVo.toDomainMessage() = ChatMessage(
+        // 服务端消息 id 直接用作 chatId / 列表 id，之后编辑、删除都用它
+        id = id.toString(),
+        role = if (role == "user") ChatRole.USER else ChatRole.ASSISTANT,
+        text = content.orEmpty(),
+        createdAtMillis = createdAt,
+    )
+
+    private fun ChatSessionVo.toSession() = ChatSession(
+        id = id,
+        name = name.orEmpty(),
+        isDefault = false,
+    )
+
+    private fun ChatSessionVo.toLog() = ChatSessionLog().also { log ->
+        log.id = id
+        log.name = name.orEmpty()
+        log.createTime = Date(createdAt)
+        log.updatedAt = updatedAt
+        log.type = ChatSessionLog.TYPE.CUSTOMER.type
+    }
 
     private fun persist(sessionId: Long, message: ChatMessage) {
         val log = ChatLog()

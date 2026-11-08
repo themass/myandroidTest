@@ -92,6 +92,8 @@ fun ChatScreen(
     onSessionSelected: (Long) -> Unit,
     onCreateSession: (String) -> Unit,
     onDeleteSession: (Long) -> Unit,
+    onRenameSession: (Long, String) -> Unit,
+    onLoadOlder: () -> Unit,
     onMenuClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
@@ -138,6 +140,19 @@ fun ChatScreen(
                 onSessionsClick = { onSessionsVisibleChange(true) },
                 onMenuClick = onMenuClick,
             )
+
+            if (state.hasMoreHistory) {
+                TextButton(
+                    onClick = onLoadOlder,
+                    enabled = !state.loadingOlder,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        stringResource(if (state.loadingOlder) R.string.chat_loading_older else R.string.chat_load_older),
+                        color = AppColors.Primary,
+                    )
+                }
+            }
 
             ChatMessageList(
                 items = items,
@@ -210,6 +225,7 @@ fun ChatScreen(
             currentSessionId = state.sessionId,
             onSelect = onSessionSelected,
             onCreate = onCreateSession,
+            onRename = onRenameSession,
             onDelete = onDeleteSession,
             onDismiss = { onSessionsVisibleChange(false) },
         )

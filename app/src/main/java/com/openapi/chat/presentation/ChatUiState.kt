@@ -37,6 +37,10 @@ data class ChatUiState(
     /** 会话列表，默认会话在前。 */
     val sessions: List<ChatSession> = emptyList(),
     val sessionsVisible: Boolean = false,
+    /** 服务端还有更早的历史可以加载。 */
+    val hasMoreHistory: Boolean = false,
+    /** 正在加载更早的一页历史。 */
+    val loadingOlder: Boolean = false,
 ) {
     val canSend: Boolean get() = (input.isNotBlank() || drafts.isNotEmpty()) && !sending
 
