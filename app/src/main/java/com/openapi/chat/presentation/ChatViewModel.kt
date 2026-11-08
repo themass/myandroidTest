@@ -315,12 +315,22 @@ class ChatViewModel : ViewModel() {
         persistUser: Boolean,
         regenerate: Boolean = false,
         syncAfter: Boolean = true,
+        /** 重新生成时：复用这条助手消息的气泡（同一个 key、同一个位置），而不是新增一条。 */
+        replaceKey: String? = null,
     ) {
         val state = _uiState.value
         // 本轮是否会新建会话（请求时还没有当前会话）：结束后要同步会话列表
         val startsNewSession = repository.currentSessionId() <= 0L
-        val placeholder = newPlaceholder()
-        _uiState.update { it.copy(messages = it.messages + placeholder, sending = true, streaming = true, error = null) }
+        val existing = replaceKey?.let { key -> state.messages.firstOrNull { it.key == key } }
+        val placeholder = existing?.copy(text = "", pending = true) ?: newPlaceholder()
+        _uiState.update { current ->
+            val messages = if (existing != null) {
+                current.messages.map { if (it.key == existing.key) placeholder else it }
+            } else {
+                current.messages + placeholder
+            }
+            current.copy(messages = messages, sending = true, streaming = true, error = null)
+        }
         userMessageId?.let { setDelivery(it, DeliveryStatus.SENDING) }
 
         streamJob = viewModelScope.launch {
@@ -553,11 +563,16 @@ class ChatViewModel : ViewModel() {
         val lastUserIndex = state.messages.indexOfLast { it.role == ChatRole.USER }
         if (lastUserIndex < 0) return
         val lastUser = state.messages[lastUserIndex]
-        _uiState.update { it.copy(messages = state.messages.subList(0, lastUserIndex + 1).toList()) }
+        val lastReply = state.messages.lastOrNull()?.takeIf { it.role == ChatRole.ASSISTANT }
         if (lastUser.images.isNotEmpty() || lastUser.files.isNotEmpty()) {
-            // 带附件的消息不走 regenerate（附件不在服务端历史里），按原样重新上传
+            // 带附件的消息不走 regenerate（附件不在服务端历史里），按原样重新上传：这种情况仍然截断后重发
+            _uiState.update { it.copy(messages = state.messages.subList(0, lastUserIndex + 1).toList()) }
             viewModelScope.launch { deliverAttachments(lastUser) }
+        } else if (lastReply != null) {
+            // 原位替换：最新回复的气泡留在原处，新内容流进同一个气泡
+            streamReply(text = null, userMessageId = null, persistUser = false, regenerate = true, replaceKey = lastReply.key)
         } else {
+            _uiState.update { it.copy(messages = state.messages.subList(0, lastUserIndex + 1).toList()) }
             streamReply(text = null, userMessageId = null, persistUser = false, regenerate = true)
         }
     }
