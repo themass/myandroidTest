@@ -1,5 +1,11 @@
 package com.openapi.chatkit.message
 
+import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.PlayArrow
+import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.automirrored.outlined.VolumeUp
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -162,29 +168,32 @@ private fun menuItemsFor(item: ChatItem): List<MenuItem> {
     val hasText = item.plainText.isNotBlank()
     val hasVoice = item.parts.any { it is MessagePart.Voice }
     val isUser = item.sender == Sender.User
+    val copy = stringResource(R.string.chatkit_copy)
+    val speak = stringResource(R.string.chatkit_speak)
+    val edit = stringResource(R.string.chatkit_edit)
+    val retry = stringResource(R.string.chatkit_retry)
+    val delete = stringResource(R.string.chatkit_delete)
     return buildList {
         when {
             hasVoice -> {
-                if (hasText) add(MenuItem(androidx.compose.ui.res.stringResource(com.openapi.chatkit.R.string.chatkit_copy), MessageAction.Copy))
-                add(MenuItem(androidx.compose.ui.res.stringResource(com.openapi.chatkit.R.string.chatkit_speak), MessageAction.PlayVoice))
+                if (hasText) add(MenuItem(copy, MessageAction.Copy, Icons.Outlined.ContentCopy))
+                add(MenuItem(speak, MessageAction.PlayVoice, Icons.Outlined.PlayArrow))
             }
             isUser -> {
-                if (item.status == SendStatus.Failed) {
-                    add(MenuItem(androidx.compose.ui.res.stringResource(com.openapi.chatkit.R.string.chatkit_retry), MessageAction.Retry))
-                }
+                if (item.status == SendStatus.Failed) add(MenuItem(retry, MessageAction.Retry, Icons.Outlined.Refresh))
                 if (hasText) {
-                    add(MenuItem(androidx.compose.ui.res.stringResource(com.openapi.chatkit.R.string.chatkit_copy), MessageAction.Copy))
-                    add(MenuItem(androidx.compose.ui.res.stringResource(com.openapi.chatkit.R.string.chatkit_edit), MessageAction.Edit))
+                    add(MenuItem(copy, MessageAction.Copy, Icons.Outlined.ContentCopy))
+                    add(MenuItem(edit, MessageAction.Edit, Icons.Outlined.Edit))
                 }
             }
             else -> {
                 if (hasText) {
-                    add(MenuItem(androidx.compose.ui.res.stringResource(com.openapi.chatkit.R.string.chatkit_copy), MessageAction.Copy))
-                    add(MenuItem(androidx.compose.ui.res.stringResource(com.openapi.chatkit.R.string.chatkit_speak), MessageAction.Speak))
+                    add(MenuItem(copy, MessageAction.Copy, Icons.Outlined.ContentCopy))
+                    add(MenuItem(speak, MessageAction.Speak, Icons.AutoMirrored.Outlined.VolumeUp))
                 }
             }
         }
-        add(MenuItem(androidx.compose.ui.res.stringResource(com.openapi.chatkit.R.string.chatkit_delete), MessageAction.Delete))
+        add(MenuItem(delete, MessageAction.Delete, Icons.Outlined.Delete))
     }
 }
 

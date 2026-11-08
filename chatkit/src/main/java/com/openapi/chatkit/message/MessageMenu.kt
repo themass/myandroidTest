@@ -1,21 +1,24 @@
 package com.openapi.chatkit.message
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Column
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntRect
@@ -29,18 +32,16 @@ import androidx.compose.ui.window.PopupProperties
 import com.openapi.chatkit.model.MessageAction
 import kotlin.math.roundToInt
 
-/** 长按菜单的一项：纯文字，点击后执行 [action]。 */
-internal data class MenuItem(val label: String, val action: MessageAction)
+/** 长按菜单的一项：图标 + 文字，点击后执行 [action]。 */
+internal data class MenuItem(val label: String, val action: MessageAction, val icon: ImageVector)
 
-/** 豆包式长按菜单（照抄 `larus_layout_message_menu`）：白底、圆角 12dp、横排等宽的文字项，项之间一条细分割线。 */
-/** 每项约 88dp 宽，整体随项数变化（2–4 项），不再固定 300dp。 */
-private const val MenuItemWidthDp = 88
-private val MenuCorner = 12.dp
-private val MenuDivider = Color(0xFFEFEFEF)
-private val MenuGap = 8
+private val MenuCorner = 14.dp
+private val MenuItemMinWidth = 64.dp
+private const val MenuGap = 8
 
 /**
- * 长按菜单。锚在 [anchor]（消息行在窗口里的位置）上方；上方放不下时放到下方。
+ * 长按菜单：白色圆角卡片（轻阴影），一排图标 + 文字，按内容决定宽度，不画分割线。
+ * 锚在 [anchor]（消息行在窗口里的位置）上方；上方放不下时放到下方。
  * 点菜单项 → [onSelect]；点菜单外面 → [onDismiss]。
  */
 @Composable
@@ -58,26 +59,30 @@ internal fun MessageMenu(
         Surface(
             shape = RoundedCornerShape(MenuCorner),
             color = Color.White,
-            shadowElevation = 8.dp,
-            modifier = Modifier.width((MenuItemWidthDp * items.size.coerceAtLeast(1)).dp),
+            shadowElevation = 6.dp,
         ) {
-            Row(Modifier.height(IntrinsicSize.Min)) {
-                items.forEachIndexed { index, item ->
-                    if (index > 0) Box(Modifier.fillMaxHeight().width(1.dp).background(MenuDivider))
-                    Box(
+            Row(Modifier.padding(horizontal = 4.dp, vertical = 6.dp)) {
+                items.forEach { item ->
+                    Column(
                         modifier = Modifier
-                            .weight(1f)
+                            .widthIn(min = MenuItemMinWidth)
+                            .clip(RoundedCornerShape(10.dp))
                             .clickable { onSelect(item.action) }
-                            .padding(horizontal = 12.dp, vertical = 12.dp),
-                        contentAlignment = Alignment.Center,
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
-                        Text(item.label, fontSize = 15.sp, color = Color.Black, maxLines = 1)
+                        Icon(item.icon, contentDescription = null, tint = MenuIconInk, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.height(4.dp))
+                        Text(item.label, fontSize = 12.sp, color = MenuTextInk, maxLines = 1)
                     }
                 }
             }
         }
     }
 }
+
+private val MenuIconInk = Color(0xFF1F1F1F)
+private val MenuTextInk = Color(0xFF3A3A3A)
 
 /** 菜单位置：水平居中对准消息，竖直放在消息上方；上方放不下就放到下方。窗口边缘内收。 */
 private class MenuPosition(private val anchor: Rect) : PopupPositionProvider {
