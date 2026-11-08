@@ -31,6 +31,11 @@
 
     </style>
 
+    <!-- 启动页（LaunchActivity）：窗口背景用暖白启动图，布局盖上之前先显示它。 -->
+    <style name="AppTheme.Launch" parent="@style/AppTheme.Slide">
+        <item name="android:windowBackground">@drawable/splash_bg</item>
+    </style>
+
     <style name="AppTheme.TransparentActivity">
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowIsTranslucent">true</item>

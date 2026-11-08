@@ -14,8 +14,8 @@
 -->
 <resources>
     <!-- Material Design-->
-    <color name="style_color_primary">#38be55</color>
-    <color name="style_color_primary_dark">#6CC77D</color>
+    <color name="style_color_primary">#C2410C</color>
+    <color name="style_color_primary_dark">#9A3412</color>
     <color name="style_color_accent">#01bcd5</color>
     <color name="btn_context_menu_normal">#ffffff</color>
     <color name="btn_context_menu_pressed">#40000000</color>
@@ -54,12 +54,13 @@
     <!---->
     <color name="new_deep_black">#333333</color>
     <color name="new_light_black">#999999</color>
-    <color name="new_light_green">#41bc6a</color>
+    <color name="new_light_green">#F2A65A</color>
     <color name="new_globle_black">#2e313c</color>
-    <color name="btn_green_pressed">#2db259</color>
+    <color name="btn_green_pressed">#9A3412</color>
 
     <color name="btn_blue_normal">#3382ff</color>
     <color name="ad_bg">#999999</color>
+    <color name="chat_background_warm">#FBF8F5</color>
 
     <!-- 标题 -->
     <color name="text_like_counter">#2b5a83</color>

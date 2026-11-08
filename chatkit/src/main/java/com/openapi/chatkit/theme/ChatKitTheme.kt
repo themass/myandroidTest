@@ -62,16 +62,16 @@ data class ChatKitTypography(
 )
 
 object ChatKitDefaults {
-    /** 默认配色与旧版对话页一致：白底、灰色助手气泡、绿色用户气泡、黑色文字。 */
+    /** 默认配色：暖橙主色、浅暖用户气泡（#7C2D12 字）、浅灰助手气泡。App 可以用自己的 token 覆盖。 */
     fun colors(
-        accent: Color = Color(0xFFC62828),
+        accent: Color = Color(0xFFC2410C),
         onAccent: Color = Color.White,
         background: Color = Color.White,
         surface: Color = Color.White,
         surfaceVariant: Color = Color(0xFFF5F5F5),
-        userBubble: Color = Color(0xFF81EE98),
-        assistantBubble: Color = Color(0xFFEEEEEE),
-        userBubbleText: Color = Color.Black,
+        userBubble: Color = Color(0xFFFDE7D3),
+        assistantBubble: Color = Color(0xFFF5F5F5),
+        userBubbleText: Color = Color(0xFF7C2D12),
         assistantBubbleText: Color = Color.Black,
         bubbleText: Color = Color.Black,
         secondaryText: Color = Color(0xFF757575),

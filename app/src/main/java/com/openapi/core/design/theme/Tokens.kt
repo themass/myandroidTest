@@ -16,22 +16,22 @@ import androidx.compose.ui.unit.TextUnit
  */
 object AppColors {
 
-    // 品牌
-    val Primary = Color(0xFFC62828)          // colorPrimary
-    val PrimaryDark = Color(0xFF8E0000)
-    val Secondary = Color(0xFF41BC6A)        // new_light_green
+    // 品牌：暖陪伴（暖橙），见 /tmp/doubao-spec/COLOR-warm.md；白字对比度 5.18
+    val Primary = Color(0xFFC2410C)          // colorPrimary（style_color_primary）
+    val PrimaryDark = Color(0xFF9A3412)      // 按下态 / colorPrimaryDark
+    val Secondary = Color(0xFFF2A65A)        // 图标、进度、录音强调
 
-    // 对话：与改版前的旧对话页一致——白底、灰色接收气泡、绿色发出气泡
-    val ChatBackground = Color(0xFFFFFFFF)   // white（旧版 activity_custom_layout_messages 根布局）
-    val ChatIncoming = Color(0xFFE8E8E8)     // gray_light（旧版 app:incomingDefaultBubbleColor）
-    val ChatOutgoing = Color(0xFF81EE98)     // green（旧版 app:outcomingDefaultBubbleColor）
+    // 对话：暖白页面，白色卡片有边界；助手气泡浅灰，用户气泡暖色
+    val ChatBackground = Color(0xFFFBF8F5)
+    val ChatIncoming = Color(0xFFF5F5F5)     // 助手气泡
+    val ChatOutgoing = Color(0xFFFDE7D3)     // 用户气泡，文字 #7C2D12（对比度 7.83）
     val ChatTimestamp = Color(0xAE858585)    // gray_dark_transparent
 
     // 中性
     val Surface = Color(0xFFFFFFFF)
     val SurfaceVariant = Color(0xFFF5F5F5)
     val TextPrimary = Color(0xFF212121)
-    val TextSecondary = Color(0xFF757575)
+    val TextSecondary = Color(0xFF5B6470)    // 在 #F6F8F6 上对比度 5.62
     val Divider = Color(0xFFE0E0E0)
 
     // 状态

@@ -133,6 +133,7 @@
         <activity
             android:name="com.openapi.ks.chatfree.ui.main.LaunchActivity"
             android:exported="true"
+            android:theme="@style/AppTheme.Launch"
             >
             <intent-filter tools:ignore="GoogleAppIndexingWarning">
                 <action android:name="android.intent.action.VIEW" />
