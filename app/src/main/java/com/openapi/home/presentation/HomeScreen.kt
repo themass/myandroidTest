@@ -1,9 +1,14 @@
 package com.openapi.home.presentation
 
+import androidx.core.view.WindowCompat
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.runtime.SideEffect
+import android.app.Activity
 import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.calculateEndPadding
@@ -91,6 +96,15 @@ fun HomeScreen() {
     }
     BackHandler(enabled = drawerState.isOpen) { scope.launch { drawerState.close() } }
 
+    // 对话标签的顶栏是品牌色，状态栏图标用浅色；其它标签、以及侧边栏打开时（浅色面板）用深色图标
+    val hostView = LocalView.current
+    SideEffect {
+        val window = (hostView.context as? Activity)?.window
+        if (window != null) {
+            WindowCompat.getInsetsController(window, hostView).isAppearanceLightStatusBars = current != HomeTab.Chat || drawerState.targetValue == DrawerValue.Open
+        }
+    }
+
     ModalNavigationDrawer(
         drawerState = drawerState,
         // 对话页的按住录音、上滑取消是手势操作，边缘滑动会和它抢手势：对话标签里只用菜单按钮打开，
@@ -154,19 +168,21 @@ fun HomeScreen() {
                 }
             },
         ) { innerPadding ->
-            // 对话标签的顶栏要画到状态栏底下（状态栏同色），所以这一标签不留顶部边距，由顶栏自己处理
-            val topInset = if (current == HomeTab.Chat) 0.dp else innerPadding.calculateTopPadding()
+            // 对话标签的顶栏要画到状态栏底下（状态栏同色），所以这一标签不留顶部边距，由顶栏自己处理；
+            // 只能把「实际留出的边距」标记为已消费，否则顶栏的 statusBarsPadding 会拿到 0
+            val layoutDirection = LocalLayoutDirection.current
+            val applied = PaddingValues(
+                start = innerPadding.calculateStartPadding(layoutDirection),
+                end = innerPadding.calculateEndPadding(layoutDirection),
+                top = if (current == HomeTab.Chat) 0.dp else innerPadding.calculateTopPadding(),
+                bottom = innerPadding.calculateBottomPadding(),
+            )
             Box(
                 Modifier
                     .fillMaxSize()
-                    .padding(
-                        start = innerPadding.calculateStartPadding(LocalLayoutDirection.current),
-                        end = innerPadding.calculateEndPadding(LocalLayoutDirection.current),
-                        bottom = innerPadding.calculateBottomPadding(),
-                        top = topInset,
-                    )
-                    // 状态栏、导航栏的边距已经由 Scaffold 处理，子页面的 safeDrawingPadding 只需要再处理键盘
-                    .consumeWindowInsets(innerPadding),
+                    .padding(applied)
+                    // 导航栏等边距已由 Scaffold 处理，子页面的 safeDrawingPadding 只需要再处理键盘
+                    .consumeWindowInsets(applied),
             ) {
                 stateHolder.SaveableStateProvider(current.name) {
                     when (current) {
