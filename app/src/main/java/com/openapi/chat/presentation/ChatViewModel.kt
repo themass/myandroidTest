@@ -641,6 +641,44 @@ class ChatViewModel : ViewModel() {
     }
 
     /**
+     * 清空当前对话的消息，保留会话本身。服务端还没有「清空消息」接口，所以先分页拉出全部消息 id，
+     * 再逐条删除（每条走服务端 + 本地缓存）。任一条失败会保留它并提示数量。
+     */
+    fun onClearConversation() {
+        viewModelScope.launch {
+            val sessionId = repository.currentSessionId()
+            val ids = mutableListOf<String>()
+            try {
+                var beforeId: Long? = null
+                while (true) {
+                    val page = withContext(Dispatchers.IO) { repository.loadHistoryPage(sessionId, beforeId, 50) }
+                    if (page.messages.isEmpty()) break
+                    ids += page.messages.map { it.id }
+                    val oldest = page.messages.mapNotNull { it.id.toLongOrNull() }.minOrNull() ?: break
+                    if (!page.hasMore) break
+                    beforeId = oldest
+                }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(error = "读取消息失败，请稍后重试") }
+                return@launch
+            }
+            val removed = mutableListOf<String>()
+            var failed = 0
+            for (id in ids) {
+                if (id.toLongOrNull() == null) {
+                    removed += id
+                } else if (deleteMessage(id)) {
+                    removed += id
+                } else {
+                    failed++
+                }
+            }
+            _uiState.update { it.copy(messages = it.messages.filterNot { m -> m.id in removed }) }
+            if (failed > 0) _uiState.update { it.copy(error = "有 $failed 条消息清空失败，请稍后重试") }
+        }
+    }
+
+    /**
      * 批量删除（多选）：逐条调用单条删除（服务端 + 本地缓存），成功的从列表移除；
      * 没有服务端 id 的本地消息只从列表移除。失败的保留，并提示数量。
      */

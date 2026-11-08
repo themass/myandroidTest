@@ -98,6 +98,7 @@ fun ChatScreen(
     onCreateSession: (String) -> Unit,
     onDeleteSession: (Long) -> Unit,
     onDeleteMessages: (List<String>) -> Unit,
+    onClearConversation: () -> Unit,
     onRenameSession: (Long, String) -> Unit,
     onLoadOlder: () -> Unit,
     onMenuClick: (() -> Unit)?,
@@ -249,7 +250,7 @@ fun ChatScreen(
             onCreate = onCreateSession,
             onRename = onRenameSession,
             onDelete = onDeleteSession,
-            onClearCurrent = { onDeleteSession(state.sessionId) },
+            onClearCurrent = onClearConversation,
             onDismiss = { onSessionsVisibleChange(false) },
         )
     }

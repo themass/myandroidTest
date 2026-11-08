@@ -202,6 +202,7 @@ fun ChatRoute(
             onCreateSession = viewModel::onCreateSession,
             onDeleteSession = viewModel::onDeleteSession,
             onDeleteMessages = viewModel::onDeleteMessages,
+            onClearConversation = viewModel::onClearConversation,
             onRenameSession = viewModel::onRenameSession,
             onLoadOlder = viewModel::onLoadOlderMessages,
             onMenuClick = onMenuClick,
