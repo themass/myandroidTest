@@ -247,8 +247,8 @@ private val RippleOverlayHeight = 340.dp
 private val RippleGlowRectHeight = 160.dp
 private val RippleGlowHighlightRadius = 120.dp
 private val RippleBlurRadius = 48.dp
-private val GlowCore = Color(0xFF1C5BDC)
-private val GlowMid = Color(0xFF3FA1DE)
+private val GlowCore = Color(0xFF2D66C8)
+private val GlowMid = Color(0xFF4FA3D6)
 private val GlowHighlight = Color(0xFF9FE3FF)
 private val CancelWash = Color(0xFFF6C9D2)
 private val CancelRed = Color(0xFFE5484D)
@@ -298,13 +298,13 @@ private fun RippleOverlay(intent: VoiceIntent, history: List<Float>, liveTranscr
                 .background(
                     Brush.verticalGradient(
                         0f to Color.Transparent,
-                        0.5f to CancelWash.copy(alpha = 0.7f),
+                        0.7f to CancelWash.copy(alpha = 0.7f),
                         1f to CancelWash,
                     ),
                 ),
         )
         Column(
-            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 44.dp),
+            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 92.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             if (liveTranscript.isNotBlank() && !canceling) {
@@ -349,7 +349,7 @@ private fun DrawScope.drawGlowSolid(level: Float) {
     val h = size.height
     val rectH = RippleGlowRectHeight.toPx()
     val rectTop = h - rectH
-    val radius = 0.8f * (w / 2f)
+    val radius = 0.65f * (w / 2f)
     val cx = w / 2f
     drawRect(
         // 矩形顶边渐隐进圆里，避免和圆相接处出现尖角
@@ -381,7 +381,7 @@ private fun DrawScope.drawGlowSoft(level: Float) {
     val h = size.height
     val rectH = RippleGlowRectHeight.toPx()
     val rectTop = h - rectH
-    val radius = 0.8f * (w / 2f)
+    val radius = 0.65f * (w / 2f)
     val cx = w / 2f
     drawRect(
         brush = Brush.verticalGradient(
