@@ -5,6 +5,8 @@ import android.graphics.drawable.Drawable
 import android.widget.ImageView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -57,7 +59,6 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.draw.paint
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import com.bumptech.glide.Glide
@@ -359,15 +360,14 @@ private fun ChannelItem(vo: RecommendVo, onClick: () -> Unit) {
 /** Bottom scrim, optional VIP/new badge, title overlay and ads label, drawn over the photo. */
 @Composable
 private fun BoxScope.SharedOverlays(newBadge: Int?, titleText: String?, adsText: String?, m5: Dp, m3: Dp) {
-    val scrimPainter = painterResource(R.drawable.bg_gallery_bottom_scrim)
-    Image(
-        painter = scrimPainter,
-        contentDescription = null,
-        contentScale = ContentScale.FillBounds,
+    // 底部渐变遮罩：顶部透明、底部 #CC000000（与原 bg_gallery_bottom_scrim 的方向一致）。
+    // 原来用 painterResource 加载 <shape> XML，Compose 不接受，会崩溃。
+    Box(
         modifier = Modifier
             .align(Alignment.BottomCenter)
             .fillMaxWidth()
-            .height(36.dp),
+            .height(36.dp)
+            .background(Brush.verticalGradient(listOf(Color.Transparent, Color(0xCC000000)))),
     )
     if (newBadge != null) {
         Image(
@@ -397,7 +397,9 @@ private fun BoxScope.SharedOverlays(newBadge: Int?, titleText: String?, adsText:
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .padding(start = m5, top = m3)
-                .paint(painterResource(R.drawable.bg_gallery_page_badge)),
+                // 原 bg_gallery_page_badge 是 <shape>（圆角 20dp、#66000000、1dp #33FFFFFF 描边），用 Compose 修饰符画
+                .background(Color(0x66000000), RoundedCornerShape(20.dp))
+                .border(1.dp, Color(0x33FFFFFF), RoundedCornerShape(20.dp)),
         ) {
             Text(
                 text = adsText,
