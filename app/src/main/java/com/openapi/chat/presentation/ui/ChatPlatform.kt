@@ -11,6 +11,7 @@ import android.widget.Toast
 import androidx.compose.ui.graphics.Color
 import androidx.core.content.FileProvider
 import com.openapi.chatkit.model.VoiceStyle
+import com.openapi.chatkit.message.MessageMenuStyle
 import com.openapi.chatkit.theme.ChatKitColors
 import com.openapi.chatkit.theme.ChatKitDefaults
 import com.openapi.core.design.theme.AppColors
@@ -75,6 +76,9 @@ internal object ChatPlatform {
         }
         Toast.makeText(context, context.getString(label), Toast.LENGTH_SHORT).show()
     }
+
+    /** 长按菜单样式（原型对比）：Popup = 横排卡片（选项 2），Sheet = 底部弹层（选项 1）。 */
+    val messageMenuStyle: MessageMenuStyle = MessageMenuStyle.Popup
 
     /** 用 App 自己的 token 构造组件库配色：用户气泡 ChatOutgoing（浅橙），助手气泡 ChatIncoming，页面 ChatBackground；footer 芯片 ChatOutgoing + Primary。 */
     fun chatKitColors(): ChatKitColors = ChatKitDefaults.colors(

@@ -82,6 +82,8 @@ fun ChatMessageList(
     emptyContent: @Composable () -> Unit = {},
     /** 多选状态：由调用方持有（底部操作条也要用），长按菜单的「多选」会进入它。 */
     selection: MessageSelectionState = rememberMessageSelection(),
+    /** 长按菜单样式（原型对比）。 */
+    menuStyle: MessageMenuStyle = MessageMenuStyle.Popup,
 ) {
     val latestAssistantId = items.lastOrNull { it.sender == Sender.Assistant && !it.thinking }?.id
     val latestUserId = items.lastOrNull { it.sender == Sender.User }?.id
@@ -150,15 +152,20 @@ fun ChatMessageList(
         }
         if (items.isEmpty()) emptyContent()
         menu?.let { target ->
-            MessageMenu(
-                anchor = target.anchor,
-                items = menuItemsFor(target.item),
-                onSelect = { action ->
-                    menu = null
-                    handleAction(target.item, action)
-                },
-                onDismiss = { menu = null },
-            )
+            val onSelect: (MessageAction) -> Unit = { action ->
+                menu = null
+                handleAction(target.item, action)
+            }
+            if (menuStyle == MessageMenuStyle.Sheet) {
+                MessageMenuSheet(items = menuItemsFor(target.item), onSelect = onSelect, onDismiss = { menu = null })
+            } else {
+                MessageMenu(
+                    anchor = target.anchor,
+                    items = menuItemsFor(target.item),
+                    onSelect = onSelect,
+                    onDismiss = { menu = null },
+                )
+            }
         }
         if (!following && items.isNotEmpty()) {
             ScrollToBottomChip(

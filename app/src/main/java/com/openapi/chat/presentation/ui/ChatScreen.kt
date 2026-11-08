@@ -168,6 +168,7 @@ fun ChatScreen(
                 items = items,
                 modifier = Modifier.weight(1f).fillMaxWidth(),
                 selection = selection,
+                menuStyle = ChatPlatform.messageMenuStyle,
                 avatar = { item ->
                     if (item.sender == Sender.User) {
                         Image(

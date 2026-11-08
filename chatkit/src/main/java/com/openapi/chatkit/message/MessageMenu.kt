@@ -6,7 +6,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -14,6 +16,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.Column
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
@@ -31,6 +36,9 @@ import androidx.compose.ui.window.PopupPositionProvider
 import androidx.compose.ui.window.PopupProperties
 import com.openapi.chatkit.model.MessageAction
 import kotlin.math.roundToInt
+
+/** 长按菜单的样式（原型对比用）：横排卡片（Popup）或底部弹层（ModalBottomSheet，一行一项）。 */
+enum class MessageMenuStyle { Popup, Sheet }
 
 /** 长按菜单的一项：图标 + 文字，点击后执行 [action]。 */
 internal data class MenuItem(val label: String, val action: MessageAction, val icon: ImageVector)
@@ -97,5 +105,32 @@ private class MenuPosition(private val anchor: Rect) : PopupPositionProvider {
         val above = anchor.top.roundToInt() - popupContentSize.height - MenuGap
         val y = if (above >= 0) above else anchor.bottom.roundToInt() + MenuGap
         return IntOffset(x, y)
+    }
+}
+
+/** 底部弹层样式：每个动作一行（图标 + 文字），用 Material3 的 ModalBottomSheet，不引入新依赖。 */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun MessageMenuSheet(
+    items: List<MenuItem>,
+    onSelect: (MessageAction) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = Color.White) {
+        Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(bottom = 12.dp)) {
+            items.forEach { item ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onSelect(item.action) }
+                        .padding(horizontal = 20.dp, vertical = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(item.icon, contentDescription = null, tint = MenuIconInk, modifier = Modifier.size(22.dp))
+                    Spacer(Modifier.width(16.dp))
+                    Text(item.label, fontSize = 16.sp, color = MenuTextInk)
+                }
+            }
+        }
     }
 }
