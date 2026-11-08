@@ -158,6 +158,7 @@ fun ChatMessageList(
                         onAction = { action -> handleAction(item, action) },
                         onLongPress = { anchor -> if (!selection.active) menu = MenuTarget(item, anchor) },
                         onAttachmentLongPress = { target -> if (!selection.active) attachment = target },
+                        selectionActive = selection.active,
                         modifier = Modifier.weight(1f),
                     )
                 }
@@ -295,6 +296,8 @@ fun ChatMessageItem(
     modifier: Modifier = Modifier,
     /** 长按图片或文件：交给列表打开附件菜单。 */
     onAttachmentLongPress: (AttachmentTarget) -> Unit = {},
+    /** 多选中：不显示 footer，避免它的按钮抢走点击。 */
+    selectionActive: Boolean = false,
 ) {
     val dimens = ChatKit.dimens
     val isUser = item.sender == Sender.User
@@ -320,7 +323,8 @@ fun ChatMessageItem(
                 if (isUser) SendStatusIndicator(item.status) { onAction(MessageAction.Retry) }
                 // 每条助手回复（生成完成后）都有 footer；生成中的那条不显示
                 val assistantFooter: (@Composable () -> Unit)? =
-                    if (!isUser && !item.streaming && !item.thinking) {
+                    // 多选时不显示 footer：它的按钮在消息行下面，会抢走点击
+                    if (!isUser && !item.streaming && !item.thinking && !selectionActive) {
                         { AssistantFooter(item = item, isLatest = isLatestAssistant, onAction = onAction) }
                     } else {
                         null
