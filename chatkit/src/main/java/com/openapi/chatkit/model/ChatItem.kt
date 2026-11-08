@@ -27,7 +27,13 @@ sealed interface MessagePart {
     data class File(val path: String, val name: String, val sizeBytes: Long) : MessagePart
 
     /** 语音。[playing] 由调用方根据播放器状态填入，组件据此显示声波动画。 */
-    data class Voice(val durationSeconds: Int, val transcript: String?, val playing: Boolean) : MessagePart
+    /** 语音消息。[transcript] 为 null 或空白表示没有识别出文字；[transcribing] 为 true 表示还在识别中。 */
+    data class Voice(
+        val durationSeconds: Int,
+        val transcript: String?,
+        val playing: Boolean,
+        val transcribing: Boolean = false,
+    ) : MessagePart
 }
 
 /** 列表里的一条消息（UI 模型）。由调用方从自己的领域模型映射而来。 */

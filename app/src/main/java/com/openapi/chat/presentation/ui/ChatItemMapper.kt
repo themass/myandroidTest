@@ -52,9 +52,10 @@ internal object ChatItemMapper {
             add(
                 MessagePart.Voice(
                     durationSeconds = voice.durationSeconds,
-                    // 语音消息的文字就是转写，显示在语音气泡下方
+                    // 语音消息的文字就是转写，显示在同一个语音气泡里
                     transcript = message.text.takeIf { it.isNotBlank() },
                     playing = playback.playing && playback.mediaId == message.id,
+                    transcribing = message.pending,
                 ),
             )
         } else if (message.text.isNotEmpty()) {
