@@ -324,6 +324,16 @@ class ChatRepositoryImpl(
                     try {
                         while (!call.isCanceled()) {
                             val line = source.readUtf8Line() ?: break
+                            // 服务端出错时返回的是普通 JSON（{"errno":10000,"error":"..."}），不是 data: 帧；
+                            // 不能当成空流收尾，要把错误原文交给界面
+                            if (line.startsWith("{")) {
+                                val body = runCatching { JSONObject(line) }.getOrNull()
+                                if (body != null && body.optInt("errno", 0) != 0) {
+                                    trySend(ChatStreamEvent.Error(body.optString("error", "").ifBlank { "服务器错误 ${body.optInt("errno")}" }))
+                                    close()
+                                    return
+                                }
+                            }
                             if (!line.startsWith("data:")) continue
                             val payload = line.removePrefix("data:").trim()
                             if (payload.isEmpty()) continue
@@ -366,7 +376,10 @@ class ChatRepositoryImpl(
                         }
                         // 流结束但没收到 done=true 帧（比如连接被提前挂断），按已收到的内容收尾，
                         // 而不是整段丢弃——用户至少能看到已经生成的部分。
-                        if (!call.isCanceled()) {
+                        if (!call.isCanceled() && fullText.isEmpty()) {
+                            // 一个字都没收到就结束了：这是失败，不是「空回复」
+                            trySend(ChatStreamEvent.Error("服务器没有返回内容，请稍后重试"))
+                        } else if (!call.isCanceled()) {
                             // 没有 done 帧，服务端 id 未知：本地按临时 id 缓存，ViewModel 会兜底拉取历史
                             cacheTurn(
                                 sessionId = activeSessionId,
