@@ -33,7 +33,8 @@ import kotlin.math.roundToInt
 internal data class MenuItem(val label: String, val action: MessageAction)
 
 /** 豆包式长按菜单（照抄 `larus_layout_message_menu`）：白底、圆角 12dp、横排等宽的文字项，项之间一条细分割线。 */
-private val MenuWidth = 300.dp
+/** 每项约 88dp 宽，整体随项数变化（2–4 项），不再固定 300dp。 */
+private const val MenuItemWidthDp = 88
 private val MenuCorner = 12.dp
 private val MenuDivider = Color(0xFFEFEFEF)
 private val MenuGap = 8
@@ -57,8 +58,8 @@ internal fun MessageMenu(
         Surface(
             shape = RoundedCornerShape(MenuCorner),
             color = Color.White,
-            shadowElevation = 6.dp,
-            modifier = Modifier.width(MenuWidth),
+            shadowElevation = 8.dp,
+            modifier = Modifier.width((MenuItemWidthDp * items.size.coerceAtLeast(1)).dp),
         ) {
             Row(Modifier.height(IntrinsicSize.Min)) {
                 items.forEachIndexed { index, item ->
@@ -67,10 +68,10 @@ internal fun MessageMenu(
                         modifier = Modifier
                             .weight(1f)
                             .clickable { onSelect(item.action) }
-                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                            .padding(horizontal = 12.dp, vertical = 12.dp),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Text(item.label, fontSize = 16.sp, color = Color.Black)
+                        Text(item.label, fontSize = 15.sp, color = Color.Black, maxLines = 1)
                     }
                 }
             }
