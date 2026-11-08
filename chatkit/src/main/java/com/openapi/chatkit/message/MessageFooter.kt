@@ -1,5 +1,6 @@
 package com.openapi.chatkit.message
 
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -80,6 +81,8 @@ fun AssistantFooter(
             if (hasText) {
                 AssistantChip(Icons.Outlined.Share, stringResource(R.string.chatkit_share)) { onAction(MessageAction.Share) }
             }
+            // 删除：每条已完成的助手回复都有
+            AssistantChip(Icons.Outlined.Delete, stringResource(R.string.chatkit_delete)) { onAction(MessageAction.Delete) }
             if (isLatest) {
                 Spacer(Modifier.weight(1f))
                 AssistantChip(Icons.Outlined.Refresh, stringResource(R.string.chatkit_regenerate)) { onAction(MessageAction.Regenerate) }
