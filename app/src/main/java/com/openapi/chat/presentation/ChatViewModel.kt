@@ -384,11 +384,18 @@ class ChatViewModel : ViewModel() {
             } catch (e: kotlinx.coroutines.CancellationException) {
                 // 用户点了停止：保留已经生成的内容，不当作失败
                 reveal.cancel()
-                kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
+                val replied = kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
                     finishStopped(placeholder.key, buffer.toString())
                 }
-                _uiState.update { it.copy(sending = false, streaming = false) }
-                userMessageId?.let { setDelivery(it, DeliveryStatus.SENT) }
+                // 停止时一个字都没收到：用户消息标成未发出（可点重试），不当作已发送
+                _uiState.update {
+                    it.copy(
+                        sending = false,
+                        streaming = false,
+                        error = if (replied) it.error else "已停止，消息未发出，可点重试",
+                    )
+                }
+                userMessageId?.let { setDelivery(it, if (replied) DeliveryStatus.SENT else DeliveryStatus.FAILED) }
                 // 服务端会保存已生成的部分，但这里拿不到正式 id：兜底拉一页历史
                 if (syncAfter) viewModelScope.launch { fallbackReloadMessages() }
                 if (startsNewSession) viewModelScope.launch { syncSessionsList() }
@@ -432,7 +439,8 @@ class ChatViewModel : ViewModel() {
         streamJob?.cancel()
     }
 
-    private suspend fun finishStopped(key: String, bufferedText: String) {
+    /** 返回是否保留了助手内容（false = 一个字都没收到，占位气泡已撤掉）。 */
+    private suspend fun finishStopped(key: String, bufferedText: String): Boolean {
         var kept: ChatMessage? = null
         _uiState.update { current ->
             current.copy(
@@ -447,6 +455,7 @@ class ChatViewModel : ViewModel() {
             )
         }
         kept?.let { repository.saveMessage(repository.currentSessionId(), it) }
+        return kept != null
     }
 
     private fun updateByKey(key: String, transform: (ChatMessage) -> ChatMessage) {
@@ -673,8 +682,13 @@ class ChatViewModel : ViewModel() {
                     failed++
                 }
             }
-            _uiState.update { it.copy(messages = it.messages.filterNot { m -> m.id in removed }) }
-            if (failed > 0) _uiState.update { it.copy(error = "有 $failed 条消息清空失败，请稍后重试") }
+            // 服务端全部删除成功 = 会话已经是空的：本地列表直接清空，不依赖 id 能否对上
+            if (failed == 0) {
+                _uiState.update { it.copy(messages = emptyList(), hasMoreHistory = false) }
+            } else {
+                _uiState.update { it.copy(messages = it.messages.filterNot { m -> m.id in removed }) }
+                _uiState.update { it.copy(error = "有 $failed 条消息清空失败，请稍后重试") }
+            }
         }
     }
 

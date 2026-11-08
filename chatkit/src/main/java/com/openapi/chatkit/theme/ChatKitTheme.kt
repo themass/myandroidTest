@@ -42,8 +42,8 @@ data class ChatKitColors(
 data class ChatKitDimens(
     val avatarSize: Dp = 36.dp,
     val avatarGap: Dp = 8.dp,
-    /** 消息左右留白（用户要求 10dp）。 */
-    val listHorizontalPadding: Dp = 10.dp,
+    /** 消息左右留白（用户要求 2dp：原来 10dp 加上气泡外边距，两侧太空）。 */
+    val listHorizontalPadding: Dp = 2.dp,
     val messageSpacing: Dp = 14.dp,
     /** 气泡四角圆角（第 0 步在豆包上实测：用户约 14dp，助手约 12dp）。 */
     val userBubbleRadius: Dp = 14.dp,
