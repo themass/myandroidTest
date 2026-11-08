@@ -124,6 +124,12 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
     @Override
     public void onCustomeBindViewHolder(final BaseViewHolder holder, final int position) {
         final IndexRecommendAdapter.NaviItemViewHolder viewHolder = (IndexRecommendAdapter.NaviItemViewHolder) holder;
+        // 版本检查的排查日志：item 出现时打印已安装版本、服务端 minVersion 和比较结果
+        RecommendVo shown = (RecommendVo) data.get(position);
+        String installedVersion = VersionUpdater.getVersion();
+        LogUtil.i("channel item shown id=" + shown.id + " title=" + shown.title + " installed=" + installedVersion
+                + " minVersion=" + shown.minVersion + " cmp="
+                + (StringUtils.hasText(shown.minVersion) ? VersionCompare.compare(installedVersion, shown.minVersion) : "n/a"));
         viewHolder.ivEdit.setVisibility(showEdit ? View.VISIBLE : View.GONE);
         viewHolder.ivEdit.setOnClickListener(new View.OnClickListener() {
             @Override
