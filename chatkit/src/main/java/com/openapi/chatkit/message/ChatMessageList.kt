@@ -46,7 +46,7 @@ import com.openapi.chatkit.message.parts.DefaultMessageText
 import com.openapi.chatkit.message.parts.FileCard
 import com.openapi.chatkit.message.parts.ImageGrid
 import com.openapi.chatkit.message.parts.TextBubble
-import com.openapi.chatkit.message.parts.ThinkingDots
+import com.openapi.chatkit.message.parts.ThinkingIndicator
 import com.openapi.chatkit.message.parts.VoiceBubble
 import com.openapi.chatkit.model.ChatItem
 import com.openapi.chatkit.model.MessageAction
@@ -303,7 +303,7 @@ internal fun MessageContent(
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         if (item.thinking && !hasContent) {
-            TextBubble(sender = sender, onLongPress = onLongPress) { ThinkingDots() }
+            TextBubble(sender = sender, onLongPress = onLongPress) { ThinkingIndicator() }
             return@Column
         }
         images.forEach { part -> ImageGrid(sources = part.sources, maxWidth = maxWidth, onLongPress = onLongPress) }

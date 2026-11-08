@@ -108,33 +108,28 @@ fun DefaultMessageText(text: String) {
     )
 }
 
-/** 助手思考中：气泡里三个依次跳动的点。 */
+/**
+ * 助手思考中：气泡里的「正在思考…」文字，透明度缓慢呼吸（约 1.6 秒一个来回）。
+ * 比三个跳动的点更接近常见对话产品的等待态；流式输出第一段文字到达后即被替换。
+ */
 @Composable
-fun ThinkingDots() {
+fun ThinkingIndicator() {
     val transition = rememberInfiniteTransition(label = "thinking")
-    Row(
-        modifier = Modifier.height(ChatKit.typography.bodyLineHeight.value.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(5.dp),
-    ) {
-        repeat(3) { index ->
-            val alpha by transition.animateFloat(
-                initialValue = 0.25f,
-                targetValue = 1f,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(durationMillis = 500, delayMillis = index * 160, easing = LinearEasing),
-                    repeatMode = RepeatMode.Reverse,
-                ),
-                label = "dot-$index",
-            )
-            Box(
-                Modifier
-                    .size(7.dp)
-                    .clip(CircleShape)
-                    .background(ChatKit.colors.secondaryText.copy(alpha = alpha)),
-            )
-        }
-    }
+    val alpha by transition.animateFloat(
+        initialValue = 0.35f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 800, easing = androidx.compose.animation.core.FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "thinking-alpha",
+    )
+    Text(
+        text = "正在思考…",
+        color = ChatKit.colors.secondaryText.copy(alpha = alpha),
+        fontSize = ChatKit.typography.body,
+        lineHeight = ChatKit.typography.bodyLineHeight,
+    )
 }
 
 /**
