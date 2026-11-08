@@ -141,7 +141,7 @@ internal fun VoicePressBar(
                         if (next != current) {
                             current = next
                             // 进入、离开某个去向都轻震一下，不用看屏幕也知道状态变了
-                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)  // 比 TextHandleMove 明显，切换时能感觉到
                             currentIntentChange(next)
                         }
                         if (change.changedToUpIgnoreConsumed()) break
@@ -352,7 +352,14 @@ private fun DrawScope.drawGlowSolid(level: Float) {
     val radius = 0.8f * (w / 2f)
     val cx = w / 2f
     drawRect(
-        brush = Brush.verticalGradient(listOf(GlowMid, GlowCore), startY = rectTop, endY = h),
+        // 矩形顶边渐隐进圆里，避免和圆相接处出现尖角
+        brush = Brush.verticalGradient(
+            0f to Color.Transparent,
+            0.35f to GlowMid,
+            1f to GlowCore,
+            startY = rectTop,
+            endY = h,
+        ),
         topLeft = Offset(0f, rectTop),
         size = Size(w, rectH),
     )
