@@ -132,7 +132,7 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
                 if (StringUtils.hasText(vo.minVersion)) {
                     String installed = VersionUpdater.getVersion();
                     int cmp = VersionCompare.compare(installed, vo.minVersion);
-                    LogUtil.i("channel version check name=" + vo.name + " installed=" + installed
+                    LogUtil.i("channel version check id=" + vo.id + " title=" + vo.title + " installed=" + installed
                             + " minVersion=" + vo.minVersion + " cmp=" + cmp);
                     if (cmp < 0) {
                         ToastUtil.showShort(R.string.version_low);
