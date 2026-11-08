@@ -230,8 +230,8 @@ fun ChatMessageItem(
     val dimens = ChatKit.dimens
     val isUser = item.sender == Sender.User
     val maxWidth = (LocalConfiguration.current.screenWidthDp * dimens.maxContentFraction).dp
-    // 整行可用宽度：屏宽减去两侧留白
-    val footerMaxWidth = LocalConfiguration.current.screenWidthDp.dp - dimens.listHorizontalPadding * 2
+    // 助手气泡：整行可用宽度（屏宽减去两侧留白；头像已去掉）
+    val assistantMaxWidth = LocalConfiguration.current.screenWidthDp.dp - dimens.listHorizontalPadding * 2
     var anchor by remember { mutableStateOf(Rect.Zero) }
 
     Row(
@@ -257,8 +257,8 @@ fun ChatMessageItem(
                     }
                 MessageContent(
                     item = item,
-                    // 带 footer 的助手气泡要放下 6 个芯片（约 256dp），按整行宽度而不是 72% 限宽
-                    maxWidth = if (assistantFooter != null) footerMaxWidth else maxWidth,
+                    // 用户：75% 屏宽；助手：整行宽度（带 footer 的 6 个芯片约 256dp 也能放下）
+                    maxWidth = if (isUser) maxWidth else assistantMaxWidth,
                     text = text,
                     onAction = onAction,
                     onLongPress = { onLongPress(anchor) },

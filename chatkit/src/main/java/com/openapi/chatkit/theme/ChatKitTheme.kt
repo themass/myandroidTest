@@ -37,7 +37,8 @@ data class ChatKitColors(
 data class ChatKitDimens(
     val avatarSize: Dp = 36.dp,
     val avatarGap: Dp = 8.dp,
-    val listHorizontalPadding: Dp = 12.dp,
+    /** 消息左右留白（SPEC2b：16dp）。 */
+    val listHorizontalPadding: Dp = 16.dp,
     val messageSpacing: Dp = 14.dp,
     /** 气泡四角圆角（第 0 步在豆包上实测：用户约 14dp，助手约 12dp）。 */
     val userBubbleRadius: Dp = 14.dp,
@@ -46,7 +47,8 @@ data class ChatKitDimens(
     val bubblePaddingHorizontal: Dp = 16.dp,
     val bubblePaddingVertical: Dp = 12.dp,
     /** 消息内容最大宽度占屏幕宽度的比例。 */
-    val maxContentFraction: Float = 0.72f,
+    /** 用户气泡最大宽度占屏宽的比例（SPEC2b：75%）。助手气泡可到整行宽度。 */
+    val maxContentFraction: Float = 0.75f,
     val footerIconSize: Dp = 18.dp,
     val footerHitSize: Dp = 34.dp,
 )
