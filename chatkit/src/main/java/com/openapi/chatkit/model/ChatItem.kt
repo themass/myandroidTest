@@ -78,3 +78,16 @@ sealed interface MessageAction {
     data object Select : MessageAction
     data class OpenFile(val file: MessagePart.File) : MessageAction
 }
+
+/** 附件的长按目标：一张图片（本地路径或地址）或一个文件。 */
+sealed interface AttachmentTarget {
+    data class Image(val source: String) : AttachmentTarget
+    data class File(val file: MessagePart.File) : AttachmentTarget
+}
+
+/**
+ * 附件长按菜单里的动作种类。图标和文字由组件统一提供；具体做什么由调用方决定
+ * （下载、复制图片、分享、复制路径都在 app 里实现，「查看路径」由组件显示路径卡片）。
+ */
+enum class AttachmentActionKind { Download, CopyImage, Share, ShowPath, CopyPath }
+

@@ -46,4 +46,9 @@
     <string name="chatkit_multi_select">Select</string>
     <string name="chatkit_selected_count">%d selected</string>
     <string name="chatkit_selection_cancel">Cancel</string>
+    <string name="chatkit_att_download">Download</string>
+    <string name="chatkit_att_copy_image">Copy</string>
+    <string name="chatkit_att_share">Share</string>
+    <string name="chatkit_att_show_path">Show path</string>
+    <string name="chatkit_att_copy_path">Copy path</string>
 </resources>

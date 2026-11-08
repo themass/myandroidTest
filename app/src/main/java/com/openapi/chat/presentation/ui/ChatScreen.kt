@@ -1,5 +1,8 @@
 package com.openapi.chat.presentation.ui
 
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
 import com.openapi.chatkit.message.rememberMessageSelection
 import com.openapi.chatkit.message.MessageSelectionBar
 import androidx.compose.foundation.Image
@@ -133,6 +136,8 @@ fun ChatScreen(
     val voiceLevel by com.openapi.core.media.VoiceRecorder.level.collectAsState()
     var deleteTarget by remember { mutableStateOf<ChatMessage?>(null) }
     val selection = rememberMessageSelection()
+    val appContext = LocalContext.current
+    val attachScope = rememberCoroutineScope()
     var confirmBatchDelete by remember { mutableStateOf(false) }
     var feedbackTarget by remember { mutableStateOf<ChatMessage?>(null) }
 
@@ -168,6 +173,10 @@ fun ChatScreen(
                 items = items,
                 modifier = Modifier.weight(1f).fillMaxWidth(),
                 selection = selection,
+                attachmentActions = AttachmentActions::actionsFor,
+                onAttachmentAction = { target, kind ->
+                    attachScope.launch { AttachmentActions.perform(appContext, target, kind) }
+                },
                 menuStyle = ChatPlatform.messageMenuStyle,
                 avatar = { item ->
                     if (item.sender == Sender.User) {

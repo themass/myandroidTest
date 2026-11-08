@@ -46,4 +46,9 @@
     <string name="chatkit_multi_select">多选</string>
     <string name="chatkit_selected_count">已选 %d 条</string>
     <string name="chatkit_selection_cancel">取消</string>
+    <string name="chatkit_att_download">下载</string>
+    <string name="chatkit_att_copy_image">复制</string>
+    <string name="chatkit_att_share">分享</string>
+    <string name="chatkit_att_show_path">查看路径</string>
+    <string name="chatkit_att_copy_path">复制路径</string>
 </resources>

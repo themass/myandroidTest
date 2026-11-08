@@ -56,6 +56,8 @@ import com.openapi.chatkit.message.parts.ImageGrid
 import com.openapi.chatkit.message.parts.TextBubble
 import com.openapi.chatkit.message.parts.ThinkingIndicator
 import com.openapi.chatkit.message.parts.VoiceBubble
+import com.openapi.chatkit.model.AttachmentActionKind
+import com.openapi.chatkit.model.AttachmentTarget
 import com.openapi.chatkit.model.ChatItem
 import com.openapi.chatkit.model.MessageAction
 import com.openapi.chatkit.model.MessagePart
@@ -84,6 +86,10 @@ fun ChatMessageList(
     selection: MessageSelectionState = rememberMessageSelection(),
     /** 长按菜单样式（原型对比）。 */
     menuStyle: MessageMenuStyle = MessageMenuStyle.Popup,
+    /** 附件长按菜单里有哪些动作（由调用方按图片 / 文件决定）。 */
+    attachmentActions: (AttachmentTarget) -> List<AttachmentActionKind> = { emptyList() },
+    /** 点了附件菜单里的某个动作。 */
+    onAttachmentAction: (AttachmentTarget, AttachmentActionKind) -> Unit = { _, _ -> },
 ) {
     val latestAssistantId = items.lastOrNull { it.sender == Sender.Assistant && !it.thinking }?.id
     val latestUserId = items.lastOrNull { it.sender == Sender.User }?.id
@@ -91,6 +97,8 @@ fun ChatMessageList(
     val scope = rememberCoroutineScope()
     // 当前打开的长按菜单：哪条消息、锚在哪个位置
     var menu by remember { mutableStateOf<MenuTarget?>(null) }
+    // 当前打开的附件长按菜单（图片或文件）
+    var attachment by remember { mutableStateOf<AttachmentTarget?>(null) }
     // 「多选」不交给调用方：这里直接进入多选状态，其它动作照常交给调用方
     val handleAction: (ChatItem, MessageAction) -> Unit = { item, action ->
         if (action == MessageAction.Select) selection.start(item.id) else onAction(item, action)
@@ -145,6 +153,7 @@ fun ChatMessageList(
                         text = text,
                         onAction = { action -> handleAction(item, action) },
                         onLongPress = { anchor -> if (!selection.active) menu = MenuTarget(item, anchor) },
+                        onAttachmentLongPress = { target -> if (!selection.active) attachment = target },
                         modifier = Modifier.weight(1f),
                     )
                 }
@@ -166,6 +175,16 @@ fun ChatMessageList(
                     onDismiss = { menu = null },
                 )
             }
+        }
+        attachment?.let { target ->
+            AttachmentActionSheet(
+                actions = attachmentActions(target),
+                onSelect = { kind ->
+                    attachment = null
+                    onAttachmentAction(target, kind)
+                },
+                onDismiss = { attachment = null },
+            )
         }
         if (!following && items.isNotEmpty()) {
             ScrollToBottomChip(
@@ -265,6 +284,8 @@ fun ChatMessageItem(
     onAction: (MessageAction) -> Unit,
     onLongPress: (Rect) -> Unit,
     modifier: Modifier = Modifier,
+    /** 长按图片或文件：交给列表打开附件菜单。 */
+    onAttachmentLongPress: (AttachmentTarget) -> Unit = {},
 ) {
     val dimens = ChatKit.dimens
     val isUser = item.sender == Sender.User
@@ -302,6 +323,7 @@ fun ChatMessageItem(
                     text = text,
                     onAction = onAction,
                     onLongPress = { onLongPress(anchor) },
+                    onAttachmentLongPress = onAttachmentLongPress,
                     footer = assistantFooter,
                 )
             }
@@ -328,6 +350,7 @@ internal fun MessageContent(
     text: @Composable (ChatItem, String) -> Unit,
     onAction: (MessageAction) -> Unit,
     onLongPress: () -> Unit,
+    onAttachmentLongPress: (AttachmentTarget) -> Unit = {},
     /** 助手回复的 footer：放进最后一个文字气泡里面。 */
     footer: (@Composable () -> Unit)? = null,
 ) {
@@ -346,12 +369,18 @@ internal fun MessageContent(
             TextBubble(sender = sender, onLongPress = onLongPress) { ThinkingIndicator() }
             return@Column
         }
-        images.forEach { part -> ImageGrid(sources = part.sources, maxWidth = maxWidth, onLongPress = onLongPress) }
+        images.forEach { part ->
+            ImageGrid(
+                sources = part.sources,
+                maxWidth = maxWidth,
+                onLongPress = { source -> onAttachmentLongPress(AttachmentTarget.Image(source)) },
+            )
+        }
         files.forEach { file ->
             FileCard(
                 file = file,
                 onClick = { onAction(MessageAction.OpenFile(file)) },
-                onLongPress = onLongPress,
+                onLongPress = { onAttachmentLongPress(AttachmentTarget.File(file)) },
                 modifier = Modifier.widthIn(max = maxWidth),
             )
         }

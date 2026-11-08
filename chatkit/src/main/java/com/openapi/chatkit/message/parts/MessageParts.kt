@@ -140,7 +140,8 @@ fun ThinkingIndicator() {
 fun ImageGrid(
     sources: List<String>,
     maxWidth: Dp,
-    onLongPress: () -> Unit,
+    /** 长按某一张图：传它的来源（本地路径或地址）。 */
+    onLongPress: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     if (sources.isEmpty()) return
@@ -156,7 +157,7 @@ fun ImageGrid(
                 .sizeIn(minWidth = 96.dp, minHeight = 96.dp, maxWidth = minOf(maxWidth, 220.dp), maxHeight = 280.dp)
                 .clip(RoundedCornerShape(12.dp))
                 .background(placeholder)
-                .combinedClickable(onClick = { viewerStart = 0 }, onLongClick = onLongPress),
+                .combinedClickable(onClick = { viewerStart = 0 }, onLongClick = { onLongPress(sources[0]) }),
         )
     } else {
         val columns = if (sources.size == 2 || sources.size == 4) 2 else 3
@@ -174,7 +175,7 @@ fun ImageGrid(
                                 .size(cell)
                                 .clip(RoundedCornerShape(8.dp))
                                 .background(placeholder)
-                                .combinedClickable(onClick = { viewerStart = index }, onLongClick = onLongPress),
+                                .combinedClickable(onClick = { viewerStart = index }, onLongClick = { onLongPress(source) }),
                         ) {
                             AsyncImage(
                                 model = imageModel(source),
