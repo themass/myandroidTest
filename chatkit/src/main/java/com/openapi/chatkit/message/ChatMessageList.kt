@@ -230,8 +230,9 @@ fun ChatMessageItem(
     val dimens = ChatKit.dimens
     val isUser = item.sender == Sender.User
     val maxWidth = (LocalConfiguration.current.screenWidthDp * dimens.maxContentFraction).dp
-    // 助手气泡：整行可用宽度（屏宽减去两侧留白；头像已去掉）
-    val assistantMaxWidth = LocalConfiguration.current.screenWidthDp.dp - dimens.listHorizontalPadding * 2
+    // 助手气泡：屏宽的 85%，且不超过「屏宽减两侧留白」，左右都留出空白
+    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+    val assistantMaxWidth = minOf(screenWidth * dimens.assistantMaxContentFraction, screenWidth - dimens.listHorizontalPadding * 2)
     var anchor by remember { mutableStateOf(Rect.Zero) }
 
     Row(
@@ -257,7 +258,7 @@ fun ChatMessageItem(
                     }
                 MessageContent(
                     item = item,
-                    // 用户：75% 屏宽；助手：整行宽度（带 footer 的 6 个芯片约 256dp 也能放下）
+                    // 用户：75% 屏宽；助手：85% 屏宽（带 footer 的 6 个芯片约 256dp 也放得下）；图片、语音、文件都用同一个限宽
                     maxWidth = if (isUser) maxWidth else assistantMaxWidth,
                     text = text,
                     onAction = onAction,
@@ -308,7 +309,12 @@ internal fun MessageContent(
         }
         images.forEach { part -> ImageGrid(sources = part.sources, maxWidth = maxWidth, onLongPress = onLongPress) }
         files.forEach { file ->
-            FileCard(file = file, onClick = { onAction(MessageAction.OpenFile(file)) }, onLongPress = onLongPress)
+            FileCard(
+                file = file,
+                onClick = { onAction(MessageAction.OpenFile(file)) },
+                onLongPress = onLongPress,
+                modifier = Modifier.widthIn(max = maxWidth),
+            )
         }
         voices.forEach { voice ->
             VoiceBubble(

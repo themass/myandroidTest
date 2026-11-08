@@ -76,16 +76,16 @@ internal object ChatPlatform {
         Toast.makeText(context, context.getString(label), Toast.LENGTH_SHORT).show()
     }
 
-    /** 用 App 的品牌色构造组件库配色（用户蓝底白字是豆包实测色，保留；页面与助手气泡用暖色 token）。 */
+    /** 用 App 自己的 token 构造组件库配色：用户气泡 ChatOutgoing，助手气泡 ChatIncoming，页面 ChatBackground。 */
     fun chatKitColors(): ChatKitColors = ChatKitDefaults.colors(
         accent = AppColors.Primary,
         background = AppColors.ChatBackground,
         surface = AppColors.Surface,
         surfaceVariant = AppColors.SurfaceVariant,
-        userBubble = Color(0xFF0066FF),
+        userBubble = AppColors.ChatOutgoing,
         assistantBubble = AppColors.ChatIncoming,
-        userBubbleText = Color.White,
-        assistantBubbleText = Color(0xFF333333),
+        userBubbleText = AppColors.ChatOutgoingText,
+        assistantBubbleText = AppColors.TextPrimary,
         secondaryText = AppColors.TextSecondary,
         divider = AppColors.Divider,
         error = AppColors.Error,

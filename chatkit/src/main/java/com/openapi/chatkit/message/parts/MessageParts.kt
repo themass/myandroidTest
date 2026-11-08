@@ -295,7 +295,7 @@ fun VoiceBubble(
     val isUser = sender == Sender.User
     val textColor = if (isUser) colors.userBubbleText else colors.assistantBubbleText
     val hintColor = textColor.copy(alpha = 0.6f)
-    val dividerColor = if (isUser) Color.White.copy(alpha = 0.25f) else Color.Black.copy(alpha = 0.08f)
+    val dividerColor = textColor.copy(alpha = 0.15f)
     val transcript = voice.transcript?.takeIf { it.isNotBlank() }
     // 语音气泡的最小宽度随时长变化（88–200dp）；有文字时气泡随文字变宽，但不超过外层限宽
     val minWidth = (88 + voice.durationSeconds.coerceAtLeast(1) * 5).coerceIn(88, 200).dp

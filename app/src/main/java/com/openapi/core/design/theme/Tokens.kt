@@ -24,7 +24,8 @@ object AppColors {
     // 对话：暖白页面，白色卡片有边界；助手气泡浅灰，用户气泡暖色
     val ChatBackground = Color(0xFFFBF8F5)
     val ChatIncoming = Color(0xFFF5F5F5)     // 助手气泡
-    val ChatOutgoing = Color(0xFFFDE7D3)     // 用户气泡，文字 #7C2D12（对比度 7.83）
+    val ChatOutgoing = Color(0xFFFDE7D3)     // 用户气泡
+    val ChatOutgoingText = Color(0xFF7C2D12) // 用户气泡文字，对比度 7.83
     val ChatTimestamp = Color(0xAE858585)    // gray_dark_transparent
 
     // 中性
