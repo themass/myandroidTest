@@ -3,7 +3,20 @@ package com.aimath.paizhao.photosolve.ui
 import androidx.compose.ui.res.stringResource
 import com.openapi.ks.chat.R
 import android.graphics.Bitmap
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.material.icons.filled.SwapHoriz
+import com.mr0xf00.easycrop.CropperStyle
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -91,12 +104,21 @@ fun PhotoCropScreen(
         if (cropState != null) {
             ImageCropperDialog(
                 state = cropState,
+                style = CropHandleStyle,
+                // 图片尽量占满可用区域：只留很小的边距
+                dialogPadding = PaddingValues(8.dp),
                 topBar = { state ->
-                    CropTopBar(
-                        state = state,
-                        onCompareClick = { showComparison = true },
-                        onRotateLeft = { working = working.rotated(-90f) },
-                        onRotateRight = { working = working.rotated(90f) },
+                    CropTopBar(onCancel = { state.done(accept = false) })
+                },
+                cropControls = { state ->
+                    CropBottomActions(
+                        modifier = Modifier.align(Alignment.BottomCenter),
+                        confirmEnabled = !state.accepted,
+                        onRotate = { working = working.rotated(90f) },
+                        onMirror = { working = working.mirrored() },
+                        onAutoDetect = { showComparison = true },
+                        onReset = { state.reset() },
+                        onConfirm = { state.done(accept = true) },
                     )
                 },
             )
@@ -120,6 +142,15 @@ fun PhotoCropScreen(
     }
 }
 
+/** 裁剪框的角点：比库默认的大，触摸范围也更大，手指更容易按中。 */
+private val CropHandleStyle: CropperStyle = CropperStyle(touchRad = 32.dp)
+
+/** 水平镜像：左右翻转。和 [rotated] 一样返回新图，由外层用新图重开裁剪。 */
+private fun Bitmap.mirrored(): Bitmap {
+    val matrix = android.graphics.Matrix().apply { preScale(-1f, 1f) }
+    return Bitmap.createBitmap(this, 0, 0, width, height, matrix, true)
+}
+
 private fun applySuggestion(state: CropState, bitmap: Bitmap, norm: CropNorm) {
     val w = bitmap.width.toFloat()
     val h = bitmap.height.toFloat()
@@ -133,41 +164,63 @@ private fun applySuggestion(state: CropState, bitmap: Bitmap, norm: CropNorm) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun CropTopBar(
-    state: CropState,
-    onCompareClick: () -> Unit,
-    onRotateLeft: () -> Unit,
-    onRotateRight: () -> Unit,
-) {
+private fun CropTopBar(onCancel: () -> Unit) {
     Surface {
         TopAppBar(
-            title = { Text(stringResource(R.string.photosolve_crop_title)) },
+            title = {
+                Text(
+                    stringResource(R.string.photosolve_crop_title),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    softWrap = false,
+                )
+            },
             navigationIcon = {
-                IconButton(onClick = { state.done(accept = false) }) {
+                IconButton(onClick = onCancel) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.ui_cancel))
                 }
             },
-            actions = {
-                IconButton(onClick = onRotateLeft) {
-                    Icon(Icons.AutoMirrored.Filled.RotateLeft, contentDescription = stringResource(R.string.photosolve_rotate_left))
-                }
-                IconButton(onClick = onRotateRight) {
-                    Icon(Icons.AutoMirrored.Filled.RotateRight, contentDescription = stringResource(R.string.photosolve_rotate_right))
-                }
-                IconButton(onClick = onCompareClick) {
-                    Icon(Icons.Filled.Compare, contentDescription = stringResource(R.string.photosolve_compare_title))
-                }
-                IconButton(onClick = { state.reset() }) {
-                    Icon(Icons.Filled.RestartAlt, contentDescription = stringResource(R.string.photosolve_reset))
-                }
-                IconButton(onClick = { state.done(accept = true) }, enabled = !state.accepted) {
-                    Icon(
-                        Icons.Filled.Check,
-                        contentDescription = stringResource(R.string.ui_confirm),
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
-                }
-            },
         )
+    }
+}
+
+/** 底部操作条：每个动作都有文字标签（旋转、镜像、自动识别、重置、确认）。 */
+@Composable
+private fun CropBottomActions(
+    modifier: Modifier,
+    confirmEnabled: Boolean,
+    onRotate: () -> Unit,
+    onMirror: () -> Unit,
+    onAutoDetect: () -> Unit,
+    onReset: () -> Unit,
+    onConfirm: () -> Unit,
+) {
+    Surface(modifier = modifier.fillMaxWidth(), color = Color.Black.copy(alpha = 0.7f)) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+        ) {
+            CropAction(Icons.AutoMirrored.Filled.RotateRight, stringResource(R.string.photosolve_rotate), onRotate)
+            CropAction(Icons.Filled.SwapHoriz, stringResource(R.string.photosolve_mirror), onMirror)
+            CropAction(Icons.Filled.Compare, stringResource(R.string.photosolve_auto_detect), onAutoDetect)
+            CropAction(Icons.Filled.RestartAlt, stringResource(R.string.photosolve_reset), onReset)
+            CropAction(Icons.Filled.Check, stringResource(R.string.ui_confirm), onConfirm, enabled = confirmEnabled, tint = MaterialTheme.colorScheme.primary)
+        }
+    }
+}
+
+@Composable
+private fun CropAction(
+    icon: ImageVector,
+    label: String,
+    onClick: () -> Unit,
+    enabled: Boolean = true,
+    tint: Color = Color.White,
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        IconButton(onClick = onClick, enabled = enabled) {
+            Icon(icon, contentDescription = label, tint = if (enabled) tint else tint.copy(alpha = 0.4f))
+        }
+        Text(label, color = if (enabled) Color.White else Color.White.copy(alpha = 0.4f), fontSize = 12.sp, maxLines = 1)
     }
 }

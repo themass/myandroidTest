@@ -102,4 +102,7 @@
     <string name="chat_clear_message">当前对话里的所有消息都会被删除，无法恢复。</string>
     <string name="chat_batch_delete_title">删除所选消息？</string>
     <string name="chat_batch_delete_body">所选消息会从对话中删除，无法恢复。</string>
+    <string name="photosolve_rotate">旋转</string>
+    <string name="photosolve_mirror">镜像</string>
+    <string name="photosolve_auto_detect">自动识别</string>
 </resources>
