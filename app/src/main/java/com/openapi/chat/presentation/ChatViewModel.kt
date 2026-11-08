@@ -684,20 +684,27 @@ class ChatViewModel : ViewModel() {
      */
     fun onDeleteMessages(messageIds: List<String>) {
         viewModelScope.launch {
+            // 只有服务端确认删除成功，才从列表移除（之前是先删本地，刷新后消息又回来）
             val removed = mutableListOf<String>()
-            val failed = mutableListOf<String>()
+            var failed = 0
+            var unsynced = 0
             for (id in messageIds) {
+                // 本地临时 id（如 local-user-*）还没有服务端 id：删不了服务端，也不能只删本地，留在列表里
                 if (id.toLongOrNull() == null) {
-                    removed += id
-                } else if (deleteMessage(id)) {
-                    removed += id
-                } else {
-                    failed += id
+                    unsynced++
+                    continue
                 }
+                if (deleteMessage(id)) removed += id else failed++
             }
             _uiState.update { it.copy(messages = it.messages.filterNot { m -> m.id in removed }) }
-            if (failed.isNotEmpty()) {
-                _uiState.update { it.copy(error = "有 ${failed.size} 条消息删除失败，请稍后重试") }
+            // 最后以服务端为准对齐一次：删失败的、没删掉的不会在刷新后「复活」
+            fallbackReloadMessages()
+            if (failed + unsynced > 0) {
+                val parts = buildList {
+                    if (failed > 0) add("$failed 条删除失败")
+                    if (unsynced > 0) add("$unsynced 条尚未同步，请稍后再删")
+                }
+                _uiState.update { it.copy(error = parts.joinToString("，")) }
             }
         }
     }
