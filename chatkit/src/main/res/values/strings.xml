@@ -38,4 +38,8 @@
     <string name="chatkit_editing_banner">Editing message</string>
     <string name="chatkit_cancel_edit">Cancel edit</string>
     <string name="chatkit_sent">Sent</string>
+    <string name="chatkit_slide_here_to_text">Slide here to convert to text</string>
+    <string name="chatkit_wechat_release_send">Release to send</string>
+    <string name="chatkit_wechat_release_cancel">Release to cancel</string>
+    <string name="chatkit_wechat_release_edit">Release to edit text</string>
 </resources>

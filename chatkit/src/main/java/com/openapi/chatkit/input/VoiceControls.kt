@@ -237,7 +237,7 @@ internal fun VoiceOverlay(
 ) {
     when (style) {
         VoiceStyle.Ripple -> RippleOverlay(intent, history, liveTranscript, modifier)
-        VoiceStyle.Floating -> CardOverlay(intent, history, modifier)
+        VoiceStyle.Floating -> WeChatRecordingOverlay(intent, history, liveTranscript)
         VoiceStyle.Bar -> Unit
     }
 }
@@ -447,94 +447,6 @@ private fun DotWave(history: List<Float>, level: Float, color: Color) {
                     .height(heightDp.dp)
                     .clip(CircleShape)
                     .background(color.copy(alpha = sqrt(edge).coerceIn(0f, 1f))),
-            )
-        }
-    }
-}
-
-/** 微信式卡片（第二阶段再重做，这里只保证能编译）：192dp 见方，半透明黑，圆角 14dp。 */
-@Composable
-private fun CardOverlay(intent: VoiceIntent, history: List<Float>, modifier: Modifier) {
-    val canceling = intent == VoiceIntent.Cancel
-    Box(modifier.fillMaxWidth().overflowUpwards(300.dp), contentAlignment = Alignment.Center) {
-        Box(
-            modifier = Modifier
-                .size(192.dp)
-                .clip(RoundedCornerShape(14.dp))
-                .background(Color(0x8F000000)),
-        ) {
-            Text(
-                stringResource(
-                    when (intent) {
-                        VoiceIntent.Send -> R.string.chatkit_release_to_send_short
-                        VoiceIntent.Cancel -> R.string.chatkit_release_to_cancel_short
-                        VoiceIntent.ToText -> R.string.chatkit_release_to_text
-                    },
-                ),
-                modifier = Modifier.align(Alignment.TopCenter).padding(top = 14.dp),
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                color = Color.White,
-            )
-            Row(
-                modifier = Modifier.align(Alignment.Center),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    if (canceling) Icons.AutoMirrored.Filled.Undo else Icons.Filled.Mic,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(64.dp),
-                )
-                if (!canceling) {
-                    Spacer(Modifier.width(10.dp))
-                    VolumeColumns(history = history)
-                }
-            }
-            Row(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
-                    .padding(horizontal = 14.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                CardHint(
-                    text = "‹ " + stringResource(R.string.chatkit_cancel_short),
-                    active = intent == VoiceIntent.Cancel,
-                )
-                CardHint(
-                    text = stringResource(R.string.chatkit_to_text) + " ›",
-                    active = intent == VoiceIntent.ToText,
-                )
-            }
-        }
-    }
-}
-
-/** 卡片底部的去向提示：当前去向加粗变白，其余半透明。 */
-@Composable
-private fun CardHint(text: String, active: Boolean) {
-    Text(
-        text,
-        fontSize = 13.sp,
-        fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
-        color = if (active) Color.White else Color.White.copy(alpha = 0.55f),
-    )
-}
-
-/** 微信卡片里话筒右侧的音量柱：5 根，按最近的音量从低到高点亮。 */
-@Composable
-private fun VolumeColumns(history: List<Float>) {
-    val level = history.lastOrNull() ?: 0f
-    val lit = (level * 5f).toInt().coerceIn(0, 5)
-    Column(verticalArrangement = Arrangement.spacedBy(3.dp), horizontalAlignment = Alignment.Start) {
-        for (i in 5 downTo 1) {
-            Box(
-                Modifier
-                    .width((8 + i * 5).dp)
-                    .height(5.dp)
-                    .clip(RoundedCornerShape(3.dp))
-                    .background(Color.White.copy(alpha = if (i <= lit || i == 1) 0.95f else 0.28f)),
             )
         }
     }
