@@ -41,13 +41,10 @@ import com.openapi.chatkit.model.Reaction
 import com.openapi.chatkit.model.SendStatus
 import com.openapi.chatkit.theme.ChatKit
 
-/** 助手 footer 的芯片：实测（豆包）36dp 方块、圆角 11dp、底色 #ECF1F7、图标蓝色 #0066FF、间距 8dp。 */
+/** 助手 footer 的芯片：36dp 方块、圆角 11dp、间距 8dp；底色和图标色取自主题（chipBackground / chipIcon）。 */
 private val AssistantChipSize = 36.dp
 private val AssistantChipRadius = 11.dp
-private val AssistantChipBackground = Color(0xFFECF1F7)
-private val AssistantChipIcon = Color(0xFF0066FF)
 private val AssistantChipGap = 8.dp
-private val AssistantDividerColor = Color(0xFFDEDEDE)
 
 /**
  * 助手每条已完成回复的 footer：放在气泡卡片内部，正文下面一条分割线，分割线下一排浅蓝芯片。
@@ -62,7 +59,7 @@ fun AssistantFooter(
 ) {
     val hasText = item.plainText.isNotBlank()
     Column(modifier.padding(top = 11.dp)) {
-        Box(Modifier.fillMaxWidth().height(1.dp).background(AssistantDividerColor))
+        Box(Modifier.fillMaxWidth().height(1.dp).background(ChatKit.colors.divider))
         Spacer(Modifier.height(11.dp))
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(AssistantChipGap)) {
             if (hasText) {
@@ -91,7 +88,7 @@ fun AssistantFooter(
     }
 }
 
-/** 助手 footer 的一个芯片：浅蓝圆角方块 + 蓝色图标（实心图标表示已选中，如已点赞）。 */
+/** 助手 footer 的一个芯片：浅色圆角方块 + 主色图标（实心图标表示已选中，如已点赞）。 */
 @Composable
 private fun AssistantChip(
     icon: ImageVector,
@@ -102,14 +99,14 @@ private fun AssistantChip(
         modifier = Modifier
             .size(AssistantChipSize)
             .clip(RoundedCornerShape(AssistantChipRadius))
-            .background(AssistantChipBackground)
+            .background(ChatKit.colors.chipBackground)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
             icon,
             contentDescription = description,
-            tint = AssistantChipIcon,
+            tint = ChatKit.colors.chipIcon,
             modifier = Modifier.size(18.dp),
         )
     }

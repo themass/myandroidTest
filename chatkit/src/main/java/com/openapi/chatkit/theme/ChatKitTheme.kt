@@ -25,6 +25,9 @@ data class ChatKitColors(
     val userBubbleText: Color,
     /** 助手气泡里的文字（豆包：#333333）。 */
     val assistantBubbleText: Color,
+    /** 助手 footer 芯片的底色与图标色。 */
+    val chipBackground: Color,
+    val chipIcon: Color,
     val bubbleText: Color,
     val secondaryText: Color,
     val icon: Color,
@@ -37,8 +40,8 @@ data class ChatKitColors(
 data class ChatKitDimens(
     val avatarSize: Dp = 36.dp,
     val avatarGap: Dp = 8.dp,
-    /** 消息左右留白（SPEC2b：16dp）。 */
-    val listHorizontalPadding: Dp = 16.dp,
+    /** 消息左右留白（用户要求 10dp）。 */
+    val listHorizontalPadding: Dp = 10.dp,
     val messageSpacing: Dp = 14.dp,
     /** 气泡四角圆角（第 0 步在豆包上实测：用户约 14dp，助手约 12dp）。 */
     val userBubbleRadius: Dp = 14.dp,
@@ -75,6 +78,8 @@ object ChatKitDefaults {
         assistantBubble: Color = Color(0xFFF5F5F5),
         userBubbleText: Color = Color(0xFF7C2D12),
         assistantBubbleText: Color = Color.Black,
+        chipBackground: Color = Color(0xFFFDE7D3),
+        chipIcon: Color = Color(0xFFC2410C),
         bubbleText: Color = Color.Black,
         secondaryText: Color = Color(0xFF757575),
         icon: Color = Color(0xFF8A8A8A),
@@ -90,6 +95,8 @@ object ChatKitDefaults {
         assistantBubble = assistantBubble,
         userBubbleText = userBubbleText,
         assistantBubbleText = assistantBubbleText,
+        chipBackground = chipBackground,
+        chipIcon = chipIcon,
         bubbleText = bubbleText,
         secondaryText = secondaryText,
         icon = icon,
