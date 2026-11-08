@@ -18,6 +18,7 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.openapi.core.util.LogUtil;
+import com.openapi.core.util.VersionCompare;
 // 使用现代 Shimmer 替代
 import com.facebook.shimmer.ShimmerFrameLayout;
 import com.openapi.core.view.touchhelper.OnStartDragListener;
@@ -129,7 +130,11 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
             public void onClick(View v) {
                 RecommendVo vo = (RecommendVo) data.get(position);
                 if (StringUtils.hasText(vo.minVersion)) {
-                    if (VersionUpdater.getVersion().compareTo(vo.minVersion) < 0) {
+                    String installed = VersionUpdater.getVersion();
+                    int cmp = VersionCompare.compare(installed, vo.minVersion);
+                    LogUtil.i("channel version check name=" + vo.name + " installed=" + installed
+                            + " minVersion=" + vo.minVersion + " cmp=" + cmp);
+                    if (cmp < 0) {
                         ToastUtil.showShort(R.string.version_low);
                         return;
                     }
