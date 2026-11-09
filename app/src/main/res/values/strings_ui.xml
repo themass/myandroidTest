@@ -121,4 +121,10 @@
     <string name="localvideo_share">分享</string>
     <string name="localvideo_delete">删除</string>
     <string name="localvideo_delete_failed">删除失败，请在系统相册中删除</string>
+    <string name="session_menu_more">更多</string>
+    <string name="session_menu_clear">清空消息</string>
+    <string name="session_menu_delete">删除会话</string>
+    <string name="session_clear_title">清空这个会话的消息？</string>
+    <string name="session_clear_body">会删除当前会话里的所有消息，会话名称保留，无法恢复。</string>
+    <string name="session_clear_confirm">清空</string>
 </resources>

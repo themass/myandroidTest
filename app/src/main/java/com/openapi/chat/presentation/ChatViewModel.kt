@@ -804,8 +804,13 @@ class ChatViewModel : ViewModel() {
                         if (i == lastServerUser && m.text == failedText) m.copy(delivery = DeliveryStatus.FAILED) else m
                     }
                 }
+                // 本地还没拿到服务端 id 的用户消息（比如停止时还没保存到服务端）不能被历史覆盖掉，保留并保持失败/发送状态
+                val serverIds = page.messages.map { it.id }.toSet()
+                val localOnly = cur.messages.filter {
+                    it.role == ChatRole.USER && it.id.startsWith("local-") && it.id !in serverIds
+                }
                 cur.copy(
-                    messages = merged,
+                    messages = merged + localOnly,
                     hasMoreHistory = page.hasMore,
                     sessionId = sessionId,
                 )

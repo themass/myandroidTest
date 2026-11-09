@@ -14,8 +14,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
@@ -29,6 +34,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.Box
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -80,11 +86,8 @@ fun ChatSessionsSheet(
                     fontWeight = AppTypography.titleWeight,
                     color = AppColors.TextPrimary,
                 )
-                TextButton(onClick = { confirmClear = true }) {
-                    Text(stringResource(R.string.ui_clear_current), color = AppColors.Error)
-                }
-                TextButton(onClick = { creating = true }) {
-                    Text(stringResource(R.string.ui_new_session), color = AppColors.Primary)
+                IconButton(onClick = { creating = true }) {
+                    Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.ui_new_session), tint = AppColors.Primary)
                 }
             }
 
@@ -96,6 +99,7 @@ fun ChatSessionsSheet(
                         canDelete = true,
                         onSelect = { onSelect(session.id) },
                         onRename = { renaming = session },
+                        onClear = { confirmClear = true },
                         onDelete = { onDelete(session.id) },
                     )
                 }
@@ -106,14 +110,14 @@ fun ChatSessionsSheet(
     if (confirmClear) {
         AlertDialog(
             onDismissRequest = { confirmClear = false },
-            title = { Text(stringResource(R.string.chat_clear_title)) },
-            text = { Text(stringResource(R.string.chat_clear_message)) },
+            title = { Text(stringResource(R.string.session_clear_title)) },
+            text = { Text(stringResource(R.string.session_clear_body)) },
             confirmButton = {
                 TextButton(onClick = {
                     confirmClear = false
                     onClearCurrent()
                 }) {
-                    Text(stringResource(R.string.ui_clear_current), color = AppColors.Error)
+                    Text(stringResource(R.string.session_clear_confirm), color = AppColors.Error)
                 }
             },
             dismissButton = {
@@ -154,13 +158,15 @@ private fun SessionRow(
     canDelete: Boolean,
     onSelect: () -> Unit,
     onRename: () -> Unit,
+    onClear: () -> Unit,
     onDelete: () -> Unit,
 ) {
+    var menuOpen by remember { mutableStateOf(false) }
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onSelect)
-            .padding(horizontal = AppSpacing.screenHorizontal, vertical = AppSpacing.md),
+            .padding(start = AppSpacing.screenHorizontal, end = AppSpacing.sm, top = AppSpacing.xs, bottom = AppSpacing.xs),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
@@ -173,15 +179,34 @@ private fun SessionRow(
             overflow = TextOverflow.Ellipsis,
         )
         if (current) {
-            Icon(Icons.Filled.Check, contentDescription = stringResource(R.string.ui_current_session), tint = AppColors.Primary)
+            Icon(
+                Icons.Filled.Check,
+                contentDescription = stringResource(R.string.ui_current_session),
+                tint = AppColors.Primary,
+                modifier = Modifier.padding(end = AppSpacing.xs),
+            )
         }
-        TextButton(onClick = onRename) {
-            Text(stringResource(R.string.ui_rename), color = AppColors.Primary)
-        }
-        if (canDelete && !session.isDefault) {
-            Spacer(Modifier.width(AppSpacing.sm))
-            TextButton(onClick = onDelete) {
-                Text(stringResource(R.string.ui_delete), color = AppColors.Error)
+        Box {
+            IconButton(onClick = { menuOpen = true }) {
+                Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.session_menu_more), tint = AppColors.TextSecondary)
+            }
+            DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.ui_rename), color = AppColors.TextPrimary) },
+                    onClick = { menuOpen = false; onRename() },
+                )
+                if (current) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.session_menu_clear), color = AppColors.TextPrimary) },
+                        onClick = { menuOpen = false; onClear() },
+                    )
+                }
+                if (canDelete && !session.isDefault) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.session_menu_delete), color = AppColors.Error) },
+                        onClick = { menuOpen = false; onDelete() },
+                    )
+                }
             }
         }
     }

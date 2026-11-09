@@ -161,9 +161,10 @@ fun ImageGrid(
                 .combinedClickable(onClick = { viewerStart = 0 }, onLongClick = { onLongPress(sources[0]) }),
         )
     } else {
-        val columns = if (sources.size == 2 || sources.size == 4) 2 else 3
-        val gap = 4.dp
-        val gridWidth = minOf(maxWidth, if (columns == 2) 200.dp else 246.dp)
+        // 图集样式（同微信/豆包）：固定总宽、正方形格子、2dp 间距、4 张为 2×2，其余 3 列
+        val columns = if (sources.size == 4) 2 else 3
+        val gap = 2.dp
+        val gridWidth = minOf(maxWidth, 240.dp)
         val cell = (gridWidth - gap * (columns - 1)) / columns
         val shown = sources.take(9)
         Column(modifier, verticalArrangement = Arrangement.spacedBy(gap)) {
@@ -174,7 +175,7 @@ fun ImageGrid(
                         Box(
                             modifier = Modifier
                                 .size(cell)
-                                .clip(RoundedCornerShape(8.dp))
+                                .clip(RoundedCornerShape(4.dp))
                                 .background(placeholder)
                                 .combinedClickable(onClick = { viewerStart = index }, onLongClick = { onLongPress(source) }),
                         ) {
