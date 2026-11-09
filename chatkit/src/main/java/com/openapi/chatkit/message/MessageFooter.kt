@@ -149,22 +149,27 @@ internal fun SendStatusIndicator(status: SendStatus, onRetry: () -> Unit) {
             Spacer(Modifier.width(8.dp))
         }
         SendStatus.Failed -> {
-            // 失败：气泡左侧一个带文字的「重试」按钮（红色感叹号 + 文字），点它重新发送同一条消息
+            // 失败：和助手 footer 的重新生成按钮同样式的芯片（36dp、圆角 11dp、芯片底色），图标 Refresh；文字「重试」保持红色
             Row(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(ChatKit.colors.error.copy(alpha = 0.08f))
-                    .clickable(onClickLabel = stringResource(R.string.chatkit_send_failed), onClick = onRetry)
-                    .padding(horizontal = 10.dp, vertical = 6.dp),
+                    .clickable(onClickLabel = stringResource(R.string.chatkit_send_failed), onClick = onRetry),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(
-                    Icons.Filled.Error,
-                    contentDescription = stringResource(R.string.chatkit_send_failed),
-                    tint = ChatKit.colors.error,
-                    modifier = Modifier.size(16.dp),
-                )
-                Spacer(Modifier.width(4.dp))
+                Box(
+                    modifier = Modifier
+                        .size(AssistantChipSize)
+                        .clip(RoundedCornerShape(AssistantChipRadius))
+                        .background(ChatKit.colors.chipBackground),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        androidx.compose.material.icons.Icons.Outlined.Refresh,
+                        contentDescription = stringResource(R.string.chatkit_send_failed),
+                        tint = ChatKit.colors.chipIcon,
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
+                Spacer(Modifier.width(6.dp))
                 androidx.compose.material3.Text(
                     text = stringResource(R.string.chatkit_retry_label),
                     color = ChatKit.colors.error,
