@@ -49,7 +49,7 @@ import androidx.compose.ui.unit.sp
 import com.openapi.core.design.theme.AppColors
 import com.openapi.core.net.BaseService
 import com.openapi.core.net.request.CommonResponse
-import com.openapi.ks.chat.R
+import com.openapi.feature.user.R
 import com.openapi.ks.myapp.bean.form.RegForm
 import com.openapi.ks.myapp.bean.vo.NullReturnVo
 import com.openapi.ks.myapp.constant.Constants

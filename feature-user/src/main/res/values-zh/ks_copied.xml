@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="recharge_arry">
+        <item>微信</item>
+        <item>支付宝</item>
+        <item>其他</item>
+    </string-array>
+    <plurals name="likes_count">
+        <item quantity="one">%d like</item>
+        <item quantity="other">%d likes</item>
+    </plurals>
+    <string name="re_bt_code">获取校验码</string>
+    <string name="reg">注册</string>
+    <string name="email_hint">邮箱</string>
+    <string name="sound_picshow">电影封面隐藏</string>
+    <string name="remark">Timeline RIGHTS RESERVED.</string>
+    <string name="my_charater">设置我的机器人性格</string>
+    <string name="iwanna_title">反馈</string>
+    <string name="empty_info">请把信息填写完整</string>
+    <string name="playback_engine_toast_fmt">播放内核：%1$s</string>
+    <string name="custome_title">添加自定义</string>
+    <string name="volcano_asr_cluster_hint">Cluster（仅 v2，如 volcengine_input_common）</string>
+    <string name="volcano_asr_use_v3">使用 v3 大模型 WebSocket</string>
+    <string name="list_video_tiny_need">列表视频支持小窗</string>
+    <string name="menu_btn_share">分享</string>
+    <string name="empty_name_pwd">请把信息填完整</string>
+    <string name="findpass_sent_title">邮件已发送</string>
+    <string name="feedback_hint">xxx积分 VIP3</string>
+    <string name="findpass_sent_body">我们已把密码发送到 %1$s。请查收邮件；如果没有看到，请检查垃圾邮件箱。</string>
+    <string name="home_channels_retry">重试</string>
+    <string name="submit">提交</string>
+    <string name="findpass_hint">输入注册时使用的邮箱，我们会把密码发送到这个邮箱。</string>
+    <string name="playcore_setting">视频播放内核</string>
+    <string name="use_tts">启用语音播报</string>
+    <string name="setting">设置</string>
+    <string name="sex">性别:</string>
+    <string name="recharge">充值:</string>
+    <string name="iwanna_content_error">请告诉我你的需求!</string>
+    <string name="money_back_title">积分充值反馈</string>
+    <string name="findpass_send_failed">发送失败，请检查网络后重试</string>
+    <string name="findpass_resend">重新发送</string>
+    <string name="male">男</string>
+    <string name="female">女</string>
+    <string name="music_ui_auxio_disabled_toast">已恢复经典音乐列表界面，请重新进入</string>
+    <string name="feedback_load_error">反馈加载失败</string>
+    <string name="volcano_asr_access_key_hint">Access Token</string>
+    <string name="custome_ok">添加成功</string>
+    <string name="save">保存</string>
+    <string name="error_repwd">2次密码不一致</string>
+    <string name="area_mi">专区加密</string>
+    <string name="volcano_asr_resource_id_hint">Resource-Id（仅 v3，如 volc.bigasr.sauc.duration）</string>
+    <string name="volcano_asr_setting_title">火山流式语音识别（在线字幕）</string>
+    <string name="sound_setting">音频非wifi网络下提示</string>
+    <string name="music_ui_auxio_enabled_toast">已开启 Auxio 风格，请重新进入音乐列表</string>
+    <string name="menu_btn_version">版本:</string>
+    <string name="username_hint">用户名</string>
+    <string name="volcano_asr_app_key_hint">App Key / AppId</string>
+    <string name="music_ui_use_auxio_hint">深色 Material 观感，视觉参考开源 Auxio（GPL），本应用未嵌入其源码。开启后请重新进入音乐频道。</string>
+    <string name="findpass_back_login">返回登录</string>
+    <string name="reg_success">注册成功，现在登录？</string>
+    <string name="login">登录</string>
+    <string name="findpass">忘记密码?</string>
+    <string name="findpass_email_invalid">请输入有效的邮箱地址</string>
+    <string name="findpass_resend_wait">%1$d 秒后可重新发送</string>
+    <string name="playvideo_setting">使用饺子播放器-vitamio</string>
+    <string name="music_ui_use_auxio_title">音乐列表：Auxio 风格界面</string>
+    <string name="re_password_hint">再次输入密码</string>
+    <string name="re_code">校验码</string>
+    <string name="need_login">请登录</string>
+    <string name="feed_back">信息反馈</string>
+    <string name="send">发送</string>
+    <string name="area_setting">是否显示专区</string>
+    <string name="password_hint">密码</string>
+    <string name="playback_engine_system">系统 MediaPlayer</string>
+    <string name="playback_engine_ali">阿里 AliPlayer</string>
+    <string name="playback_engine_ijk_ffmpeg">IJK + FFmpeg（ex_so 扩展）</string>
+    <string name="playback_engine_exo">Exo（Media3）</string>
+</resources>

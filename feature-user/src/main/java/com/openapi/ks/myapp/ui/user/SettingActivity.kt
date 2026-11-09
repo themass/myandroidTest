@@ -51,8 +51,8 @@ import com.openapi.core.util.PreferenceUtils
 import com.openapi.core.util.ShareUtil
 import com.openapi.core.util.StringUtils
 import com.openapi.core.util.ToastUtil
-import com.openapi.ks.chat.R
-import com.openapi.ks.myapp.base.MyApplication
+import com.openapi.feature.user.R
+import com.openapi.core.app.AppContext
 import com.openapi.ks.myapp.constant.Constants
 import com.openapi.ks.myapp.data.VersionUpdater
 import com.openapi.ks.myapp.data.config.PlayCoreEvent
@@ -101,7 +101,7 @@ class SettingActivity : BaseSingleActivity() {
                             MobAgent.onEventMenu(this, "设置人设")
                         },
                         onSaveCharacter = {
-                            PreferenceUtils.setPrefString(MyApplication.getInstance(), Constants.MY_SETTING, form.character)
+                            PreferenceUtils.setPrefString(AppContext.get(), Constants.MY_SETTING, form.character)
                             form.saveVolcano(this)
                             MobAgent.onEventMenu(this, "设置人设")
                         },
@@ -117,7 +117,7 @@ class SettingActivity : BaseSingleActivity() {
     }
 
     fun showShare() {
-        var url = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.D_URL, null)
+        var url = PreferenceUtils.getPrefString(AppContext.get(), Constants.D_URL, null)
         if (!StringUtils.hasText(url)) {
             url = CommonConstants.DEFAULT_REFERER
         }
@@ -134,7 +134,7 @@ class SettingActivity : BaseSingleActivity() {
 /** 文本类设置的承载对象：保存在 Activity 上，生命周期内保持，onPause 时写回偏好。 */
 class SettingsForm(context: Context) {
     var character by mutableStateOf(
-        PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.MY_SETTING, "").orEmpty(),
+        PreferenceUtils.getPrefString(AppContext.get(), Constants.MY_SETTING, "").orEmpty(),
     )
     var volcanoAppKey by mutableStateOf(PreferenceUtils.getPrefString(context, Constants.VOLCANO_ASR_APP_KEY, "").orEmpty())
     var volcanoAccessKey by mutableStateOf(PreferenceUtils.getPrefString(context, Constants.VOLCANO_ASR_ACCESS_KEY, "").orEmpty())
@@ -164,7 +164,7 @@ private fun SettingScreen(
     onSaveCharacter: () -> Unit,
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
-    val app = MyApplication.getInstance()
+    val app = AppContext.get()
 
     // 布尔类设置：读取当前偏好，切换时写回并执行原有副作用
     var playVideo by remember { mutableStateOf(PreferenceUtils.getPrefBoolean(context, Constants.PLAYVIDEO_SWITCH, true)) }

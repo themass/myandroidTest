@@ -10,10 +10,10 @@ import com.openapi.core.util.PreferenceUtils;
 import com.openapi.core.util.SystemUtils;
 import com.openapi.core.util.ToastUtil;
 import com.openapi.core.ads.yewu.ads.base.AdsContext;
-import com.openapi.ks.chat.R;
+import com.openapi.feature.user.R;
 import com.openapi.ks.myapp.adapter.SettingCharacterAdapter;
 import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
-import com.openapi.ks.myapp.base.MyApplication;
+import com.openapi.core.app.AppContext;
 import com.openapi.ks.myapp.bean.vo.CharacterVo;
 import com.openapi.core.net.request.InfoListVo;
 import com.openapi.ks.myapp.constant.Constants;
@@ -70,14 +70,14 @@ public class SettingCharacterFragment extends BasePullLoadbleFragment<CharacterV
     public void onItemClick(View view, CharacterVo data, int postion) {
         super.onItemClick(view, data, postion);
         SystemUtils.copy(getActivity(), data.getContent());
-        PreferenceUtils.setPrefString(MyApplication.getInstance(), Constants.MY_SETTING, data.getContent());
+        PreferenceUtils.setPrefString(AppContext.get(), Constants.MY_SETTING, data.getContent());
         ToastUtil.showShort(R.string.save);
     }
 
     @Override
     public void onItemLongClick(View view, CharacterVo data, int position) {
         SystemUtils.copy(getActivity(), data.getContent());
-        PreferenceUtils.setPrefString(MyApplication.getInstance(), Constants.MY_SETTING, data.getContent());
+        PreferenceUtils.setPrefString(AppContext.get(), Constants.MY_SETTING, data.getContent());
         ToastUtil.showShort(R.string.save);
     }
 

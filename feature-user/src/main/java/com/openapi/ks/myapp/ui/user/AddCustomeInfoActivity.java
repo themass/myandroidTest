@@ -17,7 +17,7 @@ import com.openapi.core.util.StringUtils;
 import com.openapi.core.util.ToastUtil;
 import com.openapi.core.net.NetQueue;
 import com.openapi.core.net.request.CommonResponse;
-import com.openapi.ks.chat.R;
+import com.openapi.feature.user.R;
 import com.openapi.ks.myapp.bean.form.CustomeAddForm;
 import com.openapi.ks.myapp.bean.vo.NullReturnVo;
 import com.openapi.ks.myapp.constant.Constants;
@@ -26,7 +26,7 @@ import com.openapi.ks.myapp.data.UserLoginUtil;
 import com.openapi.ks.myapp.data.config.CustomeAddEvent;
 import com.openapi.ks.myapp.data.urlparser.CustomeAddFormParser;
 import com.openapi.ks.myapp.ui.base.app.BaseSingleActivity;
-import com.openapi.ks.chat.databinding.LayoutAddCustomeBinding;
+import com.openapi.feature.user.databinding.LayoutAddCustomeBinding;
 import android.view.ViewGroup;
 
 

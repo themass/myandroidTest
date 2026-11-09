@@ -43,7 +43,7 @@ import com.openapi.core.net.request.CommonResponse
 import com.openapi.core.util.PreferenceUtils
 import com.openapi.core.util.StringUtils
 import com.openapi.core.util.ToastUtil
-import com.openapi.ks.chat.R
+import com.openapi.feature.user.R
 import com.openapi.ks.myapp.bean.form.LoginForm
 import com.openapi.ks.myapp.bean.vo.UserInfoVo
 import com.openapi.ks.myapp.constant.Constants

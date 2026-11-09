@@ -12,7 +12,7 @@ import com.openapi.core.util.PreferenceUtils;
 import com.openapi.core.util.StringUtils;
 import com.openapi.core.net.NetQueue;
 import com.openapi.core.net.request.MultipartRequest;
-import com.openapi.ks.myapp.base.MyApplication;
+import com.openapi.core.app.AppContext;
 import com.openapi.ks.myapp.bean.form.LoginForm;
 import com.openapi.ks.myapp.bean.vo.UserInfoVo;
 import com.openapi.ks.myapp.constant.Constants;
@@ -36,25 +36,25 @@ public class LoginTask {
         executor.execute(() -> {
             try {
                 SyncFuture<UserInfoVo> future = SyncFuture.newFuture();
-                String name = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.LOGIN_USER_LAST, null);
+                String name = PreferenceUtils.getPrefString(AppContext.get(), Constants.LOGIN_USER_LAST, null);
                 if (StringUtils.isEmpty(name)) {
                     return;
                 }
-                String pwd = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.LOGIN_USER_PW_LAST, null);
+                String pwd = PreferenceUtils.getPrefString(AppContext.get(), Constants.LOGIN_USER_PW_LAST, null);
                 if (StringUtils.isEmpty(pwd)) {
                     return;
                 }
-                int score = PreferenceUtils.getPrefInt(MyApplication.getInstance(), Constants.SCORE_TMP, 0);
+                int score = PreferenceUtils.getPrefInt(AppContext.get(), Constants.SCORE_TMP, 0);
                 LoginForm form = new LoginForm(name, pwd, score);
                 Map<String, String> map = BeanUtil.transBean2Map(form);
-                MultipartRequest request = new MultipartRequest(MyApplication.getInstance(), map, Constants.getUrl(Constants.API_LOGIN_URL), null, future, future, UserInfoVo.class);
+                MultipartRequest request = new MultipartRequest(AppContext.get(), map, Constants.getUrl(Constants.API_LOGIN_URL), null, future, future, UserInfoVo.class);
                 request.setTag("login");
                 NetQueue.addRequest(request);
                 UserInfoVo user = future.get();
                 if (user != null) {
-                    UserLoginUtil.login(MyApplication.getInstance(), user);
+                    UserLoginUtil.login(AppContext.get(), user);
                 } else {
-                    PreferenceUtils.remove(MyApplication.getInstance(), CommonConstants.HTTP_TOKEN_KEY);
+                    PreferenceUtils.remove(AppContext.get(), CommonConstants.HTTP_TOKEN_KEY);
                 }
             } catch (Exception e) {
                 LogUtil.e(e);

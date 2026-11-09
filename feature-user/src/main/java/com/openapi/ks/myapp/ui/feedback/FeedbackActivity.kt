@@ -71,7 +71,7 @@ import com.openapi.core.net.request.InfoListVo
 import com.openapi.core.util.DateUtils
 import com.openapi.core.util.StringUtils
 import com.openapi.core.util.ToastUtil
-import com.openapi.ks.chat.R
+import com.openapi.feature.user.R
 import com.openapi.ks.myapp.bean.form.IwannaForm
 import com.openapi.ks.myapp.bean.vo.IWannaVo
 import com.openapi.ks.myapp.bean.vo.NullReturnVo

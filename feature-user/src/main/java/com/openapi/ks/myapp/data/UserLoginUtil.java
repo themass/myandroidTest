@@ -8,7 +8,7 @@ import com.openapi.core.util.EventBusUtil;
 import com.openapi.core.util.PreferenceUtils;
 import com.openapi.core.ads.yewu.um.MobAgent;
 import com.openapi.core.util.StaticDataUtil;
-import com.openapi.ks.myapp.base.MyApplication;
+import com.openapi.core.app.AppContext;
 import com.openapi.ks.myapp.bean.vo.UserInfoVo;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.config.StateUseEvent;
@@ -25,7 +25,7 @@ public class UserLoginUtil {
 //            LogUtil.i("login ok");
 //            StaticDataUtil.add(Constants.LOGIN_USER, user);
 //            EventBusUtil.getEventBus().post(new UserLoginEvent());
-//            context.sendBroadcast(new Intent(MyApplication.UPDATE_STATUS_ACTION));
+//            context.sendBroadcast(new Intent(AppContext.UPDATE_STATUS_ACTION));
 //        } else {
 //            LogUtil.i("login fail");
 //        }
@@ -36,7 +36,7 @@ public class UserLoginUtil {
         PreferenceUtils.setPrefString(context, CommonConstants.HTTP_TOKEN_KEY, vo.token);
         StaticDataUtil.add(Constants.LOGIN_USER, vo);
         EventBusUtil.getEventBus().post(new UserLoginEvent());
-        context.sendBroadcast(new Intent(MyApplication.UPDATE_STATUS_ACTION));
+        context.sendBroadcast(new Intent(AppContext.UPDATE_STATUS_ACTION));
         if (vo.stateUse != null)
             EventBusUtil.getEventBus().post(new StateUseEvent(vo.stateUse));
         MobAgent.onProfileSignIn(vo.name);
@@ -47,7 +47,7 @@ public class UserLoginUtil {
         PreferenceUtils.remove(context, CommonConstants.HTTP_TOKEN_KEY);
         StaticDataUtil.del(Constants.LOGIN_USER);
         EventBusUtil.getEventBus().post(new UserLoginEvent());
-        context.sendBroadcast(new Intent(MyApplication.UPDATE_STATUS_ACTION));
+        context.sendBroadcast(new Intent(AppContext.UPDATE_STATUS_ACTION));
         MobAgent.onProfileSignOff();
     }
 
