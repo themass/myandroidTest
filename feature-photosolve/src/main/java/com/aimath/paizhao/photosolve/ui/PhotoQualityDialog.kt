@@ -1,7 +1,7 @@
 package com.aimath.paizhao.photosolve.ui
 
 import androidx.compose.ui.res.stringResource
-import com.openapi.ks.chat.R
+import com.openapi.feature.photosolve.R
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton

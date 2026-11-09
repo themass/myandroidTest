@@ -51,7 +51,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
-import com.openapi.ks.chat.R
+import com.openapi.feature.photosolve.R
 import com.aimath.paizhao.photosolve.ImageUtils.decodeJpegApplyingExifOrientation
 import java.io.File
 import kotlinx.coroutines.Dispatchers

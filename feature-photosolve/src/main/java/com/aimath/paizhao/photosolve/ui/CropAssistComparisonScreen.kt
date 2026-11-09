@@ -1,7 +1,7 @@
 package com.aimath.paizhao.photosolve.ui
 
 import androidx.compose.ui.res.stringResource
-import com.openapi.ks.chat.R
+import com.openapi.feature.photosolve.R
 import android.graphics.Bitmap
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image

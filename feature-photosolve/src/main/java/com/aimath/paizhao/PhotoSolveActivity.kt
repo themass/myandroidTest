@@ -1,6 +1,6 @@
 package com.aimath.paizhao
 
-import com.openapi.ks.chat.R
+import com.openapi.feature.photosolve.R
 import android.Manifest
 import android.content.Context
 import android.content.Intent
