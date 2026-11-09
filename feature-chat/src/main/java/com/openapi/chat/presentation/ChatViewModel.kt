@@ -34,6 +34,8 @@ class ChatViewModel : ViewModel() {
     private companion object {
         /** 流式文字的释放节拍：约 25 次/秒，既顺滑又不会让 Markdown 重解析太频繁。 */
         const val REVEAL_TICK_MS = 40L
+        /** 单个附件上传+识别的超时：超时按失败处理，气泡显示重试图标，不再一直转圈。 */
+        const val ATTACHMENT_TIMEOUT_MS = 120_000L
     }
 
     private val repository = ChatDependencies.require()
@@ -278,7 +280,7 @@ class ChatViewModel : ViewModel() {
             delivery = DeliveryStatus.SENDING,
         )
         _uiState.update { it.copy(messages = it.messages + message) }
-        streamJob = viewModelScope.launch {
+        attachmentJob = viewModelScope.launch {
             repository.saveMessage(repository.currentSessionId(), message)
             deliverAttachments(message)
         }
@@ -333,7 +335,7 @@ class ChatViewModel : ViewModel() {
         }
         userMessageId?.let { setDelivery(it, DeliveryStatus.SENDING) }
 
-        streamJob = viewModelScope.launch {
+        replyJob = viewModelScope.launch {
             val buffer = StringBuilder()
             var ended = false
             var failed = false
@@ -393,7 +395,7 @@ class ChatViewModel : ViewModel() {
                 _uiState.update {
                     it.copy(
                         sending = false,
-                        streaming = false,
+                        streaming = attachmentJob?.isActive == true,
                         error = if (replied) it.error else "已停止，消息未发出，可点重试",
                     )
                 }
@@ -426,7 +428,7 @@ class ChatViewModel : ViewModel() {
                         }
                     },
                     sending = false,
-                    streaming = false,
+                    streaming = attachmentJob?.isActive == true,
                     error = when {
                         emptyReply -> "没有收到回复，请重试"
                         failed -> current.error ?: "回复失败，请重试"
@@ -448,7 +450,8 @@ class ChatViewModel : ViewModel() {
 
     /** 停止生成：取消网络请求，已经显示和已收到的内容都保留。 */
     fun onStopGenerating() {
-        streamJob?.cancel()
+        replyJob?.cancel()
+        attachmentJob?.cancel()
     }
 
     /** 返回是否保留了助手内容（false = 一个字都没收到，占位气泡已撤掉）。 */
@@ -489,7 +492,10 @@ class ChatViewModel : ViewModel() {
         return cut
     }
 
-    private var streamJob: kotlinx.coroutines.Job? = null
+    /** 文字回复的流式任务。 */
+    private var replyJob: kotlinx.coroutines.Job? = null
+    /** 附件发送任务。停止按钮要能同时停掉两者，且两者互不覆盖。 */
+    private var attachmentJob: kotlinx.coroutines.Job? = null
 
     /**
      * 发送带附件的用户消息：逐个上传附件，各自的识别结果合并成一条助手回复；
@@ -501,7 +507,7 @@ class ChatViewModel : ViewModel() {
         try {
             deliverAttachmentsBody(message)
         } finally {
-            _uiState.update { it.copy(streaming = false) }
+            _uiState.update { it.copy(streaming = replyJob?.isActive == true) }
         }
     }
 
@@ -516,7 +522,11 @@ class ChatViewModel : ViewModel() {
         val replies = mutableListOf<String>()
         var replyId: String? = null
         for ((kind, file, name) in uploads) {
-            val reply = runCatching { repository.sendAttachment(sessionId, kind, file, name, placeholder.id) }.getOrNull()
+            val reply = runCatching {
+                kotlinx.coroutines.withTimeoutOrNull(ATTACHMENT_TIMEOUT_MS) {
+                    repository.sendAttachment(sessionId, kind, file, name, placeholder.id)
+                }
+            }.getOrNull()
             if (reply == null) {
                 val stopped = !kotlin.coroutines.coroutineContext[kotlinx.coroutines.Job]!!.isActive
                 _uiState.update {
@@ -579,7 +589,7 @@ class ChatViewModel : ViewModel() {
         val message = state.messages.firstOrNull { it.id == messageId } ?: return
         if (state.sending || message.role != ChatRole.USER) return
         if (message.images.isNotEmpty() || message.files.isNotEmpty()) {
-            streamJob = viewModelScope.launch { deliverAttachments(message) }
+            attachmentJob = viewModelScope.launch { deliverAttachments(message) }
         } else if (message.text.isNotBlank()) {
             streamReply(message.text, userMessageId = message.id, persistUser = false)
         }
@@ -599,7 +609,7 @@ class ChatViewModel : ViewModel() {
         if (lastUser.images.isNotEmpty() || lastUser.files.isNotEmpty()) {
             // 带附件的消息不走 regenerate（附件不在服务端历史里），按原样重新上传：这种情况仍然截断后重发
             _uiState.update { it.copy(messages = state.messages.subList(0, lastUserIndex + 1).toList()) }
-            viewModelScope.launch { deliverAttachments(lastUser) }
+            attachmentJob = viewModelScope.launch { deliverAttachments(lastUser) }
         } else if (lastReply != null) {
             // 原位替换：最新回复的气泡留在原处，新内容流进同一个气泡
             streamReply(text = null, userMessageId = null, persistUser = false, regenerate = true, replaceKey = lastReply.key)
