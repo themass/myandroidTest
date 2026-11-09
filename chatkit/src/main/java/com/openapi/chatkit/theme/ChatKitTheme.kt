@@ -49,13 +49,13 @@ data class ChatKitDimens(
     val userBubbleRadius: Dp = 14.dp,
     val assistantBubbleRadius: Dp = 12.dp,
     /** 气泡内边距（实测文字离气泡左边约 15–16dp，上下约 12dp）。 */
-    val bubblePaddingHorizontal: Dp = 16.dp,
-    val bubblePaddingVertical: Dp = 12.dp,
+    val bubblePaddingHorizontal: Dp = 12.dp,
+    val bubblePaddingVertical: Dp = 10.dp,
     /** 消息内容最大宽度占屏幕宽度的比例。 */
-    /** 用户气泡最大宽度占屏宽的比例（85%）。 */
-    val maxContentFraction: Float = 0.85f,
+    /** 用户气泡最大宽度占屏宽的比例（90%）。 */
+    val maxContentFraction: Float = 0.9f,
     /** 助手气泡最大宽度占屏宽的比例（88%），两侧另有 [listHorizontalPadding] 留白。 */
-    val assistantMaxContentFraction: Float = 0.88f,
+    val assistantMaxContentFraction: Float = 0.9f,
     val footerIconSize: Dp = 18.dp,
     val footerHitSize: Dp = 34.dp,
 )

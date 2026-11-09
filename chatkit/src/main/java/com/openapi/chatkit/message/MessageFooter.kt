@@ -153,8 +153,6 @@ internal fun SendStatusIndicator(status: SendStatus, onRetry: () -> Unit) {
             Box(
                 modifier = Modifier
                     .size(ChatKit.dimens.footerHitSize)
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(ChatKit.colors.chipBackground)
                     .clickable(onClickLabel = stringResource(R.string.chatkit_send_failed), onClick = onRetry),
                 contentAlignment = Alignment.Center,
             ) {

@@ -90,8 +90,9 @@ internal object ChatPlatform {
         assistantBubble = AppColors.ChatIncoming,
         userBubbleText = AppColors.ChatOutgoingText,
         assistantBubbleText = AppColors.TextPrimary,
-        chipBackground = AppColors.ChatOutgoing,
-        chipIcon = AppColors.Primary,
+        // footer 芯片：浅蓝底、蓝色图标（与暖色气泡区分）
+        chipBackground = Color(0xFFE3F2FD),
+        chipIcon = Color(0xFF1565C0),
         menuBackground = AppColors.MenuSurface,
         secondaryText = AppColors.TextSecondary,
         divider = AppColors.Divider,
