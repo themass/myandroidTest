@@ -278,7 +278,7 @@ class ChatViewModel : ViewModel() {
             delivery = DeliveryStatus.SENDING,
         )
         _uiState.update { it.copy(messages = it.messages + message) }
-        viewModelScope.launch {
+        streamJob = viewModelScope.launch {
             repository.saveMessage(repository.currentSessionId(), message)
             deliverAttachments(message)
         }
@@ -495,7 +495,17 @@ class ChatViewModel : ViewModel() {
      * 发送带附件的用户消息：逐个上传附件，各自的识别结果合并成一条助手回复；
      * 有配文时再把配文走文字流（用户消息已保存过，不再重复保存）。
      */
+    /** 附件发送也可以被「停止」打断：和流式回复一样显示生成中，停止后该消息标为可重试。 */
     private suspend fun deliverAttachments(message: ChatMessage) {
+        _uiState.update { it.copy(streaming = true) }
+        try {
+            deliverAttachmentsBody(message)
+        } finally {
+            _uiState.update { it.copy(streaming = false) }
+        }
+    }
+
+    private suspend fun deliverAttachmentsBody(message: ChatMessage) {
         setDelivery(message.id, DeliveryStatus.SENDING)
         val placeholder = newPlaceholder()
         _uiState.update { it.copy(messages = it.messages + placeholder, sending = true, error = null) }
@@ -508,11 +518,12 @@ class ChatViewModel : ViewModel() {
         for ((kind, file, name) in uploads) {
             val reply = runCatching { repository.sendAttachment(sessionId, kind, file, name, placeholder.id) }.getOrNull()
             if (reply == null) {
+                val stopped = !kotlin.coroutines.coroutineContext[kotlinx.coroutines.Job]!!.isActive
                 _uiState.update {
                     it.copy(
                         messages = it.messages.filterNot { m -> m.id == placeholder.id },
                         sending = false,
-                        error = "发送失败，请稍后重试",
+                        error = if (stopped) "已停止，消息未发出，可点重试" else "发送失败，请稍后重试",
                     )
                 }
                 setDelivery(message.id, DeliveryStatus.FAILED)
@@ -568,7 +579,7 @@ class ChatViewModel : ViewModel() {
         val message = state.messages.firstOrNull { it.id == messageId } ?: return
         if (state.sending || message.role != ChatRole.USER) return
         if (message.images.isNotEmpty() || message.files.isNotEmpty()) {
-            viewModelScope.launch { deliverAttachments(message) }
+            streamJob = viewModelScope.launch { deliverAttachments(message) }
         } else if (message.text.isNotBlank()) {
             streamReply(message.text, userMessageId = message.id, persistUser = false)
         }
