@@ -79,8 +79,12 @@ internal fun WeChatRecordingOverlay(
     history: List<Float>,
     liveTranscript: String,
 ) {
-    // 画面交给独立的 WeChatRecordingView（已单独验证过效果），这里只负责弹出层和把录音状态映射过去
-    Popup(properties = PopupProperties(focusable = false, clippingEnabled = false)) {
+    // 画面交给独立的 WeChatRecordingView（已单独验证过效果），这里只负责弹出层和把录音状态映射过去。
+    // 弹出层固定在窗口左上角（默认会跟着输入栏的位置，导致上半部分画到屏幕外，只剩输入栏一块变灰）。
+    Popup(
+        popupPositionProvider = WindowOriginPosition,
+        properties = PopupProperties(focusable = false, clippingEnabled = false),
+    ) {
         WeChatRecordingView(
             intent = when (intent) {
                 VoiceIntent.Send -> WeChatIntent.Send
@@ -225,4 +229,14 @@ private fun WeChatSendCircle(intent: VoiceIntent, modifier: Modifier) {
             color = WeChatInk,
         )
     }
+}
+
+/** 弹出层始终放在窗口的 (0, 0)，配合 fillMaxSize 铺满整个屏幕。 */
+private object WindowOriginPosition : androidx.compose.ui.window.PopupPositionProvider {
+    override fun calculatePosition(
+        anchorBounds: androidx.compose.ui.unit.IntRect,
+        windowSize: androidx.compose.ui.unit.IntSize,
+        layoutDirection: androidx.compose.ui.unit.LayoutDirection,
+        popupContentSize: androidx.compose.ui.unit.IntSize,
+    ): androidx.compose.ui.unit.IntOffset = androidx.compose.ui.unit.IntOffset.Zero
 }
