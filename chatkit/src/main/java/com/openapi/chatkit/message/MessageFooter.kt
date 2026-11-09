@@ -1,6 +1,13 @@
 package com.openapi.chatkit.message
 
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.MoreHoriz
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -59,10 +66,16 @@ fun AssistantFooter(
     modifier: Modifier = Modifier,
 ) {
     val hasText = item.plainText.isNotBlank()
+    // 收纳式：默认只露出常用的几个，「更多」展开分享、删除、重新生成（每条消息记住自己的展开状态）
+    var expanded by rememberSaveable(item.id) { mutableStateOf(false) }
     Column(modifier.padding(top = 11.dp)) {
         Box(Modifier.fillMaxWidth().height(1.dp).background(ChatKit.colors.divider))
         Spacer(Modifier.height(11.dp))
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(AssistantChipGap)) {
+        Row(
+            modifier = Modifier.horizontalScroll(rememberScrollState()),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(AssistantChipGap),
+        ) {
             if (hasText) {
                 AssistantChip(Icons.Outlined.ContentCopy, stringResource(R.string.chatkit_copy)) { onAction(MessageAction.Copy) }
                 AssistantChip(
@@ -78,14 +91,16 @@ fun AssistantFooter(
                 icon = if (item.reaction == Reaction.Dislike) Icons.Filled.ThumbDown else Icons.Outlined.ThumbDown,
                 description = stringResource(R.string.chatkit_dislike),
             ) { onAction(MessageAction.Dislike) }
-            if (hasText) {
-                AssistantChip(Icons.Outlined.Share, stringResource(R.string.chatkit_share)) { onAction(MessageAction.Share) }
-            }
-            // 删除：每条已完成的助手回复都有
-            AssistantChip(Icons.Outlined.Delete, stringResource(R.string.chatkit_delete)) { onAction(MessageAction.Delete) }
-            if (isLatest) {
-                Spacer(Modifier.weight(1f))
-                AssistantChip(Icons.Outlined.Refresh, stringResource(R.string.chatkit_regenerate)) { onAction(MessageAction.Regenerate) }
+            AssistantChip(Icons.Outlined.MoreHoriz, stringResource(R.string.chatkit_more)) { expanded = !expanded }
+            if (expanded) {
+                if (hasText) {
+                    AssistantChip(Icons.Outlined.Share, stringResource(R.string.chatkit_share)) { onAction(MessageAction.Share) }
+                }
+                // 删除：每条已完成的助手回复都有
+                AssistantChip(Icons.Outlined.Delete, stringResource(R.string.chatkit_delete)) { onAction(MessageAction.Delete) }
+                if (isLatest) {
+                    AssistantChip(Icons.Outlined.Refresh, stringResource(R.string.chatkit_regenerate)) { onAction(MessageAction.Regenerate) }
+                }
             }
         }
     }
