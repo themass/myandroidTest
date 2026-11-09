@@ -106,4 +106,10 @@
     <string name="photosolve_mirror">镜像</string>
     <string name="photosolve_auto_detect">自动识别</string>
     <string name="ui_shortcuts">快捷入口</string>
+    <string name="favorite_empty">还没有收藏的内容</string>
+    <string name="favorite_type_text">文字</string>
+    <string name="favorite_type_sound">音频</string>
+    <string name="favorite_type_image">图片</string>
+    <string name="favorite_type_video">视频</string>
+    <string name="favorite_action_share">分享</string>
 </resources>
