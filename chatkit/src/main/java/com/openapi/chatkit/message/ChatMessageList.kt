@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -45,6 +47,7 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.Text
@@ -129,6 +132,14 @@ fun ChatMessageList(
     LaunchedEffect(last?.plainText?.length, last?.thinking, last?.streaming) {
         if (following && last != null) state.scrollBy(BOTTOM_SCROLL)
     }
+    // 键盘弹出或收起：列表高度变了，如果原来在底部就保持贴底，否则最后几条会被键盘和输入栏盖住
+    val imeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
+    LaunchedEffect(imeVisible) {
+        if (following && last != null) {
+            state.scrollToItem(items.lastIndex)
+            state.scrollBy(BOTTOM_SCROLL)
+        }
+    }
 
     Box(modifier) {
         LazyColumn(
@@ -153,6 +164,7 @@ fun ChatMessageList(
                         item = item,
                         isLatestAssistant = item.id == latestAssistantId,
                         showSentLabel = item.id == latestUserId,
+                        showAnswerAgain = item.id == latestUserId && last?.sender == Sender.User && !selection.active,
                         avatar = avatar,
                         text = text,
                         onAction = { action -> handleAction(item, action) },
@@ -298,6 +310,8 @@ fun ChatMessageItem(
     onAttachmentLongPress: (AttachmentTarget) -> Unit = {},
     /** 多选中：不显示 footer，避免它的按钮抢走点击。 */
     selectionActive: Boolean = false,
+    /** 最后一条用户消息且后面没有回复时为 true：在「已发送」旁边显示「重新回答」。 */
+    showAnswerAgain: Boolean = false,
 ) {
     val dimens = ChatKit.dimens
     val isUser = item.sender == Sender.User
@@ -341,12 +355,26 @@ fun ChatMessageItem(
                 )
             }
             if (isUser && showSentLabel && item.status == SendStatus.Sent) {
-                Text(
-                    stringResource(R.string.chatkit_sent),
+                Row(
                     modifier = Modifier.padding(top = 2.dp),
-                    fontSize = ChatKit.typography.caption,
-                    color = ChatKit.colors.secondaryText,
-                )
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        stringResource(R.string.chatkit_sent),
+                        fontSize = ChatKit.typography.caption,
+                        color = ChatKit.colors.secondaryText,
+                    )
+                    // 最后一条用户消息还没有回复（例如回复前点了停止）：给一个重新回答的入口，不重复发送
+                    if (showAnswerAgain) {
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            stringResource(R.string.chatkit_answer_again),
+                            modifier = Modifier.clickable { onAction(MessageAction.Regenerate) }.padding(4.dp),
+                            fontSize = ChatKit.typography.caption,
+                            color = ChatKit.colors.accent,
+                        )
+                    }
+                }
             }
         }
     }

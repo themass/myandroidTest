@@ -39,6 +39,7 @@
     <string name="chatkit_editing_banner">编辑消息</string>
     <string name="chatkit_cancel_edit">取消编辑</string>
     <string name="chatkit_sent">已发送</string>
+    <string name="chatkit_answer_again">重新回答</string>
     <string name="chatkit_slide_here_to_text">滑到这里 转文字</string>
     <string name="chatkit_wechat_release_send">松开 发送</string>
     <string name="chatkit_wechat_release_cancel">松手 取消</string>
