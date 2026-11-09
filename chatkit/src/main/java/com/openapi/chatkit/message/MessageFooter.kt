@@ -149,26 +149,20 @@ internal fun SendStatusIndicator(status: SendStatus, onRetry: () -> Unit) {
             Spacer(Modifier.width(8.dp))
         }
         SendStatus.Failed -> {
-            // 失败：气泡左侧一个带文字的「重试」按钮（红色感叹号 + 文字），点它重新发送同一条消息
-            Row(
+            // 失败：气泡左侧只留一个重试图标（与助手的重新生成图标一样），颜色用错误红；点它重新发送同一条消息
+            Box(
                 modifier = Modifier
+                    .size(ChatKit.dimens.footerHitSize)
                     .clip(RoundedCornerShape(14.dp))
-                    .background(ChatKit.colors.error.copy(alpha = 0.08f))
-                    .clickable(onClickLabel = stringResource(R.string.chatkit_send_failed), onClick = onRetry)
-                    .padding(horizontal = 10.dp, vertical = 6.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                    .background(ChatKit.colors.chipBackground)
+                    .clickable(onClickLabel = stringResource(R.string.chatkit_send_failed), onClick = onRetry),
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    Icons.Filled.Error,
+                    Icons.Outlined.Refresh,
                     contentDescription = stringResource(R.string.chatkit_send_failed),
                     tint = ChatKit.colors.error,
-                    modifier = Modifier.size(16.dp),
-                )
-                Spacer(Modifier.width(4.dp))
-                androidx.compose.material3.Text(
-                    text = stringResource(R.string.chatkit_retry_label),
-                    color = ChatKit.colors.error,
-                    style = androidx.compose.material3.MaterialTheme.typography.labelLarge,
+                    modifier = Modifier.size(ChatKit.dimens.footerIconSize),
                 )
             }
             Spacer(Modifier.width(8.dp))
