@@ -59,7 +59,7 @@ fun WeChatRecordingView(
     Box(modifier.fillMaxSize().background(Color(0xB0000000))) {
         // 上方语音气泡
         Column(
-            modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter).padding(top = 330.dp),
+            modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter).padding(top = 410.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Bubble(bubble = bubble, bars = bars, levels = levels, liveText = if (toText) liveText else null)
@@ -101,7 +101,7 @@ private fun ArcBase(label: String, modifier: Modifier) {
         val cy = radius + 24.dp.toPx()          // 圆顶在画布顶部往下 24dp
         drawCircle(Color(0xFF3A3A3A), radius = radius, center = Offset(cx, cy))
         // 文字沿着比圆顶略低的同心弧排布
-        val textRadius = radius - 46.dp.toPx()
+        val textRadius = radius - 84.dp.toPx()
         val paint = android.graphics.Paint().apply {
             isAntiAlias = true
             color = android.graphics.Color.WHITE
@@ -109,7 +109,7 @@ private fun ArcBase(label: String, modifier: Modifier) {
             textAlign = android.graphics.Paint.Align.CENTER
         }
         val path = android.graphics.Path().apply {
-            addArc(cx - textRadius, cy - textRadius, cx + textRadius, cy + textRadius, 220f, 100f)
+            addArc(cx - textRadius, cy - textRadius, cx + textRadius, cy + textRadius, 230f, 80f)
         }
         drawContext.canvas.nativeCanvas.drawTextOnPath(label, path, 0f, 0f, paint)
     }
