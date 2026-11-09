@@ -1,0 +1,57 @@
+plugins {
+    id 'com.android.library'
+}
+
+android {
+    namespace = 'com.openapi.feature.video'
+
+    compileSdk = rootProject.ext.compileSdkVersion
+
+    defaultConfig {
+        minSdk = rootProject.ext.minSdkVersion
+        targetSdk = rootProject.ext.targetSdkVersion
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles = ["consumer-rules.pro"]
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            consumerProguardFiles "consumer-rules.pro"
+        }
+        debug {
+            minifyEnabled false
+            debuggable true
+        }
+    }
+
+    lintOptions {
+        checkReleaseBuilds = false
+        abortOnError = false
+        ignoreWarnings = true
+        quiet = true
+        disable 'deprecation'
+        disable 'unchecked'
+        disable 'all'
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    // 工具类、GSY/IJK/Ali 播放内核（commonutil 以 api 暴露）
+    api project(':commonutil')
+    implementation project(':core')
+    implementation project(':asr')
+
+    implementation libs.okhttp
+
+    // Media3（PCM 音频源、ExoPlayer 数据源）
+    implementation libs.androidx.media3.exoplayer
+    implementation libs.androidx.media3.datasource
+    implementation libs.androidx.media3.ui
+}

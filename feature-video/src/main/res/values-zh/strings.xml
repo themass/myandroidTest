@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="playback_engine_exo">Exo（Media3）</string>
+    <string name="playback_engine_ijk_ffmpeg">IJK + FFmpeg（ex_so 扩展）</string>
+    <string name="playback_engine_ali">阿里 AliPlayer</string>
+    <string name="playback_engine_system">系统 MediaPlayer</string>
+</resources>

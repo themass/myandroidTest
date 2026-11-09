@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="playback_engine_names">
+        <item>@string/playback_engine_exo</item>
+        <item>@string/playback_engine_ijk_ffmpeg</item>
+        <item>@string/playback_engine_ali</item>
+        <item>@string/playback_engine_system</item>
+    </string-array>
+</resources>

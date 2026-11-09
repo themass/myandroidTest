@@ -1,0 +1,96 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.plugin.compose'
+}
+
+android {
+    namespace = 'com.openapi.core'
+
+    compileSdk = rootProject.ext.compileSdkVersion
+
+    defaultConfig {
+        minSdk = rootProject.ext.minSdkVersion
+        targetSdk = rootProject.ext.targetSdkVersion
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles = ["consumer-rules.pro"]
+    }
+
+    packagingOptions {
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/maven/com.squareup.okhttp/okhttp/pom.xml'
+        exclude 'META-INF/maven/com.squareup.okhttp/okhttp/pom.properties'
+        exclude 'META-INF/maven/com.squareup.okio/okio/pom.xml'
+        exclude 'META-INF/maven/com.squareup.okio/okio/pom.properties'
+        exclude 'META-INF/services/javax.annotation.processing.Processor'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            consumerProguardFiles "consumer-rules.pro"
+        }
+        debug {
+            minifyEnabled false
+            debuggable true
+        }
+    }
+
+    lintOptions {
+        checkReleaseBuilds = false
+        abortOnError = false
+        ignoreWarnings = true
+        quiet = true
+        disable 'deprecation'
+        disable 'unchecked'
+        disable 'all'
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+
+    buildFeatures {
+        compose = true
+    }
+}
+
+dependencies {
+    // 工具类（com.openapi.core.util/net/event 等）在 :commonutil
+    api project(':commonutil')
+
+    // 网络
+    implementation libs.okhttp
+    implementation 'org.nanohttpd:nanohttpd:2.3.1'
+
+    // 图片加载（SaveImageTask）
+    implementation libs.glide
+
+    // 协程
+    implementation libs.kotlinx.coroutines.android
+
+    // 音频播放（media/AudioPlayer）
+    implementation libs.androidx.media3.exoplayer
+
+    // 数据库（Room；data/db 的 DAO 和实体在本模块生成实现）
+    implementation libs.androidx.room.runtime
+    annotationProcessor libs.androidx.room.compiler
+
+    // Compose（design/、cast/ui、permission 对话框）
+    implementation platform(libs.androidx.compose.bom)
+    implementation libs.androidx.compose.ui
+    implementation libs.androidx.compose.ui.graphics
+    implementation libs.androidx.compose.material3
+    implementation libs.androidx.compose.material.icons.extended
+    implementation libs.androidx.activity.compose
+
+    // AndroidX
+    implementation libs.androidx.appcompat
+    implementation libs.androidx.activity
+}
