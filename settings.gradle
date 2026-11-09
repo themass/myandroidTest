@@ -8,6 +8,8 @@ include ':feature-video'
 include ':feature-roles'
 // 聊天（会话、消息、语音、附件、角色选择入口）
 include ':feature-chat'
+// 拍照解题（拍照、裁剪、识别、结果页）
+include ':feature-photosolve'
 include ':auxio_music_ui'
 include ':retromusic'
 // 对话 UI 组件库（消息列表、消息气泡、输入栏），与业务无关，可在多个页面复用
