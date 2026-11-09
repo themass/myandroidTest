@@ -1,7 +1,12 @@
 package com.openapi.chatkit.message
 
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.MoreHoriz
+import androidx.compose.material.icons.outlined.Archive
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.getValue
@@ -66,37 +71,42 @@ fun AssistantFooter(
     modifier: Modifier = Modifier,
 ) {
     val hasText = item.plainText.isNotBlank()
-    // 收纳式：默认只露出常用的几个，「更多」展开分享、删除、重新生成（每条消息记住自己的展开状态）
+    // 收纳盒：默认只有一个小盒子；点它，按钮在一行里弹出；再点盒子，按钮收回（每条消息记住自己的状态）
     var expanded by rememberSaveable(item.id) { mutableStateOf(false) }
     Column(modifier.padding(top = 11.dp)) {
         Box(Modifier.fillMaxWidth().height(1.dp).background(ChatKit.colors.divider))
-        Spacer(Modifier.height(11.dp))
-        Row(
-            modifier = Modifier.horizontalScroll(rememberScrollState()),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(AssistantChipGap),
+        Spacer(Modifier.height(8.dp))
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+            AssistantChip(Icons.Outlined.Archive, stringResource(R.string.chatkit_more)) { expanded = !expanded }
+        }
+        AnimatedVisibility(
+            visible = expanded,
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut(),
         ) {
-            if (hasText) {
-                AssistantChip(Icons.Outlined.ContentCopy, stringResource(R.string.chatkit_copy)) { onAction(MessageAction.Copy) }
+            Row(
+                modifier = Modifier.padding(top = 8.dp).horizontalScroll(rememberScrollState()),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(AssistantChipGap),
+            ) {
+                if (hasText) {
+                    AssistantChip(Icons.Outlined.ContentCopy, stringResource(R.string.chatkit_copy)) { onAction(MessageAction.Copy) }
+                    AssistantChip(
+                        icon = if (item.speaking) Icons.AutoMirrored.Filled.VolumeUp else Icons.AutoMirrored.Outlined.VolumeUp,
+                        description = stringResource(if (item.speaking) R.string.chatkit_speaking else R.string.chatkit_speak),
+                    ) { onAction(MessageAction.Speak) }
+                }
                 AssistantChip(
-                    icon = if (item.speaking) Icons.AutoMirrored.Filled.VolumeUp else Icons.AutoMirrored.Outlined.VolumeUp,
-                    description = stringResource(if (item.speaking) R.string.chatkit_speaking else R.string.chatkit_speak),
-                ) { onAction(MessageAction.Speak) }
-            }
-            AssistantChip(
-                icon = if (item.reaction == Reaction.Like) Icons.Filled.ThumbUp else Icons.Outlined.ThumbUp,
-                description = stringResource(R.string.chatkit_like),
-            ) { onAction(MessageAction.Like) }
-            AssistantChip(
-                icon = if (item.reaction == Reaction.Dislike) Icons.Filled.ThumbDown else Icons.Outlined.ThumbDown,
-                description = stringResource(R.string.chatkit_dislike),
-            ) { onAction(MessageAction.Dislike) }
-            AssistantChip(Icons.Outlined.MoreHoriz, stringResource(R.string.chatkit_more)) { expanded = !expanded }
-            if (expanded) {
+                    icon = if (item.reaction == Reaction.Like) Icons.Filled.ThumbUp else Icons.Outlined.ThumbUp,
+                    description = stringResource(R.string.chatkit_like),
+                ) { onAction(MessageAction.Like) }
+                AssistantChip(
+                    icon = if (item.reaction == Reaction.Dislike) Icons.Filled.ThumbDown else Icons.Outlined.ThumbDown,
+                    description = stringResource(R.string.chatkit_dislike),
+                ) { onAction(MessageAction.Dislike) }
                 if (hasText) {
                     AssistantChip(Icons.Outlined.Share, stringResource(R.string.chatkit_share)) { onAction(MessageAction.Share) }
                 }
-                // 删除：每条已完成的助手回复都有
                 AssistantChip(Icons.Outlined.Delete, stringResource(R.string.chatkit_delete)) { onAction(MessageAction.Delete) }
                 if (isLatest) {
                     AssistantChip(Icons.Outlined.Refresh, stringResource(R.string.chatkit_regenerate)) { onAction(MessageAction.Regenerate) }

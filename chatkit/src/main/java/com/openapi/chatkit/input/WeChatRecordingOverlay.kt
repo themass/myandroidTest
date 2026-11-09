@@ -79,23 +79,17 @@ internal fun WeChatRecordingOverlay(
     history: List<Float>,
     liveTranscript: String,
 ) {
+    // 画面交给独立的 WeChatRecordingView（已单独验证过效果），这里只负责弹出层和把录音状态映射过去
     Popup(properties = PopupProperties(focusable = false, clippingEnabled = false)) {
-        Box(Modifier.fillMaxSize().background(WeChatMask)) {
-            WeChatBubble(
-                intent = intent,
-                history = history,
-                liveTranscript = liveTranscript,
-                modifier = Modifier.align(Alignment.TopCenter).padding(top = 120.dp),
-            )
-            WeChatRing(
-                intent = intent,
-                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 96.dp).fillMaxWidth().height(186.dp),
-            )
-            WeChatSendCircle(
-                intent = intent,
-                modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(96.dp),
-            )
-        }
+        WeChatRecordingView(
+            intent = when (intent) {
+                VoiceIntent.Send -> WeChatIntent.Send
+                VoiceIntent.Cancel -> WeChatIntent.Cancel
+                VoiceIntent.ToText -> WeChatIntent.ToText
+            },
+            levels = history,
+            liveText = liveTranscript.takeIf { it.isNotBlank() },
+        )
     }
 }
 
