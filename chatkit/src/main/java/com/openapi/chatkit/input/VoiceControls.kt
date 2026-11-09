@@ -272,7 +272,7 @@ private fun RippleOverlay(intent: VoiceIntent, history: List<Float>, liveTranscr
     val cancelMix by animateFloatAsState(if (canceling) 1f else 0f, animationSpec = tween(200), label = "ripple-cancel-mix")
     val textColor by animateColorAsState(if (canceling) CancelRed else Color.White, animationSpec = tween(200), label = "ripple-text")
     val breath = rememberBreath()
-    val scale = breath + 0.12f * level
+    val scale = breath + 0.2f * level
     val softFallback = Build.VERSION.SDK_INT < Build.VERSION_CODES.S
 
     Box(modifier.fillMaxWidth().overflowUpwards(RippleOverlayHeight)) {
@@ -439,14 +439,14 @@ private fun DotWave(history: List<Float>, level: Float, color: Color) {
     val padded = List((DOT_COUNT - history.size).coerceAtLeast(0)) { 0f } + history.takeLast(DOT_COUNT)
     val calm = 1f - level
     Row(
-        modifier = Modifier.height(30.dp),
+        modifier = Modifier.height(36.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(2.5.dp),
     ) {
         padded.forEachIndexed { index, value ->
             val edge = sin(PI * (index + 0.5) / DOT_COUNT).toFloat().coerceIn(0f, 1f)
             val wave = (sin((phase + index * 0.5f).toDouble()).toFloat() + 1f) / 2f
-            val heightDp = 3f + 2.5f * wave * calm + 20f * value * edge
+            val heightDp = 3f + 5f * wave * calm + 26f * value * edge
             Box(
                 Modifier
                     .width(2.5.dp)
