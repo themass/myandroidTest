@@ -278,8 +278,6 @@ private fun SettingScreen(
             SettingDivider()
             ActionRow(stringResource(R.string.menu_btn_share), null, onShare)
             SettingDivider()
-            ActionRow(stringResource(R.string.menu_btn_character), null, onOpenCharacter)
-            SettingDivider()
             SwitchRow(stringResource(R.string.use_tts), tts) {
                 tts = it
                 PreferenceUtils.setPrefBoolean(app, CommonConstants.TTS_OPEN, it)
@@ -301,27 +299,6 @@ private fun SettingScreen(
             SwitchRow(stringResource(R.string.volcano_asr_use_v3), form.volcanoUseV3) { form.volcanoUseV3 = it }
         }
 
-        SettingCard {
-            OutlinedTextField(
-                value = form.character,
-                onValueChange = { form.character = it },
-                label = { Text(stringResource(R.string.my_charater)) },
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Default),
-                modifier = Modifier.fillMaxWidth(),
-                minLines = 3,
-            )
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(top = AppSpacing.sm),
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                TextButton(onClick = onOpenCharacter) {
-                    Text(stringResource(R.string.menu_btn_character), color = AppColors.Primary)
-                }
-                Button(onClick = onSaveCharacter) {
-                    Text(stringResource(R.string.save))
-                }
-            }
-        }
         Spacer(Modifier.height(AppSpacing.xl))
     }
 }
