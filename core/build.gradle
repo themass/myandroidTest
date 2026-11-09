@@ -78,6 +78,10 @@ dependencies {
     // 音频播放（media/AudioPlayer）
     implementation libs.androidx.media3.exoplayer
 
+    // 拍照解题图片处理（photosolve/image、quality、cropassist：OpenCV + ONNX Runtime）
+    implementation 'org.opencv:opencv:4.12.0'
+    implementation 'com.microsoft.onnxruntime:onnxruntime-android:1.24.1'
+
     // 数据库（Room；data/db 的 DAO 和实体在本模块生成实现）
     implementation libs.androidx.room.runtime
     annotationProcessor libs.androidx.room.compiler

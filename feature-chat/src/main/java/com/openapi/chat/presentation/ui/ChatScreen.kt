@@ -57,7 +57,7 @@ import com.openapi.core.design.theme.AppColors
 import com.openapi.core.design.theme.AppSpacing
 import com.openapi.core.design.theme.AppTypography
 import com.openapi.core.media.AudioPlayer
-import com.openapi.ks.chat.R
+import com.openapi.feature.chat.R
 import com.openapi.roles.domain.SelectedRole
 import com.openapi.roles.presentation.RoleAvatar
 

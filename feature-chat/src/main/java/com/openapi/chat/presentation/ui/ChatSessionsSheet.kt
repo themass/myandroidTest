@@ -1,7 +1,7 @@
 package com.openapi.chat.presentation.ui
 
 import androidx.compose.ui.res.stringResource
-import com.openapi.ks.chat.R
+import com.openapi.feature.chat.R
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

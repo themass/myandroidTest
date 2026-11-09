@@ -6,6 +6,8 @@ include ':asr'
 include ':feature-video'
 // 角色目录（角色列表、分组、收藏、搜索）
 include ':feature-roles'
+// 聊天（会话、消息、语音、附件、角色选择入口）
+include ':feature-chat'
 include ':auxio_music_ui'
 include ':retromusic'
 // 对话 UI 组件库（消息列表、消息气泡、输入栏），与业务无关，可在多个页面复用

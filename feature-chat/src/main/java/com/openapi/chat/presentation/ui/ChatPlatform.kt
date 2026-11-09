@@ -15,7 +15,7 @@ import com.openapi.chatkit.message.MessageMenuStyle
 import com.openapi.chatkit.theme.ChatKitColors
 import com.openapi.chatkit.theme.ChatKitDefaults
 import com.openapi.core.design.theme.AppColors
-import com.openapi.ks.chat.R
+import com.openapi.feature.chat.R
 import java.io.File
 
 /** 对话页用到的平台能力：剪贴板、分享、打开文件、拍照文件、语音样式偏好。 */
