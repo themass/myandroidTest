@@ -123,8 +123,9 @@ fun HomeScreen() {
                     }
                     HorizontalDivider(color = AppColors.Divider)
 
-                    DrawerSectionTitle(R.string.home_drawer_section_pages)
-                    HomeTab.entries.forEach { tab ->
+                    DrawerSectionTitle(R.string.drawer_group_common)
+                    // 常用：三个主页面；频道移到「测试」分组
+                    listOf(HomeTab.Chat, HomeTab.Companion, HomeTab.Profile).forEach { tab ->
                         NavigationDrawerItem(
                             label = { Text(stringResource(tab.label)) },
                             icon = { Icon(tab.icon, contentDescription = null) },
@@ -139,11 +140,25 @@ fun HomeScreen() {
                     }
                     HorizontalDivider(color = AppColors.Divider, modifier = Modifier.padding(vertical = 8.dp))
 
-                    // 分组展示的真实入口（同「我的」页的入口，不再有单独的测试组）；未登录时没有「登出」
+                    // 工具 / 测试 / 账户：真实入口（同「我的」页的入口）；未登录时没有「登出」
                     DrawerGroups.forEach { group ->
                         val items = group.actions.mapNotNull { action -> profile.entries.find { it.action == action } }
-                        if (items.isNotEmpty()) {
+                        val showChannels = group.titleRes == R.string.drawer_group_test
+                        if (items.isNotEmpty() || showChannels) {
                             DrawerSectionTitle(group.titleRes)
+                            if (showChannels) {
+                                NavigationDrawerItem(
+                                    label = { Text(stringResource(HomeTab.Channels.label)) },
+                                    icon = { Icon(HomeTab.Channels.icon, contentDescription = null) },
+                                    selected = current == HomeTab.Channels,
+                                    onClick = {
+                                        selected = HomeTab.Channels.ordinal
+                                        scope.launch { drawerState.close() }
+                                    },
+                                    colors = DrawerItemColors,
+                                    modifier = Modifier.padding(horizontal = 12.dp),
+                                )
+                            }
                             items.forEach { entry ->
                                 DrawerEntryItem(entry) {
                                     scope.launch { drawerState.close() }
@@ -208,11 +223,10 @@ fun HomeScreen() {
 /** 侧边栏的一组入口：标题 + 动作列表。 */
 private data class DrawerGroup(@StringRes val titleRes: Int, val actions: List<ProfileAction>)
 
+// 拍照解题已从侧边栏移除；频道、本地音乐、收藏夹归入「测试」
 private val DrawerGroups = listOf(
-    DrawerGroup(R.string.drawer_group_content, listOf(ProfileAction.Favorites, ProfileAction.LocalMusic)),
-    DrawerGroup(R.string.drawer_group_tools, listOf(ProfileAction.PhotoSolve)),
-    DrawerGroup(R.string.drawer_group_help, listOf(ProfileAction.Feedback)),
-    DrawerGroup(R.string.drawer_group_more, listOf(ProfileAction.Share, ProfileAction.AppRecommend, ProfileAction.Donation)),
+    DrawerGroup(R.string.drawer_group_tools, listOf(ProfileAction.Feedback, ProfileAction.Share, ProfileAction.AppRecommend, ProfileAction.Donation)),
+    DrawerGroup(R.string.drawer_group_test, listOf(ProfileAction.Favorites, ProfileAction.LocalMusic)),
     DrawerGroup(R.string.drawer_group_account, listOf(ProfileAction.Settings, ProfileAction.Logout)),
 )
 

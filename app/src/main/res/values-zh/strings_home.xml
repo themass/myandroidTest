@@ -13,4 +13,6 @@
     <string name="drawer_group_help">帮助</string>
     <string name="drawer_group_more">更多</string>
     <string name="drawer_group_account">账户</string>
+    <string name="drawer_group_common">常用</string>
+    <string name="drawer_group_test">测试</string>
 </resources>

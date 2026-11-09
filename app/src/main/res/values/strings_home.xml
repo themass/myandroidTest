@@ -13,4 +13,6 @@
     <string name="drawer_group_help">Help</string>
     <string name="drawer_group_more">More</string>
     <string name="drawer_group_account">Account</string>
+    <string name="drawer_group_common">Common</string>
+    <string name="drawer_group_test">Test</string>
 </resources>
