@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -308,7 +309,8 @@ fun VoiceBubble(
             .widthIn(min = minWidth)
             .combinedClickable(onClick = onClick, onLongClick = onLongPress),
     ) {
-        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
+        // 宽度取内容的最大固有宽度：分割线 fillMaxWidth 不再把气泡撑满限宽
+        Column(modifier = Modifier.width(IntrinsicSize.Max).padding(horizontal = 12.dp, vertical = 10.dp)) {
             // 语音行：播放 / 停止图标 + 声波 + 时长，整行可点
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(

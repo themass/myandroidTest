@@ -50,6 +50,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -58,6 +60,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.changedToUpIgnoreConsumed
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
@@ -119,6 +122,7 @@ internal fun VoicePressBar(
 ) {
     val colors = ChatKit.colors
     val haptic = LocalHapticFeedback.current
+    val context = LocalContext.current
     val thresholdPx = with(LocalDensity.current) { 80.dp.toPx() }
     // 手势协程以 style 为 key 只启动一次，里面要读最新的回调，所以用 rememberUpdatedState
     val currentStart by rememberUpdatedState(onStart)
@@ -141,7 +145,8 @@ internal fun VoicePressBar(
                         if (next != current) {
                             current = next
                             // 进入、离开某个去向都轻震一下，不用看屏幕也知道状态变了
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)  // 比 TextHandleMove 明显，切换时能感觉到
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            vibrateTick(context)
                             currentIntentChange(next)
                         }
                         if (change.changedToUpIgnoreConsumed()) break
@@ -349,24 +354,25 @@ private fun DrawScope.drawGlowSolid(level: Float) {
     val h = size.height
     val rectH = RippleGlowRectHeight.toPx()
     val rectTop = h - rectH
-    val radius = 0.65f * (w / 2f)
     val cx = w / 2f
-    drawRect(
-        // 矩形顶边渐隐进圆里，避免和圆相接处出现尖角
+    // 拱形：半圆顶（半径 = 半屏宽）与两侧竖边相切，没有尖角
+    val domeRadius = w / 2f
+    val arch = Path().apply {
+        moveTo(0f, h)
+        lineTo(0f, rectTop)
+        arcTo(Rect(0f, rectTop - domeRadius, w, rectTop + domeRadius), 180f, 180f, false)
+        lineTo(w, h)
+        close()
+    }
+    drawPath(
+        path = arch,
         brush = Brush.verticalGradient(
-            0f to Color.Transparent,
-            0.35f to GlowMid,
+            0f to GlowMid,
+            0.5f to GlowMid,
             1f to GlowCore,
-            startY = rectTop,
+            startY = rectTop - domeRadius,
             endY = h,
         ),
-        topLeft = Offset(0f, rectTop),
-        size = Size(w, rectH),
-    )
-    drawCircle(
-        brush = Brush.radialGradient(listOf(GlowCore, GlowMid), center = Offset(cx, rectTop), radius = radius),
-        radius = radius,
-        center = Offset(cx, rectTop),
     )
     drawCircle(
         color = GlowHighlight.copy(alpha = 0.35f + 0.4f * level),
@@ -487,4 +493,15 @@ private fun Modifier.overflowUpwards(height: Dp): Modifier = layout { measurable
     val h = height.roundToPx()
     val placeable = measurable.measure(Constraints.fixed(constraints.maxWidth, h))
     layout(placeable.width, 0) { placeable.place(0, -h) }
+}
+
+/** 切换状态时的一次明确震动（比 HapticFeedbackType.LongPress 更明显，设备上后者常常不震）。 */
+private fun vibrateTick(context: android.content.Context) {
+    val vibrator = if (android.os.Build.VERSION.SDK_INT >= 31) {
+        (context.getSystemService(android.os.VibratorManager::class.java))?.defaultVibrator
+    } else {
+        @Suppress("DEPRECATION")
+        context.getSystemService(android.os.Vibrator::class.java)
+    }
+    vibrator?.vibrate(android.os.VibrationEffect.createOneShot(30, android.os.VibrationEffect.DEFAULT_AMPLITUDE))
 }
