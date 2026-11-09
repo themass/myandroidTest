@@ -339,6 +339,7 @@ class ChatViewModel : ViewModel() {
             var failed = false
             var serverId: String? = null
             var serverUserId: String? = null
+            var errorUserId: String? = null
             var fullText: String? = null
 
             val reveal = launch {
@@ -377,6 +378,7 @@ class ChatViewModel : ViewModel() {
                             }
                             is ChatStreamEvent.Error -> {
                                 failed = true
+                                errorUserId = event.userMessageId
                                 _uiState.update { it.copy(error = event.message) }
                             }
                         }
@@ -415,7 +417,7 @@ class ChatViewModel : ViewModel() {
                     messages = current.messages.mapNotNull { m ->
                         when {
                             // 用户气泡：拿到正式 id 就直接替换（编辑、删除用它）
-                            m.id == userMessageId && serverUserId != null -> m.copy(id = serverUserId!!)
+                            m.id == userMessageId && (serverUserId ?: errorUserId) != null -> m.copy(id = (serverUserId ?: errorUserId)!!)
                             m.key != placeholder.key -> m
                             // 出错或空回复且一个字都没收到：撤掉占位气泡；已经有内容就保留
                             // 重新生成失败：恢复原来的回复，不能把用户已经看到的内容删掉
@@ -432,7 +434,7 @@ class ChatViewModel : ViewModel() {
                     },
                 )
             }
-            userMessageId?.let { setDelivery(serverUserId ?: it, if (failed || emptyReply) DeliveryStatus.FAILED else DeliveryStatus.SENT) }
+            userMessageId?.let { setDelivery(serverUserId ?: errorUserId ?: it, if (failed || emptyReply) DeliveryStatus.FAILED else DeliveryStatus.SENT) }
             // 正常路径靠 done 帧里的正式 id，不再每轮拉历史；只有缺 id（失败、没有 done 帧、空回复）时兜底拉一页
             if (syncAfter && (failed || serverId == null)) fallbackReloadMessages()
             if (startsNewSession) syncSessionsList()

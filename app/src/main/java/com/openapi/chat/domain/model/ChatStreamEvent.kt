@@ -20,6 +20,9 @@ sealed interface ChatStreamEvent {
      */
     data class Done(val assistantId: String?, val userId: String?, val fullText: String) : ChatStreamEvent
 
-    /** 请求失败或服务端在流中报错。 */
-    data class Error(val message: String) : ChatStreamEvent
+    /**
+     * 请求失败或服务端在流中报错。[userMessageId] 是服务端已保存的用户消息 id（错误帧带来时才有），
+     * 有它时重试直接用服务端 id，没有则退回到用本地 id 重发文字。
+     */
+    data class Error(val message: String, val userMessageId: String? = null) : ChatStreamEvent
 }

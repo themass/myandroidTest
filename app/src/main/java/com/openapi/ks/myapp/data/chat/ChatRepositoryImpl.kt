@@ -343,7 +343,8 @@ class ChatRepositoryImpl(
                             val done = chunk.optBoolean("done", false)
                             val error = chunk.optString("error", null)
                             if (error != null) {
-                                trySend(ChatStreamEvent.Error(error))
+                                val errUserId = chunk.optLong("userMessageId", 0L).takeIf { it > 0 }?.toString()
+                                trySend(ChatStreamEvent.Error(error, errUserId))
                                 close()
                                 return
                             }
