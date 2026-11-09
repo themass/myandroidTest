@@ -56,6 +56,7 @@ public class MyApplication extends MultiDexApplication {
         LogUtil.e("isDebug=" + isDebug);
         instance = this;
         AppHooks.install(new AppHooksImpl());
+        com.openapi.core.app.AppContext.init(this);
 
         StaticDataUtil.add(CommonConstants.APPLICATION,instance);
         ToastUtil.mContext = instance;

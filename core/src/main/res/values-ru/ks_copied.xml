@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="version_low">Версия слишком старая, обновите!</string>
+    <string name="video">Видео</string>
+    <string name="about_version_update_to_date">У вас последняя версия</string>
+    <string name="about_version_download">Скачать сейчас</string>
+    <string name="about_version_download_title">Обнаружена новая версия</string>
+    <string name="about_download_begin">Начало загрузки</string>
+    <string name="about_download_confirm_content">Вы используете не Wi-Fi сеть. Продолжение загрузки может потреблять значительный трафик. Продолжить?</string>
+    <string name="custome_ok">Добавлено успешно</string>
+    <string name="about_download_confirm_title">Подтвердить загрузку</string>
+    <string name="about_version_confirm">Подтвердить</string>
+    <string name="about_download_percent">Загрузка %1$s/%2$s</string>
+    <string name="load">Загрузка, пожалуйста, подождите.</string>
+    <string name="about_download_prepare">Подготовка к загрузке</string>
+    <string name="about_download_finish">Загрузка завершена</string>
+    <string name="about_version_cancel">Отмена</string>
+    <string name="about_download_title">Загрузка Freedom</string>
+    <string name="about_download_error">Ошибка загрузки файла</string>
+</resources>
