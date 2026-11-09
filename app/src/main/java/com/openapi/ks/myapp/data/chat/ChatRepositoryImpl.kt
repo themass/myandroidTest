@@ -333,6 +333,14 @@ class ChatRepositoryImpl(
                                     close()
                                     return
                                 }
+                                // 错误帧：{"error":"...","done":true,"userMessageId":N,"assistantMessageId":0}
+                                val frameError = body?.optString("error", "").orEmpty()
+                                if (frameError.isNotBlank()) {
+                                    val errUserId = body!!.optLong("userMessageId", 0L).takeIf { it > 0 }?.toString()
+                                    trySend(ChatStreamEvent.Error(frameError, errUserId))
+                                    close()
+                                    return
+                                }
                             }
                             if (!line.startsWith("data:")) continue
                             val payload = line.removePrefix("data:").trim()
