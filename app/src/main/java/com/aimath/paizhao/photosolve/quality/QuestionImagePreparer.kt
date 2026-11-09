@@ -50,7 +50,7 @@ class QuestionImagePreparer(private val registry: CropAssistRegistry) {
     private data class Detection(val norm: CropNorm, val detector: String)
 
     private suspend fun detect(source: Bitmap): Detection? {
-        val providers = listOf(registry.docQuadNet, registry.companyMnn, registry.openCv)
+        val providers = listOf(registry.docQuadNet)
         for (provider in providers) {
             if (!provider.isAvailable()) continue
             val suggestion = provider.suggest(source) as? CropAssistResult.SuggestedBox ?: continue

@@ -7,12 +7,10 @@ class CropAssistRegistry(context: Context) {
     private val appContext = context.applicationContext
 
     val manual: CropAssistProvider = ManualCropAssistProvider()
-    val openCv: CropAssistProvider = OpenCvCropAssistProvider()
+    /** 自动框只保留 DocQuadNet（A27）；手动框选作为兜底。 */
     val docQuadNet: CropAssistProvider = DocQuadNetCropAssistProvider(appContext)
-    val companyMnn: CropAssistProvider = CompanyMnnCropAssistProvider(appContext)
 
-    /** All providers that can return a suggested box (i.e. everything except ML Kit's whole-flow scan). */
-    val all: List<CropAssistProvider> = listOf(manual, openCv, docQuadNet, companyMnn)
+    val all: List<CropAssistProvider> = listOf(manual, docQuadNet)
 
     fun byId(id: String): CropAssistProvider = all.firstOrNull { it.id == id } ?: manual
 }
