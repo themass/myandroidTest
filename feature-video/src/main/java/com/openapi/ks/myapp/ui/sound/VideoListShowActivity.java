@@ -13,7 +13,7 @@ import android.widget.FrameLayout;
 
 import com.openapi.core.util.LogUtil;
 import com.openapi.core.util.PreferenceUtils;
-import com.openapi.ks.chat.R;
+import com.openapi.feature.video.R;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.ui.base.features.BasePullLoadbleFragment;
 import com.openapi.ks.myapp.ui.fragment.AutoVideoListFragment;

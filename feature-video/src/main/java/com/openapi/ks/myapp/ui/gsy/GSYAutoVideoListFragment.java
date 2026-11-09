@@ -13,7 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.openapi.core.util.LogUtil;
-import com.openapi.ks.chat.R;
+import com.openapi.feature.video.R;
 import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.openapi.core.net.request.InfoListVo;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="player_more_decoder_settings">解码与内核设置</string>
+    <string name="video_playback_retry_other_engine">「%1$s」无法播放，已临时改用「%2$s」自动重试（未改设置里的内核）</string>
+    <string name="player_speed_applied">已设为 %1$s</string>
+    <string name="cast_load_failed">投屏加载失败</string>
+    <string name="video">视频体验</string>
+    <string name="load">正在加载,请等待。</string>
+    <string name="video_playback_retry_action">重试</string>
+    <string name="video_playback_failed_retry">播放失败，可点击重试</string>
+    <string name="video_playback_failed">播放失败</string>
+    <string name="cast_need_http_url">投屏仅支持 http/https 网络地址</string>
+    <string name="player_gesture_hint">横向滑动可快进/快退；左侧上下调亮度，右侧调音量；双击可暂停。</string>
+    <string name="cast_url_not_ready">视频地址未就绪，请稍后再试</string>
+    <string name="player_more_speed_title">播放速度</string>
+    <string name="player_more_menu">更多选项</string>
+</resources>

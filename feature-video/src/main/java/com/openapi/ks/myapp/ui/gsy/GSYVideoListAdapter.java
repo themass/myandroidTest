@@ -11,7 +11,7 @@ import androidx.compose.ui.platform.ComposeView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.openapi.ks.chat.R;
+import com.openapi.feature.video.R;
 import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.data.VideoUtil;

@@ -18,7 +18,7 @@ import com.openapi.core.view.view.MyFavoriteView;
 import com.openapi.core.util.LogUtil;
 import com.openapi.core.util.ToastUtil;
 import com.openapi.core.net.request.CommonResponse;
-import com.openapi.ks.chat.R;
+import com.openapi.feature.video.R;
 import com.openapi.core.event.FavoriteVo;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.constant.Constants;
@@ -31,7 +31,7 @@ import com.openapi.ks.myapp.translation.realtime.RealtimeSubtitleBindings;
 import com.openapi.ks.myapp.translation.realtime.VideoRealtimeSubtitleSession;
 import com.shuyu.gsyvideoplayer.GSYVideoManager;
 import com.shuyu.gsyvideoplayer.utils.OrientationUtils;
-import com.openapi.ks.chat.databinding.LayoutVideoShowBinding;
+import com.openapi.feature.video.databinding.LayoutVideoShowBinding;
 
 
 /**

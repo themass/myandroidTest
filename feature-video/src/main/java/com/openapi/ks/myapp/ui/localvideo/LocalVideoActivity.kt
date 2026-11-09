@@ -58,7 +58,7 @@ import com.openapi.core.design.theme.AppColors
 import com.openapi.core.design.theme.AppMaterialTheme
 import com.openapi.core.permission.Permissions
 import com.openapi.core.util.ToastUtil
-import com.openapi.ks.chat.R
+import com.openapi.feature.video.R
 import com.openapi.ks.myapp.bean.vo.RecommendVo
 import com.openapi.ks.myapp.constant.Constants
 import com.openapi.ks.myapp.ui.sound.VideoShowActivityLazyUrl

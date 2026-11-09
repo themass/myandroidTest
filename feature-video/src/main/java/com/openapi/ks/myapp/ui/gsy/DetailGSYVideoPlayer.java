@@ -30,11 +30,11 @@ import com.openapi.core.util.LogUtil;
 import com.openapi.core.util.ToastUtil;
 import com.openapi.core.view.view.MyFavoriteView;
 
-import com.openapi.ks.chat.R;
+import com.openapi.feature.video.R;
 import com.openapi.ks.myapp.cast.CastFrameworkUtil;
 import com.openapi.ks.myapp.data.ImagePhotoLoad;
 import com.openapi.ks.myapp.ui.sound.VideoPlaybackUiHelper;
-import com.openapi.ks.myapp.ui.user.SettingActivity;
+
 import com.openapi.ks.myapp.video.PlaybackEngineHelper;
 import com.shuyu.gsyvideoplayer.GSYVideoManager;
 import com.shuyu.gsyvideoplayer.utils.CommonUtil;
@@ -316,7 +316,7 @@ public class DetailGSYVideoPlayer extends StandardGSYVideoPlayer {
         }
         decoderRow.setOnClickListener(v -> {
             dlg.dismiss();
-            getContext().startActivity(new Intent(getContext(), SettingActivity.class));
+            com.openapi.core.app.AppHooks.get().openSetting(getContext());
         });
         speedBox.addView(decoderRow, new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
