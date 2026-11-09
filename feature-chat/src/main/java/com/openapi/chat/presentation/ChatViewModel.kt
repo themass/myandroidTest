@@ -405,6 +405,8 @@ class ChatViewModel : ViewModel() {
                 if (startsNewSession) viewModelScope.launch { syncSessionsList() }
                 throw e
             } catch (e: Exception) {
+                // 记日志：文字发送偶发失败时，能从 logcat 看到真实原因（之前无法复现原因）
+                android.util.Log.w("ChatViewModel", "stream reply failed", e)
                 failed = true
                 _uiState.update { it.copy(error = e.message) }
             }
