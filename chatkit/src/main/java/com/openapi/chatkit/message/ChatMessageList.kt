@@ -133,8 +133,9 @@ fun ChatMessageList(
         if (following && last != null) state.scrollBy(BOTTOM_SCROLL)
     }
     // 键盘弹出或收起：列表高度变了，如果原来在底部就保持贴底，否则最后几条会被键盘和输入栏盖住
-    val imeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
-    LaunchedEffect(imeVisible) {
+    // 用键盘高度本身作为 key：键盘动画的每一帧都会重新贴底，等布局稳定后也不会留下被盖住的尾部
+    val imeBottom = WindowInsets.ime.getBottom(LocalDensity.current)
+    LaunchedEffect(imeBottom) {
         if (following && last != null) {
             state.scrollToItem(items.lastIndex)
             state.scrollBy(BOTTOM_SCROLL)

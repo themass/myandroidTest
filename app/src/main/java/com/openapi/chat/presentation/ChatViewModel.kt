@@ -418,13 +418,18 @@ class ChatViewModel : ViewModel() {
                             m.id == userMessageId && serverUserId != null -> m.copy(id = serverUserId!!)
                             m.key != placeholder.key -> m
                             // 出错或空回复且一个字都没收到：撤掉占位气泡；已经有内容就保留
-                            (failed || emptyReply) && m.text.isEmpty() -> null
+                            // 重新生成失败：恢复原来的回复，不能把用户已经看到的内容删掉
+                            (failed || emptyReply) && m.text.isEmpty() -> existing?.copy(pending = false)
                             else -> m.copy(id = serverId ?: m.id, text = fullText ?: m.text, pending = false)
                         }
                     },
                     sending = false,
                     streaming = false,
-                    error = if (emptyReply) "没有收到回复，请重试" else current.error,
+                    error = when {
+                        emptyReply -> "没有收到回复，请重试"
+                        failed -> current.error ?: "回复失败，请重试"
+                        else -> current.error
+                    },
                 )
             }
             userMessageId?.let { setDelivery(serverUserId ?: it, if (failed || emptyReply) DeliveryStatus.FAILED else DeliveryStatus.SENT) }
