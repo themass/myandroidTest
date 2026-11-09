@@ -696,6 +696,8 @@ class ChatViewModel : ViewModel() {
             }
             // 服务端全部删除成功 = 会话已经是空的：本地列表直接清空，不依赖 id 能否对上
             if (failed == 0) {
+                // 本地数据库里还留着助手回复（服务端历史只返回了用户消息），这里一并清掉，否则刷新时会被读回来
+                repository.clearLocalMessages(sessionId)
                 _uiState.update { it.copy(messages = emptyList(), hasMoreHistory = false) }
             } else {
                 _uiState.update { it.copy(messages = it.messages.filterNot { m -> m.id in removed }) }

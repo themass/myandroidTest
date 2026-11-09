@@ -459,6 +459,11 @@ class ChatRepositoryImpl(
         ) != null
     }
 
+    override suspend fun clearLocalMessages(sessionId: Long) {
+        if (sessionId <= 0) return
+        withContext(Dispatchers.IO) { AppDatabase.getInstance().chatLogDao().deleteBySession(sessionId) }
+    }
+
     override suspend fun deleteMessage(sessionId: Long, messageId: String): Boolean {
         val id = messageId.toLongOrNull() ?: return false
         if (sessionId <= 0) return false

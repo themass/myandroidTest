@@ -73,6 +73,9 @@ interface ChatRepository {
      * 删除一条消息。成功后再删除本地缓存。
      * [messageId] 必须是服务端消息 id；失败返回 false，本地保留该消息。
      */
+    /** 只清本地缓存里该会话的消息（服务端已清空后调用）。 */
+    suspend fun clearLocalMessages(sessionId: Long)
+
     suspend fun deleteMessage(sessionId: Long, messageId: String): Boolean
 
     /** 当前会话 id，来自 SP（Constants.CHAT_SESSION）。0 表示还没有会话。 */
