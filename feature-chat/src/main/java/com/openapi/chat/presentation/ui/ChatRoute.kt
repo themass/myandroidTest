@@ -43,7 +43,7 @@ import com.openapi.core.media.AudioPlayer
 import com.openapi.core.permission.PermissionRequester
 import com.openapi.core.permission.PermissionStates
 import com.openapi.core.permission.Permissions
-import com.openapi.ks.chat.R
+import com.openapi.feature.chat.R
 
 /**
  * 对话界面的完整装配：ViewModel、权限、选择器、平台能力（复制、分享、打开文件）。
@@ -106,7 +106,11 @@ fun ChatRoute(
             if (requireLogin(context)) filePicker.launch(arrayOf("*/*"))
         },
         ComposerAction("photo_solve", context.getString(R.string.chat_attach_photo_solve), Icons.Outlined.Calculate) {
-            com.aimath.paizhao.PhotoSolveActivity.start(context)
+            // 拍照解题仍在 :app（com.aimath.paizhao），这里用显式组件名启动，避免 :feature-chat 依赖 :app。
+            // TODO: photosolve 拆成独立模块后改为直接调用其入口。
+            context.startActivity(
+                android.content.Intent().setClassName(context.packageName, "com.aimath.paizhao.PhotoSolveActivity"),
+            )
         },
         ComposerAction("video", context.getString(R.string.chat_attach_video), Icons.Outlined.Videocam) {
             toast(R.string.chat_video_soon)

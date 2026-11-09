@@ -9,7 +9,7 @@ import androidx.core.content.ContextCompat;
 
 import com.openapi.core.util.DensityUtil;
 import com.openapi.core.util.LogUtil;
-import com.openapi.ks.chat.R;
+import com.openapi.feature.chat.R;
 import com.openapi.ks.myapp.view.katexplugin.MyJLatexMathPlugin;
 
 import io.noties.markwon.Markwon;
