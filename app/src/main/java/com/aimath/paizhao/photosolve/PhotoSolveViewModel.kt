@@ -110,9 +110,27 @@ class PhotoSolveViewModel(application: Application) : AndroidViewModel(applicati
 
         result.onSuccess { solved ->
             _uiState.update { it.copy(step = PhotoSolveStep.Result, result = solved) }
-        }.onFailure {
-            _uiState.update { it.copy(step = PhotoSolveStep.Crop, errorMessage = "识别失败,请重试") }
+        }.onFailure { e ->
+            val code = (e as? PhotoSolveException)?.code
+            when (code) {
+                // 图片不清晰：弹窗给出「建议重拍」和「仍然提交」（复用模糊提示弹窗）
+                40001 -> _uiState.update {
+                    it.copy(
+                        step = PhotoSolveStep.Crop,
+                        qualityWarning = QualityWarning(cropped, listOf(com.aimath.paizhao.photosolve.quality.QualityIssue.BLURRY)),
+                    )
+                }
+                40002 -> _uiState.update { it.copy(step = PhotoSolveStep.Crop, errorMessage = "未识别到题目，请重新框选") }
+                40003 -> _uiState.update { it.copy(step = PhotoSolveStep.Crop, errorMessage = "图片过大或格式不支持，请换一张图片") }
+                42901 -> _uiState.update { it.copy(step = PhotoSolveStep.Crop, errorMessage = "今日识别额度已用完") }
+                50001 -> _uiState.update { it.copy(step = PhotoSolveStep.Crop, errorMessage = "识别服务暂时不可用，请重试") }
+                else -> _uiState.update { it.copy(step = PhotoSolveStep.Crop, errorMessage = "识别失败,请重试") }
+            }
         }
+    }
+
+    fun onDismissError() {
+        _uiState.update { it.copy(errorMessage = null) }
     }
 
     fun onRetake() {

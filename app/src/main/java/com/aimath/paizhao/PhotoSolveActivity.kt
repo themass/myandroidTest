@@ -16,8 +16,11 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -229,6 +232,17 @@ private fun PhotoSolveApp(
                 )
             }
         }
+    }
+
+    // 识别失败（40002/40003/42901/50001）：统一用一个提示弹窗，点确定关闭，回到裁剪页
+    uiState.errorMessage?.let { message ->
+        AlertDialog(
+            onDismissRequest = viewModel::onDismissError,
+            text = { Text(message) },
+            confirmButton = {
+                TextButton(onClick = viewModel::onDismissError) { Text("知道了") }
+            },
+        )
     }
 
     uiState.qualityWarning?.let { warning ->

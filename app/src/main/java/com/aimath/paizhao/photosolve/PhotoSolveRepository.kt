@@ -14,6 +14,9 @@ interface PhotoSolveRepository {
     suspend fun solve(image: Bitmap): PhotoSolveResult
 }
 
+/** 服务端错误码（见 docs photo-solve-api）：40001 不清晰、40002 不是题目、40003 图片过大或格式不支持、42901 额度用完、50001 模型服务失败。 */
+class PhotoSolveException(val code: Int, message: String) : Exception(message)
+
 /** Mocked implementation: simulates upload/recognition latency and returns a canned worked problem. */
 class MockPhotoSolveRepository : PhotoSolveRepository {
 
@@ -40,8 +43,18 @@ class MockPhotoSolveRepository : PhotoSolveRepository {
         ),
     )
 
+    /**
+     * 按顺序轮流返回：成功、40001、40002、40003、42901、50001。
+     * 这样点几次「拍照解题」就能把每条错误分支都走一遍（A29）。
+     */
+    private val script: List<Int?> = listOf(null, 40001, 40002, 40003, 42901, 50001)
+    private var step = 0
+
     override suspend fun solve(image: Bitmap): PhotoSolveResult {
         delay(1500)
+        val code = script[step % script.size]
+        step++
+        if (code != null) throw PhotoSolveException(code, "mock error $code")
         return sampleResults.random()
     }
 }
