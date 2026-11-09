@@ -3,6 +3,8 @@ package com.openapi.chatkit.message
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.fadeIn
@@ -75,41 +77,42 @@ fun AssistantFooter(
     var expanded by rememberSaveable(item.id) { mutableStateOf(false) }
     Column(modifier.padding(top = 11.dp)) {
         Box(Modifier.fillMaxWidth().height(1.dp).background(ChatKit.colors.divider))
-        Spacer(Modifier.height(8.dp))
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+        Spacer(Modifier.height(11.dp))
+        // 收纳盒：盒子在左边；点它，按钮从盒子右边横向一排展开；再点，收回到盒子里
+        Row(verticalAlignment = Alignment.CenterVertically) {
             AssistantChip(Icons.Outlined.Archive, stringResource(R.string.chatkit_more)) { expanded = !expanded }
-        }
-        AnimatedVisibility(
-            visible = expanded,
-            enter = expandVertically() + fadeIn(),
-            exit = shrinkVertically() + fadeOut(),
-        ) {
-            Row(
-                modifier = Modifier.padding(top = 8.dp).horizontalScroll(rememberScrollState()),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(AssistantChipGap),
+            AnimatedVisibility(
+                visible = expanded,
+                enter = expandHorizontally(expandFrom = Alignment.Start) + fadeIn(),
+                exit = shrinkHorizontally(shrinkTowards = Alignment.Start) + fadeOut(),
             ) {
-                if (hasText) {
-                    AssistantChip(Icons.Outlined.ContentCopy, stringResource(R.string.chatkit_copy)) { onAction(MessageAction.Copy) }
+                Row(
+                    modifier = Modifier.padding(start = AssistantChipGap).horizontalScroll(rememberScrollState()),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(AssistantChipGap),
+                ) {
+                    if (hasText) {
+                        AssistantChip(Icons.Outlined.ContentCopy, stringResource(R.string.chatkit_copy)) { onAction(MessageAction.Copy) }
+                        AssistantChip(
+                            icon = if (item.speaking) Icons.AutoMirrored.Filled.VolumeUp else Icons.AutoMirrored.Outlined.VolumeUp,
+                            description = stringResource(if (item.speaking) R.string.chatkit_speaking else R.string.chatkit_speak),
+                        ) { onAction(MessageAction.Speak) }
+                    }
                     AssistantChip(
-                        icon = if (item.speaking) Icons.AutoMirrored.Filled.VolumeUp else Icons.AutoMirrored.Outlined.VolumeUp,
-                        description = stringResource(if (item.speaking) R.string.chatkit_speaking else R.string.chatkit_speak),
-                    ) { onAction(MessageAction.Speak) }
-                }
-                AssistantChip(
-                    icon = if (item.reaction == Reaction.Like) Icons.Filled.ThumbUp else Icons.Outlined.ThumbUp,
-                    description = stringResource(R.string.chatkit_like),
-                ) { onAction(MessageAction.Like) }
-                AssistantChip(
-                    icon = if (item.reaction == Reaction.Dislike) Icons.Filled.ThumbDown else Icons.Outlined.ThumbDown,
-                    description = stringResource(R.string.chatkit_dislike),
-                ) { onAction(MessageAction.Dislike) }
-                if (hasText) {
-                    AssistantChip(Icons.Outlined.Share, stringResource(R.string.chatkit_share)) { onAction(MessageAction.Share) }
-                }
-                AssistantChip(Icons.Outlined.Delete, stringResource(R.string.chatkit_delete)) { onAction(MessageAction.Delete) }
-                if (isLatest) {
-                    AssistantChip(Icons.Outlined.Refresh, stringResource(R.string.chatkit_regenerate)) { onAction(MessageAction.Regenerate) }
+                        icon = if (item.reaction == Reaction.Like) Icons.Filled.ThumbUp else Icons.Outlined.ThumbUp,
+                        description = stringResource(R.string.chatkit_like),
+                    ) { onAction(MessageAction.Like) }
+                    AssistantChip(
+                        icon = if (item.reaction == Reaction.Dislike) Icons.Filled.ThumbDown else Icons.Outlined.ThumbDown,
+                        description = stringResource(R.string.chatkit_dislike),
+                    ) { onAction(MessageAction.Dislike) }
+                    if (hasText) {
+                        AssistantChip(Icons.Outlined.Share, stringResource(R.string.chatkit_share)) { onAction(MessageAction.Share) }
+                    }
+                    AssistantChip(Icons.Outlined.Delete, stringResource(R.string.chatkit_delete)) { onAction(MessageAction.Delete) }
+                    if (isLatest) {
+                        AssistantChip(Icons.Outlined.Refresh, stringResource(R.string.chatkit_regenerate)) { onAction(MessageAction.Regenerate) }
+                    }
                 }
             }
         }
