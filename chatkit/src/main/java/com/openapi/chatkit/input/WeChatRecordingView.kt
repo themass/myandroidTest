@@ -18,17 +18,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.StrokeJoin
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.math.pow
 
 /** 微信式录音的三种松手去向。 */
 enum class WeChatIntent { Send, Cancel, ToText }
@@ -162,37 +161,33 @@ private fun Bubble(bubble: Color, bars: Color, levels: List<Float>, liveText: St
 }
 
 /**
- * 心电图式声波：一条从右往左滚动的折线。每来一个新的音量采样，它就从右边进来、整条线向左推一格；
- * 振幅跟随音量（没声音时是一条平线）。采样不足时左边补平线，所以刚开始录音时波形从右边长出来。
+ * 声波（设计已确认，见 docs/design/voice-wave-preview.html）：
+ * 竖条位置固定，横向不移动；每个采样更新一次高度。
+ * - 静默：每根条一个很小的不规则抖动（幅度约 14%~17%）。
+ * - 有声音：音量越大越高，每根条的高度有差别（不是整齐一排）。
  */
 @Composable
 private fun Waveform(levels: List<Float>, color: Color, modifier: Modifier) {
     Canvas(modifier = modifier) {
-        val samples = 48
-        val recent = if (levels.size >= samples) levels.takeLast(samples) else List(samples - levels.size) { 0f } + levels
-        val centerY = size.height / 2f
-        val half = centerY * 0.92f
-        val step = size.width / (samples - 1)
-        // 基线（静音时的平线，淡一点）
-        drawLine(
-            color.copy(alpha = 0.25f),
-            start = Offset(0f, centerY),
-            end = Offset(size.width, centerY),
-            strokeWidth = 1.dp.toPx(),
-        )
-        // 折线：上下交替，像心电图的尖峰；尖峰高度 = 音量
-        val path = Path()
-        recent.forEachIndexed { i, level ->
-            val amp = (level.coerceIn(0f, 1f) * 1.6f).coerceAtMost(1f)
-            val sign = if (i % 2 == 0) -1f else 1f
-            val x = i * step
-            val y = centerY + sign * amp * half
-            if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
+        val bars = 36
+        val barW = 2.5.dp.toPx()
+        val step = size.width / bars
+        val level = (levels.lastOrNull() ?: 0f).coerceIn(0f, 1f)
+        val loudBase = level.pow(0.35f) * 1.15f
+        val seed = levels.size
+        for (i in 0 until bars) {
+            val idle = 0.14f + hash01(seed * 31 + i) * 0.03f
+            val amp = if (level <= 0f) idle else maxOf(idle, (loudBase * (0.4f + 0.6f * hash01(seed * 17 + i))).coerceAtMost(1f))
+            val h = size.height * amp.coerceIn(0f, 1f)
+            val x = i * step + (step - barW) / 2f
+            val y = (size.height - h) / 2f
+            drawRoundRect(color, topLeft = Offset(x, y), size = Size(barW, h), cornerRadius = CornerRadius(barW / 2f))
         }
-        drawPath(
-            path,
-            color = color,
-            style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round),
-        )
     }
+}
+
+/** 确定性的伪随机，取值 [0, 1)：同样的输入得到同样的高度，不同条之间互不相同。 */
+private fun hash01(n: Int): Float {
+    val x = n * 1103515245 + 12345
+    return ((x ushr 8) and 0xFFFF) / 65536f
 }

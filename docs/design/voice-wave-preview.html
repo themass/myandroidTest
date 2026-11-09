@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>录音声波设计预览</title>
+<style>
+  body { margin: 0; background: #1b1b1b; font-family: system-ui, sans-serif; color: #ddd; }
+  .stage { display: flex; flex-direction: column; align-items: center; gap: 18px; padding: 28px 16px; }
+  .bubble {
+    width: 330px; height: 48px; border-radius: 10px; background: #95EC69;
+    display: flex; align-items: center; justify-content: center; position: relative;
+  }
+  .bubble::after {
+    content: ""; position: absolute; left: 50%; bottom: -8px; transform: translateX(-50%);
+    border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 8px solid #95EC69;
+  }
+  canvas { display: block; }
+  .row { display: flex; gap: 10px; }
+  button { padding: 8px 14px; border-radius: 8px; border: 0; background: #333; color: #eee; font-size: 14px; }
+  button.on { background: #07C160; }
+  .note { font-size: 13px; color: #999; max-width: 340px; line-height: 1.6; }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="bubble"><canvas id="wave" width="290" height="30"></canvas></div>
+  <div class="row">
+    <button id="silent" class="on">静默</button>
+    <button id="talk">说话</button>
+    <button id="loud">大声</button>
+  </div>
+  <div class="note">
+    设计规则：竖条样式保留（圆角、等宽、间距一致）；声波从右往左持续滚动，新采样从右边进入；
+    静默时保持小幅起伏（一条慢速的波沿着条往左走）；有声音时振幅随音量变大；不画细线。
+  </div>
+</div>
+<script>
+// ---- 参数（与 Compose 实现保持一致） ----
+const BARS = 36;            // 竖条数量
+const BAR_W = 2.5;          // 竖条宽（更细）
+const GAP = 3;              // 间距
+const MAX_H = 30;           // 画布高
+const IDLE_BASE = 0.14;     // 静默基线高度（占最大高度的比例）
+const IDLE_RIPPLE = 0.07;   // 静默起伏幅度
+const SAMPLE_MS = 150;      // 音量采样间隔：每 150ms 进一个新采样（慢速滚动）
+const ATTACK = 0.55;        // 变高的速度（快）
+const RELEASE = 0.22;       // 变矮的速度（慢，避免闪烁）
+
+const canvas = document.getElementById('wave');
+const ctx = canvas.getContext('2d');
+let mode = 'silent';
+const modeTarget = { silent: 0, talk: 0.45, loud: 0.9 };
+let hist = new Array(BARS).fill(0);   // 历史采样（最新在右）
+const jitter = new Array(BARS).fill(0); // 静默时每根条的不规则抖动
+let lastSample = performance.now();
+let smoothing = 0;
+
+function nextLevel() {
+  // 模拟音量：每个采样独立随机，说话时有明显的高低差（不是整体一样高）
+  const target = modeTarget[mode];
+  if (target === 0) return 0;
+  // 随机峰谷：大部分时间中等，偶尔冲高，偶尔接近安静
+  const r = Math.random();
+  const spread = r < 0.2 ? 0.15 : r < 0.75 ? 0.6 : 1.0;
+  return Math.min(1, target * spread * (0.8 + 0.4 * Math.random()));
+}
+
+function heightFor(level, idx, now) {
+  // 静默：每根条独立的不规则小幅抖动（不再是整齐的波），幅度很小
+  jitter[idx] += (Math.random() * 0.03 - jitter[idx]) * 0.25;
+  const idle = IDLE_BASE + jitter[idx];
+  // 有声音：音量映射到高度，幅度更大，小音量也会明显变高
+  const loud = Math.min(1, Math.pow(level, 0.35) * 1.15);
+  return Math.min(1, Math.max(idle, loud));
+}
+
+function draw(now) {
+  // 按采样间隔推进历史，同时做 attack/release 平滑
+  if (now - lastSample >= SAMPLE_MS) {
+    lastSample = now;
+    for (let i = 0; i < BARS; i++) hist[i] = nextLevel();   // 每根条原地变化，不整体左移
+  }
+  // 连续滚动：当前采样之间的小数进度，让竖条每帧都在左移
+  const progress = 0;   // 不做横向滚动
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#2E3A2E';
+  const span = BAR_W + GAP;
+  for (let i = 0; i < BARS; i++) {
+    const level = hist[i];
+    const h = heightFor(level, i, now) * MAX_H;
+    const x = canvas.width - (BARS - i - progress) * span;   // 竖条位置固定
+    const y = (MAX_H - h) / 2;
+    roundRect(ctx, x, y, BAR_W, h, BAR_W / 2);
+    ctx.fill();
+  }
+  requestAnimationFrame(draw);
+}
+
+function roundRect(c, x, y, w, h, r) {
+  c.beginPath();
+  c.moveTo(x + r, y);
+  c.arcTo(x + w, y, x + w, y + h, r);
+  c.arcTo(x + w, y + h, x, y + h, r);
+  c.arcTo(x, y + h, x, y, r);
+  c.arcTo(x, y, x + w, y, r);
+  c.closePath();
+}
+
+for (const id of ['silent', 'talk', 'loud']) {
+  document.getElementById(id).addEventListener('click', (e) => {
+    mode = id;
+    document.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === e.target));
+  });
+}
+requestAnimationFrame(draw);
+</script>
+</body>
+</html>
