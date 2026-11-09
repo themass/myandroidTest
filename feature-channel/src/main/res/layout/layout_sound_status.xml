@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/music_status"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_sound_bar"
+    android:elevation="12dp"
+    android:orientation="vertical"
+    android:paddingStart="16dp"
+    android:paddingTop="14dp"
+    android:paddingEnd="16dp"
+    android:paddingBottom="12dp">
+
+    <RelativeLayout
+        android:id="@+id/rl_content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="40dp">
+
+        <com.openapi.core.view.view.MarqueeTextView
+            android:id="@+id/tv_play_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_toStartOf="@+id/ll_play_status"
+            android:layout_marginEnd="12dp"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:contentDescription="@string/sound_open_player_detail"
+            android:ellipsize="marquee"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:scrollHorizontally="true"
+            android:singleLine="true"
+            android:text="@string/no_select"
+            android:textColor="#ECEFF4"
+            android:textSize="15sp"
+            tools:text="Track title" />
+
+        <LinearLayout
+            android:id="@+id/ll_play_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/iv_play_mode"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginEnd="2dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/sound_play_mode_cycle"
+                android:padding="8dp"
+                android:src="@drawable/ic_play_mode_order" />
+
+            <ImageView
+                android:id="@+id/iv_pre"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/sound_prev"
+                android:padding="10dp"
+                android:src="@drawable/ic_music_skip_previous" />
+
+            <ImageView
+                android:id="@+id/iv_play"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/sound_play_pause"
+                android:padding="12dp"
+                android:src="@drawable/ic_music_play_filled" />
+
+            <ImageView
+                android:id="@+id/iv_next"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/sound_next"
+                android:padding="10dp"
+                android:src="@drawable/ic_music_skip_next" />
+        </LinearLayout>
+    </RelativeLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="42dp">
+
+            <TextView
+                android:id="@+id/time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:textAppearance="@style/TextAppearance.AppCompat.Caption"
+                android:textColor="#9AA3B2"
+                android:textSize="11sp"
+                android:visibility="visible"
+                tools:text="00:00" />
+
+            <ProgressBar
+                android:id="@+id/pb_loading"
+                android:layout_width="@dimen/margin_40"
+                android:layout_height="@dimen/margin_15"
+                android:layout_gravity="center_vertical"
+                android:visibility="gone" />
+        </FrameLayout>
+
+        <SeekBar
+            android:id="@+id/progress"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:maxHeight="4dp"
+            android:minHeight="4dp"
+            android:progressDrawable="@drawable/sound_seekbar_bg_modern"
+            android:splitTrack="false"
+            android:thumb="@drawable/iconfont_yuan"
+            android:thumbOffset="0dp" />
+
+        <TextView
+            android:id="@+id/duration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="42dp"
+            android:gravity="end"
+            android:textAppearance="@style/TextAppearance.AppCompat.Caption"
+            android:textColor="#9AA3B2"
+            android:textSize="11sp"
+            tools:text="04:30" />
+    </LinearLayout>
+</LinearLayout>

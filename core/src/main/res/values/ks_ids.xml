@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item type="id" name="content"/>
+    <item type="id" name="ct_bar"/>
+    <item type="id" name="fab_up"/>
+    <item type="id" name="fl_body"/>
+    <item type="id" name="fl_content"/>
+    <item type="id" name="fl_header"/>
+    <item type="id" name="fragment"/>
+    <item type="id" name="iv_menu"/>
+    <item type="id" name="load_retry"/>
+    <item type="id" name="loading"/>
+    <item type="id" name="menu_bar_setting"/>
+    <item type="id" name="menu_browser"/>
+    <item type="id" name="menu_favorite"/>
+    <item type="id" name="menu_one"/>
+    <item type="id" name="menu_url"/>
+    <item type="id" name="my_pullview"/>
+    <item type="id" name="searchView"/>
+    <item type="id" name="tag_pos"/>
+    <item type="id" name="tag_val"/>
+    <item type="id" name="toolbar"/>
+    <item type="id" name="tv_retry"/>
+    <item type="id" name="video_full_container"/>
+</resources>

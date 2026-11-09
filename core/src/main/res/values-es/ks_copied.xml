@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="version_low">¡la versión es demasiado baja!</string>
+    <string name="video">Video sexual</string>
+    <string name="about_version_update_to_date">Es la última versión</string>
+    <string name="about_version_download">Descargar</string>
+    <string name="about_version_download_title">Descubrir nueva versión</string>
+    <string name="about_download_begin">Iniciar descarga</string>
+    <string name="about_download_confirm_content">
+Actualmente está usando una red que no es WiFi, continuar con la descarga puede consumir más tráfico de red, ¿desea continuar con la descarga?</string>
+    <string name="custome_ok">Añadido correctamente</string>
+    <string name="about_download_confirm_title">Confirmar descarga</string>
+    <string name="about_version_confirm">Confirmar</string>
+    <string name="about_download_percent">Descargando %1$s/%2$s</string>
+    <string name="load">cargando más datos</string>
+    <string name="about_download_prepare">Preparándose para descargar</string>
+    <string name="about_download_finish">Finalizar descarga</string>
+    <string name="about_version_cancel">Cancelar</string>
+    <string name="about_download_title">Descargando Freedom</string>
+    <string name="about_download_error">Error en la descarga del archivo</string>
+</resources>

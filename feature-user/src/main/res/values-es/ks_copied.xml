@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="recharge_arry">
+        <item>WeChat</item>
+        <item>Alipay</item>
+        <item>Otro</item>
+    </string-array>
+    <plurals name="likes_count">
+        <item quantity="one">%d me gusta</item>
+        <item quantity="other">%d me gusta</item>
+    </plurals>
+    <string name="re_bt_code">Obtener código</string>
+    <string name="reg">Registrarse</string>
+    <string name="email_hint">Correo electrónico</string>
+    <string name="sound_picshow">Mostrar imagen de video</string>
+    <string name="remark">Timeline DERECHOS RESERVADOS.</string>
+    <string name="my_charater">configurar mi personaje IA</string>
+    <string name="iwanna_title">apoyo</string>
+    <string name="empty_info">Por favor complete la información</string>
+    <string name="custome_title">Añadir personalizado</string>
+    <string name="list_video_tiny_need">Lista de video pequeño necesario</string>
+    <string name="menu_btn_share">Compartir</string>
+    <string name="empty_name_pwd">Por favor complete la información</string>
+    <string name="feedback_hint">$3 $5 VIP3</string>
+    <string name="submit">enviar</string>
+    <string name="playcore_setting">core-ijk/exo</string>
+    <string name="use_tts">Activar voz</string>
+    <string name="setting">Configuración</string>
+    <string name="sex">Sexo:</string>
+    <string name="recharge">Recargar:</string>
+    <string name="iwanna_content_error">¡Dime algo!</string>
+    <string name="money_back_title">¿Puntuación?</string>
+    <string name="male">Masculino</string>
+    <string name="female">Femenino</string>
+    <string name="custome_ok">Añadido correctamente</string>
+    <string name="save">Guardar</string>
+    <string name="error_repwd">Error de contraseña</string>
+    <string name="area_mi">Área encriptada</string>
+    <string name="sound_setting">Reproducir audio sin WiFi</string>
+    <string name="menu_btn_version">Versión:</string>
+    <string name="username_hint">Nombre de usuario</string>
+    <string name="reg_success">Registro exitoso, ¿iniciar sesión ahora?</string>
+    <string name="login">Iniciar sesión</string>
+    <string name="findpass">¿Olvidó su contraseña?</string>
+    <string name="playvideo_setting">reproducir video-jiaozi</string>
+    <string name="re_password_hint">Repetir contraseña</string>
+    <string name="re_code">Código</string>
+    <string name="need_login">Por favor inicie sesión</string>
+    <string name="feed_back">Comentarios</string>
+    <string name="send">enviar</string>
+    <string name="area_setting">Mostrar área</string>
+    <string name="password_hint">Contraseña</string>
+</resources>

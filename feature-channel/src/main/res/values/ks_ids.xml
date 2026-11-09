@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item type="id" name="duration"/>
+    <item type="id" name="fragment"/>
+    <item type="id" name="full_view"/>
+    <item type="id" name="iv_next"/>
+    <item type="id" name="iv_play"/>
+    <item type="id" name="iv_play_mode"/>
+    <item type="id" name="iv_pre"/>
+    <item type="id" name="iv_save"/>
+    <item type="id" name="menu_share"/>
+    <item type="id" name="my_favoriteview"/>
+    <item type="id" name="pb_loading"/>
+    <item type="id" name="progress"/>
+    <item type="id" name="rl_list"/>
+    <item type="id" name="time"/>
+    <item type="id" name="tv_open_auxio_gpl_module"/>
+    <item type="id" name="tv_page"/>
+    <item type="id" name="tv_play_subtitle"/>
+    <item type="id" name="tv_play_title"/>
+    <item type="id" name="vp_big_container"/>
+</resources>

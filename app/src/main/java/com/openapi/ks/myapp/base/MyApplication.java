@@ -7,6 +7,7 @@ import androidx.multidex.MultiDex;
 import androidx.multidex.MultiDexApplication;
 
 import com.openapi.core.CommonConstants;
+import com.openapi.core.app.AppHooks;
 import com.openapi.core.media.AudioPlayer;
 import com.openapi.core.util.StaticDataUtil;
 import com.openapi.core.util.ToastUtil;
@@ -54,6 +55,8 @@ public class MyApplication extends MultiDexApplication {
         isDebug = SystemUtils.isApkDebugable(this);
         LogUtil.e("isDebug=" + isDebug);
         instance = this;
+        AppHooks.install(new AppHooksImpl());
+        com.openapi.core.app.AppContext.init(this);
 
         StaticDataUtil.add(CommonConstants.APPLICATION,instance);
         ToastUtil.mContext = instance;

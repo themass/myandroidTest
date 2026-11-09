@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="version_low">版本太低，请升级！</string>
+    <string name="video">视频体验</string>
+    <string name="about_version_update_to_date">已是最新版本</string>
+    <string name="about_version_download">立即下载</string>
+    <string name="about_version_download_title">发现新版本</string>
+    <string name="about_download_begin">开始下载</string>
+    <string name="about_download_confirm_content">您现在使用的是非WIFI网络，继续下载可能会消耗较多网络流量，是否继续下载？</string>
+    <string name="custome_ok">添加成功</string>
+    <string name="about_download_confirm_title">确认下载</string>
+    <string name="about_version_confirm">确认</string>
+    <string name="about_download_percent">正在下载 %1$s/%2$s</string>
+    <string name="load">正在加载,请等待。</string>
+    <string name="about_download_prepare">正在准备下载</string>
+    <string name="about_download_finish">下载完成</string>
+    <string name="about_version_cancel">取消</string>
+    <string name="about_download_title">正在下Freedom</string>
+    <string name="about_download_error">文件下载错误</string>
+</resources>

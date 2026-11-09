@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="version_low">Die Version ist zu alt, bitte aktualisieren!</string>
+    <string name="video">Videoerfahrung</string>
+    <string name="about_version_update_to_date">Sie haben die neueste Version</string>
+    <string name="about_version_download">Jetzt herunterladen</string>
+    <string name="about_version_download_title">Neue Version gefunden</string>
+    <string name="about_download_begin">Download beginnt</string>
+    <string name="about_download_confirm_content">Sie verwenden derzeit kein WLAN-Netzwerk. Der Download kann viel Datenvolumen verbrauchen. Möchten Sie den Download fortsetzen?</string>
+    <string name="custome_ok">Erfolgreich hinzugefügt</string>
+    <string name="about_download_confirm_title">Download bestätigen</string>
+    <string name="about_version_confirm">Bestätigen</string>
+    <string name="about_download_percent">Wird heruntergeladen %1$s/%2$s</string>
+    <string name="load">Wird geladen, bitte warten.</string>
+    <string name="about_download_prepare">Download wird vorbereitet</string>
+    <string name="about_download_finish">Download abgeschlossen</string>
+    <string name="about_version_cancel">Abbrechen</string>
+    <string name="about_download_title">Freedom wird heruntergeladen</string>
+    <string name="about_download_error">Fehler beim Herunterladen der Datei</string>
+</resources>

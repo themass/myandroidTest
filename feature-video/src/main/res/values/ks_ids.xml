@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item type="id" name="back"/>
+    <item type="id" name="content"/>
+    <item type="id" name="detail_player_more"/>
+    <item type="id" name="fragment"/>
+    <item type="id" name="fullscreen"/>
+    <item type="id" name="layout_bottom"/>
+    <item type="id" name="layout_top"/>
+    <item type="id" name="loading_init"/>
+    <item type="id" name="my_favoriteview"/>
+    <item type="id" name="player_speed_container"/>
+    <item type="id" name="progress"/>
+</resources>

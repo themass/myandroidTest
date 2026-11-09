@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="recharge_arry">
+        <item>WeChat</item>
+        <item>Alipay</item>
+        <item>Andere</item>
+    </string-array>
+    <plurals name="likes_count">
+        <item quantity="one">%d Gefällt mir</item>
+        <item quantity="other">%d Gefällt mir</item>
+    </plurals>
+    <string name="re_bt_code">Bestätigungscode abrufen</string>
+    <string name="reg">Registrieren</string>
+    <string name="email_hint">E-Mail</string>
+    <string name="sound_picshow">Filmbanner ausblenden</string>
+    <string name="remark">TIMELINE RECHTE VORBEHALTEN.</string>
+    <string name="my_charater">Persönlichkeit meines Roboters festlegen</string>
+    <string name="iwanna_title">Feedback</string>
+    <string name="empty_info">Bitte füllen Sie alle Felder aus</string>
+    <string name="custome_title">Benutzerdefiniertes hinzufügen</string>
+    <string name="list_video_tiny_need">Videos in der Liste unterstützen Kleinbild</string>
+    <string name="menu_btn_share">Teilen</string>
+    <string name="empty_name_pwd">Bitte füllen Sie alle Felder aus</string>
+    <string name="feedback_hint">xxx Punkte VIP3</string>
+    <string name="submit">Absenden</string>
+    <string name="playcore_setting">Kernel - ijk/exo</string>
+    <string name="use_tts">Sprachausgabe aktivieren</string>
+    <string name="setting">Einstellungen</string>
+    <string name="sex">Geschlecht:</string>
+    <string name="recharge">Aufladen:</string>
+    <string name="iwanna_content_error">Bitte teilen Sie mir Ihre Anfrage mit!</string>
+    <string name="money_back_title">Punkteaufladungsrückmeldung</string>
+    <string name="male">Mann</string>
+    <string name="female">Frau</string>
+    <string name="custome_ok">Erfolgreich hinzugefügt</string>
+    <string name="save">Speichern</string>
+    <string name="error_repwd">Die beiden Passwörter stimmen nicht überein</string>
+    <string name="area_mi">Sonderbereich verschlüsselt</string>
+    <string name="sound_setting">Hinweis bei Audioabspielen ohne WLAN</string>
+    <string name="menu_btn_version">Version:</string>
+    <string name="username_hint">Benutzername</string>
+    <string name="reg_success">Registrierung erfolgreich, jetzt anmelden?</string>
+    <string name="login">Anmelden</string>
+    <string name="findpass">Passwort vergessen?</string>
+    <string name="playvideo_setting">Dumplings-Player verwenden - vitamio</string>
+    <string name="re_password_hint">Passwort wiederholen</string>
+    <string name="re_code">Bestätigungscode</string>
+    <string name="need_login">Bitte anmelden</string>
+    <string name="feed_back">Information zurückgeben</string>
+    <string name="send">Senden</string>
+    <string name="area_setting">Sonderbereiche anzeigen?</string>
+    <string name="password_hint">Passwort</string>
+</resources>
