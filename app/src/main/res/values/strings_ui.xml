@@ -105,4 +105,5 @@
     <string name="photosolve_rotate">旋转</string>
     <string name="photosolve_mirror">镜像</string>
     <string name="photosolve_auto_detect">自动识别</string>
+    <string name="ui_shortcuts">快捷入口</string>
 </resources>
