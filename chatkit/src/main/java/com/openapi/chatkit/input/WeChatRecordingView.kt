@@ -174,7 +174,8 @@ private fun Waveform(levels: List<Float>, color: Color, modifier: Modifier) {
         val step = size.width / bars
         val level = (levels.lastOrNull() ?: 0f).coerceIn(0f, 1f)
         val loudBase = level.pow(0.35f) * 1.15f
-        val seed = levels.size
+        // 种子必须随时间变化：历史列表满了之后 levels.size 固定不变，会让每根条的相对高度永远一样，画出周期性的声谱
+        val seed = (System.nanoTime() / 90_000_000L).toInt()
         for (i in 0 until bars) {
             val idle = 0.14f + hash01(seed, i, 1) * 0.03f
             val amp = if (level <= 0f) idle else maxOf(idle, (loudBase * (0.4f + 0.6f * hash01(seed, i, 2))).coerceAtMost(1f))
