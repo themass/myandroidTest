@@ -176,8 +176,8 @@ private fun Waveform(levels: List<Float>, color: Color, modifier: Modifier) {
         val loudBase = level.pow(0.35f) * 1.15f
         val seed = levels.size
         for (i in 0 until bars) {
-            val idle = 0.14f + hash01(seed * 31 + i) * 0.03f
-            val amp = if (level <= 0f) idle else maxOf(idle, (loudBase * (0.4f + 0.6f * hash01(seed * 17 + i))).coerceAtMost(1f))
+            val idle = 0.14f + hash01(seed, i, 1) * 0.03f
+            val amp = if (level <= 0f) idle else maxOf(idle, (loudBase * (0.4f + 0.6f * hash01(seed, i, 2))).coerceAtMost(1f))
             val h = size.height * amp.coerceIn(0f, 1f)
             val x = i * step + (step - barW) / 2f
             val y = (size.height - h) / 2f
@@ -186,8 +186,16 @@ private fun Waveform(levels: List<Float>, color: Color, modifier: Modifier) {
     }
 }
 
-/** 确定性的伪随机，取值 [0, 1)：同样的输入得到同样的高度，不同条之间互不相同。 */
-private fun hash01(n: Int): Float {
-    val x = n * 1103515245 + 12345
-    return ((x ushr 8) and 0xFFFF) / 65536f
+/**
+ * 确定性的伪随机，取值 [0, 1)：用 murmur3 的 fmix32 把 (采样序号, 竖条序号, 通道) 打乱。
+ * 不能用线性公式，否则相邻竖条的值会有规律地递增，画出来就是周期性的涨落。
+ */
+private fun hash01(sample: Int, bar: Int, channel: Int): Float {
+    var h = sample * -0x61c88647 + bar * 0x27d4eb2d + channel * 0x165667b1
+    h = h xor (h ushr 16)
+    h *= -0x7a143595
+    h = h xor (h ushr 13)
+    h *= -0x3d4d51cb
+    h = h xor (h ushr 16)
+    return (h ushr 8) / 16777216f
 }
