@@ -434,7 +434,12 @@ class ChatViewModel : ViewModel() {
                     },
                 )
             }
-            userMessageId?.let { setDelivery(serverUserId ?: errorUserId ?: it, if (failed || emptyReply) DeliveryStatus.FAILED else DeliveryStatus.SENT) }
+            // 流结束但没有 done 帧（服务端中途断开、只给了部分文字）：不能当成已完整收到，用户消息标成失败可重试
+            val truncated = !failed && !emptyReply && serverId == null && serverUserId == null && userMessageId != null
+            if (truncated) {
+                _uiState.update { it.copy(error = "回复没有完整收到，请重试") }
+            }
+            userMessageId?.let { setDelivery(serverUserId ?: errorUserId ?: it, if (failed || emptyReply || truncated) DeliveryStatus.FAILED else DeliveryStatus.SENT) }
             // 正常路径靠 done 帧里的正式 id，不再每轮拉历史；只有缺 id（失败、没有 done 帧、空回复）时兜底拉一页
             if (syncAfter && (failed || serverId == null)) fallbackReloadMessages()
             if (startsNewSession) syncSessionsList()
