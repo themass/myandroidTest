@@ -22,6 +22,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -55,43 +57,75 @@ fun WeChatRecordingView(
     }
 
     Box(modifier.fillMaxSize().background(Color(0xB0000000))) {
-        Column(Modifier.fillMaxSize()) {
-            Spacer(Modifier.weight(0.34f))
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Bubble(bubble = bubble, bars = bars, levels = levels, liveText = if (toText) liveText else null)
-            }
-            Spacer(Modifier.weight(0.26f))
-            // 左右两个按钮：取消 / 转文字（高亮的那个是白色）
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 28.dp),
-                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween,
-            ) {
-                SideButton(label = "取消", active = cancel)
-                SideButton(label = "转文字", active = toText)
-            }
-            Spacer(Modifier.height(16.dp))
-            // 底部：松手 发送 / 取消 / 编辑文字
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(96.dp)
-                    .background(Color(0xFF2B2B2B)),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = when {
-                        cancel -> "松手 取消"
-                        toText -> "松手 编辑文字"
-                        else -> "松手 发送"
-                    },
-                    color = Color.White,
-                    fontSize = 16.sp,
-                )
-            }
+        // 上方语音气泡
+        Column(
+            modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter).padding(top = 260.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Bubble(bubble = bubble, bars = bars, levels = levels, liveText = if (toText) liveText else null)
         }
+
+        // 底部：圆弧底座 + 沿弧线的文字；上方两个按钮沿同一段弧线倾斜摆放
+        Box(Modifier.fillMaxWidth().align(Alignment.BottomCenter).height(300.dp)) {
+            ArcPill(
+                label = "取消",
+                active = cancel,
+                rotation = -12f,
+                modifier = Modifier.align(Alignment.TopStart).padding(start = 24.dp, top = 58.dp),
+            )
+            ArcPill(
+                label = "转文字",
+                active = toText,
+                rotation = 12f,
+                modifier = Modifier.align(Alignment.TopEnd).padding(end = 24.dp, top = 58.dp),
+            )
+            ArcBase(
+                label = when {
+                    cancel -> "松手 取消"
+                    toText -> "松手 转文字"
+                    else -> "松手 发送"
+                },
+                modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(170.dp),
+            )
+        }
+    }
+}
+
+/** 底部圆弧底座：一个很大的圆露出顶部一段；文字沿弧线排布。 */
+@Composable
+private fun ArcBase(label: String, modifier: Modifier) {
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    Canvas(modifier) {
+        val radius = size.width * 0.72f
+        val cx = size.width / 2f
+        val cy = radius + 24.dp.toPx()          // 圆顶在画布顶部往下 24dp
+        drawCircle(Color(0xFF3A3A3A), radius = radius, center = Offset(cx, cy))
+        // 文字沿着比圆顶略低的同心弧排布
+        val textRadius = radius - 46.dp.toPx()
+        val paint = android.graphics.Paint().apply {
+            isAntiAlias = true
+            color = android.graphics.Color.WHITE
+            textSize = with(density) { 16.sp.toPx() }
+            textAlign = android.graphics.Paint.Align.CENTER
+        }
+        val path = android.graphics.Path().apply {
+            addArc(cx - textRadius, cy - textRadius, cx + textRadius, cy + textRadius, 220f, 100f)
+        }
+        drawContext.canvas.nativeCanvas.drawTextOnPath(label, path, 0f, 0f, paint)
+    }
+}
+
+/** 沿弧线倾斜的胶囊按钮：左边向左下倾、右边向右下倾。 */
+@Composable
+private fun ArcPill(label: String, active: Boolean, rotation: Float, modifier: Modifier) {
+    Box(
+        modifier = modifier
+            .graphicsLayer { rotationZ = rotation }
+            .size(width = 140.dp, height = 58.dp)
+            .background(if (active) Color.White else Color(0x55FFFFFF), RoundedCornerShape(29.dp)),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(text = label, color = if (active) Color(0xFF191919) else Color.White, fontSize = 17.sp)
     }
 }
 
@@ -100,13 +134,13 @@ private fun Bubble(bubble: Color, bars: Color, levels: List<Float>, liveText: St
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
             modifier = Modifier
-                .widthIn(min = 120.dp, max = 280.dp)
-                .background(bubble, RoundedCornerShape(8.dp))
-                .padding(horizontal = 14.dp, vertical = 12.dp),
+                .widthIn(min = 200.dp, max = 300.dp)
+                .background(bubble, RoundedCornerShape(10.dp))
+                .padding(horizontal = 20.dp, vertical = 9.dp),
             contentAlignment = Alignment.Center,
         ) {
             if (liveText.isNullOrBlank()) {
-                Waveform(levels = levels, color = bars, modifier = Modifier.width(96.dp).height(24.dp))
+                Waveform(levels = levels, color = bars, modifier = Modifier.width(160.dp).height(18.dp))
             } else {
                 Text(text = liveText, color = Color(0xFF191919), fontSize = 17.sp)
             }
@@ -127,7 +161,7 @@ private fun Bubble(bubble: Color, bars: Color, levels: List<Float>, liveText: St
 @Composable
 private fun Waveform(levels: List<Float>, color: Color, modifier: Modifier) {
     Canvas(modifier = modifier) {
-        val count = 20
+        val count = 32
         val gap = size.width / count
         val barWidth = gap * 0.5f
         val recent = if (levels.size >= count) levels.takeLast(count) else List(count - levels.size) { 0f } + levels
@@ -137,17 +171,5 @@ private fun Waveform(levels: List<Float>, color: Color, modifier: Modifier) {
             val y = (size.height - h) / 2f
             drawRoundRect(color, topLeft = Offset(x, y), size = Size(barWidth, h), cornerRadius = androidx.compose.ui.geometry.CornerRadius(barWidth / 2f))
         }
-    }
-}
-
-@Composable
-private fun SideButton(label: String, active: Boolean) {
-    Box(
-        modifier = Modifier
-            .size(width = 132.dp, height = 52.dp)
-            .background(if (active) Color.White else Color(0x66FFFFFF), RoundedCornerShape(26.dp)),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(text = label, color = if (active) Color(0xFF191919) else Color.White, fontSize = 16.sp)
     }
 }
