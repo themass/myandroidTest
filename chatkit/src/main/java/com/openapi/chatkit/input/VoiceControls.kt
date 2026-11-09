@@ -144,9 +144,7 @@ internal fun VoicePressBar(
                         val next = intentFor(style, dx, dy, thresholdPx)
                         if (next != current) {
                             current = next
-                            // 进入、离开某个去向都轻震一下，不用看屏幕也知道状态变了
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            vibrateTick(context)
+                            // 录音中不震动：马达的声音会被麦克风录进语音。状态变化靠界面颜色和文字提示。
                             currentIntentChange(next)
                         }
                         if (change.changedToUpIgnoreConsumed()) break
@@ -495,13 +493,3 @@ private fun Modifier.overflowUpwards(height: Dp): Modifier = layout { measurable
     layout(placeable.width, 0) { placeable.place(0, -h) }
 }
 
-/** 切换状态时的一次明确震动（比 HapticFeedbackType.LongPress 更明显，设备上后者常常不震）。 */
-private fun vibrateTick(context: android.content.Context) {
-    val vibrator = if (android.os.Build.VERSION.SDK_INT >= 31) {
-        (context.getSystemService(android.os.VibratorManager::class.java))?.defaultVibrator
-    } else {
-        @Suppress("DEPRECATION")
-        context.getSystemService(android.os.Vibrator::class.java)
-    }
-    vibrator?.vibrate(android.os.VibrationEffect.createOneShot(30, android.os.VibrationEffect.DEFAULT_AMPLITUDE))
-}

@@ -150,7 +150,7 @@ fun ChatRoute(
             onVoiceDraftCancel = viewModel::onVoiceDraftCancel,
             onVoiceRecordStart = {
                 if (PermissionStates.isGranted(context, Manifest.permission.RECORD_AUDIO)) {
-                    viewModel.onVoiceRecordStart(context, liveTranscript = voiceStyle == VoiceStyle.Ripple)
+                    viewModel.onVoiceRecordStart(context, liveTranscript = voiceStyle == VoiceStyle.Ripple || voiceStyle == VoiceStyle.Floating)
                 } else {
                     // 首次授权的这一次按压不录音：和老 RecordButton 的行为一致，下次按下才开始录。
                     (activity as? ComponentActivity)?.let { host ->

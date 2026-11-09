@@ -6,6 +6,8 @@ import android.media.AudioFormat
 import android.media.AudioRecord
 import kotlinx.coroutines.flow.MutableStateFlow
 import android.media.MediaRecorder
+import android.media.audiofx.AcousticEchoCanceler
+import android.media.audiofx.NoiseSuppressor
 import java.io.File
 import java.io.FileOutputStream
 import java.io.RandomAccessFile
@@ -28,6 +30,8 @@ object VoiceRecorder {
     data class Recording(val filePath: String, val durationSeconds: Int)
 
     private var recorder: AudioRecord? = null
+    private var noiseSuppressor: NoiseSuppressor? = null
+    private var echoCanceler: AcousticEchoCanceler? = null
     private var worker: Thread? = null
 
     /** 当前录音音量 0..1，录音线程每读一块数据更新一次，给声波动画用。 */
@@ -51,8 +55,9 @@ object VoiceRecorder {
         val file = File(dir, "voice_${System.currentTimeMillis()}.wav")
 
         return try {
+            // VOICE_RECOGNITION：不做通话那套增益，人声更干净；再叠加系统降噪和回声消除（设备支持时）
             val audio = AudioRecord(
-                MediaRecorder.AudioSource.MIC,
+                MediaRecorder.AudioSource.VOICE_RECOGNITION,
                 SAMPLE_RATE,
                 AudioFormat.CHANNEL_IN_MONO,
                 AudioFormat.ENCODING_PCM_16BIT,
@@ -63,6 +68,8 @@ object VoiceRecorder {
                 false
             } else {
                 FileOutputStream(file).use { it.write(ByteArray(HEADER_BYTES)) }
+                if (NoiseSuppressor.isAvailable()) noiseSuppressor = NoiseSuppressor.create(audio.audioSessionId)?.apply { enabled = true }
+                if (AcousticEchoCanceler.isAvailable()) echoCanceler = AcousticEchoCanceler.create(audio.audioSessionId)?.apply { enabled = true }
                 audio.startRecording()
                 recorder = audio
                 outputFile = file
@@ -132,6 +139,10 @@ object VoiceRecorder {
             it.release()
         }
         recorder = null
+        noiseSuppressor?.release()
+        noiseSuppressor = null
+        echoCanceler?.release()
+        echoCanceler = null
     }
 
     /** 16-bit 小端 PCM 的 RMS，放大后归一化到 0..1；人声通常在 0.02~0.2 之间，所以乘 4。 */
