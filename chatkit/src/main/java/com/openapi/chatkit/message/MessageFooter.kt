@@ -3,6 +3,14 @@ package com.openapi.chatkit.message
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.expandVertically
@@ -80,7 +88,7 @@ fun AssistantFooter(
         Spacer(Modifier.height(11.dp))
         // 收纳盒：盒子在左边；点它，按钮从盒子右边横向一排展开；再点，收回到盒子里
         Row(verticalAlignment = Alignment.CenterVertically) {
-            AssistantChip(Icons.Outlined.Archive, stringResource(R.string.chatkit_more)) { expanded = !expanded }
+            BoxChip(expanded = expanded, description = stringResource(R.string.chatkit_more)) { expanded = !expanded }
             AnimatedVisibility(
                 visible = expanded,
                 enter = expandHorizontally(expandFrom = Alignment.Start) + fadeIn(),
@@ -194,5 +202,48 @@ internal fun SendStatusIndicator(status: SendStatus, onRetry: () -> Unit) {
             Spacer(Modifier.width(8.dp))
         }
         SendStatus.Sent -> Unit
+    }
+}
+
+/**
+ * 收纳盒按钮：盒子图标 + 右上角一个小箭头。收起时箭头向右、一闪一闪（提示可以点开）；
+ * 展开时箭头朝左（提示点一下收回去）。
+ */
+@Composable
+private fun BoxChip(expanded: Boolean, description: String, onClick: () -> Unit) {
+    val pulse by rememberInfiniteTransition(label = "box-arrow").animateFloat(
+        initialValue = 0.2f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(animation = tween(durationMillis = 700), repeatMode = RepeatMode.Reverse),
+        label = "box-arrow-alpha",
+    )
+    Row(
+        modifier = Modifier.clickable(onClick = onClick),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(AssistantChipSize)
+                .clip(RoundedCornerShape(AssistantChipRadius))
+                .background(ChatKit.colors.chipBackground),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                Icons.Outlined.Archive,
+                contentDescription = description,
+                tint = ChatKit.colors.chipIcon,
+                modifier = Modifier.size(18.dp),
+            )
+        }
+        // 盒子右边独立的小箭头：收起时向右、闪烁（提示可以点开）；展开时向左（提示点一下收回）
+        Icon(
+            if (expanded) Icons.AutoMirrored.Filled.KeyboardArrowLeft else Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            contentDescription = null,
+            tint = ChatKit.colors.chipIcon,
+            modifier = Modifier
+                .padding(start = 2.dp)
+                .size(18.dp)
+                .graphicsLayer { alpha = if (expanded) 1f else pulse },
+        )
     }
 }
