@@ -59,14 +59,14 @@ fun WeChatRecordingView(
     Box(modifier.fillMaxSize().background(Color(0xB0000000))) {
         // 上方语音气泡
         Column(
-            modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter).padding(top = 260.dp),
+            modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter).padding(top = 330.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Bubble(bubble = bubble, bars = bars, levels = levels, liveText = if (toText) liveText else null)
         }
 
         // 底部：圆弧底座 + 沿弧线的文字；上方两个按钮沿同一段弧线倾斜摆放
-        Box(Modifier.fillMaxWidth().align(Alignment.BottomCenter).height(300.dp)) {
+        Box(Modifier.fillMaxWidth().align(Alignment.BottomCenter).height(240.dp)) {
             ArcPill(
                 label = "取消",
                 active = cancel,
@@ -85,7 +85,7 @@ fun WeChatRecordingView(
                     toText -> "松手 转文字"
                     else -> "松手 发送"
                 },
-                modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(170.dp),
+                modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(136.dp),
             )
         }
     }
