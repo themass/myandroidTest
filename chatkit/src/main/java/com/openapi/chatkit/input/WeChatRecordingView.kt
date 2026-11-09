@@ -134,13 +134,13 @@ private fun Bubble(bubble: Color, bars: Color, levels: List<Float>, liveText: St
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
             modifier = Modifier
-                .widthIn(min = 200.dp, max = 300.dp)
+                .widthIn(min = 280.dp, max = 340.dp)
                 .background(bubble, RoundedCornerShape(10.dp))
                 .padding(horizontal = 20.dp, vertical = 9.dp),
             contentAlignment = Alignment.Center,
         ) {
             if (liveText.isNullOrBlank()) {
-                Waveform(levels = levels, color = bars, modifier = Modifier.width(160.dp).height(18.dp))
+                Waveform(levels = levels, color = bars, modifier = Modifier.width(230.dp).height(18.dp))
             } else {
                 Text(text = liveText, color = Color(0xFF191919), fontSize = 17.sp)
             }
