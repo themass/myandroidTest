@@ -181,6 +181,9 @@ dependencies {
     // 项目模块依赖
     implementation project(":commonutil")
     implementation project(':core')
+    // 火山引擎流式 ASR：聊天（ChatViewModel）与视频字幕共用，不依赖 :feature-video
+    implementation project(':asr')
+    implementation project(':feature-video')
     implementation project(":ads")
     implementation project(':auxio_music_ui')
     implementation project(':retromusic')
