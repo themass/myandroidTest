@@ -219,3 +219,18 @@ private fun setState(bubbles: List<AgentBubble>, messageId: String, state: Bubbl
 
 private fun markBubbles(bubbles: List<AgentBubble>, ids: List<String>, state: BubbleState): List<AgentBubble> =
     if (ids.isEmpty()) bubbles else bubbles.map { if (it.messageId in ids) it.copy(state = state) else it }
+
+/** 服务端历史整体覆盖本地列表（收到 gone、或首次进入会话）。服务端是权威（客户端设计 4.1）。 */
+fun AgentChatState.withHistory(history: List<AgentBubble>): AgentChatState =
+    copy(bubbles = history, needsHistoryReload = false)
+
+/** 撤回成功：本地立即移除（服务端随后也会删除对应消息）。 */
+fun AgentChatState.withoutQueued(messageId: String): AgentChatState =
+    copy(
+        bubbles = bubbles.filterNot { it.messageId == messageId },
+        queued = queued.filterNot { it.messageId == messageId },
+    )
+
+/** 重试失败的发送：回到发送中，复用同一个 client_message_id（服务端去重）。 */
+fun AgentChatState.withRetrying(clientMessageId: String): AgentChatState =
+    copy(bubbles = bubbles.map { if (it.key == clientMessageId) it.copy(state = BubbleState.SENDING) else it })
