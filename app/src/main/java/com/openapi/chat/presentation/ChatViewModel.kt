@@ -770,8 +770,20 @@ class ChatViewModel : ViewModel() {
             if (cur.sending) {
                 cur.copy(sessionId = sessionId)
             } else {
+                // 服务端历史里没有「失败」这个状态：本地刚标成失败的最后一条用户消息，重新加载后要保留失败标记，
+                // 否则重试按钮会消失，它又变成「已发送」
+                val failedText = cur.messages.lastOrNull { it.role == ChatRole.USER }
+                    ?.takeIf { it.delivery == DeliveryStatus.FAILED }?.text
+                val lastServerUser = page.messages.indexOfLast { it.role == ChatRole.USER }
+                val merged = if (failedText == null || lastServerUser < 0) {
+                    page.messages
+                } else {
+                    page.messages.mapIndexed { i, m ->
+                        if (i == lastServerUser && m.text == failedText) m.copy(delivery = DeliveryStatus.FAILED) else m
+                    }
+                }
                 cur.copy(
-                    messages = page.messages,
+                    messages = merged,
                     hasMoreHistory = page.hasMore,
                     sessionId = sessionId,
                 )
