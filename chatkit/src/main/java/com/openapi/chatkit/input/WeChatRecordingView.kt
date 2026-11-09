@@ -22,6 +22,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.unit.dp
@@ -158,18 +161,38 @@ private fun Bubble(bubble: Color, bars: Color, levels: List<Float>, liveText: St
     }
 }
 
+/**
+ * 心电图式声波：一条从右往左滚动的折线。每来一个新的音量采样，它就从右边进来、整条线向左推一格；
+ * 振幅跟随音量（没声音时是一条平线）。采样不足时左边补平线，所以刚开始录音时波形从右边长出来。
+ */
 @Composable
 private fun Waveform(levels: List<Float>, color: Color, modifier: Modifier) {
     Canvas(modifier = modifier) {
-        val count = 32
-        val gap = size.width / count
-        val barWidth = gap * 0.5f
-        val recent = if (levels.size >= count) levels.takeLast(count) else List(count - levels.size) { 0f } + levels
+        val samples = 48
+        val recent = if (levels.size >= samples) levels.takeLast(samples) else List(samples - levels.size) { 0f } + levels
+        val centerY = size.height / 2f
+        val half = centerY * 0.92f
+        val step = size.width / (samples - 1)
+        // 基线（静音时的平线，淡一点）
+        drawLine(
+            color.copy(alpha = 0.25f),
+            start = Offset(0f, centerY),
+            end = Offset(size.width, centerY),
+            strokeWidth = 1.dp.toPx(),
+        )
+        // 折线：上下交替，像心电图的尖峰；尖峰高度 = 音量
+        val path = Path()
         recent.forEachIndexed { i, level ->
-            val h = (size.height * (0.08f + 0.92f * (level.coerceIn(0f, 1f) * 1.6f).coerceAtMost(1f)))
-            val x = i * gap + (gap - barWidth) / 2f
-            val y = (size.height - h) / 2f
-            drawRoundRect(color, topLeft = Offset(x, y), size = Size(barWidth, h), cornerRadius = androidx.compose.ui.geometry.CornerRadius(barWidth / 2f))
+            val amp = (level.coerceIn(0f, 1f) * 1.6f).coerceAtMost(1f)
+            val sign = if (i % 2 == 0) -1f else 1f
+            val x = i * step
+            val y = centerY + sign * amp * half
+            if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
         }
+        drawPath(
+            path,
+            color = color,
+            style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round),
+        )
     }
 }
