@@ -82,6 +82,11 @@ fun ProfileScreen(modifier: Modifier = Modifier) {
                             info = entries.profile(context)
                         }
                     }
+                    LocalVideoTile {
+                        context.startActivity(
+                            android.content.Intent(context, com.openapi.ks.myapp.ui.localvideo.LocalVideoActivity::class.java),
+                        )
+                    }
                 }
             }
         }
@@ -146,6 +151,18 @@ internal fun QuickTile(entry: ProfileEntry, onClick: () -> Unit) {
         Image(painterResource(entry.iconRes), contentDescription = null, modifier = Modifier.size(24.dp))
         Spacer(Modifier.size(4.dp))
         Text(stringResource(entry.titleRes), color = AppColors.TextPrimary, fontSize = 12.sp)
+    }
+}
+
+@Composable
+internal fun LocalVideoTile(onClick: () -> Unit) {
+    Column(
+        modifier = Modifier.clickable(onClick = onClick).padding(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Image(painterResource(com.openapi.core.util.R.drawable.ic_ctype_video), contentDescription = null, modifier = Modifier.size(24.dp))
+        Spacer(Modifier.size(4.dp))
+        Text(stringResource(com.openapi.ks.chat.R.string.localvideo_title), color = AppColors.TextPrimary, fontSize = 12.sp)
     }
 }
 

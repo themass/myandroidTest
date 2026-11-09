@@ -112,4 +112,13 @@
     <string name="favorite_type_image">图片</string>
     <string name="favorite_type_video">视频</string>
     <string name="favorite_action_share">分享</string>
+    <string name="localvideo_title">本地视频</string>
+    <string name="localvideo_back">返回</string>
+    <string name="localvideo_all">全部</string>
+    <string name="localvideo_empty">没有找到视频</string>
+    <string name="localvideo_need_permission">需要读取视频的权限，才能显示相册里的视频</string>
+    <string name="localvideo_grant">授权</string>
+    <string name="localvideo_share">分享</string>
+    <string name="localvideo_delete">删除</string>
+    <string name="localvideo_delete_failed">删除失败，请在系统相册中删除</string>
 </resources>

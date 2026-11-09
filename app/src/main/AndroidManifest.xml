@@ -250,6 +250,10 @@
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme"
             android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name="com.openapi.ks.myapp.ui.localvideo.LocalVideoActivity"
+            android:exported="false"
+            android:label="@string/localvideo_title" />
     </application>
 
 </manifest>
