@@ -4,6 +4,8 @@ include ':commonutil'
 include ':core'
 include ':asr'
 include ':feature-video'
+// 角色目录（角色列表、分组、收藏、搜索）
+include ':feature-roles'
 include ':auxio_music_ui'
 include ':retromusic'
 // 对话 UI 组件库（消息列表、消息气泡、输入栏），与业务无关，可在多个页面复用
