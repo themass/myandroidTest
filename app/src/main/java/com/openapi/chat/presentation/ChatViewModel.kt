@@ -670,13 +670,15 @@ class ChatViewModel : ViewModel() {
             val sessionId = repository.currentSessionId()
             val ids = mutableListOf<String>()
             try {
+                // 按最旧的 id 一直往前翻，直到一页都没有新消息为止（不依赖 hasMore，服务端可能不可靠）
                 var beforeId: Long? = null
+                val seen = HashSet<String>()
                 while (true) {
                     val page = withContext(Dispatchers.IO) { repository.loadHistoryPage(sessionId, beforeId, 50) }
-                    if (page.messages.isEmpty()) break
-                    ids += page.messages.map { it.id }
-                    val oldest = page.messages.mapNotNull { it.id.toLongOrNull() }.minOrNull() ?: break
-                    if (!page.hasMore) break
+                    val fresh = page.messages.filter { seen.add(it.id) }
+                    if (fresh.isEmpty()) break
+                    ids += fresh.map { it.id }
+                    val oldest = fresh.mapNotNull { it.id.toLongOrNull() }.minOrNull() ?: break
                     beforeId = oldest
                 }
             } catch (e: Exception) {
