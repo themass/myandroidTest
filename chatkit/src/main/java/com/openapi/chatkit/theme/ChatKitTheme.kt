@@ -52,8 +52,8 @@ data class ChatKitDimens(
     val bubblePaddingHorizontal: Dp = 12.dp,
     val bubblePaddingVertical: Dp = 10.dp,
     /** 消息内容最大宽度占屏幕宽度的比例。 */
-    /** 用户气泡最大宽度占屏宽的比例（90%）。 */
-    val maxContentFraction: Float = 0.9f,
+    /** 用户气泡最大宽度占屏宽的比例（75%，见 SPEC2b）。 */
+    val maxContentFraction: Float = 0.75f,
     /** 助手气泡最大宽度占屏宽的比例（88%），两侧另有 [listHorizontalPadding] 留白。 */
     val assistantMaxContentFraction: Float = 0.9f,
     val footerIconSize: Dp = 18.dp,
