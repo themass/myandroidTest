@@ -14,8 +14,7 @@ import androidx.appcompat.widget.SearchView;
 
 import com.openapi.core.util.StringUtils;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
-import com.openapi.ks.myapp.data.UserLoginUtil;
-import com.openapi.ks.myapp.ui.fragment.GlobalVideoChannelListFragment;
+import com.openapi.core.app.AppHooks;
 
 import com.openapi.ks.chat.R;
 import com.openapi.core.util.LogUtil;
@@ -70,7 +69,7 @@ public abstract class BaseToolbarMenuActivity extends BasePermissionActivity {
                     RecommendVo vo = new RecommendVo();
                     vo.title = "全局搜索";
                     vo.param = s;
-                    GlobalVideoChannelListFragment.startFragment(BaseToolbarMenuActivity.this, vo);
+                    AppHooks.get().openGlobalSearch(BaseToolbarMenuActivity.this, vo);
                 }
                 return true;
             }
@@ -80,7 +79,7 @@ public abstract class BaseToolbarMenuActivity extends BasePermissionActivity {
                 return true;
             }
         });
-        if (UserLoginUtil.isVIP()) {
+        if (AppHooks.get().isVip()) {
             setting.setVisible(true);
             mSearchView.setVisibility(View.VISIBLE);
         } else {

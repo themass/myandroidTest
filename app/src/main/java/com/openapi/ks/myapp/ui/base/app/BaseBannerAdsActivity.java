@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.OvershootInterpolator;
 
+import com.openapi.core.app.AppHooks;
 import com.openapi.core.util.LogUtil;
 import com.openapi.core.ads.yewu.ads.base.AdsContext;
 import com.openapi.core.ads.yewu.ads.base.AdsManager;
@@ -19,7 +20,6 @@ import com.openapi.ks.chat.R;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.core.ads.yewu.ads.AdsPopStrategy;
 import com.openapi.ks.myapp.data.config.HindBannerEvent;
-import com.openapi.ks.myapp.ui.user.SettingActivity;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -58,7 +58,7 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity {
 
     public void onClickFab(View view) {
 
-        startActivity(SettingActivity.class);
+        AppHooks.get().openSetting(this);
 //        AdsPopStrategy.clickAdsShowBtn(this);
     }
 
