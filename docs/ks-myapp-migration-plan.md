@@ -71,3 +71,18 @@
 - 资源复制是主要工作量（约 227 个字符串引用、67 个 id、55 个 drawable、38 个 layout）。
 - Manifest 与 layout XML 中的类名引用不会因目录变化失效（包名不变），但运行时才会发现错误，所以每个阶段完成后要在手机上冒烟测试（启动、登录页、视频页、频道页）。
 - UI 会话（`ui-weifu-refactor`）也在 weifu-refactor 上改这些文件，合并前要和它错开。
+
+## 执行结果（已完成）
+| 阶段 | 模块 | 提交 | 说明 |
+|---|---|---|---|
+| 0 | :app/:core | 0eb81adf | 基类到功能的调用经 `core.app.AppHooks`（isVip、openGlobalSearch、openSetting），`:app` 的 `AppHooksImpl` 注册 |
+| 1 | :core | a822b5f9 | ui/base、ui/inte、adapter/base、data/db、ChatLog、MessageType、HistoryUtil、ConnLogUtil、ImagePhotoLoad、showtype、VersionUpdater、MyRadarScanView、WebviewScreen、ListShell（计划修正：后两者被基类使用，移入 core） |
+| 2 | :feature-user | b6331539 | 登录、注册、找回密码、设置、反馈、UserLoginUtil、LoginTask、SettingCharacterFragment+Adapter（计划修正：归 user） |
+| 3 | :feature-video | ddf2bb42 | gsy 播放、视频列表与页面、本地视频、cast、PlayService、VideoUtil、RealtimeSubtitleBindings、AutoVideoListFragment |
+| 4 | :feature-channel | 4336bd2a | 频道列表、body、频道页（Img/Sound/Text/Video/Movie/Teleplay）、SoundDetail、adapter、QuickBrowserConfigActivity、AuxioMusicUiLauncher |
+| 5 | :feature-companion | 1ab15cc3 | companion、avatar |
+| 收尾 | :app | — | 留 base（MyApplication、AppEventHandler、AppHooksImpl）、data/chat、data/roles、data/home、data/config（ConfigActionJump，路由分发） |
+
+- 包名全部未改，Manifest 中的 Activity 类名无需修改；`:app:assembleChatDebug` 通过，`checkChatDebugDuplicateClasses` 通过。
+- 资源：每个模块由 `/tmp/res-copy.py` 从 `:app` 复制所需 values、layout、drawable，并用 `ks_ids.xml` 声明 R.id。
+- 未做：手机冒烟测试（启动、登录页、视频页、频道页）。
