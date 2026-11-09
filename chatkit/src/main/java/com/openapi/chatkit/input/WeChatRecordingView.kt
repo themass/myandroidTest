@@ -61,7 +61,7 @@ fun WeChatRecordingView(
     Box(modifier.fillMaxSize().background(Color(0xB0000000))) {
         // 上方语音气泡
         Column(
-            modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter).padding(top = 410.dp),
+            modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter).padding(top = 440.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Bubble(bubble = bubble, bars = bars, levels = levels, liveText = if (toText) liveText else null)
@@ -138,11 +138,11 @@ private fun Bubble(bubble: Color, bars: Color, levels: List<Float>, liveText: St
             modifier = Modifier
                 .widthIn(min = 300.dp, max = 370.dp)
                 .background(bubble, RoundedCornerShape(10.dp))
-                .padding(horizontal = 20.dp, vertical = 9.dp),
+                .padding(horizontal = 20.dp, vertical = 14.dp),
             contentAlignment = Alignment.Center,
         ) {
             if (liveText.isNullOrBlank()) {
-                Waveform(levels = levels, color = bars, modifier = Modifier.width(250.dp).height(30.dp))
+                Waveform(levels = levels, color = bars, modifier = Modifier.width(250.dp).height(40.dp))
             } else {
                 Text(text = liveText, color = Color(0xFF191919), fontSize = 17.sp)
             }
