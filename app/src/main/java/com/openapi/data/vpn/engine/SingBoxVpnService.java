@@ -72,6 +72,8 @@ public final class SingBoxVpnService extends VpnService {
      */
     private static final long PROBE_TIMEOUT_MS = 20_000L;
     private static final int PROBE_CONNECT_TIMEOUT_MS = 3_000;
+    /** TLS 握手的读超时。上游不通时多半是读超时，所以不能太长，否则 20 秒总时长里轮次太少。 */
+    private static final int PROBE_IO_TIMEOUT_MS = 4_000;
     private static final long PROBE_INTERVAL_MS = 1_000L;
     private static final String[][] PROBE_TARGETS = {
             {"1.1.1.1", "443"},
@@ -217,17 +219,34 @@ public final class SingBoxVpnService extends VpnService {
         });
     }
 
-    /** 一次 TCP 直连探测；成功返回 true。 */
+    /**
+     * 一次端到端探测：TCP 连上之后必须再完成一次 TLS 握手，成功返回 true。
+     * <p>
+     * 只做 {@code connect()} 是不够的：TUN 用 mixed 栈时，TCP 由本机系统协议栈先接住，
+     * connect() 在上游还没拨出去之前就会成功，线路根本不通也会"瞬间连上"。
+     * TLS 握手要收到对端的 ServerHello 才算完成，只有数据真的走了一个来回才会通过；
+     * 上游不通时本机栈会把连接关掉（RST/EOF），或者读超时，这里都按失败处理。
+     * 只校验证书链，不校验主机名：目标是裸 IP，这里只关心"通没通"。
+     */
     private static boolean probeOnce(String host, int port) {
-        java.net.Socket socket = new java.net.Socket();
+        java.net.Socket raw = new java.net.Socket();
+        javax.net.ssl.SSLSocket ssl = null;
         try {
-            socket.connect(new java.net.InetSocketAddress(host, port), PROBE_CONNECT_TIMEOUT_MS);
+            raw.connect(new java.net.InetSocketAddress(host, port), PROBE_CONNECT_TIMEOUT_MS);
+            raw.setSoTimeout(PROBE_IO_TIMEOUT_MS);
+            ssl = (javax.net.ssl.SSLSocket) ((javax.net.ssl.SSLSocketFactory)
+                    javax.net.ssl.SSLSocketFactory.getDefault()).createSocket(raw, host, port, true);
+            ssl.startHandshake();
             return true;
         } catch (Exception e) {
             return false;
         } finally {
             try {
-                socket.close();
+                if (ssl != null) {
+                    ssl.close();
+                } else {
+                    raw.close();
+                }
             } catch (Exception ignored) {
             }
         }
