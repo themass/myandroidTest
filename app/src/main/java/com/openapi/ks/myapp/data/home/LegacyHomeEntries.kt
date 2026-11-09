@@ -205,9 +205,6 @@ class LegacyHomeEntries(private val app: Context) : HomeEntries {
     private companion object {
         const val MOVIE = "movie"
         const val NIGHT = "night"
-        const val ENGLISH = "english"
-        const val MATH = "math"
-        const val CHINESE = "chinese"
         const val CUSTOMER = "customer"
         const val NET_TAG = "home_channels"
     }
