@@ -97,7 +97,7 @@ public class RegActivity extends BaseSingleActivity {
         }
         setEnabled(false);
         String refName = etRef.getText().toString();
-        RegForm form = new RegForm(name, pwd, repwd, sex,"test@gmail.com",StringUtils.isEmpty(refName)?Constants.ADMIN:refName);
+        RegForm form = new RegForm(name, pwd, repwd, sex, "",StringUtils.isEmpty(refName)?Constants.ADMIN:refName);
         form.inviteCode = etInvite.getText().toString().trim();
         baseService.postData(Constants.getUrl(Constants.API_REG_URL), form, loginListener, new CommonResponse.ResponseErrorListener() {
             @Override

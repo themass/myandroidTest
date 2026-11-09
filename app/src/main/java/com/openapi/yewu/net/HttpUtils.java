@@ -1,5 +1,7 @@
 package com.openapi.yewu.net;
 
+import com.openapi.ks.free1.R;
+
 import android.content.Context;
 import android.util.Log;
 import android.widget.Toast;
@@ -163,12 +165,12 @@ public class HttpUtils {
             while ((ch = is.read()) != -1) {
                 sb.append((char) ch);
             }
-            LogUtil.i("上传成功");
-            Toast.makeText(context, "上传成功", Toast.LENGTH_LONG).show();
+            LogUtil.i("upload ok");
+            Toast.makeText(context, context.getString(R.string.upload_success), Toast.LENGTH_LONG).show();
             ds.close();
         } catch (Exception e) {
             LogUtil.e(e);
-            Toast.makeText(context, "上传失败" + e.getMessage(),
+            Toast.makeText(context, context.getString(R.string.upload_failed, e.getMessage()),
                     Toast.LENGTH_LONG).show();
         }
     }
@@ -188,7 +190,7 @@ public class HttpUtils {
                 byte[] buf = new byte[1024 * 4];
                 conn.connect();
                 if (conn.getResponseCode() >= 400) {
-                    Toast.makeText(context, "连接超时", Toast.LENGTH_SHORT)
+                    Toast.makeText(context, context.getString(R.string.connect_timeout), Toast.LENGTH_SHORT)
                             .show();
                 } else {
                     int total = conn.getContentLength();

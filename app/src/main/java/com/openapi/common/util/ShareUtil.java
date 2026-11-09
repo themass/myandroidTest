@@ -1,5 +1,7 @@
 package com.openapi.common.util;
 
+import com.openapi.ks.free1.R;
+
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -178,7 +180,7 @@ public class ShareUtil {
       intent.putExtra("Kdescription", title); 
       context.startActivity(intent); 
     }else{ 
-      Toast.makeText(context, "文件不存在", Toast.LENGTH_LONG).show(); 
+      Toast.makeText(context, context.getString(R.string.file_not_found), Toast.LENGTH_LONG).show(); 
     } 
       
       

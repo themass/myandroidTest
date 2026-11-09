@@ -436,4 +436,8 @@ You are now using a non WIFI network, continue to download may consume more netw
     <!-- 开屏文字（设计稿提供后可调整） -->
     <string name="launch_title">A new world</string>
     <string name="launch_subtitle">A new life</string>
+    <string name="upload_success">Upload succeeded</string>
+    <string name="upload_failed">Upload failed: %1$s</string>
+    <string name="connect_timeout">Connection timed out</string>
+    <string name="file_not_found">File not found</string>
 </resources>
