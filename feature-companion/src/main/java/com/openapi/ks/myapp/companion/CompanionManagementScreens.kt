@@ -38,7 +38,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.openapi.ks.chat.R
+import com.openapi.feature.companion.R
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date

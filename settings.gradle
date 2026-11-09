@@ -14,6 +14,8 @@ include ':feature-photosolve'
 include ':feature-user'
 // 频道：推荐、频道列表、频道详情、图片/文字/声音/视频频道页、收藏、搜索
 include ':feature-channel'
+// 角色扮演伴侣（Android 端，按角色扮演分支维护）
+include ':feature-companion'
 include ':auxio_music_ui'
 include ':retromusic'
 // 对话 UI 组件库（消息列表、消息气泡、输入栏），与业务无关，可在多个页面复用

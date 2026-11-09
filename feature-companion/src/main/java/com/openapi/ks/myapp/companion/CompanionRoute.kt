@@ -30,7 +30,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.openapi.core.CommonConstants
 import com.openapi.core.util.PreferenceUtils
-import com.openapi.ks.chat.R
+import com.openapi.feature.companion.R
 import com.openapi.ks.myapp.constant.Constants
 
 /** 陪伴界面里能去的页面。聊天是主页面，其余三个从顶部进入。 */
