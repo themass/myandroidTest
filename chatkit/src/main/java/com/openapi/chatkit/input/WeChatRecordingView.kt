@@ -134,13 +134,13 @@ private fun Bubble(bubble: Color, bars: Color, levels: List<Float>, liveText: St
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
             modifier = Modifier
-                .widthIn(min = 280.dp, max = 340.dp)
+                .widthIn(min = 300.dp, max = 370.dp)
                 .background(bubble, RoundedCornerShape(10.dp))
                 .padding(horizontal = 20.dp, vertical = 9.dp),
             contentAlignment = Alignment.Center,
         ) {
             if (liveText.isNullOrBlank()) {
-                Waveform(levels = levels, color = bars, modifier = Modifier.width(230.dp).height(18.dp))
+                Waveform(levels = levels, color = bars, modifier = Modifier.width(250.dp).height(30.dp))
             } else {
                 Text(text = liveText, color = Color(0xFF191919), fontSize = 17.sp)
             }
@@ -166,7 +166,7 @@ private fun Waveform(levels: List<Float>, color: Color, modifier: Modifier) {
         val barWidth = gap * 0.5f
         val recent = if (levels.size >= count) levels.takeLast(count) else List(count - levels.size) { 0f } + levels
         recent.forEachIndexed { i, level ->
-            val h = (size.height * (0.15f + 0.85f * level.coerceIn(0f, 1f)))
+            val h = (size.height * (0.08f + 0.92f * (level.coerceIn(0f, 1f) * 1.6f).coerceAtMost(1f)))
             val x = i * gap + (gap - barWidth) / 2f
             val y = (size.height - h) / 2f
             drawRoundRect(color, topLeft = Offset(x, y), size = Size(barWidth, h), cornerRadius = androidx.compose.ui.geometry.CornerRadius(barWidth / 2f))
