@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sound_play_mode_shuffle">随机播放</string>
+    <string name="sound">淫声荡语</string>
+    <string name="sound_detail_art_desc">封面</string>
+    <string name="video">视频体验</string>
+    <string name="down_to_loadmore">下来刷新更精彩</string>
+    <string name="menu_btn_favorite">收藏夹</string>
+    <string name="menu_btn_app">应用推荐</string>
+    <string name="sound_play_mode_all">列表循环</string>
+    <string name="ads_logo">推广</string>
+    <string name="sound_play_mode_cycle">播放模式</string>
+    <string name="sound_play_pause">播放或暂停</string>
+    <string name="sound_play_mode_list">顺序播放</string>
+    <string name="save_fail">保存失败</string>
+    <string name="sound_detail_title">正在播放</string>
+    <string name="no_select">未选择</string>
+    <string name="save_ok">保存成功</string>
+    <string name="menu_share_copy_ok">已复制到剪切板</string>
+    <string name="sound_detail_back_symbol">←</string>
+    <string name="sound_prev">上一首</string>
+    <string name="menu_btn_donation">付款</string>
+    <string name="sound_detail_back">返回</string>
+    <string name="sound_play_not_wifi">非wifi下听音频？</string>
+    <string name="app_name">kimi</string>
+    <string name="vip_tips">请升级VIP</string>
+    <string name="save_start">开始保存...</string>
+    <string name="sound_next">下一首</string>
+    <string name="del_cancel">取消</string>
+    <string name="sound_play_mode_toast">播放模式：%s</string>
+    <string name="music_lyrics_translation_hint">接口未提供逐字歌词。点击右侧浮条「译」可拉取与视频页相同的实时翻译字幕（需在 VideoTranslationInstaller 中配置翻译提供方）。</string>
+    <string name="tv">TV</string>
+    <string name="text">情趣小说</string>
+    <string name="del_ok">确认</string>
+    <string name="menu_favorite">收藏</string>
+    <string name="sound_play_mode_one">单曲循环</string>
+    <string name="img">性感图片</string>
+    <string name="menu_share_text_only">FAIL!! 只能分享text</string>
+    <string name="image_preview_failed">无法打开图片预览</string>
+    <string name="menu_favorite_cancel">取消收藏</string>
+    <string name="sound_open_player_detail">打开全屏播放页</string>
+    <string name="music_auxio_gpl_open">GPL 界面</string>
+    <string name="music_ui_auxio_banner">风格参考 Auxio · 非嵌入其工程代码</string>
+    <string name="sound_item_overflow">更多</string>
+</resources>

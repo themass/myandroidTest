@@ -188,6 +188,7 @@ dependencies {
     implementation project(':feature-chat')
     implementation project(':feature-photosolve')
     implementation project(':feature-user')
+    implementation project(':feature-channel')
     implementation project(":ads")
     implementation project(':auxio_music_ui')
     implementation project(':retromusic')
