@@ -149,31 +149,20 @@ internal fun SendStatusIndicator(status: SendStatus, onRetry: () -> Unit) {
             Spacer(Modifier.width(8.dp))
         }
         SendStatus.Failed -> {
-            // 失败：和助手 footer 的重新生成按钮同样式的芯片（36dp、圆角 11dp、芯片底色），图标 Refresh；文字「重试」保持红色
-            Row(
+            // 失败：气泡左侧只留一个重试图标（与助手的重新生成图标一样），颜色用错误红；点它重新发送同一条消息
+            Box(
                 modifier = Modifier
+                    .size(ChatKit.dimens.footerHitSize)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(ChatKit.colors.chipBackground)
                     .clickable(onClickLabel = stringResource(R.string.chatkit_send_failed), onClick = onRetry),
-                verticalAlignment = Alignment.CenterVertically,
+                contentAlignment = Alignment.Center,
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(AssistantChipSize)
-                        .clip(RoundedCornerShape(AssistantChipRadius))
-                        .background(ChatKit.colors.chipBackground),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        androidx.compose.material.icons.Icons.Outlined.Refresh,
-                        contentDescription = stringResource(R.string.chatkit_send_failed),
-                        tint = ChatKit.colors.chipIcon,
-                        modifier = Modifier.size(18.dp),
-                    )
-                }
-                Spacer(Modifier.width(6.dp))
-                androidx.compose.material3.Text(
-                    text = stringResource(R.string.chatkit_retry_label),
-                    color = ChatKit.colors.error,
-                    style = androidx.compose.material3.MaterialTheme.typography.labelLarge,
+                Icon(
+                    Icons.Outlined.Refresh,
+                    contentDescription = stringResource(R.string.chatkit_send_failed),
+                    tint = ChatKit.colors.error,
+                    modifier = Modifier.size(ChatKit.dimens.footerIconSize),
                 )
             }
             Spacer(Modifier.width(8.dp))
