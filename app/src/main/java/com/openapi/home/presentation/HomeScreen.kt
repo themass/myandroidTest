@@ -206,7 +206,7 @@ fun HomeScreen() {
                     when (current) {
                         HomeTab.Chat -> ChatRoute(onMenuClick = openDrawer)
                         HomeTab.Companion -> CompanionRoute()
-                        HomeTab.Channels -> ChannelsScreen()
+                        HomeTab.Channels -> ChannelsHub()
                         HomeTab.Profile -> Unit // 「我的」由右侧覆盖页显示
                     }
                 }
@@ -231,10 +231,11 @@ fun HomeScreen() {
 @Composable
 private fun ProfileSlidePage(onClose: () -> Unit) {
     var dragged by remember { mutableFloatStateOf(0f) }
-    Box(
+    Column(
         Modifier
             .fillMaxSize()
             .background(AppColors.ChatBackground)
+            .statusBarsPadding()
             .pointerInput(Unit) {
                 detectHorizontalDragGestures(
                     onDragEnd = { if (dragged > 120f) onClose(); dragged = 0f },
@@ -243,9 +244,12 @@ private fun ProfileSlidePage(onClose: () -> Unit) {
                 )
             },
     ) {
-        ProfileScreen()
-        IconButton(onClick = onClose, modifier = Modifier.statusBarsPadding().padding(4.dp)) {
+        // 顶栏单独占一行，返回箭头不再压在个人卡片上
+        IconButton(onClick = onClose, modifier = Modifier.padding(4.dp)) {
             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = AppColors.TextPrimary)
+        }
+        Box(Modifier.fillMaxSize()) {
+            ProfileScreen()
         }
     }
 }

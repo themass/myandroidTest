@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -368,7 +369,7 @@ private fun CropBottomActions(
     onReset: () -> Unit,
     onConfirm: () -> Unit,
 ) {
-    Surface(modifier = Modifier.fillMaxWidth(), color = Color.Black.copy(alpha = 0.7f)) {
+    Surface(modifier = Modifier.fillMaxWidth().navigationBarsPadding(), color = Color.Black.copy(alpha = 0.7f)) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 10.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
