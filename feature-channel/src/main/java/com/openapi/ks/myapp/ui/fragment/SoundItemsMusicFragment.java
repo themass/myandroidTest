@@ -2,13 +2,10 @@ package com.openapi.ks.myapp.ui.fragment;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.IBinder;
 
 import androidx.annotation.Nullable;
 import com.openapi.core.design.dialog.AppDialogHost;
@@ -91,8 +88,6 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
     private TextView tvPlaySubtitle;
     private String channel;
     private RecommendVo vo;
-    private PlayService mService;
-    private boolean mBound = false;
     @Override
     protected void bindViews(View view) {
         super.bindViews(view);
@@ -124,30 +119,16 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
     }
 
 
-    private final ServiceConnection mConnection = new ServiceConnection() {
-
-        @Override
-        public void onServiceConnected(ComponentName className, IBinder service) {
-            // We've bound to PlayerService, cast the IBindViewer and get PlayerService instance
-            PlayService.LocalBinder binder = (PlayService.LocalBinder) service;
-            mService = binder.getService();
-            LogUtil.i("bind music mService");
-            if (!CollectionUtils.isEmpty(infoListVo.voList)) {
-                mService.setData(infoListVo.voList);
-            }
-            mBound = true;
-            applyPlayModeIcon();
-            syncPlayButtonFromService();
-            if (adapter != null) {
-                adapter.notifyDataSetChanged();
-            }
+    private final MusicServiceConnection playback = new MusicServiceConnection(service -> {
+        if (!CollectionUtils.isEmpty(infoListVo.voList)) {
+            service.setData(infoListVo.voList);
         }
-
-        @Override
-        public void onServiceDisconnected(ComponentName classname) {
-            mBound = false;
+        applyPlayModeIcon();
+        syncPlayButtonFromService();
+        if (adapter != null) {
+            adapter.notifyDataSetChanged();
         }
-    };
+    });
     private int current = -1;
     private int currentTime;        //当前播放进度
     private int duration;            //播放长度
@@ -205,7 +186,7 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
     }
 
     public void onClick(View view) {
-        if (mService == null) {
+        if (playback.service() == null) {
             return;
         }
         // library 模块的 R.id 不是编译期常量，不能用于 switch
@@ -236,15 +217,15 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
      * @return 当前播放的位置 默认为0
      */
     public int resume() {
-        if (mService == null) {
+        if (playback.service() == null) {
             return -1;
         }
-        if (mService.isPlaying())
+        if (playback.service().isPlaying())
             return -1;
-        mService.resume();
+        playback.service().resume();
         ivPlay
                 .setImageResource(R.drawable.ic_music_pause_filled);
-        return mService.getPosition();
+        return playback.service().getPosition();
     }
 
     /**
@@ -253,21 +234,21 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
      * @return 当前播放的位置
      */
     public int pause() {
-        if (!mService.isPlaying())
+        if (!playback.service().isPlaying())
             return -1;
-        mService.pause(); // 暂停
+        playback.service().pause(); // 暂停
         ivPlay
                 .setImageResource(R.drawable.ic_music_play_filled);
-        return mService.getPosition();
+        return playback.service().getPosition();
     }
 
     public boolean isPlaying() {
-        return mService != null && mService.isPlaying();
+        return playback.service() != null && playback.service().isPlaying();
     }
 
     @Override
     public boolean showMusicListSpectrum() {
-        if (mService != null && mService.isPlaying()) {
+        if (playback.service() != null && playback.service().isPlaying()) {
             return true;
         }
         return pbLoading != null && pbLoading.getVisibility() == View.VISIBLE;
@@ -279,10 +260,10 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
      * @return 当前播放的位置
      */
     public void next() {
-        if (mService == null || adapter.getItemCount() <= 0) {
+        if (playback.service() == null || adapter.getItemCount() <= 0) {
             return;
         }
-        play(mService.computeNextIndex(current, adapter.getItemCount()));
+        play(playback.service().computeNextIndex(current, adapter.getItemCount()));
     }
 
     /**
@@ -291,65 +272,24 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
      * @return 当前播放的位置
      */
     public void pre() {
-        if (mService == null || adapter.getItemCount() <= 0) {
+        if (playback.service() == null || adapter.getItemCount() <= 0) {
             return;
         }
-        play(mService.computePreviousIndex(current, adapter.getItemCount()));
+        play(playback.service().computePreviousIndex(current, adapter.getItemCount()));
     }
 
     private void cyclePlayMode() {
-        if (mService == null) {
+        if (playback.service() == null) {
             return;
         }
-        int m = mService.getPlayMode();
-        int next = (m == 3) ? 2 : (m == 2) ? 1 : (m == 1) ? 4 : 3;
-        mService.setPlayMode(next);
-        ToastUtil.showShort(getString(R.string.sound_play_mode_toast, playModeLabel(next)));
-    }
-
-    private String playModeLabel(int mode) {
-        switch (mode) {
-            case 1:
-                return getString(R.string.sound_play_mode_one);
-            case 2:
-                return getString(R.string.sound_play_mode_all);
-            case 3:
-                return getString(R.string.sound_play_mode_list);
-            case 4:
-                return getString(R.string.sound_play_mode_shuffle);
-            default:
-                return getString(R.string.sound_play_mode_list);
-        }
+        PlayModeController.cycle(getActivity(), playback.service());
     }
 
     private void applyPlayModeIcon() {
         if (ivPlayMode == null || getActivity() == null) {
             return;
         }
-        if (!mBound || mService == null) {
-            ivPlayMode.setImageResource(R.drawable.ic_play_mode_order);
-            ivPlayMode.setContentDescription(getString(R.string.sound_play_mode_cycle));
-            return;
-        }
-        int mode = mService.getPlayMode();
-        int icon;
-        switch (mode) {
-            case 1:
-                icon = R.drawable.ic_play_mode_repeat_one;
-                break;
-            case 2:
-                icon = R.drawable.ic_play_mode_repeat_all;
-                break;
-            case 4:
-                icon = R.drawable.ic_play_mode_shuffle;
-                break;
-            case 3:
-            default:
-                icon = R.drawable.ic_play_mode_order;
-                break;
-        }
-        ivPlayMode.setImageResource(icon);
-        ivPlayMode.setContentDescription(getString(R.string.sound_play_mode_cycle) + "：" + playModeLabel(mode));
+        PlayModeController.applyIcon(getActivity(), ivPlayMode, playback.isBound() ? playback.service() : null);
     }
 
     public void play(int position) {
@@ -369,15 +309,15 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
             position = adapter.getItemCount() - 1;
         // 开始播放应显示「暂停」；原先误设为 play，导致与 MediaPlayer 实际状态不一致
         ivPlay.setImageResource(R.drawable.ic_music_pause_filled);
-        mService.playPosi(position);
+        playback.service().playPosi(position);
     }
 
     /** 与 {@link PlayService#isPlaying()} 对齐底栏播放键图标（绑定服务、回到前台时调用） */
     private void syncPlayButtonFromService() {
-        if (ivPlay == null || mService == null) {
+        if (ivPlay == null || playback.service() == null) {
             return;
         }
-        ivPlay.setImageResource(mService.isPlaying()
+        ivPlay.setImageResource(playback.service().isPlaying()
                 ? R.drawable.ic_music_pause_filled
                 : R.drawable.ic_music_play_filled);
     }
@@ -407,9 +347,7 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
         }
         StaticDataUtil.del(Constants.SOUND_CHANNEL);
         channel = vo.param;
-        Intent intent = new Intent(getActivity(), PlayService.class);
-        getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-        LogUtil.i("start bind music service");
+        playback.bind(getActivity());
         myFavoriteView.initFavoriteBackGroud(vo.param);
         myFavoriteView.setListener(this);
         myFavoriteView.showVideoLocal();
@@ -439,6 +377,20 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
                 return VideoTranslationRegistry.getInstance();
             }
         });
+        MusicSubtitleBindings.MusicPlaybackProbe probe = new MusicSubtitleBindings.MusicPlaybackProbe() {
+            @Override
+            public boolean isPlaying() {
+                return SoundItemsMusicFragment.this.isPlaying();
+            }
+
+            @Override
+            public long positionMs() {
+                if (playback.service() != null) {
+                    return playback.service().getPosition();
+                }
+                return currentTime;
+            }
+        };
         VideoRealtimeSubtitleSession realtimeSession = MusicSubtitleBindings.forMusic(
                 requireActivity(),
                 musicPageRoot,
@@ -453,35 +405,8 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
                     SoundItemsVo track = infoListVo.voList.get(idx);
                     return track != null && track.file != null ? track.file : "";
                 },
-                new MusicSubtitleBindings.MusicPlaybackProbe() {
-                    @Override
-                    public boolean isPlaying() {
-                        return SoundItemsMusicFragment.this.isPlaying();
-                    }
-
-                    @Override
-                    public long positionMs() {
-                        if (mService != null) {
-                            return mService.getPosition();
-                        }
-                        return currentTime;
-                    }
-                });
-        MusicSubtitleBindings.attachMusic(myFavoriteView, realtimeSession,
-                new MusicSubtitleBindings.MusicPlaybackProbe() {
-                    @Override
-                    public boolean isPlaying() {
-                        return SoundItemsMusicFragment.this.isPlaying();
-                    }
-
-                    @Override
-                    public long positionMs() {
-                        if (mService != null) {
-                            return mService.getPosition();
-                        }
-                        return currentTime;
-                    }
-                });
+                probe);
+        MusicSubtitleBindings.attachMusic(myFavoriteView, realtimeSession, probe);
         tvTitle.setOnClickListener(v -> openSoundDetail());
         tvPlaySubtitle = view.findViewById(R.id.tv_play_subtitle);
         if (ivPlayMode != null) {
@@ -500,8 +425,8 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
     @Override
     protected void onDataLoaded(InfoListVo<SoundItemsVo> data) {
         super.onDataLoaded(data);
-        if (mService != null) {
-            mService.setData(infoListVo.voList);
+        if (playback.service() != null) {
+            playback.service().setData(infoListVo.voList);
             syncPlayButtonFromService();
         }
     }
@@ -523,7 +448,7 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
         indexService.cancelRequest(SOUND_TAG);
         getActivity().unregisterReceiver(homeReceiver);
         getActivity().unregisterReceiver(netReceiver);
-//        getActivity().unbindService(mConnection);
+//        getActivity().unbindService(playback);
         super.onDestroyView();
     }
 
@@ -549,7 +474,7 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
 
     public void onStopTrackingTouch(SeekBar seekBar) {
         LogUtil.i("停止拖动");
-        mService.play(seekBar.getProgress());
+        playback.service().play(seekBar.getProgress());
         ivPlay.setImageResource(R.drawable.ic_music_pause_filled);
     }
 
@@ -581,10 +506,10 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
 
     @Override
     public boolean setSpeed(float speed) {
-        if (mService == null) {
+        if (playback.service() == null) {
             return false;
         }
-        mService.setPlaybackSpeed(speed);
+        playback.service().setPlaybackSpeed(speed);
         return true;
     }
 
@@ -649,7 +574,7 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
         @Override
         public void onReceive(Context context, Intent intent) {
             try {
-                if (mBound)
+                if (playback.isBound())
                     if (!checkCanPlay() && isPlaying()) {
                         pause();
                         showUpdateDialog(getActivity());
