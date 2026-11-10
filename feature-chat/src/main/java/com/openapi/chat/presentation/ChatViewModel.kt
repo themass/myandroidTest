@@ -58,6 +58,11 @@ class ChatViewModel : ViewModel() {
         repository, _uiState, streamer,
         streamText = { t -> streamReply(t, userMessageId = null, persistUser = false, syncAfter = false) },
     )
+    private val resend = ResendActions(
+        repository, _uiState, viewModelScope, streamer,
+        startAttachments = { m -> attachmentJob = viewModelScope.launch { deliverAttachments(m) } },
+        refresh = { refresh() },
+    )
     private val history = HistoryActions(repository, _uiState, viewModelScope, isInFlight = { attachments.isInFlight(it) })
     private val feedback = FeedbackActions(_uiState)
     private val removal = MessageRemoval(repository, _uiState, viewModelScope, reconcile = { fallbackReloadMessages() })
@@ -240,40 +245,10 @@ class ChatViewModel : ViewModel() {
 
 
     /** 重新发送一条失败的用户消息（不重新插入气泡，也不重复保存）。 */
-    fun onRetry(messageId: String) {
-        val state = _uiState.value
-        val message = state.messages.firstOrNull { it.id == messageId } ?: return
-        if (state.sending || message.role != ChatRole.USER) return
-        if (message.images.isNotEmpty() || message.files.isNotEmpty()) {
-            attachmentJob = viewModelScope.launch { deliverAttachments(message) }
-        } else if (message.text.isNotBlank()) {
-            streamReply(message.text, userMessageId = message.id, persistUser = false)
-        }
-    }
+    fun onRetry(messageId: String) = resend.retry(messageId)
 
-    /**
-     * 重新生成：与服务端一致，去掉最后一条用户消息之后的所有助手回复，然后重新回答最后一条用户消息。
-     * 只对最后一轮有意义；[assistantId] 仅用于定位，实际删除范围由最后一条用户消息决定。
-     */
-    fun onRegenerate(assistantId: String) {
-        val state = _uiState.value
-        if (state.sending) return
-        val lastUserIndex = state.messages.indexOfLast { it.role == ChatRole.USER }
-        if (lastUserIndex < 0) return
-        val lastUser = state.messages[lastUserIndex]
-        val lastReply = state.messages.lastOrNull()?.takeIf { it.role == ChatRole.ASSISTANT }
-        if (lastUser.images.isNotEmpty() || lastUser.files.isNotEmpty()) {
-            // 带附件的消息不走 regenerate（附件不在服务端历史里），按原样重新上传：这种情况仍然截断后重发
-            _uiState.update { it.copy(messages = state.messages.subList(0, lastUserIndex + 1).toList()) }
-            attachmentJob = viewModelScope.launch { deliverAttachments(lastUser) }
-        } else if (lastReply != null) {
-            // 原位替换：最新回复的气泡留在原处，新内容流进同一个气泡
-            streamReply(text = null, userMessageId = null, persistUser = false, regenerate = true, replaceKey = lastReply.key)
-        } else {
-            _uiState.update { it.copy(messages = state.messages.subList(0, lastUserIndex + 1).toList()) }
-            streamReply(text = null, userMessageId = null, persistUser = false, regenerate = true)
-        }
-    }
+    /** 重新生成：去掉最后一条用户消息之后的助手回复，然后重新回答。 */
+    fun onRegenerate(assistantId: String) = resend.regenerate(assistantId)
 
     /** 进入编辑：把用户消息的文字放回输入框，发送时提交为编辑（而不是新消息）。 */
     fun onEditMessage(messageId: String) = composer.startEdit(messageId)
@@ -283,40 +258,7 @@ class ChatViewModel : ViewModel() {
     fun onCancelEdit() = composer.cancelEdit()
 
 
-    /**
-     * 提交编辑：服务端改写这条用户消息，并删除它之后的所有消息；本地同步丢弃后续气泡，
-     * 然后用 regenerate 重新回答。
-     */
-    private fun submitEdit(messageId: String, text: String) {
-        val state = _uiState.value
-        val index = state.messages.indexOfFirst { it.id == messageId }
-        if (index < 0) {
-            _uiState.update { it.copy(editingMessageId = null) }
-            return
-        }
-        if (messageId.toLongOrNull() == null) {
-            _uiState.update { it.copy(error = "这条消息还没同步到服务端，稍后再编辑") }
-            return
-        }
-        val edited = state.messages[index].copy(text = text)
-        _uiState.update {
-            it.copy(
-                messages = state.messages.subList(0, index).toList() + edited,
-                input = "",
-                editingMessageId = null,
-                error = null,
-            )
-        }
-        viewModelScope.launch {
-            val ok = repository.editMessage(state.sessionId, messageId, text)
-            if (!ok) {
-                _uiState.update { it.copy(error = "编辑失败，请稍后重试") }
-                refresh()
-                return@launch
-            }
-            streamReply(text = null, userMessageId = null, persistUser = false, regenerate = true)
-        }
-    }
+    private fun submitEdit(messageId: String, text: String) = resend.submitEdit(messageId, text)
 
     /** 删除一条消息：服务端删除成功后再从界面移除；只存在于本地的附件气泡直接移除。 */
     fun onDeleteMessage(messageId: String) = removal.deleteOne(messageId)
