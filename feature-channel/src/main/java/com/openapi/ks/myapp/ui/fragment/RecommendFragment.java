@@ -15,7 +15,6 @@ import android.view.View;
 import com.openapi.core.CommonConstants;
 import com.openapi.core.view.touchhelper.OnStartDragListener;
 import com.openapi.core.view.touchhelper.SimpleItemTouchHelperCallback;
-import com.openapi.core.util.EventBusUtil;
 import com.openapi.core.util.ToastUtil;
 import com.openapi.core.ads.yewu.um.MobAgent;
 import com.openapi.feature.channel.R;
@@ -137,7 +136,7 @@ public abstract class RecommendFragment extends BasePullLoadbleFragment<Recommen
         Map<String, Object> param = new HashMap<>();
         param.put(CommonConstants.ADS_SHOW_CONFIG, vo.adsShow);
         param.put(CommonConstants.ADS_POP_SHOW_CONFIG, vo.adsPopShow);
-        EventBusUtil.getEventBus().post(new ConfigActionEvent(getActivity(), vo.actionUrl, vo.title, param));
+        com.openapi.core.event.CoreEvents.INSTANCE.postConfigAction(new ConfigActionEvent(getActivity(), vo.actionUrl, vo.title, param));
         MobAgent.onEventRecommondChannel(getActivity(), vo.title);
     }
 

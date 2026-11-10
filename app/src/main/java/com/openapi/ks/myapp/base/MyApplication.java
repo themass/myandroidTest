@@ -59,7 +59,7 @@ public class MyApplication extends MultiDexApplication {
                 CommonConstants.DEFAULT_REFERER,
                 CommonConstants.HTTP_TOKEN_KEY,
                 CommonConstants.DEVID,
-                code -> com.openapi.core.util.EventBusUtil.getEventBus().post(new com.openapi.core.event.UserNeedLogin()));
+                code -> com.openapi.core.event.CoreEvents.INSTANCE.postUserNeedLogin());
         com.openapi.core.view.view.MyWebView.setDefaultReferer(CommonConstants.DEFAULT_REFERER);
         // 拍照解题：配置了服务地址才换成真实实现（见 app/build.gradle 的 photosolveBaseUrl），否则保留 mock
         if (!com.openapi.ks.chat.BuildConfig.PHOTOSOLVE_BASE_URL.isEmpty()) {
@@ -88,7 +88,7 @@ public class MyApplication extends MultiDexApplication {
         com.openapi.home.ChannelsDependencies.INSTANCE.install(home);
         com.openapi.home.ProfileDependencies.INSTANCE.install(home);
         // 以前由旧首页页面注册，页面不在前台就收不到；现在随进程注册一次
-        com.openapi.core.util.EventBusUtil.getEventBus().register(new com.openapi.ks.myapp.data.config.ConfigActionJump());
+        com.openapi.ks.myapp.data.config.ConfigActionJump.start();
         AppEventHandler.INSTANCE.register();
         com.openapi.roles.data.RolesDependencies.INSTANCE.install(new com.openapi.ks.myapp.data.roles.RolesRepositoryImpl(this));
         BaseService speechService = new BaseService();

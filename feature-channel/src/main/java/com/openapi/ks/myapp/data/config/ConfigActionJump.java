@@ -17,8 +17,8 @@ import com.openapi.ks.myapp.ui.sound.TeleplayActivity;
 import com.openapi.ks.myapp.ui.sound.TextChannleActivity;
 import com.openapi.ks.myapp.ui.sound.VideoChannleActivity;
 
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
+import com.openapi.core.event.CoreEvents;
+import com.openapi.core.event.EventFlowsKt;
 
 import java.net.URLDecoder;
 import java.util.HashMap;
@@ -55,8 +55,13 @@ public class ConfigActionJump {
 //        configMap.put(Constants.VIDEO_CHANNEL_USER_URL, VideoChannleUserActivity.class);
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent(ConfigActionEvent event) {
+    /** 在进程级作用域里收集配置页跳转事件；应用启动时调用一次。 */
+    public static void start() {
+        EventFlowsKt.observeJava(EventFlowsKt.getAppScope(), CoreEvents.INSTANCE.getConfigAction(),
+                event -> new ConfigActionJump().onEvent(event));
+    }
+
+    private void onEvent(ConfigActionEvent event) {
         LogUtil.i("ConfigActionJump onEvent-" + event.url + "-" + Thread.currentThread().getName());
         Uri uri = Uri.parse(event.url);
         Set<String> names = uri.getQueryParameterNames();

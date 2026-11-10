@@ -8,7 +8,7 @@ import com.openapi.core.ads.yewu.um.MobAgent
 import com.openapi.core.event.ConfigActionEvent
 import com.openapi.core.net.BaseService
 import com.openapi.core.net.awaitInfoList
-import com.openapi.core.util.EventBusUtil
+import com.openapi.core.event.CoreEvents
 import com.openapi.core.util.PreferenceUtils
 import com.openapi.core.util.ToastUtil
 import com.openapi.home.domain.Channel
@@ -76,7 +76,7 @@ class LegacyChannelEntries(app: Context) : ChannelEntries {
         val param = HashMap<String, Any>()
         param[CommonConstants.ADS_SHOW_CONFIG] = vo.adsShow
         param[CommonConstants.ADS_POP_SHOW_CONFIG] = vo.adsPopShow
-        EventBusUtil.getEventBus().post(ConfigActionEvent(context, vo.actionUrl, vo.title, param))
+        CoreEvents.postConfigAction(ConfigActionEvent(context, vo.actionUrl, vo.title, param))
         MobAgent.onEventRecommondChannel(context, vo.title)
     }
 

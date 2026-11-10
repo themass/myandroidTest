@@ -3,16 +3,17 @@ package com.openapi.ks.myapp.base
 import android.content.Intent
 import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
-import com.openapi.core.event.UserNeedLogin
-import com.openapi.core.util.EventBusUtil
+import com.openapi.core.event.CoreEvents
+import com.openapi.core.event.appScope
+import com.openapi.core.event.observe
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 import com.openapi.core.util.PreferenceUtils
 import com.openapi.ks.myapp.constant.Constants
 import com.openapi.ks.myapp.data.UserLoginUtil
 import com.openapi.ks.myapp.data.config.PlayCoreEvent
 import com.openapi.ks.myapp.ui.user.LoginActivity
 import com.openapi.ks.myapp.video.PlaybackEngineHelper
-import org.greenrobot.eventbus.Subscribe
-import org.greenrobot.eventbus.ThreadMode
 
 /**
  * 全局事件处理。
@@ -23,12 +24,11 @@ import org.greenrobot.eventbus.ThreadMode
 object AppEventHandler {
 
     fun register() {
-        EventBusUtil.getEventBus().register(this)
+        observe(appScope, CoreEvents.userNeedLogin) { onUserNeedLogin() }
     }
 
     /** 登录态失效（例如接口返回未登录）：清掉本地登录信息并回到登录页。 */
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    fun onUserNeedLogin(event: UserNeedLogin) {
+    private fun onUserNeedLogin() {
         val app = MyApplication.getInstance()
         UserLoginUtil.logout(app)
         app.startActivity(Intent(app, LoginActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
