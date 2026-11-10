@@ -59,7 +59,6 @@ dependencies {
     // 频道与推荐列表、频道详情、声音/图片/文字/视频频道页、收藏、搜索
     api project(':commonutil')
     implementation project(':core')
-    implementation project(':feature-video')
     // 字幕翻译框架（原在 :commonutil）
     implementation project(':media')
     implementation libs.google.material

@@ -26,7 +26,7 @@ import com.openapi.ks.myapp.bean.vo.ImgItemsVo;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.bean.vo.TextItemsVo;
 import com.openapi.ks.myapp.constant.Constants;
-import com.openapi.ks.myapp.ui.sound.VideoShowActivityLazyUrl;
+import com.openapi.ks.myapp.constant.Routes;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -106,9 +106,7 @@ public class FavoriteFragment extends Fragment {
         } else if (data.type == Constants.FavoriteType.VIDEO) {
             RecommendVo vo = ModelUtils.json2Entry(data.extra, RecommendVo.class);
             if (vo != null) {
-                Intent intent = new Intent(getActivity(), VideoShowActivityLazyUrl.class);
-                intent.putExtra(Constants.CONFIG_PARAM, vo);
-                startActivity(intent);
+                startActivity(Routes.videoShowLazyUrl(getActivity(), vo));
             }
         }
     }

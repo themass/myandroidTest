@@ -11,7 +11,7 @@ import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.core.util.StaticDataUtil;
 import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
-import com.openapi.ks.myapp.ui.sound.VideoShowActivity;
+import com.openapi.ks.myapp.constant.Routes;
 
 /**
  * Created by openapi on 2016/8/12.
@@ -74,7 +74,7 @@ public class VideoChannelUserItemsListFragment extends RecommendFragment {
         }
         vo.urlToken = revo.urlToken;
         if (Constants.VIDEO_TYPE_NORMAL.equalsIgnoreCase((String) vo.extra)) {
-            startActivity(VideoShowActivity.class, vo);
+            startActivity(Routes.videoShow(getActivity(), vo));
 //            startActivity(VitamioVideoPlayActivity.class, vo);
         } else {
             super.onCustomerItemClick(v, position);

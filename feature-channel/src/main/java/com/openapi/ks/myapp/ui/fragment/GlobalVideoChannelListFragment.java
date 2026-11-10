@@ -10,7 +10,7 @@ import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.core.util.StaticDataUtil;
 import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
-import com.openapi.ks.myapp.ui.sound.VideoShowActivityLazyUrl;
+import com.openapi.ks.myapp.constant.Routes;
 import com.openapi.core.util.PreferenceUtils;
 import com.openapi.core.ads.yewu.ads.base.AdsContext;
 
@@ -84,7 +84,7 @@ public class GlobalVideoChannelListFragment extends RecommendFragment {
         if (Constants.VIDEO_TYPE_NORMAL.equalsIgnoreCase((String) vo.extra)) {
             boolean playvideo = PreferenceUtils.getPrefBoolean(getContext(), Constants.PLAYVIDEO_SWITCH, true);
             if (playvideo) {
-                startActivity(VideoShowActivityLazyUrl.class, vo);
+                startActivity(Routes.videoShowLazyUrl(getActivity(), vo));
             } else {
 //                startActivity(VitamioVideoPlayActivity.class, vo);
             }

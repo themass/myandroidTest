@@ -6,7 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 
 
-import com.openapi.ks.myapp.ui.sound.VideoShowActivityLazyUrl;
+import com.openapi.ks.myapp.constant.Routes;
 import com.openapi.core.util.PreferenceUtils;
 import com.openapi.core.ads.yewu.ads.base.AdsContext;
 import com.openapi.core.net.request.InfoListVo;
@@ -91,7 +91,7 @@ public class VideoChannelListFragment extends RecommendFragment {
     private void openVideoShow(RecommendVo urlVo) {
         boolean playvideo = PreferenceUtils.getPrefBoolean(getContext(), Constants.PLAYVIDEO_SWITCH, true);
         if (playvideo) {
-            startActivity(VideoShowActivityLazyUrl.class, urlVo);
+            startActivity(Routes.videoShowLazyUrl(getActivity(), urlVo));
         } else {
 //            startActivity(VitamioVideoPlayActivity.class, urlVo);
         }
