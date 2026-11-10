@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Delete
@@ -184,11 +185,11 @@ fun ChatMessageList(
                 handleAction(target.item, action)
             }
             if (menuStyle == MessageMenuStyle.Sheet) {
-                MessageMenuSheet(items = menuItemsFor(target.item), onSelect = onSelect, onDismiss = { menu = null })
+                MessageMenuSheet(items = menuItemsFor(target.item, target.item.id == latestAssistantId), onSelect = onSelect, onDismiss = { menu = null })
             } else {
                 MessageMenu(
                     anchor = target.anchor,
-                    items = menuItemsFor(target.item),
+                    items = menuItemsFor(target.item, target.item.id == latestAssistantId),
                     onSelect = onSelect,
                     onDismiss = { menu = null },
                 )
@@ -231,10 +232,10 @@ private data class MenuTarget(val item: ChatItem, val anchor: Rect)
  * 长按菜单的菜单项（按消息类型）：
  * - 语音：复制（有转写时）、朗读（播放原声）、删除
  * - 用户：重试（发送失败时）、复制、编辑、删除
- * - 助手：复制、朗读、删除
+ * - 助手：复制、朗读、分享（有文字时）、重试（重新生成，只在最新一条回复上）、删除
  */
 @Composable
-private fun menuItemsFor(item: ChatItem): List<MenuItem> {
+private fun menuItemsFor(item: ChatItem, isLatestAssistant: Boolean): List<MenuItem> {
     val hasText = item.plainText.isNotBlank()
     val hasVoice = item.parts.any { it is MessagePart.Voice }
     val isUser = item.sender == Sender.User
@@ -242,6 +243,8 @@ private fun menuItemsFor(item: ChatItem): List<MenuItem> {
     val speak = stringResource(R.string.chatkit_speak)
     val edit = stringResource(R.string.chatkit_edit)
     val retry = stringResource(R.string.chatkit_retry)
+    val share = stringResource(R.string.chatkit_share)
+    val regenerate = stringResource(R.string.chatkit_retry_label)
     val delete = stringResource(R.string.chatkit_delete)
     val multiSelect = stringResource(R.string.chatkit_multi_select)
     return buildList {
@@ -261,7 +264,9 @@ private fun menuItemsFor(item: ChatItem): List<MenuItem> {
                 if (hasText) {
                     add(MenuItem(copy, MessageAction.Copy, Icons.Outlined.ContentCopy))
                     add(MenuItem(speak, MessageAction.Speak, Icons.AutoMirrored.Outlined.VolumeUp))
+                    add(MenuItem(share, MessageAction.Share, Icons.Outlined.Share))
                 }
+                if (isLatestAssistant) add(MenuItem(regenerate, MessageAction.Regenerate, Icons.Outlined.Refresh))
             }
         }
         add(MenuItem(multiSelect, MessageAction.Select, Icons.Outlined.CheckCircle))
@@ -340,7 +345,7 @@ fun ChatMessageItem(
                 val assistantFooter: (@Composable () -> Unit)? =
                     // 多选时不显示 footer：它的按钮在消息行下面，会抢走点击
                     if (!isUser && !item.streaming && !item.thinking && !selectionActive) {
-                        { AssistantFooter(item = item, isLatest = isLatestAssistant, onAction = onAction) }
+                        { AssistantFooter(item = item, onAction = onAction) }
                     } else {
                         null
                     }
