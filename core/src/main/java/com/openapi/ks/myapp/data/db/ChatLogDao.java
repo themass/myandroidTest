@@ -32,7 +32,15 @@ public interface ChatLogDao {
     @Query("SELECT COUNT(*) FROM ChatLog")
     long count();
 
-    /** 只保留最近 [keep] 条：删掉 id 比最大 id 小 [keep] 以上的记录。 */
-    @Query("DELETE FROM ChatLog WHERE id <= (SELECT MAX(id) FROM ChatLog) - :keep")
+    /**
+     * 只保留最近 [keep] 条纯文字缓存：删掉 id 比最大 id 小 [keep] 以上的文字记录。
+     * 语音、图片、文件（msgType != 0）和本地临时消息（chatId 以 local- 开头）不删：
+     * 服务端历史里只有文字，这些记录里的附件信息只存在本机，删了就找不回来了。
+     */
+    @Query("DELETE FROM ChatLog WHERE msgType = 0 AND chatId NOT LIKE 'local-%' "
+            + "AND id <= (SELECT MAX(id) FROM ChatLog) - :keep")
     void trimToLatest(long keep);
+
+    @Query("SELECT * FROM ChatLog WHERE chatId = :chatId LIMIT 1")
+    ChatLog byChatId(String chatId);
 }

@@ -1089,11 +1089,15 @@ class ChatViewModel : ViewModel() {
 
             // 转写失败就停在这里：语音气泡已经发出去了，不拿空串去问大模型。
             if (text.isNullOrBlank()) return@launch
-            // 转写显示在语音气泡下方（同一条消息），再把文字发给大模型
+            // 转写显示在语音气泡下方（同一条消息），并写回本地记录，重启后也能看到
+            val transcribed = message.copy(text = text)
+            repository.saveMessage(repository.currentSessionId(), transcribed)
             _uiState.update { current ->
-                current.copy(messages = current.messages.map { if (it.id == message.id) it.copy(text = text) else it })
+                current.copy(messages = current.messages.map { if (it.id == message.id) transcribed else it })
             }
-            streamReply(text, userMessageId = message.id, persistUser = true)
+            // 语音气泡已经保存过：这里不能再让仓库保存用户消息。仓库保存的是纯文字行，会用同一个 chatId
+            // 覆盖掉语音记录，语音就没了（重试路径同样是 persistUser = false）。
+            streamReply(text, userMessageId = message.id, persistUser = false)
         }
     }
 }
