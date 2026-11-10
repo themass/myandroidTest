@@ -3,9 +3,7 @@ package com.openapi.core.net.request;
 import android.content.Context;
 import android.text.TextUtils;
 
-import com.openapi.core.event.UserNeedLogin;
 import com.openapi.core.util.DeviceInfoUtils;
-import com.openapi.core.util.EventBusUtil;
 import com.openapi.core.util.GsonUtils;
 import com.openapi.core.util.Md5;
 import com.openapi.core.util.StaticDataUtil;
@@ -20,7 +18,7 @@ import com.openapi.core.net.NetRequest;
 import com.openapi.core.net.NetResponse;
 import com.openapi.core.net.Response;
 import com.openapi.core.net.request.JsonResult;
-import com.openapi.core.CommonConstants;
+import com.openapi.core.net.NetConfig;
 
 import java.net.URL;
 import java.net.URLEncoder;
@@ -76,12 +74,12 @@ public class BaseRequest<T> extends NetRequest<T> {
         sb = sb + "|" + time;
         String msg = time + Md5.encode(sb);
         String ua = UA_DEFAULT + UA_APP_SUFFIX + ",channel=" + uc + ",cpu=" + SystemUtils.getCpuType() + ",Webkit/" + fileTxt + ",IE" + msg;
-        String loc = "lon:" + StaticDataUtil.get(CommonConstants.LON, Double.class) + ";lat:" + StaticDataUtil.get(CommonConstants.LAT, Double.class);
+        String loc = "lon:" + StaticDataUtil.get("lon", Double.class) + ";lat:" + StaticDataUtil.get("lat", Double.class);
         this.authkey = ua.substring(ua.length() - 16, ua.length());
         headers.put("Loc", loc);
         headers.put("User-Agent", ua);
         if (!headers.containsKey("Referer")) {
-            headers.put("Referer", CommonConstants.DEFAULT_REFERER);
+            headers.put("Referer", NetConfig.defaultReferer());
         }
         headers.put("Accept-Encoding", "gzip");
         headers.put("Accept-Language", SystemUtils.getLang(context));
@@ -91,10 +89,10 @@ public class BaseRequest<T> extends NetRequest<T> {
         }catch (Exception e){
             headers.put("userLang", currentLocale.getCountry() + ";" + currentLocale.getLanguage());
         }
-        headers.put(CommonConstants.DEVID, DEVID);
-        String token = PreferenceUtils.getPrefString(context, CommonConstants.HTTP_TOKEN_KEY, null);
+        headers.put(NetConfig.deviceHeader(), DEVID);
+        String token = PreferenceUtils.getPrefString(context, NetConfig.tokenHeader(), null);
         if (token != null)
-            headers.put(CommonConstants.HTTP_TOKEN_KEY, token);
+            headers.put(NetConfig.tokenHeader(), token);
         this.headers = headers;
     }
 
@@ -129,18 +127,18 @@ public class BaseRequest<T> extends NetRequest<T> {
     }
 
     private boolean parserJsonResult(Context context, int result) {
-        switch (result) {
-            case CommonConstants.HTTP_SUCCESS:
-                return true;
-            case CommonConstants.HTTP_SUCCESS_CLEAR:
-                EventBusUtil.getEventBus().post(new UserNeedLogin());
-                return true;
-            case CommonConstants.HTTP_LOGIN:
-                EventBusUtil.getEventBus().post(new UserNeedLogin());
-                return false;
-            default:
-                return false;
+        if (result == NetConfig.CODE_SUCCESS) {
+            return true;
         }
+        if (result == NetConfig.CODE_SUCCESS_CLEAR_LOGIN) {
+            NetConfig.notifyAuthRequired(result);
+            return true;
+        }
+        if (result == NetConfig.CODE_LOGIN_REQUIRED) {
+            NetConfig.notifyAuthRequired(result);
+            return false;
+        }
+        return false;
     }
 
     protected Response parserData(JsonResult data, NetResponse response) {

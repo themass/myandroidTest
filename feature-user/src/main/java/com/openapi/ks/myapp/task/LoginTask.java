@@ -54,7 +54,7 @@ public class LoginTask {
                 if (user != null) {
                     UserLoginUtil.login(AppContext.get(), user);
                 } else {
-                    PreferenceUtils.remove(AppContext.get(), CommonConstants.HTTP_TOKEN_KEY);
+                    PreferenceUtils.remove(AppContext.get(), com.openapi.core.net.NetConfig.tokenHeader());
                 }
             } catch (Exception e) {
                 LogUtil.e(e);

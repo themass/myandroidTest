@@ -164,7 +164,7 @@ class LegacyHomeEntries(private val app: Context) : HomeEntries {
 
     private fun share(context: Context) {
         var url = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.D_URL, null)
-        if (!StringUtils.hasText(url)) url = CommonConstants.DEFAULT_REFERER
+        if (!StringUtils.hasText(url)) url = com.openapi.core.net.NetConfig.defaultReferer()
         ShareUtil(context).shareText(null, null, "$url 爱Freedom，精彩你的生活", "爱Freedom", "精彩你的生活")
     }
 

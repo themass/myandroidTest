@@ -33,7 +33,7 @@ public class UserLoginUtil {
 
     public static void login(Context context, UserInfoVo vo) {
         PreferenceUtils.setPrefObj(context, Constants.LOGIN_USER, vo);
-        PreferenceUtils.setPrefString(context, CommonConstants.HTTP_TOKEN_KEY, vo.token);
+        PreferenceUtils.setPrefString(context, com.openapi.core.net.NetConfig.tokenHeader(), vo.token);
         StaticDataUtil.add(Constants.LOGIN_USER, vo);
         EventBusUtil.getEventBus().post(new UserLoginEvent());
         context.sendBroadcast(new Intent(AppContext.UPDATE_STATUS_ACTION));
@@ -44,7 +44,7 @@ public class UserLoginUtil {
 
     public static void logout(Context context) {
         PreferenceUtils.remove(context, Constants.LOGIN_USER);
-        PreferenceUtils.remove(context, CommonConstants.HTTP_TOKEN_KEY);
+        PreferenceUtils.remove(context, com.openapi.core.net.NetConfig.tokenHeader());
         StaticDataUtil.del(Constants.LOGIN_USER);
         EventBusUtil.getEventBus().post(new UserLoginEvent());
         context.sendBroadcast(new Intent(AppContext.UPDATE_STATUS_ACTION));
