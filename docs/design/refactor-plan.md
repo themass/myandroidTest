@@ -76,6 +76,7 @@
 | 9 | **收尾**：删 EventBus；统一包名；加架构测试 | 中 | 3–4 |
 
 **阶段 9 进度（2026-11-11）**：架构测试已加（`app/src/test/.../architecture/ModuleGraphTest.kt`）：没有模块依赖 `:app`；`:commonutil` 不依赖项目模块；`:core`、`:media`、`:ads`、`:chatkit` 不依赖 feature-*；feature-* 之间只允许 `:feature-chat` → `:feature-roles`。EventBus 删除（进行中，按事件分批）：第一批 `UserNeedLogin`、`ConfigActionEvent` 已改为 flow（`4303b4d5`），基础设施在 `commonutil/.../event/EventFlows.kt`，事件在 `core/.../event/CoreEvents.kt`。剩下的事件：`FavoriteChangeEvent`（`FavoriteFragment`、`SettingCharacterFragment`）、`TabChangeEvent`、`PlayCoreEvent`、`CustomeAddEvent`（`feature-user`）、`UserLoginEvent`（只发不收，可直接删）、`HindBannerEvent`（只收不发，可直接删）、`PermEvent`（只收不发，权限代码按 5.10 搁置）、`BannerAdsNext`（只发不收，可直接删）、`SplashAdDissmisEvent` / `LaunchAdsNext`（在 `:ads`，`LaunchActivity` 收）。Java 订阅方用 `observeJava`。
+- EventBus 第二、三批（2026-11-11）：`e020b6d6` 删除无人读写的 `UserLoginEvent`、`BannerAdsNext`、`HindBannerEvent`；`99a140d5` 删除无人读的 `TabChangeEvent`、`CustomeAddEvent`，`PlayCoreEvent`、`FavoriteChangeEvent` 改为 flow；`7c94d00a` 把 `:ads` 的开屏事件改为 `AdsEvents`（Java，因为 `:ads` 没有 Kotlin）。现在只剩 `BasePermissionActivity` 订阅 `PermEvent`，没有任何地方发布它，属于 5.10 搁置范围。`EventBusUtil` 和 `eventbus` 依赖要等 5.10 做完才能删。
 未做：统一包名（`commonutil` 目录和包名、`viewer` 包、`Constants` 改名等）；统一包名（`commonutil` 目录和包名、`viewer` 包、`Constants` 改名等）。
 
 **进度（2026-11-10）**
