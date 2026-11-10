@@ -56,6 +56,8 @@ dependencies {
     // 拍照解题：图像处理与模型在 :core（com.aimath.paizhao.photosolve.image/quality/cropassist）
     api project(':commonutil')
     implementation project(':core')
+    // 图像处理（压缩、质量分析、自动裁剪、超分）在 :media
+    implementation project(':media')
     implementation libs.okhttp
 
     // 裁剪、文件选择、文档扫描（来自原 app 依赖）
