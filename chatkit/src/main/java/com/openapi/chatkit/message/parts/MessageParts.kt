@@ -201,7 +201,16 @@ fun ImageGrid(
     }
 
     viewerStart?.let { start ->
-        ImageViewer(sources = sources, startIndex = start, onDismiss = { viewerStart = null })
+        ImageViewer(
+            sources = sources,
+            startIndex = start,
+            onDismiss = { viewerStart = null },
+            onLongPress = { source ->
+                // 先关掉查看器（它是独立窗口，会挡住菜单），再弹出同一张图的菜单
+                viewerStart = null
+                onLongPress(source)
+            },
+        )
     }
 }
 

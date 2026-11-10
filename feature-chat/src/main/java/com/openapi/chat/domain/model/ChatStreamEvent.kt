@@ -24,5 +24,8 @@ sealed interface ChatStreamEvent {
      * 请求失败或服务端在流中报错。[userMessageId] 是服务端已保存的用户消息 id（错误帧带来时才有），
      * 有它时重试直接用服务端 id，没有则退回到用本地 id 重发文字。
      */
-    data class Error(val message: String, val userMessageId: String? = null) : ChatStreamEvent
+    data class Error(val message: String, val userMessageId: String? = null) : ChatStreamEvent {
+        // 每次出错都记日志（包括服务端返回的错误帧、HTTP 状态、网络异常），方便从 logcat 查真实原因
+        init { android.util.Log.w("ChatStream", "stream error: $message") }
+    }
 }

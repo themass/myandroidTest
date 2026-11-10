@@ -41,7 +41,13 @@ internal fun imageModel(source: String): Any =
  * 多张图时顶部显示「当前 / 总数」。
  */
 @Composable
-fun ImageViewer(sources: List<String>, startIndex: Int, onDismiss: () -> Unit) {
+fun ImageViewer(
+    sources: List<String>,
+    startIndex: Int,
+    onDismiss: () -> Unit,
+    /** 长按某一张（传它的来源）。调用方应先关闭查看器再弹菜单，否则菜单会被查看器挡住。 */
+    onLongPress: (String) -> Unit = {},
+) {
     if (sources.isEmpty()) return
     Dialog(
         onDismissRequest = onDismiss,
@@ -50,7 +56,7 @@ fun ImageViewer(sources: List<String>, startIndex: Int, onDismiss: () -> Unit) {
         val pager = rememberPagerState(initialPage = startIndex.coerceIn(0, sources.lastIndex)) { sources.size }
         Box(Modifier.fillMaxSize().background(Color.Black)) {
             HorizontalPager(state = pager, modifier = Modifier.fillMaxSize()) { page ->
-                ZoomableImage(source = sources[page], onTap = onDismiss)
+                ZoomableImage(source = sources[page], onTap = onDismiss, onLongPress = { onLongPress(sources[page]) })
             }
             if (sources.size > 1) {
                 Text(
@@ -64,7 +70,7 @@ fun ImageViewer(sources: List<String>, startIndex: Int, onDismiss: () -> Unit) {
 }
 
 @Composable
-private fun ZoomableImage(source: String, onTap: () -> Unit) {
+private fun ZoomableImage(source: String, onTap: () -> Unit, onLongPress: () -> Unit) {
     var scale by remember { mutableFloatStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
     val transformState = rememberTransformableState { zoom, pan, _ ->
@@ -80,6 +86,7 @@ private fun ZoomableImage(source: String, onTap: () -> Unit) {
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = { onTap() },
+                    onLongPress = { onLongPress() },
                     onDoubleTap = {
                         if (scale > 1f) {
                             scale = 1f
