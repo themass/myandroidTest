@@ -38,8 +38,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
@@ -85,8 +83,6 @@ private enum class HomeTab(@StringRes val label: Int, val icon: ImageVector) {
     Profile(R.string.home_tab_profile, Icons.Filled.Person),
 }
 
-/** 底部导航只有「对话」「陪伴」；频道、我的从侧边栏进入。 */
-private val BottomTabs = listOf(HomeTab.Chat, HomeTab.Companion)
 
 @Composable
 fun HomeScreen() {
@@ -189,23 +185,6 @@ fun HomeScreen() {
     ) {
         Box(Modifier.fillMaxSize()) {
         Scaffold(
-            bottomBar = {
-                // 对话标签不显示底栏：输入框已经贴底，底栏叠在下面会形成两层操作区、白白占掉一截高度。
-                // 切换标签仍可通过顶部菜单打开的侧边栏完成。其它标签保留底栏。
-                if (!imeVisible) {
-                    NavigationBar {
-                        BottomTabs.forEach { tab ->
-                            NavigationBarItem(
-                                selected = tab == current,
-                                onClick = { selected = tab.ordinal },
-                                icon = { Icon(tab.icon, contentDescription = null) },
-                                label = { Text(stringResource(tab.label)) },
-                                colors = BarItemColors,
-                            )
-                        }
-                    }
-                }
-            },
         ) { innerPadding ->
             // 对话标签的顶栏要画到状态栏底下（状态栏同色），所以这一标签不留顶部边距，由顶栏自己处理；
             // 只能把「实际留出的边距」标记为已消费，否则顶栏的 statusBarsPadding 会拿到 0
