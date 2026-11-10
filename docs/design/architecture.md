@@ -51,7 +51,7 @@
          :ads                   广告
 第 0 层  :common                util/ net/ ui/（原 :commonutil，并入 :sharekit）
 ```
-`:retromusic`、`:auxio_music_ui` 的去留见 refactor-plan.md 第 0 节第 3 条。
+`:retromusic`（本地音乐）是独立模块，**不动**：不改代码、不改框架、不拆、不合并。`:auxio_music_ui`（音乐频道的另一套界面）也保持现状，不并入别的模块。
 
 **单独建模块的条件**（默认用子包）：带重的第三方库或原生库；需要构建层面强制依赖方向；有独立的开发分支。
 
@@ -104,7 +104,7 @@ model/    跨功能数据对象
 db/       Room 数据库、DAO、实体
 event/    业务事件
 favorite/ 收藏存储与收藏视图
-legacyui/ View 体系的 Activity/Fragment 基类，新代码不用，随旧页面一起删除
+legacyui/ View 体系的 Activity/Fragment 基类，新代码不用；旧页面非必要不换，所以会长期存在
 ```
 
 ### feature 模块
@@ -144,13 +144,13 @@ Manifest 只登记启动页和首页，其余由各 feature 自己的 Manifest �
 
 | 领域 | 现在 | 目标 | 说明 |
 |---|---|---|---|
-| 界面 | View + Fragment（Java）与 Compose 并存 | **Compose** | 旧页面随 feature 重写逐步替换，不单独为换而换 |
+| 界面 | View + Fragment（Java）与 Compose 并存 | 新页面用 **Compose** | 旧页面**非必要不换**。只有在要改它的功能、或者它挡住了别的整理时才重写 |
 | 语言 | Java 319 个文件，Kotlin 142 个 | **Kotlin** | 改到哪个文件，顺手转；不做批量转换 |
 | 异步 | 回调、`Handler`、`AsyncTask` | **协程** | |
 | 事件 | EventBus（10 种事件） | **Flow / StateFlow** | 一种事件一种事件地换，换完删依赖 |
-| 网络 | OkHttp + 仿 Volley 的回调封装（`NetQueue`、`BaseRequest`） | OkHttp + **挂起函数** | 不引入 Retrofit；在现有封装外加挂起函数，调用方逐个迁移 |
-| 视频播放 | GSY 播放器，带 4 个引擎（Exo2、IJK/FFmpeg、阿里、系统） | **Media3** | 项目里 Media3 已经在用。需要先确认 IJK 支持的格式是否还要（见 refactor-plan.md） |
-| 音乐播放 | `MediaPlayer` 的 `PlayService` | **Media3 `MediaSessionService`** | |
+| 网络 | OkHttp + 仿 Volley 命名的回调封装（`BaseService` → `NetQueue` → OkHttp） | OkHttp + **挂起函数**，类名去掉 Volley 痕迹 | 不引入 Retrofit。整理方案见 refactor-plan.md 第 5.8 节 |
+| 视频播放 | GSY 播放器，带 4 个引擎（Exo2、IJK/FFmpeg、阿里、系统） | **GSY 不变，4 个引擎都保留** | 不换成 Media3。只整理代码结构（拆大类、移对位置），不改播放引擎 |
+| 音乐播放 | 频道音乐：`MediaPlayer` 的 `PlayService`；`:auxio_music_ui`：Media3；`:retromusic`：自带 | 不变 | 只把 `PlayService` 移到频道模块，不重写 |
 | 图片 | Glide | Glide（不变） | Compose 里用 Glide 的 Compose 集成或 Coil，二选一，不两个都用 |
 | 页面传参 | `Serializable` | `Parcelable` 或只传 id | |
 | 数据库 | Room | Room（不变） | |
@@ -171,4 +171,11 @@ Manifest 只登记启动页和首页，其余由各 feature 自己的 Manifest �
 9. 包名统一放最后；`:ads` 改为 `com.openapi.ads`，`Constants` 改名 `AdsIds`。
 10. 拍照解题用应用统一主题：已完成（`db9633bf`）。
 11. 删除 `AutoVideoListFragment`：已完成（`db9633bf`）。
-**还没确认**：旧页面框架暂留 `:core/legacyui`；对话的 Room 实体留 `:core/db`。见 refactor-plan.md 第 0 节。
+13. 旧页面框架暂留 `:core/legacyui`；对话的 Room 实体留 `:core/db`。
+14. **视频播放保留 GSY 和全部 4 个引擎**，不换 Media3。
+15. 旧 Java 页面**非必要不换**成 Compose。
+16. `:retromusic` 不动：不改代码、不改框架、不拆、不合并。GPL 协议不作为考虑因素。
+17. `ObjectUtils`、`StringUtils` 等工具类要整理（瘦身、去重）。
+18. 网络层要整理：去掉仿 Volley 的命名，加挂起函数接口。
+19. 公式渲染：先比较自定义插件和 Markwon 官方 `ext-latex` 的差别，再决定是否换。
+20. `ChatViewModel`、`ChatRepositoryImpl` 按 refactor-plan.md 第 5.1、5.2 节拆分；两个对话 bug 拆完先补单元测试再修。

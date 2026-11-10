@@ -6,14 +6,23 @@
 
 ---
 
-## 0. 开工前要你决定的
+## 0. 已确认的前提（2026-11-10）
 
-| # | 问题 | 影响 | 我的建议 |
+| # | 问题 | 决定 | 对计划的影响 |
 |---|---|---|---|
-| 1 | **视频播放引擎**：现在 GSY 带 4 个引擎（Exo2、IJK/FFmpeg、阿里、系统），设置页能切换。改成只用 Media3，会失去 IJK 对一些冷门格式（如部分 rmvb、flv 编码）的支持 | 决定视频播放器是重写还是保留 | 只用 Media3。项目里 Media3 已经在用；GSY 和 IJK 的原生库占 APK 体积大头 |
-| 2 | **旧页面要不要重写成 Compose**：`:feature-content` 的 14 个 Java Fragment、8 个 Activity，`:feature-video` 的 6 个 Activity | 决定 `:core/legacyui`（19 个基类）能不能删 | 重写，但放在后面做（第 7 阶段），一种内容一种内容地换 |
-| 3 | **两个 GPL 音乐模块**：`:retromusic`（57,302 行，比本项目其余代码加起来还多）、`:auxio_music_ui`（1,683 行）都是 GPL-3.0。它们和频道里自己写的音乐页（`SoundItemsMusicFragment`）是三套音乐界面 | GPL-3.0 有传染性：发布带这些模块的 APK，可能要求整个应用按 GPL 开源。`retromusic/build.gradle` 里也写着「只能自用」 | 请你先确认发布方式是否允许。如果不允许，用 Media3 写一个简单的本地音乐页替换，删掉两个模块 |
-| 4 | 旧页面框架暂留 `:core/legacyui`；对话的 Room 实体留 `:core/db`（另一种做法是数据库整体移到 `:app`） | `:core` 的拆法 | 两个都按「暂留」做 |
+| 1 | 视频播放引擎 | **保留 GSY 和全部 4 个引擎**（Exo2、IJK/FFmpeg、阿里、系统），不换 Media3 | 视频只整理结构：拆大类、移对位置。`PlaybackEngineHelper` 和设置页的引擎切换都保留 |
+| 2 | 旧 Java 页面换 Compose | **非必要不换** | 旧页面只搬家、拆大类。只有要改它的功能或者它挡住了别的整理时才重写。`:core/legacyui` 会长期存在 |
+| 3 | 音乐模块 | `:retromusic` **不动**：不改代码、不改框架、不拆、不合并。不考虑协议问题 | `:retromusic` 不在计划里。`:auxio_music_ui` 也保持现状 |
+| 4 | 旧页面框架、对话的数据库实体 | 暂留 `:core/legacyui`、`:core/db` | 按此拆 `:core` |
+| 5 | 工具类 | `ObjectUtils`、`StringUtils` 等**要整理** | 见第 5.6 节 |
+| 6 | 网络层 | **要整理** | 见第 5.8 节 |
+| 7 | 公式渲染 | 先比较自定义插件和 Markwon 官方 `ext-latex`，再决定 | 见第 5.5 节 |
+| 8 | 对话的两个大类 | 按第 5.1、5.2 节拆；两个 bug 拆完先补单元测试再修 | 见第 5.1、5.2 节 |
+
+**关于两个音乐模块**：settings.gradle 里确实有两个独立的音乐模块，作用不同：
+- `:retromusic`：**本地音乐**播放器，从「我的」→ 本地音乐进入。438 个文件、57,302 行。
+- `:auxio_music_ui`：**音乐频道的另一套界面**（Compose + Media3），12 个文件、1,683 行。从频道的声音页里点开，播放的是服务器上的歌单。
+加上频道自己的声音页（`SoundItemsMusicFragment`），一共三套音乐界面。按你的决定，前两个模块都不动。
 
 ---
 
@@ -23,7 +32,7 @@
 1. **盘点**：列出每个文件、行数、谁在用。
 2. **删**：没人用的类、方法、资源、依赖。以编译为准。
 3. **移出**：不属于这里的，按 architecture.md 第 2 节的种类，移到它该在的模块。
-4. **审视大类**：超过 400 行，或者一个类管好几件事的，写一个拆分或重写方案（第 5 节）。
+4. **审视大类**：超过 400 行，或者一个类管好几件事的，写一个拆分方案（第 5 节）。
 5. **执行**：一个包一个提交。
 6. **验证**：`:app:assembleChatDebug` 编译；`:app:testChatDebugUnitTest` 单元测试；手机上走一遍这个包涉及的页面，截图存证。
 
@@ -31,13 +40,14 @@
 | 情况 | 做法 |
 |---|---|
 | 逻辑复杂、业务核心、最近还在修 bug（如对话） | **原地重构**：先拆成几个类，行为不变，每拆一块验证一次 |
-| 技术陈旧（Java View、GSY、MediaPlayer），功能边界清楚 | **重写**：按下面 1.3 的步骤 |
+| 技术陈旧（Java View、MediaPlayer），但能用 | **非必要不重写**：只搬家、拆大类。只有要改它的功能或者它挡住了别的整理时，才按 1.3 重写 |
+| GSY 播放器 | **不换**，只整理结构（第 5.3 节） |
 | 已经是 Compose/Kotlin、结构清楚 | **只搬家**，不改 |
-| 上游都要被重写 | **只搬家，不打磨**。例如 `legacyui` 基类：等用它的页面重写完，直接删 |
+| 被很多旧页面继承的基类（`legacyui`） | **只搬家**，不改继承结构。旧页面不重写，所以它们会一直在 |
 
 ### 1.3 重写的步骤（先写新的，再删旧的）
 1. **写清旧功能**：页面上有什么、能做什么、调哪些接口、有哪些边界情况。写进本文对应的小节，作为验收标准。
-2. **写新实现**：放在目标位置，用目标技术（Compose、协程、Media3）。旧代码不动。
+2. **写新实现**：放在目标位置，用 Compose、协程。旧代码不动。
 3. **切换入口**：路由改指向新页面。
 4. **手机验证**：按第 1 步的清单逐项对，截图。
 5. **删旧代码**：旧类、只有它用的资源、布局、依赖一起删。
@@ -45,7 +55,7 @@
 
 ### 1.4 顺序原则
 - **从低风险到高风险**：先删，再搬，再重构，最后重写。
-- **不打磨要被替换的东西**：重写之前，旧代码只搬家，不优化。
+- **能用的不重写**：陈旧但能用的代码，拆大类、删冗余就够了。
 - **包名最后统一改**：搬文件时包名不变，所以 import 不用改；最后一次性改包名。
 - **和 UI 会话错开**：UI 会话在 `weifu-refactor` 上改对话和 `:chatkit` 的界面。动这两处之前先确认它空闲，避免冲突。
 
@@ -56,16 +66,16 @@
 | 阶段 | 内容 | 风险 | 预计提交数 |
 |---|---|---|---|
 | 1 | **全局清理**：删无用的第三方库、资源、assets、死类；拆 Manifest（各模块登记自己的 Activity） | 低 | 6–8 |
-| 2 | **`:common`**：`:commonutil` 按 `util/ net/ ui/` 整理，业务类上移 `:core`，并入 `:sharekit`，去重 | 中 | 8–10 |
+| 2 | **`:common`**：`:commonutil` 按 `util/ net/ ui/` 整理，业务类上移 `:core`，并入 `:sharekit`，去重；工具类瘦身（5.6）；网络层整理（5.8） | 中 | 10–12 |
 | 3 | **`:media`**：建模块，并入 `:asr`、`:mediaview`，移入图像、字幕翻译、录音播放 | 中 | 4–5 |
 | 4 | **`:core`**：单一使用方的类下沉，内部按 `config/ model/ db/ event/ legacyui/` 整理 | 中 | 5–6 |
-| 5 | **feature 逐个整理**：对话 → 用户 → 拍照 → 伴侣（不动）。对话的大类按第 5 节拆 | 中 | 每个 3–6 |
-| 6 | **视频重写**（看第 0 节第 1 条的决定）：播放器换 Media3，删 GSY | 高 | 4–6 |
-| 7 | **内容频道重写**（看第 0 节第 2、3 条的决定）：一种内容一种内容地换成 Compose；音乐页换 Media3；最后删 `legacyui` | 高 | 10–15 |
+| 5 | **feature 逐个整理**：对话 → 用户 → 拍照 → 伴侣（不动）。对话的大类按 5.1、5.2 拆；公式渲染按 5.5 比较 | 中 | 每个 3–6 |
+| 6 | **视频整理**：保留 GSY 和 4 个引擎；`DetailGSYVideoPlayer` 按 5.3 拆；字幕、音乐服务移出；DLNA 移入 | 中 | 3–5 |
+| 7 | **内容频道整理**：`:feature-channel` 改名 `:feature-content`，按内容类型分子包；`SoundItemsMusicFragment` 按 5.4 拆。旧页面不重写 | 中 | 5–8 |
 | 8 | **`:app` 瘦身**：实现类回到 feature，频道列表和「我的」移出，去掉 `AppHooks` | 中 | 4–5 |
 | 9 | **收尾**：删 EventBus；统一包名；加架构测试 | 中 | 3–4 |
 
-阶段 1 到 4 是**搬和删**，每个包改完功能不变。阶段 5 到 8 才会改行为。
+阶段 1 到 4、6、7 是**搬、删、拆**，功能不变。阶段 5、8 有少量行为变化（对话 bug 修复、路由替换）。
 
 ---
 
@@ -181,9 +191,9 @@
 
 | 包 | 文件/行 | 处理 |
 |---|---|---|
-| `~.ui.user` | 5/1332 | 留，按 `login/ register/ password/ profile/ setting/` 分子包。登录、注册、找回密码、设置已经是 Compose。`RegisterScreens.kt` 改名为 `RegActivity.kt`（文件名和类名不一致）。`AddCustomeInfoActivity` 是 Java View，**重写**为 Compose |
+| `~.ui.user` | 5/1332 | 留，按 `login/ register/ password/ profile/ setting/` 分子包。登录、注册、找回密码、设置已经是 Compose。`RegisterScreens.kt` 改名为 `RegActivity.kt`（文件名和类名不一致）。`AddCustomeInfoActivity` 是 Java View，非必要不换 |
 | `~.ui.feedback` | 1/482 | 留 `feedback/` |
-| `~.ui.fragment`、`~.adapter` | 2/177 | 设置页的角色设置，Java Fragment + Adapter，**重写**为 Compose，放进 `setting/` |
+| `~.ui.fragment`、`~.adapter` | 2/177 | 设置页的角色设置，Java Fragment + Adapter，移进 `setting/`，不重写 |
 | `~.task` | 1/64 | `LoginTask` 改为挂起函数 |
 | `~.data` | 1/77 | `UserLoginUtil` 移 `:core/account`；登录事件改 Flow |
 | `build.gradle` | — | 去掉对 `:feature-video` 的依赖：播放引擎偏好移到 `:core/prefs` |
@@ -200,42 +210,42 @@
 
 不动。角色扮演 Android 端在自己的分支开发。只在阶段 9 统一改包名。
 
-### 3.10 `:feature-video`（阶段 6，看第 0 节第 1 条）
+### 3.10 `:feature-video`（阶段 6）
+
+保留 GSY 和全部 4 个引擎。只整理结构。
 
 | 包 | 文件/行 | 处理 |
 |---|---|---|
-| `~.ui.gsy` | 4/1138 | **重写**：`DetailGSYVideoPlayer`（721 行）换成 Media3 播放器，见第 5.3 节 |
-| `~.video` | 1/151 | `PlaybackEngineHelper`：只用 Media3 后删除；偏好移 `:core/prefs` |
-| `~.ui.sound` | 6/777 | 移 `page/`（包名叫 sound，里面全是视频页）。Java View，随播放器一起**重写**。`VideoActivity` 只在 Manifest 登记、代码里没有入口，**删**（待确认） |
-| `~.ui.localvideo` | 1/305 | 留 `local/`（已是 Compose） |
+| `~.ui.gsy` | 4/1138 | 移 `player/`、`list/`。`DetailGSYVideoPlayer`（721 行）按第 5.3 节**拆** |
+| `~.video` | 1/151 | `PlaybackEngineHelper` 留 `player/`，引擎切换逻辑不变；只把「当前选的哪个引擎」这个偏好值移到 `:core/prefs`，让 `:feature-user` 的设置页不用依赖视频模块 |
+| `~.ui.sound` | 6/777 | 移 `page/`（包名叫 sound，里面全是视频页）。Java View，不重写。`VideoActivity` 只在 Manifest 登记、代码里没有入口，**删**（待确认）。`VideoShowActivity`、`VideoShowActivityLazyUrl` 里 ButterKnife 遗留的空方法 `unbindButterViews` 删 |
+| `~.ui.localvideo` | 1/305 | 留 `local/` |
 | `~.cast` | 4/267 | 留 `cast/googlecast/`；DLNA 从 `:core` 移来 `cast/dlna/` |
-| `~.service` | 1/496 | `PlayService` 是**音乐**播放服务，移 `:feature-content/sound`（阶段 7 重写） |
+| `~.service` | 1/496 | `PlayService` 是**音乐**播放服务，视频模块自己不用，移 `:feature-content/sound`，不重写 |
 | `~.translation` | 4/116 | 3 个翻译提供者移 `:media/subtitle/provider`；`VideoTranslationInstaller` 移 `:app` |
 | `~.translation.realtime` | 10/1187 | 引擎和 7 个 PCM 音频源移 `:media/subtitle/realtime`；`RealtimeSubtitleBindings` 拆：视频部分留，音乐部分移 `:feature-content/sound` |
 | `~.data` | 1/82 | 留 |
 
-### 3.11 `:feature-channel` → `:feature-content`（阶段 7，看第 0 节第 2、3 条）
+### 3.11 `:feature-channel` → `:feature-content`（阶段 7）
 
-现在 39 个文件、约 6,000 行；从 `:core` 下沉 20 个后约 59 个。子包见 architecture.md 和下表。
+现在 39 个文件、约 6,000 行；从 `:core` 下沉 20 个后约 59 个。旧页面**不重写**，只按内容类型分子包、拆大类。
 
 | 现包 | 文件/行 | 去向 | 处理 |
 |---|---|---|---|
-| `~.ui.fragment` | 15/2686 | `video/ image/ text/ sound/ mine/` | 14 个 Java Fragment，**重写**为 Compose。`SoundItemsMusicFragment` 675 行，见第 5.4 节 |
-| `~.ui.fragment.body` | 5/301 | 各类型子包 | 随所属类型一起重写 |
-| `~.ui.sound` | 8/791 | 各类型子包 | 7 个频道外壳 Activity，重写后合并成一个带参数的入口。`TeleplayActivity` 标题是「电视剧」，实际显示的是图片频道，**确认后删** |
-| `~.ui.sound.compose` | 2/343 | `sound/` | 留（已是 Compose） |
-| `~.ui.channel` | 3/730 | `common/` | 留（已是 Compose）。`ChannelBodyScreen` 479 行，审视 |
-| `~.adapter` | 4/432 | 各类型子包 | RecyclerView 适配器，重写为 Compose 后删 |
-| `~.auxio` | 1/60 | `sound/` | 看第 0 节第 3 条 |
-| `~.ui.config` | 1/47 | `config/` | `QuickBrowserConfigActivity` |
-
-**重写顺序**：文字（最简单，3 个页面）→ 图片 → 视频频道列表 → 声音（最复杂，含播放服务）→ 收藏等「我的」页 → 删 `legacyui`。
+| `~.ui.fragment` | 15/2686 | `video/ image/ text/ sound/ mine/` | 移。`SoundItemsMusicFragment` 675 行，按第 5.4 节**拆** |
+| `~.ui.fragment.body` | 5/301 | 各类型子包 | 移 |
+| `~.ui.sound` | 8/791 | 各类型子包 | 移。`TeleplayActivity` 标题是「电视剧」，实际显示的是图片频道，**确认后删** |
+| `~.ui.sound.compose` | 2/343 | `sound/` | 移 |
+| `~.ui.channel` | 3/730 | `common/` | 移。`ChannelBodyScreen` 479 行，审视 |
+| `~.adapter` | 4/432 | 各类型子包 | 移 |
+| `~.auxio` | 1/60 | `sound/` | 移。`:auxio_music_ui` 本身不动 |
+| `~.ui.config` | 1/47 | `config/` | 移 |
 
 ### 3.12 `:app`（阶段 1、8）
 
 | 方面 | 处理 | 阶段 |
 |---|---|---|
-| 第三方库 | 声明了约 60 个，`:app` 自己只用 multidex、Media3。没有任何模块使用的（navigation、percentlayout、viewpager2、rxjava、webkit 等）删；其余移到使用它的模块 | 1 |
+| 第三方库 | 声明了约 60 个，`:app` 自己只用 multidex、Media3。没有任何模块使用的（navigation、percentlayout、viewpager2、rxjava、webkit 等）删；其余移到使用它的模块。`:retromusic` 自己声明的依赖不动 | 1 |
 | Manifest | 26 个 Activity 中 24 个属于别的模块，移到各模块自己的 Manifest | 1 |
 | 资源 | 66 个没有引用的删；3 个只有模块用的移过去 | 1 |
 | assets（约 21 MB） | 根目录 23 个字体、`emoji.db`、`markdown.css`、几个 HTML、一个 wav 没有找到引用，逐个核对后删（字体可能通过拼接路径加载，单独核对）；模型 13 MB 移 `:media`、KaTeX 移 `:feature-chat`、personas 移 `roles/` | 1 |
@@ -291,37 +301,106 @@
 | `ChatRepositoryImpl` | 只做组合，实现 `ChatRepository` 接口 |
 另外：`postForOk` 等 4 处「回调转挂起函数」的重复代码，统一成 `:common/net` 的一个挂起函数。
 
-### 5.3 视频播放器（`DetailGSYVideoPlayer` 721 行 + 5 个视频页 Activity）→ 重写为 Media3
+### 5.3 `DetailGSYVideoPlayer`（721 行）→ 拆分，保留 GSY
 
-**先写清旧功能**（重写前补全）：全屏、小窗、倍速、投屏（Google Cast + DLNA）、收藏、实时字幕与翻译、设置入口、续播、Exo 缓存、列表小窗播放。
-**新实现**：一个 Compose 播放页 + 一个 `VideoPlayerController`（封装 ExoPlayer），投屏和字幕作为独立组件挂上去。
-**删除**：GSY 全部（含 IJK、阿里播放器、ex_so 原生库）、`PlaybackEngineHelper`、设置页的引擎选择、5 个旧 Activity。
-**前提**：第 0 节第 1 条你同意只用 Media3。
+它继承 GSY 的播放器视图，现在一个类管 6 件事。**GSY 和 4 个引擎都不动**，只把附加功能拆出去：
 
-### 5.4 音乐（`SoundItemsMusicFragment` 675 行 + `SoundDetailActivity` 339 行 + `PlayService` 496 行）→ 重写
+| 新类 | 搬入的方法 | 说明 |
+|---|---|---|
+| `SeekProgressController` | `setProgressAndTime`、`onStart/StopTrackingTouch`、`onProgressChanged`、`showDragProgressTextOnSeekBar`、`refreshCachedDurationForSeek`、`applySeekBarProgressToTimeViews`、`resolveDurationMsForSeekUi`、`parseTimeLabelToMs`、`touchSurfaceMove/Up` | 进度条和拖动，约 200 行，是最大的一块 |
+| `EngineFallback` | `onError`、`tryFallbackAlternateEngine`、`restorePlaybackEngineIfTemporaryFallback` | 播放出错时临时换引擎再恢复，和 `PlaybackEngineHelper` 放一起 |
+| `PlayerMoreMenu` | `showPlayerMoreMenu`、`wireMoreButton`、`formatSpeedLabel` | 「更多」菜单：倍速、设置入口 |
+| `CastButtonBinder` | `installGoogleCastRouteButton` | 投屏按钮，放进 `cast/` |
+| `PlayerInsets` | `applyPlayerChromeInsets` | 刘海、导航栏避让 |
+| `DetailGSYVideoPlayer` | 布局、全屏切换、返回键、海报、loading、收藏视图的挂载 | 约 250 行 |
 
-现在一个 Fragment 同时管列表、播放服务绑定（15 处）、收藏（19 处）、字幕翻译（22 处）、进度条、切换 Auxio 界面。
-**新实现**：`MusicPlaybackService`（Media3 `MediaSessionService`，支持通知栏和锁屏控制）+ `MusicPlayerController` + Compose 的列表页和详情页。收藏、字幕作为组件挂上去。
-**删除**：`PlayService`（`MediaPlayer`）、两个旧页面、3 个适配器；按第 0 节第 3 条的决定，可能连同 `:auxio_music_ui`、`:retromusic`。
+**做法**：一次拆一个类，行为不变。每拆一块在手机上验证：播放、拖动进度、全屏、倍速、出错换引擎、投屏按钮。
+5 个视频页 Activity（Java View）不重写，只移到 `page/`。
+
+### 5.4 `SoundItemsMusicFragment`（675 行）→ 拆分，不重写
+
+现在一个 Fragment 同时管列表、播放服务绑定（15 处）、收藏（19 处）、字幕翻译（22 处）、进度条、播放模式、切换 Auxio 界面。
+
+| 新类 | 搬入的内容 |
+|---|---|
+| `MusicServiceConnection` | 绑定 `PlayService`、`onServiceConnected/Disconnected`、`play`、`pause`、`resume`、`next`、`pre`、`isPlaying`、`syncPlayButtonFromService`、两个广播接收器 |
+| `PlayModeController` | `cyclePlayMode`、`playModeLabel`、`applyPlayModeIcon` |
+| `MusicSubtitleBinder` | `setupViews` 里翻译会话和实时字幕的绑定（约 100 行的匿名类），和 `SoundDetailActivity` 里的同一段**合并成一份** |
+| `SoundItemsMusicFragment` | 列表、点击、进度条、收藏视图 |
+
+`SoundDetailActivity`（339 行）用 `MusicServiceConnection` 和 `MusicSubtitleBinder` 后，预计减到 200 行以内。
+`PlayService`（496 行，`MediaPlayer`）移到 `sound/`，不重写。
 
 ### 5.5 公式渲染（11 个文件、1392 行）→ 先比较再决定
 
-写清自定义版本比 Markwon 官方 `ext-latex` 多了什么（`MyJLatexMathPlugin` 547 行、`JLatexMathTheme` 363 行）。差别小就换官方插件，删掉 11 个文件。
+依赖里已经有 Markwon 官方的 `ext-latex`，`ChatMarkwon` 也 import 了它。比较步骤：
+1. 写清自定义版本做了什么：`MyJLatexMathPlugin`（547 行）、`JLatexMathTheme`（363 行）、两种块解析器（`JLatexMathBlockParser`、`JLatexMathBlockParserLegacy`）、行内处理、异步绘制。
+2. 和官方插件逐项对：块公式、行内公式、异步渲染、主题（字号、颜色、内边距）、错误显示。
+3. 准备一组测试公式（行内、块、矩阵、分式、错误公式、超宽公式），两边在手机上各截一张。
+4. 结果写进这一节。差别小就换官方插件，删掉 11 个文件；差别大就保留，只移到 `markdown/katex/`。
 
-### 5.6 工具类瘦身（阶段 2）
+### 5.6 工具类整理（阶段 2）
 
-| 类 | 行数 | 外部实际使用 | 处理 |
-|---|---|---|---|
-| `widget/util/FileUtils` | 1244 | 0 | 删 |
-| `ObjectUtils` | 901 | 3 个方法 | 留 3 个，其余删 |
-| `ModelUtils` | 509 | 2 个方法 | 留 2 个 |
-| `FileUtils` | 468 | 8 个方法 | 留 8 个 |
-| `StringUtils` | 313 | 3 个方法 | 留 3 个 |
-| `CompatiblePermissionManager` 等 3 个 | 848 | 只有本模块的 `PermissionHelper` | 合并进一套权限后删 |
+**原则**：外部用到的方法留下（必要时改名），没用到的删掉；能用 Kotlin 标准库取代的，新代码不再调用。
+
+| 类 | 行数 | 公开方法 | 外部实际使用 | 处理 |
+|---|---|---|---|---|
+| `widget/util/FileUtils` | 1244 | — | 0 | 删（照搬自第三方工具库，有同名类所以之前没发现） |
+| `ObjectUtils` | 901 | 39 | `isEmpty`、`nullSafeEquals`（2 处）、`toObjectArray` | 留 3 个方法，约 40 行；其余 36 个删 |
+| `ModelUtils` | 509 | — | `json`（4 处）、`entry` | 留 2 个，并入 `GsonUtils` |
+| `FileUtils` | 468 | — | 8 个方法（`getWriteFilePath` 6 处、`readAssets` 3 处等） | 留 8 个，约 120 行 |
+| `StringUtils` | 313 | 17 | `hasText`（42 处）、`isEmpty`（13 处）、`upLow`（1 处） | 留 3 个，约 30 行 |
+| `DensityUtil`、`DisplayUtil`、`Utils` | 153 | — | 屏幕尺寸、dp 换算三处重复 | 合成一个 `ScreenSize` |
+| `CompatiblePermissionManager`、`ModernPermissionManager`、`PermissionUtils`、`PermissionHelper` | 1068 | — | 只在本模块内互相调用 | 和 `:core/permission`（Compose 版）合成一套 |
+| `ShareUtil` | 217 | — | `:app`、`:feature-user` | 和 `:sharekit` 的 `ShareKit` 合成一套 |
+
+整理后 `core.util` 从约 5,200 行减到约 1,500 行。每个类整理完单独提交，编译确认没有遗漏的调用。
 
 ### 5.7 `VersionUpdater`（332 行）→ 重构
 
 检查更新、下载、两种弹窗、发 `StateUseEvent` 和 `VipDescEvent` 混在一起。拆成「检查版本」（挂起函数，返回结果）和「更新弹窗」（UI），版本里带的状态和 VIP 说明改为写进 `:core/account`。
+
+### 5.8 网络层整理（阶段 2）
+
+**现状**：底层是 OkHttp，没有 Volley 依赖，但类名和结构照搬了 Volley（`NetQueue`、`NetRequest`、`Response.Listener`、`MyVolleyError`、`SyncFuture`）。调用链：
+```
+调用方 → BaseService（约 20 处使用）→ GsonRequest / MultipartRequest / StringRequest / GsonInfoListRequest
+       → BaseRequest（加请求头、签名、解析 JsonResult、登录失效时发 UserNeedLogin 事件）
+       → NetQueue（OkHttp 调用、主线程回调、按 tag 取消）
+```
+调用方式有三种：回调（`getData(url, listener, errorListener)`）、同步阻塞（`SyncFuture`，只有 `:feature-user` 1 处）、以及 `:app` 里 4 处自己用 `suspendCancellableCoroutine` 包回调的写法（`ChatRepositoryImpl` 3 处、`BackendSpeechToText` 1 处）。
+
+**问题**
+1. 名字误导：读代码的人会以为用的是 Volley。
+2. 协程包装各写各的，`ChatRepositoryImpl` 里就有 3 份几乎相同的代码。
+3. `BaseRequest` 直接发业务事件 `UserNeedLogin`，网络层依赖了业务。
+4. 请求类分 4 种（Gson、Multipart、String、InfoList），差别只是解析方式。
+
+**目标**
+```
+:common/net/http/
+  HttpClient        原 NetQueue：持有 OkHttpClient，执行请求，按 tag 取消
+  ApiRequest        原 NetRequest + BaseRequest 的通用部分：方法、地址、参数、请求头
+  ApiResult<T>      原 JsonResult + CommonResponse：成功数据或错误
+  ApiError          原 NetError + MyVolleyError，合成一个
+  ApiService        原 BaseService，同时提供：
+                      suspend fun <T> get(url, type): ApiResult<T>
+                      suspend fun <T> post(url, body, type): ApiResult<T>
+                      suspend fun <T> upload(url, files, type): ApiResult<T>
+                      以及保留旧的回调方法（内部调用挂起版本），供 Java 调用方继续用
+  AuthFailureListener  登录失效回调，由 :core 注册，再发 UserNeedLogin
+:common/net/request/   解析方式（Gson、字符串、分页列表）作为 ApiService 的参数，不再是 4 个请求子类
+```
+
+**步骤**
+1. 在 `BaseService` 里加挂起函数版本，内部调用现有回调实现。`:app` 里 4 处手写的协程包装改用它。行为不变。
+2. `BaseRequest` 的登录事件改为 `AuthFailureListener` 回调。
+3. 合并 4 个请求子类为「一个请求 + 解析方式参数」。
+4. 改名（`NetQueue` → `HttpClient` 等）。只改名不改逻辑，单独一个提交。
+5. 删 `SyncFuture`：唯一调用方（`:feature-user`）改用挂起函数。
+6. 调用方随所在的包整理时从回调换成挂起函数；Java 调用方保留回调接口，不强制改。
+
+**不做**：不引入 Retrofit；不改请求头、签名、DNS、Glide 加载这些行为。
 
 ---
 
@@ -330,12 +409,12 @@
 | 升级 | 在哪个阶段做 | 完成标志 |
 |---|---|---|
 | EventBus → Flow | 每个事件在它所属的包整理时换；阶段 9 删依赖 | `EventBusUtil` 删除 |
-| GSY → Media3 | 阶段 6 | GSY、IJK、阿里播放器依赖删除 |
-| `MediaPlayer` → Media3 | 阶段 7 | `PlayService` 删除 |
-| View/Fragment → Compose | 阶段 5（用户）、6（视频）、7（内容） | `:core/legacyui` 删除 |
-| 回调 → 挂起函数 | 阶段 2 在 `:common/net` 提供；调用方随所在包整理时换 | `NetQueue` 的回调接口没有调用方 |
+| 回调 → 挂起函数 | 阶段 2 在 `:common/net` 提供（5.8）；调用方随所在包整理时换 | `:app` 里没有手写的 `suspendCancellableCoroutine` 网络包装 |
+| 仿 Volley 命名 → 清楚的名字 | 阶段 2（5.8 第 4 步） | 没有 `Volley` 字样的类和方法 |
 | Java → Kotlin | 改到哪个文件转哪个 | 不设完成标志 |
-| `Serializable` → `Parcelable` 或只传 id | 随页面重写 | — |
+| 新页面用 Compose | 新写的页面 | 旧页面非必要不换 |
+| `Serializable` → `Parcelable` 或只传 id | 改到哪个页面换哪个 | — |
+| **不升级** | GSY 播放器和 4 个引擎；`PlayService`（`MediaPlayer`）；`:retromusic`；`:auxio_music_ui` | — |
 
 ---
 
@@ -351,5 +430,4 @@
 
 ## 8. 下一步
 
-1. 你回答第 0 节的 4 个问题。
-2. 我从阶段 1 开始：先删第 4 节的第三方库和死类，每批编译一次，在手机上冒烟。
+从阶段 1 开始：先删第 4 节的第三方库和死类，每批编译一次，在手机上冒烟。
