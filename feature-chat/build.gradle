@@ -60,7 +60,6 @@ dependencies {
     implementation project(':core')
     implementation project(':chatkit')
     implementation project(':feature-roles')
-    implementation project(':feature-video')
     implementation project(':media')
 
     // Markdown 渲染（chat/ui/markdown）
