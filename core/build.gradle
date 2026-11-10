@@ -77,7 +77,6 @@ dependencies {
 
     // 网络
     implementation libs.okhttp
-    implementation 'org.nanohttpd:nanohttpd:2.3.1'
 
     // 图片加载（SaveImageTask）
     implementation libs.glide

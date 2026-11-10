@@ -54,6 +54,8 @@ android {
 }
 
 dependencies {
+    // 投屏的本地媒体服务（LocalMediaServer，原在 :core）
+    implementation 'org.nanohttpd:nanohttpd:2.3.1'
     // 工具类、GSY/IJK/Ali 播放内核（commonutil 以 api 暴露）
     api project(':commonutil')
     implementation project(':core')
