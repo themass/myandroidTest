@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.openapi.core.design.theme.AppColors
-import com.openapi.home.HomeDependencies
+import com.openapi.home.ProfileDependencies
 import com.openapi.home.domain.ProfileAction
 import com.openapi.home.domain.ProfileEntry
 import com.openapi.home.domain.ProfileInfo
@@ -45,7 +45,7 @@ import com.openapi.ks.myapp.data.VersionUpdater
 @Composable
 fun ProfileScreen(modifier: Modifier = Modifier) {
     val context = LocalContext.current
-    val entries = remember { HomeDependencies.require() }
+    val entries = remember { ProfileDependencies.require() }
     var info by remember { mutableStateOf(entries.profile(context)) }
     // 从登录页、设置页回来时刷新登录态
     LifecycleResumeEffect(Unit) {
@@ -73,7 +73,7 @@ fun ProfileScreen(modifier: Modifier = Modifier) {
             Column(
                 modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(AppColors.Surface).padding(12.dp),
             ) {
-                Text(stringResource(com.openapi.ks.chat.R.string.ui_shortcuts), color = AppColors.TextSecondary, fontSize = 13.sp)
+                Text(stringResource(com.openapi.feature.user.R.string.ui_shortcuts), color = AppColors.TextSecondary, fontSize = 13.sp)
                 Spacer(Modifier.size(8.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                     quick.forEach { entry ->
@@ -83,8 +83,9 @@ fun ProfileScreen(modifier: Modifier = Modifier) {
                         }
                     }
                     LocalVideoTile {
+                        // 本地视频在 :feature-video，这里只用类名打开，不依赖该模块
                         context.startActivity(
-                            android.content.Intent(context, com.openapi.ks.myapp.ui.localvideo.LocalVideoActivity::class.java),
+                            android.content.Intent().setClassName(context, "com.openapi.ks.myapp.ui.localvideo.LocalVideoActivity"),
                         )
                     }
                 }
@@ -108,7 +109,7 @@ fun ProfileScreen(modifier: Modifier = Modifier) {
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(stringResource(com.openapi.ks.chat.R.string.menu_btn_about), color = AppColors.TextPrimary, fontSize = 15.sp, modifier = Modifier.weight(1f))
+                Text(stringResource(com.openapi.feature.user.R.string.menu_btn_about), color = AppColors.TextPrimary, fontSize = 15.sp, modifier = Modifier.weight(1f))
                 Text(VersionUpdater.getVersion(), color = AppColors.TextSecondary, fontSize = 13.sp)
             }
         }
@@ -162,7 +163,7 @@ internal fun LocalVideoTile(onClick: () -> Unit) {
     ) {
         Image(painterResource(com.openapi.core.util.R.drawable.ic_ctype_video), contentDescription = null, modifier = Modifier.size(24.dp))
         Spacer(Modifier.size(4.dp))
-        Text(stringResource(com.openapi.ks.chat.R.string.localvideo_title), color = AppColors.TextPrimary, fontSize = 12.sp)
+        Text(stringResource(com.openapi.feature.user.R.string.localvideo_title), color = AppColors.TextPrimary, fontSize = 12.sp)
     }
 }
 
@@ -182,7 +183,7 @@ internal fun ProfileRow(entry: ProfileEntry, onClick: () -> Unit) {
 }
 
 @Composable
-internal fun ProfileHeader(info: ProfileInfo, onLoginClick: () -> Unit) {
+fun ProfileHeader(info: ProfileInfo, onLoginClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()

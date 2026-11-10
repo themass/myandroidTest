@@ -86,6 +86,7 @@ public class MyApplication extends MultiDexApplication {
         com.openapi.ks.myapp.data.home.LegacyHomeEntries home = new com.openapi.ks.myapp.data.home.LegacyHomeEntries(this);
         com.openapi.home.HomeDependencies.INSTANCE.install(home);
         com.openapi.home.ChannelsDependencies.INSTANCE.install(home);
+        com.openapi.home.ProfileDependencies.INSTANCE.install(home);
         // 以前由旧首页页面注册，页面不在前台就收不到；现在随进程注册一次
         com.openapi.core.util.EventBusUtil.getEventBus().register(new com.openapi.ks.myapp.data.config.ConfigActionJump());
         AppEventHandler.INSTANCE.register();
