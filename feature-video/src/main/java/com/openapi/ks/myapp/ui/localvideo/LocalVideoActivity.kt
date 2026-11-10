@@ -120,8 +120,11 @@ internal fun queryLocalVideos(context: Context): List<LocalVideo> {
     return result
 }
 
+/**
+ * 本地视频页。[onBack] 为 null 时不显示标题栏（嵌入到频道页的 tab 里使用）。
+ */
 @Composable
-fun LocalVideoScreen(onBack: () -> Unit) {
+fun LocalVideoScreen(onBack: (() -> Unit)? = null, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     var granted by remember {
         mutableStateOf(Permissions.readVideo().all { ContextCompat.checkSelfPermission(context, it) == android.content.pm.PackageManager.PERMISSION_GRANTED })
@@ -143,13 +146,15 @@ fun LocalVideoScreen(onBack: () -> Unit) {
         if (granted) videos = queryLocalVideos(context)
     }
 
-    Column(Modifier.fillMaxSize().background(AppColors.ChatBackground)) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(stringResource(R.string.localvideo_title), color = AppColors.TextPrimary, fontWeight = FontWeight.Bold, fontSize = 18.sp, modifier = Modifier.weight(1f))
-            TextButton(onClick = onBack) { Text(stringResource(R.string.localvideo_back), color = AppColors.Primary) }
+    Column(modifier.fillMaxSize().background(AppColors.ChatBackground)) {
+        if (onBack != null) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(stringResource(R.string.localvideo_title), color = AppColors.TextPrimary, fontWeight = FontWeight.Bold, fontSize = 18.sp, modifier = Modifier.weight(1f))
+                TextButton(onClick = onBack) { Text(stringResource(R.string.localvideo_back), color = AppColors.Primary) }
+            }
         }
 
         if (!granted) {

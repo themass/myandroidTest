@@ -206,7 +206,7 @@ fun HomeScreen() {
                     when (current) {
                         HomeTab.Chat -> ChatRoute(onMenuClick = openDrawer)
                         HomeTab.Companion -> CompanionRoute()
-                        HomeTab.Channels -> ChannelsScreen()
+                        HomeTab.Channels -> ChannelsHub()
                         HomeTab.Profile -> Unit // 「我的」由右侧覆盖页显示
                     }
                 }
