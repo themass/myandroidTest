@@ -146,6 +146,8 @@ class ChatRepositoryImpl(
 
     private companion object {
         const val TAG = "chat"
+        /** 本地临时消息的 id 前缀：这些消息只存在本地，服务端历史里没有。 */
+        const val LOCAL_ID_PREFIX = "local-"
         const val PREF_SELECTED_CHARACTER_ID = "chat_selected_character_id"
         /** 聊天记录只保留最近这么多条，沿用旧逻辑。 */
         const val CHAT_LOG_KEEP = 30L
@@ -497,6 +499,20 @@ class ChatRepositoryImpl(
         persist(sessionId, message)
     }
 
+    override suspend fun localPendingMessages(sessionId: Long): List<ChatMessage> = withContext(Dispatchers.IO) {
+        AppDatabase.getInstance().chatLogDao().bySession(sessionId)
+            .filter { (it.chatId ?: "").startsWith(LOCAL_ID_PREFIX) && it.who == ChatLogMapper.toWho(ChatRole.USER) }
+            .mapNotNull { log ->
+                ChatLogMapper.toDomain(
+                    chatId = log.chatId,
+                    who = log.who,
+                    msgType = log.msgType,
+                    rawContent = log.content,
+                    createdAtMillis = log.createTime?.time ?: 0L,
+                )
+            }
+    }
+
     override suspend fun sendAttachment(
         sessionId: Long,
         kind: MessageKind,
@@ -699,7 +715,12 @@ class ChatRepositoryImpl(
      */
     private fun cacheRemotePage(sessionId: Long, rows: List<ChatMessageVo>, replaceAll: Boolean) {
         val dao = AppDatabase.getInstance().chatLogDao()
-        if (replaceAll) dao.deleteBySession(sessionId)
+        // 整页替换时保留本地临时消息（以 local- 开头：附件、正在发送或失败的消息，服务端历史里没有）
+        if (replaceAll) {
+            dao.bySession(sessionId)
+                .filter { !(it.chatId ?: "").startsWith(LOCAL_ID_PREFIX) }
+                .forEach { dao.deleteByChatId(it.chatId) }
+        }
         rows.forEach { row ->
             val message = row.toDomainMessage()
             val log = ChatLog()

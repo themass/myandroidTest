@@ -1,6 +1,7 @@
 package com.openapi.chat.data.mapper
 
 import com.openapi.chat.domain.model.ChatMessage
+import com.openapi.chat.domain.model.DeliveryStatus
 import com.openapi.chat.domain.model.ChatRole
 import com.openapi.chat.domain.model.FileAttachment
 import com.openapi.chat.domain.model.ImageAttachment
@@ -47,6 +48,9 @@ object ChatLogMapper {
     private const val FIELD_IMAGES = "images"
     private const val FIELD_FILES = "files"
     private const val FIELD_CAPTION = "caption"
+
+    /** 发送状态：只有非「已发送」才写入（旧数据没有这个字段，读取时视为已发送）。 */
+    private const val FIELD_DELIVERY = "delivery"
 
     /** 把一条老 ChatLog 的字段映射成领域模型。 */
     fun toDomain(
@@ -100,6 +104,8 @@ object ChatLogMapper {
         // 助手的空文本回复（老数据里存下来的）不显示
         if (who != WHO_SENT && kind == MessageKind.TEXT && text.isBlank()) return null
 
+        val delivery = runCatching { DeliveryStatus.valueOf(json?.optString(FIELD_DELIVERY).orEmpty()) }
+            .getOrDefault(DeliveryStatus.SENT)
         return ChatMessage(
             id = chatId ?: "",
             role = if (who == WHO_SENT) ChatRole.USER else ChatRole.ASSISTANT,
@@ -109,6 +115,7 @@ object ChatLogMapper {
             voice = voice,
             images = images,
             files = files,
+            delivery = delivery,
         )
     }
 
@@ -180,6 +187,7 @@ object ChatLogMapper {
                 if (message.text.isNotBlank()) json.put(FIELD_CAPTION, message.text)
             }
         }
+        if (message.delivery != DeliveryStatus.SENT) json.put(FIELD_DELIVERY, message.delivery.name)
         return json.toString()
     }
 
