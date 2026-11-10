@@ -31,7 +31,6 @@ import com.openapi.ks.myapp.bean.vo.SoundItemsVo;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.service.PlayService;
 import com.openapi.ks.myapp.translation.realtime.MusicSubtitleBindings;
-import com.openapi.ks.myapp.translation.realtime.VideoRealtimeSubtitleSession;
 import com.openapi.ks.myapp.ui.sound.compose.SoundDetailActions;
 import com.openapi.ks.myapp.ui.sound.compose.SoundDetailScreenKt;
 import com.openapi.ks.myapp.ui.sound.compose.SoundDetailUiState;
@@ -125,36 +124,23 @@ public class SoundDetailActivity extends AppCompatActivity implements SoundDetai
             }
         });
 
-        VideoRealtimeSubtitleSession realtimeSession = MusicSubtitleBindings.forMusic(
-                this,
-                detailRoot,
+        MusicSubtitleBindings.MusicPlaybackProbe probe = new MusicSubtitleBindings.MusicPlaybackProbe() {
+            @Override
+            public boolean isPlaying() {
+                return mService != null && mService.isPlaying();
+            }
+
+            @Override
+            public long positionMs() {
+                return mService != null ? mService.getPosition() : 0L;
+            }
+        };
+        MusicSubtitleBindings.bind(myFavoriteView, this, detailRoot,
                 () -> {
                     SoundItemsVo t = mService != null ? mService.getCurrentTrack() : null;
                     return t != null && t.file != null ? t.file : "";
                 },
-                new MusicSubtitleBindings.MusicPlaybackProbe() {
-                    @Override
-                    public boolean isPlaying() {
-                        return mService != null && mService.isPlaying();
-                    }
-
-                    @Override
-                    public long positionMs() {
-                        return mService != null ? mService.getPosition() : 0L;
-                    }
-                });
-        MusicSubtitleBindings.attachMusic(myFavoriteView, realtimeSession,
-                new MusicSubtitleBindings.MusicPlaybackProbe() {
-                    @Override
-                    public boolean isPlaying() {
-                        return mService != null && mService.isPlaying();
-                    }
-
-                    @Override
-                    public long positionMs() {
-                        return mService != null ? mService.getPosition() : 0L;
-                    }
-                });
+                probe);
 
         SoundDetailScreenKt.setSoundDetailContent(composeView, uiState, myFavoriteView, this);
         setContentView(detailRoot);

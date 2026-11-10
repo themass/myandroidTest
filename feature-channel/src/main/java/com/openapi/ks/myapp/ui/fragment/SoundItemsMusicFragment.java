@@ -39,7 +39,6 @@ import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.core.util.StaticDataUtil;
 import com.openapi.ks.myapp.service.PlayService;
 import com.openapi.ks.myapp.translation.realtime.MusicSubtitleBindings;
-import com.openapi.ks.myapp.translation.realtime.VideoRealtimeSubtitleSession;
 import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
 import com.openapi.ks.myapp.ui.base.features.BasePullLoadbleFragment;
 import com.openapi.ks.myapp.ui.inte.MusicStateListener;
@@ -377,23 +376,7 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
                 return VideoTranslationRegistry.getInstance();
             }
         });
-        MusicSubtitleBindings.MusicPlaybackProbe probe = new MusicSubtitleBindings.MusicPlaybackProbe() {
-            @Override
-            public boolean isPlaying() {
-                return SoundItemsMusicFragment.this.isPlaying();
-            }
-
-            @Override
-            public long positionMs() {
-                if (playback.service() != null) {
-                    return playback.service().getPosition();
-                }
-                return currentTime;
-            }
-        };
-        VideoRealtimeSubtitleSession realtimeSession = MusicSubtitleBindings.forMusic(
-                requireActivity(),
-                musicPageRoot,
+        MusicSubtitleBindings.bind(myFavoriteView, requireActivity(), musicPageRoot,
                 () -> {
                     int idx = current >= 0 ? current : adapter.getSelected();
                     if (idx < 0) {
@@ -405,8 +388,20 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
                     SoundItemsVo track = infoListVo.voList.get(idx);
                     return track != null && track.file != null ? track.file : "";
                 },
-                probe);
-        MusicSubtitleBindings.attachMusic(myFavoriteView, realtimeSession, probe);
+                new MusicSubtitleBindings.MusicPlaybackProbe() {
+                    @Override
+                    public boolean isPlaying() {
+                        return SoundItemsMusicFragment.this.isPlaying();
+                    }
+
+                    @Override
+                    public long positionMs() {
+                        if (playback.service() != null) {
+                            return playback.service().getPosition();
+                        }
+                        return currentTime;
+                    }
+                });
         tvTitle.setOnClickListener(v -> openSoundDetail());
         tvPlaySubtitle = view.findViewById(R.id.tv_play_subtitle);
         if (ivPlayMode != null) {
