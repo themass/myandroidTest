@@ -54,6 +54,8 @@ android {
 }
 
 dependencies {
+    // 列表骨架屏（IndexRecommendAdapter 使用，原在 :core）
+    implementation 'com.facebook.shimmer:shimmer:0.5.0'
     // 频道与推荐列表、频道详情、声音/图片/文字/视频频道页、收藏、搜索
     api project(':commonutil')
     implementation project(':core')

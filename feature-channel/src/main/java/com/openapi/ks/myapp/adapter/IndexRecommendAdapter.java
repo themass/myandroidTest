@@ -31,7 +31,7 @@ import com.openapi.core.databinding.TabIndexItemRecommendBinding;
 import com.openapi.ks.myapp.adapter.base.BasePhotoFlowRecycleViewAdapter;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.constant.Constants;
-import com.openapi.ks.myapp.data.ImagePhotoLoad;
+import com.openapi.ks.myapp.data.showtype.ShowTypeContext;
 import com.openapi.ks.myapp.data.VersionUpdater;
 
 import java.io.IOException;
@@ -229,7 +229,7 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
         // final Shimmer shimmer = new Shimmer();
         // shimmer.setDuration(Constants.RECOMMAND_SHIMMER_DURATION);
         holder.ivTitle.setVisibility(View.VISIBLE);
-        ImagePhotoLoad.loadPhoto(holder, vo, null, needShimmer, context);
+        ShowTypeContext.loadPhoto(holder, vo, null, needShimmer, context);
     }
 
     public interface OnEditClickListener {

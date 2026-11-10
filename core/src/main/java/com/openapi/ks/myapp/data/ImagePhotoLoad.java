@@ -23,15 +23,12 @@ import com.openapi.core.util.FileUtils;
 import com.openapi.core.util.LogUtil;
 import com.openapi.core.util.StringUtils;
 import com.openapi.core.net.netglide.MyGlideModule;
-import com.openapi.ks.myapp.task.DelImageTask;
 // 使用现代 Shimmer 替代
 // import com.romainpiel.shimmer.Shimmer;
 import com.openapi.core.R;
-import com.openapi.ks.myapp.adapter.IndexRecommendAdapter;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.constant.BaseRes;
 import com.openapi.ks.myapp.constant.Constants;
-import com.openapi.ks.myapp.data.showtype.ShowTypeContext;
 
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 
@@ -64,9 +61,6 @@ public class ImagePhotoLoad {
         return build;
     }
 
-    public static void loadPhoto(final IndexRecommendAdapter.NaviItemViewHolder holder, RecommendVo vo, final Object shimmer, boolean needShimmer, Context context) {
-        ShowTypeContext.loadPhoto(holder, vo, shimmer, needShimmer, context);
-    }
 
     public static void getCountryImage(Context context, ImageView iv, String url) {
         if (iv == null || StringUtils.isEmpty(url)) {
