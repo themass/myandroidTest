@@ -1,15 +1,13 @@
 package com.openapi.ks.myapp.data.config;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 
-import com.openapi.home.HomeActivity;
 import com.openapi.core.CommonConstants;
 import com.openapi.core.event.ConfigActionEvent;
 import com.openapi.core.util.LogUtil;
 import com.openapi.core.util.ToastUtil;
-import com.openapi.ks.chat.R;
+import com.openapi.core.R;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.ui.base.WebViewActivity;
 import com.openapi.ks.myapp.ui.config.QuickBrowserConfigActivity;
@@ -18,7 +16,6 @@ import com.openapi.ks.myapp.ui.sound.SoundChannleActivity;
 import com.openapi.ks.myapp.ui.sound.TeleplayActivity;
 import com.openapi.ks.myapp.ui.sound.TextChannleActivity;
 import com.openapi.ks.myapp.ui.sound.VideoChannleActivity;
-import com.openapi.ks.myapp.ui.sound.VideoListShowActivity;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -36,20 +33,24 @@ import static com.openapi.ks.myapp.constant.Constants.HTTP_URL;
  */
 public class ConfigActionJump {
 
-    public static Map<String, Class<? extends Activity>> configMap = new HashMap<>();
+    /** 页面的类名：本模块和 :core 的页面用 class；:feature-video 和 :app 的页面只用类名，避免依赖。 */
+    private static final String VIDEO_LIST_SHOW = "com.openapi.ks.myapp.ui.sound.VideoListShowActivity";
+    private static final String HOME = "com.openapi.home.HomeActivity";
+
+    private static final Map<String, String> configMap = new HashMap<>();
 
     static {
-        configMap.put(Constants.HTTP_URL, WebViewActivity.class);
-        configMap.put(Constants.HTTPS_URL, WebViewActivity.class);
-        configMap.put(Constants.BROWSER_URL, QuickBrowserConfigActivity.class);
-        configMap.put(Constants.SOUND_URL, SoundChannleActivity.class);
-        configMap.put(Constants.TEXT_URL, TextChannleActivity.class);
-        configMap.put(Constants.IMG_URL, ImgChannleActivity.class);
-        configMap.put(Constants.VIDEO_URL, VideoChannleActivity.class);
-        configMap.put(Constants.VIDEOLIST_URL, VideoListShowActivity.class);
-        configMap.put(Constants.TELEPLAY_URL, TeleplayActivity.class);
-        configMap.put(Constants.LOCAL_CHAT, HomeActivity.class);
-        configMap.put(Constants.LOCAL_CHAT2, HomeActivity.class);
+        configMap.put(Constants.HTTP_URL, WebViewActivity.class.getName());
+        configMap.put(Constants.HTTPS_URL, WebViewActivity.class.getName());
+        configMap.put(Constants.BROWSER_URL, QuickBrowserConfigActivity.class.getName());
+        configMap.put(Constants.SOUND_URL, SoundChannleActivity.class.getName());
+        configMap.put(Constants.TEXT_URL, TextChannleActivity.class.getName());
+        configMap.put(Constants.IMG_URL, ImgChannleActivity.class.getName());
+        configMap.put(Constants.VIDEO_URL, VideoChannleActivity.class.getName());
+        configMap.put(Constants.VIDEOLIST_URL, VIDEO_LIST_SHOW);
+        configMap.put(Constants.TELEPLAY_URL, TeleplayActivity.class.getName());
+        configMap.put(Constants.LOCAL_CHAT, HOME);
+        configMap.put(Constants.LOCAL_CHAT2, HOME);
 
 //        configMap.put(Constants.VIDEO_CHANNEL_USER_URL, VideoChannleUserActivity.class);
     }
@@ -63,11 +64,11 @@ public class ConfigActionJump {
         for (String name : names) {
             param.put(name, uri.getQueryParameter(name));
         }
-        Class<? extends Activity> activity = configMap.get(uri.getScheme());
-        if (activity != null) {
+        String activityName = configMap.get(uri.getScheme());
+        if (activityName != null) {
             Boolean adsShow = event.param != null ? (Boolean) event.param.get(CommonConstants.ADS_SHOW_CONFIG) : null;
             Boolean adsPopShow = event.param != null ? (Boolean) event.param.get(CommonConstants.ADS_POP_SHOW_CONFIG) : null;
-            Intent intent = new Intent(event.context, activity);
+            Intent intent = new Intent().setClassName(event.context, activityName);
             intent.putExtra(Constants.URL, parserUrl(uri.getScheme(), event.url, param));
             intent.putExtra(CommonConstants.ADS_SHOW_CONFIG, adsShow);
             intent.putExtra(CommonConstants.ADS_POP_SHOW_CONFIG, adsPopShow);
