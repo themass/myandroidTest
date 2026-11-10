@@ -827,25 +827,8 @@ class ChatViewModel : ViewModel() {
             } else {
                 // 服务端历史里没有「失败」这个状态：所有本地标成失败的用户消息，重新加载后都要保留失败标记（可重试），
                 // 不能只保留最后一条。匹配规则：文字相同，且创建时间相差不超过 2 分钟（服务端分配的 id 与本地不同）。
-                val failedLocal = cur.messages.filter { it.role == ChatRole.USER && it.delivery == DeliveryStatus.FAILED }
-                val merged = page.messages.map { m ->
-                    val hit = m.role == ChatRole.USER && failedLocal.any { f ->
-                        f.text == m.text && kotlin.math.abs(f.createdAtMillis - m.createdAtMillis) <= 120_000L
-                    }
-                    if (hit) m.copy(delivery = DeliveryStatus.FAILED) else m
-                }
-                // 本地还没拿到服务端 id 的用户消息（比如停止时还没保存到服务端）不能被历史覆盖掉，保留并保持失败/发送状态
-                val serverIds = page.messages.map { it.id }.toSet()
-                // 已经和服务端消息对上的本地失败消息，不再重复保留
-                val matchedLocalIds = page.messages.filter { it.role == ChatRole.USER }.flatMap { m ->
-                    failedLocal.filter { f -> f.text == m.text && kotlin.math.abs(f.createdAtMillis - m.createdAtMillis) <= 120_000L }.map { it.id }
-                }.toSet()
-                val localOnly = cur.messages.filter {
-                    it.role == ChatRole.USER && it.id.startsWith("local-") && it.id !in serverIds && it.id !in matchedLocalIds
-                }
-                // 服务端历史和本地未同步的消息统一按发送/创建时间排序，本地消息不再追加在末尾（否则后发的消息会跑到前面）
                 cur.copy(
-                    messages = (merged + localOnly).sortedBy { it.createdAtMillis },
+                    messages = HistoryMerge.merge(cur.messages, page.messages),
                     hasMoreHistory = page.hasMore,
                     sessionId = sessionId,
                 )
