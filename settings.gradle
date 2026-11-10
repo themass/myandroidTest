@@ -16,7 +16,6 @@ include ':feature-user'
 include ':feature-channel'
 // 角色扮演伴侣（Android 端，按角色扮演分支维护）
 include ':feature-companion'
-include ':auxio_music_ui'
 include ':retromusic'
 // 对话 UI 组件库（消息列表、消息气泡、输入栏），与业务无关，可在多个页面复用
 include ':chatkit'

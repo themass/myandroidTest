@@ -10,7 +10,7 @@ import android.view.View;
 import com.openapi.core.util.LogUtil;
 import com.openapi.feature.video.R;
 import com.openapi.ks.myapp.ui.base.app.BaseFragmentActivity;
-import com.openapi.ks.myapp.ui.fragment.AutoVideoListFragment;
+import com.openapi.ks.myapp.ui.gsy.GSYAutoVideoListFragment;
 import com.shuyu.gsyvideoplayer.GSYVideoManager;
 
 /**
@@ -25,7 +25,7 @@ public class VideoActivity extends BaseFragmentActivity {
         setContentView(R.layout.common_fragment);
         setFabUpVisibility(View.GONE);
         try {
-            fragment = AutoVideoListFragment.class.getDeclaredConstructor().newInstance();
+            fragment = GSYAutoVideoListFragment.class.getDeclaredConstructor().newInstance();
 
         } catch (Exception e) {
             LogUtil.e(e);

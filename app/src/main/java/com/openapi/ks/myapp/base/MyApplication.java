@@ -55,6 +55,13 @@ public class MyApplication extends MultiDexApplication {
         isDebug = SystemUtils.isApkDebugable(this);
         LogUtil.e("isDebug=" + isDebug);
         instance = this;
+        // 网络层的业务配置（域名、请求头名、登录失效处理）在启动时注入，commonutil 不再写死
+        com.openapi.core.net.NetConfig.init(
+                CommonConstants.DEFAULT_REFERER,
+                CommonConstants.HTTP_TOKEN_KEY,
+                CommonConstants.DEVID,
+                code -> com.openapi.core.util.EventBusUtil.getEventBus().post(new com.openapi.core.event.UserNeedLogin()));
+        com.openapi.core.view.view.MyWebView.setDefaultReferer(CommonConstants.DEFAULT_REFERER);
         AppHooks.install(new AppHooksImpl());
         // 拍照解题：配置了服务地址才换成真实实现（见 app/build.gradle 的 photosolveBaseUrl），否则保留 mock
         if (!com.openapi.ks.chat.BuildConfig.PHOTOSOLVE_BASE_URL.isEmpty()) {

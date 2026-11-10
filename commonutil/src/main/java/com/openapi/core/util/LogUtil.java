@@ -3,7 +3,6 @@ package com.openapi.core.util;
 import android.util.Log;
 
 import com.openapi.core.util.EventBusUtil;
-import com.openapi.core.CommonConstants;
 
 /**
  * Created by openapi on 2016/3/2.

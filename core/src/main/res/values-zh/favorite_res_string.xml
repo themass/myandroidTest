@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="no_browser">没有安装浏览器</string>
+    <string name="volcano_asr_not_configured">请先在设置中填写火山 ASR 密钥</string>
+    <string name="menu_share_copy_ok">已复制到剪切板</string>
+    <string name="favorite_translate">译</string>
+    <string name="favorite_translation_no_session">当前页面未接入翻译</string>
+</resources>

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="no_browser">No se encontró navegador</string>
+    <string name="menu_share_copy_ok">Copiado correctamente</string>
+</resources>

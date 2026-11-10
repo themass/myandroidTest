@@ -119,7 +119,7 @@ class SettingActivity : BaseSingleActivity() {
     fun showShare() {
         var url = PreferenceUtils.getPrefString(AppContext.get(), Constants.D_URL, null)
         if (!StringUtils.hasText(url)) {
-            url = CommonConstants.DEFAULT_REFERER
+            url = com.openapi.core.net.NetConfig.defaultReferer()
         }
         ShareUtil(this).shareText(null, null, "$url 爱Freedom，精彩你的生活", "爱Freedom", "精彩你的生活")
     }

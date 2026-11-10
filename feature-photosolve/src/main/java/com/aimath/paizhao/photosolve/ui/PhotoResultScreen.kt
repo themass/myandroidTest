@@ -32,8 +32,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.openapi.feature.photosolve.R
 import com.aimath.paizhao.photosolve.PhotoSolveResult
-import com.aimath.paizhao.ui.theme.GreenAnswer
-import com.aimath.paizhao.ui.theme.GreenAnswerContainer
+import com.openapi.core.design.theme.AppColors
 
 @Composable
 fun PhotoResultScreen(
@@ -81,17 +80,17 @@ fun PhotoResultScreen(
 
         Spacer(Modifier.height(20.dp))
         Card(
-            colors = CardDefaults.cardColors(containerColor = GreenAnswerContainer),
+            colors = CardDefaults.cardColors(containerColor = AppColors.SuccessContainer),
             modifier = Modifier.fillMaxWidth(),
         ) {
             Column(Modifier.padding(16.dp)) {
                 Text(
                     stringResource(R.string.result_answer_label),
                     style = MaterialTheme.typography.labelLarge,
-                    color = GreenAnswer,
+                    color = AppColors.Success,
                 )
                 Spacer(Modifier.height(4.dp))
-                Text(result.finalAnswer, style = MaterialTheme.typography.titleLarge, color = GreenAnswer)
+                Text(result.finalAnswer, style = MaterialTheme.typography.titleLarge, color = AppColors.Success)
             }
         }
 

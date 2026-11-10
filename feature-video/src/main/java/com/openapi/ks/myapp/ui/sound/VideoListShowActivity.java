@@ -12,13 +12,10 @@ import android.util.Log;
 import android.widget.FrameLayout;
 
 import com.openapi.core.util.LogUtil;
-import com.openapi.core.util.PreferenceUtils;
 import com.openapi.feature.video.R;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.ui.base.features.BasePullLoadbleFragment;
-import com.openapi.ks.myapp.ui.fragment.AutoVideoListFragment;
 import com.openapi.ks.myapp.ui.gsy.GSYAutoVideoListFragment;
-//import com.openapi.ks.myapp.ui.gsy.GSYAutoVideoListFragment;
 
 import java.util.HashMap;
 
@@ -39,14 +36,8 @@ public class VideoListShowActivity extends AppCompatActivity {
             vo = (HashMap<String, String>) getIntent().getSerializableExtra(Constants.CONFIG_PARAM);
         }
         try {
-            BasePullLoadbleFragment fragment;
-            boolean needTiny = PreferenceUtils.getPrefBoolean(this, Constants.LISTVIDEO_TINY_SWITCH, true);
-            if (!needTiny) {
-                fragment = AutoVideoListFragment.class.newInstance();
-            } else {
-
-                fragment = GSYAutoVideoListFragment.class.newInstance();
-            }
+            // 小窗开关两种取值都用同一个 GSY 列表（原 AutoVideoListFragment 是它的空子类，已删除）。
+            BasePullLoadbleFragment fragment = GSYAutoVideoListFragment.class.newInstance();
             fragment.putSerializable(vo.get(Constants.CHANNEL));
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.fragment, fragment)

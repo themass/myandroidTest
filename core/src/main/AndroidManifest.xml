@@ -1,5 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <application>
+        <activity
+            android:name="com.openapi.ks.myapp.ui.base.WebViewActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize|screenLayout|uiMode" />
+        <activity
+            android:name="com.openapi.ks.myapp.ui.base.CommonFragmentActivity"
+        />
+        <activity
+            android:name="com.openapi.ks.myapp.ui.base.VideoWebViewActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize|screenLayout|uiMode"
+            android:hardwareAccelerated="true"
+            android:screenOrientation="unspecified"
+            android:theme="@style/AppTheme" />
+    </application>
 </manifest>

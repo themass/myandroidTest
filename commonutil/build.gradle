@@ -118,17 +118,9 @@ dependencies {
     api 'io.github.carguo:gsyvideoplayer-ex_so:13.1.0'
 
     // UI组件
-    api 'de.hdodenhof:circleimageview:3.1.0'
-    api('com.github.siyamed:android-shape-imageview:0.9.3') {
-        exclude group: 'net.sf.kxml', module: 'kxml2'
-    }
-    api 'com.github.CymChad:BaseRecyclerViewAdapterHelper:2.9.30'
 
     // 图片选择器
     api 'io.github.lucksiege:pictureselector:v3.11.2'
-    api 'io.github.lucksiege:compress:v3.11.2'
-    api 'io.github.lucksiege:ucrop:v3.11.2'
-    api 'io.github.lucksiege:camerax:v3.11.2'
 
     // 权限管理 - 使用官方Activity Result API替代EasyPermissions
     // api 'pub.devrel:easypermissions:3.0.0'
@@ -140,7 +132,6 @@ dependencies {
     implementation "androidx.palette:palette:1.0.0"
     implementation libs.androidx.recyclerview
     implementation "androidx.cardview:cardview:1.0.0"
-    implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
 
     // Apache 工具库 - 升级到最新版本
     // implementation 'org.apache.httpcomponents:httpcore:4.4.16' // 已弃用，使用OkHttp替代

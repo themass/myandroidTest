@@ -105,7 +105,7 @@ class LegacyHomeEntries(private val app: Context) : HomeEntries {
         val entries = buildList {
             add(ProfileEntry(ProfileAction.PhotoSolve, R.drawable.ic_menu_photo_solve, R.string.menu_btn_photo_solve))
             add(ProfileEntry(ProfileAction.LocalMusic, R.drawable.ic_menu_fav, R.string.menu_btn_local_music))
-            add(ProfileEntry(ProfileAction.Favorites, com.openapi.core.util.R.drawable.ic_menu_favorite_ed, R.string.menu_btn_favorite))
+            add(ProfileEntry(ProfileAction.Favorites, com.openapi.core.R.drawable.ic_menu_favorite_ed, R.string.menu_btn_favorite))
             add(ProfileEntry(ProfileAction.Feedback, R.drawable.ic_menu_help, R.string.menu_btn_feedback))
             add(ProfileEntry(ProfileAction.Share, com.openapi.core.util.R.drawable.ic_menu_share, R.string.menu_btn_share))
             if (!MyApplication.isTemp) {
@@ -164,7 +164,7 @@ class LegacyHomeEntries(private val app: Context) : HomeEntries {
 
     private fun share(context: Context) {
         var url = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.D_URL, null)
-        if (!StringUtils.hasText(url)) url = CommonConstants.DEFAULT_REFERER
+        if (!StringUtils.hasText(url)) url = com.openapi.core.net.NetConfig.defaultReferer()
         // 分享卡片（二维码 + 链接）走分享库，和 vpn 项目一样是图片分享
         com.openapi.core.share.ShareKit.shareCard(context, title = "爱Freedom", subtitle = "精彩你的生活", link = url)
     }

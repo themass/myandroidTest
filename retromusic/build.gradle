@@ -7,7 +7,7 @@ plugins {
 }
 
 // 本地音乐：集成自 Retro Music Player（GPL-3.0），源码按原样保留，仅做命名空间与 App 入口适配。
-// 与 app 内已有的 auxio_music_ui（在线声音模块）互不影响：这里只负责抽屉里的"本地音乐"。
+// 本地音乐模块，与频道声音页互不影响：这里只负责抽屉里的"本地音乐"。
 // GPL-3.0 决定了这个模块只能自用，不能抽成通用 lib 复用。
 android {
     namespace "com.openapi.retromusic"
