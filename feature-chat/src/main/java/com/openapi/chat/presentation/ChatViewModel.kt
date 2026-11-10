@@ -54,7 +54,11 @@ class ChatViewModel : ViewModel() {
         reconcile = { fallbackReloadMessages() },
         syncSessions = { syncSessionsList() },
     )
-    private val history = HistoryActions(repository, _uiState, viewModelScope, isInFlight = { it in inFlight })
+    private val attachments = AttachmentSender(
+        repository, _uiState, streamer,
+        streamText = { t -> streamReply(t, userMessageId = null, persistUser = false, syncAfter = false) },
+    )
+    private val history = HistoryActions(repository, _uiState, viewModelScope, isInFlight = { attachments.isInFlight(it) })
     private val feedback = FeedbackActions(_uiState)
     private val removal = MessageRemoval(repository, _uiState, viewModelScope, reconcile = { fallbackReloadMessages() })
 
@@ -225,90 +229,15 @@ class ChatViewModel : ViewModel() {
      * 发送带附件的用户消息：逐个上传附件，各自的识别结果合并成一条助手回复；
      * 有配文时再把配文走文字流（用户消息已保存过，不再重复保存）。
      */
-    /** 附件发送也可以被「停止」打断：和流式回复一样显示生成中，停止后该消息标为可重试。 */
-    private suspend fun deliverAttachments(message: ChatMessage) {
-        inFlight += message.id
-        _uiState.update { it.copy(streaming = true) }
-        try {
-            deliverAttachmentsBody(message)
-        } finally {
-            inFlight -= message.id
-            _uiState.update { it.copy(streaming = streamer.isReplyActive()) }
-        }
-    }
-
-    /** 正在本进程里发送的附件消息 id：刷新历史时不能把它们当成「中断的发送」。 */
-    private val inFlight = HashSet<String>()
-
     /**
      * 历史页 + 本地还没同步的用户消息（附件等）。冷启动时，上次没发完的「发送中」消息说明进程被杀了，
      * 标成失败（红色重试），而不是消失或一直转圈。
      */
+    private suspend fun deliverAttachments(message: ChatMessage) = attachments.deliver(message)
+
     private suspend fun mergePending(page: List<ChatMessage>, sessionId: Long): List<ChatMessage> =
         history.mergePending(page, sessionId)
 
-
-    /** 把附件消息的发送结果写回本地记录，重启后状态一致。 */
-    private suspend fun persistDelivery(message: ChatMessage, status: DeliveryStatus) {
-        repository.saveMessage(repository.currentSessionId(), message.copy(delivery = status))
-    }
-
-    private suspend fun deliverAttachmentsBody(message: ChatMessage) {
-        setDelivery(message.id, DeliveryStatus.SENDING)
-        val placeholder = newPlaceholder()
-        _uiState.update { it.copy(messages = it.messages + placeholder, sending = true, error = null) }
-        val sessionId = repository.currentSessionId()
-        val uploads = message.images.map { Triple(MessageKind.IMAGE, java.io.File(it.path), java.io.File(it.path).name) } +
-            message.files.map { Triple(MessageKind.FILE, java.io.File(it.path), it.name) }
-
-        val replies = mutableListOf<String>()
-        var replyId: String? = null
-        for ((kind, file, name) in uploads) {
-            val reply = runCatching {
-                kotlinx.coroutines.withTimeoutOrNull(ATTACHMENT_TIMEOUT_MS) {
-                    repository.sendAttachment(sessionId, kind, file, name, placeholder.id)
-                }
-            }.getOrNull()
-            if (reply == null) {
-                val stopped = !kotlin.coroutines.coroutineContext[kotlinx.coroutines.Job]!!.isActive
-                _uiState.update {
-                    it.copy(
-                        messages = it.messages.filterNot { m -> m.id == placeholder.id },
-                        sending = false,
-                        error = if (stopped) "已停止，消息未发出，可点重试" else "发送失败，请稍后重试",
-                    )
-                }
-                setDelivery(message.id, DeliveryStatus.FAILED)
-                persistDelivery(message, DeliveryStatus.FAILED)
-                return
-            }
-            replyId = reply.id
-            if (reply.text.isNotBlank()) replies += reply.text
-        }
-        setDelivery(message.id, DeliveryStatus.SENT)
-        persistDelivery(message, DeliveryStatus.SENT)
-
-        val combined = replies.joinToString("\n\n")
-        if (combined.isBlank()) {
-            _uiState.update { it.copy(messages = it.messages.filterNot { m -> m.id == placeholder.id }, sending = false) }
-        } else {
-            val assistant = ChatMessage(
-                id = replyId ?: "assistant-${System.currentTimeMillis()}",
-                role = ChatRole.ASSISTANT,
-                text = combined,
-                createdAtMillis = System.currentTimeMillis(),
-            )
-            repository.saveMessage(sessionId, assistant)
-            _uiState.update { current ->
-                current.copy(
-                    messages = current.messages.map { m -> if (m.id == placeholder.id) assistant.copy(key = placeholder.key) else m },
-                    sending = false,
-                )
-            }
-        }
-        // 附件不在对话历史接口里，这里不再从服务端整页刷新，否则附件气泡会被冲掉
-        if (message.text.isNotBlank()) streamReply(message.text, userMessageId = null, persistUser = false, syncAfter = false)
-    }
 
     /** 重新发送一条失败的用户消息（不重新插入气泡，也不重复保存）。 */
     fun onRetry(messageId: String) {
