@@ -1,4 +1,4 @@
-package com.openapi.chat.presentation.speech
+package com.openapi.asr.tts
 
 import android.content.Context
 import android.speech.tts.TextToSpeech
@@ -19,6 +19,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 object DeviceSpeech {
 
     private var engine: TextToSpeech? = null
+    private const val TAG = "DeviceSpeech"
     private var chineseReady: Boolean = false
     private var pending: CancellableContinuation<Boolean>? = null
 
@@ -29,6 +30,7 @@ object DeviceSpeech {
     suspend fun speakChinese(text: String): Boolean {
         if (text.isBlank()) return false
         val tts = ensureEngine() ?: return false
+        android.util.Log.i(TAG, "device tts chineseReady=$chineseReady")
         if (!chineseReady) return false
         return suspendCancellableCoroutine { cont ->
             pending?.takeIf { it.isActive }?.resume(false)

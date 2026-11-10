@@ -1,7 +1,7 @@
 package com.openapi.chat.presentation
 
 import com.openapi.core.media.AudioPlayer
-import com.openapi.chat.presentation.speech.DeviceSpeech
+import com.openapi.asr.tts.DeviceSpeech
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.openapi.chat.ChatDependencies
@@ -899,6 +899,7 @@ class ChatViewModel : ViewModel() {
             _uiState.update { it.copy(speakingMessageId = message.id) }
             val spokenOnDevice = runCatching { DeviceSpeech.speakChinese(message.text) }.getOrDefault(false)
             if (spokenOnDevice) {
+                android.util.Log.i("ChatViewModel", "speak: played on device")
                 _uiState.update { it.copy(speakingMessageId = null) }
                 return@launch
             }
