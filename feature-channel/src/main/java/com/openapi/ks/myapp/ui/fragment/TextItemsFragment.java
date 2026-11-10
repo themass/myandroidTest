@@ -1,5 +1,6 @@
 package com.openapi.ks.myapp.ui.fragment;
 
+import java.util.concurrent.CompletableFuture;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
@@ -124,8 +125,8 @@ public class TextItemsFragment extends LoadableFragment<TextItemVo> implements M
     }
 
     @Override
-    protected TextItemVo loadData(Context context) throws Exception {
-        return indexService.getData(Constants.getUrlWithParam(Constants.API_TEXT_ITEM_URL, String.valueOf(vo.id)), TextItemVo.class, TEXT_TAG);
+    protected CompletableFuture<TextItemVo> loadData(Context context) {
+        return indexService.getDataAsync(Constants.getUrlWithParam(Constants.API_TEXT_ITEM_URL, String.valueOf(vo.id)), TextItemVo.class, TEXT_TAG);
     }
 
     @Override

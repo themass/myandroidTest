@@ -11,6 +11,7 @@ import com.openapi.core.net.request.StringRequest;
 import com.openapi.core.net.request.InfoListVo;
 
 import java.io.File;
+import java.util.concurrent.CompletableFuture;
 import java.util.List;
 import java.util.Map;
 
@@ -25,12 +26,9 @@ public class BaseService {
         this.context = context;
     }
 
-    public <T> InfoListVo<T> getInfoListData(String url, Class<T> t, String tag) throws Exception {
-        SyncFuture<InfoListVo<T>> future = SyncFuture.newFuture();
-        GsonRequest<InfoListVo<T>> request = GsonRequest.infoList(context, url, t, null, future, future);
-        request.setTag(tag);
-        HttpClient.addRequest(request);
-        return future.get();
+    /** 分页列表（非阻塞，结果通过 CompletableFuture 交给调用方）。 */
+    public <T> CompletableFuture<InfoListVo<T>> getInfoListDataAsync(String url, Class<T> t, String tag) {
+        return BaseServiceAsyncKt.infoListAsync(this, url, t, tag);
     }
 
     //
@@ -43,12 +41,9 @@ public class BaseService {
 //        return future.get();
 //    }
 //
-    public <T> T getData(String url, Class<T> t, String tag) throws Exception {
-        SyncFuture<T> future = SyncFuture.newFuture();
-        GsonRequest request = new GsonRequest<>(context, url, t, null, future, future);
-        request.setTag(tag);
-        HttpClient.addRequest(request);
-        return future.get();
+    /** 单个对象（非阻塞）。 */
+    public <T> CompletableFuture<T> getDataAsync(String url, Class<T> t, String tag) {
+        return BaseServiceAsyncKt.getAsync(this, url, t, tag);
     }
 
     public <T> void getData(String url, CommonResponse.ResponseOkListener<T> listener, CommonResponse.ResponseErrorListener errorListener, String tag, Class<T> t) {

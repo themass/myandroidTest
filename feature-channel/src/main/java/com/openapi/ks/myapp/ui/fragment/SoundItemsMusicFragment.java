@@ -1,5 +1,6 @@
 package com.openapi.ks.myapp.ui.fragment;
 
+import java.util.concurrent.CompletableFuture;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -449,8 +450,8 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
     }
 
     @Override
-    protected InfoListVo<SoundItemsVo> loadData(Context context) throws Exception {
-        return indexService.getInfoListData(Constants.getUrlWithParam(Constants.API_SOUND_ITEMS_URL, infoListVo.pageNum, channel, keyword), SoundItemsVo.class, SOUND_TAG);
+    protected CompletableFuture<InfoListVo<SoundItemsVo>> loadData(Context context) {
+        return indexService.getInfoListDataAsync(Constants.getUrlWithParam(Constants.API_SOUND_ITEMS_URL, infoListVo.pageNum, channel, keyword), SoundItemsVo.class, SOUND_TAG);
     }
 
     @Override

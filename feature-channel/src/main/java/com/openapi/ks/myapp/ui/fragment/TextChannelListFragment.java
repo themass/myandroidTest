@@ -1,5 +1,6 @@
 package com.openapi.ks.myapp.ui.fragment;
 
+import java.util.concurrent.CompletableFuture;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -67,8 +68,8 @@ public class TextChannelListFragment extends BasePullLoadbleFragment<TextItemsVo
     }
 
     @Override
-    protected InfoListVo<TextItemsVo> loadData(Context context) throws Exception {
-        return indexService.getInfoListData(Constants.getUrlWithParam(Constants.API_TEXT_ITEMS_URL, infoListVo.pageNum, vo.param, keyword), TextItemsVo.class, TEXT_TAG);
+    protected CompletableFuture<InfoListVo<TextItemsVo>> loadData(Context context) {
+        return indexService.getInfoListDataAsync(Constants.getUrlWithParam(Constants.API_TEXT_ITEMS_URL, infoListVo.pageNum, vo.param, keyword), TextItemsVo.class, TEXT_TAG);
     }
 
     @Override

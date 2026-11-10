@@ -1,6 +1,7 @@
 package com.openapi.ks.myapp.ui.fragment;
 
 
+import java.util.concurrent.CompletableFuture;
 import android.content.Context;
 
 import androidx.recyclerview.widget.DefaultItemAnimator;
@@ -48,8 +49,8 @@ public abstract class RecommendFragment extends BasePullLoadbleFragment<Recommen
     }
 
     @Override
-    protected InfoListVo<RecommendVo> loadData(Context context) throws Exception {
-        return indexService.getInfoListData(getUrl(infoListVo.pageNum), RecommendVo.class, getNetTag());
+    protected CompletableFuture<InfoListVo<RecommendVo>> loadData(Context context) {
+        return indexService.getInfoListDataAsync(getUrl(infoListVo.pageNum), RecommendVo.class, getNetTag());
     }
 
     protected void switchFlag(boolean flag) {

@@ -1,5 +1,6 @@
 package com.openapi.ks.myapp.ui.fragment;
 
+import java.util.concurrent.CompletableFuture;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -44,8 +45,8 @@ public class SettingCharacterFragment extends BasePullLoadbleFragment<CharacterV
     }
 
     @Override
-    protected InfoListVo<CharacterVo> loadData(Context context) throws Exception {
-        return indexService.getInfoListData(Constants.getUrl(Constants.API_CHARACTER_URL), CharacterVo.class, TAG);
+    protected CompletableFuture<InfoListVo<CharacterVo>> loadData(Context context) {
+        return indexService.getInfoListDataAsync(Constants.getUrl(Constants.API_CHARACTER_URL), CharacterVo.class, TAG);
     }
 
     @Override

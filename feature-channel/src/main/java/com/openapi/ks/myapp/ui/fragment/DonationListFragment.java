@@ -1,5 +1,6 @@
 package com.openapi.ks.myapp.ui.fragment;
 
+import java.util.concurrent.CompletableFuture;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -44,8 +45,8 @@ public class DonationListFragment extends BasePullLoadbleFragment<AppInfo> {
     }
 
     @Override
-    protected InfoListVo<AppInfo> loadData(Context context) throws Exception {
-        return indexService.getInfoListData(Constants.getUrl(Constants.API_DONATION_URL), AppInfo.class, APP_TAG);
+    protected CompletableFuture<InfoListVo<AppInfo>> loadData(Context context) {
+        return indexService.getInfoListDataAsync(Constants.getUrl(Constants.API_DONATION_URL), AppInfo.class, APP_TAG);
     }
 
     @Override

@@ -2,8 +2,7 @@ package com.openapi.ks.myapp.ui.base.features;
 
 import android.app.Activity;
 import android.content.Context;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.CompletableFuture;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -43,7 +42,8 @@ public abstract class LoadableFragment<T> extends BaseFragment {
     protected Handler handler = new Handler(Looper.getMainLooper());
     // protected boolean mPullToRefreshEnable = true;
     protected Context mContext;
-    private ExecutorService mExecutorService;
+    /** 每次发起查询或取消时加一；回调里发现 token 已过期就丢弃结果。 */
+    private int mQueryToken;
 
     View.OnClickListener mRefreshClickListener = new View.OnClickListener() {
         @Override
@@ -135,47 +135,36 @@ public abstract class LoadableFragment<T> extends BaseFragment {
     }
 
     protected void startQuery(boolean showLoading) {
-        cancelQuery();
-        mExecutorService = Executors.newSingleThreadExecutor();
-        
+        final int token = ++mQueryToken;
         if (showLoading) {
             showLoading();
         }
-        
-        mExecutorService.execute(() -> {
-            try {
-                T data = loadData(mContext);
-                handler.post(() -> {
-                    hideLoading();
-                    if (data != null) {
-                        setData(data);
-                        onDataLoaded(data);
-                        mDataLoaded = true;
-                    } else {
-                        if (!mDataLoaded) {
-                            showRetry();
-                        } else {
-                            hideLoading();
-                        }
-                    }
-                });
-            } catch (Exception e) {
-                LogUtil.e(e);
-                handler.post(() -> {
-                    hideLoading();
-                    if (!mDataLoaded) {
-                        showRetry();
-                    }
-                });
+        loadData(mContext).whenComplete((data, error) -> handler.post(() -> {
+            if (token != mQueryToken) {
+                return;
             }
-        });
+            if (error != null) {
+                LogUtil.e(error);
+                hideLoading();
+                if (!mDataLoaded) {
+                    showRetry();
+                }
+                return;
+            }
+            hideLoading();
+            if (data != null) {
+                setData(data);
+                onDataLoaded(data);
+                mDataLoaded = true;
+            } else if (!mDataLoaded) {
+                showRetry();
+            }
+        }));
     }
 
+    /** 使还在进行中的查询结果失效（页面销毁、或发起新查询时）。 */
     private void cancelQuery() {
-        if (mExecutorService != null) {
-            mExecutorService.shutdownNow();
-            mExecutorService = null;
-        }
+        mQueryToken++;
     }
 
     public void refresh() {
@@ -250,6 +239,7 @@ public abstract class LoadableFragment<T> extends BaseFragment {
      * @param context context
      * @return 返回数据，返回null表示错误，方法中需要catch所有异常
      */
-    protected abstract T loadData(Context context) throws Exception;
+    /** 加载数据（非阻塞）。future 以异常完成时按失败处理。 */
+    protected abstract CompletableFuture<T> loadData(Context context);
 
 }

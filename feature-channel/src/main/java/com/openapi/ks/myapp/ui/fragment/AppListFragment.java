@@ -1,5 +1,6 @@
 package com.openapi.ks.myapp.ui.fragment;
 
+import java.util.concurrent.CompletableFuture;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -43,8 +44,8 @@ public class AppListFragment extends BasePullLoadbleFragment<AppInfo> {
     }
 
     @Override
-    protected InfoListVo<AppInfo> loadData(Context context) throws Exception {
-        return indexService.getInfoListData(Constants.getUrl(Constants.API_APP_URL), AppInfo.class, APP_TAG);
+    protected CompletableFuture<InfoListVo<AppInfo>> loadData(Context context) {
+        return indexService.getInfoListDataAsync(Constants.getUrl(Constants.API_APP_URL), AppInfo.class, APP_TAG);
     }
 
     @Override

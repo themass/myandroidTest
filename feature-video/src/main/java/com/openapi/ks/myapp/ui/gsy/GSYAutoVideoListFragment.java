@@ -1,5 +1,6 @@
 package com.openapi.ks.myapp.ui.gsy;//package com.openapi.ks.myapp.ui.gsy;
 
+import java.util.concurrent.CompletableFuture;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Point;
@@ -190,7 +191,7 @@ public class GSYAutoVideoListFragment extends BasePullLoadbleFragment<RecommendV
     }
 
     @Override
-    protected InfoListVo<RecommendVo> loadData(Context context) throws Exception {
-        return indexService.getInfoListData(Constants.getUrlWithParam(Constants.API_VIDEO_CHANNEL_LIST_URL, infoListVo.pageNum, channel, keyword), RecommendVo.class, TAG);
+    protected CompletableFuture<InfoListVo<RecommendVo>> loadData(Context context) {
+        return indexService.getInfoListDataAsync(Constants.getUrlWithParam(Constants.API_VIDEO_CHANNEL_LIST_URL, infoListVo.pageNum, channel, keyword), RecommendVo.class, TAG);
     }
 }
