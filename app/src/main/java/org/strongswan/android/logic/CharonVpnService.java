@@ -460,6 +460,28 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
                 LogUtil.i("Error state set: " + error + ", current state: " + mService.getState());
             }
         }
+        teardownAfterError();
+    }
+
+    /**
+     * 出错后真正停掉 charon。setError 只把 UI 状态改成 DISABLED，charon 却还在跑：
+     * 隧道建立后掉线（DPD 超时）时它会保留 TUN 并不停重连，系统 VPN 一直挂着，
+     * 整机流量进了一条不通的隧道——App 显示"未连接"，手机却上不了网，只能杀进程。
+     * 这里停 charon（会关掉 TUN），保留错误状态给 UI 显示，不调 forceUpdateState（它会清掉错误）。
+     */
+    private void teardownAfterError() {
+        Handler handler = mWorkHandler;
+        if (handler == null || mIsDisconnecting) {
+            return;
+        }
+        handler.post(() -> {
+            if (mCurrentProfile == null) {
+                return;
+            }
+            LogUtil.i("连接出错，停止 charon 并释放 TUN");
+            stopCurrentConnection();
+            clearConnectionState();
+        });
     }
 
     /**
@@ -476,7 +498,13 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
                 }
                 break;
             case STATE_CHILD_SA_UP:
-                setState(VpnStateService.State.CONNECTED);
+                // 隧道协商成功不等于数据能走：路上可能把 ESP / NAT-T 包丢掉，
+                // 这时直接报"已连接"，系统 VPN 会把整机流量吸进一条不通的隧道。
+                // 先探测一次，通了再报已连接。重协商（rekey）时已经是已连接，不再探测。
+                if (mService != null && mService.getState() == VpnStateService.State.CONNECTED) {
+                    break;
+                }
+                probeThenConnected();
                 break;
             case STATE_AUTH_ERROR:
                 logStatus(status);
@@ -521,6 +549,24 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
         }
 
     }
+    private void probeThenConnected() {
+        final VpnProfile profile = mCurrentProfile;
+        new Thread(() -> {
+            boolean ok = com.openapi.data.vpn.engine.TunnelProbe.probeUntilDeadline(
+                    () -> !mIsDisconnecting && mCurrentProfile == profile);
+            if (mIsDisconnecting || mCurrentProfile != profile) {
+                return;
+            }
+            if (ok) {
+                LogUtil.i("IKEv2 连通性探针通过");
+                setState(VpnStateService.State.CONNECTED);
+            } else {
+                LogUtil.e("IKEv2 隧道已建立但探测流量不通（ESP/NAT-T 包被丢弃）");
+                setErrorDisconnect(VpnStateService.ErrorState.UNREACHABLE);
+            }
+        }, "ikev2-probe").start();
+    }
+
     private void logStatus(int status){
         try {
             if (mCurrentProfile != null) {

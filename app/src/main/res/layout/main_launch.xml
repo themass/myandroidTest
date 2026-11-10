@@ -38,7 +38,7 @@
         android:layout_alignParentBottom="true"
         android:layout_marginBottom="36dp"
         android:layout_marginStart="24dp"
-        android:layout_marginEnd="24dp"
+        android:layout_marginEnd="20dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:alpha="0">
@@ -57,7 +57,7 @@
 
         <FrameLayout
             android:id="@+id/launch_marquee_box"
-            android:layout_width="150dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:clipChildren="true">
 
@@ -70,7 +70,9 @@
                 android:textColor="#4DA3FF"
                 android:textSize="22sp"
                 android:fontFamily="sans-serif-medium"
-                android:letterSpacing="0.1" />
+                android:letterSpacing="0.1"
+                android:paddingEnd="2dp"
+                android:includeFontPadding="false" />
         </FrameLayout>
     </LinearLayout>
 

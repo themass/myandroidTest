@@ -33,12 +33,16 @@ public final class WireGuardTunnelEngine implements TunnelEngine {
     private static final String TAG = "WireGuardEngine";
     private static final String TUNNEL_NAME = "wg0";
 
+    /** 建立/拆除隧道都串行放在这条线程上，保证 UP 和 DOWN 不会交错。 */
+    private static final java.util.concurrent.ExecutorService WORKER =
+            java.util.concurrent.Executors.newSingleThreadExecutor(r -> new Thread(r, "wireguard-tunnel"));
+
     private final android.content.Context appContext;
-    private Backend backend;
+    private volatile Backend backend;
     @Nullable
     private Callback callback;
     @Nullable
-    private Tunnel tunnel;
+    private volatile Tunnel tunnel;
     private volatile boolean connected;
 
     public WireGuardTunnelEngine(@NonNull android.content.Context context) {
@@ -94,26 +98,56 @@ public final class WireGuardTunnelEngine implements TunnelEngine {
                 });
     }
 
+    /**
+     * GoBackend.setState 会阻塞等待 VpnService 启动，而 Service 的 onCreate 要在主线程执行。
+     * 在主线程调用就会互等，超时后抛出无消息的 TimeoutException（日志里只有"连接失败: null"）。
+     * 注册回调来自 Volley，正好在主线程，所以这里统一切到单独的线程。
+     */
     private void establishTunnel(@NonNull TunnelRequest request, @NonNull Callback callback) {
-        try {
-            Config config = buildConfig(request);
-            GoBackend go = new GoBackend(appContext);
-            backend = go;
-            tunnel = new SimpleTunnel(TUNNEL_NAME, callback);
-            go.setState(tunnel, Tunnel.State.UP, config);
-            connected = go.getState(tunnel) == Tunnel.State.UP;
-            if (connected) {
+        WORKER.execute(() -> {
+            try {
+                Config config = buildConfig(request);
+                Backend go = backend;
+                if (go == null) {
+                    go = new GoBackend(appContext);
+                    backend = go;
+                }
+                Tunnel t = new SimpleTunnel(TUNNEL_NAME, callback);
+                tunnel = t;
+                go.setState(t, Tunnel.State.UP, config);
+                if (go.getState(t) != Tunnel.State.UP) {
+                    callback.onDisconnected();
+                    return;
+                }
+                // 接口 UP 只说明本地建好了。握手后的数据可能被中途丢掉（UDP 被限速、端口被封），
+                // 不探测就报"已连接"，系统 VPN 会把整机流量吸进一条不通的隧道。
+                final Backend probing = go;
+                boolean ok = TunnelProbe.probeUntilDeadline(() -> tunnel == t && backend == probing);
+                if (tunnel != t) {
+                    return; // 探测期间被断开或换了新连接
+                }
+                if (!ok) {
+                    LogUtil.e(TAG + ": 隧道已建立但探测流量不通（UDP 被拦截或服务端没放行）");
+                    try {
+                        go.setState(t, Tunnel.State.DOWN, null);
+                    } catch (Exception ignored) {
+                    }
+                    callback.onError(ErrorCode.UNREACHABLE, "WireGuard 隧道不通");
+                    return;
+                }
+                LogUtil.i(TAG + ": 连通性探针通过");
+                connected = true;
                 callback.onConnected();
-            } else {
-                callback.onDisconnected();
+            } catch (BadConfigException e) {
+                LogUtil.e(TAG + ": 配置非法: " + e.getMessage());
+                callback.onError(ErrorCode.CONFIG_INVALID, e.getMessage());
+            } catch (Exception e) {
+                String reason = e.getClass().getSimpleName()
+                        + (e.getMessage() != null ? ": " + e.getMessage() : "");
+                LogUtil.e(TAG + ": 连接失败: " + reason);
+                callback.onError(ErrorCode.GENERIC, reason);
             }
-        } catch (BadConfigException e) {
-            LogUtil.e(TAG + ": 配置非法: " + e.getMessage());
-            callback.onError(ErrorCode.CONFIG_INVALID, e.getMessage());
-        } catch (Exception e) {
-            LogUtil.e(TAG + ": 连接失败: " + e.getMessage());
-            callback.onError(ErrorCode.GENERIC, e.getMessage());
-        }
+        });
     }
 
     @Override
@@ -122,17 +156,21 @@ public final class WireGuardTunnelEngine implements TunnelEngine {
         if (cb != null) {
             cb.onDisconnecting();
         }
-        try {
-            if (backend != null && tunnel != null) {
-                backend.setState(tunnel, Tunnel.State.DOWN, null);
-            }
-        } catch (Exception e) {
-            LogUtil.e(TAG + ": 断开异常: " + e.getMessage());
-        }
+        Backend go = backend;
+        Tunnel t = tunnel;
         connected = false;
-        if (cb != null) {
-            cb.onDisconnected();
-        }
+        WORKER.execute(() -> {
+            try {
+                if (go != null && t != null) {
+                    go.setState(t, Tunnel.State.DOWN, null);
+                }
+            } catch (Exception e) {
+                LogUtil.e(TAG + ": 断开异常: " + e.getMessage());
+            }
+            if (cb != null) {
+                cb.onDisconnected();
+            }
+        });
     }
 
     @Override

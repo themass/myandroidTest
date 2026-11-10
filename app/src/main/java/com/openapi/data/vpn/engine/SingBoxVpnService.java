@@ -65,22 +65,6 @@ public final class SingBoxVpnService extends VpnService {
     private static final String DEFAULT_TUN_ROUTE_V4 = "0.0.0.0";
     private static final String DEFAULT_TUN_ROUTE_V6 = "::";
 
-    /**
-     * 连通性探针：总时长 / 单次超时 / 间隔 / 目标。
-     * 目标用裸 IP，DNS 失败和隧道不通分得清；选三个不同大厂的 anycast 地址，
-     * 避免单个目标被机房出站策略拦掉误判。
-     */
-    private static final long PROBE_TIMEOUT_MS = 20_000L;
-    private static final int PROBE_CONNECT_TIMEOUT_MS = 3_000;
-    /** TLS 握手的读超时。上游不通时多半是读超时，所以不能太长，否则 20 秒总时长里轮次太少。 */
-    private static final int PROBE_IO_TIMEOUT_MS = 4_000;
-    private static final long PROBE_INTERVAL_MS = 1_000L;
-    private static final String[][] PROBE_TARGETS = {
-            {"1.1.1.1", "443"},
-            {"8.8.8.8", "443"},
-            {"9.9.9.9", "443"},
-    };
-
     public static final String ACTION_CONNECT = "com.openapi.singbox.CONNECT";
     public static final String ACTION_DISCONNECT = "com.openapi.singbox.DISCONNECT";
     public static final String EXTRA_CONFIG_JSON = "singbox_config_json";
@@ -113,12 +97,20 @@ public final class SingBoxVpnService extends VpnService {
     private CommandServer commandServer;
     /** 从 connect 到 teardown 之间为 true，探针和回调据此判断隧道是否还活着。 */
     private volatile boolean running;
+    /** 每次连接加一。旧连接的探针线程据此判断自己是否已过期，避免给新连接报错误的结果。 */
+    private volatile int generation;
     @Nullable
     private String splitMode;
     @Nullable
     private String[] splitPackages;
     @Nullable
     private ConnectivityManager.NetworkCallback defaultNetworkCallback;
+    /**
+     * 当前 TUN。libbox 只 dup 一份自己用，原始 fd 归我们：拆除时必须关掉，
+     * 否则系统 VPN 一直挂着、流量全进一个没人读的 TUN，整机断网（只能杀进程恢复）。
+     */
+    @Nullable
+    private ParcelFileDescriptor tunFd;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -140,7 +132,8 @@ public final class SingBoxVpnService extends VpnService {
     private void doConnect(Intent intent) {
         // 必须最先调用：没有前台通知，华为 EMUI/HarmonyOS 这类对后台管控激进的系统会在
         // TUN 建立后几百毫秒内杀掉 Service，表现为"应用显示已连接，状态栏没有 VPN 钥匙"。
-        startForeground(FOREGROUND_NOTIFY_ID, buildNotification());
+        // 先显示"连接中"。探针通过后才改成"已连接"，否则通知栏会比 App 先说连上了。
+        startForeground(FOREGROUND_NOTIFY_ID, buildNotification(false));
 
         String configJson = intent.getStringExtra(EXTRA_CONFIG_JSON);
         splitMode = intent.getStringExtra(EXTRA_SPLIT_MODE);
@@ -153,23 +146,30 @@ public final class SingBoxVpnService extends VpnService {
             return;
         }
 
+        // 上一条还没拆（自动重连、换下一个候选节点）：先停掉，否则旧的 libbox 和 TUN 一直挂着。
+        running = false;
+        stopCore();
         running = true;
+        int gen = ++generation;
         // startOrReloadService 会同步回调 openTun 并等待内核就绪，不能放在主线程上，否则 ANR。
-        new Thread(() -> startService(configJson), "singbox-start").start();
+        new Thread(() -> startService(configJson, gen), "singbox-start").start();
     }
 
-    private void startService(String configJson) {
+    private void startService(String configJson, int gen) {
         try {
             ensureLibboxSetup();
             commandServer = Libbox.newCommandServer(commandHandler, platform);
             commandServer.start();
             commandServer.startOrReloadService(configJson, new OverrideOptions());
             LogUtil.i(TAG + ": sing-box 已启动，开始连通性探测");
-            new Thread(this::probeThenNotify, "singbox-probe").start();
+            new Thread(() -> probeThenNotify(gen), "singbox-probe").start();
         } catch (Exception e) {
             String reason = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
             LogUtil.e(TAG + ": sing-box 启动失败: " + reason);
             mainHandler.post(() -> {
+                if (gen != generation) {
+                    return;
+                }
                 notifyFailed(reason);
                 teardown();
                 stopSelf();
@@ -181,27 +181,27 @@ public final class SingBoxVpnService extends VpnService {
      * 真实连通性探针（后台线程）：只有能通过隧道 TCP 连到公网，才算真的连上。
      * 必须在后台跑，doConnect 在主线程，阻塞会 ANR。
      */
-    private void probeThenNotify() {
-        long deadline = System.currentTimeMillis() + PROBE_TIMEOUT_MS;
+    private void probeThenNotify(int gen) {
+        long deadline = System.currentTimeMillis() + TunnelProbe.PROBE_TIMEOUT_MS;
         int round = 0;
         while (System.currentTimeMillis() < deadline) {
-            if (!running) {
-                LogUtil.i(TAG + ": 探针中止，隧道已拆除");
+            if (!running || gen != generation) {
+                LogUtil.i(TAG + ": 探针中止，隧道已拆除或已被新连接替换");
                 return;
             }
             round++;
-            for (String[] target : PROBE_TARGETS) {
-                if (probeOnce(target[0], Integer.parseInt(target[1]))) {
+            for (String[] target : TunnelProbe.PROBE_TARGETS) {
+                if (TunnelProbe.probeOnce(target[0], Integer.parseInt(target[1]))) {
                     LogUtil.i(TAG + ": 连通性探针通过（第 " + round + " 轮，"
                             + target[0] + ":" + target[1] + "）");
-                    if (running) {
+                    if (running && gen == generation) {
                         notifyEstablished();
                     }
                     return;
                 }
             }
             try {
-                Thread.sleep(PROBE_INTERVAL_MS);
+                Thread.sleep(TunnelProbe.PROBE_INTERVAL_MS);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 return;
@@ -210,46 +210,13 @@ public final class SingBoxVpnService extends VpnService {
         String reason = "隧道已建立但探测流量不通（握手失败或节点参数不对）";
         LogUtil.e(TAG + ": " + reason);
         mainHandler.post(() -> {
-            if (!running) {
+            if (!running || gen != generation) {
                 return;
             }
             notifyFailed(reason);
             teardown();
             stopSelf();
         });
-    }
-
-    /**
-     * 一次端到端探测：TCP 连上之后必须再完成一次 TLS 握手，成功返回 true。
-     * <p>
-     * 只做 {@code connect()} 是不够的：TUN 用 mixed 栈时，TCP 由本机系统协议栈先接住，
-     * connect() 在上游还没拨出去之前就会成功，线路根本不通也会"瞬间连上"。
-     * TLS 握手要收到对端的 ServerHello 才算完成，只有数据真的走了一个来回才会通过；
-     * 上游不通时本机栈会把连接关掉（RST/EOF），或者读超时，这里都按失败处理。
-     * 只校验证书链，不校验主机名：目标是裸 IP，这里只关心"通没通"。
-     */
-    private static boolean probeOnce(String host, int port) {
-        java.net.Socket raw = new java.net.Socket();
-        javax.net.ssl.SSLSocket ssl = null;
-        try {
-            raw.connect(new java.net.InetSocketAddress(host, port), PROBE_CONNECT_TIMEOUT_MS);
-            raw.setSoTimeout(PROBE_IO_TIMEOUT_MS);
-            ssl = (javax.net.ssl.SSLSocket) ((javax.net.ssl.SSLSocketFactory)
-                    javax.net.ssl.SSLSocketFactory.getDefault()).createSocket(raw, host, port, true);
-            ssl.startHandshake();
-            return true;
-        } catch (Exception e) {
-            return false;
-        } finally {
-            try {
-                if (ssl != null) {
-                    ssl.close();
-                } else {
-                    raw.close();
-                }
-            } catch (Exception ignored) {
-            }
-        }
     }
 
     /** libbox 全进程只能 setup 一次；工作目录放在应用私有目录下。 */
@@ -298,6 +265,13 @@ public final class SingBoxVpnService extends VpnService {
 
     private void teardown() {
         running = false;
+        stopCore();
+        stopForeground(true);
+        notifyStopped();
+    }
+
+    /** 停 libbox、关 TUN，不发通知。重连/换节点时复用同一个 Service，先把上一条拆干净。 */
+    private void stopCore() {
         stopDefaultInterfaceCallback();
         CommandServer server = commandServer;
         commandServer = null;
@@ -309,8 +283,19 @@ public final class SingBoxVpnService extends VpnService {
             }
             server.close();
         }
-        stopForeground(true);
-        notifyStopped();
+        closeTun();
+    }
+
+    private synchronized void closeTun() {
+        ParcelFileDescriptor pfd = tunFd;
+        tunFd = null;
+        if (pfd != null) {
+            try {
+                pfd.close();
+            } catch (IOException e) {
+                LogUtil.e(TAG + ": 关闭 TUN 异常: " + e.getMessage());
+            }
+        }
     }
 
     @Override
@@ -327,6 +312,10 @@ public final class SingBoxVpnService extends VpnService {
     }
 
     private void notifyEstablished() {
+        NotificationManager nm = getSystemService(NotificationManager.class);
+        if (nm != null && running) {
+            nm.notify(FOREGROUND_NOTIFY_ID, buildNotification(true));
+        }
         Listener l = listener;
         if (l != null) {
             l.onEstablished();
@@ -421,7 +410,7 @@ public final class SingBoxVpnService extends VpnService {
      * 构造前台服务通知。只做最小实现：目的是让系统承认这是前台服务，
      * 不需要复刻 {@code CharonVpnService} 那套富交互通知。
      */
-    private Notification buildNotification() {
+    private Notification buildNotification(boolean connected) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(
                     NOTIFY_CHANNEL, DEFAULT_SESSION, NotificationManager.IMPORTANCE_LOW);
@@ -442,9 +431,9 @@ public final class SingBoxVpnService extends VpnService {
                 PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
 
         return new NotificationCompat.Builder(this, NOTIFY_CHANNEL)
-                .setContentTitle(getString(R.string.vpn_remote_on))
+                .setContentTitle(getString(connected ? R.string.vpn_remote_on : R.string.vpn_remote_ing))
                 .setContentText(DEFAULT_SESSION)
-                .setSmallIcon(R.drawable.vpn_on)
+                .setSmallIcon(connected ? R.drawable.vpn_on : R.drawable.vpn_off)
                 .setContentIntent(pendingIntent)
                 .setOngoing(true)
                 .setSound(null)
@@ -520,7 +509,10 @@ public final class SingBoxVpnService extends VpnService {
             if (pfd == null) {
                 throw new IOException("establish() 返回 null，可能是另一个 VPN 正占用系统槽位");
             }
-            return pfd.detachFd();
+            // 不能 detachFd：libbox 会 dup 自己的一份，原始 fd 由我们持有并在 teardown 时关闭。
+            closeTun();
+            tunFd = pfd;
+            return pfd.getFd();
         }
 
         @Override
@@ -534,20 +526,32 @@ public final class SingBoxVpnService extends VpnService {
         }
 
         /**
-         * 接口枚举。返回空：默认网络由 {@link #startDefaultInterfaceCallback} 提供，
-         * 我们不做 process/接口级的路由规则，所以不需要完整列表。
+         * 接口枚举：sing-box 按名字找默认网络接口（wlan0 / rmnet）来绑定出口 socket。
+         * 返回空列表时它找不到接口，所有出站都报 "no available network interface"，
+         * 表现为隧道建立了但一个包都发不出去，整机断网。做法与官方 SFA 一致：列出所有非 VPN 网络。
          */
         @Override
         public NetworkInterfaceIterator getInterfaces() throws Exception {
+            java.util.List<io.nekohasekai.libbox.NetworkInterface> list = new java.util.ArrayList<>();
+            ConnectivityManager cm = getSystemService(ConnectivityManager.class);
+            if (cm != null) {
+                for (Network network : cm.getAllNetworks()) {
+                    io.nekohasekai.libbox.NetworkInterface nif = toLibboxInterface(cm, network);
+                    if (nif != null) {
+                        list.add(nif);
+                    }
+                }
+            }
+            java.util.Iterator<io.nekohasekai.libbox.NetworkInterface> it = list.iterator();
             return new NetworkInterfaceIterator() {
                 @Override
                 public boolean hasNext() {
-                    return false;
+                    return it.hasNext();
                 }
 
                 @Override
                 public io.nekohasekai.libbox.NetworkInterface next() {
-                    return null;
+                    return it.next();
                 }
             };
         }
@@ -631,6 +635,102 @@ public final class SingBoxVpnService extends VpnService {
         public void writeDebugMessage(String message) {
             LogUtil.d(TAG + ": " + message);
         }
+    }
+
+    /** Go net.Flags 的位定义（sing-box 用的就是这一套）。 */
+    private static final int GO_FLAG_UP = 1;
+    private static final int GO_FLAG_BROADCAST = 1 << 1;
+    private static final int GO_FLAG_LOOPBACK = 1 << 2;
+    private static final int GO_FLAG_POINT_TO_POINT = 1 << 3;
+    private static final int GO_FLAG_MULTICAST = 1 << 4;
+    private static final int GO_FLAG_RUNNING = 1 << 5;
+
+    @Nullable
+    private static io.nekohasekai.libbox.NetworkInterface toLibboxInterface(ConnectivityManager cm,
+                                                                           Network network) {
+        NetworkCapabilities caps = cm.getNetworkCapabilities(network);
+        LinkProperties lp = cm.getLinkProperties(network);
+        if (caps == null || lp == null || lp.getInterfaceName() == null
+                || caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) {
+            return null;
+        }
+        java.net.NetworkInterface jnif;
+        try {
+            jnif = java.net.NetworkInterface.getByName(lp.getInterfaceName());
+        } catch (IOException e) {
+            return null;
+        }
+        if (jnif == null) {
+            return null;
+        }
+        io.nekohasekai.libbox.NetworkInterface nif = new io.nekohasekai.libbox.NetworkInterface();
+        nif.setName(lp.getInterfaceName());
+        nif.setIndex(jnif.getIndex());
+        try {
+            nif.setMTU(jnif.getMTU());
+        } catch (IOException ignored) {
+        }
+        java.util.List<String> addrs = new java.util.ArrayList<>();
+        for (android.net.LinkAddress la : lp.getLinkAddresses()) {
+            addrs.add(la.getAddress().getHostAddress() + "/" + la.getPrefixLength());
+        }
+        nif.setAddresses(strings(addrs));
+        int flags = 0;
+        try {
+            if (jnif.isUp()) {
+                flags |= GO_FLAG_UP | GO_FLAG_RUNNING;
+            }
+            if (jnif.isLoopback()) {
+                flags |= GO_FLAG_LOOPBACK;
+            }
+            if (jnif.isPointToPoint()) {
+                flags |= GO_FLAG_POINT_TO_POINT;
+            } else {
+                flags |= GO_FLAG_BROADCAST;
+            }
+            if (jnif.supportsMulticast()) {
+                flags |= GO_FLAG_MULTICAST;
+            }
+        } catch (IOException ignored) {
+        }
+        nif.setFlags(flags);
+        int type = Libbox.InterfaceTypeOther;
+        if (caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+            type = Libbox.InterfaceTypeWIFI;
+        } else if (caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
+            type = Libbox.InterfaceTypeCellular;
+        } else if (caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)) {
+            type = Libbox.InterfaceTypeEthernet;
+        }
+        nif.setType(type);
+        java.util.List<String> dns = new java.util.ArrayList<>();
+        for (java.net.InetAddress a : lp.getDnsServers()) {
+            dns.add(a.getHostAddress());
+        }
+        nif.setDNSServer(strings(dns));
+        nif.setMetered(!caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED));
+        return nif;
+    }
+
+    private static StringIterator strings(java.util.List<String> values) {
+        java.util.Iterator<String> it = values.iterator();
+        int size = values.size();
+        return new StringIterator() {
+            @Override
+            public boolean hasNext() {
+                return it.hasNext();
+            }
+
+            @Override
+            public int len() {
+                return size;
+            }
+
+            @Override
+            public String next() {
+                return it.next();
+            }
+        };
     }
 
     private static StringIterator emptyStrings() {

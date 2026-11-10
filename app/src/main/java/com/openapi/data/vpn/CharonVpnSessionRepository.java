@@ -180,10 +180,14 @@ public final class CharonVpnSessionRepository implements VpnSessionRepository {
         lastProtocol = protocol;
         lastRequest = request;
         // 切换协议：同一个 VpnService 只能有一个 TUN，必须先停旧引擎。
-        TunnelEngine current = activeEngine;
-        if (current != null && current != engine && current.isConnected()) {
-            LogUtil.i(TAG + ": 切换协议 " + current.protocol() + " -> " + protocol);
-            current.disconnect();
+        // 同一时刻只能有一条隧道（只有一个 TUN）。注意：不能只看 isConnected()——
+        // 状态标记可能与真实的 TUN 不一致，上一条隧道没拆干净时新协议就会在死隧道上探测失败。
+        // 所以切换时无条件拆掉所有其它引擎（没在跑的引擎 disconnect 是空操作）。
+        for (TunnelEngine other : registry.availableEngines()) {
+            if (other != engine) {
+                LogUtil.i(TAG + ": 拆掉其它协议 " + other.protocol());
+                other.disconnect();
+            }
         }
         activeEngine = engine;
         activeProtocol.setValue(protocol);
@@ -262,16 +266,16 @@ public final class CharonVpnSessionRepository implements VpnSessionRepository {
         // 断开后把通知权还给 IKEv2（它一直是绑定状态，断开后应该显示"未连接"，
         // 而不是停留在"别的协议占用中"）。
         org.strongswan.android.logic.CharonVpnService.nonIkev2ProtocolActive = false;
-        TunnelEngine engine = activeEngine;
-        if (engine != null) {
-            engine.disconnect();
-            return true;
+        // 断开时拆掉所有引擎，而不只是 activeEngine：否则之前连过的协议（比如 IKEv2）
+        // 可能还留着 TUN，系统 VPN 一直挂着，手机整机断网。
+        for (TunnelEngine other : registry.availableEngines()) {
+            other.disconnect();
         }
+        activeEngine = null;
         VpnStateService svc = service;
-        if (svc == null) {
-            return false;
+        if (svc != null) {
+            svc.disconnect();
         }
-        svc.disconnect();
         return true;
     }
 
