@@ -606,7 +606,8 @@ class ChatRepositoryImpl(
         db.chatLogDao().deleteBySession(sessionId)
         db.chatSessionLogDao().deleteById(sessionId)
         if (currentSessionId() == sessionId) {
-            sessions().firstOrNull()?.let { setCurrentSessionId(it.id) }
+            // 没有剩下的会话时回到 0：下次发送由服务端新建。若仍指向已删除的 id，之后每次发送都会报「会话不存在」
+            setCurrentSessionId(sessions().firstOrNull()?.id ?: 0L)
         }
         true
     }
@@ -676,7 +677,8 @@ class ChatRepositoryImpl(
                     url,
                     param,
                     object : CommonResponse.ResponseOkListener<Any>() {
-                        override fun onResponse(response: Any) {
+                        // 删除类接口成功时响应体为空，框架会传 null；参数必须可空，否则 Kotlin 的非空检查抛出 NPE，协程永远挂起（表现为删除/清空没反应，重进 app 才生效）
+                        override fun onResponse(response: Any?) {
                             if (cont.isActive) cont.resume(true)
                         }
                     },
