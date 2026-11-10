@@ -48,6 +48,7 @@ class ChatViewModel : ViewModel() {
 
     private val characterActions = CharacterActions(repository, roles, _uiState, viewModelScope)
     private val composer = ComposerActions(_uiState)
+    private val history = HistoryActions(repository, _uiState, viewModelScope, isInFlight = { it in inFlight })
     private val feedback = FeedbackActions(_uiState)
     private val removal = MessageRemoval(repository, _uiState, viewModelScope, reconcile = { fallbackReloadMessages() })
 
@@ -398,21 +399,9 @@ class ChatViewModel : ViewModel() {
      * 历史页 + 本地还没同步的用户消息（附件等）。冷启动时，上次没发完的「发送中」消息说明进程被杀了，
      * 标成失败（红色重试），而不是消失或一直转圈。
      */
-    private suspend fun mergePending(page: List<ChatMessage>, sessionId: Long): List<ChatMessage> {
-        val serverIds = page.map { it.id }.toSet()
-        val recovered = repository.localPendingMessages(sessionId)
-            .filter { it.id !in serverIds }
-            .map { m ->
-                if (m.delivery == DeliveryStatus.SENDING && m.id !in inFlight) {
-                    val failed = m.copy(delivery = DeliveryStatus.FAILED)
-                    repository.saveMessage(sessionId, failed)
-                    failed
-                } else {
-                    m
-                }
-            }
-        return (page + recovered).sortedBy { it.createdAtMillis }
-    }
+    private suspend fun mergePending(page: List<ChatMessage>, sessionId: Long): List<ChatMessage> =
+        history.mergePending(page, sessionId)
+
 
     /** 把附件消息的发送结果写回本地记录，重启后状态一致。 */
     private suspend fun persistDelivery(message: ChatMessage, status: DeliveryStatus) {
@@ -591,27 +580,8 @@ class ChatViewModel : ViewModel() {
 
 
     /** 加载更早的一页历史（按最早一条的服务端 id 作为 beforeId）。 */
-    fun onLoadOlderMessages() {
-        val state = _uiState.value
-        if (!state.hasMoreHistory || state.loadingOlder || state.sending) return
-        val oldestId = state.messages.mapNotNull { it.id.toLongOrNull() }.minOrNull() ?: return
-        _uiState.update { it.copy(loadingOlder = true) }
-        viewModelScope.launch {
-            val page = runCatching { loadHistory(beforeId = oldestId) }.getOrNull()
-            _uiState.update { cur ->
-                if (page == null) {
-                    cur.copy(loadingOlder = false, error = "加载更早的消息失败，请稍后重试")
-                } else {
-                    val known = page.messages.map { it.id }.toSet()
-                    cur.copy(
-                        messages = page.messages + cur.messages.filterNot { it.id in known },
-                        hasMoreHistory = page.hasMore,
-                        loadingOlder = false,
-                    )
-                }
-            }
-        }
-    }
+    fun onLoadOlderMessages() = history.loadOlder()
+
 
     /** 从服务端同步会话列表（新会话、updatedAt、别的设备上的改动），并刷新界面里的列表。 */
     private suspend fun syncSessionsList() {

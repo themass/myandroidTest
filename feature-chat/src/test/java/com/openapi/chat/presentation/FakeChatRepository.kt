@@ -32,9 +32,16 @@ internal class FakeChatRepository : ChatRepository {
     val deletedMessages = mutableListOf<String>()
     var history: List<ChatMessage> = emptyList()
     var clearedLocal = 0
+    var olderMessages: List<ChatMessage> = emptyList()
+    var olderHasMore = false
+    var historyFails = false
+    var pending: List<ChatMessage> = emptyList()
+    val saved = mutableListOf<ChatMessage>()
 
-    override suspend fun loadHistoryPage(sessionId: Long, beforeId: Long?, limit: Int) =
-        HistoryPage(if (beforeId == null) history else emptyList(), hasMore = false)
+    override suspend fun loadHistoryPage(sessionId: Long, beforeId: Long?, limit: Int): HistoryPage {
+        if (historyFails) throw java.io.IOException("offline")
+        return if (beforeId == null) HistoryPage(history, hasMore = false) else HistoryPage(olderMessages, olderHasMore)
+    }
     override fun sendMessageStream(
         sessionId: Long, userText: String, characterId: Int?, roleId: String?,
         persistUserMessage: Boolean, clientMessageId: String?,
@@ -44,7 +51,7 @@ internal class FakeChatRepository : ChatRepository {
     override suspend fun clearLocalMessages(sessionId: Long) {
         clearedLocal++
     }
-    override suspend fun localPendingMessages(sessionId: Long): List<ChatMessage> = emptyList()
+    override suspend fun localPendingMessages(sessionId: Long): List<ChatMessage> = pending
     override suspend fun deleteMessage(sessionId: Long, messageId: String): Boolean {
         deletedMessages += messageId
         return deleteMessageOk
@@ -56,7 +63,9 @@ internal class FakeChatRepository : ChatRepository {
         selectedCharacter = characterId
         selectedCharacterCalls += characterId
     }
-    override suspend fun saveMessage(sessionId: Long, message: ChatMessage) {}
+    override suspend fun saveMessage(sessionId: Long, message: ChatMessage) {
+        saved += message
+    }
     override suspend fun sendAttachment(
         sessionId: Long, kind: MessageKind, localFile: java.io.File, fileName: String, placeholderId: String,
     ): ChatReply? = null
