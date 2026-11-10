@@ -124,7 +124,7 @@ com.openapi.feature.photosolve
 ```
 **改动**
 - 图像处理移到 `:media/imaging`（见 core-split-plan.md）。
-- 主题：**需要你决定**。改用 `AppMaterialTheme` 会改变拍照页的配色；保留 `PaiZhaoTheme` 就接受两套主题并存。
+- 主题：已改用 `AppMaterialTheme`（见文末「已决定」）。
 
 ---
 
@@ -156,7 +156,7 @@ com.openapi.feature.photosolve
 ```
 com.openapi.feature.video
   player/    DetailGSYVideoPlayer、PlaybackEngineHelper（引擎切换；偏好值移到 :core/prefs）
-  list/      GSYAutoVideoListFragment、AutoVideoListFragment、GSYVideoListAdapter、VideoListItemCompose
+  list/      GSYAutoVideoListFragment、GSYVideoListAdapter、VideoListItemCompose
   page/      VideoActivity、VideoShowActivity、VideoShowActivityLazyUrl、VideoListShowActivity、两个 Helper
   local/     LocalVideoActivity
   cast/      googlecast/（现有 4 个）、dlna/（从 :core 移来 11 个）
@@ -172,7 +172,7 @@ com.openapi.feature.video
 | 3 个翻译提供者 | `:media/subtitle/provider`（只实现接口，不含业务） |
 | `VideoTranslationInstaller` | `:app`（启动时注册提供者） |
 
-**需要确认**：`AutoVideoListFragment` 只有 10 行，是 `GSYAutoVideoListFragment` 的空子类，`VideoActivity`、`VideoListShowActivity` 在用。可以把这两处改成直接用父类，然后删掉它。
+`AutoVideoListFragment` 已删除（见文末「已决定」）。另外，`VideoActivity` 只在 Manifest 里登记，代码里没有任何地方打开它，可能是死页面。
 
 ---
 
@@ -294,11 +294,11 @@ assets/                      只留 :app 自己用的；模型、KaTeX、persona
 5. 对话、角色的实现移回 `:feature-chat`。
 6. 频道列表页、「我的」页移到 `:feature-content`、`:feature-user`；`ConfigActionJump` 改为由频道提供。
 
-## 需要你决定的
+## 已决定（2026-11-10）
 
-1. **拍照解题的主题**：改用应用统一的 `AppMaterialTheme`（拍照页配色会变），还是保留 `PaiZhaoTheme`？
-2. **`AutoVideoListFragment`**：改为直接用父类，然后删掉这个 10 行的空子类，可以吗？
-3. **`:ads` 改包名 `com.openapi.ads`、`Constants` 改名 `AdsIds`**：放到最后统一改包名那一步，可以吗？
+1. **拍照解题改用应用统一主题**：已完成。`PaiZhaoTheme`（蓝色）删除，改用 `AppMaterialTheme`（暖橙）；答案卡用 `AppColors.Success`，新增 `AppColors.SuccessContainer`。字号随之改为 Material3 默认值（标题 28sp，原 26sp）。
+2. **删除 `AutoVideoListFragment`**：已完成。两处调用改为直接用 `GSYAutoVideoListFragment`；`VideoListShowActivity` 里「小窗开关」的两个分支本来就创建同一个类，合并成一行。
+3. **`:ads` 改包名 `com.openapi.ads`、`Constants` 改名 `AdsIds`**：同意，放到最后统一改包名那一步。
 
 ## 不在这次范围
 - `ChatViewModel`（1066 行）、`ChatRepositoryImpl`（767 行）、`DetailGSYVideoPlayer`（721 行）的拆分。
