@@ -48,8 +48,10 @@ class ChatViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(ChatUiState(selectedRole = roles.selected()))
     val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
 
+    private val characterActions = CharacterActions(repository, roles, _uiState, viewModelScope)
+
     init {
-        loadCharacters()
+        characterActions.load()
         // 会话和历史都以服务端为准：先同步会话列表（会决定当前会话），再拉最新一页历史
         viewModelScope.launch {
             repository.syncSessionsFromServer()
@@ -97,102 +99,31 @@ class ChatViewModel : ViewModel() {
 
     fun onRenameSession(sessionId: Long, name: String) = sessionActions.rename(sessionId, name)
 
-    private fun loadCharacters() {
-        viewModelScope.launch {
-            val characters = runCatching { repository.loadCharacters() }.getOrElse { emptyList() }
-            _uiState.update {
-                it.copy(
-                    characters = characters,
-                    selectedCharacterId = repository.selectedCharacterId(),
-                )
-            }
-        }
-    }
+    
 
     /** 选了旧的人设（或默认助手）就把目录角色清掉：两套选择互斥，避免界面显示的和实际发出去的不一致。 */
-    fun onCharacterSelected(characterId: Int?) {
-        val sessionId = repository.currentSessionId()
-        repository.setSelectedCharacterId(characterId)
-        roles.setSelected(null)
-        roles.setSelectedFor(sessionId, null)
-        _uiState.update { it.copy(selectedCharacterId = characterId, selectedRole = null, rolePickerVisible = false) }
-    }
+    fun onCharacterSelected(characterId: Int?) = characterActions.selectCharacter(characterId)
 
-    fun onRoleSelected(role: SelectedRole) {
-        val sessionId = repository.currentSessionId()
-        roles.setSelected(role)
-        roles.setSelectedFor(sessionId, role)
-        repository.setSelectedCharacterId(null)
-        _uiState.update { it.copy(selectedRole = role, selectedCharacterId = null, rolePickerVisible = false) }
-    }
 
-    fun onRolePickerVisibleChange(visible: Boolean) {
-        _uiState.update { it.copy(rolePickerVisible = visible) }
-    }
+    fun onRoleSelected(role: SelectedRole) = characterActions.selectRole(role)
+
+
+    fun onRolePickerVisibleChange(visible: Boolean) = characterActions.setRolePickerVisible(visible)
+
 
     /**
      * 创建一个自定义角色并立即选中它——用户上传角色的目的就是马上用它聊天，
      * 不需要创建完再去下拉菜单里找一遍。
      */
-    fun onCreateCharacter(title: String, content: String) {
-        viewModelScope.launch {
-            val created = runCatching { repository.createCharacter(title, content, null) }.getOrNull()
-            if (created == null) {
-                _uiState.update { it.copy(error = "创建角色失败，请稍后重试") }
-                return@launch
-            }
-            repository.setSelectedCharacterId(created.id)
-            roles.setSelected(null)
-            roles.setSelectedFor(repository.currentSessionId(), null)
-            _uiState.update {
-                it.copy(
-                    characters = it.characters + created,
-                    selectedCharacterId = created.id,
-                    selectedRole = null,
-                )
-            }
-        }
-    }
+    fun onCreateCharacter(title: String, content: String) = characterActions.create(title, content)
 
-    fun onUpdateCharacter(characterId: Int, title: String, content: String) {
-        viewModelScope.launch {
-            val ok = runCatching { repository.updateCharacter(characterId, title, content, null) }.getOrDefault(false)
-            if (!ok) {
-                _uiState.update { it.copy(error = "更新角色失败，请稍后重试") }
-                return@launch
-            }
-            _uiState.update { state ->
-                state.copy(
-                    characters = state.characters.map {
-                        if (it.id == characterId) {
-                            it.copy(title = title, preview = content.take(40), content = content)
-                        } else {
-                            it
-                        }
-                    },
-                )
-            }
-        }
-    }
 
-    fun onDeleteCharacter(characterId: Int) {
-        viewModelScope.launch {
-            val ok = runCatching { repository.deleteCharacter(characterId) }.getOrDefault(false)
-            if (!ok) {
-                _uiState.update { it.copy(error = "删除角色失败，请稍后重试") }
-                return@launch
-            }
-            val wasSelected = _uiState.value.selectedCharacterId == characterId
-            _uiState.update { state ->
-                state.copy(
-                    characters = state.characters.filterNot { it.id == characterId },
-                    // 删的正好是当前选中的角色，回退到默认助手，不留一个指向空角色的选择
-                    selectedCharacterId = if (wasSelected) null else state.selectedCharacterId,
-                )
-            }
-            if (wasSelected) repository.setSelectedCharacterId(null)
-        }
-    }
+    fun onUpdateCharacter(characterId: Int, title: String, content: String) =
+        characterActions.update(characterId, title, content)
+
+
+    fun onDeleteCharacter(characterId: Int) = characterActions.delete(characterId)
+
 
     fun onInputChange(text: String) {
         _uiState.update { it.copy(input = text) }

@@ -22,6 +22,12 @@ internal class FakeChatRepository : ChatRepository {
     val deleted = mutableListOf<Long>()
     val renamed = mutableListOf<Pair<Long, String>>()
     var syncCalls = 0
+    var selectedCharacter: Int? = null
+    val selectedCharacterCalls = mutableListOf<Int?>()
+    var createdCharacter: ChatCharacterOption? = null
+    var updateCharacterOk = true
+    var deleteCharacterOk = true
+    val deletedCharacters = mutableListOf<Int>()
 
     override suspend fun loadHistoryPage(sessionId: Long, beforeId: Long?, limit: Int) = HistoryPage(emptyList(), hasMore = false)
     override fun sendMessageStream(
@@ -35,16 +41,22 @@ internal class FakeChatRepository : ChatRepository {
     override suspend fun deleteMessage(sessionId: Long, messageId: String) = true
     override fun currentSessionId(): Long = current
     override suspend fun loadCharacters(): List<ChatCharacterOption> = emptyList()
-    override fun selectedCharacterId(): Int? = null
-    override fun setSelectedCharacterId(characterId: Int?) {}
+    override fun selectedCharacterId(): Int? = selectedCharacter
+    override fun setSelectedCharacterId(characterId: Int?) {
+        selectedCharacter = characterId
+        selectedCharacterCalls += characterId
+    }
     override suspend fun saveMessage(sessionId: Long, message: ChatMessage) {}
     override suspend fun sendAttachment(
         sessionId: Long, kind: MessageKind, localFile: java.io.File, fileName: String, placeholderId: String,
     ): ChatReply? = null
     override suspend fun synthesizeSpeech(messageId: String, text: String): String? = null
-    override suspend fun createCharacter(title: String, content: String, avatarUrl: String?): ChatCharacterOption? = null
-    override suspend fun updateCharacter(characterId: Int, title: String, content: String, avatarUrl: String?) = true
-    override suspend fun deleteCharacter(characterId: Int) = true
+    override suspend fun createCharacter(title: String, content: String, avatarUrl: String?): ChatCharacterOption? = createdCharacter
+    override suspend fun updateCharacter(characterId: Int, title: String, content: String, avatarUrl: String?) = updateCharacterOk
+    override suspend fun deleteCharacter(characterId: Int): Boolean {
+        deletedCharacters += characterId
+        return deleteCharacterOk
+    }
     override fun sessions(): List<ChatSession> = sessionList
     override fun setCurrentSessionId(sessionId: Long) {
         setCurrentCalls += sessionId
