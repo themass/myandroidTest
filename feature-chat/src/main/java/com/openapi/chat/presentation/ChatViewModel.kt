@@ -511,155 +511,26 @@ class ChatViewModel : ViewModel() {
     fun dismissError() = composer.dismissError()
 
 
-    // ------------------------------------------------------------------
-    // 语音消息：录音 → 存成消息 → 转写 → 当作文本发给大模型。
-    // ASR 通过 [SpeechToText] 注入（实现是 app 里的字节引擎封装），未注入时
-    // 只保留语音气泡不转写，和之前的降级行为一致。
-    // ------------------------------------------------------------------
+    // 语音消息：录音、转文字、发送语音或文字，逻辑在 VoiceActions。
+    private val voice = VoiceActions(
+        repository = repository,
+        state = _uiState,
+        scope = viewModelScope,
+        sendText = { text -> sendText(text) },
+        streamReply = { text, userMessageId, persistUser -> streamReply(text, userMessageId, persistUser) },
+    )
 
-    private var liveAsr: com.openapi.ks.myapp.translation.realtime.VolcengineStreamingAsrClient? = null
+    fun onVoiceRecordStart(context: android.content.Context, liveTranscript: Boolean) = voice.start(context, liveTranscript)
 
-    /** 开始录音；[liveTranscript] 为 true 时同时开启实时识别（语音样式 B）。 */
-    fun onVoiceRecordStart(context: android.content.Context, liveTranscript: Boolean) {
-        if (_uiState.value.recording) return
-        val started = VoiceRecorder.start(context)
-        _uiState.update { it.copy(recording = started, partialText = "") }
-        if (started && liveTranscript) startLiveTranscript(context)
-    }
+    fun onVoiceRecordCancel() = voice.cancel()
 
-    /**
-     * 样式 B：录音的同时把 PCM 送给火山流式识别，识别出的文字实时显示在输入栏上方。
-     * 最终发送的文字仍然以松手后的后端识别结果为准。
-     */
-    private fun startLiveTranscript(context: android.content.Context) {
-        val config = com.openapi.ks.myapp.translation.realtime.VolcengineAsrConfig.load(context)
-        val client = com.openapi.ks.myapp.translation.realtime.VolcengineStreamingAsrClient(config)
-        liveAsr = client
-        client.connect(object : com.openapi.ks.myapp.translation.realtime.VolcengineStreamingAsrClient.Listener {
-            override fun onReady() = Unit
-            override fun onPartialText(text: String) {
-                _uiState.update { it.copy(partialText = text) }
-            }
-            override fun onFailure(message: String) {
-                liveAsr = null
-            }
-            override fun onClosed() = Unit
-        })
-        VoiceRecorder.pcmListener = { buffer, length ->
-            // 录音线程会复用 buffer，发送前先拷贝一份
-            client.sendPcm(buffer.copyOf(length), 0, length, false)
-        }
-    }
+    fun onVoiceRecordStopToText() = voice.stopToText()
 
-    private fun stopLiveTranscript() {
-        VoiceRecorder.pcmListener = null
-        liveAsr?.finish()
-        liveAsr = null
-    }
+    fun onVoiceDraftSendText(text: String) = voice.draftSendText(text)
 
-    /** 上滑取消手势触发；丢弃本次录音，不生成消息。 */
-    fun onVoiceRecordCancel() {
-        stopLiveTranscript()
-        VoiceRecorder.cancel()
-        _uiState.update { it.copy(recording = false, partialText = "") }
-    }
+    fun onVoiceDraftSendAudio() = voice.draftSendAudio()
 
-    /**
-     * 「转文字」：松手后不直接发送。录音文件保留，识别出的文字进入编辑态（[ChatUiState.voiceDraft]），
-     * 用户可以改文字后发送文字、发送原语音，或取消（取消时删除录音文件）。
-     */
-    fun onVoiceRecordStopToText() {
-        if (!_uiState.value.recording) return
-        stopLiveTranscript()
-        _uiState.update { it.copy(recording = false, partialText = "", transcribing = true) }
-        viewModelScope.launch {
-            val result = withContext(Dispatchers.IO) { VoiceRecorder.stop() }
-            val speech = ChatDependencies.speechToText()
-            val text = if (result == null || speech == null) {
-                null
-            } else {
-                runCatching { speech.transcribe(result.filePath) }.getOrNull()
-            }
-            _uiState.update { current ->
-                current.copy(
-                    transcribing = false,
-                    voiceDraft = result?.let { VoiceDraft(it.filePath, it.durationSeconds, text.orEmpty()) },
-                )
-            }
-        }
-    }
+    fun onVoiceDraftCancel() = voice.draftCancel()
 
-    /** 编辑态：发送改好的文字（作为一条普通文字消息，并请求回复）。录音文件删除。 */
-    fun onVoiceDraftSendText(text: String) {
-        val draft = _uiState.value.voiceDraft ?: return
-        discardDraftFile(draft)
-        _uiState.update { it.copy(voiceDraft = null) }
-        val trimmed = text.trim()
-        if (trimmed.isNotEmpty()) sendText(trimmed)
-    }
-
-    /** 编辑态：只发送原语音（语音气泡，文字为识别结果，不请求回复）。 */
-    fun onVoiceDraftSendAudio() {
-        val draft = _uiState.value.voiceDraft ?: return
-        _uiState.update { it.copy(voiceDraft = null) }
-        viewModelScope.launch {
-            val message = ChatMessage(
-                id = "local-voice-${System.currentTimeMillis()}",
-                role = ChatRole.USER,
-                text = draft.text,
-                createdAtMillis = System.currentTimeMillis(),
-                kind = MessageKind.VOICE,
-                voice = VoiceAttachment(uri = "file://${draft.filePath}", durationSeconds = draft.durationSeconds),
-            )
-            repository.saveMessage(repository.currentSessionId(), message)
-            _uiState.update { it.copy(messages = it.messages + message) }
-        }
-    }
-
-    /** 编辑态：取消，删除录音文件，回到普通输入。 */
-    fun onVoiceDraftCancel() {
-        val draft = _uiState.value.voiceDraft ?: return
-        discardDraftFile(draft)
-        _uiState.update { it.copy(voiceDraft = null) }
-    }
-
-    private fun discardDraftFile(draft: VoiceDraft) {
-        runCatching { java.io.File(draft.filePath).delete() }
-    }
-
-    fun onVoiceRecordStop() {
-        if (!_uiState.value.recording) return
-        stopLiveTranscript()
-        _uiState.update { it.copy(recording = false, partialText = "") }
-        viewModelScope.launch {
-            val result = withContext(Dispatchers.IO) { VoiceRecorder.stop() } ?: return@launch
-            val message = ChatMessage(
-                id = "local-voice-${System.currentTimeMillis()}",
-                role = ChatRole.USER,
-                text = "",
-                createdAtMillis = System.currentTimeMillis(),
-                kind = MessageKind.VOICE,
-                voice = VoiceAttachment(uri = "file://${result.filePath}", durationSeconds = result.durationSeconds),
-            )
-            repository.saveMessage(repository.currentSessionId(), message)
-            _uiState.update { it.copy(messages = it.messages + message) }
-
-            val speech = ChatDependencies.speechToText() ?: return@launch
-            _uiState.update { it.copy(transcribing = true) }
-            val text = runCatching { speech.transcribe(result.filePath) }.getOrNull()
-            _uiState.update { it.copy(transcribing = false) }
-
-            // 转写失败就停在这里：语音气泡已经发出去了，不拿空串去问大模型。
-            if (text.isNullOrBlank()) return@launch
-            // 转写显示在语音气泡下方（同一条消息），并写回本地记录，重启后也能看到
-            val transcribed = message.copy(text = text)
-            repository.saveMessage(repository.currentSessionId(), transcribed)
-            _uiState.update { current ->
-                current.copy(messages = current.messages.map { if (it.id == message.id) transcribed else it })
-            }
-            // 语音气泡已经保存过：这里不能再让仓库保存用户消息。仓库保存的是纯文字行，会用同一个 chatId
-            // 覆盖掉语音记录，语音就没了（重试路径同样是 persistUser = false）。
-            streamReply(text, userMessageId = message.id, persistUser = false)
-        }
-    }
+    fun onVoiceRecordStop() = voice.stopAndSend()
 }
