@@ -350,7 +350,7 @@ class ChatViewModel : ViewModel() {
                 while (true) {
                     kotlinx.coroutines.delay(REVEAL_TICK_MS)
                     if (buffer.isNotEmpty()) {
-                        val cut = safeCut(buffer, revealCount(buffer.length, ended))
+                        val cut = RevealPacer.safeCut(buffer, RevealPacer.revealCount(buffer.length, ended))
                         val piece = buffer.substring(0, cut)
                         buffer.delete(0, cut)
                         updateByKey(placeholder.key) { it.copy(text = it.text + piece) }
@@ -481,19 +481,6 @@ class ChatViewModel : ViewModel() {
         _uiState.update { current ->
             current.copy(messages = current.messages.map { if (it.key == key) transform(it) else it })
         }
-    }
-
-    /** 本拍释放多少字：积压越多越快（上限 48），流结束后加速排空。 */
-    private fun revealCount(pending: Int, ended: Boolean): Int {
-        val base = (pending / 8).coerceIn(1, 48)
-        return if (ended) maxOf(base, pending / 3) else base
-    }
-
-    /** 不要把一个 emoji 等代理对从中间切开。 */
-    private fun safeCut(text: CharSequence, wanted: Int): Int {
-        var cut = wanted.coerceAtMost(text.length)
-        if (cut in 1 until text.length && Character.isHighSurrogate(text[cut - 1])) cut += 1
-        return cut
     }
 
     /** 文字回复的流式任务。 */
