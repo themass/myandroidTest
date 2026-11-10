@@ -2,6 +2,7 @@ plugins {
     id 'com.android.library'
     id 'kotlin-parcelize'
     id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.plugin.compose'
 }
 
 android {
@@ -13,6 +14,7 @@ android {
 
     buildFeatures {
         viewBinding = true
+        compose = true
     }
     compileSdk = rootProject.ext.compileSdkVersion
 
@@ -80,6 +82,11 @@ android {
 }
 
 dependencies {
+    // Compose：主题、对话框、权限请求（原在 :core）
+    implementation platform(libs.androidx.compose.bom)
+    implementation libs.androidx.compose.ui
+    implementation libs.androidx.compose.ui.graphics
+    implementation libs.androidx.compose.material3
     // 分享卡片的二维码（原 :sharekit 模块）
     implementation 'com.google.zxing:core:3.5.3'
     implementation libs.androidx.core.ktx

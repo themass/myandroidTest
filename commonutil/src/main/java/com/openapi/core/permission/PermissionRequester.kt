@@ -7,7 +7,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
-import com.openapi.core.R
+import com.openapi.core.util.R
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
