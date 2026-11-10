@@ -1,3 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <activity
+            android:name="com.openapi.ks.myapp.ui.sound.SoundChannleActivity"
+        />
+        <activity
+            android:name="com.openapi.ks.myapp.ui.sound.TextChannleActivity" />
+        <activity
+            android:name="com.openapi.ks.myapp.ui.sound.ImgChannleActivity"
+        />
+        <activity
+            android:name="com.openapi.ks.myapp.ui.sound.VideoChannleActivity"
+        />
+        <activity
+            android:name="com.openapi.ks.myapp.ui.sound.MovieChannleActivity"
+        />
+        <activity
+            android:name="com.openapi.ks.myapp.ui.sound.TeleplayActivity"
+        />
+        <activity
+            android:name="com.openapi.ks.myapp.ui.sound.SoundDetailActivity"
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name="com.openapi.ks.myapp.ui.sound.MyFullScreenImageGalleryActivity"
+        />
+        <activity
+            android:name="com.openapi.ks.myapp.ui.config.QuickBrowserConfigActivity"
+            android:theme="@style/myTransparent" />
+    </application>
 </manifest>

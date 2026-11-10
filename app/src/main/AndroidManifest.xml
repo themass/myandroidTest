@@ -152,84 +152,7 @@
             android:theme="@style/AppTheme"
             android:windowSoftInputMode="adjustResize" />
 
-        <activity
-            android:name="com.openapi.ks.myapp.ui.base.WebViewActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize|screenLayout|uiMode" />
-        <activity
-            android:name="com.openapi.ks.myapp.ui.user.LoginActivity"
-             />
-        <activity
-            android:name="com.openapi.ks.myapp.ui.user.RegActivity"
-             />
-        <activity
-            android:name="com.openapi.ks.myapp.ui.user.FindPassActivity"
-             />
-        <activity
-            android:name="com.openapi.ks.myapp.ui.user.SettingActivity"
-             />
-        <activity
-            android:name="com.openapi.ks.myapp.ui.user.AddCustomeInfoActivity"
-             />
-        <activity
-            android:name="com.openapi.ks.myapp.ui.sound.SoundChannleActivity"
-             />
-        <activity
-            android:name="com.openapi.ks.myapp.ui.sound.TextChannleActivity" />
-        <activity
-            android:name="com.openapi.ks.myapp.ui.sound.ImgChannleActivity"
-             />
-        <activity
-            android:name="com.openapi.ks.myapp.ui.sound.VideoActivity"
-             />
-        <activity
-            android:name="com.openapi.ks.myapp.ui.sound.VideoChannleActivity"
-             />
-        <activity
-            android:name="com.openapi.ks.myapp.ui.sound.MovieChannleActivity"
-             />
-        <activity
-            android:name="com.openapi.ks.myapp.ui.sound.TeleplayActivity"
-             />
-        <activity
-            android:name="com.openapi.ks.myapp.ui.base.VideoWebViewActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize|screenLayout|uiMode"
-            android:hardwareAccelerated="true"
-            android:screenOrientation="unspecified"
-            android:theme="@style/AppTheme" />
-        <activity
-            android:name="com.openapi.ks.myapp.ui.sound.VideoShowActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|uiMode"
 
-            android:theme="@style/AppTheme" />
-        <activity
-            android:name="com.openapi.ks.myapp.ui.sound.VideoListShowActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|uiMode"
-
-            android:theme="@style/AppTheme" />
-
-        <activity
-            android:name="com.openapi.ks.myapp.ui.sound.VideoShowActivityLazyUrl"
-            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|uiMode"
-
-            android:theme="@style/AppTheme" />
-        <activity
-            android:name="com.openapi.ks.myapp.ui.sound.SoundDetailActivity"
-            android:theme="@style/AppTheme" />
-        <activity
-            android:name="com.openapi.ks.myapp.ui.sound.MyFullScreenImageGalleryActivity"
-             />
-        <activity
-            android:name="com.openapi.ks.myapp.ui.base.CommonFragmentActivity"
-             />
-        <activity
-            android:name="com.openapi.ks.myapp.ui.feedback.FeedbackActivity"
-            android:exported="false"
-            android:screenOrientation="portrait"
-            android:theme="@style/AppTheme" />
-        <activity
-            android:name="com.openapi.ks.myapp.ui.config.QuickBrowserConfigActivity"
-
-            android:theme="@style/myTransparent" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -252,18 +175,7 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/sharekit_paths" />
         </provider>
-        <service android:name="com.openapi.ks.myapp.service.PlayService" />
         <!-- 拍照解题（移植自 ai-math/paizhao） -->
-        <activity
-            android:name="com.aimath.paizhao.PhotoSolveActivity"
-            android:exported="false"
-            android:screenOrientation="portrait"
-            android:theme="@style/AppTheme"
-            android:windowSoftInputMode="adjustResize" />
-        <activity
-            android:name="com.openapi.ks.myapp.ui.localvideo.LocalVideoActivity"
-            android:exported="false"
-            android:label="@string/localvideo_title" />
     </application>
 
 </manifest>
