@@ -150,7 +150,7 @@
 | `~.data.urlparser` | 4/107 | 移 `:feature-user` |
 | `~.task` | 4/214 | 移 `:feature-content/image`、`text` |
 | `~.adapter`、`~.adapter.base` | 3/575 | `IndexRecommendAdapter`、`BasePhotoFlowRecycleViewAdapter` 移 `:feature-content/common`；`BaseRecyclerViewAdapter` 留 `legacyui/` |
-| `~.ui.base`、`~.ui.base.app`、`~.ui.base.features` | 17/2504 | 留 `legacyui/`，**只搬不改**。`VideoWebViewActivity`、`BaseBannerAdsActivity` 只有 `:app` 直接用，但被继承，一起留。阶段 7 后删 |
+| `~.ui.base`、`~.ui.base.app`、`~.ui.base.features` | 17/2504 | 留 `legacyui/`，**只搬不改**。`VideoWebViewActivity`、`BaseBannerAdsActivity` 只有 `:app` 直接用，但被继承，一起留。旧页面非必要不换，所以长期保留 |
 | `~.ui.channel`、`~.ui.gsy.compose` | 2/423 | `WebviewScreen`、`ListShell` 留 `legacyui/`（只被旧基类用） |
 | `~.ui.inte` | 3/40 | `FabOpListener` 留 `legacyui/`；其余 2 个移 `:feature-content` |
 | `~.view` | 1/102 | `MyRadarScanView` 移 `:app`（启动页） |
