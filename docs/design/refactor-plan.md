@@ -451,7 +451,8 @@
 - 步骤 4：部分完成（`NetQueue` → `HttpClient`、`NetRequest` → `ApiRequest`，纯改名，`commit` 单独一个）。`NetError`、`MyVolleyError`、`JsonResult` 还没改，它们的合并需要改逻辑，不算纯改名。
 - 步骤 3：部分完成（`dfa8b121`）。`GsonInfoListRequest` 合并进 `GsonRequest`（解析方式用 `Decoder` 参数，列表用 `GsonRequest.infoList`）。`MultipartRequest`（POST + 请求体）和 `StringRequest`（原始文本）与 JSON 请求不只是解析方式不同，暂时保留。
 - 未做：步骤 5（删 `SyncFuture`：`LoginTask` 和 `BaseService` 的同步方法都还在用，删之前要先把同步方法换掉）、步骤 6（调用方逐步换成挂起函数）。
-- 另外：`:commonutil` 的 `BaseService` 同步方法（`getInfoListData` 等）还是阻塞写法，建议在步骤 5 时一起处理。
+- 步骤 5（续，2026-11-11）：已完成的挂起版本有 `awaitPost`、`awaitPostOk`、`awaitUpload`、`awaitInfoList`、`awaitGet`（`BaseServiceAwait.kt`），失败时和原来的同步方法一样抛 `ExecutionException`。改为挂起的调用方：`ChatRepositoryImpl`（3 处）、`ChannelBodyController`、`LegacyHomeEntries`（接口 `loadChannels` 也改为挂起）、`FeedbackActivity.fetchPage`、`LoginTask`（Java 改为 Kotlin object，`842eba4c`）。`getStringData` 删除（没有调用方）。
+- 未完成：`LoadableFragment.loadData` 是阻塞的抽象方法，8 个 Java 子类（频道、视频、用户模块）和 `TextItemsFragment` 还在用 `getInfoListData` / `getData`，所以 `BaseService` 的阻塞方法和 `SyncFuture` 还不能删。需要决定：把加载链（`LoadableFragment`、`BasePullLoadbleFragment` 等约 750 行，加上 8 个子类）改成 Kotlin 挂起函数，或者给 Java 提供 `CompletableFuture` 版本、让加载回调而不用后台线程阻塞。
 
 **不做**：不引入 Retrofit；不改请求头、签名、DNS、Glide 加载这些行为。
 
