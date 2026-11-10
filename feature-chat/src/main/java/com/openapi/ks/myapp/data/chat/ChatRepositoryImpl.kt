@@ -1,6 +1,6 @@
 package com.openapi.ks.myapp.data.chat
 
-import com.openapi.core.net.NetRequest
+import com.openapi.core.net.ApiRequest
 import com.openapi.chat.data.mapper.ChatLogMapper
 import com.openapi.chat.domain.model.ChatCharacterOption
 import com.openapi.chat.domain.model.ChatMessage
@@ -26,13 +26,15 @@ import com.openapi.ks.myapp.bean.vo.CharacterVo
 import com.openapi.ks.myapp.bean.vo.TtsResponseVo
 import com.openapi.ks.myapp.constant.Constants
 import com.openapi.core.net.BaseService
+import com.openapi.core.net.awaitPost
+import com.openapi.core.net.awaitPostOk
+import com.openapi.core.net.awaitUpload
 import com.openapi.ks.myapp.data.db.AppDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import okhttp3.FormBody
 import okhttp3.OkHttpClient
@@ -43,7 +45,6 @@ import java.util.Date
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import kotlin.coroutines.resume
 
 /**
  * [ChatRepository] 的 app 侧实现。
@@ -542,32 +543,13 @@ class ChatRepositoryImpl(
         // 服务端用这两个表单名区分图片与文件（recognize.json 读 image，file.json 读 file）
         val partName = if (isImage) "image" else "file"
         val param = AttachmentParam(id = placeholderId, sessionId = sessionId)
-        return withContext(Dispatchers.IO) {
-            suspendCancellableCoroutine { cont ->
-                baseService.postData(
-                    url,
-                    param,
-                    listOf(localFile),
-                    object : CommonResponse.ResponseOkListener<Choice>() {
-                        override fun onResponse(response: Choice) {
-                            val reply = ChatReply(
-                                id = response.id ?: placeholderId,
-                                text = response.message?.content.orEmpty(),
-                            )
-                            if (cont.isActive) cont.resume(reply)
-                        }
-                    },
-                    object : CommonResponse.ResponseErrorListener() {
-                        override fun onError() {
-                            if (cont.isActive) cont.resume(null)
-                        }
-                    },
-                    partName,
-                    TAG,
-                    Choice::class.java,
+        return baseService.awaitUpload(url, param, listOf(localFile), partName, Choice::class.java, TAG)
+            ?.let { response ->
+                ChatReply(
+                    id = response.id ?: placeholderId,
+                    text = response.message?.content.orEmpty(),
                 )
             }
-        }
     }
 
     override suspend fun createCharacter(title: String, content: String, avatarUrl: String?): ChatCharacterOption? {
@@ -679,52 +661,13 @@ class ChatRepositoryImpl(
      * 调用方只关心"成功还是不成功"，错误详情已经在 [CommonResponse.ResponseErrorListener] 里打了日志。
      */
     private suspend fun <T> postForResult(url: String, param: Any, clazz: Class<T>): T? =
-        withContext(Dispatchers.IO) {
-            suspendCancellableCoroutine { cont ->
-                baseService.postData(
-                    url,
-                    param,
-                    object : CommonResponse.ResponseOkListener<T>() {
-                        override fun onResponse(response: T) {
-                            if (cont.isActive) cont.resume(response)
-                        }
-                    },
-                    object : CommonResponse.ResponseErrorListener() {
-                        override fun onError() {
-                            if (cont.isActive) cont.resume(null)
-                        }
-                    },
-                    TAG,
-                    clazz,
-                )
-            }
-        }
+        baseService.awaitPost(url, param, clazz, TAG)
 
     /**
      * 与 [postForResult] 相同，但只关心“是否成功”：服务端接口只返回 errno，没有业务数据时用它。
      */
     private suspend fun postForOk(url: String, param: Any): Boolean =
-        withContext(Dispatchers.IO) {
-            suspendCancellableCoroutine { cont ->
-                baseService.postData(
-                    url,
-                    param,
-                    object : CommonResponse.ResponseOkListener<Any>() {
-                        // 删除类接口成功时响应体为空，框架会传 null；参数必须可空，否则 Kotlin 的非空检查抛出 NPE，协程永远挂起（表现为删除/清空没反应，重进 app 才生效）
-                        override fun onResponse(response: Any?) {
-                            if (cont.isActive) cont.resume(true)
-                        }
-                    },
-                    object : CommonResponse.ResponseErrorListener() {
-                        override fun onError() {
-                            if (cont.isActive) cont.resume(false)
-                        }
-                    },
-                    TAG,
-                    Any::class.java,
-                )
-            }
-        }
+        baseService.awaitPostOk(url, param, TAG)
 
     /**
      * 把服务端一页消息写进本地缓存，并返回合并后的消息列表。
@@ -820,7 +763,7 @@ class ChatRepositoryImpl(
      * 一致的 header——这里只是借它算 header，从不把这个 Request 交给 Volley 执行。
      */
     private fun authHeaders(): okhttp3.Headers {
-        val probe = BaseRequest<Any>(context, NetRequest.Method.POST, Constants.getUrl(Constants.CHAT_STREAM_URL), null, null, null)
+        val probe = BaseRequest<Any>(context, ApiRequest.Method.POST, Constants.getUrl(Constants.CHAT_STREAM_URL), null, null, null)
         val builder = okhttp3.Headers.Builder()
         probe.headers.forEach { (k, v) -> builder.add(k, v) }
         return builder.build()

@@ -84,6 +84,8 @@ android {
 dependencies {
     // Compose：主题、对话框、权限请求（原在 :core）
     implementation platform(libs.androidx.compose.bom)
+    // 挂起包装 BaseService.await*（原来各模块各写一份）
+    implementation libs.kotlinx.coroutines.android
     implementation libs.androidx.compose.ui
     implementation libs.androidx.compose.ui.graphics
     implementation libs.androidx.compose.material3
