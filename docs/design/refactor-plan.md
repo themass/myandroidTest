@@ -340,6 +340,20 @@
 3. 准备一组测试公式（行内、块、矩阵、分式、错误公式、超宽公式），两边在手机上各截一张。
 4. 结果写进这一节。差别小就换官方插件，删掉 11 个文件；差别大就保留，只移到 `markdown/katex/`。
 
+### 5.10 搁置：权限去重（待定，不在当前执行范围）
+
+**现状**：三套旧权限代码仍在：`PermissionHelper`、`CompatiblePermissionManager`、`ModernPermissionManager`（`:commonutil` 的 `util/permission`，约 1000 行），以及 `BasePermissionActivity` 里的权限入口。新的 Compose 版在 `:core/permission`，`ChatRoute` 和 `LocalVideoActivity` 在用。
+
+**代码事实（2026-11-10 核对）**
+- `initPerm()` 调用 `hasPerm(空列表)`，空列表返回 `true`，所以 `request()` 不会执行。
+- `PermEvent` 只有构造函数，没有任何地方发出，`initPermEvent` 不会被调用。
+- `awaitingSettingsReturn` 只在 `startAppSettings()` 里设为 `true`，而这个方法没有调用方，设置页返回的分支不会执行。
+- 实际效果只剩：创建三个 helper 对象，以及 `initVosk()` 里创建一个 `PermissionHelper`（之后没有用到）。
+
+**搁置原因**：这套代码和启动流程、`BaseToolbarMenuActivity` 绑在一起，删之前要在手机上过一遍相机、录音、存储的权限弹窗。用户决定先搁置，后面再处理。
+
+**将来的做法（待定）**：确认权限请求只走 Compose 版后，删掉三套旧实现和 `BasePermissionActivity` 里的权限代码；保留 `BasePermissionActivity` 的其它功能（如果有的话）。
+
 ### 5.6 工具类整理（阶段 2）
 
 **原则**：外部用到的方法留下（必要时改名），没用到的删掉；能用 Kotlin 标准库取代的，新代码不再调用。
