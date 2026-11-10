@@ -15,9 +15,9 @@ import okhttp3.RequestBody;
 
 /**
  * 一个网络请求。取代 Volley 的 Request：子类声明方法、头、参数，以及如何解析响应体。
- * 由 [NetQueue] 在工作线程执行，结果在主线程回调。
+ * 由 [HttpClient] 在工作线程执行，结果在主线程回调。
  */
-public abstract class NetRequest<T> {
+public abstract class ApiRequest<T> {
 
     public static final class Method {
         public static final int GET = 0;
@@ -35,7 +35,7 @@ public abstract class NetRequest<T> {
     private volatile boolean canceled;
     private volatile Call call;
 
-    protected NetRequest(int method, String url, Response.Listener<T> listener, Response.ErrorListener errorListener) {
+    protected ApiRequest(int method, String url, Response.Listener<T> listener, Response.ErrorListener errorListener) {
         this.method = method;
         this.url = url;
         this.listener = listener;

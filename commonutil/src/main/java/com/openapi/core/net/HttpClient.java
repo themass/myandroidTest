@@ -32,13 +32,13 @@ import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 
 /**
- * 请求队列：取代 Volley 的 RequestQueue 与 NetQueue。
+ * 请求队列：取代 Volley 的 RequestQueue 与 HttpClient。
  *
  * 传输用 OkHttp；请求在固定大小的线程池里执行，结果在主线程投递。
  * 失败（超时、断网）重试一次，与原来的 DefaultRetryPolicy(…, 1, …) 一致；
  * 服务器返回非 2xx 不重试。
  */
-public class NetQueue {
+public class HttpClient {
 
     /** 线程数，与原 Volley 队列一致。 */
     private static final int THREADS = 6;
@@ -46,7 +46,7 @@ public class NetQueue {
     private static final int MAX_ATTEMPTS = 2;
 
     public interface RequestFilter {
-        boolean apply(NetRequest<?> request);
+        boolean apply(ApiRequest<?> request);
     }
 
     private static Context context;
@@ -54,13 +54,13 @@ public class NetQueue {
     private static ExecutorService executor;
     private static OkHttpClient uploadClient;
     private static final Handler mainHandler = new Handler(Looper.getMainLooper());
-    private static final Set<NetRequest<?>> active = ConcurrentHashMap.newKeySet();
+    private static final Set<ApiRequest<?>> active = ConcurrentHashMap.newKeySet();
 
-    private NetQueue() {
+    private HttpClient() {
     }
 
     public static void init(boolean debug, Context context) {
-        NetQueue.context = context;
+        HttpClient.context = context;
         client = new OkHttpClient.Builder()
                 .connectTimeout(40, TimeUnit.SECONDS)
                 .readTimeout(40, TimeUnit.SECONDS)
@@ -93,7 +93,7 @@ public class NetQueue {
     }
 
     /** 将请求加入队列。 */
-    public static void addRequest(NetRequest<?> request) {
+    public static void addRequest(ApiRequest<?> request) {
         active.add(request);
         executor.execute(() -> run(request));
     }
@@ -110,14 +110,14 @@ public class NetQueue {
     }
 
     private static void cancelAll(RequestFilter filter) {
-        for (NetRequest<?> request : active) {
+        for (ApiRequest<?> request : active) {
             if (filter.apply(request)) {
                 request.cancel();
             }
         }
     }
 
-    private static <T> void run(NetRequest<T> request) {
+    private static <T> void run(ApiRequest<T> request) {
         try {
             if (request.isCanceled()) {
                 return;
@@ -133,7 +133,7 @@ public class NetQueue {
         }
     }
 
-    private static <T> Response<T> execute(NetRequest<T> request) {
+    private static <T> Response<T> execute(ApiRequest<T> request) {
         NetError last = null;
         for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
             if (request.isCanceled()) {
@@ -155,7 +155,7 @@ public class NetQueue {
         return Response.error(last);
     }
 
-    private static NetResponse perform(NetRequest<?> request) throws NetError {
+    private static NetResponse perform(ApiRequest<?> request) throws NetError {
         Request.Builder builder;
         try {
             builder = new Request.Builder().url(request.getUrl());

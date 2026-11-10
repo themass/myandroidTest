@@ -12,7 +12,7 @@ import com.openapi.core.util.PreferenceUtils;
 import com.openapi.core.util.StringUtils;
 import com.openapi.core.util.ToastUtil;
 import com.openapi.core.net.HttpDNSUtil;
-import com.openapi.core.net.NetQueue;
+import com.openapi.core.net.HttpClient;
 import com.openapi.core.net.request.CommonResponse;
 import com.openapi.core.net.request.GsonRequest;
 import com.openapi.core.app.AppContext;
@@ -96,7 +96,7 @@ public class VersionUpdater {
         GsonRequest request = new GsonRequest(context, Constants.getUrl(Constants.API_VERSION_URL),
                 VersionVo.class, null, listener, errorListener);
         request.setTag(tag);
-        NetQueue.addRequest(request);
+        HttpClient.addRequest(request);
     }
 
     public static void setNewVersion(Context context, int build) {

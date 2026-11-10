@@ -30,7 +30,7 @@ public class BaseService {
         SyncFuture<InfoListVo<T>> future = SyncFuture.newFuture();
         GsonInfoListRequest request = new GsonInfoListRequest(context, url, t, null, future, future);
         request.setTag(tag);
-        NetQueue.addRequest(request);
+        HttpClient.addRequest(request);
         return future.get();
     }
 
@@ -40,7 +40,7 @@ public class BaseService {
 //        SyncFuture<InfoListVo<T>> future = SyncFuture.newFuture();
 //        GsonInfoListRequest request = new GsonInfoListRequest(context, url, t, null, future, future);
 //        request.setTag(tag);
-//        NetQueue.addRequest(request);
+//        HttpClient.addRequest(request);
 //        return future.get();
 //    }
 //
@@ -48,22 +48,22 @@ public class BaseService {
         SyncFuture<T> future = SyncFuture.newFuture();
         GsonRequest request = new GsonRequest<>(context, url, t, null, future, future);
         request.setTag(tag);
-        NetQueue.addRequest(request);
+        HttpClient.addRequest(request);
         return future.get();
     }
 
     public String getStringData(String url, String tag) throws Exception {
         SyncFuture<String> future = SyncFuture.newFuture();
-        StringRequest request = new StringRequest(context, NetRequest.Method.GET, url, future, future);
+        StringRequest request = new StringRequest(context, ApiRequest.Method.GET, url, future, future);
         request.setTag(tag);
-        NetQueue.addRequest(request);
+        HttpClient.addRequest(request);
         return future.get();
     }
 
     public <T> void getData(String url, CommonResponse.ResponseOkListener<T> listener, CommonResponse.ResponseErrorListener errorListener, String tag, Class<T> t) {
         GsonRequest request = new GsonRequest(context, url, t, null, listener, errorListener);
         request.setTag(tag);
-        NetQueue.addRequest(request);
+        HttpClient.addRequest(request);
     }
 
     public <T> void postData(String url, Object param, CommonResponse.ResponseOkListener<T> listener, CommonResponse.ResponseErrorListener errorListener, String tag, Class<T> t) {
@@ -73,13 +73,13 @@ public class BaseService {
         }
         MultipartRequest request = new MultipartRequest(context, map, url, null, listener, errorListener, t);
         request.setTag(tag);
-        NetQueue.addRequest(request);
+        HttpClient.addRequest(request);
     }
 
     public <T> void postData(String url, List<File> file, CommonResponse.ResponseOkListener<T> listener, CommonResponse.ResponseErrorListener errorListener, String name, String tag, Class<T> t) {
         MultipartRequest request = new MultipartRequest(context, url, null, file, name, listener, errorListener, t);
         request.setTag(tag);
-        NetQueue.addRequest(request);
+        HttpClient.addRequest(request);
     }
     public <T> void postData(String url, Object param, List<File> file, CommonResponse.ResponseOkListener<T> listener, CommonResponse.ResponseErrorListener errorListener, String name, String tag, Class<T> t) {
         Map<String, String> map = null;
@@ -88,9 +88,9 @@ public class BaseService {
         }
         MultipartRequest request = new MultipartRequest(context, url, null, file, map, name, listener, errorListener, t);
         request.setTag(tag);
-        NetQueue.addRequest(request);
+        HttpClient.addRequest(request);
     }
     public void cancelRequest(String tag) {
-        NetQueue.cancelRequest(tag);
+        HttpClient.cancelRequest(tag);
     }
 }

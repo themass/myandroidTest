@@ -15,7 +15,7 @@ import com.openapi.core.util.EventBusUtil;
 import com.openapi.core.util.PathUtil;
 import com.openapi.core.util.StringUtils;
 import com.openapi.core.util.ToastUtil;
-import com.openapi.core.net.NetQueue;
+import com.openapi.core.net.HttpClient;
 import com.openapi.core.net.request.CommonResponse;
 import com.openapi.feature.user.R;
 import com.openapi.ks.myapp.bean.form.CustomeAddForm;
@@ -184,7 +184,7 @@ public class AddCustomeInfoActivity extends BaseSingleActivity {
     public void onBackPressed() {
         if (loading.getVisibility() == View.VISIBLE) {
             setEnabled(true);
-            NetQueue.cancelRequest(TAG);
+            HttpClient.cancelRequest(TAG);
         } else {
             super.onBackPressed();
         }

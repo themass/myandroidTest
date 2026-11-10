@@ -1,7 +1,7 @@
 package com.openapi.core.net.request;
 
 import com.openapi.core.net.NetError;
-import com.openapi.core.net.NetQueue;
+import com.openapi.core.net.HttpClient;
 import com.openapi.core.net.Response;
 
 /**
@@ -11,7 +11,7 @@ public class CommonResponse {
     public static class ResponseErrorListener implements Response.ErrorListener {
         @Override
         public void onErrorResponse(NetError error) {
-            NetQueue.showVolleyError(error);
+            HttpClient.showVolleyError(error);
             onError();
         }
 

@@ -14,7 +14,7 @@ import com.openapi.core.util.PreferenceUtils;
 import com.openapi.core.util.StringUtils;
 import com.openapi.core.net.MyVolleyError;
 import com.openapi.core.net.NetError;
-import com.openapi.core.net.NetRequest;
+import com.openapi.core.net.ApiRequest;
 import com.openapi.core.net.NetResponse;
 import com.openapi.core.net.Response;
 import com.openapi.core.net.request.JsonResult;
@@ -27,7 +27,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-public class BaseRequest<T> extends NetRequest<T> {
+public class BaseRequest<T> extends ApiRequest<T> {
 
     private static String UA_DEFAULT = null;
     private static String UA_APP_SUFFIX = null;

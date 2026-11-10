@@ -16,7 +16,7 @@ import com.openapi.core.util.FileUtils;
 import com.openapi.core.util.LogUtil;
 import com.openapi.core.util.SystemUtils;
 import com.openapi.core.ads.yewu.ads.base.AdsManager;
-import com.openapi.core.net.NetQueue;
+import com.openapi.core.net.HttpClient;
 import com.openapi.core.net.BaseService;
 import com.openapi.chat.ChatDependencies;
 import com.openapi.ks.myapp.constant.Constants;
@@ -78,7 +78,7 @@ public class MyApplication extends MultiDexApplication {
         long start = System.currentTimeMillis();
 //        refWatcher = LeakCanary.install(this);
         VersionUpdater.init(this);
-        NetQueue.init(isDebug, this);
+        HttpClient.init(isDebug, this);
         VideoTranslationInstaller.install(this);
         initFilePath();
         AppDatabase.init(this);

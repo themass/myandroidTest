@@ -10,7 +10,7 @@ import com.openapi.core.util.BeanUtil;
 import com.openapi.core.util.LogUtil;
 import com.openapi.core.util.PreferenceUtils;
 import com.openapi.core.util.StringUtils;
-import com.openapi.core.net.NetQueue;
+import com.openapi.core.net.HttpClient;
 import com.openapi.core.net.request.MultipartRequest;
 import com.openapi.core.app.AppContext;
 import com.openapi.ks.myapp.bean.form.LoginForm;
@@ -49,7 +49,7 @@ public class LoginTask {
                 Map<String, String> map = BeanUtil.transBean2Map(form);
                 MultipartRequest request = new MultipartRequest(AppContext.get(), map, Constants.getUrl(Constants.API_LOGIN_URL), null, future, future, UserInfoVo.class);
                 request.setTag("login");
-                NetQueue.addRequest(request);
+                HttpClient.addRequest(request);
                 UserInfoVo user = future.get();
                 if (user != null) {
                     UserLoginUtil.login(AppContext.get(), user);

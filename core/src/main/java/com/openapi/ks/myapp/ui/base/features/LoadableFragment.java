@@ -14,13 +14,13 @@ import android.widget.ProgressBar;
 import androidx.appcompat.widget.SearchView;
 import android.widget.TextView;
 
-import com.openapi.core.net.NetRequest;
+import com.openapi.core.net.ApiRequest;
 import com.openapi.core.net.NetError;
 import com.openapi.ks.myapp.ui.base.app.BaseFragment;
 import com.openapi.core.util.CollectionUtils;
 import com.openapi.core.util.LogUtil;
 import com.openapi.core.util.ViewUtils;
-import com.openapi.core.net.NetQueue;
+import com.openapi.core.net.HttpClient;
 import com.openapi.core.R;
 import com.openapi.core.net.request.InfoListVo;
 import com.openapi.core.net.BaseService;
@@ -121,9 +121,9 @@ public abstract class LoadableFragment<T> extends BaseFragment {
     }
 
     protected void cancelVolley(final String tag) {
-        NetQueue.cancelRequest(new NetQueue.RequestFilter() {
+        HttpClient.cancelRequest(new HttpClient.RequestFilter() {
             @Override
-            public boolean apply(NetRequest<?> request) {
+            public boolean apply(ApiRequest<?> request) {
                 if (request.getTag() == null) {
                     return false;
                 } else {
