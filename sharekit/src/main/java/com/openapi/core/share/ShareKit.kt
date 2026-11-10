@@ -73,6 +73,30 @@ object ShareKit {
         }
     }
 
+    /**
+     * 分享卡片（深色底 + 二维码 + 链接）：渲染成图片后按图片分享，文字里也带上链接，
+     * 因为很多分享目标只收文字。渲染在后台线程完成。
+     */
+    fun shareCard(context: Context, title: String, subtitle: String, link: String, chooserTitle: String? = null) {
+        val app = context.applicationContext
+        Thread {
+            val bitmap = try {
+                ShareCard.render(app, title, subtitle, link)
+            } catch (e: Exception) {
+                Log.e(TAG, "render share card failed", e)
+                null
+            }
+            android.os.Handler(android.os.Looper.getMainLooper()).post {
+                if (bitmap == null) {
+                    toast(app, "分享图片生成失败")
+                    shareText(context, link, subject = title, chooserTitle = chooserTitle)
+                } else {
+                    shareBitmap(context, bitmap, text = link, chooserTitle = chooserTitle)
+                }
+            }
+        }.start()
+    }
+
     /** 文件对应的 content:// uri；不在开放目录里会返回 null。 */
     fun uriFor(context: Context, file: File): Uri? = try {
         FileProvider.getUriForFile(context, authority(context), file)
@@ -85,7 +109,12 @@ object ShareKit {
     fun authority(context: Context): String = context.packageName + ".sharekit"
 
     private fun start(context: Context, intent: Intent, chooserTitle: String?): Boolean = try {
-        context.startActivity(Intent.createChooser(intent, chooserTitle).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        // 权限和 ClipData 必须同时挂在外层的选择器 Intent 上，否则目标应用读不到文件（会显示「获取资源失败」）
+        val chooser = Intent.createChooser(intent, chooserTitle).apply {
+            clipData = intent.clipData
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        context.startActivity(chooser)
         true
     } catch (e: Exception) {
         Log.e(TAG, "share failed", e)
