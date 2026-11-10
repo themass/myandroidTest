@@ -58,7 +58,6 @@ dependencies {
     api project(':commonutil')
     implementation project(':core')
     // 分享（替代原 commonutil 的 ShareUtil）
-    implementation project(':sharekit')
     // 设置页使用播放器引擎开关（PlaybackEngineHelper，在 :feature-video）
     implementation project(':feature-video')
     implementation libs.google.material

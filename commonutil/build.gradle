@@ -1,9 +1,14 @@
 plugins {
     id 'com.android.library'
     id 'kotlin-parcelize'
+    id 'org.jetbrains.kotlin.android'
 }
 
 android {
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
     namespace = 'com.openapi.core.util'
 
     buildFeatures {
@@ -75,6 +80,9 @@ android {
 }
 
 dependencies {
+    // 分享卡片的二维码（原 :sharekit 模块）
+    implementation 'com.google.zxing:core:3.5.3'
+    implementation libs.androidx.core.ktx
     // 本地库文件
     implementation fileTree(dir: 'libs', include: ['*.aar', '*.jar'])
 
