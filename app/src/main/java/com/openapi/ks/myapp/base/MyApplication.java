@@ -56,6 +56,11 @@ public class MyApplication extends MultiDexApplication {
         LogUtil.e("isDebug=" + isDebug);
         instance = this;
         AppHooks.install(new AppHooksImpl());
+        // 拍照解题：配置了服务地址才换成真实实现（见 app/build.gradle 的 photosolveBaseUrl），否则保留 mock
+        if (!com.openapi.ks.myapp.BuildConfig.PHOTOSOLVE_BASE_URL.isEmpty()) {
+            com.aimath.paizhao.photosolve.PhotoSolveRepositories.INSTANCE.install(
+                    new com.aimath.paizhao.photosolve.HttpPhotoSolveRepository(com.openapi.ks.myapp.BuildConfig.PHOTOSOLVE_BASE_URL, new okhttp3.OkHttpClient.Builder().build()));
+        }
         com.openapi.core.app.AppContext.init(this);
 
         StaticDataUtil.add(CommonConstants.APPLICATION,instance);

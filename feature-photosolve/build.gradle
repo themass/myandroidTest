@@ -56,6 +56,7 @@ dependencies {
     // 拍照解题：图像处理与模型在 :core（com.aimath.paizhao.photosolve.image/quality/cropassist）
     api project(':commonutil')
     implementation project(':core')
+    implementation libs.okhttp
 
     // 裁剪、文件选择、文档扫描（来自原 app 依赖）
     implementation 'io.github.mr0xf00:easycrop:0.1.1'

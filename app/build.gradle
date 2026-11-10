@@ -69,6 +69,12 @@ android {
         compose = true
     }
 
+    // 拍照解题服务地址（myconf/python/ocr 的 photosolve 接口）：在 gradle.properties 里设置 photosolveBaseUrl；
+    // 不设置则拍照解题仍使用 mock。
+    defaultConfig {
+        buildConfigField "String", "PHOTOSOLVE_BASE_URL", "\"${project.findProperty('photosolveBaseUrl') ?: ''}\""
+    }
+
     testOptions {
         unitTests {
             // Robolectric 需要合并后的真实布局/清单，才能在 JVM 上启动页面做冒烟测试
