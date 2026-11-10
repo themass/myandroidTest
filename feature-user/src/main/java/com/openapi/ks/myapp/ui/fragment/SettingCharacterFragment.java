@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
-import com.openapi.core.util.EventBusUtil;
 import com.openapi.core.util.PreferenceUtils;
 import com.openapi.core.util.SystemUtils;
 import com.openapi.core.util.ToastUtil;
@@ -18,12 +17,9 @@ import com.openapi.core.app.AppContext;
 import com.openapi.ks.myapp.bean.vo.CharacterVo;
 import com.openapi.core.net.request.InfoListVo;
 import com.openapi.ks.myapp.constant.Constants;
-import com.openapi.core.event.FavoriteChangeEvent;
 import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
 import com.openapi.ks.myapp.ui.base.features.BasePullLoadbleFragment;
 
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
 
 
 /**
@@ -52,7 +48,11 @@ public class SettingCharacterFragment extends BasePullLoadbleFragment<CharacterV
     @Override
     public void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
-        EventBusUtil.getEventBus().register(this);
+        // 收藏变化时刷新列表；随视图的生命周期自动停止收集
+        com.openapi.core.event.EventFlowsKt.observeJava(
+                androidx.lifecycle.LifecycleOwnerKt.getLifecycleScope(getViewLifecycleOwner()),
+                com.openapi.core.event.CoreEvents.INSTANCE.getFavoriteChanged(),
+                event -> pullView.setRefresh(true));
     }
 
     @Override
@@ -60,11 +60,6 @@ public class SettingCharacterFragment extends BasePullLoadbleFragment<CharacterV
         adapter = new SettingCharacterAdapter(getActivity(), pullView.getRecyclerView(), infoListVo.voList, this);
         adapter.setLongClickListener(this);
         return adapter;
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent(FavoriteChangeEvent event) {
-        pullView.setRefresh(true);
     }
 
     @Override
@@ -84,7 +79,6 @@ public class SettingCharacterFragment extends BasePullLoadbleFragment<CharacterV
 
     @Override
     public void onDestroyView() {
-        EventBusUtil.getEventBus().unregister(this);
         super.onDestroyView();
     }
 }

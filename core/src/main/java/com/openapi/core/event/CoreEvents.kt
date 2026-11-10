@@ -21,6 +21,13 @@ object CoreEvents {
         _favoriteChanged.tryEmit(FavoriteChangeEvent())
     }
 
+    /** 播放内核设置改变：订阅方重新应用内核。没有数据。 */
+    private val _playCore = eventFlow<Unit>()
+    val playCore: SharedFlow<Unit> = _playCore.readOnly()
+    fun postPlayCore() {
+        _playCore.tryEmit(Unit)
+    }
+
     private val _configAction = eventFlow<ConfigActionEvent>()
     val configAction: SharedFlow<ConfigActionEvent> = _configAction.readOnly()
     fun postConfigAction(event: ConfigActionEvent) {

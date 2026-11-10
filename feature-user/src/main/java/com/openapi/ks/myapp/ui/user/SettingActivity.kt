@@ -45,7 +45,7 @@ import com.openapi.core.ads.yewu.ads.base.AdsContext
 import com.openapi.core.ads.yewu.um.MobAgent
 import com.openapi.core.design.theme.AppColors
 import com.openapi.core.design.theme.AppSpacing
-import com.openapi.core.util.EventBusUtil
+import com.openapi.core.event.CoreEvents
 import com.openapi.core.util.LogUtil
 import com.openapi.core.util.PreferenceUtils
 import com.openapi.core.util.StringUtils
@@ -54,8 +54,6 @@ import com.openapi.feature.user.R
 import com.openapi.core.app.AppContext
 import com.openapi.ks.myapp.constant.Constants
 import com.openapi.ks.myapp.data.VersionUpdater
-import com.openapi.ks.myapp.data.config.PlayCoreEvent
-import com.openapi.ks.myapp.data.config.TabChangeEvent
 import com.openapi.ks.myapp.ui.base.app.BaseSingleActivity
 import com.openapi.ks.myapp.ui.fragment.SettingCharacterFragment
 import com.openapi.ks.myapp.video.PlaybackEnginePrefs
@@ -190,7 +188,6 @@ private fun SettingScreen(
                 playVideo = it
                 PreferenceUtils.setPrefBoolean(context, Constants.PLAYVIDEO_SWITCH, it)
                 LogUtil.i("swPlayCore: $it")
-                EventBusUtil.getEventBus().post(TabChangeEvent())
             }
             SettingDivider()
             Row(
@@ -218,7 +215,7 @@ private fun SettingScreen(
                                             PlaybackEnginePrefs.engineLabel(context, index),
                                         ),
                                     )
-                                    EventBusUtil.getEventBus().post(PlayCoreEvent())
+                                    CoreEvents.postPlayCore()
                                 },
                             )
                         }
@@ -230,7 +227,6 @@ private fun SettingScreen(
                 area = it
                 PreferenceUtils.setPrefBoolean(context, Constants.AREA_SWITCH, it)
                 LogUtil.i("swArea: $it")
-                EventBusUtil.getEventBus().post(TabChangeEvent())
             }
             SettingDivider()
             SwitchRow(stringResource(R.string.area_mi), areaMi) {
@@ -268,7 +264,6 @@ private fun SettingScreen(
                 listVideo = it
                 PreferenceUtils.setPrefBoolean(context, Constants.LISTVIDEO_TINY_SWITCH, it)
                 LogUtil.i("LISTVIDEO_TINY_SWITCH: $it")
-                EventBusUtil.getEventBus().post(TabChangeEvent())
             }
         }
 

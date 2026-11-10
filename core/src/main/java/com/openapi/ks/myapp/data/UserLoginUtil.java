@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 
 import com.openapi.core.CommonConstants;
-import com.openapi.core.util.EventBusUtil;
 import com.openapi.core.util.PreferenceUtils;
 import com.openapi.core.ads.yewu.um.MobAgent;
 import com.openapi.core.util.StaticDataUtil;

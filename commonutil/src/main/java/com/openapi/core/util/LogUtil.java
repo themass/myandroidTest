@@ -2,7 +2,6 @@ package com.openapi.core.util;
 
 import android.util.Log;
 
-import com.openapi.core.util.EventBusUtil;
 
 /**
  * Created by openapi on 2016/3/2.

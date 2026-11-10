@@ -12,9 +12,7 @@ import androidx.annotation.Nullable;
 import androidx.compose.ui.platform.ComposeView;
 import androidx.fragment.app.Fragment;
 
-import com.openapi.core.event.FavoriteChangeEvent;
 import com.openapi.core.event.FavoriteVo;
-import com.openapi.core.util.EventBusUtil;
 import com.openapi.core.util.FavoriteUtil;
 import com.openapi.core.util.FileUtils;
 import com.openapi.core.util.GsonUtils;
@@ -28,8 +26,6 @@ import com.openapi.ks.myapp.bean.vo.TextItemsVo;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.constant.Routes;
 
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -63,7 +59,11 @@ public class FavoriteFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        EventBusUtil.getEventBus().register(this);
+        // 收藏变化时刷新；随视图的生命周期自动停止收集
+        com.openapi.core.event.EventFlowsKt.observeJava(
+                androidx.lifecycle.LifecycleOwnerKt.getLifecycleScope(getViewLifecycleOwner()),
+                com.openapi.core.event.CoreEvents.INSTANCE.getFavoriteChanged(),
+                event -> reload());
         reload();
     }
 
@@ -77,11 +77,6 @@ public class FavoriteFragment extends Fragment {
         if (getContext() == null) return;
         List<FavoriteVo> list = FavoriteUtil.getLocalFavorites(getContext());
         state.replace(list == null ? new ArrayList<>() : list);
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent(FavoriteChangeEvent event) {
-        reload();
     }
 
     private void onOpen(FavoriteVo data) {
@@ -126,7 +121,6 @@ public class FavoriteFragment extends Fragment {
 
     @Override
     public void onDestroyView() {
-        EventBusUtil.getEventBus().unregister(this);
         super.onDestroyView();
     }
 }

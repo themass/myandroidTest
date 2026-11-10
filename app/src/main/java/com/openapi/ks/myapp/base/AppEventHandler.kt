@@ -6,12 +6,9 @@ import androidx.media3.common.util.UnstableApi
 import com.openapi.core.event.CoreEvents
 import com.openapi.core.event.appScope
 import com.openapi.core.event.observe
-import org.greenrobot.eventbus.Subscribe
-import org.greenrobot.eventbus.ThreadMode
 import com.openapi.core.util.PreferenceUtils
 import com.openapi.ks.myapp.constant.Constants
 import com.openapi.ks.myapp.data.UserLoginUtil
-import com.openapi.ks.myapp.data.config.PlayCoreEvent
 import com.openapi.ks.myapp.ui.user.LoginActivity
 import com.openapi.ks.myapp.video.PlaybackEngineHelper
 
@@ -25,6 +22,7 @@ object AppEventHandler {
 
     fun register() {
         observe(appScope, CoreEvents.userNeedLogin) { onUserNeedLogin() }
+        observe(appScope, CoreEvents.playCore) { onPlayCore() }
     }
 
     /** 登录态失效（例如接口返回未登录）：清掉本地登录信息并回到登录页。 */
@@ -36,8 +34,7 @@ object AppEventHandler {
 
     /** 设置里切换播放内核。 */
     @OptIn(UnstableApi::class)
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    fun onPlayCore(event: PlayCoreEvent) {
+    private fun onPlayCore() {
         PlaybackEngineHelper.applyEngine(MyApplication.getInstance())
     }
 }

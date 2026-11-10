@@ -11,7 +11,6 @@ import android.widget.RadioGroup;
 
 import com.openapi.core.view.view.MyEditText;
 import com.openapi.core.view.view.SiteAutoCompleteTextView;
-import com.openapi.core.util.EventBusUtil;
 import com.openapi.core.util.PathUtil;
 import com.openapi.core.util.StringUtils;
 import com.openapi.core.util.ToastUtil;
@@ -23,7 +22,6 @@ import com.openapi.ks.myapp.bean.vo.NullReturnVo;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.core.net.BaseService;
 import com.openapi.ks.myapp.data.UserLoginUtil;
-import com.openapi.ks.myapp.data.config.CustomeAddEvent;
 import com.openapi.ks.myapp.data.urlparser.CustomeAddFormParser;
 import com.openapi.ks.myapp.ui.base.app.BaseSingleActivity;
 import com.openapi.feature.user.databinding.LayoutAddCustomeBinding;
@@ -52,7 +50,6 @@ public class AddCustomeInfoActivity extends BaseSingleActivity {
     CommonResponse.ResponseOkListener listener = new CommonResponse.ResponseOkListener<NullReturnVo>() {
         @Override
         public void onResponse(NullReturnVo vo) {
-            EventBusUtil.getEventBus().post(new CustomeAddEvent(form.id, form.title, form.url, null));
             ToastUtil.showShort(R.string.custome_ok);
             finish();
         }

@@ -4,14 +4,12 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 
-import com.openapi.core.event.FavoriteChangeEvent;
 import com.openapi.core.event.FavoriteVo;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import com.openapi.core.util.CollectionUtils;
 import com.openapi.core.util.DateUtils;
-import com.openapi.core.util.EventBusUtil;
 import com.openapi.core.util.GsonUtils;
 import com.openapi.core.favorite.FavoriteStore;
 
@@ -211,10 +209,10 @@ public class FavoriteUtil {
                         vo.setExtra(GsonUtils.entry2Json(vo.getO()));
                         vo.setUpdateTime(DateUtils.format(new Date(), DateUtils.DATE_FORMAT));
                         addFavorite(context, vo);
-                        EventBusUtil.getEventBus().post(new FavoriteChangeEvent());
+                        com.openapi.core.event.CoreEvents.INSTANCE.postFavoriteChanged();
                         result = vo;
                     } else {
-                        EventBusUtil.getEventBus().post(new FavoriteChangeEvent());
+                        com.openapi.core.event.CoreEvents.INSTANCE.postFavoriteChanged();
                         delFavorite(context, ret.id);
                         result = null;
                     }
