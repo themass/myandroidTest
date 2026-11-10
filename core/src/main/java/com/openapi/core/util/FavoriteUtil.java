@@ -12,7 +12,7 @@ import java.util.concurrent.Executors;
 import com.openapi.core.util.CollectionUtils;
 import com.openapi.core.util.DateUtils;
 import com.openapi.core.util.EventBusUtil;
-import com.openapi.core.util.ModelUtils;
+import com.openapi.core.util.GsonUtils;
 import com.openapi.core.favorite.FavoriteStore;
 
 import java.util.Date;
@@ -208,7 +208,7 @@ public class FavoriteUtil {
                     FavoriteVo ret = getFavorite(context, vo.itemUrl);
                     FavoriteVo result;
                     if (ret == null) {
-                        vo.setExtra(ModelUtils.entry2Json(vo.getO()));
+                        vo.setExtra(GsonUtils.entry2Json(vo.getO()));
                         vo.setUpdateTime(DateUtils.format(new Date(), DateUtils.DATE_FORMAT));
                         addFavorite(context, vo);
                         EventBusUtil.getEventBus().post(new FavoriteChangeEvent());

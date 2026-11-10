@@ -2,49 +2,31 @@ package com.openapi.core.util;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
 
-import java.io.File;
-import java.io.FileReader;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Created by wjying on 13-12-30.
  */
-@SuppressWarnings("unchecked")
 public class GsonUtils {
     private static Gson gson = new GsonBuilder().create();
 
-    public static Map<String, Object> getMap(Gson gson, String json) {
-        try {
-            TypeToken<Map<String, Object>> typeToken = new TypeToken<Map<String, Object>>() {
-            };
-            return (Map<String, Object>) (gson.fromJson(json, typeToken.getType()));
-        } catch (Exception e) {
-            LogUtil.e(e);
-        }
-        return null;
+
+
+    /** JSON 字符串转对象。 */
+    public static <T> T json2Entry(String json, Class<T> t) {
+        return new Gson().fromJson(json, t);
     }
 
-
-    public static Map<String, Object> getMap(String json) {
-        return getMap(new Gson(), json);
+    public static <T> T json2Entry(String json, Type type) {
+        return new Gson().fromJson(json, type);
     }
 
-    public static Map<String, Object> getMap(Gson gson, File file) {
-        try {
-            TypeToken<Map<String, Object>> typeToken = new TypeToken<Map<String, Object>>() {
-            };
-            return (Map<String, Object>) gson.fromJson(new FileReader(file), typeToken.getType());
-        } catch (Exception ignored) {
-
-        }
-        return null;
+    /** 对象转 JSON 字符串。 */
+    public static String entry2Json(Object obj) {
+        return new Gson().toJson(obj);
     }
-
 
     public static Gson getInstance() {
         return gson;

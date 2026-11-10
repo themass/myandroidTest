@@ -17,7 +17,7 @@ import com.openapi.core.event.FavoriteVo;
 import com.openapi.core.util.EventBusUtil;
 import com.openapi.core.util.FavoriteUtil;
 import com.openapi.core.util.FileUtils;
-import com.openapi.core.util.ModelUtils;
+import com.openapi.core.util.GsonUtils;
 import com.openapi.core.util.PathUtil;
 import com.openapi.core.util.SystemUtils;
 import com.openapi.core.util.ToastUtil;
@@ -86,7 +86,7 @@ public class FavoriteFragment extends Fragment {
 
     private void onOpen(FavoriteVo data) {
         if (data.type == Constants.FavoriteType.TEXT) {
-            TextItemsVo vo = ModelUtils.json2Entry(data.extra, TextItemsVo.class);
+            TextItemsVo vo = GsonUtils.json2Entry(data.extra, TextItemsVo.class);
             if (vo != null) {
                 String fileName = PathUtil.getFileExtensionFromUrl(vo.fileUrl);
                 String path = FileUtils.getWriteFilePath(getContext());
@@ -96,15 +96,15 @@ public class FavoriteFragment extends Fragment {
                 TextItemsWebViewFragment.startFragment(getContext(), vo);
             }
         } else if (data.type == Constants.FavoriteType.SOUND) {
-            RecommendVo vo = ModelUtils.json2Entry(data.extra, RecommendVo.class);
+            RecommendVo vo = GsonUtils.json2Entry(data.extra, RecommendVo.class);
             if (vo != null)
                 SoundItemsMusicFragment.startFragment(getActivity(), vo);
         } else if (data.type == Constants.FavoriteType.IMG) {
-            ImgItemsVo vo = ModelUtils.json2Entry(data.extra, ImgItemsVo.class);
+            ImgItemsVo vo = GsonUtils.json2Entry(data.extra, ImgItemsVo.class);
             if (vo != null)
                 ImgItemFragment.startFragment(getActivity(), vo);
         } else if (data.type == Constants.FavoriteType.VIDEO) {
-            RecommendVo vo = ModelUtils.json2Entry(data.extra, RecommendVo.class);
+            RecommendVo vo = GsonUtils.json2Entry(data.extra, RecommendVo.class);
             if (vo != null) {
                 startActivity(Routes.videoShowLazyUrl(getActivity(), vo));
             }
