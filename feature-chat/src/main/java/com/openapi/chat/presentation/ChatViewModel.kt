@@ -1,6 +1,7 @@
 package com.openapi.chat.presentation
 
 import com.openapi.core.media.AudioPlayer
+import com.openapi.chat.presentation.speech.DeviceSpeech
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.openapi.chat.ChatDependencies
@@ -888,11 +889,19 @@ class ChatViewModel : ViewModel() {
         }
     }
 
-    /** 朗读助手回复：服务端合成语音后播放；同一时间只合成一条。 */
+    /**
+     * 朗读助手回复：优先用设备自带中文语音（离线、免费）；设备没有中文语音或失败时，
+     * 回退到服务端合成后播放。同一时间只朗读一条。
+     */
     fun onSpeakMessage(message: ChatMessage) {
         if (message.text.isBlank() || _uiState.value.speakingMessageId != null) return
         viewModelScope.launch {
             _uiState.update { it.copy(speakingMessageId = message.id) }
+            val spokenOnDevice = runCatching { DeviceSpeech.speakChinese(message.text) }.getOrDefault(false)
+            if (spokenOnDevice) {
+                _uiState.update { it.copy(speakingMessageId = null) }
+                return@launch
+            }
             val uri = runCatching { repository.synthesizeSpeech(message.id, message.text) }.getOrNull()
             _uiState.update { it.copy(speakingMessageId = null) }
             if (uri == null) {
