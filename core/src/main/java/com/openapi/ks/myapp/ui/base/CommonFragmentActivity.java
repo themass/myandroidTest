@@ -21,6 +21,8 @@ import java.io.Serializable;
  */
 public class CommonFragmentActivity extends BaseFragmentActivity implements FabOpListener.OnFabListener {
     public static final String FRAGMENT = "FRAGMENT";
+    /** 与 FRAGMENT 二选一：用类名指定页面，供 :core 打开 feature 模块里的页面。 */
+    public static final String FRAGMENT_NAME = "FRAGMENT_NAME";
     public static final String TITLE = "TITLE";
     public static final String PARAM = "PARAM";
     public static final String BANNER_ADS_SHOW = "BANNER_ADS_SHOW";
@@ -56,7 +58,14 @@ public class CommonFragmentActivity extends BaseFragmentActivity implements FabO
         showToolbar(toolbarShow);
         // 兼容性处理：API 33+ 使用新方法，否则使用旧方法
         Class f;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        String fragmentName = getIntent().getStringExtra(FRAGMENT_NAME);
+        if (fragmentName != null) {
+            try {
+                f = Class.forName(fragmentName);
+            } catch (ClassNotFoundException e) {
+                throw new IllegalStateException("Unknown fragment: " + fragmentName, e);
+            }
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             f = getIntent().getSerializableExtra(FRAGMENT, Class.class);
         } else {
             f = (Class) getIntent().getSerializableExtra(FRAGMENT);

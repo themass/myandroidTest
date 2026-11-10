@@ -13,6 +13,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.openapi.core.util.LogUtil;
 import com.openapi.core.util.ToastUtil;
 import com.openapi.feature.video.R;
+import com.openapi.ks.myapp.constant.Routes;
 import com.shuyu.gsyvideoplayer.utils.CommonUtil;
 
 /**
@@ -78,7 +79,7 @@ final class PlayerMoreMenu {
         }
         decoderRow.setOnClickListener(v -> {
             dlg.dismiss();
-            com.openapi.core.app.AppHooks.get().openSetting(player.getContext());
+            player.getContext().startActivity(Routes.setting(player.getContext()));
         });
         speedBox.addView(decoderRow, new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));

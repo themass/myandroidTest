@@ -21,18 +21,6 @@ public class GlobalVideoChannelListFragment extends RecommendFragment {
     private static final String VIDEO_TAG = "video_tag";
     private RecommendVo vo;
 
-    public static void startFragment(Context context, RecommendVo vo) {
-        Intent intent = new Intent(context, CommonFragmentActivity.class);
-        intent.putExtra(CommonFragmentActivity.FRAGMENT, GlobalVideoChannelListFragment.class);
-        intent.putExtra(CommonFragmentActivity.TITLE, vo.title);
-        intent.putExtra(CommonFragmentActivity.BANNER_ADS_SHOW, true);
-        intent.putExtra(CommonFragmentActivity.TOOLBAR_SHOW, false);
-        intent.putExtra(CommonFragmentActivity.BANNER_ADS_CATEGRY, AdsContext.Categrey.CATEGREY_VPN1);
-        intent.putExtra(CommonFragmentActivity.INTERSTITIAL_ADS_SHOW, true);
-        StaticDataUtil.add(Constants.VIDEO_CHANNEL, vo);
-        context.startActivity(intent);
-    }
-
     @Override
     protected boolean showSearchView() {
         return true;

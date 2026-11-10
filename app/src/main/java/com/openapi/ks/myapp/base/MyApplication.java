@@ -7,7 +7,6 @@ import androidx.multidex.MultiDex;
 import androidx.multidex.MultiDexApplication;
 
 import com.openapi.core.CommonConstants;
-import com.openapi.core.app.AppHooks;
 import com.openapi.core.media.AudioPlayer;
 import com.openapi.core.util.StaticDataUtil;
 import com.openapi.core.util.ToastUtil;
@@ -62,7 +61,6 @@ public class MyApplication extends MultiDexApplication {
                 CommonConstants.DEVID,
                 code -> com.openapi.core.util.EventBusUtil.getEventBus().post(new com.openapi.core.event.UserNeedLogin()));
         com.openapi.core.view.view.MyWebView.setDefaultReferer(CommonConstants.DEFAULT_REFERER);
-        AppHooks.install(new AppHooksImpl());
         // 拍照解题：配置了服务地址才换成真实实现（见 app/build.gradle 的 photosolveBaseUrl），否则保留 mock
         if (!com.openapi.ks.chat.BuildConfig.PHOTOSOLVE_BASE_URL.isEmpty()) {
             com.aimath.paizhao.photosolve.PhotoSolveRepositories.INSTANCE.install(

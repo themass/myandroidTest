@@ -14,7 +14,8 @@ import androidx.appcompat.widget.SearchView;
 
 import com.openapi.core.util.StringUtils;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
-import com.openapi.core.app.AppHooks;
+import com.openapi.ks.myapp.constant.Routes;
+import com.openapi.ks.myapp.data.UserLoginUtil;
 
 import com.openapi.core.R;
 import com.openapi.core.util.LogUtil;
@@ -69,7 +70,7 @@ public abstract class BaseToolbarMenuActivity extends BasePermissionActivity {
                     RecommendVo vo = new RecommendVo();
                     vo.title = "全局搜索";
                     vo.param = s;
-                    AppHooks.get().openGlobalSearch(BaseToolbarMenuActivity.this, vo);
+                    startActivity(Routes.globalSearch(BaseToolbarMenuActivity.this, vo));
                 }
                 return true;
             }
@@ -79,7 +80,7 @@ public abstract class BaseToolbarMenuActivity extends BasePermissionActivity {
                 return true;
             }
         });
-        if (AppHooks.get().isVip()) {
+        if (UserLoginUtil.isVIP()) {
             setting.setVisible(true);
             mSearchView.setVisibility(View.VISIBLE);
         } else {

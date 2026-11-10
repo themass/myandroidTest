@@ -12,7 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.OvershootInterpolator;
 
-import com.openapi.core.app.AppHooks;
+import com.openapi.ks.myapp.constant.Routes;
 import com.openapi.core.util.LogUtil;
 import com.openapi.core.ads.yewu.ads.base.AdsContext;
 import com.openapi.core.ads.yewu.ads.base.AdsManager;
@@ -58,7 +58,7 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity {
 
     public void onClickFab(View view) {
 
-        AppHooks.get().openSetting(this);
+        startActivity(Routes.setting(this));
 //        AdsPopStrategy.clickAdsShowBtn(this);
     }
 

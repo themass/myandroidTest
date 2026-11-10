@@ -123,27 +123,15 @@ public class AppDatabaseTest {
         assertEquals(0, db.chatLogDao().count());
     }
 
+    /** 本地没有默认会话（会话列表以服务端为准）：新会话拿到正数 id，并能按 id 读回。 */
     @Test
-    public void defaultSessionKeepsIdZeroAndNewSessionsGetPositiveIds() {
-        db.chatSessionLogDao().insertDefault("Default", null, "", ChatSessionLog.TYPE.DEF.type);
-        ChatSessionLog def = db.chatSessionLogDao().load(0);
-        assertNotNull("id 0 must stay the default session", def);
-        assertEquals("Default", def.name);
-        assertEquals(ChatSessionLog.TYPE.DEF.type, def.type);
-
+    public void newSessionsGetPositiveIdsAndLoadBack() {
         ChatSessionLog custom = new ChatSessionLog();
         custom.name = "mine";
         custom.setting = "";
         long id = db.chatSessionLogDao().insertOrReplace(custom);
-        assertTrue("new sessions must not collide with id 0", id > 0);
+        assertTrue("new sessions must get a positive id", id > 0);
         assertEquals("mine", db.chatSessionLogDao().load(id).name);
-        assertEquals(2, db.chatSessionLogDao().loadAll().size());
-    }
-
-    @Test
-    public void insertingDefaultTwiceDoesNotDuplicateIt() {
-        db.chatSessionLogDao().insertDefault("Default", null, "", ChatSessionLog.TYPE.DEF.type);
-        db.chatSessionLogDao().insertDefault("Default", null, "", ChatSessionLog.TYPE.DEF.type);
         assertEquals(1, db.chatSessionLogDao().loadAll().size());
     }
 
