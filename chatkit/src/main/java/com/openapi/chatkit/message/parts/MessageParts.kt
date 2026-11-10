@@ -58,6 +58,7 @@ import com.openapi.chatkit.model.MessagePart
 import com.openapi.core.view.media.MediaCarousel
 import com.openapi.core.view.media.MediaItem
 import com.openapi.core.view.media.MediaStack
+import com.openapi.core.view.media.MediaTheme
 import com.openapi.chatkit.model.Sender
 import com.openapi.chatkit.theme.ChatKit
 import java.util.Locale
@@ -168,11 +169,12 @@ fun ImageGrid(
         val items = sources.map { MediaItem(model = imageModel(it)) }
         val onTap: (Int) -> Unit = { index -> viewerStart = index }
         val onLong: (Int) -> Unit = { index -> onLongPress(sources[index]) }
+        val theme = if (androidx.compose.foundation.isSystemInDarkTheme()) MediaTheme.Dark else MediaTheme.Light
         Box(modifier) {
             if (sources.size <= 4) {
-                MediaStack(items = items, onClick = onTap, onLongClick = onLong)
+                MediaStack(items = items, theme = theme, onClick = onTap, onLongClick = onLong)
             } else {
-                MediaCarousel(items = items, onClick = onTap, onLongClick = onLong)
+                MediaCarousel(items = items, theme = theme, onClick = onTap, onLongClick = onLong)
             }
         }
     }
