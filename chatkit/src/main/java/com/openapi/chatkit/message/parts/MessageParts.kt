@@ -55,6 +55,9 @@ import coil.compose.AsyncImage
 import com.openapi.chatkit.media.ImageViewer
 import com.openapi.chatkit.media.imageModel
 import com.openapi.chatkit.model.MessagePart
+import com.openapi.core.view.media.MediaCarousel
+import com.openapi.core.view.media.MediaItem
+import com.openapi.core.view.media.MediaStack
 import com.openapi.chatkit.model.Sender
 import com.openapi.chatkit.theme.ChatKit
 import java.util.Locale
@@ -161,41 +164,15 @@ fun ImageGrid(
                 .combinedClickable(onClick = { viewerStart = 0 }, onLongClick = { onLongPress(sources[0]) }),
         )
     } else {
-        // 图集样式（同微信/豆包）：固定总宽、正方形格子、2dp 间距、4 张为 2×2，其余 3 列
-        val columns = if (sources.size == 4) 2 else 3
-        val gap = 2.dp
-        val gridWidth = minOf(maxWidth, 240.dp)
-        val cell = (gridWidth - gap * (columns - 1)) / columns
-        val shown = sources.take(9)
-        Column(modifier, verticalArrangement = Arrangement.spacedBy(gap)) {
-            shown.chunked(columns).forEachIndexed { row, rowItems ->
-                Row(horizontalArrangement = Arrangement.spacedBy(gap)) {
-                    rowItems.forEachIndexed { col, source ->
-                        val index = row * columns + col
-                        Box(
-                            modifier = Modifier
-                                .size(cell)
-                                .clip(RoundedCornerShape(4.dp))
-                                .background(placeholder)
-                                .combinedClickable(onClick = { viewerStart = index }, onLongClick = { onLongPress(source) }),
-                        ) {
-                            AsyncImage(
-                                model = imageModel(source),
-                                contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.fillMaxSize(),
-                            )
-                            if (index == 8 && sources.size > 9) {
-                                Box(
-                                    Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.45f)),
-                                    contentAlignment = Alignment.Center,
-                                ) {
-                                    Text("+${sources.size - 9}", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Medium)
-                                }
-                            }
-                        }
-                    }
-                }
+        // 多图：2–4 张用堆叠卡片，5 张及以上用横向轮播（通用媒体组件 com.openapi.core.view.media）
+        val items = sources.map { MediaItem(model = imageModel(it)) }
+        val onTap: (Int) -> Unit = { index -> viewerStart = index }
+        val onLong: (Int) -> Unit = { index -> onLongPress(sources[index]) }
+        Box(modifier) {
+            if (sources.size <= 4) {
+                MediaStack(items = items, onClick = onTap, onLongClick = onLong)
+            } else {
+                MediaCarousel(items = items, onClick = onTap, onLongClick = onLong)
             }
         }
     }
