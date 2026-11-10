@@ -11,7 +11,6 @@ import com.openapi.core.util.StaticDataUtil;
 import com.openapi.core.app.AppContext;
 import com.openapi.ks.myapp.bean.vo.UserInfoVo;
 import com.openapi.ks.myapp.constant.Constants;
-import com.openapi.ks.myapp.data.config.UserLoginEvent;
 
 /**
  * Created by openapi on 2016/8/15.
@@ -23,8 +22,7 @@ public class UserLoginUtil {
 //        if (user != null) {
 //            LogUtil.i("login ok");
 //            StaticDataUtil.add(Constants.LOGIN_USER, user);
-//            EventBusUtil.getEventBus().post(new UserLoginEvent());
-//            context.sendBroadcast(new Intent(AppContext.UPDATE_STATUS_ACTION));
+//    //            context.sendBroadcast(new Intent(AppContext.UPDATE_STATUS_ACTION));
 //        } else {
 //            LogUtil.i("login fail");
 //        }
@@ -34,7 +32,6 @@ public class UserLoginUtil {
         PreferenceUtils.setPrefObj(context, Constants.LOGIN_USER, vo);
         PreferenceUtils.setPrefString(context, com.openapi.core.net.NetConfig.tokenHeader(), vo.token);
         StaticDataUtil.add(Constants.LOGIN_USER, vo);
-        EventBusUtil.getEventBus().post(new UserLoginEvent());
         context.sendBroadcast(new Intent(AppContext.UPDATE_STATUS_ACTION));
         MobAgent.onProfileSignIn(vo.name);
     }
@@ -43,7 +40,6 @@ public class UserLoginUtil {
         PreferenceUtils.remove(context, Constants.LOGIN_USER);
         PreferenceUtils.remove(context, com.openapi.core.net.NetConfig.tokenHeader());
         StaticDataUtil.del(Constants.LOGIN_USER);
-        EventBusUtil.getEventBus().post(new UserLoginEvent());
         context.sendBroadcast(new Intent(AppContext.UPDATE_STATUS_ACTION));
         MobAgent.onProfileSignOff();
     }

@@ -19,7 +19,6 @@ import com.openapi.core.ads.yewu.ads.adview.InterstitialAdviewAds;
 import com.openapi.core.ads.yewu.ads.adview.NativeAdviewAds;
 import com.openapi.core.ads.yewu.ads.adview.SplashAdviewAds;
 import com.openapi.core.ads.yewu.ads.adview.VideoAdviewAds;
-import com.openapi.core.ads.yewu.ads.config.BannerAdsNext;
 import com.openapi.core.ads.yewu.ads.config.LaunchAdsNext;
 import com.openapi.core.util.EventBusUtil;
 import com.openapi.core.util.LogUtil;
@@ -68,7 +67,6 @@ public class AdsManager {
             AdsContext.AdsMsgObj obj = (AdsContext.AdsMsgObj) msg.obj;
             LogUtil.i("Adstype = " + obj.type.name() + "; status=" + obj.status.name() + "; from=" + obj.from.name());
             if (obj.type == AdsContext.AdsType.ADS_TYPE_BANNER && obj.status == AdsContext.AdsShowStatus.ADS_NO_MSG) {
-                EventBusUtil.getEventBus().post(new BannerAdsNext(obj.from));
             }
             if (obj.type == AdsContext.AdsType.ADS_TYPE_SPREAD && obj.status == AdsContext.AdsShowStatus.ADS_NO_MSG) {
                 EventBusUtil.getEventBus().post(new LaunchAdsNext(obj.from));

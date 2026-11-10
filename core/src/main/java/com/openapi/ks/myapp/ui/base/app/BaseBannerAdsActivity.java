@@ -19,7 +19,6 @@ import com.openapi.core.ads.yewu.ads.base.AdsManager;
 import com.openapi.core.R;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.core.ads.yewu.ads.AdsPopStrategy;
-import com.openapi.ks.myapp.data.config.HindBannerEvent;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -149,11 +148,6 @@ public abstract class BaseBannerAdsActivity extends BaseToolBarActivity {
             flBanner.setVisibility(View.GONE);
         }
         mHandler.removeCallbacks(task);
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent(HindBannerEvent event) {
-        hidenAds();
     }
 
     @Override
