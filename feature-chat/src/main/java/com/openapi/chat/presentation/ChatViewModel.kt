@@ -14,7 +14,6 @@ import com.openapi.chat.domain.model.ChatStreamEvent
 import com.openapi.chat.domain.model.DeliveryStatus
 import com.openapi.chat.domain.model.MessageKind
 import com.openapi.chat.domain.model.VoiceAttachment
-import com.openapi.chat.domain.usecase.DeleteMessageUseCase
 import com.openapi.chat.domain.usecase.LoadHistoryUseCase
 import com.openapi.chat.domain.usecase.SendMessageUseCase
 import com.openapi.core.media.VoiceRecorder
@@ -42,7 +41,6 @@ class ChatViewModel : ViewModel() {
     private val repository = ChatDependencies.require()
     private val loadHistory = LoadHistoryUseCase(repository)
     private val sendMessage = SendMessageUseCase(repository)
-    private val deleteMessage = DeleteMessageUseCase(repository)
     private val roles = RolesDependencies.require()
 
     private val _uiState = MutableStateFlow(ChatUiState(selectedRole = roles.selected()))
@@ -51,6 +49,7 @@ class ChatViewModel : ViewModel() {
     private val characterActions = CharacterActions(repository, roles, _uiState, viewModelScope)
     private val composer = ComposerActions(_uiState)
     private val feedback = FeedbackActions(_uiState)
+    private val removal = MessageRemoval(repository, _uiState, viewModelScope, reconcile = { fallbackReloadMessages() })
 
     init {
         characterActions.load()
@@ -574,98 +573,22 @@ class ChatViewModel : ViewModel() {
     }
 
     /** 删除一条消息：服务端删除成功后再从界面移除；只存在于本地的附件气泡直接移除。 */
-    fun onDeleteMessage(messageId: String) {
-        viewModelScope.launch {
-            if (messageId.toLongOrNull() == null) {
-                _uiState.update { it.copy(messages = it.messages.filterNot { m -> m.id == messageId }) }
-                return@launch
-            }
-            val ok = deleteMessage(messageId)
-            if (ok) {
-                _uiState.update { it.copy(messages = it.messages.filterNot { m -> m.id == messageId }) }
-            } else {
-                _uiState.update { it.copy(error = "删除失败，请稍后重试") }
-            }
-        }
-    }
+    fun onDeleteMessage(messageId: String) = removal.deleteOne(messageId)
+
 
     /**
      * 清空当前对话的消息，保留会话本身。服务端还没有「清空消息」接口，所以先分页拉出全部消息 id，
      * 再逐条删除（每条走服务端 + 本地缓存）。任一条失败会保留它并提示数量。
      */
-    fun onClearConversation() {
-        viewModelScope.launch {
-            val sessionId = repository.currentSessionId()
-            val ids = mutableListOf<String>()
-            try {
-                // 按最旧的 id 一直往前翻，直到一页都没有新消息为止（不依赖 hasMore，服务端可能不可靠）
-                var beforeId: Long? = null
-                val seen = HashSet<String>()
-                while (true) {
-                    val page = withContext(Dispatchers.IO) { repository.loadHistoryPage(sessionId, beforeId, 50) }
-                    val fresh = page.messages.filter { seen.add(it.id) }
-                    if (fresh.isEmpty()) break
-                    ids += fresh.map { it.id }
-                    val oldest = fresh.mapNotNull { it.id.toLongOrNull() }.minOrNull() ?: break
-                    beforeId = oldest
-                }
-            } catch (e: Exception) {
-                _uiState.update { it.copy(error = "读取消息失败，请稍后重试") }
-                return@launch
-            }
-            val removed = mutableListOf<String>()
-            var failed = 0
-            for (id in ids) {
-                if (id.toLongOrNull() == null) {
-                    removed += id
-                } else if (deleteMessage(id)) {
-                    removed += id
-                } else {
-                    failed++
-                }
-            }
-            // 服务端全部删除成功 = 会话已经是空的：本地列表直接清空，不依赖 id 能否对上
-            if (failed == 0) {
-                // 本地数据库里还留着助手回复（服务端历史只返回了用户消息），这里一并清掉，否则刷新时会被读回来
-                repository.clearLocalMessages(sessionId)
-                _uiState.update { it.copy(messages = emptyList(), hasMoreHistory = false) }
-            } else {
-                _uiState.update { it.copy(messages = it.messages.filterNot { m -> m.id in removed }) }
-                _uiState.update { it.copy(error = "有 $failed 条消息清空失败，请稍后重试") }
-            }
-        }
-    }
+    fun onClearConversation() = removal.clearConversation()
+
 
     /**
      * 批量删除（多选）：逐条调用单条删除（服务端 + 本地缓存），成功的从列表移除；
      * 没有服务端 id 的本地消息只从列表移除。失败的保留，并提示数量。
      */
-    fun onDeleteMessages(messageIds: List<String>) {
-        viewModelScope.launch {
-            // 只有服务端确认删除成功，才从列表移除（之前是先删本地，刷新后消息又回来）
-            val removed = mutableListOf<String>()
-            var failed = 0
-            var unsynced = 0
-            for (id in messageIds) {
-                // 本地临时 id（如 local-user-*）还没有服务端 id：删不了服务端，也不能只删本地，留在列表里
-                if (id.toLongOrNull() == null) {
-                    unsynced++
-                    continue
-                }
-                if (deleteMessage(id)) removed += id else failed++
-            }
-            _uiState.update { it.copy(messages = it.messages.filterNot { m -> m.id in removed }) }
-            // 最后以服务端为准对齐一次：删失败的、没删掉的不会在刷新后「复活」
-            fallbackReloadMessages()
-            if (failed + unsynced > 0) {
-                val parts = buildList {
-                    if (failed > 0) add("$failed 条删除失败")
-                    if (unsynced > 0) add("$unsynced 条尚未同步，请稍后再删")
-                }
-                _uiState.update { it.copy(error = parts.joinToString("，")) }
-            }
-        }
-    }
+    fun onDeleteMessages(messageIds: List<String>) = removal.deleteMany(messageIds)
+
 
     /** 加载更早的一页历史（按最早一条的服务端 id 作为 beforeId）。 */
     fun onLoadOlderMessages() {

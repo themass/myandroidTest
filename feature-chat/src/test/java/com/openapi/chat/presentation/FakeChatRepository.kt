@@ -28,17 +28,27 @@ internal class FakeChatRepository : ChatRepository {
     var updateCharacterOk = true
     var deleteCharacterOk = true
     val deletedCharacters = mutableListOf<Int>()
+    var deleteMessageOk = true
+    val deletedMessages = mutableListOf<String>()
+    var history: List<ChatMessage> = emptyList()
+    var clearedLocal = 0
 
-    override suspend fun loadHistoryPage(sessionId: Long, beforeId: Long?, limit: Int) = HistoryPage(emptyList(), hasMore = false)
+    override suspend fun loadHistoryPage(sessionId: Long, beforeId: Long?, limit: Int) =
+        HistoryPage(if (beforeId == null) history else emptyList(), hasMore = false)
     override fun sendMessageStream(
         sessionId: Long, userText: String, characterId: Int?, roleId: String?,
         persistUserMessage: Boolean, clientMessageId: String?,
     ): Flow<ChatStreamEvent> = emptyFlow()
     override fun regenerateStream(sessionId: Long, characterId: Int?, roleId: String?): Flow<ChatStreamEvent> = emptyFlow()
     override suspend fun editMessage(sessionId: Long, messageId: String, text: String) = true
-    override suspend fun clearLocalMessages(sessionId: Long) {}
+    override suspend fun clearLocalMessages(sessionId: Long) {
+        clearedLocal++
+    }
     override suspend fun localPendingMessages(sessionId: Long): List<ChatMessage> = emptyList()
-    override suspend fun deleteMessage(sessionId: Long, messageId: String) = true
+    override suspend fun deleteMessage(sessionId: Long, messageId: String): Boolean {
+        deletedMessages += messageId
+        return deleteMessageOk
+    }
     override fun currentSessionId(): Long = current
     override suspend fun loadCharacters(): List<ChatCharacterOption> = emptyList()
     override fun selectedCharacterId(): Int? = selectedCharacter
