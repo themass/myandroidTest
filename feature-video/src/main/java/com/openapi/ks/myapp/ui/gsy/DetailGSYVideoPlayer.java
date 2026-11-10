@@ -2,44 +2,30 @@ package com.openapi.ks.myapp.ui.gsy;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Build;
-import android.view.LayoutInflater;
-import android.widget.LinearLayout;
-
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-
-import com.google.android.material.bottomsheet.BottomSheetDialog;
-import androidx.mediarouter.app.MediaRouteButton;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
-import android.text.TextUtils;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.openapi.core.util.LogUtil;
-import com.openapi.core.util.ToastUtil;
 import com.openapi.core.view.view.MyFavoriteView;
 
 import com.openapi.feature.video.R;
-import com.openapi.ks.myapp.cast.CastFrameworkUtil;
 import com.openapi.ks.myapp.data.ImagePhotoLoad;
 import com.openapi.ks.myapp.ui.sound.VideoPlaybackUiHelper;
 
-import com.openapi.ks.myapp.video.PlaybackEngineHelper;
 import com.shuyu.gsyvideoplayer.GSYVideoManager;
 import com.shuyu.gsyvideoplayer.utils.CommonUtil;
 import com.shuyu.gsyvideoplayer.utils.OrientationUtils;
-import com.google.android.gms.cast.framework.CastButtonFactory;
 import com.shuyu.gsyvideoplayer.video.StandardGSYVideoPlayer;
 import com.shuyu.gsyvideoplayer.video.base.GSYVideoView;
 
@@ -48,6 +34,7 @@ import java.util.Map;
 
 /**
  * 详情页用 GSY 标准播放器，叠加收藏条与懒加载遮罩（替代原 MyJzvdStd）。
+ * 进度条拖动、「更多」菜单、自动换内核、投屏按钮、刘海避让已拆到同包的小类里。
  */
 public class DetailGSYVideoPlayer extends StandardGSYVideoPlayer {
 
@@ -55,30 +42,42 @@ public class DetailGSYVideoPlayer extends StandardGSYVideoPlayer {
     private static final long SWIPE_SEEK_STEP_MS = 30_000L;
 
     private MyFavoriteView myFavoriteView;
-    /** Google Cast 设备选择按钮，由 {@link #installGoogleCastRouteButton(AppCompatActivity)} 注入 */
-    private MediaRouteButton mCastRouteButton;
     private FrameLayout loadingOverlay;
     private String mLastSetupUrl;
-    private boolean mEngineFallbackTried;
-    /** 自动切换内核重试前保存的用户偏好，detach 时恢复 */
-    private int mRestoreEngineAfterDetach = Integer.MIN_VALUE;
-    /** 部分片源 {@link #getDuration()} 在拖动瞬间为 0，用进度回调里的总长兜底，保证进度条时间实时更新 */
-    private long mCachedDurationMs;
-    /**
-     * 手指按下主 SeekBar 时置 true（早于 {@link #onStartTrackingTouch}），避免首帧 onProgressChanged 时 mHadSeekTouch 仍为 false。
-     */
-    private boolean mDraggingStandardSeekBar;
-    /** 按下时进度与播放位置，用于 getDuration 为 0 时反推总时长 */
-    private int mSeekAnchorProgress = -1;
-    private long mSeekAnchorPositionMs = -1;
-    private final Runnable mSeekBarUiTick = new Runnable() {
+
+    private final CastButtonBinder castButton = new CastButtonBinder();
+    private final EngineFallback engineFallback = new EngineFallback();
+    private final SeekProgressController seekProgress = new SeekProgressController(new SeekProgressController.Host() {
         @Override
-        public void run() {
-            if (mProgressBar != null) {
-                applySeekBarProgressToTimeViews(mProgressBar.getProgress());
-            }
+        public long duration() {
+            return getDuration();
         }
-    };
+
+        @Override
+        public long currentPositionWhenPlaying() {
+            return getCurrentPositionWhenPlaying();
+        }
+
+        @Override
+        public SeekBar progressBar() {
+            return mProgressBar;
+        }
+
+        @Override
+        public ProgressBar bottomProgressBar() {
+            return mBottomProgressBar;
+        }
+
+        @Override
+        public TextView currentTimeView() {
+            return mCurrentTimeTextView;
+        }
+
+        @Override
+        public TextView totalTimeView() {
+            return mTotalTimeTextView;
+        }
+    });
 
     public DetailGSYVideoPlayer(Context context) {
         super(context);
@@ -105,30 +104,7 @@ public class DetailGSYVideoPlayer extends StandardGSYVideoPlayer {
      * 与 {@link com.openapi.ks.myapp.cast.GoogleCastSessionController} 配合使用。
      */
     public void installGoogleCastRouteButton(AppCompatActivity activity) {
-        if (mCastRouteButton != null || activity == null) {
-            return;
-        }
-        if (CastFrameworkUtil.tryGetCastContext(activity) == null) {
-            LogUtil.i("Google Cast unavailable (no Cast dynamite / GMS)");
-            return;
-        }
-        mCastRouteButton = new MediaRouteButton(activity);
-        try {
-            CastButtonFactory.setUpMediaRouteButton(activity, mCastRouteButton);
-        } catch (Throwable t) {
-            LogUtil.i("CastButtonFactory.setUpMediaRouteButton failed: " + t.getMessage());
-            mCastRouteButton = null;
-            return;
-        }
-        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
-                LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-        lp.gravity = Gravity.TOP | Gravity.END;
-        int m12 = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 12,
-                getResources().getDisplayMetrics());
-        int m48 = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 48,
-                getResources().getDisplayMetrics());
-        lp.setMargins(0, m48, m12, 0);
-        addView(mCastRouteButton, lp);
+        castButton.install(this, activity);
     }
 
     @Override
@@ -161,7 +137,7 @@ public class DetailGSYVideoPlayer extends StandardGSYVideoPlayer {
         addView(loadingOverlay, loadLp);
 
         wireMoreButton();
-        applyPlayerChromeInsets();
+        PlayerInsets.apply(this);
     }
 
     @Override
@@ -176,29 +152,6 @@ public class DetailGSYVideoPlayer extends StandardGSYVideoPlayer {
         }
     }
 
-    private void applyPlayerChromeInsets() {
-        View top = findViewById(R.id.layout_top);
-        if (top != null) {
-            ViewCompat.setOnApplyWindowInsetsListener(top, (v, insets) -> {
-                Insets sys = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-                v.setPadding(v.getPaddingLeft(), sys.top, v.getPaddingRight(), v.getPaddingBottom());
-                return insets;
-            });
-        }
-        View bottom = findViewById(R.id.layout_bottom);
-        if (bottom != null) {
-            final int baseNavPad = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4,
-                    getResources().getDisplayMetrics());
-            ViewCompat.setOnApplyWindowInsetsListener(bottom, (v, insets) -> {
-                Insets nav = insets.getInsets(WindowInsetsCompat.Type.navigationBars());
-                v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(),
-                        baseNavPad + nav.bottom);
-                return insets;
-            });
-        }
-        ViewCompat.requestApplyInsets(this);
-    }
-
     /**
      * GSY 12.x 的 {@link com.shuyu.gsyvideoplayer.video.base.GSYVideoControlView#onClick} 未处理 {@code R.id.fullscreen}，
      * 官方详情页是通过 {@code GSYBaseActivityDetail#initVideo} 给全屏按钮单独绑监听。普通 Activity + 布局内播放器时必须自行处理。
@@ -210,7 +163,7 @@ public class DetailGSYVideoPlayer extends StandardGSYVideoPlayer {
     public void onClick(View v) {
         int id = v.getId();
         if (id == R.id.detail_player_more) {
-            showPlayerMoreMenu();
+            PlayerMoreMenu.show(this);
             return;
         }
         if (id == R.id.back || id == com.shuyu.gsyvideoplayer.R.id.back) {
@@ -262,67 +215,6 @@ public class DetailGSYVideoPlayer extends StandardGSYVideoPlayer {
         super.clearFullscreenLayout();
     }
 
-    private void showPlayerMoreMenu() {
-        Activity act = CommonUtil.scanForActivity(getContext());
-        if (!(act instanceof AppCompatActivity)) {
-            return;
-        }
-        AppCompatActivity appAct = (AppCompatActivity) act;
-        BottomSheetDialog dlg = new BottomSheetDialog(appAct);
-        View sheet = LayoutInflater.from(appAct).inflate(R.layout.sheet_player_more, null);
-        dlg.setContentView(sheet);
-        LinearLayout speedBox = sheet.findViewById(R.id.player_speed_container);
-        if (speedBox == null) {
-            dlg.dismiss();
-            return;
-        }
-        int padV = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8,
-                getResources().getDisplayMetrics());
-        int padH = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16,
-                getResources().getDisplayMetrics());
-        TypedValue selectable = new TypedValue();
-        appAct.getTheme().resolveAttribute(android.R.attr.selectableItemBackground, selectable, true);
-        final float[] speeds = {0.5f, 0.75f, 1f, 1.25f, 1.5f, 2f};
-        for (float sp : speeds) {
-            TextView row = new TextView(appAct);
-            row.setText(formatSpeedLabel(sp));
-            row.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
-            row.setTextColor(0xFF1A1A1A);
-            row.setPadding(padH, padV, padH, padV);
-            if (selectable.resourceId != 0) {
-                row.setBackgroundResource(selectable.resourceId);
-            }
-            row.setOnClickListener(v -> {
-                try {
-                    DetailGSYVideoPlayer.this.setSpeed(sp, true);
-                } catch (Throwable t) {
-                    LogUtil.e(t);
-                }
-                dlg.dismiss();
-                ToastUtil.showShort(getContext().getString(R.string.player_speed_applied, formatSpeedLabel(sp)));
-            });
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-            lp.bottomMargin = padV / 2;
-            speedBox.addView(row, lp);
-        }
-        TextView decoderRow = new TextView(appAct);
-        decoderRow.setText(R.string.player_more_decoder_settings);
-        decoderRow.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
-        decoderRow.setTextColor(0xFF1A1A1A);
-        decoderRow.setPadding(padH, padV, padH, padV);
-        if (selectable.resourceId != 0) {
-            decoderRow.setBackgroundResource(selectable.resourceId);
-        }
-        decoderRow.setOnClickListener(v -> {
-            dlg.dismiss();
-            com.openapi.core.app.AppHooks.get().openSetting(getContext());
-        });
-        speedBox.addView(decoderRow, new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-        dlg.show();
-    }
-
     /** 供流式字幕解音频：与 GSY 当前播放地址一致（含 urlToken 等）。 */
     public String getPlaybackUrl() {
         if (mOriginUrl != null && !mOriginUrl.isEmpty()) {
@@ -336,52 +228,26 @@ public class DetailGSYVideoPlayer extends StandardGSYVideoPlayer {
         return mMapHeadData;
     }
 
-    private static String formatSpeedLabel(float s) {
-        if (Math.abs(s - 0.5f) < 0.01f) {
-            return "0.5×";
-        }
-        if (Math.abs(s - 0.75f) < 0.01f) {
-            return "0.75×";
-        }
-        if (Math.abs(s - 1f) < 0.01f) {
-            return "1×";
-        }
-        if (Math.abs(s - 1.25f) < 0.01f) {
-            return "1.25×";
-        }
-        if (Math.abs(s - 1.5f) < 0.01f) {
-            return "1.5×";
-        }
-        if (Math.abs(s - 2f) < 0.01f) {
-            return "2×";
-        }
-        return s + "×";
-    }
-
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         final int pid = v.getId();
         final int action = event.getActionMasked();
         if (pid == com.shuyu.gsyvideoplayer.R.id.progress && mProgressBar != null) {
             if (action == MotionEvent.ACTION_DOWN) {
-                mDraggingStandardSeekBar = true;
-                mSeekAnchorProgress = mProgressBar.getProgress();
-                mSeekAnchorPositionMs = getCurrentPositionWhenPlaying();
-                refreshCachedDurationForSeek();
+                seekProgress.onSeekBarPressed(mProgressBar.getProgress());
             } else if (action == MotionEvent.ACTION_MOVE) {
                 // 竖屏部分机型 SeekBar 拖动时 onProgressChanged 的 fromUser 恒为 false，
                 // 仅靠 post 一帧可能错过与父布局的拦截顺序；MOVE 上直接按当前 thumb 刷新时间。
-                applySeekBarProgressToTimeViews(mProgressBar.getProgress());
+                seekProgress.applyProgress(mProgressBar.getProgress());
             } else if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
-                mDraggingStandardSeekBar = false;
+                seekProgress.onSeekBarReleased();
             }
         }
         boolean r = super.onTouch(v, event);
         // 在 GSY 处理完同一帧触摸后再读 progress，避免 thumb 未更新
         if (pid == com.shuyu.gsyvideoplayer.R.id.progress && mProgressBar != null
                 && (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_MOVE)) {
-            mProgressBar.removeCallbacks(mSeekBarUiTick);
-            mProgressBar.post(mSeekBarUiTick);
+            seekProgress.scheduleUiTick();
         }
         return r;
     }
@@ -412,19 +278,16 @@ public class DetailGSYVideoPlayer extends StandardGSYVideoPlayer {
     @Override
     public boolean setUp(String url, boolean cacheWithPlay, File cachePath, Map<String, String> mapHeadData, String title) {
         if (url != null && !url.equals(mLastSetupUrl)) {
-            mEngineFallbackTried = false;
+            engineFallback.resetForNewUrl();
             mLastSetupUrl = url;
-            mCachedDurationMs = 0;
+            seekProgress.resetForNewUrl();
         }
-        boolean ok = super.setUp(url, cacheWithPlay, cachePath, mapHeadData, title);
-        return ok;
+        return super.setUp(url, cacheWithPlay, cachePath, mapHeadData, title);
     }
 
     @Override
     protected void setProgressAndTime(long progress, long secProgress, long currentTime, long totalTime, boolean forceChange) {
-        if (totalTime > 0) {
-            mCachedDurationMs = totalTime;
-        }
+        seekProgress.onTotalTimeKnown(totalTime);
         super.setProgressAndTime(progress, secProgress, currentTime, totalTime, forceChange);
     }
 
@@ -432,28 +295,28 @@ public class DetailGSYVideoPlayer extends StandardGSYVideoPlayer {
     public void onStartTrackingTouch(SeekBar seekBar) {
         super.onStartTrackingTouch(seekBar);
         if (seekBar == mProgressBar) {
-            refreshCachedDurationForSeek();
+            seekProgress.refreshCachedDuration();
         }
     }
 
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {
         if (seekBar == mProgressBar) {
-            applySeekBarProgressToTimeViews(seekBar.getProgress());
+            seekProgress.applyProgress(seekBar.getProgress());
         }
         super.onStopTrackingTouch(seekBar);
     }
 
     /**
      * 拖动进度条时更新当前时间：部分机型 {@code fromUser} 恒为 false；且首帧可能早于 {@code mHadSeekTouch}，
-     * 故结合 {@link #mDraggingStandardSeekBar} 与 {@link #onTouch} 里的 post 刷新。
+     * 故结合拖动状态与 {@link #onTouch} 里的 post 刷新。
      */
     @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
         super.onProgressChanged(seekBar, progress, fromUser);
         if (seekBar == mProgressBar && isShowDragProgressTextOnSeekBar()
-                && (mHadSeekTouch || mDraggingStandardSeekBar || seekBar.isPressed())) {
-            applySeekBarProgressToTimeViews(progress);
+                && (mHadSeekTouch || seekProgress.isDragging() || seekBar.isPressed())) {
+            seekProgress.applyProgress(progress);
         }
     }
 
@@ -462,111 +325,12 @@ public class DetailGSYVideoPlayer extends StandardGSYVideoPlayer {
         if (!isShowDragProgressTextOnSeekBar()) {
             return;
         }
-        boolean dragging = mDraggingStandardSeekBar || mHadSeekTouch
+        boolean dragging = seekProgress.isDragging() || mHadSeekTouch
                 || (mProgressBar != null && mProgressBar.isPressed());
         if (!fromUser && !dragging) {
             return;
         }
-        applySeekBarProgressToTimeViews(progress);
-    }
-
-    private void refreshCachedDurationForSeek() {
-        long d = getDuration();
-        if (d > 0) {
-            mCachedDurationMs = d;
-            return;
-        }
-        if (mCachedDurationMs > 0) {
-            return;
-        }
-        if (mTotalTimeTextView != null) {
-            long p = parseTimeLabelToMs(mTotalTimeTextView.getText());
-            if (p > 0) {
-                mCachedDurationMs = p;
-            }
-        }
-    }
-
-    private void applySeekBarProgressToTimeViews(int progress) {
-        if (mCurrentTimeTextView == null) {
-            return;
-        }
-        long duration = resolveDurationMsForSeekUi();
-        if (duration <= 0) {
-            return;
-        }
-        SeekBar sb = mProgressBar;
-        int max = (sb != null && sb.getMax() > 0) ? sb.getMax() : 100;
-        long timeMs = max > 0 ? progress * duration / max : 0;
-        mCurrentTimeTextView.setText(CommonUtil.stringForTime(timeMs));
-        mCurrentTimeTextView.setVisibility(View.VISIBLE);
-        if (mBottomProgressBar != null && max > 0) {
-            int bottomProg = (int) (progress * 100L / max);
-            mBottomProgressBar.setProgress(bottomProg);
-        }
-    }
-
-    private long resolveDurationMsForSeekUi() {
-        long duration = getDuration();
-        if (duration > 0) {
-            mCachedDurationMs = duration;
-            return duration;
-        }
-        if (mCachedDurationMs > 0) {
-            return mCachedDurationMs;
-        }
-        if (mTotalTimeTextView != null) {
-            long parsed = parseTimeLabelToMs(mTotalTimeTextView.getText());
-            if (parsed > 0) {
-                mCachedDurationMs = parsed;
-                return parsed;
-            }
-        }
-        int max = mProgressBar != null && mProgressBar.getMax() > 0 ? mProgressBar.getMax() : 100;
-        if (mSeekAnchorProgress > 0 && mSeekAnchorPositionMs >= 0) {
-            long inferred = mSeekAnchorPositionMs * max / mSeekAnchorProgress;
-            if (inferred > 0) {
-                mCachedDurationMs = inferred;
-                return inferred;
-            }
-        }
-        SeekBar sb = mProgressBar;
-        if (sb != null) {
-            int prog = sb.getProgress();
-            long pos = getCurrentPositionWhenPlaying();
-            if (prog > 0 && pos >= 0) {
-                long inferred = pos * max / prog;
-                if (inferred > 0) {
-                    mCachedDurationMs = inferred;
-                    return inferred;
-                }
-            }
-        }
-        return 0;
-    }
-
-    /** 与 GSY {@link CommonUtil#stringForTime} 常见输出一致：mm:ss 或 H:mm:ss */
-    private static long parseTimeLabelToMs(CharSequence text) {
-        if (text == null || TextUtils.isEmpty(text)) {
-            return 0;
-        }
-        String t = text.toString().trim();
-        String[] parts = t.split(":");
-        try {
-            if (parts.length == 2) {
-                long m = Long.parseLong(parts[0]);
-                long s = Long.parseLong(parts[1]);
-                return (m * 60 + s) * 1000;
-            }
-            if (parts.length == 3) {
-                long h = Long.parseLong(parts[0]);
-                long m = Long.parseLong(parts[1]);
-                long s = Long.parseLong(parts[2]);
-                return (h * 3600 + m * 60 + s) * 1000;
-            }
-        } catch (NumberFormatException ignored) {
-        }
-        return 0;
+        seekProgress.applyProgress(progress);
     }
 
     @Override
@@ -638,25 +402,9 @@ public class DetailGSYVideoPlayer extends StandardGSYVideoPlayer {
 
     @Override
     protected void onDetachedFromWindow() {
-        if (mProgressBar != null) {
-            mProgressBar.removeCallbacks(mSeekBarUiTick);
-        }
-        restorePlaybackEngineIfTemporaryFallback();
+        seekProgress.cancelUiTick();
+        engineFallback.restoreIfTemporary(getContext());
         super.onDetachedFromWindow();
-    }
-
-    private void restorePlaybackEngineIfTemporaryFallback() {
-        if (mRestoreEngineAfterDetach == Integer.MIN_VALUE) {
-            return;
-        }
-        int saved = mRestoreEngineAfterDetach;
-        mRestoreEngineAfterDetach = Integer.MIN_VALUE;
-        try {
-            Context app = getContext().getApplicationContext();
-            PlaybackEngineHelper.applyEngineByIndex(app, saved);
-        } catch (Throwable t) {
-            LogUtil.e(t);
-        }
     }
 
     /** 封面图加载到 GSY 标准布局的 thumbImage。 */
@@ -681,41 +429,16 @@ public class DetailGSYVideoPlayer extends StandardGSYVideoPlayer {
         if (getCurrentState() != GSYVideoView.CURRENT_STATE_ERROR) {
             return;
         }
-        if (tryFallbackAlternateEngine()) {
+        if (engineFallback.tryAlternate(this, mOriginUrl, this::retryAfterEngineSwitch)) {
             return;
         }
         VideoPlaybackUiHelper.onGsyDetailPlaybackError(this, what, extra);
     }
 
-    /**
-     * 当前片源失败时自动换内核重试一次（不写设置项）：Exo ↔ IJK；阿里 / 系统 失败时先临时换 Exo。
-     */
-    private boolean tryFallbackAlternateEngine() {
-        if (mEngineFallbackTried || mOriginUrl == null || mOriginUrl.isEmpty()) {
-            return false;
-        }
-        Context app = getContext().getApplicationContext();
-        int cur = PlaybackEngineHelper.getEngine(app);
-        int alt = PlaybackEngineHelper.alternateEngineForPlaybackRetry(cur);
-        if (alt == cur) {
-            return false;
-        }
-        mEngineFallbackTried = true;
-        mRestoreEngineAfterDetach = cur;
-        String from = PlaybackEngineHelper.engineLabel(app, cur);
-        String to = PlaybackEngineHelper.engineLabel(app, alt);
-        LogUtil.i("GSY playback engine fallback: " + from + " -> " + to + " url=" + mOriginUrl);
-        ToastUtil.showShort(getContext().getString(R.string.video_playback_retry_other_engine, from, to));
-        PlaybackEngineHelper.applyEngineByIndex(app, alt);
-        post(() -> {
-            try {
-                release();
-                setUp(mOriginUrl, mCache, null, mMapHeadData, mTitle);
-                startPlayLogic();
-            } catch (Throwable t) {
-                LogUtil.e(t);
-            }
-        });
-        return true;
+    /** 换内核后重新准备并播放当前片源。 */
+    private void retryAfterEngineSwitch() {
+        release();
+        setUp(mOriginUrl, mCache, null, mMapHeadData, mTitle);
+        startPlayLogic();
     }
 }
