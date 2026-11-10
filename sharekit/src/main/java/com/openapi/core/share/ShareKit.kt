@@ -30,11 +30,19 @@ object ShareKit {
     private const val SHARE_DIR = "share"
 
     /** 分享文字（链接、说明等）。 */
-    fun shareText(context: Context, text: String, subject: String? = null, chooserTitle: String? = null) {
+    fun shareText(
+        context: Context,
+        text: String,
+        subject: String? = null,
+        chooserTitle: String? = null,
+        extraTitle: String? = null,
+    ) {
         val intent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
             putExtra(Intent.EXTRA_TEXT, text)
             if (subject != null) putExtra(Intent.EXTRA_SUBJECT, subject)
+            // 旧的 ShareUtil 会附带 EXTRA_TITLE，保留以兼容读取它的接收方
+            if (extraTitle != null) putExtra(Intent.EXTRA_TITLE, extraTitle)
         }
         start(context, intent, null, chooserTitle)
     }

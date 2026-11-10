@@ -120,7 +120,7 @@ class SettingActivity : BaseSingleActivity() {
         if (!StringUtils.hasText(url)) {
             url = com.openapi.core.net.NetConfig.defaultReferer()
         }
-        com.openapi.core.share.ShareKit.shareText(this, "$url 爱Freedom，精彩你的生活", subject = "精彩你的生活", chooserTitle = "分享到：")
+        com.openapi.core.share.ShareKit.shareText(this, "$url 爱Freedom，精彩你的生活", subject = "精彩你的生活", chooserTitle = "分享到：", extraTitle = "爱Freedom")
     }
 
     override fun needShow(): Boolean = true
