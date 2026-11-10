@@ -51,14 +51,6 @@ public class BaseService {
         return future.get();
     }
 
-    public String getStringData(String url, String tag) throws Exception {
-        SyncFuture<String> future = SyncFuture.newFuture();
-        StringRequest request = new StringRequest(context, ApiRequest.Method.GET, url, future, future);
-        request.setTag(tag);
-        HttpClient.addRequest(request);
-        return future.get();
-    }
-
     public <T> void getData(String url, CommonResponse.ResponseOkListener<T> listener, CommonResponse.ResponseErrorListener errorListener, String tag, Class<T> t) {
         GsonRequest request = new GsonRequest(context, url, t, null, listener, errorListener);
         request.setTag(tag);

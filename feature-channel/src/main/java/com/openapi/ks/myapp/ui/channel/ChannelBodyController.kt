@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.openapi.core.net.BaseService
 import com.openapi.core.net.request.InfoListVo
+import com.openapi.core.net.awaitInfoList
 import com.openapi.core.util.LogUtil
 import com.openapi.core.util.PreferenceUtils
 import com.openapi.core.util.StringUtils
@@ -83,9 +84,7 @@ class ChannelBodyController(
         if (showLoading) uiState = ChannelUiState.Loading
         job = scope.launch {
             val data: InfoListVo<RecommendVo>? = try {
-                withContext(Dispatchers.IO) {
-                    service.getInfoListData(urlFor(pageNum), RecommendVo::class.java, netTag)
-                }
+                service.awaitInfoList(urlFor(pageNum), RecommendVo::class.java, netTag)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {

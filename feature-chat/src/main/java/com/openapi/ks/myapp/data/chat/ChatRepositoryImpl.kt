@@ -26,6 +26,7 @@ import com.openapi.ks.myapp.bean.vo.CharacterVo
 import com.openapi.ks.myapp.bean.vo.TtsResponseVo
 import com.openapi.ks.myapp.constant.Constants
 import com.openapi.core.net.BaseService
+import com.openapi.core.net.awaitInfoList
 import com.openapi.core.net.awaitPost
 import com.openapi.core.net.awaitPostOk
 import com.openapi.core.net.awaitUpload
@@ -170,7 +171,7 @@ class ChatRepositoryImpl(
 
     override suspend fun loadCharacters(): List<ChatCharacterOption> = withContext(Dispatchers.IO) {
         runCatching {
-            baseService.getInfoListData(
+            baseService.awaitInfoList(
                 Constants.getUrl(Constants.API_CHARACTER_URL),
                 CharacterVo::class.java,
                 TAG,
@@ -630,7 +631,7 @@ class ChatRepositoryImpl(
     override suspend fun syncSessionsFromServer() {
         withContext(Dispatchers.IO) {
             val list = runCatching {
-                baseService.getInfoListData(
+                baseService.awaitInfoList(
                     Constants.getUrl(Constants.CHAT_SESSION_URL),
                     ChatSessionVo::class.java,
                     TAG,

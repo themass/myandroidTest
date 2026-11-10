@@ -1,11 +1,15 @@
 package com.openapi.core.net
 
 import com.openapi.core.net.request.CommonResponse
+import com.openapi.core.net.request.GsonRequest
+import com.openapi.core.net.request.InfoListVo
+import java.util.concurrent.ExecutionException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import java.io.File
 import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 /*
  * [BaseService] 的挂起包装，替代各模块里手写的 suspendCancellableCoroutine。
@@ -90,5 +94,60 @@ suspend fun <T> BaseService.awaitUpload(
                 tag,
                 clazz,
             )
+        }
+    }
+
+/*
+ * GET 请求的挂起版本。失败时抛出 ExecutionException（原因是 NetError），与原来的同步方法一致，
+ * 调用方原本的 try/catch 不用改。错误不弹 toast（原同步方法也不弹）。
+ */
+
+/** GET 分页列表（InfoListVo 结构）。 */
+suspend fun <T> BaseService.awaitInfoList(url: String, clazz: Class<T>, tag: String): InfoListVo<T> =
+    withContext(Dispatchers.IO) {
+        suspendCancellableCoroutine { cont ->
+            val request = GsonRequest.infoList(
+                context,
+                url,
+                clazz,
+                null,
+                object : Response.Listener<InfoListVo<T>> {
+                    override fun onResponse(response: InfoListVo<T>) {
+                        if (cont.isActive) cont.resume(response)
+                    }
+                },
+                object : Response.ErrorListener {
+                    override fun onErrorResponse(error: NetError) {
+                        if (cont.isActive) cont.resumeWithException(ExecutionException(error))
+                    }
+                },
+            )
+            request.setTag(tag)
+            HttpClient.addRequest(request)
+        }
+    }
+
+/** GET 单个对象。 */
+suspend fun <T> BaseService.awaitGet(url: String, clazz: Class<T>, tag: String): T =
+    withContext(Dispatchers.IO) {
+        suspendCancellableCoroutine { cont ->
+            val request = GsonRequest(
+                context,
+                url,
+                clazz,
+                null,
+                object : Response.Listener<T> {
+                    override fun onResponse(response: T) {
+                        if (cont.isActive) cont.resume(response)
+                    }
+                },
+                object : Response.ErrorListener {
+                    override fun onErrorResponse(error: NetError) {
+                        if (cont.isActive) cont.resumeWithException(ExecutionException(error))
+                    }
+                },
+            )
+            request.setTag(tag)
+            HttpClient.addRequest(request)
         }
     }
