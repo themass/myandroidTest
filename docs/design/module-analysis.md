@@ -22,7 +22,7 @@
 | `:mediaview` | 2 | 并入 `:media/viewer` | 用了 `com.openapi.core` 包名 |
 | `:sharekit` | 1 | 并入 `:common/util/share` | 用了 `com.openapi.core` 包名 |
 | `:ads` | 27 | 保留 | 包名 `com.openapi.core.ads.yewu`；统计 `MobAgent` 放在广告里；自己也有一个 `Constants` |
-| `:app` | 18 | 保留 | 基本符合；`ConfigActionJump` 硬编码各频道页的类 |
+| `:app` | 18 | 保留，大幅瘦身 | 60 个第三方库、24 个 feature 的 Activity、21 MB assets、66 个无引用资源、10 个别的模块的测试都堆在这里；对话、角色、频道列表的实现也在这里 |
 
 ---
 
@@ -246,35 +246,53 @@ com.openapi.ads
 
 ---
 
-## `:app`（18 个文件）
+## `:app`（18 个源文件，但不止这些）
 
-**现状**
-| 包 | 内容 |
-|---|---|
-| `home/` | `HomeActivity`、`HomeDependencies`、`domain/HomeModels`、`presentation/` 首页、频道列表、我的 |
-| `ks/chatfree/ui/main/` | `LaunchActivity`（启动页） |
-| `ks/myapp/base/` | `MyApplication`、`AppEventHandler`、`AppHooksImpl` |
-| `ks/myapp/data/chat/` | `ChatRepositoryImpl`（767 行）、`BackendSpeechToText`、`LegacyLoginGate` |
-| `ks/myapp/data/roles/` | `RolesRepositoryImpl`、`BundledRoleCatalog` |
-| `ks/myapp/data/home/` | `LegacyHomeEntries`（频道列表数据、「我的」页的入口） |
-| `ks/myapp/data/config/` | `ConfigActionJump`（按 URL 类型打开频道页） |
+**第 1 版的判断错了**：我只看了源文件，说它「基本符合装配层」。把依赖、Manifest、资源、assets、测试一起看，`:app` 确实是大杂烩。源代码只是最小的一部分：
 
-符合「装配层」的定义。
+| 方面 | 现状 | 属于谁 |
+|---|---|---|
+| 第三方依赖 | `build.gradle` 声明了约 60 个库。`:app` 自己的代码只用到 multidex、Media3（2 个文件）、Room（只在测试里） | 其余 50 多个是给各 feature 用的：Markwon、flexmark、androidsvg、gif（对话）；CameraX、easycrop、ML Kit、ONNX、OpenCV、storage（拍照）；LiveKit（伴侣）；Cast、mediarouter、nanohttpd（投屏）；PhotoView、LabelsView、ripple、shimmer（旧页面）。还有 navigation、percentlayout、viewpager2、rxjava、webkit 在整个 `:app` 里没有找到使用 |
+| Manifest | 26 个 Activity、1 个 Service、2 个 FileProvider | 24 个 Activity 属于其它模块（用户 6 个、视频 5 个、频道 9 个、拍照 1 个、`:core` 的旧框架 3 个），`PlayService` 属于频道 |
+| assets（约 21 MB） | 文档裁剪模型 13 MB、公式 KaTeX 1.4 MB、字体 5.6 MB、角色 personas、HTML、wav | 模型属于图像处理，KaTeX 属于对话，personas 属于角色，`mybook.css`、`error_page.html` 属于频道。根目录 23 个字体文件、`emoji.db`、`markdown.css`、几个 HTML、一个 wav 在代码里没有找到引用 |
+| 资源 | 去重后还剩 125 个非 values 资源 | 56 个 `:app` 自己用；3 个只有模块用；66 个没有任何引用 |
+| 测试 | 11 个 | 只有 `ChannelsViewModelTest` 测的是 `:app` 的代码。其余是角色解析、伴侣、图像质量、超分分块、数据库的测试，被测代码都在别的模块 |
 
-**问题**
-1. `ConfigActionJump` 和 `LegacyHomeEntries` 直接引用 `:feature-content` 的 9 个 Activity/Fragment 类。`:app` 依赖所有 feature 是正常的，但这张「URL 类型 → 页面类」的表应该由 `:feature-content` 自己提供，`:app` 只负责调用。
-2. 去掉 `AppHooks` 后 `AppHooksImpl` 删除。
+**源代码本身**
+| 文件 | 现在 | 应该在 |
+|---|---|---|
+| `MyApplication`、`LaunchActivity`、`AppEventHandler` | 进程入口、启动页、全局事件 | 留在 `:app` |
+| `HomeActivity`、`HomeScreen`（首页框架和侧边栏） | 首页外壳 | 留在 `:app` |
+| `ChannelsScreen`、`ChannelsViewModel`、`LegacyHomeEntries` 的频道部分 | 频道列表页及其数据 | `:feature-content`：这是频道的入口页，不是外壳 |
+| `ProfileScreen`、`LegacyHomeEntries` 的「我的」部分 | 我的页面 | `:feature-user` |
+| `ConfigActionJump` | URL 类型 → 频道页的表 | `:feature-content` 提供，`:app` 调用 |
+| `ChatRepositoryImpl`（767 行）、`BackendSpeechToText`、`LegacyLoginGate` | 对话的网络实现 | `:feature-chat/data`。它只依赖 `:core` 的网络、数据对象、数据库，`:feature-chat` 都能依赖；唯一和 `:app` 相关的是构造参数类型写成了 `MyApplication`，改成 `Context` 即可 |
+| `RolesRepositoryImpl`、`BundledRoleCatalog` | 角色的实现 | `:feature-chat/roles/data` |
+| `AppHooksImpl` | 端口实现 | 去掉 `AppHooks` 后删除 |
 
-**目标**
+**为什么当初放在 `:app`**：拆模块时为了先编译通过，凡是要用网络、数据库的实现都留在了 `:app`，feature 只放接口。现在 `:core` 和 `:common` 的边界定清楚了，这些实现可以回到各自的 feature。
+
+**拆完后的 `:app`**
 ```
 com.openapi.app
-  App.kt / LaunchActivity       进程入口、启动页
-  di/       各 feature 依赖的注册（原 base/ 的注册部分、data/chat、data/roles 的实现）
-  home/     首页外壳（不变）
-  route/    路由表的汇总（各 feature 提供自己的部分）
+  App（原 MyApplication）    初始化、依赖注册
+  LaunchActivity             启动页（含 MyRadarScanView）
+  AppEventHandler            全局事件
+  home/                      首页框架、侧边栏（HomeActivity、HomeScreen、HomeModels）
+  route/                     汇总各 feature 的路由表
+build.gradle                 只依赖各模块，不直接声明 feature 用的第三方库
+AndroidManifest.xml          只登记 LaunchActivity、HomeActivity；其余由各 feature 自己的 Manifest 声明，构建时合并
+assets/                      只留 :app 自己用的；模型、KaTeX、personas 随模块走
 ```
+约 8 个源文件。
 
----
+**步骤**（插在 module-standard.md 迁移顺序里）
+1. 删除没有引用的 66 个资源、没有引用的 assets 和第三方库。每删一批编译一次。字体文件可能通过拼接的路径加载，先单独核对，不和其它东西一起删。
+2. Manifest 拆分：各 feature 在自己的 `AndroidManifest.xml` 里登记自己的 Activity，`:app` 删掉对应条目。这一步不改代码，只改 Manifest，风险低。
+3. assets 和测试随所属模块移走。
+4. 第三方库移到实际使用的模块（和 module-standard.md 第 5 节一起做）。
+5. 对话、角色的实现移回 `:feature-chat`。
+6. 频道列表页、「我的」页移到 `:feature-content`、`:feature-user`；`ConfigActionJump` 改为由频道提供。
 
 ## 需要你决定的
 
