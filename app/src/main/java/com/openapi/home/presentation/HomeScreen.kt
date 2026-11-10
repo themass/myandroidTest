@@ -7,6 +7,16 @@ import android.app.Activity
 import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
@@ -75,9 +85,14 @@ private enum class HomeTab(@StringRes val label: Int, val icon: ImageVector) {
     Profile(R.string.home_tab_profile, Icons.Filled.Person),
 }
 
+/** 底部导航只有「对话」「陪伴」；频道、我的从侧边栏进入。 */
+private val BottomTabs = listOf(HomeTab.Chat, HomeTab.Companion)
+
 @Composable
 fun HomeScreen() {
     var selected by rememberSaveable { mutableIntStateOf(HomeTab.Chat.ordinal) }
+    // 「我的」：从侧边栏进入，从右边滑入的独立页面，可以右滑关闭
+    var profilePageOpen by rememberSaveable { mutableStateOf(false) }
     val current = HomeTab.entries[selected]
     // 每个标签各自保存 rememberSaveable 状态，切走再切回来输入框里的草稿等不会丢
     val stateHolder = rememberSaveableStateHolder()
@@ -129,10 +144,10 @@ fun HomeScreen() {
                         NavigationDrawerItem(
                             label = { Text(stringResource(tab.label)) },
                             icon = { Icon(tab.icon, contentDescription = null) },
-                            selected = tab == current,
+                            selected = tab == current && !(tab == HomeTab.Profile && profilePageOpen),
                             onClick = {
-                                selected = tab.ordinal
                                 scope.launch { drawerState.close() }
+                                if (tab == HomeTab.Profile) profilePageOpen = true else selected = tab.ordinal
                             },
                             colors = DrawerItemColors,
                             modifier = Modifier.padding(horizontal = 12.dp),
@@ -172,13 +187,14 @@ fun HomeScreen() {
             }
         },
     ) {
+        Box(Modifier.fillMaxSize()) {
         Scaffold(
             bottomBar = {
                 // 对话标签不显示底栏：输入框已经贴底，底栏叠在下面会形成两层操作区、白白占掉一截高度。
                 // 切换标签仍可通过顶部菜单打开的侧边栏完成。其它标签保留底栏。
-                if (!imeVisible && current != HomeTab.Chat) {
+                if (!imeVisible) {
                     NavigationBar {
-                        HomeTab.entries.forEach { tab ->
+                        BottomTabs.forEach { tab ->
                             NavigationBarItem(
                                 selected = tab == current,
                                 onClick = { selected = tab.ordinal },
@@ -212,10 +228,45 @@ fun HomeScreen() {
                         HomeTab.Chat -> ChatRoute(onMenuClick = openDrawer)
                         HomeTab.Companion -> CompanionRoute()
                         HomeTab.Channels -> ChannelsScreen()
-                        HomeTab.Profile -> ProfileScreen()
+                        HomeTab.Profile -> Unit // 「我的」由右侧覆盖页显示
                     }
                 }
             }
+        }
+        // 「我的」：从右边滑入，右滑或返回键关闭
+        AnimatedVisibility(
+            visible = profilePageOpen,
+            enter = slideInHorizontally(initialOffsetX = { it }),
+            exit = slideOutHorizontally(targetOffsetX = { it }),
+        ) {
+            ProfileSlidePage(onClose = { profilePageOpen = false })
+        }
+        }
+    }
+}
+
+/**
+ * 从右边滑入的「我的」页：顶部一条返回栏，内容是 [ProfileScreen]；
+ * 从左边缘往右拖超过一定距离即关闭（和抽屉的关闭手势一致）。
+ */
+@Composable
+private fun ProfileSlidePage(onClose: () -> Unit) {
+    var dragged by remember { mutableFloatStateOf(0f) }
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(AppColors.ChatBackground)
+            .pointerInput(Unit) {
+                detectHorizontalDragGestures(
+                    onDragEnd = { if (dragged > 120f) onClose(); dragged = 0f },
+                    onDragCancel = { dragged = 0f },
+                    onHorizontalDrag = { _, amount -> dragged = (dragged + amount).coerceAtLeast(0f) },
+                )
+            },
+    ) {
+        ProfileScreen()
+        IconButton(onClick = onClose, modifier = Modifier.statusBarsPadding().padding(4.dp)) {
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = AppColors.TextPrimary)
         }
     }
 }
