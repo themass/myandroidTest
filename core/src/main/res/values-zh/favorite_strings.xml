@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="favorite_listener_missing">页面未就绪，请稍后再试</string>
+</resources>

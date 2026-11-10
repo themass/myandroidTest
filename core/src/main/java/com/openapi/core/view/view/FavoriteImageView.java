@@ -8,7 +8,7 @@ import android.util.AttributeSet;
 
 import com.openapi.core.event.FavoriteVo;
 import com.openapi.core.util.FavoriteUtil;
-import com.openapi.core.util.R;
+import com.openapi.core.R;
 
 public class FavoriteImageView extends AppCompatImageView implements FavoriteUtil.GetFavoriteListener, FavoriteUtil.ModFavoriteListener {
     public FavoriteImageView(Context context) {

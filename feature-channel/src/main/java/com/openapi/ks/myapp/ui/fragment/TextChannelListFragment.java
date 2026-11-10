@@ -88,10 +88,10 @@ public class TextChannelListFragment extends BasePullLoadbleFragment<TextItemsVo
     public void onItemLongClick(View view, final TextItemsVo data, int position) {
         FavoriteVo favoriteVo = FavoriteUtil.getFavorite(getActivity(), data.fileUrl);
         int title;
-        int icon = com.openapi.core.util.R.drawable.ic_menu_favorite_ed;
+        int icon = com.openapi.core.R.drawable.ic_menu_favorite_ed;
         if (favoriteVo == null) {
             title = R.string.menu_favorite;
-            icon = com.openapi.core.util.R.drawable.ic_menu_favorite_no;
+            icon = com.openapi.core.R.drawable.ic_menu_favorite_no;
         } else {
             title = R.string.menu_favorite_cancel;
         }

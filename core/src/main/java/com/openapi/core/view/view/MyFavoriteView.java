@@ -20,9 +20,9 @@ import com.openapi.core.view.translation.StreamingSubtitleOverlayPresenter;
 import com.openapi.core.view.translation.TranslationOverlayPresenter;
 import com.openapi.core.view.translation.TranslationOverlaySession;
 import com.openapi.core.util.PackageUtils;
-import com.openapi.core.util.R;
-import com.openapi.core.util.databinding.DialogFavoriteExternalLinesBinding;
-import com.openapi.core.util.databinding.LayoutFavoriteBarBinding;
+import com.openapi.core.R;
+import com.openapi.core.databinding.DialogFavoriteExternalLinesBinding;
+import com.openapi.core.databinding.LayoutFavoriteBarBinding;
 import com.openapi.core.util.SystemUtils;
 import com.openapi.core.util.ToastUtil;
 

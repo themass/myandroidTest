@@ -105,7 +105,7 @@ class LegacyHomeEntries(private val app: Context) : HomeEntries {
         val entries = buildList {
             add(ProfileEntry(ProfileAction.PhotoSolve, R.drawable.ic_menu_photo_solve, R.string.menu_btn_photo_solve))
             add(ProfileEntry(ProfileAction.LocalMusic, R.drawable.ic_menu_fav, R.string.menu_btn_local_music))
-            add(ProfileEntry(ProfileAction.Favorites, com.openapi.core.util.R.drawable.ic_menu_favorite_ed, R.string.menu_btn_favorite))
+            add(ProfileEntry(ProfileAction.Favorites, com.openapi.core.R.drawable.ic_menu_favorite_ed, R.string.menu_btn_favorite))
             add(ProfileEntry(ProfileAction.Feedback, R.drawable.ic_menu_help, R.string.menu_btn_feedback))
             add(ProfileEntry(ProfileAction.Share, com.openapi.core.util.R.drawable.ic_menu_share, R.string.menu_btn_share))
             if (!MyApplication.isTemp) {

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="no_browser">no brower find</string>
+    <string name="volcano_asr_not_configured">Configure Volcano ASR keys in Settings first.</string>
+    <string name="menu_share_copy_ok">Copied OK</string>
+    <string name="favorite_translate">译</string>
+    <string name="favorite_translation_no_session">Translation is not available on this page.</string>
+</resources>
