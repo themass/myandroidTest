@@ -70,17 +70,7 @@ public class PreferenceUtils {
         return settings.getInt(key, defaultValue);
     }
 
-    public static void setPrefFloat(Context context, final String key,
-                                    final float value) {
-        final SharedPreferences settings = context.getSharedPreferences("app_preferences", Context.MODE_PRIVATE);
-        settings.edit().putFloat(key, value).apply();
-    }
 
-    public static float getPrefFloat(Context context, final String key,
-                                     final float defaultValue) {
-        final SharedPreferences settings = context.getSharedPreferences("app_preferences", Context.MODE_PRIVATE);
-        return settings.getFloat(key, defaultValue);
-    }
 
     public static void setSettingLong(Context context, final String key,
                                       final long value) {
@@ -94,12 +84,6 @@ public class PreferenceUtils {
         return settings.getLong(key, defaultValue);
     }
 
-    public static void clearPreference(Context context,
-                                       final SharedPreferences p) {
-        final Editor editor = p.edit();
-        editor.clear();
-        editor.apply();
-    }
 
     public static void remove(Context context, final String key) {
         final SharedPreferences settings = context.getSharedPreferences("app_preferences", Context.MODE_PRIVATE);

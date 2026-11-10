@@ -29,14 +29,6 @@ public class GsonUtils {
         return null;
     }
 
-    public static <T> T getObj(String json, Class<T> clasz) {
-        try {
-            return gson.fromJson(json, clasz);
-        } catch (Exception e) {
-            LogUtil.e(e);
-        }
-        return null;
-    }
 
     public static Map<String, Object> getMap(String json) {
         return getMap(new Gson(), json);
@@ -53,16 +45,6 @@ public class GsonUtils {
         return null;
     }
 
-    public static List<Map<String, Object>> getMapList(Gson gson, String json) {
-        try {
-            TypeToken<List<Map<String, Object>>> typeToken = new TypeToken<List<Map<String, Object>>>() {
-            };
-            return (List<Map<String, Object>>) (gson.fromJson(json, typeToken.getType()));
-        } catch (Exception ignored) {
-
-        }
-        return null;
-    }
 
     public static Gson getInstance() {
         return gson;

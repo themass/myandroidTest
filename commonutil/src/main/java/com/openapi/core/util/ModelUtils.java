@@ -21,111 +21,7 @@ import java.util.Map;
 @SuppressWarnings("unchecked")
 public class ModelUtils {
 
-    /**
-     * 将cursor数据转为 列表数据,除了_id,其它数据类型只能是String <br/>
-     * 本方法不会关闭cursor,请在使用完成后注意关闭cursor
-     *
-     * @param cursor
-     * @param nameAlias 返回列表中map key值，可以为空
-     * @return
-     */
-    public static List<Map<String, Object>> cursor2MapList(Cursor cursor, String[] nameAlias) {
-        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
 
-        String[] columnNames = cursor == null ? null : cursor.getColumnNames();
-        final int count = columnNames == null ? 0 : columnNames.length;
-
-        if (count == 0) {
-            return list;
-        }
-        final int[] indexs = new int[count];
-        final String[] keys = new String[count];
-        for (int i = 0; i < count; i++) {
-            indexs[i] = cursor.getColumnIndexOrThrow(columnNames[i]);
-            keys[i] = nameAlias == null || TextUtils.isEmpty(nameAlias[i]) ? columnNames[i] : nameAlias[i];
-        }
-
-        if (!cursor.moveToFirst()) {
-            return list;
-        }
-
-        do {
-            Map<String, Object> item = new HashMap<String, Object>();
-            for (int i = 0; i < count; i++) {
-                String name = columnNames[i];
-                String key = keys[i];
-                if (BaseColumns._ID.equals(name)) {
-                    item.put(key, cursor.getLong(indexs[i]));
-                } else {
-                    item.put(key, cursor.getString(indexs[i]));
-                }
-            }
-
-            list.add(item);
-        } while (cursor.moveToNext());
-
-        return list;
-    }
-
-    /**
-     * 将cursor数据转为 列表数据,除了_id,其它数据类型只能是String <br/>
-     * 本方法不会关闭cursor,请在使用完成后注意关闭cursor
-     *
-     * @param cursor
-     * @param nameAlias 返回列表中map key值，可以为空
-     * @param keyName   要排重的列名
-     * @return
-     */
-    public static List<Map<String, Object>> cursor2MapListWithoutDuplicatedByKey(Cursor cursor, String[] nameAlias,
-                                                                                 String keyName) {
-        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
-        StringBuilder sb = new StringBuilder();
-        boolean duplicatedFlag = false;
-
-        String[] columnNames = cursor == null ? null : cursor.getColumnNames();
-        final int count = columnNames == null ? 0 : columnNames.length;
-
-        if (count == 0) {
-            return list;
-        }
-        final int[] indexs = new int[count];
-        final String[] keys = new String[count];
-        for (int i = 0; i < count; i++) {
-            indexs[i] = cursor.getColumnIndexOrThrow(columnNames[i]);
-            keys[i] = nameAlias == null || TextUtils.isEmpty(nameAlias[i]) ? columnNames[i] : nameAlias[i];
-        }
-
-        if (!cursor.moveToFirst()) {
-            return list;
-        }
-
-        do {
-            Map<String, Object> item = new HashMap<String, Object>();
-            for (int i = 0; i < count; i++) {
-                String name = columnNames[i];
-                String key = keys[i];
-                if (Columns._ID.equals(name)) {
-                    item.put(key, cursor.getLong(indexs[i]));
-                } else {
-                    String value = cursor.getString(indexs[i]);
-                    if (name.equals(keyName)) {
-                        if (sb.indexOf(value) != -1) {
-                            duplicatedFlag = true;
-                            break;
-                        }
-                        sb.append(value + ",");
-                    }
-                    item.put(key, value);
-                }
-            }
-            if (!duplicatedFlag) {
-                list.add(item);
-            }
-            duplicatedFlag = false;
-        } while (cursor.moveToNext());
-
-        return list;
-    }
 
     /**
      * map 转 json
@@ -175,27 +71,6 @@ public class ModelUtils {
         return json;
     }
 
-    /**
-     * List<Map<String, Object> 转 JSONArray
-     *
-     * @param list
-     * @return
-     */
-    public static JSONArray ListMap2JSONArray(List<Map<String, Object>> list) {
-        JSONArray array = new JSONArray();
-        if (list == null || list.isEmpty()) {
-            return array;
-        }
-
-        int size = list.size();
-        for (int i = 0; i < size; i++) {
-            JSONObject json = map2Json(list.get(i));
-            if (json != null) {
-                array.put(json);
-            }
-        }
-        return array;
-    }
 
     /**
      * json 转 map
@@ -256,54 +131,6 @@ public class ModelUtils {
         return map;
     }
 
-    /**
-     * Map 转 ContentValues
-     *
-     * @param map
-     * @return
-     */
-    public static ContentValues map2ContentValues(Map<String, Object> map) {
-        ContentValues values = new ContentValues();
-        if (map != null) {
-            Iterator<String> iterator = map.keySet().iterator();
-            while (iterator.hasNext()) {
-                try {
-                    String key = iterator.next();
-
-                    if (map.containsKey(key)) {
-
-                        Object o = map.get(key);
-                        if (o == null) {
-                            continue;
-                        }
-
-                        if (o instanceof String) {
-                            values.put(key, (String) o);
-                        } else if (o instanceof Integer) {
-                            values.put(key, (Integer) o);
-                        } else if (o instanceof Float) {
-                            values.put(key, (Float) o);
-                        } else if (o instanceof Boolean) {
-                            values.put(key, (Boolean) o);
-                        } else if (o instanceof Long) {
-                            values.put(key, (Long) o);
-                        } else if (o instanceof Short) {
-                            values.put(key, (Short) o);
-                        } else if (o instanceof Byte) {
-                            values.put(key, (Byte) o);
-                        } else if (o instanceof Double) {
-                            values.put(key, (Double) o);
-                        } else if (o instanceof byte[]) {
-                            values.put(key, (byte[]) o);
-                        }
-                    }
-                } catch (Exception e) {
-                    LogUtil.e(e);
-                }
-            }
-        }
-        return values;
-    }
 
     /**
      * 返回map中值<br/>
@@ -323,85 +150,10 @@ public class ModelUtils {
         return o;
     }
 
-    /**
-     * 返回int
-     *
-     * @param map
-     * @param key
-     * @param defaultValue
-     * @return
-     */
-    public static int getIntValue(Map<String, Object> map, String key, int defaultValue) {
-        Object o = getValue(map, key);
-        if (o != null && o instanceof Number) {
-            return ((Number) o).intValue();
-        }
-        return defaultValue;
-    }
 
-    /**
-     * 返回long
-     *
-     * @param map
-     * @param key
-     * @param defaultValue
-     * @return
-     */
-    public static long getLongValue(Map<String, Object> map, String key, long defaultValue) {
-        Object o = getValue(map, key);
-        if (o != null && o instanceof Number) {
-            return ((Number) o).longValue();
-        }
-        return defaultValue;
-    }
 
-    /**
-     * 返回float
-     *
-     * @param map
-     * @param key
-     * @param defaultValue
-     * @return
-     */
-    public static float getFloatValue(Map<String, Object> map, String key, float defaultValue) {
-        Object o = getValue(map, key);
-        if (o != null && o instanceof Number) {
-            return ((Number) o).floatValue();
-        }
-        return defaultValue;
-    }
 
-    /**
-     * 返回double
-     *
-     * @param map
-     * @param key
-     * @param defaultValue
-     * @return
-     */
-    public static double getDoubleValue(Map<String, Object> map, String key, double defaultValue) {
-        Object o = getValue(map, key);
-        if (o != null && o instanceof Number) {
-            return ((Number) o).doubleValue();
-        }
-        return defaultValue;
-    }
 
-    /**
-     * 返回boolean
-     *
-     * @param map
-     * @param key
-     * @param defaultValue
-     * @return
-     */
-    public static boolean getBooleanValue(Map<String, Object> map, String key, boolean defaultValue) {
-        Object o = getValue(map, key);
-        if (o != null && o instanceof Boolean) {
-            return ((Boolean) o).booleanValue();
-        }
-        return defaultValue;
-    }
 
     /**
      * 返回String
@@ -433,64 +185,9 @@ public class ModelUtils {
         return defaultValue;
     }
 
-    /**
-     * 返回Map<String, Object>,注意如果非Map<String, Object>会报错
-     *
-     * @param map
-     * @param key
-     * @return
-     */
-    public static Map<String, Object> getMapValue(Map<String, Object> map, String key) {
-        Object o = getValue(map, key);
-        if (o != null && o instanceof Map<?, ?>) {
-            return (Map<String, Object>) o;
-        }
-        return null;
-    }
 
-    /**
-     * 返回List<Object>,
-     *
-     * @param map
-     * @param key
-     * @return
-     */
-    public static List<Object> getListValue(Map<String, Object> map, String key) {
-        Object o = getValue(map, key);
-        if (o != null && o instanceof List<?>) {
-            return (List<Object>) o;
-        }
-        return null;
-    }
 
-    /**
-     * 返回List<Map<String, Object>>,注意如果非List<Map<String, Object>>会报错
-     *
-     * @param map
-     * @param key
-     * @return
-     */
-    public static List<Map<String, Object>> getListMapValue(Map<String, Object> map, String key) {
-        Object o = getValue(map, key);
-        if (o != null && o instanceof List<?>) {
-            return (List<Map<String, Object>>) o;
-        }
-        return null;
-    }
 
-    /**
-     * 设置map值
-     *
-     * @param map
-     * @param key
-     * @param value
-     */
-    public static void putMapValue(Map<String, Object> map, String key, Object value) {
-        if (map == null || TextUtils.isEmpty(key)) {
-            return;
-        }
-        map.put(key, value);
-    }
 
     public static <T> T json2Entry(String json, Class<T> t) {
         Gson gson = new Gson();

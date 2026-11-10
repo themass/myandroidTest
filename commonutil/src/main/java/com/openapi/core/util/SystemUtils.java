@@ -30,52 +30,7 @@ public class SystemUtils {
     public static final String LANG_ZH = "zh";
 
 
-    /**
-     * 获取手机屏幕高度
-     *
-     * @param context
-     * @return
-     */
 
-    public static int getDisplayHeight(Context context) {
-        WindowManager wm = (WindowManager) context
-                .getSystemService(Context.WINDOW_SERVICE);
-        
-        // 使用现代API (API 30+)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            return wm.getCurrentWindowMetrics().getBounds().height();
-        } else {
-            // 兼容旧版本
-            DisplayMetrics dm = new DisplayMetrics();
-            @SuppressWarnings("deprecation")
-            Display display = wm.getDefaultDisplay();
-            display.getMetrics(dm);
-            return dm.heightPixels;
-        }
-    }
-
-    /**
-     * 获取手机屏幕宽度
-     *
-     * @param context
-     * @return
-     */
-    public static int getDisplayWidth(Context context) {
-        WindowManager wm = (WindowManager) context
-                .getSystemService(Context.WINDOW_SERVICE);
-        
-        // 使用现代API (API 30+)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            return wm.getCurrentWindowMetrics().getBounds().width();
-        } else {
-            // 兼容旧版本
-            DisplayMetrics dm = new DisplayMetrics();
-            @SuppressWarnings("deprecation")
-            Display display = wm.getDefaultDisplay();
-            display.getMetrics(dm);
-            return dm.widthPixels;
-        }
-    }
 
 
     public static String getAndroidId(Context context) {
@@ -92,9 +47,6 @@ public class SystemUtils {
         return false;
     }
 
-    public static boolean isZH(Context context) {
-        return LANG_ZH.equals(getLang(context));
-    }
 
     public static String getLang(Context context) {
         Locale locale;
@@ -105,10 +57,6 @@ public class SystemUtils {
             locale = context.getResources().getConfiguration().getLocales().get(0);
         }
         LogUtil.i("getLang", locale.getLanguage());
-        return locale.getLanguage();
-    }
-    public static String getUserLang(Context context) {
-        Locale locale = context.getResources().getConfiguration().getLocales().get(0);
         return locale.getLanguage();
     }
 

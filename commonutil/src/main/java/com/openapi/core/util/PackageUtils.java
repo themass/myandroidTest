@@ -22,37 +22,7 @@ import java.util.List;
 @SuppressWarnings("deprecation")
 public class PackageUtils {
 
-    /**
-     * 检测包是否安装
-     *
-     * @param ct
-     * @param packName
-     * @return
-     */
-    public static boolean isPackageInstalled(Context ct, String packName) {
-        return getAppInfo(ct, packName) != null;
-    }
 
-    /**
-     * 安装apk包
-     *
-     * @param context
-     * @param apkfile
-     */
-    public static void installApk(Context context, File apkfile) {
-        if (apkfile != null && apkfile.exists()) {
-            // 通过Intent安装APK文件
-            try {
-                Intent i = new Intent(Intent.ACTION_VIEW);
-                i.setDataAndType(Uri.fromFile(apkfile),
-                        "application/vnd.android.package-archive");
-                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                context.startActivity(i);
-            } catch (Exception e) {
-                LogUtil.e(e);
-            }
-        }
-    }
 
     /**
      * 返回应用版本号

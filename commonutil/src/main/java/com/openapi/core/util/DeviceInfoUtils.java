@@ -86,46 +86,6 @@ public class DeviceInfoUtils {
         return UUID.randomUUID().toString();
     }
 
-    /**
-     * 从apk中获取版本信息
-     */
-    public static String getChannelFromApk(Context context, String channelKey) {
-        //从apk包中获取
-        ApplicationInfo appinfo = context.getApplicationInfo();
-        String sourceDir = appinfo.sourceDir;
-        //默认放在meta-inf/里， 所以需要再拼接一下
-        String key = "META-INF/" + channelKey;
-        String ret = "";
-        ZipFile zipfile = null;
-        try {
-            zipfile = new ZipFile(sourceDir);
-            Enumeration<?> entries = zipfile.entries();
-            while (entries.hasMoreElements()) {
-                ZipEntry entry = ((ZipEntry) entries.nextElement());
-                String entryName = entry.getName();
-                if (entryName.startsWith(key)) {
-                    ret = entryName;
-                    break;
-                }
-            }
-        } catch (IOException e) {
-            LogUtil.e(e);
-        } finally {
-            if (zipfile != null) {
-                try {
-                    zipfile.close();
-                } catch (IOException e) {
-                    LogUtil.e(e);
-                }
-            }
-        }
-        String[] split = ret.split("_");
-        String channel = "";
-        if (split.length >= 2) {
-            channel = ret.substring(split[0].length() + 1);
-        }
-        return channel;
-    }
 
     public static String getMetaData(Context context, String name) {
         try {

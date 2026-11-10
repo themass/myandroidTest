@@ -11,9 +11,6 @@ import java.util.Map;
  * Created by openapi on 2016/8/14.
  */
 public class BeanUtil {
-    public static Map convertBean(Object bean) {
-        return GsonUtils.getMap(GsonUtils.getInstance().toJson(bean));
-    }
 
     public static Map<String, String> transBean2Map(Object obj) {
         Map<String, String> map = new LinkedHashMap<String, String>();

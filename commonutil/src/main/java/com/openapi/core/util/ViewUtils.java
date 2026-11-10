@@ -51,15 +51,5 @@ public class ViewUtils {
         }
     }
 
-    public static void goneView(View _view) {
-        if (_view != null && _view.getVisibility() != View.GONE) {
-            _view.setVisibility(View.GONE);
-        }
-    }
 
-    public static void viewVisuble(View _view) {
-        if (_view != null && _view.getVisibility() != View.VISIBLE) {
-            _view.setVisibility(View.VISIBLE);
-        }
-    }
 }

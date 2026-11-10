@@ -83,13 +83,6 @@ public class AES2 {
         return result;
     }
 
-    /**
-     * 加密
-     */
-    public static String encode(String content, String key) {
-        // 加密之后的字节数组,转成16进制的字符串形式输出
-        return parseByte2HexStr(encrypt(content, key));
-    }
 
     /**
      * 解密
