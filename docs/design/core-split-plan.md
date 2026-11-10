@@ -1,7 +1,7 @@
 # `:core` 拆分计划（草案，待确认）
 
 基于 `weifu-refactor` 的 `debdf79f`。`:core` 现有 130 个源文件。
-前提：采用 `module-standard.md` 讨论后的修正——`:media` 只含 `speech/`、`imaging/`；`:feature-video`、`:feature-channel` 不合并。
+前提：按 `module-standard.md` 第 4 版——`:media` 含 `speech/`、`subtitle/`、`imaging/`、`viewer/`；`:feature-video`、`:feature-channel` 不合并。
 
 ## 1. 拆完后 `:core` 是什么
 
