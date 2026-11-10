@@ -397,6 +397,8 @@
 
 整理后 `core.util` 从约 5,200 行减到约 1,500 行。每个类整理完单独提交，编译确认没有遗漏的调用。
 
+**进度（2026-11-11）**：除权限外已完成。`ObjectUtils` 只留 `isEmpty`、`nullSafeEquals`（122 行）；`StringUtils` 留 `hasText`、`isEmpty`；`FileUtils` 留 5 个在用的方法；`ModelUtils` 删除，`json2Entry`/`entry2Json` 并入 `GsonUtils`（`f95beaa8`）。`widget/util/FileUtils`、`ShareUtil`、`DensityUtil`/`DisplayUtil`/`Utils` 已在之前的提交里删除。`:commonutil` 的 `util` 包现在 2,370 行，剩下的大头是权限类（`PermissionHelper` 等，属于 5.10，搁置中）。仅编译验证。
+
 ### 5.7 `VersionUpdater`（332 行）→ 重构
 
 检查更新、下载、两种弹窗、发 `StateUseEvent` 和 `VipDescEvent` 混在一起。拆成「检查版本」（挂起函数，返回结果）和「更新弹窗」（UI），版本里带的状态和 VIP 说明改为写进 `:core/account`。
