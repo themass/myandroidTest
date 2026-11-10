@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.provider.OpenableColumns
 import com.aimath.paizhao.photosolve.ImageUtils
+import com.openapi.core.image.ImageCompressor
 import com.aimath.paizhao.photosolve.image.FormatPolicy
 import com.aimath.paizhao.photosolve.image.ImageUploadEncoder
 import com.aimath.paizhao.photosolve.quality.QualityIssue
@@ -71,13 +72,10 @@ object AttachmentStager {
 
     private fun stageImage(context: Context, uri: Uri, dir: File, stamp: Long): StageOutcome {
         val decoded = ImageUtils.decodeUriApplyingExifOrientation(context, uri) ?: return StageOutcome.Failed
-        val scaled = scaleToLongEdge(decoded, MAX_IMAGE_EDGE_PX)
-        val encoded = ImageUploadEncoder.encode(scaled, FormatPolicy.WEBP)
-        if (encoded.bytes.size > MAX_IMAGE_BYTES) {
-            return StageOutcome.Rejected("图片压缩后仍超过 5 MB，请换一张小一些的图片")
-        }
-        val file = File(dir, "img_$stamp.${encoded.format.name.lowercase()}")
-        file.writeBytes(encoded.bytes)
+        // 统一压缩：长边 1600、JPEG 质量 82、800 KB 以内（见 ImageCompressor）
+        val result = ImageCompressor.compress(decoded)
+        val file = File(dir, "img_$stamp.jpg")
+        file.writeBytes(result.bytes)
         return StageOutcome.Staged(StagedAttachment(file = file, displayName = file.name, sizeBytes = file.length()))
     }
 
@@ -127,6 +125,16 @@ object AttachmentStager {
     }
 
     private fun stageFile(context: Context, uri: Uri, dir: File, stamp: Long): StageOutcome {
+        // 「文件」里选中的图片也要压缩，不能原样上传（否则和相册发出的图片大小差很多）
+        if (context.contentResolver.getType(uri)?.startsWith("image/") == true) {
+            val decoded = ImageUtils.decodeUriApplyingExifOrientation(context, uri)
+            if (decoded != null) {
+                val result = ImageCompressor.compress(decoded)
+                val file = File(dir, "file_${stamp}_image.jpg")
+                file.writeBytes(result.bytes)
+                return StageOutcome.Staged(StagedAttachment(file = file, displayName = file.name, sizeBytes = file.length()))
+            }
+        }
         val (name, size) = displayNameAndSize(context, uri)
         if (size != null && size > MAX_FILE_BYTES) {
             return StageOutcome.Rejected("文件超过 20 MB，无法发送")
