@@ -7,7 +7,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
-import com.openapi.core.util.DensityUtil;
+import com.openapi.core.util.ScreenSize;
 import com.openapi.core.util.LogUtil;
 import com.openapi.feature.chat.R;
 import com.openapi.ks.myapp.view.katexplugin.MyJLatexMathPlugin;
@@ -52,10 +52,10 @@ public final class ChatMarkwon {
                     builder.blocksEnabled(false);
                     com.openapi.ks.myapp.view.katexplugin.JLatexMathTheme.Padding padding =
                             new com.openapi.ks.myapp.view.katexplugin.JLatexMathTheme.Padding(
-                                    DensityUtil.dip2px(ctx, 3),
-                                    DensityUtil.dip2px(ctx, 3),
-                                    DensityUtil.dip2px(ctx, 5),
-                                    DensityUtil.dip2px(ctx, 5));
+                                    ScreenSize.dp2px(ctx, 3),
+                                    ScreenSize.dp2px(ctx, 3),
+                                    ScreenSize.dp2px(ctx, 5),
+                                    ScreenSize.dp2px(ctx, 5));
                     builder.theme()
                             .backgroundProvider(new com.openapi.ks.myapp.view.katexplugin.JLatexMathTheme.BackgroundProvider() {
                                 @NonNull
@@ -79,10 +79,10 @@ public final class ChatMarkwon {
                     builder.inlinesEnabled(true);
                     builder.blocksEnabled(true);
                     JLatexMathTheme.Padding padding = new JLatexMathTheme.Padding(
-                            DensityUtil.dip2px(ctx, 3),
-                            DensityUtil.dip2px(ctx, 3),
-                            DensityUtil.dip2px(ctx, 5),
-                            DensityUtil.dip2px(ctx, 5));
+                            ScreenSize.dp2px(ctx, 3),
+                            ScreenSize.dp2px(ctx, 3),
+                            ScreenSize.dp2px(ctx, 5),
+                            ScreenSize.dp2px(ctx, 5));
                     builder.theme()
                             .backgroundProvider(new JLatexMathTheme.BackgroundProvider() {
                                 @NonNull

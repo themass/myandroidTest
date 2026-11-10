@@ -11,7 +11,7 @@ import com.openapi.core.app.AppHooks;
 import com.openapi.core.media.AudioPlayer;
 import com.openapi.core.util.StaticDataUtil;
 import com.openapi.core.util.ToastUtil;
-import com.openapi.core.util.DensityUtil;
+import com.openapi.core.util.ScreenSize;
 import com.openapi.core.util.FileUtils;
 import com.openapi.core.util.LogUtil;
 import com.openapi.core.util.SystemUtils;
@@ -106,7 +106,7 @@ public class MyApplication extends MultiDexApplication {
 
         if (MyApplication.isDebug) {
             Constants.initUserAgent(Constants.AGENT_APP_MYPOOL);
-            DensityUtil.logDensity(this);
+            ScreenSize.logDensity(this);
             isTemp = false;
         }
         long cost = System.currentTimeMillis() - start;

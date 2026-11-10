@@ -11,7 +11,7 @@ import android.view.animation.Interpolator;
 
 import com.openapi.core.view.touchhelper.ItemTouchHelperAdapter;
 import com.openapi.core.view.touchhelper.OnStartDragListener;
-import com.openapi.core.util.Utils;
+import com.openapi.core.util.ScreenSize;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,7 +35,7 @@ public abstract class BasePhotoFlowRecycleViewAdapter<M, T extends BasePhotoFlow
         this.context = context;
         this.mDragStartListener = dragStartListener;
         this.mOnItemClickListener = onItemClickListener;
-        this.cellSize = Utils.getScreenWidth(context) / 2;
+        this.cellSize = ScreenSize.width(context) / 2;
         if (data != null) {
             this.data = data;
         } else {

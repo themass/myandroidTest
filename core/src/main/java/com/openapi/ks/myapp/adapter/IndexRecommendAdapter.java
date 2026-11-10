@@ -22,7 +22,7 @@ import com.openapi.core.util.VersionCompare;
 // 使用现代 Shimmer 替代
 import com.facebook.shimmer.ShimmerFrameLayout;
 import com.openapi.core.view.touchhelper.OnStartDragListener;
-import com.openapi.core.util.DensityUtil;
+import com.openapi.core.util.ScreenSize;
 import com.openapi.core.util.PreferenceUtils;
 import com.openapi.core.util.StringUtils;
 import com.openapi.core.util.ToastUtil;
@@ -64,7 +64,7 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
         this.showEdit = showEdit;
         this.layoutManager = layoutManager;
         this.mOnEditClickListener = onEditClickListener;
-        int screenW = DensityUtil.getDensityDisplayMetrics(context).widthPixels;
+        int screenW = ScreenSize.metrics(context).widthPixels;
         if (layoutManager instanceof StaggeredGridLayoutManager) {
             itemWidth = screenW / ((StaggeredGridLayoutManager) layoutManager).getSpanCount();
         } else if (layoutManager instanceof GridLayoutManager) {
@@ -82,11 +82,11 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
     private int computeImageWidth(int position) {
         int rw = recyclerView.getWidth();
         if (rw <= 0) {
-            rw = DensityUtil.getDensityDisplayMetrics(context).widthPixels;
+            rw = ScreenSize.metrics(context).widthPixels;
         }
         rw -= recyclerView.getPaddingLeft() + recyclerView.getPaddingRight();
         if (rw <= 0) {
-            rw = DensityUtil.getDensityDisplayMetrics(context).widthPixels;
+            rw = ScreenSize.metrics(context).widthPixels;
         }
         if (layoutManager instanceof GridLayoutManager) {
             GridLayoutManager glm = (GridLayoutManager) layoutManager;

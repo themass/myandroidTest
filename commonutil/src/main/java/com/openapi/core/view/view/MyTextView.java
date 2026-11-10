@@ -12,7 +12,7 @@ import android.text.Layout;
 import android.util.AttributeSet;
 import android.widget.TextView;
 
-import com.openapi.core.util.DensityUtil;
+import com.openapi.core.util.ScreenSize;
 import com.openapi.core.util.Tools;
 
 /**
@@ -49,7 +49,7 @@ public class MyTextView extends AppCompatTextView {
 
     public void setText(CharSequence text, TextView.BufferType type) {
         super.setText(text, type);
-        Tools.setTextViewLineExtra(this, DensityUtil.dip2px(getContext(), 5), 1);
+        Tools.setTextViewLineExtra(this, ScreenSize.dp2px(getContext(), 5), 1);
     }
 
     public int getLineNum(int h) {
