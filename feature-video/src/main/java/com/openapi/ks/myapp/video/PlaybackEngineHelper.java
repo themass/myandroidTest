@@ -3,8 +3,8 @@ package com.openapi.ks.myapp.video;
 import android.content.Context;
 
 import com.openapi.core.util.LogUtil;
+import com.openapi.ks.myapp.video.PlaybackEnginePrefs;
 import com.openapi.core.util.PreferenceUtils;
-import com.openapi.feature.video.R;
 import com.openapi.ks.myapp.constant.Constants;
 import com.shuyu.gsyvideoplayer.cache.CacheFactory;
 import com.shuyu.gsyvideoplayer.cache.ProxyCacheManager;
@@ -23,48 +23,23 @@ import tv.danmaku.ijk.media.exo2.ExoPlayerCacheManager;
  */
 public final class PlaybackEngineHelper {
 
-    public static final int ENGINE_EXO = 0;
+    public static final int ENGINE_EXO = PlaybackEnginePrefs.ENGINE_EXO;
     /** IJK + {@code gsyvideoplayer-ex_so} 带来的扩展解码/协议能力 */
-    public static final int ENGINE_IJK_FFMPEG = 1;
-    public static final int ENGINE_ALI = 2;
+    public static final int ENGINE_IJK_FFMPEG = PlaybackEnginePrefs.ENGINE_IJK_FFMPEG;
+    public static final int ENGINE_ALI = PlaybackEnginePrefs.ENGINE_ALI;
     /** 系统 {@link android.media.MediaPlayer}，格式支持最少、依赖最小 */
-    public static final int ENGINE_SYSTEM = 3;
-    /** 已移除 LibVLC；保留常量供旧偏好迁移 */
-    private static final int LEGACY_ENGINE_VLC = 4;
+    public static final int ENGINE_SYSTEM = PlaybackEnginePrefs.ENGINE_SYSTEM;
 
-    private static volatile boolean legacyMigrated;
 
     private PlaybackEngineHelper() {
     }
 
     public static void migrateLegacyIfNeeded(Context context) {
-        if (legacyMigrated) {
-            return;
-        }
-        synchronized (PlaybackEngineHelper.class) {
-            if (legacyMigrated) {
-                return;
-            }
-            if (!PreferenceUtils.hasKey(context, Constants.PLAYBACK_ENGINE)) {
-                boolean oldIjk = PreferenceUtils.getPrefBoolean(context, Constants.PLAYCORE_SWITCH, false);
-                setEngine(context, oldIjk ? ENGINE_IJK_FFMPEG : ENGINE_EXO);
-            } else {
-                int saved = PreferenceUtils.getPrefInt(context, Constants.PLAYBACK_ENGINE, ENGINE_EXO);
-                if (saved == LEGACY_ENGINE_VLC) {
-                    setEngine(context, ENGINE_EXO);
-                }
-            }
-            legacyMigrated = true;
-        }
+        PlaybackEnginePrefs.migrateLegacyIfNeeded(context);
     }
 
     public static int getEngine(Context context) {
-        migrateLegacyIfNeeded(context);
-        int v = PreferenceUtils.getPrefInt(context, Constants.PLAYBACK_ENGINE, ENGINE_EXO);
-        if (v < ENGINE_EXO || v > ENGINE_SYSTEM) {
-            return ENGINE_EXO;
-        }
-        return v;
+        return PlaybackEnginePrefs.getEngine(context);
     }
 
     /**
@@ -124,12 +99,7 @@ public final class PlaybackEngineHelper {
     }
 
     public static void setEngine(Context context, int engine) {
-        int e = engine;
-        if (e < ENGINE_EXO || e > ENGINE_SYSTEM) {
-            e = ENGINE_EXO;
-        }
-        PreferenceUtils.setPrefInt(context, Constants.PLAYBACK_ENGINE, e);
-        PreferenceUtils.setPrefBoolean(context, Constants.PLAYCORE_SWITCH, e == ENGINE_IJK_FFMPEG);
+        PlaybackEnginePrefs.setEngine(context, engine);
     }
 
     /**
@@ -142,10 +112,6 @@ public final class PlaybackEngineHelper {
     }
 
     public static String engineLabel(Context context, int engine) {
-        String[] names = context.getResources().getStringArray(R.array.playback_engine_names);
-        if (engine >= 0 && engine < names.length) {
-            return names[engine];
-        }
-        return names[0];
+        return PlaybackEnginePrefs.engineLabel(context, engine);
     }
 }

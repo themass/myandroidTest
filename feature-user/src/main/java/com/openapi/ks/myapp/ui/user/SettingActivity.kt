@@ -58,7 +58,7 @@ import com.openapi.ks.myapp.data.config.PlayCoreEvent
 import com.openapi.ks.myapp.data.config.TabChangeEvent
 import com.openapi.ks.myapp.ui.base.app.BaseSingleActivity
 import com.openapi.ks.myapp.ui.fragment.SettingCharacterFragment
-import com.openapi.ks.myapp.video.PlaybackEngineHelper
+import com.openapi.ks.myapp.video.PlaybackEnginePrefs
 import com.openapi.core.design.theme.AppMaterialTheme
 
 /**
@@ -174,7 +174,7 @@ private fun SettingScreen(
     var musicUiAuxio by remember { mutableStateOf(PreferenceUtils.getPrefBoolean(context, Constants.MUSIC_UI_AUXIO_STYLE, false)) }
     var picShow by remember { mutableStateOf(PreferenceUtils.getPrefBoolean(context, Constants.VIDEO_PIC_SWITCH, true)) }
     var tts by remember { mutableStateOf(PreferenceUtils.getPrefBoolean(app, CommonConstants.TTS_OPEN, false)) }
-    var engine by remember { mutableStateOf(PlaybackEngineHelper.getEngine(context)) }
+    var engine by remember { mutableStateOf(PlaybackEnginePrefs.getEngine(context)) }
     var engineMenuOpen by remember { mutableStateOf(false) }
     val engineNames = stringArrayResource(R.array.playback_engine_names)
 
@@ -210,12 +210,12 @@ private fun SettingScreen(
                                     engineMenuOpen = false
                                     if (index == engine) return@DropdownMenuItem
                                     engine = index
-                                    PlaybackEngineHelper.setEngine(context, index)
+                                    PlaybackEnginePrefs.setEngine(context, index)
                                     LogUtil.i("PLAYBACK_ENGINE: $index")
                                     ToastUtil.showShort(
                                         context.getString(
                                             R.string.playback_engine_toast_fmt,
-                                            PlaybackEngineHelper.engineLabel(context, index),
+                                            PlaybackEnginePrefs.engineLabel(context, index),
                                         ),
                                     )
                                     EventBusUtil.getEventBus().post(PlayCoreEvent())
