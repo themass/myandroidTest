@@ -274,6 +274,8 @@
 | `home/presentation` 的频道列表、`LegacyHomeEntries` 的频道部分、`ConfigActionJump` | 移 `:feature-content`（`ConfigActionJump` 由频道提供路由表） | 8 |
 | `ProfileScreen`、`LegacyHomeEntries` 的「我的」部分 | 移 `:feature-user` | 8 |
 | `AppHooksImpl` | 删 | 8 |
+
+**进度（2026-11-11）**：`AppHooks` 和 `AppHooksImpl` 已删除（`3be787a5`）。`isVip` 直接调 `UserLoginUtil`；设置页和全局搜索改用 `Routes`（按类名打开，`CommonFragmentActivity` 新增 `FRAGMENT_NAME`）；`openLogin` 没有调用方，删除。`AppDatabaseTest` 里两个针对已删除的本地默认会话的测试改为一个测试，这同时修复了 app 单元测试编译失败（这个问题在本次会话之前就存在，来自 `0aca92a5`）。阶段 8 还剩：频道列表和「我的」移出、`LegacyHomeEntries` 拆分、`LaunchActivity` 转 Kotlin。
 | 启动页 `LaunchActivity` | 留。Java、带 ButterKnife 的空方法 `unbindButterViews`，顺手转 Kotlin | 8 |
 
 ---
