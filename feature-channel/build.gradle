@@ -59,6 +59,8 @@ dependencies {
     implementation project(':core')
     implementation project(':feature-user')
     implementation project(':feature-video')
+    // 字幕翻译框架（原在 :commonutil）
+    implementation project(':media')
     implementation libs.google.material
 
     implementation platform(libs.androidx.compose.bom)

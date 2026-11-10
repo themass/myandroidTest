@@ -15,7 +15,7 @@ import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-import com.openapi.core.util.R;
+import com.openapi.media.R;
 
 /**
  * 盖在视频或音乐播放区域上的字幕条；按住顶部标题区域可拖动整体位置。

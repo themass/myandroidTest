@@ -6,7 +6,7 @@ import androidx.annotation.Nullable;
 
 import com.openapi.core.util.LogUtil;
 import com.openapi.core.util.ToastUtil;
-import com.openapi.core.util.R;
+import com.openapi.media.R;
 import com.openapi.core.view.view.widget.DraggableTranslationOverlay;
 
 /**
