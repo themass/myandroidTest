@@ -90,6 +90,8 @@ fun ChatComposer(
     onVoiceStop: () -> Unit,
     onVoiceCancel: () -> Unit,
     onVoiceToText: () -> Unit = {},
+    /** 录音中松手去向变了（发送 / 取消 / 转文字）。随后会震动一次，录音方可借此把震动那一小段静音。 */
+    onVoiceIntentChange: () -> Unit = {},
     onCancelEdit: () -> Unit = {},
     onVoiceDraftSendText: (String) -> Unit = {},
     onVoiceDraftSendAudio: () -> Unit = {},
@@ -184,7 +186,10 @@ fun ChatComposer(
                                 recording = state.recording,
                                 intent = intent,
                                 history = history,
-                                onIntentChange = { intent = it },
+                                onIntentChange = {
+                                    intent = it
+                                    onVoiceIntentChange()
+                                },
                                 onStart = onVoiceStart,
                                 onRelease = { released ->
                                     intent = VoiceIntent.Send

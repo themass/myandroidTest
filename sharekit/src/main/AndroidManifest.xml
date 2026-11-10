@@ -1,3 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- FileProvider 声明在使用方（app）的 manifest 里：authority 为 ${applicationId}.sharekit，paths 用本模块的 @xml/sharekit_paths -->
-<manifest />
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 应用内分享面板要枚举能处理分享的应用，Android 11+ 需要声明 queries -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.SEND" />
+            <data android:mimeType="*/*" />
+        </intent>
+    </queries>
+
+    <application>
+        <!-- 分享库专用 FileProvider：独立子类，不能和 app 里其它 androidx FileProvider 共用类名 -->
+        <provider
+            android:name="com.openapi.core.share.ShareKitFileProvider"
+            android:authorities="${applicationId}.sharekit"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/sharekit_paths" />
+        </provider>
+    </application>
+</manifest>

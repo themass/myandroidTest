@@ -71,12 +71,11 @@ private val AssistantChipGap = 8.dp
 
 /**
  * 助手每条已完成回复的 footer：放在气泡卡片内部，正文下面一条分割线，分割线下一排浅蓝芯片。
- * 复制、朗读、分享只在有文字时显示；赞、踩总是显示；「重新生成」只在最新一条回复上，靠右。
+ * 复制、朗读只在有文字时显示；赞、踩、删除总是显示。分享与重新生成在长按菜单里。
  */
 @Composable
 fun AssistantFooter(
     item: ChatItem,
-    isLatest: Boolean,
     onAction: (MessageAction) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -114,13 +113,7 @@ fun AssistantFooter(
                         icon = if (item.reaction == Reaction.Dislike) Icons.Filled.ThumbDown else Icons.Outlined.ThumbDown,
                         description = stringResource(R.string.chatkit_dislike),
                     ) { onAction(MessageAction.Dislike) }
-                    if (hasText) {
-                        AssistantChip(Icons.Outlined.Share, stringResource(R.string.chatkit_share)) { onAction(MessageAction.Share) }
-                    }
                     AssistantChip(Icons.Outlined.Delete, stringResource(R.string.chatkit_delete)) { onAction(MessageAction.Delete) }
-                    if (isLatest) {
-                        AssistantChip(Icons.Outlined.Refresh, stringResource(R.string.chatkit_regenerate)) { onAction(MessageAction.Regenerate) }
-                    }
                 }
             }
         }

@@ -165,7 +165,8 @@ class LegacyHomeEntries(private val app: Context) : HomeEntries {
     private fun share(context: Context) {
         var url = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.D_URL, null)
         if (!StringUtils.hasText(url)) url = com.openapi.core.net.NetConfig.defaultReferer()
-        ShareUtil(context).shareText(null, null, "$url 爱Freedom，精彩你的生活", "爱Freedom", "精彩你的生活")
+        // 分享卡片（二维码 + 链接）走分享库，和 vpn 项目一样是图片分享
+        com.openapi.core.share.ShareKit.shareCard(context, title = "爱Freedom", subtitle = "精彩你的生活", link = url)
     }
 
     private fun logout(context: Context) {

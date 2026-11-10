@@ -63,10 +63,11 @@ class ChatViewModel : ViewModel() {
             _uiState.update { it.copy(loading = true, error = null) }
             val page = runCatching { loadHistory() }.getOrElse { HistoryPage(emptyList(), hasMore = false) }
             val sessionId = repository.currentSessionId()
+            val merged = mergePending(page.messages, sessionId)
             val sessions = withContext(Dispatchers.IO) { repository.sessions() }
             _uiState.update {
                 it.copy(
-                    messages = page.messages,
+                    messages = merged,
                     hasMoreHistory = page.hasMore,
                     loadingOlder = false,
                     editingMessageId = null,
@@ -506,12 +507,42 @@ class ChatViewModel : ViewModel() {
      */
     /** 附件发送也可以被「停止」打断：和流式回复一样显示生成中，停止后该消息标为可重试。 */
     private suspend fun deliverAttachments(message: ChatMessage) {
+        inFlight += message.id
         _uiState.update { it.copy(streaming = true) }
         try {
             deliverAttachmentsBody(message)
         } finally {
+            inFlight -= message.id
             _uiState.update { it.copy(streaming = replyJob?.isActive == true) }
         }
+    }
+
+    /** 正在本进程里发送的附件消息 id：刷新历史时不能把它们当成「中断的发送」。 */
+    private val inFlight = HashSet<String>()
+
+    /**
+     * 历史页 + 本地还没同步的用户消息（附件等）。冷启动时，上次没发完的「发送中」消息说明进程被杀了，
+     * 标成失败（红色重试），而不是消失或一直转圈。
+     */
+    private suspend fun mergePending(page: List<ChatMessage>, sessionId: Long): List<ChatMessage> {
+        val serverIds = page.map { it.id }.toSet()
+        val recovered = repository.localPendingMessages(sessionId)
+            .filter { it.id !in serverIds }
+            .map { m ->
+                if (m.delivery == DeliveryStatus.SENDING && m.id !in inFlight) {
+                    val failed = m.copy(delivery = DeliveryStatus.FAILED)
+                    repository.saveMessage(sessionId, failed)
+                    failed
+                } else {
+                    m
+                }
+            }
+        return (page + recovered).sortedBy { it.createdAtMillis }
+    }
+
+    /** 把附件消息的发送结果写回本地记录，重启后状态一致。 */
+    private suspend fun persistDelivery(message: ChatMessage, status: DeliveryStatus) {
+        repository.saveMessage(repository.currentSessionId(), message.copy(delivery = status))
     }
 
     private suspend fun deliverAttachmentsBody(message: ChatMessage) {
@@ -540,12 +571,14 @@ class ChatViewModel : ViewModel() {
                     )
                 }
                 setDelivery(message.id, DeliveryStatus.FAILED)
+                persistDelivery(message, DeliveryStatus.FAILED)
                 return
             }
             replyId = reply.id
             if (reply.text.isNotBlank()) replies += reply.text
         }
         setDelivery(message.id, DeliveryStatus.SENT)
+        persistDelivery(message, DeliveryStatus.SENT)
 
         val combined = replies.joinToString("\n\n")
         if (combined.isBlank()) {
@@ -1056,11 +1089,15 @@ class ChatViewModel : ViewModel() {
 
             // 转写失败就停在这里：语音气泡已经发出去了，不拿空串去问大模型。
             if (text.isNullOrBlank()) return@launch
-            // 转写显示在语音气泡下方（同一条消息），再把文字发给大模型
+            // 转写显示在语音气泡下方（同一条消息），并写回本地记录，重启后也能看到
+            val transcribed = message.copy(text = text)
+            repository.saveMessage(repository.currentSessionId(), transcribed)
             _uiState.update { current ->
-                current.copy(messages = current.messages.map { if (it.id == message.id) it.copy(text = text) else it })
+                current.copy(messages = current.messages.map { if (it.id == message.id) transcribed else it })
             }
-            streamReply(text, userMessageId = message.id, persistUser = true)
+            // 语音气泡已经保存过：这里不能再让仓库保存用户消息。仓库保存的是纯文字行，会用同一个 chatId
+            // 覆盖掉语音记录，语音就没了（重试路径同样是 persistUser = false）。
+            streamReply(text, userMessageId = message.id, persistUser = false)
         }
     }
 }

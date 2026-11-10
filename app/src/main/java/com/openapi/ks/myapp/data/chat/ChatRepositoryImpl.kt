@@ -6,6 +6,7 @@ import com.openapi.chat.domain.model.ChatCharacterOption
 import com.openapi.chat.domain.model.ChatMessage
 import com.openapi.chat.domain.model.ChatReply
 import com.openapi.chat.domain.model.HistoryPage
+import com.openapi.chat.domain.model.DeliveryStatus
 import com.openapi.chat.domain.model.MessageKind
 import com.openapi.ks.myapp.bean.vo.ChatMessagePageVo
 import com.openapi.ks.myapp.bean.vo.ChatMessageVo
@@ -146,6 +147,8 @@ class ChatRepositoryImpl(
 
     private companion object {
         const val TAG = "chat"
+        /** 本地临时消息的 id 前缀：这些消息只存在本地，服务端历史里没有。 */
+        const val LOCAL_ID_PREFIX = "local-"
         const val PREF_SELECTED_CHARACTER_ID = "chat_selected_character_id"
         /** 聊天记录只保留最近这么多条，沿用旧逻辑。 */
         const val CHAT_LOG_KEEP = 30L
@@ -185,8 +188,9 @@ class ChatRepositoryImpl(
             postForResult(url, MessagesOlderPageParam(sessionId, beforeId, safeLimit), ChatMessagePageVo::class.java)
         }
         if (remote != null) {
-            withContext(Dispatchers.IO) { cacheRemotePage(sessionId, remote.voList, replaceAll = beforeId == null) }
-            return HistoryPage(remote.voList.map { it.toDomainMessage() }, remote.hasMore)
+            // 返回合并过本机附件信息的消息：服务端只有文字，语音、图片、文件要从本地记录里补回来
+            val merged = withContext(Dispatchers.IO) { cacheRemotePage(sessionId, remote.voList, replaceAll = beforeId == null) }
+            return HistoryPage(merged, remote.hasMore)
         }
         // 服务端不可达：只能给出本地缓存的最新一页，更早的历史离线时拿不到
         if (beforeId != null) return HistoryPage(emptyList(), hasMore = false)
@@ -430,11 +434,16 @@ class ChatRepositoryImpl(
         if (sessionId <= 0) return
         val now = System.currentTimeMillis()
         if (userText != null && serverUserId > 0) {
-            AppDatabase.getInstance().chatLogDao().deleteByChatId(clientUserId)
-            persist(
-                sessionId,
-                ChatMessage(id = serverUserId.toString(), role = ChatRole.USER, text = userText, createdAtMillis = now),
-            )
+            val dao = AppDatabase.getInstance().chatLogDao()
+            // 本地先存的用户消息如果带语音或附件，只换成正式 id，内容保留；直接按文字重写会把语音弄丢
+            val local = dao.byChatId(clientUserId)?.toDomainOrNull()
+            dao.deleteByChatId(clientUserId)
+            val user = if (local != null && local.kind != MessageKind.TEXT) {
+                local.copy(id = serverUserId.toString(), text = userText.ifBlank { local.text }, delivery = DeliveryStatus.SENT)
+            } else {
+                ChatMessage(id = serverUserId.toString(), role = ChatRole.USER, text = userText, createdAtMillis = now)
+            }
+            persist(sessionId, user)
         }
         if (reply.isNotEmpty()) {
             persist(
@@ -495,6 +504,31 @@ class ChatRepositoryImpl(
 
     override suspend fun saveMessage(sessionId: Long, message: ChatMessage) {
         persist(sessionId, message)
+    }
+
+    override suspend fun localPendingMessages(sessionId: Long): List<ChatMessage> = withContext(Dispatchers.IO) {
+        val dao = AppDatabase.getInstance().chatLogDao()
+        fun pendingIn(id: Long) = dao.bySession(id)
+            .filter { (it.chatId ?: "").startsWith(LOCAL_ID_PREFIX) && it.who == ChatLogMapper.toWho(ChatRole.USER) }
+        // 没有会话时（id 为 0，比如刚删光会话）发出的消息存在 0 下面；重启后当前会话换成了服务端的会话，
+        // 这些消息要归到当前会话，否则就「消失」了
+        val orphans = if (sessionId > 0) pendingIn(0L) else emptyList()
+        orphans.forEach { log ->
+            log.sessionId = sessionId
+            dao.save(log)
+        }
+        val rows = pendingIn(sessionId)
+        LogUtil.i("$TAG localPending session=$sessionId rows=${rows.size} adoptedFromZero=${orphans.size}")
+        rows
+            .mapNotNull { log ->
+                ChatLogMapper.toDomain(
+                    chatId = log.chatId,
+                    who = log.who,
+                    msgType = log.msgType,
+                    rawContent = log.content,
+                    createdAtMillis = log.createTime?.time ?: 0L,
+                )
+            }
     }
 
     override suspend fun sendAttachment(
@@ -694,14 +728,33 @@ class ChatRepositoryImpl(
         }
 
     /**
-     * 把服务端一页消息写进本地缓存（只是离线副本）。
-     * [replaceAll] 为 true 时（拉最新一页）先清掉这个会话的旧缓存，避免已删除/已重新生成的消息残留。
+     * 把服务端一页消息写进本地缓存，并返回合并后的消息列表。
+     *
+     * 服务端历史里只有文字。语音、图片、文件的本机信息（路径、时长、文件名）只在本地记录里，
+     * 所以同一个 chatId 已经有本地富内容记录时，用服务端的文字和时间更新它，类型和附件保留。
+     * [replaceAll] 为 true 时（拉最新一页）清掉这个会话的纯文字缓存，避免已删除或重新生成的消息残留；
+     * 富内容记录和本地临时消息（local- 开头）不清，它们在服务端找不回来。
      */
-    private fun cacheRemotePage(sessionId: Long, rows: List<ChatMessageVo>, replaceAll: Boolean) {
+    private fun cacheRemotePage(sessionId: Long, rows: List<ChatMessageVo>, replaceAll: Boolean): List<ChatMessage> {
         val dao = AppDatabase.getInstance().chatLogDao()
-        if (replaceAll) dao.deleteBySession(sessionId)
-        rows.forEach { row ->
-            val message = row.toDomainMessage()
+        val existing = dao.bySession(sessionId)
+        val rich = existing
+            .filter { it.msgType != ChatLogMapper.toMsgType(MessageKind.TEXT) }
+            .mapNotNull { log -> log.toDomainOrNull()?.let { (log.chatId ?: "") to it } }
+            .toMap()
+        if (replaceAll) {
+            existing
+                .filter { it.msgType == ChatLogMapper.toMsgType(MessageKind.TEXT) && !(it.chatId ?: "").startsWith(LOCAL_ID_PREFIX) }
+                .forEach { dao.deleteByChatId(it.chatId) }
+        }
+        return rows.map { row ->
+            val server = row.toDomainMessage()
+            val local = rich[server.id]
+            val message = if (local != null) {
+                local.copy(text = server.text.ifBlank { local.text }, createdAtMillis = server.createdAtMillis, delivery = DeliveryStatus.SENT)
+            } else {
+                server
+            }
             val log = ChatLog()
             log.content = ChatLogMapper.toRawContent(message)
             log.who = ChatLogMapper.toWho(message.role)
@@ -710,8 +763,17 @@ class ChatRepositoryImpl(
             log.createTime = Date(message.createdAtMillis)
             log.sessionId = sessionId
             dao.save(log)
+            message
         }
     }
+
+    private fun ChatLog.toDomainOrNull(): ChatMessage? = ChatLogMapper.toDomain(
+        chatId = chatId,
+        who = who,
+        msgType = msgType,
+        rawContent = content,
+        createdAtMillis = createTime?.time ?: 0L,
+    )
 
     private fun ChatMessageVo.toDomainMessage() = ChatMessage(
         // 服务端消息 id 直接用作 chatId / 列表 id，之后编辑、删除都用它
