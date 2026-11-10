@@ -1,94 +1,65 @@
 package com.openapi.ks.myapp.data;
 
 import android.app.Activity;
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Build;
-import android.os.Bundle;
-import android.os.Environment;
-import android.os.Handler;
-import android.os.Looper;
-import androidx.core.app.NotificationCompat;
 
 import com.openapi.core.CommonConstants;
-import com.openapi.core.design.dialog.AppDialogHost;
-import com.openapi.core.design.dialog.DialogAction;
-import com.openapi.core.util.EventBusUtil;
-import com.openapi.core.util.FileUtils;
 import com.openapi.core.util.LogUtil;
-import com.openapi.core.util.PackageUtils;
 import com.openapi.core.util.PreferenceUtils;
 import com.openapi.core.util.StringUtils;
 import com.openapi.core.util.ToastUtil;
 import com.openapi.core.net.HttpDNSUtil;
-import com.openapi.core.net.HttpUtils;
-import com.openapi.core.net.NetUtils;
 import com.openapi.core.net.NetQueue;
 import com.openapi.core.net.request.CommonResponse;
 import com.openapi.core.net.request.GsonRequest;
 import com.openapi.core.app.AppContext;
 import com.openapi.ks.myapp.bean.vo.VersionVo;
 import com.openapi.ks.myapp.constant.Constants;
-import com.openapi.ks.myapp.data.config.StateUseEvent;
-import com.openapi.ks.myapp.data.config.VipDescEvent;
 import com.openapi.core.R;
 
-import java.io.File;
-@SuppressWarnings({"deprecation","unchecked"})
+/**
+ * 应用版本：读取本机版本号，检查服务端是否有新版本，并应用服务端下发的配置。
+ * 更新提示框见 {@link UpdateDialogs}，下载安装见 {@link ApkDownloader}。
+ */
 public class VersionUpdater {
     private static final String VERSION_TAG = "REQUEST_VERSION_CHECK";
-    private static int NOTIFICATION_ID = 10021;
     private static String version;
     private static int build;
     private static boolean isInitVersionSuccess = false;
-    private static final String D_CHANNEL = "D_CHANNEL";
 
+    /** 检查新版本；有新版本时弹出更新提示，needToast 为 true 时无新版本也提示。 */
     public static void checkUpdate(final Activity context, final boolean needToast) {
-        // 检查版本更新
-        if (VersionUpdater.isInitVersionSuccess()) {
-            VersionUpdater.checkNewVersion(context, new CommonResponse.ResponseOkListener<VersionVo>() {
-                @Override
-                public void onResponse(final VersionVo vo) {
-                    VersionUpdater.setNewVersion(context, vo.maxBuild);
-                    PreferenceUtils.setPrefString(AppContext.get(), Constants.D_URL, vo.url);
-                    PreferenceUtils.setPrefBoolean(AppContext.get(), CommonConstants.ADS_SHOW_CONFIG, vo.adsShow);
-                    PreferenceUtils.setPrefBoolean(AppContext.get(), Constants.LOG_UPLOAD_CONFIG, vo.logUp);
-                    PreferenceUtils.setPrefBoolean(AppContext.get(), Constants.NEED_DNSPOD_CONFIG, vo.needDnspod);
-                    PreferenceUtils.setPrefBoolean(AppContext.get(), Constants.NEED_NATIVE_ADS_CONFIG, vo.needNative);
-                    if (StringUtils.hasText(vo.dnspodIp)) {
-                        HttpDNSUtil.DNS_POD_IP = vo.dnspodIp;
-                    }
-                    if (vo.stateUse != null)
-                        EventBusUtil.getEventBus().post(new StateUseEvent(vo.stateUse));
-                    EventBusUtil.getEventBus().post(new VipDescEvent(vo.vipDesc));
-                    if (VersionUpdater.isNewVersion(vo.maxBuild)
-                            && StringUtils.hasText(vo.url)) {
-                        // 有新版本
-                        //VersionUpdater.showUpdateDialog(context, vo, true);
-                        VersionUpdater.showGoogleUpdateDialog(context, vo, true);
-                    } else {
-                        if (needToast)
-                            ToastUtil.showShort(R.string.about_version_update_to_date);
-                    }
-                }
-            }, new CommonResponse.ResponseErrorListener() {
-
-            }, VERSION_TAG);
+        if (!isInitVersionSuccess()) {
+            return;
         }
+        checkNewVersion(context, new CommonResponse.ResponseOkListener<VersionVo>() {
+            @Override
+            public void onResponse(final VersionVo vo) {
+                setNewVersion(context, vo.maxBuild);
+                PreferenceUtils.setPrefString(AppContext.get(), Constants.D_URL, vo.url);
+                PreferenceUtils.setPrefBoolean(AppContext.get(), CommonConstants.ADS_SHOW_CONFIG, vo.adsShow);
+                PreferenceUtils.setPrefBoolean(AppContext.get(), Constants.LOG_UPLOAD_CONFIG, vo.logUp);
+                PreferenceUtils.setPrefBoolean(AppContext.get(), Constants.NEED_DNSPOD_CONFIG, vo.needDnspod);
+                PreferenceUtils.setPrefBoolean(AppContext.get(), Constants.NEED_NATIVE_ADS_CONFIG, vo.needNative);
+                if (StringUtils.hasText(vo.dnspodIp)) {
+                    HttpDNSUtil.DNS_POD_IP = vo.dnspodIp;
+                }
+                if (isNewVersion(vo.maxBuild) && StringUtils.hasText(vo.url)) {
+                    UpdateDialogs.showGoogleUpdate(context, vo, true);
+                } else if (needToast) {
+                    ToastUtil.showShort(R.string.about_version_update_to_date);
+                }
+            }
+        }, new CommonResponse.ResponseErrorListener() {
+
+        }, VERSION_TAG);
     }
 
-    /**
-     * 初始化版本信息
-     */
+    /** 初始化版本信息（应用启动时调用一次）。 */
     public static void init(Context context) {
-        // 取得版本号
         PackageManager manager = context.getPackageManager();
         try {
             PackageInfo info = manager.getPackageInfo(context.getPackageName(), 0);
@@ -97,8 +68,7 @@ public class VersionUpdater {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 build = (int) info.getLongVersionCode();
             } else {
-                int versionCode = info.versionCode;
-                build = versionCode;
+                build = info.versionCode;
             }
             isInitVersionSuccess = true;
         } catch (Exception e) {
@@ -106,23 +76,12 @@ public class VersionUpdater {
         }
     }
 
-    /**
-     * 是否初始化成功，防止读取到错误数据
-     */
+    /** 是否初始化成功，防止读取到错误数据。 */
     public static boolean isInitVersionSuccess() {
         return isInitVersionSuccess;
     }
 
-    /**
-     * 启动app是否还需要提示版本更新
-     */
-    public static boolean needToCheckUpdateNextTime(Context context, String newVersion, int newVersionBuild) {
-        return PreferenceUtils.getPrefBoolean(context, getPrefKey(newVersion, newVersionBuild), true);
-    }
-
-    /**
-     * 是否是新版本
-     */
+    /** 是否是新版本（比本机 build 号大）。 */
     public static boolean isNewVersion(int newVersionBuild) {
         return newVersionBuild > build;
     }
@@ -131,202 +90,16 @@ public class VersionUpdater {
         return version;
     }
 
-    public static int getBuild() {
-        return build;
-    }
-
-    /**
-     * 开始检查版本
-     */
-    public static void checkNewVersion(Context context, CommonResponse.ResponseOkListener listener, CommonResponse.ResponseErrorListener errorListener, String tag) {
-        GsonRequest request = new GsonRequest(context, Constants.getUrl(Constants.API_VERSION_URL), VersionVo.class, null, listener, errorListener);
+    /** 请求服务端版本信息。 */
+    public static void checkNewVersion(Context context, CommonResponse.ResponseOkListener listener,
+                                       CommonResponse.ResponseErrorListener errorListener, String tag) {
+        GsonRequest request = new GsonRequest(context, Constants.getUrl(Constants.API_VERSION_URL),
+                VersionVo.class, null, listener, errorListener);
         request.setTag(tag);
         NetQueue.addRequest(request);
     }
 
-    /**
-     * 显示版本更新提示框
-     */
-
-    public static void showGoogleUpdateDialog(final Activity context, final VersionVo vo, final boolean updatePrefIfCancel) {
-        final String title = context.getString(R.string.about_version_download_title) + " V" + vo.version;
-        final boolean hasCancel = vo.minBuild != vo.maxBuild;
-        AppDialogHost.showMessage(context, title, vo.content, R.drawable.ic_launcher,
-                context.getString(R.string.about_version_download),
-                new DialogAction() {
-                    @Override
-                    public void perform() {
-                        if (NetUtils.isWifi(context) && PackageUtils.isApk(vo.url)) {
-                            startDownloadThread(context, vo.url);
-                        } else {
-                            final Uri uri = Uri.parse(vo.url);
-                            Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-//                intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                            context.startActivity(intent);
-                        }
-                    }
-                },
-                hasCancel ? context.getString(R.string.about_version_cancel) : null,
-                hasCancel ? new DialogAction() {
-                    @Override
-                    public void perform() {
-                        if (updatePrefIfCancel) {
-                            // 保存pref配置
-                            PreferenceUtils.setPrefBoolean(context, getPrefKey(vo.version, vo.maxBuild), false);
-                        }
-                    }
-                } : null,
-                false);
-    }
-
-    public static void showUpdateDialog(final Activity context, final VersionVo vo, final boolean updatePrefIfCancel) {
-        final String title = context.getString(R.string.about_version_download_title) + " V" + vo.version;
-        final boolean hasCancel = vo.minBuild != vo.maxBuild;
-        AppDialogHost.showMessage(context, title, vo.content, R.drawable.ic_launcher,
-                context.getString(R.string.about_version_download),
-                new DialogAction() {
-                    @Override
-                    public void perform() {
-                        if (NetUtils.isWifi(context)) {
-                            startDownloadThread(context, vo.url);
-                        } else {
-                            // 非wifi情况下，提示用户是否下载
-                            AppDialogHost.showMessage(context,
-                                    context.getString(R.string.about_download_confirm_title),
-                                    context.getString(R.string.about_download_confirm_content),
-                                    null,
-                                    context.getString(R.string.about_version_confirm),
-                                    new DialogAction() {
-                                        @Override
-                                        public void perform() {
-                                            startDownloadThread(context, vo.url);
-                                        }
-                                    },
-                                    context.getString(R.string.about_version_cancel),
-                                    null,
-                                    true);
-                        }
-                    }
-                },
-                hasCancel ? context.getString(R.string.about_version_cancel) : null,
-                hasCancel ? new DialogAction() {
-                    @Override
-                    public void perform() {
-                        if (updatePrefIfCancel) {
-                            // 保存pref配置
-                            PreferenceUtils.setPrefBoolean(context, getPrefKey(vo.version, vo.maxBuild), false);
-                        }
-                    }
-                } : null,
-                false);
-    }
-
-    private static String getPrefKey(String newVersion, int newVersionBuild) {
-        return Constants.SETTING_PREF_NEED_CHECK_UPDATE_NEXT_TIME + "_" + newVersion + "_" + newVersionBuild;
-    }
-
-    public static int getNewVersion(Context context) {
-        return PreferenceUtils.getPrefInt(context, Constants.VERSION_APP_INCOMING, 0);
-    }
-
     public static void setNewVersion(Context context, int build) {
         PreferenceUtils.setPrefInt(context, Constants.VERSION_APP_INCOMING, build);
-    }
-
-    private static void startDownloadThread(final Context context, final String url) {
-        final File apkFile = new File(Environment.getExternalStorageDirectory(), Constants.TEMP_PATH + "/freevpn.apk");
-        ToastUtil.showShort(R.string.about_download_begin);
-        new Thread(new DownloadRunnable(context, url, apkFile)).start();
-    }
-
-
-    private static class DownloadRunnable implements Runnable, HttpUtils.DownloadListener {
-        private final String url;
-        private final File apkFile;
-        private Context context;
-        private Handler handler;
-        private NotificationCompat.Builder builder;
-        private NotificationManager notificationManager;
-
-        private DownloadRunnable(Context context, String url, File apkFile) {
-            this.context = context;
-            this.url = url;
-            this.apkFile = apkFile;
-            this.handler = new Handler(Looper.getMainLooper());
-            this.notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-            if (Build.VERSION.SDK_INT >= 26) {
-                NotificationChannel channel = new NotificationChannel(D_CHANNEL, "FreeVPN", NotificationManager.IMPORTANCE_HIGH);
-                channel.setDescription("freevpn");
-                channel.enableLights(false);
-                channel.enableVibration(false);
-                channel.setSound(null, null);
-                notificationManager.createNotificationChannel(channel);
-            }
-            builder = new NotificationCompat.Builder(AppContext.get(), D_CHANNEL);
-        }
-
-        @Override
-        public void run() {
-            try {
-                showNotification(context.getString(R.string.about_download_title), context.getString(R.string.about_download_prepare));
-                HttpUtils.download(context, url, apkFile, this);
-                installFile();
-            } catch (Exception e) {
-                LogUtil.e(e);
-                showNotification(context.getString(R.string.about_download_title), context.getString(R.string.about_download_error));
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        ToastUtil.showShort(R.string.about_download_error);
-                    }
-                });
-            }
-        }
-
-        @Override
-        public void onDownloading(long current, long total) {
-            String percentText = String.format(context.getString(R.string.about_download_percent), FileUtils.formatFileSize(current), FileUtils.formatFileSize(total));
-            int percent = total == 0 ? 0 : (int) ((current * 1.0) * 100 / total);
-            builder.setContentText(percentText);
-            builder.setProgress(100, percent, false);
-            notificationManager.notify(NOTIFICATION_ID, builder.build());
-        }
-
-        private void showNotification(String title, String message) {
-            // 创建一个NotificationManager的引用
-
-            Intent notificationIntent = new Intent().setClassName(context, "com.openapi.home.HomeActivity"); //点击该通知后要跳转的Activity
-            Bundle bundle = new Bundle();
-            notificationIntent.putExtras(bundle);
-            notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-            // 定义Notification的各种属性
-            Notification notification = builder.setContentTitle(title).setContentText(message)
-                    .setSmallIcon(R.drawable.ic_launcher).setContentIntent(contentIntent)
-                    .build();
-            notification.flags |= Notification.FLAG_AUTO_CANCEL;
-            notificationManager.notify(NOTIFICATION_ID, notification);
-        }
-
-        private void installFile() {
-            hideNotification();
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    ToastUtil.showShort(R.string.about_download_finish);
-                }
-            });
-
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setDataAndType(Uri.fromFile(apkFile), "application/vnd.android.package-archive");
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            context.startActivity(intent);
-        }
-
-        private void hideNotification() {
-            NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-            notificationManager.cancel(NOTIFICATION_ID);
-        }
     }
 }

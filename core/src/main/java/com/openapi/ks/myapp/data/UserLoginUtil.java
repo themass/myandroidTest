@@ -11,7 +11,6 @@ import com.openapi.core.util.StaticDataUtil;
 import com.openapi.core.app.AppContext;
 import com.openapi.ks.myapp.bean.vo.UserInfoVo;
 import com.openapi.ks.myapp.constant.Constants;
-import com.openapi.ks.myapp.data.config.StateUseEvent;
 import com.openapi.ks.myapp.data.config.UserLoginEvent;
 
 /**
@@ -37,8 +36,6 @@ public class UserLoginUtil {
         StaticDataUtil.add(Constants.LOGIN_USER, vo);
         EventBusUtil.getEventBus().post(new UserLoginEvent());
         context.sendBroadcast(new Intent(AppContext.UPDATE_STATUS_ACTION));
-        if (vo.stateUse != null)
-            EventBusUtil.getEventBus().post(new StateUseEvent(vo.stateUse));
         MobAgent.onProfileSignIn(vo.name);
     }
 

@@ -10,7 +10,6 @@ public class UserInfoVo {
     public String token;
     public long score;
     public String email;
-    public StateUseVo stateUse;
     public String areaMi = "";
     public String paidTime;
     public boolean adsNo = false;

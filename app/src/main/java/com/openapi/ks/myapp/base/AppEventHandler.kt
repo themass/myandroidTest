@@ -9,7 +9,6 @@ import com.openapi.core.util.PreferenceUtils
 import com.openapi.ks.myapp.constant.Constants
 import com.openapi.ks.myapp.data.UserLoginUtil
 import com.openapi.ks.myapp.data.config.PlayCoreEvent
-import com.openapi.ks.myapp.data.config.StateUseEvent
 import com.openapi.ks.myapp.ui.user.LoginActivity
 import com.openapi.ks.myapp.video.PlaybackEngineHelper
 import org.greenrobot.eventbus.Subscribe
@@ -33,11 +32,6 @@ object AppEventHandler {
         val app = MyApplication.getInstance()
         UserLoginUtil.logout(app)
         app.startActivity(Intent(app, LoginActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    fun onStateUse(event: StateUseEvent) {
-        PreferenceUtils.setPrefObj(MyApplication.getInstance(), Constants.USER_STATUS, event.stateUse)
     }
 
     /** 设置里切换播放内核。 */
