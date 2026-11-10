@@ -23,7 +23,7 @@ android {
         // 直接抛 RuntimeException("welcome")——这不是网络请求 header 或加密的问题，
         // 是版本号格式和后端正则不匹配。2026-11-02 真机测试时踩到过，别再改回三段式。
         versionCode 20004
-        versionName "2.0.0.4"
+        versionName "2.0.0.5"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         flavorDimensions "versionCode"
 
