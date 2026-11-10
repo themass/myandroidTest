@@ -40,6 +40,17 @@ object VoiceRecorder {
     /** 实时识别用：每读到一块 PCM 回调一次（在录音线程上），回调里不要阻塞。 */
     @Volatile var pcmListener: ((ByteArray, Int) -> Unit)? = null
     @Volatile private var running = false
+
+    /** 在这个时间点（elapsedRealtime）之前读到的声音写成静音：盖住切换状态时的震动声。 */
+    @Volatile private var muteUntil = 0L
+
+    /**
+     * 接下来 [millis] 毫秒录到的声音写成静音（录音文件和实时识别都一样）。
+     * 在震动之前调用；要覆盖马达余震和录音缓冲的延迟，默认 250 毫秒。
+     */
+    fun muteFor(millis: Long = 250L) {
+        muteUntil = android.os.SystemClock.elapsedRealtime() + millis
+    }
     private var outputFile: File? = null
     private var startedAtMillis: Long = 0L
 
@@ -81,6 +92,9 @@ object VoiceRecorder {
                         while (running) {
                             val read = audio.read(buffer, 0, buffer.size)
                             if (read > 0) {
+                                if (android.os.SystemClock.elapsedRealtime() < muteUntil) {
+                                    java.util.Arrays.fill(buffer, 0, read, 0.toByte())
+                                }
                                 out.write(buffer, 0, read)
                                 level.value = rmsLevel(buffer, read)
                                 pcmListener?.invoke(buffer, read)

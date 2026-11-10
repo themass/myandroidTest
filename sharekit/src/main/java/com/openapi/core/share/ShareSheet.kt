@@ -9,6 +9,7 @@ import android.content.ContextWrapper
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
+import android.net.Uri
 import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
@@ -49,6 +50,7 @@ internal object ShareSheet {
 
     class Target(
         val label: String,
+        val appLabel: String,
         val icon: Drawable,
         val packageName: String,
         val className: String,
@@ -58,15 +60,16 @@ internal object ShareSheet {
      * 显示面板。返回 false 表示无法显示（上下文里找不到 Activity），调用方应退回系统选择器。
      * 找到 Activity 但没有任何可用应用时提示并返回 true（已处理）。
      */
-    fun show(context: Context, intent: Intent, title: String?): Boolean {
+    fun show(context: Context, intent: Intent, uri: Uri?, title: String?): Boolean {
         val activity = context.findActivity() ?: return false
         val all = targets(activity, intent)
         if (all.isEmpty()) {
             Toast.makeText(activity, "没有可以分享的应用", Toast.LENGTH_SHORT).show()
             return true
         }
-        val common = COMMON.mapNotNull { pkg -> all.firstOrNull { it.packageName == pkg } }
-        val others = all.filter { t -> COMMON.none { it == t.packageName } }
+        // 常用组：按 COMMON 的顺序；同一个应用的多个入口（微信：发送给朋友、朋友圈、收藏）都放进来
+        val common = COMMON.flatMap { pkg -> all.filter { it.packageName == pkg } }
+        val others = all.filter { t -> t.packageName !in COMMON }
 
         val dialog = Dialog(activity)
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
@@ -78,7 +81,7 @@ internal object ShareSheet {
                 others = others,
                 onPick = { target ->
                     dialog.dismiss()
-                    launch(activity, intent, target)
+                    launch(activity, intent, uri, target)
                 },
                 onCancel = { dialog.dismiss() },
             ),
@@ -93,30 +96,40 @@ internal object ShareSheet {
         return true
     }
 
-    /** 能处理这个分享 intent 的应用（去掉本应用，每个包只留一个入口）。 */
+    /**
+     * 能处理这个分享 intent 的入口（去掉本应用）。每个入口一项：微信会有「发送给朋友」「朋友圈」「收藏」三项，
+     * 名字用入口自己的名字（没有时就是应用名）。
+     */
     private fun targets(context: Context, intent: Intent): List<Target> {
         val pm = context.packageManager
         val query = Intent(intent).apply { component = null }
         val infos: List<ResolveInfo> = pm.queryIntentActivities(query, PackageManager.MATCH_DEFAULT_ONLY)
         return infos
             .filter { it.activityInfo.packageName != context.packageName }
-            .distinctBy { it.activityInfo.packageName }
+            .distinctBy { it.activityInfo.packageName + "/" + it.activityInfo.name }
             .map { info ->
                 Target(
                     label = info.loadLabel(pm).toString(),
+                    appLabel = info.activityInfo.applicationInfo.loadLabel(pm).toString(),
                     icon = info.loadIcon(pm),
                     packageName = info.activityInfo.packageName,
                     className = info.activityInfo.name,
                 )
             }
-            .sortedBy { it.label }
+            .sortedWith(compareBy({ it.appLabel }, { it.label }))
     }
 
-    /** 直接启动选中的应用；ClipData 和读取权限随 intent 一起带过去，目标应用才能读到文件。 */
-    private fun launch(context: Context, base: Intent, target: Target) {
+    /**
+     * 直接启动选中的入口。读取权限给两次：Intent 上的标志（随 ClipData 生效），
+     * 再按包名显式授权（接收方在别的 Activity 里读文件时也能读到）。
+     */
+    private fun launch(context: Context, base: Intent, uri: Uri?, target: Target) {
         val intent = Intent(base).apply {
             component = ComponentName(target.packageName, target.className)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        if (uri != null) {
+            context.grantUriPermission(target.packageName, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
         try {
             context.startActivity(intent)

@@ -232,6 +232,8 @@ fun ChatScreen(
                 onVoiceStop = onVoiceRecordStop,
                 onVoiceCancel = onVoiceRecordCancel,
                 onVoiceToText = onVoiceRecordToText,
+                // 切换去向时会震动：先让录音把接下来一小段写成静音，马达声不进语音
+                onVoiceIntentChange = { com.openapi.core.media.VoiceRecorder.muteFor() },
                 onCancelEdit = onCancelEdit,
                 onVoiceDraftSendText = onVoiceDraftSendText,
                 onVoiceDraftSendAudio = onVoiceDraftSendAudio,

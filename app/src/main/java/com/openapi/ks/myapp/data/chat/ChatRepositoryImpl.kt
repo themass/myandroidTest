@@ -500,8 +500,19 @@ class ChatRepositoryImpl(
     }
 
     override suspend fun localPendingMessages(sessionId: Long): List<ChatMessage> = withContext(Dispatchers.IO) {
-        AppDatabase.getInstance().chatLogDao().bySession(sessionId)
+        val dao = AppDatabase.getInstance().chatLogDao()
+        fun pendingIn(id: Long) = dao.bySession(id)
             .filter { (it.chatId ?: "").startsWith(LOCAL_ID_PREFIX) && it.who == ChatLogMapper.toWho(ChatRole.USER) }
+        // 没有会话时（id 为 0，比如刚删光会话）发出的消息存在 0 下面；重启后当前会话换成了服务端的会话，
+        // 这些消息要归到当前会话，否则就「消失」了
+        val orphans = if (sessionId > 0) pendingIn(0L) else emptyList()
+        orphans.forEach { log ->
+            log.sessionId = sessionId
+            dao.save(log)
+        }
+        val rows = pendingIn(sessionId)
+        LogUtil.i("$TAG localPending session=$sessionId rows=${rows.size} adoptedFromZero=${orphans.size}")
+        rows
             .mapNotNull { log ->
                 ChatLogMapper.toDomain(
                     chatId = log.chatId,

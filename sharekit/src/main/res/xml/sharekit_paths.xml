@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 只开放分享需要的目录：分享生成的文件、附件缓存、聊天附件。 -->
-<paths xmlns:android="http://schemas.android.com/apk/res/android">
-    <cache-path name="sharekit" path="share/" />
-    <cache-path name="attachments" path="attachments/" />
-    <files-path name="chat_attachments" path="chat_attachments/" />
+<!-- 只开放一个目录：分享前，文件统一复制到 cache/share/ 再给出 uri（见 ShareKit.prepare）。 -->
+<paths>
+    <cache-path name="share" path="share/" />
 </paths>

@@ -13,7 +13,6 @@ import android.os.Environment
 import android.provider.MediaStore
 import android.webkit.MimeTypeMap
 import android.widget.Toast
-import androidx.core.content.FileProvider
 import com.openapi.chatkit.model.AttachmentActionKind
 import com.openapi.chatkit.model.AttachmentPathInfo
 import com.openapi.chatkit.model.AttachmentTarget
@@ -97,31 +96,28 @@ object AttachmentActions {
                 toast(context, "已复制图片")
             }
             AttachmentActionKind.Share -> {
-                // 统一走分享库（FileProvider + 系统分享面板），图片和文件共用一个入口
+                // 统一走分享库：复制到分享目录、生成 content:// 地址、应用内分享面板。图片和文件共用一个入口
                 val file = withContext(Dispatchers.IO) {
                     when (target) {
                         is AttachmentTarget.Image -> localImageFile(context, target.source)
-                        is AttachmentTarget.File -> File(target.file.path)
+                        is AttachmentTarget.File -> File(target.file.path).takeIf { it.isFile }
                     }
                 }
                 if (file == null) {
-                    toast(context, "分享失败")
+                    toast(context, if (target is AttachmentTarget.Image) "图片下载失败，无法分享" else "文件不存在，无法分享")
                     return
                 }
-                ShareKit.shareFile(context, file)
+                val name = (target as? AttachmentTarget.File)?.file?.name ?: file.name
+                ShareKit.shareFile(context, file, displayName = name)
             }
         }
     }
 
-    /** 图片：本地文件直接用；地址先下载到缓存目录。返回可以分享/复制的 FileProvider uri。 */
+    /** 图片：本地文件直接用；地址先下载到缓存目录。返回可以放进剪贴板的 content:// 地址（分享库生成）。 */
     private fun imageUri(context: Context, source: String): Uri? {
         val file = localImageFile(context, source) ?: return null
-        return FileProvider.getUriForFile(context, FILE_PROVIDER, file)
+        return ShareKit.shareableUri(context, file)
     }
-
-    private fun fileUri(context: Context, path: String): Uri? = runCatching {
-        FileProvider.getUriForFile(context, FILE_PROVIDER, File(path))
-    }.getOrNull()
 
     private fun localImageFile(context: Context, source: String): File? {
         if (!source.startsWith("http")) return File(source).takeIf { it.exists() }
@@ -168,6 +164,4 @@ object AttachmentActions {
     private fun toast(context: Context, text: String) {
         Toast.makeText(context, text, Toast.LENGTH_SHORT).show()
     }
-
-    private const val FILE_PROVIDER = "com.openapi.ks.chat.fileprovider"
 }
