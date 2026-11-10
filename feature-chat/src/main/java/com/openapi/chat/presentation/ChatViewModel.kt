@@ -81,65 +81,21 @@ class ChatViewModel : ViewModel() {
         }
     }
 
-    private suspend fun reloadSessions() {
-        val sessions = withContext(Dispatchers.IO) { repository.sessions() }
-        _uiState.update { it.copy(sessions = sessions) }
-    }
-
     fun onSessionsVisibleChange(visible: Boolean) {
         _uiState.update { it.copy(sessionsVisible = visible) }
         // 打开会话列表时才向服务端要一次列表（updatedAt、别的设备上的新会话）
         if (visible) viewModelScope.launch { runCatching { syncSessionsList() } }
     }
 
-    /** 切换会话：写入当前会话 id，然后重新加载这个会话的历史。 */
-    fun onSessionSelected(sessionId: Long) {
-        if (sessionId == _uiState.value.sessionId) {
-            _uiState.update { it.copy(sessionsVisible = false) }
-            return
-        }
-        repository.setCurrentSessionId(sessionId)
-        _uiState.update { it.copy(sessionsVisible = false) }
-        refresh()
-    }
+    private val sessionActions = SessionActions(repository, _uiState, viewModelScope, ::refresh)
 
-    /** 新建会话并立即切过去。 */
-    fun onCreateSession(name: String) {
-        viewModelScope.launch {
-            val created = withContext(Dispatchers.IO) { repository.createSession(name) }
-            if (created == null) {
-                _uiState.update { it.copy(error = "创建失败：名称不能为空、不能与已有会话重名，或网络异常") }
-                return@launch
-            }
-            repository.setCurrentSessionId(created.id)
-            _uiState.update { it.copy(sessionsVisible = false) }
-            refresh()
-        }
-    }
+    fun onSessionSelected(sessionId: Long) = sessionActions.select(sessionId)
 
-    /** 删除会话（允许删空，服务端会在下次拉列表时自动新建一个）。删的是当前会话时，refresh 会切换。 */
-    fun onDeleteSession(sessionId: Long) {
-        viewModelScope.launch {
-            val ok = withContext(Dispatchers.IO) { repository.deleteSession(sessionId) }
-            if (!ok) {
-                _uiState.update { it.copy(error = "删除失败，请稍后重试") }
-                return@launch
-            }
-            refresh()
-        }
-    }
+    fun onCreateSession(name: String) = sessionActions.create(name)
 
-    /** 重命名会话（服务端）；成功后刷新会话列表。 */
-    fun onRenameSession(sessionId: Long, name: String) {
-        viewModelScope.launch {
-            val renamed = repository.renameSession(sessionId, name)
-            if (renamed == null) {
-                _uiState.update { it.copy(error = "重命名失败：名称不能为空，或网络异常") }
-                return@launch
-            }
-            reloadSessions()
-        }
-    }
+    fun onDeleteSession(sessionId: Long) = sessionActions.delete(sessionId)
+
+    fun onRenameSession(sessionId: Long, name: String) = sessionActions.rename(sessionId, name)
 
     private fun loadCharacters() {
         viewModelScope.launch {
