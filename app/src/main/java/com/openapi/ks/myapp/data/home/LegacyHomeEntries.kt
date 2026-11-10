@@ -10,6 +10,7 @@ import com.openapi.core.CommonConstants
 import com.openapi.core.ads.yewu.um.MobAgent
 import com.openapi.core.event.ConfigActionEvent
 import com.openapi.core.net.BaseService
+import com.openapi.core.net.awaitInfoList
 import com.openapi.core.util.EventBusUtil
 import com.openapi.core.util.PreferenceUtils
 import com.openapi.core.util.StringUtils
@@ -53,14 +54,14 @@ class LegacyHomeEntries(private val app: Context) : HomeEntries {
         add(ChannelCategory(CUSTOMER, R.string.tab_customer))
     }
 
-    override fun loadChannels(categoryId: String, start: Int): ChannelPage {
+    override suspend fun loadChannels(categoryId: String, start: Int): ChannelPage {
         val api = when (categoryId) {
             MOVIE -> Constants.API_RECOMMEND_MOVIE_URL
             NIGHT -> Constants.API_RECOMMEND_NIGHT_URL
             CUSTOMER -> Constants.API_RECOMMEND_CUSTOME_URL
             else -> throw IllegalArgumentException("未知的频道分类：$categoryId")
         }
-        val data = service.getInfoListData(
+        val data = service.awaitInfoList(
             Constants.getUrlWithParam(api, start), RecommendVo::class.java, NET_TAG,
         )
         val items = data.voList

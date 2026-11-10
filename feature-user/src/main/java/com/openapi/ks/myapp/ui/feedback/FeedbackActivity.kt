@@ -66,6 +66,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.openapi.core.design.theme.AppColors
 import com.openapi.core.net.BaseService
+import com.openapi.core.net.awaitInfoList
 import com.openapi.core.net.request.CommonResponse
 import com.openapi.core.net.request.InfoListVo
 import com.openapi.core.util.DateUtils
@@ -154,9 +155,9 @@ private enum class FeedbackCategory(
     ),
 }
 
-/** 按页取数据（阻塞，调用方需在后台线程）。与旧版 loadData 的 URL 拼法一致。 */
-private fun fetchPage(service: BaseService, listUrl: String, pageNum: Int): InfoListVo<IWannaVo> =
-    service.getInfoListData(
+/** 按页取数据（挂起）。与旧版 loadData 的 URL 拼法一致。 */
+private suspend fun fetchPage(service: BaseService, listUrl: String, pageNum: Int): InfoListVo<IWannaVo> =
+    service.awaitInfoList(
         String.format(Constants.getUrl(listUrl), pageNum),
         IWannaVo::class.java,
         FeedbackActivity.TAG,

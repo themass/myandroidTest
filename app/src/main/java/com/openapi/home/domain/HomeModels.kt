@@ -51,7 +51,7 @@ interface HomeEntries {
     fun categories(context: Context): List<ChannelCategory>
 
     /** 阻塞式网络请求，必须在后台线程调用；失败直接抛出。 */
-    fun loadChannels(categoryId: String, start: Int): ChannelPage
+    suspend fun loadChannels(categoryId: String, start: Int): ChannelPage
 
     /** 打开一个频道；内部负责登录和会员等级检查。 */
     fun openChannel(context: Context, channel: Channel)

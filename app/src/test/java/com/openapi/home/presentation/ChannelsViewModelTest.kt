@@ -176,7 +176,7 @@ class ChannelsViewModelTest {
 
         override fun categories(context: Context) = categories
 
-        override fun loadChannels(categoryId: String, start: Int): ChannelPage {
+        override suspend fun loadChannels(categoryId: String, start: Int): ChannelPage {
             log.add(categoryId to start)
             gates[categoryId]?.await(5, TimeUnit.SECONDS)
             if (failing) throw java.io.IOException("boom")
