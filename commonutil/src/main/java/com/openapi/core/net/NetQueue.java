@@ -11,9 +11,11 @@ import com.openapi.core.net.interceptor.DnsRequestInterceptor;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -50,6 +52,7 @@ public class NetQueue {
     private static Context context;
     private static OkHttpClient client;
     private static ExecutorService executor;
+    private static OkHttpClient uploadClient;
     private static final Handler mainHandler = new Handler(Looper.getMainLooper());
     private static final Set<NetRequest<?>> active = ConcurrentHashMap.newKeySet();
 
@@ -63,6 +66,11 @@ public class NetQueue {
                 .readTimeout(40, TimeUnit.SECONDS)
                 .writeTimeout(40, TimeUnit.SECONDS)
                 .addInterceptor(new DnsRequestInterceptor())
+                .build();
+        // 带文件的上传（图片识别等）服务端处理较慢：单独用更长的读写超时，避免 40 秒就被判失败
+        uploadClient = client.newBuilder()
+                .readTimeout(180, TimeUnit.SECONDS)
+                .writeTimeout(180, TimeUnit.SECONDS)
                 .build();
         executor = Executors.newFixedThreadPool(THREADS);
     }
@@ -168,7 +176,9 @@ public class NetQueue {
                 }
             }
         }
-        Call call = client.newCall(builder.build());
+        List<File> files = request.getFiles();
+        OkHttpClient httpClient = (files != null && !files.isEmpty() && uploadClient != null) ? uploadClient : client;
+        Call call = httpClient.newCall(builder.build());
         request.attachCall(call);
         try (okhttp3.Response okResponse = call.execute()) {
             byte[] data = readBody(okResponse);

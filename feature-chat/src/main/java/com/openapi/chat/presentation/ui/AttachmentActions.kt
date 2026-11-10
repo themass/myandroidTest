@@ -1,5 +1,6 @@
 package com.openapi.chat.presentation.ui
 
+import com.openapi.core.share.ShareKit
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.ContentValues
@@ -96,21 +97,18 @@ object AttachmentActions {
                 toast(context, "已复制图片")
             }
             AttachmentActionKind.Share -> {
-                val (uri, mime) = withContext(Dispatchers.IO) {
+                // 统一走分享库（FileProvider + 系统分享面板），图片和文件共用一个入口
+                val file = withContext(Dispatchers.IO) {
                     when (target) {
-                        is AttachmentTarget.Image -> imageUri(context, target.source) to "image/*"
-                        is AttachmentTarget.File -> fileUri(context, target.file.path) to mimeOf(target.file.name)
+                        is AttachmentTarget.Image -> localImageFile(context, target.source)
+                        is AttachmentTarget.File -> File(target.file.path)
                     }
                 }
-                if (uri == null) {
+                if (file == null) {
                     toast(context, "分享失败")
                     return
                 }
-                val send = Intent(Intent.ACTION_SEND)
-                    .setType(mime)
-                    .putExtra(Intent.EXTRA_STREAM, uri)
-                    .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                context.startActivity(Intent.createChooser(send, null))
+                ShareKit.shareFile(context, file)
             }
         }
     }

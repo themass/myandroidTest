@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FileProvider 声明在使用方（app）的 manifest 里：authority 为 ${applicationId}.sharekit，paths 用本模块的 @xml/sharekit_paths -->
+<manifest />

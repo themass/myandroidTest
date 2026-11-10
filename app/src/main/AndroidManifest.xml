@@ -242,6 +242,16 @@
                 tools:replace="android:resource"
                 android:resource="@xml/file_provider_paths" />
         </provider>
+        <!-- 分享库（sharekit）专用 FileProvider：路径见 sharekit 模块的 @xml/sharekit_paths -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.sharekit"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/sharekit_paths" />
+        </provider>
         <service android:name="com.openapi.ks.myapp.service.PlayService" />
         <!-- 拍照解题（移植自 ai-math/paizhao） -->
         <activity

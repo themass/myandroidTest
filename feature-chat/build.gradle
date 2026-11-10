@@ -53,6 +53,7 @@ android {
 }
 
 dependencies {
+    implementation project(':sharekit')
     // 对话业务：依赖 core（设计 token、媒体、权限）、chatkit（对话 UI 组件）、roles（角色选择）
     api project(':commonutil')
     implementation project(':core')
