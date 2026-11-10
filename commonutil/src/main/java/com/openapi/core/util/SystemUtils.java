@@ -16,7 +16,6 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
 
-import com.openapi.core.CommonConstants;
 
 import java.io.InputStream;
 import java.lang.reflect.Field;
@@ -26,6 +25,10 @@ import java.util.Locale;
 import static android.content.Context.CLIPBOARD_SERVICE;
 @SuppressWarnings("deprecation")
 public class SystemUtils {
+
+    /** 中文语言代码（Locale.getLanguage() 的返回值）。 */
+    public static final String LANG_ZH = "zh";
+
 
     /**
      * 获取手机屏幕高度
@@ -90,7 +93,7 @@ public class SystemUtils {
     }
 
     public static boolean isZH(Context context) {
-        return CommonConstants.LANG_ZH.equals(getLang(context));
+        return LANG_ZH.equals(getLang(context));
     }
 
     public static String getLang(Context context) {

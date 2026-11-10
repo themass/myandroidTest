@@ -6,7 +6,6 @@ import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.webkit.WebView;
 
-import com.openapi.core.CommonConstants;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -42,17 +41,26 @@ public class MyWebView extends WebView {
         this.listener = listener;
     }
 
+    /** 默认 Referer，由应用启动时设置（原来写死在 CommonConstants 里）。 */
+    private static String defaultReferer = "";
+
+    public static void setDefaultReferer(String referer) {
+        defaultReferer = referer == null ? "" : referer;
+    }
+
     @Override
     public void loadUrl(String url, Map<String, String> additionalHttpHeaders) {
         if (additionalHttpHeaders == null) {
             additionalHttpHeaders = new HashMap<>();
         }
-        String ref = CommonConstants.DEFAULT_REFERER + "," + url;
-        if (additionalHttpHeaders.get(CommonConstants.REFERER) != null)
-            ref = additionalHttpHeaders.get(CommonConstants.REFERER) + "," + CommonConstants.DEFAULT_REFERER;
-        additionalHttpHeaders.put(CommonConstants.REFERER, ref);
+        String ref = defaultReferer + "," + url;
+        if (additionalHttpHeaders.get(REFERER) != null)
+            ref = additionalHttpHeaders.get(REFERER) + "," + defaultReferer;
+        additionalHttpHeaders.put(REFERER, ref);
         super.loadUrl(url, additionalHttpHeaders);
     }
+
+    private static final String REFERER = "Referer";
 
     @Override
     public void loadUrl(String url) {

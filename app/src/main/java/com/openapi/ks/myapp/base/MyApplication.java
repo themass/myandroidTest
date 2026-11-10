@@ -55,6 +55,8 @@ public class MyApplication extends MultiDexApplication {
         isDebug = SystemUtils.isApkDebugable(this);
         LogUtil.e("isDebug=" + isDebug);
         instance = this;
+        // 网页的默认 Referer 原来写死在 CommonConstants 里，现在启动时注入到 commonutil
+        com.openapi.core.view.view.MyWebView.setDefaultReferer(CommonConstants.DEFAULT_REFERER);
         AppHooks.install(new AppHooksImpl());
         // 拍照解题：配置了服务地址才换成真实实现（见 app/build.gradle 的 photosolveBaseUrl），否则保留 mock
         if (!com.openapi.ks.chat.BuildConfig.PHOTOSOLVE_BASE_URL.isEmpty()) {
