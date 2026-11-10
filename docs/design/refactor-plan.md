@@ -445,6 +445,13 @@
 5. 删 `SyncFuture`：唯一调用方（`:feature-user`）改用挂起函数。
 6. 调用方随所在的包整理时从回调换成挂起函数；Java 调用方保留回调接口，不强制改。
 
+**进度（2026-11-11）**
+- 步骤 1：完成（`8494ce95`）。`BaseServiceAwait.kt` 提供 `awaitPost`、`awaitPostOk`、`awaitUpload`，`ChatRepositoryImpl`（3 处）和 `BackendSpeechToText` 改用它。`:commonutil` 显式声明了 coroutines。
+- 步骤 2：实际已经完成。`BaseRequest` 不再直接发 `UserNeedLogin`，而是调 `NetConfig.notifyAuthRequired`，`MyApplication` 注册的回调再发事件。
+- 步骤 4：部分完成（`NetQueue` → `HttpClient`、`NetRequest` → `ApiRequest`，纯改名，`commit` 单独一个）。`NetError`、`MyVolleyError`、`JsonResult` 还没改，它们的合并需要改逻辑，不算纯改名。
+- 未做：步骤 3（4 个请求子类合并）、步骤 5（删 `SyncFuture`：`LoginTask` 和 `BaseService` 的同步方法都还在用，删之前要先把同步方法换掉）、步骤 6（调用方逐步换成挂起函数）。
+- 另外：`:commonutil` 的 `BaseService` 同步方法（`getInfoListData` 等）还是阻塞写法，建议在步骤 5 时一起处理。
+
 **不做**：不引入 Retrofit；不改请求头、签名、DNS、Glide 加载这些行为。
 
 ---
