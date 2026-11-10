@@ -49,7 +49,6 @@ public final class ChatMarkwon {
         return Markwon.builder(ctx)
                 .usePlugin(MyJLatexMathPlugin.create(latexTextSize, builder -> {
                     builder.inlinesEnabled(true);
-                    builder.blocksEnabled(false);
                     com.openapi.ks.myapp.view.katexplugin.JLatexMathTheme.Padding padding =
                             new com.openapi.ks.myapp.view.katexplugin.JLatexMathTheme.Padding(
                                     ScreenSize.dp2px(ctx, 3),

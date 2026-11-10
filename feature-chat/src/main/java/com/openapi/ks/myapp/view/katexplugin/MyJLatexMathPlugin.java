@@ -115,9 +115,6 @@ public class MyJLatexMathPlugin extends AbstractMarkwonPlugin {
         // @since 4.3.0
         final JLatexMathTheme theme;
 
-        // @since 4.3.0
-        final boolean blocksEnabled;
-        final boolean blocksLegacy;
         final boolean inlinesEnabled;
 
         // @since 4.3.0
@@ -127,8 +124,6 @@ public class MyJLatexMathPlugin extends AbstractMarkwonPlugin {
 
         Config(@NonNull Builder builder) {
             this.theme = builder.theme.build();
-            this.blocksEnabled = builder.blocksEnabled;
-            this.blocksLegacy = builder.blocksLegacy;
             this.inlinesEnabled = builder.inlinesEnabled;
             this.errorHandler = builder.errorHandler;
             // @since 4.0.0
@@ -144,14 +139,12 @@ public class MyJLatexMathPlugin extends AbstractMarkwonPlugin {
     final Config config;
 
     private final JLatextAsyncDrawableLoader jLatextAsyncDrawableLoader;
-    private final JLatexBlockImageSizeResolver jLatexBlockImageSizeResolver;
     private final ImageSizeResolver inlineImageSizeResolver;
 
     @SuppressWarnings("WeakerAccess")
     MyJLatexMathPlugin(@NonNull Config config) {
         this.config = config;
         this.jLatextAsyncDrawableLoader = new JLatextAsyncDrawableLoader(config);
-        this.jLatexBlockImageSizeResolver = new JLatexBlockImageSizeResolver(config.theme.blockFitCanvas());
         this.inlineImageSizeResolver = new InlineImageSizeResolver();
     }
 
@@ -165,61 +158,8 @@ public class MyJLatexMathPlugin extends AbstractMarkwonPlugin {
     }
 
     @Override
-    public void configureParser(@NonNull Parser.Builder builder) {
-        // @since 4.3.0
-        if (config.blocksEnabled) {
-            if (config.blocksLegacy) {
-                builder.customBlockParserFactory(new JLatexMathBlockParserLegacy.Factory());
-            } else {
-                builder.customBlockParserFactory(new JLatexMathBlockParser.Factory());
-            }
-        }
-    }
-
-    @Override
     public void configureVisitor(@NonNull MarkwonVisitor.Builder builder) {
-        addBlockVisitor(builder);
         addInlineVisitor(builder);
-    }
-
-    private void addBlockVisitor(@NonNull MarkwonVisitor.Builder builder) {
-        if (!config.blocksEnabled) {
-            return;
-        }
-
-        builder.on(JLatexMathBlock.class, new MarkwonVisitor.NodeVisitor<JLatexMathBlock>() {
-            @Override
-            public void visit(@NonNull MarkwonVisitor visitor, @NonNull JLatexMathBlock jLatexMathBlock) {
-
-                visitor.blockStart(jLatexMathBlock);
-
-                final String latex = jLatexMathBlock.latex();
-
-                final int length = visitor.length();
-
-                // @since 4.0.2 we cannot append _raw_ latex as a placeholder-text,
-                // because Android will draw formula for each line of text, thus
-                // leading to formula duplicated (drawn on each line of text)
-                visitor.builder().append(prepareLatexTextPlaceholder(latex));
-
-                final MarkwonConfiguration configuration = visitor.configuration();
-
-                final AsyncDrawableSpan span = new JLatexAsyncDrawableSpan(
-                        configuration.theme(),
-                        new JLatextAsyncDrawable(
-                                latex,
-                                jLatextAsyncDrawableLoader,
-                                jLatexBlockImageSizeResolver,
-                                null,
-                                true),
-                        config.theme.blockTextColor()
-                );
-
-                visitor.setSpans(length, span);
-
-                visitor.blockEnd(jLatexMathBlock);
-            }
-        });
     }
 
     private void addInlineVisitor(@NonNull MarkwonVisitor.Builder builder) {
@@ -281,9 +221,6 @@ public class MyJLatexMathPlugin extends AbstractMarkwonPlugin {
         // @since 4.3.0
         private final JLatexMathTheme.Builder theme;
 
-        // @since 4.3.0
-        private boolean blocksEnabled = true;
-        private boolean blocksLegacy;
         private boolean inlinesEnabled;
 
         // @since 4.3.0
@@ -299,25 +236,6 @@ public class MyJLatexMathPlugin extends AbstractMarkwonPlugin {
         @NonNull
         public JLatexMathTheme.Builder theme() {
             return theme;
-        }
-
-        /**
-         * @since 4.3.0
-         */
-        @NonNull
-        public Builder blocksEnabled(boolean blocksEnabled) {
-            this.blocksEnabled = blocksEnabled;
-            return this;
-        }
-
-        /**
-         * @param blocksLegacy indicates if blocks should be handled in legacy mode ({@code pre 4.3.0})
-         * @since 4.3.0
-         */
-        @NonNull
-        public Builder blocksLegacy(boolean blocksLegacy) {
-            this.blocksLegacy = blocksLegacy;
-            return this;
         }
 
         /**
