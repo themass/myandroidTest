@@ -360,6 +360,12 @@
 3. 准备一组测试公式（行内、块、矩阵、分式、错误公式、超宽公式），两边在手机上各截一张。
 4. 结果写进这一节。差别小就换官方插件，删掉 11 个文件；差别大就保留，只移到 `markdown/katex/`。
 
+**比较结果（2026-11-11，代码比对，Markwon 4.6.2 源码）**
+- 行内：自定义的 `JLatexMathInlineProcessor` 匹配单个 `$x$`；官方只匹配 `$$x$$`。`$x$` 是应用在用的写法，所以**保留自定义行内**。`$` 的处理器按注册顺序执行，自定义先注册，优先生效。
+- 块：`ChatMarkwon` 已经关掉了自定义的块（`blocksEnabled(false)`），所以自定义的块解析器、Legacy 解析器、`JLatexMathBlock`、块尺寸计算都执行不到。这一步**已删除**（`3e2cfaa4`），`$$` 块由官方插件渲染。
+- 结论：差别大（行内语法不同），不换官方，只删了死代码。
+- 还没做的：第 3 步的手机截图对比（统一手机测试时做）；`markdown/katex/` 的包移动放到阶段 9；自定义主题里的 `blockFitCanvas` 已经没有用处，暂时保留。
+
 ### 5.10 搁置：权限去重（待定，不在当前执行范围）
 
 **现状**：三套旧权限代码仍在：`PermissionHelper`、`CompatiblePermissionManager`、`ModernPermissionManager`（`:commonutil` 的 `util/permission`，约 1000 行），以及 `BasePermissionActivity` 里的权限入口。新的 Compose 版在 `:core/permission`，`ChatRoute` 和 `LocalVideoActivity` 在用。
