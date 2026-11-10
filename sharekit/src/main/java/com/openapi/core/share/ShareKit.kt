@@ -12,7 +12,7 @@ import java.io.File
 import java.io.FileOutputStream
 
 /**
- * 统一的分享入口：文字、文件、位图都走系统分享面板（[Intent.createChooser]）。
+ * 统一的分享入口：文字、文件、位图都走应用内分享面板（[ShareSheet]），拿不到 Activity 时退回系统选择器。
  *
  * - 文件通过 FileProvider 给出 content:// uri，并带上读取权限（ClipData + FLAG_GRANT_READ_URI_PERMISSION），
  *   接收方（微信、邮件等）才能读到文件；
@@ -108,18 +108,28 @@ object ShareKit {
 
     fun authority(context: Context): String = context.packageName + ".sharekit"
 
-    private fun start(context: Context, intent: Intent, chooserTitle: String?): Boolean = try {
-        // 权限和 ClipData 必须同时挂在外层的选择器 Intent 上，否则目标应用读不到文件（会显示「获取资源失败」）
-        val chooser = Intent.createChooser(intent, chooserTitle).apply {
-            clipData = intent.clipData
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+    /** 优先用应用内分享面板；拿不到 Activity 时才退回系统选择器。 */
+    private fun start(context: Context, intent: Intent, chooserTitle: String?): Boolean {
+        val shown = try {
+            ShareSheet.show(context, intent, chooserTitle)
+        } catch (e: Exception) {
+            Log.e(TAG, "show share sheet failed", e)
+            false
         }
-        context.startActivity(chooser)
-        true
-    } catch (e: Exception) {
-        Log.e(TAG, "share failed", e)
-        toast(context, "没有可以分享的应用")
-        false
+        if (shown) return true
+        return try {
+            // 权限和 ClipData 必须同时挂在外层的选择器 Intent 上，否则目标应用读不到文件（会显示「获取资源失败」）
+            val chooser = Intent.createChooser(intent, chooserTitle).apply {
+                clipData = intent.clipData
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            context.startActivity(chooser)
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "share failed", e)
+            toast(context, "没有可以分享的应用")
+            false
+        }
     }
 
     private fun guessMime(name: String): String {
