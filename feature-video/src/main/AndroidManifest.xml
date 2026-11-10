@@ -21,6 +21,6 @@
             android:name="com.openapi.ks.myapp.ui.localvideo.LocalVideoActivity"
             android:exported="false"
             android:label="@string/localvideo_title" />
-        <service android:name="com.openapi.ks.myapp.service.PlayService" />
+
     </application>
 </manifest>
