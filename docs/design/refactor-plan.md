@@ -81,6 +81,15 @@
 - 另外修复了分支合并遗留的 FileProvider 重复 authority（`14510889`）。
 - 所有提交都只做了编译验证，没有在手机上测。
 
+**进度（2026-11-10，续）**
+- 阶段 3（`:media`）：`:asr` 和 `:mediaview` 合并为 `:media`（`a5c385a3`）；录音播放（`a2fa1f86`）、图像处理（`16e6ca94`）、字幕翻译（`490049c1`）迁入。`:media` 不依赖 `:core`。`viewer` 留在 `com.openapi.core.view.media` 目录下，包名统一放到阶段 9。
+- 阶段 4（拆 `:core`）：用户专属的表单、数据对象、事件迁到 `:feature-user`（`f108b303`）；频道专属的类迁到 `:feature-channel`（`5ac377d1`、`e71eb517`，含 showtype 组和推荐适配器，`ImagePhotoLoad.loadPhoto` 去掉）；DLNA 投屏迁到 `:feature-video`（`9aa0b098`）；设计系统和权限（`design`、`permission` 包）迁到 `:commonutil`（`550d67ab`）。
+- 阶段 4 的计划修改：
+  - `ImagePhotoLoad` 的通用方法（`loadCommonImg`、`options`、`getBuilder`、`getCountryImage`）**不再移到 `:common`**。它们用到 `Constants`、`BaseRes`（映射到 `:core` 的 drawable），而且被 app、用户、视频、频道多个模块共用，按标准应属于 `:core`，留在 `:core`。
+  - `data/urlparser` 和 `CustomeAddForm` **留在 `:core`**，因为 `:core` 的 `WebViewActivity` 在用它们，不是只给用户模块用的。
+  - `DelImageTask` 已删除（没有使用方）。
+- 上面每一步都只做了编译验证，没有在手机上测。统一手机测试放在阶段 4 结束后做。
+
 阶段 1 到 4、6、7 是**搬、删、拆**，功能不变。阶段 5、8 有少量行为变化（对话 bug 修复、路由替换）。
 
 ---
