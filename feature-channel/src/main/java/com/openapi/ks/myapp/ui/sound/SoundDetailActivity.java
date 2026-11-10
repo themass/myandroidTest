@@ -1,13 +1,10 @@
 package com.openapi.ks.myapp.ui.sound;
 
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
@@ -57,26 +54,11 @@ public class SoundDetailActivity extends AppCompatActivity implements SoundDetai
     MyFavoriteView myFavoriteView;
 
     private RecommendVo vo;
-    private PlayService mService;
-    private boolean mBound;
     private int current = -1;
     private boolean ignorNet;
     private PlayerReceiver homeReceiver;
 
-    private final ServiceConnection mConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            mService = ((PlayService.LocalBinder) service).getService();
-            mBound = true;
-            syncUiFromService();
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            mBound = false;
-            mService = null;
-        }
-    };
+    private final MusicServiceConnection playback = new MusicServiceConnection(service -> syncUiFromService(), true);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,7 +91,7 @@ public class SoundDetailActivity extends AppCompatActivity implements SoundDetai
 
             @Override
             public void fillRequest(VideoTranslationRequest.Builder builder) {
-                SoundItemsVo t = mService != null ? mService.getCurrentTrack() : null;
+                SoundItemsVo t = playback.service() != null ? playback.service().getCurrentTrack() : null;
                 if (t == null || t.file == null || t.file.isEmpty()) {
                     throw new IllegalStateException("no audio url");
                 }
@@ -127,17 +109,17 @@ public class SoundDetailActivity extends AppCompatActivity implements SoundDetai
         MusicSubtitleBindings.MusicPlaybackProbe probe = new MusicSubtitleBindings.MusicPlaybackProbe() {
             @Override
             public boolean isPlaying() {
-                return mService != null && mService.isPlaying();
+                return playback.service() != null && playback.service().isPlaying();
             }
 
             @Override
             public long positionMs() {
-                return mService != null ? mService.getPosition() : 0L;
+                return playback.service() != null ? playback.service().getPosition() : 0L;
             }
         };
         MusicSubtitleBindings.bind(myFavoriteView, this, detailRoot,
                 () -> {
-                    SoundItemsVo t = mService != null ? mService.getCurrentTrack() : null;
+                    SoundItemsVo t = playback.service() != null ? playback.service().getCurrentTrack() : null;
                     return t != null && t.file != null ? t.file : "";
                 },
                 probe);
@@ -145,8 +127,7 @@ public class SoundDetailActivity extends AppCompatActivity implements SoundDetai
         SoundDetailScreenKt.setSoundDetailContent(composeView, uiState, myFavoriteView, this);
         setContentView(detailRoot);
 
-        Intent intent = new Intent(this, PlayService.class);
-        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+        playback.bind(this);
 
         homeReceiver = new PlayerReceiver();
         IntentFilter filter = new IntentFilter();
@@ -159,29 +140,29 @@ public class SoundDetailActivity extends AppCompatActivity implements SoundDetai
     }
 
     private void syncUiFromService() {
-        if (mService == null) {
+        if (playback.service() == null) {
             return;
         }
-        SoundItemsVo t = mService.getCurrentTrack();
+        SoundItemsVo t = playback.service().getCurrentTrack();
         if (t != null) {
             uiState.setTrackTitle(t.name);
         }
-        uiState.setPlaying(mService.isPlaying());
+        uiState.setPlaying(playback.service().isPlaying());
     }
 
     @Override
     public void onPlayPauseClicked() {
-        if (mService == null) {
+        if (playback.service() == null) {
             return;
         }
-        if (mService.isPlaying()) {
-            mService.pause();
+        if (playback.service().isPlaying()) {
+            playback.service().pause();
             uiState.setPlaying(false);
         } else {
-            if (current == -1 && mService.getPlaylist() != null && !mService.getPlaylist().isEmpty()) {
-                mService.playPosi(0);
+            if (current == -1 && playback.service().getPlaylist() != null && !playback.service().getPlaylist().isEmpty()) {
+                playback.service().playPosi(0);
             } else {
-                mService.resume();
+                playback.service().resume();
             }
             uiState.setPlaying(true);
         }
@@ -198,30 +179,30 @@ public class SoundDetailActivity extends AppCompatActivity implements SoundDetai
     }
 
     private void nextTrack() {
-        if (mService == null || mService.getPlaylist() == null) {
+        if (playback.service() == null || playback.service().getPlaylist() == null) {
             return;
         }
-        int n = mService.getPlaylist().size();
-        int c = mService.getCurrentSongIndex();
+        int n = playback.service().getPlaylist().size();
+        int c = playback.service().getCurrentSongIndex();
         int next = c + 1;
         if (next >= n) {
             next = 0;
         }
-        mService.playPosi(next);
+        playback.service().playPosi(next);
         uiState.setPlaying(true);
     }
 
     private void prevTrack() {
-        if (mService == null || mService.getPlaylist() == null) {
+        if (playback.service() == null || playback.service().getPlaylist() == null) {
             return;
         }
-        int n = mService.getPlaylist().size();
-        int c = mService.getCurrentSongIndex();
+        int n = playback.service().getPlaylist().size();
+        int c = playback.service().getCurrentSongIndex();
         int prev = c - 1;
         if (prev < 0) {
             prev = n - 1;
         }
-        mService.playPosi(prev);
+        playback.service().playPosi(prev);
         uiState.setPlaying(true);
     }
 
@@ -232,8 +213,8 @@ public class SoundDetailActivity extends AppCompatActivity implements SoundDetai
 
     @Override
     public void onSeekFinished(int positionMs) {
-        if (mService != null) {
-            mService.play(positionMs);
+        if (playback.service() != null) {
+            playback.service().play(positionMs);
             uiState.setPlaying(true);
         }
     }
@@ -245,19 +226,19 @@ public class SoundDetailActivity extends AppCompatActivity implements SoundDetai
 
     @Override
     public String getBrowserDataUrl() {
-        if (mService == null) {
+        if (playback.service() == null) {
             return "";
         }
-        SoundItemsVo t = mService.getCurrentTrack();
+        SoundItemsVo t = playback.service().getCurrentTrack();
         return t != null && t.file != null ? t.file : "";
     }
 
     @Override
     public boolean setSpeed(float speed) {
-        if (mService == null) {
+        if (playback.service() == null) {
             return false;
         }
-        mService.setPlaybackSpeed(speed);
+        playback.service().setPlaybackSpeed(speed);
         return true;
     }
 
@@ -290,13 +271,13 @@ public class SoundDetailActivity extends AppCompatActivity implements SoundDetai
                     uiState.setDurationText(MediaUtil.formatTime(dur));
                 } else if (action.equals(UPDATE_ACTION)) {
                     current = intent.getIntExtra(CURRENT, -1);
-                    if (mService != null && mService.getPlaylist() != null
-                            && current >= 0 && current < mService.getPlaylist().size()) {
-                        uiState.setTrackTitle(mService.getPlaylist().get(current).name);
+                    if (playback.service() != null && playback.service().getPlaylist() != null
+                            && current >= 0 && current < playback.service().getPlaylist().size()) {
+                        uiState.setTrackTitle(playback.service().getPlaylist().get(current).name);
                     }
                 } else if (action.equals(MUSIC_PREPARED)) {
-                    if (!checkCanPlay() && mService != null && mService.isPlaying()) {
-                        mService.pause();
+                    if (!checkCanPlay() && playback.service() != null && playback.service().isPlaying()) {
+                        playback.service().pause();
                         uiState.setPlaying(false);
                     }
                 }
@@ -314,10 +295,7 @@ public class SoundDetailActivity extends AppCompatActivity implements SoundDetai
         if (myFavoriteView != null) {
             myFavoriteView.releaseTranslationOverlay();
         }
-        if (mBound) {
-            unbindService(mConnection);
-            mBound = false;
-        }
+        playback.unbind(this);
         detailRoot = null;
         myFavoriteView = null;
         super.onDestroy();

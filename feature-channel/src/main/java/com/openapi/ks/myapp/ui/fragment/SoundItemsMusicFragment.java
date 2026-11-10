@@ -39,6 +39,7 @@ import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.core.util.StaticDataUtil;
 import com.openapi.ks.myapp.service.PlayService;
 import com.openapi.ks.myapp.translation.realtime.MusicSubtitleBindings;
+import com.openapi.ks.myapp.ui.sound.MusicServiceConnection;
 import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
 import com.openapi.ks.myapp.ui.base.features.BasePullLoadbleFragment;
 import com.openapi.ks.myapp.ui.inte.MusicStateListener;
@@ -127,7 +128,7 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
         if (adapter != null) {
             adapter.notifyDataSetChanged();
         }
-    });
+    }, false);
     private int current = -1;
     private int currentTime;        //当前播放进度
     private int duration;            //播放长度
