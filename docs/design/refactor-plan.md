@@ -275,7 +275,19 @@
 | `ProfileScreen`、`LegacyHomeEntries` 的「我的」部分 | 移 `:feature-user` | 8 |
 | `AppHooksImpl` | 删 | 8 |
 
-**进度（2026-11-11）**：`AppHooks` 和 `AppHooksImpl` 已删除（`3be787a5`）。`isVip` 直接调 `UserLoginUtil`；设置页和全局搜索改用 `Routes`（按类名打开，`CommonFragmentActivity` 新增 `FRAGMENT_NAME`）；`openLogin` 没有调用方，删除。`AppDatabaseTest` 里两个针对已删除的本地默认会话的测试改为一个测试，这同时修复了 app 单元测试编译失败（这个问题在本次会话之前就存在，来自 `0aca92a5`）。阶段 8 还剩：频道列表和「我的」移出、`LegacyHomeEntries` 拆分、`LaunchActivity` 转 Kotlin。
+**进度（2026-11-11）**：`AppHooks` 和 `AppHooksImpl` 已删除（`3be787a5`）。`isVip` 直接调 `UserLoginUtil`；设置页和全局搜索改用 `Routes`（按类名打开，`CommonFragmentActivity` 新增 `FRAGMENT_NAME`）；`openLogin` 没有调用方，删除。`AppDatabaseTest` 里两个针对已删除的本地默认会话的测试改为一个测试，这同时修复了 app 单元测试编译失败（这个问题在本次会话之前就存在，来自 `0aca92a5`）。阶段 8 的 `LaunchActivity` 已转 Kotlin（`632b3834`）。阶段 8 剩下的迁移计划（待确认）：
+
+| 文件（行数） | 去向 | 依赖与处理 |
+|---|---|---|
+| `home/presentation/ChannelsScreen.kt`（182）、`ChannelsViewModel.kt`（107）、`ChannelsHub.kt`（39） | `:feature-channel` | `ChannelsHub` 用到 `LocalVideoScreen`（feature-video）：经 `Routes` 或由 `:app` 注入 |
+| `home/presentation/ProfileScreen.kt`（208） | `:feature-user` | 用到 `VersionUpdater`（已在 core）和 `HomeDependencies`：后者改为 `UserDependencies` 的入口 |
+| `data/home/LegacyHomeEntries.kt`（212） | 拆成两半：频道部分 → `:feature-channel`，「我的」部分 → `:feature-user` | 两半各实现一个接口，`:app` 的 `HomeDependencies` 组合两者 |
+| `home/domain/HomeModels.kt`（65） | 频道的模型 → `:feature-channel`，「我的」的模型 → `:feature-user`，`HomeEntries` 接口留在 `:app` | 只是拆分文件，不改类型 |
+| `data/config/ConfigActionJump.java`（99） | `:feature-channel` | 依赖多个 feature 的 Activity：由频道模块提供路由表（类名），不直接引用类 |
+| `home/presentation/HomeScreen.kt`（314）、`HomeActivity.kt`（42）、`HomeDependencies.kt`（21） | 留在 `:app` | 这是应用的外壳，依赖 `ChatRoute`（feature-chat）和 `CompanionRoute`（feature-companion），作为组合根是合理的 |
+| `data/chat/LegacyLoginGate.kt`（20） | 留在 `:app` | 实现 `LoginGate` 端口，依赖 feature-user 的 `LoginActivity`，属于组合根 |
+
+步骤：1）先拆 `HomeModels` 和 `LegacyHomeEntries`（只拆文件，不移模块，编译确认）；2）`ConfigActionJump` 改用类名路由；3）频道的 UI 和 ViewModel 移到 `:feature-channel`；4）「我的」移到 `:feature-user`；每一步单独提交。
 | 启动页 `LaunchActivity` | 留。Java、带 ButterKnife 的空方法 `unbindButterViews`，顺手转 Kotlin | 8 |
 
 ---
