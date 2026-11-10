@@ -20,7 +20,6 @@ import com.openapi.core.net.request.CommonResponse
 import com.openapi.core.util.LogUtil
 import com.openapi.core.util.PreferenceUtils
 import com.openapi.core.net.request.BaseRequest
-import com.openapi.ks.myapp.base.MyApplication
 import com.openapi.ks.myapp.bean.form.ChatLog
 import com.openapi.ks.myapp.bean.form.ChatSessionLog
 import com.openapi.ks.myapp.bean.vo.CharacterVo
@@ -134,7 +133,7 @@ private class MessageEditParam(
 )
 
 class ChatRepositoryImpl(
-    private val context: MyApplication,
+    private val context: android.content.Context,
 ) : ChatRepository {
 
     private val baseService = BaseService().apply { setup(context) }
