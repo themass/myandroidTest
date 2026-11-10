@@ -288,6 +288,8 @@
 | `data/chat/LegacyLoginGate.kt`（20） | 留在 `:app` | 实现 `LoginGate` 端口，依赖 feature-user 的 `LoginActivity`，属于组合根 |
 
 步骤：1）先拆 `HomeModels` 和 `LegacyHomeEntries`（只拆文件，不移模块，编译确认）；2）`ConfigActionJump` 改用类名路由；3）频道的 UI 和 ViewModel 移到 `:feature-channel`；4）「我的」移到 `:feature-user`；每一步单独提交。
+
+**执行结果（2026-11-11）**：四步都已完成并单独提交。1）`793bcf19`：`HomeModels` 拆为 `ChannelModels` / `ProfileModels` / `HomeEntries`，`LegacyHomeEntries` 拆为两个实现类。2）`5f1c4399`：`ConfigActionJump` 移到 `:feature-channel`，路由表用类名（`VideoListShowActivity` 和 `HomeActivity` 只用名字）。3）`2cce7a2e`：频道模型、`ChannelsScreen`、`ChannelsViewModel` 移到 `:feature-channel`，依赖由 `ChannelsDependencies` 注入；`ChannelsHub` 留在 `:app`（它要放本地视频）。4）`0d204bf8`：「我的」模型和 `ProfileScreen` 移到 `:feature-user`，依赖由 `ProfileDependencies` 注入；本地视频入口用类名打开。`LegacyLoginGate`、`HomeScreen`、`HomeActivity`、`HomeDependencies`、`LegacyChannelEntries`、`LegacyProfileEntries` 留在 `:app`（组合根）。
 | 启动页 `LaunchActivity` | 留。Java、带 ButterKnife 的空方法 `unbindButterViews`，顺手转 Kotlin | 8 |
 
 ---
