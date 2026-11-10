@@ -5,7 +5,6 @@ import android.content.Context;
 import com.openapi.core.util.BeanUtil;
 import com.openapi.core.util.LogUtil;
 import com.openapi.core.net.request.CommonResponse;
-import com.openapi.core.net.request.GsonInfoListRequest;
 import com.openapi.core.net.request.GsonRequest;
 import com.openapi.core.net.request.MultipartRequest;
 import com.openapi.core.net.request.StringRequest;
@@ -28,7 +27,7 @@ public class BaseService {
 
     public <T> InfoListVo<T> getInfoListData(String url, Class<T> t, String tag) throws Exception {
         SyncFuture<InfoListVo<T>> future = SyncFuture.newFuture();
-        GsonInfoListRequest request = new GsonInfoListRequest(context, url, t, null, future, future);
+        GsonRequest<InfoListVo<T>> request = GsonRequest.infoList(context, url, t, null, future, future);
         request.setTag(tag);
         HttpClient.addRequest(request);
         return future.get();
