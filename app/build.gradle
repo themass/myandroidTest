@@ -197,7 +197,6 @@ dependencies {
     implementation project(':feature-channel')
     implementation project(':feature-companion')
     implementation project(":ads")
-    implementation project(':auxio_music_ui')
     implementation project(':retromusic')
     // 对话 UI 组件库：消息列表、消息气泡、输入栏
     implementation project(':chatkit')

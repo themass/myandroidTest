@@ -43,7 +43,6 @@ import com.openapi.core.util.StaticDataUtil;
 import com.openapi.ks.myapp.service.PlayService;
 import com.openapi.ks.myapp.translation.realtime.RealtimeSubtitleBindings;
 import com.openapi.ks.myapp.translation.realtime.VideoRealtimeSubtitleSession;
-import com.openapi.ks.myapp.auxio.AuxioMusicUiLauncher;
 import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
 import com.openapi.ks.myapp.ui.base.features.BasePullLoadbleFragment;
 import com.openapi.ks.myapp.ui.inte.MusicStateListener;
@@ -485,18 +484,6 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
                 });
         tvTitle.setOnClickListener(v -> openSoundDetail());
         tvPlaySubtitle = view.findViewById(R.id.tv_play_subtitle);
-        View gplEntry = view.findViewById(R.id.tv_open_auxio_gpl_module);
-        if (gplEntry != null) {
-            gplEntry.setOnClickListener(v -> {
-                String title = vo != null && vo.title != null ? vo.title : "";
-                AuxioMusicUiLauncher.openSoundChannelRemote(
-                        getActivity(),
-                        channel,
-                        keyword != null ? keyword : "",
-                        title
-                );
-            });
-        }
         if (ivPlayMode != null) {
             ivPlayMode.setOnClickListener(this);
         }

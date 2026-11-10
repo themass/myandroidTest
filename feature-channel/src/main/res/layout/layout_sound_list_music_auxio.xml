@@ -46,16 +46,6 @@
                     android:textColor="@color/music_auxio_toolbar_muted"
                     android:textSize="12sp" />
             </LinearLayout>
-
-            <TextView
-                android:id="@+id/tv_open_auxio_gpl_module"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:padding="8dp"
-                android:text="@string/music_auxio_gpl_open"
-                android:textColor="#CCFFFFFF"
-                android:textSize="11sp" />
         </LinearLayout>
 
         <com.openapi.ks.myapp.ui.gsy.compose.ListShellView

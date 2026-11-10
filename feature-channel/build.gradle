@@ -59,7 +59,6 @@ dependencies {
     implementation project(':core')
     implementation project(':feature-user')
     implementation project(':feature-video')
-    implementation project(':auxio_music_ui')
     implementation libs.google.material
 
     implementation platform(libs.androidx.compose.bom)

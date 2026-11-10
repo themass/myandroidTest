@@ -1,8 +1,0 @@
-auxio_music_ui — standalone GPL-3.0 UI module for this application.
-
-Visual design is inspired by the open-source music player Auxio
-(https://github.com/OxygenCobalt/Auxio). This module does not contain
-Auxio’s source code; it is an original Compose + Media3 implementation.
-
-Bundled runtime libraries (e.g. AndroidX Media3, Compose) remain under
-their respective licenses.
