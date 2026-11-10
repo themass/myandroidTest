@@ -57,6 +57,8 @@ dependencies {
     // 登录、注册、找回密码、个人设置、意见反馈、设置角色
     api project(':commonutil')
     implementation project(':core')
+    // 分享（替代原 commonutil 的 ShareUtil）
+    implementation project(':sharekit')
     // 设置页使用播放器引擎开关（PlaybackEngineHelper，在 :feature-video）
     implementation project(':feature-video')
     implementation libs.google.material

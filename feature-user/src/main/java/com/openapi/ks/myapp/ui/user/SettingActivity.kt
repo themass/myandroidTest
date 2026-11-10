@@ -48,7 +48,6 @@ import com.openapi.core.design.theme.AppSpacing
 import com.openapi.core.util.EventBusUtil
 import com.openapi.core.util.LogUtil
 import com.openapi.core.util.PreferenceUtils
-import com.openapi.core.util.ShareUtil
 import com.openapi.core.util.StringUtils
 import com.openapi.core.util.ToastUtil
 import com.openapi.feature.user.R
@@ -121,7 +120,7 @@ class SettingActivity : BaseSingleActivity() {
         if (!StringUtils.hasText(url)) {
             url = com.openapi.core.net.NetConfig.defaultReferer()
         }
-        ShareUtil(this).shareText(null, null, "$url 爱Freedom，精彩你的生活", "爱Freedom", "精彩你的生活")
+        com.openapi.core.share.ShareKit.shareText(this, "$url 爱Freedom，精彩你的生活", subject = "精彩你的生活", chooserTitle = "分享到：")
     }
 
     override fun needShow(): Boolean = true

@@ -12,7 +12,6 @@ import com.openapi.core.event.ConfigActionEvent
 import com.openapi.core.net.BaseService
 import com.openapi.core.util.EventBusUtil
 import com.openapi.core.util.PreferenceUtils
-import com.openapi.core.util.ShareUtil
 import com.openapi.core.util.StringUtils
 import com.openapi.core.util.ToastUtil
 import com.openapi.home.domain.Channel
