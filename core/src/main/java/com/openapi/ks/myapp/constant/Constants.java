@@ -221,7 +221,7 @@ public class Constants {
      */
     public static final String MUSIC_UI_AUXIO_STYLE = "MUSIC_UI_AUXIO_STYLE";
     /**
-     * 音乐播放模式持久化（与 {@link com.openapi.ks.myapp.service.PlayService} 中 status 1～4 对应）。
+     * 音乐播放模式持久化（与 {@link com.openapi.ks.myapp.ui.sound.PlayService} 中 status 1～4 对应）。
      */
     public static final String MUSIC_PLAY_MODE_PREF = "MUSIC_PLAY_MODE_PREF";
     /** {@link com.openapi.ks.myapp.bean.vo.RecommendVo}，音乐详情页与列表共用收藏上下文 */

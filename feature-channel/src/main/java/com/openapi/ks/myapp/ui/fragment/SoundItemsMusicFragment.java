@@ -37,7 +37,7 @@ import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.bean.vo.SoundItemsVo;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.core.util.StaticDataUtil;
-import com.openapi.ks.myapp.service.PlayService;
+import com.openapi.ks.myapp.ui.sound.PlayService;
 import com.openapi.ks.myapp.translation.realtime.MusicSubtitleBindings;
 import com.openapi.ks.myapp.ui.sound.MusicServiceConnection;
 import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
@@ -46,15 +46,15 @@ import com.openapi.ks.myapp.ui.inte.MusicStateListener;
 import com.openapi.feature.channel.R;
 
 
-import static com.openapi.ks.myapp.service.PlayService.CURRENT;
-import static com.openapi.ks.myapp.service.PlayService.CURRENTTIME;
-import static com.openapi.ks.myapp.service.PlayService.DURATION;
-import static com.openapi.ks.myapp.service.PlayService.MUSIC_CURRENT;
-import static com.openapi.ks.myapp.service.PlayService.MUSIC_DURATION;
-import static com.openapi.ks.myapp.service.PlayService.MUSIC_PREPARED;
-import static com.openapi.ks.myapp.service.PlayService.ACTION_PLAY_MODE_CHANGED;
-import static com.openapi.ks.myapp.service.PlayService.MUSIC_PREPAREING;
-import static com.openapi.ks.myapp.service.PlayService.UPDATE_ACTION;
+import static com.openapi.ks.myapp.ui.sound.PlayService.CURRENT;
+import static com.openapi.ks.myapp.ui.sound.PlayService.CURRENTTIME;
+import static com.openapi.ks.myapp.ui.sound.PlayService.DURATION;
+import static com.openapi.ks.myapp.ui.sound.PlayService.MUSIC_CURRENT;
+import static com.openapi.ks.myapp.ui.sound.PlayService.MUSIC_DURATION;
+import static com.openapi.ks.myapp.ui.sound.PlayService.MUSIC_PREPARED;
+import static com.openapi.ks.myapp.ui.sound.PlayService.ACTION_PLAY_MODE_CHANGED;
+import static com.openapi.ks.myapp.ui.sound.PlayService.MUSIC_PREPAREING;
+import static com.openapi.ks.myapp.ui.sound.PlayService.UPDATE_ACTION;
 
 /**
  * Created by openapi on 2016/8/12.

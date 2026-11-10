@@ -27,6 +27,6 @@
         <activity
             android:name="com.openapi.ks.myapp.ui.config.QuickBrowserConfigActivity"
             android:theme="@style/myTransparent" />
-            <service android:name="com.openapi.ks.myapp.service.PlayService" />
+            <service android:name="com.openapi.ks.myapp.ui.sound.PlayService" />
     </application>
 </manifest>

@@ -5,7 +5,7 @@ import android.widget.ImageView;
 
 import com.openapi.core.util.ToastUtil;
 import com.openapi.feature.channel.R;
-import com.openapi.ks.myapp.service.PlayService;
+import com.openapi.ks.myapp.ui.sound.PlayService;
 
 /**
  * 音乐播放模式：循环切换、文字说明和底栏图标（从 {@link SoundItemsMusicFragment} 拆出，行为不变）。

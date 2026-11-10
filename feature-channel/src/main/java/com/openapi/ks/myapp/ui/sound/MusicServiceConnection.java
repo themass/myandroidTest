@@ -7,7 +7,6 @@ import android.content.ServiceConnection;
 import android.os.IBinder;
 
 import com.openapi.core.util.LogUtil;
-import com.openapi.ks.myapp.service.PlayService;
 
 /**
  * 声音列表页和声音详情页与 {@link PlayService} 的绑定。两边共用这一份连接逻辑，
