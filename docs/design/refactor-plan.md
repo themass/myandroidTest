@@ -89,6 +89,8 @@
   - `data/urlparser` 和 `CustomeAddForm` **留在 `:core`**，因为 `:core` 的 `WebViewActivity` 在用它们，不是只给用户模块用的。
   - `DelImageTask` 已删除（没有使用方）。
 - 上面每一步都只做了编译验证，没有在手机上测。统一手机测试放在阶段 4 结束后做。
+- 阶段 6（部分）：`PlayService` 迁到 `:feature-channel`（`d022b8f3`）；`feature-chat` 去掉对 `:feature-video` 的依赖（`ff4f6fe3`）；登录页通过 `Routes.login` 打开（`e903b88a`）；音乐字幕绑定 `MusicSubtitleBindings` 迁到 `:feature-channel`（`7c818aec`）；视频页打开经 `Routes.videoShow` / `Routes.videoShowLazyUrl`，`:feature-channel` 去掉对 `:feature-video` 的依赖（`d0e3853b`）。`:feature-channel` 现在只依赖 `:core`、`:commonutil`、`:media` 等，不再依赖其他 feature 模块。编译通过，未在手机上测。
+
 
 阶段 1 到 4、6、7 是**搬、删、拆**，功能不变。阶段 5、8 有少量行为变化（对话 bug 修复、路由替换）。
 
