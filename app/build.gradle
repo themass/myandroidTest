@@ -207,22 +207,13 @@ dependencies {
     // AndroidX 核心库
     implementation 'androidx.multidex:multidex:2.0.1'
     implementation libs.google.material
-    implementation libs.androidx.navigation.fragment.ktx
-    implementation libs.androidx.navigation.ui.ktx
-    implementation 'androidx.percentlayout:percentlayout:1.0.0'
-    implementation 'androidx.webkit:webkit:1.15.0'
-    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
-    implementation 'androidx.viewpager2:viewpager2:1.1.0'
     
     // 现代UI组件替代
     implementation libs.androidx.fragment
     implementation libs.androidx.activity
-    implementation 'com.facebook.shimmer:shimmer:0.5.0'
     implementation 'com.github.donkingliang:LabelsView:1.6.5'
-    implementation 'com.skyfishjy.ripplebackground:library:1.0.1'
     
     // 现代图片查看器替代 ImageGallery
-    implementation 'com.github.chrisbanes:PhotoView:2.3.0'
 
 
     // 视频播放（GSY 已含 Exo；Media3 供其他模块或后续扩展）
@@ -233,35 +224,18 @@ dependencies {
 
     // 投屏：Google Cast（小米电视 Android TV / Chromecast 等；需设备与手机同局域网且支持 Cast）
     implementation 'com.google.android.gms:play-services-cast-framework:21.5.0'
-    implementation 'androidx.mediarouter:mediarouter:1.7.0'
 
     // 响应式编程
-    implementation 'io.reactivex.rxjava3:rxjava:3.1.11'
-    implementation 'io.reactivex.rxjava3:rxandroid:3.0.2'
 
     // 数据库（Room；实体和 DAO 是 Java，用 annotationProcessor 生成实现）
     implementation libs.androidx.room.runtime
     annotationProcessor libs.androidx.room.compiler
 
     // Markdown解析库
-    implementation 'io.noties.markwon:core:4.6.2'
-    implementation 'io.noties.markwon:image-glide:4.6.2'
-    implementation 'io.noties.markwon:ext-latex:4.6.2'
-    implementation 'io.noties.markwon:image:4.6.2'
-    implementation 'io.noties.markwon:html:4.6.2'
-    implementation 'io.noties.markwon:ext-strikethrough:4.6.2'
-    implementation 'io.noties.markwon:ext-tables:4.6.2'
-    implementation 'io.noties.markwon:linkify:4.6.2'
 
     // 富文本和图像处理
-    implementation 'com.caverock:androidsvg:1.4'
-    implementation 'pl.droidsonroids.gif:android-gif-drawable:1.2.29'
 
     // FlexMark：InputMsgWebView + KaTeX 模板中 Markdown → HTML（与 Markwon 并行，公式密集消息走 WebView）
-    implementation 'com.vladsch.flexmark:flexmark:0.64.8'
-    implementation 'com.vladsch.flexmark:flexmark-ext-gfm-strikethrough:0.64.8'
-    implementation 'com.vladsch.flexmark:flexmark-ext-tables:0.64.8'
-    implementation 'com.vladsch.flexmark:flexmark-ext-autolink:0.64.8'
 
     // ---------- 拍照解题（移植自 ai-math/paizhao） ----------
     implementation platform(libs.androidx.compose.bom)
@@ -274,22 +248,12 @@ dependencies {
     implementation libs.androidx.activity.compose
     implementation libs.androidx.lifecycle.viewmodel.compose
     // LiveKit 房间连接：陪伴的文字与主动消息都走这条通道（见 companion/LiveKitCompanionTransport.kt）。
-    implementation 'io.livekit:livekit-android:2.29.0'
     implementation libs.androidx.lifecycle.runtime.compose
 
     // 相机预览与拍照
-    implementation 'androidx.camera:camera-core:1.4.0'
-    implementation 'androidx.camera:camera-camera2:1.4.0'
-    implementation 'androidx.camera:camera-lifecycle:1.4.0'
-    implementation 'androidx.camera:camera-view:1.4.0'
-    implementation 'androidx.exifinterface:exifinterface:1.3.7'
-    implementation 'com.google.guava:listenablefuture:1.0'
 
     // 裁剪 UI / 文档边缘检测 / 存储访问
-    implementation 'io.github.mr0xf00:easycrop:0.1.1'
     // 4.12.0 起 libopencv_java4.so 为 16KB 对齐（Play 要求）；4.10.0 为 4KB 对齐
-    implementation 'org.opencv:opencv:4.12.0'
-    implementation 'com.anggrayudi:storage:1.5.6'
 
     // DLNA 投屏：本地文件的 HTTP 分发（LocalMediaServer）
     implementation 'org.nanohttpd:nanohttpd:2.3.1'
@@ -298,5 +262,4 @@ dependencies {
     implementation 'com.google.android.gms:play-services-mlkit-document-scanner:16.0.0'
 
     // 文档检测推理（DocQuadNet 等 ONNX 模型）
-    implementation 'com.microsoft.onnxruntime:onnxruntime-android:1.24.1'
 }
