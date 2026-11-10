@@ -3,7 +3,6 @@ package com.openapi.asr.tts
 import android.content.Context
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
-import com.openapi.core.app.AppContext
 import java.util.Locale
 import java.util.UUID
 import kotlin.coroutines.resume
@@ -27,9 +26,9 @@ object DeviceSpeech {
      * 朗读一段文字。
      * @return true 表示设备端朗读完成；false 表示设备没有可用的中文语音或朗读失败，应回退到后端。
      */
-    suspend fun speakChinese(text: String): Boolean {
+    suspend fun speakChinese(context: Context, text: String): Boolean {
         if (text.isBlank()) return false
-        val tts = ensureEngine() ?: return false
+        val tts = ensureEngine(context) ?: return false
         if (!chineseReady) return false
         return suspendCancellableCoroutine { cont ->
             pending?.takeIf { it.isActive }?.resume(false)
@@ -65,10 +64,9 @@ object DeviceSpeech {
     }
 
     /** 初始化引擎（异步）；返回 null 表示引擎初始化失败。 */
-    private suspend fun ensureEngine(): TextToSpeech? {
+    private suspend fun ensureEngine(context: Context): TextToSpeech? {
         engine?.let { return it }
         return suspendCancellableCoroutine { cont ->
-            val context: Context = AppContext.get()
             var created: TextToSpeech? = null
             created = TextToSpeech(context) { status ->
                 if (status == TextToSpeech.SUCCESS) {

@@ -177,7 +177,7 @@ fun ChatRoute(
                     MessageAction.Select -> Unit
                     MessageAction.Retry -> viewModel.onRetry(message.id)
                     MessageAction.Edit -> viewModel.onEditMessage(message.id)
-                    MessageAction.Speak -> viewModel.onSpeakMessage(message)
+                    MessageAction.Speak -> viewModel.onSpeakMessage(context, message)
                     MessageAction.Like -> {
                         viewModel.onToggleLike(message.id)
                         // 本地收藏是切换语义：每次点击都调用一次，和界面状态保持一致

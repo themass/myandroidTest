@@ -926,11 +926,11 @@ class ChatViewModel : ViewModel() {
      * 朗读助手回复：优先用设备自带中文语音（离线、免费）；设备没有中文语音或失败时，
      * 回退到服务端合成后播放。同一时间只朗读一条。
      */
-    fun onSpeakMessage(message: ChatMessage) {
+    fun onSpeakMessage(context: android.content.Context, message: ChatMessage) {
         if (message.text.isBlank() || _uiState.value.speakingMessageId != null) return
         viewModelScope.launch {
             _uiState.update { it.copy(speakingMessageId = message.id) }
-            val spokenOnDevice = runCatching { DeviceSpeech.speakChinese(message.text) }.getOrDefault(false)
+            val spokenOnDevice = runCatching { DeviceSpeech.speakChinese(context, message.text) }.getOrDefault(false)
             if (spokenOnDevice) {
                 _uiState.update { it.copy(speakingMessageId = null) }
                 return@launch

@@ -57,7 +57,7 @@ dependencies {
     // 工具类、GSY/IJK/Ali 播放内核（commonutil 以 api 暴露）
     api project(':commonutil')
     implementation project(':core')
-    implementation project(':asr')
+    implementation project(':media')
 
     implementation libs.okhttp
     // Material 组件（BottomSheetDialog、Snackbar）

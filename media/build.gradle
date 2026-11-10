@@ -1,16 +1,18 @@
 plugins {
     id 'com.android.library'
     id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.plugin.compose'
 }
 
+// :media：媒体能力（语音、字幕、图像、媒体查看）。
+// 阶段 3 的第一步：:asr 和 :mediaview 合并到这里，包名暂不改（阶段 9 统一改）。
 android {
-    namespace = 'com.openapi.asr'
+    namespace = 'com.openapi.media'
 
     compileSdk = rootProject.ext.compileSdkVersion
 
     defaultConfig {
         minSdk = rootProject.ext.minSdkVersion
-        targetSdk = rootProject.ext.targetSdkVersion
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles = ["consumer-rules.pro"]
     }
@@ -19,11 +21,6 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            consumerProguardFiles "consumer-rules.pro"
-        }
-        debug {
-            minifyEnabled false
-            debuggable true
         }
     }
 
@@ -43,17 +40,32 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = "17"
+        jvmTarget = '17'
+    }
+
+    buildFeatures {
+        compose true
     }
 }
 
 dependencies {
-    // Constants 等在 :core
-    implementation project(':core')
+    // 通用工具（PreferenceUtils、LogUtil 等），不依赖 :core
+    implementation project(':commonutil')
 
     // 火山引擎流式 ASR 的 WebSocket / 协议
     implementation libs.okhttp
 
-    // 设备自带 TTS 的挂起封装
+    // 协程：流式识别、设备朗读的挂起封装
     implementation libs.kotlinx.coroutines.android
+
+    // Compose：媒体查看组件（MediaStack、MediaOverlap 等）
+    implementation platform(libs.androidx.compose.bom)
+    implementation libs.androidx.compose.ui
+    implementation libs.androidx.compose.ui.graphics
+    implementation libs.androidx.compose.ui.tooling.preview
+    implementation libs.androidx.compose.material3
+    implementation libs.androidx.compose.material.icons.extended
+    implementation libs.androidx.core.ktx
+    implementation 'io.coil-kt:coil-compose:2.7.0'
+    debugImplementation libs.androidx.compose.ui.tooling
 }

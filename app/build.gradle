@@ -188,7 +188,7 @@ dependencies {
     implementation project(":commonutil")
     implementation project(':core')
     // 火山引擎流式 ASR：聊天（ChatViewModel）与视频字幕共用，不依赖 :feature-video
-    implementation project(':asr')
+    implementation project(':media')
     implementation project(':feature-video')
     implementation project(':feature-roles')
     implementation project(':feature-chat')

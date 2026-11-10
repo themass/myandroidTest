@@ -59,7 +59,7 @@ dependencies {
     implementation project(':chatkit')
     implementation project(':feature-roles')
     implementation project(':feature-video')
-    implementation project(':asr')
+    implementation project(':media')
 
     // Markdown 渲染（chat/ui/markdown）
     implementation 'io.noties.markwon:core:4.6.2'
