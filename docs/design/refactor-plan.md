@@ -75,6 +75,8 @@
 | 8 | **`:app` 瘦身**：实现类回到 feature，频道列表和「我的」移出，去掉 `AppHooks` | 中 | 4–5 |
 | 9 | **收尾**：删 EventBus；统一包名；加架构测试 | 中 | 3–4 |
 
+**阶段 9 进度（2026-11-11）**：架构测试已加（`app/src/test/.../architecture/ModuleGraphTest.kt`）：没有模块依赖 `:app`；`:commonutil` 不依赖项目模块；`:core`、`:media`、`:ads`、`:chatkit` 不依赖 feature-*；feature-* 之间只允许 `:feature-chat` → `:feature-roles`。未做：删 EventBus（约 20 个事件类、约 20 个文件，Java 和 Kotlin 的订阅方都有，需要先定替代方案）；统一包名（`commonutil` 目录和包名、`viewer` 包、`Constants` 改名等）。
+
 **进度（2026-11-10）**
 - 阶段 1：完成。死代码和依赖（`573857e2`）、assets（`76a8c73a`）、资源（`f1a891bf`）、Manifest 拆分（`26017480`）。
 - 阶段 2：基本完成。业务类上移（`6190f080`）、网络层配置注入 `NetConfig`（`0b16f041`）、工具类瘦身（`d3eee5ea`）、分享合一（`567ac077`，`34dfade2`）、屏幕尺寸合一 `ScreenSize`（`4b44eb15`）、`:sharekit` 并入 `:commonutil`（`160f5189`）。两项未做：权限去重（搁置，见 5.10）；`:commonutil` 的目录和子包整理，推迟到阶段 9 和包名统一一起做，因为 Java 要求目录和包名一致，现在只改目录会改两次 import。
