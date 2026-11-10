@@ -40,6 +40,7 @@ object AppColors {
     val Error = Color(0xFFD32F2F)
     val Warning = Color(0xFFF57C00)
     val Success = Color(0xFF388E3C)
+    val SuccessContainer = Color(0xFFE3F5E6) // 成功结果卡片底色（拍照解题的答案卡）
 
     // 视频/播控遮罩
     val Scrim = Color(0x99000000)

@@ -46,7 +46,7 @@ import com.aimath.paizhao.photosolve.ui.PhotoRecognizingScreen
 import com.aimath.paizhao.photosolve.ui.PhotoResultScreen
 import com.aimath.paizhao.photosolve.ui.PhotoSolveHomeScreen
 import com.aimath.paizhao.photosolve.ui.rememberMlKitScanLauncher
-import com.aimath.paizhao.ui.theme.PaiZhaoTheme
+import com.openapi.core.design.theme.AppMaterialTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -71,7 +71,7 @@ class PhotoSolveActivity : ComponentActivity() {
         storageHelper.onFileSelected = { _, files -> pickedFileUri.value = files.firstOrNull()?.uri }
 
         setContent {
-            PaiZhaoTheme {
+            AppMaterialTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background,
