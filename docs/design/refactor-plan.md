@@ -12,17 +12,17 @@
 |---|---|---|---|
 | 1 | 视频播放引擎 | **保留 GSY 和全部 4 个引擎**（Exo2、IJK/FFmpeg、阿里、系统），不换 Media3 | 视频只整理结构：拆大类、移对位置。`PlaybackEngineHelper` 和设置页的引擎切换都保留 |
 | 2 | 旧 Java 页面换 Compose | **非必要不换** | 旧页面只搬家、拆大类。只有要改它的功能或者它挡住了别的整理时才重写。`:core/legacyui` 会长期存在 |
-| 3 | 音乐模块 | `:retromusic` **不动**：不改代码、不改框架、不拆、不合并。不考虑协议问题 | `:retromusic` 不在计划里。`:auxio_music_ui` 也保持现状 |
+| 3 | 音乐模块 | `:retromusic` 可以改，不强行统一风格、不拆包、不合并。`:auxio_music_ui` **删除** | 删除步骤在阶段 1；`:retromusic` 的改动只在 5.9 方案确认后做 |
 | 4 | 旧页面框架、对话的数据库实体 | 暂留 `:core/legacyui`、`:core/db` | 按此拆 `:core` |
 | 5 | 工具类 | `ObjectUtils`、`StringUtils` 等**要整理** | 见第 5.6 节 |
 | 6 | 网络层 | **要整理** | 见第 5.8 节 |
 | 7 | 公式渲染 | 先比较自定义插件和 Markwon 官方 `ext-latex`，再决定 | 见第 5.5 节 |
 | 8 | 对话的两个大类 | 按第 5.1、5.2 节拆；两个 bug 拆完先补单元测试再修 | 见第 5.1、5.2 节 |
 
-**关于两个音乐模块**：settings.gradle 里确实有两个独立的音乐模块，作用不同：
-- `:retromusic`：**本地音乐**播放器，从「我的」→ 本地音乐进入。438 个文件、57,302 行。
-- `:auxio_music_ui`：**音乐频道的另一套界面**（Compose + Media3），12 个文件、1,683 行。从频道的声音页里点开，播放的是服务器上的歌单。
-加上频道自己的声音页（`SoundItemsMusicFragment`），一共三套音乐界面。按你的决定，前两个模块都不动。
+**关于音乐模块**：
+- `:retromusic`：本地音乐，从「我的」→ 本地音乐进入。可以改，但不强行统一风格、不拆包、不合并。
+- `:auxio_music_ui`：音乐频道的另一套界面，和频道声音页功能重复（同一份服务器歌单、同一个接口、同一个入口）。**删除**。频道声音页保留自己的 Auxio 风格布局开关。
+- 删除后音乐只剩两处：本地音乐（`:retromusic`）和频道声音页（服务器歌单）。能否只用 `:retromusic` 承载频道歌单，见 5.9 节。
 
 ---
 
@@ -263,6 +263,7 @@
 | 类别 | 内容 |
 |---|---|
 | 第三方库（`:commonutil`） | PictureSelector 的 `compress`、`ucrop`、`camerax`；`BaseRecyclerViewAdapterHelper`；`android-shape-imageview`；`de.hdodenhof:circleimageview`（项目自己写了同名类）；`swiperefreshlayout` |
+| 整个模块 | `:auxio_music_ui`（12 个文件、1683 行）：删模块、`settings.gradle`、`:app` 和 `:feature-channel` 里的依赖、频道里的 `AuxioMusicUiLauncher` 和声音页的入口按钮（两个布局文件里的 `tv_open_auxio_gpl_module`） |
 | 第三方库（`:app`） | navigation、percentlayout、viewpager2、rxjava、rxandroid、webkit（先确认别的模块没有通过 `:app` 间接使用） |
 | 死类 | `:commonutil` 的 `util/cache/` 4 个、`widget/util/FileUtils`（1244 行）、`StateButton`、`IndicatorView`；`:feature-video` 的 `VideoActivity`；`ButterKnife` 遗留的 `unbindButterViews` 空方法 3 处 |
 | 死代码 | `AdsContext` 里注释掉的 VIP 判断；`AppHooks.openLogin`（没有调用方） |
@@ -425,6 +426,25 @@
 - **每个阶段结束**：完整冒烟（启动、对话收发、拍照解题、视频播放、频道浏览、登录、设置），然后合入 `weifu-refactor`。
 - **阶段 9 加架构测试**：检查 architecture.md 第 3.1、3.2 节的依赖规则，防止以后又乱。
 - 只在一个分支上持续做，不开多个分支。
+
+---
+
+### 5.9 频道歌单能否只用 `:retromusic` 承载（待评估，不动代码）
+
+**需求**：频道声音页要播服务器歌单，支持倍速、收藏、实时字幕翻译、后台播放。
+
+**`:retromusic` 现状**
+- 播放器是 `CrossFadePlayer` + Media3（`RetroExoPlayer`），`MusicService` 管后台播放。
+- 歌曲模型 `Song` 的地址字段是 `data`，播放时用 `song.uri`。
+- 外部能打开的只有 `content://` 和 `file://`，Manifest 里登记的 `VIEW` 意图也只有这两种 scheme。远程 http 地址目前不能直接播。
+
+**可行的做法**：`Song` 增加一种远程来源（地址是 http），播放器对 http 直接设置数据源；歌单用频道接口生成一组 `Song`，交给 `MusicService` 播放。这要改 `:retromusic` 的歌曲模型和播放器的数据源选择，不需要改它的界面。
+
+**要确认的**
+1. 歌单的界面用 `:retromusic` 的，还是频道自己的声音页？前者要把频道的收藏和字幕接进 `:retromusic` 的界面，工作量大；后者只换播放器。
+2. 「只用 `:retromusic`」会让它同时承担本地音乐和频道歌单，两者的队列、通知、播放模式要分开，否则会互相打断。
+
+建议：先用 `PlayService`（频道自己的）保持现状，等阶段 7 整理声音页时，再评估是否让它底层改用 `MusicService`。这一步不急。
 
 ---
 
