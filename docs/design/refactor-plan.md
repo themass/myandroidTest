@@ -403,6 +403,8 @@
 
 检查更新、下载、两种弹窗、发 `StateUseEvent` 和 `VipDescEvent` 混在一起。拆成「检查版本」（挂起函数，返回结果）和「更新弹窗」（UI），版本里带的状态和 VIP 说明改为写进 `:core/account`。
 
+**进度（2026-11-11）**：已拆成 `VersionUpdater`（版本和检查）、`UpdateDialogs`（提示框）、`ApkDownloader`（下载安装），提交 `d776479a`。与原计划不同的一点：`StateUseEvent` 存的 `USER_STATUS` 没有任何地方读取，`VipDescEvent` 没有订阅者，所以没有写进 `:core/account`，而是直接删除（连同 `StateUseVo`、`VipDescVo` 和 VO 字段）。另外 `needToCheckUpdateNextTime` 没有调用方，已删除；但取消更新时写入的「下次不再提示」偏好没有任何地方读取，**这个功能实际上不生效**，需要你决定是修好还是删掉。
+
 ### 5.8 网络层整理（阶段 2）
 
 **现状**：底层是 OkHttp，没有 Volley 依赖，但类名和结构照搬了 Volley（`NetQueue`、`NetRequest`、`Response.Listener`、`MyVolleyError`、`SyncFuture`）。调用链：
