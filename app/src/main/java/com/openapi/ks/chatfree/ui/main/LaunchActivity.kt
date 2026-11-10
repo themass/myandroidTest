@@ -9,10 +9,10 @@ import android.view.KeyEvent
 import android.view.View
 import com.openapi.core.ads.yewu.ads.base.AdsContext
 import com.openapi.core.ads.yewu.ads.base.AdsManager
-import com.openapi.core.ads.yewu.ads.config.LaunchAdsNext
-import com.openapi.core.ads.yewu.ads.config.SplashAdDissmisEvent
+import com.openapi.core.ads.yewu.ads.config.AdsEvents
 import com.openapi.core.ads.yewu.um.MobAgent
-import com.openapi.core.util.EventBusUtil
+import com.openapi.core.event.observe
+import androidx.lifecycle.lifecycleScope
 import com.openapi.core.util.LogUtil
 import com.openapi.home.HomeActivity
 import com.openapi.ks.chat.R
@@ -20,8 +20,6 @@ import com.openapi.ks.chat.databinding.MainLaunchBinding
 import com.openapi.ks.myapp.constant.Constants
 import com.openapi.ks.myapp.task.LoginTask
 import com.openapi.ks.myapp.ui.base.app.LogActivity
-import org.greenrobot.eventbus.Subscribe
-import org.greenrobot.eventbus.ThreadMode
 
 /** 启动页：展示开屏广告，倒计时结束或点跳过后进入主页。 */
 class LaunchActivity : LogActivity() {
@@ -52,7 +50,7 @@ class LaunchActivity : LogActivity() {
         MobAgent.init(this)
         LoginTask.start(this)
         countdownHandler.postDelayed(startMainRunnable, max.toLong())
-        EventBusUtil.getEventBus().register(this)
+        observeAdEvents()
         showAdview()
     }
 
@@ -85,7 +83,6 @@ class LaunchActivity : LogActivity() {
         countdownHandler.removeCallbacks(startMainRunnable)
         AdsManager.getInstans().exitSplashAds(this, launchBinding.rlSpread)
         super.onDestroy()
-        EventBusUtil.getEventBus().unregister(this)
     }
 
     private fun showAdview() {
@@ -99,15 +96,15 @@ class LaunchActivity : LogActivity() {
         countdownHandler.sendEmptyMessageDelayed(Constants.ADS_JISHI, 1000)
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    fun onBannerShow(next: LaunchAdsNext) {
-        LogUtil.i("LaunchAdsNext " + next.from)
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    fun onADDismissed(event: SplashAdDissmisEvent) {
-        AdsManager.getInstans().showSplashAds(
-            AdsContext.AdsFrom.ADVIEW, this, launchBinding.rlSpread, launchBinding.skipView,
-        )
+    /** 随页面生命周期收集广告事件：页面销毁时自动停止，不用手动 unregister。 */
+    private fun observeAdEvents() {
+        observe(lifecycleScope, AdsEvents.launchAdsNext()) { next ->
+            LogUtil.i("LaunchAdsNext " + next.from)
+        }
+        observe(lifecycleScope, AdsEvents.splashDismissed()) {
+            AdsManager.getInstans().showSplashAds(
+                AdsContext.AdsFrom.ADVIEW, this, launchBinding.rlSpread, launchBinding.skipView,
+            )
+        }
     }
 }

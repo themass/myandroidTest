@@ -19,8 +19,7 @@ import com.openapi.core.ads.yewu.ads.adview.InterstitialAdviewAds;
 import com.openapi.core.ads.yewu.ads.adview.NativeAdviewAds;
 import com.openapi.core.ads.yewu.ads.adview.SplashAdviewAds;
 import com.openapi.core.ads.yewu.ads.adview.VideoAdviewAds;
-import com.openapi.core.ads.yewu.ads.config.LaunchAdsNext;
-import com.openapi.core.util.EventBusUtil;
+import com.openapi.core.ads.yewu.ads.config.AdsEvents;
 import com.openapi.core.util.LogUtil;
 
 import java.util.HashMap;
@@ -69,7 +68,7 @@ public class AdsManager {
             if (obj.type == AdsContext.AdsType.ADS_TYPE_BANNER && obj.status == AdsContext.AdsShowStatus.ADS_NO_MSG) {
             }
             if (obj.type == AdsContext.AdsType.ADS_TYPE_SPREAD && obj.status == AdsContext.AdsShowStatus.ADS_NO_MSG) {
-                EventBusUtil.getEventBus().post(new LaunchAdsNext(obj.from));
+                AdsEvents.postLaunchAdsNext(obj.from);
             }
             if (obj.type == AdsContext.AdsType.ADS_TYPE_INTERSTITIAL
                     && obj.status == AdsContext.AdsShowStatus.ADS_NO_MSG

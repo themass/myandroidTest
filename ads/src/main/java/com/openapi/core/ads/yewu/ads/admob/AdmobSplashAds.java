@@ -14,10 +14,9 @@ import com.google.android.gms.ads.appopen.AppOpenAd;
 import com.openapi.core.ads.yewu.ads.Constants;
 import com.openapi.core.ads.yewu.ads.base.SplashAdsInter;
 import com.openapi.core.ads.yewu.ads.config.SplashAdDissmisEvent;
-import com.openapi.core.util.EventBusUtil;
+import com.openapi.core.ads.yewu.ads.config.AdsEvents;
 import com.openapi.core.util.LogUtil;
 import com.openapi.core.ads.yewu.ads.base.AdsContext;
-import com.openapi.core.ads.yewu.ads.config.LaunchAdsNext;
 
 
 /**
@@ -64,7 +63,7 @@ public class AdmobSplashAds extends SplashAdsInter {
                                             // Set the reference to null so isAdAvailable() returns false.
                                             LogUtil.i("admob flash onAdDismissedFullScreenContent");
                                             appOpenAd = null;
-                                            EventBusUtil.getEventBus().post(new SplashAdDissmisEvent(AdsContext.AdsFrom.ADMOB.desc));
+                                            AdsEvents.postSplashDismissed(new SplashAdDissmisEvent(AdsContext.AdsFrom.ADMOB.desc));
                                         }
 
                                         /** Called when fullscreen content failed to show. */
@@ -91,7 +90,7 @@ public class AdmobSplashAds extends SplashAdsInter {
                         @Override
                         public void onAdFailedToLoad(LoadAdError loadAdError) {
                             LogUtil.i("admob splash onAdFailedToLoad " + loadAdError.toString());
-                            EventBusUtil.getEventBus().post(new LaunchAdsNext(AdsContext.AdsFrom.ADMOB));
+                            AdsEvents.postLaunchAdsNext(AdsContext.AdsFrom.ADMOB);
                         }
                     });
         } catch (Throwable e) {

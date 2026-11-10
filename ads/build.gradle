@@ -50,6 +50,8 @@ android {
 dependencies {
     // 项目模块依赖
     implementation project(":commonutil")
+    // AdsEvents 用到的 flow 类型
+    implementation libs.kotlinx.coroutines.android
 
     // Google 广告
     api 'com.google.android.gms:play-services-ads:24.9.0'

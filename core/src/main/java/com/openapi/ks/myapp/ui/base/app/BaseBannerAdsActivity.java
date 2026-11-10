@@ -20,8 +20,6 @@ import com.openapi.core.R;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.core.ads.yewu.ads.AdsPopStrategy;
 
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
 
 /**
  * Created by openapi on 2016/8/21.
