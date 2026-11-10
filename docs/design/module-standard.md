@@ -1,12 +1,13 @@
-# 模块标准与归属设计（第 4 版）
+# 模块标准与归属设计（第 5 版）
 
 状态：**设计已基本确认，代码未动**。基于 `weifu-refactor` 的 `debdf79f`。
 数据来源：按文件的 import 归类（`/tmp/deadscan/classify.py`），按类名统计使用方（`/tmp/clsusers.py`）。脚本有误判，每一步搬迁都以编译为准。
 `:core` 的逐文件拆分见 [core-split-plan.md](core-split-plan.md)。
 
-第 4 版相对第 3 版的变化：
+第 5 版相对第 3 版的变化：
 - `:media` 不再收投屏；投屏放回 `:feature-video`。`:media` 改为语音、字幕翻译、图像、媒体查看 4 个子包。
-- `:feature-video`、`:feature-channel` **不合并**。两者之间的依赖通过搬对位置和路由去掉。
+- 视频和频道**不合并**。两者之间的依赖通过搬对位置和路由去掉。
+- `:feature-channel` 改名为 `:feature-content`（内容），内部按内容类型分子包（第 5 版新增）。注意：第 3 版里的 `:feature-content` 指「视频 + 频道合并」，第 5 版只指原来的频道模块。
 - 写入 `:core` 的定义。
 
 ---
@@ -67,7 +68,7 @@
 第 4 层  :app                    装配
 第 3 层  :feature-chat           对话（含 roles/ 子包）
          :feature-video          视频
-         :feature-channel        频道（推荐、图片、文字、声音、收藏、搜索）
+         :feature-content        内容：视频/图片/文字/声音频道、收藏、推荐、捐赠（原 :feature-channel）
          :feature-user           账户与设置
          :feature-photosolve     拍照解题
          :feature-companion      角色扮演伴侣
@@ -187,10 +188,45 @@ legacyui/   View 体系的 Activity/Fragment 基类，新代码不用；旧页�
 |---|---|---|
 | `:feature-chat` | 对话 + `roles/` 子包 | 并入 `:feature-roles`；删除对 `:feature-video` 的依赖（源码里没有使用） |
 | `:feature-video` | 播放器（GSY、Media3）、视频列表与视频页、本地视频、投屏（DLNA + Google Cast）、`RealtimeSubtitleBindings` 的视频部分 | DLNA 从 `:core` 移来；字幕引擎移到 `:media/subtitle`；`PlayService` 移到频道 |
-| `:feature-channel` | 推荐、图片、文字、声音、收藏、搜索；`PlayService`（音乐播放服务）、`RealtimeSubtitleBindings` 的音乐部分、`MusicVisualizer` | 不再依赖 `:feature-video`、`:feature-user` |
+| `:feature-content` | 内容频道（视频、图片、文字、声音）、收藏、应用推荐、捐赠、快捷浏览配置。子包见下 | 由 `:feature-channel` 改名；不再依赖 `:feature-video`、`:feature-user` |
 | `:feature-user` | 登录、注册、设置、反馈 | 不再依赖 `:feature-video` |
 | `:feature-photosolve` | 拍照解题流程 | 不变 |
 | `:feature-companion` | 角色扮演伴侣 | 不变（Android 端按约定在自己的分支开发） |
+
+#### `:feature-content` 的子包（由 `:feature-channel` 改名）
+
+现在 39 个文件、约 6000 行，基本是 View 体系，只有频道主体和声音详情用了 Compose。入口：侧边栏「频道」→ `:app` 的频道列表 → `ConfigActionJump` 按 URL 类型打开频道页；「我的」页面的收藏、应用推荐、捐赠也进这里。加上从 `:core` 下沉的 20 个文件，共约 59 个。
+
+**为什么不按内容类型拆成多个模块**：视频、图片、文字、声音频道都继承同一套列表框架（`RecommendFragment` 被 8 个类继承，频道主体被 4 个类用）。拆开就要把框架放进 `:core`，或者复制多份。
+
+```
+com.openapi.feature.content
+  common/      列表框架：RecommendFragment、ChannelBodyFragment、ChannelBodyController、ChannelBodyScreen
+               从 :core 下沉：IndexRecommendAdapter、BasePhotoFlowRecycleViewAdapter、showtype/ 6 个、
+               ImagePhotoLoad.loadPhoto、HistoryUtil（图片、文字都用）、ImgItemsVo、TextItemsVo（收藏也用）
+  video/       VideoChannleActivity、MovieChannleActivity、VideoChannleBodyFragment、MovieChannleBodyFragment、
+               VideoChannelListFragment、VideoChannelUserListFragment、VideoChannelUserItemsListFragment、
+               GlobalVideoChannelListFragment（全局视频搜索）。点进去用路由打开 :feature-video 的播放页
+  image/       ImgChannleActivity、ImgChannleBodyFragment、ImgChannelImgListFragment、ImgItemFragment、
+               MyFullScreenImageGalleryActivity、FullScreenImagePagerAdapter、TeleplayActivity（见下）
+               从 :core 下沉：SaveImageTask、SaveImageCallBack、DelImageTask、OnBackKeyDownListener
+  text/        TextChannleActivity、TextChannleBodyFragment、TextChannelListFragment、TextItemsFragment、
+               TextItemsWebViewFragment、TextChannelListItemsViewAdapter
+               从 :core 下沉：SaveTextTask、TextItemVo、MenuOneContext
+  sound/       SoundChannleActivity、SoundChannleBodyFragment、SoundItemsMusicFragment、SoundDetailActivity、
+               SoundDetailScreen、SoundDetailUiState、SoundItemsViewMusicAdapter、AuxioMusicUiLauncher
+               从 :feature-video 移来：PlayService（音乐播放服务）、RealtimeSubtitleBindings 的音乐部分
+               从 :commonutil 移来：MusicVisualizer；从 :core 下沉：MusicStateListener
+  mine/        FavoriteFragment、FavoriteScreen、AppListFragment、AppRecommendViewAdapter、DonationListFragment
+               从 :core 下沉：AppInfo
+  config/      QuickBrowserConfigActivity（快捷浏览配置）
+```
+
+**子包规则**（已用脚本按现有代码核对，无违反）：
+- `video/`、`image/`、`text/`、`sound/`、`config/` 只能 import `common/`，彼此不 import。
+- `mine/` 可以 import 各类型子包：收藏页要打开对应类型的详情页（图片、文字、音乐），捐赠页要打开全屏看图。类型子包不能 import `mine/`。
+
+**发现的可疑点**：`TeleplayActivity`（标题是「电视剧」，入口 `Constants.TELEPLAY_URL`）实际显示的是图片频道的主体 `ImgChannleBodyFragment`，像是复制粘贴遗留。暂时按实际行为放进 `image/`，需要确认这个入口是否还在用。
 
 **去掉 feature 依赖的具体做法**：
 
@@ -222,7 +258,8 @@ legacyui/   View 体系的 Activity/Fragment 基类，新代码不用；旧页�
 | `:ads` | `:ads` |
 | `:core` | `:core` |
 | `:feature-chat`、`:feature-roles` | `:feature-chat` |
-| `:feature-video`、`:feature-channel`、`:feature-user`、`:feature-photosolve`、`:feature-companion` | 不变 |
+| `:feature-channel` | `:feature-content`（改名） |
+| `:feature-video`、`:feature-user`、`:feature-photosolve`、`:feature-companion` | 不变 |
 | `:app` | `:app` |
 
 ---
@@ -232,11 +269,11 @@ legacyui/   View 体系的 Activity/Fragment 基类，新代码不用；旧页�
 | 库 | 现在 | 改为 |
 |---|---|---|
 | GSY 播放器 | `:commonutil` api | `:feature-video` implementation。`:feature-chat` 只借用了它的一张错误图，改用自己的图 |
-| PictureSelector | `:commonutil` api | `:feature-channel`（只有频道的 `IndexRecommendAdapter`、`ShowTypeHandle` 用） |
+| PictureSelector | `:commonutil` api | `:feature-content`（只有 `IndexRecommendAdapter`、`ShowTypeHandle` 用） |
 | PictureSelector `compress`、`ucrop`、`camerax` | `:commonutil` api | 删除，无使用 |
 | BRVAH、shape-imageview、circleimageview、swiperefreshlayout | `:commonutil` | 删除，无使用 |
 | Room | `:commonutil` api | `:core` |
-| PhotoView | `:commonutil` api | `:feature-channel` |
+| PhotoView | `:commonutil` api | `:feature-content` |
 | Gson、EventBus、OkHttp、Glide | `:commonutil` api | `:common` api |
 | Media3 | 分散在 `:app`、`:core`、`:feature-video`、`:mediaview` | `:media` 和 `:feature-video` 各自声明 |
 | ONNX Runtime | `:app`、`:core` | `:media` |
@@ -273,7 +310,7 @@ XML 布局、Manifest、混淆规则里引用的库，文本扫描不一定找�
 | 方法 | 调用方 | 处理 |
 |---|---|---|
 | `isVip()` | `:core` 的 `BaseToolbarMenuActivity` | 改为读 `:core/account` |
-| `openGlobalSearch()` | `:core` 的 `BaseToolbarMenuActivity` | 基类只留菜单槽位，搜索入口由 `:feature-channel` 的子类填 |
+| `openGlobalSearch()` | `:core` 的 `BaseToolbarMenuActivity` | 基类只留菜单槽位，搜索入口由 `:feature-content` 的子类填 |
 | `openSetting()` | `:core` 的 `BaseBannerAdsActivity`、视频播放器 | 用路由打开（`:feature-user` 在 Manifest 里注册 Intent action） |
 | `openLogin()` | 没有调用方 | 删除 |
 
@@ -290,7 +327,8 @@ XML 布局、Manifest、混淆规则里引用的库，文本扫描不一定找�
 5. 工具、网络、通用视图放一个模块 `:common`，用子包分开：同意。
 6. 相似的独立能力合并，用子包分开：同意。
 7. `:chatkit`、`:ads` 保持独立；`:feature-roles` 并入 `:feature-chat`；「第 0、1 层不依赖 `:core`」；按第 7 节去掉 `AppHooks`：同意。
-8. `:media` 不收投屏、`:feature-video` 与 `:feature-channel` 不合并：按你的疑问修改为第 4 版的方案。
+8. `:media` 不收投屏、视频与频道不合并：按你的疑问修改为第 4 版的方案。
+9. `:feature-channel` 改名 `:feature-content`，保持一个模块，内部按内容类型分子包：同意。
 
 ## 9. 待你确认
 

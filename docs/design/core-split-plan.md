@@ -1,7 +1,7 @@
 # `:core` 拆分计划（草案，待确认）
 
 基于 `weifu-refactor` 的 `debdf79f`。`:core` 现有 130 个源文件。
-前提：按 `module-standard.md` 第 4 版——`:media` 含 `speech/`、`subtitle/`、`imaging/`、`viewer/`；`:feature-video`、`:feature-channel` 不合并。
+前提：按 `module-standard.md` 第 4 版——`:media` 含 `speech/`、`subtitle/`、`imaging/`、`viewer/`；`:feature-video`、`:feature-content` 不合并。
 
 ## 1. 拆完后 `:core` 是什么
 
@@ -30,12 +30,12 @@
 | `:media/speech` | 2 | `AudioPlayer`、`VoiceRecorder` |
 | `:common/ui` | 6 | `AppMaterialTheme`、`Tokens`、`AppDialogs`、`Permissions`、`PermissionRequester`、`PermissionState` |
 | `:feature-video` | 11 | DLNA 投屏 `cast/` 全部 |
-| `:feature-channel` | 20 | `IndexRecommendAdapter`、`BasePhotoFlowRecycleViewAdapter`、`showtype/` 6 个、`task/` 4 个、`AppInfo`、`ImgItemsVo`、`TextItemVo`、`TextItemsVo`、`HistoryUtil`、`MusicStateListener`、`OnBackKeyDownListener`、`MenuOneContext` |
+| `:feature-content` | 20 | `IndexRecommendAdapter`、`BasePhotoFlowRecycleViewAdapter`、`showtype/` 6 个、`task/` 4 个、`AppInfo`、`ImgItemsVo`、`TextItemVo`、`TextItemsVo`、`HistoryUtil`、`MusicStateListener`、`OnBackKeyDownListener`、`MenuOneContext` |
 | `:feature-user` | 12 | `LoginForm`、`RegForm`、`IwannaForm`、`UserInfoVo`、`IWannaVo`、`urlparser/` 4 个、`TabChangeEvent`、`UserLoginEvent`、`CustomeAddEvent` |
 | `:feature-chat` | 1 | `FeedbackContentForm` |
 | `:app` | 12 | 对话接口的数据对象 `ChatSessionVo`、`ChatMessageVo`、`ChatMessagePageVo`、`Choice`、`Message`、`AsrResponseVo`、`TtsResponseVo`、`AsrContentForm`；连接日志 `ConnLogUtil`、`ConnLogForm`；`MyRadarScanView`（启动页）、`VideoWebViewActivity` |
 | 删除 | 1 | `AppHooks`（见第 4 步） |
-| 拆分 | 1 | `ImagePhotoLoad`：`loadCommonImg`、`options` 去 `:common/ui/image`，`loadPhoto` 去 `:feature-channel` |
+| 拆分 | 1 | `ImagePhotoLoad`：`loadCommonImg`、`options` 去 `:common/ui/image`，`loadPhoto` 去 `:feature-content` |
 
 ## 3. 为什么有些「单个模块用」的东西还留在 `:core`
 
