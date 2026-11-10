@@ -27,7 +27,7 @@ import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.UserLoginUtil;
 import com.openapi.core.event.ConfigActionEvent;
 import com.openapi.ks.myapp.ui.base.features.BasePullLoadbleFragment;
-import com.openapi.ks.myapp.ui.user.LoginActivity;
+import com.openapi.ks.myapp.constant.Routes;
 
 import java.util.HashMap;
 import java.util.List;
@@ -113,7 +113,7 @@ public abstract class RecommendFragment extends BasePullLoadbleFragment<Recommen
     protected boolean checkUserLevel(int type) {
         if (type > 0) {
             if (UserLoginUtil.getUserCache() == null) {
-                startActivity(LoginActivity.class);
+                startActivity(Routes.login(getActivity()));
                 return false;
             }
             if (UserLoginUtil.getUserCache().level < type) {

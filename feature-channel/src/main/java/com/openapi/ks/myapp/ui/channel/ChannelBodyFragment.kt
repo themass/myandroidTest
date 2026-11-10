@@ -13,7 +13,7 @@ import com.openapi.feature.channel.R
 import com.openapi.ks.myapp.bean.vo.RecommendVo
 import com.openapi.ks.myapp.data.UserLoginUtil
 import com.openapi.ks.myapp.ui.base.app.BaseFragment
-import com.openapi.ks.myapp.ui.user.LoginActivity
+import com.openapi.ks.myapp.constant.Routes
 
 /**
  * Host fragment for the channel body screens (text / video / movie / image channels).
@@ -85,7 +85,7 @@ abstract class ChannelBodyFragment : BaseFragment() {
         if (type > 0) {
             val user = UserLoginUtil.getUserCache()
             if (user == null) {
-                startActivity(Intent(activity, LoginActivity::class.java))
+                startActivity(Routes.login(requireActivity()))
                 return false
             }
             if (user.level < type) {
