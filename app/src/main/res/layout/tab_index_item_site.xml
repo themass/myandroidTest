@@ -95,6 +95,13 @@
         </FrameLayout>
     </FrameLayout>
 
+    <!-- Sites 第 3 位的 Banner 容器（代码里按行控制显示） -->
+    <FrameLayout
+        android:id="@+id/fl_row_banner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
+
     <RelativeLayout
         android:id="@+id/natvieView"
         android:layout_width="0dp"

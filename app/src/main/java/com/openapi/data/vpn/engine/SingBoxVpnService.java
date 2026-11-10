@@ -84,6 +84,13 @@ public final class SingBoxVpnService extends VpnService {
     private static volatile Listener listener;
     private static volatile boolean libboxReady;
 
+    /** 进程内是否有一条 sing-box 隧道在跑（从 connect 到 teardown）。 */
+    private static volatile boolean sRunning;
+
+    public static boolean isRunning() {
+        return sRunning;
+    }
+
     public static void setListener(@Nullable Listener l) {
         listener = l;
     }
@@ -150,6 +157,7 @@ public final class SingBoxVpnService extends VpnService {
         running = false;
         stopCore();
         running = true;
+        sRunning = true;
         int gen = ++generation;
         // startOrReloadService 会同步回调 openTun 并等待内核就绪，不能放在主线程上，否则 ANR。
         new Thread(() -> startService(configJson, gen), "singbox-start").start();
@@ -182,30 +190,15 @@ public final class SingBoxVpnService extends VpnService {
      * 必须在后台跑，doConnect 在主线程，阻塞会 ANR。
      */
     private void probeThenNotify(int gen) {
-        long deadline = System.currentTimeMillis() + TunnelProbe.PROBE_TIMEOUT_MS;
-        int round = 0;
-        while (System.currentTimeMillis() < deadline) {
-            if (!running || gen != generation) {
-                LogUtil.i(TAG + ": 探针中止，隧道已拆除或已被新连接替换");
-                return;
-            }
-            round++;
-            for (String[] target : TunnelProbe.PROBE_TARGETS) {
-                if (TunnelProbe.probeOnce(target[0], Integer.parseInt(target[1]))) {
-                    LogUtil.i(TAG + ": 连通性探针通过（第 " + round + " 轮，"
-                            + target[0] + ":" + target[1] + "）");
-                    if (running && gen == generation) {
-                        notifyEstablished();
-                    }
-                    return;
-                }
-            }
-            try {
-                Thread.sleep(TunnelProbe.PROBE_INTERVAL_MS);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                return;
-            }
+        boolean ok = TunnelProbe.probeUntilDeadline(this, () -> running && gen == generation);
+        if (!running || gen != generation) {
+            LogUtil.i(TAG + ": 探针中止，隧道已拆除或已被新连接替换");
+            return;
+        }
+        if (ok) {
+            LogUtil.i(TAG + ": 连通性探针通过（经 VPN 网络）");
+            notifyEstablished();
+            return;
         }
         String reason = "隧道已建立但探测流量不通（握手失败或节点参数不对）";
         LogUtil.e(TAG + ": " + reason);
@@ -265,6 +258,7 @@ public final class SingBoxVpnService extends VpnService {
 
     private void teardown() {
         running = false;
+        sRunning = false;
         stopCore();
         stopForeground(true);
         notifyStopped();

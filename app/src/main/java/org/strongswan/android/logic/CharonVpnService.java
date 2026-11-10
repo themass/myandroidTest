@@ -200,6 +200,49 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
     private final Object mServiceLock = new Object();
     public ButtonBroadcastReceiver bReceiver;
     private volatile boolean isInitialized = false;
+    /** native 关闭的最长等待时间。正常 deinit 在 1 秒内返回。 */
+    private static final long DEINIT_TIMEOUT_MS = 5_000L;
+    /** native deinit 卡死过：本进程的 charon 已不可用，下次连接前必须重启进程。 */
+    private static volatile boolean sCharonWedged = false;
+
+    /**
+     * 强制拆掉本应用的系统 VPN。charon 卡死时它持有的 TUN fd 不会被关闭，系统 VPN 会一直挂着。
+     * 同一个应用再次 establish() 会让系统用新接口替换旧接口（旧接口被拆除），
+     * 新接口没有路由、建好立刻关闭，于是系统 VPN 整个消失，手机流量回到 Wi-Fi/移动网络。
+     */
+    private void forceCloseVpnInterface() {
+        if (nonIkev2ProtocolActive) {
+            // 用户已切到别的协议：系统 VPN 现在是那条协议的，不能拆。
+            LogUtil.i("其它协议已接管 VPN，跳过强制拆除");
+            stopForeground(true);
+            return;
+        }
+        try {
+            Builder builder = new Builder();
+            builder.setSession("closing");
+            builder.addAddress("10.255.255.254", 32);
+            ParcelFileDescriptor pfd = builder.establish();
+            if (pfd != null) {
+                pfd.close();
+            }
+            LogUtil.i("已强制拆除系统 VPN");
+        } catch (Exception e) {
+            LogUtil.e("强制拆除系统 VPN 失败: " + e.getMessage());
+        }
+        stopForeground(true);
+    }
+
+    /** charon 卡死后的恢复：拉起启动页并结束当前进程（用户刚在前台点了连接，允许拉起界面）。 */
+    private void restartProcessForCharon() {
+        setError(VpnStateService.ErrorState.GENERIC_ERROR);
+        Intent launch = getPackageManager().getLaunchIntentForPackage(getPackageName());
+        if (launch != null) {
+            launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(launch);
+        }
+        new Handler(android.os.Looper.getMainLooper()).postDelayed(
+                () -> android.os.Process.killProcess(android.os.Process.myPid()), 400);
+    }
     private volatile boolean nativeLibraryCorrupted = false;
     /**
      * 当前使用的提案档位。0 = 现代（AEAD + ECP），1 = 旧版（CBC + MODP）。
@@ -552,7 +595,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
     private void probeThenConnected() {
         final VpnProfile profile = mCurrentProfile;
         new Thread(() -> {
-            boolean ok = com.openapi.data.vpn.engine.TunnelProbe.probeUntilDeadline(
+            boolean ok = com.openapi.data.vpn.engine.TunnelProbe.probeUntilDeadline(CharonVpnService.this,
                     () -> !mIsDisconnecting && mCurrentProfile == profile);
             if (mIsDisconnecting || mCurrentProfile != profile) {
                 return;
@@ -925,19 +968,36 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
             
             // 只有在已经初始化的情况下才调用deinitializeCharon
             if (isInitialized) {
+                if (clearProfile) {
+                    // 用户断开：先拆掉系统 VPN，再关 charon。手机网络立即恢复，不用等 native 关闭；
+                    // charon 的 TUN 读线程也会因为 TUN 失效而退出，不再卡在 ESP 收发上。
+                    forceCloseVpnInterface();
+                }
                 LogUtil.i("Deinitializing charon...");
-                // 使用安全包装器调用native方法
-                boolean success = safeNativeCall(() -> {
-                    deinitializeCharon();
-                    // 再次延迟，确保清理完成
-                    try {
-                        Thread.sleep(50);
-                    } catch (InterruptedException e) {
-                        LogUtil.e("Interrupted while waiting for cleanup");
+                // native 的 deinitializeCharon 偶发卡死（strongSwan 6.1.0，发完 DELETE 后不返回，
+                // 实测会一直卡住）。卡住时 TUN 不会关，系统 VPN 一直挂着、手机断网，界面停在"断开中"。
+                // 所以放到单独线程里跑，最多等 DEINIT_TIMEOUT_MS；超时就由 Java 层强制拆掉系统 VPN。
+                final java.util.concurrent.CountDownLatch deinitDone = new java.util.concurrent.CountDownLatch(1);
+                final boolean[] success = {false};
+                Thread deinit = new Thread(() -> {
+                    success[0] = safeNativeCall(this::deinitializeCharon, "deinitializeCharon");
+                    deinitDone.countDown();
+                }, "charon-deinit");
+                deinit.start();
+                boolean finished;
+                try {
+                    finished = deinitDone.await(DEINIT_TIMEOUT_MS, java.util.concurrent.TimeUnit.MILLISECONDS);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    finished = false;
+                }
+                if (!finished) {
+                    LogUtil.e("deinitializeCharon " + DEINIT_TIMEOUT_MS + "ms 未返回，charon 卡死；强制拆除系统 VPN");
+                    sCharonWedged = true;
+                    if (!clearProfile) {
+                        forceCloseVpnInterface();
                     }
-                }, "deinitializeCharon");
-                
-                if (success) {
+                } else if (success[0]) {
                     LogUtil.i("Charon deinitialized successfully");
                 } else {
                     LogUtil.e("Failed to deinitialize charon");
@@ -977,6 +1037,13 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
 
     public void conn() {
         if(mService==null){
+            return;
+        }
+        if (sCharonWedged) {
+            // 上一次 native 关闭卡死，charon 还停在半关闭状态，本进程里不能再初始化它。
+            // 用户此刻在前台点了连接：重启应用进程，重启后再点一次就能正常连。
+            LogUtil.e("charon 处于卡死状态，重启应用进程以恢复 IKEv2");
+            restartProcessForCharon();
             return;
         }
         Log.i(TAG, "charon started mCurrentState=" + mService.getState() + "  thread=" + Thread.currentThread().getName());

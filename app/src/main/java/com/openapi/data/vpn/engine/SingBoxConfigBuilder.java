@@ -24,7 +24,8 @@ public final class SingBoxConfigBuilder {
     static final String DNS_REMOTE_TAG = "dns-remote";
     static final String DNS_DIRECT_TAG = "dns-direct";
     static final String DEFAULT_FINGERPRINT = "chrome";
-    static final int DEFAULT_MTU = 1500;
+    /** 隧道 MTU。1500 在封装后必然分片/丢包，统一用 IPv6 最小 MTU 1280。 */
+    static final int DEFAULT_MTU = 1280;
 
     private static final Gson GSON = new Gson();
     private static final java.util.Set<String> SUPPORTED_PROTOCOLS = new java.util.HashSet<>(

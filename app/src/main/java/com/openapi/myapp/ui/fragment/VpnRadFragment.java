@@ -680,8 +680,19 @@ public class VpnRadFragment extends BaseFragment {
 
     /** 当前选中节点在地球上的 id；"最佳线路"(id<=0) 返回 null。 */
     private String globeTargetId() {
-        // 实际连接的节点优先：连接时记下的 gateway 能对应到地球上的节点
+        // 实际连接的节点优先：连接时记下的 gateway 能对应到地球上的节点。
+        // 注意同一个服务器上有多个节点（IKEv2/WireGuard/VLESS…），gateway 完全相同，
+        // 只按 gateway 匹配会命中列表里第一个，线就画到别的节点上（看起来像"线不显示"）。
+        // 所以先在 gateway 相同的节点里找当前选中的那条线路。
         if (connectedGateway != null) {
+            int selected = LocationUtil.getSelectLocationId(getActivity());
+            if (selected > 0) {
+                for (LocationVo vo : globeLocations) {
+                    if (vo.id == selected && connectedGateway.equals(vo.gateway)) {
+                        return String.valueOf(vo.id);
+                    }
+                }
+            }
             for (LocationVo vo : globeLocations) {
                 if (connectedGateway.equals(vo.gateway)) {
                     return String.valueOf(vo.id);

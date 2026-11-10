@@ -146,6 +146,18 @@ public final class SingBoxTunnelEngine implements TunnelEngine {
     }
 
     @Override
+    public void stopSilently() {
+        callback = null;
+        connected = false;
+        if (!SingBoxVpnService.isRunning()) {
+            return;
+        }
+        Intent intent = new Intent(appContext, SingBoxVpnService.class);
+        intent.setAction(SingBoxVpnService.ACTION_DISCONNECT);
+        appContext.startService(intent);
+    }
+
+    @Override
     public boolean isConnected() {
         return connected;
     }

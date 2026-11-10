@@ -180,15 +180,9 @@ public final class CharonVpnSessionRepository implements VpnSessionRepository {
         lastProtocol = protocol;
         lastRequest = request;
         // 切换协议：同一个 VpnService 只能有一个 TUN，必须先停旧引擎。
-        // 同一时刻只能有一条隧道（只有一个 TUN）。注意：不能只看 isConnected()——
-        // 状态标记可能与真实的 TUN 不一致，上一条隧道没拆干净时新协议就会在死隧道上探测失败。
-        // 所以切换时无条件拆掉所有其它引擎（没在跑的引擎 disconnect 是空操作）。
-        for (TunnelEngine other : registry.availableEngines()) {
-            if (other != engine) {
-                LogUtil.i(TAG + ": 拆掉其它协议 " + other.protocol());
-                other.disconnect();
-            }
-        }
+        // 同一时刻只能有一条隧道（只有一个 TUN）。不能只看 isConnected()——状态标记可能与真实的
+        // TUN 不一致，上一条隧道没拆干净时新协议会在死隧道上探测失败。所以切换时把其它引擎都静默停掉。
+        stopOtherEngines(engine);
         activeEngine = engine;
         activeProtocol.setValue(protocol);
         // 通知栏按钮在非 IKEv2 时转交给这里，断真正在跑的那个引擎。
@@ -266,17 +260,38 @@ public final class CharonVpnSessionRepository implements VpnSessionRepository {
         // 断开后把通知权还给 IKEv2（它一直是绑定状态，断开后应该显示"未连接"，
         // 而不是停留在"别的协议占用中"）。
         org.strongswan.android.logic.CharonVpnService.nonIkev2ProtocolActive = false;
-        // 断开时拆掉所有引擎，而不只是 activeEngine：否则之前连过的协议（比如 IKEv2）
-        // 可能还留着 TUN，系统 VPN 一直挂着，手机整机断网。
-        for (TunnelEngine other : registry.availableEngines()) {
-            other.disconnect();
+        // 当前协议正常断开（发状态回调，界面跟着走）；其它协议如果还留着隧道，静默停掉，
+        // 不让它们的过期回调改动界面状态。
+        TunnelEngine engine = activeEngine;
+        stopOtherEngines(engine);
+        if (engine != null) {
+            engine.disconnect();
+            return true;
         }
-        activeEngine = null;
         VpnStateService svc = service;
-        if (svc != null) {
-            svc.disconnect();
+        if (svc == null) {
+            return false;
         }
+        svc.disconnect();
         return true;
+    }
+
+    /** 静默停掉 {@code keep} 以外的引擎。IKEv2 只有在它确实不处于空闲状态时才发断开。 */
+    private void stopOtherEngines(@Nullable TunnelEngine keep) {
+        for (TunnelEngine other : registry.availableEngines()) {
+            if (other == keep) {
+                continue;
+            }
+            if (other.protocol() == TunnelProtocol.IKEV2) {
+                VpnStateService svc = service;
+                if (svc != null && svc.getState() != VpnStateService.State.DISABLED) {
+                    LogUtil.i(TAG + ": 停掉残留的 IKEv2");
+                    svc.disconnect();
+                }
+            } else {
+                other.stopSilently();
+            }
+        }
     }
 
     private void cancelPendingRetry() {

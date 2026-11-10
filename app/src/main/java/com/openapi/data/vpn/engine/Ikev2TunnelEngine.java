@@ -25,6 +25,8 @@ import java.util.List;
 public final class Ikev2TunnelEngine implements TunnelEngine {
 
     private static final String TAG = "Ikev2Engine";
+    /** 隧道 MTU。见 toProfile() 里的说明。 */
+    private static final int DEFAULT_MTU = 1280;
 
     /** 绑定状态服务的适配器由仓库注入，避免引擎自己管理 Service 生命周期。 */
     public interface StateBinder {
@@ -176,7 +178,10 @@ public final class Ikev2TunnelEngine implements TunnelEngine {
         profile.setUsername(request.getUsername());
         profile.setPassword(request.getPassword());
         profile.setCert(request.getCertificate());
-        profile.setMTU(request.getMtu() > 0 ? request.getMtu() : null);
+        // MTU 必须给死值，不能交给 strongSwan 用 1500：ESP 封装后有几十字节开销，
+        // 隧道里 1500 字节的包发不出去，表现为"能连上、小请求正常、大一点的下载卡死"
+        // （实测该隧道 1300 能通、1350 就丢）。1280 是 IPv6 的最小 MTU，任何链路上都安全。
+        profile.setMTU(request.getMtu() > 0 ? request.getMtu() : DEFAULT_MTU);
         com.openapi.domain.model.SplitTunnelingPolicy policy = request.getSplitTunneling();
         if (!policy.isAllThrough()) {
             profile.setSplitMode(policy.getMode() == com.openapi.domain.model.SplitTunnelingPolicy.Mode.INCLUDE

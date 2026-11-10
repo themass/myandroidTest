@@ -46,6 +46,14 @@ public interface TunnelEngine {
     /** 释放资源；进程退出或引擎被替换时调用。 */
     void release();
 
+    /**
+     * 不发任何状态回调地停掉本引擎残留的隧道（如果有）。
+     * 切换协议或断开时用来清理"不是当前协议"的引擎：它们的回调早已过期，
+     * 再回调会把界面状态改错（例如 IKEv2 还在断开中，界面却被 sing-box 的回调改成已断开）。
+     */
+    default void stopSilently() {
+    }
+
     /** 引擎生命周期回调。 */
     interface Callback {
         void onConnecting();

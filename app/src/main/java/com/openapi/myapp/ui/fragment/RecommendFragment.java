@@ -80,6 +80,33 @@ public abstract class RecommendFragment extends BasePullLoadbleFragment<Recommen
     protected BaseRecyclerViewAdapter getAdapter(){
         return null;
     }
+
+    /**
+     * 在列表第 3 位插入一条本地广告行（Sites 用）。列表为空的、或者已经有广告行时不插。
+     * 广告行走 tab_index_item_site 里独立的 Banner 容器，绑定见 IndexRecommendAdapter。
+     */
+    protected void insertSiteAdRow() {
+        if (!getShowEdit() || adapter == null) {
+            return;
+        }
+        java.util.List<RecommendVo> list = infoListVo.voList;
+        if (list.isEmpty()) {
+            return;
+        }
+        int pos = Math.min(IndexRecommendAdapter.SITE_AD_POSITION, list.size());
+        for (RecommendVo vo : list) {
+            if (vo.dataType == RecommendVo.dataType_ADS) {
+                list.remove(vo);
+                adapter.notifyDataSetChanged();
+                return;
+            }
+        }
+        RecommendVo ad = new RecommendVo();
+        ad.dataType = RecommendVo.dataType_ADS;
+        ad.title = "";
+        list.add(pos, ad);
+        adapter.notifyDataSetChanged();
+    }
     protected boolean checkUserLevel(int type){
         if(type>0){
             if(UserLoginUtil.getUserCache()==null){

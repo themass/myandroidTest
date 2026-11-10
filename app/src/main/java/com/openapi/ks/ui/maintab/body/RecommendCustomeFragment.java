@@ -83,6 +83,8 @@ public class RecommendCustomeFragment extends RecommendFragment implements OnBac
     protected void onDataLoaded(InfoListVo<RecommendVo> data) {
         super.onDataLoaded(data);
         dataForView();
+        // Sites 列表第 3 位放一条 Banner 广告
+        insertSiteAdRow();
     }
 
     private void dataForView() {

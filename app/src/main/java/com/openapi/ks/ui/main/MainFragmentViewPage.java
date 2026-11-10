@@ -182,8 +182,13 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         super.onResume();
     }
 
-    /** 双击退出的时间窗口（毫秒）。实例字段，不跨页面、不跨进程。 */
-    private static final long BACK_EXIT_WINDOW_MS = 2000L;
+    /**
+     * 两次返回的时间窗口（毫秒）。实例字段，不跨页面、不跨进程。
+     * 原来 2000ms 太短：长按返回键时系统会持续发 KEYCODE_BACK 的重复事件，
+     * 一次长按就能凑成"两次"，于是"点一下就退出了"。除了放宽到 3 秒，
+     * 还要过滤 repeatCount（见下面）。
+     */
+    private static final long BACK_EXIT_WINDOW_MS = 3000L;
     private long lastBackPressedAt = 0L;
 
     @Override
@@ -193,6 +198,10 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
             return true;
         }
         if (keyCode == KeyEvent.KEYCODE_BACK) {
+            // 长按返回键会连续产生 repeat 事件，只认第一次按下，否则一次长按就退出。
+            if (event.getRepeatCount() > 0) {
+                return true;
+            }
             boolean flag = false;
             for (OnBackKeyDownListener l : keyListeners) {
                 flag = flag || l.onkeyBackDown();

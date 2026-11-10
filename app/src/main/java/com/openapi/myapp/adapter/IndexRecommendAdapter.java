@@ -81,9 +81,39 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
         return new IndexRecommendAdapter.NaviItemViewHolder(view);
     }
 
+    /** Sites 列表插入广告的位置（第 3 位，position 从 0 起）。 */
+    public static final int SITE_AD_POSITION = 2;
+
+    /** 这条数据是不是本地插入的广告位（服务端不会下发这一类）。 */
+    private boolean isAdRow(int position) {
+        if (position < 0 || position >= data.size()) {
+            return false;
+        }
+        Object o = data.get(position);
+        return o instanceof RecommendVo && ((RecommendVo) o).dataType == RecommendVo.dataType_ADS;
+    }
+
     @Override
     public void onCustomeBindViewHolder(final BaseViewHolder holder, final int position) {
         final IndexRecommendAdapter.NaviItemViewHolder viewHolder = (IndexRecommendAdapter.NaviItemViewHolder) holder;
+        if (isAdRow(position)) {
+            // 广告行：不要编辑按钮、不要标题/网址，整行让给 Banner
+            viewHolder.ivEdit.setVisibility(View.GONE);
+            viewHolder.ivTitle.setVisibility(View.GONE);
+            if (viewHolder.tvTitleBelow != null) {
+                viewHolder.tvTitleBelow.setVisibility(View.GONE);
+            }
+            if (viewHolder.tvUrl != null) {
+                viewHolder.tvUrl.setVisibility(View.GONE);
+            }
+            viewHolder.ivADS.setVisibility(View.GONE);
+            if (viewHolder.ivNew != null) {
+                viewHolder.ivNew.setVisibility(View.GONE);
+            }
+            viewHolder.natvieView.setVisibility(View.GONE);
+            showRowBanner(viewHolder);
+            return;
+        }
         viewHolder.ivEdit.setVisibility(showEdit ? View.VISIBLE : View.GONE);
         viewHolder.ivEdit.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -185,6 +215,36 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
             holder.tvTitleBelow.setVisibility(View.VISIBLE);
         }
         holder.natvieView.setVisibility(View.GONE);
+        if (holder.mBannerHolder != null) {
+            holder.mBannerHolder.removeAllViews();
+            holder.mBannerHolder.setVisibility(View.GONE);
+        }
+    }
+
+    /**
+     * Sites 第 3 位的 Banner。RecyclerView 会复用 ViewHolder，所以每次绑定都按行判断：
+     * 广告行显示并加载 Banner，普通行隐藏并清空，避免广告跟着复用跑到别的行上。
+     */
+    private void showRowBanner(IndexRecommendAdapter.NaviItemViewHolder holder) {
+        if (holder.mBannerHolder == null) {
+            return;
+        }
+        holder.mBannerHolder.setVisibility(View.VISIBLE);
+        android.app.Activity activity = null;
+        Context c = holder.itemView.getContext();
+        while (c instanceof android.content.ContextWrapper) {
+            if (c instanceof android.app.Activity) {
+                activity = (android.app.Activity) c;
+                break;
+            }
+            c = ((android.content.ContextWrapper) c).getBaseContext();
+        }
+        if (activity instanceof androidx.fragment.app.FragmentActivity) {
+            com.openapi.yewu.ads.base.AdsManager.getInstans().showBannerAds(
+                    (androidx.fragment.app.FragmentActivity) activity, holder.mBannerHolder,
+                    com.openapi.yewu.ads.base.AdsContext.Categrey.CATEGREY_VPN,
+                    com.openapi.yewu.ads.base.AdsContext.AdsFrom.ADMOB);
+        }
     }
 
     public interface OnEditClickListener {
@@ -203,6 +263,9 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
         public TextView tvUrl;
         @Nullable
         RelativeLayout natvieView;
+        /** Sites 行的 Banner 容器（第 3 位广告用）。 */
+        @Nullable
+        ViewGroup mBannerHolder;
         public NaviItemViewHolder(View view) {
             super(view);
             cardView = view.findViewById(R.id.card_view);
@@ -215,6 +278,7 @@ public class IndexRecommendAdapter<NaviItemViewHolder> extends BasePhotoFlowRecy
             tvTitleBelow = view.findViewById(R.id.tv_title_below);
             tvUrl = view.findViewById(R.id.tv_url);
             natvieView = view.findViewById(R.id.natvieView);
+            mBannerHolder = view.findViewById(R.id.fl_row_banner);
         }
     }
 

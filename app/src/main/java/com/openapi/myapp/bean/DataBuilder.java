@@ -28,6 +28,11 @@ public class DataBuilder {
         profile.setPassword(pwd);
         profile.setUsername(name);
         profile.setCert(vo.cert);
+        // 隧道 MTU 必须写死 1280：不写时 strongSwan 用 1400，ESP 封装后隧道里 1400 的包
+        // 多数发不出去，表现为"能连上、浏览器小页面能开、App 自己拉节点列表卡死"。
+        // 这条是 IKEv2 回退路径（connectWithBestProtocol → connect(VpnProfile)）用的，必须在这里设，
+        // 只改 Ikev2TunnelEngine.toProfile() 覆盖不到。
+        profile.setMTU(1280);
         LogUtil.i(vo.cert);
         return profile;
     }
