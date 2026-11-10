@@ -49,6 +49,8 @@ class ChatViewModel : ViewModel() {
     val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
 
     private val characterActions = CharacterActions(repository, roles, _uiState, viewModelScope)
+    private val composer = ComposerActions(_uiState)
+    private val feedback = FeedbackActions(_uiState)
 
     init {
         characterActions.load()
@@ -125,9 +127,8 @@ class ChatViewModel : ViewModel() {
     fun onDeleteCharacter(characterId: Int) = characterActions.delete(characterId)
 
 
-    fun onInputChange(text: String) {
-        _uiState.update { it.copy(input = text) }
-    }
+    fun onInputChange(text: String) = composer.setInput(text)
+
 
     /**
      * 发送一条文本消息，流式接收回复（打字机效果）。
@@ -530,16 +531,12 @@ class ChatViewModel : ViewModel() {
     }
 
     /** 进入编辑：把用户消息的文字放回输入框，发送时提交为编辑（而不是新消息）。 */
-    fun onEditMessage(messageId: String) {
-        val message = _uiState.value.messages.firstOrNull { it.id == messageId } ?: return
-        if (message.role != ChatRole.USER || message.images.isNotEmpty() || message.files.isNotEmpty()) return
-        _uiState.update { it.copy(input = message.text, editingMessageId = messageId) }
-    }
+    fun onEditMessage(messageId: String) = composer.startEdit(messageId)
+
 
     /** 取消编辑：清空输入框并退出编辑状态。 */
-    fun onCancelEdit() {
-        _uiState.update { it.copy(input = "", editingMessageId = null) }
-    }
+    fun onCancelEdit() = composer.cancelEdit()
+
 
     /**
      * 提交编辑：服务端改写这条用户消息，并删除它之后的所有消息；本地同步丢弃后续气泡，
@@ -724,21 +721,12 @@ class ChatViewModel : ViewModel() {
     }
 
     /** 点赞切换，返回切换后是否为「已赞」。点赞会取消点踩。 */
-    fun onToggleLike(messageId: String): Boolean {
-        val liked = messageId !in _uiState.value.likedIds
-        _uiState.update {
-            it.copy(
-                likedIds = if (liked) it.likedIds + messageId else it.likedIds - messageId,
-                dislikedIds = it.dislikedIds - messageId,
-            )
-        }
-        return liked
-    }
+    fun onToggleLike(messageId: String): Boolean = feedback.toggleLike(messageId)
+
 
     /** 点踩并提交反馈后调用。点踩会取消点赞。 */
-    fun onDisliked(messageId: String) {
-        _uiState.update { it.copy(dislikedIds = it.dislikedIds + messageId, likedIds = it.likedIds - messageId) }
-    }
+    fun onDisliked(messageId: String) = feedback.disliked(messageId)
+
 
     /**
      * 选中附件后的入口：图片和文件都先放进输入栏上方的草稿托盘，发送时和文字组成一条消息。
@@ -755,14 +743,11 @@ class ChatViewModel : ViewModel() {
         }
     }
 
-    private fun addDraft(kind: MessageKind, staged: StagedAttachment) {
-        val draft = DraftAttachment(id = "draft-${System.nanoTime()}", kind = kind, staged = staged)
-        _uiState.update { it.copy(drafts = it.drafts + draft) }
-    }
+    private fun addDraft(kind: MessageKind, staged: StagedAttachment) = composer.addDraft(kind, staged)
 
-    fun onRemoveDraft(id: String) {
-        _uiState.update { it.copy(drafts = it.drafts.filterNot { d -> d.id == id }) }
-    }
+
+    fun onRemoveDraft(id: String) = composer.removeDraft(id)
+
 
     /** 相册多选或拍照：按选择顺序逐个放进草稿托盘。 */
     fun onImagesPicked(context: android.content.Context, uris: List<android.net.Uri>) {
@@ -802,9 +787,8 @@ class ChatViewModel : ViewModel() {
         }
     }
 
-    fun dismissError() {
-        _uiState.update { it.copy(error = null) }
-    }
+    fun dismissError() = composer.dismissError()
+
 
     // ------------------------------------------------------------------
     // 语音消息：录音 → 存成消息 → 转写 → 当作文本发给大模型。
