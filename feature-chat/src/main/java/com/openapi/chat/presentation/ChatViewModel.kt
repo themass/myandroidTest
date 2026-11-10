@@ -63,6 +63,11 @@ class ChatViewModel : ViewModel() {
         startAttachments = { m -> attachmentJob = viewModelScope.launch { deliverAttachments(m) } },
         refresh = { refresh() },
     )
+    private val send = SendActions(
+        repository, _uiState, viewModelScope, composer, streamer,
+        submitEdit = { id, text -> submitEdit(id, text) },
+        startAttachmentSend = { m -> attachmentJob = viewModelScope.launch { repository.saveMessage(repository.currentSessionId(), m); deliverAttachments(m) } },
+    )
     private val history = HistoryActions(repository, _uiState, viewModelScope, isInFlight = { attachments.isInFlight(it) })
     private val feedback = FeedbackActions(_uiState)
     private val removal = MessageRemoval(repository, _uiState, viewModelScope, reconcile = { fallbackReloadMessages() })
@@ -152,59 +157,10 @@ class ChatViewModel : ViewModel() {
      * 这条气泡上；[ChatStreamEvent.Done] 到达后取消 pending 状态；出错则整条占位消息撤回，
      * 和原来非流式版本的失败处理保持一致（不在界面上留一条"发送失败"的半成品）。
      */
-    fun onSend() {
-        val state = _uiState.value
-        if (!state.canSend) return
-        val text = state.input.trim()
-        val drafts = state.drafts
-        // 正在编辑一条用户消息：提交的是编辑，而不是新消息（附件草稿不参与编辑）
-        val editingId = state.editingMessageId
-        if (editingId != null && drafts.isEmpty()) {
-            submitEdit(editingId, text)
-            return
-        }
-        _uiState.update { it.copy(input = "", drafts = emptyList()) }
-        if (drafts.isEmpty()) {
-            sendText(text)
-            return
-        }
-        // 附件和文字组成一条消息：界面上一个气泡，保存一条记录
-        val now = System.currentTimeMillis()
-        val images = drafts.filter { it.kind == MessageKind.IMAGE }
-            .map { ImageAttachment(path = it.staged.file.absolutePath) }
-        val files = drafts.filter { it.kind == MessageKind.FILE }
-            .map { FileAttachment(path = it.staged.file.absolutePath, name = it.staged.displayName, sizeBytes = it.staged.sizeBytes) }
-        val message = ChatMessage(
-            id = "local-user-$now",
-            role = ChatRole.USER,
-            text = text,
-            createdAtMillis = now,
-            kind = if (images.isNotEmpty()) MessageKind.IMAGE else MessageKind.FILE,
-            images = images,
-            files = files,
-            delivery = DeliveryStatus.SENDING,
-        )
-        _uiState.update { it.copy(messages = it.messages + message) }
-        attachmentJob = viewModelScope.launch {
-            repository.saveMessage(repository.currentSessionId(), message)
-            deliverAttachments(message)
-        }
-    }
+    fun onSend() = send.onSend()
 
     /** 纯文字消息：插入用户气泡，然后流式接收回复。 */
-    private fun sendText(text: String) {
-        if (text.isBlank() || _uiState.value.sending) return
-        val now = System.currentTimeMillis()
-        val user = ChatMessage(
-            id = "local-user-$now",
-            role = ChatRole.USER,
-            text = text,
-            createdAtMillis = now,
-            delivery = DeliveryStatus.SENDING,
-        )
-        _uiState.update { it.copy(messages = it.messages + user) }
-        streamReply(text, userMessageId = user.id, persistUser = true)
-    }
+    private fun sendText(text: String) = send.sendText(text)
 
     private fun streamReply(
         text: String?,
@@ -323,17 +279,8 @@ class ChatViewModel : ViewModel() {
     /**
      * 选中附件后的入口：图片和文件都先放进输入栏上方的草稿托盘，发送时和文字组成一条消息。
      */
-    fun onAttachmentPicked(context: android.content.Context, kind: MessageKind, uri: android.net.Uri) {
-        if (_uiState.value.sending) return
-        viewModelScope.launch {
-            val outcome = withContext(Dispatchers.IO) { AttachmentStager.stage(context, kind, uri) }
-            when (outcome) {
-                is StageOutcome.Staged -> addDraft(kind, outcome.attachment)
-                is StageOutcome.Rejected -> _uiState.update { it.copy(error = outcome.reason) }
-                StageOutcome.Failed -> _uiState.update { it.copy(error = "读取附件失败，请重试") }
-            }
-        }
-    }
+    fun onAttachmentPicked(context: android.content.Context, kind: MessageKind, uri: android.net.Uri) =
+        send.attachmentPicked(context, kind, uri)
 
     private fun addDraft(kind: MessageKind, staged: StagedAttachment) = composer.addDraft(kind, staged)
 
@@ -342,42 +289,14 @@ class ChatViewModel : ViewModel() {
 
 
     /** 相册多选或拍照：按选择顺序逐个放进草稿托盘。 */
-    fun onImagesPicked(context: android.content.Context, uris: List<android.net.Uri>) {
-        if (uris.isEmpty() || _uiState.value.sending) return
-        viewModelScope.launch {
-            for (uri in uris) {
-                val outcome = withContext(Dispatchers.IO) { AttachmentStager.stage(context, MessageKind.IMAGE, uri) }
-                when (outcome) {
-                    is StageOutcome.Staged -> addDraft(MessageKind.IMAGE, outcome.attachment)
-                    is StageOutcome.Rejected -> _uiState.update { it.copy(error = outcome.reason) }
-                    StageOutcome.Failed -> _uiState.update { it.copy(error = "读取图片失败，请重试") }
-                }
-            }
-        }
-    }
+    fun onImagesPicked(context: android.content.Context, uris: List<android.net.Uri>) =
+        send.imagesPicked(context, uris)
 
     /**
      * 朗读助手回复：优先用设备自带中文语音（离线、免费）；设备没有中文语音或失败时，
      * 回退到服务端合成后播放。同一时间只朗读一条。
      */
-    fun onSpeakMessage(context: android.content.Context, message: ChatMessage) {
-        if (message.text.isBlank() || _uiState.value.speakingMessageId != null) return
-        viewModelScope.launch {
-            _uiState.update { it.copy(speakingMessageId = message.id) }
-            val spokenOnDevice = runCatching { DeviceSpeech.speakChinese(context, message.text) }.getOrDefault(false)
-            if (spokenOnDevice) {
-                _uiState.update { it.copy(speakingMessageId = null) }
-                return@launch
-            }
-            val uri = runCatching { repository.synthesizeSpeech(message.id, message.text) }.getOrNull()
-            _uiState.update { it.copy(speakingMessageId = null) }
-            if (uri == null) {
-                _uiState.update { it.copy(error = "朗读失败，请稍后重试") }
-            } else {
-                AudioPlayer.play(message.id, uri)
-            }
-        }
-    }
+    fun onSpeakMessage(context: android.content.Context, message: ChatMessage) = send.speak(context, message)
 
     fun dismissError() = composer.dismissError()
 
