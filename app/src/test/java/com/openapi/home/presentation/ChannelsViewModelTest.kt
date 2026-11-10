@@ -1,7 +1,7 @@
 package com.openapi.home.presentation
 
 import android.content.Context
-import com.openapi.home.HomeDependencies
+import com.openapi.home.ChannelsDependencies
 import com.openapi.home.domain.Channel
 import com.openapi.home.domain.ChannelCategory
 import com.openapi.home.domain.ChannelPage
@@ -38,7 +38,7 @@ class ChannelsViewModelTest {
         // viewModelScope 在 Main 上启动协程；JVM 里没有真正的主线程循环，换成立即执行的调度器
         Dispatchers.setMain(Dispatchers.Unconfined)
         entries = FakeEntries()
-        HomeDependencies.install(entries)
+        ChannelsDependencies.install(entries)
     }
 
     @After

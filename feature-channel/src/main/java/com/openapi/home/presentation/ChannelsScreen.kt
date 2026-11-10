@@ -43,9 +43,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.bumptech.glide.Glide
 import com.openapi.core.design.theme.AppColors
-import com.openapi.home.HomeDependencies
+import com.openapi.home.ChannelsDependencies
 import com.openapi.home.domain.Channel
-import com.openapi.ks.chat.R
+import com.openapi.feature.channel.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -117,7 +117,7 @@ fun ChannelsScreen(
                         ) {
                             itemsIndexed(state.items) { _, channel ->
                                 ChannelCard(channel) {
-                                    HomeDependencies.require().openChannel(context, channel)
+                                    ChannelsDependencies.require().openChannel(context, channel)
                                 }
                             }
                         }

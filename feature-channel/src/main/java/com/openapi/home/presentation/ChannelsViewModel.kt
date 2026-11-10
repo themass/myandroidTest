@@ -3,7 +3,7 @@ package com.openapi.home.presentation
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.openapi.home.HomeDependencies
+import com.openapi.home.ChannelsDependencies
 import com.openapi.home.domain.Channel
 import com.openapi.home.domain.ChannelCategory
 import kotlinx.coroutines.CancellationException
@@ -33,7 +33,7 @@ data class ChannelsUiState(
 
 class ChannelsViewModel : ViewModel() {
 
-    private val entries get() = HomeDependencies.require()
+    private val entries get() = ChannelsDependencies.require()
     private val _state = MutableStateFlow(ChannelsUiState())
     val state: StateFlow<ChannelsUiState> = _state.asStateFlow()
     private var job: Job? = null
