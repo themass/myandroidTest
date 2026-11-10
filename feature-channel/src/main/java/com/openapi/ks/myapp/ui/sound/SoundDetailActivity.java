@@ -30,7 +30,7 @@ import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.bean.vo.SoundItemsVo;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.service.PlayService;
-import com.openapi.ks.myapp.translation.realtime.RealtimeSubtitleBindings;
+import com.openapi.ks.myapp.translation.realtime.MusicSubtitleBindings;
 import com.openapi.ks.myapp.translation.realtime.VideoRealtimeSubtitleSession;
 import com.openapi.ks.myapp.ui.sound.compose.SoundDetailActions;
 import com.openapi.ks.myapp.ui.sound.compose.SoundDetailScreenKt;
@@ -125,14 +125,14 @@ public class SoundDetailActivity extends AppCompatActivity implements SoundDetai
             }
         });
 
-        VideoRealtimeSubtitleSession realtimeSession = RealtimeSubtitleBindings.forMusic(
+        VideoRealtimeSubtitleSession realtimeSession = MusicSubtitleBindings.forMusic(
                 this,
                 detailRoot,
                 () -> {
                     SoundItemsVo t = mService != null ? mService.getCurrentTrack() : null;
                     return t != null && t.file != null ? t.file : "";
                 },
-                new RealtimeSubtitleBindings.MusicPlaybackProbe() {
+                new MusicSubtitleBindings.MusicPlaybackProbe() {
                     @Override
                     public boolean isPlaying() {
                         return mService != null && mService.isPlaying();
@@ -143,8 +143,8 @@ public class SoundDetailActivity extends AppCompatActivity implements SoundDetai
                         return mService != null ? mService.getPosition() : 0L;
                     }
                 });
-        RealtimeSubtitleBindings.attachMusic(myFavoriteView, realtimeSession,
-                new RealtimeSubtitleBindings.MusicPlaybackProbe() {
+        MusicSubtitleBindings.attachMusic(myFavoriteView, realtimeSession,
+                new MusicSubtitleBindings.MusicPlaybackProbe() {
                     @Override
                     public boolean isPlaying() {
                         return mService != null && mService.isPlaying();

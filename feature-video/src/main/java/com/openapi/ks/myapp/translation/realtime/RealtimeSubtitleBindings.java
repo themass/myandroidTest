@@ -70,44 +70,4 @@ public final class RealtimeSubtitleBindings {
                 () -> player != null ? player.getCurrentPositionWhenPlaying() : 0L);
     }
 
-    public static VideoRealtimeSubtitleSession forMusic(
-            Context context,
-            ViewGroup overlayParent,
-            TrackUrlProvider trackUrlProvider,
-            MusicPlaybackProbe playbackProbe) {
-        return new VideoRealtimeSubtitleSession(
-                context,
-                overlayParent,
-                trackUrlProvider::currentTrackUrl,
-                () -> null,
-                new VideoRealtimeSubtitleSession.PlaybackProbe() {
-                    @Override
-                    public boolean isPlaying() {
-                        return playbackProbe != null && playbackProbe.isPlaying();
-                    }
-
-                    @Override
-                    public long positionMs() {
-                        return playbackProbe != null ? playbackProbe.positionMs() : 0L;
-                    }
-                });
-    }
-
-    public static void attachMusic(MyFavoriteView favoriteView,
-                                   VideoRealtimeSubtitleSession session,
-                                   MusicPlaybackProbe playbackProbe) {
-        favoriteView.setRealtimeSubtitleSession(session);
-        favoriteView.setStreamingPositionProvider(
-                () -> playbackProbe != null ? playbackProbe.positionMs() : 0L);
-    }
-
-    public interface TrackUrlProvider {
-        String currentTrackUrl();
-    }
-
-    public interface MusicPlaybackProbe {
-        boolean isPlaying();
-
-        long positionMs();
-    }
-}
+        }
