@@ -252,6 +252,9 @@
 
 ### 3.11 `:feature-channel` → `:feature-content`（阶段 7）
 
+**包结构整理进度（2026-11-11，拆包）**：`:feature-channel` 改名 `:feature-content`（`1e753680`）；按内容类型分包到 `com.openapi.ks.myapp.content.*`（`9549b150`）；视频页分到 `video.page`（`509b0c39`）；gsy 分到 `video.player` / `video.list`（`7b3d2155`）；`:feature-user` 的 `ui.user` 分到 login / register / password / profile / setting（`4732157c`）；`:feature-chat` 的 markdown 和 katex 分到 `com.openapi.chat.markdown`（`9cae0c22`）；`:feature-photosolve` 分到 data / presentation（`3180e795`）；`:commonutil` 的 util 分到 lang / android / log / json（`5ae1e39c`）；`:core` 按 config / model / db / legacyui 分包（`ab831a7d`）。
+未做：`:core` 的 `view.view` 和 `view.view.widget` 的分拆（每个类去向不同，需要逐个决定）；`:commonutil` 的 `view.translation` 移到 `:media`、`view.touchhelper` 移到 `:feature-content`；`core.util.cache` 删除（待编译确认）；`ImagePhotoLoad` 拆分；`UserLoginUtil` 移到 core account。仅编译和单元测试验证，手机测试统一做。
+
 **执行结果（2026-11-11）**：模块已改名为 `:feature-content`（`1e753680`，namespace 为 `com.openapi.feature.content`），旧页面按内容类型分到 `com.openapi.ks.myapp.content.{video,image,text,sound,mine,common,config}`（`9549b150`）。`sound.compose` 保留；`home/` 不动。未做：`TeleplayActivity` 的确认删除；`ChannelBodyScreen` 的审视。（视频页 Activity 移到 `page/` 属于阶段 6，在 `:feature-video`，不在这里。）仅编译验证，手机测试统一做。
 
 现在 39 个文件、约 6,000 行；从 `:core` 下沉 20 个后约 59 个。旧页面**不重写**，只按内容类型分子包、拆大类。
