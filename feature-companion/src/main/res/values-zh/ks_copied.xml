@@ -38,4 +38,6 @@
     <string name="companion_title">陪伴</string>
     <string name="companion_add_event">添加</string>
     <string name="companion_nav_back">返回</string>
+    <string name="companion_open_voice">语音通话</string>
+    <string name="companion_voice_back">返回文字对话</string>
 </resources>

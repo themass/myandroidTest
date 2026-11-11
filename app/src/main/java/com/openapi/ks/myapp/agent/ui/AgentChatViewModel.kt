@@ -124,6 +124,29 @@ class AgentChatViewModel(
         }
     }
 
+    /**
+     * 回应待确认动作。结果以服务端为准：成功后 action.done 事件会把它从列表里移除；
+     * 这里先本地移除避免连点，失败（含 404：已被处理或已过期）时也移除并提示。
+     */
+    fun resolveAction(confirmationId: String, accepted: Boolean) {
+        _state.update { s -> s.copy(pendingConfirmations = s.pendingConfirmations.filterNot { it.confirmationId == confirmationId }) }
+        viewModelScope.launch {
+            runCatching { repository.confirmAction(confirmationId, accepted) }.onFailure { reportFailure(it) }
+        }
+    }
+
+    /** 恢复进入页面前就已经在等待的待确认动作。 */
+    fun loadPendingActions() {
+        viewModelScope.launch {
+            runCatching { repository.pendingActions() }.onSuccess { pending ->
+                _state.update { s ->
+                    val known = s.pendingConfirmations.map { it.confirmationId }.toSet()
+                    s.copy(pendingConfirmations = s.pendingConfirmations + pending.filter { it.confirmationId !in known })
+                }
+            }
+        }
+    }
+
     /** 左右滑动切换到另一条候选回复。回合进行中、或不是最新一轮时服务端返回 409，列表不变。 */
     fun selectAlternative(messageId: String) {
         viewModelScope.launch {

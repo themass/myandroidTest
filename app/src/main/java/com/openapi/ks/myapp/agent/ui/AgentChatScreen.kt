@@ -63,7 +63,10 @@ fun AgentChatScreen(
     var editing by remember { mutableStateOf<AgentBubble?>(null) }
     var showReminders by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) { viewModel.loadReminders() }
+    LaunchedEffect(Unit) {
+        viewModel.loadReminders()
+        viewModel.loadPendingActions()
+    }
     // 重新生成要的是「被回答的那条用户消息」：助手气泡往前找最近的用户消息。
     val answeredBy = remember(state.bubbles) { precedingUserMessage(state.bubbles) }
 
@@ -78,6 +81,17 @@ fun AgentChatScreen(
             }
             if (reminders.isNotEmpty()) {
                 TextButton(onClick = { showReminders = true }) { Text("${reminders.size} 条提醒待发送") }
+            }
+            // 需要你点头才会执行的动作（例如「明天 15:00 提醒你开会」）：不确认就不会执行。
+            state.pendingConfirmations.forEach { pending ->
+                Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                    Text(pending.title, style = MaterialTheme.typography.labelLarge)
+                    if (pending.summary.isNotBlank()) Text(pending.summary, style = MaterialTheme.typography.bodySmall)
+                    Row {
+                        Button(onClick = { viewModel.resolveAction(pending.confirmationId, true) }) { Text("确认") }
+                        OutlinedButton(onClick = { viewModel.resolveAction(pending.confirmationId, false) }) { Text("取消") }
+                    }
+                }
             }
             state.lastError?.let { error ->
                 Row(verticalAlignment = Alignment.CenterVertically) {

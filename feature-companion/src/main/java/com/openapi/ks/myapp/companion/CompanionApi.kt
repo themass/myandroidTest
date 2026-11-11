@@ -46,7 +46,18 @@ class HttpCompanionApi(
     private val baseUrl: String,
     private val tokenProvider: () -> String?,
     private val client: OkHttpClient = defaultClient(),
+    /**
+     * 给了它，记忆与事件就走新服务（/api/agent/v1/memory）并按这个角色的空间读写：
+     * 新对话把记忆按角色隔离存放，管理页必须看同一个空间，否则「她记得的」永远是空的。
+     * 不给就是旧服务（/companion/...），用户级空间。
+     */
+    private val roleIdProvider: (() -> String?)? = null,
 ) : CompanionApi {
+
+    private val agentStack: Boolean get() = roleIdProvider != null
+
+    private fun roleQuery(prefix: String): String =
+        roleIdProvider?.invoke()?.takeIf { it.isNotBlank() }?.let { "$prefix" + "role_id=" + enc(it) }.orEmpty()
 
     override suspend fun createSession(characterId: String): SessionResponse {
         val json = call("POST", "/companion/sessions", JSONObject().put("character_id", characterId))
@@ -71,7 +82,11 @@ class HttpCompanionApi(
         CharacterDetail.from(call("GET", "/companion/characters/${enc(id)}"))
 
     override suspend fun memory(limit: Int, offset: Int): FactPage {
-        val json = call("GET", "/companion/memory?limit=$limit&offset=$offset")
+        val json = if (agentStack) {
+            call("GET", "/api/agent/v1/memory/facts?limit=$limit&offset=$offset${roleQuery("&")}")
+        } else {
+            call("GET", "/companion/memory?limit=$limit&offset=$offset")
+        }
         return FactPage(
             items = json.optJSONArray("items").toList { MemoryFact.from(it) },
             hasMore = json.optBoolean("has_more"),
@@ -79,25 +94,33 @@ class HttpCompanionApi(
     }
 
     override suspend fun deleteMemory(id: String) {
-        call("DELETE", "/companion/memory/${enc(id)}")
+        if (agentStack) call("DELETE", "/api/agent/v1/memory/facts/${enc(id)}${roleQuery("?")}")
+        else call("DELETE", "/companion/memory/${enc(id)}")
     }
 
     override suspend fun events(includePast: Boolean): List<TimelineEventItem> {
+        if (agentStack) {
+            val json = call("GET", "/api/agent/v1/memory/events?include_past=$includePast&limit=100${roleQuery("&")}")
+            return json.optJSONArray("items").toList { TimelineEventItem.from(it) }
+        }
         val raw = callArray("GET", "/companion/events?include_past=$includePast")
         return raw.toList { TimelineEventItem.from(it) }
     }
 
     override suspend fun addEvent(title: String, atIso: String, kind: String): TimelineEventItem {
         val body = JSONObject().put("title", title).put("at", atIso).put("kind", kind)
-        return TimelineEventItem.from(call("POST", "/companion/events", body))
+        val path = if (agentStack) "/api/agent/v1/memory/events${roleQuery("?")}" else "/companion/events"
+        return TimelineEventItem.from(call("POST", path, body))
     }
 
     override suspend fun setEventStatus(id: String, status: String) {
-        call("POST", "/companion/events/${enc(id)}/${enc(status)}")
+        if (agentStack) call("PATCH", "/api/agent/v1/memory/events/${enc(id)}", JSONObject().put("status", status))
+        else call("POST", "/companion/events/${enc(id)}/${enc(status)}")
     }
 
     override suspend fun deleteEvent(id: String) {
-        call("DELETE", "/companion/events/${enc(id)}")
+        if (agentStack) call("DELETE", "/api/agent/v1/memory/events/${enc(id)}")
+        else call("DELETE", "/companion/events/${enc(id)}")
     }
 
     override suspend fun pendingActions(): List<PendingAction> =
