@@ -19,6 +19,10 @@ data class AgentBubble(
     val content: String,
     val state: BubbleState,
     val turnId: String? = null,
+    /** 同一次提问的全部候选回复 id（升序）；只有一条回复时为空。左右滑动在这些 id 之间切换。 */
+    val altIds: List<String> = emptyList(),
+    /** 当前显示的是第几个候选（从 0 起）。 */
+    val altIndex: Int = 0,
 )
 
 data class QueuedInput(val messageId: String, val text: String, val position: Int?)
@@ -164,6 +168,8 @@ private fun applyEvent(state: AgentChatState, event: SessionEvent): AgentChatSta
     )
 
     is SessionEvent.Done -> finishTurn(state, event.turnId, event.assistantMessageId, event.steeredMessageIds)
+        // 重新生成的新回复和旧回复同属一组候选：服务端才知道组里有几条，重新拉历史（其余走原来的流程）。
+        .let { if (event.altGroup != null) it.copy(needsHistoryReload = true) else it }
 
     // 取消只结束当前回合，不清空排队（D §6.6）。
     is SessionEvent.TurnCancelled -> finishTurn(state, event.turnId, event.assistantMessageId, emptyList())
@@ -246,6 +252,12 @@ fun AgentChatState.withoutMessage(messageId: String): AgentChatState =
 /** 编辑后的消息替换原来那条（保持位置）。 */
 fun AgentChatState.withEditedMessage(updated: AgentBubble): AgentChatState =
     copy(bubbles = bubbles.map { if (it.messageId == updated.messageId) updated.copy(key = it.key) else it })
+
+/** 切换候选回复：用新选中的那条替换同组里原来显示的那条（保持位置）。 */
+fun AgentChatState.withSelectedAlternative(selected: AgentBubble): AgentChatState =
+    copy(bubbles = bubbles.map {
+        if (it.messageId != null && it.messageId in selected.altIds) selected.copy(key = it.key) else it
+    })
 
 /** 操作失败的提示（例如回合进行中服务端返回 409）。 */
 fun AgentChatState.withError(message: String?): AgentChatState = copy(lastError = message)

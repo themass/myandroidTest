@@ -27,6 +27,8 @@ interface AgentApi {
     suspend fun deleteMessage(messageId: String)
     /** 编辑自己的一条消息，返回更新后的消息。回合进行中返回 409。 */
     suspend fun editMessage(messageId: String, content: String): AgentBubble
+    /** 切换到这条候选回复（左右滑动）。只能在最新一轮切换；回合进行中或不是最新一轮返回 409。 */
+    suspend fun selectAlternative(messageId: String): AgentBubble
     suspend fun reminders(includeDone: Boolean = false): List<AgentReminder>
     suspend fun cancelReminder(reminderId: String)
 }
@@ -114,6 +116,9 @@ class HttpAgentApi(
     override suspend fun editMessage(messageId: String, content: String): AgentBubble =
         call("PATCH", "/messages/$messageId", JSONObject().put("content", content)).toBubble()
 
+    override suspend fun selectAlternative(messageId: String): AgentBubble =
+        call("POST", "/messages/$messageId/select", null).toBubble()
+
     override suspend fun reminders(includeDone: Boolean): List<AgentReminder> {
         val items = call("GET", "/reminders?include_done=$includeDone", null).optJSONArray("items") ?: JSONArray()
         return (0 until items.length()).map { i ->
@@ -132,9 +137,12 @@ class HttpAgentApi(
 
     private fun JSONObject.toBubble(): AgentBubble {
         val id = get("id").toString()
+        val alts = optJSONArray("alt_ids")?.let { arr -> (0 until arr.length()).map { arr.get(it).toString() } }
+            ?: emptyList()
         return AgentBubble(
             key = id, messageId = id, role = optString("role"), content = optString("content"),
             state = BubbleState.SYNCED, turnId = optNullableString("turn_id"),
+            altIds = alts, altIndex = if (alts.isEmpty()) 0 else optInt("alt_index", 0),
         )
     }
 

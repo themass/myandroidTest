@@ -93,6 +93,8 @@ sealed interface SessionEvent {
         val turnId: String,
         val assistantMessageId: String?,
         val steeredMessageIds: List<String>,
+        /** 这条回复属于一组候选（重新生成产生）：界面据此重新拉历史，显示滑动切换。 */
+        val altGroup: String? = null,
     ) : SessionEvent
 
     data class TurnCancelled(

@@ -17,6 +17,8 @@ data class AvatarSpec(
     @DrawableRes val mouthOpenRes: Int? = null,
     @DrawableRes val eyeOpenRes: Int? = null,
     @DrawableRes val eyeClosedRes: Int? = null,
+    /** 下载的形象包素材。有它就优先用文件，没有就用上面的内置资源 id。 */
+    val files: AvatarFiles? = null,
 )
 
 /** 触摸结果。v1 一律 [Ignored]；接入拖动渲染器后才会出现 [Handled]。 */

@@ -91,7 +91,8 @@ fun SseFrame.toSessionEvent(): SessionEvent? {
         }
         "message.done" -> json?.let {
             SessionEvent.Done(eid, it.str("turn_id") ?: return null, it.optNullableStr("assistant_message_id"),
-                it.ids("steered_message_ids"))
+                it.ids("steered_message_ids"),
+                altGroup = if (it.has("alt_group") && !it.isNull("alt_group")) it.get("alt_group").toString() else null)
         }
         "turn.cancelled" -> json?.let {
             SessionEvent.TurnCancelled(eid, it.str("turn_id") ?: return null, it.optNullableStr("assistant_message_id"))

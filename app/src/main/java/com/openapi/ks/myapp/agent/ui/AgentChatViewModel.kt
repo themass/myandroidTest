@@ -15,6 +15,7 @@ import com.openapi.ks.myapp.agent.withSendFailed
 import com.openapi.ks.myapp.agent.withoutQueued
 import com.openapi.ks.myapp.agent.AgentReminder
 import com.openapi.ks.myapp.agent.withEditedMessage
+import com.openapi.ks.myapp.agent.withSelectedAlternative
 import com.openapi.ks.myapp.agent.withError
 import com.openapi.ks.myapp.agent.withoutMessage
 import kotlinx.coroutines.Job
@@ -120,6 +121,15 @@ class AgentChatViewModel(
     fun regenerate(messageId: String) {
         viewModelScope.launch {
             runCatching { repository.regenerate(sessionId, messageId) }.onFailure { reportFailure(it) }
+        }
+    }
+
+    /** 左右滑动切换到另一条候选回复。回合进行中、或不是最新一轮时服务端返回 409，列表不变。 */
+    fun selectAlternative(messageId: String) {
+        viewModelScope.launch {
+            runCatching { repository.selectAlternative(messageId) }
+                .onSuccess { selected -> _state.update { it.withSelectedAlternative(selected) } }
+                .onFailure { reportFailure(it) }
         }
     }
 

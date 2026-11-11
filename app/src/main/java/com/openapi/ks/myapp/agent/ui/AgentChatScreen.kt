@@ -2,6 +2,8 @@ package com.openapi.ks.myapp.agent.ui
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -103,6 +105,7 @@ fun AgentChatScreen(
                         bubble,
                         onRetry = viewModel::retry,
                         onRegenerate = answeredBy[bubble.key]?.let { userId -> { viewModel.regenerate(userId) } },
+                        onSelectAlt = viewModel::selectAlternative,
                         onContinue = viewModel::continueReply,
                         onDelete = viewModel::deleteMessage,
                         onEdit = { editing = it },
@@ -174,6 +177,7 @@ private fun BubbleRow(
     bubble: AgentBubble,
     onRetry: (String) -> Unit,
     onRegenerate: (() -> Unit)?,
+    onSelectAlt: (String) -> Unit,
     onContinue: (String) -> Unit,
     onDelete: (String) -> Unit,
     onEdit: (AgentBubble) -> Unit,
@@ -190,12 +194,31 @@ private fun BubbleRow(
         else -> null
     }
     val synced = bubble.messageId != null && bubble.state != BubbleState.SENDING && bubble.state != BubbleState.FAILED
+    // 同一次提问的多个候选回复：左右滑动切换；滑过最后一个就再生成一个（和常见角色扮演应用的手势一致）。
+    val alts = bubble.altIds
+    val canSwipe = !isUser && synced && alts.size > 1
+    val goPrev = { if (bubble.altIndex > 0) onSelectAlt(alts[bubble.altIndex - 1]) }
+    val goNext = {
+        if (bubble.altIndex < alts.size - 1) onSelectAlt(alts[bubble.altIndex + 1]) else onRegenerate?.invoke()
+        Unit
+    }
     Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = if (isUser) Alignment.End else Alignment.Start) {
         Box {
             Text(
                 bubble.content,
                 style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.combinedClickable(onClick = {}, onLongClick = { if (synced) menu = true }),
+                modifier = Modifier
+                    .combinedClickable(onClick = {}, onLongClick = { if (synced) menu = true })
+                    .pointerInput(canSwipe, bubble.altIndex, alts.size) {
+                        if (!canSwipe) return@pointerInput
+                        var total = 0f
+                        detectHorizontalDragGestures(
+                            onDragStart = { total = 0f },
+                            onDragEnd = {
+                                if (total <= -SWIPE_THRESHOLD_PX) goNext() else if (total >= SWIPE_THRESHOLD_PX) goPrev()
+                            },
+                        ) { _, delta -> total += delta }
+                    },
             )
             DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                 if (isUser) {
@@ -209,7 +232,12 @@ private fun BubbleRow(
             TextButton(onClick = { onRetry(bubble.key) }) { Text("重试") }
         }
         if (!isUser && bubble.messageId != null) {
-            Row {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (canSwipe) {
+                    TextButton(onClick = { goPrev() }, enabled = bubble.altIndex > 0) { Text("‹") }
+                    Text("${bubble.altIndex + 1}/${alts.size}", style = MaterialTheme.typography.labelMedium)
+                    TextButton(onClick = { goNext() }) { Text("›") }
+                }
                 onRegenerate?.let { regenerate -> TextButton(onClick = regenerate) { Text("重新生成") } }
                 TextButton(onClick = { onContinue(bubble.messageId) }) { Text("继续") }
             }
@@ -255,3 +283,6 @@ private fun AssistantBubble(text: String, label: String?) {
         label?.let { Text(it, style = MaterialTheme.typography.labelSmall) }
     }
 }
+
+/** 横向拖动超过这个距离才算一次滑动（像素；避免长按、滚动时误触）。 */
+private const val SWIPE_THRESHOLD_PX = 120f

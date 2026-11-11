@@ -44,6 +44,10 @@ class SimpleAvatarRenderer : AvatarRenderer {
     private val _expressionRes = MutableStateFlow<Int?>(null)
     val expressionRes: StateFlow<Int?> = _expressionRes.asStateFlow()
 
+    /** 当前表情图（下载形象用）；null 表示用立绘。 */
+    private val _expressionFile = MutableStateFlow<java.io.File?>(null)
+    val expressionFile: StateFlow<java.io.File?> = _expressionFile.asStateFlow()
+
     private val _mouthOpen = MutableStateFlow(false)
     val mouthOpen: StateFlow<Boolean> = _mouthOpen.asStateFlow()
 
@@ -54,6 +58,7 @@ class SimpleAvatarRenderer : AvatarRenderer {
         if (released) return
         _spec.value = spec
         _expressionRes.value = null
+        _expressionFile.value = null
         _mouthOpen.value = false
         _eyeOpen.value = true
         _state.value = AvatarState.IDLE
@@ -76,6 +81,7 @@ class SimpleAvatarRenderer : AvatarRenderer {
                 // 没映射到表情就保持原样：角色卡里写了本渲染器没做的情绪是正常事，
                 // 这也意味着不必为此记日志。
                 _spec.value?.expressions?.get(command.name)?.let { _expressionRes.value = it }
+                _spec.value?.files?.expressions?.get(command.name)?.let { _expressionFile.value = it }
             }
 
             is AvatarCommand.Mouth -> {
