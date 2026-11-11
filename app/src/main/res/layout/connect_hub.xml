@@ -74,6 +74,16 @@
             android:paddingBottom="3dp"
             android:textColor="@color/pv_text_secondary"
             android:textSize="13sp" />
+
+        <!-- 连接后的计时与流量：只在已连接时显示，点它进入用量统计 -->
+        <TextView
+            android:id="@+id/tv_conn_stats"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:textColor="@color/pv_green"
+            android:textSize="12sp"
+            android:visibility="gone" />
     </LinearLayout>
 
     <FrameLayout

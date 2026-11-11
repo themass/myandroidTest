@@ -102,6 +102,10 @@
             android:theme="@style/AppTheme"
             android:screenOrientation="portrait" />
         <activity
+            android:name="com.openapi.myapp.ui.usage.UsageActivity"
+            android:theme="@style/AppTheme"
+            android:screenOrientation="portrait" />
+        <activity
             android:name="com.openapi.myapp.ui.user.SplitTunnelingActivity"
             android:theme="@style/AppTheme"
             android:screenOrientation="portrait" />

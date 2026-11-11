@@ -36,6 +36,15 @@ public final class SessionRecorder implements Observer<VpnSessionState> {
 
     private static final long SAMPLE_INTERVAL_MS = 30_000L;
 
+    /** 进程内唯一实例，由 AppContainer 创建。界面通过它读取当前会话。 */
+    @Nullable
+    private static volatile SessionRecorder instance;
+
+    @Nullable
+    public static SessionRecorder get() {
+        return instance;
+    }
+
     private final Context appContext;
     private final LiveData<TunnelProtocol> protocol;
     private final Handler main = new Handler(Looper.getMainLooper());
@@ -59,6 +68,7 @@ public final class SessionRecorder implements Observer<VpnSessionState> {
     public SessionRecorder(@NonNull Context context, @NonNull LiveData<TunnelProtocol> protocol) {
         this.appContext = context.getApplicationContext();
         this.protocol = protocol;
+        instance = this;
         io.execute(this::closeOrphans);
     }
 
@@ -141,6 +151,53 @@ public final class SessionRecorder implements Observer<VpnSessionState> {
                 LogUtil.e("会话记录更新失败: " + e.getMessage());
             }
         });
+    }
+
+    // ---------------------------------------------------------------- 查询（给界面用）
+
+    /** 当前会话的开始时间（毫秒）；没有连接时为 0。主线程调用。 */
+    public long currentStartAt() {
+        ConnSession s = current;
+        return s == null ? 0 : s.startAt;
+    }
+
+    /**
+     * 当前会话到现在的累计流量 {rx, tx}。读的是实时计数，不等 30 秒一次的采样，
+     * 所以首页卡片每秒刷新时数字是连续的。主线程调用，不碰数据库。
+     */
+    @NonNull
+    public long[] currentTraffic() {
+        ConnSession s = current;
+        if (s == null) {
+            return new long[]{0, 0};
+        }
+        long rx = s.rxBytes;
+        long tx = s.txBytes;
+        long[] raw = TunnelTraffic.read();
+        if (raw != null) {
+            rx += raw[0] >= lastRx ? raw[0] - lastRx : raw[0];
+            tx += raw[1] >= lastTx ? raw[1] - lastTx : raw[1];
+        }
+        return new long[]{rx, tx};
+    }
+
+    /** 读最近 {@code days} 天的汇总。查数据库，必须在后台线程调用。 */
+    @NonNull
+    public static UsageStats.Day[] loadDays(int days) {
+        long now = System.currentTimeMillis();
+        long since = UsageStats.startOfDay(now, java.util.TimeZone.getDefault()) - (long) days * 86_400_000L;
+        List<UsageStats.Span> spans = new java.util.ArrayList<>();
+        try {
+            // 进行中的会话 endAt 可能还没刷新，用 max(endAt, now) 兜底由调用方处理；这里按库里的值取
+            for (ConnSession c : dao().queryBuilder()
+                    .where(ConnSessionDao.Properties.StartAt.ge(since)).list()) {
+                long end = c.open ? Math.max(c.endAt, now) : c.endAt;
+                spans.add(new UsageStats.Span(c.startAt, end, c.rxBytes, c.txBytes));
+            }
+        } catch (RuntimeException e) {
+            LogUtil.e("读取会话统计失败: " + e.getMessage());
+        }
+        return UsageStats.lastDays(spans, now, days, java.util.TimeZone.getDefault());
     }
 
     /** 进程上次被杀时仍处于 open 的会话，在这次启动时收尾。 */

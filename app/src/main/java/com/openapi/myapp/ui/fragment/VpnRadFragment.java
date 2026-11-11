@@ -133,6 +133,8 @@ public class VpnRadFragment extends BaseFragment {
     LinearLayout cardCurrentNode;
     TextView tvCurrentName;
     TextView tvCurrentPing;
+    /** 连接后的计时与流量；旧布局没有这个视图，为 null 时整段逻辑直接跳过。 */
+    TextView tvConnStats;
     android.widget.ImageButton btnGift;
     private android.animation.ObjectAnimator giftShake;
     android.widget.ImageView ivCurrentFlag;
@@ -276,6 +278,10 @@ public class VpnRadFragment extends BaseFragment {
         cardCurrentNode = view.findViewById(R.id.card_current_node);
         tvCurrentName = view.findViewById(R.id.tv_current_name);
         tvCurrentPing = view.findViewById(R.id.tv_current_ping);
+        tvConnStats = view.findViewById(R.id.tv_conn_stats);
+        if (tvConnStats != null) {
+            tvConnStats.setOnClickListener(v -> com.openapi.myapp.ui.usage.UsageActivity.start(requireContext()));
+        }
         ivCurrentFlag = view.findViewById(R.id.iv_current_flag);
         btnGift = view.findViewById(R.id.btn_gift);
         if (btnGift != null) {
@@ -797,6 +803,7 @@ public class VpnRadFragment extends BaseFragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        mHandler.removeCallbacks(connStatsTick);
         if (giftShake != null) {
             giftShake.cancel();
         }
@@ -891,12 +898,59 @@ public class VpnRadFragment extends BaseFragment {
     }
 
     /** 状态渲染的唯一入口；由 LiveData 在主线程回调。 */
+    // ------------------------------------------------------------ 连接后的计时与流量
+
+    private final Runnable connStatsTick = new Runnable() {
+        @Override
+        public void run() {
+            if (tvConnStats == null || tvConnStats.getVisibility() != View.VISIBLE) {
+                return;
+            }
+            refreshConnStats();
+            mHandler.postDelayed(this, 1000L);
+        }
+    };
+
+    /** 已连接才显示这一行，并每秒刷新；断开/出错立即隐藏并停掉定时器。 */
+    private void updateConnStats(boolean connected) {
+        if (tvConnStats == null) {
+            return;
+        }
+        mHandler.removeCallbacks(connStatsTick);
+        if (!connected) {
+            tvConnStats.setVisibility(View.GONE);
+            return;
+        }
+        tvConnStats.setVisibility(View.VISIBLE);
+        refreshConnStats();
+        mHandler.postDelayed(connStatsTick, 1000L);
+    }
+
+    private void refreshConnStats() {
+        com.openapi.myapp.data.SessionRecorder recorder = com.openapi.myapp.data.SessionRecorder.get();
+        if (recorder == null || tvConnStats == null) {
+            return;
+        }
+        long startAt = recorder.currentStartAt();
+        if (startAt <= 0) {
+            // SessionRecorder 与本 Fragment 同时收到"已连接"，顺序不固定；先占位，下一秒会补上
+            tvConnStats.setText("");
+            return;
+        }
+        long[] t = recorder.currentTraffic();
+        tvConnStats.setText(getString(R.string.conn_stats,
+                com.openapi.myapp.data.UsageStats.formatDuration(System.currentTimeMillis() - startAt),
+                com.openapi.myapp.data.UsageStats.formatBytes(t[0]),
+                com.openapi.myapp.data.UsageStats.formatBytes(t[1])));
+    }
+
     private void render(VpnSessionState state) {
         if (state == null) {
             return;
         }
         updateGlobeConnection(state);
         protonState.setVpnState(toProtonUi(state));
+        updateConnStats(state != null && state.isConnected() && !state.hasError());
         if (state.hasError()) {
             mHandler.removeCallbacks(vpnCheck);
             imgError();

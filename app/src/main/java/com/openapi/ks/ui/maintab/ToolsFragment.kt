@@ -42,6 +42,7 @@ class ToolsFragment : Fragment() {
         return ComposeView(requireContext()).apply {
             setContent {
                 ToolsScreen(
+                    onUsage = { com.openapi.myapp.ui.usage.UsageActivity.start(requireContext()) },
                     onNetworkCheck = { NetworkCheckActivity.start(requireContext()) },
                     onSplitTunneling = { SplitTunnelingActivity.start(requireContext()) },
                 )
@@ -57,7 +58,7 @@ private val ToolsSub = ComposeTheme.TextSecondary
 private val ToolsAccent = Color(0xFF6D4AFF)
 
 @Composable
-private fun ToolsScreen(onNetworkCheck: () -> Unit, onSplitTunneling: () -> Unit) {
+private fun ToolsScreen(onUsage: () -> Unit, onNetworkCheck: () -> Unit, onSplitTunneling: () -> Unit) {
     MaterialTheme(colorScheme = darkColorScheme(background = ToolsBg, surface = ToolsCard, primary = ToolsAccent)) {
         Column(
             modifier = Modifier
@@ -73,6 +74,12 @@ private fun ToolsScreen(onNetworkCheck: () -> Unit, onSplitTunneling: () -> Unit
                 fontWeight = FontWeight.Bold,
             )
             Spacer(Modifier.height(16.dp))
+            ToolCard(
+                title = stringResource(R.string.tools_usage),
+                desc = stringResource(R.string.tools_usage_desc),
+                onClick = onUsage,
+            )
+            Spacer(Modifier.height(12.dp))
             ToolCard(
                 title = stringResource(R.string.tools_netcheck),
                 desc = stringResource(R.string.tools_netcheck_desc),
