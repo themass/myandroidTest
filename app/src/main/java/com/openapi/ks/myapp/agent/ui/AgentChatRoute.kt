@@ -9,7 +9,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.openapi.core.CommonConstants
-import com.openapi.core.util.PreferenceUtils
+import com.openapi.common.util.android.PreferenceUtils
 import com.openapi.ks.myapp.agent.AgentApi
 import com.openapi.ks.myapp.agent.AgentChatRepository
 import com.openapi.ks.myapp.agent.AgentChatRepositoryImpl
