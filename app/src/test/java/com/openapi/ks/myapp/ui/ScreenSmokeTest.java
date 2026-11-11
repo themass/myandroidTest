@@ -10,11 +10,11 @@ import android.content.Intent;
 import com.openapi.ks.myapp.base.MyApplication;
 
 import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
-import com.openapi.ks.myapp.ui.user.AddCustomeInfoActivity;
-import com.openapi.ks.myapp.ui.user.FindPassActivity;
-import com.openapi.ks.myapp.ui.user.LoginActivity;
-import com.openapi.ks.myapp.ui.user.RegActivity;
-import com.openapi.ks.myapp.ui.user.SettingActivity;
+import com.openapi.ks.myapp.ui.user.profile.AddCustomeInfoActivity;
+import com.openapi.ks.myapp.ui.user.password.FindPassActivity;
+import com.openapi.ks.myapp.ui.user.login.LoginActivity;
+import com.openapi.ks.myapp.ui.user.register.RegActivity;
+import com.openapi.ks.myapp.ui.user.setting.SettingActivity;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -105,7 +105,7 @@ public class ScreenSmokeTest {
     public void commonFragmentHostWithFavorites() {
         Intent intent = new Intent(
                 org.robolectric.RuntimeEnvironment.getApplication(), CommonFragmentActivity.class);
-        intent.putExtra(CommonFragmentActivity.FRAGMENT, com.openapi.ks.myapp.ui.fragment.SettingCharacterFragment.class);
+        intent.putExtra(CommonFragmentActivity.FRAGMENT, com.openapi.ks.myapp.ui.user.setting.SettingCharacterFragment.class);
         intent.putExtra(CommonFragmentActivity.TITLE, "fav");
         Activity a = Robolectric.buildActivity(CommonFragmentActivity.class, intent)
                 .create().start().resume().get();

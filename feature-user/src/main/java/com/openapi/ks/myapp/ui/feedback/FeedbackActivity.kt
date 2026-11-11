@@ -78,7 +78,7 @@ import com.openapi.ks.myapp.bean.vo.IWannaVo
 import com.openapi.ks.myapp.bean.vo.NullReturnVo
 import com.openapi.ks.myapp.constant.Constants
 import com.openapi.ks.myapp.data.UserLoginUtil
-import com.openapi.ks.myapp.ui.user.LoginActivity
+import com.openapi.ks.myapp.ui.user.login.LoginActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext

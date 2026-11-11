@@ -17,7 +17,7 @@ import java.io.Serializable;
 public final class Routes {
 
     /** 登录页，在 :feature-user。 */
-    public static final String LOGIN = "com.openapi.ks.myapp.ui.user.LoginActivity";
+    public static final String LOGIN = "com.openapi.ks.myapp.ui.user.login.LoginActivity";
 
     /** 视频播放页，在 :feature-video。参数用 Constants.CONFIG_PARAM 传递。 */
     public static final String VIDEO_SHOW = "com.openapi.ks.myapp.video.page.VideoShowActivity";
@@ -26,7 +26,7 @@ public final class Routes {
     public static final String VIDEO_SHOW_LAZY_URL = "com.openapi.ks.myapp.video.page.VideoShowActivityLazyUrl";
 
     /** 设置页，在 :feature-user。 */
-    public static final String SETTING = "com.openapi.ks.myapp.ui.user.SettingActivity";
+    public static final String SETTING = "com.openapi.ks.myapp.ui.user.setting.SettingActivity";
 
     /** 全局搜索结果页（频道里的视频列表），在 :feature-content。 */
     public static final String GLOBAL_VIDEO_SEARCH = "com.openapi.ks.myapp.content.video.GlobalVideoChannelListFragment";

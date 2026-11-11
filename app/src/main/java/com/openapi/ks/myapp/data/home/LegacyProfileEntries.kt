@@ -18,8 +18,8 @@ import com.openapi.ks.myapp.data.UserLoginUtil
 import com.openapi.ks.myapp.content.mine.AppListFragment
 import com.openapi.ks.myapp.content.mine.DonationListFragment
 import com.openapi.ks.myapp.content.mine.FavoriteFragment
-import com.openapi.ks.myapp.ui.user.LoginActivity
-import com.openapi.ks.myapp.ui.user.SettingActivity
+import com.openapi.ks.myapp.ui.user.login.LoginActivity
+import com.openapi.ks.myapp.ui.user.setting.SettingActivity
 
 /** 「我的」页的实现：展示内容和菜单动作，沿用旧的账号缓存和页面。 */
 class LegacyProfileEntries(app: Context) : ProfileEntries {

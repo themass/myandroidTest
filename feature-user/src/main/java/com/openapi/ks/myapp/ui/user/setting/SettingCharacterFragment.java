@@ -1,4 +1,4 @@
-package com.openapi.ks.myapp.ui.fragment;
+package com.openapi.ks.myapp.ui.user.setting;
 
 import java.util.concurrent.CompletableFuture;
 import android.content.Context;
@@ -11,7 +11,7 @@ import com.openapi.common.util.SystemUtils;
 import com.openapi.common.util.ToastUtil;
 import com.openapi.core.ads.yewu.ads.base.AdsContext;
 import com.openapi.feature.user.R;
-import com.openapi.ks.myapp.adapter.SettingCharacterAdapter;
+import com.openapi.ks.myapp.ui.user.setting.SettingCharacterAdapter;
 import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.openapi.core.app.AppContext;
 import com.openapi.ks.myapp.bean.vo.CharacterVo;

@@ -6,7 +6,7 @@ import android.widget.Toast
 import com.openapi.chat.domain.auth.LoginGate
 import com.openapi.ks.chat.R
 import com.openapi.ks.myapp.data.UserLoginUtil
-import com.openapi.ks.myapp.ui.user.LoginActivity
+import com.openapi.ks.myapp.ui.user.login.LoginActivity
 
 /** 用现有的账号缓存和登录页实现 [LoginGate]。 */
 class LegacyLoginGate : LoginGate {

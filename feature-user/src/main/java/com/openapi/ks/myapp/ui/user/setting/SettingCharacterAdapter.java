@@ -1,4 +1,4 @@
-package com.openapi.ks.myapp.adapter;
+package com.openapi.ks.myapp.ui.user.setting;
 
 import android.content.Context;
 import android.view.LayoutInflater;

@@ -19,7 +19,7 @@ import com.openapi.ks.chat.R
 import com.openapi.ks.myapp.bean.vo.RecommendVo
 import com.openapi.ks.myapp.constant.Constants
 import com.openapi.ks.myapp.data.UserLoginUtil
-import com.openapi.ks.myapp.ui.user.LoginActivity
+import com.openapi.ks.myapp.ui.user.login.LoginActivity
 
 /** 频道页的实现：分类、分页数据和打开频道，沿用旧的网络层和配置页。 */
 class LegacyChannelEntries(app: Context) : ChannelEntries {

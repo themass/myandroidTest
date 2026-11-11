@@ -1,4 +1,4 @@
-package com.openapi.ks.myapp.ui.user
+package com.openapi.ks.myapp.ui.user.password
 
 import android.os.Bundle
 import android.util.Patterns

@@ -1,4 +1,7 @@
-package com.openapi.ks.myapp.ui.user
+package com.openapi.ks.myapp.ui.user.login
+
+import com.openapi.ks.myapp.ui.user.password.FindPassActivity
+import com.openapi.ks.myapp.ui.user.register.RegActivity
 
 import android.content.Context
 import android.content.Intent

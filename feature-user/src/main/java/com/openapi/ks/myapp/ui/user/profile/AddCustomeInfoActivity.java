@@ -1,4 +1,6 @@
-package com.openapi.ks.myapp.ui.user;
+package com.openapi.ks.myapp.ui.user.profile;
+
+import com.openapi.ks.myapp.ui.user.login.LoginActivity;
 
 import android.content.Context;
 import android.content.Intent;
