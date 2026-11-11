@@ -9,7 +9,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.request.target.DrawableImageViewTarget;
 import com.openapi.common.util.log.LogUtil;
-import com.openapi.common.net.glide.MyGlideModule;
+import com.openapi.common.net.glide.GlideLoggingListener;
 import com.openapi.ks.myapp.data.ImagePhotoLoad;
 // 使用现代 Shimmer 替代
 // import com.romainpiel.shimmer.Shimmer;
@@ -58,7 +58,7 @@ public abstract class ShowTypeHandle {
                                 RequestManager build = Glide.with(context);
                                 ;
                                 build.load(base64String).apply(ImagePhotoLoad.options).transition(withCrossFade(400))
-                                        .listener(new MyGlideModule.LoggingListener()).into(new DrawableImageViewTarget(holder.ivPhoto));
+                                        .listener(new GlideLoggingListener()).into(new DrawableImageViewTarget(holder.ivPhoto));
                             }
                     );
                 }

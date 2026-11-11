@@ -5,7 +5,7 @@ import android.view.View;
 
 import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.request.target.DrawableImageViewTarget;
-import com.openapi.common.net.glide.MyGlideModule;
+import com.openapi.common.net.glide.GlideLoggingListener;
 // 使用现代 Shimmer 替代
 // import com.romainpiel.shimmer.Shimmer;
 import com.openapi.common.util.log.LogUtil;
@@ -27,7 +27,7 @@ public class TextBelowShowTypeHandle extends ShowTypeHandle {
         }
         RequestManager build = ImagePhotoLoad.getBuilder(context, vo.img);
 //        LogUtil.d("GLIDE request " + vo.img);
-        build.load(vo.img).apply(ImagePhotoLoad.options).transition(withCrossFade(500)).listener(new MyGlideModule.LoggingListener()).into(new DrawableImageViewTarget(holder.ivPhoto));
+        build.load(vo.img).apply(ImagePhotoLoad.options).transition(withCrossFade(500)).listener(new GlideLoggingListener()).into(new DrawableImageViewTarget(holder.ivPhoto));
     }
 
     public void showTitle(final IndexRecommendAdapter.NaviItemViewHolder holder, RecommendVo vo, final Object shimmer, boolean needShimmer, Context context) {

@@ -15,7 +15,7 @@ android {
 
 dependencies {
     // 拍照解题：图像处理与模型在 :core（com.aimath.paizhao.photosolve.image/quality/cropassist）
-    api project(':commonutil')
+    implementation project(':commonutil')
     implementation project(':core')
     // 图像处理（压缩、质量分析、自动裁剪、超分）在 :media
     implementation project(':media')
@@ -28,6 +28,9 @@ dependencies {
     implementation 'androidx.camera:camera-camera2:1.4.0'
     implementation 'androidx.camera:camera-lifecycle:1.4.0'
     implementation 'androidx.camera:camera-view:1.4.0'
+    // ProcessCameraProvider.getInstance() 返回 ListenableFuture，本模块直接调用它的 addListener
+    // 用完整 Guava：依赖图里已有 Guava，listenablefuture 会被替换成空包。版本与 :app 解析结果一致
+    implementation 'com.google.guava:guava:33.3.1-android'
     implementation 'com.anggrayudi:storage:1.5.6'
     implementation 'com.google.android.gms:play-services-mlkit-document-scanner:16.0.0'
 

@@ -50,6 +50,9 @@ dependencies {
     implementation 'androidx.palette:palette:1.0.0'
     implementation 'androidx.gridlayout:gridlayout:1.1.0'
     implementation 'androidx.mediarouter:mediarouter:1.7.0'
+    // MusicService 继承 MediaBrowserServiceCompat，是对外类型（:feature-content 使用），所以用 api。
+    // 版本与原来经 mediarouter 传递得到的一致
+    api 'androidx.media:media:1.4.1'
     implementation libs.google.material
 
     implementation libs.androidx.navigation.runtime.ktx

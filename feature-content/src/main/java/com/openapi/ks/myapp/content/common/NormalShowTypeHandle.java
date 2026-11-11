@@ -10,7 +10,7 @@ import android.view.View;
 import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.request.target.DrawableImageViewTarget;
 import com.bumptech.glide.request.transition.Transition;
-import com.openapi.common.net.glide.MyGlideModule;
+import com.openapi.common.net.glide.GlideLoggingListener;
 // 使用现代 Shimmer 替代
 // import com.romainpiel.shimmer.Shimmer;
 import com.openapi.ks.myapp.content.common.IndexRecommendAdapter;
@@ -30,7 +30,7 @@ public class NormalShowTypeHandle extends ShowTypeHandle {
             return;
         }
         RequestManager build = ImagePhotoLoad.getBuilder(context, vo.img);
-        build.load(vo.img).apply(ImagePhotoLoad.options).transition(withCrossFade(500)).listener(new MyGlideModule.LoggingListener()).into(new DrawableImageViewTarget(holder.ivPhoto) {
+        build.load(vo.img).apply(ImagePhotoLoad.options).transition(withCrossFade(500)).listener(new GlideLoggingListener()).into(new DrawableImageViewTarget(holder.ivPhoto) {
             @Override
             public void onResourceReady(Drawable resource, @Nullable Transition<? super Drawable> transition) {
                 super.onResourceReady(resource, transition);

@@ -20,7 +20,7 @@ dependencies {
     // 字幕翻译框架（MyFavoriteView 使用，原在 :commonutil）
     implementation project(':media')
     // 广告 SDK（AdsContext、AdsManager 等，来自 :ads）
-    api project(':ads')
+    implementation project(':ads')
     // Material 组件（AppBarLayout、FloatingActionButton 等，ui/base 使用）
     implementation libs.google.material
     // 列表骨架屏（IndexRecommendAdapter）与水波纹背景（MyRadarScanView）
@@ -42,7 +42,8 @@ dependencies {
     // 拍照解题图片处理（photosolve/image、quality、cropassist：OpenCV + ONNX Runtime）
 
     // 数据库（Room；data/db 的 DAO 和实体在本模块生成实现）
-    implementation libs.androidx.room.runtime
+    // AppDatabase（继承 RoomDatabase）和 DAO 是对外接口，所以 Room 运行时用 api
+    api libs.androidx.room.runtime
     annotationProcessor libs.androidx.room.compiler
 
     // Compose（design/、cast/ui、permission 对话框）

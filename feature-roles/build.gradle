@@ -15,7 +15,7 @@ android {
 
 dependencies {
     // 角色目录依赖 core 的设计 token；Gson 由 commonutil 以 api 暴露
-    api project(':commonutil')
+    implementation project(':commonutil')
     implementation project(':core')
     implementation libs.gson
 

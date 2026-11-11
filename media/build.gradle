@@ -21,6 +21,8 @@ dependencies {
 
     // 火山引擎流式 ASR 的 WebSocket / 协议
     implementation libs.okhttp
+    // 音频播放（AudioPlayer）和实时字幕的 PCM 音频源（ExoPlayerPcmAudioSource）
+    implementation libs.androidx.media3.exoplayer
 
     // 文档裁剪、超分的推理（ONNX Runtime，原在 :core）
     implementation 'com.microsoft.onnxruntime:onnxruntime-android:1.24.1'

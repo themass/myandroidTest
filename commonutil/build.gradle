@@ -16,75 +16,26 @@ android {
 }
 
 dependencies {
-    // Compose：主题、对话框、权限请求（原在 :core）
+    // Compose：主题、对话框、权限请求、分享面板
     implementation platform(libs.androidx.compose.bom)
-    // 挂起包装 BaseService.await*（原来各模块各写一份）
-    implementation libs.kotlinx.coroutines.android
     implementation libs.androidx.compose.ui
     implementation libs.androidx.compose.ui.graphics
     implementation libs.androidx.compose.material3
-    // 分享卡片的二维码（原 :sharekit 模块）
+    // 挂起包装 BaseService.await*、事件 Flow
+    implementation libs.kotlinx.coroutines.android
+    // 分享卡片的二维码
     implementation 'com.google.zxing:core:3.5.3'
     implementation libs.androidx.core.ktx
-    // 本地库文件
+    implementation libs.androidx.appcompat
+    implementation libs.androidx.activity
+    implementation libs.androidx.recyclerview
+    // FileUtils 用 DocumentFile 处理 SAF 目录
+    implementation 'androidx.documentfile:documentfile:1.0.1'
 
-    // 网络和JSON
+    // 网络层的对外接口里有 Gson、OkHttp、Glide 的类型，所以用 api
     api libs.gson
     api libs.okhttp
     api libs.okhttp.logging
-    // 移除DiskLruCache，使用Glide内置缓存替代
-    // api 'com.jakewharton:disklrucache:2.0.2'
-
-    // 事件总线
-
-    // 图片加载
     api libs.glide
-    annotationProcessor libs.glide.compiler
     api libs.glide.okhttp3
-    api 'com.github.chrisbanes:PhotoView:2.3.0'
-
-    // 数据库（Room；实体和 DAO 是 Java，用 annotationProcessor 生成实现）
-    api libs.androidx.room.runtime
-    annotationProcessor libs.androidx.room.compiler
-
-    // 视频播放
-//    api 'androidx.media3:media3-exoplayer:1.2.1'
-//    api 'androidx.media3:media3-datasource:1.2.1'
-//    api 'androidx.media3:media3-ui:1.2.1'
-//    api 'io.github.carguo:gsyvideoplayer-java:12.0.0'
-//    api 'io.github.carguo:gsyvideoplayer-exo2:12.0.0'
-//    api 'io.github.carguo:gsyvideoplayer-aliplay:12.0.0'
-//    api 'io.github.carguo:gsyvideoplayer-ex_so:12.0.0'
-
-//    api 'io.github.carguo:gsyvideoplayer-arm64:11.1.0'
-//    api 'io.github.carguo:gsyvideoplayer-armv7a:11.1.0'
-
-
-    api 'io.github.carguo:gsyvideoplayer:13.1.0'
-    // 阿里云播放器内核（需 PlayerFactory.setPlayManager(AliPlayerManager.class)）
-    api 'io.github.carguo:gsyvideoplayer-aliplay:13.1.0'
-    // IJK 扩展 FFmpeg/so：mpeg、部分 rtsp/concat 等，见 GSY doc/DECODERS.md
-    api 'io.github.carguo:gsyvideoplayer-ex_so:13.1.0'
-
-    // UI组件
-
-    // 图片选择器
-    api 'io.github.lucksiege:pictureselector:v3.11.2'
-
-    // 权限管理 - 使用官方Activity Result API替代EasyPermissions
-    // api 'pub.devrel:easypermissions:3.0.0'
-
-    // AndroidX 库
-    implementation libs.androidx.appcompat
-    implementation libs.androidx.fragment
-    implementation libs.androidx.activity
-    implementation "androidx.palette:palette:1.0.0"
-    implementation libs.androidx.recyclerview
-    implementation "androidx.cardview:cardview:1.0.0"
-
-    // Apache 工具库 - 升级到最新版本
-    // implementation 'org.apache.httpcomponents:httpcore:4.4.16' // 已弃用，使用OkHttp替代
-    // 移除Commons库，使用Android内置API替代
-    // implementation 'commons-io:commons-io:2.16.1'
-    // implementation 'commons-codec:commons-codec:1.17.1'
 }

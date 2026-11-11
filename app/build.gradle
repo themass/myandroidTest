@@ -184,12 +184,10 @@ dependencies {
     testImplementation 'org.robolectric:robolectric:4.17'
     testImplementation 'androidx.test:core:1.7.0'
     testImplementation libs.kotlinx.coroutines.test
-    // 项目模块依赖
+
+    // 组合根：所有 feature 和它们需要在 Application 里初始化的模块
     implementation project(":commonutil")
     implementation project(':core')
-    // 启动页的雷达扫描动画（MyRadarScanView）
-    implementation 'com.skyfishjy.ripplebackground:library:1.0.1'
-    // 火山引擎流式 ASR：聊天（ChatViewModel）与视频字幕共用，不依赖 :feature-video
     implementation project(':media')
     implementation project(':feature-video')
     implementation project(':feature-roles')
@@ -200,46 +198,22 @@ dependencies {
     implementation project(':feature-companion')
     implementation project(":ads")
     implementation project(':retromusic')
-    // 对话 UI 组件库：消息列表、消息气泡、输入栏
     implementation project(':chatkit')
-    
-    // 本地库文件
-    implementation fileTree(dir: 'libs', include: ['*.aar', '*.jar'])
 
-    // AndroidX 核心库
+    // MyApplication 继承 MultiDexApplication
     implementation 'androidx.multidex:multidex:2.0.1'
     implementation libs.google.material
-    
-    // 现代UI组件替代
     implementation libs.androidx.fragment
     implementation libs.androidx.activity
-    implementation 'com.github.donkingliang:LabelsView:1.6.5'
-    
-    // 现代图片查看器替代 ImageGallery
-
-
-    // 视频播放（GSY 已含 Exo；Media3 供其他模块或后续扩展）
+    // 启动页的雷达扫描动画（MyRadarScanView）
+    implementation 'com.skyfishjy.ripplebackground:library:1.0.1'
+    // 播放引擎偏好（PlaybackEngineHelper 的 @UnstableApi）、首页的语音播放
     implementation libs.androidx.media3.exoplayer
-    implementation libs.androidx.media3.exoplayer.hls
-    implementation libs.androidx.media3.datasource
-    implementation libs.androidx.media3.ui
+    // Glide：应用唯一的 AppGlideModule（AppGlideConfig）在本模块，由 Glide 注解处理器生成实现
+    implementation libs.glide
+    annotationProcessor libs.glide.compiler
 
-    // 投屏：Google Cast（小米电视 Android TV / Chromecast 等；需设备与手机同局域网且支持 Cast）
-    implementation 'com.google.android.gms:play-services-cast-framework:21.5.0'
-
-    // 响应式编程
-
-    // 数据库（Room；实体和 DAO 是 Java，用 annotationProcessor 生成实现）
-    implementation libs.androidx.room.runtime
-    annotationProcessor libs.androidx.room.compiler
-
-    // Markdown解析库
-
-    // 富文本和图像处理
-
-    // FlexMark：InputMsgWebView + KaTeX 模板中 Markdown → HTML（与 Markwon 并行，公式密集消息走 WebView）
-
-    // ---------- 拍照解题（移植自 ai-math/paizhao） ----------
+    // 首页框架（Compose）
     implementation platform(libs.androidx.compose.bom)
     implementation libs.androidx.compose.ui
     implementation libs.androidx.compose.ui.graphics
@@ -249,18 +223,5 @@ dependencies {
     debugImplementation libs.androidx.compose.ui.tooling
     implementation libs.androidx.activity.compose
     implementation libs.androidx.lifecycle.viewmodel.compose
-    // LiveKit 房间连接：陪伴的文字与主动消息都走这条通道（见 companion/LiveKitCompanionTransport.kt）。
     implementation libs.androidx.lifecycle.runtime.compose
-
-    // 相机预览与拍照
-
-    // 裁剪 UI / 文档边缘检测 / 存储访问
-    // 4.12.0 起 libopencv_java4.so 为 16KB 对齐（Play 要求）；4.10.0 为 4KB 对齐
-
-    // DLNA 投屏：本地文件的 HTTP 分发（LocalMediaServer）
-
-    // Google 智能文档扫描
-    implementation 'com.google.android.gms:play-services-mlkit-document-scanner:16.0.0'
-
-    // 文档检测推理（DocQuadNet 等 ONNX 模型）
 }

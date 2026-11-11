@@ -5,7 +5,7 @@ import android.view.View;
 
 import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.request.target.DrawableImageViewTarget;
-import com.openapi.common.net.glide.MyGlideModule;
+import com.openapi.common.net.glide.GlideLoggingListener;
 // 使用现代 Shimmer 替代
 // import com.romainpiel.shimmer.Shimmer;
 import com.openapi.ks.myapp.content.common.IndexRecommendAdapter;
@@ -26,7 +26,7 @@ public class BlurShowTypeHandle extends ShowTypeHandle {
         }
         RequestManager build = ImagePhotoLoad.getBuilder(context, vo.img);
         build.load(vo.img)
-                .transition(withCrossFade(500)).apply(ImagePhotoLoad.options).listener(new MyGlideModule.LoggingListener()).into(new DrawableImageViewTarget(holder.ivPhoto));
+                .transition(withCrossFade(500)).apply(ImagePhotoLoad.options).listener(new GlideLoggingListener()).into(new DrawableImageViewTarget(holder.ivPhoto));
 
     }
 

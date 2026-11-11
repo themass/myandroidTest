@@ -16,7 +16,9 @@ android {
 
 dependencies {
     // 登录、注册、找回密码、个人设置、意见反馈、设置角色
-    api project(':commonutil')
+    implementation project(':commonutil')
+    // 设置页的广告和统计
+    implementation project(':ads')
     implementation project(':core')
     // 分享（替代原 commonutil 的 ShareUtil）
     // 设置页使用播放器引擎开关（PlaybackEngineHelper，在 :feature-video）

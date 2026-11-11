@@ -22,7 +22,7 @@ import com.bumptech.glide.request.transition.Transition;
 import com.openapi.common.util.android.FileUtils;
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.common.util.lang.StringUtils;
-import com.openapi.common.net.glide.MyGlideModule;
+import com.openapi.common.net.glide.GlideLoggingListener;
 // 使用现代 Shimmer 替代
 // import com.romainpiel.shimmer.Shimmer;
 import com.openapi.core.R;
@@ -84,14 +84,14 @@ public class ImagePhotoLoad {
     // public void loadImageThumbnail(ImageView iv, String imageUrl, int dimension) {
     //     RequestManager build = getBuilder(iv.getContext(), imageUrl);
     //     build.load(imageUrl).apply(options).transition(withCrossFade(400))
-    //             .listener(new MyGlideModule.LoggingListener()).into(new DrawableImageViewTarget(iv));
+    //             .listener(new GlideLoggingListener()).into(new DrawableImageViewTarget(iv));
     // }
 
     // @Override
     // public void loadFullScreenImage(final ImageView iv, String imageUrl, int width, final LinearLayout bgLinearLayout) {
     //     RequestManager build = getBuilder(iv.getContext(), imageUrl);
     //     build.load(imageUrl).apply(optionsHigh).transition(withCrossFade(400))
-    //             .listener(new MyGlideModule.LoggingListener()).into(new DrawableImageViewTarget(iv));
+    //             .listener(new GlideLoggingListener()).into(new DrawableImageViewTarget(iv));
     // }
 
     public static void loadCommonImg(Context context, String url, ImageView iv) {
