@@ -11,9 +11,9 @@ import com.openapi.core.ads.yewu.ads.base.AdsContext
 import com.openapi.core.ads.yewu.ads.base.AdsManager
 import com.openapi.core.ads.yewu.ads.config.AdsEvents
 import com.openapi.core.ads.yewu.um.MobAgent
-import com.openapi.core.event.observe
+import com.openapi.common.event.observe
 import androidx.lifecycle.lifecycleScope
-import com.openapi.core.util.LogUtil
+import com.openapi.common.util.LogUtil
 import com.openapi.home.HomeActivity
 import com.openapi.ks.chat.R
 import com.openapi.ks.chat.databinding.MainLaunchBinding

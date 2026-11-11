@@ -67,7 +67,7 @@ import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
-import com.openapi.core.util.StringUtils
+import com.openapi.common.util.StringUtils
 import com.openapi.feature.channel.R
 import com.openapi.ks.myapp.bean.vo.RecommendVo
 import com.openapi.ks.myapp.constant.Constants
@@ -103,12 +103,12 @@ fun ChannelBodyScreen(
         }
 
         ChannelUiState.Retry -> RetryPlaceholder(
-            textRes = com.openapi.core.util.R.string.error_network_retry,
+            textRes = com.openapi.common.R.string.error_network_retry,
             onClick = { controller.retry(scope) },
         )
 
         ChannelUiState.NoData -> RetryPlaceholder(
-            textRes = com.openapi.core.util.R.string.error_network_nodata_retry,
+            textRes = com.openapi.common.R.string.error_network_nodata_retry,
             onClick = { controller.retry(scope) },
         )
 
@@ -449,7 +449,7 @@ private fun fetchBase64(url: String, onBody: (String) -> Unit) {
     val request = Request.Builder().url(url).build()
     base64Client.newCall(request).enqueue(object : Callback {
         override fun onFailure(call: Call, e: IOException) {
-            com.openapi.core.util.LogUtil.e("onFailure", e)
+            com.openapi.common.util.LogUtil.e("onFailure", e)
         }
 
         override fun onResponse(call: Call, response: Response) {

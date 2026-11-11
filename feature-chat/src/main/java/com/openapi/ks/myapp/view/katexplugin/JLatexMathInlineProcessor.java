@@ -2,7 +2,7 @@ package com.openapi.ks.myapp.view.katexplugin;
 
 import androidx.annotation.Nullable;
 
-import com.openapi.core.util.LogUtil;
+import com.openapi.common.util.LogUtil;
 
 import org.commonmark.node.Node;
 

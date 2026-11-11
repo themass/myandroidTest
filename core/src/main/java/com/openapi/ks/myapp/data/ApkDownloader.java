@@ -16,10 +16,10 @@ import android.os.Looper;
 import androidx.core.app.NotificationCompat;
 
 import com.openapi.core.app.AppContext;
-import com.openapi.core.net.HttpUtils;
-import com.openapi.core.util.LogUtil;
-import com.openapi.core.util.FileUtils;
-import com.openapi.core.util.ToastUtil;
+import com.openapi.common.net.HttpUtils;
+import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.FileUtils;
+import com.openapi.common.util.ToastUtil;
 import com.openapi.core.R;
 import com.openapi.ks.myapp.constant.Constants;
 

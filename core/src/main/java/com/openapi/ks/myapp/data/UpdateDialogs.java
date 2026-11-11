@@ -4,11 +4,11 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 
-import com.openapi.core.design.dialog.AppDialogHost;
-import com.openapi.core.design.dialog.DialogAction;
-import com.openapi.core.util.PackageUtils;
-import com.openapi.core.util.PreferenceUtils;
-import com.openapi.core.net.NetUtils;
+import com.openapi.common.design.dialog.AppDialogHost;
+import com.openapi.common.design.dialog.DialogAction;
+import com.openapi.common.util.PackageUtils;
+import com.openapi.common.util.PreferenceUtils;
+import com.openapi.common.net.NetUtils;
 import com.openapi.ks.myapp.bean.vo.VersionVo;
 import com.openapi.core.R;
 import com.openapi.ks.myapp.constant.Constants;

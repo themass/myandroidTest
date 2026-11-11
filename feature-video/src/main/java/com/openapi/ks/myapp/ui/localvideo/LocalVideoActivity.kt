@@ -54,10 +54,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import com.openapi.core.design.theme.AppColors
-import com.openapi.core.design.theme.AppMaterialTheme
-import com.openapi.core.permission.Permissions
-import com.openapi.core.util.ToastUtil
+import com.openapi.common.design.theme.AppColors
+import com.openapi.common.design.theme.AppMaterialTheme
+import com.openapi.common.permission.Permissions
+import com.openapi.common.util.ToastUtil
 import com.openapi.feature.video.R
 import com.openapi.ks.myapp.bean.vo.RecommendVo
 import com.openapi.ks.myapp.constant.Constants

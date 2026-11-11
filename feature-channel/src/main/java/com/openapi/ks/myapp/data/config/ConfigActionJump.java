@@ -5,8 +5,8 @@ import android.net.Uri;
 
 import com.openapi.core.CommonConstants;
 import com.openapi.core.event.ConfigActionEvent;
-import com.openapi.core.util.LogUtil;
-import com.openapi.core.util.ToastUtil;
+import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.ToastUtil;
 import com.openapi.core.R;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.ui.base.WebViewActivity;
@@ -18,7 +18,7 @@ import com.openapi.ks.myapp.ui.sound.TextChannleActivity;
 import com.openapi.ks.myapp.ui.sound.VideoChannleActivity;
 
 import com.openapi.core.event.CoreEvents;
-import com.openapi.core.event.EventFlowsKt;
+import com.openapi.common.event.EventFlowsKt;
 
 import java.net.URLDecoder;
 import java.util.HashMap;

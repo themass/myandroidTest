@@ -2,9 +2,9 @@ package com.openapi.ks.myapp.data;
 
 import android.content.Context;
 
-import com.openapi.core.util.Background;
-import com.openapi.core.util.CollectionUtils;
-import com.openapi.core.util.LogUtil;
+import com.openapi.common.util.Background;
+import com.openapi.common.util.CollectionUtils;
+import com.openapi.common.util.LogUtil;
 import com.openapi.ks.myapp.bean.vo.HistoryVo;
 import com.openapi.ks.myapp.data.db.AppDatabase;
 

@@ -45,11 +45,11 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.openapi.core.design.theme.AppColors
-import com.openapi.core.net.BaseService
-import com.openapi.core.net.request.CommonResponse
-import com.openapi.core.util.StringUtils
-import com.openapi.core.util.ToastUtil
+import com.openapi.common.design.theme.AppColors
+import com.openapi.common.net.BaseService
+import com.openapi.common.net.request.CommonResponse
+import com.openapi.common.util.StringUtils
+import com.openapi.common.util.ToastUtil
 import com.openapi.feature.user.R
 import com.openapi.ks.myapp.bean.form.RegForm
 import com.openapi.ks.myapp.bean.vo.NullReturnVo

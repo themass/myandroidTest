@@ -8,12 +8,12 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
-import com.openapi.core.design.dialog.AppDialogHost;
-import com.openapi.core.util.LogUtil;
-import com.openapi.core.util.PermissionHelper;
-import com.openapi.core.util.ToastUtil;
-import com.openapi.core.util.permission.CompatiblePermissionManager;
-import com.openapi.core.util.permission.PermissionUtils;
+import com.openapi.common.design.dialog.AppDialogHost;
+import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.PermissionHelper;
+import com.openapi.common.util.ToastUtil;
+import com.openapi.common.util.permission.CompatiblePermissionManager;
+import com.openapi.common.util.permission.PermissionUtils;
 import com.openapi.core.event.PermEvent;
 
 import org.greenrobot.eventbus.Subscribe;
@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.openapi.core.util.permission.ModernPermissionManager;
+import com.openapi.common.util.permission.ModernPermissionManager;
 
 public class BasePermissionActivity extends LogActivity
         implements ActivityCompat.OnRequestPermissionsResultCallback {
@@ -79,7 +79,7 @@ public class BasePermissionActivity extends LogActivity
                 @Override
                 public void onPermissionsDenied(@NonNull List<String> permissions) {
                     LogUtil.i("权限被拒绝: " + permissions);
-                    ToastUtil.showLong(com.openapi.core.util.R.string.permission_need_toast);
+                    ToastUtil.showLong(com.openapi.common.R.string.permission_need_toast);
                 }
 
                 @Override
@@ -99,7 +99,7 @@ public class BasePermissionActivity extends LogActivity
                 @Override
                 public void onPermissionsDenied(@NonNull List<String> permissions) {
                     LogUtil.i("权限被拒绝: " + permissions);
-                    ToastUtil.showLong(com.openapi.core.util.R.string.permission_need_toast);
+                    ToastUtil.showLong(com.openapi.common.R.string.permission_need_toast);
                 }
             });
         }
@@ -133,7 +133,7 @@ public class BasePermissionActivity extends LogActivity
         if (grantResults != null) {
             for (int ret : grantResults) {
                 if (ret != PackageManager.PERMISSION_GRANTED) {
-                    ToastUtil.showLong(com.openapi.core.util.R.string.permission_need_toast);
+                    ToastUtil.showLong(com.openapi.common.R.string.permission_need_toast);
                     return;
                 }
             }
@@ -145,7 +145,7 @@ public class BasePermissionActivity extends LogActivity
     }
     public void fromSetting() {
 //        if(hasPerm()){
-//            ToastUtil.showShort(com.openapi.core.util.R.string.permission_need_toast);
+//            ToastUtil.showShort(com.openapi.common.R.string.permission_need_toast);
 //        }
     }
     @Override

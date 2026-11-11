@@ -20,7 +20,7 @@ import com.openapi.core.ads.yewu.ads.adview.NativeAdviewAds;
 import com.openapi.core.ads.yewu.ads.adview.SplashAdviewAds;
 import com.openapi.core.ads.yewu.ads.adview.VideoAdviewAds;
 import com.openapi.core.ads.yewu.ads.config.AdsEvents;
-import com.openapi.core.util.LogUtil;
+import com.openapi.common.util.LogUtil;
 
 import java.util.HashMap;
 import java.util.Map;

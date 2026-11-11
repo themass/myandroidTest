@@ -29,7 +29,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.openapi.core.CommonConstants
-import com.openapi.core.util.PreferenceUtils
+import com.openapi.common.util.PreferenceUtils
 import com.openapi.feature.companion.R
 import com.openapi.ks.myapp.constant.Constants
 
@@ -51,7 +51,7 @@ fun CompanionRoute(
     val api = remember(context) {
         HttpCompanionApi(
             baseUrl = CompanionConfig.baseUrl,
-            tokenProvider = { PreferenceUtils.getPrefString(context, com.openapi.core.net.NetConfig.tokenHeader(), null) },
+            tokenProvider = { PreferenceUtils.getPrefString(context, com.openapi.common.net.NetConfig.tokenHeader(), null) },
         )
     }
 

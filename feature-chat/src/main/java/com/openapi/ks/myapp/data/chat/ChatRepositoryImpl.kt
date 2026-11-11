@@ -1,6 +1,6 @@
 package com.openapi.ks.myapp.data.chat
 
-import com.openapi.core.net.ApiRequest
+import com.openapi.common.net.ApiRequest
 import com.openapi.chat.data.mapper.ChatLogMapper
 import com.openapi.chat.domain.model.ChatCharacterOption
 import com.openapi.chat.domain.model.ChatMessage
@@ -16,20 +16,20 @@ import com.openapi.chat.domain.model.ChatRole
 import com.openapi.chat.domain.model.ChatSession
 import com.openapi.chat.domain.model.ChatStreamEvent
 import com.openapi.chat.domain.repository.ChatRepository
-import com.openapi.core.net.request.CommonResponse
-import com.openapi.core.util.LogUtil
-import com.openapi.core.util.PreferenceUtils
-import com.openapi.core.net.request.BaseRequest
+import com.openapi.common.net.request.CommonResponse
+import com.openapi.common.util.LogUtil
+import com.openapi.common.util.PreferenceUtils
+import com.openapi.common.net.request.BaseRequest
 import com.openapi.ks.myapp.bean.form.ChatLog
 import com.openapi.ks.myapp.bean.form.ChatSessionLog
 import com.openapi.ks.myapp.bean.vo.CharacterVo
 import com.openapi.ks.myapp.bean.vo.TtsResponseVo
 import com.openapi.ks.myapp.constant.Constants
-import com.openapi.core.net.BaseService
-import com.openapi.core.net.awaitInfoList
-import com.openapi.core.net.awaitPost
-import com.openapi.core.net.awaitPostOk
-import com.openapi.core.net.awaitUpload
+import com.openapi.common.net.BaseService
+import com.openapi.common.net.awaitInfoList
+import com.openapi.common.net.awaitPost
+import com.openapi.common.net.awaitPostOk
+import com.openapi.common.net.awaitUpload
 import com.openapi.ks.myapp.data.db.AppDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose

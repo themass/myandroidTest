@@ -16,7 +16,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.openapi.core.util.LogUtil;
+import com.openapi.common.util.LogUtil;
 import com.openapi.core.ads.yewu.um.MobAgent;
 
 /**

@@ -43,13 +43,13 @@ import androidx.compose.ui.unit.sp
 import com.openapi.core.CommonConstants
 import com.openapi.core.ads.yewu.ads.base.AdsContext
 import com.openapi.core.ads.yewu.um.MobAgent
-import com.openapi.core.design.theme.AppColors
-import com.openapi.core.design.theme.AppSpacing
+import com.openapi.common.design.theme.AppColors
+import com.openapi.common.design.theme.AppSpacing
 import com.openapi.core.event.CoreEvents
-import com.openapi.core.util.LogUtil
-import com.openapi.core.util.PreferenceUtils
-import com.openapi.core.util.StringUtils
-import com.openapi.core.util.ToastUtil
+import com.openapi.common.util.LogUtil
+import com.openapi.common.util.PreferenceUtils
+import com.openapi.common.util.StringUtils
+import com.openapi.common.util.ToastUtil
 import com.openapi.feature.user.R
 import com.openapi.core.app.AppContext
 import com.openapi.ks.myapp.constant.Constants
@@ -57,7 +57,7 @@ import com.openapi.ks.myapp.data.VersionUpdater
 import com.openapi.ks.myapp.ui.base.app.BaseSingleActivity
 import com.openapi.ks.myapp.ui.fragment.SettingCharacterFragment
 import com.openapi.ks.myapp.video.PlaybackEnginePrefs
-import com.openapi.core.design.theme.AppMaterialTheme
+import com.openapi.common.design.theme.AppMaterialTheme
 
 /**
  * 设置页（Compose 内容区）。
@@ -116,9 +116,9 @@ class SettingActivity : BaseSingleActivity() {
     fun showShare() {
         var url = PreferenceUtils.getPrefString(AppContext.get(), Constants.D_URL, null)
         if (!StringUtils.hasText(url)) {
-            url = com.openapi.core.net.NetConfig.defaultReferer()
+            url = com.openapi.common.net.NetConfig.defaultReferer()
         }
-        com.openapi.core.share.ShareKit.shareText(this, "$url 爱Freedom，精彩你的生活", subject = "精彩你的生活", chooserTitle = "分享到：", extraTitle = "爱Freedom")
+        com.openapi.common.share.ShareKit.shareText(this, "$url 爱Freedom，精彩你的生活", subject = "精彩你的生活", chooserTitle = "分享到：", extraTitle = "爱Freedom")
     }
 
     override fun needShow(): Boolean = true

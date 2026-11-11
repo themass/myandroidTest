@@ -17,14 +17,14 @@ import com.openapi.ks.myapp.adapter.FullScreenImagePagerAdapter;
 
 import com.openapi.core.event.FavoriteVo;
 import com.openapi.core.view.view.MyFavoriteView;
-import com.openapi.core.util.ToastUtil;
+import com.openapi.common.util.ToastUtil;
 import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.openapi.core.app.AppContext;
 import com.openapi.ks.myapp.bean.vo.ImgItemsVo;
-import com.openapi.core.net.request.InfoListVo;
+import com.openapi.common.net.request.InfoListVo;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.constant.Constants;
-import com.openapi.core.util.StaticDataUtil;
+import com.openapi.common.util.StaticDataUtil;
 import com.openapi.ks.myapp.task.SaveImageCallBack;
 import com.openapi.ks.myapp.task.SaveImageTask;
 import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;

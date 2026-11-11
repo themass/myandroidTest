@@ -42,10 +42,10 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
-import com.openapi.core.util.LogUtil
-import com.openapi.core.view.view.DividerItemDecoration
+import com.openapi.common.util.LogUtil
+import com.openapi.common.view.view.DividerItemDecoration
 import com.openapi.core.R
-import com.openapi.core.util.R as CoreR
+import com.openapi.common.R as CoreR
 
 /** 列表页的四种外观，对应原 LoadableFragment 里 loading / load_retry / content 三个视图的组合。 */
 enum class ListShellState { LOADING, RETRY, NODATA, CONTENT }

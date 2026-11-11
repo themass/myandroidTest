@@ -14,11 +14,11 @@ import androidx.fragment.app.Fragment;
 
 import com.openapi.core.event.FavoriteVo;
 import com.openapi.core.util.FavoriteUtil;
-import com.openapi.core.util.FileUtils;
-import com.openapi.core.util.GsonUtils;
-import com.openapi.core.util.PathUtil;
-import com.openapi.core.util.SystemUtils;
-import com.openapi.core.util.ToastUtil;
+import com.openapi.common.util.FileUtils;
+import com.openapi.common.util.GsonUtils;
+import com.openapi.common.util.PathUtil;
+import com.openapi.common.util.SystemUtils;
+import com.openapi.common.util.ToastUtil;
 import com.openapi.feature.channel.R;
 import com.openapi.ks.myapp.bean.vo.ImgItemsVo;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
@@ -60,7 +60,7 @@ public class FavoriteFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         // 收藏变化时刷新；随视图的生命周期自动停止收集
-        com.openapi.core.event.EventFlowsKt.observeJava(
+        com.openapi.common.event.EventFlowsKt.observeJava(
                 androidx.lifecycle.LifecycleOwnerKt.getLifecycleScope(getViewLifecycleOwner()),
                 com.openapi.core.event.CoreEvents.INSTANCE.getFavoriteChanged(),
                 event -> reload());

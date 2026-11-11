@@ -4,8 +4,8 @@ import android.view.ViewGroup;
 
 import androidx.annotation.Nullable;
 
-import com.openapi.core.util.LogUtil;
-import com.openapi.core.util.ToastUtil;
+import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.ToastUtil;
 import com.openapi.media.R;
 import com.openapi.core.view.view.widget.DraggableTranslationOverlay;
 

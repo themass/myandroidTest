@@ -15,7 +15,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import com.openapi.core.design.theme.AppColors
+import com.openapi.common.design.theme.AppColors
 import com.openapi.ks.myapp.ui.localvideo.LocalVideoScreen
 import com.openapi.ks.chat.R
 

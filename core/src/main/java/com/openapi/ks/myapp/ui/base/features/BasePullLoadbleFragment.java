@@ -13,12 +13,12 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
-import com.openapi.core.net.request.InfoListVo;
-import com.openapi.core.net.BaseService;
+import com.openapi.common.net.request.InfoListVo;
+import com.openapi.common.net.BaseService;
 import com.openapi.core.R;
-import com.openapi.core.view.view.DividerItemDecoration;
-import com.openapi.core.util.LogUtil;
-import com.openapi.core.util.StringUtils;
+import com.openapi.common.view.view.DividerItemDecoration;
+import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.StringUtils;
 import com.openapi.ks.myapp.ui.gsy.compose.ListShellState;
 import com.openapi.ks.myapp.ui.gsy.compose.ListShellView;
 import com.openapi.ks.myapp.ui.gsy.compose.ListStateOverlay;
@@ -166,7 +166,7 @@ public abstract class BasePullLoadbleFragment<T> extends LoadableFragment<InfoLi
     protected void initPullView() {
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getActivity());
         pullView.setLayoutManager(layoutManager);
-        DividerItemDecoration itemDecoration = new DividerItemDecoration(getActivity(), LinearLayoutManager.VERTICAL, com.openapi.core.util.R.drawable.divider_item);
+        DividerItemDecoration itemDecoration = new DividerItemDecoration(getActivity(), LinearLayoutManager.VERTICAL, com.openapi.common.R.drawable.divider_item);
         pullView.setAdapter(getAdapter());
         pullView.getRecyclerView().addItemDecoration(itemDecoration);
         pullView.setListener(this);

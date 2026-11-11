@@ -11,19 +11,19 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.openapi.core.CommonConstants;
-import com.openapi.core.view.view.MyWebView;
-import com.openapi.core.util.AudioMngHelper;
-import com.openapi.core.util.LogUtil;
-import com.openapi.core.util.PackageUtils;
-import com.openapi.core.util.SystemUtils;
-import com.openapi.core.util.ToastUtil;
+import com.openapi.common.view.view.MyWebView;
+import com.openapi.common.util.AudioMngHelper;
+import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.PackageUtils;
+import com.openapi.common.util.SystemUtils;
+import com.openapi.common.util.ToastUtil;
 import com.openapi.core.ads.yewu.ads.base.AdsContext;
-import com.openapi.core.net.request.CommonResponse;
+import com.openapi.common.net.request.CommonResponse;
 import com.openapi.core.R;
 import com.openapi.ks.myapp.bean.form.CustomeAddForm;
 import com.openapi.ks.myapp.bean.vo.NullReturnVo;
 import com.openapi.ks.myapp.constant.Constants;
-import com.openapi.core.net.BaseService;
+import com.openapi.common.net.BaseService;
 import com.openapi.ks.myapp.ui.base.app.BaseFragmentActivity;
 import com.openapi.ks.myapp.ui.base.features.BaseWebViewFragment;
 
@@ -124,7 +124,7 @@ public class WebViewActivity extends BaseFragmentActivity implements MyWebView.O
                 startActivity(it);
                 finish();
             } else {
-                ToastUtil.showShort(com.openapi.core.util.R.string.no_browser);
+                ToastUtil.showShort(com.openapi.common.R.string.no_browser);
             }
             return true;
         } else if (id == R.id.menu_url) {

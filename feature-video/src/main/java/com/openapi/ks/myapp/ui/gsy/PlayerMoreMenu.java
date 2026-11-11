@@ -10,8 +10,8 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
-import com.openapi.core.util.LogUtil;
-import com.openapi.core.util.ToastUtil;
+import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.ToastUtil;
 import com.openapi.feature.video.R;
 import com.openapi.ks.myapp.constant.Routes;
 import com.shuyu.gsyvideoplayer.utils.CommonUtil;

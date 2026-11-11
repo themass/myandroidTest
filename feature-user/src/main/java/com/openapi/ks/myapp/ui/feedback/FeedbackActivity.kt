@@ -64,14 +64,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.openapi.core.design.theme.AppColors
-import com.openapi.core.net.BaseService
-import com.openapi.core.net.awaitInfoList
-import com.openapi.core.net.request.CommonResponse
-import com.openapi.core.net.request.InfoListVo
-import com.openapi.core.util.DateUtils
-import com.openapi.core.util.StringUtils
-import com.openapi.core.util.ToastUtil
+import com.openapi.common.design.theme.AppColors
+import com.openapi.common.net.BaseService
+import com.openapi.common.net.awaitInfoList
+import com.openapi.common.net.request.CommonResponse
+import com.openapi.common.net.request.InfoListVo
+import com.openapi.common.util.DateUtils
+import com.openapi.common.util.StringUtils
+import com.openapi.common.util.ToastUtil
 import com.openapi.feature.user.R
 import com.openapi.ks.myapp.bean.form.IwannaForm
 import com.openapi.ks.myapp.bean.vo.IWannaVo
@@ -83,7 +83,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Date
-import com.openapi.core.design.theme.AppMaterialTheme
+import com.openapi.common.design.theme.AppMaterialTheme
 
 /**
  * 反馈页（抽屉 "反馈"）。恢复了旧版 FeedbackChooseFragment 的两个分类，顺序与旧版一致：

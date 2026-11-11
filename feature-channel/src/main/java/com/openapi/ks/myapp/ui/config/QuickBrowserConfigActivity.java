@@ -6,7 +6,7 @@ import android.os.Bundle;
 
 import com.openapi.core.CommonConstants;
 import com.openapi.ks.myapp.ui.base.app.LogActivity;
-import com.openapi.core.util.PackageUtils;
+import com.openapi.common.util.PackageUtils;
 import com.openapi.core.ads.yewu.ads.base.AdsContext;
 import com.openapi.feature.channel.R;
 import com.openapi.ks.myapp.constant.Constants;

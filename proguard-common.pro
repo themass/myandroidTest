@@ -76,8 +76,8 @@
 -dontwarn io.reactivex.rxjava3.**
 
 # 现代权限管理
--keep class com.openapi.core.util.permission.ModernPermissionManager { *; }
--keep class com.openapi.core.util.permission.ModernPermissionManager$* { *; }
+-keep class com.openapi.common.util.permission.ModernPermissionManager { *; }
+-keep class com.openapi.common.util.permission.ModernPermissionManager$* { *; }
 
 # EventBus
 -keepattributes *Annotation*
@@ -144,3 +144,5 @@
 # SIP/VoIP (javax.sip / gov.nist) 可选 log4j 桥接，Android 无 log4j
 -dontwarn org.apache.log4j.**
 -dontwarn android.gov.nist.**
+
+-keep class com.openapi.common.** { *; }

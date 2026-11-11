@@ -5,7 +5,7 @@ import android.view.ViewGroup;
 
 import androidx.fragment.app.FragmentActivity;
 
-import com.openapi.core.util.LogUtil;
+import com.openapi.common.util.LogUtil;
 import com.openapi.core.ads.yewu.ads.base.AdsContext;
 import com.openapi.core.ads.yewu.ads.base.BannerInter;
 

@@ -8,7 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.openapi.media.R;
-import com.openapi.core.util.ToastUtil;
+import com.openapi.common.util.ToastUtil;
 import com.openapi.core.view.view.widget.DraggableTranslationOverlay;
 
 /**

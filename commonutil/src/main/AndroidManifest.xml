@@ -14,7 +14,7 @@
     <application>
         <!-- 分享库专用 FileProvider：独立子类，不能和 app 里其它 androidx FileProvider 共用类名 -->
         <provider
-            android:name="com.openapi.core.share.ShareKitFileProvider"
+            android:name="com.openapi.common.share.ShareKitFileProvider"
             android:authorities="${applicationId}.sharekit"
             android:exported="false"
             android:grantUriPermissions="true">

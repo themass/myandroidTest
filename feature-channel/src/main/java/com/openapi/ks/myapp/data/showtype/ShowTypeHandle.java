@@ -8,8 +8,8 @@ import android.content.Context;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.request.target.DrawableImageViewTarget;
-import com.openapi.core.util.LogUtil;
-import com.openapi.core.net.netglide.MyGlideModule;
+import com.openapi.common.util.LogUtil;
+import com.openapi.common.net.netglide.MyGlideModule;
 import com.openapi.ks.myapp.data.ImagePhotoLoad;
 // 使用现代 Shimmer 替代
 // import com.romainpiel.shimmer.Shimmer;

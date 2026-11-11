@@ -8,15 +8,15 @@ import androidx.multidex.MultiDexApplication;
 
 import com.openapi.core.CommonConstants;
 import com.openapi.core.media.AudioPlayer;
-import com.openapi.core.util.StaticDataUtil;
-import com.openapi.core.util.ToastUtil;
-import com.openapi.core.util.ScreenSize;
-import com.openapi.core.util.FileUtils;
-import com.openapi.core.util.LogUtil;
-import com.openapi.core.util.SystemUtils;
+import com.openapi.common.util.StaticDataUtil;
+import com.openapi.common.util.ToastUtil;
+import com.openapi.common.util.ScreenSize;
+import com.openapi.common.util.FileUtils;
+import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.SystemUtils;
 import com.openapi.core.ads.yewu.ads.base.AdsManager;
-import com.openapi.core.net.HttpClient;
-import com.openapi.core.net.BaseService;
+import com.openapi.common.net.HttpClient;
+import com.openapi.common.net.BaseService;
 import com.openapi.chat.ChatDependencies;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.data.chat.BackendSpeechToText;
@@ -55,12 +55,12 @@ public class MyApplication extends MultiDexApplication {
         LogUtil.e("isDebug=" + isDebug);
         instance = this;
         // 网络层的业务配置（域名、请求头名、登录失效处理）在启动时注入，commonutil 不再写死
-        com.openapi.core.net.NetConfig.init(
+        com.openapi.common.net.NetConfig.init(
                 CommonConstants.DEFAULT_REFERER,
                 CommonConstants.HTTP_TOKEN_KEY,
                 CommonConstants.DEVID,
                 code -> com.openapi.core.event.CoreEvents.INSTANCE.postUserNeedLogin());
-        com.openapi.core.view.view.MyWebView.setDefaultReferer(CommonConstants.DEFAULT_REFERER);
+        com.openapi.common.view.view.MyWebView.setDefaultReferer(CommonConstants.DEFAULT_REFERER);
         // 拍照解题：配置了服务地址才换成真实实现（见 app/build.gradle 的 photosolveBaseUrl），否则保留 mock
         if (!com.openapi.ks.chat.BuildConfig.PHOTOSOLVE_BASE_URL.isEmpty()) {
             com.aimath.paizhao.photosolve.PhotoSolveRepositories.INSTANCE.install(

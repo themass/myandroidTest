@@ -40,9 +40,9 @@ import com.openapi.chatkit.model.ComposerAction
 import com.openapi.chatkit.model.MessageAction
 import com.openapi.chatkit.model.VoiceStyle
 import com.openapi.core.media.AudioPlayer
-import com.openapi.core.permission.PermissionRequester
-import com.openapi.core.permission.PermissionStates
-import com.openapi.core.permission.Permissions
+import com.openapi.common.permission.PermissionRequester
+import com.openapi.common.permission.PermissionStates
+import com.openapi.common.permission.Permissions
 import com.openapi.feature.chat.R
 
 /**

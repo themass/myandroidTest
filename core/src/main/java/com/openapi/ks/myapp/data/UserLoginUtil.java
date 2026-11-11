@@ -4,9 +4,9 @@ import android.content.Context;
 import android.content.Intent;
 
 import com.openapi.core.CommonConstants;
-import com.openapi.core.util.PreferenceUtils;
+import com.openapi.common.util.PreferenceUtils;
 import com.openapi.core.ads.yewu.um.MobAgent;
-import com.openapi.core.util.StaticDataUtil;
+import com.openapi.common.util.StaticDataUtil;
 import com.openapi.core.app.AppContext;
 import com.openapi.ks.myapp.bean.vo.UserInfoVo;
 import com.openapi.ks.myapp.constant.Constants;
@@ -29,7 +29,7 @@ public class UserLoginUtil {
 
     public static void login(Context context, UserInfoVo vo) {
         PreferenceUtils.setPrefObj(context, Constants.LOGIN_USER, vo);
-        PreferenceUtils.setPrefString(context, com.openapi.core.net.NetConfig.tokenHeader(), vo.token);
+        PreferenceUtils.setPrefString(context, com.openapi.common.net.NetConfig.tokenHeader(), vo.token);
         StaticDataUtil.add(Constants.LOGIN_USER, vo);
         context.sendBroadcast(new Intent(AppContext.UPDATE_STATUS_ACTION));
         MobAgent.onProfileSignIn(vo.name);
@@ -37,7 +37,7 @@ public class UserLoginUtil {
 
     public static void logout(Context context) {
         PreferenceUtils.remove(context, Constants.LOGIN_USER);
-        PreferenceUtils.remove(context, com.openapi.core.net.NetConfig.tokenHeader());
+        PreferenceUtils.remove(context, com.openapi.common.net.NetConfig.tokenHeader());
         StaticDataUtil.del(Constants.LOGIN_USER);
         context.sendBroadcast(new Intent(AppContext.UPDATE_STATUS_ACTION));
         MobAgent.onProfileSignOff();

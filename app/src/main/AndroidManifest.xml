@@ -128,7 +128,7 @@
             android:name="android.allow_multiple_resumed_activities"
             android:value="true" />
         <meta-data
-            android:name="com.openapi.core.net.netglide.UnsafeOkHttpClient"
+            android:name="com.openapi.common.net.netglide.UnsafeOkHttpClient"
             android:value="MyGlideModule" />
         <activity
             android:name="com.openapi.ks.chatfree.ui.main.LaunchActivity"

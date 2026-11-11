@@ -16,9 +16,9 @@ public final class AdsEvents {
     }
 
     private static final MutableSharedFlow<SplashAdDissmisEvent> splashDismissed =
-            com.openapi.core.event.EventFlowsKt.eventFlow();
+            com.openapi.common.event.EventFlowsKt.eventFlow();
     private static final MutableSharedFlow<LaunchAdsNext> launchAdsNext =
-            com.openapi.core.event.EventFlowsKt.eventFlow();
+            com.openapi.common.event.EventFlowsKt.eventFlow();
 
     public static SharedFlow<SplashAdDissmisEvent> splashDismissed() {
         return splashDismissed;

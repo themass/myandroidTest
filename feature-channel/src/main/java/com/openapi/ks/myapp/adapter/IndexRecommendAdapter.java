@@ -17,15 +17,15 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.openapi.core.util.LogUtil;
-import com.openapi.core.util.VersionCompare;
+import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.VersionCompare;
 // 使用现代 Shimmer 替代
 import com.facebook.shimmer.ShimmerFrameLayout;
-import com.openapi.core.view.touchhelper.OnStartDragListener;
-import com.openapi.core.util.ScreenSize;
-import com.openapi.core.util.PreferenceUtils;
-import com.openapi.core.util.StringUtils;
-import com.openapi.core.util.ToastUtil;
+import com.openapi.common.view.touchhelper.OnStartDragListener;
+import com.openapi.common.util.ScreenSize;
+import com.openapi.common.util.PreferenceUtils;
+import com.openapi.common.util.StringUtils;
+import com.openapi.common.util.ToastUtil;
 import com.openapi.core.R;
 import com.openapi.core.databinding.TabIndexItemRecommendBinding;
 import com.openapi.ks.myapp.adapter.base.BasePhotoFlowRecycleViewAdapter;

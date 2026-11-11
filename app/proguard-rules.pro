@@ -216,3 +216,6 @@
 -dontwarn org.kxml2.io.**
 -dontwarn rx.** # 不使用 RxJava 时抑制
 -dontwarn com.squareup.picasso.** # 不使用 Picasso 时抑制
+-keep class com.openapi.common.util.** { *; }
+-keep class com.openapi.common.event.** { *; }
+-keep class com.openapi.common.net.** { *; }

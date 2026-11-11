@@ -7,7 +7,7 @@ import androidx.fragment.app.Fragment;
 
 import android.view.View;
 
-import com.openapi.core.util.LogUtil;
+import com.openapi.common.util.LogUtil;
 import com.openapi.feature.video.R;
 import com.openapi.ks.myapp.ui.base.app.BaseFragmentActivity;
 import com.openapi.ks.myapp.ui.gsy.GSYAutoVideoListFragment;

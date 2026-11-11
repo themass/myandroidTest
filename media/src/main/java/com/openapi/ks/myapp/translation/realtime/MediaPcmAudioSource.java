@@ -4,7 +4,7 @@ import android.media.MediaCodec;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
 
-import com.openapi.core.util.LogUtil;
+import com.openapi.common.util.LogUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;

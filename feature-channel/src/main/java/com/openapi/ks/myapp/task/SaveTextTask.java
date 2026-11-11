@@ -5,10 +5,10 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 
-import com.openapi.core.util.FileUtils;
-import com.openapi.core.util.LogUtil;
-import com.openapi.core.util.PathUtil;
-import com.openapi.core.net.HttpUtils;
+import com.openapi.common.util.FileUtils;
+import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.PathUtil;
+import com.openapi.common.net.HttpUtils;
 
 import java.io.File;
 import java.util.concurrent.ExecutorService;

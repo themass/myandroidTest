@@ -6,16 +6,16 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
-import com.openapi.core.util.PreferenceUtils;
-import com.openapi.core.util.SystemUtils;
-import com.openapi.core.util.ToastUtil;
+import com.openapi.common.util.PreferenceUtils;
+import com.openapi.common.util.SystemUtils;
+import com.openapi.common.util.ToastUtil;
 import com.openapi.core.ads.yewu.ads.base.AdsContext;
 import com.openapi.feature.user.R;
 import com.openapi.ks.myapp.adapter.SettingCharacterAdapter;
 import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.openapi.core.app.AppContext;
 import com.openapi.ks.myapp.bean.vo.CharacterVo;
-import com.openapi.core.net.request.InfoListVo;
+import com.openapi.common.net.request.InfoListVo;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
 import com.openapi.ks.myapp.ui.base.features.BasePullLoadbleFragment;
@@ -49,7 +49,7 @@ public class SettingCharacterFragment extends BasePullLoadbleFragment<CharacterV
     public void setupViews(View view, Bundle savedInstanceState) {
         super.setupViews(view, savedInstanceState);
         // 收藏变化时刷新列表；随视图的生命周期自动停止收集
-        com.openapi.core.event.EventFlowsKt.observeJava(
+        com.openapi.common.event.EventFlowsKt.observeJava(
                 androidx.lifecycle.LifecycleOwnerKt.getLifecycleScope(getViewLifecycleOwner()),
                 com.openapi.core.event.CoreEvents.INSTANCE.getFavoriteChanged(),
                 event -> pullView.setRefresh(true));

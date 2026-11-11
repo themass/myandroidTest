@@ -11,7 +11,7 @@ import com.openapi.feature.channel.R;
 import com.openapi.ks.myapp.adapter.AppRecommendViewAdapter;
 import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
 import com.openapi.ks.myapp.bean.vo.AppInfo;
-import com.openapi.core.net.request.InfoListVo;
+import com.openapi.common.net.request.InfoListVo;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
 import com.openapi.ks.myapp.ui.base.features.BasePullLoadbleFragment;

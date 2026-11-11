@@ -15,7 +15,7 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.openapi.core.util.LogUtil;
+import com.openapi.common.util.LogUtil;
 import com.openapi.core.R;
 import com.openapi.core.databinding.RippleBgLayoutBinding;
 import com.skyfishjy.library.RippleBackground;

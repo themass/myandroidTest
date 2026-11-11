@@ -2,8 +2,8 @@ package com.openapi.ks.myapp.translation.realtime;
 
 import android.content.Context;
 
-import com.openapi.core.util.PreferenceUtils;
-import com.openapi.core.util.StringUtils;
+import com.openapi.common.util.PreferenceUtils;
+import com.openapi.common.util.StringUtils;
 
 /**
  * 火山豆包流式 ASR 凭证（设置页或 Preference 写入）。

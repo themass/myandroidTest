@@ -17,7 +17,7 @@ import androidx.media3.exoplayer.audio.AudioSink;
 import androidx.media3.exoplayer.audio.DefaultAudioSink;
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
 
-import com.openapi.core.util.LogUtil;
+import com.openapi.common.util.LogUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

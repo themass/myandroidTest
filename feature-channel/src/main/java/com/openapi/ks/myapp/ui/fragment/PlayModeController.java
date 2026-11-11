@@ -3,7 +3,7 @@ package com.openapi.ks.myapp.ui.fragment;
 import android.content.Context;
 import android.widget.ImageView;
 
-import com.openapi.core.util.ToastUtil;
+import com.openapi.common.util.ToastUtil;
 import com.openapi.feature.channel.R;
 import com.openapi.ks.myapp.ui.sound.PlayService;
 

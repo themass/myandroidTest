@@ -53,9 +53,9 @@ import com.openapi.chatkit.model.Sender
 import com.openapi.chatkit.model.VoiceStyle
 import com.openapi.chatkit.theme.ChatKitTheme
 import com.openapi.chat.domain.model.MessageKind
-import com.openapi.core.design.theme.AppColors
-import com.openapi.core.design.theme.AppSpacing
-import com.openapi.core.design.theme.AppTypography
+import com.openapi.common.design.theme.AppColors
+import com.openapi.common.design.theme.AppSpacing
+import com.openapi.common.design.theme.AppTypography
 import com.openapi.core.media.AudioPlayer
 import com.openapi.feature.chat.R
 import com.openapi.roles.domain.SelectedRole

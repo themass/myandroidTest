@@ -1,8 +1,8 @@
 package com.openapi.ks.myapp.data;
 
 import com.openapi.core.CommonConstants;
-import com.openapi.core.util.LogUtil;
-import com.openapi.core.util.StringUtils;
+import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.StringUtils;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.constant.Constants;
 

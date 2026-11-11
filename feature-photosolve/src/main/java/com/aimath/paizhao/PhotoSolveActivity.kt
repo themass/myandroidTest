@@ -46,7 +46,7 @@ import com.aimath.paizhao.photosolve.ui.PhotoRecognizingScreen
 import com.aimath.paizhao.photosolve.ui.PhotoResultScreen
 import com.aimath.paizhao.photosolve.ui.PhotoSolveHomeScreen
 import com.aimath.paizhao.photosolve.ui.rememberMlKitScanLauncher
-import com.openapi.core.design.theme.AppMaterialTheme
+import com.openapi.common.design.theme.AppMaterialTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext

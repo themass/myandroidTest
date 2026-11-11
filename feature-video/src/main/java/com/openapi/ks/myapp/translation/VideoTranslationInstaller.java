@@ -3,7 +3,7 @@ package com.openapi.ks.myapp.translation;
 import android.content.Context;
 
 import com.openapi.core.view.translation.VideoTranslationRegistry;
-import com.openapi.core.util.PreferenceUtils;
+import com.openapi.common.util.PreferenceUtils;
 import com.openapi.ks.myapp.constant.Constants;
 
 /**

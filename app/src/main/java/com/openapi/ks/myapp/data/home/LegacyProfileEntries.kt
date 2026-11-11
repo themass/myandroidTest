@@ -3,9 +3,9 @@ package com.openapi.ks.myapp.data.home
 import android.content.Context
 import com.aimath.paizhao.PhotoSolveActivity
 import com.openapi.core.ads.yewu.um.MobAgent
-import com.openapi.core.net.BaseService
-import com.openapi.core.util.PreferenceUtils
-import com.openapi.core.util.StringUtils
+import com.openapi.common.net.BaseService
+import com.openapi.common.util.PreferenceUtils
+import com.openapi.common.util.StringUtils
 import com.openapi.home.domain.ProfileAction
 import com.openapi.home.domain.ProfileEntries
 import com.openapi.home.domain.ProfileEntry
@@ -33,7 +33,7 @@ class LegacyProfileEntries(app: Context) : ProfileEntries {
             add(ProfileEntry(ProfileAction.LocalMusic, R.drawable.ic_menu_fav, R.string.menu_btn_local_music))
             add(ProfileEntry(ProfileAction.Favorites, com.openapi.core.R.drawable.ic_menu_favorite_ed, R.string.menu_btn_favorite))
             add(ProfileEntry(ProfileAction.Feedback, R.drawable.ic_menu_help, R.string.menu_btn_feedback))
-            add(ProfileEntry(ProfileAction.Share, com.openapi.core.util.R.drawable.ic_menu_share, R.string.menu_btn_share))
+            add(ProfileEntry(ProfileAction.Share, com.openapi.common.R.drawable.ic_menu_share, R.string.menu_btn_share))
             if (!MyApplication.isTemp) {
                 add(ProfileEntry(ProfileAction.AppRecommend, R.drawable.ic_menu_recomm, R.string.menu_btn_app))
                 add(ProfileEntry(ProfileAction.Donation, R.drawable.ic_menu_app, R.string.menu_btn_donation))
@@ -83,9 +83,9 @@ class LegacyProfileEntries(app: Context) : ProfileEntries {
 
     private fun share(context: Context) {
         var url = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.D_URL, null)
-        if (!StringUtils.hasText(url)) url = com.openapi.core.net.NetConfig.defaultReferer()
+        if (!StringUtils.hasText(url)) url = com.openapi.common.net.NetConfig.defaultReferer()
         // 分享卡片（二维码 + 链接）走分享库，和 vpn 项目一样是图片分享
-        com.openapi.core.share.ShareKit.shareCard(context, title = "爱Freedom", subtitle = "精彩你的生活", link = url)
+        com.openapi.common.share.ShareKit.shareCard(context, title = "爱Freedom", subtitle = "精彩你的生活", link = url)
     }
 
     private fun logout(context: Context) {

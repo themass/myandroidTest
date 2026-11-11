@@ -2,15 +2,15 @@ package com.openapi.ks.myapp.data;
 
 import android.content.Context;
 
-import com.openapi.core.util.Background;
-import com.openapi.core.util.CollectionUtils;
-import com.openapi.core.util.StaticDataUtil;
-import com.openapi.core.net.BaseService;
-import com.openapi.core.util.DateUtils;
-import com.openapi.core.util.GsonUtils;
-import com.openapi.core.util.LogUtil;
-import com.openapi.core.util.StringUtils;
-import com.openapi.core.net.NetUtils;
+import com.openapi.common.util.Background;
+import com.openapi.common.util.CollectionUtils;
+import com.openapi.common.util.StaticDataUtil;
+import com.openapi.common.net.BaseService;
+import com.openapi.common.util.DateUtils;
+import com.openapi.common.util.GsonUtils;
+import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.StringUtils;
+import com.openapi.common.net.NetUtils;
 import com.openapi.ks.myapp.bean.form.ConnLog;
 import com.openapi.ks.myapp.bean.form.ConnLogForm;
 import com.openapi.ks.myapp.bean.vo.NullReturnVo;

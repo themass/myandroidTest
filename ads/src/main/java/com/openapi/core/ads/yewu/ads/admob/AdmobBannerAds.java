@@ -19,7 +19,7 @@ import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.LoadAdError;
 import com.openapi.core.ads.yewu.ads.Constants;
-import com.openapi.core.util.LogUtil;
+import com.openapi.common.util.LogUtil;
 import com.openapi.core.ads.yewu.ads.base.AdsContext;
 import com.openapi.core.ads.yewu.ads.base.BannerInter;
 

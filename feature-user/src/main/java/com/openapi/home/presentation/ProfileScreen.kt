@@ -31,7 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.LifecycleResumeEffect
-import com.openapi.core.design.theme.AppColors
+import com.openapi.common.design.theme.AppColors
 import com.openapi.home.ProfileDependencies
 import com.openapi.home.domain.ProfileAction
 import com.openapi.home.domain.ProfileEntry
@@ -161,7 +161,7 @@ internal fun LocalVideoTile(onClick: () -> Unit) {
         modifier = Modifier.clickable(onClick = onClick).padding(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Image(painterResource(com.openapi.core.util.R.drawable.ic_ctype_video), contentDescription = null, modifier = Modifier.size(24.dp))
+        Image(painterResource(com.openapi.common.R.drawable.ic_ctype_video), contentDescription = null, modifier = Modifier.size(24.dp))
         Spacer(Modifier.size(4.dp))
         Text(stringResource(com.openapi.feature.user.R.string.localvideo_title), color = AppColors.TextPrimary, fontSize = 12.sp)
     }

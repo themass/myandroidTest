@@ -4,8 +4,8 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.HandlerThread;
 
-import com.openapi.core.util.LogUtil;
-import com.openapi.core.util.StringUtils;
+import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.StringUtils;
 import com.openapi.core.view.translation.RealtimeSubtitleCallbacks;
 
 import java.util.Map;

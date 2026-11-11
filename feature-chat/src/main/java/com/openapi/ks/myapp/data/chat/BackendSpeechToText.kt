@@ -1,10 +1,10 @@
 package com.openapi.ks.myapp.data.chat
 
 import android.util.Base64
-import com.openapi.core.net.BaseService
+import com.openapi.common.net.BaseService
 import com.openapi.chat.domain.speech.SpeechToText
 import com.openapi.core.media.VoiceRecorder
-import com.openapi.core.net.awaitPost
+import com.openapi.common.net.awaitPost
 import com.openapi.ks.myapp.bean.form.AsrContentForm
 import com.openapi.ks.myapp.bean.vo.AsrResponseVo
 import com.openapi.ks.myapp.constant.Constants

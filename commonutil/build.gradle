@@ -10,7 +10,7 @@ android {
     kotlinOptions {
         jvmTarget = '17'
     }
-    namespace = 'com.openapi.core.util'
+    namespace = 'com.openapi.common'
 
     buildFeatures {
         viewBinding = true
