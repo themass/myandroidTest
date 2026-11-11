@@ -2,6 +2,7 @@ package com.openapi.ks.myapp.agent.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.openapi.ks.myapp.agent.AgentApiException
 import com.openapi.ks.myapp.agent.AgentChatRepository
 import com.openapi.ks.myapp.agent.AgentChatState
 import com.openapi.ks.myapp.agent.cache.AgentMessageCache
@@ -12,6 +13,10 @@ import com.openapi.ks.myapp.agent.withReceipt
 import com.openapi.ks.myapp.agent.withRetrying
 import com.openapi.ks.myapp.agent.withSendFailed
 import com.openapi.ks.myapp.agent.withoutQueued
+import com.openapi.ks.myapp.agent.AgentReminder
+import com.openapi.ks.myapp.agent.withEditedMessage
+import com.openapi.ks.myapp.agent.withError
+import com.openapi.ks.myapp.agent.withoutMessage
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.debounce
@@ -40,6 +45,10 @@ class AgentChatViewModel(
 
     private val _draft = MutableStateFlow("")
     val draft: StateFlow<String> = _draft.asStateFlow()
+
+    /** 待发送的定时提醒（角色到点会主动联系用户）。由对话里的工具 + 确认创建，这里只查看与取消。 */
+    private val _reminders = MutableStateFlow<List<AgentReminder>>(emptyList())
+    val reminders: StateFlow<List<AgentReminder>> = _reminders.asStateFlow()
 
     private var eventsJob: Job? = null
 
@@ -109,7 +118,56 @@ class AgentChatViewModel(
     }
 
     fun regenerate(messageId: String) {
-        viewModelScope.launch { runCatching { repository.regenerate(sessionId, messageId) } }
+        viewModelScope.launch {
+            runCatching { repository.regenerate(sessionId, messageId) }.onFailure { reportFailure(it) }
+        }
+    }
+
+    /** 删除一条消息。回合进行中服务端返回 409：提示稍后再试，列表不变。 */
+    fun deleteMessage(messageId: String) {
+        viewModelScope.launch {
+            runCatching { repository.deleteMessage(messageId) }
+                .onSuccess { _state.update { it.withoutMessage(messageId) } }
+                .onFailure { reportFailure(it) }
+        }
+    }
+
+    /** 编辑自己的一条消息。 */
+    fun editMessage(messageId: String, content: String) {
+        if (content.isBlank()) return
+        viewModelScope.launch {
+            runCatching { repository.editMessage(messageId, content.trim()) }
+                .onSuccess { updated -> _state.update { it.withEditedMessage(updated) } }
+                .onFailure { reportFailure(it) }
+        }
+    }
+
+    fun loadReminders() {
+        viewModelScope.launch {
+            runCatching { repository.reminders() }
+                .onSuccess { _reminders.value = it.filter { r -> r.sessionId == sessionId } }
+        }
+    }
+
+    fun cancelReminder(reminderId: String) {
+        viewModelScope.launch {
+            runCatching { repository.cancelReminder(reminderId) }
+                .onSuccess { _reminders.update { list -> list.filterNot { it.id == reminderId } } }
+                .onFailure { reportFailure(it) }
+        }
+    }
+
+    fun dismissError() {
+        _state.update { it.withError(null) }
+    }
+
+    private fun reportFailure(error: Throwable) {
+        val text = when ((error as? AgentApiException)?.statusCode) {
+            409 -> "正在回复中，请稍后再试"
+            404 -> "这条内容已经不存在了"
+            else -> "操作失败，请重试"
+        }
+        _state.update { it.withError(text) }
     }
 
     private fun submit(key: String, text: String) {

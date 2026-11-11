@@ -57,7 +57,8 @@ fun SseFrame.toSessionEvent(): SessionEvent? {
     return when (event) {
         "message.created" -> json?.let {
             SessionEvent.MessageCreated(eid, it.str("message_id") ?: return null,
-                it.optNullableStr("client_message_id"), it.str("role") ?: "user", it.str("content") ?: "")
+                it.optNullableStr("client_message_id"), it.str("role") ?: "user", it.str("content") ?: "",
+                it.str("kind") ?: "chat")
         }
         "turn.snapshot" -> json?.let {
             SessionEvent.TurnSnapshot(eid, it.str("turn_id") ?: return null, it.ids("user_message_ids"), it.str("text") ?: "")

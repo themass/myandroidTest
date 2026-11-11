@@ -21,6 +21,16 @@ data class SubmitReceipt(
     val queuePosition: Int?,
 )
 
+/** 服务端定时提醒（到点后角色会主动联系用户）。由对话里的工具 + 确认创建，这里只查看与取消。 */
+data class AgentReminder(
+    val id: String,
+    val sessionId: String,
+    val content: String,
+    val dueLocal: String,
+    val timezone: String,
+    val status: String,
+)
+
 data class AgentStep(val kind: String, val title: String, val detail: String)
 
 enum class ConnectionState { CONNECTED, RECONNECTING, OFFLINE }
@@ -40,6 +50,8 @@ sealed interface SessionEvent {
         val clientMessageId: String?,
         val role: String,
         val content: String,
+        /** chat（普通消息）或 proactive（服务端到点发起主动回合时的内部指令，不显示）。 */
+        val kind: String = "chat",
     ) : SessionEvent
 
     data class TurnSnapshot(

@@ -20,6 +20,10 @@ interface AgentChatRepository {
     suspend fun continueReply(sessionId: String, messageId: String)
     suspend fun regenerate(sessionId: String, messageId: String)
     suspend fun history(sessionId: String, before: String?): List<AgentBubble>
+    suspend fun deleteMessage(messageId: String)
+    suspend fun editMessage(messageId: String, content: String): AgentBubble
+    suspend fun reminders(includeDone: Boolean = false): List<AgentReminder>
+    suspend fun cancelReminder(reminderId: String)
 }
 
 class AgentChatRepositoryImpl(
@@ -52,4 +56,8 @@ class AgentChatRepositoryImpl(
     override suspend fun regenerate(sessionId: String, messageId: String) = api.regenerate(sessionId, messageId)
 
     override suspend fun history(sessionId: String, before: String?): List<AgentBubble> = api.history(sessionId, before)
+    override suspend fun deleteMessage(messageId: String) = api.deleteMessage(messageId)
+    override suspend fun editMessage(messageId: String, content: String): AgentBubble = api.editMessage(messageId, content)
+    override suspend fun reminders(includeDone: Boolean): List<AgentReminder> = api.reminders(includeDone)
+    override suspend fun cancelReminder(reminderId: String) = api.cancelReminder(reminderId)
 }

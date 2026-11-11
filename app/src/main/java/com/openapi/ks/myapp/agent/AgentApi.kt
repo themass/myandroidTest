@@ -23,6 +23,12 @@ interface AgentApi {
     suspend fun continueReply(sessionId: String, messageId: String)
     suspend fun regenerate(sessionId: String, messageId: String)
     suspend fun history(sessionId: String, before: String?, limit: Int = 30): List<AgentBubble>
+    /** 删除一条消息。回合进行中返回 409（code = conflict），稍后重试。 */
+    suspend fun deleteMessage(messageId: String)
+    /** 编辑自己的一条消息，返回更新后的消息。回合进行中返回 409。 */
+    suspend fun editMessage(messageId: String, content: String): AgentBubble
+    suspend fun reminders(includeDone: Boolean = false): List<AgentReminder>
+    suspend fun cancelReminder(reminderId: String)
 }
 
 class AgentApiException(message: String, val statusCode: Int?, val code: String?) : Exception(message)
@@ -96,14 +102,40 @@ class HttpAgentApi(
             if (!before.isNullOrEmpty()) append("&before=").append(enc(before))
         }
         val items = call("GET", "/sessions/$sessionId/messages$query", null).optJSONArray("items") ?: JSONArray()
+        return (0 until items.length()).map { items.getJSONObject(it) }
+            .filter { it.optString("kind", "chat") != HIDDEN_KIND }
+            .map { it.toBubble() }
+    }
+
+    override suspend fun deleteMessage(messageId: String) {
+        callNoBody("DELETE", "/messages/$messageId")
+    }
+
+    override suspend fun editMessage(messageId: String, content: String): AgentBubble =
+        call("PATCH", "/messages/$messageId", JSONObject().put("content", content)).toBubble()
+
+    override suspend fun reminders(includeDone: Boolean): List<AgentReminder> {
+        val items = call("GET", "/reminders?include_done=$includeDone", null).optJSONArray("items") ?: JSONArray()
         return (0 until items.length()).map { i ->
-            val m = items.getJSONObject(i)
-            val id = m.get("id").toString()
-            AgentBubble(
-                key = id, messageId = id, role = m.optString("role"), content = m.optString("content"),
-                state = BubbleState.SYNCED, turnId = m.optNullableString("turn_id"),
+            val r = items.getJSONObject(i)
+            AgentReminder(
+                id = r.get("reminder_id").toString(), sessionId = r.get("session_id").toString(),
+                content = r.optString("content"), dueLocal = r.optString("due_local"),
+                timezone = r.optString("timezone"), status = r.optString("status"),
             )
         }
+    }
+
+    override suspend fun cancelReminder(reminderId: String) {
+        callNoBody("DELETE", "/reminders/$reminderId")
+    }
+
+    private fun JSONObject.toBubble(): AgentBubble {
+        val id = get("id").toString()
+        return AgentBubble(
+            key = id, messageId = id, role = optString("role"), content = optString("content"),
+            state = BubbleState.SYNCED, turnId = optNullableString("turn_id"),
+        )
     }
 
     private suspend fun call(method: String, path: String, body: JSONObject?): JSONObject {

@@ -6,6 +6,9 @@ package com.openapi.ks.myapp.agent
  * 所有事件组合（合并、插话、排队、排空、取消、失败、重连）都在这里计算，
  * 不依赖界面或网络，因此可以逐条单测。
  */
+/** 服务端主动回合的内部指令，界面不显示。 */
+const val HIDDEN_KIND = "proactive"
+
 enum class BubbleState { SYNCED, SENDING, FAILED, QUEUED, MERGED, STEER_PENDING, STEERED, ANSWERED }
 
 data class AgentBubble(
@@ -103,7 +106,8 @@ private fun splitStreamId(id: String): Pair<Long, Long> {
 }
 
 private fun applyEvent(state: AgentChatState, event: SessionEvent): AgentChatState = when (event) {
-    is SessionEvent.MessageCreated -> applyMessageCreated(state, event)
+    // 主动回合的内部指令（kind=proactive）不进列表；随后到来的角色回复照常显示。
+    is SessionEvent.MessageCreated -> if (event.kind == HIDDEN_KIND) state else applyMessageCreated(state, event)
 
     is SessionEvent.TurnSnapshot -> state.copy(
         active = ActiveTurn(event.turnId, event.text, state.active?.steps.orEmpty(), event.userMessageIds),
@@ -234,3 +238,14 @@ fun AgentChatState.withoutQueued(messageId: String): AgentChatState =
 /** 重试失败的发送：回到发送中，复用同一个 client_message_id（服务端去重）。 */
 fun AgentChatState.withRetrying(clientMessageId: String): AgentChatState =
     copy(bubbles = bubbles.map { if (it.key == clientMessageId) it.copy(state = BubbleState.SENDING) else it })
+
+/** 删除一条消息（服务端已确认删除）。服务端同时会把它从模型的对话线程里移除。 */
+fun AgentChatState.withoutMessage(messageId: String): AgentChatState =
+    copy(bubbles = bubbles.filterNot { it.messageId == messageId })
+
+/** 编辑后的消息替换原来那条（保持位置）。 */
+fun AgentChatState.withEditedMessage(updated: AgentBubble): AgentChatState =
+    copy(bubbles = bubbles.map { if (it.messageId == updated.messageId) updated.copy(key = it.key) else it })
+
+/** 操作失败的提示（例如回合进行中服务端返回 409）。 */
+fun AgentChatState.withError(message: String?): AgentChatState = copy(lastError = message)
