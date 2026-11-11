@@ -1,4 +1,4 @@
-package com.openapi.ks.myapp.data;
+package com.openapi.chat.data.log;
 
 import android.content.Context;
 

@@ -7,7 +7,7 @@ import androidx.media3.common.util.UnstableApi
 import com.openapi.home.domain.ChannelEntries
 import com.openapi.home.domain.HomeEntries
 import com.openapi.home.domain.ProfileEntries
-import com.openapi.ks.myapp.data.ConnLogUtil
+import com.openapi.chat.data.log.ConnLogUtil
 import com.openapi.ks.myapp.data.VersionUpdater
 import com.openapi.ks.myapp.video.PlaybackEngineHelper
 
