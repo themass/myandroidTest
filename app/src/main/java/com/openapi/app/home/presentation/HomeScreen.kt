@@ -77,7 +77,7 @@ import androidx.compose.ui.res.painterResource
 import com.openapi.feature.user.home.domain.ProfileEntry
 import androidx.compose.foundation.layout.size
 
-private enum class HomeTab(@StringRes val label: Int, val icon: ImageVector) {
+internal enum class HomeTab(@StringRes val label: Int, val icon: ImageVector) {
     Chat(R.string.home_tab_chat, Icons.Filled.ChatBubble),
     // 角色扮演与旧对话是两条独立链路：旧对话走 /chat/stream.json，陪伴走 LiveKit 房间，
     // 所以它们是并列的标签而不是同一个页面里的模式切换。
@@ -227,91 +227,5 @@ fun HomeScreen() {
     }
 }
 
-/**
- * 从右边滑入的「我的」页：顶部一条返回栏，内容是 [ProfileScreen]；
- * 从左边缘往右拖超过一定距离即关闭（和抽屉的关闭手势一致）。
- */
-@Composable
-private fun ProfileSlidePage(onClose: () -> Unit) {
-    var dragged by remember { mutableFloatStateOf(0f) }
-    Column(
-        Modifier
-            .fillMaxSize()
-            .background(AppColors.ChatBackground)
-            .statusBarsPadding()
-            .pointerInput(Unit) {
-                detectHorizontalDragGestures(
-                    onDragEnd = { if (dragged > 120f) onClose(); dragged = 0f },
-                    onDragCancel = { dragged = 0f },
-                    onHorizontalDrag = { _, amount -> dragged = (dragged + amount).coerceAtLeast(0f) },
-                )
-            },
-    ) {
-        // 顶栏单独占一行，返回箭头不再压在个人卡片上
-        IconButton(onClick = onClose, modifier = Modifier.padding(4.dp)) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = AppColors.TextPrimary)
-        }
-        Box(Modifier.fillMaxSize()) {
-            ProfileScreen()
-        }
-    }
-}
-
 /** 侧边栏的一组入口：标题 + 动作列表。 */
-private data class DrawerGroup(@StringRes val titleRes: Int, val actions: List<ProfileAction>)
-
-// 拍照解题已从侧边栏移除；频道、本地音乐、收藏夹归入「测试」
-private val DrawerGroups = listOf(
-    DrawerGroup(R.string.drawer_group_tools, listOf(ProfileAction.Feedback, ProfileAction.Share, ProfileAction.AppRecommend, ProfileAction.Donation)),
-    DrawerGroup(R.string.drawer_group_test, listOf(ProfileAction.Favorites, ProfileAction.LocalMusic)),
-    DrawerGroup(R.string.drawer_group_account, listOf(ProfileAction.Settings, ProfileAction.Logout)),
-)
-
-/** 侧边栏里的一项：与页面标签同一种行（同样的图标尺寸、间距和选中色）。 */
-@Composable
-private fun DrawerEntryItem(entry: ProfileEntry, onClick: () -> Unit) {
-    NavigationDrawerItem(
-        label = { Text(stringResource(entry.titleRes)) },
-        icon = {
-            Image(
-                painter = painterResource(entry.iconRes),
-                contentDescription = null,
-                modifier = Modifier.size(24.dp),
-            )
-        },
-        selected = false,
-        onClick = onClick,
-        colors = DrawerItemColors,
-        modifier = Modifier.padding(horizontal = 12.dp),
-    )
-}
-
-/** 侧边栏选中 = 品牌色，未选中 = 次要文字色。 */
-private val DrawerItemColors
-    @Composable get() = NavigationDrawerItemDefaults.colors(
-        selectedContainerColor = AppColors.Primary.copy(alpha = 0.12f),
-        selectedIconColor = AppColors.Primary,
-        selectedTextColor = AppColors.Primary,
-        unselectedIconColor = AppColors.TextSecondary,
-        unselectedTextColor = AppColors.TextSecondary,
-    )
-
-/** 底栏：选中 = 品牌色，未选中 = 次要文字色。 */
-private val BarItemColors
-    @Composable get() = NavigationBarItemDefaults.colors(
-        selectedIconColor = AppColors.Primary,
-        selectedTextColor = AppColors.Primary,
-        indicatorColor = AppColors.Primary.copy(alpha = 0.12f),
-        unselectedIconColor = AppColors.TextSecondary,
-        unselectedTextColor = AppColors.TextSecondary,
-    )
-
-@Composable
-private fun DrawerSectionTitle(@StringRes title: Int) {
-    Text(
-        stringResource(title),
-        color = AppColors.TextSecondary,
-        fontSize = 12.sp,
-        modifier = Modifier.padding(start = 28.dp, top = 12.dp, bottom = 4.dp),
-    )
-}
+internal data class DrawerGroup(@StringRes val titleRes: Int, val actions: List<ProfileAction>)

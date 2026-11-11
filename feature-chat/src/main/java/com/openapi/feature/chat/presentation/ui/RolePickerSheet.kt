@@ -56,13 +56,13 @@ import com.openapi.feature.chat.roles.domain.SelectedRole
 import com.openapi.feature.chat.roles.presentation.RoleAvatar
 import com.openapi.feature.chat.roles.presentation.RoleCatalogPane
 
-private const val DEFAULT_EMOJI = "🤖"
+internal const val DEFAULT_EMOJI = "🤖"
 
 /**
  * 0xAARRGGBB 的 Long，和 RoleColors 的输出是同一种表示。
  * 不能用 Color.value：Compose 把颜色放在 ULong 的高 32 位，直接 toLong() 得到的不是 ARGB。
  */
-private val PrimaryArgb: Long = AppColors.Primary.toArgb().toLong() and 0xFFFFFFFFL
+internal val PrimaryArgb: Long = AppColors.Primary.toArgb().toLong() and 0xFFFFFFFFL
 
 /** 当前对话的"助手"是谁：头部、空状态、助手气泡旁的头像都从这里取，保证三处一致。 */
 internal data class AssistantIdentity(
@@ -203,125 +203,6 @@ fun RolePickerSheet(
                     onDeleteCharacter = onDeleteCharacter,
                 )
             }
-        }
-    }
-}
-
-@Composable
-private fun ClassicRolesPane(
-    characters: List<ChatCharacterOption>,
-    defaultSelected: Boolean,
-    selectedCharacterId: Int?,
-    onCharacterSelected: (Int?) -> Unit,
-    onCreateCharacter: (title: String, content: String) -> Unit,
-    onUpdateCharacter: (id: Int, title: String, content: String) -> Unit,
-    onDeleteCharacter: (id: Int) -> Unit,
-) {
-    // null 表示新建；非 null 表示在编辑这个角色
-    var editing by remember { mutableStateOf<ChatCharacterOption?>(null) }
-    var showEdit by remember { mutableStateOf(false) }
-
-    LazyColumn(Modifier.fillMaxWidth()) {
-        item {
-            ClassicRow(
-                title = stringResource(R.string.roles_default_title),
-                subtitle = stringResource(R.string.roles_default_subtitle),
-                emoji = DEFAULT_EMOJI,
-                selected = defaultSelected,
-                onClick = { onCharacterSelected(null) },
-            )
-        }
-        items(characters, key = { it.id }) { character ->
-            ClassicRow(
-                title = character.title,
-                subtitle = character.preview,
-                emoji = character.title.take(1),
-                selected = character.id == selectedCharacterId,
-                onClick = { onCharacterSelected(character.id) },
-                trailing = if (character.mine) {
-                    {
-                        // 编辑/删除只对自己创建的角色开放；官方角色没有这两个按钮
-                        IconButton(onClick = { editing = character; showEdit = true }) {
-                            Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.ui_edit_role), tint = AppColors.TextSecondary)
-                        }
-                        IconButton(onClick = { onDeleteCharacter(character.id) }) {
-                            Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.ui_delete_role), tint = AppColors.Error)
-                        }
-                    }
-                } else {
-                    null
-                },
-            )
-        }
-        item {
-            HorizontalDivider(color = AppColors.Divider)
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { editing = null; showEdit = true }
-                    .padding(horizontal = AppSpacing.screenHorizontal, vertical = AppSpacing.lg),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(Icons.Filled.Add, contentDescription = null, tint = AppColors.Primary)
-                Spacer(Modifier.width(AppSpacing.sm))
-                Text(stringResource(R.string.ui_new_role), color = AppColors.Primary, fontSize = AppTypography.body)
-            }
-        }
-    }
-
-    if (showEdit) {
-        CharacterEditDialog(
-            initial = editing,
-            onDismiss = { showEdit = false },
-            onConfirm = { title, content ->
-                val target = editing
-                if (target == null) onCreateCharacter(title, content) else onUpdateCharacter(target.id, title, content)
-                showEdit = false
-            },
-        )
-    }
-}
-
-@Composable
-private fun ClassicRow(
-    title: String,
-    subtitle: String,
-    emoji: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-    trailing: (@Composable () -> Unit)? = null,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = AppSpacing.screenHorizontal, vertical = AppSpacing.md),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        RoleAvatar(emoji = emoji, colorArgb = PrimaryArgb, size = 44)
-        Spacer(Modifier.width(AppSpacing.md))
-        Column(Modifier.weight(1f)) {
-            Text(
-                title,
-                fontSize = AppTypography.bodyLarge,
-                fontWeight = FontWeight.Medium,
-                color = AppColors.TextPrimary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            if (subtitle.isNotBlank()) {
-                Text(
-                    subtitle,
-                    fontSize = AppTypography.caption,
-                    color = AppColors.TextSecondary,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-        }
-        trailing?.invoke()
-        if (selected) {
-            Icon(Icons.Filled.Check, contentDescription = stringResource(R.string.ui_current_role), tint = AppColors.Primary)
         }
     }
 }

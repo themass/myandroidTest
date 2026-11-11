@@ -52,6 +52,8 @@ public class ScreenSmokeTest {
         Field instance = MyApplication.class.getDeclaredField("instance");
         instance.setAccessible(true);
         instance.set(null, app);
+        // 生产的 onCreate 里会调用它；这里不跑 onCreate，页面里取 AppContext 会抛异常
+        com.openapi.core.app.AppContext.init(RuntimeEnvironment.getApplication());
     }
 
     private <T extends Activity> T launch(Class<T> type) {

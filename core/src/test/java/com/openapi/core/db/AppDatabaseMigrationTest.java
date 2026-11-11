@@ -73,15 +73,22 @@ public class AppDatabaseMigrationTest {
     }
 
     @Test
-    public void upgradeKeepsChatDataAndAddsFavorites() {
+    public void upgradeToCurrentVersionAddsFavorites() {
+        // 库的当前版本是 3，所以迁移链必须包含 1 -> 2 -> 3，只注册 1 -> 2 时 Room 会拒绝打开
         db = Room.databaseBuilder(context, AppDatabase.class, NAME)
-                .addMigrations(AppDatabase.MIGRATION_1_2)
+                .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3)
                 .allowMainThreadQueries()
                 .build();
 
-        try (Cursor c = db.query(new SimpleSQLiteQuery("SELECT content FROM ChatLog WHERE id = 1"))) {
+        // 2 -> 3 按设计清空旧的本地聊天和会话：旧会话 id 是本地自增的，与服务端对不上
+        try (Cursor c = db.query(new SimpleSQLiteQuery("SELECT COUNT(*) FROM ChatLog"))) {
             assertTrue(c.moveToFirst());
-            assertEquals("kept", c.getString(0));
+            assertEquals(0, c.getInt(0));
+        }
+        try (Cursor c = db.query(new SimpleSQLiteQuery(
+                "SELECT COUNT(*) FROM pragma_table_info('ChatSessionLog') WHERE name = 'updatedAt'"))) {
+            assertTrue(c.moveToFirst());
+            assertEquals(1, c.getInt(0));
         }
 
         FavoriteVo vo = new FavoriteVo();

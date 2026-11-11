@@ -153,7 +153,7 @@ class SettingsForm(context: Context) {
 }
 
 @Composable
-private fun SettingScreen(
+internal fun SettingScreen(
     form: SettingsForm,
     onShowVersion: () -> Unit,
     onShare: () -> Unit,
@@ -295,70 +295,4 @@ private fun SettingScreen(
 
         Spacer(Modifier.height(AppSpacing.xl))
     }
-}
-
-@Composable
-private fun SettingCard(content: @Composable () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(AppColors.SurfaceVariant)
-            .padding(AppSpacing.lg),
-        verticalArrangement = Arrangement.spacedBy(AppSpacing.xs),
-    ) {
-        content()
-    }
-}
-
-@Composable
-private fun SwitchRow(
-    title: String,
-    checked: Boolean,
-    hint: String? = null,
-    onChange: (Boolean) -> Unit,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = AppSpacing.sm),
-        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(title, fontSize = 15.sp, color = AppColors.TextPrimary)
-            if (hint != null) {
-                Text(hint, fontSize = 11.sp, color = AppColors.TextSecondary)
-            }
-        }
-        Switch(checked = checked, onCheckedChange = onChange)
-    }
-}
-
-@Composable
-private fun ActionRow(title: String, trailing: String?, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(vertical = AppSpacing.md),
-        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-    ) {
-        Text(title, modifier = Modifier.weight(1f), fontSize = 15.sp, color = AppColors.TextPrimary)
-        if (!trailing.isNullOrEmpty()) {
-            Text(trailing, fontSize = 13.sp, color = AppColors.TextSecondary)
-        }
-    }
-}
-
-@Composable
-private fun FieldRow(value: String, hintRes: Int, onChange: (String) -> Unit) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onChange,
-        label = { Text(stringResource(hintRes)) },
-        singleLine = true,
-        modifier = Modifier.fillMaxWidth().padding(vertical = AppSpacing.xs),
-    )
-}
-
-@Composable
-private fun SettingDivider() {
-    HorizontalDivider(color = AppColors.Divider)
 }
