@@ -52,7 +52,14 @@ def sh(cmd, timeout=30):
 
 
 def focus():
-    return sh("dumpsys window | grep mCurrentFocus | head -1").strip()
+    """当前前台窗口。华为等机型上 mCurrentFocus 经常是 null，
+    改用 mFocusedApp / resumed activity 兜底，否则永远判不出"是否在首页"。"""
+    out = sh("dumpsys window | grep -E 'mCurrentFocus|mFocusedApp' | head -2").strip()
+    if "null" not in out and out:
+        return out
+    # 再退一步：看哪个 Activity 处于 RESUMED
+    alt = sh("dumpsys activity activities | grep -E 'ResumedActivity|mResumedActivity' | head -1").strip()
+    return alt or out
 
 
 def pid():
@@ -259,7 +266,10 @@ def http_code(url):
 
 
 def google_ok():
-    code = http_code("https://www.google.com/generate_204")
+    # 用 gstatic 而不是 www.google.com：不少国内网络的 DNS 会把 www.google.com
+    # 解析到无关地址（实测解析成 Facebook 的 69.171.235.22），连不上并不说明隧道有问题。
+    # gstatic 同样返回 204 且解析稳定，更适合当作"出网了没有"的判定。
+    code = http_code("https://www.gstatic.com/generate_204")
     route = sh("ip route get 142.250.80.46 2>/dev/null | head -1").strip()
     via_tun = " dev tun" in route or " dev wg" in route or " dev vpn" in route
     return code == "204", code, via_tun, route
