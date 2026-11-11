@@ -1,4 +1,4 @@
-package chat.ui.markdown;
+package com.openapi.chat.markdown;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
@@ -10,7 +10,7 @@ import androidx.core.content.ContextCompat;
 import com.openapi.common.util.ScreenSize;
 import com.openapi.common.util.LogUtil;
 import com.openapi.feature.chat.R;
-import com.openapi.ks.myapp.view.katexplugin.MyJLatexMathPlugin;
+import com.openapi.chat.markdown.katex.MyJLatexMathPlugin;
 
 import io.noties.markwon.Markwon;
 import io.noties.markwon.core.CorePlugin;
@@ -49,14 +49,14 @@ public final class ChatMarkwon {
         return Markwon.builder(ctx)
                 .usePlugin(MyJLatexMathPlugin.create(latexTextSize, builder -> {
                     builder.inlinesEnabled(true);
-                    com.openapi.ks.myapp.view.katexplugin.JLatexMathTheme.Padding padding =
-                            new com.openapi.ks.myapp.view.katexplugin.JLatexMathTheme.Padding(
+                    com.openapi.chat.markdown.katex.JLatexMathTheme.Padding padding =
+                            new com.openapi.chat.markdown.katex.JLatexMathTheme.Padding(
                                     ScreenSize.dp2px(ctx, 3),
                                     ScreenSize.dp2px(ctx, 3),
                                     ScreenSize.dp2px(ctx, 5),
                                     ScreenSize.dp2px(ctx, 5));
                     builder.theme()
-                            .backgroundProvider(new com.openapi.ks.myapp.view.katexplugin.JLatexMathTheme.BackgroundProvider() {
+                            .backgroundProvider(new com.openapi.chat.markdown.katex.JLatexMathTheme.BackgroundProvider() {
                                 @NonNull
                                 @Override
                                 public Drawable provide() {

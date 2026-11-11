@@ -1,4 +1,4 @@
-package com.openapi.ks.myapp.view.katexplugin;
+package com.openapi.chat.markdown.katex;
 
 import android.graphics.Paint;
 import android.graphics.Rect;

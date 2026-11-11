@@ -1,4 +1,4 @@
-package chat.ui.markdown;
+package com.openapi.chat.markdown;
 
 /**
  * 统一处理模型/API 常见输出，减轻 LaTeX 定界符与反斜杠被多转义导致无法渲染的问题。

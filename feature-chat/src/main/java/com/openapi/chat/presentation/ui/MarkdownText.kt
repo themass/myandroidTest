@@ -7,8 +7,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.widget.TextViewCompat
-import chat.ui.markdown.ChatMarkwon
-import chat.ui.markdown.FormulaInputNormalizer
+import com.openapi.chat.markdown.ChatMarkwon
+import com.openapi.chat.markdown.FormulaInputNormalizer
 
 /**
  * Markdown 渲染。
