@@ -129,12 +129,69 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
             adapter.notifyDataSetChanged();
         }
     }, false);
-    private int current = -1;
     private int currentTime;        //当前播放进度
     private int duration;            //播放长度
     private BroadcastReceiver homeReceiver;
     private BroadcastReceiver netReceiver;
     private ViewGroup musicPageRoot;
+
+    /** 把当前绑定的 {@link PlayService} 暴露为 {@link SoundPlaybackControls.Playback}。 */
+    private final SoundPlaybackControls.Playback servicePlayback = new SoundPlaybackControls.Playback() {
+        @Override public boolean isPlaying() { return playback.service().isPlaying(); }
+        @Override public int getPosition() { return playback.service().getPosition(); }
+        @Override public void resume() { playback.service().resume(); }
+        @Override public void pause() { playback.service().pause(); }
+        @Override public void playPosi(int index) { playback.service().playPosi(index); }
+        @Override public void seekTo(int positionMs) { playback.service().play(positionMs); }
+        @Override public int computeNextIndex(int current, int count) {
+            return playback.service().computeNextIndex(current, count);
+        }
+        @Override public int computePreviousIndex(int current, int count) {
+            return playback.service().computePreviousIndex(current, count);
+        }
+    };
+
+    /** 播放控制（当前曲目、播放键、上一曲/下一曲、播放模式）。 */
+    private final SoundPlaybackControls controls = new SoundPlaybackControls(
+            new SoundPlaybackControls.Host() {
+                @Override
+                public int itemCount() {
+                    return adapter.getItemCount();
+                }
+
+                @Override
+                public void selectItem(int index) {
+                    adapter.setSelected(index);
+                }
+
+                @Override
+                public void showEmptyList() {
+                    ToastUtil.showShort("该频道没有sex love");
+                }
+            },
+            () -> playback.service() == null ? null : servicePlayback,
+            playing -> {
+                if (ivPlay != null) {
+                    ivPlay.setImageResource(playing
+                            ? R.drawable.ic_music_pause_filled
+                            : R.drawable.ic_music_play_filled);
+                }
+            },
+            new SoundPlaybackControls.PlayModeSink() {
+                @Override
+                public void cycle() {
+                    PlayModeController.cycle(getActivity(), playback.service());
+                }
+
+                @Override
+                public void apply() {
+                    if (ivPlayMode == null || getActivity() == null) {
+                        return;
+                    }
+                    PlayModeController.applyIcon(getActivity(), ivPlayMode,
+                            playback.isBound() ? playback.service() : null);
+                }
+            });
 
     public static void startFragment(Context context, RecommendVo vo) {
         Intent intent = new Intent(context, CommonFragmentActivity.class);
@@ -192,21 +249,13 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
         // library 模块的 R.id 不是编译期常量，不能用于 switch
         int id = view.getId();
         if (id == R.id.iv_play_mode) {
-            cyclePlayMode();
+            controls.cyclePlayMode();
         } else if (id == R.id.iv_play) {
-            if (isPlaying()) {
-                pause();
-            } else {
-                if (current == -1) {
-                    play(0);
-                } else {
-                    resume();
-                }
-            }
+            controls.togglePlayPause();
         } else if (id == R.id.iv_next) {
-            next(); // 下一曲
+            controls.next();
         } else if (id == R.id.iv_pre) {
-            pre(); // 上一曲
+            controls.pre();
         }
         adapter.notifyDataSetChanged();
     }
@@ -214,36 +263,23 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
     /**
      * 继续播放
      *
-     * @return 当前播放的位置 默认为0
+     * @return 当前播放的位置；服务未绑定或已在播放时为 -1
      */
     public int resume() {
-        if (playback.service() == null) {
-            return -1;
-        }
-        if (playback.service().isPlaying())
-            return -1;
-        playback.service().resume();
-        ivPlay
-                .setImageResource(R.drawable.ic_music_pause_filled);
-        return playback.service().getPosition();
+        return controls.resume();
     }
 
     /**
      * 暂停播放
      *
-     * @return 当前播放的位置
+     * @return 当前播放的位置；未在播放时为 -1
      */
     public int pause() {
-        if (!playback.service().isPlaying())
-            return -1;
-        playback.service().pause(); // 暂停
-        ivPlay
-                .setImageResource(R.drawable.ic_music_play_filled);
-        return playback.service().getPosition();
+        return controls.pause();
     }
 
     public boolean isPlaying() {
-        return playback.service() != null && playback.service().isPlaying();
+        return controls.isPlaying();
     }
 
     @Override
@@ -254,28 +290,26 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
         return pbLoading != null && pbLoading.getVisibility() == View.VISIBLE;
     }
 
-    /**
-     * 下一曲
-     *
-     * @return 当前播放的位置
-     */
     public void next() {
-        if (playback.service() == null || adapter.getItemCount() <= 0) {
-            return;
-        }
-        play(playback.service().computeNextIndex(current, adapter.getItemCount()));
+        controls.next();
     }
 
-    /**
-     * 上一曲
-     *
-     * @return 当前播放的位置
-     */
     public void pre() {
-        if (playback.service() == null || adapter.getItemCount() <= 0) {
-            return;
-        }
-        play(playback.service().computePreviousIndex(current, adapter.getItemCount()));
+        controls.pre();
+    }
+
+    public void play(int position) {
+        LogUtil.i("play(int position)  --" + position);
+        controls.play(position);
+    }
+
+    /** 与 {@link PlayService#isPlaying()} 对齐底栏播放键图标（绑定服务、回到前台时调用） */
+    private void syncPlayButtonFromService() {
+        controls.syncPlayButtonFromService();
+    }
+
+    private void applyPlayModeIcon() {
+        controls.applyPlayModeIcon();
     }
 
     /** 当前曲目；列表为空或下标越界时返回 null。 */
@@ -289,52 +323,9 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
 
     /** 当前曲目下标：优先播放中的曲目，否则为列表选中项，都没有时为 0。 */
     private int currentIndex() {
+        int current = controls.current();
         int idx = current >= 0 ? current : adapter.getSelected();
         return idx < 0 ? 0 : idx;
-    }
-
-    private void cyclePlayMode() {
-        if (playback.service() == null) {
-            return;
-        }
-        PlayModeController.cycle(getActivity(), playback.service());
-    }
-
-    private void applyPlayModeIcon() {
-        if (ivPlayMode == null || getActivity() == null) {
-            return;
-        }
-        PlayModeController.applyIcon(getActivity(), ivPlayMode, playback.isBound() ? playback.service() : null);
-    }
-
-    public void play(int position) {
-        LogUtil.i("play(int position)  --" + position);
-        if (adapter.getItemCount() <= 0) {
-            ToastUtil.showShort(
-                    "该频道没有sex love");
-            return;
-        }
-        if (position < 0) {
-            position = 0;
-        }
-        if (position == 0) {
-            adapter.setSelected(0);
-        }
-        if (position >= adapter.getItemCount())
-            position = adapter.getItemCount() - 1;
-        // 开始播放应显示「暂停」；原先误设为 play，导致与 MediaPlayer 实际状态不一致
-        ivPlay.setImageResource(R.drawable.ic_music_pause_filled);
-        playback.service().playPosi(position);
-    }
-
-    /** 与 {@link PlayService#isPlaying()} 对齐底栏播放键图标（绑定服务、回到前台时调用） */
-    private void syncPlayButtonFromService() {
-        if (ivPlay == null || playback.service() == null) {
-            return;
-        }
-        ivPlay.setImageResource(playback.service().isPlaying()
-                ? R.drawable.ic_music_pause_filled
-                : R.drawable.ic_music_play_filled);
     }
 
     @Override
@@ -449,8 +440,7 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
 
     public void onStopTrackingTouch(SeekBar seekBar) {
         LogUtil.i("停止拖动");
-        playback.service().play(seekBar.getProgress());
-        ivPlay.setImageResource(R.drawable.ic_music_pause_filled);
+        controls.seekTo(seekBar.getProgress());
     }
 
     public boolean checkCanPlay() {
@@ -522,14 +512,14 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
     @Override
     public void onTrackChanged(int index) {
         showPlaybackTime();
-        current = index;
-        tvTitle.setText(infoListVo.voList.get(current).name);
-        if (tvPlaySubtitle != null && current >= 0 && current < infoListVo.voList.size()) {
-            tvPlaySubtitle.setText(infoListVo.voList.get(current).fileDate);
+        controls.setCurrent(index);
+        tvTitle.setText(infoListVo.voList.get(index).name);
+        if (tvPlaySubtitle != null && index >= 0 && index < infoListVo.voList.size()) {
+            tvPlaySubtitle.setText(infoListVo.voList.get(index).fileDate);
         }
-        adapter.setSelected(current);
+        adapter.setSelected(index);
         adapter.notifyDataSetChanged();
-        LogUtil.i("当前播放更新：" + current);
+        LogUtil.i("当前播放更新：" + index);
         syncPlayButtonFromService();
     }
 
