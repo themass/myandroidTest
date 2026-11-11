@@ -6,6 +6,25 @@
 
 ---
 
+## 0. 状态总览
+
+| 项 | 状态 | 证据 |
+|---|---|---|
+| 请求点清单（第 1.2 节，含文件+行号） | **已完成** | 本文 |
+| `PermissionGateway` / `PermissionRequest` / `PermissionOutcome` | **已实现** | `uikit/.../permission/` |
+| `PermissionRequester.await()`（挂起版） | **已实现** | `PermissionRequester.kt` |
+| `PermissionRequester.onPermanentlyDenied()` + 设置页返回修复 | **已实现** | `PermissionRequester.kt` |
+| `Permissions.NOTIFICATIONS` | **已实现**（预设已加） | `Permissions.kt` |
+| `ChatRoute` 相机 / 录音迁移 | **已实现** | `ChatRoute.kt:94`、`:153` |
+| `PhotoSolveActivity` 相机迁移 | **已实现** | `PhotoSolveActivity.kt:145` |
+| `LocalVideoActivity` 读视频迁移 | **已实现** | `LocalVideoActivity.kt:139` |
+| `ApkDownloader` 通知权限 | **设计但未实现** | 第 4 节 #1 |
+| 清单里删掉无用的存储权限 | **设计但未实现** | 第 4 节 #2 |
+| 隐私弹窗文案核对 | **待你确认**（合规，我无法判断现有文案是否覆盖） | 第 4 节 #3 |
+| `:uikit` 单元测试 `combineStates()` | **设计但未实现**（模块暂无 test 目录） | 第 6 节 |
+
+---
+
 ## 1. 现状
 
 ### 1.1 已经清理掉的旧体系
@@ -22,15 +41,17 @@
 
 ### 1.2 迁移前仍然分散的请求点（实测清单）
 
+> 行号基于提交 `4ba11436`；若之后改动过这些文件，按符号名（`PermissionGateway.of` 等）搜索即可。
+
 | # | 位置 | 形态 | 问题 |
 |---|---|---|---|
-| 1 | `feature-chat/.../ui/ChatRoute.kt` 相机 | `PermissionStates.isGranted` + `PermissionRequester.with(...).request(Callback)` | 用 `(activity as? ComponentActivity)`，拿不到就静默什么都不做——用户点了相机没反应 |
-| 2 | `feature-chat/.../ui/ChatRoute.kt` 录音 | 同上 | 同上；且 `onGranted = Unit`（首次授权不录音是产品行为，但代码里看不出来是为了什么） |
-| 3 | `feature-photosolve/.../PhotoSolveActivity.kt` 相机 | **手写** `rememberLauncherForActivityResult(RequestPermission)` + `ContextCompat.checkSelfPermission` + `Manifest.permission.CAMERA` | 完全绕开了 `PermissionRequester`：没有解释对话框、没有「去设置」引导，拒绝一次就 `permissionPermanentlyDenied = true`（把普通拒绝误判成永久拒绝） |
-| 4 | `feature-video/.../local/LocalVideoActivity.kt` 读视频 | **手写** `rememberLauncherForActivityResult(RequestMultiplePermissions)` + `checkSelfPermission` | 同上；且权限结果只在组合时算一次，从设置页回来不会刷新 |
-| 5 | `core/.../update/ApkDownloader.java` 通知 | 无运行时申请 | `POST_NOTIFICATIONS` 从 Android 13 起是运行时权限，没有它通知会被静默丢弃（下载进度看不到） |
-| 6 | `-` 定位 | 清单里权限被注释掉，`Permissions.LOCATION` 定义了但没人用 | 定义与使用脱节；将来要定位时又得重新发明一遍入口 |
-| 7 | `-` 存储 | `app/src/main/AndroidManifest.xml` 里 `READ_EXTERNAL_STORAGE` / `WRITE_EXTERNAL_STORAGE` 还在，`READ_MEDIA_*` 被注释 | 选图已经全部走 Photo Picker（无需权限），旧声明留着只会在上架审核时被问「为什么需要全盘存储」 |
+| 1 | `feature-chat/.../ui/ChatRoute.kt:94-102` | `PermissionStates.isGranted` + `PermissionRequester.with(...).request(Callback)` | 用 `(activity as? ComponentActivity)`，拿不到就静默什么都不做——用户点了相机没反应 |
+| 2 | `feature-chat/.../ui/ChatRoute.kt:153-160` | 同上 | 同上；`onGranted = Unit`（首次授权不录音是产品行为，但代码里看不出意图） |
+| 3 | `feature-photosolve/.../PhotoSolveActivity.kt:145-160`（改造前） | **手写** `rememberLauncherForActivityResult(RequestPermission)` + `ContextCompat.checkSelfPermission` + `Manifest.permission.CAMERA` | 绕开 `PermissionRequester`：无解释框、无「去设置」；拒绝一次就 `permissionPermanentlyDenied = true`，把普通拒绝误判成永久拒绝 |
+| 4 | `feature-video/.../local/LocalVideoActivity.kt:129-133`（改造前） | **手写** `rememberLauncherForActivityResult(RequestMultiplePermissions)` + `checkSelfPermission` | 权限结果只在组合时算一次，从设置页回来不刷新 |
+| 5 | `core/.../update/ApkDownloader.java:94`、`:107` | `notificationManager.notify(...)`，**无运行时申请** | Android 13 起 `POST_NOTIFICATIONS` 是运行时权限，没有它通知被静默丢弃（下载进度看不到） |
+| 6 | `uikit/.../permission/Permissions.kt`（`LOCATION` 预设） | 已定义，无调用方 | 定义与使用脱节；将来要定位时又得重新发明一遍入口 |
+| 7 | `app/src/main/AndroidManifest.xml:15-16` | `READ_EXTERNAL_STORAGE` / `WRITE_EXTERNAL_STORAGE` 仍在；`READ_MEDIA_*` 被注释（第 20-22 行） | 选图已全部走 Photo Picker（无需权限），旧声明只会在上架审核时被问「为什么需要全盘存储」 |
 
 `retromusic` 内部还有一套自己的权限处理（`AbsBaseActivity` / `PermissionActivity`），按约束**不动**；它本来就是一个独立子工程。
 

@@ -7,6 +7,34 @@
 
 ---
 
+## 0. 状态总览
+
+| 项 | 状态 | 证据 |
+|---|---|---|
+| 端到端流程设计（第 2 节） | **已完成** | 本文 |
+| `QuadNorm` / `QuadWarp`（透视矫正） | **已实现** | `imaging/.../quad/` |
+| 端上「是不是题目」几何预筛 | **已实现** | `QuestionFrameCheck.kt`、`QuestionQuadDetector.kt` |
+| 四角微调页 | **已实现** | `feature-photosolve/.../ui/QuadAdjustScreen.kt` |
+| ViewModel 状态机重写 | **已实现** | `feature-photosolve/.../presentation/PhotoSolveViewModel.kt` |
+| 客户端调用层（走 `:network` 挂起封装） | **已实现** | `data/NetworkPhotoSolveRepository.kt` |
+| 服务端 `solve.json` / `health.json` | **已实现**（可编译） | testserverV `vvv-link/.../photosolve/` |
+| 提示词 + 豆包调用 | **已实现**（未联调） | `PhotoSolvePrompt.java`、`DoubaoPhotoSolveProvider.java` |
+| 端到端调豆包 | **未验证** | 本机无 `photosolve.doubao.apiKey` |
+| 额度、幂等去重 | **设计但未实现** | 第 5 节风险 1 |
+| 多题切换 UI | **设计但未实现** | 第 5 节风险 8 |
+| 端上 provider 直接吐四点 | **设计但未实现**（建议） | 第 3.3 节 |
+
+### 一处与你描述不同的地方（请确认）
+
+你写的是「走 `:common` 的挂起封装 + NetConfig 注入」。实际项目的挂起封装在 **`:network`**：
+`com.openapi.network.awaitUpload`（`network/src/main/java/com/openapi/network/BaseServiceAwait.kt`）。
+`:common` 只有压缩、EXIF 解码这类纯工具。`NetConfig` 是给**请求头名**用的（token 头、设备头、Referer），
+由 `MyApplication` 在启动时 `init` 一次；**拍照解题不需要自己的注入点**，因为 `:network` 的
+`BaseRequest` 已经统一带上了。如果你的原意是「拍照解题要有独立的 baseUrl 注入」，请说一声，
+我加一个 `PhotoSolveConfig.baseUrl()` 并走 `Constants.getUrl()` 之外的路径。
+
+---
+
 ## 1. 现状
 
 ### 1.1 客户端
