@@ -141,13 +141,6 @@ public class AdsContext {
             return false;
         }
         int i = Md5.getRandom(AdsIds.maxRate);
-//        if (UserLoginUtil.isVIP3()) {
-//            return i <= 1;
-//        } else if (UserLoginUtil.isVIP2()) {
-//            return i <= 2;
-//        } else if (UserLoginUtil.isVIP()) {
-//            return i <= 3;
-//        }
         return i <= AdsIds.PROBABILITY;
 
     }
