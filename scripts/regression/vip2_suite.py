@@ -213,6 +213,7 @@ def check_list_shows(names, timeout=30):
     tap(SERVER_BOX)
     t0 = time.time()
     tapped, visible, ok = False, set(), False
+    tapped_at = 0.0
     while time.time() - t0 < timeout:
         time.sleep(1)
         items = nodes_on_screen(dump())
@@ -220,11 +221,17 @@ def check_list_shows(names, timeout=30):
         if not tapped:
             vip2 = [xy for t, xy in items if t == "VIP2"]
             if vip2:              # 标签栏只在列表数据回来后才出现
-                tap(vip2[0]); tapped = True
+                tap(vip2[0]); tapped = True; tapped_at = time.time()
             continue
         if any(n in visible for n in names):
             ok = True
             break
+        # 点了 VIP2 却没切过去（列表还在加载、点击落在遮罩上）。标签栏一直在，
+        # 隔几秒补一次点击，否则一次点空就干等到超时，把"点击没生效"误报成"列表加载失败"。
+        if tapped_at and time.time() - tapped_at > 5:
+            vip2 = [xy for t, xy in items if t == "VIP2"]
+            if vip2:
+                tap(vip2[0]); tapped_at = time.time()
     secs = round(time.time() - t0)
     back()
     go_home()
