@@ -46,14 +46,11 @@ public final class UpdateDialogs {
                     @Override
                     public void perform() {
                         if (updatePrefIfCancel) {
-                            PreferenceUtils.setPrefBoolean(context, getPrefKey(vo.version, vo.maxBuild), false);
+                            PreferenceUtils.setPrefBoolean(context, VersionUpdater.updateReminderKey(vo.version, vo.maxBuild), false);
                         }
                     }
                 } : null,
                 false);
     }
 
-    private static String getPrefKey(String newVersion, int newVersionBuild) {
-        return Constants.SETTING_PREF_NEED_CHECK_UPDATE_NEXT_TIME + "_" + newVersion + "_" + newVersionBuild;
-    }
 }

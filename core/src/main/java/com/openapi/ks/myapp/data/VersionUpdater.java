@@ -48,7 +48,10 @@ public class VersionUpdater {
                     HttpDNSUtil.DNS_POD_IP = vo.dnspodIp;
                 }
                 if (isNewVersion(vo.maxBuild) && StringUtils.hasText(vo.url)) {
-                    UpdateDialogs.showGoogleUpdate(context, vo, true);
+                    // 手动检查总是提示；自动检查时，用户在提示框里点过「取消」的版本不再提示
+                    if (needToast || needToCheckUpdateNextTime(context, vo.version, vo.maxBuild)) {
+                        UpdateDialogs.showGoogleUpdate(context, vo, true);
+                    }
                 } else if (needToast) {
                     ToastUtil.showShort(R.string.about_version_update_to_date);
                 }
@@ -82,6 +85,16 @@ public class VersionUpdater {
     }
 
     /** 是否是新版本（比本机 build 号大）。 */
+    /** 用户是否还没有对这个版本点过「取消」（默认 true：需要提示）。 */
+    public static boolean needToCheckUpdateNextTime(Context context, String newVersion, int newVersionBuild) {
+        return PreferenceUtils.getPrefBoolean(context, updateReminderKey(newVersion, newVersionBuild), true);
+    }
+
+    /** 「下次不再提醒」偏好的键：按版本号和 build 区分。 */
+    public static String updateReminderKey(String newVersion, int newVersionBuild) {
+        return Constants.SETTING_PREF_NEED_CHECK_UPDATE_NEXT_TIME + "_" + newVersion + "_" + newVersionBuild;
+    }
+
     public static boolean isNewVersion(int newVersionBuild) {
         return newVersionBuild > build;
     }
