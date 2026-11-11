@@ -6,8 +6,8 @@ import com.openapi.chat.domain.model.MessageKind
 import com.openapi.common.net.BaseService
 import com.openapi.common.net.awaitUpload
 import com.openapi.core.config.Constants
-import com.openapi.core.model.Choice
-import com.openapi.core.model.TtsResponseVo
+import com.openapi.chat.data.remote.Choice
+import com.openapi.chat.data.remote.TtsResponseVo
 import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

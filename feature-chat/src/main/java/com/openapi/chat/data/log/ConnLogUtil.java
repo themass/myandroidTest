@@ -12,7 +12,7 @@ import com.openapi.common.util.log.LogUtil;
 import com.openapi.common.util.lang.StringUtils;
 import com.openapi.common.net.NetUtils;
 import com.openapi.core.model.ConnLog;
-import com.openapi.core.model.ConnLogForm;
+import com.openapi.chat.data.remote.ConnLogForm;
 import com.openapi.core.model.NullReturnVo;
 import com.openapi.core.config.Constants;
 import com.openapi.core.db.AppDatabase;

@@ -1,4 +1,4 @@
-package com.openapi.core.model;
+package com.openapi.chat.data.remote;
 
 /**
  * @author gqli

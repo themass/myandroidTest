@@ -5,8 +5,8 @@ import com.openapi.common.net.BaseService
 import com.openapi.chat.domain.speech.SpeechToText
 import com.openapi.core.media.VoiceRecorder
 import com.openapi.common.net.awaitPost
-import com.openapi.core.model.AsrContentForm
-import com.openapi.core.model.AsrResponseVo
+import com.openapi.chat.data.remote.AsrContentForm
+import com.openapi.chat.data.remote.AsrResponseVo
 import com.openapi.core.config.Constants
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

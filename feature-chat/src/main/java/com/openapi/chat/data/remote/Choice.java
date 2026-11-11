@@ -1,4 +1,6 @@
-package com.openapi.core.model;
+package com.openapi.chat.data.remote;
+
+import com.openapi.core.model.Message;
 
 public class Choice {
     private String id;

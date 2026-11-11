@@ -4,7 +4,7 @@ import android.content.Context
 import com.openapi.core.db.FavoriteVo
 import com.openapi.common.net.BaseService
 import com.openapi.core.util.FavoriteUtil
-import com.openapi.core.model.FeedbackContentForm
+import com.openapi.chat.data.remote.FeedbackContentForm
 import com.openapi.core.model.NullReturnVo
 import com.openapi.core.config.Constants
 

@@ -1,4 +1,4 @@
-package com.openapi.core.model;
+package com.openapi.chat.data.remote;
 
 /**
  * 服务端会话列表项（`/api/chat/sessions.json` 等）。时间为毫秒时间戳。

@@ -1,4 +1,4 @@
-package com.openapi.core.model;
+package com.openapi.chat.data.remote;
 
 /**
  * 服务端会话里的一条消息（`/api/chat/messages.json`、`/message/edit.json`）。

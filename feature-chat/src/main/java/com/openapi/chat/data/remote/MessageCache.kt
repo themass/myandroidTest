@@ -8,7 +8,7 @@ import com.openapi.chat.domain.model.MessageKind
 import com.openapi.common.util.log.LogUtil
 import com.openapi.core.db.AppDatabase
 import com.openapi.core.model.ChatLog
-import com.openapi.core.model.ChatMessageVo
+import com.openapi.chat.data.remote.ChatMessageVo
 import java.util.Date
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors

@@ -11,8 +11,8 @@ import com.openapi.chat.domain.model.MessageKind
 import com.openapi.chat.domain.repository.ChatRepository
 import com.openapi.common.net.BaseService
 import com.openapi.core.config.Constants
-import com.openapi.core.model.ChatMessagePageVo
-import com.openapi.core.model.ChatMessageVo
+import com.openapi.chat.data.remote.ChatMessagePageVo
+import com.openapi.chat.data.remote.ChatMessageVo
 import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow

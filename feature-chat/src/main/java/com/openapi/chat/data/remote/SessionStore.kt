@@ -8,7 +8,7 @@ import com.openapi.common.util.android.PreferenceUtils
 import com.openapi.core.config.Constants
 import com.openapi.core.db.AppDatabase
 import com.openapi.core.model.ChatSessionLog
-import com.openapi.core.model.ChatSessionVo
+import com.openapi.chat.data.remote.ChatSessionVo
 import java.util.Date
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
