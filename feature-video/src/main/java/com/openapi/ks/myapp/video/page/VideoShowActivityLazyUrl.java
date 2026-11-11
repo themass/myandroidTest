@@ -55,12 +55,6 @@ public class VideoShowActivityLazyUrl extends AppCompatActivity implements MyFav
         myFavoriteView = b.myFavoriteview;
     }
 
-    private void unbindButterViews() {
-        videoPlayer = null;
-        myFavoriteView = null;
-    }
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

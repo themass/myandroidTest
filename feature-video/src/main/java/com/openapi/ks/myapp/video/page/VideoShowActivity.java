@@ -61,13 +61,6 @@ public class VideoShowActivity extends AppCompatActivity implements MyFavoriteVi
         myFavoriteView = b.myFavoriteview;
     }
 
-    private void unbindButterViews() {
-        videoPlayer = null;
-        dlnaCastButton = null;
-        myFavoriteView = null;
-    }
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
