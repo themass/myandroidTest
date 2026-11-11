@@ -26,7 +26,7 @@ import com.openapi.common.ui.widget.MyWebView;
 import com.openapi.common.util.android.FileUtils;
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.core.ads.yewu.ads.base.AdsContext;
-import com.openapi.common.net.HttpUtils;
+import com.openapi.common.net.http.HttpUtils;
 import com.openapi.ks.myapp.content.text.TextItemsVo;
 import com.openapi.core.config.Constants;
 import com.openapi.common.util.android.StaticDataUtil;

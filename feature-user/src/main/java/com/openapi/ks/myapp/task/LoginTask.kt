@@ -2,9 +2,9 @@ package com.openapi.ks.myapp.task
 
 import android.content.Context
 import com.openapi.core.app.AppContext
-import com.openapi.common.net.HttpClient
-import com.openapi.common.net.NetError
-import com.openapi.common.net.Response
+import com.openapi.common.net.http.HttpClient
+import com.openapi.common.net.http.NetError
+import com.openapi.common.net.http.Response
 import com.openapi.common.net.request.MultipartRequest
 import com.openapi.common.util.lang.BeanUtil
 import com.openapi.common.util.log.LogUtil
@@ -45,7 +45,7 @@ object LoginTask {
                 if (user != null) {
                     UserLoginUtil.login(AppContext.get(), user)
                 } else {
-                    PreferenceUtils.remove(AppContext.get(), com.openapi.common.net.NetConfig.tokenHeader())
+                    PreferenceUtils.remove(AppContext.get(), com.openapi.common.net.http.NetConfig.tokenHeader())
                 }
             } catch (e: Exception) {
                 LogUtil.e(e)

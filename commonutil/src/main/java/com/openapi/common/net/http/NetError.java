@@ -1,4 +1,4 @@
-package com.openapi.common.net;
+package com.openapi.common.net.http;
 
 /**
  * 网络请求失败的原因。取代 Volley 的 VolleyError，类型名和层级保持一致，便于迁移。

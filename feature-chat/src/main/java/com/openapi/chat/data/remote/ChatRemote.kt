@@ -1,6 +1,6 @@
 package com.openapi.chat.data.remote
 
-import com.openapi.common.net.BaseService
+import com.openapi.common.net.http.BaseService
 import com.openapi.common.net.awaitPost
 import com.openapi.common.net.awaitPostOk
 

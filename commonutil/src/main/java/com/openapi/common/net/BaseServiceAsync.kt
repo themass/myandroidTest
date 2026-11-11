@@ -1,5 +1,7 @@
 package com.openapi.common.net
 
+import com.openapi.common.net.http.BaseService
+
 import com.openapi.common.net.request.InfoListVo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

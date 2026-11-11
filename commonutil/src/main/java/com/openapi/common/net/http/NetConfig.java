@@ -1,4 +1,4 @@
-package com.openapi.common.net;
+package com.openapi.common.net.http;
 
 /**
  * 网络层的业务配置。由应用在启动时设置，commonutil 本身不带任何接口域名、

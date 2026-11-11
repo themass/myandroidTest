@@ -41,7 +41,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.openapi.common.design.theme.AppColors
-import com.openapi.common.net.BaseService
+import com.openapi.common.net.http.BaseService
 import com.openapi.common.net.request.CommonResponse
 import com.openapi.common.util.android.PreferenceUtils
 import com.openapi.common.util.lang.StringUtils

@@ -1,8 +1,8 @@
 package com.openapi.common.net.request;
 
-import com.openapi.common.net.NetError;
-import com.openapi.common.net.HttpClient;
-import com.openapi.common.net.Response;
+import com.openapi.common.net.http.NetError;
+import com.openapi.common.net.http.HttpClient;
+import com.openapi.common.net.http.Response;
 
 /**
  * Created by dengt on 2016/8/17.

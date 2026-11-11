@@ -15,8 +15,8 @@ import com.openapi.common.util.android.FileUtils;
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.common.util.android.SystemUtils;
 import com.openapi.core.ads.yewu.ads.base.AdsManager;
-import com.openapi.common.net.HttpClient;
-import com.openapi.common.net.BaseService;
+import com.openapi.common.net.http.HttpClient;
+import com.openapi.common.net.http.BaseService;
 import com.openapi.chat.ChatDependencies;
 import com.openapi.core.config.Constants;
 import com.openapi.chat.data.remote.BackendSpeechToText;
@@ -55,7 +55,7 @@ public class MyApplication extends MultiDexApplication {
         LogUtil.e("isDebug=" + isDebug);
         instance = this;
         // 网络层的业务配置（域名、请求头名、登录失效处理）在启动时注入，commonutil 不再写死
-        com.openapi.common.net.NetConfig.init(
+        com.openapi.common.net.http.NetConfig.init(
                 CommonConstants.DEFAULT_REFERER,
                 CommonConstants.HTTP_TOKEN_KEY,
                 CommonConstants.DEVID,

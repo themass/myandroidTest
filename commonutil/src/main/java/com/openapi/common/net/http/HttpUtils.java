@@ -1,4 +1,4 @@
-package com.openapi.common.net;
+package com.openapi.common.net.http;
 
 import android.content.Context;
 import android.util.Log;

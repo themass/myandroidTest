@@ -23,7 +23,7 @@ import com.openapi.core.R;
 import com.openapi.core.model.CustomeAddForm;
 import com.openapi.core.model.NullReturnVo;
 import com.openapi.core.config.Constants;
-import com.openapi.common.net.BaseService;
+import com.openapi.common.net.http.BaseService;
 import com.openapi.core.legacyui.app.BaseFragmentActivity;
 import com.openapi.core.legacyui.features.BaseWebViewFragment;
 

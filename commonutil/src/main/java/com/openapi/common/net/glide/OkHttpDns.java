@@ -1,9 +1,9 @@
-package com.openapi.common.net.netglide;
+package com.openapi.common.net.glide;
 
 import android.content.Context;
 
 import com.openapi.common.util.log.LogUtil;
-import com.openapi.common.net.HttpDNSUtil;
+import com.openapi.common.net.http.HttpDNSUtil;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;

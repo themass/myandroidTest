@@ -10,7 +10,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.openapi.common.net.NetError;
+import com.openapi.common.net.http.NetError;
 import com.openapi.ks.myapp.translation.api.TranslationOverlaySession;
 import com.openapi.ks.myapp.translation.api.VideoTranslationRegistry;
 import com.openapi.ks.myapp.translation.api.VideoTranslationRequest;
@@ -22,7 +22,7 @@ import com.openapi.feature.video.R;
 import com.openapi.core.db.FavoriteVo;
 import com.openapi.core.model.RecommendVo;
 import com.openapi.core.config.Constants;
-import com.openapi.common.net.BaseService;
+import com.openapi.common.net.http.BaseService;
 import com.openapi.ks.myapp.cast.CastPlaySource;
 import com.openapi.ks.myapp.cast.GoogleCastSessionController;
 import com.openapi.ks.myapp.data.VideoUtil;

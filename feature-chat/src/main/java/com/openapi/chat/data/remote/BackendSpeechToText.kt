@@ -1,7 +1,7 @@
 package com.openapi.chat.data.remote
 
 import android.util.Base64
-import com.openapi.common.net.BaseService
+import com.openapi.common.net.http.BaseService
 import com.openapi.chat.domain.speech.SpeechToText
 import com.openapi.core.media.VoiceRecorder
 import com.openapi.common.net.awaitPost

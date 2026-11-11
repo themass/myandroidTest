@@ -29,7 +29,7 @@ public class UserLoginUtil {
 
     public static void login(Context context, UserInfoVo vo) {
         PreferenceUtils.setPrefObj(context, Constants.LOGIN_USER, vo);
-        PreferenceUtils.setPrefString(context, com.openapi.common.net.NetConfig.tokenHeader(), vo.token);
+        PreferenceUtils.setPrefString(context, com.openapi.common.net.http.NetConfig.tokenHeader(), vo.token);
         StaticDataUtil.add(Constants.LOGIN_USER, vo);
         context.sendBroadcast(new Intent(AppContext.UPDATE_STATUS_ACTION));
         MobAgent.onProfileSignIn(vo.name);
@@ -37,7 +37,7 @@ public class UserLoginUtil {
 
     public static void logout(Context context) {
         PreferenceUtils.remove(context, Constants.LOGIN_USER);
-        PreferenceUtils.remove(context, com.openapi.common.net.NetConfig.tokenHeader());
+        PreferenceUtils.remove(context, com.openapi.common.net.http.NetConfig.tokenHeader());
         StaticDataUtil.del(Constants.LOGIN_USER);
         context.sendBroadcast(new Intent(AppContext.UPDATE_STATUS_ACTION));
         MobAgent.onProfileSignOff();

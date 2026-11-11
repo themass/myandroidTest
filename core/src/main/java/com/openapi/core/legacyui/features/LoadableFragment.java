@@ -13,16 +13,16 @@ import android.widget.ProgressBar;
 import androidx.appcompat.widget.SearchView;
 import android.widget.TextView;
 
-import com.openapi.common.net.ApiRequest;
-import com.openapi.common.net.NetError;
+import com.openapi.common.net.http.ApiRequest;
+import com.openapi.common.net.http.NetError;
 import com.openapi.core.legacyui.app.BaseFragment;
 import com.openapi.common.util.lang.CollectionUtils;
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.common.util.android.ViewUtils;
-import com.openapi.common.net.HttpClient;
+import com.openapi.common.net.http.HttpClient;
 import com.openapi.core.R;
 import com.openapi.common.net.request.InfoListVo;
-import com.openapi.common.net.BaseService;
+import com.openapi.common.net.http.BaseService;
 
 import java.lang.ref.WeakReference;
 import java.util.List;

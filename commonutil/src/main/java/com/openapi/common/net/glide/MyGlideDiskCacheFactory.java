@@ -1,4 +1,4 @@
-package com.openapi.common.net.netglide;
+package com.openapi.common.net.glide;
 
 import android.content.Context;
 

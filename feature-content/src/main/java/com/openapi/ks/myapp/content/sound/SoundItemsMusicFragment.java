@@ -30,7 +30,7 @@ import com.openapi.common.util.android.MediaUtil;
 import com.openapi.common.util.android.PreferenceUtils;
 import com.openapi.common.util.android.ToastUtil;
 import com.openapi.core.ads.yewu.ads.base.AdsContext;
-import com.openapi.common.net.NetUtils;
+import com.openapi.common.net.http.NetUtils;
 import com.openapi.ks.myapp.content.sound.SoundItemsViewMusicAdapter;
 import com.openapi.core.legacyui.adapter.BaseRecyclerViewAdapter;
 import com.openapi.common.net.request.InfoListVo;

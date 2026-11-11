@@ -1,5 +1,10 @@
 package com.openapi.common.net
 
+import com.openapi.common.net.http.BaseService
+import com.openapi.common.net.http.HttpClient
+import com.openapi.common.net.http.NetError
+import com.openapi.common.net.http.Response
+
 import com.openapi.common.net.request.CommonResponse
 import com.openapi.common.net.request.GsonRequest
 import com.openapi.common.net.request.InfoListVo

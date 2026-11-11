@@ -3,7 +3,7 @@ package com.openapi.ks.myapp.data.home
 import android.content.Context
 import com.aimath.paizhao.PhotoSolveActivity
 import com.openapi.core.ads.yewu.um.MobAgent
-import com.openapi.common.net.BaseService
+import com.openapi.common.net.http.BaseService
 import com.openapi.common.util.android.PreferenceUtils
 import com.openapi.common.util.lang.StringUtils
 import com.openapi.home.domain.ProfileAction
@@ -83,7 +83,7 @@ class LegacyProfileEntries(app: Context) : ProfileEntries {
 
     private fun share(context: Context) {
         var url = PreferenceUtils.getPrefString(MyApplication.getInstance(), Constants.D_URL, null)
-        if (!StringUtils.hasText(url)) url = com.openapi.common.net.NetConfig.defaultReferer()
+        if (!StringUtils.hasText(url)) url = com.openapi.common.net.http.NetConfig.defaultReferer()
         // 分享卡片（二维码 + 链接）走分享库，和 vpn 项目一样是图片分享
         com.openapi.common.share.ShareKit.shareCard(context, title = "爱Freedom", subtitle = "精彩你的生活", link = url)
     }

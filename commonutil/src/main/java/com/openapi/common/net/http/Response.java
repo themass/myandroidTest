@@ -1,4 +1,4 @@
-package com.openapi.common.net;
+package com.openapi.common.net.http;
 
 /**
  * 请求结果：成功时带 [result]，失败时带 [error]。

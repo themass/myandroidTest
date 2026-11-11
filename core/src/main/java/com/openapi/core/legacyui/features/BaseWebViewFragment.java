@@ -24,7 +24,7 @@ import com.openapi.common.ui.widget.MyWebView;
 import com.openapi.common.util.android.FileUtils;
 import com.openapi.common.util.android.IpUtil;
 import com.openapi.common.util.log.LogUtil;
-import com.openapi.common.net.HttpUtils;
+import com.openapi.common.net.http.HttpUtils;
 import com.openapi.core.R;
 import com.openapi.core.app.AppContext;
 import com.openapi.core.config.Constants;

@@ -1,4 +1,4 @@
-package com.openapi.common.net;
+package com.openapi.common.net.http;
 
 import android.content.Context;
 import android.os.Handler;
@@ -7,7 +7,7 @@ import android.widget.Toast;
 
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.common.R;
-import com.openapi.common.net.interceptor.DnsRequestInterceptor;
+import com.openapi.common.net.dns.DnsRequestInterceptor;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

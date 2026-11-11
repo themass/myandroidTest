@@ -1,4 +1,6 @@
-package com.openapi.common.net.netglide;
+package com.openapi.common.net.unsafe;
+
+import com.openapi.common.net.glide.OkHttpDns;
 
 import android.content.Context;
 import java.security.cert.CertificateException;

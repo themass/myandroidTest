@@ -2,9 +2,9 @@ package com.openapi.common.net.request;
 
 import android.content.Context;
 
-import com.openapi.common.net.NetError;
-import com.openapi.common.net.NetResponse;
-import com.openapi.common.net.Response;
+import com.openapi.common.net.http.NetError;
+import com.openapi.common.net.http.NetResponse;
+import com.openapi.common.net.http.Response;
 
 import java.io.File;
 import java.util.List;

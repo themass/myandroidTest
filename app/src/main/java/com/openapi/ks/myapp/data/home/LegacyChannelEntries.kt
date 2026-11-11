@@ -6,7 +6,7 @@ import android.content.Intent
 import com.openapi.core.CommonConstants
 import com.openapi.core.ads.yewu.um.MobAgent
 import com.openapi.core.event.ConfigActionEvent
-import com.openapi.common.net.BaseService
+import com.openapi.common.net.http.BaseService
 import com.openapi.common.net.awaitInfoList
 import com.openapi.core.event.CoreEvents
 import com.openapi.common.util.android.PreferenceUtils

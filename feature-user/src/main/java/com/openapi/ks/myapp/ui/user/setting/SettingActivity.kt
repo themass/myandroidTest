@@ -116,7 +116,7 @@ class SettingActivity : BaseSingleActivity() {
     fun showShare() {
         var url = PreferenceUtils.getPrefString(AppContext.get(), Constants.D_URL, null)
         if (!StringUtils.hasText(url)) {
-            url = com.openapi.common.net.NetConfig.defaultReferer()
+            url = com.openapi.common.net.http.NetConfig.defaultReferer()
         }
         com.openapi.common.share.ShareKit.shareText(this, "$url 爱Freedom，精彩你的生活", subject = "精彩你的生活", chooserTitle = "分享到：", extraTitle = "爱Freedom")
     }

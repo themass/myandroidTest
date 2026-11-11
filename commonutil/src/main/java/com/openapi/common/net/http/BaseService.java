@@ -1,4 +1,6 @@
-package com.openapi.common.net;
+package com.openapi.common.net.http;
+
+import com.openapi.common.net.BaseServiceAsyncKt;
 
 import android.content.Context;
 
@@ -20,7 +22,8 @@ import java.util.Map;
  */
 @SuppressWarnings("unchecked")
 public class BaseService {
-    protected Context context;
+    /** 公开给同包外的扩展函数（BaseServiceAwait.kt）使用。 */
+    public Context context;
 
     public void setup(Context context) {
         this.context = context;

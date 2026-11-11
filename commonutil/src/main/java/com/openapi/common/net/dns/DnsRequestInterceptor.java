@@ -1,6 +1,6 @@
-package com.openapi.common.net.interceptor;
+package com.openapi.common.net.dns;
 
-import com.openapi.common.net.HttpDNSUtil;
+import com.openapi.common.net.http.HttpDNSUtil;
 import com.openapi.common.util.log.LogUtil;
 
 import java.io.IOException;
