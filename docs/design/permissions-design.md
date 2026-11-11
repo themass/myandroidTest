@@ -151,11 +151,11 @@ if (PermissionGateway.isGranted(context, Permissions.CAMERA)) { ... }
 
 ## 4. 剩余迁移清单
 
-| # | 位置 | 动作 | 优先级 |
+| # | 位置 | 动作 | 状态 |
 |---|---|---|---|
-| 1 | `core/.../update/ApkDownloader.java` | 下载前请求 `Permissions.NOTIFICATIONS`（协程版需要 Activity，下载器是 Application 上下文 → 在发起下载的界面里先请求，再把结果告诉下载器；或在下载器里用回调版并传入当前 Activity） | 高（Android 13+ 通知会被静默丢弃） |
-| 2 | `app/src/main/AndroidManifest.xml` | 删除 `READ_EXTERNAL_STORAGE` / `WRITE_EXTERNAL_STORAGE`（选图已走 Photo Picker、保存到相册走 MediaStore 无需权限）；需要扫全相册时再按需声明 `READ_MEDIA_IMAGES` | 高（审核风险） |
-| 3 | `app` 里首次启动的隐私弹窗 | 确认隐私政策文案覆盖「相机/麦克风/相册/通知」的实际用途（合规要求先于权限弹框） | 高 |
+| 1 | `core/.../update/UpdateDialogs.java` | 下载前请求 `Permissions.NOTIFICATIONS`：点「下载」时先用 `PermissionRequester`（这里是回调版，宿主是 Activity）申请，拿到结果再 `ApkDownloader.start`。拒绝也照常下载。老式 `Activity`（非 `ComponentActivity`）直接下载——拿不到 `ActivityResultRegistry`，不能抛异常 | **已完成**（2026-11-12） |
+| 2 | `app/src/main/AndroidManifest.xml` | `READ_EXTERNAL_STORAGE` 加 `maxSdkVersion=32`；`WRITE_EXTERNAL_STORAGE` 只由 `:retromusic` 声明（29）。删掉注释掉的旧权限与重复项，新增 `POST_NOTIFICATIONS`。`GET_TASKS`（API 21 起对三方无效）与 `EXPAND_STATUS_BAR`（需系统签名）一并删除 | **已完成**（2026-11-12） |
+| 3 | `app` 里首次启动的隐私弹窗 | 确认隐私政策文案覆盖「相机/麦克风/相册/通知」的实际用途（合规要求先于权限弹框） | **待你确认**（文案属合规判断，我无法代替） |
 | 4 | `feature-video` 的 `VideoShowActivity` 等老式 `Activity` | 如果将来要用权限，先把基类换成 `AppCompatActivity`/`ComponentActivity`；否则 `PermissionGateway.of()` 会给出明确异常 | 中 |
 | 5 | 定位 | `Permissions.LOCATION` 已就绪；等「附近的人」需求落地时直接用，不要再新写一套 | 低 |
 | 6 | `retromusic` | 不动（独立子工程，有自己的 `PermissionActivity`） | — |
@@ -184,4 +184,14 @@ if (PermissionGateway.isGranted(context, Permissions.CAMERA)) { ... }
 ./gradlew --offline :app:compileDebugKotlin
 ```
 
-全部通过（2026-11-11，离线）。`combineStates()` 是纯函数，后续可在 `:common` 加 `src/test` 做表驱动单测（本模块目前没有测试目录）。
+全部通过（2026-11-11，离线）。
+
+2026-11-12 补充：
+
+```bash
+./gradlew :common:testDebugUnitTest          # PermissionOutcomeTest：5 个用例（需联网，:common 的测试类路径要 room/guava）
+./gradlew --offline :app:assembleChatDebug   # 清单合并后重新打包通过
+```
+
+`combineStates()` 的表驱动单测已补上：空集合 → Granted（低版本没有该权限）、全授权 → Granted、
+任一永久拒绝优先于拒绝、任一拒绝优先于「没申请过」。
