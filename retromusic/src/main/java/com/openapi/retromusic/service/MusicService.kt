@@ -444,6 +444,11 @@ class MusicService : MediaBrowserServiceCompat(),
         notifyChange(QUEUE_CHANGED)
     }
 
+    /** 设置重复模式（REPEAT_MODE_NONE / ALL / THIS），频道声音页的播放模式用；走 repeatMode 的 setter（存偏好、广播）。 */
+    fun changeRepeatMode(mode: Int) {
+        repeatMode = mode
+    }
+
     fun cycleRepeatMode() {
         repeatMode = when (repeatMode) {
             REPEAT_MODE_NONE -> REPEAT_MODE_ALL
