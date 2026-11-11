@@ -395,6 +395,11 @@
 - 结论：差别大（行内语法不同），不换官方，只删了死代码。
 - 还没做的：第 3 步的手机截图对比（统一手机测试时做）；`markdown/katex/` 的包移动放到阶段 9；自定义主题里的 `blockFitCanvas` 已经没有用处，暂时保留。
 
+### 5.9 决议（2026-11-11）
+- 决议：频道歌单**使用 `:retromusic` 播放**（用户确认「音乐使用」）。第一步已完成（`04584c91`）：`Song.uri` 支持 http/https 远程地址，`remoteSong(...)` 可以生成频道歌曲。
+- 未决、需要确认：(a) 频道歌单和本地音乐是否**共用一个播放队列**。共用的话，播放频道会打断本地音乐的队列；分开的话，`:retromusic` 的 `MusicService` 需要支持第二个队列，改动更大。(b) 声音页的界面保持频道自己的（只换播放后端），这是计划里的做法，倍速 `:retromusic` 已支持。
+- 迁移的范围：`PlayService`（MediaPlayer）的 20 个公开方法和 8 个广播，`SoundItemsMusicFragment`、`SoundDetailActivity` 和字幕的播放探针都要接到 `:retromusic`，需要真机验证。
+
 ### 5.10 权限去重（已执行，2026-11-11）
 
 **现状**：三套旧权限代码仍在：`PermissionHelper`、`CompatiblePermissionManager`、`ModernPermissionManager`（`:commonutil` 的 `util/permission`，约 1000 行），以及 `BasePermissionActivity` 里的权限入口。新的 Compose 版在 `:core/permission`，`ChatRoute` 和 `LocalVideoActivity` 在用。
