@@ -142,8 +142,12 @@ fun SettingsScreen(ui: SettingsUi, actions: SettingsActions) {
             SettingsGroup(R.string.group_support) {
                 ValueRow(R.string.support_about, "") { actions.onRow("about") }
                 Divider()
-                ValueRow(R.string.report_issue_row, "") { actions.onRow("report_issue") }
-                Divider()
+                // 「上报问题」暂时下线：服务端 bug.json 已经能落库，但端到端还没验证通过
+                // （真机上报返回 errno=10000，插入数据库那一步失败，原因未定位）。
+                // 先不暴露给用户，避免点下去必然失败。恢复时把下面两行和 SettingActivity 的
+                // case "report_issue" 一起打开。
+                // ValueRow(R.string.report_issue_row, "") { actions.onRow("report_issue") }
+                // Divider()
                 ValueRow(R.string.support_feedback, "") { actions.onRow("feedback") }
                 Divider()
                 ValueRow(R.string.support_contact, "") { actions.onRow("contact") }

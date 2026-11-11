@@ -145,9 +145,10 @@ public class SettingActivity extends BaseSingleActivity {
             case "about":
                 com.openapi.myapp.ui.user.SupportActivity.start(this, com.openapi.myapp.ui.user.SupportActivity.PAGE_ABOUT);
                 break;
-            case "report_issue":
-                ReportIssueDialog.show(this);
-                break;
+            // 「上报问题」暂时下线，原因见 SettingsScreen 里的说明
+            // case "report_issue":
+            //     ReportIssueDialog.show(this);
+            //     break;
             case "feedback":
                 com.openapi.myapp.ui.user.SupportActivity.start(this, com.openapi.myapp.ui.user.SupportActivity.PAGE_FEEDBACK);
                 break;
