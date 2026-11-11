@@ -125,6 +125,8 @@ public class VpnRadFragment extends BaseFragment {
     private android.view.ViewStub globeStub;
     /** 全部线路节点（用于地球标注与测速）。 */
     private List<LocationVo> globeLocations = new ArrayList<>();
+    /** 本轮 pushGlobeNodes 里有多少节点用了城市表兜底（诊断服务端坐标是否生效）。 */
+    private int fallbackCount;
     /** 在地球上换了节点后，等断开完成再自动连新节点。 */
     private boolean pendingConnectAfterDisconnect;
     /** 上一秒的累计流量与时间戳，用来算实时速率（地球连线动画用）。 */
@@ -627,7 +629,7 @@ public class VpnRadFragment extends BaseFragment {
      * 服务端也可能只回了半个（经纬度必须成对，只有一个就当没有）。
      */
     @Nullable
-    private static double[] coordsOf(@NonNull LocationVo vo) {
+    private double[] coordsOf(@NonNull LocationVo vo) {
         if (vo.lat != null && vo.lng != null) {
             double lat = vo.lat;
             double lng = vo.lng;
@@ -636,8 +638,18 @@ public class VpnRadFragment extends BaseFragment {
                     && !(lat == 0 && lng == 0)) {
                 return new double[]{lat, lng};
             }
+            LogUtil.i("3D 地球：服务端坐标越界 id=" + vo.id + " lat=" + lat + " lng=" + lng);
         }
-        return GeoCatalog.lookup(vo.cityName, vo.ename, vo.name);
+        double[] fallback = GeoCatalog.lookup(vo.cityName, vo.ename, vo.name);
+        // 记录兜底次数：服务端回填覆盖率上来后这个数字应该趋近于 0，
+        // 一直是满值就说明 location_v2 的 lat/lng 没下发（列没加、SQL 没跑，或接口没重启）
+        if (fallback != null) {
+            fallbackCount++;
+        } else {
+            LogUtil.i("3D 地球：无坐标的节点 id=" + vo.id + " " + vo.ename + " / "
+                    + vo.name + " / " + vo.cityName);
+        }
+        return fallback;
     }
 
     private void pushGlobeNodes() {
@@ -658,15 +670,14 @@ public class VpnRadFragment extends BaseFragment {
                 nodes.add(new GlobeWebView.GeoNode(id, label, ll[0], ll[1], globePings.get(id)));
             }
         }
-        LogUtil.i("3D 地球：节点 " + globeLocations.size() + " 个，有坐标 " + nodes.size() + " 个");
-        for (LocationVo vo : globeLocations) {
-            if (coordsOf(vo) == null) {
-                LogUtil.i("3D 地球：无坐标的节点 id=" + vo.id + " " + vo.ename + " / "
-                        + vo.name + " / " + vo.cityName);
-            }
-        }
         int selected = LocationUtil.getSelectLocationId(getActivity());
         globe.setNodes(nodes, selected > 0 ? String.valueOf(selected) : null);
+        // 只报一次汇总：coordsOf 在每个节点上只调用一次（上面那个循环），
+        // 之前为了打印明细又跑了一遍，导致兜底计数翻倍、服务端坐标数算成负数。
+        LogUtil.i("3D 地球：节点 " + globeLocations.size() + " 个，有坐标 " + nodes.size()
+                + " 个，服务端坐标 " + (nodes.size() - fallbackCount)
+                + " 个，城市表兜底 " + fallbackCount + " 个");
+        fallbackCount = 0;
     }
 
     /** 对所有节点并行测延迟（与列表页 Ping 按钮共用同一个 PingEvent），结束后重新上色。 */
