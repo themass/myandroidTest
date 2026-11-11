@@ -13,8 +13,8 @@ import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 import android.view.View;
 
 import com.openapi.core.CommonConstants;
-import com.openapi.common.view.touchhelper.OnStartDragListener;
-import com.openapi.common.view.touchhelper.SimpleItemTouchHelperCallback;
+import com.openapi.ks.myapp.content.common.touch.OnStartDragListener;
+import com.openapi.ks.myapp.content.common.touch.SimpleItemTouchHelperCallback;
 import com.openapi.common.util.android.ToastUtil;
 import com.openapi.core.ads.yewu.um.MobAgent;
 import com.openapi.feature.content.R;

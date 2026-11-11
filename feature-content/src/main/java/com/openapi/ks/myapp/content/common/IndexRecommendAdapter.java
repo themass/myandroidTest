@@ -21,7 +21,7 @@ import com.openapi.common.util.log.LogUtil;
 import com.openapi.common.util.lang.VersionCompare;
 // 使用现代 Shimmer 替代
 import com.facebook.shimmer.ShimmerFrameLayout;
-import com.openapi.common.view.touchhelper.OnStartDragListener;
+import com.openapi.ks.myapp.content.common.touch.OnStartDragListener;
 import com.openapi.common.util.android.ScreenSize;
 import com.openapi.common.util.android.PreferenceUtils;
 import com.openapi.common.util.lang.StringUtils;

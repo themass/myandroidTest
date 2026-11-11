@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.openapi.common.view.touchhelper;
+package com.openapi.ks.myapp.content.common.touch;
 
 import androidx.recyclerview.widget.RecyclerView;
 
