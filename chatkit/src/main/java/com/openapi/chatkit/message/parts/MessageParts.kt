@@ -138,6 +138,17 @@ fun ThinkingIndicator() {
 }
 
 /**
+ * 单张图片在气泡里的尺寸上限。
+ *
+ * 之前是 220 × 280dp：在 372dp 宽的手机上，一张竖拍照片（3:4）会顶满上限，占掉屏幕近六成宽、
+ * 将近半屏高，对话被一张图挤到屏幕外。聊天里的图只是「缩略预览」，点开才是大图，
+ * 所以收小：竖图约 150 × 200dp，横图约 168 × 126dp。
+ */
+private val SINGLE_IMAGE_MAX_WIDTH = 168.dp
+private val SINGLE_IMAGE_MAX_HEIGHT = 200.dp
+private val SINGLE_IMAGE_MIN = 96.dp
+
+/**
  * 图片块。单张按原图比例显示；多张排成方格（2、4 张两列，其余三列），最多 9 张，
  * 超出的数量盖在第 9 张上。点击任意一张打开全屏查看器（组件自己管理查看器状态）。
  */
@@ -159,7 +170,12 @@ fun ImageGrid(
             contentDescription = null,
             contentScale = ContentScale.Fit,
             modifier = modifier
-                .sizeIn(minWidth = 96.dp, minHeight = 96.dp, maxWidth = minOf(maxWidth, 220.dp), maxHeight = 280.dp)
+                .sizeIn(
+                    minWidth = SINGLE_IMAGE_MIN,
+                    minHeight = SINGLE_IMAGE_MIN,
+                    maxWidth = minOf(maxWidth, SINGLE_IMAGE_MAX_WIDTH),
+                    maxHeight = SINGLE_IMAGE_MAX_HEIGHT,
+                )
                 .clip(RoundedCornerShape(12.dp))
                 .background(placeholder)
                 .combinedClickable(onClick = { viewerStart = 0 }, onLongClick = { onLongPress(sources[0]) }),
