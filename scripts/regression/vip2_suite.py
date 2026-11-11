@@ -276,11 +276,23 @@ def http_code(url):
     return out.split()[0] if out else ""
 
 
-def google_ok():
-    # 用 gstatic 而不是 www.google.com：不少国内网络的 DNS 会把 www.google.com
-    # 解析到无关地址（实测解析成 Facebook 的 69.171.235.22），连不上并不说明隧道有问题。
-    # gstatic 同样返回 204 且解析稳定，更适合当作"出网了没有"的判定。
-    code = http_code("https://www.gstatic.com/generate_204")
+def google_ok(attempts=3):
+    """设备端出网检查。
+
+    用 gstatic 而不是 www.google.com：不少国内网络的 DNS 会把 www.google.com 解析到
+    无关地址（实测解析成 Facebook 的 69.171.235.22），连不上并不说明隧道有问题。
+
+    单次失败不算数：Hysteria2 这类基于 UDP 的协议，隧道刚建立时第一个连接常常失败，
+    而设备日志里系统自己已经 "Connected to www.google.com:443"。所以重试几次，
+    任一次拿到 204 就算通，避免把协议握手期的一次抖动记成"线路不通"。
+    """
+    code = ""
+    for i in range(attempts):
+        code = http_code("https://www.gstatic.com/generate_204")
+        if code == "204":
+            break
+        if i + 1 < attempts:
+            time.sleep(2)
     route = sh("ip route get 142.250.80.46 2>/dev/null | head -1").strip()
     via_tun = " dev tun" in route or " dev wg" in route or " dev vpn" in route
     return code == "204", code, via_tun, route
@@ -301,13 +313,46 @@ def tunnel_mtu():
 
 def disconnect():
     tap(CONNECT_BTN)
+    ok = wait_vpn_down(30)
+    # 断开后引擎侧还要收尾（拆 TUN、停 sing-box），太快开始下一个节点会撞上残留状态
+    time.sleep(6)
+    return ok and vpn_count() == 0
+
+
+def prepare_device():
+    """把设备和 App 恢复到干净起点。
+
+    上一轮若还有挂起的自动重连（退避序列最长 30 秒、共 8 次），点连接时新节点还没起来，
+    实际建的可能是上一轮那个节点的隧道。实测过一次：跑 Hysteria2 时日志里建的是
+    WireGuard 且 attempt=7，看着像 Hysteria2 失败，其实是残留会话。所以先强制清干净。
+    """
+    if vpn_count() != 0:
+        print("开始前 VPN 已连接，先断开", flush=True)
+        tap(CONNECT_BTN)
+        wait_vpn_down(30)
+    # 进程内可能还挂着定时重连：结束进程比等它跑完更可靠
+    sh(f"am force-stop {PKG}")
+    time.sleep(1)
+    sh(f"monkey -p {PKG} -c android.intent.category.LAUNCHER 1")
     t0 = time.time()
     while time.time() - t0 < 30:
-        if vpn_count() == 0:
+        if HOME_ACT in focus():
             break
+        time.sleep(1)
+    if not go_home():
+        print("App 无法回到首页：", focus()); sys.exit(2)
+    if vpn_count() != 0:
+        print("force-stop 之后 VPN 仍在连接，需要手动处理"); sys.exit(2)
+    time.sleep(1)
+
+
+def wait_vpn_down(timeout=30):
+    t0 = time.time()
+    while time.time() - t0 < timeout:
+        if vpn_count() == 0:
+            return True
         time.sleep(0.5)
-    time.sleep(6)
-    return vpn_count() == 0
+    return False
 
 
 def main():
@@ -321,10 +366,7 @@ def main():
     w = csv.DictWriter(f, fieldnames=fields)
     w.writeheader()
 
-    if vpn_count() != 0:
-        print("开始前 VPN 已连接，请先断开"); sys.exit(2)
-    if not go_home():
-        print("App 无法回到首页：", focus()); sys.exit(2)
+    prepare_device()
 
     names = all_vip2_names()
     only = os.environ.get("NODES")

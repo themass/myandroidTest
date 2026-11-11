@@ -88,7 +88,15 @@ public class BaseService {
         VolleyUtils.addRequest(request);
     }
     public <T> void postData(String url, List<File> file, CommonResponse.ResponseOkListener<T> listener, CommonResponse.ResponseErrorListener errorListener, String name, String tag, Class<T> t) {
-        MultipartRequest request = new MultipartRequest(context, url, null, file, name, listener, errorListener, t);
+        postData(url, file, null, listener, errorListener, name, tag, t);
+    }
+
+    /** 带文本参数的文件上传（见 MultipartRequest 的说明）。 */
+    public <T> void postData(String url, List<File> file, Map<String, String> param,
+                             CommonResponse.ResponseOkListener<T> listener,
+                             CommonResponse.ResponseErrorListener errorListener,
+                             String name, String tag, Class<T> t) {
+        MultipartRequest request = new MultipartRequest(context, url, null, file, name, param, listener, errorListener, t);
         request.setTag(tag);
         VolleyUtils.addRequest(request);
     }

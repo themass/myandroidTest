@@ -350,6 +350,7 @@ The log is sent once, only after you agree, and is used solely for diagnosing bu
     <string name="report_issue_agree">Agree and upload</string>
     <string name="report_issue_cancel">Not now</string>
     <string name="report_issue_policy">Privacy policy</string>
+    <string name="report_issue_hint">Optional: what went wrong?</string>
     <string name="report_issue_thanks">Thanks — the log has been sent</string>
     <string name="support_upload_logs">Upload debug logs</string>
     <string name="support_about_desc">ShieldWing keeps your connection private and reliable.</string>

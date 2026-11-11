@@ -12,13 +12,17 @@ import com.openapi.myapp.data.BaseService;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by dengt on 2016/12/26.
  */
 public class LogUploadService extends BaseLogService {
     private static final String TAG = "LOG_UPLOAD";
+    /** 用户在「上报问题」弹窗里填的问题描述，可选。 */
+    public static final String EXTRA_LABEL = "label";
     CommonResponse.ResponseOkListener listener = new CommonResponse.ResponseOkListener<NullReturnVo>() {
         @Override
         public void onResponse(NullReturnVo vo) {
@@ -30,6 +34,7 @@ public class LogUploadService extends BaseLogService {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        String label = intent == null ? null : intent.getStringExtra(EXTRA_LABEL);
         List<File> file = new ArrayList<>();
         // 先把当前环境写进去：只有堆栈没有环境信息，仍然无法判断问题出在哪个网络/协议上
         com.openapi.common.util.DiagnosticLog.snapshot(this);
@@ -46,8 +51,16 @@ public class LogUploadService extends BaseLogService {
                 file.add(file2);
             }
         }
-        if (file.size() > 0)
-            indexService.postData(Constants.getUrl(Constants.API_LOG_URL), file, listener, null, Constants.FILE_UPLOAD, TAG, NullReturnVo.class);
+        if (file.size() > 0) {
+            // 带上用户填的描述：只有堆栈和机型，很多时候还是不知道用户实际遇到的问题
+            Map<String, String> param = null;
+            if (label != null && !label.trim().isEmpty()) {
+                param = new HashMap<>();
+                param.put("label", label.trim());
+            }
+            indexService.postData(Constants.getUrl(Constants.API_LOG_URL), file, param,
+                    listener, null, Constants.FILE_UPLOAD, TAG, NullReturnVo.class);
+        }
         return super.onStartCommand(intent, flags, startId);
     }
 

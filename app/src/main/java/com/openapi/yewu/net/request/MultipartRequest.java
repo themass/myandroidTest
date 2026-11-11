@@ -33,9 +33,23 @@ public class MultipartRequest<T> extends BaseRequest<T> {
     public MultipartRequest(Context context,
                             String url, Map<String, String> headers, List<File> file, String name, Listener<T> listener,
                             ErrorListener errorListener, Class<T> clasz) {
+        this(context, url, headers, file, name, null, listener, errorListener, clasz);
+    }
+
+    /**
+     * 带文本参数的文件上传。
+     * <p>
+     * 原来的 file 构造器把 param 留成 null，只能传文件本身。上报问题时要额外带一段用户填的
+     * 问题描述（服务端 bug.json 的 label），否则收到的只有堆栈、不知道用户实际遇到了什么。
+     */
+    public MultipartRequest(Context context,
+                            String url, Map<String, String> headers, List<File> file, String name,
+                            Map<String, String> param, Listener<T> listener,
+                            ErrorListener errorListener, Class<T> clasz) {
         super(context, Method.POST, url, headers, listener, errorListener);
         this.file = file;
         this.name = name;
+        this.param = param;
         this.clasz = clasz;
     }
 
