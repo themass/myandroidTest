@@ -61,7 +61,7 @@ public class MyApplication extends MultiDexApplication {
                 CommonConstants.DEVID,
                 code -> com.openapi.core.event.CoreEvents.INSTANCE.postUserNeedLogin());
         com.openapi.common.ui.widget.MyWebView.setDefaultReferer(CommonConstants.DEFAULT_REFERER);
-        // 拍照解题：走项目统一网络层（Constants.getUrl + testserverV 的 testserverV /photosolve/v1/solve.json）
+        // 拍照解题：走 testserverV 的 /api/photosolve/v1（baseUrl 由 Constants.getUrl 提供，无需单独配置）
         com.openapi.feature.photosolve.data.PhotoSolveRepositories.INSTANCE.install(
                 new com.openapi.feature.photosolve.data.NetworkPhotoSolveRepository(this));
         com.openapi.core.app.AppContext.init(this);

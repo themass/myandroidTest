@@ -103,16 +103,28 @@ class QuadNormTest {
         assertEquals(0.9f, b.bottom, 1e-4f)
     }
 
+    /**
+     * 「自交」的输入不是错误输入，而是**顺序没排好**：`ordered()` 会先重排成凸顺序。
+     *
+     * 所以 isValid 对这种输入返回 true（它确实是四个有效角点围出的区域），
+     * 真正要保证的是：重排之后一定是 TL→TR→BR→BL，而不是保留成蝴蝶结。
+     */
     @Test
-    fun convexityCheckRejectsBowTie() {
-        // 蝴蝶结（自交）：TL, TR, BL, BR 的顺序
+    fun unorderedBowTieInputGetsReorderedIntoConvexOrder() {
         val bowTie = listOf(
             QuadNorm.Point(0.1f, 0.1f),
             QuadNorm.Point(0.9f, 0.1f),
             QuadNorm.Point(0.1f, 0.9f),
             QuadNorm.Point(0.9f, 0.9f),
         )
-        assertFalse(isConvexish(bowTie))
-        assertTrue(isConvexish(QuadNorm.fullFrame().corners))
+        val o = QuadNorm(bowTie).ordered().corners
+        assertEquals(0.1f, o[0].x, 1e-4f); assertEquals(0.1f, o[0].y, 1e-4f) // TL
+        assertEquals(0.9f, o[1].x, 1e-4f); assertEquals(0.1f, o[1].y, 1e-4f) // TR
+        assertEquals(0.9f, o[2].x, 1e-4f); assertEquals(0.9f, o[2].y, 1e-4f) // BR
+        assertEquals(0.1f, o[3].x, 1e-4f); assertEquals(0.9f, o[3].y, 1e-4f) // BL
+        // area() 按传入顺序算鞋带公式：乱序的蝴蝶结恰好是 0（两半抵消），
+        // 所以必须用 ordered() 之后的点算面积——这也是 isValid 内部的做法
+        assertEquals(0.64f, QuadNorm(bowTie).ordered().area(), 1e-3f)
     }
+
 }

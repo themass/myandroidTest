@@ -6,7 +6,14 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
+import androidx.compose.runtime.produceState
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.io.File
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -41,6 +48,7 @@ fun SimpleAvatar(
     val expression by renderer.expressionRes.collectAsState()
     val mouthOpen by renderer.mouthOpen.collectAsState()
     val eyeOpen by renderer.eyeOpen.collectAsState()
+    val expressionFile by renderer.expressionFile.collectAsState()
 
     // 呼吸：说话时略快、幅度略大。幅度只有 1% 上下——目的是让静态立绘不显得死板，
     // 太大就会变成抖动。时长变化时 rememberInfiniteTransition 会重新起动画，
@@ -66,7 +74,19 @@ fun SimpleAvatar(
         contentAlignment = Alignment.Center,
     ) {
         val loaded = spec
-        if (loaded?.portraitRes == null) {
+        val files = loaded?.files
+        if (files != null) {
+            // 下载的形象包：按层叠加，缺的层直接不画。顺序：下半身 → 立绘 → 胸腔 → 表情 → 眼睛 → 嘴 → 点缀。
+            FileLayer(files.lowerBody)
+            FileLayer(files.portrait)
+            FileLayer(files.chest)
+            val face = expressionFile
+            if (face != null && face != files.portrait) FileLayer(face)
+            FileLayer(if (eyeOpen) files.eyeOpen else files.eyeClosed ?: files.eyeOpen)
+            FileLayer(if (mouthOpen) files.mouthOpen else files.mouthClosed)
+            FileLayer(files.blush)
+            FileLayer(files.highlight)
+        } else if (loaded?.portraitRes == null) {
             // 素材还没做完（或还没 bind）：给一个中性占位，页面布局仍然成立。
             Box(
                 Modifier
@@ -106,4 +126,30 @@ private fun AvatarLayer(@DrawableRes res: Int?) {
             contentScale = ContentScale.Fit,
         )
     }
+}
+
+/**
+ * 单层素材（下载形象）。解码放在 IO 线程，并按 [MAX_LAYER_PX] 缩小：形象包的图可能比屏幕大得多，
+ * 整幅解码几层会占掉不少内存。以文件路径和修改时间为键，形象包更新后会重新解码。
+ */
+@Composable
+private fun FileLayer(file: File?) {
+    if (file == null) return
+    val bitmap by produceState<ImageBitmap?>(initialValue = null, file.path, file.lastModified()) {
+        value = withContext(Dispatchers.IO) { decodeScaled(file) }
+    }
+    bitmap?.let {
+        Image(bitmap = it, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Fit)
+    }
+}
+
+private const val MAX_LAYER_PX = 1600
+
+private fun decodeScaled(file: File): ImageBitmap? {
+    val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+    BitmapFactory.decodeFile(file.path, bounds)
+    if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+    var sample = 1
+    while (bounds.outWidth / sample > MAX_LAYER_PX || bounds.outHeight / sample > MAX_LAYER_PX) sample *= 2
+    return BitmapFactory.decodeFile(file.path, BitmapFactory.Options().apply { inSampleSize = sample })?.asImageBitmap()
 }

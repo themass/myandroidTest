@@ -36,6 +36,18 @@ class ModuleGraphTest {
 
     private val packageRuleExempt = setOf("retromusic", "feature-companion")
 
+    /**
+     * 正在搬迁中的目录：允许暂时保留旧包名，但**必须在搬完后删掉这里**。
+     *
+     * 这些是别的分支正在开发的代码（不在本轮的拆分范围内），把它们一次性改名会和那边的
+     * 改动大面积冲突，所以在 :app 里先按目录豁免，搬完再删。
+     */
+    private val packageRuleExemptDirs = listOf(
+        "app/src/main/java/com/openapi/ks/myapp/agent",
+        "feature-companion/src/main/java/com/openapi/ks/myapp/avatar",
+        "feature-companion/src/main/java/com/openapi/ks/myapp/companion",
+    )
+
     private fun modules(): List<String> =
         File(root, "settings.gradle").readLines()
             .mapNotNull { Regex("""^include\s+['"]:([\w-]+)['"]""").find(it)?.groupValues?.get(1) }
@@ -89,9 +101,11 @@ class ModuleGraphTest {
         modules().filter { it !in packageRuleExempt }.forEach { module ->
             val rootPkg = rootPackage(module)
             mainSources(module).forEach { f ->
+                val rel = f.relativeTo(root).path
+                if (packageRuleExemptDirs.any { rel.startsWith(it) }) return@forEach
                 val pkg = packageOf(f.readText())
                 if (pkg != rootPkg && !pkg.startsWith("$rootPkg.")) {
-                    violations += "${f.relativeTo(root)}：包名 $pkg 不在 $rootPkg 下"
+                    violations += "$rel：包名 $pkg 不在 $rootPkg 下"
                 }
             }
         }

@@ -63,9 +63,16 @@ fun CompanionScreen(
 
     LaunchedEffect(characterId) { viewModel.start(characterId) }
 
-    // 绑定素材。角色自带的表情图由角色资源决定，界面只给一张立绘占位；
-    // 美术素材接入后，这里换成按 characterId 查角色资源包。
-    LaunchedEffect(renderer) { renderer.bind(AvatarSpec()) }
+    // 绑定素材：先用本地已有的（离线也能看）或内置默认，再向服务端同步。
+    // 服务端上线了这个角色的新形象就下载并换上；任何失败都保持当前形象不变。
+    val context = androidx.compose.ui.platform.LocalContext.current.applicationContext
+    val avatarSync = remember(context) { buildAvatarSync(context) }
+    LaunchedEffect(renderer, characterId) {
+        val local = avatarSync.localFor(characterId)
+        renderer.bind(AvatarSpec(files = local))
+        val synced = runCatching { avatarSync.syncFor(characterId) }.getOrNull()
+        if (synced != null && synced != local) renderer.bind(AvatarSpec(files = synced))
+    }
 
     // 服务端事件 → 渲染器指令。映射在 AvatarEventMapper 里，界面不认协议细节。
     LaunchedEffect(state.avatarState) {
@@ -270,4 +277,24 @@ private fun ModeToggle(mode: CompanionMode, onToggle: () -> Unit) {
             shape = SegmentedButtonDefaults.itemShape(1, 2),
         ) { Text(stringResource(R.string.companion_mode_voice)) }
     }
+}
+
+private fun buildAvatarSync(context: android.content.Context): com.openapi.ks.myapp.avatar.AvatarSync {
+    // 版本号用来让服务端过滤「需要更新的客户端才能用」的形象；取不到当作 0（只拿不限版本的）。
+    @Suppress("DEPRECATION")
+    val version = runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionCode }
+        .getOrDefault(0)
+    return com.openapi.ks.myapp.avatar.AvatarSync(
+        baseUrl = CompanionConfig.baseUrl,
+        tokenProvider = {
+            com.openapi.common.util.android.PreferenceUtils.getPrefString(
+                context, com.openapi.common.net.http.NetConfig.tokenHeader(), null)
+        },
+        client = okhttp3.OkHttpClient.Builder()
+            .connectTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
+            .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS).build(),
+        store = com.openapi.ks.myapp.avatar.AvatarPackStore(context),
+        cacheDir = context.cacheDir,
+        appVersion = version,
+    )
 }

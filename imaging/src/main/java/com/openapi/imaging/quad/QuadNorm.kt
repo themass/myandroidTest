@@ -70,7 +70,26 @@ data class QuadNorm(val corners: List<Point>) {
         return List(4) { byAngle[(start + it) % 4] }
     }
 
-    private fun isSelfIntersecting(): Boolean = !isConvexish(ordered().corners)
+    private fun isConvexish(): Boolean = isConvexish(corners)
+
+    /** 供 [ordered] 在构造新四边形之前先校验候选顺序。 */
+    private fun isConvexish(points: List<Point>): Boolean {
+        if (points.size != 4) return false
+        var sign = 0
+        for (i in 0 until 4) {
+            val a = points[i]
+            val b = points[(i + 1) % 4]
+            val c = points[(i + 2) % 4]
+            val cross = (b.x - a.x) * (c.y - b.y) - (b.y - a.y) * (c.x - b.x)
+            val s = if (cross > 0) 1 else if (cross < 0) -1 else 0
+            if (s != 0) {
+                if (sign == 0) sign = s else if (sign != s) return false
+            }
+        }
+        return true
+    }
+
+    private fun isSelfIntersecting(): Boolean = !isConvexish()
 
     /** 外接矩形，用于「不启用透视矫正」时的兜底裁剪。 */
     fun bounds(): CropNorm = CropNorm(
@@ -120,25 +139,4 @@ data class QuadNorm(val corners: List<Point>) {
             ),
         )
     }
-}
-
-/**
- * 四个点是否构成凸多边形（同向叉积）。
- *
- * [corners] 的长度必须是 4；退化点（三点共线）不算破坏凸性。
- */
-internal fun isConvexish(corners: List<QuadNorm.Point>): Boolean {
-    if (corners.size != 4) return false
-    var sign = 0
-    for (i in 0 until 4) {
-        val a = corners[i]
-        val b = corners[(i + 1) % 4]
-        val c = corners[(i + 2) % 4]
-        val cross = (b.x - a.x) * (c.y - b.y) - (b.y - a.y) * (c.x - b.x)
-        val s = if (cross > 0) 1 else if (cross < 0) -1 else 0
-        if (s != 0) {
-            if (sign == 0) sign = s else if (sign != s) return false
-        }
-    }
-    return true
 }
