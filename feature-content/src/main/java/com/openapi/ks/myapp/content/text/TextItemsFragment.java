@@ -33,12 +33,12 @@ import com.openapi.common.net.HttpUtils;
 import com.openapi.core.app.AppContext;
 import com.openapi.ks.myapp.content.text.TextItemVo;
 import com.openapi.ks.myapp.content.text.TextItemsVo;
-import com.openapi.ks.myapp.constant.Constants;
+import com.openapi.core.config.Constants;
 import com.openapi.common.net.BaseService;
 import com.openapi.common.util.android.StaticDataUtil;
 import com.openapi.ks.myapp.content.text.SaveTextTask;
-import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
-import com.openapi.ks.myapp.ui.base.features.LoadableFragment;
+import com.openapi.core.legacyui.base.CommonFragmentActivity;
+import com.openapi.core.legacyui.features.LoadableFragment;
 import com.openapi.feature.content.R;
 import com.openapi.feature.content.databinding.LayoutTextitemsBinding;
 

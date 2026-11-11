@@ -54,8 +54,8 @@ import com.openapi.common.util.lang.StringUtils
 import com.openapi.common.util.android.ToastUtil
 import com.openapi.feature.user.R
 import com.openapi.ks.myapp.bean.form.RegForm
-import com.openapi.ks.myapp.bean.vo.NullReturnVo
-import com.openapi.ks.myapp.constant.Constants
+import com.openapi.core.model.NullReturnVo
+import com.openapi.core.config.Constants
 
 /**
  * 注册页。原来是 BaseSingleActivity + XML，现在是 Compose。

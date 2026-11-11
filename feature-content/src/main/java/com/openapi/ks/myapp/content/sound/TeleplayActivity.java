@@ -9,7 +9,7 @@ import android.view.View;
 
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.feature.content.R;
-import com.openapi.ks.myapp.ui.base.app.BaseFragmentActivity;
+import com.openapi.core.legacyui.app.BaseFragmentActivity;
 import com.openapi.ks.myapp.content.image.ImgChannleBodyFragment;
 
 /**

@@ -13,8 +13,8 @@ import android.widget.FrameLayout;
 
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.feature.video.R;
-import com.openapi.ks.myapp.constant.Constants;
-import com.openapi.ks.myapp.ui.base.features.BasePullLoadbleFragment;
+import com.openapi.core.config.Constants;
+import com.openapi.core.legacyui.features.BasePullLoadbleFragment;
 import com.openapi.ks.myapp.video.list.GSYAutoVideoListFragment;
 
 import java.util.HashMap;

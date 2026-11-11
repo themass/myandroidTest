@@ -122,10 +122,10 @@ private fun FavoriteCard(vo: FavoriteVo, onClick: () -> Unit, onLongClick: () ->
 
 @Composable
 private fun typeLabel(type: Int): String = when (type) {
-    com.openapi.ks.myapp.constant.Constants.FavoriteType.TEXT -> stringResource(R.string.favorite_type_text)
-    com.openapi.ks.myapp.constant.Constants.FavoriteType.SOUND -> stringResource(R.string.favorite_type_sound)
-    com.openapi.ks.myapp.constant.Constants.FavoriteType.IMG -> stringResource(R.string.favorite_type_image)
-    com.openapi.ks.myapp.constant.Constants.FavoriteType.VIDEO -> stringResource(R.string.favorite_type_video)
+    com.openapi.core.config.Constants.FavoriteType.TEXT -> stringResource(R.string.favorite_type_text)
+    com.openapi.core.config.Constants.FavoriteType.SOUND -> stringResource(R.string.favorite_type_sound)
+    com.openapi.core.config.Constants.FavoriteType.IMG -> stringResource(R.string.favorite_type_image)
+    com.openapi.core.config.Constants.FavoriteType.VIDEO -> stringResource(R.string.favorite_type_video)
     else -> ""
 }
 

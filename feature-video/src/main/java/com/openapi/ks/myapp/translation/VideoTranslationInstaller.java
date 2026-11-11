@@ -4,7 +4,7 @@ import android.content.Context;
 
 import com.openapi.core.view.translation.VideoTranslationRegistry;
 import com.openapi.common.util.android.PreferenceUtils;
-import com.openapi.ks.myapp.constant.Constants;
+import com.openapi.core.config.Constants;
 
 /**
  * 注册所有 {@link com.openapi.core.view.translation.VideoTranslationProvider}，并读取用户选择的当前实现。

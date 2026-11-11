@@ -1,6 +1,6 @@
 package com.openapi.ks.myapp.data.urlparser;
 
-import com.openapi.ks.myapp.bean.form.CustomeAddForm;
+import com.openapi.core.model.CustomeAddForm;
 
 /**
  * Created by openapi on 2017/4/10.

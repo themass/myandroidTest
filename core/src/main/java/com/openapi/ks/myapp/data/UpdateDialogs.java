@@ -9,9 +9,9 @@ import com.openapi.common.design.dialog.DialogAction;
 import com.openapi.common.util.android.PackageUtils;
 import com.openapi.common.util.android.PreferenceUtils;
 import com.openapi.common.net.NetUtils;
-import com.openapi.ks.myapp.bean.vo.VersionVo;
+import com.openapi.core.model.VersionVo;
 import com.openapi.core.R;
-import com.openapi.ks.myapp.constant.Constants;
+import com.openapi.core.config.Constants;
 
 /** 新版本提示框。 */
 public final class UpdateDialogs {

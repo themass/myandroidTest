@@ -11,8 +11,8 @@ import com.openapi.common.net.awaitInfoList
 import com.openapi.common.util.log.LogUtil
 import com.openapi.common.util.android.PreferenceUtils
 import com.openapi.common.util.lang.StringUtils
-import com.openapi.ks.myapp.bean.vo.RecommendVo
-import com.openapi.ks.myapp.constant.Constants
+import com.openapi.core.model.RecommendVo
+import com.openapi.core.config.Constants
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

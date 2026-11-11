@@ -17,9 +17,9 @@ import com.openapi.common.util.log.LogUtil
 import com.openapi.home.HomeActivity
 import com.openapi.ks.chat.R
 import com.openapi.ks.chat.databinding.MainLaunchBinding
-import com.openapi.ks.myapp.constant.Constants
+import com.openapi.core.config.Constants
 import com.openapi.ks.myapp.task.LoginTask
-import com.openapi.ks.myapp.ui.base.app.LogActivity
+import com.openapi.core.legacyui.app.LogActivity
 
 /** 启动页：展示开屏广告，倒计时结束或点跳过后进入主页。 */
 class LaunchActivity : LogActivity() {

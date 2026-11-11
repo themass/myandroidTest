@@ -1,7 +1,7 @@
 package com.openapi.ks.myapp.content.image;
 
 import com.openapi.core.event.FavoriteVo;
-import com.openapi.ks.myapp.constant.Constants;
+import com.openapi.core.config.Constants;
 
 /**
  * @author gqli

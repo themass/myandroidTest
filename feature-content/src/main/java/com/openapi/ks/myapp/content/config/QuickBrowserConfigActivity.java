@@ -5,13 +5,13 @@ import android.net.Uri;
 import android.os.Bundle;
 
 import com.openapi.core.CommonConstants;
-import com.openapi.ks.myapp.ui.base.app.LogActivity;
+import com.openapi.core.legacyui.app.LogActivity;
 import com.openapi.common.util.android.PackageUtils;
 import com.openapi.core.ads.yewu.ads.base.AdsContext;
 import com.openapi.feature.content.R;
-import com.openapi.ks.myapp.constant.Constants;
+import com.openapi.core.config.Constants;
 import com.openapi.ks.myapp.data.UserLoginUtil;
-import com.openapi.ks.myapp.ui.base.WebViewActivity;
+import com.openapi.core.legacyui.base.WebViewActivity;
 
 /**
  * Created by openapi on 2016/3/17.

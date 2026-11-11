@@ -11,11 +11,11 @@ import com.openapi.common.util.json.GsonUtils;
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.common.util.lang.StringUtils;
 import com.openapi.common.net.NetUtils;
-import com.openapi.ks.myapp.bean.form.ConnLog;
-import com.openapi.ks.myapp.bean.form.ConnLogForm;
-import com.openapi.ks.myapp.bean.vo.NullReturnVo;
-import com.openapi.ks.myapp.constant.Constants;
-import com.openapi.ks.myapp.data.db.AppDatabase;
+import com.openapi.core.model.ConnLog;
+import com.openapi.core.model.ConnLogForm;
+import com.openapi.core.model.NullReturnVo;
+import com.openapi.core.config.Constants;
+import com.openapi.core.db.AppDatabase;
 
 import java.util.Date;
 import java.util.List;

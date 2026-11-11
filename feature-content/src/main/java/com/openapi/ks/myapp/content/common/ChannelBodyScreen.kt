@@ -69,8 +69,8 @@ import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import com.openapi.common.util.lang.StringUtils
 import com.openapi.feature.content.R
-import com.openapi.ks.myapp.bean.vo.RecommendVo
-import com.openapi.ks.myapp.constant.Constants
+import com.openapi.core.model.RecommendVo
+import com.openapi.core.config.Constants
 import com.openapi.ks.myapp.data.ImagePhotoLoad
 import kotlinx.coroutines.flow.distinctUntilChanged
 import okhttp3.Call

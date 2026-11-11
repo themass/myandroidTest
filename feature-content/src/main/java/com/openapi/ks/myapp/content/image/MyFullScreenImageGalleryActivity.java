@@ -20,7 +20,7 @@ import com.openapi.feature.content.databinding.LayoutImgBigPageViewBinding;
 import com.openapi.ks.myapp.content.image.FullScreenImagePagerAdapter;
 import com.openapi.ks.myapp.content.image.SaveImageCallBack;
 import com.openapi.ks.myapp.content.image.SaveImageTask;
-import com.openapi.ks.myapp.ui.base.app.BaseSingleActivity;
+import com.openapi.core.legacyui.app.BaseSingleActivity;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -8,8 +8,8 @@ import com.openapi.core.event.ConfigActionEvent;
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.common.util.android.ToastUtil;
 import com.openapi.core.R;
-import com.openapi.ks.myapp.constant.Constants;
-import com.openapi.ks.myapp.ui.base.WebViewActivity;
+import com.openapi.core.config.Constants;
+import com.openapi.core.legacyui.base.WebViewActivity;
 import com.openapi.ks.myapp.content.config.QuickBrowserConfigActivity;
 import com.openapi.ks.myapp.content.image.ImgChannleActivity;
 import com.openapi.ks.myapp.content.sound.SoundChannleActivity;
@@ -25,8 +25,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import static com.openapi.ks.myapp.constant.Constants.HTTPS_URL;
-import static com.openapi.ks.myapp.constant.Constants.HTTP_URL;
+import static com.openapi.core.config.Constants.HTTPS_URL;
+import static com.openapi.core.config.Constants.HTTP_URL;
 
 /**
  * Created by openapi on 2016/3/17.

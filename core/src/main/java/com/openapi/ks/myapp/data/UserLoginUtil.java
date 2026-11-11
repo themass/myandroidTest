@@ -8,8 +8,8 @@ import com.openapi.common.util.android.PreferenceUtils;
 import com.openapi.core.ads.yewu.um.MobAgent;
 import com.openapi.common.util.android.StaticDataUtil;
 import com.openapi.core.app.AppContext;
-import com.openapi.ks.myapp.bean.vo.UserInfoVo;
-import com.openapi.ks.myapp.constant.Constants;
+import com.openapi.core.model.UserInfoVo;
+import com.openapi.core.config.Constants;
 
 /**
  * Created by openapi on 2016/8/15.

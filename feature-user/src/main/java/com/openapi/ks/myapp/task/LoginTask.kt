@@ -11,8 +11,8 @@ import com.openapi.common.util.log.LogUtil
 import com.openapi.common.util.android.PreferenceUtils
 import com.openapi.common.util.lang.StringUtils
 import com.openapi.ks.myapp.bean.form.LoginForm
-import com.openapi.ks.myapp.bean.vo.UserInfoVo
-import com.openapi.ks.myapp.constant.Constants
+import com.openapi.core.model.UserInfoVo
+import com.openapi.core.config.Constants
 import com.openapi.ks.myapp.data.UserLoginUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

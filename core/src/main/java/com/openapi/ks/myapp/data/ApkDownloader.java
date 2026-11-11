@@ -21,7 +21,7 @@ import com.openapi.common.util.log.LogUtil;
 import com.openapi.common.util.android.FileUtils;
 import com.openapi.common.util.android.ToastUtil;
 import com.openapi.core.R;
-import com.openapi.ks.myapp.constant.Constants;
+import com.openapi.core.config.Constants;
 
 import java.io.File;
 

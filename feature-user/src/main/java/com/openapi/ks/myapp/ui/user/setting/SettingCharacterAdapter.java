@@ -16,9 +16,9 @@ import com.openapi.common.util.lang.StringUtils;
 import com.openapi.core.ads.yewu.ads.base.AdsContext;
 import com.openapi.core.ads.yewu.ads.base.AdsManager;
 import com.openapi.feature.user.R;
-import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
-import com.openapi.ks.myapp.bean.vo.CharacterVo;
-import com.openapi.ks.myapp.constant.Constants;
+import com.openapi.core.legacyui.adapter.BaseRecyclerViewAdapter;
+import com.openapi.core.model.CharacterVo;
+import com.openapi.core.config.Constants;
 import com.openapi.ks.myapp.data.ImagePhotoLoad;
 
 import java.util.List;

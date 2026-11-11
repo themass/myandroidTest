@@ -26,9 +26,9 @@ import com.openapi.common.net.netglide.MyGlideModule;
 // 使用现代 Shimmer 替代
 // import com.romainpiel.shimmer.Shimmer;
 import com.openapi.core.R;
-import com.openapi.ks.myapp.bean.vo.RecommendVo;
-import com.openapi.ks.myapp.constant.BaseRes;
-import com.openapi.ks.myapp.constant.Constants;
+import com.openapi.core.model.RecommendVo;
+import com.openapi.core.config.BaseRes;
+import com.openapi.core.config.Constants;
 
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 

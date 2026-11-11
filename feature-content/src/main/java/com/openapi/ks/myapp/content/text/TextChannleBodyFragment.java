@@ -4,8 +4,8 @@ package com.openapi.ks.myapp.content.text;
 import android.os.Bundle;
 import android.os.Build;
 
-import com.openapi.ks.myapp.bean.vo.RecommendVo;
-import com.openapi.ks.myapp.constant.Constants;
+import com.openapi.core.model.RecommendVo;
+import com.openapi.core.config.Constants;
 import com.openapi.ks.myapp.content.common.ChannelBodyFragment;
 import com.openapi.ks.myapp.content.text.TextChannelListFragment;
 

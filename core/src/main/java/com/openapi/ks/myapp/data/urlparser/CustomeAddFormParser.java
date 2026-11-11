@@ -1,6 +1,6 @@
 package com.openapi.ks.myapp.data.urlparser;
 
-import com.openapi.ks.myapp.bean.form.CustomeAddForm;
+import com.openapi.core.model.CustomeAddForm;
 
 import java.util.ArrayList;
 import java.util.List;

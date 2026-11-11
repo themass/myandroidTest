@@ -19,13 +19,13 @@ import com.openapi.common.util.android.ToastUtil;
 import com.openapi.common.net.HttpClient;
 import com.openapi.common.net.request.CommonResponse;
 import com.openapi.feature.user.R;
-import com.openapi.ks.myapp.bean.form.CustomeAddForm;
-import com.openapi.ks.myapp.bean.vo.NullReturnVo;
-import com.openapi.ks.myapp.constant.Constants;
+import com.openapi.core.model.CustomeAddForm;
+import com.openapi.core.model.NullReturnVo;
+import com.openapi.core.config.Constants;
 import com.openapi.common.net.BaseService;
 import com.openapi.ks.myapp.data.UserLoginUtil;
 import com.openapi.ks.myapp.data.urlparser.CustomeAddFormParser;
-import com.openapi.ks.myapp.ui.base.app.BaseSingleActivity;
+import com.openapi.core.legacyui.app.BaseSingleActivity;
 import com.openapi.feature.user.databinding.LayoutAddCustomeBinding;
 import android.view.ViewGroup;
 

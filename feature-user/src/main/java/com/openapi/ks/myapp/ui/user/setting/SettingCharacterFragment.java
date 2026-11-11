@@ -12,13 +12,13 @@ import com.openapi.common.util.android.ToastUtil;
 import com.openapi.core.ads.yewu.ads.base.AdsContext;
 import com.openapi.feature.user.R;
 import com.openapi.ks.myapp.ui.user.setting.SettingCharacterAdapter;
-import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
+import com.openapi.core.legacyui.adapter.BaseRecyclerViewAdapter;
 import com.openapi.core.app.AppContext;
-import com.openapi.ks.myapp.bean.vo.CharacterVo;
+import com.openapi.core.model.CharacterVo;
 import com.openapi.common.net.request.InfoListVo;
-import com.openapi.ks.myapp.constant.Constants;
-import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
-import com.openapi.ks.myapp.ui.base.features.BasePullLoadbleFragment;
+import com.openapi.core.config.Constants;
+import com.openapi.core.legacyui.base.CommonFragmentActivity;
+import com.openapi.core.legacyui.features.BasePullLoadbleFragment;
 
 
 

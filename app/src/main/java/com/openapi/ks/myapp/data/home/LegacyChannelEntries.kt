@@ -16,8 +16,8 @@ import com.openapi.home.domain.ChannelCategory
 import com.openapi.home.domain.ChannelEntries
 import com.openapi.home.domain.ChannelPage
 import com.openapi.ks.chat.R
-import com.openapi.ks.myapp.bean.vo.RecommendVo
-import com.openapi.ks.myapp.constant.Constants
+import com.openapi.core.model.RecommendVo
+import com.openapi.core.config.Constants
 import com.openapi.ks.myapp.data.UserLoginUtil
 import com.openapi.ks.myapp.ui.user.login.LoginActivity
 

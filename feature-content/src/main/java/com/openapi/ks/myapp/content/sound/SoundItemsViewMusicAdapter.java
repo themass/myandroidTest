@@ -19,8 +19,8 @@ import com.openapi.common.view.view.widgets.MusicVisualizer;
 import com.openapi.feature.content.R;
 import com.openapi.feature.content.databinding.ItemSongBinding;
 import com.openapi.feature.content.databinding.ItemSongAuxioBinding;
-import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
-import com.openapi.ks.myapp.bean.vo.SoundItemsVo;
+import com.openapi.core.legacyui.adapter.BaseRecyclerViewAdapter;
+import com.openapi.core.model.SoundItemsVo;
 import com.openapi.ks.myapp.content.sound.MusicStateListener;
 
 import java.util.List;

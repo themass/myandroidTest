@@ -18,10 +18,10 @@ import com.openapi.core.ads.yewu.ads.base.AdsManager;
 import com.openapi.common.net.HttpClient;
 import com.openapi.common.net.BaseService;
 import com.openapi.chat.ChatDependencies;
-import com.openapi.ks.myapp.constant.Constants;
+import com.openapi.core.config.Constants;
 import com.openapi.ks.myapp.data.chat.BackendSpeechToText;
 import com.openapi.ks.myapp.data.chat.ChatRepositoryImpl;
-import com.openapi.ks.myapp.data.db.AppDatabase;
+import com.openapi.core.db.AppDatabase;
 import com.openapi.ks.myapp.translation.VideoTranslationInstaller;
 import com.openapi.ks.myapp.video.PlaybackEngineHelper;
 import com.openapi.ks.myapp.data.ImagePhotoLoad;
@@ -94,7 +94,7 @@ public class MyApplication extends MultiDexApplication {
         BaseService speechService = new BaseService();
         speechService.setup(this);
         ChatDependencies.INSTANCE.installSpeechToText(new BackendSpeechToText(speechService));
-        com.openapi.core.util.FavoriteUtil.install(new com.openapi.ks.myapp.data.db.AppFavoriteStore());
+        com.openapi.core.util.FavoriteUtil.install(new com.openapi.core.db.AppFavoriteStore());
         Constants.initUserAgent(Constants.AGENT_APP_MYPOOL);
         isTemp = false;
         //欺骗应用市场

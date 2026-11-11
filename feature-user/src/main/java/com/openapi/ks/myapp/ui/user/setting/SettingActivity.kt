@@ -52,11 +52,11 @@ import com.openapi.common.util.lang.StringUtils
 import com.openapi.common.util.android.ToastUtil
 import com.openapi.feature.user.R
 import com.openapi.core.app.AppContext
-import com.openapi.ks.myapp.constant.Constants
+import com.openapi.core.config.Constants
 import com.openapi.ks.myapp.data.VersionUpdater
-import com.openapi.ks.myapp.ui.base.app.BaseSingleActivity
+import com.openapi.core.legacyui.app.BaseSingleActivity
 import com.openapi.ks.myapp.ui.user.setting.SettingCharacterFragment
-import com.openapi.ks.myapp.video.PlaybackEnginePrefs
+import com.openapi.core.config.PlaybackEnginePrefs
 import com.openapi.common.design.theme.AppMaterialTheme
 
 /**

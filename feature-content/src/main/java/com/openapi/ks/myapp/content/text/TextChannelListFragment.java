@@ -13,18 +13,18 @@ import com.openapi.common.util.android.SystemUtils;
 import com.openapi.common.util.android.ToastUtil;
 import com.openapi.core.ads.yewu.ads.base.AdsContext;
 import com.openapi.ks.myapp.content.text.TextChannelListItemsViewAdapter;
-import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
+import com.openapi.core.legacyui.adapter.BaseRecyclerViewAdapter;
 import com.openapi.core.event.FavoriteVo;
 import com.openapi.common.net.request.InfoListVo;
-import com.openapi.ks.myapp.bean.vo.RecommendVo;
+import com.openapi.core.model.RecommendVo;
 import com.openapi.ks.myapp.content.text.TextItemsVo;
-import com.openapi.ks.myapp.constant.Constants;
+import com.openapi.core.config.Constants;
 import com.openapi.core.util.FavoriteUtil;
 import com.openapi.ks.myapp.content.common.HistoryUtil;
 import com.openapi.common.util.android.StaticDataUtil;
-import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
+import com.openapi.core.legacyui.base.CommonFragmentActivity;
 import com.openapi.ks.myapp.content.common.MenuOneContext;
-import com.openapi.ks.myapp.ui.base.features.BasePullLoadbleFragment;
+import com.openapi.core.legacyui.features.BasePullLoadbleFragment;
 import com.openapi.feature.content.R;
 
 /**

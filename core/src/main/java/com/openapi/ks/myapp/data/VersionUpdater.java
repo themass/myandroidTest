@@ -16,8 +16,8 @@ import com.openapi.common.net.HttpClient;
 import com.openapi.common.net.request.CommonResponse;
 import com.openapi.common.net.request.GsonRequest;
 import com.openapi.core.app.AppContext;
-import com.openapi.ks.myapp.bean.vo.VersionVo;
-import com.openapi.ks.myapp.constant.Constants;
+import com.openapi.core.model.VersionVo;
+import com.openapi.core.config.Constants;
 import com.openapi.core.R;
 
 /**

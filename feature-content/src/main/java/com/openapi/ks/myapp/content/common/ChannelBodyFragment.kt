@@ -10,10 +10,10 @@ import androidx.lifecycle.lifecycleScope
 import com.openapi.common.net.BaseService
 import com.openapi.common.util.android.ToastUtil
 import com.openapi.feature.content.R
-import com.openapi.ks.myapp.bean.vo.RecommendVo
+import com.openapi.core.model.RecommendVo
 import com.openapi.ks.myapp.data.UserLoginUtil
-import com.openapi.ks.myapp.ui.base.app.BaseFragment
-import com.openapi.ks.myapp.constant.Routes
+import com.openapi.core.legacyui.app.BaseFragment
+import com.openapi.core.config.Routes
 
 /**
  * Host fragment for the channel body screens (text / video / movie / image channels).

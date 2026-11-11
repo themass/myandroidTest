@@ -5,8 +5,8 @@ import android.os.Bundle;
 import android.os.Build;
 import android.view.View;
 
-import com.openapi.ks.myapp.bean.vo.RecommendVo;
-import com.openapi.ks.myapp.constant.Constants;
+import com.openapi.core.model.RecommendVo;
+import com.openapi.core.config.Constants;
 import com.openapi.ks.myapp.content.common.RecommendFragment;
 import com.openapi.ks.myapp.content.sound.SoundItemsMusicFragment;
 

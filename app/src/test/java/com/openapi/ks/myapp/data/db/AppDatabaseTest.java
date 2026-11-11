@@ -10,10 +10,10 @@ import android.content.Context;
 import androidx.room.Room;
 import androidx.test.core.app.ApplicationProvider;
 
-import com.openapi.ks.myapp.bean.form.ChatLog;
-import com.openapi.ks.myapp.bean.form.ChatSessionLog;
-import com.openapi.ks.myapp.bean.form.ConnLog;
-import com.openapi.ks.myapp.bean.vo.HistoryVo;
+import com.openapi.core.model.ChatLog;
+import com.openapi.core.model.ChatSessionLog;
+import com.openapi.core.model.ConnLog;
+import com.openapi.core.model.HistoryVo;
 
 import org.junit.After;
 import org.junit.Before;

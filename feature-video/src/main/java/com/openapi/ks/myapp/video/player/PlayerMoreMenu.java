@@ -13,7 +13,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.common.util.android.ToastUtil;
 import com.openapi.feature.video.R;
-import com.openapi.ks.myapp.constant.Routes;
+import com.openapi.core.config.Routes;
 import com.shuyu.gsyvideoplayer.utils.CommonUtil;
 
 /**

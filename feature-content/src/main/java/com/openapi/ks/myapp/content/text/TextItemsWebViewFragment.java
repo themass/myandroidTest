@@ -20,7 +20,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 import com.openapi.core.event.FavoriteVo;
-import com.openapi.ks.myapp.ui.base.app.BaseFragment;
+import com.openapi.core.legacyui.app.BaseFragment;
 import com.openapi.core.view.view.MyFavoriteView;
 import com.openapi.common.view.view.MyWebView;
 import com.openapi.common.util.android.FileUtils;
@@ -28,13 +28,13 @@ import com.openapi.common.util.log.LogUtil;
 import com.openapi.core.ads.yewu.ads.base.AdsContext;
 import com.openapi.common.net.HttpUtils;
 import com.openapi.ks.myapp.content.text.TextItemsVo;
-import com.openapi.ks.myapp.constant.Constants;
+import com.openapi.core.config.Constants;
 import com.openapi.common.util.android.StaticDataUtil;
 import com.openapi.ks.myapp.content.text.SaveTextTask;
-import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
+import com.openapi.core.legacyui.base.CommonFragmentActivity;
 import com.openapi.feature.content.R;
-import com.openapi.ks.myapp.ui.channel.WebviewProgress;
-import com.openapi.ks.myapp.ui.channel.WebviewScreenKt;
+import com.openapi.core.legacyui.channel.WebviewProgress;
+import com.openapi.core.legacyui.channel.WebviewScreenKt;
 
 
 /**

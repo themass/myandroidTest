@@ -7,8 +7,8 @@ import android.content.Context;
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.common.util.lang.StringUtils;
 import com.openapi.ks.myapp.content.common.IndexRecommendAdapter;
-import com.openapi.ks.myapp.bean.vo.RecommendVo;
-import com.openapi.ks.myapp.constant.Constants;
+import com.openapi.core.model.RecommendVo;
+import com.openapi.core.config.Constants;
 
 import java.util.HashMap;
 import java.util.Map;

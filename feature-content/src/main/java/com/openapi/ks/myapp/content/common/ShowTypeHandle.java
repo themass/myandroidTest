@@ -14,7 +14,7 @@ import com.openapi.ks.myapp.data.ImagePhotoLoad;
 // 使用现代 Shimmer 替代
 // import com.romainpiel.shimmer.Shimmer;
 import com.openapi.ks.myapp.content.common.IndexRecommendAdapter;
-import com.openapi.ks.myapp.bean.vo.RecommendVo;
+import com.openapi.core.model.RecommendVo;
 
 import java.io.IOException;
 

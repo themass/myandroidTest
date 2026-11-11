@@ -125,7 +125,7 @@ fun ChatRoute(
             context.startActivity(
                 android.content.Intent(
                     android.content.Intent.ACTION_VIEW,
-                    android.net.Uri.parse(com.openapi.ks.myapp.constant.Constants.helpUrl),
+                    android.net.Uri.parse(com.openapi.core.config.Constants.helpUrl),
                 ),
             )
         },

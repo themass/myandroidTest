@@ -48,8 +48,8 @@ import com.openapi.common.util.lang.StringUtils
 import com.openapi.common.util.android.ToastUtil
 import com.openapi.feature.user.R
 import com.openapi.ks.myapp.bean.form.LoginForm
-import com.openapi.ks.myapp.bean.vo.UserInfoVo
-import com.openapi.ks.myapp.constant.Constants
+import com.openapi.core.model.UserInfoVo
+import com.openapi.core.config.Constants
 import com.openapi.ks.myapp.data.UserLoginUtil
 import com.openapi.common.design.theme.AppMaterialTheme
 

@@ -5,9 +5,9 @@ import com.openapi.common.net.BaseService
 import com.openapi.chat.domain.speech.SpeechToText
 import com.openapi.core.media.VoiceRecorder
 import com.openapi.common.net.awaitPost
-import com.openapi.ks.myapp.bean.form.AsrContentForm
-import com.openapi.ks.myapp.bean.vo.AsrResponseVo
-import com.openapi.ks.myapp.constant.Constants
+import com.openapi.core.model.AsrContentForm
+import com.openapi.core.model.AsrResponseVo
+import com.openapi.core.config.Constants
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull

@@ -18,9 +18,9 @@ import com.openapi.core.ads.yewu.ads.base.AdsContext;
 import com.openapi.core.ads.yewu.ads.base.AdsManager;
 import com.openapi.feature.content.R;
 import com.openapi.feature.content.databinding.LayoutChannelItemsItemBinding;
-import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
+import com.openapi.core.legacyui.adapter.BaseRecyclerViewAdapter;
 import com.openapi.ks.myapp.content.text.TextItemsVo;
-import com.openapi.ks.myapp.constant.Constants;
+import com.openapi.core.config.Constants;
 import com.openapi.ks.myapp.content.common.HistoryUtil;
 
 import java.util.List;

@@ -25,10 +25,10 @@ import com.openapi.common.util.android.SystemUtils;
 import com.openapi.common.util.android.ToastUtil;
 import com.openapi.feature.content.R;
 import com.openapi.ks.myapp.content.image.ImgItemsVo;
-import com.openapi.ks.myapp.bean.vo.RecommendVo;
+import com.openapi.core.model.RecommendVo;
 import com.openapi.ks.myapp.content.text.TextItemsVo;
-import com.openapi.ks.myapp.constant.Constants;
-import com.openapi.ks.myapp.constant.Routes;
+import com.openapi.core.config.Constants;
+import com.openapi.core.config.Routes;
 
 
 import java.io.File;
@@ -43,9 +43,9 @@ public class FavoriteFragment extends Fragment {
     private final FavoriteListState state = new FavoriteListState();
 
     public static void startFragment(Context context) {
-        Intent intent = new Intent(context, com.openapi.ks.myapp.ui.base.CommonFragmentActivity.class);
-        intent.putExtra(com.openapi.ks.myapp.ui.base.CommonFragmentActivity.FRAGMENT, FavoriteFragment.class);
-        intent.putExtra(com.openapi.ks.myapp.ui.base.CommonFragmentActivity.TITLE, R.string.menu_btn_favorite);
+        Intent intent = new Intent(context, com.openapi.core.legacyui.base.CommonFragmentActivity.class);
+        intent.putExtra(com.openapi.core.legacyui.base.CommonFragmentActivity.FRAGMENT, FavoriteFragment.class);
+        intent.putExtra(com.openapi.core.legacyui.base.CommonFragmentActivity.TITLE, R.string.menu_btn_favorite);
         context.startActivity(intent);
     }
 

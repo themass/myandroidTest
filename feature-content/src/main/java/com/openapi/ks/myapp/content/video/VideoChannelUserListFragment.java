@@ -11,9 +11,9 @@ import android.view.View;
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.core.ads.yewu.ads.base.AdsContext;
 import com.openapi.common.net.request.InfoListVo;
-import com.openapi.ks.myapp.bean.vo.RecommendVo;
-import com.openapi.ks.myapp.constant.Constants;
-import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
+import com.openapi.core.model.RecommendVo;
+import com.openapi.core.config.Constants;
+import com.openapi.core.legacyui.base.CommonFragmentActivity;
 
 /**
  * Created by openapi on 2016/8/12.

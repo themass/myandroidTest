@@ -2,8 +2,8 @@ package com.openapi.ks.myapp.data.urlparser;
 
 import android.net.Uri;
 
-import com.openapi.ks.myapp.bean.form.CustomeAddForm;
-import com.openapi.ks.myapp.constant.Constants;
+import com.openapi.core.model.CustomeAddForm;
+import com.openapi.core.config.Constants;
 
 /**
  * Created by openapi on 2017/4/10.

@@ -15,11 +15,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.feature.video.R;
-import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
+import com.openapi.core.legacyui.adapter.BaseRecyclerViewAdapter;
 import com.openapi.common.net.request.InfoListVo;
-import com.openapi.ks.myapp.bean.vo.RecommendVo;
-import com.openapi.ks.myapp.constant.Constants;
-import com.openapi.ks.myapp.ui.base.features.BasePullLoadbleFragment;
+import com.openapi.core.model.RecommendVo;
+import com.openapi.core.config.Constants;
+import com.openapi.core.legacyui.features.BasePullLoadbleFragment;
 import com.openapi.ks.myapp.video.page.VideoPlaybackUiHelper;
 import com.shuyu.gsyvideoplayer.GSYVideoManager;
 import com.shuyu.gsyvideoplayer.listener.GSYSampleCallBack;

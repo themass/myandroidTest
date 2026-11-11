@@ -5,8 +5,8 @@ import android.content.Context;
 import com.openapi.common.util.android.Background;
 import com.openapi.common.util.lang.CollectionUtils;
 import com.openapi.common.util.log.LogUtil;
-import com.openapi.ks.myapp.bean.vo.HistoryVo;
-import com.openapi.ks.myapp.data.db.AppDatabase;
+import com.openapi.core.model.HistoryVo;
+import com.openapi.core.db.AppDatabase;
 
 import java.util.List;
 

@@ -9,7 +9,7 @@ import android.content.Intent;
 
 import com.openapi.ks.myapp.base.MyApplication;
 
-import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
+import com.openapi.core.legacyui.base.CommonFragmentActivity;
 import com.openapi.ks.myapp.ui.user.profile.AddCustomeInfoActivity;
 import com.openapi.ks.myapp.ui.user.password.FindPassActivity;
 import com.openapi.ks.myapp.ui.user.login.LoginActivity;

@@ -20,17 +20,17 @@ import com.openapi.ks.myapp.content.image.FullScreenImagePagerAdapter;
 import com.openapi.core.event.FavoriteVo;
 import com.openapi.core.view.view.MyFavoriteView;
 import com.openapi.common.util.android.ToastUtil;
-import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
+import com.openapi.core.legacyui.adapter.BaseRecyclerViewAdapter;
 import com.openapi.core.app.AppContext;
 import com.openapi.ks.myapp.content.image.ImgItemsVo;
 import com.openapi.common.net.request.InfoListVo;
-import com.openapi.ks.myapp.bean.vo.RecommendVo;
-import com.openapi.ks.myapp.constant.Constants;
+import com.openapi.core.model.RecommendVo;
+import com.openapi.core.config.Constants;
 import com.openapi.common.util.android.StaticDataUtil;
 import com.openapi.ks.myapp.content.image.SaveImageCallBack;
 import com.openapi.ks.myapp.content.image.SaveImageTask;
-import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
-import com.openapi.ks.myapp.ui.inte.OnBackKeyDownListener;
+import com.openapi.core.legacyui.base.CommonFragmentActivity;
+import com.openapi.core.legacyui.inte.OnBackKeyDownListener;
 import com.openapi.feature.content.R;
 
 

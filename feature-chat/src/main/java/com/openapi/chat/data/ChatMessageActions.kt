@@ -4,9 +4,9 @@ import android.content.Context
 import com.openapi.core.event.FavoriteVo
 import com.openapi.common.net.BaseService
 import com.openapi.core.util.FavoriteUtil
-import com.openapi.ks.myapp.bean.form.FeedbackContentForm
-import com.openapi.ks.myapp.bean.vo.NullReturnVo
-import com.openapi.ks.myapp.constant.Constants
+import com.openapi.core.model.FeedbackContentForm
+import com.openapi.core.model.NullReturnVo
+import com.openapi.core.config.Constants
 
 /**
  * 对话消息的点赞、点踩，与旧版 MyIncomingAudioFooterView / FeedbackDialog 保持一致。

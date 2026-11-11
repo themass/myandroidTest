@@ -12,11 +12,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.openapi.core.ads.yewu.ads.base.AdsContext;
 import com.openapi.ks.myapp.content.image.ImgItemsVo;
 import com.openapi.common.net.request.InfoListVo;
-import com.openapi.ks.myapp.bean.vo.RecommendVo;
-import com.openapi.ks.myapp.constant.Constants;
+import com.openapi.core.model.RecommendVo;
+import com.openapi.core.config.Constants;
 import com.openapi.ks.myapp.content.common.HistoryUtil;
 import com.openapi.common.util.android.StaticDataUtil;
-import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
+import com.openapi.core.legacyui.base.CommonFragmentActivity;
 import com.openapi.feature.content.R;
 
 /**

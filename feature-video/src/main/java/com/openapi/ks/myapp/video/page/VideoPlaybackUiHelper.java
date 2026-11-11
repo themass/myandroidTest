@@ -9,7 +9,7 @@ import com.openapi.common.util.log.LogUtil;
 import com.openapi.common.util.android.PreferenceUtils;
 import com.openapi.common.util.android.ToastUtil;
 import com.openapi.feature.video.R;
-import com.openapi.ks.myapp.constant.Constants;
+import com.openapi.core.config.Constants;
 import com.shuyu.gsyvideoplayer.video.base.GSYBaseVideoPlayer;
 
 /**

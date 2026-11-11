@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:background="@drawable/bg_music_list_page">
 
-    <com.openapi.ks.myapp.ui.gsy.compose.ListShellView
+    <com.openapi.core.legacyui.gsy.ListShellView
         android:id="@+id/my_pullview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

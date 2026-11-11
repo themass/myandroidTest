@@ -12,8 +12,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.openapi.feature.video.R;
-import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
-import com.openapi.ks.myapp.bean.vo.RecommendVo;
+import com.openapi.core.legacyui.adapter.BaseRecyclerViewAdapter;
+import com.openapi.core.model.RecommendVo;
 import com.openapi.ks.myapp.data.VideoUtil;
 import com.shuyu.gsyvideoplayer.utils.GSYVideoHelper;
 

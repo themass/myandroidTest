@@ -4,7 +4,7 @@ import android.content.Context
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.openapi.common.util.android.PreferenceUtils
-import com.openapi.ks.myapp.constant.Constants
+import com.openapi.core.config.Constants
 import com.openapi.roles.data.RolesParser
 import com.openapi.roles.data.RolesRepository
 import com.openapi.roles.domain.RoleDivision

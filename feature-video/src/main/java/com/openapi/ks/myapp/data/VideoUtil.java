@@ -3,8 +3,8 @@ package com.openapi.ks.myapp.data;
 import com.openapi.core.CommonConstants;
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.common.util.lang.StringUtils;
-import com.openapi.ks.myapp.bean.vo.RecommendVo;
-import com.openapi.ks.myapp.constant.Constants;
+import com.openapi.core.model.RecommendVo;
+import com.openapi.core.config.Constants;
 
 import java.net.URI;
 import java.util.Arrays;

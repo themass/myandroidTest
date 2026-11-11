@@ -13,7 +13,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.openapi.feature.content.R;
-import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
+import com.openapi.core.legacyui.adapter.BaseRecyclerViewAdapter;
 import com.openapi.ks.myapp.content.mine.AppInfo;
 import com.openapi.ks.myapp.data.ImagePhotoLoad;
 

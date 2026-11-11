@@ -9,12 +9,12 @@ import android.view.View;
 
 import com.openapi.feature.content.R;
 import com.openapi.ks.myapp.content.mine.AppRecommendViewAdapter;
-import com.openapi.ks.myapp.adapter.base.BaseRecyclerViewAdapter;
+import com.openapi.core.legacyui.adapter.BaseRecyclerViewAdapter;
 import com.openapi.ks.myapp.content.mine.AppInfo;
 import com.openapi.common.net.request.InfoListVo;
-import com.openapi.ks.myapp.constant.Constants;
-import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
-import com.openapi.ks.myapp.ui.base.features.BasePullLoadbleFragment;
+import com.openapi.core.config.Constants;
+import com.openapi.core.legacyui.base.CommonFragmentActivity;
+import com.openapi.core.legacyui.features.BasePullLoadbleFragment;
 
 /**
  * Created by openapi on 2016/8/12.

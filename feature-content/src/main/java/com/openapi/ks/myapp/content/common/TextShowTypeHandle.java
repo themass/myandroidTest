@@ -6,7 +6,7 @@ import android.view.View;
 // 使用现代 Shimmer 替代
 // import com.romainpiel.shimmer.Shimmer;
 import com.openapi.ks.myapp.content.common.IndexRecommendAdapter;
-import com.openapi.ks.myapp.bean.vo.RecommendVo;
+import com.openapi.core.model.RecommendVo;
 
 /**
  * Created by openapi on 2017/11/30.
