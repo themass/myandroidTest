@@ -6,8 +6,6 @@ import com.openapi.common.util.lang.StringUtils;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
 import android.os.Build;
 
 import java.io.IOException;

@@ -17,8 +17,7 @@
     <!-- 网络 -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <!-- 投屏（:cast）和 IpUtil 读取本机局域网地址 -->
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <!-- 投屏用 NetworkInterface 取本机局域网 IP，不需要 ACCESS_WIFI_STATE。 -->
 
     <!-- 拍照、语音：运行时由 PermissionGateway 申请，清单必须先声明 -->
     <uses-permission android:name="android.permission.CAMERA" />

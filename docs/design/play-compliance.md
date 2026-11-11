@@ -100,8 +100,8 @@
 | R3 | debug 包 315 MB。Play 的 AAB 基础模块上限 200 MB（含按需模块可更大），上架前要看 release AAB 的实际大小；`libs` 里 OpenCV / ONNX / LiveKit 的原生库是大头 |
 | R4 | 原生库 16 KB 页大小对齐（Android 15+ 设备必须）：`imaging/build.gradle` 注释说 OpenCV 4.12.0 已对齐；**LiveKit(WebRTC) 与 GSY(ijkplayer) 的 `.so` 未验证** |
 | R5 | AgentChat（约 15 个文件）仍在 `:app` 用旧包名 `com.openapi.ks.myapp.agent`，`ModuleGraphTest` 里按目录豁免。另一个会话正在改，搬完要删豁免 |
-| R6 | `HttpUtils.ping()` / `pingVal()` 用 `Runtime.exec("ping ... " + ip)` 拼接字符串。**搜遍全仓没有任何调用方**（死代码），不是可利用的注入点；但留着会被静态扫描标出，建议删除 |
-| R7 | `IpUtil.getInNetIp()` 用明文请求 `ip.chinaz.com`、`pv.sohu.com` 查公网 IP，会把用户 IP 发给第三方。**没有调用方**（只有 `getDomain` 被 `BaseWebViewFragment` 用），建议删除这个方法 |
+| R6 | ~~`HttpUtils.ping()` / `pingVal()` 拼接字符串执行 `ping`~~ —— 全仓无调用方的死代码，**已删除** |
+| R7 | ~~`IpUtil.getInNetIp()` 明文请求第三方查公网 IP~~ —— 无调用方，**已删除**；顺带去掉不再需要的 `ACCESS_WIFI_STATE`（投屏用 `NetworkInterface` 取本机 IP）。**未验证**：投屏发现在真机上是否仍正常 |
 
 ---
 
