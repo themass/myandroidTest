@@ -19,6 +19,8 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
@@ -123,6 +125,11 @@ public class VpnRadFragment extends BaseFragment {
     private android.view.ViewStub globeStub;
     /** 全部线路节点（用于地球标注与测速）。 */
     private List<LocationVo> globeLocations = new ArrayList<>();
+    /** 在地球上换了节点后，等断开完成再自动连新节点。 */
+    private boolean pendingConnectAfterDisconnect;
+    /** 上一秒的累计流量与时间戳，用来算实时速率（地球连线动画用）。 */
+    private long lastTrafficTotal;
+    private long lastTrafficAt;
     /** 节点 id → 最近一次测得的延迟（毫秒，负数=超时）。 */
     private final Map<String, Integer> globePings = new ConcurrentHashMap<>();
     /** 本次连接实际使用的节点 gateway（Random 时由服务器选出）；断开后仍保留，直到下次连接。 */
@@ -290,17 +297,6 @@ public class VpnRadFragment extends BaseFragment {
         btnGift = view.findViewById(R.id.btn_gift);
         if (btnGift != null) {
             btnGift.setOnClickListener(v -> showRewardAd());
-        }
-        if (globe != null) {
-            // 长按地球上的节点：跳到节点列表并定位到它
-            globe.setOnNodeLongPressListener(id -> {
-                try {
-                    com.openapi.myapp.ui.proton.ProtonServerListActivity.start(
-                            getActivity(), Integer.parseInt(id));
-                } catch (NumberFormatException ignored) {
-                    // 节点 id 不是数字：忽略
-                }
-            });
         }
         view.findViewById(R.id.rl_points).setOnClickListener(this::onPoints);
         ibVpnStatus.setOnClickListener(this::onVpnClick);
@@ -559,6 +555,17 @@ public class VpnRadFragment extends BaseFragment {
 
     private void initGlobe() {
         globe.setVisibility(View.VISIBLE);
+        // 监听必须在这里挂：bindViews 执行时地球还在 ViewStub 里（findViewById 返回 null），
+        // 那时设置的监听器会被静默丢掉，表现为"点了没反应"。
+        globe.setOnNodeClickListener(this::onGlobeNodeClick);
+        globe.setOnNodeLongPressListener(id -> {
+            try {
+                com.openapi.myapp.ui.proton.ProtonServerListActivity.start(
+                        getActivity(), Integer.parseInt(id));
+            } catch (NumberFormatException ignored) {
+                // 节点 id 不是数字：忽略
+            }
+        });
         double[] user = GeoCatalog.approximateUser();
         if (user != null) {
             globe.setUser(user[0], user[1], getString(R.string.globe_my_location));
@@ -613,13 +620,34 @@ public class VpnRadFragment extends BaseFragment {
     }
 
     /** 把节点推给地球：有坐标的才能画；测过速的带上延迟用于分级上色；选中的节点单独放大波纹。 */
+    /**
+     * 节点经纬度：先用服务端下发的 lat/lng，缺失时才按城市名查本地表。
+     * <p>
+     * 本地表是子串匹配，新城市没加进去节点就会在地球上消失，所以服务端有值就以服务端为准。
+     * 服务端也可能只回了半个（经纬度必须成对，只有一个就当没有）。
+     */
+    @Nullable
+    private static double[] coordsOf(@NonNull LocationVo vo) {
+        if (vo.lat != null && vo.lng != null) {
+            double lat = vo.lat;
+            double lng = vo.lng;
+            // 越界值直接丢掉：画到球外会出现一个肉眼很怪的点，不如退回城市表
+            if (lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180
+                    && !(lat == 0 && lng == 0)) {
+                return new double[]{lat, lng};
+            }
+        }
+        return GeoCatalog.lookup(vo.cityName, vo.ename, vo.name);
+    }
+
     private void pushGlobeNodes() {
         if (globe == null || getActivity() == null) {
             return;
         }
         List<GlobeWebView.GeoNode> nodes = new ArrayList<>();
         for (LocationVo vo : globeLocations) {
-            double[] ll = GeoCatalog.lookup(vo.cityName, vo.ename, vo.name);
+            // 服务端坐标优先：客户端那张城市表只是兜底，匹配不上就会让节点在地球上消失
+            double[] ll = coordsOf(vo);
             if (ll != null) {
                 String id = String.valueOf(vo.id);
                 // 地球标签只能显示 ASCII：中文节点名改用英文名（ename）
@@ -632,8 +660,9 @@ public class VpnRadFragment extends BaseFragment {
         }
         LogUtil.i("3D 地球：节点 " + globeLocations.size() + " 个，有坐标 " + nodes.size() + " 个");
         for (LocationVo vo : globeLocations) {
-            if (GeoCatalog.lookup(vo.cityName, vo.ename, vo.name) == null) {
-                LogUtil.i("3D 地球：无坐标的节点 " + vo.ename + " / " + vo.name + " / " + vo.cityName);
+            if (coordsOf(vo) == null) {
+                LogUtil.i("3D 地球：无坐标的节点 id=" + vo.id + " " + vo.ename + " / "
+                        + vo.name + " / " + vo.cityName);
             }
         }
         int selected = LocationUtil.getSelectLocationId(getActivity());
@@ -866,6 +895,14 @@ public class VpnRadFragment extends BaseFragment {
         toggleVpn();
     }
 
+    /** onVpnClick(View) 需要一个 View 参数，但这里没有点击来源，统一走一个空参包装。 */
+    private void onVpnClickOrNoop() {
+        if (!isAdded()) {
+            return;
+        }
+        onVpnClick(null);
+    }
+
     private void toggleVpn() {
         VpnSessionState current = repo.current();
         LogUtil.i("toggleVpn " + current.getState());
@@ -901,6 +938,59 @@ public class VpnRadFragment extends BaseFragment {
                 serverListener, serverListenerError, INDEX_TAG, ServerVo.class);
     }
 
+    /**
+     * 地球节点被点击：选中该节点并连接。
+     * <p>
+     * 与列表页选节点走同一套持久化（LOCATION_CHOOSE + LocationChooseEvent），否则首页卡片
+     * 和列表页会显示不同的节点。已连接时先记下"要切过去"，等断开完再连——直接改选择会让
+     * 正在跑的隧道用上旧的配置，界面与状态栏对不上。
+     */
+    private void onGlobeNodeClick(@NonNull String nodeId) {
+        if (getActivity() == null) {
+            return;
+        }
+        final int id;
+        try {
+            id = Integer.parseInt(nodeId);
+        } catch (NumberFormatException e) {
+            return;
+        }
+        LocationVo target = null;
+        for (LocationVo vo : globeLocations) {
+            if (vo.id == id) {
+                target = vo;
+                break;
+            }
+        }
+        if (target == null) {
+            return;
+        }
+        // 点的是当前已连着的节点：当作"断开"，和首页大按钮一致，不重新连一次
+        VpnSessionState current = repo.current();
+        int selectedId = LocationUtil.getSelectLocationId(getActivity());
+        if (selectedId == id && (current.isConnected() || current.isConnecting())) {
+            toggleVpn();
+            return;
+        }
+
+        UserNodeStore.select(getActivity(), null);
+        PreferenceUtils.setPrefBoolean(getActivity(), Constants.LOCATION_FLAG, true);
+        LocationUtil.setLocation(getActivity(), target);
+        EventBusUtil.getEventBus().postSticky(
+                new com.openapi.myapp.data.config.LocationChooseEvent());
+        refreshCurrentNode();
+        pushGlobeNodes();
+
+        if (current.isConnected() || current.isConnecting()) {
+            // 连接中/已连接：先断开，等状态回到 idle 再连新节点（见 render 的 DISABLED 分支）
+            pendingConnectAfterDisconnect = true;
+            repo.disconnect();
+            ToastUtil.showShort(R.string.globe_switching_node);
+        } else if (current.isIdle()) {
+            onVpnClick(null);
+        }
+    }
+
     /** 状态渲染的唯一入口；由 LiveData 在主线程回调。 */
     // ------------------------------------------------------------ 连接后的计时与流量
 
@@ -923,6 +1013,12 @@ public class VpnRadFragment extends BaseFragment {
         mHandler.removeCallbacks(connStatsTick);
         if (!connected) {
             tvConnStats.setVisibility(View.GONE);
+            // 断开后清零：否则下次连接的第一秒会用"上次累计"当基准，算出荒谬的速率
+            lastTrafficTotal = 0;
+            lastTrafficAt = 0;
+            if (globe != null) {
+                globe.setTraffic(0);
+            }
             return;
         }
         tvConnStats.setVisibility(View.VISIBLE);
@@ -946,6 +1042,18 @@ public class VpnRadFragment extends BaseFragment {
                 com.openapi.myapp.data.UsageStats.formatDuration(System.currentTimeMillis() - startAt),
                 com.openapi.myapp.data.UsageStats.formatBytes(t[0]),
                 com.openapi.myapp.data.UsageStats.formatBytes(t[1])));
+
+        // 地球上的连线跟着真实吞吐跑：每秒的增量就是这一秒的速率
+        long total = t[0] + t[1];
+        long now = System.currentTimeMillis();
+        if (lastTrafficAt > 0 && now > lastTrafficAt) {
+            long bps = (total - lastTrafficTotal) * 1000L / (now - lastTrafficAt);
+            if (globe != null) {
+                globe.setTraffic(bps);
+            }
+        }
+        lastTrafficTotal = total;
+        lastTrafficAt = now;
     }
 
     private void render(VpnSessionState state) {
@@ -992,6 +1100,11 @@ public class VpnRadFragment extends BaseFragment {
             case DISABLED:
                 mHandler.removeCallbacks(vpnCheck);
                 imgNormal();
+                // 在地球上换了节点、正在等断开完成：现在可以连新节点了
+                if (pendingConnectAfterDisconnect) {
+                    pendingConnectAfterDisconnect = false;
+                    mHandler.postDelayed(this::onVpnClickOrNoop, 300);
+                }
                 break;
             default:
                 mHandler.removeCallbacks(vpnCheck);

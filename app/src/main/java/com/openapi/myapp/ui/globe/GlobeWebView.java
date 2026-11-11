@@ -36,9 +36,21 @@ public final class GlobeWebView extends WebView {
         void onNodeLongPress(@NonNull String nodeId);
     }
 
+    /**
+     * 单击节点的回调（在主线程调用）。
+     * <p>
+     * 上层用它做"点一下就连这个节点"：地球是首页最大的视觉元素，点下去只画一条虚线
+     * 而不连，等于把最大的入口浪费掉。长按仍然是进列表看详情，两者分工不同。
+     */
+    public interface OnNodeClickListener {
+        void onNodeClick(@NonNull String nodeId);
+    }
+
     private final Gson gson = new Gson();
     @Nullable
     private OnNodeLongPressListener longPressListener;
+    @Nullable
+    private OnNodeClickListener clickListener;
     private boolean pageReady;
     @Nullable
     private String nodesJs;
@@ -48,6 +60,9 @@ public final class GlobeWebView extends WebView {
     private String exitJs;
     @Nullable
     private String connJs;
+    @Nullable
+    private String trafficJs;
+    private long lastTraffic;
 
     /**
      * 一个节点在地球上的位置。id 与 LocationVo.id 对应。
@@ -154,6 +169,24 @@ public final class GlobeWebView extends WebView {
         run(connJs);
     }
 
+    /**
+     * 实时吞吐（字节/秒），只影响连线的动画速度和粗细。
+     * <p>
+     * 每秒调一次即可：地球是"我在被保护"的视觉证据，数据在动时线就该跑起来，
+     * 闲时几乎静止——这比任何文字都直观。
+     */
+    public void setTraffic(long bytesPerSecond) {
+        // 变化很小时不重绘：每秒一次 evaluateJavascript + Three.js 重建数据代价不小，
+        // 而且人眼也看不出 1KB/s 和 2KB/s 的区别
+        long v = Math.max(0, bytesPerSecond);
+        if (Math.abs(v - lastTraffic) < 4096) {
+            return;
+        }
+        lastTraffic = v;
+        trafficJs = "Globe3D.setTraffic(" + v + ")";
+        run(trafficJs);
+    }
+
     private void run(@NonNull String js) {
         if (pageReady) {
             evaluateJavascript(js, null);
@@ -173,17 +206,29 @@ public final class GlobeWebView extends WebView {
         if (connJs != null) {
             evaluateJavascript(connJs, null);
         }
+        if (trafficJs != null) {
+            evaluateJavascript(trafficJs, null);
+        }
     }
 
     public void setOnNodeLongPressListener(@Nullable OnNodeLongPressListener listener) {
         this.longPressListener = listener;
     }
 
+    public void setOnNodeClickListener(@Nullable OnNodeClickListener listener) {
+        this.clickListener = listener;
+    }
+
     /** JS 侧调用 AndroidGlobe.* 的入口。 */
     private final class Bridge {
         @JavascriptInterface
         public void onNodeClick(String id) {
-            // 预留：点击节点后的选路逻辑由上层决定，这里不擅自切换节点。
+            // 同样是 JS 桥接线程，切回主线程再通知上层
+            post(() -> {
+                if (clickListener != null) {
+                    clickListener.onNodeClick(id);
+                }
+            });
         }
 
         @JavascriptInterface

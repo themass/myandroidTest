@@ -57,7 +57,7 @@
   var COLOR_USER = '#0A84FF';        // 蓝：用户位置
   var COLOR_EXIT = '#BF5AF2';        // 紫：出口 IP 位置（与蓝色的用户位置区分）
 
-  var state = { nodes: [], selectedId: null, probeId: null, user: null, exit: null, connState: 'idle', connNodeId: null };
+  var state = { nodes: [], selectedId: null, probeId: null, user: null, exit: null, connState: 'idle', connNodeId: null, bps: 0 };
   var LONG_PRESS_MS = 500;
   var pointerDownAt = 0;
 
@@ -86,10 +86,10 @@
     .polygonSideColor(function () { return 'rgba(0,0,0,0)'; })
     .polygonStrokeColor(function () { return 'rgba(190, 225, 255, 0.85)'; })
     .arcColor('color')
-    .arcStroke(1.1)
+    .arcStroke(function (d) { return d.width || 1.1; })
     .arcDashLength(0.35)
     .arcDashGap(0.15)
-    .arcDashAnimateTime(1600)
+    .arcDashAnimateTime(function (d) { return d.dashMs || 1600; })
     .arcAltitudeAutoScale(0.45)
     .htmlLat('lat')
     .htmlLng('lng')
@@ -304,11 +304,34 @@
           : state.connState === 'connecting' ? COLOR_CONNECTING
           : state.connState === 'failed' ? COLOR_FAILED : null;
         if (c) {
+          // 第一段：本机 -> 节点。有流量时线跑得快，闲时几乎不动——
+          // 这是"我正在被保护、而且真的有数据在走"的直观证据。
+          var dashMs = 1600;
+          if (state.connState === 'connected') {
+            // bps -> 动画时长：0 流量时 2600ms（几乎静止），10MB/s 以上压到 550ms
+            var k = Math.min(1, Math.max(0, state.bps / (10 * 1024 * 1024)));
+            dashMs = Math.round(2600 - 2050 * k);
+          } else {
+            dashMs = 900;   // 连接中：不依赖流量，保持一个明显的"在尝试"的节奏
+          }
           arcs.push({
             startLat: state.user.lat, startLng: state.user.lng,
             endLat: target.lat, endLng: target.lng,
-            color: [c, c]
+            color: [c, c],
+            dashMs: dashMs,
+            width: state.connState === 'connected' ? 1.1 + 2.0 * Math.min(1, state.bps / (10 * 1024 * 1024)) : 1.1
           });
+          // 第二段：节点 -> 出口 IP。出口是流量的终点，不画的话用户只看到"连上了"，
+          // 看不到"从哪出去"——而后者才是他们选节点的理由。
+          if (state.connState === 'connected' && state.exit) {
+            arcs.push({
+              startLat: target.lat, startLng: target.lng,
+              endLat: state.exit.lat, endLng: state.exit.lng,
+              color: [toRgba(COLOR_EXIT, 0.85), toRgba(COLOR_EXIT, 0.85)],
+              dashMs: dashMs,
+              width: 0.9
+            });
+          }
         }
       }
     }
@@ -362,6 +385,11 @@
     },
     setExit: function (lat, lng, label) {
       state.exit = (lat === null || lng === null) ? null : { lat: lat, lng: lng, label: label || '' };
+      refresh();
+    },
+    // 实时吞吐（字节/秒）：只影响连线动画速度与粗细，不改变任何状态
+    setTraffic: function (bps) {
+      state.bps = (typeof bps === 'number' && bps > 0) ? bps : 0;
       refresh();
     },
     setConnection: function (connState, nodeId) {

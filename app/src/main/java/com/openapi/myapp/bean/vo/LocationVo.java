@@ -21,6 +21,13 @@ public class LocationVo implements Serializable{
     public Integer ping;
     public Object ext;
     public String category;
+    /**
+     * 节点经纬度，服务端下发（vpn.location_v2.lat/lng）。为 null 时用 GeoCatalog 按城市名兜底。
+     * 用 Double 而不是 BigDecimal：服务端下发的是 JSON 数字，Gson 直接映射，
+     * 客户端只用于画点，不需要十进制精确性。
+     */
+    public Double lat;
+    public Double lng;
     @Override
     public String toString() {
         return "LocationVo{" +
@@ -35,6 +42,8 @@ public class LocationVo implements Serializable{
                 ", port=" + port +
                 ", ttlTime=" + ttlTime +
                 ", ping='" + ping + '\'' +
+                ", lat=" + lat +
+                ", lng=" + lng +
                 '}';
     }
 //    public static LocationVo fromNative(NativeAdInfo info){
