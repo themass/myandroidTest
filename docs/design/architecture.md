@@ -24,10 +24,10 @@
 
 | 种类 | 判断标准 | 放到 |
 |---|---|---|
-| **A. 纯工具** | 不认识业务名词；不画界面；不发网络请求 | `:common/util` |
-| **B. 网络** | HTTP 收发、图片加载的传输层 | `:common/net` |
-| **C. 通用视图** | 与业务无关的 UI 部件，不带重库，换个 App 也能用 | `:common/ui` |
-| **D. 独立能力** | 自成体系、与业务无关；有对外接口，或带重库、模型 | `:media`、`:chatkit`、`:ads` |
+| **A. 纯工具** | 不认识业务名词；不画界面；不发网络请求 | `:common` |
+| **B. 网络** | HTTP 收发、图片加载的传输层 | `:network` |
+| **C. 通用视图** | 与业务无关的 UI 部件，不带重库，换个 App 也能用 | `:uikit` |
+| **D. 独立能力** | 自成体系、与业务无关；有对外接口，或带重库、模型 | `:mediaview`、`:speech`、`:subtitle`、`:imaging`、`:cast`、`:chatkit`、`:ads` |
 | **E. 业务公共** | 含业务名词或依赖接口配置，**并且**至少两个 feature 用 | `:core` |
 | **F. 功能专属** | 只有一个模块用 | 那个模块 |
 
@@ -35,63 +35,58 @@
 
 ---
 
-## 3. 模块结构（12 个）
+## 3. 模块结构（20 个，2026-11-11 第二轮重构后）
+
+第二轮评审（见 [refactor-round2.md](refactor-round2.md)）推翻了原来“工具、网络、视图合成 `:common`”和“相似能力合成 `:media`”两条决定：
+组件要能拿到别的项目复用，一个模块就只能带它真正需要的库。原来 `:common` 用 `api` 导出 GSY 播放器，`:media` 把 ONNX、OpenCV 带给只想用图片轮播的 `:chatkit`。
 
 ```
-第 4 层  :app                   进程入口、启动页、首页框架、路由汇总
-第 3 层  :feature-chat          对话（含 roles/）
-         :feature-content       内容频道（视频/图片/文字/声音）、收藏、推荐（原 :feature-channel）
-         :feature-video         视频播放、投屏
-         :feature-user          账户、设置、反馈
-         :feature-photosolve    拍照解题
-         :feature-companion     角色扮演伴侣（在自己的分支开发，这次不动）
-第 2 层  :core                  应用配置、共享业务数据、旧页面框架（逐步删除）
-第 1 层  :media                 speech/ subtitle/ imaging/ viewer/
-         :chatkit               对话 UI 组件
-         :ads                   广告
-第 0 层  :common                util/ net/ ui/（原 :commonutil，并入 :sharekit）
+第 4 层  :app                 com.openapi.app                 组合根：Application、启动页、首页、AppGlideModule
+第 3 层  :feature-chat        com.openapi.feature.chat        对话（含 roles/）
+         :feature-content     com.openapi.feature.content     内容频道（视频/图片/文字/声音）、收藏、推荐
+         :feature-video       com.openapi.feature.video       视频播放、投屏界面
+         :feature-user        com.openapi.feature.user        账户、设置、反馈
+         :feature-photosolve  com.openapi.feature.photosolve  拍照解题
+         :feature-companion   （不动，包名保持 com.openapi.ks.myapp.companion）
+第 2 层  :core                com.openapi.core                应用配置、共享业务数据、旧页面框架
+第 1 层  :chatkit             com.openapi.chatkit             对话 UI 组件（→ :mediaview）
+         :mediaview           com.openapi.mediaview           媒体查看（Compose、Coil）
+         :speech              com.openapi.speech              asr/ 火山引擎流式识别，tts/ 设备朗读，audio/ 录音与播放（Media3、OkHttp）
+         :subtitle            com.openapi.subtitle            翻译接口、字幕覆盖层、实时字幕（→ :speech）
+         :imaging             com.openapi.imaging             裁剪辅助、质量检测、增强管线、超分（ONNX、OpenCV）
+         :cast                com.openapi.cast                DLNA 投屏协议（SSDP、SOAP、本地 HTTP）
+         :ads                 com.openapi.ads                 广告、analytics/ 统计（GMS Ads）
+         :retromusic          com.openapi.retromusic          本地音乐（不强行统一风格、不拆包）
+第 0 层  :uikit               com.openapi.uikit               主题、对话框、通用控件、权限请求、分享；共用的尺寸/颜色
+         :network             com.openapi.network             HTTP、请求封装、DNS、Glide 网络组件（OkHttp、Glide、Gson）
+         :common              com.openapi.common              纯工具：util/ event/ image/（只依赖协程、core-ktx、Gson 等小库，没有资源）
 ```
-`:retromusic`（本地音乐）保持独立模块：可以改，但不强行统一风格、不拆包、不合并进别的模块。`:auxio_music_ui` **删除**（和频道声音页功能重复，见 refactor-plan.md 第 0 节）。
 
-**单独建模块的条件**（默认用子包）：带重的第三方库或原生库；需要构建层面强制依赖方向；有独立的开发分支。
+**单独建模块的条件**（默认用子包）：带重的第三方库或原生库；需要构建层面强制依赖方向；可以拿到别的项目单独复用；有独立的开发分支。
 
-### 3.1 依赖规则
-1. 只依赖下层。同层不互相依赖（例外：`:chatkit` → `:media/viewer`）。
-2. **第 0、1 层不依赖 `:core`**。业务配置和事件从上往下传参或回调。
-3. **feature 之间不互相依赖**。打开别的功能的页面用路由（Intent action 或类名字符串，`ChatRoute` 打开拍照解题已经这样做）。
-4. **第三方库谁用谁声明**，用 `implementation`；只有对外接口里出现库的类型才用 `api`。
-5. 去掉 `AppHooks`：`isVip` 读 `:core/account`；搜索入口由子类填进菜单槽位；设置页用路由。
+### 3.1 依赖规则（`ModuleGraphTest` 强制）
+1. 只依赖下层。同层只允许：`:network → :common`、`:uikit → :common`、`:chatkit → :mediaview`、`:subtitle → :speech`。
+2. 第 0、1 层不 import `com.openapi.core`、`com.openapi.feature`、`com.openapi.app`。业务配置和事件从上往下传参或回调（如 `NetConfig`、`TranslationOverlaySession`）。
+3. feature 之间不互相依赖。打开别的功能的页面用路由（类名字符串，见 `Routes`）。
+4. 声明的项目依赖必须用到（`:app` 除外）。第三方库谁用谁声明，用 `implementation`；只有对外接口里出现库的类型才用 `api`（如 `:network` 的 OkHttp、`:core` 的 Room、`:retromusic` 的 androidx.media）。
+5. 每个 Android 库模块 `apply from: gradle/android-library.gradle`，只写 namespace、buildFeatures 和依赖。
 
-### 3.2 子包规则（Gradle 不检查，靠架构测试）
+### 3.2 子包规则（靠评审，不在测试里）
 | 模块 | 规则 |
 |---|---|
-| `:common` | `util/` 不 import `net/`、`ui/`；`net/`、`ui/` 只 import `util/` |
-| `:media` | `subtitle/` 可以 import `speech/`；其余互不 import |
 | `:feature-chat` | `roles/` 不 import 对话的其它子包 |
 | `:feature-content` | `video/ image/ text/ sound/ config/` 只 import `common/`；`mine/` 可以 import 各类型子包，反过来不行 |
 
-### 3.3 包名
-包名 = 模块名：`com.openapi.<模块>`，feature 为 `com.openapi.feature.<名>`。`:ads` 改为 `com.openapi.ads`，其 `Constants` 改名 `AdsIds`。**放到最后一步统一改**，之前搬文件时包名保持不变，避免两种改动混在一起。
+### 3.3 包名（`ModuleGraphTest` 强制）
+包名 = 模块根包：`com.openapi.<模块>`，feature 为 `com.openapi.feature.<名>`。没有两个模块共用同一个包。例外：`:retromusic` 本来就规范；`:feature-companion` 不动。
+启动页的旧组件名 `com.openapi.ks.chatfree.ui.main.LaunchActivity` 以 `<activity-alias>` 保留，让用户桌面上的旧图标仍可打开。
+
+### 3.4 资源
+资源跟着用它的模块走：只有一个模块用的放那个模块；多个模块共用的尺寸、颜色、文字放 `:uikit`；`:common` 没有资源。
 
 ---
 
 ## 4. 各模块的目标内部结构
-
-### `:common` `com.openapi.common`
-```
-util/  lang/ android/ log/ json/ event/ share/
-net/   http/ request/ dns/ glide/ unsafe/
-ui/    theme/ dialog/ image/ widget/ recycler/ permission/
-```
-**不放**：业务事件、接口地址、收藏视图、字幕覆盖层、带 Media3 的组件。
-
-### `:media` `com.openapi.media`
-```
-speech/    asr/（火山引擎识别） tts/（设备朗读） record/ play/
-subtitle/  api/（翻译接口） overlay/（覆盖层） realtime/（实时字幕引擎、PCM 音频源） provider/
-imaging/   compress/ pipeline/ quality/ crop/ superres/
-viewer/    MediaStack、MediaCarousel、MediaOverlap、MediaVideoDialog
-```
 
 ### `:core` `com.openapi.core`
 定义：应用配置 + 多个功能共享的业务数据 + 旧页面框架。
@@ -161,14 +156,14 @@ Manifest 只登记启动页和首页，其余由各 feature 自己的 Manifest �
 ## 7. 已确认的决定（2026-11-10）
 
 1. `:app` 的重复资源先清：已完成（`eaf374ba`）。
-2. 工具、网络、通用视图合成 `:common`，用子包分开。
-3. 相似的独立能力合并：`:media` = 语音、字幕翻译、图像、媒体查看。投屏放 `:feature-video`。
-4. `:chatkit`、`:ads` 保持独立；`:feature-roles` 并入 `:feature-chat`。
+2. ~~工具、网络、通用视图合成 `:common`，用子包分开。~~ **2026-11-11 改为**：拆成 `:common`、`:network`、`:uikit` 三个模块（见 refactor-round2.md P1、P8）。
+3. ~~相似的独立能力合并：`:media` = 语音、字幕翻译、图像、媒体查看。投屏放 `:feature-video`。~~ **2026-11-11 改为**：`:media` 拆成 `:mediaview`、`:speech`、`:subtitle`、`:imaging`；DLNA 协议成为 `:cast`，投屏界面留在 `:feature-video`（见 refactor-round2.md P2、P6）。
+4. `:chatkit`、`:ads` 保持独立；`:feature-roles` 并入 `:feature-chat`（2026-11-11 完成）。
 5. 视频和频道不合并；`:feature-channel` 改名 `:feature-content`，按内容类型分子包。
 6. 第 0、1 层不依赖 `:core`；feature 之间不互相依赖；去掉 `AppHooks`。
-7. `:asr` 改名 `:speech`：改为 `:media/speech/`。
+7. `:asr` 改名 `:speech`：**2026-11-11** 成为独立模块 `:speech`（含火山引擎流式识别 `asr/`）。
 8. `UnsafeOkHttpClient` 只搬位置，不改行为。
-9. 包名统一放最后；`:ads` 改为 `com.openapi.ads`，`Constants` 改名 `AdsIds`。
+9. 包名统一放最后；`:ads` 改为 `com.openapi.ads`，`Constants` 改名 `AdsIds`。**2026-11-11 完成**，所有模块（`:feature-companion` 除外）用自己的根包。
 10. 拍照解题用应用统一主题：已完成（`db9633bf`）。
 11. 删除 `AutoVideoListFragment`：已完成（`db9633bf`）。
 13. 旧页面框架暂留 `:core/legacyui`；对话的 Room 实体留 `:core/db`。

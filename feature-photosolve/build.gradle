@@ -18,7 +18,6 @@ dependencies {
     implementation project(':common')
     implementation project(':imaging')
     implementation project(':uikit')
-    implementation project(':core')
     // 图像处理（压缩、质量分析、自动裁剪、超分）在 :media
     implementation libs.okhttp
 

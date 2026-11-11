@@ -159,4 +159,18 @@
 
 ## 7. 执行记录
 
-（每批完成后追加：提交号、改了什么、偏离和原因。）
+每批都做了 `:app:assembleChatDebug`；涉及依赖的批次对比了 APK 的外部运行时依赖清单（版本精确到号）和原生库清单。
+
+| 批次 | 提交 | 结果 | 偏离和原因 |
+|---|---|---|---|
+| 1 死代码、共享配置 | `e557082c` | 12 个库模块用 `gradle/android-library.gradle`；删 `ImageUtils`（让 util 依赖了 OkHttp）、`AndroidFileUtils`、空的库混淆文件、无效的 Manifest meta-data 和 `fileTree` | 无 |
+| 2 依赖卫生 | `e0ec7771` | GSY、PictureSelector、PhotoView、Room 从底层的 `api` 移到真正用的模块；`:app` 的 HLS、Cast、ML Kit 移到 feature；运行时依赖只少了一个没人用的 `LabelsView` | Glide：没有改成 `LibraryGlideModule`，而是把原来的配置整体移到 `:app` 的 `AppGlideConfig`。原因：OkHttp 官方集成先注册、自定义 DNS 加载器后追加，这个顺序只有在应用模块里才是确定的；改成库模块会改变加载顺序 |
+| 3 拆 `:commonutil` | `cba79ce3` | `:common`（纯工具，无资源）、`:network`、`:uikit`；删 47 个无人用的资源和 7 个已删控件的 styleable；28 个单模块资源移给使用者（其中多数在使用者里已有同名定义，原来就是使用者的值生效，直接去掉重复） | 无 |
+| 4 拆 `:media` | `bcced98e` | `:mediaview`、`:speech`、`:subtitle`、`:imaging`；轻量图片工具进 `:common/image` | 火山引擎流式识别从实时字幕包移到 `:speech/asr`：`:feature-chat` 的语音输入也在用它，它是识别能力，不是字幕；`:subtitle` 依赖 `:speech` |
+| 5 `:cast` | `348bebd5` | DLNA 协议独立 | 没有加 `CHANGE_WIFI_MULTICAST_STATE` 权限：原来没有，加了会改变行为 |
+| 6 合并 roles | `4b36d71e` | `:feature-roles` 并入 `:feature-chat`，删除模块 | 检查了 `RolePickerSheet` 和 `RoleCatalogPane`：前者包含后者，另一页是服务端角色，不是重复实现 |
+| 7 统一包名 | `41a4f7cd` | 265 个文件；没有跨模块同名包；`:ads`、`:app` 的 namespace 改名；启动页 `activity-alias`；混淆改为一条 `-keep class com.openapi.**` | 测试跟着被测代码走（`:core`、`:feature-chat`、`:imaging`、`:feature-content`、`:feature-companion`）。companion 的测试原来放在 `:app`，访问不到 companion 的 `internal` 函数，只是被增量编译掩盖了；移到 companion 模块后修复 |
+| 8 架构测试、文档 | （本提交） | `ModuleGraphTest` 4 条规则：分层、包名、第 0/1 层不引用业务代码、项目依赖必须用到；人为加一条违规边确认测试会失败 | 去掉 `:feature-photosolve` 对 `:core` 的无用依赖（新规则发现的） |
+
+**验证**：单元测试 139 个，只有原来就失败的两个：`ScreenSmokeTest`（`AppContext.init()` 没有调用）、`AppDatabaseMigrationTest`（缺 1→3 的迁移）。
+
