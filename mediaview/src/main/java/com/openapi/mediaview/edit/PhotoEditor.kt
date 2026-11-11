@@ -4,6 +4,8 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.text.drawText
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -49,11 +51,13 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.openapi.mediaview.R
 
 /**
  * 图片本地编辑器（Compose，无第三方依赖）。
@@ -150,7 +154,7 @@ fun PhotoEditor(
                     onStrokeEnd = {
                         if (currentStroke.size >= 2) {
                             edits = edits.push(
-                                EditOp.Stroke(currentStroke, strokeColor.toLong(), strokeWidthRatio),
+                                EditOp.Stroke(currentStroke, strokeColor.toArgb().toLong(), strokeWidthRatio),
                             )
                         }
                         currentStroke = emptyList()
@@ -204,7 +208,7 @@ fun PhotoEditor(
                 TextButton(onClick = {
                     if (textDraft.isNotBlank()) {
                         edits = edits.push(
-                            EditOp.Text(textDraft, pendingTextAt.x, pendingTextAt.y, strokeColor.toLong(), 0.05f),
+                            EditOp.Text(textDraft, pendingTextAt.x, pendingTextAt.y, strokeColor.toArgb().toLong(), 0.05f),
                         )
                     }
                     textDialog = false
@@ -292,7 +296,7 @@ private fun PreviewCanvas(
                                 },
                             )
                         }
-                        EditorTool.Text -> androidx.compose.foundation.gestures.detectTapGestures { p ->
+                        EditorTool.Text -> detectTapGestures { p ->
                             toNorm(p, fit)?.let(onTextTap)
                         }
                         else -> Unit

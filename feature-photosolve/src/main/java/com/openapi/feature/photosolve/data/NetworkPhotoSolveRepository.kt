@@ -22,7 +22,7 @@ import java.util.UUID
  *
  * 错误码映射：服务端 errno 直接透传成 [PhotoSolveError]；网络错误（返回 null）统一按「可重试」处理。
  */
-class NetworkPhotoSolveRepository(
+class NetworkPhotoSolveRepository @JvmOverloads constructor(
     context: Context,
     /** 相对路径，见 [com.openapi.core.config.Constants.PHOTOSOLVE_SOLVE_URL]。 */
     private val path: String = Constants.PHOTOSOLVE_SOLVE_URL,
