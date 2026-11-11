@@ -400,7 +400,7 @@
 
 **执行结果**：删除旧的 `PermissionHelper`、`CompatiblePermissionManager`、`ModernPermissionManager`、`PermissionUtils`，删除 `BasePermissionActivity`（它的权限请求从来不会执行：`initPerm` 检查空列表，`PermEvent` 没有发布者）；`BaseToolbarMenuActivity` 直接继承 `LogActivity`。`PermEvent` 和 `EventBusUtil` 删除，`eventbus` 依赖和 ProGuard 规则一起删除，EventBus 全部移除。Compose 版权限（`:commonutil` 的 `common/permission`）保留，供 `ChatRoute` 和 `LocalVideoActivity` 使用。
 
-**将来的做法（待定）**：确认权限请求只走 Compose 版后，删掉三套旧实现和 `BasePermissionActivity` 里的权限代码；保留 `BasePermissionActivity` 的其它功能（如果有的话）。
+上面的做法已完成。
 
 ### 5.6 工具类整理（阶段 2）
 
