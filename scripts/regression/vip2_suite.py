@@ -219,8 +219,12 @@ def check_list_shows(names, timeout=30):
         items = nodes_on_screen(dump())
         visible = set(t for t, _ in items)
         if not tapped:
+            # 标签栏比列表内容先出现：VIP2 文字一出现就点，点击会落在这个还在 layout 的
+            # 页面上被丢掉（实测偶发：可见 22 个 Free 节点，说明标签根本没切过去）。
+            # 等 Free 列表真正渲染出来（"Best / Auto" 是它的第一项）再点。
+            ready = any(t == "Best / Auto" for t, _ in items)
             vip2 = [xy for t, xy in items if t == "VIP2"]
-            if vip2:              # 标签栏只在列表数据回来后才出现
+            if ready and vip2:
                 tap(vip2[0]); tapped = True; tapped_at = time.time()
             continue
         if any(n in visible for n in names):

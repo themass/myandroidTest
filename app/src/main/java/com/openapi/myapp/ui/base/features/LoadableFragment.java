@@ -140,8 +140,20 @@ public abstract class LoadableFragment<T> extends BaseFragment {
     }
 
     protected void startQuery(boolean showLoading) {
+        // 用户/外部发起的加载：重新计数
+        startQuery(showLoading, true);
+    }
+
+    /**
+     * @param resetRetry false 表示这是自动重试本身。自动重试必须保留计数器，
+     *                   否则每次重试都清零，{@link #AUTO_RETRY_MAX} 永远不会到达，
+     *                   界面会一直停在 loading，真正的故障反而暴露不出来。
+     */
+    private void startQuery(boolean showLoading, boolean resetRetry) {
         cancelQuery();
-        mAutoRetry = 0;
+        if (resetRetry) {
+            mAutoRetry = 0;
+        }
         mQueryTask = new QueryTask<>(this, showLoading, handler);
         mQueryTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
@@ -262,7 +274,7 @@ public abstract class LoadableFragment<T> extends BaseFragment {
                                 LoadableFragment<T> f = mFragment != null ? mFragment.get() : null;
                                 if (f != null && !f.isDestory && f.getActivity() != null
                                         && !f.getActivity().isFinishing() && !f.mDataLoaded) {
-                                    f.startQuery(false);
+                                    f.startQuery(false, false);
                                 }
                             }
                         }, AUTO_RETRY_DELAY_MS);

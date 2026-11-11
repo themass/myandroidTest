@@ -19,6 +19,11 @@ public final class TunnelProbe {
     private static final int PROBE_CONNECT_TIMEOUT_MS = 3_000;
     /** TLS 握手的读超时。上游不通时多半是读超时，所以不能太长，否则总时长里轮次太少。 */
     private static final int PROBE_IO_TIMEOUT_MS = 4_000;
+    /**
+     * TCP 已通、但 DNS 还没就绪时，最多再等这么久就按通放行。
+     * 只用来吃掉隧道刚建立那一两秒的空窗期；再长就说明是自有域名解析不了，不能连坐隧道。
+     */
+    static final long DNS_GRACE_MS = 5_000L;
     /** 裸 IP，DNS 失败和隧道不通分得清；三家不同的 anycast，避免单个目标被机房出站策略拦掉误判。 */
     static final String[][] PROBE_TARGETS = {
             {"1.1.1.1", "443"},
@@ -53,6 +58,7 @@ public final class TunnelProbe {
                 context.getApplicationContext().getSystemService(android.net.ConnectivityManager.class);
         long deadline = System.currentTimeMillis() + timeoutMs;
         boolean connected = false;
+        long connectedAt = 0L;
         while (System.currentTimeMillis() < deadline) {
             if (!alive.getAsBoolean()) {
                 return Result.UNREACHABLE;
@@ -63,15 +69,20 @@ public final class TunnelProbe {
                     for (String[] target : PROBE_TARGETS) {
                         if (probeOnce(vpn, target[0], Integer.parseInt(target[1])) == Result.OK) {
                             connected = true;
+                            connectedAt = System.currentTimeMillis();
                             break;
                         }
                     }
                 }
                 // TCP+TLS 通了不代表马上能用：域名解析走的是隧道内的 DNS，
                 // 路由/DNS 规则生效比 TCP 慢一拍（实测探针通过后 1 秒内解析自家 API 域名仍失败，
-                // 再 1 秒就好了）。这里要求"解析得出自有域名"才算真的连通，
-                // 否则 App 会显示已连接、而节点列表首屏直接报 Load error。
-                if (connected && dnsReady(vpn)) {
+                // 再 1 秒就好了）。等它能解析了再判成功，否则 App 显示已连接、首屏列表却报 Load error。
+                //
+                // 但 DNS 只能"加速确认"，不能一票否决：某些网络/运营商解析不了自有域名，
+                // 而隧道其实是通的。所以宽限期（{@link #DNS_GRACE_MS}）一到就按 TCP 的结果放行，
+                // 不能因为一个域名解析不出来就把整条线路判成不通。
+                if (connected && (dnsReady(vpn)
+                        || System.currentTimeMillis() - connectedAt >= DNS_GRACE_MS)) {
                     break;
                 }
             }
