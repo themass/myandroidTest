@@ -25,8 +25,6 @@ import java.util.List;
 public final class Ikev2TunnelEngine implements TunnelEngine {
 
     private static final String TAG = "Ikev2Engine";
-    /** 隧道 MTU。见 toProfile() 里的说明。 */
-    private static final int DEFAULT_MTU = 1280;
 
     /** 绑定状态服务的适配器由仓库注入，避免引擎自己管理 Service 生命周期。 */
     public interface StateBinder {
@@ -58,6 +56,9 @@ public final class Ikev2TunnelEngine implements TunnelEngine {
     @Nullable
     private Callback activeCallback;
     private volatile boolean connected;
+    /** 最近一次连接请求，用于疑似 MTU 黑洞时自动降级重连。 */
+    private volatile TunnelRequest lastRequest;
+    private boolean mtuRetried;
 
     public Ikev2TunnelEngine(@NonNull StateBinder binder) {
         this.binder = binder;
@@ -83,11 +84,20 @@ public final class Ikev2TunnelEngine implements TunnelEngine {
     @Override
     public void connect(@NonNull TunnelRequest request, @NonNull Callback callback) {
         activeCallback = callback;
+        lastRequest = request;
+        mtuRetried = false;
         if (subscription == null) {
             subscription = binder.observe(this::dispatch);
         }
+        doConnect(request);
+    }
+
+    /** 真正发起连接。自动降级重连也走这里（不重置 mtuRetried）。 */
+    private void doConnect(@NonNull TunnelRequest request) {
         VpnProfile profile = toProfile(request);
-        callback.onConnecting();
+        if (activeCallback != null) {
+            activeCallback.onConnecting();
+        }
         binder.connect(profile);
     }
 
@@ -137,6 +147,15 @@ public final class Ikev2TunnelEngine implements TunnelEngine {
                 cb.onDisconnecting();
                 break;
             case DISABLED:
+                // 疑似 MTU 黑洞：学习值已记为 1280，这里自动重连一次（toProfile 会读到学习值）
+                if (error == VpnStateService.ErrorState.UNREACHABLE && !mtuRetried
+                        && lastRequest != null && TunnelMtuPolicy.takeSuspect()) {
+                    mtuRetried = true;
+                    LogUtil.i(TAG + ": 疑似 MTU 黑洞，降到 1280 自动重连一次");
+                    connected = false;
+                    doConnect(lastRequest);
+                    return;
+                }
                 boolean wasConnected = connected;
                 connected = false;
                 if (error != VpnStateService.ErrorState.NO_ERROR) {
@@ -181,7 +200,8 @@ public final class Ikev2TunnelEngine implements TunnelEngine {
         // MTU 必须给死值，不能交给 strongSwan 用 1500：ESP 封装后有几十字节开销，
         // 隧道里 1500 字节的包发不出去，表现为"能连上、小请求正常、大一点的下载卡死"
         // （实测该隧道 1300 能通、1350 就丢）。1280 是 IPv6 的最小 MTU，任何链路上都安全。
-        profile.setMTU(request.getMtu() > 0 ? request.getMtu() : DEFAULT_MTU);
+        profile.setMTU(TunnelMtuPolicy.resolve(TunnelMtuPolicy.Proto.IKEV2,
+                request.getMtu(), request.getServer()));
         com.openapi.domain.model.SplitTunnelingPolicy policy = request.getSplitTunneling();
         if (!policy.isAllThrough()) {
             profile.setSplitMode(policy.getMode() == com.openapi.domain.model.SplitTunnelingPolicy.Mode.INCLUDE

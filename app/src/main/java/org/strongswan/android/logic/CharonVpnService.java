@@ -96,7 +96,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
      * {@code CharonVpnSessionRepository.start()} 启动时会无条件绑定本服务
      * （legacy 单协议 connect(VpnProfile) 路径和查询 IKEv2 状态都依赖这个绑定），
      * 绑定一旦建立，{@link #onServiceConnected} / {@link #stateChanged()} 就会
-     * 调用 {@link #createForegroundService}刷自己的通知——完全不知道这次连接
+     * 调用 由 VpnNotifier 统一刷新通知——完全不知道这次连接
      * 实际用的是别的协议。不加这个标志的后果：真正连接的是 VLESS/WireGuard 时，
      * 通知栏会同时冒出两条通知，IKEv2 这条还卡在陈旧的 "Connecting..." 状态，
      * 因为 VpnStateService 的内部状态从来没被这次连接更新过。
@@ -117,12 +117,13 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
 
     /** 关掉本服务的前台通知（不 stopSelf）；别的协议在用时必须让出通知权。 */
     public void cancelForegroundNotification() {
-        stopForeground(true);
+        // 单一通知源：切换协议时由仓库的状态发布去更新同一条通知，这里不删除。
+        stopForeground(false);
     }
 
     /**
      * 当前存活的实例（弱引用，避免 Service 被静态字段钉住泄漏）。
-     * {@link #createForegroundService} 只在服务内部触发，外部无法主动让它收手，
+     * 通知由 VpnNotifier 统一管理，外部不需要让服务收手，
      * 所以需要这个方法给多协议仓库用：切到 VLESS/WireGuard 时立刻把 IKEv2 那条
      * 陈旧通知撤掉，而不是等下一次 stateChanged 才发现。
      */
@@ -155,7 +156,6 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
     static final int STATE_GENERIC_ERROR = 7;
     private static final String TAG = CharonVpnService.class.getSimpleName();
     private static final String WORK_ANME = "vpnThread";
-    public static volatile boolean VPN_STATUS_NOTIF = false;
     private BaseService indexService;
     private  NotificationManager notificationManager;
     private static  final  String N_CHANNEL="FREEVVV_CHANNEL";
@@ -214,7 +214,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
         if (nonIkev2ProtocolActive) {
             // 用户已切到别的协议：系统 VPN 现在是那条协议的，不能拆。
             LogUtil.i("其它协议已接管 VPN，跳过强制拆除");
-            stopForeground(true);
+            stopForeground(false);
             return;
         }
         try {
@@ -229,7 +229,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
         } catch (Exception e) {
             LogUtil.e("强制拆除系统 VPN 失败: " + e.getMessage());
         }
-        stopForeground(true);
+        stopForeground(false);
     }
 
     /** charon 卡死后的恢复：拉起启动页并结束当前进程（用户刚在前台点了连接，允许拉起界面）。 */
@@ -285,7 +285,6 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
             mWorkThread.start();
             mWorkHandler = new Handler(mWorkThread.getLooper());
             /* we are now ready to start the handler thread */
-            createForegroundService(false);
             // worker 就绪，补发 onCreate/onStartCommand 窗口期里暂存的指令。
             flushPendingCommand();
         }
@@ -293,7 +292,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
 
     @Override
     public void stateChanged() {
-        createForegroundService(false);
+        // 状态变化的通知由仓库 → VpnNotifier 统一发出，这里不再刷新通知。
     }
 
     @Override
@@ -425,6 +424,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
      * @param profile currently active VPN profile
      */
     private void startConnection(VpnProfile profile) {
+        attachNotification();
         synchronized (mServiceLock) {
             if (mService != null) {
                 mService.startConnection(profile);
@@ -595,14 +595,26 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
     private void probeThenConnected() {
         final VpnProfile profile = mCurrentProfile;
         new Thread(() -> {
-            boolean ok = com.openapi.data.vpn.engine.TunnelProbe.probeUntilDeadline(CharonVpnService.this,
-                    () -> !mIsDisconnecting && mCurrentProfile == profile);
+            com.openapi.data.vpn.engine.TunnelProbe.Result res =
+                    com.openapi.data.vpn.engine.TunnelProbe.probeUntilDeadline(CharonVpnService.this,
+                            () -> !mIsDisconnecting && mCurrentProfile == profile);
             if (mIsDisconnecting || mCurrentProfile != profile) {
                 return;
             }
-            if (ok) {
+            if (res == com.openapi.data.vpn.engine.TunnelProbe.Result.OK) {
                 LogUtil.i("IKEv2 连通性探针通过");
                 setState(VpnStateService.State.CONNECTED);
+            } else if (res == com.openapi.data.vpn.engine.TunnelProbe.Result.MTU_SUSPECT) {
+                // 疑似 MTU 黑洞：记下本网络对该节点用 1280，下次连接直接用。本次不自动重连（见文档）。
+                if (profile.getMTU() != null && profile.getMTU() > com.openapi.data.vpn.engine.TunnelMtuPolicy.FLOOR) {
+                    // 记学习值并置待重连标记；Ikev2TunnelEngine 收到断开后自动用 1280 重连一次
+                    com.openapi.data.vpn.engine.TunnelMtuPolicy.recordSuspect(
+                            com.openapi.data.vpn.engine.TunnelMtuPolicy.Proto.IKEV2, profile.getGateway());
+                    LogUtil.e("IKEv2 疑似 MTU 黑洞（TLS 握手超时），MTU " + profile.getMTU() + " → 1280 重连");
+                } else {
+                    LogUtil.e("IKEv2 疑似 MTU 黑洞，且已是 1280，无法再降");
+                }
+                setErrorDisconnect(VpnStateService.ErrorState.UNREACHABLE);
             } else {
                 LogUtil.e("IKEv2 隧道已建立但探测流量不通（ESP/NAT-T 包被丢弃）");
                 setErrorDisconnect(VpnStateService.ErrorState.UNREACHABLE);
@@ -1167,7 +1179,10 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(ACTION_BUTTON);
         intentFilter.addAction(LOCATION_BUTTON);
-        registerReceiver(bReceiver, intentFilter);
+        // Android 14+（targetSdk >= 34）必须声明 exported 标志。这两个 action 只由本应用内部
+        // 通知按钮的 PendingIntent 触发，不需要对外暴露，所以用 NOT_EXPORTED。
+        androidx.core.content.ContextCompat.registerReceiver(this, bReceiver, intentFilter,
+                androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED);
     }
     CommonResponse.ResponseOkListener serverListener = new CommonResponse.ResponseOkListener<ServerVo>() {
         @Override
@@ -1186,96 +1201,25 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
             Toast.makeText(CharonVpnService.this, R.string.error_lookup_failed,Toast.LENGTH_SHORT).show();
         }
     };
-    private void createForegroundService(boolean needConnecting) {
-        if (nonIkev2ProtocolActive) {
-            // 真正在连的是 WireGuard/VLESS：让出通知权，避免跟那条协议自己的
-            // 前台通知同时出现、又显示着跟实际连接状态对不上的陈旧信息。
-            LogUtil.i("createForegroundService: 非 IKEv2 协议激活中，跳过 IKEv2 通知");
-            stopForeground(true);
-            return;
+    /**
+     * 通知由 {@link com.openapi.data.vpn.VpnNotifier} 统一负责（状态来自仓库，与雷达同源）。
+     * 这里只保证服务处于前台（不删通知），内容交给 VpnNotifier。
+     */
+    private void attachNotification() {
+        try {
+            startForeground(FOREGROUND_NOTIFY_ID, com.openapi.data.vpn.VpnNotifier.current(this));
+        } catch (Exception e) {
+            LogUtil.e("startForeground 失败: " + e.getMessage());
         }
-        LogUtil.i("start ForegroundService:" + mService.getState());
-        if (Build.VERSION.SDK_INT >= 26) {
-            NotificationChannel channel = new NotificationChannel(N_CHANNEL, "AFreedom", NotificationManager.IMPORTANCE_HIGH);
-            channel.setDescription("ShieldWing");
-            channel.enableLights(false);
-            channel.enableVibration(false);
-            channel.setSound(null, null);
-            notificationManager.createNotificationChannel(channel);
-        }
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(MyApplication.getInstance(),N_CHANNEL);
-        RemoteViews remoteViews = new RemoteViews(getPackageName(), R.layout.vpn_status_remote_view);
-        remoteViews.setTextViewText(R.id.tv_vpn_time, LocationUtil.getSelectName(this));
-        boolean going = false;
-        if (VpnStateService.State.CONNECTED.equals(mService.getState())) {
-            remoteViews.setImageViewResource(R.id.btn_vpn, R.drawable.vpn_on);
-            remoteViews.setTextViewText(R.id.tv_vpn_content, getString(R.string.vpn_remote_on));
-            remoteViews.setViewVisibility(R.id.btn_vpn, View.VISIBLE);
-            remoteViews.setViewVisibility(R.id.rb_conning, View.GONE);
-            VPN_STATUS_NOTIF = true;
-            going = true;
-        } else if (VpnStateService.State.CONNECTING.equals(mService.getState()) || needConnecting) {
-            remoteViews.setImageViewResource(R.id.btn_vpn, R.drawable.vpn_off);
-            remoteViews.setTextViewText(R.id.tv_vpn_content, getString(R.string.vpn_remote_ing));
-            remoteViews.setViewVisibility(R.id.btn_vpn, View.GONE);
-            remoteViews.setViewVisibility(R.id.rb_conning, View.VISIBLE);
-            VPN_STATUS_NOTIF = false;
-            going = true;
-        } else {
-            remoteViews.setImageViewResource(R.id.btn_vpn, R.drawable.vpn_off);
-            remoteViews.setTextViewText(R.id.tv_vpn_content, getString(R.string.vpn_remote_off));
-            remoteViews.setViewVisibility(R.id.btn_vpn, View.VISIBLE);
-            remoteViews.setViewVisibility(R.id.rb_conning, View.GONE);
-            if(!PreferenceUtils.getPrefBoolean(this, Constants.NOTIFY_SWITCH, true) ) {
-                stopForeground(true);
-                return;
-            }
-            VPN_STATUS_NOTIF = false;
-            going = false;
-        }
-        //点击的事件处理
-        Intent buttonIntent = new Intent(ACTION_BUTTON);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 1, buttonIntent, PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-        remoteViews.setOnClickPendingIntent(R.id.btn_vpn, pendingIntent);
-
-        Intent locationIntent = new Intent(LOCATION_BUTTON);
-        locationIntent.addFlags(FLAG_ACTIVITY_NEW_TASK );
-
-        PendingIntent locationPending = PendingIntent.getBroadcast(this, 1, locationIntent, PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-        remoteViews.setOnClickPendingIntent(R.id.tv_vpn_time, locationPending);
-
-        Intent intent = new Intent(this, MainFragmentViewPage.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        PendingIntent pend =
-                PendingIntent.getActivity(MyApplication.getInstance(), new Random().nextInt(), intent, PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-
-        Intent intentCancel = new Intent(this, NotificationBroadcastReceiver.class);
-        intentCancel.setAction(NotificationBroadcastReceiver.CANNCELL_ACTION);
-        PendingIntent pandCanel =
-                PendingIntent.getActivity(MyApplication.getInstance(), new Random().nextInt(), intentCancel, PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-
-        builder.setContentIntent(pend)
-                .setDeleteIntent(pandCanel)
-                .setContent(remoteViews)
-                .setWhen(System.currentTimeMillis())// 通知产生的时间，会在通知信息里显示
-                .setTicker("ShieldWing start")
-                .setOngoing(going)
-                .setAutoCancel(true)
-                .setSmallIcon(R.drawable.vpn_on)
-        .setVibrate(new long[]{0})
-        .setSound(null);
-        Notification notify = builder.build();
-        notify.flags = Notification.FLAG_ONGOING_EVENT;
-        startForeground(FOREGROUND_NOTIFY_ID, notify);
     }
+
     public class NotificationBroadcastReceiver extends BroadcastReceiver {
         public static final String CANNCELL_ACTION="notification_cancelled";
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             if (CANNCELL_ACTION.equals(action)) {
-                stopForeground(true);
+                stopForeground(false);
             }
 
         }
@@ -1302,7 +1246,6 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
     public void vpnClick(){
         int id = LocationUtil.getSelectLocationId(this);
         indexService.getData(String.format(Constants.getUrl(Constants.API_SERVERLIST_URL), id), serverListener, serverListenerError, VPN_SERVER_CLICK, ServerVo.class);
-        createForegroundService(true);
     }
 
     public class ButtonBroadcastReceiver extends BroadcastReceiver {

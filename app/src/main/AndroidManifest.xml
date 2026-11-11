@@ -26,6 +26,7 @@
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="com.google.android.gms.permission.AD_ID"/>
     <!--<uses-permission android:name="android.permission.SET_DEBUG_APP" />-->
 <!--    <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" />-->
@@ -193,6 +194,13 @@
                 <action android:name="android.net.VpnService" />
             </intent-filter>
         </service>
+        <receiver
+            android:name="com.openapi.data.vpn.VpnNotificationReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.openapi.ks.free1.vpn.NOTIFICATION_TOGGLE" />
+            </intent-filter>
+        </receiver>
         <service android:name="com.openapi.myapp.service.LogUploadService" />
         <service android:name="com.openapi.myapp.service.LogToFileService" />
 

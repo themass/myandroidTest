@@ -59,7 +59,8 @@ public final class SingBoxVpnService extends VpnService {
 
     private static final String TAG = "SingBoxVpnService";
     /** 与 {@code CharonVpnService.FOREGROUND_NOTIFY_ID}（100）错开，避免切换协议时通知互相覆盖。 */
-    private static final int FOREGROUND_NOTIFY_ID = 200;
+    /** 与 IKEv2 共用同一个通知 ID（见 VpnNotifier）。 */
+    private static final int FOREGROUND_NOTIFY_ID = com.openapi.data.vpn.VpnNotifier.NOTIFY_ID;
     private static final String NOTIFY_CHANNEL = "SINGBOX_VPN_CHANNEL";
     private static final String DEFAULT_SESSION = "sing-box";
     private static final String DEFAULT_TUN_ROUTE_V4 = "0.0.0.0";
@@ -68,6 +69,8 @@ public final class SingBoxVpnService extends VpnService {
     public static final String ACTION_CONNECT = "com.openapi.singbox.CONNECT";
     public static final String ACTION_DISCONNECT = "com.openapi.singbox.DISCONNECT";
     public static final String EXTRA_CONFIG_JSON = "singbox_config_json";
+    public static final String EXTRA_MTU_PROTO = "mtu_proto";
+    public static final String EXTRA_MTU_NODE = "mtu_node";
     public static final String EXTRA_SPLIT_MODE = "split_mode";
     public static final String EXTRA_SPLIT_PACKAGES = "split_packages";
 
@@ -108,6 +111,8 @@ public final class SingBoxVpnService extends VpnService {
     private volatile int generation;
     @Nullable
     private String splitMode;
+    private String mtuProto;
+    private String mtuNode;
     @Nullable
     private String[] splitPackages;
     @Nullable
@@ -140,15 +145,17 @@ public final class SingBoxVpnService extends VpnService {
         // 必须最先调用：没有前台通知，华为 EMUI/HarmonyOS 这类对后台管控激进的系统会在
         // TUN 建立后几百毫秒内杀掉 Service，表现为"应用显示已连接，状态栏没有 VPN 钥匙"。
         // 先显示"连接中"。探针通过后才改成"已连接"，否则通知栏会比 App 先说连上了。
-        startForeground(FOREGROUND_NOTIFY_ID, buildNotification(false));
+        startForeground(FOREGROUND_NOTIFY_ID, com.openapi.data.vpn.VpnNotifier.current(this));
 
         String configJson = intent.getStringExtra(EXTRA_CONFIG_JSON);
         splitMode = intent.getStringExtra(EXTRA_SPLIT_MODE);
+        mtuProto = intent.getStringExtra(EXTRA_MTU_PROTO);
+        mtuNode = intent.getStringExtra(EXTRA_MTU_NODE);
         splitPackages = intent.getStringArrayExtra(EXTRA_SPLIT_PACKAGES);
         if (configJson == null) {
             LogUtil.e(TAG + ": 启动参数缺失 config");
             notifyFailed("missing config");
-            stopForeground(true);
+            stopForeground(false);
             stopSelf();
             return;
         }
@@ -190,23 +197,35 @@ public final class SingBoxVpnService extends VpnService {
      * 必须在后台跑，doConnect 在主线程，阻塞会 ANR。
      */
     private void probeThenNotify(int gen) {
-        boolean ok = TunnelProbe.probeUntilDeadline(this, () -> running && gen == generation);
+        TunnelProbe.Result res = TunnelProbe.probeUntilDeadline(this, () -> running && gen == generation);
         if (!running || gen != generation) {
             LogUtil.i(TAG + ": 探针中止，隧道已拆除或已被新连接替换");
             return;
         }
-        if (ok) {
+        if (res == TunnelProbe.Result.OK) {
             LogUtil.i(TAG + ": 连通性探针通过（经 VPN 网络）");
             notifyEstablished();
             return;
         }
         String reason = "隧道已建立但探测流量不通（握手失败或节点参数不对）";
+        if (res == TunnelProbe.Result.MTU_SUSPECT && mtuProto != null && mtuNode != null) {
+            // 疑似 MTU 黑洞：记下本网络对该节点用 1280，下次连接直接用。本次不自动重试（见文档）。
+            com.openapi.data.vpn.engine.TunnelMtuPolicy.Proto p =
+                    com.openapi.data.vpn.engine.TunnelMtuPolicy.Proto.valueOf(mtuProto);
+            if (p != com.openapi.data.vpn.engine.TunnelMtuPolicy.Proto.STREAM) {
+                com.openapi.data.vpn.engine.TunnelMtuPolicy.learn(p, mtuNode,
+                        com.openapi.data.vpn.engine.TunnelMtuPolicy.FLOOR);
+                LogUtil.i(TAG + ": 疑似 MTU 黑洞，已记录 MTU=1280");
+                reason = "疑似 MTU 不匹配，降到 1280 重连";
+            }
+        }
         LogUtil.e(TAG + ": " + reason);
+        final String failReason = reason;
         mainHandler.post(() -> {
             if (!running || gen != generation) {
                 return;
             }
-            notifyFailed(reason);
+            notifyFailed(failReason);
             teardown();
             stopSelf();
         });
@@ -260,7 +279,7 @@ public final class SingBoxVpnService extends VpnService {
         running = false;
         sRunning = false;
         stopCore();
-        stopForeground(true);
+        stopForeground(false);
         notifyStopped();
     }
 
@@ -306,10 +325,6 @@ public final class SingBoxVpnService extends VpnService {
     }
 
     private void notifyEstablished() {
-        NotificationManager nm = getSystemService(NotificationManager.class);
-        if (nm != null && running) {
-            nm.notify(FOREGROUND_NOTIFY_ID, buildNotification(true));
-        }
         Listener l = listener;
         if (l != null) {
             l.onEstablished();
@@ -398,41 +413,6 @@ public final class SingBoxVpnService extends VpnService {
                 // 已经注销过（网络回调只能注销一次），忽略。
             }
         }
-    }
-
-    /**
-     * 构造前台服务通知。只做最小实现：目的是让系统承认这是前台服务，
-     * 不需要复刻 {@code CharonVpnService} 那套富交互通知。
-     */
-    private Notification buildNotification(boolean connected) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(
-                    NOTIFY_CHANNEL, DEFAULT_SESSION, NotificationManager.IMPORTANCE_LOW);
-            channel.setDescription(DEFAULT_SESSION + " 隧道运行状态");
-            channel.enableLights(false);
-            channel.enableVibration(false);
-            channel.setSound(null, null);
-            NotificationManager nm = getSystemService(NotificationManager.class);
-            if (nm != null) {
-                nm.createNotificationChannel(channel);
-            }
-        }
-
-        Intent contentIntent = new Intent(this, MainFragmentViewPage.class);
-        contentIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        contentIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, contentIntent,
-                PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-
-        return new NotificationCompat.Builder(this, NOTIFY_CHANNEL)
-                .setContentTitle(getString(connected ? R.string.vpn_remote_on : R.string.vpn_remote_ing))
-                .setContentText(DEFAULT_SESSION)
-                .setSmallIcon(connected ? R.drawable.vpn_on : R.drawable.vpn_off)
-                .setContentIntent(pendingIntent)
-                .setOngoing(true)
-                .setSound(null)
-                .setVibrate(new long[]{0})
-                .build();
     }
 
     /** libbox 回调我们的平台能力。这里只实现 sing-box 在 Android 上真正用到的部分。 */

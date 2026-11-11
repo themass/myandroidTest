@@ -792,7 +792,19 @@ public class VpnRadFragment extends BaseFragment {
         super.onDestroy();
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(com.openapi.data.vpn.VpnToggleRequestEvent event) {
+        // 通知栏按钮请求连接：与界面按钮走同一个入口
+        onVpnClick(null);
+    }
+
     public void onVpnClick(View v) {
+        // 通知权限：没有就先请求（或引导去设置），授权后再点连接。
+        // 不做这一步的话 VPN 通知不显示，用户看不到连接状态，也没法从通知栏断开。
+        if (getActivity() != null
+                && com.openapi.common.util.NotificationPermissionHelper.requestIfNeeded(getActivity())) {
+            return;
+        }
         if (!allPerm) {
             if (!PermissionHelper.checkPermissions(getActivity()) && !UserLoginUtil.isVIP()) {
                 PermissionHelper.showPermit(getActivity());

@@ -65,8 +65,26 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         // 不在 onCreate 里启动 CharonVpnService：App 从后台拉起时 Android 12+ 会禁止后台启动服务并崩溃。
         // 连接时由 VpnStateService 在用户操作的前台路径里启动它。
         EventBusUtil.getEventBus().register(jump);
+        if (getIntent() != null && getIntent().getBooleanExtra(
+                com.openapi.data.vpn.VpnNotificationReceiver.EXTRA_TOGGLE_ON_OPEN, false)) {
+            // 等首页和雷达片段建好再执行，否则事件可能没有订阅者
+            new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(
+                    com.openapi.data.vpn.VpnNotificationReceiver::requestToggle, 800);
+        }
         admobRewardManger = new BaseRewardManger(this,this);
     }
+
+    /** 首页已在前台时，通知按钮再次拉起首页走这里（singleTop），同样要执行一次连接切换。 */
+    @Override
+    protected void onNewIntent(android.content.Intent intent) {
+        super.onNewIntent(intent);
+        if (intent != null && intent.getBooleanExtra(
+                com.openapi.data.vpn.VpnNotificationReceiver.EXTRA_TOGGLE_ON_OPEN, false)) {
+            new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(
+                    com.openapi.data.vpn.VpnNotificationReceiver::requestToggle, 300);
+        }
+    }
+
     @Override
     public void onNoRewardAD(){
 //        if(!admobRewardManger.next()) {
@@ -209,7 +227,7 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
             if (flag) {
                 return true;
             }
-            if (CharonVpnService.VPN_STATUS_NOTIF) {
+            if (com.openapi.data.vpn.VpnNotifier.isConnected()) {
                 moveTaskToBack(true);
                 return true;
             }

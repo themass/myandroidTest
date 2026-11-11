@@ -32,20 +32,25 @@ public final class TunnelProbe {
      * （实测 IKEv2 隧道建好 190ms 就"通过"，而走隧道一个来回至少 360ms）。
      * 所以先等 VPN 网络出现，再用它的 SocketFactory 建 socket；VPN 网络还没出现的轮次直接算失败、继续等。
      */
-    public static boolean probeUntilDeadline(android.content.Context context,
-                                             java.util.function.BooleanSupplier alive) {
+    public static Result probeUntilDeadline(android.content.Context context,
+                                            java.util.function.BooleanSupplier alive) {
         android.net.ConnectivityManager cm =
                 context.getApplicationContext().getSystemService(android.net.ConnectivityManager.class);
         long deadline = System.currentTimeMillis() + PROBE_TIMEOUT_MS;
+        boolean seenMtuSuspect = false;
         while (System.currentTimeMillis() < deadline) {
             if (!alive.getAsBoolean()) {
-                return false;
+                return Result.UNREACHABLE;
             }
             android.net.Network vpn = findVpnNetwork(cm);
             if (vpn != null) {
                 for (String[] target : PROBE_TARGETS) {
-                    if (probeOnce(vpn, target[0], Integer.parseInt(target[1]))) {
-                        return true;
+                    Result r = probeOnce(vpn, target[0], Integer.parseInt(target[1]));
+                    if (r == Result.OK) {
+                        return Result.OK;
+                    }
+                    if (r == Result.MTU_SUSPECT) {
+                        seenMtuSuspect = true;
                     }
                 }
             }
@@ -53,11 +58,17 @@ public final class TunnelProbe {
                 Thread.sleep(PROBE_INTERVAL_MS);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                return false;
+                return Result.UNREACHABLE;
             }
         }
-        return false;
+        return seenMtuSuspect ? Result.MTU_SUSPECT : Result.UNREACHABLE;
     }
+
+    /**
+     * 探针结果。MTU_SUSPECT 的条件：TCP 已经连上，但 TLS 握手一直等不到回包（读超时）。
+     * 这通常是小包能过、大包（证书链）被路径丢弃，即 MTU 黑洞；此时才值得降到 1280 重试。
+     */
+    public enum Result { OK, UNREACHABLE, MTU_SUSPECT }
 
     /**
      * 一次端到端探测：TCP 连上之后必须再完成一次 TLS 握手，成功返回 true。
@@ -68,23 +79,28 @@ public final class TunnelProbe {
      * 上游不通时本机栈会把连接关掉（RST/EOF），或者读超时，这里都按失败处理。
      * 只校验证书链，不校验主机名：目标是裸 IP，这里只关心"通没通"。
      */
-    static boolean probeOnce(android.net.Network network, String host, int port) {
+    static Result probeOnce(android.net.Network network, String host, int port) {
         javax.net.ssl.SSLSocket ssl = null;
         java.net.Socket raw;
         try {
             raw = network.getSocketFactory().createSocket();
         } catch (java.io.IOException e) {
-            return false;
+            return Result.UNREACHABLE;
         }
+        boolean tcpUp = false;
         try {
             raw.connect(new java.net.InetSocketAddress(host, port), PROBE_CONNECT_TIMEOUT_MS);
+            tcpUp = true;
             raw.setSoTimeout(PROBE_IO_TIMEOUT_MS);
             ssl = (javax.net.ssl.SSLSocket) ((javax.net.ssl.SSLSocketFactory)
                     javax.net.ssl.SSLSocketFactory.getDefault()).createSocket(raw, host, port, true);
             ssl.startHandshake();
-            return true;
+            return Result.OK;
+        } catch (java.net.SocketTimeoutException e) {
+            // TCP 连上后握手读超时 → 小包可能能过、大包被丢（MTU 黑洞的典型表现）
+            return tcpUp ? Result.MTU_SUSPECT : Result.UNREACHABLE;
         } catch (Exception e) {
-            return false;
+            return Result.UNREACHABLE;
         } finally {
             try {
                 if (ssl != null) {

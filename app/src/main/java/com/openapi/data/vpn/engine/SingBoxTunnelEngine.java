@@ -50,6 +50,20 @@ public final class SingBoxTunnelEngine implements TunnelEngine {
         @Override
         public void onFailed(String reason) {
             connected = false;
+            // 疑似 MTU 黑洞：学习值已记为 1280，自动重连一次（buildConfig 会读到学习值）
+            TunnelRequest req = lastRequest;
+            if (reason != null && reason.startsWith(TunnelMtuPolicy.SUSPECT_MARK)
+                    && !mtuRetried && req != null) {
+                mtuRetried = true;
+                LogUtil.i(TAG + ": 疑似 MTU 黑洞，降到 1280 自动重连一次");
+                retrying = true;
+                try {
+                    connect(req, callback);
+                } finally {
+                    retrying = false;
+                }
+                return;
+            }
             Callback cb = callback;
             if (cb != null) {
                 cb.onError(classifyError(reason), reason);
@@ -87,8 +101,17 @@ public final class SingBoxTunnelEngine implements TunnelEngine {
         }
     }
 
+    /** 最近一次请求与 MTU 重试标记：用户主动连接时重置，自动降级重连时保持。 */
+    private volatile TunnelRequest lastRequest;
+    private boolean mtuRetried;
+    private boolean retrying;
+
     @Override
     public void connect(@NonNull TunnelRequest request, @NonNull Callback callback) {
+        if (!retrying) {
+            mtuRetried = false;
+        }
+        lastRequest = request;
         this.callback = callback;
         callback.onConnecting();
         LogUtil.i(TAG + ": connect() 被调用，server=" + request.getServer()
@@ -123,6 +146,8 @@ public final class SingBoxTunnelEngine implements TunnelEngine {
             Intent intent = new Intent(appContext, SingBoxVpnService.class);
             intent.setAction(SingBoxVpnService.ACTION_CONNECT);
             intent.putExtra(SingBoxVpnService.EXTRA_CONFIG_JSON, configJson);
+            intent.putExtra(SingBoxVpnService.EXTRA_MTU_PROTO, mtuProto(request).name());
+            intent.putExtra(SingBoxVpnService.EXTRA_MTU_NODE, nodeKey(request));
 
             SplitTunnelingPolicy policy = request.getSplitTunneling();
             if (!policy.isAllThrough()) {
@@ -185,8 +210,27 @@ public final class SingBoxTunnelEngine implements TunnelEngine {
         String tunAddress = request.getClientAddress() != null
                 ? request.getClientAddress() : DEFAULT_TUN_ADDRESS;
         String dns = isBlank(request.getDnsServer()) ? DEFAULT_DNS : request.getDnsServer();
-        int mtu = request.getMtu() > 0 ? request.getMtu() : SingBoxConfigBuilder.DEFAULT_MTU;
+        TunnelMtuPolicy.Proto proto = TunnelMtuPolicy.forSingBoxOutbound(outboundType(proxy));
+        int mtu = TunnelMtuPolicy.resolve(proto, request.getMtu(), nodeKey(request));
         return SingBoxConfigBuilder.buildConfig(proxy, tunAddress, mtu, dns);
+    }
+
+    /** 探针判定疑似 MTU 黑洞时服务要写学习值，需要协议类别和节点地址，随启动参数一起传过去。 */
+    private static TunnelMtuPolicy.Proto mtuProto(TunnelRequest request) {
+        JsonObject xrayOutbound = isBlank(request.getXrayOutboundJson())
+                ? vlessRealityOutbound(request)
+                : JsonParser.parseString(request.getXrayOutboundJson()).getAsJsonObject();
+        return TunnelMtuPolicy.forSingBoxOutbound(
+                outboundType(SingBoxConfigBuilder.convertOutbound(xrayOutbound)));
+    }
+
+    private static String outboundType(JsonObject proxy) {
+        return proxy.has("type") && proxy.get("type").isJsonPrimitive()
+                ? proxy.get("type").getAsString() : null;
+    }
+
+    private static String nodeKey(TunnelRequest request) {
+        return request.getServer() + ":" + request.getPort();
     }
 
     /**

@@ -106,7 +106,7 @@ public final class CharonVpnSessionRepository implements VpnSessionRepository {
         public void onServiceDisconnected(ComponentName name) {
             LogUtil.i(TAG + ": onServiceDisconnected");
             service = null;
-            state.setValue(VpnSessionState.IDLE);
+            publish(VpnSessionState.IDLE);
             scheduleRebind();
         }
     };
@@ -119,6 +119,7 @@ public final class CharonVpnSessionRepository implements VpnSessionRepository {
             return;
         }
         appContext = context.getApplicationContext();
+        VpnNotifier.init(appContext);
         registry.register(new Ikev2TunnelEngine(new Ikev2StateBinder()));
         registry.register(new WireGuardTunnelEngine(appContext));
         registry.register(new com.openapi.data.vpn.engine.SingBoxTunnelEngine(appContext));
@@ -303,11 +304,20 @@ public final class CharonVpnSessionRepository implements VpnSessionRepository {
 
     // --------------------------------------------------------------- private
 
+    /**
+     * 所有状态变化的唯一出口（主线程）。雷达（observeState）和通知栏（VpnNotifier）
+     * 从这里同时取值，保证两边永远一致。
+     */
+    private void publish(VpnSessionState next) {
+        state.setValue(next);
+        VpnNotifier.render(next, activeProtocol.getValue());
+    }
+
     /** 任意引擎的状态变化都归一到 {@link VpnSessionState} 并发布。 */
     private final TunnelEngine.Callback engineCallback = new TunnelEngine.Callback() {
         @Override
         public void onConnecting() {
-            mainHandler.post(() -> state.setValue(new VpnSessionState(
+            mainHandler.post(() -> publish(new VpnSessionState(
                     VpnStateService.State.CONNECTING,
                     VpnStateService.ErrorState.NO_ERROR, ImcState.UNKNOWN, true)));
         }
@@ -322,14 +332,14 @@ public final class CharonVpnSessionRepository implements VpnSessionRepository {
             proxyFallback = null;
             reconnectPolicy.reset();
             metrics.markConnected();
-            mainHandler.post(() -> state.setValue(new VpnSessionState(
+            mainHandler.post(() -> publish(new VpnSessionState(
                     VpnStateService.State.CONNECTED,
                     VpnStateService.ErrorState.NO_ERROR, ImcState.UNKNOWN, true)));
         }
 
         @Override
         public void onDisconnecting() {
-            mainHandler.post(() -> state.setValue(new VpnSessionState(
+            mainHandler.post(() -> publish(new VpnSessionState(
                     VpnStateService.State.DISCONNECTING,
                     VpnStateService.ErrorState.NO_ERROR, ImcState.UNKNOWN, true)));
         }
@@ -342,7 +352,7 @@ public final class CharonVpnSessionRepository implements VpnSessionRepository {
             // 用了 IDLE 常量会导致 toggleVpn() 里 current.isBound() 之后判断为 false，
             // 表现为"断开之后再点连接，提示 Try later please"——明明已经完全空闲了，
             // 却被当成"还没就绪"拦住。
-            mainHandler.post(() -> state.setValue(new VpnSessionState(
+            mainHandler.post(() -> publish(new VpnSessionState(
                     VpnStateService.State.DISABLED,
                     VpnStateService.ErrorState.NO_ERROR, ImcState.UNKNOWN, true)));
         }
@@ -369,7 +379,7 @@ public final class CharonVpnSessionRepository implements VpnSessionRepository {
                 recordMetrics(false, errorCode.name());
                 reconnectPolicy.reset();
                 VpnStateService.ErrorState mapped = mapError(errorCode);
-                mainHandler.post(() -> state.setValue(new VpnSessionState(
+                mainHandler.post(() -> publish(new VpnSessionState(
                         VpnStateService.State.DISABLED, mapped, ImcState.UNKNOWN, true)));
                 return;
             }
@@ -379,7 +389,7 @@ public final class CharonVpnSessionRepository implements VpnSessionRepository {
                 LogUtil.i(TAG + ": 第 " + reconnectPolicy.attemptCount()
                         + " 次自动重连，" + delay + "ms 后发起");
                 // 停留在"连接中"而不是立刻报错，让网络抖动对用户无感。
-                mainHandler.post(() -> state.setValue(new VpnSessionState(
+                mainHandler.post(() -> publish(new VpnSessionState(
                         VpnStateService.State.CONNECTING,
                         VpnStateService.ErrorState.NO_ERROR, ImcState.UNKNOWN, true)));
                 cancelPendingRetry();
@@ -397,7 +407,7 @@ public final class CharonVpnSessionRepository implements VpnSessionRepository {
                 recordMetrics(false, errorCode.name());
                 reconnectPolicy.reset();
                 VpnStateService.ErrorState mapped = mapError(errorCode);
-                mainHandler.post(() -> state.setValue(new VpnSessionState(
+                mainHandler.post(() -> publish(new VpnSessionState(
                         VpnStateService.State.DISABLED, mapped, ImcState.UNKNOWN, true)));
             }
         }
@@ -490,7 +500,7 @@ public final class CharonVpnSessionRepository implements VpnSessionRepository {
     private void publishFromService() {
         VpnStateService svc = service;
         if (svc == null) {
-            state.setValue(VpnSessionState.IDLE);
+            publish(VpnSessionState.IDLE);
             return;
         }
         // 非 IKEv2 协议激活时，状态以引擎回调为准，避免两个来源互相覆盖。
@@ -501,7 +511,7 @@ public final class CharonVpnSessionRepository implements VpnSessionRepository {
         VpnSessionState next = new VpnSessionState(
                 svc.getState(), svc.getErrorState(), svc.getImcState(), true);
         if (!next.equals(state.getValue())) {
-            state.setValue(next);
+            publish(next);
         }
     }
 

@@ -31,7 +31,6 @@ import com.wireguard.config.Config;
 public final class WireGuardTunnelEngine implements TunnelEngine {
 
     private static final String TAG = "WireGuardEngine";
-    private static final int DEFAULT_MTU = 1280;
     private static final String TUNNEL_NAME = "wg0";
 
     /** 建立/拆除隧道都串行放在这条线程上，保证 UP 和 DOWN 不会交错。 */
@@ -88,7 +87,7 @@ public final class WireGuardTunnelEngine implements TunnelEngine {
                 new com.openapi.data.remote.WireGuardRegistrationUtil.Callback() {
                     @Override
                     public void onReady() {
-                        establishTunnel(request, callback);
+                        establishTunnel(request, callback, false);
                     }
 
                     @Override
@@ -104,10 +103,12 @@ public final class WireGuardTunnelEngine implements TunnelEngine {
      * 在主线程调用就会互等，超时后抛出无消息的 TimeoutException（日志里只有"连接失败: null"）。
      * 注册回调来自 Volley，正好在主线程，所以这里统一切到单独的线程。
      */
-    private void establishTunnel(@NonNull TunnelRequest request, @NonNull Callback callback) {
+    private void establishTunnel(@NonNull TunnelRequest request, @NonNull Callback callback, boolean retried) {
         WORKER.execute(() -> {
             try {
-                Config config = buildConfig(request);
+                int mtu = TunnelMtuPolicy.resolve(TunnelMtuPolicy.Proto.WIREGUARD,
+                        request.getMtu(), request.getServer() + ":" + request.getPort());
+                Config config = buildConfig(request, mtu);
                 Backend go = backend;
                 if (go == null) {
                     go = new GoBackend(appContext);
@@ -123,16 +124,27 @@ public final class WireGuardTunnelEngine implements TunnelEngine {
                 // 接口 UP 只说明本地建好了。握手后的数据可能被中途丢掉（UDP 被限速、端口被封），
                 // 不探测就报"已连接"，系统 VPN 会把整机流量吸进一条不通的隧道。
                 final Backend probing = go;
-                boolean ok = TunnelProbe.probeUntilDeadline(appContext, () -> tunnel == t && backend == probing);
+                TunnelProbe.Result res = TunnelProbe.probeUntilDeadline(appContext,
+                        () -> tunnel == t && backend == probing);
                 if (tunnel != t) {
                     return; // 探测期间被断开或换了新连接
                 }
-                if (!ok) {
-                    LogUtil.e(TAG + ": 隧道已建立但探测流量不通（UDP 被拦截或服务端没放行）");
+                if (res != TunnelProbe.Result.OK) {
                     try {
                         go.setState(t, Tunnel.State.DOWN, null);
                     } catch (Exception ignored) {
                     }
+                    String nodeKey = request.getServer() + ":" + request.getPort();
+                    if (res == TunnelProbe.Result.MTU_SUSPECT) {
+                        TunnelMtuPolicy.learn(TunnelMtuPolicy.Proto.WIREGUARD, nodeKey, TunnelMtuPolicy.FLOOR);
+                        if (!retried && mtu > TunnelMtuPolicy.FLOOR) {
+                            // 疑似 MTU 黑洞：已学习 1280，同一引擎内重试一次（resolve 会读到学习值）
+                            LogUtil.i(TAG + ": 疑似 MTU 黑洞，降到 1280 重试一次");
+                            establishTunnel(request, callback, true);
+                            return;
+                        }
+                    }
+                    LogUtil.e(TAG + ": 隧道已建立但探测流量不通（UDP 被拦截或服务端没放行）");
                     callback.onError(ErrorCode.UNREACHABLE, "WireGuard 隧道不通");
                     return;
                 }
@@ -212,7 +224,7 @@ public final class WireGuardTunnelEngine implements TunnelEngine {
     // --------------------------------------------------------------- private
 
     @NonNull
-    private Config buildConfig(@NonNull TunnelRequest request) throws BadConfigException {
+    private Config buildConfig(@NonNull TunnelRequest request, int mtu) throws BadConfigException {
         Config.Builder cb = new Config.Builder();
 
         com.wireguard.config.Interface.Builder ib = new com.wireguard.config.Interface.Builder();
@@ -232,7 +244,7 @@ public final class WireGuardTunnelEngine implements TunnelEngine {
             ib.parseDnsServers(request.getDnsServer());
         }
         // 与其它协议一致：写死 1280。WireGuard 封装额外 60~80 字节，1420/1500 在部分链路上会丢大包。
-        ib.parseMtu(String.valueOf(request.getMtu() > 0 ? request.getMtu() : DEFAULT_MTU));
+        ib.parseMtu(String.valueOf(mtu));
         // 分应用代理：WireGuard 与 VpnService.Builder 语义一致，
         // INCLUDE 与 EXCLUDE 互斥，只能二选一。
         com.openapi.domain.model.SplitTunnelingPolicy policy = request.getSplitTunneling();
