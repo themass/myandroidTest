@@ -79,7 +79,7 @@ public class MultipartRequest<T> extends BaseRequest<T> {
     protected Response<T> parseNetworkResponse(NetResponse response) {
         try {
             String json = getResponseStr(response);
-            JsonResult<T> data = DataBuilder.parserVo(clasz, json, getAuthkey());
+            ApiResult<T> data = DataBuilder.parserVo(clasz, json, getAuthkey());
             return parserData(data, response);
         } catch (Exception e) {
             return Response.error(new NetError.ParseError(e));

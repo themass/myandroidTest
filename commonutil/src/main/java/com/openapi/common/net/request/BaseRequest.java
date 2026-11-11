@@ -16,7 +16,7 @@ import com.openapi.common.net.NetError;
 import com.openapi.common.net.ApiRequest;
 import com.openapi.common.net.NetResponse;
 import com.openapi.common.net.Response;
-import com.openapi.common.net.request.JsonResult;
+import com.openapi.common.net.request.ApiResult;
 import com.openapi.common.net.NetConfig;
 
 import java.net.URL;
@@ -140,7 +140,7 @@ public class BaseRequest<T> extends ApiRequest<T> {
         return false;
     }
 
-    protected Response parserData(JsonResult data, NetResponse response) {
+    protected Response parserData(ApiResult data, NetResponse response) {
         LogUtil.i( "收到服务器响应: " + GsonUtils.getInstance().toJson( data));
         try {
             URL url = new URL(getUrl());

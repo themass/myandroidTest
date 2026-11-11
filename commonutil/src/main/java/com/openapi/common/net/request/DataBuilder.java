@@ -12,12 +12,12 @@ import java.lang.reflect.Type;
 @SuppressWarnings("unchecked")
 public class DataBuilder {
 
-    public static <T> JsonResult<T> parserVo(Class<T> clasz, String json, String key) {
+    public static <T> ApiResult<T> parserVo(Class<T> clasz, String json, String key) {
         if (clasz == null) {
             clasz = (Class<T>) Object.class;
         }
-        Type typeOfT = GsonUtils.type(JsonResult.class, clasz);
-        JsonResult<T> ret = GsonUtils.getInstance().fromJson(json, typeOfT);
+        Type typeOfT = GsonUtils.type(ApiResult.class, clasz);
+        ApiResult<T> ret = GsonUtils.getInstance().fromJson(json, typeOfT);
         if (StringUtils.hasText(ret.data)) {
             String str = AES2.decode(ret.data, key);
             ret.objData = GsonUtils.getInstance().fromJson(str, clasz);
@@ -25,13 +25,13 @@ public class DataBuilder {
         return ret;
     }
 
-    public static <T> JsonResult<InfoListVo<T>> parserListVo(Class<T> clasz, String json, String key) {
+    public static <T> ApiResult<InfoListVo<T>> parserListVo(Class<T> clasz, String json, String key) {
         if (clasz == null) {
             clasz = (Class<T>) Object.class;
         }
         Type TypeItem = GsonUtils.type(InfoListVo.class, clasz);
-        Type typeOfT = GsonUtils.type(JsonResult.class, TypeItem);
-        JsonResult<InfoListVo<T>> ret = GsonUtils.getInstance().fromJson(json, typeOfT);
+        Type typeOfT = GsonUtils.type(ApiResult.class, TypeItem);
+        ApiResult<InfoListVo<T>> ret = GsonUtils.getInstance().fromJson(json, typeOfT);
         if (StringUtils.hasText(ret.data)) {
             String str = AES2.decode(ret.data, key);
             ret.objData = GsonUtils.getInstance().fromJson(str, TypeItem);

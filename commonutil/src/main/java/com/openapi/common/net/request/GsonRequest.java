@@ -18,7 +18,7 @@ public class GsonRequest<R> extends BaseRequest<R> {
 
     /** 把响应 JSON 解析成业务数据。 */
     public interface Decoder<R> {
-        JsonResult<R> decode(String json, String authKey);
+        ApiResult<R> decode(String json, String authKey);
     }
 
     private final Decoder<R> decoder;
@@ -47,7 +47,7 @@ public class GsonRequest<R> extends BaseRequest<R> {
     protected Response<R> parseNetworkResponse(NetResponse response) {
         try {
             String json = getResponseStr(response);
-            JsonResult<R> data = decoder.decode(json, getAuthkey());
+            ApiResult<R> data = decoder.decode(json, getAuthkey());
             return parserData(data, response);
         } catch (Exception e) {
             return Response.error(new NetError.ParseError(e));
