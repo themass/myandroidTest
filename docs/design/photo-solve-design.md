@@ -16,7 +16,7 @@
 | 端上「是不是题目」几何预筛 | **已实现** | `QuestionFrameCheck.kt`、`QuestionQuadDetector.kt` |
 | 四角微调页 | **已实现** | `feature-photosolve/.../ui/QuadAdjustScreen.kt` |
 | ViewModel 状态机重写 | **已实现** | `feature-photosolve/.../presentation/PhotoSolveViewModel.kt` |
-| 客户端调用层（走 `:network` 挂起封装） | **已实现** | `data/NetworkPhotoSolveRepository.kt` |
+| 客户端调用层（走 `:common` 挂起封装） | **已实现** | `data/NetworkPhotoSolveRepository.kt` |
 | 服务端 `solve.json` / `health.json` | **已实现**（可编译） | testserverV `vvv-link/.../photosolve/` |
 | 提示词 + 豆包调用 | **已实现**（未联调） | `PhotoSolvePrompt.java`、`DoubaoPhotoSolveProvider.java` |
 | 端到端调豆包 | **未验证** | 本机无 `photosolve.doubao.apiKey` |
@@ -26,10 +26,12 @@
 
 ### 一处与你描述不同的地方（请确认）
 
-你写的是「走 `:common` 的挂起封装 + NetConfig 注入」。实际项目的挂起封装在 **`:network`**：
-`com.openapi.network.awaitUpload`（`network/src/main/java/com/openapi/network/BaseServiceAwait.kt`）。
+你写的是「走 `:common` 的挂起封装 + NetConfig 注入」，**这一点在合并后已经成立**：
+`com.openapi.common.net.awaitUpload`（`common/src/main/java/com/openapi/common/net/BaseServiceAwait.kt`）。
+合并前它在 `:network`，`weifu-refactor` 的 `b20814bf` 把 `:network`/`:uikit`/`:ads` 并回了 `:common`，
+本次合并提交 `90dbfcb3` 已把调用点改到新包名。
 `:common` 只有压缩、EXIF 解码这类纯工具。`NetConfig` 是给**请求头名**用的（token 头、设备头、Referer），
-由 `MyApplication` 在启动时 `init` 一次；**拍照解题不需要自己的注入点**，因为 `:network` 的
+由 `MyApplication` 在启动时 `init` 一次；**拍照解题不需要自己的注入点**，因为 `:common` 的
 `BaseRequest` 已经统一带上了。如果你的原意是「拍照解题要有独立的 baseUrl 注入」，请说一声，
 我加一个 `PhotoSolveConfig.baseUrl()` 并走 `Constants.getUrl()` 之外的路径。
 
@@ -46,12 +48,12 @@
 | | 解题仓库抽象 + Mock（按顺序回放 40001/40002/40003/42901/50001） | `data/PhotoSolveRepository.kt` |
 | | 旧的 HTTP 实现（直连 myconf 的 `/photosolve/upload` + `/solve`，**未部署、未使用**） | `data/HttpPhotoSolveRepository.kt` |
 | `:imaging` | DocQuadNet 角点检测（ONNX，`corner_heatmaps` 1×4×64×64）、OpenCV 文档增强、Real-ESRGAN 超分、质量分析 | `cropassist/`、`image/`、`quality/` |
-| `:network` | `BaseService` + 挂起扩展 `awaitPost` / `awaitUpload` / `awaitGet`；token、设备头、AES 数据解码统一在 `BaseRequest`/`DataBuilder` | `network/src/main/java/com/openapi/network/` |
+| `:common`（`net/`） | `BaseService` + 挂起扩展 `awaitPost` / `awaitUpload` / `awaitGet`；token、设备头、AES 数据解码统一在 `BaseRequest`/`DataBuilder` | `common/src/main/java/com/openapi/common/net/` |
 
 **关键发现（决定了本次改动的形状）**：
 1. `DocQuadNetCropAssistProvider` 的模型**本来就输出四个角的热力图**，但 `CropAssistResult.SuggestedBox` 只保留了外接矩形 → 斜拍的题目会被裁进大量背景。端上检测已经能给出「有没有像纸面/屏幕的四边形」，只是被压扁成了矩形。
 2. 现有裁剪页只支持**轴对齐矩形**，没有「拖动四个角 + 透视矫正」。
-3. 旧 `HttpPhotoSolveRepository` 自己 new 了 `OkHttpClient`，绕开 `:network` 的登录态与信封解析；它对接的 myconf 接口从未部署。
+3. 旧 `HttpPhotoSolveRepository` 自己 new 了 `OkHttpClient`，绕开 `:common` 的登录态与信封解析；它对接的 myconf 接口从未部署。
 
 ### 1.2 服务端（testserverV）
 
@@ -111,7 +113,7 @@
 | `PhotoCaptureScreen.kt` | 新增 `detecting` / `notice` / `onManualCrop` 参数：检测中显示「检测中…」，没找到题目时显示黄色提示 + 「手动框选」 |
 | `PhotoSolveRepository.kt` | `PhotoSolveException` 移到 `presentation/PhotoSolveError.kt`（错误码属于界面契约） |
 | `core/.../Constants.java` | 新增 `PHOTOSOLVE_SOLVE_URL = "/photosolve/v1/solve.json"`、`PHOTOSOLVE_HEALTH_URL` |
-| `feature-photosolve/build.gradle` | 新增 `:network`、`:core` 依赖（走统一的请求封装；`ModuleGraphTest` 检查通过：feature → 第 0/2 层合法） |
+| `feature-photosolve/build.gradle` | 新增 `:core` 依赖（挂起封装已随模块合并进入 `:common`，而 `:common` 本来就是它的依赖；`ModuleGraphTest` 通过） |
 
 ### 3.3 为什么复用 `DocQuadNetCropAssistProvider` 而不是改它的返回类型
 
@@ -221,7 +223,7 @@ photosolve.timeoutSeconds=     # 默认 60
 
 | 层 | 策略 |
 |---|---|
-| 客户端 `:network` | 上传走 `HttpClient.uploadClient`：connect 40s / read 180s / write 180s；失败自动重试 1 次（`MAX_ATTEMPTS=2`）。业务错误（errno 非 0）不重试 |
+| 客户端 `:common`（net） | 上传走 `HttpClient.uploadClient`：connect 40s / read 180s / write 180s；失败自动重试 1 次（`MAX_ATTEMPTS=2`）。业务错误（errno 非 0）不重试 |
 | 服务端调模型 | `CompletableFuture.get(photosolve.timeoutSeconds)`（默认 60s）；超时 `cancel(true)` 并返回 50001 |
 | 客户端 UI | 50001 显示「重试」，`onRetry()` 用同一张裁剪图再发一次（不重新拍照） |
 | 幂等 | `clientRequestId` 由客户端生成；当前服务端只用于日志，**尚未做去重扣费**（见风险） |
@@ -296,7 +298,7 @@ cd /Users/gqli/work/testserverV && mvn -o -q -pl vvv-link -am compile -DskipTest
 已验证（2026-11-11）：
 - 客户端三模块编译通过；`:mediaview` / `:imaging` 的 JVM 单测通过。
 - 服务端 `mvn -o -pl vvv-link -am compile` 退出码 0。
-- `ModuleGraphTest`（`:app` 的架构测试）通过：`:feature-photosolve` 新增的 `:network`、`:core` 依赖符合分层。
+- `ModuleGraphTest`（`:app` 的架构测试）通过：`:feature-photosolve` 依赖 `:common`、`:core`，符合分层。
 
 **未验证**（需要真实环境）：
 - 端到端调用豆包：本机 `secrets.properties` 没有填写 `photosolve.doubao.apiKey`，`health.json` 会返回 `configured:false`、`solve.json` 返回 50002。填好密钥后按 4.6 的 curl 验证。
