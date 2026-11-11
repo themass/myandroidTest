@@ -205,3 +205,17 @@
 
 > `GET_TASKS` / `EXPAND_STATUS_BAR` 原本是生效的（未注释），但代码里已无调用方：
 > `GET_TASKS` 自 API 21 起对第三方应用无效，`EXPAND_STATUS_BAR` 需要系统签名。一并删除。
+
+---
+
+## 9. 第五轮：真机执行与方案 review（2026-11-12）
+
+执行结果与证据见 [refactor-round2-report.md](refactor-round2-report.md)。对本方案的修订：
+
+1. **阶段 A 必须有「真实 Android 行为」层**。JVM 单测 180 个全绿时，真机上「编辑后发送」「对话发图」两条主流程都是坏的。
+   新增 Robolectric `NATIVE` 图形模式（拒绝不可变位图）和依赖装配测试。
+2. **所有命令的退出码单独取**：`cmd > log 2>&1; echo $?`，不要 `cmd | tail`（取到的是 `tail` 的退出码）。
+3. **UI 自动化用控件文字，不用坐标**：`scripts/devicetest/ui.sh` 的 `wait_text` / `tap_text`。
+4. **记录设备 Android 版本**：Android 13 以下测不到 `READ_MEDIA_*` / `POST_NOTIFICATIONS`，结论不能外推。
+5. **服务端自检要带 UA 签名**：`scripts/devicetest/photosolve_probe.py`；裸 `curl` 得到 `errno 10000` 不代表服务端故障。
+6. **release 验证要么装包运行，要么明确写「未验证」**：只跑 R8 不等于 release 可用。
