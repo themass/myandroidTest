@@ -331,6 +331,26 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="support_copy_email">Copy email address</string>
     <string name="support_feedback_hint">Tell us what works and what does not. You can also attach debug logs to help us find the problem.</string>
     <string name="support_send_feedback">Send feedback</string>
+    <string name="report_issue_title">Report a problem</string>
+    <string name="report_issue_row">Report a problem</string>
+    <string name="report_issue_body">To help us fix connection problems, this uploads a diagnostic log to our server.
+
+What it contains:
+• Recent error messages and crash stack traces
+• Device model, Android version, app version
+• Network type, link MTU, tunnel MTU, which protocol was used
+• The node address you were connected to
+
+What it does NOT contain:
+• Your account, email or phone number
+• Passwords, UUIDs or node keys
+• Your location, clipboard or browsing history
+
+The log is sent once, only after you agree, and is used solely for diagnosing bugs. You can read our privacy policy before deciding.</string>
+    <string name="report_issue_agree">Agree and upload</string>
+    <string name="report_issue_cancel">Not now</string>
+    <string name="report_issue_policy">Privacy policy</string>
+    <string name="report_issue_thanks">Thanks — the log has been sent</string>
     <string name="support_upload_logs">Upload debug logs</string>
     <string name="support_about_desc">ShieldWing keeps your connection private and reliable.</string>
     <string name="support_visit_website">Visit website</string>

@@ -142,6 +142,8 @@ fun SettingsScreen(ui: SettingsUi, actions: SettingsActions) {
             SettingsGroup(R.string.group_support) {
                 ValueRow(R.string.support_about, "") { actions.onRow("about") }
                 Divider()
+                ValueRow(R.string.report_issue_row, "") { actions.onRow("report_issue") }
+                Divider()
                 ValueRow(R.string.support_feedback, "") { actions.onRow("feedback") }
                 Divider()
                 ValueRow(R.string.support_contact, "") { actions.onRow("contact") }
