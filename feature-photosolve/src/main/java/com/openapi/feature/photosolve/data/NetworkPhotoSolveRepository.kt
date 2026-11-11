@@ -38,9 +38,9 @@ class NetworkPhotoSolveRepository @JvmOverloads constructor(
         val file = File(appContext.cacheDir, "photosolve_${System.currentTimeMillis()}.jpg")
         try {
             file.writeBytes(compressed.bytes)
+            // 不猜学科：服务端会把 subject 当成学生提示写进提示词，猜错反而误导模型
             val request = PhotoSolveRequest(
                 clientRequestId = UUID.randomUUID().toString(),
-                subject = "math",
             )
             val url = Constants.getUrl(path)
             val response = try {

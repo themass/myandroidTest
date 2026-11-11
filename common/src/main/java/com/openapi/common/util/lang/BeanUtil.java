@@ -19,6 +19,11 @@ public class BeanUtil {
         for (Field field : fields) {
             try {
                 Object val = field.get(obj);//得到此属性的值
+                // null 不能转成字符串：String.valueOf(null) 是 "null"，服务端会把它当成真的值
+                // （拍照解题的可选字段 subject/grade 会变成「学生提示的学科：null」）。直接不发这个字段。
+                if (val == null) {
+                    continue;
+                }
                 map.put(field.getName(), String.valueOf(val));
             } catch (Exception e) {
                 LogUtil.e(e);
