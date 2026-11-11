@@ -11,7 +11,7 @@
 | 项 | 状态 | 证据 |
 |---|---|---|
 | 请求点清单（第 1.2 节，含文件+行号） | **已完成** | 本文 |
-| `PermissionGateway` / `PermissionRequest` / `PermissionOutcome` | **已实现** | `uikit/.../permission/` |
+| `PermissionGateway` / `PermissionRequest` / `PermissionOutcome` | **已实现** | `common/.../ui/permission/` |
 | `PermissionRequester.await()`（挂起版） | **已实现** | `PermissionRequester.kt` |
 | `PermissionRequester.onPermanentlyDenied()` + 设置页返回修复 | **已实现** | `PermissionRequester.kt` |
 | `Permissions.NOTIFICATIONS` | **已实现**（预设已加） | `Permissions.kt` |
@@ -21,7 +21,7 @@
 | `ApkDownloader` 通知权限 | **设计但未实现** | 第 4 节 #1 |
 | 清单里删掉无用的存储权限 | **设计但未实现** | 第 4 节 #2 |
 | 隐私弹窗文案核对 | **待你确认**（合规，我无法判断现有文案是否覆盖） | 第 4 节 #3 |
-| `:uikit` 单元测试 `combineStates()` | **设计但未实现**（模块暂无 test 目录） | 第 6 节 |
+| `:common` 单元测试 `combineStates()` | **设计但未实现**（模块暂无 permission 测试） | 第 6 节 |
 
 ---
 
@@ -29,7 +29,7 @@
 
 ### 1.1 已经清理掉的旧体系
 
-历史上的 `PermissionHelper` / `CompatiblePermissionManager` / `ModernPermissionManager` / `PermissionUtils` / `BasePermissionActivity` / `PermEvent` 已经删除。现在仓库里只剩 `:uikit` 的 `com.openapi.uikit.permission`：
+历史上的 `PermissionHelper` / `CompatiblePermissionManager` / `ModernPermissionManager` / `PermissionUtils` / `BasePermissionActivity` / `PermEvent` 已经删除。现在仓库里只剩 `:common` 的 `com.openapi.common.ui.permission`：
 
 | 文件 | 作用 |
 |---|---|
@@ -91,7 +91,7 @@ PermissionRequester.with(this)
 if (PermissionGateway.isGranted(context, Permissions.CAMERA)) { ... }
 ```
 
-### 2.2 新增/修改的文件（都在 `:uikit`）
+### 2.2 新增/修改的文件（都在 `:common`）
 
 | 文件 | 内容 |
 |---|---|
@@ -101,7 +101,7 @@ if (PermissionGateway.isGranted(context, Permissions.CAMERA)) { ... }
 | `PermissionRequester.kt`（改） | 新增 `await()`（协程版）；`Callback` 新增 `onPermanentlyDenied()`（默认退化为 `onDenied`）；从设置页回来仍没开时改为回调 `onPermanentlyDenied`（之前错误地回调 `onDenied`） |
 | `Permissions.kt`（改） | 每个预设从 `Array<String>` 变成 `PermissionRequest`（自带理由），新增 `NOTIFICATIONS`（Android 13+ 才需要，低版本返回空集合 → 直接视为已授权）；保留 `camera(rationale)` 等带参工厂供自定义文案 |
 
-**分层**：全部在 `:uikit`（第 0 层），只依赖 `androidx.activity` / `appcompat` / 协程，不 import 任何业务包，符合 `ModuleGraphTest`。
+**分层**：全部在 `:common`（第 0 层，模块合并后的唯一底层），只依赖 `androidx.activity` / `appcompat` / 协程，不 import 任何业务包，符合 `ModuleGraphTest`。
 
 ### 2.3 为什么用动态注册的 `ActivityResultRegistry`
 
@@ -144,7 +144,7 @@ if (PermissionGateway.isGranted(context, Permissions.CAMERA)) { ... }
 | `uikit/.../permission/Permissions.kt` | 预设改为 `PermissionRequest`；新增通知权限 |
 | `uikit/.../permission/PermissionRequester.kt` | 新增 `await()`、`onPermanentlyDenied()`；修复设置页返回的错误回调 |
 
-验证：`./gradlew --offline :uikit:compileDebugKotlin :feature-chat:compileDebugKotlin :feature-video:compileDebugKotlin :feature-photosolve:compileDebugKotlin` 全部通过。
+验证：`./gradlew --offline :common:compileDebugKotlin :feature-chat:compileDebugKotlin :feature-video:compileDebugKotlin :feature-photosolve:compileDebugKotlin` 全部通过。
 
 ---
 
@@ -176,11 +176,11 @@ if (PermissionGateway.isGranted(context, Permissions.CAMERA)) { ... }
 ## 6. 验证
 
 ```bash
-./gradlew --offline :uikit:compileDebugKotlin
+./gradlew --offline :common:compileDebugKotlin
 ./gradlew --offline :feature-chat:compileDebugKotlin
 ./gradlew --offline :feature-video:compileDebugKotlin
 ./gradlew --offline :feature-photosolve:compileDebugKotlin
 ./gradlew --offline :app:compileDebugKotlin
 ```
 
-全部通过（2026-11-11，离线）。`combineStates()` 是纯函数，后续可在 `:uikit` 加 `src/test` 做表驱动单测（本模块目前没有测试目录）。
+全部通过（2026-11-11，离线）。`combineStates()` 是纯函数，后续可在 `:common` 加 `src/test` 做表驱动单测（本模块目前没有测试目录）。
