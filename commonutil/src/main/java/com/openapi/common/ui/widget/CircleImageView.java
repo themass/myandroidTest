@@ -1,4 +1,4 @@
-package com.openapi.common.view.view.widget;
+package com.openapi.common.ui.widget;
 
 import android.content.Context;
 import android.graphics.Bitmap;

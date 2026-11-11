@@ -1,4 +1,4 @@
-package com.openapi.common.view.view.widgets;
+package com.openapi.ks.myapp.content.sound;
 
 import android.content.Context;
 import android.graphics.Canvas;

@@ -16,7 +16,7 @@ import com.openapi.core.legacyui.adapter.BaseRecyclerViewAdapter;
 import com.openapi.common.net.request.InfoListVo;
 import com.openapi.common.net.BaseService;
 import com.openapi.core.R;
-import com.openapi.common.view.view.DividerItemDecoration;
+import com.openapi.common.ui.widget.DividerItemDecoration;
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.common.util.lang.StringUtils;
 import com.openapi.core.legacyui.gsy.ListShellState;

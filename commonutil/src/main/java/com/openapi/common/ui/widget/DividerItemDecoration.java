@@ -1,4 +1,4 @@
-package com.openapi.common.view.view;
+package com.openapi.common.ui.widget;
 
 import android.content.Context;
 import android.content.res.TypedArray;

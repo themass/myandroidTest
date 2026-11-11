@@ -60,7 +60,7 @@ public class MyApplication extends MultiDexApplication {
                 CommonConstants.HTTP_TOKEN_KEY,
                 CommonConstants.DEVID,
                 code -> com.openapi.core.event.CoreEvents.INSTANCE.postUserNeedLogin());
-        com.openapi.common.view.view.MyWebView.setDefaultReferer(CommonConstants.DEFAULT_REFERER);
+        com.openapi.common.ui.widget.MyWebView.setDefaultReferer(CommonConstants.DEFAULT_REFERER);
         // 拍照解题：配置了服务地址才换成真实实现（见 app/build.gradle 的 photosolveBaseUrl），否则保留 mock
         if (!com.openapi.ks.chat.BuildConfig.PHOTOSOLVE_BASE_URL.isEmpty()) {
             com.aimath.paizhao.photosolve.data.PhotoSolveRepositories.INSTANCE.install(

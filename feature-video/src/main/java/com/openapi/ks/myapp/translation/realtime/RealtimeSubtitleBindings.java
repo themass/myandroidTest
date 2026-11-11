@@ -3,7 +3,7 @@ package com.openapi.ks.myapp.translation.realtime;
 import android.content.Context;
 import android.view.ViewGroup;
 
-import com.openapi.core.view.view.MyFavoriteView;
+import com.openapi.core.favorite.MyFavoriteView;
 import com.openapi.ks.myapp.video.player.DetailGSYVideoPlayer;
 import com.shuyu.gsyvideoplayer.video.base.GSYVideoView;
 

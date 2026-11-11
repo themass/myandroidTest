@@ -11,7 +11,7 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.openapi.core.CommonConstants;
-import com.openapi.common.view.view.MyWebView;
+import com.openapi.common.ui.widget.MyWebView;
 import com.openapi.common.util.android.AudioMngHelper;
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.common.util.android.PackageUtils;

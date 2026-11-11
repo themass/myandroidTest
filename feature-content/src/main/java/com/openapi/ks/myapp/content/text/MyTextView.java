@@ -1,4 +1,4 @@
-package com.openapi.common.view.view;
+package com.openapi.ks.myapp.content.text;
 
 import com.openapi.common.util.log.LogUtil;
 

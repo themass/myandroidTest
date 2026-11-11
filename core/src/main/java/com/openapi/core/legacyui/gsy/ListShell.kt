@@ -43,7 +43,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.openapi.common.util.log.LogUtil
-import com.openapi.common.view.view.DividerItemDecoration
+import com.openapi.common.ui.widget.DividerItemDecoration
 import com.openapi.core.R
 import com.openapi.common.R as CoreR
 

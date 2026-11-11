@@ -14,7 +14,7 @@ import com.openapi.common.net.NetError;
 import com.openapi.ks.myapp.translation.api.TranslationOverlaySession;
 import com.openapi.ks.myapp.translation.api.VideoTranslationRegistry;
 import com.openapi.ks.myapp.translation.api.VideoTranslationRequest;
-import com.openapi.core.view.view.MyFavoriteView;
+import com.openapi.core.favorite.MyFavoriteView;
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.common.util.android.ToastUtil;
 import com.openapi.common.net.request.CommonResponse;

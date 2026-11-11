@@ -1,4 +1,4 @@
-package com.openapi.common.view.view;
+package com.openapi.common.ui.widget;
 
 import android.app.Activity;
 import android.content.Context;

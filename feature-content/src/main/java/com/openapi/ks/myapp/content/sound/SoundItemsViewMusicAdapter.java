@@ -15,7 +15,7 @@ import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.openapi.common.view.view.widgets.MusicVisualizer;
+import com.openapi.ks.myapp.content.sound.MusicVisualizer;
 import com.openapi.feature.content.R;
 import com.openapi.feature.content.databinding.ItemSongBinding;
 import com.openapi.feature.content.databinding.ItemSongAuxioBinding;

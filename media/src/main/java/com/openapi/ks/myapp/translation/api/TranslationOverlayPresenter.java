@@ -7,11 +7,11 @@ import androidx.annotation.Nullable;
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.common.util.android.ToastUtil;
 import com.openapi.media.R;
-import com.openapi.core.view.view.widget.DraggableTranslationOverlay;
+import com.openapi.ks.myapp.translation.overlay.DraggableTranslationOverlay;
 
 /**
  * 可复用的「译」字幕浮层：任意页面注入 {@link TranslationOverlaySession} 后调用 {@link #toggle()}。
- * 与 {@link com.openapi.core.view.view.MyFavoriteView} 解耦，便于音乐详情、其他容器复用同一套逻辑。
+ * 与 {@link com.openapi.core.favorite.MyFavoriteView} 解耦，便于音乐详情、其他容器复用同一套逻辑。
  */
 public final class TranslationOverlayPresenter {
 

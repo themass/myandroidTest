@@ -9,7 +9,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import com.openapi.core.legacyui.app.LogActivity;
-import com.openapi.common.view.view.MyWebView;
+import com.openapi.common.ui.widget.MyWebView;
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.common.util.android.PackageUtils;
 import com.openapi.common.util.android.SystemUtils;

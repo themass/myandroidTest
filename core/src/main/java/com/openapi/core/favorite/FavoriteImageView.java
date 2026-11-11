@@ -1,4 +1,4 @@
-package com.openapi.core.view.view;
+package com.openapi.core.favorite;
 
 import android.content.Context;
 

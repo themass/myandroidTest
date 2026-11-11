@@ -21,8 +21,8 @@ import android.webkit.WebViewClient;
 
 import com.openapi.core.event.FavoriteVo;
 import com.openapi.core.legacyui.app.BaseFragment;
-import com.openapi.core.view.view.MyFavoriteView;
-import com.openapi.common.view.view.MyWebView;
+import com.openapi.core.favorite.MyFavoriteView;
+import com.openapi.common.ui.widget.MyWebView;
 import com.openapi.common.util.android.FileUtils;
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.core.ads.yewu.ads.base.AdsContext;

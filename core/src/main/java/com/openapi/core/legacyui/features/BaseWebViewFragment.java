@@ -20,7 +20,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 import com.openapi.core.legacyui.app.BaseFragment;
-import com.openapi.common.view.view.MyWebView;
+import com.openapi.common.ui.widget.MyWebView;
 import com.openapi.common.util.android.FileUtils;
 import com.openapi.common.util.android.IpUtil;
 import com.openapi.common.util.log.LogUtil;

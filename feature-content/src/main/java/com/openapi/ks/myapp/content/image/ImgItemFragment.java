@@ -18,7 +18,7 @@ import android.widget.TextView;
 import com.openapi.ks.myapp.content.image.FullScreenImagePagerAdapter;
 
 import com.openapi.core.event.FavoriteVo;
-import com.openapi.core.view.view.MyFavoriteView;
+import com.openapi.core.favorite.MyFavoriteView;
 import com.openapi.common.util.android.ToastUtil;
 import com.openapi.core.legacyui.adapter.BaseRecyclerViewAdapter;
 import com.openapi.core.app.AppContext;

@@ -22,7 +22,7 @@
         android:tint="#FFFFFF" />
 
     <!-- 收藏 / 翻译 / 实时字幕入口栏，与其它详情页保持一致 -->
-    <com.openapi.core.view.view.MyFavoriteView
+    <com.openapi.core.favorite.MyFavoriteView
         android:id="@+id/my_favoriteview"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

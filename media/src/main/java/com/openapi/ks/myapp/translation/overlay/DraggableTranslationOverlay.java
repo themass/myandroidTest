@@ -1,4 +1,4 @@
-package com.openapi.core.view.view.widget;
+package com.openapi.ks.myapp.translation.overlay;
 
 import android.content.Context;
 import android.os.Handler;

@@ -7,7 +7,7 @@ import androidx.annotation.Nullable;
 
 /**
  * 在线流式字幕：从播放中的媒体解出 PCM，经 ASR 实时回传文本。
- * 由视频/音乐播放页实现；{@link com.openapi.core.view.view.MyFavoriteView} 点「译」时优先走此 Session。
+ * 由视频/音乐播放页实现；{@link com.openapi.core.favorite.MyFavoriteView} 点「译」时优先走此 Session。
  */
 public interface RealtimeSubtitleSession {
 

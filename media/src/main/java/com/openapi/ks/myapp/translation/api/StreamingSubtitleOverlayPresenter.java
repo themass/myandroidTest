@@ -9,7 +9,7 @@ import androidx.annotation.Nullable;
 
 import com.openapi.media.R;
 import com.openapi.common.util.android.ToastUtil;
-import com.openapi.core.view.view.widget.DraggableTranslationOverlay;
+import com.openapi.ks.myapp.translation.overlay.DraggableTranslationOverlay;
 
 /**
  * 「译」在线流式字幕浮层：开/关 {@link RealtimeSubtitleSession}。

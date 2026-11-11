@@ -11,8 +11,8 @@ import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
-import com.openapi.common.view.view.MyEditText;
-import com.openapi.common.view.view.SiteAutoCompleteTextView;
+import com.openapi.common.ui.widget.MyEditText;
+import com.openapi.common.ui.widget.SiteAutoCompleteTextView;
 import com.openapi.common.util.android.PathUtil;
 import com.openapi.common.util.lang.StringUtils;
 import com.openapi.common.util.android.ToastUtil;

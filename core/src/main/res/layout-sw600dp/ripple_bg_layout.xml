@@ -20,7 +20,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
             
-            <com.openapi.common.view.view.widget.CircleImageView
+            <com.openapi.common.ui.widget.CircleImageView
                 android:id="@+id/centerImage"
                 android:layout_width="96dp"
                 android:layout_height="96dp"

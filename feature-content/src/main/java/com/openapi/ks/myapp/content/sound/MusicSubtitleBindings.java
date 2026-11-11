@@ -5,7 +5,7 @@ import com.openapi.ks.myapp.translation.realtime.VideoRealtimeSubtitleSession;
 import android.content.Context;
 import android.view.ViewGroup;
 
-import com.openapi.core.view.view.MyFavoriteView;
+import com.openapi.core.favorite.MyFavoriteView;
 
 /**
  * 音乐播放页绑定火山流式字幕（频道的声音页和声音详情页用；视频页用 RealtimeSubtitleBindings）。

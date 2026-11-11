@@ -16,7 +16,7 @@ import com.openapi.core.event.FavoriteVo;
 import com.openapi.ks.myapp.translation.api.TranslationOverlaySession;
 import com.openapi.ks.myapp.translation.api.VideoTranslationRegistry;
 import com.openapi.ks.myapp.translation.api.VideoTranslationRequest;
-import com.openapi.core.view.view.MyFavoriteView;
+import com.openapi.core.favorite.MyFavoriteView;
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.common.util.android.MediaUtil;
 import com.openapi.common.util.android.PreferenceUtils;
