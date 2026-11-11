@@ -6,9 +6,7 @@ import android.net.Uri;
 
 import com.openapi.common.ui.dialog.AppDialogHost;
 import com.openapi.common.ui.dialog.DialogAction;
-import com.openapi.common.util.android.PackageUtils;
 import com.openapi.common.util.android.PreferenceUtils;
-import com.openapi.common.net.http.NetUtils;
 import com.openapi.core.model.VersionVo;
 import com.openapi.core.R;
 import com.openapi.core.config.Constants;
@@ -20,7 +18,7 @@ public final class UpdateDialogs {
     }
 
     /**
-     * 有新版本时的提示框。确定：wifi 且是 apk 直接下载，否则用浏览器打开下载地址。
+     * 有新版本时的提示框。确定：打开应用商店的本应用页面。
      * 只有当 minBuild 与 maxBuild 不同（允许不更新）时才有取消按钮；取消时记下偏好。
      */
     public static void showGoogleUpdate(final Activity context, final VersionVo vo, final boolean updatePrefIfCancel) {
@@ -31,14 +29,7 @@ public final class UpdateDialogs {
                 new DialogAction() {
                     @Override
                     public void perform() {
-                        if (NetUtils.isWifi(context) && PackageUtils.isApk(vo.url)) {
-                            startDownloadWithNotificationPermission(context, vo.url);
-                        } else {
-                            final Uri uri = Uri.parse(vo.url);
-                            Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                            context.startActivity(intent);
-                        }
+                        openStorePage(context);
                     }
                 },
                 hasCancel ? context.getString(R.string.about_version_cancel) : null,
@@ -54,40 +45,22 @@ public final class UpdateDialogs {
     }
 
     /**
-     * 下载前先申请通知权限（Android 13 起是运行时权限）。
+     * 去应用商店更新。
      *
-     * 没有它，下载进度通知会被系统静默丢弃：用户点了下载，界面什么反应都没有，
-     * 只能干等到装包页弹出来。申请被拒也照样下载，只是没有进度通知。
+     * 不再在应用内下载并安装 APK：Google Play 禁止应用用商店以外的方式自我更新（设备与网络滥用政策），
+     * 而且在 targetSdk 24+ 用 file:// 安装 APK 会直接抛 FileUriExposedException。
+     * 服务端下发的 url 只作为没有商店可用时的兜底（比如被浏览器打开的下载页）。
      */
-    private static void startDownloadWithNotificationPermission(final Activity context, final String url) {
-        final com.openapi.common.ui.permission.PermissionRequest request =
-                com.openapi.common.ui.permission.Permissions.NOTIFICATIONS;
-        // 低版本这一组是空的：系统本来就没有这个权限，直接下载
-        if (request.getPermissions().isEmpty()) {
-            ApkDownloader.start(context, url);
-            return;
+    private static void openStorePage(Activity context) {
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + context.getPackageName()));
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        try {
+            context.startActivity(intent);
+        } catch (android.content.ActivityNotFoundException noStore) {
+            Intent web = new Intent(Intent.ACTION_VIEW, Uri.parse(Constants.playStoreUrl(context.getPackageName())));
+            web.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(web);
         }
-        // 统一权限入口只支持 ComponentActivity；更新提示可能来自老式 Activity，
-        // 那种情况下没有 Activity Result API，直接下载（只是没有进度通知）
-        if (!(context instanceof androidx.activity.ComponentActivity)) {
-            ApkDownloader.start(context, url);
-            return;
-        }
-        com.openapi.common.ui.permission.PermissionRequester.with((androidx.activity.ComponentActivity) context)
-                .permissions(request.getPermissions().toArray(new String[0]))
-                .rationale(request.getRationale())
-                .request(new com.openapi.common.ui.permission.PermissionRequester.Callback() {
-                    @Override
-                    public void onGranted() {
-                        ApkDownloader.start(context, url);
-                    }
-
-                    @Override
-                    public void onDenied(java.util.List<String> denied) {
-                        // 拒绝通知权限不影响下载本身
-                        ApkDownloader.start(context, url);
-                    }
-                });
     }
 
 }

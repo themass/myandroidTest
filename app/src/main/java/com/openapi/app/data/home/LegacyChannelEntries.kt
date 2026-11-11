@@ -28,7 +28,7 @@ class LegacyChannelEntries(app: Context) : ChannelEntries {
 
     override fun categories(context: Context): List<ChannelCategory> = buildList {
         add(ChannelCategory(MOVIE, R.string.tab_movie))
-        if (PreferenceUtils.getPrefBoolean(context, Constants.AREA_SWITCH, true)) {
+        if (PreferenceUtils.getPrefBoolean(context, Constants.AREA_SWITCH, Constants.AREA_SWITCH_DEFAULT)) {
             add(ChannelCategory(NIGHT, R.string.tab_ng))
         }
         add(ChannelCategory(CUSTOMER, R.string.tab_customer))

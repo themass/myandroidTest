@@ -17,7 +17,7 @@ import com.bumptech.glide.module.AppGlideModule;
 import com.bumptech.glide.request.RequestOptions;
 import com.openapi.common.net.glide.MyGlideDiskCacheFactory;
 import com.openapi.common.net.glide.OkHttpUrlLoader;
-import com.openapi.common.net.unsafe.UnsafeOkHttpClient;
+import com.openapi.common.net.glide.GlideHttpClient;
 import com.openapi.common.util.log.LogUtil;
 
 import java.io.InputStream;
@@ -47,7 +47,7 @@ public final class AppGlideConfig extends AppGlideModule {
 
     @Override
     public void registerComponents(@NonNull Context context, @NonNull Glide glide, @NonNull Registry registry) {
-        OkHttpClient okHttpClient = UnsafeOkHttpClient.getUnsafeOkHttpClient(context);
+        OkHttpClient okHttpClient = GlideHttpClient.create(context);
         registry.append(GlideUrl.class, InputStream.class, new OkHttpUrlLoader.Factory((Call.Factory) okHttpClient));
     }
 }

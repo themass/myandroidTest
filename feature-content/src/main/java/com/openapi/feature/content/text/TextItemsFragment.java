@@ -165,7 +165,8 @@ public class TextItemsFragment extends LoadableFragment<TextItemVo> implements M
         settings.setBuiltInZoomControls(false);
         settings.setSupportZoom(false); // 可以缩放
         settings.setUseWideViewPort(false);
-        settings.setAllowFileAccess(true);
+        // 只加载远程页面，不需要读本地文件；打开它会让页面里的脚本能读取应用沙盒内的 file:// 资源
+        settings.setAllowFileAccess(false);
         settings.setLoadWithOverviewMode(true);
         settings.setDomStorageEnabled(true);
 //        settings.setAppCacheEnabled(true);

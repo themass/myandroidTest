@@ -166,7 +166,7 @@ internal fun SettingScreen(
     // 布尔类设置：读取当前偏好，切换时写回并执行原有副作用
     var playVideo by remember { mutableStateOf(PreferenceUtils.getPrefBoolean(context, Constants.PLAYVIDEO_SWITCH, true)) }
     var listVideo by remember { mutableStateOf(PreferenceUtils.getPrefBoolean(context, Constants.LISTVIDEO_TINY_SWITCH, true)) }
-    var area by remember { mutableStateOf(PreferenceUtils.getPrefBoolean(context, Constants.AREA_SWITCH, true)) }
+    var area by remember { mutableStateOf(PreferenceUtils.getPrefBoolean(context, Constants.AREA_SWITCH, Constants.AREA_SWITCH_DEFAULT)) }
     var areaMi by remember { mutableStateOf(PreferenceUtils.getPrefBoolean(context, Constants.AREA_MI_SWITCH, false)) }
     var sound by remember { mutableStateOf(PreferenceUtils.getPrefBoolean(context, Constants.SOUND_SWITCH, true)) }
     var musicUiAuxio by remember { mutableStateOf(PreferenceUtils.getPrefBoolean(context, Constants.MUSIC_UI_AUXIO_STYLE, false)) }

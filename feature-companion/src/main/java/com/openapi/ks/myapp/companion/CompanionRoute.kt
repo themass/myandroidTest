@@ -162,7 +162,7 @@ private fun TopActions(
 
 object CompanionConfig {
     /** 服务端与主站同一网关，路径由 HttpCompanionApi 拼上 /companion/... 前缀。 */
-    val baseUrl: String get() = "http://${Constants.BASE_IP}"
+    val baseUrl: String get() = "https://${Constants.BASE_IP}"
 }
 
 /** 默认角色。角色列表选过之后以列表为准，这里只保证第一次进来有一个角色。 */

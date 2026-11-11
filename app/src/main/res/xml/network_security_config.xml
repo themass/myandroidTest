@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  网络安全配置（Google Play 上架）。
+
+  默认**禁止明文 http**，只对确实还没有证书的自家域名放行。
+  API（api.ok123find.top）和文件（file.ok123find.top）都已有有效证书，应用里统一走 https，
+  所以这里不再放行它们。
+
+  www.ok123find.top 没有 https（握手失败），目前只出现在 Referer 请求头和 WebView 首页地址里，
+  暂时放行；等它配好证书后把这一项删掉。
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">www.ok123find.top</domain>
+    </domain-config>
+</network-security-config>

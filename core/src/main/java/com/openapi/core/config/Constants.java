@@ -68,6 +68,12 @@ public class Constants {
     public static final String LOGIN_USER_LAST = "LOGIN_USER_LAST";
     public static final String CHAT_SESSION = "CHAT_SESSION";
     public static final String AREA_SWITCH = "AREA_SWITCH";
+    /**
+     * 「夜色」频道（成人内容）的默认值：**关**。
+     * 之前默认开，新用户一进频道页就能看到。Google Play 对露骨性内容零容忍，
+     * 默认关只是降低风险，不能当作合规——评审人员仍可在设置里打开，见 docs/design/play-compliance.md。
+     */
+    public static final boolean AREA_SWITCH_DEFAULT = false;
     public static final String PLAYVIDEO_SWITCH = "PLAYVIDEO_SWITCH";
     public static final String LISTVIDEO_TINY_SWITCH = "LISTVIDEO_TINY_SWITCH";
     /** 兼容旧版：true 表示曾选择 IJK；新逻辑请用 {@link #PLAYBACK_ENGINE} */
@@ -110,7 +116,7 @@ public class Constants {
     public static final String SEX_F = "F";
 
     public static final String USERIP = "USERIP";
-    public static final String helpUrl = "http://file.ok123find.top/vip.html";
+    public static final String helpUrl = "https://file.ok123find.top/vip.html";
     // 有新版本时，是否打开app就提醒升级
     //用户反馈
     public static final String DEFAULT_FEEDBACK_APPKEY = "23575056";
@@ -248,13 +254,18 @@ public class Constants {
     public static final String BOOK_CSS = " body{font-size:22px;font-family: 微软雅黑;letter-spacing:1.8px;line-height:1.2;background-color:rgba(0,0,0,0);}";
     public static String BASE_IP = "api.ok123find.top";
     public static String ABOUT_FIRST = "ABOUT_FbbIRST";
-    public static String ABOUT_ZH = "http://file.ok123find.top/about.html";
-    public static String ABOUT = "http://file.ok123find.top/about.html";
-    public static final String downloadUrl = "https://play.google.com/store/apps/details?id=com.openapi.ks.moviefree1";
+    public static String ABOUT_ZH = "https://file.ok123find.top/about.html";
+    public static String ABOUT = "https://file.ok123find.top/about.html";
+    /** 应用商店页：用本应用自己的包名，不要写死别的应用的 id。 */
+    public static String playStoreUrl(String packageName) {
+        return "https://play.google.com/store/apps/details?id=" + packageName;
+    }
     public static List<String> colorBg = Arrays.asList("#552d5d82", "#55135689", "#552292e9", "#5583878b", "#7f8d8f45", "#ffc49924", "#ff83713f", "#ff569b2b", "#ff882b9b");
 
     public static String getUrl(String uri) {
-        return "http://" + BASE_IP + "/vvv/api" + uri;
+        // https：api 域名证书有效（服务端已验证）。明文 http 会让 token、聊天内容在公共 Wi-Fi 上裸奔，
+        // 也是 Google Play 数据安全表里「传输中加密」一栏必须如实回答的地方。
+        return "https://" + BASE_IP + "/vvv/api" + uri;
     }
 
     public static String getUrlWithParam(String url, Object... param) {

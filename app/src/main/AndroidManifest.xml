@@ -11,41 +11,39 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" tools:node="remove"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" tools:node="remove"/>
     <!--
-        权限清单只保留「运行时真的会申请」和「系统必须预先声明」的项。
-        删掉注释掉的旧权限（通话、账户、定位、日历、日志等）：它们不改变行为，
-        但上架审核会问「为什么需要」。
+        Google Play 上架：权限「非用不申请」。这里只保留代码里真的用到的；
+        每一项都写明谁在用，新增权限前先看这张表并在 docs/design/play-compliance.md 登记。
     -->
+    <!-- 网络 -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- 投屏（:cast）和 IpUtil 读取本机局域网地址 -->
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
-    <!-- 对话、下载、联网类请求都要它；网络可能随时切换（Wi-Fi ↔ 数据） -->
-    <uses-permission android:name="android.permission.ACCESS_COARSE_UPDATES" />
-    <uses-permission
-        android:name="android.permission.SYSTEM_ALERT_WINDOW"
-        tools:ignore="ProtectedPermissions" />
 
-    <!-- 拍照与语音：运行时由 PermissionGateway 申请，清单必须先声明 -->
+    <!-- 拍照、语音：运行时由 PermissionGateway 申请，清单必须先声明 -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- 语音消息播放时调音量/音频焦点 -->
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
-    <!-- 语音消息、播放、录音的提示 -->
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <!-- 下载新版本 APK 的进度通知（Android 13+ 运行时申请，见 UpdateDialogs） -->
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
-    <!-- 媒体权限按模块声明：本地音乐在 :retromusic 的清单里（READ_MEDIA_AUDIO），
-         本地视频/相册由运行时的 Permissions.readVideo()/readImages() 申请。
-         选图走系统 Photo Picker，不需要存储权限。 -->
+    <!-- 存储：选图走系统 Photo Picker、保存走 MediaStore，不需要存储权限。
+         READ_EXTERNAL_STORAGE 只给 Android 12 及以下的本地视频页用；
+         WRITE_EXTERNAL_STORAGE 由 :retromusic 声明（maxSdkVersion=29）。 -->
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
-    <!-- WRITE_EXTERNAL_STORAGE 由 :retromusic 声明（maxSdkVersion=29），这里不重复声明，
-         否则清单合并会因 maxSdkVersion 不一致失败 -->
-    <uses-permission
-        android:name="android.permission.PACKAGE_USAGE_STATS"
-        tools:ignore="ProtectedPermissions" />
+
+    <!-- 下面这些是被依赖库合并进来、本应用代码里并没有使用的，明确移除：
+         悬浮窗、应用使用情况、并不存在的 ACCESS_COARSE_UPDATES（旧模板遗留）、
+         锁屏相关、全屏意图（受限权限，Play 要求单独声明用途）。 -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" tools:node="remove" />
+    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" tools:node="remove" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_UPDATES" tools:node="remove" />
+    <uses-permission android:name="android.permission.DISABLE_KEYGUARD" tools:node="remove" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" tools:node="remove" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" tools:node="remove" />
     <!--    <uses-sdk tools:overrideLibrary="com.andremion.music.cover" />-->
     <!--permission
         android:name="com.android.launcher.permission.READ_SETTINGS"
@@ -85,8 +83,7 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme.Slide"
-        android:usesCleartextTraffic="true"
-        android:requestLegacyExternalStorage="true"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:supportsRtl="true"
         android:resizeableActivity="true"
         android:supportsPictureInPicture="true"
