@@ -112,13 +112,7 @@ public abstract class JLatexMathTheme {
     public abstract BackgroundProvider blockBackgroundProvider();
 
     /**
-     * @return boolean if <strong>block LaTeX</strong> must fit the width of canvas
-     */
-    public abstract boolean blockFitCanvas();
-
-    /**
-     * @return horizontal alignment of <strong>block LaTeX</strong> if {@link #blockFitCanvas()}
-     * is enabled (thus space for alignment is available)
+     * @return horizontal alignment of <strong>block LaTeX</strong>
      */
     @JLatexMathDrawable.Align
     public abstract int blockHorizontalAlignment();
@@ -145,7 +139,6 @@ public abstract class JLatexMathTheme {
         private BackgroundProvider inlineBackgroundProvider;
         private BackgroundProvider blockBackgroundProvider;
 
-        private boolean blockFitCanvas = true;
         // horizontal alignment (when there is additional horizontal space)
         private int blockHorizontalAlignment = JLatexMathDrawable.ALIGN_CENTER;
 
@@ -180,16 +173,6 @@ public abstract class JLatexMathTheme {
         @NonNull
         public Builder blockBackgroundProvider(@Nullable BackgroundProvider blockBackgroundProvider) {
             this.blockBackgroundProvider = blockBackgroundProvider;
-            return this;
-        }
-
-        /**
-         * Configure if `LaTeX` formula should take all available widget width.
-         * By default - `true`
-         */
-        @NonNull
-        public Builder blockFitCanvas(boolean blockFitCanvas) {
-            this.blockFitCanvas = blockFitCanvas;
             return this;
         }
 
@@ -253,7 +236,6 @@ public abstract class JLatexMathTheme {
         private final BackgroundProvider inlineBackgroundProvider;
         private final BackgroundProvider blockBackgroundProvider;
 
-        private final boolean blockFitCanvas;
         // horizontal alignment (when there is additional horizontal space)
         private int blockHorizontalAlignment;
 
@@ -272,7 +254,6 @@ public abstract class JLatexMathTheme {
             this.backgroundProvider = builder.backgroundProvider;
             this.inlineBackgroundProvider = builder.inlineBackgroundProvider;
             this.blockBackgroundProvider = builder.blockBackgroundProvider;
-            this.blockFitCanvas = builder.blockFitCanvas;
             this.blockHorizontalAlignment = builder.blockHorizontalAlignment;
             this.padding = builder.padding;
             this.inlinePadding = builder.inlinePadding;
@@ -314,11 +295,6 @@ public abstract class JLatexMathTheme {
                 return blockBackgroundProvider;
             }
             return backgroundProvider;
-        }
-
-        @Override
-        public boolean blockFitCanvas() {
-            return blockFitCanvas;
         }
 
         @Override
