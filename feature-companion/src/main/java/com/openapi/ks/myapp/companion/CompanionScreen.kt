@@ -58,32 +58,13 @@ fun CompanionScreen(
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val renderer = remember { SimpleAvatarRenderer() }
+    val renderer = rememberCompanionAvatar()
     val listState = rememberLazyListState()
 
     LaunchedEffect(characterId) { viewModel.start(characterId) }
 
-    // 绑定素材：先用本地已有的（离线也能看）或内置默认，再向服务端同步。
-    // 服务端上线了这个角色的新形象就下载并换上；任何失败都保持当前形象不变。
-    val context = androidx.compose.ui.platform.LocalContext.current.applicationContext
-    val avatarSync = remember(context) { buildAvatarSync(context) }
-    LaunchedEffect(renderer, characterId) {
-        val local = avatarSync.localFor(characterId)
-        renderer.bind(AvatarSpec(files = local))
-        val synced = runCatching { avatarSync.syncFor(characterId) }.getOrNull()
-        if (synced != null && synced != local) renderer.bind(AvatarSpec(files = synced))
-    }
-
-    // 服务端事件 → 渲染器指令。映射在 AvatarEventMapper 里，界面不认协议细节。
-    LaunchedEffect(state.avatarState) {
-        AvatarEventMapper.mapJson("""{"type":"state","state":"${state.avatarState}"}""")
-            ?.let(renderer::dispatch)
-    }
-
-    // 情绪是独立的一次性事件，不随状态变化重复下发。
-    LaunchedEffect(state.emotion) {
-        state.emotion?.let { renderer.dispatch(AvatarCommand.Emotion(it)) }
-    }
+    // 形象绑定、同步、状态与情绪映射在 RenderAvatarEffects 里，合并后的陪伴页也用同一份。
+    RenderAvatarEffects(renderer, characterId, state.avatarState, state.emotion)
 
     LaunchedEffect(state.messages.size, state.messages.lastOrNull()?.text) {
         if (state.messages.isNotEmpty()) {
@@ -297,4 +278,41 @@ private fun buildAvatarSync(context: android.content.Context): com.openapi.ks.my
         cacheDir = context.cacheDir,
         appVersion = version,
     )
+}
+
+/** 一个绑定好的形象渲染器（每个页面一个，眨眼定时器随页面销毁）。 */
+@Composable
+fun rememberCompanionAvatar(): SimpleAvatarRenderer {
+    val renderer = remember { SimpleAvatarRenderer() }
+    androidx.compose.runtime.DisposableEffect(renderer) { onDispose { renderer.release() } }
+    return renderer
+}
+
+/**
+ * 形象的副作用：绑定素材（先本地已有或内置，再向服务端同步）、把对话状态与情绪翻译成渲染指令。
+ * [avatarState] 是 idle / thinking / speaking / listening 这些字符串（见 AvatarEventMapper）。
+ */
+@Composable
+fun RenderAvatarEffects(
+    renderer: SimpleAvatarRenderer,
+    characterId: String,
+    avatarState: String,
+    emotion: String?,
+) {
+    val context = androidx.compose.ui.platform.LocalContext.current.applicationContext
+    val avatarSync = remember(context) { buildAvatarSync(context) }
+    LaunchedEffect(renderer, characterId) {
+        val local = avatarSync.localFor(characterId)
+        renderer.bind(AvatarSpec(files = local))
+        val synced = runCatching { avatarSync.syncFor(characterId) }.getOrNull()
+        if (synced != null && synced != local) renderer.bind(AvatarSpec(files = synced))
+    }
+    // 服务端事件 → 渲染器指令。映射在 AvatarEventMapper 里，界面不认协议细节。
+    LaunchedEffect(avatarState) {
+        AvatarEventMapper.mapJson("""{"type":"state","state":"$avatarState"}""")?.let(renderer::dispatch)
+    }
+    // 情绪是独立的一次性事件，不随状态变化重复下发。
+    LaunchedEffect(emotion) {
+        emotion?.let { renderer.dispatch(AvatarCommand.Emotion(it)) }
+    }
 }

@@ -12,5 +12,4 @@
     <string name="drawer_group_account">账户</string>
     <string name="drawer_group_common">常用</string>
     <string name="drawer_group_test">测试</string>
-    <string name="home_tab_agent_chat">角色对话（新）</string>
 </resources>

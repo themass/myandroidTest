@@ -12,5 +12,4 @@
     <string name="drawer_group_account">Account</string>
     <string name="drawer_group_common">Common</string>
     <string name="drawer_group_test">Test</string>
-    <string name="home_tab_agent_chat">Role chat (new)</string>
 </resources>

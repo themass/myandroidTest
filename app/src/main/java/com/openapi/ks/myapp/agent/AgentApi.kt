@@ -31,6 +31,10 @@ interface AgentApi {
     suspend fun selectAlternative(messageId: String): AgentBubble
     suspend fun reminders(includeDone: Boolean = false): List<AgentReminder>
     suspend fun cancelReminder(reminderId: String)
+    /** 回应一个待确认的动作（例如建立提醒）。确认后由服务端执行并通过事件流回报结果。 */
+    suspend fun confirmAction(confirmationId: String, accepted: Boolean)
+    /** 页面重新进入时恢复还没处理的待确认动作（事件流只在发生时推一次）。 */
+    suspend fun pendingActions(): List<PendingConfirmation>
 }
 
 class AgentApiException(message: String, val statusCode: Int?, val code: String?) : Exception(message)
@@ -118,6 +122,17 @@ class HttpAgentApi(
 
     override suspend fun selectAlternative(messageId: String): AgentBubble =
         call("POST", "/messages/$messageId/select", null).toBubble()
+
+    override suspend fun confirmAction(confirmationId: String, accepted: Boolean) {
+        call("POST", "/actions/${enc(confirmationId)}/confirm", JSONObject().put("accepted", accepted))
+    }
+
+    override suspend fun pendingActions(): List<PendingConfirmation> {
+        val items = call("GET", "/actions/pending", null).optJSONArray("items") ?: JSONArray()
+        return (0 until items.length()).map { items.getJSONObject(it) }.map {
+            PendingConfirmation(it.optString("confirmation_id"), it.optString("title"), it.optString("summary"))
+        }
+    }
 
     override suspend fun reminders(includeDone: Boolean): List<AgentReminder> {
         val items = call("GET", "/reminders?include_done=$includeDone", null).optJSONArray("items") ?: JSONArray()

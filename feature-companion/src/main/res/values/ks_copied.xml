@@ -38,4 +38,6 @@
     <string name="companion_title">Companion</string>
     <string name="companion_add_event">Add</string>
     <string name="companion_nav_back">Back</string>
+    <string name="companion_open_voice">Voice call</string>
+    <string name="companion_voice_back">Back to chat</string>
 </resources>

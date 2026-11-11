@@ -18,6 +18,8 @@ import com.openapi.ks.myapp.agent.AgentEventSource
 import com.openapi.ks.myapp.agent.HttpAgentApi
 import com.openapi.ks.myapp.agent.cache.AgentMessageCache
 import com.openapi.ks.myapp.companion.CompanionConfig
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 
 /**
  * 新对话页的装配：基地址与登录 token 来自现有配置（与陪伴页一致），不关心 HTTP 细节。
@@ -28,6 +30,8 @@ fun AgentChatRoute(
     sessionId: String,
     isRtl: Boolean,
     modifier: Modifier = Modifier,
+    /** 把对话进展报给形象：thinking（已发出、还没出字）/ speaking（正在出字）/ idle。 */
+    onAvatarState: ((String) -> Unit)? = null,
 ) {
     val context = LocalContext.current.applicationContext
     val repository = remember(context) { buildRepository(context) }
@@ -39,6 +43,14 @@ fun AgentChatRoute(
             }
         },
     )
+    if (onAvatarState != null) {
+        androidx.compose.runtime.LaunchedEffect(viewModel) {
+            viewModel.state
+                .map { s -> s.active?.let { if (it.text.isEmpty()) "thinking" else "speaking" } ?: "idle" }
+                .distinctUntilChanged()
+                .collect { onAvatarState(it) }
+        }
+    }
     AgentChatScreen(viewModel = viewModel, isRtl = isRtl, modifier = modifier)
 }
 
