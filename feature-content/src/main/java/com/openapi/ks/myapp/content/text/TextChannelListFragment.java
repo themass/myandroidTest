@@ -14,7 +14,7 @@ import com.openapi.common.util.android.ToastUtil;
 import com.openapi.core.ads.yewu.ads.base.AdsContext;
 import com.openapi.ks.myapp.content.text.TextChannelListItemsViewAdapter;
 import com.openapi.core.legacyui.adapter.BaseRecyclerViewAdapter;
-import com.openapi.core.event.FavoriteVo;
+import com.openapi.core.db.FavoriteVo;
 import com.openapi.common.net.request.InfoListVo;
 import com.openapi.core.model.RecommendVo;
 import com.openapi.ks.myapp.content.text.TextItemsVo;

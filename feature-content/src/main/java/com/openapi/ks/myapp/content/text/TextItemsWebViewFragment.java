@@ -19,7 +19,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import com.openapi.core.event.FavoriteVo;
+import com.openapi.core.db.FavoriteVo;
 import com.openapi.core.legacyui.app.BaseFragment;
 import com.openapi.core.favorite.MyFavoriteView;
 import com.openapi.common.ui.widget.MyWebView;

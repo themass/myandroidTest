@@ -33,7 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.openapi.common.design.theme.AppColors
-import com.openapi.core.event.FavoriteVo
+import com.openapi.core.db.FavoriteVo
 import com.openapi.feature.content.R
 
 /**

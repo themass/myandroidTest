@@ -1,6 +1,6 @@
 package com.openapi.ks.myapp.content.image;
 
-import com.openapi.core.event.FavoriteVo;
+import com.openapi.core.db.FavoriteVo;
 import com.openapi.core.config.Constants;
 
 /**

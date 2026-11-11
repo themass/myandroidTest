@@ -1,4 +1,4 @@
-package com.openapi.core.event;
+package com.openapi.core.db;
 
 import androidx.room.Entity;
 import androidx.room.Ignore;

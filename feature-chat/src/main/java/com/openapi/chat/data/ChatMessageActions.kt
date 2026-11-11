@@ -1,7 +1,7 @@
 package com.openapi.chat.data
 
 import android.content.Context
-import com.openapi.core.event.FavoriteVo
+import com.openapi.core.db.FavoriteVo
 import com.openapi.common.net.BaseService
 import com.openapi.core.util.FavoriteUtil
 import com.openapi.core.model.FeedbackContentForm

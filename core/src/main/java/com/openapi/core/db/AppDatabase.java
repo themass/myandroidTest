@@ -11,7 +11,7 @@ import androidx.room.migration.Migration;
 import androidx.sqlite.SQLite;
 import androidx.sqlite.SQLiteConnection;
 
-import com.openapi.core.event.FavoriteVo;
+import com.openapi.core.db.FavoriteVo;
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.core.model.ChatLog;
 import com.openapi.core.model.ChatSessionLog;

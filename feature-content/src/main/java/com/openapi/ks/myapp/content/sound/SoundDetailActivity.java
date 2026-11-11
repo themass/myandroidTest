@@ -12,7 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.compose.ui.platform.ComposeView;
 import androidx.core.content.ContextCompat;
 
-import com.openapi.core.event.FavoriteVo;
+import com.openapi.core.db.FavoriteVo;
 import com.openapi.ks.myapp.translation.api.TranslationOverlaySession;
 import com.openapi.ks.myapp.translation.api.VideoTranslationRegistry;
 import com.openapi.ks.myapp.translation.api.VideoTranslationRequest;

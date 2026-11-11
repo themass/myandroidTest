@@ -1,6 +1,6 @@
 package com.openapi.core.model;
 
-import com.openapi.core.event.FavoriteVo;
+import com.openapi.core.db.FavoriteVo;
 
 import java.io.Serializable;
 

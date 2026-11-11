@@ -6,7 +6,7 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 
-import com.openapi.core.event.FavoriteVo;
+import com.openapi.core.db.FavoriteVo;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

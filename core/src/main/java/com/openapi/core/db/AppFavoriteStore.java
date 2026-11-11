@@ -1,6 +1,6 @@
 package com.openapi.core.db;
 
-import com.openapi.core.event.FavoriteVo;
+import com.openapi.core.db.FavoriteVo;
 import com.openapi.core.favorite.FavoriteStore;
 
 import java.util.List;

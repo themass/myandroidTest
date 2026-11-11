@@ -19,7 +19,7 @@ import com.openapi.common.util.log.LogUtil;
 import com.openapi.common.util.android.ToastUtil;
 import com.openapi.common.net.request.CommonResponse;
 import com.openapi.feature.video.R;
-import com.openapi.core.event.FavoriteVo;
+import com.openapi.core.db.FavoriteVo;
 import com.openapi.core.model.RecommendVo;
 import com.openapi.core.config.Constants;
 import com.openapi.common.net.BaseService;

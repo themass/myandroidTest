@@ -20,7 +20,7 @@ import androidx.annotation.NonNull;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.openapi.core.event.FavoriteVo;
+import com.openapi.core.db.FavoriteVo;
 
 import com.openapi.ks.myapp.translation.api.TranslationOverlaySession;
 import com.openapi.ks.myapp.translation.api.VideoTranslationRegistry;

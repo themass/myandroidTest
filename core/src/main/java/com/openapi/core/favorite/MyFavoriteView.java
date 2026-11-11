@@ -14,7 +14,7 @@ import androidx.appcompat.app.AlertDialog;
 
 import androidx.annotation.Nullable;
 
-import com.openapi.core.event.FavoriteVo;
+import com.openapi.core.db.FavoriteVo;
 import com.openapi.ks.myapp.translation.api.RealtimeSubtitleSession;
 import com.openapi.ks.myapp.translation.api.TranslationOverlaySession;
 import com.openapi.common.util.android.PackageUtils;

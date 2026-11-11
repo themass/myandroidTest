@@ -6,7 +6,7 @@ import androidx.appcompat.widget.AppCompatImageView;
 
 import android.util.AttributeSet;
 
-import com.openapi.core.event.FavoriteVo;
+import com.openapi.core.db.FavoriteVo;
 import com.openapi.core.util.FavoriteUtil;
 import com.openapi.core.R;
 

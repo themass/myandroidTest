@@ -1,6 +1,6 @@
 package com.openapi.ks.myapp.content.text;
 
-import com.openapi.core.event.FavoriteVo;
+import com.openapi.core.db.FavoriteVo;
 import com.openapi.core.config.Constants;
 
 import java.io.Serializable;

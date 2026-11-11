@@ -27,7 +27,7 @@ import com.openapi.core.favorite.MyFavoriteView;
 import com.openapi.common.ui.widget.MyScrollView;
 import com.openapi.ks.myapp.content.text.MyTextView;
 import com.openapi.core.ads.yewu.ads.base.AdsContext;
-import com.openapi.core.event.FavoriteVo;
+import com.openapi.core.db.FavoriteVo;
 import com.openapi.common.ui.widget.MyWebView;
 import com.openapi.common.net.HttpUtils;
 import com.openapi.core.app.AppContext;

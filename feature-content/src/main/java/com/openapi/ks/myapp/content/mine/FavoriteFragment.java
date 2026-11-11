@@ -16,7 +16,7 @@ import androidx.annotation.Nullable;
 import androidx.compose.ui.platform.ComposeView;
 import androidx.fragment.app.Fragment;
 
-import com.openapi.core.event.FavoriteVo;
+import com.openapi.core.db.FavoriteVo;
 import com.openapi.core.util.FavoriteUtil;
 import com.openapi.common.util.android.FileUtils;
 import com.openapi.common.util.json.GsonUtils;
