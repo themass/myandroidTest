@@ -1,4 +1,7 @@
-package com.aimath.paizhao.photosolve
+package com.aimath.paizhao.photosolve.presentation
+
+import com.aimath.paizhao.photosolve.data.PhotoSolveException
+import com.aimath.paizhao.photosolve.data.PhotoSolveRepositories
 
 import android.app.Application
 import android.graphics.Bitmap

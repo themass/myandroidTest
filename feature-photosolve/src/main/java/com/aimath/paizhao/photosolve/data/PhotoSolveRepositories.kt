@@ -1,4 +1,4 @@
-package com.aimath.paizhao.photosolve
+package com.aimath.paizhao.photosolve.data
 
 /**
  * 拍照解题后端的注入点，和 ChatDependencies / RolesDependencies 同一种接法。

@@ -1,4 +1,6 @@
-package com.aimath.paizhao.photosolve
+package com.aimath.paizhao.photosolve.data
+
+import com.aimath.paizhao.photosolve.presentation.PhotoSolveResult
 
 import android.graphics.Bitmap
 import com.openapi.core.image.ImageCompressor

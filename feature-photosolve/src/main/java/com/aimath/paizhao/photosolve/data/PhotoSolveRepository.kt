@@ -1,4 +1,7 @@
-package com.aimath.paizhao.photosolve
+package com.aimath.paizhao.photosolve.data
+
+import com.aimath.paizhao.photosolve.presentation.PhotoSolveResult
+import com.aimath.paizhao.photosolve.presentation.PhotoSolveViewModel
 
 import android.graphics.Bitmap
 import kotlinx.coroutines.delay
