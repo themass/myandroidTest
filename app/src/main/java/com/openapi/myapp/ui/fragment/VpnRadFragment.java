@@ -1052,6 +1052,14 @@ public class VpnRadFragment extends BaseFragment {
 
     /** 用户节点：outbound 已是完整的 Xray 配置，走 Xray 通道。 */
     private void connectUserNode(UserNodeStore.UserNode node) {
+        // outboundJson 为空说明链接解析失败过（旧版本存下的节点、或服务端返回的链接不合法）。
+        // 这时绝不能继续：引擎看到空 outbound 会回退到"服务端 Reality"分支，
+        // 用这个节点的地址 + 空 UUID 去握手，必然失败，还会让用户以为节点本身坏了。
+        if (node.outboundJson == null || node.outboundJson.trim().isEmpty()) {
+            LogUtil.e("节点配置缺失，无法连接: " + node.name);
+            ToastUtil.showShort(R.string.user_node_config_invalid);
+            return;
+        }
         CharonVpnSessionRepository repo = (CharonVpnSessionRepository) this.repo;
         TunnelRequest request = new TunnelRequest.Builder()
                 .server(node.server)

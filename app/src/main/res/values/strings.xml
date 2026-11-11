@@ -91,6 +91,7 @@
     <string name="setting_list_card_style">Card-style server list</string>
     <string name="kill_switch_status_on">Enabled</string>
     <string name="kill_switch_status_off">Tap to enable</string>
+    <string name="user_node_config_invalid">This node is missing its configuration. Re-add it from its share link.</string>
     <string name="kill_switch_status_unknown">Set in system settings</string>
     <string name="kill_switch_howto">Android does not let an app block traffic on its own. To get a real kill switch, open system settings and enable, for this app:\n\n1. Always-on VPN — ShieldWing\n2. Block connections without VPN\n\nWithout step 2, traffic falls back to your normal connection when the tunnel drops.</string>
     <string name="kill_switch_explain">To block all traffic when the VPN drops, Android requires enabling "Always-on VPN" and "Block connections without VPN" for this app in system settings. Continue?</string>

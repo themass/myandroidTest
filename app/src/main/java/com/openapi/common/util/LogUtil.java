@@ -59,6 +59,7 @@ public class LogUtil {
         // 权限限制），所以改成无条件打印；EventBus 事件继续保留，万一将来真
         // 有订阅者（比如应用内日志查看页）要用。
         Log.e(TAG, "", t);
+        DiagnosticLog.error("", t);
         if (!CommonConstants.DEBUG) {
             EventBusUtil.getEventBus().post(new LogUtil.LogAddEvent(t));
         }
@@ -66,6 +67,7 @@ public class LogUtil {
 
     public static void e(String t) {
         Log.e(TAG, t);
+        DiagnosticLog.error(t, null);
         if (!CommonConstants.DEBUG) {
             EventBusUtil.getEventBus().post(new LogUtil.LogAddEvent(t));
         }

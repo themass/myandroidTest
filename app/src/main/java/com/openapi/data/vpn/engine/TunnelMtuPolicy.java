@@ -316,7 +316,7 @@ public final class TunnelMtuPolicy {
      * 三级取值，逐级回退。不能只信 {@link LinkProperties#getMtu()}：实测小米 Android 15 上
      * Wi-Fi 网络报的是 {@code MTU: 0}，只看它就会让所有协议恒等于 1280，"按链路推算"形同虚设。
      */
-    static int linkMtu(Context c) {
+    public static int linkMtu(Context c) {
         ConnectivityManager cm = cm(c);
         Network n = underlying(cm);
         if (cm == null || n == null) {
@@ -359,7 +359,7 @@ public final class TunnelMtuPolicy {
     }
 
     /** 底层网络的传输类型：wifi / cell / eth / other / none（上报用，不含任何标识）。 */
-    static String networkType(Context c) {
+    public static String networkType(Context c) {
         ConnectivityManager cm = cm(c);
         Network n = underlying(cm);
         if (cm == null || n == null) {

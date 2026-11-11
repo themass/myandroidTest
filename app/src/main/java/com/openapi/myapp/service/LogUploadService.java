@@ -31,6 +31,8 @@ public class LogUploadService extends BaseLogService {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         List<File> file = new ArrayList<>();
+        // 先把当前环境写进去：只有堆栈没有环境信息，仍然无法判断问题出在哪个网络/协议上
+        com.openapi.common.util.DiagnosticLog.snapshot(this);
         boolean ret = FileUtils.mvFile(FileUtils.getBugFilePath(), FileUtils.getBugUploadFilePath());
         boolean ret1 = FileUtils.mvFile(FileUtils.getCharonFilePath(), FileUtils.getCharonUploadFilePath());
         if (ret) {
