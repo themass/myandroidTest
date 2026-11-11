@@ -142,3 +142,109 @@ curl -s -o /dev/null -w '%{http_code}\n' https://api.ok123find.top/vvv/api/versi
   需要你提供：仓库、镜像或机器，以及 `/api/agent/v1` 与其的关系。
 - 额度（V5）、幂等（V6）、未配置模型的表现（V7）本轮没执行，原因写在表里。
 - 生产 HTTPS 证书续期、nginx 配置版本管理不在本文范围。
+
+---
+
+## 9. 陪伴 / agent 服务（companion-agent）的部署
+
+### 9.1 现状修正
+
+前文第 1 节写的「陪伴 / agent 不存在」需要修正：**服务端代码是有的**，在
+`/Users/gqli/work/deepagents/docs/myproject/companion-agent`（Python 3.12 + FastAPI + LiveKit Agents + DeerFlow）。
+缺的是**把它部署到 `api.ok123find.top`**——nginx 上没有它的 location，所以客户端打到的是 404。
+
+路径约定（实测，与 Android 客户端一致）：
+
+| 客户端 | 路径 | 说明 |
+|---|---|---|
+| 陪伴（`HttpCompanionApi`） | `/companion/sessions`、`/companion/characters`、`/companion/memory`、`/companion/events`、`/companion/prefs`、`/companion/inbox`、`/companion/actions/*` | 角色目录、记忆、事件、偏好、收件箱 |
+| Agent（`AgentApi`） | `/api/agent/v1/sessions`、`/api/agent/v1/sessions/{id}/messages`、`/api/agent/v1/sessions/{id}/events`（SSE）、`/api/agent/v1/roles` | 会话、消息、流式回合、角色 |
+
+### 9.2 本轮修掉的两个「一上生产就起不来」
+
+| # | 问题 | 为什么本地测不出来 |
+|---|---|---|
+| S1 | `serve.py` 在 `main()` 里同步 `build_app()`，而 `AsyncPostgresSaver.__init__` 调用 `asyncio.get_running_loop()`，直接抛 `RuntimeError: no running event loop` | 只有配了 Postgres checkpoint 才触发；不配库时走的是降级分支 |
+| S2 | `routing.yaml` 里的 `openai/deepseek-v4-pro` / `-flash` 在可用网关上取不到（agicto 报 `invalid_api_key`） | 模型名只在真正调用时才校验 |
+
+修复：新增 `LoopBuiltServer`，在 uvicorn 的 `_serve` 协程里才构建 app；模型改为
+火山方舟实测可用的 `doubao-seed-2-1-pro` / `doubao-seed-2-1-lite`（OpenAI 兼容）。
+
+### 9.3 依赖
+
+| 依赖 | 用途 | 本轮怎么起 |
+|---|---|---|
+| Postgres + pgvector | 会话、角色、记忆、checkpoint | `pgvector/pgvector:pg16`，端口 55432 |
+| Redis | 登录态校验、额度、幂等 | `redis:7-alpine`，端口 56379 |
+| LiveKit server | 语音房间 | `livekit/livekit-server --dev`（生产用 LiveKit Cloud 或自建 + TURN） |
+| Python 包 | `livekit` 只带 `rtc`，**建房要另装 `livekit-api`** | `uv pip install livekit-api` |
+| 模型网关 | OpenAI 兼容 | 火山方舟 `https://ark.cn-beijing.volces.com/api/v3` |
+
+### 9.4 必需的环境变量
+
+```bash
+COMPANION_ENV=prod
+COMPANION_AUTH_VERIFIER=redis_token          # 生产必须；allow_all 会被启动检查拒绝
+AUTH_REDIS_URL=redis://...                   # 读 Java 登录态
+COMPANION_DATABASE_URL=postgresql+psycopg://...   # checkpoint 必须 Postgres
+COMPANION_REDIS_URL=redis://...
+COMPANION_LLM_API_BASE=https://ark.cn-beijing.volces.com/api/v3
+COMPANION_LLM_API_KEY=<火山方舟 key>
+LIVEKIT_URL=wss://...   LIVEKIT_API_KEY=...   LIVEKIT_API_SECRET=...
+```
+
+> `COMPANION_AUTH_VERIFIER=allow_all` 时 dev 用户 id 是 `dev-user`（非数字），
+> `/api/agent/v1/roles` 会因为 `_owner_id()` 要求数字而返回 404。测试时用
+> `Authorization: Bearer <数字>` 即可。
+
+### 9.5 nginx
+
+需要在 `snippets-vpn-routes.conf` 里加（`/vvv/` 是现有前缀，转发时要剥掉）：
+
+```nginx
+# 陪伴与 agent：长连接（SSE），必须关缓冲
+location ^~ /vvv/api/agent/v1 {
+    default_type application/json;
+    proxy_buffering off;
+    proxy_cache off;
+    proxy_read_timeout 300s;
+    rewrite ^/vvv(/.*)$ $1 break;
+    proxy_pass http://companion_server;
+}
+location ^~ /vvv/companion {
+    default_type application/json;
+    proxy_buffering off;
+    rewrite ^/vvv(/.*)$ $1 break;
+    proxy_pass http://companion_server;
+}
+upstream companion_server { server 127.0.0.1:8081; }
+```
+
+**SSE 必须 `proxy_buffering off`**，否则流式回复会攒到最后一次性吐出，客户端表现为「一直转圈然后突然出全文」。
+
+### 9.6 启动
+
+```bash
+cd companion-agent
+COMPANION_HOST=127.0.0.1 COMPANION_PORT=8081 .venv/bin/python -m companion.serve
+```
+
+### 9.7 本轮实测结果
+
+| 项 | 结果 |
+|---|---|
+| `/health` | 200 `{"status":"ok"}` |
+| `/companion/characters` | 200，返回角色（林澈等） |
+| `/companion/characters/{id}`、`memory`、`events`、`prefs`、`inbox`、`actions/pending` | 全部 200 |
+| `POST /companion/sessions` | 200，返回 `session_id` / `room_name` / LiveKit `token` / `livekit_url` / `expires_at` |
+| `POST /api/agent/v1/sessions` | 201 |
+| `POST /api/agent/v1/sessions/1/messages` | 202，`turn_id` |
+| 模型真实回复 | **通过**：助手按角色设定回复，历史里写入 user + assistant 两条 |
+| SSE `/sessions/{id}/events` | 未单独抓包验证（消息已通过历史接口确认落库） |
+
+### 9.8 还没做的
+
+- **没有部署到公网**：需要服务器的 SSH 访问与部署权限；我没有动线上。
+- LiveKit 现在是本地 dev 实例（`devkey`/`secret`），生产要换成 Cloud 或自建 + TURN，并改 `LIVEKIT_URL`。
+- 语音链路（Volcengine TTS/ASR）默认关闭（`COMPANION_VOICE_ENABLED=false`），未验证。
+- 主动性推送（`/companion/inbox` 由定时任务产生）未验证：需要 `events` 里有到期事件。

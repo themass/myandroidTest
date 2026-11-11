@@ -21,8 +21,8 @@
 | 分享 | `common/ui/share`（`ShareKit`、二维码） | 不涉及 | 可测 |
 | 拍照解题 | 完整 | `solve.json` / `quota.json` / `health.json` **已存在**，本轮已配好模型 | **可端到端测** |
 | 对话发图识别 | 完整 | `chat/ai/recognize.json` **已存在** | 可端到端测 |
-| 陪伴（角色扮演、LiveKit、记忆、收件箱、事件） | `feature-companion`，19 个文件，走 `/companion/*` | **404，不存在** | **只能测「接口缺失时的降级」，不能测功能** |
-| Agent 对话（`/api/agent/v1`，SSE 重连） | `:app` 下 15 个文件 | **404，不存在** | 同上 |
+| 陪伴（角色扮演、LiveKit、记忆、收件箱、事件） | `feature-companion`，19 个文件，走 `/companion/*` | **代码在 `deepagents/docs/myproject/companion-agent`，本地已跑通；公网未部署（nginx 404）** | 服务端可测；真机端到端要先把 nginx 配上 |
+| Agent 对话（`/api/agent/v1`，SSE 重连） | `:app` 下 15 个文件 | **同上：本地已跑通（建会话 201、发消息 202、模型真实回复），公网未部署** | 同上 |
 | deerflow 作为大脑 | — | 本机与部署环境**均未找到**任何 deerflow 服务或配置 | 无对象可测 |
 
 > 上面两行 404 是实测：带着完整 UA 签名打 `POST https://api.ok123find.top/companion/sessions` 和
