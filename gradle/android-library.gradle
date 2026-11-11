@@ -1,0 +1,56 @@
+// 所有 Android 库模块共用的配置（:retromusic 除外，它保留自己的配置）。
+// 用法：在模块的 plugins {} 之后写
+//     apply from: rootProject.file('gradle/android-library.gradle')
+// 然后在模块自己的 android {} 里只写 namespace 和 buildFeatures。
+
+android {
+    compileSdk = rootProject.ext.compileSdkVersion
+
+    defaultConfig {
+        minSdk = rootProject.ext.minSdkVersion
+        targetSdk = rootProject.ext.targetSdkVersion
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        if (project.file('consumer-rules.pro').exists()) {
+            consumerProguardFiles 'consumer-rules.pro'
+        }
+    }
+
+    buildTypes {
+        debug {
+            debuggable = true
+        }
+        release {
+            // 库模块不单独混淆；需要保留的类写在本模块的 consumer-rules.pro，由 :app 的 R8 统一处理
+            minifyEnabled = false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    lint {
+        checkReleaseBuilds = false
+        abortOnError = false
+        ignoreWarnings = true
+        quiet = true
+        disable 'all'
+    }
+
+    packagingOptions {
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/services/javax.annotation.processing.Processor'
+    }
+}
+
+plugins.withId('org.jetbrains.kotlin.android') {
+    android.kotlinOptions {
+        jvmTarget = '17'
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs += ['-nowarn', '-Xlint:none']
+    options.warnings = false
+}

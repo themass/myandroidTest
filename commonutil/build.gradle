@@ -5,79 +5,13 @@ plugins {
     id 'org.jetbrains.kotlin.plugin.compose'
 }
 
+apply from: rootProject.file('gradle/android-library.gradle')
+
 android {
-
-    kotlinOptions {
-        jvmTarget = '17'
-    }
     namespace = 'com.openapi.common'
-
     buildFeatures {
-        viewBinding = true
         compose = true
-    }
-    compileSdk = rootProject.ext.compileSdkVersion
-
-    defaultConfig {
-        minSdk = rootProject.ext.minSdkVersion
-        targetSdk = rootProject.ext.targetSdkVersion
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles = ["consumer-rules.pro"]
-    }
-
-    packagingOptions {
-        exclude 'META-INF/LICENSE.txt'
-        exclude 'META-INF/maven/com.squareup.okhttp/okhttp/pom.xml'
-        exclude 'META-INF/maven/com.squareup.okhttp/okhttp/pom.properties'
-        exclude 'META-INF/maven/com.squareup.okio/okio/pom.xml'
-        exclude 'META-INF/maven/com.squareup.okio/okio/pom.properties'
-        exclude 'META-INF/services/javax.annotation.processing.Processor'
-    }
-    
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro', '../proguard-common.pro'
-            consumerProguardFiles "consumer-rules.pro"
-        }
-        debug {
-            minifyEnabled false
-            debuggable true
-        }
-    }
-    
-    lintOptions {
-        checkReleaseBuilds = false
-        abortOnError = false
-        ignoreWarnings = true
-        quiet = true
-        // 抑制弃用警告
-        disable 'deprecation'
-        // 抑制未检查转换警告
-        disable 'unchecked'
-        // 抑制其他常见警告
-        disable 'all'
-    }
-    
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
-    }
-    
-    // 配置Java编译选项，禁用警告
-    tasks.withType(JavaCompile) {
-        options.compilerArgs += [
-            '-nowarn',               // 禁用所有警告
-            '-Xlint:none',           // 禁用所有lint警告
-            '-Xlint:-deprecation',   // 禁用废弃API警告
-            '-Xlint:-unchecked',     // 禁用未检查转换警告
-            '-Xlint:-rawtypes',      // 禁用原始类型警告
-            '-Xlint:-varargs',       // 禁用可变参数警告
-            '-Xlint:-cast',          // 禁用类型转换警告
-            '-Xlint:-serial'         // 禁用序列化警告
-        ]
-        // 确保编译器不报告任何警告
-        options.warnings = false
+        viewBinding = true
     }
 }
 
@@ -93,7 +27,6 @@ dependencies {
     implementation 'com.google.zxing:core:3.5.3'
     implementation libs.androidx.core.ktx
     // 本地库文件
-    implementation fileTree(dir: 'libs', include: ['*.aar', '*.jar'])
 
     // 网络和JSON
     api libs.gson
