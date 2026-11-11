@@ -1,5 +1,7 @@
 package com.openapi.ks.myapp.data.db;
 
+import com.openapi.core.db.AppDatabase;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
