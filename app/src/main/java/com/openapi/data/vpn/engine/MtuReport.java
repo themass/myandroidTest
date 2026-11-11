@@ -2,8 +2,6 @@ package com.openapi.data.vpn.engine;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Handler;
-import android.os.Looper;
 import android.telephony.TelephonyManager;
 
 import androidx.annotation.Nullable;
@@ -32,6 +30,17 @@ public final class MtuReport {
     private static final String KEY = "queue";
     private static final int MAX = 100;
     private static final Object LOCK = new Object();
+    /** 同一时刻只允许一个上报在途，否则成功回调会重复删除。 */
+    private static boolean flushing;
+    /** 队列满时丢掉的条数，随下一次成功上报一起记日志。 */
+    private static int droppedSinceLastFlush;
+    /** 上报在后台线程做，避免在主线程读写 SharedPreferences。 */
+    private static final java.util.concurrent.ExecutorService WORKER =
+            java.util.concurrent.Executors.newSingleThreadExecutor(r -> {
+                Thread t = new Thread(r, "mtu-report");
+                t.setDaemon(true);
+                return t;
+            });
 
     private MtuReport() {
     }
@@ -52,43 +61,77 @@ public final class MtuReport {
         synchronized (LOCK) {
             List<Item> q = load(app);
             q.add(item);
+            int dropped = 0;
             while (q.size() > MAX) {
                 q.remove(0);
+                dropped++;
             }
             save(app, q);
+            if (dropped > 0) {
+                droppedSinceLastFlush += dropped;
+            }
         }
-        new Handler(Looper.getMainLooper()).post(() -> flush(app));
+        WORKER.execute(() -> flush(app));
     }
 
-    /** 上报队列；成功后只删除已上报的那部分，之后新加的不会被误删。 */
+    /**
+     * 上报队列。**只有服务端确认成功才删除**；失败（离线、超时、鉴权）原样保留到下次。
+     * <p>
+     * 之前是 postData 一返回就清空，请求还没发出去数据就没了，离线用户的上报全丢——
+     * 而这份数据正是用来判断"要不要下调默认 MTU"的，丢了等于灰度没有依据。
+     */
     public static void flush(Context app) {
         final List<Item> batch;
         synchronized (LOCK) {
+            if (flushing) {
+                return;
+            }
             batch = load(app);
-        }
-        if (batch.isEmpty()) {
-            return;
+            if (batch.isEmpty()) {
+                return;
+            }
+            flushing = true;
         }
         MtuLogForm form = new MtuLogForm();
         form.log = GsonUtils.getInstance().toJson(batch);
         BaseService service = new BaseService();
         service.setup(app);
-        service.postData(Constants.getUrl(Constants.API_MTULOG_URL), form, null,
+        service.postData(Constants.getUrl(Constants.API_MTULOG_URL), form,
+                new CommonResponse.ResponseOkListener<NullReturnVo>() {
+                    @Override
+                    public void onResponse(NullReturnVo vo) {
+                    // 服务端已收下：删掉本次上报的这一段（期间新加的条目不受影响）
+                    removeFirst(app, batch.size());
+                    int dropped;
+                    synchronized (LOCK) {
+                        dropped = droppedSinceLastFlush;
+                        droppedSinceLastFlush = 0;
+                        flushing = false;
+                    }
+                    LogUtil.i("MTU 上报成功 " + batch.size() + " 条"
+                            + (dropped > 0 ? "，此前因队列满丢弃 " + dropped + " 条" : ""));
+                    }
+                },
                 new CommonResponse.ResponseErrorListener() {
                     @Override
                     protected void onError() {
+                        synchronized (LOCK) {
+                            flushing = false;
+                        }
                         LogUtil.i("MTU 上报失败，保留到下次");
                     }
                 }, "mtulog", NullReturnVo.class);
-        // 服务端的写库失败也会返回成功（只记日志），这里不重复发送，直接按已上报清理。
-        synchronized (LOCK) {
-            List<Item> now = load(app);
-            now.subList(0, Math.min(batch.size(), now.size())).clear();
-            save(app, now);
-        }
     }
 
     // ---------------------------------------------------------------- internals
+
+    private static void removeFirst(Context app, int n) {
+        synchronized (LOCK) {
+            List<Item> now = load(app);
+            now.subList(0, Math.min(n, now.size())).clear();
+            save(app, now);
+        }
+    }
 
     private static String carrier(Context app) {
         try {

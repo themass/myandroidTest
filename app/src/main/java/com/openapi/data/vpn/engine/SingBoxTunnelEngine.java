@@ -50,7 +50,7 @@ public final class SingBoxTunnelEngine implements TunnelEngine {
         @Override
         public void onFailed(String reason) {
             connected = false;
-            // 疑似 MTU 黑洞：学习值已记为 1280，自动重连一次（buildConfig 会读到学习值）
+            // 疑似 MTU 黑洞：服务已打好内存标记（不落盘），自动重连一次，成功后才写学习值
             TunnelRequest req = lastRequest;
             if (reason != null && reason.startsWith(TunnelMtuPolicy.SUSPECT_MARK)
                     && !mtuRetried && req != null) {

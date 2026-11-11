@@ -9,7 +9,12 @@ package com.openapi.data.vpn.engine;
  */
 public final class TunnelProbe {
 
-    static final long PROBE_TIMEOUT_MS = 20_000L;
+    public static final long PROBE_TIMEOUT_MS = 20_000L;
+    /**
+     * 用了乐观 MTU（> FLOOR）时的探测总时长。既然是猜的，就该快速验证：
+     * 猜对了省下用户 12 秒等待，猜错了也能在 8 秒内降级重连。
+     */
+    public static final long PROBE_TIMEOUT_OPTIMISTIC_MS = 8_000L;
     static final long PROBE_INTERVAL_MS = 1_000L;
     private static final int PROBE_CONNECT_TIMEOUT_MS = 3_000;
     /** TLS 握手的读超时。上游不通时多半是读超时，所以不能太长，否则总时长里轮次太少。 */
@@ -34,10 +39,20 @@ public final class TunnelProbe {
      */
     public static Result probeUntilDeadline(android.content.Context context,
                                             java.util.function.BooleanSupplier alive) {
+        return probeUntilDeadline(context, alive, PROBE_TIMEOUT_MS);
+    }
+
+    /**
+     * @param timeoutMs 连通性判定的总时长。MTU 走乐观起点时调用方应传更短的值（8 秒），
+     *                  让"猜大了"的代价可控，而不是让用户等满 20 秒再看到一次失败。
+     */
+    public static Result probeUntilDeadline(android.content.Context context,
+                                            java.util.function.BooleanSupplier alive,
+                                            long timeoutMs) {
         android.net.ConnectivityManager cm =
                 context.getApplicationContext().getSystemService(android.net.ConnectivityManager.class);
-        long deadline = System.currentTimeMillis() + PROBE_TIMEOUT_MS;
-        boolean seenMtuSuspect = false;
+        long deadline = System.currentTimeMillis() + timeoutMs;
+        boolean connected = false;
         while (System.currentTimeMillis() < deadline) {
             if (!alive.getAsBoolean()) {
                 return Result.UNREACHABLE;
@@ -45,14 +60,14 @@ public final class TunnelProbe {
             android.net.Network vpn = findVpnNetwork(cm);
             if (vpn != null) {
                 for (String[] target : PROBE_TARGETS) {
-                    Result r = probeOnce(vpn, target[0], Integer.parseInt(target[1]));
-                    if (r == Result.OK) {
-                        return Result.OK;
-                    }
-                    if (r == Result.MTU_SUSPECT) {
-                        seenMtuSuspect = true;
+                    if (probeOnce(vpn, target[0], Integer.parseInt(target[1])) == Result.OK) {
+                        connected = true;
+                        break;
                     }
                 }
+            }
+            if (connected) {
+                break;
             }
             try {
                 Thread.sleep(PROBE_INTERVAL_MS);
@@ -61,22 +76,31 @@ public final class TunnelProbe {
                 return Result.UNREACHABLE;
             }
         }
-        return seenMtuSuspect ? Result.MTU_SUSPECT : Result.UNREACHABLE;
+        if (!connected) {
+            return Result.UNREACHABLE;
+        }
+        // 连通性已通过：再确认"隧道 MTU 尺寸的包能不能过"。
+        // 只用公共 anycast 判断不可靠——跨境线路上"TCP 通、TLS 不通"很常见，
+        // 和 MTU 黑洞表现一样，会把好线路误判成需要降到 1280。自有接口不受这个影响。
+        return probeLargePacket(cm, alive);
     }
 
     /**
-     * 探针结果。MTU_SUSPECT 的条件：TCP 已经连上，但 TLS 握手一直等不到回包（读超时）。
-     * 这通常是小包能过、大包（证书链）被路径丢弃，即 MTU 黑洞；此时才值得降到 1280 重试。
+     * 探针结果。
+     * <ul>
+     *   <li>{@link #OK} 连通性通过，且大包验证也通过（或无法验证）</li>
+     *   <li>{@link #UNREACHABLE} 线路不通，与 MTU 无关</li>
+     *   <li>{@link #MTU_SUSPECT} 隧道能用，但自有主机的大包过不去 → 才可能是 MTU 黑洞</li>
+     * </ul>
      */
     public enum Result { OK, UNREACHABLE, MTU_SUSPECT }
 
     /**
-     * 一次端到端探测：TCP 连上之后必须再完成一次 TLS 握手，成功返回 true。
+     * 一次端到端探测：TCP 连上之后必须再完成一次 TLS 握手，成功返回 OK。
      * <p>
      * 只做 {@code connect()} 是不够的：TUN 用 mixed 栈时，TCP 由本机系统协议栈先接住，
      * connect() 在上游还没拨出去之前就会成功，线路根本不通也会"瞬间连上"。
-     * TLS 握手要收到对端的 ServerHello 才算完成，只有数据真的走了一个来回才会通过；
-     * 上游不通时本机栈会把连接关掉（RST/EOF），或者读超时，这里都按失败处理。
+     * TLS 握手要收到对端的 ServerHello 才算完成，只有数据真的走了一个来回才会通过。
      * 只校验证书链，不校验主机名：目标是裸 IP，这里只关心"通没通"。
      */
     static Result probeOnce(android.net.Network network, String host, int port) {
@@ -87,18 +111,13 @@ public final class TunnelProbe {
         } catch (java.io.IOException e) {
             return Result.UNREACHABLE;
         }
-        boolean tcpUp = false;
         try {
             raw.connect(new java.net.InetSocketAddress(host, port), PROBE_CONNECT_TIMEOUT_MS);
-            tcpUp = true;
             raw.setSoTimeout(PROBE_IO_TIMEOUT_MS);
             ssl = (javax.net.ssl.SSLSocket) ((javax.net.ssl.SSLSocketFactory)
                     javax.net.ssl.SSLSocketFactory.getDefault()).createSocket(raw, host, port, true);
             ssl.startHandshake();
             return Result.OK;
-        } catch (java.net.SocketTimeoutException e) {
-            // TCP 连上后握手读超时 → 小包可能能过、大包被丢（MTU 黑洞的典型表现）
-            return tcpUp ? Result.MTU_SUSPECT : Result.UNREACHABLE;
         } catch (Exception e) {
             return Result.UNREACHABLE;
         } finally {
@@ -113,6 +132,51 @@ public final class TunnelProbe {
         }
     }
 
+    /**
+     * 大包验证：经 VPN 网络向<b>自有 API 主机</b>做一次完整 TLS 握手。
+     * <p>
+     * 为什么用自有机型而不只看响应体大小：接口只回 102 字节（之前误以为 6.5 KB，那是压缩后的原串），
+     * 读不满大包，判定永远失败。而 TLS 握手里服务端的 Certificate 证书链通常有 3–5 KB，
+     * 对端会按 MSS 发满尺寸的 TCP 段——这本身就足以验证"隧道 MTU 大小的包能不能过"。
+     * <p>
+     * 为什么不用公共 anycast：跨境线路上 1.1.1.1 / 8.8.8.8 "TCP 通、TLS 不通"很常见，
+     * 表现和 MTU 黑洞一模一样，会把好线路误判成需要降到 1280。自有域名不会。
+     */
+    private static Result probeLargePacket(@androidx.annotation.Nullable android.net.ConnectivityManager cm,
+                                           java.util.function.BooleanSupplier alive) {
+        String host = com.openapi.myapp.constant.Constants.BASE_IP;
+        if (host == null || host.isEmpty() || host.contains(":")) {
+            return Result.OK;   // 域名带端口或异常时不作 MTU 判定
+        }
+        android.net.Network vpn = findVpnNetwork(cm);
+        if (vpn == null || !alive.getAsBoolean()) {
+            return Result.OK;
+        }
+        javax.net.ssl.SSLSocket ssl = null;
+        boolean tcpUp = false;
+        try {
+            java.net.Socket raw = vpn.getSocketFactory().createSocket();
+            raw.connect(new java.net.InetSocketAddress(host, 443), PROBE_CONNECT_TIMEOUT_MS);
+            tcpUp = true;
+            raw.setSoTimeout(PROBE_IO_TIMEOUT_MS);
+            ssl = (javax.net.ssl.SSLSocket) ((javax.net.ssl.SSLSocketFactory)
+                    javax.net.ssl.SSLSocketFactory.getDefault()).createSocket(raw, host, 443, true);
+            ssl.startHandshake();
+            return Result.OK;
+        } catch (java.net.SocketTimeoutException e) {
+            // TCP 通但握手上不来：证书链（大包）过不去，这才是 MTU 的嫌疑
+            return tcpUp ? Result.MTU_SUSPECT : Result.OK;
+        } catch (Exception e) {
+            return Result.OK;   // 其它失败不归因于 MTU
+        } finally {
+            try {
+                if (ssl != null) {
+                    ssl.close();
+                }
+            } catch (Exception ignored) {
+            }
+        }
+    }
 
     /** 本应用当前的 VPN 网络；系统还没把它建好时返回 null。 */
     @androidx.annotation.Nullable

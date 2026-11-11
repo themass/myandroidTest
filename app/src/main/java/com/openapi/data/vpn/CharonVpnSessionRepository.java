@@ -2,6 +2,11 @@ package com.openapi.data.vpn;
 
 import android.content.ComponentName;
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.LinkProperties;
+import android.net.Network;
+import android.net.NetworkCapabilities;
+import android.net.NetworkRequest;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Handler;
@@ -73,6 +78,10 @@ public final class CharonVpnSessionRepository implements VpnSessionRepository {
     private Runnable pendingRetry;
     /** 用户主动断开时置位，避免把它当成"故障"去触发自动重连。 */
     private volatile boolean userInitiatedDisconnect;
+
+    /** 切网重算 MTU 用的底层网络回调（文档 3.5）。 */
+    @Nullable
+    private ConnectivityManager.NetworkCallback networkCallback;
 
     @Nullable
     private Context appContext;
@@ -201,6 +210,7 @@ public final class CharonVpnSessionRepository implements VpnSessionRepository {
             org.strongswan.android.logic.CharonVpnService.suppressIkev2Notification();
         }
         metrics.begin(protocol.getId());
+        watchUnderlyingNetwork(appContext);
         engine.connect(request, engineCallback);
         return true;
     }
@@ -305,10 +315,78 @@ public final class CharonVpnSessionRepository implements VpnSessionRepository {
     // --------------------------------------------------------------- private
 
     /**
+     * 注册底层网络回调：Wi-Fi ↔ 蜂窝切换后，链路 MTU 变小会让原来的隧道 MTU 包发不出去
+     * （文档 3.5）。只有"新值明显更小"才重建，避免切网时来回断流。
+     */
+    private void watchUnderlyingNetwork(@Nullable Context ctx) {
+        if (ctx == null || networkCallback != null) {
+            return;
+        }
+        ConnectivityManager cm = ctx.getSystemService(ConnectivityManager.class);
+        if (cm == null) {
+            return;
+        }
+        ConnectivityManager.NetworkCallback cb = new ConnectivityManager.NetworkCallback() {
+            @Override
+            public void onLinkPropertiesChanged(@NonNull Network network, @NonNull LinkProperties lp) {
+                mainHandler.post(CharonVpnSessionRepository.this::maybeShrinkMtu);
+            }
+
+            @Override
+            public void onAvailable(@NonNull Network network) {
+                mainHandler.post(CharonVpnSessionRepository.this::maybeShrinkMtu);
+            }
+        };
+        NetworkRequest req = new NetworkRequest.Builder()
+                .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                .addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN)
+                .build();
+        try {
+            cm.registerNetworkCallback(req, cb);
+            networkCallback = cb;
+        } catch (RuntimeException e) {
+            LogUtil.e(TAG + ": 注册网络回调失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 链路 MTU 变小到会丢包时，用新值重建隧道。<b>只在空闲且已连接时做</b>，
+     * 且要求新值比当前小 40 字节以上（滞回），避免在边界上反复重连。
+     */
+    private void maybeShrinkMtu() {
+        com.openapi.data.vpn.engine.TunnelMtuPolicy.Snapshot snap =
+                com.openapi.data.vpn.engine.TunnelMtuPolicy.lastResolved();
+        if (snap == null || lastProtocol == null || lastRequest == null) {
+            return;
+        }
+        VpnSessionState cur = state.getValue();
+        if (cur == null || !cur.isConnected()) {
+            return;
+        }
+        int now = com.openapi.data.vpn.engine.TunnelMtuPolicy.recompute(snap);
+        if (snap.mtu - now < 40) {
+            return;
+        }
+        LogUtil.i(TAG + ": 链路 MTU 变小，隧道 MTU " + snap.mtu + " → " + now + "，重建连接");
+        TunnelRequest req = lastRequest;
+        TunnelProtocol proto = lastProtocol;
+        // 重连期间保持"连接中"，用户不会看到一次假的掉线
+        publish(new VpnSessionState(VpnStateService.State.CONNECTING,
+                VpnStateService.ErrorState.NO_ERROR, ImcState.UNKNOWN, true));
+        connect(proto, req);
+    }
+
+    /**
      * 所有状态变化的唯一出口（主线程）。雷达（observeState）和通知栏（VpnNotifier）
      * 从这里同时取值，保证两边永远一致。
      */
     private void publish(VpnSessionState next) {
+        VpnSessionState prev = state.getValue();
+        boolean wasUp = prev != null && prev.isConnected();
+        if (wasUp != next.isConnected()) {
+            // 路由刚切换：池里的连接是在旧网络上建的，复用会卡到读超时，必须丢掉
+            com.openapi.yewu.net.OkHttpStack.evictConnections();
+        }
         state.setValue(next);
         VpnNotifier.render(next, activeProtocol.getValue());
     }

@@ -125,7 +125,10 @@ public final class WireGuardTunnelEngine implements TunnelEngine {
                 // 不探测就报"已连接"，系统 VPN 会把整机流量吸进一条不通的隧道。
                 final Backend probing = go;
                 TunnelProbe.Result res = TunnelProbe.probeUntilDeadline(appContext,
-                        () -> tunnel == t && backend == probing);
+                        () -> tunnel == t && backend == probing,
+                        mtu > TunnelMtuPolicy.FLOOR
+                                ? TunnelProbe.PROBE_TIMEOUT_OPTIMISTIC_MS
+                                : TunnelProbe.PROBE_TIMEOUT_MS);
                 if (tunnel != t) {
                     return; // 探测期间被断开或换了新连接
                 }
@@ -137,19 +140,27 @@ public final class WireGuardTunnelEngine implements TunnelEngine {
                     } catch (Exception ignored) {
                     }
                     if (res == TunnelProbe.Result.MTU_SUSPECT) {
-                        TunnelMtuPolicy.learn(TunnelMtuPolicy.Proto.WIREGUARD, nodeKey, TunnelMtuPolicy.FLOOR);
                         if (!retried && mtu > TunnelMtuPolicy.FLOOR) {
-                            // 疑似 MTU 黑洞：已学习 1280，同一引擎内重试一次（resolve 会读到学习值）
+                            // 疑似 MTU 黑洞：先只打内存标记压到 1280 重连，成功后才写学习值
+                            TunnelMtuPolicy.beginFallback(TunnelMtuPolicy.Proto.WIREGUARD, nodeKey);
                             LogUtil.i(TAG + ": 疑似 MTU 黑洞，降到 1280 重试一次");
                             establishTunnel(request, callback, true);
                             return;
                         }
+                        // 已经是下限还卡：不是 MTU 问题，丢掉标记别污染学习表
+                        TunnelMtuPolicy.cancelFallback(TunnelMtuPolicy.Proto.WIREGUARD, nodeKey);
                     }
                     LogUtil.e(TAG + ": 隧道已建立但探测流量不通（UDP 被拦截或服务端没放行）");
                     callback.onError(ErrorCode.UNREACHABLE, "WireGuard 隧道不通");
                     return;
                 }
                 LogUtil.i(TAG + ": 连通性探针通过");
+                if (retried) {
+                    // 降级重连成功：这才把 1280 写进学习表，下次直接用
+                    TunnelMtuPolicy.confirmFallback(TunnelMtuPolicy.Proto.WIREGUARD, nodeKey);
+                } else {
+                    TunnelMtuPolicy.recordSuccess(TunnelMtuPolicy.Proto.WIREGUARD, nodeKey);
+                }
                 connected = true;
                 callback.onConnected();
             } catch (BadConfigException e) {

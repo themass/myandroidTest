@@ -95,6 +95,8 @@ public final class Ikev2TunnelEngine implements TunnelEngine {
     /** 真正发起连接。自动降级重连也走这里（不重置 mtuRetried）。 */
     private void doConnect(@NonNull TunnelRequest request) {
         VpnProfile profile = toProfile(request);
+        // 把"本次是否已降级过"随 profile 一起交给服务，上报时才不会永远记成未降级
+        profile.setMtuRetried(mtuRetried);
         if (activeCallback != null) {
             activeCallback.onConnecting();
         }
@@ -147,15 +149,8 @@ public final class Ikev2TunnelEngine implements TunnelEngine {
                 cb.onDisconnecting();
                 break;
             case DISABLED:
-                // 疑似 MTU 黑洞：学习值已记为 1280，这里自动重连一次（toProfile 会读到学习值）
-                if (error == VpnStateService.ErrorState.UNREACHABLE && !mtuRetried
-                        && lastRequest != null && TunnelMtuPolicy.takeSuspect()) {
-                    mtuRetried = true;
-                    LogUtil.i(TAG + ": 疑似 MTU 黑洞，降到 1280 自动重连一次");
-                    connected = false;
-                    doConnect(lastRequest);
-                    return;
-                }
+                // 疑似 MTU 黑洞的降级重连由 CharonVpnService 自己完成（它必须等旧 charon 拆完
+                // 再发起，否则新连接会被那次清理一起带走），这里不再做任何重连动作。
                 boolean wasConnected = connected;
                 connected = false;
                 if (error != VpnStateService.ErrorState.NO_ERROR) {

@@ -149,7 +149,15 @@ public final class SingBoxVpnService extends VpnService {
         // 必须最先调用：没有前台通知，华为 EMUI/HarmonyOS 这类对后台管控激进的系统会在
         // TUN 建立后几百毫秒内杀掉 Service，表现为"应用显示已连接，状态栏没有 VPN 钥匙"。
         // 先显示"连接中"。探针通过后才改成"已连接"，否则通知栏会比 App 先说连上了。
-        startForeground(FOREGROUND_NOTIFY_ID, com.openapi.data.vpn.VpnNotifier.current(this));
+        // Android 14+ 必须声明前台服务类型；VPN 应用用 systemExempted（manifest 里也已声明）。
+        // 不声明会抛 MissingForegroundServiceTypeException，服务直接崩溃（实测：所有 sing-box 节点都崩）。
+        android.app.Notification fgNotification = com.openapi.data.vpn.VpnNotifier.current(this);
+        if (android.os.Build.VERSION.SDK_INT >= 34) {
+            startForeground(FOREGROUND_NOTIFY_ID, fgNotification,
+                    android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED);
+        } else {
+            startForeground(FOREGROUND_NOTIFY_ID, fgNotification);
+        }
 
         String configJson = intent.getStringExtra(EXTRA_CONFIG_JSON);
         splitMode = intent.getStringExtra(EXTRA_SPLIT_MODE);
@@ -198,12 +206,40 @@ public final class SingBoxVpnService extends VpnService {
         }
     }
 
+    /** 探针结束后处理学习表：成功则确认降级值（或累加成功次数），失败则丢弃临时标记。 */
+    private void reportMtuOutcome(boolean ok) {
+        if (mtuProto == null || mtuNode == null) {
+            return;
+        }
+        try {
+            com.openapi.data.vpn.engine.TunnelMtuPolicy.Proto p =
+                    com.openapi.data.vpn.engine.TunnelMtuPolicy.Proto.valueOf(mtuProto);
+            if (p == com.openapi.data.vpn.engine.TunnelMtuPolicy.Proto.STREAM) {
+                return;
+            }
+            if (ok) {
+                if (mtuRetried) {
+                    com.openapi.data.vpn.engine.TunnelMtuPolicy.confirmFallback(p, mtuNode);
+                } else {
+                    com.openapi.data.vpn.engine.TunnelMtuPolicy.recordSuccess(p, mtuNode);
+                }
+            } else {
+                com.openapi.data.vpn.engine.TunnelMtuPolicy.cancelFallback(p, mtuNode);
+            }
+        } catch (RuntimeException e) {
+            LogUtil.e(TAG + ": MTU 学习表处理失败: " + e.getMessage());
+        }
+    }
+
     /**
      * 真实连通性探针（后台线程）：只有能通过隧道 TCP 连到公网，才算真的连上。
      * 必须在后台跑，doConnect 在主线程，阻塞会 ANR。
      */
     private void probeThenNotify(int gen) {
-        TunnelProbe.Result res = TunnelProbe.probeUntilDeadline(this, () -> running && gen == generation);
+        TunnelProbe.Result res = TunnelProbe.probeUntilDeadline(this, () -> running && gen == generation,
+                mtuValue > TunnelMtuPolicy.FLOOR
+                        ? TunnelProbe.PROBE_TIMEOUT_OPTIMISTIC_MS
+                        : TunnelProbe.PROBE_TIMEOUT_MS);
         if (!running || gen != generation) {
             LogUtil.i(TAG + ": 探针中止，隧道已拆除或已被新连接替换");
             return;
@@ -218,6 +254,7 @@ public final class SingBoxVpnService extends VpnService {
         }
         if (res == TunnelProbe.Result.OK) {
             LogUtil.i(TAG + ": 连通性探针通过（经 VPN 网络）");
+            reportMtuOutcome(true);
             notifyEstablished();
             return;
         }
@@ -227,9 +264,9 @@ public final class SingBoxVpnService extends VpnService {
             com.openapi.data.vpn.engine.TunnelMtuPolicy.Proto p =
                     com.openapi.data.vpn.engine.TunnelMtuPolicy.Proto.valueOf(mtuProto);
             if (p != com.openapi.data.vpn.engine.TunnelMtuPolicy.Proto.STREAM) {
-                com.openapi.data.vpn.engine.TunnelMtuPolicy.learn(p, mtuNode,
-                        com.openapi.data.vpn.engine.TunnelMtuPolicy.FLOOR);
-                LogUtil.i(TAG + ": 疑似 MTU 黑洞，已记录 MTU=1280");
+                // 只打内存标记，学习值等重连成功再写
+                com.openapi.data.vpn.engine.TunnelMtuPolicy.beginFallback(p, mtuNode);
+                LogUtil.i(TAG + ": 疑似 MTU 黑洞，降到 1280 重连（成功后才记学习值）");
                 reason = "疑似 MTU 不匹配，降到 1280 重连";
             }
         }

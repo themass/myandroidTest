@@ -253,6 +253,11 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
     private static final int MAX_PROPOSAL_TIER = 2;
     private String mLogFile;
     private VpnProfile mCurrentProfile;
+    /**
+     * 疑似 MTU 黑洞时待重连用的 profile（MTU=FLOOR）。由 {@link #teardownAfterError()} 在
+     * 旧 charon 拆完之后发起，避免新连接被那次清理一起带走。
+     */
+    private VpnProfile mPendingMtuRetry;
     private volatile boolean mIsDisconnecting;
     private HandlerThread mWorkThread;
     private Handler mWorkHandler;
@@ -512,6 +517,35 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
      * 整机流量进了一条不通的隧道——App 显示"未连接"，手机却上不了网，只能杀进程。
      * 这里停 charon（会关掉 TUN），保留错误状态给 UI 显示，不调 forceUpdateState（它会清掉错误）。
      */
+    /**
+     * 降级重连专用：拆掉旧 charon 和 TUN，**不设置错误状态**，然后立刻用新 MTU 重连。
+     * <p>
+     * 不能走 {@link #setErrorDisconnect}：它会把状态置成 DISABLED + UNREACHABLE，
+     * 上层的连接仓库会据此判定"这次连接失败"，再发起一次全新连接，刚刚建起的
+     * 降级隧道又被拆掉（实测 1280 重连后立刻被拆成未连接）。
+     * 保持"连接中"状态，重连对用户完全无感。
+     */
+    private void teardownAndRetrySilently() {
+        Handler handler = mWorkHandler;
+        if (handler == null) {
+            return;
+        }
+        handler.post(() -> {
+            LogUtil.i("疑似 MTU 黑洞：静默拆除旧隧道");
+            stopCurrentConnection();
+            clearConnectionState();
+            VpnProfile retry = mPendingMtuRetry;
+            mPendingMtuRetry = null;
+            if (retry == null) {
+                return;
+            }
+            LogUtil.i("疑似 MTU 黑洞：用 MTU " + retry.getMTU() + " 重新连接");
+            mCurrentProfile = retry;
+            mProposalTier = 0;
+            conn();
+        });
+    }
+
     private void teardownAfterError() {
         Handler handler = mWorkHandler;
         if (handler == null || mIsDisconnecting) {
@@ -524,6 +558,15 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
             LogUtil.i("连接出错，停止 charon 并释放 TUN");
             stopCurrentConnection();
             clearConnectionState();
+            VpnProfile retry = mPendingMtuRetry;
+            mPendingMtuRetry = null;
+            if (retry != null) {
+                // 旧隧道已经拆干净，这时才发起降级重连（在同一 worker 上排队，顺序有保证）
+                LogUtil.i("疑似 MTU 黑洞：用 MTU " + retry.getMTU() + " 重新连接");
+                mCurrentProfile = retry;
+                mProposalTier = 0;
+                handler.post(new ConnectJob());
+            }
         });
     }
 
@@ -592,37 +635,68 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
         }
 
     }
+    /** 统一成 host:port，与 WireGuard / sing-box 的学习键一致。 */
+    private static String nodeKeyOf(VpnProfile profile) {
+        int port = profile.getPort() == null ? 500 : profile.getPort();
+        return profile.getGateway() + ":" + port;
+    }
+
     private void probeThenConnected() {
         final VpnProfile profile = mCurrentProfile;
         new Thread(() -> {
             com.openapi.data.vpn.engine.TunnelProbe.Result res =
                     com.openapi.data.vpn.engine.TunnelProbe.probeUntilDeadline(CharonVpnService.this,
-                            () -> !mIsDisconnecting && mCurrentProfile == profile);
+                            () -> !mIsDisconnecting && mCurrentProfile == profile,
+                            profile.getMTU() != null
+                                    && profile.getMTU() > com.openapi.data.vpn.engine.TunnelMtuPolicy.FLOOR
+                                    ? com.openapi.data.vpn.engine.TunnelProbe.PROBE_TIMEOUT_OPTIMISTIC_MS
+                                    : com.openapi.data.vpn.engine.TunnelProbe.PROBE_TIMEOUT_MS);
             if (mIsDisconnecting || mCurrentProfile != profile) {
                 return;
             }
             try {
                 com.openapi.data.vpn.engine.MtuReport.record(CharonVpnService.this,
                         com.openapi.data.vpn.engine.TunnelMtuPolicy.Proto.IKEV2,
-                        profile.getGateway(), profile.getMTU() == null ? 0 : profile.getMTU(), res, false);
+                        nodeKeyOf(profile), profile.getMTU() == null ? 0 : profile.getMTU(),
+                        res, profile.isMtuRetried());
             } catch (RuntimeException e) {
                 LogUtil.e("MTU 记录失败: " + e.getMessage());
             }
             if (res == com.openapi.data.vpn.engine.TunnelProbe.Result.OK) {
                 LogUtil.i("IKEv2 连通性探针通过");
+                // 降级重连成功：这时才把 1280 写进学习表；普通成功则累加计数用于日后回弹
+                if (profile.isMtuRetried()) {
+                    com.openapi.data.vpn.engine.TunnelMtuPolicy.confirmFallback(
+                            com.openapi.data.vpn.engine.TunnelMtuPolicy.Proto.IKEV2, nodeKeyOf(profile));
+                } else {
+                    com.openapi.data.vpn.engine.TunnelMtuPolicy.recordSuccess(
+                            com.openapi.data.vpn.engine.TunnelMtuPolicy.Proto.IKEV2, nodeKeyOf(profile));
+                }
                 setState(VpnStateService.State.CONNECTED);
             } else if (res == com.openapi.data.vpn.engine.TunnelProbe.Result.MTU_SUSPECT) {
                 // 疑似 MTU 黑洞：记下本网络对该节点用 1280，下次连接直接用。本次不自动重连（见文档）。
                 if (profile.getMTU() != null && profile.getMTU() > com.openapi.data.vpn.engine.TunnelMtuPolicy.FLOOR) {
-                    // 记学习值并置待重连标记；Ikev2TunnelEngine 收到断开后自动用 1280 重连一次
+                    // 只打内存标记（不落盘），并准备一个 MTU=1280 的 profile 供拆完旧隧道后重连。
+                    // 走错误路径时要先把这次连接彻底停掉，所以重连不能在这里直接发起。
                     com.openapi.data.vpn.engine.TunnelMtuPolicy.recordSuspect(
-                            com.openapi.data.vpn.engine.TunnelMtuPolicy.Proto.IKEV2, profile.getGateway());
-                    LogUtil.e("IKEv2 疑似 MTU 黑洞（TLS 握手超时），MTU " + profile.getMTU() + " → 1280 重连");
+                            com.openapi.data.vpn.engine.TunnelMtuPolicy.Proto.IKEV2, nodeKeyOf(profile));
+                    VpnProfile retry = (VpnProfile) profile.clone();
+                    retry.setMTU(com.openapi.data.vpn.engine.TunnelMtuPolicy.FLOOR);
+                    retry.setMtuRetried(true);
+                    mPendingMtuRetry = retry;
+                    LogUtil.e("IKEv2 疑似 MTU 黑洞（TLS 握手超时），MTU " + profile.getMTU() + " → 1280 静默重连");
+                    teardownAndRetrySilently();
+                    return;
                 } else {
+                    // 已经是下限还卡：不是 MTU 问题，丢掉临时标记别污染学习表
+                    com.openapi.data.vpn.engine.TunnelMtuPolicy.cancelFallback(
+                            com.openapi.data.vpn.engine.TunnelMtuPolicy.Proto.IKEV2, nodeKeyOf(profile));
                     LogUtil.e("IKEv2 疑似 MTU 黑洞，且已是 1280，无法再降");
                 }
                 setErrorDisconnect(VpnStateService.ErrorState.UNREACHABLE);
             } else {
+                com.openapi.data.vpn.engine.TunnelMtuPolicy.cancelFallback(
+                        com.openapi.data.vpn.engine.TunnelMtuPolicy.Proto.IKEV2, nodeKeyOf(profile));
                 LogUtil.e("IKEv2 隧道已建立但探测流量不通（ESP/NAT-T 包被丢弃）");
                 setErrorDisconnect(VpnStateService.ErrorState.UNREACHABLE);
             }
@@ -1047,6 +1121,7 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
     }
 
     public void disconn() {
+        mPendingMtuRetry = null;
         LogUtil.i("charon stopped  mCurrentState=" + (mService != null ? mService.getState() : "null") + "  thread=" + Thread.currentThread().getName());
         setState(VpnStateService.State.DISCONNECTING);
         stopCurrentConnection();

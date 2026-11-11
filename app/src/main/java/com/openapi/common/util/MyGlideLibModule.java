@@ -32,7 +32,9 @@ public class MyGlideLibModule extends LibraryGlideModule {
         builder.connectTimeout(OkHttpStack.CONNECT_TIMEOUT, TimeUnit.SECONDS);
         builder.readTimeout(OkHttpStack.DEFUAT_TIMEOUT, TimeUnit.SECONDS);
         builder.writeTimeout(OkHttpStack.WRITE_TIMEOUT, TimeUnit.SECONDS);
-        registry.replace(GlideUrl.class, InputStream.class, new OkHttpUrlLoader.Factory(builder.build()));
+        OkHttpClient client = builder.build();
+        OkHttpStack.registerExtraPool(client.connectionPool());
+        registry.replace(GlideUrl.class, InputStream.class, new OkHttpUrlLoader.Factory(client));
         com.openapi.common.util.LogUtil.i("MyGlideModule reg OK");
     }
 

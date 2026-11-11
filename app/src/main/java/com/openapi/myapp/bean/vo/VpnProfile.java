@@ -50,6 +50,9 @@ public class VpnProfile implements Cloneable, Serializable {
     private Long expire;
     private String cert;
 
+    /** 本次连接是否已经因为疑似 MTU 黑洞降级重连过（上报用）。 */
+    private boolean mtuRetried;
+
     /** 分应用代理：模式与包名。null 表示全流量走代理。 */
     private String splitMode;
     private java.util.LinkedHashSet<String> splitPackages;
@@ -60,6 +63,14 @@ public class VpnProfile implements Cloneable, Serializable {
 
     public void setId(long id) {
         this.mId = id;
+    }
+
+    public boolean isMtuRetried() {
+        return mtuRetried;
+    }
+
+    public void setMtuRetried(boolean retried) {
+        this.mtuRetried = retried;
     }
 
     public String getName() {

@@ -8,6 +8,7 @@ import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.RouteInfo;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.net.InetAddress;
@@ -32,7 +33,7 @@ public final class TunnelMtuPolicy {
         IKEV2(110, 1400, 1280, true),
         WIREGUARD(80, 1420, 1280, true),
         UDP_RELAY(100, 1400, 1280, true),
-        STREAM(0, 1500, 1280, false);
+        STREAM(0, 1500, 1500, false);
 
         final int overhead;
         final int cap;
@@ -48,8 +49,13 @@ public final class TunnelMtuPolicy {
     }
 
     private static final String PREF = "tunnel_mtu_learn";
-    private static final long LEARN_TTL_MS = 7L * 24 * 3600 * 1000;
+    /** 学习值有效期。链路 MTU 会随换路由器/换运营商/漫游变化，7 天太长。 */
+    private static final long LEARN_TTL_MS = 3L * 24 * 3600 * 1000;
     private static final int LEARN_MAX = 50;
+    /** 同一网络同一节点连续这么多次用学习值连上都成功，尝试向上提一档。 */
+    private static final int PROMOTE_AFTER_OK = 3;
+    /** 每次向上提的步长；探针再失败就重新锁回 FLOOR。 */
+    private static final int PROMOTE_STEP = 100;
 
     private TunnelMtuPolicy() {
     }
@@ -83,10 +89,50 @@ public final class TunnelMtuPolicy {
 
     private static volatile boolean suspectPending;
 
-    /** IKEv2 这类由 strongSwan 服务回报的场景：记学习值并置待重连标记。 */
-    public static void recordSuspect(Proto p, @Nullable String nodeKey) {
+    /**
+     * 本次降级重连临时压到 FLOOR 的节点（键 = 协议|节点）。**只是内存标记，不落盘**：
+     * 探针确认降级成功才写学习值，失败就丢掉，避免"误判一次、锁死三天"。
+     */
+    private static final java.util.Set<String> PENDING_FALLBACK =
+            java.util.Collections.synchronizedSet(new java.util.HashSet<>());
+
+    private static String pendingKey(Proto p, @Nullable String nodeKey) {
+        return nodeKey == null ? null : p.name() + "|" + nodeKey;
+    }
+
+    /** 判定疑似 MTU 黑洞、准备用 FLOOR 重连时调用（不落盘）。 */
+    public static void beginFallback(Proto p, @Nullable String nodeKey) {
+        String k = pendingKey(p, nodeKey);
+        if (k != null) {
+            PENDING_FALLBACK.add(k);
+        }
+    }
+
+    /** 降级重连**成功**：把 FLOOR 写进学习表，并清掉临时标记。 */
+    public static void confirmFallback(Proto p, @Nullable String nodeKey) {
+        String k = pendingKey(p, nodeKey);
+        if (k != null) {
+            PENDING_FALLBACK.remove(k);
+        }
         learn(p, nodeKey, FLOOR);
-        suspectPending = true;
+    }
+
+    /** 降级重连也失败：丢弃临时标记，不写学习值。 */
+    public static void cancelFallback(Proto p, @Nullable String nodeKey) {
+        String k = pendingKey(p, nodeKey);
+        if (k != null) {
+            PENDING_FALLBACK.remove(k);
+        }
+    }
+
+    private static boolean isFallbackPending(Proto p, String nodeKey) {
+        String k = pendingKey(p, nodeKey);
+        return k != null && PENDING_FALLBACK.contains(k);
+    }
+
+    /** IKEv2 这类由 strongSwan 服务回报的场景：只置待重连标记，学习值等重连成功再写。 */
+    public static void recordSuspect(Proto p, @Nullable String nodeKey) {
+        beginFallback(p, nodeKey);
     }
 
     /** 取走待重连标记（只返回一次）。 */
@@ -104,16 +150,56 @@ public final class TunnelMtuPolicy {
         return Proto.STREAM;
     }
 
+    /**
+     * 最近一次实际用掉的 MTU 快照（协议 / 节点 / 服务端值 / 结果）。切网重算时用它做对比，
+     * 避免依赖隧道接口去反查（各协议读法不同）。
+     */
+    public static final class Snapshot {
+        public final Proto proto;
+        public final String nodeKey;
+        public final int serverMtu;
+        public final int mtu;
+
+        Snapshot(Proto proto, String nodeKey, int serverMtu, int mtu) {
+            this.proto = proto;
+            this.nodeKey = nodeKey;
+            this.serverMtu = serverMtu;
+            this.mtu = mtu;
+        }
+    }
+
+    @Nullable
+    private static volatile Snapshot lastResolved;
+
+    /** 最近一次用掉的 MTU；还没连过时为 null。 */
+    @Nullable
+    public static Snapshot lastResolved() {
+        return lastResolved;
+    }
+
+    /** 切网后重算：同一协议、同一节点，按当前链路重新算一次。 */
+    public static int recompute(@NonNull Snapshot snap) {
+        return resolve(snap.proto, snap.serverMtu, snap.nodeKey);
+    }
+
     /** 实际使用的入口：读系统网络和本地学习值。 */
     public static int resolve(Proto p, int serverMtu, @Nullable String nodeKey) {
         Context c = app();
         if (c == null) {
             return compute(p, serverMtu, 0, 0);
         }
-        return compute(p, serverMtu, linkMtu(c), learned(c, p, nodeKey));
+        int mtu = compute(p, serverMtu, linkMtu(c), learned(c, p, nodeKey));
+        if (isFallbackPending(p, nodeKey)) {
+            mtu = Math.min(mtu, FLOOR);
+        }
+        lastResolved = new Snapshot(p, nodeKey, serverMtu, mtu);
+        return mtu;
     }
 
-    /** 探针判定疑似 MTU 黑洞时调用：记下本网络对这个节点的可用值，下次连接直接用。 */
+    /**
+     * 探针判定疑似 MTU 黑洞、**并且降级重连已经成功** 之后才调用。
+     * 之前是降级前就写，重试也失败时错误的学习值照样留 7 天，会把用户锁死在 1280。
+     */
     public static void learn(Proto p, @Nullable String nodeKey, int mtu) {
         Context c = app();
         if (c == null || nodeKey == null) {
@@ -124,7 +210,8 @@ public final class TunnelMtuPolicy {
         if (key == null) {
             return;
         }
-        SharedPreferences.Editor ed = sp.edit().putString(key, mtu + "," + System.currentTimeMillis());
+        SharedPreferences.Editor ed = sp.edit()
+                .putString(key, mtu + "," + System.currentTimeMillis() + ",0");
         // 超过上限时删掉最旧的
         Map<String, ?> all = sp.getAll();
         if (all.size() >= LEARN_MAX) {
@@ -157,7 +244,52 @@ public final class TunnelMtuPolicy {
             return 0;
         }
         try {
-            return Integer.parseInt(v.substring(0, v.indexOf(',')));
+            int mtu = Integer.parseInt(v.substring(0, v.indexOf(',')));
+            // 降级成功后已经连续成功过若干次：尝试往上提一档，验证链路其实没那么差
+            if (okStreak(v) >= PROMOTE_AFTER_OK && mtu < p.cap) {
+                return Math.min(p.cap, mtu + PROMOTE_STEP);
+            }
+            return mtu;
+        } catch (RuntimeException e) {
+            return 0;
+        }
+    }
+
+    /**
+     * 用学习值连接成功时调用。连续成功 {@link #PROMOTE_AFTER_OK} 次后，下一次会尝试提一档；
+     * 提上去又失败会重新 {@link #learn} 回 FLOOR，形成闭环。这是"一次误判锁死好几天"的保险。
+     */
+    public static void recordSuccess(Proto p, @Nullable String nodeKey) {
+        Context c = app();
+        if (c == null || nodeKey == null) {
+            return;
+        }
+        String key = learnKey(c, p, nodeKey);
+        if (key == null) {
+            return;
+        }
+        SharedPreferences sp = c.getSharedPreferences(PREF, Context.MODE_PRIVATE);
+        String v = sp.getString(key, null);
+        if (v == null || System.currentTimeMillis() - parseTs(v) > LEARN_TTL_MS) {
+            return;
+        }
+        try {
+            int mtu = Integer.parseInt(v.substring(0, v.indexOf(',')));
+            int streak = okStreak(v) + 1;
+            sp.edit().putString(key, mtu + "," + System.currentTimeMillis() + "," + streak).apply();
+        } catch (RuntimeException ignored) {
+        }
+    }
+
+    /** 第三条字段是连续成功次数；老格式只有两段，按 0 处理。 */
+    private static int okStreak(String v) {
+        int first = v.indexOf(',');
+        int second = first < 0 ? -1 : v.indexOf(',', first + 1);
+        if (second < 0) {
+            return 0;
+        }
+        try {
+            return Integer.parseInt(v.substring(second + 1));
         } catch (RuntimeException e) {
             return 0;
         }
@@ -178,7 +310,12 @@ public final class TunnelMtuPolicy {
         return net == null ? null : net + "|" + p.name() + "|" + nodeKey;
     }
 
-    /** 底层（非 VPN）网络的 MTU；取不到返回 0。 */
+    /**
+     * 底层（非 VPN）网络的 MTU；完全取不到返回 0（此时按保守默认值走）。
+     * <p>
+     * 三级取值，逐级回退。不能只信 {@link LinkProperties#getMtu()}：实测小米 Android 15 上
+     * Wi-Fi 网络报的是 {@code MTU: 0}，只看它就会让所有协议恒等于 1280，"按链路推算"形同虚设。
+     */
     static int linkMtu(Context c) {
         ConnectivityManager cm = cm(c);
         Network n = underlying(cm);
@@ -186,7 +323,39 @@ public final class TunnelMtuPolicy {
             return 0;
         }
         LinkProperties lp = cm.getLinkProperties(n);
-        return lp == null ? 0 : lp.getMtu();
+        // 1. 系统给了真实值
+        if (lp != null && lp.getMtu() > 0) {
+            return lp.getMtu();
+        }
+        // 2. 直接问网卡（普通应用可读，不需要权限）
+        int fromNic = interfaceMtu(lp == null ? null : lp.getInterfaceName());
+        if (fromNic > 0) {
+            return fromNic;
+        }
+        // 3. 按传输类型给保守假设。猜错了由探针在 8 秒内降回 1280，猜对了用户直接多一截带宽。
+        //    4G/5G 的 GTP 隧道多以 1400 起步，运营商再低的部分同样靠探针兜底。
+        switch (networkType(c)) {
+            case "wifi":
+            case "eth":
+                return 1500;
+            case "cell":
+                return 1400;
+            default:
+                return 0;
+        }
+    }
+
+    /** {@link NetworkInterface#getMTU()}；拿不到返回 0。 */
+    private static int interfaceMtu(@Nullable String name) {
+        if (name == null) {
+            return 0;
+        }
+        try {
+            java.net.NetworkInterface nif = java.net.NetworkInterface.getByName(name);
+            return nif == null ? 0 : Math.max(0, nif.getMTU());
+        } catch (Exception e) {
+            return 0;
+        }
     }
 
     /** 底层网络的传输类型：wifi / cell / eth / other / none（上报用，不含任何标识）。 */

@@ -16,7 +16,8 @@ public class TunnelMtuPolicyTest {
         assertEquals(1280, c(TunnelMtuPolicy.Proto.IKEV2, 0, 0, 0));
         assertEquals(1280, c(TunnelMtuPolicy.Proto.WIREGUARD, 0, 0, 0));
         assertEquals(1280, c(TunnelMtuPolicy.Proto.UDP_RELAY, 0, 0, 0));
-        assertEquals(1280, c(TunnelMtuPolicy.Proto.STREAM, 0, 0, 0));
+        // 流式协议与链路无关，任何链路都固定 1500
+        assertEquals(1500, c(TunnelMtuPolicy.Proto.STREAM, 0, 0, 0));
     }
 
     @Test
@@ -36,9 +37,11 @@ public class TunnelMtuPolicyTest {
 
     @Test
     public void streamProtocolIgnoresLink() {
-        // VLESS/Trojan/VMess 隧道 MTU 与线上包无关，保持 1280，不看链路
-        assertEquals(1280, c(TunnelMtuPolicy.Proto.STREAM, 0, 1500, 0));
-        assertEquals(1280, c(TunnelMtuPolicy.Proto.STREAM, 0, 1300, 0));
+        // VLESS/Trojan/VMess 的隧道 MTU 只影响手机内部切包，与线上包大小无关：
+        // 一律用 1500，不随链路变化（文档 2.2）。
+        assertEquals(1500, c(TunnelMtuPolicy.Proto.STREAM, 0, 1500, 0));
+        assertEquals(1500, c(TunnelMtuPolicy.Proto.STREAM, 0, 1300, 0));
+        assertEquals(1500, c(TunnelMtuPolicy.Proto.STREAM, 0, 0, 0));
     }
 
     @Test
@@ -46,6 +49,14 @@ public class TunnelMtuPolicyTest {
         assertEquals(1300, c(TunnelMtuPolicy.Proto.IKEV2, 1300, 1500, 0));
         assertEquals(1390, c(TunnelMtuPolicy.Proto.IKEV2, 1500, 1500, 0));
         assertEquals(1280, c(TunnelMtuPolicy.Proto.IKEV2, 1200, 1500, 0));  // 不低于下限
+    }
+
+    @Test
+    public void cellularAssumptionKeepsHeadroom() {
+        // 蜂窝按 1400 起步（GTP 隧道常见值）；IKEv2 留 110 开销后仍高于下限
+        assertEquals(1290, c(TunnelMtuPolicy.Proto.IKEV2, 0, 1400, 0));
+        assertEquals(1320, c(TunnelMtuPolicy.Proto.WIREGUARD, 0, 1400, 0));
+        assertEquals(1300, c(TunnelMtuPolicy.Proto.UDP_RELAY, 0, 1400, 0));
     }
 
     @Test

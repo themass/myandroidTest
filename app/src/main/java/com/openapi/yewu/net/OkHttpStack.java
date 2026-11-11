@@ -47,6 +47,32 @@ public class OkHttpStack extends BaseHttpStack {
         mClient = clientBuilder.build();
     }
 
+    /**
+     * 隧道连上或断开后调用：丢掉连接池里的旧连接。
+     * <p>
+     * 连 VPN 之前在 Wi-Fi 上建立的 keep-alive 连接（保留 5 分钟），源地址还是 Wi-Fi 的 IP。
+     * 连上 WireGuard / IKEv2 后再复用它，包会进隧道，但服务端只认隧道地址，直接丢弃，
+     * 请求要等 40 秒读超时后才由 Volley 重试成功。sing-box 在用户态接管 TUN，不检查源地址，所以没有这个现象。
+     */
+    public static void evictConnections() {
+        // evictAll 会关闭 socket，不放在主线程
+        new Thread(() -> {
+            mClient.connectionPool().evictAll();
+            okhttp3.ConnectionPool glide = sGlidePool;
+            if (glide != null) {
+                glide.evictAll();
+            }
+            LogUtil.i("tunnel changed: http connection pools evicted");
+        }, "evict-http-pool").start();
+    }
+
+    /** Glide 用的是另一个 OkHttpClient，注册时把它的连接池登记进来，一起清。 */
+    private static volatile okhttp3.ConnectionPool sGlidePool;
+
+    public static void registerExtraPool(okhttp3.ConnectionPool pool) {
+        sGlidePool = pool;
+    }
+
     private static HttpResponse createVolleyResponse(Response okHttpResponse) throws IOException {
         ResponseBody body = okHttpResponse.body();
         int statusCode = okHttpResponse.code();
