@@ -20,10 +20,10 @@ public final class Routes {
     public static final String LOGIN = "com.openapi.ks.myapp.ui.user.LoginActivity";
 
     /** 视频播放页，在 :feature-video。参数用 Constants.CONFIG_PARAM 传递。 */
-    public static final String VIDEO_SHOW = "com.openapi.ks.myapp.ui.sound.VideoShowActivity";
+    public static final String VIDEO_SHOW = "com.openapi.ks.myapp.video.page.VideoShowActivity";
 
     /** 延迟取地址的视频播放页，在 :feature-video。 */
-    public static final String VIDEO_SHOW_LAZY_URL = "com.openapi.ks.myapp.ui.sound.VideoShowActivityLazyUrl";
+    public static final String VIDEO_SHOW_LAZY_URL = "com.openapi.ks.myapp.video.page.VideoShowActivityLazyUrl";
 
     /** 设置页，在 :feature-user。 */
     public static final String SETTING = "com.openapi.ks.myapp.ui.user.SettingActivity";

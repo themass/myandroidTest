@@ -34,7 +34,7 @@ import static com.openapi.ks.myapp.constant.Constants.HTTP_URL;
 public class ConfigActionJump {
 
     /** 页面的类名：本模块和 :core 的页面用 class；:feature-video 和 :app 的页面只用类名，避免依赖。 */
-    private static final String VIDEO_LIST_SHOW = "com.openapi.ks.myapp.ui.sound.VideoListShowActivity";
+    private static final String VIDEO_LIST_SHOW = "com.openapi.ks.myapp.video.page.VideoListShowActivity";
     private static final String HOME = "com.openapi.home.HomeActivity";
 
     private static final Map<String, String> configMap = new HashMap<>();
