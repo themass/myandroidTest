@@ -250,11 +250,29 @@ public class VersionUpdater {
         PreferenceUtils.setPrefInt(context, Constants.VERSION_APP_INCOMING, build);
     }
 
+    /**
+     * 更新：交给应用商店 / 浏览器，不在应用内下载安装 APK。
+     * <p>
+     * 原来这里把 APK 下到 {@code Environment.getExternalStorageDirectory()}，再用
+     * {@code Uri.fromFile} 拉起安装。三处都不成立：
+     * <ul>
+     *   <li>存储：targetSdk 37，Android 10+ 不能直接写外部存储根目录，下载必然失败；</li>
+     *   <li>安装：Android 7+ 用 file:// Uri 启动其它应用会直接抛 FileUriExposedException；
+     *       清单里也没有 REQUEST_INSTALL_PACKAGES；</li>
+     *   <li>政策：本包只上 Google Play（渠道 GOOGLEMARKET），Play 禁止应用绕过商店自行更新，
+     *       审核扫到"下载并安装 APK"的代码路径会被拒。</li>
+     * </ul>
+     * 所以统一用 ACTION_VIEW 打开下发的地址（通常就是 Play 详情页）。DownloadRunnable 保留不再调用。
+     */
     private static void startDownloadThread(final Context context, final String url) {
-        String data = DateUtils.format(new Date(),DateUtils.DATE_FORMAT);
-        final File apkFile = new File(Environment.getExternalStorageDirectory(), Constants.TEMP_PATH + "/AFreedom-"+data+".apk");
-        ToastUtil.showShort(R.string.about_download_begin);
-        new Thread(new DownloadRunnable(context, url, apkFile)).start();
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(intent);
+        } catch (Exception e) {
+            LogUtil.e(e);
+            ToastUtil.showShort(R.string.about_download_error);
+        }
     }
 
 

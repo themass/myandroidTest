@@ -156,6 +156,10 @@ public class PermissionHelper {
     }
 
     public static void showPermit(Context context){
+        // 启动时不再需要任何存储权限（见 requestPermissions 的说明），列表为空就不弹引导页
+        if (requestPermissions.isEmpty()) {
+            return;
+        }
         List<PermissionItem> permissionItems = new ArrayList<PermissionItem>();
         permissionItems.add(new PermissionItem(Manifest.permission.WRITE_EXTERNAL_STORAGE, context.getString(R.string.write_external_storage), me.weyye.hipermission.R.drawable.permission_ic_storage));
 

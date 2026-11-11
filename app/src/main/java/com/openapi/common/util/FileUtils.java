@@ -257,13 +257,9 @@ public class FileUtils {
         }
 
     }
+    /** 与 {@link #getWriteFilePath} 同理：只用应用专属目录，不再写 /sdcard 根目录。 */
     public static String getContextWriteFilePath(Context context) {
-        String sdStatus = Environment.getExternalStorageState();
-        if (!sdStatus.equals(Environment.MEDIA_MOUNTED)) {
-            return context.getFilesDir().getAbsolutePath() + File.separator + TENCENT;
-        } else {
-            return File.separator + "sdcard" + File.separator + TENCENT;
-        }
+        return getWriteFilePath(context) + File.separator + TENCENT;
     }
     public static String getContextId(Context context,String id){
         if(ID!=null){

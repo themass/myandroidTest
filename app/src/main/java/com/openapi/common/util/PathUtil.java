@@ -16,7 +16,7 @@ import java.net.URLEncoder;
  */
 public class PathUtil {
     public static final String BROWSER_SCHEMA = "browser://config?url=%s";
-    private static final String FILEPATH = "Global";
+    public static final String FILEPATH = "Global";
 
     public static File getFileDiskCacheDir(Context context, String fileName) throws IOException {
         return getFileDiskCacheDir(context, fileName, true);
@@ -74,13 +74,10 @@ public class PathUtil {
     }
 
     public static File getExternalCacheDir(Context context) {
-        return context.getExternalCacheDir() == null ? getExCacheFile(context) : context.getExternalCacheDir();
+        // 外部缓存不可用时回退到内部缓存，不再手工拼 /sdcard/Android/data/... 路径（那条路同样不可用）
+        return context.getExternalCacheDir() == null ? context.getCacheDir() : context.getExternalCacheDir();
     }
 
-    private static File getExCacheFile(Context context) {
-        final String cacheDir = "/Android/data/" + context.getPackageName() + "/cache/";
-        return new File(Environment.getExternalStorageDirectory().getPath() + cacheDir);
-    }
     public static File initPicturesDiskCacheFile(){
         File file = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsoluteFile();//注意小米手机必须这样获得public绝对路径
         File appDir = new File(file ,FILEPATH);

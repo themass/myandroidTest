@@ -60,9 +60,30 @@ public class MyFullScreenImageGalleryActivity extends BaseSingleActivity impleme
         tvPage = findViewById(R.id.tv_page);
         findViewById(R.id.iv_save).setOnClickListener(this::onSave);
     }
+    private static final int REQ_SAVE_IMAGE = 3101;
+
     public void onSave(View view){
+        // Android 9 及以下写相册要存储权限：在用户点"保存"这一刻再申请，不在启动时要
+        if (SaveImageTask.needsLegacyPermission(this)) {
+            androidx.core.app.ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQ_SAVE_IMAGE);
+            return;
+        }
         ToastUtil.showShort(R.string.save_start);
         SaveImageTask.startSave(MyFullScreenImageGalleryActivity.this,images.get(viewPager.getCurrentItem()),MyFullScreenImageGalleryActivity.this);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode != REQ_SAVE_IMAGE) {
+            return;
+        }
+        if (grantResults.length > 0 && grantResults[0] == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            onSave(null);
+        } else {
+            onFailed();   // 拒绝就按保存失败提示，不反复弹
+        }
     }
     @Override
     public void setupView() {

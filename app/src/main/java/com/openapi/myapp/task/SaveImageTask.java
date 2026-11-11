@@ -1,7 +1,6 @@
 package com.openapi.myapp.task;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -14,8 +13,6 @@ import com.openapi.common.util.PathUtil;
 import com.openapi.common.util.StringUtils;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 
 /**
@@ -26,7 +23,8 @@ public class SaveImageTask extends AsyncTask<String,Void,Void>{
     private String url;
     private Context context;
     private SaveImageCallBack callBack;
-    private File currentFile;
+    /** 是否真的写进了系统相册。原来看 currentFile.exists()，文件没写进去时也可能误判。 */
+    private boolean saved;
     public static void startSave(Context context, String url, SaveImageCallBack callBack){
         new SaveImageTask(context,url,callBack).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
@@ -57,51 +55,78 @@ public class SaveImageTask extends AsyncTask<String,Void,Void>{
 
     @Override
     protected void onPostExecute(Void aVoid) {
-        if (currentFile!=null && currentFile.exists()) {
+        if (saved) {
             callBack.onSuccess();
         } else {
             callBack.onFailed();
         }
     }
 
+    /**
+     * 保存到系统相册。
+     * <p>
+     * 原来先用 File API 写到 {@code Pictures/} 再 insertImage + 扫描广播。targetSdk 37 下：
+     * Android 10 不能用路径直接在公共目录建文件（写失败，但 onPostExecute 只看文件在不在）；
+     * Android 9 需要运行时授予 WRITE_EXTERNAL_STORAGE，而我们已不在启动时申请它；
+     * ACTION_MEDIA_SCANNER_SCAN_FILE 也早已废弃。
+     * <p>
+     * 现在：Android 10+ 走 MediaStore（RELATIVE_PATH + IS_PENDING），不需要任何权限；
+     * Android 9 及以下仍需存储权限，由调用方在点击保存时按需申请（{@link #needsLegacyPermission}）。
+     */
     public void saveImageToGallery(Context context, String url, Bitmap bmp) {
-        // 首先保存图片
-        File appDir = PathUtil.initPicturesDiskCacheFile();
         String name = PathUtil.getFileExtensionFromUrl(url);
         LogUtil.i(name);
-        if(StringUtils.isEmpty(name)){
-            name = System.currentTimeMillis()+"";
+        if (StringUtils.isEmpty(name)) {
+            name = System.currentTimeMillis() + ".jpg";
+        } else if (!name.toLowerCase(java.util.Locale.ROOT).matches(".*\\.(jpe?g|png|webp)$")) {
+            name = name + ".jpg";
         }
-        currentFile = new File(appDir, name);
-        FileOutputStream fos = null;
+        android.content.ContentResolver resolver = context.getContentResolver();
+        android.content.ContentValues values = new android.content.ContentValues();
+        values.put(MediaStore.Images.Media.DISPLAY_NAME, name);
+        values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+        Uri uri = null;
         try {
-            fos = new FileOutputStream(currentFile);
-            bmp.compress(Bitmap.CompressFormat.JPEG, 100, fos);
-            fos.flush();
-        } catch (FileNotFoundException e) {
-            LogUtil.e(e);
-        } catch (IOException e) {
-            LogUtil.e(e);
-        } finally {
-            try {
-                if (fos != null) {
-                    fos.close();
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                values.put(MediaStore.Images.Media.RELATIVE_PATH,
+                        android.os.Environment.DIRECTORY_PICTURES + File.separator + PathUtil.FILEPATH);
+                values.put(MediaStore.Images.Media.IS_PENDING, 1);
+                uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+                if (uri == null) {
+                    return;
                 }
-            } catch (IOException e) {
-                LogUtil.e(e);
+                try (java.io.OutputStream out = resolver.openOutputStream(uri)) {
+                    if (out == null || !bmp.compress(Bitmap.CompressFormat.JPEG, 100, out)) {
+                        throw new IOException("写入相册失败");
+                    }
+                }
+                values.clear();
+                values.put(MediaStore.Images.Media.IS_PENDING, 0);
+                resolver.update(uri, values, null, null);
+            } else {
+                // Android 9：插入后由 MediaStore 自己落盘，同样不再手工拼公共目录路径
+                String inserted = MediaStore.Images.Media.insertImage(resolver, bmp, name, null);
+                if (inserted == null) {
+                    return;
+                }
+            }
+            saved = true;
+        } catch (Exception e) {
+            LogUtil.e(e);
+            if (uri != null) {
+                try {
+                    resolver.delete(uri, null, null);   // 半截文件不要留在相册里
+                } catch (Exception ignored) {
+                }
             }
         }
+    }
 
-        // 其次把文件插入到系统图库
-        try {
-            MediaStore.Images.Media.insertImage(context.getContentResolver(),
-                    currentFile.getAbsolutePath(), name, null);
-        } catch (FileNotFoundException e) {
-            LogUtil.e(e);
-        }
-
-        // 最后通知图库更新
-        context.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,
-                Uri.fromFile(new File(currentFile.getPath()))));
+    /** Android 9 及以下保存到相册需要运行时存储权限；10+ 不需要。 */
+    public static boolean needsLegacyPermission(Context context) {
+        return android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.Q
+                && androidx.core.content.ContextCompat.checkSelfPermission(context,
+                android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != android.content.pm.PackageManager.PERMISSION_GRANTED;
     }
 }
