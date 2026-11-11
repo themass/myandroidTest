@@ -1,17 +1,17 @@
 package com.openapi.feature.video.subtitle;
 
-import com.openapi.subtitle.DemoVideoTranslationProvider;
-import com.openapi.subtitle.StubBaiduVideoTranslationProvider;
-import com.openapi.subtitle.StubVolcanoVideoTranslationProvider;
+import com.openapi.speech.subtitle.DemoVideoTranslationProvider;
+import com.openapi.speech.subtitle.StubBaiduVideoTranslationProvider;
+import com.openapi.speech.subtitle.StubVolcanoVideoTranslationProvider;
 
 import android.content.Context;
 
-import com.openapi.subtitle.api.VideoTranslationRegistry;
+import com.openapi.speech.subtitle.api.VideoTranslationRegistry;
 import com.openapi.common.util.android.PreferenceUtils;
 import com.openapi.core.config.Constants;
 
 /**
- * 注册所有 {@link com.openapi.subtitle.api.VideoTranslationProvider}，并读取用户选择的当前实现。
+ * 注册所有 {@link com.openapi.speech.subtitle.api.VideoTranslationProvider}，并读取用户选择的当前实现。
  */
 public final class VideoTranslationInstaller {
 

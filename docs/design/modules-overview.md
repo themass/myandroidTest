@@ -20,20 +20,19 @@
                                ─► :speech
                                ─► :core  :common
 
-           :feature-content   ─► :core  :subtitle  :common  :retromusic
-           :feature-video     ─► :core  :cast  :subtitle  :common
+           :feature-content   ─► :core  :speech  :common  :retromusic
+           :feature-video     ─► :core  :cast  :speech  :common
            :feature-user      ─► :core  :common
            :feature-photosolve─► :imaging  :common
            :feature-companion ─► :core  :common
 
-第 1 层    :core             ─► :subtitle ─► :speech
-                            ─► :common
+第 1 层    :core             ─► :speech  :common
 
 第 0 层    :common            util/ event/ image/ net/ ui/ ads/（无项目依赖）
            :retromusic        （无项目依赖，独立）
 ```
 
-**同层边（白名单，只有这 2 条）**：`chatkit → mediaview`、`subtitle → speech`。
+**同层边（白名单只有 1 条）**：`chatkit → mediaview`。
 **包内分区**：`:common` 里 `net/`、`ui/`、`ads/` 只依赖 `util/`、`event/`、`image/`，反过来不依赖（靠评审保证）。
 **铁律**：feature 之间没有依赖；第 0、1 层不 import `com.openapi.core/feature/app`；声明的项目依赖必须用到。
 
@@ -46,7 +45,7 @@
 | Glide（api） | `:common` 的 `net/glide` | 网络图片加载；`AppGlideModule` 在 `:app` |
 | Compose BOM / UI / Material3 | `:common` 的 `ui/`、`:mediaview`、`:chatkit`、各 feature、`:app` | 用到的模块各自声明 |
 | Coil | `:mediaview`、`:chatkit` | Compose 图片加载 |
-| Media3 | `:speech`、`:subtitle`、`:core`、`:feature-video`、`:app` | 音频播放、PCM 源、投屏与视频页、播放引擎偏好 |
+| Media3 | `:speech`、`:core`、`:feature-video`、`:app` | 音频播放、实时字幕 PCM 源、视频页、播放引擎偏好 |
 | ONNX Runtime、OpenCV | `:imaging` | 只此一家；`:feature-photosolve` 通过它使用 |
 | NanoHTTPD | `:cast` | 投屏的本地 HTTP 分发 |
 | GMS Ads（api）、Wallet | `:common` 的 `ads/` | 广告对外接口里有 GMS 类型 |
@@ -101,24 +100,18 @@
 #### `:mediaview` — `com.openapi.mediaview`（2 文件 / 293 行）
 媒体查看组件：`MediaCarousel`、`MediaOverlap`、`MediaComponents`。Compose + Coil，零项目依赖。
 
-#### `:speech` — `com.openapi.speech`（8 文件 / 1204 行）
-语音能力。依赖：`:common`、Media3、OkHttp。
+#### `:speech` — `com.openapi.speech`（31 文件 / 3170 行）
+语音与字幕。识别、朗读、录音、翻译接口和实时字幕合成一个模块：实时字幕本来就是在识别之上组合翻译和覆盖层，拆开只会多一条依赖边。依赖：`:common`、Media3、OkHttp。
 
 | 包 | 文件 | 作用 |
 |---|---|---|
-| `asr` | 5 | 火山引擎流式识别：`VolcengineStreamingAsrClient`、协议、配置、错误、响应解析（对话语音输入和实时字幕共用） |
-| `audio` | 2 | `AudioPlayer`（语音消息播放）、`VoiceRecorder`（录音） |
+| `asr` | 5 | 火山引擎流式识别：`VolcengineStreamingAsrClient`、协议、配置、错误、响应解析（语音输入和实时字幕共用） |
 | `tts` | 1 | `DeviceSpeech`（系统朗读） |
-
-#### `:subtitle` — `com.openapi.subtitle`（23 文件 / 1966 行）
-翻译与字幕。依赖：`:common`、`:speech`、Media3、OkHttp。
-
-| 包 | 文件 | 作用 |
-|---|---|---|
-| `api` | 10 | 翻译接口：`TranslationOverlaySession`、`VideoTranslationRequest/Registry/Provider/Result/Callback`、`StreamingSubtitleOverlayPresenter`、`TranslationOverlayPresenter` |
-| `overlay` | 1 | `DraggableTranslationOverlay`（可拖动的字幕覆盖层） |
-| `realtime` | 9 | 实时字幕：`RealtimeSubtitleEngine`、`VideoRealtimeSubtitleSession`、`RealtimeSubtitleSession`、PCM 音频源（Media3：`ExoPlayerPcmAudioSource`、`MediaPcmAudioSource`、`PcmAudioSources`）、`PcmCaptureAudioProcessor`、`PcmHttpDataSourceFactory` |
-| 根 | 3 | `DemoVideoTranslationProvider` 等 |
+| `audio` | 2 | `AudioPlayer`（语音消息播放）、`VoiceRecorder`（录音） |
+| `subtitle.api` | 10 | 翻译接口：`TranslationOverlaySession`、`VideoTranslationRequest/Registry/Provider/Result/Callback`、`StreamingSubtitleOverlayPresenter`、`TranslationOverlayPresenter` |
+| `subtitle.overlay` | 1 | `DraggableTranslationOverlay`（可拖动的字幕覆盖层） |
+| `subtitle.realtime` | 9 | 实时字幕：`RealtimeSubtitleEngine`、`VideoRealtimeSubtitleSession`、`RealtimeSubtitleSession`、PCM 音频源（Media3）、回调 |
+| `subtitle` 根 | 3 | `DemoVideoTranslationProvider` 和两个 Stub 翻译提供者 |
 
 #### `:imaging` — `com.openapi.imaging`（12 文件 / 839 行）
 拍照图像处理，唯一带 ONNX Runtime + OpenCV 的模块。零项目依赖（只用 Android API）。
@@ -157,7 +150,7 @@ DLNA 投屏协议，与播放器和界面无关。依赖：协程、OkHttp、Nan
 ### 第 2 层：业务公共
 
 #### `:core` — `com.openapi.core`（64 文件 / 5676 行）
-应用配置、跨功能共享的业务数据、旧页面框架。依赖：`:common`（api）、`:subtitle`；Room（api）。
+应用配置、跨功能共享的业务数据、旧页面框架。依赖：`:common`（api）、`:speech`；Room（api）。
 
 | 包 | 文件 | 作用 |
 |---|---|---|
@@ -197,7 +190,7 @@ DLNA 投屏协议，与播放器和界面无关。依赖：协程、OkHttp、Nan
 | `roles.domain` / `roles.presentation` | 3 | 角色模型、`RoleCatalogPane`、`RolePickerViewModel` |
 
 #### `:feature-content` — `com.openapi.feature.content`（77 文件 / 8300 行）
-依赖：`:core`、`:subtitle`、`:common`、`:retromusic`。按内容类型分包。
+依赖：`:core`、`:speech`、`:common`、`:retromusic`。按内容类型分包。
 
 | 包 | 文件 | 作用 |
 |---|---|---|
@@ -213,7 +206,7 @@ DLNA 投屏协议，与播放器和界面无关。依赖：协程、OkHttp、Nan
 | `home` | 4 | 频道首页入口与依赖注入点 `ChannelsDependencies` |
 
 #### `:feature-video` — `com.openapi.feature.video`（25 文件 / 3050 行）
-依赖：`:core`、`:cast`、`:subtitle`、`:common`；GSY 3 个包、Cast framework。
+依赖：`:core`、`:cast`、`:speech`、`:common`；GSY 3 个包、Cast framework。
 
 | 包 | 文件 | 作用 |
 |---|---|---|
@@ -222,7 +215,7 @@ DLNA 投屏协议，与播放器和界面无关。依赖：协程、OkHttp、Nan
 | `cast` | 4 | Google Cast 接入：`AppCastOptionsProvider`、`CastFrameworkUtil`、`GoogleCastSessionController` |
 | `list` | 3 | 视频列表适配器与 Fragment |
 | `local` | 2 | `LocalVideoActivity`、`LocalVideoActions`（本地视频） |
-| `subtitle` | 2 | 视频实时字幕接线（用 `:subtitle`） |
+| `subtitle` | 2 | 视频实时字幕接线（用 `:speech` 的 `subtitle.api`） |
 | `data` | 1 | `VideoUtil` |
 
 #### `:feature-user` — `com.openapi.feature.user`（22 文件 / 2649 行）

@@ -15,8 +15,8 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.annotation.Nullable;
 
 import com.openapi.core.db.FavoriteVo;
-import com.openapi.subtitle.api.RealtimeSubtitleSession;
-import com.openapi.subtitle.api.TranslationOverlaySession;
+import com.openapi.speech.subtitle.api.RealtimeSubtitleSession;
+import com.openapi.speech.subtitle.api.TranslationOverlaySession;
 import com.openapi.common.util.android.PackageUtils;
 import com.openapi.core.R;
 import com.openapi.core.databinding.DialogFavoriteExternalLinesBinding;

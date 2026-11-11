@@ -13,9 +13,9 @@ import androidx.compose.ui.platform.ComposeView;
 import androidx.core.content.ContextCompat;
 
 import com.openapi.core.db.FavoriteVo;
-import com.openapi.subtitle.api.TranslationOverlaySession;
-import com.openapi.subtitle.api.VideoTranslationRegistry;
-import com.openapi.subtitle.api.VideoTranslationRequest;
+import com.openapi.speech.subtitle.api.TranslationOverlaySession;
+import com.openapi.speech.subtitle.api.VideoTranslationRegistry;
+import com.openapi.speech.subtitle.api.VideoTranslationRequest;
 import com.openapi.core.favorite.MyFavoriteView;
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.common.util.android.MediaUtil;
