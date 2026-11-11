@@ -252,7 +252,7 @@
 
 ### 3.11 `:feature-channel` → `:feature-content`（阶段 7）
 
-**执行结果（2026-11-11）**：模块已改名为 `:feature-content`（`1e753680`，namespace 为 `com.openapi.feature.content`），旧页面按内容类型分到 `com.openapi.ks.myapp.content.{video,image,text,sound,mine,common,config}`（`9549b150`）。`sound.compose` 保留；`home/` 不动。未做：`TeleplayActivity` 的确认删除；`ChannelBodyScreen` 的审视；`~.ui.sound` 里视频页的 `page/` 子包（计划里的 `page/`，还没有建）。仅编译验证，手机测试统一做。
+**执行结果（2026-11-11）**：模块已改名为 `:feature-content`（`1e753680`，namespace 为 `com.openapi.feature.content`），旧页面按内容类型分到 `com.openapi.ks.myapp.content.{video,image,text,sound,mine,common,config}`（`9549b150`）。`sound.compose` 保留；`home/` 不动。未做：`TeleplayActivity` 的确认删除；`ChannelBodyScreen` 的审视。（视频页 Activity 移到 `page/` 属于阶段 6，在 `:feature-video`，不在这里。）仅编译验证，手机测试统一做。
 
 现在 39 个文件、约 6,000 行；从 `:core` 下沉 20 个后约 59 个。旧页面**不重写**，只按内容类型分子包、拆大类。
 
