@@ -21,7 +21,7 @@ import com.openapi.common.util.log.LogUtil;
 import com.openapi.common.util.android.MediaUtil;
 import com.openapi.common.util.android.PreferenceUtils;
 import com.openapi.common.util.android.StaticDataUtil;
-import com.openapi.common.net.http.NetUtils;
+import com.openapi.network.http.NetUtils;
 import com.openapi.feature.content.R;
 import com.openapi.core.model.RecommendVo;
 import com.openapi.core.model.SoundItemsVo;

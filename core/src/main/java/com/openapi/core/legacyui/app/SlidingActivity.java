@@ -5,7 +5,7 @@ import android.os.Bundle;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.openapi.common.ui.widget.SlidingLayout;
+import com.openapi.uikit.widget.SlidingLayout;
 
 public abstract class SlidingActivity extends AppCompatActivity {
 

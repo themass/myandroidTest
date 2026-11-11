@@ -15,9 +15,9 @@ import com.bumptech.glide.load.engine.cache.MemorySizeCalculator;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.module.AppGlideModule;
 import com.bumptech.glide.request.RequestOptions;
-import com.openapi.common.net.glide.MyGlideDiskCacheFactory;
-import com.openapi.common.net.glide.OkHttpUrlLoader;
-import com.openapi.common.net.unsafe.UnsafeOkHttpClient;
+import com.openapi.network.glide.MyGlideDiskCacheFactory;
+import com.openapi.network.glide.OkHttpUrlLoader;
+import com.openapi.network.unsafe.UnsafeOkHttpClient;
 import com.openapi.common.util.log.LogUtil;
 
 import java.io.InputStream;

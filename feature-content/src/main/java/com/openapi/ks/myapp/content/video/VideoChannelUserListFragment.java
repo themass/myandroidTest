@@ -10,7 +10,7 @@ import android.view.View;
 
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.core.ads.yewu.ads.base.AdsContext;
-import com.openapi.common.net.request.InfoListVo;
+import com.openapi.network.request.InfoListVo;
 import com.openapi.core.model.RecommendVo;
 import com.openapi.core.config.Constants;
 import com.openapi.core.legacyui.base.CommonFragmentActivity;

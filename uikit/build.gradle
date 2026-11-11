@@ -1,0 +1,31 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.plugin.compose'
+}
+
+// :uikit：与业务无关的界面组件——主题、对话框、通用控件、权限请求、分享面板。
+apply from: rootProject.file('gradle/android-library.gradle')
+
+android {
+    namespace = 'com.openapi.uikit'
+    buildFeatures {
+        compose = true
+        viewBinding = true
+    }
+}
+
+dependencies {
+    implementation project(':common')
+    implementation libs.kotlinx.coroutines.android
+    implementation libs.androidx.core.ktx
+    implementation libs.androidx.appcompat
+    implementation libs.androidx.activity
+    implementation libs.androidx.recyclerview
+    implementation platform(libs.androidx.compose.bom)
+    implementation libs.androidx.compose.ui
+    implementation libs.androidx.compose.ui.graphics
+    implementation libs.androidx.compose.material3
+    // 分享卡片的二维码
+    implementation 'com.google.zxing:core:3.5.3'
+}

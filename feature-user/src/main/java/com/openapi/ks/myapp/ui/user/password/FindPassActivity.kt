@@ -46,14 +46,14 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.openapi.common.design.theme.AppColors
-import com.openapi.common.net.http.BaseService
-import com.openapi.common.net.request.CommonResponse
+import com.openapi.uikit.theme.AppColors
+import com.openapi.network.http.BaseService
+import com.openapi.network.request.CommonResponse
 import com.openapi.feature.user.R
 import com.openapi.ks.myapp.bean.form.RegForm
 import com.openapi.core.model.NullReturnVo
 import com.openapi.core.config.Constants
-import com.openapi.common.design.theme.AppMaterialTheme
+import com.openapi.uikit.theme.AppMaterialTheme
 
 /**
  * 找回密码。接口沿用原来的 [Constants.API_FINDPASS_URL]（只提交邮箱），这里只改交互：

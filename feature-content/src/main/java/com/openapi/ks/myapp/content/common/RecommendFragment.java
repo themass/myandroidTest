@@ -21,7 +21,7 @@ import com.openapi.feature.content.R;
 import com.openapi.ks.myapp.content.common.IndexRecommendAdapter;
 import com.openapi.ks.myapp.content.common.BasePhotoFlowRecycleViewAdapter;
 import com.openapi.core.legacyui.adapter.BaseRecyclerViewAdapter;
-import com.openapi.common.net.request.InfoListVo;
+import com.openapi.network.request.InfoListVo;
 import com.openapi.core.model.RecommendVo;
 import com.openapi.core.config.Constants;
 import com.openapi.core.account.UserLoginUtil;

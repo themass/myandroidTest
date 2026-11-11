@@ -64,11 +64,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.openapi.common.design.theme.AppColors
-import com.openapi.common.net.http.BaseService
-import com.openapi.common.net.awaitInfoList
-import com.openapi.common.net.request.CommonResponse
-import com.openapi.common.net.request.InfoListVo
+import com.openapi.uikit.theme.AppColors
+import com.openapi.network.http.BaseService
+import com.openapi.network.awaitInfoList
+import com.openapi.network.request.CommonResponse
+import com.openapi.network.request.InfoListVo
 import com.openapi.common.util.lang.DateUtils
 import com.openapi.common.util.lang.StringUtils
 import com.openapi.common.util.android.ToastUtil
@@ -83,7 +83,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Date
-import com.openapi.common.design.theme.AppMaterialTheme
+import com.openapi.uikit.theme.AppMaterialTheme
 
 @Composable
 internal fun FeedCard(entry: IWannaVo, onLike: () -> Unit) {

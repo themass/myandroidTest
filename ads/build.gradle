@@ -10,7 +10,7 @@ android {
 
 dependencies {
     // 项目模块依赖
-    implementation project(":commonutil")
+    implementation project(":common")
     // AdsEvents 用到的 flow 类型
     implementation libs.kotlinx.coroutines.android
 

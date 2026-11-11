@@ -43,9 +43,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.openapi.common.util.log.LogUtil
-import com.openapi.common.ui.widget.DividerItemDecoration
+import com.openapi.uikit.widget.DividerItemDecoration
 import com.openapi.core.R
-import com.openapi.common.R as CoreR
+import com.openapi.uikit.R as UikitR
 
 /** 列表页的四种外观，对应原 LoadableFragment 里 loading / load_retry / content 三个视图的组合。 */
 enum class ListShellState { LOADING, RETRY, NODATA, CONTENT }
@@ -86,7 +86,7 @@ class ListShellView @JvmOverloads constructor(
     val recyclerView: RecyclerView = RecyclerView(context).apply {
         isVerticalScrollBarEnabled = false
         isHorizontalScrollBarEnabled = false
-        addItemDecoration(DividerItemDecoration(context, LinearLayoutManager.VERTICAL, CoreR.drawable.divider_item))
+        addItemDecoration(DividerItemDecoration(context, LinearLayoutManager.VERTICAL, R.drawable.divider_item))
         addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(rv: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(rv, dx, dy)
@@ -266,11 +266,11 @@ class ListStateOverlay @JvmOverloads constructor(
             ListShellState.CONTENT -> Unit
             ListShellState.LOADING -> LoadingPlaceholder()
             ListShellState.RETRY -> RetryPlaceholder(
-                textRes = CoreR.string.error_network_retry,
+                textRes = UikitR.string.error_network_retry,
                 onClick = { retryClick?.run() },
             )
             ListShellState.NODATA -> RetryPlaceholder(
-                textRes = CoreR.string.error_network_nodata_retry,
+                textRes = UikitR.string.error_network_nodata_retry,
                 onClick = { retryClick?.run() },
             )
         }

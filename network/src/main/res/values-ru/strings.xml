@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="error_network_no_connection">Сетевое подключение недоступно. Пожалуйста, повторите попытку позже</string>
+    <string name="error_network_timeout">Время ожидания сетевого подключения истекло. Пожалуйста, повторите попытку позже</string>
+    <string name="error_network_unknown">Ошибка подключения к серверу. Проверьте соединение или повторите попытку позже</string>
+</resources>

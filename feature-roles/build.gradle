@@ -14,8 +14,10 @@ android {
 }
 
 dependencies {
+    implementation libs.okhttp
     // 角色目录依赖 core 的设计 token；Gson 由 commonutil 以 api 暴露
-    implementation project(':commonutil')
+    implementation project(':common')
+    implementation project(':uikit')
     implementation project(':core')
     implementation libs.gson
 

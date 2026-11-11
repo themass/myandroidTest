@@ -6,7 +6,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
-import com.openapi.common.net.request.InfoListVo;
+import com.openapi.network.request.InfoListVo;
 import com.openapi.feature.content.R;
 import com.openapi.ks.myapp.content.mine.AppRecommendViewAdapter;
 import com.openapi.core.legacyui.adapter.BaseRecyclerViewAdapter;

@@ -20,11 +20,11 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 import com.openapi.core.legacyui.app.BaseFragment;
-import com.openapi.common.ui.widget.MyWebView;
+import com.openapi.uikit.widget.MyWebView;
 import com.openapi.common.util.android.FileUtils;
 import com.openapi.common.util.android.IpUtil;
 import com.openapi.common.util.log.LogUtil;
-import com.openapi.common.net.http.HttpUtils;
+import com.openapi.network.http.HttpUtils;
 import com.openapi.core.R;
 import com.openapi.core.app.AppContext;
 import com.openapi.core.config.Constants;

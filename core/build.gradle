@@ -15,8 +15,11 @@ android {
 }
 
 dependencies {
+    implementation libs.androidx.recyclerview
     // 工具类（com.openapi.core.util/net/event 等）在 :commonutil
-    api project(':commonutil')
+    api project(':common')
+    implementation project(':uikit')
+    implementation project(':network')
     // 字幕翻译框架（MyFavoriteView 使用，原在 :commonutil）
     implementation project(':media')
     // 广告 SDK（AdsContext、AdsManager 等，来自 :ads）

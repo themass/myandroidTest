@@ -1,6 +1,6 @@
 package com.openapi.chat.presentation.ui
 
-import com.openapi.common.share.ShareKit
+import com.openapi.uikit.share.ShareKit
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.ContentValues

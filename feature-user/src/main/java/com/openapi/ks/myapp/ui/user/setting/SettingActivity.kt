@@ -43,8 +43,8 @@ import androidx.compose.ui.unit.sp
 import com.openapi.core.CommonConstants
 import com.openapi.core.ads.yewu.ads.base.AdsContext
 import com.openapi.core.ads.yewu.um.MobAgent
-import com.openapi.common.design.theme.AppColors
-import com.openapi.common.design.theme.AppSpacing
+import com.openapi.uikit.theme.AppColors
+import com.openapi.uikit.theme.AppSpacing
 import com.openapi.core.event.CoreEvents
 import com.openapi.common.util.log.LogUtil
 import com.openapi.common.util.android.PreferenceUtils
@@ -57,7 +57,7 @@ import com.openapi.ks.myapp.data.VersionUpdater
 import com.openapi.core.legacyui.app.BaseSingleActivity
 import com.openapi.ks.myapp.ui.user.setting.SettingCharacterFragment
 import com.openapi.core.config.PlaybackEnginePrefs
-import com.openapi.common.design.theme.AppMaterialTheme
+import com.openapi.uikit.theme.AppMaterialTheme
 
 /**
  * 设置页（Compose 内容区）。
@@ -116,9 +116,9 @@ class SettingActivity : BaseSingleActivity() {
     fun showShare() {
         var url = PreferenceUtils.getPrefString(AppContext.get(), Constants.D_URL, null)
         if (!StringUtils.hasText(url)) {
-            url = com.openapi.common.net.http.NetConfig.defaultReferer()
+            url = com.openapi.network.http.NetConfig.defaultReferer()
         }
-        com.openapi.common.share.ShareKit.shareText(this, "$url 爱Freedom，精彩你的生活", subject = "精彩你的生活", chooserTitle = "分享到：", extraTitle = "爱Freedom")
+        com.openapi.uikit.share.ShareKit.shareText(this, "$url 爱Freedom，精彩你的生活", subject = "精彩你的生活", chooserTitle = "分享到：", extraTitle = "爱Freedom")
     }
 
     override fun needShow(): Boolean = true

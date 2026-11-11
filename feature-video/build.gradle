@@ -15,9 +15,14 @@ android {
 }
 
 dependencies {
+    implementation libs.androidx.appcompat
+    implementation libs.androidx.recyclerview
+    implementation libs.glide
     // 投屏的本地媒体服务（LocalMediaServer，原在 :core）
     implementation 'org.nanohttpd:nanohttpd:2.3.1'
-    implementation project(':commonutil')
+    implementation project(':common')
+    implementation project(':uikit')
+    implementation project(':network')
     // GSY 播放器和内核（只有本模块用）
     implementation 'io.github.carguo:gsyvideoplayer:13.1.0'
     // 阿里云播放器内核（需 PlayerFactory.setPlayManager(AliPlayerManager.class)）

@@ -10,7 +10,7 @@ import android.content.BroadcastReceiver;
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
-import com.openapi.common.design.dialog.AppDialogHost;
+import com.openapi.uikit.dialog.AppDialogHost;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -28,10 +28,10 @@ import com.openapi.common.util.android.MediaUtil;
 import com.openapi.common.util.android.PreferenceUtils;
 import com.openapi.common.util.android.ToastUtil;
 import com.openapi.core.ads.yewu.ads.base.AdsContext;
-import com.openapi.common.net.http.NetUtils;
+import com.openapi.network.http.NetUtils;
 import com.openapi.ks.myapp.content.sound.SoundItemsViewMusicAdapter;
 import com.openapi.core.legacyui.adapter.BaseRecyclerViewAdapter;
-import com.openapi.common.net.request.InfoListVo;
+import com.openapi.network.request.InfoListVo;
 import com.openapi.core.model.RecommendVo;
 import com.openapi.core.model.SoundItemsVo;
 import com.openapi.core.config.Constants;

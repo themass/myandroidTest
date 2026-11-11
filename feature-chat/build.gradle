@@ -14,10 +14,13 @@ android {
 }
 
 dependencies {
+    implementation libs.okhttp
     testImplementation 'junit:junit:4.13.2'
     testImplementation libs.kotlinx.coroutines.test
     // 对话业务：依赖 core（设计 token、媒体、权限）、chatkit（对话 UI 组件）、roles（角色选择）
-    implementation project(':commonutil')
+    implementation project(':common')
+    implementation project(':uikit')
+    implementation project(':network')
     implementation project(':core')
     implementation project(':chatkit')
     implementation project(':feature-roles')

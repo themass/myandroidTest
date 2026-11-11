@@ -4,11 +4,11 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 
-import com.openapi.common.design.dialog.AppDialogHost;
-import com.openapi.common.design.dialog.DialogAction;
+import com.openapi.uikit.dialog.AppDialogHost;
+import com.openapi.uikit.dialog.DialogAction;
 import com.openapi.common.util.android.PackageUtils;
 import com.openapi.common.util.android.PreferenceUtils;
-import com.openapi.common.net.http.NetUtils;
+import com.openapi.network.http.NetUtils;
 import com.openapi.core.model.VersionVo;
 import com.openapi.core.R;
 import com.openapi.core.config.Constants;

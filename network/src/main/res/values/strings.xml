@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="error_network_no_connection">Network connection is not available, please try again later</string>
+    <string name="error_network_timeout">Network connection timeout, please try again later</string>
+    <!-- error-->
+    <string name="error_network_unknown">Connection server error, please check your network connection or try again later.</string>
+</resources>

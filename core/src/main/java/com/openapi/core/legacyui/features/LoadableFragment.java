@@ -13,16 +13,16 @@ import android.widget.ProgressBar;
 import androidx.appcompat.widget.SearchView;
 import android.widget.TextView;
 
-import com.openapi.common.net.http.ApiRequest;
-import com.openapi.common.net.http.NetError;
+import com.openapi.network.http.ApiRequest;
+import com.openapi.network.http.NetError;
 import com.openapi.core.legacyui.app.BaseFragment;
 import com.openapi.common.util.lang.CollectionUtils;
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.common.util.android.ViewUtils;
-import com.openapi.common.net.http.HttpClient;
+import com.openapi.network.http.HttpClient;
 import com.openapi.core.R;
-import com.openapi.common.net.request.InfoListVo;
-import com.openapi.common.net.http.BaseService;
+import com.openapi.network.request.InfoListVo;
+import com.openapi.network.http.BaseService;
 
 import java.lang.ref.WeakReference;
 import java.util.List;
@@ -204,7 +204,7 @@ public abstract class LoadableFragment<T> extends BaseFragment {
         mLoadingView.setVisibility(View.GONE);
         mLoadRetryView.setVisibility(View.VISIBLE);
         mContentView.setVisibility(View.GONE);
-        tvRetry.setText(com.openapi.common.R.string.error_network_retry);
+        tvRetry.setText(com.openapi.uikit.R.string.error_network_retry);
     }
 
     protected void showNodataRetry() {
@@ -214,7 +214,7 @@ public abstract class LoadableFragment<T> extends BaseFragment {
         mLoadingView.setVisibility(View.GONE);
         mLoadRetryView.setVisibility(View.VISIBLE);
         mContentView.setVisibility(View.GONE);
-        tvRetry.setText(com.openapi.common.R.string.error_network_nodata_retry);
+        tvRetry.setText(com.openapi.uikit.R.string.error_network_nodata_retry);
     }
 
     protected void setData(T data) {

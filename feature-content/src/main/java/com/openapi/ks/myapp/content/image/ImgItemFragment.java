@@ -23,7 +23,7 @@ import com.openapi.common.util.android.ToastUtil;
 import com.openapi.core.legacyui.adapter.BaseRecyclerViewAdapter;
 import com.openapi.core.app.AppContext;
 import com.openapi.ks.myapp.content.image.ImgItemsVo;
-import com.openapi.common.net.request.InfoListVo;
+import com.openapi.network.request.InfoListVo;
 import com.openapi.core.model.RecommendVo;
 import com.openapi.core.config.Constants;
 import com.openapi.common.util.android.StaticDataUtil;

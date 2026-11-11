@@ -4,8 +4,8 @@ import android.content.Context
 import com.openapi.chat.domain.model.ChatMessage
 import com.openapi.chat.domain.model.ChatRole
 import com.openapi.chat.domain.model.ChatStreamEvent
-import com.openapi.common.net.http.ApiRequest
-import com.openapi.common.net.request.BaseRequest
+import com.openapi.network.http.ApiRequest
+import com.openapi.network.request.BaseRequest
 import com.openapi.common.util.log.LogUtil
 import com.openapi.core.config.Constants
 import kotlinx.coroutines.Dispatchers

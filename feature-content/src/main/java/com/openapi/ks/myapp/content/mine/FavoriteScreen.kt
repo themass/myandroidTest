@@ -24,7 +24,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
-import com.openapi.common.design.theme.AppMaterialTheme
+import com.openapi.uikit.theme.AppMaterialTheme
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,7 +32,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.openapi.common.design.theme.AppColors
+import com.openapi.uikit.theme.AppColors
 import com.openapi.core.db.FavoriteVo
 import com.openapi.feature.content.R
 

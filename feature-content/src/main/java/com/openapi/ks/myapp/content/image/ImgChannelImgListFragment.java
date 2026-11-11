@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.openapi.core.ads.yewu.ads.base.AdsContext;
 import com.openapi.ks.myapp.content.image.ImgItemsVo;
-import com.openapi.common.net.request.InfoListVo;
+import com.openapi.network.request.InfoListVo;
 import com.openapi.core.model.RecommendVo;
 import com.openapi.core.config.Constants;
 import com.openapi.ks.myapp.content.common.HistoryUtil;

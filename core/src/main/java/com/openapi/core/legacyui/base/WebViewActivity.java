@@ -11,19 +11,19 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.openapi.core.CommonConstants;
-import com.openapi.common.ui.widget.MyWebView;
+import com.openapi.uikit.widget.MyWebView;
 import com.openapi.common.util.android.AudioMngHelper;
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.common.util.android.PackageUtils;
 import com.openapi.common.util.android.SystemUtils;
 import com.openapi.common.util.android.ToastUtil;
 import com.openapi.core.ads.yewu.ads.base.AdsContext;
-import com.openapi.common.net.request.CommonResponse;
+import com.openapi.network.request.CommonResponse;
 import com.openapi.core.R;
 import com.openapi.core.model.CustomeAddForm;
 import com.openapi.core.model.NullReturnVo;
 import com.openapi.core.config.Constants;
-import com.openapi.common.net.http.BaseService;
+import com.openapi.network.http.BaseService;
 import com.openapi.core.legacyui.app.BaseFragmentActivity;
 import com.openapi.core.legacyui.features.BaseWebViewFragment;
 
@@ -124,7 +124,7 @@ public class WebViewActivity extends BaseFragmentActivity implements MyWebView.O
                 startActivity(it);
                 finish();
             } else {
-                ToastUtil.showShort(com.openapi.common.R.string.no_browser);
+                ToastUtil.showShort(com.openapi.core.R.string.no_browser);
             }
             return true;
         } else if (id == R.id.menu_url) {

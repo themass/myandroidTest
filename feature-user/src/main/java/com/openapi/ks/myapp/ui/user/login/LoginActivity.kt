@@ -40,9 +40,9 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.openapi.common.design.theme.AppColors
-import com.openapi.common.net.http.BaseService
-import com.openapi.common.net.request.CommonResponse
+import com.openapi.uikit.theme.AppColors
+import com.openapi.network.http.BaseService
+import com.openapi.network.request.CommonResponse
 import com.openapi.common.util.android.PreferenceUtils
 import com.openapi.common.util.lang.StringUtils
 import com.openapi.common.util.android.ToastUtil
@@ -51,7 +51,7 @@ import com.openapi.ks.myapp.bean.form.LoginForm
 import com.openapi.core.model.UserInfoVo
 import com.openapi.core.config.Constants
 import com.openapi.core.account.UserLoginUtil
-import com.openapi.common.design.theme.AppMaterialTheme
+import com.openapi.uikit.theme.AppMaterialTheme
 
 /**
  * 登录页（Compose）。网络和本地偏好与原 Java 实现保持一致：

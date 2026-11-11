@@ -179,6 +179,8 @@ android {
     }
 }
 dependencies {
+    implementation libs.kotlinx.coroutines.android
+    implementation libs.okhttp
     testImplementation 'junit:junit:4.13.2'
     // Room DAO 的 JVM 测试：Robolectric 提供真实的 SQLite，不用设备
     testImplementation 'org.robolectric:robolectric:4.17'
@@ -186,7 +188,9 @@ dependencies {
     testImplementation libs.kotlinx.coroutines.test
 
     // 组合根：所有 feature 和它们需要在 Application 里初始化的模块
-    implementation project(":commonutil")
+    implementation project(":common")
+    implementation project(':uikit')
+    implementation project(':network')
     implementation project(':core')
     implementation project(':media')
     implementation project(':feature-video')

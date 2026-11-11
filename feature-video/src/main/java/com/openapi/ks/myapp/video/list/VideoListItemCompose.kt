@@ -25,7 +25,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import com.openapi.common.design.theme.AppColors
+import com.openapi.uikit.theme.AppColors
 
 /** 列表卡片的文字状态：绑定时由 adapter 写入。 */
 class VideoListItemState {

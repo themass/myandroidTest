@@ -9,7 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.foundation.layout.Column
 import com.aimath.paizhao.photosolve.quality.QualityIssue
 import com.aimath.paizhao.photosolve.quality.suggestion
-import com.openapi.common.design.theme.AppTypography
+import com.openapi.uikit.theme.AppTypography
 
 /**
  * 裁剪后清晰度或曝光不合格时的提示。

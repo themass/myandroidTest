@@ -9,7 +9,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import com.openapi.core.legacyui.app.LogActivity;
-import com.openapi.common.ui.widget.MyWebView;
+import com.openapi.uikit.widget.MyWebView;
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.common.util.android.PackageUtils;
 import com.openapi.common.util.android.SystemUtils;
@@ -66,7 +66,7 @@ public class VideoWebViewActivity extends LogActivity implements MyWebView.OnTou
                 startActivity(it);
                 finish();
             } else {
-                ToastUtil.showShort(com.openapi.common.R.string.no_browser);
+                ToastUtil.showShort(com.openapi.core.R.string.no_browser);
             }
             return true;
         } else if (id == R.id.menu_url) {

@@ -2,7 +2,7 @@ package com.openapi.chat.data
 
 import android.content.Context
 import com.openapi.core.db.FavoriteVo
-import com.openapi.common.net.http.BaseService
+import com.openapi.network.http.BaseService
 import com.openapi.core.util.FavoriteUtil
 import com.openapi.chat.data.remote.FeedbackContentForm
 import com.openapi.core.model.NullReturnVo

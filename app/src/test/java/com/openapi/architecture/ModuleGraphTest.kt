@@ -48,8 +48,8 @@ class ModuleGraphTest {
             if ("app" in deps) {
                 violations += "$module depends on :app (the composition root)"
             }
-            if (module == "commonutil" && deps.isNotEmpty()) {
-                violations += "commonutil depends on $deps (it must not depend on project modules)"
+            if (module == "common" && deps.isNotEmpty()) {
+                violations += "common depends on $deps (it must not depend on project modules)"
             }
             if (module in setOf("core", "media", "ads", "chatkit")) {
                 deps.filter { it in featureModules }.forEach {

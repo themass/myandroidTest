@@ -22,7 +22,7 @@ import com.bumptech.glide.request.transition.Transition;
 import com.openapi.common.util.android.FileUtils;
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.common.util.lang.StringUtils;
-import com.openapi.common.net.glide.GlideLoggingListener;
+import com.openapi.network.glide.GlideLoggingListener;
 // 使用现代 Shimmer 替代
 // import com.romainpiel.shimmer.Shimmer;
 import com.openapi.core.R;

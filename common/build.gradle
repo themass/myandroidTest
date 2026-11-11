@@ -1,0 +1,20 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+}
+
+apply from: rootProject.file('gradle/android-library.gradle')
+
+android {
+    namespace = 'com.openapi.common'
+}
+
+dependencies {
+    // 事件 Flow（EventFlows）
+    implementation libs.kotlinx.coroutines.android
+    implementation libs.androidx.core.ktx
+    // FileUtils 用 DocumentFile 处理 SAF 目录
+    implementation 'androidx.documentfile:documentfile:1.0.1'
+    // GsonUtils 的对外方法返回 Gson 类型，所以用 api
+    api libs.gson
+}

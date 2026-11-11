@@ -3,8 +3,8 @@ package com.openapi.chat.data.remote
 import android.content.Context
 import com.openapi.chat.domain.model.ChatReply
 import com.openapi.chat.domain.model.MessageKind
-import com.openapi.common.net.http.BaseService
-import com.openapi.common.net.awaitUpload
+import com.openapi.network.http.BaseService
+import com.openapi.network.awaitUpload
 import com.openapi.core.config.Constants
 import com.openapi.chat.data.remote.Choice
 import com.openapi.chat.data.remote.TtsResponseVo
