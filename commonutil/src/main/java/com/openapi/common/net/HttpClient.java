@@ -86,8 +86,8 @@ public class HttpClient {
             return context.getResources().getString(R.string.error_network_no_connection);
         } else if (error instanceof NetError.TimeoutError) {
             return context.getResources().getString(R.string.error_network_timeout);
-        } else if (error instanceof MyVolleyError) {
-            return ((MyVolleyError) error).getMsg();
+        } else if (error instanceof NetError.BusinessError) {
+            return ((NetError.BusinessError) error).getMsg();
         }
         return context.getResources().getString(R.string.error_network_unknown);
     }

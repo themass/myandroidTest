@@ -34,6 +34,20 @@ public class NetError extends Exception {
         }
     }
 
+    /** 服务端返回的业务错误（errno 不成功时带 error 文案），文案直接展示给用户。 */
+    public static class BusinessError extends NetError {
+        private final String msg;
+
+        public BusinessError(String msg) {
+            super(msg);
+            this.msg = msg;
+        }
+
+        public String getMsg() {
+            return msg;
+        }
+    }
+
     /** 服务器返回了非 2xx 状态码。 */
     public static class ServerError extends NetError {
         public final int statusCode;

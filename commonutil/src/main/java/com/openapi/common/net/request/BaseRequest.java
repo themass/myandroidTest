@@ -12,7 +12,6 @@ import com.openapi.common.net.HttpUtils;
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.common.util.android.PreferenceUtils;
 import com.openapi.common.util.lang.StringUtils;
-import com.openapi.common.net.MyVolleyError;
 import com.openapi.common.net.NetError;
 import com.openapi.common.net.ApiRequest;
 import com.openapi.common.net.NetResponse;
@@ -156,7 +155,7 @@ public class BaseRequest<T> extends ApiRequest<T> {
         if (ret) {
             return Response.success(data.getData());
         } else {
-            return Response.error(new MyVolleyError(data.error));
+            return Response.error(new NetError.BusinessError(data.error));
         }
     }
 
