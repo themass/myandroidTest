@@ -194,7 +194,7 @@ dependencies {
     implementation project(':feature-chat')
     implementation project(':feature-photosolve')
     implementation project(':feature-user')
-    implementation project(':feature-channel')
+    implementation project(':feature-content')
     implementation project(':feature-companion')
     implementation project(":ads")
     implementation project(':retromusic')

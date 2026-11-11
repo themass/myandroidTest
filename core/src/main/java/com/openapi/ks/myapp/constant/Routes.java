@@ -28,7 +28,7 @@ public final class Routes {
     /** 设置页，在 :feature-user。 */
     public static final String SETTING = "com.openapi.ks.myapp.ui.user.SettingActivity";
 
-    /** 全局搜索结果页（频道里的视频列表），在 :feature-channel。 */
+    /** 全局搜索结果页（频道里的视频列表），在 :feature-content。 */
     public static final String GLOBAL_VIDEO_SEARCH = "com.openapi.ks.myapp.ui.fragment.GlobalVideoChannelListFragment";
 
     private Routes() {
