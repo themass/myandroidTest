@@ -1,4 +1,4 @@
-package com.openapi.core.view.translation;
+package com.openapi.ks.myapp.translation.api;
 
 import java.util.Collections;
 import java.util.HashMap;

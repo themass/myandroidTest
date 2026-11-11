@@ -15,10 +15,10 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.annotation.Nullable;
 
 import com.openapi.core.event.FavoriteVo;
-import com.openapi.core.view.translation.RealtimeSubtitleSession;
-import com.openapi.core.view.translation.StreamingSubtitleOverlayPresenter;
-import com.openapi.core.view.translation.TranslationOverlayPresenter;
-import com.openapi.core.view.translation.TranslationOverlaySession;
+import com.openapi.ks.myapp.translation.api.RealtimeSubtitleSession;
+import com.openapi.ks.myapp.translation.api.StreamingSubtitleOverlayPresenter;
+import com.openapi.ks.myapp.translation.api.TranslationOverlayPresenter;
+import com.openapi.ks.myapp.translation.api.TranslationOverlaySession;
 import com.openapi.common.util.android.PackageUtils;
 import com.openapi.core.R;
 import com.openapi.core.databinding.DialogFavoriteExternalLinesBinding;

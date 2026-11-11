@@ -11,9 +11,9 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.openapi.common.net.NetError;
-import com.openapi.core.view.translation.TranslationOverlaySession;
-import com.openapi.core.view.translation.VideoTranslationRegistry;
-import com.openapi.core.view.translation.VideoTranslationRequest;
+import com.openapi.ks.myapp.translation.api.TranslationOverlaySession;
+import com.openapi.ks.myapp.translation.api.VideoTranslationRegistry;
+import com.openapi.ks.myapp.translation.api.VideoTranslationRequest;
 import com.openapi.core.view.view.MyFavoriteView;
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.common.util.android.ToastUtil;

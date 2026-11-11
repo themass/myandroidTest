@@ -1,4 +1,4 @@
-package com.openapi.core.view.translation;
+package com.openapi.ks.myapp.translation.api;
 
 /**
  * 可插拔的视频语音→文字→翻译链路（百度、火山、自建服务等各自实现）。

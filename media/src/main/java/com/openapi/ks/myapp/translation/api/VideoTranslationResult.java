@@ -1,4 +1,4 @@
-package com.openapi.core.view.translation;
+package com.openapi.ks.myapp.translation.api;
 
 /**
  * 翻译结果：展示用中文文案 + 可选原始识别文本。

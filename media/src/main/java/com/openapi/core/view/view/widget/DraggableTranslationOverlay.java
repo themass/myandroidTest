@@ -19,7 +19,7 @@ import com.openapi.media.R;
 
 /**
  * 盖在视频或音乐播放区域上的字幕条；按住顶部标题区域可拖动整体位置。
- * 由 {@link com.openapi.core.view.translation.TranslationOverlayPresenter} 或收藏条触发显示。
+ * 由 {@link com.openapi.ks.myapp.translation.api.TranslationOverlayPresenter} 或收藏条触发显示。
  */
 public class DraggableTranslationOverlay extends FrameLayout {
 

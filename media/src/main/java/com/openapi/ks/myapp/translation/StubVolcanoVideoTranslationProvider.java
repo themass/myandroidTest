@@ -1,8 +1,8 @@
 package com.openapi.ks.myapp.translation;
 
-import com.openapi.core.view.translation.VideoTranslationCallback;
-import com.openapi.core.view.translation.VideoTranslationProvider;
-import com.openapi.core.view.translation.VideoTranslationRequest;
+import com.openapi.ks.myapp.translation.api.VideoTranslationCallback;
+import com.openapi.ks.myapp.translation.api.VideoTranslationProvider;
+import com.openapi.ks.myapp.translation.api.VideoTranslationRequest;
 
 /**
  * 火山引擎占位：请在此类内对接火山「语音识别 + 翻译」等接口实现 {@link #translate}。

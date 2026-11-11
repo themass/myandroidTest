@@ -6,7 +6,7 @@ import android.os.HandlerThread;
 
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.common.util.lang.StringUtils;
-import com.openapi.core.view.translation.RealtimeSubtitleCallbacks;
+import com.openapi.ks.myapp.translation.api.RealtimeSubtitleCallbacks;
 
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
