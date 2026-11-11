@@ -132,7 +132,7 @@ class FeedbackActivity : ComponentActivity() {
 }
 
 /** 两个反馈分类，顺序与旧版 FeedbackChooseFragment 一致（先 想要，后 积分充值反馈）。 */
-private enum class FeedbackCategory(
+internal enum class FeedbackCategory(
     val tabTitleRes: Int,
     val listUrl: String,
     val likeUrl: String,
@@ -156,7 +156,7 @@ private enum class FeedbackCategory(
 }
 
 /** 按页取数据（挂起）。与旧版 loadData 的 URL 拼法一致。 */
-private suspend fun fetchPage(service: BaseService, listUrl: String, pageNum: Int): InfoListVo<IWannaVo> =
+internal suspend fun fetchPage(service: BaseService, listUrl: String, pageNum: Int): InfoListVo<IWannaVo> =
     service.awaitInfoList(
         String.format(Constants.getUrl(listUrl), pageNum),
         IWannaVo::class.java,
@@ -165,7 +165,7 @@ private suspend fun fetchPage(service: BaseService, listUrl: String, pageNum: In
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun FeedbackRoot(
+internal fun FeedbackRoot(
     service: BaseService,
     onBack: () -> Unit,
     onNeedLogin: () -> Unit,
@@ -208,7 +208,7 @@ private fun FeedbackRoot(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun FeedbackCategoryPage(
+internal fun FeedbackCategoryPage(
     category: FeedbackCategory,
     service: BaseService,
     onNeedLogin: () -> Unit,
@@ -354,130 +354,5 @@ private fun FeedbackCategoryPage(
                 }
             },
         )
-    }
-}
-
-@Composable
-private fun FeedCard(entry: IWannaVo, onLike: () -> Unit) {
-    val showOk = entry.finished || Constants.ADMIN == entry.name
-    Card(
-        shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(containerColor = AppColors.Surface),
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Column(Modifier.padding(12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    entry.name.orEmpty(),
-                    color = AppColors.TextPrimary,
-                    fontSize = 14.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f),
-                )
-                if (showOk) {
-                    Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = AppColors.Success, modifier = Modifier.size(18.dp))
-                }
-            }
-            Spacer(Modifier.height(6.dp))
-            Text(entry.content.orEmpty(), color = AppColors.TextPrimary, fontSize = 14.sp)
-            Spacer(Modifier.height(8.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    listOfNotNull(entry.appName?.takeIf { it.isNotBlank() }, entry.where?.takeIf { it.isNotBlank() })
-                        .joinToString(" · "),
-                    color = AppColors.TextSecondary,
-                    fontSize = 12.sp,
-                    modifier = Modifier.weight(1f),
-                )
-                Image(
-                    painter = painterResource(if (entry.like) R.drawable.ic_heart_small_red else R.drawable.ic_heart_small_blue),
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp).clickable(onClick = onLike),
-                )
-                Spacer(Modifier.width(4.dp))
-                Text(
-                    pluralStringResource(R.plurals.likes_count, entry.likes, entry.likes),
-                    color = AppColors.TextSecondary,
-                    fontSize = 12.sp,
-                )
-            }
-            Text(
-                DateUtils.format(Date(entry.time), DateUtils.DATETIME_FORMAT),
-                color = AppColors.TextSecondary,
-                fontSize = 11.sp,
-            )
-        }
-    }
-}
-
-@Composable
-private fun CommentBar(
-    value: String,
-    enabled: Boolean,
-    withRecharge: Boolean,
-    rechargeOptions: Array<String>,
-    rechargeIndex: Int,
-    onRechargeSelected: (Int) -> Unit,
-    onChange: (String) -> Unit,
-    onSend: () -> Unit,
-) {
-    Surface(color = AppColors.Surface, shadowElevation = 4.dp) {
-        Row(
-            Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            if (withRecharge) {
-                Text(stringResource(R.string.recharge), color = AppColors.TextSecondary, fontSize = 14.sp)
-                Spacer(Modifier.width(4.dp))
-            }
-            OutlinedTextField(
-                value = value,
-                onValueChange = onChange,
-                enabled = enabled,
-                placeholder = {
-                    Text(stringResource(if (withRecharge) R.string.feedback_hint else R.string.iwanna_title))
-                },
-                modifier = Modifier.weight(1f),
-                maxLines = 3,
-            )
-            if (withRecharge) {
-                RechargePicker(
-                    options = rechargeOptions,
-                    selected = rechargeIndex,
-                    enabled = enabled,
-                    onSelected = onRechargeSelected,
-                )
-            }
-            Spacer(Modifier.width(8.dp))
-            TextButton(onClick = onSend, enabled = enabled) { Text(stringResource(R.string.send)) }
-        }
-    }
-}
-
-/** 旧版 sp_recharge 下拉框的等价实现：显示当前充值方式，点开选择。 */
-@Composable
-private fun RechargePicker(
-    options: Array<String>,
-    selected: Int,
-    enabled: Boolean,
-    onSelected: (Int) -> Unit,
-) {
-    var expanded by remember { mutableStateOf(false) }
-    Box {
-        TextButton(onClick = { expanded = true }, enabled = enabled) {
-            Text(options[selected], color = AppColors.TextPrimary, fontSize = 14.sp)
-        }
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            options.forEachIndexed { index, label ->
-                DropdownMenuItem(
-                    text = { Text(label) },
-                    onClick = {
-                        onSelected(index)
-                        expanded = false
-                    },
-                )
-            }
-        }
     }
 }
