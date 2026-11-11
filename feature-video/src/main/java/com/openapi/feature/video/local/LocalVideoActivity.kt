@@ -127,7 +127,7 @@ internal fun queryLocalVideos(context: Context): List<LocalVideo> {
 fun LocalVideoScreen(onBack: (() -> Unit)? = null, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     var granted by remember {
-        mutableStateOf(Permissions.readVideo().all { ContextCompat.checkSelfPermission(context, it) == android.content.pm.PackageManager.PERMISSION_GRANTED })
+        mutableStateOf(Permissions.readVideo().permissions.all { ContextCompat.checkSelfPermission(context, it) == android.content.pm.PackageManager.PERMISSION_GRANTED })
     }
     val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
         granted = result.values.all { it }
@@ -162,7 +162,7 @@ fun LocalVideoScreen(onBack: (() -> Unit)? = null, modifier: Modifier = Modifier
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(stringResource(R.string.localvideo_need_permission), color = AppColors.TextSecondary, fontSize = 14.sp)
                     Spacer(Modifier.height(12.dp))
-                    Button(onClick = { permissionLauncher.launch(Permissions.readVideo()) }) {
+                    Button(onClick = { permissionLauncher.launch(Permissions.readVideo().permissions.toTypedArray()) }) {
                         Text(stringResource(R.string.localvideo_grant))
                     }
                 }

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="mediaview_edit_title">编辑图片</string>
+    <string name="mediaview_edit_cancel">取消</string>
+    <string name="mediaview_edit_done">完成</string>
+    <string name="mediaview_edit_undo">撤销</string>
+    <string name="mediaview_edit_redo">重做</string>
+    <string name="mediaview_edit_reset">还原</string>
+    <string name="mediaview_edit_rotate">旋转</string>
+    <string name="mediaview_edit_flip">镜像</string>
+    <string name="mediaview_edit_draw">涂鸦</string>
+    <string name="mediaview_edit_text">文字</string>
+    <string name="mediaview_edit_mosaic">马赛克</string>
+    <string name="mediaview_edit_adjust">调整</string>
+    <string name="mediaview_edit_brightness">亮度</string>
+    <string name="mediaview_edit_contrast">对比度</string>
+    <string name="mediaview_edit_saturation">饱和度</string>
+    <string name="mediaview_edit_text_title">添加文字</string>
+    <string name="mediaview_edit_text_hint">输入要标注的文字</string>
+    <string name="mediaview_edit_text_add">添加</string>
+</resources>

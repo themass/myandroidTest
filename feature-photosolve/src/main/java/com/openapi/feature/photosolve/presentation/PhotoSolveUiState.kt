@@ -16,6 +16,8 @@ data class PhotoSolveResult(
     val recognizedQuestion: String,
     val steps: List<String>,
     val finalAnswer: String,
+    /** 一张图里识别出多道题时，除第一题以外的其余题目。 */
+    val moreQuestions: List<PhotoSolveResult> = emptyList(),
 )
 
 data class PhotoSolveUiState(

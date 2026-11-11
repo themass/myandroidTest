@@ -7,6 +7,7 @@ import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -29,6 +30,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -40,7 +42,10 @@ import com.openapi.chatkit.model.ComposerAction
 import com.openapi.chatkit.model.MessageAction
 import com.openapi.chatkit.model.VoiceStyle
 import com.openapi.speech.audio.AudioPlayer
-import com.openapi.common.ui.permission.PermissionRequester
+import com.openapi.common.ui.permission.PermissionGateway
+import com.openapi.common.ui.permission.PermissionOutcome
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.openapi.common.ui.permission.PermissionStates
 import com.openapi.common.ui.permission.Permissions
 import com.openapi.feature.chat.R
@@ -58,19 +63,32 @@ fun ChatRoute(
 ) {
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val activity = LocalActivity.current
     var voiceStyle by remember { mutableStateOf(ChatPlatform.loadVoiceStyle(context)) }
     var cameraUri by remember { mutableStateOf<android.net.Uri?>(null) }
+    // 选中/拍下的图片先暂存，再进入编辑；取消编辑时丢弃，不进入草稿
+    var pendingEdit by remember { mutableStateOf<Pair<java.io.File, android.graphics.Bitmap>?>(null) }
 
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia()) { uris ->
-        if (uris.isNotEmpty()) viewModel.onImagesPicked(context, uris)
+        // 只对第一张进入编辑：多选时其余图片照常加入草稿，避免一次弹多个编辑器
+        if (uris.isNotEmpty()) {
+            viewModel.onImagesPicked(context, listOf(uris.first()), openEditor = { file, bitmap ->
+                pendingEdit = file to bitmap
+            })
+            if (uris.size > 1) viewModel.onImagesPicked(context, uris.drop(1))
+        }
     }
     val filePicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let { viewModel.onAttachmentPicked(context, MessageKind.FILE, it) }
     }
     val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { saved ->
         val uri = cameraUri
-        if (saved && uri != null) viewModel.onImagesPicked(context, listOf(uri))
+        if (saved && uri != null) {
+            viewModel.onImagesPicked(context, listOf(uri), openEditor = { file, bitmap ->
+                pendingEdit = file to bitmap
+            })
+        }
     }
 
     fun toast(res: Int) = Toast.makeText(context, context.getString(res), Toast.LENGTH_SHORT).show()
@@ -88,16 +106,20 @@ fun ChatRoute(
                     cameraUri = uri
                     camera.launch(uri)
                 }
-                if (PermissionStates.isGranted(context, Manifest.permission.CAMERA)) {
+                if (PermissionGateway.isGranted(context, Permissions.CAMERA)) {
                     launchCamera()
                 } else {
                     (activity as? ComponentActivity)?.let { host ->
-                        PermissionRequester.with(host)
-                            .permissions(*Permissions.CAMERA)
-                            .rationale(context.getString(R.string.chat_camera_rationale))
-                            .request(object : PermissionRequester.Callback() {
-                                override fun onGranted() = launchCamera()
-                            })
+                        scope.launch {
+                            val outcome = PermissionGateway.of(host).request(
+                                Permissions.camera(context.getString(R.string.chat_camera_rationale)),
+                            )
+                            when (outcome) {
+                                PermissionOutcome.Granted -> launchCamera()
+                                is PermissionOutcome.Denied -> toast(R.string.chat_camera_denied)
+                                is PermissionOutcome.PermanentlyDenied -> PermissionGateway.goToSettings(host)
+                            }
+                        }
                     }
                 }
             }
@@ -149,17 +171,21 @@ fun ChatRoute(
             onVoiceDraftSendAudio = viewModel::onVoiceDraftSendAudio,
             onVoiceDraftCancel = viewModel::onVoiceDraftCancel,
             onVoiceRecordStart = {
-                if (PermissionStates.isGranted(context, Manifest.permission.RECORD_AUDIO)) {
+                if (PermissionGateway.isGranted(context, Permissions.RECORD_AUDIO)) {
                     viewModel.onVoiceRecordStart(context, liveTranscript = voiceStyle == VoiceStyle.Ripple || voiceStyle == VoiceStyle.Floating)
                 } else {
                     // 首次授权的这一次按压不录音：和老 RecordButton 的行为一致，下次按下才开始录。
                     (activity as? ComponentActivity)?.let { host ->
-                        PermissionRequester.with(host)
-                            .permissions(*Permissions.RECORD_AUDIO)
-                            .rationale(context.getString(R.string.chat_voice_rationale))
-                            .request(object : PermissionRequester.Callback() {
-                                override fun onGranted() = Unit
-                            })
+                        scope.launch {
+                            val outcome = PermissionGateway.of(host).request(
+                                Permissions.recordAudio(context.getString(R.string.chat_voice_rationale)),
+                            )
+                            when (outcome) {
+                                PermissionOutcome.Granted -> Unit
+                                is PermissionOutcome.Denied -> toast(R.string.chat_voice_denied)
+                                is PermissionOutcome.PermanentlyDenied -> PermissionGateway.goToSettings(host)
+                            }
+                        }
                     }
                 }
             },
@@ -215,6 +241,29 @@ fun ChatRoute(
                 WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom),
             ),
         )
+
+        // 待发送图片的本地编辑：编辑结果覆盖暂存文件，UI 走同一张草稿
+        val editing = pendingEdit
+        if (editing != null) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                com.openapi.mediaview.edit.PhotoEditor(
+                    bitmap = editing.second,
+                    onCancel = { pendingEdit = null },
+                    onDone = { edits ->
+                        val target = editing.first
+                        scope.launch {
+                            val exported = withContext(kotlinx.coroutines.Dispatchers.IO) {
+                                com.openapi.mediaview.edit.PhotoEditExporter.export(
+                                    editing.second, edits, context.cacheDir,
+                                )
+                            }
+                            if (exported != null) viewModel.onReplaceDraftImage(target, exported, context)
+                        }
+                        pendingEdit = null
+                    },
+                )
+            }
+        }
     }
 }
 

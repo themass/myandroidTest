@@ -11,6 +11,7 @@ import com.openapi.feature.chat.domain.repository.ChatRepository
 import com.openapi.speech.audio.AudioPlayer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import java.io.FileOutputStream
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -92,17 +93,51 @@ internal class SendActions(
         }
     }
 
-    fun imagesPicked(context: android.content.Context, uris: List<android.net.Uri>) {
+    fun imagesPicked(
+        context: android.content.Context,
+        uris: List<android.net.Uri>,
+        openEditor: ((java.io.File, android.graphics.Bitmap) -> Unit)? = null,
+    ) {
         if (uris.isEmpty() || state.value.sending) return
         scope.launch {
             for (uri in uris) {
                 val outcome = withContext(Dispatchers.IO) { AttachmentStager.stage(context, MessageKind.IMAGE, uri) }
                 when (outcome) {
-                    is StageOutcome.Staged -> composer.addDraft(MessageKind.IMAGE, outcome.attachment)
+                    is StageOutcome.Staged -> {
+                        val staged = outcome.attachment
+                        composer.addDraft(MessageKind.IMAGE, staged)
+                        // 先入草稿再编辑：取消编辑时图片仍然可用（等同「不编辑直接发送」）
+                        val editor = openEditor
+                        if (editor != null) {
+                            val bitmap = withContext(Dispatchers.IO) {
+                                com.openapi.mediaview.edit.PhotoEditExporter.decode(android.net.Uri.fromFile(staged.file), context.contentResolver)
+                            }
+                            if (bitmap != null) editor(staged.file, bitmap)
+                        }
+                    }
                     is StageOutcome.Rejected -> state.update { it.copy(error = outcome.reason) }
                     StageOutcome.Failed -> state.update { it.copy(error = "读取图片失败，请重试") }
                 }
             }
+        }
+    }
+
+    /**
+     * 用编辑后的图片覆盖草稿对应的暂存文件（同名写入，草稿本身无需替换）。
+     * 失败时保留原图：用户至少还能发出未编辑的版本。
+     */
+    fun replaceDraftImage(target: java.io.File, edited: android.net.Uri, context: android.content.Context) {
+        scope.launch {
+            val ok = withContext(Dispatchers.IO) {
+                runCatching {
+                    context.contentResolver.openInputStream(edited)?.use { input ->
+                        java.io.FileOutputStream(target).use { output -> input.copyTo(output) }
+                    } ?: false
+                }.getOrDefault(false)
+            }
+            if (ok != true) state.update { it.copy(error = "编辑失败，已使用原图") }
+            // 编辑产生的临时文件用完即删
+            withContext(Dispatchers.IO) { com.openapi.mediaview.edit.PhotoEditExporter.delete(edited) }
         }
     }
 

@@ -23,6 +23,8 @@ dependencies {
     implementation project(':speech')
     implementation project(':core')
     implementation project(':chatkit')
+    // 图片编辑（待发送图片的标注、裁剪）
+    implementation project(':mediaview')
 
     // Markdown 渲染（chat/ui/markdown）
     implementation 'io.noties.markwon:core:4.6.2'

@@ -123,11 +123,16 @@ class PhotoSolveViewModel(application: Application) : AndroidViewModel(applicati
                         qualityWarning = QualityWarning(cropped, listOf(com.openapi.imaging.quality.QualityIssue.BLURRY)),
                     )
                 }
+                // 40002 不是题目、40004 识别不出内容：都回到裁剪页让用户重新对准
                 40002 -> _uiState.update { it.copy(step = PhotoSolveStep.Crop, errorMessage = "未识别到题目，请重新框选") }
+                40004 -> _uiState.update { it.copy(step = PhotoSolveStep.Crop, errorMessage = "没有识别到题目内容，请重新框选") }
+                40000 -> _uiState.update { it.copy(step = PhotoSolveStep.Crop, errorMessage = "请求参数有误，请重试") }
                 40003 -> _uiState.update { it.copy(step = PhotoSolveStep.Crop, errorMessage = "图片过大或格式不支持，请换一张图片") }
                 42901 -> _uiState.update { it.copy(step = PhotoSolveStep.Crop, errorMessage = "今日识别额度已用完") }
                 50001 -> _uiState.update { it.copy(step = PhotoSolveStep.Crop, errorMessage = "识别服务暂时不可用，请重试") }
-                else -> _uiState.update { it.copy(step = PhotoSolveStep.Crop, errorMessage = "识别失败,请重试") }
+                // 50002 服务端没配模型，重试没用，直接说明是部署问题
+                50002 -> _uiState.update { it.copy(step = PhotoSolveStep.Crop, errorMessage = "服务端未配置解题模型") }
+                else -> _uiState.update { it.copy(step = PhotoSolveStep.Crop, errorMessage = e.message ?: "识别失败,请重试") }
             }
         }
     }

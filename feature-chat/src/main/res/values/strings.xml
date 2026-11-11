@@ -12,7 +12,8 @@
     <string name="chat_batch_delete_title">删除所选消息？</string>
     <string name="chat_call_desc">语音通话</string>
     <string name="chat_call_soon">语音通话即将上线</string>
-    <string name="chat_camera_rationale">Camera access is needed to take a photo and send it.</string>
+    <string name="chat_camera_rationale">拍摄照片发送给 AI 需要相机权限</string>
+    <string name="chat_camera_denied">未授予相机权限，无法拍照</string>
     <string name="chat_delete_message_body">只会从本机聊天记录中移除，服务器上的记录不受影响。</string>
     <string name="chat_delete_message_title">删除这条消息？</string>
     <string name="chat_empty_hint">有什么想聊的，直接说就行</string>
@@ -33,6 +34,7 @@
     <string name="chat_suggest_intro">先介绍一下你自己</string>
     <string name="chat_video_soon">视频消息即将上线</string>
     <string name="chat_voice_rationale">发送语音消息需要使用麦克风</string>
+    <string name="chat_voice_denied">未授予麦克风权限，无法录音</string>
     <string name="chat_voice_style_bar">Voice style C: recording bar</string>
     <string name="chat_voice_style_floating">Voice style A: floating panel</string>
     <string name="chat_voice_style_ripple">Voice style B: ripple and live text</string>

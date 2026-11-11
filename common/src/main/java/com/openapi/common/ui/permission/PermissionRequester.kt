@@ -8,7 +8,9 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import com.openapi.common.R
+import kotlinx.coroutines.suspendCancellableCoroutine
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.coroutines.resume
 
 /**
  * 按需申请运行时权限，在功能入口（点录音、点拍照……）处调用，而不是启动时一次性申请一堆。
@@ -41,10 +43,42 @@ class PermissionRequester private constructor(private val activity: ComponentAct
 
         /** 用户本次拒绝了（或从设置页回来仍未开启）。默认什么都不做。 */
         open fun onDenied(denied: List<String>) {}
+
+        /**
+         * 永久拒绝，且用户没有去设置（或在设置里仍没开启）。默认退化成 [onDenied]，
+         * 需要区分「再点一次还能问」和「必须去设置」的调用方覆盖它。
+         */
+        open fun onPermanentlyDenied(denied: List<String>) = onDenied(denied)
     }
 
     private var permissions: Array<out String> = emptyArray()
     private var rationale: String = ""
+
+    /**
+     * 协程版本，等价于 [request]，但结果直接返回给调用方。
+     *
+     * 和回调版本共用同一套流程（解释对话框、去设置引导），区别只是永久拒绝不再弹「去设置」框，
+     * 而是把 [PermissionOutcome.PermanentlyDenied] 交回去——挂起 API 的调用方通常自己就能显示提示。
+     */
+    suspend fun await(): PermissionOutcome = suspendCancellableCoroutine { cont ->
+        if (permissions.isEmpty()) {
+            cont.resume(PermissionOutcome.Granted)
+            return@suspendCancellableCoroutine
+        }
+        request(object : Callback() {
+            override fun onGranted() {
+                if (cont.isActive) cont.resume(PermissionOutcome.Granted)
+            }
+
+            override fun onDenied(denied: List<String>) {
+                if (cont.isActive) cont.resume(PermissionOutcome.Denied(denied))
+            }
+
+            override fun onPermanentlyDenied(denied: List<String>) {
+                if (cont.isActive) cont.resume(PermissionOutcome.PermanentlyDenied(denied))
+            }
+        })
+    }
 
     fun permissions(vararg permissions: String): PermissionRequester = apply {
         this.permissions = permissions
@@ -113,7 +147,7 @@ class PermissionRequester private constructor(private val activity: ComponentAct
             .setMessage(activity.getString(R.string.core_permission_go_settings_message, rationale))
             .setPositiveButton(R.string.core_permission_go_settings) { _, _ -> openAppSettings(callback) }
             .setNegativeButton(R.string.core_permission_cancel) { _, _ ->
-                callback.onDenied(permissions.filterNot { PermissionStates.isGranted(activity, it) })
+                callback.onPermanentlyDenied(permissions.filterNot { PermissionStates.isGranted(activity, it) })
             }
             .show()
     }
@@ -126,10 +160,12 @@ class PermissionRequester private constructor(private val activity: ComponentAct
             ActivityResultContracts.StartActivityForResult(),
         ) {
             launcher.unregister()
-            if (PermissionStates.allGranted(activity, permissions)) {
+            val denied = permissions.filterNot { PermissionStates.isGranted(activity, it) }
+            if (denied.isEmpty()) {
                 callback.onGranted()
             } else {
-                callback.onDenied(permissions.filterNot { PermissionStates.isGranted(activity, it) })
+                // 从设置页回来仍然没开：系统框依旧不会再出现，按永久拒绝处理，不要谎称「还能再问」
+                callback.onPermanentlyDenied(denied)
             }
         }
         launcher.launch(
