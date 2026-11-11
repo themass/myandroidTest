@@ -3,7 +3,7 @@ package com.openapi.chat.data.remote
 import android.util.Base64
 import com.openapi.network.http.BaseService
 import com.openapi.chat.domain.speech.SpeechToText
-import com.openapi.core.media.VoiceRecorder
+import com.openapi.speech.audio.VoiceRecorder
 import com.openapi.network.awaitPost
 import com.openapi.chat.data.remote.AsrContentForm
 import com.openapi.chat.data.remote.AsrResponseVo

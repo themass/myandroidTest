@@ -16,6 +16,7 @@ android {
 }
 
 dependencies {
+    implementation project(':mediaview')
     implementation libs.kotlinx.coroutines.android
     implementation platform(libs.androidx.compose.bom)
     implementation libs.androidx.compose.ui
@@ -25,6 +26,5 @@ dependencies {
     implementation libs.androidx.compose.material.icons.extended
     implementation libs.androidx.core.ktx
     implementation 'io.coil-kt:coil-compose:2.7.0'
-    implementation project(':media')
     debugImplementation libs.androidx.compose.ui.tooling
 }

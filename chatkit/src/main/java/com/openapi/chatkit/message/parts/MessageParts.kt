@@ -55,10 +55,10 @@ import coil.compose.AsyncImage
 import com.openapi.chatkit.media.ImageViewer
 import com.openapi.chatkit.media.imageModel
 import com.openapi.chatkit.model.MessagePart
-import com.openapi.media.viewer.MediaCarousel
-import com.openapi.media.viewer.MediaItem
-import com.openapi.media.viewer.MediaStack
-import com.openapi.media.viewer.MediaTheme
+import com.openapi.mediaview.MediaCarousel
+import com.openapi.mediaview.MediaItem
+import com.openapi.mediaview.MediaStack
+import com.openapi.mediaview.MediaTheme
 import com.openapi.chatkit.model.Sender
 import com.openapi.chatkit.theme.ChatKit
 import java.util.Locale

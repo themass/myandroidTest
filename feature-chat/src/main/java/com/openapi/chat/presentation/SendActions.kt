@@ -1,6 +1,6 @@
 package com.openapi.chat.presentation
 
-import com.openapi.asr.tts.DeviceSpeech
+import com.openapi.speech.tts.DeviceSpeech
 import com.openapi.chat.domain.model.ChatMessage
 import com.openapi.chat.domain.model.ChatRole
 import com.openapi.chat.domain.model.DeliveryStatus
@@ -8,7 +8,7 @@ import com.openapi.chat.domain.model.FileAttachment
 import com.openapi.chat.domain.model.ImageAttachment
 import com.openapi.chat.domain.model.MessageKind
 import com.openapi.chat.domain.repository.ChatRepository
-import com.openapi.core.media.AudioPlayer
+import com.openapi.speech.audio.AudioPlayer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow

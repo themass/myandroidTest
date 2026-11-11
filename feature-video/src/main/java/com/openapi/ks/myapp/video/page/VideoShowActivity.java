@@ -22,9 +22,9 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.openapi.core.db.FavoriteVo;
 
-import com.openapi.ks.myapp.translation.api.TranslationOverlaySession;
-import com.openapi.ks.myapp.translation.api.VideoTranslationRegistry;
-import com.openapi.ks.myapp.translation.api.VideoTranslationRequest;
+import com.openapi.subtitle.api.TranslationOverlaySession;
+import com.openapi.subtitle.api.VideoTranslationRegistry;
+import com.openapi.subtitle.api.VideoTranslationRequest;
 import com.openapi.core.favorite.MyFavoriteView;
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.feature.video.R;
@@ -35,7 +35,7 @@ import com.openapi.ks.myapp.cast.GoogleCastSessionController;
 import com.openapi.ks.myapp.data.VideoUtil;
 import com.openapi.ks.myapp.video.player.DetailGSYVideoPlayer;
 import com.openapi.ks.myapp.translation.realtime.RealtimeSubtitleBindings;
-import com.openapi.ks.myapp.translation.realtime.VideoRealtimeSubtitleSession;
+import com.openapi.subtitle.realtime.VideoRealtimeSubtitleSession;
 import com.shuyu.gsyvideoplayer.GSYVideoManager;
 import com.shuyu.gsyvideoplayer.utils.OrientationUtils;
 import com.openapi.feature.video.databinding.LayoutVideoShowBinding;

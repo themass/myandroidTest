@@ -35,7 +35,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.anggrayudi.storage.SimpleStorageHelper
-import com.aimath.paizhao.photosolve.ImageUtils.decodeUriApplyingExifOrientation
+import com.openapi.common.image.ImageUtils.decodeUriApplyingExifOrientation
 import com.aimath.paizhao.photosolve.presentation.PhotoSolveStep
 import com.aimath.paizhao.photosolve.presentation.PhotoSolveViewModel
 import com.aimath.paizhao.photosolve.ui.CropAssistSettingsSheet

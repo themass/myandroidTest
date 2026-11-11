@@ -16,7 +16,7 @@ import com.google.mlkit.vision.documentscanner.GmsDocumentScanningResult
  * Google's whole-flow alternative to our own Capture/Crop screens. ML Kit Document Scanner has
  * no API to retrieve raw corner coordinates — it only exposes [GmsDocumentScanning.getStartScanIntent],
  * which launches Google's own full-screen scan->crop->cleanup UI and hands back a final image
- * URI. That's why this is a separate entry point rather than a [com.aimath.paizhao.photosolve.cropassist.CropAssistProvider]:
+ * URI. That's why this is a separate entry point rather than a [com.openapi.imaging.cropassist.CropAssistProvider]:
  * there is nothing to plug into our own crop screen.
  *
  * Needs Google Play Services on the device; on an emulator without the Play Store image this

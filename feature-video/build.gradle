@@ -21,6 +21,7 @@ dependencies {
     // 投屏的本地媒体服务（LocalMediaServer，原在 :core）
     implementation 'org.nanohttpd:nanohttpd:2.3.1'
     implementation project(':common')
+    implementation project(':subtitle')
     implementation project(':uikit')
     implementation project(':network')
     // GSY 播放器和内核（只有本模块用）
@@ -30,7 +31,6 @@ dependencies {
     // IJK 扩展 FFmpeg/so：mpeg、部分 rtsp/concat 等，见 GSY doc/DECODERS.md
     implementation 'io.github.carguo:gsyvideoplayer-ex_so:13.1.0'
     implementation project(':core')
-    implementation project(':media')
 
     implementation libs.okhttp
     // Material 组件（BottomSheetDialog、Snackbar）

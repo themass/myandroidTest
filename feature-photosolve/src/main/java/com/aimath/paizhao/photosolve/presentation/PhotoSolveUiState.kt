@@ -31,5 +31,5 @@ data class PhotoSolveUiState(
 
 data class QualityWarning(
     val bitmap: Bitmap,
-    val issues: List<com.aimath.paizhao.photosolve.quality.QualityIssue>,
+    val issues: List<com.openapi.imaging.quality.QualityIssue>,
 )

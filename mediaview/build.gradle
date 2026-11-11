@@ -1,0 +1,25 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.plugin.compose'
+}
+
+// :mediaview：媒体查看组件（MediaStack、MediaCarousel、MediaOverlap、MediaVideoDialog）。
+// 只依赖 Compose 和 Coil，不认识业务。
+apply from: rootProject.file('gradle/android-library.gradle')
+
+android {
+    namespace = 'com.openapi.mediaview'
+    buildFeatures {
+        compose = true
+    }
+}
+
+dependencies {
+    implementation libs.androidx.core.ktx
+    implementation platform(libs.androidx.compose.bom)
+    implementation libs.androidx.compose.ui
+    implementation libs.androidx.compose.ui.graphics
+    implementation libs.androidx.compose.material3
+    implementation 'io.coil-kt:coil-compose:2.7.0'
+}

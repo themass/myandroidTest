@@ -1,0 +1,21 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+}
+
+// :speech：设备朗读（TTS）、录音、语音消息播放。只依赖 Media3。
+apply from: rootProject.file('gradle/android-library.gradle')
+
+android {
+    namespace = 'com.openapi.speech'
+}
+
+dependencies {
+    implementation libs.androidx.core.ktx
+    implementation libs.kotlinx.coroutines.android
+    // 语音消息播放（AudioPlayer）
+    implementation libs.androidx.media3.exoplayer
+    // 火山引擎流式 ASR：WebSocket，配置读偏好、日志
+    implementation libs.okhttp
+    implementation project(':common')
+}

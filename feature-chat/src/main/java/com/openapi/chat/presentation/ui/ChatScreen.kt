@@ -56,7 +56,7 @@ import com.openapi.chat.domain.model.MessageKind
 import com.openapi.uikit.theme.AppColors
 import com.openapi.uikit.theme.AppSpacing
 import com.openapi.uikit.theme.AppTypography
-import com.openapi.core.media.AudioPlayer
+import com.openapi.speech.audio.AudioPlayer
 import com.openapi.feature.chat.R
 import com.openapi.roles.domain.SelectedRole
 import com.openapi.roles.presentation.RoleAvatar
@@ -133,7 +133,7 @@ fun ChatScreen(
             liveTranscript = state.partialText,
         )
     }
-    val voiceLevel by com.openapi.core.media.VoiceRecorder.level.collectAsState()
+    val voiceLevel by com.openapi.speech.audio.VoiceRecorder.level.collectAsState()
     var deleteTarget by remember { mutableStateOf<ChatMessage?>(null) }
     val selection = rememberMessageSelection()
     val appContext = LocalContext.current
@@ -233,7 +233,7 @@ fun ChatScreen(
                 onVoiceCancel = onVoiceRecordCancel,
                 onVoiceToText = onVoiceRecordToText,
                 // 切换去向时会震动：先让录音把接下来一小段写成静音，马达声不进语音
-                onVoiceIntentChange = { com.openapi.core.media.VoiceRecorder.muteFor() },
+                onVoiceIntentChange = { com.openapi.speech.audio.VoiceRecorder.muteFor() },
                 onCancelEdit = onCancelEdit,
                 onVoiceDraftSendText = onVoiceDraftSendText,
                 onVoiceDraftSendAudio = onVoiceDraftSendAudio,

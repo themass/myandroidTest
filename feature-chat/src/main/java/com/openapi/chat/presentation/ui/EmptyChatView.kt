@@ -56,7 +56,7 @@ import com.openapi.chat.domain.model.MessageKind
 import com.openapi.uikit.theme.AppColors
 import com.openapi.uikit.theme.AppSpacing
 import com.openapi.uikit.theme.AppTypography
-import com.openapi.core.media.AudioPlayer
+import com.openapi.speech.audio.AudioPlayer
 import com.openapi.feature.chat.R
 import com.openapi.roles.domain.SelectedRole
 import com.openapi.roles.presentation.RoleAvatar

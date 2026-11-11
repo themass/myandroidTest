@@ -6,7 +6,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.openapi.core.media.AudioPlayer
+import com.openapi.speech.audio.AudioPlayer
 import com.openapi.home.presentation.HomeScreen
 import com.openapi.uikit.theme.AppMaterialTheme
 

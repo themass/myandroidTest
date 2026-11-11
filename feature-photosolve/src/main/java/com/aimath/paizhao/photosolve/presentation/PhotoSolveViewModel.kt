@@ -7,12 +7,12 @@ import android.app.Application
 import android.graphics.Bitmap
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.aimath.paizhao.photosolve.ImageUtils.resizeSmart
-import com.aimath.paizhao.photosolve.cropassist.CropAssistRegistry
-import com.aimath.paizhao.photosolve.cropassist.CropAssistSettingsRepository
-import com.aimath.paizhao.photosolve.image.ImagePipeline.enhanceForDocument
-import com.aimath.paizhao.photosolve.image.RealEsrganUpscaler
-import com.aimath.paizhao.photosolve.quality.QuestionImagePreparer
+import com.openapi.common.image.ImageUtils.resizeSmart
+import com.openapi.imaging.cropassist.CropAssistRegistry
+import com.openapi.imaging.cropassist.CropAssistSettingsRepository
+import com.openapi.imaging.image.ImagePipeline.enhanceForDocument
+import com.openapi.imaging.image.RealEsrganUpscaler
+import com.openapi.imaging.quality.QuestionImagePreparer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -120,7 +120,7 @@ class PhotoSolveViewModel(application: Application) : AndroidViewModel(applicati
                 40001 -> _uiState.update {
                     it.copy(
                         step = PhotoSolveStep.Crop,
-                        qualityWarning = QualityWarning(cropped, listOf(com.aimath.paizhao.photosolve.quality.QualityIssue.BLURRY)),
+                        qualityWarning = QualityWarning(cropped, listOf(com.openapi.imaging.quality.QualityIssue.BLURRY)),
                     )
                 }
                 40002 -> _uiState.update { it.copy(step = PhotoSolveStep.Crop, errorMessage = "未识别到题目，请重新框选") }

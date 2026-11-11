@@ -6,7 +6,7 @@ import com.openapi.chat.domain.model.ChatRole
 import com.openapi.chat.domain.model.MessageKind
 import com.openapi.chat.domain.model.VoiceAttachment
 import com.openapi.chat.domain.repository.ChatRepository
-import com.openapi.core.media.VoiceRecorder
+import com.openapi.speech.audio.VoiceRecorder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,7 +32,7 @@ internal class VoiceActions(
     // 只保留语音气泡不转写，和之前的降级行为一致。
     // ------------------------------------------------------------------
 
-    private var liveAsr: com.openapi.ks.myapp.translation.realtime.VolcengineStreamingAsrClient? = null
+    private var liveAsr: com.openapi.speech.asr.VolcengineStreamingAsrClient? = null
 
     /** 开始录音；[liveTranscript] 为 true 时同时开启实时识别（语音样式 B）。 */
     fun start(context: android.content.Context, liveTranscript: Boolean) {
@@ -47,10 +47,10 @@ internal class VoiceActions(
      * 最终发送的文字仍然以松手后的后端识别结果为准。
      */
     private fun startLiveTranscript(context: android.content.Context) {
-        val config = com.openapi.ks.myapp.translation.realtime.VolcengineAsrConfig.load(context)
-        val client = com.openapi.ks.myapp.translation.realtime.VolcengineStreamingAsrClient(config)
+        val config = com.openapi.speech.asr.VolcengineAsrConfig.load(context)
+        val client = com.openapi.speech.asr.VolcengineStreamingAsrClient(config)
         liveAsr = client
-        client.connect(object : com.openapi.ks.myapp.translation.realtime.VolcengineStreamingAsrClient.Listener {
+        client.connect(object : com.openapi.speech.asr.VolcengineStreamingAsrClient.Listener {
             override fun onReady() = Unit
             override fun onPartialText(text: String) {
                 state.update { it.copy(partialText = text) }

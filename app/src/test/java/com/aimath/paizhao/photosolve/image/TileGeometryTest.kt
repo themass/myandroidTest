@@ -1,6 +1,8 @@
 package com.aimath.paizhao.photosolve.image
 
-import com.aimath.paizhao.photosolve.image.TileGeometry.Tile
+
+import com.openapi.imaging.image.TileGeometry
+import com.openapi.imaging.image.TileGeometry.Tile
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test

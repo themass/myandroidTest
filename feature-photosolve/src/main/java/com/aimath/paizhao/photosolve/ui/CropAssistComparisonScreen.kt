@@ -38,15 +38,15 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import com.aimath.paizhao.photosolve.CropNorm
-import com.aimath.paizhao.photosolve.cropassist.CropAssistRegistry
-import com.aimath.paizhao.photosolve.cropassist.CropAssistResult
+import com.openapi.imaging.CropNorm
+import com.openapi.imaging.cropassist.CropAssistRegistry
+import com.openapi.imaging.cropassist.CropAssistResult
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 
 /**
- * Runs every box-returning [com.aimath.paizhao.photosolve.cropassist.CropAssistProvider] against
+ * Runs every box-returning [com.openapi.imaging.cropassist.CropAssistProvider] against
  * the same photo and shows each one's suggested box side by side, so the user can judge which
  * detector works best. Google's ML Kit scan is intentionally absent here — it can't run headlessly
  * (see [rememberMlKitScanLauncher]'s doc), so it isn't part of this comparison.

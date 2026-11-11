@@ -7,8 +7,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.foundation.layout.Column
-import com.aimath.paizhao.photosolve.quality.QualityIssue
-import com.aimath.paizhao.photosolve.quality.suggestion
+import com.openapi.imaging.quality.QualityIssue
+import com.openapi.imaging.quality.suggestion
 import com.openapi.uikit.theme.AppTypography
 
 /**

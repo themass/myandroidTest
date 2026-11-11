@@ -39,7 +39,7 @@ import com.openapi.chat.presentation.ChatViewModel
 import com.openapi.chatkit.model.ComposerAction
 import com.openapi.chatkit.model.MessageAction
 import com.openapi.chatkit.model.VoiceStyle
-import com.openapi.core.media.AudioPlayer
+import com.openapi.speech.audio.AudioPlayer
 import com.openapi.uikit.permission.PermissionRequester
 import com.openapi.uikit.permission.PermissionStates
 import com.openapi.uikit.permission.Permissions

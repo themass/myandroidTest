@@ -21,8 +21,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.aimath.paizhao.photosolve.cropassist.CropAssistProvider
-import com.aimath.paizhao.photosolve.cropassist.CropAssistRegistry
+import com.openapi.imaging.cropassist.CropAssistProvider
+import com.openapi.imaging.cropassist.CropAssistRegistry
 
 /** Lets the user pick which [CropAssistProvider] auto-suggests the crop box on the next capture. */
 @OptIn(ExperimentalMaterial3Api::class)

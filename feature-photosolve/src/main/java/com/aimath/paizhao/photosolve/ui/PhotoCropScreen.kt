@@ -56,9 +56,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.aimath.paizhao.photosolve.cropassist.CropAssistResult
-import com.aimath.paizhao.photosolve.CropNorm
-import com.aimath.paizhao.photosolve.cropassist.CropAssistRegistry
+import com.openapi.imaging.cropassist.CropAssistResult
+import com.openapi.imaging.CropNorm
+import com.openapi.imaging.cropassist.CropAssistRegistry
 import com.openapi.feature.photosolve.R
 
 /**

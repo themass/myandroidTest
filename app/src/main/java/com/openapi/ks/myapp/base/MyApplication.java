@@ -7,7 +7,7 @@ import androidx.multidex.MultiDex;
 import androidx.multidex.MultiDexApplication;
 
 import com.openapi.core.CommonConstants;
-import com.openapi.core.media.AudioPlayer;
+import com.openapi.speech.audio.AudioPlayer;
 import com.openapi.common.util.android.StaticDataUtil;
 import com.openapi.common.util.android.ToastUtil;
 import com.openapi.common.util.android.ScreenSize;

@@ -1,7 +1,7 @@
 package com.openapi.chat.presentation
 
-import com.openapi.core.media.AudioPlayer
-import com.openapi.asr.tts.DeviceSpeech
+import com.openapi.speech.audio.AudioPlayer
+import com.openapi.speech.tts.DeviceSpeech
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.openapi.chat.ChatDependencies
@@ -16,7 +16,7 @@ import com.openapi.chat.domain.model.MessageKind
 import com.openapi.chat.domain.model.VoiceAttachment
 import com.openapi.chat.domain.usecase.LoadHistoryUseCase
 import com.openapi.chat.domain.usecase.SendMessageUseCase
-import com.openapi.core.media.VoiceRecorder
+import com.openapi.speech.audio.VoiceRecorder
 import com.openapi.roles.data.RolesDependencies
 import com.openapi.roles.domain.SelectedRole
 import kotlinx.coroutines.Dispatchers

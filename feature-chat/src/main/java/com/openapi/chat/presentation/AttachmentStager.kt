@@ -3,8 +3,8 @@ package com.openapi.chat.presentation
 import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
-import com.aimath.paizhao.photosolve.ImageUtils
-import com.openapi.core.image.ImageCompressor
+import com.openapi.common.image.ImageUtils
+import com.openapi.common.image.ImageCompressor
 import com.openapi.chat.domain.model.MessageKind
 import java.io.File
 

@@ -1,5 +1,8 @@
 package com.aimath.paizhao.photosolve.quality
 
+
+import com.openapi.imaging.quality.ImageQualityAnalyzer
+import com.openapi.imaging.quality.QualityIssue
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue

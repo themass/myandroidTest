@@ -8,7 +8,7 @@ import com.openapi.chatkit.model.MessagePart
 import com.openapi.chatkit.model.Reaction
 import com.openapi.chatkit.model.SendStatus
 import com.openapi.chatkit.model.Sender
-import com.openapi.core.media.AudioPlayback
+import com.openapi.speech.audio.AudioPlayback
 
 /**
  * 领域模型 → 组件库 UI 模型。组件库不认识 [ChatMessage]，所有显示相关的派生状态

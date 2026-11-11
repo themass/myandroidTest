@@ -24,6 +24,7 @@ dependencies {
     implementation 'com.facebook.shimmer:shimmer:0.5.0'
     // 频道与推荐列表、频道详情、声音/图片/文字/视频频道页、收藏、搜索
     implementation project(':common')
+    implementation project(':subtitle')
     implementation project(':uikit')
     implementation project(':network')
     // 频道页的开屏/插屏/横幅广告和统计
@@ -33,7 +34,6 @@ dependencies {
     implementation 'io.github.lucksiege:pictureselector:v3.11.2'
     implementation project(':core')
     // 字幕翻译框架（原在 :commonutil）
-    implementation project(':media')
     // 声音页的播放后端（频道歌单和本地音乐共用 :retromusic 的播放队列）
     implementation project(':retromusic')
     // :retromusic 的 MusicPlayerRemote 使用 Koin 注入

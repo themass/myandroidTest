@@ -1,5 +1,7 @@
 package com.openapi.ks.myapp.translation.realtime;
 
+import com.openapi.subtitle.realtime.VideoRealtimeSubtitleSession;
+
 import android.content.Context;
 import android.view.ViewGroup;
 

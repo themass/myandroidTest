@@ -189,10 +189,11 @@ dependencies {
 
     // 组合根：所有 feature 和它们需要在 Application 里初始化的模块
     implementation project(":common")
+    testImplementation project(':imaging')
+    implementation project(':speech')
     implementation project(':uikit')
     implementation project(':network')
     implementation project(':core')
-    implementation project(':media')
     implementation project(':feature-video')
     implementation project(':feature-roles')
     implementation project(':feature-chat')
