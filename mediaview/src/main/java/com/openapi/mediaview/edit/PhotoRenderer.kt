@@ -45,11 +45,14 @@ object PhotoRenderer {
     }
 
     private fun renderInternal(source: Bitmap, edits: PhotoEdits): Bitmap {
-        val rotated = rotate(source, edits.quarterTurns)
-        val mirrored = if (edits.ops.contains(EditOp.FlipHorizontal)) mirror(rotated) else rotated
-        val adjusted = applyAdjust(mirrored, edits.adjust)
-        val output = if (adjusted === mirrored) mirrored else adjusted
-        val scaled = downscaleIfNeeded(output)
+        // 顺序必须和 [mapPoint] 一致：先在原图坐标系里镜像，再旋转。
+        // 之前图片是「先旋转再镜像」、标注是「先镜像再旋转」，旋转 90°/270° + 镜像时
+        // 涂鸦会偏离照片上的物体（见 PhotoRendererTest.annotationsStayOnTheSameSpotUnderRotateAndFlip）。
+        val mirrored = if (edits.ops.contains(EditOp.FlipHorizontal)) mirror(source) else source
+        val rotated = rotate(mirrored, edits.quarterTurns)
+        val adjusted = applyAdjust(rotated, edits.adjust)
+        val output = if (adjusted === rotated) rotated else adjusted
+        val scaled = writableCopy(downscaleIfNeeded(output), source)
 
         val canvas = Canvas(scaled)
         val w = scaled.width.toFloat()
@@ -66,6 +69,24 @@ object PhotoRenderer {
         }
         return scaled
     }
+
+    /**
+     * 标注要直接画在位图上，所以这里必须拿到一张**可写、且不是调用方那张**的位图：
+     *
+     * - 解码器给的位图是不可变的，`Canvas(immutable)` 会抛 IllegalStateException；
+     * - 前面的旋转/镜像/调整/缩放都没发生时，[candidate] 就是 [source] 本身，
+     *   直接画会改掉编辑器预览正在显示的原图。
+     *
+     * `Bitmap.createBitmap(..., matrix, ...)` 和 `createScaledBitmap` 在某些情况下也会返回
+     * 不可变位图，所以不按「是否新建」判断，只看「是否可写、是否与原图同一个对象」。
+     */
+    private fun writableCopy(candidate: Bitmap, source: Bitmap): Bitmap =
+        if (candidate.isMutable && candidate !== source) {
+            candidate
+        } else {
+            candidate.copy(Bitmap.Config.ARGB_8888, /* isMutable = */ true)
+                ?: error("无法复制位图（内存不足？）")
+        }
 
     // ---- 旋转 / 镜像 ----
 

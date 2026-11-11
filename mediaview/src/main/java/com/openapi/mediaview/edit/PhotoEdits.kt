@@ -102,6 +102,21 @@ data class PhotoEdits(
         )
     }
 
+    /**
+     * 「镜像」按钮用这个：让**屏幕上看到的画面**左右翻转。
+     *
+     * 内部模型是「先在原图坐标里镜像（[EditOp.FlipHorizontal]），再旋转（[EditOp.Rotate]）」。
+     * 在显示坐标里左右翻转 = H∘R∘M；当旋转为 90°/270° 时 R⁻¹HR 是原图坐标里的**上下**翻转，
+     * 而上下翻转 = 左右翻转 ∘ 180°，所以等价于「切换原图镜像，同时多转 180°」。
+     * 0°/180° 时 R⁻¹HR 就是左右翻转，直接切换即可。
+     */
+    fun flipHorizontalOnScreen(): PhotoEdits {
+        val toggled = flipHorizontal()
+        if (quarterTurns % 2 == 0) return toggled
+        val others = toggled.ops.filterNot { it is EditOp.Rotate }
+        return toggled.copy(ops = listOf(EditOp.Rotate((quarterTurns + 2) % 4)) + others)
+    }
+
     /** 当前旋转后的显示尺寸（旋转 90/270 时宽高互换）。 */
     val displayWidth: Int get() = if (quarterTurns % 2 == 1) sourceHeight else sourceWidth
     val displayHeight: Int get() = if (quarterTurns % 2 == 1) sourceWidth else sourceHeight

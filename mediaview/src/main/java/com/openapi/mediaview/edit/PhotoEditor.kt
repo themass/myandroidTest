@@ -53,7 +53,7 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.text.drawText
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -189,7 +189,7 @@ fun PhotoEditor(
                     tool = tool,
                     allowCrop = allowCrop,
                     onRotate = { edits = edits.rotateClockwise() },
-                    onFlip = { edits = edits.flipHorizontal() },
+                    onFlip = { edits = edits.flipHorizontalOnScreen() },
                     onSelect = { tool = if (tool == it) EditorTool.None else it },
                 )
             }
@@ -239,6 +239,40 @@ private fun fitRect(srcW: Int, srcH: Int, boxW: Float, boxH: Float): Rect {
     return Rect(left, top, left + w, top + h)
 }
 
+/** 预览用的马赛克色块（归一化坐标 + 颜色）。 */
+private class MosaicBlock(val left: Float, val top: Float, val right: Float, val bottom: Float, val color: Int)
+
+/**
+ * 和 [PhotoRenderer] 的像素化保持同一个算法：块边长 = blockRatio × 原图短边，
+ * 每块取左上角像素的颜色。块数上限 4096，避免大区域每帧取样太多次。
+ */
+private fun mosaicBlocks(bitmap: android.graphics.Bitmap, op: EditOp.Mosaic): List<MosaicBlock> {
+    val w = bitmap.width
+    val h = bitmap.height
+    if (w <= 0 || h <= 0) return emptyList()
+    val left = (minOf(op.left, op.right) * w).toInt().coerceIn(0, w)
+    val top = (minOf(op.top, op.bottom) * h).toInt().coerceIn(0, h)
+    val right = (maxOf(op.left, op.right) * w).toInt().coerceIn(left, w)
+    val bottom = (maxOf(op.top, op.bottom) * h).toInt().coerceIn(top, h)
+    if (right - left < 2 || bottom - top < 2) return emptyList()
+    var block = (op.blockRatio * minOf(w, h)).toInt().coerceAtLeast(2)
+    while (((right - left) / block) * ((bottom - top) / block) > 4096) block *= 2
+    val cols = maxOf(1, (right - left) / block)
+    val rows = maxOf(1, (bottom - top) / block)
+    val out = ArrayList<MosaicBlock>(cols * rows)
+    for (row in 0 until rows) {
+        for (col in 0 until cols) {
+            val x0 = left + col * (right - left) / cols
+            val y0 = top + row * (bottom - top) / rows
+            val x1 = left + (col + 1) * (right - left) / cols
+            val y1 = top + (row + 1) * (bottom - top) / rows
+            val color = bitmap.getPixel(x0.coerceIn(0, w - 1), y0.coerceIn(0, h - 1))
+            out += MosaicBlock(x0.toFloat() / w, y0.toFloat() / h, x1.toFloat() / w, y1.toFloat() / h, color)
+        }
+    }
+    return out
+}
+
 @Composable
 private fun PreviewCanvas(
     bitmap: android.graphics.Bitmap,
@@ -257,7 +291,29 @@ private fun PreviewCanvas(
     val imageBitmap = remember(bitmap) { bitmap.asImageBitmap() }
     val textMeasurer = androidx.compose.ui.text.rememberTextMeasurer()
     val density = androidx.compose.ui.platform.LocalDensity.current
-    Box(Modifier.fillMaxSize()) {
+    // 旋转/镜像：作用在「图片 + 标注」整体上，和 PhotoRenderer 同一个顺序（先镜像、再旋转）。
+    // graphicsLayer 先应用 scale 再应用 rotation，正好是这个顺序；Compose 会对触摸坐标做逆变换，
+    // 所以手势拿到的仍然是原图坐标，涂鸦/马赛克/文字的坐标系不需要改。
+    val turns = edits.quarterTurns % 4
+    val flipped = edits.ops.contains(EditOp.FlipHorizontal)
+    // 转 90°/270° 后宽高互换：内容变成 (fit.height × fit.width)，要缩放到能放进预览框。
+    // fit 在框里居中，所以框的尺寸 = fit 尺寸 + 两侧留白。
+    val boxW = fit.width + 2 * fit.left
+    val boxH = fit.height + 2 * fit.top
+    val fitScale = if (turns % 2 == 1 && fit.width > 0f && fit.height > 0f) {
+        minOf(boxW / fit.height, boxH / fit.width)
+    } else {
+        1f
+    }
+    Box(
+        Modifier
+            .fillMaxSize()
+            .graphicsLayer {
+                rotationZ = 90f * turns
+                scaleX = (if (flipped) -1f else 1f) * fitScale
+                scaleY = fitScale
+            },
+    ) {
         Image(
             bitmap = imageBitmap,
             contentDescription = null,
@@ -351,9 +407,13 @@ private fun PreviewCanvas(
                         }
                     }
                     is EditOp.Mosaic -> {
-                        val tl = px(op.left, op.top)
-                        val br = px(op.right, op.bottom)
-                        drawRect(Color.White.copy(alpha = 0.18f), tl, Size(br.x - tl.x, br.y - tl.y))
+                        // 预览要和导出长得一样：按与 PhotoRenderer.drawMosaic 相同的块大小，
+                        // 从原图取每块左上角的颜色画成方块（之前画的是一块半透明白色，用户看不出是马赛克）
+                        mosaicBlocks(bitmap, op).forEach { b ->
+                            val tl = px(b.left, b.top)
+                            val br = px(b.right, b.bottom)
+                            drawRect(Color(b.color), tl, Size(br.x - tl.x, br.y - tl.y))
+                        }
                     }
                     else -> Unit
                 }
