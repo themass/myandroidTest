@@ -35,6 +35,17 @@ import java.util.Map;
 public abstract class LoadableFragment<T> extends BaseFragment {
     public boolean mDataLoaded = false;
     public boolean isDestory = false;
+    /**
+     * 首屏加载失败后的静默重试次数。
+     * <p>
+     * 隧道刚建立的一两秒内，隧道内的 DNS 可能还没生效（实测连上后 1 秒内解析自有 API 域名失败、
+     * 再过 1 秒就正常）。这时候打开节点列表，用户看到的就是 "Load error, please click Retry."，
+     * 而实际上什么都不用做、等一秒就好。首屏失败自动重试几次，把这段空窗期吃掉。
+     * 重试都不成功才让用户点重试，避免把真实的网络故障藏起来。
+     */
+    private static final int AUTO_RETRY_MAX = 3;
+    private static final long AUTO_RETRY_DELAY_MS = 1_200L;
+    private int mAutoRetry;
     protected ProgressBar mLoadingView;
     protected View mLoadRetryView;
     protected ViewGroup mContentView;
@@ -130,6 +141,7 @@ public abstract class LoadableFragment<T> extends BaseFragment {
 
     protected void startQuery(boolean showLoading) {
         cancelQuery();
+        mAutoRetry = 0;
         mQueryTask = new QueryTask<>(this, showLoading, handler);
         mQueryTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
@@ -239,12 +251,26 @@ public abstract class LoadableFragment<T> extends BaseFragment {
                     fragment.setData(data);
                     fragment.onDataLoaded(data);
                     fragment.mDataLoaded = true;
-                } else {
-                    if (!fragment.mDataLoaded)
+                } else if (!fragment.mDataLoaded) {
+                    // 首屏失败：先静默重试，把隧道刚建立时 DNS 尚未生效那段空窗期吃掉
+                    if (fragment.mAutoRetry < AUTO_RETRY_MAX) {
+                        fragment.mAutoRetry++;
+                        LogUtil.i("首屏加载失败，第 " + fragment.mAutoRetry + " 次自动重试");
+                        fragment.handler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                LoadableFragment<T> f = mFragment != null ? mFragment.get() : null;
+                                if (f != null && !f.isDestory && f.getActivity() != null
+                                        && !f.getActivity().isFinishing() && !f.mDataLoaded) {
+                                    f.startQuery(false);
+                                }
+                            }
+                        }, AUTO_RETRY_DELAY_MS);
+                    } else {
                         fragment.showRetry();
-                    else {
-                        fragment.onDataLoaded(null);
                     }
+                } else {
+                    fragment.onDataLoaded(null);
                 }
             }
         }

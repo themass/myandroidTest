@@ -59,15 +59,21 @@ public final class TunnelProbe {
             }
             android.net.Network vpn = findVpnNetwork(cm);
             if (vpn != null) {
-                for (String[] target : PROBE_TARGETS) {
-                    if (probeOnce(vpn, target[0], Integer.parseInt(target[1])) == Result.OK) {
-                        connected = true;
-                        break;
+                if (!connected) {
+                    for (String[] target : PROBE_TARGETS) {
+                        if (probeOnce(vpn, target[0], Integer.parseInt(target[1])) == Result.OK) {
+                            connected = true;
+                            break;
+                        }
                     }
                 }
-            }
-            if (connected) {
-                break;
+                // TCP+TLS 通了不代表马上能用：域名解析走的是隧道内的 DNS，
+                // 路由/DNS 规则生效比 TCP 慢一拍（实测探针通过后 1 秒内解析自家 API 域名仍失败，
+                // 再 1 秒就好了）。这里要求"解析得出自有域名"才算真的连通，
+                // 否则 App 会显示已连接、而节点列表首屏直接报 Load error。
+                if (connected && dnsReady(vpn)) {
+                    break;
+                }
             }
             try {
                 Thread.sleep(PROBE_INTERVAL_MS);
@@ -175,6 +181,26 @@ public final class TunnelProbe {
                 }
             } catch (Exception ignored) {
             }
+        }
+    }
+
+    /**
+     * 经指定网络解析自有 API 域名是否成功。
+     * <p>
+     * 用 {@link android.net.Network#getAllByName} 而不是 {@code InetAddress.getAllByName}：
+     * 前者显式走该网络的 DNS 服务器，能验证"隧道内的解析链路"是否已经可用；后者会落到
+     * 系统默认网络，隧道刚起来时可能仍走物理链路，测不出问题。
+     */
+    static boolean dnsReady(@androidx.annotation.NonNull android.net.Network vpn) {
+        String host = com.openapi.myapp.constant.Constants.BASE_IP;
+        if (host == null || host.isEmpty() || host.contains(":")) {
+            return true;    // 没有可验证的域名时不作为连通条件
+        }
+        try {
+            java.net.InetAddress[] addrs = vpn.getAllByName(host);
+            return addrs != null && addrs.length > 0;
+        } catch (Exception e) {
+            return false;
         }
     }
 
