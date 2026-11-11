@@ -1,6 +1,7 @@
 package com.openapi.home.presentation
 
 import androidx.core.view.WindowCompat
+import com.openapi.ks.myapp.agent.ui.AgentChatEntry
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.runtime.SideEffect
 import android.app.Activity
@@ -31,6 +32,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChatBubble
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.material3.DrawerValue
@@ -80,6 +82,8 @@ private enum class HomeTab(@StringRes val label: Int, val icon: ImageVector) {
     // 所以它们是并列的标签而不是同一个页面里的模式切换。
     Companion(R.string.companion_tab, Icons.Filled.Favorite),
     Channels(R.string.home_tab_channels, Icons.Filled.VideoLibrary),
+    // 新对话页（/api/agent/v1，角色扮演 + 记忆 + 提醒）。先放在抽屉里，稳定后再决定是否替换「对话」标签。
+    AgentChat(R.string.home_tab_agent_chat, Icons.Filled.Forum),
     Profile(R.string.home_tab_profile, Icons.Filled.Person),
 }
 
@@ -159,6 +163,17 @@ fun HomeScreen() {
                             DrawerSectionTitle(group.titleRes)
                             if (showChannels) {
                                 NavigationDrawerItem(
+                                    label = { Text(stringResource(HomeTab.AgentChat.label)) },
+                                    icon = { Icon(HomeTab.AgentChat.icon, contentDescription = null) },
+                                    selected = current == HomeTab.AgentChat,
+                                    onClick = {
+                                        selected = HomeTab.AgentChat.ordinal
+                                        scope.launch { drawerState.close() }
+                                    },
+                                    colors = DrawerItemColors,
+                                    modifier = Modifier.padding(horizontal = 12.dp),
+                                )
+                                NavigationDrawerItem(
                                     label = { Text(stringResource(HomeTab.Channels.label)) },
                                     icon = { Icon(HomeTab.Channels.icon, contentDescription = null) },
                                     selected = current == HomeTab.Channels,
@@ -207,6 +222,7 @@ fun HomeScreen() {
                         HomeTab.Chat -> ChatRoute(onMenuClick = openDrawer)
                         HomeTab.Companion -> CompanionRoute()
                         HomeTab.Channels -> ChannelsHub()
+                        HomeTab.AgentChat -> AgentChatEntry()
                         HomeTab.Profile -> Unit // 「我的」由右侧覆盖页显示
                     }
                 }

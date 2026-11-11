@@ -42,11 +42,17 @@ fun AgentChatRoute(
     AgentChatScreen(viewModel = viewModel, isRtl = isRtl, modifier = modifier)
 }
 
-private fun buildRepository(context: Context): AgentChatRepository {
-    val tokenProvider = { PreferenceUtils.getPrefString(context, CommonConstants.HTTP_TOKEN_KEY, null) }
-    val baseUrl = CompanionConfig.baseUrl
-    val api: AgentApi = HttpAgentApi(baseUrl = baseUrl, tokenProvider = tokenProvider,
+internal fun buildAgentApi(context: Context): AgentApi =
+    HttpAgentApi(baseUrl = CompanionConfig.baseUrl, tokenProvider = tokenOf(context),
         client = AgentEventSource.defaultClient())
+
+private fun tokenOf(context: Context): () -> String? =
+    { PreferenceUtils.getPrefString(context, CommonConstants.HTTP_TOKEN_KEY, null) }
+
+private fun buildRepository(context: Context): AgentChatRepository {
+    val tokenProvider = tokenOf(context)
+    val baseUrl = CompanionConfig.baseUrl
+    val api: AgentApi = buildAgentApi(context)
     val source = AgentEventSource(baseUrl = baseUrl, tokenProvider = tokenProvider,
         client = AgentEventSource.defaultClient())
     return AgentChatRepositoryImpl(api, AgentEventReconnector(source))
