@@ -136,9 +136,7 @@
 # EventBus（保留订阅方法与线程模式）
 -keepattributes *Annotation*
 -keepclassmembers class ** {
-    @org.greenrobot.eventbus.Subscribe <methods>;
 }
--keep enum org.greenrobot.eventbus.ThreadMode { *; }
 
 # 不使用 SQLCipher 时抑制加密库警告
 -dontwarn net.sqlcipher.database.**

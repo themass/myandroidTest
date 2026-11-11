@@ -386,7 +386,7 @@
 - 结论：差别大（行内语法不同），不换官方，只删了死代码。
 - 还没做的：第 3 步的手机截图对比（统一手机测试时做）；`markdown/katex/` 的包移动放到阶段 9；自定义主题里的 `blockFitCanvas` 已经没有用处，暂时保留。
 
-### 5.10 搁置：权限去重（待定，不在当前执行范围）
+### 5.10 权限去重（已执行，2026-11-11）
 
 **现状**：三套旧权限代码仍在：`PermissionHelper`、`CompatiblePermissionManager`、`ModernPermissionManager`（`:commonutil` 的 `util/permission`，约 1000 行），以及 `BasePermissionActivity` 里的权限入口。新的 Compose 版在 `:core/permission`，`ChatRoute` 和 `LocalVideoActivity` 在用。
 
@@ -397,6 +397,8 @@
 - 实际效果只剩：创建三个 helper 对象，以及 `initVosk()` 里创建一个 `PermissionHelper`（之后没有用到）。
 
 **搁置原因**：这套代码和启动流程、`BaseToolbarMenuActivity` 绑在一起，删之前要在手机上过一遍相机、录音、存储的权限弹窗。用户决定先搁置，后面再处理。
+
+**执行结果**：删除旧的 `PermissionHelper`、`CompatiblePermissionManager`、`ModernPermissionManager`、`PermissionUtils`，删除 `BasePermissionActivity`（它的权限请求从来不会执行：`initPerm` 检查空列表，`PermEvent` 没有发布者）；`BaseToolbarMenuActivity` 直接继承 `LogActivity`。`PermEvent` 和 `EventBusUtil` 删除，`eventbus` 依赖和 ProGuard 规则一起删除，EventBus 全部移除。Compose 版权限（`:commonutil` 的 `common/permission`）保留，供 `ChatRoute` 和 `LocalVideoActivity` 使用。
 
 **将来的做法（待定）**：确认权限请求只走 Compose 版后，删掉三套旧实现和 `BasePermissionActivity` 里的权限代码；保留 `BasePermissionActivity` 的其它功能（如果有的话）。
 

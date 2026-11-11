@@ -24,7 +24,7 @@ import com.openapi.common.util.LogUtil;
 /**
  * Created by dengt on 2016/3/1.
  */
-public abstract class BaseToolbarMenuActivity extends BasePermissionActivity {
+public abstract class BaseToolbarMenuActivity extends LogActivity {
     public ImageView ivSetting;
     public SearchView mSearchView;
 
