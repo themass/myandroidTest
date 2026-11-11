@@ -1,11 +1,17 @@
 package com.openapi.ks.myapp.content.sound;
 
+import com.openapi.ks.myapp.translation.api.TranslationOverlaySession;
+import com.openapi.ks.myapp.translation.api.VideoTranslationRegistry;
+import com.openapi.ks.myapp.translation.api.VideoTranslationRequest;
 import com.openapi.ks.myapp.translation.realtime.VideoRealtimeSubtitleSession;
 
 import android.content.Context;
 import android.view.ViewGroup;
 
+import androidx.annotation.Nullable;
+
 import com.openapi.core.favorite.MyFavoriteView;
+import com.openapi.core.model.SoundItemsVo;
 
 /**
  * 音乐播放页绑定火山流式字幕（频道的声音页和声音详情页用；视频页用 RealtimeSubtitleBindings）。
@@ -14,6 +20,50 @@ import com.openapi.core.favorite.MyFavoriteView;
 public final class MusicSubtitleBindings {
 
     private MusicSubtitleBindings() {
+    }
+
+    /** 当前曲目来源；返回 null 表示没有可播放的曲目。 */
+    public interface TrackProvider {
+        @Nullable
+        SoundItemsVo currentTrack();
+    }
+
+    /**
+     * 声音页的翻译和流式字幕一起绑定到收藏条。频道声音页和声音详情页共用。
+     */
+    public static void bindTrackSession(MyFavoriteView favoriteView,
+                                        Context context,
+                                        ViewGroup overlayParent,
+                                        TrackProvider tracks,
+                                        MusicPlaybackProbe playbackProbe) {
+        favoriteView.setTranslationSession(new TranslationOverlaySession() {
+            @Override
+            public ViewGroup getOverlayParent() {
+                return overlayParent;
+            }
+
+            @Override
+            public void fillRequest(VideoTranslationRequest.Builder builder) {
+                SoundItemsVo t = tracks.currentTrack();
+                if (t == null || t.file == null || t.file.isEmpty()) {
+                    throw new IllegalStateException("no audio url");
+                }
+                builder.setVideoUrl(t.file)
+                        .putExtra(VideoTranslationRequest.EXTRA_MEDIA_KIND,
+                                VideoTranslationRequest.MEDIA_KIND_AUDIO);
+            }
+
+            @Override
+            public VideoTranslationRegistry registry() {
+                return VideoTranslationRegistry.getInstance();
+            }
+        });
+        bind(favoriteView, context, overlayParent,
+                () -> {
+                    SoundItemsVo t = tracks.currentTrack();
+                    return t != null && t.file != null ? t.file : "";
+                },
+                playbackProbe);
     }
 
     /** 一步完成：创建字幕会话并挂到收藏条上。 */

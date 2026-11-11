@@ -6,6 +6,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.BroadcastReceiver;
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
@@ -20,9 +21,6 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.openapi.core.db.FavoriteVo;
-import com.openapi.ks.myapp.translation.api.TranslationOverlaySession;
-import com.openapi.ks.myapp.translation.api.VideoTranslationRegistry;
-import com.openapi.ks.myapp.translation.api.VideoTranslationRequest;
 import com.openapi.core.favorite.MyFavoriteView;
 import com.openapi.common.util.lang.CollectionUtils;
 import com.openapi.common.util.log.LogUtil;
@@ -60,7 +58,8 @@ import static com.openapi.ks.myapp.content.sound.PlayService.UPDATE_ACTION;
 /**
  * Created by openapi on 2016/8/12.
  */
-public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsVo> implements SeekBar.OnSeekBarChangeListener, View.OnClickListener, MusicStateListener, MyFavoriteView.OnFavoriteItemClick {
+public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsVo> implements SeekBar.OnSeekBarChangeListener, View.OnClickListener, MusicStateListener, MyFavoriteView.OnFavoriteItemClick,
+        SoundPlaybackReceivers.Host {
     private static final String SOUND_TAG = "SOUND_TAG";
     @Nullable
     SeekBar progressView;
@@ -133,8 +132,8 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
     private int current = -1;
     private int currentTime;        //当前播放进度
     private int duration;            //播放长度
-    private PlayerReceiver homeReceiver;
-    private NetWorkingReceiver netReceiver;
+    private BroadcastReceiver homeReceiver;
+    private BroadcastReceiver netReceiver;
     private ViewGroup musicPageRoot;
 
     public static void startFragment(Context context, RecommendVo vo) {
@@ -165,7 +164,7 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
     }
 
     private void receiverReg() {
-        homeReceiver = new PlayerReceiver();
+        homeReceiver = SoundPlaybackReceivers.player(this);
         // 创建IntentFilter
         IntentFilter filter = new IntentFilter();
         // 指定BroadcastReceiver监听的Action
@@ -182,7 +181,7 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
         filter1.addAction("android.net.conn.CONNECTIVITY_CHANGE");
         filter1.addAction("android.net.wifi.WIFI_STATE_CHANGED");
         filter1.addAction("android.net.wifi.STATE_CHANGE");
-        netReceiver = new NetWorkingReceiver();
+        netReceiver = SoundPlaybackReceivers.network(this);
         getActivity().registerReceiver(netReceiver, filter1);
     }
 
@@ -279,6 +278,21 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
         play(playback.service().computePreviousIndex(current, adapter.getItemCount()));
     }
 
+    /** 当前曲目；列表为空或下标越界时返回 null。 */
+    private SoundItemsVo currentTrack() {
+        int idx = currentIndex();
+        if (infoListVo.voList == null || idx >= infoListVo.voList.size()) {
+            return null;
+        }
+        return infoListVo.voList.get(idx);
+    }
+
+    /** 当前曲目下标：优先播放中的曲目，否则为列表选中项，都没有时为 0。 */
+    private int currentIndex() {
+        int idx = current >= 0 ? current : adapter.getSelected();
+        return idx < 0 ? 0 : idx;
+    }
+
     private void cyclePlayMode() {
         if (playback.service() == null) {
             return;
@@ -352,44 +366,8 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
         myFavoriteView.initFavoriteBackGroud(vo.param);
         myFavoriteView.setListener(this);
         myFavoriteView.showVideoLocal();
-        myFavoriteView.setTranslationSession(new TranslationOverlaySession() {
-            @Override
-            public ViewGroup getOverlayParent() {
-                return musicPageRoot;
-            }
-
-            @Override
-            public void fillRequest(VideoTranslationRequest.Builder builder) {
-                int idx = current >= 0 ? current : adapter.getSelected();
-                if (idx < 0) {
-                    idx = 0;
-                }
-                if (infoListVo.voList == null || idx >= infoListVo.voList.size()) {
-                    throw new IllegalStateException("no track");
-                }
-                SoundItemsVo v = infoListVo.voList.get(idx);
-                builder.setVideoUrl(v.file)
-                        .putExtra(VideoTranslationRequest.EXTRA_MEDIA_KIND,
-                                VideoTranslationRequest.MEDIA_KIND_AUDIO);
-            }
-
-            @Override
-            public VideoTranslationRegistry registry() {
-                return VideoTranslationRegistry.getInstance();
-            }
-        });
-        MusicSubtitleBindings.bind(myFavoriteView, requireActivity(), musicPageRoot,
-                () -> {
-                    int idx = current >= 0 ? current : adapter.getSelected();
-                    if (idx < 0) {
-                        idx = 0;
-                    }
-                    if (infoListVo.voList == null || idx >= infoListVo.voList.size()) {
-                        return "";
-                    }
-                    SoundItemsVo track = infoListVo.voList.get(idx);
-                    return track != null && track.file != null ? track.file : "";
-                },
+        MusicSubtitleBindings.bindTrackSession(myFavoriteView, requireActivity(), musicPageRoot,
+                this::currentTrack,
                 new MusicSubtitleBindings.MusicPlaybackProbe() {
                     @Override
                     public boolean isPlaying() {
@@ -510,74 +488,76 @@ public class SoundItemsMusicFragment extends BasePullLoadbleFragment<SoundItemsV
         return true;
     }
 
-    /**
-     * 用来接收从service传回来的广播的内部类
-     */
-    public class PlayerReceiver extends BroadcastReceiver {
+    // ===== SoundPlaybackReceivers.Host：广播事件到界面更新 =====
 
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            try {
-                String action = intent.getAction();
-                if (action.equals(MUSIC_PREPAREING)) {
-                    pbLoading.setVisibility(View.VISIBLE);
-                    tvTime.setVisibility(View.GONE);
-                    if (adapter != null) {
-                        adapter.notifyDataSetChanged();
-                    }
-                    return;
-                }
-                pbLoading.setVisibility(View.GONE);
-                tvTime.setVisibility(View.VISIBLE);
-                if (action.equals(MUSIC_CURRENT)) {
-                    currentTime = intent.getIntExtra(CURRENTTIME, -1);
-                    tvTime.setText(MediaUtil.formatTime(currentTime));
-                    progressView.setProgress(currentTime);
-                } else if (action.equals(MUSIC_DURATION)) {
-                    int duration = intent.getIntExtra(DURATION, -1);
-                    progressView.setMax(duration);
-                    tvDuration.setText(MediaUtil.formatTime(duration));
-                } else if (action.equals(UPDATE_ACTION)) {
-                    //获取Intent中的current消息，current代表当前正在播放的歌曲
-                    current = intent.getIntExtra(CURRENT, -1);
-                    tvTitle.setText(infoListVo.voList.get(current).name);
-                    if (tvPlaySubtitle != null && current >= 0 && current < infoListVo.voList.size()) {
-                        tvPlaySubtitle.setText(infoListVo.voList.get(current).fileDate);
-                    }
-                    adapter.setSelected(current);
-                    adapter.notifyDataSetChanged();
-                    LogUtil.i("当前播放更新：" + current);
-                    syncPlayButtonFromService();
-                } else if (action.equals(MUSIC_PREPARED)) {
-                    //获取Intent中的current消息，current代表当前正在播放的歌曲
-                    if (!checkCanPlay() && isPlaying()) {
-                        pause();
-                        showUpdateDialog(getActivity());
-                    }
-                    syncPlayButtonFromService();
-                    if (adapter != null) {
-                        adapter.notifyDataSetChanged();
-                    }
-                } else if (ACTION_PLAY_MODE_CHANGED.equals(action)) {
-                    applyPlayModeIcon();
-                }
-            } catch (Exception e) {
-                LogUtil.e(e);
-            }
+    private void showPlaybackTime() {
+        pbLoading.setVisibility(View.GONE);
+        tvTime.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public void onPreparing() {
+        pbLoading.setVisibility(View.VISIBLE);
+        tvTime.setVisibility(View.GONE);
+        if (adapter != null) {
+            adapter.notifyDataSetChanged();
         }
     }
 
-    public class NetWorkingReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            try {
-                if (playback.isBound())
-                    if (!checkCanPlay() && isPlaying()) {
-                        pause();
-                        showUpdateDialog(getActivity());
-                    }
-            } catch (Exception e) {
-                LogUtil.e(e);
+    @Override
+    public void onPositionChanged(int positionMs) {
+        showPlaybackTime();
+        currentTime = positionMs;
+        tvTime.setText(MediaUtil.formatTime(currentTime));
+        progressView.setProgress(currentTime);
+    }
+
+    @Override
+    public void onDurationChanged(int durationMs) {
+        showPlaybackTime();
+        progressView.setMax(durationMs);
+        tvDuration.setText(MediaUtil.formatTime(durationMs));
+    }
+
+    @Override
+    public void onTrackChanged(int index) {
+        showPlaybackTime();
+        current = index;
+        tvTitle.setText(infoListVo.voList.get(current).name);
+        if (tvPlaySubtitle != null && current >= 0 && current < infoListVo.voList.size()) {
+            tvPlaySubtitle.setText(infoListVo.voList.get(current).fileDate);
+        }
+        adapter.setSelected(current);
+        adapter.notifyDataSetChanged();
+        LogUtil.i("当前播放更新：" + current);
+        syncPlayButtonFromService();
+    }
+
+    @Override
+    public void onPrepared() {
+        showPlaybackTime();
+        if (!checkCanPlay() && isPlaying()) {
+            pause();
+            showUpdateDialog(getActivity());
+        }
+        syncPlayButtonFromService();
+        if (adapter != null) {
+            adapter.notifyDataSetChanged();
+        }
+    }
+
+    @Override
+    public void onPlayModeChanged() {
+        showPlaybackTime();
+        applyPlayModeIcon();
+    }
+
+    @Override
+    public void onNetworkChanged() {
+        if (playback.isBound()) {
+            if (!checkCanPlay() && isPlaying()) {
+                pause();
+                showUpdateDialog(getActivity());
             }
         }
     }

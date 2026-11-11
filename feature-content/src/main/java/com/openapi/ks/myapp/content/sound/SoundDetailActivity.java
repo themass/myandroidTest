@@ -82,29 +82,6 @@ public class SoundDetailActivity extends AppCompatActivity implements SoundDetai
         myFavoriteView.initFavoriteBackGroud(vo.param);
         myFavoriteView.setListener(this);
         myFavoriteView.showVideoLocal();
-        myFavoriteView.setTranslationSession(new TranslationOverlaySession() {
-            @Override
-            public ViewGroup getOverlayParent() {
-                return detailRoot;
-            }
-
-            @Override
-            public void fillRequest(VideoTranslationRequest.Builder builder) {
-                SoundItemsVo t = playback.service() != null ? playback.service().getCurrentTrack() : null;
-                if (t == null || t.file == null || t.file.isEmpty()) {
-                    throw new IllegalStateException("no audio url");
-                }
-                builder.setVideoUrl(t.file)
-                        .putExtra(VideoTranslationRequest.EXTRA_MEDIA_KIND,
-                                VideoTranslationRequest.MEDIA_KIND_AUDIO);
-            }
-
-            @Override
-            public VideoTranslationRegistry registry() {
-                return VideoTranslationRegistry.getInstance();
-            }
-        });
-
         MusicSubtitleBindings.MusicPlaybackProbe probe = new MusicSubtitleBindings.MusicPlaybackProbe() {
             @Override
             public boolean isPlaying() {
@@ -116,11 +93,8 @@ public class SoundDetailActivity extends AppCompatActivity implements SoundDetai
                 return playback.service() != null ? playback.service().getPosition() : 0L;
             }
         };
-        MusicSubtitleBindings.bind(myFavoriteView, this, detailRoot,
-                () -> {
-                    SoundItemsVo t = playback.service() != null ? playback.service().getCurrentTrack() : null;
-                    return t != null && t.file != null ? t.file : "";
-                },
+        MusicSubtitleBindings.bindTrackSession(myFavoriteView, this, detailRoot,
+                () -> playback.service() != null ? playback.service().getCurrentTrack() : null,
                 probe);
 
         SoundDetailScreenKt.setSoundDetailContent(composeView, uiState, myFavoriteView, this);
