@@ -10,54 +10,42 @@
     <uses-permission android:name="android.permission.MEDIA_PROJECTION" tools:node="remove"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" tools:node="remove"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" tools:node="remove"/>
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
-<!--    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"/>-->
-
-<!--    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />-->
-<!--    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />-->
-<!--    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />-->
-
-    <!--uses-permission android:name="android.permission.GET_ACCOUNTS" /-->
-    <!--    <uses-permission android:name="android.permission.READ_PHONE_STATE" />-->
-    <!--<uses-permission android:name="android.permission.CALL_PHONE" />-->
-    <!--    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />-->
-    <!--    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />-->
-
-    <!--<uses-permission android:name="android.permission.GET_TASKS" />-->
-    <!--<uses-permission android:name="android.permission.REAL_GET_TASKS" />-->
-    <!--<uses-permission android:name="android.permission.USE_CREDENTIALS" />-->
-    <!--<uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />-->
+    <!--
+        权限清单只保留「运行时真的会申请」和「系统必须预先声明」的项。
+        删掉注释掉的旧权限（通话、账户、定位、日历、日志等）：它们不改变行为，
+        但上架审核会问「为什么需要」。
+    -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_UPDATES" />
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
-    <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.INTERNET" />
-    <!--<uses-permission android:name="android.permission.SET_DEBUG_APP" />-->
-    <!--<uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" />-->
-    <!--<uses-permission android:name="com.android.browser.permission.READ_HISTORY_BOOKMARKS" />-->
-    <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" />
-    <uses-permission android:name="android.permission.GET_TASKS" />
-    <!-- SD卡读取权限，用户写入离线定位数据 -->
-    <!--<uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS" />-->
-    <!-- 允许应用读取低级别的系统日志文件 -->
-    <!--<uses-permission android:name="android.permission.READ_LOGS" />-->
+    <!-- 对话、下载、联网类请求都要它；网络可能随时切换（Wi-Fi ↔ 数据） -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_UPDATES" />
+    <uses-permission
+        android:name="android.permission.SYSTEM_ALERT_WINDOW"
+        tools:ignore="ProtectedPermissions" />
 
+    <!-- 拍照与语音：运行时由 PermissionGateway 申请，清单必须先声明 -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <!-- 语音消息、播放、录音的提示 -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- 下载新版本 APK 的进度通知（Android 13+ 运行时申请，见 UpdateDialogs） -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- 媒体权限按模块声明：本地音乐在 :retromusic 的清单里（READ_MEDIA_AUDIO），
+         本地视频/相册由运行时的 Permissions.readVideo()/readImages() 申请。
+         选图走系统 Photo Picker，不需要存储权限。 -->
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <!-- WRITE_EXTERNAL_STORAGE 由 :retromusic 声明（maxSdkVersion=29），这里不重复声明，
+         否则清单合并会因 maxSdkVersion 不一致失败 -->
     <uses-permission
         android:name="android.permission.PACKAGE_USAGE_STATS"
         tools:ignore="ProtectedPermissions" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <!--<uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS" />-->
-    <!--    <uses-permission android:name="android.permission.READ_CALENDAR" />-->
-    <!--    <uses-permission android:name="android.permission.WRITE_CALENDAR" />-->
-    <!--    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />-->
     <!--    <uses-sdk tools:overrideLibrary="com.andremion.music.cover" />-->
     <!--permission
         android:name="com.android.launcher.permission.READ_SETTINGS"

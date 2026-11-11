@@ -60,6 +60,17 @@ object PermissionGateway {
     fun isGranted(context: Context, permission: String): Boolean =
         PermissionStates.isGranted(context, permission)
 
+    /**
+     * 通知是否真的能弹出来。
+     *
+     * 光看 `POST_NOTIFICATIONS` 还不够：用户在系统设置里关掉「通知」总开关后权限仍是已授权，
+     * 但 `notify()` 会被静默丢弃。判断「要不要提示用户去开通知」时用这个。
+     */
+    fun canPostNotifications(context: Context): Boolean {
+        val manager = androidx.core.app.NotificationManagerCompat.from(context)
+        return manager.areNotificationsEnabled()
+    }
+
     /** 打开本应用的系统设置页，供「去设置」按钮使用。 */
     fun goToSettings(context: Context) {
         val intent = android.content.Intent(

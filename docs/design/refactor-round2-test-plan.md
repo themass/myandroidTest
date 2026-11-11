@@ -174,3 +174,34 @@
 
 **未执行**：阶段 B/C（真机）、7.1–7.3 的真机项、release 打包（签名证书不在本机）、
 端到端调豆包（`secrets.properties` 未填 `photosolve.doubao.apiKey`）。
+
+---
+
+## 8. 第四轮：本轮实际执行的检查（2026-11-12）
+
+| 项 | 命令 / 方式 | 结果 |
+|---|---|---|
+| 构建 | `./gradlew --offline :app:assembleChatDebug` | 通过；`app-chat-debug.apk` 产出 |
+| 全部单元测试 | `./gradlew testDebugUnitTest testChatDebugUnitTest` | 166 个通过（新增 `QuadNormTest` 10 个、`PermissionOutcomeTest` 5 个） |
+| 架构规则 | `ModuleGraphTest` | 4 条通过 |
+| 清单合并 | 读 `merged_manifest/chatDebug/AndroidManifest.xml` | 运行时权限只剩 26 项；注释掉的旧权限全部移除 |
+| 设备 | `adb devices` | **无设备连接**，阶段 B/C 未执行 |
+
+### 8.1 本轮修的两个真实缺陷
+
+1. **下载进度通知被静默丢弃**（Android 13+）：`ApkDownloader` 直接 `notify()`，没有申请 `POST_NOTIFICATIONS`。
+   现在 `UpdateDialogs` 在开始下载前通过 `PermissionRequester` 申请；用户拒绝也照常下载，只是没有进度通知。
+   老式 `Activity`（拿不到 `ActivityResultRegistry`）直接下载，不抛异常。
+2. **可选表单字段被序列化成字面量 `"null"`**：`BeanUtil.transBean2Map` 用 `String.valueOf(val)`，
+   服务端把 `subject`/`grade` 写进提示词后变成「学生提示的学科：null」。现在跳过 null 字段。
+
+### 8.2 清单清理的具体改动
+
+| 动作 | 权限 |
+|---|---|
+| 保留 | `INTERNET`、`ACCESS_NETWORK_STATE`、`ACCESS_WIFI_STATE`、`CHANGE_WIFI_STATE`、`ACCESS_COARSE_UPDATES`、`SYSTEM_ALERT_WINDOW`、`CAMERA`、`RECORD_AUDIO`、`MODIFY_AUDIO_SETTINGS`、`VIBRATE`、`WAKE_LOCK`、`POST_NOTIFICATIONS`（新增）、`PACKAGE_USAGE_STATS` |
+| 加 `maxSdkVersion` | `READ_EXTERNAL_STORAGE`（≤32）；`WRITE_EXTERNAL_STORAGE` 只在 `:retromusic`（≤29） |
+| 删除（注释行 + 重复项） | `GET_ACCOUNTS`、`READ_PHONE_STATE`、`CALL_PHONE`、`ACCESS_FINE_LOCATION`、`ACCESS_COARSE_LOCATION`、`GET_TASKS`、`REAL_GET_TASKS`、`USE_CREDENTIALS`、`MANAGE_ACCOUNTS`、`SET_DEBUG_APP`、`INSTALL_SHORTCUT`、`READ_HISTORY_BOOKMARKS`、`EXPAND_STATUS_BAR`、`MOUNT_UNMOUNT_FILESYSTEMS`、`READ_LOGS`、`READ_CALENDAR`、`WRITE_CALENDAR`、`MANAGE_EXTERNAL_STORAGE`（注释）、重复的 `ACCESS_NETWORK_STATE` |
+
+> `GET_TASKS` / `EXPAND_STATUS_BAR` 原本是生效的（未注释），但代码里已无调用方：
+> `GET_TASKS` 自 API 21 起对第三方应用无效，`EXPAND_STATUS_BAR` 需要系统签名。一并删除。

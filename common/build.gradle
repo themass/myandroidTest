@@ -15,6 +15,7 @@ android {
 }
 
 dependencies {
+    testImplementation 'junit:junit:4.13.2'
     // ---- 纯工具（util/ event/ image/）
     // 事件 Flow（EventFlows）
     implementation libs.kotlinx.coroutines.android
