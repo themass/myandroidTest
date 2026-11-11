@@ -242,7 +242,7 @@
 |---|---|---|
 | `~.ui.gsy` | 4/1138 | 移 `player/`、`list/`。`DetailGSYVideoPlayer`（721 行）按第 5.3 节**拆** |
 | `~.video` | 1/151 | `PlaybackEngineHelper` 留 `player/`，引擎切换逻辑不变；只把「当前选的哪个引擎」这个偏好值移到 `:core/prefs`，让 `:feature-user` 的设置页不用依赖视频模块 |
-| `~.ui.sound` | 6/777 | 移 `page/`（包名叫 sound，里面全是视频页）。Java View，不重写。`VideoActivity` 只在 Manifest 登记、代码里没有入口，**删**（待确认）。`VideoShowActivity`、`VideoShowActivityLazyUrl` 里 ButterKnife 遗留的空方法 `unbindButterViews` 删 |
+| `~.ui.sound` | 6/777 | 移 `page/`（包名叫 sound，里面全是视频页）。Java View，不重写。`VideoActivity` 只在 Manifest 登记、代码里没有入口，**保留**（用户决定，2026-11-11）。`VideoShowActivity`、`VideoShowActivityLazyUrl` 里 ButterKnife 遗留的空方法 `unbindButterViews` 删 |
 | `~.ui.localvideo` | 1/305 | 留 `local/` |
 | `~.cast` | 4/267 | 留 `cast/googlecast/`；DLNA 从 `:core` 移来 `cast/dlna/` |
 | `~.service` | 1/496 | `PlayService` 是**音乐**播放服务，视频模块自己不用，移 `:feature-content/sound`，不重写 |
@@ -267,7 +267,7 @@
 |---|---|---|---|
 | `~.ui.fragment` | 15/2686 | `video/ image/ text/ sound/ mine/` | 移。`SoundItemsMusicFragment` 675 行，按第 5.4 节**拆** |
 | `~.ui.fragment.body` | 5/301 | 各类型子包 | 移 |
-| `~.ui.sound` | 8/791 | 各类型子包 | 移。`TeleplayActivity` 标题是「电视剧」，实际显示的是图片频道，**确认后删** |
+| `~.ui.sound` | 8/791 | 各类型子包 | 移。`TeleplayActivity` 标题是「电视剧」，实际显示的是图片频道，**保留**（用户决定，2026-11-11） |
 | `~.ui.sound.compose` | 2/343 | `sound/` | 移 |
 | `~.ui.channel` | 3/730 | `common/` | 移。`ChannelBodyScreen` 479 行，审视 |
 | `~.adapter` | 4/432 | 各类型子包 | 移 |
