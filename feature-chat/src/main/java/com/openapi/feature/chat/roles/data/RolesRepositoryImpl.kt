@@ -1,16 +1,16 @@
-package com.openapi.ks.myapp.data.roles
+package com.openapi.feature.chat.roles.data
 
 import android.content.Context
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.openapi.common.util.android.PreferenceUtils
 import com.openapi.core.config.Constants
-import com.openapi.roles.data.RolesParser
-import com.openapi.roles.data.RolesRepository
-import com.openapi.roles.domain.RoleDivision
-import com.openapi.roles.domain.RolePage
-import com.openapi.roles.domain.RoleSummary
-import com.openapi.roles.domain.SelectedRole
+import com.openapi.feature.chat.roles.data.RolesParser
+import com.openapi.feature.chat.roles.data.RolesRepository
+import com.openapi.feature.chat.roles.domain.RoleDivision
+import com.openapi.feature.chat.roles.domain.RolePage
+import com.openapi.feature.chat.roles.domain.RoleSummary
+import com.openapi.feature.chat.roles.domain.SelectedRole
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.HttpUrl.Companion.toHttpUrl

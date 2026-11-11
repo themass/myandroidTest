@@ -1,10 +1,10 @@
-package com.openapi.roles.presentation
+package com.openapi.feature.chat.roles.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.openapi.roles.data.RolesDependencies
-import com.openapi.roles.domain.RoleDivision
-import com.openapi.roles.domain.RoleSummary
+import com.openapi.feature.chat.roles.data.RolesDependencies
+import com.openapi.feature.chat.roles.domain.RoleDivision
+import com.openapi.feature.chat.roles.domain.RoleSummary
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow

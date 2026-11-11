@@ -17,8 +17,8 @@ import com.openapi.chat.domain.model.VoiceAttachment
 import com.openapi.chat.domain.usecase.LoadHistoryUseCase
 import com.openapi.chat.domain.usecase.SendMessageUseCase
 import com.openapi.speech.audio.VoiceRecorder
-import com.openapi.roles.data.RolesDependencies
-import com.openapi.roles.domain.SelectedRole
+import com.openapi.feature.chat.roles.data.RolesDependencies
+import com.openapi.feature.chat.roles.domain.SelectedRole
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

@@ -195,7 +195,6 @@ dependencies {
     implementation project(':network')
     implementation project(':core')
     implementation project(':feature-video')
-    implementation project(':feature-roles')
     implementation project(':feature-chat')
     implementation project(':feature-photosolve')
     implementation project(':feature-user')

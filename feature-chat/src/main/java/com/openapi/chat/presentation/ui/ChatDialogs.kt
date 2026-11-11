@@ -58,8 +58,8 @@ import com.openapi.uikit.theme.AppSpacing
 import com.openapi.uikit.theme.AppTypography
 import com.openapi.speech.audio.AudioPlayer
 import com.openapi.feature.chat.R
-import com.openapi.roles.domain.SelectedRole
-import com.openapi.roles.presentation.RoleAvatar
+import com.openapi.feature.chat.roles.domain.SelectedRole
+import com.openapi.feature.chat.roles.presentation.RoleAvatar
 
 /** 点踩后的反馈框（与旧版 FeedbackDialog 一致：写一段原因后提交）。 */
 @Composable

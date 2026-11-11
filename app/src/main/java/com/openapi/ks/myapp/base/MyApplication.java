@@ -90,7 +90,7 @@ public class MyApplication extends MultiDexApplication {
         // 以前由旧首页页面注册，页面不在前台就收不到；现在随进程注册一次
         com.openapi.ks.myapp.content.config.ConfigActionJump.start();
         AppEventHandler.INSTANCE.register();
-        com.openapi.roles.data.RolesDependencies.INSTANCE.install(new com.openapi.ks.myapp.data.roles.RolesRepositoryImpl(this));
+        com.openapi.feature.chat.roles.data.RolesDependencies.INSTANCE.install(new com.openapi.feature.chat.roles.data.RolesRepositoryImpl(this));
         BaseService speechService = new BaseService();
         speechService.setup(this);
         ChatDependencies.INSTANCE.installSpeechToText(new BackendSpeechToText(speechService));

@@ -9,6 +9,5 @@
     <string name="roles_load_failed">角色加载失败</string>
     <string name="roles_search_hint">搜索角色，比如 翻译、前端、小红书</string>
     <string name="ui_all">全部</string>
-    <string name="ui_current_role">当前角色</string>
     <string name="ui_retry">重试</string>
 </resources>

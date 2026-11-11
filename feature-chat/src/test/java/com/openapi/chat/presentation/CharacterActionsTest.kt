@@ -1,6 +1,6 @@
 package com.openapi.chat.presentation
 
-import com.openapi.roles.domain.SelectedRole
+import com.openapi.feature.chat.roles.domain.SelectedRole
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update

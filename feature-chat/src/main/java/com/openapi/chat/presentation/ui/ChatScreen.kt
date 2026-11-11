@@ -58,8 +58,8 @@ import com.openapi.uikit.theme.AppSpacing
 import com.openapi.uikit.theme.AppTypography
 import com.openapi.speech.audio.AudioPlayer
 import com.openapi.feature.chat.R
-import com.openapi.roles.domain.SelectedRole
-import com.openapi.roles.presentation.RoleAvatar
+import com.openapi.feature.chat.roles.domain.SelectedRole
+import com.openapi.feature.chat.roles.presentation.RoleAvatar
 
 /**
  * 对话页的组装层：角色头部 + 消息列表 + 输入栏 + 业务弹窗。

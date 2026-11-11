@@ -2,11 +2,11 @@ package com.openapi.chat.presentation
 
 import com.openapi.chat.domain.model.ChatCharacterOption
 import com.openapi.chat.domain.repository.ChatRepository
-import com.openapi.roles.data.RolesRepository
-import com.openapi.roles.domain.RolePage
-import com.openapi.roles.domain.RoleDivision
-import com.openapi.roles.domain.RoleSummary
-import com.openapi.roles.domain.SelectedRole
+import com.openapi.feature.chat.roles.data.RolesRepository
+import com.openapi.feature.chat.roles.domain.RolePage
+import com.openapi.feature.chat.roles.domain.RoleDivision
+import com.openapi.feature.chat.roles.domain.RoleSummary
+import com.openapi.feature.chat.roles.domain.SelectedRole
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update

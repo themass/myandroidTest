@@ -1,8 +1,8 @@
-package com.openapi.ks.myapp.data.roles
+package com.openapi.feature.chat.roles.data
 
 import android.content.Context
-import com.openapi.roles.data.LocalRoleCatalog
-import com.openapi.roles.data.RolesParser
+import com.openapi.feature.chat.roles.data.LocalRoleCatalog
+import com.openapi.feature.chat.roles.data.RolesParser
 import java.util.concurrent.ConcurrentHashMap
 
 /**

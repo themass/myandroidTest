@@ -1,8 +1,8 @@
-package com.openapi.roles.data
+package com.openapi.feature.chat.roles.data
 
-import com.openapi.roles.domain.RoleDivision
-import com.openapi.roles.domain.RolePage
-import com.openapi.roles.domain.RoleSummary
+import com.openapi.feature.chat.roles.domain.RoleDivision
+import com.openapi.feature.chat.roles.domain.RolePage
+import com.openapi.feature.chat.roles.domain.RoleSummary
 
 /**
  * 端上打包的离线角色目录（assets/personas/agency-agents-import.json 解析后的结果）。

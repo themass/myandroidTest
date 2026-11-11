@@ -11,7 +11,6 @@ include ':imaging'
 include ':cast'
 include ':feature-video'
 // 角色目录（角色列表、分组、收藏、搜索）
-include ':feature-roles'
 // 聊天（会话、消息、语音、附件、角色选择入口）
 include ':feature-chat'
 // 拍照解题（拍照、裁剪、识别、结果页）

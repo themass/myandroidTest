@@ -1,12 +1,12 @@
-package com.openapi.roles.data
+package com.openapi.feature.chat.roles.data
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
-import com.openapi.roles.domain.RoleDivision
-import com.openapi.roles.domain.RolePage
-import com.openapi.roles.domain.RoleSummary
+import com.openapi.feature.chat.roles.domain.RoleDivision
+import com.openapi.feature.chat.roles.domain.RolePage
+import com.openapi.feature.chat.roles.domain.RoleSummary
 
 /**
  * /api/roles/v1 响应的解析。纯函数，不碰 Android 类，可以直接在 JVM 上单测。

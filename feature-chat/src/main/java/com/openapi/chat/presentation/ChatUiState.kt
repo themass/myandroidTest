@@ -3,7 +3,7 @@ package com.openapi.chat.presentation
 import com.openapi.chat.domain.model.ChatCharacterOption
 import com.openapi.chat.domain.model.ChatMessage
 import com.openapi.chat.domain.model.ChatSession
-import com.openapi.roles.domain.SelectedRole
+import com.openapi.feature.chat.roles.domain.SelectedRole
 
 /** 对话界面状态。 */
 data class ChatUiState(

@@ -1,4 +1,4 @@
-package com.openapi.roles.data
+package com.openapi.feature.chat.roles.data
 
 /**
  * 目录里的颜色字段来自原始角色文件，既有 "blue" 这样的名字，也有 "#2563EB" 这样的十六进制，

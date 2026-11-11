@@ -1,7 +1,7 @@
-package com.openapi.roles.presentation
+package com.openapi.feature.chat.roles.presentation
 
 import androidx.compose.ui.res.stringResource
-import com.openapi.feature.roles.R
+import com.openapi.feature.chat.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -44,8 +44,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.openapi.uikit.theme.AppColors
 import com.openapi.uikit.theme.AppSpacing
 import com.openapi.uikit.theme.AppTypography
-import com.openapi.roles.domain.RoleSummary
-import com.openapi.roles.domain.SelectedRole
+import com.openapi.feature.chat.roles.domain.RoleSummary
+import com.openapi.feature.chat.roles.domain.SelectedRole
 
 /**
  * 角色目录的选择列表：搜索 + 分类筛选 + 分页。

@@ -1,11 +1,11 @@
 package com.openapi.chat.presentation
 
 import com.openapi.chat.domain.model.ChatCharacterOption
-import com.openapi.roles.data.RolesRepository
-import com.openapi.roles.domain.RoleDivision
-import com.openapi.roles.domain.RolePage
-import com.openapi.roles.domain.RoleSummary
-import com.openapi.roles.domain.SelectedRole
+import com.openapi.feature.chat.roles.data.RolesRepository
+import com.openapi.feature.chat.roles.domain.RoleDivision
+import com.openapi.feature.chat.roles.domain.RolePage
+import com.openapi.feature.chat.roles.domain.RoleSummary
+import com.openapi.feature.chat.roles.domain.SelectedRole
 
 /** 测试用的假角色仓库：只实现选择相关的方法。 */
 internal class FakeRolesRepository : RolesRepository {

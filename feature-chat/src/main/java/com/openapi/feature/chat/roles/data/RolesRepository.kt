@@ -1,9 +1,9 @@
-package com.openapi.roles.data
+package com.openapi.feature.chat.roles.data
 
-import com.openapi.roles.domain.RoleDivision
-import com.openapi.roles.domain.RolePage
-import com.openapi.roles.domain.RoleSummary
-import com.openapi.roles.domain.SelectedRole
+import com.openapi.feature.chat.roles.domain.RoleDivision
+import com.openapi.feature.chat.roles.domain.RolePage
+import com.openapi.feature.chat.roles.domain.RoleSummary
+import com.openapi.feature.chat.roles.domain.SelectedRole
 
 /**
  * 角色目录入口。实现在 app 里（要用 OkHttp 和 Constants 的服务地址），

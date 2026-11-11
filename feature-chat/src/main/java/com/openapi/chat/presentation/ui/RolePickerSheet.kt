@@ -52,9 +52,9 @@ import com.openapi.uikit.theme.AppColors
 import com.openapi.uikit.theme.AppSpacing
 import com.openapi.uikit.theme.AppTypography
 import com.openapi.feature.chat.R
-import com.openapi.roles.domain.SelectedRole
-import com.openapi.roles.presentation.RoleAvatar
-import com.openapi.roles.presentation.RoleCatalogPane
+import com.openapi.feature.chat.roles.domain.SelectedRole
+import com.openapi.feature.chat.roles.presentation.RoleAvatar
+import com.openapi.feature.chat.roles.presentation.RoleCatalogPane
 
 private const val DEFAULT_EMOJI = "🤖"
 
