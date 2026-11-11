@@ -72,6 +72,19 @@
                     android:textSize="10sp"
                     android:textStyle="bold"
                     android:visibility="gone" />
+
+                <!-- 收藏星标：点一下切换。padding 放大点击区域，单个字符太小不好点 -->
+                <TextView
+                    android:id="@+id/loc_tv_fav"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:contentDescription="@string/fav_toggle"
+                    android:paddingLeft="10dp"
+                    android:paddingTop="6dp"
+                    android:paddingRight="10dp"
+                    android:paddingBottom="6dp"
+                    android:textColor="@color/pv_green"
+                    android:textSize="18sp" />
             </LinearLayout>
 
             <LinearLayout

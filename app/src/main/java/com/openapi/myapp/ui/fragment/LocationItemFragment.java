@@ -88,7 +88,11 @@ public class LocationItemFragment extends BasePullLoadbleFragment<LocationVo> {
         InfoListVo<LocationVo> data = new InfoListVo<>();
         data.hasMore = false;
         data.pageNum = 1;
-        List<LocationVo> sorted = LocationFilter.sortByPing(vipLocationVo.list);
+        // 先按延迟排，再把收藏和最近连接的提到前面（Best 仍然固定第一行）
+        List<LocationVo> sorted = com.openapi.myapp.data.NodeShortcuts.arrange(
+                LocationFilter.sortByPing(vipLocationVo.list),
+                com.openapi.myapp.data.NodeShortcuts.favorites(getActivity()),
+                com.openapi.myapp.data.NodeShortcuts.recent(getActivity()));
         sorted.add(0, bestPlaceholder());
         data.total = sorted.size();
         data.voList = sorted;
@@ -168,6 +172,18 @@ public class LocationItemFragment extends BasePullLoadbleFragment<LocationVo> {
     }
     protected BaseRecyclerViewAdapter getAdapter(){
         adapter = new LocationItemAdapter(getActivity(),pullView.getRecyclerView(), infoListVo.voList, this);
+        adapter.setFavoriteListener(new LocationItemAdapter.FavoriteListener() {
+            @Override
+            public void onFavoriteChanged() {
+                // 收藏变了：就地重排，不重新请求网络
+                if (vipLocationVo.list != null && !vipLocationVo.list.isEmpty()) {
+                    InfoListVo<LocationVo> data = rebuildFromLocal();
+                    infoListVo.voList.clear();
+                    infoListVo.voList.addAll(data.voList);
+                    adapter.notifyDataSetChanged();
+                }
+            }
+        });
         return adapter;
     }
 }

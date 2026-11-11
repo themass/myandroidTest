@@ -961,6 +961,11 @@ public class VpnRadFragment extends BaseFragment {
             case CONNECTED:
                 mHandler.removeCallbacks(vpnCheck);
                 imgConn();
+                // 记入"最近连接"。选"最佳线路"时 id<=0，recordConnected 会忽略
+                if (getActivity() != null) {
+                    com.openapi.myapp.data.NodeShortcuts.recordConnected(
+                            getActivity(), LocationUtil.getSelectLocationId(getActivity()));
+                }
                 break;
             case CONNECTING:
                 // 仓库层已经在做指数退避重连，这里只负责动画，不再重排看门狗——

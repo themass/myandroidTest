@@ -331,6 +331,9 @@ You are now using a non WIFI network, continue to download may consume more netw
     <string name="support_copy_email">Copy email address</string>
     <string name="support_feedback_hint">Tell us what works and what does not. You can also attach debug logs to help us find the problem.</string>
     <string name="support_send_feedback">Send feedback</string>
+    <string name="fav_toggle">Favorite</string>
+    <string name="fav_added">Added to favorites</string>
+    <string name="fav_removed">Removed from favorites</string>
     <string name="conn_stats">Protected %1$s\n↓ %2$s   ↑ %3$s</string>
     <string name="usage_title">Usage</string>
     <string name="usage_today">Today</string>

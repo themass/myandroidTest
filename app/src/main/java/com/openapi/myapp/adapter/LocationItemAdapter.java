@@ -79,6 +79,7 @@ public class LocationItemAdapter extends BaseRecyclerViewAdapter<LocationItemAda
             holder.tvIndex.setTextColor(indexColo);
             holder.tvCountry.setTextColor(black);
         }
+        bindFavorite(holder, vo);
         holder.tvIndex.setText("#" + (position + 1));
         holder.tvCountry.setText(vo.ename);
         holder.tvCountryCategory.setText(vo.category);
@@ -124,6 +125,43 @@ public class LocationItemAdapter extends BaseRecyclerViewAdapter<LocationItemAda
         }
     }
 
+    /**
+     * 收藏星标。Best 占位行不是真实节点，不显示；旧列表布局没有这个视图（tvFav 为 null）直接跳过。
+     * 点击后只刷新这一行并通知列表重新排序——收藏的节点要排到前面。
+     */
+    private void bindFavorite(final LocationItemView holder, final LocationVo vo) {
+        if (holder.tvFav == null) {
+            return;
+        }
+        if (vo.id <= 0) {
+            holder.tvFav.setVisibility(View.GONE);
+            return;
+        }
+        holder.tvFav.setVisibility(View.VISIBLE);
+        holder.tvFav.setText(com.openapi.myapp.data.NodeShortcuts.isFavorite(context, vo.id) ? "\u2605" : "\u2606");
+        holder.tvFav.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                boolean now = com.openapi.myapp.data.NodeShortcuts.toggleFavorite(context, vo.id);
+                com.openapi.common.util.ToastUtil.showShort(now ? R.string.fav_added : R.string.fav_removed);
+                if (favoriteListener != null) {
+                    favoriteListener.onFavoriteChanged();
+                }
+            }
+        });
+    }
+
+    /** 收藏变化后由列表页重新排序。 */
+    public interface FavoriteListener {
+        void onFavoriteChanged();
+    }
+
+    private FavoriteListener favoriteListener;
+
+    public void setFavoriteListener(FavoriteListener listener) {
+        this.favoriteListener = listener;
+    }
+
     public boolean isNeedPing() {
         return needPing;
     }
@@ -149,6 +187,7 @@ public class LocationItemAdapter extends BaseRecyclerViewAdapter<LocationItemAda
         /** 仅卡片布局有；原行式布局里为 null。 */
         @Nullable
         TextView tvVip;
+        TextView tvFav;
         @Nullable
         TextView tvPing;
         @Nullable
@@ -168,6 +207,7 @@ public class LocationItemAdapter extends BaseRecyclerViewAdapter<LocationItemAda
             ivCountry = itemView.findViewById(R.id.loc_iv_country);
             tvCountry = itemView.findViewById(R.id.loc_tv_country);
             tvCountryCategory = itemView.findViewById(R.id.loc_tv_country_category);
+            tvFav = itemView.findViewById(R.id.loc_tv_fav);
             tvVip = itemView.findViewById(R.id.loc_tv_vip);
             tvPing = itemView.findViewById(R.id.tv_ping);
             pgPing = itemView.findViewById(R.id.pg_ping);
