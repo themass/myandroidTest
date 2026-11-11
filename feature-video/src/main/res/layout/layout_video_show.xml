@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <com.openapi.ks.myapp.ui.gsy.DetailGSYVideoPlayer
+    <com.openapi.ks.myapp.video.player.DetailGSYVideoPlayer
         android:id="@+id/jz_video"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />

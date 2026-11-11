@@ -15,7 +15,7 @@ import com.openapi.common.util.LogUtil;
 import com.openapi.feature.video.R;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.ui.base.features.BasePullLoadbleFragment;
-import com.openapi.ks.myapp.ui.gsy.GSYAutoVideoListFragment;
+import com.openapi.ks.myapp.video.list.GSYAutoVideoListFragment;
 
 import java.util.HashMap;
 

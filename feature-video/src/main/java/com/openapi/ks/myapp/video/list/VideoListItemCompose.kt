@@ -1,4 +1,4 @@
-package com.openapi.ks.myapp.ui.gsy
+package com.openapi.ks.myapp.video.list
 
 import android.widget.FrameLayout
 import android.widget.ImageView

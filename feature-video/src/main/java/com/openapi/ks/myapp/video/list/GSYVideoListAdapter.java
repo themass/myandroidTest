@@ -1,4 +1,4 @@
-package com.openapi.ks.myapp.ui.gsy;//package com.openapi.ks.myapp.ui.gsy;
+package com.openapi.ks.myapp.video.list;//package com.openapi.ks.myapp.ui.gsy;
 
 import android.content.Context;
 import android.view.View;

@@ -1,4 +1,4 @@
-package com.openapi.ks.myapp.ui.gsy;
+package com.openapi.ks.myapp.video.player;
 
 import android.util.TypedValue;
 import android.view.Gravity;

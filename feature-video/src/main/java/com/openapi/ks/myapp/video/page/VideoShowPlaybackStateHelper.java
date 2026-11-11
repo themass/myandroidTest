@@ -5,7 +5,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.openapi.ks.myapp.ui.gsy.DetailGSYVideoPlayer;
+import com.openapi.ks.myapp.video.player.DetailGSYVideoPlayer;
 import com.shuyu.gsyvideoplayer.video.base.GSYVideoView;
 
 /**

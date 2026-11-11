@@ -26,7 +26,7 @@ import com.openapi.common.net.BaseService;
 import com.openapi.ks.myapp.cast.CastPlaySource;
 import com.openapi.ks.myapp.cast.GoogleCastSessionController;
 import com.openapi.ks.myapp.data.VideoUtil;
-import com.openapi.ks.myapp.ui.gsy.DetailGSYVideoPlayer;
+import com.openapi.ks.myapp.video.player.DetailGSYVideoPlayer;
 import com.openapi.ks.myapp.translation.realtime.RealtimeSubtitleBindings;
 import com.openapi.ks.myapp.translation.realtime.VideoRealtimeSubtitleSession;
 import com.shuyu.gsyvideoplayer.GSYVideoManager;

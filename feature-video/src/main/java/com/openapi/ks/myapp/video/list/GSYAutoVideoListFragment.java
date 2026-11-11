@@ -1,4 +1,4 @@
-package com.openapi.ks.myapp.ui.gsy;//package com.openapi.ks.myapp.ui.gsy;
+package com.openapi.ks.myapp.video.list;//package com.openapi.ks.myapp.ui.gsy;
 
 import java.util.concurrent.CompletableFuture;
 import android.content.Context;

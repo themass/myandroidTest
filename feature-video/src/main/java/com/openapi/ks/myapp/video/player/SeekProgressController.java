@@ -1,4 +1,4 @@
-package com.openapi.ks.myapp.ui.gsy;
+package com.openapi.ks.myapp.video.player;
 
 import android.text.TextUtils;
 import android.view.View;

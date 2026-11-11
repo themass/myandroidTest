@@ -15,7 +15,7 @@ import com.google.android.gms.common.api.ResultCallback;
 import com.openapi.common.util.LogUtil;
 import com.openapi.common.util.ToastUtil;
 import com.openapi.feature.video.R;
-import com.openapi.ks.myapp.ui.gsy.DetailGSYVideoPlayer;
+import com.openapi.ks.myapp.video.player.DetailGSYVideoPlayer;
 
 /**
  * 详情页 Google Cast：连接成功后把当前片源 URL 交给电视端 Default Receiver 播放，并暂停手机端 GSY。
