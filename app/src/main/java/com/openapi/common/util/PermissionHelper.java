@@ -17,7 +17,6 @@ import androidx.core.content.ContextCompat;
 import com.openapi.ks.free1.R;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import me.weyye.hipermission.HiPermission;
@@ -28,7 +27,18 @@ import me.weyye.hipermission.PermissionItem;
 public class PermissionHelper {
     //    public static final String GET_ACCOUNTS = Manifest.permission.GET_ACCOUNTS;
     public static final String WRITE_EXTERNAL_STORAGE = Manifest.permission.WRITE_EXTERNAL_STORAGE;
-    public static List<String> requestPermissions = Arrays.asList(WRITE_EXTERNAL_STORAGE);
+    /**
+     * 需要运行时申请的权限。
+     * <p>
+     * 这里原来是 {@code WRITE_EXTERNAL_STORAGE}。现在已有两处不再成立：
+     * 一是文件写到了应用专属目录（{@link FileUtils#getWriteFilePath}），不需要任何存储权限；
+     * 二是清单里该权限声明了 {@code maxSdkVersion=28}，Android 10+ 上系统直接说"没申请过"，
+     * 于是 {@code checkPermissions} 永远返回 false、启动时不管用户点什么都卡在权限引导页
+     * （实测：点"确定"跳到系统设置，而设置里根本没有可授予的存储权限）。
+     * <p>
+     * 保持空列表，让引导流程自然跳过；将来要加通知之类的运行时权限再加到这里。
+     */
+    public static List<String> requestPermissions = new ArrayList<>();
 //    static {
 //        LogUtil.i("os version="+Build.VERSION.SDK_INT );
 //        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O){

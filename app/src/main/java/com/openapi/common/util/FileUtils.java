@@ -204,14 +204,24 @@ public class FileUtils {
         }
     }
 
+    /**
+     * 应用可写的根目录。
+     * <p>
+     * 原来固定返回 {@code /sdcard/Global}，只有在申请到存储权限、且 targetSdk <= 29
+     * （或者还没进分区存储）时才写得进去。工程已经 targetSdk 37，从 Android 10 起这个路径
+     * 直接不可写——实测设备上 {@code /sdcard/Global} 根本不存在，日志、Glide 缓存、
+     * Volley 缓存全都写失败，而不会有任何报错（都是 mkdirs 返回 false 后继续往下走）。
+     * <p>
+     * 改用应用专属的外部目录 {@code getExternalFilesDir()}：任何 API 级别都不需要权限，
+     * 卸载时随应用一起清掉，也不会把一堆缓存留在用户的相册/文件里。外部存储不可用时
+     * 回退到内部目录。
+     */
     public static String getWriteFilePath(Context context) {
-//        return context.getFilesDir().getAbsolutePath()+File.separator +filePath;
-        String sdStatus = Environment.getExternalStorageState();
-        if (!sdStatus.equals(Environment.MEDIA_MOUNTED)) {
-            return context.getFilesDir().getAbsolutePath() + File.separator + CANHE_NAME;
-        } else {
-            return File.separator + "sdcard" + File.separator + CANHE_NAME;
+        File ext = context.getExternalFilesDir(null);
+        if (ext != null) {
+            return ext.getAbsolutePath();
         }
+        return context.getFilesDir().getAbsolutePath() + File.separator + CANHE_NAME;
     }
 
     public static boolean ensureFile(Context context, String filePath) {
