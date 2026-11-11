@@ -16,8 +16,6 @@ import androidx.annotation.Nullable;
 
 import com.openapi.core.event.FavoriteVo;
 import com.openapi.ks.myapp.translation.api.RealtimeSubtitleSession;
-import com.openapi.ks.myapp.translation.api.StreamingSubtitleOverlayPresenter;
-import com.openapi.ks.myapp.translation.api.TranslationOverlayPresenter;
 import com.openapi.ks.myapp.translation.api.TranslationOverlaySession;
 import com.openapi.common.util.android.PackageUtils;
 import com.openapi.core.R;
@@ -44,11 +42,8 @@ public class MyFavoriteView extends LinearLayout {
     TextView tvTranslate;
     TextView speed;
     private OnFavoriteItemClick onFavoriteItemClick;
-    private TranslationOverlayPresenter translationPresenter;
-    private StreamingSubtitleOverlayPresenter streamingPresenter;
-    private RealtimeSubtitleSession realtimeSubtitleSession;
-    @Nullable
-    private StreamingPositionProvider streamingPositionProvider;
+    /** 「译」按钮的逻辑（翻译浮层、在线流式字幕）。 */
+    private final FavoriteTranslationController translation = new FavoriteTranslationController();
 
     /** 点「译」开流式字幕前读取当前播放进度。 */
     public interface StreamingPositionProvider {
@@ -56,7 +51,7 @@ public class MyFavoriteView extends LinearLayout {
     }
 
     public void setStreamingPositionProvider(@Nullable StreamingPositionProvider provider) {
-        this.streamingPositionProvider = provider;
+        translation.setStreamingPositionProvider(provider);
     }
 
     public MyFavoriteView(Context context) {
@@ -78,43 +73,24 @@ public class MyFavoriteView extends LinearLayout {
         this.onFavoriteItemClick = listener;
     }
 
-    /**
-     * 播放页设置后，「译」按钮可显示翻译字幕浮层并走 {@link VideoTranslationRegistry}。
-     */
+    /** 播放页设置后，「译」按钮可显示翻译字幕浮层并走 VideoTranslationRegistry。 */
     public void setTranslationSession(TranslationOverlaySession session) {
-        if (translationPresenter == null) {
-            translationPresenter = new TranslationOverlayPresenter();
-        }
-        translationPresenter.setSession(session);
+        translation.setTranslationSession(session);
     }
 
-    /**
-     * 在线流式字幕（火山 ASR）。已配置且 {@link #isConfigured()} 时，「译」优先走此路径。
-     */
+    /** 在线流式字幕（火山 ASR）。已配置时，「译」优先走此路径。 */
     public void setRealtimeSubtitleSession(RealtimeSubtitleSession session) {
-        this.realtimeSubtitleSession = session;
-        if (streamingPresenter == null) {
-            streamingPresenter = new StreamingSubtitleOverlayPresenter();
-        }
-        streamingPresenter.setSession(session);
+        translation.setRealtimeSubtitleSession(session);
     }
 
     /** 点「译」前更新当前播放进度（毫秒）。 */
     public void setStreamingPlaybackPositionMs(long positionMs) {
-        if (streamingPresenter == null) {
-            streamingPresenter = new StreamingSubtitleOverlayPresenter();
-        }
-        streamingPresenter.setPlaybackPositionMs(positionMs);
+        translation.setStreamingPlaybackPositionMs(positionMs);
     }
 
     /** 页面销毁时收起字幕浮层，避免持有旧 View 树。 */
     public void releaseTranslationOverlay() {
-        if (translationPresenter != null) {
-            translationPresenter.detach();
-        }
-        if (streamingPresenter != null) {
-            streamingPresenter.detach();
-        }
+        translation.release();
     }
 
     private void setupView() {
@@ -129,7 +105,7 @@ public class MyFavoriteView extends LinearLayout {
         ivFavorite.setOnClickListener(v -> favoriteClick(v));
         ivBrowser.setOnClickListener(v -> browserClick(v));
         ivM3u8Lines.setOnClickListener(v -> showM3u8LineMenu(v));
-        tvTranslate.setOnClickListener(v -> translateClick());
+        tvTranslate.setOnClickListener(v -> translation.toggle());
         speed.setOnClickListener(v -> speedClick(v));
     }
 
@@ -142,32 +118,6 @@ public class MyFavoriteView extends LinearLayout {
         speed.setVisibility(View.VISIBLE);
         tvTranslate.setVisibility(View.VISIBLE);
         speed.setText(speedX[currentSpeedIndex] + "X");
-    }
-
-    private void translateClick() {
-        if (realtimeSubtitleSession != null) {
-            if (!realtimeSubtitleSession.isConfigured()) {
-                ToastUtil.showShort(R.string.volcano_asr_not_configured);
-                return;
-            }
-            if (streamingPresenter == null) {
-                streamingPresenter = new StreamingSubtitleOverlayPresenter();
-            }
-            streamingPresenter.setSession(realtimeSubtitleSession);
-            if (streamingPositionProvider != null) {
-                streamingPresenter.setPlaybackPositionMs(streamingPositionProvider.getPlaybackPositionMs());
-            }
-            streamingPresenter.toggle();
-            return;
-        }
-        if (translationPresenter == null) {
-            translationPresenter = new TranslationOverlayPresenter();
-        }
-        if (translationPresenter.getSession() == null) {
-            ToastUtil.showShort(R.string.favorite_translation_no_session);
-            return;
-        }
-        translationPresenter.toggle();
     }
 
     public void favoriteClick(View view) {
