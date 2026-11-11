@@ -83,16 +83,17 @@ public final class ShareLinkParser {
     @NonNull
     public static Result parse(@NonNull String input) throws ParseException {
         String s = input.trim();
+        String lower = s.toLowerCase(java.util.Locale.ROOT);
         try {
-            if (s.startsWith("vless://")) {
+            if (lower.startsWith("vless://")) {
                 return parseVless(s);
-            } else if (s.startsWith("vmess://")) {
+            } else if (lower.startsWith("vmess://")) {
                 return parseVmess(s);
-            } else if (s.startsWith("ss://")) {
+            } else if (lower.startsWith("ss://")) {
                 return parseShadowsocks(s);
-            } else if (s.startsWith("trojan://")) {
+            } else if (lower.startsWith("trojan://")) {
                 return parseTrojan(s);
-            } else if (s.startsWith("hy2://") || s.startsWith("hysteria2://")) {
+            } else if (lower.startsWith("hy2://") || lower.startsWith("hysteria2://")) {
                 return parseHysteria2(s);
             }
         } catch (ParseException e) {
@@ -197,9 +198,13 @@ public final class ShareLinkParser {
             hostPort = decoded.substring(at + 1);
         }
         int colon = credentials.indexOf(':');
-        String method = colon > 0 ? credentials.substring(0, colon) : "aes-256-gcm";
-        String password = colon > 0 ? credentials.substring(colon + 1) : credentials;
-        String host = hostPort.substring(0, hostPort.lastIndexOf(':'));
+        // userinfo 可能是 percent-encoded（SIP002 允许），密码里的 @ : / 都必须还原
+        String method = colon > 0 ? decodeUrl(credentials.substring(0, colon)) : "aes-256-gcm";
+        String password = colon > 0 ? decodeUrl(credentials.substring(colon + 1)) : decodeUrl(credentials);
+        String rawHost = hostPort.substring(0, hostPort.lastIndexOf(':'));
+        // IPv6 字面量带方括号（[2001:db8::1]），sing-box 要的是裸地址
+        String host = rawHost.startsWith("[") && rawHost.endsWith("]")
+                ? rawHost.substring(1, rawHost.length() - 1) : rawHost;
         int port = parsePort(hostPort.substring(hostPort.lastIndexOf(':') + 1), 443);
 
         JsonObject server = server(host, port);
@@ -239,7 +244,7 @@ public final class ShareLinkParser {
                 q.getOrDefault("path", "/"), q.getOrDefault("host", sni),
                 q.getOrDefault("serviceName", ""), q.getOrDefault("alpn", ""),
                 q.getOrDefault("authority", ""), q.getOrDefault("mode", ""),
-                "1".equals(q.get("allowInsecure")) || "1".equals(q.get("insecure"))));
+                truthy(q.get("allowInsecure")) || truthy(q.get("insecure"))));
         return new Result("trojan", remark(u, host), outbound);
     }
 
@@ -256,7 +261,7 @@ public final class ShareLinkParser {
         server.addProperty("password", auth);
         JsonObject tls = new JsonObject();
         tls.addProperty("serverName", q.getOrDefault("sni", host));
-        if ("1".equals(q.get("insecure"))) {
+        if (truthy(q.get("insecure"))) {
             tls.addProperty("allowInsecure", true);
         }
         JsonObject stream = new JsonObject();
@@ -444,6 +449,15 @@ public final class ShareLinkParser {
             throw new ParseException(message);
         }
         return value;
+    }
+
+    /** "1" / "true" / "yes" 都算真：各家分享工具的写法不统一。 */
+    static boolean truthy(@Nullable String value) {
+        if (value == null) {
+            return false;
+        }
+        String v = value.trim().toLowerCase(java.util.Locale.ROOT);
+        return "1".equals(v) || "true".equals(v) || "yes".equals(v);
     }
 
     private static int parsePort(@Nullable String value, int fallback) {

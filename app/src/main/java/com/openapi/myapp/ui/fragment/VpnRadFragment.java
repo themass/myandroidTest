@@ -431,13 +431,22 @@ public class VpnRadFragment extends BaseFragment {
         }
     }
 
+    /**
+     * 没选节点，或者选的就是列表里的 "Random" 项（category=random），都按"随机"展示。
+     * 只判断 null 不够：用户在列表里点过 Random 后存下的是一个真实对象
+     * （gateway 是随机节点地址），卡片会去 ping 它并显示红色 Timeout。
+     */
+    private static boolean isRandomChoice(LocationVo chosen) {
+        return chosen == null || "random".equalsIgnoreCase(chosen.category);
+    }
+
     /** 当前选中节点的国旗：服务端 img 文件名去 BaseRes 映射表查找，找不到返回 null。 */
     private Integer currentFlagRes() {
         if (getActivity() == null) {
             return null;
         }
         LocationVo chosen = PreferenceUtils.getPrefObj(getActivity(), Constants.LOCATION_CHOOSE, LocationVo.class);
-        if (chosen == null) {
+        if (isRandomChoice(chosen)) {
             return BaseRes.img.get("flag_all");   // 随机：与节点列表默认项的 ALL 图标一致
         }
         if (chosen.img == null) {
@@ -463,7 +472,7 @@ public class VpnRadFragment extends BaseFragment {
             return;
         }
         LocationVo chosen = PreferenceUtils.getPrefObj(getActivity(), Constants.LOCATION_CHOOSE, LocationVo.class);
-        if (chosen == null) {
+        if (isRandomChoice(chosen)) {
             // 没选节点 = 随机（Random），和节点列表默认项一致；名字短，图标用 ALL
             tvCurrentName.setText(Constants.DEFULT_LOCATION_NAME);
             tvCurrentPing.setText("");
@@ -651,6 +660,9 @@ public class VpnRadFragment extends BaseFragment {
                     updateGlobeConnection(repo.current());
                     refreshCurrentNode();
                     showPingSummary(locs);
+                    // 通知 Ping 按钮恢复可点
+                    EventBusUtil.getEventBus().post(
+                            new com.openapi.myapp.data.config.PingFinishedEvent());
                 }
             });
         }, "globe-ping").start();
@@ -670,6 +682,11 @@ public class VpnRadFragment extends BaseFragment {
             } else {
                 timeout++;
             }
+        }
+        // 之前算完就丢掉了：用户点完 Ping 完全看不到结果，只能自己盯地球上的数字
+        if (!locs.isEmpty()) {
+            String msg = getString(R.string.ping_summary, ok, timeout, locs.size());
+            ToastUtil.showShort(msg);
         }
     }
 

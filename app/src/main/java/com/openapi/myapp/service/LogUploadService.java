@@ -40,9 +40,9 @@ public class LogUploadService extends BaseLogService {
         }
         if (ret1) {
             File file2 = new File(FileUtils.getCharonUploadFilePath());
-            if (file2.exists() && file2.length() > 30)
+            if (file2.exists() && file2.length() > 30) {
                 file.add(file2);
-            file.add(file2);
+            }
         }
         if (file.size() > 0)
             indexService.postData(Constants.getUrl(Constants.API_LOG_URL), file, listener, null, Constants.FILE_UPLOAD, TAG, NullReturnVo.class);

@@ -50,7 +50,7 @@
             android:layout_alignParentBottom="true"
             android:layout_alignParentRight="true"
             android:background="#999999"
-            android:text="推广"
+            android:text="@string/ad_tag"
             android:textColor="@android:color/white" />
     </RelativeLayout>
 

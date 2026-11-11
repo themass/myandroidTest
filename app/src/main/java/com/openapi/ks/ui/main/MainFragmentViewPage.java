@@ -136,15 +136,15 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
         list.clear();
         LayoutInflater inflater = LayoutInflater.from(this);
         addData(inflater, R.string.tab_tag_local, TabLocalFragment.class,
-                R.drawable.ac_bg_tab_index, R.string.tab_index, null, 1);
+                R.drawable.ac_bg_tab_home, R.string.tab_index, null, 1);
 //        addData(inflater, R.string.tab_tag_index, VpnFragment.class,
 //                R.drawable.ac_bg_tab_index, R.string.tab_index, null, 2);
 
         // 工具：网络体检、分应用代理等，从设置里移出，方便发现
         addData(inflater, R.string.tab_tag_tools, com.openapi.ks.ui.maintab.ToolsFragment.class,
-                R.drawable.ac_bg_tab_index, R.string.tab_tools, null, 2);
+                R.drawable.ac_bg_tab_tools, R.string.tab_tools, null, 2);
         addData(inflater, R.string.tab_tag_sites, TabCustomeFragment.class,
-                R.drawable.ac_bg_tab_index, R.string.tab_sites, null, 3);
+                R.drawable.ac_bg_tab_sites, R.string.tab_sites, null, 3);
 
         myPagerAdapter = new MyPagerAdapter(getSupportFragmentManager());
         mViewPager.setAdapter(myPagerAdapter);

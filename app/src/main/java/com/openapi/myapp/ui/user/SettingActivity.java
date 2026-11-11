@@ -205,28 +205,10 @@ public class SettingActivity extends BaseSingleActivity {
                 : getString(R.string.split_tunnel_apps, policy.getPackages().size()));
     }
 
-    private void setKillSwitch() {
-        boolean enabled = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N
-                && isAlwaysOnVpnLockedDown();
-        ui.setKillSwitch(getString(enabled ? R.string.kill_switch_status_on : R.string.kill_switch_status_off));
-    }
-
-    private boolean isAlwaysOnVpnLockedDown() {
-        // 只能确认本应用是否被设为 always-on；lockdown 状态应用层读取不到，只能引导用户去确认。
-        // Android 14+（targetSdk 37）起，隐藏键 always_on_vpn_app 对普通应用不可读，会抛 SecurityException。
-        // 读不到就当作"未开启"，不能让设置页崩溃。
-        try {
-            String alwaysOnApp = android.provider.Settings.Secure.getString(getContentResolver(), "always_on_vpn_app");
-            return getPackageName().equals(alwaysOnApp);
-        } catch (SecurityException e) {
-            return false;
-        }
-    }
-
     private void onKillSwitch() {
         new android.app.AlertDialog.Builder(this)
                 .setTitle(R.string.setting_kill_switch)
-                .setMessage(R.string.kill_switch_explain)
+                .setMessage(R.string.kill_switch_howto)
                 .setPositiveButton(android.R.string.ok, (d, w) -> openSystemVpnSettings())
                 .setNegativeButton(android.R.string.cancel, null)
                 .show();
@@ -238,6 +220,10 @@ public class SettingActivity extends BaseSingleActivity {
         } catch (Exception e) {
             ToastUtil.showShort(R.string.vpn_not_supported);
         }
+    }
+
+    private void setKillSwitch() {
+        ui.setKillSwitch(getString(R.string.kill_switch_status_unknown));
     }
 
     /** 显示当前已保存的 VLESS+Reality 节点备注名；未配置时提示去添加。 */

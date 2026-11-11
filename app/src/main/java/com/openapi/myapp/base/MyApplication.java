@@ -65,6 +65,7 @@ public class MyApplication extends Application {
         long cost = System.currentTimeMillis() - start;
         LogUtil.i("cpu=" + SystemUtils.getCpuType());
         LogUtil.e("app start cost:" + cost);
+        com.openapi.common.util.CrashHandler.install();
         AppContainer.init(this);
         photoLoad = new ImagePhotoLoad(this);
         // 广告 SDK 初始化放到首帧之后，不占用启动的主线程时间（开屏广告在启动页结束后才请求，来得及）

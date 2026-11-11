@@ -70,6 +70,7 @@ public class TabLocalFragment extends TabBaseAdsFragment {
         fabUp.setImageResource(R.drawable.ic_ping_clear_b);
         restorePingPosition();
         makePingDraggable();
+        EventBusUtil.getEventBus().register(this);
     }
 
     /** 恢复用户上次拖动后的位置（以 translation 保存，相对于默认位置的偏移）。 */
@@ -155,6 +156,40 @@ public class TabLocalFragment extends TabBaseAdsFragment {
     @Override
     public void onClickFab(View view) {
 //        super.onClickFab(view);
+        // 测速要几秒到十几秒：期间把按钮变暗并取消可点，否则用户会以为没反应而反复点
+        setPingRunning(true);
         EventBusUtil.getEventBus().post(new PingEvent());
+        // 兜底：万一没有人回 PingFinishedEvent（例如首页没有地球），也不会永久卡在"测速中"
+        view.removeCallbacks(pingResetRunnable);
+        view.postDelayed(pingResetRunnable, 20000);
+    }
+
+    private final Runnable pingResetRunnable = () -> setPingRunning(false);
+
+    /** 测速进行中：按钮降透明度并禁用点击。 */
+    private void setPingRunning(boolean running) {
+        if (fabUp == null) {
+            return;
+        }
+        fabUp.setEnabled(!running);
+        fabUp.setAlpha(running ? 0.45f : 1f);
+        if (!running) {
+            fabUp.removeCallbacks(pingResetRunnable);
+        }
+    }
+
+    /** 测速结束（VpnRadFragment 在结果回来后发出）。 */
+    @org.greenrobot.eventbus.Subscribe(threadMode = org.greenrobot.eventbus.ThreadMode.MAIN)
+    public void onEvent(com.openapi.myapp.data.config.PingFinishedEvent event) {
+        setPingRunning(false);
+    }
+
+    @Override
+    public void onDestroyView() {
+        if (fabUp != null) {
+            fabUp.removeCallbacks(pingResetRunnable);
+        }
+        EventBusUtil.getEventBus().unregister(this);
+        super.onDestroyView();
     }
 }

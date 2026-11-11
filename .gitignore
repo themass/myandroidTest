@@ -44,3 +44,7 @@ keystore.properties
 # NDK/CMake 中间产物（本地编译生成，不提交）
 app/.cxx/
 .cxx/
+
+# 回归脚本输出（含设备日志，不入库）
+scripts/regression/runs/
+scripts/regression/tools/httpcheck/classes.dex

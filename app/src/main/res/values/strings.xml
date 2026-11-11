@@ -91,6 +91,8 @@
     <string name="setting_list_card_style">Card-style server list</string>
     <string name="kill_switch_status_on">Enabled</string>
     <string name="kill_switch_status_off">Tap to enable</string>
+    <string name="kill_switch_status_unknown">Set in system settings</string>
+    <string name="kill_switch_howto">Android does not let an app block traffic on its own. To get a real kill switch, open system settings and enable, for this app:\n\n1. Always-on VPN — ShieldWing\n2. Block connections without VPN\n\nWithout step 2, traffic falls back to your normal connection when the tunnel drops.</string>
     <string name="kill_switch_explain">To block all traffic when the VPN drops, Android requires enabling "Always-on VPN" and "Block connections without VPN" for this app in system settings. Continue?</string>
     <string name="menu_btn_score_context">Points can change VIP，more info see "About"</string>
     <string name="menu_btn_cache_context">Cache clear</string>
@@ -264,6 +266,7 @@ You are now using a non WIFI network, continue to download may consume more netw
 
     <string name="ping_servers_loading">Servers are still loading, please try again</string>
     <string name="ping_testing_count">Testing %1$d servers…</string>
+    <string name="ad_tag">Promoted</string>
     <string name="ping_summary">Ping done: %1$d reachable, %2$d timed out, %3$d servers</string>
     <string name="ping_testing">Testing…</string>
     <string name="ping_timeout">Timeout</string>
