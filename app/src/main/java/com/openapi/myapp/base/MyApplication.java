@@ -67,6 +67,9 @@ public class MyApplication extends Application {
         LogUtil.e("app start cost:" + cost);
         com.openapi.common.util.CrashHandler.install();
         AppContainer.init(this);
+        // 每天打开 App 就把最近几天的使用汇总补发一次：用户可能连着几天不点断开，
+        // 只在断开时上报会让时长数据一直空着。做过节流，这里不需要判断。
+        com.openapi.myapp.data.UsageReport.requestFlush(this);
         photoLoad = new ImagePhotoLoad(this);
         // 广告 SDK 初始化放到首帧之后，不占用启动的主线程时间（开屏广告在启动页结束后才请求，来得及）
         new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> AdsManager.getInstans().init(this));

@@ -27,6 +27,7 @@ import com.openapi.myapp.bean.vo.StateUseVo;
 import com.openapi.myapp.bean.vo.UserInfoVo;
 import com.openapi.myapp.constant.Constants;
 import com.openapi.myapp.data.BaseService;
+import com.openapi.myapp.data.UsageReport;
 import com.openapi.myapp.data.UserLoginUtil;
 import com.openapi.myapp.data.VersionUpdater;
 import com.openapi.myapp.ui.base.app.BaseSingleActivity;
@@ -119,15 +120,19 @@ public class SettingActivity extends BaseSingleActivity {
     private void handleRow(String key) {
         switch (key) {
             case "kill_switch":
+                UsageReport.feature(this, UsageReport.FEATURE_KILL_SWITCH);
                 onKillSwitch();
                 break;
             case "split_tunnel":
+                UsageReport.feature(this, UsageReport.FEATURE_SPLIT_TUNNEL);
                 SplitTunnelingActivity.start(this);
                 break;
             case "net_check":
+                UsageReport.feature(this, UsageReport.FEATURE_NET_CHECK);
                 com.openapi.myapp.ui.check.NetworkCheckActivity.start(this);
                 break;
             case "reward":
+                UsageReport.feature(this, UsageReport.FEATURE_REWARD);
                 com.openapi.myapp.ui.reward.RewardActivity.start(this);
                 break;
             case "cache":

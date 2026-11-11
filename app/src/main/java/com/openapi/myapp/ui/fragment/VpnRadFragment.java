@@ -280,7 +280,11 @@ public class VpnRadFragment extends BaseFragment {
         tvCurrentPing = view.findViewById(R.id.tv_current_ping);
         tvConnStats = view.findViewById(R.id.tv_conn_stats);
         if (tvConnStats != null) {
-            tvConnStats.setOnClickListener(v -> com.openapi.myapp.ui.usage.UsageActivity.start(requireContext()));
+            tvConnStats.setOnClickListener(v -> {
+                com.openapi.myapp.data.UsageReport.feature(getContext(),
+                        com.openapi.myapp.data.UsageReport.FEATURE_USAGE_PAGE);
+                com.openapi.myapp.ui.usage.UsageActivity.start(requireContext());
+            });
         }
         ivCurrentFlag = view.findViewById(R.id.iv_current_flag);
         btnGift = view.findViewById(R.id.btn_gift);
@@ -963,8 +967,18 @@ public class VpnRadFragment extends BaseFragment {
                 imgConn();
                 // 记入"最近连接"。选"最佳线路"时 id<=0，recordConnected 会忽略
                 if (getActivity() != null) {
-                    com.openapi.myapp.data.NodeShortcuts.recordConnected(
-                            getActivity(), LocationUtil.getSelectLocationId(getActivity()));
+                    int nodeId = LocationUtil.getSelectLocationId(getActivity());
+                    com.openapi.myapp.data.NodeShortcuts.recordConnected(getActivity(), nodeId);
+                    // 换过节点的人才算"用了节点切换"：收藏和最近连接这两块改造只对这类用户有意义
+                    android.content.SharedPreferences sp = getActivity()
+                            .getSharedPreferences("node_shortcuts", android.content.Context.MODE_PRIVATE);
+                    if (nodeId > 0 && sp.getInt("lastConnected", 0) != nodeId) {
+                        if (sp.getInt("lastConnected", 0) != 0) {
+                            com.openapi.myapp.data.UsageReport.feature(getActivity(),
+                                    com.openapi.myapp.data.UsageReport.FEATURE_NODE_SWITCH);
+                        }
+                        sp.edit().putInt("lastConnected", nodeId).apply();
+                    }
                 }
                 break;
             case CONNECTING:

@@ -175,6 +175,8 @@ public class LocationItemFragment extends BasePullLoadbleFragment<LocationVo> {
         adapter.setFavoriteListener(new LocationItemAdapter.FavoriteListener() {
             @Override
             public void onFavoriteChanged() {
+                com.openapi.myapp.data.UsageReport.feature(getActivity(),
+                        com.openapi.myapp.data.UsageReport.FEATURE_FAVORITE);
                 // 收藏变了：就地重排，不重新请求网络
                 if (vipLocationVo.list != null && !vipLocationVo.list.isEmpty()) {
                     InfoListVo<LocationVo> data = rebuildFromLocal();

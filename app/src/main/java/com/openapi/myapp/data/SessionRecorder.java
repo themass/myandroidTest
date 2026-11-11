@@ -136,6 +136,9 @@ public final class SessionRecorder implements Observer<VpnSessionState> {
             update(copy(session));
         }
         current = null;
+        // 一次连接刚结束，这一天的时长与流量已经定下来了——顺手把最近几天汇总发出去，
+        // 这样"昨天用了多久"不用等用户第二天再打开 App 才知道。
+        UsageReport.requestFlush(appContext);
     }
 
     private void update(@NonNull ConnSession row) {
@@ -192,7 +195,8 @@ public final class SessionRecorder implements Observer<VpnSessionState> {
             for (ConnSession c : dao().queryBuilder()
                     .where(ConnSessionDao.Properties.StartAt.ge(since)).list()) {
                 long end = c.open ? Math.max(c.endAt, now) : c.endAt;
-                spans.add(new UsageStats.Span(c.startAt, end, c.rxBytes, c.txBytes));
+                spans.add(new UsageStats.Span(c.startAt, end, c.rxBytes, c.txBytes,
+                        c.node, c.protocol));
             }
         } catch (RuntimeException e) {
             LogUtil.e("读取会话统计失败: " + e.getMessage());

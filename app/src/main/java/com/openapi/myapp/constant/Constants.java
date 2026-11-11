@@ -132,6 +132,8 @@ public class Constants {
     public static final String API_CONNLOG_URL = "/monitor/connlog.json";
     /** 隧道 MTU 探测结果上报（见 doc/MTU-DESIGN.md 3.7）。 */
     public static final String API_MTULOG_URL = "/monitor/mtulog.json";
+    /** 每日使用汇总上报（留存与时长分析的唯一数据来源）。 */
+    public static final String API_USAGE_URL = "/monitor/usage.json";
     public static final String API_ADD_CUSTOME = "/user/custome/add.json";
     public static final String API_DEL_CUSTOME = "/user/custome/del.json";
     public static final String API_EMU = "/monitor/emulator.json";

@@ -72,6 +72,31 @@ public class UsageStatsTest {
     }
 
     @Test
+    public void nodesAndProtocolsBelongToTheStartDayOnly() {
+        List<UsageStats.Span> spans = new ArrayList<>();
+        // 跨午夜的一次连接：只算在开始那天，否则"当天连过几个节点"会被数成两倍
+        spans.add(new UsageStats.Span(at(11, 11, 23, 0), at(11, 12, 1, 0), 0, 0, "1.2.3.4:443", "WIREGUARD"));
+        // 同一天同一节点再连一次：不同节点数不应变成 2
+        spans.add(new UsageStats.Span(at(11, 12, 9, 0), at(11, 12, 10, 0), 0, 0, "1.2.3.4:443", "WIREGUARD"));
+        spans.add(new UsageStats.Span(at(11, 12, 11, 0), at(11, 12, 12, 0), 0, 0, "5.6.7.8:443", "VLESS_REALITY"));
+        UsageStats.Day[] d = UsageStats.lastDays(spans, at(11, 12, 13, 0), 7, TZ);
+        assertEquals(1, d[5].nodes.size());
+        assertEquals(1, d[5].protocols.size());
+        assertEquals(2, d[6].nodes.size());
+        assertEquals(2, d[6].protocols.size());
+    }
+
+    @Test
+    public void missingNodeAndProtocolDoNotCount() {
+        List<UsageStats.Span> spans = new ArrayList<>();
+        spans.add(new UsageStats.Span(at(11, 12, 9, 0), at(11, 12, 10, 0), 0, 0, null, ""));
+        UsageStats.Day[] d = UsageStats.lastDays(spans, at(11, 12, 12, 0), 7, TZ);
+        assertEquals(1, d[6].sessions);
+        assertEquals(0, d[6].nodes.size());
+        assertEquals(0, d[6].protocols.size());
+    }
+
+    @Test
     public void formatting() {
         assertEquals("45s", UsageStats.formatDuration(45_000));
         assertEquals("12m", UsageStats.formatDuration(12 * 60_000));

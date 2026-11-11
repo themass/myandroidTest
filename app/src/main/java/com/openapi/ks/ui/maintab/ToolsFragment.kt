@@ -42,7 +42,11 @@ class ToolsFragment : Fragment() {
         return ComposeView(requireContext()).apply {
             setContent {
                 ToolsScreen(
-                    onUsage = { com.openapi.myapp.ui.usage.UsageActivity.start(requireContext()) },
+                    onUsage = {
+                        com.openapi.myapp.data.UsageReport.feature(
+                            requireContext(), com.openapi.myapp.data.UsageReport.FEATURE_USAGE_PAGE)
+                        com.openapi.myapp.ui.usage.UsageActivity.start(requireContext())
+                    },
                     onNetworkCheck = { NetworkCheckActivity.start(requireContext()) },
                     onSplitTunneling = { SplitTunnelingActivity.start(requireContext()) },
                 )

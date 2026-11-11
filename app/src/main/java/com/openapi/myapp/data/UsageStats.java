@@ -20,12 +20,21 @@ public final class UsageStats {
         public final long endAt;
         public final long rxBytes;
         public final long txBytes;
+        /** 节点地址与协议名，只用于"当天连过几个节点、用过哪些协议"，可以为 null。 */
+        public final String node;
+        public final String protocol;
 
         public Span(long startAt, long endAt, long rxBytes, long txBytes) {
+            this(startAt, endAt, rxBytes, txBytes, null, null);
+        }
+
+        public Span(long startAt, long endAt, long rxBytes, long txBytes, String node, String protocol) {
             this.startAt = startAt;
             this.endAt = endAt;
             this.rxBytes = rxBytes;
             this.txBytes = txBytes;
+            this.node = node;
+            this.protocol = protocol;
         }
     }
 
@@ -37,6 +46,9 @@ public final class UsageStats {
         public int sessions;
         public long rxBytes;
         public long txBytes;
+        /** 当天连过的不同节点 / 用过的协议。用于上报，不上界面。 */
+        public final java.util.Set<String> nodes = new java.util.LinkedHashSet<>();
+        public final java.util.Set<String> protocols = new java.util.LinkedHashSet<>();
 
         Day(long dayStart) {
             this.dayStart = dayStart;
@@ -76,6 +88,13 @@ public final class UsageStats {
                 }
                 if (startsHere) {
                     result[i].sessions++;
+                    // 节点与协议按"开始那天"归属：同一次连接不该在两个不同的日子里各算一个新的
+                    if (s.node != null && !s.node.isEmpty()) {
+                        result[i].nodes.add(s.node);
+                    }
+                    if (s.protocol != null && !s.protocol.isEmpty()) {
+                        result[i].protocols.add(s.protocol);
+                    }
                 }
                 if (total > 0 && overlap > 0) {
                     result[i].rxBytes += s.rxBytes * overlap / total;
