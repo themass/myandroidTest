@@ -70,7 +70,7 @@ public final class ChatMarkwon {
                         @Override
                         public Drawable handleError(@NonNull String latex, @NonNull Throwable error) {
                             LogUtil.e("失败：" + latex, error);
-                            return ContextCompat.getDrawable(ctx, com.shuyu.gsyvideoplayer.R.drawable.video_error_normal);
+                            return ContextCompat.getDrawable(ctx, R.drawable.ic_markdown_error);
                         }
                     });
                 }))
@@ -97,7 +97,7 @@ public final class ChatMarkwon {
                         @Override
                         public Drawable handleError(@NonNull String latex, @NonNull Throwable error) {
                             LogUtil.e("失败：" + latex, error);
-                            return ContextCompat.getDrawable(ctx, com.shuyu.gsyvideoplayer.R.drawable.video_error_normal);
+                            return ContextCompat.getDrawable(ctx, R.drawable.ic_markdown_error);
                         }
                     });
                 }))
