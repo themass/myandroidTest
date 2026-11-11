@@ -1,4 +1,4 @@
-package com.openapi.core.view.media
+package com.openapi.media.viewer
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border

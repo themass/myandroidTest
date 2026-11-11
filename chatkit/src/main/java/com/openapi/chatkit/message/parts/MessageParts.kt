@@ -55,10 +55,10 @@ import coil.compose.AsyncImage
 import com.openapi.chatkit.media.ImageViewer
 import com.openapi.chatkit.media.imageModel
 import com.openapi.chatkit.model.MessagePart
-import com.openapi.core.view.media.MediaCarousel
-import com.openapi.core.view.media.MediaItem
-import com.openapi.core.view.media.MediaStack
-import com.openapi.core.view.media.MediaTheme
+import com.openapi.media.viewer.MediaCarousel
+import com.openapi.media.viewer.MediaItem
+import com.openapi.media.viewer.MediaStack
+import com.openapi.media.viewer.MediaTheme
 import com.openapi.chatkit.model.Sender
 import com.openapi.chatkit.theme.ChatKit
 import java.util.Locale
@@ -165,7 +165,7 @@ fun ImageGrid(
                 .combinedClickable(onClick = { viewerStart = 0 }, onLongClick = { onLongPress(sources[0]) }),
         )
     } else {
-        // 多图：2–4 张用堆叠卡片，5 张及以上用横向轮播（通用媒体组件 com.openapi.core.view.media）
+        // 多图：2–4 张用堆叠卡片，5 张及以上用横向轮播（通用媒体组件 com.openapi.media.viewer）
         val items = sources.map { MediaItem(model = imageModel(it)) }
         val onTap: (Int) -> Unit = { index -> viewerStart = index }
         val onLong: (Int) -> Unit = { index -> onLongPress(sources[index]) }
