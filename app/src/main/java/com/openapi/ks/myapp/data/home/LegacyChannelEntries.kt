@@ -18,7 +18,7 @@ import com.openapi.home.domain.ChannelPage
 import com.openapi.ks.chat.R
 import com.openapi.core.model.RecommendVo
 import com.openapi.core.config.Constants
-import com.openapi.ks.myapp.data.UserLoginUtil
+import com.openapi.core.account.UserLoginUtil
 import com.openapi.ks.myapp.ui.user.login.LoginActivity
 
 /** 频道页的实现：分类、分页数据和打开频道，沿用旧的网络层和配置页。 */

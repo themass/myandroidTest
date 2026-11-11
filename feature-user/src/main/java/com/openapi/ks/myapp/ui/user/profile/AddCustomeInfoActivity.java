@@ -23,7 +23,7 @@ import com.openapi.core.model.CustomeAddForm;
 import com.openapi.core.model.NullReturnVo;
 import com.openapi.core.config.Constants;
 import com.openapi.common.net.BaseService;
-import com.openapi.ks.myapp.data.UserLoginUtil;
+import com.openapi.core.account.UserLoginUtil;
 import com.openapi.ks.myapp.data.urlparser.CustomeAddFormParser;
 import com.openapi.core.legacyui.app.BaseSingleActivity;
 import com.openapi.feature.user.databinding.LayoutAddCustomeBinding;

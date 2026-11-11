@@ -10,7 +10,7 @@ import com.openapi.common.util.android.PackageUtils;
 import com.openapi.core.ads.yewu.ads.base.AdsContext;
 import com.openapi.feature.content.R;
 import com.openapi.core.config.Constants;
-import com.openapi.ks.myapp.data.UserLoginUtil;
+import com.openapi.core.account.UserLoginUtil;
 import com.openapi.core.legacyui.base.WebViewActivity;
 
 /**

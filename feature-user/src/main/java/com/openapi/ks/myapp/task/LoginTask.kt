@@ -13,7 +13,7 @@ import com.openapi.common.util.lang.StringUtils
 import com.openapi.ks.myapp.bean.form.LoginForm
 import com.openapi.core.model.UserInfoVo
 import com.openapi.core.config.Constants
-import com.openapi.ks.myapp.data.UserLoginUtil
+import com.openapi.core.account.UserLoginUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

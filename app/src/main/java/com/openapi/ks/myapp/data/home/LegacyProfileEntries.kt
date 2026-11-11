@@ -14,7 +14,7 @@ import com.openapi.ks.chat.R
 import com.openapi.ks.myapp.base.MyApplication
 import com.openapi.core.model.NullReturnVo
 import com.openapi.core.config.Constants
-import com.openapi.ks.myapp.data.UserLoginUtil
+import com.openapi.core.account.UserLoginUtil
 import com.openapi.ks.myapp.content.mine.AppListFragment
 import com.openapi.ks.myapp.content.mine.DonationListFragment
 import com.openapi.ks.myapp.content.mine.FavoriteFragment

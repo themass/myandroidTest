@@ -1,4 +1,4 @@
-package com.openapi.ks.myapp.data;
+package com.openapi.core.account;
 
 import android.content.Context;
 import android.content.Intent;

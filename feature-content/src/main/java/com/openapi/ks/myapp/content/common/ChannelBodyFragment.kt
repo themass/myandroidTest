@@ -11,7 +11,7 @@ import com.openapi.common.net.BaseService
 import com.openapi.common.util.android.ToastUtil
 import com.openapi.feature.content.R
 import com.openapi.core.model.RecommendVo
-import com.openapi.ks.myapp.data.UserLoginUtil
+import com.openapi.core.account.UserLoginUtil
 import com.openapi.core.legacyui.app.BaseFragment
 import com.openapi.core.config.Routes
 

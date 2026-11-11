@@ -15,7 +15,7 @@ import androidx.appcompat.widget.SearchView;
 import com.openapi.common.util.lang.StringUtils;
 import com.openapi.core.model.RecommendVo;
 import com.openapi.core.config.Routes;
-import com.openapi.ks.myapp.data.UserLoginUtil;
+import com.openapi.core.account.UserLoginUtil;
 
 import com.openapi.core.R;
 import com.openapi.common.util.log.LogUtil;

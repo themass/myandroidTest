@@ -24,7 +24,7 @@ import com.openapi.core.legacyui.adapter.BaseRecyclerViewAdapter;
 import com.openapi.common.net.request.InfoListVo;
 import com.openapi.core.model.RecommendVo;
 import com.openapi.core.config.Constants;
-import com.openapi.ks.myapp.data.UserLoginUtil;
+import com.openapi.core.account.UserLoginUtil;
 import com.openapi.core.event.ConfigActionEvent;
 import com.openapi.core.legacyui.features.BasePullLoadbleFragment;
 import com.openapi.core.config.Routes;
