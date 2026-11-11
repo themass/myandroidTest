@@ -1,8 +1,9 @@
-package com.openapi.imaging.quad
+package com.openapi.feature.photosolve.presentation
 
 import android.graphics.Bitmap
 import com.openapi.imaging.cropassist.CropAssistProvider
 import com.openapi.imaging.cropassist.CropAssistResult
+import com.openapi.imaging.quad.QuadNorm
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 

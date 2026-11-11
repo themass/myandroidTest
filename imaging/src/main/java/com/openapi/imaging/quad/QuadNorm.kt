@@ -57,7 +57,7 @@ data class QuadNorm(val corners: List<Point>) {
         val bl = if (tr === rest[0]) rest[1] else rest[0]
         // 交叉验证：如果 tl/br 选中的其实是同一条边上的两点，退回按角度排序
         val ordered = listOf(tl, tr, br, bl)
-        return if (ordered.isConvexish()) QuadNorm(ordered) else QuadNorm(sortByAngle())
+        return if (isConvexish(ordered)) QuadNorm(ordered) else QuadNorm(sortByAngle())
     }
 
     /** 以质心为中心按极角排序（逆时针），再旋转到从左上角开始。 */
@@ -70,13 +70,16 @@ data class QuadNorm(val corners: List<Point>) {
         return List(4) { byAngle[(start + it) % 4] }
     }
 
-    private fun isConvexish(): Boolean {
-        if (corners.size != 4) return false
+    private fun isConvexish(): Boolean = isConvexish(corners)
+
+    /** 供 [ordered] 在构造新四边形之前先校验候选顺序。 */
+    private fun isConvexish(points: List<Point>): Boolean {
+        if (points.size != 4) return false
         var sign = 0
         for (i in 0 until 4) {
-            val a = corners[i]
-            val b = corners[(i + 1) % 4]
-            val c = corners[(i + 2) % 4]
+            val a = points[i]
+            val b = points[(i + 1) % 4]
+            val c = points[(i + 2) % 4]
             val cross = (b.x - a.x) * (c.y - b.y) - (b.y - a.y) * (c.x - b.x)
             val s = if (cross > 0) 1 else if (cross < 0) -1 else 0
             if (s != 0) {

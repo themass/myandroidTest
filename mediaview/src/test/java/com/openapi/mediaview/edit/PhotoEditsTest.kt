@@ -73,7 +73,10 @@ class PhotoEditsTest {
         val e = edits().push(stroke()).push(stroke()).reset()
         assertEquals(0, e.ops.size)
         assertEquals(2, e.redo.size)
-        assertEquals(2, e.redo().ops.size)
+        // redo() 一次只恢复一个操作，且按原顺序：先恢复第一条
+        val redone = e.redo()
+        assertEquals(1, redone.ops.size)
+        assertEquals(e.redo.last(), redone.ops.first())
     }
 
     @Test

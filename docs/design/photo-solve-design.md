@@ -46,14 +46,14 @@
 | `:feature-photosolve` | 完整流程：首页 → 拍照（CameraX）/相册/ML Kit 扫描 → 裁剪 → 清晰度提示 → 识别中 → 结果 | `PhotoSolveActivity.kt`、`ui/*.kt` |
 | | 自绘裁剪页：四角 + 边中点手柄、旋转、镜像、自动识别对比 | `ui/PhotoCropScreen.kt`、`ui/CropOverlay.kt`、`ui/CropBitmapOps.kt` |
 | | 解题仓库抽象 + Mock（按顺序回放 40001/40002/40003/42901/50001） | `data/PhotoSolveRepository.kt` |
-| | 旧的 HTTP 实现（直连 myconf 的 `/photosolve/upload` + `/solve`，**未部署、未使用**） | `data/HttpPhotoSolveRepository.kt` |
+| | 旧的 HTTP 实现（直连 myconf 的 `/photosolve/upload` + `/solve`，从未部署）——**已删除** | ~~`data/HttpPhotoSolveRepository.kt`~~ |
 | `:imaging` | DocQuadNet 角点检测（ONNX，`corner_heatmaps` 1×4×64×64）、OpenCV 文档增强、Real-ESRGAN 超分、质量分析 | `cropassist/`、`image/`、`quality/` |
 | `:common`（`net/`） | `BaseService` + 挂起扩展 `awaitPost` / `awaitUpload` / `awaitGet`；token、设备头、AES 数据解码统一在 `BaseRequest`/`DataBuilder` | `common/src/main/java/com/openapi/common/net/` |
 
 **关键发现（决定了本次改动的形状）**：
 1. `DocQuadNetCropAssistProvider` 的模型**本来就输出四个角的热力图**，但 `CropAssistResult.SuggestedBox` 只保留了外接矩形 → 斜拍的题目会被裁进大量背景。端上检测已经能给出「有没有像纸面/屏幕的四边形」，只是被压扁成了矩形。
 2. 现有裁剪页只支持**轴对齐矩形**，没有「拖动四个角 + 透视矫正」。
-3. 旧 `HttpPhotoSolveRepository` 自己 new 了 `OkHttpClient`，绕开 `:common` 的登录态与信封解析；它对接的 myconf 接口从未部署。
+3. 旧 `HttpPhotoSolveRepository` 自己 new 了 `OkHttpClient`，绕开 `:common` 的登录态与信封解析；它对接的 myconf 接口从未部署，**本次已删除**（连同 `app/build.gradle` 的 `photosolveBaseUrl`）。
 
 ### 1.2 服务端（testserverV）
 
@@ -262,7 +262,7 @@ curl -s -X POST http://127.0.0.1:8080/vvv/api/photosolve/v1/solve.json \
   -F "images=@question.jpg" -F "subject=math" -F "clientRequestId=$(uuidgen)"
 ```
 
-客户端配置：`app/build.gradle` 里 `photosolveBaseUrl` 是旧的 myconf 地址方案；本设计改用 `Constants.getUrl()`（复用项目既有 `BASE_IP` + `/vvv/api` 前缀），因此**不需要额外配置**。旧的 `HttpPhotoSolveRepository` + `PHOTOSOLVE_BASE_URL` 保留但不再使用，建议在确认新链路后删除（见风险 3）。
+客户端配置：**不需要额外配置**。`Constants.getUrl(Constants.PHOTOSOLVE_SOLVE_URL)` 复用项目既有的 `BASE_IP` + `/vvv/api` 前缀，和服务端 `PhotoSolveController` 的 `/api/photosolve/v1/solve.json` 对得上。旧的 `HttpPhotoSolveRepository` 与 `photosolveBaseUrl` / `PHOTOSOLVE_BASE_URL` 已删除，`MyApplication` 现在直接安装 `NetworkPhotoSolveRepository(this)`。
 
 ---
 
@@ -272,7 +272,7 @@ curl -s -X POST http://127.0.0.1:8080/vvv/api/photosolve/v1/solve.json \
 |---|---|---|
 | 1 | **额度与鉴权未实现**：现在任何登录用户都能无限调用，模型费用不可控 | 上线前在 Controller 加按用户/天的计数（Redis，项目已有）；`clientRequestId` 做 5 分钟幂等去重 |
 | 2 | **图片隐私**：题目图会发给第三方模型 | `DataBuilder`/服务端都不落盘（当前实现只用 base64 直传，不写磁盘）；隐私政策需说明「拍照解题会把图片发送给第三方 AI 服务」；后续可加 `imageRetentionDays` |
-| 3 | 旧 `HttpPhotoSolveRepository` 与新实现并存 | 新实现已可用；旧类无调用方（`MyApplication` 里 `PHOTOSOLVE_BASE_URL` 非空才安装），建议确认后删除 + 去掉 buildConfigField |
+| 3 | ~~旧 `HttpPhotoSolveRepository` 与新实现并存~~ | **已解决**：旧类、`photosolveBaseUrl`、`PHOTOSOLVE_BASE_URL` 均已删除 |
 | 4 | 模型偶尔不按 JSON 输出 | 提示词硬约束 + `extractJson()` 抠 JSON + 解析失败兜底成纯文本答案；`questionFound` 缺失时默认 true，避免误判「没题目」 |
 | 5 | 端上检测器在线模型缺失（`assets/docquad/*.ort` 没打进包） | `QuestionQuadDetector.isAvailable()` 检测；不可用时直接进旧裁剪页并提示，不阻断流程 |
 | 6 | 透视矫正对极端角度（>60°）效果差 | `QuadNorm.isValid` 限制面积；输出尺寸按边长估算；失败退化为外接矩形 |
