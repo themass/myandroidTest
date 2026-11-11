@@ -36,7 +36,9 @@ import kotlinx.coroutines.withContext
  */
 class ChatRepositoryImpl(private val context: Context) : ChatRepository {
 
-    private val baseService = BaseService().apply { setup(context) }
+    // 不能写 `BaseService().apply { setup(context) }`：apply 里 `context` 会解析成 BaseService 自己的
+    // 公开字段（此时还是 null），等于 setup(null)，所有上传在构造请求时 NPE。用 also + it 明确指定。
+    private val baseService = BaseService().also { it.setup(context) }
     private val remote = ChatRemote(baseService)
     private val cache = MessageCache()
     private val sessionStore = SessionStore(context, remote, baseService)

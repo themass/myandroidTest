@@ -31,7 +31,7 @@ class NetworkPhotoSolveRepository @JvmOverloads constructor(
 ) : PhotoSolveRepository {
 
     private val appContext = context.applicationContext
-    private val service = BaseService().apply { setup(appContext) }
+    private val service = BaseService().also { it.setup(appContext) }
 
     override suspend fun solve(image: android.graphics.Bitmap): PhotoSolveResult {
         val compressed = com.openapi.common.image.ImageCompressor.compress(image)
