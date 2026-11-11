@@ -38,6 +38,21 @@ android {
         disable 'all'
     }
 
+    testOptions {
+        unitTests {
+            // 库模块的清单引用 :app 的主题，不能 includeAndroidResources；DAO 等 Robolectric 测试也不需要资源
+            all {
+                // JDK 17+ 下 Robolectric 要反射进 java.base
+                it.jvmArgs(
+                    '--add-opens=java.base/java.lang=ALL-UNNAMED',
+                    '--add-opens=java.base/java.util=ALL-UNNAMED',
+                    '--add-exports=java.base/jdk.internal.access=ALL-UNNAMED',
+                    '--add-opens=java.base/java.io=ALL-UNNAMED',
+                )
+            }
+        }
+    }
+
     packagingOptions {
         exclude 'META-INF/LICENSE.txt'
         exclude 'META-INF/services/javax.annotation.processing.Processor'

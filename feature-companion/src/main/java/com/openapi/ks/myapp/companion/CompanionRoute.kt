@@ -28,7 +28,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import com.openapi.core.CommonConstants
+import com.openapi.core.config.CommonConstants
 import com.openapi.common.util.android.PreferenceUtils
 import com.openapi.feature.companion.R
 import com.openapi.core.config.Constants

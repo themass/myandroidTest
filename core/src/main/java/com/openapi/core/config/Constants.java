@@ -74,7 +74,7 @@ public class Constants {
     public static final String PLAYCORE_SWITCH = "PLAYCORE_SWITCH";
     /**
      * 视频播放内核：0 Exo(Media3)、1 IJK+FFmpeg(ex_so)、2 阿里 AliPlayer、3 系统 MediaPlayer。
-     * 与 {@link com.openapi.ks.myapp.video.PlaybackEngineHelper} 一致。
+     * 与 {@link com.openapi.feature.video.PlaybackEngineHelper} 一致。
      */
     public static final String PLAYBACK_ENGINE = "PLAYBACK_ENGINE";
     /** 全屏播放页首次进入时是否已展示过手势提示（Snackbar） */
@@ -221,7 +221,7 @@ public class Constants {
      */
     public static final String MUSIC_UI_AUXIO_STYLE = "MUSIC_UI_AUXIO_STYLE";
     /**
-     * 音乐播放模式持久化（与 {@link com.openapi.ks.myapp.content.sound.PlayService} 中 status 1～4 对应）。
+     * 音乐播放模式持久化（与 {@link com.openapi.feature.content.sound.PlayService} 中 status 1～4 对应）。
      */
     public static final String MUSIC_PLAY_MODE_PREF = "MUSIC_PLAY_MODE_PREF";
     /** {@link com.openapi.core.model.RecommendVo}，音乐详情页与列表共用收藏上下文 */

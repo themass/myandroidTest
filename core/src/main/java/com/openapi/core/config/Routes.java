@@ -3,7 +3,7 @@ package com.openapi.core.config;
 import android.content.Context;
 import android.content.Intent;
 
-import com.openapi.core.ads.yewu.ads.base.AdsContext;
+import com.openapi.ads.base.AdsContext;
 import com.openapi.common.util.android.StaticDataUtil;
 import com.openapi.core.model.RecommendVo;
 import com.openapi.core.legacyui.base.CommonFragmentActivity;
@@ -17,19 +17,19 @@ import java.io.Serializable;
 public final class Routes {
 
     /** 登录页，在 :feature-user。 */
-    public static final String LOGIN = "com.openapi.ks.myapp.ui.user.login.LoginActivity";
+    public static final String LOGIN = "com.openapi.feature.user.login.LoginActivity";
 
     /** 视频播放页，在 :feature-video。参数用 Constants.CONFIG_PARAM 传递。 */
-    public static final String VIDEO_SHOW = "com.openapi.ks.myapp.video.page.VideoShowActivity";
+    public static final String VIDEO_SHOW = "com.openapi.feature.video.page.VideoShowActivity";
 
     /** 延迟取地址的视频播放页，在 :feature-video。 */
-    public static final String VIDEO_SHOW_LAZY_URL = "com.openapi.ks.myapp.video.page.VideoShowActivityLazyUrl";
+    public static final String VIDEO_SHOW_LAZY_URL = "com.openapi.feature.video.page.VideoShowActivityLazyUrl";
 
     /** 设置页，在 :feature-user。 */
-    public static final String SETTING = "com.openapi.ks.myapp.ui.user.setting.SettingActivity";
+    public static final String SETTING = "com.openapi.feature.user.setting.SettingActivity";
 
     /** 全局搜索结果页（频道里的视频列表），在 :feature-content。 */
-    public static final String GLOBAL_VIDEO_SEARCH = "com.openapi.ks.myapp.content.video.GlobalVideoChannelListFragment";
+    public static final String GLOBAL_VIDEO_SEARCH = "com.openapi.feature.content.video.GlobalVideoChannelListFragment";
 
     private Routes() {
     }

@@ -10,14 +10,14 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.openapi.core.CommonConstants;
+import com.openapi.core.config.CommonConstants;
 import com.openapi.uikit.widget.MyWebView;
 import com.openapi.common.util.android.AudioMngHelper;
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.common.util.android.PackageUtils;
 import com.openapi.common.util.android.SystemUtils;
 import com.openapi.common.util.android.ToastUtil;
-import com.openapi.core.ads.yewu.ads.base.AdsContext;
+import com.openapi.ads.base.AdsContext;
 import com.openapi.network.request.CommonResponse;
 import com.openapi.core.R;
 import com.openapi.core.model.CustomeAddForm;

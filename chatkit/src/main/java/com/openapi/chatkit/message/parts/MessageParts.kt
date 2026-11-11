@@ -165,7 +165,7 @@ fun ImageGrid(
                 .combinedClickable(onClick = { viewerStart = 0 }, onLongClick = { onLongPress(sources[0]) }),
         )
     } else {
-        // 多图：2–4 张用堆叠卡片，5 张及以上用横向轮播（通用媒体组件 com.openapi.media.viewer）
+        // 多图：2–4 张用堆叠卡片，5 张及以上用横向轮播（通用媒体组件 :mediaview）
         val items = sources.map { MediaItem(model = imageModel(it)) }
         val onTap: (Int) -> Unit = { index -> viewerStart = index }
         val onLong: (Int) -> Unit = { index -> onLongPress(sources[index]) }

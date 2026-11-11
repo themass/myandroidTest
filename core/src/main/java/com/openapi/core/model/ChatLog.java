@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey;
 
 import java.util.Date;
 
-import chat.ui.data.model.MessageType;
+import com.openapi.core.model.MessageType;
 
 @Entity(
         tableName = "ChatLog",

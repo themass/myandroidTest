@@ -14,7 +14,7 @@ android {
 }
 
 dependencies {
-    // 拍照解题：图像处理与模型在 :core（com.aimath.paizhao.photosolve.image/quality/cropassist）
+    // 拍照解题：图像处理与模型在 :imaging
     implementation project(':common')
     implementation project(':imaging')
     implementation project(':uikit')

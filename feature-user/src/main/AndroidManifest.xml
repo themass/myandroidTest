@@ -2,22 +2,22 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application>
         <activity
-            android:name="com.openapi.ks.myapp.ui.user.login.LoginActivity"
+            android:name="com.openapi.feature.user.login.LoginActivity"
         />
         <activity
-            android:name="com.openapi.ks.myapp.ui.user.register.RegActivity"
+            android:name="com.openapi.feature.user.register.RegActivity"
         />
         <activity
-            android:name="com.openapi.ks.myapp.ui.user.password.FindPassActivity"
+            android:name="com.openapi.feature.user.password.FindPassActivity"
         />
         <activity
-            android:name="com.openapi.ks.myapp.ui.user.setting.SettingActivity"
+            android:name="com.openapi.feature.user.setting.SettingActivity"
         />
         <activity
-            android:name="com.openapi.ks.myapp.ui.user.profile.AddCustomeInfoActivity"
+            android:name="com.openapi.feature.user.profile.AddCustomeInfoActivity"
         />
         <activity
-            android:name="com.openapi.ks.myapp.ui.feedback.FeedbackActivity"
+            android:name="com.openapi.feature.user.feedback.FeedbackActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme" />

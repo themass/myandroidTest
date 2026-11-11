@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.openapi.ks.chat"
+    namespace = "com.openapi.app"
     compileSdk = rootProject.ext.compileSdkVersion
     ndkVersion = "27.0.12077973"
 

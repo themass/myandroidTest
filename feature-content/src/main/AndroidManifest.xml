@@ -2,31 +2,31 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application>
         <activity
-            android:name="com.openapi.ks.myapp.content.sound.SoundChannleActivity"
+            android:name="com.openapi.feature.content.sound.SoundChannleActivity"
         />
         <activity
-            android:name="com.openapi.ks.myapp.content.text.TextChannleActivity" />
+            android:name="com.openapi.feature.content.text.TextChannleActivity" />
         <activity
-            android:name="com.openapi.ks.myapp.content.image.ImgChannleActivity"
+            android:name="com.openapi.feature.content.image.ImgChannleActivity"
         />
         <activity
-            android:name="com.openapi.ks.myapp.content.video.VideoChannleActivity"
+            android:name="com.openapi.feature.content.video.VideoChannleActivity"
         />
         <activity
-            android:name="com.openapi.ks.myapp.content.video.MovieChannleActivity"
+            android:name="com.openapi.feature.content.video.MovieChannleActivity"
         />
         <activity
-            android:name="com.openapi.ks.myapp.content.sound.TeleplayActivity"
+            android:name="com.openapi.feature.content.sound.TeleplayActivity"
         />
         <activity
-            android:name="com.openapi.ks.myapp.content.sound.SoundDetailActivity"
+            android:name="com.openapi.feature.content.sound.SoundDetailActivity"
             android:theme="@style/AppTheme" />
         <activity
-            android:name="com.openapi.ks.myapp.content.image.MyFullScreenImageGalleryActivity"
+            android:name="com.openapi.feature.content.image.MyFullScreenImageGalleryActivity"
         />
         <activity
-            android:name="com.openapi.ks.myapp.content.config.QuickBrowserConfigActivity"
+            android:name="com.openapi.feature.content.config.QuickBrowserConfigActivity"
             android:theme="@style/myTransparent" />
-            <service android:name="com.openapi.ks.myapp.content.sound.PlayService" />
+            <service android:name="com.openapi.feature.content.sound.PlayService" />
     </application>
 </manifest>

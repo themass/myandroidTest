@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.openapi.ks.chat"
     android:versionCode="1"
     android:versionName="1.0">
     <!-- 隐私权-->
@@ -92,7 +91,7 @@
     <!--适配Android R包可见性 结束-->
 
     <application
-        android:name="com.openapi.ks.myapp.base.MyApplication"
+        android:name="com.openapi.app.MyApplication"
         android:allowBackup="false"
         android:allowNativeHeapPointerTagging="false"
         android:icon="@drawable/ic_launcher"
@@ -114,7 +113,7 @@
 
         <meta-data
             android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
-            android:value="com.openapi.ks.myapp.cast.AppCastOptionsProvider" />
+            android:value="com.openapi.feature.video.cast.AppCastOptionsProvider" />
 
         <meta-data
             android:name="com.bumptech.glide.integration.okhttp.OkHttpGlideModule"
@@ -128,20 +127,24 @@
             android:name="android.allow_multiple_resumed_activities"
             android:value="true" />
         <activity
+            android:name="com.openapi.app.LaunchActivity"
+            android:exported="true"
+            android:theme="@style/AppTheme.Launch" />
+        <!-- 启动入口保留旧的组件名：类已移到 com.openapi.app，但桌面图标和快捷方式记录的是旧组件名，
+             用别名指向新类，升级后旧图标仍然能打开。启动器的 intent-filter 只放在这里，避免出现两个图标。 -->
+        <activity-alias
             android:name="com.openapi.ks.chatfree.ui.main.LaunchActivity"
             android:exported="true"
-            android:theme="@style/AppTheme.Launch"
-            >
+            android:targetActivity="com.openapi.app.LaunchActivity">
             <intent-filter tools:ignore="GoogleAppIndexingWarning">
                 <action android:name="android.intent.action.VIEW" />
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
-        </activity>
+        </activity-alias>
         <activity
-            android:name="com.openapi.home.HomeActivity"
+            android:name="com.openapi.app.home.HomeActivity"
             android:exported="false"
             android:label="@string/main_activity_name"
             android:launchMode="singleTask"

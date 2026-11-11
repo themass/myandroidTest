@@ -9,7 +9,7 @@ import android.graphics.Bitmap
  *
  * Google's ML Kit Document Scanner is deliberately NOT a [CropAssistProvider]: its public API
  * only launches a full-screen scan-and-crop activity and returns a final image, with no way to
- * retrieve raw corner coordinates — see [com.aimath.paizhao.photosolve.ui.MlKitScanLauncher]
+ * retrieve raw corner coordinates — see MlKitScanLauncher（:feature-photosolve）
  * for that separate, whole-flow entry point instead.
  */
 interface CropAssistProvider {

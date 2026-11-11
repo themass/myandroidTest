@@ -15,6 +15,9 @@ android {
 }
 
 dependencies {
+    testImplementation 'org.robolectric:robolectric:4.17'
+    testImplementation 'androidx.test:core:1.7.0'
+    testImplementation libs.kotlinx.coroutines.test
     implementation libs.androidx.appcompat
     implementation libs.androidx.recyclerview
     implementation libs.glide

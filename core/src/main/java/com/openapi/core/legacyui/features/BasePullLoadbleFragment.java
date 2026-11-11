@@ -19,9 +19,9 @@ import com.openapi.core.R;
 import com.openapi.uikit.widget.DividerItemDecoration;
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.common.util.lang.StringUtils;
-import com.openapi.core.legacyui.gsy.ListShellState;
-import com.openapi.core.legacyui.gsy.ListShellView;
-import com.openapi.core.legacyui.gsy.ListStateOverlay;
+import com.openapi.core.legacyui.list.ListShellState;
+import com.openapi.core.legacyui.list.ListShellView;
+import com.openapi.core.legacyui.list.ListStateOverlay;
 
 /**
  * Created by openapi on 2016/8/12.

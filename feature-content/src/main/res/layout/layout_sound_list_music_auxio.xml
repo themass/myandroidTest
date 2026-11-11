@@ -48,7 +48,7 @@
             </LinearLayout>
         </LinearLayout>
 
-        <com.openapi.core.legacyui.gsy.ListShellView
+        <com.openapi.core.legacyui.list.ListShellView
             android:id="@+id/my_pullview"
             android:layout_width="match_parent"
             android:layout_height="0dp"

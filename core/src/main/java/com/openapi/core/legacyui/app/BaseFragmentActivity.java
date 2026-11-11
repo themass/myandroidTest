@@ -2,7 +2,7 @@ package com.openapi.core.legacyui.app;
 
 import android.os.Build;
 import com.openapi.common.util.log.LogUtil;
-import com.openapi.core.ads.yewu.um.MobAgent;
+import com.openapi.ads.analytics.MobAgent;
 
 /**
  * Created by openapi on 2016/8/18.

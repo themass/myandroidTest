@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application>
         <activity
-            android:name="com.aimath.paizhao.PhotoSolveActivity"
+            android:name="com.openapi.feature.photosolve.PhotoSolveActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme"
