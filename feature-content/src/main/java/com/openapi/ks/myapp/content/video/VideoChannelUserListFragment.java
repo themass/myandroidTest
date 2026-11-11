@@ -8,7 +8,7 @@ import android.os.Bundle;
 import android.os.Build;
 import android.view.View;
 
-import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.log.LogUtil;
 import com.openapi.core.ads.yewu.ads.base.AdsContext;
 import com.openapi.common.net.request.InfoListVo;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;

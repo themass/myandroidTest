@@ -1,7 +1,7 @@
 package com.openapi.common.net.interceptor;
 
 import com.openapi.common.net.HttpDNSUtil;
-import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.log.LogUtil;
 
 import java.io.IOException;
 

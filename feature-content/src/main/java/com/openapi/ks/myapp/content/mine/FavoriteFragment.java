@@ -18,11 +18,11 @@ import androidx.fragment.app.Fragment;
 
 import com.openapi.core.event.FavoriteVo;
 import com.openapi.core.util.FavoriteUtil;
-import com.openapi.common.util.FileUtils;
-import com.openapi.common.util.GsonUtils;
-import com.openapi.common.util.PathUtil;
-import com.openapi.common.util.SystemUtils;
-import com.openapi.common.util.ToastUtil;
+import com.openapi.common.util.android.FileUtils;
+import com.openapi.common.util.json.GsonUtils;
+import com.openapi.common.util.android.PathUtil;
+import com.openapi.common.util.android.SystemUtils;
+import com.openapi.common.util.android.ToastUtil;
 import com.openapi.feature.content.R;
 import com.openapi.ks.myapp.content.image.ImgItemsVo;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;

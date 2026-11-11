@@ -5,7 +5,7 @@ import android.content.Context;
 import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.ads.initialization.InitializationStatus;
 import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
-import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.log.LogUtil;
 
 
 /**

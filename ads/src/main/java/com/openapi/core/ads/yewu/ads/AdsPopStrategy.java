@@ -3,9 +3,9 @@ package com.openapi.core.ads.yewu.ads;
 import android.content.Context;
 
 import com.openapi.core.ads.R;
-import com.openapi.common.util.StaticDataUtil;
-import com.openapi.common.util.SystemUtils;
-import com.openapi.common.util.ToastUtil;
+import com.openapi.common.util.android.StaticDataUtil;
+import com.openapi.common.util.android.SystemUtils;
+import com.openapi.common.util.android.ToastUtil;
 import com.openapi.core.ads.yewu.ads.base.AdsContext;
 import com.openapi.core.ads.yewu.ads.base.AdsManager;
 

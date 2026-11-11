@@ -6,8 +6,8 @@ import android.net.Uri;
 
 import com.openapi.common.design.dialog.AppDialogHost;
 import com.openapi.common.design.dialog.DialogAction;
-import com.openapi.common.util.PackageUtils;
-import com.openapi.common.util.PreferenceUtils;
+import com.openapi.common.util.android.PackageUtils;
+import com.openapi.common.util.android.PreferenceUtils;
 import com.openapi.common.net.NetUtils;
 import com.openapi.ks.myapp.bean.vo.VersionVo;
 import com.openapi.core.R;

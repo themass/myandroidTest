@@ -10,8 +10,8 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.openapi.common.util.LogUtil;
-import com.openapi.common.util.ViewUtils;
+import com.openapi.common.util.log.LogUtil;
+import com.openapi.common.util.android.ViewUtils;
 import com.openapi.ks.myapp.constant.Constants;
 
 import java.io.Serializable;

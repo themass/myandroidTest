@@ -17,8 +17,8 @@ import com.openapi.chat.domain.model.ChatSession
 import com.openapi.chat.domain.model.ChatStreamEvent
 import com.openapi.chat.domain.repository.ChatRepository
 import com.openapi.common.net.request.CommonResponse
-import com.openapi.common.util.LogUtil
-import com.openapi.common.util.PreferenceUtils
+import com.openapi.common.util.log.LogUtil
+import com.openapi.common.util.android.PreferenceUtils
 import com.openapi.common.net.request.BaseRequest
 import com.openapi.ks.myapp.bean.form.ChatLog
 import com.openapi.ks.myapp.bean.form.ChatSessionLog

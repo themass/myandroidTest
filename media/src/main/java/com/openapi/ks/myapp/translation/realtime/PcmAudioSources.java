@@ -2,7 +2,7 @@ package com.openapi.ks.myapp.translation.realtime;
 
 import android.content.Context;
 
-import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.log.LogUtil;
 
 import java.io.IOException;
 import java.util.Locale;

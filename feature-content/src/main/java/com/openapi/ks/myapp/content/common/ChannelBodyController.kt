@@ -8,9 +8,9 @@ import androidx.compose.runtime.setValue
 import com.openapi.common.net.BaseService
 import com.openapi.common.net.request.InfoListVo
 import com.openapi.common.net.awaitInfoList
-import com.openapi.common.util.LogUtil
-import com.openapi.common.util.PreferenceUtils
-import com.openapi.common.util.StringUtils
+import com.openapi.common.util.log.LogUtil
+import com.openapi.common.util.android.PreferenceUtils
+import com.openapi.common.util.lang.StringUtils
 import com.openapi.ks.myapp.bean.vo.RecommendVo
 import com.openapi.ks.myapp.constant.Constants
 import kotlinx.coroutines.CancellationException

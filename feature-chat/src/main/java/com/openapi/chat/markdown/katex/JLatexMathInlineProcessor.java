@@ -2,7 +2,7 @@ package com.openapi.chat.markdown.katex;
 
 import androidx.annotation.Nullable;
 
-import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.log.LogUtil;
 
 import org.commonmark.node.Node;
 

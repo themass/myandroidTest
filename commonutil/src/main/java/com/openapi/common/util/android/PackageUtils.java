@@ -1,4 +1,4 @@
-package com.openapi.common.util;
+package com.openapi.common.util.android;
 /**
  * Created by sssong on 13-12-4.
  */
@@ -13,8 +13,8 @@ import android.net.Uri;
 import android.os.Build;
 import android.text.TextUtils;
 
-import com.openapi.common.util.CollectionUtils;
-import com.openapi.common.util.StringUtils;
+import com.openapi.common.util.lang.CollectionUtils;
+import com.openapi.common.util.lang.StringUtils;
 
 import java.io.File;
 import java.util.List;

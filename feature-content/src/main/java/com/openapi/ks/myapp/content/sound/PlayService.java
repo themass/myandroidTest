@@ -15,8 +15,8 @@ import android.os.Handler;
 import android.os.Looper;import android.os.IBinder;
 
 
-import com.openapi.common.util.LogUtil;
-import com.openapi.common.util.PreferenceUtils;
+import com.openapi.common.util.log.LogUtil;
+import com.openapi.common.util.android.PreferenceUtils;
 import com.openapi.ks.myapp.bean.vo.SoundItemsVo;
 import com.openapi.ks.myapp.constant.Constants;
 

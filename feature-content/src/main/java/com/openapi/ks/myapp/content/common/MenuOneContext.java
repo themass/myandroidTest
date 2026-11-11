@@ -1,6 +1,6 @@
 package com.openapi.ks.myapp.content.common;
 
-import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.log.LogUtil;
 
 import android.content.Context;
 import android.view.Menu;

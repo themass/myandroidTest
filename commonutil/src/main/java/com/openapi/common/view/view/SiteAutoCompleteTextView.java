@@ -12,7 +12,7 @@ import androidx.appcompat.widget.AppCompatAutoCompleteTextView;
 
 import com.openapi.common.R;
 import com.openapi.common.databinding.RegisterAutoCompleteItemBinding;
-import com.openapi.common.util.StringUtils;
+import com.openapi.common.util.lang.StringUtils;
 
 
 public class SiteAutoCompleteTextView extends AppCompatAutoCompleteTextView {

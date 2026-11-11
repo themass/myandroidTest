@@ -12,7 +12,7 @@ import androidx.sqlite.SQLite;
 import androidx.sqlite.SQLiteConnection;
 
 import com.openapi.core.event.FavoriteVo;
-import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.log.LogUtil;
 import com.openapi.ks.myapp.bean.form.ChatLog;
 import com.openapi.ks.myapp.bean.form.ChatSessionLog;
 import com.openapi.ks.myapp.bean.form.ConnLog;

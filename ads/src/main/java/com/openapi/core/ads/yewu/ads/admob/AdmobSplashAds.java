@@ -15,7 +15,7 @@ import com.openapi.core.ads.yewu.ads.AdsIds;
 import com.openapi.core.ads.yewu.ads.base.SplashAdsInter;
 import com.openapi.core.ads.yewu.ads.config.SplashAdDissmisEvent;
 import com.openapi.core.ads.yewu.ads.config.AdsEvents;
-import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.log.LogUtil;
 import com.openapi.core.ads.yewu.ads.base.AdsContext;
 
 

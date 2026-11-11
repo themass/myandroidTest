@@ -5,9 +5,9 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 
-import com.openapi.common.util.FileUtils;
-import com.openapi.common.util.LogUtil;
-import com.openapi.common.util.PathUtil;
+import com.openapi.common.util.android.FileUtils;
+import com.openapi.common.util.log.LogUtil;
+import com.openapi.common.util.android.PathUtil;
 import com.openapi.common.net.HttpUtils;
 
 import java.io.File;

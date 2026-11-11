@@ -7,7 +7,7 @@ import androidx.fragment.app.Fragment;
 
 import android.view.View;
 
-import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.log.LogUtil;
 import com.openapi.core.ads.yewu.ads.base.AdsContext;
 import com.openapi.feature.content.R;
 import com.openapi.ks.myapp.ui.base.app.BaseFragmentActivity;

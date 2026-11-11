@@ -4,7 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 
 import com.openapi.core.ads.yewu.ads.base.AdsContext;
-import com.openapi.common.util.StaticDataUtil;
+import com.openapi.common.util.android.StaticDataUtil;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
 

@@ -8,12 +8,12 @@ import androidx.multidex.MultiDexApplication;
 
 import com.openapi.core.CommonConstants;
 import com.openapi.core.media.AudioPlayer;
-import com.openapi.common.util.StaticDataUtil;
-import com.openapi.common.util.ToastUtil;
-import com.openapi.common.util.ScreenSize;
-import com.openapi.common.util.FileUtils;
-import com.openapi.common.util.LogUtil;
-import com.openapi.common.util.SystemUtils;
+import com.openapi.common.util.android.StaticDataUtil;
+import com.openapi.common.util.android.ToastUtil;
+import com.openapi.common.util.android.ScreenSize;
+import com.openapi.common.util.android.FileUtils;
+import com.openapi.common.util.log.LogUtil;
+import com.openapi.common.util.android.SystemUtils;
 import com.openapi.core.ads.yewu.ads.base.AdsManager;
 import com.openapi.common.net.HttpClient;
 import com.openapi.common.net.BaseService;

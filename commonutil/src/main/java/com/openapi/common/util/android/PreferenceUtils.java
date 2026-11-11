@@ -1,4 +1,6 @@
-package com.openapi.common.util;
+package com.openapi.common.util.android;
+
+import com.openapi.common.util.json.GsonUtils;
 
 import android.content.Context;
 import android.content.SharedPreferences;

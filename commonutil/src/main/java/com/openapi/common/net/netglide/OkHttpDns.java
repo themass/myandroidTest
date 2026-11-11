@@ -2,7 +2,7 @@ package com.openapi.common.net.netglide;
 
 import android.content.Context;
 
-import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.log.LogUtil;
 import com.openapi.common.net.HttpDNSUtil;
 
 import java.net.InetAddress;

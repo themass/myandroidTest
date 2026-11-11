@@ -2,9 +2,9 @@ package com.openapi.ks.myapp.video;
 
 import android.content.Context;
 
-import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.log.LogUtil;
 import com.openapi.ks.myapp.video.PlaybackEnginePrefs;
-import com.openapi.common.util.PreferenceUtils;
+import com.openapi.common.util.android.PreferenceUtils;
 import com.openapi.ks.myapp.constant.Constants;
 import com.shuyu.gsyvideoplayer.cache.CacheFactory;
 import com.shuyu.gsyvideoplayer.cache.ProxyCacheManager;

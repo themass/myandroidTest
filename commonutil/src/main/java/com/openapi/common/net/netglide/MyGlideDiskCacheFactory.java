@@ -3,7 +3,7 @@ package com.openapi.common.net.netglide;
 import android.content.Context;
 
 import com.bumptech.glide.load.engine.cache.DiskLruCacheFactory;
-import com.openapi.common.util.FileUtils;
+import com.openapi.common.util.android.FileUtils;
 
 import java.io.File;
 

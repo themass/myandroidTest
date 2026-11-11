@@ -1,4 +1,7 @@
-package com.openapi.common.util;
+package com.openapi.common.util.android;
+
+import com.openapi.common.util.log.LogUtil;
+import com.openapi.common.util.lang.StringUtils;
 
 import android.content.Context;
 import android.content.pm.ApplicationInfo;

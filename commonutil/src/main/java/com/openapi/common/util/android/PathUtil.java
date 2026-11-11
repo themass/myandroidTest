@@ -1,10 +1,10 @@
-package com.openapi.common.util;
+package com.openapi.common.util.android;
 
 import android.content.Context;
 import android.os.Environment;
 import android.text.TextUtils;
 
-import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.log.LogUtil;
 
 import java.io.File;
 import java.io.IOException;

@@ -2,8 +2,8 @@ package com.openapi.common.net;
 
 import android.content.Context;
 
-import com.openapi.common.util.BeanUtil;
-import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.lang.BeanUtil;
+import com.openapi.common.util.log.LogUtil;
 import com.openapi.common.net.request.CommonResponse;
 import com.openapi.common.net.request.GsonRequest;
 import com.openapi.common.net.request.MultipartRequest;

@@ -19,12 +19,12 @@ import com.openapi.core.view.translation.RealtimeSubtitleSession;
 import com.openapi.core.view.translation.StreamingSubtitleOverlayPresenter;
 import com.openapi.core.view.translation.TranslationOverlayPresenter;
 import com.openapi.core.view.translation.TranslationOverlaySession;
-import com.openapi.common.util.PackageUtils;
+import com.openapi.common.util.android.PackageUtils;
 import com.openapi.core.R;
 import com.openapi.core.databinding.DialogFavoriteExternalLinesBinding;
 import com.openapi.core.databinding.LayoutFavoriteBarBinding;
-import com.openapi.common.util.SystemUtils;
-import com.openapi.common.util.ToastUtil;
+import com.openapi.common.util.android.SystemUtils;
+import com.openapi.common.util.android.ToastUtil;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;

@@ -3,7 +3,7 @@ package com.openapi.ks.myapp.ui.base.app;
 import android.content.Intent;
 import android.os.Bundle;
 
-import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.log.LogUtil;
 
 /**
  * Created by openapi on 2016/3/22.

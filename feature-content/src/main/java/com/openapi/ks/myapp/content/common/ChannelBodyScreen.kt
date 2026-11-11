@@ -67,7 +67,7 @@ import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
-import com.openapi.common.util.StringUtils
+import com.openapi.common.util.lang.StringUtils
 import com.openapi.feature.content.R
 import com.openapi.ks.myapp.bean.vo.RecommendVo
 import com.openapi.ks.myapp.constant.Constants
@@ -449,7 +449,7 @@ private fun fetchBase64(url: String, onBody: (String) -> Unit) {
     val request = Request.Builder().url(url).build()
     base64Client.newCall(request).enqueue(object : Callback {
         override fun onFailure(call: Call, e: IOException) {
-            com.openapi.common.util.LogUtil.e("onFailure", e)
+            com.openapi.common.util.log.LogUtil.e("onFailure", e)
         }
 
         override fun onResponse(call: Call, response: Response) {

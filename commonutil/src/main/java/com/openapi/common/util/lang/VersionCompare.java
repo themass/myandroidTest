@@ -1,4 +1,4 @@
-package com.openapi.common.util;
+package com.openapi.common.util.lang;
 
 /**
  * 版本号比较：按点分段，每段按数字比较，所以 "2.10" > "2.9"（字符串比较会得到相反的结果）。

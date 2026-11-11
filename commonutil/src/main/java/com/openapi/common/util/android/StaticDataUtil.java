@@ -1,6 +1,6 @@
-package com.openapi.common.util;
+package com.openapi.common.util.android;
 
-import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.log.LogUtil;
 
 import java.util.HashMap;
 import java.util.Map;

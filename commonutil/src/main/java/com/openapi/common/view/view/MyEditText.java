@@ -1,6 +1,6 @@
 package com.openapi.common.view.view;
 
-import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.log.LogUtil;
 
 import android.content.Context;
 import android.graphics.Typeface;

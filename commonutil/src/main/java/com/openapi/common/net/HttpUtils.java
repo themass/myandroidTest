@@ -4,9 +4,9 @@ import android.content.Context;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.openapi.common.util.CollectionUtils;
-import com.openapi.common.util.LogUtil;
-import com.openapi.common.util.PackageUtils;
+import com.openapi.common.util.lang.CollectionUtils;
+import com.openapi.common.util.log.LogUtil;
+import com.openapi.common.util.android.PackageUtils;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;

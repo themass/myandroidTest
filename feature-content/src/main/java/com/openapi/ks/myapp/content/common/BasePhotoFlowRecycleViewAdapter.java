@@ -11,7 +11,7 @@ import android.view.animation.Interpolator;
 
 import com.openapi.common.view.touchhelper.ItemTouchHelperAdapter;
 import com.openapi.common.view.touchhelper.OnStartDragListener;
-import com.openapi.common.util.ScreenSize;
+import com.openapi.common.util.android.ScreenSize;
 
 import java.util.ArrayList;
 import java.util.Collections;

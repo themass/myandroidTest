@@ -11,7 +11,7 @@ import androidx.fragment.app.Fragment;
 import android.util.Log;
 import android.widget.FrameLayout;
 
-import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.log.LogUtil;
 import com.openapi.feature.video.R;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.ui.base.features.BasePullLoadbleFragment;

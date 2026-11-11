@@ -1,6 +1,6 @@
 package com.openapi.core.util;
 
-import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.log.LogUtil;
 
 import android.content.Context;
 import android.os.Handler;
@@ -10,9 +10,9 @@ import com.openapi.core.event.FavoriteVo;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import com.openapi.common.util.CollectionUtils;
-import com.openapi.common.util.DateUtils;
-import com.openapi.common.util.GsonUtils;
+import com.openapi.common.util.lang.CollectionUtils;
+import com.openapi.common.util.lang.DateUtils;
+import com.openapi.common.util.json.GsonUtils;
 import com.openapi.core.favorite.FavoriteStore;
 
 import java.util.Date;

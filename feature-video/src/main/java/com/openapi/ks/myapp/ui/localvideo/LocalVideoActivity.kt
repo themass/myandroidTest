@@ -57,7 +57,7 @@ import androidx.core.content.ContextCompat
 import com.openapi.common.design.theme.AppColors
 import com.openapi.common.design.theme.AppMaterialTheme
 import com.openapi.common.permission.Permissions
-import com.openapi.common.util.ToastUtil
+import com.openapi.common.util.android.ToastUtil
 import com.openapi.feature.video.R
 import com.openapi.ks.myapp.bean.vo.RecommendVo
 import com.openapi.ks.myapp.constant.Constants

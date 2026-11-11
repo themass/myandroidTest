@@ -21,9 +21,9 @@ import android.webkit.WebViewClient;
 
 import com.openapi.ks.myapp.ui.base.app.BaseFragment;
 import com.openapi.common.view.view.MyWebView;
-import com.openapi.common.util.FileUtils;
-import com.openapi.common.util.IpUtil;
-import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.android.FileUtils;
+import com.openapi.common.util.android.IpUtil;
+import com.openapi.common.util.log.LogUtil;
 import com.openapi.common.net.HttpUtils;
 import com.openapi.core.R;
 import com.openapi.core.app.AppContext;

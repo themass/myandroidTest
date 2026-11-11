@@ -4,9 +4,9 @@ import android.content.Context;
 import android.content.Intent;
 
 import com.openapi.core.CommonConstants;
-import com.openapi.common.util.PreferenceUtils;
+import com.openapi.common.util.android.PreferenceUtils;
 import com.openapi.core.ads.yewu.um.MobAgent;
-import com.openapi.common.util.StaticDataUtil;
+import com.openapi.common.util.android.StaticDataUtil;
 import com.openapi.core.app.AppContext;
 import com.openapi.ks.myapp.bean.vo.UserInfoVo;
 import com.openapi.ks.myapp.constant.Constants;

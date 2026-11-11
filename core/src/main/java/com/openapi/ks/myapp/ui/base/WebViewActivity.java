@@ -12,11 +12,11 @@ import android.view.View;
 
 import com.openapi.core.CommonConstants;
 import com.openapi.common.view.view.MyWebView;
-import com.openapi.common.util.AudioMngHelper;
-import com.openapi.common.util.LogUtil;
-import com.openapi.common.util.PackageUtils;
-import com.openapi.common.util.SystemUtils;
-import com.openapi.common.util.ToastUtil;
+import com.openapi.common.util.android.AudioMngHelper;
+import com.openapi.common.util.log.LogUtil;
+import com.openapi.common.util.android.PackageUtils;
+import com.openapi.common.util.android.SystemUtils;
+import com.openapi.common.util.android.ToastUtil;
 import com.openapi.core.ads.yewu.ads.base.AdsContext;
 import com.openapi.common.net.request.CommonResponse;
 import com.openapi.core.R;

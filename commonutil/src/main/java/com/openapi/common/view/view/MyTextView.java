@@ -1,6 +1,6 @@
 package com.openapi.common.view.view;
 
-import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.log.LogUtil;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -12,8 +12,8 @@ import android.text.Layout;
 import android.util.AttributeSet;
 import android.widget.TextView;
 
-import com.openapi.common.util.ScreenSize;
-import com.openapi.common.util.Tools;
+import com.openapi.common.util.android.ScreenSize;
+import com.openapi.common.util.android.Tools;
 
 /**
  * 自定义TextView

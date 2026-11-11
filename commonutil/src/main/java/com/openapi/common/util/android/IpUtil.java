@@ -1,4 +1,4 @@
-package com.openapi.common.util;
+package com.openapi.common.util.android;
 
 import android.content.Context;
 import android.net.wifi.WifiInfo;
@@ -6,7 +6,7 @@ import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.util.Log;
 
-import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.log.LogUtil;
 
 import org.json.JSONObject;
 

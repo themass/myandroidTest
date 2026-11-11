@@ -2,7 +2,7 @@ package com.openapi.ks.myapp.translation.realtime;
 
 import androidx.annotation.Nullable;
 
-import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.log.LogUtil;
 
 import org.json.JSONArray;
 import org.json.JSONObject;

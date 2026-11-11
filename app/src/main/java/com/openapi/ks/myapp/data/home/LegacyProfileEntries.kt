@@ -4,8 +4,8 @@ import android.content.Context
 import com.aimath.paizhao.PhotoSolveActivity
 import com.openapi.core.ads.yewu.um.MobAgent
 import com.openapi.common.net.BaseService
-import com.openapi.common.util.PreferenceUtils
-import com.openapi.common.util.StringUtils
+import com.openapi.common.util.android.PreferenceUtils
+import com.openapi.common.util.lang.StringUtils
 import com.openapi.home.domain.ProfileAction
 import com.openapi.home.domain.ProfileEntries
 import com.openapi.home.domain.ProfileEntry

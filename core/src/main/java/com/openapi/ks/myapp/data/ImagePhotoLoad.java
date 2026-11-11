@@ -19,9 +19,9 @@ import com.bumptech.glide.request.transition.Transition;
 // 使用现代图片查看器替代
 // import com.etiennelawlor.imagegallery.library.adapters.FullScreenImageGalleryAdapter;
 // import com.etiennelawlor.imagegallery.library.adapters.ImageGalleryAdapter;
-import com.openapi.common.util.FileUtils;
-import com.openapi.common.util.LogUtil;
-import com.openapi.common.util.StringUtils;
+import com.openapi.common.util.android.FileUtils;
+import com.openapi.common.util.log.LogUtil;
+import com.openapi.common.util.lang.StringUtils;
 import com.openapi.common.net.netglide.MyGlideModule;
 // 使用现代 Shimmer 替代
 // import com.romainpiel.shimmer.Shimmer;

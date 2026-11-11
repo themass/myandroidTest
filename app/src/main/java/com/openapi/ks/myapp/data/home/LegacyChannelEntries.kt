@@ -9,8 +9,8 @@ import com.openapi.core.event.ConfigActionEvent
 import com.openapi.common.net.BaseService
 import com.openapi.common.net.awaitInfoList
 import com.openapi.core.event.CoreEvents
-import com.openapi.common.util.PreferenceUtils
-import com.openapi.common.util.ToastUtil
+import com.openapi.common.util.android.PreferenceUtils
+import com.openapi.common.util.android.ToastUtil
 import com.openapi.home.domain.Channel
 import com.openapi.home.domain.ChannelCategory
 import com.openapi.home.domain.ChannelEntries

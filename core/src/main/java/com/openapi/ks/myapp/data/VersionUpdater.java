@@ -7,10 +7,10 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 
 import com.openapi.core.CommonConstants;
-import com.openapi.common.util.LogUtil;
-import com.openapi.common.util.PreferenceUtils;
-import com.openapi.common.util.StringUtils;
-import com.openapi.common.util.ToastUtil;
+import com.openapi.common.util.log.LogUtil;
+import com.openapi.common.util.android.PreferenceUtils;
+import com.openapi.common.util.lang.StringUtils;
+import com.openapi.common.util.android.ToastUtil;
 import com.openapi.common.net.HttpDNSUtil;
 import com.openapi.common.net.HttpClient;
 import com.openapi.common.net.request.CommonResponse;

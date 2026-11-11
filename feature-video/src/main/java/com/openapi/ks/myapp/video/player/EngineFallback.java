@@ -3,8 +3,8 @@ package com.openapi.ks.myapp.video.player;
 import android.content.Context;
 import android.view.View;
 
-import com.openapi.common.util.LogUtil;
-import com.openapi.common.util.ToastUtil;
+import com.openapi.common.util.log.LogUtil;
+import com.openapi.common.util.android.ToastUtil;
 import com.openapi.feature.video.R;
 import com.openapi.ks.myapp.video.PlaybackEngineHelper;
 

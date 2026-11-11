@@ -1,7 +1,7 @@
-package com.openapi.common.util;
+package com.openapi.common.util.lang;
 
-import com.openapi.common.util.GsonUtils;
-import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.json.GsonUtils;
+import com.openapi.common.util.log.LogUtil;
 
 import java.lang.reflect.Field;
 import java.util.LinkedHashMap;

@@ -1,8 +1,8 @@
 package com.openapi.common.net.request;
 
-import com.openapi.common.util.AES2;
-import com.openapi.common.util.GsonUtils;
-import com.openapi.common.util.StringUtils;
+import com.openapi.common.util.lang.AES2;
+import com.openapi.common.util.json.GsonUtils;
+import com.openapi.common.util.lang.StringUtils;
 
 import java.lang.reflect.Type;
 

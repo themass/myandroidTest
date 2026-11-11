@@ -8,7 +8,7 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.lifecycle.lifecycleScope
 import com.openapi.common.net.BaseService
-import com.openapi.common.util.ToastUtil
+import com.openapi.common.util.android.ToastUtil
 import com.openapi.feature.content.R
 import com.openapi.ks.myapp.bean.vo.RecommendVo
 import com.openapi.ks.myapp.data.UserLoginUtil

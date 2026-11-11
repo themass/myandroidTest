@@ -1,4 +1,4 @@
-package com.openapi.common.util;
+package com.openapi.common.util.json;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

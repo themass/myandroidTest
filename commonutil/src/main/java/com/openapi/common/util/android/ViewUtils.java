@@ -1,4 +1,4 @@
-package com.openapi.common.util;
+package com.openapi.common.util.android;
 
 import android.app.Activity;
 import android.content.Context;

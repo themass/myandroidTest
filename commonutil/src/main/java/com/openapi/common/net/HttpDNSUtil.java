@@ -2,9 +2,9 @@ package com.openapi.common.net;
 
 import android.net.Uri;
 
-import com.openapi.common.util.LogUtil;
-import com.openapi.common.util.StaticDataUtil;
-import com.openapi.common.util.StringUtils;
+import com.openapi.common.util.log.LogUtil;
+import com.openapi.common.util.android.StaticDataUtil;
+import com.openapi.common.util.lang.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;

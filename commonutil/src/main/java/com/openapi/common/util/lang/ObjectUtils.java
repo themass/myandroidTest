@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.openapi.common.util;
+package com.openapi.common.util.lang;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;

@@ -2,14 +2,14 @@ package com.openapi.ks.myapp.data;
 
 import android.content.Context;
 
-import com.openapi.common.util.Background;
-import com.openapi.common.util.CollectionUtils;
-import com.openapi.common.util.StaticDataUtil;
+import com.openapi.common.util.android.Background;
+import com.openapi.common.util.lang.CollectionUtils;
+import com.openapi.common.util.android.StaticDataUtil;
 import com.openapi.common.net.BaseService;
-import com.openapi.common.util.DateUtils;
-import com.openapi.common.util.GsonUtils;
-import com.openapi.common.util.LogUtil;
-import com.openapi.common.util.StringUtils;
+import com.openapi.common.util.lang.DateUtils;
+import com.openapi.common.util.json.GsonUtils;
+import com.openapi.common.util.log.LogUtil;
+import com.openapi.common.util.lang.StringUtils;
 import com.openapi.common.net.NetUtils;
 import com.openapi.ks.myapp.bean.form.ConnLog;
 import com.openapi.ks.myapp.bean.form.ConnLogForm;

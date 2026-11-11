@@ -10,10 +10,10 @@ import android.view.MenuItem;
 
 import com.openapi.ks.myapp.ui.base.app.LogActivity;
 import com.openapi.common.view.view.MyWebView;
-import com.openapi.common.util.LogUtil;
-import com.openapi.common.util.PackageUtils;
-import com.openapi.common.util.SystemUtils;
-import com.openapi.common.util.ToastUtil;
+import com.openapi.common.util.log.LogUtil;
+import com.openapi.common.util.android.PackageUtils;
+import com.openapi.common.util.android.SystemUtils;
+import com.openapi.common.util.android.ToastUtil;
 import com.openapi.core.R;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.ui.base.features.BaseWebViewFragment;

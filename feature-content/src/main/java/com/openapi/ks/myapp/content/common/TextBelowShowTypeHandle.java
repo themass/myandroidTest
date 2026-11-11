@@ -8,7 +8,7 @@ import com.bumptech.glide.request.target.DrawableImageViewTarget;
 import com.openapi.common.net.netglide.MyGlideModule;
 // 使用现代 Shimmer 替代
 // import com.romainpiel.shimmer.Shimmer;
-import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.log.LogUtil;
 import com.openapi.ks.myapp.content.common.IndexRecommendAdapter;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.data.ImagePhotoLoad;

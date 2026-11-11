@@ -6,7 +6,7 @@ import androidx.media3.common.util.UnstableApi
 import com.openapi.core.event.CoreEvents
 import com.openapi.common.event.appScope
 import com.openapi.common.event.observe
-import com.openapi.common.util.PreferenceUtils
+import com.openapi.common.util.android.PreferenceUtils
 import com.openapi.ks.myapp.constant.Constants
 import com.openapi.ks.myapp.data.UserLoginUtil
 import com.openapi.ks.myapp.ui.user.login.LoginActivity

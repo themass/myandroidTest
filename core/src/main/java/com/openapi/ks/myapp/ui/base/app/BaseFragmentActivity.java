@@ -1,7 +1,7 @@
 package com.openapi.ks.myapp.ui.base.app;
 
 import android.os.Build;
-import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.log.LogUtil;
 import com.openapi.core.ads.yewu.um.MobAgent;
 
 /**

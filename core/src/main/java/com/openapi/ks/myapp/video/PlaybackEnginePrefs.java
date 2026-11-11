@@ -3,7 +3,7 @@ package com.openapi.ks.myapp.video;
 import android.content.Context;
 
 import com.openapi.core.R;
-import com.openapi.common.util.PreferenceUtils;
+import com.openapi.common.util.android.PreferenceUtils;
 import com.openapi.ks.myapp.constant.Constants;
 
 /**

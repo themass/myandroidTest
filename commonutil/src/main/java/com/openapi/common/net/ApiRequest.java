@@ -1,6 +1,6 @@
 package com.openapi.common.net;
 
-import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.log.LogUtil;
 
 import java.io.File;
 import java.util.HashMap;

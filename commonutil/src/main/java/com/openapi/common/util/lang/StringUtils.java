@@ -1,4 +1,4 @@
-package com.openapi.common.util;
+package com.openapi.common.util.lang;
 
 import android.text.TextUtils;
 

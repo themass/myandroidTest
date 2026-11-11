@@ -26,7 +26,7 @@ import com.openapi.core.view.translation.TranslationOverlaySession;
 import com.openapi.core.view.translation.VideoTranslationRegistry;
 import com.openapi.core.view.translation.VideoTranslationRequest;
 import com.openapi.core.view.view.MyFavoriteView;
-import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.log.LogUtil;
 import com.openapi.feature.video.R;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.constant.Constants;

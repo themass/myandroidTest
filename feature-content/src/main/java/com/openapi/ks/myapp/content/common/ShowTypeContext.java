@@ -4,8 +4,8 @@ import android.content.Context;
 
 // 使用现代 Shimmer 替代
 // import com.romainpiel.shimmer.Shimmer;
-import com.openapi.common.util.LogUtil;
-import com.openapi.common.util.StringUtils;
+import com.openapi.common.util.log.LogUtil;
+import com.openapi.common.util.lang.StringUtils;
 import com.openapi.ks.myapp.content.common.IndexRecommendAdapter;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.constant.Constants;

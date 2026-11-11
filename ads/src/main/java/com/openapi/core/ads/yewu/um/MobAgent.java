@@ -3,7 +3,7 @@ package com.openapi.core.ads.yewu.um;
 import android.content.Context;
 
 import com.openapi.core.ads.yewu.ads.base.AdsContext;
-import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.log.LogUtil;
 
 /**
  * Created by dengt on 2016/8/18.

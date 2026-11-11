@@ -1,4 +1,6 @@
-package com.openapi.common.util;
+package com.openapi.common.util.android;
+
+import com.openapi.common.util.log.LogUtil;
 
 import android.app.Activity;
 import android.content.ContentResolver;

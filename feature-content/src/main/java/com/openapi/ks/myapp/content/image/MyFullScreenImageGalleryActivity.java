@@ -14,7 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.openapi.common.util.ToastUtil;
+import com.openapi.common.util.android.ToastUtil;
 import com.openapi.feature.content.R;
 import com.openapi.feature.content.databinding.LayoutImgBigPageViewBinding;
 import com.openapi.ks.myapp.content.image.FullScreenImagePagerAdapter;

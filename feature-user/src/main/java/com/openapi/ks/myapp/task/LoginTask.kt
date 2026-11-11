@@ -6,10 +6,10 @@ import com.openapi.common.net.HttpClient
 import com.openapi.common.net.NetError
 import com.openapi.common.net.Response
 import com.openapi.common.net.request.MultipartRequest
-import com.openapi.common.util.BeanUtil
-import com.openapi.common.util.LogUtil
-import com.openapi.common.util.PreferenceUtils
-import com.openapi.common.util.StringUtils
+import com.openapi.common.util.lang.BeanUtil
+import com.openapi.common.util.log.LogUtil
+import com.openapi.common.util.android.PreferenceUtils
+import com.openapi.common.util.lang.StringUtils
 import com.openapi.ks.myapp.bean.form.LoginForm
 import com.openapi.ks.myapp.bean.vo.UserInfoVo
 import com.openapi.ks.myapp.constant.Constants

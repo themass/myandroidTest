@@ -15,7 +15,7 @@ import com.openapi.common.net.request.InfoListVo;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.content.common.HistoryUtil;
-import com.openapi.common.util.StaticDataUtil;
+import com.openapi.common.util.android.StaticDataUtil;
 import com.openapi.ks.myapp.ui.base.CommonFragmentActivity;
 import com.openapi.feature.content.R;
 

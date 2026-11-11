@@ -7,8 +7,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
-import com.openapi.common.util.ScreenSize;
-import com.openapi.common.util.LogUtil;
+import com.openapi.common.util.android.ScreenSize;
+import com.openapi.common.util.log.LogUtil;
 import com.openapi.feature.chat.R;
 import com.openapi.chat.markdown.katex.MyJLatexMathPlugin;
 
