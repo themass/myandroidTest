@@ -5,134 +5,243 @@
 
 ## 0. 结论先行
 
-**推荐技术路线：Spine（`spine-android`）作为主渲染器，Compose 分层立绘（现有 `SimpleAvatarRenderer`）作为兜底与降级路径，两者都藏在我们已有的 `AvatarRenderer` 接口后面。**
+**推荐技术路线（付费路线）：Spine（`spine-android` + `spine-ios`）作为主渲染器，Compose 分层立绘（现有 `SimpleAvatarRenderer`）作为兜底与降级路径，两者都藏在我们已有的 `AvatarRenderer` 接口后面。**
 
-三个决定性的取舍：
+**如果「免费」是硬约束**：维持现有 Compose 分层 + 序列帧增强，把「换装」降级为「整图切换几套预设」。这条路能走通，但能力上限明确（见 §1.7），且搭配一多就会撑不住——它适合用来**验证需求**，不适合用来交付。
 
-1. **Spine 的 Android 运行时是纯 JVM，AAR 只有 39 KB，没有任何 `.so`。** 我实测下载了 `com.esotericsoftware.spine:spine-android:4.2.9`，AAR 里只有 `classes.jar`（43.8 KB），`jni/` 目录不存在；渲染走 Android 原生 `Canvas.drawVertices`，在硬件加速 Canvas 上即 GPU 三角网格绘制（源码见 §1.2 的说明）。相比 Rive（arm64 光 `.so` 就 3.68 MB，还要带 `libc++_shared.so` 1.29 MB）和 Godot（arm64 `libgodot_android.so` **69 MB** + `libc++_shared.so` 6.9 MB），Spine 的体积代价几乎为零。这对一个用户是中文/英语/阿拉伯语三语、要覆盖大量中低端安卓机的陪伴类 App 是决定性优势。
-2. **Spine 的运行时授权是「买编辑器就带运行时」，没有收入抽成、没有按量计费、没有 MAU 门槛。** 编辑器 Professional 一次性 $379（现价），只有年收入/融资超过 **$500,000 USD** 才必须买 Enterprise（$2,499 基础 + 每人 $379/年）。Live2D 的商务授权是**按年销售额分档的持续付费**，中型企业（年销 < 1 亿日元）每月每平台每区域 $125.68，大型企业 $628.42/月；且 AI/chatbot 场景还要先过「Expandable Application」审核，本产品的形态（用户可创建角色、可换装、可扩展）**有相当概率被判定为 expandable**，那是一条要单独签协议、无法在文档里给出确定价格的路径。
-3. **Spine 的 skin / attachment 模型天然就是「换装 + 配饰」的数据模型。** `Skin` 本质是「槽位名 → Attachment」的字典，运行时可以把多个「单品 skin」合并成一个 skin，不需要为每种搭配预授权美术。这正是我们要的「换衣服、戴眼镜、加帽子」，而不是事后硬凑。Live2D 的对应能力是 Part 显隐 + 换贴图，做单一配件可以，做「任意组合的衣橱」要美术为组合出图。
+### 为什么是 Spine（本轮加强后的理由）
 
-**代价（说清楚）：** Spine 美术管线比 Live2D 重——绑骨、权重、网格、IK 全要美术手工做，一个可动角色大约是 Live2D 同水平角色的 1.5–2 倍工时（**未验证**，行业经验值，不是官方数据）。Live2D 在「一次性高质量二次元立绘、细腻的呼吸与头发物理」上仍然更强，它的缺点在商务条款和体积，不在画质。如果最终产品定位是「少量精修官方角色、不做 UGC 换装」，Live2D 值得重新评估；如果定位是「大量角色 + 用户可换装」，Spine 明显更合适。
+上一版我把「体积小」当第一理由，**这个论证被我自己推翻了**：实测当前 debug APK 已经 280 MB（native 145 MB），Rive 的实测增量 3.68 MB（arm64，`libc++_shared` 已存在）只占 1.3%，体积不构成否决理由。真正的理由是下面四条，按重要性排序：
+
+1. **一套资产，双端原生，官方明文。** Spine 官方明确「一份导出喂所有 Spine Runtimes，只要求编辑器与运行时版本对齐」，iOS 侧 `spine-ios` 是 **Swift/ObjC + Metal** 的原生运行时，走 SPM 直接装进已有 App。对比：Live2D 的 Android 用 Java SDK、iOS **只能用 Native C++ SDK**——是两套语言、两份渲染实现，只能共享资产；Rive 也能双端共享，所以这一条 Spine 和 Rive 打平，但都把 Live2D 甩开了。
+2. **换装是数据模型，不是美术排列组合。** Spine 的 `Skin` 是「槽位名 → Attachment」字典，多件单品可运行时合并，资产体积**不随搭配数增长**。这是唯一能支撑「用户自由搭配」的方案。实测对照：序列帧 10 套衣服 × 8 动作 ≈ 30 MB，且还会随搭配继续膨胀；Spine 加一套衣服只多一张贴图。
+3. **授权干净。** 买编辑器即含运行时，无抽成、无按量、无 MAU。$379 一次性，收入/融资超 $500K 才转 Enterprise（$2,499/年 + $379/人/年）。相比 Live2D 见第 4 条。
+4. **Live2D 在本场景大概率没有可用授权。** 这是本轮最重要的发现：官方把 **avatar** 明确列为 Expandable Application 的示例（原文 `(e.g. avatar)`），这类应用**不享受小规模豁免**，须送审 + 特别协议，且分成是 **$1.88/份 或 20% 销售额取高者**；官方还写明「完全免费的应用原则上不予批准」。我们的产品（用户建角色、换装、买配饰）基本命中这个定义。**建议按「不可用」处理**，除非产品放弃换装。
+
+### 代价（说清楚）
+
+- **Spine 美术管线最重**：绑骨、权重、网格、IK 全要美术手工做，约为 Live2D 同水平角色的 1.5–2 倍工时（**经验值，非官方数据**）。
+- **代价 2：Android 侧是约 2.54 MB 的 JVM 依赖**（`gdx` 2.18 MB + `spine-libgdx` 330 KB + `spine-android` 39.0 KB ≈ 2.54 MB，未混淆）。虽然零 `.so`，但在意包体的团队要接受这约 2.5 MB。
+- **代价 3：换装要靠美术在编辑器里把每个部件做成 skin/attachment**，不是程序能补的。
+- **Live2D 在画质上仍然最强**：一次性高质量二次元立绘、细腻的头发与呼吸物理，Live2D 更好。如果产品最终既不换装、也不上 iOS，Live2D 值得重新评估。
+- **国内商业方案不适用**：八家厂商里没有一家提供「移动端 2D 立绘 + 运行时换装」，2D 路线全部是真人克隆（详见 §1.5）。
+
+### 备选
+
+- **Rive**：技术上与 Spine 同级（运行时 MIT 最干净、双端原生、一套 `.riv` 共享）。**如果 P0 实测 Spine 性能不达标，直接转 Rive**——代价是 3.68 MB/ABI 和美术管线要重学。
+- **自研骨骼层**：如果预算为 0 且有人力，可自研一层简化骨骼（`DrawScope.drawVertices` 已是跨平台 Cmn API）。但这是以人月计的投入，且要长期维护，只在「完全不能花钱」时考虑。
 
 **现状对齐：** 仓库里 `feature-companion/.../avatar/` 已经有 `AvatarRenderer`、`AvatarCommand`、`AvatarEventMapper`、`SimpleAvatarRenderer`（v1 分层立绘），`capabilities` 协商机制也在。本文的设计**不推翻这套抽象**，而是指出：在这套抽象不变的前提下，接 Spine 只需要新增一个 `SpineAvatarRenderer` + 一个 `SpineAvatar` Composable，上层的指令协议、状态机、事件映射都不动。这正好验证了当初把渲染放在接口后面的价值。
 
 ---
 
-## 1. 候选技术对比
+## 1. 方案全景：先分清三类东西
 
-### 1.1 体积实测
+上一版文档只比了「国外商业运行时」。加上你要求的**国内外 + Android/iOS + 免费**三个维度后，候选从 6 个变成 20 多个。但把它们摊开看，其实只有三类，混在一起比会得出错误结论：
 
-下表的数据来自我下载对应 AAR/sources 后实测（2026-11-11，Maven Central / GitHub）：
+| 类别 | 是什么 | 代表 | 能不能做「2D 立绘 + 换装」 |
+|---|---|---|---|
+| **A. 2D 骨骼/立绘运行时** | 吃分层美术资产，在端上驱动骨骼、网格、皮肤 | Spine、Live2D、Rive、DragonBones、Inochi2D | **能**，这是我们真正需要的 |
+| **B. 国内云厂商「数字人」** | 真人视频/照片克隆成会说话的数字人，用来做播报、客服、直播 | 百度曦灵、腾讯云、阿里云、火山、相芯、魔珐… | **不能**。它们是「定制时选一套服装」，不是运行时换装；2D 路线全部是**真人克隆**而非二次元立绘 |
+| **C. 免费兜底** | 不引入第三方运行时，用序列帧或自己写一层 | Compose 分层立绘、动画 WebP/APNG、自研骨骼 | **部分能**，能力上限明确但要自己付工程成本 |
 
-| 运行时 | 版本 | 包体积（全部 ABI） | arm64 相关 `.so` | 说明 |
+**这张分类表本身就是本轮调研最重要的发现**：B 类的八家国内厂商里，**没有一家在卖「移动端 2D 立绘 + 换装」**。把它们当成「语音驱动的嘴型/播报方案」来评估是合理的，但指望它们交付形象方向就是错的。
+
+---
+
+### 1.1 体积基线（先纠正上一版的论证）
+
+上一版我把「体积」当成 Spine 胜出的决定性理由，用的是「Rive 要 5 MB」这个数字（实际增量是 3.68 MB，见下）。**这个论证不成立**，因为我当时没量这个 App 本身有多大。
+
+我实测了仓库现有的 debug APK（`app/build/outputs/apk/chat/debug/app-chat-debug.apk`，2026-11-02 构建）：
+
+| 项目 | 实测值 |
+|---|---|
+| APK 总大小 | **280 MB**（293,565,503 字节） |
+| `lib/arm64-v8a` | **88.1 MB** |
+| `lib/armeabi-v7a` | **57.0 MB** |
+| 最大单个 native 库 | `libspeechengine.so` 25.3 MB、`libonnxruntime.so` 25.2 MB、`libopencv_java4.so` 20.4 MB |
+
+在这样一个已经有 145 MB native 库的包里，**Rive 的增量只有 `librive-android.so` 的 3.68 MB（arm64 单 ABI）**——因为 `libc++_shared.so` 已经被现有依赖带进来了（我核过包内确实有 `lib/arm64-v8a/libc++_shared.so` 1.23 MB）。3.68 MB 占 280 MB 的 **1.3%**。所以正确的问法不是「5 MB 能不能接受」，而是「这 3.68 MB 换来的画质值不值」——答案可能仍然是值。
+
+同理，Godot 的增量也不是 76 MB，因为它的 4 个 ABI 里我们只用两个，且 `libc++_shared` 已存在；但 `libgodot_android.so` 单 arm64 就 **69.1 MB**，仍是数量级上的不同。
+
+> 注意这是 **debug** 包，`minifyEnabled = false`、`shrinkResources = false`。release 打开 R8 后会小不少（`app/build.gradle` 的 release 配置里两项都是 `true`）。但 native 库不受 R8 影响，**release 的 native 部分仍是这 145 MB**。要严谨，应该以 release/AAB 实测为准，我这里没有构建 release 包（构建耗时长且需要签名），所以标为「debug 实测，release 未测」。
+
+### 1.2 运行时体积（实测 AAR/jar，2026-11-11）
+
+| 运行时 | 版本 | 实测包体 | native `.so` | 备注 |
 |---|---|---|---|---|
-| `com.esotericsoftware.spine:spine-android` | 4.2.9 | **39.5 KB** | **无** | 纯 JVM，`classes.jar` 43.8 KB；依赖 `gdx`、`spine-libgdx`（见下） |
-| `com.airbnb.android:lottie` | 6.7.1 | **433 KB** | 无 | 纯 JVM，`classes.jar` 468 KB |
-| `app.rive:rive-android` | 10.2.0 | **7.47 MB** | `librive-android.so` 3.68 MB + `libc++_shared.so` 1.29 MB ≈ **4.97 MB** | 每 ABI 各一份；本仓库只打 `arm64-v8a` 和 `armeabi-v7a` |
-| `org.godotengine:godot` | 4.4.1.stable | **102.8 MB** | `libgodot_android.so` **69.1 MB** + `libc++_shared.so` 6.9 MB ≈ **76 MB** | 每 ABI 各一份；本仓库两个 ABI 意味着约 140 MB 未压缩 |
-| Live2D Cubism Core | — | **未验证** | 有 `.so`，按 ABI 分发 | 官方 README 确认 `android/arm64-v8a` 等预编译二进制存在，但未给出字节数；我未能取得官方分发包实测 |
+| `spine-android` | **4.3.5** | AAR **39.0 KB** | **无** | 最新版（上一版记的 4.2.9 已过时） |
+| + `gdx` | 1.14.2 | 2.18 MB | 无 | Spine 的传递依赖 |
+| + `spine-libgdx` | 4.3.5 | 330 KB | 无 | 同上 |
+| **Spine 合计** | 4.3.5 | **≈ 2.54 MB（未混淆）** | **0** | R8 后会进一步缩小 |
+| `lottie` | 6.7.1 | 433 KB | 无 | |
+| `rive-android` | 10.2.0 | 7.47 MB | arm64 ≈ **4.97 MB**（含 `libc++_shared` 1.29 MB，本包已有，**实际增量 3.68 MB**） | 最新是 11.16.3，我**没有**实测 11.16.3 |
+| `godot` | 4.4.1.stable | 102.8 MB | arm64 ≈ **76 MB** | |
+| Live2D Cubism Core | — | **未实测** | 有（`android/arm64-v8a`） | 官方只分发二进制、未在公开页面给字节数；我拿不到官方分发包，**不猜** |
 
-> Spine 的 POM 声明了 `com.badlogicgames.gdx:gdx` 和 `com.esotericsoftware.spine:spine-libgdx` 两个 compile 依赖。也就是说 39 KB 是**运行时本身**，实际 APK 增量还要加上 libGDX 的 JVM 类（不含 native）。libGDX core 的 AAR 体积我**未实测**，但它是纯 Java、无 `.so`，量级在数百 KB 到 1 MB 之间（**未验证**）。即便按 1 MB 估，仍然比 Rive 的 5 MB 低一个量级。
+### 1.3 资产体积（实测）
 
-**为什么体积在这里是决定性因素：** 本仓库 `version.gradle` 明确保留 `arm64-v8a` 和 `armeabi-v7a` 两个 ABI。Godot 这条路在这个前提下不可行；Rive 大约 +8–10 MB（两个 ABI）；Spine 大约 +1–2 MB。
+运行时要和资产一起算才公平。我用官方 sample 和自造样本各测了一遍：
 
-### 1.2 全维度对比
+| 资产 | 实测 | 说明 |
+|---|---|---|
+| Live2D 官方 sample（Haru，2048 贴图） | **4.28 MB** | 贴图 2.72 MB + `.moc3` 385 KB + 27 个 motion 498 KB + 表情/配置 18 KB |
+| Spine 官方 sample（spineboy 全套） | **1.22 MB** | 贴图 0.83 MB + `.skel`/`.json` + atlas |
+| 序列帧（自造 1080×1440 透明角色，WebP q82） | **≈ 16 KB/帧** | 2 秒 @12fps ≈ **0.37 MB** |
 
-| 维度 | Live2D Cubism SDK for Native/Java | Spine (`spine-android` / libGDX) | Rive | Lottie (airbnb) | Compose 分层立绘（现有方案） | 嵌游戏引擎（Godot / Unity as a Library） |
+序列帧看着很省，但**组合爆炸是真的**（同样是实测外推）：
+
+| 配置 | 资产体积 |
+|---|---|
+| 5 套衣服 × 6 个动作 × 2 秒 | **≈ 11 MB** |
+| 10 套衣服 × 8 个动作 × 2 秒 | **≈ 30 MB** |
+
+这正是骨骼方案的价值：Spine/Live2D 的体积**不随搭配数量增长**，因为衣服是 skin 而不是重新出图的整段动画。
+
+---
+
+### 1.4 国外方案对比
+
+| 维度 | Live2D Cubism | Spine | Rive | Lottie | Compose 分层 | 嵌引擎 |
 |---|---|---|---|---|---|---|
-| **动画质量**（呼吸、眨眼、视线、头发物理） | **最高**。为二次元立绘而设计：变形器、物理演算、参数化表情、呼吸/眨眼是 SDK 内置范式 | **高**。骨骼 + 网格变形 + 权重 + IK + 物理约束（Spine 4.x 的 `physics` 约束）。细腻度接近 Live2D，但立绘的「整张变形」不如 Live2D 自然 | **中高**。骨骼、网格、状态机、数据绑定都很强，但美术资产在 Rive 编辑器里做，二次元立绘的柔和变形不如前两者 | **低**。本质是 After Effects 关键帧导出的矢量/栅格动画，没有骨骼，做互不相关的多图层联动很别扭；交互只能切状态 | **低**。实测 v1 只有呼吸缩放（1.2%/1.8%）+ 两帧眨眼 + 两帧嘴型。做不了头发、做不了视线 | **最高**（本质是全引擎），但绝大部分能力我们不需要 |
-| **运行时体积** | 中（有 `.so`，量级未验证） | **极低**（39.5 KB + libGDX 类） | 高（arm64 ≈ 5 MB） | 低（433 KB） | **零** | **不可接受**（arm64 76 MB） |
-| **中端机性能** | 官方提供 benchmark 场景但「并非每个 SDK 变体都有」，且没有 arm64 实测数字（**未验证**）。掩码默认上限 36 个，影响 GPU 开销 | 走 `Canvas.drawVertices(VertexMode.TRIANGLES, …)` 提交三角网格，在硬件加速的 Canvas 上是 GPU 路径（我读了 `SkeletonRenderer.java` 确认，见下）。没有自定义 shader，混合模式和裁剪受 Canvas 能力限制。**仍需 P0 实测**，但风险低于原先的估计 | 原生 C++ 运行时 + 自绘渲染器，性能通常是三者中最好的 | 轻，6.1 起多线程渲染 | 最轻（就是几张 `Image`） | 最重，启动开销以秒计 |
-| **Compose 集成** | 需 `AndroidView` 包一层 GLSurfaceView；官方 Java SDK 是 View 体系 | `AndroidView` 包 `SpineController` / 自绘 `Canvas`。也可以直接在 Compose `Canvas` 里画（因为它是纯 JVM + Skia Canvas） | **Compose API 已在 beta**，官方称「功能完整、可用于生产」，入口是 `Rive` composable（2026-11 核对） | 官方提供 Compose 的 `rememberLottieComposition` / `animateLottieCompositionAsState` | **原生 Compose** | `AndroidView` 包 `GodotFragment`；官方警告「一个进程只支持一个 Godot 实例」、「不支持自动 resize/旋转，可能导致崩溃」 |
-| **资产管线** | PSD 分层 → Cubism Editor 打网格、加变形器、设参数、配物理。**专为 Live2D 优化，美术上手最快** | PSD → Spine 编辑器（内置 Import PSD，比旧 Photoshop 脚本快最多 5 倍）→ 绑骨、权重、网格、皮肤。**美术门槛最高** | 在 Rive 编辑器内画/导入、做骨骼与状态机。云端协作强，但离线与自托管弱 | AE → Bodymovin 导出 JSON | 直接出 PNG 分层图，**零工具链** | Blender/Godot/Unity 内做 |
-| **工具成本** | Cubism PRO Indie $89.75/年（首年，逐年递减）或 $13.07/月 | Spine Professional **$379 一次性**（现价 $379，列表价 $449），升级免费；Essential $69 但**不含网格/IK/物理**，做不了我们要的效果 | Free / Cadet $9 per seat/mo / Voyager $32 / Enterprise $120（要求年收入 $10M+） | 免费 | 免费 | 免费 |
-| **授权与商业条款** | **按年销售额分档持续付费**，详见 §1.3 | **买编辑器即含运行时**，无抽成、无按量、无 MAU；> $500,000 收入/融资须用 Enterprise | **运行时 MIT 开源、无收入抽成、无运行时费用**（官方原话）；限制在编辑器侧：Free 档导出会带 Rive 水印，且发布次数按月限额（Free 50 次/月） | Apache-2.0，无限制 | 自有代码 | Godot MIT；Unity 见 §1.3 |
-| **适合本产品的程度** | 画质最好，但商务与「可扩展应用」审核是硬风险，且资产要为每种搭配出图 | **最匹配**：体积、条款、换装模型三者都对 | 技术很好，体积是主要问题；编辑器按 seat 计费但运行时免费 | 不适合做主形象 | 保留为兜底/降级/首屏 | 不适合 |
+| **动画质量** | **最高**（二次元立绘专用） | **高**（骨骼+网格+IK+物理） | 中高 | 低（无骨骼） | 低 | 最高（过剩） |
+| **Android** | Native(C++) / Java 双变体 | `spine-android`，纯 JVM | Compose API（beta） | Compose API | 原生 Compose | Godot 可嵌 |
+| **iOS** | Native(C++)，Metal ✓；**Java 变体不支持 iOS** | `spine-ios`，Swift/ObjC，**Metal**，SPM | `rive-ios` 6.29.0，SwiftUI，Metal | `lottie-ios` 4.6.1 | 需 Compose Multiplatform | Unity UaaL 可（仅全屏）；**Godot 不可** |
+| **一套资产双端** | 可（同一代 Core，**官方无明文**） | **可**（官方明确：一份导出喂所有运行时） | **可**（官方主打） | 可 | 需自己定义格式 | Unity 可；Godot iOS 不可 |
+| **换装模型** | Part 显隐 / 换贴图 | **Skin 字典，可运行时合并** | 状态机 + 数据绑定 | 无 | 整图替换 | 任意 |
+| **包体** | 未实测（有 `.so`） | **2.54 MB，零 `.so`** | 3.68 MB/ABI | 0.4 MB | **0** | 69 MB/ABI |
+| **授权** | **见 1.7，本场景无免费选项** | 买编辑器含运行时，$379 | 运行时 MIT，编辑器侧计费 | Apache-2.0 | 自有 | Godot MIT / Unity 见下 |
 
-### 1.3 授权条款细节（逐条核对）
+---
 
-**Live2D Cubism**
+### 1.5 国内方案对比
 
-- 发布前需要签 **Publication License Agreement（SDK Release License）**，且**必须在发布前至少一个月**完成。个人与小规模企业**豁免**（Expandable Application 除外）。
-  - 来源：https://www.live2d.com/en/sdk/license/ ，核对日期 2026-11-11。
-- **商务授权门槛：最近一个财年销售额 1,000 万日元以上**即属「for business」，必须用 PRO for business，且该阈值按**整个公司**计算，不按使用 Live2D 的部门计算；个人事业主同标准；子公司若实质是大公司的一个部门，即便销售额为零也不能算小规模。
-  - 来源：https://help.live2d.com/en/license/license_24/ ，核对日期 2026-11-11。
-- **Running Royalty Content Plan（游戏/应用）的费率**（该计划页面**没有**收入分成比例，是固定费用结构）：
+以下全部来自各厂商官方页面（核对日 2026-11-11）。**没有一家提供「2D 立绘 + 运行时换装」。**
 
-  | 企业规模（年销售额） | 初期费（每个发布区域） | 月费（每平台每区域） |
-  |---|---|---|
-  | 一般用户 < ¥10M | 免费 | 免费 |
-  | 小规模企业 < ¥10M | 免费 | 免费 |
-  | 中型企业 < ¥100M | $314.21 / ¥50,000 | $125.68 / ¥20,000 |
-  | 大型企业 > ¥100M | $1,885.25 / ¥300,000 | $628.42 / ¥100,000 |
+| 厂商 | 2D 还是 3D | 移动端 SDK | 运行时换装/配饰 | 眨眼/呼吸/视线 | 公开价格 | 结论 |
+|---|---|---|---|---|---|---|
+| **相芯 FaceUnity** | **3D 为主** | Android + iOS + Unity/Web/Windows | **有**（官网写「发型、服饰、配饰」） | **官网无这三项** | **未公开**（只有试用表单） | **唯一值得开试用**，但是 3D，且三项命门能力官网没写 |
+| **百度曦灵** | 2D = **真人克隆** | Android/iOS/Windows | 无（整包切换形象） | 未提及 | **全公开**：端渲染应用授权 **36,000 元/个**（限单一系统 20 台） | 跨端要买两份，成本失控 |
+| **腾讯云数智人** | 2D = 真人克隆 | Android/iOS/大屏/小程序 | 无 | 未提及 | 端渲染按应用 **800,000 元/年**；按设备 5,000 元/年 | 单价对 To C 不可行；**不含 TTS** |
+| **火山引擎** | 2D = 单图生成真人 | Android/iOS/Web | **无** | 无 | **42 万元/年/并发**（云端推流 480P@25fps） | 定位「陪聊」很贴，但云端渲染 + 画质/单价不成立 |
+| **阿里云** | 2D = 真人克隆 | Android/iOS | 无 | 未提及 | 端渲染按应用 30 万/年或 0.06 元/分 | **2026-10-11 停止新购，文档停止维护**，直接排除 |
+| **魔珐 Xmov** | **全 3D** | Android + 浏览器 JS（**无 iOS 原生**） | 3D 妆造/服饰 | 3D 表情生成 | 积分制，**单价未公开** | 官网 FAQ 与开发文档自相矛盾，风险高 |
+| **网易伏羲** | 3D 捏脸 | **无** | 无（「配饰估计」是识别不是换装） | 无 | 无 | 已无数字人产品页，**不构成可采购方案** |
+| **硅基智能 / DUIX** | 2D 真人克隆 | Android/iOS（云端版走 WebRTC） | 无 | 无 | 云端 $29–$4999/月 | 开源版要求常驻 "Powered by Duix.com" 且 **1000 MAU 以上须授权**；推荐骁龙 8 Gen 2 + 8GB |
 
-  ＞ 发布区域 6 个（日本；中国大陆/港澳台；亚洲其他；北美；欧洲；其他），平台 4 个（iOS、Android、HarmonyOS、Web）。上表费率**以展示 Live2D logo 并进入 Showcase 页面为条件**。
-  - 来源：https://www.live2d.com/en/sdk/license/running_plan01/ ，核对日期 2026-11-11。
-- **One-time Purchase Content Plan（非主机/PC）**：固定费模式为中型 $628.42 / ¥100,000、大型 $3,770.50 / ¥600,000（与发布区域、平台数量无关）；或按份数 $0.25 / ¥40 每份，可下载内容在开卖时按 1,000 份起计费。
-  - 来源：https://www.live2d.com/en/sdk/license/purchase_plan02/ ，核对日期 2026-11-11。
-- **AI / Chatbot 专用路径**：官方流程图里确实有 AI/chatbot 分支，但它**不是独立计划**。第一步先判断是否属于 **Expandable Application**（「significant expandability」的服务或内容），若是则**必须送审并签特别授权**，个人/小规模豁免**不适用**；若不是，才按交付形态（原生应用）落到 D/E/G 三个计划之一。
-  - 来源：https://www.live2d.com/en/sdk/license/ ，核对日期 2026-11-11。
-  - **对本产品的判断（未验证）**：我们支持用户创建角色、换装、加配饰、用户上传——主观上符合「高可扩展性」。这条路径无法在文档里给出确定价格，必须先向 Live2D 询价。这是选型的**实质性风险**，不是可以事后处理的细节。
-- Cubism Editor 价格：PRO Indie 首年 $89.75/年（≈¥14,280），第二年起 $73.91，第三年起 $67.12；月付 $13.07。PRO Business 年付 $414.80 起。两者**功能完全相同**，差别只在资格与 SDK 授权。
-  - 来源：https://store.live2d.com/en/ ，核对日期 2026-11-11。
-- **不选 Live2D 的核心理由**：画质确实是四者中最好的，但（a）商务授权是按年销售额的持续支出，且要按整个公司口径；（b）AI/chatbot + UGC 换装很可能触发 Expandable Application 审核；（c）它的换装要靠美术为每种搭配出图或做 Part 显隐，不支持我们想要的「任意单品组合」。
+**国内方案的两条共性结论：**
+1. **技术上不对口**：它们解决的是「让一个真人形象开口说话」，我们要的是「一个可换装、可被摆弄的二次元角色」。2D 路线在八家里**全部是真人克隆**。
+2. **成本模型不匹配**：云端方案按并发/时长计费（火山 42 万/年/并发），端渲染按设备或应用授权（腾讯 80 万/年/应用）。To C 陪伴产品按这个单价无法成立。
+
+---
+
+### 1.6 Android + iOS 双端
+
+这一栏回答了「一个方案能不能同时覆盖两端」——这决定了美术是否要重做一遍。
+
+| 方案 | Android | iOS | 一套资产双端 | 官方依据 |
+|---|---|---|---|---|
+| **Spine** | ✓ 纯 JVM | ✓ Swift/ObjC + Metal，iOS 13+，SPM | **✓ 官方明确**：「一份导出喂所有 Spine Runtimes，只要求编辑器与运行时版本对齐」 | spine-export、spine-ios README |
+| **Rive** | ✓ Compose beta | ✓ SwiftUI，Metal，iOS 14+ | **✓ 官方主打**：「Change the file, and every platform gets the same change」 | rive.app/runtimes |
+| **Live2D** | ✓ Java / Native | ✓ **仅 Native**（C++，Metal/OpenGL） | 可，但**官方没有一句「同一份 moc3 跨 OS 复用」的明文**，只能从「导出选的是 SDK 版本不是 OS」+「同一代 Core」推断——我标为**推论** | cubismsdk-compare、platform |
+| **Lottie** | ✓ 6.7.1 | ✓ 4.6.1 | ✓ | 两端 README |
+| **自研 Compose** | ✓ | 需 Compose Multiplatform | 需自己定格式 | — |
+| **Godot** | 可嵌（Android library 官方文档） | **不可嵌**：LibGodot 官方 FAQ 写「目前支持 Windows/macOS/Linux，Android 和 iOS 计划在未来版本」 | — | Godot FAQ |
+| **Unity** | 可嵌 | 可嵌，但官方限制：**只能全屏渲染、不能局部渲染**、单实例、Swift 工程不支持 | — | Unity UaaL 文档 |
+
+**两条对产品的硬约束：**
+
+1. **Live2D 的 Android 与 iOS 是两套不同语言的 SDK**（Java vs Native C++）。这意味着渲染层要做两份实现，不能共享代码——只是资产可以共享。这一点上一版完全没提。
+2. **Unity 的「不能局部渲染」直接判死**：我们想把角色嵌在聊天页里，不是全屏盖住。Godot 在 iOS 上根本嵌不进去。
+
+**推荐仍然成立，但理由要换。** Spine 在这个矩阵里是唯一同时满足「Android 纯 JVM 零 native」「iOS 有官方 Swift+Metal 运行时」「一套资产双端且官方明文」「换装是 skin 字典」四项的。体积只是附带优点，不是主因。
+
+---
+
+### 1.7 免费路线到底能走到哪
+
+这是你特别问的一栏。先给结论：**「免费」在这件事上不是一个二元条件，而是分层的**——运行时免费、编辑器免费、商用授权免费是三件不同的事。
+
+| 方案 | 运行时代码 | 编辑器/工具 | **商用授权** | 免费能做到什么 |
+|---|---|---|---|---|
+| **Compose 分层立绘**（现有） | 免费（自有） | 免费（PS 出图） | **免费** | 呼吸缩放、两帧眨眼、两帧嘴型。**做不到视线跟随、骨骼、任意换装** |
+| **序列帧 / 动画 WebP** | 免费（`ImageDecoder`，API 28+，仓库 `minSdk=28` 正好够） | 免费（AE/PS 导出） | **免费** | 观感可以很好，但**每个搭配都要重新出帧**：实测 10 套 × 8 动作 ≈ 30 MB，且无法实时视线跟随 |
+| **自研骨骼 + Compose Canvas** | 免费（自己写） | 免费 | **免费** | 理论最强，但**要自己写蒙皮、IK、物理**。`DrawScope.drawVertices` 是 **Cmn 跨平台 API**，但 **1.10.0 才有**；仓库当前解析到 **1.9.3**（BOM 2025.09.00）。要升到 BOM 2025.12.00 才拿到 ui 1.10.0，或用 `drawIntoCanvas { it.nativeCanvas }` 绕过 |
+| **Lottie** | Apache-2.0 | 免费（AE + Bodymovin） | **免费** | 状态切换动画可以，**无骨骼**，换装只能整图切 |
+| **DragonBones** | **MIT**（`DragonBonesCPP`，437★） | 免费 | **免费** | **有现成的 Android Compose 封装**：仓库内 `AndroidCompose/` 提供 `DragonBonesViewCompose`，C++ core + **OpenGL ES** + JNI，`minSdk 26`，README 明确「Composable function / 点击可返回 slot 名」。**这是免费方案里唯一自带骨骼 + Compose 集成 + 点击槽位的一手代码**。但：无 Maven 制品（要作为本地 module 引入），最后一次提交 **2025-07-03**，无 tag/release，成熟度需自己验证 |
+| **Inochi2D** | **BSD-2-Clause**（1,844★，2026-11-10 仍有提交） | 免费 | **免费** | 开源 Live2D 替代，但**仓库内搜不到任何 `android`/`ios`/`mobile` 路径**（199 个文件全命中 0），定位是桌面 VTuber。最新正式版 **v0.8.7（2024-10-02）**，之后只有 nightly。**移动端不可用** |
+| **LayaAir** | **MIT**（2,234★，2026-11-10 活跃） | 免费 | **免费** | 引擎本身 MIT，但它是完整游戏引擎/编辑器，嵌进现有 App 的成本与 Godot 同级；未找到「嵌入既有 Android App」的官方路径 |
+| **pixi-live2d-display** | **MIT**（1,517★） | 免费 | 免费，但**仍需 Live2D 的发布授权** | 在 WebView 里放 Live2D 的常见做法。**但 Live2D 的授权义务不因换运行时而消失**；且 WebView + WebGL 在移动端性能与内存都差，最后提交 **2024-08-20** |
+| **Cocos Creator** | 引擎免费开源 | 免费 | 未见抽成 | 用户协议以「developing games」界定用途；`cocos/engine-native` 是**修改版 MIT**（禁止用于造同类引擎）。**未找到允许/禁止非游戏商业用途的明确条款**（未验证） |
+| **Rive** | **MIT** | Free 档免费，但**导出带 Rive splash + 每月 50 次发布限额** | 运行时免费、无抽成 | 免费档能做原型，量产要买 Cadet/Voyager |
+| **Spine** | 运行时随编辑器授权 | **$379**（Essential $69 不含网格/IK/物理） | 见下 | **不是免费方案** |
+| **Live2D** | 运行时需发布授权 | Cubism PRO Indie $89.75/年（FREE 档限制 30 参数/30 部件/100 ArtMesh） | **本项目无免费选项**，见 §1.8 | — |
+
+**如果「免费」是硬约束，可选路线有四条：**
+
+1. **维持 Compose 分层立绘 + 序列帧增强**（零授权风险，工程量最小，能力上限最低）。
+2. **DragonBones**（MIT，且有现成的 Compose + OpenGL ES 封装）。**这是免费方案里唯一「今天就能画出骨骼动画」的一条**，但成熟度要自己验：无 Maven 制品、无 tag/release、最后一次提交 2025-07。
+3. **自研骨骼层**（零授权风险，能力上限高，但要自己写一个 Spine 的简化版，工期以人月计，且有长期维护负担）。
+4. **Rive 免费档起步**（运行时 MIT 最干净，但量产要付费，且要接受编辑器侧的限制）。
+
+**排除掉的免费方案及原因（都核过官方来源）：** Inochi2D（BSD-2-Clause，但仓库里搜不到任何 android/ios 路径，是桌面 VTuber 工具）；pixi-live2d-display（MIT，但**换运行时不能免除 Live2D 的发布授权**，且 WebView+WebGL 在移动端性能差，最后提交 2024-08）；LayaAir/Cocos（引擎免费但都是完整游戏引擎，嵌入成本与 Godot 同级；Cocos 的 `engine-native` 还是修改版 MIT）。
+
+**我的建议**：如果「免费」是为了**先验证产品、暂不投钱**，走第 1 条，把 §6 的 P0 缩成一个「序列帧 + 现有分层」的 demo，用最小成本验证用户是否真的会去换装。**如果验证结果是「会」，那免费路线就撑不住了**——因为序列帧的组合爆炸（实测 10 套 × 8 动作 ≈ 30 MB）和换装的实时性要求，最终一定会把你推回 Spine 或 Rive。先花 $379 还是先花两周自研，取决于你更缺钱还是更缺人。
+
+如果你想在**零预算**下也要「骨骼 + 换装」的效果，第 2 条（DragonBones）是唯一候选，但请把它当成**一次技术验证**而不是确定方案：先花 2–3 天把它的 AndroidCompose demo 跑起来，确认（a）能否作为本地 module 接进本仓库的 Gradle 配置、（b）它的 skin/换装能力是否够用、（c）无 release 维护的项目能否长期用。
+
+---
+
+### 1.8 授权条款（逐条核对，2026-11-11）
+
+**Live2D —— 本项目大概率没有免费选项，这是本轮最重要的发现**
+
+官方把 **avatar** 明确列为 Expandable Application 的示例。原文（`https://www.live2d.com/en/sdk/license/expandable/`）：
+
+> "uses and generates any indefinite numbers of models by adding or combining files or data (e.g. avatar)"
+
+这类应用：
+
+- **不享受**个人/小规模企业豁免。原文：reaches all publishers "including General Users and Small-Scale Enterprises who are normally exempted from the Publication License Agreement for non-Expandable Applications"
+- 必须**送审 + 签特别协议**，且「Approval is never guaranteed even when all conditions are met」
+- 分成（同页）：
+
+  | 企业规模 | 分成 |
+  |---|---|
+  | 一般用户 / 小规模（年销 < ¥10M） | **$1.88/份 或 20% 销售额，取高者** |
+  | 中型（< ¥100M） | 5% 销售额 |
+  | 大型（> ¥100M） | 5% 销售额 |
+
+- 审查标准原文：「as a general rule, fully free of charge is not eligible for approval」——**完全免费的应用原则上不予批准**。
+
+> **对本产品的判断（推论，非官方结论）**：我们的产品有用户可创建角色、可换装、可买配饰——「adds or combines files or data」这一条基本命中。所以按 avatar 场景走，Live2D **不是「可能收费」，而是「默认按 expandable 收费，且抽 20%」**。这一条比上一版写的「有概率命中审核」要确定得多，建议在选型时直接按「不可用」处理，除非产品明确放弃换装。
+
+其他 Live2D 条款（若不走 expandable）：发布前须签 Publication License Agreement，且**发布前至少一个月**完成；商务门槛为年销 ¥10M（按**整个公司**口径）；Running Royalty 中型 $125.68/月/平台/区域、大型 $628.42。Cubism Editor FREE 档限制：30 参数 / 30 部件 / 100 ArtMesh / 1 张 2048 贴图。
 
 **Spine**
 
-- 运行时**不单独售卖**；持有有效的 Spine Editor 授权即获得在游戏和应用中使用运行时的权利。试用版**不授予**集成/分发权利。许可**按人（named user）、不可转让**。
-  - 来源：https://en.esotericsoftware.com/spine-runtimes-license ；https://en.esotericsoftware.com/spine-purchase ，核对日期 2026-11-11。
-- `spine-android` 的源码头注释（我实测下载 sources.jar 读取）明确写了：集成运行时须遵守 **Spine Editor License Agreement 第 2 节**，并「redistribution of the Products in any form must include this license and copyright notice」。
-  - 来源：`spine-android-4.2.9-sources.jar` → `com/esotericsoftware/spine/android/SkeletonRenderer.java` 文件头，核对日期 2026-11-11。
-- **价格**：Essential **$69**（列表价 $99，**不能保存含网格/IK 等 Professional 功能的项目**）；Professional **$379**（列表价 $449，含网格、变形、权重、裁剪、物理、IK、约束、**skins**）；Enterprise **$2,499 基础 + 每人 $379/年**。
-  - **收入阈值：年收入、投资收入、风险投资或其他融资超过 $500,000 USD 的公司或个人必须使用 Enterprise**，不能用 Essential 或 Professional。
-  - 来源：https://en.esotericsoftware.com/spine-purchase ，核对日期 2026-11-11。
-- 授权失效后，**已经发布的产品中含有的运行时可以继续分发**，但新的集成需要有效授权。
-  - 来源：同上。
-- **对本产品的含义**：如果现在还没到 $500K，是 $379 一次性的成本。到了 $500K 之后要转 Enterprise（$2,499/年 + 每人 $379/年），这个成本可预测、有上限。相比之下 Live2D 是销售额的持续性费用。
+- 买编辑器即含运行时，**无抽成、无按量、无 MAU**。Professional **$379**（列表价 $449）；Essential $69 但**不能保存含网格/IK 的项目**，做不了我们需要的能力；Enterprise **$2,499 + $379/人/年**。
+- **收入/融资 > $500,000 USD 必须用 Enterprise**（不能再用 Professional）。
+- 运行时许可原文有一句有歧义：「each user of the Products must obtain their own Spine Editor license」。我读了 Editor License 第 2 节：触发动作是 "integrating, modifying, or creating derivative works"，主体是**做产品的人**，不是最终玩家；且 2.3/3.3 让分发权在授权失效后仍存续。**结论：不要求每个用户买 Spine，但这是释读，不是原文直述**，金额大时建议书面问 Esoteric。
+- 授权失效后，已发布产品中的运行时**可以继续分发**，但新的集成需要有效授权。
 
 **Rive**
 
-- 运行时**MIT 许可**，「Copyright (c) 2020-2024 Rive」。
-  - 来源：https://github.com/rive-app/rive-android/blob/master/LICENSE ，核对日期 2026-11-11。
-- 官方定价页原话：「No revenue share, no runtime fees, no royalties, and MIT open-source runtimes」。计费在**编辑器侧**：按 seat（$9 / $32 / $120 per seat/mo），并限制每月的 publish/push 次数（Free 50 次/月，Cadet 500，Voyager 5,000 per seat）。**Free 导出的文件会播放 Rive splash**。
-  - 来源：https://rive.app/pricing ，核对日期 2026-11-11。
-- Enterprise 要求 **$10M+ 年收入**。
-- **对本产品的含义**：条款是所有候选里最友好的（无抽成、运行时 MIT）。真正的阻碍是体积（arm64 ≈ 5 MB）和美术必须在 Rive 编辑器里做——而我们的美术更熟悉 PSD/Spine/Cubism 管线。
+- 运行时 **MIT**（`github.com/rive-app/rive-android/blob/master/LICENSE`，Copyright 2020-2024 Rive）。
+- 官方定价页原话：「No revenue share, no runtime fees, no royalties, and MIT open-source runtimes」。计费在**编辑器侧**：$9 / $32 / $120 per seat/mo；Free 档导出带 Rive splash、每月 50 次发布限额；Enterprise 要求 $10M+ 年收入。
+
+**Lottie** —— `airbnb/lottie-android` **Apache-2.0**（`lottie-ios` 同）。注意 LottieFiles 的 **dotLottie** 播放器是另一个库，其许可我**在官方文档页未查到**。
 
 **Unity**
 
-- **Runtime Fee 已于 2024-09-12 取消，立即生效**，且声明「will not apply to any games made with Unity 6 or any other version of Unity」。因为从未实施过，任何已发布或将发布的产品都不会被收取。
-  - 来源：https://unity.com/products/pricing-updates ；https://unity.com/blog/unity-is-canceling-the-runtime-fee ，核对日期 2026-11-11。
-- **Unity Personal 免费，适用上限为「$200,000 in revenue and funding」**，该阈值自 2024-10-17（Unity 6 发布）起从 $100K 提高到 $200K。超过 $200K 必须用 Pro（2026 年 $2,310/年/seat 预付或 $210/月）；超过 $25M 必须用 Enterprise。
-  - 来源：https://unity.com/products/pricing-updates ，核对日期 2026-11-11。
-- **Unity as a Library（UaaL）**：Unity 6.x 官方手册仍有「Use Unity as a Library in other applications」页面，支持 Android/iOS/Windows。我没有找到官方弃用声明，但也没有找到官方对长期支持的承诺——**「未弃用」是从文档仍存在推断的，不是引用承诺**。
-  - 来源：https://docs.unity3d.com/6000.5/Documentation/Manual/UnityasaLibrary.html ，核对日期 2026-11-11。
+- Runtime Fee **已于 2024-09-12 取消，立即生效**，声明「will not apply to any games made with Unity 6 or any other version of Unity」。
+- Personal 免费，上限 **$200,000 收入/融资**（2024-10-17 起，从 $100K 提高）；超 $200K 须 Pro（2026 年 $2,310/年/seat）；超 $25M 须 Enterprise。
 
-**Godot**
+**Godot** —— MIT。但移动端嵌入不可行，见 §1.6。
 
-- 引擎 MIT。Android 以标准 AAR 发布在 Maven Central，嵌入现有 App 的方式是宿主 Activity 实现 `GodotHost`，包 `GodotFragment`，或用 `assets` 里的 PCK/ZIP。
-  - 来源：https://docs.godotengine.org/en/stable/tutorials/platform/android/android_library.html ，核对日期 2026-11-11。
-- **两条官方限制**直接判死刑：「Currently only a single instance of the Godot Engine is supported per process」（变通是把宿主 Activity 放到独立进程）；「Automatic resizing / orientation configuration events are not supported and may cause a crash」。
-  - 来源：同上。
-
-**Lottie**
-
-- `airbnb/lottie-android` **Apache-2.0**。来源：https://github.com/airbnb/lottie-android ，核对日期 2026-11-11。
-- 注意：LottieFiles 的 **dotLottie Android Player**（支持 slots、交互状态机、API 24+）是**另一个库**，它的授权我在官方文档页**没有查到**（页面未声明许可或定价）。如果将来想用 slots 做换装，要单独核实它的条款，不要假定和 airbnb 的 Apache-2.0 一样。
-  - 来源：https://docs.lottiefiles.com/en/runtimes/distributions/android ，核对日期 2026-11-11（未找到许可声明）。
-
-### 1.4 为什么不是「Compose 分层立绘」直接做到位
-
-现有 `SimpleAvatarRenderer` 已经很聪明：`AvatarSpec` 只描述素材，缺什么退什么，呼吸/眨眼/嘴型的插值都在 Composable 里，渲染器本身是纯状态、可脱离 Compose 测试。这套东西**应该保留**——它是所有新渲染器的降级目标（低端机、素材未下载、SDK 初始化失败）。
-
-但它做不到产品的核心诉求：
-- **没有骨骼**，所以「头发随头部转动」「身体呼吸带动肩膀」只能是假动作（整图缩放）。
-- **没有可参数化的视线**。要跟手指，只能切几张预渲染的眼睛朝向图，过渡会跳。
-- **换装只能是整图替换**。要「戴眼镜」就得预先出「戴眼镜的整张立绘」，组合数爆炸。
-- **点击部位做反应**需要命中区，分层立绘只能靠手写矩形。
-
-所以定位是：**Spine 做正片，Compose 分层做兜底**。
+**国内厂商** —— 价格见 §1.5 表。共性：**2D 端渲染 SDK 授权普遍不含 TTS**（腾讯原文：「该 SDK 授权不包含 TTS（语音合成）服务」）。
 
 ---
 
@@ -219,7 +328,7 @@ animationState.apply(skeleton)      // 重新应用当前动画的 attachment
 | 会覆盖身体、需要参与皮肤组合（帽子压头发、外套盖衬衫） | **做成单品 skin**，和衣服一起合并 | 需要和其他 skin 一起决定覆盖顺序 |
 | 需要独立物理（长发的尾巴、耳坠摆动） | 在 Spine 里给配饰单独加 **physics 约束** | Spine 4.x 的 physics 约束；但要控制数量，物理是 CPU 开销 |
 
-- physics 约束的存在：Spine Professional 功能列表里列了 "physics"（见 §1.3 价格页），具体 API 名称我**未逐个核对**，实现时以对应版本的运行时文档为准（未验证）。
+- physics 约束的存在：Spine Professional 功能列表里列了 "physics"（见 §1.8 价格/授权），具体 API 名称我**未逐个核对**，实现时以对应版本的运行时文档为准（未验证）。
 - **移除配饰** = 把 attachment 设回 `none`（或设回该槽位的 setup pose attachment）。注意 §2.3 的顺序规则：改完要重新 `apply` 当前动画的 attachment，否则该槽位可能停在旧状态。
 
 ### 2.5 点击部位做反应
@@ -487,7 +596,7 @@ data class AvatarConfig(
 
 **`:feature-companion` 的依赖增量：**
 ```gradle
-implementation 'com.esotericsoftware.spine:spine-android:4.2.9'
+implementation 'com.esotericsoftware.spine:spine-android:4.3.5'
 ```
 （会连带引入 `gdx` 和 `spine-libgdx`。）
 
@@ -592,7 +701,7 @@ AvatarAssetRepository
 
 ### P0：验证 Spine 在真机上的可行性（1–2 周）
 
-**目标：回答一个技术问题——Spine 的 Canvas 光栅化在目标中端机上能不能跑满 60 FPS。**
+**目标：回答一个技术问题——Spine 的 `Canvas.drawVertices` 路径在目标中端机上能不能跑满 60 FPS。**
 
 这一步**不写产品代码**，只做一个 `.skel` 的加载与播放 demo。
 
@@ -612,7 +721,7 @@ AvatarAssetRepository
 | 冷启动加载时间 | ≤ 300ms |
 | APK 增量（`assembleRelease` 前后对比） | ≤ 3 MB |
 
-**如果 P0 失败：** 说明 Spine 的 CPU 光栅化在这个产品上不可行。退到 Rive（性能更好，代价是 +5 MB 和美术管线要改）。这个决策点的价值就在于**在投入美术工时之前**把它测出来。
+**如果 P0 失败：** 退到 Rive（原生 C++ 渲染器，性能上限更高；代价是 +3.68 MB/ABI 和美术管线要重学）。这个决策点的价值就在于**在投入美术工时之前**把它测出来。
 
 **怎么测：** 用 `adb shell dumpsys gfxinfo` + Macrobenchmark（`androidx.benchmark`）拿帧时间分布，不要只看「感觉流畅」。本仓库已有 `app/src/test` 下的测试基础，Macrobenchmark 可以放 `:app` 的 `androidTest`。
 
@@ -681,16 +790,20 @@ AvatarAssetRepository
 |---|---|---|
 | **Spine 在 Android 上的性能** | 高——若中端机跑不满 30 FPS，整个方案要换 | P0 先测；备选 Rive |
 | **美术工时** | 高——绑骨比 Cubism 重 | 先用 1 个角色做完整流程，量出工时再排期 |
-| **Live2D 的 Expandable Application 判定** | 高——若选 Live2D，可能被要求签特别协议 | 若倾向 Live2D，**先询价再决策**，不要假设 |
+| **Live2D 的 avatar 条款** | 高——官方示例直接写 `(e.g. avatar)`，我们基本命中；小规模豁免不适用，分成 20% 起 | **按「不可用」处理**；若仍想用，先书面询价 |
+| **iOS 端是两套实现**（若选 Live2D） | 高——Java 与 Native C++ 无法共享渲染代码 | 选 Spine/Rive：两端各有原生运行时且资产共享 |
+| **iOS 迁移的整体成本** | 中高——仓库目前 **100% Android**，没有任何 Swift/iOS 代码；iOS 端是全新工程 | 本文只保证「资产与协议」可跨端，**不保证 UI 层可复用**；若真要跨端，应现在评估 Compose Multiplatform |
 | Spine Enterprise 阈值 $500K | 中——增长后会突然多一笔年费 | 可预测，可预算 |
 | 音素口型的音画同步 | 中——LiveKit 抖动缓冲会引入偏移 | 第一版不做；需要时实测 |
-| 多 ABI 下的 APK 体积 | 中——Spine 影响小，但换其他引擎影响大 | 用 AAB 按设备拆分（现有配置已支持） |
+| 多 ABI 下的 APK 体积 | 低——Spine 零 `.so`；但当前包已 280 MB（native 145 MB），真正的体积问题不在形象 | 用 AAB 按设备拆分（现有配置已支持；注意国内商店对 AAB 支持不一） |
 | 用户上传/自定义形象 | 未评估 | 本文不涉及；若要做需要单独的资产审核与安全设计 |
 
 **需要业务方决定的：**
-1. 形象的**角色数量级**：10 个精修官方角色 vs. 500 个 UGC 角色？前者 Live2D 可接受，后者必须 Spine。
-2. **换装的商业模型**：免费换装，还是付费单品？付费则 `unlockedItems` 必须服务端权威，且要接支付。
-3. **是否接受「先无形象、后加形象」**：如果形象是核心卖点，P0/P1 应该提前到其他功能之前。
+1. **「免费」是硬约束还是初期约束？** 这决定了走 §1.7 的第 1 条（零成本、能力受限）还是 Spine/Rive。如果是「先不投钱验证产品」，建议先做序列帧 demo；如果验证通过，最终仍会回到付费方案。
+2. 形象的**角色数量级**：10 个精修官方角色 vs. 500 个 UGC 角色？后者必须 Spine。
+3. **换装的商业模型**：免费换装，还是付费单品？付费则 `unlockedItems` 必须服务端权威，且要接支付。
+4. **是否现在就要为 iOS 做准备？** 若一年内要上 iOS，现在选型就该锁 Spine/Rive（资产与协议可复用），而不是自研 Compose 渲染层（无法迁移）。
+5. **是否接受「先无形象、后加形象」**：如果形象是核心卖点，P0/P1 应该提前到其他功能之前。
 
 ---
 
@@ -718,7 +831,47 @@ AvatarAssetRepository
 | 18 | https://docs.godotengine.org/en/stable/tutorials/platform/android/android_library.html | Godot Android 库；单实例与 resize 限制 | 2026-11-11 |
 | 19 | https://github.com/airbnb/lottie-android | Lottie Apache-2.0 | 2026-11-11 |
 | 20 | https://docs.lottiefiles.com/en/runtimes/distributions/android | dotLottie Android Player（许可**未查到**） | 2026-11-11 |
-| 21 | Maven Central `com.esotericsoftware.spine:spine-android:4.2.9`（AAR + sources + POM） | 实测 39.5 KB、无 `.so`、依赖 gdx/spine-libgdx、许可头 | 2026-11-11 |
-| 22 | Maven Central `app.rive:rive-android:10.2.0`（AAR） | 实测 7.47 MB、arm64 `.so` 4.97 MB | 2026-11-11 |
-| 23 | Maven Central `org.godotengine:godot:4.4.1.stable`（AAR） | 实测 102.8 MB、arm64 `.so` 76 MB | 2026-11-11 |
-| 24 | Maven Central `com.airbnb.android:lottie:6.7.1`（AAR） | 实测 433 KB | 2026-11-11 |
+| 21 | https://www.live2d.com/en/sdk/license/expandable/ | **Expandable Application 定义、`(e.g. avatar)` 示例、分成费率、免费应用不予批准** | 2026-11-11 |
+| 22 | https://help.live2d.com/en/sdk/sdk_001/ | 小规模豁免范围；Expandable Application 不适用豁免 | 2026-11-11 |
+| 23 | https://www.live2d.com/en/cubism/comparison/ | Cubism Editor FREE 档限制（30 参数 / 30 部件 / 100 ArtMesh） | 2026-11-11 |
+| 24 | https://docs.live2d.com/en/cubism-sdk-manual/platform/ | Native 支持 iOS + Metal/OpenGL；**Java 仅 Android** | 2026-11-11 |
+| 25 | https://esotericsoftware.com/spine-ios | spine-ios 是 Swift/ObjC + **Metal**，iOS 13+，SPM | 2026-11-11 |
+| 26 | https://esotericsoftware.com/spine-export | **「一份导出喂所有运行时，只要求版本对齐」**（跨端复用依据） | 2026-11-11 |
+| 27 | https://en.esotericsoftware.com/spine-editor-license | 第 2 节：集成/分发权利，主体是开发者不是终端用户 | 2026-11-11 |
+| 28 | https://docs.godotengine.org/en/stable/about/faq.html | **LibGodot 目前仅 Windows/macOS/Linux，Android/iOS「计划中」** | 2026-11-11 |
+| 29 | https://docs.unity.com/en-us/engine/6000.6/manual/platform-specific/iphone/ios-developing/unityasa-library-ios | UaaL iOS **只支持全屏渲染**、单实例限制 | 2026-11-11 |
+| 30 | https://rive.app/runtimes | 「Change the file, and every platform gets the same change」 | 2026-11-11 |
+| 31 | https://github.com/rive-app/rive-ios | rive-ios 6.29.0，MIT，Metal，SwiftUI | 2026-11-11 |
+| 32 | https://github.com/airbnb/lottie-ios | lottie-ios 4.6.1，Apache-2.0 | 2026-11-11 |
+| 33 | https://developer.android.com/reference/kotlin/androidx/compose/ui/graphics/Canvas | `DrawScope.drawVertices` 标记 **Cmn**，**1.10.0** 起 | 2026-11-11 |
+| 34 | https://dl.google.com/android/maven2/androidx/compose/compose-bom/maven-metadata.xml | BOM 2025.09.00 → ui **1.9.3**；2025.12.00 → ui **1.10.0**（实测 POM） | 2026-11-11 |
+| 35 | https://developer.android.com/reference/android/graphics/ImageDecoder | `ImageDecoder`/`AnimatedImageDrawable` API 28+（仓库 `minSdk=28` 满足） | 2026-11-11 |
+| 36 | https://support.google.com/googleplay/android-developer/answer/9859372 | Google Play：base module 500 MB、全部模块+安装期资源包 4 GB | 2026-11-11 |
+| 37 | https://developer.huawei.com/consumer/cn/doc/app/agc-help-releaseapkrpk-0000001106463276 | 华为 AppGallery 支持 AAB；APK/RPK 上限 4 GB | 2026-11-11 |
+| 38 | https://www.faceunity.com/avatarxsdk.html | 相芯：端侧+云端、**服饰/配饰**、51 维表情；**无眨眼/呼吸/视线** | 2026-11-11 |
+| 39 | https://xiling.cloud.baidu.com/doc/AI_DH/s/Vlysgbz88 | 百度曦灵价格：端渲染应用授权 36,000 元/个（单系统 20 台） | 2026-11-11 |
+| 40 | https://cloud.tencent.cn/document/product/1240/101944 | 腾讯云 2D 端渲染：按设备 5,000 元/年、按应用 800,000 元/年；**不含 TTS** | 2026-11-11 |
+| 41 | https://docs.volcengine.com/docs/large-model-of-image-generation/real-time-interactive-digital-human-sdk-product-introduction | 火山 FlowAct-R1：云端推流 480P@25fps、42 万元/年/并发 | 2026-11-11 |
+| 42 | https://help.aliyun.com/zh/avatar/product-overview/ | 阿里云数字人：**2026-10-11 停止新购**、文档停止维护 | 2026-11-11 |
+| 43 | https://www.xingyun3d.com/support/51-182 | 魔珐星云计费（积分制、单价未公开）；开发文档仅 Android + JS，无 iOS 原生 | 2026-11-11 |
+| 44 | https://fuxi.163.com/ | 网易伏羲：无数字人产品页、无定价、无移动端说明 | 2026-11-11 |
+| 45 | https://github.com/duixcom/Duix-Mobile | Duix Mobile：社区许可证要求常驻 "Powered by Duix.com"，**1000 MAU 以上须授权** | 2026-11-11 |
+| 46 | 实测：`app/build/outputs/apk/chat/debug/app-chat-debug.apk` | APK 280 MB；arm64 88.1 MB、armeabi-v7a 57.0 MB | 2026-11-11 |
+| 47 | 实测：Maven Central `spine-android:4.3.5` + `gdx:1.14.2` + `spine-libgdx:4.3.5` | 39.0 KB + 2.18 MB + 330 KB ≈ **2.54 MB**，零 `.so` | 2026-11-11 |
+| 48 | 实测：Live2D 官方 sample `Haru.2048`（GitHub API 逐个文件取 size） | 合计 **4.28 MB**（贴图 2.72 MB、moc3 385 KB、motions 498 KB） | 2026-11-11 |
+| 49 | 实测：Spine 官方 sample `examples/spineboy/export` | 合计 **1.22 MB** | 2026-11-11 |
+| 50 | 实测：自造 1080×1440 透明角色序列帧，`cwebp -q 82` | **≈16 KB/帧**；2 秒@12fps ≈ 0.37 MB；10 套×8 动作 ≈ 30 MB | 2026-11-11 |
+| 51 | https://github.com/DragonBones/DragonBonesCPP | **MIT**；`AndroidCompose/` 提供 Compose + OpenGL ES + JNI 封装（`DragonBonesViewCompose`），`minSdk 26`；最后提交 2025-07-03，无 tag/release | 2026-11-11 |
+| 52 | https://github.com/DragonBones/DragonBonesCPP/blob/HEAD/AndroidCompose/README.md | 「Jetpack Compose components for rendering DragonBones…uses C++ and OpenGL ES」「Interaction Support: getting the name of a tapped slot」 | 2026-11-11 |
+| 53 | https://github.com/Inochi2D/inochi2d | **BSD-2-Clause**，1,844★；仓库内无 android/ios/mobile 路径；最新正式版 v0.8.7（2024-10-02） | 2026-11-11 |
+| 54 | https://github.com/layabox/LayaAir | **MIT**，2,234★，2026-11-10 活跃 | 2026-11-11 |
+| 55 | https://github.com/guansss/pixi-live2d-display | **MIT**，1,517★，最后提交 2024-08-20；用于 WebView 方案，**不免除 Live2D 授权** | 2026-11-11 |
+| 56 | https://download.cocos.com/CocosUdc/agreement/Cocos_User_Service_Agreement_en_20220901.html | Cocos 用户服务协议以「developing games」界定用途；`cocos/engine-native` 为修改版 MIT。**非游戏商业用途未见明确条款（未验证）** | 2026-11-11 |
+| 57 | https://github.com/esotericsoftware/spine-runtimes/tree/4.3/spine-ios | spine-ios 4.3 分支存在；README 写明与 Spine 4.3.xx 导出的数据配套 | 2026-11-11 |
+| 58 | https://repo1.maven.org/maven2/com/esotericsoftware/spine/spine-android/maven-metadata.xml | `latest/release = 4.3.5`，lastUpdated 2026-07-10 | 2026-11-11 |
+| 59 | https://repo1.maven.org/maven2/app/rive/rive-android/maven-metadata.xml | `latest = 11.16.3`，lastUpdated 2026-11-11 | 2026-11-11 |
+| 60 | https://repo1.maven.org/maven2/com/airbnb/android/lottie/maven-metadata.xml | `latest = 6.7.1`，lastUpdated 2025-10-31 | 2026-11-11 |
+| 61 | Maven Central `com.esotericsoftware.spine:spine-android:4.2.9`（AAR + sources + POM） | 初版实测 39.5 KB、无 `.so`、依赖 gdx/spine-libgdx、许可头（4.3.5 见第 47 条） | 2026-11-11 |
+| 62 | Maven Central `app.rive:rive-android:10.2.0`（AAR） | 实测 7.47 MB、arm64 `.so` 4.97 MB | 2026-11-11 |
+| 63 | Maven Central `org.godotengine:godot:4.4.1.stable`（AAR） | 实测 102.8 MB、arm64 `.so` 76 MB | 2026-11-11 |
+| 64 | Maven Central `com.airbnb.android:lottie:6.7.1`（AAR） | 实测 433 KB | 2026-11-11 |
