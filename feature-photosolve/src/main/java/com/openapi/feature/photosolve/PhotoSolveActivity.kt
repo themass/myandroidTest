@@ -47,11 +47,11 @@ import com.openapi.feature.photosolve.ui.PhotoResultScreen
 import com.openapi.feature.photosolve.ui.PhotoSolveHomeScreen
 import com.openapi.feature.photosolve.ui.QuadAdjustScreen
 import com.openapi.feature.photosolve.ui.rememberMlKitScanLauncher
-import com.openapi.uikit.permission.PermissionGateway
-import com.openapi.uikit.permission.PermissionOutcome
-import com.openapi.uikit.permission.PermissionRequest
-import com.openapi.uikit.permission.Permissions
-import com.openapi.uikit.theme.AppMaterialTheme
+import com.openapi.common.ui.permission.PermissionGateway
+import com.openapi.common.ui.permission.PermissionOutcome
+import com.openapi.common.ui.permission.PermissionRequest
+import com.openapi.common.ui.permission.Permissions
+import com.openapi.common.ui.theme.AppMaterialTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext

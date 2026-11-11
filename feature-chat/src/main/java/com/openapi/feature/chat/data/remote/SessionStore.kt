@@ -2,8 +2,8 @@ package com.openapi.feature.chat.data.remote
 
 import android.content.Context
 import com.openapi.feature.chat.domain.model.ChatSession
-import com.openapi.network.http.BaseService
-import com.openapi.network.awaitInfoList
+import com.openapi.common.net.http.BaseService
+import com.openapi.common.net.awaitInfoList
 import com.openapi.common.util.android.PreferenceUtils
 import com.openapi.core.config.Constants
 import com.openapi.core.db.AppDatabase

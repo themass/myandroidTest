@@ -7,7 +7,7 @@ import android.view.WindowManager
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.lifecycle.lifecycleScope
-import com.openapi.network.http.BaseService
+import com.openapi.common.net.http.BaseService
 import com.openapi.common.util.android.ToastUtil
 import com.openapi.feature.content.R
 import com.openapi.core.model.RecommendVo

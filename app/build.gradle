@@ -191,8 +191,6 @@ dependencies {
     implementation project(":common")
     testImplementation project(':imaging')
     implementation project(':speech')
-    implementation project(':uikit')
-    implementation project(':network')
     implementation project(':core')
     implementation project(':feature-video')
     implementation project(':feature-chat')
@@ -200,7 +198,6 @@ dependencies {
     implementation project(':feature-user')
     implementation project(':feature-content')
     implementation project(':feature-companion')
-    implementation project(":ads")
     implementation project(':retromusic')
     implementation project(':chatkit')
 

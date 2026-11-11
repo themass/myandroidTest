@@ -66,7 +66,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.openapi.feature.chat.presentation.ui.ChatRoute
-import com.openapi.uikit.theme.AppColors
+import com.openapi.common.ui.theme.AppColors
 import com.openapi.app.home.HomeDependencies
 import com.openapi.ks.myapp.companion.CompanionRoute
 import com.openapi.feature.user.home.domain.ProfileAction

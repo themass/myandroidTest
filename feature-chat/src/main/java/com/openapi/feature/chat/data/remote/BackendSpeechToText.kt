@@ -1,10 +1,10 @@
 package com.openapi.feature.chat.data.remote
 
 import android.util.Base64
-import com.openapi.network.http.BaseService
+import com.openapi.common.net.http.BaseService
 import com.openapi.feature.chat.domain.speech.SpeechToText
 import com.openapi.speech.audio.VoiceRecorder
-import com.openapi.network.awaitPost
+import com.openapi.common.net.awaitPost
 import com.openapi.feature.chat.data.remote.AsrContentForm
 import com.openapi.feature.chat.data.remote.AsrResponseVo
 import com.openapi.core.config.Constants

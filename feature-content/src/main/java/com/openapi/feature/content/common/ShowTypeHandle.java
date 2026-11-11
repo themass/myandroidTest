@@ -9,7 +9,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.request.target.DrawableImageViewTarget;
 import com.openapi.common.util.log.LogUtil;
-import com.openapi.network.glide.GlideLoggingListener;
+import com.openapi.common.net.glide.GlideLoggingListener;
 import com.openapi.core.image.ImagePhotoLoad;
 // 使用现代 Shimmer 替代
 // import com.romainpiel.shimmer.Shimmer;

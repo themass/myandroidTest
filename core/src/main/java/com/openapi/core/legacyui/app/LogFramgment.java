@@ -17,7 +17,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.openapi.common.util.log.LogUtil;
-import com.openapi.ads.analytics.MobAgent;
+import com.openapi.common.ads.analytics.MobAgent;
 
 /**
  * Created by openapi on 2016/3/16.

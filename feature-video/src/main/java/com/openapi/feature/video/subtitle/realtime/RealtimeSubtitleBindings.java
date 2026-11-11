@@ -1,6 +1,6 @@
 package com.openapi.feature.video.subtitle.realtime;
 
-import com.openapi.subtitle.realtime.VideoRealtimeSubtitleSession;
+import com.openapi.speech.subtitle.realtime.VideoRealtimeSubtitleSession;
 
 import android.content.Context;
 import android.view.ViewGroup;

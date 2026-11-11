@@ -32,7 +32,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.openapi.feature.photosolve.R
 import com.openapi.feature.photosolve.presentation.PhotoSolveResult
-import com.openapi.uikit.theme.AppColors
+import com.openapi.common.ui.theme.AppColors
 
 @Composable
 fun PhotoResultScreen(

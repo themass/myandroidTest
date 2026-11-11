@@ -7,8 +7,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
-import com.openapi.ads.base.AdsContext;
-import com.openapi.network.request.InfoListVo;
+import com.openapi.common.ads.base.AdsContext;
+import com.openapi.common.net.request.InfoListVo;
 import com.openapi.core.model.RecommendVo;
 import com.openapi.core.config.Constants;
 import com.openapi.common.util.android.StaticDataUtil;

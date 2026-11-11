@@ -48,9 +48,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.openapi.feature.chat.domain.model.ChatCharacterOption
 import com.openapi.feature.chat.presentation.ChatUiState
-import com.openapi.uikit.theme.AppColors
-import com.openapi.uikit.theme.AppSpacing
-import com.openapi.uikit.theme.AppTypography
+import com.openapi.common.ui.theme.AppColors
+import com.openapi.common.ui.theme.AppSpacing
+import com.openapi.common.ui.theme.AppTypography
 import com.openapi.feature.chat.R
 import com.openapi.feature.chat.roles.domain.SelectedRole
 import com.openapi.feature.chat.roles.presentation.RoleAvatar

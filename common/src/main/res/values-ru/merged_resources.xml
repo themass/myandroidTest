@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="error_network_no_connection">Сетевое подключение недоступно. Пожалуйста, повторите попытку позже</string>
+    <string name="error_network_timeout">Время ожидания сетевого подключения истекло. Пожалуйста, повторите попытку позже</string>
+    <string name="error_network_unknown">Ошибка подключения к серверу. Проверьте соединение или повторите попытку позже</string>
+    <string name="error_network_retry">Ошибка загрузки. Нажмите, чтобы повторить попытку</string>
+    <string name="error_network_nodata_retry">Данные отсутствуют. Нажмите, чтобы повторить попытку</string>
+    <string name="menu_haha">Ой! Вы это обнаружили</string>
+    <string name="input_picture">Галерея</string>
+    <string name="input_video">Видео</string>
+    <string name="input_file">Файл</string>
+    <string name="input_talk">Диалог</string>
+    <string name="input_help">Помощь</string>
+    <string name="input_question">Решить</string>
+    <string name="input_position">Местоположение</string>
+    <string name="menu_share_copy_ok">Скопировано в буфер обмена</string>
+    <string name="load">Загрузить ещё..</string>
+    <string name="tab_fb_click_no">Нет рекламы, попробуйте позже</string>
+    <string name="tab_fb_click">Рекламные объявления для получения баллов +</string>
+    <string name="tab_fb_click_fast">Слишком быстро, подождите 3 секунды</string>
+    <string name="repeated_click">Не нажимайте повторно</string>
+</resources>

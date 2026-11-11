@@ -42,7 +42,7 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.bumptech.glide.Glide
-import com.openapi.uikit.theme.AppColors
+import com.openapi.common.ui.theme.AppColors
 import com.openapi.feature.content.home.ChannelsDependencies
 import com.openapi.feature.content.home.domain.Channel
 import com.openapi.feature.content.R

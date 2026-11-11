@@ -8,7 +8,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.openapi.speech.audio.AudioPlayer
 import com.openapi.app.home.presentation.HomeScreen
-import com.openapi.uikit.theme.AppMaterialTheme
+import com.openapi.common.ui.theme.AppMaterialTheme
 
 /**
  * 主页：底部三个标签（对话、频道、我的）。启动页直接进入这里。

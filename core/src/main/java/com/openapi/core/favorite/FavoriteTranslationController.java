@@ -4,10 +4,10 @@ import androidx.annotation.Nullable;
 
 import com.openapi.common.util.android.ToastUtil;
 import com.openapi.core.R;
-import com.openapi.subtitle.api.RealtimeSubtitleSession;
-import com.openapi.subtitle.api.StreamingSubtitleOverlayPresenter;
-import com.openapi.subtitle.api.TranslationOverlayPresenter;
-import com.openapi.subtitle.api.TranslationOverlaySession;
+import com.openapi.speech.subtitle.api.RealtimeSubtitleSession;
+import com.openapi.speech.subtitle.api.StreamingSubtitleOverlayPresenter;
+import com.openapi.speech.subtitle.api.TranslationOverlayPresenter;
+import com.openapi.speech.subtitle.api.TranslationOverlaySession;
 
 /**
  * 收藏条上「译」按钮的逻辑（从 {@link MyFavoriteView} 拆出）：在线流式字幕（火山 ASR）优先，

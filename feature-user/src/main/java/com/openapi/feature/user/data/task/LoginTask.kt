@@ -2,10 +2,10 @@ package com.openapi.feature.user.data.task
 
 import android.content.Context
 import com.openapi.core.app.AppContext
-import com.openapi.network.http.HttpClient
-import com.openapi.network.http.NetError
-import com.openapi.network.http.Response
-import com.openapi.network.request.MultipartRequest
+import com.openapi.common.net.http.HttpClient
+import com.openapi.common.net.http.NetError
+import com.openapi.common.net.http.Response
+import com.openapi.common.net.request.MultipartRequest
 import com.openapi.common.util.lang.BeanUtil
 import com.openapi.common.util.log.LogUtil
 import com.openapi.common.util.android.PreferenceUtils
@@ -45,7 +45,7 @@ object LoginTask {
                 if (user != null) {
                     UserLoginUtil.login(AppContext.get(), user)
                 } else {
-                    PreferenceUtils.remove(AppContext.get(), com.openapi.network.http.NetConfig.tokenHeader())
+                    PreferenceUtils.remove(AppContext.get(), com.openapi.common.net.http.NetConfig.tokenHeader())
                 }
             } catch (e: Exception) {
                 LogUtil.e(e)

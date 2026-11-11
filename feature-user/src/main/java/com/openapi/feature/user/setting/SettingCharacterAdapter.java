@@ -13,8 +13,8 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.openapi.common.util.lang.StringUtils;
-import com.openapi.ads.base.AdsContext;
-import com.openapi.ads.base.AdsManager;
+import com.openapi.common.ads.base.AdsContext;
+import com.openapi.common.ads.base.AdsManager;
 import com.openapi.feature.user.R;
 import com.openapi.core.legacyui.adapter.BaseRecyclerViewAdapter;
 import com.openapi.core.model.CharacterVo;

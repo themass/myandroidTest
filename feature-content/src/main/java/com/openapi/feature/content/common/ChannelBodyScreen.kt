@@ -103,12 +103,12 @@ fun ChannelBodyScreen(
         }
 
         ChannelUiState.Retry -> RetryPlaceholder(
-            textRes = com.openapi.uikit.R.string.error_network_retry,
+            textRes = com.openapi.common.R.string.error_network_retry,
             onClick = { controller.retry(scope) },
         )
 
         ChannelUiState.NoData -> RetryPlaceholder(
-            textRes = com.openapi.uikit.R.string.error_network_nodata_retry,
+            textRes = com.openapi.common.R.string.error_network_nodata_retry,
             onClick = { controller.retry(scope) },
         )
 

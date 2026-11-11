@@ -17,9 +17,6 @@ dependencies {
     // 拍照解题：图像处理与模型在 :imaging
     implementation project(':common')
     implementation project(':imaging')
-    implementation project(':uikit')
-    // 真实后端走 :network 的统一请求封装（token/设备头/信封解析）
-    implementation project(':network')
     implementation project(':core')
     // 图像处理（压缩、质量分析、自动裁剪、超分）在 :media
     implementation libs.okhttp

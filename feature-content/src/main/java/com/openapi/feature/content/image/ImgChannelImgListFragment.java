@@ -9,9 +9,9 @@ import android.view.View;
 
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.openapi.ads.base.AdsContext;
+import com.openapi.common.ads.base.AdsContext;
 import com.openapi.feature.content.image.ImgItemsVo;
-import com.openapi.network.request.InfoListVo;
+import com.openapi.common.net.request.InfoListVo;
 import com.openapi.core.model.RecommendVo;
 import com.openapi.core.config.Constants;
 import com.openapi.feature.content.common.HistoryUtil;

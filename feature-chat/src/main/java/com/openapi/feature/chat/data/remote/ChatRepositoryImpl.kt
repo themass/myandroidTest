@@ -9,7 +9,7 @@ import com.openapi.feature.chat.domain.model.ChatStreamEvent
 import com.openapi.feature.chat.domain.model.HistoryPage
 import com.openapi.feature.chat.domain.model.MessageKind
 import com.openapi.feature.chat.domain.repository.ChatRepository
-import com.openapi.network.http.BaseService
+import com.openapi.common.net.http.BaseService
 import com.openapi.core.config.Constants
 import com.openapi.feature.chat.data.remote.ChatMessagePageVo
 import com.openapi.feature.chat.data.remote.ChatMessageVo

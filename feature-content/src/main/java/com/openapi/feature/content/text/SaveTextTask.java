@@ -8,7 +8,7 @@ import android.os.Looper;
 import com.openapi.common.util.android.FileUtils;
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.common.util.android.PathUtil;
-import com.openapi.network.http.HttpUtils;
+import com.openapi.common.net.http.HttpUtils;
 
 import java.io.File;
 import java.util.concurrent.ExecutorService;

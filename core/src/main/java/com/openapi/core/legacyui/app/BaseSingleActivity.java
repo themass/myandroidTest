@@ -1,6 +1,6 @@
 package com.openapi.core.legacyui.app;
 
-import com.openapi.ads.analytics.MobAgent;
+import com.openapi.common.ads.analytics.MobAgent;
 
 /**
  * Created by openapi on 2016/8/18.

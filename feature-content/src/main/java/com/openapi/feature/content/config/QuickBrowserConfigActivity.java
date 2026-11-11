@@ -7,7 +7,7 @@ import android.os.Bundle;
 import com.openapi.core.config.CommonConstants;
 import com.openapi.core.legacyui.app.LogActivity;
 import com.openapi.common.util.android.PackageUtils;
-import com.openapi.ads.base.AdsContext;
+import com.openapi.common.ads.base.AdsContext;
 import com.openapi.feature.content.R;
 import com.openapi.core.config.Constants;
 import com.openapi.core.account.UserLoginUtil;

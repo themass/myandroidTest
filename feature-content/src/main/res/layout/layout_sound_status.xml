@@ -18,7 +18,7 @@
         android:layout_height="wrap_content"
         android:minHeight="40dp">
 
-        <com.openapi.uikit.widget.MarqueeTextView
+        <com.openapi.common.ui.widget.MarqueeTextView
             android:id="@+id/tv_play_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

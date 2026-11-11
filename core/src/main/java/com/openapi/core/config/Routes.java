@@ -3,7 +3,7 @@ package com.openapi.core.config;
 import android.content.Context;
 import android.content.Intent;
 
-import com.openapi.ads.base.AdsContext;
+import com.openapi.common.ads.base.AdsContext;
 import com.openapi.common.util.android.StaticDataUtil;
 import com.openapi.core.model.RecommendVo;
 import com.openapi.core.legacyui.base.CommonFragmentActivity;

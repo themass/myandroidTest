@@ -1,9 +1,9 @@
 package com.openapi.feature.content.sound;
 
-import com.openapi.subtitle.api.TranslationOverlaySession;
-import com.openapi.subtitle.api.VideoTranslationRegistry;
-import com.openapi.subtitle.api.VideoTranslationRequest;
-import com.openapi.subtitle.realtime.VideoRealtimeSubtitleSession;
+import com.openapi.speech.subtitle.api.TranslationOverlaySession;
+import com.openapi.speech.subtitle.api.VideoTranslationRegistry;
+import com.openapi.speech.subtitle.api.VideoTranslationRequest;
+import com.openapi.speech.subtitle.realtime.VideoRealtimeSubtitleSession;
 
 import android.content.Context;
 import android.view.ViewGroup;

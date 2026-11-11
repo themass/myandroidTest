@@ -14,8 +14,8 @@ import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.openapi.ads.base.AdsContext;
-import com.openapi.ads.base.AdsManager;
+import com.openapi.common.ads.base.AdsContext;
+import com.openapi.common.ads.base.AdsManager;
 import com.openapi.feature.content.R;
 import com.openapi.feature.content.databinding.LayoutChannelItemsItemBinding;
 import com.openapi.core.legacyui.adapter.BaseRecyclerViewAdapter;
