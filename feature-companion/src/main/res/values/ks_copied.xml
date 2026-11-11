@@ -40,4 +40,8 @@
     <string name="companion_nav_back">Back</string>
     <string name="companion_open_voice">Voice call</string>
     <string name="companion_voice_back">Back to chat</string>
+    <string name="companion_tab_profile">What she knows</string>
+    <string name="companion_profile_hint">This is what she has gathered about you. Anything marked as a guess hasn\'t been confirmed. You can ask her to stop bringing something up, or forget it.</string>
+    <string name="companion_profile_guess">A guess, not confirmed</string>
+    <string name="companion_profile_stop">Stop mentioning</string>
 </resources>

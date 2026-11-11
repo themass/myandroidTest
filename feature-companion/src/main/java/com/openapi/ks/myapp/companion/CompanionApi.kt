@@ -22,6 +22,11 @@ interface CompanionApi {
     suspend fun character(id: String): CharacterDetail
     suspend fun memory(limit: Int = 20, offset: Int = 0): FactPage
     suspend fun deleteMemory(id: String)
+    /** 她对你的了解。只有新服务（按角色）才有；旧服务返回空。 */
+    suspend fun profile(includeHistory: Boolean = false): List<ProfileEntry> = emptyList()
+    /** 「别再提」：这条不再出现在对话里，同一话题也不会被重新生成。 */
+    suspend fun suppressProfileEntry(id: String) = Unit
+    suspend fun deleteProfileEntry(id: String) = Unit
     suspend fun events(includePast: Boolean = false): List<TimelineEventItem>
     suspend fun addEvent(title: String, atIso: String, kind: String = "other"): TimelineEventItem
     suspend fun setEventStatus(id: String, status: String)
@@ -91,6 +96,20 @@ class HttpCompanionApi(
             items = json.optJSONArray("items").toList { MemoryFact.from(it) },
             hasMore = json.optBoolean("has_more"),
         )
+    }
+
+    override suspend fun profile(includeHistory: Boolean): List<ProfileEntry> {
+        if (!agentStack) return emptyList()
+        val json = call("GET", "/api/agent/v1/memory/profile?include_history=$includeHistory${roleQuery("&")}")
+        return json.optJSONArray("items").toList { ProfileEntry.from(it) }
+    }
+
+    override suspend fun suppressProfileEntry(id: String) {
+        if (agentStack) call("POST", "/api/agent/v1/memory/profile/${enc(id)}/suppress")
+    }
+
+    override suspend fun deleteProfileEntry(id: String) {
+        if (agentStack) call("DELETE", "/api/agent/v1/memory/profile/${enc(id)}")
     }
 
     override suspend fun deleteMemory(id: String) {

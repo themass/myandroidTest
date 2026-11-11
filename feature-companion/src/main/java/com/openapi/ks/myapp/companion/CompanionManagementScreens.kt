@@ -98,6 +98,8 @@ fun MemoryScreen(
     onAddEvent: (title: String, atIso: String, kind: String) -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    onSuppressProfile: (String) -> Unit = {},
+    onDeleteProfile: (String) -> Unit = {},
 ) {
     var tab by rememberSaveable { mutableStateOf(0) }
     Column(modifier = modifier.fillMaxSize().padding(horizontal = 16.dp)) {
@@ -105,6 +107,10 @@ fun MemoryScreen(
         TabRow(selectedTabIndex = tab) {
             Tab(selected = tab == 0, onClick = { tab = 0 }, text = { Text(stringResource(R.string.companion_tab_facts)) })
             Tab(selected = tab == 1, onClick = { tab = 1 }, text = { Text(stringResource(R.string.companion_tab_events)) })
+            // 只有新服务才有画像；没有就不显示这个标签，免得出现一个永远是空的页
+            if (state.profile.isNotEmpty()) {
+                Tab(selected = tab == 2, onClick = { tab = 2 }, text = { Text(stringResource(R.string.companion_tab_profile)) })
+            }
         }
         Spacer(Modifier.height(8.dp))
         state.error?.let {
@@ -136,12 +142,60 @@ fun MemoryScreen(
                     }
                 }
             }
+            tab == 2 && state.profile.isNotEmpty() -> ProfilePane(
+                entries = state.profile,
+                onSuppress = onSuppressProfile,
+                onDelete = onDeleteProfile,
+            )
             else -> EventsPane(
                 events = state.events,
                 onDelete = onDeleteEvent,
                 onDone = onMarkDone,
                 onAdd = onAddEvent,
             )
+        }
+    }
+}
+
+/**
+ * 她对你的了解。长期的在前，近况在后；她猜的（不是你说过的）标出「猜测」，
+ * 你可以对任何一条说「别再提」（保留但不再出现在对话里）或直接删除。
+ */
+@Composable
+private fun ProfilePane(
+    entries: List<ProfileEntry>,
+    onSuppress: (String) -> Unit,
+    onDelete: (String) -> Unit,
+) {
+    LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        item {
+            Text(
+                stringResource(R.string.companion_profile_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        items(entries.sortedBy { it.section != "static" }, key = { it.id }) { entry ->
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text(entry.topic, style = MaterialTheme.typography.labelMedium)
+                    Text(entry.memo, style = MaterialTheme.typography.bodyMedium)
+                    if (entry.isInference) {
+                        Text(
+                            stringResource(R.string.companion_profile_guess),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.tertiary,
+                        )
+                    }
+                }
+                TextButton(onClick = { onSuppress(entry.id) }) {
+                    Text(stringResource(R.string.companion_profile_stop))
+                }
+                TextButton(onClick = { onDelete(entry.id) }) {
+                    Text(stringResource(R.string.companion_delete))
+                }
+            }
+            HorizontalDivider()
         }
     }
 }

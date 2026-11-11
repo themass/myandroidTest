@@ -52,6 +52,8 @@ data class MemoryState(
     val facts: List<MemoryFact> = emptyList(),
     val factsHasMore: Boolean = false,
     val events: List<TimelineEventItem> = emptyList(),
+    /** 她对你的了解（只含当前有效的）。 */
+    val profile: List<ProfileEntry> = emptyList(),
     val loading: Boolean = false,
     val error: String? = null,
 )
@@ -71,11 +73,14 @@ class MemoryViewModel(private val api: CompanionApi) : ViewModel() {
             try {
                 val facts = api.memory(limit = PAGE_SIZE, offset = 0)
                 val events = api.events(includePast = true)
+                // 画像读不到（旧服务、网络抖动）不该让整个记忆页失败：这一块空着就好
+                val profile = runCatching { api.profile() }.getOrDefault(emptyList()).filter { it.current }
                 _state.update {
                     it.copy(
                         facts = facts.items,
                         factsHasMore = facts.hasMore,
                         events = events,
+                        profile = profile,
                         loading = false,
                     )
                 }
@@ -91,6 +96,17 @@ class MemoryViewModel(private val api: CompanionApi) : ViewModel() {
     fun deleteFact(id: String) {
         _state.update { st -> st.copy(facts = st.facts.filterNot { it.id == id }) }
         mutate { api.deleteMemory(id) }
+    }
+
+    /** 「别再提」：先从界面拿掉，服务端失败会整体刷新回来。 */
+    fun suppressProfile(id: String) {
+        _state.update { st -> st.copy(profile = st.profile.filterNot { it.id == id }) }
+        mutate { api.suppressProfileEntry(id) }
+    }
+
+    fun deleteProfile(id: String) {
+        _state.update { st -> st.copy(profile = st.profile.filterNot { it.id == id }) }
+        mutate { api.deleteProfileEntry(id) }
     }
 
     fun deleteEvent(id: String) {
