@@ -29,7 +29,7 @@ public final class Routes {
     public static final String SETTING = "com.openapi.ks.myapp.ui.user.SettingActivity";
 
     /** 全局搜索结果页（频道里的视频列表），在 :feature-content。 */
-    public static final String GLOBAL_VIDEO_SEARCH = "com.openapi.ks.myapp.ui.fragment.GlobalVideoChannelListFragment";
+    public static final String GLOBAL_VIDEO_SEARCH = "com.openapi.ks.myapp.content.video.GlobalVideoChannelListFragment";
 
     private Routes() {
     }

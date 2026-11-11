@@ -88,7 +88,7 @@ public class MyApplication extends MultiDexApplication {
         com.openapi.home.ChannelsDependencies.INSTANCE.install(home);
         com.openapi.home.ProfileDependencies.INSTANCE.install(home);
         // 以前由旧首页页面注册，页面不在前台就收不到；现在随进程注册一次
-        com.openapi.ks.myapp.data.config.ConfigActionJump.start();
+        com.openapi.ks.myapp.content.config.ConfigActionJump.start();
         AppEventHandler.INSTANCE.register();
         com.openapi.roles.data.RolesDependencies.INSTANCE.install(new com.openapi.ks.myapp.data.roles.RolesRepositoryImpl(this));
         BaseService speechService = new BaseService();

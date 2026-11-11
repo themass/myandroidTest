@@ -15,9 +15,9 @@ import com.openapi.ks.myapp.base.MyApplication
 import com.openapi.ks.myapp.bean.vo.NullReturnVo
 import com.openapi.ks.myapp.constant.Constants
 import com.openapi.ks.myapp.data.UserLoginUtil
-import com.openapi.ks.myapp.ui.fragment.AppListFragment
-import com.openapi.ks.myapp.ui.fragment.DonationListFragment
-import com.openapi.ks.myapp.ui.fragment.FavoriteFragment
+import com.openapi.ks.myapp.content.mine.AppListFragment
+import com.openapi.ks.myapp.content.mine.DonationListFragment
+import com.openapi.ks.myapp.content.mine.FavoriteFragment
 import com.openapi.ks.myapp.ui.user.LoginActivity
 import com.openapi.ks.myapp.ui.user.SettingActivity
 
