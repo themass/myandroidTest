@@ -35,6 +35,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -64,6 +65,12 @@ fun PhotoCaptureScreen(
     onPickFromGallery: (Uri) -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    /** 拍完后正在端上检测题目边框。 */
+    detecting: Boolean = false,
+    /** 上一次检测没找到题目时的提示（null 表示没有提示）。 */
+    notice: String? = null,
+    /** 手动框选：检测不到题目时的退路。 */
+    onManualCrop: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -146,12 +153,28 @@ fun PhotoCaptureScreen(
                 }
             }
 
-            Text(
-                text = stringResource(R.string.capture_hint),
-                color = Color.White,
-                modifier = Modifier.align(Alignment.TopCenter).padding(top = 64.dp),
-                style = MaterialTheme.typography.bodyMedium,
-            )
+            Column(
+                modifier = Modifier.align(Alignment.TopCenter).padding(top = 64.dp, start = 24.dp, end = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(
+                    text = if (detecting) stringResource(R.string.photosolve_detecting) else stringResource(R.string.capture_hint),
+                    color = Color.White,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                if (notice != null && !detecting) {
+                    Spacer(Modifier.size(12.dp))
+                    Text(
+                        text = notice,
+                        color = Color(0xFFFFCC00),
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    )
+                    TextButton(onClick = onManualCrop) {
+                        Text(stringResource(R.string.photosolve_manual_crop), color = Color.White)
+                    }
+                }
+            }
 
             Row(
                 modifier = Modifier.fillMaxWidth().align(Alignment.BottomCenter).padding(32.dp),

@@ -1,20 +1,20 @@
 package com.openapi.feature.photosolve
 
 import com.openapi.feature.photosolve.R
-import android.Manifest
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
@@ -32,11 +32,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.anggrayudi.storage.SimpleStorageHelper
 import com.openapi.common.image.ImageUtils.decodeUriApplyingExifOrientation
 import com.openapi.feature.photosolve.presentation.PhotoSolveStep
+import com.openapi.feature.photosolve.presentation.QuestionFrameCheck
 import com.openapi.feature.photosolve.presentation.PhotoSolveViewModel
 import com.openapi.feature.photosolve.ui.CropAssistSettingsSheet
 import com.openapi.feature.photosolve.ui.PhotoCaptureScreen
@@ -45,7 +45,12 @@ import com.openapi.feature.photosolve.ui.PhotoQualityDialog
 import com.openapi.feature.photosolve.ui.PhotoRecognizingScreen
 import com.openapi.feature.photosolve.ui.PhotoResultScreen
 import com.openapi.feature.photosolve.ui.PhotoSolveHomeScreen
+import com.openapi.feature.photosolve.ui.QuadAdjustScreen
 import com.openapi.feature.photosolve.ui.rememberMlKitScanLauncher
+import com.openapi.uikit.permission.PermissionGateway
+import com.openapi.uikit.permission.PermissionOutcome
+import com.openapi.uikit.permission.PermissionRequest
+import com.openapi.uikit.permission.Permissions
 import com.openapi.uikit.theme.AppMaterialTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -114,20 +119,16 @@ private fun PhotoSolveApp(
     val activeCropAssistId by viewModel.activeCropAssistId.collectAsState()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val activity = LocalActivity.current
 
     var permissionPermanentlyDenied by remember { mutableStateOf(false) }
     var showCropAssistSettings by remember { mutableStateOf(false) }
     var mlKitErrorMessage by remember { mutableStateOf<String?>(null) }
 
-    val cameraPermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission(),
-    ) { granted ->
-        if (granted) {
-            permissionPermanentlyDenied = false
-            viewModel.onRequestCapture()
-        } else {
-            permissionPermanentlyDenied = true
-        }
+    // 相机权限统一走 :uikit 的权限入口：解释框、永久拒绝后的「去设置」引导都由它处理，
+    // 这里只关心拿到没拿到。
+    val cameraRequest = remember {
+        PermissionRequest(Permissions.CAMERA.permissions, context.getString(R.string.home_permission_denied))
     }
 
     fun decodeAndUse(uri: Uri) {
@@ -142,14 +143,21 @@ private fun PhotoSolveApp(
     ) { uri: Uri? -> uri?.let(::decodeAndUse) }
 
     fun requestCameraPermissionAndCapture() {
-        val granted = ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.CAMERA,
-        ) == PackageManager.PERMISSION_GRANTED
-        if (granted) {
+        if (PermissionGateway.isGranted(context, cameraRequest)) {
+            permissionPermanentlyDenied = false
             viewModel.onRequestCapture()
-        } else {
-            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+            return
+        }
+        scope.launch {
+            when ((activity as? ComponentActivity)?.let { PermissionGateway.of(it).request(cameraRequest) }) {
+                PermissionOutcome.Granted -> {
+                    permissionPermanentlyDenied = false
+                    viewModel.onRequestCapture()
+                }
+                // 只在永久拒绝时提示去设置；普通拒绝用户再点一次就能重新弹系统框
+                is PermissionOutcome.PermanentlyDenied -> permissionPermanentlyDenied = true
+                else -> Unit
+            }
         }
     }
 
@@ -201,7 +209,29 @@ private fun PhotoSolveApp(
             onPhotoCaptured = viewModel::onPhotoCaptured,
             onPickFromGallery = ::decodeAndUse,
             onBack = viewModel::onCaptureCancelled,
+            detecting = uiState.detecting,
+            // 检测失败时明确提示，而不是静默裁一个框把桌面发给模型
+            notice = (uiState.frameCheck as? QuestionFrameCheck.NotFound)?.reason?.let {
+                context.getString(R.string.photosolve_not_question)
+            },
+            onManualCrop = viewModel::onManualCropRequested,
         )
+
+        PhotoSolveStep.QuadAdjust -> {
+            val bitmap = uiState.capturedBitmap
+            val quad = uiState.quad
+            if (bitmap != null && quad != null) {
+                QuadAdjustScreen(
+                    bitmap = bitmap,
+                    quad = quad,
+                    detecting = uiState.detecting,
+                    onQuadChange = viewModel::onQuadChanged,
+                    onRedetect = viewModel::onRedetect,
+                    onConfirm = viewModel::onQuadConfirmed,
+                    onCancel = viewModel::onCaptureCancelled,
+                )
+            }
+        }
 
         PhotoSolveStep.Crop -> {
             val bitmap = uiState.capturedBitmap

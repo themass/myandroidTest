@@ -1,6 +1,5 @@
 package com.openapi.feature.chat.presentation.ui
 
-import android.Manifest
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalActivity
@@ -29,10 +28,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.launch
 import com.openapi.feature.chat.data.ChatMessageActions
 import com.openapi.feature.chat.domain.model.MessageKind
 import com.openapi.feature.chat.presentation.ChatViewModel
@@ -40,8 +41,9 @@ import com.openapi.chatkit.model.ComposerAction
 import com.openapi.chatkit.model.MessageAction
 import com.openapi.chatkit.model.VoiceStyle
 import com.openapi.speech.audio.AudioPlayer
-import com.openapi.uikit.permission.PermissionRequester
-import com.openapi.uikit.permission.PermissionStates
+import com.openapi.uikit.permission.PermissionGateway
+import com.openapi.uikit.permission.PermissionOutcome
+import com.openapi.uikit.permission.PermissionRequest
 import com.openapi.uikit.permission.Permissions
 import com.openapi.feature.chat.R
 
@@ -59,6 +61,7 @@ fun ChatRoute(
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val activity = LocalActivity.current
+    val permissionScope = rememberCoroutineScope()
     var voiceStyle by remember { mutableStateOf(ChatPlatform.loadVoiceStyle(context)) }
     var cameraUri by remember { mutableStateOf<android.net.Uri?>(null) }
 
@@ -88,16 +91,14 @@ fun ChatRoute(
                     cameraUri = uri
                     camera.launch(uri)
                 }
-                if (PermissionStates.isGranted(context, Manifest.permission.CAMERA)) {
+                val request = PermissionRequest(Permissions.CAMERA.permissions, context.getString(R.string.chat_camera_rationale))
+                if (PermissionGateway.isGranted(context, request)) {
                     launchCamera()
                 } else {
                     (activity as? ComponentActivity)?.let { host ->
-                        PermissionRequester.with(host)
-                            .permissions(*Permissions.CAMERA)
-                            .rationale(context.getString(R.string.chat_camera_rationale))
-                            .request(object : PermissionRequester.Callback() {
-                                override fun onGranted() = launchCamera()
-                            })
+                        permissionScope.launch {
+                            if (PermissionGateway.of(host).request(request) == PermissionOutcome.Granted) launchCamera()
+                        }
                     }
                 }
             }
@@ -149,17 +150,13 @@ fun ChatRoute(
             onVoiceDraftSendAudio = viewModel::onVoiceDraftSendAudio,
             onVoiceDraftCancel = viewModel::onVoiceDraftCancel,
             onVoiceRecordStart = {
-                if (PermissionStates.isGranted(context, Manifest.permission.RECORD_AUDIO)) {
+                val request = PermissionRequest(Permissions.RECORD_AUDIO.permissions, context.getString(R.string.chat_voice_rationale))
+                if (PermissionGateway.isGranted(context, request)) {
                     viewModel.onVoiceRecordStart(context, liveTranscript = voiceStyle == VoiceStyle.Ripple || voiceStyle == VoiceStyle.Floating)
                 } else {
                     // 首次授权的这一次按压不录音：和老 RecordButton 的行为一致，下次按下才开始录。
                     (activity as? ComponentActivity)?.let { host ->
-                        PermissionRequester.with(host)
-                            .permissions(*Permissions.RECORD_AUDIO)
-                            .rationale(context.getString(R.string.chat_voice_rationale))
-                            .request(object : PermissionRequester.Callback() {
-                                override fun onGranted() = Unit
-                            })
+                        permissionScope.launch { PermissionGateway.of(host).request(request) }
                     }
                 }
             },

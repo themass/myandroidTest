@@ -1,5 +1,6 @@
 package com.openapi.feature.photosolve.data
 
+import com.openapi.feature.photosolve.presentation.PhotoSolveException
 import com.openapi.feature.photosolve.presentation.PhotoSolveResult
 import com.openapi.feature.photosolve.presentation.PhotoSolveViewModel
 
@@ -17,8 +18,7 @@ interface PhotoSolveRepository {
     suspend fun solve(image: Bitmap): PhotoSolveResult
 }
 
-/** 服务端错误码（见 docs photo-solve-api）：40001 不清晰、40002 不是题目、40003 图片过大或格式不支持、42901 额度用完、50001 模型服务失败。 */
-class PhotoSolveException(val code: Int, message: String) : Exception(message)
+// PhotoSolveException / PhotoSolveError 见 presentation/PhotoSolveError.kt（错误码是界面契约，放到 presentation）
 
 /** Mocked implementation: simulates upload/recognition latency and returns a canned worked problem. */
 class MockPhotoSolveRepository : PhotoSolveRepository {
