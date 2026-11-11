@@ -102,6 +102,51 @@ suspend fun <T> BaseService.awaitUpload(
         }
     }
 
+/**
+ * 和 [awaitUpload] 一样上传，但失败时**抛出** [NetError] 而不是返回 null，也不弹 toast。
+ *
+ * 需要按服务端 errno 分支的业务用这个：[NetError.BusinessError.getErrno] 带着原始码
+ * （例如拍照解题的 42901 额度用完、40002 不是题目），网络失败则是 NetworkError / TimeoutError。
+ * 界面自己决定怎么提示，所以这里不走 [CommonResponse.ResponseErrorListener] 的默认 toast。
+ */
+suspend fun <T> BaseService.awaitUploadOrThrow(
+    url: String,
+    param: Any?,
+    files: List<File>,
+    partName: String,
+    clazz: Class<T>,
+    tag: String,
+): T =
+    withContext(Dispatchers.IO) {
+        suspendCancellableCoroutine { cont ->
+            postData(
+                url,
+                param,
+                files,
+                object : CommonResponse.ResponseOkListener<T>() {
+                    override fun onResponse(response: T) {
+                        if (!cont.isActive) return
+                        if (response == null) {
+                            cont.resumeWithException(NetError.ParseError(IllegalStateException("empty data")))
+                        } else {
+                            cont.resume(response)
+                        }
+                    }
+                },
+                object : CommonResponse.ResponseErrorListener() {
+                    // 覆盖 onErrorResponse 本身：跳过默认的 toast，把错误原样交给调用方
+                    override fun onErrorResponse(error: NetError) {
+                        if (cont.isActive) cont.resumeWithException(error)
+                    }
+                },
+                partName,
+                tag,
+                clazz,
+            )
+            cont.invokeOnCancellation { cancelRequest(tag) }
+        }
+    }
+
 /*
  * GET 请求的挂起版本。失败时抛出 ExecutionException（原因是 NetError），与原来的同步方法一致，
  * 调用方原本的 try/catch 不用改。错误不弹 toast（原同步方法也不弹）。

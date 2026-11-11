@@ -52,6 +52,12 @@ class PhotoSolveViewModel(application: Application) : AndroidViewModel(applicati
      */
     private val quadDetector = QuestionQuadDetector(cropAssistRegistry.docQuadNet)
 
+    /**
+     * 当前这张图的幂等键。新图（重新确认裁剪/四角）换新值；「重试」沿用旧值，
+     * 服务端命中缓存时直接回放上次结果，不重复扣额度。
+     */
+    private var requestId: String = java.util.UUID.randomUUID().toString()
+
     private val _uiState = MutableStateFlow(PhotoSolveUiState())
     val uiState: StateFlow<PhotoSolveUiState> = _uiState.asStateFlow()
 
@@ -214,7 +220,8 @@ class PhotoSolveViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    private suspend fun solve(croppedByUser: Bitmap) = coroutineScope {
+    private suspend fun solve(croppedByUser: Bitmap, isRetry: Boolean = false) = coroutineScope {
+        if (!isRetry) requestId = java.util.UUID.randomUUID().toString()
         val cropped = withContext(Dispatchers.Default) {
             val resized = croppedByUser.resizeSmart()
             (upscaler.upscaleSmall(resized) ?: resized).enhanceForDocument()
@@ -231,7 +238,7 @@ class PhotoSolveViewModel(application: Application) : AndroidViewModel(applicati
             }
         }
 
-        val result = runCatching { PhotoSolveRepositories.current().solve(cropped) }
+        val result = runCatching { PhotoSolveRepositories.current().solve(cropped, requestId) }
         statusCycler.cancel()
 
         result.onSuccess { solved ->
@@ -255,6 +262,13 @@ class PhotoSolveViewModel(application: Application) : AndroidViewModel(applicati
                         errorCode = code,
                         errorMessage = PhotoSolveError.userMessage(code),
                     )
+                    // 额度/预算用完：重试没有意义，回首页并提示（首页的剩余次数也会刷新成 0）
+                    PhotoSolveError.QUOTA_EXCEEDED, PhotoSolveError.BUDGET_EXHAUSTED -> state.copy(
+                        step = PhotoSolveStep.Home,
+                        errorCode = code,
+                        // 服务端文案带具体次数（「每天 10 次」），优先用它
+                        errorMessage = e.message?.takeIf { it.isNotBlank() } ?: PhotoSolveError.userMessage(code),
+                    )
                     else -> state.copy(
                         step = PhotoSolveStep.QuadAdjust,
                         errorCode = code,
@@ -269,7 +283,7 @@ class PhotoSolveViewModel(application: Application) : AndroidViewModel(applicati
     fun onRetry() {
         val bitmap = _uiState.value.croppedBitmap ?: return
         _uiState.update { it.copy(errorMessage = null, errorCode = null) }
-        viewModelScope.launch { solve(bitmap) }
+        viewModelScope.launch { solve(bitmap, isRetry = true) }
     }
 
     fun onDismissError() {

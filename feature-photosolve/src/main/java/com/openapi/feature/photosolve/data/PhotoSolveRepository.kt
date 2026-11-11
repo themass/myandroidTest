@@ -15,7 +15,11 @@ import kotlinx.coroutines.delay
  * endpoints) without touching [PhotoSolveViewModel] or any UI.
  */
 interface PhotoSolveRepository {
-    suspend fun solve(image: Bitmap): PhotoSolveResult
+    /**
+     * @param requestId 幂等键。同一张图「重试」时必须传同一个值：服务端对成功结果缓存 10 分钟，
+     *   命中时直接回放、不重复调模型也不重复扣额度（网络超时但服务端已算完是最常见的重试场景）。
+     */
+    suspend fun solve(image: Bitmap, requestId: String): PhotoSolveResult
 }
 
 // PhotoSolveException / PhotoSolveError 见 presentation/PhotoSolveError.kt（错误码是界面契约，放到 presentation）
@@ -47,13 +51,13 @@ class MockPhotoSolveRepository : PhotoSolveRepository {
     )
 
     /**
-     * 按顺序轮流返回：成功、40001、40002、40003、42901、50001。
+     * 按顺序轮流返回：成功、40001、40002、40003、42901、42902、50001。
      * 这样点几次「拍照解题」就能把每条错误分支都走一遍（A29）。
      */
-    private val script: List<Int?> = listOf(null, 40001, 40002, 40003, 42901, 50001)
+    private val script: List<Int?> = listOf(null, 40001, 40002, 40003, 42901, 42902, 50001)
     private var step = 0
 
-    override suspend fun solve(image: Bitmap): PhotoSolveResult {
+    override suspend fun solve(image: Bitmap, requestId: String): PhotoSolveResult {
         delay(1500)
         val code = script[step % script.size]
         step++

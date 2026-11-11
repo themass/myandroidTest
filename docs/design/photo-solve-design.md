@@ -20,7 +20,8 @@
 | 服务端 `solve.json` / `health.json` | **已实现**（可编译） | testserverV `vvv-link/.../photosolve/` |
 | 提示词 + 豆包调用 | **已实现**（未联调） | `PhotoSolvePrompt.java`、`DoubaoPhotoSolveProvider.java` |
 | 端到端调豆包 | **未验证** | 本机无 `photosolve.doubao.apiKey` |
-| 额度、幂等去重 | **设计但未实现** | 第 5 节风险 1 |
+| 额度、限流、全站预算、幂等去重 | **已实现**（可编译，未联调） | 第 4.7 节；`PhotoSolveQuota.java` |
+| 客户端拿到真实 errno | **已修复**（之前所有错误都显示成 50001） | 第 4.7.5 节 |
 | 多题切换 UI | **设计但未实现** | 第 5 节风险 8 |
 | 端上 provider 直接吐四点 | **设计但未实现**（建议） | 第 3.3 节 |
 
@@ -202,7 +203,8 @@ photosolve.timeoutSeconds=     # 默认 60
 | 40001 | 图片不清晰 | 复用模糊弹窗：「重拍」/「仍然识别」 |
 | 40002 | 图片里没有题目 | 回到取景页，提示「没找到题目」 |
 | 40003 | 图片过大或格式不支持 | 提示换图 |
-| 42901 | 额度用完 | 提示额度 |
+| 42901 | 用户今日额度用完 / 一分钟内请求过多 | 回首页弹窗，用服务端文案（带「每天 N 次」），不提供重试 |
+| 42902 | 全站当日预算用完（熔断） | 同上，文案「今日识别服务已满」 |
 | 50001 | 模型失败/超时 | 显示「重试」 |
 | 50002 | 服务端未配置模型 | 「服务暂时不可用」 |
 
@@ -226,7 +228,7 @@ photosolve.timeoutSeconds=     # 默认 60
 | 客户端 `:common`（net） | 上传走 `HttpClient.uploadClient`：connect 40s / read 180s / write 180s；失败自动重试 1 次（`MAX_ATTEMPTS=2`）。业务错误（errno 非 0）不重试 |
 | 服务端调模型 | `CompletableFuture.get(photosolve.timeoutSeconds)`（默认 60s）；超时 `cancel(true)` 并返回 50001 |
 | 客户端 UI | 50001 显示「重试」，`onRetry()` 用同一张裁剪图再发一次（不重新拍照） |
-| 幂等 | `clientRequestId` 由客户端生成；当前服务端只用于日志，**尚未做去重扣费**（见风险） |
+| 幂等 | `clientRequestId` 由 ViewModel 生成；**同一张图重试沿用同一个 id**，服务端命中缓存直接回放（见 4.7） |
 
 ### 4.5 服务端「题目检测/对齐」为什么放在端上
 
@@ -264,13 +266,79 @@ curl -s -X POST http://127.0.0.1:8080/vvv/api/photosolve/v1/solve.json \
 
 客户端配置：**不需要额外配置**。`Constants.getUrl(Constants.PHOTOSOLVE_SOLVE_URL)` 复用项目既有的 `BASE_IP` + `/vvv/api` 前缀，和服务端 `PhotoSolveController` 的 `/api/photosolve/v1/solve.json` 对得上。旧的 `HttpPhotoSolveRepository` 与 `photosolveBaseUrl` / `PHOTOSOLVE_BASE_URL` 已删除，`MyApplication` 现在直接安装 `NetworkPhotoSolveRepository(this)`。
 
+### 4.7 额度、限流与幂等（`PhotoSolveQuota.java`）
+
+#### 4.7.1 为什么必须登录
+
+每次 `solve.json` 都是一次付费的模型调用。原来是 `@UserInfo`（`required=false`），**空 token 也能调**，
+既无法按人计额也无法定位滥用者。现在改成 `@UserInfo(required = true)`，未登录由 `UserInfoResolver`
+抛 token 过期（errno 2，客户端走既有的重新登录流程）。`health.json` 不碰模型，仍免登录。
+
+#### 4.7.2 四道闸（从外到内，全部 Redis 计数）
+
+| 闸 | Redis 键 | 默认 | 超限返回 | 作用 |
+|---|---|---|---|---|
+| ① 幂等回放 | `photosolve:idem:{userId}:{clientRequestId}`，TTL 600s | 10 分钟 | —（直接返回上次结果） | 重试不重复调模型、不重复扣费 |
+| ② 分钟限流 | `photosolve:rl:m:{yyyyMMdd}:{userId}:{epochMinute}`，TTL 2min | 3 次/分 | 42901「请求过于频繁」 | 挡脚本 |
+| ③ 用户日额度 | `photosolve:quota:d:{yyyyMMdd}:{userId}`，TTL 2 天 | 免费 10 / VIP 50 | 42901「每天 N 次」 | 单账号成本上限 |
+| ④ 全站日预算 | `photosolve:budget:d:{yyyyMMdd}`，TTL 2 天 | 2000 | 42902 | 熔断：小号刷也有单日账单硬上限 |
+
+VIP 判断用 `UserPo.level >= Constant.UserLevel.LEVEL_VIP`（项目已有的等级字段，token 缓存里就有，不额外查库）。
+日期按服务器本地时区切日。
+
+#### 4.7.3 扣费时机与退还
+
+```
+参数/图片校验（40000/40003，不扣） → ①幂等命中？直接返回 → ②③④ 占用额度 → 调模型
+                                                              ├ 成功 → 写幂等缓存 → 返回
+                                                              ├ 40002 不是题目 → 不退（模型已经算过、钱已花）
+                                                              └ 50001 超时/失败、或意外异常 → 退还 ③④
+```
+
+- **先占后调**：用 `INCR` 原子占位，超限再 `DECR` 回去；避免「先查后加」在并发下超发。
+- **只缓存成功**：失败不写幂等缓存，用户点重试会真的再调一次（并重新扣一次）。
+- **④ 超限时同时退 ③**：没调模型，不该占用户的次数。
+
+#### 4.7.4 配置（`secrets.properties`，都有默认值，留空即可）
+
+```properties
+photosolve.quota.freePerDay=          # 默认 10
+photosolve.quota.vipPerDay=           # 默认 50
+photosolve.quota.perMinute=           # 默认 3
+photosolve.quota.totalPerDay=         # 默认 2000，按豆包单价换算成你能接受的日账单
+photosolve.quota.idempotentSeconds=   # 默认 600，0 关闭
+```
+
+> 定 `totalPerDay` 的方法：一次解题 ≈ 1 张图（视觉 token 约 1–2k）+ 系统提示词 ~1k + 输出 ≤4k token。
+> 按你在方舟控制台看到的实际单价乘一下，得出单次成本，再除你接受的日上限。**数字请以控制台账单为准**，这里不写死。
+
+新增 `POST /api/photosolve/v1/quota.json`（需登录）返回 `{limit, used, remaining}`，供首页显示「今日剩余 N 次」
+（客户端展示尚未做，见风险 11）。
+
+#### 4.7.5 客户端：之前 errno 根本到不了界面
+
+排查时发现：`awaitUpload` 失败时只返回 `null`，`NetError.BusinessError` 也只带文案不带码，
+所以**服务端返回的 40002 / 42901 在客户端一律变成 50001「服务暂时不可用」**——`PhotoSolveViewModel`
+里按错误码分支的代码全是死代码。本次修复：
+
+| 文件 | 改动 |
+|---|---|
+| `common/.../net/http/NetError.java` | `BusinessError` 增加 `errno` 字段（旧的单参构造保留，码为 `NO_CODE=-1`） |
+| `common/.../net/request/BaseRequest.java` | 构造 `BusinessError` 时带上 `data.errno` |
+| `common/.../net/BaseServiceAwait.kt` | 新增 `awaitUploadOrThrow`：失败**抛出** `NetError`、不弹默认 toast；取消协程时取消请求。原 `awaitUpload` 不变，其它调用方不受影响 |
+| `NetworkPhotoSolveRepository.kt` | 改用 `awaitUploadOrThrow`，`BusinessError.errno` → `PhotoSolveException.code`；超时/断网 → 50001 |
+| `PhotoSolveRepository.kt` | `solve(image, requestId)`：幂等键由调用方传入 |
+| `PhotoSolveViewModel.kt` | 持有 `requestId`：新图换新值，`onRetry()` 沿用；42901/42902 回首页并显示服务端文案、不提供重试 |
+| `PhotoSolveError.kt` | 新增 `BUDGET_EXHAUSTED = 42902` |
+
 ---
 
 ## 5. 风险
 
 | # | 风险 | 缓解 |
 |---|---|---|
-| 1 | **额度与鉴权未实现**：现在任何登录用户都能无限调用，模型费用不可控 | 上线前在 Controller 加按用户/天的计数（Redis，项目已有）；`clientRequestId` 做 5 分钟幂等去重 |
+| 1 | ~~额度与鉴权未实现~~ | **已实现**（4.7）。剩余风险：批量注册小号——由全站预算 42902 兜住单日账单上限，但会让正常用户当天也用不了；需要时再加按设备 id 的额度 |
+| 1b | Redis 故障时额度失效（选择放行） | 日志里 `photosolve quota check failed` 的 WARN 需要接告警 |
 | 2 | **图片隐私**：题目图会发给第三方模型 | `DataBuilder`/服务端都不落盘（当前实现只用 base64 直传，不写磁盘）；隐私政策需说明「拍照解题会把图片发送给第三方 AI 服务」；后续可加 `imageRetentionDays` |
 | 3 | ~~旧 `HttpPhotoSolveRepository` 与新实现并存~~ | **已解决**：旧类、`photosolveBaseUrl`、`PHOTOSOLVE_BASE_URL` 均已删除 |
 | 4 | 模型偶尔不按 JSON 输出 | 提示词硬约束 + `extractJson()` 抠 JSON + 解析失败兜底成纯文本答案；`questionFound` 缺失时默认 true，避免误判「没题目」 |
@@ -279,6 +347,7 @@ curl -s -X POST http://127.0.0.1:8080/vvv/api/photosolve/v1/solve.json \
 | 7 | OpenCV 在部分 ABI/设备上初始化失败 | `QuadWarp` 内 `initLocal()` 失败即走外接矩形；`ImagePipeline.enhanceForDocument()` 同样是「失败返回原图」 |
 | 8 | 多题（一张图 3 道）只展示第一道 | `questions[].index` 已在响应里；`PhotoSolveResult.questionCount` 已透传，结果页可以加「下一题」切换（本次未做 UI） |
 | 9 | `maxTokens=4096` 对超长解答可能截断 | 服务端解析失败会走兜底；可配置化（后续加 `photosolve.maxTokens`） |
+| 11 | 首页还没展示「今日剩余 N 次」，用户要拍完才知道额度没了 | 接 `quota.json`，在首页拍照按钮下显示，`remaining=0` 时置灰 |
 | 10 | 服务端 `errno` 与客户端常量双份维护 | 两处都在注释里写「不要改数值」；建议后续生成一份 `photo-solve-api.md` 作为唯一来源（本文第 4.2 节即该来源） |
 
 ---
@@ -298,7 +367,10 @@ cd /Users/gqli/work/testserverV && mvn -o -q -pl vvv-link -am compile -DskipTest
 已验证（2026-11-11）：
 - 客户端三模块编译通过；`:mediaview` / `:imaging` 的 JVM 单测通过。
 - 服务端 `mvn -o -pl vvv-link -am compile` 退出码 0。
-- `ModuleGraphTest`（`:app` 的架构测试）通过：`:feature-photosolve` 依赖 `:common`、`:core`，符合分层。
+- `ModuleGraphTest`：`layeringRulesHold` / `reusableModulesDoNotImportBusinessCode` / `declaredProjectDependenciesAreUsed` 通过；
+  `packagesMatchModules` **失败**，原因与本功能无关：`app/.../com/openapi/ks/myapp/agent/**`（15 个文件，来自 `weifu-refactor` 上的 agent 聊天）
+  包名不在 `com.openapi.app` 下。
+- 2026-11-12 额度改动：服务端 `mvn -o -pl vvv-link -am compile` 退出码 0；客户端 `:common` / `:feature-photosolve` / `:app:compileChatDebugKotlin` 退出码 0，`:mediaview` 单测通过。
 
 **未验证**（需要真实环境）：
 - 端到端调用豆包：本机 `secrets.properties` 没有填写 `photosolve.doubao.apiKey`，`health.json` 会返回 `configured:false`、`solve.json` 返回 50002。填好密钥后按 4.6 的 curl 验证。
