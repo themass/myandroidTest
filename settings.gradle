@@ -8,6 +8,7 @@ include ':mediaview'
 include ':speech'
 include ':subtitle'
 include ':imaging'
+include ':cast'
 include ':feature-video'
 // 角色目录（角色列表、分组、收藏、搜索）
 include ':feature-roles'

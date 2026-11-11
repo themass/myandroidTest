@@ -1,4 +1,4 @@
-package com.openapi.core.cast
+package com.openapi.cast
 
 /**
  * 设备搜索回调。

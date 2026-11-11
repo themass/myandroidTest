@@ -18,9 +18,8 @@ dependencies {
     implementation libs.androidx.appcompat
     implementation libs.androidx.recyclerview
     implementation libs.glide
-    // 投屏的本地媒体服务（LocalMediaServer，原在 :core）
-    implementation 'org.nanohttpd:nanohttpd:2.3.1'
     implementation project(':common')
+    implementation project(':cast')
     implementation project(':subtitle')
     implementation project(':uikit')
     implementation project(':network')

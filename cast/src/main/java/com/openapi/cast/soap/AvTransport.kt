@@ -1,7 +1,7 @@
-package com.openapi.core.cast.soap
+package com.openapi.cast.soap
 
 import android.util.Log
-import com.openapi.core.cast.DlnaDevice
+import com.openapi.cast.DlnaDevice
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request

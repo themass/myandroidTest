@@ -1,7 +1,7 @@
-package com.openapi.core.cast
+package com.openapi.cast
 
-import com.openapi.core.cast.soap.DeviceDescription
-import com.openapi.core.cast.ssdp.SsdpClient
+import com.openapi.cast.soap.DeviceDescription
+import com.openapi.cast.ssdp.SsdpClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 

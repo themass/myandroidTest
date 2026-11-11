@@ -1,9 +1,9 @@
-package com.openapi.core.cast
+package com.openapi.cast
 
 import android.content.Context
 import android.util.Log
-import com.openapi.core.cast.http.LocalMediaServer
-import com.openapi.core.cast.soap.AvTransport
+import com.openapi.cast.http.LocalMediaServer
+import com.openapi.cast.soap.AvTransport
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

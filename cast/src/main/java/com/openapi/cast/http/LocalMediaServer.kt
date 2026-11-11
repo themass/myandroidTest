@@ -1,4 +1,4 @@
-package com.openapi.core.cast.http
+package com.openapi.cast.http
 
 import android.util.Log
 import fi.iki.elonen.NanoHTTPD

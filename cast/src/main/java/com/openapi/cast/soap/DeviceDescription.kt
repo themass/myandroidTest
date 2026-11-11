@@ -1,4 +1,4 @@
-package com.openapi.core.cast.soap
+package com.openapi.cast.soap
 
 import android.util.Log
 import okhttp3.OkHttpClient

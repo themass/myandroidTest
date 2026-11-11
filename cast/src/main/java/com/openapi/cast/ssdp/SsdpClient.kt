@@ -1,4 +1,4 @@
-package com.openapi.core.cast.ssdp
+package com.openapi.cast.ssdp
 
 import android.util.Log
 import kotlinx.coroutines.Dispatchers

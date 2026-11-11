@@ -2,9 +2,9 @@ package com.openapi.ks.myapp.video.page;
 
 
 import android.widget.Toast;
-import com.openapi.core.cast.JavaCaster;
-import com.openapi.core.cast.DlnaDiscoveryCallback;
-import com.openapi.core.cast.DlnaDevice;
+import com.openapi.cast.JavaCaster;
+import com.openapi.cast.DlnaDiscoveryCallback;
+import com.openapi.cast.DlnaDevice;
 import android.widget.ImageButton;
 import com.openapi.uikit.dialog.AppDialogHost;
 import com.shuyu.gsyvideoplayer.video.base.GSYVideoView;

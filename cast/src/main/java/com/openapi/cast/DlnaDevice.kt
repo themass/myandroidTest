@@ -1,4 +1,4 @@
-package com.openapi.core.cast
+package com.openapi.cast
 
 /**
  * 发现到的一个可投屏设备。

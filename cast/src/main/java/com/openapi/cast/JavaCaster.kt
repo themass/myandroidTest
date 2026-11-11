@@ -1,4 +1,4 @@
-package com.openapi.core.cast
+package com.openapi.cast
 
 import android.os.Handler
 import android.os.Looper
