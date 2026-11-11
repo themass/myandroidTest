@@ -136,9 +136,7 @@
 # EventBus（保留订阅方法与线程模式）
 -keepattributes *Annotation*
 -keepclassmembers class ** {
-    @org.greenrobot.eventbus.Subscribe <methods>;
 }
--keep enum org.greenrobot.eventbus.ThreadMode { *; }
 
 # 不使用 SQLCipher 时抑制加密库警告
 -dontwarn net.sqlcipher.database.**
@@ -173,26 +171,11 @@
 # ==============================================
 # 4. 项目业务类（精准保留，避免业务逻辑崩溃）
 # ==============================================
-# 保留 myapp 模块下的 bean、sound.media 子包
--keep class com.openapi.ks.myapp.bean.** { *; }
--keep class com.openapi.ks.myapp.sound.media.** { *; }
-
-# 保留 commons 模块下的天气相关类
--keep class com.openapi.commons.common.weather.** { *; }
-
-# 保留 openai 模块下的工具、事件、网络、表情、广告子包
--keep class com.openapi.core.util.** { *; }
--keep class com.openapi.core.event.** { *; }
--keep class com.openapi.core.net.** { *; }
--keep class com.openapi.core.emoji.** { *; }
--keep class com.openapi.core.ads.** { *; }
+# 项目自己的类由 proguard-common.pro 的 -keep class com.openapi.** 统一保留
 
 # 保留 ping 相关业务类
 -keep class com.ping.** { *; }
 
-# 保留聊天 UI 相关类（数据模型、适配器 Holder）
--keep class chat.ui.data.** { *; }
--keep class chat.ui.adapter.media.holders.** { *; }
 
 
 # ==============================================

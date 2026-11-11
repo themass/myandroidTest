@@ -1,0 +1,23 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+}
+
+// :imaging：拍照图像处理——文档裁剪辅助、质量检测、图像增强管线、超分。
+// 带 ONNX Runtime 和 OpenCV 两个原生库，所以单独成模块，不让只需要轻量图片工具的模块被迫带上。
+// 轻量的解码、缩放、压缩工具在 :common 的 com.openapi.common.image。
+apply from: rootProject.file('gradle/android-library.gradle')
+
+android {
+    namespace = 'com.openapi.imaging'
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.13.2'
+    implementation libs.androidx.core.ktx
+    implementation libs.kotlinx.coroutines.android
+    // 文档裁剪、超分的推理
+    implementation 'com.microsoft.onnxruntime:onnxruntime-android:1.24.1'
+    // 图像预处理（ImagePipeline）。4.12.0 起 libopencv_java4.so 为 16KB 对齐（Play 要求）
+    implementation 'org.opencv:opencv:4.12.0'
+}

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ui_shortcuts">快捷入口</string>
+    <string name="menu_btn_about">About: Afreedom Score</string>
+    <string name="localvideo_title">本地视频</string>
+</resources>

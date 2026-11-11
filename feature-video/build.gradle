@@ -4,49 +4,10 @@ plugins {
     id 'org.jetbrains.kotlin.plugin.compose'
 }
 
+apply from: rootProject.file('gradle/android-library.gradle')
+
 android {
     namespace = 'com.openapi.feature.video'
-
-    compileSdk = rootProject.ext.compileSdkVersion
-
-    defaultConfig {
-        minSdk = rootProject.ext.minSdkVersion
-        targetSdk = rootProject.ext.targetSdkVersion
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles = ["consumer-rules.pro"]
-    }
-
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            consumerProguardFiles "consumer-rules.pro"
-        }
-        debug {
-            minifyEnabled false
-            debuggable true
-        }
-    }
-
-    lintOptions {
-        checkReleaseBuilds = false
-        abortOnError = false
-        ignoreWarnings = true
-        quiet = true
-        disable 'deprecation'
-        disable 'unchecked'
-        disable 'all'
-    }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
-    }
-
-    kotlinOptions {
-        jvmTarget = "17"
-    }
-
     buildFeatures {
         compose = true
         viewBinding = true
@@ -54,10 +15,20 @@ android {
 }
 
 dependencies {
-    // 工具类、GSY/IJK/Ali 播放内核（commonutil 以 api 暴露）
-    api project(':commonutil')
+    // 视频页的实时字幕与翻译
+    implementation project(':speech')
+    implementation libs.androidx.appcompat
+    implementation libs.androidx.recyclerview
+    implementation libs.glide
+    implementation project(':common')
+    implementation project(':cast')
+    // GSY 播放器和内核（只有本模块用）
+    implementation 'io.github.carguo:gsyvideoplayer:13.1.0'
+    // 阿里云播放器内核（需 PlayerFactory.setPlayManager(AliPlayerManager.class)）
+    implementation 'io.github.carguo:gsyvideoplayer-aliplay:13.1.0'
+    // IJK 扩展 FFmpeg/so：mpeg、部分 rtsp/concat 等，见 GSY doc/DECODERS.md
+    implementation 'io.github.carguo:gsyvideoplayer-ex_so:13.1.0'
     implementation project(':core')
-    implementation project(':asr')
 
     implementation libs.okhttp
     // Material 组件（BottomSheetDialog、Snackbar）
@@ -67,6 +38,10 @@ dependencies {
     implementation libs.androidx.media3.exoplayer
     implementation libs.androidx.media3.datasource
     implementation libs.androidx.media3.ui
+    // HLS（m3u8）播放：原来声明在 :app，实际是视频播放用
+    implementation libs.androidx.media3.exoplayer.hls
+    // Google Cast 投屏（AppCastOptionsProvider、CastButtonBinder 等），原来声明在 :app
+    implementation 'com.google.android.gms:play-services-cast-framework:21.5.0'
 
     // Compose（LocalVideoActivity、VideoListItemCompose）
     implementation platform(libs.androidx.compose.bom)

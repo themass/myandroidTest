@@ -28,10 +28,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import com.openapi.core.CommonConstants
-import com.openapi.core.util.PreferenceUtils
+import com.openapi.core.config.CommonConstants
+import com.openapi.common.util.android.PreferenceUtils
 import com.openapi.feature.companion.R
-import com.openapi.ks.myapp.constant.Constants
+import com.openapi.core.config.Constants
 
 /** 陪伴界面里能去的页面。聊天是主页面，其余三个从顶部进入。 */
 enum class CompanionPage { CHAT, CHARACTERS, MEMORY, SETTINGS }
@@ -51,7 +51,7 @@ fun CompanionRoute(
     val api = remember(context) {
         HttpCompanionApi(
             baseUrl = CompanionConfig.baseUrl,
-            tokenProvider = { PreferenceUtils.getPrefString(context, com.openapi.core.net.NetConfig.tokenHeader(), null) },
+            tokenProvider = { PreferenceUtils.getPrefString(context, com.openapi.common.net.http.NetConfig.tokenHeader(), null) },
         )
     }
 

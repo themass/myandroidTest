@@ -11,7 +11,7 @@
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true" >
 
-        <com.openapi.ks.myapp.view.MyRadarScanView
+        <com.openapi.app.view.MyRadarScanView
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
     </RelativeLayout>

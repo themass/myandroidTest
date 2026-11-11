@@ -4,49 +4,10 @@ plugins {
     id 'org.jetbrains.kotlin.plugin.compose'
 }
 
+apply from: rootProject.file('gradle/android-library.gradle')
+
 android {
     namespace = 'com.openapi.feature.user'
-
-    compileSdk = rootProject.ext.compileSdkVersion
-
-    defaultConfig {
-        minSdk = rootProject.ext.minSdkVersion
-        targetSdk = rootProject.ext.targetSdkVersion
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles = ["consumer-rules.pro"]
-    }
-
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            consumerProguardFiles "consumer-rules.pro"
-        }
-        debug {
-            minifyEnabled false
-            debuggable true
-        }
-    }
-
-    lintOptions {
-        checkReleaseBuilds = false
-        abortOnError = false
-        ignoreWarnings = true
-        quiet = true
-        disable 'deprecation'
-        disable 'unchecked'
-        disable 'all'
-    }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
-    }
-
-    kotlinOptions {
-        jvmTarget = "17"
-    }
-
     buildFeatures {
         compose = true
         viewBinding = true
@@ -54,11 +15,13 @@ android {
 }
 
 dependencies {
+    implementation libs.androidx.recyclerview
     // 登录、注册、找回密码、个人设置、意见反馈、设置角色
-    api project(':commonutil')
+    implementation project(':common')
+    // 设置页的广告和统计
     implementation project(':core')
+    // 分享（替代原 commonutil 的 ShareUtil）
     // 设置页使用播放器引擎开关（PlaybackEngineHelper，在 :feature-video）
-    implementation project(':feature-video')
     implementation libs.google.material
 
     implementation platform(libs.androidx.compose.bom)

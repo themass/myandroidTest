@@ -75,6 +75,30 @@
 | 8 | **`:app` 瘦身**：实现类回到 feature，频道列表和「我的」移出，去掉 `AppHooks` | 中 | 4–5 |
 | 9 | **收尾**：删 EventBus；统一包名；加架构测试 | 中 | 3–4 |
 
+**阶段 9 进度（2026-11-11）**：架构测试已加（`app/src/test/.../architecture/ModuleGraphTest.kt`）：没有模块依赖 `:app`；`:commonutil` 不依赖项目模块；`:core`、`:media`、`:ads`、`:chatkit` 不依赖 feature-*；feature-* 之间只允许 `:feature-chat` → `:feature-roles`。EventBus 删除（进行中，按事件分批）：第一批 `UserNeedLogin`、`ConfigActionEvent` 已改为 flow（`4303b4d5`），基础设施在 `commonutil/.../event/EventFlows.kt`，事件在 `core/.../event/CoreEvents.kt`。剩下的事件：`FavoriteChangeEvent`（`FavoriteFragment`、`SettingCharacterFragment`）、`TabChangeEvent`、`PlayCoreEvent`、`CustomeAddEvent`（`feature-user`）、`UserLoginEvent`（只发不收，可直接删）、`HindBannerEvent`（只收不发，可直接删）、`PermEvent`（只收不发，权限代码按 5.10 搁置）、`BannerAdsNext`（只发不收，可直接删）、`SplashAdDissmisEvent` / `LaunchAdsNext`（在 `:ads`，`LaunchActivity` 收）。Java 订阅方用 `observeJava`。
+- EventBus 第二、三批（2026-11-11）：`e020b6d6` 删除无人读写的 `UserLoginEvent`、`BannerAdsNext`、`HindBannerEvent`；`99a140d5` 删除无人读的 `TabChangeEvent`、`CustomeAddEvent`，`PlayCoreEvent`、`FavoriteChangeEvent` 改为 flow；`7c94d00a` 把 `:ads` 的开屏事件改为 `AdsEvents`（Java，因为 `:ads` 没有 Kotlin）。现在只剩 `BasePermissionActivity` 订阅 `PermEvent`，没有任何地方发布它，属于 5.10 搁置范围。`EventBusUtil` 和 `eventbus` 依赖要等 5.10 做完才能删。
+包名：`:commonutil` 已改为 `com.openapi.common.*`（`f5a6a40c`，namespace、生成的 R 和 BuildConfig 一起改）。留在 `:core` 的类（如 `FavoriteUtil`、`MyFavoriteView`、`CoreEvents`）保持 `com.openapi.core.*`。`viewer` 包已改为 `com.openapi.media.viewer`（`b0f7d6b7`）；`:ads` 的 `Constants` 已改名为 `AdsIds`（`c1e93347`）。阶段 9 的包名项到此完成。
+
+**进度（2026-11-10）**
+- 阶段 1：完成。死代码和依赖（`573857e2`）、assets（`76a8c73a`）、资源（`f1a891bf`）、Manifest 拆分（`26017480`）。
+- 阶段 2：基本完成。业务类上移（`6190f080`）、网络层配置注入 `NetConfig`（`0b16f041`）、工具类瘦身（`d3eee5ea`）、分享合一（`567ac077`，`34dfade2`）、屏幕尺寸合一 `ScreenSize`（`4b44eb15`）、`:sharekit` 并入 `:commonutil`（`160f5189`）。两项未做：权限去重（搁置，见 5.10）；`:commonutil` 的目录和子包整理，推迟到阶段 9 和包名统一一起做，因为 Java 要求目录和包名一致，现在只改目录会改两次 import。
+- 另外修复了分支合并遗留的 FileProvider 重复 authority（`14510889`）。
+- 所有提交都只做了编译验证，没有在手机上测。
+
+**进度（2026-11-10，续）**
+- 阶段 3（`:media`）：`:asr` 和 `:mediaview` 合并为 `:media`（`a5c385a3`）；录音播放（`a2fa1f86`）、图像处理（`16e6ca94`）、字幕翻译（`490049c1`）迁入。`:media` 不依赖 `:core`。`viewer` 留在 `com.openapi.core.view.media` 目录下，包名统一放到阶段 9。
+- 阶段 4（拆 `:core`）：用户专属的表单、数据对象、事件迁到 `:feature-user`（`f108b303`）；频道专属的类迁到 `:feature-channel`（`5ac377d1`、`e71eb517`，含 showtype 组和推荐适配器，`ImagePhotoLoad.loadPhoto` 去掉）；DLNA 投屏迁到 `:feature-video`（`9aa0b098`）；设计系统和权限（`design`、`permission` 包）迁到 `:commonutil`（`550d67ab`）。
+- 阶段 4 的计划修改：
+  - `ImagePhotoLoad` 的通用方法（`loadCommonImg`、`options`、`getBuilder`、`getCountryImage`）**不再移到 `:common`**。它们用到 `Constants`、`BaseRes`（映射到 `:core` 的 drawable），而且被 app、用户、视频、频道多个模块共用，按标准应属于 `:core`，留在 `:core`。
+  - `data/urlparser` 和 `CustomeAddForm` **留在 `:core`**，因为 `:core` 的 `WebViewActivity` 在用它们，不是只给用户模块用的。
+  - `DelImageTask` 已删除（没有使用方）。
+- 上面每一步都只做了编译验证，没有在手机上测。统一手机测试放在阶段 4 结束后做。
+- 阶段 6（部分）：`PlayService` 迁到 `:feature-channel`（`d022b8f3`）；`feature-chat` 去掉对 `:feature-video` 的依赖（`ff4f6fe3`）；登录页通过 `Routes.login` 打开（`e903b88a`）；音乐字幕绑定 `MusicSubtitleBindings` 迁到 `:feature-channel`（`7c818aec`）；视频页打开经 `Routes.videoShow` / `Routes.videoShowLazyUrl`，`:feature-channel` 去掉对 `:feature-video` 的依赖（`d0e3853b`）。`:feature-channel` 现在只依赖 `:core`、`:commonutil`、`:media` 等，不再依赖其他 feature 模块。编译通过，未在手机上测。
+- 阶段 6（5.3）：`DetailGSYVideoPlayer` 721 → 444 行（`d62ea891`）。进度条（`SeekProgressController`）、换内核（`EngineFallback`）、「更多」菜单（`PlayerMoreMenu`）、投屏按钮（`CastButtonBinder`）、刘海避让（`PlayerInsets`）拆出，行为不变。GSY 的覆盖方法（触摸、全屏、返回、`setUp`、`onError`）留在原类，因为它们直接读写 GSY 的 protected 字段。仅编译验证，手机验证（播放、拖动、全屏、倍速、出错换引擎、投屏）待统一测试。
+- 阶段 6/7（5.4，部分）：`SoundItemsMusicFragment` 662 → 587 行（`6ea3e5ac`）。服务绑定拆为 `MusicServiceConnection`，播放模式拆为 `PlayModeController`，两处相同的播放探针合并为一个。未做：`MusicSubtitleBinder`（与 `SoundDetailActivity` 中的字幕绑定合并）、`SoundDetailActivity` 瘦身、`PlayService` 移到 `sound/`。仅编译验证，手机验证待统一测试。
+- 阶段 6/7（5.4，续）：`MusicSubtitleBindings.bind(...)` 合并两处字幕绑定（`bd4239f0`）。`SoundDetailActivity` 的服务连接并入共用的 `MusicServiceConnection`（移到 `ui/sound/`，`756e6428`）。两页的行为差别用参数 `dropServiceOnDisconnect` 表示：详情页断开时丢弃 service，列表页保留，与原来一致。仅编译验证。
+
+
 阶段 1 到 4、6、7 是**搬、删、拆**，功能不变。阶段 5、8 有少量行为变化（对话 bug 修复、路由替换）。
 
 ---
@@ -218,7 +242,7 @@
 |---|---|---|
 | `~.ui.gsy` | 4/1138 | 移 `player/`、`list/`。`DetailGSYVideoPlayer`（721 行）按第 5.3 节**拆** |
 | `~.video` | 1/151 | `PlaybackEngineHelper` 留 `player/`，引擎切换逻辑不变；只把「当前选的哪个引擎」这个偏好值移到 `:core/prefs`，让 `:feature-user` 的设置页不用依赖视频模块 |
-| `~.ui.sound` | 6/777 | 移 `page/`（包名叫 sound，里面全是视频页）。Java View，不重写。`VideoActivity` 只在 Manifest 登记、代码里没有入口，**删**（待确认）。`VideoShowActivity`、`VideoShowActivityLazyUrl` 里 ButterKnife 遗留的空方法 `unbindButterViews` 删 |
+| `~.ui.sound` | 6/777 | 移 `page/`（包名叫 sound，里面全是视频页）。Java View，不重写。`VideoActivity` 只在 Manifest 登记、代码里没有入口，**保留**（用户决定，2026-11-11）。`VideoShowActivity`、`VideoShowActivityLazyUrl` 里 ButterKnife 遗留的空方法 `unbindButterViews` 删 |
 | `~.ui.localvideo` | 1/305 | 留 `local/` |
 | `~.cast` | 4/267 | 留 `cast/googlecast/`；DLNA 从 `:core` 移来 `cast/dlna/` |
 | `~.service` | 1/496 | `PlayService` 是**音乐**播放服务，视频模块自己不用，移 `:feature-content/sound`，不重写 |
@@ -228,13 +252,22 @@
 
 ### 3.11 `:feature-channel` → `:feature-content`（阶段 7）
 
+**包结构整理进度（2026-11-11，拆包）**：`:feature-channel` 改名 `:feature-content`（`1e753680`）；按内容类型分包到 `com.openapi.ks.myapp.content.*`（`9549b150`）；视频页分到 `video.page`（`509b0c39`）；gsy 分到 `video.player` / `video.list`（`7b3d2155`）；`:feature-user` 的 `ui.user` 分到 login / register / password / profile / setting（`4732157c`）；`:feature-chat` 的 markdown 和 katex 分到 `com.openapi.chat.markdown`（`9cae0c22`）；`:feature-photosolve` 分到 data / presentation（`3180e795`）；`:commonutil` 的 util 分到 lang / android / log / json（`5ae1e39c`）；`:core` 按 config / model / db / legacyui 分包（`ab831a7d`）。
+
+**继续完成（2026-11-11）**：`ChatRepositoryImpl` 拆成 6 个协作类（5.2，`a6116ea0`，包 `com.openapi.chat.data.remote`）；`MyVolleyError` 并入 `NetError.BusinessError`（5.8）；`MyFavoriteView` 的「译」逻辑拆到 `FavoriteTranslationController`（`2f0a45cc`）；`ImagePhotoLoad` 删除无人用的图片转换代码（`0813966a`）；`UserLoginUtil` 移到 `com.openapi.core.account`（`3c7e33f2`）；翻译 API 移到 `translation.api`（`f39e7861`）；列表触摸辅助类移到 `:feature-content`（`b9d3836b`）；视图控件按用户分到 `ui.widget` / `:feature-content` / `:media` / `core.favorite`（`0b61688b`），无人用的 `gallery.CommonUtil` 删除；`ChatMarkwon` 的错误图标改用自己的资源，去掉对 GSY 的依赖（`91479a63`）；`MyRadarScanView` 移到 `:app`（`d386e071`）；`URL` 解析器移到 `:feature-user`（`2e5176f9`）；`FavoriteVo` 移到 `core.db`（`fcbbc578`）；启动页之外的 `unbindButterViews` 和注释掉的 VIP 代码删除（`8c34cb30`、`4ce9642e`）。
+未做，需要你决定：`VideoActivity`、`TeleplayActivity` 的删除（计划标注「待确认」）；5.7 的「下次不再提示」偏好（修好还是删掉）；5.9 频道歌单是否用 `:retromusic` 承载（计划要求不动代码）；`ConnLogUtil` 按计划移到 `:feature-chat`（它是应用启动时调用的通用日志，移过去会让 `:app` 依赖聊天模块，我没有移）；5.8 的 `JsonResult` + `CommonResponse` 合并成 `ApiResult`（会改 16 个文件的回调类型，计划里 Java 调用方保留回调，收益小，没有做）；`ImageSize` 按计划移到 `:feature-chat`（`:retromusic` 也在用，移过去会断开它，所以留在 `:commonutil`）；`ChannelBodyScreen`、`VoiceControls`、`ChatMessageList`、`ChatScreen`、`PhotoCropScreen` 的「审视」（计划没有给具体拆法）。
+验证：每批都做了 `:app:assembleChatDebug` 编译；最后单元测试 71 个，只有两个早就失败的（`AppDatabaseMigrationTest`、`ScreenSmokeTest`）；架构测试通过；`:feature-chat` 的 7 个测试通过。手机测试统一做。
+未做：`:core` 的 `view.view` 和 `view.view.widget` 的分拆（每个类去向不同，需要逐个决定）；`:commonutil` 的 `view.translation` 移到 `:media`、`view.touchhelper` 移到 `:feature-content`；`core.util.cache` 删除（待编译确认）；`ImagePhotoLoad` 拆分；`UserLoginUtil` 移到 core account。仅编译和单元测试验证，手机测试统一做。
+
+**执行结果（2026-11-11）**：模块已改名为 `:feature-content`（`1e753680`，namespace 为 `com.openapi.feature.content`），旧页面按内容类型分到 `com.openapi.ks.myapp.content.{video,image,text,sound,mine,common,config}`（`9549b150`）。`sound.compose` 保留；`home/` 不动。未做：`TeleplayActivity` 的确认删除；`ChannelBodyScreen` 的审视。（视频页 Activity 移到 `page/` 属于阶段 6，在 `:feature-video`，不在这里。）仅编译验证，手机测试统一做。
+
 现在 39 个文件、约 6,000 行；从 `:core` 下沉 20 个后约 59 个。旧页面**不重写**，只按内容类型分子包、拆大类。
 
 | 现包 | 文件/行 | 去向 | 处理 |
 |---|---|---|---|
 | `~.ui.fragment` | 15/2686 | `video/ image/ text/ sound/ mine/` | 移。`SoundItemsMusicFragment` 675 行，按第 5.4 节**拆** |
 | `~.ui.fragment.body` | 5/301 | 各类型子包 | 移 |
-| `~.ui.sound` | 8/791 | 各类型子包 | 移。`TeleplayActivity` 标题是「电视剧」，实际显示的是图片频道，**确认后删** |
+| `~.ui.sound` | 8/791 | 各类型子包 | 移。`TeleplayActivity` 标题是「电视剧」，实际显示的是图片频道，**保留**（用户决定，2026-11-11） |
 | `~.ui.sound.compose` | 2/343 | `sound/` | 移 |
 | `~.ui.channel` | 3/730 | `common/` | 移。`ChannelBodyScreen` 479 行，审视 |
 | `~.adapter` | 4/432 | 各类型子包 | 移 |
@@ -254,6 +287,22 @@
 | `home/presentation` 的频道列表、`LegacyHomeEntries` 的频道部分、`ConfigActionJump` | 移 `:feature-content`（`ConfigActionJump` 由频道提供路由表） | 8 |
 | `ProfileScreen`、`LegacyHomeEntries` 的「我的」部分 | 移 `:feature-user` | 8 |
 | `AppHooksImpl` | 删 | 8 |
+
+**进度（2026-11-11）**：`AppHooks` 和 `AppHooksImpl` 已删除（`3be787a5`）。`isVip` 直接调 `UserLoginUtil`；设置页和全局搜索改用 `Routes`（按类名打开，`CommonFragmentActivity` 新增 `FRAGMENT_NAME`）；`openLogin` 没有调用方，删除。`AppDatabaseTest` 里两个针对已删除的本地默认会话的测试改为一个测试，这同时修复了 app 单元测试编译失败（这个问题在本次会话之前就存在，来自 `0aca92a5`）。阶段 8 的 `LaunchActivity` 已转 Kotlin（`632b3834`）。阶段 8 剩下的迁移计划（待确认）：
+
+| 文件（行数） | 去向 | 依赖与处理 |
+|---|---|---|
+| `home/presentation/ChannelsScreen.kt`（182）、`ChannelsViewModel.kt`（107）、`ChannelsHub.kt`（39） | `:feature-channel` | `ChannelsHub` 用到 `LocalVideoScreen`（feature-video）：经 `Routes` 或由 `:app` 注入 |
+| `home/presentation/ProfileScreen.kt`（208） | `:feature-user` | 用到 `VersionUpdater`（已在 core）和 `HomeDependencies`：后者改为 `UserDependencies` 的入口 |
+| `data/home/LegacyHomeEntries.kt`（212） | 拆成两半：频道部分 → `:feature-channel`，「我的」部分 → `:feature-user` | 两半各实现一个接口，`:app` 的 `HomeDependencies` 组合两者 |
+| `home/domain/HomeModels.kt`（65） | 频道的模型 → `:feature-channel`，「我的」的模型 → `:feature-user`，`HomeEntries` 接口留在 `:app` | 只是拆分文件，不改类型 |
+| `data/config/ConfigActionJump.java`（99） | `:feature-channel` | 依赖多个 feature 的 Activity：由频道模块提供路由表（类名），不直接引用类 |
+| `home/presentation/HomeScreen.kt`（314）、`HomeActivity.kt`（42）、`HomeDependencies.kt`（21） | 留在 `:app` | 这是应用的外壳，依赖 `ChatRoute`（feature-chat）和 `CompanionRoute`（feature-companion），作为组合根是合理的 |
+| `data/chat/LegacyLoginGate.kt`（20） | 留在 `:app` | 实现 `LoginGate` 端口，依赖 feature-user 的 `LoginActivity`，属于组合根 |
+
+步骤：1）先拆 `HomeModels` 和 `LegacyHomeEntries`（只拆文件，不移模块，编译确认）；2）`ConfigActionJump` 改用类名路由；3）频道的 UI 和 ViewModel 移到 `:feature-channel`；4）「我的」移到 `:feature-user`；每一步单独提交。
+
+**执行结果（2026-11-11）**：四步都已完成并单独提交。1）`793bcf19`：`HomeModels` 拆为 `ChannelModels` / `ProfileModels` / `HomeEntries`，`LegacyHomeEntries` 拆为两个实现类。2）`5f1c4399`：`ConfigActionJump` 移到 `:feature-channel`，路由表用类名（`VideoListShowActivity` 和 `HomeActivity` 只用名字）。3）`2cce7a2e`：频道模型、`ChannelsScreen`、`ChannelsViewModel` 移到 `:feature-channel`，依赖由 `ChannelsDependencies` 注入；`ChannelsHub` 留在 `:app`（它要放本地视频）。4）`0d204bf8`：「我的」模型和 `ProfileScreen` 移到 `:feature-user`，依赖由 `ProfileDependencies` 注入；本地视频入口用类名打开。`LegacyLoginGate`、`HomeScreen`、`HomeActivity`、`HomeDependencies`、`LegacyChannelEntries`、`LegacyProfileEntries` 留在 `:app`（组合根）。
 | 启动页 `LaunchActivity` | 留。Java、带 ButterKnife 的空方法 `unbindButterViews`，顺手转 Kotlin | 8 |
 
 ---
@@ -316,7 +365,7 @@
 | `DetailGSYVideoPlayer` | 布局、全屏切换、返回键、海报、loading、收藏视图的挂载 | 约 250 行 |
 
 **做法**：一次拆一个类，行为不变。每拆一块在手机上验证：播放、拖动进度、全屏、倍速、出错换引擎、投屏按钮。
-5 个视频页 Activity（Java View）不重写，只移到 `page/`。
+5 个视频页 Activity（Java View）不重写，只移到 `page/`。 **已执行**（2026-11-11）：`ui/sound` 下的 6 个文件（4 个 Activity 和 2 个 helper）移到 `com.openapi.ks.myapp.video.page`；`VideoActivity` 仍保留，删除待确认。
 
 ### 5.4 `SoundItemsMusicFragment`（675 行）→ 拆分，不重写
 
@@ -340,6 +389,34 @@
 3. 准备一组测试公式（行内、块、矩阵、分式、错误公式、超宽公式），两边在手机上各截一张。
 4. 结果写进这一节。差别小就换官方插件，删掉 11 个文件；差别大就保留，只移到 `markdown/katex/`。
 
+**比较结果（2026-11-11，代码比对，Markwon 4.6.2 源码）**
+- 行内：自定义的 `JLatexMathInlineProcessor` 匹配单个 `$x$`；官方只匹配 `$$x$$`。`$x$` 是应用在用的写法，所以**保留自定义行内**。`$` 的处理器按注册顺序执行，自定义先注册，优先生效。
+- 块：`ChatMarkwon` 已经关掉了自定义的块（`blocksEnabled(false)`），所以自定义的块解析器、Legacy 解析器、`JLatexMathBlock`、块尺寸计算都执行不到。这一步**已删除**（`3e2cfaa4`），`$$` 块由官方插件渲染。
+- 结论：差别大（行内语法不同），不换官方，只删了死代码。
+- 还没做的：第 3 步的手机截图对比（统一手机测试时做）；`markdown/katex/` 的包移动放到阶段 9；自定义主题里的 `blockFitCanvas` 已经没有用处，暂时保留。
+
+### 5.9 决议（2026-11-11）
+- 决议：频道歌单**使用 `:retromusic` 播放**（用户确认「音乐使用」）。第一步已完成（`04584c91`）：`Song.uri` 支持 http/https 远程地址，`remoteSong(...)` 可以生成频道歌曲。
+- 已决定（2026-11-11）：(a) **共用一个播放队列**，播放频道歌单会替换本地队列。PlayService 的公开方法和广播不变，声音页界面不用改。已完成（`fae8a141`）：播放改用 `:retromusic` 的 `MusicPlayerRemote`，播放模式映射到重复/随机，倍速用 `:retromusic` 的偏好，`MusicService` 新增 `changeRepeatMode`。(b) 声音页界面保持频道自己的，只换播放后端。
+- 未验证：真机上的播放、通知栏、倍速、字幕的进度探针，需要统一手机测试。
+- 迁移的范围：`PlayService`（MediaPlayer）的 20 个公开方法和 8 个广播，`SoundItemsMusicFragment`、`SoundDetailActivity` 和字幕的播放探针都要接到 `:retromusic`，需要真机验证。
+
+### 5.10 权限去重（已执行，2026-11-11）
+
+**现状**：三套旧权限代码仍在：`PermissionHelper`、`CompatiblePermissionManager`、`ModernPermissionManager`（`:commonutil` 的 `util/permission`，约 1000 行），以及 `BasePermissionActivity` 里的权限入口。新的 Compose 版在 `:core/permission`，`ChatRoute` 和 `LocalVideoActivity` 在用。
+
+**代码事实（2026-11-10 核对）**
+- `initPerm()` 调用 `hasPerm(空列表)`，空列表返回 `true`，所以 `request()` 不会执行。
+- `PermEvent` 只有构造函数，没有任何地方发出，`initPermEvent` 不会被调用。
+- `awaitingSettingsReturn` 只在 `startAppSettings()` 里设为 `true`，而这个方法没有调用方，设置页返回的分支不会执行。
+- 实际效果只剩：创建三个 helper 对象，以及 `initVosk()` 里创建一个 `PermissionHelper`（之后没有用到）。
+
+**搁置原因**：这套代码和启动流程、`BaseToolbarMenuActivity` 绑在一起，删之前要在手机上过一遍相机、录音、存储的权限弹窗。用户决定先搁置，后面再处理。
+
+**执行结果**：删除旧的 `PermissionHelper`、`CompatiblePermissionManager`、`ModernPermissionManager`、`PermissionUtils`，删除 `BasePermissionActivity`（它的权限请求从来不会执行：`initPerm` 检查空列表，`PermEvent` 没有发布者）；`BaseToolbarMenuActivity` 直接继承 `LogActivity`。`PermEvent` 和 `EventBusUtil` 删除，`eventbus` 依赖和 ProGuard 规则一起删除，EventBus 全部移除。Compose 版权限（`:commonutil` 的 `common/permission`）保留，供 `ChatRoute` 和 `LocalVideoActivity` 使用。
+
+上面的做法已完成。
+
 ### 5.6 工具类整理（阶段 2）
 
 **原则**：外部用到的方法留下（必要时改名），没用到的删掉；能用 Kotlin 标准库取代的，新代码不再调用。
@@ -357,9 +434,13 @@
 
 整理后 `core.util` 从约 5,200 行减到约 1,500 行。每个类整理完单独提交，编译确认没有遗漏的调用。
 
+**进度（2026-11-11）**：除权限外已完成。`ObjectUtils` 只留 `isEmpty`、`nullSafeEquals`（122 行）；`StringUtils` 留 `hasText`、`isEmpty`；`FileUtils` 留 5 个在用的方法；`ModelUtils` 删除，`json2Entry`/`entry2Json` 并入 `GsonUtils`（`f95beaa8`）。`widget/util/FileUtils`、`ShareUtil`、`DensityUtil`/`DisplayUtil`/`Utils` 已在之前的提交里删除。`:commonutil` 的 `util` 包现在 2,370 行，剩下的大头是权限类（`PermissionHelper` 等，属于 5.10，搁置中）。仅编译验证。
+
 ### 5.7 `VersionUpdater`（332 行）→ 重构
 
 检查更新、下载、两种弹窗、发 `StateUseEvent` 和 `VipDescEvent` 混在一起。拆成「检查版本」（挂起函数，返回结果）和「更新弹窗」（UI），版本里带的状态和 VIP 说明改为写进 `:core/account`。
+
+**进度（2026-11-11）**：已拆成 `VersionUpdater`（版本和检查）、`UpdateDialogs`（提示框）、`ApkDownloader`（下载安装），提交 `d776479a`。与原计划不同的一点：`StateUseEvent` 存的 `USER_STATUS` 没有任何地方读取，`VipDescEvent` 没有订阅者，所以没有写进 `:core/account`，而是直接删除（连同 `StateUseVo`、`VipDescVo` 和 VO 字段）。另外 `needToCheckUpdateNextTime` 没有调用方，已删除；但取消更新时写入的「下次不再提示」偏好没有任何地方读取，**这个功能实际上不生效**，需要你决定是修好还是删掉。
 
 ### 5.8 网络层整理（阶段 2）
 
@@ -400,6 +481,16 @@
 4. 改名（`NetQueue` → `HttpClient` 等）。只改名不改逻辑，单独一个提交。
 5. 删 `SyncFuture`：唯一调用方（`:feature-user`）改用挂起函数。
 6. 调用方随所在的包整理时从回调换成挂起函数；Java 调用方保留回调接口，不强制改。
+
+**进度（2026-11-11）**
+- 步骤 1：完成（`8494ce95`）。`BaseServiceAwait.kt` 提供 `awaitPost`、`awaitPostOk`、`awaitUpload`，`ChatRepositoryImpl`（3 处）和 `BackendSpeechToText` 改用它。`:commonutil` 显式声明了 coroutines。
+- 步骤 2：实际已经完成。`BaseRequest` 不再直接发 `UserNeedLogin`，而是调 `NetConfig.notifyAuthRequired`，`MyApplication` 注册的回调再发事件。
+- 步骤 4：部分完成（`NetQueue` → `HttpClient`、`NetRequest` → `ApiRequest`，纯改名，`commit` 单独一个）。`NetError`、`MyVolleyError`、`JsonResult` 还没改，它们的合并需要改逻辑，不算纯改名。
+- 步骤 3：部分完成（`dfa8b121`）。`GsonInfoListRequest` 合并进 `GsonRequest`（解析方式用 `Decoder` 参数，列表用 `GsonRequest.infoList`）。`MultipartRequest`（POST + 请求体）和 `StringRequest`（原始文本）与 JSON 请求不只是解析方式不同，暂时保留。
+- 未做：步骤 5（删 `SyncFuture`：`LoginTask` 和 `BaseService` 的同步方法都还在用，删之前要先把同步方法换掉）、步骤 6（调用方逐步换成挂起函数）。
+- 步骤 5（续，2026-11-11）：已完成的挂起版本有 `awaitPost`、`awaitPostOk`、`awaitUpload`、`awaitInfoList`、`awaitGet`（`BaseServiceAwait.kt`），失败时和原来的同步方法一样抛 `ExecutionException`。改为挂起的调用方：`ChatRepositoryImpl`（3 处）、`ChannelBodyController`、`LegacyHomeEntries`（接口 `loadChannels` 也改为挂起）、`FeedbackActivity.fetchPage`、`LoginTask`（Java 改为 Kotlin object，`842eba4c`）。`getStringData` 删除（没有调用方）。
+- 未完成：`LoadableFragment.loadData` 是阻塞的抽象方法，8 个 Java 子类（频道、视频、用户模块）和 `TextItemsFragment` 还在用 `getInfoListData` / `getData`，所以 `BaseService` 的阻塞方法和 `SyncFuture` 还不能删。需要决定：把加载链（`LoadableFragment`、`BasePullLoadbleFragment` 等约 750 行，加上 8 个子类）改成 Kotlin 挂起函数，或者给 Java 提供 `CompletableFuture` 版本、让加载回调而不用后台线程阻塞。
+- 已完成（`0980a3c3`）：选了 `CompletableFuture` 方案。`BaseServiceAsync.kt` 把挂起函数桥接成 `getInfoListDataAsync`、`getDataAsync`；`LoadableFragment.loadData` 返回 `CompletableFuture`，用查询 token 丢弃过期结果（旧的 executor 在 `shutdownNow` 之后仍会投递结果）；8 个 Java 子类和 `TextItemsFragment` 改用异步方法；`SyncFuture` 已删除，阻塞的 `getInfoListData` / `getData` 也删除。步骤 5 完成。仅编译验证，手机验证（列表加载、下拉刷新、失败重试、切换页面时的结果丢弃）待统一测试。
 
 **不做**：不引入 Retrofit；不改请求头、签名、DNS、Glide 加载这些行为。
 

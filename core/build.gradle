@@ -4,58 +4,10 @@ plugins {
     id 'org.jetbrains.kotlin.plugin.compose'
 }
 
+apply from: rootProject.file('gradle/android-library.gradle')
+
 android {
     namespace = 'com.openapi.core'
-
-    compileSdk = rootProject.ext.compileSdkVersion
-
-    defaultConfig {
-        minSdk = rootProject.ext.minSdkVersion
-        targetSdk = rootProject.ext.targetSdkVersion
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles = ["consumer-rules.pro"]
-    }
-
-    packagingOptions {
-        exclude 'META-INF/LICENSE.txt'
-        exclude 'META-INF/maven/com.squareup.okhttp/okhttp/pom.xml'
-        exclude 'META-INF/maven/com.squareup.okhttp/okhttp/pom.properties'
-        exclude 'META-INF/maven/com.squareup.okio/okio/pom.xml'
-        exclude 'META-INF/maven/com.squareup.okio/okio/pom.properties'
-        exclude 'META-INF/services/javax.annotation.processing.Processor'
-    }
-
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            consumerProguardFiles "consumer-rules.pro"
-        }
-        debug {
-            minifyEnabled false
-            debuggable true
-        }
-    }
-
-    lintOptions {
-        checkReleaseBuilds = false
-        abortOnError = false
-        ignoreWarnings = true
-        quiet = true
-        disable 'deprecation'
-        disable 'unchecked'
-        disable 'all'
-    }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
-    }
-
-    kotlinOptions {
-        jvmTarget = "17"
-    }
-
     buildFeatures {
         compose = true
         viewBinding = true
@@ -63,10 +15,15 @@ android {
 }
 
 dependencies {
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.robolectric:robolectric:4.17'
+    testImplementation 'androidx.test:core:1.7.0'
+    implementation libs.androidx.recyclerview
     // 工具类（com.openapi.core.util/net/event 等）在 :commonutil
-    api project(':commonutil')
+    api project(':common')
+    // 实时字幕与翻译（MyFavoriteView、FavoriteTranslationController）
+    implementation project(':speech')
     // 广告 SDK（AdsContext、AdsManager 等，来自 :ads）
-    api project(':ads')
     // Material 组件（AppBarLayout、FloatingActionButton 等，ui/base 使用）
     implementation libs.google.material
     // 列表骨架屏（IndexRecommendAdapter）与水波纹背景（MyRadarScanView）
@@ -75,7 +32,6 @@ dependencies {
 
     // 网络
     implementation libs.okhttp
-    implementation 'org.nanohttpd:nanohttpd:2.3.1'
 
     // 图片加载（SaveImageTask）
     implementation libs.glide
@@ -87,11 +43,10 @@ dependencies {
     implementation libs.androidx.media3.exoplayer
 
     // 拍照解题图片处理（photosolve/image、quality、cropassist：OpenCV + ONNX Runtime）
-    implementation 'org.opencv:opencv:4.12.0'
-    implementation 'com.microsoft.onnxruntime:onnxruntime-android:1.24.1'
 
     // 数据库（Room；data/db 的 DAO 和实体在本模块生成实现）
-    implementation libs.androidx.room.runtime
+    // AppDatabase（继承 RoomDatabase）和 DAO 是对外接口，所以 Room 运行时用 api
+    api libs.androidx.room.runtime
     annotationProcessor libs.androidx.room.compiler
 
     // Compose（design/、cast/ui、permission 对话框）

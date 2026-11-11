@@ -1,0 +1,54 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.plugin.compose'
+}
+
+apply from: rootProject.file('gradle/android-library.gradle')
+
+android {
+    namespace = 'com.openapi.feature.content'
+    buildFeatures {
+        compose = true
+        viewBinding = true
+    }
+}
+
+dependencies {
+    // 声音页的字幕与翻译
+    implementation project(':speech')
+    testImplementation 'org.robolectric:robolectric:4.17'
+    testImplementation 'androidx.test:core:1.7.0'
+    testImplementation libs.kotlinx.coroutines.test
+    implementation libs.androidx.appcompat
+    implementation libs.androidx.recyclerview
+    implementation libs.glide
+    implementation libs.okhttp
+    testImplementation 'junit:junit:4.13.2'
+    // 列表骨架屏（IndexRecommendAdapter 使用，原在 :core）
+    implementation 'com.facebook.shimmer:shimmer:0.5.0'
+    // 频道与推荐列表、频道详情、声音/图片/文字/视频频道页、收藏、搜索
+    implementation project(':common')
+    // 频道页的开屏/插屏/横幅广告和统计
+    // 图片大图（PhotoView）和选图（PictureSelector），只有本模块用
+    implementation 'com.github.chrisbanes:PhotoView:2.3.0'
+    implementation 'io.github.lucksiege:pictureselector:v3.11.2'
+    implementation project(':core')
+    // 字幕翻译框架（原在 :commonutil）
+    // 声音页的播放后端（频道歌单和本地音乐共用 :retromusic 的播放队列）
+    implementation project(':retromusic')
+    // :retromusic 的 MusicPlayerRemote 使用 Koin 注入
+    implementation 'io.insert-koin:koin-core:3.5.6'
+    implementation 'io.insert-koin:koin-android:3.5.6'
+    implementation libs.google.material
+
+    implementation platform(libs.androidx.compose.bom)
+    implementation libs.androidx.compose.ui
+    implementation libs.androidx.compose.ui.graphics
+    implementation libs.androidx.compose.material3
+    implementation libs.androidx.compose.material.icons.extended
+    implementation libs.androidx.activity.compose
+    implementation libs.androidx.lifecycle.viewmodel.compose
+    implementation libs.androidx.lifecycle.runtime.compose
+    implementation libs.kotlinx.coroutines.android
+}

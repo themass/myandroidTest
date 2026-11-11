@@ -1,11 +1,12 @@
 include ':app'
-include ':ads'
-include ':commonutil'
+include ':common'
 include ':core'
-include ':asr'
+include ':mediaview'
+include ':speech'
+include ':imaging'
+include ':cast'
 include ':feature-video'
 // 角色目录（角色列表、分组、收藏、搜索）
-include ':feature-roles'
 // 聊天（会话、消息、语音、附件、角色选择入口）
 include ':feature-chat'
 // 拍照解题（拍照、裁剪、识别、结果页）
@@ -13,11 +14,9 @@ include ':feature-photosolve'
 // 用户：登录、注册、找回密码、设置、反馈、设置角色
 include ':feature-user'
 // 频道：推荐、频道列表、频道详情、图片/文字/声音/视频频道页、收藏、搜索
-include ':feature-channel'
+include ':feature-content'
 // 角色扮演伴侣（Android 端，按角色扮演分支维护）
 include ':feature-companion'
 include ':retromusic'
 // 对话 UI 组件库（消息列表、消息气泡、输入栏），与业务无关，可在多个页面复用
 include ':chatkit'
-include ':mediaview'
-include ':sharekit'

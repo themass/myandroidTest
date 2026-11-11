@@ -76,24 +76,19 @@
 -dontwarn io.reactivex.rxjava3.**
 
 # 现代权限管理
--keep class com.openapi.core.util.permission.ModernPermissionManager { *; }
--keep class com.openapi.core.util.permission.ModernPermissionManager$* { *; }
 
 # EventBus
 -keepattributes *Annotation*
 -keepclassmembers class * {
-    @org.greenrobot.eventbus.Subscribe <methods>;
 }
--keep enum org.greenrobot.eventbus.ThreadMode { *; }
 
 
 # ==============================================
 # 4. 项目业务类保留规则
 # ==============================================
-# 保留项目核心包
--keep class com.openapi.ks.** { *; }
--keep class com.openapi.core.** { *; }
--keep class chat.** { *; }
+# 保留项目所有包。包名统一为 com.openapi.<模块>（2026-11-11）后，原来按旧包名写的保留规则
+# （com.openapi.ks.**、com.openapi.common.**、chat.** 等）覆盖的类都在这一条之内
+-keep class com.openapi.** { *; }
 
 # 保留数据模型
 -keep class * implements java.io.Serializable
@@ -139,8 +134,8 @@
 -dontwarn com.squareup.**
 -dontwarn okio.**
 -dontwarn retrofit2.**
--dontwarn org.greenrobot.**
 -dontwarn com.bumptech.**
 # SIP/VoIP (javax.sip / gov.nist) 可选 log4j 桥接，Android 无 log4j
 -dontwarn org.apache.log4j.**
 -dontwarn android.gov.nist.**
+

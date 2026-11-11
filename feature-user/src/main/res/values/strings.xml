@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="base_half_transparent">#60000000</color>
+    <color name="white">#FFFFFF</color>
+    <dimen name="margin_80">80dip</dimen>
+    <dimen name="textsize_25">25sp</dimen>
+</resources>

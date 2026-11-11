@@ -4,58 +4,20 @@ plugins {
     id 'org.jetbrains.kotlin.plugin.compose'
 }
 
+apply from: rootProject.file('gradle/android-library.gradle')
+
 android {
     namespace = 'com.openapi.feature.photosolve'
-
-    compileSdk = rootProject.ext.compileSdkVersion
-
-    defaultConfig {
-        minSdk = rootProject.ext.minSdkVersion
-        targetSdk = rootProject.ext.targetSdkVersion
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles = ["consumer-rules.pro"]
-    }
-
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            consumerProguardFiles "consumer-rules.pro"
-        }
-        debug {
-            minifyEnabled false
-            debuggable true
-        }
-    }
-
-    lintOptions {
-        checkReleaseBuilds = false
-        abortOnError = false
-        ignoreWarnings = true
-        quiet = true
-        disable 'deprecation'
-        disable 'unchecked'
-        disable 'all'
-    }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
-    }
-
-    kotlinOptions {
-        jvmTarget = "17"
-    }
-
     buildFeatures {
         compose = true
     }
 }
 
 dependencies {
-    // 拍照解题：图像处理与模型在 :core（com.aimath.paizhao.photosolve.image/quality/cropassist）
-    api project(':commonutil')
-    implementation project(':core')
+    // 拍照解题：图像处理与模型在 :imaging
+    implementation project(':common')
+    implementation project(':imaging')
+    // 图像处理（压缩、质量分析、自动裁剪、超分）在 :media
     implementation libs.okhttp
 
     // 裁剪、文件选择、文档扫描（来自原 app 依赖）
@@ -65,6 +27,9 @@ dependencies {
     implementation 'androidx.camera:camera-camera2:1.4.0'
     implementation 'androidx.camera:camera-lifecycle:1.4.0'
     implementation 'androidx.camera:camera-view:1.4.0'
+    // ProcessCameraProvider.getInstance() 返回 ListenableFuture，本模块直接调用它的 addListener
+    // 用完整 Guava：依赖图里已有 Guava，listenablefuture 会被替换成空包。版本与 :app 解析结果一致
+    implementation 'com.google.guava:guava:33.3.1-android'
     implementation 'com.anggrayudi:storage:1.5.6'
     implementation 'com.google.android.gms:play-services-mlkit-document-scanner:16.0.0'
 

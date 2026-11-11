@@ -1,0 +1,290 @@
+package com.openapi.core.config;
+
+
+import java.util.Arrays;
+import java.util.List;
+
+/**
+ * Created by openapi on 2015/9/1.
+ */
+public class Constants {
+
+
+    public static final String IMAGE_RES_PRE = "timeline://img";
+    public static final String URL = "url";
+    public static final String DEFULT_LOCATION_NAME = "随机";
+    public static final int STARTUP_SHOW_TIME_6000 = 4000; //启动页广告时长
+    public static final int STARTUP_SHOW_TIME_7000 = 4000; //启动页广告时长
+    public static final int BANNER_ADS_GONE_LONG = 13000; //广告显示时长
+    public static final int BANNER_ADS_GONE_LONG_LONG = 240000; //广告显示时长
+    public static final int BANNER_ADS_GONE_SHORT = 5000; //启动页广告时长
+    public static final int VIP_SHIMMER_DURATION = 2300;
+    public static final int RECOMMAND_SHIMMER_DURATION = 1500;
+    public static final int ADS_JISHI = -1;
+
+    public static final String HTTP_URL = "http";
+    public static final String HTTPS_URL = "https";
+    public static final String BROWSER_URL = "browser";
+    public static final String SOUND_URL = "sound";
+    public static final String TEXT_URL = "text";
+    public static final String IMG_URL = "img";
+    public static final String VIDEO_URL = "video";
+    public static final String VIDEOLIST_URL = "videoList";
+
+    public static final String VIDEOLIST_URL1 = "videoList1";
+    public static final String TELEPLAY_URL = "teleplay";
+
+    public static final String LOCAL = "local";
+    public static final String LOCAL_SOUND = "local_sound";
+    public static final String LOCAL_SOUND2 = "local_sound2";
+    public static final String LOCAL_CHAT = "local_chat";
+    public static final String LOCAL_CHAT2 = "local_chat2";
+
+    public static final String LOCAL_MOVIE_URL = "movie";
+    public static final String LOCAL_PIC_URL = "pic";
+
+    public static final String VIDEO_CHANNEL_URL = "video_item";
+    public static final String VIDEO_CHANNEL_USER_URL = "video_item_user";
+    public static final String URL_TMP = "://";
+    public static final String VPN_PACKAGE = "com.timeline.vpn";
+    //location
+    public static final String LOCATION_CHOOSE = "LOCATION_CHOOSE1";
+    public static final String LOCATION_FLAG = "LOCATION_FLAG";
+    public static final String LOCATION_FLAG_COUNT = "LOCATION_FLAG_COUNT";
+    public static final int LOCATION_TYPE_FREE = 0;
+    public static final int LOCATION_TYPE_VIP = 1;
+    public static final int LOCATION_TYPE_VIP2 = 2;
+    public static final List<Integer> BANNER_ADS_POS = Arrays.asList(2, 8, 13, 18, 21, 30, 40, 50);
+    public static final String[] sort_type = new String[]{"type_asc", "type_desc"};
+    public static final String[] sort_country = new String[]{"ename_asc", "ename_desc"};
+    public static final String[] sort_fea = new String[]{"level_asc", "level_desc"};
+    public static final String sortType = "type";
+    public static final String sortCountry = "ename";
+    public static final String sortFea = "level";
+    public static final String sortASC = "asc";
+    public static final String sortDESC = "desc";
+    //user
+    public static final String LOGIN_USER = "LOGIN_USER";
+    public static final String LOGIN_USER_LAST = "LOGIN_USER_LAST";
+    public static final String CHAT_SESSION = "CHAT_SESSION";
+    public static final String AREA_SWITCH = "AREA_SWITCH";
+    public static final String PLAYVIDEO_SWITCH = "PLAYVIDEO_SWITCH";
+    public static final String LISTVIDEO_TINY_SWITCH = "LISTVIDEO_TINY_SWITCH";
+    /** 兼容旧版：true 表示曾选择 IJK；新逻辑请用 {@link #PLAYBACK_ENGINE} */
+    public static final String PLAYCORE_SWITCH = "PLAYCORE_SWITCH";
+    /**
+     * 视频播放内核：0 Exo(Media3)、1 IJK+FFmpeg(ex_so)、2 阿里 AliPlayer、3 系统 MediaPlayer。
+     * 与 {@link com.openapi.feature.video.PlaybackEngineHelper} 一致。
+     */
+    public static final String PLAYBACK_ENGINE = "PLAYBACK_ENGINE";
+    /** 全屏播放页首次进入时是否已展示过手势提示（Snackbar） */
+    public static final String PLAYER_GESTURE_HINT_SHOWN = "PLAYER_GESTURE_HINT_SHOWN";
+    /** SharedPreferences：当前视频翻译引擎 id，如 demo / baidu / volcano */
+    public static final String TRANSLATION_PROVIDER_ID = "TRANSLATION_PROVIDER_ID";
+    /** 火山豆包流式 ASR：App Key / AppId */
+    public static final String VOLCANO_ASR_APP_KEY = "VOLCANO_ASR_APP_KEY";
+    /** 火山豆包流式 ASR：Access Token */
+    public static final String VOLCANO_ASR_ACCESS_KEY = "VOLCANO_ASR_ACCESS_KEY";
+    /** 火山 v3 Resource-Id，默认 volc.bigasr.sauc.duration */
+    public static final String VOLCANO_ASR_RESOURCE_ID = "VOLCANO_ASR_RESOURCE_ID";
+    /** 火山 v2 cluster */
+    public static final String VOLCANO_ASR_CLUSTER = "VOLCANO_ASR_CLUSTER";
+    /** true 使用 v3 bigmodel_async；false 使用 v2 /asr */
+    public static final String VOLCANO_ASR_USE_V3 = "VOLCANO_ASR_USE_V3";
+    public static final String VIDEO_PIC_SWITCH = "VIDEO_PIC_SWITCH";
+    public static final String SOUND_SWITCH = "SOUND_SWITCH";
+    public static final String AREA_MI_SWITCH = "AREA_MI_SWITCH";
+    public static final String LOGIN_USER_PW_LAST = "LOGIN_USER_PW_LAST";
+
+    public static final String AGENT_APP_MYPOOL = "SEX";
+    public static final String AGENT_APP_GOOGLE = "SEX_TEMP";
+    public static final String APP_MYPOOL = "MYPOOL";
+    public static final String APP_GOOGLE = "GOOGLEMARKET";
+    public static String USER_AGENT_SUFFIX = AGENT_APP_GOOGLE + "/%s";
+
+    public static void initUserAgent(String pref) {
+        USER_AGENT_SUFFIX = pref + "/%s";
+    }
+
+    public static final String SEX_M = "M";
+    public static final String SEX_F = "F";
+
+    public static final String USERIP = "USERIP";
+    public static final String helpUrl = "http://file.ok123find.top/vip.html";
+    // 有新版本时，是否打开app就提醒升级
+    //用户反馈
+    public static final String DEFAULT_FEEDBACK_APPKEY = "23575056";
+    public static final String SETTING_PREF_NEED_CHECK_UPDATE_NEXT_TIME = "SETTING_PREF_NEED_CHECK_UPDATE_NEXT_TIME";
+    public static final String TEMP_PATH = "/tencent/vpn";
+    public static final String VERSION_APP_INCOMING = "VERSION_APP_INCOMING"; // 服务器上的最新版本号
+
+    public static final String API_SERVERLIST_URL = "/host/server/list.json?location=%s";
+    public static final String API_FAB_ADSCLICK_URL = "/user/ads/score.json?score=%s";
+    public static final String API_LOCATION_URL = "/host/server/location/cache.json";
+    public static final String API_LOGIN_URL = "/user/login.json";
+    public static final String API_REG_URL = "/user/reg.json";
+    public static final String API_FINDPASS_URL = "/user/findpass.json";
+    public static final String API_SETEMAIL_URL = "/user/setemail.json";
+    public static final String API_REG_CODE_URL = "/user/code.json";
+    public static final String API_USER_INFO_URL = "/user/info.json";
+    public static final String API_IWANNA_URL = "/data/feed/wanna.json?start=%s&limit=30";
+    public static final String API_IWANNA_LIKE_URL = "/data/feed/wanna/%s.json";
+
+    public static final String API_FEEDBACK_URL = "/data/feed/score.json?start=%s&limit=40";
+    public static final String API_CHARACTER_URL = "/user/setting/character.json";
+    public static final String API_CHARACTER_CREATE_URL = "/user/setting/character/create.json";
+    public static final String API_CHARACTER_UPDATE_URL = "/user/setting/character/update.json";
+    public static final String API_CHARACTER_DELETE_URL = "/user/setting/character/delete.json";
+    public static final String API_FEEDBACK_LIKE_URL = "/data/feed/score/%s.json";
+    public static final String API_VERSION_URL = "/data/version.json";
+
+    public static final String API_APP_URL = "/data/appinfo.json";
+    public static final String API_DONATION_URL = "/data/donation.json";
+    public static final String API_CONNLOG_URL = "/monitor/connlog.json";
+
+
+    public static final String API_RECOMMEND_URL = "/data/recommend.json?start=%s&limit=20";
+    public static final String API_RECOMMEND_NIGHT_URL = "/data/recommend/night.json?start=%s&limit=20";
+    public static final String API_RECOMMEND_MOVIE_URL = "/data/recommend/movie.json?start=%s&limit=20";
+    public static final String API_RECOMMEND_AREA_URL = "/data/recommend/area.json?start=%s&limit=20";
+    public static final String API_RECOMMEND_LOCAL_URL = "/data/recommend/local.json?start=%s&limit=200";
+    public static final String API_RECOMMEND_CUSTOME_URL = "/data/recommend/custome.json?start=%s&limit=100";
+
+    public static final String API_SOUND_CHANNLE_URL = "/sound/channel.json?start=%s&limit=20&channel=%s";
+    public static final String API_SOUND_ITEMS_URL = "/sound/items.json?start=%s&limit=30&channel=%s&keyword=%s";
+
+    public static final String API_TEXT_CHANNLE_URL = "/text/channel.json?start=%s&limit=50&channel=%s";
+    public static final String API_TEXT_ITEMS_URL = "/text/items.json?start=%s&limit=60&channel=%s&keyword=%s";
+    public static final String API_TEXT_ITEM_URL = "/text/item.json?id=%s";
+
+    public static final String API_IMG_CHANNLE_URL = "/img/channel.json?start=%s&limit=50&channel=%s";
+    public static final String API_IMG_ITEMS_URL = "/img/items.json?start=%s&limit=30&channel=%s";
+    public static final String API_IMG_ITEMS_IMG_URL = "/img/items/img.json?start=%s&limit=30&channel=%s&keyword=%s";
+    public static final String API_IMG_ITEM_URL = "/img/item.json?itemUrl=%s";
+    public static final String API_IMG_ITEM_PAGE_URL = "/img/item/page.json?start=%s&limit=30&itemUrl=%s";
+
+    public static final String API_VIDEO_CHANNLE_URL = "/video/channel.json?start=%s&limit=50&channel=%s";
+    public static final String API_VIDEO_CHANNEL_LIST_URL = "/video/channel/items.json?start=%s&limit=50&channel=%s&keyword=%s";
+
+    public static final String API_VIDEO_ITEM_URL = "/video/item/url.json?id=%s";
+    public static final String API_TV_ITEM_URL = "/video/tv/item.json?start=%s&limit=50&channel=%s";
+    public static final String API_TV_CHANNEL_URL = "/video/tv/channel.json?start=%s&limit=50&channel=%s&keyword=%s";
+    public static final String API_VIDEO_USER_URL = "/video/user.json?channel=%s&keyword=%s&start=%s&limit=50";
+    public static final String API_VIDEO_USER_ITEM_URL = "/video/user/items.json?start=%s&limit=50&userId=%s&keyword=%s";
+
+    public static final String CHAT_URL = "/chat/nostream.json";
+    public static final String TRANSWORD_URL = "/chat/transword.json";
+    public static final String CHAT_SESSION_URL = "/chat/sessions.json";
+    /** 会话与消息由服务端持有（见服务端 docs/chat-history-server.md 第 5 节）。 */
+    public static final String CHAT_SESSION_CREATE_URL = "/chat/session/create.json";
+    public static final String CHAT_SESSION_RENAME_URL = "/chat/session/rename.json";
+    public static final String CHAT_SESSION_DELETE_URL = "/chat/session/delete.json";
+    public static final String CHAT_MESSAGES_URL = "/chat/messages.json";
+    public static final String CHAT_MESSAGE_DELETE_URL = "/chat/message/delete.json";
+    public static final String CHAT_MESSAGE_EDIT_URL = "/chat/message/edit.json";
+    public static final String CHAT_IMAGE_URL = "/chat/ai/recognize.json";
+    public static final String CHAT_QUESTION_URL = "/chat/ai/local/ocr.json";
+    public static final String CHAT_FILE_URL = "/chat/ai/local/file.json";
+
+    public static final String CHAT_STREAM_URL = "/chat/stream.json";
+    public static final String CHAT_ASR_URL = "/chat/ai/asr.json";
+    public static final String CHAT_TTS_URL = "/chat/ai/tts.json";
+    public static final String CHAT_FEEDBACK_URL = "/chat/ai/feedback.json";
+    public static final String CHAT_LIVE_TOKEN = "/live/room/token_new.json";
+
+
+    public static final String VIDEO_USER_CHANNEL = "qvod_user";
+    public static final String VIDEO_TV_CHANNEL = "teleplay_";
+    public static final String CHANNEL = "channel";
+    public static final String API_VIDEO_ITEMS_URL = "/video/items.json?start=%s&limit=20";
+
+    public static final String API_LOGOUT_URL = "/user/logout.json";
+    public static final String API_LEAK_URL = "/monitor/leak.json";
+    public static final String API_LOG_URL = "/monitor/bug.json";
+    public static final String API_ADD_CUSTOME = "/user/custome/add.json";
+    public static final String API_DEL_CUSTOME = "/user/custome/del.json";
+
+    public static final String D_URL = "D_URL";
+    public static final String MY_SETTING = "MY_SETTING";
+
+    public static final String LOG_UPLOAD_CONFIG = "LOG_UPLOAD_CONFIG";
+    public static final String NEED_DNSPOD_CONFIG = "NEED_DNSPOD_CONFIG";
+    public static final String NEED_NATIVE_ADS_CONFIG = "NEED_NATIVE_ADS_CONFIG";
+    public static final String CONFIG_PARAM = "CONFIG_PARAM";
+    public static final String TITLE = "TITLE";
+    public static final String ADSSHOW = "ADSSHOW";
+    public static final String FILE_UPLOAD = "fileList";
+    public static final String SOUND_CHANNEL = "SOUND_CHANNEL";
+    /**
+     * 音乐频道列表是否使用 Auxio 风格布局（深色 + 底部卡片条），与 {@link #SOUND_CHANNEL} 列表数据无关。
+     * 视觉参考开源项目 Auxio（https://github.com/OxygenCobalt/Auxio），非拷贝其 GPL 源码。
+     */
+    public static final String MUSIC_UI_AUXIO_STYLE = "MUSIC_UI_AUXIO_STYLE";
+    /**
+     * 音乐播放模式持久化（与 {@link com.openapi.feature.content.sound.PlayService} 中 status 1～4 对应）。
+     */
+    public static final String MUSIC_PLAY_MODE_PREF = "MUSIC_PLAY_MODE_PREF";
+    /** {@link com.openapi.core.model.RecommendVo}，音乐详情页与列表共用收藏上下文 */
+    public static final String SOUND_DETAIL_VO = "SOUND_DETAIL_VO";
+    public static final String TEXT_FILE = "TEXT_FILE";
+    public static final String TEXT_CHANNEL = "TEXT_CHANNEL";
+    public static final String IMG_CHANNEL = "IMG_CHANNEL";
+    public static final String TV_CHANNEL = "TV_CHANNEL";
+    public static final String VIDEO_CHANNEL = "IMG_CHANNEL";
+    public static final String VIDEO_TYPE_NORMAL = "normal";
+    public static final String IMG_ITEMS = "IMG_ITEMS";
+    public static final String SCORE_TMP = "SCORE_TMP";
+
+    public static final String VPN_STATUS = "VPN_STATUS";
+    public static final String SOUND_CHANNEL_CLICK = "SOUND_CHANNEL_CLICK";
+    public static final int MAX_RETRY_COUNT = 4;
+    public static final String ADMIN = "openapi";
+    public static final String CUSTOME_SORT = "CUSTOME_SORT";
+    public static final String LOCATION_ICON_ALL = "timeline://img/flag_all.png";
+    public static final String BOOK_CSS = " body{font-size:22px;font-family: 微软雅黑;letter-spacing:1.8px;line-height:1.2;background-color:rgba(0,0,0,0);}";
+    public static String BASE_IP = "api.ok123find.top";
+    public static String ABOUT_FIRST = "ABOUT_FbbIRST";
+    public static String ABOUT_ZH = "http://file.ok123find.top/about.html";
+    public static String ABOUT = "http://file.ok123find.top/about.html";
+    public static final String downloadUrl = "https://play.google.com/store/apps/details?id=com.openapi.ks.moviefree1";
+    public static List<String> colorBg = Arrays.asList("#552d5d82", "#55135689", "#552292e9", "#5583878b", "#7f8d8f45", "#ffc49924", "#ff83713f", "#ff569b2b", "#ff882b9b");
+
+    public static String getUrl(String uri) {
+        return "http://" + BASE_IP + "/vvv/api" + uri;
+    }
+
+    public static String getUrlWithParam(String url, Object... param) {
+        return String.format(getUrl(url), param);
+    }
+
+    public static class FavoriteType {
+        public static final int TEXT = 0;
+        public static final int SOUND = 1;
+        public static final int IMG = 2;
+        public static final int VIDEO = 3;
+        public static final int CHAT_OK = 4;
+        public static final int CHAT_FAIL = 5;
+    }
+
+    public static class UserLevel {
+        public static final int LEVEL_FREE = 0;
+        public static final int LEVEL_VIP = 1;
+        public static final int LEVEL_VIP2 = 2;
+        public static final int LEVEL_VIP3 = 3;
+        public static final int LEVEL_VIP4 = 4;
+    }
+
+    public static class OpenUrlPath {
+        public static final int local = 0;
+        public static final int browser = 1;
+    }
+
+    public static class ShowType {
+        public static final int Normal = 0;
+        public static final int Blur = 1;
+        public static final int Text = 2;
+        public static final int Text_Below = 3;
+    }
+
+
+}

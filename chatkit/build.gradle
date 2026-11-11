@@ -6,42 +6,17 @@ plugins {
 
 // 对话 UI 组件库：与业务无关的消息列表、消息气泡、输入栏等组件。
 // 只依赖 Compose / Material3 / Coil，不依赖 app 的领域模型、网络或主题 token。
+apply from: rootProject.file('gradle/android-library.gradle')
+
 android {
-    namespace 'com.openapi.chatkit'
-    compileSdk rootProject.ext.compileSdkVersion
-
-    defaultConfig {
-        minSdk rootProject.ext.minSdkVersion
-        targetSdk rootProject.ext.targetSdkVersion
-        consumerProguardFiles 'consumer-rules.pro'
-    }
-
-    buildTypes {
-        release {
-            minifyEnabled false
-        }
-    }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
-    }
-
-    kotlinOptions {
-        jvmTarget = '17'
-    }
-
+    namespace = 'com.openapi.chatkit'
     buildFeatures {
-        compose true
-    }
-
-    lint {
-        abortOnError false
-        checkReleaseBuilds false
+        compose = true
     }
 }
 
 dependencies {
+    implementation project(':mediaview')
     implementation libs.kotlinx.coroutines.android
     implementation platform(libs.androidx.compose.bom)
     implementation libs.androidx.compose.ui
@@ -51,6 +26,5 @@ dependencies {
     implementation libs.androidx.compose.material.icons.extended
     implementation libs.androidx.core.ktx
     implementation 'io.coil-kt:coil-compose:2.7.0'
-    implementation project(':mediaview')
     debugImplementation libs.androidx.compose.ui.tooling
 }

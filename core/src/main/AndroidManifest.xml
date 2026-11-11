@@ -3,13 +3,13 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <application>
         <activity
-            android:name="com.openapi.ks.myapp.ui.base.WebViewActivity"
+            android:name="com.openapi.core.legacyui.base.WebViewActivity"
             android:configChanges="orientation|keyboardHidden|screenSize|screenLayout|uiMode" />
         <activity
-            android:name="com.openapi.ks.myapp.ui.base.CommonFragmentActivity"
+            android:name="com.openapi.core.legacyui.base.CommonFragmentActivity"
         />
         <activity
-            android:name="com.openapi.ks.myapp.ui.base.VideoWebViewActivity"
+            android:name="com.openapi.core.legacyui.base.VideoWebViewActivity"
             android:configChanges="orientation|keyboardHidden|screenSize|screenLayout|uiMode"
             android:hardwareAccelerated="true"
             android:screenOrientation="unspecified"

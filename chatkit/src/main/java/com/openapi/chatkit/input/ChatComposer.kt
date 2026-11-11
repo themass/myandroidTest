@@ -57,11 +57,6 @@ import com.openapi.chatkit.model.ComposerState
 import com.openapi.chatkit.model.VoiceStyle
 import com.openapi.chatkit.theme.ChatKit
 
-private val CardShape = RoundedCornerShape(16.dp)
-private val IconInk = Color(0xFF1F1F1F)
-private val SendBlue = Color(0xFF0066FF)
-private val SendBlueDisabled = Color(0xFFB3CCFF)
-
 /**
  * 对话输入栏（豆包式）：一张白色圆角卡片，所有东西都在卡片里。
  *
@@ -284,98 +279,5 @@ fun ChatComposer(
                 modifier = Modifier.align(if (voiceStyle == VoiceStyle.Ripple) Alignment.BottomStart else Alignment.TopStart),
             )
         }
-    }
-}
-
-/** 白色圆角卡片：16dp 圆角、柔和阴影。 */
-@Composable
-private fun InputCard(modifier: Modifier, content: @Composable ColumnScope.() -> Unit) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .shadow(elevation = 8.dp, shape = CardShape, ambientColor = Color(0x80000000), spotColor = Color(0x80000000))
-            .background(Color.White, CardShape),
-        content = content,
-    )
-}
-
-/** 卡片里的图标位：44×56dp 点击区，图标居中。 */
-@Composable
-private fun IconSlot(
-    onClick: () -> Unit,
-    onLongClick: (() -> Unit)? = null,
-    content: @Composable () -> Unit,
-) {
-    Box(
-        modifier = Modifier
-            .size(width = 44.dp, height = 56.dp)
-            .combinedClickable(onClick = onClick, onLongClick = onLongClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        content()
-    }
-}
-
-/** 键盘图标：圆圈里一个键盘（对应豆包的圆形线框图标）。 */
-@Composable
-private fun KeyboardGlyph() {
-    Box(
-        Modifier
-            .size(26.dp)
-            .border(1.5.dp, IconInk, CircleShape),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(
-            Icons.Filled.Keyboard,
-            contentDescription = stringResource(R.string.chatkit_keyboard),
-            tint = IconInk,
-            modifier = Modifier.size(14.dp),
-        )
-    }
-}
-
-/** 文字输入框：卡片内，17sp，最多 5 行，随内容向上长高。 */
-@Composable
-private fun InputField(
-    text: String,
-    onTextChange: (String) -> Unit,
-    onFocusChange: (Boolean) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val colors = ChatKit.colors
-    Box(
-        modifier.heightIn(min = 56.dp).padding(start = 12.dp, end = 4.dp, top = 16.dp, bottom = 16.dp),
-        contentAlignment = Alignment.CenterStart,
-    ) {
-        BasicTextField(
-            value = text,
-            onValueChange = onTextChange,
-            modifier = Modifier.fillMaxWidth().onFocusChanged { onFocusChange(it.isFocused) },
-            textStyle = TextStyle(fontSize = 17.sp, color = Color.Black),
-            cursorBrush = SolidColor(colors.accent),
-            maxLines = 5,
-            decorationBox = { inner ->
-                if (text.isEmpty()) {
-                    Text(stringResource(R.string.chatkit_input_hint), fontSize = 17.sp, color = Color(0xFF9CA3AF))
-                }
-                inner()
-            },
-        )
-    }
-}
-
-@Composable
-private fun Hint(text: String, emphasized: Boolean) {
-    val colors = ChatKit.colors
-    Surface(color = if (emphasized) colors.accent.copy(alpha = 0.08f) else colors.surface) {
-        Text(
-            text,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-            textAlign = if (emphasized) TextAlign.Center else TextAlign.Start,
-            fontSize = if (emphasized) ChatKit.typography.caption else ChatKit.typography.body,
-            color = if (emphasized) colors.accent else colors.bubbleText,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-        )
     }
 }
