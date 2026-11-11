@@ -5,6 +5,7 @@ import android.content.Intent;
 import com.openapi.common.CommonConstants;
 import com.openapi.common.util.FileUtils;
 import com.openapi.common.util.LogUtil;
+import com.openapi.ks.free1.R;
 import com.openapi.yewu.net.request.CommonResponse;
 import com.openapi.myapp.bean.vo.NullReturnVo;
 import com.openapi.myapp.constant.Constants;
@@ -26,10 +27,34 @@ public class LogUploadService extends BaseLogService {
     CommonResponse.ResponseOkListener listener = new CommonResponse.ResponseOkListener<NullReturnVo>() {
         @Override
         public void onResponse(NullReturnVo vo) {
-            LogUtil.i("删除 日志文件");
+            LogUtil.i("上报成功，删除待上传的日志文件");
             FileUtils.delLogFile(CommonConstants.BUG_FILE_FOR_UPLOAD);
+            FileUtils.delLogFile(CommonConstants.LOG_FILE_FOR_UPLOAD);
+            new android.os.Handler(android.os.Looper.getMainLooper()).post(() ->
+                    android.widget.Toast.makeText(LogUploadService.this,
+                            R.string.report_issue_sent, android.widget.Toast.LENGTH_SHORT).show());
         }
     };
+
+    /**
+     * 上传失败：把文件挪回原位，下次还能再报。
+     * <p>
+     * 早先 {@link FileUtils#mvFile} 在发请求<b>之前</b>就把日志移到了待上传路径，而失败分支什么都不做。
+     * 结果是一次上传失败（隧道刚断开、切网、服务端不可用）之后，日志就永久卡在 *-upload 文件里：
+     * 既不会被重发，也不会再进入下一次上报的候选列表，用户以为报过了，我们什么都没收到。
+     */
+    private final CommonResponse.ResponseErrorListener errorListener =
+            new CommonResponse.ResponseErrorListener() {
+                @Override
+                protected void onError() {
+                    LogUtil.e("上报失败，保留日志以便重试");
+                    FileUtils.mvFile(FileUtils.getBugUploadFilePath(), FileUtils.getBugFilePath());
+                    FileUtils.mvFile(FileUtils.getCharonUploadFilePath(), FileUtils.getCharonFilePath());
+                    new android.os.Handler(android.os.Looper.getMainLooper()).post(() ->
+                            android.widget.Toast.makeText(LogUploadService.this,
+                                    R.string.report_issue_failed, android.widget.Toast.LENGTH_LONG).show());
+                }
+            };
     private BaseService indexService;
 
     @Override
@@ -59,7 +84,7 @@ public class LogUploadService extends BaseLogService {
                 param.put("label", label.trim());
             }
             indexService.postData(Constants.getUrl(Constants.API_LOG_URL), file, param,
-                    listener, null, Constants.FILE_UPLOAD, TAG, NullReturnVo.class);
+                    listener, errorListener, Constants.FILE_UPLOAD, TAG, NullReturnVo.class);
         }
         return super.onStartCommand(intent, flags, startId);
     }

@@ -63,6 +63,8 @@ public final class ReportIssueDialog {
             intent.putExtra(LogUploadService.EXTRA_LABEL, label.trim());
         }
         app.startService(intent);
+        // 这里只说"正在上传"：请求还没发出去，结果由 LogUploadService 在响应/失败回调里告知。
+        // 原来在这里直接说"已发送"是在用户还没成功时先报成功。
         Toast.makeText(app, R.string.report_issue_thanks, Toast.LENGTH_SHORT).show();
     }
 }
