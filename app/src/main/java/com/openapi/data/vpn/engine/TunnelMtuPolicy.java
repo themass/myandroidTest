@@ -179,7 +179,7 @@ public final class TunnelMtuPolicy {
     }
 
     /** 底层（非 VPN）网络的 MTU；取不到返回 0。 */
-    private static int linkMtu(Context c) {
+    static int linkMtu(Context c) {
         ConnectivityManager cm = cm(c);
         Network n = underlying(cm);
         if (cm == null || n == null) {
@@ -187,6 +187,22 @@ public final class TunnelMtuPolicy {
         }
         LinkProperties lp = cm.getLinkProperties(n);
         return lp == null ? 0 : lp.getMtu();
+    }
+
+    /** 底层网络的传输类型：wifi / cell / eth / other / none（上报用，不含任何标识）。 */
+    static String networkType(Context c) {
+        ConnectivityManager cm = cm(c);
+        Network n = underlying(cm);
+        if (cm == null || n == null) {
+            return "none";
+        }
+        NetworkCapabilities caps = cm.getNetworkCapabilities(n);
+        if (caps == null) {
+            return "other";
+        }
+        return caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ? "wifi"
+                : caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ? "cell"
+                : caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) ? "eth" : "other";
     }
 
     /** 传输类型 + 默认网关哈希。取不到底层网络返回 null（此时不学习、不套用学习值）。 */

@@ -248,8 +248,11 @@
       // 选中节点的波纹明显更大、更快，便于一眼找到当前节点
       rings.push({ lat: n.lat, lng: n.lng, color: toRgba(c, 1), maxR: selected ? 9 : 5, speed: selected ? 2.4 : 1.8 });
       // 每个节点都有文字标签（城市名 + 延迟），不再只给选中项
-      var label = n.name + (typeof n.ping === 'number' && n.ping >= 0 ? '  ' + n.ping + 'ms' : '');
-      htmlMarkers.push({ kind: 'tag', id: n.id, lat: n.lat, lng: n.lng, text: label, color: c, selected: selected });
+      if (n.primary || selected) {
+        var label = n.name + (typeof n.ping === 'number' && n.ping >= 0 ? '  ' + n.ping + 'ms' : '')
+          + (n.more > 0 ? '  +' + n.more : '');
+        htmlMarkers.push({ kind: 'tag', id: n.id, lat: n.lat, lng: n.lng, text: label, color: c, selected: selected });
+      }
       // ping 不通（负数=超时）或连接失败：红 ×
       var failed = (state.connNodeId === n.id && state.connState === 'failed')
         || (typeof n.ping === 'number' && n.ping < 0);
@@ -321,6 +324,19 @@
       // 节点名可能是中文，WebView 字体渲染不了，只保留 ASCII；全是中文时用 Node + id
       // 同一坐标的节点（比如同一个国家的多条线路）围绕该点排成一圈，避免互相叠住
       var seen = {};
+      var groupSize = {};
+      (nodes || []).forEach(function (n) {
+        var g = n.lat.toFixed(2) + ',' + n.lng.toFixed(2);
+        groupSize[g] = (groupSize[g] || 0) + 1;
+      });
+      // 每个坐标点只画一个主标签（选中的优先，否则第一个），其余节点只保留圆点，避免文字叠在一起
+      var primaryOf = {};
+      (nodes || []).forEach(function (n) {
+        var g = n.lat.toFixed(2) + ',' + n.lng.toFixed(2);
+        if (primaryOf[g] === undefined || (selectedId != null && String(n.id) === String(selectedId))) {
+          primaryOf[g] = n.id;
+        }
+      });
       state.nodes = (nodes || []).map(function (n) {
         var name = (n.name || '').replace(/[^\x20-\x7E]/g, '').trim();
         var key = n.lat.toFixed(2) + ',' + n.lng.toFixed(2);
@@ -333,7 +349,8 @@
           lat = n.lat + radius * Math.sin(angle);
           lng = n.lng + radius * Math.cos(angle) / Math.max(0.2, Math.cos(n.lat * Math.PI / 180));
         }
-        return { id: n.id, name: name || ('Node ' + n.id), lat: lat, lng: lng, ping: n.ping };
+        return { id: n.id, name: name || ('Node ' + n.id), lat: lat, lng: lng, ping: n.ping,
+                 primary: primaryOf[key] === n.id, more: groupSize[key] - 1 };
       });
       state.selectedId = selectedId === undefined ? null : selectedId;
       refresh();

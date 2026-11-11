@@ -71,6 +71,8 @@ public final class SingBoxVpnService extends VpnService {
     public static final String EXTRA_CONFIG_JSON = "singbox_config_json";
     public static final String EXTRA_MTU_PROTO = "mtu_proto";
     public static final String EXTRA_MTU_NODE = "mtu_node";
+    public static final String EXTRA_MTU_VALUE = "mtu_value";
+    public static final String EXTRA_MTU_RETRIED = "mtu_retried";
     public static final String EXTRA_SPLIT_MODE = "split_mode";
     public static final String EXTRA_SPLIT_PACKAGES = "split_packages";
 
@@ -113,6 +115,8 @@ public final class SingBoxVpnService extends VpnService {
     private String splitMode;
     private String mtuProto;
     private String mtuNode;
+    private int mtuValue;
+    private boolean mtuRetried;
     @Nullable
     private String[] splitPackages;
     @Nullable
@@ -151,6 +155,8 @@ public final class SingBoxVpnService extends VpnService {
         splitMode = intent.getStringExtra(EXTRA_SPLIT_MODE);
         mtuProto = intent.getStringExtra(EXTRA_MTU_PROTO);
         mtuNode = intent.getStringExtra(EXTRA_MTU_NODE);
+        mtuValue = intent.getIntExtra(EXTRA_MTU_VALUE, 0);
+        mtuRetried = intent.getBooleanExtra(EXTRA_MTU_RETRIED, false);
         splitPackages = intent.getStringArrayExtra(EXTRA_SPLIT_PACKAGES);
         if (configJson == null) {
             LogUtil.e(TAG + ": 启动参数缺失 config");
@@ -201,6 +207,14 @@ public final class SingBoxVpnService extends VpnService {
         if (!running || gen != generation) {
             LogUtil.i(TAG + ": 探针中止，隧道已拆除或已被新连接替换");
             return;
+        }
+        if (mtuProto != null) {
+            try {
+                com.openapi.data.vpn.engine.MtuReport.record(this,
+                        TunnelMtuPolicy.Proto.valueOf(mtuProto), mtuNode, mtuValue, res, mtuRetried);
+            } catch (RuntimeException e) {
+                LogUtil.e(TAG + ": MTU 记录失败: " + e.getMessage());
+            }
         }
         if (res == TunnelProbe.Result.OK) {
             LogUtil.i(TAG + ": 连通性探针通过（经 VPN 网络）");

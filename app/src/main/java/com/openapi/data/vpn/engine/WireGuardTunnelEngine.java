@@ -129,12 +129,13 @@ public final class WireGuardTunnelEngine implements TunnelEngine {
                 if (tunnel != t) {
                     return; // 探测期间被断开或换了新连接
                 }
+                String nodeKey = request.getServer() + ":" + request.getPort();
+                MtuReport.record(appContext, TunnelMtuPolicy.Proto.WIREGUARD, nodeKey, mtu, res, retried);
                 if (res != TunnelProbe.Result.OK) {
                     try {
                         go.setState(t, Tunnel.State.DOWN, null);
                     } catch (Exception ignored) {
                     }
-                    String nodeKey = request.getServer() + ":" + request.getPort();
                     if (res == TunnelProbe.Result.MTU_SUSPECT) {
                         TunnelMtuPolicy.learn(TunnelMtuPolicy.Proto.WIREGUARD, nodeKey, TunnelMtuPolicy.FLOOR);
                         if (!retried && mtu > TunnelMtuPolicy.FLOOR) {

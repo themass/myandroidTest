@@ -105,6 +105,8 @@ public final class SingBoxTunnelEngine implements TunnelEngine {
     private volatile TunnelRequest lastRequest;
     private boolean mtuRetried;
     private boolean retrying;
+    /** 最近一次配置里实际使用的隧道 MTU，随启动参数交给服务端做上报。 */
+    private static volatile int lastMtu;
 
     @Override
     public void connect(@NonNull TunnelRequest request, @NonNull Callback callback) {
@@ -148,6 +150,8 @@ public final class SingBoxTunnelEngine implements TunnelEngine {
             intent.putExtra(SingBoxVpnService.EXTRA_CONFIG_JSON, configJson);
             intent.putExtra(SingBoxVpnService.EXTRA_MTU_PROTO, mtuProto(request).name());
             intent.putExtra(SingBoxVpnService.EXTRA_MTU_NODE, nodeKey(request));
+            intent.putExtra(SingBoxVpnService.EXTRA_MTU_VALUE, lastMtu);
+            intent.putExtra(SingBoxVpnService.EXTRA_MTU_RETRIED, mtuRetried);
 
             SplitTunnelingPolicy policy = request.getSplitTunneling();
             if (!policy.isAllThrough()) {
@@ -212,6 +216,7 @@ public final class SingBoxTunnelEngine implements TunnelEngine {
         String dns = isBlank(request.getDnsServer()) ? DEFAULT_DNS : request.getDnsServer();
         TunnelMtuPolicy.Proto proto = TunnelMtuPolicy.forSingBoxOutbound(outboundType(proxy));
         int mtu = TunnelMtuPolicy.resolve(proto, request.getMtu(), nodeKey(request));
+        lastMtu = mtu;
         return SingBoxConfigBuilder.buildConfig(proxy, tunAddress, mtu, dns);
     }
 

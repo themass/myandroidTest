@@ -601,6 +601,13 @@ public class CharonVpnService extends VpnService implements VpnStateService.VpnS
             if (mIsDisconnecting || mCurrentProfile != profile) {
                 return;
             }
+            try {
+                com.openapi.data.vpn.engine.MtuReport.record(CharonVpnService.this,
+                        com.openapi.data.vpn.engine.TunnelMtuPolicy.Proto.IKEV2,
+                        profile.getGateway(), profile.getMTU() == null ? 0 : profile.getMTU(), res, false);
+            } catch (RuntimeException e) {
+                LogUtil.e("MTU 记录失败: " + e.getMessage());
+            }
             if (res == com.openapi.data.vpn.engine.TunnelProbe.Result.OK) {
                 LogUtil.i("IKEv2 连通性探针通过");
                 setState(VpnStateService.State.CONNECTED);

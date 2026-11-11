@@ -437,7 +437,10 @@ public class VpnRadFragment extends BaseFragment {
             return null;
         }
         LocationVo chosen = PreferenceUtils.getPrefObj(getActivity(), Constants.LOCATION_CHOOSE, LocationVo.class);
-        if (chosen == null || chosen.img == null) {
+        if (chosen == null) {
+            return BaseRes.img.get("flag_all");   // 随机：与节点列表默认项的 ALL 图标一致
+        }
+        if (chosen.img == null) {
             return null;
         }
         String name = chosen.img.substring(chosen.img.lastIndexOf('/') + 1);
@@ -456,15 +459,19 @@ public class VpnRadFragment extends BaseFragment {
         if (userNode != null) {
             tvCurrentName.setText(userNode.name);
             tvCurrentPing.setText("");
+            tvCurrentPing.setVisibility(View.GONE);   // 空胶囊不显示，否则是一个紫色小圆点
             return;
         }
         LocationVo chosen = PreferenceUtils.getPrefObj(getActivity(), Constants.LOCATION_CHOOSE, LocationVo.class);
         if (chosen == null) {
-            tvCurrentName.setText(R.string.current_node_none);
+            // 没选节点 = 随机（Random），和节点列表默认项一致；名字短，图标用 ALL
+            tvCurrentName.setText(Constants.DEFULT_LOCATION_NAME);
             tvCurrentPing.setText("");
+            tvCurrentPing.setVisibility(View.GONE);   // 空胶囊不显示，否则是一个紫色小圆点
             return;
         }
         tvCurrentName.setText(chosen.ename != null ? chosen.ename : chosen.name);
+        tvCurrentPing.setVisibility(View.VISIBLE);
         // 延迟优先用首页测速结果；没有测过时自动测一次选中的节点。
         Integer ms = globePings.get(String.valueOf(chosen.id));
         if (ms == null) {
