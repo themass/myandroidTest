@@ -21,7 +21,7 @@ import com.openapi.core.view.view.MyFavoriteView;
 
 import com.openapi.feature.video.R;
 import com.openapi.ks.myapp.data.ImagePhotoLoad;
-import com.openapi.ks.myapp.ui.sound.VideoPlaybackUiHelper;
+import com.openapi.ks.myapp.video.page.VideoPlaybackUiHelper;
 
 import com.shuyu.gsyvideoplayer.GSYVideoManager;
 import com.shuyu.gsyvideoplayer.utils.CommonUtil;

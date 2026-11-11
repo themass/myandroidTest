@@ -358,7 +358,7 @@
 | `DetailGSYVideoPlayer` | 布局、全屏切换、返回键、海报、loading、收藏视图的挂载 | 约 250 行 |
 
 **做法**：一次拆一个类，行为不变。每拆一块在手机上验证：播放、拖动进度、全屏、倍速、出错换引擎、投屏按钮。
-5 个视频页 Activity（Java View）不重写，只移到 `page/`。
+5 个视频页 Activity（Java View）不重写，只移到 `page/`。 **已执行**（2026-11-11）：`ui/sound` 下的 6 个文件（4 个 Activity 和 2 个 helper）移到 `com.openapi.ks.myapp.video.page`；`VideoActivity` 仍保留，删除待确认。
 
 ### 5.4 `SoundItemsMusicFragment`（675 行）→ 拆分，不重写
 

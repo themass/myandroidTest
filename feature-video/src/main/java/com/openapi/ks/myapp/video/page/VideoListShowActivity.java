@@ -1,4 +1,4 @@
-package com.openapi.ks.myapp.ui.sound;
+package com.openapi.ks.myapp.video.page;
 
 
 import android.content.Intent;

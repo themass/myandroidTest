@@ -61,7 +61,7 @@ import com.openapi.common.util.ToastUtil
 import com.openapi.feature.video.R
 import com.openapi.ks.myapp.bean.vo.RecommendVo
 import com.openapi.ks.myapp.constant.Constants
-import com.openapi.ks.myapp.ui.sound.VideoShowActivityLazyUrl
+import com.openapi.ks.myapp.video.page.VideoShowActivityLazyUrl
 
 /** 本地视频（A19）：读取系统相册里的视频，按文件夹筛选，缩略图列表；点按用现有播放器播放，长按分享或删除。 */
 class LocalVideoActivity : ComponentActivity() {

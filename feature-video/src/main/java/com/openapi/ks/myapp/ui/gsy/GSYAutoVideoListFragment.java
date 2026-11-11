@@ -20,7 +20,7 @@ import com.openapi.common.net.request.InfoListVo;
 import com.openapi.ks.myapp.bean.vo.RecommendVo;
 import com.openapi.ks.myapp.constant.Constants;
 import com.openapi.ks.myapp.ui.base.features.BasePullLoadbleFragment;
-import com.openapi.ks.myapp.ui.sound.VideoPlaybackUiHelper;
+import com.openapi.ks.myapp.video.page.VideoPlaybackUiHelper;
 import com.shuyu.gsyvideoplayer.GSYVideoManager;
 import com.shuyu.gsyvideoplayer.listener.GSYSampleCallBack;
 import com.shuyu.gsyvideoplayer.utils.CommonUtil;

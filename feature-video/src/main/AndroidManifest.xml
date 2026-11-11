@@ -3,18 +3,18 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <application>
         <activity
-            android:name="com.openapi.ks.myapp.ui.sound.VideoActivity"
+            android:name="com.openapi.ks.myapp.video.page.VideoActivity"
         />
         <activity
-            android:name="com.openapi.ks.myapp.ui.sound.VideoShowActivity"
+            android:name="com.openapi.ks.myapp.video.page.VideoShowActivity"
             android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|uiMode"
             android:theme="@style/AppTheme" />
         <activity
-            android:name="com.openapi.ks.myapp.ui.sound.VideoShowActivityLazyUrl"
+            android:name="com.openapi.ks.myapp.video.page.VideoShowActivityLazyUrl"
             android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|uiMode"
             android:theme="@style/AppTheme" />
         <activity
-            android:name="com.openapi.ks.myapp.ui.sound.VideoListShowActivity"
+            android:name="com.openapi.ks.myapp.video.page.VideoListShowActivity"
             android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|uiMode"
             android:theme="@style/AppTheme" />
         <activity
