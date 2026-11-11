@@ -11,7 +11,7 @@ import com.google.android.gms.ads.FullScreenContentCallback;
 import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.admanager.AdManagerAdRequest;
 import com.google.android.gms.ads.appopen.AppOpenAd;
-import com.openapi.core.ads.yewu.ads.Constants;
+import com.openapi.core.ads.yewu.ads.AdsIds;
 import com.openapi.core.ads.yewu.ads.base.SplashAdsInter;
 import com.openapi.core.ads.yewu.ads.config.SplashAdDissmisEvent;
 import com.openapi.core.ads.yewu.ads.config.AdsEvents;
@@ -43,7 +43,7 @@ public class AdmobSplashAds extends SplashAdsInter {
             AdManagerAdRequest request = new AdManagerAdRequest.Builder().build();
             AppOpenAd.load(
                     context,
-                    Constants.ADMOB_SPLASH_ID,
+                    AdsIds.ADMOB_SPLASH_ID,
                     request,
                     new AppOpenAd.AppOpenAdLoadCallback() {
                         /**

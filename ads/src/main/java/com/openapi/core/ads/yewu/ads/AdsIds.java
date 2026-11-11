@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Constants {
+public class AdsIds {
 
 
     public static final String ADMOB_REWARD_ID_TEST = "ca-app-pub-3940256099942544/5224354917";

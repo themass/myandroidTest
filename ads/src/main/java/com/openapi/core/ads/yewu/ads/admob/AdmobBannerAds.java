@@ -18,7 +18,7 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.LoadAdError;
-import com.openapi.core.ads.yewu.ads.Constants;
+import com.openapi.core.ads.yewu.ads.AdsIds;
 import com.openapi.common.util.LogUtil;
 import com.openapi.core.ads.yewu.ads.base.AdsContext;
 import com.openapi.core.ads.yewu.ads.base.BannerInter;
@@ -36,7 +36,7 @@ public class AdmobBannerAds extends BannerInter {
     @Override
     public void bannerAds(final FragmentActivity context, final ViewGroup group, final String key, final Handler handler) {
         AdView adView = new AdView(context);
-        adView.setAdUnitId(Constants.adviewToAdmobBanner.get(key));
+        adView.setAdUnitId(AdsIds.adviewToAdmobBanner.get(key));
         if (adView != null) {
             ViewGroup parent = (ViewGroup) adView.getParent();
             if (parent != null) {

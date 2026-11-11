@@ -7,7 +7,7 @@ import android.os.HandlerThread;
 
 import com.openapi.core.ads.R;
 import com.openapi.core.ads.yewu.ads.AdsPopStrategy;
-import com.openapi.core.ads.yewu.ads.Constants;
+import com.openapi.core.ads.yewu.ads.AdsIds;
 import com.openapi.core.ads.yewu.ads.adview.AdviewConstant;
 import com.openapi.core.ads.yewu.um.MobAgent;
 import com.openapi.common.util.LogUtil;
@@ -140,7 +140,7 @@ public class AdsContext {
         if (showCount++ > 8) {
             return false;
         }
-        int i = Md5.getRandom(Constants.maxRate);
+        int i = Md5.getRandom(AdsIds.maxRate);
 //        if (UserLoginUtil.isVIP3()) {
 //            return i <= 1;
 //        } else if (UserLoginUtil.isVIP2()) {
@@ -148,7 +148,7 @@ public class AdsContext {
 //        } else if (UserLoginUtil.isVIP()) {
 //            return i <= 3;
 //        }
-        return i <= Constants.PROBABILITY;
+        return i <= AdsIds.PROBABILITY;
 
     }
 
@@ -158,9 +158,9 @@ public class AdsContext {
             if (!AdsPopStrategy.clickAdsClickBtn(context)) {
                 return;
             }
-//            String msg = context.getResources().getString(R.string.tab_fb_click) + Constants.ADS_SHOW_CLICK;
+//            String msg = context.getResources().getString(R.string.tab_fb_click) + AdsIds.ADS_SHOW_CLICK;
 //            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
-//            ScoreTask.start(context, Constants.ADS_SHOW_CLICK);
+//            ScoreTask.start(context, AdsIds.ADS_SHOW_CLICK);
         }
     }
 

@@ -12,7 +12,7 @@ import com.google.android.gms.ads.FullScreenContentCallback;
 import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.interstitial.InterstitialAd;
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
-import com.openapi.core.ads.yewu.ads.Constants;
+import com.openapi.core.ads.yewu.ads.AdsIds;
 import com.openapi.common.util.LogUtil;
 import com.openapi.core.ads.yewu.ads.base.AdsContext;
 import com.openapi.core.ads.yewu.ads.base.InterstitialAdsInter;
@@ -33,7 +33,7 @@ public class AdmobInterstitialAds extends InterstitialAdsInter {
     public void interstitialAds(final Context context, final Handler handler, final String key, final boolean score, final int count) {
         AdRequest adRequest = new AdRequest.Builder().build();
         try {
-            InterstitialAd.load(context, Constants.ADMOB_INTER_ID, adRequest,
+            InterstitialAd.load(context, AdsIds.ADMOB_INTER_ID, adRequest,
                     new InterstitialAdLoadCallback() {
                         @Override
                         public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
