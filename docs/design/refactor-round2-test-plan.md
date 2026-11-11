@@ -112,3 +112,65 @@
 - `SoundItemsMusicFragment` 的 `pause` / 进度条拖动 / `play` 在服务未绑定时可能 NPE。
 - `SoundDetailActivity` 与列表页各有一份播放广播接收器。
 - 声音页播放控制已拆出（`SoundPlaybackControls` + 25 个单元测试），但页面仍保留视图接线。
+
+---
+
+## 7. 第三轮增补：本次三项功能的验收项
+
+第二轮之后又落了三个功能（权限统一、对话图片编辑、拍照解题端到端）。它们在阶段 C/D 之外有自己的验收点：
+
+### 7.1 权限统一（`PermissionGateway`）
+
+| # | 场景 | 期望 |
+|---|---|---|
+| P1 | 首次点相机 | 先解释框，再系统授权框；授权后直接进相机 |
+| P2 | 拒绝一次后再点 | 还能再弹（不是永久拒绝） |
+| P3 | 选「不再询问」后再点 | 提示里去设置；点「去设置」跳到本应用设置页 |
+| P4 | 从设置页开权限返回 | 功能可用（`LocalVideoActivity` 会刷新 `granted`；对话页下次点击即可用） |
+| P5 | 连点麦克风两次 | 只出现一个解释框（同一 Activity 的请求串行化） |
+| P6 | 本地视频页首次进 | 请求读视频权限；Android 13+ 是 `READ_MEDIA_VIDEO`，12 及以下 `READ_EXTERNAL_STORAGE` |
+| P7 | 拍照解题首次进相机 | 不再出现「普通拒绝被当成永久拒绝」的旧行为 |
+
+### 7.2 对话图片编辑（`PhotoEditor`）
+
+| # | 场景 | 期望 |
+|---|---|---|
+| E1 | 选一张图 | 先全屏进编辑器；取消则不进草稿；完成则草稿里是编辑后的图 |
+| E2 | 涂鸦一笔后撤销 | 笔画消失；重做逐步恢复（每次一步） |
+| E3 | 旋转 90° 两次 | 预览与最终导出一致 |
+| E4 | 文字标注 | 位置跟随手指，导出位置一致 |
+| E5 | 马赛克 | 只影响框选区域，不溢出 |
+| E6 | 4000×3000 大图 | 不 OOM；导出长边 ≤ 2048 |
+| E7 | 编辑后发送 | 服务端收到的就是编辑后的图 |
+| E8 | 多选图片 | 只有第一张进编辑器，其余直接进草稿 |
+
+### 7.3 拍照解题（testserverV + 豆包）
+
+服务端地址走 `Constants.getUrl()`（`BASE_IP` + `/vvv/api`），**不需要额外配置**；
+模型密钥只在服务端 `secrets.properties` 的 `photosolve.doubao.apiKey`，客户端不含任何密钥。
+
+| # | 场景 | 期望 |
+|---|---|---|
+| S1 | 清晰正对题目 | 检测到四角 → 微调页 → 矫正 → 识别中 → 结构化结果（题目/步骤/答案） |
+| S2 | 斜拍（梯形） | 四角检测成功，矫正后文字不歪、没有大片背景 |
+| S3 | 桌面/风景照 | 端上提示「未检测到题目边缘」，停在取景页，可重拍或手动框选 |
+| S4 | 清晰度差 | 弹清晰度提示，可选择仍然提交 |
+| S5 | 服务端返回 40002 | **回到取景页**并提示「不是题目」（依赖本次修正的 errno 透传，旧实现在这里会显示「服务不可用」） |
+| S6 | 服务端未配置模型（50002） | 提示「解题服务尚未配置好」，不重试风暴 |
+| S7 | 断网 | 提示网络异常，可重试，不崩溃 |
+| S8 | 服务端 `health.json` | 返回 `configured:true` 且 provider 与实际部署一致 |
+
+> S5 是这次合并里修掉的真实缺陷：`awaitUpload` 吞掉 errno 只弹通用 toast，
+> 现在 `NetError.BusinessError` 带 errno、`awaitUploadOrThrow` 不吞错误，
+> `NetworkPhotoSolveRepository` 把它映射成 `PhotoSolveError`。
+
+### 7.4 本轮已执行（JVM，可在本机复现）
+
+| 命令 | 结果 |
+|---|---|
+| `./gradlew --offline :app:assembleChatDebug` | 通过，产出 `app-chat-debug.apk` |
+| `./gradlew --offline testDebugUnitTest testChatDebugUnitTest` | **151 个测试全部通过，0 失败**（app 10 / core 16 / feature-chat 54 / feature-companion 15 / feature-content 33 / imaging 14 / mediaview 9） |
+| 架构规则（`ModuleGraphTest`） | 4 条全部通过（分层、包名、底层不引用业务代码、依赖必须用到） |
+
+**未执行**：阶段 B/C（真机）、7.1–7.3 的真机项、release 打包（签名证书不在本机）、
+端到端调豆包（`secrets.properties` 未填 `photosolve.doubao.apiKey`）。
