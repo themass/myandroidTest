@@ -40,9 +40,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.openapi.feature.chat.domain.model.ChatSession
-import com.openapi.uikit.theme.AppColors
-import com.openapi.uikit.theme.AppSpacing
-import com.openapi.uikit.theme.AppTypography
+import com.openapi.common.ui.theme.AppColors
+import com.openapi.common.ui.theme.AppSpacing
+import com.openapi.common.ui.theme.AppTypography
 
 /**
  * 会话列表（底部弹层）：切换、新建、重命名、删除。

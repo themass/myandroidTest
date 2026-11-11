@@ -7,10 +7,10 @@ import android.os.Looper
 import android.os.Message
 import android.view.KeyEvent
 import android.view.View
-import com.openapi.ads.base.AdsContext
-import com.openapi.ads.base.AdsManager
-import com.openapi.ads.config.AdsEvents
-import com.openapi.ads.analytics.MobAgent
+import com.openapi.common.ads.base.AdsContext
+import com.openapi.common.ads.base.AdsManager
+import com.openapi.common.ads.config.AdsEvents
+import com.openapi.common.ads.analytics.MobAgent
 import com.openapi.common.event.observe
 import androidx.lifecycle.lifecycleScope
 import com.openapi.common.util.log.LogUtil

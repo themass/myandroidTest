@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="error_network_no_connection">La conexión de red no está disponible, por favor intente más tarde</string>
-    <string name="error_network_timeout">Tiempo de espera de conexión de red agotado, por favor intente más tarde</string>
-    <string name="error_network_unknown">Error de conexión con el servidor, por favor verifique su conexión de red o intente más tarde.</string>
-</resources>

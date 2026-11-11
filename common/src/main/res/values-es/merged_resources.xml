@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="error_network_no_connection">La conexión de red no está disponible, por favor intente más tarde</string>
+    <string name="error_network_timeout">Tiempo de espera de conexión de red agotado, por favor intente más tarde</string>
+    <string name="error_network_unknown">Error de conexión con el servidor, por favor verifique su conexión de red o intente más tarde.</string>
+    <string name="error_network_retry">Error de carga, por favor haga clic en Reintentar.</string>
+    <string name="error_network_nodata_retry">Sin datos, por favor haga clic en Reintentar.</string>
+    <string name="menu_haha">¡Ey! Lo has encontrado.</string>
+    <string name="input_picture">Foto</string>
+    <string name="input_video">Video</string>
+    <string name="input_file">Archivos</string>
+    <string name="input_talk">Hablar</string>
+    <string name="input_help">Ayuda</string>
+    <string name="input_question">Resolver</string>
+    <string name="input_position">Posición</string>
+    <string name="menu_share_copy_ok">Copiado correctamente</string>
+    <string name="load">Cargando más datos</string>
+    <string name="tab_fb_click">Anuncios de puntos para ganar puntos +</string>
+    <string name="tab_fb_click_fast">Demasiado rápido, por favor espere 3 segundos</string>
+    <string name="repeated_click">No haga clic repetidamente</string>
+</resources>

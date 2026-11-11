@@ -17,7 +17,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import com.openapi.uikit.theme.AppColors
+import com.openapi.common.ui.theme.AppColors
 import com.openapi.feature.video.local.LocalVideoScreen
 import com.openapi.app.R
 

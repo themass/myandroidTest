@@ -6,7 +6,7 @@ import com.openapi.cast.JavaCaster;
 import com.openapi.cast.DlnaDiscoveryCallback;
 import com.openapi.cast.DlnaDevice;
 import android.widget.ImageButton;
-import com.openapi.uikit.dialog.AppDialogHost;
+import com.openapi.common.ui.dialog.AppDialogHost;
 import com.shuyu.gsyvideoplayer.video.base.GSYVideoView;
 import android.util.Rational;
 import android.app.PictureInPictureParams;

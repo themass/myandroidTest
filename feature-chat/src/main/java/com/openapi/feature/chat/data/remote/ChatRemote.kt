@@ -1,8 +1,8 @@
 package com.openapi.feature.chat.data.remote
 
-import com.openapi.network.http.BaseService
-import com.openapi.network.awaitPost
-import com.openapi.network.awaitPostOk
+import com.openapi.common.net.http.BaseService
+import com.openapi.common.net.awaitPost
+import com.openapi.common.net.awaitPostOk
 
 /** 对话相关日志和请求的标签。 */
 internal const val CHAT_TAG = "chat"

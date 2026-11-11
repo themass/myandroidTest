@@ -13,10 +13,10 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.openapi.core.legacyui.adapter.BaseRecyclerViewAdapter;
-import com.openapi.network.request.InfoListVo;
-import com.openapi.network.http.BaseService;
+import com.openapi.common.net.request.InfoListVo;
+import com.openapi.common.net.http.BaseService;
 import com.openapi.core.R;
-import com.openapi.uikit.widget.DividerItemDecoration;
+import com.openapi.common.ui.widget.DividerItemDecoration;
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.common.util.lang.StringUtils;
 import com.openapi.core.legacyui.list.ListShellState;

@@ -22,11 +22,8 @@ dependencies {
     // 工具类（com.openapi.core.util/net/event 等）在 :commonutil
     api project(':common')
     implementation project(':subtitle')
-    implementation project(':uikit')
-    implementation project(':network')
     // 字幕翻译框架（MyFavoriteView 使用，原在 :commonutil）
     // 广告 SDK（AdsContext、AdsManager 等，来自 :ads）
-    implementation project(':ads')
     // Material 组件（AppBarLayout、FloatingActionButton 等，ui/base 使用）
     implementation libs.google.material
     // 列表骨架屏（IndexRecommendAdapter）与水波纹背景（MyRadarScanView）

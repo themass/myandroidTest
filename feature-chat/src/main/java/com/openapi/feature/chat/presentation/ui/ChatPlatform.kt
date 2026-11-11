@@ -14,7 +14,7 @@ import com.openapi.chatkit.model.VoiceStyle
 import com.openapi.chatkit.message.MessageMenuStyle
 import com.openapi.chatkit.theme.ChatKitColors
 import com.openapi.chatkit.theme.ChatKitDefaults
-import com.openapi.uikit.theme.AppColors
+import com.openapi.common.ui.theme.AppColors
 import com.openapi.feature.chat.R
 import java.io.File
 

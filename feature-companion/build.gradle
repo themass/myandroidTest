@@ -21,7 +21,6 @@ dependencies {
     implementation libs.okhttp
     // 角色扮演（伴侣页、角色记忆与设置、虚拟形象渲染）。Android 端按角色扮演分支维护。
     implementation project(':common')
-    implementation project(':network')
     implementation project(':core')
 
     implementation platform(libs.androidx.compose.bom)

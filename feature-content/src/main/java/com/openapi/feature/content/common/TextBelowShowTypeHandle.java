@@ -5,7 +5,7 @@ import android.view.View;
 
 import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.request.target.DrawableImageViewTarget;
-import com.openapi.network.glide.GlideLoggingListener;
+import com.openapi.common.net.glide.GlideLoggingListener;
 // 使用现代 Shimmer 替代
 // import com.romainpiel.shimmer.Shimmer;
 import com.openapi.common.util.log.LogUtil;

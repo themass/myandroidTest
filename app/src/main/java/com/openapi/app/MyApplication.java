@@ -14,9 +14,9 @@ import com.openapi.common.util.android.ScreenSize;
 import com.openapi.common.util.android.FileUtils;
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.common.util.android.SystemUtils;
-import com.openapi.ads.base.AdsManager;
-import com.openapi.network.http.HttpClient;
-import com.openapi.network.http.BaseService;
+import com.openapi.common.ads.base.AdsManager;
+import com.openapi.common.net.http.HttpClient;
+import com.openapi.common.net.http.BaseService;
 import com.openapi.feature.chat.ChatDependencies;
 import com.openapi.core.config.Constants;
 import com.openapi.feature.chat.data.remote.BackendSpeechToText;
@@ -55,12 +55,12 @@ public class MyApplication extends MultiDexApplication {
         LogUtil.e("isDebug=" + isDebug);
         instance = this;
         // 网络层的业务配置（域名、请求头名、登录失效处理）在启动时注入，commonutil 不再写死
-        com.openapi.network.http.NetConfig.init(
+        com.openapi.common.net.http.NetConfig.init(
                 CommonConstants.DEFAULT_REFERER,
                 CommonConstants.HTTP_TOKEN_KEY,
                 CommonConstants.DEVID,
                 code -> com.openapi.core.event.CoreEvents.INSTANCE.postUserNeedLogin());
-        com.openapi.uikit.widget.MyWebView.setDefaultReferer(CommonConstants.DEFAULT_REFERER);
+        com.openapi.common.ui.widget.MyWebView.setDefaultReferer(CommonConstants.DEFAULT_REFERER);
         // 拍照解题：配置了服务地址才换成真实实现（见 app/build.gradle 的 photosolveBaseUrl），否则保留 mock
         if (!com.openapi.app.BuildConfig.PHOTOSOLVE_BASE_URL.isEmpty()) {
             com.openapi.feature.photosolve.data.PhotoSolveRepositories.INSTANCE.install(

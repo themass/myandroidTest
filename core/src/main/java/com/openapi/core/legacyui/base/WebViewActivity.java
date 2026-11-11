@@ -11,19 +11,19 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.openapi.core.config.CommonConstants;
-import com.openapi.uikit.widget.MyWebView;
+import com.openapi.common.ui.widget.MyWebView;
 import com.openapi.common.util.android.AudioMngHelper;
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.common.util.android.PackageUtils;
 import com.openapi.common.util.android.SystemUtils;
 import com.openapi.common.util.android.ToastUtil;
-import com.openapi.ads.base.AdsContext;
-import com.openapi.network.request.CommonResponse;
+import com.openapi.common.ads.base.AdsContext;
+import com.openapi.common.net.request.CommonResponse;
 import com.openapi.core.R;
 import com.openapi.core.model.CustomeAddForm;
 import com.openapi.core.model.NullReturnVo;
 import com.openapi.core.config.Constants;
-import com.openapi.network.http.BaseService;
+import com.openapi.common.net.http.BaseService;
 import com.openapi.core.legacyui.app.BaseFragmentActivity;
 import com.openapi.core.legacyui.features.BaseWebViewFragment;
 

@@ -14,11 +14,11 @@ import android.view.animation.OvershootInterpolator;
 
 import com.openapi.core.config.Routes;
 import com.openapi.common.util.log.LogUtil;
-import com.openapi.ads.base.AdsContext;
-import com.openapi.ads.base.AdsManager;
+import com.openapi.common.ads.base.AdsContext;
+import com.openapi.common.ads.base.AdsManager;
 import com.openapi.core.R;
 import com.openapi.core.config.Constants;
-import com.openapi.ads.AdsPopStrategy;
+import com.openapi.common.ads.AdsPopStrategy;
 
 
 /**

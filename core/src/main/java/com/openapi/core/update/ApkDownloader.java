@@ -16,7 +16,7 @@ import android.os.Looper;
 import androidx.core.app.NotificationCompat;
 
 import com.openapi.core.app.AppContext;
-import com.openapi.network.http.HttpUtils;
+import com.openapi.common.net.http.HttpUtils;
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.common.util.android.FileUtils;
 import com.openapi.common.util.android.ToastUtil;

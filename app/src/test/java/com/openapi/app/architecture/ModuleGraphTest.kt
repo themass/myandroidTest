@@ -8,8 +8,8 @@ import java.io.File
  * 架构规则（见 docs/design/refactor-round2.md 第 3 节）。新增依赖前先看这里，不要为了通过而改测试。
  *
  * 1. 分层：只依赖下层。同层只允许 [SAME_LAYER_OK] 里的几条边。
- *    第 0 层 :common :network :uikit
- *    第 1 层 :mediaview :speech :subtitle :imaging :cast :ads :chatkit :retromusic（可复用能力）
+ *    第 0 层 :common（util/ event/ image/ net/ ui/ ads/ 用目录区分）
+ *    第 1 层 :mediaview :speech :subtitle :imaging :cast :chatkit :retromusic（可复用能力）
  *    第 2 层 :core
  *    第 3 层 :feature-*（互相不依赖）
  *    第 4 层 :app（组合根，没有模块依赖它）
@@ -22,16 +22,14 @@ class ModuleGraphTest {
     private val root: File = File("..").canonicalFile
 
     private val layerOf = mapOf(
-        "common" to 0, "network" to 0, "uikit" to 0,
+        "common" to 0,
         "mediaview" to 1, "speech" to 1, "subtitle" to 1, "imaging" to 1, "cast" to 1,
-        "ads" to 1, "chatkit" to 1, "retromusic" to 1,
+        "chatkit" to 1, "retromusic" to 1,
         "core" to 2,
         "app" to 4,
     )
 
     private val SAME_LAYER_OK = setOf(
-        "network" to "common",
-        "uikit" to "common",
         "chatkit" to "mediaview",
         "subtitle" to "speech",
     )

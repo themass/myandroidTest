@@ -24,10 +24,10 @@
 
 | 种类 | 判断标准 | 放到 |
 |---|---|---|
-| **A. 纯工具** | 不认识业务名词；不画界面；不发网络请求 | `:common` |
-| **B. 网络** | HTTP 收发、图片加载的传输层 | `:network` |
-| **C. 通用视图** | 与业务无关的 UI 部件，不带重库，换个 App 也能用 | `:uikit` |
-| **D. 独立能力** | 自成体系、与业务无关；有对外接口，或带重库、模型 | `:mediaview`、`:speech`、`:subtitle`、`:imaging`、`:cast`、`:chatkit`、`:ads` |
+| **A. 纯工具** | 不认识业务名词；不画界面；不发网络请求 | `:common/util` |
+| **B. 网络** | HTTP 收发、图片加载的传输层 | `:common/net` |
+| **C. 通用视图** | 与业务无关的 UI 部件，不带重库，换个 App 也能用 | `:common/ui` |
+| **D. 独立能力** | 自成体系、与业务无关；有对外接口，或带重库、模型 | `:mediaview`、`:speech`、`:subtitle`、`:imaging`、`:cast`、`:chatkit`；广告放 `:common/ads` |
 | **E. 业务公共** | 含业务名词或依赖接口配置，**并且**至少两个 feature 用 | `:core` |
 | **F. 功能专属** | 只有一个模块用 | 那个模块 |
 
@@ -55,20 +55,18 @@
          :subtitle            com.openapi.subtitle            翻译接口、字幕覆盖层、实时字幕（→ :speech）
          :imaging             com.openapi.imaging             裁剪辅助、质量检测、增强管线、超分（ONNX、OpenCV）
          :cast                com.openapi.cast                DLNA 投屏协议（SSDP、SOAP、本地 HTTP）
-         :ads                 com.openapi.ads                 广告、analytics/ 统计（GMS Ads）
          :retromusic          com.openapi.retromusic          本地音乐（不强行统一风格、不拆包）
-第 0 层  :uikit               com.openapi.uikit               主题、对话框、通用控件、权限请求、分享；共用的尺寸/颜色
-         :network             com.openapi.network             HTTP、请求封装、DNS、Glide 网络组件（OkHttp、Glide、Gson）
-         :common              com.openapi.common              纯工具：util/ event/ image/（只依赖协程、core-ktx、Gson 等小库，没有资源）
+第 0 层  :common              com.openapi.common              util/ event/ image/ net/ ui/ ads/ 六个目录，无项目依赖
 ```
 
 **单独建模块的条件**（默认用子包）：带重的第三方库或原生库；需要构建层面强制依赖方向；可以拿到别的项目单独复用；有独立的开发分支。
 
 ### 3.1 依赖规则（`ModuleGraphTest` 强制）
-1. 只依赖下层。同层只允许：`:network → :common`、`:uikit → :common`、`:chatkit → :mediaview`、`:subtitle → :speech`。
+1. 只依赖下层。同层只允许：`:chatkit → :mediaview`、`:subtitle → :speech`。
+   `:common` 内部目录规则：`util/`、`event/`、`image/` 是最底层，`net/`、`ui/`、`ads/` 依赖它们，不反向依赖。
 2. 第 0、1 层不 import `com.openapi.core`、`com.openapi.feature`、`com.openapi.app`。业务配置和事件从上往下传参或回调（如 `NetConfig`、`TranslationOverlaySession`）。
 3. feature 之间不互相依赖。打开别的功能的页面用路由（类名字符串，见 `Routes`）。
-4. 声明的项目依赖必须用到（`:app` 除外）。第三方库谁用谁声明，用 `implementation`；只有对外接口里出现库的类型才用 `api`（如 `:network` 的 OkHttp、`:core` 的 Room、`:retromusic` 的 androidx.media）。
+4. 声明的项目依赖必须用到（`:app` 除外）。第三方库谁用谁声明，用 `implementation`；只有对外接口里出现库的类型才用 `api`（如 `:common` 的 OkHttp、`:core` 的 Room、`:retromusic` 的 androidx.media）。
 5. 每个 Android 库模块 `apply from: gradle/android-library.gradle`，只写 namespace、buildFeatures 和依赖。
 
 ### 3.2 子包规则（靠评审，不在测试里）
@@ -76,13 +74,14 @@
 |---|---|
 | `:feature-chat` | `roles/` 不 import 对话的其它子包 |
 | `:feature-content` | `video/ image/ text/ sound/ config/` 只 import `common/`；`mine/` 可以 import 各类型子包，反过来不行 |
+| `:common` | `util/ event/ image/` 不 import `net/ ui/ ads/`；`net/ ui/ ads/` 不互相 import |
 
 ### 3.3 包名（`ModuleGraphTest` 强制）
 包名 = 模块根包：`com.openapi.<模块>`，feature 为 `com.openapi.feature.<名>`。没有两个模块共用同一个包。例外：`:retromusic` 本来就规范；`:feature-companion` 不动。
 启动页的旧组件名 `com.openapi.ks.chatfree.ui.main.LaunchActivity` 以 `<activity-alias>` 保留，让用户桌面上的旧图标仍可打开。
 
 ### 3.4 资源
-资源跟着用它的模块走：只有一个模块用的放那个模块；多个模块共用的尺寸、颜色、文字放 `:uikit`；`:common` 没有资源。
+资源跟着用它的模块走：只有一个模块用的放那个模块；多个模块共用的尺寸、颜色、文字放 `:common` 的 `ui/`（`res/`）。
 
 ---
 
@@ -156,7 +155,7 @@ Manifest 只登记启动页和首页，其余由各 feature 自己的 Manifest �
 ## 7. 已确认的决定（2026-11-10）
 
 1. `:app` 的重复资源先清：已完成（`eaf374ba`）。
-2. ~~工具、网络、通用视图合成 `:common`，用子包分开。~~ **2026-11-11 改为**：拆成 `:common`、`:network`、`:uikit` 三个模块（见 refactor-round2.md P1、P8）。
+2. 工具、网络、通用视图合成 `:common`，用子包分开。2026-11-11 曾拆成 `:common`、`:network`、`:uikit` 三个模块，同日再合回 `:common`（`util/ net/ ui/ ads/`），拆得越细模块越多，维护成本高于收益。
 3. ~~相似的独立能力合并：`:media` = 语音、字幕翻译、图像、媒体查看。投屏放 `:feature-video`。~~ **2026-11-11 改为**：`:media` 拆成 `:mediaview`、`:speech`、`:subtitle`、`:imaging`；DLNA 协议成为 `:cast`，投屏界面留在 `:feature-video`（见 refactor-round2.md P2、P6）。
 4. `:chatkit`、`:ads` 保持独立；`:feature-roles` 并入 `:feature-chat`（2026-11-11 完成）。
 5. 视频和频道不合并；`:feature-channel` 改名 `:feature-content`，按内容类型分子包。

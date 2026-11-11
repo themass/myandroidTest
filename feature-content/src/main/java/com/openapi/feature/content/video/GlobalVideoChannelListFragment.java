@@ -7,14 +7,14 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
-import com.openapi.network.request.InfoListVo;
+import com.openapi.common.net.request.InfoListVo;
 import com.openapi.core.model.RecommendVo;
 import com.openapi.core.config.Constants;
 import com.openapi.common.util.android.StaticDataUtil;
 import com.openapi.core.legacyui.base.CommonFragmentActivity;
 import com.openapi.core.config.Routes;
 import com.openapi.common.util.android.PreferenceUtils;
-import com.openapi.ads.base.AdsContext;
+import com.openapi.common.ads.base.AdsContext;
 
 /**
  * Created by openapi on 2016/8/12.

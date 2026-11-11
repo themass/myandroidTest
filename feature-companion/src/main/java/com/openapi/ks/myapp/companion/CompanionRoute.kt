@@ -51,7 +51,7 @@ fun CompanionRoute(
     val api = remember(context) {
         HttpCompanionApi(
             baseUrl = CompanionConfig.baseUrl,
-            tokenProvider = { PreferenceUtils.getPrefString(context, com.openapi.network.http.NetConfig.tokenHeader(), null) },
+            tokenProvider = { PreferenceUtils.getPrefString(context, com.openapi.common.net.http.NetConfig.tokenHeader(), null) },
         )
     }
 

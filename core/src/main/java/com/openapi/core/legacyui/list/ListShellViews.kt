@@ -43,9 +43,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.openapi.common.util.log.LogUtil
-import com.openapi.uikit.widget.DividerItemDecoration
+import com.openapi.common.ui.widget.DividerItemDecoration
 import com.openapi.core.R
-import com.openapi.uikit.R as UikitR
+import com.openapi.common.R as UikitR
 
 /** 底部“加载更多”条：灰底 + 小圈 + 文案（与原 footer 布局一致）。 */
 @Composable

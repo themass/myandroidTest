@@ -10,48 +10,46 @@
 ### 1.1 模块依赖（箭头 = 依赖，生成自各模块 `build.gradle`）
 
 ```
-第 4 层    :app
+第 3 层    :app
            │
            ├─► 所有 feature（chat / content / video / user / photosolve / companion）
-           ├─► :chatkit、:ads、:core、:network、:uikit、:speech、:common
+           ├─► :chatkit、:core、:common
            └─► :retromusic
 
-第 3 层    :feature-chat      ─► :chatkit ─► :mediaview
+第 2 层    :feature-chat      ─► :chatkit ─► :mediaview
                                ─► :speech
-                               ─► :core  :uikit  :network  :common
+                               ─► :core  :common
 
-           :feature-content   ─► :core  :subtitle  :uikit  :network  :common  :retromusic
-           :feature-video     ─► :core  :cast  :subtitle  :uikit  :network  :common
-           :feature-user      ─► :core  :ads  :uikit  :network  :common
-           :feature-photosolve─► :imaging  :uikit  :common
-           :feature-companion ─► :core  :network  :common
+           :feature-content   ─► :core  :subtitle  :common  :retromusic
+           :feature-video     ─► :core  :cast  :subtitle  :common
+           :feature-user      ─► :core  :common
+           :feature-photosolve─► :imaging  :common
+           :feature-companion ─► :core  :common
 
-第 2 层    :core             ─► :subtitle ─► :speech
-                            ─► :uikit  :network  :ads  :common
+第 1 层    :core             ─► :subtitle ─► :speech
+                            ─► :common
 
-第 1 层    :ads :network :uikit :speech :imaging :cast :mediaview :chatkit
-                            └───────────────► :common
-
-第 0 层    :common            （无项目依赖）
+第 0 层    :common            util/ event/ image/ net/ ui/ ads/（无项目依赖）
            :retromusic        （无项目依赖，独立）
 ```
 
-**同层边（白名单，只有这 4 条）**：`chatkit → mediaview`、`subtitle → speech`、`network → common`、`uikit → common`。
-**铁律**：feature 之间没有依赖（`:feature-content → :retromusic` 不算 feature 之间）；第 0、1 层不 import `com.openapi.core/feature/app`；声明的项目依赖必须用到。
+**同层边（白名单，只有这 2 条）**：`chatkit → mediaview`、`subtitle → speech`。
+**包内分区**：`:common` 里 `net/`、`ui/`、`ads/` 只依赖 `util/`、`event/`、`image/`，反过来不依赖（靠评审保证）。
+**铁律**：feature 之间没有依赖；第 0、1 层不 import `com.openapi.core/feature/app`；声明的项目依赖必须用到。
 
 ### 1.2 第三方库（谁用谁声明）
 
 | 库 | 声明的模块 | 说明 |
 |---|---|---|
-| OkHttp（api） | `:network` | 对外接口里有 OkHttp 类型 |
-| Gson（api） | `:network`、`:common` | `:common` 的 `GsonUtils` 对外返回 Gson 类型 |
-| Glide（api） | `:network` | 网络加载组件；`AppGlideModule` 在 `:app` |
-| Compose BOM / UI / Material3 | `:uikit`、`:mediaview`、`:chatkit`、`:ads`(无)、各 feature、`:app` | 用到的模块各自声明 |
+| OkHttp（api） | `:common` 的 `net/` | 对外接口里有 OkHttp 类型 |
+| Gson（api） | `:common` | `GsonUtils` 对外返回 Gson 类型 |
+| Glide（api） | `:common` 的 `net/glide` | 网络图片加载；`AppGlideModule` 在 `:app` |
+| Compose BOM / UI / Material3 | `:common` 的 `ui/`、`:mediaview`、`:chatkit`、各 feature、`:app` | 用到的模块各自声明 |
 | Coil | `:mediaview`、`:chatkit` | Compose 图片加载 |
 | Media3 | `:speech`、`:subtitle`、`:core`、`:feature-video`、`:app` | 音频播放、PCM 源、投屏与视频页、播放引擎偏好 |
 | ONNX Runtime、OpenCV | `:imaging` | 只此一家；`:feature-photosolve` 通过它使用 |
 | NanoHTTPD | `:cast` | 投屏的本地 HTTP 分发 |
-| GMS Ads（api）、Wallet | `:ads` | 广告对外接口里有 GMS 类型 |
+| GMS Ads（api）、Wallet | `:common` 的 `ads/` | 广告对外接口里有 GMS 类型 |
 | Room（api） | `:core` | 实体和 DAO 是对外接口 |
 | GSY（3 个包） | `:feature-video` | 按约束锁定版本、不改 |
 | PhotoView、PictureSelector | `:feature-content` | 图片大图、选图 |
@@ -60,7 +58,7 @@
 | CameraX、ML Kit 扫描、Guava、easycrop | `:feature-photosolve` | 拍照与裁剪 |
 | LiveKit | `:feature-companion` | 伴侣实时通道（该模块不动） |
 | Google Cast framework | `:feature-video` | 投屏按钮与会话 |
-| ZXing | `:uikit` | 分享二维码 |
+| ZXing | `:common` 的 `ui/share` | 分享二维码 |
 | Shimmer、RippleBackground | `:core`；Ripple 另在 `:app` | 骨架屏、启动雷达动画 |
 | multidex、Material、Fragment、Activity | `:app` | 组合根 |
 
@@ -72,45 +70,33 @@
 
 ### 第 0 层：可单独拿走复用的基础模块
 
-#### `:common` — `com.openapi.common`（28 文件 / 2262 行）
-纯工具。不认识业务，不画界面，不发请求，没有资源文件。
-依赖：协程、core-ktx、documentfile、exifinterface、Gson（api，仅因 `GsonUtils` 的方法签名）。
+#### `:common` — `com.openapi.common`（106 文件 / 7714 行）
+纯工具、网络、通用界面和广告合在一个模块里，用目录分开。**不依赖任何项目模块**。
+依赖：协程、core-ktx；DocumentFile、ExifInterface；OkHttp/Gson/Glide（api，对外接口里有这些类型）；Compose、AppCompat、Activity、RecyclerView、ZXing；GMS Ads（api）、Wallet。
 
-| 包 | 文件 | 作用 |
+| 目录 | 文件 / 行 | 作用 |
 |---|---|---|
-| `util.lang` | 8 | `StringUtils`、`CollectionUtils`、`DateUtils`、`Md5` 等 |
-| `util.android` | 15 | `PreferenceUtils`、`ToastUtil`、`MediaUtil`、`ScreenSize`、`StaticDataUtil`、`FileUtils` 等 |
-| `util.json` | 1 | `GsonUtils` |
-| `util.log` | 1 | `LogUtil` |
-| `event` | 1 | `EventFlows`：应用级 `MutableSharedFlow` 事件总线（`observe`、`observeJava`、`appScope`） |
-| `image` | 2 | `ImageUtils`（EXIF 方向解码、缩放）、`ImageCompressor` |
+| `util.lang` | 8 / 630 | `StringUtils`、`CollectionUtils`、`DateUtils`、`Md5` 等 |
+| `util.android` | 15 / 1275 | `PreferenceUtils`、`ToastUtil`、`MediaUtil`、`ScreenSize`、`StaticDataUtil`、`FileUtils` 等 |
+| `util.json` / `util.log` | 2 / 106 | `GsonUtils`、`LogUtil` |
+| `event` | 1 / 43 | `EventFlows`：应用级事件流（`observe`、`observeJava`、`appScope`） |
+| `image` | 2 / 208 | `ImageUtils`（EXIF 方向解码、缩放）、`ImageCompressor` |
+| `net.http` | 10 / 1045 | `HttpClient`、`ApiRequest`、`Response`、`BaseService`、`NetConfig`、`NetError`、`NetUtils`、`NetResponse`、`HttpUtils`、`HttpDNSUtil` |
+| `net.request` | 8 / 474 | `GsonRequest`（含 `Decoder`、`infoList`）、`MultipartRequest`、`StringRequest`、`BaseRequest`、`ApiResult`、`DataBuilder`、`InfoListVo` 等 |
+| `net.glide` | 5 / 285 | Glide 网络组件：`OkHttpUrlLoader`、`OkHttpDns`、`MyGlideDiskCacheFactory`、`OkHttpStreamFetcher`、`GlideLoggingListener` |
+| `net.dns` / `net.unsafe` | 2 / 86 | `DnsRequestInterceptor`、`UnsafeOkHttpClient` |
+| `net` 根 | 2 / 195 | `BaseServiceAwait`（挂起封装）、`BaseServiceAsync`（CompletableFuture 桥接） |
+| `ui.theme` | 2 / 146 | `AppMaterialTheme`、`Tokens`（颜色、间距、字号） |
+| `ui.dialog` | 1 / 211 | `AppDialogs`、`AppDialogHost` |
+| `ui.widget` | 8 / 760 | `SlidingLayout`、`CircleImageView`、`SiteAutoCompleteTextView`、`MarqueeTextView`、`MyEditText`、`MyScrollView`、`MyWebView`、`DividerItemDecoration` |
+| `ui.permission` | 3 / 271 | `PermissionRequester`、`PermissionState`、`Permissions`（统一权限入口） |
+| `ui.share` | 4 / 550 | `ShareKit`、`ShareSheet`、`ShareCard`（二维码）、`ShareKitFileProvider` |
+| `ads.base` | 10 / 474 | `AdsContext`、`AdsManager`、`AdsPopStrategy` 等 |
+| `ads.admob` / `ads.adview` | 11 / 765 | 两套广告 SDK 适配 |
+| `ads.config` / `ads.analytics` | 4 / 128 | `AdsIds`、开关配置；`MobAgent` 统计 |
+| `ads` 根 | 2 / 107 | `AdsEvents`、`AdsPopStrategy` 入口 |
 
-#### `:network` — `com.openapi.network`（27 文件 / 2085 行）
-HTTP 与图片加载的传输层。业务配置（域名、请求头、登录失效）由 `:app` 启动时注入 `NetConfig`。
-依赖：`:common`、OkHttp（api）、Gson（api）、Glide（api）、协程。
-
-| 包 | 文件 | 作用 |
-|---|---|---|
-| `http` | 10 | `HttpClient`、`ApiRequest`、`Response`、`BaseService`、`NetConfig`、`NetError`（含 `BusinessError`）、`NetUtils`、`NetResponse`、`HttpUtils`、`HttpDNSUtil` |
-| `request` | 8 | `GsonRequest`（含 `Decoder`、`infoList`）、`MultipartRequest`、`StringRequest`、`BaseRequest`、`ApiResult`、`DataBuilder`、`InfoListVo` 等 |
-| `glide` | 5 | Glide 网络组件：`OkHttpUrlLoader`、`OkHttpDns`、`MyGlideDiskCacheFactory`、`OkHttpStreamFetcher`、`GlideLoggingListener`（`AppGlideModule` 在 `:app`） |
-| `dns` | 1 | `DnsRequestInterceptor` |
-| `unsafe` | 1 | `UnsafeOkHttpClient`（只搬位置，行为不变） |
-| 根 | 2 | `BaseServiceAwait`（挂起封装）、`BaseServiceAsync`（CompletableFuture 桥接，给 Java 列表页用） |
-
-#### `:uikit` — `com.openapi.uikit`（18 文件 / 1938 行）
-与业务无关的界面组件和共用设计令牌。资源跟着它走（尺寸、颜色、文字、drawable）。
-依赖：`:common`、Compose、AppCompat、Activity、RecyclerView、ZXing。
-
-| 包 | 文件 | 作用 |
-|---|---|---|
-| `theme` | 2 | `AppMaterialTheme`、`Tokens`（颜色、间距、字号等共用设计令牌） |
-| `dialog` | 1 | `AppDialogs`、`AppDialogHost`（Compose 对话框） |
-| `widget` | 8 | 通用控件：`SlidingLayout`、`CircleImageView`、`SiteAutoCompleteTextView`、`MarqueeTextView`、`MyEditText`、`MyScrollView`、`MyWebView`、`DividerItemDecoration` |
-| `permission` | 3 | `PermissionRequester`、`PermissionState`、`Permissions`（统一权限入口） |
-| `share` | 4 | `ShareKit`、`ShareSheet`、`ShareCard`（二维码）、`ShareKitFileProvider` |
-
-### 第 1 层：独立能力模块（带重库或自成体系）
+**目录间规则（评审保证，测试不检查）**：`util/`、`event/`、`image/` 是最底层；`net/`、`ui/`、`ads/` 可以依赖它们，它们不反向依赖。
 
 #### `:mediaview` — `com.openapi.mediaview`（2 文件 / 293 行）
 媒体查看组件：`MediaCarousel`、`MediaOverlap`、`MediaComponents`。Compose + Coil，零项目依赖。
@@ -165,25 +151,13 @@ DLNA 投屏协议，与播放器和界面无关。依赖：协程、OkHttp、Nan
 | `model` | 2 | `Sender`、`ComposerModels` 等纯 UI 模型 |
 | `theme` | 1 | Chatkit 主题 token |
 
-#### `:ads` — `com.openapi.ads`（27 文件 / 1474 行）
-广告与统计，纯 Java 风格（GMS Ads 为 api 依赖）。依赖：`:common`。
-
-| 包 | 文件 | 作用 |
-|---|---|---|
-| `base` | 10 | `AdsContext`、`AdsManager`、`AdsPopStrategy` 等 |
-| `admob` | 4 | AdMob 开屏/插屏/横幅实现 |
-| `adview` | 7 | 另一套广告 SDK 适配 |
-| `config` | 3 | `AdsIds`、开关配置 |
-| `analytics` | 1 | `MobAgent`（统计） |
-| 根 | 2 | `AdsEvents` 等 |
-
 #### `:retromusic` — `com.openapi.retromusic`（439 文件 / 57337 行）
 本地音乐播放器（Media3、Room、Koin）。**按约束不动**：不拆包、不统一风格、不合并。只有 `:feature-content`（以及 `:app`）依赖它。
 
 ### 第 2 层：业务公共
 
 #### `:core` — `com.openapi.core`（64 文件 / 5676 行）
-应用配置、跨功能共享的业务数据、旧页面框架。依赖：`:common`（api）、`:subtitle`、`:uikit`、`:network`、`:ads`；Room（api）。
+应用配置、跨功能共享的业务数据、旧页面框架。依赖：`:common`（api）、`:subtitle`；Room（api）。
 
 | 包 | 文件 | 作用 |
 |---|---|---|
@@ -207,7 +181,7 @@ DLNA 投屏协议，与播放器和界面无关。依赖：协程、OkHttp、Nan
 ### 第 3 层：功能模块
 
 #### `:feature-chat` — `com.openapi.feature.chat`（68 文件 / 6622 行）
-依赖：`:chatkit`、`:speech`、`:core`、`:uikit`、`:network`、`:common`。
+依赖：`:chatkit`、`:speech`、`:core`、`:common`。
 
 | 包 | 文件 | 作用 |
 |---|---|---|
@@ -223,7 +197,7 @@ DLNA 投屏协议，与播放器和界面无关。依赖：协程、OkHttp、Nan
 | `roles.domain` / `roles.presentation` | 3 | 角色模型、`RoleCatalogPane`、`RolePickerViewModel` |
 
 #### `:feature-content` — `com.openapi.feature.content`（77 文件 / 8300 行）
-依赖：`:core`、`:subtitle`、`:uikit`、`:network`、`:ads`、`:common`、`:retromusic`。按内容类型分包。
+依赖：`:core`、`:subtitle`、`:common`、`:retromusic`。按内容类型分包。
 
 | 包 | 文件 | 作用 |
 |---|---|---|
@@ -239,7 +213,7 @@ DLNA 投屏协议，与播放器和界面无关。依赖：协程、OkHttp、Nan
 | `home` | 4 | 频道首页入口与依赖注入点 `ChannelsDependencies` |
 
 #### `:feature-video` — `com.openapi.feature.video`（25 文件 / 3050 行）
-依赖：`:core`、`:cast`、`:subtitle`、`:uikit`、`:network`、`:common`；GSY 3 个包、Cast framework。
+依赖：`:core`、`:cast`、`:subtitle`、`:common`；GSY 3 个包、Cast framework。
 
 | 包 | 文件 | 作用 |
 |---|---|---|
@@ -252,7 +226,7 @@ DLNA 投屏协议，与播放器和界面无关。依赖：协程、OkHttp、Nan
 | `data` | 1 | `VideoUtil` |
 
 #### `:feature-user` — `com.openapi.feature.user`（22 文件 / 2649 行）
-依赖：`:core`、`:ads`、`:uikit`、`:network`、`:common`。
+依赖：`:core`、`:common`。
 
 | 包 | 文件 | 作用 |
 |---|---|---|
@@ -263,7 +237,7 @@ DLNA 投屏协议，与播放器和界面无关。依赖：协程、OkHttp、Nan
 | `home` | 3 | 「我的」页入口与依赖注入点 `ProfileDependencies` |
 
 #### `:feature-photosolve` — `com.openapi.feature.photosolve`（18 文件 / 2111 行）
-依赖：`:imaging`、`:uikit`、`:common`；CameraX、ML Kit、Guava、easycrop。
+依赖：`:imaging`、`:common`；CameraX、ML Kit、Guava、easycrop。
 
 | 包 | 文件 | 作用 |
 |---|---|---|
@@ -273,7 +247,7 @@ DLNA 投屏协议，与播放器和界面无关。依赖：协程、OkHttp、Nan
 | 根 | 1 | `PhotoSolveActivity` 入口（旧 Activity，保留） |
 
 #### `:feature-companion` — `com.openapi.ks.myapp.companion`（15 文件 / 2274 行）
-依赖：`:core`、`:network`、`:common`；LiveKit。**该模块在自己的分支开发，本轮不动**，包名保持旧形式。
+依赖：`:core`、`:common`；LiveKit。**该模块在自己的分支开发，本轮不动**，包名保持旧形式。
 
 **未完成事项**：`com.openapi.ks.myapp.companion` 与 `com.openapi.ks.myapp.avatar` 尚未改成 `com.openapi.feature.companion`；改的时候要同步 `ChatRoute` 里的组件名和 Manifest。
 

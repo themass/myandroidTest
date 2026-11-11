@@ -46,7 +46,7 @@ import com.openapi.feature.photosolve.ui.PhotoRecognizingScreen
 import com.openapi.feature.photosolve.ui.PhotoResultScreen
 import com.openapi.feature.photosolve.ui.PhotoSolveHomeScreen
 import com.openapi.feature.photosolve.ui.rememberMlKitScanLauncher
-import com.openapi.uikit.theme.AppMaterialTheme
+import com.openapi.common.ui.theme.AppMaterialTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext

@@ -28,10 +28,7 @@ dependencies {
     // 频道与推荐列表、频道详情、声音/图片/文字/视频频道页、收藏、搜索
     implementation project(':common')
     implementation project(':subtitle')
-    implementation project(':uikit')
-    implementation project(':network')
     // 频道页的开屏/插屏/横幅广告和统计
-    implementation project(':ads')
     // 图片大图（PhotoView）和选图（PictureSelector），只有本模块用
     implementation 'com.github.chrisbanes:PhotoView:2.3.0'
     implementation 'io.github.lucksiege:pictureselector:v3.11.2'

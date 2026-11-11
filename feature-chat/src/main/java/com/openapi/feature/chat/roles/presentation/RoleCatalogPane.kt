@@ -41,9 +41,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.openapi.uikit.theme.AppColors
-import com.openapi.uikit.theme.AppSpacing
-import com.openapi.uikit.theme.AppTypography
+import com.openapi.common.ui.theme.AppColors
+import com.openapi.common.ui.theme.AppSpacing
+import com.openapi.common.ui.theme.AppTypography
 import com.openapi.feature.chat.roles.domain.RoleSummary
 import com.openapi.feature.chat.roles.domain.SelectedRole
 

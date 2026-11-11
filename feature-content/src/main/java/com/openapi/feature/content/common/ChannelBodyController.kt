@@ -5,9 +5,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.openapi.network.http.BaseService
-import com.openapi.network.request.InfoListVo
-import com.openapi.network.awaitInfoList
+import com.openapi.common.net.http.BaseService
+import com.openapi.common.net.request.InfoListVo
+import com.openapi.common.net.awaitInfoList
 import com.openapi.common.util.log.LogUtil
 import com.openapi.common.util.android.PreferenceUtils
 import com.openapi.common.util.lang.StringUtils

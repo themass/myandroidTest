@@ -4,10 +4,10 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import com.openapi.core.config.CommonConstants
-import com.openapi.ads.analytics.MobAgent
+import com.openapi.common.ads.analytics.MobAgent
 import com.openapi.core.event.ConfigActionEvent
-import com.openapi.network.http.BaseService
-import com.openapi.network.awaitInfoList
+import com.openapi.common.net.http.BaseService
+import com.openapi.common.net.awaitInfoList
 import com.openapi.core.event.CoreEvents
 import com.openapi.common.util.android.PreferenceUtils
 import com.openapi.common.util.android.ToastUtil

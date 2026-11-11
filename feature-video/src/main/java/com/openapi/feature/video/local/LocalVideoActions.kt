@@ -54,9 +54,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import com.openapi.uikit.theme.AppColors
-import com.openapi.uikit.theme.AppMaterialTheme
-import com.openapi.uikit.permission.Permissions
+import com.openapi.common.ui.theme.AppColors
+import com.openapi.common.ui.theme.AppMaterialTheme
+import com.openapi.common.ui.permission.Permissions
 import com.openapi.common.util.android.ToastUtil
 import com.openapi.feature.video.R
 import com.openapi.core.model.RecommendVo

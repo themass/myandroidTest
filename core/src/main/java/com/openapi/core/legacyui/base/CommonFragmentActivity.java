@@ -8,7 +8,7 @@ import androidx.fragment.app.Fragment;
 import android.view.View;
 
 import com.openapi.common.util.log.LogUtil;
-import com.openapi.ads.base.AdsContext;
+import com.openapi.common.ads.base.AdsContext;
 import com.openapi.core.R;
 import com.openapi.core.legacyui.app.BaseFragmentActivity;
 import com.openapi.core.legacyui.inte.FabOpListener;
