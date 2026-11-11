@@ -1,4 +1,4 @@
-package com.openapi.ks.myapp.data.chat
+package com.openapi.chat.data.remote
 
 import android.util.Base64
 import com.openapi.common.net.BaseService
