@@ -155,7 +155,7 @@ public class BaseRequest<T> extends ApiRequest<T> {
         if (ret) {
             return Response.success(data.getData());
         } else {
-            return Response.error(new NetError.BusinessError(data.error));
+            return Response.error(new NetError.BusinessError(data.errno, data.error));
         }
     }
 

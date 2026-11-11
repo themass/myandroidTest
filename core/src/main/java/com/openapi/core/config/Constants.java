@@ -186,6 +186,10 @@ public class Constants {
     public static final String CHAT_QUESTION_URL = "/chat/ai/local/ocr.json";
     public static final String CHAT_FILE_URL = "/chat/ai/local/file.json";
 
+    /** 拍照解题（testserverV 的 PhotoSolveController）。 */
+    public static final String PHOTOSOLVE_SOLVE_URL = "/photosolve/v1/solve.json";
+    public static final String PHOTOSOLVE_HEALTH_URL = "/photosolve/v1/health.json";
+
     public static final String CHAT_STREAM_URL = "/chat/stream.json";
     public static final String CHAT_ASR_URL = "/chat/ai/asr.json";
     public static final String CHAT_TTS_URL = "/chat/ai/tts.json";

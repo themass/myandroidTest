@@ -43,4 +43,14 @@
     <string name="ui_cancel">取消</string>
     <string name="ui_close">关闭</string>
     <string name="ui_confirm">确认</string>
+    <string name="photosolve_quad_title">对准题目边框</string>
+    <string name="photosolve_quad_hint">拖动四个角，让边框贴合题目纸张的四边</string>
+    <string name="photosolve_quad_confirm">裁剪并识别</string>
+    <string name="photosolve_not_question">画面里没找到题目，请把题目放进取景框后再拍</string>
+    <string name="photosolve_detector_unavailable">自动对齐不可用（%1$s），可以手动拖动四个角</string>
+    <string name="photosolve_solving">上传图片并解题中…</string>
+    <string name="photosolve_retry">重试</string>
+    <string name="photosolve_edit_image">编辑图片</string>
+    <string name="photosolve_manual_crop">手动框选</string>
+    <string name="photosolve_retry_failed">重试</string>
 </resources>

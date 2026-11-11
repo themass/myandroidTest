@@ -288,17 +288,18 @@ class ChatViewModel : ViewModel() {
     fun onRemoveDraft(id: String) = composer.removeDraft(id)
 
 
-    /** 相册多选或拍照：按选择顺序逐个放进草稿托盘。 */
-    /**
-     * @param openEditor 传入时，每张图暂存后先交给编辑器（[file] 是暂存文件，[bitmap] 已解码），
-     *                   编辑完成由调用方替换暂存文件；不传则直接加入草稿。
-     */
     /**
      * 编辑完成：用编辑后的图片替换草稿里的暂存文件。失败时保留原图，不阻断发送。
      */
     fun onReplaceDraftImage(target: java.io.File, edited: android.net.Uri, context: android.content.Context) =
         send.replaceDraftImage(target, edited, context)
 
+    /**
+     * 相册多选或拍照：按选择顺序逐个放进草稿托盘。
+     *
+     * @param openEditor 传入时，每张图暂存后先交给编辑器（[file] 是暂存文件，[bitmap] 已解码），
+     *                   编辑完成由调用方替换暂存文件；不传则直接加入草稿。
+     */
     fun onImagesPicked(
         context: android.content.Context,
         uris: List<android.net.Uri>,

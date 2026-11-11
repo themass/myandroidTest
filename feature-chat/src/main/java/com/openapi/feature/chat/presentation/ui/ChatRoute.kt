@@ -1,6 +1,5 @@
 package com.openapi.feature.chat.presentation.ui
 
-import android.Manifest
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalActivity
@@ -35,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.launch
 import com.openapi.feature.chat.data.ChatMessageActions
 import com.openapi.feature.chat.domain.model.MessageKind
 import com.openapi.feature.chat.presentation.ChatViewModel
@@ -46,7 +46,6 @@ import com.openapi.common.ui.permission.PermissionGateway
 import com.openapi.common.ui.permission.PermissionOutcome
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import com.openapi.common.ui.permission.PermissionStates
 import com.openapi.common.ui.permission.Permissions
 import com.openapi.feature.chat.R
 

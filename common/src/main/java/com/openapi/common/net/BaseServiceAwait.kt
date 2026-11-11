@@ -8,6 +8,7 @@ import com.openapi.common.net.http.Response
 import com.openapi.common.net.request.CommonResponse
 import com.openapi.common.net.request.GsonRequest
 import com.openapi.common.net.request.InfoListVo
+import com.openapi.common.util.log.LogUtil
 import java.util.concurrent.ExecutionException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -93,6 +94,47 @@ suspend fun <T> BaseService.awaitUpload(
                 object : CommonResponse.ResponseErrorListener() {
                     override fun onError() {
                         if (cont.isActive) cont.resume(null)
+                    }
+                },
+                partName,
+                tag,
+                clazz,
+            )
+        }
+    }
+
+/**
+ * 带文件的 multipart 上传，**失败时抛出** [NetError]（网络、超时、服务端 errno 都在里面）。
+ *
+ * 和 [awaitUpload] 的区别：那个返回 null 并把 toast 弹在 `HttpClient.showVolleyError` 里，
+ * 只适合「失败了也没什么可说的」的上传。需要按服务端 errno 分支处理的接口（如拍照解题的
+ * 40002「不是题目」）必须用这个，否则所有业务错误都会被压成一句通用提示。
+ *
+ * 注意：失败时不会自动弹 toast，调用方负责提示文案。
+ */
+suspend fun <T> BaseService.awaitUploadOrThrow(
+    url: String,
+    param: Any?,
+    files: List<File>,
+    partName: String,
+    clazz: Class<T>,
+    tag: String,
+): T? =
+    withContext(Dispatchers.IO) {
+        suspendCancellableCoroutine { cont ->
+            postData(
+                url,
+                param,
+                files,
+                object : CommonResponse.ResponseOkListener<T>() {
+                    override fun onResponse(response: T) {
+                        if (cont.isActive) cont.resume(response)
+                    }
+                },
+                object : CommonResponse.ResponseErrorListener() {
+                    override fun onErrorResponse(error: NetError) {
+                        LogUtil.e("upload failed: $url", error)
+                        if (cont.isActive) cont.resumeWithException(error)
                     }
                 },
                 partName,

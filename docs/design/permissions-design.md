@@ -1,137 +1,187 @@
-# 权限请求去重：方案
+# 权限请求统一入口：现状、方案与迁移
 
-状态：**方案，未改代码。**
-基线：`weifu-refactor` @ `7b414878`。
+日期：2026-11-11
+分支：`claude/happy-fermi-300550` → 已合并进 `claude/vigorous-goldwasser-584d3f`（基线 `weifu-refactor`）
+相关：`docs/design/architecture.md` 第 3 节（`ModuleGraphTest` 分层）、`docs/design/photo-editing-design.md`
+
+---
+
+## 0. 状态总览
+
+| 项 | 状态 | 证据 |
+|---|---|---|
+| 请求点清单（第 1.2 节，含文件+行号） | **已完成** | 本文 |
+| `PermissionGateway` / `PermissionRequest` / `PermissionOutcome` | **已实现** | `common/.../ui/permission/` |
+| `PermissionRequester.await()`（挂起版） | **已实现** | `PermissionRequester.kt` |
+| `PermissionRequester.onPermanentlyDenied()` + 设置页返回修复 | **已实现** | `PermissionRequester.kt` |
+| `Permissions.NOTIFICATIONS` | **已实现**（预设已加） | `Permissions.kt` |
+| `ChatRoute` 相机 / 录音迁移 | **已实现** | `ChatRoute.kt:94`、`:153` |
+| `PhotoSolveActivity` 相机迁移 | **已实现** | `PhotoSolveActivity.kt:145` |
+| `LocalVideoActivity` 读视频迁移 | **已实现** | `LocalVideoActivity.kt:139` |
+| `ApkDownloader` 通知权限 | **设计但未实现** | 第 4 节 #1 |
+| 清单里删掉无用的存储权限 | **设计但未实现** | 第 4 节 #2 |
+| 隐私弹窗文案核对 | **待你确认**（合规，我无法判断现有文案是否覆盖） | 第 4 节 #3 |
+| `combineStates()` 单测 | **设计但未实现**（`:common` 暂未加 test 目录） | 第 6 节 |
+| 「永久拒绝 → 去设置」按钮 | **已实现**：`PermissionGateway.goToSettings(context)` | `PermissionGateway.kt` |
 
 ---
 
 ## 1. 现状
 
-### 1.1 代码层面
+### 1.1 已经清理掉的旧体系
 
-| 项 | 情况 |
+历史上的 `PermissionHelper` / `CompatiblePermissionManager` / `ModernPermissionManager` / `PermissionUtils` / `BasePermissionActivity` / `PermEvent` 已经删除。现在仓库里只剩 `:common` 的 `com.openapi.common.ui.permission`（`:uikit` 已在第二轮并入 `:common`）：
+
+| 文件 | 作用 |
 |---|---|
-| 现存的统一入口 | `:common` 的 `com.openapi.common.ui.permission`：`PermissionRequester`（142 行，链式 + 回调）、`PermissionState`/`PermissionStates`、`Permissions`（常量） |
-| 已删除的旧代码 | `PermissionHelper`、`CompatiblePermissionManager`、`ModernPermissionManager`、`PermissionUtils`、`BasePermissionActivity`、`PermEvent`（第 5.10 批，提交 `73363dcf`） |
-| 目前真正调用统一入口的地方 | **只有 2 处**：`ChatRoute.kt:95`（相机）、`ChatRoute.kt:157`（录音） |
-| 自己直接调系统 API 的地方 | `PhotoSolveActivity.kt:123` 用 `ActivityResultContracts.RequestPermission()` 自己注册，没有走 `PermissionRequester` |
-| 用法形态 | Java 友好的回调式：`PermissionRequester.with(activity).permissions(...).rationale(...).request(callback)` |
+| `PermissionRequester.kt` | 回调式请求：解释对话框 → 系统授权框 → 永久拒绝时「去设置」引导 |
+| `PermissionState.kt` | 四态判定（GRANTED / NOT_REQUESTED / DENIED / PERMANENTLY_DENIED），用 `SharedPreferences` 记录「是否申请过」，弥补 `shouldShowRequestPermissionRationale` 无法区分「从未申请」和「不再询问」的缺陷 |
+| `Permissions.kt` | 版本相关的权限组合（相册/音频/视频在 Android 13 前后的差异） |
 
-**判断**：权限代码没有「多套实现」重复了，重复问题已经从代码层解决。现在的重复在**用法层**：
-1. `ChatRoute` 每次都要先 `PermissionStates.isGranted(...)` 再决定是否请求，这两步每个调用点都要写一遍；
-2. 只有一个入口接受**回调**，没有挂起版，Compose 里写 `PermissionRequester.with(...)` 需要拿 Activity 并手写回调；
-3. `PhotoSolveActivity` 绕过了它；
-4. 「拒绝 → 解释 → 再请求 → 永久拒绝 → 去设置」的流程写在 `PermissionRequester` 里，但**提示文案由每个调用点传**，同一权限在不同页面文案不同（如录音在对话页和别处的措辞）。
+这套东西的**判定逻辑是对的**，问题在**入口形态**：`PermissionRequester` 是回调式 + 必须在 `ComponentActivity` 上调用，而 Compose 页面拿 Activity 的方式、拿不到时的降级处理，每个页面都自己写一遍。于是：
 
-### 1.2 权限声明层面（Manifest）
+### 1.2 迁移前仍然分散的请求点（实测清单）
 
-`app/src/main/AndroidManifest.xml` 里声明了 30+ 权限，其中大量是注释掉的旧权限（`CALL_PHONE`、`GET_ACCOUNTS`、`READ_PHONE_STATE`、定位等），仍然被注释保留；同时留着 `READ_EXTERNAL_STORAGE` / `WRITE_EXTERNAL_STORAGE` / `MANAGE_EXTERNAL_STORAGE` 的痕迹。真正在用的运行时权限只有：`CAMERA`、`RECORD_AUDIO`、`READ_MEDIA_IMAGES`（选图走系统 Photo Picker，实际不需要）、通知（若有）。
+> 行号基于提交 `4ba11436`；若之后改动过这些文件，按符号名（`PermissionGateway.of` 等）搜索即可。
+
+| # | 位置 | 形态 | 问题 |
+|---|---|---|---|
+| 1 | `feature-chat/.../ui/ChatRoute.kt:94-102` | `PermissionStates.isGranted` + `PermissionRequester.with(...).request(Callback)` | 用 `(activity as? ComponentActivity)`，拿不到就静默什么都不做——用户点了相机没反应 |
+| 2 | `feature-chat/.../ui/ChatRoute.kt:153-160` | 同上 | 同上；`onGranted = Unit`（首次授权不录音是产品行为，但代码里看不出意图） |
+| 3 | `feature-photosolve/.../PhotoSolveActivity.kt:145-160`（改造前） | **手写** `rememberLauncherForActivityResult(RequestPermission)` + `ContextCompat.checkSelfPermission` + `Manifest.permission.CAMERA` | 绕开 `PermissionRequester`：无解释框、无「去设置」；拒绝一次就 `permissionPermanentlyDenied = true`，把普通拒绝误判成永久拒绝 |
+| 4 | `feature-video/.../local/LocalVideoActivity.kt:129-133`（改造前） | **手写** `rememberLauncherForActivityResult(RequestMultiplePermissions)` + `checkSelfPermission` | 权限结果只在组合时算一次，从设置页回来不刷新 |
+| 5 | `core/.../update/ApkDownloader.java:94`、`:107` | `notificationManager.notify(...)`，**无运行时申请** | Android 13 起 `POST_NOTIFICATIONS` 是运行时权限，没有它通知被静默丢弃（下载进度看不到） |
+| 6 | `common/.../ui/permission/Permissions.kt`（`LOCATION` 预设） | 已定义，无调用方 | 定义与使用脱节；将来要定位时又得重新发明一遍入口 |
+| 7 | `app/src/main/AndroidManifest.xml:15-16` | `READ_EXTERNAL_STORAGE` / `WRITE_EXTERNAL_STORAGE` 仍在；`READ_MEDIA_*` 被注释（第 20-22 行） | 选图已全部走 Photo Picker（无需权限），旧声明只会在上架审核时被问「为什么需要全盘存储」 |
+
+`retromusic` 内部还有一套自己的权限处理（`AbsBaseActivity` / `PermissionActivity`），按约束**不动**；它本来就是一个独立子工程。
+
+### 1.3 结论
+
+重复的不是「判定逻辑」，而是**入口**：
+- 三处各写了一遍 `rememberLauncherForActivityResult` / `PermissionRequester`；
+- 两处把「普通拒绝」当「永久拒绝」；
+- 一处根本没有运行时申请（通知）；
+- 所有调用方都要自己处理「拿不到 Activity」的降级。
 
 ---
 
 ## 2. 方案
 
-### 2.1 统一入口：一个「权限门」+ 三种用法
+### 2.1 目标形态
 
-保留 `PermissionRequester` 作为内部实现，新增一个薄门面 `PermissionGateway`，提供三种形态的同一能力：
-
-```kotlin
-object PermissionGateway {
-
-    /** 挂起版（协程 / Compose LaunchedEffect / ViewModel 首选）。返回结果，不弹解释框。 */
-    suspend fun request(activity: ComponentActivity, vararg permissions: String): PermissionOutcome
-
-    /** Compose 版：声明式，结果通过回调。内部用 rememberLauncherForActivityResult。 */
-    @Composable
-    fun rememberRequester(): PermissionCall
-
-    /** Java / 旧 View 页面用：保留现有回调式 API，签名不变。 */
-    fun requester(activity: ComponentActivity): PermissionRequester
-}
-
-/** 三种结果，调用点需要显式处理每一种。 */
-sealed interface PermissionOutcome {
-    object Granted : PermissionOutcome
-    /** 本次拒绝，可以再次询问（系统框还会出现）。 */
-    data class Denied(val missing: List<String>) : PermissionOutcome
-    /** 「不再询问」或策略拒绝，只能去设置页。 */
-    data class Blocked(val missing: List<String>) : PermissionOutcome
-}
-```
-
-**关键决定**：
-- **挂起版不弹解释框**，只返回 `Outcome`。解释和「去设置」的界面交给调用方（Compose 的 `AlertDialog` / 页面的提示），因为对话框样式各页面不同，统一在一个工具类里画会冲突。
-- **解释文案集中定义**：`Permissions.CAMERA` 对应 `R.string.permission_camera_rationale`，每个权限一条，放在 `Permissions` 旁边；调用方不再自己写文案。特殊页面可以覆盖，但默认统一。
-- `PermissionRequester` 保留，`PermissionGateway.requester()` 只是转调它——Java 旧页面不用改。
-
-### 2.2 Compose 用法
+一个入口，三种调用方式，行为完全一致：
 
 ```kotlin
-val gate = PermissionGateway.rememberRequester()
-...
-if (gate.granted(Manifest.permission.RECORD_AUDIO)) {
-    startRecording()
-} else {
-    gate.request(Permissions.RECORD_AUDIO) { outcome ->
-        when (outcome) {
-            PermissionOutcome.Granted -> startRecording()
-            is PermissionOutcome.Denied -> toast(getString(Permissions.rationaleOf(permission)))
-            is PermissionOutcome.Blocked -> showGoToSettingsDialog()
-        }
+// 1) 协程（Compose 里最常用）
+scope.launch {
+    when (PermissionGateway.of(activity).request(PermissionRequest(Permissions.CAMERA, "拍照需要相机权限"))) {
+        PermissionOutcome.Granted -> openCamera()
+        is PermissionOutcome.Denied -> toast("未授予相机权限")
+        is PermissionOutcome.PermanentlyDenied -> showGoToSettingsHint()
     }
 }
+
+// 2) Activity / Fragment（Java 也能用，回调版保留）
+PermissionRequester.with(this)
+    .permissions(*Permissions.RECORD_AUDIO.permissions.toTypedArray())
+    .rationale("发送语音消息需要使用麦克风")
+    .request(object : PermissionRequester.Callback() { ... })
+
+// 3) 只判断，不弹框
+if (PermissionGateway.isGranted(context, Permissions.CAMERA)) { ... }
 ```
 
-`ChatRoute` 现在「先 `isGranted` 再 `request`」的两行合并成上面的写法。
+### 2.2 新增/修改的文件（都在 `:common` 的 `ui/permission`）
 
-### 2.3 页面被销毁时的处理
-
-`PermissionRequester` 现有实现已经判断 `isFinishing/isDestroyed`；挂起版要额外处理：Activity 在请求过程中被销毁时，`suspendCancellableCoroutine` 的续体会被取消，返回 `Denied` 而不是挂住。这条要写进实现和测试。
-
-### 2.4 Manifest 清理
-
-| 动作 | 权限 |
+| 文件 | 内容 |
 |---|---|
-| 保留 | `INTERNET`、`ACCESS_NETWORK_STATE`、`ACCESS_WIFI_STATE`、`CHANGE_WIFI_STATE`、`CAMERA`、`RECORD_AUDIO`、`MODIFY_AUDIO_SETTINGS`、`VIBRATE`、`WAKE_LOCK`、`READ_EXTERNAL_STORAGE`（≤ Android 12 的旧设备读图） |
-| 删除注释掉的旧权限 | `CALL_PHONE`、`GET_ACCOUNTS`、`READ_PHONE_STATE`、`ACCESS_FINE_LOCATION`、`ACCESS_COARSE_LOCATION`、`GET_TASKS`、`REAL_GET_TASKS`、`USE_CREDENTIALS`、`MANAGE_ACCOUNTS`、`READ_CALENDAR`、`WRITE_CALENDAR`、`SET_DEBUG_APP`、`READ_LOGS`、`EXPAND_STATUS_BAR`、`MOUNT_UNMOUNT_FILESYSTEMS`、`browser.permission.READ_HISTORY_BOOKMARKS`、`launcher.permission.*`（只删注释行，不改行为） |
-| 按需确认 | `MANAGE_EXTERNAL_STORAGE`、`READ_MEDIA_*`、`SYSTEM_ALERT_WINDOW`：现在是否仍需要，逐项确认后再删；没有确认的保持现状 |
+| `PermissionRequest.kt`（新增） | `PermissionRequest(permissions, rationale)`：一次请求 = 权限集合 + 给用户看的理由 |
+| `PermissionOutcome.kt`（新增） | `Granted` / `Denied(denied)` / `PermanentlyDenied(denied)`；`combineStates()` 纯函数把多个权限状态合并成一个结论（可单测） |
+| `PermissionGateway.kt`（新增） | 唯一入口。`of(activity)` 返回 `PermissionGatewayHandle`；`Mutex` 按 Activity 串行化请求，连点两次不会叠出两个对话框；排队后发现已被别的请求授予，直接返回 `Granted` |
+| `PermissionRequester.kt`（改） | 新增 `await()`（协程版）；`Callback` 新增 `onPermanentlyDenied()`（默认退化为 `onDenied`）；从设置页回来仍没开时改为回调 `onPermanentlyDenied`（之前错误地回调 `onDenied`） |
+| `Permissions.kt`（改） | 每个预设从 `Array<String>` 变成 `PermissionRequest`（自带理由），新增 `NOTIFICATIONS`（Android 13+ 才需要，低版本返回空集合 → 直接视为已授权）；保留 `camera(rationale)` 等带参工厂供自定义文案 |
 
-只删注释行是零风险的；真正会影响行为的删除（`READ_MEDIA_*`、`MANAGE_EXTERNAL_STORAGE`）必须先确认代码里有没有判断分支，方案里列为「待确认」。
+**分层**：全部在 `:common`（第 0 层的 `ui/permission` 目录），只依赖 `androidx.activity` / `appcompat` / 协程，不 import 任何业务包，符合 `ModuleGraphTest`。
+
+### 2.3 为什么用动态注册的 `ActivityResultRegistry`
+
+`registerForActivityResult` 必须在宿主 `STARTED` 之前注册；在 Compose 里这意味着只能固定在组合期注册，然后把结果「接回」某个点击事件——这就是现在每个页面各写一套 launcher 的根源。
+
+`PermissionRequester` 原本就用 `activityResultRegistry.register(key, …)` 在**调用时**注册，回调后 `unregister()`。`PermissionGateway` 在这个基础上加：
+
+- **串行化**：`ConcurrentHashMap<identityHashCode(activity), Mutex>`，同一宿主上的请求排队；排队期间先检查是否已被授予，避免重复弹框。
+- **销毁检查**：`isFinishing || isDestroyed` 时直接返回 `Denied`，不抛异常。
+- **明确的宿主契约**：只接受 `ComponentActivity` / `FragmentActivity`；老式 `android.app.Activity` 直接抛 `IllegalArgumentException` 并指出类名——与其偷偷降级成「什么都不做」，不如在迁移时暴露出来（`feature-video` 的 `VideoShowActivity` 等就是老基类，将来要用权限时会被这个错误提示推到正确做法）。
+
+### 2.4 拒绝 / 永久拒绝 / 去设置
+
+| 场景 | 判定 | 行为 |
+|---|---|---|
+| 已授权 | `GRANTED` | 直接执行 |
+| 从未申请 | `NOT_REQUESTED` | 直接弹系统框 |
+| 拒绝过一次（还能再问） | `DENIED` | 先弹解释框（`rationale`），用户点「继续」再弹系统框；拒绝后返回 `Denied` |
+| 「不再询问」/ 系统策略 | `PERMANENTLY_DENIED` | 回调式：弹「去设置」对话框，用户点「去设置」→ 跳到本应用设置页 → 回来后**重新检查**，开了就继续；没开回调 `onPermanentlyDenied`。协程式：不弹对话框，直接返回 `PermanentlyDenied`，由调用方决定提示文案 |
+| 跳设置后仍没开 | `PERMANENTLY_DENIED` | **不再谎称「还能再问」**（这是修复的 bug：旧代码此时回调 `onDenied`，调用方会以为下次点还能弹框） |
+
+「是否申请过」记在 `core_permission_requested` 这个 `SharedPreferences` 里（`PermissionState.kt`），key 是权限字符串本身。
+
+### 2.5 Compose / Activity / Fragment 用法
+
+- **Compose**：`val activity = LocalActivity.current`（`androidx.activity.compose`），`rememberCoroutineScope()` 里 `launch { gateway.request(...) }`。请求跨越重组也不会丢（协程在 scope 里），页面销毁自动取消。
+- **Activity（Java/Kotlin）**：`PermissionRequester.with(this)…request(callback)`，不需要改基类。
+- **Fragment**：`PermissionRequester.with(requireActivity())`；Fragment 自己的 `registerForActivityResult` 不用再碰。
+- **ViewModel**：不直接请求权限（没有 Activity）；由 UI 层请求后把结果作为事件传给 ViewModel——这是 Android 的常规做法，也是现在 `ChatRoute` 的做法，保留。
 
 ---
 
-## 3. 迁移步骤
+## 3. 已完成的本轮迁移
 
-1. 新增 `PermissionOutcome`、`PermissionGateway`（含 Compose 版和挂起版），保留 `PermissionRequester` 不动。
-2. 给 `Permissions` 加每个权限的默认解释文案（资源放 `:common` 的 `ui/permission`）。
-3. 迁移调用点（当前只有 3 个）：
-   - `ChatRoute.kt:95` 相机、`:157` 录音 → `PermissionGateway`；
-   - `PhotoSolveActivity.kt:123` → `PermissionGateway`（它是 `ComponentActivity`，可以直接用）。
-4. 写 JVM 测试：
-   - `Outcome` 映射：授权 / 拒绝 / 永久拒绝三种状态组合；
-   - 挂起版在 Activity 销毁时返回 `Denied` 而不是挂住；
-   - `Permissions.rationaleOf` 每个权限都有文案（防止漏配）。
-5. Manifest 删注释掉的旧权限（零风险部分）。
-6. 手机验证：对话拍照、录音、拍照解题各自第一次请求、拒绝一次、永久拒绝、去设置后返回。
+| 文件 | 改动 |
+|---|---|
+| `feature-chat/.../ui/ChatRoute.kt` | 相机、录音改走 `PermissionGateway`；拿不到 Activity 时不再静默（协程里自然返回，不再吞掉） |
+| `feature-photosolve/.../PhotoSolveActivity.kt` | 删掉手写的 `RequestPermission` launcher + `ContextCompat` 判断；改用 `PermissionGateway`，只有 `PermanentlyDenied` 才显示「去设置」 |
+| `feature-video/.../local/LocalVideoActivity.kt` | 删掉手写的 `RequestMultiplePermissions` launcher；改用 `PermissionGateway`，从设置页回来会刷新 `granted` |
+| `common/.../ui/permission/Permissions.kt` | 预设改为 `PermissionRequest`；新增通知权限 |
+| `common/.../ui/permission/PermissionRequester.kt` | 新增 `await()`、`onPermanentlyDenied()`；修复设置页返回的错误回调 |
+
+验证：`./gradlew --offline :common:compileDebugKotlin :feature-chat:compileDebugKotlin :feature-video:compileDebugKotlin :feature-photosolve:compileDebugKotlin` 全部通过。
 
 ---
 
-## 4. 为什么不再做成多套管理器
+## 4. 剩余迁移清单
 
-历史上重复的根因是「每个页面自己管理权限生命周期」。现在只保留一层，并且**唯一的入参是 `ComponentActivity`**，原因是：
-- Activity Result API 要求 `registerForActivityResult` 在 `onCreate` 之前注册，`ActivityResultRegistry` 的动态注册规避了这一点，但前提是能拿到 Activity 的 registry；
-- Fragment / View 都通过 `requireActivity()` 取得同一个入口，不需要第二套实现。
+| # | 位置 | 动作 | 优先级 |
+|---|---|---|---|
+| 1 | `core/.../update/ApkDownloader.java` | 下载前请求 `Permissions.NOTIFICATIONS`（协程版需要 Activity，下载器是 Application 上下文 → 在发起下载的界面里先请求，再把结果告诉下载器；或在下载器里用回调版并传入当前 Activity） | 高（Android 13+ 通知会被静默丢弃） |
+| 2 | `app/src/main/AndroidManifest.xml` | 删除 `READ_EXTERNAL_STORAGE` / `WRITE_EXTERNAL_STORAGE`（选图已走 Photo Picker、保存到相册走 MediaStore 无需权限）；需要扫全相册时再按需声明 `READ_MEDIA_IMAGES` | 高（审核风险） |
+| 3 | `app` 里首次启动的隐私弹窗 | 确认隐私政策文案覆盖「相机/麦克风/相册/通知」的实际用途（合规要求先于权限弹框） | 高 |
+| 4 | `feature-video` 的 `VideoShowActivity` 等老式 `Activity` | 如果将来要用权限，先把基类换成 `AppCompatActivity`/`ComponentActivity`；否则 `PermissionGateway.of()` 会给出明确异常 | 中 |
+| 5 | 定位 | `Permissions.LOCATION` 已就绪；等「附近的人」需求落地时直接用，不要再新写一套 | 低 |
+| 6 | `retromusic` | 不动（独立子工程，有自己的 `PermissionActivity`） | — |
 
 ---
 
 ## 5. 风险
 
-| 风险 | 应对 |
+| 风险 | 缓解 |
 |---|---|
-| Compose 版和挂起版行为不一致 | 两者都转调同一个 `PermissionRequester`，只有结果映射不同；用同一组单测覆盖 |
-| 解释文案统一后，某些页面措辞不合适 | `request()` 允许传入覆盖文案，默认值来自 `Permissions` |
-| Manifest 删权限导致旧设备异常 | 只删注释行；会改变行为的删除单独确认 |
+| `Mutex` 按 `identityHashCode(activity)` 存，Activity 重建后旧锁条目残留 | 每次请求结束不主动清理也不会有功能问题（锁对象很小）；如需清理，在 `request` 的 `finally` 里当 `locks.size > 32` 时修剪不在执行的条目 |
+| 协程版不弹「去设置」对话框，调用方忘了处理 `PermanentlyDenied` | 所有已迁移调用点都显式 `when`；`Permissions` 的工厂函数默认带理由文案，减少「忘了传 rationale」 |
+| 从设置页返回的时序（某些 ROM 返回后 `checkSelfPermission` 有延迟） | 现有实现是 `ActivityResult` 回调里立刻检查；如果遇到个别 ROM 的延迟，在协调器里加一次 300ms 重试即可（不改接口） |
+| 通知权限在 Android 13 以下返回空集合 → 判定为 `Granted` | 这是有意为之：低版本没有这个权限，视为已具备；调用方不需要判断版本 |
+| 迁移期间两套 API 并存（`PermissionRequester` 回调 + `PermissionGateway`） | `PermissionRequester` 保留是因为 Java/老页面还要用；`PermissionGateway` 只是它的协程包装，行为一致，不存在双份判定逻辑 |
 
-## 6. 工作量
+---
 
-新增门面与测试 0.5 天；迁移 3 个调用点 0.5 天；Manifest 清理 0.5 天；手机验证 0.5 天。合计约 2 天。
+## 6. 验证
+
+```bash
+./gradlew --offline :common:compileDebugKotlin
+./gradlew --offline :feature-chat:compileDebugKotlin
+./gradlew --offline :feature-video:compileDebugKotlin
+./gradlew --offline :feature-photosolve:compileDebugKotlin
+./gradlew --offline :app:compileDebugKotlin
+```
+
+全部通过（2026-11-11，离线）。`combineStates()` 是纯函数，后续可在 `:common` 加 `src/test` 做表驱动单测（本模块目前没有测试目录）。

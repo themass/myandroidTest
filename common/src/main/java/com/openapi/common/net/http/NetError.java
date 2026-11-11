@@ -37,14 +37,25 @@ public class NetError extends Exception {
     /** 服务端返回的业务错误（errno 不成功时带 error 文案），文案直接展示给用户。 */
     public static class BusinessError extends NetError {
         private final String msg;
+        /** 服务端 errno（0 = 成功，不会出现在这里）。需要按错误码分支的调用方读它。 */
+        private final int errno;
 
         public BusinessError(String msg) {
+            this(0, msg);
+        }
+
+        public BusinessError(int errno, String msg) {
             super(msg);
+            this.errno = errno;
             this.msg = msg;
         }
 
         public String getMsg() {
             return msg;
+        }
+
+        public int getErrno() {
+            return errno;
         }
     }
 

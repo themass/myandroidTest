@@ -40,3 +40,6 @@ app/src/main/obj/
 
 # CMake/NDK 构建产物
 .cxx/
+
+# Kotlin 编译器会话目录
+.kotlin/

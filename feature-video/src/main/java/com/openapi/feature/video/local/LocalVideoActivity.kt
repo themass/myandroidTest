@@ -11,6 +11,7 @@ import android.os.Build
 import android.provider.MediaStore
 import android.util.Size
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.IntentSenderRequest
@@ -43,6 +44,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,7 +58,10 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.openapi.common.ui.theme.AppColors
 import com.openapi.common.ui.theme.AppMaterialTheme
+import com.openapi.common.ui.permission.PermissionGateway
+import com.openapi.common.ui.permission.PermissionOutcome
 import com.openapi.common.ui.permission.Permissions
+import kotlinx.coroutines.launch
 import com.openapi.common.util.android.ToastUtil
 import com.openapi.feature.video.R
 import com.openapi.core.model.RecommendVo
@@ -126,11 +131,16 @@ internal fun queryLocalVideos(context: Context): List<LocalVideo> {
 @Composable
 fun LocalVideoScreen(onBack: (() -> Unit)? = null, modifier: Modifier = Modifier) {
     val context = LocalContext.current
-    var granted by remember {
-        mutableStateOf(Permissions.readVideo().permissions.all { ContextCompat.checkSelfPermission(context, it) == android.content.pm.PackageManager.PERMISSION_GRANTED })
-    }
-    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
-        granted = result.values.all { it }
+    val request = remember { Permissions.readVideo() }
+    var granted by remember { mutableStateOf(PermissionGateway.isGranted(context, request)) }
+    val scope = rememberCoroutineScope()
+    val activity = LocalActivity.current
+
+    fun requestPermission() {
+        val host = activity as? ComponentActivity ?: return
+        scope.launch {
+            granted = PermissionGateway.of(host).request(request) == PermissionOutcome.Granted
+        }
     }
     var videos by remember { mutableStateOf<List<LocalVideo>>(emptyList()) }
     var folder by remember { mutableStateOf<String?>(null) }
@@ -162,7 +172,7 @@ fun LocalVideoScreen(onBack: (() -> Unit)? = null, modifier: Modifier = Modifier
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(stringResource(R.string.localvideo_need_permission), color = AppColors.TextSecondary, fontSize = 14.sp)
                     Spacer(Modifier.height(12.dp))
-                    Button(onClick = { permissionLauncher.launch(Permissions.readVideo().permissions.toTypedArray()) }) {
+                    Button(onClick = { requestPermission() }) {
                         Text(stringResource(R.string.localvideo_grant))
                     }
                 }
