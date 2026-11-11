@@ -15,7 +15,7 @@ import io.noties.markwon.inlineparser.InlineProcessor;
 /**
  * @since 4.3.0
  */
-class JLatexMathInlineProcessor extends InlineProcessor {
+public class JLatexMathInlineProcessor extends InlineProcessor {
 
     private static final Pattern RE = Pattern.compile("(?<!\\$)\\$([^$]+)\\$(?!\\$)");
 

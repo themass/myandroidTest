@@ -10,7 +10,7 @@ import androidx.core.content.ContextCompat;
 import com.openapi.common.util.android.ScreenSize;
 import com.openapi.common.util.log.LogUtil;
 import com.openapi.feature.chat.R;
-import com.openapi.chat.markdown.katex.MyJLatexMathPlugin;
+import com.openapi.chat.markdown.katex.SingleDollarLatexPlugin;
 
 import io.noties.markwon.Markwon;
 import io.noties.markwon.core.CorePlugin;
@@ -47,33 +47,7 @@ public final class ChatMarkwon {
     private static Markwon create(Context ctx) {
         float latexTextSize = ctx.getResources().getDimension(R.dimen.textsize_15);
         return Markwon.builder(ctx)
-                .usePlugin(MyJLatexMathPlugin.create(latexTextSize, builder -> {
-                    builder.inlinesEnabled(true);
-                    com.openapi.chat.markdown.katex.JLatexMathTheme.Padding padding =
-                            new com.openapi.chat.markdown.katex.JLatexMathTheme.Padding(
-                                    ScreenSize.dp2px(ctx, 3),
-                                    ScreenSize.dp2px(ctx, 3),
-                                    ScreenSize.dp2px(ctx, 5),
-                                    ScreenSize.dp2px(ctx, 5));
-                    builder.theme()
-                            .backgroundProvider(new com.openapi.chat.markdown.katex.JLatexMathTheme.BackgroundProvider() {
-                                @NonNull
-                                @Override
-                                public Drawable provide() {
-                                    return ContextCompat.getDrawable(ctx, R.color.block_groud);
-                                }
-                            })
-                            .textColor(ContextCompat.getColor(ctx, R.color.block_text))
-                            .padding(padding);
-                    builder.errorHandler(new MyJLatexMathPlugin.ErrorHandler() {
-                        @Nullable
-                        @Override
-                        public Drawable handleError(@NonNull String latex, @NonNull Throwable error) {
-                            LogUtil.e("失败：" + latex, error);
-                            return ContextCompat.getDrawable(ctx, R.drawable.ic_markdown_error);
-                        }
-                    });
-                }))
+                .usePlugin(new SingleDollarLatexPlugin())
                 .usePlugin(JLatexMathPlugin.create(latexTextSize, builder -> {
                     builder.inlinesEnabled(true);
                     builder.blocksEnabled(true);
