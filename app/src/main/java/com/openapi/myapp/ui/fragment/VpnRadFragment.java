@@ -475,31 +475,84 @@ public class VpnRadFragment extends BaseFragment {
         UserNodeStore.UserNode userNode = UserNodeStore.selected(getActivity());
         if (userNode != null) {
             tvCurrentName.setText(userNode.name);
-            // 用户自建节点同样没有"我们测得的延迟"，但胶囊要留着占位：
-            // 直接隐藏会让卡片高度跳一下，看起来像布局坏了
-            showPingPlaceholder();
+            // 自建节点也有地址（server/port），一样能测：以前直接跳过，白留一个占位
+            renderPing(resolvePing(userNode.id), userNode.id, userNode.server);
             return;
         }
         LocationVo chosen = PreferenceUtils.getPrefObj(getActivity(), Constants.LOCATION_CHOOSE, LocationVo.class);
         if (isRandomChoice(chosen)) {
             // 没选节点 = 随机（Random），和节点列表默认项一致；名字短，图标用 ALL
             tvCurrentName.setText(Constants.DEFULT_LOCATION_NAME);
-            // Asset 1 默认线路是"每次连哪台不确定"，不存在单一延迟值。
-            // 原来这里把胶囊整个藏起来，卡片左下角就空出一块，看着像少了个控件。
-            showPingPlaceholder();
+            // 随机线路在服务端也是一条带 gateway 的记录（当前只有一台启用），
+            // 测它等于测"这次实际会被分配到的线路"，所以同样显示延迟而不是占位。
+            // 只有拿不到 gateway 时才退回占位。
+            //
+            // 注意 chosen 可能是 null：isRandomChoice(null) 也返回 true（从没选过节点）。
+            // 这里曾经直接读 chosen.id，冷启动时必崩——所有 NPE 都是这么来的。
+            // 从没选过节点时 chosen 为 null，但节点列表里就有一条 Random 记录，
+            // 用它去测才能得到"这次实际会被分配到哪台"的延迟
+            LocationVo random = chosen != null ? chosen : findRandomNode();
+            if (random == null || !StringUtils.hasText(random.gateway)) {
+                showPingPlaceholder();
+                return;
+            }
+            String key = String.valueOf(random.id);
+            renderPing(resolvePing(key), key, random.gateway);
             return;
         }
         tvCurrentName.setText(chosen.ename != null ? chosen.ename : chosen.name);
-        tvCurrentPing.setVisibility(View.VISIBLE);
-        // 延迟优先用首页测速结果；没有测过时自动测一次选中的节点。
-        Integer ms = globePings.get(String.valueOf(chosen.id));
-        if (ms == null) {
+        String key = String.valueOf(chosen.id);
+        Integer ms = resolvePing(key);
+        if (ms == null && chosen.ping != null) {
             ms = chosen.ping;
         }
+        renderPing(ms, key, chosen.gateway);
+    }
+
+    /**
+     * 在所有已加载的节点里找 Random 那条（category=random 且带网关）。
+     * <p>
+     * 服务端的 Random 是一个真实存在的 location 行，hostId 指向会被随机选中那组服务器；
+     * 当前 enabled 的只有一台，所以测它就是测真实延迟。列表还没加载完时返回 null。
+     */
+    @Nullable
+    private LocationVo findRandomNode() {
+        for (LocationVo vo : globeLocations) {
+            if (vo == null || !StringUtils.hasText(vo.gateway)) {
+                continue;
+            }
+            if ("random".equalsIgnoreCase(vo.category)) {
+                return vo;
+            }
+        }
+        return null;
+    }
+
+    /** 首页测速结果优先（{@code globePings}），没有则不猜。 */
+    @Nullable
+    private Integer resolvePing(@NonNull String key) {
+        return globePings.get(key);
+    }
+
+    /**
+     * 画出延迟胶囊：已有数值就直接显示，没有就显示"测试中"并触发一次测速。
+     * <p>
+     * 测速需要 target（网关地址或自建节点的 server）；传空表示这条线路确实没有可测的地址，
+     * 退回占位文案，不触发无意义的请求。
+     */
+    private void renderPing(@Nullable Integer ms, @NonNull String key, @Nullable String target) {
+        if (getActivity() == null) {
+            return;
+        }
+        tvCurrentPing.setVisibility(View.VISIBLE);
         if (ms == null) {
+            if (!StringUtils.hasText(target)) {
+                showPingPlaceholder();
+                return;
+            }
             tvCurrentPing.setText(R.string.ping_testing);
             tvCurrentPing.setTextColor(ContextCompat.getColor(getActivity(), R.color.pv_text_secondary));
-            pingSelectedNode(chosen);
+            pingTarget(key, target);
             return;
         }
         if (ms > 0) {
@@ -526,17 +579,20 @@ public class VpnRadFragment extends BaseFragment {
         tvCurrentPing.setVisibility(View.VISIBLE);
     }
 
-    /** 只测选中的节点，结果写入 globePings 并刷新卡片。 */
-    private void pingSelectedNode(LocationVo chosen) {
-        if (!StringUtils.hasText(chosen.gateway) || selectedPingRunning) {
+    /**
+     * 测一条线路并把结果写进 {@code globePings}，然后刷新卡片。
+     *
+     * @param key    写结果的键：服务端节点用 id，自建节点用它的 UUID
+     * @param target 网关 IP 或自建节点的 server（域名也可以，ping 命令自己会解析）
+     */
+    private void pingTarget(@NonNull String key, @NonNull String target) {
+        if (!StringUtils.hasText(target) || selectedPingRunning) {
             return;
         }
         selectedPingRunning = true;
-        final String id = String.valueOf(chosen.id);
-        final String gateway = chosen.gateway;
         new Thread(() -> {
-            int ms = HttpUtils.pingVal(gateway);
-            globePings.put(id, ms > 0 ? ms : -1);
+            int ms = HttpUtils.pingVal(target);
+            globePings.put(key, ms > 0 ? ms : -1);
             mHandler.post(() -> {
                 selectedPingRunning = false;
                 if (isAdded()) {
