@@ -166,17 +166,6 @@ fun HomeScreen() {
                             DrawerSectionTitle(group.titleRes)
                             if (showChannels) {
                                 NavigationDrawerItem(
-                                    label = { Text(stringResource(HomeTab.AgentChat.label)) },
-                                    icon = { Icon(HomeTab.AgentChat.icon, contentDescription = null) },
-                                    selected = current == HomeTab.AgentChat,
-                                    onClick = {
-                                        selected = HomeTab.AgentChat.ordinal
-                                        scope.launch { drawerState.close() }
-                                    },
-                                    colors = DrawerItemColors,
-                                    modifier = Modifier.padding(horizontal = 12.dp),
-                                )
-                                NavigationDrawerItem(
                                     label = { Text(stringResource(HomeTab.Channels.label)) },
                                     icon = { Icon(HomeTab.Channels.icon, contentDescription = null) },
                                     selected = current == HomeTab.Channels,
