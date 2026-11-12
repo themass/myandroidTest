@@ -475,16 +475,18 @@ public class VpnRadFragment extends BaseFragment {
         UserNodeStore.UserNode userNode = UserNodeStore.selected(getActivity());
         if (userNode != null) {
             tvCurrentName.setText(userNode.name);
-            tvCurrentPing.setText("");
-            tvCurrentPing.setVisibility(View.GONE);   // 空胶囊不显示，否则是一个紫色小圆点
+            // 用户自建节点同样没有"我们测得的延迟"，但胶囊要留着占位：
+            // 直接隐藏会让卡片高度跳一下，看起来像布局坏了
+            showPingPlaceholder();
             return;
         }
         LocationVo chosen = PreferenceUtils.getPrefObj(getActivity(), Constants.LOCATION_CHOOSE, LocationVo.class);
         if (isRandomChoice(chosen)) {
             // 没选节点 = 随机（Random），和节点列表默认项一致；名字短，图标用 ALL
             tvCurrentName.setText(Constants.DEFULT_LOCATION_NAME);
-            tvCurrentPing.setText("");
-            tvCurrentPing.setVisibility(View.GONE);   // 空胶囊不显示，否则是一个紫色小圆点
+            // Asset 1 默认线路是"每次连哪台不确定"，不存在单一延迟值。
+            // 原来这里把胶囊整个藏起来，卡片左下角就空出一块，看着像少了个控件。
+            showPingPlaceholder();
             return;
         }
         tvCurrentName.setText(chosen.ename != null ? chosen.ename : chosen.name);
@@ -507,6 +509,21 @@ public class VpnRadFragment extends BaseFragment {
             tvCurrentPing.setText(R.string.ping_timeout);
             tvCurrentPing.setTextColor(ContextCompat.getColor(getActivity(), R.color.pv_alert));
         }
+    }
+
+    /**
+     * 没有可展示的延迟时，胶囊显示 "xxx ms" 而不是隐藏。
+     * <p>
+     * 隐藏会让卡片底部少一行，高度跳变；而且用户看不出"这里本来会有延迟"，
+     * 只会觉得界面缺了一块。占位文案同时暗示"还没测/测不了"，比空白诚实。
+     */
+    private void showPingPlaceholder() {
+        if (getActivity() == null) {
+            return;
+        }
+        tvCurrentPing.setText(R.string.ping_unknown);
+        tvCurrentPing.setTextColor(ContextCompat.getColor(getActivity(), R.color.pv_text_secondary));
+        tvCurrentPing.setVisibility(View.VISIBLE);
     }
 
     /** 只测选中的节点，结果写入 globePings 并刷新卡片。 */
