@@ -42,7 +42,7 @@ PROBE_URL = 'https://api.ok123find.top/companion/characters'
 # 文案来自 app/src/main/res/values-zh/strings_companion.xml 与 feature-companion 的 ks_copied.xml。
 # 文案一改这里就要跟着改——这是脚本的已知耦合点，所以集中放在一处。
 S = dict(
-    tab_chat='对话', tab_companion='陪伴', tab_me='我的',
+    menu='菜单', drawer_marker='常用', tab_chat='对话', tab_companion='陪伴', tab_me='我的',
     input_hint='说点什么', send='发送', retry='重试', empty='还没有内容', error='出了点问题',
     open_characters='角色', open_memory='她记得的', open_settings='她的主动性',
     characters_title='选择陪伴的角色', memory_title='她记得的', settings_title='她的主动性',
@@ -103,6 +103,11 @@ class Dev:
     def has(self, needle):
         return any(needle in t for t in self.texts())
 
+    def has_exact(self, needle):
+        """整段文字完全相等。用于「抽屉是否展开」这类判断：子串匹配会被消息正文误伤
+        （真机上踩到：对话里「通常用于」含有「常用」，脚本误以为抽屉已展开）。"""
+        return any(t.strip() == needle for t in self.texts())
+
     def has_any(self, needles):
         ts = self.texts()
         return any(n in t for t in ts for n in needles)
@@ -134,9 +139,12 @@ class Dev:
         self.adb('shell', 'input', 'keyevent', name)
 
     def shot(self, name):
+        """截图。PNG 是二进制，必须按字节读，不能走 text=True。"""
         path = os.path.join(self.outdir, f'{name}.png')
+        data = subprocess.run(self.base + ['exec-out', 'screencap', '-p'],
+                              capture_output=True, timeout=30).stdout
         with open(path, 'wb') as f:
-            f.write(self.adb('exec-out', 'screencap', '-p', timeout=30).stdout)
+            f.write(data)
         return path
 
     def snap(self, name):
@@ -159,14 +167,32 @@ class Dev:
 
 
 # ---------------------------------------------------------------- 公共步骤
+def open_tab(dev, name):
+    """主页面（对话 / 陪伴 / 我的）在左上角抽屉里，不是底部标签栏（真机核实过）。"""
+    # 抽屉已经展开时（上一个用例中途退出会留下这种状态）不能再找「菜单」，它被遮住了
+    if not dev.has_exact(S['drawer_marker']):
+        if dev.has_exact(S['menu']):
+            dev.tap(S['menu'], exact=True)
+        else:
+            # 陪伴页没有「菜单」按钮（真机核实）：应用重启后会停在上次的标签上，只能从左边缘滑出抽屉
+            dev.adb('shell', 'input', 'swipe', '2', '1200', '700', '1200', '250')
+    if not dev.wait(name, 8):
+        dev.snap('open_tab-no-drawer')
+        raise Fail(f'抽屉没有展开或没有「{name}」。可见文本: {dev.texts()[:10]}')
+    dev.tap(name, exact=True)
+    time.sleep(1.5)
+
+
 def to_companion(dev):
-    """从任意状态进到陪伴标签，返回当时的文本快照。"""
+    """从任意状态进到陪伴页，返回当时的文本快照。"""
     dev.launch()
-    if not dev.wait((S['input_hint'], S['tab_companion']), 40):
+    # 应用会停在上次的标签上：可能是对话页（有「菜单」）、陪伴页（只有标题「陪伴」），或抽屉已展开
+    if not dev.wait((S['input_hint'], S['menu'], S['drawer_marker'], S['tab_companion']), 40):
         raise Fail('启动后等不到主界面（可能卡在登录/权限/升级弹窗，看截图）')
-    # 底部标签栏的「陪伴」与页面标题同名，取屏幕最下面那个
-    dev.tap(S['tab_companion'], prefer='bottom')
-    time.sleep(1)
+    # 已经在陪伴页就不用再进抽屉：陪伴页自己的特征是顶部的「语音」「文字」切换
+    if dev.has_exact(S['mode_voice']) and dev.has_exact(S['mode_text']) and not dev.has_exact(S['drawer_marker']):
+        return dev.texts()
+    open_tab(dev, S['tab_companion'])
     return dev.texts()
 
 
@@ -222,9 +248,26 @@ def c2(dev, ctx):
             raise Fail(f'点了 {S[key]!r} 后没进到标题 {S[title]!r}')
         assert_has_state(dev, S[title])
         dev.snap(f'C2-{key}')
-        go_back(dev)
+        # 点页面内的「返回」，不用系统返回键：系统返回键的行为单独在 C12 测
+        dev.tap(S['back'])
         if not dev.wait((S['input_hint'], S[key]), 10):
-            raise Fail(f'从 {S[title]!r} 返回后回不到陪伴主页')
+            dev.snap(f'C2-{key}-noreturn')
+            raise Fail(f'点页面内「返回」后回不到陪伴主页（从 {S[title]!r}）')
+
+
+@case('C12', '系统返回键：在子页面按返回，应回到陪伴主页，而不是退出')
+def c12(dev, ctx):
+    to_companion(dev)
+    dev.tap(S['open_characters'])
+    if not dev.wait(S['characters_title'], 15):
+        raise Fail('进不了角色页')
+    dev.key('KEYCODE_BACK')
+    time.sleep(2)
+    dev.snap('C12-after-back')
+    if dev.wait((S['open_characters'], S['input_hint']), 6):
+        return
+    raise Fail('在子页面按系统返回键后没有回到陪伴主页（应用被退出了）。'
+               '已定位原因：CompanionRoute 没有 BackHandler，子页面只是 page 状态切换')
 
 
 @case('C3', '偏好：暂停 1 小时 → 显示「暂停至」→ 恢复', needs='live')
@@ -318,9 +361,8 @@ def c7(dev, ctx):
     base = dev.snap('C7-r0')
     diffs = []
     for i in range(1, rounds + 1):
-        dev.tap(S['tab_chat'], prefer='bottom')
-        time.sleep(1)
-        dev.tap(S['tab_companion'], prefer='bottom')
+        open_tab(dev, S['tab_chat'])
+        open_tab(dev, S['tab_companion'])
         dev.wait(STATE_MARKERS + (S['input_hint'],), 15)
         cur = dev.snap(f'C7-r{i}')
         if cur != base:
@@ -361,12 +403,18 @@ def c9(dev, ctx):
 @case('C10', '发布前检查：抽屉里的「测试」分组与 AgentChat 入口（记录现状）')
 def c10(dev, ctx):
     dev.launch()
-    dev.wait(S['input_hint'], 40)
-    # 抽屉入口位置因版本而异：只在文本里已可见时记录，不盲点
+    if not dev.wait((S['input_hint'], S['menu']), 40):
+        raise Fail('启动后等不到主界面')
+    dev.tap(S['menu'], exact=True)
+    if not dev.wait(S['tab_companion'], 8):
+        raise Fail('抽屉没有展开')
     present = dev.has(S['drawer_test']) or dev.has(S['agent_chat'])
-    ctx['notes'].append('C10: 当前包里' + ('能看到' if present else '没有看到') +
-                        '「测试」分组/「角色对话（新）」入口（只检查首页可见文本；抽屉内需手工打开确认）')
-    raise Skip('抽屉需要手势打开，见手工清单 M12；发布包必须没有该入口')
+    dev.snap('C10-drawer')
+    go_back(dev)
+    ctx['notes'].append('C10: 本包抽屉里' + ('能看到' if present else '没有'))
+    # debug 包有这个分组是预期的；脚本分不出当前是不是发布包，所以只记录，不判通过
+    raise Skip(('抽屉里有「测试」分组/「角色对话（新）」' if present else '抽屉里没有「测试」分组和 AgentChat 入口') +
+               '。仅记录：debug 包有是预期，发布包必须没有（M12）')
 
 
 @case('C11', '语音模式切换：弹出麦克风解释框，且不崩', needs='live')
@@ -438,7 +486,9 @@ def main():
     code = probe_server()
     expect = a.expect
     if expect == 'auto':
-        expect = 'degraded' if code == 404 else 'live'
+        # 只有拿到「服务确实在应答」的状态码才算 live；404、5xx、连不上都按缺服务处理。
+        # （上一版把连接失败也判成 live，会让没部署的服务被当成可测。）
+        expect = 'live' if code in (200, 401, 403, 422) else 'degraded'
     print(f'设备: {serial or attached[0]}  包: {a.package} {version.group(1) if version else "?"}')
     print(f'服务端探测: {PROBE_URL} → {code}   口径: {expect}')
     print(f'输出目录: {outdir}\n')
@@ -462,7 +512,10 @@ def main():
             status, detail = 'SKIP', str(e)
         except Fail as e:
             status, detail = 'FAIL', str(e)
-            dev.shot(f'{cid}-FAIL')
+            try:
+                dev.shot(f'{cid}-FAIL')
+            except Exception:  # noqa: BLE001  截图失败不能让整轮测试中断
+                pass
         except Exception as e:  # noqa: BLE001  脚本自身的错也要记成失败，不能吞掉
             status, detail = 'FAIL', f'脚本异常 {e.__class__.__name__}: {e}'
             try:
