@@ -39,8 +39,10 @@ import kotlinx.coroutines.launch
 data class AgentRoleChoice(val id: String, val name: String, val tagline: String)
 
 val DefaultAgentRoles = listOf(
-    AgentRoleChoice("linche", "林澈", "温和、会记事的倾听者"),
-    AgentRoleChoice("sudai", "苏黛", "直率、爱开玩笑的朋友"),
+    // 介绍文案与服务端角色卡的 tagline 保持一致（companion-agent/characters/*.v2.json）。
+    // 这是离线兜底；服务端可达时应以 /companion/characters 返回的为准。
+    AgentRoleChoice("linche", "林澈", "直接务实的成长教练，帮你把想法落成行动"),
+    AgentRoleChoice("sudai", "苏黛", "懂团队心理的组织心理学家，帮你看清说不清的事"),
 )
 
 /**
