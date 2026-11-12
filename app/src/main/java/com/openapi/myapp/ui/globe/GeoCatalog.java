@@ -65,7 +65,10 @@ public final class GeoCatalog {
      */
     private static final String[][] COUNTRIES = {
             {"china", "CN"}, {"中国", "CN"},
-            {"usa", "US"}, {"u.s.", "US"}, {"united states", "US"}, {"美国", "US"},
+            // 美国统一显示 USA（不是 US）：节点名里 U.S.A / USA / US- 都是同一个国家，
+            // 以前 u.s.a 被当成城市、和国家码拼成 "U.s.a, US"，既长又重复
+            {"u.s.a", "USA"}, {"usa", "USA"}, {"u.s.", "USA"}, {"us-", "USA"},
+            {"united states", "USA"}, {"美国", "USA"},
             {"japan", "JP"}, {"日本", "JP"},
             {"korea", "KR"}, {"韩国", "KR"},
             {"taiwan", "TW"}, {"台湾", "TW"},
@@ -135,9 +138,12 @@ public final class GeoCatalog {
         if (country == null) {
             return city;
         }
-        // 城市和国家是同一个地方时（香港、新加坡这类），拼起来会变成 "HK, HK"，只留城市
-        if (country.equalsIgnoreCase(city) || city.toUpperCase(Locale.ROOT).equals(country)) {
-            return city;
+        // 城市名其实就是国家占位（U.S.A / USA / France 这类），只留国家：
+        // 以前会拼成 "U.s.a, US"，占掉大半屏幕还盖住旁边的节点
+        if (isCountryKey(city.toLowerCase(Locale.ROOT))
+                || country.equalsIgnoreCase(city)
+                || city.toUpperCase(Locale.ROOT).equals(country)) {
+            return country;
         }
         return city + ", " + country;
     }
