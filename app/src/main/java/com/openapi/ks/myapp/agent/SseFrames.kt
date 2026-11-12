@@ -109,6 +109,7 @@ fun SseFrame.toSessionEvent(): SessionEvent? {
             SessionEvent.ActionDone(eid, it.str("confirmation_id") ?: return null, it.str("status") ?: "")
         }
         "reconnect" -> SessionEvent.Reconnect(eid, json?.optLong("after_ms", 1000L) ?: 1000L)
+        "usage.reminder" -> json?.let { SessionEvent.UsageReminder(eid, it.str("text") ?: return null) }
         "gone" -> SessionEvent.Gone(eid)
         else -> null
     }

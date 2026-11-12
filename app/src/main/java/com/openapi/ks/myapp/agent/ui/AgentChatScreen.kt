@@ -21,6 +21,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.Switch
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -62,6 +63,9 @@ fun AgentChatScreen(
     val direction = if (isRtl) LayoutDirection.Rtl else LayoutDirection.Ltr
     var editing by remember { mutableStateOf<AgentBubble?>(null) }
     var showReminders by remember { mutableStateOf(false) }
+    var showPrivacy by remember { mutableStateOf(false) }
+    val consent by viewModel.consent.collectAsState()
+    val context = androidx.compose.ui.platform.LocalContext.current
 
     LaunchedEffect(Unit) {
         viewModel.loadReminders()
@@ -79,8 +83,11 @@ fun AgentChatScreen(
                     modifier = Modifier.padding(vertical = 4.dp),
                 )
             }
-            if (reminders.isNotEmpty()) {
-                TextButton(onClick = { showReminders = true }) { Text("${reminders.size} 条提醒待发送") }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                TextButton(onClick = { viewModel.loadConsent(); showPrivacy = true }) { Text("隐私与数据") }
+                if (reminders.isNotEmpty()) {
+                    TextButton(onClick = { showReminders = true }) { Text("${reminders.size} 条提醒待发送") }
+                }
             }
             // 需要你点头才会执行的动作（例如「明天 15:00 提醒你开会」）：不确认就不会执行。
             state.pendingConfirmations.forEach { pending ->
@@ -91,6 +98,13 @@ fun AgentChatScreen(
                         Button(onClick = { viewModel.resolveAction(pending.confirmationId, true) }) { Text("确认") }
                         OutlinedButton(onClick = { viewModel.resolveAction(pending.confirmationId, false) }) { Text("取消") }
                     }
+                }
+            }
+            // 连续使用提醒：服务端在连聊到 2 小时时下发一次，用户关掉即可，不拦输入。
+            state.usageReminder?.let { text ->
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(text, style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
+                    TextButton(onClick = viewModel::dismissUsageReminder) { Text("知道了") }
                 }
             }
             state.lastError?.let { error ->
@@ -167,6 +181,14 @@ fun AgentChatScreen(
                 bubble.messageId?.let { viewModel.editMessage(it, text) }
                 editing = null
             }
+        }
+        if (showPrivacy) {
+            PrivacyDialog(
+                consent = consent,
+                onToggle = viewModel::setConsent,
+                onDismiss = { showPrivacy = false },
+                onExport = { viewModel.exportData { json -> shareExport(context, json) } },
+            )
         }
         if (showReminders) {
             RemindersDialog(reminders, onCancel = viewModel::cancelReminder, onDismiss = { showReminders = false })
@@ -300,3 +322,73 @@ private fun AssistantBubble(text: String, label: String?) {
 
 /** 横向拖动超过这个距离才算一次滑动（像素；避免长按、滚动时误触）。 */
 private const val SWIPE_THRESHOLD_PX = 120f
+
+/**
+ * 隐私与数据：两件事必须由用户自己决定 —— 训练用途（默认关）和主动联系总开关；
+ * 再加一个导出（办法要求用户能复制自己的数据）。这不是律师给的文案，只是把开关放在用户面前。
+ */
+@Composable
+private fun PrivacyDialog(
+    consent: com.openapi.ks.myapp.agent.AgentConsent?,
+    onToggle: (Boolean?, Boolean?) -> Unit,
+    onDismiss: () -> Unit,
+    onExport: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("隐私与数据") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(
+                    "她一直在和你聊天，所以会记下一些关于你的事。下面两件事由你决定。",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                if (consent == null) {
+                    Text("正在读取…", style = MaterialTheme.typography.bodySmall)
+                } else {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text("允许把对话用于改进模型", style = MaterialTheme.typography.bodyMedium)
+                            Text("默认关闭。打开后，你的对话可能被用于训练和改进。",
+                                style = MaterialTheme.typography.bodySmall)
+                        }
+                        Switch(checked = consent.trainingConsent, onCheckedChange = { onToggle(it, null) })
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text("允许她主动联系你", style = MaterialTheme.typography.bodyMedium)
+                            Text("关闭后她不会主动找你；你明确要求过的提醒仍会到点提醒。",
+                                style = MaterialTheme.typography.bodySmall)
+                        }
+                        Switch(checked = consent.proactiveEnabled, onCheckedChange = { onToggle(null, it) })
+                    }
+                }
+                TextButton(onClick = onExport) { Text("导出我的数据") }
+                Text(
+                    "她记得的内容可以在「她记得的」里查看和删除。",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text("关闭") } },
+    )
+}
+
+/** 把导出内容写进缓存目录并交给系统分享 / 保存。分享失败时不假装成功。 */
+private fun shareExport(context: android.content.Context, json: String) {
+    runCatching {
+        val dir = java.io.File(context.cacheDir, "export").apply { mkdirs() }
+        val file = java.io.File(dir, "companion-export.json").apply { writeText(json) }
+        val uri = androidx.core.content.FileProvider.getUriForFile(
+            context, "com.openapi.ks.chat.fileprovider", file)
+        val send = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+            type = "application/json"
+            putExtra(android.content.Intent.EXTRA_STREAM, uri)
+            addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        context.startActivity(android.content.Intent.createChooser(send, "导出我的数据"))
+    }.onFailure { error ->
+        android.widget.Toast.makeText(context, "导出失败：${error.message ?: "未知错误"}", android.widget.Toast.LENGTH_LONG).show()
+    }
+}

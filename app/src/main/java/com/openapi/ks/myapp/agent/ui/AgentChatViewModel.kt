@@ -16,6 +16,7 @@ import com.openapi.ks.myapp.agent.withoutQueued
 import com.openapi.ks.myapp.agent.AgentReminder
 import com.openapi.ks.myapp.agent.withEditedMessage
 import com.openapi.ks.myapp.agent.withSelectedAlternative
+import com.openapi.ks.myapp.agent.withoutUsageReminder
 import com.openapi.ks.myapp.agent.withError
 import com.openapi.ks.myapp.agent.withoutMessage
 import kotlinx.coroutines.Job
@@ -132,6 +133,39 @@ class AgentChatViewModel(
         _state.update { s -> s.copy(pendingConfirmations = s.pendingConfirmations.filterNot { it.confirmationId == confirmationId }) }
         viewModelScope.launch {
             runCatching { repository.confirmAction(confirmationId, accepted) }.onFailure { reportFailure(it) }
+        }
+    }
+
+    /** 关掉连续使用提醒。 */
+    fun dismissUsageReminder() {
+        _state.update { it.withoutUsageReminder() }
+    }
+
+    /** 合规同意状态（训练用途默认关、主动联系总开关）。 */
+    private val _consent = MutableStateFlow<com.openapi.ks.myapp.agent.AgentConsent?>(null)
+    val consent: StateFlow<com.openapi.ks.myapp.agent.AgentConsent?> = _consent.asStateFlow()
+
+    fun loadConsent() {
+        viewModelScope.launch {
+            runCatching { repository.consent() }.onSuccess { _consent.value = it }
+        }
+    }
+
+    /** 改一项同意。失败了重新读一次，界面不会显示一个没保存成功的开关。 */
+    fun setConsent(trainingConsent: Boolean? = null, proactiveEnabled: Boolean? = null) {
+        viewModelScope.launch {
+            runCatching { repository.updateConsent(trainingConsent, proactiveEnabled) }
+                .onSuccess { _consent.value = it }
+                .onFailure { reportFailure(it); loadConsent() }
+        }
+    }
+
+    /** 导出自己的数据：回调给出 JSON 原文，由界面写到文件并交给系统分享。 */
+    fun exportData(onReady: (String) -> Unit) {
+        viewModelScope.launch {
+            runCatching { repository.exportData() }
+                .onSuccess(onReady)
+                .onFailure { reportFailure(it) }
         }
     }
 
