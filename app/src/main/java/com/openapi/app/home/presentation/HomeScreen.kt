@@ -85,7 +85,7 @@ internal enum class HomeTab(@StringRes val label: Int, val icon: ImageVector) {
     // 所以它们是并列的标签而不是同一个页面里的模式切换。
     Companion(R.string.companion_tab, Icons.Filled.Favorite),
     Channels(R.string.home_tab_channels, Icons.Filled.VideoLibrary),
-    // 新对话页（/api/agent/v1，角色扮演 + 记忆 + 提醒）。先放在抽屉里，稳定后再决定是否替换「对话」标签。
+    // 新对话页（/v1，角色扮演 + 记忆 + 提醒）。先放在抽屉里，稳定后再决定是否替换「对话」标签。
     AgentChat(R.string.home_tab_agent_chat, Icons.Filled.Forum),
     Profile(R.string.home_tab_profile, Icons.Filled.Person),
 }

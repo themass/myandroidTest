@@ -27,7 +27,7 @@ class AgentEventSource(
         val token = tokenProvider()?.takeIf { it.isNotBlank() }
             ?: throw AgentHttpException(401, "未登录")
         val builder = Request.Builder()
-            .url(baseUrl.trimEnd('/') + "/api/agent/v1/sessions/$sessionId/events")
+            .url(baseUrl.trimEnd('/') + "/v1/sessions/$sessionId/events")
             .header("Authorization", "Bearer $token")
             .header("Accept", "text/event-stream")
         if (!lastEventId.isNullOrEmpty()) builder.header("Last-Event-ID", lastEventId)

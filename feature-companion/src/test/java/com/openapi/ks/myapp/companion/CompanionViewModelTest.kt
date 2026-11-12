@@ -162,10 +162,11 @@ class FakeCompanionApi(
 
     override suspend fun characters(limit: Int, offset: Int): CharacterPage = error("unused")
     override suspend fun character(id: String): CharacterDetail = error("unused")
-    override suspend fun memory(limit: Int, offset: Int): FactPage = error("unused")
-    override suspend fun deleteMemory(id: String) = error("unused")
-    override suspend fun events(includePast: Boolean): List<TimelineEventItem> = error("unused")
-    override suspend fun addEvent(title: String, atIso: String, kind: String): TimelineEventItem = error("unused")
+    override suspend fun memory(roleId: String, limit: Int, offset: Int): FactPage = error("unused")
+    override suspend fun deleteMemory(roleId: String, id: String) = error("unused")
+    override suspend fun events(roleId: String, includePast: Boolean): List<TimelineEventItem> = error("unused")
+    override suspend fun addEvent(roleId: String, title: String, atIso: String, kind: String): TimelineEventItem =
+        error("unused")
     override suspend fun setEventStatus(id: String, status: String) = error("unused")
     override suspend fun deleteEvent(id: String) = error("unused")
     override suspend fun preferences(): CompanionPreferences = error("unused")

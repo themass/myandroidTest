@@ -166,7 +166,7 @@ class HttpAgentApi(
                 else -> null
             }
             val request = Request.Builder()
-                .url(baseUrl.trimEnd('/') + "/api/agent/v1" + path)
+                .url(baseUrl.trimEnd('/') + "/v1" + path)
                 .method(method, requestBody)
                 .header("Authorization", "Bearer $token")
                 .header("Accept-Language", localeProvider())

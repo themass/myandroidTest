@@ -59,7 +59,7 @@ class HttpCompanionApiTest {
         runBlocking { api(fake).characters(limit = 5, offset = 10) }
         val req = fake.seen.single()
         assertEquals("Bearer tok", req.header("Authorization"))
-        assertEquals("https://example.test/companion/characters?limit=5&offset=10", req.url.toString())
+        assertEquals("https://example.test/v1/characters?limit=5&offset=10", req.url.toString())
         assertEquals("GET", req.method)
     }
 
@@ -126,7 +126,7 @@ class HttpCompanionApiTest {
 
     @Test
     fun `an empty body is an empty object for write endpoints`() {
-        runBlocking { api(Fake(code = 200, body = "")).deleteMemory("m1") }
+        runBlocking { api(Fake(code = 200, body = "")).deleteMemory("linche", "m1") }
     }
 
     @Test
@@ -134,7 +134,7 @@ class HttpCompanionApiTest {
         val fake = Fake()
         runBlocking { api(fake).deleteEvent("a/b?x=1") }
         val url = fake.seen.single().url.toString()
-        assertEquals("https://example.test/companion/events/a%2Fb%3Fx%3D1", url)
+        assertEquals("https://example.test/v1/memory/events/a%2Fb%3Fx%3D1", url)
         assertEquals("DELETE", fake.seen.single().method)
     }
 
@@ -153,7 +153,7 @@ class HttpCompanionApiTest {
         val fake = Fake(body = """{"status":"declined"}""")
         val status = runBlocking { api(fake).confirmAction("c/1", accepted = false) }
         assertEquals("declined", status)
-        assertTrue(fake.seen.single().url.toString().endsWith("/companion/actions/c%2F1/confirm"))
+        assertTrue(fake.seen.single().url.toString().endsWith("/v1/actions/c%2F1/confirm"))
         assertEquals(false, JSONObject(fake.bodies.single()).getBoolean("accepted"))
     }
 
@@ -169,11 +169,13 @@ class HttpCompanionApiTest {
     }
 
     @Test
-    fun `post without a body still sends an empty json body`() {
+    fun `setting an event status uses PATCH with a json body`() {
+        // 旧服务端是 POST /events/{id}/{status}；新接口统一成 PATCH + {"status": ...}
         val fake = Fake()
         runBlocking { api(fake).setEventStatus("e1", "done") }
         val req = fake.seen.single()
-        assertEquals("POST", req.method)
-        assertNotNull("OkHttp rejects a POST without a body", req.body)
+        assertEquals("PATCH", req.method)
+        assertTrue(req.url.toString().endsWith("/v1/memory/events/e1"))
+        assertEquals("done", JSONObject(fake.bodies.single()).getString("status"))
     }
 }

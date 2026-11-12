@@ -20,10 +20,11 @@ interface CompanionApi {
     suspend fun createSession(characterId: String): SessionResponse
     suspend fun characters(limit: Int = 20, offset: Int = 0): CharacterPage
     suspend fun character(id: String): CharacterDetail
-    suspend fun memory(limit: Int = 20, offset: Int = 0): FactPage
-    suspend fun deleteMemory(id: String)
-    suspend fun events(includePast: Boolean = false): List<TimelineEventItem>
-    suspend fun addEvent(title: String, atIso: String, kind: String = "other"): TimelineEventItem
+    /** 记忆按角色隔离：必须带 roleId，否则读到的是「不属于任何角色」的空空间。 */
+    suspend fun memory(roleId: String, limit: Int = 20, offset: Int = 0): FactPage
+    suspend fun deleteMemory(roleId: String, id: String)
+    suspend fun events(roleId: String, includePast: Boolean = false): List<TimelineEventItem>
+    suspend fun addEvent(roleId: String, title: String, atIso: String, kind: String = "other"): TimelineEventItem
     suspend fun setEventStatus(id: String, status: String)
     suspend fun deleteEvent(id: String)
     suspend fun pendingActions(): List<PendingAction>
@@ -49,7 +50,8 @@ class HttpCompanionApi(
 ) : CompanionApi {
 
     override suspend fun createSession(characterId: String): SessionResponse {
-        val json = call("POST", "/companion/sessions", JSONObject().put("character_id", characterId))
+        // 建 LiveKit 房间与聊天会话是两种资源，前者在 /v1/voice 下
+        val json = call("POST", "/v1/voice/sessions", JSONObject().put("character_id", characterId))
         return SessionResponse(
             sessionId = json.optString("session_id"),
             roomName = json.optString("room_name"),
@@ -60,7 +62,7 @@ class HttpCompanionApi(
     }
 
     override suspend fun characters(limit: Int, offset: Int): CharacterPage {
-        val json = call("GET", "/companion/characters?limit=$limit&offset=$offset")
+        val json = call("GET", "/v1/characters?limit=$limit&offset=$offset")
         return CharacterPage(
             items = json.optJSONArray("items").toList { CharacterSummary.from(it) },
             total = json.optInt("total"),
@@ -68,58 +70,62 @@ class HttpCompanionApi(
     }
 
     override suspend fun character(id: String): CharacterDetail =
-        CharacterDetail.from(call("GET", "/companion/characters/${enc(id)}"))
+        CharacterDetail.from(call("GET", "/v1/characters/${enc(id)}"))
 
-    override suspend fun memory(limit: Int, offset: Int): FactPage {
-        val json = call("GET", "/companion/memory?limit=$limit&offset=$offset")
+    override suspend fun memory(roleId: String, limit: Int, offset: Int): FactPage {
+        // 按角色隔离：带上 role_id，否则读到的是用户级空空间
+        val json = call("GET", "/v1/memory/facts?role_id=${enc(roleId)}&limit=$limit&offset=$offset")
         return FactPage(
             items = json.optJSONArray("items").toList { MemoryFact.from(it) },
             hasMore = json.optBoolean("has_more"),
         )
     }
 
-    override suspend fun deleteMemory(id: String) {
-        call("DELETE", "/companion/memory/${enc(id)}")
+    override suspend fun deleteMemory(roleId: String, id: String) {
+        call("DELETE", "/v1/memory/facts/${enc(id)}?role_id=${enc(roleId)}")
     }
 
-    override suspend fun events(includePast: Boolean): List<TimelineEventItem> {
-        val raw = callArray("GET", "/companion/events?include_past=$includePast")
-        return raw.toList { TimelineEventItem.from(it) }
+    override suspend fun events(roleId: String, includePast: Boolean): List<TimelineEventItem> {
+        // 新接口统一是 {"items": [...]} 信封，不再是裸数组
+        val json = call("GET", "/v1/memory/events?role_id=${enc(roleId)}&include_past=$includePast")
+        return json.optJSONArray("items").toList { TimelineEventItem.from(it) }
     }
 
-    override suspend fun addEvent(title: String, atIso: String, kind: String): TimelineEventItem {
+    override suspend fun addEvent(roleId: String, title: String, atIso: String, kind: String): TimelineEventItem {
         val body = JSONObject().put("title", title).put("at", atIso).put("kind", kind)
-        return TimelineEventItem.from(call("POST", "/companion/events", body))
+        return TimelineEventItem.from(call("POST", "/v1/memory/events?role_id=${enc(roleId)}", body))
     }
 
     override suspend fun setEventStatus(id: String, status: String) {
-        call("POST", "/companion/events/${enc(id)}/${enc(status)}")
+        // 状态转换：旧接口是 POST /{status}，新接口是 PATCH + body
+        call("PATCH", "/v1/memory/events/${enc(id)}", JSONObject().put("status", status))
     }
 
     override suspend fun deleteEvent(id: String) {
-        call("DELETE", "/companion/events/${enc(id)}")
+        call("DELETE", "/v1/memory/events/${enc(id)}")
     }
 
     override suspend fun pendingActions(): List<PendingAction> =
-        callArray("GET", "/companion/actions/pending").toList { PendingAction.from(it) }
+        call("GET", "/v1/actions/pending").optJSONArray("items").toList { PendingAction.from(it) }
 
     override suspend fun confirmAction(confirmationId: String, accepted: Boolean): String {
         val body = JSONObject().put("accepted", accepted)
-        return call("POST", "/companion/actions/${enc(confirmationId)}/confirm", body)
+        return call("POST", "/v1/actions/${enc(confirmationId)}/confirm", body)
             .optString("status")
     }
 
     override suspend fun preferences(): CompanionPreferences =
-        CompanionPreferences.from(call("GET", "/companion/prefs"))
+        CompanionPreferences.from(call("GET", "/v1/prefs"))
 
     override suspend fun updatePreferences(patch: Map<String, Any?>): CompanionPreferences {
         val body = JSONObject()
         patch.forEach { (key, value) -> body.put(key, value ?: JSONObject.NULL) }
-        return CompanionPreferences.from(call("PUT", "/companion/prefs", body))
+        return CompanionPreferences.from(call("PUT", "/v1/prefs", body))
     }
 
     override suspend fun inbox(): List<InboxMessage> =
-        callArray("GET", "/companion/inbox?limit=20").toList { InboxMessage.from(it) }
+        // 收件箱在新接口里仍是裸数组
+        callArray("GET", "/v1/inbox?limit=20").toList { InboxMessage.from(it) }
 
     // ---- 传输 ----
 

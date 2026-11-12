@@ -106,7 +106,7 @@ fun CompanionRoute(
 
             CompanionPage.MEMORY -> {
                 val vm: MemoryViewModel = viewModel(
-                    factory = viewModelFactory { initializer { MemoryViewModel(api) } },
+                    factory = viewModelFactory { initializer { MemoryViewModel(api, characterId) } },
                 )
                 val state by vm.state.collectAsStateWithLifecycle()
                 MemoryScreen(

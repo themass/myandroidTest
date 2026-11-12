@@ -56,7 +56,11 @@ data class MemoryState(
     val error: String? = null,
 )
 
-class MemoryViewModel(private val api: CompanionApi) : ViewModel() {
+/**
+ * ``roleId``：记忆与事件都按角色隔离，不带角色读到的是一个空空间
+ * （服务端把「不属于任何角色」的记忆放在用户级主体下，会话里写的都在角色主体下）。
+ */
+class MemoryViewModel(private val api: CompanionApi, private val roleId: String) : ViewModel() {
 
     private val _state = MutableStateFlow(MemoryState())
     val state: StateFlow<MemoryState> = _state.asStateFlow()
@@ -69,8 +73,8 @@ class MemoryViewModel(private val api: CompanionApi) : ViewModel() {
         _state.update { it.copy(loading = true, error = null) }
         viewModelScope.launch {
             try {
-                val facts = api.memory(limit = PAGE_SIZE, offset = 0)
-                val events = api.events(includePast = true)
+                val facts = api.memory(roleId, limit = PAGE_SIZE, offset = 0)
+                val events = api.events(roleId, includePast = true)
                 _state.update {
                     it.copy(
                         facts = facts.items,
@@ -90,7 +94,7 @@ class MemoryViewModel(private val api: CompanionApi) : ViewModel() {
     /** 用户删掉她记住的一条：先从界面拿掉，服务端失败再整体刷新回来。 */
     fun deleteFact(id: String) {
         _state.update { st -> st.copy(facts = st.facts.filterNot { it.id == id }) }
-        mutate { api.deleteMemory(id) }
+        mutate { api.deleteMemory(roleId, id) }
     }
 
     fun deleteEvent(id: String) {
@@ -104,7 +108,7 @@ class MemoryViewModel(private val api: CompanionApi) : ViewModel() {
 
     fun addEvent(title: String, atIso: String, kind: String) {
         if (title.isBlank()) return
-        mutate { api.addEvent(title.trim(), atIso, kind) }
+        mutate { api.addEvent(roleId, title.trim(), atIso, kind) }
     }
 
     private fun mutate(block: suspend () -> Unit) {

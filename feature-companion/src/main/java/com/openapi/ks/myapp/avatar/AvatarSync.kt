@@ -55,7 +55,7 @@ class AvatarSync(
 
     private fun list(roleId: String): List<RemoteAvatar> {
         val token = tokenProvider() ?: throw IOException("未登录")
-        val url = "$baseUrl/api/agent/v1/avatars?role_id=${URLEncoder.encode(roleId, "UTF-8")}&app_version=$appVersion"
+        val url = "$baseUrl/v1/avatars?role_id=${URLEncoder.encode(roleId, "UTF-8")}&app_version=$appVersion"
         val request = Request.Builder().url(url).header("Authorization", "Bearer $token").build()
         client.newCall(request).execute().use { response ->
             if (!response.isSuccessful) throw IOException("HTTP ${response.code}")
