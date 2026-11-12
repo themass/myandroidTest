@@ -183,12 +183,29 @@ def open_tab(dev, name):
     time.sleep(1.5)
 
 
+def dismiss_ad(dev):
+    """应用启动时可能弹出全屏插屏广告，遮住主界面。只点明确的关闭控件，绝不点广告里的「打开」。
+    返回是否关掉了广告。"""
+    for label in ('关闭广告并继续打开应用', '关闭广告'):
+        if dev.has(label):
+            dev.tap(label)
+            time.sleep(1.5)
+            return True
+    return False
+
+
 def to_companion(dev):
     """从任意状态进到陪伴页，返回当时的文本快照。"""
     dev.launch()
     # 应用会停在上次的标签上：可能是对话页（有「菜单」）、陪伴页（只有标题「陪伴」），或抽屉已展开
-    if not dev.wait((S['input_hint'], S['menu'], S['drawer_marker'], S['tab_companion']), 40):
-        raise Fail('启动后等不到主界面（可能卡在登录/权限/升级弹窗，看截图）')
+    ready = (S['input_hint'], S['menu'], S['drawer_marker'], S['tab_companion'])
+    if not dev.wait(ready, 12):
+        if dismiss_ad(dev):
+            pass
+        if not dev.wait(ready, 30):
+            dev.snap('to_companion-stuck')
+            raise Fail('启动后等不到主界面（可能卡在登录/权限/升级弹窗/广告，看截图与同名 txt）')
+    dismiss_ad(dev)
     # 已经在陪伴页就不用再进抽屉：陪伴页自己的特征是顶部的「语音」「文字」切换
     if dev.has_exact(S['mode_voice']) and dev.has_exact(S['mode_text']) and not dev.has_exact(S['drawer_marker']):
         return dev.texts()
@@ -513,7 +530,7 @@ def main():
         except Fail as e:
             status, detail = 'FAIL', str(e)
             try:
-                dev.shot(f'{cid}-FAIL')
+                dev.snap(f'{cid}-FAIL')
             except Exception:  # noqa: BLE001  截图失败不能让整轮测试中断
                 pass
         except Exception as e:  # noqa: BLE001  脚本自身的错也要记成失败，不能吞掉
