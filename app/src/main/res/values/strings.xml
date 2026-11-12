@@ -160,6 +160,8 @@
     <string name="vpn_bg_click">Conn VPN</string>
     <string name="vpn_bg_error">Click Retry</string>
     <string name="vpn_bg_conning">Connecting..</string>
+    <!-- 快捷设置磁贴：断开中。与 vpn_bg_disconning 分开，磁贴标签较短 -->
+    <string name="vpn_bg_disconnecting">Disconnecting</string>
     <string name="vpn_bg_disconning">Stoping..</string>
     <string name="vpn_bg_conned">Conn OK</string>
     <string name="vpn_need">Maybe need conn VPN first</string>

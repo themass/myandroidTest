@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  快捷设置磁贴的图标。用实心盾牌：磁贴图标很小（24dp），细线条在深色背景上会糊成一片。
+  系统会自动给磁贴图标套上 tint，所以这里不需要（也不应该）写死颜色之外的样式。
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp"
+    android:viewportWidth="24" android:viewportHeight="24">
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M12,1L3,5v6c0,5.55 3.84,10.74 9,12 5.16,-1.26 9,-6.45 9,-12V5l-9,-4z" />
+</vector>
