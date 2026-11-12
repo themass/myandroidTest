@@ -148,6 +148,8 @@ fun CompanionRoute(
                     onMarkDone = vm::markEventDone,
                     onAddEvent = vm::addEvent,
                     onBack = { page = CompanionPage.CHAT },
+                    onSuppressProfile = vm::suppressProfile,
+                    onDeleteProfile = vm::deleteProfile,
                 )
             }
 

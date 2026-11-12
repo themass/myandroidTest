@@ -35,7 +35,18 @@ interface AgentApi {
     suspend fun confirmAction(confirmationId: String, accepted: Boolean)
     /** 页面重新进入时恢复还没处理的待确认动作（事件流只在发生时推一次）。 */
     suspend fun pendingActions(): List<PendingConfirmation>
+    /** 合规同意状态：训练用途（默认关）、主动联系总开关、是否已验证成年。 */
+    suspend fun consent(): AgentConsent
+    suspend fun updateConsent(trainingConsent: Boolean? = null, proactiveEnabled: Boolean? = null): AgentConsent
+    /** 导出自己的全部数据（服务端返回的 JSON 原文）。 */
+    suspend fun exportData(): String
 }
+
+data class AgentConsent(
+    val trainingConsent: Boolean = false,
+    val proactiveEnabled: Boolean = true,
+    val ageVerifiedAdult: Boolean = false,
+)
 
 class AgentApiException(message: String, val statusCode: Int?, val code: String?) : Exception(message)
 
@@ -134,6 +145,17 @@ class HttpAgentApi(
         }
     }
 
+    override suspend fun consent(): AgentConsent = call("GET", "/consent", null).toConsent()
+
+    override suspend fun updateConsent(trainingConsent: Boolean?, proactiveEnabled: Boolean?): AgentConsent {
+        val body = JSONObject()
+        trainingConsent?.let { body.put("training_consent", it) }
+        proactiveEnabled?.let { body.put("proactive_enabled", it) }
+        return call("PATCH", "/consent", body).toConsent()
+    }
+
+    override suspend fun exportData(): String = execute("GET", "/export", null)
+
     override suspend fun reminders(includeDone: Boolean): List<AgentReminder> {
         val items = call("GET", "/reminders?include_done=$includeDone", null).optJSONArray("items") ?: JSONArray()
         return (0 until items.length()).map { i ->
@@ -149,6 +171,12 @@ class HttpAgentApi(
     override suspend fun cancelReminder(reminderId: String) {
         callNoBody("DELETE", "/reminders/$reminderId")
     }
+
+    private fun JSONObject.toConsent() = AgentConsent(
+        trainingConsent = optBoolean("training_consent", false),
+        proactiveEnabled = optBoolean("proactive_enabled", true),
+        ageVerifiedAdult = optBoolean("age_verified_adult", false),
+    )
 
     private fun JSONObject.toBubble(): AgentBubble {
         val id = get("id").toString()

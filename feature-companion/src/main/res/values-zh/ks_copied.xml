@@ -40,4 +40,8 @@
     <string name="companion_nav_back">返回</string>
     <string name="companion_open_voice">语音通话</string>
     <string name="companion_voice_back">返回文字对话</string>
+    <string name="companion_tab_profile">她对你的了解</string>
+    <string name="companion_profile_hint">这是她归纳出来的对你的了解。标了「猜测」的是她猜的，没有经过你确认。你可以让她别再提某一条，或者直接忘掉。</string>
+    <string name="companion_profile_guess">猜测，未经确认</string>
+    <string name="companion_profile_stop">别再提</string>
 </resources>

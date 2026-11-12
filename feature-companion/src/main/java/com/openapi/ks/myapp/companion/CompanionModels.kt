@@ -88,6 +88,36 @@ data class MemoryFact(
 
 data class FactPage(val items: List<MemoryFact>, val hasMore: Boolean)
 
+/**
+ * 她对你的了解（服务端归纳出来的画像，和一条条记忆分开）。
+ * [isInference] 为真表示是她的猜测，没经你确认；界面要标出来，别当成事实展示。
+ */
+data class ProfileEntry(
+    val id: String,
+    val topic: String,
+    val memo: String,
+    val section: String,
+    val isInference: Boolean,
+    val suppressed: Boolean,
+    val supersededBy: String?,
+) {
+    /** 当前有效：没被新条目取代，也没被你说「别再提」。 */
+    val current: Boolean get() = supersededBy == null && !suppressed
+
+    companion object {
+        fun from(json: JSONObject) = ProfileEntry(
+            id = json.get("id").toString(),
+            topic = json.optString("topic"),
+            memo = json.optString("memo"),
+            section = json.optString("section", "static"),
+            isInference = json.optBoolean("is_inference", false),
+            suppressed = json.optBoolean("suppressed", false),
+            supersededBy = if (json.isNull("superseded_by") || !json.has("superseded_by")) null
+            else json.get("superseded_by").toString(),
+        )
+    }
+}
+
 data class TimelineEventItem(
     val id: String,
     val title: String,
