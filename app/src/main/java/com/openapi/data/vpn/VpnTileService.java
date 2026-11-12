@@ -185,15 +185,13 @@ public class VpnTileService extends TileService {
         try {
             tile.setIcon(Icon.createWithResource(this, R.drawable.ic_qs_vpn));
             tile.setState(state);
+            // setLabel 是 API 29 才有的方法。minSdk 是 28，在 Android 9 上直接调用会抛
+            // NoSuchMethodError——那是 Error 不是 RuntimeException，下面的 catch 接不住，
+            // 整个磁贴服务会崩。所以这里必须按版本判断，而不是"调用了一样"。
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 tile.setLabel(label);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    tile.setSubtitle(null);
-                }
-            } else {
-                // Android 9 及以下没有 setLabel，只能靠图标本身表达状态
-                tile.setLabel(label);
             }
+            // Android 9 没有标签能力，只能靠图标与激活态表达，属于系统限制
             tile.updateTile();
         } catch (RuntimeException e) {
             // 个别 ROM 的 Tile 实现在未展开时 updateTile 会抛 IllegalStateException；
