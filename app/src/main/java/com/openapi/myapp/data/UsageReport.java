@@ -154,7 +154,19 @@ public final class UsageReport {
                         int status = nr == null ? -1 : nr.statusCode;
                         String detail;
                         if (e instanceof com.openapi.common.exce.MyVolleyError) {
-                            detail = "errno_msg=" + ((com.openapi.common.exce.MyVolleyError) e).getMsg();
+                            com.openapi.common.exce.MyVolleyError mve =
+                                    (com.openapi.common.exce.MyVolleyError) e;
+                            detail = "errno=" + mve.getErrno() + " msg=" + mve.getMsg();
+                            // 服务端返回非 0 errno 时，msg 可能为空——那说明 errno 不是走
+                            // 全局异常处理器产生的（那个会带上 "System error" 文案）。
+                            // 把原始响应体打出来，否则只能看到一句 null，无从判断是哪类失败。
+                            if (nr != null && nr.data != null) {
+                                try {
+                                    detail += " raw=" + new String(nr.data,
+                                            java.nio.charset.StandardCharsets.UTF_8);
+                                } catch (RuntimeException ignored) {
+                                }
+                            }
                         } else if (e instanceof com.android.volley.TimeoutError) {
                             detail = "timeout";
                         } else if (e instanceof com.android.volley.ParseError) {

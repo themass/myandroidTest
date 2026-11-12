@@ -189,7 +189,9 @@ public class BaseRequest<T> extends Request<T> {
         if (ret) {
             return Response.success(data.getData(), getCacheEntry(response));
         } else {
-            return Response.error(new MyVolleyError(data.error));
+            // 带上 errno：error 文案可能为空（服务端有的分支只设错误码），只传 msg 时
+            // 日志里看不出是哪类失败，排障要重新加日志、重新发版
+            return Response.error(new MyVolleyError(data.errno, data.error));
         }
     }
 
