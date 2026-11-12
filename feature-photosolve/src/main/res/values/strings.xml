@@ -72,6 +72,7 @@
     <string name="history_detail_title">题目解析</string>
     <string name="history_saved_at">保存于 %1$s</string>
     <string name="history_count">共 %1$d 条记录</string>
+    <string name="history_local_only">记录只保存在本机，卸载应用或换手机会丢失</string>
     <string name="history_clear">清空历史</string>
     <string name="history_clear_confirm">清空后所有解题记录和图片都会被删除，无法恢复。确定清空吗？</string>
     <string name="history_retake">再拍一题</string>

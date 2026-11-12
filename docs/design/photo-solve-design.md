@@ -458,7 +458,7 @@ photosolve.quota.idempotentSeconds=   # 默认 600，0 关闭
 | 7 | OpenCV 在部分 ABI/设备上初始化失败 | `QuadWarp` 内 `initLocal()` 失败即走外接矩形；`ImagePipeline.enhanceForDocument()` 同样是「失败返回原图」 |
 | 8 | 多题（一张图 3 道）只展示第一道 | `questions[].index` 已在响应里；`PhotoSolveResult.questionCount` 已透传，结果页可以加「下一题」切换（本次未做 UI） |
 | 9 | `maxTokens=4096` 对超长解答可能截断 | 服务端解析失败会走兜底；可配置化（后续加 `photosolve.maxTokens`） |
-| 12 | 历史记录只存在本机，换机/重装会丢 | 用户预期"历史"可能跨设备 | 记录结构与 `:core` 的接口无关，后续可以上报服务端；现在先在页面上说明是本地记录 |
+| 12 | 历史记录只存在本机，换机/重装会丢 | 用户预期"历史"可能跨设备 | **已决定：保持客户端本地存储，不上报服务端**（2026-11-12）。理由：服务端不必存储用户题目图片，隐私面最小、无存储成本；记录与界面之间隔着 `SolveHistoryStore` 接口，以后若要同步只换实现。已在历史列表页顶部明确提示「记录只保存在本机，卸载应用或换手机会丢失」 |
 | 13 | 历史图片占空间（每条 ≤ 1280 长边 JPEG） | 长期使用后占用增长 | `clear()` 已实现；后续可按"只看文字不留图"或超过 N 条自动清理最早的 |
 | 14 | 只能用 jlatexmath 支持的 LaTeX 子集 | 极端公式渲染失败 | `errorHandler` 降级显示源码；`MathMarkdown.plain` 在列表里本来就用纯文本 |
 | 11 | 首页还没展示「今日剩余 N 次」，用户要拍完才知道额度没了 | 接 `quota.json`，在首页拍照按钮下显示，`remaining=0` 时置灰 |

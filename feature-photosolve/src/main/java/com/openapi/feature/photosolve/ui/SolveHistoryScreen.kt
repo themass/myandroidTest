@@ -111,6 +111,15 @@ fun SolveHistoryScreen(
             }
         }
 
+        // 历史只存本机（见 docs/design/photo-solve-design.md 风险 12）。
+        // 提前说清楚，比用户换机后才发现丢了要好。
+        Text(
+            stringResource(R.string.history_local_only),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 2.dp),
+        )
+
         OutlinedTextField(
             value = state.query,
             onValueChange = viewModel::onQueryChange,
