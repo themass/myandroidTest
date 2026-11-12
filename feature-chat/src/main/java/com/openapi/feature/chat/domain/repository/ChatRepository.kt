@@ -145,6 +145,14 @@ interface ChatRepository {
      */
     suspend fun createSession(name: String): ChatSession?
 
+    /**
+     * 为某个角色新建会话：角色写进会话，之后这个会话的提示词、历史都只属于这个角色。
+     * [roleId] 与 [characterId] 至少给一个；两个都不给就是默认助手的会话。
+     * 和 [createSession] 不同，这里允许重名（几个角色的会话可能叫同一个名字），名称不能为空。
+     * 服务端失败返回 null。
+     */
+    suspend fun createSessionFor(name: String, roleId: String?, characterId: Int?): ChatSession?
+
     /** 服务端重命名会话；成功返回更新后的会话，失败返回 null。 */
     suspend fun renameSession(sessionId: Long, name: String): ChatSession?
 

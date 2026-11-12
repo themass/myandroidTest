@@ -159,6 +159,9 @@ class ChatRepositoryImpl(private val context: Context) : ChatRepository {
 
     override suspend fun createSession(name: String): ChatSession? = sessionStore.createSession(name)
 
+    override suspend fun createSessionFor(name: String, roleId: String?, characterId: Int?): ChatSession? =
+        sessionStore.createSessionFor(name, roleId, characterId)
+
     override suspend fun renameSession(sessionId: Long, name: String): ChatSession? =
         sessionStore.renameSession(sessionId, name)
 

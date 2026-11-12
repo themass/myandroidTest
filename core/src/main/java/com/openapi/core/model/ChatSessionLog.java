@@ -20,6 +20,10 @@ public class ChatSessionLog implements Comparator<ChatSessionLog> {
     /** 服务端 updatedAt（毫秒）：列表按它倒序，与服务端一致。 */
     public long updatedAt;
     public String setting;
+    /** 这个会话属于哪个目录角色（服务端存的）；null 表示不是目录角色的会话。 */
+    public String roleId;
+    /** 旧的自定义人设 id；null 表示没有。 */
+    public Integer characterId;
     public int type = TYPE.CUSTOMER.type;
 
     public ChatSessionLog() {

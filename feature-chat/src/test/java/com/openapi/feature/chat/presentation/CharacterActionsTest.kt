@@ -33,6 +33,7 @@ class CharacterActionsTest {
         h.roles.selectedRole = role
         h.state.update { it.copy(rolePickerVisible = true, selectedRole = role) }
         h.actions.selectCharacter(4)
+        h.scope.advanceUntilIdle() // 选中状态要等会话确定（可能要新建）之后才生效
         assertEquals(4, h.state.value.selectedCharacterId)
         assertNull(h.state.value.selectedRole)
         assertFalse(h.state.value.rolePickerVisible)
@@ -44,6 +45,7 @@ class CharacterActionsTest {
     fun selectingARoleClearsTheOldCharacter() {
         val h = Harness(selectedCharacter = 4)
         h.actions.selectRole(role)
+        h.scope.advanceUntilIdle()
         assertEquals(role, h.state.value.selectedRole)
         assertNull(h.state.value.selectedCharacterId)
         assertEquals(role, h.roles.selectedRole)

@@ -31,7 +31,7 @@ import com.openapi.core.model.HistoryVo;
  */
 @Database(
         entities = {ChatLog.class, ChatSessionLog.class, ConnLog.class, HistoryVo.class, FavoriteVo.class},
-        version = 3,
+        version = 4,
         exportSchema = false
 )
 @TypeConverters(Converters.class)
@@ -57,7 +57,7 @@ public abstract class AppDatabase extends RoomDatabase {
                 db = instance;
                 if (db == null) {
                     db = Room.databaseBuilder(appContext, AppDatabase.class, DB_NAME)
-                            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                             .allowMainThreadQueries()
                             .fallbackToDestructiveMigration()
                             .build();
@@ -102,6 +102,19 @@ public abstract class AppDatabase extends RoomDatabase {
             SQLite.execSQL(connection, "ALTER TABLE `ChatSessionLog` ADD COLUMN `updatedAt` INTEGER NOT NULL DEFAULT 0");
             SQLite.execSQL(connection, "DELETE FROM `ChatLog`");
             SQLite.execSQL(connection, "DELETE FROM `ChatSessionLog`");
+        }
+    };
+
+    /**
+     * 版本 3 → 4：会话记住自己的角色。
+     * 每个用户与每个角色是一段独立的对话历史，换角色 = 换会话，所以会话要带上 roleId / characterId。
+     * 旧缓存里没有这两列，下次同步服务端列表时会整表替换并补上。
+     */
+    public static final Migration MIGRATION_3_4 = new Migration(3, 4) {
+        @Override
+        public void migrate(@NonNull SQLiteConnection connection) {
+            SQLite.execSQL(connection, "ALTER TABLE `ChatSessionLog` ADD COLUMN `roleId` TEXT");
+            SQLite.execSQL(connection, "ALTER TABLE `ChatSessionLog` ADD COLUMN `characterId` INTEGER");
         }
     };
 

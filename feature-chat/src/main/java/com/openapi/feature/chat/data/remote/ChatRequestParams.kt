@@ -46,6 +46,9 @@ internal class MessagesOlderPageParam(
 
 internal class SessionCreateParam(
     @JvmField val name: String,
+    /** 会话属于哪个目录角色 / 旧人设；都不给就是默认助手的会话。服务端据此把角色存进会话。 */
+    @JvmField val roleId: String? = null,
+    @JvmField val characterId: Int? = null,
 )
 
 internal class SessionRenameParam(

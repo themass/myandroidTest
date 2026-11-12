@@ -46,7 +46,7 @@ class ChatViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(ChatUiState(selectedRole = roles.selected()))
     val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
 
-    private val characterActions = CharacterActions(repository, roles, _uiState, viewModelScope)
+    private val characterActions = CharacterActions(repository, roles, _uiState, viewModelScope, onSessionChanged = ::refresh)
     private val composer = ComposerActions(_uiState)
     private val streamer = ReplyStreamer(
         repository, _uiState, viewModelScope, sendMessage,
@@ -89,6 +89,12 @@ class ChatViewModel : ViewModel() {
             val sessionId = repository.currentSessionId()
             val merged = mergePending(page.messages, sessionId)
             val sessions = withContext(Dispatchers.IO) { repository.sessions() }
+            val current = sessions.firstOrNull { it.id == sessionId }
+            val sessionRole = SessionRole.resolve(current, roles, sessionId)
+            val sessionCharacterId = current?.characterId?.takeIf { it > 0 && sessionRole == null }
+            // 发送时带的人设也要跟着会话走
+            repository.setSelectedCharacterId(sessionCharacterId)
+            if (sessionRole == null) roles.setSelected(null)
             _uiState.update {
                 it.copy(
                     messages = merged,
@@ -97,8 +103,9 @@ class ChatViewModel : ViewModel() {
                     editingMessageId = null,
                     loading = false,
                     sessionId = sessionId,
-                    // 每个会话记住自己的角色；没选过的会话沿用最近一次选的角色
-                    selectedRole = roles.selectedFor(sessionId) ?: roles.selected(),
+                    // 会话的角色以会话自己为准：每个角色一段独立历史，不能沿用“最近一次选的角色”
+                    selectedRole = sessionRole?.also { roles.setSelected(it) },
+                    selectedCharacterId = sessionCharacterId,
                     sessions = sessions,
                 )
             }

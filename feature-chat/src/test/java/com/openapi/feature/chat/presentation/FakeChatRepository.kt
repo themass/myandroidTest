@@ -82,6 +82,18 @@ internal class FakeChatRepository : ChatRepository {
         current = sessionId
     }
     override suspend fun createSession(name: String): ChatSession? = nextCreated
+
+    /** 记录“为角色建会话”的调用；成功时像真实仓库一样把新会话加进列表。 */
+    val createdFor = mutableListOf<Triple<String, String?, Int?>>()
+    var createForFails = false
+    private var nextForId = 100L
+    override suspend fun createSessionFor(name: String, roleId: String?, characterId: Int?): ChatSession? {
+        createdFor += Triple(name, roleId, characterId)
+        if (createForFails) return null
+        val s = ChatSession(nextForId++, name, isDefault = false, roleId = roleId, characterId = characterId)
+        sessionList = listOf(s) + sessionList
+        return s
+    }
     override suspend fun renameSession(sessionId: Long, name: String): ChatSession? {
         renamed += sessionId to name
         return renameResult

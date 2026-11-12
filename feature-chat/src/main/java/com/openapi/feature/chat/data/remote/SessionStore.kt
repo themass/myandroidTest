@@ -33,6 +33,8 @@ internal class SessionStore(
                 name = log.name.orEmpty(),
                 // 服务端没有“默认会话”的概念，列表里每个会话都可以删除
                 isDefault = false,
+                roleId = log.roleId,
+                characterId = log.characterId,
             )
         }
     }
@@ -50,6 +52,21 @@ internal class SessionStore(
         dao.insertOrReplace(vo.toLog())
         vo.toSession()
     }
+
+    /** 为角色新建会话：角色写进会话。允许重名（几个角色的会话名可能相同），名称不能为空。 */
+    suspend fun createSessionFor(name: String, roleId: String?, characterId: Int?): ChatSession? =
+        withContext(Dispatchers.IO) {
+            val trimmed = name.trim()
+            if (trimmed.isEmpty()) return@withContext null
+            val vo = remote.postForResult(
+                Constants.getUrl(Constants.CHAT_SESSION_CREATE_URL),
+                SessionCreateParam(name = trimmed, roleId = roleId?.takeIf { it.isNotBlank() },
+                    characterId = characterId?.takeIf { it > 0 }),
+                ChatSessionVo::class.java,
+            ) ?: return@withContext null
+            AppDatabase.getInstance().chatSessionLogDao().insertOrReplace(vo.toLog())
+            vo.toSession()
+        }
 
     suspend fun renameSession(sessionId: Long, name: String): ChatSession? = withContext(Dispatchers.IO) {
         val trimmed = name.trim()
@@ -101,6 +118,8 @@ internal class SessionStore(
         id = id,
         name = name.orEmpty(),
         isDefault = false,
+        roleId = roleId?.takeIf { it.isNotBlank() },
+        characterId = characterId?.takeIf { it > 0 },
     )
 
     private fun ChatSessionVo.toLog() = ChatSessionLog().also { log ->
@@ -108,6 +127,8 @@ internal class SessionStore(
         log.name = name.orEmpty()
         log.createTime = Date(createdAt)
         log.updatedAt = updatedAt
+        log.roleId = roleId?.takeIf { it.isNotBlank() }
+        log.characterId = characterId?.takeIf { it > 0 }
         log.type = ChatSessionLog.TYPE.CUSTOMER.type
     }
 }
