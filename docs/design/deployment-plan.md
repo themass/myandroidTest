@@ -199,28 +199,16 @@ LIVEKIT_URL=wss://...   LIVEKIT_API_KEY=...   LIVEKIT_API_SECRET=...
 
 ### 9.5 nginx
 
-需要在 `snippets-vpn-routes.conf` 里加（`/vvv/` 是现有前缀，转发时要剥掉）：
+配置已经写进 testserverV 仓库：`deploy/nginx/snippets-vpn-routes.conf`（两个 location）和
+`deploy/README.md`（上游定义）。要点（这几条在第一版文档里写错过，已更正）：
 
-```nginx
-# 陪伴与 agent：长连接（SSE），必须关缓冲
-location ^~ /vvv/api/agent/v1 {
-    default_type application/json;
-    proxy_buffering off;
-    proxy_cache off;
-    proxy_read_timeout 300s;
-    rewrite ^/vvv(/.*)$ $1 break;
-    proxy_pass http://companion_server;
-}
-location ^~ /vvv/companion {
-    default_type application/json;
-    proxy_buffering off;
-    rewrite ^/vvv(/.*)$ $1 break;
-    proxy_pass http://companion_server;
-}
-upstream companion_server { server 127.0.0.1:8081; }
-```
-
-**SSE 必须 `proxy_buffering off`**，否则流式回复会攒到最后一次性吐出，客户端表现为「一直转圈然后突然出全文」。
+- **路径没有 `/vvv` 前缀**。陪伴和 agent 客户端的 baseUrl 都是 `https://api.ok123find.top`，
+  直接请求 `/companion/...` 和 `/api/agent/v1/...`；现有接口才是 `/vvv/api/...` 并 rewrite 掉 `/vvv`。
+  所以这两个 location 不能 rewrite，原样转给 Python 服务。
+- **`upstream` 不能写在 snippet 里**（只允许出现在 `http {}`）。需要在服务器的 `nginx.conf` 手动加：
+  `upstream companion_server { server 127.0.0.1:8081; keepalive 16; }`，否则 `nginx -t` 直接失败。
+- **SSE 必须 `proxy_buffering off`**，否则流式回复会攒到最后一次性吐出，客户端表现为「一直转圈然后突然出全文」。
+- 80 端口目前仍对旧版本 App 开放明文；README 里「确认用户都已更新后再打开 301 跳转」这一步不要提前做。
 
 ### 9.6 启动
 
