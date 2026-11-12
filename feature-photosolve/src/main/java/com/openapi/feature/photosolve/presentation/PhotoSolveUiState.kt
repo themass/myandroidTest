@@ -27,6 +27,13 @@ data class PhotoSolveResult(
     val providerUsed: String? = null,
     /** 这张图里一共识别出几道题（当前界面展示第一道）。 */
     val questionCount: Int = 1,
+    /**
+     * 思考过程（审题思路）：已知什么、为什么选这种方法、容易错在哪。
+     * 旧服务端没有这个字段，界面上整块隐藏。默认折叠展示。
+     */
+    val thinking: String = "",
+    /** 服务端判定的学科。 */
+    val subject: String = "",
 )
 
 data class PhotoSolveUiState(

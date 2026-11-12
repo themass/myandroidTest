@@ -44,6 +44,11 @@ import com.openapi.feature.photosolve.ui.PhotoCropScreen
 import com.openapi.feature.photosolve.ui.PhotoQualityDialog
 import com.openapi.feature.photosolve.ui.PhotoRecognizingScreen
 import com.openapi.feature.photosolve.ui.PhotoResultScreen
+import com.openapi.feature.photosolve.ui.SolveHistoryDetailScreen
+import com.openapi.feature.photosolve.ui.SolveHistoryScreen
+import com.openapi.feature.photosolve.history.SolveDetailViewModel
+import com.openapi.feature.photosolve.history.SolveHistoryViewModel
+import androidx.activity.compose.BackHandler
 import com.openapi.feature.photosolve.ui.PhotoSolveHomeScreen
 import com.openapi.feature.photosolve.ui.QuadAdjustScreen
 import com.openapi.feature.photosolve.ui.rememberMlKitScanLauncher
@@ -121,6 +126,16 @@ private fun PhotoSolveApp(
     val scope = rememberCoroutineScope()
     val activity = LocalActivity.current
 
+    // 解题流程之外的页面：历史列表、历史详情。null 表示处在解题流程里（由 PhotoSolveViewModel 的状态机驱动）。
+    // 只用一个 sealed 路由而不是引入 Navigation：这三个页面之间没有深链接和参数传递的复杂需求。
+    var historyOpen by remember { mutableStateOf(false) }
+    var detailId by remember { mutableStateOf<Long?>(null) }
+
+    // 系统返回键：详情 → 列表 → 解题首页；首页再按才退出 Activity
+    BackHandler(enabled = detailId != null || historyOpen) {
+        if (detailId != null) detailId = null else historyOpen = false
+    }
+
     var permissionPermanentlyDenied by remember { mutableStateOf(false) }
     var showCropAssistSettings by remember { mutableStateOf(false) }
     var mlKitErrorMessage by remember { mutableStateOf<String?>(null) }
@@ -189,6 +204,30 @@ private fun PhotoSolveApp(
         }
     }
 
+    val historyViewModel: SolveHistoryViewModel = viewModel()
+    val detailViewModel: SolveDetailViewModel = viewModel()
+
+    // 历史页面优先于解题流程：从结果页点"历史"进来时，解题状态机保持不变，返回后还能看到原结果
+    if (detailId != null) {
+        SolveHistoryDetailScreen(
+            recordId = detailId!!,
+            viewModel = detailViewModel,
+            onBack = { detailId = null },
+            onOpenCamera = { detailId = null; historyOpen = false; viewModel.onRetake() },
+            onDeleted = { detailId = null },
+        )
+        return@PhotoSolveApp
+    }
+    if (historyOpen) {
+        SolveHistoryScreen(
+            viewModel = historyViewModel,
+            onBack = { historyOpen = false },
+            onOpenDetail = { id -> detailId = id },
+            onRetake = { historyOpen = false; viewModel.onRetake() },
+        )
+        return@PhotoSolveApp
+    }
+
     when (uiState.step) {
         PhotoSolveStep.Home -> PhotoSolveHomeScreen(
             onTakePhotoClick = { requestCameraPermissionAndCapture() },
@@ -200,6 +239,7 @@ private fun PhotoSolveApp(
             onGoogleScanClick = startMlKitScan,
             onPickFromFileManagerClick = onPickFromFileManagerClick,
             onOpenCropAssistSettingsClick = { showCropAssistSettings = true },
+            onOpenHistoryClick = { historyOpen = true },
             permissionPermanentlyDenied = permissionPermanentlyDenied,
             onOpenSettingsClick = { openAppSettings(context) },
             onClose = onClose,
@@ -259,6 +299,9 @@ private fun PhotoSolveApp(
                     croppedBitmap = uiState.croppedBitmap,
                     result = result,
                     onRetake = viewModel::onRetake,
+                    // 退出结果页：回首页（不是 finish 整个 Activity，用户可能还想再拍一题）
+                    onExit = viewModel::onRetake,
+                    onOpenHistory = { historyOpen = true },
                 )
             }
         }

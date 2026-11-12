@@ -82,7 +82,6 @@ class QuestionImagePreparer(private val registry: CropAssistRegistry) {
 
     /** 对一张已经确定要用的图做清晰度与曝光判断。 */
     suspend fun qualityOf(bitmap: Bitmap): QualityReport = withContext(Dispatchers.Default) {
-        val shortSide = min(bitmap.width, bitmap.height)
         val scale = min(1f, ImageQualityAnalyzer.ANALYSIS_MAX_SIDE.toFloat() / max(bitmap.width, bitmap.height))
         val w = max(1, (bitmap.width * scale).roundToInt())
         val h = max(1, (bitmap.height * scale).roundToInt())
@@ -94,7 +93,7 @@ class QuestionImagePreparer(private val registry: CropAssistRegistry) {
             val p = pixels[i]
             (((p shr 16) and 0xFF) * 299 + ((p shr 8) and 0xFF) * 587 + (p and 0xFF) * 114) / 1000
         }
-        ImageQualityAnalyzer.analyze(gray, w, h, shortSide)
+        ImageQualityAnalyzer.analyze(gray, w, h, bitmap.width, bitmap.height)
     }
 
     private companion object {

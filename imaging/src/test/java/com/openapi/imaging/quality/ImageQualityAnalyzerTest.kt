@@ -24,8 +24,9 @@ class ImageQualityAnalyzerTest {
     /** 缓慢变化的渐变：几乎没有高频边缘。 */
     private fun gradient() = IntArray(size * size) { i -> (i % size) * 255 / (size - 1) }
 
-    private fun report(gray: IntArray, shortSide: Int = 1000) =
-        ImageQualityAnalyzer.analyze(gray, size, size, shortSide)
+    /** 默认来源尺寸 2000×1500：分辨率充足，让测试只关注自己要验证的那一项。 */
+    private fun report(gray: IntArray, sourceW: Int = 2000, sourceH: Int = 1500) =
+        ImageQualityAnalyzer.analyze(gray, size, size, sourceW, sourceH)
 
     @Test
     fun flatImageIsBlurryWithZeroSharpness() {
@@ -62,14 +63,42 @@ class ImageQualityAnalyzerTest {
     }
 
     @Test
-    fun shortSideBelowThresholdIsLowResolution() {
-        val r = report(checkerboard(20, 230), shortSide = ImageQualityAnalyzer.MIN_SHORT_SIDE_PX - 1)
+    fun smallImageIsLowResolution() {
+        // 640×480：长边不足 800
+        val r = report(checkerboard(20, 230), sourceW = 640, sourceH = 480)
         assertTrue(QualityIssue.LOW_RESOLUTION in r.issues)
     }
 
     @Test
+    fun wideShortStripOfAQuestionIsNotLowResolution() {
+        // 回归：1800×500 的单题长条（短边 < 旧阈值 600）清晰度没问题，不该被打断
+        val r = report(checkerboard(20, 230), sourceW = 1800, sourceH = 500)
+        assertFalse(r.issues.toString(), QualityIssue.LOW_RESOLUTION in r.issues)
+    }
+
+    @Test
+    fun tallNarrowColumnIsNotLowResolutionEither() {
+        val r = report(checkerboard(20, 230), sourceW = 500, sourceH = 1800)
+        assertFalse(QualityIssue.LOW_RESOLUTION in r.issues)
+    }
+
+    @Test
+    fun longButExtremelyThinStripIsLowResolution() {
+        // 900×40：长边够，但总共只有 36000 像素，没有足够信息
+        val r = report(checkerboard(20, 230), sourceW = 900, sourceH = 40)
+        assertTrue(QualityIssue.LOW_RESOLUTION in r.issues)
+    }
+
+    @Test
+    fun orientationDoesNotMatter() {
+        val landscape = report(checkerboard(20, 230), sourceW = 700, sourceH = 400)
+        val portrait = report(checkerboard(20, 230), sourceW = 400, sourceH = 700)
+        assertEquals(landscape.issues, portrait.issues)
+    }
+
+    @Test
     fun sharpWellExposedLargeImageHasNoIssues() {
-        val r = report(checkerboard(60, 200), shortSide = 1200)
+        val r = report(checkerboard(60, 200), sourceW = 1600, sourceH = 1200)
         assertTrue(r.issues.toString(), r.isGood)
     }
 
@@ -84,6 +113,6 @@ class ImageQualityAnalyzerTest {
 
     @Test(expected = IllegalArgumentException::class)
     fun mismatchedBufferIsRejected() {
-        ImageQualityAnalyzer.analyze(IntArray(10), size, size, 100)
+        ImageQualityAnalyzer.analyze(IntArray(10), size, size, 100, 100)
     }
 }

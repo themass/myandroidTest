@@ -24,6 +24,23 @@
 | 客户端拿到真实 errno | **已修复**（之前所有错误都显示成 50001） | 第 4.7.5 节 |
 | 多题切换 UI | **设计但未实现** | 第 5 节风险 8 |
 | 端上 provider 直接吐四点 | **设计但未实现**（建议） | 第 3.3 节 |
+| 四角 + 四边拖动（保持凸四边形） | **已实现**（14 个单测） | `imaging/.../quad/QuadEdit.kt`、3.5 节 |
+| LaTeX 渲染（Markwon + jlatexmath） | **已实现** | `markdown/MathText.kt`、3.6 节 |
+| 服务端 LaTeX 反斜杠修复 | **已实现**（15 个单测） | `PhotoSolveJsonRepair.java`、4.8 节 |
+| 思考过程（可折叠） | **已实现** | 3.7 节 |
+| 解题历史（增删改查 + 详情） | **已实现** | `history/`、3.8 节 |
+| 分辨率误报修复 | **已实现** | 3.9 节 |
+
+### 本轮修复的 6 个问题（2026-11-12）
+
+| # | 问题 | 根因 | 修法 |
+|---|---|---|---|
+| 1 | 只能拖四个角，边不能拖 | `QuadAdjustScreen` 只做了 `nearestCorner` | 新增 `QuadEdit.hitTest/moveEdge`，角优先、整条边可抓；拖边沿法线平移且两端角沿相邻边滑动（矩形仍是矩形，梯形仍是梯形） |
+| 2 | 不支持 LaTeX | 客户端用 `Text` 直接显示源码；**服务端 JSON 解析还会静默吃掉 `\frac` 的反斜杠** | 客户端改 Markwon + jlatexmath；服务端解析前过 `PhotoSolveJsonRepair`；提示词改为公式直接写在 text/thinking/finalAnswer 里 |
+| 3 | 每次提交都提示分辨率偏低 | 判据是「裁剪后短边 < 600px」，而一道题裁出来常是宽矮长条（如 1800×500） | 改为「长边 < 800 **或** 总像素 < 25 万」，并加日志输出实际尺寸与指标 |
+| 4 | 结果页无法回主界面 | 结果页只有「再拍一题」 | 顶栏加关闭按钮，底部加「退出」；`onExit` 回首页状态而不是 finish Activity |
+| 5 | 没有解题历史 | 未实现 | 新增历史模块（文件存储，见 3.8） |
+| 6 | 没有思考过程 | 提示词没要求，模型也没这个字段 | 服务端加 `thinking` 字段与要求；客户端默认折叠展示 |
 
 ### 一处与你描述不同的地方（请确认）
 
@@ -125,6 +142,82 @@
 ### 3.4 从对话里进入
 
 `ChatRoute` 的「拍照解题」入口现在用显式组件名启动 `PhotoSolveActivity`（feature 之间不互相依赖）。保持不变。
+
+### 3.5 四角 / 四边拖动（`imaging/.../quad/QuadEdit.kt`）
+
+几何全部在像素空间计算（归一化坐标在非正方形图片上 x、y 量纲不同，直接算会让边拖歪）：
+
+- **点选**：先找 28dp 内的角（角优先），再找 22dp 内的边；边的**整条线段**都是热区，不只是中点。
+- **拖角**：该角自由移动，夹在 `[0,1]`，结果经 `QuadNorm.ordered()` 规范化。
+- **拖边**：位移取手指位移在**法线**上的投影（平行分量忽略），边两端的角分别沿相邻两条边的延长线滑动。
+  即求「平移后的边所在直线」与「相邻边所在直线」的交点。对矩形结果是矩形，对梯形两条腰方向不变。
+  结果必须通过 `QuadNorm.isValid` 且所有角在 `[0,1]` 内；不合法就按 100%/75%/50%/25%/10% 逐级缩小位移，
+  都不行返回 null（保持原样）。**角点顺序保持不变**，拖动过程中「正在拖哪条边」的编号不会漂移。
+- 界面：四条边中点画药丸形手柄暗示可拖；正在拖的边高亮加粗。
+
+### 3.6 LaTeX 渲染（`markdown/MathText.kt`）
+
+题目、步骤、答案里全是公式。Compose 没有成熟的 LaTeX 渲染，沿用 `:feature-chat` 的方案：
+
+- Markwon 负责 Markdown 解析与排版，`AndroidView` 桥接进 Compose；
+- `ext-latex`（jlatexmath-android）画公式；
+- `SingleDollarLatexPlugin` 补官方插件不支持的行内 `$...$`（官方只认 `$$...$$`）；
+- `MathMarkdown.normalize()` 在渲染前统一 `\( \)` / `\[ \]` 定界符、收敛多余反斜杠层数；
+- 公式渲染失败时用 `errorHandler` 把 LaTeX 源码画成红色文字，而不是整段消失。
+
+`MathMarkdown.plain()` 另做一份「公式 → 纯文本」的降级（`\frac{1}{2}` → `1/2`、`\sqrt{3}` → `√3`、`x^2` → `x²`），
+给历史列表预览用——列表里每行都起一个公式渲染成本太高。
+
+### 3.7 思考过程
+
+服务端 `PhotoSolveResponse.Question.thinking`（Markdown + LaTeX），提示词要求 80–250 字，只写审题思路不重复计算。
+
+客户端 `ThinkingSection`：
+
+- **默认折叠**。理由：学生第一眼要看答案对不对、步骤怎么写；全部展开会把答案挤出屏幕。
+- 折叠时标题右侧显示一行摘要（正文第一句，超过 80 字截断），不展开也能判断要不要看。
+- 整块可点切换，箭头有旋转动画；展开状态不持久化。
+- 旧服务端没有 `thinking` 字段时整块隐藏，不显示空框。
+
+### 3.8 解题历史（`history/`）
+
+| 文件 | 作用 |
+|---|---|
+| `SolveRecord.kt` | 记录模型 + `SolveRecordCodec`（步骤列表编解码、默认标题） |
+| `SolveHistoryStore.kt` | 接口：`recent/get/save/rename/setFavorite/delete/clear` |
+| `FsSolveHistoryStore.kt` | 文件实现（见下） |
+| `SolveHistoryViewModel.kt` | 列表、搜索、收藏过滤、重命名/删除/清空 |
+| `SolveDetailViewModel.kt` | 详情、改名、收藏、删除 |
+| `ui/SolveHistoryScreen.kt` | 列表页 |
+| `ui/SolveHistoryDetailScreen.kt` | 详情页 |
+
+**存储为什么用文件而不是 Room**：记录里最大的数据是题目图，图本来就得放文件系统；索引很小（几百条几十 KB）；
+写一条记录 = 两张图 + 一次索引更新，Room 也要自己处理「库里有记录但图片丢了」。另外 `:feature-photosolve`
+现在没有 ksp 插件，引 Room 要改构建配置。
+
+```
+filesDir/photosolve_history/
+  index.json        索引（先写 .tmp 再 rename）
+  img/<id>.jpg      长边 ≤ 1280
+  thumb/<id>.jpg    长边 ≤ 240
+```
+
+- 写操作全部串行（`Mutex`）；索引损坏时备份成 `index.corrupt-<ts>.json` 并从空开始，不让用户一进页面就崩。
+- 同一个 `requestId` 只保留一条：重试成功更新原记录，不会出现两条。
+- 用户改过标题就保留，不被题干覆盖。
+- **自动保存**：解题成功即写入，不要求用户手动「保存」（否则没人会存）。保存失败只记日志，不影响结果展示。
+
+页面流：首页右上角时钟图标 → 列表 → 点条目进详情。系统返回键：详情 → 列表 → 首页。
+列表支持搜索（标题/题干/答案）、只看收藏；长按或「⋯」菜单可收藏、重命名、删除；顶部可清空。
+
+### 3.9 分辨率误报
+
+旧判据 `短边 < 600px` 的问题：一道题裁出来是宽矮长条（1800×500），短边只有 500，但字很清楚，
+于是几乎每次提交都被「分辨率偏低」打断。
+
+新判据（`ImageQualityAnalyzer.isLowResolution`）：**长边 ≥ 800 且总像素 ≥ 25 万**，两项都不满足才提示。
+字的大小取决于整页宽对应多少像素，与短边无关。`QuestionImagePreparer.qualityOf` 现在传真实宽高，
+并且 ViewModel 打一行日志（裁剪尺寸、清晰度、亮度、命中的问题项），下次再有反馈可以直接定位。
 
 ---
 
@@ -331,6 +424,24 @@ photosolve.quota.idempotentSeconds=   # 默认 600，0 关闭
 | `PhotoSolveViewModel.kt` | 持有 `requestId`：新图换新值，`onRetry()` 沿用；42901/42902 回首页并显示服务端文案、不提供重试 |
 | `PhotoSolveError.kt` | 新增 `BUDGET_EXHAUSTED = 42902` |
 
+### 4.8 LaTeX 反斜杠修复（`PhotoSolveJsonRepair.java`）
+
+模型要在 JSON 字符串里写 `\frac{1}{2}`，按规范必须写成 `\\frac{1}{2}`，但它经常只写一个反斜杠。两种后果：
+
+| 写法 | JSON 解析结果 |
+|---|---|
+| `\sqrt`、`\pi`、`\(` | 非法转义，**解析直接抛异常**，整题退化成纯文本 |
+| `\frac`、`\text`、`\beta`、`\right`、`\neq`、`\nu` | 命中 `\f \t \b \r \n`，**不报错但公式被静默破坏**（`\frac` → 换页符 + `rac`） |
+
+第二种更危险，因为没有任何异常。`PhotoSolveJsonRepair.repair()` 在 `MAPPER.readTree` 之前逐字符扫描字符串内部：
+已经是 `\\` 的保留；`\" / \/ / \uXXXX` 保留；其他合法转义字母看后面是不是已知 LaTeX 命令
+（`frac`、`text`、`right`、`neq`…，约 100 个），是就补一个反斜杠；非法转义一律补。
+已知歧义（`\nu` vs「换行 + u」）按最长匹配已知命令处理，并在类注释里写明取舍。
+
+同时提示词改掉了重复：**公式只写在 `text`/`thinking`/`finalAnswer` 里**（`$...$` / `$$...$$`），
+`latex` / `finalAnswerLatex` 要求填空字符串。客户端 `SolveResultMapper.merge()` 仍兼容旧服务端：
+文本里没有该公式时把 latex 字段并回去，已有则不重复追加。
+
 ---
 
 ## 5. 风险
@@ -347,6 +458,9 @@ photosolve.quota.idempotentSeconds=   # 默认 600，0 关闭
 | 7 | OpenCV 在部分 ABI/设备上初始化失败 | `QuadWarp` 内 `initLocal()` 失败即走外接矩形；`ImagePipeline.enhanceForDocument()` 同样是「失败返回原图」 |
 | 8 | 多题（一张图 3 道）只展示第一道 | `questions[].index` 已在响应里；`PhotoSolveResult.questionCount` 已透传，结果页可以加「下一题」切换（本次未做 UI） |
 | 9 | `maxTokens=4096` 对超长解答可能截断 | 服务端解析失败会走兜底；可配置化（后续加 `photosolve.maxTokens`） |
+| 12 | 历史记录只存在本机，换机/重装会丢 | 用户预期"历史"可能跨设备 | 记录结构与 `:core` 的接口无关，后续可以上报服务端；现在先在页面上说明是本地记录 |
+| 13 | 历史图片占空间（每条 ≤ 1280 长边 JPEG） | 长期使用后占用增长 | `clear()` 已实现；后续可按"只看文字不留图"或超过 N 条自动清理最早的 |
+| 14 | 只能用 jlatexmath 支持的 LaTeX 子集 | 极端公式渲染失败 | `errorHandler` 降级显示源码；`MathMarkdown.plain` 在列表里本来就用纯文本 |
 | 11 | 首页还没展示「今日剩余 N 次」，用户要拍完才知道额度没了 | 接 `quota.json`，在首页拍照按钮下显示，`remaining=0` 时置灰 |
 | 10 | 服务端 `errno` 与客户端常量双份维护 | 两处都在注释里写「不要改数值」；建议后续生成一份 `photo-solve-api.md` 作为唯一来源（本文第 4.2 节即该来源） |
 
@@ -370,6 +484,8 @@ cd /Users/gqli/work/testserverV && mvn -o -q -pl vvv-link -am compile -DskipTest
 - `ModuleGraphTest`：`layeringRulesHold` / `reusableModulesDoNotImportBusinessCode` / `declaredProjectDependenciesAreUsed` 通过；
   `packagesMatchModules` **失败**，原因与本功能无关：`app/.../com/openapi/ks/myapp/agent/**`（15 个文件，来自 `weifu-refactor` 上的 agent 聊天）
   包名不在 `com.openapi.app` 下。
+- 2026-11-12 本轮（四边拖动/LaTeX/思考过程/历史）：`:imaging` 32 个单测、`:feature-photosolve` 34 个、`:mediaview` 27 个全部通过；
+  服务端 `PhotoSolveJsonRepairTest`(15) + `DoubaoPhotoSolveParseTest`(5) 通过；`:app:compileChatDebugKotlin` 退出码 0。
 - 2026-11-12 额度改动：服务端 `mvn -o -pl vvv-link -am compile` 退出码 0；客户端 `:common` / `:feature-photosolve` / `:app:compileChatDebugKotlin` 退出码 0，`:mediaview` 单测通过。
 
 **未验证**（需要真实环境）：
