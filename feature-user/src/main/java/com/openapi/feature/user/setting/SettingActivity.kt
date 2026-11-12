@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -174,6 +175,8 @@ internal fun SettingScreen(
     var tts by remember { mutableStateOf(PreferenceUtils.getPrefBoolean(app, CommonConstants.TTS_OPEN, false)) }
     var engine by remember { mutableStateOf(PlaybackEnginePrefs.getEngine(context)) }
     var engineMenuOpen by remember { mutableStateOf(false) }
+    var storageOpen by remember { mutableStateOf(false) }
+    var storageToast by remember { mutableStateOf<String?>(null) }
     val engineNames = stringArrayResource(R.array.playback_engine_names)
 
     Column(
@@ -268,6 +271,12 @@ internal fun SettingScreen(
         }
 
         SettingCard {
+            ActionRow(stringResource(R.string.storage_manage), stringResource(R.string.storage_manage_hint)) {
+                storageOpen = true
+            }
+        }
+
+        SettingCard {
             ActionRow(stringResource(R.string.menu_btn_version), VersionUpdater.getVersion(), onShowVersion)
             SettingDivider()
             ActionRow(stringResource(R.string.menu_btn_share), null, onShare)
@@ -294,5 +303,42 @@ internal fun SettingScreen(
         }
 
         Spacer(Modifier.height(AppSpacing.xl))
+    }
+
+    if (storageOpen) {
+        androidx.compose.ui.window.Dialog(onDismissRequest = { storageOpen = false }) {
+            androidx.compose.material3.Surface(
+                modifier = Modifier.fillMaxWidth().fillMaxHeight(0.9f),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                color = AppColors.Surface,
+            ) {
+                Column(Modifier.fillMaxSize()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 12.dp),
+                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            stringResource(R.string.storage_title),
+                            modifier = Modifier.weight(1f),
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = AppColors.TextPrimary,
+                        )
+                        TextButton(onClick = { storageOpen = false }) {
+                            Text(stringResource(R.string.ui_close))
+                        }
+                    }
+                    HorizontalDivider(color = AppColors.Divider)
+                    StorageScreen(
+                        onCleared = { what -> storageToast = context.getString(R.string.storage_cleared_toast, what) },
+                    )
+                }
+            }
+        }
+    }
+
+    storageToast?.let { message ->
+        ToastUtil.showShort(message)
+        storageToast = null
     }
 }

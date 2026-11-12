@@ -47,4 +47,8 @@ dependencies {
     // AdsContext 等对外接口里有 GMS 的类型，所以用 api
     api 'com.google.android.gms:play-services-ads:24.9.0'
     implementation 'com.google.android.gms:play-services-wallet:19.5.0'
+
+    // 纯 Kotlin/Java 逻辑的单测（存储目录统计等）
+    testImplementation 'junit:junit:4.13.2'
+
 }
