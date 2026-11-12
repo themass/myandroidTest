@@ -57,30 +57,53 @@ public final class GeoCatalog {
     }
 
     /** 关键字（英文或中文）→ 英文国家名，用于地球标签的 "城市, 国家" 显示。 */
+    /**
+     * 关键字 → 国家简称。
+     * <p>
+     * 用简称而不是全称：地球上的标签是"城市, 国家"拼在一颗胶囊里，"U.s.a, United States"
+     * 这种会占掉大半个屏幕、还会盖住别的节点。简称统一取 ETIAS/国际通行的短名。
+     */
     private static final String[][] COUNTRIES = {
-            {"china", "China"}, {"中国", "China"},
-            {"usa", "United States"}, {"u.s.", "United States"}, {"united states", "United States"}, {"美国", "United States"},
-            {"japan", "Japan"}, {"日本", "Japan"},
-            {"korea", "South Korea"}, {"韩国", "South Korea"},
-            {"taiwan", "Taiwan"}, {"台湾", "Taiwan"},
-            {"hong kong", "Hong Kong"}, {"香港", "Hong Kong"},
-            {"singapore", "Singapore"}, {"新加坡", "Singapore"},
-            {"malaysia", "Malaysia"}, {"马来西亚", "Malaysia"},
-            {"thailand", "Thailand"}, {"泰国", "Thailand"},
-            {"indonesia", "Indonesia"}, {"印尼", "Indonesia"},
-            {"vietnam", "Vietnam"}, {"越南", "Vietnam"},
-            {"india", "India"}, {"印度", "India"},
-            {"uae", "UAE"}, {"迪拜", "UAE"},
-            {"turkey", "Turkey"}, {"土耳其", "Turkey"},
-            {"russia", "Russia"}, {"俄罗斯", "Russia"},
-            {"united kingdom", "United Kingdom"}, {"uk", "United Kingdom"}, {"英国", "United Kingdom"},
-            {"france", "France"}, {"法国", "France"},
-            {"germany", "Germany"}, {"德国", "Germany"},
-            {"italy", "Italy"}, {"意大利", "Italy"},
-            {"canada", "Canada"}, {"加拿大", "Canada"},
-            {"brazil", "Brazil"}, {"巴西", "Brazil"},
-            {"australia", "Australia"}, {"澳大利亚", "Australia"},
-            {"netherlands", "Netherlands"}, {"荷兰", "Netherlands"},
+            {"china", "CN"}, {"中国", "CN"},
+            {"usa", "US"}, {"u.s.", "US"}, {"united states", "US"}, {"美国", "US"},
+            {"japan", "JP"}, {"日本", "JP"},
+            {"korea", "KR"}, {"韩国", "KR"},
+            {"taiwan", "TW"}, {"台湾", "TW"},
+            {"hong kong", "HK"}, {"香港", "HK"},
+            {"singapore", "SG"}, {"新加坡", "SG"},
+            {"malaysia", "MY"}, {"马来西亚", "MY"},
+            {"thailand", "TH"}, {"泰国", "TH"},
+            {"indonesia", "ID"}, {"印尼", "ID"},
+            {"vietnam", "VN"}, {"越南", "VN"},
+            {"india", "IN"}, {"印度", "IN"},
+            {"uae", "AE"}, {"迪拜", "AE"},
+            {"turkey", "TR"}, {"土耳其", "TR"},
+            {"russia", "RU"}, {"俄罗斯", "RU"},
+            {"united kingdom", "UK"}, {"uk", "UK"}, {"england", "UK"}, {"英国", "UK"},
+            {"france", "FR"}, {"法国", "FR"},
+            {"germany", "DE"}, {"德国", "DE"},
+            {"italy", "IT"}, {"意大利", "IT"},
+            {"canada", "CA"}, {"加拿大", "CA"},
+            {"brazil", "BR"}, {"巴西", "BR"},
+            {"australia", "AU"}, {"澳大利亚", "AU"},
+            {"netherlands", "NL"}, {"holland", "NL"}, {"ned", "NL"}, {"荷兰", "NL"},
+            {"poland", "PL"}, {"波兰", "PL"},
+            {"philippines", "PH"}, {"菲律宾", "PH"},
+            {"moldova", "MD"}, {"摩尔多瓦", "MD"},
+            {"bulgaria", "BG"}, {"保加利亚", "BG"},
+            {"ukraine", "UA"}, {"乌克兰", "UA"},
+            {"finland", "FI"}, {"芬兰", "FI"},
+            {"lithuania", "LT"}, {"lietuvos", "LT"}, {"立陶宛", "LT"},
+            {"israel", "IL"}, {"lsrael", "IL"}, {"以色列", "IL"},
+            {"sweden", "SE"}, {"瑞典", "SE"},
+            {"spain", "ES"}, {"西班牙", "ES"},
+            {"greece", "GR"}, {"希腊", "GR"},
+            {"hungary", "HU"}, {"匈牙利", "HU"},
+            {"romania", "RO"}, {"罗马尼亚", "RO"},
+            {"belgium", "BE"}, {"比利时", "BE"},
+            {"switzerland", "CH"}, {"瑞士", "CH"},
+            {"libya", "LY"}, {"利比亚", "LY"},
+            {"macau", "MO"}, {"macao", "MO"}, {"澳门", "MO"},
     };
 
     /**
@@ -109,7 +132,11 @@ public final class GeoCatalog {
         if (city == null) {
             return country;
         }
-        if (country == null || country.equals(city)) {
+        if (country == null) {
+            return city;
+        }
+        // 城市和国家是同一个地方时（香港、新加坡这类），拼起来会变成 "HK, HK"，只留城市
+        if (country.equalsIgnoreCase(city) || city.toUpperCase(Locale.ROOT).equals(country)) {
             return city;
         }
         return city + ", " + country;
