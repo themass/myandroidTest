@@ -150,7 +150,7 @@ class HttpCompanionApi(
                 val text = response.body?.string().orEmpty()
                 if (!response.isSuccessful) {
                     throw CompanionApiException(
-                        message = messageFor(response.code),
+                        message = messageFor(response.code, looksLikeJson(text)),
                         statusCode = response.code,
                     )
                 }
@@ -158,11 +158,18 @@ class HttpCompanionApi(
             }
         }
 
-    private fun messageFor(code: Int): String = when (code) {
-        401 -> "登录已失效，请重新登录"
-        403 -> "没有权限"
-        404 -> "内容不存在或已删除"
-        422 -> "提交的内容不符合要求"
+    /**
+     * 业务服务返回的错误体是 JSON；网关（nginx）自己生成的 404/5xx 是 HTML 页面。
+     * 服务没部署时 nginx 回 404 HTML，不能提示成「内容不存在或已删除」——用户会以为自己的数据没了。
+     */
+    private fun looksLikeJson(text: String): Boolean = text.trimStart().let { it.startsWith("{") || it.startsWith("[") }
+
+    private fun messageFor(code: Int, jsonBody: Boolean): String = when {
+        code == 401 -> "登录已失效，请重新登录"
+        code == 403 -> "没有权限"
+        code == 404 && jsonBody -> "内容不存在或已删除"
+        code == 404 || code == 502 || code == 503 || code == 504 -> "陪伴服务暂时不可用，请稍后再试"
+        code == 422 -> "提交的内容不符合要求"
         else -> "请求失败（$code）"
     }
 

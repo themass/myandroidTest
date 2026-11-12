@@ -1,5 +1,6 @@
 package com.openapi.ks.myapp.companion
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -63,6 +64,10 @@ fun CompanionRoute(
             initializer { CompanionViewModel(api = api, transport = LiveKitCompanionTransport(context)) }
         },
     )
+
+    // 系统返回键：在子页面时回到聊天页，而不是把整个应用退出（真机上踩到：
+    // 子页面只是 page 状态切换，没有返回栈，返回键会直接回到桌面）。
+    BackHandler(enabled = page != CompanionPage.CHAT) { page = CompanionPage.CHAT }
 
     Column(modifier = modifier.fillMaxWidth()) {
         // 离开聊天页就停掉收件箱轮询，回来时由 CompanionScreen 的 start() 重新拉起。

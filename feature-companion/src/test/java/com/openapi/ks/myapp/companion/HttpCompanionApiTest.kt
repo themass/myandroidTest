@@ -83,6 +83,29 @@ class HttpCompanionApiTest {
     }
 
     @Test
+    fun `a gateway html 404 means the service is down, not that the content was deleted`() {
+        // 服务没部署时 nginx 回 HTML 404；提示成「内容已删除」会让用户以为自己的数据丢了
+        val e = failure { api(Fake(code = 404, body = "<html><h1>404 Not Found</h1>nginx</html>")).characters() }
+        assertEquals(404, e.statusCode)
+        assertTrue(e.message!!, e.message!!.contains("暂时不可用"))
+        assertTrue(!e.message!!.contains("已删除"))
+    }
+
+    @Test
+    fun `a service json 404 still means the content does not exist`() {
+        val e = failure { api(Fake(code = 404, body = """{"detail":"not found"}""")).character("x") }
+        assertTrue(e.message!!.contains("不存在"))
+    }
+
+    @Test
+    fun `gateway errors 502 503 504 are reported as unavailable`() {
+        listOf(502, 503, 504).forEach { code ->
+            val e = failure { api(Fake(code = code, body = "<html>bad gateway</html>")).preferences() }
+            assertTrue("$code → ${e.message}", e.message!!.contains("暂时不可用"))
+        }
+    }
+
+    @Test
     fun `the server error body is not shown to the user`() {
         // 5xx 的正文可能带堆栈或内部地址，界面只能显示固定文案
         val e = failure { api(Fake(code = 500, body = "java.lang.NullPointerException at com.secret.Internal")).preferences() }
