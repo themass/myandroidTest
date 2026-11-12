@@ -129,5 +129,5 @@ activity: { kind: "music" | "video" | "game", title: "…", position_s: 83, stat
 
 - 新 skill 在真实对话里的效果（语气是否自然、会不会过于说教）：没有做对话评估。
 - 常驻层对首包延迟的影响：约 +960 字，没有测。
-- `test_e2e_platform.py` 有 1 个用例跳过，原因未查。
+- `test_e2e_platform.py` 的端到端用例被跳过：需要 `COMPANION_TEST_DATABASE_URL` 和 `COMPANION_TEST_REDIS_URL`，本轮没配，所以 `build_platform` 接线（含 `skill_ids_of`）没有被端到端覆盖，只靠上面的单测。
 - 第 3、4 节全部是设计。
