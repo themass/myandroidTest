@@ -40,6 +40,18 @@ public final class StorageDirs {
     /** 本地音乐的自定义歌手图。 */
     public static final String CUSTOM_ARTIST_IMAGES = "custom_artist_images";
 
+    /** 用户头像（文件，位于 filesDir 根）。{@code :retromusic}。 */
+    public static final String USER_PROFILE = "profile.jpg";
+
+    /** 用户主页背景（文件，位于 filesDir 根）。{@code :retromusic}。 */
+    public static final String USER_BANNER = "banner.jpg";
+
+    /**
+     * Glide 图片缓存。在 {@code getExternalFilesDir(DIRECTORY_DOWNLOADS)} 下，
+     * 前缀 {@code ADeepseek} 来自 {@code FileUtils.CACHDIR}，{@code myglide} 见 {@code AppGlideConfig}。
+     */
+    public static final String GLIDE_CACHE = "ADeepseek/myglide";
+
     private StorageDirs() {
     }
 
@@ -55,6 +67,8 @@ public final class StorageDirs {
         list.add(AGENT_EXPORT);
         list.add(AVATARS);
         list.add(CUSTOM_ARTIST_IMAGES);
+        list.add(USER_PROFILE + "|" + USER_BANNER);
+        list.add(GLIDE_CACHE);
         return list;
     }
 }

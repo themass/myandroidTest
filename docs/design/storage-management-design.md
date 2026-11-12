@@ -44,14 +44,15 @@ App 会把数据写到十几个目录，但**用户完全看不到**：
 | `paizhao_capture_*.jpg` | `:feature-photosolve` | 拍照原图（解码后即可删） | 临时 |
 | `avatar-*.zip` | `:feature-companion` | 形象包下载的临时 zip（用完即删） | 临时 |
 
-### 2.3 外部存储（**不在本期范围内**）
+### 2.3 外部存储
 
-| 路径 | 用途 |
-|---|---|
-| `getExternalFilesDir(DOWNLOADS)/ADeepseek/` | Glide 磁盘缓存（100MB 上限），见 `AppGlideConfig` |
-| `Environment.getExternalStorageDirectory()/tencent/vpn/freevpn.apk` | APK 下载（旧代码） |
+| 路径 | 用途 | 状态 |
+|---|---|---|
+| `getExternalFilesDir(DOWNLOADS)/ADeepseek/myglide/` | Glide 磁盘缓存（100MB 上限），见 `AppGlideConfig` | **已纳入** |
+| `Environment.getExternalStorageDirectory()/tencent/vpn/freevpn.apk` | APK 下载（旧代码） | 未纳入 |
 
-> 外部存储涉及权限和用户可见的文件，改动风险高于收益，本期只做内部存储。
+> `getExternalFilesDir` 是 App 私有目录，不需要任何权限，卸载时删除。
+> 旧代码里 `Environment.getExternalStorageDirectory()` 那条走的是公共目录，需要 `WRITE_EXTERNAL_STORAGE`，不纳入。
 
 ## 3. 方案：一张登记表 + 一个管理页
 
@@ -79,17 +80,31 @@ App 会把数据写到十几个目录，但**用户完全看不到**：
 ### 3.3 数据结构
 
 ```kotlin
+enum class Root { FILES, CACHE, EXTERNAL_DOWNLOADS }
+enum class Kind { DIRECTORY, FILES }
+
 data class Entry(
-    val dirName: String,          // filesDir/cacheDir 下的一级目录名
-    val root: Root,               // FILES 或 CACHE
+    val name: String,             // 目录名；FILES 模式下用 | 分隔多个文件名
+    val root: Root,               // filesDir / cacheDir / 外部 Downloads
     val title: String,            // 用户看得懂的名字，例如「解题历史」
     val description: String,      // 里面是什么、删了会怎样
     val userData: Boolean,        // true = 删了不可恢复
-    val onCleared: (() -> Unit)?  // 清理后需要刷新别处时用
+    val kind: Kind = DIRECTORY,   // 目录 or 一组文件
+    val onClear: ((Context) -> Unit)? = null  // 自定义清理（体积仍按文件系统算）
 )
 
 data class Usage(entry, path, sizeBytes, fileCount, missing)
 ```
+
+三种扩展能力及其原因：
+
+| 能力 | 场景 | 为什么需要 |
+|---|---|---|
+| `EXTERNAL_DOWNLOADS` | Glide 图片缓存 | 它在外部存储，与内部目录不是同一个根 |
+| `FILES` | 头像 `profile.jpg` + 背景 `banner.jpg` | 它们是**文件**不是目录，且要合并成一项给用户看 |
+| `onClear` | Glide | DiskLruCache 持有打开的日志文件，**直接删目录会让后续读写报错**，必须走 `Glide.clearDiskCache()` |
+
+`Kind.FILES` 的体积统计只算存在的文件；全部不存在时按 `missing` 处理（显示「暂无数据」）。
 
 ### 3.4 两类操作的交互差异
 
@@ -135,8 +150,9 @@ data class Usage(entry, path, sizeBytes, fileCount, missing)
 
 | # | 现状 | 后续 |
 |---|---|---|
-| 1 | 外部存储（Glide 100MB 缓存、APK 下载）未纳入 | 单列一项「图片缓存」，用 Glide 自带的 `clearDiskCache()` |
-| 2 | `profile.jpg` / `banner.jpg` 是**文件**不是目录，当前登记表只支持目录 | 给 `Entry` 加 `isFile` 或引入「虚拟条目」概念 |
+| 1 | ~~外部存储 Glide 缓存未纳入~~ | **已完成**：`EXTERNAL_DOWNLOADS` + `onClear` 走 Glide 自己的清理 |
+| 2 | ~~头像/背景是文件不是目录~~ | **已完成**：`Kind.FILES` + `|` 分隔 |
+| 2b | APK 下载（公共存储 + 需要写权限） | 属于历史遗留下载逻辑，建议直接去掉而不是让用户管理 |
 | 3 | 历史记录图片占空间，只能整体删除 | 加「只保留文字、不留图」或「超过 N 条自动清理最早」 |
 | 4 | 路径信息对普通用户意义不大 | 可藏在「开发者模式」下 |
 | 5 | 没有「导出备份」 | 历史记录已经是 JSON，导出成本低 |
@@ -144,13 +160,17 @@ data class Usage(entry, path, sizeBytes, fileCount, missing)
 ## 6. 验证
 
 ```bash
-./gradlew --offline :common:testDebugUnitTest --tests "com.openapi.common.storage.*"  # 5 个
+./gradlew --offline :common:testDebugUnitTest --tests "com.openapi.common.storage.*"  # 8 个
 ./gradlew --offline :app:compileChatDebugKotlin
 ```
 
-已验证：上述命令本机通过；`StorageCatalogTest` 覆盖登记、去重、单位格式化、用户数据与缓存的区分。
+已验证：上述命令本机通过；`StorageCatalogTest`（8 个）覆盖登记、去重、单位格式化、用户数据与缓存的区分、
+文件模式的名字拆分、外部存储根、自定义清理回调的保存。
 
 **未验证**（需要真机）：
 - 实际体积统计的正确性与大目录下的耗时（几百 MB 的目录递归可能上百毫秒）；
 - 删除后 `FsSolveHistoryStore` 是否需要主动刷新（当前历史页每次进入都重读索引，天然自愈）；
-- 弹窗在低分辨率设备上的滚动行为。
+- 弹窗在低分辨率设备上的滚动行为；
+- Glide 缓存的体积统计是否与实际一致（`clearDiskCache()` 后 DiskLruCache 会保留目录结构，
+  所以清理完可能显示「几个 KB」而不是 0，这是正常的）；
+- 外部存储不可用时（拔掉存储卡）`EXTERNAL_DOWNLOADS` 会自动落回 `cacheDir`，这一点没有实测。

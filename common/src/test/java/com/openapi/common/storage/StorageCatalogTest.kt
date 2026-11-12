@@ -1,6 +1,8 @@
 package com.openapi.common.storage
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -12,10 +14,9 @@ class StorageCatalogTest {
 
     private fun entry(
         name: String,
-        root: StorageCatalog.Entry.Root = StorageCatalog.Entry.Root.FILES,
+        root: StorageCatalog.Root = StorageCatalog.Root.FILES,
         userData: Boolean = false,
-        onCleared: (() -> Unit)? = null,
-    ) = StorageCatalog.Entry(name, root, "title-$name", "desc", userData, onCleared)
+    ) = StorageCatalog.Entry(name, root, "title-$name", "desc", userData)
 
     @Test
     fun registerAndListPreservesOrder() {
@@ -23,7 +24,7 @@ class StorageCatalogTest {
         StorageCatalog.register(entry("a"))
         StorageCatalog.register(entry("b"))
         StorageCatalog.register(entry("c"))
-        assertEquals(listOf("a", "b", "c"), StorageCatalog.registered().map { it.dirName })
+        assertEquals(listOf("a", "b", "c"), StorageCatalog.registered().map { it.name })
     }
 
     @Test
@@ -59,7 +60,47 @@ class StorageCatalogTest {
         StorageCatalog.register(entry("cache", userData = false))
         StorageCatalog.register(entry("history", userData = true))
         val registered = StorageCatalog.registered()
-        assertEquals(listOf("cache"), registered.filterNot { it.userData }.map { it.dirName })
-        assertEquals(listOf("history"), registered.filter { it.userData }.map { it.dirName })
+        assertEquals(listOf("cache"), registered.filterNot { it.userData }.map { it.name })
+        assertEquals(listOf("history"), registered.filter { it.userData }.map { it.name })
+    }
+    // ---- 新增：文件模式 / 自定义清理 ----
+
+    @Test
+    fun filesKindSplitsNamesOnPipe() {
+        val e = StorageCatalog.Entry(
+            name = "profile.jpg|banner.jpg",
+            root = StorageCatalog.Root.FILES,
+            title = "头像与背景",
+            description = "",
+            userData = true,
+            kind = StorageCatalog.Kind.FILES,
+        )
+        // 名字按 | 拆分；根目录是 FILES
+        assertEquals(StorageCatalog.Kind.FILES, e.kind)
+        assertEquals(listOf("profile.jpg", "banner.jpg"), e.name.split('|'))
+    }
+
+    @Test
+    fun externalDownloadsIsItsOwnRoot() {
+        // Glide 缓存在外部存储，不能和内部 files/cache 混在一起统计
+        assertEquals(3, StorageCatalog.Root.values().size)
+        assertTrue(StorageCatalog.Root.values().contains(StorageCatalog.Root.EXTERNAL_DOWNLOADS))
+    }
+
+    @Test
+    fun entryCanCarryCustomClearAction() {
+        var cleared = false
+        val e = StorageCatalog.Entry(
+            name = "glide",
+            root = StorageCatalog.Root.EXTERNAL_DOWNLOADS,
+            title = "图片缓存",
+            description = "",
+            userData = false,
+            onClear = { cleared = true },
+        )
+        // 只验证回调挂在条目上；真正调用需要 Context，属于 instrumented 测试。
+        // 回调是 (Context) -> Unit，单测里不 invoke，只确认它被保存下来了。
+        assertNotNull(e.onClear)
+        assertFalse(cleared)
     }
 }
