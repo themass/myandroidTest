@@ -28,8 +28,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.VolumeOff
 import androidx.compose.material.icons.filled.VolumeUp
@@ -215,7 +218,7 @@ private fun CompanionTopBar(
         if (onMenuClick != null) {
             IconButton(onClick = onMenuClick) {
                 Icon(
-                    imageVector = Icons.Filled.KeyboardArrowDown,
+                    imageVector = Icons.Filled.Menu,
                     contentDescription = stringResource(R.string.companion_nav_back),
                 )
             }
@@ -227,23 +230,24 @@ private fun CompanionTopBar(
             modifier = Modifier.padding(start = if (onMenuClick == null) 12.dp else 0.dp),
         )
         Spacer(Modifier.weight(1f))
+        // 每个图标必须和它去的地方对得上：之前「角色」用的是电话图标，
+        // 「个性化页面」用的是和「展开形象」一模一样的向上箭头，用户只能靠猜。
         IconButton(onClick = onToggleAvatar) {
             Icon(
-                imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                imageVector = if (expanded) Icons.Filled.ExpandMore else Icons.Filled.ExpandLess,
                 contentDescription = if (expanded) "收起形象" else "展开形象",
             )
         }
         IconButton(onClick = onCharacters) {
             Icon(
-                imageVector = Icons.Filled.Phone,
+                imageVector = Icons.Filled.Person,
                 contentDescription = stringResource(R.string.companion_open_characters),
-                modifier = Modifier.alpha(0.85f),
             )
         }
         IconButton(onClick = onProfile) {
             Icon(
-                imageVector = Icons.Filled.KeyboardArrowUp,
-                contentDescription = stringResource(R.string.companion_open_settings),
+                imageVector = Icons.Filled.AutoAwesome,
+                contentDescription = "她记得的事与主动性",
             )
         }
     }
@@ -326,14 +330,9 @@ fun CompanionMessageArea(
                 }
             },
             avatar = { item -> CompanionAvatar(emoji = "澈", active = item.streaming) },
-            emptyContent = {
-                Text(
-                    text = stringResource(R.string.companion_input_hint),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.fillMaxWidth().padding(24.dp),
-                )
-            },
+            // 空列表时不放文字：下方输入框自己就有同一个占位提示，
+            // 否则屏幕上会出现两行一模一样的「说点什么…」。
+            emptyContent = {},
         )
 
         // 等待首字：她还没开始说话。用「正在输入」而不是一个空气泡——空气泡看起来像卡住了。
