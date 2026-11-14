@@ -47,7 +47,7 @@ We do not log the websites you visit or the contents of your traffic. We collect
 only what is needed to run the service: a device identifier, your IP address,
 connection duration and data volume, and crash diagnostics. See our privacy
 policy for the full list and how to delete your account:
-https://www.ok123find.top/privacy.html
+https://file.ok123find.top/privacy.html
 
 FREE AND PREMIUM
 
@@ -87,8 +87,8 @@ services may still detect VPN usage.
 
 | 项 | 填什么 |
 |---|---|
-| **隐私政策 URL** | `https://www.ok123find.top/privacy.html`（需先发布 `docs/PRIVACY-POLICY.md`，改为 HTTPS 静态页） |
-| **账号删除 URL** | `https://www.ok123find.top/account-delete.html`（需新建，见第四节） |
+| **隐私政策 URL** | `https://file.ok123find.top/privacy.html`（需先发布 `docs/PRIVACY-POLICY.md`，改为 HTTPS 静态页） |
+| **账号删除 URL** | `https://file.ok123find.top/account-delete.html`（需新建，见第四节） |
 | **应用分类** | Tools |
 | **内容分级** | 问卷里"是否含用户生成内容"选否；"是否含广告"选是。预期分级：3+ / Everyone |
 | **目标受众** | 18 岁及以上（含 VPN 功能的工具类应用，不要选含儿童） |
