@@ -46,7 +46,17 @@ public final class ApiHost {
     /** 最近一次成功使用的主机名。为空表示还没发生过切换，用 PRIMARY。 */
     private static final String KEY_ACTIVE_HOST = "API_ACTIVE_HOST";
 
+    /**
+     * 停在备域名时，隔多久用一次真实请求去探主域名是否恢复。
+     * <p>
+     * 这个探测不是额外开销：探的那一次请求本身就是用户要发的请求，主域名通了就直接用它
+     * 的响应。取 5 分钟是为了让"主域名短暂抖动"不会立刻把用户拉回明文通道，
+     * 同时故障结束后又能较快回到 HTTPS。
+     */
+    private static final long PRIMARY_RETRY_INTERVAL_MS = 5 * 60 * 1000L;
+
     private static volatile String active = null;
+    private static volatile long lastPrimaryProbeAt = 0L;
 
     private ApiHost() {
     }
@@ -66,6 +76,24 @@ public final class ApiHost {
         return v;
     }
 
+    /**
+     * 是否该拿这次请求去试一下主域名。
+     * <p>
+     * 只有在"当前停在备域名、且距上次探测超过间隔"时为真。返回 true 的同时会把时间戳
+     * 前推，避免一次失败后每个请求都去撞主域名。
+     */
+    public static boolean dueForPrimaryProbe() {
+        if (!BACKUP.equals(current())) {
+            return false;
+        }
+        long now = System.currentTimeMillis();
+        if (now - lastPrimaryProbeAt < PRIMARY_RETRY_INTERVAL_MS) {
+            return false;
+        }
+        lastPrimaryProbeAt = now;
+        return true;
+    }
+
     /** 给定主机名对应的 scheme。未知主机返回 https（保守，不主动降级）。 */
     public static String schemeFor(String host) {
         return BACKUP.equals(host) ? SCHEME_BACKUP : SCHEME_PRIMARY;
@@ -82,18 +110,39 @@ public final class ApiHost {
     }
 
     /**
-     * 记录"这个主机可用"。
+     * 记录"这个主机可用"，并在条件满足时切回主域名。
      * <p>
      * 只在确实成功后才调用，避免把偶然一次失败的域名记成可用。
+     * <p>
+     * 重点：<b>停在备域名不是终态。</b>备域名走的是明文 HTTP，登录口令和 token
+     * 在这条路上是明文的。如果主域名只挂了几十秒、之后即使恢复我们也继续用它，
+     * 那等于一次短暂故障把所有用户永久降级到明文传输。所以当承载当前成功的请求
+     * 已经是主域名时（说明它恢复了），立即切回。
      */
     public static void markWorking(String host) {
-        if (host == null || host.equals(active)) {
+        if (host == null) {
             return;
         }
         if (!PRIMARY.equals(host) && !BACKUP.equals(host)) {
             return;
         }
+        // 主域名可用 → 无论当前是什么，都回到主域名（含"本来就在主域名"的情况）
+        if (PRIMARY.equals(host)) {
+            if (!PRIMARY.equals(active)) {
+                LogUtil.i(TAG + ": 主域名恢复，切回 " + active + " -> " + PRIMARY);
+                persist(PRIMARY);
+            }
+            return;
+        }
+        // 备域名可用，且当前还不在备域名 → 降级过去
+        if (host.equals(active)) {
+            return;
+        }
         LogUtil.i(TAG + ": 切换 API 主机 " + active + " -> " + host);
+        persist(host);
+    }
+
+    private static void persist(String host) {
         active = host;
         try {
             PreferenceUtils.setPrefString(MyApplication.getInstance(), KEY_ACTIVE_HOST, host);

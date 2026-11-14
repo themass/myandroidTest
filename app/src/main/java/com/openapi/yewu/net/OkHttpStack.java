@@ -175,13 +175,31 @@ public class OkHttpStack extends BaseHttpStack {
     public HttpResponse executeRequest(Request<?> request, Map<String, String> additionalHeaders)
             throws IOException, AuthFailureError {
         String url = request.getUrl();
+
+        // 停在备域名时，定期拿一次真实请求去试主域名。
+        // 没有这一步，"主域名恢复 → 切回 HTTPS"永远触发不了：用户切到备域名之后，
+        // 后续请求都不再发往主域名，markWorking(PRIMARY) 也就没有机会被调用，
+        // 结果是一次短暂故障把所有用户永久留在明文通道上。
+        if (com.openapi.myapp.data.ApiHost.dueForPrimaryProbe()) {
+            String primaryUrl = com.openapi.myapp.data.ApiHost.failoverUrl(url);
+            if (primaryUrl != null) {
+                HttpResponse probe = executeOnce(request, additionalHeaders, primaryUrl);
+                if (probe != null) {
+                    LogUtil.i("API primary recovered: " + primaryUrl);
+                    com.openapi.myapp.data.ApiHost.markWorking(com.openapi.myapp.data.ApiHost.hostOf(primaryUrl));
+                    return probe;
+                }
+                LogUtil.i("API primary still down, staying on backup");
+            }
+        }
+
         HttpResponse response = executeOnce(request, additionalHeaders, url);
         if (response != null) {
             com.openapi.myapp.data.ApiHost.markWorking(com.openapi.myapp.data.ApiHost.hostOf(url));
             return response;
         }
 
-        // 主域名不可达：换成备域名把同一个请求重发一次。
+        // 当前主机不可达：换成另一个域名把同一个请求重发一次。
         // 只重发一次，避免两个域名都挂时无谓地拖长用户等待。
         String alt = com.openapi.myapp.data.ApiHost.failoverUrl(url);
         if (alt == null) {
