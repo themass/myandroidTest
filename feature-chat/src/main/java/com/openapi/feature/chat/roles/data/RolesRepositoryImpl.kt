@@ -4,6 +4,7 @@ import android.content.Context
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.openapi.common.util.android.PreferenceUtils
+import com.openapi.common.util.log.LogUtil
 import com.openapi.core.config.Constants
 import com.openapi.feature.chat.roles.data.RolesParser
 import com.openapi.feature.chat.roles.data.RolesRepository
@@ -51,7 +52,14 @@ class RolesRepositoryImpl(private val context: Context) : RolesRepository {
         val server = get(url.toString())?.let(RolesParser::parseDivisions)
         if (!server.isNullOrEmpty()) return server
         val local = bundled.catalog(lang())?.divisions
-        return if (!local.isNullOrEmpty()) local else server
+        if (!local.isNullOrEmpty()) {
+            // 兜底必须留痕：以前这里完全静默，于是「服务端目录坏了」和「本来就只有这些角色」
+            // 长得一模一样，选择器里出现服务端不认识的 id 也查不出来。
+            LogUtil.i(TAG, "role catalog unavailable, using bundled divisions (${local.size})")
+            return local
+        }
+        LogUtil.e("role catalog divisions failed and no bundled copy")
+        return server
     }
 
     override suspend fun roles(
@@ -74,7 +82,11 @@ class RolesRepositoryImpl(private val context: Context) : RolesRepository {
         val server = get(url.toString())?.let(RolesParser::parseRolePage)
         if (server != null && server.items.isNotEmpty()) return server
         val local = bundled.catalog(lang())?.page(division, query, featuredOnly, limit, offset)
-        return if (local != null && local.items.isNotEmpty()) local else server
+        if (local != null && local.items.isNotEmpty()) {
+            LogUtil.i(TAG, "role catalog unavailable, using bundled roles (${local.items.size})")
+            return local
+        }
+        return server
     }
 
     private suspend fun get(url: String): String? = withContext(Dispatchers.IO) {
@@ -138,6 +150,7 @@ class RolesRepositoryImpl(private val context: Context) : RolesRepository {
     private fun sessionKey(sessionId: Long) = "$KEY_SESSION_PREFIX$sessionId"
 
     private companion object {
+        const val TAG = "RolesRepository"
         const val STORE = "roles_store"
         /** 与旧实现保持同一个 key，升级后已选的角色不丢。 */
         const val PREF_SELECTED_ROLE = "chat_selected_catalog_role"
