@@ -55,6 +55,7 @@
         android:smallScreens="true" />
     <application
         android:name="com.openapi.myapp.base.MyApplication"
+        android:resizeableActivity="true"
         android:allowBackup="false"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
