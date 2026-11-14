@@ -22,6 +22,9 @@ dependencies {
     // 角色扮演（伴侣页、角色记忆与设置、虚拟形象渲染）。Android 端按角色扮演分支维护。
     implementation project(':common')
     implementation project(':core')
+    // 消息列表与输入区复用 chatkit：陪伴页和对话页要长得像一家人，
+    // 而不是各自再造一套气泡。
+    implementation project(':chatkit')
 
     implementation platform(libs.androidx.compose.bom)
     implementation libs.androidx.compose.ui

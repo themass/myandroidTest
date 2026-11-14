@@ -212,7 +212,7 @@ fun HomeScreen() {
                 stateHolder.SaveableStateProvider(current.name) {
                     when (current) {
                         HomeTab.Chat -> ChatRoute(onMenuClick = openDrawer)
-                        HomeTab.Companion -> CompanionRoute()
+                        HomeTab.Companion -> CompanionRoute(onMenuClick = openDrawer)
                         HomeTab.Channels -> ChannelsHub()
                         HomeTab.AgentChat -> AgentChatEntry()
                         HomeTab.Profile -> Unit // 「我的」由右侧覆盖页显示

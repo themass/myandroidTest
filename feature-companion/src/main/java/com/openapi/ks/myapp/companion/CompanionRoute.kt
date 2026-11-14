@@ -1,6 +1,7 @@
 package com.openapi.ks.myapp.companion
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -47,6 +48,8 @@ enum class CompanionPage { CHAT, CHARACTERS, MEMORY, SETTINGS }
 fun CompanionRoute(
     modifier: Modifier = Modifier,
     initialCharacterId: String = DEFAULT_CHARACTER_ID,
+    /** 打开抽屉。由 HomeScreen 传入，与「对话」页一致。 */
+    onMenuClick: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current.applicationContext
     val api = remember(context) {
@@ -69,7 +72,14 @@ fun CompanionRoute(
     // 子页面只是 page 状态切换，没有返回栈，返回键会直接回到桌面）。
     BackHandler(enabled = page != CompanionPage.CHAT) { page = CompanionPage.CHAT }
 
-    Column(modifier = modifier.fillMaxWidth()) {
+    // 全屏通话是覆盖层而不是子页面：它要保持房间连接，退出后回到原来的对话现场，
+    // 所以不走 CompanionPage 那套"切换页面"的状态。
+    val uiState by chatViewModel.state.collectAsStateWithLifecycle()
+    val inCall = uiState.callActive
+    BackHandler(enabled = inCall) { chatViewModel.setCallActive(false) }
+
+    Box(modifier = modifier.fillMaxWidth()) {
+    Column(modifier = Modifier.fillMaxWidth()) {
         // 离开聊天页就停掉收件箱轮询，回来时由 CompanionScreen 的 start() 重新拉起。
         LaunchedEffect(page) {
             if (page != CompanionPage.CHAT) chatViewModel.stopListening()
@@ -85,6 +95,10 @@ fun CompanionRoute(
                     viewModel = chatViewModel,
                     characterId = characterId,
                     modifier = Modifier.fillMaxWidth(),
+                    onOpenCall = { chatViewModel.setCallActive(true) },
+                    onOpenCharacters = { page = CompanionPage.CHARACTERS },
+                    onOpenProfile = { page = CompanionPage.MEMORY },
+                    onMenuClick = onMenuClick,
                 )
             }
 
@@ -135,6 +149,44 @@ fun CompanionRoute(
                 )
             }
         }
+    }
+
+    // 通话覆盖层：只在需要时组合，挂上去后旧界面不再接收点击。
+    if (inCall) {
+        val transcript = remember(uiState.messages) {
+            uiState.messages.filter { it.role == MessageRole.ASSISTANT }.map { it.text }.filter { it.isNotBlank() }
+        }
+        val avatarEmoji = remember(uiState.messages.size) {
+            uiState.messages.lastOrNull { it.role == MessageRole.ASSISTANT }?.text?.takeIf { it.isNotBlank() }
+        }
+        CompanionCallScreen(
+            state = CompanionCallState(
+                agentName = characterId,
+                captions = transcript.takeLast(3),
+                elapsedSeconds = 0L,
+                isMuted = false,
+                cameraActive = false,
+                // 电平暂时没有数据源：服务端把 TTS 音轨推给房间，客户端还没有把它接到这里。
+                audioLevel = 0f,
+                isAgentSpeaking = uiState.messages.lastOrNull()?.streaming == true,
+                connection = if (uiState.connection == CompanionConnection.CONNECTED) {
+                    CallConnection.CONNECTED
+                } else {
+                    CallConnection.CONNECTING
+                },
+                avatarEmoji = avatarEmoji,
+            ),
+            onHangUp = { chatViewModel.setCallActive(false) },
+            // 静音/摄像头要真正作用到 LiveKit 的本地轨道，传输层还没有这两个方法；
+            // 这里先留空，不假装已经可用。
+            onToggleMute = {},
+            onToggleCamera = {},
+            onSendText = { text ->
+                chatViewModel.onInputChange(text)
+                chatViewModel.send()
+            },
+        )
+    }
     }
 }
 

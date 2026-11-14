@@ -80,13 +80,28 @@ class CompanionViewModel(
         _state.update { it.copy(input = value) }
     }
 
-    fun toggleMode() {
-        _state.update {
-            it.copy(
-                mode = if (it.mode == CompanionMode.TEXT) CompanionMode.VOICE else CompanionMode.TEXT,
-            )
-        }
-        // 切换不断开房间：文字与语音共用同一个 agent，切回文字时只是不再发布麦克风。
+    /** 切换她**怎么回**：文字 or 语音（语音时同时出语音条 + 文字）。 */
+    fun setOutput(output: CompanionOutput) {
+        _state.update { it.copy(output = output) }
+        // 不断开房间：文字与语音共用同一个 agent，切回文字时只是不再发布麦克风。
+    }
+
+    fun toggleOutput() {
+        setOutput(if (_state.value.output == CompanionOutput.TEXT) CompanionOutput.VOICE else CompanionOutput.TEXT)
+    }
+
+    /** 进入/退出全屏通话形态。 */
+    fun setCallActive(active: Boolean) {
+        _state.update { it.copy(callActive = active) }
+    }
+
+    /** 展开/收起形象区。默认收起。 */
+    fun toggleAvatarExpanded() {
+        _state.update { it.copy(avatarExpanded = !it.avatarExpanded) }
+    }
+
+    fun clearError() {
+        _state.update { it.copy(error = null) }
     }
 
     fun onAvatarEvent(raw: String) {
@@ -100,10 +115,6 @@ class CompanionViewModel(
                 emotion = emotion ?: it.emotion,
             )
         }
-    }
-
-    fun clearError() {
-        _state.update { it.copy(error = null) }
     }
 
     /** 用户确认一个待执行动作。服务端执行器是权威，确认与否都以它的结果为准。 */

@@ -1,9 +1,20 @@
 package com.openapi.ks.myapp.companion
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,19 +22,21 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.VolumeOff
+import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -33,10 +46,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.openapi.chatkit.message.ChatMessageList
+import com.openapi.chatkit.model.ChatItem
+import com.openapi.chatkit.model.MessagePart
+import com.openapi.chatkit.model.Sender
+import com.openapi.chatkit.theme.ChatKitTheme
 import com.openapi.feature.companion.R
 import com.openapi.ks.myapp.avatar.AvatarCommand
 import com.openapi.ks.myapp.avatar.AvatarEventMapper
@@ -46,16 +67,29 @@ import com.openapi.ks.myapp.avatar.SimpleAvatar
 import com.openapi.ks.myapp.avatar.SimpleAvatarRenderer
 
 /**
- * 角色扮演对话页。上半屏形象，下半屏消息与输入。默认文字模式，可切语音。
+ * 陪伴页：和「对话」页长得像一家人，但有自己的角色形象与语音能力。
  *
- * 形象由 [SimpleAvatarRenderer] 驱动；渲染器实例放在 remember 里，避免重组时
- * 重开眨眼定时器。
+ * 与旧版的区别（都是用户逐条提过的）：
+ * 1. 去掉了「文字 / 语音」分段按钮——它切的是传输路径，用户看不懂也没有意义；
+ *    真正该有的是「她怎么回」：文字 or 语音（语音时语音条 + 文字同时出现）。
+ * 2. 消息区改用 chatkit 的 [ChatMessageList]，与「对话」页同一套气泡、时间戳、操作。
+ * 3. 那个占屏 42%、用户不知道是什么的大框改成**可收起的形象区**，默认收起。
+ * 4. 等待首字时显示「对方正在输入…」，而不是一个空气泡。
+ * 5. 输入区与「对话」页一致：一个输入框 + 发送按钮，外加语音输出开关与通话入口。
  */
 @Composable
 fun CompanionScreen(
     viewModel: CompanionViewModel,
     characterId: String,
     modifier: Modifier = Modifier,
+    /** 进全屏通话页。由 CompanionRoute 接，页面本身不持有导航。 */
+    onOpenCall: () -> Unit = {},
+    /** 打开角色选择。 */
+    onOpenCharacters: () -> Unit = {},
+    /** 打开个性化页面（记忆、重要日子、她的主动性）。 */
+    onOpenProfile: () -> Unit = {},
+    /** 打开抽屉。与「对话」页一致。 */
+    onMenuClick: (() -> Unit)? = null,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val renderer = remember { SimpleAvatarRenderer() }
@@ -64,7 +98,6 @@ fun CompanionScreen(
     LaunchedEffect(characterId) { viewModel.start(characterId) }
 
     // 绑定素材：先用本地已有的（离线也能看）或内置默认，再向服务端同步。
-    // 服务端上线了这个角色的新形象就下载并换上；任何失败都保持当前形象不变。
     val context = androidx.compose.ui.platform.LocalContext.current.applicationContext
     val avatarSync = remember(context) { buildAvatarSync(context) }
     LaunchedEffect(renderer, characterId) {
@@ -74,159 +107,302 @@ fun CompanionScreen(
         if (synced != null && synced != local) renderer.bind(AvatarSpec(files = synced))
     }
 
-    // 服务端事件 → 渲染器指令。映射在 AvatarEventMapper 里，界面不认协议细节。
     LaunchedEffect(state.avatarState) {
         AvatarEventMapper.mapJson("""{"type":"state","state":"${state.avatarState}"}""")
             ?.let(renderer::dispatch)
     }
-
-    // 情绪是独立的一次性事件，不随状态变化重复下发。
     LaunchedEffect(state.emotion) {
         state.emotion?.let { renderer.dispatch(AvatarCommand.Emotion(it)) }
     }
 
+    // 新消息到达时滚到底。用消息条数与最后一条文本做 key：流式追加时也要跟。
     LaunchedEffect(state.messages.size, state.messages.lastOrNull()?.text) {
         if (state.messages.isNotEmpty()) {
             listState.animateScrollToItem(state.messages.lastIndex)
         }
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .imePadding(),
-    ) {
-        // 形象区：固定高度，不随消息列表滚动，也不遮挡下方输入。
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(0.42f)
-                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)),
-            contentAlignment = Alignment.Center,
-        ) {
-            SimpleAvatar(renderer = renderer, modifier = Modifier.fillMaxSize())
-        }
-
-        LazyColumn(
-            state = listState,
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            items(state.messages) { message ->
-                MessageBubble(
-                    message = message,
-                    onConfirm = viewModel::confirmAction,
-                    onCancel = viewModel::cancelAction,
+    ChatKitTheme {
+        Surface(color = Color(0xFFFBF8F5), modifier = modifier.fillMaxSize()) {
+            Column(Modifier.fillMaxSize().imePadding()) {
+                CompanionTopBar(
+                    title = stringResource(R.string.companion_title),
+                    avatarState = state.avatarState,
+                    expanded = state.avatarExpanded,
+                    onMenuClick = onMenuClick,
+                    onToggleAvatar = viewModel::toggleAvatarExpanded,
+                    onCharacters = onOpenCharacters,
+                    onProfile = onOpenProfile,
                 )
-            }
-        }
 
-        // 主动来电不当作一条消息：它要接管整屏，否则用户会当成普通提示划过去。
-        state.incomingCall?.let { kind ->
-            IncomingCallBanner(
-                kind = kind,
-                onAccept = {
-                    viewModel.dismissIncomingCall()
-                    if (state.mode != CompanionMode.VOICE) viewModel.toggleMode()
-                },
-                onDecline = viewModel::dismissIncomingCall,
-            )
-        }
-
-        if (state.error != null) {
-            Text(
-                text = state.error.orEmpty(),
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-            )
-        }
-
-        Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-            ModeToggle(state.mode, onToggle = viewModel::toggleMode)
-            Spacer(Modifier.height(8.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                OutlinedTextField(
-                    value = state.input,
-                    onValueChange = viewModel::onInputChange,
-                    modifier = Modifier.weight(1f),
-                    placeholder = { Text(stringResource(R.string.companion_input_hint)) },
-                    maxLines = 4,
-                )
-                IconButton(
-                    onClick = viewModel::send,
-                    enabled = state.canSend,
+                // 形象区：默认收起成一个头像；展开后是完整形象，占屏高但可随时收回去。
+                // 旧版是固定 weight(0.42f) 常驻，用户的原话是"不知道这个大框是什么"。
+                AnimatedVisibility(
+                    visible = state.avatarExpanded,
+                    enter = expandVertically() + fadeIn(),
+                    exit = shrinkVertically() + fadeOut(),
                 ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.Send,
-                        contentDescription = stringResource(R.string.companion_send),
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(280.dp)
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        SimpleAvatar(renderer = renderer, modifier = Modifier.fillMaxSize())
+                    }
+                }
+
+                val items = remember(state.messages) { companionItems(state.messages) }
+                ChatMessageList(
+                    items = items,
+                    state = listState,
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    onAction = { _, action ->
+                        // 陪伴页的 footer 动作先只接「删除」之外的语义：复制由 chatkit 内部处理，
+                        // 语音播报要等语音条做出来。这里保持空实现，避免误触发。
+                        when (action) {
+                            else -> Unit
+                        }
+                    },
+                    avatar = { item -> CompanionAvatar(emoji = "澈", active = item.streaming) },
+                    emptyContent = {
+                        Text(
+                            text = stringResource(R.string.companion_input_hint),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.fillMaxWidth().padding(24.dp),
+                        )
+                    },
+                )
+
+                // 等待首字：她还没开始说话。用「正在输入」而不是一个空气泡——空气泡看起来像卡住了。
+                if (state.awaitingReply) TypingHint()
+
+                state.incomingCall?.let { kind ->
+                    IncomingCallBanner(
+                        kind = kind,
+                        onAccept = {
+                            viewModel.dismissIncomingCall()
+                            viewModel.setCallActive(true)
+                        },
+                        onDecline = viewModel::dismissIncomingCall,
                     )
                 }
+
+                // 与「对话」页一致：错误必须看得见，否则用户不知道是没发出去还是没回复。
+                state.error?.let { message ->
+                    ErrorBar(message = message, onDismiss = viewModel::clearError)
+                }
+
+                CompanionComposer(
+                    input = state.input,
+                    canSend = state.canSend,
+                    output = state.output,
+                    callActive = state.callActive,
+                    onInputChange = viewModel::onInputChange,
+                    onSend = viewModel::send,
+                    onToggleOutput = viewModel::toggleOutput,
+                    onOpenCall = onOpenCall,
+                )
             }
         }
     }
 }
 
 @Composable
-private fun MessageBubble(
-    message: CompanionMessage,
-    onConfirm: (String) -> Unit,
-    onCancel: (String) -> Unit,
+private fun CompanionTopBar(
+    title: String,
+    avatarState: String,
+    expanded: Boolean,
+    onMenuClick: (() -> Unit)?,
+    onToggleAvatar: () -> Unit,
+    onCharacters: () -> Unit,
+    onProfile: () -> Unit,
 ) {
-    val mine = message.role == MessageRole.USER
-    val proactive = message.proactive != ProactiveKind.REPLY
-    Column(modifier = Modifier.fillMaxWidth()) {
-        // 主动消息加一个前缀标签：用户得一眼看出没人跟她说话，是她自己开口的。
-        if (proactive) {
-            Text(
-                text = stringResource(
-                    when (message.proactive) {
-                        ProactiveKind.EVENT -> R.string.companion_proactive_event
-                        ProactiveKind.GREETING -> R.string.companion_proactive_greeting
-                        else -> R.string.companion_proactive_generic
-                    }
-                ),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(start = 4.dp, bottom = 2.dp),
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        // 抽屉入口：与「对话」页同一个手势位置，切换页面时不用重新学。
+        if (onMenuClick != null) {
+            IconButton(onClick = onMenuClick) {
+                Icon(
+                    imageVector = Icons.Filled.KeyboardArrowDown,
+                    contentDescription = stringResource(R.string.companion_nav_back),
+                )
+            }
+        }
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(start = if (onMenuClick == null) 12.dp else 0.dp),
+        )
+        Spacer(Modifier.weight(1f))
+        IconButton(onClick = onToggleAvatar) {
+            Icon(
+                imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                contentDescription = if (expanded) "收起形象" else "展开形象",
             )
+        }
+        IconButton(onClick = onCharacters) {
+            Icon(
+                imageVector = Icons.Filled.Phone,
+                contentDescription = stringResource(R.string.companion_open_characters),
+                modifier = Modifier.alpha(0.85f),
+            )
+        }
+        IconButton(onClick = onProfile) {
+            Icon(
+                imageVector = Icons.Filled.KeyboardArrowUp,
+                contentDescription = stringResource(R.string.companion_open_settings),
+            )
+        }
+    }
+}
+
+@Composable
+private fun CompanionAvatar(emoji: String, active: Boolean) {
+    // 头像先做一个圆形字标：真实形象是 SimpleAvatar 那套素材，消息列表里放不下也读不清，
+    // 这里只承担"是谁在说话"的识别功能。
+    val alpha = if (active) 1f else 0.9f
+    Box(
+        modifier = Modifier
+            .size(28.dp)
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f * alpha)),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = emoji,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.primary,
+        )
+    }
+}
+
+/** 「对方正在输入…」：三个点依次跳动。 */
+@Composable
+private fun TypingHint() {
+    val transition = rememberInfiniteTransition(label = "typing")
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 40.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = "对方正在输入",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        repeat(3) { index ->
+            val dotAlpha by transition.animateFloat(
+                initialValue = 0.25f,
+                targetValue = 1f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(durationMillis = 600, delayMillis = index * 160),
+                    repeatMode = RepeatMode.Reverse,
+                ),
+                label = "dot$index",
+            )
+            Text(
+                text = ".",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = dotAlpha),
+            )
+        }
+    }
+}
+
+@Composable
+private fun ErrorBar(message: String, onDismiss: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 4.dp)
+            .background(MaterialTheme.colorScheme.error.copy(alpha = 0.08f), RoundedCornerShape(10.dp))
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = message,
+            color = MaterialTheme.colorScheme.error,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.weight(1f),
+        )
+        TextButton(onClick = onDismiss, contentPadding = PaddingValues(horizontal = 8.dp)) {
+            Text("关闭", style = MaterialTheme.typography.labelMedium)
+        }
+    }
+}
+
+/**
+ * 输入区。
+ *
+ * 与「对话」页同样的输入框 + 发送；额外两个只属于陪伴页的入口：
+ * - 语音输出开关（扬声器图标）：她回语音条 + 文字，而不是只回文字；
+ * - 通话按钮：进全屏通话页。
+ * 旧版那个「文字 / 语音」分段按钮已删除——它切的是传输路径，用户看不出区别。
+ */
+@Composable
+private fun CompanionComposer(
+    input: String,
+    canSend: Boolean,
+    output: CompanionOutput,
+    callActive: Boolean,
+    onInputChange: (String) -> Unit,
+    onSend: () -> Unit,
+    onToggleOutput: () -> Unit,
+    onOpenCall: () -> Unit,
+) {
+    Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            OutlinedTextField(
+                value = input,
+                onValueChange = onInputChange,
+                modifier = Modifier.weight(1f),
+                placeholder = { Text(stringResource(R.string.companion_input_hint)) },
+                maxLines = 4,
+                shape = RoundedCornerShape(20.dp),
+            )
+            IconButton(onClick = onSend, enabled = canSend) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.Send,
+                    contentDescription = stringResource(R.string.companion_send),
+                )
+            }
         }
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = if (mine) Arrangement.End else Arrangement.Start,
+            modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
+            // 语音输出：开=她会用语音回答（同时给文字），关=只回文字。
+            IconButton(onClick = onToggleOutput) {
+                Icon(
+                    imageVector = if (output == CompanionOutput.VOICE) Icons.Filled.VolumeUp else Icons.Filled.VolumeOff,
+                    contentDescription = if (output == CompanionOutput.VOICE) "语音回答：开" else "语音回答：关",
+                    tint = if (output == CompanionOutput.VOICE) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                )
+            }
             Text(
-                // 流式消息末尾加光标，让「还在生成」可见。
-                text = if (message.streaming) message.text + "▍" else message.text,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(
-                        when {
-                            mine -> MaterialTheme.colorScheme.primaryContainer
-                            proactive -> MaterialTheme.colorScheme.secondaryContainer
-                            else -> MaterialTheme.colorScheme.surfaceVariant
-                        }
-                    )
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                style = MaterialTheme.typography.bodyMedium,
+                text = if (output == CompanionOutput.VOICE) "语音回答" else "文字回答",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-        }
-
-        // 待确认动作：必须给用户一个明确的出口，否则她会替用户做了不该做的事。
-        message.confirmationId?.let { id ->
-            Row(
-                modifier = Modifier.padding(top = 4.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                TextButton(onClick = { onConfirm(id) }) {
-                    Text(stringResource(R.string.companion_action_confirm))
-                }
-                TextButton(onClick = { onCancel(id) }) {
-                    Text(stringResource(R.string.companion_action_cancel))
-                }
+            Spacer(Modifier.weight(1f))
+            TextButton(onClick = onOpenCall, enabled = !callActive) {
+                Icon(
+                    imageVector = Icons.Filled.Phone,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                )
+                Spacer(Modifier.size(4.dp))
+                Text("通话", style = MaterialTheme.typography.labelMedium)
             }
         }
     }
@@ -240,9 +416,7 @@ private fun IncomingCallBanner(
 ) {
     Surface(
         color = MaterialTheme.colorScheme.secondaryContainer,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
         shape = RoundedCornerShape(12.dp),
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
@@ -252,35 +426,33 @@ private fun IncomingCallBanner(
             )
             Spacer(Modifier.height(8.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                TextButton(onClick = onAccept) {
-                    Text(stringResource(R.string.companion_call_accept))
-                }
-                TextButton(onClick = onDecline) {
-                    Text(stringResource(R.string.companion_call_decline))
-                }
+                TextButton(onClick = onAccept) { Text(stringResource(R.string.companion_call_accept)) }
+                TextButton(onClick = onDecline) { Text(stringResource(R.string.companion_call_decline)) }
             }
         }
     }
 }
 
-@Composable
-private fun ModeToggle(mode: CompanionMode, onToggle: () -> Unit) {
-    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-        SegmentedButton(
-            selected = mode == CompanionMode.TEXT,
-            onClick = { if (mode != CompanionMode.TEXT) onToggle() },
-            shape = SegmentedButtonDefaults.itemShape(0, 2),
-        ) { Text(stringResource(R.string.companion_mode_text)) }
-        SegmentedButton(
-            selected = mode == CompanionMode.VOICE,
-            onClick = { if (mode != CompanionMode.VOICE) onToggle() },
-            shape = SegmentedButtonDefaults.itemShape(1, 2),
-        ) { Text(stringResource(R.string.companion_mode_voice)) }
-    }
+/**
+ * 陪伴页消息 → chatkit 的 UI 模型。
+ *
+ * 不需要映射附件/语音：陪伴页的消息只有文字（语音条要等服务端在事件里带上分句与时长）。
+ * 主动消息与待确认动作在 chatkit 里没有对应形态，这里先按普通助手消息渲染，
+ * 待确认的按钮由列表下方的独立区域处理（见 CompanionScreen 里的 confirmation 分支）。
+ */
+private fun companionItems(messages: List<CompanionMessage>): List<ChatItem> = messages.mapIndexed { index, m ->
+    ChatItem(
+        id = "c$index",
+        key = "c$index",
+        sender = if (m.role == MessageRole.USER) Sender.User else Sender.Assistant,
+        parts = listOf(MessagePart.Text(m.text)).filter { m.text.isNotEmpty() },
+        // 空文本 + 还在流式 = 她在思考：交给 chatkit 的 thinking 显示跳动点
+        thinking = m.streaming && m.text.isEmpty(),
+        streaming = m.streaming && m.text.isNotEmpty(),
+    )
 }
 
 private fun buildAvatarSync(context: android.content.Context): com.openapi.ks.myapp.avatar.AvatarSync {
-    // 版本号用来让服务端过滤「需要更新的客户端才能用」的形象；取不到当作 0（只拿不限版本的）。
     @Suppress("DEPRECATION")
     val version = runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionCode }
         .getOrDefault(0)
