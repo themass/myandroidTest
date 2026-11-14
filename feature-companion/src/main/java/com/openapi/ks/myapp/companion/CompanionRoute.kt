@@ -190,33 +190,6 @@ fun CompanionRoute(
     }
 }
 
-@Composable
-private fun TopActions(
-    onCharacters: () -> Unit,
-    onMemory: () -> Unit,
-    onSettings: () -> Unit,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            stringResource(R.string.companion_title),
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(start = 8.dp).weight(1f),
-        )
-        IconButton(onClick = onCharacters) {
-            Icon(Icons.Filled.Person, contentDescription = stringResource(R.string.companion_open_characters))
-        }
-        IconButton(onClick = onMemory) {
-            Icon(Icons.AutoMirrored.Filled.List, contentDescription = stringResource(R.string.companion_open_memory))
-        }
-        IconButton(onClick = onSettings) {
-            Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.companion_open_settings))
-        }
-    }
-}
-
 object CompanionConfig {
     /** 服务端与主站同一网关，路径由 HttpCompanionApi 拼上 /companion/... 前缀。 */
     val baseUrl: String get() = "https://${Constants.BASE_IP}"
