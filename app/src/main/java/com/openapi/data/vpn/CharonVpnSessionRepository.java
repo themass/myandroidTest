@@ -180,6 +180,8 @@ public final class CharonVpnSessionRepository implements VpnSessionRepository {
 
     @Override
     public boolean connect(@NonNull TunnelProtocol protocol, @NonNull TunnelRequest request) {
+        // 用户主动连接：记下时机，插屏闸门会在随后一段时间内拒绝全屏广告
+        com.openapi.myapp.data.AdGate.noteVpnAction();
         TunnelEngine engine = registry.find(protocol);
         if (engine == null || !engine.isAvailable()) {
             LogUtil.e(TAG + ": 协议不可用: " + protocol);
@@ -264,6 +266,8 @@ public final class CharonVpnSessionRepository implements VpnSessionRepository {
 
     @Override
     public boolean disconnect() {
+        // 用户主动断开：与连接同样记时机（见 AdGate，连接/断开后都进入插屏静默期）
+        com.openapi.myapp.data.AdGate.noteVpnAction();
         userInitiatedDisconnect = true;
         proxyFallback = null;
         cancelPendingRetry();

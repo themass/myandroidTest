@@ -158,8 +158,18 @@ public class AdsContext {
     public static Categrey getNext(){
         return AdsContext.Categrey.values()[(index++)%2];
     }
+    /**
+     * 随机插屏。所有页面的插屏都应走这里，不要直接调 {@code AdsManager.showInterstitialAds}。
+     * <p>
+     * 两道闸门：先过 {@link AdGate}（时机：VPN 操作后静默期、两次插屏最小间隔），
+     * 再过 {@link #rateShow()}（概率与次数上限）。顺序不能反——时机不合适时连概率都不必抽。
+     */
     public static void showRand(Context context, AdsContext.Categrey cate){
+        if (!com.openapi.myapp.data.AdGate.allowInterstitial()) {
+            return;
+        }
         if(AdsContext.rateShow()) {
+            com.openapi.myapp.data.AdGate.noteInterstitialShown();
             AdsManager.getInstans().showInterstitialAds(context, AdsContext.Categrey.CATEGREY_VPN, false, AdsFrom.ADMOB, 1);
         }
     }

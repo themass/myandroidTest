@@ -54,3 +54,6 @@ scripts/regression/tools/httpcheck/classes.dex
 keystore.properties
 *.jks
 *.keystore
+
+# 截图原始抓图（含设备状态栏/其他 App 图标），只提交处理后的成品
+docs/screenshots/raw/

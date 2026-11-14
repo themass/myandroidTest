@@ -90,6 +90,12 @@ public class MainFragmentViewPage extends BaseDrawerActivity implements Activity
 //        if(!admobRewardManger.next()) {
 //            AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN1, false,AdsContext.AdsFrom.ADMOB,1);
 //        }
+        // 激励广告拉不到时的降级插屏。必须过 AdGate：这条路径触发点离首页连接按钮很近，
+        // 不过闸门会在用户刚连上/刚断开时弹全屏广告。
+        if (!com.openapi.myapp.data.AdGate.allowInterstitial()) {
+            return;
+        }
+        com.openapi.myapp.data.AdGate.noteInterstitialShown();
         AdsManager.getInstans().showInterstitialAds(this, AdsContext.Categrey.CATEGREY_VPN1, false,AdsContext.AdsFrom.ADMOB,1);
 
     }

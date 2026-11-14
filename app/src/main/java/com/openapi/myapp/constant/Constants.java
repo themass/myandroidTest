@@ -113,11 +113,18 @@ public class Constants {
     /**
      * 隐私政策。
      * <p>
-     * 原来指向的是另一个产品（kimi，AI 聊天助手）的政策页——内容和本应用完全不符，
-     * Play 审核会按"政策与实际行为不一致"直接拒。正文见 docs/PRIVACY-POLICY.md，
-     * 上架前必须发布到这个地址并保持 HTTPS。
+     * 这个地址必须是"内容真的属于本应用"的页面。历史上踩过两次：
+     * <ol>
+     *   <li>最初指向 kimi（AI 聊天助手）的政策页；</li>
+     *   <li>改到 www.ok123find.top 后，实际落到 WordPress 博客首页
+     *       （ok123find.top 的 443 是 WordPress 站点，privacy.html 不存在，
+     *       被 try_files 兜底到 index.php）。</li>
+     * </ol>
+     * 两次都会被 Play 按"政策与实际行为不一致"直接拒。现在放在 file.ok123find.top，
+     * 该域名由 nginx 的 /file/ alias 提供静态文件，页面正文见
+     * myconf/web/html/shieldwing-privacy.html（与 docs/PRIVACY-POLICY.md 同源）。
      */
-    public static final String PRIVACY_URL = "https://www.ok123find.top/privacy.html";
+    public static final String PRIVACY_URL = "https://file.ok123find.top/privacy.html";
     public static final String API_FINDPASS_URL = "/user/findpass.json";
     public static final String API_RESETPASS_URL = "/user/resetpass.json";
     public static final String API_CHANGEPASS_URL = "/user/changepass.json";
@@ -126,8 +133,14 @@ public class Constants {
      * 请求体：{ name, pwd }，密码用于二次确认。服务端会真正删除用户行与其节点。
      */
     public static final String API_DEL_ACCOUNT_URL = "/user/del.json";
-    /** Play 要求同时提供网页删除请求入口（可在不安装 App 的情况下申请删除）。 */
-    public static final String ACCOUNT_DELETE_WEB_URL = "https://www.ok123find.top/account-delete.html";
+    /**
+     * Play 要求同时提供网页删除请求入口（可在不安装 App 的情况下申请删除）。
+     * <p>
+     * 必须指向 file.ok123find.top：www.ok123find.top 是 WordPress 站点，
+     * /account-delete.html 在那里不存在，会被兜底到博客首页。
+     * 页面正文见 myconf/web/html/account-delete.html。
+     */
+    public static final String ACCOUNT_DELETE_WEB_URL = "https://file.ok123find.top/account-delete.html";
     public static final String API_USER_INFO_URL = "/user/info.json";
 
     public static final String API_IWANNA_URL = "/data/feed/wanna.json?start=%s&limit=30";
