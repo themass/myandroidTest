@@ -52,6 +52,7 @@
     <string name="session_menu_more">更多</string>
     <string name="talktome_unavailable">Voice call is currently unavailable</string>
     <string name="ui_cancel">取消</string>
+    <string name="ui_close">关闭</string>
     <string name="ui_copied">已复制</string>
     <string name="ui_create">创建</string>
     <string name="ui_current_role">当前角色</string>

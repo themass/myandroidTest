@@ -135,14 +135,24 @@ internal class ChatStreamClient(
         call.enqueue(object : okhttp3.Callback {
             override fun onFailure(call: okhttp3.Call, e: java.io.IOException) {
                 LogUtil.e(e)
-                trySend(ChatStreamEvent.Error(e.message ?: "网络请求失败"))
+                // message 可能为空：带上异常类型，否则界面上只剩一句"网络请求失败"
+                val reason = e.message?.takeIf { it.isNotBlank() }
+                trySend(ChatStreamEvent.Error(
+                    if (reason == null) "网络请求失败（${e.javaClass.simpleName}）" else "网络请求失败：$reason"
+                ))
                 close()
             }
 
             override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
                 response.use { resp ->
                     if (!resp.isSuccessful) {
-                        trySend(ChatStreamEvent.Error("HTTP ${resp.code}"))
+                        // 服务端错误体是 JSON（{"errno":10000,"error":"..."}）或一段 HTML。
+                        // 只报 "HTTP 500" 对定位没用——要把原文带上，但截断，避免整页 HTML 灌进界面。
+                        val detail = runCatching { resp.body?.string() }.getOrNull()
+                            ?.trim()?.takeIf { it.isNotEmpty() }?.take(200)
+                        trySend(ChatStreamEvent.Error(
+                            if (detail == null) "HTTP ${resp.code}" else "HTTP ${resp.code}：$detail"
+                        ))
                         close()
                         return
                     }
@@ -160,7 +170,11 @@ internal class ChatStreamClient(
                             if (line.startsWith("{")) {
                                 val body = runCatching { JSONObject(line) }.getOrNull()
                                 if (body != null && body.optInt("errno", 0) != 0) {
-                                    trySend(ChatStreamEvent.Error(body.optString("error", "").ifBlank { "服务器错误 ${body.optInt("errno")}" }))
+                                    // errno 一定要带上：服务端在登录态失效时回的是
+                                    // {"errno":10000,"error":"System error，please try again"}，
+                                    // 只留 error 字段就分不清是"登录过期"还是"服务端炸了"。
+                                    val errno = body.optInt("errno")
+                                    trySend(ChatStreamEvent.Error("$errno：${body.optString("error", "").ifBlank { "服务器错误" }}"))
                                     close()
                                     return
                                 }

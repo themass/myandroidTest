@@ -235,6 +235,7 @@ fun ChatRoute(
             onRenameSession = viewModel::onRenameSession,
             onLoadOlder = viewModel::onLoadOlderMessages,
             onMenuClick = onMenuClick,
+            onDismissError = viewModel::dismissError,
             // 顶部不处理：顶栏（RoleHeader）用品牌色画到状态栏底下，自己用 statusBarsPadding 避开状态栏图标
             modifier = modifier.windowInsetsPadding(
                 WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom),

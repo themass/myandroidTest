@@ -1,5 +1,9 @@
 package com.openapi.feature.chat.presentation.ui
 
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
@@ -105,6 +109,8 @@ fun ChatScreen(
     onRenameSession: (Long, String) -> Unit,
     onLoadOlder: () -> Unit,
     onMenuClick: (() -> Unit)?,
+    /** 关掉错误条。错误信息本身来自 ViewModel，界面只负责显示与关闭。 */
+    onDismissError: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val playback by AudioPlayer.state.collectAsState()
@@ -218,6 +224,13 @@ fun ChatScreen(
                     onCancel = selection::cancel,
                 )
             }
+            // 错误条必须真的渲染出来。`ChatUiState.error` 一直有字段、也一直被各个 Action 写入，
+            // 但界面上从来没有渲染过它，于是「发送失败」在用户看来就是消息凭空消失——
+            // 既看不到 HTTP 码，也不知道是登录态过期还是网络问题。放在输入框上方，
+            // 这样它不会盖住消息，也不会被键盘顶走。
+            state.error?.let { message ->
+                ChatErrorBar(message = message, onDismiss = onDismissError)
+            }
             if (!selection.active) {
             ChatComposer(
                 state = composerState.copy(voiceLevel = voiceLevel),
@@ -312,5 +325,35 @@ fun ChatScreen(
                 feedbackTarget = null
             },
         )
+    }
+}
+
+/**
+ * 失败提示条：把 ViewModel 里那条错误的**原文**显示出来，而不是一句「请重试」。
+ *
+ * 为什么必须有它：`state.error` 以前只被写入、从未渲染。发送失败时用户看到的只是
+ * 「消息没发出去、回复也没来」，无法判断是登录态过期、网络断了、还是服务端 5xx——
+ * 这也是「chat 发消息失败概率很高、但不知道哪失败」查不动的原因。
+ * 现在服务端返回的 errno/HTTP 码会原样出现在这里。
+ */
+@Composable
+private fun ChatErrorBar(message: String, onDismiss: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 6.dp)
+            .background(AppColors.Error.copy(alpha = 0.08f), RoundedCornerShape(10.dp))
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = message,
+            color = AppColors.Error,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.weight(1f),
+        )
+        TextButton(onClick = onDismiss, contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp)) {
+            Text(stringResource(R.string.ui_close), color = AppColors.Error, style = MaterialTheme.typography.labelMedium)
+        }
     }
 }
