@@ -29,8 +29,19 @@ public final class ApiHost {
 
     /** 主域名。 */
     public static final String PRIMARY = "api.ok123find.top";
-    /** 备域名。需要配好 A 记录与证书后才会真正生效。 */
+    /**
+     * 备域名。它是新注册的，暂时只有 HTTP，还没有证书。
+     * <p>
+     * 用 HTTP 是有代价的：登录口令、token 在这条路上是明文。所以只在主域名连不上时
+     * 才降级过来，主域名恢复后会自动切回去；等备域名配好证书，把 SCHEME_BACKUP 改成
+     * "https" 即可，不需要改客户端逻辑。
+     */
     public static final String BACKUP = "api.ok124find.top";
+
+    /** 主域名走 HTTPS（证书含 api.ok123find.top）。 */
+    public static final String SCHEME_PRIMARY = "https";
+    /** 备域名暂时只支持 HTTP。 */
+    public static final String SCHEME_BACKUP = "http";
 
     /** 最近一次成功使用的主机名。为空表示还没发生过切换，用 PRIMARY。 */
     private static final String KEY_ACTIVE_HOST = "API_ACTIVE_HOST";
@@ -53,6 +64,21 @@ public final class ApiHost {
             }
         }
         return v;
+    }
+
+    /** 给定主机名对应的 scheme。未知主机返回 https（保守，不主动降级）。 */
+    public static String schemeFor(String host) {
+        return BACKUP.equals(host) ? SCHEME_BACKUP : SCHEME_PRIMARY;
+    }
+
+    /** 当前主机的 scheme。 */
+    public static String currentScheme() {
+        return schemeFor(current());
+    }
+
+    /** 当前主机上 API 的端口：http 是 80，https 是 443。 */
+    public static int currentPort() {
+        return "http".equals(currentScheme()) ? 80 : 443;
     }
 
     /**
@@ -83,16 +109,27 @@ public final class ApiHost {
      * 只在两个已知主机之间切换，绝不碰第三方域名（广告、IP 查询等）。
      * 用{@link #hostOf} 精确比对主机名，而不是 {@code url.contains(...)}：
      * 后者会把 {@code api.ok123find.top.example.com} 这种相似域名当成自家域名。
+     * <p>
+     * <b>协议也要一起换。</b>两个域名的能力不一样：主域名有证书走 https，备域名暂时
+     * 只有 http。如果只替换主机名而沿用原 scheme，从主切到备会得到一个
+     * {@code https://api.ok124find.top} —— 那是自找的 TLS 握手失败，切换永远不会成功。
      */
     public static String failoverUrl(String url) {
         String host = hostOf(url);
         if (host == null) {
             return null;
         }
-        // 只替换第一次出现，且必须落在主机名位置上——
-        // hostOf 已经保证主机名精确匹配，这里直接替换即可。
-        return url.replaceFirst(java.util.regex.Pattern.quote(host),
-                PRIMARY.equals(host) ? BACKUP : PRIMARY);
+        String target = PRIMARY.equals(host) ? BACKUP : PRIMARY;
+        String scheme = schemeFor(target);
+        // 替换主机名后，再把 scheme 换掉。hostOf 保证 host 是精确匹配，
+        // 所以第一次出现就是主机名位置，不会误伤路径里的同名字符串。
+        String swapped = url.replaceFirst(java.util.regex.Pattern.quote(host),
+                java.util.regex.Matcher.quoteReplacement(target));
+        int idx = swapped.indexOf("://");
+        if (idx > 0) {
+            swapped = scheme + swapped.substring(idx);
+        }
+        return swapped;
     }
 
     /**

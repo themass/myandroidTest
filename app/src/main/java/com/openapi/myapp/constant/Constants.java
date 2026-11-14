@@ -230,9 +230,22 @@ public class Constants {
     public static int NULL_VIEW = -1;
     public static List<String> colorBg = Arrays.asList("#552d5d82", "#55135689", "#552292e9", "#5583878b", "#7f8d8f45", "#ffc49924", "#ff83713f", "#ff569b2b", "#ff882b9b");
 
-    /** API 主地址走 HTTPS（AdMob 服务端验证要求，且登录口令不能明文传输）。 */
+    /**
+     * API 基础地址。
+     * <p>
+     * 不要直接拼 "https://" + BASE_IP：备域名 api.ok124find.top 目前只有 HTTP，
+     * 硬拼 https 会让故障切换在 TLS 握手阶段就失败，等于切换从来没生效过。
+     * 协议跟着主机走，见 {@link com.openapi.myapp.data.ApiHost#schemeFor(String)}。
+     * <p>
+     * 第 34 行的 {@code BASE_IP} 保留给只关心"主机名"的地方（TunnelProbe 的 MTU 探测），
+     * 真正发请求一律走这里。
+     */
     public static String getUrl(String uri) {
-        return "https://" + BASE_IP + "/vvv/api" + uri;
+        return com.openapi.myapp.data.ApiHost.currentScheme()
+                + "://"
+                + com.openapi.myapp.data.ApiHost.current()
+                + "/vvv/api"
+                + uri;
     }
     // getUrlHost() 已移除：它固定走 http:// 且只打备用域名，是给旧的 domain.json 下发用的。
     // 域名切换现在在传输层完成（OkHttpStack + ApiHost），同一请求失败后自动换域名重发，

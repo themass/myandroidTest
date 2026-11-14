@@ -154,14 +154,19 @@ public final class TunnelProbe {
      * <p>
      * 为什么用自有机型而不只看响应体大小：接口只回 102 字节（之前误以为 6.5 KB，那是压缩后的原串），
      * 读不满大包，判定永远失败。而 TLS 握手里服务端的 Certificate 证书链通常有 3–5 KB，
-     * 对端会按 MSS 发满尺寸的 TCP 段——这本身就足以验证"隧道 MTU 大小的包能不能过"。
+     * 对端会按 MSS 发满尺寸的 TCP 段——本身就足以验证"隧道 MTU 大小的包能不能过"。
      * <p>
      * 为什么不用公共 anycast：跨境线路上 1.1.1.1 / 8.8.8.8 "TCP 通、TLS 不通"很常见，
      * 表现和 MTU 黑洞一模一样，会把好线路误判成需要降到 1280。自有域名不会。
+     * <p>
+     * 主机取 {@link com.openapi.myapp.data.ApiHost#current()} 而不是编译期常量：
+     * 切换到备域名后仍去探测主域名，会在主域名已挂的情况下把每条线路都误判成 MTU 异常。
      */
     private static Result probeLargePacket(@androidx.annotation.Nullable android.net.ConnectivityManager cm,
                                            java.util.function.BooleanSupplier alive) {
-        String host = com.openapi.myapp.constant.Constants.BASE_IP;
+        String host = com.openapi.myapp.data.ApiHost.current();
+        int port = com.openapi.myapp.data.ApiHost.currentPort();
+        boolean tls = "https".equals(com.openapi.myapp.data.ApiHost.currentScheme());
         if (host == null || host.isEmpty() || host.contains(":")) {
             return Result.OK;   // 域名带端口或异常时不作 MTU 判定
         }
@@ -173,11 +178,28 @@ public final class TunnelProbe {
         boolean tcpUp = false;
         try {
             java.net.Socket raw = vpn.getSocketFactory().createSocket();
-            raw.connect(new java.net.InetSocketAddress(host, 443), PROBE_CONNECT_TIMEOUT_MS);
+            raw.connect(new java.net.InetSocketAddress(host, port), PROBE_CONNECT_TIMEOUT_MS);
             tcpUp = true;
+            if (!tls) {
+                // 备域名只有 HTTP：没有证书链可看，用一次完整请求的响应体来撑大包。
+                // 拿不到大包时仍返回 OK —— 没有证据就不该把线路判成 MTU 异常。
+                raw.setSoTimeout(PROBE_IO_TIMEOUT_MS);
+                java.io.OutputStream out = raw.getOutputStream();
+                out.write(("GET /vvv/api/data/version.json HTTP/1.0\r\nHost: " + host
+                        + "\r\nConnection: close\r\n\r\n").getBytes("US-ASCII"));
+                out.flush();
+                byte[] buf = new byte[1400];
+                int total = 0;
+                java.io.InputStream in = raw.getInputStream();
+                int n;
+                while (total < 2048 && (n = in.read(buf)) > 0) {
+                    total += n;
+                }
+                return Result.OK;
+            }
             raw.setSoTimeout(PROBE_IO_TIMEOUT_MS);
             ssl = (javax.net.ssl.SSLSocket) ((javax.net.ssl.SSLSocketFactory)
-                    javax.net.ssl.SSLSocketFactory.getDefault()).createSocket(raw, host, 443, true);
+                    javax.net.ssl.SSLSocketFactory.getDefault()).createSocket(raw, host, port, true);
             ssl.startHandshake();
             return Result.OK;
         } catch (java.net.SocketTimeoutException e) {
@@ -203,7 +225,10 @@ public final class TunnelProbe {
      * 系统默认网络，隧道刚起来时可能仍走物理链路，测不出问题。
      */
     static boolean dnsReady(@androidx.annotation.NonNull android.net.Network vpn) {
-        String host = com.openapi.myapp.constant.Constants.BASE_IP;
+        // 与 probeLargePacket 一致：探测的是"当前实际在用的 API 主机"，
+        // 不是编译期常量。主域名挂了之后还在解析主域名，会让 dnsReady 永远为 false，
+        // 隧道被判定为没连上，而实际上备域名是通的。
+        String host = com.openapi.myapp.data.ApiHost.current();
         if (host == null || host.isEmpty() || host.contains(":")) {
             return true;    // 没有可验证的域名时不作为连通条件
         }

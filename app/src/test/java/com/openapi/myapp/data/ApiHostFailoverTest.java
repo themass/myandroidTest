@@ -18,15 +18,26 @@ public class ApiHostFailoverTest {
     private static final String BACKUP = ApiHost.BACKUP;
 
     @Test
-    public void primarySwitchesToBackup() {
+    public void primarySwitchesToBackupAndDropsToHttp() {
+        // 备域名暂时没有证书，切换时必须把 scheme 一起换成 http，
+        // 否则会得到一个 https://api.ok124find.top —— 自找 TLS 握手失败。
         String url = "https://" + PRIMARY + "/vvv/api/user/info.json";
-        assertEquals("https://" + BACKUP + "/vvv/api/user/info.json", ApiHost.failoverUrl(url));
+        assertEquals("http://" + BACKUP + "/vvv/api/user/info.json", ApiHost.failoverUrl(url));
     }
 
     @Test
-    public void backupSwitchesBackToPrimary() {
-        String url = "https://" + BACKUP + "/vvv/api/user/info.json";
+    public void backupSwitchesBackToPrimaryAndRestoresHttps() {
+        String url = "http://" + BACKUP + "/vvv/api/user/info.json";
         assertEquals("https://" + PRIMARY + "/vvv/api/user/info.json", ApiHost.failoverUrl(url));
+    }
+
+    /** scheme 与主机必须成对：主 https、备 http。 */
+    @Test
+    public void schemeFollowsHost() {
+        assertEquals("https", ApiHost.schemeFor(PRIMARY));
+        assertEquals("http", ApiHost.schemeFor(BACKUP));
+        // 未知主机不主动降级
+        assertEquals("https", ApiHost.schemeFor("api.example.com"));
     }
 
     /** 第三方域名必须原样返回 null，不能被当成本服务的域名改写。 */
