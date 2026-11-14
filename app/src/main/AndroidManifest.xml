@@ -125,6 +125,11 @@
             android:name="com.openapi.myapp.ui.account.PasswordActivity"
             android:theme="@style/AppTheme"
             android:screenOrientation="portrait" />
+        <!-- 账号注销：Play 强制要求应用内提供删除入口 -->
+        <activity
+            android:name="com.openapi.myapp.ui.account.DeleteAccountActivity"
+            android:theme="@style/AppTheme"
+            android:screenOrientation="portrait" />
         <activity
             android:name="com.openapi.myapp.ui.user.RegActivity"
             android:screenOrientation="portrait" />

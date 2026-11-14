@@ -1,4 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  明文流量白名单。
+
+  原来这里是 <base-config cleartextTrafficPermitted="true" />，等于对所有域名开了 HTTP。
+  Play 不因此直接拒审，但安全审计与用户都会追问"为什么 VPN 应用允许明文流量"，
+  而且一旦某次请求被降级到 HTTP，隧道里的内容就是明文。
+
+  现在只放行确实还没有 HTTPS 的几个域名（逐个核对过代码里仍在用的地址）：
+    - file.ok123find.top  隐私政策、关于页（静态页面，无用户数据）
+    - www.ok123find.top   官网跳转
+    - ip.chinaz.com       IP 归属地查询（仅 IP，无标识）
+    - pv.sohu.com         IP 归属地兜底
+    - www.geoplugin.net   出口 IP 地理位置兜底
+    - www.ywlx.net        广告 SDK 内置的兜底地址
+
+  ⚠️ 主 API 走的是 https://{BASE_IP}/vvv/api（见 Constants.getUrl），不需要在这里放行。
+  等这些域名配上证书后，把对应条目删掉即可，最终目标是把整个白名单清空。
+-->
 <network-security-config>
-    <base-config cleartextTrafficPermitted="true" />
+    <base-config cleartextTrafficPermitted="false" />
+
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">file.ok123find.top</domain>
+        <domain includeSubdomains="false">www.ok123find.top</domain>
+        <domain includeSubdomains="false">ip.chinaz.com</domain>
+        <domain includeSubdomains="false">pv.sohu.com</domain>
+        <domain includeSubdomains="false">www.geoplugin.net</domain>
+        <domain includeSubdomains="false">www.ywlx.net</domain>
+    </domain-config>
 </network-security-config>

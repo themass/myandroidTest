@@ -14,13 +14,17 @@ import com.openapi.common.util.LogUtil;
 
 public class AdmobAdsManager {
 
-    public static void init(Context context) {
+    /**
+     * 初始化 AdMob。在 SDK 初始化完成后再走 UMP 同意流程——
+     * UMP 需要 SDK 已就绪才能展示表单，顺序反了会拿到空配置。
+     */
+    public static void init(final Context context) {
         MobileAds.initialize(context, new OnInitializationCompleteListener() {
             @Override
             public void onInitializationComplete(InitializationStatus initializationStatus) {
                 LogUtil.i("AdmobAdsManager init- "+initializationStatus.getAdapterStatusMap());
+                com.openapi.yewu.ads.admob.AdConsent.requestIfNeeded(context);
             }
         });
-
     }
 }

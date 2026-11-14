@@ -48,3 +48,9 @@ app/.cxx/
 # 回归脚本输出（含设备日志，不入库）
 scripts/regression/runs/
 scripts/regression/tools/httpcheck/classes.dex
+
+# ---------- 签名与密钥 ----------
+# 上传密钥绝不能进版本库：一旦泄露，任何人都能以你的名义发布更新。
+keystore.properties
+*.jks
+*.keystore

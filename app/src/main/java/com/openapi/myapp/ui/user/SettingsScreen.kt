@@ -137,6 +137,9 @@ fun SettingsScreen(ui: SettingsUi, actions: SettingsActions) {
                 ValueRow(R.string.menu_btn_networking, ui.traffic) { actions.onRow("traffic") }
                 Divider()
                 ValueRow(R.string.setting_change_password, "") { actions.onRow("change_password") }
+                Divider()
+                // Play 强制要求：支持注册的应用必须在应用内提供账号删除入口
+                ValueRow(R.string.delete_account_row, "") { actions.onRow("delete_account") }
             }
 
             SettingsGroup(R.string.group_support) {

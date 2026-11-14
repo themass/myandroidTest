@@ -84,4 +84,6 @@
     <color name="white_translucent">#c8ffffff</color>
     <color name="song_red">#FF4081</color>
     <color name="song_select_title">#57b9c2</color>
+    <!-- 自适应图标背景：与首页深色底一致，避免启动器裁圆后露出白边 -->
+    <color name="ic_launcher_background">#1E1B26</color>
 </resources>

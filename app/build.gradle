@@ -9,7 +9,9 @@ apply plugin: 'org.greenrobot.greendao'
 android {
     namespace "com.openapi.ks.free1"
     compileSdk 37
-    ndkVersion "27.0.12077973"
+    // NDK r28+ 默认按 16 KB 页大小对齐输出（Play 对 64 位设备强制要求）。
+    // r27 及以下需要手工加 -Wl,-z,max-page-size=16384，容易漏。
+    ndkVersion "28.2.13676358"
     defaultConfig {
         applicationId "com.openapi.ks.free1"
         minSdk 28
@@ -165,6 +167,9 @@ dependencies {
     implementation 'com.google.android.material:material:1.14.0'
     // Compose：ProtonVPN 风格界面（与 XML 界面共存，设置里切换）
     implementation platform('androidx.compose:compose-bom:2025.10.00')
+    // 16 KB 页大小：graphics-path 1.0.1（BOM 间接引入）的 ELF 未做 16KB 对齐，
+    // 在 Android 15+ 的 64 位设备上会被 Play 判为不合格。1.1.0 已合规，显式提上来。
+    implementation 'androidx.graphics:graphics-path:1.1.0'
     implementation 'androidx.compose.ui:ui'
     implementation 'androidx.compose.material3:material3'
     implementation 'androidx.compose.ui:ui-tooling-preview'

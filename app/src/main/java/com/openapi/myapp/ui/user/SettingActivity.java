@@ -144,6 +144,14 @@ public class SettingActivity extends BaseSingleActivity {
             case "change_password":
                 onChangePassword();
                 break;
+            case "delete_account":
+                if (UserLoginUtil.getUserCache() == null) {
+                    ToastUtil.showShort(R.string.password_need_login);
+                    break;
+                }
+                startActivity(new Intent(this,
+                        com.openapi.myapp.ui.account.DeleteAccountActivity.class));
+                break;
             case "share":
                 showShare();
                 break;

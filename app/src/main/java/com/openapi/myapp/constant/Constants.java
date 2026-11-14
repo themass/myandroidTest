@@ -110,10 +110,24 @@ public class Constants {
     /** 隐私政策页面。 */
     /** 联系邮箱（关于 / 联系页）。 */
     public static final String SUPPORT_EMAIL = "justbegin010@gmail.com";
-    public static final String PRIVACY_URL = "http://file.ok123find.top/file/privacy-policy-kimi.html";
+    /**
+     * 隐私政策。
+     * <p>
+     * 原来指向的是另一个产品（kimi，AI 聊天助手）的政策页——内容和本应用完全不符，
+     * Play 审核会按"政策与实际行为不一致"直接拒。正文见 docs/PRIVACY-POLICY.md，
+     * 上架前必须发布到这个地址并保持 HTTPS。
+     */
+    public static final String PRIVACY_URL = "https://www.ok123find.top/privacy.html";
     public static final String API_FINDPASS_URL = "/user/findpass.json";
     public static final String API_RESETPASS_URL = "/user/resetpass.json";
     public static final String API_CHANGEPASS_URL = "/user/changepass.json";
+    /**
+     * 账号注销（Play 强制要求应用内提供删除入口）。
+     * 请求体：{ name, pwd }，密码用于二次确认。服务端会真正删除用户行与其节点。
+     */
+    public static final String API_DEL_ACCOUNT_URL = "/user/del.json";
+    /** Play 要求同时提供网页删除请求入口（可在不安装 App 的情况下申请删除）。 */
+    public static final String ACCOUNT_DELETE_WEB_URL = "https://www.ok123find.top/account-delete.html";
     public static final String API_USER_INFO_URL = "/user/info.json";
 
     public static final String API_IWANNA_URL = "/data/feed/wanna.json?start=%s&limit=30";

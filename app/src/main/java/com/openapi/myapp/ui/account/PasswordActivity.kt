@@ -165,11 +165,11 @@ class ChangeForm(
     @JvmField val rePwd: String,
 )
 
-private val PvBg = ComposeTheme.Background
-private val PvCard = ComposeTheme.Card
-private val PvText = ComposeTheme.TextPrimary
-private val PvTextSecondary = ComposeTheme.TextSecondary
-private val PvAccent = Color(0xFF6D4AFF)
+internal val PvBg = ComposeTheme.Background
+internal val PvCard = ComposeTheme.Card
+internal val PvText = ComposeTheme.TextPrimary
+internal val PvTextSecondary = ComposeTheme.TextSecondary
+internal val PvAccent = Color(0xFF6D4AFF)
 
 @Composable
 fun PasswordScreen(
@@ -298,10 +298,15 @@ private fun PvField(
 }
 
 @Composable
-private fun PvButton(text: String, busy: Boolean, onClick: () -> Unit) {
+internal fun PvButton(
+    text: String,
+    busy: Boolean,
+    enabled: Boolean = true,
+    onClick: () -> Unit,
+) {
     Button(
         onClick = onClick,
-        enabled = !busy,
+        enabled = !busy && enabled,
         modifier = Modifier.fillMaxWidth().height(52.dp),
         shape = RoundedCornerShape(12.dp),
         colors = ButtonDefaults.buttonColors(containerColor = PvAccent),

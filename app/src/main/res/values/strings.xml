@@ -489,4 +489,14 @@ The log is sent once, only after you agree, and is used solely for diagnosing bu
     <string name="upload_failed">Upload failed: %1$s</string>
     <string name="connect_timeout">Connection timed out</string>
     <string name="file_not_found">File not found</string>
+    <!-- 账号注销（Play 要求应用内必须提供） -->
+    <string name="delete_account_row">Delete account</string>
+    <string name="delete_account_title">Delete your account?</string>
+    <string name="delete_account_desc">This permanently deletes your account, your saved nodes and your sign-in data. Your usage history statistics are kept only in anonymised form. This cannot be undone.</string>
+    <string name="delete_account_confirm">Delete account</string>
+    <string name="delete_account_cancel">Cancel</string>
+    <string name="delete_account_password_hint">Enter your password to confirm</string>
+    <string name="delete_account_done">Your account has been deleted.</string>
+    <string name="delete_account_failed">Could not delete the account. Please try again.</string>
+    <string name="delete_account_web">Request deletion on the web</string>
 </resources>
