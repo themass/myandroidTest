@@ -28,6 +28,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.runtime.Composable
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.snapshotFlow
@@ -44,6 +46,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -70,6 +73,11 @@ import com.openapi.chatkit.model.SendStatus
 import com.openapi.chatkit.model.Sender
 import com.openapi.chatkit.theme.ChatKit
 
+/** 助手头像：比气泡窄一圈，不抢内容的视觉重量。 */
+private val AssistantAvatarSize = 28.dp
+/** 头像与气泡之间的间距。 */
+private val AssistantAvatarGap = 8.dp
+
 /**
  * 一条消息：内容 + footer（助手）。用户消息靠右，助手消息靠左；不显示头像。
  * 长按时把这一行在窗口里的位置交给 [onLongPress]，由列表弹出菜单。
@@ -91,6 +99,11 @@ fun ChatMessageItem(
     selectionActive: Boolean = false,
     /** 最后一条用户消息且后面没有回复时为 true：在「已发送」旁边显示「重新回答」。 */
     showAnswerAgain: Boolean = false,
+    /**
+     * 是否在这一行显示头像。由 [ChatMessageList] 按「连续同一发送者的第一条」计算，
+     * 否则每条消息头顶一个头像会把列表挤得很吵。用户消息永远不显示头像。
+     */
+    showAvatar: Boolean = false,
 ) {
     val dimens = ChatKit.dimens
     val isUser = item.sender == Sender.User
@@ -108,6 +121,20 @@ fun ChatMessageItem(
         horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start,
         verticalAlignment = Alignment.Top,
     ) {
+        // 头像只在助手侧、且是「连续同一发送者的第一条」时显示。
+        // 不显示的那些行留一个等宽空位，这样气泡的左边缘对齐，列表不会忽宽忽窄。
+        if (!isUser) {
+            Box(
+                modifier = Modifier
+                    .padding(end = AssistantAvatarGap)
+                    .size(AssistantAvatarSize),
+                contentAlignment = Alignment.TopCenter,
+            ) {
+                if (showAvatar) {
+                    Box(Modifier.size(AssistantAvatarSize).clip(CircleShape)) { avatar(item) }
+                }
+            }
+        }
         Column(
             modifier = Modifier.weight(1f, fill = false),
             horizontalAlignment = if (isUser) Alignment.End else Alignment.Start,

@@ -1,28 +1,5 @@
 package com.openapi.chatkit.message
 
-import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Archive
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.animation.expandHorizontally
-import androidx.compose.animation.shrinkHorizontally
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -39,12 +16,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.automirrored.outlined.VolumeUp
-import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.ThumbDown
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Refresh
-import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.ThumbDown
 import androidx.compose.material.icons.outlined.ThumbUp
 import androidx.compose.material3.Icon
@@ -64,10 +40,16 @@ import com.openapi.chatkit.model.Reaction
 import com.openapi.chatkit.model.SendStatus
 import com.openapi.chatkit.theme.ChatKit
 
-/** 助手 footer 的芯片：36dp 方块、圆角 11dp、间距 8dp；底色和图标色取自主题（chipBackground / chipIcon）。 */
+/** 助手 footer 的芯片：36dp 方块、圆角 11dp；底色和图标色取自主题（chipBackground / chipIcon）。 */
 private val AssistantChipSize = 36.dp
 private val AssistantChipRadius = 11.dp
-private val AssistantChipGap = 8.dp
+
+/**
+ * 芯片间距从 8dp 收到 6dp：平铺后一段回复最多同时有 5 个芯片（复制、朗读、赞、踩、删除），
+ * 5 × 36 + 4 × 6 = 204dp，加上气泡左右内边距约 228dp，320dp 宽的小屏上也排得下，
+ * 所以不再需要横向滚动或裁切。
+ */
+private val AssistantChipGap = 6.dp
 
 /**
  * 助手每条已完成回复的 footer：放在气泡卡片内部，正文下面一条分割线，分割线下一排浅蓝芯片。
@@ -80,42 +62,32 @@ fun AssistantFooter(
     modifier: Modifier = Modifier,
 ) {
     val hasText = item.plainText.isNotBlank()
-    // 收纳盒：默认只有一个小盒子；点它，按钮在一行里弹出；再点盒子，按钮收回（每条消息记住自己的状态）
-    var expanded by rememberSaveable(item.id) { mutableStateOf(false) }
     Column(modifier.padding(top = 11.dp)) {
         Box(Modifier.fillMaxWidth().height(1.dp).background(ChatKit.colors.divider))
         Spacer(Modifier.height(11.dp))
-        // 收纳盒：盒子在左边；点它，按钮从盒子右边横向一排展开；再点，收回到盒子里
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            BoxChip(expanded = expanded, description = stringResource(R.string.chatkit_more)) { expanded = !expanded }
-            AnimatedVisibility(
-                visible = expanded,
-                enter = expandHorizontally(expandFrom = Alignment.Start) + fadeIn(),
-                exit = shrinkHorizontally(shrinkTowards = Alignment.Start) + fadeOut(),
-            ) {
-                Row(
-                    modifier = Modifier.padding(start = AssistantChipGap).horizontalScroll(rememberScrollState()),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(AssistantChipGap),
-                ) {
-                    if (hasText) {
-                        AssistantChip(Icons.Outlined.ContentCopy, stringResource(R.string.chatkit_copy)) { onAction(MessageAction.Copy) }
-                        AssistantChip(
-                            icon = if (item.speaking) Icons.AutoMirrored.Filled.VolumeUp else Icons.AutoMirrored.Outlined.VolumeUp,
-                            description = stringResource(if (item.speaking) R.string.chatkit_speaking else R.string.chatkit_speak),
-                        ) { onAction(MessageAction.Speak) }
-                    }
-                    AssistantChip(
-                        icon = if (item.reaction == Reaction.Like) Icons.Filled.ThumbUp else Icons.Outlined.ThumbUp,
-                        description = stringResource(R.string.chatkit_like),
-                    ) { onAction(MessageAction.Like) }
-                    AssistantChip(
-                        icon = if (item.reaction == Reaction.Dislike) Icons.Filled.ThumbDown else Icons.Outlined.ThumbDown,
-                        description = stringResource(R.string.chatkit_dislike),
-                    ) { onAction(MessageAction.Dislike) }
-                    AssistantChip(Icons.Outlined.Delete, stringResource(R.string.chatkit_delete)) { onAction(MessageAction.Delete) }
-                }
+        // 平铺常驻：这些操作是回复的「主要出口」，收进收纳盒后要多点一次才看得见，
+        // 很多用户压根不会发现；一行排开、一眼可见更直接。顺序按使用频率从左到右。
+        // 不横向滚动也不裁切：间距已按最坏情况（5 个芯片）算过，见 [AssistantChipGap]。
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(AssistantChipGap),
+        ) {
+            if (hasText) {
+                AssistantChip(Icons.Outlined.ContentCopy, stringResource(R.string.chatkit_copy)) { onAction(MessageAction.Copy) }
+                AssistantChip(
+                    icon = if (item.speaking) Icons.AutoMirrored.Filled.VolumeUp else Icons.AutoMirrored.Outlined.VolumeUp,
+                    description = stringResource(if (item.speaking) R.string.chatkit_speaking else R.string.chatkit_speak),
+                ) { onAction(MessageAction.Speak) }
             }
+            AssistantChip(
+                icon = if (item.reaction == Reaction.Like) Icons.Filled.ThumbUp else Icons.Outlined.ThumbUp,
+                description = stringResource(R.string.chatkit_like),
+            ) { onAction(MessageAction.Like) }
+            AssistantChip(
+                icon = if (item.reaction == Reaction.Dislike) Icons.Filled.ThumbDown else Icons.Outlined.ThumbDown,
+                description = stringResource(R.string.chatkit_dislike),
+            ) { onAction(MessageAction.Dislike) }
+            AssistantChip(Icons.Outlined.Delete, stringResource(R.string.chatkit_delete)) { onAction(MessageAction.Delete) }
         }
     }
 }
@@ -195,48 +167,5 @@ internal fun SendStatusIndicator(status: SendStatus, onRetry: () -> Unit) {
             Spacer(Modifier.width(8.dp))
         }
         SendStatus.Sent -> Unit
-    }
-}
-
-/**
- * 收纳盒按钮：盒子图标 + 右上角一个小箭头。收起时箭头向右、一闪一闪（提示可以点开）；
- * 展开时箭头朝左（提示点一下收回去）。
- */
-@Composable
-private fun BoxChip(expanded: Boolean, description: String, onClick: () -> Unit) {
-    val pulse by rememberInfiniteTransition(label = "box-arrow").animateFloat(
-        initialValue = 0.2f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(animation = tween(durationMillis = 700), repeatMode = RepeatMode.Reverse),
-        label = "box-arrow-alpha",
-    )
-    Row(
-        modifier = Modifier.clickable(onClick = onClick),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box(
-            modifier = Modifier
-                .size(AssistantChipSize)
-                .clip(RoundedCornerShape(AssistantChipRadius))
-                .background(ChatKit.colors.chipBackground),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                Icons.Outlined.Archive,
-                contentDescription = description,
-                tint = ChatKit.colors.chipIcon,
-                modifier = Modifier.size(18.dp),
-            )
-        }
-        // 盒子右边独立的小箭头：收起时向右、闪烁（提示可以点开）；展开时向左（提示点一下收回）
-        Icon(
-            if (expanded) Icons.AutoMirrored.Filled.KeyboardArrowLeft else Icons.AutoMirrored.Filled.KeyboardArrowRight,
-            contentDescription = null,
-            tint = ChatKit.colors.chipIcon,
-            modifier = Modifier
-                .padding(start = 2.dp)
-                .size(18.dp)
-                .graphicsLayer { alpha = if (expanded) 1f else pulse },
-        )
     }
 }

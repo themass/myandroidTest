@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import kotlinx.coroutines.launch
@@ -150,9 +151,12 @@ fun ChatMessageList(
             contentPadding = PaddingValues(vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(ChatKit.dimens.messageSpacing),
         ) {
-            items(items, key = { it.key }) { item ->
+            itemsIndexed(items, key = { _, it -> it.key }) { index, item ->
                 // 多选时：可选的消息左侧有勾选圆点，整行点击切换选中；生成中的消息不能选
                 val selectable = !item.thinking && !item.streaming && item.id.isNotBlank()
+                // 连续同一发送者只在第一条显示头像：每行都顶一个头像会把列表挤得很吵，
+                // 而头像本身不携带"这是第几条"的信息。
+                val showAvatar = items.getOrNull(index - 1)?.sender != item.sender
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -168,6 +172,7 @@ fun ChatMessageList(
                         showSentLabel = item.id == latestUserId,
                         showAnswerAgain = item.id == latestUserId && last?.sender == Sender.User && !selection.active,
                         avatar = avatar,
+                        showAvatar = showAvatar,
                         text = text,
                         onAction = { action -> handleAction(item, action) },
                         onLongPress = { anchor -> if (!selection.active) menu = MenuTarget(item, anchor) },
