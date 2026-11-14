@@ -13,12 +13,11 @@
     - pv.sohu.com          IP 归属地兜底
     - www.geoplugin.net    出口 IP 地理位置兜底
     - www.ywlx.net         广告 SDK 内置的兜底地址
-    - api.ok124find.top    备用 API 域名（新注册，暂无证书）
 
-  ⚠️ 主 API 走 https://api.ok123find.top/vvv/api（见 Constants.getUrl），不需要在这里放行。
-  备域名 api.ok124find.top 必须在这里，否则主域名故障时切换过去的请求会被
-  系统直接拦掉（CleartextNotPermitted），切换功能等于没做。
-  等备域名配好证书、ApiHost.SCHEME_BACKUP 改成 https 之后，删掉这一行。
+  ⚠️ 两个 API 域名都不在这里：api.ok123find.top 与备域名 api.ok124find.top 都有
+  Let's Encrypt 证书（同一张证书的 SAN 里都有），一律走 HTTPS。
+  曾经为备域名临时开过明文，证书签下来之后已移除——VPN 应用批准文流量很容易
+  在审核阶段被追问。
 -->
 <network-security-config>
     <base-config cleartextTrafficPermitted="false" />
@@ -30,7 +29,5 @@
         <domain includeSubdomains="false">pv.sohu.com</domain>
         <domain includeSubdomains="false">www.geoplugin.net</domain>
         <domain includeSubdomains="false">www.ywlx.net</domain>
-        <!-- 备用 API 域名：主域名不可达时切换到这里，暂无证书只能走 HTTP -->
-        <domain includeSubdomains="false">api.ok124find.top</domain>
     </domain-config>
 </network-security-config>

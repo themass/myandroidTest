@@ -18,24 +18,24 @@ public class ApiHostFailoverTest {
     private static final String BACKUP = ApiHost.BACKUP;
 
     @Test
-    public void primarySwitchesToBackupAndDropsToHttp() {
-        // 备域名暂时没有证书，切换时必须把 scheme 一起换成 http，
-        // 否则会得到一个 https://api.ok124find.top —— 自找 TLS 握手失败。
+    public void primarySwitchesToBackup() {
+        // 备域名现在也有 Let's Encrypt 证书（SAN 含 api.ok124find.top），
+        // 切换后仍走 HTTPS，口令不会落到明文通道。
         String url = "https://" + PRIMARY + "/vvv/api/user/info.json";
-        assertEquals("http://" + BACKUP + "/vvv/api/user/info.json", ApiHost.failoverUrl(url));
+        assertEquals("https://" + BACKUP + "/vvv/api/user/info.json", ApiHost.failoverUrl(url));
     }
 
     @Test
-    public void backupSwitchesBackToPrimaryAndRestoresHttps() {
-        String url = "http://" + BACKUP + "/vvv/api/user/info.json";
+    public void backupSwitchesBackToPrimary() {
+        String url = "https://" + BACKUP + "/vvv/api/user/info.json";
         assertEquals("https://" + PRIMARY + "/vvv/api/user/info.json", ApiHost.failoverUrl(url));
     }
 
-    /** scheme 与主机必须成对：主 https、备 http。 */
+    /** 两个域名都必须走 HTTPS——备域名一旦降级成 http，登录口令就是明文。 */
     @Test
-    public void schemeFollowsHost() {
+    public void bothHostsUseHttps() {
         assertEquals("https", ApiHost.schemeFor(PRIMARY));
-        assertEquals("http", ApiHost.schemeFor(BACKUP));
+        assertEquals("https", ApiHost.schemeFor(BACKUP));
         // 未知主机不主动降级
         assertEquals("https", ApiHost.schemeFor("api.example.com"));
     }

@@ -40,8 +40,15 @@ public final class ApiHost {
 
     /** 主域名走 HTTPS（证书含 api.ok123find.top）。 */
     public static final String SCHEME_PRIMARY = "https";
-    /** 备域名暂时只支持 HTTP。 */
-    public static final String SCHEME_BACKUP = "http";
+    /**
+     * 备域名同样走 HTTPS。
+     * <p>
+     * 曾经一度只能走 HTTP（那时它还没有证书），现在 Let's Encrypt 证书已包含
+     * api.ok124find.top，没有理由再让登录口令走明文。两个域名协议一致之后，
+     * failoverUrl 里换协议那段逻辑实际上成了空操作，但保留着不影响正确性：
+     * 哪天需要再降级，只改这一个常量即可。
+     */
+    public static final String SCHEME_BACKUP = "https";
 
     /** 最近一次成功使用的主机名。为空表示还没发生过切换，用 PRIMARY。 */
     private static final String KEY_ACTIVE_HOST = "API_ACTIVE_HOST";
