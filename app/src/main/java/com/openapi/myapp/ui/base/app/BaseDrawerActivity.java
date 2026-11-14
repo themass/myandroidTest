@@ -15,7 +15,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.google.android.material.navigation.NavigationView;
-import com.openapi.common.util.CollectionUtils;
 import com.openapi.common.util.DateUtils;
 import com.openapi.common.util.LogUtil;
 import com.openapi.common.util.PreferenceUtils;
@@ -23,7 +22,6 @@ import com.openapi.myapp.bean.vo.InviteVo;
 import com.openapi.common.util.StringUtils;
 import com.openapi.common.util.SystemUtils;
 import com.openapi.common.util.ToastUtil;
-import com.openapi.myapp.bean.vo.DomainVo;
 import com.openapi.myapp.ui.fragment.DonationListFragment;
 import com.openapi.yewu.ads.base.AdsManager;
 import com.openapi.yewu.net.request.CommonResponse;
@@ -75,7 +73,6 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
     MenuItem miRecomm;
     BaseService baseService;
     MenuItem miDonation;
-    private final String DOAMIN_TAG="DOAMIN_TAG";
 
     public void login(View view) {
         startActivity(LoginActivity.class);
@@ -114,7 +111,6 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
         setUpVersion();
         setUpUserMenu();
         setUpLocation();
-        setUpDomain();
         setUpDonation();
     }
     private void setUpDonation(){
@@ -126,17 +122,14 @@ public class BaseDrawerActivity extends BaseToolBarActivity {
 //            miDonation.setVisible(false);
 //        }
     }
-    private void setUpDomain(){
-        baseService.getData(Constants.getUrlHost(Constants.API_DOMAIN_URL), new CommonResponse.ResponseOkListener<DomainVo>() {
-            @Override
-            public void onResponse(DomainVo vo) {
-                super.onResponse(vo);
-                if(vo!=null && !CollectionUtils.isEmpty(vo.dns)){
-                    Constants.BASE_IP = vo.dns.get(0);
-                }
-            }
-        }, null, DOAMIN_TAG, DomainVo.class);
-    }
+    /**
+     * 已移除 setUpDomain()。
+     * <p>
+     * 原来通过 {@code domain.json} 下发 API 域名，但那条链路有循环依赖：要拿到新域名，
+     * 得先能访问一个已知可用的域名。主域名被投毒/阻断时它本身不可达，等于没用；
+     * 实测该接口也一直返回空数组。故障切换现在改在传输层做（{@code OkHttpStack} +
+     * {@link com.openapi.myapp.data.ApiHost}），不依赖任何服务端下发。
+     */
     private void setUpLocation() {
         boolean flag = PreferenceUtils.getPrefBoolean(this, Constants.LOCATION_FLAG, false);
         if (!flag) {

@@ -207,8 +207,16 @@ public class Constants {
     public static final String ADMIN = "themass";
     public static final String CUSTOME_SORT = "CUSTOME_SORT";
     public static final String LOCATION_ICON_ALL ="timeline://img/flag_all.png";
-    public static String BASE_IP = "api.ok123find.top";
-    public static String BASE_IP_BAK = "api.faceopen.top";
+    /**
+     * API 主域名。
+     * <p>
+     * 这是编译进 APK 的字面量，主域名被封后无法在运行时改动。真正生效的故障切换在
+     * {@link com.openapi.myapp.data.ApiHost} + {@code OkHttpStack} 里：连接层失败时
+     * 自动改用 {@link #BASE_IP_BAK} 重发同一请求，并把可用主机落盘。
+     */
+    public static String BASE_IP = com.openapi.myapp.data.ApiHost.PRIMARY;
+    /** 备用域名。主域名连不上时由传输层自动切换过来。 */
+    public static String BASE_IP_BAK = com.openapi.myapp.data.ApiHost.BACKUP;
     public static String ABOUT_FIRST = "ABOUT_FbbIRST";
     public static String ABOUT = "http://file.ok123find.top/about.html";
 
@@ -226,10 +234,9 @@ public class Constants {
     public static String getUrl(String uri) {
         return "https://" + BASE_IP + "/vvv/api" + uri;
     }
-    /** 备用地址 api.faceopen.top 尚未配置 HTTPS，暂时保持 http，配好证书后再切。 */
-    public static String getUrlHost(String uri) {
-        return "http://" + BASE_IP_BAK + "/vvv/api" + uri;
-    }
+    // getUrlHost() 已移除：它固定走 http:// 且只打备用域名，是给旧的 domain.json 下发用的。
+    // 域名切换现在在传输层完成（OkHttpStack + ApiHost），同一请求失败后自动换域名重发，
+    // 不再需要单独一个"备用主机"的 URL 构造器。
     public static String getUrlWithParam(String url, Object... param) {
         return String.format(getUrl(url), param);
     }

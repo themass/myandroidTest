@@ -174,15 +174,75 @@ public class OkHttpStack extends BaseHttpStack {
     @Override
     public HttpResponse executeRequest(Request<?> request, Map<String, String> additionalHeaders)
             throws IOException, AuthFailureError {
-        okhttp3.Request.Builder okHttpRequestBuilder = new okhttp3.Request.Builder();
-        setConnectionParametersForRequest(okHttpRequestBuilder, request);
-        setHeaderForRequest(okHttpRequestBuilder, request, additionalHeaders);
-        okHttpRequestBuilder.url(request.getUrl());
-        okhttp3.Request okHttpRequest = okHttpRequestBuilder.build();
-        Call okHttpCall = mClient.newCall(okHttpRequest);
-        Response okHttpResponse = okHttpCall.execute();
+        String url = request.getUrl();
+        HttpResponse response = executeOnce(request, additionalHeaders, url);
+        if (response != null) {
+            com.openapi.myapp.data.ApiHost.markWorking(com.openapi.myapp.data.ApiHost.hostOf(url));
+            return response;
+        }
 
-        // 创建Volley的HttpResponse
-        return createVolleyResponse(okHttpResponse);
+        // 主域名不可达：换成备域名把同一个请求重发一次。
+        // 只重发一次，避免两个域名都挂时无谓地拖长用户等待。
+        String alt = com.openapi.myapp.data.ApiHost.failoverUrl(url);
+        if (alt == null) {
+            throw new IOException("request failed: " + url);
+        }
+        LogUtil.i("API failover: " + url + " -> " + alt);
+        HttpResponse retried = executeOnce(request, additionalHeaders, alt);
+        if (retried == null) {
+            throw new IOException("request failed on both hosts: " + url);
+        }
+        com.openapi.myapp.data.ApiHost.markWorking(com.openapi.myapp.data.ApiHost.hostOf(alt));
+        return retried;
+    }
+
+    /**
+     * 发一次请求。连接层失败时返回 null，交给调用方决定是否换域名重试；
+     * 其它异常照常抛出，避免把"服务端返回了错误"误判成"主机不可达"。
+     */
+    private HttpResponse executeOnce(Request<?> request, Map<String, String> additionalHeaders, String url)
+            throws AuthFailureError, IOException {
+        okhttp3.Request.Builder builder = new okhttp3.Request.Builder();
+        setConnectionParametersForRequest(builder, request);
+        setHeaderForRequest(builder, request, additionalHeaders);
+        builder.url(url);
+        okhttp3.Request okHttpRequest = builder.build();
+        Call okHttpCall = mClient.newCall(okHttpRequest);
+        try {
+            Response okHttpResponse = okHttpCall.execute();
+            return createVolleyResponse(okHttpResponse);
+        } catch (IOException e) {
+            if (isConnectFailure(e)) {
+                LogUtil.i("connect failed on " + url + ": " + e.getMessage());
+                return null;
+            }
+            throw e;
+        }
+    }
+
+    /**
+     * 是否为"连不上"类失败——只有这一类才值得换域名。
+     * <p>
+     * 刻意排除读超时之后的失败：那时请求可能已经被服务端处理，重发会造成重复操作
+     * （例如重复注销账号）。DNS 解析失败、TCP 连不上、TLS 握手失败都属于连接层，
+     * 请求还没送达业务逻辑，重发是安全的。
+     */
+    private static boolean isConnectFailure(IOException e) {
+        if (e instanceof java.net.UnknownHostException) {
+            return true;
+        }
+        if (e instanceof java.net.ConnectException) {
+            return true;
+        }
+        if (e instanceof javax.net.ssl.SSLException) {
+            return true;
+        }
+        if (e instanceof java.net.SocketTimeoutException) {
+            // 连接超时与读超时都是这个类型，靠 message 区分
+            String m = e.getMessage();
+            return m == null || m.toLowerCase(java.util.Locale.ROOT).contains("connect");
+        }
+        String m = e.getMessage();
+        return m != null && m.contains("Failed to connect");
     }
 }
