@@ -32,6 +32,7 @@
     <string name="companion_send">Send</string>
     <string name="companion_open_settings">Her initiative</string>
     <string name="companion_delete">Forget</string>
+    <string name="companion_copied">Copied</string>
     <string name="companion_proactive_greeting">Checking in</string>
     <string name="companion_pref_paused_until">Paused until %1$s</string>
     <string name="companion_characters_title">Choose a companion</string>

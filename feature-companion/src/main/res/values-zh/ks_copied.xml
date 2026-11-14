@@ -32,6 +32,7 @@
     <string name="companion_send">发送</string>
     <string name="companion_open_settings">她的主动性</string>
     <string name="companion_delete">忘掉</string>
+    <string name="companion_copied">已复制</string>
     <string name="companion_proactive_greeting">她来找你</string>
     <string name="companion_pref_paused_until">暂停至 %1$s</string>
     <string name="companion_characters_title">选择陪伴的角色</string>

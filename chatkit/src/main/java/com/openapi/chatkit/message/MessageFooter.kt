@@ -52,16 +52,36 @@ private val AssistantChipRadius = 11.dp
 private val AssistantChipGap = 6.dp
 
 /**
+ * 助手 footer 的默认芯片：有文字时「复制、朗读」，然后「赞、踩、删除」。
+ *
+ * 调用方可以只取其中一部分（见 [AssistantFooter] 的 `actions`）——比如陪伴页没有
+ * 评价接口，就不该摆一个点了也没用的「赞」。
+ */
+fun defaultAssistantFooterActions(item: ChatItem): List<MessageAction> = buildList {
+    if (item.plainText.isNotBlank()) {
+        add(MessageAction.Copy)
+        add(MessageAction.Speak)
+    }
+    add(MessageAction.Like)
+    add(MessageAction.Dislike)
+    add(MessageAction.Delete)
+}
+
+/**
  * 助手每条已完成回复的 footer：放在气泡卡片内部，正文下面一条分割线，分割线下一排浅蓝芯片。
- * 复制、朗读只在有文字时显示；赞、踩、删除总是显示。分享与重新生成在长按菜单里。
+ * 默认显示 [defaultAssistantFooterActions]；调用方可以用 `actions` 换成自己的集合与顺序。
+ * 分享与重新生成在长按菜单里。
  */
 @Composable
 fun AssistantFooter(
     item: ChatItem,
     onAction: (MessageAction) -> Unit,
     modifier: Modifier = Modifier,
+    /** 显示哪些芯片、按什么顺序。空集合时整个 footer 不画。 */
+    actions: List<MessageAction> = defaultAssistantFooterActions(item),
 ) {
-    val hasText = item.plainText.isNotBlank()
+    // 空集合时一个像素都不画：否则会留下一条只有分割线的空白条。
+    if (actions.isEmpty()) return
     Column(modifier.padding(top = 11.dp)) {
         Box(Modifier.fillMaxWidth().height(1.dp).background(ChatKit.colors.divider))
         Spacer(Modifier.height(11.dp))
@@ -72,22 +92,28 @@ fun AssistantFooter(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(AssistantChipGap),
         ) {
-            if (hasText) {
-                AssistantChip(Icons.Outlined.ContentCopy, stringResource(R.string.chatkit_copy)) { onAction(MessageAction.Copy) }
-                AssistantChip(
-                    icon = if (item.speaking) Icons.AutoMirrored.Filled.VolumeUp else Icons.AutoMirrored.Outlined.VolumeUp,
-                    description = stringResource(if (item.speaking) R.string.chatkit_speaking else R.string.chatkit_speak),
-                ) { onAction(MessageAction.Speak) }
+            actions.forEach { action ->
+                when (action) {
+                    MessageAction.Copy ->
+                        AssistantChip(Icons.Outlined.ContentCopy, stringResource(R.string.chatkit_copy)) { onAction(action) }
+                    MessageAction.Speak -> AssistantChip(
+                        icon = if (item.speaking) Icons.AutoMirrored.Filled.VolumeUp else Icons.AutoMirrored.Outlined.VolumeUp,
+                        description = stringResource(if (item.speaking) R.string.chatkit_speaking else R.string.chatkit_speak),
+                    ) { onAction(action) }
+                    MessageAction.Like -> AssistantChip(
+                        icon = if (item.reaction == Reaction.Like) Icons.Filled.ThumbUp else Icons.Outlined.ThumbUp,
+                        description = stringResource(R.string.chatkit_like),
+                    ) { onAction(action) }
+                    MessageAction.Dislike -> AssistantChip(
+                        icon = if (item.reaction == Reaction.Dislike) Icons.Filled.ThumbDown else Icons.Outlined.ThumbDown,
+                        description = stringResource(R.string.chatkit_dislike),
+                    ) { onAction(action) }
+                    MessageAction.Delete ->
+                        AssistantChip(Icons.Outlined.Delete, stringResource(R.string.chatkit_delete)) { onAction(action) }
+                    // 其余动作（重试、分享……）不在 footer 里，由长按菜单提供
+                    else -> Unit
+                }
             }
-            AssistantChip(
-                icon = if (item.reaction == Reaction.Like) Icons.Filled.ThumbUp else Icons.Outlined.ThumbUp,
-                description = stringResource(R.string.chatkit_like),
-            ) { onAction(MessageAction.Like) }
-            AssistantChip(
-                icon = if (item.reaction == Reaction.Dislike) Icons.Filled.ThumbDown else Icons.Outlined.ThumbDown,
-                description = stringResource(R.string.chatkit_dislike),
-            ) { onAction(MessageAction.Dislike) }
-            AssistantChip(Icons.Outlined.Delete, stringResource(R.string.chatkit_delete)) { onAction(MessageAction.Delete) }
         }
     }
 }

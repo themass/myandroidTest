@@ -33,6 +33,11 @@ data class CompanionMessage(
      * 没有"这句话多长"的边界；要真正支持语音条，需要服务端在事件里带上分句与时长。
      */
     val voiceSeconds: Int? = null,
+    /**
+     * 稳定标识，由 [CompanionViewModel] 生成。
+     * 列表里的位置会随删除而变，用下标当 id 会让「删除第 3 条」在下一条消息到达后删错人。
+     */
+    val id: Long = 0L,
 )
 
 data class CompanionUiState(

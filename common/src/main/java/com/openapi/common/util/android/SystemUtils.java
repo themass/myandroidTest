@@ -36,7 +36,18 @@ public class SystemUtils {
 
 
     public static String getAndroidId(Context context) {
-        return android.provider.Settings.Secure.ANDROID_ID;
+        // Settings.Secure.ANDROID_ID 是取值的 key（字面量 "android_id"），不是设备 id。
+        // 直接 return 它会让每台设备都报同一个假 id，必须拿这个 key 去查值。
+        if (context == null) {
+            return null;
+        }
+        try {
+            return android.provider.Settings.Secure.getString(
+                    context.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
+        } catch (Exception e) {
+            LogUtil.e(e);
+            return null;
+        }
     }
 
     public static boolean isApkDebugable(Context context) {

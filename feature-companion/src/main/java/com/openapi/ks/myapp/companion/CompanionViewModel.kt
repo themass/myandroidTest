@@ -34,6 +34,27 @@ class CompanionViewModel(
     private var collectJob: Job? = null
     private var inboxJob: Job? = null
 
+    /**
+     * 消息 id 的自增源。界面上「删除某条消息」「某条待确认」都按 id 定位，
+     * 不能用列表下标——删掉一条之后下标全变，会操作到另一条上。
+     */
+    private var nextMessageId = 1L
+
+    private fun newMessage(
+        role: MessageRole,
+        text: String,
+        streaming: Boolean = false,
+        proactive: ProactiveKind = ProactiveKind.REPLY,
+        confirmationId: String? = null,
+    ) = CompanionMessage(
+        role = role,
+        text = text,
+        streaming = streaming,
+        proactive = proactive,
+        confirmationId = confirmationId,
+        id = nextMessageId++,
+    )
+
     /** 没有 [CompanionApi] 时直接连替身，用于预览与离线调试。 */
     fun start(characterId: String) {
         if (this.characterId == characterId && collectJob?.isActive == true) return
@@ -69,10 +90,33 @@ class CompanionViewModel(
             it.copy(
                 input = "",
                 messages = it.messages +
-                    CompanionMessage(MessageRole.USER, text) +
+                    newMessage(MessageRole.USER, text) +
                     // 先占位，收到 TextDelta 往里追加；TurnDone 时关掉 streaming。
-                    CompanionMessage(MessageRole.ASSISTANT, "", streaming = true),
+                    newMessage(MessageRole.ASSISTANT, "", streaming = true),
             )
+        }
+    }
+
+    /** 删除一条消息（只影响本地会话；服务端没有「删单条消息」的接口）。 */
+    fun deleteMessage(messageId: Long) {
+        _state.update { st -> st.copy(messages = st.messages.filterNot { it.id == messageId }) }
+    }
+
+    /**
+     * 重新回答最后一条用户消息。
+     *
+     * chatkit 的「重新回答」在「最后一条是用户消息」时出现。删掉她的回复后就会露出这个入口，
+     * 所以它必须真的能重新问一遍——否则又是一个点了没反应的按钮。
+     * 不重复添加用户气泡（那条已经在了），只补一个流式占位。
+     */
+    fun regenerateLastReply() {
+        val current = _state.value
+        if (current.connection != CompanionConnection.CONNECTED) return
+        val lastUser = current.messages.lastOrNull { it.role == MessageRole.USER } ?: return
+        if (current.messages.lastOrNull()?.streaming == true) return
+        transport.sendText(lastUser.text)
+        _state.update {
+            it.copy(messages = it.messages + newMessage(MessageRole.ASSISTANT, "", streaming = true))
         }
     }
 
@@ -162,7 +206,7 @@ class CompanionViewModel(
                 messages = st.messages + pending
                     .filterNot { it.confirmationId in existing }
                     .map { action ->
-                        CompanionMessage(
+                        newMessage(
                             role = MessageRole.ASSISTANT,
                             text = action.description.ifBlank { action.action },
                             confirmationId = action.confirmationId,
@@ -193,7 +237,7 @@ class CompanionViewModel(
         _state.update { st ->
             if (st.messages.any { it.text == message.text && it.proactive == kind }) return@update st
             st.copy(
-                messages = st.messages + CompanionMessage(
+                messages = st.messages + newMessage(
                     role = MessageRole.ASSISTANT,
                     text = message.text,
                     proactive = kind,
@@ -213,7 +257,7 @@ class CompanionViewModel(
                     is CompanionEvent.Proactive -> _state.update { st ->
                         // 主动消息单独成条并打标：用户需要一眼看出是她自己开口的。
                         st.copy(
-                            messages = st.messages + CompanionMessage(
+                            messages = st.messages + newMessage(
                                 role = MessageRole.ASSISTANT,
                                 text = event.text,
                                 proactive = event.kind,
@@ -224,7 +268,7 @@ class CompanionViewModel(
                     is CompanionEvent.NeedsConfirmation -> _state.update { st ->
                         // 待确认动作不当作普通消息：它在界面上要变成一对按钮。
                         st.copy(
-                            messages = st.messages + CompanionMessage(
+                            messages = st.messages + newMessage(
                                 role = MessageRole.ASSISTANT,
                                 text = event.prompt,
                                 confirmationId = event.confirmationId,

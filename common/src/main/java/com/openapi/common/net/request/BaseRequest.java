@@ -57,6 +57,12 @@ public class BaseRequest<T> extends ApiRequest<T> {
         if (!StringUtils.hasText(uc)) {
             uc = DeviceInfoUtils.getMetaData(context, "UMENG_CHANNEL");
         }
+        // 渠道没配到时 uc 是 null，拼进 UA 会变成字面量 "null"（服务端日志里能看到
+        // channel=null），看起来像真的渠道就叫 null。这里降级成空串，宁可不带渠道，
+        // 也不要把 Java 的 null 当成取值发出去。
+        if (uc == null) {
+            uc = "";
+        }
         String sb = null;
         String fileTxt = DeviceInfoUtils.NULL;
         if (DEVID == null) {
@@ -64,6 +70,13 @@ public class BaseRequest<T> extends ApiRequest<T> {
             if (!DeviceInfoUtils.NULL.equals(sb)) {
                 DEVID = sb;
 //                fileTxt = FileUtilleUtils.getContextId(context,sb);
+            } else {
+                // getDeviceId 拿不到 ANDROID_ID 时会原样返回字符串 "null"，这时 DEVID 保持 null，
+                // 下面 headers.put(Devid, null) 会被 HttpClient 静默丢掉——请求根本没带 Devid 头，
+                // 服务端 DevApp.check() 判 devId==null 直接 500（日志里就是 devId=null）。
+                // 这里退到随机 UUID：服务端只要求非空，UUID 满足；不要为了过校验去伪造渠道。
+                DEVID = "androiduuid" + DeviceInfoUtils.getUUID(context);
+                sb = DEVID;
             }
         } else {
             sb = DEVID;
@@ -88,7 +101,11 @@ public class BaseRequest<T> extends ApiRequest<T> {
         }catch (Exception e){
             headers.put("userLang", currentLocale.getCountry() + ";" + currentLocale.getLanguage());
         }
-        headers.put(NetConfig.deviceHeader(), DEVID);
+        // 值为 null 的头在 HttpClient 里会被跳过，等于没发；Devid 缺失服务端直接判鉴权失败，
+        // 所以这里绝不能把 null 放进去（上面已保证 DEVID 非 null）。
+        if (StringUtils.hasText(DEVID)) {
+            headers.put(NetConfig.deviceHeader(), DEVID);
+        }
         String token = PreferenceUtils.getPrefString(context, NetConfig.tokenHeader(), null);
         if (token != null)
             headers.put(NetConfig.tokenHeader(), token);

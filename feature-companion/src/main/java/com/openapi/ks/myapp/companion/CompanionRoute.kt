@@ -86,11 +86,8 @@ fun CompanionRoute(
         }
         when (page) {
             CompanionPage.CHAT -> {
-                TopActions(
-                    onCharacters = { page = CompanionPage.CHARACTERS },
-                    onMemory = { page = CompanionPage.MEMORY },
-                    onSettings = { page = CompanionPage.SETTINGS },
-                )
+                // 顶部栏只由 CompanionScreen 里那一条渲染（它带抽屉入口，与对话页一致）。
+                // 这里原来还有一条 TopActions，两条叠在一起，屏幕上出现两行「陪伴」标题。
                 CompanionScreen(
                     viewModel = chatViewModel,
                     characterId = characterId,
@@ -156,12 +153,15 @@ fun CompanionRoute(
         val transcript = remember(uiState.messages) {
             uiState.messages.filter { it.role == MessageRole.ASSISTANT }.map { it.text }.filter { it.isNotBlank() }
         }
-        val avatarEmoji = remember(uiState.messages.size) {
-            uiState.messages.lastOrNull { it.role == MessageRole.ASSISTANT }?.text?.takeIf { it.isNotBlank() }
+        // 只取一个字符当占位字标。原来这里取的是「最后一条回复的全文」，
+        // 结果整段话被按 54sp 画进呼吸环中央，糊成一片。
+        val avatarGlyph = remember(characterId) {
+            characterId.trim().take(1).ifBlank { "她" }
         }
         CompanionCallScreen(
             state = CompanionCallState(
-                agentName = characterId,
+                // characterId 是 id（如 linche），不是给人看的名字；通话页标题用它当占位更合理。
+                agentName = "陪伴",
                 captions = transcript.takeLast(3),
                 elapsedSeconds = 0L,
                 isMuted = false,
@@ -174,7 +174,7 @@ fun CompanionRoute(
                 } else {
                     CallConnection.CONNECTING
                 },
-                avatarEmoji = avatarEmoji,
+                avatarEmoji = avatarGlyph,
             ),
             onHangUp = { chatViewModel.setCallActive(false) },
             // 静音/摄像头要真正作用到 LiveKit 的本地轨道，传输层还没有这两个方法；

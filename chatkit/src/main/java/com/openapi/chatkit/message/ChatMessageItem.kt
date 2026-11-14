@@ -104,6 +104,10 @@ fun ChatMessageItem(
      * 否则每条消息头顶一个头像会把列表挤得很吵。用户消息永远不显示头像。
      */
     showAvatar: Boolean = false,
+    /** 助手 footer 显示哪些芯片。默认是 chatkit 的标准五件套。 */
+    footerActions: List<MessageAction> = defaultAssistantFooterActions(item),
+    /** 这一行上方附加的内容（如「她记得」这类来源标签）。null 时布局与原来完全一致。 */
+    overlay: (@Composable () -> Unit)? = null,
 ) {
     val dimens = ChatKit.dimens
     val isUser = item.sender == Sender.User
@@ -113,72 +117,81 @@ fun ChatMessageItem(
     val assistantMaxWidth = minOf(screenWidth * dimens.assistantMaxContentFraction, screenWidth - dimens.listHorizontalPadding * 2)
     var anchor by remember { mutableStateOf(Rect.Zero) }
 
-    Row(
+    // 根节点从 Row 换成 Column 只为容纳 [overlay]（如「她记得」来源标签）。
+    // overlay 为 null 时不产生任何子项，Row 独占 Column 宽度，布局与原版逐像素一致。
+    Column(
         modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = dimens.listHorizontalPadding)
-            .onGloballyPositioned { anchor = it.boundsInWindow() },
-        horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start,
-        verticalAlignment = Alignment.Top,
+            .fillMaxWidth(),
     ) {
-        // 头像只在助手侧、且是「连续同一发送者的第一条」时显示。
-        // 不显示的那些行留一个等宽空位，这样气泡的左边缘对齐，列表不会忽宽忽窄。
-        if (!isUser) {
-            Box(
-                modifier = Modifier
-                    .padding(end = AssistantAvatarGap)
-                    .size(AssistantAvatarSize),
-                contentAlignment = Alignment.TopCenter,
-            ) {
-                if (showAvatar) {
-                    Box(Modifier.size(AssistantAvatarSize).clip(CircleShape)) { avatar(item) }
+        overlay?.invoke()
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = dimens.listHorizontalPadding)
+                // 锚点量的是「消息行」而不是含 overlay 的整块：长按菜单仍贴着气泡
+                .onGloballyPositioned { anchor = it.boundsInWindow() },
+            horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start,
+            verticalAlignment = Alignment.Top,
+        ) {
+            // 头像只在助手侧、且是「连续同一发送者的第一条」时显示。
+            // 不显示的那些行留一个等宽空位，这样气泡的左边缘对齐，列表不会忽宽忽窄。
+            if (!isUser) {
+                Box(
+                    modifier = Modifier
+                        .padding(end = AssistantAvatarGap)
+                        .size(AssistantAvatarSize),
+                    contentAlignment = Alignment.TopCenter,
+                ) {
+                    if (showAvatar) {
+                        Box(Modifier.size(AssistantAvatarSize).clip(CircleShape)) { avatar(item) }
+                    }
                 }
             }
-        }
-        Column(
-            modifier = Modifier.weight(1f, fill = false),
-            horizontalAlignment = if (isUser) Alignment.End else Alignment.Start,
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                if (isUser) SendStatusIndicator(item.status) { onAction(MessageAction.Retry) }
-                // 每条助手回复（生成完成后）都有 footer；生成中的那条不显示
-                val assistantFooter: (@Composable () -> Unit)? =
-                    // 多选时不显示 footer：它的按钮在消息行下面，会抢走点击
-                    if (!isUser && !item.streaming && !item.thinking && !selectionActive) {
-                        { AssistantFooter(item = item, onAction = onAction) }
-                    } else {
-                        null
-                    }
-                MessageContent(
-                    item = item,
-                    // 用户：85% 屏宽；助手：88% 屏宽（带 footer 的 6 个芯片约 256dp 也放得下）；图片、语音、文件都用同一个限宽
-                    maxWidth = if (isUser) maxWidth else assistantMaxWidth,
-                    text = text,
-                    onAction = onAction,
-                    onLongPress = { onLongPress(anchor) },
-                    onAttachmentLongPress = onAttachmentLongPress,
-                    footer = assistantFooter,
-                )
-            }
-            if (isUser && showSentLabel && item.status == SendStatus.Sent) {
-                Row(
-                    modifier = Modifier.padding(top = 2.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        stringResource(R.string.chatkit_sent),
-                        fontSize = ChatKit.typography.caption,
-                        color = ChatKit.colors.secondaryText,
+            Column(
+                modifier = Modifier.weight(1f, fill = false),
+                horizontalAlignment = if (isUser) Alignment.End else Alignment.Start,
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (isUser) SendStatusIndicator(item.status) { onAction(MessageAction.Retry) }
+                    // 每条助手回复（生成完成后）都有 footer；生成中的那条不显示
+                    val assistantFooter: (@Composable () -> Unit)? =
+                        // 多选时不显示 footer：它的按钮在消息行下面，会抢走点击
+                        if (!isUser && !item.streaming && !item.thinking && !selectionActive && footerActions.isNotEmpty()) {
+                            { AssistantFooter(item = item, onAction = onAction, actions = footerActions) }
+                        } else {
+                            null
+                        }
+                    MessageContent(
+                        item = item,
+                        // 用户：85% 屏宽；助手：88% 屏宽（带 footer 的 6 个芯片约 256dp 也放得下）；图片、语音、文件都用同一个限宽
+                        maxWidth = if (isUser) maxWidth else assistantMaxWidth,
+                        text = text,
+                        onAction = onAction,
+                        onLongPress = { onLongPress(anchor) },
+                        onAttachmentLongPress = onAttachmentLongPress,
+                        footer = assistantFooter,
                     )
-                    // 最后一条用户消息还没有回复（例如回复前点了停止）：给一个重新回答的入口，不重复发送
-                    if (showAnswerAgain) {
-                        Spacer(Modifier.width(8.dp))
+                }
+                if (isUser && showSentLabel && item.status == SendStatus.Sent) {
+                    Row(
+                        modifier = Modifier.padding(top = 2.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
                         Text(
-                            stringResource(R.string.chatkit_answer_again),
-                            modifier = Modifier.clickable { onAction(MessageAction.Regenerate) }.padding(4.dp),
+                            stringResource(R.string.chatkit_sent),
                             fontSize = ChatKit.typography.caption,
-                            color = ChatKit.colors.accent,
+                            color = ChatKit.colors.secondaryText,
                         )
+                        // 最后一条用户消息还没有回复（例如回复前点了停止）：给一个重新回答的入口，不重复发送
+                        if (showAnswerAgain) {
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                stringResource(R.string.chatkit_answer_again),
+                                modifier = Modifier.clickable { onAction(MessageAction.Regenerate) }.padding(4.dp),
+                                fontSize = ChatKit.typography.caption,
+                                color = ChatKit.colors.accent,
+                            )
+                        }
                     }
                 }
             }

@@ -55,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.openapi.chatkit.message.ChatMessageList
 import com.openapi.chatkit.model.ChatItem
+import com.openapi.chatkit.model.MessageAction
 import com.openapi.chatkit.model.MessagePart
 import com.openapi.chatkit.model.Sender
 import com.openapi.chatkit.theme.ChatKitTheme
@@ -153,31 +154,17 @@ fun CompanionScreen(
                     }
                 }
 
-                val items = remember(state.messages) { companionItems(state.messages) }
-                ChatMessageList(
-                    items = items,
-                    state = listState,
+                CompanionMessageArea(
+                    messages = state.messages,
+                    listState = listState,
+                    awaitingReply = state.awaitingReply,
                     modifier = Modifier.weight(1f).fillMaxWidth(),
-                    onAction = { _, action ->
-                        // 陪伴页的 footer 动作先只接「删除」之外的语义：复制由 chatkit 内部处理，
-                        // 语音播报要等语音条做出来。这里保持空实现，避免误触发。
-                        when (action) {
-                            else -> Unit
-                        }
-                    },
-                    avatar = { item -> CompanionAvatar(emoji = "澈", active = item.streaming) },
-                    emptyContent = {
-                        Text(
-                            text = stringResource(R.string.companion_input_hint),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.fillMaxWidth().padding(24.dp),
-                        )
-                    },
+                    onConfirmAction = viewModel::confirmAction,
+                    onCancelAction = viewModel::cancelAction,
+                    onDeleteMessage = viewModel::deleteMessage,
+                    onCopyMessage = { copyToClipboard(context, it) },
+                    onRegenerate = viewModel::regenerateLastReply,
                 )
-
-                // 等待首字：她还没开始说话。用「正在输入」而不是一个空气泡——空气泡看起来像卡住了。
-                if (state.awaitingReply) TypingHint()
 
                 state.incomingCall?.let { kind ->
                     IncomingCallBanner(
@@ -280,6 +267,159 @@ private fun CompanionAvatar(emoji: String, active: Boolean) {
             color = MaterialTheme.colorScheme.primary,
         )
     }
+}
+
+/**
+ * 消息区：列表 + 「正在输入」 + 待确认动作卡片。
+ *
+ * 单独抽出来是为了能被渲染测试直接组合（见 app 模块的 CompanionMessageAreaRenderTest）：
+ * 「确认按钮还在不在」这类回归只有在真树上断言才发现得了，状态层测试删了控件照样过。
+ * 参数全是纯数据与回调，不依赖 ViewModel。public 是因为测试在 :app 模块里，
+ * 同模块的 internal 跨不过模块边界。
+ */
+@Composable
+fun CompanionMessageArea(
+    messages: List<CompanionMessage>,
+    listState: androidx.compose.foundation.lazy.LazyListState,
+    awaitingReply: Boolean,
+    modifier: Modifier = Modifier,
+    onConfirmAction: (String) -> Unit = {},
+    onCancelAction: (String) -> Unit = {},
+    onDeleteMessage: (Long) -> Unit = {},
+    onCopyMessage: (String) -> Unit = {},
+    onRegenerate: () -> Unit = {},
+) {
+    Column(modifier) {
+        val items = remember(messages) { companionItems(messages) }
+        // 消息 id → 领域消息。footer 的复制/删除要作用到原来的那条，而不是列表下标。
+        val byId = remember(messages) { messages.associateBy { "c${it.id}" } }
+        // 主动消息的来源标签走 chatkit 的 itemOverlay 插槽：ChatItem 没有「谁先开口」
+        // 这个概念，而标签必须挂在**那一条**消息上方才读得懂，所以既不放列表下方，
+        // 也不塞进正文（正文会被复制走）。插槽默认空实现，对话页布局不受影响。
+        val proactiveKinds = remember(messages) { messages.associate { "c${it.id}" to it.proactive } }
+        ChatMessageList(
+            items = items,
+            state = listState,
+            modifier = Modifier.weight(1f).fillMaxWidth(),
+            itemOverlay = { item ->
+                val kind = proactiveKinds[item.id]
+                if (kind != null && kind != ProactiveKind.REPLY) ProactiveLabel(kind)
+            },
+            footerActions = { item ->
+                // 陪伴页没有评价/朗读的数据源，就不摆点了没反应的按钮：只留「复制」「删除」。
+                // 朗读要等服务端的语音条（见 CompanionMessage.voiceSeconds）。
+                if (byId[item.id]?.text.isNullOrBlank()) {
+                    listOf(MessageAction.Delete)
+                } else {
+                    listOf(MessageAction.Copy, MessageAction.Delete)
+                }
+            },
+            onAction = { item, action ->
+                val message = byId[item.id] ?: return@ChatMessageList
+                when (action) {
+                    MessageAction.Copy -> onCopyMessage(message.text)
+                    MessageAction.Delete -> onDeleteMessage(message.id)
+                    // 「重新回答」出现在「最后一条是用户消息」时（删掉她的回复后会露出来），
+                    // 必须真的能重问，否则又是一个点了没反应的按钮。
+                    MessageAction.Regenerate -> onRegenerate()
+                    else -> Unit
+                }
+            },
+            avatar = { item -> CompanionAvatar(emoji = "澈", active = item.streaming) },
+            emptyContent = {
+                Text(
+                    text = stringResource(R.string.companion_input_hint),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.fillMaxWidth().padding(24.dp),
+                )
+            },
+        )
+
+        // 等待首字：她还没开始说话。用「正在输入」而不是一个空气泡——空气泡看起来像卡住了。
+        if (awaitingReply) TypingHint()
+
+        // 待确认动作：独立卡片区，放在消息流**下方**（输入框上方）。
+        // 理由：确认是用户马上去做的决定，不是一段聊天记录。混在消息流里会被后来的
+        // 消息冲走、翻上去就看不见了；固定在这里则一直在视线内，而且不用改 chatkit
+        // 的 ChatItem（它没有这个语义）。只显示最新一条待确认。
+        messages.lastOrNull { it.confirmationId != null }?.confirmationId?.let { id ->
+            val pending = messages.last { it.confirmationId == id }
+            ConfirmationCard(
+                text = pending.text,
+                onConfirm = { onConfirmAction(id) },
+                onCancel = { onCancelAction(id) },
+            )
+        }
+    }
+}
+
+/**
+ * 主动消息的来源标签，挂在**那一条**消息的上方（由 ChatMessageList 的 itemOverlay 渲染）。
+ *
+ * 为什么不写进正文：正文会被「复制」带走，用户粘贴到别处时不该出现「她记得」这种界面标签；
+ * 也不做成列表下方的一条横幅——标签必须紧挨着它修饰的那句话才有意义。
+ */
+@Composable
+private fun ProactiveLabel(kind: ProactiveKind) {
+    Text(
+        text = stringResource(
+            when (kind) {
+                ProactiveKind.EVENT -> R.string.companion_proactive_event
+                ProactiveKind.GREETING -> R.string.companion_proactive_greeting
+                else -> R.string.companion_proactive_generic
+            }
+        ),
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.primary,
+        // 留白对齐：与 chatkit 的消息行同一起点（头像 28dp + 间距 8dp），标签才不会飘在气泡外面。
+        modifier = Modifier.fillMaxWidth().padding(start = 44.dp, bottom = 2.dp),
+    )
+}
+
+/**
+ * 待确认动作的卡片：她要替用户做一件事，用户必须先点头。
+ *
+ * 放在消息列表下方、输入框上方，而不是消息流里：
+ * 1. 这是**此刻**要做的决定，不是历史记录，翻上去就丢了的按钮等于没有按钮；
+ * 2. 不占消息流的空间，也不参与「连续同一发送者才显示头像」这类排版逻辑；
+ * 3. chatkit 的 ChatItem 没有这个语义，硬塞进去会让对话页也背上陪伴页的概念。
+ */
+@Composable
+private fun ConfirmationCard(text: String, onConfirm: () -> Unit, onCancel: () -> Unit) {
+    Surface(
+        color = MaterialTheme.colorScheme.secondaryContainer,
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp),
+        shape = RoundedCornerShape(12.dp),
+    ) {
+        Column(Modifier.padding(12.dp)) {
+            if (text.isNotBlank()) {
+                Text(text = text, style = MaterialTheme.typography.bodyMedium)
+                Spacer(Modifier.height(8.dp))
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextButton(onClick = onConfirm) {
+                    Text(stringResource(R.string.companion_action_confirm))
+                }
+                TextButton(onClick = onCancel) {
+                    Text(stringResource(R.string.companion_action_cancel))
+                }
+            }
+        }
+    }
+}
+
+/** 复制一条消息。必须有可见反馈：用户点了没反应会以为按钮坏了。 */
+private fun copyToClipboard(context: android.content.Context, text: String) {
+    if (text.isBlank()) return
+    val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE)
+        as? android.content.ClipboardManager ?: return
+    clipboard.setPrimaryClip(android.content.ClipData.newPlainText("companion", text))
+    android.widget.Toast.makeText(
+        context,
+        context.getString(R.string.companion_copied),
+        android.widget.Toast.LENGTH_SHORT,
+    ).show()
 }
 
 /** 「对方正在输入…」：三个点依次跳动。 */
@@ -437,17 +577,20 @@ private fun IncomingCallBanner(
  * 陪伴页消息 → chatkit 的 UI 模型。
  *
  * 不需要映射附件/语音：陪伴页的消息只有文字（语音条要等服务端在事件里带上分句与时长）。
- * 主动消息与待确认动作在 chatkit 里没有对应形态，这里先按普通助手消息渲染，
- * 待确认的按钮由列表下方的独立区域处理（见 CompanionScreen 里的 confirmation 分支）。
+ * 主动消息的来源标签与待确认动作由 [ChatMessageList] 的 overlay 插槽、以及列表下方的
+ * 独立确认卡片承担——chatkit 的 ChatItem 没有这两个概念，也不该为它们改动数据模型。
  */
-private fun companionItems(messages: List<CompanionMessage>): List<ChatItem> = messages.mapIndexed { index, m ->
+private fun companionItems(messages: List<CompanionMessage>): List<ChatItem> = messages.map { m ->
+    val key = "c${m.id}"
     ChatItem(
-        id = "c$index",
-        key = "c$index",
+        id = key,
+        key = key,
         sender = if (m.role == MessageRole.USER) Sender.User else Sender.Assistant,
         parts = listOf(MessagePart.Text(m.text)).filter { m.text.isNotEmpty() },
-        // 空文本 + 还在流式 = 她在思考：交给 chatkit 的 thinking 显示跳动点
-        thinking = m.streaming && m.text.isEmpty(),
+        // 占位消息（还没有任何字）不画气泡：它由下方的「正在输入」指示器代替。
+        // 空文本的流式占位气泡**不**交给 chatkit 的 thinking：
+        // 列表下方已经有「对方正在输入…」那一条，两个指示器同时出现等于同一句话说两遍。
+        thinking = false,
         streaming = m.streaming && m.text.isNotEmpty(),
     )
 }

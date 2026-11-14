@@ -31,6 +31,8 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -78,6 +80,9 @@ import com.openapi.chatkit.theme.ChatKit
  * @param text 文字渲染插槽，默认纯文本；助手消息可以传 Markdown 渲染
  * @param onAction 所有消息操作的唯一入口（长按菜单里的操作也走这里）
  * @param emptyContent 列表为空时显示的内容
+ * @param itemOverlay 每条消息**上方**的附加内容插槽；默认空实现，布局与不传时完全一致。
+ *   用于承载 chatkit 的 [ChatItem] 里没有的领域概念（如陪伴页「她记得」这类来源标签）。
+ * @param footerActions 助手 footer 显示哪些芯片；默认 chatkit 的标准五件套。
  */
 @Composable
 fun ChatMessageList(
@@ -88,6 +93,10 @@ fun ChatMessageList(
     avatar: @Composable (ChatItem) -> Unit = {},
     text: @Composable (ChatItem, String) -> Unit = { _, value -> DefaultMessageText(value) },
     emptyContent: @Composable () -> Unit = {},
+    /** 每条消息上方的附加内容；不传时列表布局与以前逐像素一致。 */
+    itemOverlay: @Composable (ChatItem) -> Unit = {},
+    /** 助手 footer 显示哪些芯片、按什么顺序。 */
+    footerActions: (ChatItem) -> List<MessageAction> = { defaultAssistantFooterActions(it) },
     /** 多选状态：由调用方持有（底部操作条也要用），长按菜单的「多选」会进入它。 */
     selection: MessageSelectionState = rememberMessageSelection(),
     /** 长按菜单样式（原型对比）。 */
@@ -113,6 +122,14 @@ fun ChatMessageList(
         if (action == MessageAction.Select) selection.start(item.id) else onAction(item, action)
     }
 
+    // 三个 LaunchedEffect 都会去滚动这个列表（新消息、流式增长、键盘高度）。
+    // 它们可能在列表完成第一帧布局之前**同时**调 scrollToItem/scrollBy：
+    // LazyColumn 内部的 AwaitFirstLayoutModifier 只保存一份等待者列表，两个等待者
+    // 同时挂上去、其中一个先被唤醒并清空列表，另一个醒来就 IndexOutOfBoundsException。
+    // 真机上首帧就有多条消息时偶发；Robolectric 下必现。
+    // 用一把互斥锁把滚动串行化：并发滚动请求本来也没有「同时生效」的语义。
+    val scrollLock = remember { Mutex() }
+
     // 是否跟随最新内容：只由用户的滑动决定。用户停下来时如果在底部就跟随，往上翻了就不再抢滚动。
     // 内容增长（流式）本身不会改变这个状态，所以不会出现「刚长高一点就被判定为不在底部」。
     var following by remember { mutableStateOf(true) }
@@ -126,21 +143,25 @@ fun ChatMessageList(
     LaunchedEffect(last?.key) {
         if (last != null && (last.sender == Sender.User || following)) {
             following = true
-            state.scrollToItem(items.lastIndex)
-            state.scrollBy(BOTTOM_SCROLL)
+            scrollLock.withLock {
+                state.scrollToItem(items.lastIndex)
+                state.scrollBy(BOTTOM_SCROLL)
+            }
         }
     }
     // 流式增长、以及回复结束时 footer 出现：跟随时无动画贴底，保证最后一条完整显示
     LaunchedEffect(last?.plainText?.length, last?.thinking, last?.streaming) {
-        if (following && last != null) state.scrollBy(BOTTOM_SCROLL)
+        if (following && last != null) scrollLock.withLock { state.scrollBy(BOTTOM_SCROLL) }
     }
     // 键盘弹出或收起：列表高度变了，如果原来在底部就保持贴底，否则最后几条会被键盘和输入栏盖住
     // 用键盘高度本身作为 key：键盘动画的每一帧都会重新贴底，等布局稳定后也不会留下被盖住的尾部
     val imeBottom = WindowInsets.ime.getBottom(LocalDensity.current)
     LaunchedEffect(imeBottom) {
         if (following && last != null) {
-            state.scrollToItem(items.lastIndex)
-            state.scrollBy(BOTTOM_SCROLL)
+            scrollLock.withLock {
+                state.scrollToItem(items.lastIndex)
+                state.scrollBy(BOTTOM_SCROLL)
+            }
         }
     }
 
@@ -178,6 +199,9 @@ fun ChatMessageList(
                         onLongPress = { anchor -> if (!selection.active) menu = MenuTarget(item, anchor) },
                         onAttachmentLongPress = { target -> if (!selection.active) attachment = target },
                         selectionActive = selection.active,
+                        footerActions = footerActions(item),
+                        // 多选时把 overlay 收掉：它不在消息行内部，点它不会切换选中。
+                        overlay = if (selection.active) null else { { itemOverlay(item) } },
                         modifier = Modifier.weight(1f),
                     )
                 }

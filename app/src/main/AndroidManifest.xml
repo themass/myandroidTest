@@ -102,6 +102,13 @@
         <meta-data
             android:name="com.bumptech.glide.integration.okhttp.OkHttpGlideModule"
             tools:node="remove" />
+
+        <!-- UA 里的渠道字段（BaseRequest 读 UMENG_CHANNEL）。以前没有这一项，
+             getMetaData 返回 null，UA 里于是出现字面量 channel=null。
+             取值来自 build.gradle 的 CHANNEL_VALUE，不在这里写死。 -->
+        <meta-data
+            android:name="UMENG_CHANNEL"
+            android:value="${CHANNEL_VALUE}" />
         
         <!-- 大屏设备适配 -->
         <meta-data
