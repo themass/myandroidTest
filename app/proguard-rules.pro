@@ -5,6 +5,20 @@
 -optimizationpasses 5
 # 混合时不使用大小写混合，混合后的类名为小写
 -dontusemixedcaseclassnames
+# ---------------------------------------------------------------
+# DEX 结构加固：把没有被 -keep 的类全部塞进同一个默认包。
+#
+# 不加这两条时，R8 只改类名不改包名，反编译后看到的是
+#   com.openapi.yewu.net.request.a
+#   com.openapi.myapp.data.b
+# 包名本身就把"这是网络层 / 这是数据层"标好了，找入口几乎不用费劲。
+# 加上之后变成 a.a、a.b、a.c，一屏几百个同层类名，静态分析成本上一个台阶。
+#
+# 代价：任何依赖包路径的反射都会失效。本项目里没有按包名反射的代码，
+# 但每加一条 -repackageclasses 之后必须真机回归一遍，不能只看编译通过。
+-repackageclasses ''
+-allowaccessmodification
+# ---------------------------------------------------------------
 # 指定不去忽略非公共库的类
 -dontskipnonpubliclibraryclasses
 # 这句话能够使我们的项目混淆后产生映射文件
@@ -166,7 +180,23 @@
 }
 
 #----------------------project------------
--keep class com.openapi.myapp.bean.**{ *; }
+# bean 包（Gson 反序列化的数据模型）。
+#
+# 原来这里是 `-keep class com.openapi.myapp.bean.**{ *; }`，类名也被固定住了：
+# 反编译后能看到 JsonResult / LocationVo / UserInfoVo 这些名字，直接暴露了
+# 整个 API 的数据结构。Gson 只依赖"字段名"（没有用 @SerializedName），
+# 类名它根本不需要——`fromJson(json, clazz)` 传的是 Class 对象。
+# 所以降到 keepclassmembers：字段名保留，类名可以被 R8 重命名。
+-keepclassmembers class com.openapi.myapp.bean.** {
+    <fields>;
+}
+# 但 Serializable 的类必须连类名一起保留：序列化流里写的是类名，
+# 名字变了，升级前存下的 Bundle 状态就反序列化不回来。
+-keepnames class com.openapi.myapp.bean.vo.LocationVo
+-keepnames class com.openapi.myapp.bean.vo.VipLocationVo
+-keepnames class com.openapi.myapp.bean.vo.RecommendVo
+-keepnames class com.openapi.myapp.bean.form.CustomeAddForm
+
 -keep class org.strongswan.android.logic.**{ *; }
 #-keep class sun.misc.Unsafe { *; }
 -keep class com.google.gson.stream.** { *; }
