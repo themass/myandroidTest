@@ -63,6 +63,10 @@ class CompanionViewModel(
         viewModelScope.launch {
             try {
                 val session = api?.createSession(characterId) ?: offlineSession(characterId)
+                // 先读历史，再连房间。顺序很重要：历史是纯 HTTP，不依赖 LiveKit；
+                // 放在 connect() 之后的话，房间建连一慢（或失败），用户盯着的是一个空页面，
+                // 而历史其实一直写在服务端（真机上就是这么空着的）。
+                restoreHistory(session)
                 transport.connect(session)
                 _state.update { it.copy(connection = CompanionConnection.CONNECTED) }
                 listen()
@@ -193,6 +197,34 @@ class CompanionViewModel(
                 // 动作没执行成功要让用户知道，而不是静默当作做完了。
                 _state.update { it.copy(error = e.message ?: "动作处理失败") }
             }
+        }
+    }
+
+    /**
+     * 把这段对话之前说过的话读回来。
+     *
+     * 为什么必须先做这一步再谈其他：服务端 `resolve_chat_session()` 保证「一个用户 + 一个角色
+     * 只有一段历史，语音和文字都写进它」，所以历史**一直在写**，但界面从来不读——
+     * 用户关掉重开看到的是空页，会以为记录丢了。这不是新功能，是补上一直缺的那一半。
+     *
+     * 失败不提示：读历史失败不该挡住用户开始说话，静默降级成「从空开始」即可。
+     */
+    private suspend fun restoreHistory(session: SessionResponse) {
+        val remote = api ?: return
+        val chatId = session.chatSessionId ?: return
+        val history = runCatching { remote.history(chatId) }.getOrNull() ?: return
+        if (history.isEmpty()) return
+        _state.update { st ->
+            // 已经有消息就不覆盖：连接期间可能已经收到几条新的。
+            if (st.messages.isNotEmpty()) return@update st
+            st.copy(
+                messages = history.map { item ->
+                    newMessage(
+                        role = if (item.isUser) MessageRole.USER else MessageRole.ASSISTANT,
+                        text = item.text,
+                    )
+                },
+            )
         }
     }
 

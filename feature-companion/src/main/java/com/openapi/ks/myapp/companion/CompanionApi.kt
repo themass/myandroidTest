@@ -18,6 +18,14 @@ import java.util.concurrent.TimeUnit
  */
 interface CompanionApi {
     suspend fun createSession(characterId: String): SessionResponse
+    /**
+     * 读回这段对话说过的话。
+     *
+     * 陪伴页的语音和文字写的是**同一段** `/v1` 聊天历史（服务端 `resolve_chat_session()`
+     * 保证一个用户 + 一个角色只有一段），所以这里读到的既有语音回合，也有「对话」页里
+     * 和同一个角色说过的话。不调用它的话，页面关掉重开就是空的——历史其实一直在写。
+     */
+    suspend fun history(sessionId: Long, limit: Int = 30): List<CompanionHistoryItem>
     suspend fun characters(limit: Int = 20, offset: Int = 0): CharacterPage
     suspend fun character(id: String): CharacterDetail
     /** 记忆按角色隔离：必须带 roleId，否则读到的是「不属于任何角色」的空空间。 */
@@ -58,7 +66,19 @@ class HttpCompanionApi(
             token = json.optString("token"),
             livekitUrl = json.optString("livekit_url"),
             expiresAt = json.optString("expires_at"),
+            // 服务端可能给 null（没绑定聊天会话时），用 0 表示「没有」而不是猜一个 id
+            chatSessionId = json.optLong("chat_session_id", 0L).takeIf { it > 0 },
         )
+    }
+
+    override suspend fun history(sessionId: Long, limit: Int): List<CompanionHistoryItem> {
+        val json = call("GET", "/v1/sessions/$sessionId/messages?limit=$limit")
+        val items = json.optJSONArray("items") ?: return emptyList()
+        // 服务端是按新→旧返回的（实测先 assistant 再 user），界面上要正序
+        return (0 until items.length()).map { i ->
+            val o = items.getJSONObject(i)
+            CompanionHistoryItem(role = o.optString("role"), text = o.optString("content"))
+        }.filter { it.text.isNotBlank() }.reversed()
     }
 
     override suspend fun characters(limit: Int, offset: Int): CharacterPage {

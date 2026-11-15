@@ -16,7 +16,27 @@ data class SessionResponse(
     val token: String,
     val livekitUrl: String,
     val expiresAt: String,
+    /**
+     * 这段语音房间绑定的**文字聊天会话** id（`/v1/sessions/{id}/messages` 用的那个）。
+     *
+     * 和 [sessionId] 不是一回事：后者是 LiveKit 房间凭据。服务端 `resolve_chat_session()`
+     * 保证「一个用户 + 一个角色只有一段历史，语音和文字都写进它」，所以拿这个 id 就能
+     * 把之前说过的话读回来——在此之前陪伴页关掉重开是空的，而历史其实一直写进去了。
+     *
+     * null 表示服务端没绑定聊天会话（老版本或未登录），此时不做历史回放。
+     */
+    val chatSessionId: Long? = null,
 )
+
+// ---- 历史 ----
+
+/**
+ * 历史里的一条消息。只有 role 与 text：陪伴页不渲染附件，图片/文件那种消息
+ * 在「对话」页看更合适，这里读到就跳过，不当作错误。
+ */
+data class CompanionHistoryItem(val role: String, val text: String) {
+    val isUser: Boolean get() = role == "user"
+}
 
 // ---- 角色 ----
 

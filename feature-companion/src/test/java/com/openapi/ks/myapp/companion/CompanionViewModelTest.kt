@@ -290,6 +290,8 @@ class FakeCompanionApi(
     override suspend fun createSession(characterId: String) =
         SessionResponse("s1", "room", "token", "wss://example.test", "")
 
+    override suspend fun history(sessionId: Long, limit: Int): List<CompanionHistoryItem> = emptyList()
+
     override suspend fun inbox(): List<InboxMessage> =
         if (inboxBatches.isEmpty()) emptyList() else inboxBatches.removeAt(0)
 
