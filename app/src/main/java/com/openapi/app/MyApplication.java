@@ -21,6 +21,9 @@ import com.openapi.feature.chat.ChatDependencies;
 import com.openapi.core.config.Constants;
 import com.openapi.feature.chat.data.remote.BackendSpeechToText;
 import com.openapi.feature.chat.data.remote.ChatRepositoryImpl;
+import com.openapi.feature.chat.data.remote.AgentBackedChatRepository;
+import com.openapi.feature.chat.data.remote.AgentChatRemote;
+import com.openapi.feature.chat.data.remote.LocalChatStore;
 import com.openapi.core.db.AppDatabase;
 import com.openapi.feature.video.subtitle.VideoTranslationInstaller;
 import com.openapi.feature.video.PlaybackEngineHelper;
@@ -79,7 +82,21 @@ public class MyApplication extends MultiDexApplication {
         initFilePath();
         AppDatabase.init(this);
         com.openapi.retromusic.App.init(this);
-        ChatDependencies.INSTANCE.install(new ChatRepositoryImpl(this));
+        // 对话页现在走 Python companion-agent 的 /v1（见 AgentBackedChatRepository 的类注释）。
+        // 旧的 Java 实现仍然建出来，只作为 TTS 与自定义人设的委托——这两项 /v1 上还没有接口，
+        // 不是遗留代码，是这个迁移阶段刻意保留的。
+        ChatRepositoryImpl legacyChat = new ChatRepositoryImpl(this);
+        ChatDependencies.INSTANCE.install(new AgentBackedChatRepository(
+                this,
+                new AgentChatRemote(
+                        this,
+                        com.openapi.ks.myapp.companion.CompanionConfig.INSTANCE.getBaseUrl(),
+                        () -> com.openapi.common.util.android.PreferenceUtils.getPrefString(
+                                this, com.openapi.common.net.http.NetConfig.tokenHeader(), null),
+                        // Java 调 Kotlin 构造器用不到默认参数，locale 必须显式给
+                        () -> "zh-CN"),
+                new LocalChatStore(this),
+                legacyChat));
         ChatDependencies.INSTANCE.installLoginGate(new com.openapi.app.data.chat.LegacyLoginGate());
         com.openapi.app.data.home.LegacyHomeEntries home = new com.openapi.app.data.home.LegacyHomeEntries(this);
         com.openapi.app.home.HomeDependencies.INSTANCE.install(home);
