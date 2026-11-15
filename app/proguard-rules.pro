@@ -182,14 +182,19 @@
 #----------------------project------------
 # bean 包（Gson 反序列化的数据模型）。
 #
-# 原来这里是 `-keep class com.openapi.myapp.bean.**{ *; }`，类名也被固定住了：
-# 反编译后能看到 JsonResult / LocationVo / UserInfoVo 这些名字，直接暴露了
-# 整个 API 的数据结构。Gson 只依赖"字段名"（没有用 @SerializedName），
-# 类名它根本不需要——`fromJson(json, clazz)` 传的是 Class 对象。
-# 所以降到 keepclassmembers：字段名保留，类名可以被 R8 重命名。
--keepclassmembers class com.openapi.myapp.bean.** {
-    <fields>;
-}
+# 这里恢复成完整 keep。尝试过收窄到 allowobfuscation 让类名也被改写，
+# 但真机验证失败两次：
+#   1. 只保字段 → R8 把没有直接引用的 bean 优化成抽象类，
+#      Gson 抛 "Abstract classes can't be instantiated"
+#   2. 补上构造函数 → 仍有 bean 反序列化后整体为 null，
+#      首页节点列表报 "Attempt to read from field ... on a null object reference"
+# 这几类 bean 用了泛型 + 字段初始化器（InfoListVo.voList = new ArrayList<>()），
+# Gson 走 Unsafe 创建实例时这些初始化都不执行，字段名又参与反射匹配，
+# R8 的重命名/裁剪组合很容易踩到边界。加固的收益不值得冒线上数据解析失败的风险。
+#
+# 代价：这几十个类的名字会保留在包里，API 的数据结构仍能被看出来。
+# 其余 200+ 个类（网络层、业务逻辑、UI）依然会被重打包和重命名。
+-keep class com.openapi.myapp.bean.**{ *; }
 # 但 Serializable 的类必须连类名一起保留：序列化流里写的是类名，
 # 名字变了，升级前存下的 Bundle 状态就反序列化不回来。
 -keepnames class com.openapi.myapp.bean.vo.LocationVo
@@ -214,10 +219,17 @@
 -keepclassmembers class * extends org.greenrobot.greendao.AbstractDao {
 public static java.lang.String TABLENAME;
 }
+# greenDAO 的 DaoConfig.reflectProperties() 是这么找配置类的：
+#   Class.forName(getClass().getName() + "$Properties")
+# 也就是说 Dao 类名和它的 $Properties 必须保持同一个前缀。
+# 开了 -repackageclasses 之后 ConnLogDao 被改名成 t60，而下面的
+#   -keep class **$Properties
+# 把 com.openapi.myapp.bean.form.ConnLogDao$Properties 原样留着了，
+# 于是运行时去找 t60$Properties，ClassNotFoundException → DAOConfig 初始化失败 → 整个数据库挂掉。
+# 修复：Dao 类只保留名字（不改包、不重命名），两边就始终对得上。
 -keep class **$Properties
+-keepnames class * extends org.greenrobot.greendao.AbstractDao
 -dontwarn org.greenrobot.greendao.**
--keep class net.sqlcipher.database.**{*;}
--keep class rx.**{*;}
 
 #--------mobvista
 -keepattributes Signature
