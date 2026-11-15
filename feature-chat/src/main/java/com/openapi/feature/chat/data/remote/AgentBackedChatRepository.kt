@@ -387,9 +387,22 @@ class AgentBackedChatRepository(
     // ------------------------------------------------------------ 附件 / 语音 / 人设
 
     /**
-     * 附件：上传拿 upload_id，随消息一起提交，再等这一轮的回复。
-     * `/v1` 的附件是挂在消息上的（`attachments[]`），不是单独的「识别」接口，
-     * 所以这里必须走完整回合，而不是像旧链路那样只拿一次识别结果。
+     * 附件：目前整体走旧的 Java 链路（图片 + 文件都支持）。
+     *
+     * **为什么不是 `/v1`：两个硬阻塞，都不是客户端能修的。**
+     * 1. `/v1/uploads` 只认四种图片（jpeg/png/webp/heic，见服务端 `policy.detect_type`），
+     *    **文件类型在 `/v1` 上根本没有对应能力**。迁过去就等于删掉「发文件」这个功能。
+     * 2. 实测 `POST /v1/uploads` 返回 500：
+     *    `SignatureDoesNotMatch` —— 服务端 TOS 的 access key 被识别、
+     *    但 secret 对不上（若是 key 无效会报 `InvalidAccessKeyId`）。
+     *    这是服务器 `.env` 里的凭据问题，客户端无论怎么写都失败。
+     *
+     * 所以这里**委托给 legacy 实现**，而不是像上一版那样用
+     * `if (kind != IMAGE) return null` 把文件静默吞掉——那是我迁 `/v1` 时写出来的一处功能回退。
+     *
+     * **切换条件**：等 TOS 凭据修好、且服务端 `/v1/uploads` 放开文件类型之后，
+     * 把这里换回 `/v1`（`remote.upload` + `submitWithAttachments`），
+     * 这样附件才会进 `/v1` 的历史与消息模型。
      */
     override suspend fun sendAttachment(
         sessionId: Long,
@@ -397,28 +410,7 @@ class AgentBackedChatRepository(
         localFile: File,
         fileName: String,
         placeholderId: String,
-    ): ChatReply? = withContext(Dispatchers.IO) {
-        val sid = resolveSessionId(sessionId, null, null)
-        val mime = when (localFile.extension.lowercase()) {
-            "png" -> "image/png"
-            "webp" -> "image/webp"
-            "heic" -> "image/heic"
-            else -> "image/jpeg"
-        }
-        runCatching {
-            if (kind != MessageKind.IMAGE) return@runCatching null
-            val uploadId = remote.upload(localFile, mime)
-            val attachment = JSONObject()
-                .put("upload_id", uploadId)
-                .put("kind", "image")
-                .put("name", fileName)
-            val receipt = remote.submitWithAttachments(
-                sid, "", "local-user-${System.currentTimeMillis()}", listOf(attachment),
-            )
-            val text = awaitTurnText(sid, receipt.turnId)
-            ChatReply(id = receipt.messageId.toString().takeIf { it != "0" } ?: placeholderId, text = text)
-        }.getOrNull()
-    }
+    ): ChatReply? = legacy.sendAttachment(sessionId, kind, localFile, fileName, placeholderId)
 
     /** 收一轮的完整文字（附件路径用：界面只关心最终那段回复，不需要逐字）。 */
     private suspend fun awaitTurnText(sessionId: Long, expectedTurnId: String?): String {
