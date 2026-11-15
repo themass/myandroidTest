@@ -5,7 +5,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.openapi.common.util.android.PreferenceUtils
 import com.openapi.common.util.log.LogUtil
-import com.openapi.core.config.Constants
+import com.openapi.common.net.http.NetConfig
 import com.openapi.feature.chat.roles.data.RolesParser
 import com.openapi.feature.chat.roles.data.RolesRepository
 import com.openapi.feature.chat.roles.domain.RoleDivision
@@ -21,8 +21,16 @@ import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 /**
- * 角色目录的 OkHttp 实现。目录是公开只读内容（路径不带 .json，不走旧的加密/登录链路），
- * 直接取明文 JSON。
+ * 角色目录的 OkHttp 实现。
+ *
+ * **数据源是 Python companion-agent 的 `/v1`，不是 Java 的 `/vvv/api/roles/v1`。**
+ * 原因不是风格问题：对话已经整体迁到 `/v1`，而服务端按 role_id 加载角色卡时，
+ * 找不到就**不报错**、直接让回合产出空回复。所以选择器列出来的 id 必须与服务端
+ * 那一份完全一致，否则用户选了个看起来正常的角色，得到的是一条空消息。
+ * 旧 Java 端点还一直返回 400（缺 `-parameters` 编译参数），早就只剩兜底意义。
+ *
+ * 鉴权用 Bearer（与 `/v1` 其它接口一致），语言走 `Accept-Language`。
+ * 目录是只读内容，但 `/v1/roles` 本身要求登录态，所以没 token 时直接走打包目录。
  *
  * 收藏、最近使用、会话级角色都存在本地，并保存角色摘要，所以离线也能列出来。
  */
@@ -37,7 +45,10 @@ class RolesRepositoryImpl(private val context: Context) : RolesRepository {
 
     /** 目录有中文名称/简介时按系统语言取中文，缺失的条目服务端自动回退英文。 */
     private fun lang(): String =
-        if (Locale.getDefault().language.equals("zh", ignoreCase = true)) "zh" else "en"
+        if (Locale.getDefault().language.equals("zh", ignoreCase = true)) "zh-CN" else "en"
+
+    private fun token(): String? =
+        PreferenceUtils.getPrefString(context, NetConfig.tokenHeader(), null)?.takeIf { it.isNotBlank() }
 
     private val bundled by lazy { BundledRoleCatalog(context.applicationContext) }
 
@@ -46,10 +57,8 @@ class RolesRepositoryImpl(private val context: Context) : RolesRepository {
      * 两边都没有时，原样返回服务端结果（失败仍是 null，空仍是空列表）。
      */
     override suspend fun divisions(): List<RoleDivision>? {
-        val url = Constants.getUrl("/roles/v1/divisions").toHttpUrl().newBuilder()
-            .addQueryParameter("lang", lang())
-            .build()
-        val server = get(url.toString())?.let(RolesParser::parseDivisions)
+        // /v1/divisions 的 label 直接按 Accept-Language 返回，不需要再传 lang 参数
+        val server = get("/v1/divisions", emptyMap())?.let(RolesParser::parseAgentDivisions)
         if (!server.isNullOrEmpty()) return server
         val local = bundled.catalog(lang())?.divisions
         if (!local.isNullOrEmpty()) {
@@ -61,7 +70,6 @@ class RolesRepositoryImpl(private val context: Context) : RolesRepository {
         LogUtil.e("role catalog divisions failed and no bundled copy")
         return server
     }
-
     override suspend fun roles(
         division: String?,
         query: String,
@@ -69,17 +77,14 @@ class RolesRepositoryImpl(private val context: Context) : RolesRepository {
         limit: Int,
         offset: Int,
     ): RolePage? {
-        val url = Constants.getUrl("/roles/v1/roles").toHttpUrl().newBuilder()
-            .addQueryParameter("lang", lang())
-            .addQueryParameter("limit", limit.toString())
-            .addQueryParameter("offset", offset.toString())
-            .apply {
-                if (!division.isNullOrEmpty()) addQueryParameter("division", division)
-                if (query.isNotBlank()) addQueryParameter("q", query.trim())
-                if (featuredOnly) addQueryParameter("featured", "true")
-            }
-            .build()
-        val server = get(url.toString())?.let(RolesParser::parseRolePage)
+        val params = buildMap {
+            put("limit", limit.toString())
+            put("offset", offset.toString())
+            if (!division.isNullOrEmpty()) put("division", division)
+            if (query.isNotBlank()) put("q", query.trim())
+            if (featuredOnly) put("featured", "true")
+        }
+        val server = get("/v1/roles", params)?.let(RolesParser::parseAgentRolePage)
         if (server != null && server.items.isNotEmpty()) return server
         val local = bundled.catalog(lang())?.page(division, query, featuredOnly, limit, offset)
         if (local != null && local.items.isNotEmpty()) {
@@ -89,10 +94,30 @@ class RolesRepositoryImpl(private val context: Context) : RolesRepository {
         return server
     }
 
-    private suspend fun get(url: String): String? = withContext(Dispatchers.IO) {
+    /**
+     * 请求 `/v1` 的一个只读路径。
+     *
+     * 没登录态时直接返回 null（调用方会退回打包目录）：`/v1/roles` 要 Bearer，
+     * 拿一个空 token 去请求只会拿到 401，多一次无意义的往返。
+     */
+    private suspend fun get(path: String, params: Map<String, String>): String? = withContext(Dispatchers.IO) {
+        val token = token() ?: return@withContext null
         runCatching {
-            client.newCall(Request.Builder().url(url).get().build()).execute().use { resp ->
-                if (resp.isSuccessful) resp.body?.string() else null
+            val url = (BASE_URL + path).toHttpUrl().newBuilder()
+                .apply { params.forEach { (k, v) -> addQueryParameter(k, v) } }
+                .build()
+            client.newCall(
+                Request.Builder()
+                    .url(url)
+                    .header("Authorization", "Bearer $token")
+                    .header("Accept-Language", lang())
+                    .get()
+                    .build(),
+            ).execute().use { resp ->
+                if (resp.isSuccessful) resp.body?.string() else {
+                    LogUtil.i(TAG, "GET $path -> HTTP ${resp.code}")
+                    null
+                }
             }
         }.getOrNull()
     }
@@ -158,5 +183,11 @@ class RolesRepositoryImpl(private val context: Context) : RolesRepository {
         const val KEY_RECENTS = "recents"
         const val KEY_SESSION_PREFIX = "session_role_"
         const val MAX_RECENTS = 12
+
+        /**
+         * `/v1` 与 Java 的 `/vvv/api` 同域不同前缀。用主站域名拼，
+         * 与 `CompanionConfig.baseUrl` 是同一个地址，避免两处各写一份。
+         */
+        val BASE_URL: String get() = "https://" + com.openapi.core.config.Constants.BASE_IP
     }
 }

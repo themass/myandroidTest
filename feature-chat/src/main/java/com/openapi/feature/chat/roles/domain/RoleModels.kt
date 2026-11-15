@@ -1,6 +1,6 @@
 package com.openapi.feature.chat.roles.domain
 
-/** 角色分类（对应服务端 /api/roles/v1/divisions）。 */
+/** 角色分类（对应服务端 `/v1/divisions`）。 */
 data class RoleDivision(
     val id: String,
     val label: String,

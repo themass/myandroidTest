@@ -9,12 +9,53 @@ import com.openapi.feature.chat.roles.domain.RolePage
 import com.openapi.feature.chat.roles.domain.RoleSummary
 
 /**
- * /api/roles/v1 响应的解析。纯函数，不碰 Android 类，可以直接在 JVM 上单测。
+ * 角色目录解析。纯函数，不碰 Android 类，可以直接在 JVM 上单测。
  *
- * 响应格式：{code, data, message}，code 为 0 表示成功。非 0、缺字段、不是 JSON 都按失败处理，
- * 返回 null，由调用方决定提示什么，而不是把半截数据塞进界面。
+ * **两套响应格式并存，因为历史上真的有两套端点：**
+ * - 旧 Java：`/vvv/api/roles/v1/` 下那一组，外面套一层 `{code, data, message}`，code 为 0 才算成功。
+ *   这个端点一直返回 400（Java 缺 `-parameters` 编译参数），且内容与打包目录逐 id 完全一致，
+ *   已经删掉客户端调用；解析函数留着是因为旧的响应样本还值得能解析，测过的行为不该丢。
+ * - 新 Python：`/v1/roles`、`/v1/divisions`，**没有外壳**，顶层就是 `{items, total, limit, offset}`。
+ *   这才是真正生效的那一份——服务端按 id 加载角色卡，找不到 id 时不会报错，只会让回合产出空回复。
  */
 object RolesParser {
+
+    /**
+     * `/v1/divisions`：`{"items":[{"id","label","icon","color","count",...}]}`。
+     * 与旧格式的区别只有「没有 code/data 外壳」，所以校验逻辑一致：形状不对返回 null。
+     */
+    fun parseAgentDivisions(body: String): List<RoleDivision>? {
+        val root = runCatching { JsonParser.parseString(body) }.getOrNull()?.asObjectOrNull() ?: return null
+        val items = root.get("items")?.takeIf { it.isJsonArray }?.asJsonArray ?: return null
+        return items.mapNotNull { el ->
+            val o = el.asObjectOrNull() ?: return@mapNotNull null
+            val id = o.string("id") ?: return@mapNotNull null
+            RoleDivision(
+                id = id,
+                label = o.string("label") ?: id,
+                icon = o.string("icon").orEmpty(),
+                colorArgb = RoleColors.parse(o.string("color")),
+                count = o.int("count"),
+            )
+        }
+    }
+
+    /**
+     * `/v1/roles`：`{"items":[...],"total":283,"limit":100,"offset":0}`。
+     * `total` 缺失时退化成「本页条数」，而不是当成 0——当成 0 会让 `hasMore` 永远为 false，
+     * 用户翻不到第二页。
+     */
+    fun parseAgentRolePage(body: String): RolePage? {
+        val root = runCatching { JsonParser.parseString(body) }.getOrNull()?.asObjectOrNull() ?: return null
+        val items = root.get("items")?.takeIf { it.isJsonArray }?.asJsonArray ?: return null
+        val parsed = items.mapNotNull { parseRole(it) }
+        val offset = root.int("offset")
+        return RolePage(
+            items = parsed,
+            total = root.int("total", default = offset + parsed.size),
+            offset = offset,
+        )
+    }
 
     fun parseDivisions(body: String): List<RoleDivision>? {
         val data = data(body) ?: return null

@@ -14,7 +14,7 @@ class LocalRoleCatalog(
 ) {
 
     /**
-     * 与服务端 /roles/v1/roles 同样的筛选和分页语义，用于兜底。
+     * 与服务端 `/v1/roles` 同样的筛选和分页语义，用于兜底。
      * 空 division 表示不限；query 按名称和简介做不区分大小写的包含匹配。
      */
     fun page(
