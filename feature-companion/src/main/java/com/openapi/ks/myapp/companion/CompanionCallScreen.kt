@@ -49,7 +49,11 @@ import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MicOff
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material.icons.filled.VideocamOff
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -74,6 +78,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -274,6 +281,10 @@ fun CompanionCallScreen(
     avatarContent: (@Composable () -> Unit)? = null,
     remoteVideoContent: (@Composable () -> Unit)? = null,
     localVideoContent: (@Composable () -> Unit)? = null,
+    /** 波形样式与粒子开关。由调用方持有（要持久化），本页只消费。 */
+    waveOptions: WaveOptions = WaveOptions(),
+    /** 切换波形样式 / 粒子。null 时不显示切换入口。 */
+    onWaveOptionsChange: ((WaveOptions) -> Unit)? = null,
 ) {
     val reducedMotion = rememberReducedMotion()
 
@@ -334,6 +345,8 @@ fun CompanionCallScreen(
                 elapsedSeconds = state.elapsedSeconds,
                 isMuted = state.isMuted,
                 statusHint = state.statusHint,
+                waveOptions = waveOptions,
+                onWaveOptionsChange = onWaveOptionsChange,
             )
 
             Box(
@@ -482,6 +495,8 @@ private fun CallHeader(
     elapsedSeconds: Long,
     isMuted: Boolean,
     statusHint: String?,
+    waveOptions: WaveOptions = WaveOptions(),
+    onWaveOptionsChange: ((WaveOptions) -> Unit)? = null,
 ) {
     Column(
         modifier = Modifier
@@ -489,14 +504,29 @@ private fun CallHeader(
             .padding(top = 18.dp, bottom = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(
-            text = agentName.ifBlank { "她" },
-            color = CallColors.TextPrimary,
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Medium,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
+        // 名字一行 + 右侧样式菜单：菜单只在调用方允许切换时出现，
+        // 否则通话页顶部会多一个点了没反应的图标。
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Spacer(Modifier.size(40.dp))
+            Text(
+                text = agentName.ifBlank { "她" },
+                color = CallColors.TextPrimary,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Medium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+                textAlign = TextAlign.Center,
+            )
+            if (onWaveOptionsChange != null) {
+                WaveStyleMenu(options = waveOptions, onChange = onWaveOptionsChange)
+            } else {
+                Spacer(Modifier.size(40.dp))
+            }
+        }
         Spacer(Modifier.height(6.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             // 状态点：已连接是主色，重连是琥珀，接通中是灰。用点而不是纯文字，
@@ -533,6 +563,50 @@ private fun CallHeader(
                         .padding(horizontal = 8.dp, vertical = 3.dp),
                 )
             }
+        }
+    }
+}
+
+/**
+ * 波形样式切换。三套样式各有用处，所以给用户选，而不是替他们定一个：
+ * - 竖条最克制、信息最清楚；
+ * - 连续曲线（默认）最像"声音"；
+ * - 圆环配头像的圆形构图。
+ * 粒子可以单独关掉——它是最耗电的一项，低端机建议关。
+ */
+@Composable
+private fun WaveStyleMenu(options: WaveOptions, onChange: (WaveOptions) -> Unit) {
+    var open by remember { mutableStateOf(false) }
+    Box {
+        IconButton(onClick = { open = true }, modifier = Modifier.size(40.dp)) {
+            Icon(
+                imageVector = Icons.Filled.MoreVert,
+                contentDescription = "波形样式",
+                tint = CallColors.TextSecondary,
+            )
+        }
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            val labels = mapOf(
+                WaveStyle.Ribbon to "柔和曲线",
+                WaveStyle.Bars to "竖条",
+                WaveStyle.Orbit to "环形放射",
+            )
+            labels.forEach { (style, label) ->
+                DropdownMenuItem(
+                    text = { Text(if (options.style == style) "✓ $label" else "　 $label") },
+                    onClick = {
+                        open = false
+                        onChange(options.copy(style = style))
+                    },
+                )
+            }
+            DropdownMenuItem(
+                text = { Text(if (options.particles) "✓ 飘散粒子" else "　 飘散粒子") },
+                onClick = {
+                    open = false
+                    onChange(options.copy(particles = !options.particles))
+                },
+            )
         }
     }
 }
@@ -863,6 +937,26 @@ private fun CaptionLine(
 // ============================================================================
 
 /**
+ * 波形样式。用户可以在通话页的 ⋯ 菜单里切换，选择记在本地。
+ *
+ * 三套都只用 Canvas 画，不引入第三方波形库：
+ * - [Bars]：竖条，最克制，信息量最清楚；
+ * - [Ribbon]：连续曲线（类似 WaveInApp 的柔和长波），更像"声音"而不是"柱状图"；
+ * - [Orbit]：圆环放射条，配合头像的环形构图。
+ */
+enum class WaveStyle { Bars, Ribbon, Orbit }
+
+/**
+ * 波形风格 + 粒子开关。调用方持有，界面只读。
+ */
+@Immutable
+data class WaveOptions(
+    val style: WaveStyle = WaveStyle.Ribbon,
+    /** 是否从波形里飘出粒子。关掉可以省电，低端机建议关。 */
+    val particles: Boolean = true,
+)
+
+/**
  * 一排随电平起伏的竖条。
  *
  * 形状由三个因子相乘，缺一个都不像：
@@ -884,6 +978,8 @@ private fun WaveformBars(
     isMuted: Boolean,
     isSpeaking: Boolean,
     reducedMotion: Boolean,
+    style: WaveStyle = WaveStyle.Bars,
+    particles: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
     val barColor = if (isMuted) CallColors.Slate else CallColors.Violet
@@ -893,30 +989,164 @@ private fun WaveformBars(
         val lv = maxOf(level.value, speakingFloor)
         val ph = if (reducedMotion) 0.40f else phase.value
 
-        val gap = size.width / WAVE_BAR_COUNT
-        val barWidth = (gap * 0.34f).coerceAtLeast(2.dp.toPx())
-        val centerY = size.height / 2f
-        val minBar = 3.dp.toPx()
-        val maxBar = size.height
-        val half = (WAVE_BAR_COUNT - 1) / 2f
-
-        for (i in 0 until WAVE_BAR_COUNT) {
-            // -1..1：到中心的归一化距离
-            val t = (i - half) / half
-            // 中间 ≈1，两端 ≈0.1；乘 0.92 让两端不至于完全消失（全消失会显得"断掉"）
-            val envelope = cos(t * (PI / 2) * 0.92).toFloat().coerceIn(0.10f, 1f)
-            // 相邻条相位差 0.55 弧度：不够大则同涨同落，太大则像随机噪点
-            val wobble = 0.55f + 0.45f * sin(ph + i * 0.55f)
-            val barHeight = minBar + (maxBar - minBar) * lv * envelope * wobble
-
-            val left = i * gap + (gap - barWidth) / 2f
-            drawRoundRect(
-                color = barColor.copy(alpha = (0.34f + 0.66f * envelope) * if (isMuted) 0.62f else 1f),
-                topLeft = Offset(left, centerY - barHeight / 2f),
-                size = Size(barWidth, barHeight),
-                cornerRadius = CornerRadius(barWidth / 2f, barWidth / 2f),
-            )
+        when (style) {
+            WaveStyle.Bars -> drawBars(lv, ph, barColor, isMuted)
+            WaveStyle.Ribbon -> drawRibbon(lv, ph, barColor, isMuted)
+            WaveStyle.Orbit -> drawOrbit(lv, ph, barColor, isMuted)
         }
+        // 粒子只在有声音时出现：静音还飘粒子会让人以为有声音。
+        if (particles && !isMuted && lv > 0.08f) {
+            drawParticles(lv, ph, barColor)
+        }
+    }
+}
+
+/**
+ * 竖条：最克制的一版。三条因子相乘（电平 × 包络 × 相位），缺一个都不像声波。
+ * 相邻条相位差 0.55 弧度：不够则同涨同落像柱状图，太大像随机噪点。
+ */
+private fun DrawScope.drawBars(lv: Float, ph: Float, color: Color, isMuted: Boolean) {
+    val gap = size.width / WAVE_BAR_COUNT
+    val barWidth = (gap * 0.34f).coerceAtLeast(2.dp.toPx())
+    val centerY = size.height / 2f
+    val minBar = 3.dp.toPx()
+    val maxBar = size.height
+    val half = (WAVE_BAR_COUNT - 1) / 2f
+
+    for (i in 0 until WAVE_BAR_COUNT) {
+        val t = (i - half) / half
+        val envelope = cos(t * (PI / 2) * 0.92).toFloat().coerceIn(0.10f, 1f)
+        val wobble = 0.55f + 0.45f * sin(ph + i * 0.55f)
+        val barHeight = minBar + (maxBar - minBar) * lv * envelope * wobble
+
+        val left = i * gap + (gap - barWidth) / 2f
+        drawRoundRect(
+            color = color.copy(alpha = (0.34f + 0.66f * envelope) * if (isMuted) 0.62f else 1f),
+            topLeft = Offset(left, centerY - barHeight / 2f),
+            size = Size(barWidth, barHeight),
+            cornerRadius = CornerRadius(barWidth / 2f, barWidth / 2f),
+        )
+    }
+}
+
+/**
+ * 连续曲线（参考 WaveInApp 的柔和长波）：两条上下对称的正弦叠加，幅度分层。
+ *
+ * 为什么比竖条更像"声音"：人眼把连续曲线读成一条振动的弦，而竖条读成柱状统计。
+ * 三层不同频率/相位叠加，避免一眼看出是纯正弦（规整感就是"假"的来源）。
+ */
+private fun DrawScope.drawRibbon(lv: Float, ph: Float, color: Color, isMuted: Boolean) {
+    val centerY = size.height / 2f
+    val amp = size.height * 0.46f * (0.15f + lv)
+    val steps = 96
+    val alpha = if (isMuted) 0.45f else 1f
+
+    // 三层：主波 + 高频细节 + 慢速起伏。频率比不是整数，避免波形周期性重复。
+    fun waveAt(x: Float): Float {
+        val t = x / size.width
+        val a = sin((t * 6.2f + ph) * PI.toFloat())
+        val b = sin((t * 13.7f - ph * 1.7f) * PI.toFloat()) * 0.32f
+        val c = sin((t * 2.1f + ph * 0.6f) * PI.toFloat()) * 0.22f
+        // 两端收窄，避免曲线在边界被硬切
+        val edge = sin(t * PI.toFloat()).coerceIn(0f, 1f)
+        return (a + b + c) * edge
+    }
+
+    // 上下两条对称路径，中间用渐变填充，像一条发光的带子
+    val path = Path()
+    val upper = ArrayList<Offset>(steps + 1)
+    val lower = ArrayList<Offset>(steps + 1)
+    for (i in 0..steps) {
+        val x = size.width * i / steps
+        val y = waveAt(x) * amp
+        upper += Offset(x, centerY - y)
+        lower += Offset(x, centerY + y)
+    }
+    path.moveTo(upper[0].x, upper[0].y)
+    for (i in 1..steps) path.lineTo(upper[i].x, upper[i].y)
+    for (i in steps downTo 0) path.lineTo(lower[i].x, lower[i].y)
+    path.close()
+
+    drawPath(
+        path = path,
+        brush = Brush.verticalGradient(
+            colors = listOf(
+                color.copy(alpha = 0.08f * alpha),
+                color.copy(alpha = 0.55f * alpha),
+                color.copy(alpha = 0.08f * alpha),
+            ),
+        ),
+    )
+    // 中心亮线：让带子有"芯"，不然只是一团色块
+    val core = Path()
+    core.moveTo(upper[0].x, centerY - waveAt(0f) * amp)
+    for (i in 1..steps) {
+        val x = size.width * i / steps
+        core.lineTo(x, centerY - waveAt(x) * amp)
+    }
+    drawPath(core, color.copy(alpha = 0.55f * alpha), style = Stroke(width = 1.5.dp.toPx()))
+}
+
+/**
+ * 环形放射条：围绕中心向外发散，配合头像的圆形构图。
+ * 比竖条更有"能量从她那里发出来"的方向感。
+ */
+private fun DrawScope.drawOrbit(lv: Float, ph: Float, color: Color, isMuted: Boolean) {
+    val cx = size.width / 2f
+    val cy = size.height / 2f
+    val baseR = size.minDimension * 0.18f
+    val maxLen = size.minDimension * 0.32f
+    val count = 72
+    val alpha = if (isMuted) 0.5f else 1f
+
+    for (i in 0 until count) {
+        val angle = (i.toFloat() / count) * 2f * PI.toFloat()
+        // 每根条独立相位；频率不一致，环上不会出现整齐的对称
+        val wobble = 0.35f + 0.65f * sin(ph * 1.4f + i * 0.37f).toFloat()
+        val len = maxLen * lv * wobble * 0.9f
+        if (len < 1f) continue
+        val dirX = cos(angle)
+        val dirY = sin(angle)
+        drawLine(
+            color = color.copy(alpha = 0.75f * alpha * (0.4f + 0.6f * wobble)),
+            start = Offset(cx + dirX * baseR, cy + dirY * baseR),
+            end = Offset(cx + dirX * (baseR + len), cy + dirY * (baseR + len)),
+            strokeWidth = 2.dp.toPx(),
+            cap = StrokeCap.Round,
+        )
+    }
+}
+
+/**
+ * 粒子：从波形中心向两侧飘散，越远越淡。
+ *
+ * 位置是相位 + 索引的纯函数（不用随机数），所以不需要持有粒子对象、也不会每帧分配；
+ * 同一条波形上粒子的初始位置分布均匀，看起来像从声波里"抖"出来的。
+ */
+private fun DrawScope.drawParticles(lv: Float, ph: Float, color: Color) {
+    val cx = size.width / 2f
+    val cy = size.height / 2f
+    val count = 18
+
+    for (i in 0 until count) {
+        // 每颗粒子有自己的周期与相位；用质数步长让相邻粒子错开
+        val seed = (i * 37 % 100) / 100f
+        val cycle = (ph * 0.9f + seed * 6.28f)
+        val progress = (cycle % 6.28f) / 6.28f          // 0..1 生命周期
+        val dir = if (i % 2 == 0) -1f else 1f
+        val drift = (seed - 0.5f) * 2f                   // -1..1 横向散布
+        val rise = progress * progress                    // 加速上升
+        val x = cx + dir * rise * size.width * 0.42f + drift * size.width * 0.06f
+        val y = cy - rise * size.height * 0.55f + drift * size.height * 0.1f
+        val radius = (1.2f + (1f - progress) * 2.2f).dp.toPx() * lv * 2.2f
+        if (radius <= 0.3f) continue
+        // 生命两端透明：出生和消失都不突兀
+        val fade = sin(progress * PI.toFloat()).coerceIn(0f, 1f)
+        drawCircle(
+            color = color.copy(alpha = 0.55f * fade * lv),
+            radius = radius,
+            center = Offset(x, y),
+        )
     }
 }
 

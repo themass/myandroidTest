@@ -18,9 +18,16 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.height
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.runtime.Composable
@@ -57,6 +64,13 @@ fun SimpleAvatar(
      * 只重组这一小块；如果由调用方读出来再传值，整个页面都会跟着音频帧重组。
      */
     mouthLevel: kotlinx.coroutines.flow.StateFlow<Float>? = null,
+    /**
+     * 素材缺失时占位圆里显示的名字（用首字）。空串时退回「她」。
+     *
+     * 为什么需要它：以前的兜底是一个纯色灰圆，既没有身份也没有解释，看起来就是程序坏了。
+     * 给一个名字首字 + 一句「形象准备中」，至少让人知道这是谁、以及为什么会是这样。
+     */
+    fallbackName: String = "",
 ) {
     val spec by renderer.spec.collectAsState()
     val avatarState by renderer.state.collectAsState()
@@ -144,13 +158,9 @@ fun SimpleAvatar(
             FileLayer(files.blush)
             FileLayer(files.highlight)
         } else if (loaded?.portraitRes == null) {
-            // 素材还没做完（或还没 bind）：给一个中性占位，页面布局仍然成立。
-            Box(
-                Modifier
-                    .size(160.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-            )
+            // 素材缺失：不再是一个纯色灰圆。给名字首字 + 一句说明，
+            // 让人知道这是谁，也知道为什么没有图（而不是以为 App 坏了）。
+            AvatarPlaceholder(name = fallbackName)
         } else {
             AvatarLayer(loaded.portraitRes)
 
@@ -187,6 +197,46 @@ fun AvatarPortrait(
     }
     bitmap?.let {
         Image(bitmap = it, contentDescription = null, modifier = modifier, contentScale = contentScale)
+    }
+}
+
+/**
+ * 素材缺失时的占位：名字首字 + 柔和渐变环 + 一行小字说明。
+ *
+ * 与纯色灰圆的区别不只是好看：它同时回答了「这是谁」和「为什么没有图」。
+ * 之前那个灰圆两个问题都不回答，用户只能判断成「App 坏了」。
+ */
+@Composable
+private fun AvatarPlaceholder(name: String) {
+    val initial = name.trim().take(1).ifBlank { "她" }
+    Box(
+        modifier = Modifier
+            .size(160.dp)
+            .clip(CircleShape)
+            .background(
+                androidx.compose.ui.graphics.Brush.radialGradient(
+                    listOf(
+                        Color(0xFFEDE8FF),
+                        Color(0xFFDCD3F7),
+                    ),
+                ),
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = initial,
+                fontSize = 52.sp,
+                fontWeight = FontWeight.Light,
+                color = Color(0xFF6F5BD6),
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = "形象准备中",
+                fontSize = 11.sp,
+                color = Color(0xFF8A7CB5),
+            )
+        }
     }
 }
 

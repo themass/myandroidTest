@@ -217,6 +217,9 @@ fun CompanionRoute(
             uiState.messages.filter { it.role == MessageRole.ASSISTANT }.map { it.text }.filter { it.isNotBlank() }
         }
 
+        // 波形样式：用户选了就记住，下次进通话还是那一套。
+        var waveOptions by remember { mutableStateOf(loadWaveOptions(context)) }
+
         // 标题与字标要用她的真名，不能拿 characterId（如 linche）当人看。通话期间拉一次，
         // 失败就退回「陪伴」——名字拿不到不该挡住通话。
         var agentName by rememberSaveable(characterId) { mutableStateOf("陪伴") }
@@ -312,6 +315,11 @@ fun CompanionRoute(
             ),
             // 摄像头还没接：按钮置灰，点了给一句明确说法，而不是点了没反应。
             cameraAvailable = false,
+            waveOptions = waveOptions,
+            onWaveOptionsChange = { next ->
+                waveOptions = next
+                saveWaveOptions(context, next)
+            },
             onHangUp = { chatViewModel.endCall() },
             onToggleMute = {
                 // 静音状态下点「取消静音」就是真的要开麦，没权限得先申请。
@@ -344,6 +352,29 @@ private fun hasMicPermission(context: Context): Boolean =
 
 private fun toast(context: Context, message: String) {
     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+}
+
+// ---- 波形样式偏好（本地，不涉及服务端） ----
+
+private const val WAVE_PREFS = "companion_wave"
+
+/** 读用户选过的波形样式。读不到就用默认（柔和曲线 + 粒子）。 */
+internal fun loadWaveOptions(context: Context): WaveOptions {
+    val prefs = context.getSharedPreferences(WAVE_PREFS, Context.MODE_PRIVATE)
+    val style = runCatching {
+        WaveStyle.valueOf(prefs.getString("style", WaveStyle.Ribbon.name)!!)
+    }.getOrDefault(WaveStyle.Ribbon)
+    return WaveOptions(
+        style = style,
+        particles = prefs.getBoolean("particles", true),
+    )
+}
+
+internal fun saveWaveOptions(context: Context, options: WaveOptions) {
+    context.getSharedPreferences(WAVE_PREFS, Context.MODE_PRIVATE).edit()
+        .putString("style", options.style.name)
+        .putBoolean("particles", options.particles)
+        .apply()
 }
 
 object CompanionConfig {

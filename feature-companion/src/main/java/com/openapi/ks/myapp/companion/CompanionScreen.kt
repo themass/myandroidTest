@@ -193,9 +193,19 @@ fun CompanionScreen(
                             // 点她一下：先给本地反馈（渲染器里的缩放弹动由 SimpleAvatar 播），
                             // 再把「碰到了哪里」告诉 agent——她该不该回一句由她决定，
                             // 客户端不替她说话（不然就成了一个假的互动）。
-                            onTapped = { region -> viewModel.onAvatarTapped(region) },
+                            // 同时给一条短提示：服务端还没接 touch，不给提示的话
+                            // 用户点完只有一个 3% 的缩放，会以为没反应。
+                            onTapped = { region ->
+                                viewModel.onAvatarTapped(region)
+                                android.widget.Toast.makeText(
+                                    context,
+                                    if (region == "head") "摸了摸她的头" else "碰了她一下",
+                                    android.widget.Toast.LENGTH_SHORT,
+                                ).show()
+                            },
                             // 嘴型：把远端音频振幅交给形象层。以前两帧嘴型画好了却没人驱动。
                             mouthLevel = viewModel.mouthLevel,
+                            fallbackName = character?.name.orEmpty(),
                         )
                     }
                 }

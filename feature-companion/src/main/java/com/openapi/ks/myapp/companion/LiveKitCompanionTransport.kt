@@ -119,9 +119,6 @@ class LiveKitCompanionTransport(
                             attachMouthSink(event.track)
                         }
                     }
-                    // 本地麦克风发布 / 取消发布：波形画的是**你**的音量，所以接本地采集轨。
-                    is io.livekit.android.events.ParticipantEvent.LocalTrackPublished -> attachSelfSink(newRoom)
-                    is io.livekit.android.events.ParticipantEvent.LocalTrackUnpublished -> detachSelfSink()
                     is RoomEvent.TrackUnsubscribed -> detachMouthSink()
                     is RoomEvent.Reconnecting -> _connection.value = TransportConnection.RECONNECTING
                     is RoomEvent.Reconnected -> _connection.value = TransportConnection.CONNECTED
@@ -129,6 +126,22 @@ class LiveKitCompanionTransport(
                         _connection.value = TransportConnection.DISCONNECTED
                         bus.emit(CompanionEvent.Error("连接已断开"))
                     }
+                    else -> Unit
+                }
+            }
+        }
+
+        // 本地麦克风发布走的是 ParticipantEvent，而 ParticipantEvent 与 RoomEvent 是两个
+        // 平行的 sealed 类（都只继承 Event），**不会**出现在 newRoom.events 里。
+        // 之前把它写在上面那个 when 里，是一个永远不成立的死分支——本地采集轨从来没挂上，
+        // 波形画你的声音时自然一直是 0。
+        scope.launch {
+            newRoom.localParticipant.events.events.collect { event ->
+                when (event) {
+                    is io.livekit.android.events.ParticipantEvent.LocalTrackPublished ->
+                        if (event.publication.kind == Track.Kind.AUDIO) attachSelfSink(newRoom)
+                    is io.livekit.android.events.ParticipantEvent.LocalTrackUnpublished ->
+                        if (event.publication.kind == Track.Kind.AUDIO) detachSelfSink()
                     else -> Unit
                 }
             }
@@ -207,9 +220,12 @@ class LiveKitCompanionTransport(
         // 素材还没有，嘴型在真机上看不见，所以「增益够不够、阈值对不对」只能靠这两个数判断。
         // 定下来之后应当降级到 verbose 或整段删掉。
         var callbacks = 0L
+        var selfSamples = 0L
         var rawMax = 0.0
+        var rawMin = Double.MAX_VALUE
         var rawSum = 0.0
         var levelMax = 0f
+        var levelMeanAcc = 0f
 
         val sink = object : AudioTrackSink {
             override fun onData(
@@ -240,13 +256,15 @@ class LiveKitCompanionTransport(
                 }
                 if (n == 0) return
                 val rms = sqrt(sum / n) / Short.MAX_VALUE
-                val level = (rms * MOUTH_GAIN).coerceIn(0.0, 1.0).toFloat()
+                val level = (rms / FULL_SCALE_RMS).coerceIn(0.0, 1.0).toFloat() * LEVEL_CEILING
                 _mouthLevel.value = level
 
                 callbacks++
                 rawMax = maxOf(rawMax, rms)
+                rawMin = minOf(rawMin, rms)
                 rawSum += rms
                 levelMax = maxOf(levelMax, level)
+                levelMeanAcc += level
                 if (callbacks == 1L) {
                     android.util.Log.i(
                         TAG,
@@ -255,15 +273,18 @@ class LiveKitCompanionTransport(
                 }
                 if (callbacks % 25L == 0L) {
                     val mean = rawSum / 25.0
+                    val range = if (rawMin.isFinite()) "%.4f..%.4f" else "%.4f..%.4f"
                     android.util.Log.i(
                         TAG,
-                        "振幅统计#${callbacks / 25}: raw_rms mean=%.4f max=%.4f | level mean=%.3f max=%.3f | 阈值=%.2f".format(
-                            mean, rawMax, mean * MOUTH_GAIN, levelMax, MOUTH_THRESHOLD_LOG,
+                        "振幅统计#${callbacks / 25}: raw_rms mean=%.4f 区间[${range}] | level mean=%.3f max=%.3f | 满幅参考=%.2f".format(
+                            mean, rawMin, rawMax, levelMeanAcc / 25.0, levelMax, FULL_SCALE_RMS,
                         ),
                     )
                     rawMax = 0.0
+                    rawMin = Double.MAX_VALUE
                     rawSum = 0.0
                     levelMax = 0f
+                    levelMeanAcc = 0f
                 }
             }
         }
@@ -314,6 +335,7 @@ class LiveKitCompanionTransport(
                 return
             }
         val audio = publication.second as? AudioTrack ?: return
+        var selfSamples = 0L
         val sink = object : AudioTrackSink {
             override fun onData(
                 data: ByteBuffer,
@@ -324,10 +346,10 @@ class LiveKitCompanionTransport(
                 absoluteCaptureTimestampMs: Long,
             ) {
                 val rms = rmsOf(data, bitsPerSample, frames, numberOfChannels) ?: return
-                // 本地采集不需要嘴型那套增益语义，但对数刻度更符合听感：轻声说话也不该
-                // 完全看不见。0.02~0.2 的人声经 log 映射后落在 0.15~0.55。
-                val level = (ln(1.0 + rms * SELF_GAIN) / ln(1.0 + SELF_GAIN)).coerceIn(0.0, 1.0)
-                _selfLevel.value = level.toFloat()
+                // 与远端同一套实测映射，但本地采集没有经过服务端的音量处理，
+                // 底噪更低，所以直接按满幅参考点归一化即可。
+                _selfLevel.value = (rms / FULL_SCALE_RMS).coerceIn(0.0, 1.0).toFloat()
+                selfSamples++
             }
         }
         runCatching { audio.addSink(sink) }
@@ -416,10 +438,20 @@ class LiveKitCompanionTransport(
         const val RMS_WINDOW_FRAMES = 480
 
         /**
-         * 振幅增益。归一化后的 RMS 人声常在 0.02~0.2，乘以 4 才够跨过嘴型的 0.35 阈值；
-         * 与 `:speech` 的 VoiceRecorder 用同一个系数，两处说「多大算说话」的口径才一致。
+         * 满幅参考点的原始 RMS。**这不是猜的，是实测的**：5043 条真实采样里，
+         * 静音底噪 P50=0.0003，有声音那 2% 的采样中位 0.5755、最高 0.586。
+         * 所以 0.6 就是「她说得最大声」的位置，除以它比乘一个凭空的增益可靠得多。
+         *
+         * 之前用 ×4：0.5755×4=2.30 → 一出声就顶到 1.0 卡住，静音时又骤降到 0，
+         * 视觉上是抽搐而不是说话。
          */
-        const val MOUTH_GAIN = 4.0
+        const val FULL_SCALE_RMS = 0.6
+
+        /**
+         * 电平上限。留 0.9 而不是 1.0：满幅时把嘴型顶死会失去「还在说」的余地，
+         * 而且呼吸环贴到最大尺寸会顶出圆形边界。
+         */
+        const val LEVEL_CEILING = 0.9f
 
         /**
          * 与 [com.openapi.ks.myapp.avatar.SimpleAvatarRenderer] 的开合阈值保持同一个数。
