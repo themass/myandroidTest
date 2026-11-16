@@ -174,7 +174,9 @@ fun CompanionScreen(
                         kind = kind,
                         onAccept = {
                             viewModel.dismissIncomingCall()
-                            viewModel.setCallActive(true)
+                            // 走和通话按钮同一条入口：接听也要过录音权限，否则会进一个
+                            // 「看着在通话、其实麦克风没发布」的页面。
+                            onOpenCall()
                         },
                         onDecline = viewModel::dismissIncomingCall,
                     )

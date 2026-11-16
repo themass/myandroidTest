@@ -1,9 +1,16 @@
 package com.openapi.ks.myapp.companion
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -17,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -34,6 +42,9 @@ import com.openapi.core.config.CommonConstants
 import com.openapi.common.util.android.PreferenceUtils
 import com.openapi.feature.companion.R
 import com.openapi.core.config.Constants
+import com.openapi.ks.myapp.avatar.AvatarPackStore
+import com.openapi.ks.myapp.avatar.AvatarPortrait
+import kotlinx.coroutines.delay
 
 /** 陪伴界面里能去的页面。聊天是主页面，其余三个从顶部进入。 */
 enum class CompanionPage { CHAT, CHARACTERS, MEMORY, SETTINGS }
@@ -76,7 +87,45 @@ fun CompanionRoute(
     // 所以不走 CompanionPage 那套"切换页面"的状态。
     val uiState by chatViewModel.state.collectAsStateWithLifecycle()
     val inCall = uiState.callActive
-    BackHandler(enabled = inCall) { chatViewModel.setCallActive(false) }
+
+    // 进通话先要有录音权限：没有就申请；用户拒绝也照样进，只是以静音形态进（她能说，你只能看/打字）。
+    // 用一个待办动作区分「拒绝后该继续做什么」——申请前不知道回调回来对应哪件事。
+    var pendingMicAction by remember { mutableStateOf(PendingMicAction.NONE) }
+    val micLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        val action = pendingMicAction
+        pendingMicAction = PendingMicAction.NONE
+        when (action) {
+            PendingMicAction.START_CALL -> chatViewModel.startCall(micAllowed = granted)
+            PendingMicAction.UNMUTE ->
+                if (granted) {
+                    chatViewModel.toggleMute()
+                } else {
+                    toast(context, "没有麦克风权限，先以静音方式继续")
+                }
+
+            PendingMicAction.NONE -> Unit
+        }
+    }
+
+    // 系统返回键也走二次确认：全屏通话里返回 = 挂断，误触的代价是一次断线。
+    var backArmed by remember { mutableStateOf(false) }
+    LaunchedEffect(backArmed) {
+        if (backArmed) {
+            delay(CALL_BACK_CONFIRM_WINDOW_MS)
+            backArmed = false
+        }
+    }
+    LaunchedEffect(inCall) { if (!inCall) backArmed = false }
+    BackHandler(enabled = inCall) {
+        if (backArmed) {
+            chatViewModel.endCall()
+        } else {
+            backArmed = true
+            toast(context, "再按一次返回键挂断通话")
+        }
+    }
 
     Box(modifier = modifier.fillMaxWidth()) {
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -92,7 +141,14 @@ fun CompanionRoute(
                     viewModel = chatViewModel,
                     characterId = characterId,
                     modifier = Modifier.fillMaxWidth(),
-                    onOpenCall = { chatViewModel.setCallActive(true) },
+                    onOpenCall = {
+                        if (hasMicPermission(context)) {
+                            chatViewModel.startCall(micAllowed = true)
+                        } else {
+                            pendingMicAction = PendingMicAction.START_CALL
+                            micLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                        }
+                    },
                     onOpenCharacters = { page = CompanionPage.CHARACTERS },
                     onOpenProfile = { page = CompanionPage.MEMORY },
                     onMenuClick = onMenuClick,
@@ -153,41 +209,96 @@ fun CompanionRoute(
         val transcript = remember(uiState.messages) {
             uiState.messages.filter { it.role == MessageRole.ASSISTANT }.map { it.text }.filter { it.isNotBlank() }
         }
-        // 只取一个字符当占位字标。原来这里取的是「最后一条回复的全文」，
-        // 结果整段话被按 54sp 画进呼吸环中央，糊成一片。
-        val avatarGlyph = remember(characterId) {
-            characterId.trim().take(1).ifBlank { "她" }
+
+        // 标题与字标要用她的真名，不能拿 characterId（如 linche）当人看。通话期间拉一次，
+        // 失败就退回「陪伴」——名字拿不到不该挡住通话。
+        var agentName by rememberSaveable(characterId) { mutableStateOf("陪伴") }
+        LaunchedEffect(characterId) {
+            val name = runCatching { api.character(characterId).summary.name }.getOrNull()
+                ?: runCatching {
+                    api.characters().items.firstOrNull { it.id == characterId }?.name
+                }.getOrNull()
+            if (!name.isNullOrBlank()) agentName = name
         }
+
+        // 形象包里装了立绘就出图，没有才用首字占位：素材没装时不能假装有图，
+        // 一个默认字标比一张「加载中」的空圆更诚实。
+        val avatarStore = remember(context) { AvatarPackStore(context) }
+        val portraitFile = remember(characterId, avatarStore) {
+            avatarStore.avatarFor(characterId)?.let { avatarStore.load(it)?.portrait }
+        }
+        val avatarSlot: (@Composable () -> Unit)? = portraitFile?.let { file ->
+            { AvatarPortrait(file = file, modifier = Modifier.fillMaxSize()) }
+        }
+
+        // 计时从进通话页开始（重连期间暂停，不清零）。状态放在覆盖层里，挂断再进来自然从 0 起。
+        var elapsedSeconds by remember { mutableLongStateOf(0L) }
+        LaunchedEffect(uiState.connection) {
+            while (uiState.connection == CompanionConnection.CONNECTED) {
+                delay(1_000)
+                elapsedSeconds += 1
+            }
+        }
+
+        val callConnection = when (uiState.connection) {
+            CompanionConnection.CONNECTED -> CallConnection.CONNECTED
+            CompanionConnection.RECONNECTING -> CallConnection.RECONNECTING
+            // 断开/出错不能显示「正在接通」：她那边已经没声音了，界面要给出原因。
+            CompanionConnection.ERROR -> CallConnection.ENDED
+            CompanionConnection.IDLE, CompanionConnection.CONNECTING -> CallConnection.CONNECTING
+        }
+
         CompanionCallScreen(
             state = CompanionCallState(
-                // characterId 是 id（如 linche），不是给人看的名字；通话页标题用它当占位更合理。
-                agentName = "陪伴",
-                captions = transcript.takeLast(3),
-                elapsedSeconds = 0L,
-                isMuted = false,
+                agentName = agentName,
+                captions = transcript,
+                elapsedSeconds = elapsedSeconds,
+                isMuted = uiState.isMuted,
                 cameraActive = false,
                 // 电平暂时没有数据源：服务端把 TTS 音轨推给房间，客户端还没有把它接到这里。
                 audioLevel = 0f,
                 isAgentSpeaking = uiState.messages.lastOrNull()?.streaming == true,
-                connection = if (uiState.connection == CompanionConnection.CONNECTED) {
-                    CallConnection.CONNECTED
+                connection = callConnection,
+                statusHint = if (uiState.connection == CompanionConnection.ERROR) {
+                    uiState.error ?: "连接已断开"
                 } else {
-                    CallConnection.CONNECTING
+                    null
                 },
-                avatarEmoji = avatarGlyph,
             ),
-            onHangUp = { chatViewModel.setCallActive(false) },
-            // 静音/摄像头要真正作用到 LiveKit 的本地轨道，传输层还没有这两个方法；
-            // 这里先留空，不假装已经可用。
-            onToggleMute = {},
-            onToggleCamera = {},
+            // 摄像头还没接：按钮置灰，点了给一句明确说法，而不是点了没反应。
+            cameraAvailable = false,
+            onHangUp = { chatViewModel.endCall() },
+            onToggleMute = {
+                // 静音状态下点「取消静音」就是真的要开麦，没权限得先申请。
+                if (uiState.isMuted && !hasMicPermission(context)) {
+                    pendingMicAction = PendingMicAction.UNMUTE
+                    micLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                } else {
+                    chatViewModel.toggleMute()
+                }
+            },
+            onToggleCamera = { toast(context, "摄像头即将支持，先用声音陪她吧") },
             onSendText = { text ->
                 chatViewModel.onInputChange(text)
                 chatViewModel.send()
             },
+            avatarContent = avatarSlot,
         )
     }
     }
+}
+
+/** 录音权限申请回来后要接着做的事。申请前不知道回调对应哪件事，所以先记下来。 */
+private enum class PendingMicAction { NONE, START_CALL, UNMUTE }
+
+/** 返回键二次确认窗口，与通话页挂断按钮保持一致的三秒。 */
+private const val CALL_BACK_CONFIRM_WINDOW_MS = 3_000L
+
+private fun hasMicPermission(context: Context): Boolean =
+    context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+
+private fun toast(context: Context, message: String) {
+    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
 }
 
 object CompanionConfig {

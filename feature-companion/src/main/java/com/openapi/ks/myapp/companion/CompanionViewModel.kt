@@ -33,6 +33,7 @@ class CompanionViewModel(
     private var characterId: String? = null
     private var collectJob: Job? = null
     private var inboxJob: Job? = null
+    private var connectionJob: Job? = null
 
     /**
      * 消息 id 的自增源。界面上「删除某条消息」「某条待确认」都按 id 定位，
@@ -70,6 +71,7 @@ class CompanionViewModel(
                 transport.connect(session)
                 _state.update { it.copy(connection = CompanionConnection.CONNECTED) }
                 listen()
+                observeConnection()
                 startInboxPolling()
                 restorePendingActions()
             } catch (e: CancellationException) {
@@ -143,6 +145,57 @@ class CompanionViewModel(
         _state.update { it.copy(callActive = active) }
     }
 
+    /**
+     * 进入通话，并把麦克风真正发布到房间。
+     *
+     * [micAllowed] 是「用户是否给了录音权限」，不是「用户想不想说话」：
+     * 没给权限时仍然进通话页（她那边还在说，字幕还能看），只是以静音状态进去，
+     * 而不是把人挡在门外。静音可以在页内再打开。
+     */
+    fun startCall(micAllowed: Boolean) {
+        _state.update { it.copy(callActive = true, isMuted = !micAllowed) }
+        transport.setMicEnabled(micAllowed)
+    }
+
+    /** 挂断回到聊天现场。房间不断：通话只是形态，不是另一条连接。 */
+    fun endCall() {
+        transport.setMicEnabled(false)
+        _state.update { it.copy(callActive = false, isMuted = false) }
+    }
+
+    /**
+     * 静音开关。状态先改、再通知传输层：麦克风发布是异步的，如果等它回来再更新按钮，
+     * 用户点了会有近一秒「没反应」，会以为按钮坏了。
+     */
+    fun toggleMute() {
+        val muted = !_state.value.isMuted
+        _state.update { it.copy(isMuted = muted) }
+        transport.setMicEnabled(!muted)
+    }
+
+    /**
+     * 把传输层的连接状态映射进界面。
+     *
+     * 以前界面只看「有没有建过连」：重连中、已断开全都显示成「已连接」（或者永远
+     * 「正在接通」），掉线时用户看着字幕停住却找不到原因。这里改成唯一来源。
+     * DISCONNECTED 归到 ERROR 而不是 IDLE：它需要一个可读的错误提示，IDLE 是
+     * 「还没开始连」，两者在界面上的表现必须不同。
+     */
+    private fun observeConnection() {
+        connectionJob?.cancel()
+        connectionJob = viewModelScope.launch {
+            transport.connection.collect { transportConnection ->
+                val mapped = when (transportConnection) {
+                    TransportConnection.CONNECTING -> CompanionConnection.CONNECTING
+                    TransportConnection.CONNECTED -> CompanionConnection.CONNECTED
+                    TransportConnection.RECONNECTING -> CompanionConnection.RECONNECTING
+                    TransportConnection.DISCONNECTED -> CompanionConnection.ERROR
+                }
+                _state.update { it.copy(connection = mapped) }
+            }
+        }
+    }
+
     /** 展开/收起形象区。默认收起。 */
     fun toggleAvatarExpanded() {
         _state.update { it.copy(avatarExpanded = !it.avatarExpanded) }
@@ -179,6 +232,8 @@ class CompanionViewModel(
         collectJob = null
         inboxJob?.cancel()
         inboxJob = null
+        connectionJob?.cancel()
+        connectionJob = null
     }
 
     fun dismissIncomingCall() {
@@ -357,6 +412,7 @@ class CompanionViewModel(
     override fun onCleared() {
         collectJob?.cancel()
         inboxJob?.cancel()
+        connectionJob?.cancel()
         viewModelScope.launch { transport.disconnect() }
     }
 

@@ -113,6 +113,27 @@ fun SimpleAvatar(
 }
 
 /**
+ * 单张立绘（形象包的 `portrait.png`）：给通话页中央圆、顶栏头像这类「只要一张图」的位置用。
+ *
+ * 与 [SimpleAvatar] 分开而不复用它：那边叠的是六七层表情，通话页只需要一张底图；
+ * 把整套图层搬过去既费内存也没人看眨眼。解码同样在 IO 线程按 [MAX_LAYER_PX] 缩放，
+ * 文件路径 + 修改时间是键，形象包更新后自动重解码。
+ */
+@Composable
+fun AvatarPortrait(
+    file: File,
+    modifier: Modifier = Modifier,
+    contentScale: ContentScale = ContentScale.Fit,
+) {
+    val bitmap by produceState<ImageBitmap?>(initialValue = null, file.path, file.lastModified()) {
+        value = withContext(Dispatchers.IO) { decodeScaled(file) }
+    }
+    bitmap?.let {
+        Image(bitmap = it, contentDescription = null, modifier = modifier, contentScale = contentScale)
+    }
+}
+
+/**
  * 单层素材，按整幅尺寸绘制（美术按同一画布出图），叠加顺序由调用处决定——换
  * 角色只要换图，不用改代码。`null` 表示没有这一层，直接不画。
  */

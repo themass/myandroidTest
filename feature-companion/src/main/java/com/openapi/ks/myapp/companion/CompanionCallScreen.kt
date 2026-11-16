@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -34,6 +35,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -58,6 +62,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -120,8 +125,8 @@ enum class CallConnection {
  *
  * 字段含义：
  * - [agentName] 她的名字，显示在顶部，也是头像占位字的来源。
- * - [captions] 她说的话。**按时间正序**（最后一条最新）；界面只渲染最近三条，
- *   更早的由界面自己丢弃，调用方不必裁剪。流式输出时请直接覆盖最后一条的内容，
+ * - [captions] 她说的话。**按时间正序**（最后一条最新）；界面渲染全部历史（区域有高度上限，
+ *   可滚动，新消息自动跟随到底），调用方不必裁剪。流式输出时请直接覆盖最后一条的内容，
  *   不要每条分片都 append 成新元素，否则会出现「半句话一行」的碎片。
  * - [elapsedSeconds] 通话时长（秒），由调用方计时；本页不自己计时，
  *   因为重连、保持前台等状态的权威在传输层，界面各算一份必然和它对不上。
@@ -219,8 +224,8 @@ private const val PHASE_CYCLE_MS = 1600
 /** 字幕淡入淡出时长。 */
 private const val CAPTION_FADE_MS = 260
 
-/** 字幕最多显示几句。超过就把最旧的挤出去。 */
-private const val CAPTION_MAX_LINES = 3
+/** 字幕区域的最大高度。给了上限才能滚动——无限高的话会把头像和操作条挤出屏幕。 */
+private const val CAPTION_MAX_HEIGHT_DP = 200
 
 /** 波形条数。奇数是为了让中间一根正好落在中心线上。 */
 private const val WAVE_BAR_COUNT = 23
@@ -241,6 +246,8 @@ private const val WAVE_BAR_COUNT = 23
  * @param onToggleMute 切换静音。
  * @param onToggleCamera 切换摄像头。切到开时会同时让调用方去开本地视频轨。
  * @param onSendText 通话中发出的文字。本页负责清空输入框和关闭浮层，不负责别的。
+ * @param cameraAvailable 摄像头能力是否可用。false 时按钮画成置灰态（文案「即将支持」），
+ *   但**仍然可点**——点了由调用方给一句提示，比一个完全没反应的灰按钮好。
  * @param modifier 外部布局约束。
  * @param avatarContent 头像插槽。**优先于** [CompanionCallState.avatarEmoji]，
  *   给了就整块渲染在圆形裁剪里（真实形象渲染器从这儿接）。
@@ -256,6 +263,7 @@ fun CompanionCallScreen(
     onToggleCamera: () -> Unit,
     onSendText: (String) -> Unit,
     modifier: Modifier = Modifier,
+    cameraAvailable: Boolean = true,
     avatarContent: (@Composable () -> Unit)? = null,
     remoteVideoContent: (@Composable () -> Unit)? = null,
     localVideoContent: (@Composable () -> Unit)? = null,
@@ -362,6 +370,7 @@ fun CompanionCallScreen(
             CallControlBar(
                 isMuted = state.isMuted,
                 cameraActive = state.cameraActive,
+                cameraAvailable = cameraAvailable,
                 composerOpen = composerOpen,
                 onToggleMute = onToggleMute,
                 onToggleCamera = onToggleCamera,
@@ -581,6 +590,7 @@ private fun VoiceStage(
             streaming = state.isAgentSpeaking,
             modifier = Modifier
                 .fillMaxWidth()
+                .heightIn(max = CAPTION_MAX_HEIGHT_DP.dp)
                 .padding(horizontal = 8.dp),
         )
     }
@@ -731,12 +741,17 @@ private fun AvatarCircle(
 }
 
 /**
- * 字幕栈：最近 [CAPTION_MAX_LINES] 句，越旧越淡。
+ * 字幕栈：可滚动的历史，最新一句在最下面，越旧越淡。
  *
- * 为什么用"位置决定透明度"而不是逐条进出场动画：字幕每来一句，整栈都要往上顶一格，
+ * 为什么不再只显示三句：语音模式下她说的话是长句流水，三句会被 `maxLines` 反复截断，
+ * 用户看到的是「半句话换半句话」，想回头确认一句已经没了。现在整段对话都可滚动回看。
+ *
+ * 为什么用「位置决定透明度」而不是逐条进出场动画：字幕每来一句，整栈都要往上顶一格，
  * 如果同时给每一条做位移动画，三行会在同一时间往同一方向动，看起来像抖动。
- * 这里只让透明度随位置变化（最新 1.0 / 次新 0.62 / 最旧 0.38），旧的被挤出时
- * 本来就已经很淡，消失不会被注意到——这是"淡出旧句"最省事也最不吵的做法。
+ * 让透明度随位置变化即可，旧的本来就已经很淡。
+ *
+ * 跟随策略：默认贴住底部（新的在心里，用户看的是最新一句）；用户自己往上翻时暂停跟随，
+ * 翻回底部再恢复。只用 [LazyListState.isScrollInProgress] 判断，不需要额外的拖拽手势。
  */
 @Composable
 private fun CaptionStack(
@@ -744,7 +759,10 @@ private fun CaptionStack(
     streaming: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    val visible = captions.filter { it.isNotBlank() }.takeLast(CAPTION_MAX_LINES)
+    // 带原始下标的非空句：下标当 key，追加新句时已有项的 key 不变。
+    val visible = remember(captions) {
+        captions.mapIndexedNotNull { index, line -> if (line.isNotBlank()) index to line else null }
+    }
     if (visible.isEmpty()) {
         // 她还没开口时不留空白塌陷：占一行高度的占位文案，避免整个布局跳动。
         Text(
@@ -757,23 +775,47 @@ private fun CaptionStack(
         return
     }
 
-    Column(
+    val listState = rememberLazyListState()
+    var followTail by remember { mutableStateOf(true) }
+    // 我们自己触发的滚动不算「用户往上翻」，否则每次跟随都会被自己关掉。
+    var autoScrolling by remember { mutableStateOf(false) }
+
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.isScrollInProgress }.collect { scrolling ->
+            if (!scrolling && !autoScrolling) {
+                // 拖动结束时判断停在哪儿：还能往下滚说明用户停在历史里，就暂停跟随。
+                followTail = !listState.canScrollForward
+            }
+        }
+    }
+
+    LaunchedEffect(visible.size) {
+        if (!followTail) return@LaunchedEffect
+        autoScrolling = true
+        try {
+            listState.animateScrollToItem(visible.lastIndex)
+        } finally {
+            autoScrolling = false
+        }
+    }
+
+    LazyColumn(
+        state = listState,
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.Bottom),
     ) {
-        visible.forEachIndexed { index, line ->
+        itemsIndexed(visible, key = { _, item -> item.first }) { index, (_, line) ->
             val fromNewest = visible.lastIndex - index
-            val targetAlpha = when (fromNewest) {
-                0 -> 1f
-                1 -> 0.62f
-                else -> 0.38f
-            }
             CaptionLine(
                 text = line,
-                targetAlpha = targetAlpha,
+                targetAlpha = when {
+                    fromNewest <= 0 -> 1f
+                    fromNewest == 1 -> 0.62f
+                    else -> 0.38f
+                },
                 // 只有最新一句带流式光标，且必须真的在说话。
-                showCursor = streaming && fromNewest == 0,
+                showCursor = streaming && fromNewest <= 0,
             )
         }
     }
@@ -799,8 +841,7 @@ private fun CaptionLine(
         fontSize = 15.sp,
         lineHeight = 23.sp,
         textAlign = TextAlign.Center,
-        maxLines = 3,
-        overflow = TextOverflow.Ellipsis,
+        // 不再截断：一句说完的完整回复要能整段读完，太长由外层滚动承接。
         modifier = Modifier
             .clip(RoundedCornerShape(14.dp))
             .background(CallColors.CaptionScrim)
@@ -921,6 +962,8 @@ private fun VideoStage(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
+                    // 视频形态字幕上限更低：画面本身要留出来，字幕只占底部一条。
+                    .heightIn(max = 140.dp)
                     .padding(horizontal = 16.dp, vertical = 16.dp),
             )
         }
@@ -996,6 +1039,7 @@ private fun RemoteVideoPlaceholder(state: CompanionCallState) {
 private fun CallControlBar(
     isMuted: Boolean,
     cameraActive: Boolean,
+    cameraAvailable: Boolean,
     composerOpen: Boolean,
     onToggleMute: () -> Unit,
     onToggleCamera: () -> Unit,
@@ -1017,8 +1061,13 @@ private fun CallControlBar(
         )
         ControlButton(
             icon = if (cameraActive) Icons.Filled.VideocamOff else Icons.Filled.Videocam,
-            label = if (cameraActive) "关摄像头" else "摄像头",
+            label = if (cameraAvailable) {
+                if (cameraActive) "关摄像头" else "摄像头"
+            } else {
+                "即将支持"
+            },
             active = cameraActive,
+            enabled = cameraAvailable,
             onClick = onToggleCamera,
         )
         ControlButton(
@@ -1046,13 +1095,20 @@ private fun ControlButton(
     label: String,
     active: Boolean,
     onClick: () -> Unit,
+    /** false = 能力还没有，画成置灰态。仍然响应点击：调用方需要给出「即将支持」的提示。 */
+    enabled: Boolean = true,
 ) {
+    val iconColor = when {
+        !enabled -> CallColors.TextSecondary.copy(alpha = 0.55f)
+        active -> CallColors.Violet
+        else -> CallColors.TextPrimary
+    }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .clip(RoundedCornerShape(18.dp))
             .background(Color.Transparent)
-            .pointerInput(Unit) { detectTapGestures(onTap = { onClick() }) }
+            .pointerInput(enabled) { detectTapGestures(onTap = { onClick() }) }
             .padding(horizontal = 6.dp, vertical = 4.dp),
     ) {
         Box(
@@ -1060,11 +1116,19 @@ private fun ControlButton(
                 .size(56.dp)
                 .clip(CircleShape)
                 .background(
-                    if (active) CallColors.Violet.copy(alpha = 0.24f) else CallColors.Glass,
+                    when {
+                        !enabled -> CallColors.Glass.copy(alpha = 0.10f)
+                        active -> CallColors.Violet.copy(alpha = 0.24f)
+                        else -> CallColors.Glass
+                    },
                 )
                 .border(
                     1.dp,
-                    if (active) CallColors.Violet.copy(alpha = 0.55f) else CallColors.GlassBorder,
+                    when {
+                        !enabled -> CallColors.GlassBorder.copy(alpha = 0.10f)
+                        active -> CallColors.Violet.copy(alpha = 0.55f)
+                        else -> CallColors.GlassBorder
+                    },
                     CircleShape,
                 ),
             contentAlignment = Alignment.Center,
@@ -1072,33 +1136,58 @@ private fun ControlButton(
             Icon(
                 imageVector = icon,
                 contentDescription = label,
-                tint = if (active) CallColors.Violet else CallColors.TextPrimary,
+                tint = iconColor,
                 modifier = Modifier.size(24.dp),
             )
         }
         Spacer(Modifier.height(6.dp))
         Text(
             text = label,
-            color = if (active) CallColors.Violet else CallColors.TextSecondary,
+            color = when {
+                !enabled -> CallColors.TextSecondary.copy(alpha = 0.55f)
+                active -> CallColors.Violet
+                else -> CallColors.TextSecondary
+            },
             fontSize = 11.sp,
             maxLines = 1,
         )
     }
 }
 
+/** 挂断的二次确认窗口。3 秒足够看清提示，又不至于让按钮长时间处于「待确认」。 */
+private const val HANGUP_CONFIRM_WINDOW_MS = 3_000L
+
 /**
  * 挂断：整页唯一的高饱和暖色，且比其它按钮大一圈（64dp vs 56dp）。
  *
  * 这符合"破坏性操作要显眼且易达"的常识：它是最不可能被误点的按钮（因为它最不像别的），
  * 也是用户最需要在慌乱时一眼找到的按钮。不放红色以外任何东西在它附近。
+ *
+ * 但「不可能误点」和「最易误触」只差一个位置：它就在拇指自然落点上。所以单击先进入
+ * 待确认态（红圈 + 「再按一次挂断」），第二下才真的挂；3 秒无操作自动撤销。
+ * 输入源用 `pointerInput(armed)`：`armed` 变了要重建手势块，否则回调里读到的是旧值。
  */
 @Composable
 private fun HangUpButton(onClick: () -> Unit) {
+    var armed by remember { mutableStateOf(false) }
+
+    LaunchedEffect(armed) {
+        if (armed) {
+            delay(HANGUP_CONFIRM_WINDOW_MS)
+            armed = false
+        }
+    }
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .clip(RoundedCornerShape(18.dp))
-            .pointerInput(Unit) { detectTapGestures(onTap = { onClick() }) }
+            // 两下都以同一语义响应：第一下进入待确认，第二下才是挂断。
+            .pointerInput(armed) {
+                detectTapGestures(onTap = {
+                    if (armed) onClick() else armed = true
+                })
+            }
             .padding(horizontal = 6.dp, vertical = 4.dp),
     ) {
         Box(
@@ -1109,6 +1198,13 @@ private fun HangUpButton(onClick: () -> Unit) {
                     Brush.verticalGradient(
                         listOf(Color(0xFFF25A5E), CallColors.HangupRed),
                     ),
+                )
+                .then(
+                    if (armed) {
+                        Modifier.border(2.dp, Color(0xFFFFD7D9), CircleShape)
+                    } else {
+                        Modifier
+                    },
                 ),
             contentAlignment = Alignment.Center,
         ) {
@@ -1121,8 +1217,9 @@ private fun HangUpButton(onClick: () -> Unit) {
         }
         Spacer(Modifier.height(6.dp))
         Text(
-            text = "挂断",
-            color = CallColors.TextSecondary,
+            // 文案随状态变：只换个红圈而没有字，用户不知道「再按一下会怎样」。
+            text = if (armed) "再按一次挂断" else "挂断",
+            color = if (armed) Color(0xFFFFD7D9) else CallColors.TextSecondary,
             fontSize = 11.sp,
             maxLines = 1,
         )

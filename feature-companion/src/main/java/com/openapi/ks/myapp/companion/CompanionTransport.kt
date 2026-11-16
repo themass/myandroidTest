@@ -3,6 +3,9 @@ package com.openapi.ks.myapp.companion
 import com.openapi.ks.myapp.avatar.ProactiveKind
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
 
 /**
@@ -35,15 +38,36 @@ sealed interface CompanionEvent {
 }
 
 /**
+ * 房间连接状态。
+ *
+ * 与界面层的 [CompanionConnection] 分开：这里是「房间到了哪一步」的事实，
+ * 界面层还要叠上自己的错误文案与展示口径，两者混用会让改文案变成改传输层。
+ */
+enum class TransportConnection { CONNECTING, CONNECTED, RECONNECTING, DISCONNECTED }
+
+/**
  * 与 LiveKit 房间的连接。
  *
  * 抽成接口是为了让界面在没有房间、没有网络时也能完整跑通：默认注入
  * [FakeCompanionTransport]，真机联调时换成下面的 LiveKit 实现。
  */
 interface CompanionTransport {
+    /**
+     * 房间连接状态。默认恒为 [TransportConnection.CONNECTED]：不关心建连过程的
+     * 替身与测试不必实现它，界面照常可用。
+     */
+    val connection: StateFlow<TransportConnection>
+        get() = defaultConnected
+
     suspend fun connect(session: SessionResponse)
 
     fun sendText(text: String)
+
+    /**
+     * 开关本地麦克风。默认空实现：没有音频能力的替身不该假装能开麦。
+     * 真实实现由 SDK 负责发布/取消发布音轨，调用方只表达意图。
+     */
+    fun setMicEnabled(enabled: Boolean) = Unit
 
     /**
      * 回应一个待确认动作。走同一条通道而不是另开 HTTP：确认是对话的一部分，
@@ -55,6 +79,10 @@ interface CompanionTransport {
 
     suspend fun disconnect()
 }
+
+/** [CompanionTransport.connection] 的默认值：没有建连过程就等于一直连着。 */
+private val defaultConnected: StateFlow<TransportConnection> =
+    MutableStateFlow(TransportConnection.CONNECTED).asStateFlow()
 
 /**
  * 测试与离线开发用的替身：逐词吐出一段固定回复，并在开头发一个情绪事件。

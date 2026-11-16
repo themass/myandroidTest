@@ -11,7 +11,18 @@ import com.openapi.ks.myapp.avatar.ProactiveKind
  */
 enum class CompanionOutput { TEXT, VOICE }
 
-enum class CompanionConnection { IDLE, CONNECTING, CONNECTED, ERROR }
+enum class CompanionConnection {
+    IDLE,
+    CONNECTING,
+    CONNECTED,
+
+    /**
+     * 掉线重连中。单独一档，而不是并进 [ERROR]：重连时对话现场仍然是活的，
+     * 界面该做的是「告诉她正在重连」，而不是把她当作错误状态清掉。
+     */
+    RECONNECTING,
+    ERROR,
+}
 
 enum class MessageRole { USER, ASSISTANT }
 
@@ -49,6 +60,11 @@ data class CompanionUiState(
      */
     val callActive: Boolean = false,
     val connection: CompanionConnection = CompanionConnection.IDLE,
+    /**
+     * 本地麦克风是否关闭。只描述「我这边关没关麦」，与 [connection] 无关：
+     * 没给录音权限进来时也是静音，但房间照样连着，字幕照常收。
+     */
+    val isMuted: Boolean = false,
     val messages: List<CompanionMessage> = emptyList(),
     val avatarState: String = "idle",
     val emotion: String? = null,
