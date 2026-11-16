@@ -21,13 +21,27 @@ data class AvatarSpec(
     val files: AvatarFiles? = null,
 )
 
-/** 触摸结果。v1 一律 [Ignored]；接入拖动渲染器后才会出现 [Handled]。 */
+/**
+ * 触摸结果。
+ *
+ * [Handled] 带回命中的部位名：上层据此决定反应文本与埋点，而不是只知道「有人点了一下」。
+ * 部位名由渲染器定义（分层立绘用 [AvatarRegion]，将来 Spine 可用包围盒名字）。
+ */
 sealed interface TouchResult {
-    data object Handled : TouchResult
+    data class Handled(val region: String? = null) : TouchResult
     data object Ignored : TouchResult
 }
 
 enum class AvatarTouchKind { DOWN, MOVE, UP, TAP }
+
+/**
+ * 分层立绘能识别的可点部位。名字同时是发给 agent 的 `region` 值，
+ * 换成骨骼运行时后可以换成包围盒名字，上层判断逻辑不变。
+ */
+object AvatarRegion {
+    const val HEAD = "head"
+    const val BODY = "body"
+}
 
 /**
  * 手指事件。坐标为相对形象区域的归一化值，具体含义由渲染器解释——v1 不读它，

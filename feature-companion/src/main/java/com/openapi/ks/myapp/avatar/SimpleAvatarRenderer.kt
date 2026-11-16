@@ -22,7 +22,7 @@ import kotlin.random.Random
 class SimpleAvatarRenderer : AvatarRenderer {
 
     override val capabilities: Set<AvatarCapability> =
-        setOf(AvatarCapability.STATE, AvatarCapability.EMOTION, AvatarCapability.MOUTH)
+        setOf(AvatarCapability.STATE, AvatarCapability.EMOTION, AvatarCapability.MOUTH, AvatarCapability.TOUCH_TAP)
 
     // 不用 Dispatchers.Main：StateFlow 允许任意线程写入，Compose 会在主线程收集；
     // 用 Default 还省掉了纯 JVM 测试里必须装 Main dispatcher 的麻烦。
@@ -53,6 +53,17 @@ class SimpleAvatarRenderer : AvatarRenderer {
 
     private val _eyeOpen = MutableStateFlow(true)
     val eyeOpen: StateFlow<Boolean> = _eyeOpen.asStateFlow()
+
+    /**
+     * 被点了几次。界面拿它当 key 播一次「被点到」的反馈动画；
+     * 用自增计数而不是布尔值，连点两下也能各播一次（布尔值会在第二下看出没变化）。
+     */
+    private val _tapCount = MutableStateFlow(0L)
+    val tapCount: StateFlow<Long> = _tapCount.asStateFlow()
+
+    /** 最近一次点中的部位（[AvatarRegion]），供界面/埋点使用。 */
+    private val _lastTappedRegion = MutableStateFlow<String?>(null)
+    val lastTappedRegion: StateFlow<String?> = _lastTappedRegion.asStateFlow()
 
     override fun bind(spec: AvatarSpec) {
         if (released) return
@@ -102,6 +113,34 @@ class SimpleAvatarRenderer : AvatarRenderer {
         scope.cancel()
     }
 
+    /**
+     * 点击判定与反馈。
+     *
+     * 只处理 TAP：分层立绘没有骨架，命中的是「头部矩形」这种粗略区域
+     * （设计文档 §2.5 的降级方案）。坐标是形象区域内的归一化值，y 向下。
+     *
+     * 为什么在渲染器里判而不是在 Composable 里：换渲染器（Spine / Live2D）后
+     * 命中方式完全不同（包围盒 / 槽位），但「点到了什么部位」这个结论要一致，
+     * 所以判定权归渲染器，界面只负责把手势转成 [AvatarTouch]。
+     */
+    override fun onTouch(event: AvatarTouch): TouchResult {
+        if (released) return TouchResult.Ignored
+        if (event.kind != AvatarTouchKind.TAP) return TouchResult.Ignored
+        if (AvatarCapability.TOUCH_TAP !in capabilities) return TouchResult.Ignored
+        // 素材还没 bind（或已缺席）时没什么可点的：返回 Ignored，界面不会播反馈。
+        if (_spec.value == null) return TouchResult.Ignored
+        val region = hitTest(event.x, event.y)
+        _lastTappedRegion.value = region
+        _tapCount.value += 1
+        return TouchResult.Handled(region)
+    }
+
+    /** 归一化坐标 → 部位。头部占上方 42%（立绘多半是胸像或大头），其余算身体。 */
+    private fun hitTest(x: Float, y: Float): String {
+        if (x !in 0f..1f || y !in 0f..1f) return AvatarRegion.BODY
+        return if (y <= HEAD_BAND) AvatarRegion.HEAD else AvatarRegion.BODY
+    }
+
     private fun supports(command: AvatarCommand): Boolean = when (command) {
         is AvatarCommand.SetState -> AvatarCapability.STATE in capabilities
         is AvatarCommand.Emotion -> AvatarCapability.EMOTION in capabilities
@@ -130,5 +169,11 @@ class SimpleAvatarRenderer : AvatarRenderer {
         const val BLINK_MIN_MS = 3_000L
         const val BLINK_MAX_MS = 6_000L
         const val BLINK_HOLD_MS = 120L
+
+        /**
+         * 头部在形象区域里的下边界（归一化，y 向下）。42% 是胸像构图的估计值：
+         * 现在两套素材（内置、下载包）都是大头半身像，改动前应先在真机上比对。
+         */
+        const val HEAD_BAND = 0.42f
     }
 }

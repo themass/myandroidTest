@@ -249,6 +249,17 @@ class CompanionViewModel(
         }
     }
 
+    /**
+     * 用户点了她一下。
+     *
+     * 只做两件事：把触摸上报给传输层（由 agent 决定回不回），以及重置她的「正在说话」
+     * 之外的状态——不在这里拼一句假的回复。她自己该不该回应、回应什么，是 agent 的判断；
+     * 客户端替她说话会让「互动」变成一个骗人的动画。
+     */
+    fun onAvatarTapped(region: String) {
+        transport.sendTouch(region)
+    }
+
     /** 用户确认一个待执行动作。服务端执行器是权威，确认与否都以它的结果为准。 */
     fun confirmAction(confirmationId: String) = resolveAction(confirmationId, accepted = true)
 

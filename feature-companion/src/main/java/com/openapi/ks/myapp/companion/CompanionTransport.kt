@@ -64,6 +64,14 @@ interface CompanionTransport {
     fun sendText(text: String)
 
     /**
+     * 用户点了她一下。[region] 是命中的部位（[com.openapi.ks.myapp.avatar.AvatarRegion]）。
+     *
+     * 默认空实现：没有形象能力的替身不该假装能上报触摸。真实实现把它作为一条数据
+     * 通道事件发给 agent——回不回、回什么由她决定，客户端不替她说话。
+     */
+    fun sendTouch(region: String) = Unit
+
+    /**
      * 开关本地麦克风。默认空实现：没有音频能力的替身不该假装能开麦。
      * 真实实现由 SDK 负责发布/取消发布音轨，调用方只表达意图。
      */

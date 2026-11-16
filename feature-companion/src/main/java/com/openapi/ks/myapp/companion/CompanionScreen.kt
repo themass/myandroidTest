@@ -187,7 +187,14 @@ fun CompanionScreen(
                             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)),
                         contentAlignment = Alignment.Center,
                     ) {
-                        SimpleAvatar(renderer = renderer, modifier = Modifier.fillMaxSize())
+                        SimpleAvatar(
+                            renderer = renderer,
+                            modifier = Modifier.fillMaxSize(),
+                            // 点她一下：先给本地反馈（渲染器里的缩放弹动由 SimpleAvatar 播），
+                            // 再把「碰到了哪里」告诉 agent——她该不该回一句由她决定，
+                            // 客户端不替她说话（不然就成了一个假的互动）。
+                            onTapped = { region -> viewModel.onAvatarTapped(region) },
+                        )
                     }
                 }
 

@@ -1,7 +1,9 @@
 package com.openapi.ks.myapp.avatar
 
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
@@ -20,13 +22,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -42,6 +48,8 @@ import androidx.compose.ui.unit.dp
 fun SimpleAvatar(
     renderer: SimpleAvatarRenderer,
     modifier: Modifier = Modifier,
+    /** 点中形象后的回调：拿到命中的部位（[AvatarRegion]）。null 时不接手势。 */
+    onTapped: ((String) -> Unit)? = null,
 ) {
     val spec by renderer.spec.collectAsState()
     val avatarState by renderer.state.collectAsState()
@@ -49,6 +57,7 @@ fun SimpleAvatar(
     val mouthOpen by renderer.mouthOpen.collectAsState()
     val eyeOpen by renderer.eyeOpen.collectAsState()
     val expressionFile by renderer.expressionFile.collectAsState()
+    val tapCount by renderer.tapCount.collectAsState()
 
     // 呼吸：说话时略快、幅度略大。幅度只有 1% 上下——目的是让静态立绘不显得死板，
     // 太大就会变成抖动。时长变化时 rememberInfiniteTransition 会重新起动画，
@@ -65,12 +74,46 @@ fun SimpleAvatar(
         label = "avatarBreathScale",
     )
 
+    // 被点到的一下：快速缩一下再弹回。用 Animatable 而不是 infiniteTransition，
+    // 因为它是一次性的；tapCount 做 key，连点两下各弹一次。
+    val tapPunch = remember { Animatable(1f) }
+    LaunchedEffect(tapCount) {
+        if (tapCount == 0L) return@LaunchedEffect
+        tapPunch.snapTo(0.965f)
+        tapPunch.animateTo(1f, animationSpec = spring(dampingRatio = 0.35f, stiffness = 900f))
+    }
+
     Box(
         // 呼吸缩放整体作用于所有图层，否则表情和嘴会从立绘上漂开。
-        modifier = modifier.graphicsLayer {
-            scaleX = scale
-            scaleY = scale
-        },
+        // 点击反馈乘在呼吸之上，两者不互相覆盖。
+        modifier = modifier
+            .then(
+                if (onTapped != null) {
+                    Modifier.pointerInput(Unit) {
+                        detectTapGestures { offset ->
+                            // 归一化后交给渲染器判定：命中方式归渲染器，界面不猜部位。
+                            val w = size.width.toFloat().coerceAtLeast(1f)
+                            val h = size.height.toFloat().coerceAtLeast(1f)
+                            val result = renderer.onTouch(
+                                AvatarTouch(
+                                    x = offset.x / w,
+                                    y = offset.y / h,
+                                    kind = AvatarTouchKind.TAP,
+                                ),
+                            )
+                            if (result is TouchResult.Handled) {
+                                onTapped(result.region ?: AvatarRegion.BODY)
+                            }
+                        }
+                    }
+                } else {
+                    Modifier
+                },
+            )
+            .graphicsLayer {
+                scaleX = scale * tapPunch.value
+                scaleY = scale * tapPunch.value
+            },
         contentAlignment = Alignment.Center,
     ) {
         val loaded = spec

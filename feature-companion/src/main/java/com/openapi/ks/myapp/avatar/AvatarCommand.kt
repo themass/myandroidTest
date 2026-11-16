@@ -29,7 +29,7 @@ enum class AvatarState { IDLE, LISTENING, THINKING, SPEAKING }
  * 渲染器声明自己支持哪些能力，上层据此决定发不发某类指令。不支持的指令渲染器
  * 静默忽略、不报错——新渲染器可以逐步补齐能力，不必一次做完。
  */
-enum class AvatarCapability { STATE, EMOTION, MOUTH, GAZE, GESTURE, TOUCH_DRAG }
+enum class AvatarCapability { STATE, EMOTION, MOUTH, GAZE, GESTURE, TOUCH_DRAG, TOUCH_TAP }
 
 /**
  * 主动回合（她主动找你）的来源。界面据此决定呈现方式：事件提醒与日常问候的

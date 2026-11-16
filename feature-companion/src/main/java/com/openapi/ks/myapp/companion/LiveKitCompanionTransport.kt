@@ -119,6 +119,21 @@ class LiveKitCompanionTransport(
         }
     }
 
+    /**
+     * 点她一下：走文本流的独立话题 `companion.touch`，payload 是含 region 的 JSON。
+     *
+     * 不新开数据通道类型：文本流本来就在用，agent 侧只需要再注册一个话题的 handler。
+     * 失败不提示——触摸是低价值的尝试性输入，弹一条「触摸失败」只会打断沉浸感。
+     */
+    override fun sendTouch(region: String) {
+        val current = room ?: return
+        val payload = JSONObject().put("v", 1).put("type", "touch").put("region", region).toString()
+        scope.launch {
+            current.localParticipant.sendText(payload, StreamTextOptions(topic = TOPIC_TOUCH))
+                .onFailure { /* 见上：触摸上报失败保持静默 */ }
+        }
+    }
+
     override suspend fun disconnect() {
         room?.disconnect()
         room = null
@@ -160,6 +175,8 @@ class LiveKitCompanionTransport(
     private companion object {
         const val TEXT_IN_TOPIC = "lk.chat"
         const val TEXT_OUT_TOPIC = "lk.transcription"
+        /** 用户点她一下：`{"v":1,"type":"touch","region":"head"}`。 */
+        const val TOPIC_TOUCH = "companion.touch"
         const val TOPIC_AVATAR = "companion.avatar"
         const val TOPIC_PROACTIVE = "companion.proactive"
         const val TOPIC_ACTION = "companion.action"
