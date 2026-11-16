@@ -36,27 +36,26 @@
 
 283 个目录角色不用 skill，系统提示词只有约 230 tokens——**skill 文本是陪伴角色的专属成本**。
 
-### 1.2 deerflow 自带、我们关不掉的部分（deerflow_harness 2.3.0.dev0 实测）
+### 1.2 deerflow 自带、我们关不掉的部分（deerflow_harness 2.3.0.dev0 实测 + 2026-11-16 复核修正）
 
-| 项 | 字符/次请求 | 触发条件 | 能不能用 features 关 |
+| 项 | 字符 | 触发条件 | 实际是否计费 |
 |---|---|---|---|
-| **`ask_clarification_tool` 工具描述** | **2076（≈800–1000 tokens）** | **每次请求稳定在 tools schema 里** | **不能，factory.py:455 硬编码** |
-| DurableContext authority contract | 323 | goal/summary/delegation/skill/artifact 任一通道非空才注入；我们现在全空 = **实际零注入** | 不能（空状态自动短路） |
-| LoopDetection 警告话术 | 987–1029 | 仅真检测到重复调用才注入 | 能，但我们决定保留该中间件 |
-| TokenBudget 警告 | 157–217 | 仅跨阈值，每 run 至多一次 | 能（建议关，见 §3） |
-| ToolErrorHandling recovery hint | 63 | 仅工具失败时 | 不能，留着 |
-| 其余无条件中间件（Dangling/Coalescing/MCC） | 0 | 正常流程零文本 | — |
+| `ask_clarification_tool` 工具描述 | 2076 | factory.py:455 无条件注册，features 关不掉 | **不计费**：我们的 `ToolVisibilityMiddleware`（graph_middleware.py:79-80）在模型调用前把它从 `request.tools` 过滤，docstring 明写「永远过滤掉」。2026-11-16 复核确认，早期「每请求白付 ~900 tokens」的判断作废 |
+| DurableContext authority contract | 323 | goal/summary/delegation/skill/artifact 任一通道非空才注入；我们现在全空 | **实际零注入**（durable_context_middleware.py:422-423 空状态短路） |
+| LoopDetection 警告话术 | 987–1029 | 仅真检测到重复调用才注入 | 反应式，正常对话零成本（已决定保留） |
+| TokenBudget 警告 | 157–217 | 仅跨阈值，每 run 至多一次 | 反应式；但中间件每轮遍历全部 AIMessage 算 usage，建议关（见 §3） |
+| ToolErrorHandling recovery hint | 63 | 仅工具失败时 | 反应式，留着 |
+| 其余无条件中间件（Dangling/Coalescing/MCC） | 0 | 正常流程零文本 | 不计费 |
 
-**结论修正**：deerflow 链上真正按请求稳定付费的通用废话只有一个——`ask_clarification_tool` 的 2076 字符。它比我们自己全部系统提示词（927 tokens）还贵。要去掉它只有一条路：**full takeover 中间件链**（传 `middleware=[...]`，绕过 `_assemble_from_features`），`features`/`extra_middleware` 路径都删不掉它。
+**复核后的结论**：deerflow 无条件链在我们当前配置下**没有稳定按请求付费的通用废话**——clarification 已被自研中间件拦在模型请求之外，DurableContext 在空状态自动闭嘴。真正的 token 成本全部在我们自己的内容里：skill 文本（698 tokens）、PLATFORM_LAYER（178）、7 个工具 schema（~250）。
 
-### 1.3 合计目标
+### 1.3 合计目标（复核修正版）
 
 | | 现在（linche 一次请求） | 目标 |
 |---|---|---|
-| 自有系统提示词 | ~927 tokens | ~300 tokens |
-| clarification 工具描述 | ~900 tokens | 0 |
-| 7 个工具 schema | ~250 tokens | 4 个工具 ~150 tokens |
-| **合计节省** | | **约 1600–1700 tokens/请求（约 -55%）** |
+| 自有系统提示词（skill 占 75%） | ~927 tokens | ~300 tokens |
+| 工具 schema（7 个，clarification 本就不计） | ~250 tokens | 4 个 ~150 tokens |
+| **合计节省** | | **约 700–750 tokens/请求（约 -60% 的自有提示词部分）** |
 
 ---
 
@@ -146,29 +145,28 @@ loop 中（0 DB、0 Redis[local 模式]）
 
 ---
 
-## 3. 任务 B：中间件瘦身
+## 3. 任务 B：中间件瘦身（2026-11-16 复核后改判）
 
-### 3.1 两条路线
+### 3.1 复核结论：不做 full takeover
 
-| 路线 | 做法 | 收益 | 代价 |
-|---|---|---|---|
-| **B-1 full takeover（推荐）** | `create_deerflow_agent(middleware=[...])` 传完整自建链 | 删掉 ask_clarification（-2076 字符/请求）、DurableContext、可自由取舍 Loop/TokenBudget | deerflow 升级时要手动同步链；用契约测试兜底 |
-| B-2 维持现状 | 只把 `token_budget=False`（deerflow 默认本来就是 False，是我们 deerflow.py:52 主动打开的） | 省掉每次模型调用遍历全部 AIMessage 算 usage 的 CPU | 2076 字符 clarification 一分省不下来 |
+原方案假设「ask_clarification 的 2076 字符每请求稳定计费、只有 full takeover 能删」。复核 `graph_middleware.py:71-84` 后确认：**自研 `ToolVisibilityMiddleware` 已经无条件把它过滤掉**（`if name == ASK_CLARIFICATION: continue`，在 `awrap_model_call` 里改 `request.tools`，先于模型请求构造）。full takeover 的主要收益不存在，而它的代价（deerflow 升级手动同步链、失去错误处理/合并等免费补丁）是实打实的。**改判：维持 `features=` + `extra_middleware=` 现状，不接管链。**
 
-建议 **B-1**，自建链最小集（按依赖顺序）：
+### 3.2 实际要改的只有一处
 
-1. `SystemMessageCoalescingMiddleware`（严格后端要求合并 system，保留）
-2. `ModelContentCompatibilityMiddleware`（历史里可能有 URL 块，保留）
-3. `DanglingToolCallMiddleware`（畸形工具调用补丁，近零成本，保留）
-4. `ToolErrorHandlingMiddleware`（63 字符只在失败时出现，保留）
-5. `LoopDetectionMiddleware`（**用户决定保留**；正常对话零成本，触发时的工程话术与角色无关——接受这个小瑕疵）
-6. 自研 5 件套：PromptMiddleware、ToolVisibility、Steer、ToolAudit、ToolAuthorization
+`deerflow.py:52` 的 `default_features(token_budget=True)` 改成 `token_budget=False`（deerflow 上游默认本来就是 False，是我们主动打开的）。理由：TokenBudget 的提示词只在跨阈值时注入，省不了多少 token，但中间件**每次模型调用都遍历全部 AIMessage 汇总 usage_metadata**，长会话下是纯 CPU 开销。
 
-不挂：DurableContext（空状态虽零注入，但 goal 通道一旦误写就每请求 +323 字符）、Clarification、TokenBudget、Summarization、Todo、Title、Memory、Vision、Subagent、Guardrail、Sandbox。
+`loop_detection=True` 按你的决定保留。
 
-兜底措施：pin deerflow 版本（现状已是 2.3.0.dev0 固定拷贝），加一个断言中间件顺序与数量的测试，升级时测试先红。
+### 3.3 无条件链的最终态度（全部保留，零改动）
 
-**动手前先验证一件事**：现有 `ToolVisibilityMiddleware` 是否能在 tools 绑定层把 `ask_clarification_tool` 藏掉（若能，schema 里就不发送它，B-2 也能拿到大头收益、避免接管链）。这是 1 小时的 spike，结果决定走 B-1 还是 B-2。
+| 中间件 | 理由 |
+|---|---|
+| SystemMessageCoalescing | 严格模型后端要求合并 system，必需 |
+| ModelContentCompatibility | 注入历史后历史里可能有 URL/图片块，需要它改写占位 |
+| DanglingToolCall / ToolErrorHandling | 反应式补丁，正常流程零文本 |
+| DurableContext | 空状态零注入；唯一风险是 goal 通道被误写——在 §2 去掉 checkpointer/不引入 goal API 的前提下不会发生，加一条注释说明这个前提即可 |
+| Clarification | 工具已被 ToolVisibility 拦掉，中间件本身不注入文本 |
+| 自研 5 件套（Prompt/ToolVisibility/Steer/ToolAudit/ToolAuthorization） | 不动 |
 
 ---
 
@@ -323,10 +321,9 @@ feature-companion/src/main/assets/avatars/<avatar_key>/
 
 | 批次 | 内容 | 依赖 | 风险 |
 |---|---|---|---|
-| 0（半天 spike） | ToolVisibility 能否藏掉 ask_clarification；决定 B-1/B-2 | 无 | 无 |
 | 1 | 任务 A：history 注入 + LocalTurnControl + 开关，先 local 后 redis 双模式契约测试 | 无 | 中（失忆风险，验收 2.5 兜底） |
-| 2 | 任务 B：中间件链（按 spike 结果） | 批次 0 | 中 |
-| 3 | 任务 C+D：prompt/tool/skill 裁剪，逐角色回归对白 | 可与 2 并行 | 低 |
+| 2 | 任务 B：`token_budget=False` 一行改动 + DurableContext 前提注释 | 无 | 低 |
+| 3 | 任务 C+D：prompt/tool/skill 裁剪，逐角色回归对白 | 可与 1/2 并行 | 低 |
 | 4 | 任务 E+F：ComfyUI 出立绘 → PIL 派生 3 层 → assets 种子包 → 真机看效果 | 无，可全程并行 | 低 |
 | 5（你修完 TOS 后） | 线上发布链路端到端验证 | §8 完成 | 低 |
 
@@ -338,4 +335,5 @@ feature-companion/src/main/assets/avatars/<avatar_key>/
 
 1. 提醒三件套：按建议删除（主动消息上线时整体加回），还是保留？
 2. ComfyUI 跑在本机还是用 HF Space / Colab 免费档？（取决于本机显卡/内存，需要你告知机型）
-3. 中间件链走 B-1 full takeover 还是等 spike 结果再定？（建议等 spike）
+
+~~3. 中间件链走 full takeover 还是等 spike~~——**2026-11-16 复核关闭**：ToolVisibility 已过滤 ask_clarification（graph_middleware.py:79-80），不做 full takeover，任务 B 降为一行配置改动。
