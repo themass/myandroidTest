@@ -358,22 +358,50 @@ private fun toast(context: Context, message: String) {
 
 private const val WAVE_PREFS = "companion_wave"
 
-/** 读用户选过的波形样式。读不到就用默认（柔和曲线 + 粒子）。 */
+/**
+ * 读用户选过的波形样式。新结构分底部样式（bottom）与中央效果（center）两个键。
+ * 兼容旧版本只存一个 "style" 的情况：旧值里 Orbit/Blob/Blast 本就是中央效果，
+ * 迁移到 center；Wave/Bars/Ribbon 留在 bottom；认不出来的字符串回落到各自默认。
+ */
 internal fun loadWaveOptions(context: Context): WaveOptions {
     val prefs = context.getSharedPreferences(WAVE_PREFS, Context.MODE_PRIVATE)
-    val style = runCatching {
-        WaveStyle.valueOf(prefs.getString("style", WaveStyle.Ribbon.name)!!)
-    }.getOrDefault(WaveStyle.Ribbon)
+
+    val bottom = prefs.getString("bottom", null)?.let {
+        runCatching { BottomWaveStyle.valueOf(it) }.getOrNull()
+    } ?: migrateLegacyBottom(prefs.getString("style", null))
+
+    val center = prefs.getString("center", null)?.let {
+        runCatching { CenterEffect.valueOf(it) }.getOrNull()
+    } ?: migrateLegacyCenter(prefs.getString("style", null))
+
     return WaveOptions(
-        style = style,
+        bottom = bottom,
+        center = center,
         particles = prefs.getBoolean("particles", true),
     )
 }
 
+private fun migrateLegacyBottom(legacy: String?): BottomWaveStyle = when (legacy) {
+    "Bars" -> BottomWaveStyle.Bars
+    "Ribbon" -> BottomWaveStyle.Ribbon
+    "Wave" -> BottomWaveStyle.Wave
+    else -> BottomWaveStyle.Wave
+}
+
+private fun migrateLegacyCenter(legacy: String?): CenterEffect = when (legacy) {
+    "Orbit" -> CenterEffect.Orbit
+    "Blob" -> CenterEffect.Blob
+    "Blast" -> CenterEffect.Blast
+    else -> CenterEffect.Ring
+}
+
 internal fun saveWaveOptions(context: Context, options: WaveOptions) {
     context.getSharedPreferences(WAVE_PREFS, Context.MODE_PRIVATE).edit()
-        .putString("style", options.style.name)
+        .putString("bottom", options.bottom.name)
+        .putString("center", options.center.name)
         .putBoolean("particles", options.particles)
+        // 旧键清掉，避免下次安装旧版本又把迁移值读回去造成来回跳。
+        .remove("style")
         .apply()
 }
 

@@ -95,33 +95,37 @@ class LiveKitCompanionTransport(
         _connection.value = TransportConnection.CONNECTING
         val newRoom = LiveKit.create(appContext)
         room = newRoom
-        newRoom.connect(session.livekitUrl, session.token)
-        _connection.value = TransportConnection.CONNECTED
-        // 建连前用户就点进了通话（建连通常要一两秒）：那时麦克风意图先记着，现在补上。
-        micIntent?.let { applyMic(newRoom, it) }
 
-        newRoom.registerTextStreamHandler(TEXT_OUT_TOPIC) { reader, identity ->
-            scope.launch {
-                // 只取 agent 那一路：用户自己的语音转写不应被当作她的回复。
-                if (identity == newRoom.localParticipant.identity) return@launch
-                reader.flow.collect { chunk -> bus.emit(CompanionEvent.TextDelta(chunk)) }
-                bus.emit(CompanionEvent.TurnDone)
-            }
-        }
-
+        // 事件收集器必须在 connect() 之前订阅。
+        //
+        // SDK 的事件总线是 MutableSharedFlow(replay = 0)：订阅之前发出的事件**永久丢失**，
+        // 不会补放。以前先 connect、再 launch 收集器，而麦克风发布（LocalTrackPublished）
+        // 往往在这两句话之间就发生了——事件被丢掉，attachSelfSink 永远不执行，
+        // 底部「你的声音」波形只能一直是 0。先把两个收集器挂好，再建连，事件就无处可漏。
         scope.launch {
             newRoom.events.events.collect { event ->
                 when (event) {
                     is RoomEvent.DataReceived -> handleData(event.topic, event.data)
                     // 她那一路上麦：只有远端音频轨能算振幅，本地轨是用户自己的声音。
                     is RoomEvent.TrackSubscribed -> {
+                        android.util.Log.i(
+                            TAG,
+                            "RoomEvent.TrackSubscribed: kind=${event.track.kind} sid=${event.track.sid} identity=${event.participant.identity}",
+                        )
                         if (event.participant.identity != newRoom.localParticipant.identity) {
                             attachMouthSink(event.track)
                         }
                     }
-                    is RoomEvent.TrackUnsubscribed -> detachMouthSink()
+                    is RoomEvent.TrackUnsubscribed -> {
+                        android.util.Log.i(TAG, "RoomEvent.TrackUnsubscribed: sid=${event.track.sid}")
+                        detachMouthSink()
+                    }
                     is RoomEvent.Reconnecting -> _connection.value = TransportConnection.RECONNECTING
-                    is RoomEvent.Reconnected -> _connection.value = TransportConnection.CONNECTED
+                    is RoomEvent.Reconnected -> {
+                        _connection.value = TransportConnection.CONNECTED
+                        // 重连会重新协商发布轨：补偿挂一次，防止重连后事件又没接住。
+                        attachSelfSink(newRoom)
+                    }
                     is RoomEvent.Disconnected -> {
                         _connection.value = TransportConnection.DISCONNECTED
                         bus.emit(CompanionEvent.Error("连接已断开"))
@@ -133,19 +137,42 @@ class LiveKitCompanionTransport(
 
         // 本地麦克风发布走的是 ParticipantEvent，而 ParticipantEvent 与 RoomEvent 是两个
         // 平行的 sealed 类（都只继承 Event），**不会**出现在 newRoom.events 里。
-        // 之前把它写在上面那个 when 里，是一个永远不成立的死分支——本地采集轨从来没挂上，
-        // 波形画你的声音时自然一直是 0。
         scope.launch {
             newRoom.localParticipant.events.events.collect { event ->
                 when (event) {
-                    is io.livekit.android.events.ParticipantEvent.LocalTrackPublished ->
+                    is io.livekit.android.events.ParticipantEvent.LocalTrackPublished -> {
+                        android.util.Log.i(
+                            TAG,
+                            "LocalTrackPublished: kind=${event.publication.kind} sid=${event.publication.sid}",
+                        )
                         if (event.publication.kind == Track.Kind.AUDIO) attachSelfSink(newRoom)
-                    is io.livekit.android.events.ParticipantEvent.LocalTrackUnpublished ->
+                    }
+                    is io.livekit.android.events.ParticipantEvent.LocalTrackUnpublished -> {
+                        android.util.Log.i(TAG, "LocalTrackUnpublished: kind=${event.publication.kind}")
                         if (event.publication.kind == Track.Kind.AUDIO) detachSelfSink()
+                    }
                     else -> Unit
                 }
             }
         }
+
+        newRoom.connect(session.livekitUrl, session.token)
+        _connection.value = TransportConnection.CONNECTED
+        // 建连前用户就点进了通话（建连通常要一两秒）：那时麦克风意图先记着，现在补上。
+        micIntent?.let { applyMic(newRoom, it) }
+        // 兜底：如果麦克风轨在收集器订阅之前就已经发布（replay=0，事件不会补放），
+        // 这里直接按当前发布状态补挂一次。attachSelfSink 内部先摘后挂，重复调用幂等。
+        attachSelfSink(newRoom)
+
+        newRoom.registerTextStreamHandler(TEXT_OUT_TOPIC) { reader, identity ->
+            scope.launch {
+                // 只取 agent 那一路：用户自己的语音转写不应被当作她的回复。
+                if (identity == newRoom.localParticipant.identity) return@launch
+                reader.flow.collect { chunk -> bus.emit(CompanionEvent.TextDelta(chunk)) }
+                bus.emit(CompanionEvent.TurnDone)
+            }
+        }
+
     }
 
     /**
@@ -194,6 +221,7 @@ class LiveKitCompanionTransport(
 
     override suspend fun disconnect() {
         detachMouthSink()
+        detachSelfSink()
         _mouthLevel.value = 0f
         room?.disconnect()
         room = null
@@ -328,14 +356,26 @@ class LiveKitCompanionTransport(
      */
     private fun attachSelfSink(current: Room) {
         detachSelfSink()
-        val publication = current.localParticipant.audioTrackPublications
+        val publications = current.localParticipant.audioTrackPublications
+        android.util.Log.i(TAG, "attachSelfSink: 当前本地音频 publication 数=${publications.size}")
+        val publication = publications
             .firstOrNull { it.second != null }
             ?: run {
-                android.util.Log.w(TAG, "attachSelfSink: 本地还没有已发布的音频轨，波形将保持静止")
+                // 这不是错误：麦克风可能还在发布中，LocalTrackPublished 事件到达时会再进来一次。
+                android.util.Log.i(TAG, "attachSelfSink: 本地还没有已发布的音频轨，等 LocalTrackPublished 事件")
                 return
             }
-        val audio = publication.second as? AudioTrack ?: return
-        var selfSamples = 0L
+        val audio = publication.second as? AudioTrack
+            ?: run {
+                android.util.Log.w(TAG, "attachSelfSink: publication 不是 AudioTrack，实际=${publication.second?.javaClass?.name}")
+                return
+            }
+        var callbacks = 0L
+        var rawMax = 0.0
+        var rawMin = Double.MAX_VALUE
+        var rawSum = 0.0
+        var levelMax = 0f
+        var levelSum = 0f
         val sink = object : AudioTrackSink {
             override fun onData(
                 data: ByteBuffer,
@@ -346,16 +386,50 @@ class LiveKitCompanionTransport(
                 absoluteCaptureTimestampMs: Long,
             ) {
                 val rms = rmsOf(data, bitsPerSample, frames, numberOfChannels) ?: return
-                // 与远端同一套实测映射，但本地采集没有经过服务端的音量处理，
-                // 底噪更低，所以直接按满幅参考点归一化即可。
-                _selfLevel.value = (rms / FULL_SCALE_RMS).coerceIn(0.0, 1.0).toFloat()
-                selfSamples++
+                // 本地采集与远端是两套量纲：近端麦克风的归一化 RMS 普遍只有 0.01~0.6，
+                // 直接除以 0.6 会让波形几乎看不见。先过一道噪声门（门限是实测底噪的 ~10 倍），
+                // 再按本地参考点 0.35 做平方根映射——平方根让轻声也有可见起伏，大声又不会轻易顶死。
+                val gated = (rms - SELF_NOISE_GATE).coerceAtLeast(0.0)
+                val level = sqrt(gated / SELF_FULL_SCALE_RMS).coerceIn(0.0, 1.0).toFloat()
+                _selfLevel.value = level
+
+                callbacks++
+                rawMax = maxOf(rawMax, rms)
+                rawMin = minOf(rawMin, rms)
+                rawSum += rms
+                levelMax = maxOf(levelMax, level)
+                levelSum += level
+                if (callbacks == 1L) {
+                    android.util.Log.i(
+                        TAG,
+                        "self onData 首次回调: frames=$frames ch=$numberOfChannels rate=$sampleRate rms=$rms",
+                    )
+                }
+                if (callbacks % 25L == 0L) {
+                    android.util.Log.i(
+                        TAG,
+                        "本地电平#${callbacks / 25}: raw_rms mean=%.5f 区间[%.5f..%.5f] | level mean=%.3f max=%.3f | 门限=%.4f 参考=%.2f".format(
+                            rawSum / 25.0, rawMin, rawMax, levelSum / 25.0, levelMax,
+                            SELF_NOISE_GATE, SELF_FULL_SCALE_RMS,
+                        ),
+                    )
+                    rawMax = 0.0
+                    rawMin = Double.MAX_VALUE
+                    rawSum = 0.0
+                    levelMax = 0f
+                    levelSum = 0f
+                }
             }
         }
-        runCatching { audio.addSink(sink) }
-        selfSink = sink
-        selfTrack = audio
-        android.util.Log.i(TAG, "attachSelfSink: 已挂上本地采集轨 sid=${audio.sid}")
+        // LocalAudioTrack.addSink 走的是 AudioRecordSamplesDispatcher（SDK 源码确认），
+        // 默认 JavaAudioDeviceModule 下麦克风一启动就有 PCM；失败要可见，不能静默。
+        val result = runCatching { audio.addSink(sink) }
+        result.onFailure { android.util.Log.e(TAG, "attachSelfSink: addSink 失败", it) }
+        if (result.isSuccess) {
+            selfSink = sink
+            selfTrack = audio
+            android.util.Log.i(TAG, "attachSelfSink: 已挂上本地采集轨 sid=${audio.sid}")
+        }
     }
 
     private fun detachSelfSink() {
@@ -459,8 +533,23 @@ class LiveKitCompanionTransport(
          */
         const val MOUTH_THRESHOLD_LOG = 0.35f
 
-        /** 本地采集的增益：让轻声说话也能在波形上看见。与 [MOUTH_GAIN] 是两套语义，不要合并。 */
-        const val SELF_GAIN = 8.0
+        /**
+         * 本地采集的噪声门限（归一化 RMS）。室内底噪大约在 0.0003 量级，
+         * 门限定在 0.003——底噪的约 10 倍：环境声不会把波形顶起来，正常说话（0.01 以上）
+         * 又远高于门限，不会被吞掉。真机日志确认分布后再调。
+         */
+        const val SELF_NOISE_GATE = 0.003
+
+        /**
+         * 本地采集的满幅参考点（归一化 RMS，门限之外的部分）。
+         *
+         * 0.12 是早期没真机数据时的猜测，实测说话 RMS 常态就在 0.07~0.12、峰值 0.3~0.6，
+         * 除以 0.12 后正常说话全程 sqrt 后顶在 1.0——动态范围被压没，波形看着又快又乱、
+         * 和声音对不上。按实测分布把参考点抬到 0.35，平方根映射后的曲线：
+         * rms=0.013 → 0.17（轻声可见），0.07 → 0.44（正常说话在中段），
+         * 0.3 → 0.92（大声接近满幅），0.6 → 1.0（真峰值才顶死）。
+         */
+        const val SELF_FULL_SCALE_RMS = 0.35
 
         const val TAG = "MouthLevel"
     }
