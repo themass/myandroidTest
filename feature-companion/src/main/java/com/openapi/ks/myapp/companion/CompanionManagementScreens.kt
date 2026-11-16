@@ -1,7 +1,10 @@
 package com.openapi.ks.myapp.companion
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,7 +12,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -34,6 +41,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -54,6 +63,8 @@ fun CharacterListScreen(
     onPick: (CharacterSummary) -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    /** 当前正在聊的角色：选中态描边，用户才知道自己在跟谁说话。 */
+    currentCharacterId: String? = null,
 ) {
     Column(modifier = modifier.fillMaxSize().padding(horizontal = 16.dp)) {
         ScreenHeader(title = stringResource(R.string.companion_characters_title), onBack = onBack)
@@ -61,27 +72,81 @@ fun CharacterListScreen(
             state.loading && state.items.isEmpty() -> Loading()
             state.error != null && state.items.isEmpty() -> ErrorBlock(state.error, onRetry)
             state.items.isEmpty() -> EmptyBlock()
-            else -> LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            else -> LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 items(state.items, key = { it.id }) { character ->
-                    Column(
+                    val selected = character.id == currentCharacterId
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { onPick(character) }
-                            .padding(vertical = 8.dp),
-                    ) {
-                        Text(character.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                        Text(character.tagline, style = MaterialTheme.typography.bodyMedium)
-                        if (character.tags.isNotEmpty()) {
-                            Text(
-                                character.tags.joinToString(" · "),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            .clip(RoundedCornerShape(14.dp))
+                            .then(
+                                if (selected) {
+                                    Modifier.border(2.dp, HerViolet, RoundedCornerShape(14.dp))
+                                } else {
+                                    Modifier
+                                },
                             )
+                            .clickable { onPick(character) }
+                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        // 头像位：素材到位就出图，没有就字标兜底。与顶栏、消息列表同一套 key 规则，
+                        // 所以内置形象包（瘦身计划 Task E/F）一落地，列表自动出图，不用再改。
+                        CharacterListAvatar(character = character)
+                        Spacer(Modifier.width(12.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                character.name,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                            Text(character.tagline, style = MaterialTheme.typography.bodyMedium)
+                            if (character.tags.isNotEmpty()) {
+                                Text(
+                                    character.tags.joinToString(" · "),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
                         }
                     }
-                    HorizontalDivider()
                 }
             }
+        }
+    }
+}
+
+/**
+ * 角色列表里的一行头像。素材命中（`AvatarPackStore` 有该角色的立绘）就用图，
+ * 否则用她的名字首字做字标。32dp——列表里的识别锚点，不承担展示作用。
+ */
+@Composable
+private fun CharacterListAvatar(character: CharacterSummary) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val store = remember { com.openapi.ks.myapp.avatar.AvatarPackStore(context) }
+    val portrait = remember(character.id) {
+        store.avatarFor(character.id)?.let { key -> store.load(key)?.portrait }
+    }
+    Box(
+        modifier = Modifier
+            .size(32.dp)
+            .clip(CircleShape)
+            .background(HerViolet.copy(alpha = 0.16f)),
+        contentAlignment = Alignment.Center,
+    ) {
+        if (portrait != null) {
+            com.openapi.ks.myapp.avatar.AvatarPortrait(
+                file = portrait,
+                modifier = Modifier.fillMaxSize().clip(CircleShape),
+                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+            )
+        } else {
+            Text(
+                text = character.name.trim().take(1).ifBlank { "她" },
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = Color(0xFF6F5BD6),
+            )
         }
     }
 }

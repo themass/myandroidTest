@@ -108,6 +108,12 @@ fun ChatMessageItem(
     footerActions: List<MessageAction> = defaultAssistantFooterActions(item),
     /** 这一行上方附加的内容（如「她记得」这类来源标签）。null 时布局与原来完全一致。 */
     overlay: (@Composable () -> Unit)? = null,
+    /**
+     * 用户侧头像插槽。为 null 时用户消息完全不变（对话页即如此：用户消息不带头像）。
+     * 非 null 时在气泡**右侧**按 [showAvatar] 同样的「连续同一发送者只显一次」规则渲染，
+     * 并留等宽空位，保证气泡右边缘对齐。
+     */
+    userAvatar: (@Composable (ChatItem) -> Unit)? = null,
 ) {
     val dimens = ChatKit.dimens
     val isUser = item.sender == Sender.User
@@ -192,6 +198,20 @@ fun ChatMessageItem(
                                 color = ChatKit.colors.accent,
                             )
                         }
+                    }
+                }
+            }
+            // 用户侧头像：只有调用方传了插槽才出现，且同样只在「连续同一发送者的第一条」渲染。
+            // 不显示的那些行留等宽空位，气泡右边缘才不会忽宽忽窄。
+            if (isUser && userAvatar != null) {
+                Box(
+                    modifier = Modifier
+                        .padding(start = AssistantAvatarGap)
+                        .size(AssistantAvatarSize),
+                    contentAlignment = Alignment.TopCenter,
+                ) {
+                    if (showAvatar) {
+                        Box(Modifier.size(AssistantAvatarSize).clip(CircleShape)) { userAvatar(item) }
                     }
                 }
             }

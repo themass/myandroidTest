@@ -103,9 +103,40 @@ class CompanionViewModel(
         }
     }
 
+    /**
+     * 取角色的展示信息（名字、一句话人设），顶栏用。
+     *
+     * 从角色列表里找当前这个，而不是 `character(id)` 单条接口——顶栏只需要展示字段，
+     * 列表接口已经在别处用过、字段齐全，少一次只为一个名字的请求形状差异。
+     * 没有 api（预览/测试）或找不到时返回 null，界面退回「陪伴」标题。
+     */
+    suspend fun characterSummary(roleId: String): CharacterSummary? {
+        val client = api ?: return null
+        return runCatching { client.characters(limit = 50, offset = 0) }.getOrNull()
+            ?.items?.firstOrNull { it.id == roleId }
+    }
+
     /** 删除一条消息（只影响本地会话；服务端没有「删单条消息」的接口）。 */
     fun deleteMessage(messageId: Long) {
         _state.update { st -> st.copy(messages = st.messages.filterNot { it.id == messageId }) }
+    }
+
+    /**
+     * 编辑已发出去的一条用户消息：原文放回输入框，并从列表移除。
+     *
+     * 与「对话」页的编辑语义一致（发送改好的版本 = 一次新的发送）。陪伴页没有服务端单条
+     * 删除接口，所以这里只动本地列表；否则长按菜单里的「编辑」会是一个点了没反应的按钮。
+     */
+    fun beginEdit(messageId: Long) {
+        val current = _state.value
+        val message = current.messages.firstOrNull { it.id == messageId } ?: return
+        if (message.role != MessageRole.USER) return
+        _state.update {
+            it.copy(
+                input = message.text,
+                messages = it.messages.filterNot { m -> m.id == messageId },
+            )
+        }
     }
 
     /**

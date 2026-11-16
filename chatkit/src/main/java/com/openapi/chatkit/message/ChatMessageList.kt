@@ -107,6 +107,11 @@ fun ChatMessageList(
     onAttachmentAction: (AttachmentTarget, AttachmentActionKind) -> Unit = { _, _ -> },
     /** 「查看路径」卡片的内容（由调用方提供）；返回 null 时不显示卡片。 */
     attachmentInfo: (AttachmentTarget) -> AttachmentPathInfo? = { null },
+    /**
+     * 用户侧头像插槽；默认 null，用户消息不带头像（对话页行为不变）。
+     * 陪伴页传入「我」字标，让右侧气泡也有头像锚点。
+     */
+    userAvatar: (@Composable (ChatItem) -> Unit)? = null,
 ) {
     val latestAssistantId = items.lastOrNull { it.sender == Sender.Assistant && !it.thinking }?.id
     val latestUserId = items.lastOrNull { it.sender == Sender.User }?.id
@@ -202,6 +207,7 @@ fun ChatMessageList(
                         footerActions = footerActions(item),
                         // 多选时把 overlay 收掉：它不在消息行内部，点它不会切换选中。
                         overlay = if (selection.active) null else { { itemOverlay(item) } },
+                        userAvatar = userAvatar,
                         modifier = Modifier.weight(1f),
                     )
                 }

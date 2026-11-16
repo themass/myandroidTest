@@ -9,8 +9,15 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,14 +35,15 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.VolumeOff
 import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -46,16 +54,26 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import com.openapi.chatkit.message.ChatMessageList
 import com.openapi.chatkit.model.ChatItem
 import com.openapi.chatkit.model.MessageAction
@@ -101,14 +119,26 @@ fun CompanionScreen(
 
     LaunchedEffect(characterId) { viewModel.start(characterId) }
 
+    // 顶栏要显示她的真名和一句话人设，而不是 characterId（如 linche）。
+    // 角色列表接口一次就能拿到，失败时退回「陪伴」标题，不阻塞页面。
+    var character by remember(characterId) { mutableStateOf<CharacterSummary?>(null) }
+    LaunchedEffect(characterId) {
+        character = runCatching { viewModel.characterSummary(characterId) }.getOrNull()
+    }
+
     // 绑定素材：先用本地已有的（离线也能看）或内置默认，再向服务端同步。
     val context = androidx.compose.ui.platform.LocalContext.current.applicationContext
     val avatarSync = remember(context) { buildAvatarSync(context) }
+    var portraitFile by remember(characterId) { mutableStateOf<java.io.File?>(null) }
     LaunchedEffect(renderer, characterId) {
         val local = avatarSync.localFor(characterId)
+        portraitFile = local?.portrait
         renderer.bind(AvatarSpec(files = local))
         val synced = runCatching { avatarSync.syncFor(characterId) }.getOrNull()
-        if (synced != null && synced != local) renderer.bind(AvatarSpec(files = synced))
+        if (synced != null && synced != local) {
+            renderer.bind(AvatarSpec(files = synced))
+            portraitFile = synced.portrait
+        }
     }
 
     LaunchedEffect(state.avatarState) {
@@ -130,13 +160,17 @@ fun CompanionScreen(
         Surface(color = Color(0xFFFBF8F5), modifier = modifier.fillMaxSize()) {
             Column(Modifier.fillMaxSize().imePadding()) {
                 CompanionTopBar(
-                    title = stringResource(R.string.companion_title),
-                    avatarState = state.avatarState,
+                    name = character?.name.orEmpty(),
+                    portrait = portraitFile,
+                    tagline = character?.tagline.orEmpty(),
+                    output = state.output,
                     expanded = state.avatarExpanded,
                     onMenuClick = onMenuClick,
                     onToggleAvatar = viewModel::toggleAvatarExpanded,
                     onCharacters = onOpenCharacters,
                     onProfile = onOpenProfile,
+                    onToggleOutput = viewModel::toggleOutput,
+                    onOpenCall = onOpenCall,
                 )
 
                 // 形象区：默认收起成一个头像；展开后是完整形象，占屏高但可随时收回去。
@@ -167,6 +201,9 @@ fun CompanionScreen(
                     onDeleteMessage = viewModel::deleteMessage,
                     onCopyMessage = { copyToClipboard(context, it) },
                     onRegenerate = viewModel::regenerateLastReply,
+                    onShareMessage = { shareText(context, it) },
+                    onSpeakMessage = { speakText(context, it) },
+                    onEditMessage = { id, _ -> viewModel.beginEdit(id) },
                 )
 
                 state.incomingCall?.let { kind ->
@@ -190,66 +227,212 @@ fun CompanionScreen(
                 CompanionComposer(
                     input = state.input,
                     canSend = state.canSend,
-                    output = state.output,
-                    callActive = state.callActive,
                     onInputChange = viewModel::onInputChange,
                     onSend = viewModel::send,
-                    onToggleOutput = viewModel::toggleOutput,
-                    onOpenCall = onOpenCall,
                 )
             }
         }
     }
 }
 
+/**
+ * 顶栏：菜单 · 她（头像 + 名字 + 一句话）· 语音开关 · 通话 · ⋯
+ *
+ * 旧版是「汉堡 + 标题 + 三个语义含糊的图标」——用户只能靠猜哪个是角色、哪个是个性化
+ * （真机上踩到：「角色」用了电话图标，「个性化」用了和「展开形象」一模一样的箭头）。
+ * 现在：身份区整块可点进角色选择，语音/通话是明确的常驻动作，剩下的收进 ⋯ 菜单。
+ */
 @Composable
 private fun CompanionTopBar(
-    title: String,
-    avatarState: String,
+    /** 角色展示名；还没取到时为空。 */
+    name: String,
+    /** 头像素材；没有就退回字标。 */
+    portrait: java.io.File?,
+    /** 一句话人设（角色的 tagline）。 */
+    tagline: String,
+    output: CompanionOutput,
     expanded: Boolean,
     onMenuClick: (() -> Unit)?,
     onToggleAvatar: () -> Unit,
     onCharacters: () -> Unit,
     onProfile: () -> Unit,
+    onToggleOutput: () -> Unit,
+    onOpenCall: () -> Unit,
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
+    var menuOpen by remember { mutableStateOf(false) }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.White),
     ) {
-        // 抽屉入口：与「对话」页同一个手势位置，切换页面时不用重新学。
-        if (onMenuClick != null) {
-            IconButton(onClick = onMenuClick) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(start = 4.dp, end = 10.dp, top = 4.dp, bottom = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // 抽屉入口：与「对话」页同一个手势位置，切换页面时不用重新学。
+            if (onMenuClick != null) {
+                IconButton(onClick = onMenuClick) {
+                    Icon(
+                        imageVector = Icons.Filled.Menu,
+                        contentDescription = stringResource(R.string.companion_nav_back),
+                    )
+                }
+            }
+            // 身份区：整块可点 = 角色选择。头像 + 名字 + 下拉箭头，下面一行 tagline。
+            Row(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(12.dp))
+                    .clickable { onCharacters() }
+                    .padding(start = if (onMenuClick == null) 12.dp else 0.dp, end = 8.dp, top = 2.dp, bottom = 2.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                TopBarAvatar(name = name, portrait = portrait)
+                Spacer(Modifier.size(10.dp))
+                Column(Modifier.weight(1f, fill = false)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = name.ifBlank { stringResource(R.string.companion_title) },
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color(0xFF2B2622),
+                            maxLines = 1,
+                        )
+                        Icon(
+                            imageVector = Icons.Filled.KeyboardArrowDown,
+                            contentDescription = null,
+                            tint = Color(0xFF8A8F98),
+                            modifier = Modifier.size(16.dp),
+                        )
+                    }
+                    if (tagline.isNotBlank()) {
+                        Text(
+                            text = tagline,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color(0xFF8A8F98),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
+            }
+            // 语音回答：开=紫渐变底白图标，关=中性底灰图标。紫色只属于「她」。
+            val voiceOn = output == CompanionOutput.VOICE
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .background(if (voiceOn) HerViolet else Color(0xFFF3EFEA))
+                    .clickable { onToggleOutput() },
+                contentAlignment = Alignment.Center,
+            ) {
                 Icon(
-                    imageVector = Icons.Filled.Menu,
-                    contentDescription = stringResource(R.string.companion_nav_back),
+                    imageVector = if (voiceOn) Icons.Filled.VolumeUp else Icons.Filled.VolumeOff,
+                    contentDescription = if (voiceOn) "语音回答：开" else "语音回答：关",
+                    tint = if (voiceOn) Color.White else Color(0xFF8A8F98),
+                    modifier = Modifier.size(19.dp),
                 )
             }
+            Spacer(Modifier.size(8.dp))
+            // 通话：右侧视觉重心。由 Route 打开全屏通话页（含录音权限）。
+            Box(
+                modifier = Modifier
+                    .size(38.dp)
+                    .clip(CircleShape)
+                    .background(HerViolet)
+                    .clickable { onOpenCall() },
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Phone,
+                    contentDescription = stringResource(R.string.companion_open_voice),
+                    tint = Color.White,
+                    modifier = Modifier.size(19.dp),
+                )
+            }
+            Spacer(Modifier.size(2.dp))
+            // ⋯：记忆/个性化与形象区收进来。这两个入口以前是「人物」和「星星」两个图标。
+            Box {
+                Box(
+                    modifier = Modifier
+                        .size(38.dp)
+                        .clip(CircleShape)
+                        .clickable { menuOpen = true },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.MoreHoriz,
+                        contentDescription = "更多",
+                        tint = Color(0xFF6E6660),
+                    )
+                }
+                DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                    DropdownMenuItem(
+                        text = { Text("她记得的事与主动性") },
+                        onClick = {
+                            menuOpen = false
+                            onProfile()
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text(if (expanded) "收起形象" else "展开形象") },
+                        onClick = {
+                            menuOpen = false
+                            onToggleAvatar()
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text("换个角色") },
+                        onClick = {
+                            menuOpen = false
+                            onCharacters()
+                        },
+                    )
+                }
+            }
         }
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(start = if (onMenuClick == null) 12.dp else 0.dp),
+        // 顶栏底部一条渐变分隔线：紫 → 粉 → 暖，透明度淡出。全页唯一的装饰线。
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(
+                    Brush.horizontalGradient(
+                        listOf(
+                            HerViolet.copy(alpha = 0.85f),
+                            Color(0xFFFFA6C9).copy(alpha = 0.55f),
+                            Color(0xFFFBF8F5).copy(alpha = 0f),
+                        ),
+                    ),
+                ),
         )
-        Spacer(Modifier.weight(1f))
-        // 每个图标必须和它去的地方对得上：之前「角色」用的是电话图标，
-        // 「个性化页面」用的是和「展开形象」一模一样的向上箭头，用户只能靠猜。
-        IconButton(onClick = onToggleAvatar) {
-            Icon(
-                imageVector = if (expanded) Icons.Filled.ExpandMore else Icons.Filled.ExpandLess,
-                contentDescription = if (expanded) "收起形象" else "展开形象",
+    }
+}
+
+/** 紫色只表达「她」：头像环、通话、语音开关的开启态。全模块共享（角色列表也要用）。 */
+internal val HerViolet = Color(0xFF8B7CF6)
+
+@Composable
+private fun TopBarAvatar(name: String, portrait: java.io.File?) {
+    Box(
+        modifier = Modifier
+            .size(44.dp)
+            .clip(CircleShape)
+            .background(HerViolet.copy(alpha = 0.16f)),
+        contentAlignment = Alignment.Center,
+    ) {
+        if (portrait != null) {
+            com.openapi.ks.myapp.avatar.AvatarPortrait(
+                file = portrait,
+                modifier = Modifier.fillMaxSize().clip(CircleShape),
+                contentScale = ContentScale.Crop,
             )
-        }
-        IconButton(onClick = onCharacters) {
-            Icon(
-                imageVector = Icons.Filled.Person,
-                contentDescription = stringResource(R.string.companion_open_characters),
-            )
-        }
-        IconButton(onClick = onProfile) {
-            Icon(
-                imageVector = Icons.Filled.AutoAwesome,
-                contentDescription = "她记得的事与主动性",
+        } else {
+            Text(
+                text = name.trim().take(1).ifBlank { "她" },
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = Color(0xFF6F5BD6),
             )
         }
     }
@@ -276,6 +459,29 @@ private fun CompanionAvatar(emoji: String, active: Boolean) {
 }
 
 /**
+ * 用户侧头像：中性底的「我」字标。
+ *
+ * 现在没有账号头像图片源，字标是唯一能落地的形态。刻意用中性暖灰而不是品牌主色——
+ * 紫色/橙色各代表「她」和「发送」，用户的头像不该抢这两个语义。
+ */
+@Composable
+private fun UserAvatar() {
+    Box(
+        modifier = Modifier
+            .size(28.dp)
+            .clip(CircleShape)
+            .background(Color(0xFFEDE6DC)),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = "我",
+            style = MaterialTheme.typography.labelMedium,
+            color = Color(0xFF8A7C6A),
+        )
+    }
+}
+
+/**
  * 消息区：列表 + 「正在输入」 + 待确认动作卡片。
  *
  * 单独抽出来是为了能被渲染测试直接组合（见 app 模块的 CompanionMessageAreaRenderTest）：
@@ -294,10 +500,13 @@ fun CompanionMessageArea(
     onDeleteMessage: (Long) -> Unit = {},
     onCopyMessage: (String) -> Unit = {},
     onRegenerate: () -> Unit = {},
+    onShareMessage: (String) -> Unit = {},
+    onSpeakMessage: (String) -> Unit = {},
+    onEditMessage: (Long, String) -> Unit = { _, _ -> },
 ) {
     Column(modifier) {
         val items = remember(messages) { companionItems(messages) }
-        // 消息 id → 领域消息。footer 的复制/删除要作用到原来的那条，而不是列表下标。
+        // 消息 id → 领域消息。长按弹层里的操作要作用到原来的那条，而不是列表下标。
         val byId = remember(messages) { messages.associateBy { "c${it.id}" } }
         // 主动消息的来源标签走 chatkit 的 itemOverlay 插槽：ChatItem 没有「谁先开口」
         // 这个概念，而标签必须挂在**那一条**消息上方才读得懂，所以既不放列表下方，
@@ -307,18 +516,16 @@ fun CompanionMessageArea(
             items = items,
             state = listState,
             modifier = Modifier.weight(1f).fillMaxWidth(),
+            // 与「对话」页同一套长按弹层，而不是横排小卡片：一行一项，图标和文字都看得清。
+            menuStyle = com.openapi.chatkit.message.MessageMenuStyle.Sheet,
             itemOverlay = { item ->
                 val kind = proactiveKinds[item.id]
                 if (kind != null && kind != ProactiveKind.REPLY) ProactiveLabel(kind)
             },
-            footerActions = { item ->
-                // 陪伴页没有评价/朗读的数据源，就不摆点了没反应的按钮：只留「复制」「删除」。
-                // 朗读要等服务端的语音条（见 CompanionMessage.voiceSeconds）。
-                if (byId[item.id]?.text.isNullOrBlank()) {
-                    listOf(MessageAction.Delete)
-                } else {
-                    listOf(MessageAction.Copy, MessageAction.Delete)
-                }
+            footerActions = {
+                // 气泡下面不再挂 footer 芯片：长按弹层里全部都有，重复摆一遍只是噪音。
+                // chatkit 在 footerActions 为空时本就不渲染这一块。
+                emptyList()
             },
             onAction = { item, action ->
                 val message = byId[item.id] ?: return@ChatMessageList
@@ -328,10 +535,21 @@ fun CompanionMessageArea(
                     // 「重新回答」出现在「最后一条是用户消息」时（删掉她的回复后会露出来），
                     // 必须真的能重问，否则又是一个点了没反应的按钮。
                     MessageAction.Regenerate -> onRegenerate()
+                    // 长按菜单里的这三项以前落到 else -> Unit，点了毫无反应。
+                    MessageAction.Share -> if (message.text.isNotBlank()) onShareMessage(message.text)
+                    MessageAction.Speak -> if (message.text.isNotBlank()) onSpeakMessage(message.text)
+                    // 编辑：把原文放回输入框并从列表移除（服务端没有单条删除接口，与对话页语义一致）
+                    MessageAction.Edit -> if (message.text.isNotBlank()) {
+                        onEditMessage(message.id, message.text)
+                    }
                     else -> Unit
                 }
             },
             avatar = { item -> CompanionAvatar(emoji = "澈", active = item.streaming) },
+            // 用户侧头像：现在没有账号头像图片源，用中性色的「我」字标。
+            // 与她的头像刻意不同色（她是品牌主色），一眼能分出左右两边是谁。
+            // 以后账号体系有头像 URL 了，只换这个 composable。
+            userAvatar = { UserAvatar() },
             // 空列表时不放文字：下方输入框自己就有同一个占位提示，
             // 否则屏幕上会出现两行一模一样的「说点什么…」。
             emptyContent = {},
@@ -423,6 +641,47 @@ private fun copyToClipboard(context: android.content.Context, text: String) {
     ).show()
 }
 
+/**
+ * 分享一段文字：系统选择器。
+ *
+ * 「对话」页的 ChatPlatform.share 是 feature-chat 的 internal object，跨模块不可见；
+ * 为一个 Intent 建公共模块不值得，这里就地写十行。
+ */
+private fun shareText(context: android.content.Context, text: String) {
+    if (text.isBlank()) return
+    val intent = android.content.Intent(android.content.Intent.ACTION_SEND)
+        .setType("text/plain")
+        .putExtra(android.content.Intent.EXTRA_TEXT, text)
+    runCatching {
+        context.startActivity(
+            android.content.Intent.createChooser(intent, null)
+                .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK),
+        )
+    }
+}
+
+/**
+ * 朗读一段文字：设备自带中文 TTS，「对话」页走的是同一个实现。
+ * 设备没有可用中文语音时回一句提示，而不是静默失败——否则用户会以为按钮又坏了。
+ */
+private fun speakText(context: android.content.Context, text: String) {
+    if (text.isBlank()) return
+    val app = context.applicationContext
+    kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main).also { scope ->
+        scope.launch {
+            val ok = runCatching { com.openapi.speech.tts.DeviceSpeech.speakChinese(app, text) }
+                .getOrDefault(false)
+            if (!ok) {
+                android.widget.Toast.makeText(
+                    app,
+                    "设备没有可用的中文语音",
+                    android.widget.Toast.LENGTH_SHORT,
+                ).show()
+            }
+        }
+    }
+}
+
 /** 「对方正在输入…」：三个点依次跳动。 */
 @Composable
 private fun TypingHint() {
@@ -478,76 +737,93 @@ private fun ErrorBar(message: String, onDismiss: () -> Unit) {
 }
 
 /**
- * 输入区。
+ * 输入区（方案 A：与「对话」页同一套视觉语言）。
  *
- * 与「对话」页同样的输入框 + 发送；额外两个只属于陪伴页的入口：
- * - 语音输出开关（扬声器图标）：她回语音条 + 文字，而不是只回文字；
- * - 通话按钮：进全屏通话页。
- * 旧版那个「文字 / 语音」分段按钮已删除——它切的是传输路径，用户看不出区别。
+ * 白卡 + 无边框 `BasicTextField` + 有字才出现的橙色圆形发送按钮。
+ * 「语音回答」与「通话」已经移到顶栏，这一行只剩输入本身。
+ *
+ * 为什么不用 chatkit 的 `ChatComposer`：那是带录音/转写/草稿/「+」面板的完整组件，
+ * 需要 `ComposerState/ComposerAction/VoiceActions` 一整套回调，而陪伴侧的麦克风链路
+ * 才刚在通话页补上，接进来等于一个按不动的语音按钮。等语音链路稳定后再评估。
  */
 @Composable
 private fun CompanionComposer(
     input: String,
     canSend: Boolean,
-    output: CompanionOutput,
-    callActive: Boolean,
     onInputChange: (String) -> Unit,
     onSend: () -> Unit,
-    onToggleOutput: () -> Unit,
-    onOpenCall: () -> Unit,
 ) {
-    Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            OutlinedTextField(
+    val sendEnabled = canSend
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 10.dp)
+            .shadow(elevation = 8.dp, shape = ComposerShape, clip = false)
+            .background(Color.White, ComposerShape)
+            .border(
+                width = 1.dp,
+                color = Color(0x14000000),
+                shape = ComposerShape,
+            )
+            .padding(start = 14.dp, end = 10.dp, top = 9.dp, bottom = 9.dp),
+    ) {
+        Row(verticalAlignment = Alignment.Bottom) {
+            BasicTextField(
                 value = input,
                 onValueChange = onInputChange,
-                modifier = Modifier.weight(1f),
-                placeholder = { Text(stringResource(R.string.companion_input_hint)) },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(vertical = 8.dp),
+                textStyle = MaterialTheme.typography.bodyMedium.copy(
+                    color = Color(0xFF2B2622),
+                    fontSize = 15.sp,
+                ),
+                cursorBrush = androidx.compose.ui.graphics.SolidColor(Color(0xFFC2410C)),
                 maxLines = 4,
-                shape = RoundedCornerShape(20.dp),
+                decorationBox = { inner ->
+                    Box {
+                        if (input.isEmpty()) {
+                            Text(
+                                text = stringResource(R.string.companion_input_hint),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontSize = 15.sp,
+                                color = Color(0xFFB3AEA8),
+                                modifier = Modifier.padding(vertical = 8.dp),
+                            )
+                        }
+                        inner()
+                    }
+                },
             )
-            IconButton(onClick = onSend, enabled = canSend) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.Send,
-                    contentDescription = stringResource(R.string.companion_send),
-                )
-            }
-        }
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            // 语音输出：开=她会用语音回答（同时给文字），关=只回文字。
-            IconButton(onClick = onToggleOutput) {
-                Icon(
-                    imageVector = if (output == CompanionOutput.VOICE) Icons.Filled.VolumeUp else Icons.Filled.VolumeOff,
-                    contentDescription = if (output == CompanionOutput.VOICE) "语音回答：开" else "语音回答：关",
-                    tint = if (output == CompanionOutput.VOICE) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    },
-                )
-            }
-            Text(
-                text = if (output == CompanionOutput.VOICE) "语音回答" else "文字回答",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(Modifier.weight(1f))
-            TextButton(onClick = onOpenCall, enabled = !callActive) {
-                Icon(
-                    imageVector = Icons.Filled.Phone,
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp),
-                )
-                Spacer(Modifier.size(4.dp))
-                Text("通话", style = MaterialTheme.typography.labelMedium)
+            Spacer(Modifier.size(8.dp))
+            // 发送按钮：有字才出现（缩放进出），空输入时整块收起，不留一个灰疙瘩。
+            AnimatedVisibility(
+                visible = input.isNotBlank(),
+                enter = scaleIn(spring(dampingRatio = 0.7f)) + fadeIn(),
+                exit = scaleOut(spring(dampingRatio = 0.7f)) + fadeOut(),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(38.dp)
+                        .clip(CircleShape)
+                        .background(if (sendEnabled) Color(0xFFC2410C) else Color(0xFFE7DED6))
+                        .clickable(enabled = sendEnabled) { onSend() },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.ArrowUpward,
+                        contentDescription = stringResource(R.string.companion_send),
+                        tint = Color.White,
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
             }
         }
     }
 }
+
+/** 输入卡片的圆角：24dp，与设计稿一致。 */
+private val ComposerShape = RoundedCornerShape(24.dp)
 
 @Composable
 private fun IncomingCallBanner(

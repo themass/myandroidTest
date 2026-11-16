@@ -163,6 +163,7 @@ fun CompanionRoute(
                 CharacterListScreen(
                     state = state,
                     onRetry = vm::load,
+                    currentCharacterId = characterId,
                     onPick = {
                         characterId = it.id
                         page = CompanionPage.CHAT

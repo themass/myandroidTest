@@ -25,6 +25,8 @@ dependencies {
     // 消息列表与输入区复用 chatkit：陪伴页和对话页要长得像一家人，
     // 而不是各自再造一套气泡。
     implementation project(':chatkit')
+    // 朗读：设备自带中文 TTS（离线、免费），与「对话」页同一个实现。
+    implementation project(':speech')
 
     implementation platform(libs.androidx.compose.bom)
     implementation libs.androidx.compose.ui
