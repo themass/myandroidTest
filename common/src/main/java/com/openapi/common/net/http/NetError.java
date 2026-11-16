@@ -36,24 +36,27 @@ public class NetError extends Exception {
 
     /** 服务端返回的业务错误（errno 不成功时带 error 文案），文案直接展示给用户。 */
     public static class BusinessError extends NetError {
+        /** 没有业务码时的占位值（旧调用点只传文案）。 */
+        public static final int NO_CODE = -1;
+
         private final String msg;
-        /** 服务端 errno（0 = 成功，不会出现在这里）。需要按错误码分支的调用方读它。 */
         private final int errno;
 
         public BusinessError(String msg) {
-            this(0, msg);
+            this(NO_CODE, msg);
         }
 
         public BusinessError(int errno, String msg) {
             super(msg);
-            this.errno = errno;
             this.msg = msg;
+            this.errno = errno;
         }
 
         public String getMsg() {
             return msg;
         }
 
+        /** 服务端 errno；按码分支的业务（如拍照解题的 42901 额度用完）用它，而不是匹配文案。 */
         public int getErrno() {
             return errno;
         }

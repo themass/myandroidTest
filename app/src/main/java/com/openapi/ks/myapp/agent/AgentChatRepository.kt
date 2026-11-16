@@ -20,6 +20,11 @@ interface AgentChatRepository {
     suspend fun continueReply(sessionId: String, messageId: String)
     suspend fun regenerate(sessionId: String, messageId: String)
     suspend fun selectAlternative(messageId: String): AgentBubble
+    suspend fun confirmAction(confirmationId: String, accepted: Boolean)
+    suspend fun pendingActions(): List<PendingConfirmation>
+    suspend fun consent(): AgentConsent
+    suspend fun updateConsent(trainingConsent: Boolean? = null, proactiveEnabled: Boolean? = null): AgentConsent
+    suspend fun exportData(): String
     suspend fun history(sessionId: String, before: String?): List<AgentBubble>
     suspend fun deleteMessage(messageId: String)
     suspend fun editMessage(messageId: String, content: String): AgentBubble
@@ -57,6 +62,18 @@ class AgentChatRepositoryImpl(
     override suspend fun regenerate(sessionId: String, messageId: String) = api.regenerate(sessionId, messageId)
 
     override suspend fun selectAlternative(messageId: String): AgentBubble = api.selectAlternative(messageId)
+
+    override suspend fun confirmAction(confirmationId: String, accepted: Boolean) =
+        api.confirmAction(confirmationId, accepted)
+
+    override suspend fun pendingActions(): List<PendingConfirmation> = api.pendingActions()
+
+    override suspend fun consent(): AgentConsent = api.consent()
+
+    override suspend fun updateConsent(trainingConsent: Boolean?, proactiveEnabled: Boolean?) =
+        api.updateConsent(trainingConsent, proactiveEnabled)
+
+    override suspend fun exportData(): String = api.exportData()
 
     override suspend fun history(sessionId: String, before: String?): List<AgentBubble> = api.history(sessionId, before)
     override suspend fun deleteMessage(messageId: String) = api.deleteMessage(messageId)

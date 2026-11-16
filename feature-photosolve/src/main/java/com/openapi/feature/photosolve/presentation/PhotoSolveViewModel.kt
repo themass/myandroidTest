@@ -39,6 +39,8 @@ import kotlinx.coroutines.withContext
  */
 class PhotoSolveViewModel(application: Application) : AndroidViewModel(application) {
 
+    private val history = com.openapi.feature.photosolve.history.SolveHistories.current(application)
+
     private val cropAssistSettings = CropAssistSettingsRepository(application)
     /** 模型未随包提供时 [RealEsrganUpscaler.upscaleSmall] 直接返回 null，流程不变。 */
     private val upscaler = RealEsrganUpscaler(application)
@@ -51,6 +53,12 @@ class PhotoSolveViewModel(application: Application) : AndroidViewModel(applicati
      * 所以直接问 provider 而不是走 [QuestionImagePreparer] 的裁剪逻辑。
      */
     private val quadDetector = QuestionQuadDetector(cropAssistRegistry.docQuadNet)
+
+    /**
+     * 当前这张图的幂等键。新图（重新确认裁剪/四角）换新值；「重试」沿用旧值，
+     * 服务端命中缓存时直接回放上次结果，不重复扣额度。
+     */
+    private var requestId: String = java.util.UUID.randomUUID().toString()
 
     private val _uiState = MutableStateFlow(PhotoSolveUiState())
     val uiState: StateFlow<PhotoSolveUiState> = _uiState.asStateFlow()
@@ -181,7 +189,14 @@ class PhotoSolveViewModel(application: Application) : AndroidViewModel(applicati
 
     private suspend fun checkQualityAndSolve(bitmap: Bitmap) {
         // 清晰度/曝光不合格时先停下来让用户决定：重拍，或者仍然识别（识别结果可能不准）
-        val issues = qualityPreparer.qualityOf(bitmap).issues
+        val report = qualityPreparer.qualityOf(bitmap)
+        val issues = report.issues
+        // 留一条日志：用户反馈"总是提示分辨率偏低"时，能直接看到是哪个尺寸、哪项指标触发的
+        android.util.Log.i(
+            "PhotoSolveQuality",
+            "crop=${bitmap.width}x${bitmap.height} sharp=${"%.1f".format(report.sharpness)} " +
+                "luma=${"%.0f".format(report.meanLuma)} issues=$issues",
+        )
         if (issues.isEmpty()) {
             solve(bitmap)
         } else {
@@ -214,7 +229,8 @@ class PhotoSolveViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    private suspend fun solve(croppedByUser: Bitmap) = coroutineScope {
+    private suspend fun solve(croppedByUser: Bitmap, isRetry: Boolean = false) = coroutineScope {
+        if (!isRetry) requestId = java.util.UUID.randomUUID().toString()
         val cropped = withContext(Dispatchers.Default) {
             val resized = croppedByUser.resizeSmart()
             (upscaler.upscaleSmall(resized) ?: resized).enhanceForDocument()
@@ -231,11 +247,14 @@ class PhotoSolveViewModel(application: Application) : AndroidViewModel(applicati
             }
         }
 
-        val result = runCatching { PhotoSolveRepositories.current().solve(cropped) }
+        val result = runCatching { PhotoSolveRepositories.current().solve(cropped, requestId) }
         statusCycler.cancel()
 
         result.onSuccess { solved ->
             _uiState.update { it.copy(step = PhotoSolveStep.Result, result = solved, errorCode = null) }
+            // 解完就存历史：不要求用户点"保存"，否则没人会存。
+            // 失败只记日志，不影响结果展示（历史是附加价值，不能反过来挡主流程）。
+            saveToHistory(solved, cropped)
         }.onFailure { e ->
             val code = (e as? PhotoSolveException)?.code
             _uiState.update { state ->
@@ -255,6 +274,13 @@ class PhotoSolveViewModel(application: Application) : AndroidViewModel(applicati
                         errorCode = code,
                         errorMessage = PhotoSolveError.userMessage(code),
                     )
+                    // 额度/预算用完：重试没有意义，回首页并提示（首页的剩余次数也会刷新成 0）
+                    PhotoSolveError.QUOTA_EXCEEDED, PhotoSolveError.BUDGET_EXHAUSTED -> state.copy(
+                        step = PhotoSolveStep.Home,
+                        errorCode = code,
+                        // 服务端文案带具体次数（「每天 10 次」），优先用它
+                        errorMessage = e.message?.takeIf { it.isNotBlank() } ?: PhotoSolveError.userMessage(code),
+                    )
                     else -> state.copy(
                         step = PhotoSolveStep.QuadAdjust,
                         errorCode = code,
@@ -265,11 +291,30 @@ class PhotoSolveViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
+    /** 把这次结果写进解题历史。同一 requestId 重复保存会更新原记录（重试成功不会出现两条）。 */
+    private fun saveToHistory(result: PhotoSolveResult, image: Bitmap) {
+        viewModelScope.launch {
+            runCatching {
+                history.save(
+                    com.openapi.feature.photosolve.history.SolveDraft(
+                        requestId = result.requestId ?: requestId,
+                        question = result.recognizedQuestion,
+                        steps = result.steps,
+                        answer = result.finalAnswer,
+                        thinking = result.thinking,
+                        subject = result.subject,
+                    ),
+                    image,
+                )
+            }.onFailure { android.util.Log.w("PhotoSolveHistory", "save failed", it) }
+        }
+    }
+
     /** 结果页/错误弹窗上的「重试」：用同一张裁剪图再解一次。 */
     fun onRetry() {
         val bitmap = _uiState.value.croppedBitmap ?: return
         _uiState.update { it.copy(errorMessage = null, errorCode = null) }
-        viewModelScope.launch { solve(bitmap) }
+        viewModelScope.launch { solve(bitmap, isRetry = true) }
     }
 
     fun onDismissError() {
@@ -277,6 +322,7 @@ class PhotoSolveViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     fun onRetake() {
+        requestId = java.util.UUID.randomUUID().toString()
         _uiState.value = PhotoSolveUiState()
     }
 }

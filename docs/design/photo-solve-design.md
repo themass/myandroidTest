@@ -20,9 +20,27 @@
 | 服务端 `solve.json` / `health.json` | **已实现**（可编译） | testserverV `vvv-link/.../photosolve/` |
 | 提示词 + 豆包调用 | **已实现**（未联调） | `PhotoSolvePrompt.java`、`DoubaoPhotoSolveProvider.java` |
 | 端到端调豆包 | **未验证** | 本机无 `photosolve.doubao.apiKey` |
-| 额度、幂等去重 | **设计但未实现** | 第 5 节风险 1 |
+| 额度、限流、全站预算、幂等去重 | **已实现**（可编译，未联调） | 第 4.7 节；`PhotoSolveQuota.java` |
+| 客户端拿到真实 errno | **已修复**（之前所有错误都显示成 50001） | 第 4.7.5 节 |
 | 多题切换 UI | **设计但未实现** | 第 5 节风险 8 |
 | 端上 provider 直接吐四点 | **设计但未实现**（建议） | 第 3.3 节 |
+| 四角 + 四边拖动（保持凸四边形） | **已实现**（14 个单测） | `imaging/.../quad/QuadEdit.kt`、3.5 节 |
+| LaTeX 渲染（Markwon + jlatexmath） | **已实现** | `markdown/MathText.kt`、3.6 节 |
+| 服务端 LaTeX 反斜杠修复 | **已实现**（15 个单测） | `PhotoSolveJsonRepair.java`、4.8 节 |
+| 思考过程（可折叠） | **已实现** | 3.7 节 |
+| 解题历史（增删改查 + 详情） | **已实现** | `history/`、3.8 节 |
+| 分辨率误报修复 | **已实现** | 3.9 节 |
+
+### 本轮修复的 6 个问题（2026-11-12）
+
+| # | 问题 | 根因 | 修法 |
+|---|---|---|---|
+| 1 | 只能拖四个角，边不能拖 | `QuadAdjustScreen` 只做了 `nearestCorner` | 新增 `QuadEdit.hitTest/moveEdge`，角优先、整条边可抓；拖边沿法线平移且两端角沿相邻边滑动（矩形仍是矩形，梯形仍是梯形） |
+| 2 | 不支持 LaTeX | 客户端用 `Text` 直接显示源码；**服务端 JSON 解析还会静默吃掉 `\frac` 的反斜杠** | 客户端改 Markwon + jlatexmath；服务端解析前过 `PhotoSolveJsonRepair`；提示词改为公式直接写在 text/thinking/finalAnswer 里 |
+| 3 | 每次提交都提示分辨率偏低 | 判据是「裁剪后短边 < 600px」，而一道题裁出来常是宽矮长条（如 1800×500） | 改为「长边 < 800 **或** 总像素 < 25 万」，并加日志输出实际尺寸与指标 |
+| 4 | 结果页无法回主界面 | 结果页只有「再拍一题」 | 顶栏加关闭按钮，底部加「退出」；`onExit` 回首页状态而不是 finish Activity |
+| 5 | 没有解题历史 | 未实现 | 新增历史模块（文件存储，见 3.8） |
+| 6 | 没有思考过程 | 提示词没要求，模型也没这个字段 | 服务端加 `thinking` 字段与要求；客户端默认折叠展示 |
 
 ### 合并时校正的两处（已按定稿实现）
 
@@ -129,6 +147,82 @@
 
 `ChatRoute` 的「拍照解题」入口现在用显式组件名启动 `PhotoSolveActivity`（feature 之间不互相依赖）。保持不变。
 
+### 3.5 四角 / 四边拖动（`imaging/.../quad/QuadEdit.kt`）
+
+几何全部在像素空间计算（归一化坐标在非正方形图片上 x、y 量纲不同，直接算会让边拖歪）：
+
+- **点选**：先找 28dp 内的角（角优先），再找 22dp 内的边；边的**整条线段**都是热区，不只是中点。
+- **拖角**：该角自由移动，夹在 `[0,1]`，结果经 `QuadNorm.ordered()` 规范化。
+- **拖边**：位移取手指位移在**法线**上的投影（平行分量忽略），边两端的角分别沿相邻两条边的延长线滑动。
+  即求「平移后的边所在直线」与「相邻边所在直线」的交点。对矩形结果是矩形，对梯形两条腰方向不变。
+  结果必须通过 `QuadNorm.isValid` 且所有角在 `[0,1]` 内；不合法就按 100%/75%/50%/25%/10% 逐级缩小位移，
+  都不行返回 null（保持原样）。**角点顺序保持不变**，拖动过程中「正在拖哪条边」的编号不会漂移。
+- 界面：四条边中点画药丸形手柄暗示可拖；正在拖的边高亮加粗。
+
+### 3.6 LaTeX 渲染（`markdown/MathText.kt`）
+
+题目、步骤、答案里全是公式。Compose 没有成熟的 LaTeX 渲染，沿用 `:feature-chat` 的方案：
+
+- Markwon 负责 Markdown 解析与排版，`AndroidView` 桥接进 Compose；
+- `ext-latex`（jlatexmath-android）画公式；
+- `SingleDollarLatexPlugin` 补官方插件不支持的行内 `$...$`（官方只认 `$$...$$`）；
+- `MathMarkdown.normalize()` 在渲染前统一 `\( \)` / `\[ \]` 定界符、收敛多余反斜杠层数；
+- 公式渲染失败时用 `errorHandler` 把 LaTeX 源码画成红色文字，而不是整段消失。
+
+`MathMarkdown.plain()` 另做一份「公式 → 纯文本」的降级（`\frac{1}{2}` → `1/2`、`\sqrt{3}` → `√3`、`x^2` → `x²`），
+给历史列表预览用——列表里每行都起一个公式渲染成本太高。
+
+### 3.7 思考过程
+
+服务端 `PhotoSolveResponse.Question.thinking`（Markdown + LaTeX），提示词要求 80–250 字，只写审题思路不重复计算。
+
+客户端 `ThinkingSection`：
+
+- **默认折叠**。理由：学生第一眼要看答案对不对、步骤怎么写；全部展开会把答案挤出屏幕。
+- 折叠时标题右侧显示一行摘要（正文第一句，超过 80 字截断），不展开也能判断要不要看。
+- 整块可点切换，箭头有旋转动画；展开状态不持久化。
+- 旧服务端没有 `thinking` 字段时整块隐藏，不显示空框。
+
+### 3.8 解题历史（`history/`）
+
+| 文件 | 作用 |
+|---|---|
+| `SolveRecord.kt` | 记录模型 + `SolveRecordCodec`（步骤列表编解码、默认标题） |
+| `SolveHistoryStore.kt` | 接口：`recent/get/save/rename/setFavorite/delete/clear` |
+| `FsSolveHistoryStore.kt` | 文件实现（见下） |
+| `SolveHistoryViewModel.kt` | 列表、搜索、收藏过滤、重命名/删除/清空 |
+| `SolveDetailViewModel.kt` | 详情、改名、收藏、删除 |
+| `ui/SolveHistoryScreen.kt` | 列表页 |
+| `ui/SolveHistoryDetailScreen.kt` | 详情页 |
+
+**存储为什么用文件而不是 Room**：记录里最大的数据是题目图，图本来就得放文件系统；索引很小（几百条几十 KB）；
+写一条记录 = 两张图 + 一次索引更新，Room 也要自己处理「库里有记录但图片丢了」。另外 `:feature-photosolve`
+现在没有 ksp 插件，引 Room 要改构建配置。
+
+```
+filesDir/photosolve_history/
+  index.json        索引（先写 .tmp 再 rename）
+  img/<id>.jpg      长边 ≤ 1280
+  thumb/<id>.jpg    长边 ≤ 240
+```
+
+- 写操作全部串行（`Mutex`）；索引损坏时备份成 `index.corrupt-<ts>.json` 并从空开始，不让用户一进页面就崩。
+- 同一个 `requestId` 只保留一条：重试成功更新原记录，不会出现两条。
+- 用户改过标题就保留，不被题干覆盖。
+- **自动保存**：解题成功即写入，不要求用户手动「保存」（否则没人会存）。保存失败只记日志，不影响结果展示。
+
+页面流：首页右上角时钟图标 → 列表 → 点条目进详情。系统返回键：详情 → 列表 → 首页。
+列表支持搜索（标题/题干/答案）、只看收藏；长按或「⋯」菜单可收藏、重命名、删除；顶部可清空。
+
+### 3.9 分辨率误报
+
+旧判据 `短边 < 600px` 的问题：一道题裁出来是宽矮长条（1800×500），短边只有 500，但字很清楚，
+于是几乎每次提交都被「分辨率偏低」打断。
+
+新判据（`ImageQualityAnalyzer.isLowResolution`）：**长边 ≥ 800 且总像素 ≥ 25 万**，两项都不满足才提示。
+字的大小取决于整页宽对应多少像素，与短边无关。`QuestionImagePreparer.qualityOf` 现在传真实宽高，
+并且 ViewModel 打一行日志（裁剪尺寸、清晰度、亮度、命中的问题项），下次再有反馈可以直接定位。
+
 ---
 
 ## 4. 服务端实现（testserverV）
@@ -206,7 +300,8 @@ photosolve.timeoutSeconds=     # 默认 60
 | 40001 | 图片不清晰 | 复用模糊弹窗：「重拍」/「仍然识别」 |
 | 40002 | 图片里没有题目 | 回到取景页，提示「没找到题目」 |
 | 40003 | 图片过大或格式不支持 | 提示换图 |
-| 42901 | 额度用完 | 提示额度 |
+| 42901 | 用户今日额度用完 / 一分钟内请求过多 | 回首页弹窗，用服务端文案（带「每天 N 次」），不提供重试 |
+| 42902 | 全站当日预算用完（熔断） | 同上，文案「今日识别服务已满」 |
 | 50001 | 模型失败/超时 | 显示「重试」 |
 | 50002 | 服务端未配置模型 | 「服务暂时不可用」 |
 
@@ -230,7 +325,7 @@ photosolve.timeoutSeconds=     # 默认 60
 | 客户端 `:common`（net） | 上传走 `HttpClient.uploadClient`：connect 40s / read 180s / write 180s；失败自动重试 1 次（`MAX_ATTEMPTS=2`）。业务错误（errno 非 0）不重试 |
 | 服务端调模型 | `CompletableFuture.get(photosolve.timeoutSeconds)`（默认 60s）；超时 `cancel(true)` 并返回 50001 |
 | 客户端 UI | 50001 显示「重试」，`onRetry()` 用同一张裁剪图再发一次（不重新拍照） |
-| 幂等 | `clientRequestId` 由客户端生成；当前服务端只用于日志，**尚未做去重扣费**（见风险） |
+| 幂等 | `clientRequestId` 由 ViewModel 生成；**同一张图重试沿用同一个 id**，服务端命中缓存直接回放（见 4.7） |
 
 ### 4.5 服务端「题目检测/对齐」为什么放在端上
 
@@ -277,13 +372,97 @@ curl -s -X POST http://127.0.0.1:8080/vvv/api/photosolve/v1/solve.json \
 
 注意 `Constants.PHOTOSOLVE_SOLVE_URL` 的值是 `/photosolve/v1/solve.json`（`getUrl` 已带 `/vvv/api` 前缀），服务端 `PhotoSolveController` 的映射必须与之对应。
 
+### 4.7 额度、限流与幂等（`PhotoSolveQuota.java`）
+
+#### 4.7.1 为什么必须登录
+
+每次 `solve.json` 都是一次付费的模型调用。原来是 `@UserInfo`（`required=false`），**空 token 也能调**，
+既无法按人计额也无法定位滥用者。现在改成 `@UserInfo(required = true)`，未登录由 `UserInfoResolver`
+抛 token 过期（errno 2，客户端走既有的重新登录流程）。`health.json` 不碰模型，仍免登录。
+
+#### 4.7.2 四道闸（从外到内，全部 Redis 计数）
+
+| 闸 | Redis 键 | 默认 | 超限返回 | 作用 |
+|---|---|---|---|---|
+| ① 幂等回放 | `photosolve:idem:{userId}:{clientRequestId}`，TTL 600s | 10 分钟 | —（直接返回上次结果） | 重试不重复调模型、不重复扣费 |
+| ② 分钟限流 | `photosolve:rl:m:{yyyyMMdd}:{userId}:{epochMinute}`，TTL 2min | 3 次/分 | 42901「请求过于频繁」 | 挡脚本 |
+| ③ 用户日额度 | `photosolve:quota:d:{yyyyMMdd}:{userId}`，TTL 2 天 | 免费 10 / VIP 50 | 42901「每天 N 次」 | 单账号成本上限 |
+| ④ 全站日预算 | `photosolve:budget:d:{yyyyMMdd}`，TTL 2 天 | 2000 | 42902 | 熔断：小号刷也有单日账单硬上限 |
+
+VIP 判断用 `UserPo.level >= Constant.UserLevel.LEVEL_VIP`（项目已有的等级字段，token 缓存里就有，不额外查库）。
+日期按服务器本地时区切日。
+
+#### 4.7.3 扣费时机与退还
+
+```
+参数/图片校验（40000/40003，不扣） → ①幂等命中？直接返回 → ②③④ 占用额度 → 调模型
+                                                              ├ 成功 → 写幂等缓存 → 返回
+                                                              ├ 40002 不是题目 → 不退（模型已经算过、钱已花）
+                                                              └ 50001 超时/失败、或意外异常 → 退还 ③④
+```
+
+- **先占后调**：用 `INCR` 原子占位，超限再 `DECR` 回去；避免「先查后加」在并发下超发。
+- **只缓存成功**：失败不写幂等缓存，用户点重试会真的再调一次（并重新扣一次）。
+- **④ 超限时同时退 ③**：没调模型，不该占用户的次数。
+
+#### 4.7.4 配置（`secrets.properties`，都有默认值，留空即可）
+
+```properties
+photosolve.quota.freePerDay=          # 默认 10
+photosolve.quota.vipPerDay=           # 默认 50
+photosolve.quota.perMinute=           # 默认 3
+photosolve.quota.totalPerDay=         # 默认 2000，按豆包单价换算成你能接受的日账单
+photosolve.quota.idempotentSeconds=   # 默认 600，0 关闭
+```
+
+> 定 `totalPerDay` 的方法：一次解题 ≈ 1 张图（视觉 token 约 1–2k）+ 系统提示词 ~1k + 输出 ≤4k token。
+> 按你在方舟控制台看到的实际单价乘一下，得出单次成本，再除你接受的日上限。**数字请以控制台账单为准**，这里不写死。
+
+新增 `POST /api/photosolve/v1/quota.json`（需登录）返回 `{limit, used, remaining}`，供首页显示「今日剩余 N 次」
+（客户端展示尚未做，见风险 11）。
+
+#### 4.7.5 客户端：之前 errno 根本到不了界面
+
+排查时发现：`awaitUpload` 失败时只返回 `null`，`NetError.BusinessError` 也只带文案不带码，
+所以**服务端返回的 40002 / 42901 在客户端一律变成 50001「服务暂时不可用」**——`PhotoSolveViewModel`
+里按错误码分支的代码全是死代码。本次修复：
+
+| 文件 | 改动 |
+|---|---|
+| `common/.../net/http/NetError.java` | `BusinessError` 增加 `errno` 字段（旧的单参构造保留，码为 `NO_CODE=-1`） |
+| `common/.../net/request/BaseRequest.java` | 构造 `BusinessError` 时带上 `data.errno` |
+| `common/.../net/BaseServiceAwait.kt` | 新增 `awaitUploadOrThrow`：失败**抛出** `NetError`、不弹默认 toast；取消协程时取消请求。原 `awaitUpload` 不变，其它调用方不受影响 |
+| `NetworkPhotoSolveRepository.kt` | 改用 `awaitUploadOrThrow`，`BusinessError.errno` → `PhotoSolveException.code`；超时/断网 → 50001 |
+| `PhotoSolveRepository.kt` | `solve(image, requestId)`：幂等键由调用方传入 |
+| `PhotoSolveViewModel.kt` | 持有 `requestId`：新图换新值，`onRetry()` 沿用；42901/42902 回首页并显示服务端文案、不提供重试 |
+| `PhotoSolveError.kt` | 新增 `BUDGET_EXHAUSTED = 42902` |
+
+### 4.8 LaTeX 反斜杠修复（`PhotoSolveJsonRepair.java`）
+
+模型要在 JSON 字符串里写 `\frac{1}{2}`，按规范必须写成 `\\frac{1}{2}`，但它经常只写一个反斜杠。两种后果：
+
+| 写法 | JSON 解析结果 |
+|---|---|
+| `\sqrt`、`\pi`、`\(` | 非法转义，**解析直接抛异常**，整题退化成纯文本 |
+| `\frac`、`\text`、`\beta`、`\right`、`\neq`、`\nu` | 命中 `\f \t \b \r \n`，**不报错但公式被静默破坏**（`\frac` → 换页符 + `rac`） |
+
+第二种更危险，因为没有任何异常。`PhotoSolveJsonRepair.repair()` 在 `MAPPER.readTree` 之前逐字符扫描字符串内部：
+已经是 `\\` 的保留；`\" / \/ / \uXXXX` 保留；其他合法转义字母看后面是不是已知 LaTeX 命令
+（`frac`、`text`、`right`、`neq`…，约 100 个），是就补一个反斜杠；非法转义一律补。
+已知歧义（`\nu` vs「换行 + u」）按最长匹配已知命令处理，并在类注释里写明取舍。
+
+同时提示词改掉了重复：**公式只写在 `text`/`thinking`/`finalAnswer` 里**（`$...$` / `$$...$$`），
+`latex` / `finalAnswerLatex` 要求填空字符串。客户端 `SolveResultMapper.merge()` 仍兼容旧服务端：
+文本里没有该公式时把 latex 字段并回去，已有则不重复追加。
+
 ---
 
 ## 5. 风险
 
 | # | 风险 | 缓解 |
 |---|---|---|
-| 1 | **额度与鉴权未实现**：现在任何登录用户都能无限调用，模型费用不可控 | 上线前在 Controller 加按用户/天的计数（Redis，项目已有）；`clientRequestId` 做 5 分钟幂等去重 |
+| 1 | ~~额度与鉴权未实现~~ | **已实现**（4.7）。剩余风险：批量注册小号——由全站预算 42902 兜住单日账单上限，但会让正常用户当天也用不了；需要时再加按设备 id 的额度 |
+| 1b | Redis 故障时额度失效（选择放行） | 日志里 `photosolve quota check failed` 的 WARN 需要接告警 |
 | 2 | **图片隐私**：题目图会发给第三方模型 | `DataBuilder`/服务端都不落盘（当前实现只用 base64 直传，不写磁盘）；隐私政策需说明「拍照解题会把图片发送给第三方 AI 服务」；后续可加 `imageRetentionDays` |
 | 3 | ~~旧 `HttpPhotoSolveRepository` 与新实现并存~~ | **已解决**：旧类、`photosolveBaseUrl`、`PHOTOSOLVE_BASE_URL` 均已删除 |
 | 4 | 模型偶尔不按 JSON 输出 | 提示词硬约束 + `extractJson()` 抠 JSON + 解析失败兜底成纯文本答案；`questionFound` 缺失时默认 true，避免误判「没题目」 |
@@ -292,6 +471,10 @@ curl -s -X POST http://127.0.0.1:8080/vvv/api/photosolve/v1/solve.json \
 | 7 | OpenCV 在部分 ABI/设备上初始化失败 | `QuadWarp` 内 `initLocal()` 失败即走外接矩形；`ImagePipeline.enhanceForDocument()` 同样是「失败返回原图」 |
 | 8 | 多题（一张图 3 道）只展示第一道 | `questions[].index` 已在响应里；`PhotoSolveResult.questionCount` 已透传，结果页可以加「下一题」切换（本次未做 UI） |
 | 9 | `maxTokens=4096` 对超长解答可能截断 | 服务端解析失败会走兜底；可配置化（后续加 `photosolve.maxTokens`） |
+| 12 | 历史记录只存在本机，换机/重装会丢 | 用户预期"历史"可能跨设备 | **已决定：保持客户端本地存储，不上报服务端**（2026-11-12）。理由：服务端不必存储用户题目图片，隐私面最小、无存储成本；记录与界面之间隔着 `SolveHistoryStore` 接口，以后若要同步只换实现。已在历史列表页顶部明确提示「记录只保存在本机，卸载应用或换手机会丢失」 |
+| 13 | 历史图片占空间（每条 ≤ 1280 长边 JPEG） | 长期使用后占用增长 | `clear()` 已实现；后续可按"只看文字不留图"或超过 N 条自动清理最早的 |
+| 14 | 只能用 jlatexmath 支持的 LaTeX 子集 | 极端公式渲染失败 | `errorHandler` 降级显示源码；`MathMarkdown.plain` 在列表里本来就用纯文本 |
+| 11 | 首页还没展示「今日剩余 N 次」，用户要拍完才知道额度没了 | 接 `quota.json`，在首页拍照按钮下显示，`remaining=0` 时置灰 |
 | 10 | 服务端 `errno` 与客户端常量双份维护 | 两处都在注释里写「不要改数值」；建议后续生成一份 `photo-solve-api.md` 作为唯一来源（本文第 4.2 节即该来源） |
 
 ---
@@ -311,7 +494,12 @@ cd /Users/gqli/work/testserverV && mvn -o -q -pl vvv-link -am compile -DskipTest
 已验证（2026-11-11）：
 - 客户端三模块编译通过；`:mediaview` / `:imaging` 的 JVM 单测通过。
 - 服务端 `mvn -o -pl vvv-link -am compile` 退出码 0。
-- `ModuleGraphTest`（`:app` 的架构测试）通过：`:feature-photosolve` 依赖 `:common`、`:core`，符合分层。
+- `ModuleGraphTest`：`layeringRulesHold` / `reusableModulesDoNotImportBusinessCode` / `declaredProjectDependenciesAreUsed` 通过；
+  `packagesMatchModules` **失败**，原因与本功能无关：`app/.../com/openapi/ks/myapp/agent/**`（15 个文件，来自 `weifu-refactor` 上的 agent 聊天）
+  包名不在 `com.openapi.app` 下。
+- 2026-11-12 本轮（四边拖动/LaTeX/思考过程/历史）：`:imaging` 32 个单测、`:feature-photosolve` 34 个、`:mediaview` 27 个全部通过；
+  服务端 `PhotoSolveJsonRepairTest`(15) + `DoubaoPhotoSolveParseTest`(5) 通过；`:app:compileChatDebugKotlin` 退出码 0。
+- 2026-11-12 额度改动：服务端 `mvn -o -pl vvv-link -am compile` 退出码 0；客户端 `:common` / `:feature-photosolve` / `:app:compileChatDebugKotlin` 退出码 0，`:mediaview` 单测通过。
 
 **未验证**（需要真实环境）：
 - 端到端调用豆包：本机 `secrets.properties` 没有填写 `photosolve.doubao.apiKey`，`health.json` 会返回 `configured:false`、`solve.json` 返回 50002。填好密钥后按 4.6 的 curl 验证。

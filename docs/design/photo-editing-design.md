@@ -94,11 +94,14 @@
 ### 3.2 数据模型：操作列表，而不是「每画一笔改一次位图」
 
 ```
-PhotoEdits(sourceWidth, sourceHeight, ops: [Rotate, Flip, Adjust, Stroke, Text, Mosaic], redoStack)
+PhotoEdits(sourceWidth, sourceHeight, ops: [Rotate, Flip, Adjust, Stroke, Text, Mosaic], undoStack, redoStack)
 ```
 
 - 一次编辑 = 一条不可变记录；界面每次改动生成新的 `PhotoEdits`，Compose 才能正确重组。
-- **撤销/重做**只是移动列表里的元素（`PhotoEditsTest` 覆盖了 round-trip、redo 清空、reset 可重做）。
+- **撤销/重做存的是 `ops` 的快照**，不是"弹出最后一条"。原因：选中后**删除**或**拖动**会改动列表中间的某一条，
+  如果撤销只弹最后一条，撤销"拖动文字"会把整段文字删掉。快照让每种改动都能精确回到上一步。
+  滑杆拖动期间用 `withOpsUnrecorded` 做实时预览，松手时 `withOps` 一次提交，所以拖一次滑杆只占一步撤销。
+- 对已有标注的操作：`removeAt(i)` 删除、`replaceAt(i, op)` 替换（拖动、改颜色/字号/文字内容），内容没变不产生历史。
 - **保存时只渲染一次**（`PhotoRenderer.render`），而不是每笔都重新编码整图——涂 30 笔也只是一次编码。
 - 坐标一律是**相对原图的 0..1 归一化值**，所以旋转图片后已画的标注不会跑偏；渲染时统一做「原图坐标 → 画布坐标」映射。
 
@@ -106,19 +109,42 @@ PhotoEdits(sourceWidth, sourceHeight, ops: [Rotate, Flip, Adjust, Stroke, Text, 
 
 | 文件 | 作用 |
 |---|---|
-| `mediaview/.../edit/PhotoEdits.kt` | 操作模型 + 撤销/重做（纯 Kotlin，可单测） |
+| `mediaview/.../edit/PhotoEdits.kt` | 操作模型 + 撤销/重做 + 删除/替换/平移（纯 Kotlin，可单测） |
+| `mediaview/.../edit/EditCoords.kt` | 原图坐标 ⇄ 显示坐标（旋转+镜像）的映射，纯函数，可单测 |
+| `mediaview/.../edit/EditHitTest.kt` | 点选：点在哪条标注上、选中框多大（像素空间算距离，非正方形图也准） |
 | `mediaview/.../edit/PhotoRenderer.kt` | 把操作重放到位图：旋转→镜像→颜色矩阵调整→标注→马赛克 |
 | `mediaview/.../edit/PhotoEditExporter.kt` | 解码（EXIF 感知、按需采样）+ 渲染 + 落盘到 `cacheDir/photo_edit/` |
-| `mediaview/.../edit/PhotoEditor.kt` | Compose 编辑器：预览 + 手势 + 工具条 + 调整滑杆 + 文字输入框 |
-| `mediaview/src/test/.../PhotoEditsTest.kt` | 操作模型的单测 |
+| `mediaview/.../edit/PhotoEditor.kt` | Compose 编辑器：预览 + 手势 + 工具条 + 样式/选中面板 + 文字输入框 |
+| `mediaview/src/test/.../PhotoEditsTest.kt` | 操作模型、坐标映射、点选的单测（27 个） |
+
+### 3.2.1 交互（对应反馈的 5 条问题）
+
+| 问题 | 现在的行为 |
+|---|---|
+| 涂鸦不能调粗细、颜色 | 选涂鸦工具后面板有 6 色色板 + 粗细滑杆（给**下一笔**用）；点选已画的笔迹，同一块面板改的是**那一笔** |
+| 文字不能调粗细/颜色/位置，不能拖动，不能改字 | 点图添加；点已有文字选中后：**拖动移动**，面板里改颜色、字号、粗体，"修改文字"重开输入框 |
+| 马赛克是固定矩形 | 改成笔刷：手指划过的地方打码，面板里调笔刷大小 |
+| 调整面板打开后关不掉 | 面板右上角"完成调整"；再点工具条的"调整"也能收起 |
+| 画完的东西不能选中删除 | 点任意涂鸦/文字/马赛克选中（黄色虚线框），面板里"删除"/"取消选中"；删除可撤销 |
+
+手势分两层：`detectTapGestures`（选中/取消选中/添加文字）和 `detectDragGestures`（画一笔 / 拖动选中项）。
+点按在拖动越过 touch slop 之前不会被消耗，所以两层可以共存。涂鸦/马赛克工具下按住即开始画（不会误拖已有标注），
+其它工具下按住文字或涂鸦就是拖动它。**马赛克不支持拖动**——它的内容取决于它下面的像素，移位后要重新取样，
+目前只支持选中后删除/调笔刷大小。
 
 ### 3.3 渲染细节
 
 - **旋转/镜像**：`Matrix` + `Bitmap.createBitmap`，90° 的倍数。
 - **亮度/对比度/饱和度**：合成一个 `ColorMatrix`（亮度平移、对比度围绕 128 缩放、饱和度用标准矩阵），一次 `drawBitmap` 完成；不逐像素循环。
 - **涂鸦**：`Path` + 圆头圆角 `Stroke`，线宽按图片短边比例，保证不同分辨率手感一致。
-- **文字**：`Paint.textSize = sizeRatio * min(w,h)`，支持 `\n` 多行；预览用 Compose `TextMeasurer` 画，导出用 `Canvas.drawText` 画，两者字号算法一致。
-- **马赛克**：只处理目标矩形，取块中心像素做 `cols × rows` 小位图，再 `isFilterBitmap=false` 放大回去——整图处理会慢一个数量级。
+- **文字**：锚点是**左上角**（拖动时手指按住的位置就是文字块的一角），`Paint.textSize = sizeRatio * min(w,h)`，
+  `bold` 控制粗细，支持 `\n` 多行；`drawText` 的 y 是基线，渲染时用 `fontMetrics.ascent` 把"顶边"换算成基线。
+- **马赛克：沿笔迹打码，不是矩形**。`EditOp.Mosaic(points, widthRatio)` 存的是手指划过的折线。渲染：
+  ① 取笔迹外接矩形，聚合成 `cols × rows` 色块图；② 用笔迹路径（圆头、宽 `widthRatio`）做 `DST_IN` 蒙版，只保留笔迹覆盖到的像素；
+  ③ 贴回原位。只处理外接矩形，不整图处理。
+- **预览与导出同一条渲染路径**：编辑时 `PhotoRenderer.render(预览图, edits, 1280)`，保存时 `render(原图, edits, 4096)`，
+  所以马赛克和亮度调整在编辑时就是真实效果。预览图是缩小的（长边 1280），标注坐标是归一化的，两边等价。
+  拖动某条标注时，底图先不画它，改用上层 Canvas 实时叠加，松手再提交，避免每帧重渲染整图。
 - **尺寸上限**：`PhotoRenderer.MAX_OUTPUT_LONG_EDGE = 4096`（防 OOM），`PhotoEditExporter.MAX_LONG_EDGE = 2048`（上传尺寸）。超限时等比缩小。
 
 ### 3.4 回传给对话的接口
@@ -178,10 +204,15 @@ val uri: Uri? = PhotoEditExporter.export(sourceBitmap, edits, context.cacheDir)
 
 ```bash
 ./gradlew --offline :mediaview:compileDebugKotlin
-./gradlew --offline :mediaview:testDebugUnitTest   # PhotoEditsTest：撤销/重做/旋转累加/翻转两次抵消
+./gradlew --offline :mediaview:testDebugUnitTest   # PhotoEditsTest：27 个，含撤销快照、删除/拖动可撤销、坐标映射逆运算、点选
 ./gradlew --offline :feature-chat:compileDebugKotlin
 ```
 
 已验证：上述命令本机全部通过（离线，无网络）。
 
-未验证：真机上的手势手感与导出耗时（需要连接设备跑 `:app`）。
+**未验证**（JVM 单测够不到 `Bitmap` / `Canvas` / 手势，需要真机或 instrumented 测试）：
+- 马赛克蒙版的实际像素效果、笔迹靠近图片边缘时的外接矩形夹紧；
+- 文字点选框是按"中文 1.0 / 西文 0.58 倍字号"估算的，和实际排版有偏差，点在文字边缘可能选不中或多选中；
+- 拖动手感、触摸容差（`DEFAULT_TOLERANCE = 0.04`，约 12~15dp）是否合适；
+- 预览与导出的文字位置、字号在 1~2px 以内一致这一点只做了设计，没有对比过同一张图；
+- 编辑器尚未接入聊天草稿栏（见第 4 节）。

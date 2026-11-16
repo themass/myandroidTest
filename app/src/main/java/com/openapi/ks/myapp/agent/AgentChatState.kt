@@ -41,6 +41,8 @@ data class AgentChatState(
     val active: ActiveTurn? = null,
     val queued: List<QueuedInput> = emptyList(),
     val pendingConfirmations: List<PendingConfirmation> = emptyList(),
+    /** 连续使用提醒（服务端下发的文案），用户关掉后清空。 */
+    val usageReminder: String? = null,
     val connection: ConnectionState = ConnectionState.RECONNECTING,
     /** 收到 gone：服务端历史应整体覆盖本地列表（服务端是权威）。 */
     val needsHistoryReload: Boolean = false,
@@ -188,6 +190,8 @@ private fun applyEvent(state: AgentChatState, event: SessionEvent): AgentChatSta
         pendingConfirmations = state.pendingConfirmations.filterNot { it.confirmationId == event.confirmationId },
     )
 
+    is SessionEvent.UsageReminder -> state.copy(usageReminder = event.text)
+
     is SessionEvent.Gone -> state.copy(needsHistoryReload = true)
 
     is SessionEvent.Reconnect -> state
@@ -252,6 +256,9 @@ fun AgentChatState.withoutMessage(messageId: String): AgentChatState =
 /** 编辑后的消息替换原来那条（保持位置）。 */
 fun AgentChatState.withEditedMessage(updated: AgentBubble): AgentChatState =
     copy(bubbles = bubbles.map { if (it.messageId == updated.messageId) updated.copy(key = it.key) else it })
+
+/** 关掉连续使用提醒。 */
+fun AgentChatState.withoutUsageReminder(): AgentChatState = copy(usageReminder = null)
 
 /** 切换候选回复：用新选中的那条替换同组里原来显示的那条（保持位置）。 */
 fun AgentChatState.withSelectedAlternative(selected: AgentBubble): AgentChatState =

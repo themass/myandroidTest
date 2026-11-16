@@ -31,6 +31,15 @@ interface CompanionApi {
     /** 记忆按角色隔离：必须带 roleId，否则读到的是「不属于任何角色」的空空间。 */
     suspend fun memory(roleId: String, limit: Int = 20, offset: Int = 0): FactPage
     suspend fun deleteMemory(roleId: String, id: String)
+    /**
+     * 她对你的了解（画像）。和一条条记忆分开，是服务端归纳的结果。
+     *
+     * 服务端还没上这一块时返回空列表即可——记忆页据此不显示画像标签，
+     * 整页也不会因为这块读不到而失败。
+     */
+    suspend fun profile(roleId: String, includeHistory: Boolean = false): List<ProfileEntry> = emptyList()
+    suspend fun suppressProfileEntry(roleId: String, id: String) = Unit
+    suspend fun deleteProfileEntry(roleId: String, id: String) = Unit
     suspend fun events(roleId: String, includePast: Boolean = false): List<TimelineEventItem>
     suspend fun addEvent(roleId: String, title: String, atIso: String, kind: String = "other"): TimelineEventItem
     suspend fun setEventStatus(id: String, status: String)
@@ -103,6 +112,20 @@ class HttpCompanionApi(
 
     override suspend fun deleteMemory(roleId: String, id: String) {
         call("DELETE", "/v1/memory/facts/${enc(id)}?role_id=${enc(roleId)}")
+    }
+
+    override suspend fun profile(roleId: String, includeHistory: Boolean): List<ProfileEntry> {
+        // 画像同样按角色隔离：不传 role_id 读到的是用户级空间（空的）
+        val json = call("GET", "/v1/memory/profile?role_id=${enc(roleId)}&include_history=$includeHistory")
+        return json.optJSONArray("items").toList { ProfileEntry.from(it) }
+    }
+
+    override suspend fun suppressProfileEntry(roleId: String, id: String) {
+        call("POST", "/v1/memory/profile/${enc(id)}/suppress?role_id=${enc(roleId)}")
+    }
+
+    override suspend fun deleteProfileEntry(roleId: String, id: String) {
+        call("DELETE", "/v1/memory/profile/${enc(id)}?role_id=${enc(roleId)}")
     }
 
     override suspend fun events(roleId: String, includePast: Boolean): List<TimelineEventItem> {

@@ -16,6 +16,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.DocumentScanner
 import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
@@ -40,6 +41,7 @@ fun PhotoSolveHomeScreen(
     onGoogleScanClick: () -> Unit,
     onPickFromFileManagerClick: () -> Unit,
     onOpenCropAssistSettingsClick: () -> Unit,
+    onOpenHistoryClick: () -> Unit,
     permissionPermanentlyDenied: Boolean,
     onOpenSettingsClick: () -> Unit,
     onClose: () -> Unit,
@@ -58,6 +60,12 @@ fun PhotoSolveHomeScreen(
             modifier = Modifier.align(Alignment.TopEnd).padding(8.dp),
         ) {
             Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.photosolve_crop_settings_desc))
+        }
+        IconButton(
+            onClick = onOpenHistoryClick,
+            modifier = Modifier.align(Alignment.TopEnd).padding(end = 56.dp, top = 8.dp),
+        ) {
+            Icon(Icons.Filled.History, contentDescription = stringResource(R.string.home_history))
         }
 
         Column(

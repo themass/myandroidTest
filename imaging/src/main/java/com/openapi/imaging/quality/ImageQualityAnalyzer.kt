@@ -27,10 +27,14 @@ data class QualityReport(
     val brightFraction: Double,
     /** 被分析图像（裁剪后）的短边像素数。 */
     val shortSidePx: Int,
+    /** 被分析图像（裁剪后）的长边像素数。 */
+    val longSidePx: Int,
 ) {
+    /** 总像素数。用 Long：长边 4096 × 短边 4096 已经逼近 Int 上限的一半，留足余量。 */
+    val totalPixels: Long get() = shortSidePx.toLong() * longSidePx
     val issues: List<QualityIssue>
         get() = buildList {
-            if (shortSidePx < ImageQualityAnalyzer.MIN_SHORT_SIDE_PX) add(QualityIssue.LOW_RESOLUTION)
+            if (ImageQualityAnalyzer.isLowResolution(longSidePx, shortSidePx)) add(QualityIssue.LOW_RESOLUTION)
             if (sharpness < ImageQualityAnalyzer.BLUR_VARIANCE) add(QualityIssue.BLURRY)
             if (meanLuma < ImageQualityAnalyzer.DARK_MEAN || darkFraction > ImageQualityAnalyzer.DARK_FRACTION_LIMIT) {
                 add(QualityIssue.TOO_DARK)
@@ -53,8 +57,21 @@ object ImageQualityAnalyzer {
 
     const val ANALYSIS_MAX_SIDE = 512
 
-    /** 题目小字可读的最小短边（裁剪之后）。 */
-    const val MIN_SHORT_SIDE_PX = 600
+    /**
+     * 裁剪之后，长边至少这么多像素，题目小字才读得出来。
+     *
+     * 为什么不再用「短边」：一道题裁出来常常是宽矮的长条（例如 1800×500，一两行字），
+     * 短边只有 500 但字很清楚。旧规则 `短边 < 600` 会把这类图几乎每次都判成「分辨率偏低」，
+     * 用户每次提交都被打断。字的大小取决于图的**长边**（整页宽度对应的像素）而不是短边。
+     */
+    const val MIN_LONG_SIDE_PX = 800
+
+    /** 总像素下限：长边够但特别窄的一条（如 900×40）也没有足够信息。 */
+    const val MIN_PIXELS = 250_000L
+
+    /** 两项都只是经验值；任何一项不满足就提示，用户可以选择「仍然识别」。 */
+    fun isLowResolution(longSidePx: Int, shortSidePx: Int): Boolean =
+        longSidePx < MIN_LONG_SIDE_PX || longSidePx.toLong() * shortSidePx < MIN_PIXELS
 
     /** 拉普拉斯方差低于此值判为模糊（在 512 分析尺度下）。 */
     const val BLUR_VARIANCE = 60.0
@@ -68,9 +85,10 @@ object ImageQualityAnalyzer {
 
     /**
      * @param gray 行优先的灰度数组，长度必须为 width*height
-     * @param sourceShortSide 原图（裁剪后）在分辨率上的短边，用来判断清晰度之外的分辨率问题
+     * @param sourceWidth 被评估图像（裁剪后、缩放分析之前）的真实宽，用来判断分辨率
+     * @param sourceHeight 同上，高
      */
-    fun analyze(gray: IntArray, width: Int, height: Int, sourceShortSide: Int): QualityReport {
+    fun analyze(gray: IntArray, width: Int, height: Int, sourceWidth: Int, sourceHeight: Int): QualityReport {
         require(width > 0 && height > 0 && gray.size == width * height) { "gray buffer does not match size" }
         val n = gray.size.toDouble()
         var sum = 0.0
@@ -86,7 +104,8 @@ object ImageQualityAnalyzer {
             meanLuma = sum / n,
             darkFraction = dark / n,
             brightFraction = bright / n,
-            shortSidePx = sourceShortSide,
+            shortSidePx = minOf(sourceWidth, sourceHeight),
+            longSidePx = maxOf(sourceWidth, sourceHeight),
         )
     }
 

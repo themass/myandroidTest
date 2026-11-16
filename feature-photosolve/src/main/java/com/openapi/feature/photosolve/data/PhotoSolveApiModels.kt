@@ -20,6 +20,8 @@ data class PhotoSolveApiResponse(
         val steps: List<Step> = emptyList(),
         val finalAnswer: String = "",
         val finalAnswerLatex: String = "",
+        /** 思考过程（审题思路），旧服务端没有这个字段时为空。 */
+        val thinking: String = "",
         val confidence: Double? = null,
     )
 

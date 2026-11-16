@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
@@ -47,15 +48,20 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.openapi.feature.photosolve.R
 import com.openapi.imaging.CropNorm
+import com.openapi.imaging.quad.QuadEdit
+import com.openapi.imaging.quad.QuadHandle
 import com.openapi.imaging.quad.QuadNorm
-import kotlin.math.hypot
+import kotlin.math.atan2
 
 /**
  * 四角微调页：把检测到的题目边框画在照片上，用户拖四个角对准纸面边缘。
  *
  * 交互要点：
- * - 角点有 44dp 的触摸热区（比视觉圆点大），按下的瞬间就能抓住，不需要先移动；
- * - 角点被拖到图片外时夹在边界上，不会「飞走」；
+ * - **四个角、四条边都能拖**。拖角：该角自由移动；拖边：整条边沿它的法线平移，两端的角沿相邻两条边滑动，
+ *   其余三条边方向不变（矩形拖完仍是矩形，梯形仍是梯形）。几何见 [QuadEdit]，有单测；
+ * - 角有 28dp 触摸半径，边的整条线段都有 22dp 触摸半径（不只是中点）；角和边重叠处角优先；
+ * - 按下的瞬间就能抓住，不需要先移动；
+ * - 拖角时被夹在图片边界上，不会「飞走」；拖边碰到边界/临界形状就停住；
  * - 拖动时实时显示矫正后的区域（四边形填充 + 边框），确认后交给 ViewModel 做透视矫正；
  * - 提供「重新检测」：模型有时会把桌面边缘当纸面，用户可以让它再试一次。
  */
@@ -143,11 +149,12 @@ private fun QuadCanvas(
 ) {
     val imageBitmap = remember(bitmap) { bitmap.asImageBitmap() }
     val density = LocalDensity.current
-    val touchRadius = with(density) { 28.dp.toPx() }
+    val cornerRadius = with(density) { 28.dp.toPx() }
+    val edgeRadius = with(density) { 22.dp.toPx() }
     val latestFit by rememberUpdatedState(fit)
     val latestQuad by rememberUpdatedState(quad)
-    // 当前正被拖动的角
-    var active by remember { mutableStateOf<Int?>(null) }
+    // 当前正被拖动的角或边
+    var active by remember { mutableStateOf<QuadHandle?>(null) }
 
     Box(modifier) {
         Image(
@@ -162,25 +169,41 @@ private fun QuadCanvas(
                 .pointerInput(bitmap) {
                     detectDragGestures(
                         onDragStart = { p ->
-                            active = nearestCorner(p, latestQuad, latestFit, touchRadius)
+                            val f = latestFit
+                            active = QuadEdit.hitTest(
+                                quad = latestQuad,
+                                x = (p.x - f.left),
+                                y = (p.y - f.top),
+                                width = f.width,
+                                height = f.height,
+                                cornerRadius = cornerRadius,
+                                edgeRadius = edgeRadius,
+                            )
                         },
                         onDragEnd = { active = null },
                         onDragCancel = { active = null },
                         onDrag = { change, amount ->
-                            val index = active ?: return@detectDragGestures
+                            val handle = active ?: return@detectDragGestures
                             change.consume()
                             val f = latestFit
                             if (f.width <= 0f || f.height <= 0f) return@detectDragGestures
-                            val dx = amount.x / f.width
-                            val dy = amount.y / f.height
-                            val corners = latestQuad.corners.toMutableList()
-                            val c = corners[index]
-                            corners[index] = QuadNorm.Point(
-                                (c.x + dx).coerceIn(0f, 1f),
-                                (c.y + dy).coerceIn(0f, 1f),
-                            )
-                            val next = QuadNorm(corners).ordered()
-                            if (next.isValid) onQuadChange(next)
+                            when (handle) {
+                                is QuadHandle.Corner -> {
+                                    val corners = latestQuad.corners.toMutableList()
+                                    val c = corners[handle.index]
+                                    corners[handle.index] = QuadNorm.Point(
+                                        (c.x + amount.x / f.width).coerceIn(0f, 1f),
+                                        (c.y + amount.y / f.height).coerceIn(0f, 1f),
+                                    )
+                                    val next = QuadNorm(corners).ordered()
+                                    if (next.isValid) onQuadChange(next)
+                                }
+                                is QuadHandle.Edge -> {
+                                    // 边在像素空间里沿法线移动；不重新排序角点，拖动过程中边的编号才不会漂移
+                                    QuadEdit.moveEdge(latestQuad, handle.index, amount.x, amount.y, f.width, f.height)
+                                        ?.let(onQuadChange)
+                                }
+                            }
                         },
                     )
                 },
@@ -205,9 +228,41 @@ private fun QuadCanvas(
                 drawPath(path, Color.White.copy(alpha = 0.10f))
                 drawPath(path, Color.White, style = Stroke(width = 2.dp.toPx()))
 
+                // 正在拖的那条边：加粗高亮，用户能看到自己抓住的是哪条
+                (active as? QuadHandle.Edge)?.let { edge ->
+                    drawLine(
+                        color = Color(0xFFFFCC00),
+                        start = pts[edge.index],
+                        end = pts[(edge.index + 1) % 4],
+                        strokeWidth = 4.dp.toPx(),
+                        cap = StrokeCap.Round,
+                    )
+                }
+
+                // 四条边的中点手柄：暗示"边也能拖"。药丸形，长边与所在边平行
+                for (i in 0 until 4) {
+                    val a = pts[i]
+                    val b = pts[(i + 1) % 4]
+                    val mid = Offset((a.x + b.x) / 2f, (a.y + b.y) / 2f)
+                    val angle = Math.toDegrees(atan2((b.y - a.y).toDouble(), (b.x - a.x).toDouble())).toFloat()
+                    val isActiveEdge = (active as? QuadHandle.Edge)?.index == i
+                    val half = androidx.compose.ui.geometry.Size(
+                        (if (isActiveEdge) 22.dp else 18.dp).toPx(),
+                        (if (isActiveEdge) 7.dp else 6.dp).toPx(),
+                    )
+                    rotate(angle, pivot = mid) {
+                        drawRoundRect(
+                            color = if (isActiveEdge) Color(0xFFFFCC00) else Color.White,
+                            topLeft = Offset(mid.x - half.width, mid.y - half.height / 2f),
+                            size = androidx.compose.ui.geometry.Size(half.width * 2f, half.height),
+                            cornerRadius = androidx.compose.ui.geometry.CornerRadius(half.height / 2f),
+                        )
+                    }
+                }
+
                 // 四个角点
                 pts.forEachIndexed { index, p ->
-                    val isActive = index == active
+                    val isActive = (active as? QuadHandle.Corner)?.index == index
                     drawCircle(
                         color = if (isActive) Color(0xFFFFCC00) else Color.White,
                         radius = if (isActive) 11.dp.toPx() else 9.dp.toPx(),
@@ -234,27 +289,6 @@ private fun QuadCanvas(
             }
         }
     }
-}
-
-/** 找离按下点最近的角（在 [radius] 内），否则 null。 */
-private fun nearestCorner(
-    p: Offset,
-    quad: QuadNorm,
-    fit: androidx.compose.ui.geometry.Rect,
-    radius: Float,
-): Int? {
-    var best: Int? = null
-    var bestDistance = Float.MAX_VALUE
-    quad.corners.forEachIndexed { index, point ->
-        val x = fit.left + point.x * fit.width
-        val y = fit.top + point.y * fit.height
-        val d = hypot((p.x - x).toDouble(), (p.y - y).toDouble()).toFloat()
-        if (d < bestDistance) {
-            bestDistance = d
-            best = index
-        }
-    }
-    return if (bestDistance <= radius) best else null
 }
 
 /** 把四边形交给 ViewModel 时用它包一层，避免调用方重复写 `QuadNorm(list)`。 */

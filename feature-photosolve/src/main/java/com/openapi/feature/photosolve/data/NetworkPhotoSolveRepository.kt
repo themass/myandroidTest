@@ -4,15 +4,14 @@ import android.content.Context
 import com.openapi.core.config.Constants
 import com.openapi.feature.photosolve.presentation.PhotoSolveResult
 import com.openapi.common.net.awaitUploadOrThrow
-import com.openapi.common.net.http.NetError
 import com.openapi.common.net.http.BaseService
+import com.openapi.common.net.http.NetError
 import com.openapi.feature.photosolve.presentation.PhotoSolveError
 import com.openapi.feature.photosolve.presentation.PhotoSolveException
 import java.io.File
-import java.util.UUID
 
 /**
- * 真实实现：走项目统一的 `:network` 层（[BaseService] + 挂起的 `awaitUpload`），
+ * 真实实现：走项目统一的 `:common` 网络层（[BaseService] + 挂起的 `awaitUpload`），
  * 对接 testserverV 的 `POST /api/photosolve/v1/solve.json`。
  *
  * 为什么用 `awaitUpload` 而不是自己 new OkHttpClient：
@@ -21,8 +20,9 @@ import java.util.UUID
  *   和聊天等接口完全一致；
  * - 32 位上传超时（[com.openapi.common.net.http.HttpClient] 的 uploadClient 是 180 秒）已经够模型推理。
  *
- * 错误码映射：服务端 errno 直接透传成 [PhotoSolveError]；网络错误（连接失败/超时/解析失败）
- * 统一按 [PhotoSolveError.MODEL_UNAVAILABLE]（可重试）处理。
+ * 错误码映射：服务端 errno（[NetError.BusinessError.getErrno]）原样透传成 [PhotoSolveException.code]，
+ * 界面据此区分 40002 不是题目 / 42901 额度用完 / 50001 可重试；断网、超时归为 50001（可重试）。
+ * 以前用的 `awaitUpload` 失败只返回 null，errno 全丢了，所有错误都显示成「服务不可用」。
  */
 class NetworkPhotoSolveRepository @JvmOverloads constructor(
     context: Context,
@@ -31,16 +31,16 @@ class NetworkPhotoSolveRepository @JvmOverloads constructor(
 ) : PhotoSolveRepository {
 
     private val appContext = context.applicationContext
-    private val service = BaseService().also { it.setup(appContext) }
+    private val service = BaseService().apply { setup(appContext) }
 
-    override suspend fun solve(image: android.graphics.Bitmap): PhotoSolveResult {
+    override suspend fun solve(image: android.graphics.Bitmap, requestId: String): PhotoSolveResult {
         val compressed = com.openapi.common.image.ImageCompressor.compress(image)
         val file = File(appContext.cacheDir, "photosolve_${System.currentTimeMillis()}.jpg")
         try {
             file.writeBytes(compressed.bytes)
-            // 不猜学科：服务端会把 subject 当成学生提示写进提示词，猜错反而误导模型
             val request = PhotoSolveRequest(
-                clientRequestId = UUID.randomUUID().toString(),
+                clientRequestId = requestId,
+                subject = "math",
             )
             val url = Constants.getUrl(path)
             val response = try {
@@ -53,15 +53,23 @@ class NetworkPhotoSolveRepository @JvmOverloads constructor(
                     tag = TAG,
                 )
             } catch (e: NetError) {
-                // 服务端的 errno 是界面契约（40002「不是题目」要回取景页），不能压成一句通用提示
-                throw PhotoSolveException(errnoOf(e), messageOf(e))
-            } ?: throw PhotoSolveException(PhotoSolveError.MODEL_UNAVAILABLE, "服务返回为空，请重试")
+                throw e.toPhotoSolveException()
+            }
 
             return response.toResult()
         } finally {
             // 上传完就删：题目图不需要留在本地
             runCatching { file.delete() }
         }
+    }
+
+    private fun NetError.toPhotoSolveException(): PhotoSolveException = when (this) {
+        is NetError.BusinessError -> {
+            val code = if (errno == NetError.BusinessError.NO_CODE) PhotoSolveError.MODEL_UNAVAILABLE else errno
+            PhotoSolveException(code, msg?.takeIf { it.isNotBlank() } ?: PhotoSolveError.userMessage(code))
+        }
+        is NetError.TimeoutError -> PhotoSolveException(PhotoSolveError.MODEL_UNAVAILABLE, "识别超时，请重试")
+        else -> PhotoSolveException(PhotoSolveError.MODEL_UNAVAILABLE, "网络异常，请重试")
     }
 
     private fun PhotoSolveApiResponse.toResult(): PhotoSolveResult {
@@ -87,32 +95,5 @@ class NetworkPhotoSolveRepository @JvmOverloads constructor(
 
     private companion object {
         const val TAG = "photosolve"
-
-        /**
-         * 服务端 errno → 客户端错误码。
-         *
-         * 网络层把 errno 原样带在 [NetError.BusinessError] 上（`getErrno()`），所以这里是纯映射；
-         * 0 表示老版本网络层没填，按可重试处理。未知 errno 同样按可重试处理，
-         * 并用服务端文案覆盖默认提示（服务端最清楚这次为什么失败）。
-         */
-        fun errnoOf(error: NetError): Int {
-            val code = (error as? NetError.BusinessError)?.errno ?: 0
-            return if (code in KNOWN) code else PhotoSolveError.MODEL_UNAVAILABLE
-        }
-
-        fun messageOf(error: NetError): String =
-            (error as? NetError.BusinessError)?.msg?.takeIf { it.isNotBlank() }
-                ?: if (error is NetError.TimeoutError) "识别超时，请重试" else "网络异常，请重试"
-
-        /** 客户端认识的 errno，与 [PhotoSolveError] 一一对应。 */
-        val KNOWN = setOf(
-            PhotoSolveError.BAD_REQUEST,
-            PhotoSolveError.BLURRY,
-            PhotoSolveError.NOT_A_QUESTION,
-            PhotoSolveError.BAD_IMAGE,
-            PhotoSolveError.QUOTA_EXCEEDED,
-            PhotoSolveError.MODEL_UNAVAILABLE,
-            PhotoSolveError.PROVIDER_NOT_CONFIGURED,
-        )
     }
 }

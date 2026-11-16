@@ -18,4 +18,19 @@
     <string name="mediaview_edit_text_title">添加文字</string>
     <string name="mediaview_edit_text_hint">输入要标注的文字</string>
     <string name="mediaview_edit_text_add">添加</string>
+    <string name="mediaview_edit_delete">删除</string>
+    <string name="mediaview_edit_deselect">取消选中</string>
+    <string name="mediaview_edit_edit_text">修改文字</string>
+    <string name="mediaview_edit_text_save">确定</string>
+    <string name="mediaview_edit_bold">粗体</string>
+    <string name="mediaview_edit_thickness">粗细</string>
+    <string name="mediaview_edit_size">字号</string>
+    <string name="mediaview_edit_brush">笔刷</string>
+    <string name="mediaview_edit_adjust_done">完成调整</string>
+    <string name="mediaview_edit_selected_stroke">已选中：涂鸦</string>
+    <string name="mediaview_edit_selected_text">已选中：文字</string>
+    <string name="mediaview_edit_selected_mosaic">已选中：马赛克</string>
+    <string name="mediaview_edit_hint_draw">在图片上滑动涂鸦；点已画的笔迹可选中</string>
+    <string name="mediaview_edit_hint_text">点图片添加文字；点已有文字可选中，拖动可移动</string>
+    <string name="mediaview_edit_hint_mosaic">在要打码的地方滑动，手指划过的地方会被马赛克</string>
 </resources>

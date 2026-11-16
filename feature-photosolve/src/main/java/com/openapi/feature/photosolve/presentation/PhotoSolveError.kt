@@ -14,8 +14,11 @@ object PhotoSolveError {
     /** 图片过大或格式不支持。 */
     const val BAD_IMAGE = 40003
 
-    /** 额度用完。 */
+    /** 这个用户今天的额度用完（或一分钟内请求太多）。 */
     const val QUOTA_EXCEEDED = 42901
+
+    /** 全站当日预算用完（服务端熔断），不是用户的问题。 */
+    const val BUDGET_EXHAUSTED = 42902
 
     /** 模型服务失败/超时，可重试。 */
     const val MODEL_UNAVAILABLE = 50001
@@ -32,6 +35,7 @@ object PhotoSolveError {
         NOT_A_QUESTION -> "没有识别到题目，请重新对准题目"
         BAD_IMAGE -> "图片过大或格式不支持，请换一张图片"
         QUOTA_EXCEEDED -> "今日识别额度已用完"
+        BUDGET_EXHAUSTED -> "今日识别服务已满，请明天再来"
         MODEL_UNAVAILABLE -> "识别服务暂时不可用，请重试"
         PROVIDER_NOT_CONFIGURED -> "解题服务尚未配置好，请稍后再试"
         BAD_REQUEST -> "请求有误，请重试"

@@ -123,6 +123,9 @@ sealed interface SessionEvent {
         val status: String,
     ) : SessionEvent
 
+    /** 连续使用提醒：连聊到 2 小时时服务端下发一次，界面展示一条可关闭的提示。 */
+    data class UsageReminder(override val eventId: String, val text: String) : SessionEvent
+
     /** 服务端进程即将停机，稍后带 Last-Event-ID 重连（P §3.5）。由传输层处理，不进界面状态。 */
     data class Reconnect(override val eventId: String, val afterMs: Long) : SessionEvent
 
