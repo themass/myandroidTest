@@ -6,6 +6,8 @@ import io.livekit.android.LiveKit
 import io.livekit.android.events.RoomEvent
 import io.livekit.android.room.Room
 import io.livekit.android.room.datastream.StreamTextOptions
+import io.livekit.android.room.track.AudioTrack
+import io.livekit.android.room.track.Track
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -19,7 +21,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import livekit.org.webrtc.AudioTrackSink
 import org.json.JSONObject
+import java.nio.ByteBuffer
+import kotlin.math.sqrt
 
 /**
  * 与服务端 companion agent 通过 LiveKit 房间通信。话题名与服务端
@@ -47,6 +52,19 @@ class LiveKitCompanionTransport(
 
     /** 麦克风发布串行化：连点两下开/关，异步调用乱序会让按钮状态和实际发布不一致。 */
     private val micMutex = Mutex()
+
+    /**
+     * 远端（她）说话的瞬时振幅 0..1，取自 LiveKit 音频轨的 PCM 回调。
+     *
+     * 只留一个 StateFlow 而不是走 [bus]：振幅是每秒几十次的高频采样，
+     * 走事件流会让「每条消息一个事件」的语义被冲垮，而且没人需要它的历史。
+     */
+    private val _mouthLevel = MutableStateFlow(0f)
+    override val mouthLevel: StateFlow<Float> = _mouthLevel.asStateFlow()
+
+    /** 已挂上的远端音频 sink；断开时按这个引用摘掉，避免泄漏。 */
+    private var mouthSink: AudioTrackSink? = null
+    private var mouthTrack: AudioTrack? = null
 
     override val events: Flow<CompanionEvent> = bus.asSharedFlow()
 
@@ -78,6 +96,13 @@ class LiveKitCompanionTransport(
             newRoom.events.events.collect { event ->
                 when (event) {
                     is RoomEvent.DataReceived -> handleData(event.topic, event.data)
+                    // 她那一路上麦：只有远端音频轨能算振幅，本地轨是用户自己的声音。
+                    is RoomEvent.TrackSubscribed -> {
+                        if (event.participant.identity != newRoom.localParticipant.identity) {
+                            attachMouthSink(event.track)
+                        }
+                    }
+                    is RoomEvent.TrackUnsubscribed -> detachMouthSink()
                     is RoomEvent.Reconnecting -> _connection.value = TransportConnection.RECONNECTING
                     is RoomEvent.Reconnected -> _connection.value = TransportConnection.CONNECTED
                     is RoomEvent.Disconnected -> {
@@ -135,9 +160,62 @@ class LiveKitCompanionTransport(
     }
 
     override suspend fun disconnect() {
+        detachMouthSink()
+        _mouthLevel.value = 0f
         room?.disconnect()
         room = null
         scope.cancel()
+    }
+
+    /**
+     * 把她那一路音频接进嘴型。
+     *
+     * 只认远端音频轨：本地麦克风轨是用户自己的声音，拿它驱动她的嘴会把「你说话时她也在动嘴」
+     * 变成常态。`onData` 给的是 16-bit PCM，按 RMS 换算成 0..1：
+     * 人声通常在 0.02~0.2 之间，所以乘一个增益再截断——直接归一化会一直贴在闭嘴阈值以下。
+     */
+    private fun attachMouthSink(track: Track) {
+        val audio = track as? AudioTrack ?: return
+        detachMouthSink()
+        val sink = object : AudioTrackSink {
+            override fun onData(
+                data: ByteBuffer,
+                bitsPerSample: Int,
+                sampleRate: Int,
+                numberOfChannels: Int,
+                frames: Int,
+                absoluteCaptureTimestampMs: Long,
+            ) {
+                if (bitsPerSample != 16) return
+                // 只取前若干帧算 RMS：整块算没必要，够判断「这一刻响不响」即可。
+                val limit = minOf(frames, RMS_WINDOW_FRAMES) * numberOfChannels
+                if (limit <= 0) return
+                val buf = data.duplicate()
+                var sum = 0.0
+                var n = 0
+                for (i in 0 until limit) {
+                    if (buf.remaining() < 2) break
+                    val sample = buf.short.toDouble()
+                    sum += sample * sample
+                    n++
+                }
+                if (n == 0) return
+                val rms = sqrt(sum / n) / Short.MAX_VALUE
+                _mouthLevel.value = (rms * MOUTH_GAIN).coerceIn(0.0, 1.0).toFloat()
+            }
+        }
+        audio.addSink(sink)
+        mouthSink = sink
+        mouthTrack = audio
+    }
+
+    /** 摘掉音频 sink。SDK 不会替我们摘：留在 track 上就是一个永不释放的回调。 */
+    private fun detachMouthSink() {
+        val sink = mouthSink ?: return
+        runCatching { mouthTrack?.removeSink(sink) }
+        mouthSink = null
+        mouthTrack = null
+        _mouthLevel.value = 0f
     }
 
     private suspend fun handleData(topic: String?, data: ByteArray) {
@@ -181,5 +259,14 @@ class LiveKitCompanionTransport(
         const val TOPIC_PROACTIVE = "companion.proactive"
         const val TOPIC_ACTION = "companion.action"
         const val EVENT_BUFFER = 256
+
+        /** RMS 只算前 480 帧（10ms @48kHz）：够判断「这一刻响不响」，不必整块扫。 */
+        const val RMS_WINDOW_FRAMES = 480
+
+        /**
+         * 振幅增益。归一化后的 RMS 人声常在 0.02~0.2，乘以 4 才够跨过嘴型的 0.35 阈值；
+         * 与 `:speech` 的 VoiceRecorder 用同一个系数，两处说「多大算说话」的口径才一致。
+         */
+        const val MOUTH_GAIN = 4.0
     }
 }

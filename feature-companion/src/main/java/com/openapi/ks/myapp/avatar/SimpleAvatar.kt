@@ -50,6 +50,13 @@ fun SimpleAvatar(
     modifier: Modifier = Modifier,
     /** 点中形象后的回调：拿到命中的部位（[AvatarRegion]）。null 时不接手势。 */
     onTapped: ((String) -> Unit)? = null,
+    /**
+     * 她说话的瞬时振幅 0..1（来自远端音频轨）。null = 不驱动嘴型。
+     *
+     * 传 Flow 而不是 Float：振幅每秒几十次变化，在 [SimpleAvatar] 内部 collect
+     * 只重组这一小块；如果由调用方读出来再传值，整个页面都会跟着音频帧重组。
+     */
+    mouthLevel: kotlinx.coroutines.flow.StateFlow<Float>? = null,
 ) {
     val spec by renderer.spec.collectAsState()
     val avatarState by renderer.state.collectAsState()
@@ -81,6 +88,13 @@ fun SimpleAvatar(
         if (tapCount == 0L) return@LaunchedEffect
         tapPunch.snapTo(0.965f)
         tapPunch.animateTo(1f, animationSpec = spring(dampingRatio = 0.35f, stiffness = 900f))
+    }
+
+    // 嘴型：把远端音频的振幅喂给渲染器。渲染器只在 SPEAKING 时开合嘴，
+    // 阈值判定（0.35）也在那里——这里只负责把「这一刻多响」递过去。
+    if (mouthLevel != null) {
+        val level by mouthLevel.collectAsState()
+        LaunchedEffect(level) { renderer.dispatch(AvatarCommand.Mouth(level)) }
     }
 
     Box(

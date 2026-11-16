@@ -194,6 +194,8 @@ fun CompanionScreen(
                             // 再把「碰到了哪里」告诉 agent——她该不该回一句由她决定，
                             // 客户端不替她说话（不然就成了一个假的互动）。
                             onTapped = { region -> viewModel.onAvatarTapped(region) },
+                            // 嘴型：把远端音频振幅交给形象层。以前两帧嘴型画好了却没人驱动。
+                            mouthLevel = viewModel.mouthLevel,
                         )
                     }
                 }

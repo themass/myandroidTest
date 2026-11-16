@@ -59,6 +59,15 @@ interface CompanionTransport {
     val connection: StateFlow<TransportConnection>
         get() = defaultConnected
 
+    /**
+     * 她说话的瞬时振幅 0..1，用来驱动嘴型。
+     *
+     * 默认恒为 0：没有音频能力的替身不该假装她在说话。真实实现从远端音频轨的
+     * PCM 回调里算 RMS——这是唯一能拿到「这一刻声音多大」的地方，文本流没有这个信息。
+     */
+    val mouthLevel: StateFlow<Float>
+        get() = silentMouth
+
     suspend fun connect(session: SessionResponse)
 
     fun sendText(text: String)
@@ -91,6 +100,9 @@ interface CompanionTransport {
 /** [CompanionTransport.connection] 的默认值：没有建连过程就等于一直连着。 */
 private val defaultConnected: StateFlow<TransportConnection> =
     MutableStateFlow(TransportConnection.CONNECTED).asStateFlow()
+
+/** [CompanionTransport.mouthLevel] 的默认值：没有音频轨就等于一直闭着嘴。 */
+private val silentMouth: StateFlow<Float> = MutableStateFlow(0f).asStateFlow()
 
 /**
  * 测试与离线开发用的替身：逐词吐出一段固定回复，并在开头发一个情绪事件。

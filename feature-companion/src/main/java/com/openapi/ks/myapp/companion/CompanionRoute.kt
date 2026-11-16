@@ -22,6 +22,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
@@ -44,6 +45,9 @@ import com.openapi.feature.companion.R
 import com.openapi.core.config.Constants
 import com.openapi.ks.myapp.avatar.AvatarPackStore
 import com.openapi.ks.myapp.avatar.AvatarPortrait
+import com.openapi.ks.myapp.avatar.AvatarSpec
+import com.openapi.ks.myapp.avatar.SimpleAvatar
+import com.openapi.ks.myapp.avatar.SimpleAvatarRenderer
 import kotlinx.coroutines.delay
 
 /** 陪伴界面里能去的页面。聊天是主页面，其余三个从顶部进入。 */
@@ -227,11 +231,33 @@ fun CompanionRoute(
         // 形象包里装了立绘就出图，没有才用首字占位：素材没装时不能假装有图，
         // 一个默认字标比一张「加载中」的空圆更诚实。
         val avatarStore = remember(context) { AvatarPackStore(context) }
-        val portraitFile = remember(characterId, avatarStore) {
-            avatarStore.avatarFor(characterId)?.let { avatarStore.load(it)?.portrait }
+        val avatarFiles = remember(characterId, avatarStore) {
+            avatarStore.avatarFor(characterId)?.let { avatarStore.load(it) }
         }
-        val avatarSlot: (@Composable () -> Unit)? = portraitFile?.let { file ->
-            { AvatarPortrait(file = file, modifier = Modifier.fillMaxSize()) }
+
+        // 通话页用**会动的**形象，而不是单张立绘：这里是她被盯着看最久的地方，
+        // 一张不眨眼、不说话的照片比不显示还糟。嘴型由远端音频振幅驱动，
+        // 眨眼/呼吸由渲染器自己跑。素材缺失时退回单张立绘，再缺就退回字标。
+        val callAvatarRenderer = remember { SimpleAvatarRenderer() }
+        LaunchedEffect(avatarFiles) {
+            avatarFiles?.let { callAvatarRenderer.bind(AvatarSpec(files = it)) }
+        }
+        DisposableEffect(callAvatarRenderer) {
+            onDispose { callAvatarRenderer.release() }
+        }
+        val avatarSlot: (@Composable () -> Unit)? = when {
+            avatarFiles != null -> {
+                {
+                    SimpleAvatar(
+                        renderer = callAvatarRenderer,
+                        modifier = Modifier.fillMaxSize(),
+                        mouthLevel = chatViewModel.mouthLevel,
+                    )
+                }
+            }
+            else -> avatarFiles?.portrait?.let { file ->
+                { AvatarPortrait(file = file, modifier = Modifier.fillMaxSize()) }
+            }
         }
 
         // 计时从进通话页开始（重连期间暂停，不清零）。状态放在覆盖层里，挂断再进来自然从 0 起。
@@ -242,6 +268,9 @@ fun CompanionRoute(
                 elapsedSeconds += 1
             }
         }
+
+        // 她说话的振幅：波形、呼吸环、嘴型三处共用这一个值。
+        val mouthLevel by chatViewModel.mouthLevel.collectAsStateWithLifecycle()
 
         val callConnection = when (uiState.connection) {
             CompanionConnection.CONNECTED -> CallConnection.CONNECTED
@@ -258,8 +287,9 @@ fun CompanionRoute(
                 elapsedSeconds = elapsedSeconds,
                 isMuted = uiState.isMuted,
                 cameraActive = false,
-                // 电平暂时没有数据源：服务端把 TTS 音轨推给房间，客户端还没有把它接到这里。
-                audioLevel = 0f,
+                // 电平现在有数据源了：远端音频轨的 PCM 振幅（transport.mouthLevel）。
+                // 以前这里是写死的 0f——波形与呼吸环一直在跟一个常数走。
+                audioLevel = mouthLevel,
                 isAgentSpeaking = uiState.messages.lastOrNull()?.streaming == true,
                 connection = callConnection,
                 statusHint = if (uiState.connection == CompanionConnection.ERROR) {

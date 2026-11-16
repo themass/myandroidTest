@@ -250,6 +250,14 @@ class CompanionViewModel(
     }
 
     /**
+     * 她说话的瞬时振幅 0..1（来自远端音频轨的 PCM）。
+     *
+     * 直接从 transport 转发，不进 [CompanionUiState]：这是每秒几十次的高频采样，
+     * 塞进 UI state 会让整棵界面树按音频帧重组。形象层单独 collect 它。
+     */
+    val mouthLevel: StateFlow<Float> get() = transport.mouthLevel
+
+    /**
      * 用户点了她一下。
      *
      * 只做两件事：把触摸上报给传输层（由 agent 决定回不回），以及重置她的「正在说话」
