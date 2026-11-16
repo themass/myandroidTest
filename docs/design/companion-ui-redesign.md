@@ -1,8 +1,14 @@
-# 陪伴页 UI 改造方案：五项修复 + 二次元风格演进（未开发，待确认）
+# 陪伴页 UI 改造方案：五项修复 + 二次元风格演进（P1 已实施）
 
 日期：2026-11-16
 范围：`feature-companion` 的聊天主页面（[CompanionScreen.kt](../../feature-companion/src/main/java/com/openapi/ks/myapp/companion/CompanionScreen.kt)、[CompanionRoute.kt](../../feature-companion/src/main/java/com/openapi/ks/myapp/companion/CompanionRoute.kt)），对 `chatkit` 做一处向后兼容的插槽扩展。
 原则：先做**不依赖新素材**的结构修复（P1），二次元视觉层（P2）等内置形象包（瘦身计划 Task E/F）落地后再接。
+
+## 实施状态（P1，提交 `2f4d4824`）
+
+六个改动全部落地：chatkit `userAvatar` 插槽（默认 null，对话页不变）+「我」字标；长按切 Sheet 并接上分享/朗读/编辑；footer 芯片清空；输入框卡片化（方案 A）；顶栏重排（头像+名+tagline / 语音开关 / 通话 / ⋯）；角色列表行加 32dp 头像位与当前角色描边。
+
+**未做真机验证**：长按弹层手感、分享与朗读的实际效果、新顶栏在窄屏上的排布。下面第一到第五节保留为当时的诊断与决策记录。
 
 ---
 
