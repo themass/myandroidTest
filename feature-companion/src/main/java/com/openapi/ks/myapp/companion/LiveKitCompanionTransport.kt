@@ -24,6 +24,7 @@ import kotlinx.coroutines.sync.withLock
 import livekit.org.webrtc.AudioTrackSink
 import org.json.JSONObject
 import java.nio.ByteBuffer
+import kotlin.math.ln
 import kotlin.math.sqrt
 
 /**
@@ -62,9 +63,25 @@ class LiveKitCompanionTransport(
     private val _mouthLevel = MutableStateFlow(0f)
     override val mouthLevel: StateFlow<Float> = _mouthLevel.asStateFlow()
 
+    /**
+     * 用户自己的音量 0..1。本地麦克风采集轨的 PCM。
+     *
+     * 以前通话页底部波形接的是 [mouthLevel]（她的声音），所以「你说话波形不动」——
+     * 那本来就画错了对象。这里补上本地采集的振幅。
+     */
+    private val _selfLevel = MutableStateFlow(0f)
+    override val selfLevel: StateFlow<Float> = _selfLevel.asStateFlow()
+
     /** 已挂上的远端音频 sink；断开时按这个引用摘掉，避免泄漏。 */
     private var mouthSink: AudioTrackSink? = null
     private var mouthTrack: AudioTrack? = null
+
+    /** 已挂上的本地采集 sink（驱动 [selfLevel]）。 */
+    private var selfSink: AudioTrackSink? = null
+    private var selfTrack: AudioTrack? = null
+
+    /** 远端音频轨，用于退出通话页时静音播放（不是断开房间）。 */
+    private var remoteAudio: io.livekit.android.room.track.RemoteAudioTrack? = null
 
     override val events: Flow<CompanionEvent> = bus.asSharedFlow()
 
@@ -102,6 +119,9 @@ class LiveKitCompanionTransport(
                             attachMouthSink(event.track)
                         }
                     }
+                    // 本地麦克风发布 / 取消发布：波形画的是**你**的音量，所以接本地采集轨。
+                    is io.livekit.android.events.ParticipantEvent.LocalTrackPublished -> attachSelfSink(newRoom)
+                    is io.livekit.android.events.ParticipantEvent.LocalTrackUnpublished -> detachSelfSink()
                     is RoomEvent.TrackUnsubscribed -> detachMouthSink()
                     is RoomEvent.Reconnecting -> _connection.value = TransportConnection.RECONNECTING
                     is RoomEvent.Reconnected -> _connection.value = TransportConnection.CONNECTED
@@ -175,8 +195,22 @@ class LiveKitCompanionTransport(
      * 人声通常在 0.02~0.2 之间，所以乘一个增益再截断——直接归一化会一直贴在闭嘴阈值以下。
      */
     private fun attachMouthSink(track: Track) {
-        val audio = track as? AudioTrack ?: return
+        val audio = track as? AudioTrack
+        if (audio == null) {
+            android.util.Log.w(TAG, "attachMouthSink: 订阅到的不是音频轨 kind=${track.kind}")
+            return
+        }
         detachMouthSink()
+        android.util.Log.i(TAG, "attachMouthSink: 已挂上远端音频轨 sid=${track.sid}")
+
+        // 诊断用：每 25 个回调打印一次原始 RMS 与换算后的电平。
+        // 素材还没有，嘴型在真机上看不见，所以「增益够不够、阈值对不对」只能靠这两个数判断。
+        // 定下来之后应当降级到 verbose 或整段删掉。
+        var callbacks = 0L
+        var rawMax = 0.0
+        var rawSum = 0.0
+        var levelMax = 0f
+
         val sink = object : AudioTrackSink {
             override fun onData(
                 data: ByteBuffer,
@@ -186,7 +220,12 @@ class LiveKitCompanionTransport(
                 frames: Int,
                 absoluteCaptureTimestampMs: Long,
             ) {
-                if (bitsPerSample != 16) return
+                if (bitsPerSample != 16) {
+                    if (callbacks == 0L) {
+                        android.util.Log.w(TAG, "onData: bitsPerSample=$bitsPerSample 非 16-bit，已跳过")
+                    }
+                    return
+                }
                 // 只取前若干帧算 RMS：整块算没必要，够判断「这一刻响不响」即可。
                 val limit = minOf(frames, RMS_WINDOW_FRAMES) * numberOfChannels
                 if (limit <= 0) return
@@ -201,12 +240,37 @@ class LiveKitCompanionTransport(
                 }
                 if (n == 0) return
                 val rms = sqrt(sum / n) / Short.MAX_VALUE
-                _mouthLevel.value = (rms * MOUTH_GAIN).coerceIn(0.0, 1.0).toFloat()
+                val level = (rms * MOUTH_GAIN).coerceIn(0.0, 1.0).toFloat()
+                _mouthLevel.value = level
+
+                callbacks++
+                rawMax = maxOf(rawMax, rms)
+                rawSum += rms
+                levelMax = maxOf(levelMax, level)
+                if (callbacks == 1L) {
+                    android.util.Log.i(
+                        TAG,
+                        "onData 首次回调: frames=$frames ch=$numberOfChannels rate=$sampleRate rms=$rms",
+                    )
+                }
+                if (callbacks % 25L == 0L) {
+                    val mean = rawSum / 25.0
+                    android.util.Log.i(
+                        TAG,
+                        "振幅统计#${callbacks / 25}: raw_rms mean=%.4f max=%.4f | level mean=%.3f max=%.3f | 阈值=%.2f".format(
+                            mean, rawMax, mean * MOUTH_GAIN, levelMax, MOUTH_THRESHOLD_LOG,
+                        ),
+                    )
+                    rawMax = 0.0
+                    rawSum = 0.0
+                    levelMax = 0f
+                }
             }
         }
         audio.addSink(sink)
         mouthSink = sink
         mouthTrack = audio
+        remoteAudio = audio as? io.livekit.android.room.track.RemoteAudioTrack
     }
 
     /** 摘掉音频 sink。SDK 不会替我们摘：留在 track 上就是一个永不释放的回调。 */
@@ -215,7 +279,95 @@ class LiveKitCompanionTransport(
         runCatching { mouthTrack?.removeSink(sink) }
         mouthSink = null
         mouthTrack = null
+        remoteAudio = null
         _mouthLevel.value = 0f
+    }
+
+    /**
+     * 把她那一路播放静音 / 恢复。
+     *
+     * 退出通话页**不断开房间**（通话只是形态，不是另一条连接），但用户的心智是
+     * 「我挂断了，她不该还在说话」。以前这里什么也没做：退出去之后她的 TTS 还在放，
+     * 用户只能在文字页里找到那个「语音回答」开关才能关掉——两个开关表达同一件事，
+     * 而且都不直观。
+     *
+     * 用 `setVolume(0)` 而不是取消订阅：音频轨还在，恢复是一瞬间的事，不用重新协商。
+     */
+    override fun setPlaybackAudible(audible: Boolean) {
+        runCatching { remoteAudio?.setVolume(if (audible) 1.0 else 0.0) }
+        if (!audible) _mouthLevel.value = 0f
+    }
+
+    /**
+     * 用户自己的音量：本地麦克风采集轨的 PCM。
+     *
+     * 与 [attachMouthSink] 共用同一套 RMS 计算，但写进 [selfLevel]。
+     * SDK 在麦克风发布之后才创建采集轨，所以这里从 `localParticipant.audioTrackPublications`
+     * 里找已经发布的那一条，而不是自己造轨。
+     */
+    private fun attachSelfSink(current: Room) {
+        detachSelfSink()
+        val publication = current.localParticipant.audioTrackPublications
+            .firstOrNull { it.second != null }
+            ?: run {
+                android.util.Log.w(TAG, "attachSelfSink: 本地还没有已发布的音频轨，波形将保持静止")
+                return
+            }
+        val audio = publication.second as? AudioTrack ?: return
+        val sink = object : AudioTrackSink {
+            override fun onData(
+                data: ByteBuffer,
+                bitsPerSample: Int,
+                sampleRate: Int,
+                numberOfChannels: Int,
+                frames: Int,
+                absoluteCaptureTimestampMs: Long,
+            ) {
+                val rms = rmsOf(data, bitsPerSample, frames, numberOfChannels) ?: return
+                // 本地采集不需要嘴型那套增益语义，但对数刻度更符合听感：轻声说话也不该
+                // 完全看不见。0.02~0.2 的人声经 log 映射后落在 0.15~0.55。
+                val level = (ln(1.0 + rms * SELF_GAIN) / ln(1.0 + SELF_GAIN)).coerceIn(0.0, 1.0)
+                _selfLevel.value = level.toFloat()
+            }
+        }
+        runCatching { audio.addSink(sink) }
+        selfSink = sink
+        selfTrack = audio
+        android.util.Log.i(TAG, "attachSelfSink: 已挂上本地采集轨 sid=${audio.sid}")
+    }
+
+    private fun detachSelfSink() {
+        val sink = selfSink ?: return
+        runCatching { selfTrack?.removeSink(sink) }
+        selfSink = null
+        selfTrack = null
+        _selfLevel.value = 0f
+    }
+
+    /**
+     * 从 16-bit PCM 里算 RMS（0..1）。只取前 [RMS_WINDOW_FRAMES] 帧：
+     * 够判断「这一刻响不响」，不必整块扫。非 16-bit 或空数据返回 null。
+     */
+    private fun rmsOf(
+        data: ByteBuffer,
+        bitsPerSample: Int,
+        frames: Int,
+        numberOfChannels: Int,
+    ): Double? {
+        if (bitsPerSample != 16) return null
+        val limit = minOf(frames, RMS_WINDOW_FRAMES) * numberOfChannels
+        if (limit <= 0) return null
+        val buf = data.duplicate()
+        var sum = 0.0
+        var n = 0
+        for (i in 0 until limit) {
+            if (buf.remaining() < 2) break
+            val sample = buf.short.toDouble()
+            sum += sample * sample
+            n++
+        }
+        if (n == 0) return null
+        return sqrt(sum / n) / Short.MAX_VALUE
     }
 
     private suspend fun handleData(topic: String?, data: ByteArray) {
@@ -268,5 +420,16 @@ class LiveKitCompanionTransport(
          * 与 `:speech` 的 VoiceRecorder 用同一个系数，两处说「多大算说话」的口径才一致。
          */
         const val MOUTH_GAIN = 4.0
+
+        /**
+         * 与 [com.openapi.ks.myapp.avatar.SimpleAvatarRenderer] 的开合阈值保持同一个数。
+         * 日志里打出来是为了判断「这个阈值配当前增益是否合适」，两处改了要一起改。
+         */
+        const val MOUTH_THRESHOLD_LOG = 0.35f
+
+        /** 本地采集的增益：让轻声说话也能在波形上看见。与 [MOUTH_GAIN] 是两套语义，不要合并。 */
+        const val SELF_GAIN = 8.0
+
+        const val TAG = "MouthLevel"
     }
 }

@@ -155,6 +155,13 @@ data class CompanionCallState(
     val isMuted: Boolean = false,
     val cameraActive: Boolean = false,
     val audioLevel: Float = 0f,
+    /**
+     * **用户自己**的音量 0..1，驱动底部那条波形。
+     *
+     * 与 [audioLevel] 分开：[audioLevel] 是她的声音（呼吸环、嘴型），这个是你的声音。
+     * 以前波形接的是 [audioLevel]，所以「你说话时波形不动」——它画错了对象。
+     */
+    val selfLevel: Float = 0f,
     val isAgentSpeaking: Boolean = false,
     val connection: CallConnection = CallConnection.CONNECTING,
     val avatarEmoji: String? = null,
@@ -279,8 +286,10 @@ fun CompanionCallScreen(
     // 为什么分两级：波形在底部，离视线远，要跟手（110ms，几乎实时）；
     // 呼吸环在头像外围，离视线近且面积大，跟得太紧会显得「抖」（280ms）。
     // 用一个值同时驱动两者，只能二选一，所以拆开。
+    // 波形 = 你的声音；呼吸环 = 她的声音。两者数据源不同，缓动参数也不同：
+    // 波形在底部、离视线远，要跟手（110ms）；呼吸环在头像外围、面积大，跟得太紧会抖（280ms）。
     val waveLevel = animateFloatAsState(
-        targetValue = state.audioLevel.toLevelOrZero(),
+        targetValue = state.selfLevel.toLevelOrZero(),
         animationSpec = tween(LEVEL_FOLLOW_MS, easing = LinearOutSlowInEasing),
         label = "callWaveLevel",
     )

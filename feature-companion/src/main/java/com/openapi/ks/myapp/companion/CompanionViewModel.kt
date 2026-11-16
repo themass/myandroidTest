@@ -161,14 +161,36 @@ class CompanionViewModel(
         _state.update { it.copy(input = value) }
     }
 
-    /** 切换她**怎么回**：文字 or 语音（语音时同时出语音条 + 文字）。 */
+    /**
+     * 切换她**怎么回**：文字 or 语音。
+     *
+     * 这个开关以前只改本地状态、从没到达服务端——服务端永远推 TTS，客户端永远播。
+     * 现在它直接控制播放：VOICE = 放她的声音，TEXT = 静音播放。
+     *
+     * 说清楚一件事：服务端仍然会合成音频（没有对应的接口字段可关），我们只是不播。
+     * 真正的「别合成」要等服务端加开关；在那之前，至少用户按下它时耳朵里的声音会停。
+     */
     fun setOutput(output: CompanionOutput) {
         _state.update { it.copy(output = output) }
-        // 不断开房间：文字与语音共用同一个 agent，切回文字时只是不再发布麦克风。
+        // 通话期间不受它影响：通话页里音频必须开着，否则等于打了一通没声音的电话。
+        if (!_state.value.callActive) {
+            transport.setPlaybackAudible(output == CompanionOutput.VOICE)
+        }
+        // 不断开房间：文字与语音共用同一个 agent。
     }
 
     fun toggleOutput() {
         setOutput(if (_state.value.output == CompanionOutput.TEXT) CompanionOutput.VOICE else CompanionOutput.TEXT)
+    }
+
+    /**
+     * 退出通话页时静音她的播放。
+     *
+     * 房间不断开（通话只是形态，不是另一条连接），但「挂断」在用户心里就是
+     * 「不该再响了」。以前退出后 TTS 还在放，只能在文字页里找「语音回答」开关关掉。
+     */
+    fun setPlaybackAudible(audible: Boolean) {
+        transport.setPlaybackAudible(audible)
     }
 
     /** 进入/退出全屏通话形态。 */
@@ -186,12 +208,16 @@ class CompanionViewModel(
     fun startCall(micAllowed: Boolean) {
         _state.update { it.copy(callActive = true, isMuted = !micAllowed) }
         transport.setMicEnabled(micAllowed)
+        // 通话里音频一定要开：这是通话的定义，与文字模式那个开关无关。
+        transport.setPlaybackAudible(true)
     }
 
     /** 挂断回到聊天现场。房间不断：通话只是形态，不是另一条连接。 */
     fun endCall() {
         transport.setMicEnabled(false)
         _state.update { it.copy(callActive = false, isMuted = false) }
+        // 回到聊天页后，是否继续出声由「语音回答」开关决定（默认文字 = 静音）。
+        transport.setPlaybackAudible(_state.value.output == CompanionOutput.VOICE)
     }
 
     /**
@@ -256,6 +282,9 @@ class CompanionViewModel(
      * 塞进 UI state 会让整棵界面树按音频帧重组。形象层单独 collect 它。
      */
     val mouthLevel: StateFlow<Float> get() = transport.mouthLevel
+
+    /** 用户自己的音量 0..1（本地麦克风采集轨）。驱动通话页底部波形。 */
+    val selfLevel: StateFlow<Float> get() = transport.selfLevel
 
     /**
      * 用户点了她一下。

@@ -269,8 +269,19 @@ fun CompanionRoute(
             }
         }
 
-        // 她说话的振幅：波形、呼吸环、嘴型三处共用这一个值。
+        // 两条不同的电平：
+        // - mouthLevel = 她的声音，驱动头像呼吸环与嘴型；
+        // - selfLevel  = 你的声音，驱动底部波形。
+        // 以前两者共用一个，结果就是「你说话波形不动」——那个波形画的是她的音量。
         val mouthLevel by chatViewModel.mouthLevel.collectAsStateWithLifecycle()
+        val selfLevel by chatViewModel.selfLevel.collectAsStateWithLifecycle()
+
+        // 退出通话页时静音播放：房间不断开（通话只是形态），但用户的心智是
+        // 「我挂断了，她不该还在说话」。进来时恢复。
+        DisposableEffect(Unit) {
+            chatViewModel.setPlaybackAudible(true)
+            onDispose { chatViewModel.setPlaybackAudible(false) }
+        }
 
         val callConnection = when (uiState.connection) {
             CompanionConnection.CONNECTED -> CallConnection.CONNECTED
@@ -287,9 +298,10 @@ fun CompanionRoute(
                 elapsedSeconds = elapsedSeconds,
                 isMuted = uiState.isMuted,
                 cameraActive = false,
-                // 电平现在有数据源了：远端音频轨的 PCM 振幅（transport.mouthLevel）。
-                // 以前这里是写死的 0f——波形与呼吸环一直在跟一个常数走。
+                // 她的音量：驱动呼吸环与「她在说话」的视觉强度。
                 audioLevel = mouthLevel,
+                // 你的音量：驱动底部波形。静音时读 0。
+                selfLevel = if (uiState.isMuted) 0f else selfLevel,
                 isAgentSpeaking = uiState.messages.lastOrNull()?.streaming == true,
                 connection = callConnection,
                 statusHint = if (uiState.connection == CompanionConnection.ERROR) {

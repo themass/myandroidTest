@@ -60,13 +60,33 @@ interface CompanionTransport {
         get() = defaultConnected
 
     /**
-     * 她说话的瞬时振幅 0..1，用来驱动嘴型。
+     * 她说话的瞬时振幅 0..1，用来驱动嘴型与通话页的呼吸环。
      *
      * 默认恒为 0：没有音频能力的替身不该假装她在说话。真实实现从远端音频轨的
      * PCM 回调里算 RMS——这是唯一能拿到「这一刻声音多大」的地方，文本流没有这个信息。
      */
     val mouthLevel: StateFlow<Float>
         get() = silentMouth
+
+    /**
+     * **用户自己**说话的瞬时振幅 0..1，用来驱动通话页底部那条波形。
+     *
+     * 与 [mouthLevel] 分开：上面那个是她的声音（驱动呼吸环、嘴型），这个是你的声音
+     * （驱动波形）。以前两者共用 mouthLevel，结果就是「你说话波形不动」——那个波形
+     * 画的是她的音量，不是你自己的。
+     *
+     * 默认恒为 0；真实实现读本地麦克风采集轨的 PCM。
+     */
+    val selfLevel: StateFlow<Float>
+        get() = silentMouth
+
+    /**
+     * 是否在出声。false 时调用方应当把远端音量降到 0（[setPlaybackAudible]）。
+     *
+     * 退出通话页只改变形态，房间并不断开——但用户的心智是「我挂断了，她不该还在说话」。
+     * 所以退出时就静音播放，回来时恢复；麦克风同理。
+     */
+    fun setPlaybackAudible(audible: Boolean) = Unit
 
     suspend fun connect(session: SessionResponse)
 
