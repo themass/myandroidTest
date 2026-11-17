@@ -279,6 +279,24 @@ fun CompanionRoute(
         val mouthLevel by chatViewModel.mouthLevel.collectAsStateWithLifecycle()
         val selfLevel by chatViewModel.selfLevel.collectAsStateWithLifecycle()
 
+        val audioPreview = remember { CallAudioPreview(context) }
+        val preview by audioPreview.state.collectAsStateWithLifecycle()
+        val previewActive = preview.speaker != null
+        DisposableEffect(audioPreview) {
+            onDispose {
+                audioPreview.close()
+                chatViewModel.setAudioPreviewActive(false)
+            }
+        }
+        LaunchedEffect(previewActive, uiState.isMuted) {
+            chatViewModel.setAudioPreviewActive(previewActive)
+        }
+        val labeledCaptions = uiState.messages.filter { it.text.isNotBlank() }.map {
+            CallCaption(it.text, if (it.role == MessageRole.USER) "你" else agentName, it.streaming)
+        } + if (previewActive && preview.text.isNotBlank()) listOf(
+            CallCaption(preview.text, if (preview.speaker == "user") "你 · 试听" else "$agentName · 试听"),
+        ) else emptyList()
+
         // 退出通话页时静音播放：房间不断开（通话只是形态），但用户的心智是
         // 「我挂断了，她不该还在说话」。进来时恢复。
         DisposableEffect(Unit) {
@@ -298,13 +316,14 @@ fun CompanionRoute(
             state = CompanionCallState(
                 agentName = agentName,
                 captions = transcript,
+                speakerCaptions = labeledCaptions,
                 elapsedSeconds = elapsedSeconds,
                 isMuted = uiState.isMuted,
                 cameraActive = false,
                 // 她的音量：驱动呼吸环与「她在说话」的视觉强度。
-                audioLevel = mouthLevel,
+                audioLevel = if (previewActive) { if (preview.speaker == "ai") preview.level else 0f } else mouthLevel,
                 // 你的音量：驱动底部波形。静音时读 0。
-                selfLevel = if (uiState.isMuted) 0f else selfLevel,
+                selfLevel = if (previewActive) { if (preview.speaker == "user") preview.level else 0f } else if (uiState.isMuted) 0f else selfLevel,
                 isAgentSpeaking = uiState.messages.lastOrNull()?.streaming == true,
                 connection = callConnection,
                 statusHint = if (uiState.connection == CompanionConnection.ERROR) {
@@ -315,6 +334,8 @@ fun CompanionRoute(
             ),
             // 摄像头目前不支持；由按钮显示不可用状态，不注入点击回调。
             cameraAvailable = false,
+            previewState = preview,
+            onPreviewAudio = audioPreview::toggle,
             waveOptions = waveOptions,
             onWaveOptionsChange = { next ->
                 waveOptions = next

@@ -159,9 +159,13 @@ enum class CallConnection {
  *   非空时优先于 [connection] 推导出来的文本。
  */
 @Immutable
+data class CallCaption(val text: String, val speaker: String, val streaming: Boolean = false)
+
+@Immutable
 data class CompanionCallState(
     val agentName: String = "",
     val captions: List<String> = emptyList(),
+    val speakerCaptions: List<CallCaption> = emptyList(),
     val elapsedSeconds: Long = 0L,
     val isMuted: Boolean = false,
     val cameraActive: Boolean = false,
@@ -289,6 +293,8 @@ fun CompanionCallScreen(
     waveOptions: WaveOptions = WaveOptions(),
     /** 切换波形样式 / 粒子。null 时不显示切换入口。 */
     onWaveOptionsChange: ((WaveOptions) -> Unit)? = null,
+    previewState: CallAudioPreviewState = CallAudioPreviewState(),
+    onPreviewAudio: ((String) -> Unit)? = null,
 ) {
     val reducedMotion = rememberReducedMotion()
 
@@ -347,6 +353,23 @@ fun CompanionCallScreen(
                 waveOptions = waveOptions,
                 onWaveOptionsChange = onWaveOptionsChange,
             )
+
+            if (onPreviewAudio != null) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                    androidx.compose.material3.TextButton(onClick = { onPreviewAudio("user") }) {
+                        Text(if (previewState.speaker == "user") "■ 停止用户试听" else "▶ 用户试听", color = CallColors.TextPrimary)
+                    }
+                    androidx.compose.material3.TextButton(onClick = { onPreviewAudio("ai") }) {
+                        Text(if (previewState.speaker == "ai") "■ 停止 AI 试听" else "▶ AI 试听", color = CallColors.TextPrimary)
+                    }
+                }
+                if (previewState.speaker != null || previewState.error != null) {
+                    Text(
+                        text = previewState.error ?: if (previewState.preparing) "正在生成本地语音…" else "本地试听 · 已暂停真实麦克风与远端播放",
+                        color = CallColors.TextSecondary, fontSize = 11.sp,
+                    )
+                }
+            }
 
             Box(
                 modifier = Modifier
@@ -687,8 +710,8 @@ private fun VoiceStage(
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
                 .height(150.dp)
-                .graphicsLayer { alpha = 0.34f }
-                .blur(7.dp),
+                .graphicsLayer { alpha = 0.90f }
+                .blur(1.2.dp),
         )
         Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
             Box(
@@ -724,6 +747,7 @@ private fun VoiceStage(
             }
             CaptionStack(
                 captions = state.captions,
+                speakerCaptions = state.speakerCaptions,
                 streaming = state.isAgentSpeaking,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -769,9 +793,8 @@ private fun BreathingRing(
         // 减少动效时把呼吸压到极小、相位固定：不追求"活着"，只保证有边界。
         val idle = if (reducedMotion) 0.5f else (1f - kotlin.math.cos(breathPhase.value)) / 2f
         // 说话下限：VAD 判定在说话、但电平恰好过零时，保住 0.12，避免环瞬间塌回去。
-        val speakingFloor = if (isSpeaking) 0.12f else 0f
-        val lv = maxOf(level.value, speakingFloor)
-        val breath = 0.16f * idle
+        val lv = level.value
+        val breath = 0.012f * idle
 
         val center = Offset(size.width / 2f, size.height / 2f)
         val unit = size.width / 2f
@@ -784,9 +807,9 @@ private fun BreathingRing(
                     Color.Transparent,
                 ),
                 center = center,
-                radius = unit * (0.70f + 0.24f * lv + breath),
+                radius = 78.dp.toPx() + unit * (0.18f * lv + breath),
             ),
-            radius = unit * (0.70f + 0.24f * lv + breath),
+            radius = 78.dp.toPx() + unit * (0.18f * lv + breath),
             center = center,
         )
 
@@ -799,9 +822,9 @@ private fun BreathingRing(
             Triple(0.66f, 0.20f, 0.20f),
         )
         rings.forEachIndexed { index, (baseFraction, sensitivity, baseAlpha) ->
-            val radius = unit * (baseFraction + sensitivity * lv + breath * (1f + index * 0.4f))
+            val radius = (74f + index * 7f).dp.toPx() + unit * (sensitivity * lv + breath)
             drawCircle(
-                color = ringColor.copy(alpha = (baseAlpha * (0.55f + 0.45f * lv)).coerceIn(0f, 1f)),
+                color = ringColor.copy(alpha = (baseAlpha * (0.28f + 0.72f * lv)).coerceIn(0f, 1f)),
                 radius = radius,
                 center = center,
                 style = Stroke(width = if (index == 0) 1.6.dp.toPx() else 1f.dp.toPx()),
@@ -817,12 +840,12 @@ private fun BreathingRing(
         run {
             val cycle = ripplePhase.value / (2f * PI.toFloat())
             val startRadius = 74.dp.toPx()
-            val endRadius = unit * 1.28f
+            val endRadius = 94.dp.toPx() + (unit * 1.28f - 94.dp.toPx()).coerceAtLeast(0f) * lv
             for (k in 0..2) {
                 val p = (cycle + k / 3f) % 1f
                 val fadeIn = (p / 0.12f).coerceAtMost(1f)
                 val fadeOut = Math.pow((1f - p).toDouble(), 1.6).toFloat()
-                val alpha = (fadeIn * fadeOut * (0.24f + 0.30f * lv)).coerceIn(0f, 0.6f)
+                val alpha = (fadeIn * fadeOut * (0.035f + 0.38f * lv)).coerceIn(0f, 0.6f)
                 if (alpha < 0.01f) continue
                 val radius = startRadius + (endRadius - startRadius) * p
                 // 先画一层宽而淡的光晕，再画细描边：只有一条细线时会显得"硬"。
@@ -844,9 +867,9 @@ private fun BreathingRing(
         // 最外圈加一条"掠过的亮弧"：用一个短弧沿圆周慢速旋转，暗示持续在听。
         // 只在非减少动效时画；它比让整圈闪烁安静得多。
         if (!reducedMotion) {
-            val sweepRadius = unit * (0.82f + 0.12f * lv)
+            val sweepRadius = 90.dp.toPx() + unit * 0.20f * lv
             drawArc(
-                color = ringColor.copy(alpha = 0.30f),
+                color = ringColor.copy(alpha = 0.06f + 0.24f * lv),
                 startAngle = (ripplePhase.value * 180f / PI.toFloat()) % 360f,
                 sweepAngle = 54f,
                 useCenter = false,
@@ -875,8 +898,7 @@ private fun CenterEffectCanvas(
 ) {
     val effectColor = if (isMuted) CallColors.Slate else CallColors.Violet
     Canvas(modifier = modifier) {
-        val speakingFloor = if (isSpeaking) 0.12f else 0f
-        val lv = maxOf(level.value, speakingFloor)
+        val lv = level.value
         val ph = if (reducedMotion) 0.40f else phase.value
         when (effect) {
             CenterEffect.Orbit -> drawOrbit(lv, ph, effectColor, isMuted)
@@ -959,10 +981,12 @@ private fun CaptionStack(
     captions: List<String>,
     streaming: Boolean,
     modifier: Modifier = Modifier,
+    speakerCaptions: List<CallCaption> = emptyList(),
 ) {
     // 带原始下标的非空句：下标当 key，追加新句时已有项的 key 不变。
-    val visible = remember(captions) {
-        captions.mapIndexedNotNull { index, line -> if (line.isNotBlank()) index to line else null }
+    val visible = remember(captions, speakerCaptions) {
+        val lines = speakerCaptions.ifEmpty { captions.map { CallCaption(it, "AI", streaming) } }
+        lines.mapIndexedNotNull { index, line -> if (line.text.isNotBlank()) index to line else null }
     }
     if (visible.isEmpty()) {
         // 她还没开口时不留空白塌陷：占一行高度的占位文案，避免整个布局跳动。
@@ -990,7 +1014,7 @@ private fun CaptionStack(
         }
     }
 
-    LaunchedEffect(visible.size) {
+    LaunchedEffect(visible.size, visible.lastOrNull()?.second?.text) {
         if (!followTail) return@LaunchedEffect
         autoScrolling = true
         try {
@@ -1004,19 +1028,19 @@ private fun CaptionStack(
         state = listState,
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.Bottom),
+        verticalArrangement = Arrangement.spacedBy(3.dp, Alignment.Bottom),
     ) {
         itemsIndexed(visible, key = { _, item -> item.first }) { index, (_, line) ->
             val fromNewest = visible.lastIndex - index
             CaptionLine(
-                text = line,
+                text = "${line.speaker}：${line.text}",
                 targetAlpha = when {
                     fromNewest <= 0 -> 1f
                     fromNewest == 1 -> 0.82f
                     else -> 0.68f
                 },
                 // 只有最新一句带流式光标，且必须真的在说话。
-                showCursor = streaming && fromNewest <= 0,
+                showCursor = line.streaming && fromNewest <= 0,
             )
         }
     }
@@ -1040,10 +1064,10 @@ private fun CaptionLine(
         text = if (showCursor) "$text▍" else text,
         color = CallColors.TextPrimary.copy(alpha = alpha),
         fontSize = 15.sp,
-        lineHeight = 23.sp,
+        lineHeight = 20.sp,
         textAlign = TextAlign.Center,
         // 不再截断：一句说完的完整回复要能整段读完，太长由外层滚动承接。
-        modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+        modifier = Modifier.padding(horizontal = 14.dp, vertical = 3.dp),
     )
 }
 
@@ -1193,7 +1217,7 @@ private fun DrawScope.drawBars(values: FloatArray, color: Color, isMuted: Boolea
     val barWidth = (gap * 0.25f).coerceAtLeast(2.dp.toPx())
     for (i in values.indices) {
         val edge = sin((i + 0.5f) / values.size * PI.toFloat()).coerceAtLeast(0.12f)
-        val h = 2.dp.toPx() + size.height * 0.25f * values[i] * edge
+        val h = 2.dp.toPx() + size.height * 0.40f * values[i] * edge
         drawRoundRect(
             color = color.copy(alpha = if (isMuted) 0.25f else 0.62f),
             topLeft = Offset(i * gap + (gap - barWidth) / 2f, (size.height - h) / 2f),
@@ -1219,7 +1243,7 @@ private fun DrawScope.drawRibbon(values: FloatArray, color: Color, isMuted: Bool
             val x = size.width * t
             val sign = if ((i / 4 + layer) % 2 == 0) 1f else -1f
             val y = mid + sign * values[(i + layer * 3) % values.size] *
-                sin(t * PI.toFloat()) * size.height * (0.11f - layer * 0.02f)
+                sin(t * PI.toFloat()) * size.height * (0.17f - layer * 0.025f)
             path.cubicTo((lastX + x) / 2f, lastY, (lastX + x) / 2f, y, x, y)
             lastX = x
             lastY = y

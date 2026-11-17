@@ -31,6 +31,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import livekit.org.webrtc.AudioTrackSink
 import org.json.JSONObject
+import java.nio.ByteOrder
 import java.nio.ByteBuffer
 import kotlin.math.ln
 import kotlin.math.sqrt
@@ -63,7 +64,8 @@ class LiveKitCompanionTransport(
     @Volatile private var firstLocalPcmLogged = false
 
     /** 最近一次麦克风意图。房间还没建好时先存着，连上后补偿执行。 */
-    private var micIntent: Boolean? = null
+    @Volatile private var micIntent: Boolean? = null
+    @Volatile private var playbackAudible = true
 
     /** 麦克风发布串行化：连点两下开/关，异步调用乱序会让按钮状态和实际发布不一致。 */
     private val micMutex = Mutex()
@@ -235,14 +237,24 @@ class LiveKitCompanionTransport(
     override fun setMicEnabled(enabled: Boolean) {
         micIntent = enabled
         val current = room ?: return
-        applyMic(current, enabled)
+        if (current.state == Room.State.CONNECTED) applyMic(current, enabled)
     }
 
     private fun applyMic(current: Room, enabled: Boolean) {
         scope.launch {
             micMutex.withLock {
-                runCatching { current.localParticipant.setMicrophoneEnabled(enabled) }
-                    .onFailure { bus.emit(CompanionEvent.Error("麦克风切换失败：${it.message}")) }
+                // 同一次建连可能先后收到数次意图，只执行最新值。
+                if (room !== current || micIntent != enabled) return@withLock
+                runCatching {
+                    check(current.localParticipant.setMicrophoneEnabled(enabled)) {
+                        "麦克风采集或发布失败，请检查录音权限和麦克风占用"
+                    }
+                    if (enabled) attachSelfSink(current) else _selfLevel.value = 0f
+                    logInfo("attempt=$activeAttemptId event=mic_applied enabled=$enabled")
+                }.onFailure {
+                    logError("attempt=$activeAttemptId event=mic_apply_failed type=${it.javaClass.simpleName}")
+                    bus.emit(CompanionEvent.Error("麦克风未开启，请检查录音权限和麦克风占用后重试"))
+                }
             }
         }
     }
@@ -319,7 +331,7 @@ class LiveKitCompanionTransport(
                 // 只取前若干帧算 RMS：整块算没必要，够判断「这一刻响不响」即可。
                 val limit = minOf(frames, RMS_WINDOW_FRAMES) * numberOfChannels
                 if (limit <= 0) return
-                val buf = data.duplicate()
+                val buf = data.duplicate().order(ByteOrder.LITTLE_ENDIAN)
                 var sum = 0.0
                 var n = 0
                 for (i in 0 until limit) {
@@ -356,6 +368,7 @@ class LiveKitCompanionTransport(
             mouthSink = sink
             mouthTrack = audio
             remoteAudio = audio as? io.livekit.android.room.track.RemoteAudioTrack
+            remoteAudio?.setVolume(if (playbackAudible) 1.0 else 0.0)
             logInfo("attempt=$activeAttemptId event=remote_sink_attached sid=${audio.sid}")
         }
     }
@@ -381,6 +394,7 @@ class LiveKitCompanionTransport(
      * 用 `setVolume(0)` 而不是取消订阅：音频轨还在，恢复是一瞬间的事，不用重新协商。
      */
     override fun setPlaybackAudible(audible: Boolean) {
+        playbackAudible = audible
         runCatching { remoteAudio?.setVolume(if (audible) 1.0 else 0.0) }
         if (!audible) _mouthLevel.value = 0f
     }
@@ -416,6 +430,7 @@ class LiveKitCompanionTransport(
      * 绕开「事件已到、participant map 还没更新」的时序窗口。先摘后挂，重复调用幂等。
      */
     private fun attachSelfSink(audio: AudioTrack) {
+        if (selfTrack === audio && selfSink != null) return
         detachSelfSink()
         var callbacks = 0L
         var windowStartedAt = SystemClock.elapsedRealtime()
@@ -487,7 +502,7 @@ class LiveKitCompanionTransport(
         if (bitsPerSample != 16) return null
         val limit = minOf(frames, RMS_WINDOW_FRAMES) * numberOfChannels
         if (limit <= 0) return null
-        val buf = data.duplicate()
+        val buf = data.duplicate().order(ByteOrder.LITTLE_ENDIAN)
         var sum = 0.0
         var n = 0
         for (i in 0 until limit) {

@@ -230,10 +230,20 @@ class CompanionViewModel(
      * 静音开关。状态先改、再通知传输层：麦克风发布是异步的，如果等它回来再更新按钮，
      * 用户点了会有近一秒「没反应」，会以为按钮坏了。
      */
+    private var audioPreviewActive = false
+
+    /** 本地试听不发到 RTC；结束后按当前通话/静音意图恢复，退出通话不误开麦。 */
+    fun setAudioPreviewActive(active: Boolean) {
+        audioPreviewActive = active
+        val current = _state.value
+        transport.setMicEnabled(!active && current.callActive && !current.isMuted)
+        transport.setPlaybackAudible(!active && (current.callActive || current.output == CompanionOutput.VOICE))
+    }
+
     fun toggleMute() {
         val muted = !_state.value.isMuted
         _state.update { it.copy(isMuted = muted) }
-        transport.setMicEnabled(!muted)
+        transport.setMicEnabled(!muted && !audioPreviewActive)
     }
 
     /**
