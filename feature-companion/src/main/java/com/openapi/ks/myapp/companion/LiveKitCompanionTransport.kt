@@ -10,6 +10,7 @@ import io.livekit.android.room.Room
 import io.livekit.android.room.datastream.StreamTextOptions
 import io.livekit.android.room.track.AudioTrack
 import io.livekit.android.room.track.Track
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -21,6 +22,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -116,11 +118,13 @@ class LiveKitCompanionTransport(
         logInfo("attempt=$activeAttemptId event=room_created elapsedMs=${SystemClock.elapsedRealtime() - connectStartedAtMs}")
 
         // SDK events are not replayed: subscribe before starting the signal handshake.
-        scope.launch {
+        scope.launch(start = CoroutineStart.UNDISPATCHED) {
             newRoom.events.events.collect { event ->
                 when (event) {
                     is RoomEvent.DataReceived -> handleData(event.topic, event.data)
                     is RoomEvent.Connected -> {
+                        _lastConnectionError.value = null
+                        _connection.value = TransportConnection.CONNECTED
                         logInfo("attempt=$activeAttemptId event=room_connected elapsedMs=${SystemClock.elapsedRealtime() - connectStartedAtMs}")
                     }
                     is RoomEvent.FailedToConnect -> {
@@ -158,7 +162,7 @@ class LiveKitCompanionTransport(
         }
 
         // Participant events are a separate stream from Room.events.
-        scope.launch {
+        scope.launch(start = CoroutineStart.UNDISPATCHED) {
             newRoom.localParticipant.events.events.collect { event ->
                 when (event) {
                     is io.livekit.android.events.ParticipantEvent.LocalTrackPublished -> {
@@ -179,23 +183,34 @@ class LiveKitCompanionTransport(
 
         logInfo("attempt=$activeAttemptId event=room_connect_begin")
         try {
-            withTimeout(CONNECT_TIMEOUT_MS) { newRoom.connect(session.livekitUrl, session.token) }
-            if (newRoom.state == Room.State.CONNECTED) {
-                _connection.value = TransportConnection.CONNECTED
-                logInfo("attempt=$activeAttemptId event=room_connect_success elapsedMs=${SystemClock.elapsedRealtime() - connectStartedAtMs}")
-            } else {
-                throw IllegalStateException("LiveKit connect returned with state=${newRoom.state}")
+            withTimeout(CONNECT_TIMEOUT_MS) {
+                newRoom.connect(session.livekitUrl, session.token)
+                // 2.29.0 的 connect() 只等待 join job；媒体连接完成由 onEngineConnected 异步通知。
+                // collector 已在握手前订阅，用 StateFlow 等待最终事件，不能把 CONNECTING 当错误。
+                val outcome = _connection.first {
+                    it == TransportConnection.CONNECTED || it == TransportConnection.DISCONNECTED
+                }
+                check(outcome == TransportConnection.CONNECTED) {
+                    _lastConnectionError.value ?: "连接已断开，请重试"
+                }
             }
+            logInfo("attempt=$activeAttemptId event=room_connect_success elapsedMs=${SystemClock.elapsedRealtime() - connectStartedAtMs}")
+        } catch (e: TimeoutCancellationException) {
+            _lastConnectionError.value = "连接超时，请重试"
+            _connection.value = TransportConnection.DISCONNECTED
+            newRoom.disconnect()
+            logError("attempt=$activeAttemptId event=room_connect_timeout")
+            throw IllegalStateException("连接超时，请重试", e)
         } catch (e: CancellationException) {
             _connection.value = TransportConnection.DISCONNECTED
-            logWarn("attempt=$activeAttemptId event=room_connect_cancelled elapsedMs=${SystemClock.elapsedRealtime() - connectStartedAtMs}")
+            newRoom.disconnect()
             throw e
         } catch (e: Exception) {
-            _connection.value = TransportConnection.DISCONNECTED
             _lastConnectionError.value = safeError(e.message)
-            val timedOut = e is TimeoutCancellationException
-            logError("attempt=$activeAttemptId event=room_connect_failure elapsedMs=${SystemClock.elapsedRealtime() - connectStartedAtMs} type=${e.javaClass.simpleName} timeout=$timedOut message=${safeError(e.message)}")
-            throw if (timedOut) IllegalStateException("连接超时，请重试", e) else e
+            _connection.value = TransportConnection.DISCONNECTED
+            newRoom.disconnect()
+            logError("attempt=$activeAttemptId event=room_connect_failure type=${e.javaClass.simpleName}")
+            throw IllegalStateException("连接失败，请重试", e)
         }
         // 建连前用户就点进了通话（建连通常要一两秒）：那时麦克风意图先记着，现在补偿执行。
         micIntent?.let { applyMic(newRoom, it) }

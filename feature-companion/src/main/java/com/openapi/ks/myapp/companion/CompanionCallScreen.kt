@@ -5,11 +5,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -19,6 +15,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -70,6 +68,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.FocusRequester
@@ -240,14 +239,12 @@ private const val RING_FOLLOW_MS = 280
 /** 波形各条独立相位的循环时长。太快像噪点，太慢像卡住；1.6s 接近说话的语气节奏。 */
 private const val PHASE_CYCLE_MS = 1600
 
-/** 中央呼吸环波纹的循环时长。刻意慢：5.2s 一圈，两圈错相，每 2.6s 荡出一圈柔波。 */
+/** 中央外圈 7 秒一轮，三圈错开扩散。 */
 private const val RIPPLE_CYCLE_MS = 7000
 
 /** 字幕淡入淡出时长。 */
 private const val CAPTION_FADE_MS = 260
 
-/** 字幕区域的最大高度。给了上限才能滚动——无限高的话会把头像和操作条挤出屏幕。 */
-private const val CAPTION_MAX_HEIGHT_DP = 200
 
 /** 波形条数。奇数是为了让中间一根正好落在中心线上。 */
 private const val WAVE_BAR_COUNT = 23
@@ -367,6 +364,8 @@ fun CompanionCallScreen(
                     VoiceStage(
                         state = state,
                         ringLevel = ringLevel,
+                        waveLevel = waveLevel,
+                        waveOptions = waveOptions,
                         phase = phase,
                         centerEffect = waveOptions.center,
                         avatarContent = avatarContent,
@@ -374,26 +373,6 @@ fun CompanionCallScreen(
                         modifier = Modifier.fillMaxSize(),
                     )
                 }
-            }
-
-            // 视频形态下不画底部波形：一屏同时有远端画面、本地小窗、字幕、
-            // 心跳环四组运动元素会互相抢注意力（也更容易让人晕）。语音形态才需要它。
-            if (!state.cameraActive) {
-                WaveformBars(
-                    level = waveLevel,
-                    phase = phase,
-                    isMuted = state.isMuted,
-                    // 这是**用户自己**的波形：不能用她的说话状态做兜底，
-                    // 否则她一说话，你静音时底部波形也会自己跳。
-                    isSpeaking = false,
-                    reducedMotion = reducedMotion,
-                    style = waveOptions.bottom,
-                    particles = waveOptions.particles,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(150.dp),
-                )
-                Spacer(Modifier.height(6.dp))
             }
 
             CallControlBar(
@@ -685,66 +664,73 @@ private fun formatDuration(totalSeconds: Long): String {
 private fun VoiceStage(
     state: CompanionCallState,
     ringLevel: State<Float>,
+    waveLevel: State<Float>,
+    waveOptions: WaveOptions,
     phase: State<Float>,
     centerEffect: CenterEffect,
     avatarContent: (@Composable () -> Unit)?,
     reducedMotion: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        // 环的画布吃满整个语音舞台：它以 minDimension 为半径基准，在手机上 minDimension
-        // 就是屏幕可用宽度，最外圈因此能一直荡到屏幕两侧边缘，而不是被关在 268dp 的小盒子里。
-        // 头像仍然居中叠在环上，尺寸不变，环只是从"头像的边框"变成了"整个舞台的声场"。
-        Box(
+    BoxWithConstraints(modifier = modifier) {
+        // 头像区与字幕区各有确定边界；长回复只滚动，不再反向压扁头像。
+        val stageHeight = minOf(maxWidth, maxHeight * 0.44f)
+        WaveformBars(
+            level = waveLevel,
+            phase = phase,
+            isMuted = state.isMuted,
+            isSpeaking = false,
+            reducedMotion = reducedMotion,
+            style = waveOptions.bottom,
+            particles = waveOptions.particles,
             modifier = Modifier
+                .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .weight(1f),
-            contentAlignment = Alignment.Center,
-        ) {
-            // 中央「她的声音」效果：默认呼吸环，Orbit/Blob/Blast 是同画布上的另外三套
-            // 放射构图，全部以 ringLevel（她的 mouthLevel）驱动。
-            if (centerEffect == CenterEffect.Ring) {
-                BreathingRing(
+                .height(150.dp)
+                .graphicsLayer { alpha = 0.34f }
+                .blur(7.dp),
+        )
+        Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+            Box(
+                modifier = Modifier.fillMaxWidth().height(stageHeight),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (centerEffect == CenterEffect.Ring) {
+                    BreathingRing(
+                        level = ringLevel,
+                        isMuted = state.isMuted,
+                        isSpeaking = state.isAgentSpeaking,
+                        reducedMotion = reducedMotion,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                } else {
+                    CenterEffectCanvas(
+                        effect = centerEffect,
+                        level = ringLevel,
+                        phase = phase,
+                        isMuted = state.isMuted,
+                        isSpeaking = state.isAgentSpeaking,
+                        reducedMotion = reducedMotion,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+                AvatarCircle(
+                    name = state.agentName,
+                    emoji = state.avatarEmoji,
                     level = ringLevel,
                     isMuted = state.isMuted,
-                    isSpeaking = state.isAgentSpeaking,
-                    reducedMotion = reducedMotion,
-                    modifier = Modifier.fillMaxSize(),
-                )
-            } else {
-                CenterEffectCanvas(
-                    effect = centerEffect,
-                    level = ringLevel,
-                    phase = phase,
-                    isMuted = state.isMuted,
-                    isSpeaking = state.isAgentSpeaking,
-                    reducedMotion = reducedMotion,
-                    modifier = Modifier.fillMaxSize(),
+                    slot = avatarContent,
                 )
             }
-            AvatarCircle(
-                name = state.agentName,
-                emoji = state.avatarEmoji,
-                level = ringLevel,
-                isMuted = state.isMuted,
-                slot = avatarContent,
+            CaptionStack(
+                captions = state.captions,
+                streaming = state.isAgentSpeaking,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .padding(horizontal = 8.dp, vertical = 12.dp),
             )
         }
-
-        Spacer(Modifier.height(20.dp))
-
-        CaptionStack(
-            captions = state.captions,
-            streaming = state.isAgentSpeaking,
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(max = CAPTION_MAX_HEIGHT_DP.dp)
-                .padding(horizontal = 8.dp),
-        )
     }
 }
 
@@ -755,8 +741,8 @@ private fun VoiceStage(
  * 这样电平上去的时候环会"一层层往外推"，而不是整组等比例放大——后者看起来像一个
  * 缩放动画，没有"声音顶出来"的物理感。
  *
- * 波纹用自己的慢速相位（5.2s 一圈），不与底部波形共用时钟：荡漾要柔和、要慢，
- * 从头像附近一路荡出屏幕边缘（终点 1.04 unit），淡出而不是在屏内突然消失。
+ * 外圈用独立的 7 秒慢相位，从头像附近扩散到屏幕两侧边缘之外，再渐隐。
+ * 原有内圈保持正圆，不按字幕剩余空间缩放。
  * 中央舞台**不画粒子**——粒子只属于底部「你的声音」。
  *
  * 静音时换成青灰，并且压低不透明度：静音是"我关了麦"，不是错误，不该用红色。
@@ -774,8 +760,7 @@ private fun BreathingRing(
     // 3.4s 一个来回；同样走帧时钟，避免系统动画缩放为 0 时整个停住。
     val breathPhase = rememberFramePhase(6800)
 
-    // 波纹专属慢相位：5.2s 走完 2π，两圈错相，每 2.6s 放出一圈，速度只有旧版的六成，
-    // 视觉上是"荡漾"而不是"脉冲"。
+    // 外圈每 7 秒扩散一轮，三圈错开；头像和原有同心圆的造型不参与拉伸。
     val ripplePhase = rememberFramePhase(RIPPLE_CYCLE_MS)
 
     val ringColor = if (isMuted) CallColors.Slate else CallColors.Violet
@@ -789,7 +774,7 @@ private fun BreathingRing(
         val breath = 0.16f * idle
 
         val center = Offset(size.width / 2f, size.height / 2f)
-        val unit = size.minDimension / 2f
+        val unit = size.width / 2f
 
         // 填充光晕：比描边更先被看见，负责"整块亮起来"。
         drawCircle(
@@ -809,9 +794,9 @@ private fun BreathingRing(
         // 已经贴近屏幕边缘。[sensitivity] 递增，电平上去时外圈走得更远，
         // 制造"声音把环一层层往外顶"的感觉。
         val rings = listOf(
-            Triple(0.48f, 0.10f, 0.50f),
-            Triple(0.62f, 0.16f, 0.30f),
-            Triple(0.76f, 0.18f, 0.18f),
+            Triple(0.42f, 0.10f, 0.55f),
+            Triple(0.54f, 0.17f, 0.34f),
+            Triple(0.66f, 0.20f, 0.20f),
         )
         rings.forEachIndexed { index, (baseFraction, sensitivity, baseAlpha) ->
             val radius = unit * (baseFraction + sensitivity * lv + breath * (1f + index * 0.4f))
@@ -831,8 +816,8 @@ private fun BreathingRing(
         // 否则系统动画缩放为 0 的设备上，中央就只剩一圈死边界。
         run {
             val cycle = ripplePhase.value / (2f * PI.toFloat())
-            val startRadius = unit * 0.40f
-            val endRadius = unit * 1.12f
+            val startRadius = 74.dp.toPx()
+            val endRadius = unit * 1.28f
             for (k in 0..2) {
                 val p = (cycle + k / 3f) % 1f
                 val fadeIn = (p / 0.12f).coerceAtMost(1f)
@@ -925,7 +910,7 @@ private fun AvatarCircle(
 
     Box(
         modifier = Modifier
-            .size(diameter)
+            .requiredSize(diameter)
             .graphicsLayer {
                 val scale = 1f + 0.035f * level.value
                 scaleX = scale
@@ -1027,8 +1012,8 @@ private fun CaptionStack(
                 text = line,
                 targetAlpha = when {
                     fromNewest <= 0 -> 1f
-                    fromNewest == 1 -> 0.62f
-                    else -> 0.38f
+                    fromNewest == 1 -> 0.82f
+                    else -> 0.68f
                 },
                 // 只有最新一句带流式光标，且必须真的在说话。
                 showCursor = streaming && fromNewest <= 0,
@@ -1058,10 +1043,7 @@ private fun CaptionLine(
         lineHeight = 23.sp,
         textAlign = TextAlign.Center,
         // 不再截断：一句说完的完整回复要能整段读完，太长由外层滚动承接。
-        modifier = Modifier
-            .clip(RoundedCornerShape(14.dp))
-            .background(CallColors.CaptionScrim)
-            .padding(horizontal = 14.dp, vertical = 8.dp),
+        modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
     )
 }
 
@@ -1130,20 +1112,36 @@ private fun WaveformBars(
         return
     }
 
+    // 各节点独立的随机目标 + 双级低通；不再用一个循环相位乘整排柱子。
+    val field = remember { SoftVoiceField(WAVE_BAR_COUNT) }
+    var frame by remember { mutableStateOf(0L) }
+    LaunchedEffect(isMuted) {
+        while (true) withFrameMillis { now ->
+            field.tick(if (isMuted) 0f else level.value, now)
+            frame = now
+        }
+    }
     Canvas(modifier = modifier) {
-        val speakingFloor = if (isSpeaking) 0.10f else 0f
-        val lv = maxOf(level.value, speakingFloor)
-        val ph = if (reducedMotion) 0.40f else phase.value
-
+        @Suppress("UNUSED_EXPRESSION") frame
         when (style) {
-            BottomWaveStyle.Bars -> drawBars(lv, ph, barColor, isMuted)
-            BottomWaveStyle.Ribbon -> drawRibbon(lv, ph, barColor, isMuted)
+            BottomWaveStyle.Bars -> drawBars(field.values, barColor, isMuted)
+            BottomWaveStyle.Ribbon -> drawRibbon(field.values, barColor, isMuted)
             BottomWaveStyle.Wave -> Unit
         }
-        // 粒子只在有声音时出现：静音还飘粒子会让人以为有声音。
-        // Wave 样式自己在浪尖上画粒子，不会走到这里。
-        if (particles && !isMuted && lv > 0.08f) {
-            drawParticles(lv, ph, barColor)
+        if (particles && !isMuted) {
+            field.motes.forEach { mote ->
+                if (mote.progress < 1f) {
+                    val fade = sin(mote.progress * PI.toFloat()).coerceAtLeast(0f)
+                    drawCircle(
+                        color = barColor.copy(alpha = 0.22f * fade),
+                        radius = mote.radius.dp.toPx(),
+                        center = Offset(
+                            size.width * (mote.x + mote.drift * mote.progress),
+                            size.height * (0.52f - mote.progress * 0.42f),
+                        ),
+                    )
+                }
+            }
         }
     }
 }
@@ -1188,89 +1186,96 @@ private fun WaveInAppCanvas(
 }
 
 /**
- * 竖条：最克制的一版。三条因子相乘（电平 × 包络 × 相位），缺一个都不像声波。
- * 相邻条相位差 0.55 弧度：不够则同涨同落像柱状图，太大像随机噪点。
+ * 低幅竖条：各条独立、平滑地跟随声音；两端收窄，不按共同相位整排涨落。
  */
-private fun DrawScope.drawBars(lv: Float, ph: Float, color: Color, isMuted: Boolean) {
-    val gap = size.width / WAVE_BAR_COUNT
-    val barWidth = (gap * 0.34f).coerceAtLeast(2.dp.toPx())
-    val centerY = size.height / 2f
-    val minBar = 3.dp.toPx()
-    // 容器加高到 140dp 后，条高若顶满整幅会显得凶；收成 72%，上下留出呼吸余量。
-    val maxBar = size.height * 0.48f
-    val half = (WAVE_BAR_COUNT - 1) / 2f
-
-    for (i in 0 until WAVE_BAR_COUNT) {
-        val t = (i - half) / half
-        val envelope = cos(t * (PI / 2) * 0.92).toFloat().coerceIn(0.10f, 1f)
-        val wobble = 0.88f + 0.12f * sin(ph * 0.45f + i * 0.73f)
-        val barHeight = minBar + (maxBar - minBar) * lv * envelope * wobble
-
-        val left = i * gap + (gap - barWidth) / 2f
+private fun DrawScope.drawBars(values: FloatArray, color: Color, isMuted: Boolean) {
+    val gap = size.width / values.size
+    val barWidth = (gap * 0.25f).coerceAtLeast(2.dp.toPx())
+    for (i in values.indices) {
+        val edge = sin((i + 0.5f) / values.size * PI.toFloat()).coerceAtLeast(0.12f)
+        val h = 2.dp.toPx() + size.height * 0.25f * values[i] * edge
         drawRoundRect(
-            color = color.copy(alpha = (0.34f + 0.66f * envelope) * if (isMuted) 0.62f else 1f),
-            topLeft = Offset(left, centerY - barHeight / 2f),
-            size = Size(barWidth, barHeight),
-            cornerRadius = CornerRadius(barWidth / 2f, barWidth / 2f),
+            color = color.copy(alpha = if (isMuted) 0.25f else 0.62f),
+            topLeft = Offset(i * gap + (gap - barWidth) / 2f, (size.height - h) / 2f),
+            size = Size(barWidth, h),
+            cornerRadius = CornerRadius(barWidth / 2f),
         )
     }
 }
 
 /**
- * 连续曲线（参考 WaveInApp 的柔和长波）：两条上下对称的正弦叠加，幅度分层。
- *
- * 为什么比竖条更像"声音"：人眼把连续曲线读成一条振动的弦，而竖条读成柱状统计。
- * 三层不同频率/相位叠加，避免一眼看出是纯正弦（规整感就是"假"的来源）。
+ * 三条低振幅贝塞尔曲线：节点来自非循环声场，不使用时间正弦或反复回绕的相位。
+ * 各层错开节点取样，端点收窄；真实声音决定整体强度。
  */
-private fun DrawScope.drawRibbon(lv: Float, ph: Float, color: Color, isMuted: Boolean) {
-    val centerY = size.height / 2f
-    val amp = size.height * (0.012f + 0.26f * lv)
-    val steps = 96
-    val alpha = if (isMuted) 0.45f else 1f
-
-    // 三层：主波 + 高频细节 + 慢速起伏。频率比不是整数，避免波形周期性重复。
-    fun waveAt(x: Float): Float {
-        val t = x / size.width
-        val a = sin((t * 3.0f + ph * 0.16f) * PI.toFloat())
-        val b = sin((t * 1.1f - ph * 0.09f) * PI.toFloat()) * 0.12f
-        // 两端收窄，避免曲线在边界被硬切
-        val edge = sin(t * PI.toFloat()).coerceIn(0f, 1f)
-        return (a + b) * edge
+private fun DrawScope.drawRibbon(values: FloatArray, color: Color, isMuted: Boolean) {
+    val mid = size.height * 0.5f
+    for (layer in 0..2) {
+        val path = Path()
+        path.moveTo(0f, mid)
+        var lastX = 0f
+        var lastY = mid
+        for (i in values.indices) {
+            val t = (i + 1f) / (values.size + 1f)
+            val x = size.width * t
+            val sign = if ((i / 4 + layer) % 2 == 0) 1f else -1f
+            val y = mid + sign * values[(i + layer * 3) % values.size] *
+                sin(t * PI.toFloat()) * size.height * (0.11f - layer * 0.02f)
+            path.cubicTo((lastX + x) / 2f, lastY, (lastX + x) / 2f, y, x, y)
+            lastX = x
+            lastY = y
+        }
+        path.cubicTo((lastX + size.width) / 2f, lastY, size.width, mid, size.width, mid)
+        drawPath(path, color.copy(alpha = if (isMuted) 0.14f else 0.40f - layer * 0.09f),
+            style = Stroke(width = (2.0f - layer * 0.35f).dp.toPx(), cap = StrokeCap.Round))
     }
+}
 
-    // 上下两条对称路径，中间用渐变填充，像一条发光的带子
-    val path = Path()
-    val upper = ArrayList<Offset>(steps + 1)
-    val lower = ArrayList<Offset>(steps + 1)
-    for (i in 0..steps) {
-        val x = size.width * i / steps
-        val y = waveAt(x) * amp
-        upper += Offset(x, centerY - y)
-        lower += Offset(x, centerY + y)
-    }
-    path.moveTo(upper[0].x, upper[0].y)
-    for (i in 1..steps) path.lineTo(upper[i].x, upper[i].y)
-    for (i in steps downTo 0) path.lineTo(lower[i].x, lower[i].y)
-    path.close()
+/** 非循环声场：随机只决定空间细节，振幅始终由真实声音控制；无声时缓慢归零。 */
+private class SoftVoiceMote {
+    var progress = 1f
+    var x = 0f
+    var drift = 0f
+    var radius = 0f
+    var lifetimeMs = 1f
+}
 
-    drawPath(
-        path = path,
-        brush = Brush.verticalGradient(
-            colors = listOf(
-                color.copy(alpha = 0.08f * alpha),
-                color.copy(alpha = 0.55f * alpha),
-                color.copy(alpha = 0.08f * alpha),
-            ),
-        ),
-    )
-    // 中心亮线：让带子有"芯"，不然只是一团色块
-    val core = Path()
-    core.moveTo(upper[0].x, centerY - waveAt(0f) * amp)
-    for (i in 1..steps) {
-        val x = size.width * i / steps
-        core.lineTo(x, centerY - waveAt(x) * amp)
+private class SoftVoiceField(count: Int) {
+    val motes = Array(8) { SoftVoiceMote() }
+    val values = FloatArray(count)
+    private val targets = FloatArray(count)
+    private val velocities = FloatArray(count)
+    private val deadlines = LongArray(count)
+    private val random = Random(System.nanoTime())
+    private var last = 0L
+    private var envelope = 0f
+
+    fun tick(level: Float, now: Long) {
+        val dt = if (last == 0L) 0f else (now - last).coerceIn(0L, 64L).toFloat()
+        last = now
+        val input = level.toLevelOrZero()
+        val follow = 1f - kotlin.math.exp(-dt / if (input > envelope) 240f else 650f)
+        envelope += (input - envelope) * follow
+        // 稀疏、随机出生，替代原来随循环相位整批重复的粒子。
+        motes.forEach { if (it.progress < 1f) it.progress += dt / it.lifetimeMs }
+        if (input > 0.08f && random.nextFloat() < dt / 1800f) {
+            motes.firstOrNull { it.progress >= 1f }?.let {
+                it.progress = 0f
+                it.x = 0.12f + random.nextFloat() * 0.76f
+                it.drift = (random.nextFloat() - 0.5f) * 0.08f
+                it.radius = 1f + random.nextFloat()
+                it.lifetimeMs = 1800f + random.nextFloat() * 1800f
+            }
+        }
+        for (i in values.indices) {
+            if (now >= deadlines[i]) {
+                targets[i] = 0.25f + random.nextFloat() * 0.75f
+                deadlines[i] = now + 450 + random.nextInt(1100)
+            }
+            val target = envelope * targets[i]
+            velocities[i] += (target - velocities[i]) * (1f - kotlin.math.exp(-dt / 260f))
+            values[i] += (velocities[i] - values[i]) * (1f - kotlin.math.exp(-dt / 180f))
+        }
     }
-    drawPath(core, color.copy(alpha = 0.55f * alpha), style = Stroke(width = 1.5.dp.toPx()))
 }
 
 /**
@@ -1429,12 +1434,10 @@ private fun DrawScope.drawBlast(lv: Float, ph: Float, color: Color, isMuted: Boo
 //
 // 原版是 GLES 实现，这里改成纯 Kotlin 状态机 + Compose Canvas 渲染，类对应关系：
 // GLRenderer 的帧调度 -> WaveInAppSim.tick；GLWaveLayer -> WiaLayer；GLWave -> WiaWave；
-// GLBubble -> WiaBubble。时间常数、平滑系数、随机区间、粒子生命周期全部照抄，
-// 偏差只有两处，都写在常量注释里。
+// GLBubble -> WiaBubble。保留造型；按用户的柔和要求，周期驱动改为独立低通漂移，
+// 并降低振幅与粒子密度。
 // ============================================================================
 
-/** GLRenderer.ANIMATION_TIME：单个拱的正弦周期 400ms。 */
-private const val WIA_WAVE_PERIOD_MS = 400L
 
 /** GLBubble.BUBBLE_ANIMATION_DURATION：粒子寿命 1000ms。 */
 private const val WIA_BUBBLE_PERIOD_MS = 1000L
@@ -1448,17 +1451,13 @@ private const val WIA_LAYER_COUNT = 3
 /** 偏差 2：参考库每层粒子池 8 个；我们只有前景一层产粒子，池给 10 个。 */
 private const val WIA_BUBBLE_POOL = 10
 
-/** GLWave.SMOOTH_A：过零时拱高系数向新目标的平滑权重。 */
-private const val WIA_SMOOTH_A = 0.35f
 
-/** 静默（没说话但麦开着）时保留的轻微起伏；参考库归零时完全静止，这是按需求加的。 */
-private const val WIA_IDLE_FLOOR = 0.06f
 
 /** 粒子直径基准，参考库默认 20px 是全屏 GLES 场景，缩到 140dp 条带取 4.5dp。 */
 private const val WIA_BUBBLE_SIZE_DP = 4.5f
 
 /** 三层浪的浪高占比与填充透明度，沿用改版前实测好看的一组值。 */
-private val WIA_LAYER_AMP = floatArrayOf(0.30f, 0.22f, 0.15f)
+private val WIA_LAYER_AMP = floatArrayOf(0.22f, 0.17f, 0.12f)
 private val WIA_LAYER_ALPHA = floatArrayOf(0.16f, 0.24f, 0.34f)
 
 /** Utils.smooth：Holt 指数平滑。 */
@@ -1468,32 +1467,35 @@ private fun wiaSmooth(prev: Float, new: Float, a: Float): Float = a * new + (1f 
 private fun wiaRandomize(value: Float, random: Random): Float =
     value * ((random.nextInt(100) + 70).toFloat() / 100f).coerceIn(0.7f, 1.3f)
 
-/** 对应 GLWave：一个二次贝塞尔单拱，拱顶在每次正弦过零时随机横移。 */
+/** 保留原版贝塞尔单拱，去掉周期翻转；每个拱独立缓慢漂移。 */
 private class WiaWave(
     val fromX: Float,
     val toX: Float,
     up: Boolean,
     private val random: Random,
 ) {
-    var angle = if (up) 0f else PI.toFloat()
     var coefficient = 0f
     var latestCoefficient = 0f
-    private var prevVal = 0f
     var waveX = 0f
+    var displacement = 0f
+    private var displacementTarget = if (up) 0.4f else -0.4f
+    private var driftAge = 0f
+    private var driftDuration = 600f + random.nextFloat() * 1400f
 
-    /** GLWave.update：推进角度；过零时平滑拱高系数，并把拱顶随机横移 ±0.3 拱宽。 */
-    fun advance(dAngle: Float) {
-        angle += dAngle
-        if (coefficient == 0f && latestCoefficient > 0f) {
-            coefficient = wiaSmooth(0f, latestCoefficient, WIA_SMOOTH_A)
+    /** 无固定周期，位移与高度两级低通，声音消失后柔和归零。 */
+    fun advance(dtMs: Float) {
+        driftAge += dtMs
+        if (driftAge >= driftDuration) {
+            driftAge = 0f
+            driftDuration = 600f + random.nextFloat() * 1400f
+            displacementTarget = (random.nextFloat() * 2f - 1f) * 0.8f
         }
-        val value = sin(angle) * coefficient
-        val crossed = (prevVal > 0f && value <= 0f) || (prevVal < 0f && value >= 0f)
-        if (crossed) {
-            coefficient = wiaSmooth(coefficient, latestCoefficient, WIA_SMOOTH_A)
-            waveX = random.nextFloat() * 0.3f * (if (random.nextBoolean()) 1f else -1f)
-        }
-        prevVal = value
+        coefficient += (latestCoefficient - coefficient) *
+            (1f - kotlin.math.exp(-dtMs / 420f))
+        displacement += (displacementTarget * coefficient - displacement) *
+            (1f - kotlin.math.exp(-dtMs / 600f))
+        waveX += (displacementTarget * 0.2f - waveX) *
+            (1f - kotlin.math.exp(-dtMs / 900f))
     }
 
     /** GLWave.setCoefficient：目标高度由音频帧喂入，先做 0.7..1.3 随机化。 */
@@ -1520,9 +1522,8 @@ private class WiaBubble {
 }
 
 /**
- * WaveInApp 仿真状态机。[tick] 按真实帧时间推进，角度只累加不回绕，
- * 从根上消除旧实现「相位每 1.6s Restart 造成两层浪跳变」的卡顿。
- * 随机只发生在构造、过零、生成粒子时；每帧不分配对象。
+ * WaveInApp 造型状态机：保留分层贝塞尔拱形、渐变和粒子。
+ * 按真实帧时间推进独立的低通漂移，不再把所有拱按 400ms 周期正弦翻转。
  */
 private class WaveInAppSim {
     private val random = Random(0x5EED1234L)
@@ -1566,21 +1567,13 @@ private class WaveInAppSim {
         val dt = (nowMs - lastFrameMs).coerceIn(0L, 64L)
         lastFrameMs = nowMs
         // 不再因 reducedMotion 直接返回：波形是用户声音的反馈，冻住就等于「声音没反应」。
-        // 减少动效只放慢相位（见下 speedScale），电平仍然驱动拱高。
+        // 减少动效时延长漂移时间，电平仍然驱动拱高。
 
         val target = when {
             muted -> 0f
-            level <= 0.02f -> WIA_IDLE_FLOOR
+            level <= 0.02f -> 0f
             else -> level
         }
-        // 静音冻结相位（彻底平息）；静默时相位速度降到 1/4，只有轻微起伏；说话全速。
-        val speedScale = when {
-            muted -> 0f
-            reducedMotion -> 0.3f
-            level <= 0.02f -> 0.25f
-            else -> 1f
-        }
-
         // 原版 updateData / setCoefficient 跟随音频数据帧（远低于帧率），统一节流到 ~10Hz：
         // 60fps 每帧随机化拱高会让波形像噪点，每帧产粒子也会让对象池以帧率空转。
         coeffIntervalMs += dt
@@ -1589,16 +1582,15 @@ private class WaveInAppSim {
             // GLWaveLayer.updateData：攻击瞬时跟随，释放按 a=0.8 平滑；
             // 只有上升沿且系数 > 0.25 才产粒子（静默底浪 0.06 不会产粒子）。
             if (target > amplitude) {
-                amplitude = target
-                if (target > 0.25f) produceBubbles()
+                amplitude = wiaSmooth(amplitude, target, 0.18f)
+                if (target > 0.25f && random.nextFloat() < 0.04f) produceBubbles()
             } else {
-                amplitude = wiaSmooth(amplitude, target, 0.8f)
+                amplitude = wiaSmooth(amplitude, target, 0.12f)
             }
             layers.forEach { layer -> layer.waves.forEach { it.feedCoefficient(amplitude) } }
         }
 
-        val dAngle = (2.0 * PI / WIA_WAVE_PERIOD_MS).toFloat() * dt * speedScale
-        layers.forEach { layer -> layer.waves.forEach { it.advance(dAngle * layer.speedCoef) } }
+        layers.forEach { layer -> layer.waves.forEach { it.advance(dt.toFloat() * if (reducedMotion) 0.5f else 1f) } }
 
         val bubbleDAngle = (2.0 * PI / WIA_BUBBLE_PERIOD_MS).toFloat() * dt
         bubbles.forEach { b ->
@@ -1636,7 +1628,7 @@ private fun DrawScope.drawWaveInAppSim(
 ) {
     val w = size.width
     val h = size.height
-    val baseline = h * 0.86f
+    val baseline = h * 0.62f
     val alpha = if (isMuted) 0.5f else 1f
 
     sim.layers.forEach { layer ->
@@ -1648,7 +1640,7 @@ private fun DrawScope.drawWaveInAppSim(
             // Utils.normalizeGl(waveX, fromX, toX)：拱顶横移量映射回本拱的归一化区间。
             val controlNX = wave.fromX + (wave.waveX + 1f) * 0.5f * (wave.toX - wave.fromX)
             val cx = (controlNX + 1f) * 0.5f * w
-            val cy = baseline - sin(wave.angle) * wave.coefficient * waveH
+            val cy = baseline - wave.displacement * waveH
             path.quadraticBezierTo(cx, cy, x1, baseline)
         }
         path.lineTo(w, h)
@@ -1676,7 +1668,7 @@ private fun DrawScope.drawWaveInAppSim(
         val x1 = (wave.toX + 1f) * 0.5f * w
         val controlNX = wave.fromX + (wave.waveX + 1f) * 0.5f * (wave.toX - wave.fromX)
         val cx = (controlNX + 1f) * 0.5f * w
-        val cy = baseline - sin(wave.angle) * wave.coefficient * h * front.ampFrac
+        val cy = baseline - wave.displacement * h * front.ampFrac
         if (i == 0) core.moveTo(x0, baseline)
         core.quadraticBezierTo(cx, cy, x1, baseline)
     }
