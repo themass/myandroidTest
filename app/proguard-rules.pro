@@ -256,3 +256,12 @@ public static java.lang.String TABLENAME;
 -keepclassmembers class com.openapi.myapp.ui.globe.GlobeWebView$Bridge {
     @android.webkit.JavascriptInterface <methods>;
 }
+# GeoNode fields are serialized to JSON and read by name in globe.html.
+-keep class com.openapi.myapp.ui.globe.GlobeWebView$GeoNode { *; }
+# These Gson models are stored in SharedPreferences across app upgrades or sent as JSON.
+-keep class com.openapi.data.local.UserNodeStore$UserNode { *; }
+-keep class com.openapi.data.vpn.engine.MtuReport$Item { *; }
+-keep class com.openapi.myapp.data.UsageReport$Item { *; }
+# Class.forName() uses literal names for optional VPN backends.
+-keep class com.wireguard.android.backend.GoBackend { *; }
+-keep class io.nekohasekai.libbox.Libbox { *; }

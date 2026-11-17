@@ -402,7 +402,7 @@ The log is sent once, only after you agree, and is used solely for diagnosing bu
     <string name="reward_pending">Ad watched. Your ticket will appear shortly.</string>
     <string name="reward_redeemed">VIP time added</string>
     <string name="reward_ad_unavailable">No ad available right now. Try again later.</string>
-    <string name="proxy_trying">Trying %1$s…</string>
+    <string name="proxy_trying">Trying…</string>
     <string name="reward_daily_limit">You have reached today\'s limit. Come back tomorrow.</string>
     <!-- 网络体检 -->
     <string name="setting_net_check">Network check</string>

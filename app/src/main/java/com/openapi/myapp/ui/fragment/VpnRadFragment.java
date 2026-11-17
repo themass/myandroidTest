@@ -1365,7 +1365,7 @@ public class VpnRadFragment extends BaseFragment {
                             + ":" + candidate.result.port());
                     if (getContext() != null) {
                         android.widget.Toast.makeText(getContext(),
-                                getString(R.string.proxy_trying, candidate.protocol),
+                                getString(R.string.proxy_trying),
                                 android.widget.Toast.LENGTH_SHORT).show();
                     }
                     repo.connect(TunnelProtocol.VLESS_REALITY, request);

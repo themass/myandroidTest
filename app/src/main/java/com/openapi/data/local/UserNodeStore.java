@@ -99,7 +99,7 @@ public final class UserNodeStore {
             throw new ShareLinkParser.ParseException("链接里没有服务器地址");
         }
         String remark = name != null && !name.trim().isEmpty() ? name.trim()
-                : (result.remark.isEmpty() ? result.protocol + " node" : result.remark);
+                : (result.remark.isEmpty() ? address.get("address").getAsString() : result.remark);
         node.name = remark;
         node.protocol = result.protocol;
         node.outboundJson = result.outbound.toString();
