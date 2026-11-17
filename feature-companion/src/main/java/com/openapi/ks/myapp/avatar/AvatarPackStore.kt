@@ -22,6 +22,15 @@ class AvatarPackStore(context: Context) {
     fun installedVersion(avatarKey: String): Int? =
         dir(avatarKey).listFiles()?.mapNotNull { it.name.removePrefix("v").toIntOrNull() }?.maxOrNull()
 
+    /** 已安装的分层形象（PNG 图层格式）；没装、坏了或不是分层格式返回 null。 */
+    fun loadLayered(avatarKey: String): LayeredAvatarPack? {
+        val version = installedVersion(avatarKey) ?: return null
+        val versionDir = File(dir(avatarKey), "v$version")
+        return runCatching {
+            LayeredAvatarPack.parse(File(versionDir, "manifest.json").readText(), versionDir)
+        }.getOrNull()
+    }
+
     /** 已安装的最新版本的素材；没装或坏了返回 null。 */
     fun load(avatarKey: String): AvatarFiles? {
         val version = installedVersion(avatarKey) ?: return null
@@ -49,7 +58,7 @@ class AvatarPackStore(context: Context) {
         val staging = File(dir(avatarKey), ".staging-v$version-${System.nanoTime()}").apply { mkdirs() }
         try {
             zip.inputStream().use { unzip(it, staging) }
-            AvatarManifest.parse(File(staging, "manifest.json").readText(), staging)   // 装之前先确认包是完整的
+            validateManifest(File(staging, "manifest.json").readText(), staging)   // 装之前先确认包是完整的
             target.deleteRecursively()
             if (!staging.renameTo(target)) throw Corrupt("无法安装形象包")
         } finally {
@@ -62,6 +71,14 @@ class AvatarPackStore(context: Context) {
 
     fun remove(avatarKey: String) {
         dir(avatarKey).deleteRecursively()
+    }
+
+    /** 两种格式任一通过即可：旧的立绘/表情格式，或新的分层格式。都不通过就是坏包。 */
+    private fun validateManifest(json: String, root: File) {
+        val legacy = runCatching { AvatarManifest.parse(json, root) }.exceptionOrNull()
+        if (legacy == null) return
+        val layered = runCatching { LayeredAvatarPack.parse(json, root) }.exceptionOrNull()
+        if (layered != null) throw Corrupt("manifest 不是可识别的形象包格式")
     }
 
     private fun dir(avatarKey: String): File = File(root, avatarKey)
