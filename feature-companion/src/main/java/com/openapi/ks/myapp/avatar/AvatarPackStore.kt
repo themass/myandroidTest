@@ -22,13 +22,17 @@ class AvatarPackStore(context: Context) {
     fun installedVersion(avatarKey: String): Int? =
         dir(avatarKey).listFiles()?.mapNotNull { it.name.removePrefix("v").toIntOrNull() }?.maxOrNull()
 
-    /** 已安装的分层形象（PNG 图层格式）；没装、坏了或不是分层格式返回 null。 */
+    /**
+     * 已安装的分层形象（PNG 图层格式）；没装、manifest 坏了、不是分层格式，
+     * 或有任意图层解不出图片，都返回 null——调用方（通话页）据此退回圆形头像，
+     * 而不是把缺图层的人画出来。
+     */
     fun loadLayered(avatarKey: String): LayeredAvatarPack? {
         val version = installedVersion(avatarKey) ?: return null
         val versionDir = File(dir(avatarKey), "v$version")
         return runCatching {
             LayeredAvatarPack.parse(File(versionDir, "manifest.json").readText(), versionDir)
-        }.getOrNull()
+        }.getOrNull()?.takeIf { it.decodable() }
     }
 
     /** 已安装的最新版本的素材；没装或坏了返回 null。 */
@@ -73,12 +77,17 @@ class AvatarPackStore(context: Context) {
         dir(avatarKey).deleteRecursively()
     }
 
-    /** 两种格式任一通过即可：旧的立绘/表情格式，或新的分层格式。都不通过就是坏包。 */
+    /**
+     * 两种格式任一通过即可：旧的立绘/表情格式，或新的分层格式。都不通过就是坏包。
+     *
+     * 分层格式还要过一遍「每张图层都解得出图」：manifest 字段齐但 PNG 是截断的包，
+     * 装进去以后画出来就是缺半张脸。在安装阶段拒绝，本地已装好的版本因此不受影响。
+     */
     private fun validateManifest(json: String, root: File) {
-        val legacy = runCatching { AvatarManifest.parse(json, root) }.exceptionOrNull()
-        if (legacy == null) return
-        val layered = runCatching { LayeredAvatarPack.parse(json, root) }.exceptionOrNull()
-        if (layered != null) throw Corrupt("manifest 不是可识别的形象包格式")
+        if (runCatching { AvatarManifest.parse(json, root) }.isSuccess) return
+        val pack = runCatching { LayeredAvatarPack.parse(json, root) }.getOrNull()
+            ?: throw Corrupt("manifest 不是可识别的形象包格式")
+        LayeredAvatarPack.firstUndecodableLayer(pack)?.let { throw Corrupt("图层无法解码：$it") }
     }
 
     private fun dir(avatarKey: String): File = File(root, avatarKey)

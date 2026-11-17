@@ -64,9 +64,14 @@ fun LayeredAvatar(
     val currentMouth by rememberUpdatedState(mouthLevel)
     val currentOnTapped by rememberUpdatedState(onTapped)
 
+    // 任意图层解不出来就整幅不画：缺图层的她（少只手、少张脸）比不画更糟。
+    // 正常情况下加载侧已经拦掉了这种包，这里只是最后一道；中央声场仍在，页面不至于空。
     val bitmaps by produceState<Map<String, ImageBitmap>?>(initialValue = null, pack) {
         value = withContext(Dispatchers.IO) {
-            pack.layers.mapNotNull { layer -> decodeScaled(layer.file)?.let { layer.id to it } }.toMap()
+            pack.layers
+                .mapNotNull { layer -> decodeScaled(layer.file)?.let { layer.id to it } }
+                .toMap()
+                .takeIf { it.size == pack.layers.size }
         }
     }
 

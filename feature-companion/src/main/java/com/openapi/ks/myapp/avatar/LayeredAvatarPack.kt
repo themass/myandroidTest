@@ -31,6 +31,12 @@ data class LayeredAvatarPack(
     fun variant(group: String, variant: String): LayerFile? =
         layers.firstOrNull { it.group == group && it.variant == variant }
 
+    /**
+     * 每张图层是否都能被解码器识别（只读 PNG 头部，不解码像素）。
+     * 为 false 时调用方应退回圆形头像，而不是画半个形象。
+     */
+    fun decodable(): Boolean = firstUndecodableLayer(this) == null
+
     companion object {
         class Invalid(message: String) : Exception(message)
 
@@ -92,5 +98,15 @@ data class LayeredAvatarPack(
                 layers = layers,
             )
         }
+
+        /**
+         * 只读 PNG 头部确认每张图层都能被解码器识别（[decodeScaled] 的 bounds 预读），
+         * 不全量解码，所以便宜。返回第一个读不出来的路径，全部正常返回 null。
+         *
+         * manifest 校验只保证「文件在、字段全」，不保证那是有效图片；坏 PNG 到渲染阶段
+         * 只会得到半张脸甚至空白。入库前和每次加载都过一遍，宁可退回圆形头像。
+         */
+        fun firstUndecodableLayer(pack: LayeredAvatarPack): String? =
+            pack.layers.firstOrNull { decodeImageBounds(it.file) == null }?.file?.path
     }
 }
