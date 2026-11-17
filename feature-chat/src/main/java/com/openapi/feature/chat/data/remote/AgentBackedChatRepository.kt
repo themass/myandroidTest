@@ -387,22 +387,17 @@ class AgentBackedChatRepository(
     // ------------------------------------------------------------ 附件 / 语音 / 人设
 
     /**
-     * 附件：目前整体走旧的 Java 链路（图片 + 文件都支持）。
+     * 图片附件走 `/v1`：先 `POST /v1/uploads` 拿到 `upload_id`，再随消息只带这个引用。
      *
-     * **为什么不是 `/v1`：两个硬阻塞，都不是客户端能修的。**
-     * 1. `/v1/uploads` 只认四种图片（jpeg/png/webp/heic，见服务端 `policy.detect_type`），
-     *    **文件类型在 `/v1` 上根本没有对应能力**。迁过去就等于删掉「发文件」这个功能。
-     * 2. 实测 `POST /v1/uploads` 返回 500：
-     *    `SignatureDoesNotMatch` —— 服务端 TOS 的 access key 被识别、
-     *    但 secret 对不上（若是 key 无效会报 `InvalidAccessKeyId`）。
-     *    这是服务器 `.env` 里的凭据问题，客户端无论怎么写都失败。
+     * 以前这里委托给旧的 multipart 链路（`/chat/ai/recognize.json`），当时有两个阻塞：
+     * 服务端 TOS 的 secret 与 access key 不配对（`SignatureDoesNotMatch` 500），
+     * 以及 `/v1/uploads` 只认图片。第一个是真 bug，已修（`.env` 的 `TOS_SECRET_KEY`）。
+     * 第二个是能力边界：**文件**（非图片）在 `/v1` 仍然没有对应接口，继续走 legacy，
+     * 这是功能缺口，不是绕路。
      *
-     * 所以这里**委托给 legacy 实现**，而不是像上一版那样用
-     * `if (kind != IMAGE) return null` 把文件静默吞掉——那是我迁 `/v1` 时写出来的一处功能回退。
-     *
-     * **切换条件**：等 TOS 凭据修好、且服务端 `/v1/uploads` 放开文件类型之后，
-     * 把这里换回 `/v1`（`remote.upload` + `submitWithAttachments`），
-     * 这样附件才会进 `/v1` 的历史与消息模型。
+     * 图片一旦上传成功，服务端回合层会把它读成 data URL 交给模型（见
+     * `turn_runner._load_images` 与 `ImageAttachmentMiddleware`），所以这里必须带 `upload_id`
+     * 而不是本地路径——本地路径只有这台手机认识。
      */
     override suspend fun sendAttachment(
         sessionId: Long,
@@ -410,7 +405,35 @@ class AgentBackedChatRepository(
         localFile: File,
         fileName: String,
         placeholderId: String,
-    ): ChatReply? = legacy.sendAttachment(sessionId, kind, localFile, fileName, placeholderId)
+    ): ChatReply? {
+        if (kind != MessageKind.IMAGE) {
+            // 文件没有 `/v1` 接口，仍走 legacy。这里不静默返回 null（那会吞掉功能）。
+            return legacy.sendAttachment(sessionId, kind, localFile, fileName, placeholderId)
+        }
+        val session = resolveSessionId(sessionId, null, null)
+        val uploadId = withContext(Dispatchers.IO) {
+            remote.upload(localFile, mimeOf(localFile))
+        }
+        val attachment = JSONObject()
+            .put("upload_id", uploadId)
+            .put("kind", "image")
+            .put("name", fileName)
+        val receipt = remote.submitWithAttachments(
+            sessionId = session,
+            text = "",
+            clientMessageId = placeholderId,
+            attachments = listOf(attachment),
+        )
+        return ChatReply(id = placeholderId, text = awaitTurnText(session, receipt.turnId))
+    }
+
+    /** 按扩展名给 Content-Type；服务端只认 jpeg/png/webp/heic，其他一律按 jpeg 试。 */
+    private fun mimeOf(file: File): String = when (file.extension.lowercase()) {
+        "png" -> "image/png"
+        "webp" -> "image/webp"
+        "heic", "heif" -> "image/heic"
+        else -> "image/jpeg"
+    }
 
     /** 收一轮的完整文字（附件路径用：界面只关心最终那段回复，不需要逐字）。 */
     private suspend fun awaitTurnText(sessionId: Long, expectedTurnId: String?): String {

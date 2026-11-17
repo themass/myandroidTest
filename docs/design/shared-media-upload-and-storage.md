@@ -1,9 +1,10 @@
 # 多应用共享图片直传与 TOS 存储设计
 
-> 状态：**设计提案，未实施**。日期 2026-11-17（v3，取代 v2；v2 引入又撤销的应用级 HMAC 见 git 历史）。
+> 状态：**部分已实施**（v4）。§8 的 TOS 凭据修复、图片进模型、聊天图片走 `/v1` 已落地；
+> 客户端直传（§5）、头像与解题闭环（§7.2/§7.3）、签发记录表（§9）仍是提案。
+> 日期 2026-11-17（v3 引入登录态鉴权；v2 的应用级 HMAC 已撤销，见 git 历史）。
 > 适用：当前 Android 应用，以及计划复用流程的另外三个应用。
 > 范围：解题图片、聊天图片、账号头像。
-> 本文不部署桶、不改业务代码、不配置凭据。
 
 ## 1. 结论
 
@@ -179,22 +180,66 @@ POST /api/media/v1/read.json
 - 旧头像 key 释放引用，进 GC。
 - 服务端现有 `UserVo.photo` / `UserPo.photo` 已存在但未证实库里有数据；先保留读取，新字段 `avatar_media_id` 为真相来源。
 
-## 8. 图片怎么进模型：现状与要改的东西
+## 8. 图片怎么进模型：已改了什么
 
-「客户端压缩 → 上传 → 推理服务下载 → 模型看图」这条链，**后半段目前不存在**。代码实测：
+「客户端压缩 → 上传 → 服务端读桶 → 模型看图」这条链原来**只通了一半**：图在桶里，模型从来没见过。现在三段都接上了。
 
-- **Android 聊天附件今天不走 `/v1`**：整体委托给旧 Java 链路（multipart 直传 `/chat/ai/recognize.json`）。`AgentBackedChatRepository.sendAttachment` 的注释写明了切换前的两个阻塞：`/v1/uploads` 只认 jpeg/png/webp/heic 四种类型（发文件在 `/v1` 没有能力），且服务端 TOS 凭据有 `SignatureDoesNotMatch` 500。
-- **companion-agent 收了图但从没交给模型**：`/v1/uploads` 把图存进 TOS（前缀 `companion/`），附件只写进消息的 `meta["attachments"]`；回合输入 `TurnInputMessage` 只有 `message_id` 和 `text`（`agent/brain/port.py`），`turn_runner._load_inputs` 只取 `record.content`。全仓搜不到 `image_url / base64 / vision / multimodal`。**图在桶里，模型从来没见过。**
+### 8.1 先修那个挡住一切的 bug
 
-所以要改的有三块，agentkit 是其中**最小**的一块：
+`POST /v1/uploads` 一直 500，`SignatureDoesNotMatch`。2026-11-17 实测确认了根因，**不是代码问题**：
 
-| 改什么 | 在哪 | 规模 |
+| 检查 | 结果 |
+|---|---|
+| 用 job-come 的 `JC_S3_*` 直连 `sspacee`（head/put/get/delete） | 全部 200 |
+| job-come 的 AK 与 companion 的 AK | 同一个（sha 前缀相同，47 字符） |
+| job-come 的 SK 与 companion 的 SK | **不同**：60 字符 vs **58 字符** |
+| 用 companion 原 `.env` 跑 `UploadService.accept` | 复现 `SignatureDoesNotMatch` |
+| 换成 job-come 的 SK 再跑同一段代码 | 上传、签名 GET、删除全通 |
+
+即：companion 的 `TOS_SECRET_KEY` 被截断/过期，与 AK 不配对，而 `companion/` 前缀下 **0 个对象**（`companion-test/` 有 2026-11-09 的残留），说明这条路径从没成功过。
+
+**修了三处**：`.env` 的 SK 换成 job-come 那一把（两个项目本来就共用同一对凭据）；`assert_storage_reachable` 在装配时 HEAD 一次桶，配错就**拒绝启动**；`.env.example` 写明这套变量与 job-come 的对应关系。
+
+> 顺带排除了两个常见误诊：region 填错（`cn-north-1`、`us-east-1` 都返回 200）和路径风格（path style 返回 403，virtual 才是对的）。所以只有 SK 这一种解释成立。
+
+### 8.2 图片真的到模型了
+
+原来 `TurnInputMessage` 只有 `message_id` 和 `text`，`_load_inputs` 只取 `record.content`，附件躺在 `meta["attachments"]` 里没人读。现在：
+
+```text
+消息 meta["attachments"]
+  → _load_inputs 取出 upload_id（_attachment_ids）
+  → TurnInputMessage.upload_ids
+  → TurnRunner._load_images：逐个 get_owned 校验归属 → 读字节 → data URL
+  → TurnRequest.images {消息主键: (data URL, ...)}
+  → ImageAttachmentMiddleware：只改这一次模型请求的消息内容
+```
+
+三个设计决定，都不是随意的：
+
+- **走 base64 data URL，不签 GET URL。** 模型网关只吃 URL 或 base64，而桶是私有的。签名 URL 塞进模型请求等于把 bearer secret 交给第三方，还要担心 5 分钟过期。服务端有 AK/SK，直接读字节最省事也最安全。
+- **只改 `request.messages`，不碰 `state`。** 对话线程由 LangGraph checkpoint 持久化，每轮把历史重放给模型。一张 800 KiB 的图转 base64 约 1 MB；几轮之后 checkpoint 会涨到几十 MB，每轮还要重新序列化和重发。中间件只改写这一次请求，checkpoint 里存的始终是纯文字。
+- **先 `get_owned` 再读。** 否则猜中一个 ULID 就能让模型看别人的图。别人的 `upload_id` 走的是「不存在」那条路，与读失败一样只跳过这一张并记日志——文字照常进模型，一张图坏了不拖垮整轮。
+
+### 8.3 三类图同一条链路
+
+头像、消息图片、解题图片**共用**同一条通道，不各自发明：
+
+| | 场景 | 现状 |
 |---|---|---|
-| `ObjectStore` 增加 `presigned_put_url`（如果签发接口落在 agentkit 系服务里） | agentkit `storage/object_store.py`——今天只有 `put_object` / `get_object_bytes` / `delete_object` / `presigned_get_url`，没有 presigned PUT | 小 |
-| 回合输入带上附件（图片 key 列表），大脑构造多模态消息时按 key 读桶、拼进模型请求 | companion-agent：`port.py`、`turn_runner.py`、brain 的消息构造 | 中，**这是真正缺的一段** |
-| Android 把图片附件从 legacy multipart 切回 `/v1`（直传后消息只带 key） | `AgentBackedChatRepository` + 新的 `MediaUploader` | 中 |
+| 消息图片 | `chat-image` | **已改**：`sendAttachment` 的 IMAGE 分支走 `/v1/uploads` + `submitWithAttachments` |
+| 头像 | `user-avatar` | 待接（§7.3 的 `avatar_media_id` 闭环） |
+| 解题图片 | `solve-image` | 待接（§7.2，建议单独放宽到 2000px / 1.5MiB） |
 
-「推理服务下载图片」这一步本身**不需要**改 agentkit 之外的取图代码：`ObjectStore.get_object_bytes`（或 `presigned_get_url`）已经能按 key 取图。缺的是把图交给模型的那一步，不是取图的那一步。
+底层只有一份：`UploadService`（校验类型与像素、去 EXIF、统一转 JPEG、写 `TOS_KEY_PREFIX` 下的对象）+ `ObjectStore`。
+
+**文件（非图片）仍走 legacy。** `/v1/uploads` 只认四种图片格式，`ChatRepository.sendAttachment` 的 FILE 分支继续委托旧 multipart 接口。这是能力缺口，不是绕路——要迁得先在 `/v1` 上补文件类型。
+
+### 8.4 agentkit 的改动
+
+`agentkit/storage/object_store.py` 加了 `presigned_put_url`（只签单 key 的写权限），给后续「客户端直传」用；今天 chat 走的是服务端中转，还不依赖它。
+
+companion-agent 自己的 `TosObjectStore` 是另一份实现（它不走 agentkit 的 `ObjectStore`），本次加了 `get`（读字节给模型）和 `check_bucket`（启动自检）。
 
 ## 9. 数据与清理
 
@@ -250,5 +295,5 @@ POST /api/media/v1/read.json
 2. **四个应用是否都已经有这套登录**——鉴权改回登录 token 后这是硬前提；有接不上的，要么先接登录，要么它不走新链路。
 3. 头像是否允许公开可见。
 4. 解题图是否单独放宽到 2000px / 1.5MiB。
-5. **聊天图既然不跨设备，是否还需要上传？** 只有「给模型看」这一个理由，而 §8 表明这条模型链路目前根本不存在——先决定要不要建它，再决定聊天图走不走新链路。
-6. 服务端 TOS 凭据的 `SignatureDoesNotMatch`（companion-agent `/v1/uploads` 500 的根因）由谁修、何时修——它挡着附件从 legacy 迁到 `/v1`。
+5. 聊天图今天走的是**服务端中转**（客户端 → `/v1/uploads` → 服务端写桶），不是 §5 的客户端直传。要不要改成直传，取决于中转的带宽/延迟是否成为瓶颈；不改也不影响功能。
+6. 部署环境的 `.env` 用的是 `companion/` 还是 `companion-qa/` 前缀，以及生产那把 SK 是否与 job-come 保持一致（本地已对齐，线上需要确认）。
