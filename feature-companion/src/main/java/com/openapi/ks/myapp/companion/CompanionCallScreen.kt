@@ -840,12 +840,15 @@ private fun BreathingRing(
         run {
             val cycle = ripplePhase.value / (2f * PI.toFloat())
             val startRadius = 74.dp.toPx()
-            val endRadius = 94.dp.toPx() + (unit * 1.28f - 94.dp.toPx()).coerceAtLeast(0f) * lv
+            // 波纹的行程不乘音量：普通语音电平常在 0.1~0.4，乘上去永远到不了边。
+            // 外层内容左右各留 20dp，终点越过这个留白才是真正屏幕边缘。
+            val endRadius = maxOf(startRadius + 24.dp.toPx(), unit + 32.dp.toPx())
             for (k in 0..2) {
                 val p = (cycle + k / 3f) % 1f
                 val fadeIn = (p / 0.12f).coerceAtMost(1f)
-                val fadeOut = Math.pow((1f - p).toDouble(), 1.6).toFloat()
-                val alpha = (fadeIn * fadeOut * (0.035f + 0.38f * lv)).coerceIn(0f, 0.6f)
+                // 大部分行程保持可见，仅最后 22% 渐隐，避免还没到边就消失。
+                val fadeOut = ((1f - p) / 0.22f).coerceIn(0f, 1f)
+                val alpha = (fadeIn * fadeOut * (0.035f + 0.50f * kotlin.math.sqrt(lv))).coerceIn(0f, 0.6f)
                 if (alpha < 0.01f) continue
                 val radius = startRadius + (endRadius - startRadius) * p
                 // 先画一层宽而淡的光晕，再画细描边：只有一条细线时会显得"硬"。
@@ -1481,8 +1484,8 @@ private const val WIA_BUBBLE_POOL = 10
 private const val WIA_BUBBLE_SIZE_DP = 4.5f
 
 /** 三层浪的浪高占比与填充透明度，沿用改版前实测好看的一组值。 */
-private val WIA_LAYER_AMP = floatArrayOf(0.22f, 0.17f, 0.12f)
-private val WIA_LAYER_ALPHA = floatArrayOf(0.16f, 0.24f, 0.34f)
+private val WIA_LAYER_AMP = floatArrayOf(0.58f, 0.46f, 0.36f)
+private val WIA_LAYER_ALPHA = floatArrayOf(0.24f, 0.32f, 0.44f)
 
 /** Utils.smooth：Holt 指数平滑。 */
 private fun wiaSmooth(prev: Float, new: Float, a: Float): Float = a * new + (1f - a) * prev
@@ -1502,7 +1505,8 @@ private class WiaWave(
     var latestCoefficient = 0f
     var waveX = 0f
     var displacement = 0f
-    private var displacementTarget = if (up) 0.4f else -0.4f
+    private val direction = if (up) 1f else -1f
+    private var displacementTarget = direction * 0.72f
     private var driftAge = 0f
     private var driftDuration = 600f + random.nextFloat() * 1400f
 
@@ -1512,12 +1516,13 @@ private class WiaWave(
         if (driftAge >= driftDuration) {
             driftAge = 0f
             driftDuration = 600f + random.nextFloat() * 1400f
-            displacementTarget = (random.nextFloat() * 2f - 1f) * 0.8f
+            // 保持拱的方向，独立调整高度；不在零附近来回抵消浪高。
+            displacementTarget = direction * (0.55f + random.nextFloat() * 0.40f)
         }
         coefficient += (latestCoefficient - coefficient) *
-            (1f - kotlin.math.exp(-dtMs / 420f))
+            (1f - kotlin.math.exp(-dtMs / 220f))
         displacement += (displacementTarget * coefficient - displacement) *
-            (1f - kotlin.math.exp(-dtMs / 600f))
+            (1f - kotlin.math.exp(-dtMs / 350f))
         waveX += (displacementTarget * 0.2f - waveX) *
             (1f - kotlin.math.exp(-dtMs / 900f))
     }
@@ -1556,6 +1561,7 @@ private class WaveInAppSim {
     private var amplitude = 0f
     private var lastFrameMs = 0L
     private var coeffIntervalMs = 0L
+    private var nextBubbleMs = 0L
 
     init {
         // GLWaveLayer.randomPoints：7 拱的边界点带 ±0.15 拱宽抖动，首尾固定在屏幕两端。
@@ -1596,7 +1602,8 @@ private class WaveInAppSim {
         val target = when {
             muted -> 0f
             level <= 0.02f -> 0f
-            else -> level
+            // 视觉响度压缩：轻声也可辨认，不再把正常音量压成一条细线。
+            else -> kotlin.math.sqrt(level.coerceIn(0f, 1f))
         }
         // 原版 updateData / setCoefficient 跟随音频数据帧（远低于帧率），统一节流到 ~10Hz：
         // 60fps 每帧随机化拱高会让波形像噪点，每帧产粒子也会让对象池以帧率空转。
@@ -1607,13 +1614,17 @@ private class WaveInAppSim {
             // 只有上升沿且系数 > 0.25 才产粒子（静默底浪 0.06 不会产粒子）。
             if (target > amplitude) {
                 amplitude = wiaSmooth(amplitude, target, 0.18f)
-                if (target > 0.25f && random.nextFloat() < 0.04f) produceBubbles()
             } else {
                 amplitude = wiaSmooth(amplitude, target, 0.12f)
             }
             layers.forEach { layer -> layer.waves.forEach { it.feedCoefficient(amplitude) } }
         }
 
+        // 只要有真实声音就按不规则间隔生成，不再依赖上升沿叠加 4% 概率。
+        if (!muted && level > 0.035f && nowMs >= nextBubbleMs) {
+            produceBubbles()
+            nextBubbleMs = nowMs + 240L + random.nextInt(420)
+        }
         layers.forEach { layer -> layer.waves.forEach { it.advance(dt.toFloat() * if (reducedMotion) 0.5f else 1f) } }
 
         val bubbleDAngle = (2.0 * PI / WIA_BUBBLE_PERIOD_MS).toFloat() * dt
@@ -1627,14 +1638,14 @@ private class WaveInAppSim {
 
     /** GLWaveLayer.produceBubbles：每批 0..2 个，从对象池取，速度/大小随机。 */
     private fun produceBubbles() {
-        repeat(random.nextInt(3)) {
+        repeat(1 + random.nextInt(2)) {
             val b = bubbles.firstOrNull { !it.active } ?: return
             b.active = true
             b.startX = -1f + random.nextFloat() * 2f
             b.angle = random.nextFloat() * 2f * PI.toFloat()
             b.centerY = -1f
             val coef = 0.4f + random.nextFloat() * 0.8f
-            b.virtualSpeed = 2f / WIA_BUBBLE_PERIOD_MS * coef
+            b.virtualSpeed = 2f / (WIA_BUBBLE_PERIOD_MS * 2.2f) * coef
             b.sizeDp = WIA_BUBBLE_SIZE_DP * (0.5f + random.nextFloat() * 0.8f)
         }
     }
@@ -1713,7 +1724,7 @@ private fun DrawScope.drawWaveInAppSim(
             val y = baseline - progress * riseH
             val fade = (1f - progress).coerceIn(0f, 1f)
             drawCircle(
-                color = color.copy(alpha = 0.55f * fade),
+                color = color.copy(alpha = 0.78f * fade),
                 radius = b.sizeDp.dp.toPx(),
                 center = Offset(x, y),
             )
