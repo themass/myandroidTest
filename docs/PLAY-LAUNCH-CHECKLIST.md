@@ -4,21 +4,21 @@
 
 ---
 
-## 一、商店文案
+## 一、商店文案（中英文）
 
-### 应用名称（30 字符内）
+### 英文应用名称（30 字符内）
 
 ```
 ShieldWing — Fast & Secure VPN
 ```
 
-### 简短说明（80 字符内）
+### 英文简短说明（80 字符内）
 
 ```
 One-tap VPN with a 3D server map. Encrypted tunnel, multiple protocols, no setup.
 ```
 
-### 完整说明（4000 字符内）
+### 英文完整说明（4000 字符内）
 
 ```
 ShieldWing is a lightweight VPN client that protects your connection with an
@@ -58,9 +58,48 @@ Note: VPN availability and speed depend on your network and location. Some
 services may still detect VPN usage.
 ```
 
-> **审核要点**：第一段必须出现 VpnService，第三段直接说明"用了 Android 的 VpnService API"——这是 Play 拒审的常见原因（"Use of VpnService is not documented in the app description"）。上面这段已满足。
+### 中文应用名称（30 字符内）
 
-> **不要写**：`100% anonymous`、`untraceable`、`no logs at all`、`unlimited free`。这些词受 Deceptive Behavior 条款约束，而我们确实收集设备 ID、IP 和连接元数据。
+```
+ShieldWing — 快速安全 VPN
+```
+
+### 中文简短说明（80 字符内）
+
+```
+一键连接 VPN，查看 3D 节点地图。加密隧道，多种协议，无需复杂设置。
+```
+
+### 中文完整说明（4000 字符内）
+
+```
+ShieldWing 是一款轻量级 VPN 客户端，通过设备与服务器之间的加密隧道保护你的网络连接。
+
+功能特点
+
+• 一键连接：在 3D 地球上选择节点，或直接点击连接
+• 多种协议：支持 IKEv2/IPsec、WireGuard 和 VLESS-Reality；某种协议在你的网络中不可用时，可尝试切换其他协议
+• 连接状态一目了然：查看会话计时、流量统计和每日用量图表；用量图表保存在设备本地
+• 快捷设置磁贴：无需打开应用，即可从通知栏连接或断开
+• 分应用代理：选择通过 VPN 隧道传输的应用
+
+工作原理
+
+ShieldWing 使用 Android 的 VpnService API，在你的设备与我们的服务器之间建立加密隧道。首次连接前，你需要在 Android 系统弹窗中授予 VPN 连接权限。
+
+隐私
+
+我们不记录你访问的网站或网络流量内容。为运行服务，我们会收集设备标识符、IP 地址、连接时长、流量用量及崩溃诊断信息。完整信息及账号删除方式请查看隐私政策：
+https://file.ok123find.top/privacy.html
+
+免费版与高级版
+
+免费版包含广告和每日流量额度。升级后可移除广告并提高额度。
+
+提示：VPN 的可用性和速度取决于你的网络和所在地区，部分服务仍可能识别 VPN 连接。
+```
+
+> **审核要点**：英文和中文完整说明都明确提到 Android VpnService API，并解释其用途；不要使用“100% anonymous”“untraceable”“no logs at all”“unlimited free”等无法由实际数据处理支撑的承诺。
 
 ---
 

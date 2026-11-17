@@ -1,106 +1,104 @@
-# ShieldWing 隐私政策
+# ShieldWing Privacy Policy
 
-**最后更新：2026 年 11 月 14 日**
+**Last updated: November 14, 2026**
 
-本政策说明 ShieldWing（以下简称"本应用"）如何收集、使用与保护你的信息。
+This policy explains how ShieldWing (the "app") collects, uses and protects your information. It applies to the ShieldWing Android application and nothing else.
 
-本应用由 ShieldWing（以下简称"我们"）运营。如有疑问，请联系 **justbegin010@gmail.com**。
+Questions: **justbegin010@gmail.com**.
 
-> 本文件是供 Google Play 审核与用户阅读的正式隐私政策文本。**上架前必须发布到一个公开可访问的 HTTPS 地址**，并把该地址填到 `Constants.PRIVACY_URL`，以及 Play Console 的"隐私政策"字段。
+## 1. What this app is
 
----
+ShieldWing is a VPN client. Using Android's **VpnService API**, it creates an encrypted tunnel between your device and our servers, and encrypts the network traffic that passes through that tunnel.
 
-## 一、本应用是什么
+**ShieldWing does not provide web browsing, content feeds, chat or social features.**
 
-ShieldWing 是一个 VPN 客户端。它通过 Android 系统提供的 **VpnService API**，在你的设备与我们的服务器之间建立一条加密隧道，加密你在隧道内的网络流量。
+## 2. What we collect
 
-**本应用不提供网页浏览、内容推荐、聊天或社交功能。**
+We collect only the categories needed to run the service. This table matches the Data Safety declaration filed with Google Play.
 
-## 二、我们收集哪些信息
-
-我们只收集运营服务所必需的类别。下表与 Play Console 的 Data Safety 表单一一对应。
-
-| 数据类型 | 具体内容 | 目的 | 是否必需 |
+| Data type | What exactly | Why | Required? |
 |---|---|---|---|
-| **设备或其他 ID** | 设备标识符（devId）、Android 广告 ID | 识别设备以分配节点配额、防止滥用；广告 ID 仅用于投放与衡量广告 | 是（核心功能必需；广告 ID 可通过系统设置重置或关闭） |
-| **IP 地址** | 连接时的公网 IP | 选择就近节点、诊断连接问题、防止滥用 | 是 |
-| **应用活动** | 连接与断开的时间、每次连接的时长、上传/下载流量字节数、所选节点、使用的协议、功能使用情况（如是否使用过收藏、分应用代理） | 统计用量、改进节点质量、判断功能是否被使用 | 是 |
-| **崩溃日志与诊断** | 崩溃堆栈、错误日志 | 修复缺陷 | 是 |
-| **账号信息**（可选） | 用户名、邮箱、密码哈希、会员等级与积分 | 登录、会员权益、找回密码 | 仅在你注册时 |
+| **Device or other IDs** | Device identifier (`devId`), Android Advertising ID | Identify the device to allocate node quota and prevent abuse. The advertising ID is used only to serve and measure ads. | Yes. The advertising ID can be reset or deleted in Android settings. |
+| **IP address** | The public IP you connect from | Pick a nearby node, diagnose connection failures, prevent abuse | Yes |
+| **App activity** | Connect/disconnect times, session duration, bytes uploaded and downloaded, selected node, protocol used, and features used such as favourites and split tunneling | Usage statistics, node quality, understanding which features are used | Yes |
+| **Crash logs and diagnostics** | Crash stack traces and error logs | Fix defects | Yes |
+| **Account information (optional)** | Username, e-mail, password hash, membership tier and points | Sign-in, membership benefits, password recovery | Only if you register |
 
-### 我们不收集的信息
+### What we do not collect
 
-- **不记录你访问的网站、DNS 查询、浏览内容或通信内容。** 隧道内的流量我们不解密、不存储、不做内容分析。
-- 不读取通讯录、短信、通话记录、相册、麦克风、相机、精确位置。
-- 不使用 GPS。地球视图上的"我的位置"由**系统时区**推算城市级坐标，仅在本地计算，不上传。
+- **We do not record the websites you visit, your DNS queries, page content or communications.** Traffic inside the tunnel is not decrypted, stored or analysed.
+- We do not read your contacts, SMS, call log, photo library, microphone, camera or precise location.
+- We do not use GPS. The "my location" marker on the globe is derived from your system time zone, computed on the device only, and never uploaded.
 
-## 三、我们如何使用这些信息
+## 3. How we use it
 
-1. 建立与维持 VPN 连接；
-2. 分配节点、防止单设备滥用配额；
-3. 展示用量统计（这部分数据默认只存在你的设备上）；
-4. 诊断连接失败与崩溃；
-5. 投放与衡量广告（免费版）；
-6. 在你注册账号时提供登录与会员权益。
+We use the information above to:
 
-## 四、数据共享
+1. Establish and maintain the VPN connection;
+2. Allocate nodes and prevent a single device from abusing quota;
+3. Show usage statistics, which stay on your device by default;
+4. Diagnose connection failures and crashes;
+5. Serve and measure advertising for the free tier; and
+6. Provide sign-in and membership benefits when you register.
 
-我们**不出售**你的个人信息。以下情形属于共享：
+## 4. Sharing
 
-| 接收方 | 数据 | 目的 |
+We **do not sell** your personal information. The following count as sharing:
+
+| Recipient | Data | Purpose |
 |---|---|---|
-| **Google AdMob** | 广告 ID、IP、设备信息、应用交互事件 | 投放与衡量广告。AdMob 可能据此跨应用构建广告画像。详见 Google 的隐私政策。 |
-| **云服务提供商** | 上述服务器侧数据 | 仅作为数据处理方，按我们的指示存储，不用于自身目的 |
+| **Google AdMob** | Advertising ID, IP address, device information, in-app interaction events | Serving and measuring ads. AdMob may use this to build advertising profiles across apps. See Google's privacy policy. |
+| **Cloud hosting provider** | The server-side data described above | Data processor only; stores data on our instructions and does not use it for its own purposes |
 
-因为广告 SDK 可能将设备标识用于跨应用广告，按 Play 的定义这属于"共享"，我们已在 Data Safety 表单中如实申报。
+Because the advertising SDK may use device identifiers for cross-app advertising, Google Play treats this as "sharing", and we declare it as such in the Data Safety form.
 
-## 五、数据保留
+## 5. Retention
 
-| 数据 | 保留期限 |
+| Data | Retained for |
 |---|---|
-| 每日用量汇总（连接时长、流量、节点、功能使用） | 24 个月，之后聚合为不可识别个人的统计 |
-| 崩溃日志 | 12 个月 |
-| 账号信息 | 直到你注销账号 |
-| 广告 ID | 由你通过系统设置控制；我们不单独留存 |
+| Daily usage summary (duration, traffic, node, feature use) | 24 months, then aggregated into statistics that cannot identify a person |
+| Crash logs | 12 months |
+| Account information | Until you delete your account |
+| Advertising ID | Controlled by you through Android settings; we do not retain it separately |
 
-## 六、你的权利
+## 6. Your rights
 
-### 删除账号
+### Deleting your account
 
-你可以在 **应用内 → 设置 → 账号 → Delete account** 自行删除账号，需要输入密码确认。删除后：
+You can delete your account inside the app under **Settings → Account → Delete account**, confirmed with your password. After deletion:
 
-- 账号行、你保存的节点、登录凭据会被永久删除；
-- 已有的用量统计会脱离账号主体保留为匿名记录；
-- 此操作不可撤销。
+- The account record, any nodes you saved, and your login credentials are permanently deleted;
+- Usage statistics already collected are kept free of any link to you, as anonymous records; and
+- The action cannot be undone.
 
-**无法登录应用，或已卸载应用的用户**，可以通过网页提交删除请求：<https://www.ok123find.top/account-delete.html>，或发邮件到 justbegin010@gmail.com。我们会在 30 天内处理。
+**If you cannot sign in, or have already uninstalled the app**, submit a deletion request at <https://file.ok123find.top/account-delete.html> or e-mail **justbegin010@gmail.com**. We handle these requests within 30 days.
 
-### 其他权利
+### Other rights
 
-- **访问与更正**：在应用内查看账号信息，或联系我们更正。
-- **退出个性化广告**：Android 设置 → 隐私 → 广告 → 删除广告 ID / 关闭个性化广告。
-- **拒绝或撤回同意**：EEA、英国、瑞士用户会看到同意表单；之后可在应用内重新触发（设置 → 隐私）。
+- **Access and correction:** view your account information in the app, or contact us to correct it.
+- **Opt out of personalised advertising:** Android Settings → Privacy → Ads → delete advertising ID or turn off personalised ads.
+- **Withdraw consent:** users in the EEA, UK and Switzerland see a consent form; it can be triggered again later from Settings → Privacy in the app.
 
-## 七、儿童
+## 7. Children
 
-本应用不面向 13 岁以下儿童，我们不会有意收集儿童的个人信息。若你发现此类情况，请联系我们删除。
+This app is not directed at children under 13, and we do not knowingly collect personal information from them. If you become aware of such a case, contact us and we will delete it.
 
-## 八、安全
+## 8. Security
 
-- 隧道内流量使用行业标准加密（IKEv2/IPsec、WireGuard、VLESS-Reality 等）；
-- 客户端与服务器之间的 API 使用 HTTPS；
-- 密码以哈希形式存储，我们无法还原明文。
+- Traffic inside the tunnel uses industry-standard encryption (IKEv2/IPsec, WireGuard and VLESS-Reality);
+- Client-to-server API traffic uses HTTPS; and
+- Passwords are stored as hashes; we cannot recover the plaintext.
 
-但请注意：没有任何系统能保证绝对安全。VPN 保护的是"设备到我们服务器"这一段，你访问的目标网站仍可能看到你的请求内容（在隧道出口之后）。
+No system can guarantee absolute security. A VPN protects the segment between your device and our servers; websites you visit can still see your requests after the tunnel exit.
 
-## 九、国际传输
+## 9. International transfers
 
-我们的服务器位于多个国家和地区。使用本应用时，你的连接数据可能被传输到你所在国家以外的服务器。我们通过加密传输与访问控制来保护这些数据。
+Our servers are located in several countries and regions. When you use the app, your connection data may be transferred to servers outside your country. We protect this data with encrypted transport and access controls.
 
-## 十、政策变更
+## 10. Changes
 
-我们更新本政策时会在本页面修改"最后更新"日期，重大变更会在应用内提示。继续使用即表示接受更新后的政策。
+When we update this policy we change the "last updated" date on the published page, and significant changes are announced in the app. Continuing to use the app means you accept the updated policy.
 
-## 十一、联系我们
+## 11. Contact
 
-邮箱：**justbegin010@gmail.com**
+E-mail: **justbegin010@gmail.com**
