@@ -22,6 +22,8 @@ import kotlin.math.sqrt
 data class CallAudioPreviewState(
     val speaker: String? = null,
     val level: Float = 0f,
+    /** 当前 20ms 窗口的频段能量（[VoiceSpectrum.BANDS] 个，低频在前）；没在播放时为空。 */
+    val bands: FloatArray = FloatArray(0),
     val preparing: Boolean = false,
     val text: String = "",
     val error: String? = null,
@@ -136,7 +138,10 @@ class CallAudioPreview(context: Context) {
             ticker = scope.launch {
                 while (audio.isPlaying) {
                     val index = audio.currentPosition / 20
-                    mutable.value = mutable.value.copy(level = envelope.getOrElse(index) { 0f })
+                    mutable.value = mutable.value.copy(
+                        level = envelope.levels.getOrElse(index) { 0f },
+                        bands = envelope.bands.getOrElse(index) { FloatArray(0) },
+                    )
                     delay(20)
                 }
             }
@@ -146,7 +151,10 @@ class CallAudioPreview(context: Context) {
         }
     }
 
-    private fun readEnvelope(file: File): FloatArray? {
+    /** 每 20ms 一个窗口：音量（已做视觉压缩）与频段能量，按播放位置取用。 */
+    private class Envelope(val levels: FloatArray, val bands: Array<FloatArray>)
+
+    private fun readEnvelope(file: File): Envelope? {
         val bytes = file.readBytes()
         if (bytes.size < 44 || String(bytes, 0, 4) != "RIFF" || String(bytes, 8, 4) != "WAVE") return null
         val b = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN)
@@ -165,15 +173,23 @@ class CallAudioPreview(context: Context) {
                 if (format != 1 || channels <= 0 || rate <= 0 || bits != 16) return null
                 val end = minOf(bytes.size.toLong(), start.toLong() + count).toInt()
                 val samplesPerWindow = (rate / 50 * channels).coerceAtLeast(1)
+                val framesPerWindow = samplesPerWindow / channels
                 val windows = (end - start) / 2 / samplesPerWindow
-                return FloatArray(windows) { window ->
+                val spectrum = VoiceSpectrum()
+                val mono = FloatArray(framesPerWindow)
+                val bands = arrayOfNulls<FloatArray>(windows)
+                val levels = FloatArray(windows) { window ->
                     var sum = 0.0
                     repeat(samplesPerWindow) { i ->
                         val sample = b.getShort(start + (window * samplesPerWindow + i) * 2) / 32768.0
                         sum += sample * sample
+                        if (i % channels == 0) mono[i / channels] = sample.toFloat()
                     }
-                    sqrt(sqrt(sum / samplesPerWindow) / 0.25).coerceIn(0.0, 1.0).toFloat()
+                    val rms = sqrt(sum / samplesPerWindow)
+                    bands[window] = if (rms < 0.003) FloatArray(VoiceSpectrum.BANDS) else spectrum.analyze(mono, 0, framesPerWindow, rate)
+                    sqrt(rms / 0.25).coerceIn(0.0, 1.0).toFloat()
                 }
+                return Envelope(levels, Array(windows) { bands[it] ?: FloatArray(VoiceSpectrum.BANDS) })
             }
             val next = start.toLong() + count + count % 2
             if (next > bytes.size) break

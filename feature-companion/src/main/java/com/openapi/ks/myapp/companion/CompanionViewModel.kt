@@ -312,6 +312,9 @@ class CompanionViewModel(
     /** 用户自己的音量 0..1（本地麦克风采集轨）。驱动通话页底部波形。 */
     val selfLevel: StateFlow<Float> get() = transport.selfLevel
 
+    /** 你的声音的频段能量（低频在前），与 [selfLevel] 一起驱动底部波形的形状。 */
+    val selfBands: StateFlow<FloatArray> get() = transport.selfBands
+
     /**
      * 用户点了她一下。
      *
