@@ -36,6 +36,19 @@ data class FileAttachment(
 )
 
 /**
+ * 已经上传到对象存储、要随本条消息一起发出的附件引用。
+ *
+ * 只带 `upload_id`，不重复传正文——图片在发送前已经由 [uploadImage] 传完。
+ * 一条用户消息的文字和它的所有附件在**同一个回合**里交给模型，
+ * 模型因此只回一次话；分成两个回合会让同一句话得到两条回复。
+ */
+data class OutgoingAttachment(
+    val uploadId: String,
+    val kind: MessageKind = MessageKind.IMAGE,
+    val name: String = "",
+)
+
+/**
  * 对话中的一条消息。纯 Kotlin，不依赖 Android 与任何 UI 框架。
  *
  * [id] 是服务端给的消息 id（对应老数据 ChatLog.chatId）；本地占位消息在拿到回复前

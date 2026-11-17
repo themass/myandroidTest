@@ -1,7 +1,7 @@
 # 多应用共享图片直传与 TOS 存储设计
 
-> 状态：**部分已实施**（v4）。§8 的 TOS 凭据修复、图片进模型、聊天图片走 `/v1` 已落地；
-> 客户端直传（§5）、头像与解题闭环（§7.2/§7.3）、签发记录表（§9）仍是提案。
+> 状态：**部分已实施**（v5）。已落地：§8 的 TOS 凭据修复、图片进模型、图文一个回合（不再拆成两条回复）、
+> 上传规则沉淀到 `agentkit.storage.media`。仍是提案：客户端直传（§5）、头像与解题闭环（§7.2/§7.3）、签发记录表（§9）。
 > 日期 2026-11-17（v3 引入登录态鉴权；v2 的应用级 HMAC 已撤销，见 git 历史）。
 > 适用：当前 Android 应用，以及计划复用流程的另外三个应用。
 > 范围：解题图片、聊天图片、账号头像。
@@ -221,25 +221,56 @@ POST /api/media/v1/read.json
 - **只改 `request.messages`，不碰 `state`。** 对话线程由 LangGraph checkpoint 持久化，每轮把历史重放给模型。一张 800 KiB 的图转 base64 约 1 MB；几轮之后 checkpoint 会涨到几十 MB，每轮还要重新序列化和重发。中间件只改写这一次请求，checkpoint 里存的始终是纯文字。
 - **先 `get_owned` 再读。** 否则猜中一个 ULID 就能让模型看别人的图。别人的 `upload_id` 走的是「不存在」那条路，与读失败一样只跳过这一张并记日志——文字照常进模型，一张图坏了不拖垮整轮。
 
-### 8.3 三类图同一条链路
+### 8.3 一条消息就是一个回合
 
-头像、消息图片、解题图片**共用**同一条通道，不各自发明：
+**这是 2026-11-17 修掉的一个真实缺陷。** 原来 Android 对每个附件单独发一次、有配文时再单独发一次文字，于是「这张图里是什么」（图 + 文字）会得到**两条回复**，界面上也被拆成两条——消息失真。
+
+现在：
+
+```text
+图片：静默上传 → upload_id（不产生回复）
+文字 + 所有 upload_id  →  一次 POST /v1/sessions/{id}/messages  →  一个回合  →  一条回复
+```
+
+服务端本来就是对的：`SubmitService.submit` 把 `text` 和 `attachments` 写进**同一条**消息（一次 `append`，`attachments` 进 `meta`），再起**一个**回合。缺陷全在客户端把一条消息拆成了多次提交。
+
+客户端的改法：`ChatRepository.uploadImage()`（只上传、不回复）替代了用 `sendAttachment()` 发图；`sendMessageStream(..., attachments)` 让文字和引用一起进同一个回合。
+
+> **`sendAttachment()` 仍然存在**，只给文件用。它是「上传并让模型据此回一句」的旧语义，拿它发图文消息必然拆成两条回复。
+
+### 8.4 三类图同一条链路，规则沉淀在 agentkit
+
+头像、消息图片、解题图片**共用**同一条通道：
 
 | | 场景 | 现状 |
 |---|---|---|
-| 消息图片 | `chat-image` | **已改**：`sendAttachment` 的 IMAGE 分支走 `/v1/uploads` + `submitWithAttachments` |
-| 头像 | `user-avatar` | 待接（§7.3 的 `avatar_media_id` 闭环） |
-| 解题图片 | `solve-image` | 待接（§7.2，建议单独放宽到 2000px / 1.5MiB） |
+| 消息图片 | `chat-image` | **已改**：`uploadImage`（只上传）+ `sendMessageStream(attachments)`，一个回合 |
+| 头像 | `user-avatar` | 待接（§7.3 的 `avatar_media_id` 闭环），复用同一个 `MediaStore` |
+| 解题图片 | `solve-image` | 待接（§7.2，传更宽的 `ImageLimits`） |
 
-底层只有一份：`UploadService`（校验类型与像素、去 EXIF、统一转 JPEG、写 `TOS_KEY_PREFIX` 下的对象）+ `ObjectStore`。
+**规则只有一份，在 `agentkit/storage/media.py`**（另外几个应用接进来时直接用，不要各写一版）：
+
+| 能力 | API |
+|---|---|
+| 按文件头判类型（不信扩展名） | `detect_type` |
+| 大小 / 像素上限 | `check_size`、`check_pixels`，配 `ImageLimits` |
+| 去 EXIF（含 GPS）+ 缩放 + 统一转 JPEG | `normalize_image` |
+| 按前缀存取 | `MediaStore(objects, key_prefix=...)`：`key_for` / `accept` / `read` / `delete` |
+| 按场景调整上限 | `ImageLimits(max_bytes, max_pixels_side, long_edge, jpeg_quality)` |
+
+`MediaStore.read` 直接读字节不经签名 URL——模型看图走这条，签名 URL 是 bearer secret，不该出现在模型请求里。**归属校验不在这里**：谁能读某个 key 是产品自己的事（companion 用 `UploadService.get_owned`）。
+
+companion-agent 的 `service/uploads/policy.py` 与 `images.py` 现在只是转发，消除了它和共用包各有一份实现、迟早漂移的问题。
 
 **文件（非图片）仍走 legacy。** `/v1/uploads` 只认四种图片格式，`ChatRepository.sendAttachment` 的 FILE 分支继续委托旧 multipart 接口。这是能力缺口，不是绕路——要迁得先在 `/v1` 上补文件类型。
 
-### 8.4 agentkit 的改动
+### 8.5 agentkit 的其他改动
 
 `agentkit/storage/object_store.py` 加了 `presigned_put_url`（只签单 key 的写权限），给后续「客户端直传」用；今天 chat 走的是服务端中转，还不依赖它。
 
 companion-agent 自己的 `TosObjectStore` 是另一份实现（它不走 agentkit 的 `ObjectStore`），本次加了 `get`（读字节给模型）和 `check_bucket`（启动自检）。
+
+`agentkit.storage.media.normalize_image` 需要 Pillow，做成了可选 extra `agentkit[image]`——只有规范化图片的服务才要装，只用类型判断和大小限制的不需要。
 
 ## 9. 数据与清理
 

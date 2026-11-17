@@ -12,6 +12,7 @@ import com.openapi.feature.chat.domain.model.ChatSession
 import com.openapi.feature.chat.domain.model.ChatStreamEvent
 import com.openapi.feature.chat.domain.model.HistoryPage
 import com.openapi.feature.chat.domain.model.MessageKind
+import com.openapi.feature.chat.domain.model.OutgoingAttachment
 import com.openapi.feature.chat.domain.repository.ChatRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -101,6 +102,7 @@ class AgentBackedChatRepository(
         roleId: String?,
         persistUserMessage: Boolean,
         clientMessageId: String?,
+        attachments: List<OutgoingAttachment>,
     ): Flow<ChatStreamEvent> = flow {
         val guard = MigrationGuard
         val sid = resolveSessionId(sessionId, roleId, characterId)
@@ -124,7 +126,22 @@ class AgentBackedChatRepository(
                     )
                 }
             }
-            val receipt = remote.submit(sid, userText, clientId)
+            val receipt = if (attachments.isEmpty()) {
+                remote.submit(sid, userText, clientId)
+            } else {
+                // 文字和附件一起提交：服务端把它们存成同一条消息、跑同一个回合，
+                // 模型因此只回一次话。分成两轮会让同一句话得到两条回复。
+                remote.submitWithAttachments(
+                    sessionId = sid,
+                    text = userText,
+                    clientMessageId = clientId,
+                    attachments = attachments.map {
+                        JSONObject().put("upload_id", it.uploadId)
+                            .put("kind", it.kind.name.lowercase())
+                            .put("name", it.name)
+                    },
+                )
+            }
             collectTurn(sid, receipt.turnId, assistantId, clientId, userText, persistUserMessage)
         } finally {
             guard.end()
@@ -399,6 +416,10 @@ class AgentBackedChatRepository(
      * `turn_runner._load_images` 与 `ImageAttachmentMiddleware`），所以这里必须带 `upload_id`
      * 而不是本地路径——本地路径只有这台手机认识。
      */
+    /** 上传图片拿 upload_id，不产生回复。图片附件走这条，文字与它合成一个回合（见 ChatRepository.uploadImage）。 */
+    override suspend fun uploadImage(localFile: File, fileName: String): String? =
+        runCatching { withContext(Dispatchers.IO) { remote.upload(localFile, mimeOf(localFile)) } }.getOrNull()
+
     override suspend fun sendAttachment(
         sessionId: Long,
         kind: MessageKind,
