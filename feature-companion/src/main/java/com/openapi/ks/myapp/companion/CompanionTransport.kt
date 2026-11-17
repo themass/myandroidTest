@@ -81,6 +81,16 @@ interface CompanionTransport {
         get() = silentMouth
 
     /**
+     * **用户自己**声音的频段能量，[VoiceSpectrum.BANDS] 个 0..1 的值，低频在前。
+     *
+     * 与 [selfLevel] 同一个回调里算出：音量决定波形整体多高，频段决定形状——
+     * 低沉和尖细的声音画出来不一样。默认空数组：没有采集能力的替身不该编造频谱，
+     * 界面在空数组时只按音量画。
+     */
+    val selfBands: StateFlow<FloatArray>
+        get() = noBands
+
+    /**
      * 是否在出声。false 时调用方应当把远端音量降到 0（[setPlaybackAudible]）。
      *
      * 退出通话页只改变形态，房间并不断开——但用户的心智是「我挂断了，她不该还在说话」。
@@ -123,6 +133,9 @@ private val defaultConnected: StateFlow<TransportConnection> =
 
 /** [CompanionTransport.mouthLevel] 的默认值：没有音频轨就等于一直闭着嘴。 */
 private val silentMouth: StateFlow<Float> = MutableStateFlow(0f).asStateFlow()
+
+/** [CompanionTransport.selfBands] 的默认值：没有采集就没有频谱。 */
+private val noBands: StateFlow<FloatArray> = MutableStateFlow(FloatArray(0)).asStateFlow()
 
 /**
  * 测试与离线开发用的替身：逐词吐出一段固定回复，并在开头发一个情绪事件。
