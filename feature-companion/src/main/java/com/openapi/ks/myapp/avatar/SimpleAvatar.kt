@@ -273,7 +273,7 @@ private fun FileLayer(file: File?) {
 
 private const val MAX_LAYER_PX = 1600
 
-private fun decodeScaled(file: File): ImageBitmap? {
+internal fun decodeScaled(file: File): ImageBitmap? {
     val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
     BitmapFactory.decodeFile(file.path, bounds)
     if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null

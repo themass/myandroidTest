@@ -44,11 +44,17 @@ import com.openapi.common.util.android.PreferenceUtils
 import com.openapi.feature.companion.R
 import com.openapi.core.config.Constants
 import com.openapi.ks.myapp.avatar.AvatarPackStore
+import com.openapi.ks.myapp.avatar.BundledAvatars
+import com.openapi.ks.myapp.avatar.LayeredAvatar
+import com.openapi.ks.myapp.avatar.LayeredAvatarPack
 import com.openapi.ks.myapp.avatar.AvatarPortrait
 import com.openapi.ks.myapp.avatar.AvatarSpec
 import com.openapi.ks.myapp.avatar.SimpleAvatar
 import com.openapi.ks.myapp.avatar.SimpleAvatarRenderer
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
+import androidx.compose.runtime.produceState
 
 /** 陪伴界面里能去的页面。聊天是主页面，其余三个从顶部进入。 */
 enum class CompanionPage { CHAT, CHARACTERS, MEMORY, SETTINGS }
@@ -238,6 +244,19 @@ fun CompanionRoute(
             avatarStore.avatarFor(characterId)?.let { avatarStore.load(it) }
         }
 
+        // 分层形象优先：已绑定的角色用它自己的包；没绑定的角色暂用内置示例形象（见 BundledAvatars）。
+        val layeredPack by produceState<LayeredAvatarPack?>(initialValue = null, characterId, avatarStore) {
+            value = withContext(Dispatchers.IO) {
+                val bound = avatarStore.avatarFor(characterId)
+                if (bound != null) {
+                    avatarStore.loadLayered(bound)
+                } else {
+                    runCatching { BundledAvatars.ensureDemo(context, avatarStore) }
+                    avatarStore.loadLayered(BundledAvatars.DEMO_KEY)
+                }
+            }
+        }
+
         // 通话页用**会动的**形象，而不是单张立绘：这里是她被盯着看最久的地方，
         // 一张不眨眼、不说话的照片比不显示还糟。嘴型由远端音频振幅驱动，
         // 眨眼/呼吸由渲染器自己跑。素材缺失时退回单张立绘，再缺就退回字标。
@@ -249,6 +268,17 @@ fun CompanionRoute(
             onDispose { callAvatarRenderer.release() }
         }
         val avatarSlot: (@Composable () -> Unit)? = when {
+            layeredPack != null -> {
+                val pack = layeredPack!!
+                {
+                    LayeredAvatar(
+                        pack = pack,
+                        modifier = Modifier.fillMaxSize(),
+                        mouthLevel = chatViewModel.mouthLevel,
+                        onTapped = chatViewModel::onAvatarTapped,
+                    )
+                }
+            }
             avatarFiles != null -> {
                 {
                     SimpleAvatar(
